@@ -1,11 +1,11 @@
 {
-     File:       HIToolbox/HIShape.h
+     File:       HIServices/HIShape.h
  
      Contains:   Generic Abstract Shape API
  
-     Version:    HIToolbox-219.4.81~2
+     Version:    HIServices-308~1
  
-     Copyright:  © 2001-2005 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 2001-2008 by Apple Computer, Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -37,12 +37,14 @@
 {This file was processed by Dan's Source Converter}
 {version 1.3 (this version modified by Ingemar Ragnemalm)}
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -51,8 +53,8 @@
 
 unit HIShape;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -65,16 +67,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -82,14 +106,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -115,7 +190,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -125,7 +199,12 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,CFBase,CGContext,Drag,Quickdraw,CarbonEvents,HIGeometry;
+uses MacTypes,CFBase,CGBase,CGContext,CGGeometry,Drag,QuickdrawTypes,CarbonEvents,HIGeometry;
+{$endc} {not MACOSALLINCLUDE}
+
+
+{$ifc TARGET_OS_MAC}
+
 {$ALIGN POWER}
 
 
@@ -144,28 +223,139 @@ uses MacTypes,CFBase,CGContext,Drag,Quickdraw,CarbonEvents,HIGeometry;
  *    created and passed around and 'copied' very quickly, since they
  *    are actually refcounted when copied. This avoids needing to do
  *    the handle-to-handle copies that occur right now with
- *    RgnHandle-based APIs.
+ *    RgnHandle-based APIs. 
+ *    
+ *    Thread Safety Information 
+ *    
+ *    On Mac OS X 10.5 and later, all of the HIShape APIs are thread
+ *    safe. However, only the APIs are thread safe; the HIShapeRefs
+ *    themselves are not. It is safe to call HIShape APIs on multiple
+ *    threads, so long as no two threads try to operate on the same
+ *    HIShapeRef at the same time. 
+ *    
+ *    If you need multiple threads to operate on a single HIShapeRef at
+ *    the same time, you must implement your own locking mechanism.
  }
 type
-	HIShapeRef = ^SInt32; { an opaque 32-bit type }
+	HIShapeRef = ^SInt32; { an opaque type }
+	HIMutableShapeRef = ^SInt32; { an opaque type }
+
+{
+ *  Summary:
+ *    Messages passed to an HIShapeEnumeratorProcPtr callback.
+ }
+const
+{
+   * The callback receives this message at the beginning of enumeration.
+   }
+	kHIShapeEnumerateInit = 1;
+
+  {
+   * The callback receives this message when it is passed a rectangular
+   * portion of the shape.
+   }
+	kHIShapeEnumerateRect = 2;
+
+  {
+   * The callback receives this message at the end of enumeration.
+   }
+	kHIShapeEnumerateTerminate = 3;
+
+
+{
+ *  Summary:
+ *    Options for HIShapeEnumerate.
+ }
+const
+{
+   * Enumeration should begin at the top of the shape. This is the
+   * default behavior.
+   }
+	kHIShapeParseFromTop = 0;
+
+  {
+   * Enumeration should begin at the bottom of the shape.
+   }
+	kHIShapeParseFromBottom = 1 shl 0;
+
+  {
+   * Enumeration should begin at the left side of the shape. This is
+   * the default behavior.
+   }
+	kHIShapeParseFromLeft = 0;
+
+  {
+   * Enumeration should begin at the right side of the shape.
+   }
+	kHIShapeParseFromRight = 1 shl 1;
+
+  {
+   * Enumeration should begin at the top left corner of the shape. This
+   * is the default behavior.
+   }
+	kHIShapeParseFromTopLeft = kHIShapeParseFromTop or kHIShapeParseFromLeft;
+
+  {
+   * Enumeration should begin at the bottom right corner of the shape.
+   }
+	kHIShapeParseFromBottomRight = kHIShapeParseFromBottom or kHIShapeParseFromRight;
+
+
+{
+ *  HIShapeEnumerateProcPtr
+ *  
+ *  Summary:
+ *    Callback function that receives rectangles parsed from an HIShape.
+ *  
+ *  Parameters:
+ *    
+ *    inMessage:
+ *      One of kHIShapeEnumerateInit, kHIShapeEnumerateRect, or
+ *      kHIShapeEnumerateTerminate.
+ *    
+ *    inShape:
+ *      The shape being enumerated.
+ *    
+ *    inRect:
+ *      If inMessage is kHIShapeEnumerateRect, this parameter is a
+ *      rectangle that forms part of the shape. If inMessage is
+ *      kHIShapeEnumerateInit or kHIShapeEnumerateTerminate, the value
+ *      of this parameter is undefined.
+ *    
+ *    inRefcon:
+ *      Client-provided data that was passed to HIShapeEnumerate.
+ *  
+ *  Result:
+ *    The callback should return noErr to continue enumeration, or any
+ *    other error code to stop enumeration. If the callback returns a
+ *    value other than noErr in response to the Init message, then the
+ *    callback will not be called with the Rect or Terminate messages.
+ *    If the callback returns a value other than noErr in response to a
+ *    Rect message, then the callback will still be called with a
+ *    Terminate message. The first value other than noErr returned by
+ *    the callback is also returned from HIShapeEnumerate.
+ }
 type
-	HIMutableShapeRef = ^SInt32; { an opaque 32-bit type }
-
-
+	HIShapeEnumerateProcPtr = function( inMessage: SInt32; inShape: HIShapeRef; const (*var*) inRect: CGRect; inRefcon: UnivPtr ): OSStatus;
 {
  *  HIShapeGetTypeID()
  *  
  *  Discussion:
- *    Returns the CF type ID for the HIShape class.
+ *    Returns the CoreFoundation type ID for the HIShape class.
+ *    
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Result:
- *    A CF type ID.
+ *    A CoreFoundation type ID.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
@@ -180,16 +370,20 @@ function HIShapeGetTypeID: CFTypeID; external name '_HIShapeGetTypeID';
  *  HIShapeCreateEmpty()
  *  
  *  Discussion:
- *    Creates an immutable empty shape. Useful at times.
+ *    Creates an immutable empty shape. Useful at times. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Result:
  *    An immutable, empty HIShape reference.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in Carbon.framework
+ *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
  *    Non-Carbon CFM:   not available
  }
@@ -202,10 +396,14 @@ function HIShapeCreateEmpty: HIShapeRef; external name '_HIShapeCreateEmpty';
  *  
  *  Discussion:
  *    Creates an immutable shape based on an existing Quickdraw region
- *    handle.
+ *    handle. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -216,7 +414,7 @@ function HIShapeCreateEmpty: HIShapeRef; external name '_HIShapeCreateEmpty';
  *    An immutable HIShape reference.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
@@ -229,25 +427,29 @@ function HIShapeCreateWithQDRgn( inRgn: RgnHandle ): HIShapeRef; external name '
  *  
  *  Discussion:
  *    Creates an immutable, rectangular shape based on a given
- *    rectangle.
+ *    rectangle. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
  *    inRect:
- *      The HIRect from which to create the resulting shape.
+ *      The CGRect from which to create the resulting shape.
  *  
  *  Result:
  *    An immutable HIShape reference.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
-function HIShapeCreateWithRect( const (*var*) inRect: HIRect ): HIShapeRef; external name '_HIShapeCreateWithRect';
+function HIShapeCreateWithRect( const (*var*) inRect: CGRect ): HIShapeRef; external name '_HIShapeCreateWithRect';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
@@ -256,9 +458,14 @@ function HIShapeCreateWithRect( const (*var*) inRect: HIRect ): HIShapeRef; exte
  *  
  *  Discussion:
  *    Creates an immutable copy of a mutable or immutable HIShape.
+ *    
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -269,7 +476,7 @@ function HIShapeCreateWithRect( const (*var*) inRect: HIRect ): HIShapeRef; exte
  *    An immutable HIShape reference.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
@@ -282,10 +489,14 @@ function HIShapeCreateCopy( inShape: HIShapeRef ): HIShapeRef; external name '_H
  *  
  *  Discussion:
  *    Creates a new immutable shape which is the intersection of two
- *    others.
+ *    others. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -299,7 +510,7 @@ function HIShapeCreateCopy( inShape: HIShapeRef ): HIShapeRef; external name '_H
  *    A new immutable HIShapeRef.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
@@ -312,10 +523,14 @@ function HIShapeCreateIntersection( inShape1: HIShapeRef; inShape2: HIShapeRef )
  *  
  *  Discussion:
  *    Creates a new immutable shape which is the difference of two
- *    others. The second shape is subtracted from the first.
+ *    others. The second shape is subtracted from the first. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -329,7 +544,7 @@ function HIShapeCreateIntersection( inShape1: HIShapeRef; inShape2: HIShapeRef )
  *    A new immutable HIShapeRef.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
@@ -342,9 +557,14 @@ function HIShapeCreateDifference( inShape1: HIShapeRef; inShape2: HIShapeRef ): 
  *  
  *  Discussion:
  *    Creates a new immutable shape which is the union of two others.
+ *    
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -358,7 +578,7 @@ function HIShapeCreateDifference( inShape1: HIShapeRef; inShape2: HIShapeRef ): 
  *    A new immutable HIShapeRef.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
@@ -367,14 +587,52 @@ function HIShapeCreateUnion( inShape1: HIShapeRef; inShape2: HIShapeRef ): HISha
 
 
 {
+ *  HIShapeCreateXor()
+ *  
+ *  Discussion:
+ *    Creates a new immutable shape which is the difference between the
+ *    union and the intersection of the two others. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.5
+ *  
+ *  Parameters:
+ *    
+ *    inShape1:
+ *      An existing HIShapeRef.
+ *    
+ *    inShape2:
+ *      An existing HIShapeRef.
+ *  
+ *  Result:
+ *    A new immutable HIShapeRef.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function HIShapeCreateXor( inShape1: HIShapeRef; inShape2: HIShapeRef ): HIShapeRef; external name '_HIShapeCreateXor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+
+
+{
  *  HIShapeIsEmpty()
  *  
  *  Discussion:
  *    Returns true if the given HIShapeRef is empty, i.e. its area is
- *    empty.
+ *    empty. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -385,7 +643,7 @@ function HIShapeCreateUnion( inShape1: HIShapeRef; inShape2: HIShapeRef ): HISha
  *    A boolean result.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
@@ -397,10 +655,14 @@ function HIShapeIsEmpty( inShape: HIShapeRef ): Boolean; external name '_HIShape
  *  HIShapeIsRectangular()
  *  
  *  Discussion:
- *    Returns true if the given HIShapeRef is rectangular.
+ *    Returns true if the given HIShapeRef is rectangular. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -411,7 +673,7 @@ function HIShapeIsEmpty( inShape: HIShapeRef ): Boolean; external name '_HIShape
  *    A boolean result.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
@@ -423,10 +685,15 @@ function HIShapeIsRectangular( inShape: HIShapeRef ): Boolean; external name '_H
  *  HIShapeContainsPoint()
  *  
  *  Discussion:
- *    Returns true if the given HIShapeRef contains the point passed in.
+ *    Returns true if the given HIShapeRef contains the point passed
+ *    in. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -440,11 +707,11 @@ function HIShapeIsRectangular( inShape: HIShapeRef ): Boolean; external name '_H
  *    A boolean result.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
-function HIShapeContainsPoint( inShape: HIShapeRef; const (*var*) inPoint: HIPoint ): Boolean; external name '_HIShapeContainsPoint';
+function HIShapeContainsPoint( inShape: HIShapeRef; const (*var*) inPoint: CGPoint ): Boolean; external name '_HIShapeContainsPoint';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
@@ -453,10 +720,14 @@ function HIShapeContainsPoint( inShape: HIShapeRef; const (*var*) inPoint: HIPoi
  *  
  *  Discussion:
  *    Returns true if the given HIShapeRef intersects the rect passed
- *    in.
+ *    in. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -470,11 +741,11 @@ function HIShapeContainsPoint( inShape: HIShapeRef; const (*var*) inPoint: HIPoi
  *    A boolean result.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.4 and later in Carbon.framework
+ *    Mac OS X:         in version 10.4 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.4 and later
  *    Non-Carbon CFM:   not available
  }
-function HIShapeIntersectsRect( inShape: HIShapeRef; const (*var*) inRect: HIRect ): Boolean; external name '_HIShapeIntersectsRect';
+function HIShapeIntersectsRect( inShape: HIShapeRef; const (*var*) inRect: CGRect ): Boolean; external name '_HIShapeIntersectsRect';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 
@@ -482,10 +753,14 @@ function HIShapeIntersectsRect( inShape: HIShapeRef; const (*var*) inRect: HIRec
  *  HIShapeGetBounds()
  *  
  *  Discussion:
- *    Returns the bounding rectangle of a given HIShapeRef.
+ *    Returns the bounding rectangle of a given HIShapeRef. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -499,11 +774,11 @@ function HIShapeIntersectsRect( inShape: HIShapeRef; const (*var*) inRect: HIRec
  *    A pointer to the rectangle you passed in, for convenience.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
-function HIShapeGetBounds( inShape: HIShapeRef; var outRect: HIRect ): HIRectPtr; external name '_HIShapeGetBounds';
+function HIShapeGetBounds( inShape: HIShapeRef; var outRect: CGRect ): CGRectPtr; external name '_HIShapeGetBounds';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
@@ -514,10 +789,14 @@ function HIShapeGetBounds( inShape: HIShapeRef; var outRect: HIRect ): HIRectPtr
  *    Changes a given Quickdraw region handle to have the same shape as
  *    a given HIShapeRef. Essentially you are converting an HIShapeRef
  *    into a RgnHandle. This conversion may lose fidelity depending on
- *    how the shape was created originally.
+ *    how the shape was created originally. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -531,7 +810,7 @@ function HIShapeGetBounds( inShape: HIShapeRef; var outRect: HIRect ): HIRectPtr
  *    An operating system status code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
@@ -546,10 +825,14 @@ function HIShapeGetAsQDRgn( inShape: HIShapeRef; outRgn: RgnHandle ): OSStatus; 
  *    Given an HIShapeRef and a CGContextRef, make the current path in
  *    the context represent the shape. You might use this to clip to a
  *    shape, for example. You could call this function and then
- *    immediately call CGContextClip.
+ *    immediately call CGContextClip. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -563,7 +846,7 @@ function HIShapeGetAsQDRgn( inShape: HIShapeRef; outRgn: RgnHandle ): OSStatus; 
  *    An operating system status code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
@@ -571,15 +854,20 @@ function HIShapeReplacePathInCGContext( inShape: HIShapeRef; inContext: CGContex
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
+{$ifc not TARGET_CPU_64}
 {
  *  HIShapeSetQDClip()
  *  
  *  Discussion:
  *    Given an HIShapeRef and a Quickdraw port, set the current clip in
- *    the port to the shape.
+ *    the port to the shape. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -593,12 +881,56 @@ function HIShapeReplacePathInCGContext( inShape: HIShapeRef; inContext: CGContex
  *    An operating system status code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
 function HIShapeSetQDClip( inShape: HIShapeRef; inPort: CGrafPtr ): OSStatus; external name '_HIShapeSetQDClip';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+
+
+{$endc} {not TARGET_CPU_64}
+
+{
+ *  HIShapeEnumerate()
+ *  
+ *  Discussion:
+ *    Parses a shape into its constituent rectangles and passes each
+ *    rectangle to a callback function. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.5
+ *  
+ *  Parameters:
+ *    
+ *    inShape:
+ *      The shape to enumerate.
+ *    
+ *    inOptions:
+ *      Options controlling how to enumerate the shape.
+ *    
+ *    inProc:
+ *      The callback function that will be called with each rectangle.
+ *    
+ *    inRefcon:
+ *      Extra data that will be passed to the callback function.
+ *  
+ *  Result:
+ *    The function result is the value returned by the callback
+ *    function: noErr if the callback always returns noErr, or the
+ *    first non-noErr value returned by the callback.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function HIShapeEnumerate( inShape: HIShapeRef; inOptions: OptionBits; inProc: HIShapeEnumerateProcPtr; inRefcon: UnivPtr ): OSStatus; external name '_HIShapeEnumerate';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
 
 {======================================================================================}
@@ -608,16 +940,20 @@ function HIShapeSetQDClip( inShape: HIShapeRef; inPort: CGrafPtr ): OSStatus; ex
  *  HIShapeCreateMutable()
  *  
  *  Discussion:
- *    Creates a new, mutable, empty shape.
+ *    Creates a new, mutable, empty shape. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Result:
  *    A mutable shape reference.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
@@ -630,9 +966,14 @@ function HIShapeCreateMutable: HIMutableShapeRef; external name '_HIShapeCreateM
  *  
  *  Discussion:
  *    Given an existing HIShapeRef, creates a new mutable copy.
+ *    
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -643,7 +984,7 @@ function HIShapeCreateMutable: HIMutableShapeRef; external name '_HIShapeCreateM
  *    A mutable shape reference.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
@@ -652,13 +993,44 @@ function HIShapeCreateMutableCopy( inOrig: HIShapeRef ): HIMutableShapeRef; exte
 
 
 {
+ *  HIShapeCreateMutableWithRect()
+ *  
+ *  Discussion:
+ *    Creates a mutable HIShapeRef based on a given rectangle. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.5
+ *  
+ *  Parameters:
+ *    
+ *    inRect:
+ *      The rectangle from which to create the shape.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function HIShapeCreateMutableWithRect( const (*var*) inRect: CGRect ): HIMutableShapeRef; external name '_HIShapeCreateMutableWithRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+
+
+{
  *  HIShapeSetEmpty()
  *  
  *  Discussion:
- *    Sets a mutable shape to be an empty shape.
+ *    Sets a mutable shape to be an empty shape. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -669,7 +1041,7 @@ function HIShapeCreateMutableCopy( inOrig: HIShapeRef ): HIMutableShapeRef; exte
  *    An operating system status code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
@@ -678,13 +1050,53 @@ function HIShapeSetEmpty( inShape: HIMutableShapeRef ): OSStatus; external name 
 
 
 {
+ *  HIShapeSetWithShape()
+ *  
+ *  Discussion:
+ *    Sets a mutable shape to have the same contents as another shape.
+ *    
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.5
+ *  
+ *  Parameters:
+ *    
+ *    inDestShape:
+ *      The mutable destination shape.
+ *    
+ *    inSrcShape:
+ *      The source shape. This shape's contents will be copied into
+ *      inDestShape.
+ *  
+ *  Result:
+ *    An operating system status code.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function HIShapeSetWithShape( inDestShape: HIMutableShapeRef; inSrcShape: HIShapeRef ): OSStatus; external name '_HIShapeSetWithShape';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+
+
+{
  *  HIShapeIntersect()
  *  
  *  Discussion:
  *    Takes two shapes and sets a third to be their intersection.
+ *    
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -696,13 +1108,13 @@ function HIShapeSetEmpty( inShape: HIMutableShapeRef ): OSStatus; external name 
  *    
  *    outResult:
  *      The shape to receive the result of the intersection. This can
- *      be one of the source shapes.
+ *      be one of the source shapes. This shape must be mutable.
  *  
  *  Result:
  *    An operating system status code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
@@ -715,10 +1127,14 @@ function HIShapeIntersect( inShape1: HIShapeRef; inShape2: HIShapeRef; outResult
  *  
  *  Discussion:
  *    Takes two shapes and sets a third to be their difference. The
- *    second shape is subtracted from the first.
+ *    second shape is subtracted from the first. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -730,13 +1146,13 @@ function HIShapeIntersect( inShape1: HIShapeRef; inShape2: HIShapeRef; outResult
  *    
  *    outResult:
  *      The shape to receive the result of the intersection. This can
- *      be one of the source shapes.
+ *      be one of the source shapes. This shape must be mutable.
  *  
  *  Result:
  *    An operating system status code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
@@ -748,10 +1164,20 @@ function HIShapeDifference( inShape1: HIShapeRef; inShape2: HIShapeRef; outResul
  *  HIShapeUnion()
  *  
  *  Discussion:
- *    Takes two shapes and sets a third to be their union.
+ *    Takes two shapes and sets a third to be their union. 
+ *    
+ *    On Mac OS X 10.2 and 10.3, this API incorrectly required that the
+ *    result shape be immutable. On Mac OS X 10.4 and later, this API
+ *    correctly requires that the result shape be mutable. If you need
+ *    to run on both 10.4 and earlier releases, you will need to
+ *    account for this difference. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -763,13 +1189,15 @@ function HIShapeDifference( inShape1: HIShapeRef; inShape2: HIShapeRef; outResul
  *    
  *    outResult:
  *      The shape to receive the result of the union. This can be one
- *      of the source shapes.
+ *      of the source shapes. On Mac OS X 10.2 and 10.3, this shape
+ *      must be immutable, but it will be set to the unioned shape
+ *      anyways. On Mac OS X 10.4 and later, this shape must be mutable.
  *  
  *  Result:
  *    An operating system status code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
@@ -778,13 +1206,55 @@ function HIShapeUnion( inShape1: HIShapeRef; inShape2: HIShapeRef; outResult: HI
 
 
 {
+ *  HIShapeXor()
+ *  
+ *  Discussion:
+ *    Takes two shapes and sets a third to be the difference between
+ *    the union and the intersection of the two shapes. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.5
+ *  
+ *  Parameters:
+ *    
+ *    inShape1:
+ *      The first shape.
+ *    
+ *    inShape2:
+ *      The second shape.
+ *    
+ *    outResult:
+ *      The shape to receive the result of the xor operation. This can
+ *      be one of the source shapes. This shape must be mutable.
+ *  
+ *  Result:
+ *    An operating system status code.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function HIShapeXor( inShape1: HIShapeRef; inShape2: HIShapeRef; outResult: HIMutableShapeRef ): OSStatus; external name '_HIShapeXor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+
+
+{
  *  HIShapeOffset()
  *  
  *  Discussion:
- *    Offsets a shape by some delta.
+ *    Offsets a shape by some delta. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
  *  
  *  Mac OS X threading:
- *    Not thread safe
+ *    Thread safe since version 10.5
  *  
  *  Parameters:
  *    
@@ -801,12 +1271,84 @@ function HIShapeUnion( inShape1: HIShapeRef; inShape2: HIShapeRef; outResult: HI
  *    An operating system status code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
-function HIShapeOffset( inShape: HIMutableShapeRef; inDX: Float32; inDY: Float32 ): OSStatus; external name '_HIShapeOffset';
+function HIShapeOffset( inShape: HIMutableShapeRef; inDX: CGFloat; inDY: CGFloat ): OSStatus; external name '_HIShapeOffset';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
+{
+ *  HIShapeInset()
+ *  
+ *  Discussion:
+ *    Contracts or expands a shape by some delta. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.5
+ *  
+ *  Parameters:
+ *    
+ *    inShape:
+ *      The shape to inset.
+ *    
+ *    inDX:
+ *      The delta to contract the shape on the X axis. Can be negative
+ *      to expand the shape.
+ *    
+ *    inDY:
+ *      The delta to contract the shape on the Y axis. Can be negative
+ *      to expand the shape.
+ *  
+ *  Result:
+ *    An operating system status code.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function HIShapeInset( inShape: HIMutableShapeRef; inDX: CGFloat; inDY: CGFloat ): OSStatus; external name '_HIShapeInset';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+
+
+{
+ *  HIShapeUnionWithRect()
+ *  
+ *  Discussion:
+ *    Unions a shape with a rectangle. 
+ *    
+ *    This API is thread safe only on Mac OS X 10.5 and later; see the
+ *    Thread Safety Information section at the top of the header for
+ *    other important details.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.5
+ *  
+ *  Parameters:
+ *    
+ *    inShape:
+ *      The shape to combine with the rectangle.
+ *    
+ *    inRect:
+ *      The rectangle to combine with the shape.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in ApplicationServices.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function HIShapeUnionWithRect( inShape: HIMutableShapeRef; const (*var*) inRect: CGRect ): OSStatus; external name '_HIShapeUnionWithRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+
+{$endc} {TARGET_OS_MAC}
+
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
+
 end.
+{$endc} {not MACOSALLINCLUDE}

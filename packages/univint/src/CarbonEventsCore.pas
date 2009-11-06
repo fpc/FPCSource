@@ -3,9 +3,9 @@
  
      Contains:   Carbon Event Manager
  
-     Version:    HIToolbox-219.4.81~2
+     Version:    HIToolbox-437~1
  
-     Copyright:  © 1999-2005 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 1999-2008 by Apple Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,12 +14,14 @@
  
 }
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -28,8 +30,8 @@
 
 unit CarbonEventsCore;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -42,16 +44,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -59,14 +83,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -92,7 +167,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -102,8 +176,12 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,CFBase;
+uses MacTypes,CFBase,CGEventTypes,HIGeometry;
+{$endc} {not MACOSALLINCLUDE}
 
+
+
+{$ifc TARGET_OS_MAC}
 
 {$ALIGN MAC68K}
 
@@ -111,7 +189,8 @@ uses MacTypes,CFBase;
 {  The core data structure of the Carbon Event system                                  }
 {======================================================================================}
 type
-	EventRef = ^SInt32; { an opaque 32-bit type }
+	EventRef = ^SInt32; { an opaque type }
+	EventRefPtr = ^EventRef;
 {======================================================================================}
 {  EVENT COMMON                                                                        }
 {======================================================================================}
@@ -130,7 +209,7 @@ const
 	eventAlreadyPostedErr = -9860;
 
   {
-   * You are attemtping to modify a target that is currently in use,
+   * You are attempting to modify a target that is currently in use,
    * such as when dispatching.
    }
 	eventTargetBusyErr = -9861;
@@ -215,7 +294,10 @@ const
    * Returned from RegisterEventHotKey when an attempt is made to
    * register a hotkey that is already registered in the current
    * process. (Note that it is not an error to register the same hotkey
-   * in multiple processes.)
+   * in multiple processes.) Also returned if an attempt is made to
+   * register a hotkey using the kEventHotKeyExclusive option when
+   * another process has already registered the same hotkey with the
+   * kEventHotKeyExclusive option.
    }
 	eventHotKeyExistsErr = -9878;
 
@@ -260,17 +342,23 @@ const
             typeCFTypeRef
             typeHIAccessibleObjectRef
             
-        Retained in Panther and later:
+        Retained in 10.3 and later:
         
             typeEventRef
             typeCFArrayRef
             typeCFDictionaryRef:
             typeCFMutableDictionaryRef
             
-        Retained in Tiger and later:
+        Retained in 10.4 and later:
         
             typeHIShapeRef
             typeMenuRef
+            
+        Retained in 10.5 and later:
+        
+            typeCTFontRef
+            typeCTGlyphInfoRef
+            typeCFAttributedStringRef
             
     Note that other data types may be retained in future releases of Mac OS X.
     Apple recommends that if you need to know whether a particular data type
@@ -278,14 +366,9 @@ const
     count of an instance of that data type before and after adding it to an EventRef.
 }
 const
-	typeCFStringRef = FourCharCode('cfst'); { CFStringRef}
-	typeCFMutableStringRef = FourCharCode('cfms'); { CFMutableStringRef}
-	typeCFArrayRef = FourCharCode('cfar'); { CFArrayRef}
-	typeCFMutableArrayRef = FourCharCode('cfma'); { CFMutableArrayRef}
-	typeCFDictionaryRef = FourCharCode('cfdc'); { CFDictionaryRef}
-	typeCFMutableDictionaryRef = FourCharCode('cfmd'); { CFMutableDictionaryRef}
-	typeCFTypeRef = FourCharCode('cfty'); { CFTypeRef}
 	typeDragRef = FourCharCode('drag'); { DragRef}
+	typeCTFontRef = FourCharCode('ctfr'); { CTFontRef}
+	typeCTGlyphInfoRef = FourCharCode('ctgi'); { CTGlyphInfoRef}
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Event Flags, options                                                              }
@@ -373,7 +456,7 @@ const
  }
 type
 	EventTypeSpec = record
-		eventClass: UInt32;
+		eventClass: OSType;
 		eventKind: UInt32;
 	end;
 	EventTypeSpecPtr = ^EventTypeSpec;
@@ -406,7 +489,7 @@ type
  *    share the main thread's event loop.
  }
 type
-	EventLoopRef = ^SInt32; { an opaque 32-bit type }
+	EventLoopRef = ^SInt32; { an opaque type }
 {
  *  GetCurrentEventLoop()
  *  
@@ -487,7 +570,13 @@ function RunCurrentEventLoop( inTimeout: EventTimeout ): OSStatus; external name
  *    similar to WakeUpProcess, in that it causes the eventloop
  *    specified to return immediately (as opposed to timing out).
  *    Typically this call is used in conjunction with
- *    RunCurrentEventLoop.
+ *    RunCurrentEventLoop. 
+ *    
+ *    Note that this call is meant to be used while the event loop is
+ *    running; i.e., you would typically call this API from a timer
+ *    callback or some other callback that is invoked by
+ *    RunCurrentEventLoop or ReceiveNextEvent. This API has no effect
+ *    if it is called while you are not inside the event loop.
  *  
  *  Mac OS X threading:
  *    Thread safe
@@ -589,7 +678,7 @@ function GetCFRunLoopFromEventLoop( inEventLoop: EventLoopRef ): CFTypeRef; exte
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
-function ReceiveNextEvent( inNumTypes: UInt32; {const} inList: {variable-size-array} EventTypeSpecPtr; inTimeout: EventTimeout; inPullEvent: Boolean; var outEvent: EventRef ): OSStatus; external name '_ReceiveNextEvent';
+function ReceiveNextEvent( inNumTypes: ItemCount; {const} inList: {variable-size-array} EventTypeSpecPtr; inTimeout: EventTimeout; inPullEvent: Boolean; var outEvent: EventRef ): OSStatus; external name '_ReceiveNextEvent';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -664,9 +753,9 @@ const
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
-function CreateEvent( inAllocator: CFAllocatorRef { can be NULL }; inClassID: UInt32; inKind: UInt32; inWhen: EventTime; inAttributes: EventAttributes; var outEvent: EventRef ): OSStatus; external name '_CreateEvent';
+function CreateEvent( inAllocator: CFAllocatorRef { can be NULL }; inClassID: OSType; inKind: UInt32; inWhen: EventTime; inAttributes: EventAttributes; var outEvent: EventRef ): OSStatus; external name '_CreateEvent';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-function MacCreateEvent__NAMED_CreateEvent( inAllocator: CFAllocatorRef { can be NULL }; inClassID: UInt32; inKind: UInt32; inWhen: EventTime; inAttributes: EventAttributes; var outEvent: EventRef ): OSStatus; external name '_MacCreateEvent__NAMED_CreateEvent';
+function MacCreateEvent__NAMED_CreateEvent( inAllocator: CFAllocatorRef { can be NULL }; inClassID: OSType; inKind: UInt32; inWhen: EventTime; inAttributes: EventAttributes; var outEvent: EventRef ): OSStatus; external name '_MacCreateEvent__NAMED_CreateEvent';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -738,7 +827,7 @@ function CopyEvent( inOther: EventRef ): EventRef; external name '_CopyEvent';
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
-function CopyEventAs( inAllocator: CFAllocatorRef { can be NULL }; inOther: EventRef; inEventClass: UInt32; inEventKind: UInt32 ): EventRef; external name '_CopyEventAs';
+function CopyEventAs( inAllocator: CFAllocatorRef { can be NULL }; inOther: EventRef; inEventClass: OSType; inEventKind: UInt32 ): EventRef; external name '_CopyEventAs';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
@@ -799,7 +888,7 @@ function RetainEvent( inEvent: EventRef ): EventRef; external name '_RetainEvent
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
-function GetEventRetainCount( inEvent: EventRef ): UInt32; external name '_GetEventRetainCount';
+function GetEventRetainCount( inEvent: EventRef ): ItemCount; external name '_GetEventRetainCount';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -873,7 +962,7 @@ procedure ReleaseEvent( inEvent: EventRef ); external name '_ReleaseEvent';
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
-function SetEventParameter( inEvent: EventRef; inName: EventParamName; inType: EventParamType; inSize: UInt32; inDataPtr: {const} UnivPtr ): OSStatus; external name '_SetEventParameter';
+function SetEventParameter( inEvent: EventRef; inName: EventParamName; inType: EventParamType; inSize: ByteCount; inDataPtr: {const} UnivPtr ): OSStatus; external name '_SetEventParameter';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -927,8 +1016,38 @@ function SetEventParameter( inEvent: EventRef; inName: EventParamName; inType: E
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
-function GetEventParameter( inEvent: EventRef; inName: EventParamName; inDesiredType: EventParamType; outActualType: EventParamTypePtr { can be NULL }; inBufferSize: UInt32; outActualSize: UInt32Ptr { can be NULL }; outData: UnivPtr { can be NULL } ): OSStatus; external name '_GetEventParameter';
+function GetEventParameter( inEvent: EventRef; inName: EventParamName; inDesiredType: EventParamType; outActualType: EventParamTypePtr { can be NULL }; inBufferSize: ByteCount; outActualSize: ByteCountPtr { can be NULL }; outData: UnivPtr { can be NULL } ): OSStatus; external name '_GetEventParameter';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
+{
+ *  RemoveEventParameter()
+ *  
+ *  Summary:
+ *    Removes a piece of data from the given event, if it exists.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inEvent:
+ *      The event to remove the data from.
+ *    
+ *    inName:
+ *      The symbolic name of the parameter.
+ *  
+ *  Result:
+ *    An operating system result code. eventParameterNotFoundErr is
+ *    returned if the specified parameter is not present in the event.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in Carbon.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function RemoveEventParameter( inEvent: EventRef; inName: EventParamName ): OSStatus; external name '_RemoveEventParameter';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -957,7 +1076,7 @@ function GetEventParameter( inEvent: EventRef; inName: EventParamName; inDesired
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
-function GetEventClass( inEvent: EventRef ): UInt32; external name '_GetEventClass';
+function GetEventClass( inEvent: EventRef ): OSType; external name '_GetEventClass';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -1054,11 +1173,98 @@ function SetEventTime( inEvent: EventRef; inTime: EventTime ): OSStatus; externa
 
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
+{  ¥ CGEventRef support                                                                }
+{ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
+{
+ *  CreateEventWithCGEvent()
+ *  
+ *  Summary:
+ *    Creates a Carbon event using the contents of a CGEventRef. The
+ *    event class and kind are determined by the type of CGEventRef
+ *    that is passed, and cannot be specified by the caller. The event
+ *    timestamp is copied from the CGEventRef timestamp.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inAllocator:
+ *      The CFAllocator to use to allocate the event data. You can pass
+ *      NULL or kCFAllocatorDefault to use the standard allocator.
+ *    
+ *    inEvent:
+ *      The CGEventRef from which the Carbon event should be created.
+ *      This parameter will be retained by the Carbon event, and
+ *      released when the Carbon event is released.
+ *    
+ *    inAttributes:
+ *      The event attributes. Typically this should be
+ *      kEventAttributeNone.
+ *    
+ *    outEvent:
+ *      On exit, if this function returns noErr, then the new event
+ *      will be written to this location.
+ *  
+ *  Result:
+ *    An operating system result code, including paramErr if the
+ *    CGEventRef is not of a type that can be converted into a Carbon
+ *    event.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in Carbon.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function CreateEventWithCGEvent( inAllocator: CFAllocatorRef; inEvent: CGEventRef; inAttributes: EventAttributes; var outEvent: EventRef ): OSStatus; external name '_CreateEventWithCGEvent';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+
+
+{
+ *  CopyEventCGEvent()
+ *  
+ *  Summary:
+ *    Returns the CGEventRef associated with a Carbon event, or NULL if
+ *    the event has no CGEventRef.
+ *  
+ *  Discussion:
+ *    This API returns the CGEventRef associated with a Carbon event if
+ *    the Carbon event was originally created using a CGEventRef.
+ *    Typically, this only applies to user-input Carbon events such as
+ *    keyboard and mouse events. Carbon events that were created using
+ *    CreateEvent do not have a CGEventRef associated with them; for
+ *    example, kEventWindowUpdate has no CGEventRef. For such events,
+ *    this API returns NULL.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inEvent:
+ *      The Carbon event whose CGEventRef you would like.
+ *  
+ *  Result:
+ *    The CGEventRef associated with the Carbon event, or NULL if the
+ *    event has no CGEventRef. If a CGEventRef is returned, then it has
+ *    been retained by this function, and should be released by the
+ *    caller.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in Carbon.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function CopyEventCGEvent( inEvent: EventRef ): CGEventRef; external name '_CopyEventCGEvent';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+
+
+{ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Event Queue routines (posting, finding, flushing)                                 }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 
 type
-	EventQueueRef = ^SInt32; { an opaque 32-bit type }
+	EventQueueRef = ^SInt32; { an opaque type }
 {
  *  GetCurrentEventQueue()
  *  
@@ -1170,8 +1376,32 @@ function InvokeEventComparatorUPP( inEvent: EventRef; inCompareData: UnivPtr; us
  *  Discussion:
  *    Posts an event to the specified queue and increments the event's
  *    retain count. This automatically wakes up the event loop of the
- *    thread the queue belongs to. After posting the event, you may
- *    release the event, since it is retained by the queue.
+ *    thread to which the queue belongs. After posting the event, you
+ *    may release the event, since it is retained by the queue. If the
+ *    event is already contained in any event queue,
+ *    eventAlreadyPostedErr will be returned and the event will not be
+ *    posted. 
+ *    
+ *    If the event is posted to the main event queue, then the event
+ *    will be retrieved and dispatched by a subsequent call to the
+ *    event loop by the main thread. If the event is posted to an event
+ *    queue of a non-main thread, then that thread must be running its
+ *    own event loop (calling ReceiveNextEvent and dispatching the
+ *    event) for the event to be removed and dispatched. 
+ *    
+ *    If the event uses a standard event class (such as
+ *    kEventClassWindow), then the event dispatcher will send the event
+ *    to an appropriate event target (such as the specified window); if
+ *    the event uses a custom event class, then the event dispatcher
+ *    will send the event to the application target. 
+ *    
+ *    For custom event classes, you may specify a destination event
+ *    target other than the application target by adding the
+ *    kEventParamPostTarget event parameter to the event before posting
+ *    it. The parameter should contain the event target to which the
+ *    event should be sent. You may specify custom event target sending
+ *    options by adding the kEventParamPostOptions event parameter to
+ *    the event.
  *  
  *  Mac OS X threading:
  *    Thread safe
@@ -1188,7 +1418,9 @@ function InvokeEventComparatorUPP( inEvent: EventRef; inCompareData: UnivPtr; us
  *      The priority of the event.
  *  
  *  Result:
- *    An operating system result code.
+ *    An operating system result code. eventAlreadyPostedErr is
+ *    returned if the event is already contained in any event queue,
+ *    and in this case the event will not be posted.
  *  
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in Carbon.framework
@@ -1204,7 +1436,13 @@ function PostEventToQueue( inQueue: EventQueueRef; inEvent: EventRef; inPriority
  *  
  *  Discussion:
  *    Flushes events matching a specified list of classes and kinds
- *    from an event queue.
+ *    from an event queue. 
+ *    
+ *    This API may be safely used by any thread to flush the events
+ *    from that thread's event queue. Prior to Mac OS X 10.5, it is
+ *    unsafe to call this API from any thread other than the main
+ *    thread when flushing the main event queue. The main event queue
+ *    may be flushed from any thread in Mac OS X 10.5 and later.
  *  
  *  Mac OS X threading:
  *    Thread safe
@@ -1228,7 +1466,7 @@ function PostEventToQueue( inQueue: EventQueueRef; inEvent: EventRef; inPriority
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
-function FlushEventsMatchingListFromQueue( inQueue: EventQueueRef; inNumTypes: UInt32; {const} inList: {variable-size-array} EventTypeSpecPtr ): OSStatus; external name '_FlushEventsMatchingListFromQueue';
+function FlushEventsMatchingListFromQueue( inQueue: EventQueueRef; inNumTypes: ItemCount; {const} inList: {variable-size-array} EventTypeSpecPtr ): OSStatus; external name '_FlushEventsMatchingListFromQueue';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -1236,7 +1474,13 @@ function FlushEventsMatchingListFromQueue( inQueue: EventQueueRef; inNumTypes: U
  *  FlushSpecificEventsFromQueue()
  *  
  *  Discussion:
- *    Flushes events that match a comparator function.
+ *    Flushes events that match a comparator function. 
+ *    
+ *    This API may be safely used by any thread to flush the events
+ *    from that thread's event queue. Prior to Mac OS X 10.5, it is
+ *    unsafe to call this API from any thread other than the main
+ *    thread when flushing the main event queue. The main event queue
+ *    may be flushed from any thread in Mac OS X 10.5 and later.
  *  
  *  Mac OS X threading:
  *    Thread safe
@@ -1268,7 +1512,13 @@ function FlushSpecificEventsFromQueue( inQueue: EventQueueRef; inComparator: Eve
  *  FlushEventQueue()
  *  
  *  Discussion:
- *    Flushes all events from an event queue.
+ *    Flushes all events from an event queue. 
+ *    
+ *    This API may be safely used by any thread to flush the events
+ *    from that thread's event queue. Prior to Mac OS X 10.5, it is
+ *    unsafe to call this API from any thread other than the main
+ *    thread when flushing the main event queue. The main event queue
+ *    may be flushed from any thread in Mac OS X 10.5 and later.
  *  
  *  Mac OS X threading:
  *    Thread safe
@@ -1348,7 +1598,7 @@ function FindSpecificEventInQueue( inQueue: EventQueueRef; inComparator: EventCo
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
-function GetNumEventsInQueue( inQueue: EventQueueRef ): UInt32; external name '_GetNumEventsInQueue';
+function GetNumEventsInQueue( inQueue: EventQueueRef ): ItemCount; external name '_GetNumEventsInQueue';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -1466,12 +1716,12 @@ const
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
-function AcquireFirstMatchingEventInQueue( inQueue: EventQueueRef; inNumTypes: UInt32; {const} inList: {variable-size-array} EventTypeSpecPtr; inOptions: OptionBits ): EventRef; external name '_AcquireFirstMatchingEventInQueue';
+function AcquireFirstMatchingEventInQueue( inQueue: EventQueueRef; inNumTypes: ItemCount; {const} inList: {variable-size-array} EventTypeSpecPtr; inOptions: OptionBits ): EventRef; external name '_AcquireFirstMatchingEventInQueue';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
-{  Queue-synchronized event state                                                      }
+{  Queue-synchronized event and input device state                                     }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {
  *  GetCurrentEvent()
@@ -1671,8 +1921,74 @@ function GetCurrentEventKeyModifiers: UInt32; external name '_GetCurrentEventKey
 
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
-{  Multiple-button support                                                             }
+{  Non-synchronized input device state                                                 }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
+
+{
+ *  HIGetMousePosition()
+ *  
+ *  Summary:
+ *    Returns the position of the mouse relative to the given object.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inSpace:
+ *      The HICoordinateSpace constant specifying the desired
+ *      coordinate space that the mouse position is to be relative to.
+ *    
+ *    inObject:
+ *      A specific object defining the destination coordinate space
+ *      that the point is to be returned in. You might pass a WindowRef
+ *      or an HIViewRef. If no object is necessary, you must pass NULL.
+ *      See the HICoordinateSpace documentation for details on which
+ *      HICoordinateSpaces require objects.
+ *    
+ *    outPoint:
+ *      A pointer to an HIPoint that will contain the mouse position on
+ *      exit. If any parameter is invalid, this will be returned as the
+ *      zero point.
+ *  
+ *  Result:
+ *    A pointer to the HIPoint passed in outPoint.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in Carbon.framework
+ *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.5 and later
+ *    Non-Carbon CFM:   not available
+ }
+function HIGetMousePosition( inSpace: HICoordinateSpace; inObject: UnivPtr; var outPoint: HIPoint ): HIPointPtr; external name '_HIGetMousePosition';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+
+
+{$ifc not TARGET_CPU_64}
+{
+ *  GetGlobalMouse()
+ *  
+ *  Summary:
+ *    Returns the position of the mouse in global coordinates.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    globalMouse:
+ *      On exit, contains the mouse position in global coordinates.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
+ }
+procedure GetGlobalMouse( var globalMouse: Point ); external name '_GetGlobalMouse';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
+{$endc} {not TARGET_CPU_64}
+
 {
  *  GetCurrentButtonState()
  *  
@@ -1713,6 +2029,48 @@ function GetCurrentEventKeyModifiers: UInt32; external name '_GetCurrentEventKey
  }
 function GetCurrentButtonState: UInt32; external name '_GetCurrentButtonState';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+
+
+{
+ *  GetCurrentKeyModifiers()
+ *  
+ *  Summary:
+ *    Returns the current hardware keyboard modifier state.
+ *  
+ *  Discussion:
+ *    In most cases, you should not use GetCurrentKeyModifiers, but
+ *    should use the GetCurrentEventKeyModifiers function instead.
+ *    GetCurrentEventKeyModifiers is much faster than
+ *    GetCurrentKeyModifiers because it returns the locally cached
+ *    modifier state; GetCurrentKeyModifiers must get the modifier
+ *    state from the window server, which is slower. Using
+ *    GetCurrentKeyModifiers also can prevent your application from
+ *    being operated by remote posting of events, since the hardware
+ *    input device is not actually changing state in that case. Most
+ *    commonly, you might need to use GetCurrentKeyModifiers when your
+ *    application is not the active application (as determined by the
+ *    Process Manager function GetFrontProcess). In that case, the
+ *    cached modifier state returned by GetCurrentEventKeyModifiers is
+ *    not valid because modifier-changed events are not flowing to your
+ *    application, and you must use GetCurrentKeyModifiers to determine
+ *    the current hardware state.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Result:
+ *    The hardware state of the keyboard modifiers. The format of the
+ *    return value is the same as the modifiers field of an EventRecord
+ *    (but only includes keyboard modifiers and not the other modifier
+ *    flags included in an EventRecord).
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   not available
+ }
+function GetCurrentKeyModifiers: UInt32; external name '_GetCurrentKeyModifiers';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -1776,7 +2134,7 @@ function GetCurrentEventTime: EventTime; external name '_GetCurrentEventTime';
  *    change the port out from under someone.
  }
 type
-	EventLoopTimerRef = ^SInt32; { an opaque 32-bit type }
+	EventLoopTimerRef = ^SInt32; { an opaque type }
 
 {
  *  EventLoopTimerProcPtr
@@ -1969,6 +2327,7 @@ function InstallEventLoopTimer( inEventLoop: EventLoopRef; inFireDelay: EventTim
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
+{$ifc not TARGET_CPU_64}
 {
  *  InstallEventLoopIdleTimer()
  *  
@@ -2022,13 +2381,15 @@ function InstallEventLoopTimer( inEventLoop: EventLoopRef; inFireDelay: EventTim
  *    An operating system status code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
 function InstallEventLoopIdleTimer( inEventLoop: EventLoopRef; inDelay: EventTimerInterval; inInterval: EventTimerInterval; inTimerProc: EventLoopIdleTimerUPP; inTimerData: UnivPtr; var outTimer: EventLoopTimerRef ): OSStatus; external name '_InstallEventLoopIdleTimer';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
+
+{$endc} {not TARGET_CPU_64}
 
 {
  *  RemoveEventLoopTimer()
@@ -2101,9 +2462,9 @@ function SetEventLoopTimerNextFireTime( inTimer: EventLoopTimerRef; inNextFire: 
 {======================================================================================}
 
 type
-	EventHandlerRef = ^SInt32; { an opaque 32-bit type }
+	EventHandlerRef = ^SInt32; { an opaque type }
 	EventHandlerRefPtr = ^EventHandlerRef;
-	EventHandlerCallRef = ^SInt32; { an opaque 32-bit type }
+	EventHandlerCallRef = ^SInt32; { an opaque type }
 	EventHandlerCallRefPtr = ^EventHandlerCallRef;
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -2181,7 +2542,7 @@ function InvokeEventHandlerUPP( inHandlerCallRef: EventHandlerCallRef; inEvent: 
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 type
-	EventTargetRef = ^SInt32; { an opaque 32-bit type }
+	EventTargetRef = ^SInt32; { an opaque type }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Installing Event Handlers                                                         }
 { Use these routines to install event handlers for a specific toolbox object. You may  }
@@ -2245,45 +2606,7 @@ type
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
-function InstallEventHandler( inTarget: EventTargetRef; inHandler: EventHandlerUPP; inNumTypes: UInt32; {const} inList: {variable-size-array} EventTypeSpecPtr; inUserData: UnivPtr; outRef: EventHandlerRefPtr { can be NULL } ): OSStatus; external name '_InstallEventHandler';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
-
-{
- *  InstallStandardEventHandler()
- *  
- *  Summary:
- *    Installs the standard event handler (if any) for an event target.
- *  
- *  Discussion:
- *    All event targets have default handlers installed on them by the
- *    toolbox to perform certain basic operations common to that type
- *    of target. Some targets also have standard handlers which are not
- *    installed by default, but may be requested. A standard handler
- *    typically provides higher-level behavior for its target.
- *    Currently, only window event targets have a standard handler; the
- *    window standard event hander may also be installed by setting the
- *    kWindowStandardHandlerAttribute flag. Calling
- *    InstallStandardEventHandler on any other type of target
- *    (application, control, menu, etc.) has no effect.
- *  
- *  Mac OS X threading:
- *    Not thread safe
- *  
- *  Parameters:
- *    
- *    inTarget:
- *      The target whose standard handler should be installed.
- *  
- *  Result:
- *    An operating system result code.
- *  
- *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
- *    CarbonLib:        in CarbonLib 1.1 and later
- *    Non-Carbon CFM:   not available
- }
-function InstallStandardEventHandler( inTarget: EventTargetRef ): OSStatus; external name '_InstallStandardEventHandler';
+function InstallEventHandler( inTarget: EventTargetRef; inHandler: EventHandlerUPP; inNumTypes: ItemCount; {const} inList: {variable-size-array} EventTypeSpecPtr; inUserData: UnivPtr; outRef: EventHandlerRefPtr { can be NULL } ): OSStatus; external name '_InstallEventHandler';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -2320,6 +2643,83 @@ function RemoveEventHandler( inHandlerRef: EventHandlerRef ): OSStatus; external
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
+{$ifc not TARGET_CPU_64}
+{
+ *  InstallStandardEventHandler()
+ *  
+ *  Summary:
+ *    Installs the standard event handler (if any) for an event target.
+ *  
+ *  Discussion:
+ *    All event targets have default handlers installed on them by the
+ *    toolbox to perform certain basic operations common to that type
+ *    of target. Some targets also have standard handlers which are not
+ *    installed by default, but may be requested. A standard handler
+ *    typically provides higher-level behavior for its target. Prior to
+ *    Mac OS X 10.5, only  window event targets have a standard
+ *    handler; the window standard event hander may also be installed
+ *    by setting the kWindowStandardHandlerAttribute flag. In Mac OS X
+ *    10.5 and later, the application and menubar event targets also
+ *    support standard event handlers. Calling
+ *    InstallStandardEventHandler on any other type of target (control,
+ *    menu, etc.) has no effect. 
+ *    
+ *    In Mac OS X 10.5 and later, InstallStandardEventHandler records
+ *    the number of installation requests, and
+ *    RemoveStandardEventHandler does not actually remove the standard
+ *    handler until the count has been reduced to zero.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inTarget:
+ *      The target whose standard handler should be installed.
+ *  
+ *  Result:
+ *    An operating system result code.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
+ *    CarbonLib:        in CarbonLib 1.1 and later
+ *    Non-Carbon CFM:   not available
+ }
+function InstallStandardEventHandler( inTarget: EventTargetRef ): OSStatus; external name '_InstallStandardEventHandler';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
+{
+ *  RemoveStandardEventHandler()
+ *  
+ *  Summary:
+ *    Removes the standard event handler (if any) for an event target.
+ *  
+ *  Discussion:
+ *    InstallStandardEventHandler records the number of installation
+ *    requests, and RemoveStandardEventHandler does not actually remove
+ *    the standard handler until the count has been reduced to zero.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inTarget:
+ *      The target whose standard handler should be removed.
+ *  
+ *  Result:
+ *    An operating system result code.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function RemoveStandardEventHandler( inTarget: EventTargetRef ): OSStatus; external name '_RemoveStandardEventHandler';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+
+
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Adjusting set of event types after a handler is created                           }
 { After installing a handler with the routine above, you can adjust the event type     }
@@ -2333,6 +2733,8 @@ function RemoveEventHandler( inHandlerRef: EventHandlerRef ): OSStatus; external
 { can successfully do so without affecting the base class's reception of its event     }
 { types, yielding eternal bliss.                                                       }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
+
+{$endc} {not TARGET_CPU_64}
 
 {
  *  AddEventTypesToHandler()
@@ -2363,7 +2765,7 @@ function RemoveEventHandler( inHandlerRef: EventHandlerRef ): OSStatus; external
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
-function AddEventTypesToHandler( inHandlerRef: EventHandlerRef; inNumTypes: UInt32; {const} inList: {variable-size-array} EventTypeSpecPtr ): OSStatus; external name '_AddEventTypesToHandler';
+function AddEventTypesToHandler( inHandlerRef: EventHandlerRef; inNumTypes: ItemCount; {const} inList: {variable-size-array} EventTypeSpecPtr ): OSStatus; external name '_AddEventTypesToHandler';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -2396,7 +2798,7 @@ function AddEventTypesToHandler( inHandlerRef: EventHandlerRef; inNumTypes: UInt
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
-function RemoveEventTypesFromHandler( inHandlerRef: EventHandlerRef; inNumTypes: UInt32; {const} inList: {variable-size-array} EventTypeSpecPtr ): OSStatus; external name '_RemoveEventTypesFromHandler';
+function RemoveEventTypesFromHandler( inHandlerRef: EventHandlerRef; inNumTypes: ItemCount; {const} inList: {variable-size-array} EventTypeSpecPtr ): OSStatus; external name '_RemoveEventTypesFromHandler';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -2653,7 +3055,9 @@ function DisableSecureEventInput: OSStatus; external name '_DisableSecureEventIn
 function IsSecureEventInputEnabled: Boolean; external name '_IsSecureEventInputEnabled';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
+{$endc} {TARGET_OS_MAC}
 
-
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

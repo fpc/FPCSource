@@ -1,12 +1,11 @@
 {
-     File:       LowMem.p
+     File:       CarbonCore/LowMem.h
  
      Contains:   Low Memory Accessor Interfaces.
  
-     Version:    Technology: Mac OS 8.1
-                 Release:    Universal Interfaces 3.4.2
+     Version:    CarbonCore-859.2~1
  
-     Copyright:  © 1993-2002 by Apple Computer, Inc., all rights reserved
+     Copyright:  © 1993-2008 by Apple Computer, Inc., all rights reserved
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,14 +13,14 @@
                      http://www.freepascal.org/bugs.html
  
 }
-
-
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -30,8 +29,8 @@
 
 unit LowMem;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -44,16 +43,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -61,14 +82,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -94,7 +166,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -104,12 +175,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,Files,MacMemory,OSUtils,Resources,Quickdraw,Controls,Events,Menus,Fonts,MacWindows;
+uses MacTypes,Files;
+{$endc} {not MACOSALLINCLUDE}
 
 
-{$ifc NOT OPAQUE_TOOLBOX_STRUCTS}
-{$endc}
-
+{$ifc TARGET_OS_MAC}
 
 {$ALIGN MAC68K}
 
@@ -174,817 +244,420 @@ uses MacTypes,Files,MacMemory,OSUtils,Resources,Quickdraw,Controls,Events,Menus,
 
 }
 
+{$ifc not TARGET_CPU_64}
 {
- *  LMGetMemTop()
+ *  LMGetMemTop()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetMemTop: Ptr; external name '_LMGetMemTop';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMSetMemTop()
+ *  LMSetMemTop()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetMemTop(value: Ptr); external name '_LMSetMemTop';
+procedure LMSetMemTop( value: Ptr ); external name '_LMSetMemTop';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMGetBufPtr()
+ *  LMGetBufPtr()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetBufPtr: Ptr; external name '_LMGetBufPtr';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMSetBufPtr()
+ *  LMSetBufPtr()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetBufPtr(value: Ptr); external name '_LMSetBufPtr';
+procedure LMSetBufPtr( value: Ptr ); external name '_LMSetBufPtr';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMGetHeapEnd()
+ *  LMGetHeapEnd()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetHeapEnd: Ptr; external name '_LMGetHeapEnd';
-{
- *  LMSetHeapEnd()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetHeapEnd(value: Ptr); external name '_LMSetHeapEnd';
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetTheZone()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetTheZone: THz; external name '_LMGetTheZone';
-{
- *  LMSetTheZone()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetTheZone(value: THz); external name '_LMSetTheZone';
-{
- *  LMGetUTableBase()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetUTableBase: Ptr; external name '_LMGetUTableBase';
-{
- *  LMSetUTableBase()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetUTableBase(value: Ptr); external name '_LMSetUTableBase';
-{$endc}  {CALL_NOT_IN_CARBON}
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  LMGetCPUFlag()
+ *  LMSetHeapEnd()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-function LMGetCPUFlag: ByteParameter; external name '_LMGetCPUFlag';
-{
- *  LMSetCPUFlag()
- *  
- *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
  }
-procedure LMSetCPUFlag(value: ByteParameter); external name '_LMSetCPUFlag';
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetApplLimit()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetApplLimit: Ptr; external name '_LMGetApplLimit';
-{
- *  LMSetApplLimit()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetApplLimit(value: Ptr); external name '_LMSetApplLimit';
-{
- *  LMGetSysEvtMask()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSysEvtMask: SInt16; external name '_LMGetSysEvtMask';
-{  Carbon Usage: use SetEventMask }
-{
- *  LMSetSysEvtMask()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSysEvtMask(value: SInt16); external name '_LMSetSysEvtMask';
-{$endc}  {CALL_NOT_IN_CARBON}
+procedure LMSetHeapEnd( value: Ptr ); external name '_LMSetHeapEnd';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  LMGetRndSeed()
+ *  LMGetCPUFlag()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ }
+function LMGetCPUFlag: UInt8; external name '_LMGetCPUFlag';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{
+ *  LMSetCPUFlag()   *** DEPRECATED ***
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ }
+procedure LMSetCPUFlag( value: ByteParameter ); external name '_LMSetCPUFlag';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{
+ *  LMGetRndSeed()   *** DEPRECATED ***
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetRndSeed: SInt32; external name '_LMGetRndSeed';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMSetRndSeed()
+ *  LMSetRndSeed()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetRndSeed(value: SInt32); external name '_LMSetRndSeed';
+procedure LMSetRndSeed( value: SInt32 ); external name '_LMSetRndSeed';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMGetSEvtEnb()
+ *  LMGetSEvtEnb()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function LMGetSEvtEnb: ByteParameter; external name '_LMGetSEvtEnb';
+function LMGetSEvtEnb: UInt8; external name '_LMGetSEvtEnb';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMSetSEvtEnb()
+ *  LMSetSEvtEnb()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetSEvtEnb(value: ByteParameter); external name '_LMSetSEvtEnb';
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetTicks()
- *  
- *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  }
-function LMGetTicks: UInt32; external name '_LMGetTicks';
-{
- *  LMSetTicks()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetTicks(value: UInt32); external name '_LMSetTicks';
-{
- *  LMGetVIA()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetVIA: Ptr; external name '_LMGetVIA';
-{
- *  LMSetVIA()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetVIA(value: Ptr); external name '_LMSetVIA';
-{
- *  LMGetSCCRd()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSCCRd: Ptr; external name '_LMGetSCCRd';
-{
- *  LMSetSCCRd()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSCCRd(value: Ptr); external name '_LMSetSCCRd';
-{
- *  LMGetSCCWr()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSCCWr: Ptr; external name '_LMGetSCCWr';
-{
- *  LMSetSCCWr()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSCCWr(value: Ptr); external name '_LMSetSCCWr';
-{
- *  LMGetSPValid()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSPValid: ByteParameter; external name '_LMGetSPValid';
-{
- *  LMSetSPValid()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSPValid(value: ByteParameter); external name '_LMSetSPValid';
-{
- *  LMGetSPATalkA()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSPATalkA: ByteParameter; external name '_LMGetSPATalkA';
-{
- *  LMSetSPATalkA()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSPATalkA(value: ByteParameter); external name '_LMSetSPATalkA';
-{
- *  LMGetSPATalkB()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSPATalkB: ByteParameter; external name '_LMGetSPATalkB';
-{
- *  LMSetSPATalkB()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSPATalkB(value: ByteParameter); external name '_LMSetSPATalkB';
-{
- *  LMGetSPConfig()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSPConfig: ByteParameter; external name '_LMGetSPConfig';
-{
- *  LMSetSPConfig()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSPConfig(value: ByteParameter); external name '_LMSetSPConfig';
-{
- *  LMGetSPPortA()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSPPortA: SInt16; external name '_LMGetSPPortA';
-{
- *  LMSetSPPortA()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSPPortA(value: SInt16); external name '_LMSetSPPortA';
-{
- *  LMGetSPPortB()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSPPortB: SInt16; external name '_LMGetSPPortB';
-{
- *  LMSetSPPortB()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSPPortB(value: SInt16); external name '_LMSetSPPortB';
-{
- *  LMGetSPAlarm()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSPAlarm: SInt32; external name '_LMGetSPAlarm';
-{
- *  LMSetSPAlarm()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSPAlarm(value: SInt32); external name '_LMSetSPAlarm';
-{
- *  LMGetSPFont()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSPFont: SInt16; external name '_LMGetSPFont';
-{
- *  LMSetSPFont()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSPFont(value: SInt16); external name '_LMSetSPFont';
-{
- *  LMGetSPKbd()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSPKbd: ByteParameter; external name '_LMGetSPKbd';
-{
- *  LMSetSPKbd()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSPKbd(value: ByteParameter); external name '_LMSetSPKbd';
-{
- *  LMGetSPPrint()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSPPrint: ByteParameter; external name '_LMGetSPPrint';
-{
- *  LMSetSPPrint()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSPPrint(value: ByteParameter); external name '_LMSetSPPrint';
-{
- *  LMGetSPVolCtl()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSPVolCtl: ByteParameter; external name '_LMGetSPVolCtl';
-{
- *  LMSetSPVolCtl()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSPVolCtl(value: ByteParameter); external name '_LMSetSPVolCtl';
-{
- *  LMGetSPClikCaret()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSPClikCaret: ByteParameter; external name '_LMGetSPClikCaret';
-{
- *  LMSetSPClikCaret()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSPClikCaret(value: ByteParameter); external name '_LMSetSPClikCaret';
-{
- *  LMGetSPMisc2()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSPMisc2: ByteParameter; external name '_LMGetSPMisc2';
-{
- *  LMSetSPMisc2()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSPMisc2(value: ByteParameter); external name '_LMSetSPMisc2';
-{  Carbon Usage: use GetDateTime }
-{
- *  LMGetTime()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetTime: SInt32; external name '_LMGetTime';
-{  Carbon Usage: use SetDateTime }
-{
- *  LMSetTime()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetTime(value: SInt32); external name '_LMSetTime';
-{$endc}  {CALL_NOT_IN_CARBON}
+procedure LMSetSEvtEnb( value: ByteParameter ); external name '_LMSetSEvtEnb';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{$endc} {not TARGET_CPU_64}
 
 {
  *  LMGetBootDrive()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetBootDrive: SInt16; external name '_LMGetBootDrive';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 {
  *  LMSetBootDrive()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetBootDrive(value: SInt16); external name '_LMSetBootDrive';
-{$ifc CALL_NOT_IN_CARBON}
+procedure LMSetBootDrive( value: SInt16 ); external name '_LMSetBootDrive';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
+{$ifc not TARGET_CPU_64}
 {
- *  LMGetSFSaveDisk()
+ *  LMGetSdVolume()   *** DEPRECATED ***
  *  
  *  Availability:
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  }
-function LMGetSFSaveDisk: SInt16; external name '_LMGetSFSaveDisk';
-{
- *  LMSetSFSaveDisk()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSFSaveDisk(value: SInt16); external name '_LMSetSFSaveDisk';
-{$endc}  {CALL_NOT_IN_CARBON}
+function LMGetSdVolume: UInt8; external name '_LMGetSdVolume';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  LMGetMemErr()
+ *  LMSetSdVolume()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function LMGetMemErr: SInt16; external name '_LMGetMemErr';
+procedure LMSetSdVolume( value: ByteParameter ); external name '_LMSetSdVolume';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMSetMemErr()
+ *  LMGetSoundPtr()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetMemErr(value: SInt16); external name '_LMSetMemErr';
-{
- *  LMGetSdVolume()
- *  
- *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-function LMGetSdVolume: ByteParameter; external name '_LMGetSdVolume';
-{
- *  LMSetSdVolume()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetSdVolume(value: ByteParameter); external name '_LMSetSdVolume';
-{
- *  LMGetSoundPtr()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
  }
 function LMGetSoundPtr: Ptr; external name '_LMGetSoundPtr';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMSetSoundPtr()
+ *  LMSetSoundPtr()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetSoundPtr(value: Ptr); external name '_LMSetSoundPtr';
+procedure LMSetSoundPtr( value: Ptr ); external name '_LMSetSoundPtr';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMGetSoundBase()
+ *  LMGetSoundBase()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetSoundBase: Ptr; external name '_LMGetSoundBase';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMSetSoundBase()
+ *  LMSetSoundBase()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetSoundBase(value: Ptr); external name '_LMSetSoundBase';
+procedure LMSetSoundBase( value: Ptr ); external name '_LMSetSoundBase';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMGetSoundLevel()
+ *  LMGetSoundLevel()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function LMGetSoundLevel: ByteParameter; external name '_LMGetSoundLevel';
+function LMGetSoundLevel: UInt8; external name '_LMGetSoundLevel';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMSetSoundLevel()
+ *  LMSetSoundLevel()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetSoundLevel(value: ByteParameter); external name '_LMSetSoundLevel';
+procedure LMSetSoundLevel( value: ByteParameter ); external name '_LMSetSoundLevel';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMGetCurPitch()
+ *  LMGetCurPitch()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetCurPitch: SInt16; external name '_LMGetCurPitch';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMSetCurPitch()
+ *  LMSetCurPitch()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetCurPitch(value: SInt16); external name '_LMSetCurPitch';
-{$ifc CALL_NOT_IN_CARBON}
+procedure LMSetCurPitch( value: SInt16 ); external name '_LMSetCurPitch';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
+{$endc} {not TARGET_CPU_64}
+
 {
  *  LMGetROM85()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function LMGetROM85: SInt16; external name '_LMGetROM85';
+
+
 {
  *  LMSetROM85()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetROM85(value: SInt16); external name '_LMSetROM85';
+
+
 {
  *  LMGetPortBUse()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function LMGetPortBUse: ByteParameter; external name '_LMGetPortBUse';
+
+
 {
  *  LMSetPortBUse()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetPortBUse(value: ByteParameter); external name '_LMSetPortBUse';
+
+
 {
  *  LMGetGNEFilter()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function LMGetGNEFilter: GetNextEventFilterUPP; external name '_LMGetGNEFilter';
+
+
 {
  *  LMSetGNEFilter()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetGNEFilter(value: GetNextEventFilterUPP); external name '_LMSetGNEFilter';
-{$endc}  {CALL_NOT_IN_CARBON}
 
-{
- *  LMGetSysZone()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-function LMGetSysZone: THz; external name '_LMGetSysZone';
-{
- *  LMSetSysZone()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetSysZone(value: THz); external name '_LMSetSysZone';
-{
- *  LMGetApplZone()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-function LMGetApplZone: THz; external name '_LMGetApplZone';
-{
- *  LMSetApplZone()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetApplZone(value: THz); external name '_LMSetApplZone';
-{$ifc CALL_NOT_IN_CARBON}
+
 {
  *  LMGetROMBase()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function LMGetROMBase: Ptr; external name '_LMGetROMBase';
+
+
 {
  *  LMSetROMBase()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetROMBase(value: Ptr); external name '_LMSetROMBase';
+
+
 {
  *  LMGetRAMBase()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function LMGetRAMBase: Ptr; external name '_LMGetRAMBase';
+
+
 {
  *  LMSetRAMBase()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetRAMBase(value: Ptr); external name '_LMSetRAMBase';
+
+
 {
  *  LMGetDSAlertTab()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function LMGetDSAlertTab: Ptr; external name '_LMGetDSAlertTab';
+
+
 {
  *  LMSetDSAlertTab()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetDSAlertTab(value: Ptr); external name '_LMSetDSAlertTab';
+
+
 {
     NOTE:   LMGetABusVars and LMSetABusVars have been removed.
             Their implememtation in InterfaceLib was inconsistent
@@ -1003,2323 +676,814 @@ procedure LMSetDSAlertTab(value: Ptr); external name '_LMSetDSAlertTab';
  *  LMGetABusGlobals()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
-function LMGetABusGlobals: Ptr; external name '_LMGetABusGlobals';
+
+
 {
  *  LMGetABusDCE()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
-function LMGetABusDCE: Ptr; external name '_LMGetABusDCE';
+
+
 {
  *  LMSetABusGlobals()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
-procedure LMSetABusGlobals(value: Ptr); external name '_LMSetABusGlobals';
+
+
 {
  *  LMSetABusDCE()
  *  
  *  Availability:
+ *    Mac OS X:         not available
+ *    CarbonLib:        not available
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  }
-procedure LMSetABusDCE(value: Ptr); external name '_LMSetABusDCE';
-{  Carbon Usage: use GetDblTime }
+
+
+{$ifc not TARGET_CPU_64}
 {
- *  LMGetDoubleTime()
+ *  LMGetScrDmpEnb()   *** DEPRECATED ***
  *  
  *  Availability:
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  }
-function LMGetDoubleTime: UInt32; external name '_LMGetDoubleTime';
-{
- *  LMSetDoubleTime()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetDoubleTime(value: UInt32); external name '_LMSetDoubleTime';
-{  Carbon Usage: use GetCaretTime }
-{
- *  LMGetCaretTime()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetCaretTime: UInt32; external name '_LMGetCaretTime';
-{
- *  LMSetCaretTime()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetCaretTime(value: UInt32); external name '_LMSetCaretTime';
-{$endc}  {CALL_NOT_IN_CARBON}
+function LMGetScrDmpEnb: UInt8; external name '_LMGetScrDmpEnb';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  LMGetScrDmpEnb()
+ *  LMSetScrDmpEnb()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function LMGetScrDmpEnb: ByteParameter; external name '_LMGetScrDmpEnb';
+procedure LMSetScrDmpEnb( value: ByteParameter ); external name '_LMSetScrDmpEnb';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMSetScrDmpEnb()
+ *  LMGetBufTgFNum()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetScrDmpEnb(value: ByteParameter); external name '_LMSetScrDmpEnb';
-{
- *  LMGetBufTgFNum()
- *  
- *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
  }
 function LMGetBufTgFNum: SInt32; external name '_LMGetBufTgFNum';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMSetBufTgFNum()
+ *  LMSetBufTgFNum()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetBufTgFNum(value: SInt32); external name '_LMSetBufTgFNum';
+procedure LMSetBufTgFNum( value: SInt32 ); external name '_LMSetBufTgFNum';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMGetBufTgFFlg()
+ *  LMGetBufTgFFlg()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetBufTgFFlg: SInt16; external name '_LMGetBufTgFFlg';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMSetBufTgFFlg()
+ *  LMSetBufTgFFlg()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetBufTgFFlg(value: SInt16); external name '_LMSetBufTgFFlg';
+procedure LMSetBufTgFFlg( value: SInt16 ); external name '_LMSetBufTgFFlg';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMGetBufTgFBkNum()
+ *  LMGetBufTgFBkNum()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetBufTgFBkNum: SInt16; external name '_LMGetBufTgFBkNum';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMSetBufTgFBkNum()
+ *  LMSetBufTgFBkNum()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetBufTgFBkNum(value: SInt16); external name '_LMSetBufTgFBkNum';
+procedure LMSetBufTgFBkNum( value: SInt16 ); external name '_LMSetBufTgFBkNum';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMGetBufTgDate()
+ *  LMGetBufTgDate()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetBufTgDate: SInt32; external name '_LMGetBufTgDate';
-{
- *  LMSetBufTgDate()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetBufTgDate(value: SInt32); external name '_LMSetBufTgDate';
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetLo3Bytes()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetLo3Bytes: SInt32; external name '_LMGetLo3Bytes';
-{
- *  LMSetLo3Bytes()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetLo3Bytes(value: SInt32); external name '_LMSetLo3Bytes';
-{$endc}  {CALL_NOT_IN_CARBON}
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
 
 {
- *  LMGetMinStack()
+ *  LMSetBufTgDate()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ }
+procedure LMSetBufTgDate( value: SInt32 ); external name '_LMSetBufTgDate';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
+{
+ *  LMGetMinStack()   *** DEPRECATED ***
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetMinStack: SInt32; external name '_LMGetMinStack';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMSetMinStack()
+ *  LMSetMinStack()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetMinStack(value: SInt32); external name '_LMSetMinStack';
+procedure LMSetMinStack( value: SInt32 ); external name '_LMSetMinStack';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMGetDefltStack()
+ *  LMGetDefltStack()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetDefltStack: SInt32; external name '_LMGetDefltStack';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMSetDefltStack()
+ *  LMSetDefltStack()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetDefltStack(value: SInt32); external name '_LMSetDefltStack';
+procedure LMSetDefltStack( value: SInt32 ); external name '_LMSetDefltStack';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMGetGZRootHnd()
+ *  LMGetGZRootHnd()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetGZRootHnd: Handle; external name '_LMGetGZRootHnd';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMSetGZRootHnd()
+ *  LMSetGZRootHnd()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetGZRootHnd(value: Handle); external name '_LMSetGZRootHnd';
+procedure LMSetGZRootHnd( value: Handle ); external name '_LMSetGZRootHnd';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMGetGZMoveHnd()
+ *  LMGetGZMoveHnd()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetGZMoveHnd: Handle; external name '_LMGetGZMoveHnd';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMSetGZMoveHnd()
+ *  LMSetGZMoveHnd()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetGZMoveHnd(value: Handle); external name '_LMSetGZMoveHnd';
-{
-   LMGetFCBSPtr, LMSetFCBSPtr and LMSetFSFCBLen are not supported with Mac OS 9
-   and later. Access to information in File Control Blocks or Fork Control Blocks
-   (FCBs) should, if at all possible, be made with the GetFCBInfo or GetForkCBInfo
-   routines. See the Technote "FCBs, Now and Forever" or the Technical Q&A
-   "Accessing File Control Blocks" for complete information on this subject.
-   Direct access to FCBs is not allowed by Carbon. Non-Carbon programs that
-   require direct access to FCBs should use the File System Manager (FSM) FCB accessor
-   functions if FSM is available (use the Gestalt selector gestaltFSAttr to determine
-   this). Non-Carbon programs needing direct access to FCBs when FSM is not available
-   can define ENABLE_FCB_ARRAY_ACCESS to be true when compiling.
-}
-{$ifc undefined ENABLE_FCB_ARRAY_ACCESS}
-{$setc ENABLE_FCB_ARRAY_ACCESS := 0}
-{$endc}
+procedure LMSetGZMoveHnd( value: Handle ); external name '_LMSetGZMoveHnd';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
-{$ifc ENABLE_FCB_ARRAY_ACCESS}
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetFCBSPtr()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetFCBSPtr: Ptr; external name '_LMGetFCBSPtr';
-{
- *  LMSetFCBSPtr()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetFCBSPtr(value: Ptr); external name '_LMSetFCBSPtr';
-{
- *  LMSetFSFCBLen()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetFSFCBLen(value: SInt16); external name '_LMSetFSFCBLen';
-{$endc}  {CALL_NOT_IN_CARBON}
-{$endc}  {ENABLE_FCB_ARRAY_ACCESS}
 
 {
-   LMGetFSFCBLen is supported only for the purpose of determining that the HFS
-   file system is available as documented in developer Technotes (the HFS file system
-   is available in System 3.2 and later). There is no documented use of FSFCBLen
-   other than testing it for a positive value.
-}
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetFSFCBLen()
+ *  LMGetToExtFS()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetFSFCBLen: SInt16; external name '_LMGetFSFCBLen';
-{
- *  LMGetDefVCBPtr()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetDefVCBPtr: Ptr; external name '_LMGetDefVCBPtr';
-{
- *  LMSetDefVCBPtr()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetDefVCBPtr(value: Ptr); external name '_LMSetDefVCBPtr';
-{
- *  LMGetCurDirStore()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetCurDirStore: SInt32; external name '_LMGetCurDirStore';
-{
- *  LMSetCurDirStore()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetCurDirStore(value: SInt32); external name '_LMSetCurDirStore';
-{$endc}  {CALL_NOT_IN_CARBON}
-
-{
- *  LMGetToExtFS()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetToExtFS: UniversalProcPtr; external name '_LMGetToExtFS';
-{
- *  LMSetToExtFS()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetToExtFS(value: UniversalProcPtr); external name '_LMSetToExtFS';
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetScrnBase()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetScrnBase: Ptr; external name '_LMGetScrnBase';
-{
- *  LMSetScrnBase()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetScrnBase(value: Ptr); external name '_LMSetScrnBase';
-{
- *  LMGetCrsrBusy()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetCrsrBusy: ByteParameter; external name '_LMGetCrsrBusy';
-{
- *  LMSetCrsrBusy()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetCrsrBusy(value: ByteParameter); external name '_LMSetCrsrBusy';
-{
- *  LMGetJournalRef()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetJournalRef: SInt16; external name '_LMGetJournalRef';
-{
- *  LMSetJournalRef()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetJournalRef(value: SInt16); external name '_LMSetJournalRef';
-{
- *  LMGetCrsrThresh()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetCrsrThresh: SInt16; external name '_LMGetCrsrThresh';
-{
- *  LMSetCrsrThresh()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetCrsrThresh(value: SInt16); external name '_LMSetCrsrThresh';
-{
- *  LMGetJFetch()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetJFetch: UniversalProcPtr; external name '_LMGetJFetch';
-{
- *  LMSetJFetch()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetJFetch(value: UniversalProcPtr); external name '_LMSetJFetch';
-{$endc}  {CALL_NOT_IN_CARBON}
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
 
 {
- *  LMGetJStash()
+ *  LMSetToExtFS()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ }
+procedure LMSetToExtFS( value: UniversalProcPtr ); external name '_LMSetToExtFS';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
+{
+ *  LMGetJStash()   *** DEPRECATED ***
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetJStash: UniversalProcPtr; external name '_LMGetJStash';
-{
- *  LMSetJStash()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetJStash(value: UniversalProcPtr); external name '_LMSetJStash';
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetJIODone()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetJIODone: UniversalProcPtr; external name '_LMGetJIODone';
-{
- *  LMSetJIODone()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetJIODone(value: UniversalProcPtr); external name '_LMSetJIODone';
-{$endc}  {CALL_NOT_IN_CARBON}
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
 
 {
- *  LMGetCurApRefNum()
+ *  LMSetJStash()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-function LMGetCurApRefNum: SInt16; external name '_LMGetCurApRefNum';
-{
- *  LMSetCurApRefNum()
- *  
- *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
  }
-procedure LMSetCurApRefNum(value: SInt16); external name '_LMSetCurApRefNum';
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetCurrentA5()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetCurrentA5: Ptr; external name '_LMGetCurrentA5';
-{
- *  LMSetCurrentA5()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetCurrentA5(value: Ptr); external name '_LMSetCurrentA5';
-{$endc}  {CALL_NOT_IN_CARBON}
+procedure LMSetJStash( value: UniversalProcPtr ); external name '_LMSetJStash';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
 
 {
- *  LMGetCurStackBase()
+ *  LMGetCurApRefNum()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ }
+function LMGetCurApRefNum: FSIORefNum; external name '_LMGetCurApRefNum';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
+{
+ *  LMSetCurApRefNum()   *** DEPRECATED ***
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ }
+procedure LMSetCurApRefNum( value: FSIORefNum ); external name '_LMSetCurApRefNum';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
+{
+ *  LMGetCurStackBase()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    If using the Thread Manager APIs, use ThreadCurrentStackSpace(). 
+ *    If using pthreads(), get the stack with
+ *    pthread_get_stackaddr_np().
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetCurStackBase: Ptr; external name '_LMGetCurStackBase';
-{
- *  LMSetCurStackBase()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetCurStackBase(value: Ptr); external name '_LMSetCurStackBase';
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetCurJTOffset()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetCurJTOffset: SInt16; external name '_LMGetCurJTOffset';
-{
- *  LMSetCurJTOffset()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetCurJTOffset(value: SInt16); external name '_LMSetCurJTOffset';
-{$endc}  {CALL_NOT_IN_CARBON}
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  LMGetCurPageOption()
+ *  LMSetCurStackBase()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Mac OS X does not support setting the stack base.
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ }
+procedure LMSetCurStackBase( value: Ptr ); external name '_LMSetCurStackBase';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{
+ *  LMGetCurPageOption()   *** DEPRECATED ***
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetCurPageOption: SInt16; external name '_LMGetCurPageOption';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMSetCurPageOption()
+ *  LMSetCurPageOption()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetCurPageOption(value: SInt16); external name '_LMSetCurPageOption';
+procedure LMSetCurPageOption( value: SInt16 ); external name '_LMSetCurPageOption';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMGetPrintErr()
+ *  LMGetPrintErr()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetPrintErr: SInt16; external name '_LMGetPrintErr';
-{
- *  LMSetPrintErr()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetPrintErr(value: SInt16); external name '_LMSetPrintErr';
-{   Carbon Scrap Manager does not support low memory. }
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetScrapSize()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetScrapSize: SInt32; external name '_LMGetScrapSize';
-{
- *  LMSetScrapSize()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetScrapSize(value: SInt32); external name '_LMSetScrapSize';
-{
- *  LMGetScrapHandle()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetScrapHandle: Handle; external name '_LMGetScrapHandle';
-{
- *  LMSetScrapHandle()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetScrapHandle(value: Handle); external name '_LMSetScrapHandle';
-{
- *  LMGetScrapCount()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetScrapCount: SInt16; external name '_LMGetScrapCount';
-{
- *  LMSetScrapCount()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetScrapCount(value: SInt16); external name '_LMSetScrapCount';
-{
- *  LMGetScrapState()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetScrapState: SInt16; external name '_LMGetScrapState';
-{
- *  LMSetScrapState()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetScrapState(value: SInt16); external name '_LMSetScrapState';
-{
- *  LMGetScrapName()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetScrapName: StringPtr; external name '_LMGetScrapName';
-{
- *  LMSetScrapName()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetScrapName(value: StringPtr); external name '_LMSetScrapName';
-{
- *  LMGetROMFont0()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetROMFont0: Handle; external name '_LMGetROMFont0';
-{
- *  LMSetROMFont0()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetROMFont0(value: Handle); external name '_LMSetROMFont0';
-{$endc}  {CALL_NOT_IN_CARBON}
 
 {
- *  LMGetApFontID()
+ *  LMSetPrintErr()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ }
+procedure LMSetPrintErr( value: SInt16 ); external name '_LMSetPrintErr';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{$endc} {not TARGET_CPU_64}
+
+{
+ *  LMGetApFontID()   *** DEPRECATED ***
+ *  
+ *  Summary:
+ *    Get the id of the application font.  Use GetAppFont() in the
+ *    Quickdraw framework instead of this.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetApFontID: SInt16; external name '_LMGetApFontID';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMSetApFontID()
+ *  LMSetApFontID()   *** DEPRECATED ***
+ *  
+ *  Summary:
+ *    Set the id of the application font.  Don't use this call anymore;
+ *    this functionality is not supported on Mac OS X.
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetApFontID(value: SInt16); external name '_LMSetApFontID';
-{ Carbon versions of the Window Manager do not support LowMem. }
-{  Carbon Usage: use GetWindowList }
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetWindowList()
- *  
- *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  }
-function LMGetWindowList: WindowRef; external name '_LMGetWindowList';
-{
- *  LMGetSaveUpdate()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSaveUpdate: SInt16; external name '_LMGetSaveUpdate';
-{
- *  LMSetSaveUpdate()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSaveUpdate(value: SInt16); external name '_LMSetSaveUpdate';
-{
- *  LMGetPaintWhite()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetPaintWhite: SInt16; external name '_LMGetPaintWhite';
-{  Carbon Usage : use InstallWindowContentPaintProc }
-{
- *  LMSetPaintWhite()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetPaintWhite(value: SInt16); external name '_LMSetPaintWhite';
-{
- *  LMGetWMgrPort()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetWMgrPort: GrafPtr; external name '_LMGetWMgrPort';
-{
- *  LMSetWMgrPort()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetWMgrPort(value: GrafPtr); external name '_LMSetWMgrPort';
-{  Carbon Usage: use GetGrayRgn }
-{
- *  LMGetGrayRgn()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetGrayRgn: RgnHandle; external name '_LMGetGrayRgn';
-{
- *  LMGetDragHook()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetDragHook: DragGrayRgnUPP; external name '_LMGetDragHook';
-{
- *  LMSetDragHook()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetDragHook(value: DragGrayRgnUPP); external name '_LMSetDragHook';
-{
- *  LMSetWindowList()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetWindowList(value: WindowRef); external name '_LMSetWindowList';
-{
- *  LMGetGhostWindow()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetGhostWindow: WindowRef; external name '_LMGetGhostWindow';
-{
- *  LMSetGhostWindow()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetGhostWindow(value: WindowRef); external name '_LMSetGhostWindow';
-{$endc}  {CALL_NOT_IN_CARBON}
+procedure LMSetApFontID( value: SInt16 ); external name '_LMSetApFontID';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
-{$ifc NOT OPAQUE_TOOLBOX_STRUCTS}
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetAuxWinHead()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetAuxWinHead: AuxWinHandle; external name '_LMGetAuxWinHead';
-{
- *  LMSetAuxWinHead()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetAuxWinHead(value: AuxWinHandle); external name '_LMSetAuxWinHead';
-{$endc}  {CALL_NOT_IN_CARBON}
-{$endc}
 
-{$ifc CALL_NOT_IN_CARBON}
+{$ifc not TARGET_CPU_64}
 {
- *  LMGetCurActivate()
+ *  LMGetOneOne()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetCurActivate: WindowRef; external name '_LMGetCurActivate';
-{
- *  LMSetCurActivate()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetCurActivate(value: WindowRef); external name '_LMSetCurActivate';
-{
- *  LMGetCurDeactive()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetCurDeactive: WindowRef; external name '_LMGetCurDeactive';
-{
- *  LMSetCurDeactive()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetCurDeactive(value: WindowRef); external name '_LMSetCurDeactive';
-{
- *  LMGetOldStructure()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetOldStructure: RgnHandle; external name '_LMGetOldStructure';
-{
- *  LMSetOldStructure()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetOldStructure(value: RgnHandle); external name '_LMSetOldStructure';
-{
- *  LMGetOldContent()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetOldContent: RgnHandle; external name '_LMGetOldContent';
-{
- *  LMSetOldContent()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetOldContent(value: RgnHandle); external name '_LMSetOldContent';
-{
- *  LMSetGrayRgn()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetGrayRgn(value: RgnHandle); external name '_LMSetGrayRgn';
-{
- *  LMGetSaveVisRgn()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSaveVisRgn: RgnHandle; external name '_LMGetSaveVisRgn';
-{
- *  LMSetSaveVisRgn()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSaveVisRgn(value: RgnHandle); external name '_LMSetSaveVisRgn';
-{$endc}  {CALL_NOT_IN_CARBON}
-
-{
- *  LMGetOneOne()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetOneOne: SInt32; external name '_LMGetOneOne';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMSetOneOne()
+ *  LMSetOneOne()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetOneOne(value: SInt32); external name '_LMSetOneOne';
+procedure LMSetOneOne( value: SInt32 ); external name '_LMSetOneOne';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+
 {
- *  LMGetMinusOne()
+ *  LMGetMinusOne()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetMinusOne: SInt32; external name '_LMGetMinusOne';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMSetMinusOne()
+ *  LMSetMinusOne()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetMinusOne(value: SInt32); external name '_LMSetMinusOne';
-{  Carbon Usage: use GetMenuTrackingData }
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetTopMenuItem()
- *  
- *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  }
-function LMGetTopMenuItem: SInt16; external name '_LMGetTopMenuItem';
-{  Carbon Usage: replaced by MDEF messages and GetMenuTrackingData API }
-{
- *  LMSetTopMenuItem()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetTopMenuItem(value: SInt16); external name '_LMSetTopMenuItem';
-{  Carbon Usage: use GetMenuTrackingData }
-{
- *  LMGetAtMenuBottom()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetAtMenuBottom: SInt16; external name '_LMGetAtMenuBottom';
-{  Carbon Usage: replaced by MDEF messages and GetMenuTrackingData API }
-{
- *  LMSetAtMenuBottom()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetAtMenuBottom(value: SInt16); external name '_LMSetAtMenuBottom';
-{
-   Carbon usage: use GetMenuBar (which returns a newly allocated handle in
-   the same format as that returned by LMGetMenuList; dispose with DisposeMenuBar)
-   or GetRootMenu.
-}
-{
- *  LMGetMenuList()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetMenuList: Handle; external name '_LMGetMenuList';
-{
- *  LMSetMenuList()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetMenuList(value: Handle); external name '_LMSetMenuList';
-{  Carbon usage: no replacement }
-{
- *  LMGetMBarEnable()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetMBarEnable: SInt16; external name '_LMGetMBarEnable';
-{
- *  LMSetMBarEnable()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetMBarEnable(value: SInt16); external name '_LMSetMBarEnable';
-{  Carbon usage: no replacement }
-{
- *  LMGetMenuFlash()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetMenuFlash: SInt16; external name '_LMGetMenuFlash';
-{
- *  LMSetMenuFlash()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetMenuFlash(value: SInt16); external name '_LMSetMenuFlash';
-{ LMGetTheMenu() moved to Menus.h }
-{
- *  LMSetTheMenu()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetTheMenu(value: SInt16); external name '_LMSetTheMenu';
-{
- *  LMGetMBarHook()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetMBarHook: MBarHookUPP; external name '_LMGetMBarHook';
-{
- *  LMSetMBarHook()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetMBarHook(value: MBarHookUPP); external name '_LMSetMBarHook';
-{
- *  LMGetMenuHook()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetMenuHook: MenuHookUPP; external name '_LMGetMenuHook';
-{
- *  LMSetMenuHook()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetMenuHook(value: MenuHookUPP); external name '_LMSetMenuHook';
-{
- *  LMGetTopMapHndl()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetTopMapHndl: Handle; external name '_LMGetTopMapHndl';
-{
- *  LMSetTopMapHndl()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetTopMapHndl(value: Handle); external name '_LMSetTopMapHndl';
-{
- *  LMGetSysMapHndl()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSysMapHndl: Handle; external name '_LMGetSysMapHndl';
-{
- *  LMSetSysMapHndl()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSysMapHndl(value: Handle); external name '_LMSetSysMapHndl';
-{$endc}  {CALL_NOT_IN_CARBON}
+procedure LMSetMinusOne( value: SInt32 ); external name '_LMSetMinusOne';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{$endc} {not TARGET_CPU_64}
 
 {
  *  LMGetSysMap()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetSysMap: SInt16; external name '_LMGetSysMap';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 {
  *  LMSetSysMap()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetSysMap(value: SInt16); external name '_LMSetSysMap';
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetCurMap()
- *  
- *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  }
-function LMGetCurMap: SInt16; external name '_LMGetCurMap';
-{
- *  LMSetCurMap()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetCurMap(value: SInt16); external name '_LMSetCurMap';
-{$endc}  {CALL_NOT_IN_CARBON}
+procedure LMSetSysMap( value: SInt16 ); external name '_LMSetSysMap';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
  *  LMGetResLoad()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function LMGetResLoad: ByteParameter; external name '_LMGetResLoad';
+function LMGetResLoad: UInt8; external name '_LMGetResLoad';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 {
  *  LMSetResLoad()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetResLoad(value: ByteParameter); external name '_LMSetResLoad';
+procedure LMSetResLoad( value: ByteParameter ); external name '_LMSetResLoad';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 {
  *  LMGetResErr()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetResErr: SInt16; external name '_LMGetResErr';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 {
  *  LMSetResErr()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetResErr(value: SInt16); external name '_LMSetResErr';
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetFScaleDisable()
- *  
- *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  }
-function LMGetFScaleDisable: ByteParameter; external name '_LMGetFScaleDisable';
-{
- *  LMSetFScaleDisable()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetFScaleDisable(value: ByteParameter); external name '_LMSetFScaleDisable';
-{
- *  LMGetDeskHook()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetDeskHook: UniversalProcPtr; external name '_LMGetDeskHook';
-{
- *  LMSetDeskHook()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetDeskHook(value: UniversalProcPtr); external name '_LMSetDeskHook';
-{  Carbon Usage: Use TEGetDoTextHook. }
-{
- *  LMGetTEDoText()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetTEDoText: UniversalProcPtr; external name '_LMGetTEDoText';
-{  Carbon Usage: Use TESetDoTextHook. }
-{
- *  LMSetTEDoText()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetTEDoText(value: UniversalProcPtr); external name '_LMSetTEDoText';
-{  Carbon Usage: Use TEGetRecalcHook. }
-{
- *  LMGetTERecal()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetTERecal: UniversalProcPtr; external name '_LMGetTERecal';
-{  Carbon Usage: Use TESetRecalcHook. }
-{
- *  LMSetTERecal()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetTERecal(value: UniversalProcPtr); external name '_LMSetTERecal';
-{
- *  LMGetResumeProc()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetResumeProc: UniversalProcPtr; external name '_LMGetResumeProc';
-{
- *  LMSetResumeProc()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetResumeProc(value: UniversalProcPtr); external name '_LMSetResumeProc';
-{
- *  LMGetANumber()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetANumber: SInt16; external name '_LMGetANumber';
-{
- *  LMSetANumber()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetANumber(value: SInt16); external name '_LMSetANumber';
-{  Carbon Usage: Use GetAlertStage. }
-{
- *  LMGetACount()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetACount: SInt16; external name '_LMGetACount';
-{  Carbon Usage: Use ResetAlertStage. }
-{
- *  LMSetACount()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetACount(value: SInt16); external name '_LMSetACount';
-{
- *  LMGetDABeeper()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetDABeeper: UniversalProcPtr; external name '_LMGetDABeeper';
-{
- *  LMSetDABeeper()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetDABeeper(value: UniversalProcPtr); external name '_LMSetDABeeper';
-{  Carbon Usage: use TEGetScrapLength }
-{
- *  LMGetTEScrpLength()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetTEScrpLength: UInt16; external name '_LMGetTEScrpLength';
-{  Carbon Usage: use TESetScrapLength }
-{
- *  LMSetTEScrpLength()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetTEScrpLength(value: UInt16); external name '_LMSetTEScrpLength';
-{  Carbon Usage: use TEGetScrapHandle }
-{
- *  LMGetTEScrpHandle()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetTEScrpHandle: Handle; external name '_LMGetTEScrpHandle';
-{  Carbon Usage: use TESetScrapHandle }
-{
- *  LMSetTEScrpHandle()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetTEScrpHandle(value: Handle); external name '_LMSetTEScrpHandle';
-{
- *  LMGetAppParmHandle()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetAppParmHandle: Handle; external name '_LMGetAppParmHandle';
-{
- *  LMSetAppParmHandle()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetAppParmHandle(value: Handle); external name '_LMSetAppParmHandle';
-{
- *  LMGetDSErrCode()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetDSErrCode: SInt16; external name '_LMGetDSErrCode';
-{
- *  LMSetDSErrCode()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetDSErrCode(value: SInt16); external name '_LMSetDSErrCode';
-{
- *  LMGetResErrProc()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetResErrProc: ResErrUPP; external name '_LMGetResErrProc';
-{
- *  LMSetResErrProc()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetResErrProc(value: ResErrUPP); external name '_LMSetResErrProc';
-{
- *  LMGetDlgFont()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetDlgFont: SInt16; external name '_LMGetDlgFont';
-{  Carbon Usage: use SetDialogFont }
-{
- *  LMSetDlgFont()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetDlgFont(value: SInt16); external name '_LMSetDlgFont';
-{
- *  LMGetATalkHk2()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetATalkHk2: Ptr; external name '_LMGetATalkHk2';
-{
- *  LMSetATalkHk2()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetATalkHk2(value: Ptr); external name '_LMSetATalkHk2';
-{
- *  LMGetHWCfgFlags()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetHWCfgFlags: SInt16; external name '_LMGetHWCfgFlags';
-{
- *  LMSetHWCfgFlags()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetHWCfgFlags(value: SInt16); external name '_LMSetHWCfgFlags';
-{  Carbon Usage: use GetMenuTrackingData }
-{
- *  LMGetMenuDisable()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetMenuDisable: SInt32; external name '_LMGetMenuDisable';
-{  Carbon Usage: use new MDEF messages }
-{
- *  LMSetMenuDisable()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetMenuDisable(value: SInt32); external name '_LMSetMenuDisable';
-{
- *  LMGetROMMapInsert()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetROMMapInsert: ByteParameter; external name '_LMGetROMMapInsert';
-{
- *  LMSetROMMapInsert()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetROMMapInsert(value: ByteParameter); external name '_LMSetROMMapInsert';
-{$endc}  {CALL_NOT_IN_CARBON}
+procedure LMSetResErr( value: SInt16 ); external name '_LMSetResErr';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
  *  LMGetTmpResLoad()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function LMGetTmpResLoad: ByteParameter; external name '_LMGetTmpResLoad';
+function LMGetTmpResLoad: UInt8; external name '_LMGetTmpResLoad';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 {
  *  LMSetTmpResLoad()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetTmpResLoad(value: ByteParameter); external name '_LMSetTmpResLoad';
+procedure LMSetTmpResLoad( value: ByteParameter ); external name '_LMSetTmpResLoad';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 {
  *  LMGetIntlSpec()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetIntlSpec: Ptr; external name '_LMGetIntlSpec';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 {
  *  LMSetIntlSpec()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetIntlSpec(value: Ptr); external name '_LMSetIntlSpec';
+procedure LMSetIntlSpec( value: Ptr ); external name '_LMSetIntlSpec';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 { LMGetWordRedraw and LMSetWordRedraw moved to TextEdit.h }
+{$ifc not TARGET_CPU_64}
 {
- *  LMGetSysFontFam()
+ *  LMGetSysFontFam()   *** DEPRECATED ***
+ *  
+ *  Summary:
+ *    Get the id of the system font family.  Use GetSysFont() in the
+ *    Quickdraw framework instead of this.
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetSysFontFam: SInt16; external name '_LMGetSysFontFam';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{$endc} {not TARGET_CPU_64}
+
 {
- *  LMSetSysFontFam()
+ *  LMSetSysFontFam()   *** DEPRECATED ***
+ *  
+ *  Summary:
+ *    Set the id of the system font family.  This is not supported on
+ *    Mac OS X.
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetSysFontFam(value: SInt16); external name '_LMSetSysFontFam';
+procedure LMSetSysFontFam( value: SInt16 ); external name '_LMSetSysFontFam';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMGetSysFontSize()
+ *  LMGetSysFontSize()   *** DEPRECATED ***
+ *  
+ *  Summary:
+ *    Get the size of the system font.  Use DefFontSize() in the
+ *    Quickdraw framework instead of this.
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetSysFontSize: SInt16; external name '_LMGetSysFontSize';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
  *  LMSetSysFontSize()
  *  
+ *  Summary:
+ *    Set the size for the system font.  This is not supported on Mac
+ *    OS X.
+ *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetSysFontSize(value: SInt16); external name '_LMSetSysFontSize';
-{  Carbon Usge: use GetMBarHeight }
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetMBarHeight()
- *  
- *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  }
-function LMGetMBarHeight: SInt16; external name '_LMGetMBarHeight';
-{  Carbon Usage: use Hide/ShowMenuBar }
-{
- *  LMSetMBarHeight()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetMBarHeight(value: SInt16); external name '_LMSetMBarHeight';
-{
- *  LMGetTESysJust()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetTESysJust: SInt16; external name '_LMGetTESysJust';
-{
- *  LMSetTESysJust()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetTESysJust(value: SInt16); external name '_LMSetTESysJust';
-{
- *  LMGetMMU32Bit()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetMMU32Bit: ByteParameter; external name '_LMGetMMU32Bit';
-{
- *  LMSetMMU32Bit()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetMMU32Bit(value: ByteParameter); external name '_LMSetMMU32Bit';
-{
- *  LMGetDeskCPat()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetDeskCPat: PixPatHandle; external name '_LMGetDeskCPat';
-{
- *  LMSetDeskCPat()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetDeskCPat(value: PixPatHandle); external name '_LMSetDeskCPat';
-{
- *  LMGetTimeDBRA()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetTimeDBRA: SInt16; external name '_LMGetTimeDBRA';
-{
- *  LMSetTimeDBRA()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetTimeDBRA(value: SInt16); external name '_LMSetTimeDBRA';
-{
- *  LMGetTimeSCCDB()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetTimeSCCDB: SInt16; external name '_LMGetTimeSCCDB';
-{
- *  LMSetTimeSCCDB()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetTimeSCCDB(value: SInt16); external name '_LMSetTimeSCCDB';
-{
- *  LMGetJVBLTask()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetJVBLTask: UniversalProcPtr; external name '_LMGetJVBLTask';
-{
- *  LMSetJVBLTask()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetJVBLTask(value: UniversalProcPtr); external name '_LMSetJVBLTask';
-{
- *  LMGetSynListHandle()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSynListHandle: Handle; external name '_LMGetSynListHandle';
-{
- *  LMSetSynListHandle()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetSynListHandle(value: Handle); external name '_LMSetSynListHandle';
-{
- *  LMGetMenuCInfo()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetMenuCInfo: MCTableHandle; external name '_LMGetMenuCInfo';
-{
- *  LMSetMenuCInfo()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetMenuCInfo(value: MCTableHandle); external name '_LMSetMenuCInfo';
-{
- *  LMGetJDTInstall()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetJDTInstall: UniversalProcPtr; external name '_LMGetJDTInstall';
-{
- *  LMSetJDTInstall()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetJDTInstall(value: UniversalProcPtr); external name '_LMSetJDTInstall';
-{
- *  LMGetTimeSCSIDB()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetTimeSCSIDB: SInt16; external name '_LMGetTimeSCSIDB';
-{
- *  LMSetTimeSCSIDB()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetTimeSCSIDB(value: SInt16); external name '_LMSetTimeSCSIDB';
-{*************************************************************************************
+procedure LMSetSysFontSize( value: SInt16 ); external name '_LMSetSysFontSize';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
-    MORE COMPLEX LOWMEM ACCESSORS
-
-*************************************************************************************}
-{$endc}  {CALL_NOT_IN_CARBON}
-
-{$ifc TARGET_CPU_68K AND NOT TARGET_RT_MAC_CFM}
-{*************************************************************************************
-    "BIG DATA"
-    
-        These lowmem accessors access big (> 4 bytes) values.
-*************************************************************************************}
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetDeskPattern()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMGetDeskPattern(var deskPatternValue: Pattern); external name '_LMGetDeskPattern';
-{
- *  LMSetDeskPattern()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetDeskPattern(const (*var*) deskPatternValue: Pattern); external name '_LMSetDeskPattern';
-{$endc}  {CALL_NOT_IN_CARBON}
-{*************************************************************************************
-    "BLOCKMOVE ACCESSORS"
-    
-        These lowmem accessors use the BlockMove to set
-*************************************************************************************}
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetCurApName()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetCurApName: StringPtr; external name '_LMGetCurApName';
-{
- *  LMGetSysResName()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetSysResName: StringPtr; external name '_LMGetSysResName';
-{
- *  LMGetFinderName()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetFinderName: StringPtr; external name '_LMGetFinderName';
-{$endc}  {CALL_NOT_IN_CARBON}
-{*************************************************************************************
-    "INDEXED ACCESSORS"
-    
-        These lowmem accessors take an index parameter to get/set an indexed
-        lowmem global.
-*************************************************************************************}
-{************************************************************************************
-    The DAString accessors are gone with Carbon. Please use ParamText and
-    GetParamText instead.
-*************************************************************************************}
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetDAStrings()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetDAStrings(whichString: SInt16): StringHandle; external name '_LMGetDAStrings';
-{
- *  LMSetDAStrings()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetDAStrings(stringsValue: StringHandle; whichString: SInt16); external name '_LMSetDAStrings';
-{$endc}  {CALL_NOT_IN_CARBON}
-
-{$elsec}
-{*************************************************************************************
-    "BIG DATA"
-    
-        These lowmem accessors access big (> 4 bytes) values.
-*************************************************************************************}
-
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetDSAlertRect()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMGetDSAlertRect(var dsAlertRectValue: Rect); external name '_LMGetDSAlertRect';
-
-{
- *  LMSetDSAlertRect()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetDSAlertRect(const (*var*) dsAlertRectValue: Rect); external name '_LMSetDSAlertRect';
-
-{
- *  LMGetDragPattern()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMGetDragPattern(var dragPatternValue: Pattern); external name '_LMGetDragPattern';
-
-{
- *  LMSetDragPattern()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetDragPattern(const (*var*) dragPatternValue: Pattern); external name '_LMSetDragPattern';
-
-{
- *  LMGetDeskPattern()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMGetDeskPattern(var deskPatternValue: Pattern); external name '_LMGetDeskPattern';
-
-{
- *  LMSetDeskPattern()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetDeskPattern(const (*var*) deskPatternValue: Pattern); external name '_LMSetDeskPattern';
-
-{
- *  LMGetEventQueue()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetEventQueue: QHdrPtr; external name '_LMGetEventQueue';
-
-{
- *  LMSetEventQueue()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetEventQueue(eventQueueValue: QHdrPtr); external name '_LMSetEventQueue';
-
-
-{
- *  LMGetVBLQueue()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetVBLQueue: QHdrPtr; external name '_LMGetVBLQueue';
-
-{
- *  LMSetVBLQueue()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetVBLQueue(vblQueueValue: QHdrPtr); external name '_LMSetVBLQueue';
-
-{
- *  LMGetDrvQHdr()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetDrvQHdr: QHdrPtr; external name '_LMGetDrvQHdr';
-
-{
- *  LMSetDrvQHdr()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetDrvQHdr(drvQHdrValue: QHdrPtr); external name '_LMSetDrvQHdr';
-
-{
- *  LMGetVCBQHdr()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetVCBQHdr: QHdrPtr; external name '_LMGetVCBQHdr';
-
-{
- *  LMSetVCBQHdr()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetVCBQHdr(vcbQHdrValue: QHdrPtr); external name '_LMSetVCBQHdr';
-
-{
- *  LMGetDTQueue()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetDTQueue: QHdrPtr; external name '_LMGetDTQueue';
-
-{
- *  LMSetDTQueue()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetDTQueue(dtQueueValue: QHdrPtr); external name '_LMSetDTQueue';
-
-{
- *  LMGetFSQHdr()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetFSQHdr: QHdrPtr; external name '_LMGetFSQHdr';
 
 {*************************************************************************************
     "BLOCKMOVE ACCESSORS"
     
         These lowmem accessors use the BlockMove to set
 *************************************************************************************}
-{$endc}  {CALL_NOT_IN_CARBON}
+{$ifc not TARGET_CPU_64}
 {
- *  LMGetCurApName()
+ *  LMGetCurApName()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetCurApName: StringPtr; external name '_LMGetCurApName';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
 
 {
- *  LMSetCurApName()
+ *  LMSetCurApName()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetCurApName(const (*var*) curApNameValue: Str31); external name '_LMSetCurApName';
+procedure LMSetCurApName( curApNameValue: ConstStr31Param ); external name '_LMSetCurApName';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
 
 {
- *  LMGetSysResName()
+ *  LMGetSysResName()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Mac OS X does not have the concept of a "System" file name. 
+ *    Remove usage of this lowmem value.
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetSysResName: StringPtr; external name '_LMGetSysResName';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  LMSetSysResName()
+ *  LMSetSysResName()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Mac OS X does not have the concept of a "System" file name. 
+ *    Remove usage of this lowmem value.
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure LMSetSysResName(const (*var*) sysResNameValue: Str15); external name '_LMSetSysResName';
+procedure LMSetSysResName( sysResNameValue: ConstStr15Param ); external name '_LMSetSysResName';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  LMGetFinderName()
+ *  LMGetFinderName()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Getting the name of the Finder isn't terribly useful.  If you
+ *    need to find the Finder process, look it up with the CFBundle
+ *    calls by bundle id ( "com.apple.finder" ).  Remove usage of this
+ *    lowmem value.
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetFinderName: StringPtr; external name '_LMGetFinderName';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  LMSetFinderName()
+ *  LMSetFinderName()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Setting the name of the Finder application is not supported on
+ *    Mac OS X.  Remove usage of this lowmem accessor.
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetFinderName(const (*var*) finderNameValue: Str15); external name '_LMSetFinderName';
-
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetScratch20()
- *  
- *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  }
-function LMGetScratch20: Ptr; external name '_LMGetScratch20';
+procedure LMSetFinderName( finderNameValue: ConstStr15Param ); external name '_LMSetFinderName';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  LMSetScratch20()
+ *  LMGetToolScratch()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Mac OS X gives each process its own tool scratch area, so this
+ *    accessor is fairly useless. If you really need to share 8 bytes
+ *    of memory among various libraries, just make it a global and
+ *    export it from one library and import it into the others.
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetScratch20(scratch20Value: UnivPtr); external name '_LMSetScratch20';
-
-{$endc}  {CALL_NOT_IN_CARBON}
-{
- *  LMGetToolScratch()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LMGetToolScratch: Ptr; external name '_LMGetToolScratch';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  LMSetToolScratch()
+ *  LMSetToolScratch()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Mac OS X gives each process its own tool scratch area, so this
+ *    accessor is fairly useless. If you really need to share 8 bytes
+ *    of memory among various libraries, just make it a global and
+ *    export it from one library and import it into the others.
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetToolScratch(toolScratchValue: UnivPtr); external name '_LMSetToolScratch';
-
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetApplScratch()
- *  
- *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  }
-function LMGetApplScratch: Ptr; external name '_LMGetApplScratch';
-
-{
- *  LMSetApplScratch()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetApplScratch(applScratchValue: UnivPtr); external name '_LMSetApplScratch';
+procedure LMSetToolScratch( toolScratchValue: {const} UnivPtr ); external name '_LMSetToolScratch';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 
 {*************************************************************************************
@@ -3328,74 +1492,29 @@ procedure LMSetApplScratch(applScratchValue: UnivPtr); external name '_LMSetAppl
         These lowmem accessors take an index parameter to get/set an indexed
         lowmem global.
 *************************************************************************************}
-
-{  Carbon Usage: use GetParamText }
 {
- *  LMGetDAStrings()
+ *  LMGetLvl2DT()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetDAStrings(whichString: SInt16): StringHandle; external name '_LMGetDAStrings';
-
-{  Carbon Usage: use ParamText }
-{
- *  LMSetDAStrings()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetDAStrings(stringsValue: StringHandle; whichString: SInt16); external name '_LMSetDAStrings';
-
-
-{$endc}  {CALL_NOT_IN_CARBON}
-{
- *  LMGetLvl2DT()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function LMGetLvl2DT(vectorNumber: SInt16): UniversalProcPtr; external name '_LMGetLvl2DT';
+function LMGetLvl2DT( vectorNumber: SInt16 ): UniversalProcPtr; external name '_LMGetLvl2DT';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  LMSetLvl2DT()
+ *  LMSetLvl2DT()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetLvl2DT(Lvl2DTValue: UniversalProcPtr; vectorNumber: SInt16); external name '_LMSetLvl2DT';
-
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetExtStsDT()
- *  
- *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  }
-function LMGetExtStsDT(vectorNumber: SInt16): UniversalProcPtr; external name '_LMGetExtStsDT';
+procedure LMSetLvl2DT( Lvl2DTValue: UniversalProcPtr; vectorNumber: SInt16 ); external name '_LMSetLvl2DT';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
-{
- *  LMSetExtStsDT()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetExtStsDT(ExtStsDTValue: UniversalProcPtr; vectorNumber: SInt16); external name '_LMSetExtStsDT';
-
-{$endc}  {CALL_NOT_IN_CARBON}
-{$endc}
 
 {*************************************************************************************
     "Missing Accessors"
@@ -3409,274 +1528,85 @@ procedure LMSetExtStsDT(ExtStsDTValue: UniversalProcPtr; vectorNumber: SInt16); 
 *************************************************************************************}
 
 
-{$ifc CALL_NOT_IN_CARBON}
+{ accesses "HiHeapMark"}
 {
- *  LMSetMouseTemp()
+ *  LMGetHighHeapMark()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetMouseTemp(value: Point); external name '_LMSetMouseTemp';
-{  accesses "MTemp" }
-{
- *  LMGetMouseTemp()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetMouseTemp: Point; external name '_LMGetMouseTemp';
-{
-   accesses "MBState"
-   Carbon Usage: use Button()
-}
-{
- *  LMGetMouseButtonState()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetMouseButtonState: ByteParameter; external name '_LMGetMouseButtonState';
-{
- *  LMSetMouseButtonState()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetMouseButtonState(value: ByteParameter); external name '_LMSetMouseButtonState';
-{
-   accesses "RawMouse"
-   Carbon Usage: use GetGlobalMouse
-}
-{
- *  LMGetRawMouseLocation()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetRawMouseLocation: Point; external name '_LMGetRawMouseLocation';
-{  Carbon Usage: use GetGlobalMouse }
-{
- *  LMSetRawMouseLocation()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetRawMouseLocation(value: Point); external name '_LMSetRawMouseLocation';
-{
-   accesses "Mouse"
-   Carbon Usage: use GetGlobalMouse
-}
-{
- *  LMGetMouseLocation()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetMouseLocation: Point; external name '_LMGetMouseLocation';
-{
- *  LMSetMouseLocation()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetMouseLocation(value: Point); external name '_LMSetMouseLocation';
-{  accesses "TheCrsr" }
-{
- *  LMGetTheCursor()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMGetTheCursor(var currentCursor: Cursor); external name '_LMGetTheCursor';
-
-{
- *  LMSetTheCursor()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetTheCursor(const (*var*) newCursor: Cursor); external name '_LMSetTheCursor';
-
-
-{  accesses "HiHeapMark" }
-{$endc}  {CALL_NOT_IN_CARBON}
-
-{
- *  LMGetHighHeapMark()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
 function LMGetHighHeapMark: Ptr; external name '_LMGetHighHeapMark';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMSetHighHeapMark()
+ *  LMSetHighHeapMark()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
-procedure LMSetHighHeapMark(value: Ptr); external name '_LMSetHighHeapMark';
-{  accesses "StkLowPt" }
+procedure LMSetHighHeapMark( value: Ptr ); external name '_LMSetHighHeapMark';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{ accesses "StkLowPt"}
 {
- *  LMGetStackLowPoint()
+ *  LMGetStackLowPoint()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
 function LMGetStackLowPoint: Ptr; external name '_LMGetStackLowPoint';
-{
- *  LMSetStackLowPoint()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetStackLowPoint(value: Ptr); external name '_LMSetStackLowPoint';
-{  accesses "ROMMapHndl" }
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetROMMapHandle()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetROMMapHandle: Handle; external name '_LMGetROMMapHandle';
-{
- *  LMSetROMMapHandle()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetROMMapHandle(value: Handle); external name '_LMSetROMMapHandle';
-{  accesses "UnitNtryCnt" }
-{
- *  LMGetUnitTableEntryCount()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetUnitTableEntryCount: SInt16; external name '_LMGetUnitTableEntryCount';
-{
- *  LMSetUnitTableEntryCount()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetUnitTableEntryCount(value: SInt16); external name '_LMSetUnitTableEntryCount';
-{  accesses "FmtDefaults" }
-{$endc}  {CALL_NOT_IN_CARBON}
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  LMGetDiskFormatingHFSDefaults()
+ *  LMSetStackLowPoint()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
+ }
+procedure LMSetStackLowPoint( value: Ptr ); external name '_LMSetStackLowPoint';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{ accesses "FmtDefaults"}
+{
+ *  LMGetDiskFormatingHFSDefaults()   *** DEPRECATED ***
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
  }
 function LMGetDiskFormatingHFSDefaults: Ptr; external name '_LMGetDiskFormatingHFSDefaults';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LMSetDiskFormatingHFSDefaults()
+ *  LMSetDiskFormatingHFSDefaults()   *** DEPRECATED ***
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-procedure LMSetDiskFormatingHFSDefaults(value: Ptr); external name '_LMSetDiskFormatingHFSDefaults';
-{  accesses "PortAUse" }
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  LMGetPortAInfo()
- *  
- *  Availability:
  *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  }
-function LMGetPortAInfo: ByteParameter; external name '_LMGetPortAInfo';
-{
- *  LMSetPortAInfo()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetPortAInfo(value: ByteParameter); external name '_LMSetPortAInfo';
-{
- *  LMGetMBTicks()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetMBTicks: SInt32; external name '_LMGetMBTicks';
-{
- *  LMSetMBTicks()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetMBTicks(value: SInt32); external name '_LMSetMBTicks';
-{
- *  LMGetKeyTime()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function LMGetKeyTime: SInt32; external name '_LMGetKeyTime';
-{
- *  LMSetKeyTime()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure LMSetKeyTime(value: SInt32); external name '_LMSetKeyTime';
-{$endc}  {CALL_NOT_IN_CARBON}
+procedure LMSetDiskFormatingHFSDefaults( value: Ptr ); external name '_LMSetDiskFormatingHFSDefaults';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
-{$ALIGN MAC68K}
 
+{$endc} {not TARGET_CPU_64}
+
+{$endc} {TARGET_OS_MAC}
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

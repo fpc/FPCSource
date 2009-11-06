@@ -3,9 +3,9 @@
  
      Contains:   Control Manager interfaces
  
-     Version:    HIToolbox-219.4.81~2
+     Version:    HIToolbox-437~1
  
-     Copyright:  © 1985-2005 by Apple Computer, Inc., all rights reserved
+     Copyright:  © 1985-2008 by Apple Computer, Inc., all rights reserved
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,12 +14,15 @@
  
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -28,8 +31,8 @@
 
 unit Controls;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -42,16 +45,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -59,14 +84,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -92,7 +168,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -102,8 +177,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,CFBase,Files,Events,CGImage,Quickdraw,Menus,TextEdit,Drag,Icons,Collections,MacErrors,Appearance;
+uses MacTypes,Appearance,Collections,Drag,Events,Files,IconsCore,Icons,Menus,QuickdrawTypes,CFBase,CGImage,HIObject;
+{$endc} {not MACOSALLINCLUDE}
 
+
+{$ifc TARGET_OS_MAC}
 
 {$ALIGN MAC68K}
 
@@ -124,7 +202,7 @@ type
 		controlRect: Rect;
 		controlValue: SInt16;
 		controlVisible: Boolean;
-		fill: SInt8;
+		fill: UInt8;
 		controlMaximum: SInt16;
 		controlMinimum: SInt16;
 		controlDefProcID: SInt16;
@@ -136,16 +214,6 @@ type
 	ControlTemplateHandle = ^ControlTemplatePtr;
 
 
-{ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
-{  ¥ ControlRef                                                                                        }
-{ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
-type
-	ControlRef = ^SInt32; { an opaque 32-bit type }
-	ControlRefPtr = ^ControlRef;  { when a var xx:ControlRef parameter can be nil, it is changed to xx: ControlRefPtr }
-
-{ ControlHandle is obsolete. Use ControlRef.}
-type
-	ControlHandle = ControlRef;
 type
 	ControlPartCode = SInt16;
 	ControlPartCodePtr = ^ControlPartCode; { when a var xx:ControlPartCode parameter can be nil, it is changed to xx: ControlPartCodePtr }
@@ -242,21 +310,84 @@ const
 const
 	kControlEntireControl = kControlNoPart;
 
-{  Meta-Parts                                                                          }
-{  If you haven't guessed from looking at other toolbox headers. We like the word      }
-{  'meta'. It's cool. So here's one more for you. A meta-part is a part used in a call }
-{  to the GetControlRegion API. These parts are parts that might be defined by a       }
-{  control, but should not be returned from calls like TestControl, et al. They define }
-{  a region of a control, presently the structure and the content region. The content  }
-{  region is only defined by controls that can embed other controls. It is the area    }
-{  that embedded content can live.                                                     }
-{  Along with these parts, you can also pass in normal part codes to get the regions   }
-{  of the parts. Not all controls fully support this at the time this was written.     }
+
+{
+ *  Control meta-parts
+ *  
+ *  Discussion:
+ *    If you haven't guessed from looking at other toolbox headers, we
+ *    like the word 'meta'. It's cool. So here's one more for you. A
+ *    meta-part is a part used in a call to the GetControlRegion API.
+ *    These parts might be defined by a control, but should not be
+ *    returned from calls such as TestControl, et al. They define a
+ *    region of a control. 
+ *    
+ *    Along with these parts, you can also pass in normal part codes to
+ *    get the regions of the parts. Not all controls fully support this
+ *    at the time this was written.
+ }
 const
+{
+   * The entire area that the control will draw into. When a composited
+   * control is drawn, the Control Manager clips the control's drawing
+   * to the structure area. This area may extend beyond the bounds of
+   * the control (for example, if the control draws a focus ring
+   * outside of its bounds). You may return a superset of the drawn
+   * area if this is computationally easier to construct. This area is
+   * used to determine the area of a window that should be invalidated
+   * and redrawn when a control is invalidated. It is not necessary for
+   * a control to return a shape that precisely describes the structure
+   * area; for example, a control whose structure is an oval may simply
+   * return the oval's bounding rectangle. The default handler for the
+   * kEventControlGetPartRegion event will return the control's bounds
+   * when this part is requested.
+   }
 	kControlStructureMetaPart = -1;
+
+  {
+   * The area of the control in which embedded controls should be
+   * positioned. This part is only defined for controls that can
+   * contain other controls (for example, the group box). This area is
+   * largely informational and is not used by the Control Manager
+   * itself. The default handler for the kEventControlGetPartRegion
+   * event will return errInvalidPartCode when this part is requested.
+   }
 	kControlContentMetaPart = -2;
-	kControlOpaqueMetaPart = -3;   { Jaguar or later}
-	kControlClickableMetaPart = -4;    { Panther or later, only used for async window dragging. Default is structure region.}
+
+  {
+   * The area of the control that, when drawn, is filled with opaque
+   * pixels. You may also return a subset of the opaque area if this is
+   * computationally easier to construct. If a control is contained in
+   * a composited window, the Control Manager will use this area to
+   * optimize drawing of other controls that intersect this area;
+   * controls that are entirely contained within the opaque area, and
+   * that are z-ordered underneath this control, will not be drawn at
+   * all, since any drawing would be completely overwritten by this
+   * control. The default handler for the kEventControlGetPartRegion
+   * event will return an empty area when this part is requested. This
+   * meta-part is available in Mac OS X 10.2 or later.
+   }
+	kControlOpaqueMetaPart = -3;
+
+  {
+   * The area of the control that causes a mouse event to be captured
+   * by that control. If a mouse event falls inside the control bounds
+   * but outside of this area, then the Control Manager will allow the
+   * event to pass through the control to the next control behind it in
+   * z-order. This area is used to determine which parts of a window
+   * should allow async window dragging when clicked (the draggable
+   * area is computed by subtracting the clickable areas of controls in
+   * the window from the window's total area). You can also customize
+   * the clickable area of a control if you want the control to have an
+   * effectively transparent area (for example, a control that draws
+   * multiple tabs might want clicks in the space between the tabs to
+   * fall through to the next control rather than be captured by the
+   * tab-drawing control). The default handler for the
+   * kEventControlGetPartRegion event will return the control's bounds
+   * when this part is requested. This meta-part is available in Mac OS
+   * X 10.3 or later.
+   }
+	kControlClickableMetaPart = -4;
 
 { focusing part codes }
 const
@@ -317,7 +448,7 @@ const
 	kControlCollectionTagVisibility = FourCharCode('visi');
 
   {
-   * SInt32 - the refCon
+   * SRefCon - the refCon
    }
 	kControlCollectionTagRefCon = FourCharCode('refc');
 
@@ -355,18 +486,96 @@ const
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Control Image Content                                                                             }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
+
+{
+ *  Summary:
+ *    Control image content types
+ }
 const
+{
+   * The control has no content other than text.
+   }
 	kControlContentTextOnly = 0;
+
+  {
+   * The control has no content.
+   }
 	kControlNoContent = 0;
+
+  {
+   * The control's content is an icon suite identified by a resource
+   * ID. The resource ID of the 'icns' resource should be placed in
+   * ControlImageContentInfo.u.resID .
+   }
 	kControlContentIconSuiteRes = 1;
+
+  {
+   * The control's content is a color icon identified by a resource ID.
+   * The resource ID of the 'cicn' resource should be placed in
+   * ControlImageContentInfo.u.resID .
+   }
 	kControlContentCIconRes = 2;
+
+  {
+   * The control's content is a picture identified by a resource ID.
+   * The resource ID of the 'PICT' resource should be placed in
+   * ControlImageContentInfo.u.resID .
+   }
 	kControlContentPictRes = 3;
+
+  {
+   * The control's content is an icon identified by a resource ID. The
+   * resource ID of the 'ICON' resource should be placed in
+   * ControlImageContentInfo.u.resID .
+   }
 	kControlContentICONRes = 4;
+
+  {
+   * The control's content is a note, caution, or stop icon identified
+   * by a resource ID. The resource ID should be placed in
+   * ControlImageContentInfo.u.resID. The resource ID must be one of
+   * kStopIcon, kNoteIcon, or kCautionIcon. When the icon is drawn, it
+   * may be modified to correspond to the current Mac OS X user
+   * interface guidelines. This content type is supported on Mac OS X
+   * 10.1 and later by the Icon control.
+   }
+	kControlContentAlertIconRes = 5;
+
+  {
+   * The control's content is an IconSuiteHandle. The icon suite handle
+   * should be placed in HIViewContentInfo.u.iconSuite.
+   }
 	kControlContentIconSuiteHandle = 129;
+
+  {
+   * The control's content is a CIconHandle. The color icon handle
+   * should be placed in HIViewContentInfo.u.cIconHandle.
+   }
 	kControlContentCIconHandle = 130;
+
+  {
+   * The control's content is a PicHandle. The picture handle should be
+   * placed in HIViewContentInfo.u.picture.
+   }
 	kControlContentPictHandle = 131;
+
+  {
+   * The control's content is an IconRef. The IconRef should be placed
+   * in HIViewContentInfo.u.iconRef.
+   }
 	kControlContentIconRef = 132;
+
+  {
+   * The control's content is a handle to a monochrome icon. The icon
+   * handle should be placed in HIViewContentInfo.u.ICONHandle.
+   }
 	kControlContentICON = 133;
+
+  {
+   * The control's content is a CGImageRef. The CGImageRef should be
+   * placed in HIViewContentInfo.u.imageRef. This content type is
+   * supported on Mac OS X 10.4 and later.
+   }
 	kControlContentCGImageRef = 134;
 
 type
@@ -376,31 +585,32 @@ type
 		contentType: ControlContentType;
 		case SInt16 of
 		0: (
-			resID:				SInt16;
+			resID: SInt16;
 			);
 		1: (
-			cIconHandle:		CIconHandle_fix;
+			iconRef: IconRef_fix;
 			);
 		2: (
-			iconSuite:			Handle;
+			imageRef: CGImageRef;
 			);
+{$ifc not TARGET_CPU_64}
 		3: (
-			iconRef:			IconRef_fix;
+			cIconHandle: CIconHandle_fix;
 			);
 		4: (
-			picture:			PicHandle;
+			iconSuite: Handle;
 			);
 		5: (
-			ICONHandle:			Handle;
+			picture: PicHandle;
 			);
 		6: (
-			imageRef:			CGImageRef;
+			ICONHandle: Handle;
 			);
+{$endc} {not TARGET_CPU_64}
 	end;
 	ControlButtonContentInfoPtr = ^ControlButtonContentInfo;
 type
 	ControlImageContentInfo = ControlButtonContentInfo;
-type
 	ControlImageContentInfoPtr = ControlButtonContentInfoPtr;
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Control Key Script Behavior                                                                       }
@@ -478,7 +688,8 @@ type
 		foreColor: RGBColor;
 		backColor: RGBColor;
 	end;
-	ControlFontStylePtr = ^ControlFontStyleRec;
+type
+	ControlFontStylePtr = ControlFontStyleRecPtr;
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Click Activation Results                                                                          }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -502,7 +713,7 @@ type
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 
 {
- *  Discussion:
+ *  Summary:
  *    Get/SetControlData Common Tags
  }
 const
@@ -516,20 +727,98 @@ const
 	kControlKindTag = FourCharCode('kind');
 
   {
-   * Sent with a pointer to a ControlSize.  Only valid with explicitly
-   * sizeable controls.  Currently supported by the check box, combo
-   * box, progress bar, indeterminate progress bar, radio button, round
-   * button, scroll bar, slider and the tab.  Check your return value!
-   * As of 10.2.5, the push button and data browser accept this tag.
-   * The data browser only changes the size of its scrollbars. As of
-   * Mac OS X 10.3, chasing arrows, disclosure button, popup button,
-   * scroll view, search field and little arrows control also accept
-   * this tag. As of Mac OS X 10.4, if the font of the editable text
-   * has not been overridden, the font size of the combo box and search
-   * field will adjust to respect the size of the control. Still check
-   * your return values!
+   * Sent with a pointer to a ControlSize. Only valid with explicitly
+   * sizeable controls. Supported in 10.2 by the check box, combo box,
+   * progress bar, indeterminate progress bar, radio button, round
+   * button, scroll bar, slider and the tab. Check your return value
+   * from SetControlData to determine if the control supports the size
+   * that you requested. 
+   * 
+   * As of 10.2.5, the push button and DataBrowser accept this tag. The
+   * DataBrowser only changes the size of its scrollbars. 
+   * 
+   * As of 10.3, the chasing arrows, disclosure button, popup button,
+   * scroll view, search field and little arrows controls also accept
+   * this tag. 
+   * 
+   * As of 10.4, if the font of the editable text has not been
+   * overridden, the font size of the combo box and search field will
+   * adjust to respect the size of the control. Also, if the font of a
+   * static text control has not been overridden, the font size of the
+   * static text control will respect the size of the control. Note,
+   * however, that if the font _has_ been overridden (using
+   * SetControlFontStyle), then these controls may return a control
+   * size in response to GetControlData that is different from the
+   * effective font size. 
+   * 
+   * As of 10.5, the bevel button control now supports the small
+   * control size, and uses its control size to determine the size of
+   * its popup menu arrow (if it has a menu associated with the
+   * control). The default behavior is to use the width of the button
+   * to determine whether to use a small or normal-sized arrow. This
+   * behavior can be explicitly requested using kControlSizeAuto.
+   * However, you may also use kControlSizeSmall and kControlSizeNormal
+   * to explicitly request a small or normal-sized popup arrow.
+   * 
+   * 
+   * Also as of 10.5, the group box now supports the normal, small, and
+   * mini sizes. <BR><BR> Still check your return values!
    }
 	kControlSizeTag = FourCharCode('size');
+
+  {
+   * Sent with a pointer to a ControlImageContentInfo (or
+   * HIViewContentInfo) structure. Valid for both GetControlData and
+   * SetControlData. All controls that support this tag will retain
+   * refcountable image content when SetControlData is used to supply
+   * new image content. Most controls that support this tag will not
+   * retain refcountable image content when GetControlData is used to
+   * retrieve image content; the exception is the tab control, which
+   * does retain IconRef and CGImageRef content in response to
+   * GetControlData. If you are implementing support for this tag in a
+   * new view, you should retain refcountable image content when new
+   * content is provided with SetControlData, but should not retain
+   * refcountable image content when returning current image content in
+   * response to GetControlData.
+   }
+	kControlContentTag = FourCharCode('cont');
+
+  {
+   * Sent with a pointer to a CTFontRef. Valid for both GetControlData
+   * and SetControlData. The value of this CTFontRef must be retained
+   * by the view when SetControlData is used and the view must retain
+   * it when passing it back as a result of GetControlData. It is up to
+   * the caller to release this value when it is no longer needed.
+   }
+	kControlThemeTextFontTag = FourCharCode('thft');
+
+  {
+   * Sent with a pointer to an HIThemeTextHorizontalFlush. Valid for
+   * both GetControlData and SetControlData.
+   }
+	kControlThemeTextHorizontalFlushTag = FourCharCode('thhf');
+
+  {
+   * Sent with a pointer to an HIThemeTextVerticalFlush. Valid for both
+   * GetControlData and SetControlData.
+   }
+	kControlThemeTextVerticalFlushTag = FourCharCode('thvf');
+
+  {
+   * Sent with a pointer to an HIThemeTextTruncation. Valid for both
+   * GetControlData and SetControlData.
+   }
+	kControlThemeTextTruncationTag = FourCharCode('thtt');
+
+  {
+   * Sent with a pointer to an HIThemeTextInfo. Valid for
+   * GetControlData. The version field of the HIThemeTextInfo must be
+   * initialized to the version number of the structure that the client
+   * is requesting the information for. When being requested with the
+   * API HIViewGetThemeTextInfo, the version field will be initialized
+   * to that which is given in the inVersion parameter.
+   }
+	kControlThemeTextInfoTag = FourCharCode('thti');
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Control Feature Bits                                                                              }
@@ -537,7 +826,12 @@ const
 
 {
  *  Discussion:
- *    Control Feature Bits - Returned by GetControlFeatures
+ *    Control Feature Bits - Returned by GetControlFeatures 
+ *    
+ *    This list is similar to the list of HIView features in HIView.h.
+ *    Historical note: This list is longer because some of these
+ *    constants were introduced to enable the Control Manager to tell
+ *    whether a CDEF supported a new CDEF message.
  }
 const
 	kControlSupportsGhosting = 1 shl 0;
@@ -575,6 +869,7 @@ const
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Control Messages                                                                                  }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
+{$ifc not TARGET_CPU_64}
 const
 	drawCntl = 0;
 	testCntl = 1;
@@ -618,6 +913,8 @@ const
 
 type
 	ControlDefProcMessage = SInt16;
+{$endc} {not TARGET_CPU_64}
+
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Control Sizes                                                                     }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -625,41 +922,47 @@ type
 {
  *  Discussion:
  *    ControlSize values to be used in conjunction with SetControlData
- *    and the kControlSizeTag.
+ *    and the kControlSizeTag constant.
  }
 const
 {
-   * Use the control's default drawing variant.  This does not apply to
+   * Use the control's default drawing variant. This does not apply to
    * Scroll Bars, for which Normal is Large.
    }
 	kControlSizeNormal = 0;
 
   {
-   * Use the control's small drawing variant.  Currently supported by
-   * the Check Box, Combo Box, Radio Button, Scroll Bar, Slider and Tab
-   * controls.
+   * Use the control's small drawing variant. Supported in 10.4 by the
+   * Check Box, Combo Box, Disclosure Button, HIScrollView,
+   * HISearchField, HISegmentedView, Little Arrows, Popup Button, Push
+   * Button, Radio Button, Scroll Bar, Slider, Static Text, and Tab
+   * controls. Supported in 10.5 by the Bevel Button and Group Box.
    }
 	kControlSizeSmall = 1;
 
   {
-   * Use the control's large drawing variant.  Currently supported by
-   * the Indeterminate Progress Bar, Progress Bar and Round Button
-   * controls.
+   * Use the control's large drawing variant. Supported in 10.4 by the
+   * Indeterminate Progress Bar, Progress Bar, Round Button, and Static
+   * Text controls. Supported in 10.5 by the Chasing Arrows control.
    }
 	kControlSizeLarge = 2;
 
   {
-   * Use the control's miniature drawing variant. This does not apply
-   * to many of the controls, since this is a brand new control size.
+   * Use the control's miniature drawing variant. Supported in 10.4 by
+   * the Check Box, Combo Box, Disclosure Button, HISearchField, Little
+   * Arrows, Popup Button, Push Button, Radio Button, Slider, Static
+   * Text, and Tabs controls. Supported in 10.5 by the Group Box
+   * control.
    }
 	kControlSizeMini = 3;
 
   {
-   * Control drawing variant determined by the control's bounds.  This
-   * ControlSize is currently only available with Scroll Bars and Popup
-   * Buttons to support their legacy behavior of drawing differently
-   * within different bounds. It is preferred to explicitly use one of
-   * the available control sizes.
+   * Used by certain controls to support their legacy behavior of
+   * drawing differently based on the control's bounds. Supported in
+   * 10.4 by the Scroll Bar, Popup Button, Push Button, and Static Text
+   * controls. Supported in 10.5 by the Bevel Button and Chasing Arrows
+   * controls. It is preferred to explicitly use one of the available
+   * control sizes.
    }
 	kControlSizeAuto = $FFFF;
 
@@ -672,6 +975,7 @@ const
 	kDrawControlEntireControl = 0;
 	kDrawControlIndicatorOnly = 129;
 
+{$ifc not TARGET_CPU_64}
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Constants for dragCntl message (passed in param)                                  }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -679,6 +983,7 @@ const
 	kDragControlEntireControl = 0;
 	kDragControlIndicator = 1;
 
+{$endc} {not TARGET_CPU_64}
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Drag Constraint Structure for thumbCntl message (passed in param)                 }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -689,6 +994,7 @@ type
 		axis: DragConstraint;
 	end;
 	IndicatorDragConstraintPtr = ^IndicatorDragConstraint;
+{$ifc not TARGET_CPU_64}
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  CDEF should return as result of kControlMsgTestNewMsgSupport                        }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -826,6 +1132,13 @@ type
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ ÔCDEFÕ entrypoint                                                                 }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
+
+{
+ *  ControlDefProcPtr
+ *  
+ *  Summary:
+ *    Callback function for a custom control definition.
+ }
 type
 	ControlDefProcPtr = function( varCode: SInt16; theControl: ControlRef; message: ControlDefProcMessage; param: SInt32 ): SInt32;
 type
@@ -839,7 +1152,7 @@ type
  *    Non-Carbon CFM:   available as macro/inline
  }
 function NewControlDefUPP( userRoutine: ControlDefProcPtr ): ControlDefUPP; external name '_NewControlDefUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 {
  *  DisposeControlDefUPP()
@@ -850,7 +1163,7 @@ function NewControlDefUPP( userRoutine: ControlDefProcPtr ): ControlDefUPP; exte
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeControlDefUPP( userUPP: ControlDefUPP ); external name '_DisposeControlDefUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 {
  *  InvokeControlDefUPP()
@@ -861,7 +1174,9 @@ procedure DisposeControlDefUPP( userUPP: ControlDefUPP ); external name '_Dispos
  *    Non-Carbon CFM:   available as macro/inline
  }
 function InvokeControlDefUPP( varCode: SInt16; theControl: ControlRef; message: ControlDefProcMessage; param: SInt32; userUPP: ControlDefUPP ): SInt32; external name '_InvokeControlDefUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
+
+{$endc} {not TARGET_CPU_64}
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  Control Key Filter                                                                  }
@@ -888,9 +1203,7 @@ const
 
 type
 	ControlKeyFilterResult = SInt16;
-type
 	ControlKeyFilterProcPtr = function( theControl: ControlRef; var keyCode: SInt16; var charCode: SInt16; var modifiers: EventModifiers ): ControlKeyFilterResult;
-type
 	ControlKeyFilterUPP = ControlKeyFilterProcPtr;
 {
  *  NewControlKeyFilterUPP()
@@ -938,7 +1251,7 @@ const
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Control Creation/Deletion/Persistence                                             }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
-{  CreateCustomControl is only available as part of Carbon                             }
+{$ifc not TARGET_CPU_64}
 const
 	kControlDefProcPtr = 0;    { raw proc-ptr based access}
 	kControlDefObjectClass = 1;     { event-based definition (Mac OS X only)}
@@ -951,40 +1264,68 @@ type
 		defType: ControlDefType;
 		case SInt16 of
 		0: (
-			defProc:			ControlDefUPP;
+			defProc: ControlDefUPP;
 			);
 		1: (
-			classRef:			Ptr;
+			classRef: UnivPtr;
 			);
 	end;
+{$endc} {not TARGET_CPU_64}
+
+{$ifc not TARGET_CPU_64}
 {
- *  CreateCustomControl()
+ *  CreateCustomControl()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    On Mac OS X 10.2 and later, register your own custom subclass of
+ *    the HIView class and create an instance of your class using
+ *    HIObjectCreate.
+ *  
+ *  Summary:
+ *    Creates a control using a custom ControlDefProcPtr or
+ *    ToolboxObjectClassRef.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
 function CreateCustomControl( owningWindow: WindowRef; const (*var*) contBounds: Rect; const (*var*) def: ControlDefSpec; initData: Collection; var outControl: ControlRef ): OSStatus; external name '_CreateCustomControl';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
- *  NewControl()
+ *  NewControl()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use one of the Create*Control APIs (CreatePushButtonControl,
+ *    CreateIconControl, etc) instead.
+ *  
+ *  Summary:
+ *    Creates a new control.
+ *  
+ *  Discussion:
+ *    The parameters to this API are overloaded with different meanings
+ *    depending on the control proc ID. See the "Settings Values for
+ *    Standard Controls" section of the Mac OS 8 Control Manager
+ *    reference documentation at
+ *    oolbox/ControlManager/ControlMgr8Ref/ControlMgrRef.11.html#28136>
+ *    for documentation on the parameter semantics for each type of
+ *    control proc.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function NewControl( owningWindow: WindowRef; const (*var*) boundsRect: Rect; const (*var*) controlTitle: Str255; initiallyVisible: Boolean; initialValue: SInt16; minimumValue: SInt16; maximumValue: SInt16; procID: SInt16; controlReference: SInt32 ): ControlRef; external name '_NewControl';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function NewControl( owningWindow: WindowRef; const (*var*) boundsRect: Rect; const (*var*) controlTitle: Str255; initiallyVisible: Boolean; initialValue: SInt16; minimumValue: SInt16; maximumValue: SInt16; procID: SInt16; controlReference: SRefCon ): ControlRef; external name '_NewControl';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
@@ -994,7 +1335,7 @@ function NewControl( owningWindow: WindowRef; const (*var*) boundsRect: Rect; co
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1009,7 +1350,7 @@ function GetNewControl( resourceID: SInt16; owningWindow: WindowRef ): ControlRe
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1024,7 +1365,7 @@ procedure DisposeControl( theControl: ControlRef ); external name '_DisposeContr
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1032,31 +1373,14 @@ procedure KillControls( theWindow: WindowRef ); external name '_KillControls';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
-{
- *  FlattenControl()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   not available
- }
-
-
-{
- *  UnflattenControl()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   not available
- }
-
-
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {  ¥ Control Definition Registration                                                   }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
+{$endc} {not TARGET_CPU_64}
+
+{$ifc not TARGET_CPU_64}
 type
-	ControlCNTLToCollectionProcPtr = function( const (*var*) bounds: Rect; value: SInt16; visible: Boolean; max: SInt16; min: SInt16; procID: SInt16; refCon: SInt32; const (*var*) title: Str255; collection_: Collection ): OSStatus;
+	ControlCNTLToCollectionProcPtr = function( const (*var*) bounds: Rect; value: SInt16; visible: Boolean; max: SInt16; min: SInt16; procID: SInt16; refCon: SRefCon; const (*var*) title: Str255; collection_: Collection ): OSStatus;
 type
 	ControlCNTLToCollectionUPP = ControlCNTLToCollectionProcPtr;
 {
@@ -1089,9 +1413,12 @@ procedure DisposeControlCNTLToCollectionUPP( userUPP: ControlCNTLToCollectionUPP
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   available as macro/inline
  }
-function InvokeControlCNTLToCollectionUPP( const (*var*) bounds: Rect; value: SInt16; visible: Boolean; max: SInt16; min: SInt16; procID: SInt16; refCon: SInt32; const (*var*) title: Str255; collection_: Collection; userUPP: ControlCNTLToCollectionUPP ): OSStatus; external name '_InvokeControlCNTLToCollectionUPP';
+function InvokeControlCNTLToCollectionUPP( const (*var*) bounds: Rect; value: SInt16; visible: Boolean; max: SInt16; min: SInt16; procID: SInt16; refCon: SRefCon; const (*var*) title: Str255; collection_: Collection; userUPP: ControlCNTLToCollectionUPP ): OSStatus; external name '_InvokeControlCNTLToCollectionUPP';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
+{$endc} {not TARGET_CPU_64}
+
+{$ifc not TARGET_CPU_64}
 {
  *  RegisterControlDefinition()
  *  
@@ -1141,7 +1468,7 @@ function InvokeControlCNTLToCollectionUPP( const (*var*) bounds: Rect; value: SI
  *    An OSStatus code indicating success or failure.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -1159,7 +1486,7 @@ function RegisterControlDefinition( inCDEFResID: SInt16; const (*var*) inControl
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1174,7 +1501,7 @@ procedure HiliteControl( theControl: ControlRef; hiliteState: ControlPartCode );
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1189,7 +1516,7 @@ procedure ShowControl( theControl: ControlRef ); external name '_ShowControl';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1205,7 +1532,7 @@ procedure HideControl( theControl: ControlRef ); external name '_HideControl';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -1241,7 +1568,7 @@ function IsControlActive( inControl: ControlRef ): Boolean; external name '_IsCo
  *    or hidden (false).
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -1256,7 +1583,7 @@ function IsControlVisible( inControl: ControlRef ): Boolean; external name '_IsC
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -1271,7 +1598,7 @@ function ActivateControl( inControl: ControlRef ): OSErr; external name '_Activa
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -1286,7 +1613,7 @@ function DeactivateControl( inControl: ControlRef ): OSErr; external name '_Deac
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -1302,7 +1629,7 @@ function SetControlVisibility( inControl: ControlRef; inIsVisible: Boolean; inDo
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -1317,7 +1644,7 @@ function IsControlEnabled( inControl: ControlRef ): Boolean; external name '_IsC
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -1332,7 +1659,7 @@ function EnableControl( inControl: ControlRef ): OSStatus; external name '_Enabl
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -1350,7 +1677,7 @@ function DisableControl( inControl: ControlRef ): OSStatus; external name '_Disa
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1365,7 +1692,7 @@ procedure DrawControls( theWindow: WindowRef ); external name '_DrawControls';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1398,7 +1725,7 @@ procedure DrawOneControl( theControl: ControlRef ); external name '_Draw1Control
  *      controls intersecting the visible region of the window.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1414,7 +1741,7 @@ procedure UpdateControls( inWindow: WindowRef; inUpdateRegion: RgnHandle { can b
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -1429,7 +1756,7 @@ function GetBestControlRect( inControl: ControlRef; var outRect: Rect; var outBa
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -1444,7 +1771,7 @@ function SetControlFontStyle( inControl: ControlRef; const (*var*) inStyle: Cont
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -1500,7 +1827,7 @@ procedure DrawControlInCurrentPort( inControl: ControlRef ); external name '_Dra
  *    to draw.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -1555,13 +1882,17 @@ function SetUpControlBackground( inControl: ControlRef; inDepth: SInt16; inIsCol
  *    to draw.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 8.5 and later
  }
 function SetUpControlTextColor( inControl: ControlRef; inDepth: SInt16; inIsColorDevice: Boolean ): OSErr; external name '_SetUpControlTextColor';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
+
+{$endc} {not TARGET_CPU_64}
+
+{$ifc not TARGET_CPU_64}
 
 {
  *  ControlColorProcPtr
@@ -1577,7 +1908,7 @@ function SetUpControlTextColor( inControl: ControlRef; inDepth: SInt16; inIsColo
  *  Parameters:
  *    
  *    inControl:
- *      A reference to the Control for whom your proc is setting up
+ *      A reference to the control for whom your proc is setting up
  *      colors.
  *    
  *    inMessage:
@@ -1652,6 +1983,9 @@ procedure DisposeControlColorUPP( userUPP: ControlColorUPP ); external name '_Di
 function InvokeControlColorUPP( inControl: ControlRef; inMessage: SInt16; inDrawDepth: SInt16; inDrawInColor: Boolean; userUPP: ControlColorUPP ): OSStatus; external name '_InvokeControlColorUPP';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
+{$endc} {not TARGET_CPU_64}
+
+{$ifc not TARGET_CPU_64}
 {
  *  SetControlColorProc()
  *  
@@ -1697,7 +2031,7 @@ function InvokeControlColorUPP( inControl: ControlRef; inMessage: SInt16; inDraw
  *    ControlRef.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   in ControlsLib 8.5 and later
  }
@@ -1726,7 +2060,7 @@ function SetControlColorProc( inControl: ControlRef; inProc: ControlColorUPP ): 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1741,7 +2075,7 @@ function TrackControl( theControl: ControlRef; startPoint: Point; actionProc: Co
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1772,7 +2106,7 @@ procedure DragControl( theControl: ControlRef; startPoint: Point; const (*var*) 
  *    The control part code that was at the specified location.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1816,7 +2150,7 @@ function TestControl( theControl: ControlRef; testPoint: Point ): ControlPartCod
  *    The control part code that was at the specified location.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1867,7 +2201,7 @@ function FindControl( testPoint: Point; theWindow: WindowRef; var theControl: Co
  *    The control that was at the specified location.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -1882,7 +2216,7 @@ function FindControlUnderMouse( inWhere: Point; inWindow: WindowRef; outPart: Co
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -1902,7 +2236,7 @@ function HandleControlClick( inControl: ControlRef; inWhere: Point; inModifiers:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 9.0 and later
  }
@@ -1923,7 +2257,7 @@ function HandleControlContextualMenuClick( inControl: ControlRef; inWhere: Point
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 9.0 and later
  }
@@ -1935,18 +2269,49 @@ function GetControlClickActivation( inControl: ControlRef; inWhere: Point; inMod
 {  ¥ Control Events (available only with Appearance 1.0 and later)                     }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {
- *  HandleControlKey()
+ *  HandleControlKey()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    This API only works for a limited set of controls in Mac OS X. No
+ *    HIView-based controls except for the Clock and UserPane controls
+ *    support this API. The EditText, ListBox, and ScrollingTextBox
+ *    controls are not HIView-based and do still support this API. For
+ *    HIView-based controls, you should send a
+ *    kEventTextInputUnicodeForKeyEvent event to a control if you need
+ *    to feed it keyboard input.
+ *  
+ *  Summary:
+ *    Sends WorldScript-encoded keyboard input to a control using
+ *    kControlMsgKeyDown.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
+ *  Parameters:
+ *    
+ *    inControl:
+ *      The control to receive the keyboard input.
+ *    
+ *    inKeyCode:
+ *      The virtual keycode to send.
+ *    
+ *    inCharCode:
+ *      The character code to send. This character should use the
+ *      current keyboard text encoding.
+ *    
+ *    inModifiers:
+ *      The keyboard modifiers to send.
+ *  
+ *  Result:
+ *    The part code that was modified by keyboard event processing.
+ *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
 function HandleControlKey( inControl: ControlRef; inKeyCode: SInt16; inCharCode: SInt16; inModifiers: EventModifiers ): ControlPartCode; external name '_HandleControlKey';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -1965,7 +2330,7 @@ function HandleControlKey( inControl: ControlRef; inKeyCode: SInt16; inCharCode:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 9.0 and later
  }
@@ -1983,7 +2348,7 @@ function HandleControlSetCursor( control: ControlRef; localPoint: Point; modifie
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1998,7 +2363,7 @@ procedure MoveControl( theControl: ControlRef; h: SInt16; v: SInt16 ); external 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -2010,43 +2375,85 @@ procedure SizeControl( theControl: ControlRef; w: SInt16; h: SInt16 ); external 
 {  ¥ Control Title                                                                     }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 {
- *  SetControlTitle()
+ *  SetControlTitle()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use HIViewSetText or SetControlTitleWithCFString instead of
+ *    SetControlTitle.
+ *  
+ *  Summary:
+ *    Sets the title of a control to a Pascal string.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure SetControlTitle( theControl: ControlRef; const (*var*) title: Str255 ); external name '_SetControlTitle';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
- *  GetControlTitle()
+ *  GetControlTitle()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use HIViewCopyText or CopyControlTitleAsCFString instead of
+ *    GetControlTitle.
+ *  
+ *  Summary:
+ *    Retrieves the title of a control as a Pascal string.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 procedure GetControlTitle( theControl: ControlRef; var title: Str255 ); external name '_GetControlTitle';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
  *  SetControlTitleWithCFString()
  *  
+ *  Summary:
+ *    Sets the title of a control to the text contained in a CFString.
+ *  
+ *  Discussion:
+ *    The Control Manager will either make its own copy or just
+ *    increment the refcount of the CFString before returning from
+ *    SetControlTitleWithCFString, depending on whether the string is
+ *    mutable or immutable. If the string is mutable, modifying the
+ *    string after calling SetControlTitleWithCFString will have no
+ *    effect on the control's actual title. The caller may release the
+ *    string after calling SetControlTitleWithCFString. 
+ *    
+ *    Note that setting the title of some controls (such as the
+ *    StaticText and EditText controls) does not affect the text that
+ *    is displayed by the control. These controls only read their title
+ *    text at creation, and changes to the title text after creation
+ *    are ignored. To set the text that is displayed by such a control,
+ *    use HIViewSetText, or SetControlData with
+ *    kControlStatic/EditTextTextTag.
+ *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
+ *  Parameters:
+ *    
+ *    inControl:
+ *      The control whose title to set.
+ *    
+ *    inString:
+ *      The string containing the new control title text.
+ *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
@@ -2057,11 +2464,31 @@ function SetControlTitleWithCFString( inControl: ControlRef; inString: CFStringR
 {
  *  CopyControlTitleAsCFString()
  *  
+ *  Summary:
+ *    Returns a CFString containing the title of a control.
+ *  
+ *  Discussion:
+ *    Note that retrieving the title of some controls (such as the
+ *    StaticText and EditText controls) does not retrieve the text that
+ *    is displayed by the control. These controls store the displayed
+ *    text in a location that is separate from the title. To retrieve
+ *    the text that is displayed by such a control, use HIViewCopyText,
+ *    or SetControlData with kControlStatic/EditTextTextTag.
+ *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
+ *  Parameters:
+ *    
+ *    inControl:
+ *      The control whose title to return.
+ *    
+ *    outString:
+ *      On exit, a CFString containing the control's title. This string
+ *      must be released by the caller.
+ *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
@@ -2079,7 +2506,7 @@ function CopyControlTitleAsCFString( inControl: ControlRef; var outString: CFStr
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -2094,7 +2521,7 @@ function GetControlValue( theControl: ControlRef ): SInt16; external name '_GetC
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -2109,7 +2536,7 @@ procedure SetControlValue( theControl: ControlRef; newValue: SInt16 ); external 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -2124,7 +2551,7 @@ function GetControlMinimum( theControl: ControlRef ): SInt16; external name '_Ge
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -2139,7 +2566,7 @@ procedure SetControlMinimum( theControl: ControlRef; newMinimum: SInt16 ); exter
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -2154,7 +2581,7 @@ function GetControlMaximum( theControl: ControlRef ): SInt16; external name '_Ge
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -2171,7 +2598,7 @@ procedure SetControlMaximum( theControl: ControlRef; newMaximum: SInt16 ); exter
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 8.5 and later
  }
@@ -2186,7 +2613,7 @@ function GetControlViewSize( theControl: ControlRef ): SInt32; external name '_G
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 8.5 and later
  }
@@ -2201,7 +2628,7 @@ procedure SetControlViewSize( theControl: ControlRef; newViewSize: SInt32 ); ext
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 8.5 and later
  }
@@ -2216,7 +2643,7 @@ function GetControl32BitValue( theControl: ControlRef ): SInt32; external name '
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 8.5 and later
  }
@@ -2231,7 +2658,7 @@ procedure SetControl32BitValue( theControl: ControlRef; newValue: SInt32 ); exte
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 8.5 and later
  }
@@ -2246,7 +2673,7 @@ function GetControl32BitMaximum( theControl: ControlRef ): SInt32; external name
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 8.5 and later
  }
@@ -2261,7 +2688,7 @@ procedure SetControl32BitMaximum( theControl: ControlRef; newMaximum: SInt32 ); 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 8.5 and later
  }
@@ -2276,7 +2703,7 @@ function GetControl32BitMinimum( theControl: ControlRef ): SInt32; external name
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 8.5 and later
  }
@@ -2296,7 +2723,7 @@ procedure SetControl32BitMinimum( theControl: ControlRef; newMinimum: SInt32 ); 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 8.5 and later
  }
@@ -2308,6 +2735,7 @@ function IsValidControlHandle( theControl: ControlRef ): Boolean; external name 
 { ¥ Control IDs                                                                        }
 { Carbon only.                                                                         }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
+{$endc} {not TARGET_CPU_64}
 
 {
  *  ControlID
@@ -2333,6 +2761,7 @@ type
    }
 		id: SInt32;
 	end;
+{$ifc not TARGET_CPU_64}
 {
  *  SetControlID()
  *  
@@ -2340,7 +2769,7 @@ type
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -2355,7 +2784,7 @@ function SetControlID( inControl: ControlRef; const (*var*) inID: ControlID ): O
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -2369,7 +2798,7 @@ function GetControlID( inControl: ControlRef; var outID: ControlID ): OSStatus; 
  *  Discussion:
  *    Find a control in a window by its unique ID. 
  *    
- *    HIView Notes: This call is replaced as of Mac OS X 10.3 by
+ *    HIView Notes: As of Mac OS X 10.3, this call is replaced by
  *    HIViewFindByID. That call lets you start your search at any point
  *    in the hierarchy, as the first parameter is a view and not a
  *    window. Either will work, but the HIView API is preferred.
@@ -2390,7 +2819,7 @@ function GetControlID( inControl: ControlRef; var outID: ControlID ): OSStatus; 
  *      had the ID specified.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -2409,7 +2838,7 @@ function GetControlByID( inWindow: WindowRef; const (*var*) inID: ControlID; var
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
@@ -2424,7 +2853,7 @@ function SetControlCommandID( inControl: ControlRef; inCommandID: UInt32 ): OSSt
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
@@ -2436,6 +2865,8 @@ function GetControlCommandID( inControl: ControlRef; var outCommandID: UInt32 ):
 { ¥ Control Identification                                                             }
 { Carbon only.                                                                         }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
+{$endc} {not TARGET_CPU_64}
+
 type
 	ControlKindPtr = ^ControlKind;
 	ControlKind = record
@@ -2453,6 +2884,7 @@ const
    }
 	kControlKindSignatureApple = FourCharCode('appl');
 
+{$ifc not TARGET_CPU_64}
 {
  *  GetControlKind()
  *  
@@ -2460,15 +2892,15 @@ const
  *    Returns the kind of the given control.
  *  
  *  Discussion:
- *    GetControlKind allows you to query the kind of any control. This
- *    function is only available in Mac OS X. 
+ *    GetControlKind allows you to query the kind of any control.
+ *    
  *    
  *    HIView Note: With the advent of HIView, you can just as easily
  *    use HIObjectCopyClassID to determine what kind of control you are
- *    looking at. This is only truly deterministic for
+ *    looking at. The class ID is only truly deterministic for
  *    HIToolbox-supplied controls as of Mac OS X 10.3 or later due to
- *    the fact that the class IDs underwent naming changes before that
- *    release.
+ *    the fact that the class IDs underwent naming changes between Mac
+ *    OS X 10.2 and Mac OS X 10.3.
  *  
  *  Mac OS X threading:
  *    Not thread safe
@@ -2484,7 +2916,7 @@ const
  *      control.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.5 and later
  *    Non-Carbon CFM:   not available
  }
@@ -2495,9 +2927,12 @@ function GetControlKind( inControl: ControlRef; var outControlKind: ControlKind 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
 { ¥ Properties                                                                         }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
+{$endc} {not TARGET_CPU_64}
+
 const
 	kControlPropertyPersistent = $00000001; { whether this property gets saved when flattening the control}
 
+{$ifc not TARGET_CPU_64}
 {
  *  GetControlProperty()
  *  
@@ -2533,10 +2968,8 @@ const
  *      whichever is smaller, and an error is returned.
  *    
  *    actualSize:
- *      On input, a pointer to an unsigned 32-bit integer. On return,
- *      this value is set to the actual size of the associated data.
- *      You may pass null for the actualSize parameter if you are not
- *      interested in this information.
+ *      On output, the actual size of the property data. Pass NULL if
+ *      you don't want this information.
  *    
  *    propertyBuffer:
  *      On input, a pointer to a buffer. This buffer must be big enough
@@ -2550,11 +2983,11 @@ const
  *    controlPropertyInvalid and controlPropertyNotFoundErr.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 8.5 and later
  }
-function GetControlProperty( control: ControlRef; propertyCreator: OSType; propertyTag: OSType; bufferSize: UInt32; actualSize: UInt32Ptr { can be NULL }; propertyBuffer: UnivPtr ): OSStatus; external name '_GetControlProperty';
+function GetControlProperty( control: ControlRef; propertyCreator: OSType; propertyTag: OSType; bufferSize: ByteCount; actualSize: ByteCountPtr { can be NULL }; propertyBuffer: UnivPtr ): OSStatus; external name '_GetControlProperty';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -2565,11 +2998,11 @@ function GetControlProperty( control: ControlRef; propertyCreator: OSType; prope
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 8.5 and later
  }
-function GetControlPropertySize( control: ControlRef; propertyCreator: OSType; propertyTag: OSType; var size: UInt32 ): OSStatus; external name '_GetControlPropertySize';
+function GetControlPropertySize( control: ControlRef; propertyCreator: OSType; propertyTag: OSType; var size: ByteCount ): OSStatus; external name '_GetControlPropertySize';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -2619,11 +3052,11 @@ function GetControlPropertySize( control: ControlRef; propertyCreator: OSType; p
  *    controlPropertyInvalid
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 8.5 and later
  }
-function SetControlProperty( control: ControlRef; propertyCreator: OSType; propertyTag: OSType; propertySize: UInt32; propertyData: {const} UnivPtr ): OSStatus; external name '_SetControlProperty';
+function SetControlProperty( control: ControlRef; propertyCreator: OSType; propertyTag: OSType; propertySize: ByteCount; propertyData: {const} UnivPtr ): OSStatus; external name '_SetControlProperty';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -2634,7 +3067,7 @@ function SetControlProperty( control: ControlRef; propertyCreator: OSType; prope
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 8.5 and later
  }
@@ -2649,11 +3082,11 @@ function RemoveControlProperty( control: ControlRef; propertyCreator: OSType; pr
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
-function GetControlPropertyAttributes( control: ControlRef; propertyCreator: OSType; propertyTag: OSType; var attributes: UInt32 ): OSStatus; external name '_GetControlPropertyAttributes';
+function GetControlPropertyAttributes( control: ControlRef; propertyCreator: OSType; propertyTag: OSType; var attributes: OptionBits ): OSStatus; external name '_GetControlPropertyAttributes';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -2664,11 +3097,11 @@ function GetControlPropertyAttributes( control: ControlRef; propertyCreator: OST
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
-function ChangeControlPropertyAttributes( control: ControlRef; propertyCreator: OSType; propertyTag: OSType; attributesToSet: UInt32; attributesToClear: UInt32 ): OSStatus; external name '_ChangeControlPropertyAttributes';
+function ChangeControlPropertyAttributes( control: ControlRef; propertyCreator: OSType; propertyTag: OSType; attributesToSet: OptionBits; attributesToClear: OptionBits ): OSStatus; external name '_ChangeControlPropertyAttributes';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -2683,7 +3116,7 @@ function ChangeControlPropertyAttributes( control: ControlRef; propertyCreator: 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 8.5 and later
  }
@@ -2701,7 +3134,7 @@ function GetControlRegion( inControl: ControlRef; inPart: ControlPartCode; outRe
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -2719,7 +3152,7 @@ function GetControlVariant( theControl: ControlRef ): ControlVariant; external n
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -2734,7 +3167,7 @@ procedure SetControlAction( theControl: ControlRef; actionProc: ControlActionUPP
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -2772,11 +3205,11 @@ function GetControlAction( theControl: ControlRef ): ControlActionUPP; external 
  *      The new reference value for the control.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-procedure SetControlReference( theControl: ControlRef; data: SInt32 ); external name '_SetControlReference';
+procedure SetControlReference( theControl: ControlRef; data: SRefCon ); external name '_SetControlReference';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -2807,22 +3240,12 @@ procedure SetControlReference( theControl: ControlRef; data: SInt32 ); external 
  *    The current reference value for the specified control.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function GetControlReference( theControl: ControlRef ): SInt32; external name '_GetControlReference';
+function GetControlReference( theControl: ControlRef ): SRefCon; external name '_GetControlReference';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
-
-{
- *  SetControlColor()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
 
 
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
@@ -2835,26 +3258,11 @@ function GetControlReference( theControl: ControlRef ): SInt32; external name '_
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
 function SendControlMessage( inControl: ControlRef; inMessage: SInt16; inParam: UnivPtr ): SInt32; external name '_SendControlMessage';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
-
-{
- *  DumpControlHierarchy()
- *  
- *  Mac OS X threading:
- *    Not thread safe
- *  
- *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
- }
-function DumpControlHierarchy( inWindow: WindowRef; const (*var*) inDumpFile: FSSpec ): OSErr; external name '_DumpControlHierarchy';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -2890,7 +3298,7 @@ function DumpControlHierarchy( inWindow: WindowRef; const (*var*) inDumpFile: FS
  *    is returned if the window already has a root control.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -2932,7 +3340,7 @@ function CreateRootControl( inWindow: WindowRef; outControl: ControlRefPtr { can
  *    An operating system result code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -2968,7 +3376,7 @@ function GetRootControl( inWindow: WindowRef; var outControl: ControlRef ): OSEr
  *    embed into the content view in compositing windows.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -3005,7 +3413,7 @@ function EmbedControl( inControl: ControlRef; inContainer: ControlRef ): OSErr; 
  *    An operating system result code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -3038,7 +3446,7 @@ function AutoEmbedControl( inControl: ControlRef; inWindow: WindowRef ): OSErr; 
  *    An operating system result code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -3051,8 +3459,7 @@ function GetSuperControl( inControl: ControlRef; var outParent: ControlRef ): OS
  *  
  *  Discussion:
  *    Returns the number of children a given control has. This count
- *    can then be used for calls to GetIndexedSubControl.
- *    
+ *    can then be used for calls to GetIndexedSubControl. 
  *    
  *    HIView Note: As of Mac OS X 10.2, the preferred way to walk the
  *    control hierarchy is to use HIViewGetFirstSubView followed by
@@ -3074,7 +3481,7 @@ function GetSuperControl( inControl: ControlRef; var outParent: ControlRef ): OS
  *    An operating system result code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -3113,7 +3520,7 @@ function CountSubControls( inControl: ControlRef; var outNumChildren: UInt16 ): 
  *    An operating system result code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -3149,7 +3556,7 @@ function GetIndexedSubControl( inControl: ControlRef; inIndex: UInt16; var outSu
  *    An operating system result code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -3183,7 +3590,7 @@ function SetControlSupervisor( inControl: ControlRef; inBoss: ControlRef { can b
  *    An operating system result code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -3223,7 +3630,7 @@ function GetKeyboardFocus( inWindow: WindowRef; var outControl: ControlRef ): OS
  *    An operating system result code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -3236,7 +3643,7 @@ function SetKeyboardFocus( inWindow: WindowRef; inControl: ControlRef; inPart: C
  *  
  *  Discussion:
  *    Advances the focus to the next most appropriate control. Unless
- *    overriden in some fashion (either by overriding certain carbon
+ *    overridden in some fashion (either by overriding certain carbon
  *    events or using the HIViewSetNextFocus API), the Toolbox will use
  *    a spacially determinant method of focusing, attempting to focus
  *    left to right, top to bottom in a window, taking groups of
@@ -3260,7 +3667,7 @@ function SetKeyboardFocus( inWindow: WindowRef; inControl: ControlRef; inPart: C
  *    An operating system result code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -3273,7 +3680,7 @@ function AdvanceKeyboardFocus( inWindow: WindowRef ): OSErr; external name '_Adv
  *  
  *  Discussion:
  *    Reverses the focus to the next most appropriate control. Unless
- *    overriden in some fashion (either by overriding certain carbon
+ *    overridden in some fashion (either by overriding certain carbon
  *    events or using the HIViewSetNextFocus API), the Toolbox will use
  *    a spacially determinant method of focusing, attempting to focus
  *    left to right, top to bottom in a window, taking groups of
@@ -3297,7 +3704,7 @@ function AdvanceKeyboardFocus( inWindow: WindowRef ): OSErr; external name '_Adv
  *    An operating system result code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -3325,7 +3732,7 @@ function ReverseKeyboardFocus( inWindow: WindowRef ): OSErr; external name '_Rev
  *    An operating system result code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -3361,7 +3768,7 @@ function ClearKeyboardFocus( inWindow: WindowRef ): OSErr; external name '_Clear
  *    An operating system error code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -3376,7 +3783,7 @@ function GetControlFeatures( inControl: ControlRef; var outFeatures: UInt32 ): O
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -3391,7 +3798,7 @@ function SetControlData( inControl: ControlRef; inPart: ControlPartCode; inTagNa
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -3406,7 +3813,7 @@ function GetControlData( inControl: ControlRef; inPart: ControlPartCode; inTagNa
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -3418,6 +3825,7 @@ function GetControlDataSize( inControl: ControlRef; inPart: ControlPartCode; inT
 {  ¥ Control Drag & Drop                                                               }
 {      Carbon only.                                                                    }
 {ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
+{$endc} {not TARGET_CPU_64}
 
 {
  *  Discussion:
@@ -3445,6 +3853,7 @@ const
 	kDragTrackingLeaveControl = 4;
 
 
+{$ifc not TARGET_CPU_64}
 {
  *  HandleControlDragTracking()
  *  
@@ -3458,7 +3867,11 @@ const
  *    control to have any chance of responding to this API, you must
  *    enable the control's drag and drop support with
  *    SetControlDragTrackingEnabled. 
- *    <br>HIView Note: This should not be called in a composited window.
+ *    
+ *    HIView Note: The HandleControlDragTracking API should not be
+ *    called in a composited window. Instead, the
+ *    SetAutomaticControlDragTrackingEnabledForWindow API should be
+ *    used to enable automatic control drag tracking.
  *  
  *  Mac OS X threading:
  *    Not thread safe
@@ -3494,7 +3907,7 @@ const
  *    A result code indicating success or failure.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 9.0 and later
  }
@@ -3515,7 +3928,11 @@ function HandleControlDragTracking( inControl: ControlRef; inMessage: DragTracki
  *    into itself. Note that in order for a control to have any chance
  *    of responding to this API, you must enable the control's drag and
  *    drop support with SetControlDragTrackingEnabled. 
- *    <br>HIView Note: This should not be called in a composited window.
+ *    
+ *    HIView Note: The HandleControlDragReceive API should not be
+ *    called in a composited window. Instead, the
+ *    SetAutomaticControlDragTrackingEnabledForWindow API should be
+ *    used to enable automatic control drag tracking.
  *  
  *  Mac OS X threading:
  *    Not thread safe
@@ -3523,7 +3940,7 @@ function HandleControlDragTracking( inControl: ControlRef; inMessage: DragTracki
  *  Parameters:
  *    
  *    inControl:
- *      The control who should accept the data. Most controls won't
+ *      The control that should accept the data. Most controls won't
  *      accept drags unless you enable drag tracking on it with
  *      SetControlDragTrackingEnabled.
  *    
@@ -3534,7 +3951,7 @@ function HandleControlDragTracking( inControl: ControlRef; inMessage: DragTracki
  *    A result code indicating success or failure.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 9.0 and later
  }
@@ -3546,14 +3963,19 @@ function HandleControlDragReceive( inControl: ControlRef; inDrag: DragReference 
  *  SetControlDragTrackingEnabled()
  *  
  *  Summary:
- *    Tells a control that it should track and receive drags.
+ *    Tells a control that it should track and receive drags, including
+ *    the kEventControlDrag* suite of Carbon events.
  *  
  *  Discussion:
- *    Call SetControlDragTrackingEnabled to turn enable a control's
- *    support for drag and drop. Controls won't track drags unless you
- *    first turn on drag and drop support with this API. Some controls
- *    don't support drag and drop at all; these controls won't track or
- *    receive drags even if you call this API with true.
+ *    Call SetControlDragTrackingEnabled to enable a control's support
+ *    for drag and drop, including receipt of the kEventControlDrag*
+ *    suite of Carbon events. Controls won't receive these events or
+ *    track drags unless you first turn on drag and drop support with
+ *    this API. Some controls don't support drag and drop at all; these
+ *    controls won't track or receive drags even if you call this API
+ *    with true (but they will receive the Carbon events, so you can
+ *    add your own drag handling to a control by installing your own
+ *    Carbon event handlers).
  *  
  *  Mac OS X threading:
  *    Not thread safe
@@ -3571,7 +3993,7 @@ function HandleControlDragReceive( inControl: ControlRef; inDrag: DragReference 
  *    A result code indicating success or failure.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 9.0 and later
  }
@@ -3609,7 +4031,7 @@ function SetControlDragTrackingEnabled( inControl: ControlRef; inTracks: Boolean
  *    A result code indicating success or failure.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 9.0 and later
  }
@@ -3627,11 +4049,15 @@ function IsControlDragTrackingEnabled( inControl: ControlRef; var outTracks: Boo
  *  Discussion:
  *    Call SetAutomaticControlDragTrackingEnabledForWindow to turn on
  *    or off the Control Manager's automatic drag tracking support for
- *    a given window. By default, your application code is responsible
- *    for installing drag tracking and receive handlers on a given
- *    window. The Control Manager, however, has support for
- *    automatically tracking and receiving drags over controls. The
- *    Control Manager will detect the control the drag is over and call
+ *    a given window. If you are using a composited window or the
+ *    standard event handler, you should generally always call this API
+ *    if you need drag support for controls in your window. 
+ *    
+ *    By default, your application code is responsible for installing
+ *    drag tracking and receive handlers on a newly created window. The
+ *    Control Manager, however, has support for automatically tracking
+ *    and receiving drags over controls. The Control Manager will
+ *    detect the control the drag is over and call
  *    HandleControlDragTracking and HandleControlDragReceive
  *    appropriately. By default, this automatic support is turned off.
  *    You can turn on this support by calling
@@ -3659,7 +4085,7 @@ function IsControlDragTrackingEnabled( inControl: ControlRef; var outTracks: Boo
  *    A result code indicating success or failure.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 9.0 and later
  }
@@ -3697,87 +4123,14 @@ function SetAutomaticControlDragTrackingEnabledForWindow( inWindow: WindowRef; i
  *    A result code indicating success or failure.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ControlsLib 9.0 and later
  }
 function IsAutomaticControlDragTrackingEnabledForWindow( inWindow: WindowRef; var outTracks: Boolean ): OSStatus; external name '_IsAutomaticControlDragTrackingEnabledForWindow';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
-
-{ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
-{  ¥ C Glue                                                                            }
-{ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
-{
- *  dragcontrol()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
-
-
-{
- *  newcontrol()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
-
-
-{
- *  findcontrol()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
-
-
-{
- *  getcontroltitle()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
-
-
-{
- *  setcontroltitle()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
-
-
-{
- *  trackcontrol()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
-
-
-{
- *  testcontrol()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
-
-
+{$endc} {not TARGET_CPU_64}
 
 (*
 #if OLDROUTINENAMES
@@ -3817,6 +4170,7 @@ const
 *)
 
 { Getters }
+{$ifc not TARGET_CPU_64}
 {
  *  GetControlBounds()
  *  
@@ -3825,7 +4179,7 @@ const
  *    coordinates. 
  *    
  *    HIView Notes: When called in a composited window, this routine
- *    returns the view's frame, i.e. it is equivalent to calling
+ *    returns the view's frame; i.e., it is equivalent to calling
  *    HIViewGetFrame.
  *  
  *  Mac OS X threading:
@@ -3843,7 +4197,7 @@ const
  *    A pointer to the rectangle passed in bounds.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
@@ -3858,7 +4212,7 @@ function GetControlBounds( control: ControlRef; var bounds: Rect ): RectPtr; ext
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
@@ -3873,7 +4227,7 @@ function IsControlHilited( control: ControlRef ): Boolean; external name '_IsCon
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
@@ -3886,7 +4240,7 @@ function GetControlHilite( control: ControlRef ): UInt16; external name '_GetCon
  *  
  *  Discussion:
  *    Returns the window a control is bound to, or NULL if the control
- *    is not currently attached to any window.
+ *    is not currently attached to any window. 
  *    
  *    HIView replacement: HIViewGetWindow (Mac OS X 10.3 or later).
  *    Either call will work in a composited or non-composited view.
@@ -3904,7 +4258,7 @@ function GetControlHilite( control: ControlRef ): UInt16; external name '_GetCon
  *    window
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
@@ -3919,7 +4273,7 @@ function GetControlOwner( control: ControlRef ): WindowRef; external name '_GetC
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
@@ -3934,7 +4288,7 @@ function GetControlDataHandle( control: ControlRef ): Handle; external name '_Ge
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
@@ -3951,7 +4305,7 @@ function GetControlPopupMenuRef( control: ControlRef ): MenuRef; external name '
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
@@ -3967,7 +4321,7 @@ function GetControlPopupMenuID( control: ControlRef ): SInt16; external name '_G
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
@@ -4000,7 +4354,7 @@ procedure SetControlDataHandle( control: ControlRef; dataHandle: Handle ); exter
  *      A pointer to a Quickdraw rectangle to be used by this call.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
@@ -4015,7 +4369,7 @@ procedure SetControlBounds( control: ControlRef; const (*var*) bounds: Rect ); e
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
@@ -4032,13 +4386,15 @@ procedure SetControlPopupMenuRef( control: ControlRef; popupMenu: MenuRef ); ext
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
 procedure SetControlPopupMenuID( control: ControlRef; menuID: SInt16 ); external name '_SetControlPopupMenuID';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
+
+{$endc} {not TARGET_CPU_64}
 
 {--------------------------------------------------------------------------------------}
 {  ¥ DEPRECATED                                                                        }
@@ -4047,6 +4403,7 @@ procedure SetControlPopupMenuID( control: ControlRef; menuID: SInt16 ); external
 {  completely unavailable on Mac OS X.                                                 }
 {--------------------------------------------------------------------------------------}
 
+{$ifc not TARGET_CPU_64}
 {
  *  IdleControls()   *** DEPRECATED ***
  *  
@@ -4078,7 +4435,7 @@ procedure SetControlPopupMenuID( control: ControlRef; menuID: SInt16 ); external
  *      The WindowRef whose controls are offered idle time.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -4086,6 +4443,12 @@ procedure IdleControls( inWindow: WindowRef ); external name '_IdleControls';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 
+{$endc} {not TARGET_CPU_64}
 
+
+{$endc} {not TARGET_OS_MAC}
+
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

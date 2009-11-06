@@ -3,21 +3,23 @@
 
      Contains:   API for communicating with audio hardware.
 
-     Version:    Technology: Mac OS X
-                 Release:    Mac OS X
+     Copyright:  (c) 1985-2008 by Apple Inc., all rights reserved.
 
-     Copyright:  (c) 1985-2005 by Apple Computer, Inc., all rights reserved.
+     Bugs?:      For bug reports, consult the following page on
+                 the World Wide Web:
+
+                     http://www.freepascal.org/bugs.html
 
 ==================================================================================================}
-
 {	 Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2006 }
-
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -26,8 +28,8 @@
 
 unit AudioHardware;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -40,16 +42,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -57,14 +81,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -90,7 +165,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -101,6 +175,11 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes, CFRunLoop, CoreAudioTypes;
+{$endc} {not MACOSALLINCLUDE}
+
+
+{$ifc TARGET_OS_MAC}
+
 {$ALIGN POWER}
 
 //==================================================================================================
@@ -163,8 +242,6 @@ uses MacTypes, CFRunLoop, CoreAudioTypes;
     the object such as gain, mute, data source selection, etc. Many common controls are also
     also available as properties on the AudioDevice or AudioStream.
 }
-
-
 
 //==================================================================================================
 //#pragma mark    Error Constants
@@ -296,13 +373,13 @@ type
                         The wildcard value for AudioObjectPropertyScopes.
     @constant       kAudioObjectPropertyElementWildcard
                         The wildcard value for AudioObjectPropertyElements.
-	@constant		kAudioPropertyWildcardPropertyID
-						A synonym for kAudioObjectPropertySelectorWildcard.
-	@constant		kAudioPropertyWildcardSection
-						The wildcard value for the isInput argument of AudioDeviceGetPropertyInfo(),
-						AudioDeviceGetProperty(), and AudioDeviceSetProperty().
-	@constant		kAudioPropertyWildcardChannel
-						A synonym for kAudioObjectPropertyElementWildcard.
+    @constant       kAudioPropertyWildcardPropertyID
+                        A synonym for kAudioObjectPropertySelectorWildcard.
+    @constant       kAudioPropertyWildcardSection
+                        The wildcard value for the isInput argument of AudioDeviceGetPropertyInfo(),
+                        AudioDeviceGetProperty(), and AudioDeviceSetProperty().
+    @constant       kAudioPropertyWildcardChannel
+                        A synonym for kAudioObjectPropertyElementWildcard.
 }
 const
 	kAudioObjectPropertySelectorWildcard = FourCharCode('****');
@@ -397,8 +474,8 @@ const
                         property is kAudioObjectUnknown.
     @constant       kAudioObjectPropertyCreator
                         A CFString that contains the bundle ID of the plug-in that instantiated the
-                        object.
-    @constant       kAudioObjectPropertyObjectName
+                        object. The caller is responsible for releasing the returned CFObject.
+    @constant       kAudioObjectPropertyName
                         A CFString that contains the human readable name of the object. The caller
                         is responsible for releasing the returned CFObject.
     @constant       kAudioObjectPropertyManufacturer
@@ -460,7 +537,7 @@ const
                         The AudioObject to show.
 }
 procedure AudioObjectShow( inObjectID: AudioObjectID ); external name '_AudioObjectShow';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
 
 {!
     @function       AudioObjectHasProperty
@@ -472,7 +549,7 @@ procedure AudioObjectShow( inObjectID: AudioObjectID ); external name '_AudioObj
     @result         A Boolean indicating whether or not the AudioObject has the given property.
 }
 function AudioObjectHasProperty( inObjectID: AudioObjectID; const (*var*) inAddress: AudioObjectPropertyAddress ): Boolean; external name '_AudioObjectHasProperty';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
 
 {!
     @function       AudioObjectIsPropertySettable
@@ -487,7 +564,7 @@ function AudioObjectHasProperty( inObjectID: AudioObjectID; const (*var*) inAddr
     @result         An OSStatus indicating success or failure.
 }
 function AudioObjectIsPropertySettable( inObjectID: AudioObjectID; const (*var*) inAddress: AudioObjectPropertyAddress; var outIsSettable: Boolean ): OSStatus; external name '_AudioObjectIsPropertySettable';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
 
 {!
     @function       AudioObjectGetPropertyDataSize
@@ -509,7 +586,7 @@ function AudioObjectIsPropertySettable( inObjectID: AudioObjectID; const (*var*)
     @result         An OSStatus indicating success or failure.
 }
 function AudioObjectGetPropertyDataSize( inObjectID: AudioObjectID; const (*var*) inAddress: AudioObjectPropertyAddress; inQualifierDataSize: UInt32; inQualifierData: {const} UnivPtr; var outDataSize: UInt32 ): OSStatus; external name '_AudioObjectGetPropertyDataSize';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
 
 {!
     @function       AudioObjectGetPropertyData
@@ -536,7 +613,7 @@ function AudioObjectGetPropertyDataSize( inObjectID: AudioObjectID; const (*var*
     @result         An OSStatus indicating success or failure.
 }
 function AudioObjectGetPropertyData( inObjectID: AudioObjectID; const (*var*) inAddress: AudioObjectPropertyAddress; inQualifierDataSize: UInt32; inQualifierData: {const} UnivPtr; var ioDataSize: UInt32; outData: UnivPtr ): OSStatus; external name '_AudioObjectGetPropertyData';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
 
 {!
     @function       AudioObjectSetPropertyData
@@ -564,7 +641,7 @@ function AudioObjectGetPropertyData( inObjectID: AudioObjectID; const (*var*) in
     @result         An OSStatus indicating success or failure.
 }
 function AudioObjectSetPropertyData( inObjectID: AudioObjectID; const (*var*) inAddress: AudioObjectPropertyAddress; inQualifierDataSize: UInt32; inQualifierData: {const} UnivPtr; inDataSize: UInt32; inData: {const} UnivPtr ): OSStatus; external name '_AudioObjectSetPropertyData';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
 
 {!
     @function       AudioObjectAddPropertyListener
@@ -582,7 +659,7 @@ function AudioObjectSetPropertyData( inObjectID: AudioObjectID; const (*var*) in
     @result         An OSStatus indicating success or failure.
 }
 function AudioObjectAddPropertyListener( inObjectID: AudioObjectID; const (*var*) inAddress: AudioObjectPropertyAddress; inListener: AudioObjectPropertyListenerProc; inClientData: UnivPtr ): OSStatus; external name '_AudioObjectAddPropertyListener';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
 
 {!
     @function       AudioObjectRemovePropertyListener
@@ -602,7 +679,7 @@ function AudioObjectAddPropertyListener( inObjectID: AudioObjectID; const (*var*
     @result         An OSStatus indicating success or failure.
 }
 function AudioObjectRemovePropertyListener( inObjectID: AudioObjectID; const (*var*) inAddress: AudioObjectPropertyAddress; inListener: AudioObjectPropertyListenerProc; inClientData: UnivPtr ): OSStatus; external name '_AudioObjectRemovePropertyListener';
-(* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
 
 //==================================================================================================
 //#pragma mark    AudioControl Constants
@@ -742,19 +819,22 @@ const
     @discussion     AudioLevelControl is a subclass of AudioControl and has only the single scope,
                     kAudioObjectPropertyScopeGlobal, and only a master element.
     @constant       kAudioLevelControlPropertyScalarValue
-                        A Float32 that represents the value of the boot chime volume control. The
-                        range is between 0.0 and 1.0 (inclusive).
+                        A Float32 that represents the value of the volume control. The range is
+                        between 0.0 and 1.0 (inclusive).
     @constant       kAudioLevelControlPropertyDecibelValue
-                        A Float32 that represents the value of the boot chime volume control in dB.
+                        A Float32 that represents the value of the volume control in dB.
     @constant       kAudioLevelControlPropertyDecibelRange
                         An AudioValueRange that contains the minimum and maximum dB values the
-                        boot chime control can have.
+                        control can have.
     @constant       kAudioLevelControlPropertyConvertScalarToDecibels
-                        A Float32 that on input contains a scalar volume value for the boot chime
-                        and on exit contains the equivalent dB value.
+                        A Float32 that on input contains a scalar volume value for the and on exit
+                        contains the equivalent dB value.
     @constant       kAudioLevelControlPropertyConvertDecibelsToScalar
-                        A Float32 that on input contains a dB volume value for the boot chime and on
-                        exit contains the equivalent scalar value.
+                        A Float32 that on input contains a dB volume value for the and on exit
+                        contains the equivalent scalar value.
+    @constant       kAudioLevelControlPropertyDecibelsToScalarTransferFunction
+                        A UInt32 whose value indicates the transfer function the HAL uses to convert
+                        between decibel values and scalar values.
 }
 const
 	kAudioLevelControlPropertyScalarValue = FourCharCode('lcsv');
@@ -762,6 +842,34 @@ const
 	kAudioLevelControlPropertyDecibelRange = FourCharCode('lcdr');
 	kAudioLevelControlPropertyConvertScalarToDecibels = FourCharCode('lcsd');
 	kAudioLevelControlPropertyConvertDecibelsToScalar = FourCharCode('lcds');
+	kAudioLevelControlPropertyDecibelsToScalarTransferFunction = FourCharCode('lctf');
+
+{!
+    @enum           Values for kAudioLevelControlPropertyDecibelsToScalarTransferFunction
+    @abstract       The following constants are the only supported values for a volume control's
+                    transfer function.
+    @discussion     The transfer function implemented in the volume control works by raising the
+                    scalar value to an exponent to map it into the decibel range. The constants
+                    in this enum express the exponent used in the name as a quotient. For example,
+                    kAudioLevelControlTranferFunction3Over4 represents the exponent 0.75.
+}
+const
+	kAudioLevelControlTranferFunctionLinear = 0;
+	kAudioLevelControlTranferFunction1Over3 = 1;
+	kAudioLevelControlTranferFunction1Over2 = 2;
+	kAudioLevelControlTranferFunction3Over4 = 3;
+	kAudioLevelControlTranferFunction3Over2 = 4;
+	kAudioLevelControlTranferFunction2Over1 = 5;
+	kAudioLevelControlTranferFunction3Over1 = 6;
+	kAudioLevelControlTranferFunction4Over1 = 7;
+	kAudioLevelControlTranferFunction5Over1 = 8;
+	kAudioLevelControlTranferFunction6Over1 = 9;
+	kAudioLevelControlTranferFunction7Over1 = 10;
+	kAudioLevelControlTranferFunction8Over1 = 11;
+	kAudioLevelControlTranferFunction9Over1 = 12;
+	kAudioLevelControlTranferFunction10Over1 = 13;
+	kAudioLevelControlTranferFunction11Over1 = 14;
+	kAudioLevelControlTranferFunction12Over1 = 15;
 
 {!
     @enum           AudioBooleanControl Properties
@@ -800,11 +908,21 @@ const
     @discussion     These properties supplement the regular AudioSelectorControl Properties.
     @constant       kAudioClockSourceControlPropertyItemKind
                         This property returns a UInt32 that identifies the kind of clock source
-                        the item ID refers to. The qualifier contains the ID of the item. Values for
-                        this property are defined in <IOAudio/audio/IOAudioTypes.h>.
+                        the item ID refers to. The qualifier contains the ID of the item.
 }
 const
 	kAudioClockSourceControlPropertyItemKind = FourCharCode('clkk');
+
+
+{!
+    @enum           Constants describing the kind of a clock source
+    @abstract       These values are some of the values that can be returned from the property,
+                    kAudioClockSourceControlPropertyItemKind.
+    @constant       kAudioClockSourceItemKindInternal
+                        This ID represents the AudioDevice's internal clock.
+}
+const
+	kAudioClockSourceItemKindInternal = FourCharCode('int ');
 
 {!
     @enum           AudioStereoPanControl Properties
@@ -863,6 +981,15 @@ const
 	kAudioSystemObjectClassID = FourCharCode('asys');
 	kAudioObjectSystemObject = 1;
 
+{!
+    @defined        kAudioHardwareRunLoopMode
+    @discussion     The name of the run loop mode to which only HAL run loop sources and sources
+                    added via AudioHardwareAddRunLoopSource() belong. This is the mode in which to
+                    task a run loop in order to ensure that just HAL related events are handled.
+}
+const
+	kAudioHardwareRunLoopMode = 'com.apple.audio.CoreAudio';
+
 //==================================================================================================
 //#pragma mark    AudioSystemObject Properties
 
@@ -878,6 +1005,13 @@ const
     @constant       kAudioHardwarePropertyIsInitingOrExiting
                         A UInt32 whose value will be non-zero if the HAL is either in the midst of
                         initializing or in the midst of exiting the process.
+    @constant       kAudioHardwarePropertyUserIDChanged
+                        This property exists so that clients can tell the HAL when they are changing
+                        the effective user ID of the process. The way it works is that a client will
+                        set the value of this property and the HAL will flush all its cached per-
+                        user preferences such as the default devices. The value of this property is
+                        a UInt32, but it's value has no currently defined meaning and clients may
+                        pass any value when setting it to trigger the cache flush.
     @constant       kAudioHardwarePropertyDevices
                         An array of the AudioDeviceIDs that represent all the devices currently
                         available to the system.
@@ -885,7 +1019,7 @@ const
                         The AudioDeviceID of the default input AudioDevice.
     @constant       kAudioHardwarePropertyDefaultOutputDevice
                         The AudioDeviceID of the default output AudioDevice.
-    @constant       kAudioHardwarePropertyDefaultOutputDevice
+    @constant       kAudioHardwarePropertyDefaultSystemOutputDevice
                         The AudioDeviceID of the output AudioDevice to use for system related sound
                         from the alert sound to digital call progress.
     @constant       kAudioHardwarePropertyDeviceForUID
@@ -893,6 +1027,10 @@ const
                         CFStringRef containing a UID into the AudioDeviceID that refers to the
                         AudioDevice with that UID. This property will return kAudioDeviceUnknown if
                         the given UID does not match any currently available AudioDevice.
+    @constant       kAudioHardwarePropertyProcessIsAudible
+                        A UInt32 where a non-zero value indicates that the audio of the process will
+                        be heard. A value of 0 indicates that all audio in the process will not be
+                        heard.
     @constant       kAudioHardwarePropertySleepingIsAllowed
                         A UInt32 where 1 means that the process will allow the CPU to idle sleep
                         even if there is audio IO in progress. A 0 means that the CPU will not be
@@ -918,20 +1056,33 @@ const
                         CFString containing a bundle ID into the AudioObjectID of the AudioPlugIn
                         that corresponds to it. This property will return kAudioObjectUnkown if the
                         given bundle ID doesn't match any AudioPlugIns.
+    @constant       kAudioHardwarePropertyUserSessionIsActiveOrHeadless
+                        A UInt32 where a value other than 0 indicates that the login session of the
+                        user of the process is either an active console session or a headless
+                        session.
+    @constant       kAudioHardwarePropertyMixStereoToMono
+                        A UInt32 where a value other than 0 indicates that AudioDevices should mix
+                        stereo signals down to mono. Note that the two channels on the device that
+                        comprise the stereo signal are defined on the device by
+                        kAudioDevicePropertyPreferredChannelsForStereo.
 }
 const
 	kAudioHardwarePropertyProcessIsMaster = FourCharCode('mast');
 	kAudioHardwarePropertyIsInitingOrExiting = FourCharCode('inot');
+	kAudioHardwarePropertyUserIDChanged = FourCharCode('euid');
 	kAudioHardwarePropertyDevices = FourCharCode('dev#');
 	kAudioHardwarePropertyDefaultInputDevice = FourCharCode('dIn ');
 	kAudioHardwarePropertyDefaultOutputDevice = FourCharCode('dOut');
 	kAudioHardwarePropertyDefaultSystemOutputDevice = FourCharCode('sOut');
 	kAudioHardwarePropertyDeviceForUID = FourCharCode('duid');
+	kAudioHardwarePropertyProcessIsAudible = FourCharCode('pmut');
 	kAudioHardwarePropertySleepingIsAllowed = FourCharCode('slep');
 	kAudioHardwarePropertyUnloadingIsAllowed = FourCharCode('unld');
 	kAudioHardwarePropertyHogModeIsAllowed = FourCharCode('hogr');
 	kAudioHardwarePropertyRunLoop = FourCharCode('rnlp');
 	kAudioHardwarePropertyPlugInForBundleID = FourCharCode('pibi');
+	kAudioHardwarePropertyUserSessionIsActiveOrHeadless = FourCharCode('user');
+	kAudioHardwarePropertyMixStereoToMono = FourCharCode('stmo');
 
 {!
     @enum           AudioSystemObject Properties Implemented via AudioControl objects
@@ -960,6 +1111,10 @@ const
                         A Float32 that on input contains a dB volume value for the boot chime and on
                         exit contains the equivalent scalar value. This property is implemented by
                         an AudioControl object that is a subclass of AudioBootChimeVolumeControl.
+    @constant       kAudioHardwarePropertyBootChimeVolumeDecibelsToScalarTransferFunction
+                        A UInt32 whose value indicates the transfer function the HAL uses to convert
+                        between decibel values and scalar values. This property is implemented by an
+                        AudioControl object that is a subclass of AudioBootChimeVolumeControl.
 }
 const
 	kAudioHardwarePropertyBootChimeVolumeScalar = FourCharCode('bbvs');
@@ -967,6 +1122,7 @@ const
 	kAudioHardwarePropertyBootChimeVolumeRangeDecibels = FourCharCode('bbd#');
 	kAudioHardwarePropertyBootChimeVolumeScalarToDecibels = FourCharCode('bv2d');
 	kAudioHardwarePropertyBootChimeVolumeDecibelsToScalar = FourCharCode('bd2v');
+	kAudioHardwarePropertyBootChimeVolumeDecibelsToScalarTransferFunction = FourCharCode('bvtf');
 
 //==================================================================================================
 //#pragma mark    AudioSystemObject Functions
@@ -987,7 +1143,7 @@ const
     @result         An OSStatus indicating success or failure.
 }
 function AudioHardwareAddRunLoopSource( inRunLoopSource: CFRunLoopSourceRef ): OSStatus; external name '_AudioHardwareAddRunLoopSource';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 {!
     @function       AudioHardwareRemoveRunLoopSource
@@ -999,17 +1155,17 @@ function AudioHardwareAddRunLoopSource( inRunLoopSource: CFRunLoopSourceRef ): O
     @result         An OSStatus indicating success or failure.
 }
 function AudioHardwareRemoveRunLoopSource( inRunLoopSource: CFRunLoopSourceRef ): OSStatus; external name '_AudioHardwareRemoveRunLoopSource';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 {!
     @function       AudioHardwareUnload
     @abstract       When this routine is called, all IO on all devices within a process will be
                     terminated and all resources capable of being released will be released. This
-                    routine essentially returns the HAL to it's uninitialized state.
+                    routine essentially returns the HAL to its uninitialized state.
     @result         An OSStatus indicating success or failure.
 }
 function AudioHardwareUnload: OSStatus; external name '_AudioHardwareUnload';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_1, __IPHONE_2_0) *)
 
 {!
     @function       AudioHardwareGetPropertyInfo
@@ -1029,7 +1185,7 @@ function AudioHardwareUnload: OSStatus; external name '_AudioHardwareUnload';
     @result         An OSStatus indicating success or failure.
 }
 function AudioHardwareGetPropertyInfo( inPropertyID: AudioHardwarePropertyID; outSize: UInt32Ptr; outWritable: BooleanPtr ): OSStatus; external name '_AudioHardwareGetPropertyInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_6, __IPHONE_2_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioHardwareGetProperty
@@ -1048,7 +1204,7 @@ function AudioHardwareGetPropertyInfo( inPropertyID: AudioHardwarePropertyID; ou
     @result         An OSStatus indicating success or failure.
 }
 function AudioHardwareGetProperty( inPropertyID: AudioHardwarePropertyID; var ioPropertyDataSize: UInt32; outPropertyData: UnivPtr ): OSStatus; external name '_AudioHardwareGetProperty';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_6, __IPHONE_2_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioHardwareSetProperty
@@ -1067,7 +1223,7 @@ function AudioHardwareGetProperty( inPropertyID: AudioHardwarePropertyID; var io
     @result         An OSStatus indicating success or failure.
 }
 function AudioHardwareSetProperty( inPropertyID: AudioHardwarePropertyID; inPropertyDataSize: UInt32; inPropertyData: {const} UnivPtr ): OSStatus; external name '_AudioHardwareSetProperty';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_6, __IPHONE_2_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioHardwareAddPropertyListener
@@ -1084,7 +1240,7 @@ function AudioHardwareSetProperty( inPropertyID: AudioHardwarePropertyID; inProp
     @result         An OSStatus indicating success or failure.
 }
 function AudioHardwareAddPropertyListener( inPropertyID: AudioHardwarePropertyID; inProc: AudioHardwarePropertyListenerProc; inClientData: UnivPtr ): OSStatus; external name '_AudioHardwareAddPropertyListener';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_6, __IPHONE_2_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioHardwareRemovePropertyListener
@@ -1100,7 +1256,7 @@ function AudioHardwareAddPropertyListener( inPropertyID: AudioHardwarePropertyID
     @result         An OSStatus indicating success or failure.
 }
 function AudioHardwareRemovePropertyListener( inPropertyID: AudioHardwarePropertyID; inProc: AudioHardwarePropertyListenerProc ): OSStatus; external name '_AudioHardwareRemovePropertyListener';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_6, __IPHONE_2_0, __IPHONE_2_0) *)
 
 //==================================================================================================
 //#pragma mark    AudioPlugIn Constants
@@ -1166,26 +1322,6 @@ type
 	AudioDevicePropertyID = AudioObjectPropertySelector;
 
 {!
-    @struct         AudioHardwareIOProcStreamUsage
-    @abstract       This structure describes which streams a given AudioDeviceIOProc will use. It is
-                    used in conjunction with kAudioDevicePropertyIOProcStreamUsage.
-    @field          mIOProc
-                        The IOProc whose stream usage is being specified.
-    @field          mNumberStreams
-                        The number of streams being specified.
-    @field          mStreamIsOn
-                        An array of UInt32's whose length is specified by mNumberStreams. Each
-                        element of the array corresponds to a stream. A value of 0 means the stream
-                        is not to be enabled. Any other value means the stream is to be used.
-}
-type
-	AudioHardwareIOProcStreamUsage = record
-		mIOProc: UnivPtr;
-		mNumberStreams: UInt32;
-        mStreamIsOn: array[0..0] of UInt32;
-	end;
-
-{!
     @typedef        AudioDeviceIOProc
     @abstract       An AudioDeviceIOProc is called by an AudioDevice to provide input data read from
                     the device and collect output data to be written to the device for the current
@@ -1229,6 +1365,37 @@ type
 }
 type
 	AudioDeviceIOProc = function( inDevice: AudioDeviceID; const (*var*) inNow: AudioTimeStamp; const (*var*) inInputData: AudioBufferList; const (*var*) inInputTime: AudioTimeStamp; var outOutputData: AudioBufferList; const (*var*) inOutputTime: AudioTimeStamp; inClientData: UnivPtr ): OSStatus;
+
+{!
+    @typedef        AudioDeviceIOProcID
+    @abstract       An AudioDeviceIOProcID represents both an IOProc and the client data that goes
+                    with it. Once created, an AudioDeviceIOProcID can be used everywhere one would
+                    use a regular IOProc. The purpose for an AudioDeviceIOProcID is to allow a
+                    client to register the same function pointer as an IOProc with a device multiple
+                    times provided
+}
+type
+	AudioDeviceIOProcID = AudioDeviceIOProc;
+
+{!
+    @struct         AudioHardwareIOProcStreamUsage
+    @abstract       This structure describes which streams a given AudioDeviceIOProc will use. It is
+                    used in conjunction with kAudioDevicePropertyIOProcStreamUsage.
+    @field          mIOProc
+                        The IOProc whose stream usage is being specified.
+    @field          mNumberStreams
+                        The number of streams being specified.
+    @field          mStreamIsOn
+                        An array of UInt32's whose length is specified by mNumberStreams. Each
+                        element of the array corresponds to a stream. A value of 0 means the stream
+                        is not to be enabled. Any other value means the stream is to be used.
+}
+type
+	AudioHardwareIOProcStreamUsage = record
+		mIOProc: UnivPtr;
+		mNumberStreams: UInt32;
+		mStreamIsOn: array[0..0] of UInt32;
+	end;
 
 {!
     @typedef        AudioDevicePropertyListenerProc
@@ -1299,6 +1466,41 @@ const
 	kAudioDeviceStartTimeDontConsultDeviceFlag = 1 shl 1;
 	kAudioDeviceStartTimeDontConsultHALFlag = 1 shl 2;
 
+{!
+    @enum           Transport Type IDs
+    @abstract       Commonly used values for kAudioDevicePropertyTransportType
+    @constant       kAudioDeviceTransportTypeUnknown
+                        The transport type ID returned when a device doesn't provide a transport
+                        type.
+    @constant       kAudioDeviceTransportTypeBuiltIn
+                        The transport type ID for AudioDevices built into the system.
+    @constant       kAudioDeviceTransportTypeAggregate
+                        The transport type ID for aggregate devices.
+    @constant       kAudioDeviceTransportTypeAutoAggregate
+                        The transport type ID for automatically generated aggregate devices.
+    @constant       kAudioDeviceTransportTypeVirtual
+                        The transport type ID for AudioDevices that don't correspond to real audio
+                        hardware.
+    @constant       kAudioDeviceTransportTypePCI
+                        The transport type ID for AudioDevices connected via the PCI bus.
+    @constant       kAudioDeviceTransportTypeUSB
+                        The transport type ID for AudioDevices connected via USB.
+    @constant       kAudioDeviceTransportTypeFireWire
+                        The transport type ID for AudioDevices connected via FireWire.
+    @constant       kAudioDeviceTransportTypeBluetooth
+                        The transport type ID for AudioDevices connected via Bluetooth.
+}
+const
+	kAudioDeviceTransportTypeUnknown = 0;
+	kAudioDeviceTransportTypeBuiltIn = FourCharCode('bltn');
+	kAudioDeviceTransportTypeAggregate = FourCharCode('grup');
+	kAudioDeviceTransportTypeAutoAggregate = FourCharCode('fgrp');
+	kAudioDeviceTransportTypeVirtual = FourCharCode('virt');
+	kAudioDeviceTransportTypePCI = FourCharCode('pci ');
+	kAudioDeviceTransportTypeUSB = FourCharCode('usb ');
+	kAudioDeviceTransportTypeFireWire = FourCharCode('1394');
+	kAudioDeviceTransportTypeBluetooth = FourCharCode('blue');
+
 //==================================================================================================
 //#pragma mark    AudioDevice Properties
 
@@ -1326,17 +1528,18 @@ const
                         is a black box and may contain information that is unique to a particular
                         instance of an AudioDevice's hardware or unique to the CPU. Therefore they
                         are not suitable for passing between CPUs or for identifying similar models
-                        of hardware.
+                        of hardware. The caller is responsible for releasing the returned CFObject.
     @constant       kAudioDevicePropertyModelUID
                         A CFString that contains a persistent identifier for the model of an
                         AudioDevice. The identifier is unique such that the identifier from two
                         AudioDevices are equal if and only if the two AudioDevices are the exact
                         same model from the same manufacturer. Further, the identifier has to be the
-                        same no matter on what machine the AudioDevice appears.
+                        same no matter on what machine the AudioDevice appears. The caller is
+                        responsible for releasing the returned CFObject.
     @constant       kAudioDevicePropertyTransportType
                         A UInt32 whose value indicates how the AudioDevice is connected to the CPU.
-                        Constants for some of the values for this property can be found in
-                        <IOKit/audio/IOAudioTypes.h>.
+                        Constants for some of the values for this property can be found in the enum
+                        in the AudioDevice constants section of this file.
     @constant       kAudioDevicePropertyRelatedDevices
                         An array of AudioDeviceIDs for devices related to the AudioDevice. For
                         IOAudio-based devices, a AudioDevices are related if they share the same
@@ -1385,6 +1588,13 @@ const
                         available to all processes. If the AudioDevice is in a non-mixable mode,
                         the HAL will automatically take hog mode on behalf of the first process to
                         start an IOProc.
+                        Note that when setting this property, the value passed in is ignored. If
+                        another process owns exclusive access, that remains unchanged. If the
+                        current process owns exclusive access, it is released and made available to
+                        all processes again. If no process has exclusive access (meaning the current
+                        value is -1), this process gains ownership of exclusive access.  On return,
+                        the pid_t pointed to by inPropertyData will contain the new value of the
+                        property.
     @constant       kAudioDevicePropertyLatency
                         A UInt32 containing the number of frames of latency in the AudioDevice. Note
                         that input and output latency may differ. Further, the AudioDevice's
@@ -1450,6 +1660,15 @@ const
     @constant       kAudioDevicePropertyActualSampleRate
                         A Float64 that indicates the current actual sample rate of the AudioDevice
                         as measured by it's time stamps.
+    @constant       kAudioDevicePropertyIcon
+                        A CFURLRef that indicates an image file that can be used to represent the
+                        device visually. The caller is responsible for releasing the returned
+                        CFObject.
+    @constant       kAudioDevicePropertyIsHidden
+                        A UInt32 where a non-zero value indicates that the device is not included
+                        in the normal list of devices provided by kAudioHardwarePropertyDevices nor
+                        can it be the default device. Hidden devices can only be discovered by
+                        knowing their UID and using kAudioHardwarePropertyDeviceForUID.
 }
 const
 	kAudioDevicePropertyPlugIn = FourCharCode('plug');
@@ -1481,6 +1700,8 @@ const
 	kAudioDevicePropertyNominalSampleRate = FourCharCode('nsrt');
 	kAudioDevicePropertyAvailableNominalSampleRates = FourCharCode('nsr#');
 	kAudioDevicePropertyActualSampleRate = FourCharCode('asrt');
+	kAudioDevicePropertyIcon = FourCharCode('icon');
+	kAudioDevicePropertyIsHidden = FourCharCode('hidn');
 
 {!
     @enum           AudioDevice Properties Implemented via AudioControl objects
@@ -1512,6 +1733,10 @@ const
     @constant       kAudioDevicePropertyVolumeDecibelsToScalar
                         A Float32 that on input contains a dB volume value for the and on exit
                         contains the equivalent scalar value. This property is implemented by an
+                        AudioControl object that is a subclass of AudioVolumeControl.
+    @constant       kAudioDevicePropertyVolumeDecibelsToScalarTransferFunction
+                        A UInt32 whose value indicates the transfer function the HAL uses to convert
+                        between decibel values and scalar values. This property is implemented by an
                         AudioControl object that is a subclass of AudioVolumeControl.
     @constant       kAudioDevicePropertyStereoPan
                         A Float32 where 0.0 is full left, 1.0 is full right, and 0.5 is center. This
@@ -1563,7 +1788,6 @@ const
                         This property returns a UInt32 that identifies the kind of clock source
                         the item ID refers to using an AudioValueTranslation structure. The input
                         data is the UInt32 containing the item ID and the output data is the UInt32.
-                        Values for this property are defined in <IOAudio/audio/IOAudioTypes.h>. 
     @constant       kAudioDevicePropertyPlayThru
                         A UInt32 where a value of 0 means that play through is off and a value of 1
                         means that it is on. This property is implemented by an AudioControl object
@@ -1602,6 +1826,12 @@ const
     @constant       kAudioDevicePropertyPlayThruVolumeDecibelsToScalar
                         A Float32 that on input contains a dB volume value for the and on exit
                         contains the equivalent scalar value. This property is implemented by an
+                        AudioControl object that is a subclass of AudioVolumeControl. Further, the
+                        control that implements this property is only available through
+                        kAudioDevicePropertyScopePlayThrough.
+    @constant       kAudioDevicePropertyPlayThruVolumeDecibelsToScalarTransferFunction
+                        A UInt32 whose value indicates the transfer function the HAL uses to convert
+                        between decibel values and scalar values. This property is implemented by an
                         AudioControl object that is a subclass of AudioVolumeControl. Further, the
                         control that implements this property is only available through
                         kAudioDevicePropertyScopePlayThrough.
@@ -1679,6 +1909,10 @@ const
                         A Float32 that on input contains a dB volume value for the and on exit
                         contains the equivalent scalar value. This property is implemented by an
                         AudioControl object that is a subclass of AudioLFEVolumeControl.
+    @constant       kAudioDevicePropertySubVolumeDecibelsToScalarTransferFunction
+                        A UInt32 whose value indicates the transfer function the HAL uses to convert
+                        between decibel values and scalar values. This property is implemented by an
+                        AudioControl object that is a subclass of AudioLFEVolumeControl.
     @constant       kAudioDevicePropertySubMute
                         A UInt32 where a value of 1 means that mute is enabled making the LFE on
                         that element inaudible. The property is implemented by an AudioControl
@@ -1691,6 +1925,7 @@ const
 	kAudioDevicePropertyVolumeRangeDecibels = FourCharCode('vdb#');
 	kAudioDevicePropertyVolumeScalarToDecibels = FourCharCode('v2db');
 	kAudioDevicePropertyVolumeDecibelsToScalar = FourCharCode('db2v');
+	kAudioDevicePropertyVolumeDecibelsToScalarTransferFunction = FourCharCode('vctf');
 	kAudioDevicePropertyStereoPan = FourCharCode('span');
 	kAudioDevicePropertyStereoPanChannels = FourCharCode('spn#');
 	kAudioDevicePropertyMute = FourCharCode('mute');
@@ -1709,6 +1944,7 @@ const
 	kAudioDevicePropertyPlayThruVolumeRangeDecibels = FourCharCode('mvd#');
 	kAudioDevicePropertyPlayThruVolumeScalarToDecibels = FourCharCode('mv2d');
 	kAudioDevicePropertyPlayThruVolumeDecibelsToScalar = FourCharCode('mv2s');
+	kAudioDevicePropertyPlayThruVolumeDecibelsToScalarTransferFunction = FourCharCode('mvtf');
 	kAudioDevicePropertyPlayThruStereoPan = FourCharCode('mspn');
 	kAudioDevicePropertyPlayThruStereoPanChannels = FourCharCode('msp#');
 	kAudioDevicePropertyPlayThruDestination = FourCharCode('mdds');
@@ -1723,6 +1959,7 @@ const
 	kAudioDevicePropertySubVolumeRangeDecibels = FourCharCode('svd#');
 	kAudioDevicePropertySubVolumeScalarToDecibels = FourCharCode('sv2d');
 	kAudioDevicePropertySubVolumeDecibelsToScalar = FourCharCode('sd2v');
+	kAudioDevicePropertySubVolumeDecibelsToScalarTransferFunction = FourCharCode('svtf');
 	kAudioDevicePropertySubMute = FourCharCode('smut');
 
 {!
@@ -1772,7 +2009,7 @@ const
                         (kAudioDevicePropertyBufferFrameSizeRange: see
                         kAudioDevicePropertyBufferSize.)
     @constant       kAudioDevicePropertyChannelName
-                        A CFString that contains a human readable name for the given element in the
+                        A C-string that contains a human readable name for the given element in the
                         given scope. The caller is responsible for releasing the returned CFObject.
                         (kAudioObjectPropertyElementName: CFStrings are better for
                         localization.)
@@ -1782,7 +2019,7 @@ const
                         (kAudioObjectPropertyElementName: This is just another name for the
                         inherited selector.)
     @constant       kAudioDevicePropertyChannelCategoryName
-                        A CFString that contains a human readable name for the category of the given
+                        A C-string that contains a human readable name for the category of the given
                         element in the given scope. The caller is responsible for releasing the
                         returned CFObject.
                         (kAudioObjectPropertyElementCategoryName: CFStrings are better for
@@ -1794,7 +2031,7 @@ const
                         (kAudioObjectPropertyElementCategoryName: This is just another name for the
                         inherited selector.)
     @constant       kAudioDevicePropertyChannelNumberName
-                        A CFString that contains a human readable name for the number of the given
+                        A C-string that contains a human readable name for the number of the given
                         element in the given scope. The caller is responsible for releasing the
                         returned CFObject.
                         (kAudioObjectPropertyElementNumberName: CFStrings are better for
@@ -1850,28 +2087,28 @@ const
                         This property translates the given data source item ID into a human readable
                         name using an AudioValueTranslation structure. The input data is the UInt32
                         holding the item ID to be translated and the output data is a buffer to hold
-                        the name as a null terminated c-string.
+                        the name as a null terminated C-string.
                         (kAudioDevicePropertyDataSourceNameForIDCFString: CFStrings are better for
                         localization.)
     @constant       kAudioDevicePropertyClockSourceNameForID
                         This property translates the given clock source item ID into a human
                         readable name using an AudioValueTranslation structure. The input data is
                         the UInt32 holding the item ID to be translated and the output data is a
-                        buffer to hold the name as a null terminated c-string.
+                        buffer to hold the name as a null terminated C-string.
                         (kAudioDevicePropertyClockSourceNameForIDCFString: CFStrings are better for
                         localization.)
     @constant       kAudioDevicePropertyPlayThruDestinationNameForID
                         This property translates the given play through destination item ID into a
                         human readable name using an AudioValueTranslation structure. The input data
                         is the UInt32 holding the item ID to be translated and the output data is a
-                        buffer to hold the name as a null terminated c-string.
+                        buffer to hold the name as a null terminated C-string.
                         (kAudioDevicePropertyPlayThruDestinationNameForIDCFString: CFStrings are
                         better for localization.)
     @constant       kAudioDevicePropertyChannelNominalLineLevelNameForID
                         This property translates the given nominal line level item ID into a human
                         readable name using an AudioValueTranslation structure. The input data is
                         the UInt32 holding the item ID to be translated and the output data is a
-                        buffer to hold the name as a null terminated c-string.
+                        buffer to hold the name as a null terminated C-string.
                         (kAudioDevicePropertyChannelNominalLineLevelNameForIDCFString: CFStrings are
                         better for localization.)
 }
@@ -1907,6 +2144,40 @@ const
 }
 
 {!
+    @function       AudioDeviceCreateIOProcID
+    @abstract       Creates an AudioDeviceIOProcID from an AudioDeviceIOProc and a client data
+                    pointer.
+    @discussion     AudioDeviceIOProcIDs allow for the client to register the same function pointer
+                    with a device multiple times
+    @param          inDevice
+                        The AudioDevice to register the IOProc with.
+    @param          inProc
+                        The AudioDeviceIOProc to register.
+    @param          inClientData
+                        A pointer to client data that is passed back to the IOProc when it is
+                        called.
+    @param          outIOProcID
+                        The newly created AudioDeviceIOProcID.
+    @result         An OSStatus indicating success or failure.
+}
+function AudioDeviceCreateIOProcID( inDevice: AudioDeviceID; inProc: AudioDeviceIOProc; inClientData: UnivPtr; var outIOProcID: AudioDeviceIOProcID ): OSStatus; external name '_AudioDeviceCreateIOProcID';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_2_0) *)
+
+{!
+    @function       AudioDeviceDestroyIOProcID
+    @abstract       Destroys an AudioDeviceIOProcID.
+    @discussion     AudioDeviceIOProcIDs allow for the client to register the same function pointer
+                    with a device multiple times
+    @param          inDevice
+                        The AudioDevice from which the ID came.
+    @param          inIOProcID
+                        The AudioDeviceIOProcID to get rid of.
+    @result         An OSStatus indicating success or failure.
+}
+function AudioDeviceDestroyIOProcID( inDevice: AudioDeviceID; inIOProcID: AudioDeviceIOProcID ): OSStatus; external name '_AudioDeviceDestroyIOProcID';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_2_0) *)
+
+{!
     @function       AudioDeviceAddIOProc
     @abstract       Registers the given AudioDeviceIOProc with the AudioDevice.
     @discussion     A client may have multiple IOProcs for a given device, but the device is free to
@@ -1914,6 +2185,7 @@ const
                     clients to have more than a single IOProc registered at a time as this can be
                     wasteful of system resources. Rather, it is recommended that the client do any
                     necessary mixing itself so that only one IOProc is necessary.
+                    This routine has been deprecated in favor of AudioDeviceCreateIOProcID().
     @param          inDevice
                         The AudioDevice to register the IOProc with.
     @param          inProc
@@ -1924,11 +2196,12 @@ const
     @result         An OSStatus indicating success or failure.
 }
 function AudioDeviceAddIOProc( inDevice: AudioDeviceID; inProc: AudioDeviceIOProc; inClientData: UnivPtr ): OSStatus; external name '_AudioDeviceAddIOProc';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_2_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioDeviceRemoveIOProc
     @abstract       Unregisters the given AudioDeviceIOProc from the AudioDevice.
+                    This routine has been deprecated in favor of AudioDeviceDestroyIOProcID().
     @param          inDevice
                         The AudioDevice to unregister the IOProc from.
     @param          inProc
@@ -1936,33 +2209,33 @@ function AudioDeviceAddIOProc( inDevice: AudioDeviceID; inProc: AudioDeviceIOPro
     @result         An OSStatus indicating success or failure.
 }
 function AudioDeviceRemoveIOProc( inDevice: AudioDeviceID; inProc: AudioDeviceIOProc ): OSStatus; external name '_AudioDeviceRemoveIOProc';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_5, __IPHONE_2_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioDeviceStart
-    @abstract       Starts IO for the given AudioDeviceIOProc.
+    @abstract       Starts IO for the given AudioDeviceIOProcID.
     @param          inDevice
                         The AudioDevice to start the IOProc on.
-    @param          inProc
-                        The AudioDeviceIOProc to start. Note that this can be NULL, which starts the
-                        hardware regardless of whether or not there are any IOProcs registered. This
-                        is necessary if any of the AudioDevice's timing services are to be used. A
-                        balancing call to AudioDeviceStop with a NULL IOProc is required to stop the
-                        hardware.
+    @param          inProcID
+                        The AudioDeviceIOProcID to start. Note that this can be NULL, which starts
+                        the hardware regardless of whether or not there are any IOProcs registered.
+                        This is necessary if any of the AudioDevice's timing services are to be
+                        used. A balancing call to AudioDeviceStop with a NULL IOProc is required to
+                        stop the hardware.
     @result         An OSStatus indicating success or failure.
 }
-function AudioDeviceStart( inDevice: AudioDeviceID; inProc: AudioDeviceIOProc ): OSStatus; external name '_AudioDeviceStart';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function AudioDeviceStart( inDevice: AudioDeviceID; inProcID: AudioDeviceIOProcID ): OSStatus; external name '_AudioDeviceStart';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioDeviceStartAtTime
-    @abstract       Starts IO for the given AudioDeviceIOProc and aligns the IO cycle of the
+    @abstract       Starts IO for the given AudioDeviceIOProcID and aligns the IO cycle of the
                     AudioDevice with the given time.
     @param          inDevice
                         The AudioDevice to start the IOProc on.
-    @param          inProc
-                        The AudioDeviceIOProc to start. Note that this can be NULL, which starts the
-                        hardware regardless of whether or not there are any IOProcs registered.
+    @param          inProcID
+                        The AudioDeviceIOProcID to start. Note that this can be NULL, which starts
+                        the hardware regardless of whether or not there are any IOProcs registered.
     @param          ioRequestedStartTime
                         A pointer to an AudioTimeStamp that, on entry, is the requested time to
                         start the IOProc. On exit, it will be the actual time the IOProc will start.
@@ -1973,26 +2246,26 @@ function AudioDeviceStart( inDevice: AudioDeviceID; inProc: AudioDeviceIOProc ):
                     not support starting at a specific time and inProc and ioRequestedStartTime are
                     not NULL.
 }
-function AudioDeviceStartAtTime( inDevice: AudioDeviceID; inProc: AudioDeviceIOProc; ioRequestedStartTime: AudioTimeStampPtr; inFlags: UInt32 ): OSStatus; external name '_AudioDeviceStartAtTime';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function AudioDeviceStartAtTime( inDevice: AudioDeviceID; inProcID: AudioDeviceIOProcID; ioRequestedStartTime: AudioTimeStampPtr; inFlags: UInt32 ): OSStatus; external name '_AudioDeviceStartAtTime';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 {!
     @function       AudioDeviceStop
-    @abstract       Stops IO for the given AudioDeviceIOProc.
+    @abstract       Stops IO for the given AudioDeviceIOProcID.
     @param          inDevice
                         The AudioDevice to stop the IOProc on.
-    @param          inProc
-                        The AudioDeviceIOProc to stop.
+    @param          inProcID
+                        The AudioDeviceIOProcID to stop.
     @result         An OSStatus indicating success or failure.
 }
-function AudioDeviceStop( inDevice: AudioDeviceID; inProc: AudioDeviceIOProc ): OSStatus; external name '_AudioDeviceStop';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function AudioDeviceStop( inDevice: AudioDeviceID; inProcID: AudioDeviceIOProcID ): OSStatus; external name '_AudioDeviceStop';
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioDeviceRead
     @abstract       Read some data from an AudioDevice starting at the given time.
     @discussion     With the advent of aggregate devices, the need for AudioDeviceRead has gone
-                    away. Consequently, this function is a good candidate for deprecation some day.
+                    away. Consequently, this function is now deprecated.
     @param          inDevice
                         The AudioDevice to read from.
     @param          inStartTime
@@ -2010,7 +2283,7 @@ function AudioDeviceStop( inDevice: AudioDeviceID; inProc: AudioDeviceIOProc ): 
                     not support direct reading.
 }
 function AudioDeviceRead( inDevice: AudioDeviceID; const (*var*) inStartTime: AudioTimeStamp; var outData: AudioBufferList ): OSStatus; external name '_AudioDeviceRead';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_1, __MAC_10_5, __IPHONE_2_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioDeviceGetCurrentTime
@@ -2024,7 +2297,7 @@ function AudioDeviceRead( inDevice: AudioDeviceID; const (*var*) inStartTime: Au
                     returned if the AudioDevice isn't running.
 }
 function AudioDeviceGetCurrentTime( inDevice: AudioDeviceID; var outTime: AudioTimeStamp ): OSStatus; external name '_AudioDeviceGetCurrentTime';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioDeviceTranslateTime
@@ -2043,7 +2316,7 @@ function AudioDeviceGetCurrentTime( inDevice: AudioDeviceID; var outTime: AudioT
                     returned if the AudioDevice isn't running.
 }
 function AudioDeviceTranslateTime( inDevice: AudioDeviceID; const (*var*) inTime: AudioTimeStamp; var outTime: AudioTimeStamp ): OSStatus; external name '_AudioDeviceTranslateTime';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioDeviceGetNearestStartTime
@@ -2071,7 +2344,7 @@ function AudioDeviceTranslateTime( inDevice: AudioDeviceID; const (*var*) inTime
                     not support starting at a specific time.
 }
 function AudioDeviceGetNearestStartTime( inDevice: AudioDeviceID; var ioRequestedStartTime: AudioTimeStamp; inFlags: UInt32 ): OSStatus; external name '_AudioDeviceGetNearestStartTime';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* __OSX_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 {!
     @function       AudioDeviceGetPropertyInfo
@@ -2097,7 +2370,7 @@ function AudioDeviceGetNearestStartTime( inDevice: AudioDeviceID; var ioRequeste
     @result         An OSStatus indicating success or failure.
 }
 function AudioDeviceGetPropertyInfo( inDevice: AudioDeviceID; inChannel: UInt32; isInput: Boolean; inPropertyID: AudioDevicePropertyID; outSize: UInt32Ptr; outWritable: BooleanPtr ): OSStatus; external name '_AudioDeviceGetPropertyInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_6, __IPHONE_2_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioDeviceGetProperty
@@ -2121,7 +2394,7 @@ function AudioDeviceGetPropertyInfo( inDevice: AudioDeviceID; inChannel: UInt32;
     @result         An OSStatus indicating success or failure.
 }
 function AudioDeviceGetProperty( inDevice: AudioDeviceID; inChannel: UInt32; isInput: Boolean; inPropertyID: AudioDevicePropertyID; var ioPropertyDataSize: UInt32; outPropertyData: UnivPtr ): OSStatus; external name '_AudioDeviceGetProperty';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_6, __IPHONE_2_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioDeviceSetProperty
@@ -2130,7 +2403,7 @@ function AudioDeviceGetProperty( inDevice: AudioDeviceID; inChannel: UInt32; isI
     @discussion     Note that the value of the property should not be considered changed until the
                     HAL has called the listeners as many properties values are changed
                     asynchronously. Also note that the same functionality is provided by the
-                    function AudioObjectGetPropertyData().
+                    function AudioObjectSetPropertyData().
     @param          inDevice
                         The AudioDevice to change.
     @param          inWhen
@@ -2150,7 +2423,7 @@ function AudioDeviceGetProperty( inDevice: AudioDeviceID; inChannel: UInt32; isI
     @result         An OSStatus indicating success or failure.
 }
 function AudioDeviceSetProperty( inDevice: AudioDeviceID; inWhen: {const} AudioTimeStampPtr; inChannel: UInt32; isInput: Boolean; inPropertyID: AudioDevicePropertyID; inPropertyDataSize: UInt32; inPropertyData: {const} UnivPtr ): OSStatus; external name '_AudioDeviceSetProperty';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_6, __IPHONE_2_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioDeviceAddPropertyListener
@@ -2173,7 +2446,7 @@ function AudioDeviceSetProperty( inDevice: AudioDeviceID; inWhen: {const} AudioT
     @result         An OSStatus indicating success or failure.
 }
 function AudioDeviceAddPropertyListener( inDevice: AudioDeviceID; inChannel: UInt32; isInput: Boolean; inPropertyID: AudioDevicePropertyID; inProc: AudioDevicePropertyListenerProc; inClientData: UnivPtr ): OSStatus; external name '_AudioDeviceAddPropertyListener';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_6, __IPHONE_2_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioDeviceRemovePropertyListener
@@ -2195,7 +2468,7 @@ function AudioDeviceAddPropertyListener( inDevice: AudioDeviceID; inChannel: UIn
     @result         An OSStatus indicating success or failure.
 }
 function AudioDeviceRemovePropertyListener( inDevice: AudioDeviceID; inChannel: UInt32; isInput: Boolean; inPropertyID: AudioDevicePropertyID; inProc: AudioDevicePropertyListenerProc ): OSStatus; external name '_AudioDeviceRemovePropertyListener';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_0, __MAC_10_6, __IPHONE_2_0, __IPHONE_2_0) *)
 
 //==================================================================================================
 //#pragma mark    AudioStream Types
@@ -2268,6 +2541,48 @@ const
 	kAudioStreamClassID = FourCharCode('astr');
 	kAudioStreamUnknown = kAudioObjectUnknown;
 
+{!
+    @enum           AudioStream Terminal Types
+    @abstract       Various constants that describe the terminal type of an AudioStream.
+    @constant       kAudioStreamTerminalTypeUnknown
+                        The ID used when the terminal type for the AudioStream is non known.
+    @constant       kAudioStreamTerminalTypeLine
+                        The ID for a terminal type of a line level stream. Note that this applies to
+                        both input streams and output streams
+    @constant       kAudioStreamTerminalTypeDigitalAudioInterface
+                        The ID for a terminal type of stream from/to a digital audio interface as
+                        defined by ISO 60958 (aka SPDIF or AES/EBU). Note that this applies to both
+                        input streams and output streams
+    @constant       kAudioStreamTerminalTypeSpeaker
+                        The ID for a terminal type of a speaker.
+    @constant       kAudioStreamTerminalTypeHeadphones
+                        The ID for a terminal type of headphones.
+    @constant       kAudioStreamTerminalTypeLFESpeaker
+                        The ID for a terminal type of a speaker for low frequency effects.
+    @constant       kAudioStreamTerminalTypeReceiverSpeaker
+                        The ID for a terminal type of a speaker on a telephone handset receiver.
+    @constant       kAudioStreamTerminalTypeMicrophone
+                        The ID for a terminal type of a microphone.
+    @constant       kAudioStreamTerminalTypeHeadsetMicrophone
+                        The ID for a terminal type of a microphone attached to an headset.
+    @constant       kAudioStreamTerminalTypeReceiverMicrophone
+                        The ID for a terminal type of a microhpone on a telephone handset recevier.
+    @constant       kAudioStreamTerminalTypeTTY
+                        The ID for a terminal type of a device providing a TTY signal.
+}
+const
+	kAudioStreamTerminalTypeUnknown = 0;
+	kAudioStreamTerminalTypeLine = FourCharCode('line');
+	kAudioStreamTerminalTypeDigitalAudioInterface = FourCharCode('spdf');
+	kAudioStreamTerminalTypeSpeaker = FourCharCode('spkr');
+	kAudioStreamTerminalTypeHeadphones = FourCharCode('hdph');
+	kAudioStreamTerminalTypeLFESpeaker = FourCharCode('lfes');
+	kAudioStreamTerminalTypeReceiverSpeaker = FourCharCode('rspk');
+	kAudioStreamTerminalTypeMicrophone = FourCharCode('micr');
+	kAudioStreamTerminalTypeHeadsetMicrophone = FourCharCode('hmic');
+	kAudioStreamTerminalTypeReceiverMicrophone = FourCharCode('rmic');
+	kAudioStreamTerminalTypeTTY = FourCharCode('tty_');
+
 //==================================================================================================
 //#pragma mark    AudioStream Properties
 
@@ -2286,8 +2601,7 @@ const
                         and a value of 1 means that it is an input stream.
     @constant       kAudioStreamPropertyTerminalType
                         A UInt32 whose value describes the general kind of functionality attached
-                        to the AudioStream. Constants that describe some of the values of this
-                        property are defined in <IOKit/audio/IOAudioTypes.h>
+                        to the AudioStream.
     @constant       kAudioStreamPropertyStartingChannel
                         A UInt32 that specifies the first element in the owning device that
                         corresponds to element one of this stream.
@@ -2397,7 +2711,7 @@ const
     @result         An OSStatus indicating success or failure.
 }
 function AudioStreamGetPropertyInfo( inStream: AudioStreamID; inChannel: UInt32; inPropertyID: AudioDevicePropertyID; var outSize: UInt32; var outWritable: Boolean ): OSStatus; external name '_AudioStreamGetPropertyInfo';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_1, __MAC_10_6, __IPHONE_2_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioStreamGetProperty
@@ -2419,7 +2733,7 @@ function AudioStreamGetPropertyInfo( inStream: AudioStreamID; inChannel: UInt32;
     @result         An OSStatus indicating success or failure.
 }
 function AudioStreamGetProperty( inStream: AudioStreamID; inChannel: UInt32; inPropertyID: AudioDevicePropertyID; var ioPropertyDataSize: UInt32; outPropertyData: UnivPtr ): OSStatus; external name '_AudioStreamGetProperty';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_1, __MAC_10_6, __IPHONE_2_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioStreamSetProperty
@@ -2428,7 +2742,7 @@ function AudioStreamGetProperty( inStream: AudioStreamID; inChannel: UInt32; inP
     @discussion     Note that the value of the property should not be considered changed until the
                     HAL has called the listeners as many properties values are changed
                     asynchronously. Also note that the same functionality is provided by the
-                    function AudioObjectGetPropertyData().
+                    function AudioObjectSetPropertyData().
     @param          inStream
                         The AudioStream to change.
     @param          inWhen
@@ -2446,7 +2760,7 @@ function AudioStreamGetProperty( inStream: AudioStreamID; inChannel: UInt32; inP
     @result         An OSStatus indicating success or failure.
 }
 function AudioStreamSetProperty( inStream: AudioStreamID; inWhen: AudioTimeStampPtr; inChannel: UInt32; inPropertyID: AudioDevicePropertyID; inPropertyDataSize: UInt32; inPropertyData: {const} UnivPtr ): OSStatus; external name '_AudioStreamSetProperty';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_1, __MAC_10_6, __IPHONE_2_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioStreamAddPropertyListener
@@ -2467,7 +2781,7 @@ function AudioStreamSetProperty( inStream: AudioStreamID; inWhen: AudioTimeStamp
     @result         An OSStatus indicating success or failure.
 }
 function AudioStreamAddPropertyListener( inStream: AudioStreamID; inChannel: UInt32; inPropertyID: AudioDevicePropertyID; inProc: AudioStreamPropertyListenerProc; inClientData: UnivPtr ): OSStatus; external name '_AudioStreamAddPropertyListener';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_1, __MAC_10_6, __IPHONE_2_0, __IPHONE_2_0) *)
 
 {!
     @function       AudioStreamRemovePropertyListener
@@ -2487,7 +2801,7 @@ function AudioStreamAddPropertyListener( inStream: AudioStreamID; inChannel: UIn
     @result         An OSStatus indicating success or failure.
 }
 function AudioStreamRemovePropertyListener( inStream: AudioStreamID; inChannel: UInt32; inPropertyID: AudioDevicePropertyID; inProc: AudioStreamPropertyListenerProc ): OSStatus; external name '_AudioStreamRemovePropertyListener';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* __OSX_AVAILABLE_BUT_DEPRECATED(__MAC_10_1, __MAC_10_6, __IPHONE_2_0, __IPHONE_2_0) *)
 
 //==================================================================================================
 //#pragma mark    AudioAggregateDevice Constants
@@ -2497,17 +2811,9 @@ function AudioStreamRemovePropertyListener( inStream: AudioStreamID; inChannel: 
     @abstract       Various constants related to AudioAggregateDevices.
     @constant       kAudioAggregateDeviceClassID
                         The AudioClassID that identifies the AudioAggregateDevice class.
-    @constant       kAudioDeviceTransportTypeAggregate
-                        The transport type ID (see kAudioDevicePropertyTransportType) for aggregate
-                        devices.
-    @constant       kAudioDeviceTransportTypeAutoAggregate
-                        The transport type ID (see kAudioDevicePropertyTransportType) for
-                        automatically generated aggregate devices.
 }
 const
 	kAudioAggregateDeviceClassID = FourCharCode('aagg');
-	kAudioDeviceTransportTypeAggregate = FourCharCode('grup');
-	kAudioDeviceTransportTypeAutoAggregate = FourCharCode('fgrp');
 
 {!
     @defined        kAudioAggregateDeviceUIDKey
@@ -2579,7 +2885,8 @@ const
     @constant       kAudioAggregateDevicePropertyComposition
                         A CFDictionary that describes the composition of the AudioAggregateDevice.
                         The keys for this CFDicitionary are defined in the AudioAggregateDevice
-                        Constants section.
+                        Constants section. The caller is responsible for releasing the returned
+                        CFObject.
 }
 const
 	kAudioAggregateDevicePropertyFullSubDeviceList = FourCharCode('grup');
@@ -2597,7 +2904,8 @@ const
                         A CFString that contains the UID for the AudioDevice that is currently
                         serving as the master time base of the aggregate device. This property is
                         also implemented by the AudioClockSourceControl on the master element of the
-                        global scope of the AudioAggregateDevice.
+                        global scope of the AudioAggregateDevice. The caller is responsible for
+                        releasing the returned CFObject.
 }
 const
 	kAudioAggregateDevicePropertyMasterSubDevice = FourCharCode('amst');
@@ -2638,6 +2946,71 @@ const
 const
 	kAudioSubDeviceUIDKey = 'uid';
 
+{!
+    @defined        kAudioAggregateDeviceSubDeviceNameKey
+    @discussion     The key used in a CFDictionary that describes the state of an AudioSubDevice.
+                    The value for this key is a CFString that contains the human readable
+                    name of the AudioSubDevice.
+}
+const
+	kAudioSubDeviceNameKey = 'name';
+
+{!
+    @defined        kAudioSubDeviceInputChannelsKey
+    @discussion     The key used in a CFDictionary that describes the state of an AudioSubDevice.
+                    The value for this key is a CFNumber that indicates the total number of input
+                    channels for the AudioSubDevice.
+}
+const
+	kAudioSubDeviceInputChannelsKey = 'channels-in';
+
+{!
+    @defined        kAudioSubDeviceOutputChannelsKey
+    @discussion     The key used in a CFDictionary that describes the state of an AudioSubDevice.
+                    The value for this key is a CFNumber that indicates the total number of output
+                    channels for the AudioSubDevice.
+}
+const
+	kAudioSubDeviceOutputChannelsKey = 'channels-out';
+
+{!
+    @defined        kAudioSubDeviceExtraInputLatencyKey
+    @discussion     The key used in a CFDictionary that describes the state of an AudioSubDevice.
+                    The value for this key is a CFNumber that indicates the total number of frames
+                    of additional latency that will be added to the input side of the
+                    AudioSubDevice.
+}
+const
+	kAudioSubDeviceExtraInputLatencyKey = 'latency-in';
+
+{!
+    @defined        kAudioSubDeviceExtraOutputLatencyKey
+    @discussion     The key used in a CFDictionary that describes the state of an AudioSubDevice.
+                    The value for this key is a CFNumber that indicates the total number of frames
+                    of additional latency that will be added to the output side of the
+                    AudioSubDevice.
+}
+const
+	kAudioSubDeviceExtraOutputLatencyKey = 'latency-out';
+
+{!
+    @defined        kAudioSubDeviceDriftCompensationKey
+    @discussion     The key used in a CFDictionary that describes the state of an AudioSubDevice.
+                    The value for this key is a CFNumber where a non-zero value indicates that drift
+                    compensation is enabled for the AudioSubDevice
+}
+const
+	kAudioSubDeviceDriftCompensationKey = 'drift';
+
+{!
+    @defined        kAudioSubDeviceDriftCompensationQualityKey
+    @discussion     The key used in a CFDictionary that describes the state of an AudioSubDevice.
+                    The value for this key is a CFNumber that indicates the quality of the drifty
+                    compensation for the AudioSubDevice
+}
+const
+	kAudioSubDeviceDriftCompensationQualityKey = 'drift quality';
+
 //==================================================================================================
 //#pragma mark    AudioSubDevice Properties
 
@@ -2667,5 +3040,8 @@ const
 
 //==================================================================================================
 
+{$endc} {TARGET_OS_MAC}
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

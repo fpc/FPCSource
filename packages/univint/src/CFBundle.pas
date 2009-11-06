@@ -1,13 +1,15 @@
 {	CFBundle.h
-	Copyright (c) 1999-2005, Apple, Inc. All rights reserved.
+	Copyright (c) 1999-2009, Apple Inc. All rights reserved.
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -16,8 +18,8 @@
 
 unit CFBundle;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -30,16 +32,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -47,14 +71,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -80,7 +155,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -90,21 +164,23 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,CFBase,CFArray,CFDictionary,CFString,CFURL;
+uses MacTypes,CFBase,CFArray,CFDictionary,CFError,CFString,CFURL;
+{$endc} {not MACOSALLINCLUDE}
+
 {$ALIGN POWER}
 
 
 type
-	CFBundleRef = ^SInt32; { an opaque 32-bit type }
+	CFBundleRef = ^SInt32; { an opaque type }
 	CFBundleRefPtr = ^CFBundleRef;
-	CFPlugInRef = ^SInt32; { an opaque 32-bit type }
+	CFPlugInRef = ^SInt32; { an opaque type }
 	CFPlugInRefPtr = ^CFPlugInRef;
 
 { ===================== Standard Info.plist keys ===================== }
 var kCFBundleInfoDictionaryVersionKey: CFStringRef; external name '_kCFBundleInfoDictionaryVersionKey'; (* attribute const *)
     { The version of the Info.plist format }
 var kCFBundleExecutableKey: CFStringRef; external name '_kCFBundleExecutableKey'; (* attribute const *)
-    { The name of the executable in this bundle (if any) }
+    { The name of the executable in this bundle, if any }
 var kCFBundleIdentifierKey: CFStringRef; external name '_kCFBundleIdentifierKey'; (* attribute const *)
     { The bundle identifier (for CFBundleGetBundleWithIdentifier()) }
 var kCFBundleVersionKey: CFStringRef; external name '_kCFBundleVersionKey'; (* attribute const *)
@@ -131,18 +207,19 @@ function CFBundleGetBundleWithIdentifier( bundleID: CFStringRef ): CFBundleRef; 
     { only bundles already loaded or otherwise known to the current process. }
 
 function CFBundleGetAllBundles: CFArrayRef; external name '_CFBundleGetAllBundles';
-    { This is potentially expensive.  Use with care. }
+    { This is potentially expensive, and not thread-safe.  Use with care. }
+    { Best used for debuggging or other diagnostic purposes. }
 
 { ===================== Creating Bundles ===================== }
 
-function CFBundleGetTypeID: UInt32; external name '_CFBundleGetTypeID';
+function CFBundleGetTypeID: CFTypeID; external name '_CFBundleGetTypeID';
 
 function CFBundleCreate( allocator: CFAllocatorRef; bundleURL: CFURLRef ): CFBundleRef; external name '_CFBundleCreate';
     { Might return an existing instance with the ref-count bumped. }
 
 function CFBundleCreateBundlesFromDirectory( allocator: CFAllocatorRef; directoryURL: CFURLRef; bundleType: CFStringRef ): CFArrayRef; external name '_CFBundleCreateBundlesFromDirectory';
-    { Create instances for all bundles in the given directory matching the given }
-    { type (or all of them if bundleType is NULL) }
+    { Create instances for all bundles in the given directory matching the given type }
+    { (or all of them if bundleType is NULL).  Instances are created using CFBundleCreate() and are not released. }
 
 { ==================== Basic Bundle Info ==================== }
 
@@ -187,7 +264,7 @@ function CFBundleCopyBuiltInPlugInsURL( bundle: CFBundleRef ): CFURLRef; externa
 function CFBundleCopyInfoDictionaryInDirectory( bundleURL: CFURLRef ): CFDictionaryRef; external name '_CFBundleCopyInfoDictionaryInDirectory';
 
 function CFBundleGetPackageInfoInDirectory( url: CFURLRef; var packageType: UInt32; var packageCreator: UInt32 ): Boolean; external name '_CFBundleGetPackageInfoInDirectory';
-    
+
 { ==================== Resource Handling API ==================== }
 
 function CFBundleCopyResourceURL( bundle: CFBundleRef; resourceName: CFStringRef; resourceType: CFStringRef; subDirName: CFStringRef ): CFURLRef; external name '_CFBundleCopyResourceURL';
@@ -241,6 +318,11 @@ function CFBundleCopyLocalizationsForPreferences( locArray: CFArrayRef; prefArra
 function CFBundleCopyResourceURLForLocalization( bundle: CFBundleRef; resourceName: CFStringRef; resourceType: CFStringRef; subDirName: CFStringRef; localizationName: CFStringRef ): CFURLRef; external name '_CFBundleCopyResourceURLForLocalization';
 
 function CFBundleCopyResourceURLsOfTypeForLocalization( bundle: CFBundleRef; resourceType: CFStringRef; subDirName: CFStringRef; localizationName: CFStringRef ): CFArrayRef; external name '_CFBundleCopyResourceURLsOfTypeForLocalization';
+    { The localizationName argument to CFBundleCopyResourceURLForLocalization() or }
+    { CFBundleCopyResourceURLsOfTypeForLocalization() must be identical to one of the }
+    { localizations in the bundle, as returned by CFBundleCopyBundleLocalizations(). }
+    { It is recommended that either CFBundleCopyPreferredLocalizationsFromArray() or }
+    { CFBundleCopyLocalizationsForPreferences() be used to select the localization. }
 
 {#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED}
 { =================== Unbundled application info ===================== }
@@ -248,17 +330,23 @@ function CFBundleCopyResourceURLsOfTypeForLocalization( bundle: CFBundleRef; res
 { information about an application that may be bundled or unbundled.   }
 function CFBundleCopyInfoDictionaryForURL( url: CFURLRef ): CFDictionaryRef; external name '_CFBundleCopyInfoDictionaryForURL';
     { For a directory URL, this is equivalent to CFBundleCopyInfoDictionaryInDirectory. }
-    { For a plain file URL representing an unbundled application, this will attempt to read }
-    { an info dictionary either from the (__TEXT, __info_plist) section (for a Mach-o file) }
+    { For a plain file URL representing an unbundled executable, this will attempt to read }
+    { an info dictionary from the (__TEXT, __info_plist) section, if it is a Mach-o file, }
     { or from a 'plst' resource.  }
 
 function CFBundleCopyLocalizationsForURL( url: CFURLRef ): CFArrayRef; external name '_CFBundleCopyLocalizationsForURL';
     { For a directory URL, this is equivalent to calling CFBundleCopyBundleLocalizations }
-    { on the corresponding bundle.  For a plain file URL representing an unbundled application, }
+    { on the corresponding bundle.  For a plain file URL representing an unbundled executable, }
     { this will attempt to determine its localizations using the CFBundleLocalizations and }
     { CFBundleDevelopmentRegion keys in the dictionary returned by CFBundleCopyInfoDictionaryForURL,}
-    { or a 'vers' resource if those are not present.  }
+    { or from a 'vers' resource if those are not present.  }
 {#endif}
+
+function CFBundleCopyExecutableArchitecturesForURL( url: CFURLRef ): CFArrayRef; external name '_CFBundleCopyExecutableArchitecturesForURL';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+    { For a directory URL, this is equivalent to calling CFBundleCopyExecutableArchitectures() }
+    { on the corresponding bundle.  For a plain file URL representing an unbundled executable, }
+    { this will return the architectures it provides, if it is a Mach-o file, or NULL otherwise. }
 
 { ==================== Primitive Code Loading API ==================== }
 { This API abstracts the various different executable formats supported on }
@@ -270,9 +358,39 @@ function CFBundleCopyLocalizationsForURL( url: CFURLRef ): CFArrayRef; external 
 
 function CFBundleCopyExecutableURL( bundle: CFBundleRef ): CFURLRef; external name '_CFBundleCopyExecutableURL';
 
-function CFBundleIsExecutableLoaded( bundle: CFBundleRef ): Boolean; external name '_CFBundleIsExecutableLoaded';
+{#if MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED}
+const
+	kCFBundleExecutableArchitectureI386 = $00000007;
+	kCFBundleExecutableArchitecturePPC = $00000012;
+	kCFBundleExecutableArchitectureX86_64 = $01000007;
+	kCFBundleExecutableArchitecturePPC64 = $01000012;
+{#endif} { MAC_OS_X_VERSION_10_5 <= MAC_OS_X_VERSION_MAX_ALLOWED }
+
+function CFBundleCopyExecutableArchitectures( bundle: CFBundleRef ): CFArrayRef; external name '_CFBundleCopyExecutableArchitectures';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+    { If the bundle's executable exists and is a Mach-o file, this function will return an array }
+    { of CFNumbers whose values are integers representing the architectures the file provides. }
+    { The values currently in use are those listed in the enum above, but others may be added }
+    { in the future.  If the executable is not a Mach-o file, this function returns NULL. }
+
+function CFBundlePreflightExecutable( bundle: CFBundleRef; var error: CFErrorRef ): Boolean; external name '_CFBundlePreflightExecutable';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+    { This function will return true if the bundle is loaded, or if the bundle appears to be }
+    { loadable upon inspection.  This does not mean that the bundle is definitively loadable, }
+    { since it may fail to load due to link errors or other problems not readily detectable. }
+    { If this function detects problems, it will return false, and return a CFError by reference. }
+    { It is the responsibility of the caller to release the CFError. }
+
+function CFBundleLoadExecutableAndReturnError( bundle: CFBundleRef; var error: CFErrorRef ): Boolean; external name '_CFBundleLoadExecutableAndReturnError';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+    { If the bundle is already loaded, this function will return true.  Otherwise, it will attempt }
+    { to load the bundle, and it will return true if that attempt succeeds.  If the bundle fails }
+    { to load, this function will return false, and it will return a CFError by reference.  }
+    { It is the responsibility of the caller to release the CFError. }
 
 function CFBundleLoadExecutable( bundle: CFBundleRef ): Boolean; external name '_CFBundleLoadExecutable';
+
+function CFBundleIsExecutableLoaded( bundle: CFBundleRef ): Boolean; external name '_CFBundleIsExecutableLoaded';
 
 procedure CFBundleUnloadExecutable( bundle: CFBundleRef ); external name '_CFBundleUnloadExecutable';
 
@@ -299,20 +417,29 @@ function CFBundleGetPlugIn( bundle: CFBundleRef ): CFPlugInRef; external name '_
 
 { ==================== Resource Manager-Related API ==================== }
 
-function CFBundleOpenBundleResourceMap( bundle: CFBundleRef ): SInt16; external name '_CFBundleOpenBundleResourceMap';
+{$ifc TARGET_CPU_64}
+type
+	CFBundleRefNum = SInt32;
+{$elsec}
+type
+	CFBundleRefNum = SInt16;
+{$endc}
+
+function CFBundleOpenBundleResourceMap( bundle: CFBundleRef ): CFBundleRefNum; external name '_CFBundleOpenBundleResourceMap';
    { This function opens the non-localized and the localized resource files }
    { (if any) for the bundle, creates and makes current a single read-only }
    { resource map combining both, and returns a reference number for it. }
    { If it is called multiple times, it opens the files multiple times, }
    { and returns distinct reference numbers.  }
 
-function CFBundleOpenBundleResourceFiles( bundle: CFBundleRef; var refNum: SInt16; var localizedRefNum: SInt16 ): SInt32; external name '_CFBundleOpenBundleResourceFiles';
-   { Similar to CFBundleOpenBundleResourceMap, except that it creates two }
+function CFBundleOpenBundleResourceFiles( bundle: CFBundleRef; var refNum: CFBundleRefNum; var localizedRefNum: CFBundleRefNum ): SInt32; external name '_CFBundleOpenBundleResourceFiles';
+   { Similar to CFBundleOpenBundleResourceMap(), except that it creates two }
    { separate resource maps and returns reference numbers for both. }
 
-procedure CFBundleCloseBundleResourceMap( bundle: CFBundleRef; refNum: SInt16 ); external name '_CFBundleCloseBundleResourceMap';
+procedure CFBundleCloseBundleResourceMap( bundle: CFBundleRef; refNum: CFBundleRefNum ); external name '_CFBundleCloseBundleResourceMap';
 
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 implementation
 
 
@@ -340,3 +467,5 @@ end;
 
 
 end.
+
+{$endc} {not MACOSALLINCLUDE}

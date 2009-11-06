@@ -8,86 +8,116 @@ version=2.5.1
 
 [target]
 units=MacOSAll MacOS
-implicitunits=ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs \
-  AEDataModel AEHelpers AEInteraction AEMach AEObjects \
-  AEPackObject AERegistry AEUserTermTypes AIFF ASDebugging \
-  ASRegistry ATSFont ATSLayoutTypes ATSTypes \
-  ATSUnicodeDirectAccess ATSUnicodeDrawing \
-  ATSUnicodeFlattening ATSUnicodeFonts ATSUnicodeGlyphs \
-  ATSUnicodeObjects ATSUnicodeTypes AVLTree \
-  AXErrors AXUIElement AXValue Aliases Appearance \
-  AppleDiskPartitions AppleEvents AppleHelp AppleScript \
-  AuthSession Authorization AuthorizationDB AuthorizationTags \
-  CFArray CFAttributedString CFBag CFBase CFBinaryHeap \
-  CFBitVector CFBundle CFByteOrders CFCalendar CFCharacterSet \
-  CFData CFDate CFDateFormatter CFDictionary CFFTPStream \
-  CFHTTPMessage CFHTTPStream CFHost CFLocale CFMachPort \
-  CFMessagePort CFNetServices CFNotificationCenter CFNumber \
-  CFNumberFormatter CFPlugIn CFPlugInCOM CFPreferences \
-  CFPropertyList CFRunLoop CFSet CFSocket CFSocketStream \
-  CFStream CFString CFStringEncodingExt CFTimeZone CFTree \
-  CFURL CFURLAccess CFUUID CFUserNotification CFXMLNode \
-  CFXMLParser CGAffineTransforms CGBase CGBitmapContext \
-  CGColor CGColorSpace CGContext CGDataConsumer CGDataProvider \
-  CGDirectDisplay CGDirectPalette CGDisplayConfiguration \
-  CGErrors CGEvent CGEventSource CGEventTypes \
-  CGFont CGFunction CGGLContext CGGeometry CGImage CGLayer \
-  CGPDFArray CGPDFContentStream CGPDFContext CGPDFDictionary \
-  CGPDFDocument CGPDFObject CGPDFOperatorTable CGPDFPage \
-  CGPDFScanner CGPDFStream CGPDFString CGPSConverter CGPath \
-  CGPattern CGRemoteOperation CGSession CGShading \
-  CGWindowLevels CMApplication CMCalibrator \
-  CMDeviceIntegration CMICCProfile CMMComponent CMPRComponent \
-  CMScriptingPlugin CMTypes CarbonEvents CarbonEventsCore \
-  CodeFragments Collections ColorPicker Components \
-  ConditionalMacros ControlDefinitions Controls CoreFoundation \
-  CoreGraphics DHCPClientPreferences DateTimeUtils Debugging \
-  Devices Dialogs Dictionary Displays Drag DrawSprocket \
-  DriverFamilyMatching DriverGestalt DriverSynchronization \
-  Endian Events FileTypesAndCreators Files FindByContent \
-  Finder FinderRegistry FixMath Folders FontSync Fonts GXTypes \
-  GestaltEqu HFSVolumes HIArchive HIGeometry HIObject \
-  HIObjectCore HIShape HITextUtils HITheme HIToolbar HIToolbox \
-  HIView HTMLRendering IBCarbonRuntime ICAApplication \
-  ICACamera ICADevice Icons ImageCodec ImageCompression \
-  InternetConfig IntlResources Keyboards KeychainCore \
-  KeychainHI LanguageAnalysis LaunchServices Lists LowMem \
-  MacApplication MacErrors MacHelp MacLocales MacMemory \
-  MacOSXPosix MacTextEditor MacTypes MacWindows \
-  MachineExceptions Math64 MediaHandlers Menus MixedMode \
-  Movies MoviesFormat Multiprocessing NSL NSLCore NameRegistry \
-  Navigation Notification NumberFormatting OSA OSAComp \
-  OSAGeneric OSUtils OpenTransport OpenTransportProtocol \
-  OpenTransportProviders PEFBinaryFormat PLStringFuncs \
-  PMApplication PMCore PMDefinitions Palettes Pasteboard \
-  PictUtils Power Printing Processes QDOffscreen \
-  QDPictToCGContext QTML QTSMovie QTStreamingComponents \
-  QuickTimeComponents QuickTimeMusic QuickTimeStreaming \
-  QuickTimeVR QuickTimeVRFormat Quickdraw QuickdrawText \
-  Resources SCDynamicStore SCDynamicStoreCopyDHCPInfos \
-  SCDynamicStoreCopySpecific SCDynamicStoreKey SCNetwork \
-  SCNetworkConnection SCNetworkReachability SCPreferences \
-  SCPreferencesPath SCPreferencesSetSpecific SCSI \
-  SCSchemaDefinitions SFNTLayoutTypes SFNTTypes Scrap Script \
-  Sound SpeechRecognition SpeechSynthesis StringCompare \
-  SystemConfiguration SystemSound TSMTE TextCommon TextEdit \
-  TextEncodingConverter TextEncodingPlugin TextServices \
-  TextUtils Threads Timer ToolUtils Translation \
-  TranslationExtensions TypeSelect URLAccess USB UTCUtils \
-  UTType UnicodeConverter UnicodeUtilities Video WorldScript \
-  fenv fp vBLAS vDSP \
-  UTCoreTypes xattr FontPanel CoreAudioTypes \
-  AXNotificationConstants AudioHardware AXRoleConstants \
-  TranslationServices AXActionConstants HIMovieView \
-  CGImageDestination AXValueConstants AXAttributeConstants \
-  AXTextAttributedString CGImageProperties CGImageSource \
-  UniversalAccess HostTime GPCStrings \
-  CGDisplayFades CGLTypes CVBase CVBuffer \
-  CVDisplayLink CVHostTime CVImageBuffer CVPixelBuffer \
-  CVPixelBufferPool CVPixelFormatDescription CVReturns \
-  ObjCRuntime CFNetworkErrorss CFHTTPAuthentication \
-  CFError CFNetDiagnostics DriverServices TextInputSources
-
+implicitunits=ABActions.pas ABAddressBook.pas ABGlobals.pas ABPeoplePicker.pas \ 
+  ABTypedefs.pas AEDataModel.pas AEHelpers.pas AEInteraction.pas AEMach.pas \ 
+  AEObjects.pas AEPackObject.pas AERegistry.pas AEUserTermTypes.pas AIFF.pas \ 
+  ASDebugging.pas ASRegistry.pas ATSFont.pas ATSLayoutTypes.pas ATSTypes.pas \ 
+  ATSUnicodeDirectAccess.pas ATSUnicodeDrawing.pas ATSUnicodeFlattening.pas \ 
+  ATSUnicodeFonts.pas ATSUnicodeGlyphs.pas ATSUnicodeObjects.pas \ 
+  ATSUnicodeTypes.pas AUComponent.pas AVLTree.pas AXActionConstants.pas \ 
+  AXAttributeConstants.pas AXConstants.pas AXErrors.pas \ 
+  AXNotificationConstants.pas AXRoleConstants.pas AXTextAttributedString.pas \ 
+  AXUIElement.pas AXValue.pas AXValueConstants.pas Accessibility.pas Aliases.pas \ 
+  Appearance.pas AppleDiskPartitions.pas AppleEvents.pas AppleHelp.pas \ 
+  AppleScript.pas AudioCodecs.pas AudioComponents.pas AudioHardware.pas \ 
+  AudioOutputUnit.pas AudioUnitCarbonViews.pas AudioUnitParameters.pas \ 
+  AudioUnitProperties.pas AuthSession.pas Authorization.pas AuthorizationDB.pas \ 
+  AuthorizationPlugin.pas AuthorizationTags.pas BackupCore.pas CFArray.pas \ 
+  CFAttributedString.pas CFBag.pas CFBase.pas CFBinaryHeap.pas CFBitVector.pas \ 
+  CFBundle.pas CFByteOrders.pas CFCalendar.pas CFCharacterSet.pas CFData.pas \ 
+  CFDate.pas CFDateFormatter.pas CFDictionary.pas CFError.pas CFFTPStream.pas \ 
+  CFHTTPAuthentication.pas CFHTTPMessage.pas CFHTTPStream.pas CFHost.pas \ 
+  CFLocale.pas CFMachPort.pas CFMessagePort.pas CFNetDiagnostics.pas \ 
+  CFNetServices.pas CFNetworkErrorss.pas CFNotificationCenter.pas CFNumber.pas \ 
+  CFNumberFormatter.pas CFPlugIn.pas CFPlugInCOM.pas CFPreferences.pas \ 
+  CFPropertyList.pas CFProxySupport.pas CFRunLoop.pas CFSet.pas CFSocket.pas \ 
+  CFSocketStream.pas CFStream.pas CFString.pas CFStringEncodingExt.pas \ 
+  CFTimeZone.pas CFTree.pas CFURL.pas CFURLAccess.pas CFUUID.pas \ 
+  CFUserNotification.pas CFXMLNode.pas CFXMLParser.pas CGAffineTransforms.pas \ 
+  CGBase.pas CGBitmapContext.pas CGColor.pas CGColorSpace.pas CGContext.pas \ 
+  CGDataConsumer.pas CGDataProvider.pas CGDirectDisplay.pas CGDirectPalette.pas \ 
+  CGDisplayConfiguration.pas CGDisplayFades.pas CGErrors.pas CGEvent.pas \ 
+  CGEventSource.pas CGEventTypes.pas CGFont.pas CGFunction.pas CGGLContext.pas \ 
+  CGGeometry.pas CGGradient.pas CGImage.pas CGImageDestination.pas \ 
+  CGImageProperties.pas CGImageSource.pas CGLCurrent.pas CGLDevice.pas \ 
+  CGLProfiler.pas CGLProfilerFunctionEnums.pas CGLRenderers.pas CGLTypes.pas \ 
+  CGLayer.pas CGPDFArray.pas CGPDFContentStream.pas CGPDFContext.pas \ 
+  CGPDFDictionary.pas CGPDFDocument.pas CGPDFObject.pas CGPDFOperatorTable.pas \ 
+  CGPDFPage.pas CGPDFScanner.pas CGPDFStream.pas CGPDFString.pas \ 
+  CGPSConverter.pas CGPath.pas CGPattern.pas CGRemoteOperation.pas CGSession.pas \ 
+  CGShading.pas CGWindow.pas CGWindowLevels.pas CMApplication.pas \ 
+  CMCalibrator.pas CMDeviceIntegration.pas CMICCProfile.pas CMMComponent.pas \ 
+  CMPRComponent.pas CMScriptingPlugin.pas CMTypes.pas CSIdentity.pas \ 
+  CSIdentityAuthority.pas CSIdentityQuery.pas CTFont.pas CTFontCollection.pas \ 
+  CTFontDescriptor.pas CTFontManager.pas CTFontManagerErrors.pas \ 
+  CTFontTraits.pas CTFrame.pas CTFramesetter.pas CTGlyphInfo.pas CTLine.pas \ 
+  CTParagraphStyle.pas CTRun.pas CTStringAttributes.pas CTTextTab.pas \ 
+  CTTypesetter.pas CVBase.pas CVBuffer.pas CVDisplayLink.pas CVHostTime.pas \ 
+  CVImageBuffer.pas CVOpenGLBuffer.pas CVOpenGLBufferPool.pas \ 
+  CVOpenGLTexture.pas CVOpenGLTextureCache.pas CVPixelBuffer.pas \ 
+  CVPixelBufferPool.pas CVPixelFormatDescription.pas CVReturns.pas \ 
+  CarbonEvents.pas CarbonEventsCore.pas CodeFragments.pas Collections.pas \ 
+  ColorPicker.pas ColorSyncCMM.pas ColorSyncDeprecated.pas ColorSyncDevice.pas \ 
+  ColorSyncProfile.pas ColorSyncTransform.pas Components.pas \ 
+  ConditionalMacros.pas ControlDefinitions.pas Controls.pas CoreAudioTypes.pas \ 
+  CoreFoundation.pas CoreGraphics.pas CoreText.pas DADisk.pas DASession.pas \ 
+  DHCPClientPreferences.pas DateTimeUtils.pas Debugging.pas Devices.pas \ 
+  Dialogs.pas Dictionary.pas DigitalHubRegistry.pas Displays.pas Drag.pas \ 
+  DrawSprocket.pas DriverFamilyMatching.pas DriverGestalt.pas DriverServices.pas \ 
+  DriverSynchronization.pas Endian.pas Events.pas FSEvents.pas \ 
+  FileTypesAndCreators.pas Files.pas FindByContent.pas Finder.pas \ 
+  FinderRegistry.pas FixMath.pas Folders.pas FontPanel.pas FontSync.pas \ 
+  Fonts.pas GPCStrings.pas GXTypes.pas GestaltEqu.pas HFSVolumes.pas \ 
+  HIAccessibility.pas HIArchive.pas HIButtonViews.pas HIClockView.pas \ 
+  HIComboBox.pas HIContainerViews.pas HIDataBrowser.pas HIDisclosureViews.pas \ 
+  HIGeometry.pas HIImageViews.pas HILittleArrows.pas HIMenuView.pas \ 
+  HIMovieView.pas HIObject.pas HIObjectCore.pas HIPopupButton.pas \ 
+  HIProgressViews.pas HIRelevanceBar.pas HIScrollView.pas HISearchField.pas \ 
+  HISegmentedView.pas HISeparator.pas HIShape.pas HISlider.pas HITabbedView.pas \ 
+  HITextLengthFilter.pas HITextUtils.pas HITextViews.pas HITheme.pas \ 
+  HIToolbar.pas HIToolbox.pas HIToolboxDebugging.pas HIView.pas \ 
+  HIWindowViews.pas HTMLRendering.pas HostTime.pas IBCarbonRuntime.pas \ 
+  ICAApplication.pas ICACamera.pas ICADevice.pas IconStorage.pas Icons.pas \ 
+  IconsCore.pas ImageCodec.pas ImageCompression.pas InternetConfig.pas \ 
+  IntlResources.pas Keyboards.pas KeychainCore.pas KeychainHI.pas LSInfo.pas \ 
+  LSOpen.pas LSQuarantine.pas LSSharedFileList.pas LanguageAnalysis.pas \ 
+  LaunchServices.pas Lists.pas LowMem.pas MDExternalDatastore.pas MDImporter.pas \ 
+  MDItem.pas MDLineage.pas MDQuery.pas MDSchema.pas MIDIDriver.pas \ 
+  MIDIServices.pas MIDISetup.pas MIDIThruConnection.pas MacApplication.pas \ 
+  MacErrors.pas MacHelp.pas MacLocales.pas MacMemory.pas MacOSXPosix.pas \ 
+  MacOpenGL.pas MacTextEditor.pas MacTypes.pas MacWindows.pas \ 
+  MachineExceptions.pas Math64.pas MediaHandlers.pas Menus.pas MixedMode.pas \ 
+  Movies.pas MoviesFormat.pas MultiProcessingInfo.pas Multiprocessing.pas \ 
+  MusicDevice.pas NSL.pas NSLCore.pas NameRegistry.pas Navigation.pas \ 
+  Notification.pas NumberFormatting.pas OSA.pas OSAComp.pas OSAGeneric.pas \ 
+  OSUtils.pas ObjCRuntime.pas OpenTransport.pas \ 
+  OpenTransportProtocol.pas OpenTransportProviders.pas PEFBinaryFormat.pas \ 
+  PLStringFuncs.pas PMApplication.pas PMApplicationDeprecated.pas PMCore.pas \ 
+  PMCoreDeprecated.pas PMDefinitions.pas PMDefinitionsDeprecated.pas \ 
+  PMErrors.pas PMPrintAETypes.pas PMPrintSettingsKeys.pas \ 
+  PMPrintingDialogExtensions.pas Palettes.pas Pasteboard.pas PictUtils.pas \ 
+  Power.pas Printing.pas Processes.pas QDCMCommon.pas QDOffscreen.pas \ 
+  QDPictToCGContext.pas QTML.pas QTSMovie.pas QTStreamingComponents.pas \ 
+  QuickTimeComponents.pas QuickTimeErrors.pas QuickTimeMusic.pas \ 
+  QuickTimeStreaming.pas QuickTimeVR.pas QuickTimeVRFormat.pas Quickdraw.pas \ 
+  QuickdrawText.pas QuickdrawTypes.pas Resources.pas SCDynamicStore.pas \ 
+  SCDynamicStoreCopyDHCPInfos.pas SCDynamicStoreCopySpecific.pas \ 
+  SCDynamicStoreKey.pas SCNetwork.pas SCNetworkConfiguration.pas \ 
+  SCNetworkConnection.pas SCNetworkReachability.pas SCPreferences.pas \ 
+  SCPreferencesPath.pas SCPreferencesSetSpecific.pas SCSI.pas \ 
+  SCSchemaDefinitions.pas SFNTLayoutTypes.pas SFNTTypes.pas \ 
+  ScalerStreamTypes.pas Scrap.pas Script.pas SecBase.pas Sound.pas \ 
+  SpeechRecognition.pas SpeechSynthesis.pas StringCompare.pas \ 
+  SystemConfiguration.pas SystemSound.pas TSMTE.pas TextCommon.pas TextEdit.pas \ 
+  TextEncodingConverter.pas TextEncodingPlugin.pas TextInputSources.pas \ 
+  TextServices.pas TextUtils.pas Threads.pas Timer.pas ToolUtils.pas \ 
+  Translation.pas TranslationExtensions.pas TranslationServices.pas \ 
+  TypeSelect.pas URLAccess.pas USB.pas UTCUtils.pas UTCoreTypes.pas UTType.pas \ 
+  UnicodeConverter.pas UnicodeUtilities.pas UniversalAccess.pas Video.pas \ 
+  WSMethodInvocation.pas WSProtocolHandler.pas WSTypes.pas WorldScript.pas \ 
+  cblas.pas fenv.pas fp.pas gliContexts.pas gliDispatch.pas gluContext.pas \ 
+  macgl.pas macglext.pas macglu.pas vBLAS.pas vDSP.pas xattr.pas \
+  KeyEvents
   
 exampledirs=examples
 
@@ -106,6 +136,9 @@ sourcedir=src tests
 
 [default]
 fpcdir=../..
+
+[prerules]
+override FPCOPT+=-Mmacpas
 
 [rules]
 MacOSAll$(PPUEXT): $(filter-out MacOS.pas GPCStrings.pas,$(wildcard *.pas))

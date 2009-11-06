@@ -34,9 +34,9 @@
  
      Contains:   Pasteboard Manager Interfaces.
  
-     Version:    HIServices-125.6~1
+     Version:    HIServices-308~1
  
-     Copyright:  © 2003 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 2003-2008 by Apple Computer, Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -44,14 +44,14 @@
                      http://www.freepascal.org/bugs.html
  
 }
-
-
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -60,8 +60,8 @@
 
 unit Pasteboard;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -74,16 +74,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -91,14 +113,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -124,7 +197,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -135,6 +207,10 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes,CFBase,CFArray,CFData,CFURL;
+{$endc} {not MACOSALLINCLUDE}
+
+
+{$ifc TARGET_OS_MAC}
 
 {$ALIGN POWER}
 
@@ -199,20 +275,18 @@ uses MacTypes,CFBase,CFArray,CFData,CFURL;
  *    transported, provide a type inheritance mechanism and allow
  *    namespacing with a reverse DNS scheme.
  }
- 
 type
-    PasteboardRef				= ^SInt32; { an opaque 32-bit type }
-    PasteboardItemID			= Ptr;
-
-{ Pasteboard Manager error codes }
+	PasteboardRef = ^SInt32; { an opaque type }
+	PasteboardItemID = UnivPtr;
+{ Pasteboard Manager error codes}
 const
-  badPasteboardSyncErr          = -25130; { pasteboard has been modified and must be synchronized }
-  badPasteboardIndexErr         = -25131; { item index does not exist }
-  badPasteboardItemErr          = -25132; { item reference does not exist }
-  badPasteboardFlavorErr        = -25133; { item flavor does not exist }
-  duplicatePasteboardFlavorErr  = -25134; { item flavor already exists }
-  notPasteboardOwnerErr         = -25135; { client did not clear the pasteboard }
-  noPasteboardPromiseKeeperErr  = -25136; { a promise is being added without a promise keeper }
+	badPasteboardSyncErr = -25130; { pasteboard has been modified and must be synchronized}
+	badPasteboardIndexErr = -25131; { item index does not exist}
+	badPasteboardItemErr = -25132; { item reference does not exist}
+	badPasteboardFlavorErr = -25133; { item flavor does not exist}
+	duplicatePasteboardFlavorErr = -25134; { item flavor already exists}
+	notPasteboardOwnerErr = -25135; { client did not clear the pasteboard}
+	noPasteboardPromiseKeeperErr = -25136; { a promise is being added without a promise keeper}
 
 
 {
@@ -224,11 +298,9 @@ const
  *    in relation to the global, cross process pasteboard resource.
  }
 type
-    PasteboardSyncFlags	= UInt32;
-
+	PasteboardSyncFlags = OptionBits;
 const
-
-  {
+{
    * Indicates that the global pasteboard resource has been modified
    * since the last time it was accessed via the local pasteboard
    * reference. The call to PasteboardSynchronize() has updated the
@@ -237,16 +309,69 @@ const
    * the pasteboard to determine whether any tasty flavors have been
    * added and possibly enable pasting.
    }
-    kPasteboardModified           = $00000001; {(1 << 0)}
+	kPasteboardModified = 1 shl 0;
 
- {
+  {
    * Indicates that the global pasteboard resource was most recently
    * cleared by the this application. Any local pasteboard reference in
    * the client application may add data to the global pasteboard
    * resource.
    }
-    kPasteboardClientIsOwner      = $00000002; {(1 << 1)}
+	kPasteboardClientIsOwner = 1 shl 1;
 
+{
+ *  Pasteboard File Promising
+ *  
+ *  Summary:
+ *    With the FSSpec type being deprecated and removed for 64 bit it is necessary
+ *    to introduce a replacement for kDragFlavorTypePromiseHFS. The replacement comes
+ *    in the form of two new Uniform Type Identifiers specifically for use with the
+ *    pasteboard and promised files. Like the old HFS promise mechanism, the new UTI
+ *    based method still requires a multistage handshake between sender and receiver
+ *    but the process is somewhat simplified.
+ *    
+ *    Order of operations on copy or drag
+ *    
+ *    1) The sender promises kPasteboardTypeFileURLPromise for a file yet to be created.
+ *    2) The sender adds kPasteboardTypeFilePromiseContent containing the UTI describing
+ *          the file's content.
+ *    
+ *    Order of operations on paste or drop
+ *    
+ *    3) The receiver asks for kPasteboardTypeFilePromiseContent to decide if it wants the file.
+ *    4) The receiver sets the paste location with PasteboardSetPasteLocation.
+ *    5) The receiver asks for kPasteboardTypeFileURLPromise.
+ *    6) The sender's promise callback for kPasteboardTypeFileURLPromise is called.
+ *    7) The sender uses PasteboardCopyPasteLocation to retrieve the paste location, creates the file
+ *          and keeps its kPasteboardTypeFileURLPromise promise.
+ *
+ *    Automatic translation support has been added so clients operating in the modern
+ *    kPasteboardTypeFileURLPromise and kPasteboardTypeFilePromiseContent world can continue
+ *    to communicate properly with clients using the traditional kDragFlavorTypePromiseHFS and
+ *    kDragPromisedFlavor model.
+ }
+
+{
+ *  kPasteboardTypeFileURLPromise
+ *  
+ *  Discussion:
+ *    A UTF-8 encoded promised file url on the pasteboard to a file
+ *    which does not yet exist.
+ }
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kPasteboardTypeFileURLPromise CFSTRP('com.apple.pasteboard.promised-file-url')}
+{$endc}
+
+{
+ *  kPasteboardTypeFilePromiseContent
+ *  
+ *  Discussion:
+ *    A UTF-8 encoded UTI describing the type of data to be contained
+ *    within the promised file.
+ }
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kPasteboardTypeFilePromiseContent CFSTRP('com.apple.pasteboard.promised-file-content-type')}
+{$endc}
 
 {
  *  PasteboardFlavorFlags
@@ -261,14 +386,12 @@ const
  *    received via PasteboardGetItemFlavorFlags().
  }
 type
-    PasteboardFlavorFlags	= UInt32;
-
+	PasteboardFlavorFlags = OptionBits;
 const
-
-  {
+{
    * No additional information exists for this flavor.
    }
-    kPasteboardFlavorNoFlags      		= $00000000;
+	kPasteboardFlavorNoFlags = 0;
 
   {
    * Only the process which has added this flavor can see it. If the
@@ -276,14 +399,14 @@ const
    * you'll never see it as the receiver so there's no reason to test
    * for it.
    }
-    kPasteboardFlavorSenderOnly   		= $00000001; {(1 << 0)}
+	kPasteboardFlavorSenderOnly = 1 shl 0;
 
   {
    * The data for this flavor was translated in some manner by the
    * sender before adding it to the pasteboard. Flavors marked with
    * this flag are not stored by the Finder in clipping files.
    }
-    kPasteboardFlavorSenderTranslated		= $00000002; {(1 << 1)}
+	kPasteboardFlavorSenderTranslated = 1 shl 1;
 
   {
    * Set by the sender if the flavor data should not be saved by the
@@ -291,7 +414,7 @@ const
    * drag. Flavors marked with this flag are not stored by the Finder
    * in clipping files.
    }
-    kPasteboardFlavorNotSaved     			= $00000004; {(1 << 2)}
+	kPasteboardFlavorNotSaved = 1 shl 2;
 
   {
    * Like kPasteboardFlavorSenderOnly, when the sender adds this flag,
@@ -303,7 +426,7 @@ const
    * applications to communicate without exporting their method of
    * communication.
    }
-    kPasteboardFlavorRequestOnly  			= $00000008; {(1 << 3)}
+	kPasteboardFlavorRequestOnly = 1 shl 3;
 
   {
    * The data for this flavor is provided by the Translation Manager as
@@ -312,7 +435,7 @@ const
    * by clients. It is automatically added by the Pasteboard Manager
    * when appropriate.
    }
-    kPasteboardFlavorSystemTranslated = $00000100; {(1 << 8)}
+	kPasteboardFlavorSystemTranslated = 1 shl 8;
 
   {
    * The data for this flavor has not yet been added to the pasteboard
@@ -322,7 +445,33 @@ const
    * This flag can not be added by clients. It is automatically added
    * by the Pasteboard Manager when appropriate.
    }
-    kPasteboardFlavorPromised     = $00000200; {(1 << 9)}
+	kPasteboardFlavorPromised = 1 shl 9;
+
+
+{
+ *  PasteboardStandardLocation
+ *  
+ *  Summary:
+ *    Pasteboard Standard Drop Locations
+ *  
+ *  Discussion:
+ *    The following constants define common "meta" paste locations.
+ }
+type
+	PasteboardStandardLocation = OSType;
+const
+{
+   * The paste or drop location was in the trash.  This is set when a
+   * drag is dropped on the trash icon or a paste occurs within the
+   * trash.  Setting this standard paste location sets the traditional
+   * paste location to an alias to the trash folder automatically.
+   }
+	kPasteboardStandardLocationTrash = FourCharCode('trsh');
+
+  {
+   * The receiver did not specify a paste location. This is the default.
+   }
+	kPasteboardStandardLocationUnknown = FourCharCode('unkn');
 
 {
  *  PasteboardGetTypeID()
@@ -341,9 +490,9 @@ const
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
- 
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
 function PasteboardGetTypeID: CFTypeID; external name '_PasteboardGetTypeID';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+
 
 {$ifc USE_CFSTR_CONSTANT_MACROS}
 {$definec kPasteboardClipboard CFSTRP('com.apple.pasteboard.clipboard')}
@@ -399,12 +548,10 @@ const
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
+function PasteboardCreate( inName: CFStringRef { can be NULL }; var outPasteboard: PasteboardRef ): OSStatus; external name '_PasteboardCreate';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function PasteboardCreate(
-  inName: CFStringRef;              { can be NULL }
-  var outPasteboard: PasteboardRef): OSStatus; external name '_PasteboardCreate';
-  
+
 {
  *  PasteboardSynchronize()
  *  
@@ -432,9 +579,8 @@ function PasteboardCreate(
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function PasteboardSynchronize(inPasteboard: PasteboardRef): PasteboardSyncFlags; external name '_PasteboardSynchronize';
+function PasteboardSynchronize( inPasteboard: PasteboardRef ): PasteboardSyncFlags; external name '_PasteboardSynchronize';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -464,9 +610,8 @@ function PasteboardSynchronize(inPasteboard: PasteboardRef): PasteboardSyncFlags
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function PasteboardClear(inPasteboard: PasteboardRef): OSStatus; external name '_PasteboardClear';
+function PasteboardClear( inPasteboard: PasteboardRef ): OSStatus; external name '_PasteboardClear';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -527,11 +672,8 @@ function PasteboardCopyName( inPasteboard: PasteboardRef; var outName: CFStringR
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
- 
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function PasteboardGetItemCount(
-  inPasteboard: PasteboardRef;
-  var outItemCount: ItemCount): OSStatus; external name '_PasteboardGetItemCount';
+function PasteboardGetItemCount( inPasteboard: PasteboardRef; var outItemCount: ItemCount ): OSStatus; external name '_PasteboardGetItemCount';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -549,7 +691,7 @@ function PasteboardGetItemCount(
  *      A local pasteboard reference.
  *    
  *    inIndex:
- *      A 1-based UInt32 index requesting the nth pasteboard item reference.
+ *      A 1-based CFIndex requesting the nth pasteboard item reference.
  *    
  *    outItem:
  *      A PasteboardItemID which receives the nth pasteboard item
@@ -563,12 +705,9 @@ function PasteboardGetItemCount(
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
- 
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function PasteboardGetItemIdentifier(
-  inPasteboard: PasteboardRef;
-  inIndex: UInt32;
-  var outItem: PasteboardItemID): OSStatus; external name '_PasteboardGetItemIdentifier';
+function PasteboardGetItemIdentifier( inPasteboard: PasteboardRef; inIndex: CFIndex; var outItem: PasteboardItemID ): OSStatus; external name '_PasteboardGetItemIdentifier';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+
 
 {
  *  PasteboardCopyItemFlavors()
@@ -601,12 +740,8 @@ function PasteboardGetItemIdentifier(
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function PasteboardCopyItemFlavors(
-  inPasteboard: PasteboardRef;
-  inItem: PasteboardItemID;
-  var outFlavorTypes: CFArrayRef): OSStatus; external name '_PasteboardCopyItemFlavors';
+function PasteboardCopyItemFlavors( inPasteboard: PasteboardRef; inItem: PasteboardItemID; var outFlavorTypes: CFArrayRef ): OSStatus; external name '_PasteboardCopyItemFlavors';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -642,14 +777,9 @@ function PasteboardCopyItemFlavors(
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
-}
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function PasteboardGetItemFlavorFlags(
-  inPasteboard: PasteboardRef;
-  inItem: PasteboardItemID;
-  inFlavorType: CFStringRef;
-  var outFlags: PasteboardFlavorFlags): OSStatus; external name '_PasteboardGetItemFlavorFlags';
+ }
+function PasteboardGetItemFlavorFlags( inPasteboard: PasteboardRef; inItem: PasteboardItemID; inFlavorType: CFStringRef; var outFlags: PasteboardFlavorFlags ): OSStatus; external name '_PasteboardGetItemFlavorFlags';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -670,8 +800,8 @@ function PasteboardGetItemFlavorFlags(
  *      A pasteboard item identifier containing the flavor of interest.
  *    
  *    inFlavorType:
- *      A Uniform Type Idendtifier based flavor type whose data is
- *      being retrieved.
+ *      A Uniform Type Identifier-based flavor type whose data is being
+ *      retrieved.
  *    
  *    outData:
  *      A CFDataRef reference which receives the flavor data. It is the
@@ -685,13 +815,9 @@ function PasteboardGetItemFlavorFlags(
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
+function PasteboardCopyItemFlavorData( inPasteboard: PasteboardRef; inItem: PasteboardItemID; inFlavorType: CFStringRef; var outData: CFDataRef ): OSStatus; external name '_PasteboardCopyItemFlavorData';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function PasteboardCopyItemFlavorData(
-  inPasteboard: PasteboardRef;
-  inItem: PasteboardItemID;
-  inFlavorType: CFStringRef;
-  var outData: CFDataRef): OSStatus; external name '_PasteboardCopyItemFlavorData';
 
 const
     kPasteboardPromisedData = NIL;
@@ -746,15 +872,9 @@ const
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
-}
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function PasteboardPutItemFlavor(
-  inPasteboard: PasteboardRef;
-  inItem: PasteboardItemID;
-  inFlavorType: CFStringRef;
-  inData: CFDataRef;             { can be NULL }
-  inFlags: PasteboardFlavorFlags): OSStatus; external name '_PasteboardPutItemFlavor';
+ }
+function PasteboardPutItemFlavor( inPasteboard: PasteboardRef; inItem: PasteboardItemID; inFlavorType: CFStringRef; inData: CFDataRef { can be NULL }; inFlags: PasteboardFlavorFlags ): OSStatus; external name '_PasteboardPutItemFlavor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -784,11 +904,8 @@ function PasteboardPutItemFlavor(
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
- 
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function PasteboardCopyPasteLocation(
-  inPasteboard: PasteboardRef;
-  var outPasteLocation: CFURLRef): OSStatus; external name '_PasteboardCopyPasteLocation';
+function PasteboardCopyPasteLocation( inPasteboard: PasteboardRef; var outPasteLocation: CFURLRef ): OSStatus; external name '_PasteboardCopyPasteLocation';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -820,11 +937,8 @@ function PasteboardCopyPasteLocation(
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
- 
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function PasteboardSetPasteLocation(
-  inPasteboard: PasteboardRef;
-  inPasteLocation: CFURLRef): OSStatus; external name '_PasteboardSetPasteLocation';
+function PasteboardSetPasteLocation( inPasteboard: PasteboardRef; inPasteLocation: CFURLRef ): OSStatus; external name '_PasteboardSetPasteLocation';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -850,15 +964,9 @@ function PasteboardSetPasteLocation(
  *  
  *  Result:
  *    An operating system result code.
-}
-
+ }
 type
-{$ifc TYPED_FUNCTION_POINTERS}
-	PasteboardPromiseKeeperProcPtr = function(pasteboard: PasteboardRef; item: PasteboardItemID; flavorType: CFStringRef; context: Ptr): OSStatus;
-{$elsec}
-	PasteboardPromiseKeeperProcPtr = ProcPtr;
-{$endc}
-
+	PasteboardPromiseKeeperProcPtr = function( pasteboard: PasteboardRef; item: PasteboardItemID; flavorType: CFStringRef; context: UnivPtr ): OSStatus;
 {
  *  PasteboardSetPromiseKeeper()
  *  
@@ -890,12 +998,9 @@ type
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
+function PasteboardSetPromiseKeeper( inPasteboard: PasteboardRef; inPromiseKeeper: PasteboardPromiseKeeperProcPtr; inContext: UnivPtr ): OSStatus; external name '_PasteboardSetPromiseKeeper';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function PasteboardSetPromiseKeeper(
-  inPasteboard: PasteboardRef;
-  inPromiseKeeper: PasteboardPromiseKeeperProcPtr;
-  inContext: Ptr): OSStatus; external name '_PasteboardSetPromiseKeeper';
 
 const
     kPasteboardResolveAllPromises = NIL;
@@ -928,11 +1033,11 @@ const
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
- 
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER;
-function PasteboardResolvePromises(inPasteboard: PasteboardRef): OSStatus; external name '_PasteboardResolvePromises';
+function PasteboardResolvePromises( inPasteboard: PasteboardRef ): OSStatus; external name '_PasteboardResolvePromises';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
-{$ALIGN MAC68K}
-
+{$endc} {TARGET_OS_MAC}
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

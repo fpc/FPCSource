@@ -26,11 +26,11 @@ dirs_freebsd=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc p
                imlib utmp  fpgtk xforms fftw pcap ggi sdl openssl graph gnome1 gtk1 gtk2 librsvg httpd13 httpd20 httpd22 pxlib numlib \
                users iconvenc gmp fcl-extra libxml
 dirs_darwin=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
-                libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc gmp fcl-extra
-dirs_i386_darwin=graph univint cocoaint sdl opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms  gnome1 httpd13 httpd20 httpd22 imlib opengles objcrtl
-dirs_powerpc_darwin=graph univint cocoaint sdl opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib objcrtl
-dirs_x86_64_darwin=opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib
-dirs_powerpc64_darwin=opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib
+               libpng gdbm tcl syslog libcurl bfd aspell utmp fftw pcap openssl numlib iconvenc gmp fcl-extra univint
+dirs_i386_darwin=graph sdl opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms  gnome1 httpd13 httpd20 httpd22 imlib opengles objcrtl cocoaint
+dirs_powerpc_darwin=graph sdl opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib objcrtl cocoaint
+dirs_x86_64_darwin=opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib cocoaint
+dirs_powerpc64_darwin=opengl x11 cairo gtk1 gtk2 librsvg fpgtk xforms gnome1 httpd13 httpd20 httpd22 imlib cocoaint
 dirs_arm_darwin= httpd13 httpd20 httpd22 opengles objcrtl
 dirs_solaris=fv fcl-web fastcgi fcl-async ibase mysql ncurses zlib oracle odbc postgres sqlite pthreads imagemagick \
                libpng x11 gdbm tcl syslog libcurl opengl cairo gtk1 bfd svgalib fcl-extra \
@@ -95,18 +95,12 @@ fcl-extra_smart: fcl-base_smart winunits-base_smart winunits-jedi_smart
 fcl-extra_release: fcl-base_release winunits-base_release winunits-jedi_release
 fcl-extra_shared: fcl-base_shared winunits-base_shared winunits-jedi_shared
 else
-ifneq ($(findstring $(FULL_TARGET),powerpc-darwin i386-darwin),)
+ifneq ($(findstring $(OS_TARGET),darwin darwin),)
 fcl-extra_all: univint_all fcl-base_all
 fcl-extra_debug: univint_debug fcl-base_debug
 fcl-extra_smart: univint_smart fcl-base_release
 fcl-extra_release: univint_release fcl-base_release
 fcl-extra_shared: univint_shared fcl-base_shared
-
-cocoaint_all: univint_all
-cocoaint_debug: univint_debug
-cocoaint_smart: univint_smart
-cocoaint_release: univint_release
-cocoaint_shared: univint_shared
 else
 fcl-extra_all: fcl-base_all
 fcl-extra_debug: fcl-base_debug
@@ -114,6 +108,14 @@ fcl-extra_smart: fcl-base_smart
 fcl-extra_release: fcl-base_release
 fcl-extra_shared: fcl-base_shared
 endif
+endif
+
+ifneq ($(findstring $(FULL_TARGET),i386-darwin powerpc-darwin x86_64-darwin powerpc64-darwin),)
+cocoaint_all: univint_all
+cocoaint_debug: univint_debug
+cocoaint_smart: univint_smart
+cocoaint_release: univint_release
+cocoaint_shared: univint_shared
 endif
 
 fcl-xml_all: fcl-base_all

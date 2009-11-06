@@ -1,13 +1,15 @@
 {	CFBinaryHeap.h
-	Copyright (c) 1998-2005, Apple, Inc. All rights reserved.
+	Copyright (c) 1998-2009, Apple Inc. All rights reserved.
 }
 {   Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
+{	  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -16,8 +18,8 @@
 
 unit CFBinaryHeap;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -30,16 +32,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -47,14 +71,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -80,7 +155,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -91,6 +165,8 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes,CFBase;
+{$endc} {not MACOSALLINCLUDE}
+
 {$ALIGN POWER}
 
 {!
@@ -136,7 +212,7 @@ type
 }
 type
 	CFBinaryHeapCallBacks = record
-	    version: CFIndex;
+	  version: CFIndex;
 		retain: function( allocator: CFAllocatorRef; info: {const} UnivPtr ): UnivPtr;
 		release: procedure( allocator: CFAllocatorRef; info: {const} UnivPtr );
 		copyDescription: function( info: {const} UnivPtr ): CFStringRef;
@@ -178,19 +254,32 @@ function CFBinaryHeapGetTypeID: CFTypeID; external name '_CFBinaryHeapGetTypeID'
 
 {!
 	@function CFBinaryHeapCreate
-	Creates a new mutable or fixed-mutable binary heap with the given values.
+	 Creates a new mutable
+#if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4
+	 or fixed-mutable
+#endif
+	 binary heap with the given values.
 	@param allocator The CFAllocator which should be used to allocate
 		memory for the binary heap and its storage for values. This
 		parameter may be NULL in which case the current default
 		CFAllocator is used. If this reference is not a valid
 		CFAllocator, the behavior is undefined.
+#if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4
 	@param capacity The maximum number of values that can be contained
-		by the CFBinaryHeap. The binary heap starts empty, and can grow to this
+	by the CFBinaryHeap. The binary heap starts empty, and can grow to this
 		number of values (and it can have less). If this parameter
 		is 0, the binary heap's maximum capacity is unlimited (or rather,
 		only limited by address space and available memory
 		constraints). If this parameter is negative, the behavior is
 		undefined.
+#else
+	@param capacity A hint about the number of values that will be held
+		by the CFBinaryHeap. Pass 0 for no hint. The implementation may
+		ignore this hint, or may use it to optimize various
+		operations. A heap's actual capacity is only limited by 
+		address space and available memory constraints). If this 
+		parameter is negative, the behavior is undefined.
+#endif
 	@param callBacks A pointer to a CFBinaryHeapCallBacks structure
 		initialized with the callbacks for the binary heap to use on
 		each value in the binary heap. A copy of the contents of the
@@ -216,26 +305,42 @@ function CFBinaryHeapGetTypeID: CFTypeID; external name '_CFBinaryHeapGetTypeID'
 		the behavior is undefined. If any of the values put into the
 		binary heap is not one understood by one of the callback functions
 		the behavior when that callback function is used is undefined.
-        @param compareContext A pointer to a CFBinaryHeapCompareContext structure.
+  @param compareContext A pointer to a CFBinaryHeapCompareContext structure.
 	@result A reference to the new CFBinaryHeap.
 }
 function CFBinaryHeapCreate( allocator: CFAllocatorRef; capacity: CFIndex; callBacks: CFBinaryHeapCallBacksPtr; const (*var*) compareContext: CFBinaryHeapCompareContext ): CFBinaryHeapRef; external name '_CFBinaryHeapCreate';
 
 {!
 	@function CFBinaryHeapCreateCopy
-	Creates a new mutable or fixed-mutable binary heap with the values from the given binary heap.
+	 Creates a new mutable
+#if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4
+	 or fixed-mutable
+#endif
+	 binary heap with the values from the given binary heap.
 	@param allocator The CFAllocator which should be used to allocate
 		memory for the binary heap and its storage for values. This
 		parameter may be NULL in which case the current default
 		CFAllocator is used. If this reference is not a valid
 		CFAllocator, the behavior is undefined.
+#if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4
 	@param capacity The maximum number of values that can be contained
 		by the CFBinaryHeap. The binary heap starts empty, and can grow to this
 		number of values (and it can have less). If this parameter
 		is 0, the binary heap's maximum capacity is unlimited (or rather,
 		only limited by address space and available memory
 		constraints). If this parameter is negative, or less than the number of
-                values in the given binary heap, the behavior is undefined.
+    values in the given binary heap, the behavior is undefined.
+#else
+  @param capacity A hint about the number of values that will be held
+		by the CFBinaryHeap. Pass 0 for no hint. The implementation may
+		ignore this hint, or may use it to optimize various
+		operations. A heap's actual capacity is only limited by
+		address space and available memory constraints). 
+		This parameter must be greater than or equal
+		to the count of the heap which is to be copied, or the
+		behavior is undefined. If this parameter is negative, the
+		behavior is undefined.
+#endif
 	@param heap The binary heap which is to be copied. The values from the
 		binary heap are copied as pointers into the new binary heap (that is,
 		the values themselves are copied, not that which the values
@@ -244,7 +349,7 @@ function CFBinaryHeapCreate( allocator: CFAllocatorRef; capacity: CFIndex; callB
 		be the same as the given binary heap. The new binary heap uses the same
 		callbacks as the binary heap to be copied. If this parameter is
 		not a valid CFBinaryHeap, the behavior is undefined.
-	@result A reference to the new mutable or fixed-mutable binary heap.
+	@result A reference to the new binary heap.
 }
 function CFBinaryHeapCreateCopy( allocator: CFAllocatorRef; capacity: CFIndex; heap: CFBinaryHeapRef ): CFBinaryHeapRef; external name '_CFBinaryHeapCreateCopy';
 
@@ -348,11 +453,13 @@ procedure CFBinaryHeapApplyFunction( heap: CFBinaryHeapRef; applier: CFBinaryHea
 
 {!
 	@function CFBinaryHeapAddValue
-	Adds the value to the binary heap.
+	 Adds the value to the binary heap.
 	@param heap The binary heap to which the value is to be added. If this parameter is not a
-		valid mutable CFBinaryHeap, the behavior is undefined.
-                If the binary heap is a fixed-capacity binary heap and it
-		is full before this operation, the behavior is undefined.
+	 valid mutable CFBinaryHeap, the behavior is undefined.
+#if MAC_OS_X_VERSION_MAX_ALLOWED <= MAC_OS_X_VERSION_10_4
+	 If the binary heap is a fixed-capacity binary heap and it
+	 is full before this operation, the behavior is undefined.
+#endif
 	@param value The value to add to the binary heap. The value is retained by
 		the binary heap using the retain callback provided when the binary heap
 		was created. If the value is not of the sort expected by the
@@ -377,5 +484,7 @@ procedure CFBinaryHeapRemoveMinimumValue( heap: CFBinaryHeapRef ); external name
 }
 procedure CFBinaryHeapRemoveAllValues( heap: CFBinaryHeapRef ); external name '_CFBinaryHeapRemoveAllValues';
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

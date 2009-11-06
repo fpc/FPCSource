@@ -3,9 +3,9 @@
  
      Contains:   Dialog Manager interfaces.
  
-     Version:    HIToolbox-219.4.81~2
+     Version:    HIToolbox-437~1
  
-     Copyright:  © 1985-2005 by Apple Computer, Inc., all rights reserved
+     Copyright:  © 1985-2008 by Apple Computer, Inc., all rights reserved
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,12 +14,15 @@
  
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{       Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -28,8 +31,8 @@
 
 unit Dialogs;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -42,16 +45,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -59,14 +84,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -92,7 +168,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -102,8 +177,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,CFBase,CarbonEventsCore,Quickdraw,MixedMode,Events,MacWindows,TextEdit,Controls,MacErrors,CarbonEvents;
+uses MacTypes,CFBase,CarbonEventsCore,QuickdrawTypes,Events,IconsCore,TextEdit,HIObject;
+{$endc} {not MACOSALLINCLUDE}
 
+
+{$ifc TARGET_OS_MAC}
 
 {$ALIGN MAC68K}
 
@@ -153,7 +231,6 @@ const
 	cautionIcon = kCautionIcon;
 
 
-
 {  Dialog Item List Manipulation Constants }
 type
 	DITLMethod = SInt16;
@@ -199,27 +276,21 @@ type
 { new type abstractions for the dialog manager }
 type
 	DialogItemIndexZeroBased = SInt16;
-type
 	DialogItemIndex = SInt16;
-type
+	DialogItemIndexPtr = ^DialogItemIndex;
 	DialogItemType = SInt16;
+	DialogItemTypePtr = ^DialogItemType;
 { dialog manager callbacks }
 type
 	SoundProcPtr = procedure( soundNumber: SInt16 );
-type
 	ModalFilterProcPtr = function( theDialog: DialogRef; var theEvent: EventRecord; var itemHit: DialogItemIndex ): Boolean;
 { ModalFilterYDProcPtr was previously in StandardFile.h }
 type
 	ModalFilterYDProcPtr = function( theDialog: DialogRef; var theEvent: EventRecord; var itemHit: SInt16; yourDataPtr: UnivPtr ): Boolean;
-type
 	UserItemProcPtr = procedure( theDialog: DialogRef; itemNo: DialogItemIndex );
-type
 	SoundUPP = SoundProcPtr;
-type
 	ModalFilterUPP = ModalFilterProcPtr;
-type
 	ModalFilterYDUPP = ModalFilterYDProcPtr;
-type
 	UserItemUPP = UserItemProcPtr;
 {
  *  NewSoundUPP()
@@ -374,19 +445,99 @@ const
 	kAlertStdAlertOtherButton = 3;
 	kAlertStdAlertHelpButton = 4;
 
+
+{
+ *  Dialog feature flags
+ *  
+ *  Summary:
+ *    These feature flags can be used in a 'dlgx' resource or in the
+ *    inFlags parameter to NewFeaturesDialog.
+ }
 const
-{ Dialog Flags for use in NewFeaturesDialog or dlgx resource }
+{
+   * Requests the Dialog Manager to set the dialog box’s background
+   * color or pattern, and to use Appearance Manager APIs to draw the
+   * dialog frame.
+   }
 	kDialogFlagsUseThemeBackground = 1 shl 0;
+
+  {
+   * Requests the Dialog Manager to create a root control in the dialog
+   * window and establish a control embedding hierarchy. Any dialog
+   * items become controls once the embedding hierarchy is established.
+   }
 	kDialogFlagsUseControlHierarchy = 1 shl 1;
+
+  {
+   * Requests the Dialog Manager to automatically handle movable modal
+   * behavior such as dragging a dialog window by its title bar.
+   }
 	kDialogFlagsHandleMovableModal = 1 shl 2;
+
+  {
+   * On Mac OS 8.x and 9.x, requests the Dialog Manager to create
+   * Appearance-compliant controls in the dialog window. Otherwise,
+   * push buttons, checkboxes, and radio buttons are displayed in their
+   * pre-Appearance forms when systemwide Appearance is off. On Mac OS
+   * X, this flag is ignored; dialogs always use controls to implement
+   * standard dialog items.
+   }
 	kDialogFlagsUseThemeControls = 1 shl 3;
 
+  {
+   * Requests the Dialog Manager to create a compositing window to
+   * contain the dialog items. The window will also use the standard
+   * window event handler and will have live resize enabled. Available
+   * in Mac OS X 10.5 and later.
+   }
+	kDialogFlagsUseCompositing = 1 shl 8;
+
+
+{
+ *  Alert feature flags
+ *  
+ *  Summary:
+ *    These feature flags can be used in a 'alrx' resource.
+ }
 const
 { Alert Flags for use in alrx resource }
+
+  {
+   * Requests the Dialog Manager to set the alert’s background color or
+   * pattern, and to use Appearance Manager APIs to draw the alert
+   * frame.
+   }
 	kAlertFlagsUseThemeBackground = 1 shl 0;
+
+  {
+   * Requests the Dialog Manager to create a root control in the alert
+   * window and establish a control embedding hierarchy. Any alert
+   * items become controls once the embedding hierarchy is established.
+   }
 	kAlertFlagsUseControlHierarchy = 1 shl 1;
+
+  {
+   * Requests the Dialog Manager to make the alert window movable, and
+   * to automatically handle dragging the alert by its title bar.
+   }
 	kAlertFlagsAlertIsMovable = 1 shl 2;
+
+  {
+   * On Mac OS 8.x and 9.x, requests the Dialog Manager to create
+   * Appearance-compliant controls in the alert window. Otherwise, push
+   * buttons, checkboxes, and radio buttons are displayed in their
+   * pre-Appearance forms when systemwide Appearance is off. On Mac OS
+   * X, this flag is ignored; alerts always use controls to implement
+   * standard alert items.
+   }
 	kAlertFlagsUseThemeControls = 1 shl 3;
+
+  {
+   * Requests the Dialog Manager to create a compositing window to
+   * contain the alert items. The window will also use the standard
+   * window event handler. Available in Mac OS X 10.5 and later.
+   }
+	kAlertFlagsUseCompositing = 1 shl 8;
 
 { For dftb resource }
 const
@@ -408,27 +559,94 @@ const
 const
 	kDialogFontUseThemeFontIDMask = $0080;
 
+
+{
+ *  AlertStdAlertParamRec
+ *  
+ *  Summary:
+ *    AlertStdCFStringAlertParamRec is preferred.
+ *  
+ *  Discussion:
+ *    As of Mac OS X 10.5, defaultButton can be the same as the
+ *    cancelButton. Prior to Mac OS X 10.5, having cancelButton and
+ *    defaultButton the same will cause a paramErr.
+ }
 type
-	AlertStdAlertParamRecPtr = ^AlertStdAlertParamRec;
 	AlertStdAlertParamRec = record
-		movable: Boolean;                { Make alert movable modal }
-		helpButton: Boolean;             { Is there a help button? }
-		filterProc: ModalFilterUPP;             { Event filter }
-		defaultText: ConstStringPtr;            { Text for button in OK position }
-		cancelText: ConstStringPtr;             { Text for button in cancel position }
-		otherText: ConstStringPtr;              { Text for button in left position }
-		defaultButton: SInt16;          { Which button behaves as the default }
-		cancelButton: SInt16;           { Which one behaves as cancel (can be 0) }
-		position: UInt16;               { Position (kWindowDefaultPosition in this case }
-                                              { equals kWindowAlertPositionParentWindowScreen) }
+{
+   * Is the alert movable? This parameter is ignored on Mac OS X; all
+   * standard alerts are movable.
+   }
+		movable: Boolean;
+
+  {
+   * Is there a help button?
+   }
+		helpButton: Boolean;
+
+  {
+   * The event filter to be used.
+   }
+		filterProc: ModalFilterUPP;
+
+  {
+   * Text for the button in the OK position. kAlertDefaultOKText can be
+   * used for the system standard text.
+   }
+		defaultText: ConstStringPtr;
+
+  {
+   * Text for the button in the Cancel position.
+   * kAlertDefaultCancelText can be used for the system standard text.
+   }
+		cancelText: ConstStringPtr;
+
+  {
+   * Text for the button in the leftmost position.
+   * kAlertDefaultOtherText can be used for the system standard text.
+   }
+		otherText: ConstStringPtr;
+
+  {
+   * Which button is default, i.e. activated by pressing Return. Prior
+   * to Mac OS X 10.5, this field must be set to a non-zero value in
+   * the range kAlertStdAlertOKButton..kAlertStdAlertOtherButton, and
+   * your alert will always have a default button. In Mac OS X 10.5 and
+   * later, you may set this field to zero to request no default button.
+   }
+		defaultButton: SInt16;
+
+  {
+   * Which button is default for cancelling, i.e. activated by pressing
+   * Escape. May be zero to request no cancel button; otherwise, must
+   * be in the range kAlertStdAlertOKButton..kAlertStdAlertOtherButton.
+   }
+		cancelButton: SInt16;
+
+  {
+   * Where to position the alert. kWindowDefaultPosition is the default
+   * and is equal to kWindowAlertPositionParentWindowScreen.
+   }
+		position: UInt16;
 	end;
 type
-	AlertStdAlertParamPtr = AlertStdAlertParamRecPtr;
+	AlertStdAlertParamRecPtr = ^AlertStdAlertParamRec;
 const
 	kHICommandOther = FourCharCode('othr'); { sent by standard sheet dialogs when the "other" button is pressed }
 
+
 const
-	kStdCFStringAlertVersionOne = 1;     { current version of AlertStdCFStringAlertParamRec }
+{
+   * AlertStdCFStringAlertParamRec version prior to Mac OS X 10.5.
+   }
+	kStdCFStringAlertVersionOne = 1;
+
+  {
+   * AlertStdCFStringAlertParamRec version for Mac OS X 10.5 and later.
+   * When using this version, you must set the icon field of the
+   * structure to NULL or a valid IconRef.
+   }
+	kStdCFStringAlertVersionTwo = 2;
 
 
 {
@@ -477,49 +695,95 @@ const
    }
 	kStdAlertDoNotCloseOnHelp = 1 shl 4;
 
+
+{
+ *  AlertStdCFStringAlertParamRec
+ *  
+ *  Summary:
+ *    A CFString variant of AlertStdAlertParamRec. CFStrings are
+ *    preferred.
+ *  
+ *  Discussion:
+ *    As of Mac OS X 10.5, defaultButton can be the same as the
+ *    cancelButton. Prior to Mac OS X 10.5, having cancelButton and
+ *    defaultButton the same will cause a paramErr.
+ }
 type
 	AlertStdCFStringAlertParamRec = record
-		version: UInt32;                { kStdCFStringAlertVersionOne }
-		movable: Boolean;                { Make alert movable modal }
-		helpButton: Boolean;             { Is there a help button? }
-		defaultText: CFStringRef;            { Text for button in OK position }
-		cancelText: CFStringRef;             { Text for button in cancel position }
-		otherText: CFStringRef;              { Text for button in left position }
-		defaultButton: SInt16;          { Which button behaves as the default }
-		cancelButton: SInt16;           { Which one behaves as cancel (can be 0) }
-		position: UInt16;               { Position (kWindowDefaultPosition in this case }
-                                              { equals kWindowAlertPositionParentWindowScreen) }
-		flags: OptionBits;                  { Options for the behavior of the alert or sheet }
+{
+   * The version of the structure. Prior to Mac OS X 10.5, you must use
+   * kStdCFStringAlertVersionOne. In Mac OS X 10.5 or later, you may
+   * use either VersionOne or VersionTwo. If you use VersionTwo, you
+   * must set the icon field to NULL or a valid IconRef.
+   }
+		version: UInt32;
+
+  {
+   * Is the alert movable? This parameter is ignored on Mac OS X; all
+   * standard alerts are movable.
+   }
+		movable: Boolean;
+
+  {
+   * Is there a help button?
+   }
+		helpButton: Boolean;
+
+  {
+   * Text for the button in the OK position.
+   }
+		defaultText: CFStringRef;
+
+  {
+   * Text for the button in the Cancel position.
+   }
+		cancelText: CFStringRef;
+
+  {
+   * Text for the button in the leftmost/help position.
+   }
+		otherText: CFStringRef;
+
+  {
+   * Which button is default, i.e. activated by pressing Return. Prior
+   * to Mac OS X 10.5, this field must be set to a non-zero value in
+   * the range kAlertStdAlertOKButton..kAlertStdAlertOtherButton, and
+   * your alert will always have a default button. In Mac OS X 10.5 and
+   * later, you may set this field to zero to request no default button.
+   }
+		defaultButton: SInt16;
+
+  {
+   * Which button is default for cancelling, i.e. activated by pressing
+   * Escape. May be zero to request no cancel button; otherwise, must
+   * be in the range kAlertStdAlertOKButton..kAlertStdAlertOtherButton.
+   }
+		cancelButton: SInt16;
+
+  {
+   * Where to position the alert. kWindowDefaultPosition is the default
+   * and is equal to kWindowAlertPositionParentWindowScreen.
+   }
+		position: UInt16;
+
+  {
+   * Options for the behavior of the alert or sheet.
+   }
+		flags: OptionBits;
+
+  {
+   * Custom icon for display in the alert. Available on Mac OS X 10.5
+   * and later when the version field is set to
+   * kStdCFStringAlertVersionTwo.
+   }
+		icon: IconRef;
 	end;
 type
 	AlertStdCFStringAlertParamPtr = ^AlertStdCFStringAlertParamRec;
 { ——— end Appearance 1.0 or later stuff}
 
 
-{
-    NOTE: Code running under MultiFinder or System 7.0 or newer
-    should always pass NULL to InitDialogs.
-}
-{
- *  InitDialogs()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
-
-
-{
- *  ErrorSound()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
-
-
+{$ifc not TARGET_CPU_64}
 {
  *  NewDialog()
  *  
@@ -527,11 +791,11 @@ type
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function NewDialog( dStorage: UnivPtr; const (*var*) boundsRect: Rect; const (*var*) title: Str255; visible: Boolean; procID: SInt16; behind: WindowRef; goAwayFlag: Boolean; refCon: SInt32; items: Handle ): DialogRef; external name '_NewDialog';
+function NewDialog( dStorage: UnivPtr; const (*var*) boundsRect: Rect; const (*var*) title: Str255; visible: Boolean; procID: SInt16; behind: WindowRef; goAwayFlag: Boolean; refCon: SRefCon; items: Handle ): DialogRef; external name '_NewDialog';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -542,7 +806,7 @@ function NewDialog( dStorage: UnivPtr; const (*var*) boundsRect: Rect; const (*v
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -557,22 +821,12 @@ function GetNewDialog( dialogID: SInt16; dStorage: UnivPtr; behind: WindowRef ):
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function NewColorDialog( dStorage: UnivPtr; const (*var*) boundsRect: Rect; const (*var*) title: Str255; visible: Boolean; procID: SInt16; behind: WindowRef; goAwayFlag: Boolean; refCon: SInt32; items: Handle ): DialogRef; external name '_NewColorDialog';
+function NewColorDialog( dStorage: UnivPtr; const (*var*) boundsRect: Rect; const (*var*) title: Str255; visible: Boolean; procID: SInt16; behind: WindowRef; goAwayFlag: Boolean; refCon: SRefCon; items: Handle ): DialogRef; external name '_NewColorDialog';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
-
-{
- *  CloseDialog()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
 
 
 {
@@ -582,7 +836,7 @@ function NewColorDialog( dStorage: UnivPtr; const (*var*) boundsRect: Rect; cons
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -597,7 +851,7 @@ procedure DisposeDialog( theDialog: DialogRef ); external name '_DisposeDialog';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -612,7 +866,7 @@ procedure ModalDialog( modalFilter: ModalFilterUPP; var itemHit: DialogItemIndex
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -627,7 +881,7 @@ function IsDialogEvent( const (*var*) theEvent: EventRecord ): Boolean; external
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -642,7 +896,7 @@ function DialogSelect( const (*var*) theEvent: EventRecord; var theDialog: Dialo
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -657,7 +911,7 @@ procedure DrawDialog( theDialog: DialogRef ); external name '_DrawDialog';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -672,7 +926,7 @@ procedure UpdateDialog( theDialog: DialogRef; updateRgn: RgnHandle ); external n
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -687,7 +941,7 @@ procedure HideDialogItem( theDialog: DialogRef; itemNo: DialogItemIndex ); exter
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -702,7 +956,7 @@ procedure ShowDialogItem( theDialog: DialogRef; itemNo: DialogItemIndex ); exter
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -710,6 +964,9 @@ function FindDialogItem( theDialog: DialogRef; thePt: Point ): DialogItemIndexZe
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
+{$endc} {not TARGET_CPU_64}
+
+{$ifc not TARGET_CPU_64}
 {
  *  DialogCut()
  *  
@@ -717,7 +974,7 @@ function FindDialogItem( theDialog: DialogRef; thePt: Point ): DialogItemIndexZe
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -732,7 +989,7 @@ procedure DialogCut( theDialog: DialogRef ); external name '_DialogCut';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -747,7 +1004,7 @@ procedure DialogPaste( theDialog: DialogRef ); external name '_DialogPaste';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -762,7 +1019,7 @@ procedure DialogCopy( theDialog: DialogRef ); external name '_DialogCopy';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -770,6 +1027,9 @@ procedure DialogDelete( theDialog: DialogRef ); external name '_DialogDelete';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
+{$endc} {not TARGET_CPU_64}
+
+{$ifc not TARGET_CPU_64}
 {
  *  Alert()
  *  
@@ -777,7 +1037,7 @@ procedure DialogDelete( theDialog: DialogRef ); external name '_DialogDelete';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -792,7 +1052,7 @@ function Alert( alertID: SInt16; modalFilter: ModalFilterUPP ): DialogItemIndex;
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -807,7 +1067,7 @@ function StopAlert( alertID: SInt16; modalFilter: ModalFilterUPP ): DialogItemIn
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -822,7 +1082,7 @@ function NoteAlert( alertID: SInt16; modalFilter: ModalFilterUPP ): DialogItemIn
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -837,7 +1097,7 @@ function CautionAlert( alertID: SInt16; modalFilter: ModalFilterUPP ): DialogIte
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -852,7 +1112,7 @@ procedure GetDialogItem( theDialog: DialogRef; itemNo: DialogItemIndex; var item
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -867,7 +1127,7 @@ procedure SetDialogItem( theDialog: DialogRef; itemNo: DialogItemIndex; itemType
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -882,7 +1142,7 @@ procedure ParamText( const (*var*) param0: Str255; const (*var*) param1: Str255;
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -897,7 +1157,7 @@ procedure SelectDialogItemText( theDialog: DialogRef; itemNo: DialogItemIndex; s
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -912,7 +1172,7 @@ procedure GetDialogItemText( item: Handle; var text: Str255 ); external name '_G
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -927,7 +1187,7 @@ procedure SetDialogItemText( item: Handle; const (*var*) text: Str255 ); externa
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -942,7 +1202,7 @@ function GetAlertStage: SInt16; external name '_GetAlertStage';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -957,7 +1217,7 @@ procedure SetDialogFont( fontNum: SInt16 ); external name '_SetDialogFont';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -973,72 +1233,12 @@ procedure ResetAlertStage; external name '_ResetAlertStage';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
 procedure GetParamText( param0: StringPtr; param1: StringPtr; param2: StringPtr; param3: StringPtr ); external name '_GetParamText';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
-
-{
- *  newdialog()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
-
-
-{
- *  newcolordialog()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
-
-
-{
- *  paramtext()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
-
-
-{
- *  getdialogitemtext()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
-
-
-{
- *  setdialogitemtext()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
-
-
-{
- *  finddialogitem()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
 
 
 {
@@ -1048,7 +1248,7 @@ procedure GetParamText( param0: StringPtr; param1: StringPtr; param2: StringPtr;
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1063,7 +1263,7 @@ procedure AppendDITL( theDialog: DialogRef; theHandle: Handle; method: DITLMetho
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1078,7 +1278,7 @@ function CountDITL( theDialog: DialogRef ): DialogItemIndex; external name '_Cou
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1093,7 +1293,7 @@ procedure ShortenDITL( theDialog: DialogRef; numberItems: DialogItemIndex ); ext
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -1108,7 +1308,7 @@ function InsertDialogItem( theDialog: DialogRef; afterItem: DialogItemIndex; ite
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -1116,6 +1316,9 @@ function RemoveDialogItems( theDialog: DialogRef; itemNo: DialogItemIndex; amoun
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
+{$endc} {not TARGET_CPU_64}
+
+{$ifc not TARGET_CPU_64}
 {
  *  StdFilterProc()
  *  
@@ -1123,7 +1326,7 @@ function RemoveDialogItems( theDialog: DialogRef; itemNo: DialogItemIndex; amoun
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1131,6 +1334,9 @@ function StdFilterProc( theDialog: DialogRef; var event: EventRecord; var itemHi
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
+{$endc} {not TARGET_CPU_64}
+
+{$ifc not TARGET_CPU_64}
 {
  *  GetStdFilterProc()
  *  
@@ -1138,7 +1344,7 @@ function StdFilterProc( theDialog: DialogRef; var event: EventRecord; var itemHi
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1153,7 +1359,7 @@ function GetStdFilterProc( var theProc: ModalFilterUPP ): OSErr; external name '
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1168,7 +1374,7 @@ function SetDialogDefaultItem( theDialog: DialogRef; newItem: DialogItemIndex ):
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1183,7 +1389,7 @@ function SetDialogCancelItem( theDialog: DialogRef; newItem: DialogItemIndex ): 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
@@ -1204,11 +1410,11 @@ function SetDialogTracksCursor( theDialog: DialogRef; tracks: Boolean ): OSErr; 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
-function NewFeaturesDialog( inStorage: UnivPtr; const (*var*) inBoundsRect: Rect; const (*var*) inTitle: Str255; inIsVisible: Boolean; inProcID: SInt16; inBehind: WindowRef; inGoAwayFlag: Boolean; inRefCon: SInt32; inItemListHandle: Handle; inFlags: UInt32 ): DialogRef; external name '_NewFeaturesDialog';
+function NewFeaturesDialog( inStorage: UnivPtr; const (*var*) inBoundsRect: Rect; const (*var*) inTitle: Str255; inIsVisible: Boolean; inProcID: SInt16; inBehind: WindowRef; inGoAwayFlag: Boolean; inRefCon: SRefCon; inItemListHandle: Handle; inFlags: UInt32 ): DialogRef; external name '_NewFeaturesDialog';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -1219,7 +1425,7 @@ function NewFeaturesDialog( inStorage: UnivPtr; const (*var*) inBoundsRect: Rect
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -1239,7 +1445,7 @@ function AutoSizeDialog( inDialog: DialogRef ): OSErr; external name '_AutoSizeD
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
@@ -1253,9 +1459,12 @@ function StandardAlert( inAlertType: AlertType; const (*var*) inError: Str255; c
  *  GetStandardAlertDefaultParams()
  *  
  *  Summary:
- *    Fills out an AlertStdCFStringAlertParamRec with default values: -
- *      not movable -   no help button -   default button with title
- *    kAlertDefaultOKText, meaning "OK" -   no cancel or other buttons
+ *    Fills out an AlertStdCFStringAlertParamRec with default
+ *    values:
+ *    -   movable
+ *    -   no help button
+ *    -   default button with title kAlertDefaultOKText
+ *    -   no cancel or other buttons
  *  
  *  Mac OS X threading:
  *    Not thread safe
@@ -1269,7 +1478,7 @@ function StandardAlert( inAlertType: AlertType; const (*var*) inError: Str255; c
  *      The parameter block version; pass kStdCFStringAlertVersionOne.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -1326,7 +1535,7 @@ function GetStandardAlertDefaultParams( param: AlertStdCFStringAlertParamPtr; ve
  *      On exit, contains the new alert.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -1369,7 +1578,7 @@ function CreateStandardAlert( alertType_: AlertType; error: CFStringRef; explana
  *      to close the alert.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -1458,7 +1667,7 @@ function RunStandardAlert( inAlert: DialogRef; filterProc: ModalFilterUPP { can 
  *      On exit, contains the new alert.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -1504,7 +1713,7 @@ function CreateStandardSheet( alertType_: AlertType; error: CFStringRef; explana
  *      specified when the sheet was created.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -1519,11 +1728,11 @@ function CloseStandardSheet( inSheet: DialogRef; inResultCommand: UInt32 ): OSSt
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
-function GetDialogItemAsControl( inDialog: DialogRef; inItemNo: SInt16; var outControl: ControlRef ): OSErr; external name '_GetDialogItemAsControl';
+function GetDialogItemAsControl( inDialog: DialogRef; inItemNo: DialogItemIndex; var outControl: ControlRef ): OSErr; external name '_GetDialogItemAsControl';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -1534,11 +1743,11 @@ function GetDialogItemAsControl( inDialog: DialogRef; inItemNo: SInt16; var outC
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
-function MoveDialogItem( inDialog: DialogRef; inItemNo: SInt16; inHoriz: SInt16; inVert: SInt16 ): OSErr; external name '_MoveDialogItem';
+function MoveDialogItem( inDialog: DialogRef; inItemNo: DialogItemIndex; inHoriz: SInt16; inVert: SInt16 ): OSErr; external name '_MoveDialogItem';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -1549,11 +1758,11 @@ function MoveDialogItem( inDialog: DialogRef; inItemNo: SInt16; inHoriz: SInt16;
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
  }
-function SizeDialogItem( inDialog: DialogRef; inItemNo: SInt16; inWidth: SInt16; inHeight: SInt16 ): OSErr; external name '_SizeDialogItem';
+function SizeDialogItem( inDialog: DialogRef; inItemNo: DialogItemIndex; inWidth: SInt16; inHeight: SInt16 ): OSErr; external name '_SizeDialogItem';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -1564,7 +1773,7 @@ function SizeDialogItem( inDialog: DialogRef; inItemNo: SInt16; inWidth: SInt16;
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in DialogsLib 8.5 and later
  }
@@ -1617,11 +1826,11 @@ function AppendDialogItemList( dialog: DialogRef; ditlID: SInt16; method: DITLMe
  *    An operating system result code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in DialogsLib 8.5 and later
  }
-function SetDialogTimeout( inDialog: DialogRef; inButtonToPress: SInt16; inSecondsToWait: UInt32 ): OSStatus; external name '_SetDialogTimeout';
+function SetDialogTimeout( inDialog: DialogRef; inButtonToPress: DialogItemIndex; inSecondsToWait: UInt32 ): OSStatus; external name '_SetDialogTimeout';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -1658,11 +1867,11 @@ function SetDialogTimeout( inDialog: DialogRef; inButtonToPress: SInt16; inSecon
  *    timeout has been set for this dialog.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in DialogsLib 8.5 and later
  }
-function GetDialogTimeout( inDialog: DialogRef; outButtonToPress: SInt16Ptr { can be NULL }; outSecondsToWait: UInt32Ptr { can be NULL }; outSecondsRemaining: UInt32Ptr { can be NULL } ): OSStatus; external name '_GetDialogTimeout';
+function GetDialogTimeout( inDialog: DialogRef; outButtonToPress: DialogItemIndexPtr { can be NULL }; outSecondsToWait: UInt32Ptr { can be NULL }; outSecondsRemaining: UInt32Ptr { can be NULL } ): OSStatus; external name '_GetDialogTimeout';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
@@ -1673,7 +1882,7 @@ function GetDialogTimeout( inDialog: DialogRef; outButtonToPress: SInt16Ptr { ca
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in DialogsLib 8.5 and later
  }
@@ -1688,7 +1897,7 @@ function SetModalDialogEventMask( inDialog: DialogRef; inMask: EventMask ): OSSt
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in DialogsLib 8.5 and later
  }
@@ -1710,7 +1919,7 @@ function GetModalDialogEventMask( inDialog: DialogRef; var outMask: EventMask ):
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later or as macro/inline
  }
@@ -1725,7 +1934,7 @@ function GetDialogWindow( dialog: DialogRef ): WindowRef; external name '_GetDia
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later or as macro/inline
  }
@@ -1740,7 +1949,7 @@ function GetDialogTextEditHandle( dialog: DialogRef ): TEHandle; external name '
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later or as macro/inline
  }
@@ -1755,7 +1964,7 @@ function GetDialogDefaultItem( dialog: DialogRef ): SInt16; external name '_GetD
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later or as macro/inline
  }
@@ -1770,7 +1979,7 @@ function GetDialogCancelItem( dialog: DialogRef ): SInt16; external name '_GetDi
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later or as macro/inline
  }
@@ -1785,7 +1994,7 @@ function GetDialogKeyboardFocusItem( dialog: DialogRef ): SInt16; external name 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later or as macro/inline
  }
@@ -1800,7 +2009,7 @@ procedure SetPortDialogPort( dialog: DialogRef ); external name '_SetPortDialogP
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later or as macro/inline
  }
@@ -1815,7 +2024,7 @@ function GetDialogPort( dialog: DialogRef ): CGrafPtr; external name '_GetDialog
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later or as macro/inline
  }
@@ -1823,47 +2032,10 @@ function GetDialogFromWindow( window: WindowRef ): DialogRef; external name '_Ge
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
-{
- *  CouldDialog()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   not available
- }
-
-
-{
- *  FreeDialog()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   not available
- }
-
-
-{
- *  CouldAlert()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   not available
- }
-
-
-{
- *  FreeAlert()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   not available
- }
+{$endc} {not TARGET_CPU_64}
 
 (*
-#if OLDROUTINENAMES
+#if OLDROUTINENAMES && !__LP64__
 #define DisposDialog(theDialog) DisposeDialog(theDialog)
 #define UpdtDialog(theDialog, updateRgn) UpdateDialog(theDialog, updateRgn)
 #define GetDItem(theDialog, itemNo, itemType, item, box) GetDialogItem(theDialog, itemNo, itemType, item, box)
@@ -1887,6 +2059,8 @@ NewColorDialog(dStorage, boundsRect, title, visible, procID, behind, goAwayFlag,
 #endif  { OLDROUTINENAMES }
 *)
 
-
+{$endc} {TARGET_OS_MAC}
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

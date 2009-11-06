@@ -1,13 +1,15 @@
 {	CFURL.h
-	Copyright (c) 1998-2005, Apple, Inc. All rights reserved.
+	Copyright (c) 1998-2009, Apple Inc. All rights reserved.
 }
 {	  Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
+{	  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -16,8 +18,8 @@
 
 unit CFURL;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -30,16 +32,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -47,14 +71,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -80,7 +155,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -90,20 +164,20 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,CFBase,CFData,CFString,Files;
+uses MacTypes,CFBase,CFData,CFError,CFString,Files;
+{$endc} {not MACOSALLINCLUDE}
+
 {$ALIGN POWER}
 
 
 type
-	CFURLPathStyle = SInt32;
+	CFURLPathStyle = SIGNEDLONG;
 const
 	kCFURLPOSIXPathStyle = 0;
 	kCFURLHFSPathStyle = 1;
 	kCFURLWindowsPathStyle = 2;
-    
-type
-	CFURLRef = ^SInt32; { an opaque 32-bit type }
-	CFURLRefPtr = ^CFURLRef;
+
+{ CFURLRef moved to CFBase to avoid circular dependency with Files unit }    
 
 { CFURLs are composed of two fundamental pieces - their string, and a }
 { (possibly NULL) base URL.  A relative URL is one in which the string }
@@ -161,6 +235,12 @@ function CFURLCreateWithFileSystemPath( allocator: CFAllocatorRef; filePath: CFS
 
 function CFURLCreateFromFileSystemRepresentation( allocator: CFAllocatorRef; buffer: CStringPtr; bufLen: CFIndex; isDirectory: Boolean ): CFURLRef; external name '_CFURLCreateFromFileSystemRepresentation';
 
+{ The path style of the baseURL must match the path style of the relative }
+{ url or the results are undefined.  If the provided filePath looks like an }
+{ absolute path ( starting with '/' if pathStyle is kCFURLPosixPathStyle, }
+{ not starting with ':' for kCFURLHFSPathStyle, or starting with what looks }
+{ like a drive letter and colon for kCFURLWindowsPathStyle ) then the baseURL }
+{ is ignored. }
 function CFURLCreateWithFileSystemPathRelativeToBase( allocator: CFAllocatorRef; filePath: CFStringRef; pathStyle: CFURLPathStyle; isDirectory: Boolean; baseURL: CFURLRef ): CFURLRef; external name '_CFURLCreateWithFileSystemPathRelativeToBase';
 
 function CFURLCreateFromFileSystemRepresentationRelativeToBase( allocator: CFAllocatorRef; buffer: CStringPtr; bufLen: CFIndex; isDirectory: Boolean; baseURL: CFURLRef ): CFURLRef; external name '_CFURLCreateFromFileSystemRepresentationRelativeToBase';
@@ -323,13 +403,12 @@ function CFURLGetBytes( url: CFURLRef; buffer: CStringPtr; bufferLength: CFIndex
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 type
-	CFURLComponentType = SInt32;
+	CFURLComponentType = SIGNEDLONG;
 const
 	kCFURLComponentScheme = 1;
 	kCFURLComponentNetLocation = 2;
 	kCFURLComponentPath = 3;
 	kCFURLComponentResourceSpecifier = 4;
-	
 	kCFURLComponentUser = 5;
 	kCFURLComponentPassword = 6;
 	kCFURLComponentUserInfo = 7;
@@ -433,16 +512,39 @@ function CFURLCreateStringByReplacingPercentEscapesUsingEncoding( allocator: CFA
 { charactersToLeaveUnescaped.  To simply correct any non-URL characters }
 { in an otherwise correct URL string, do: }
 
-{ newString = CFURLCreateStringByAddingPercentEscapes(NULL, origString, NULL, NULL, kCFStringEncodingUTF8); }
+{ newString = CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, origString, NULL, NULL, kCFStringEncodingUTF8); }
 function CFURLCreateStringByAddingPercentEscapes( allocator: CFAllocatorRef; originalString: CFStringRef; charactersToLeaveUnescaped: CFStringRef; legalURLCharactersToBeEscaped: CFStringRef; encoding: CFStringEncoding ): CFStringRef; external name '_CFURLCreateStringByAddingPercentEscapes';
 
+{ Returns a file reference URL, a path-idependent form of file URL. }
+{ Converts a file path URL if necessary. For non-file URLs, returns NULL. }
+{ Also returns NULL when the conversion fails because the target resource doesn't exist. }
+{ Optional output error: The error is set to a valid CFErrorRef when the function }
+{ result is NULL. A valid output error must be released by the caller. }
+function CFURLCreateFileReferenceURL( allocator: CFAllocatorRef; url: CFURLRef; var error: CFErrorRef ): CFURLRef; external name '_CFURLCreateFileReferenceURL';
+(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+
+
+{ Returns a file path URL, converting a file reference URL if necessary. }
+{ For non-file URLs, returns NULL. Also returns NULL when the conversion fails }
+{ because the target resource doesn't exist. }
+{ Optional output error: The error is set to a valid CFErrorRef when the function }
+{ result is NULL. A valid output error must be released by the caller. }
+function CFURLCreateFilePathURL( allocator: CFAllocatorRef; url: CFURLRef; var error: CFErrorRef ): CFURLRef; external name '_CFURLCreateFilePathURL';
+(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+
 {#ifndef CF_OPEN_SOURCE}
+
+{$ifc TARGET_OS_MAC}
 
 function CFURLCreateFromFSRef( allocator: CFAllocatorRef; const (*var*) fsRef_: FSRef ): CFURLRef; external name '_CFURLCreateFromFSRef';
 
 function CFURLGetFSRef( url: CFURLRef; var fsRef_: FSRef ): Boolean; external name '_CFURLGetFSRef';
 
+{$endc} {TARGET_OS_MAC}
+
 {#endif} // !CF_OPEN_SOURCE
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

@@ -1,53 +1,11 @@
-
-{     File:       UTType.p(.pas)																	    }
-{ 																										}
-{     Contains:   CodeWarrior Pascal(GPC) translation of Apple's Mac OS X 10.3 introduced UTType.h	    }
-{				  Translation compatible with make-gpc-interfaces.pl generated MWPInterfaces            }
-{                 (GPCPInterfaces) and Mac OS X 10.3.x or higher.  The GPC translation is linkable with }
-{                 Mac OS X 10.3.x or higher Mach-O ApplicationServices.framework.                       }  
-{                 (Note:  ApplicationServices is the “umbrella” framework encapsulating the             }
-{                 LaunchServices subframework which contains the UTType declared data and function      }
-{                 symbols.)                                                                             }
-{                                                                                                       }
-{                The CodeWarrior Pascal translation is NOT linkable with Mac OS X 10.3.x or higher      }
-{                CFM CarbonLib.  The declared symbols are exported only from the Mach-O                 }
-{				 ApplicationServices “umbrella” framework (encapsulates the LaunchServices subframework)}
-{				 and references to symbols used by CFM code must be established at runtime.  Individual }
-{				 symbol references can be resolved using CFBundleGetFunctionPointerForName and          }
-{				 CFBundleGetDataPointerForName (see CFBundle.p) respectively for function and data      }
-{				 symbols.  For bulk resolution of Mach-O symbol references,  CFMLateImport technology   }
-{				 can be used.                                                                           }
-{ 																										}
-{     Version:    1.0																					}
-{ 																										}
-{	  Pascal Translation:  Gale Paeper, <gpaeper@empirenet.com>, 2004									}
-{ 																										}
-{     Copyright:  Subject to the constraints of Apple's original rights, you're free to use this		}
-{				  translation as you deem fit.															}
-{ 																										}
-{     Bugs?:      This is an AS IS translation with no express guarentees of any kind.					}
-{                 If you do find a bug, please help out the Macintosh Pascal programming community by   }
-{				  reporting your bug finding and possible fix to either personal e-mail to Gale Paeper	}
-{				  or a posting to the MacPascal mailing list.											}
-{                                                                                                       }
-{
-      Change History (most recent first) (DD/MM/YY):
-
-         <1>      06/12/04    GRP     First Pascal translation of UTType.h, version LaunchServices-98~1.
-}
-{     Translation assisted by:                                                                          }
-{This file was processed by Dan's Source Converter}
-{version 1.3 (this version modified by Ingemar Ragnemalm)}
-
-{The original source on which this file is based: }
 {
      File:       LaunchServices/UTType.h
  
-     Contains:   Public interfaces for Uniform Type Indentification
+     Contains:   Public interfaces for Uniform Type Identification
  
-     Version:    LaunchServices-98~1
+     Version:    LaunchServices-360.3~1
  
-     Copyright:  © 2003 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 2003-2008 by Apple Computer, Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -56,13 +14,15 @@
  
 }
 
+{	 Pascal Translation Update: Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
 
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -71,8 +31,8 @@
 
 unit UTType;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -85,16 +45,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -102,14 +84,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -135,7 +168,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -146,8 +178,14 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
+{$endc} {not MACOSALLINCLUDE}
+
+
+{ header available as of iPhoneOS 3.0, but can't add iPhoneOS markers yet
+  because they're not yet present in the Mac OS X version of the header }
 
 {$ALIGN POWER}
+
 
 { ======================================================================================================== }
 { Uniform Type Identification API                                                                          }
@@ -156,20 +194,20 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
     Uniform Type Identification Primer
 
     Uniform Type Identifiers (or UTIs) are strings which uniquely identify
-    abstract types. They can be used to describe a file format or
-    data type, but can also be used to describe type information for
+    abstract types. They can be used to describe a file format or an
+    in-memory data type, but can also be used to describe the type of
     other sorts of entities, such as directories, volumes, or packages.
 
     The syntax of a uniform type identifier looks like a bundle identifier.
     It has the form of a reversed DNS name, although some special top-level 
-    UTI domains are reserved by Apple and are outside the currect IANA 
+    UTI domains are reserved by Apple and are outside the current IANA 
     top-level Internet domain name space.
 
     Examples:
 
         public.jpeg
         public.utf16-plain-text
-        com.apple.xml-plist
+        com.apple.xml-property-list
         com.apple.appleworks.doc
 
     Types which are standard or not controlled by any one organization 
@@ -188,8 +226,8 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
     Conformance
 
     A type may "conform" to one or more other types. For example, the
-    type com.apple.macos.xml-property-list conforms to both the
-    com.apple.macos.property-list and public.xml types. The public.xml 
+    type com.apple.xml-property-list conforms to both the
+    com.apple.property-list and public.xml types. The public.xml 
     type in turn conforms to type public.text. Finally, type public.text  
     conforms to public.data, which is the base type for all types 
     describing bytes stream formats. Conformance relationships between 
@@ -197,12 +235,12 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
 
     Conformance relationships establish a multiple inheritanace hierarchy
     between types. Type property values may be inherited at runtime
-    according to the conformance relationships each type. When a type's 
+    according to the conformance relationships for each type. When a type's 
     declaration does not include a value for particular type property, 
     then the type's supertypes are searched for a value. Supertypes are 
     searched depth-first, in the order given in the type declaration. 
     This is the only way in which the declared order of the conforms-to 
-    supertypes is signitificant.
+    supertypes is significant.
 
     Tags
 
@@ -227,14 +265,14 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
     are optional.
 
     Exported vs. Imported Type Declarations
-    
+
     Type declarations are either exported or imported. An exported
     type declaration means that the type itself is defined or owned 
     by the organization making the declaration. For example, a propietary
     document type declaration should only be exported by the application
     which controls the document format.
 
-    An imported declatation is for applications which depend on the
+    An imported declaration is for applications which depend on the
     existence of someone else's type declaration. If application A can
     open application B's document format, then application A makes
     an imported declaration of application B's document type so that
@@ -254,20 +292,17 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
             <dict>
                 <key>UTTypeIdentifier</key>
                 <string>public.jpeg</string>
-                <key>UTTypeReferenceURL</key>
-                <string>http://www.w3.org/Graphics/JPEG/</string>
                 <key>UTTypeDescription</key>
                 <string>JPEG image</string>
-                <key>UTTypeIconName</key>
+                <key>UTTypeIconFile</key>
                 <string>public.jpeg.icns</string>
                 <key>UTTypeConformsTo</key>
                 <array>
                     <string>public.image</string>
-                    <string>public.data</string>
                 </array>
                 <key>UTTypeTagSpecification</key>
                 <dict>
-                    <key>com.apple.macos.ostype</key>
+                    <key>com.apple.ostype</key>
                     <string>JPEG</string>
                     <key>public.filename-extension</key>
                     <array>
@@ -331,10 +366,8 @@ uses MacTypes,CFBase,CFArray,CFDictionary,CFURL;
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
- 
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
 var kUTExportedTypeDeclarationsKey: CFStringRef; external name '_kUTExportedTypeDeclarationsKey'; (* attribute const *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kUTImportedTypeDeclarationsKey
  *  
@@ -342,11 +375,9 @@ var kUTExportedTypeDeclarationsKey: CFStringRef; external name '_kUTExportedType
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
-}
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
+ }
 var kUTImportedTypeDeclarationsKey: CFStringRef; external name '_kUTImportedTypeDeclarationsKey'; (* attribute const *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kUTTypeIdentifierKey
  *  
@@ -355,10 +386,8 @@ var kUTImportedTypeDeclarationsKey: CFStringRef; external name '_kUTImportedType
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
 var kUTTypeIdentifierKey: CFStringRef; external name '_kUTTypeIdentifierKey'; (* attribute const *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kUTTypeTagSpecificationKey
  *  
@@ -367,10 +396,8 @@ var kUTTypeIdentifierKey: CFStringRef; external name '_kUTTypeIdentifierKey'; (*
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
- 
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
 var kUTTypeTagSpecificationKey: CFStringRef; external name '_kUTTypeTagSpecificationKey'; (* attribute const *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kUTTypeConformsToKey
  *  
@@ -378,11 +405,9 @@ var kUTTypeTagSpecificationKey: CFStringRef; external name '_kUTTypeTagSpecifica
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
- } 
- 
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
+ }
 var kUTTypeConformsToKey: CFStringRef; external name '_kUTTypeConformsToKey'; (* attribute const *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kUTTypeDescriptionKey
  *  
@@ -391,10 +416,8 @@ var kUTTypeConformsToKey: CFStringRef; external name '_kUTTypeConformsToKey'; (*
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
 var kUTTypeDescriptionKey: CFStringRef; external name '_kUTTypeDescriptionKey'; (* attribute const *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kUTTypeIconFileKey
  *  
@@ -403,10 +426,8 @@ var kUTTypeDescriptionKey: CFStringRef; external name '_kUTTypeDescriptionKey'; 
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
 var kUTTypeIconFileKey: CFStringRef; external name '_kUTTypeIconFileKey'; (* attribute const *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kUTTypeReferenceURLKey
  *  
@@ -415,10 +436,8 @@ var kUTTypeIconFileKey: CFStringRef; external name '_kUTTypeIconFileKey'; (* att
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
- 
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
 var kUTTypeReferenceURLKey: CFStringRef; external name '_kUTTypeReferenceURLKey'; (* attribute const *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kUTTypeVersionKey
  *  
@@ -427,9 +446,8 @@ var kUTTypeReferenceURLKey: CFStringRef; external name '_kUTTypeReferenceURLKey'
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
- 
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
 var kUTTypeVersionKey: CFStringRef; external name '_kUTTypeVersionKey'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -447,10 +465,8 @@ var kUTTypeVersionKey: CFStringRef; external name '_kUTTypeVersionKey'; (* attri
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER:
 var kUTTagClassFilenameExtension: CFStringRef; external name '_kUTTagClassFilenameExtension'; (* attribute const *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kUTTagClassMIMEType
  *  
@@ -459,10 +475,8 @@ var kUTTagClassFilenameExtension: CFStringRef; external name '_kUTTagClassFilena
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
 var kUTTagClassMIMEType: CFStringRef; external name '_kUTTagClassMIMEType'; (* attribute const *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kUTTagClassNSPboardType
  *  
@@ -471,10 +485,8 @@ var kUTTagClassMIMEType: CFStringRef; external name '_kUTTagClassMIMEType'; (* a
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
 var kUTTagClassNSPboardType: CFStringRef; external name '_kUTTagClassNSPboardType'; (* attribute const *)
-
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {
  *  kUTTagClassOSType
  *  
@@ -483,9 +495,8 @@ var kUTTagClassNSPboardType: CFStringRef; external name '_kUTTagClassNSPboardTyp
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
 var kUTTagClassOSType: CFStringRef; external name '_kUTTagClassOSType'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 {
  *  UTTypeCreatePreferredIdentifierForTag()
@@ -524,7 +535,7 @@ var kUTTagClassOSType: CFStringRef; external name '_kUTTagClassOSType'; (* attri
  *    inTag:
  *      the tag string
  *    
- *    inConformingToTypeIdentifier:
+ *    inConformingToUTI:
  *      the identifier of a type to which the result must conform
  *  
  *  Result:
@@ -536,12 +547,8 @@ var kUTTagClassOSType: CFStringRef; external name '_kUTTagClassOSType'; (* attri
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER 
-function UTTypeCreatePreferredIdentifierForTag(
-  inTagClass: CFStringRef;
-  inTag: CFStringRef;
-  inConformingToTypeIdentifier: CFStringRef): CFStringRef; external name '_UTTypeCreatePreferredIdentifierForTag'; { can be NULL }
+function UTTypeCreatePreferredIdentifierForTag( inTagClass: CFStringRef; inTag: CFStringRef; inConformingToUTI: CFStringRef { can be NULL } ): CFStringRef; external name '_UTTypeCreatePreferredIdentifierForTag';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -575,7 +582,7 @@ function UTTypeCreatePreferredIdentifierForTag(
  *    inTag:
  *      the tag string
  *    
- *    inConformingToTypeIdentifier:
+ *    inConformingToUTI:
  *      the identifier of a type to which the results must conform
  *  
  *  Result:
@@ -587,12 +594,8 @@ function UTTypeCreatePreferredIdentifierForTag(
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function UTTypeCreateAllIdentifiersForTag(
-  inTagClass: CFStringRef;
-  inTag: CFStringRef;
-  inConformingToTypeIdentifier: CFStringRef): CFArrayRef; external name '_UTTypeCreateAllIdentifiersForTag'; { can be NULL } 
+function UTTypeCreateAllIdentifiersForTag( inTagClass: CFStringRef; inTag: CFStringRef; inConformingToUTI: CFStringRef { can be NULL } ): CFArrayRef; external name '_UTTypeCreateAllIdentifiersForTag';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -600,7 +603,7 @@ function UTTypeCreateAllIdentifiersForTag(
  *  
  *  Discussion:
  *    Returns the identified type's preferred tag with the specified
- *    tag class as a CSString. This is the primary function to use for
+ *    tag class as a CFString. This is the primary function to use for
  *    going from uniform type identifier to tag. If the type
  *    declaration included more than one tag with the specified class,
  *    the first tag in the declared tag array is the preferred tag.
@@ -610,26 +613,22 @@ function UTTypeCreateAllIdentifiersForTag(
  *  
  *  Parameters:
  *    
- *    inTypeIdentifier:
+ *    inUTI:
  *      the uniform type identifier
  *    
  *    inTagClass:
  *      the class of tags to return
  *  
  *  Result:
- *    an array of tags (as CFStrings), or NULL if there are no tags
- *    with the specified class.
+ *    the tag string, or NULL if there is no tag of the specified class.
  *  
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function UTTypeCopyPreferredTagWithClass(
-  inTypeIdentifier: CFStringRef;
-  inTagClass: CFStringRef): CFStringRef; external name '_UTTypeCopyPreferredTagWithClass';
+function UTTypeCopyPreferredTagWithClass( inUTI: CFStringRef; inTagClass: CFStringRef ): CFStringRef; external name '_UTTypeCopyPreferredTagWithClass';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -648,10 +647,10 @@ function UTTypeCopyPreferredTagWithClass(
  *  
  *  Parameters:
  *    
- *    inTypeIdentifier1:
+ *    inUTI1:
  *      a uniform type identifier
  *    
- *    inTypeIdentifier2:
+ *    inUTI2:
  *      another uniform type identifier
  *  
  *  Availability:
@@ -659,11 +658,8 @@ function UTTypeCopyPreferredTagWithClass(
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function UTTypeEqual(
-  inTypeIdentifier1: CFStringRef;
-  inTypeIdentifier2: CFStringRef): Boolean; external name '_UTTypeEqual';
+function UTTypeEqual( inUTI1: CFStringRef; inUTI2: CFStringRef ): Boolean; external name '_UTTypeEqual';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -679,10 +675,10 @@ function UTTypeEqual(
  *  
  *  Parameters:
  *    
- *    inTypeIdentifier:
+ *    inUTI:
  *      the uniform type identifier to test
  *    
- *    inConformsToTypeIdentifier:
+ *    inConformsToUTI:
  *      the uniform type identifier against which to test conformance.
  *  
  *  Availability:
@@ -690,11 +686,8 @@ function UTTypeEqual(
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function UTTypeConformsTo(
-  inTypeIdentifier: CFStringRef;
-  inConformsToTypeIdentifier: CFStringRef): Boolean; external name '_UTTypeConformsTo';
+function UTTypeConformsTo( inUTI: CFStringRef; inConformsToUTI: CFStringRef ): Boolean; external name '_UTTypeConformsTo';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -708,7 +701,7 @@ function UTTypeConformsTo(
  *  
  *  Parameters:
  *    
- *    inTypeIdentifier:
+ *    inUTI:
  *      the uniform type identifier
  *  
  *  Result:
@@ -719,9 +712,8 @@ function UTTypeConformsTo(
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function UTTypeCopyDescription(inTypeIdentifier: CFStringRef): CFStringRef; external name '_UTTypeCopyDescription';
+function UTTypeCopyDescription( inUTI: CFStringRef ): CFStringRef; external name '_UTTypeCopyDescription';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -738,7 +730,7 @@ function UTTypeCopyDescription(inTypeIdentifier: CFStringRef): CFStringRef; exte
  *  
  *  Parameters:
  *    
- *    inTypeIdentifier:
+ *    inUTI:
  *      the uniform type identifier
  *  
  *  Result:
@@ -749,9 +741,8 @@ function UTTypeCopyDescription(inTypeIdentifier: CFStringRef): CFStringRef; exte
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function UTTypeCopyDeclaration(inTypeIdentifier: CFStringRef): CFDictionaryRef; external name '_UTTypeCopyDeclaration';
+function UTTypeCopyDeclaration( inUTI: CFStringRef ): CFDictionaryRef; external name '_UTTypeCopyDeclaration';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -766,7 +757,7 @@ function UTTypeCopyDeclaration(inTypeIdentifier: CFStringRef): CFDictionaryRef; 
  *  
  *  Parameters:
  *    
- *    inTypeIdentifier:
+ *    inUTI:
  *      the uniform type identifier
  *  
  *  Result:
@@ -777,9 +768,8 @@ function UTTypeCopyDeclaration(inTypeIdentifier: CFStringRef): CFDictionaryRef; 
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function UTTypeCopyDeclaringBundleURL(inTypeIdentifier: CFStringRef): CFURLRef; external name '_UTTypeCopyDeclaringBundleURL';
+function UTTypeCopyDeclaringBundleURL( inUTI: CFStringRef ): CFURLRef; external name '_UTTypeCopyDeclaringBundleURL';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -798,17 +788,16 @@ function UTTypeCopyDeclaringBundleURL(inTypeIdentifier: CFStringRef): CFURLRef; 
  *      the OSType value to encode
  *  
  *  Result:
- *    a new CFString representing the OSType, or NULL if the argument
- *    is 0 or '????'
+ *    a new CFString representing the OSType. Returns the empty string
+ *    when the argument is 0
  *  
  *  Availability:
  *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
-
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function UTCreateStringForOSType(inOSType: OSType): CFStringRef; external name '_UTCreateStringForOSType';
+function UTCreateStringForOSType( inOSType: OSType ): CFStringRef; external name '_UTCreateStringForOSType';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
 {
@@ -835,12 +824,10 @@ function UTCreateStringForOSType(inOSType: OSType): CFStringRef; external name '
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
+function UTGetOSTypeFromString( inString: CFStringRef ): OSType; external name '_UTGetOSTypeFromString';
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
-// AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER
-function UTGetOSTypeFromString(inString: CFStringRef): OSType; external name '_UTGetOSTypeFromString';
-
-
-{$ALIGN MAC68K}
-
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

@@ -3,9 +3,9 @@
  
      Contains:   Public interfaces for Apple Type Services for Unicode Imaging
  
-     Version:    Quickdraw-150~1
+     Version:    Quickdraw-262~1
  
-     Copyright:  © 2002-2003 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 2002-2008 by Apple Inc. all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,14 +14,14 @@
  
 }
 {	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
-
-
+{	  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -30,8 +30,8 @@
 
 unit ATSUnicodeFlattening;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -44,16 +44,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -61,14 +83,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -94,7 +167,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -105,7 +177,10 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes,ATSUnicodeTypes,SFNTTypes;
-{$ALIGN MAC68K}
+{$endc} {not MACOSALLINCLUDE}
+
+
+{$ifc TARGET_OS_MAC}
 
 { ---------------------------------------------------------------------------- }
 { Constants                                                                    }
@@ -116,9 +191,13 @@ uses MacTypes,ATSUnicodeTypes,SFNTTypes;
    or parsing.
 }
 
-type ATSUFlattenedDataStreamFormat = UInt32;
+
+{$ALIGN MAC68K}
+
+type
+	ATSUFlattenedDataStreamFormat = UInt32;
 const
-  kATSUDataStreamUnicodeStyledText = FourCharCode('ustl');
+	kATSUDataStreamUnicodeStyledText = FourCharCode('ustl');
 
 
 {
@@ -126,18 +205,20 @@ const
    into the ATSUFlattenStyleRunsToStream API. Currently, there are no options. 
    This is here for future expansion.
 }
-type ATSUFlattenStyleRunOptions = UInt32;
+type
+	ATSUFlattenStyleRunOptions = UInt32;
 const
-  kATSUFlattenOptionNoOptionsMask = $00000000;
+	kATSUFlattenOptionNoOptionsMask = $00000000;
 
 {
    ATSUUnFlattenStyleRunOptions is a bitfield list of options that can be passed
    into the ATSUUnFlattenStyleRunsToStream API. Currently, there are no options. 
    This is here for future expansion.
 }
-type ATSUUnFlattenStyleRunOptions = UInt32;
+type
+	ATSUUnFlattenStyleRunOptions = UInt32;
 const
-  kATSUUnFlattenOptionNoOptionsMask = $00000000;
+	kATSUUnFlattenOptionNoOptionsMask = $00000000;
 
 
 { ---------------------------------------------------------------------------- }
@@ -145,15 +226,15 @@ const
 { ---------------------------------------------------------------------------- }
 
 {
-   ATSUStyleRunInfo is a structure that contrains an index into an array of 
+   ATSUStyleRunInfo is a structure that contains an index into an array of 
    unique ATSUStyle objects as well as the length of the run that the style run 
    object covers. This structure is utilized by ATSUUnflattenStyleRunsFromStream() 
    to return the style run info to the caller. 
 }
 type
 	ATSUStyleRunInfo = record
-		runLength: UniCharCount;
-		styleObjectIndex: ItemCount;
+		runLength: UInt32;
+		styleObjectIndex: UInt32;
 	end;
 	ATSUStyleRunInfoPtr = ^ATSUStyleRunInfo;
 { ---------------------------------------------------------------------------- }
@@ -176,10 +257,10 @@ type
    versions were not completly specified and have been obsoleted.
 }
 const
-  kATSFlatDataUstlVersion0      = 0;
-  kATSFlatDataUstlVersion1      = 1;
-  kATSFlatDataUstlVersion2      = 2;
-  kATSFlatDataUstlCurrentVersion = kATSFlatDataUstlVersion2;
+	kATSFlatDataUstlVersion0 = 0;
+	kATSFlatDataUstlVersion1 = 1;
+	kATSFlatDataUstlVersion2 = 2;
+	kATSFlatDataUstlCurrentVersion = kATSFlatDataUstlVersion2;
 
 { ------------------ }
 { Block 1 Structures }
@@ -191,27 +272,26 @@ const
 }
 type
 	ATSFlatDataMainHeaderBlock = record
-
-                                              { the 'ustl' version number. This needs to be the first item in the}
+{ the 'ustl' version number. This needs to be the first item in the}
                                               { data block do as not to confuse parsers of earlier (and possibly}
                                               { later) versions of the spec *|}
 		version: UInt32;
 
                                               { the total size of the stream in bytes, including the four bytes in}
                                               { the version above}
-		sizeOfDataBlock: ByteCount;
+		sizeOfDataBlock: UInt32;
 
                                               { offset from the beginning of the stream to the flattened text layout data.}
                                               { This can be set to 0 if there are no text layouts stored in the stream.}
-		offsetToTextLayouts: ByteCount;
+		offsetToTextLayouts: UInt32;
 
                                               { offset from the beginning of the stream to the flattened style run data. }
                                               { This can be set to 0 if there is no flattened style run data in the stream}
-		offsetToStyleRuns: ByteCount;
+		offsetToStyleRuns: UInt32;
 
                                               { offset to the flattened style list data. This can be set to 0 if there}
                                               { is no flattened style list data}
-		offsetToStyleList: ByteCount;
+		offsetToStyleList: UInt32;
 	end;
 	ATSFlatDataMainHeaderBlockPtr = ^ATSFlatDataMainHeaderBlock;
 { ------------------ }
@@ -230,23 +310,22 @@ type
 }
 type
 	ATSFlatDataTextLayoutDataHeader = record
-
-                                              { the total size of this particular flattened text layout, including any}
+{ the total size of this particular flattened text layout, including any}
                                               { padding bytes and such. }
-		sizeOfLayoutData: ByteCount;
+		sizeOfLayoutData: UInt32;
 
                                               { the number of characters covered by this flattened text layout}
-		textLayoutLength: ByteCount;
+		textLayoutLength: UInt32;
 
                                               { the byte offset relative to the start of this structure to the flattened}
                                               { layout control data. This can be set to zero if there are no layout}
                                               { controls.}
-		offsetToLayoutControls: ByteCount;
+		offsetToLayoutControls: UInt32;
 
                                               { the byte offset, relative to the start of this structure to the}
                                               { flattened line info. This can be set to zero if there is no line info }
                                               { in this layout.}
-		offsetToLineInfo: ByteCount;
+		offsetToLineInfo: UInt32;
 
                                               { if the offsetToLayoutControls is non-zero, then following this block}
                                               { there will be a ATSFlattenedLayoutDataFlattenedLayoutControlsHeader}
@@ -263,11 +342,10 @@ type
 }
 type
 	ATSFlatDataTextLayoutHeader = record
-
-                                              { the total number of flattened text layouts stored in this block.}
+{ the total number of flattened text layouts stored in this block.}
                                               { This must be non-zero, as if there were no flattened text layouts, the}
                                               { entire block 2 would not exist}
-		numFlattenedTextLayouts: ItemCount;
+		numFlattenedTextLayouts: UInt32;
 
                                               { first of possibly many flattened text layouts. There should be one of}
                                               { these for each flattened text layout as determined by the}
@@ -282,10 +360,9 @@ type
 }
 type
 	ATSFlatDataLayoutControlsDataHeader = record
-
-                                              { the number of flattened layout controls. It is suggested that there be}
+{ the number of flattened layout controls. It is suggested that there be}
                                               { at least one layout control to output the line direction for the layout}
-		numberOfLayoutControls: ItemCount;
+		numberOfLayoutControls: UInt32;
 
                                               { first of possibly many flattened layout controls. There should be one }
                                               { of these for each layout control as determined by the}
@@ -299,13 +376,12 @@ type
 	ATSFlatDataLayoutControlsDataHeaderPtr = ^ATSFlatDataLayoutControlsDataHeader;
 type
 	ATSFlatDataLineInfoData = record
-
-                                              { the length of this particular line in UniChars}
-		lineLength: UniCharCount;
+{ the length of this particular line in UniChars}
+		lineLength: UInt32;
 
                                               { the number of line controls applied to this line. This can be set}
                                               { to zero if there are no special line controls applied to this line.}
-		numberOfLineControls: ItemCount;
+		numberOfLineControls: UInt32;
 
                                               { the numberOfLineControls is non-zero, then following this structure}
                                               { must be an array of ATSUAttributeInfo structures. There must be one}
@@ -319,12 +395,11 @@ type
 }
 type
 	ATSFlatDataLineInfoHeader = record
-
-                                              { the number of flattened line info structures that are stored in this}
+{ the number of flattened line info structures that are stored in this}
                                               { block. This value should really be equal to the number of soft line}
                                               { breaks in the layout + 1. Of course if numberOfLines is zero, then}
                                               { this structure shouldn't even be used.}
-		numberOfLines: ItemCount;
+		numberOfLines: UInt32;
 
                                               { the first in a array of ATSFlatDataLineInfoData structures. There}
                                               { needs to be a ATSFlatDataLineInfoData for each numberOfLines}
@@ -349,9 +424,8 @@ type
 }
 type
 	ATSFlatDataStyleRunDataHeader = record
-
-                                              { the number of style run data structures stored in this block}
-		numberOfStyleRuns: ItemCount;
+{ the number of style run data structures stored in this block}
+		numberOfStyleRuns: UInt32;
 
                                               { the first in an array of ATSUStyleRunInfo structures. There needs to}
                                               { be a ATSUStyleRunInfo structure for each numberOfStyleRuns specified}
@@ -374,24 +448,23 @@ type
 }
 type
 	ATSFlatDataStyleListStyleDataHeader = record
-
-                                              { the size of this flattened style object, including these four bytes and}
+{ the size of this flattened style object, including these four bytes and}
                                               { any padding bytes at the end of the structure. Basically, this can be}
                                               { used to determine where the next structure in the array begins.}
-		sizeOfStyleInfo: ByteCount;
+		sizeOfStyleInfo: UInt32;
 
                                               { the number of attributes set in this flattened style object. This should }
                                               { be at least one for the font data, although it can be 0 if this is to be}
                                               { unspecfied.}
-		numberOfSetAttributes: ItemCount;
+		numberOfSetAttributes: UInt32;
 
                                               { the number of font features set in the flattened style object. This can}
                                               { be set to 0 if there are no font features set in the style object. }
-		numberOfSetFeatures: ItemCount;
+		numberOfSetFeatures: UInt32;
 
                                               { the number of font variations set in the flattened style object. This}
                                               { can be set to 0 if there are no font variations set in the style object.}
-		numberOfSetVariations: ItemCount;
+		numberOfSetVariations: UInt32;
 
                                               { after this structure header, there is the following data in this block:}
 
@@ -423,9 +496,8 @@ type
 }
 type
 	ATSFlatDataStyleListHeader = record
-
-                                              { the total number of flattened style objects stored in this block}
-		numberOfStyles: ItemCount;
+{ the total number of flattened style objects stored in this block}
+		numberOfStyles: UInt32;
 
                                               { the first in an array of flattned style entries. The data stored}
                                               { in them is variably sized, so a simply array access won't do for}
@@ -433,7 +505,6 @@ type
                                               { ATSFlatDataStyleListStyleDataHeader structures for each }
                                               { numberOfStyles above.}
 		styleDataArray: array[0..0] of ATSFlatDataStyleListStyleDataHeader;
-
 	end;
 	ATSFlatDataStyleListHeaderPtr = ^ATSFlatDataStyleListHeader;
 {
@@ -443,8 +514,7 @@ type
 }
 type
 	ATSFlatDataStyleListFeatureData = record
-
-                                              { the font feature type}
+{ the font feature type}
 		theFeatureType: ATSUFontFeatureType;
 
                                               { the font feature selector}
@@ -459,8 +529,7 @@ type
 }
 type
 	ATSFlatDataStyleListVariationData = record
-
-                                              { the variation axis}
+{ the variation axis}
 		theVariationAxis: ATSUFontVariationAxis;
 
                                               { the variation value}
@@ -480,11 +549,12 @@ type
 
 
 { these are the currenly supported font specifiers. }
-type ATSFlatDataFontSpeciferType = UInt32;
+type
+	ATSFlatDataFontSpeciferType = UInt32;
 const
-                                        { this specifier allows the storage of font data based on name data. This}
+{ this specifier allows the storage of font data based on name data. This}
                                         { uses the stuctures below to store the actual data itself.}
-  kATSFlattenedFontSpecifierRawNameData = FourCharCode('namd');
+	kATSFlattenedFontSpecifierRawNameData = FourCharCode('namd');
 
 {
    this is the main header for the font data. It dictates what type of data
@@ -493,22 +563,20 @@ const
 }
 type
 	ATSFlatDataFontNameDataHeader = record
-
-                                              { the type of data that is flattened in this structure}
+{ the type of data that is flattened in this structure}
 		nameSpecifierType: ATSFlatDataFontSpeciferType;
 
                                               { the size of the data that is flattened in this structre, not including }
                                               { any padding bytes that may be necessary to achive the four byte }
                                               { alignment of the data, unless they are specified as part of structure, }
                                               { such as with the ATSFlatDataFontSpecRawNameData structure.}
-		nameSpecifierSize: ByteCount;
+		nameSpecifierSize: UInt32;
 
                                               { after this header comes the flattened font name data which matches}
                                               { the type specified by the nameSpecifierType above. For instance, if }
                                               { the nameSpecType is kATSFlattenedFontNameSpecifierRawNameData, the}
                                               { structure that immediately follows this would be a}
                                               { ATSFlatDataFontNameRawNameDataHeader structure. }
-
 	end;
 	ATSFlatDataFontNameDataHeaderPtr = ^ATSFlatDataFontNameDataHeader;
 {
@@ -520,8 +588,7 @@ type
 { this is the structure in which raw font name data is actually stored. }
 type
 	ATSFlatDataFontSpecRawNameData = record
-
-                                              { the type of name being specified}
+{ the type of name being specified}
 		fontNameType: FontNameCode;
 
                                               { the platform type of the font name, whether it be Unicode, Mac, etc.  }
@@ -543,11 +610,10 @@ type
 
                                               { the length of the font name in bytes, not including any padding bytes}
                                               { added to maintain the four byte alignment}
-		fontNameLength: ByteCount;
+		fontNameLength: UInt32;
 
                                               { after the name length comes the actual font name data itself, plus any}
                                               { padding bytes needed to maintain the four byte alignment.}
-
 	end;
 	ATSFlatDataFontSpecRawNameDataPtr = ^ATSFlatDataFontSpecRawNameData;
 {
@@ -563,24 +629,26 @@ type
 }
 type
 	ATSFlatDataFontSpecRawNameDataHeader = record
-
-                                              { the number of flattened font names. There must be at least one flattened }
+{ the number of flattened font names. There must be at least one flattened }
                                               { font name, otherwise the structure is malformed.}
-		numberOfFlattenedNames: ItemCount;
+		numberOfFlattenedNames: UInt32;
 
                                               { the first in an array of possibly many font name specifiers - depending}
                                               { on how specific the caller wants this. There must be one }
                                               { ATSFlatDataFontNameData structure for each numberOfFlattenedNames}
                                               { above.}
 		nameDataArray: array[0..0] of ATSFlatDataFontSpecRawNameData;
-
 	end;
 	ATSFlatDataFontSpecRawNameDataHeaderPtr = ^ATSFlatDataFontSpecRawNameDataHeader;
 { ---------------------------------------------------------------------------- }
 { Style Flattening and Parsing Functions                                       }
 { ---------------------------------------------------------------------------- }
+{$ifc not TARGET_CPU_64}
 {
- *  ATSUFlattenStyleRunsToStream()
+ *  ATSUFlattenStyleRunsToStream()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use CoreFoundation flattening API instead.
  *  
  *  Summary:
  *    Converts a series of ATSUStyle objects and associated run info to
@@ -598,7 +666,7 @@ type
  *    iFlattenOptions, iNumberOfRunInfo, iRunInfoArray,
  *    iNumberOfStyleObjects, and iStyleArray parameters. Set
  *    iStreamBufferSize to 0, oStreamBuffer to NULL, and pass a valid
- *    reference to a ByteCount variable in the oActualStreamBufferSize
+ *    reference to a UInt32 variable in the oActualStreamBufferSize
  *    parameter. Call the function ATSUFlattenStyleRunsToStream. On
  *    return, oActualStreamBufferSize points to the size needed for the
  *    buffer. (2) Allocate an appropriately-sized buffer for the
@@ -615,7 +683,7 @@ type
  *    iFlattenOptions:
  *      The options you want to use to flatten the data. There are no
  *      options supported at this time, so you must pass the constant
- *      kATSUFlattenOptionsNoOptionsMask.
+ *      kATSUFlattenOptionNoOptionsMask.
  *    
  *    iNumberOfRunInfo:
  *      The number of style run information structures passed in the
@@ -668,16 +736,19 @@ type
  *    codes.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-function ATSUFlattenStyleRunsToStream( iStreamFormat: ATSUFlattenedDataStreamFormat; iFlattenOptions: ATSUFlattenStyleRunOptions; iNumberOfRunInfo: ItemCount; iRunInfoArray: ATSUStyleRunInfoPtr; iNumberOfStyleObjects: ItemCount; iStyleArray: ATSUStylePtr; iStreamBufferSize: ByteCount; oStreamBuffer: UnivPtr; oActualStreamBufferSize: ByteCountPtr ): OSStatus; external name '_ATSUFlattenStyleRunsToStream';
+function ATSUFlattenStyleRunsToStream( iStreamFormat: ATSUFlattenedDataStreamFormat; iFlattenOptions: ATSUFlattenStyleRunOptions; iNumberOfRunInfo: ItemCount; {const} iRunInfoArray: {variable-size-array} ATSUStyleRunInfoPtr; iNumberOfStyleObjects: ItemCount; {const} iStyleArray: {variable-size-array} ATSUStylePtr; iStreamBufferSize: ByteCount; oStreamBuffer: UnivPtr; oActualStreamBufferSize: ByteCountPtr ): OSStatus; external name '_ATSUFlattenStyleRunsToStream';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_6 *)
 
 
 {
- *  ATSUUnflattenStyleRunsFromStream()
+ *  ATSUUnflattenStyleRunsFromStream()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use CoreFoundation flattening API instead.
  *  
  *  Summary:
  *    Creates a series of ATSUStyle objects and associated run
@@ -719,7 +790,7 @@ function ATSUFlattenStyleRunsToStream( iStreamFormat: ATSUFlattenedDataStreamFor
  *    iUnflattenOptions:
  *      The options you want to use to unflatten the data. There are no
  *      options supported at this time, so you must pass the constant
- *      kATSUUnflattenOptionsNoOptionsMask.
+ *      kATSUUnflattenOptionNoOptionsMask.
  *    
  *    iStreamBufferSize:
  *      The size of the buffer pointed to by the iStreamBuffer
@@ -733,7 +804,7 @@ function ATSUFlattenStyleRunsToStream( iStreamFormat: ATSUFlattenedDataStreamFor
  *    
  *    iNumberOfRunInfo:
  *      The number of style run information structures passed in the
- *      iRunInfoArray parameter. If you are uncertain of the number of
+ *      oRunInfoArray parameter. If you are uncertain of the number of
  *      style run information structures, see the Discussion.
  *    
  *    iNumberOfStyleObjects:
@@ -776,46 +847,59 @@ function ATSUFlattenStyleRunsToStream( iStreamFormat: ATSUFlattenedDataStreamFor
  *    codes.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.6
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER
-function ATSUUnflattenStyleRunsFromStream( iStreamFormat: ATSUFlattenedDataStreamFormat; iUnflattenOptions: ATSUUnFlattenStyleRunOptions; iStreamBufferSize: ByteCount; iStreamBuffer: UnivPtr; iNumberOfRunInfo: ItemCount; iNumberOfStyleObjects: ItemCount; oRunInfoArray: ATSUStyleRunInfoPtr; oStyleArray: ATSUStylePtr; oActualNumberOfRunInfo: ItemCountPtr; oActualNumberOfStyleObjects: ItemCountPtr ): OSStatus; external name '_ATSUUnflattenStyleRunsFromStream';
+function ATSUUnflattenStyleRunsFromStream( iStreamFormat: ATSUFlattenedDataStreamFormat; iUnflattenOptions: ATSUUnFlattenStyleRunOptions; iStreamBufferSize: ByteCount; iStreamBuffer: {const} UnivPtr; iNumberOfRunInfo: ItemCount; iNumberOfStyleObjects: ItemCount; oRunInfoArray: {variable-size-array} ATSUStyleRunInfoPtr; oStyleArray: {variable-size-array} ATSUStylePtr; oActualNumberOfRunInfo: ItemCountPtr; oActualNumberOfStyleObjects: ItemCountPtr ): OSStatus; external name '_ATSUUnflattenStyleRunsFromStream';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_6 *)
 
 
 { Functions listed beyond this point are either deprecated or not recommended }
 
 {
- *  ATSUCopyToHandle()
+ *  ATSUCopyToHandle()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use CoreFoundation flattening API instead.
  *  
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    ATSUFlattenStyleRunsToStream instead.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.1
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ATSUnicodeLib 8.5 and later
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER
 function ATSUCopyToHandle( iStyle: ATSUStyle; oStyleHandle: Handle ): OSStatus; external name '_ATSUCopyToHandle';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_1 *)
 
 
 {
- *  ATSUPasteFromHandle()
+ *  ATSUPasteFromHandle()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use CoreFoundation flattening API instead.
  *  
  *  Discussion:
  *    This function is no longer recommended. Please use
  *    ATSUUnflattenStyleRunsFromStream instead.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.1
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in ATSUnicodeLib 8.5 and later
  }
-// AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER
 function ATSUPasteFromHandle( iStyle: ATSUStyle; iStyleHandle: Handle ): OSStatus; external name '_ATSUPasteFromHandle';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_1 *)
 
+
+{$endc} {not TARGET_CPU_64}
+
+
+{$endc} {TARGET_OS_MAC}
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

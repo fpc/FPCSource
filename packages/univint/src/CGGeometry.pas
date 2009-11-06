@@ -1,14 +1,15 @@
 { CoreGraphics - CGGeometry.h
- * Copyright (c) 1998-2003 Apple Computer, Inc.
- * All rights reserved.
- }
+   Copyright (c) 1998-2009 Apple Inc.
+   All rights reserved. }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -17,8 +18,8 @@
 
 unit CGGeometry;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -31,16 +32,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -48,14 +71,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -81,7 +155,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -91,7 +164,9 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,CFBase,CGBase;
+uses MacTypes,CFBase,CFDictionary,CGBase;
+{$endc} {not MACOSALLINCLUDE}
+
 {$ALIGN POWER}
 
 
@@ -100,8 +175,8 @@ uses MacTypes,CFBase,CGBase;
 type
 	CGPointPtr = ^CGPoint;
 	CGPoint = record
-		x: Float32;
-		y: Float32;
+		x: CGFloat;
+		y: CGFloat;
 	end;
 
 { Sizes. }
@@ -109,8 +184,8 @@ type
 type
 	CGSizePtr = ^CGSize;
 	CGSize = record
-		width: Float32;
-		height: Float32;
+		width: CGFloat;
+		height: CGFloat;
 	end;
 
 { Rectangles. }
@@ -135,161 +210,273 @@ const
 { The "zero" point -- equivalent to CGPointMake(0, 0). } 
 
 var CGPointZero: CGPoint; external name '_CGPointZero'; (* attribute const *)
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { The "zero" size -- equivalent to CGSizeMake(0, 0). } 
 
 var CGSizeZero: CGSize; external name '_CGSizeZero'; (* attribute const *)
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { The "zero" rectangle -- equivalent to CGRectMake(0, 0, 0, 0). } 
 
 var CGRectZero: CGRect; external name '_CGRectZero'; (* attribute const *)
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
-{ The "empty" rect.  This is the rectangle returned when, for example, we
- * intersect two disjoint rectangles.  Note that the null rect is not the
- * same as the zero rect. }
+{ The "empty" rect. This is the rectangle returned when, for example, we
+   intersect two disjoint rectangles. Note that the null rect is not the
+   same as the zero rect. }
 
 var CGRectNull: CGRect; external name '_CGRectNull'; (* attribute const *)
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { The infinite rectangle. }
 
-var CGRectInfinite: CGRect; external name '_CGRectInfinite'; (* attribute const *) (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
-
-{ Make a point from `(x, y)'. }
-// CG_INLINE CGPoint CGPointMake(float x, float y);
-
-{ Make a size from `(width, height)'. }
-// CG_INLINE CGSize CGSizeMake(float width, float height);
-
-{ Make a rect from `(x, y; width, height)'. }
-// CG_INLINE CGRect CGRectMake(float x, float y, float width, float height);
+var CGRectInfinite: CGRect; external name '_CGRectInfinite'; (* attribute const *)
+(* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
 
 { Return the leftmost x-value of `rect'. }
 
-function CGRectGetMinX( rect: CGRect ): Float32; external name '_CGRectGetMinX';
+function CGRectGetMinX( rect: CGRect ): CGFloat; external name '_CGRectGetMinX';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { Return the midpoint x-value of `rect'. }
 
-function CGRectGetMidX( rect: CGRect ): Float32; external name '_CGRectGetMidX';
+function CGRectGetMidX( rect: CGRect ): CGFloat; external name '_CGRectGetMidX';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { Return the rightmost x-value of `rect'. }
 
-function CGRectGetMaxX( rect: CGRect ): Float32; external name '_CGRectGetMaxX';
+function CGRectGetMaxX( rect: CGRect ): CGFloat; external name '_CGRectGetMaxX';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { Return the bottommost y-value of `rect'. }
 
-function CGRectGetMinY( rect: CGRect ): Float32; external name '_CGRectGetMinY';
+function CGRectGetMinY( rect: CGRect ): CGFloat; external name '_CGRectGetMinY';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { Return the midpoint y-value of `rect'. }
 
-function CGRectGetMidY( rect: CGRect ): Float32; external name '_CGRectGetMidY';
+function CGRectGetMidY( rect: CGRect ): CGFloat; external name '_CGRectGetMidY';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { Return the topmost y-value of `rect'. }
 
-function CGRectGetMaxY( rect: CGRect ): Float32; external name '_CGRectGetMaxY';
+function CGRectGetMaxY( rect: CGRect ): CGFloat; external name '_CGRectGetMaxY';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { Return the width of `rect'. }
 
-function CGRectGetWidth( rect: CGRect ): Float32; external name '_CGRectGetWidth';
+function CGRectGetWidth( rect: CGRect ): CGFloat; external name '_CGRectGetWidth';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { Return the height of `rect'. }
 
-function CGRectGetHeight( rect: CGRect ): Float32; external name '_CGRectGetHeight';
+function CGRectGetHeight( rect: CGRect ): CGFloat; external name '_CGRectGetHeight';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
-{ Return 1 if `point1' and `point2' are the same, 0 otherwise. }
 
-function CGPointEqualToPoint( point1: CGPoint; point2: CGPoint ): SInt32; external name '_CGPointEqualToPoint';
 
-{ Return 1 if `size1' and `size2' are the same, 0 otherwise. }
+{ Return true if `rect1' and `rect2' are the same, false otherwise. }
 
-function CGSizeEqualToSize( size1: CGSize; size2: CGSize ): SInt32; external name '_CGSizeEqualToSize';
-
-{ Return 1 if `rect1' and `rect2' are the same, 0 otherwise. }
-
-function CGRectEqualToRect( rect1: CGRect; rect2: CGRect ): SInt32; external name '_CGRectEqualToRect';
+function CGRectEqualToRect( rect1: CGRect; rect2: CGRect ): CBool; external name '_CGRectEqualToRect';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { Standardize `rect' -- i.e., convert it to an equivalent rect which has
- * positive width and height. }
+   positive width and height. }
 
 function CGRectStandardize( rect: CGRect ): CGRect; external name '_CGRectStandardize';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
-{ Return 1 if `rect' is empty -- i.e., if it has zero width or height.  A
- * null rect is defined to be empty. }
+{ Return true if `rect' is empty (that is, if it has zero width or height),
+   false otherwise. A null rect is defined to be empty. }
 
-function CGRectIsEmpty( rect: CGRect ): SInt32; external name '_CGRectIsEmpty';
+function CGRectIsEmpty( rect: CGRect ): CBool; external name '_CGRectIsEmpty';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
-{ Return 1 if `rect' is null -- e.g., the result of intersecting two
- * disjoint rectangles is a null rect. }
+{ Return true if `rect' is the null rectangle, false otherwise. }
 
-function CGRectIsNull( rect: CGRect ): SInt32; external name '_CGRectIsNull';
+function CGRectIsNull( rect: CGRect ): CBool; external name '_CGRectIsNull';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { Return true if `rect' is the infinite rectangle, false otherwise. }
 
-function CGRectIsInfinite( rect: CGRect ): CBool; external name '_CGRectIsInfinite'; (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
+function CGRectIsInfinite( rect: CGRect ): CBool; external name '_CGRectIsInfinite';
+(* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
 
 { Inset `rect' by `(dx, dy)' -- i.e., offset its origin by `(dx, dy)', and
- * decrease its size by `(2*dx, 2*dy)'. }
+   decrease its size by `(2*dx, 2*dy)'. }
 
-function CGRectInset( rect: CGRect; dx: Float32; dy: Float32 ): CGRect; external name '_CGRectInset';
+function CGRectInset( rect: CGRect; dx: CGFloat; dy: CGFloat ): CGRect; external name '_CGRectInset';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
-{ Expand `rect' to the smallest rect containing it with integral origin
- * and size. }
+{ Expand `rect' to the smallest rect containing it with integral origin and
+   size. }
 
 function CGRectIntegral( rect: CGRect ): CGRect; external name '_CGRectIntegral';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { Return the union of `r1' and `r2'. }
 
 function CGRectUnion( r1: CGRect; r2: CGRect ): CGRect; external name '_CGRectUnion';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
-{ Return the intersection of `r1' and `r2'.  This may return a null
- * rect. }
+{ Return the intersection of `r1' and `r2'. This may return a null rect. }
 
 function CGRectIntersection( r1: CGRect; r2: CGRect ): CGRect; external name '_CGRectIntersection';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
 { Offset `rect' by `(dx, dy)'. }
 
-function CGRectOffset( rect: CGRect; dx: Float32; dy: Float32 ): CGRect; external name '_CGRectOffset';
+function CGRectOffset( rect: CGRect; dx: CGFloat; dy: CGFloat ): CGRect; external name '_CGRectOffset';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
-{ Make two new rectangles, `slice' and `remainder', by dividing `rect'
- * with a line that's parallel to one of its sides, specified by `edge' --
- * either `CGRectMinXEdge', `CGRectMinYEdge', `CGRectMaxXEdge', or
- * `CGRectMaxYEdge'.  The size of `slice' is determined by `amount', which
- * measures the distance from the specified edge. }
+{ Make two new rectangles, `slice' and `remainder', by dividing `rect' with
+   a line that's parallel to one of its sides, specified by `edge' -- either
+   `CGRectMinXEdge', `CGRectMinYEdge', `CGRectMaxXEdge', or
+   `CGRectMaxYEdge'. The size of `slice' is determined by `amount', which
+   measures the distance from the specified edge. }
 
-procedure CGRectDivide( rect: CGRect; var slice: CGRect; var remainder: CGRect; amount: Float32; edge: CGRectEdge ); external name '_CGRectDivide';
+procedure CGRectDivide( rect: CGRect; var slice: CGRect; var remainder: CGRect; amount: CGFloat; edge: CGRectEdge ); external name '_CGRectDivide';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
-{ Return 1 if `point' is contained in `rect', 0 otherwise. }
+{ Return true if `point' is contained in `rect', false otherwise. }
 
-function CGRectContainsPoint( rect: CGRect; point: CGPoint ): SInt32; external name '_CGRectContainsPoint';
+function CGRectContainsPoint( rect: CGRect; point: CGPoint ): CBool; external name '_CGRectContainsPoint';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
-{ Return 1 if `rect2' is contained in `rect1', 0 otherwise.  `rect2' is
- * contained in `rect1' if the union of `rect1' and `rect2' is equal to
- * `rect1'. }
+{ Return true if `rect2' is contained in `rect1', false otherwise. `rect2'
+   is contained in `rect1' if the union of `rect1' and `rect2' is equal to
+   `rect1'. }
 
-function CGRectContainsRect( rect1: CGRect; rect2: CGRect ): SInt32; external name '_CGRectContainsRect';
+function CGRectContainsRect( rect1: CGRect; rect2: CGRect ): CBool; external name '_CGRectContainsRect';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
-{ Return 1 if `rect1' intersects `rect2', 0 otherwise.  `rect1' intersects
- * `rect2' if the intersection of `rect1' and `rect2' is not the null
- * rect. }
+{ Return true if `rect1' intersects `rect2', false otherwise. `rect1'
+   intersects `rect2' if the intersection of `rect1' and `rect2' is not the
+   null rect. }
 
-function CGRectIntersectsRect( rect1: CGRect; rect2: CGRect ): SInt32; external name '_CGRectIntersectsRect';
+function CGRectIntersectsRect( rect1: CGRect; rect2: CGRect ): CBool; external name '_CGRectIntersectsRect';
+(* CG_AVAILABLE_STARTING(__MAC_10_0, __IPHONE_2_0) *)
 
-(*
+{** Persistent representations. **}
+
+{ Return a dictionary representation of `point'. }
+
+function CGPointCreateDictionaryRepresentation( point: CGPoint ): CFDictionaryRef; external name '_CGPointCreateDictionaryRepresentation';
+(* CG_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_2_0) *)
+
+{ Make a CGPoint from the contents of `dict' (presumably returned earlier
+   from `CGPointCreateDictionaryRepresentation') and store the value in
+   `point'. Returns true on success; false otherwise. }
+
+function CGPointMakeWithDictionaryRepresentation( dict: CFDictionaryRef; var point: { out } CGPoint ): CBool; external name '_CGPointMakeWithDictionaryRepresentation';
+(* CG_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_2_0) *)
+
+{ Return a dictionary representation of `size'. }
+
+function CGSizeCreateDictionaryRepresentation( size: CGSize ): CFDictionaryRef; external name '_CGSizeCreateDictionaryRepresentation';
+(* CG_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_2_0) *)
+
+{ Make a CGSize from the contents of `dict' (presumably returned earlier
+   from `CGSizeCreateDictionaryRepresentation') and store the value in
+   `size'. Returns true on success; false otherwise. }
+
+function CGSizeMakeWithDictionaryRepresentation( dict: CFDictionaryRef; var size: { out } CGSize ): CBool; external name '_CGSizeMakeWithDictionaryRepresentation';
+(* CG_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_2_0) *)
+
+{ Return a dictionary representation of `rect'. }
+
+function CGRectCreateDictionaryRepresentation( rect: CGRect ): CFDictionaryRef; external name '_CGRectCreateDictionaryRepresentation';
+(* CG_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_2_0) *)
+
+{ Make a CGRect from the contents of `dict' (presumably returned earlier
+   from `CGRectCreateDictionaryRepresentation') and store the value in
+   `rect'. Returns true on success; false otherwise. }
+
+function CGRectMakeWithDictionaryRepresentation( dict: CFDictionaryRef; var rect: { out } CGRect ): CBool; external name '_CGRectMakeWithDictionaryRepresentation';
+(* CG_AVAILABLE_STARTING(__MAC_10_5, __IPHONE_2_0) *)
+
+
 {** Definitions of inline functions. **}
-// CG_INLINE CGPoint CGPointMake(float x, float y)
+// CG_INLINE CGPoint
+function CGPointMake(x: CGFloat; y: CGFloat): CGPoint; inline;
+
 {
-    CGPoint p; p.x = x; p.y = y; return p;
+  CGPoint p; p.x = x; p.y = y; return p;
 }
-// CG_INLINE CGSize CGSizeMake(float width, float height)
+
+// CG_INLINE CGSize
+function CGSizeMake(width: CGFloat; height: CGFloat): CGSize; inline;
 {
-    CGSize size; size.width = width; size.height = height; return size;
+  CGSize size; size.width = width; size.height = height; return size;
 }
-// CG_INLINE CGRect CGRectMake(float x, float y, float width, float height)
+
+// CG_INLINE CGRect
+// seems not useful to inline to me, is fairly big (unless you can reschedule
+// all the stores among the rest of the code, but still will probably increase
+// code size in all cases)
+function CGRectMake(x: CGFloat; y: CGFloat; width: CGFloat; height: CGFloat): CGRect;
 {
-    CGRect rect;
-    rect.origin.x = x; rect.origin.y = y;
-    rect.size.width = width; rect.size.height = height;
-    return rect;
+  CGRect rect;
+  rect.origin.x = x; rect.origin.y = y;
+  rect.size.width = width; rect.size.height = height;
+  return rect;
 }
-*)
+
+// CG_INLINE bool
+function CGPointEqualToPoint(const point1: CGPoint; const point2: CGPoint): boolean; inline;
+{
+  return point1.x == point2.x && point1.y == point2.y;
+}
+
+// CG_INLINE bool
+function CGSizeEqualToSize(size1: CGSize; size2: CGSize): boolean; inline;
+{
+  return size1.width == size2.width && size1.height == size2.height;
+}
+
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
+implementation
+
+function CGPointMake(x: CGFloat; y: CGFloat): CGPoint; inline;
+begin
+  CGPointMake.x := x;
+  CGPointMake.y := y;
+end;
+
+
+function CGSizeMake(width: CGFloat; height: CGFloat): CGSize; inline;
+begin
+  CGSizeMake.width := width;
+  CGSizeMake.height := height;
+end;
+
+
+function CGRectMake(x: CGFloat; y: CGFloat; width: CGFloat; height: CGFloat): CGRect;
+begin
+  CGRectMake.origin.x := x;
+  CGRectMake.origin.y := y;
+  CGRectMake.size.width := width;
+  CGRectMake.size.height := height;
+end;
+
+
+function CGPointEqualToPoint(const point1: CGPoint; const point2: CGPoint): boolean; inline;
+begin
+  CGPointEqualToPoint:=
+    (point1.x = point2.x) and
+    (point1.y = point2.y);
+end;
+
+
+function CGSizeEqualToSize(size1: CGSize; size2: CGSize): boolean; inline;
+begin
+  CGSizeEqualToSize:=
+    (size1.width = size2.width) and
+    (size1.height = size2.height);
+end;
+
 
 end.
+
+{$endc} {not MACOSALLINCLUDE}

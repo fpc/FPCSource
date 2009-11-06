@@ -1,14 +1,15 @@
 { CoreGraphics - CGFunction.h
- * Copyright (c) 1999-2002 Apple Computer, Inc. (unpublished)
- * All rights reserved.
- }
+ * Copyright (c) 1999-2008 Apple Inc.
+ * All rights reserved. }
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -17,8 +18,8 @@
 
 unit CGFunction;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -31,16 +32,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -48,14 +71,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -81,7 +155,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -92,132 +165,98 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes,CGBase,CFBase;
+{$endc} {not MACOSALLINCLUDE}
+
 {$ALIGN POWER}
 
 
-{! @header CGFunction
- *   A general floating-point function evaluator, using a callback mapping
- *   an arbitrary number of float inputs to an arbitrary number of float
- *   outputs.
- }
+{ A CGFunction is a general floating-point function evaluator which uses a
+   user-specified callback to map an arbitrary number of inputs to an
+   arbitrary number of outputs. }
 
 type
-	CGFunctionRef = ^SInt32; { an opaque 32-bit type }
+	CGFunctionRef = ^SInt32; { an opaque type }
 
 
-{! @typedef CGFunctionEvaluateCallback
- *   This callback evaluates a function, using <tt>in</tt> as inputs, and
- *   places the result in <tt>out</tt>.
- *
- * @param info
- *   The info parameter passed to CGFunctionCreate.
- *
- * @param inData
- *   An array of <tt>domainDimension</tt> floats.
- *
- * @param outData
- *   An array of <tt>rangeDimension</tt> floats.
- }
+{ This callback evaluates a function, using `in' as inputs, and places the
+   result in `out'. `info' is the info parameter passed to the CGFunction
+   creation functions. }
 
 type
-	CGFunctionEvaluateCallback = procedure( info: UnivPtr; inp: {const} Float32Ptr; out: Float32Ptr );
+	CGFunctionEvaluateCallback = procedure( info: UnivPtr; inp: {const} CGFloatPtr; out: Float32Ptr );
 
-{! @typedef CGFunctionReleaseInfoCallback
- *   This callback releases the info parameter passed to the CGFunction
- *   creation functions when the function is deallocated.
- *
- * @param info
- *   The info parameter passed to CGFunctionCreate.
- }
+{ When a function is deallocated, this callback releases `info', the info
+   parameter passed to the CGFunction creation functions. }
 
 type
 	CGFunctionReleaseInfoCallback = procedure( info: UnivPtr );
 
-{! @typedef CGFunctionCallbacks
- *   Structure containing the callbacks of a CGFunction.
- *
- * @field version
- *   The version number of the structure passed to the CGFunction creation
- *   functions. This structure is version 0.
- *
- * @field evaluate
- *   The callback used to evaluate the function.
- *
- * @field releaseInfo
- *   If non-NULL, the callback used to release the info parameter passed to
- *   the CGFunction creation functions when the function is deallocated.
+{ Callbacks for a CGFunction.
+     `version' is the version number of this structure. This structure is
+       version 0.
+     `evaluate' is the callback used to evaluate the function.
+     `releaseInfo', if non-NULL, is the callback used to release the info
+       parameter passed to the CGFunction creation functions when the function
+       is deallocated.
  }
 
 type
 	CGFunctionCallbacks = record
 		version: UInt32;
+{$ifc TARGET_CPU_64}
+ 		__alignment_dummy: UInt32;
+{$endif}
 		evaluate: CGFunctionEvaluateCallback;
 		releaseInfo: CGFunctionReleaseInfoCallback;
 	end;
 
+{ Return the CFTypeID for CGFunctionRefs. }
 
-{! @function CGFunctionGetTypeID
- *   Return the CFTypeID for CGFunctionRefs.
- }
+function CGFunctionGetTypeID: CFTypeID; external name '_CGFunctionGetTypeID';
+(* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
+ 
+{ Create a CGFunction using `callbacks' to evaluate the function. `info' is
+   passed to each of the callback functions. `domainDimension' is the number
+   of input values to the function; `rangeDimension' is the number of output
+   values from the function.
 
-function CGFunctionGetTypeID: CFTypeID; external name '_CGFunctionGetTypeID'; (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+   `domain' is an array of 2M values, where M is the number of input values.
+   For each k from 0 to M-1, domain[2*k] must be less than or equal to
+   domain[2*k+1]. The k'th input value (in[k]) will be clipped to lie in
+   this interval, so that domain[2*k] <= in[k] <= domain[2*k+1]. If `domain'
+   is NULL, then the input values will not be clipped. However, it's
+   strongly recommended that `domain' be specified; each domain interval
+   should specify reasonable values for the minimum and maximum in that
+   dimension.
 
-{! @function CGFunctionCreate
- *   Create a function.
- *
- * @param info
- *   The parameter passed to the callback functions.
- *
- * @param domainDimension
- *   The number of inputs to the function.
- *
- * @param domain
- *   An array of <tt>2*domainDimension</tt> floats used to specify the
- *   valid intervals of input values.  For each <tt>k</tt> from <tt>0</tt>
- *   to <tt>domainDimension - 1</tt>, <tt>domain[2*k]</tt> must be less
- *   than or equal to <tt>domain[2*k+1]</tt>, and the <tt>k</tt>'th input
- *   value <tt>in[k]</tt> will be clipped to lie in the interval
- *   <tt>domain[2*k] <= in[k] <= domain[2*k+1]</tt>.  If this parameter is
- *   NULL, then the input values are not clipped.  However, it's strongly
- *   recommended that this parameter be specified; each domain interval
- *   should specify reasonable values for the minimum and maximum in each
- *   dimension.
- *
- * @param rangeDimension
- *   The number of outputs from the function.
- *
- * @param range
- *   An array of <tt>2*rangeDimension</tt> floats used to specify the valid
- *   intervals of output values.  For each <tt>k</tt> from <tt>0</tt> to
- *   <tt>rangeDimension - 1</tt>, <tt>range[2*k]</tt> must be less than or
- *   equal to <tt>range[2*k+1]</tt>, and the <tt>k</tt>'th output value
- *   <tt>out[k]</tt> will be clipped to lie in the interval <tt>range[2*k]
- *   <= out[k] <= range[2*k+1]</tt>.  If this parameter is NULL, then the
- *   output values are not clipped.  However, it's strongly recommended
- *   that this parameter be specified; each range interval should specify
- *   reasonable values for the minimum and maximum in each dimension.
- *
- * @param callbacks
- *   A pointer to a CGFunctionCallbacks structure.  The function uses these
- *   callbacks to evaluate values.  The contents of the callbacks structure
- *   is copied, so, for example, a pointer to a structure on the stack can
- *   be passed in.  }
+   `range' is an array of 2N values, where N is the number of output values.
+   For each k from 0 to N-1, range[2*k] must be less than or equal to
+   range[2*k+1]. The k'th output value (out[k]) will be clipped to lie in
+   this interval, so that range[2*k] <= out[k] <= range[2*k+1]. If `range'
+   is NULL, then the output values will not be clipped. However, it's
+   strongly recommended that `range' be specified; each range interval
+   should specify reasonable values for the minimum and maximum in that
+   dimension.
 
-function CGFunctionCreate( info: UnivPtr; domainDimension: size_t; domain: {const} Float32Ptr; rangeDimension: size_t; range: {const} Float32Ptr; const (*var*) callbacks: CGFunctionCallbacks ): CGFunctionRef; external name '_CGFunctionCreate'; (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+   The contents of the callbacks structure is copied, so, for example, a
+   pointer to a structure on the stack can be passed to this function. }
 
-{! @function CGFunctionRetain
- *
- * Equivalent to <tt>CFRetain(function)</tt>.
- }
+function CGFunctionCreate( info: UnivPtr; domainDimension: size_t; domain: {const} CGFloatPtr; rangeDimension: size_t; range: {const} Float32Ptr; const (*var*) callbacks: CGFunctionCallbacks ): CGFunctionRef; external name '_CGFunctionCreate';
+(* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
-function CGFunctionRetain( func: CGFunctionRef ): CGFunctionRef; external name '_CGFunctionRetain'; (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+{ Equivalent to `CFRetain(function)', except it doesn't crash (as CFRetain
+   does) if `function' is NULL. }
 
-{! @function CGFunctionRelease
- *
- * Equivalent to <tt>CFRelease(function)</tt>.
- }
+function CGFunctionRetain( func: CGFunctionRef ): CGFunctionRef; external name '_CGFunctionRetain';
+(* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
-procedure CGFunctionRelease( func: CGFunctionRef ); external name '_CGFunctionRelease'; (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+{ Equivalent to `CFRelease(function)', except it doesn't crash (as
+   CFRelease does) if `function' is NULL. }
 
+procedure CGFunctionRelease( func: CGFunctionRef ); external name '_CGFunctionRelease';
+(* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
+
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

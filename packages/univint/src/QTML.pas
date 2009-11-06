@@ -1,12 +1,11 @@
 {
-     File:       QTML.p
+     File:       QuickTime/QTML.h
  
      Contains:   QuickTime Cross-platform specific interfaces
  
-     Version:    Technology: QuickTime 5.0
-                 Release:    Universal Interfaces 3.4.2
+     Version:    QuickTime 7.6.3
  
-     Copyright:  © 1997-2002 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 1997-2008 by Apple Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,14 +13,14 @@
                      http://www.freepascal.org/bugs.html
  
 }
-
-
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -30,8 +29,8 @@
 
 unit QTML;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -44,16 +43,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -61,14 +82,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -94,7 +166,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -104,257 +175,273 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,Quickdraw,Events,MacMemory,MacWindows,OSUtils,Files;
+uses MacTypes;
+{$endc} {not MACOSALLINCLUDE}
 
 
-{$ALIGN MAC68K}
+{$ifc TARGET_OS_MAC}
 
-{$ifc CALL_NOT_IN_CARBON}
+{ QuickTime is not available to 64-bit clients }
+
+{$ifc not TARGET_CPU_64}
 {
  *  QTMLYieldCPU()
  *  
  *  Availability:
+ *    Mac OS X:         in version 10.0 and later in QuickTime.framework
+ *    CarbonLib:        in CarbonLib 3.0 and later
  *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
 procedure QTMLYieldCPU; external name '_QTMLYieldCPU';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
+{ QTMLYieldCPUTime flags}
+const
+	kQTMLHandlePortEvents = 1 shl 0; { ask for event handling during the yield}
 
 {
  *  QTMLYieldCPUTime()
  *  
  *  Availability:
+ *    Mac OS X:         in version 10.0 and later in QuickTime.framework
+ *    CarbonLib:        in CarbonLib 3.0 and later
  *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure QTMLYieldCPUTime(milliSeconds: SInt32; flags: UInt32); external name '_QTMLYieldCPUTime';
-
-{$endc}  {CALL_NOT_IN_CARBON}
+procedure QTMLYieldCPUTime( milliSeconds: SIGNEDLONG; flags: UNSIGNEDLONG ); external name '_QTMLYieldCPUTime';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
 type
-	QTMLMutex    = ^SInt32; { an opaque 32-bit type }
-	QTMLMutexPtr = ^QTMLMutex;  { when a var xx:QTMLMutex parameter can be nil, it is changed to xx: QTMLMutexPtr }
-{$ifc NOT (TARGET_OS_MAC AND TARGET_API_MAC_OS8)}
-	QTMLSyncVar    = ^SInt32; { an opaque 32-bit type }
+	QTMLMutex = ^SInt32; { an opaque type }
+	QTMLMutexPtr = ^QTMLMutex; { when a var xx:QTMLMutex parameter can be nil, it is changed to xx: QTMLMutexPtr }
+	QTMLSyncVar = ^SInt32; { an opaque type }
 	QTMLSyncVarPtr = ^QTMLSyncVar;  { when a var xx:QTMLSyncVar parameter can be nil, it is changed to xx: QTMLSyncVarPtr }
-
+{ InitializeQTML flags}
 const
-	kInitializeQTMLNoSoundFlag	= $00000001;					{  flag for requesting no sound when calling InitializeQTML }
-	kInitializeQTMLUseGDIFlag	= $00000002;					{  flag for requesting GDI when calling InitializeQTML }
-	kInitializeQTMLDisableDirectSound = $00000004;				{  disables QTML's use of DirectSound }
-	kInitializeQTMLUseExclusiveFullScreenModeFlag = $00000008;	{  later than QTML 3.0: qtml starts up in exclusive full screen mode }
-	kInitializeQTMLDisableDDClippers = $00000010;				{  flag for requesting QTML not to use DirectDraw clipper objects; QTML 5.0 and later }
+	kInitializeQTMLNoSoundFlag = 1 shl 0; { flag for requesting no sound when calling InitializeQTML}
+	kInitializeQTMLUseGDIFlag = 1 shl 1; { flag for requesting GDI when calling InitializeQTML}
+	kInitializeQTMLDisableDirectSound = 1 shl 2; { disables QTML's use of DirectSound}
+	kInitializeQTMLUseExclusiveFullScreenModeFlag = 1 shl 3; { later than QTML 3.0: qtml starts up in exclusive full screen mode}
+	kInitializeQTMLDisableDDClippers = 1 shl 4; { flag for requesting QTML not to use DirectDraw clipper objects; QTML 5.0 and later}
+	kInitializeQTMLEnableDoubleBufferedSurface = 1 shl 6; { flag for requesting QuickTime use a double-buffered destination surface; QT6.4 and later}
 
-	kQTMLHandlePortEvents		= $00000001;					{  flag for requesting requesting QTML to handle events }
-	kQTMLNoIdleEvents			= $00000002;					{  flag for requesting requesting QTML not to send Idle Events }
+{
+ *  InitializeQTML()
+ *  
+ *  Availability:
+ *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ *    Windows:          in qtmlClient.lib 3.0 and later
+ }
 
-{$ifc CALL_NOT_IN_CARBON}
-	{
-	 *  InitializeQTML()
-	 *  
-	 *  Availability:
-	 *    Non-Carbon CFM:   not available
-	 *    CarbonLib:        not available
-	 *    Mac OS X:         not available
-	 *    Windows:          in qtmlClient.lib 3.0 and later
-	 	}
-function InitializeQTML(flag: SInt32): OSErr; external name '_InitializeQTML';
 
 {
  *  TerminateQTML()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure TerminateQTML; external name '_TerminateQTML';
 
 
+{ CreatePortAssociation flags}
+const
+	kQTMLNoIdleEvents = 1 shl 1; { ask for a non-auto-idled port to be created}
+	kQTMLNoDoubleBufferPort = 1 shl 2; { ask for QTML not to double-buffer this port}
+
+const
+	kQTMLIsDoubleBuffered = 'UsesDoubleBuffer';
 {
  *  CreatePortAssociation()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function CreatePortAssociation(theWnd: UnivPtr; storage: Ptr; flags: SInt32): GrafPtr; external name '_CreatePortAssociation';
+
 
 {
  *  DestroyPortAssociation()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure DestroyPortAssociation(cgp: CGrafPtr); external name '_DestroyPortAssociation';
 
 
 {
  *  QTMLGrabMutex()
  *  
  *  Availability:
+ *    Mac OS X:         in version 10.0 and later in QuickTime.framework
+ *    CarbonLib:        in CarbonLib 3.0 and later
  *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure QTMLGrabMutex(mu: QTMLMutex); external name '_QTMLGrabMutex';
+procedure QTMLGrabMutex( mu: QTMLMutex ); external name '_QTMLGrabMutex';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
  *  QTMLTryGrabMutex()
  *  
  *  Availability:
+ *    Mac OS X:         in version 10.0 and later in QuickTime.framework
+ *    CarbonLib:        in CarbonLib 4.1 and later
  *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  *    Windows:          in qtmlClient.lib 4.1 and later
  }
-function QTMLTryGrabMutex(mu: QTMLMutex): boolean; external name '_QTMLTryGrabMutex';
+function QTMLTryGrabMutex( mu: QTMLMutex ): Boolean; external name '_QTMLTryGrabMutex';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
  *  QTMLReturnMutex()
  *  
  *  Availability:
+ *    Mac OS X:         in version 10.0 and later in QuickTime.framework
+ *    CarbonLib:        in CarbonLib 3.0 and later
  *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure QTMLReturnMutex(mu: QTMLMutex); external name '_QTMLReturnMutex';
+procedure QTMLReturnMutex( mu: QTMLMutex ); external name '_QTMLReturnMutex';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
  *  QTMLCreateMutex()
  *  
  *  Availability:
+ *    Mac OS X:         in version 10.0 and later in QuickTime.framework
+ *    CarbonLib:        in CarbonLib 3.0 and later
  *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
 function QTMLCreateMutex: QTMLMutex; external name '_QTMLCreateMutex';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
  *  QTMLDestroyMutex()
  *  
  *  Availability:
+ *    Mac OS X:         in version 10.0 and later in QuickTime.framework
+ *    CarbonLib:        in CarbonLib 3.0 and later
  *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure QTMLDestroyMutex(mu: QTMLMutex); external name '_QTMLDestroyMutex';
+procedure QTMLDestroyMutex( mu: QTMLMutex ); external name '_QTMLDestroyMutex';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
 {
  *  QTMLCreateSyncVar()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function QTMLCreateSyncVar: QTMLSyncVarPtr; external name '_QTMLCreateSyncVar';
+
 
 {
  *  QTMLDestroySyncVar()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure QTMLDestroySyncVar(p: QTMLSyncVarPtr); external name '_QTMLDestroySyncVar';
+
 
 {
  *  QTMLTestAndSetSyncVar()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function QTMLTestAndSetSyncVar(sync: QTMLSyncVarPtr): SInt32; external name '_QTMLTestAndSetSyncVar';
+
 
 {
  *  QTMLWaitAndSetSyncVar()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure QTMLWaitAndSetSyncVar(sync: QTMLSyncVarPtr); external name '_QTMLWaitAndSetSyncVar';
+
 
 {
  *  QTMLResetSyncVar()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure QTMLResetSyncVar(sync: QTMLSyncVarPtr); external name '_QTMLResetSyncVar';
 
 
 {
  *  InitializeQHdr()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure InitializeQHdr(var qhdr_: QHdr); external name '_InitializeQHdr';
+
 
 {
  *  TerminateQHdr()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure TerminateQHdr(var qhdr_: QHdr); external name '_TerminateQHdr';
 
 
 {
  *  QTMLAcquireWindowList()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure QTMLAcquireWindowList; external name '_QTMLAcquireWindowList';
+
 
 {
  *  QTMLReleaseWindowList()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure QTMLReleaseWindowList; external name '_QTMLReleaseWindowList';
+
 
 {
    These routines are here to support "interrupt level" code
@@ -365,39 +452,36 @@ procedure QTMLReleaseWindowList; external name '_QTMLReleaseWindowList';
  *  QTMLRegisterInterruptSafeThread()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function QTMLRegisterInterruptSafeThread(threadID: UInt32; threadInfo: UnivPtr): SInt32; external name '_QTMLRegisterInterruptSafeThread';
+
 
 {
  *  QTMLUnregisterInterruptSafeThread()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function QTMLUnregisterInterruptSafeThread(threadID: UInt32): SInt32; external name '_QTMLUnregisterInterruptSafeThread';
 
 
 {
  *  NativeEventToMacEvent()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function NativeEventToMacEvent(nativeEvent: UnivPtr; var macEvent: EventRecord): SInt32; external name '_NativeEventToMacEvent';
 
-{$endc}  {CALL_NOT_IN_CARBON}
+
 {$ifc TARGET_OS_WIN32}
-{$ifc CALL_NOT_IN_CARBON}
 {
  *  WinEventToMacEvent()
  *  
@@ -415,165 +499,144 @@ function WinEventToMacEvent(winMsg: UnivPtr; var macEvent: EventRecord): SInt32;
  *  Availability:
  *    Non-Carbon CFM:   not available
  *    CarbonLib:        not available
- *    Mac OS X:         not available
- *    Windows:          in qtmlClient.lib 3.0 and later
- }
-function IsTaskBarVisible: boolean; external name '_IsTaskBarVisible';
-
-{
- *  ShowHideTaskBar()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
+ *    M *    Mac OS X:         not available
  *    CarbonLib:        not available
- *    Mac OS X:         not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure ShowHideTaskBar(showIt: boolean); external name '_ShowHideTaskBar';
 
-{$endc}  {CALL_NOT_IN_CARBON}
 
 const
-	kDDSurfaceLocked			= $00000001;
-	kDDSurfaceStatic			= $00000002;
+	kDDSurfaceLocked = 1 shl 0;
+	kDDSurfaceStatic = 1 shl 1;
 
-{$ifc CALL_NOT_IN_CARBON}
-	{
-	 *  QTGetDDObject()
-	 *  
-	 *  Availability:
-	 *    Non-Carbon CFM:   not available
-	 *    CarbonLib:        not available
-	 *    Mac OS X:         not available
-	 *    Windows:          in qtmlClient.lib 3.0 and later
-	 	}
-function QTGetDDObject(var lpDDObject: UnivPtr): OSErr; external name '_QTGetDDObject';
+{
+ *  QTGetDDObject()
+ *  
+ *  Availability:
+ *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ *    Windows:          in qtmlClient.lib 3.0 and later
+ }
+
 
 {
  *  QTSetDDObject()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function QTSetDDObject(lpNewDDObject: UnivPtr): OSErr; external name '_QTSetDDObject';
+
 
 {
  *  QTSetDDPrimarySurface()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function QTSetDDPrimarySurface(lpNewDDSurface: UnivPtr; flags: UInt32): OSErr; external name '_QTSetDDPrimarySurface';
 
 
 {
  *  QTMLGetVolumeRootPath()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function QTMLGetVolumeRootPath(fullPath: CStringPtr; volumeRootPath: CStringPtr; volumeRootLen: UInt32): OSErr; external name '_QTMLGetVolumeRootPath';
 
 
 {
  *  QTMLSetWindowWndProc()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-procedure QTMLSetWindowWndProc(theWindow: WindowRef; windowProc: UnivPtr); external name '_QTMLSetWindowWndProc';
+
 
 {
  *  QTMLGetWindowWndProc()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function QTMLGetWindowWndProc(theWindow: WindowRef): Ptr; external name '_QTMLGetWindowWndProc';
 
-{$endc}  {CALL_NOT_IN_CARBON}
-{$endc}  {TARGET_OS_WIN32}
-{$ifc CALL_NOT_IN_CARBON}
+
+{$endc}  { TARGET_OS_WIN32 }
+
 {
  *  QTMLGetCanonicalPathName()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 3.0 and later
  }
-function QTMLGetCanonicalPathName(inName: CStringPtr; outName: CStringPtr; outLen: UInt32): OSErr; external name '_QTMLGetCanonicalPathName';
 
-{$endc}  {CALL_NOT_IN_CARBON}
 
 const
-	kFullNativePath				= 0;
-	kFileNameOnly				= $01;
-	kDirectoryPathOnly			= $02;
-	kUFSFullPathName			= $04;
-	kTryVDIMask					= $08;							{     Used in NativePathNameToFSSpec to specify to search VDI mountpoints }
-	kFullPathSpecifiedMask		= $10;							{     the passed in name is a fully qualified full path }
+	kFullNativePath = 0;
+	kFileNameOnly = 1 shl 0;
+	kDirectoryPathOnly = 1 shl 1;
+	kUFSFullPathName = 1 shl 2;
+	kTryVDIMask = 1 shl 3; {    Used in NativePathNameToFSSpec to specify to search VDI mountpoints}
+	kFullPathSpecifiedMask = 1 shl 4; {    the passed in name is a fully qualified full path}
 
-{$ifc CALL_NOT_IN_CARBON}
-	{
-	 *  FSSpecToNativePathName()
-	 *  
-	 *  Availability:
-	 *    Non-Carbon CFM:   not available
-	 *    CarbonLib:        not available
-	 *    Mac OS X:         not available
-	 *    Windows:          in qtmlClient.lib 3.0 and later
-	 	}
-function FSSpecToNativePathName(const (*var*) inFile: FSSpec; outName: CStringPtr; outLen: UInt32; flags: SInt32): OSErr; external name '_FSSpecToNativePathName';
+{
+ *  FSSpecToNativePathName()
+ *  
+ *  Availability:
+ *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ *    Windows:          in qtmlClient.lib 3.0 and later
+ }
 
-{$endc}  {CALL_NOT_IN_CARBON}
 
 const
-	kErrorIfFileNotFound		= $80000000;
+	kErrorIfFileNotFound = 1 shl 31;
 
-{$ifc CALL_NOT_IN_CARBON}
-	{
-	 *  NativePathNameToFSSpec()
-	 *  
-	 *  Availability:
-	 *    Non-Carbon CFM:   not available
-	 *    CarbonLib:        not available
-	 *    Mac OS X:         not available
-	 *    Windows:          in qtmlClient.lib 3.0 and later
-	 	}
-function NativePathNameToFSSpec(inName: CStringPtr; var outFile: FSSpec; flags: SInt32): OSErr; external name '_NativePathNameToFSSpec';
+{
+ *  NativePathNameToFSSpec()
+ *  
+ *  Availability:
+ *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ *    Windows:          in qtmlClient.lib 3.0 and later
+ }
+
 
 {
  *  QTGetAliasInfo()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  *    Windows:          in qtmlClient.lib 5.0 and later
  }
-function QTGetAliasInfo(alias: AliasHandle; index: AliasInfoType; outBuf: CStringPtr; bufLen: SInt32; var outLen: SInt32; flags: UInt32): OSErr; external name '_QTGetAliasInfo';
 
-{$endc}  {CALL_NOT_IN_CARBON}
-{$endc}
+{$endc} {not TARGET_CPU_64}
 
-{$ALIGN MAC68K}
+{$endc} {TARGET_OS_MAC}
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

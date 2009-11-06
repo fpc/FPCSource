@@ -1,12 +1,11 @@
 {
-     File:       AppleHelp.p
+     File:       Help/AppleHelp.h
  
      Contains:   Apple Help
  
-     Version:    Technology: Mac OS X/CarbonLib 1.1
-                 Release:    Universal Interfaces 3.4.2
+     Version:    Help-36~232
  
-     Copyright:  © 2000-2002 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 2000-2008 by Apple Computer, Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,14 +13,14 @@
                      http://www.freepascal.org/bugs.html
  
 }
-
-
+{       Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -30,8 +29,8 @@
 
 unit AppleHelp;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -44,16 +43,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -61,14 +82,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -94,7 +166,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -105,59 +176,64 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes,CFBase,Files,CFString;
+{$endc} {not MACOSALLINCLUDE}
 
 
-{$ALIGN MAC68K}
+{$ifc TARGET_OS_MAC}
+
+{$ALIGN POWER}
 
 { AppleHelp Error Codes }
-
 const
-	kAHInternalErr				= -10790;
-	kAHInternetConfigPrefErr	= -10791;
+	kAHInternalErr = -10790;
+	kAHInternetConfigPrefErr = -10791;
 
 
 type
-	AHTOCType 					= SInt16;
+	AHTOCType = SInt16;
 const
-	kAHTOCTypeUser				= 0;
-	kAHTOCTypeDeveloper			= 1;
-
-	{
-	 *  AHSearch()
-	 *  
-	 *  Discussion:
-	 *    Delivers a request to perform the specified search to the Help
-	 *    Viewer application.
-	 *  
-	 *  Parameters:
-	 *    
-	 *    bookname:
-	 *      Optionally, the AppleTitle of the Help book to be searched. If
-	 *      NULL, all installed Help books are searched.
-	 *    
-	 *    query:
-	 *      The query to be made. This string can, if desired, have boolean
-	 *      operators or be a natural language phrase.
-	 *  
-	 *  Result:
-	 *    An operating system result code that indicates whether the
-	 *    request was successfully sent to the Help Viewer application.
-	 *    Possible values: noErr, paramErr, kAHInternalErr,
-	 *    kAHInternetConfigPrefErr.
-	 *  
-	 *  Availability:
-	 *    Non-Carbon CFM:   not available
-	 *    CarbonLib:        in CarbonLib 1.1 and later
-	 *    Mac OS X:         in version 10.0 and later
-	 	}
-function AHSearch(bookname: CFStringRef; query: CFStringRef): OSStatus; external name '_AHSearch';
+	kAHTOCTypeUser = 0;
+	kAHTOCTypeDeveloper = 1;
 
 {
- *  AHGotoMainTOC()
+ *  AHSearch()
+ *  
+ *  Discussion:
+ *    Delivers a request to perform the specified search to the Help
+ *    Viewer application.
+ *  
+ *  Parameters:
+ *    
+ *    bookname:
+ *      Optionally, the AppleTitle of the Help book to be searched. If
+ *      NULL, all installed Help books are searched.
+ *    
+ *    query:
+ *      The query to be made. This string can, if desired, have boolean
+ *      operators or be a natural language phrase.
+ *  
+ *  Result:
+ *    An operating system result code that indicates whether the
+ *    request was successfully sent to the Help Viewer application.
+ *    Possible values: noErr, paramErr, kAHInternalErr.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    CarbonLib:        in CarbonLib 1.1 and later
+ *    Non-Carbon CFM:   not available
+ }
+function AHSearch( bookname: CFStringRef; query: CFStringRef ): OSStatus; external name '_AHSearch';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
+{
+ *  AHGotoMainTOC()   *** DEPRECATED ***
  *  
  *  Discussion:
  *    Delivers a request to load the main table of contents of
- *    installed help books to the Help Viewer application.
+ *    installed help books to the Help Viewer application. This method
+ *    has been deprecated in Mac OS X 10.4. Instead, please use
+ *    AHGotoPage to jump directly to different books or anchors.
  *  
  *  Parameters:
  *    
@@ -167,15 +243,16 @@ function AHSearch(bookname: CFStringRef; query: CFStringRef): OSStatus; external
  *  Result:
  *    An operating system result code that indicates whether the
  *    request was successfully sent to the Help Viewer application.
- *    Possible values: noErr, paramErr, kAHInternalErr,
- *    kAHInternetConfigPrefErr.
+ *    Possible values: noErr, paramErr, kAHInternalErr.
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   not available
  }
-function AHGotoMainTOC(toctype: AHTOCType): OSStatus; external name '_AHGotoMainTOC';
+function AHGotoMainTOC( toctype: AHTOCType ): OSStatus; external name '_AHGotoMainTOC';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  AHGotoPage()
@@ -206,15 +283,16 @@ function AHGotoMainTOC(toctype: AHTOCType): OSStatus; external name '_AHGotoMain
  *  Result:
  *    An operating system result code that indicates whether the
  *    request was successfully sent to the Help Viewer application.
- *    Possible values: noErr, paramErr, kAHInternalErr,
- *    kAHInternetConfigPrefErr.
+ *    Possible values: noErr, paramErr, kAHInternalErr.
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   not available
  }
-function AHGotoPage(bookname: CFStringRef; path: CFStringRef; anchor: CFStringRef): OSStatus; external name '_AHGotoPage';
+function AHGotoPage( bookname: CFStringRef; path: CFStringRef; anchor: CFStringRef ): OSStatus; external name '_AHGotoPage';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
  *  AHLookupAnchor()
@@ -238,15 +316,15 @@ function AHGotoPage(bookname: CFStringRef; path: CFStringRef; anchor: CFStringRe
  *  Result:
  *    An operating system result code that indicates whether the
  *    request was successfully sent to the Help Viewer application.
- *    Possible values: noErr, paramErr, kAHInternalErr,
- *    kAHInternetConfigPrefErr.
+ *    Possible values: noErr, paramErr, kAHInternalErr.
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   not available
  }
-function AHLookupAnchor(bookname: CFStringRef; anchor: CFStringRef): OSStatus; external name '_AHLookupAnchor';
+function AHLookupAnchor( bookname: CFStringRef; anchor: CFStringRef ): OSStatus; external name '_AHLookupAnchor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
 {
@@ -272,13 +350,19 @@ function AHLookupAnchor(bookname: CFStringRef; anchor: CFStringRef): OSStatus; e
  *    Possible values: noErr, paramErr, kAHInternalErr, dirNFErr.
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.1 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   not available
  }
-function AHRegisterHelpBook(const (*var*) appBundleRef: FSRef): OSStatus; external name '_AHRegisterHelpBook';
+function AHRegisterHelpBook( const (*var*) appBundleRef: FSRef ): OSStatus; external name '_AHRegisterHelpBook';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
-{$ALIGN MAC68K}
 
+function AHRegisterHelpBookWithURL( {const} applicationURL: CFURLRef ): OSStatus; external name '_AHRegisterHelpBookWithURL';
+(* AVAILABLE_MAC_OS_X_VERSION_10_6_AND_LATER *)
+
+{$endc} {TARGET_OS_MAC}
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

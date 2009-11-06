@@ -3,9 +3,9 @@
  
      Contains:   HIToolbox HITheme interfaces.
  
-     Version:    HIToolbox-219.4.81~2
+     Version:    HIToolbox-437~1
  
-     Copyright:  © 1994-2005 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 1994-2008 by Apple Computer, Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -15,12 +15,14 @@
 }
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -29,8 +31,8 @@
 
 unit HITheme;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -43,16 +45,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -60,14 +84,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -93,7 +168,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -103,8 +177,12 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,CFBase,CGBase,Appearance,HIShape,HIGeometry,Drag,CFDate,CGContext,MacWindows,Controls;
+uses MacTypes,CFBase,CGBase,Appearance,HIShape,HIGeometry,Drag,CFDate,CGContext,MacWindows,Controls,CTFont;
+{$endc} {not MACOSALLINCLUDE}
 
+
+
+{$ifc TARGET_OS_MAC}
 
 {$ALIGN MAC68K}
 
@@ -236,6 +314,24 @@ const
 	kHIThemeFrameTextFieldSquare = 0;
 	kHIThemeFrameListBox = 1;
 
+  {
+   * The standard sized round text field, as typically used for search
+   * fields. Available on Mac OS X 10.3 and later.
+   }
+	kHIThemeFrameTextFieldRound = 1000;
+
+  {
+   * The small size round text field, as typically used for search
+   * fields. Available on Mac OS X 10.3 and later.
+   }
+	kHIThemeFrameTextFieldRoundSmall = 1001;
+
+  {
+   * The mini size round text field, as typically used for search
+   * fields. Available on Mac OS X 10.3 and later.
+   }
+	kHIThemeFrameTextFieldRoundMini = 1002;
+
 type
 	HIThemeFrameKind = UInt32;
 
@@ -281,7 +377,7 @@ type
   {
    * The view range size.
    }
-		viewsize: Float32;
+		viewsize: CGFloat;
 	end;
 	HIScrollBarTrackInfoPtr = ^HIScrollBarTrackInfo;
 
@@ -349,18 +445,18 @@ type
   {
    * Leave this reserved field set to 0.
    }
-		filler1: SInt8;
+		filler1: UInt8;
 
-	case SInt16 of
-		0: (
-			scrollbar: ScrollBarTrackInfo;
-		   );
-		1: (
-			slider: SliderTrackInfo;
-			);
-		2: (
-			progress: ProgressTrackInfo;
-			);
+		case SInt16 of
+			0: (
+				scrollbar: ScrollBarTrackInfo;
+			   );
+			1: (
+				slider: SliderTrackInfo;
+				);
+			2: (
+				progress: ProgressTrackInfo;
+				);
 	end;
 	HIThemeTrackDrawInfoPtr = ^HIThemeTrackDrawInfo;
 
@@ -451,13 +547,13 @@ type
    * or measured.
    }
 		adornment: ThemeButtonAdornment;
-	case SInt16 of
-		0: (
-				time: HIThemeAnimationTimeInfo;
-		   );
-		1: (
-				frame: HIThemeAnimationFrameInfo;
-			);
+		case SInt16 of
+			0: (
+					time: HIThemeAnimationTimeInfo;
+			   );
+			1: (
+					frame: HIThemeAnimationFrameInfo;
+				);
 	end;
 	HIThemeButtonDrawInfoPtr = ^HIThemeButtonDrawInfo;
 
@@ -681,7 +777,7 @@ type
 type
 	HIThemeTabPaneDrawInfo = record
 {
-   * The version of this data structure.  Currently, it is always 0.
+   * The version of this data structure.  Currently, it is always 1.
    }
 		version: UInt32;
 
@@ -733,8 +829,75 @@ type
 		size: HIThemeTabSize;
 	end;
 
+const
+{
+   * Available in Mac OS X 10.3 and later. Valid fields for this
+   * version are version and menuType.
+   }
+	kHIThemeMenuDrawInfoVersionZero = 0;
+
+  {
+   * Available in Mac OS X 10.5 and later. Valid fields for this
+   * version are all those in the zero version as well as the
+   * menuDirection field.
+   }
+	kHIThemeMenuDrawInfoVersionOne = 1001;
+
+
 {
  *  HIThemeMenuDrawInfo
+ *  
+ *  Summary:
+ *    Drawing parameters passed to menu drawing and measuring theme
+ *    APIs.
+ *  
+ *  Discussion:
+ *    New in Mac OS X 10.3; revised in Mac OS X 10.5.
+ }
+type
+	HIThemeMenuDrawInfo = record
+{
+   * The version of this data structure. Use
+   * kHIThemeMenuDrawInfoVersionZero or kHIThemeMenuDrawInfoVersionOne.
+   }
+		version: UInt32;
+
+  {
+   * A ThemeMenuType indicating which type of menu is to be drawn.
+   }
+		menuType: ThemeMenuType;
+
+  {
+   * Must be zero.
+   }
+		reserved1: UNSIGNEDLONG;
+
+  {
+   * Must be zero.
+   }
+		reserved2: CGFloat;
+
+  {
+   * kHIMenuRightDirection or kHIMenuLeftDirection as declared in
+   * <CarbonEvents.h>. Only interpreted if the version is
+   * kHIThemeMenuDrawInfoVersionOne and the menu type is hierarchical.
+   }
+		menuDirection: UInt32;
+
+  {
+   * Must be zero.
+   }
+		reserved3: CGFloat;
+
+  {
+   * Must be zero.
+   }
+		reserved4: CGFloat;
+	end;
+	HIThemeMenuDrawInfoPtr = ^HIThemeMenuDrawInfo;
+
+{
+ *  HIThemeMenuDrawInfoVersionZero
  *  
  *  Summary:
  *    Drawing parameters passed to menu drawing and measuring theme
@@ -744,9 +907,9 @@ type
  *    New in Mac OS X 10.3.
  }
 type
-	HIThemeMenuDrawInfo = record
+	HIThemeMenuDrawInfoVersionZero = record
 {
-   * The version of this data structure.  Currently, it is always 0.
+   * The version of this data structure. Always 0.
    }
 		version: UInt32;
 
@@ -755,7 +918,7 @@ type
    }
 		menuType: ThemeMenuType;
 	end;
-	HIThemeMenuDrawInfoPtr = ^HIThemeMenuDrawInfo;
+	HIThemeMenuDrawInfoVersionZeroPtr = ^HIThemeMenuDrawInfoVersionZero;
 
 {
  *  HIThemeMenuItemDrawInfo
@@ -953,7 +1116,7 @@ type
   {
    * The attributes of the menu bar to be drawn.
    }
-		attributes: UInt32;
+		attributes: OptionBits;
 	end;
 	HIThemeMenuBarDrawInfoPtr = ^HIThemeMenuBarDrawInfo;
 
@@ -982,7 +1145,7 @@ type
    * The attributes of the menu title to be drawn. Must be either 0 or
    * kHIThemeMenuTitleDrawCondensed.
    }
-		attributes: UInt32;
+		attributes: OptionBits;
 
   {
    * The border space between the menu title rect and the menu title
@@ -994,7 +1157,7 @@ type
    * &extra, true ). You may pass 0 in this field to use the minimum
    * condensed title extra.
    }
-		condensedTitleExtra: Float32;
+		condensedTitleExtra: CGFloat;
 	end;
 	HIThemeMenuTitleDrawInfoPtr = ^HIThemeMenuTitleDrawInfo;
 
@@ -1058,12 +1221,12 @@ type
   {
    * The height of the title of the window.
    }
-		titleHeight: Float32;
+		titleHeight: CGFloat;
 
   {
    * The width of the title of the window.
    }
-		titleWidth: Float32;
+		titleWidth: CGFloat;
 	end;
 	HIThemeWindowDrawInfoPtr = ^HIThemeWindowDrawInfo;
 
@@ -1115,12 +1278,12 @@ type
   {
    * The height of the title of the window.
    }
-		titleHeight: Float32;
+		titleHeight: CGFloat;
 
   {
    * The width of the title of the window.
    }
-		titleWidth: Float32;
+		titleWidth: CGFloat;
 	end;
 	HIThemeWindowWidgetDrawInfoPtr = ^HIThemeWindowWidgetDrawInfo;
 
@@ -1303,9 +1466,7 @@ type
 		version: UInt32;
 
   {
-   * The ThemeDrawState of the background to be drawn. Currently,
-   * HIThemeDrawBackground backgrounds do not have state, so this field
-   * has no meaning. Set it to kThemeStateActive.
+   * The ThemeDrawState of the background to be drawn.
    }
 		state: ThemeDrawState;
 
@@ -1805,19 +1966,26 @@ type
 
 {
  *  Summary:
- *    Available values for HIThemeSegmentKind.
+ *    Available values for HIThemeSegmentKind available on Mac OS X
+ *    10.4 a later.
  }
 const
 {
-   * The outset looking segment. Do not use on metal or metal-like
+   * The segment to use on non-textured windows. Do not use on textured
    * windows.
    }
 	kHIThemeSegmentKindNormal = 0;
 
   {
-   * The inset segment. Use on metal or metal-like windows.
+   * The textured segment. Use on textured windows.
    }
-	kHIThemeSegmentKindInset = 1;
+	kHIThemeSegmentKindTextured = 1;
+
+  {
+   * This is a synonym for kHIThemeSegmentKindTextured for code
+   * compatibility. Please use kHIThemeSegmentKindTextured instead.
+   }
+	kHIThemeSegmentKindInset = kHIThemeSegmentKindTextured;
 
 type
 	HIThemeSegmentKind = UInt32;
@@ -1833,12 +2001,12 @@ const
 	kHIThemeSegmentSizeNormal = 0;
 
   {
-   * The small segment. Not available with as inset.
+   * The small segment. Not available as textured.
    }
 	kHIThemeSegmentSizeSmall = 1;
 
   {
-   * The mini segment. Not available with as inset.
+   * The mini segment. Not available as textured.
    }
 	kHIThemeSegmentSizeMini = 3;
 
@@ -2204,6 +2372,7 @@ const
    * line.
    }
 	kHIThemeTextTruncationEnd = 2;
+	kHIThemeTextTruncationDefault = 3;
 
 type
 	HIThemeTextTruncation = UInt32;
@@ -2225,6 +2394,7 @@ const
    * box.
    }
 	kHIThemeTextHorizontalFlushRight = 2;
+	kHIThemeTextHorizontalFlushDefault = 3;
 
 type
 	HIThemeTextHorizontalFlush = UInt32;
@@ -2244,18 +2414,55 @@ const
    * Draw the text vertically flush with the bottom of the box
    }
 	kHIThemeTextVerticalFlushBottom = 2;
+	kHIThemeTextVerticalFlushDefault = 3;
 
 type
 	HIThemeTextVerticalFlush = UInt32;
 
 const
 	kHIThemeTextBoxOptionNone = 0;
+
+  {
+   * Is the text strongly vertical? This option bit is not correctly
+   * respected and will have no effect if used.
+   }
 	kHIThemeTextBoxOptionStronglyVertical = 1 shl 1;
+
+  {
+   * Draw the text with an engraved look, suitable for use on the Mac
+   * OS X 10.5 dark window backgrounds or on the bodies of some
+   * controls.
+   }
+	kHIThemeTextBoxOptionEngraved = 1 shl 2;
+
+  {
+   * By default, HIThemeDrawTextBox will clip the text to the rectangle
+   * specified by the inBounds parameter. With some fonts or styles,
+   * text may draw outside of the drawing rectangle and will be
+   * clipped. If this bit is set, HIThemeDrawTextBox will not clip
+   * drawing to its inBounds parameter. Available in Mac OS X 10.4 and
+   * later.
+   }
+	kHIThemeTextBoxOptionDontClip = 1 shl 18;
 
 type
 	HIThemeTextBoxOptions = OptionBits;
+
 const
+{
+   * Available in Mac OS X 10.3 and later. Valid fields for this
+   * version are version, state, fontID, horizontalFlushness,
+   * verticalFlushness, options, truncationPosition, truncationMaxLines
+   * and truncationHappened.
+   }
 	kHIThemeTextInfoVersionZero = 0;
+
+  {
+   * Available in Mac OS X 10.5 and later. Valid fields for this
+   * version are all those in the zero version as well as the font
+   * field.
+   }
+	kHIThemeTextInfoVersionOne = 1;
 
 
 {
@@ -2275,9 +2482,9 @@ const
 type
 	HIThemeTextInfo = record
 {
-   * The version of this data structure. Currently, it is always 0.
+   * The version of this data structure. Currently, it is always 1.
    }
-		version: UInt32;                { current version is 0 }
+		version: UInt32;
 
   {
    * The theme draw state in which to draw the string.
@@ -2297,7 +2504,7 @@ type
    * same flushness that will be used with a subsequent draw will
    * trigger a performance optimization.
    }
-		horizontalFlushness: HIThemeTextHorizontalFlush; { kHIThemeTextHorizontalFlush[Left/Center/Right] }
+		horizontalFlushness: HIThemeTextHorizontalFlush;
 
   {
    * The vertical flushness of the text. One of the
@@ -2307,33 +2514,43 @@ type
    * flushness that will be used with a subsequent draw will trigger a
    * performance optimization.
    }
-		verticalFlushness: HIThemeTextVerticalFlush; { kHIThemeTextVerticalFlush[Top/Center/Bottom] }
+		verticalFlushness: HIThemeTextVerticalFlush;
 
   {
    * Currently, the only option available is for strongly vertical text
    * with the kThemeTextBoxOptionStronglyVertical option bit.
    }
-		options: HIThemeTextBoxOptions;             { includes kHIThemeTextBoxOptionStronglyVertical }
+		options: HIThemeTextBoxOptions;
 
   {
    * Specifies where truncation should occur. If this field is
-   * kHIThemeTruncationNone, no truncation will occur, and all fields
-   * with the truncation prefix will be ignored.
+   * kHIThemeTextTruncationNone, no truncation will occur, and all
+   * fields with the truncation prefix will be ignored.
    }
-		truncationPosition: HIThemeTextTruncation;  { kHIThemeTextTruncation[None/Middle/End], If none the following field is ignored }
+		truncationPosition: HIThemeTextTruncation;
 
   {
    * The maximum number of lines to measure or draw before truncation
-   * occurs. Ignored if truncationPosition is kHIThemeTruncationNone.
+   * occurs. Ignored if truncationPosition is
+   * kHIThemeTextTruncationNone.
    }
-		truncationMaxLines: UInt32;     { the maximum number of lines before truncation occurs }
+		truncationMaxLines: UInt32;
 
   {
    * On output, if the text has been truncated, this is set to true. If
    * the text fit completely within the parameters specified and the
    * text was not truncated, this is set to false.
    }
-		truncationHappened: Boolean;     { on output, whether truncation needed to happen }
+		truncationHappened: Boolean;
+		filler1: UInt8;
+
+  {
+   * If fontID is kThemeSpecifiedFont and the version is 1, this
+   * CTFontRef will be used for measuring and rendering of the string.
+   * If the fontID is anything other than kThemeSpecifiedFont or the
+   * version is not 1, this field is ignored.
+   }
+		font: CTFontRef;
 	end;
 	HIThemeTextInfoPtr = ^HIThemeTextInfo;
 {
@@ -2358,7 +2575,10 @@ type
  *      measure. You MUST NOT pass in a CFStringRef that was allocated
  *      with any of the "NoCopy" CFString creation APIs; a string
  *      created with a "NoCopy" API has transient storage which is
- *      incompatible with HIThemeGetTextDimensions's caches.
+ *      incompatible with HIThemeGetTextDimensions's caches. 
+ *      
+ *      In Mac OS X 10.5 and later, this API may also be passed a
+ *      CFAttributedStringRef.
  *    
  *    inWidth:
  *      The width to constrain the text before wrapping. If inWidth is
@@ -2400,7 +2620,7 @@ type
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
-function HIThemeGetTextDimensions( inString: CFStringRef; inWidth: Float32; var inTextInfo: HIThemeTextInfo; outWidth: Float32Ptr { can be NULL }; outHeight: Float32Ptr { can be NULL }; outBaseline: Float32Ptr { can be NULL } ): OSStatus; external name '_HIThemeGetTextDimensions';
+function HIThemeGetTextDimensions( inString: CFStringRef; inWidth: CGFloat; var inTextInfo: HIThemeTextInfo; outWidth: CGFloatPtr { can be NULL }; outHeight: CGFloatPtr { can be NULL }; outBaseline: CGFloatPtr { can be NULL } ): OSStatus; external name '_HIThemeGetTextDimensions';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
@@ -2425,7 +2645,10 @@ function HIThemeGetTextDimensions( inString: CFStringRef; inWidth: Float32; var 
  *      render. You MUST NOT pass in a CFStringRef that was allocated
  *      with any of the "NoCopy" CFString creation APIs; a string
  *      created with a "NoCopy" API has transient storage which is
- *      incompatible with HIThemeDrawTextBox's caches.
+ *      incompatible with HIThemeDrawTextBox's caches. 
+ *      
+ *      In Mac OS X 10.5 and later, this API may also be passed a
+ *      CFAttributedStringRef.
  *    
  *    inBounds:
  *      The HIRect that bounds where the text is to be drawn
@@ -2455,6 +2678,42 @@ function HIThemeGetTextDimensions( inString: CFStringRef; inWidth: Float32; var 
  }
 function HIThemeDrawTextBox( inString: CFStringRef; const (*var*) inBounds: HIRect; var inTextInfo: HIThemeTextInfo; inContext: CGContextRef; inOrientation: HIThemeOrientation ): OSStatus; external name '_HIThemeDrawTextBox';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+
+
+{
+ *  HIThemeGetUIFontType()
+ *  
+ *  Summary:
+ *    Returns the CTFontUIFontType for a ThemeFontID
+ *  
+ *  Discussion:
+ *    It is possible to create a CTFontRef that represents a
+ *    ThemeFontID by using this API in conjunction with
+ *    CTFontCreateUIFontForLanguage. 
+ *    
+ *    Suggested usage: 
+ *    CTFontRef font = CTFontCreateUIFontForLanguage(
+ *    HIThemeGetUIFontType( inFontID ), 0, NULL );
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inFontID:
+ *      The ThemeFontID to map to a CTFontUIFontType.
+ *  
+ *  Result:
+ *    The CTFontUIFontType that represents the ThemeFontID or
+ *    kCTFontNoFontType if there is an error.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in Carbon.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function HIThemeGetUIFontType( inFontID: ThemeFontID ): CTFontUIFontType; external name '_HIThemeGetUIFontType';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
 
 { -------------------------------------------------------------------------- }
@@ -2808,7 +3067,7 @@ function HIThemeGetTrackDragRect( const (*var*) inDrawInfo: HIThemeTrackDrawInfo
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
-function HIThemeGetTrackThumbPositionFromOffset( const (*var*) inDrawInfo: HIThemeTrackDrawInfo; const (*var*) inThumbOffset: HIPoint; var outRelativePosition: Float32 ): OSStatus; external name '_HIThemeGetTrackThumbPositionFromOffset';
+function HIThemeGetTrackThumbPositionFromOffset( const (*var*) inDrawInfo: HIThemeTrackDrawInfo; const (*var*) inThumbOffset: HIPoint; var outRelativePosition: CGFloat ): OSStatus; external name '_HIThemeGetTrackThumbPositionFromOffset';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
@@ -2840,7 +3099,7 @@ function HIThemeGetTrackThumbPositionFromOffset( const (*var*) inDrawInfo: HIThe
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
-function HIThemeGetTrackThumbPositionFromBounds( const (*var*) inDrawInfo: HIThemeTrackDrawInfo; const (*var*) inThumbBounds: HIRect; var outRelativePosition: Float32 ): OSStatus; external name '_HIThemeGetTrackThumbPositionFromBounds';
+function HIThemeGetTrackThumbPositionFromBounds( const (*var*) inDrawInfo: HIThemeTrackDrawInfo; const (*var*) inThumbBounds: HIRect; var outRelativePosition: CGFloat ): OSStatus; external name '_HIThemeGetTrackThumbPositionFromBounds';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
@@ -2871,7 +3130,7 @@ function HIThemeGetTrackThumbPositionFromBounds( const (*var*) inDrawInfo: HIThe
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
-function HIThemeGetTrackLiveValue( const (*var*) inDrawInfo: HIThemeTrackDrawInfo; inRelativePosition: Float32; var outValue: SInt32 ): OSStatus; external name '_HIThemeGetTrackLiveValue';
+function HIThemeGetTrackLiveValue( const (*var*) inDrawInfo: HIThemeTrackDrawInfo; inRelativePosition: CGFloat; var outValue: SInt32 ): OSStatus; external name '_HIThemeGetTrackLiveValue';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
@@ -3235,7 +3494,7 @@ function HIThemeGetWindowRegionHit( const (*var*) inContRect: HIRect; const (*va
  *  HIThemeDrawFrame()
  *  
  *  Summary:
- *    Draws a variety of frames frame.
+ *    Draws a variety of frames.
  *  
  *  Mac OS X threading:
  *    Not thread safe
@@ -3315,7 +3574,9 @@ function HIThemeDrawGroupBox( const (*var*) inRect: HIRect; const (*var*) inDraw
  *    
  *    inDrawInfo:
  *      An HIThemeButtonDrawInfo that describes attributes of the well
- *      to be drawn.
+ *      to be drawn. Set the kThemeAdornmentDefault bit of the
+ *      adornment field of this structure to also draw the center of
+ *      the well.
  *    
  *    inContext:
  *      The CG context in which the drawing is to be done.
@@ -3497,6 +3758,112 @@ function HIThemeDrawHeader( const (*var*) inRect: HIRect; const (*var*) inDrawIn
  }
 function HIThemeDrawFocusRect( const (*var*) inRect: HIRect; inHasFocus: Boolean; inContext: CGContextRef; inOrientation: HIThemeOrientation ): OSStatus; external name '_HIThemeDrawFocusRect';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+
+
+const
+{
+   * Draw the visual focus only, and not any of the draw operations
+   * that form its shape.
+   }
+	kHIThemeFocusRingOnly = 0;
+
+  {
+   * Draw the visual focus above the results of the draw operations
+   * that form its shape.
+   }
+	kHIThemeFocusRingAbove = 1;
+
+  {
+   * Draw the visual focus below the results of the draw operations
+   * that form its shape.
+   }
+	kHIThemeFocusRingBelow = 2;
+
+
+type
+	HIThemeFocusRing = UInt32;
+{
+ *  HIThemeBeginFocus()
+ *  
+ *  Summary:
+ *    Begin focus drawing.
+ *  
+ *  Discussion:
+ *    Call HIThemeBeginFocus to begin focus drawing. All drawing
+ *    operations in the specified context after this call will be drawn
+ *    with a visual representation of focus. Currently, this is a
+ *    theme-tinted halo resembling a glow. Note that nothing will be
+ *    drawn in the specified context until HIThemeEndFocus is called. A
+ *    call to HIThemeBeginFocus must always be paired with an
+ *    HIThemeEndFocus call. Nesting these calls will not crash but the
+ *    results will be odd and is definitely not recommended.
+ *    HIThemeBegin/EndFocus is designed to replace
+ *    DrawThemeFocusRegion. For efficiency, clipping the context to the
+ *    bounds that will be drawn into is highly desirable.
+ *    HIThemeBeginFocus may do some allocations that are affected by
+ *    the size of the context's clip at the time it is called -- so an
+ *    extremely large clip or an unset clip may cause a large,
+ *    inefficient allocation.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inContext:
+ *      The CG context in which the focus is to be drawn.
+ *    
+ *    inRing:
+ *      An HIThemeFocusRing indicating which type of focus is to be
+ *      drawn.
+ *    
+ *    inReserved:
+ *      Always pass NULL for this parameter.
+ *  
+ *  Result:
+ *    A result code indicating success or failure. Don't call
+ *    HIThemeEndFocus on the context if HIThemeBeginFocus fails.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in Carbon.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function HIThemeBeginFocus( inContext: CGContextRef; inRing: HIThemeFocusRing; inReserved: UnivPtr ): OSStatus; external name '_HIThemeBeginFocus';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+
+
+{
+ *  HIThemeEndFocus()
+ *  
+ *  Summary:
+ *    End focus drawing.
+ *  
+ *  Discussion:
+ *    See HIThemeBeginFocus for focus drawing details. Calling
+ *    HIThemeEndFocus indicates that the drawing operations to be
+ *    focused are complete.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inContext:
+ *      The CG context in which the focus is to be drawn. This needs to
+ *      be the same context passed to the HIThemeBeginFocus call with
+ *      which this call to HIThemeEndFocus is paired.
+ *  
+ *  Result:
+ *    A result code indicating success or failure.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in Carbon.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function HIThemeEndFocus( inContext: CGContextRef ): OSStatus; external name '_HIThemeEndFocus';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
 
 {
@@ -3769,6 +4136,760 @@ function HIThemeBrushCreateCGColor( inBrush: ThemeBrush; var outColor: CGColorRe
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 
+{
+ *  HIThemeGetTextColorForThemeBrush()
+ *  
+ *  Summary:
+ *    Returns an appropriate ThemeTextColor that matches a ThemeBrush.
+ *  
+ *  Discussion:
+ *    Creates a ThemeTextColor for use with HIThemeSetTextFill.
+ *    ThemeTextColors are currently availabe for these theme brushes:
+ *    
+ *    
+ *    kThemeBrushDialogBackgroundActive/Inactive 
+ *    
+ *    kThemeBrushAlertBackgroundActive/Inactive 
+ *    
+ *    kThemeBrushModelessDialogBackgroundActive/Inactive 
+ *    <BR> kThemeBrushNotificationWindowBackground
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inBrush:
+ *      The ThemeBrush describing the requested color.
+ *    
+ *    inWindowIsActive:
+ *      Whether the text color should indicate an active or inactive
+ *      state.
+ *    
+ *    outColor:
+ *      A pointer to a ThemeTextColor that will be set to the matched
+ *      color.
+ *  
+ *  Result:
+ *    An operating system result code. themeNoAppropriateBrushErr will
+ *    be returned if no matching ThemeTextColor exists.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in Carbon.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function HIThemeGetTextColorForThemeBrush( inBrush: ThemeBrush; inWindowIsActive: Boolean; var outColor: ThemeTextColor ): OSStatus; external name '_HIThemeGetTextColorForThemeBrush';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
+
+{ The following routines were in Appearance.h prior to 10.6 }
+{
+ *  GetThemeMenuSeparatorHeight()
+ *  
+ *  Summary:
+ *    Returns the height of a menu item separator, in points.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    outHeight:
+ *      On exit, contains the height of a menu item separator, in
+ *      points.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
+ }
+function GetThemeMenuSeparatorHeight( var outHeight: SInt16 ): OSStatus; external name '_GetThemeMenuSeparatorHeight';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
+{
+ *  GetThemeMenuItemExtra()
+ *  
+ *  Summary:
+ *    Returns the extra width and height required for a menu item
+ *    beyond the height of the text.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inItemType:
+ *      The type of menu item. These are defined in Appearance.h.
+ *    
+ *    outHeight:
+ *      Extra height, in points, for this item type.
+ *    
+ *    outWidth:
+ *      Extra width, in points, for this item type.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
+ }
+function GetThemeMenuItemExtra( inItemType: ThemeMenuItemType; var outHeight: SInt16; var outWidth: SInt16 ): OSStatus; external name '_GetThemeMenuItemExtra';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
+{
+ *  GetThemeMenuTitleExtra()
+ *  
+ *  Summary:
+ *    Returns the extra width for a menu title, in points.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    outWidth:
+ *      On exit, contains the extra menu title width, in points.
+ *    
+ *    inIsSquished:
+ *      Indicates whether the menu title is being drawn with a
+ *      condensed appearance.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in AppearanceLib 1.0 and later
+ }
+function GetThemeMenuTitleExtra( var outWidth: SInt16; inIsSquished: Boolean ): OSStatus; external name '_GetThemeMenuTitleExtra';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
+{ The ThemeMetric values are defined in Appearance.h }
+
+{
+ *  Summary:
+ *    Theme metrics allow you to find out sizes of things in the
+ *    current environment, such as how wide a scroll bar is, etc.
+ *  
+ *  Discussion:
+ *    ThemeMetrics
+ }
+const
+{
+   * The width (or height if horizontal) of a scroll bar.
+   }
+	kThemeMetricScrollBarWidth = 0;
+
+  {
+   * The width (or height if horizontal) of a small scroll bar.
+   }
+	kThemeMetricSmallScrollBarWidth = 1;
+
+  {
+   * The height of the non-label part of a check box control.
+   }
+	kThemeMetricCheckBoxHeight = 2;
+
+  {
+   * The height of the non-label part of a radio button control.
+   }
+	kThemeMetricRadioButtonHeight = 3;
+
+  {
+   * The amount of white space surrounding the text Rect of the text
+   * inside of an Edit Text control.  If you select all of the text in
+   * an Edit Text control, you can see the white space. The metric is
+   * the number of pixels, per side, that the text Rect is outset to
+   * create the whitespace Rect.
+   }
+	kThemeMetricEditTextWhitespace = 4;
+
+  {
+   * The thickness of the Edit Text frame that surrounds the whitespace
+   * Rect (that is surrounding the text Rect). The metric is the number
+   * of pixels, per side, that the frame Rect is outset from the
+   * whitespace Rect.
+   }
+	kThemeMetricEditTextFrameOutset = 5;
+
+  {
+   * The number of pixels that the list box frame is outset from the
+   * content of the list box.
+   }
+	kThemeMetricListBoxFrameOutset = 6;
+
+  {
+   * Describes how far outside of the input rect DrawThemeFocusRect and
+   * HIThemeDrawFocusRect APIs will draw the focus.
+   }
+	kThemeMetricFocusRectOutset = 7;
+
+  {
+   * The thickness of the frame drawn by DrawThemeGenericWell.
+   }
+	kThemeMetricImageWellThickness = 8;
+
+  {
+   * The number of pixels a scrollbar should overlap (actually
+   * underlap) any bounding box which surrounds it and scrollable
+   * content. This also includes the window frame when a scrolbar is
+   * along an edge of the window.
+   }
+	kThemeMetricScrollBarOverlap = 9;
+
+  {
+   * The height of the large tab of a tab control.
+   }
+	kThemeMetricLargeTabHeight = 10;
+
+  {
+   * The width of the caps (end pieces) of the large tabs of a tab
+   * control.
+   }
+	kThemeMetricLargeTabCapsWidth = 11;
+
+  {
+   * The amount to add to the tab height (kThemeMetricLargeTabHeight)
+   * to find out the rectangle height to use with the various Tab
+   * drawing primitives. This amount is also the amount that each tab
+   * overlaps the tab pane.
+   }
+	kThemeMetricTabFrameOverlap = 12;
+
+  {
+   * If less than zero, this indicates that the text should be centered
+   * on each tab. If greater than zero, the text should be justified
+   * (according to the system script direction) and the amount is the
+   * offset from the appropriate edge at which the text should start
+   * drawing.
+   }
+	kThemeMetricTabIndentOrStyle = 13;
+
+  {
+   * The amount of space that every tab's drawing rectangle overlaps
+   * the one on either side of it.
+   }
+	kThemeMetricTabOverlap = 14;
+
+  {
+   * The height of the small tab of a tab control.  This includes the
+   * pixels that overlap the tab pane and/or tab pane bar.
+   }
+	kThemeMetricSmallTabHeight = 15;
+
+  {
+   * The width of the caps (end pieces) of the small tabs of a tab
+   * control.
+   }
+	kThemeMetricSmallTabCapsWidth = 16;
+
+  {
+   * The height of the push button control.
+   }
+	kThemeMetricPushButtonHeight = 19;
+
+  {
+   * The height of the list header field of the data browser control.
+   }
+	kThemeMetricListHeaderHeight = 20;
+
+  {
+   * The height of a disclosure triangle control.  This triangle is the
+   * not the center of the disclosure button, but its own control.
+   }
+	kThemeMetricDisclosureTriangleHeight = 25;
+
+  {
+   * The width of a disclosure triangle control.
+   }
+	kThemeMetricDisclosureTriangleWidth = 26;
+
+  {
+   * The height of a little arrows control.
+   }
+	kThemeMetricLittleArrowsHeight = 27;
+
+  {
+   * The width of a little arrows control.
+   }
+	kThemeMetricLittleArrowsWidth = 28;
+
+  {
+   * The height of a popup button control.
+   }
+	kThemeMetricPopupButtonHeight = 30;
+
+  {
+   * The height of a small popup button control.
+   }
+	kThemeMetricSmallPopupButtonHeight = 31;
+
+  {
+   * The height of the large progress bar, not including its shadow.
+   }
+	kThemeMetricLargeProgressBarThickness = 32;
+
+  {
+   * This metric is not used.
+   }
+	kThemeMetricPullDownHeight = 33;
+
+  {
+   * This metric is not used.
+   }
+	kThemeMetricSmallPullDownHeight = 34;
+
+  {
+   * The height of the window grow box control.
+   }
+	kThemeMetricResizeControlHeight = 38;
+
+  {
+   * The height of the small grow box control, such as on utility
+   * windows.
+   }
+	kThemeMetricSmallResizeControlHeight = 39;
+
+  {
+   * The height of the horizontal slider control.
+   }
+	kThemeMetricHSliderHeight = 41;
+
+  {
+   * The height of the tick marks for a horizontal slider control.
+   }
+	kThemeMetricHSliderTickHeight = 42;
+
+  {
+   * The width of the vertical slider control.
+   }
+	kThemeMetricVSliderWidth = 45;
+
+  {
+   * The width of the tick marks for a vertical slider control.
+   }
+	kThemeMetricVSliderTickWidth = 46;
+
+  {
+   * The height of the title bar widgets (grow, close, and zoom boxes)
+   * for a document window.
+   }
+	kThemeMetricTitleBarControlsHeight = 49;
+
+  {
+   * The width of the non-label part of a check box control.
+   }
+	kThemeMetricCheckBoxWidth = 50;
+
+  {
+   * The width of the non-label part of a radio button control.
+   }
+	kThemeMetricRadioButtonWidth = 52;
+
+  {
+   * The height of the normal bar, not including its shadow.
+   }
+	kThemeMetricNormalProgressBarThickness = 58;
+
+  {
+   * The number of pixels of shadow depth drawn below the progress bar.
+   }
+	kThemeMetricProgressBarShadowOutset = 59;
+
+  {
+   * The number of pixels of shadow depth drawn below the small
+   * progress bar.
+   }
+	kThemeMetricSmallProgressBarShadowOutset = 60;
+
+  {
+   * The number of pixels that the content of a primary group box is
+   * from the bounds of the control.
+   }
+	kThemeMetricPrimaryGroupBoxContentInset = 61;
+
+  {
+   * The number of pixels that the content of a secondary group box is
+   * from the bounds of the control.
+   }
+	kThemeMetricSecondaryGroupBoxContentInset = 62;
+
+  {
+   * Width allocated to draw the mark character in a menu.
+   }
+	kThemeMetricMenuMarkColumnWidth = 63;
+
+  {
+   * Width allocated for the mark character in a menu item when the
+   * menu has kMenuAttrExcludesMarkColumn.
+   }
+	kThemeMetricMenuExcludedMarkColumnWidth = 64;
+
+  {
+   * Indent into the interior of the mark column at which the mark
+   * character is drawn.
+   }
+	kThemeMetricMenuMarkIndent = 65;
+
+  {
+   * Whitespace at the leading edge of menu item text.
+   }
+	kThemeMetricMenuTextLeadingEdgeMargin = 66;
+
+  {
+   * Whitespace at the trailing edge of menu item text.
+   }
+	kThemeMetricMenuTextTrailingEdgeMargin = 67;
+
+  {
+   * Width per indent level (set by SetMenuItemIndent) of a menu item.
+   }
+	kThemeMetricMenuIndentWidth = 68;
+
+  {
+   * Whitespace at the trailing edge of a menu icon (if the item also
+   * has text).
+   }
+	kThemeMetricMenuIconTrailingEdgeMargin = 69;
+
+
+{
+ *  Discussion:
+ *    The following metrics are only available in OS X.
+ }
+const
+{
+   * The height of a disclosure button.
+   }
+	kThemeMetricDisclosureButtonHeight = 17;
+
+  {
+   * The height and the width of the round button control.
+   }
+	kThemeMetricRoundButtonSize = 18;
+
+  {
+   * The height of the non-label part of a small check box control.
+   }
+	kThemeMetricSmallCheckBoxHeight = 21;
+
+  {
+   * The width of a disclosure button.
+   }
+	kThemeMetricDisclosureButtonWidth = 22;
+
+  {
+   * The height of a small disclosure button.
+   }
+	kThemeMetricSmallDisclosureButtonHeight = 23;
+
+  {
+   * The width of a small disclosure button.
+   }
+	kThemeMetricSmallDisclosureButtonWidth = 24;
+
+  {
+   * The height (or width if vertical) of a pane splitter.
+   }
+	kThemeMetricPaneSplitterHeight = 29;
+
+  {
+   * The height of the small push button control.
+   }
+	kThemeMetricSmallPushButtonHeight = 35;
+
+  {
+   * The height of the non-label part of a small radio button control.
+   }
+	kThemeMetricSmallRadioButtonHeight = 36;
+
+  {
+   * The height of the relevance indicator control.
+   }
+	kThemeMetricRelevanceIndicatorHeight = 37;
+
+  {
+   * The height and the width of the large round button control.
+   }
+	kThemeMetricLargeRoundButtonSize = 40;
+
+  {
+   * The height of the small, horizontal slider control.
+   }
+	kThemeMetricSmallHSliderHeight = 43;
+
+  {
+   * The height of the tick marks for a small, horizontal slider
+   * control.
+   }
+	kThemeMetricSmallHSliderTickHeight = 44;
+
+  {
+   * The width of the small, vertical slider control.
+   }
+	kThemeMetricSmallVSliderWidth = 47;
+
+  {
+   * The width of the tick marks for a small, vertical slider control.
+   }
+	kThemeMetricSmallVSliderTickWidth = 48;
+
+  {
+   * The width of the non-label part of a small check box control.
+   }
+	kThemeMetricSmallCheckBoxWidth = 51;
+
+  {
+   * The width of the non-label part of a small radio button control.
+   }
+	kThemeMetricSmallRadioButtonWidth = 53;
+
+  {
+   * The minimum width of the thumb of a small, horizontal slider
+   * control.
+   }
+	kThemeMetricSmallHSliderMinThumbWidth = 54;
+
+  {
+   * The minimum width of the thumb of a small, vertical slider control.
+   }
+	kThemeMetricSmallVSliderMinThumbHeight = 55;
+
+  {
+   * The offset of the tick marks from the appropriate side of a small
+   * horizontal slider control.
+   }
+	kThemeMetricSmallHSliderTickOffset = 56;
+
+  {
+   * The offset of the tick marks from the appropriate side of a small
+   * vertical slider control.
+   }
+	kThemeMetricSmallVSliderTickOffset = 57;
+
+
+{
+ *  Discussion:
+ *    The following metrics are only available in Mac OS X 10.3 and
+ *    later.
+ }
+const
+	kThemeMetricComboBoxLargeBottomShadowOffset = 70;
+	kThemeMetricComboBoxLargeRightShadowOffset = 71;
+	kThemeMetricComboBoxSmallBottomShadowOffset = 72;
+	kThemeMetricComboBoxSmallRightShadowOffset = 73;
+	kThemeMetricComboBoxLargeDisclosureWidth = 74;
+	kThemeMetricComboBoxSmallDisclosureWidth = 75;
+	kThemeMetricRoundTextFieldContentInsetLeft = 76;
+	kThemeMetricRoundTextFieldContentInsetRight = 77;
+	kThemeMetricRoundTextFieldContentInsetBottom = 78;
+	kThemeMetricRoundTextFieldContentInsetTop = 79;
+	kThemeMetricRoundTextFieldContentHeight = 80;
+	kThemeMetricComboBoxMiniBottomShadowOffset = 81;
+	kThemeMetricComboBoxMiniDisclosureWidth = 82;
+	kThemeMetricComboBoxMiniRightShadowOffset = 83;
+	kThemeMetricLittleArrowsMiniHeight = 84;
+	kThemeMetricLittleArrowsMiniWidth = 85;
+	kThemeMetricLittleArrowsSmallHeight = 86;
+	kThemeMetricLittleArrowsSmallWidth = 87;
+	kThemeMetricMiniCheckBoxHeight = 88;
+	kThemeMetricMiniCheckBoxWidth = 89;
+	kThemeMetricMiniDisclosureButtonHeight = 90;
+	kThemeMetricMiniDisclosureButtonWidth = 91;
+	kThemeMetricMiniHSliderHeight = 92;
+	kThemeMetricMiniHSliderMinThumbWidth = 93;
+	kThemeMetricMiniHSliderTickHeight = 94;
+	kThemeMetricMiniHSliderTickOffset = 95;
+	kThemeMetricMiniPopupButtonHeight = 96;
+	kThemeMetricMiniPullDownHeight = 97;
+	kThemeMetricMiniPushButtonHeight = 98;
+	kThemeMetricMiniRadioButtonHeight = 99;
+	kThemeMetricMiniRadioButtonWidth = 100;
+	kThemeMetricMiniTabCapsWidth = 101;
+	kThemeMetricMiniTabFrameOverlap = 102;
+	kThemeMetricMiniTabHeight = 103;
+	kThemeMetricMiniTabOverlap = 104;
+	kThemeMetricMiniVSliderMinThumbHeight = 105;
+	kThemeMetricMiniVSliderTickOffset = 106;
+	kThemeMetricMiniVSliderTickWidth = 107;
+	kThemeMetricMiniVSliderWidth = 108;
+	kThemeMetricRoundTextFieldContentInsetWithIconLeft = 109;
+	kThemeMetricRoundTextFieldContentInsetWithIconRight = 110;
+	kThemeMetricRoundTextFieldMiniContentHeight = 111;
+	kThemeMetricRoundTextFieldMiniContentInsetBottom = 112;
+	kThemeMetricRoundTextFieldMiniContentInsetLeft = 113;
+	kThemeMetricRoundTextFieldMiniContentInsetRight = 114;
+	kThemeMetricRoundTextFieldMiniContentInsetTop = 115;
+	kThemeMetricRoundTextFieldMiniContentInsetWithIconLeft = 116;
+	kThemeMetricRoundTextFieldMiniContentInsetWithIconRight = 117;
+	kThemeMetricRoundTextFieldSmallContentHeight = 118;
+	kThemeMetricRoundTextFieldSmallContentInsetBottom = 119;
+	kThemeMetricRoundTextFieldSmallContentInsetLeft = 120;
+	kThemeMetricRoundTextFieldSmallContentInsetRight = 121;
+	kThemeMetricRoundTextFieldSmallContentInsetTop = 122;
+	kThemeMetricRoundTextFieldSmallContentInsetWithIconLeft = 123;
+	kThemeMetricRoundTextFieldSmallContentInsetWithIconRight = 124;
+	kThemeMetricSmallTabFrameOverlap = 125;
+	kThemeMetricSmallTabOverlap = 126;
+
+  {
+   * The height of a small pane splitter. Should only be used in a
+   * window with thick borders, like a metal window.
+   }
+	kThemeMetricSmallPaneSplitterHeight = 127;
+
+
+{
+ *  Discussion:
+ *    The following metrics are only available in Mac OS X 10.4 and
+ *    later.
+ }
+const
+{
+   * The horizontal start offset for the first tick mark on a
+   * horizontal slider.
+   }
+	kThemeMetricHSliderTickOffset = 128;
+
+  {
+   * The vertical start offset for the first tick mark on a vertical
+   * slider.
+   }
+	kThemeMetricVSliderTickOffset = 129;
+
+  {
+   * The minimum thumb height for a thumb on a slider.
+   }
+	kThemeMetricSliderMinThumbHeight = 130;
+	kThemeMetricSliderMinThumbWidth = 131;
+
+  {
+   * The minimum thumb height for a thumb on a scroll bar.
+   }
+	kThemeMetricScrollBarMinThumbHeight = 132;
+
+  {
+   * The minimum thumb width for a thumb on a scroll bar.
+   }
+	kThemeMetricScrollBarMinThumbWidth = 133;
+
+  {
+   * The minimum thumb height for a thumb on a small scroll bar.
+   }
+	kThemeMetricSmallScrollBarMinThumbHeight = 134;
+
+  {
+   * The minimum thumb width for a thumb on a small scroll bar.
+   }
+	kThemeMetricSmallScrollBarMinThumbWidth = 135;
+
+  {
+   * The height of the round-ended button. (For example, the Kind
+   * button in a Finder Search query.)
+   }
+	kThemeMetricButtonRoundedHeight = 136;
+
+  {
+   * The height of the inset round-ended button. (For example, the
+   * Servers button in a Finder Search query.)
+   }
+	kThemeMetricButtonRoundedRecessedHeight = 137;
+
+
+{
+ *  Discussion:
+ *    The following metrics are only available in Mac OS X 10.5 and
+ *    later.
+ }
+const
+{
+   * This metric refers to the appearance of the separator control.
+   * That separator is drawn with the HIThemeDrawSeparator theme
+   * primitive. This metric is the height of a horizontal separator or
+   * the width of a vertical separator.
+   }
+	kThemeMetricSeparatorSize = 138;
+
+  {
+   * The height of the push button control variant that is designed to
+   * be used in a textured window.
+   }
+	kThemeMetricTexturedPushButtonHeight = 139;
+
+  {
+   * The height of the small push button control variant that is
+   * designed to be used in a textured window.
+   }
+	kThemeMetricTexturedSmallPushButtonHeight = 140;
+
+type
+	ThemeMetric = UInt32;
+{
+ *  GetThemeMetric()
+ *  
+ *  Summary:
+ *    Returns a measurement in points for a specified type of user
+ *    interface element.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inMetric:
+ *      The metric to retrieve.
+ *    
+ *    outMetric:
+ *      The size of the specified user interface element, in points.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   not available
+ }
+function GetThemeMetric( inMetric: ThemeMetric; var outMetric: SInt32 ): OSStatus; external name '_GetThemeMetric';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
+{
+ *  CopyThemeIdentifier()
+ *  
+ *  Summary:
+ *    Retrieves a string identifying the current theme variant, which
+ *    may be Aqua or Graphite.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    outIdentifier:
+ *      On exit, contains the theme variant identifier. This string
+ *      must be released by the caller.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.1 and later in Carbon.framework
+ *    CarbonLib:        in CarbonLib 1.4 and later
+ *    Non-Carbon CFM:   not available
+ }
+function CopyThemeIdentifier( var outIdentifier: CFStringRef ): OSStatus; external name '_CopyThemeIdentifier';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+
+
+{ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
+{ Obsolete symbolic names                                                                          }
+{ÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑÑ}
+const
+	kThemeMetricCheckBoxGlyphHeight = kThemeMetricCheckBoxHeight;
+	kThemeMetricRadioButtonGlyphHeight = kThemeMetricRadioButtonHeight;
+	kThemeMetricDisclosureButtonSize = kThemeMetricDisclosureButtonHeight;
+	kThemeMetricBestListHeaderHeight = kThemeMetricListHeaderHeight;
+	kThemeMetricSmallProgressBarThickness = kThemeMetricNormalProgressBarThickness; { obsolete }
+	kThemeMetricProgressBarThickness = kThemeMetricLargeProgressBarThickness; { obsolete }
+
+{$endc} {TARGET_OS_MAC}
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

@@ -3,9 +3,9 @@
  
      Contains:   Application-level APIs
  
-     Version:    HIToolbox-219.4.81~2
+     Version:    HIToolbox-437~1
  
-     Copyright:  © 2000-2005 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 2000-2008 by Apple Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,12 +14,14 @@
  
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -28,8 +30,8 @@
 
 unit MacApplication;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -42,16 +44,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -59,14 +83,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -92,7 +167,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -102,7 +176,12 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,CGImage,Menus,CGContext,Quickdraw,HIObjectCore,TextCommon,CFBase,CFDictionary;
+uses MacTypes,CGImage,Menus,CGContext,QuickdrawTypes,HIObject,TextCommon,HIGeometry,CFBase,CFDictionary,CGAffineTransforms,CGGeometry,CTFont;
+{$endc} {not MACOSALLINCLUDE}
+
+
+{$ifc TARGET_OS_MAC}
+
 {$ALIGN POWER}
 
 
@@ -134,7 +213,54 @@ const
 	kHIToolboxVersionNumber10_3_4 = 145.41;
 const
 	kHIToolboxVersionNumber10_3_5 = 145.43;
+const
+	kHIToolboxVersionNumber10_3_9 = 145.48;
+const
+	kHIToolboxVersionNumber10_4 = 219;
+const
+	kHIToolboxVersionNumber10_4_1 = 219.1;
+const
+	kHIToolboxVersionNumber10_4_2 = 220;
+const
+	kHIToolboxVersionNumber10_4_2_SecUpdate = 221;
+const
+	kHIToolboxVersionNumber10_4_4 = 222;
+const
+	kHIToolboxVersionNumber10_4_4_Intel = 223;
+const
+	kHIToolboxVersionNumber10_4_6 = 225;
+const
+	kHIToolboxVersionNumber10_4_7 = 226;
+const
+	kHIToolboxVersionNumber10_4_9 = 227;
+const
+	kHIToolboxVersionNumber10_5 = 343;
+const
+	kHIToolboxVersionNumber10_5_1 = 343;
+const
+	kHIToolboxVersionNumber10_5_2 = 352;
+const
+	kHIToolboxVersionNumber10_5_3 = 352;
+const
+	kHIToolboxVersionNumber10_5_4 = 352;
+const
+	kHIToolboxVersionNumber10_5_5 = 352;
+const
+	kHIToolboxVersionNumber10_5_6 = 353;
+const
+	kHIToolboxVersionNumber10_5_7 = 353;
 
+
+{
+ *  kHIApplicationClassID
+ *  
+ *  Discussion:
+ *    HIObject class ID for the HIApplication object. Available in Mac
+ *    OS X 10.3 and later.
+ }
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kHIApplicationClassID CFSTRP('com.apple.HIApplication')}
+{$endc}
 
 {
  *  Summary:
@@ -248,6 +374,17 @@ const
    }
 	kUIOptionDisableHide = 1 shl 6;
 
+  {
+   * Provides the ability to specify whether the menu bar will disable
+   * its adaptive transparency. Note this should be used in conjunction
+   * with a full-screen window using kUIModeContentSuppressed or
+   * kUIModeContentHidden. Available in Mac OS X 10.6 and later. This
+   * constant was published in the Mac OS X 10.5 version of
+   * MacApplication.h, but had the wrong value (7) and should not be
+   * used in Mac OS X 10.5.
+   }
+	kUIOptionDisableMenuBarTransparency = 1 shl 9;
+
 type
 	SystemUIOptions = OptionBits;
 	SystemUIOptionsPtr = ^SystemUIOptions;
@@ -265,7 +402,15 @@ type
  *    mode, a kEventAppSystemUIModeChanged Carbon event is sent to all
  *    applications that have registered for the event. This event is
  *    also sent when an application is activated; it contains the newly
- *    active application's presentation mode.
+ *    active application's presentation mode. 
+ *    
+ *    Note that SetSystemUIMode should _not_ be used from UIElement or
+ *    BackgroundOnly applications. The presentation mode of the current
+ *    login session is determined by the presentation mode of the
+ *    frontmost faceful application. Therefore, the presentation mode
+ *    of a UIElement or BackgroundOnly application will be ignored,
+ *    since these types of applications can't be the frontmost faceful
+ *    application.
  *  
  *  Mac OS X threading:
  *    Not thread safe
@@ -276,7 +421,9 @@ type
  *      The new mode.
  *    
  *    inOptions:
- *      Options controlling how the new mode behaves.
+ *      Options controlling how the new mode behaves. Not all options
+ *      are valid for all modes. Options that are invalid for the
+ *      specified mode are silently ignored.
  *  
  *  Result:
  *    An operating system result code.
@@ -294,7 +441,18 @@ function SetSystemUIMode( inMode: SystemUIMode; inOptions: SystemUIOptions ): OS
  *  GetSystemUIMode()
  *  
  *  Summary:
- *    Returns the current presentation mode of the application.
+ *    Returns the presentation mode of the current application.
+ *  
+ *  Discussion:
+ *    Note that GetSystemUIMode returns the presentation mode of the
+ *    calling application, _not_ the mode of the current login session.
+ *    The login session mode may be different, since the login session
+ *    mode is determined by the presentation mode of the frontmost
+ *    faceful application. If the calling application is not currently
+ *    the frontmost faceful application, then its presentation mode
+ *    will not be in use. You may use the kEventAppSystemUIModeChanged
+ *    Carbon event to track changes in the login session's presentation
+ *    mode.
  *  
  *  Mac OS X threading:
  *    Not thread safe
@@ -318,13 +476,18 @@ procedure GetSystemUIMode( outMode: SystemUIModePtr { can be NULL }; outOptions:
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
+{$ifc not TARGET_CPU_64}
 {
  *  HIApplicationGetCurrent()
  *  
- *  Discussion:
+ *  Summary:
  *    Returns the HIObjectRef of the currently running application
- *    object. This HIObject's EventTargetRef is what will be returned
- *    from GetApplicationEventTarget.
+ *    object.
+ *  
+ *  Discussion:
+ *    This HIObject's EventTargetRef is what will be returned from
+ *    GetApplicationEventTarget. In Mac OS X 10.5, you can use this API
+ *    to install your own HIObject delegates on the application object.
  *  
  *  Mac OS X threading:
  *    Not thread safe
@@ -333,7 +496,7 @@ procedure GetSystemUIMode( outMode: SystemUIModePtr { can be NULL }; outOptions:
  *    The HIObjectRef of the currently running application object.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in Carbon.framework
+ *    Mac OS X:         in version 10.2 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
@@ -342,10 +505,48 @@ function HIApplicationGetCurrent: HIObjectRef; external name '_HIApplicationGetC
 
 
 {
+ *  HIApplicationGetFocus()
+ *  
+ *  Summary:
+ *    Returns either the modeless or effective focus.
+ *  
+ *  Discussion:
+ *    With the introduction of the modal focus stack, an application
+ *    may have two different focused windows: the modeless focused
+ *    window (the window most recently passed to the SetUserFocusWindow
+ *    API), and the effective focus (either the modeless focus window
+ *    or, if there is a non-empty modal focus stack, the topmost window
+ *    in the focus stack). This API returns either window. 
+ *    
+ *    Note that in Mac OS X 10.5, the GetUserFocusWindow API returns
+ *    the same as HIApplicationGetFocus( false).
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    inConsideringModalFocus:
+ *      Indicates whether to return the effective focus (if true) or
+ *      the modeless focus (if false).
+ *  
+ *  Result:
+ *    The focused window, or NULL if there is no focused window.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function HIApplicationGetFocus( inConsideringModalFocus: Boolean ): WindowRef; external name '_HIApplicationGetFocus';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+
+
+{
  *  SetApplicationDockTileImage()
  *  
  *  Discussion:
- *    Sets the image for the tile in the dock that represents your
+ *    Sets the image for the tile in the Dock that represents your
  *    application while it is running. If you set the image, it will
  *    NOT revert back to its original image when your application
  *    terminates. You need to manually restore it before quitting.
@@ -362,7 +563,7 @@ function HIApplicationGetCurrent: HIObjectRef; external name '_HIApplicationGetC
  *    An operating system status code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -375,7 +576,7 @@ function SetApplicationDockTileImage( inImage: CGImageRef ): OSStatus; external 
  *  
  *  Discussion:
  *    Takes the image passed in and composites it on top of the current
- *    image of your application's dock tile. You might do this to put a
+ *    image of your application's Dock tile. You might do this to put a
  *    standard badge over your application's icon to indicate something
  *    to the user.
  *  
@@ -391,7 +592,7 @@ function SetApplicationDockTileImage( inImage: CGImageRef ): OSStatus; external 
  *    An operating system status code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -403,7 +604,7 @@ function OverlayApplicationDockTileImage( inImage: CGImageRef ): OSStatus; exter
  *  RestoreApplicationDockTileImage()
  *  
  *  Discussion:
- *    Restores the tile for your appliation in the dock to its normal
+ *    Restores the tile for your appliation in the Dock to its normal
  *    image (your application icon). You would use this if some overlay
  *    or change of the application icon needed to be removed.
  *  
@@ -414,7 +615,7 @@ function OverlayApplicationDockTileImage( inImage: CGImageRef ): OSStatus; exter
  *    An operating system status code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -423,24 +624,73 @@ function RestoreApplicationDockTileImage: OSStatus; external name '_RestoreAppli
 
 
 {
+ *  HIApplicationCreateDockTileContext()
+ *  
+ *  Summary:
+ *    Creates a CGContextRef that can be used to draw into an
+ *    application's Dock tile.
+ *  
+ *  Discussion:
+ *    Unlike the BeginCGContextForApplicationDockTile API, this API
+ *    returns a CGContextRef that has no transform applied to it; user
+ *    space and device space are 1:1. Therefore, your application must
+ *    use the output context size to determine the area in which you
+ *    should draw in the context.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    outContextSize:
+ *      On exit, returns the size of the context in which the
+ *      application should draw.
+ *  
+ *  Result:
+ *    A CGContextRef for drawing into the application's Dock tile. You
+ *    must use EndCGContextForApplicationDockTile to release this
+ *    context. To ensure that drawing to the context appears onscreen,
+ *    make sure to call CGContextFlush before releasing the context.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in Carbon.framework [32-bit only]
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+function HIApplicationCreateDockTileContext( var outContextSize: HISize ): CGContextRef; external name '_HIApplicationCreateDockTileContext';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+
+
+{
  *  BeginCGContextForApplicationDockTile()
  *  
  *  Discussion:
  *    Creates and returns a CGContextRef. You can use this context to
- *    draw into your application's dock tile with Quartz. You **MUST**
- *    call EndCGContextForApplicationDockTile and NOT CGEndContext when
- *    using this API, as it locks your application's tile in the dock.
- *    If you call CGEndContext, the dock will never know you are done
- *    with the tile.
+ *    draw into your application's Dock tile with Quartz. You MUST call
+ *    EndCGContextForApplicationDockTile and NOT CGContextRelease when
+ *    using this API, as it locks your application's tile in the Dock.
+ *    If you call CGContextRelease, the Dock will never know you are
+ *    done with the tile. 
+ *    
+ *    When drawing into the context returned by this API, you should
+ *    draw into a rectangle with origin of (0,0) and size of (128,128).
+ *    If the actual Dock tile window is larger than this size, the API
+ *    will automatically set a transform on the context that will scale
+ *    your content from 128x128 up to the actual tile window size. You
+ *    can get an unscaled CGContextRef using the
+ *    HIApplicationCreateDockTileContext API.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Result:
- *    An Quartz (Core Graphics) context reference.
+ *    A CGContextRef for drawing into the application's Dock tile. You
+ *    must use EndCGContextForApplicationDockTile to release this
+ *    context. To ensure that drawing to the context appears onscreen,
+ *    make sure to call CGContextFlush before releasing the context.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -453,10 +703,11 @@ function BeginCGContextForApplicationDockTile: CGContextRef; external name '_Beg
  *  
  *  Discussion:
  *    Ends the CG context for your application tile and frees the lock
- *    on the application dock tile. You **MUST** call this routine and
- *    NOT CGEndContext when using BeginCGContextForApplicationDockTile,
- *    as it locks your application's tile in the dock. If you call
- *    CGEndContext, the dock will never know you are done with the tile.
+ *    on the application Dock tile. You MUST call this routine and NOT
+ *    CGContextRelease when using BeginCGContextForApplicationDockTile
+ *    or HIApplicationCreateDockTileContext, as those APIs lock your
+ *    application's tile in the Dock. If you call CGContextRelease, the
+ *    Dock will never know you are done with the tile.
  *  
  *  Mac OS X threading:
  *    Not thread safe
@@ -464,11 +715,13 @@ function BeginCGContextForApplicationDockTile: CGContextRef; external name '_Beg
  *  Parameters:
  *    
  *    inContext:
- *      The context to end. The context is invalid after this call and
- *      should no longer be used.
+ *      The context to release. The context is invalid after this call
+ *      and should no longer be used. To ensure that drawing to the
+ *      context appears onscreen, make sure to call CGContextFlush
+ *      before releasing the context.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
@@ -477,40 +730,48 @@ procedure EndCGContextForApplicationDockTile( inContext: CGContextRef ); externa
 
 
 {
- *  BeginQDContextForApplicationDockTile()
+ *  BeginQDContextForApplicationDockTile()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use HIApplicationCreateDockTileContext or
+ *    BeginCGContextForApplicationDockTile instead, and draw with
+ *    Quartz instead of QuickDraw.
  *  
  *  Discussion:
  *    Creates and returns a CGrafPtr for your application's tile in the
- *    dock. You can use this port to draw into your application's dock
- *    tile with Quickdraw. You **MUST** call
+ *    Dock. You can use this port to draw into your application's Dock
+ *    tile with QuickDraw. You MUST call
  *    EndQDContextForApplicationDockTile and NOT DisposePort when using
- *    this API, as it locks your application's tile in the dock. If you
- *    call DisposePort, the dock will never know you are done with the
+ *    this API, as it locks your application's tile in the Dock. If you
+ *    call DisposePort, the Dock will never know you are done with the
  *    tile.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Result:
- *    A Quickdraw port reference.
+ *    A QuickDraw port reference.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
 function BeginQDContextForApplicationDockTile: CGrafPtr; external name '_BeginQDContextForApplicationDockTile';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
- *  EndQDContextForApplicationDockTile()
+ *  EndQDContextForApplicationDockTile()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    Use EndCGContextForApplicationDockTile instead.
  *  
  *  Discussion:
- *    Disposes the Quickdraw port for your application tile and frees
- *    the lock on the application dock tile. You **MUST** call this
- *    routine and NOT DisposePort when using
- *    BeginQDContextForApplicationDockTile, else the dock will never
+ *    Disposes the QuickDraw port for your application tile and frees
+ *    the lock on the application Dock tile. You MUST call this routine
+ *    and NOT DisposePort when using
+ *    BeginQDContextForApplicationDockTile, else the Dock will never
  *    know you are done with the tile.
  *  
  *  Mac OS X threading:
@@ -523,19 +784,19 @@ function BeginQDContextForApplicationDockTile: CGrafPtr; external name '_BeginQD
  *      should no longer be used.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
 procedure EndQDContextForApplicationDockTile( inContext: CGrafPtr ); external name '_EndQDContextForApplicationDockTile';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
  *  SetApplicationDockTileMenu()
  *  
  *  Summary:
- *    Sets the menu that is displayed by the application's dock tile.
+ *    Sets the menu that is displayed by the application's Dock tile.
  *  
  *  Discussion:
  *    The Carbon Window Manager and the Dock will always automatically
@@ -544,14 +805,22 @@ procedure EndQDContextForApplicationDockTile( inContext: CGrafPtr ); external na
  *    items, it can use the SetApplicationDockTileMenu API to provide
  *    those items. The items in the specified menu will be combined
  *    with the window title items. This API increments the refcount of
- *    the specified menu. Before the menu is actually displayed, it
- *    will receive kEventMenuPopulate, kEventMenuOpening, and
- *    kEventMenuEnableItems Carbon events, so any event handlers for
- *    these events may update the menu appropriately for the current
- *    state of the application. The application should set a command ID
- *    for each menu item in the dock tile menu, and when that item is
- *    chosen, a kEventCommandProcess Carbon event containing the item's
- *    command ID will be sent to the user focus target.
+ *    the specified menu. 
+ *    
+ *    Before the menu is actually displayed, it will receive
+ *    kEventMenuPopulate, kEventMenuOpening, and kEventMenuEnableItems
+ *    Carbon events, so any event handlers for these events may update
+ *    the menu appropriately for the current state of the application.
+ *    
+ *    
+ *    The application should set a command ID for each menu item in the
+ *    Dock tile menu, and when that item is chosen, a
+ *    kEventCommandProcess Carbon event containing the item's command
+ *    ID will be sent to the user focus target. 
+ *    
+ *    It is also possible to use the kEventAppGetDockTileMenu Carbon
+ *    event to provide custom Dock tile menu contents; see
+ *    CarbonEvents.h for details.
  *  
  *  Mac OS X threading:
  *    Not thread safe
@@ -559,11 +828,11 @@ procedure EndQDContextForApplicationDockTile( inContext: CGrafPtr ); external na
  *  Parameters:
  *    
  *    inMenu:
- *      The menu to display, or NULL to remove the current dock tile
+ *      The menu to display, or NULL to remove the current Dock tile
  *      menu.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in Carbon.framework
+ *    Mac OS X:         in version 10.1 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
  *    Non-Carbon CFM:   not available
  }
@@ -575,16 +844,22 @@ function SetApplicationDockTileMenu( inMenu: MenuRef ): OSStatus; external name 
  *  GetApplicationDockTileMenu()
  *  
  *  Summary:
- *    Returns the menu that is displayed by the application's dock tile.
+ *    Returns the menu that is displayed by the application's Dock tile.
+ *  
+ *  Discussion:
+ *    The menu that is returned by this API is the menu that was passed
+ *    to SetApplicationDockTileMenu. If SetApplicationDockTileMenu has
+ *    not been called (or has been called with NULL), then this API
+ *    will return NULL.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Result:
- *    The application's dock tile menu, or NULL if none.
+ *    The application's Dock tile menu, or NULL if none.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in Carbon.framework
+ *    Mac OS X:         in version 10.1 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
  *    Non-Carbon CFM:   not available
  }
@@ -599,13 +874,15 @@ function GetApplicationDockTileMenu: MenuRef; external name '_GetApplicationDock
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
 function CreateCGImageFromPixMaps( inImage: PixMapHandle; inMask: PixMapHandle; var outImage: CGImageRef ): OSStatus; external name '_CreateCGImageFromPixMaps';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
+
+{$endc} {not TARGET_CPU_64}
 
 {
  *  GetApplicationTextEncoding()
@@ -636,6 +913,7 @@ function GetApplicationTextEncoding: TextEncoding; external name '_GetApplicatio
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
+{$ifc not TARGET_CPU_64}
 {
  *  GetApplicationScript()
  *  
@@ -650,7 +928,7 @@ function GetApplicationTextEncoding: TextEncoding; external name '_GetApplicatio
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.3 and later
  *    Non-Carbon CFM:   not available
  }
@@ -663,6 +941,8 @@ function GetApplicationScript: ScriptCode; external name '_GetApplicationScript'
 {  The strings below are for use as keys in the inOptions parameter of the     }
 {  HIAboutBox function, described below.                                       }
 {------------------------------------------------------------------------------}
+
+{$endc} {not TARGET_CPU_64}
 
 {$ifc USE_CFSTR_CONSTANT_MACROS}
 {$definec kHIAboutBoxNameKey CFSTRP('HIAboutBoxName')}
@@ -680,6 +960,7 @@ function GetApplicationScript: ScriptCode; external name '_GetApplicationScript'
 {$definec kHIAboutBoxStringFileKey CFSTRP('HIAboutBoxStringFile')}
 {$endc}
 
+{$ifc not TARGET_CPU_64}
 {
  *  HIAboutBox()
  *  
@@ -739,7 +1020,7 @@ function GetApplicationScript: ScriptCode; external name '_GetApplicationScript'
  *    An operating system status code.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.3 and later in Carbon.framework
+ *    Mac OS X:         in version 10.3 and later in Carbon.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
@@ -747,15 +1028,17 @@ function HIAboutBox( inOptions: CFDictionaryRef ): OSStatus; external name '_HIA
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
+{$endc} {not TARGET_CPU_64}
+
 {
  *  HISearchWindowShow()
  *  
  *  Summary:
- *    Sends a message to the System UI server to put up Spotlight UI.
+ *    Requests that the Spotlight search window be displayed.
  *  
  *  Discussion:
  *    Brings up "search for string" Spotlight UI. The window is shown
- *    in the default configuration (Search scope and grouping rules)
+ *    in the default configuration.
  *  
  *  Mac OS X threading:
  *    Not thread safe
@@ -763,8 +1046,8 @@ function HIAboutBox( inOptions: CFDictionaryRef ): OSStatus; external name '_HIA
  *  Parameters:
  *    
  *    inSearchString:
- *      A CFString to search for. You may pass NULL to open the search
- *      window with no initial query string.
+ *      A CFString for which to search. You may pass NULL to open the
+ *      search window with no initial query string.
  *    
  *    inFlags:
  *      Optional flags. Use kNilOptions for now.
@@ -781,4 +1064,70 @@ function HISearchWindowShow( inSearchString: CFStringRef { can be NULL }; inFlag
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
 
+{
+ *  HIDictionaryWindowShow()
+ *  
+ *  Summary:
+ *    Implements "Look up in Dictionary" context menu action.
+ *  
+ *  Discussion:
+ *    Opens Dictionary.app or panel to show the definition of a word or
+ *    phrase.
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Parameters:
+ *    
+ *    dictionary:
+ *      This parameter is not supported now. You should always pass
+ *      NULL.
+ *    
+ *    textString:
+ *      Text that contains the word or phrase to look up. The data type
+ *      must be either CFStringRef, CFAttributedStringRef, or CFDataRef
+ *      containing Rich Text Format data. Text attributes are used to
+ *      draw the title of the Dictionary Panel.
+ *    
+ *    selectionRange:
+ *      Specifies the selection range in textString. If there is no
+ *      selection, use the range returned by DCSGetTermRangeInString()
+ *      in CoreServices/DictionaryServices.
+ *    
+ *    textFont:
+ *      Required only when the textString is CFStringRef and otherwise
+ *      ignored. Specifies CTFontRef that corresponds to
+ *      selectionRange.location. The font is used to draw the title of
+ *      the Dictionary Panel.
+ *    
+ *    textOrigin:
+ *      Typographic baseline origin point of the character at
+ *      selectionRange.location in screen pixels (the top left of the
+ *      screen is 0, 0)
+ *    
+ *    verticalText:
+ *      Set true if the text is drawn in vertical orientation
+ *    
+ *    viewTransform:
+ *      Affine transformation matrix being applied to the view contains
+ *      textString. Set NULL to use identity matrix. This is used to
+ *      align Dictionary Panel title with the original text. Currently,
+ *      only scaling factor is supported.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in Carbon.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+(*
+Requires translation of DictionaryServices framework 
+
+procedure HIDictionaryWindowShow( dictionary: DCSDictionaryRef { can be NULL }; textString: CFTypeRef; selectionRange: CFRange; textFont: CTFontRef { can be NULL }; textOrigin: CGPoint; verticalText: Boolean; {const} viewTransform: CGAffineTransformPtr { can be NULL } ); external name '_HIDictionaryWindowShow';
+*)
+//AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER;
+
+{$endc} {TARGET_OS_MAC}
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
+
 end.
+{$endc} {not MACOSALLINCLUDE}

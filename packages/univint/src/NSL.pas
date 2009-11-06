@@ -1,12 +1,11 @@
 {
-     File:       NSL.p
+     File:       CommonPanels/NSL.h
  
      Contains:   Interface to API for using the NSL User Interface
  
-     Version:    Technology: Mac OS X
-                 Release:    Universal Interfaces 3.4.2
+     Version:    CommonPanels-91~177
  
-     Copyright:  © 1985-2002 by Apple Computer, Inc., all rights reserved
+     Copyright:  © 1997-2008 by Apple Computer, Inc., all rights reserved
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,14 +13,14 @@
                      http://www.freepascal.org/bugs.html
  
 }
-
-
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -30,8 +29,8 @@
 
 unit NSL;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -44,16 +43,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -61,14 +82,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -94,7 +166,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -105,111 +176,106 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes,Events,NSLCore;
+{$endc} {not MACOSALLINCLUDE}
+
+
+{$ifc TARGET_OS_MAC}
 
 {$ALIGN MAC68K}
 
 
 type
-	NSLDialogOptionFlags 		= UInt32;
+	NSLDialogOptionFlags = UInt32;
 const
-	kNSLDefaultNSLDlogOptions	= $00000000;					{  use defaults for all the options  }
-	kNSLNoURLTEField			= $00000001;					{  don't show url text field for manual entry  }
-	kNSLAddServiceTypes			= $00000002;					{  add the service type if a user enters an incomplete URL  }
-	kNSLClientHandlesRecents	= $00000004;					{  Stops NSLStandardGetURL from adding the selection to the recent items folder  }
+	kNSLDefaultNSLDlogOptions = $00000000; { use defaults for all the options }
+	kNSLNoURLTEField = $00000001; { don't show url text field for manual entry }
+	kNSLAddServiceTypes = $00000002; { add the service type if a user enters an incomplete URL }
+	kNSLClientHandlesRecents = $00000004; { Stops NSLStandardGetURL from adding the selection to the recent items folder }
 
 
 type
 	NSLDialogOptionsPtr = ^NSLDialogOptions;
 	NSLDialogOptions = record
-		version:				UInt16;
-		dialogOptionFlags:		NSLDialogOptionFlags;					{  option flags for affecting the dialog's behavior  }
-		windowTitle:			Str255;
-		actionButtonLabel:		Str255;									{  label of the default button (or null string for default)  }
-		cancelButtonLabel:		Str255;									{  label of the cancel button (or null string for default)  }
-		message:				Str255;									{  custom message prompt (or null string for default)  }
+		version: UInt16;
+		dialogOptionFlags: NSLDialogOptionFlags;    { option flags for affecting the dialog's behavior }
+		windowTitle: Str255;
+		actionButtonLabel: Str255;      { label of the default button (or null string for default) }
+		cancelButtonLabel: Str255;      { label of the cancel button (or null string for default) }
+		message: Str255;                { custom message prompt (or null string for default) }
 	end;
+type
+	NSLURLFilterProcPtr = function( url: CStringPtr; var displayString: Str255 ): Boolean;
+{ you can provide for calls to NSLStandardGetURL}
+type
+	NSLEventProcPtr = procedure( var newEvent: EventRecord; userContext: UnivPtr );
+	NSLURLFilterUPP = NSLURLFilterProcPtr;
+	NSLEventUPP = NSLEventProcPtr;
+{
+ *  NewNSLURLFilterUPP()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
+ }
+function NewNSLURLFilterUPP( userRoutine: NSLURLFilterProcPtr ): NSLURLFilterUPP; external name '_NewNSLURLFilterUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
-{$ifc TYPED_FUNCTION_POINTERS}
-	NSLURLFilterProcPtr = function(url: CStringPtr; var displayString: Str255): boolean;
-{$elsec}
-	NSLURLFilterProcPtr = ProcPtr;
-{$endc}
-
-	{  you can provide for calls to NSLStandardGetURL }
-{$ifc TYPED_FUNCTION_POINTERS}
-	NSLEventProcPtr = procedure(var newEvent: EventRecord; userContext: UnivPtr);
-{$elsec}
-	NSLEventProcPtr = ProcPtr;
-{$endc}
-
-{$ifc OPAQUE_UPP_TYPES}
-	NSLURLFilterUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	NSLURLFilterUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	NSLEventUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	NSLEventUPP = UniversalProcPtr;
-{$endc}	
-
-const
-	uppNSLURLFilterProcInfo = $000003D0;
-	uppNSLEventProcInfo = $000003C0;
-	{
-	 *  NewNSLURLFilterUPP()
-	 *  
-	 *  Availability:
-	 *    Non-Carbon CFM:   available as macro/inline
-	 *    CarbonLib:        in CarbonLib 1.0 and later
-	 *    Mac OS X:         in version 10.0 and later
-	 	}
-function NewNSLURLFilterUPP(userRoutine: NSLURLFilterProcPtr): NSLURLFilterUPP; external name '_NewNSLURLFilterUPP'; { old name was NewNSLURLFilterProc }
 {
  *  NewNSLEventUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function NewNSLEventUPP(userRoutine: NSLEventProcPtr): NSLEventUPP; external name '_NewNSLEventUPP'; { old name was NewNSLEventProc }
+function NewNSLEventUPP( userRoutine: NSLEventProcPtr ): NSLEventUPP; external name '_NewNSLEventUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  DisposeNSLURLFilterUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-procedure DisposeNSLURLFilterUPP(userUPP: NSLURLFilterUPP); external name '_DisposeNSLURLFilterUPP';
+procedure DisposeNSLURLFilterUPP( userUPP: NSLURLFilterUPP ); external name '_DisposeNSLURLFilterUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  DisposeNSLEventUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-procedure DisposeNSLEventUPP(userUPP: NSLEventUPP); external name '_DisposeNSLEventUPP';
+procedure DisposeNSLEventUPP( userUPP: NSLEventUPP ); external name '_DisposeNSLEventUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  InvokeNSLURLFilterUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function InvokeNSLURLFilterUPP(url: CStringPtr; var displayString: Str255; userRoutine: NSLURLFilterUPP): boolean; external name '_InvokeNSLURLFilterUPP'; { old name was CallNSLURLFilterProc }
+function InvokeNSLURLFilterUPP( url: CStringPtr; var displayString: Str255; userUPP: NSLURLFilterUPP ): Boolean; external name '_InvokeNSLURLFilterUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 {
  *  InvokeNSLEventUPP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-procedure InvokeNSLEventUPP(var newEvent: EventRecord; userContext: UnivPtr; userRoutine: NSLEventUPP); external name '_InvokeNSLEventUPP'; { old name was CallNSLEventProc }
+procedure InvokeNSLEventUPP( var newEvent: EventRecord; userContext: UnivPtr; userUPP: NSLEventUPP ); external name '_InvokeNSLEventUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 { <--- function returns OSStatus of the operation.  noErr will be returned if valid, kNSLUserCanceled will be returned if the user cancels }
 { ---> dialogOptions }
 { ---> eventProc }
@@ -230,7 +296,7 @@ procedure InvokeNSLEventUPP(var newEvent: EventRecord; userContext: UnivPtr; use
    you won't get update events while the NSLStandardGetURL dialog is open.
 }
 { void* eventProcContextPtr }
-{  you can provide a pointer to some contextual data that you want to have sent to your eventProc filter }
+{ you can provide a pointer to some contextual data that you want to have sent to your eventProc filter}
 { NSLURLFilterProcPtr filterProc }
 {
    the filter param is a callback NSLURLFilterUPP that
@@ -293,21 +359,25 @@ procedure InvokeNSLEventUPP(var newEvent: EventRecord; userContext: UnivPtr; use
  *  NSLStandardGetURL()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in NSLPPCLib 1.1 and later
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in NSLPPCLib 1.1 and later
  }
-function NSLStandardGetURL(dialogOptions: NSLDialogOptionsPtr; eventProc: NSLEventUPP; eventProcContextPtr: UnivPtr; filterProc: NSLURLFilterUPP; serviceTypeList: CStringPtr; var userSelectedURL: CStringPtr): OSStatus; external name '_NSLStandardGetURL';
+function NSLStandardGetURL( dialogOptions: NSLDialogOptionsPtr { can be NULL }; eventProc: NSLEventUPP { can be NULL }; eventProcContextPtr: UnivPtr { can be NULL }; filterProc: NSLURLFilterUPP { can be NULL }; serviceTypeList: CStringPtr; var userSelectedURL: CStringPtr ): OSStatus; external name '_NSLStandardGetURL';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
  *  NSLGetDefaultDialogOptions()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in NSLPPCLib 1.1 and later
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in NSLPPCLib 1.1 and later
  }
-function NSLGetDefaultDialogOptions(var dialogOptions: NSLDialogOptions): OSStatus; external name '_NSLGetDefaultDialogOptions';
+function NSLGetDefaultDialogOptions( var dialogOptions: NSLDialogOptions ): OSStatus; external name '_NSLGetDefaultDialogOptions';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 { <--- function returns null (useful for setting variable at same time as freeing it }
 { ---> url is memory created by a call to NSLStandardGetURL }
@@ -315,11 +385,13 @@ function NSLGetDefaultDialogOptions(var dialogOptions: NSLDialogOptions): OSStat
  *  NSLFreeURL()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in NSLPPCLib 1.1 and later
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in NSLPPCLib 1.1 and later
  }
-function NSLFreeURL(url: CStringPtr): CStringPtr; external name '_NSLFreeURL';
+function NSLFreeURL( url: CStringPtr ): CStringPtr; external name '_NSLFreeURL';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 { <--- function returns kNSLErrNullPtrError, file mgr errors, or resource mgr errors }
 { ---> folderSelectorType is one of the well-known folders defined in Folders.h }
@@ -329,14 +401,17 @@ function NSLFreeURL(url: CStringPtr): CStringPtr; external name '_NSLFreeURL';
  *  NSLSaveURLAliasToFolder()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in NSLPPCLib 1.1 and later
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework
  *    CarbonLib:        not available
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in NSLPPCLib 1.1 and later
  }
-function NSLSaveURLAliasToFolder(folderSelectorType: OSType; url: ConstCStringPtr; userFriendlyName: ConstCStringPtr): OSErr; external name '_NSLSaveURLAliasToFolder';
+function NSLSaveURLAliasToFolder( folderSelectorType: OSType; url: ConstCStringPtr; userFriendlyName: ConstCStringPtr ): OSErr; external name '_NSLSaveURLAliasToFolder';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
-{$ALIGN MAC68K}
+{$endc} {TARGET_OS_MAC}
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

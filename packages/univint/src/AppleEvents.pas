@@ -1,12 +1,11 @@
 {
-     File:       AppleEvents.p
+     File:       AE/AppleEvents.h
  
      Contains:   AppleEvent Package Interfaces.
  
-     Version:    Technology: System 7.5
-                 Release:    Universal Interfaces 3.4.2
+     Version:    AppleEvents-496~1
  
-     Copyright:  © 1989-2002 by Apple Computer, Inc., all rights reserved
+     Copyright:  © 1989-2008 by Apple Computer, Inc., all rights reserved
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,14 +13,14 @@
                      http://www.freepascal.org/bugs.html
  
 }
-
-
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -30,8 +29,8 @@
 
 unit AppleEvents;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -44,16 +43,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -61,14 +82,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -94,7 +166,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -105,83 +176,89 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes,MixedMode,AEDataModel,AEInteraction, CFArray, CFBase, CFRunLoop, CFStream, CFURL;
+{$endc} {not MACOSALLINCLUDE}
+
+
+{$ifc TARGET_OS_MAC}
+
 {
     Note:   The functions and types for the building and parsing AppleEvent  
             messages has moved to AEDataModel.h
 }
 
-{
-    Note:   The functions for interacting with events has moved to AEInteraction.h
-}
 
 {$ALIGN MAC68K}
 
-
 const
-																{  Keywords for Apple event parameters  }
-	keyDirectObject				= FourCharCode('----');
-	keyErrorNumber				= FourCharCode('errn');
-	keyErrorString				= FourCharCode('errs');
-	keyProcessSerialNumber		= FourCharCode('psn ');						{  Keywords for special handlers  }
-	keyPreDispatch				= FourCharCode('phac');						{  preHandler accessor call  }
-	keySelectProc				= FourCharCode('selh');						{  more selector call  }
-																{  Keyword for recording  }
-	keyAERecorderCount			= FourCharCode('recr');						{  available only in vers 1.0.1 and greater  }
-																{  Keyword for version information  }
-	keyAEVersion				= FourCharCode('vers');						{  available only in vers 1.0.1 and greater  }
+{ Keywords for Apple event parameters }
+	keyDirectObject = FourCharCode('----');
+	keyErrorNumber = FourCharCode('errn');
+	keyErrorString = FourCharCode('errs');
+	keyProcessSerialNumber = FourCharCode('psn '); { Keywords for special handlers }
+	keyPreDispatch = FourCharCode('phac'); { preHandler accessor call }
+	keySelectProc = FourCharCode('selh'); { more selector call }
+                                        { Keyword for recording }
+	keyAERecorderCount = FourCharCode('recr'); { available only in vers 1.0.1 and greater }
+                                        { Keyword for version information }
+	keyAEVersion = FourCharCode('vers'); { available only in vers 1.0.1 and greater }
 
-	{	 Event Class 	}
-	kCoreEventClass				= FourCharCode('aevt');
+{ Event Class }
+const
+	kCoreEventClass = FourCharCode('aevt');
 
-	{	 Event IDÕs 	}
-	kAEOpenApplication			= FourCharCode('oapp');
-	kAEOpenDocuments			= FourCharCode('odoc');
-	kAEPrintDocuments			= FourCharCode('pdoc');
-	kAEQuitApplication			= FourCharCode('quit');
-	kAEAnswer					= FourCharCode('ansr');
-	kAEApplicationDied			= FourCharCode('obit');
-	kAEShowPreferences			= FourCharCode('pref');						{  sent by Mac OS X when the user chooses the Preferences item  }
-	kAEAutosaveNow              = FourCharCode('asav');                       { sent by Mac OS X when it is advisable to autosave all the user's documents with uncommitted changes. }
+{ Event ID's }
+const
+	kAEOpenApplication = FourCharCode('oapp');
+	kAEOpenDocuments = FourCharCode('odoc');
+	kAEPrintDocuments = FourCharCode('pdoc');
+	kAEOpenContents = FourCharCode('ocon');
+	kAEQuitApplication = FourCharCode('quit'); { may include a property kAEQuitReason indicating what lead to the quit being sent. }
+	kAEAnswer = FourCharCode('ansr');
+	kAEApplicationDied = FourCharCode('obit');
+	kAEShowPreferences = FourCharCode('pref'); { sent by Mac OS X when the user chooses the Preferences item }
 
-	{	 Constants for recording 	}
-	kAEStartRecording			= FourCharCode('reca');						{  available only in vers 1.0.1 and greater  }
-	kAEStopRecording			= FourCharCode('recc');						{  available only in vers 1.0.1 and greater  }
-	kAENotifyStartRecording		= FourCharCode('rec1');						{  available only in vers 1.0.1 and greater  }
-	kAENotifyStopRecording		= FourCharCode('rec0');						{  available only in vers 1.0.1 and greater  }
-	kAENotifyRecording			= FourCharCode('recr');						{  available only in vers 1.0.1 and greater  }
+{ Constants for recording }
+const
+	kAEStartRecording = FourCharCode('reca'); { available only in vers 1.0.1 and greater }
+	kAEStopRecording = FourCharCode('recc'); { available only in vers 1.0.1 and greater }
+	kAENotifyStartRecording = FourCharCode('rec1'); { available only in vers 1.0.1 and greater }
+	kAENotifyStopRecording = FourCharCode('rec0'); { available only in vers 1.0.1 and greater }
+	kAENotifyRecording = FourCharCode('recr'); { available only in vers 1.0.1 and greater }
 
 
-	{	
-	 * AEEventSource is defined as an SInt8 for compatability with pascal.
-	 * Important note: keyEventSourceAttr is returned by AttributePtr as a typeShortInteger.
-	 * Be sure to pass at least two bytes of storage to AEGetAttributePtr - the result can be
-	 * compared directly against the following enums.
-	 	}
-
+{
+ * AEEventSource is defined as an SInt8 for compatability with pascal.
+ * Important note: keyEventSourceAttr is returned by AttributePtr as a typeShortInteger.
+ * Be sure to pass at least two bytes of storage to AEGetAttributePtr - the result can be
+ * compared directly against the following enums.
+ }
 type
-	AEEventSource 				= SInt8;
+	AEEventSource = SInt8;
 const
-	kAEUnknownSource			= 0;
-	kAEDirectCall				= 1;
-	kAESameProcess				= 2;
-	kAELocalProcess				= 3;
-	kAERemoteProcess			= 4;
+	kAEUnknownSource = 0;
+	kAEDirectCall = 1;
+	kAESameProcess = 2;
+	kAELocalProcess = 3;
+	kAERemoteProcess = 4;
 
-	{	*************************************************************************
-	  These calls are used to set up and modify the event dispatch table.
-	*************************************************************************	}
-	{
-	 *  AEInstallEventHandler()
-	 *  
-	 *  Mac OS X threading:
-	 *    Thread safe since version 10.2
-	 *  
-	 *  Availability:
-	 *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
-	 *    CarbonLib:        in CarbonLib 1.0 and later
-	 *    Mac OS X:         in version 10.0 and later
-	 	}
-function AEInstallEventHandler(theAEEventClass: AEEventClass; theAEEventID: AEEventID; handler: AEEventHandlerUPP; handlerRefcon: SInt32; isSysHandler: boolean): OSErr; external name '_AEInstallEventHandler';
+{*************************************************************************
+  These calls are used to set up and modify the event dispatch table.
+*************************************************************************}
+{
+ *  AEInstallEventHandler()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.2
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ }
+function AEInstallEventHandler( theAEEventClass: AEEventClass; theAEEventID: AEEventID; handler: AEEventHandlerUPP; handlerRefcon: SRefCon; isSysHandler: Boolean ): OSErr; external name '_AEInstallEventHandler';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 {
  *  AERemoveEventHandler()
  *  
@@ -189,11 +266,14 @@ function AEInstallEventHandler(theAEEventClass: AEEventClass; theAEEventID: AEEv
  *    Thread safe since version 10.2
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function AERemoveEventHandler(theAEEventClass: AEEventClass; theAEEventID: AEEventID; handler: AEEventHandlerUPP; isSysHandler: boolean): OSErr; external name '_AERemoveEventHandler';
+function AERemoveEventHandler( theAEEventClass: AEEventClass; theAEEventID: AEEventID; handler: AEEventHandlerUPP; isSysHandler: Boolean ): OSErr; external name '_AERemoveEventHandler';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 {
  *  AEGetEventHandler()
  *  
@@ -201,11 +281,14 @@ function AERemoveEventHandler(theAEEventClass: AEEventClass; theAEEventID: AEEve
  *    Thread safe since version 10.2
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function AEGetEventHandler(theAEEventClass: AEEventClass; theAEEventID: AEEventID; var handler: AEEventHandlerUPP; var handlerRefcon: SInt32; isSysHandler: boolean): OSErr; external name '_AEGetEventHandler';
+function AEGetEventHandler( theAEEventClass: AEEventClass; theAEEventID: AEEventID; var handler: AEEventHandlerUPP; var handlerRefcon: SRefCon; isSysHandler: Boolean ): OSErr; external name '_AEGetEventHandler';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 {*************************************************************************
   These calls are used to set up and modify special hooks into the
   AppleEvent manager.
@@ -217,11 +300,14 @@ function AEGetEventHandler(theAEEventClass: AEEventClass; theAEEventID: AEEventI
  *    Thread safe since version 10.2
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function AEInstallSpecialHandler(functionClass: AEKeyword; handler: AEEventHandlerUPP; isSysHandler: boolean): OSErr; external name '_AEInstallSpecialHandler';
+function AEInstallSpecialHandler( functionClass: AEKeyword; handler: AEEventHandlerUPP; isSysHandler: Boolean ): OSErr; external name '_AEInstallSpecialHandler';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 {
  *  AERemoveSpecialHandler()
  *  
@@ -229,11 +315,14 @@ function AEInstallSpecialHandler(functionClass: AEKeyword; handler: AEEventHandl
  *    Thread safe since version 10.2
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function AERemoveSpecialHandler(functionClass: AEKeyword; handler: AEEventHandlerUPP; isSysHandler: boolean): OSErr; external name '_AERemoveSpecialHandler';
+function AERemoveSpecialHandler( functionClass: AEKeyword; handler: AEEventHandlerUPP; isSysHandler: Boolean ): OSErr; external name '_AERemoveSpecialHandler';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 {
  *  AEGetSpecialHandler()
  *  
@@ -241,11 +330,14 @@ function AERemoveSpecialHandler(functionClass: AEKeyword; handler: AEEventHandle
  *    Thread safe since version 10.2
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function AEGetSpecialHandler(functionClass: AEKeyword; var handler: AEEventHandlerUPP; isSysHandler: boolean): OSErr; external name '_AEGetSpecialHandler';
+function AEGetSpecialHandler( functionClass: AEKeyword; var handler: AEEventHandlerUPP; isSysHandler: Boolean ): OSErr; external name '_AEGetSpecialHandler';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
 {*************************************************************************
   This call was added in version 1.0.1. If called with the keyword
   keyAERecorderCount ('recr'), the number of recorders that are
@@ -259,11 +351,13 @@ function AEGetSpecialHandler(functionClass: AEKeyword; var handler: AEEventHandl
  *    Thread safe since version 10.2
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function AEManagerInfo(keyWord: AEKeyword; var result: SInt32): OSErr; external name '_AEManagerInfo';
+function AEManagerInfo( keyWord: AEKeyword; var result: SIGNEDLONG ): OSErr; external name '_AEManagerInfo';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
   AERemoteProcessResolver:
@@ -352,6 +446,7 @@ var kAERemoteProcessProcessIDKey: CFStringRef; external name '_kAERemoteProcessP
  *    callback is made, the info pointer is passed to the callback.
  }
 type
+	AERemoteProcessResolverContextPtr = ^AERemoteProcessResolverContext;
 	AERemoteProcessResolverContext = record
 {
    * set to zero (0)
@@ -379,8 +474,6 @@ type
 		copyDescription: CFAllocatorCopyDescriptionCallBack;
 	end;
 
-    AERemoteProcessResolverContextPtr = ^AERemoteProcessResolverContext; { when a var xx: AERemoteProcessResolverContext parameter can be nil, it is changed to xx: AERemoteProcessResolverContextPtr }
-
 {
  *  AERemoteProcessResolverRef
  *  
@@ -392,7 +485,7 @@ type
  *    AERemoteProcessResolverRef is not a CFType.
  }
 type
-	AERemoteProcessResolverRef = ^SInt32; { an opaque 32-bit type }
+	AERemoteProcessResolverRef = ^SInt32; { an opaque type }
 {
  *  AECreateRemoteProcessResolver()
  *  
@@ -547,7 +640,9 @@ type
 procedure AERemoteProcessResolverScheduleWithRunLoop( ref: AERemoteProcessResolverRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef; callback: AERemoteProcessResolverCallback; {const} ctx: AERemoteProcessResolverContextPtr { can be NULL } ); external name '_AERemoteProcessResolverScheduleWithRunLoop';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
-{$ALIGN MAC68K}
 
+{$endc} {TARGET_OS_MAC}
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

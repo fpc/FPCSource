@@ -1,34 +1,35 @@
 {
- * Copyright (c) 2000-2002 Apple Computer, Inc. All Rights Reserved.
+ * Copyright (c) 2000-2004,2007 Apple Inc. All Rights Reserved.
  * 
- * The contents of this file constitute Original Code as defined in and are
- * subject to the Apple Public Source License Version 1.2 (the 'License').
- * You may not use this file except in compliance with the License. Please obtain
- * a copy of the License at http://www.apple.com/publicsource and read it before
- * using this file.
+ * @APPLE_LICENSE_HEADER_START@
  * 
- * This Original Code and all software distributed under the License are
- * distributed on an 'AS IS' basis, WITHOUT WARRANTY of ANY KIND, EITHER EXPRESS
- * OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES, INCLUDING WITHOUT
- * LIMITATION, ANY WARRANTIES of MERCHANTABILITY, FITNESS FOR A PARTICULAR
- * PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT. Please see the License for the
- * specific language governing rights and limitations under the License.
+ * This file contains Original Code and/or Modifications of Original Code
+ * as defined in and that are subject to the Apple Public Source License
+ * Version 2.0 (the 'License'). You may not use this file except in
+ * compliance with the License. Please obtain a copy of the License at
+ * http://www.opensource.apple.com/apsl/ and read it before using this
+ * file.
+ * 
+ * The Original Code and all software distributed under the License are
+ * distributed on an 'AS IS' basis, WITHOUT WARRANTY OF ANY KIND, EITHER
+ * EXPRESS OR IMPLIED, AND APPLE HEREBY DISCLAIMS ALL SUCH WARRANTIES,
+ * INCLUDING WITHOUT LIMITATION, ANY WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE, QUIET ENJOYMENT OR NON-INFRINGEMENT.
+ * Please see the License for the specific language governing rights and
+ * limitations under the License.
+ * 
+ * @APPLE_LICENSE_HEADER_END@
  }
-{	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
-
-
-{
- *  Authorization.h -- APIs for implementing access control in applications
- *  and daemons.
- }
-
-
+ {	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
+ {	  Pascal Translation Update:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
+ {    Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -37,8 +38,8 @@
 
 unit Authorization;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -51,16 +52,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -68,14 +91,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -101,7 +175,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -112,7 +185,20 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes;
-{$ALIGN MAC68K}
+{$endc} {not MACOSALLINCLUDE}
+
+
+{$ifc TARGET_OS_MAC}
+
+{$ALIGN POWER}
+
+
+{
+ *  Authorization.h -- APIs for implementing access control in applications
+ *  and daemons.
+ }
+
+
 {!
 	@header Authorization
 	Version 1.0 10/16/2000
@@ -147,24 +233,26 @@ const kAuthorizationEmptyEnvironment = nil;
     The comments must not be multi-line, and should be in a form meaningful to an end user. If
     a different or additional comment is needed, it can be put in the header doc format, or on a
     line that does not start with errZZZ.
+
+    errAuthorizationSuccess can't include a string as it's also errSecSuccess in libsecurity_keychain/lib/SecBase.h
 }
 
 const
-	errAuthorizationSuccess					= 0;      { The operation completed successfully. }
-	errAuthorizationInvalidSet				= -60001; { The set parameter is invalid. }
-	errAuthorizationInvalidRef				= -60002; { The authorization parameter is invalid. }
-	errAuthorizationInvalidTag				= -60003; { The tag parameter is invalid. }
-	errAuthorizationInvalidPointer			= -60004; { The authorizedRights parameter is invalid. }
-	errAuthorizationDenied					= -60005; { The authorization was denied. }
-	errAuthorizationCanceled				= -60006; { The authorization was cancelled by the user. }
-	errAuthorizationInteractionNotAllowed	= -60007; { The authorization was denied since no user interaction was possible. }
-	errAuthorizationInternal                = -60008; { something else went wrong }
-	errAuthorizationExternalizeNotAllowed	= -60009; { authorization externalization denied }
-	errAuthorizationInternalizeNotAllowed	= -60010; { authorization internalization denied }
-	errAuthorizationInvalidFlags            = -60011; { invalid option flag(s) }
-	errAuthorizationToolExecuteFailure      = -60031; { cannot execute privileged tool }
-	errAuthorizationToolEnvironmentError    = -60032; { privileged tool environment error }
-	errAuthorizationBadAddress				= -60033; { invalid socket address requested }
+	errAuthorizationSuccess = 0;
+	errAuthorizationInvalidSet = -60001; { The authorization rights are invalid. }
+	errAuthorizationInvalidRef = -60002; { The authorization reference is invalid. }
+	errAuthorizationInvalidTag = -60003; { The authorization tag is invalid. }
+	errAuthorizationInvalidPointer = -60004; { The returned authorization is invalid. }
+	errAuthorizationDenied = -60005; { The authorization was denied. }
+	errAuthorizationCanceled = -60006; { The authorization was cancelled by the user. }
+	errAuthorizationInteractionNotAllowed = -60007; { The authorization was denied since no user interaction was possible. }
+	errAuthorizationInternal = -60008; { Unable to obtain authorization for this operation. }
+	errAuthorizationExternalizeNotAllowed = -60009; { The authorization is not allowed to be converted to an external format. }
+	errAuthorizationInternalizeNotAllowed = -60010; { The authorization is not allowed to be created from an external format. }
+	errAuthorizationInvalidFlags = -60011; { The provided option flag(s) are invalid for this authorization operation. }
+	errAuthorizationToolExecuteFailure = -60031; { The specified program could not be executed. }
+	errAuthorizationToolEnvironmentError = -60032; { An invalid status was returned during execution of a privileged tool. }
+	errAuthorizationBadAddress = -60033; { The requested socket address is invalid (must be 0-1023 inclusive). }
 
 
 {!
@@ -172,22 +260,23 @@ const
 	Optional flags passed in to serveral Authorization APIs. See the description of AuthorizationCreate, AuthorizationCopyRights and AuthorizationFree for a description of how they affect those calls.
 }
 const
-	kAuthorizationFlagDefaults              = 0;
-	kAuthorizationFlagInteractionAllowed	= (1 shl 0);
-	kAuthorizationFlagExtendRights			= (1 shl 1);
-	kAuthorizationFlagPartialRights			= (1 shl 2);
-	kAuthorizationFlagDestroyRights			= (1 shl 3);
-	kAuthorizationFlagPreAuthorize			= (1 shl 4);
+	kAuthorizationFlagDefaults = 0;
+	kAuthorizationFlagInteractionAllowed = 1 shl 0;
+	kAuthorizationFlagExtendRights = 1 shl 1;
+	kAuthorizationFlagPartialRights = 1 shl 2;
+	kAuthorizationFlagDestroyRights = 1 shl 3;
+	kAuthorizationFlagPreAuthorize = 1 shl 4;
 	
 	// private bits (do not use)
-	kAuthorizationFlagNoData                = (1 shl 20);
+	kAuthorizationFlagNoData = 1 shl 20;
 
 
 {!
 	@typedef AuthorizationFlags
 	Optional flags passed in to AuthorizationCreate.
 }
-type AuthorizationFlags = UInt32;
+type
+	AuthorizationFlags = UInt32;
 
 
 {!
@@ -195,7 +284,7 @@ type AuthorizationFlags = UInt32;
 	Flags returned in the flags field of ItemSet Items when calling AuthorizationCopyRights().
 }
 const
-	kAuthorizationFlagCanNotPreAuthorize = (1 shl 0);
+	kAuthorizationFlagCanNotPreAuthorize = 1 shl 0;
 
 
 {!
@@ -203,7 +292,7 @@ const
 	Opaque reference to an authorization object.
 }
 type
-	AuthorizationRef							= ^SInt32;
+	AuthorizationRef = ^SInt32;
 
 
 {!
@@ -211,7 +300,7 @@ type
 	A zero terminated string in UTF-8 encoding.
 }
 type AuthorizationString = CStringPtr;
-
+	 ConstAuthorizationString = ConstCStringPtr;	{ will need later in AuthorizationPlugin }
 
 {!
 	@struct AuthorizationItem
@@ -228,8 +317,8 @@ type AuthorizationString = CStringPtr;
 type
 	AuthorizationItem = record
 		name: AuthorizationString;
-		valueLength: UInt32;
-		value: Ptr;
+		valueLength: size_t;
+		value: UnivPtr;
 		flags: UInt32;
 	end;
 	AuthorizationItemPtr = ^AuthorizationItem;
@@ -260,7 +349,8 @@ type
 	SECURITY NOTE: Applications should take care to not disclose the AuthorizationExternalForm to
 	potential attackers since it would authorize rights to them.
 }
-const kAuthorizationExternalFormLength = 32;
+const
+	kAuthorizationExternalFormLength = 32;
 
 type
 	AuthorizationExternalForm = record
@@ -317,7 +407,7 @@ type AuthorizationEnvironmentPtr = ^AuthorizationEnvironment;
 
 	errAuthorizationInteractionNotAllowed -60007 The authorization was denied since no interaction with the user was allowed.
 }
-function AuthorizationCreate(rights: AuthorizationRightsPtr; environment: AuthorizationEnvironmentPtr; flags: AuthorizationFlags; var authorization: AuthorizationRef): OSStatus; external name '_AuthorizationCreate';
+function AuthorizationCreate( rights: AuthorizationRightsPtr; environment: AuthorizationEnvironmentPtr; flags: AuthorizationFlags; var authorization: AuthorizationRef ): OSStatus; external name '_AuthorizationCreate';
 
 
 {!
@@ -336,7 +426,8 @@ function AuthorizationCreate(rights: AuthorizationRightsPtr; environment: Author
 
     errAuthorizationInvalidRef -60002 The authorization parameter is invalid.
 }
-function AuthorizationFree(authorization: AuthorizationRef;flags: AuthorizationFlags): OSStatus; external name '_AuthorizationFree';
+function AuthorizationFree( authorization: AuthorizationRef; flags: AuthorizationFlags ): OSStatus; external name '_AuthorizationFree';
+
 
 {!
 	@function AuthorizationCopyRights
@@ -371,7 +462,7 @@ function AuthorizationFree(authorization: AuthorizationRef;flags: AuthorizationF
 
     errAuthorizationInvalidPointer -60004 The authorizedRights parameter is invalid.
 }
-function AuthorizationCopyRights(authorization: AuthorizationRef; const (*var*) rights: AuthorizationRights; environment: AuthorizationEnvironmentPtr; flags: AuthorizationFlags; authorizedRights: AuthorizationRightsPtrPtr): OSStatus; external name '_AuthorizationCopyRights';
+function AuthorizationCopyRights( authorization: AuthorizationRef; const (*var*) rights: AuthorizationRights; environment: AuthorizationEnvironmentPtr; flags: AuthorizationFlags; authorizedRights: AuthorizationRightsPtrPtr ): OSStatus; external name '_AuthorizationCopyRights';
 
 {!
 	@function AuthorizationCopyInfo
@@ -390,7 +481,7 @@ function AuthorizationCopyRights(authorization: AuthorizationRef; const (*var*) 
 
     errAuthorizationInvalidPointer -60004 The info parameter is invalid.
 }
-function AuthorizationCopyInfo(authorization: AuthorizationRef; tag: AuthorizationString; var info: AuthorizationItemSetPtr): OSStatus; external name '_AuthorizationCopyInfo';
+function AuthorizationCopyInfo( authorization: AuthorizationRef; tag: AuthorizationString; var info: AuthorizationItemSetPtr ): OSStatus; external name '_AuthorizationCopyInfo';
 
 {!
 	@function AuthorizationMakeExternalForm
@@ -411,7 +502,7 @@ function AuthorizationCopyInfo(authorization: AuthorizationRef; tag: Authorizati
 
 
 }
-function AuthorizationMakeExternalForm(authorization: AuthorizationRef; var extForm: AuthorizationExternalForm): OSStatus; external name '_AuthorizationMakeExternalForm';
+function AuthorizationMakeExternalForm( authorization: AuthorizationRef; var extForm: AuthorizationExternalForm ): OSStatus; external name '_AuthorizationMakeExternalForm';
 
 
 {!
@@ -427,7 +518,7 @@ function AuthorizationMakeExternalForm(authorization: AuthorizationRef; var extF
 	
 	@result errAuthorizationInternalizeNotAllowed -60010 Internalizing this authorization is not allowed.
 }
-function AuthorizationCreateFromExternalForm(const (*var*) extForm: AuthorizationExternalForm; var authorization: AuthorizationRef): OSStatus; external name '_AuthorizationCreateFromExternalForm';
+function AuthorizationCreateFromExternalForm( const (*var*) extForm: AuthorizationExternalForm; var authorization: AuthorizationRef ): OSStatus; external name '_AuthorizationCreateFromExternalForm';
 
 
 {!
@@ -441,7 +532,7 @@ function AuthorizationCreateFromExternalForm(const (*var*) extForm: Authorizatio
 
     errAuthorizationInvalidSet -60001 The set parameter is invalid.
 }
-function AuthorizationFreeItemSet(var setx: AuthorizationItemSet): OSStatus; external name '_AuthorizationFreeItemSet';
+function AuthorizationFreeItemSet( var setx: AuthorizationItemSet ): OSStatus; external name '_AuthorizationFreeItemSet';
 
 
 {!
@@ -464,7 +555,7 @@ function AuthorizationFreeItemSet(var setx: AuthorizationItemSet): OSStatus; ext
 type
   Arg10000Type = array[0..10000] of CStringPtr;
   Arg10000TypePtr = ^Arg10000Type;
-function AuthorizationExecuteWithPrivileges(authorization: AuthorizationRef; pathToTool: CStringPtr; options: AuthorizationFlags; arguments: Arg10000TypePtr; communicationsPipe: UnivPtr): OSStatus; external name '_AuthorizationExecuteWithPrivileges';
+function AuthorizationExecuteWithPrivileges( authorization: AuthorizationRef; pathToTool: CStringPtr; options: AuthorizationFlags; arguments: Arg10000TypePtr; communicationsPipe: UnivPtr ): OSStatus; external name '_AuthorizationExecuteWithPrivileges';
 // communicationsPipe not yet supported
 
 
@@ -476,6 +567,11 @@ function AuthorizationExecuteWithPrivileges(authorization: AuthorizationRef; pat
 	launch your tool, the tool may want to avail itself of any additional pre-authorizations
 	the caller may have obtained through that reference.
  }
-function AuthorizationCopyPrivilegedReference(var authorization: AuthorizationRef; flags: AuthorizationFlags): OSStatus; external name '_AuthorizationCopyPrivilegedReference';
+function AuthorizationCopyPrivilegedReference( var authorization: AuthorizationRef; flags: AuthorizationFlags ): OSStatus; external name '_AuthorizationCopyPrivilegedReference';
+
+
+{$endc} {TARGET_OS_MAC}
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

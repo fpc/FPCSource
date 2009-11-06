@@ -1,12 +1,11 @@
 {
-     File:       Math64.p
+     File:       CarbonCore/Math64.h
  
-     Contains:   64-bit SInt16 math Interfaces.
+     Contains:   64-bit integer math Interfaces.
  
-     Version:    Technology: Mac OS 9
-                 Release:    Universal Interfaces 3.4.2
+     Version:    CarbonCore-859.2~1
  
-     Copyright:  © 1994-2002 by Apple Computer, Inc., all rights reserved
+     Copyright:  © 1994-2008 by Apple Computer, Inc., all rights reserved
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,14 +13,14 @@
                      http://www.freepascal.org/bugs.html
  
 }
-
-
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -30,8 +29,8 @@
 
 unit Math64;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -44,16 +43,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -61,14 +82,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -94,7 +166,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -105,10 +176,10 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes,ConditionalMacros;
+{$endc} {not MACOSALLINCLUDE}
 
 
-{$ALIGN MAC68K}
-
+{$ifc TARGET_OS_MAC}
 
 {
  *  S64Max()
@@ -117,9 +188,9 @@ uses MacTypes,ConditionalMacros;
  *    Returns largest possible SInt64 value
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
 function S64Max: SInt64; external name '_S64Max';
 
@@ -130,9 +201,9 @@ function S64Max: SInt64; external name '_S64Max';
  *    Returns smallest possible SInt64 value
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
 function S64Min: SInt64; external name '_S64Min';
 
@@ -141,32 +212,32 @@ function S64Min: SInt64; external name '_S64Min';
  *  S64Add()
  *  
  *  Discussion:
- *    Adds two integers, producing an SInt16 result.  If an overflow
+ *    Adds two integers, producing an integer result.  If an overflow
  *    occurs the result is congruent mod (2^64) as if the operands and
  *    result were unsigned.  No overflow is signaled.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64Add(left: SInt64; right: SInt64): SInt64; external name '_S64Add';
+function S64Add( left: SInt64; right: SInt64 ): SInt64; external name '_S64Add';
 
 
 {
  *  S64Subtract()
  *  
  *  Discussion:
- *    Subtracts two integers, producing an SInt16 result.  If an
+ *    Subtracts two integers, producing an integer result.  If an
  *    overflow occurs the result is congruent mod (2^64) as if the
  *    operands and result were unsigned.  No overflow is signaled.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64Subtract(left: SInt64; right: SInt64): SInt64; external name '_S64Subtract';
+function S64Subtract( left: SInt64; right: SInt64 ): SInt64; external name '_S64Subtract';
 
 
 {
@@ -178,11 +249,11 @@ function S64Subtract(left: SInt64; right: SInt64): SInt64; external name '_S64Su
  *    fact, it returns S64Min).
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64Negate(value: SInt64): SInt64; external name '_S64Negate';
+function S64Negate( value: SInt64 ): SInt64; external name '_S64Negate';
 
 
 {$ifc NOT TYPE_LONGLONG}
@@ -196,11 +267,11 @@ function S64Negate(value: SInt64): SInt64; external name '_S64Negate';
  *    everywhere.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64Absolute(value: SInt64): SInt64; external name '_S64Absolute';
+function S64Absolute( value: SInt64 ): SInt64; external name '_S64Absolute';
 
 {$endc}
 
@@ -214,11 +285,11 @@ function S64Absolute(value: SInt64): SInt64; external name '_S64Absolute';
  *    if the magnitude of the product is not representable.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64Multiply(left: SInt64; right: SInt64): SInt64; external name '_S64Multiply';
+function S64Multiply( left: SInt64; right: SInt64 ): SInt64; external name '_S64Multiply';
 
 
 {$ifc CALL_NOT_IN_CARBON}
@@ -232,11 +303,9 @@ function S64Multiply(left: SInt64; right: SInt64): SInt64; external name '_S64Mu
  *    then fixes the sign of the quotient and remainder).
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        not available
- *    Mac OS X:         not available
+ *    Implemented by client
  }
-function S64Mod(dividend: SInt64; divisor: SInt64): SInt64; external name '_S64Mod';
+function S64Mod( dividend: SInt64; divisor: SInt64 ): SInt64; external name '_S64Mod';
 
 
 {$endc}  {CALL_NOT_IN_CARBON}
@@ -255,11 +324,11 @@ function S64Mod(dividend: SInt64; divisor: SInt64): SInt64; external name '_S64M
  *    remainder will be the dividend; no error is reported.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64Divide(dividend: SInt64; divisor: SInt64; remainder: SInt64Ptr): SInt64; external name '_S64Divide';
+function S64Divide( dividend: SInt64; divisor: SInt64; remainder: SInt64Ptr ): SInt64; external name '_S64Divide';
 
 
 {
@@ -271,11 +340,11 @@ function S64Divide(dividend: SInt64; divisor: SInt64; remainder: SInt64Ptr): SIn
  *    constant will fit in an SInt32).
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64Set(value: SInt32): SInt64; external name '_S64Set';
+function S64Set( value: SInt32 ): SInt64; external name '_S64Set';
 
 
 {
@@ -285,11 +354,11 @@ function S64Set(value: SInt32): SInt64; external name '_S64Set';
  *    Given a UInt32, returns a SInt64 with the same value.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64SetU(value: UInt32): SInt64; external name '_S64SetU';
+function S64SetU( value: UInt32 ): SInt64; external name '_S64SetU';
 
 {
  *  S32Set()
@@ -299,11 +368,11 @@ function S64SetU(value: UInt32): SInt64; external name '_S64SetU';
  *    32 bits.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S32Set(value: SInt64): SInt32; external name '_S32Set';
+function S32Set( value: SInt64 ): SInt32; external name '_S32Set';
 
 
 {
@@ -313,11 +382,11 @@ function S32Set(value: SInt64): SInt32; external name '_S32Set';
  *    Returns one if left and right are non-zero, otherwise returns zero
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64And(left: SInt64; right: SInt64): boolean; external name '_S64And';
+function S64And( left: SInt64; right: SInt64 ): Boolean; external name '_S64And';
 
 
 {
@@ -327,11 +396,11 @@ function S64And(left: SInt64; right: SInt64): boolean; external name '_S64And';
  *    Returns one if left or right are non-zero, otherwise returns zero
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64Or(left: SInt64; right: SInt64): boolean; external name '_S64Or';
+function S64Or( left: SInt64; right: SInt64 ): Boolean; external name '_S64Or';
 
 
 {
@@ -341,11 +410,11 @@ function S64Or(left: SInt64; right: SInt64): boolean; external name '_S64Or';
  *    Returns one if left xor right are non-zero, otherwise returns zero
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64Eor(left: SInt64; right: SInt64): boolean; external name '_S64Eor';
+function S64Eor( left: SInt64; right: SInt64 ): Boolean; external name '_S64Eor';
 
 
 {
@@ -355,11 +424,11 @@ function S64Eor(left: SInt64; right: SInt64): boolean; external name '_S64Eor';
  *    Returns one if value is non-zero, otherwisze returns zero.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64Not(value: SInt64): boolean; external name '_S64Not';
+function S64Not( value: SInt64 ): Boolean; external name '_S64Not';
 
 
 {
@@ -378,11 +447,12 @@ function S64Not(value: SInt64): boolean; external name '_S64Not';
  *    positive, zero, or negative) of the result is guaranteed.
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   not available
  }
-function S64Compare(left: SInt64; right: SInt64): SInt32; external name '_S64Compare';
+function S64Compare( left: SInt64; right: SInt64 ): SInt32; external name '_S64Compare';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
 {
@@ -392,11 +462,11 @@ function S64Compare(left: SInt64; right: SInt64): SInt32; external name '_S64Com
  *    bitwise AND
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64BitwiseAnd(left: SInt64; right: SInt64): SInt64; external name '_S64BitwiseAnd';
+function S64BitwiseAnd( left: SInt64; right: SInt64 ): SInt64; external name '_S64BitwiseAnd';
 
 
 {
@@ -406,11 +476,11 @@ function S64BitwiseAnd(left: SInt64; right: SInt64): SInt64; external name '_S64
  *    bitwise OR
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64BitwiseOr(left: SInt64; right: SInt64): SInt64; external name '_S64BitwiseOr';
+function S64BitwiseOr( left: SInt64; right: SInt64 ): SInt64; external name '_S64BitwiseOr';
 
 
 {
@@ -420,11 +490,11 @@ function S64BitwiseOr(left: SInt64; right: SInt64): SInt64; external name '_S64B
  *    bitwise XOR
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64BitwiseEor(left: SInt64; right: SInt64): SInt64; external name '_S64BitwiseEor';
+function S64BitwiseEor( left: SInt64; right: SInt64 ): SInt64; external name '_S64BitwiseEor';
 
 
 {
@@ -434,11 +504,11 @@ function S64BitwiseEor(left: SInt64; right: SInt64): SInt64; external name '_S64
  *    bitwise negate
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64BitwiseNot(value: SInt64): SInt64; external name '_S64BitwiseNot';
+function S64BitwiseNot( value: SInt64 ): SInt64; external name '_S64BitwiseNot';
 
 
 {
@@ -448,11 +518,11 @@ function S64BitwiseNot(value: SInt64): SInt64; external name '_S64BitwiseNot';
  *    Arithmetic shift of value by the lower 7 bits of the shift.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64ShiftRight(value: SInt64; shift: UInt32): SInt64; external name '_S64ShiftRight';
+function S64ShiftRight( value: SInt64; shift: UInt32 ): SInt64; external name '_S64ShiftRight';
 
 
 {
@@ -462,11 +532,11 @@ function S64ShiftRight(value: SInt64; shift: UInt32): SInt64; external name '_S6
  *    Logical shift of value by the lower 7 bits of the shift.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function S64ShiftLeft(value: SInt64; shift: UInt32): SInt64; external name '_S64ShiftLeft';
+function S64ShiftLeft( value: SInt64; shift: UInt32 ): SInt64; external name '_S64ShiftLeft';
 
 
 {
@@ -476,9 +546,9 @@ function S64ShiftLeft(value: SInt64; shift: UInt32): SInt64; external name '_S64
  *    Returns largest possible UInt64 value
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
 function U64Max: UInt64; external name '_U64Max';
 
@@ -486,31 +556,31 @@ function U64Max: UInt64; external name '_U64Max';
  *  U64Add()
  *  
  *  Discussion:
- *    Adds two unsigned integers, producing an SInt16 result.  If an
+ *    Adds two unsigned integers, producing an integer result.  If an
  *    overflow occurs the result is congruent mod (2^64) as if the
  *    operands and result were unsigned.  No overflow is signaled.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function U64Add(left: UInt64; right: UInt64): UInt64; external name '_U64Add';
+function U64Add( left: UInt64; right: UInt64 ): UInt64; external name '_U64Add';
 
 {
  *  U64Subtract()
  *  
  *  Discussion:
- *    Subtracts two unsigned integers, producing an SInt16 result.  If
+ *    Subtracts two unsigned integers, producing an integer result.  If
  *    an overflow occurs the result is congruent mod (2^64) as if the
  *    operands and result were unsigned.  No overflow is signaled.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function U64Subtract(left: UInt64; right: UInt64): UInt64; external name '_U64Subtract';
+function U64Subtract( left: UInt64; right: UInt64 ): UInt64; external name '_U64Subtract';
 
 
 {
@@ -523,11 +593,11 @@ function U64Subtract(left: UInt64; right: UInt64): UInt64; external name '_U64Su
  *    if the magnitude of the product is not representable.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function U64Multiply(left: UInt64; right: UInt64): UInt64; external name '_U64Multiply';
+function U64Multiply( left: UInt64; right: UInt64 ): UInt64; external name '_U64Multiply';
 
 
 {$ifc CALL_NOT_IN_CARBON}
@@ -541,11 +611,9 @@ function U64Multiply(left: UInt64; right: UInt64): UInt64; external name '_U64Mu
  *    then fixes the sign of the quotient and remainder).
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        not available
- *    Mac OS X:         not available
+ *    Implemented by client
  }
-function U64Mod(dividend: UInt64; divisor: UInt64): UInt64; external name '_U64Mod';
+function U64Mod( dividend: UInt64; divisor: UInt64 ): UInt64; external name '_U64Mod';
 
 
 {$endc}  {CALL_NOT_IN_CARBON}
@@ -564,11 +632,11 @@ function U64Mod(dividend: UInt64; divisor: UInt64): UInt64; external name '_U64M
  *    remainder will be the dividend; no error is reported.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function U64Divide(dividend: UInt64; divisor: UInt64; remainder: UInt64Ptr): UInt64; external name '_U64Divide';
+function U64Divide( dividend: UInt64; divisor: UInt64; remainder: UInt64Ptr ): UInt64; external name '_U64Divide';
 
 
 {
@@ -580,11 +648,11 @@ function U64Divide(dividend: UInt64; divisor: UInt64; remainder: UInt64Ptr): UIn
  *    constant will fit in an SInt32).
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function U64Set(value: SInt32): UInt64; external name '_U64Set';
+function U64Set( value: SInt32 ): UInt64; external name '_U64Set';
 
 
 {
@@ -594,11 +662,11 @@ function U64Set(value: SInt32): UInt64; external name '_U64Set';
  *    Given a UInt32, returns a UInt64 with the same value.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function U64SetU(value: UInt32): UInt64; external name '_U64SetU';
+function U64SetU( value: UInt32 ): UInt64; external name '_U64SetU';
 
 {
  *  U32SetU()
@@ -608,11 +676,11 @@ function U64SetU(value: UInt32): UInt64; external name '_U64SetU';
  *    32 bits.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function U32SetU(value: UInt64): UInt32; external name '_U32SetU';
+function U32SetU( value: UInt64 ): UInt32; external name '_U32SetU';
 
 
 {
@@ -622,11 +690,11 @@ function U32SetU(value: UInt64): UInt32; external name '_U32SetU';
  *    Returns one if left and right are non-zero, otherwise returns zero
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function U64And(left: UInt64; right: UInt64): boolean; external name '_U64And';
+function U64And( left: UInt64; right: UInt64 ): Boolean; external name '_U64And';
 
 
 {
@@ -636,11 +704,11 @@ function U64And(left: UInt64; right: UInt64): boolean; external name '_U64And';
  *    Returns one if left or right are non-zero, otherwise returns zero
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function U64Or(left: UInt64; right: UInt64): boolean; external name '_U64Or';
+function U64Or( left: UInt64; right: UInt64 ): Boolean; external name '_U64Or';
 
 
 {
@@ -650,11 +718,11 @@ function U64Or(left: UInt64; right: UInt64): boolean; external name '_U64Or';
  *    Returns one if left xor right are non-zero, otherwise returns zero
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function U64Eor(left: UInt64; right: UInt64): boolean; external name '_U64Eor';
+function U64Eor( left: UInt64; right: UInt64 ): Boolean; external name '_U64Eor';
 
 
 {
@@ -664,11 +732,11 @@ function U64Eor(left: UInt64; right: UInt64): boolean; external name '_U64Eor';
  *    Returns one if value is non-zero, otherwisze returns zero.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function U64Not(value: UInt64): boolean; external name '_U64Not';
+function U64Not( value: UInt64 ): Boolean; external name '_U64Not';
 
 
 {
@@ -687,11 +755,13 @@ function U64Not(value: UInt64): boolean; external name '_U64Not';
  *    positive, zero, or negative) of the result is guaranteed.
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   not available
  }
-function U64Compare(left: UInt64; right: UInt64): SInt32; external name '_U64Compare';
+function U64Compare( left: UInt64; right: UInt64 ): SInt32; external name '_U64Compare';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
  *  U64BitwiseAnd()
@@ -700,11 +770,11 @@ function U64Compare(left: UInt64; right: UInt64): SInt32; external name '_U64Com
  *    bitwise AND
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function U64BitwiseAnd(left: UInt64; right: UInt64): UInt64; external name '_U64BitwiseAnd';
+function U64BitwiseAnd( left: UInt64; right: UInt64 ): UInt64; external name '_U64BitwiseAnd';
 
 
 {
@@ -714,11 +784,11 @@ function U64BitwiseAnd(left: UInt64; right: UInt64): UInt64; external name '_U64
  *    bitwise OR
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function U64BitwiseOr(left: UInt64; right: UInt64): UInt64; external name '_U64BitwiseOr';
+function U64BitwiseOr( left: UInt64; right: UInt64 ): UInt64; external name '_U64BitwiseOr';
 
 
 {
@@ -728,11 +798,11 @@ function U64BitwiseOr(left: UInt64; right: UInt64): UInt64; external name '_U64B
  *    bitwise XOR
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function U64BitwiseEor(left: UInt64; right: UInt64): UInt64; external name '_U64BitwiseEor';
+function U64BitwiseEor( left: UInt64; right: UInt64 ): UInt64; external name '_U64BitwiseEor';
 
 
 {
@@ -742,11 +812,11 @@ function U64BitwiseEor(left: UInt64; right: UInt64): UInt64; external name '_U64
  *    bitwise negate
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function U64BitwiseNot(value: UInt64): UInt64; external name '_U64BitwiseNot';
+function U64BitwiseNot( value: UInt64 ): UInt64; external name '_U64BitwiseNot';
 
 
 {
@@ -756,11 +826,11 @@ function U64BitwiseNot(value: UInt64): UInt64; external name '_U64BitwiseNot';
  *    Arithmetic shift of value by the lower 7 bits of the shift.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function U64ShiftRight(value: UInt64; shift: UInt32): UInt64; external name '_U64ShiftRight';
+function U64ShiftRight( value: UInt64; shift: UInt32 ): UInt64; external name '_U64ShiftRight';
 
 
 {
@@ -770,11 +840,11 @@ function U64ShiftRight(value: UInt64; shift: UInt32): UInt64; external name '_U6
  *    Logical shift of value by the lower 7 bits of the shift.
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function U64ShiftLeft(value: UInt64; shift: UInt32): UInt64; external name '_U64ShiftLeft';
+function U64ShiftLeft( value: UInt64; shift: UInt32 ): UInt64; external name '_U64ShiftLeft';
 
 
 {
@@ -784,11 +854,11 @@ function U64ShiftLeft(value: UInt64; shift: UInt32): UInt64; external name '_U64
  *    converts UInt64 -> SInt64
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function UInt64ToSInt64(value: UInt64): SInt64; external name '_UInt64ToSInt64';
+function UInt64ToSInt64( value: UInt64 ): SInt64; external name '_UInt64ToSInt64';
 
 
 {
@@ -798,14 +868,15 @@ function UInt64ToSInt64(value: UInt64): SInt64; external name '_UInt64ToSInt64';
  *    converts SInt64 -> UInt64
  *  
  *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
  }
-function SInt64ToUInt64(value: SInt64): UInt64; external name '_SInt64ToUInt64';
+function SInt64ToUInt64( value: SInt64 ): UInt64; external name '_SInt64ToUInt64';
 
 
-{$ALIGN MAC68K}
-
+{$endc} {TARGET_OS_MAC}
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

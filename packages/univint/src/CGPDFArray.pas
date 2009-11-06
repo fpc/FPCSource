@@ -1,14 +1,15 @@
 { CoreGraphics - CGPDFArray.h
- * Copyright (c) 2002-2004 Apple Computer, Inc. (unpublished)
- * All rights reserved.
- }
+ * Copyright (c) 2002-2008 Apple Inc.
+ * All rights reserved. }
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -17,8 +18,8 @@
 
 unit CGPDFArray;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -31,16 +32,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -48,14 +71,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -81,7 +155,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -92,6 +165,8 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes,CGPDFObject,CGBase;
+{$endc} {not MACOSALLINCLUDE}
+
 {$ALIGN POWER}
 
 
@@ -100,58 +175,71 @@ uses MacTypes,CGPDFObject,CGBase;
 
 { Return the number of items in `array'. }
 
-function CGPDFArrayGetCount( arry: CGPDFArrayRef ): size_t; external name '_CGPDFArrayGetCount'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGPDFArrayGetCount( arry: CGPDFArrayRef ): size_t; external name '_CGPDFArrayGetCount';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 { Look up the object at `index' in `array' and return the result in
- * `value'. Return true on success; false otherwise. }
+   `value'. Return true on success; false otherwise. }
 
-function CGPDFArrayGetObject( arry: CGPDFArrayRef; index: size_t; var value: CGPDFObjectRef ): CBool; external name '_CGPDFArrayGetObject'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGPDFArrayGetObject( arry: CGPDFArrayRef; index: size_t; var value: CGPDFObjectRef ): CBool; external name '_CGPDFArrayGetObject';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 { Look up the object at `index' in `array' and, if it's a null, return
- * true; otherwise, return false. }
+   true; otherwise, return false. }
 
-function CGPDFArrayGetNull( arry: CGPDFArrayRef; index: size_t ): CBool; external name '_CGPDFArrayGetNull'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGPDFArrayGetNull( arry: CGPDFArrayRef; index: size_t ): CBool; external name '_CGPDFArrayGetNull';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 { Look up the object at `index' in `array' and, if it's a boolean, return
- * the result in `value'.  Return true on success; false otherwise. }
+   the result in `value'. Return true on success; false otherwise. }
 
-function CGPDFArrayGetBoolean( arry: CGPDFArrayRef; index: size_t; var value: CGPDFBoolean ): CBool; external name '_CGPDFArrayGetBoolean'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGPDFArrayGetBoolean( arry: CGPDFArrayRef; index: size_t; var value: CGPDFBoolean ): CBool; external name '_CGPDFArrayGetBoolean';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 { Look up the object at `index' in `array' and, if it's an integer, return
- * the result in `value'.  Return true on success; false otherwise. }
+   the result in `value'. Return true on success; false otherwise. }
 
-function CGPDFArrayGetInteger( arry: CGPDFArrayRef; index: size_t; var value: CGPDFInteger ): CBool; external name '_CGPDFArrayGetInteger'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGPDFArrayGetInteger( arry: CGPDFArrayRef; index: size_t; var value: CGPDFInteger ): CBool; external name '_CGPDFArrayGetInteger';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 { Look up the object at `index' in `array' and, if it's a number (real or
- * integer), return the result in `value'.  Return true on success; false
- * otherwise. }
+   integer), return the result in `value'. Return true on success; false
+   otherwise. }
 
-function CGPDFArrayGetNumber( arry: CGPDFArrayRef; index: size_t; var value: CGPDFReal ): CBool; external name '_CGPDFArrayGetNumber'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGPDFArrayGetNumber( arry: CGPDFArrayRef; index: size_t; var value: CGPDFReal ): CBool; external name '_CGPDFArrayGetNumber';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 { Look up the object at `index' in `array' and, if it's a name, return the
  * result in `value'.  Return true on success; false otherwise. }
 
-function CGPDFArrayGetName( arry: CGPDFArrayRef; index: size_t; var value: ConstCStringPtr ): CBool; external name '_CGPDFArrayGetName'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGPDFArrayGetName( arry: CGPDFArrayRef; index: size_t; var value: ConstCStringPtr ): CBool; external name '_CGPDFArrayGetName';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 { Look up the object at `index' in `array' and, if it's a string, return
- * the result in `value'.  Return true on success; false otherwise. }
+   the result in `value'. Return true on success; false otherwise. }
 
-function CGPDFArrayGetString( arry: CGPDFArrayRef; index: size_t; var value: CGPDFStringRef ): CBool; external name '_CGPDFArrayGetString'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGPDFArrayGetString( arry: CGPDFArrayRef; index: size_t; var value: CGPDFStringRef ): CBool; external name '_CGPDFArrayGetString';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
-{ Look up the object at `index' in `array' and, if it's an array, return
- * it in `value'.  Return true on success; false otherwise. }
+{ Look up the object at `index' in `array' and, if it's an array, return it
+   in `value'. Return true on success; false otherwise. }
 
-function CGPDFArrayGetArray( arry: CGPDFArrayRef; index: size_t; var value: CGPDFArrayRef ): CBool; external name '_CGPDFArrayGetArray'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGPDFArrayGetArray( arry: CGPDFArrayRef; index: size_t; var value: CGPDFArrayRef ): CBool; external name '_CGPDFArrayGetArray';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
 { Look up the object at `index' in `array' and, if it's a dictionary,
- * return it in `value'.  Return true on success; false otherwise. }
+   return it in `value'. Return true on success; false otherwise. }
 
-function CGPDFArrayGetDictionary( arry: CGPDFArrayRef; index: size_t; var value: CGPDFDictionaryRef ): CBool; external name '_CGPDFArrayGetDictionary'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGPDFArrayGetDictionary( arry: CGPDFArrayRef; index: size_t; var value: CGPDFDictionaryRef ): CBool; external name '_CGPDFArrayGetDictionary';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
-{ Look up the object at `index' in `array' and, if it's a stream, return
- * it in `value'.  Return true on success; false otherwise. }
+{ Look up the object at `index' in `array' and, if it's a stream, return it
+   in `value'. Return true on success; false otherwise. }
 
-function CGPDFArrayGetStream( arry: CGPDFArrayRef; index: size_t; var value: CGPDFStreamRef ): CBool; external name '_CGPDFArrayGetStream'; (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+function CGPDFArrayGetStream( arry: CGPDFArrayRef; index: size_t; var value: CGPDFStreamRef ): CBool; external name '_CGPDFArrayGetStream';
+(* CG_AVAILABLE_STARTING(__MAC_10_3, __IPHONE_2_0) *)
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

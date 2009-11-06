@@ -1,13 +1,16 @@
 {	CFCalendar.h
-	Copyright (c) 2004-2005, Apple, Inc. All rights reserved.
+	Copyright (c) 2004-2009, Apple Inc. All rights reserved.
 }
 {       Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
+{       Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -16,8 +19,8 @@
 
 unit CFCalendar;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -30,16 +33,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -47,14 +72,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -80,7 +156,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -91,6 +166,8 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes,CFBase,CFLocale,CFDate,CFTimeZone;
+{$endc} {not MACOSALLINCLUDE}
+
 {$ALIGN POWER}
 
 
@@ -98,7 +175,7 @@ uses MacTypes,CFBase,CFLocale,CFDate,CFTimeZone;
 
 
 type
-	CFCalendarRef = ^SInt32; { an opaque 32-bit type }
+	CFCalendarRef = ^SInt32; { an opaque type }
 
 function CFCalendarGetTypeID: CFTypeID; external name '_CFCalendarGetTypeID';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -141,7 +218,7 @@ procedure CFCalendarSetMinimumDaysInFirstWeek( calendar: CFCalendarRef; mwd: CFI
 
 
 type
-	CFCalendarUnit = SInt32;
+	CFCalendarUnit = UNSIGNEDLONG;
 const
 	kCFCalendarUnitEra = 1 shl 1;
 	kCFCalendarUnitYear = 1 shl 2;
@@ -153,6 +230,9 @@ const
 	kCFCalendarUnitWeek = 1 shl 8;
 	kCFCalendarUnitWeekday = 1 shl 9;
 	kCFCalendarUnitWeekdayOrdinal = 1 shl 10;
+{#if MAC_OS_X_VERSION_10_6 <= MAC_OS_X_VERSION_MAX_ALLOWED}
+	kCFCalendarUnitQuarter = 1 shl 11;
+{#endif}
 
 function CFCalendarGetMinimumRangeOfUnit( calendar: CFCalendarRef; unt: CFCalendarUnit ): CFRange; external name '_CFCalendarGetMinimumRangeOfUnit';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -166,6 +246,8 @@ function CFCalendarGetRangeOfUnit( calendar: CFCalendarRef; smallerUnit: CFCalen
 function CFCalendarGetOrdinalityOfUnit( calendar: CFCalendarRef; smallerUnit: CFCalendarUnit; biggerUnit: CFCalendarUnit; at: CFAbsoluteTime ): CFIndex; external name '_CFCalendarGetOrdinalityOfUnit';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
 
+function CFCalendarGetTimeRangeOfUnit( calendar: CFCalendarRef; unt: CFCalendarUnit; at: CFAbsoluteTime; var startp: CFAbsoluteTime; var tip: CFTimeInterval ): Boolean; external name '_CFCalendarGetTimeRangeOfUnit';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
 function CFCalendarComposeAbsoluteTime( calendar: CFCalendarRef; var at: { out } CFAbsoluteTime; componentDesc: ConstCStringPtr; ... ): Boolean; external name '_CFCalendarComposeAbsoluteTime';
 (* AVAILABLE_MAC_OS_X_VERSION_10_4_AND_LATER *)
@@ -187,5 +269,7 @@ function CFCalendarGetComponentDifference( calendar: CFCalendarRef; startingAT: 
 
 {#endif}
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

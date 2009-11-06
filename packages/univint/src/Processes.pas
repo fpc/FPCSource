@@ -3,9 +3,9 @@
  
      Contains:   Process Manager Interfaces.
  
-     Version:    HIServices-162.0.81~21
+     Version:    HIServices-308~1
  
-     Copyright:  © 1989-2005 by Apple Computer, Inc., all rights reserved
+     Copyright:  © 1989-2008 by Apple Computer, Inc., all rights reserved
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,12 +14,14 @@
  
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -28,8 +30,8 @@
 
 unit Processes;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -42,16 +44,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -59,14 +83,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -92,7 +167,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -102,8 +176,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,CFBase,CFDictionary,Quickdraw,AEDataModel,Events,Files,TextCommon,CFString,MacOSXPosix;
+uses MacTypes,CFBase,CFDictionary,Events,Files,MacOSXPosix;
+{$endc} {not MACOSALLINCLUDE}
 
+
+{$ifc TARGET_OS_MAC}
 
 {$ALIGN MAC68K}
 
@@ -135,8 +212,24 @@ type
 	end;
 	AppParametersPtr = ^AppParameters;
 { Parameter block to _Launch }
+{$ifc TARGET_CPU_64}
 type
-	LaunchParamBlockRecPtr = ^LaunchParamBlockRec;
+	LaunchParamBlockRec = record
+		reserved1: UInt32;
+		reserved2: UInt16;
+		launchBlockID: UInt16;
+		launchEPBLength: UInt32;
+		launchFileFlags: UInt16;
+		launchControlFlags: LaunchFlags;
+		launchAppRef: FSRefPtr;
+		launchProcessSN: ProcessSerialNumber;
+		launchPreferredSize: UInt32;
+		launchMinimumSize: UInt32;
+		launchAvailableSize: UInt32;
+		launchAppParameters: AppParametersPtr;
+	end;
+{$elsec}
+type
 	LaunchParamBlockRec = record
 		reserved1: UInt32;
 		reserved2: UInt16;
@@ -151,6 +244,9 @@ type
 		launchAvailableSize: UInt32;
 		launchAppParameters: AppParametersPtr;
 	end;
+{$endc} {TARGET_CPU_64}
+	LaunchParamBlockRecPtr = ^LaunchParamBlockRec;
+
 type
 	LaunchPBPtr = LaunchParamBlockRecPtr;
 { Set launchBlockID to extendedBlock to specify that extensions exist.
@@ -206,6 +302,24 @@ const
     set.
     
 }
+{$ifc TARGET_CPU_64}
+type
+	ProcessInfoRec = record
+		processInfoLength: UInt32;
+		processName: StringPtr;
+		processNumber: ProcessSerialNumber;
+		processType: UInt32;
+		processSignature: OSType;
+		processMode: UInt32;
+		processLocation: Ptr;
+		processSize: UInt32;
+		processFreeMem: UInt32;
+		processLauncher: ProcessSerialNumber;
+		processLaunchDate: UInt32;
+		processActiveTime: UInt32;
+		processAppRef: FSRefPtr;
+	end;
+{$elsec}
 type
 	ProcessInfoRec = record
 		processInfoLength: UInt32;
@@ -222,6 +336,8 @@ type
 		processActiveTime: UInt32;
 		processAppSpec: FSSpecPtr;
 	end;
+{$endc} {TARGET_CPU_64}
+
 	ProcessInfoRecPtr = ^ProcessInfoRec;
 {
     Some applications assumed the size of a ProcessInfoRec would never change,
@@ -245,6 +361,26 @@ type
     set.
     
 }
+{$ifc TARGET_CPU_64}
+type
+	ProcessInfoExtendedRec = record
+		processInfoLength: UInt32;
+		processName: StringPtr;
+		processNumber: ProcessSerialNumber;
+		processType: UInt32;
+		processSignature: OSType;
+		processMode: UInt32;
+		processLocation: Ptr;
+		processSize: UInt32;
+		processFreeMem: UInt32;
+		processLauncher: ProcessSerialNumber;
+		processLaunchDate: UInt32;
+		processActiveTime: UInt32;
+		processAppRef: FSRefPtr;
+		processTempMemTotal: UInt32;
+		processPurgeableTempMemTotal: UInt32;
+	end;
+{$elsec}
 type
 	ProcessInfoExtendedRec = record
 		processInfoLength: UInt32;
@@ -263,6 +399,8 @@ type
 		processTempMemTotal: UInt32;
 		processPurgeableTempMemTotal: UInt32;
 	end;
+{$endc} {TARGET_CPU_64}
+
 	ProcessInfoExtendedRecPtr = ^ProcessInfoExtendedRec;
 { Record corresponding to the SIZE resource definition }
 type
@@ -308,6 +446,9 @@ const
 {
  *  LaunchApplication()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
+ *  
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -317,15 +458,18 @@ function LaunchApplication( LaunchParams: LaunchPBPtr ): OSErr; external name '_
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
+{$ifc not TARGET_CPU_64}
 {
  *  LaunchDeskAccessory()
  *  
  *  Availability:
- *    Mac OS X:         not available
+ *    Mac OS X:         not available [32-bit only]
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 
+
+{$endc} {not TARGET_CPU_64}
 
 {
  *  [Mac]GetCurrentProcess()
@@ -380,6 +524,9 @@ function LaunchApplication( LaunchParams: LaunchPBPtr ): OSErr; external name '_
  *    or use it in an AppleEvent, you do need to get the canonical PSN
  *    with this routine.
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
+ *  
  *  Parameters:
  *    
  *    PSN:
@@ -394,14 +541,18 @@ function LaunchApplication( LaunchParams: LaunchPBPtr ): OSErr; external name '_
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function GetCurrentProcess( var PSN: ProcessSerialNumber ): OSErr; external name '_GetCurrentProcess';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+{$ifc TARGET_OS_MAC}
 function MacGetCurrentProcess( var PSN: ProcessSerialNumber ): OSErr; external name '_GetCurrentProcess';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
+{$endc} {TARGET_OS_MAC}
+function GetCurrentProcess( var PSN: ProcessSerialNumber ): OSErr; external name '_GetCurrentProcess';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 {
  *  GetFrontProcess()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
  *  
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
@@ -414,6 +565,9 @@ function GetFrontProcess( var PSN: ProcessSerialNumber ): OSErr; external name '
 
 {
  *  GetNextProcess()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
  *  
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
@@ -453,6 +607,16 @@ function GetNextProcess( var PSN: ProcessSerialNumber ): OSErr; external name '_
  *    
  *    On Mac OS X, the processSize and processFreeMem fields are
  *    returned with the value 0.
+ *    
+ *    On Mac OS X 10.6 and later, the processLaunchDate field is an
+ *    integer value with the same scale as CFAbsoluteTime.  Prior
+ *    releases used a value in 60th of a second with a random zero
+ *    time, making it difficult to use. Since most applications just
+ *    look at the comparison from this field to other launch dates this
+ *    change should not affect many applications.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
  *  
  *  Parameters:
  *    
@@ -480,6 +644,9 @@ function GetProcessInformation( const (*var*) PSN: ProcessSerialNumber; var info
  *    process. This is intended to return a superset of the information
  *    returned by GetProcessInformation(), in more modern datatypes.
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
+ *  
  *  Parameters:
  *    
  *    PSN:
@@ -503,7 +670,7 @@ function GetProcessInformation( const (*var*) PSN: ProcessSerialNumber; var info
  *    loaded into an application's address space.  The assigned values
  *    at present are:  Mac OS Classic aplications have the value 0,
  *    Carbon applications have the value 2, Cocoa applications have the
- *    value 4. Other undocumented values may also be returned.
+ *    value 3. Other undocumented values may also be returned.
  *     "Attributes"                CFNumber, kCFNumberSInt32 
  *     "ParentPSN" *               CFNumber, kCFNumberLongLong 
  *     "FileType" *                CFString, file type 
@@ -513,14 +680,13 @@ function GetProcessInformation( const (*var*) PSN: ProcessSerialNumber; var info
  *    "LSUIElement"               CFBoolean 
  *    "IsHiddenAttr"              CFBoolean 
  *    "IsCheckedInAttr"           CFBoolean 
- *    "RequiresClassic"           CFBoolean 
  *    "RequiresCarbon"            CFBoolean 
- *    "LSUserQuitOnly"            CFBoolean 
+ *    "LSUserQuitOnly" *          CFBoolean 
  *    "LSUIPresentationMode"      CFNumber, kCFNumberShortType 
  *     "BundlePath" *              CFString 
- *    kIOBundleExecutableKey *    CFString 
- *    kIOBundleNameKey *          CFString 
- *    kIOBundleIdentifierKey *    CFString
+ *    kCFBundleExecutableKey *    CFString 
+ *    kCFBundleNameKey *          CFString 
+ *    kCFBundleIdentifierKey *    CFString
  *  
  *  Availability:
  *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
@@ -533,6 +699,9 @@ function ProcessInformationCopyDictionary( const (*var*) PSN: ProcessSerialNumbe
 
 {
  *  SetFrontProcess()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
  *  
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
@@ -554,6 +723,7 @@ const
    * brought forward.
    }
 	kSetFrontProcessFrontWindowOnly = 1 shl 0;
+	kSetFrontProcessCausedByUser = 1 shl 1; {    indicates that direct user activity is causing this SetFrontProcessWithOptions() call }
 
 
 {
@@ -567,6 +737,9 @@ const
  *    kSetFrontProcessFrontWindowOnly, which will activate a process
  *    without bringing all of the process's windows forward (just the
  *    front window of the process will come forward).
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
  *  
  *  Parameters:
  *    
@@ -591,6 +764,9 @@ function SetFrontProcessWithOptions( const (*var*) inProcess: ProcessSerialNumbe
 {
  *  WakeUpProcess()
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
+ *  
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
@@ -602,6 +778,9 @@ function WakeUpProcess( const (*var*) PSN: ProcessSerialNumber ): OSErr; externa
 
 {
  *  SameProcess()
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
  *  
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
@@ -615,6 +794,17 @@ function SameProcess( const (*var*) PSN1: ProcessSerialNumber; const (*var*) PSN
 {  ExitToShell was previously in SegLoad.h}
 {
  *  ExitToShell()
+ *  
+ *  Discussion:
+ *    In general, you need to call ExitToShell only if you want your
+ *    application to terminate without reaching the end of its main
+ *    function.
+ *
+ *    The ExitToShell function terminates the calling process. The
+ *    Process Manager removes your application from the list of open
+ *    processes and performs any other necessary cleanup operations. If
+ *    necessary, the Application Died Apple event is sent to the
+ *    process that launched your application.
  *  
  *  Availability:
  *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
@@ -637,6 +827,9 @@ procedure ExitToShell; external name '_ExitToShell';
  *    target application will be killed, even if this function returns
  *    noErr and seems to work.
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
+ *  
  *  Parameters:
  *    
  *    inProcess:
@@ -658,15 +851,18 @@ function KillProcess( const (*var*) inProcess: ProcessSerialNumber ): OSErr; ext
    LaunchControlPanel is similar to LaunchDeskAccessory, but for Control Panel files instead.
    It launches a control panel in an application shell maintained by the Process Manager.
 }
+{$ifc not TARGET_CPU_64}
 {
  *  LaunchControlPanel()
  *  
  *  Availability:
- *    Mac OS X:         not available
+ *    Mac OS X:         not available [32-bit only]
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   in InterfaceLib 9.0 and later
  }
 
+
+{$endc} {not TARGET_CPU_64}
 
 {
  *  GetProcessBundleLocation()
@@ -680,6 +876,9 @@ function KillProcess( const (*var*) inProcess: ProcessSerialNumber ): OSErr; ext
  *    application. For an application that is packaged as an app
  *    bundle, this will be the app bundle directory; otherwise it will
  *    be the location of the executable itself.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
  *  
  *  Parameters:
  *    
@@ -713,6 +912,9 @@ function GetProcessBundleLocation( const (*var*) psn: ProcessSerialNumber; var l
  *    multi-lingual name, whereas previously only a mac-encoded string
  *    was possible.
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
+ *  
  *  Parameters:
  *    
  *    psn:
@@ -743,6 +945,9 @@ function CopyProcessName( const (*var*) psn: ProcessSerialNumber; var name: CFSt
  *    sense for Classic apps, since they all share a single UNIX
  *    process ID.
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
+ *  
  *  Parameters:
  *    
  *    psn:
@@ -771,6 +976,9 @@ function GetProcessPID( const (*var*) psn: ProcessSerialNumber; var pid: pid_t )
  *    number for that process, if appropriate. Note that this call does
  *    not make sense for Classic apps, since they all share a single
  *    UNIX process ID.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
  *  
  *  Parameters:
  *    
@@ -802,6 +1010,9 @@ function GetProcessForPID( pid: pid_t; var psn: ProcessSerialNumber ): OSStatus;
  *    Given a psn, this call will return true or false depending on
  *    whether or not the process is currently visible.
  *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
+ *  
  *  Parameters:
  *    
  *    psn:
@@ -827,6 +1038,9 @@ function IsProcessVisible( const (*var*) psn: ProcessSerialNumber ): Boolean; ex
  *    the psn parameter. You determine whether you would like to show
  *    or hide the process with the visible parameter. True passed into
  *    visible indicates you wish for the process to become visible.
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
  *  
  *  Parameters:
  *    
@@ -861,6 +1075,9 @@ function ShowHideProcess( const (*var*) psn: ProcessSerialNumber; visible: Boole
  *    Dock and Force Quit dialog and does have a menu bar.  This call
  *    does not cause the application to be brought to the front ( use
  *    SetFrontProcess for that ).
+ *  
+ *  Mac OS X threading:
+ *    Thread safe since version 10.3
  *  
  *  Parameters:
  *    
@@ -907,6 +1124,8 @@ const
 { Control Panel Default Proc }
 
 
-
+{$endc} {TARGET_OS_MAC}
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

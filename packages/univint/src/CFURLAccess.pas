@@ -1,13 +1,16 @@
 {	CFURLAccess.h
-	Copyright (c) 1998-2005, Apple, Inc. All rights reserved.
+	Copyright (c) 1998-2009, Apple Inc. All rights reserved.
 }
 {	  Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
+{   Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -16,8 +19,8 @@
 
 unit CFURLAccess;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -30,16 +33,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -47,14 +72,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -80,7 +156,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -91,6 +166,8 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes,CFBase,CFArray,CFData,CFDictionary,CFString,CFURL;
+{$endc} {not MACOSALLINCLUDE}
+
 {$ALIGN POWER}
 
 
@@ -117,6 +194,7 @@ large files.
 
 }
 function CFURLCreateDataAndPropertiesFromResource( alloc: CFAllocatorRef; url: CFURLRef; resourceData: CFDataRefPtr; properties: CFDictionaryRefPtr; desiredProperties: CFArrayRef; var errorCode: SInt32 ): Boolean; external name '_CFURLCreateDataAndPropertiesFromResource';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 { Attempts to write the given data and properties to the given URL.
 If dataToWrite is NULL, only properties are written out (use
@@ -127,18 +205,22 @@ Returns success or failure; errorCode is set as for
 CFURLCreateDataAndPropertiesFromResource(), above.
 }
 function CFURLWriteDataAndPropertiesToResource( url: CFURLRef; dataToWrite: CFDataRef; propertiesToWrite: CFDictionaryRef; var errorCode: SInt32 ): Boolean; external name '_CFURLWriteDataAndPropertiesToResource';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 { Destroys the resource indicated by url. }
 { Returns success or failure; errorCode set as above. }
 function CFURLDestroyResource( url: CFURLRef; var errorCode: SInt32 ): Boolean; external name '_CFURLDestroyResource';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 { Convenience method which calls through to CFURLCreateDataAndPropertiesFromResource(). }
 { Returns NULL on error and sets errorCode accordingly. }
 function CFURLCreatePropertyFromResource( alloc: CFAllocatorRef; url: CFURLRef; proprty: CFStringRef; var errorCode: SInt32 ): CFTypeRef; external name '_CFURLCreatePropertyFromResource';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
-{ Common error codes; this list is expected to grow }
+
+{ Common error codes (returned only by the older APIs that predate CFError) }
 type
-	CFURLError = SInt32;
+	CFURLError = SIGNEDLONG;
 const
 	kCFURLUnknownError = -10;
 	kCFURLUnknownSchemeError = -11;
@@ -150,16 +232,24 @@ const
 	kCFURLPropertyKeyUnavailableError = -17;
 	kCFURLTimeoutError = -18;
 
-{ Property keys }
+{ Older property keys }
 
 var kCFURLFileExists: CFStringRef; external name '_kCFURLFileExists'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 var kCFURLFileDirectoryContents: CFStringRef; external name '_kCFURLFileDirectoryContents'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 var kCFURLFileLength: CFStringRef; external name '_kCFURLFileLength'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 var kCFURLFileLastModificationTime: CFStringRef; external name '_kCFURLFileLastModificationTime'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 var kCFURLFilePOSIXMode: CFStringRef; external name '_kCFURLFilePOSIXMode'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 var kCFURLFileOwnerID: CFStringRef; external name '_kCFURLFileOwnerID'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 var kCFURLHTTPStatusCode: CFStringRef; external name '_kCFURLHTTPStatusCode'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 var kCFURLHTTPStatusLine: CFStringRef; external name '_kCFURLHTTPStatusLine'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 { The value of kCFURLFileExists is a CFBoolean }
 { The value of kCFURLFileDirectoryContents is a CFArray containing CFURLs.  An empty array means the directory exists, but is empty }
@@ -172,5 +262,7 @@ var kCFURLHTTPStatusLine: CFStringRef; external name '_kCFURLHTTPStatusLine'; (*
 { The value of kCFURLHTTPStatusCode is a CFNumber }
 { The value of kCFURLHTTPStatusLine is a CFString }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

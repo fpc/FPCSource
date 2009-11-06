@@ -3,9 +3,9 @@
  
      Contains:   Scrap Manager Interfaces.
  
-     Version:    HIToolbox-219.4.81~2
+     Version:    HIToolbox-437~1
  
-     Copyright:  © 1985-2005 by Apple Computer, Inc., all rights reserved
+     Copyright:  © 1985-2008 by Apple Computer, Inc., all rights reserved
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,12 +14,14 @@
  
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -28,8 +30,8 @@
 
 unit Scrap;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -42,16 +44,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -59,14 +83,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -92,7 +167,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -103,7 +177,10 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes,CFBase,MixedMode,MacErrors,CFString;
+{$endc} {not MACOSALLINCLUDE}
 
+
+{$ifc TARGET_OS_MAC}
 
 {$ALIGN MAC68K}
 
@@ -148,75 +225,41 @@ const
     nothing when called under Mac OS X.
 }
 
+{$ifc not TARGET_CPU_64}
 {
- *  LoadScrap()
+ *  LoadScrap()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    LoadScrap does nothing on Mac OS X.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function LoadScrap: OSStatus; external name '_LoadScrap';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
- *  UnloadScrap()
+ *  UnloadScrap()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    UnloadScrap does nothing on Mac OS X.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
 function UnloadScrap: OSStatus; external name '_UnloadScrap';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
-
-
-
-{
- *  InfoScrap()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
-
-
-{
- *  GetScrap()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
-
-
-{
- *  ZeroScrap()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
-
-
-{
- *  PutScrap()
- *  
- *  Availability:
- *    Mac OS X:         not available
- *    CarbonLib:        not available
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- }
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
@@ -234,6 +277,8 @@ function UnloadScrap: OSStatus; external name '_UnloadScrap';
     In this case, just pass kScrapFlavorSizeUnknown
     for the flavor data size.
 }
+
+{$endc} {not TARGET_CPU_64}
 
 const
 	kScrapFlavorSizeUnknown = -1;
@@ -280,7 +325,7 @@ type
 		flavorFlags: ScrapFlavorFlags;
 	end;
 type
-	ScrapRef = ^SInt32; { an opaque 32-bit type }
+	ScrapRef = ^SInt32; { an opaque type }
 {
     kScrapRefNone is guaranteed to be an invalid ScrapRef.  This 
     is convenient when initializing application variables.
@@ -333,19 +378,23 @@ const
     CarbonLib does not support arbitrary named scraps; when calling this API on
     CarbonLib, kScrapClipboardScrap is the only supported value for the name parameter.
 }
+{$ifc not TARGET_CPU_64}
 {
- *  GetScrapByName()
+ *  GetScrapByName()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    The Scrap Manager is deprecated. Use PasteboardCreate instead.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in Carbon.framework
+ *    Mac OS X:         in version 10.1 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.5 and later
  *    Non-Carbon CFM:   not available
  }
 function GetScrapByName( name: CFStringRef; options: OptionBits; var scrap: ScrapRef ): OSStatus; external name '_GetScrapByName';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
@@ -355,18 +404,21 @@ function GetScrapByName( name: CFStringRef; options: OptionBits; var scrap: Scra
 }
 
 {
- *  GetCurrentScrap()
+ *  GetCurrentScrap()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    The Scrap Manager is deprecated. Use PasteboardCreate instead.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
 function GetCurrentScrap( var scrap: ScrapRef ): OSStatus; external name '_GetCurrentScrap';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
@@ -378,18 +430,22 @@ function GetCurrentScrap( var scrap: ScrapRef ): OSStatus; external name '_GetCu
 }
 
 {
- *  GetScrapFlavorFlags()
+ *  GetScrapFlavorFlags()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    The Scrap Manager is deprecated. Use PasteboardGetItemFlavorFlags
+ *    instead.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
 function GetScrapFlavorFlags( scrap: ScrapRef; flavorType: ScrapFlavorType; var flavorFlags: ScrapFlavorFlags ): OSStatus; external name '_GetScrapFlavorFlags';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
@@ -400,18 +456,22 @@ function GetScrapFlavorFlags( scrap: ScrapRef; flavorType: ScrapFlavorType; var 
 }
 
 {
- *  GetScrapFlavorSize()
+ *  GetScrapFlavorSize()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    The Scrap Manager is deprecated. Use PasteboardCopyItemFlavorData
+ *    instead.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
 function GetScrapFlavorSize( scrap: ScrapRef; flavorType: ScrapFlavorType; var byteCount: Size ): OSStatus; external name '_GetScrapFlavorSize';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
@@ -423,18 +483,22 @@ function GetScrapFlavorSize( scrap: ScrapRef; flavorType: ScrapFlavorType; var b
 }
 
 {
- *  GetScrapFlavorData()
+ *  GetScrapFlavorData()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    The Scrap Manager is deprecated. Use PasteboardCopyItemFlavorData
+ *    instead.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
 function GetScrapFlavorData( scrap: ScrapRef; flavorType: ScrapFlavorType; var byteCount: Size; destination: UnivPtr ): OSStatus; external name '_GetScrapFlavorData';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
@@ -450,18 +514,21 @@ function GetScrapFlavorData( scrap: ScrapRef; flavorType: ScrapFlavorType; var b
 }
 
 {
- *  ClearCurrentScrap()
+ *  ClearCurrentScrap()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    The Scrap Manager is deprecated. Use PasteboardClear instead.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
 function ClearCurrentScrap: OSStatus; external name '_ClearCurrentScrap';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
@@ -474,18 +541,21 @@ function ClearCurrentScrap: OSStatus; external name '_ClearCurrentScrap';
         API on CarbonLib, only clearing the current scrap is supported.
 }
 {
- *  ClearScrap()
+ *  ClearScrap()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    The Scrap Manager is deprecated. Use PasteboardClear instead.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in Carbon.framework
+ *    Mac OS X:         in version 10.1 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.5 and later
  *    Non-Carbon CFM:   not available
  }
 function ClearScrap( var inOutScrap: ScrapRef ): OSStatus; external name '_ClearScrap';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
@@ -517,18 +587,22 @@ function ClearScrap( var inOutScrap: ScrapRef ): OSStatus; external name '_Clear
         ignored             0           A flavor with no data expected is placed on the scrap.  This is not a promise.
 }
 {
- *  PutScrapFlavor()
+ *  PutScrapFlavor()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    The Scrap Manager is deprecated. Use PasteboardPutItemFlavor
+ *    instead.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
 function PutScrapFlavor( scrap: ScrapRef; flavorType: ScrapFlavorType; flavorFlags: ScrapFlavorFlags; flavorSize: Size; flavorData: {const} UnivPtr { can be NULL } ): OSStatus; external name '_PutScrapFlavor';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
@@ -538,9 +612,10 @@ function PutScrapFlavor( scrap: ScrapRef; flavorType: ScrapFlavorType; flavorFla
     the requested data by calling PutScrapFlavor.
 }
 
+{$endc} {not TARGET_CPU_64}
+
 type
 	ScrapPromiseKeeperProcPtr = function( scrap: ScrapRef; flavorType: ScrapFlavorType; userData: UnivPtr ): OSStatus;
-type
 	ScrapPromiseKeeperUPP = ScrapPromiseKeeperProcPtr;
 {
  *  NewScrapPromiseKeeperUPP()
@@ -551,7 +626,7 @@ type
  *    Non-Carbon CFM:   available as macro/inline
  }
 function NewScrapPromiseKeeperUPP( userRoutine: ScrapPromiseKeeperProcPtr ): ScrapPromiseKeeperUPP; external name '_NewScrapPromiseKeeperUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 {
  *  DisposeScrapPromiseKeeperUPP()
@@ -562,7 +637,7 @@ function NewScrapPromiseKeeperUPP( userRoutine: ScrapPromiseKeeperProcPtr ): Scr
  *    Non-Carbon CFM:   available as macro/inline
  }
 procedure DisposeScrapPromiseKeeperUPP( userUPP: ScrapPromiseKeeperUPP ); external name '_DisposeScrapPromiseKeeperUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 {
  *  InvokeScrapPromiseKeeperUPP()
@@ -573,7 +648,7 @@ procedure DisposeScrapPromiseKeeperUPP( userUPP: ScrapPromiseKeeperUPP ); extern
  *    Non-Carbon CFM:   available as macro/inline
  }
 function InvokeScrapPromiseKeeperUPP( scrap: ScrapRef; flavorType: ScrapFlavorType; userData: UnivPtr; userUPP: ScrapPromiseKeeperUPP ): OSStatus; external name '_InvokeScrapPromiseKeeperUPP';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 {
     SetScrapPromiseKeeper associates a ScrapPromiseKeeper with a
@@ -586,19 +661,24 @@ function InvokeScrapPromiseKeeperUPP( scrap: ScrapRef; flavorType: ScrapFlavorTy
     ScrapPromiseKeeper could use in fabricating one or more
     promised flavors.
 }
+{$ifc not TARGET_CPU_64}
 {
- *  SetScrapPromiseKeeper()
+ *  SetScrapPromiseKeeper()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    The Scrap Manager is deprecated. Use PasteboardSetPromiseKeeper
+ *    instead.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
 function SetScrapPromiseKeeper( scrap: ScrapRef; upp: ScrapPromiseKeeperUPP; userData: {const} UnivPtr ): OSStatus; external name '_SetScrapPromiseKeeper';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
@@ -607,18 +687,22 @@ function SetScrapPromiseKeeper( scrap: ScrapRef; upp: ScrapPromiseKeeperUPP; use
 }
 
 {
- *  GetScrapFlavorCount()
+ *  GetScrapFlavorCount()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    The Scrap Manager is deprecated. Use PasteboardCopyItemFlavors
+ *    instead.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
 function GetScrapFlavorCount( scrap: ScrapRef; var infoCount: UInt32 ): OSStatus; external name '_GetScrapFlavorCount';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
@@ -632,18 +716,22 @@ function GetScrapFlavorCount( scrap: ScrapRef; var infoCount: UInt32 ): OSStatus
 }
 
 {
- *  GetScrapFlavorInfoList()
+ *  GetScrapFlavorInfoList()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    The Scrap Manager is deprecated. Use PasteboardCopyItemFlavors
+ *    instead.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
 function GetScrapFlavorInfoList( scrap: ScrapRef; var infoCount: UInt32; info: {variable-size-array} ScrapFlavorInfoPtr ): OSStatus; external name '_GetScrapFlavorInfoList';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
 {
@@ -661,20 +749,28 @@ function GetScrapFlavorInfoList( scrap: ScrapRef; var infoCount: UInt32; info: {
 }
 
 {
- *  CallInScrapPromises()
+ *  CallInScrapPromises()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    The Scrap Manager is deprecated. Use PasteboardResolvePromises
+ *    instead.
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in Carbon.framework
+ *    Mac OS X:         in version 10.0 and later in Carbon.framework [32-bit only] but deprecated in 10.5
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
 function CallInScrapPromises: OSStatus; external name '_CallInScrapPromises';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_5 *)
 
 
+{$endc} {not TARGET_CPU_64}
 
+{$endc} {TARGET_OS_MAC}
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

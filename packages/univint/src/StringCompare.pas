@@ -1,12 +1,11 @@
 {
-     File:       StringCompare.p
+     File:       CarbonCore/StringCompare.h
  
      Contains:   Public interfaces for String Comparison and related operations
  
-     Version:    Technology: Mac OS 8
-                 Release:    Universal Interfaces 3.4.2
+     Version:    CarbonCore-859.2~1
  
-     Copyright:  © 1985-2002 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 1985-2008 by Apple Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,14 +13,14 @@
                      http://www.freepascal.org/bugs.html
  
 }
-
-
+{   Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -30,8 +29,8 @@
 
 unit StringCompare;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -44,16 +43,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -61,14 +82,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -94,7 +166,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -104,9 +175,13 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,MixedMode,TextCommon,Script,TypeSelect;
+uses MacTypes,MixedMode,TextCommon,Script;
+{$endc} {not MACOSALLINCLUDE}
 
-{$ALIGN MAC68K}
+
+{$ifc TARGET_OS_MAC}
+
+{$ALIGN POWER}
 
 {
 
@@ -139,258 +214,455 @@ uses MacTypes,MixedMode,TextCommon,Script,TypeSelect;
     
 }
 
-
 const
-																{  Special language code values for Language Order }
-	systemCurLang				= -2;							{  current (itlbLang) lang for system script }
-	systemDefLang				= -3;							{  default (table) lang for system script }
-	currentCurLang				= -4;							{  current (itlbLang) lang for current script }
-	currentDefLang				= -5;							{  default lang for current script }
-	scriptCurLang				= -6;							{  current (itlbLang) lang for specified script }
-	scriptDefLang				= -7;							{  default language for a specified script }
+{ Special language code values for Language Order}
+	systemCurLang = -2;   { current (itlbLang) lang for system script}
+	systemDefLang = -3;   { default (table) lang for system script}
+	currentCurLang = -4;   { current (itlbLang) lang for current script}
+	currentDefLang = -5;   { default lang for current script}
+	scriptCurLang = -6;   { current (itlbLang) lang for specified script}
+	scriptDefLang = -7;    { default language for a specified script}
 
-	{  obsolete names }
-	iuSystemCurLang				= -2;
-	iuSystemDefLang				= -3;
-	iuCurrentCurLang			= -4;
-	iuCurrentDefLang			= -5;
-	iuScriptCurLang				= -6;
-	iuScriptDefLang				= -7;
+{ obsolete names}
+const
+	iuSystemCurLang = systemCurLang;
+	iuSystemDefLang = systemDefLang;
+	iuCurrentCurLang = currentCurLang;
+	iuCurrentDefLang = currentDefLang;
+	iuScriptCurLang = scriptCurLang;
+	iuScriptDefLang = scriptDefLang;
 
 
-	{	
-	 *  These routines are available in Carbon with the new names.
-	 	}
-	{
-	 *  [Mac]ReplaceText()
-	 *  
-	 *  Availability:
-	 *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
-	 *    CarbonLib:        in CarbonLib 1.0 and later
-	 *    Mac OS X:         in version 10.0 and later
-	 	}
-function ReplaceText(baseText: Handle; substitutionText: Handle; var key: Str15): SInt16; external name '_ReplaceText';
 {
- *  ScriptOrder()
+ *  These routines are available in Carbon with the new names.
+ }
+{$ifc not TARGET_CPU_64}
+{
+ *  [Mac]ReplaceText()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    use CFStringReplace instead.
+ *  
+ *  Discussion:
+ *    This function is no longer recommended. Please use
+ *    CFStringReplace instead.
  *  
  *  Availability:
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
  }
-function ScriptOrder(script1: ScriptCode; script2: ScriptCode): SInt16; external name '_ScriptOrder';
-{
- *  [Mac]CompareString()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-function CompareString(const (*var*) aStr: Str255; const (*var*) bStr: Str255; itl2Handle: Handle): SInt16; external name '_CompareString';
+function MacReplaceText( baseText: Handle; substitutionText: Handle; key: Str15 ): SInt16; external name '_MacReplaceText';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  IdenticalString()
+ *  ScriptOrder()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    use CFStringCompare or UCCompareText instead.
+ *  
+ *  Discussion:
+ *    This function is no longer recommended. Please use
+ *    CFStringCompare or UCCompareText instead.
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function IdenticalString(const (*var*) aStr: Str255; const (*var*) bStr: Str255; itl2Handle: Handle): SInt16; external name '_IdenticalString';
+function ScriptOrder( script1: ScriptCode; script2: ScriptCode ): SInt16; external name '_ScriptOrder';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  StringOrder()
+ *  [Mac]CompareString()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    use CFStringCompare or UCCompareText instead.
+ *  
+ *  Discussion:
+ *    This function is no longer recommended. Please use
+ *    CFStringCompare or UCCompareText instead.
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   not available
  }
-function StringOrder(const (*var*) aStr: Str255; const (*var*) bStr: Str255; aScript: ScriptCode; bScript: ScriptCode; aLang: LangCode; bLang: LangCode): SInt16; external name '_StringOrder';
+function MacCompareString( const (*var*) aStr: Str255; const (*var*) bStr: Str255; itl2Handle: Handle ): SInt16; external name '_MacCompareString';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  CompareText()
+ *  IdenticalString()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    use CFStringCompare instead.
+ *  
+ *  Discussion:
+ *    This function is no longer recommended. Please use
+ *    CFStringCompare instead.
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   not available
  }
-function CompareText(aPtr: UnivPtr; bPtr: UnivPtr; aLen: SInt16; bLen: SInt16; itl2Handle: Handle): SInt16; external name '_CompareText';
+function IdenticalString( const (*var*) aStr: Str255; const (*var*) bStr: Str255; itl2Handle: Handle ): SInt16; external name '_IdenticalString';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  IdenticalText()
+ *  StringOrder()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    use CFStringCompare or UCCompareText instead.
+ *  
+ *  Discussion:
+ *    This function is no longer recommended. Please use
+ *    CFStringCompare or UCCompareText instead.
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   not available
  }
-function IdenticalText(aPtr: UnivPtr; bPtr: UnivPtr; aLen: SInt16; bLen: SInt16; itl2Handle: Handle): SInt16; external name '_IdenticalText';
+function StringOrder( const (*var*) aStr: Str255; const (*var*) bStr: Str255; aScript: ScriptCode; bScript: ScriptCode; aLang: LangCode; bLang: LangCode ): SInt16; external name '_StringOrder';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  TextOrder()
+ *  CompareText()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    use CFStringCompare or UCCompareText instead.
+ *  
+ *  Discussion:
+ *    This function is no longer recommended. Please use
+ *    CFStringCompare or UCCompareText instead.
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   not available
  }
-function TextOrder(aPtr: UnivPtr; bPtr: UnivPtr; aLen: SInt16; bLen: SInt16; aScript: ScriptCode; bScript: ScriptCode; aLang: LangCode; bLang: LangCode): SInt16; external name '_TextOrder';
+function CompareText( aPtr: {const} UnivPtr; bPtr: {const} UnivPtr; aLen: SInt16; bLen: SInt16; itl2Handle: Handle ): SInt16; external name '_CompareText';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
- *  LanguageOrder()
+ *  IdenticalText()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    use CFStringCompare instead.
+ *  
+ *  Discussion:
+ *    This function is no longer recommended. Please use
+ *    CFStringCompare instead.
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
+ *    Non-Carbon CFM:   not available
  }
-function LanguageOrder(language1: LangCode; language2: LangCode): SInt16; external name '_LanguageOrder';
+function IdenticalText( aPtr: {const} UnivPtr; bPtr: {const} UnivPtr; aLen: SInt16; bLen: SInt16; itl2Handle: Handle ): SInt16; external name '_IdenticalText';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{
+ *  TextOrder()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    use CFStringCompare or UCCompareText instead.
+ *  
+ *  Discussion:
+ *    This function is no longer recommended. Please use
+ *    CFStringCompare or UCCompareText instead.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   not available
+ }
+function TextOrder( aPtr: {const} UnivPtr; bPtr: {const} UnivPtr; aLen: SInt16; bLen: SInt16; aScript: ScriptCode; bScript: ScriptCode; aLang: LangCode; bLang: LangCode ): SInt16; external name '_TextOrder';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{
+ *  LanguageOrder()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    use CFStringCompare or UCCompareText instead.
+ *  
+ *  Discussion:
+ *    This function is no longer recommended. Please use
+ *    CFStringCompare or UCCompareText instead.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   not available
+ }
+function LanguageOrder( language1: LangCode; language2: LangCode ): SInt16; external name '_LanguageOrder';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
 {
  *  These routines are available in InterfaceLib with old names.
  *  Macros are provided for C to allow source code use to the new names.
  }
-{$ifc CALL_NOT_IN_CARBON}
+{$endc} {not TARGET_CPU_64}
+
 {
  *  IUMagPString()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function IUMagPString(aPtr: UnivPtr; bPtr: UnivPtr; aLen: SInt16; bLen: SInt16; itl2Handle: Handle): SInt16; external name '_IUMagPString';
+
+
 {
  *  IUMagIDPString()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function IUMagIDPString(aPtr: UnivPtr; bPtr: UnivPtr; aLen: SInt16; bLen: SInt16; itl2Handle: Handle): SInt16; external name '_IUMagIDPString';
+
+
 {
  *  IUTextOrder()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function IUTextOrder(aPtr: UnivPtr; bPtr: UnivPtr; aLen: SInt16; bLen: SInt16; aScript: ScriptCode; bScript: ScriptCode; aLang: LangCode; bLang: LangCode): SInt16; external name '_IUTextOrder';
+
+
 {
  *  IULangOrder()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function IULangOrder(language1: LangCode; language2: LangCode): SInt16; external name '_IULangOrder';
+
+
 {
  *  IUScriptOrder()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function IUScriptOrder(script1: ScriptCode; script2: ScriptCode): SInt16; external name '_IUScriptOrder';
+
+
 {
  *  IUMagString()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function IUMagString(aPtr: UnivPtr; bPtr: UnivPtr; aLen: SInt16; bLen: SInt16): SInt16; external name '_IUMagString';
+
+
 {
  *  IUMagIDString()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function IUMagIDString(aPtr: UnivPtr; bPtr: UnivPtr; aLen: SInt16; bLen: SInt16): SInt16; external name '_IUMagIDString';
-{$endc}  {CALL_NOT_IN_CARBON}
 
-{$ifc CALL_NOT_IN_CARBON}
+
 {
  *  IUCompPString()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function IUCompPString(const (*var*) aStr: Str255; const (*var*) bStr: Str255; itl2Handle: Handle): SInt16; external name '_IUCompPString';
+
 
 {
  *  IUEqualPString()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function IUEqualPString(const (*var*) aStr: Str255; const (*var*) bStr: Str255; itl2Handle: Handle): SInt16; external name '_IUEqualPString';
+
 
 {
  *  IUStringOrder()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function IUStringOrder(const (*var*) aStr: Str255; const (*var*) bStr: Str255; aScript: ScriptCode; bScript: ScriptCode; aLang: LangCode; bLang: LangCode): SInt16; external name '_IUStringOrder';
+
 
 {
  *  IUCompString()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function IUCompString(const (*var*) aStr: Str255; const (*var*) bStr: Str255): SInt16; external name '_IUCompString';
+
 
 {
  *  IUEqualString()
  *  
  *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
  }
-function IUEqualString(const (*var*) aStr: Str255; const (*var*) bStr: Str255): SInt16; external name '_IUEqualString';
-
-{$endc}  {CALL_NOT_IN_CARBON}
 
 
 {
- *  RelString()
+ *  iucomppstring()
  *  
  *  Availability:
+ *    Mac OS X:         not available
+ *    CarbonLib:        not available
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
  }
-function RelString(const (*var*) str1: Str255; const (*var*) str2: Str255; caseSensitive: boolean; diacSensitive: boolean): SInt16; external name '_RelString';
+
 
 {
- *  EqualString()
+ *  iuequalpstring()
  *  
  *  Availability:
+ *    Mac OS X:         not available
+ *    CarbonLib:        not available
  *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
  }
-function EqualString(const (*var*) str1: Str255; const (*var*) str2: Str255; caseSensitive: boolean; diacSensitive: boolean): boolean; external name '_EqualString';
 
 
-{$ALIGN MAC68K}
+{
+ *  iustringorder()
+ *  
+ *  Availability:
+ *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ }
 
+
+{
+ *  iucompstring()
+ *  
+ *  Availability:
+ *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ }
+
+
+{
+ *  iuequalstring()
+ *  
+ *  Availability:
+ *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ }
+
+
+{$ifc not TARGET_CPU_64}
+{
+ *  RelString()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    use CFStringCompare or UCCompareText instead.
+ *  
+ *  Discussion:
+ *    This function is no longer recommended. Please use
+ *    CFStringCompare or UCCompareText instead.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ }
+function RelString( const (*var*) str1: Str255; const (*var*) str2: Str255; caseSensitive: Boolean; diacSensitive: Boolean ): SInt16; external name '_RelString';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{
+ *  EqualString()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    use CFStringCompare instead.
+ *  
+ *  Discussion:
+ *    This function is no longer recommended. Please use
+ *    CFStringCompare instead.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ }
+function EqualString( const (*var*) str1: Str255; const (*var*) str2: Str255; caseSensitive: Boolean; diacSensitive: Boolean ): Boolean; external name '_EqualString';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{$endc} {not TARGET_CPU_64}
+
+{$ifc not TARGET_CPU_64}
+{
+ *  relstring()   *** DEPRECATED ***
+ *  
+ *  Deprecated:
+ *    use CFStringCompare or UCCompareText instead.
+ *  
+ *  Discussion:
+ *    This function is no longer recommended. Please use
+ *    CFStringCompare or UCCompareText instead.
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in CoreServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ }
+(*
+no function overloading
+
+function relstring( str1: ConstCStringPtr; str2: ConstCStringPtr; caseSensitive: Boolean; diacSensitive: Boolean ): SInt16; external name '_relstring';
+*)
+// AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
+
+
+{
+ *  equalstring()
+ *  
+ *  Availability:
+ *    Mac OS X:         not available [32-bit only]
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ }
+
+
+{$endc} {not TARGET_CPU_64}
+
+{$endc} {TARGET_OS_MAC}
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

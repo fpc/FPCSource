@@ -3,9 +3,9 @@
  
      Contains:   Processor Exception Handling Interfaces.
  
-     Version:    CarbonCore-654.0.85~1
+     Version:    CarbonCore-859.2~1
  
-     Copyright:  © 1993-2005 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 1993-2008 by Apple Computer, Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,12 +14,14 @@
  
 }
 {      Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
+{      Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -28,8 +30,8 @@
 
 unit MachineExceptions;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -42,16 +44,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -59,14 +83,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -92,7 +167,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -102,14 +176,17 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,MixedMode;
+uses MacTypes;
+{$endc} {not MACOSALLINCLUDE}
 
+
+{$ifc TARGET_OS_MAC}
 
 {$ALIGN POWER}
 
 { Some basic declarations used throughout the kernel }
 type
-	AreaID = ^SInt32; { an opaque 32-bit type }
+	AreaID = ^SInt32; { an opaque type }
 	AreaIDPtr = ^AreaID;
 { Machine Dependent types for PowerPC: }
 
@@ -122,12 +199,12 @@ type
 		CTR: UnsignedWide;
 		LR: UnsignedWide;
 		PC: UnsignedWide;
-		CRRegister: UInt32;             {    changed from CR since some folks had a #define CR  13 in their source code}
-		XER: UInt32;
-		MSR: UInt32;
-		MQ: UInt32;
-		ExceptKind: UInt32;
-		DSISR: UInt32;
+		CRRegister: UNSIGNEDLONG;             {    changed from CR since some folks had a #define CR  13 in their source code}
+		XER: UNSIGNEDLONG;
+		MSR: UNSIGNEDLONG;
+		MQ: UNSIGNEDLONG;
+		ExceptKind: UNSIGNEDLONG;
+		DSISR: UNSIGNEDLONG;
 		DAR: UnsignedWide;
 		Reserved: UnsignedWide;
 	end;
@@ -171,21 +248,21 @@ type
 	FPUInformationPowerPCPtr = ^FPUInformationPowerPC;
 	FPUInformationPowerPC = record
 		Registers: array [0..31] of UnsignedWide;
-		FPSCR: UInt32;
-		Reserved: UInt32;
+		FPSCR: UNSIGNEDLONG;
+		Reserved: UNSIGNEDLONG;
 	end;
 type
 	Vector128Ptr = ^Vector128;
 	Vector128 = record
 		case SInt16 of
 		0: (
-			l:					array [0..3] of UInt32;
+			l: array [0..3] of UInt32;
 			);
 		1: (
-			s:					array [0..7] of UInt16;
+			s: array [0..7] of UInt16;
 			);
 		2: (
-			c:					packed array [0..15] of UInt8;
+			c: packed array [0..15] of UInt8;
 			);
 	end;
 type
@@ -206,7 +283,7 @@ const
 
 
 type
-	MemoryReferenceKind = UInt32;
+	MemoryReferenceKind = UNSIGNEDLONG;
 	MemoryExceptionInformationPtr = ^MemoryExceptionInformation;
 	MemoryExceptionInformation = record
 		theArea: AreaID;                { The area related to the execption, same as MPAreaID.}
@@ -258,7 +335,7 @@ const
 
 
 type
-	ExceptionKind = UInt32;
+	ExceptionKind = UNSIGNEDLONG;
 	ExceptionInfoPtr = ^ExceptionInfo;
 	ExceptionInfo = record
 		case SInt16 of
@@ -276,7 +353,7 @@ type
 		info: ExceptionInfo;
 		vectorImage: VectorInformationPowerPCPtr;
 	end;
-{$ifc TARGET_CPU_PPC OR TARGET_CPU_68K}
+{$ifc TARGET_CPU_PPC or TARGET_CPU_PPC64}
 type
 	ExceptionInformation = ExceptionInformationPowerPC;
 	MachineInformation = MachineInformationPowerPC;
@@ -290,30 +367,54 @@ type
 	VectorInformationPtr = ^VectorInformation;
 {$endc}
 
+{$ifc TARGET_CPU_X86 or TARGET_CPU_X86_64}
+type
+  Vector128intel = record
+		case SInt16 of
+{ requires vector support
+		0: (
+			s: single_128_bit_vector
+			);
+}
+		1: (
+			si: array [0..3] of UInt32;
+			);
+		2: (
+			s: array [0..1] of Float64;
+			);
+		3: (
+			c: packed array [0..15] of UInt8;
+			);
+	end;
+{$endc}  { TARGET_CPU_X86 or TARGET_CPU_X86_64 }
+
 {$ifc TARGET_CPU_X86}
 type
 	MachineInformationIntelPtr = ^MachineInformationIntel;
 	MachineInformationIntel = record
-		CS: UInt16;
-		DS: UInt16;
-		SS: UInt16;
-		ES: UInt16;
-		FS: UInt16;
-		GS: UInt16;
-		EFLAGS: UInt32;
-		EIP: UInt32;
+		CS: UNSIGNEDLONG;
+		DS: UNSIGNEDLONG;
+		SS: UNSIGNEDLONG;
+		ES: UNSIGNEDLONG;
+		FS: UNSIGNEDLONG;
+		GS: UNSIGNEDLONG;
+		EFLAGS: UNSIGNEDLONG;
+		EIP: UNSIGNEDLONG;
+		ExceptTrap: UNSIGNEDLONG;
+		ExceptErr: UNSIGNEDLONG;
+		ExceptAddr: UNSIGNEDLONG;
 	end;
 type
 	RegisterInformationIntelPtr = ^RegisterInformationIntel;
 	RegisterInformationIntel = record
-		EAX: UInt32;
-		EBX: UInt32;
-		ECX: UInt32;
-		EDX: UInt32;
-		ESI: UInt32;
-		EDI: UInt32;
-		EBP: UInt32;
-		ESP: UInt32;
+		EAX: UNSIGNEDLONG;
+		EBX: UNSIGNEDLONG;
+		ECX: UNSIGNEDLONG;
+		EDX: UNSIGNEDLONG;
+		ESI: UNSIGNEDLONG;
+		EDI: UNSIGNEDLONG;
+		EBP: UNSIGNEDLONG;
+		ESP: UNSIGNEDLONG;
 	end;
 
 type
@@ -329,13 +430,13 @@ type
 		DP: UInt32;
 		DS: UInt32;
 	end;
+
 type
 	VectorInformationIntel = record
-		Registers: array[0..7] of UnsignedWide;
+		Registers: array[0..7] of Vector128Intel;
 	end;
 
 type
-	ExceptionInformationPtr = ^ExceptionInformation;
 	MachineInformationPtr = ^MachineInformation;
 	RegisterInformationPtr = ^RegisterInformation;
 	FPUInformationPtr = ^FPUInformation;
@@ -344,6 +445,71 @@ type
 	RegisterInformation = RegisterInformationIntel;
 	FPUInformation = FPUInformationIntel;
 	VectorInformation = VectorInformationIntel;
+{$endc}  { TARGET_CPU_X86 }
+
+{$ifc TARGET_CPU_X86_64}
+type
+	MachineInformationIntel64 = record
+		CS: UNSIGNEDLONG;
+		FS: UNSIGNEDLONG;
+		GS: UNSIGNEDLONG;
+		RFLAGS: UNSIGNEDLONG;
+		RIP: UNSIGNEDLONG;
+		ExceptTrap: UNSIGNEDLONG;
+		ExceptErr: UNSIGNEDLONG;
+		ExceptAddr: UNSIGNEDLONG;
+	end;
+type
+	RegisterInformationIntel64 = record
+		RAX: UNSIGNEDLONG;
+		RBX: UNSIGNEDLONG;
+		RCX: UNSIGNEDLONG;
+		RDX: UNSIGNEDLONG;
+		RDI: UNSIGNEDLONG;
+		RSI: UNSIGNEDLONG;
+		RBP: UNSIGNEDLONG;
+		RSP: UNSIGNEDLONG;
+		R8: UNSIGNEDLONG;
+		R9: UNSIGNEDLONG;
+		R10: UNSIGNEDLONG;
+		R11: UNSIGNEDLONG;
+		R12: UNSIGNEDLONG;
+		R13: UNSIGNEDLONG;
+		R14: UNSIGNEDLONG;
+		R15: UNSIGNEDLONG;
+	end;
+type
+	FPRegIntel = packed array[0..9] of UInt8;
+type
+	FPUInformationIntel64 = record
+		Registers: array[0..7] of FPRegIntel;
+		Control: UInt16;
+		Status: UInt16;
+		Tag: UInt16;
+		Opcode: UInt16;
+		IP: UInt32;
+		DP: UInt32;
+		DS: UInt32;
+	end;
+type
+	VectorInformationIntel64 = record
+		Registers: array[0..15] of Vector128Intel;
+	end;
+
+type
+	MachineInformationPtr = ^MachineInformation;
+	RegisterInformationPtr = ^RegisterInformation;
+	FPUInformationPtr = ^FPUInformation;
+	VectorInformationPtr = ^VectorInformation;
+	MachineInformation = MachineInformationIntel64;
+	RegisterInformation = RegisterInformationIntel64;
+	FPUInformation = FPUInformationIntel64;
+	VectorInformation = VectorInformationIntel64;
+{$endc}  { TARGET_CPU_X86_64 }
+
+{$ifc TARGET_CPU_X86 or TARGET_CPU_X86_64}
+type
+	ExceptionInformationPtr = ^ExceptionInformation;
 	ExceptionInformation = record
 		theKind: ExceptionKind;
 		machineState: MachineInformationPtr;
@@ -352,7 +518,7 @@ type
 		info: ExceptionInfo;
 		vectorImage: VectorInformationPtr;
 	end;
-{$endc}
+{$endc} { TARGET_CPU_X86 || TARGET_CPU_X86_64 }
 
 { 
     Note:   An ExceptionHandler is NOT a UniversalProcPtr, except in Carbon.
@@ -394,7 +560,7 @@ procedure DisposeExceptionHandlerUPP( userUPP: ExceptionHandlerUPP ); external n
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   available as macro/inline
  }
-function InvokeExceptionHandlerUPP( var theException: ExceptionInformation; userRoutine: ExceptionHandlerUPP ): OSStatus; external name '_InvokeExceptionHandlerUPP';
+function InvokeExceptionHandlerUPP( var theException: ExceptionInformation; userUPP: ExceptionHandlerUPP ): OSStatus; external name '_InvokeExceptionHandlerUPP';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 {
@@ -421,6 +587,8 @@ function InstallExceptionHandler( theHandler: ExceptionHandlerTPP ): ExceptionHa
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 
-
+{$endc} {TARGET_OS_MAC}
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

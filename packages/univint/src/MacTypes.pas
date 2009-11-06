@@ -3,9 +3,9 @@
  
      Contains:   Basic Macintosh data types.
  
-     Version:    CarbonCore-654.0.85~1
+     Version:    CarbonCore-769~1
  
-     Copyright:  © 1985-2005 by Apple Computer, Inc., all rights reserved.
+     Copyright:  © 1985-2008 by Apple Computer, Inc., all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,12 +14,15 @@
  
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, August 2005 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+{	    Pascal Translation Updated:  Gorazd Krosl <gorazd_1957@yahoo.ca>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -28,8 +31,8 @@
 
 unit MacTypes;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -42,16 +45,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -59,14 +84,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -92,7 +168,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -103,6 +178,8 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses ConditionalMacros;
+{$endc} {not MACOSALLINCLUDE}
+
 
 
 {$ALIGN MAC68K}
@@ -131,6 +208,21 @@ type
     UInt32 = Longword;
     SInt64 = Int64;
     UInt64 = QWord;
+
+type
+    UNSIGNEDBYTE = UInt8;
+    SIGNEDBYTE = SInt8;
+    UNSIGNEDWORD = UInt16;
+    SIGNEDWORD = SInt16;
+
+type
+{$ifc TARGET_CPU_64}
+    UNSIGNEDLONG = UInt64;
+    SIGNEDLONG = SInt64;
+{$elsec}
+    UNSIGNEDLONG = UInt32;
+    SIGNEDLONG = SInt32;
+{$endc}
 
 
 
@@ -191,6 +283,8 @@ type
     UInt64Ptr = ^UInt64;
     widePtr = ^wide;
     UnsignedWidePtr = ^UnsignedWide;
+    SIGNEDLONGPtr = ^SIGNEDLONG;
+    UNSIGNEDLONGPtr = ^UNSIGNEDLONG;
 
 	{	*******************************************************************************
 	
@@ -259,6 +353,12 @@ type
 		man: array [0..3] of UInt16;
 	end;
 
+const
+  Float32_Min = 1.5e-45;
+  Float32_Max = 3.4e+38;
+  Float64_Min = 5.0e-324;
+  Float64_Max = 1.7e+308;
+
 type
 	Float96 = record
 		exp: SInt16;
@@ -270,14 +370,16 @@ type
 		x: Float32;
 		y: Float32;
 	end;
-
+{GK: Need in AudioUnitCarbonViews.pas }
+	Float32PointPtr = ^Float32Point;
+	
 {*******************************************************************************
 	Unix compatibility types        
 ********************************************************************************}
 type
-	size_t = UInt32;
+	size_t = UNSIGNEDLONG;
 	size_t_ptr = ^size_t;
-	ssize_t = SInt32;
+	ssize_t = SIGNEDLONG;
 	ssize_t_ptr = ^ssize_t;
 
 {*******************************************************************************
@@ -356,6 +458,7 @@ type
 	OSType_fix = OSType; { used as field type when a record declaration contains a OSType field identifier }
 	ResType = FourCharCode;
 	OSTypePtr = ^OSType;
+	OSTypeHandle = ^OSTypePtr;
 	ResTypePtr = ^ResType;
 {*******************************************************************************
 
@@ -392,6 +495,37 @@ type
 	ProcHandle = ^ProcPtr;
 	UniversalProcHandle = ^UniversalProcPtr;
 
+
+{*******************************************************************************
+
+    RefCon Types
+    
+        For access to private data in callbacks, etc.; refcons are generally
+        used as a pointer to something, but in the 32-bit world refcons in
+        different APIs have had various types: pointer, unsigned scalar, and
+        signed scalar. The RefCon types defined here support the current 32-bit
+        usage but provide normalization to pointer types for 64-bit.
+        
+        PRefCon is preferred for new APIs; URefCon and SRefCon are primarily
+        for compatibility with existing APIs.
+        
+********************************************************************************}
+type
+	PRefCon = UnivPtr;
+
+{$ifc TARGET_CPU_64}
+
+type
+	URefCon = UnivPtr;
+	SRefCon = UnivPtr;
+
+{$elsec}
+
+type
+	URefCon = UInt32;
+	SRefCon = SInt32;
+
+{$endc}
 
 {*******************************************************************************
 
@@ -636,6 +770,7 @@ type
 type
 	TimeValue = SInt32;
 	TimeScale = SInt32;
+	TimeScalePtr = ^TimeScale;
 	TimeScale_fix = TimeScale; { used as field type when a record declaration contains a TimeScale field identifier }
 	CompTimeValue = wide;
 	CompTimeValuePtr = ^CompTimeValue;
@@ -722,8 +857,6 @@ type
         
 ********************************************************************************}
 type
-	Byte = UInt8;
-	SignedByte = SInt8;
 	extended80 = Float80;
 	extended80Ptr = ^extended80;
 	extended96 = Float96;
@@ -830,5 +963,7 @@ procedure SysBreakFunc( const (*var*) debuggerMsg: Str255 ); external name '_Sys
 
 
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

@@ -1,13 +1,15 @@
 {	CFArray.h
-	Copyright (c) 1998-2005, Apple, Inc. All rights reserved.
+	Copyright (c) 1998-2009, Apple, Inc. All rights reserved.
 }
 {       Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, September 2005 }
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -16,8 +18,8 @@
 
 unit CFArray;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -30,16 +32,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -47,14 +71,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -80,7 +155,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -91,6 +165,8 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes,CFBase;
+{$endc} {not MACOSALLINCLUDE}
+
 {$ALIGN POWER}
 
 
@@ -110,6 +186,8 @@ uses MacTypes,CFBase;
 	Arrays come in two flavors, immutable, which cannot have values
 	added to them or removed from them after the array is created, and
 	mutable, to which you can add values or from which remove values.
+
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
 	Mutable arrays have two subflavors, fixed-capacity, for which there
 	is a maximum number set at creation time of values which can be put
 	into the array, and variable capacity, which can have an unlimited
@@ -118,6 +196,11 @@ uses MacTypes,CFBase;
 	arrays can be somewhat higher performing, if you can put a definite
 	upper limit on the number of values that might be put into the
 	array.
+#else
+	Mutable arrays can have an unlimited number of values (or rather,
+	limited only by constraints external to CFArray, like the amount
+	of available memory).
+#endif
 
 	As with all CoreFoundation collection types, arrays maintain hard
 	references on the values you put in them, but the retaining and
@@ -295,6 +378,7 @@ function CFArrayCreateCopy( allocator: CFAllocatorRef; theArray: CFArrayRef ): C
 		parameter may be NULL in which case the current default
 		CFAllocator is used. If this reference is not a valid
 		CFAllocator, the behavior is undefined.
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
 	@param capacity The maximum number of values that can be contained
 		by the CFArray. The array starts empty, and can grow to this
 		number of values (and it can have less). If this parameter
@@ -302,6 +386,14 @@ function CFArrayCreateCopy( allocator: CFAllocatorRef; theArray: CFArrayRef ): C
 		only limited by address space and available memory
 		constraints). If this parameter is negative, the behavior is
 		undefined.
+#else
+	@param capacity A hint about the number of values that will be held
+		by the CFArray. Pass 0 for no hint. The implementation may
+		ignore this hint, or may use it to optimize various
+		operations. An array's actual capacity is only limited by
+		address space and available memory constraints). If this
+		parameter is negative, the behavior is undefined.
+#endif
 	@param callBacks A pointer to a CFArrayCallBacks structure
 		initialized with the callbacks for the array to use on each
 		value in the array. A copy of the contents of the
@@ -313,7 +405,7 @@ function CFArrayCreateCopy( allocator: CFAllocatorRef; theArray: CFArrayRef ): C
 		NULL, in which case the CFArray will do nothing to add a
 		retain to the contained values for the array. The release
 		field may be NULL, in which case the CFArray will do nothing
-		to remove the arrays retain (if any) on the values when the
+		to remove the array's retain (if any) on the values when the
 		array is destroyed. If the copyDescription field is NULL,
 		the array will create a simple description for the value. If
 		the equal field is NULL, the array will use pointer equality
@@ -339,6 +431,7 @@ function CFArrayCreateMutable( allocator: CFAllocatorRef; capacity: CFIndex; {co
 		parameter may be NULL in which case the current default
 		CFAllocator is used. If this reference is not a valid
 		CFAllocator, the behavior is undefined.
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
 	@param capacity The maximum number of values that can be contained
 		by the CFArray. The array starts empty, and can grow to this
 		number of values (and it can have less). If this parameter
@@ -348,6 +441,17 @@ function CFArrayCreateMutable( allocator: CFAllocatorRef; capacity: CFIndex; {co
 		to the count of the array which is to be copied, or the
 		behavior is undefined. If this parameter is negative, the
 		behavior is undefined.
+#else
+  @param capacity A hint about the number of values that will be held
+    by the CFArray. Pass 0 for no hint. The implementation may
+    ignore this hint, or may use it to optimize various
+    operations. An array's actual capacity is only limited by 
+    address space and available memory constraints).
+		This parameter must be greater than or equal
+		to the count of the array which is to be copied, or the
+		behavior is undefined. If this parameter is negative, the
+		behavior is undefined.
+#endif
 	@param theArray The array which is to be copied. The values from the
 		array are copied as pointers into the new array (that is,
 		the values themselves are copied, not that which the values
@@ -563,8 +667,11 @@ function CFArrayBSearchValues( theArray: CFArrayRef; range: CFRange; value: {con
 	Adds the value to the array giving it a new largest index.
 	@param theArray The array to which the value is to be added. If this
 		parameter is not a valid mutable CFArray, the behavior is
-		undefined. If the array is a fixed-capacity array and it
+		undefined.
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+		If the array is a fixed-capacity array and it
 		is full before this operation, the behavior is undefined.
+#endif
 	@param value The value to add to the array. The value is retained by
 		the array using the retain callback provided when the array
 		was created. If the value is not of the sort expected by the
@@ -579,8 +686,11 @@ procedure CFArrayAppendValue( theArray: CFMutableArrayRef; value: {const} UnivPt
 	Adds the value to the array, giving it the given index.
 	@param theArray The array to which the value is to be added. If this
 		parameter is not a valid mutable CFArray, the behavior is
-		undefined. If the array is a fixed-capacity array and it
+		undefined.
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+		If the array is a fixed-capacity array and it
 		is full before this operation, the behavior is undefined.
+#endif
 	@param idx The index to which to add the new value. If the index is
 		outside the index space of the array (0 to N inclusive,
 		where N is the count of the array before the operation), the
@@ -600,9 +710,12 @@ procedure CFArrayInsertValueAtIndex( theArray: CFMutableArrayRef; idx: CFIndex; 
 	Changes the value with the given index in the array.
 	@param theArray The array in which the value is to be changed. If this
 		parameter is not a valid mutable CFArray, the behavior is
-		undefined. If the array is a fixed-capacity array and it
+		undefined.
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+		If the array is a fixed-capacity array and it
 		is full before this operation and the index is the same as
 		N, the behavior is undefined.
+#endif
 	@param idx The index to which to set the new value. If the index is
 		outside the index space of the array (0 to N inclusive,
 		where N is the count of the array before the operation), the
@@ -723,10 +836,13 @@ procedure CFArraySortValues( theArray: CFMutableArrayRef; range: CFRange; compar
 	Adds the values from an array to another array.
 	@param theArray The array to which values from the otherArray are to
 		be added. If this parameter is not a valid mutable CFArray,
-		the behavior is undefined. If the array is a fixed-capacity
+		the behavior is undefined.
+#if MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4
+		If the array is a fixed-capacity
 		array and adding range.length values from the otherArray
 		exceeds the capacity of the array, the behavior is
 		undefined.
+#endif
 	@param otherArray The array providing the values to be added to the
 		array. If this parameter is not a valid CFArray, the
 		behavior is undefined.
@@ -747,5 +863,7 @@ procedure CFArraySortValues( theArray: CFMutableArrayRef; range: CFRange; compar
 }
 procedure CFArrayAppendArray( theArray: CFMutableArrayRef; otherArray: CFArrayRef; otherRange: CFRange ); external name '_CFArrayAppendArray';
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

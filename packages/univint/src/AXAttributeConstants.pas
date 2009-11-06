@@ -3,18 +3,20 @@
  *  HIServices
  *
  *  Created by John Louch on Wed Feb 25 2004.
- *  Copyright (c) 2004 Apple Computer, Inc. All rights reserved.
+ *  Copyright (c) 2004, 2006 Apple Computer, Inc. All rights reserved.
  *
  }
 
 {	 Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2006 }
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -23,8 +25,8 @@
 
 unit AXAttributeConstants;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -37,16 +39,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -54,14 +78,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -87,7 +162,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -98,6 +172,11 @@ interface
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
 uses MacTypes;
+{$endc} {not MACOSALLINCLUDE}
+
+
+{$ifc TARGET_OS_MAC}
+
 {$ALIGN POWER}
 
 
@@ -135,6 +214,7 @@ uses MacTypes;
 	
 	// value attributes
 	kAXValueAttribute
+    kAXValueDescriptionAttribute
 	kAXMinValueAttribute
 	kAXMaxValueAttribute
 	kAXValueIncrementAttribute
@@ -144,6 +224,7 @@ uses MacTypes;
 	// text-specific attributes
 	kAXSelectedTextAttribute
 	kAXSelectedTextRangeAttribute
+    kAXSelectedTextRangesAttribute
 	kAXVisibleCharacterRangeAttribute
 	kAXNumberOfCharactersAttribute
 	kAXSharedTextUIElementsAttribute
@@ -388,6 +469,29 @@ uses MacTypes;
 
 
 {
+    kAXValueDescriptionAttribute
+    
+    Used to supplement kAXValueAttribute.  This attribute returns a string description that best 
+    describes the current value stored in kAXValueAttribute.  This is useful for things like
+    slider where the numeric value in kAXValueAttribute does not always convey enough information
+    about the adjustment made on the slider.  As an example, a color slider that adjusts thru various  
+    colors cannot be well-described by the numeric value in existing AXValueAttribute.  This is where 
+    the kAXValueDescriptionAttribute comes in handy.  In this example, the developer can provide the  
+    color information using this attribute.       
+    
+    Value: A localized, human-readable CFStringRef.
+	
+	Writable? No.
+    
+    Recommended for elements that support kAXValueAttribute.
+
+}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXValueDescriptionAttribute CFSTRP('AXValueDescription')}
+{$endc}
+
+
+{
 	kAXMinValueAttribute
 	
 	Only used in conjunction with kAXValueAttribute and kAXMaxValueAttribute, this
@@ -462,6 +566,22 @@ uses MacTypes;
 }
 {$ifc USE_CFSTR_CONSTANT_MACROS}
 {$definec kAXAllowedValuesAttribute CFSTRP('AXAllowedValues')}
+{$endc}
+
+
+{
+	kAXPlaceholderValueAttribute
+	
+	The value of placeholder text as found in a text field.
+	
+	Value: A CFStringRef.
+	
+	Writable? No.
+	
+	Recommended for text fields and other elements that have a placeholder value.
+}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXPlaceholderValueAttribute CFSTRP('AXPlaceholderValue')}
 {$endc}
 
 
@@ -670,7 +790,7 @@ uses MacTypes;
 {
 	kAXOrientationAttribute
 	
-	An indiciation of whether an element is drawn and/or interacted with in a
+	An indication of whether an element is drawn and/or interacted with in a
 	vertical or horizontal manner. Elements such as scroll bars and sliders offer
 	the kAXOrientationAttribute.
 	
@@ -690,11 +810,11 @@ uses MacTypes;
 {
 	kAXDescriptionAttribute
 	
-	An indication of an element's purpose, in a way that is slightly more specific
-	than the kAXRoleDescriptionAttribute, but which is less wordy than the
-	kAXHelpAttribute. In English, the description should typically be a concatenation
-	of a usage adjective with the element's role description. For example, the
-	description of a slider in a font panel might be "font size slider". The string
+	A localized, human-readable string that indicates an element's purpose in a way
+	that is slightly more specific than the kAXRoleDescriptionAttribute, but which
+	is less wordy than the kAXHelpAttribute. Typically, the description should be
+	an adjective or short phrase that describes the element's usage. For example,
+	the description of a slider in a font panel might be "font size". The string
 	should be all lower-case and contain no punctuation.
 	
 	Value: A localized, human-readable CFStringRef.
@@ -745,6 +865,22 @@ uses MacTypes;
 {$definec kAXSelectedTextRangeAttribute CFSTRP('AXSelectedTextRange')}
 {$endc}
 
+{
+	kAXSelectedTextRangesAttribute
+	
+	An array of noncontiguous ranges of characters (not bytes) that defines the current selections of an
+	editable text element.  
+	
+	Value: A CFArrayRef of kAXValueCFRanges.
+	
+	Writable? Yes.
+	
+	Recommended for text elements that support noncontiguous selections.
+}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXSelectedTextRangesAttribute CFSTRP('AXSelectedTextRanges')}
+{$endc}
+
 
 {
 	kAXVisibleCharacterRangeAttribute
@@ -759,6 +895,7 @@ uses MacTypes;
 	Required for elements of role kAXTextAreaRole. Not required for any other
 	elements, including those of role kAXTextFieldRole.
 }
+
 {$ifc USE_CFSTR_CONSTANT_MACROS}
 {$definec kAXVisibleCharacterRangeAttribute CFSTRP('AXVisibleCharacterRange')}
 {$endc}
@@ -1342,9 +1479,6 @@ uses MacTypes;
 {$ifc USE_CFSTR_CONSTANT_MACROS}
 {$definec kAXSortDirectionAttribute CFSTRP('AXSortDirection')}
 {$endc}
-{$ifc USE_CFSTR_CONSTANT_MACROS}
-{$definec kAXColumnHeaderUIElementsAttribute CFSTRP('AXColumnHeaderUIElements')}
-{$endc}
 
 // row/column attributes
 {$ifc USE_CFSTR_CONSTANT_MACROS}
@@ -1408,6 +1542,64 @@ uses MacTypes;
 {$definec kAXFocusedApplicationAttribute CFSTRP('AXFocusedApplication')}
 {$endc}
 
+// grid attributes
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXRowCountAttribute CFSTRP('AXRowCount')}
+{$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXColumnCountAttribute CFSTRP('AXColumnCount')}
+{$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXOrderedByRowAttribute CFSTRP('AXOrderedByRow')}
+{$endc}
+
+// level indicator attributes
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXWarningValueAttribute CFSTRP('AXWarningValue')}
+{$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXCriticalValueAttribute CFSTRP('AXCriticalValue')}
+{$endc}
+
+// cell-based table attributes
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXSelectedCellsAttribute CFSTRP('AXSelectedCells')}
+{$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXVisibleCellsAttribute CFSTRP('AXVisibleCells')}
+{$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXRowHeaderUIElementsAttribute CFSTRP('AXRowHeaderUIElements')}
+{$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXColumnHeaderUIElementsAttribute CFSTRP('AXColumnHeaderUIElements')}
+{$endc}
+
+// cell attributes
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXRowIndexRangeAttribute CFSTRP('AXRowIndexRange')}
+{$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXColumnIndexRangeAttribute CFSTRP('AXColumnIndexRange')}
+{$endc}
+
+// layout area attributes
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXHorizontalUnitsAttribute CFSTRP('AXHorizontalUnits')}
+{$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXVerticalUnitsAttribute CFSTRP('AXVerticalUnits')}
+{$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXHorizontalUnitDescriptionAttribute CFSTRP('AXHorizontalUnitDescription')}
+{$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXVerticalUnitDescriptionAttribute CFSTRP('AXVerticalUnitDescription')}
+{$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXHandlesAttribute CFSTRP('AXHandles')}
+{$endc}
+
 // obsolete/unknown attributes
 {$ifc USE_CFSTR_CONSTANT_MACROS}
 {$definec kAXTextAttribute CFSTRP('AXText')}
@@ -1456,5 +1648,27 @@ uses MacTypes;
 {$definec kAXStyleRangeForIndexParameterizedAttribute CFSTRP('AXStyleRangeForIndex')}
 {$endc}
 
+// cell-based table parameterized attributes
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXCellForColumnAndRowParameterizedAttribute CFSTRP('AXCellForColumnAndRow')}
+{$endc}
+
+// layout area parameterized attributes
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXLayoutPointForScreenPointParameterizedAttribute CFSTRP('AXLayoutPointForScreenPoint')}
+{$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXLayoutSizeForScreenSizeParameterizedAttribute CFSTRP('AXLayoutSizeForScreenSize')}
+{$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXScreenPointForLayoutPointParameterizedAttribute CFSTRP('AXScreenPointForLayoutPoint')}
+{$endc}
+{$ifc USE_CFSTR_CONSTANT_MACROS}
+{$definec kAXScreenSizeForLayoutSizeParameterizedAttribute CFSTRP('AXScreenSizeForLayoutSize')}
+{$endc}
+
+{$endc} {TARGET_OS_MAC}
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

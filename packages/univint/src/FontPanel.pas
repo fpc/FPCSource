@@ -3,20 +3,25 @@
  
      Contains:   Carbon Font Panel package Interfaces.
  
-     Version:    CommonPanels-73~983
+     Version:    CommonPanels-91~177
  
-     Copyright:  © 2002-2005 by Apple Computer, Inc., all rights reserved
+     Copyright:  © 2002-2008 by Apple Computer, Inc., all rights reserved
+ 
+     Bugs?:      For bug reports, consult the following page on
+                 the World Wide Web:
+ 
+                     http://www.freepascal.org/bugs.html
  
 }
-
 {	 Pascal Translation:  Gale R Paeper, <gpaeper@empirenet.com>, 2006 }
-
+{  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -25,8 +30,8 @@
 
 unit FontPanel;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -39,16 +44,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -56,14 +83,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -89,7 +167,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -99,7 +176,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes, AEDataModel, AERegistry, ATSTypes, CarbonEventsCore, CFArray, CFBase, CFDictionary, Quickdraw;
+uses MacTypes, AEDataModel, AERegistry, ATSTypes, CarbonEventsCore, CFArray, CFBase, CFDictionary, QuickdrawTypes,CGBase;
+{$endc} {not MACOSALLINCLUDE}
+
+
+{$ifc TARGET_OS_MAC}
 
 {$ALIGN MAC68K}
 
@@ -147,10 +228,10 @@ const
  *    kEventWindowClosed has no parameters. When the user selects an
  *    item in the Font Panel, the system will send a
  *    kEventFontSelection event to the event target specified when the
- *    application called SetFontPanelInfo(). kEventFontSelection will
- *    contain parameters reflecting the current Font Panel selection in
- *    all supported formats. Font events are available after Mac OS X
- *    10.2 in the Carbon framework.
+ *    application called SetFontInfoForSelection(). kEventFontSelection
+ *    will contain parameters reflecting the current Font Panel
+ *    selection in all supported formats. Font events are available
+ *    after Mac OS X 10.2 in the Carbon framework.
  }
 const
 {
@@ -181,15 +262,20 @@ const
         -->     kEventParamFMFontFamily             typeFMFontFamily
         -->     kEventParamFMFontSize               typeFMFontSize
         -->     kEventParamFontColor                typeFontColor
-        -->     kEventParamDictionary               typeCFDictionary 
+        -->     kEventParamDictionary               typeCFDictionaryRef 
+        -->     kEventParamViewAttributesDictionary typeCFDictionaryRef
+                A dictionary containing attributes that can be applied to an entire text view.  An example of this is the background color to 
+                apply to the view.
 }
 const
+	typeCTFontDescriptorRef = typeCFTypeRef; { CTFontDescriptor reference.}
 	typeATSUFontID = typeUInt32; { ATSUI font ID.}
 	typeATSUSize = typeFixed; { ATSUI font size.}
 	typeFMFontFamily = typeSInt16; { Font family reference.}
 	typeFMFontStyle = typeSInt16; { Quickdraw font style}
 	typeFMFontSize = typeSInt16; { Integer font size.}
 	typeFontColor = typeRGBColor; { Font color spec (optional).}
+	kEventParamCTFontDescriptor = FourCharCode('ctfd'); { typeCTFontDescriptorRef}
 	kEventParamATSUFontID = FourCharCode('auid'); { typeATSUFontID}
 	kEventParamATSUFontSize = FourCharCode('ausz'); { typeATSUSize}
 	kEventParamFMFontFamily = FourCharCode('fmfm'); { typeFMFontFamily}
@@ -197,10 +283,11 @@ const
 	kEventParamFMFontSize = FourCharCode('fmsz'); { typeFMFontSize}
 	kEventParamFontColor = FourCharCode('fclr'); { typeFontColor}
 	kEventParamDictionary = FourCharCode('dict'); {    typeCFDictionaryRef}
+	kEventParamViewAttributesDictionary = FourCharCode('dadc'); {    typeCFDictionaryRef}
 
 {~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Key constants to be used to access data inside the dictionary that may
-    be contained in the kEventFontSelection dictionary.
+    be contained in the kEventFontSelection dictionary. (kEventParamDictionary)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 {
  *  kFontPanelATSUFontIDKey
@@ -332,6 +419,42 @@ var kFontPanelAttributeSizesKey: CFStringRef; external name '_kFontPanelAttribut
 var kFontPanelAttributeValuesKey: CFStringRef; external name '_kFontPanelAttributeValuesKey'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 {Value is a CFDataRef containing one or more style values}
+{~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Keys to access to access the optional mouse tracking state if the font attribute/feature control is tracking
+An application can look for this optional value to aid in supporting undo/redo for a font attribute/feature that is represented by
+a control that tracks such as a slider.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
+{
+ *  kFontPanelMouseTrackingState
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in Carbon.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kFontPanelMouseTrackingState: CFStringRef; external name '_kFontPanelMouseTrackingState'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+{
+   The value referenced by this key is a CFNumberRef that will contain one of the following values
+  from CarbonEvents.h
+   kEventMouseDown
+   kEventMouseUp
+   kEventMouseDragged
+}
+
+{~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Keys to access the data from the document attributes dictionary (kEventParamViewAttributesDictionary)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
+{
+ *  kFontPanelBackgroundColorAttributeName
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.5 and later in Carbon.framework
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
+ }
+var kFontPanelBackgroundColorAttributeName: CFStringRef; external name '_kFontPanelBackgroundColorAttributeName'; (* attribute const *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 {~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
     Other Font Panel Constants
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
@@ -344,13 +467,14 @@ const
 	fontPanelFontSelectionQDStyleVersionErr = -8882; { Unsupported record version.}
 
 {
-Type of font information passed in SetFontPanelInfo(). If the client is
+Type of font information passed in SetFontInfoForSelection(). If the client is
 sending ATSUI style data, it specifies kFontSelectionATSUIType; if it is
 sending Quickdraw style data, it specifies kFontSelectionQDType.
 }
 const
 	kFontSelectionATSUIType = FourCharCode('astl'); { Use ATSUIStyle collection.}
 	kFontSelectionQDType = FourCharCode('qstl'); { Use FontSelectionQDStyle record.}
+	kFontSelectionCoreTextType = FourCharCode('ctfd'); { Use CTFontDescriptorRef.}
 
 {
 Supported versions of the FontSelectionQDStyle record. Clients should always set
@@ -366,7 +490,7 @@ const
 {
 Record specifying the font information to be specified in the Font
 Panel. This record is used if the client is sending Quickdraw style data
-(i.e., it specified kFontSelectionQDType in SetFontPanelInfo()).
+(i.e., it specified kFontSelectionQDType in SetFontInfoForSelection()).
 }
 type
 	FontSelectionQDStyle = record
@@ -374,7 +498,7 @@ type
 		instance: FMFontFamilyInstance;             { Font instance data.}
 		size: FMFontSize;                   { Size of font in points.}
 		hasColor: Boolean;               { true if color info supplied.}
-		reserved: SInt8;               { Filler byte.}
+		reserved: UInt8;               { Filler byte.}
 		color: RGBColor;                  { Color specification for font.}
 	end;
 	FontSelectionQDStylePtr = ^FontSelectionQDStyle;
@@ -413,7 +537,7 @@ function FPShowHideFontPanel: OSStatus; external name '_FPShowHideFontPanel';
  *    CarbonLib:        not available in CarbonLib 1.x
  *    Non-Carbon CFM:   not available
  }
-function SetFontInfoForSelection( iStyleType: OSType; iNumStyles: UInt32; iStyles: {variable-size-array} UnivPtr; iFPEventTarget: EventTargetRef ): OSStatus; external name '_SetFontInfoForSelection';
+function SetFontInfoForSelection( iStyleType: OSType; iNumStyles: UInt32; iStyles: UnivPtr; iFPEventTarget: EventTargetRef ): OSStatus; external name '_SetFontInfoForSelection';
 (* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
 
 
@@ -430,7 +554,7 @@ function SetFontInfoForSelection( iStyleType: OSType; iNumStyles: UInt32; iStyle
     Font Collection Types
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~}
 type
-	FCFontDescriptorRef = ^SInt32; { an opaque 32-bit type }
+	FCFontDescriptorRef = ^SInt32; { an opaque type }
 {
  *  FCCopyCollectionNames()
  *  
@@ -726,10 +850,13 @@ function FCFontDescriptorCreateWithFontAttributes( iAttributes: CFDictionaryRef 
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-function FCFontDescriptorCreateWithName( iFontName: CFStringRef; iSize: Float32 ): FCFontDescriptorRef; external name '_FCFontDescriptorCreateWithName';
+function FCFontDescriptorCreateWithName( iFontName: CFStringRef; iSize: CGFloat ): FCFontDescriptorRef; external name '_FCFontDescriptorCreateWithName';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
 
+{$endc} {TARGET_OS_MAC}
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

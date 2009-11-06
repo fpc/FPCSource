@@ -1,11 +1,11 @@
 {
-     File:       QD/Quickdraw.h
+     File:       QD/QuickdrawAPI.h
  
-     Contains:   Interface to Quickdraw Graphics
+     Contains:   API Prototypes from the former Quickdraw.i
  
-     Version:    Quickdraw-192.20~75
+     Version:    Quickdraw-262~1
  
-     Copyright:  © 1985-2006 by Apple Computer, Inc., all rights reserved
+     Copyright:  © 2005-2008 by Apple Inc. all rights reserved.
  
      Bugs?:      For bug reports, consult the following page on
                  the World Wide Web:
@@ -14,13 +14,14 @@
  
 }
 {       Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2007 }
-
+{       Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -29,8 +30,8 @@
 
 unit Quickdraw;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -43,16 +44,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -60,14 +83,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := TFALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -93,7 +167,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -103,8 +176,11 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,CMTypes,CGDirectDisplay,Components,MixedMode,QuickdrawText,CGContext;
+uses MacTypes,QDCMCommon,QuickdrawTypes,ColorSyncDeprecated,CGDirectDisplay,Components,MixedMode,QuickdrawText,CGContext;
+{$endc} {not MACOSALLINCLUDE}
 
+
+{$ifc TARGET_OS_MAC}
 
 {$ALIGN MAC68K}
 
@@ -120,1725 +196,6 @@ uses MacTypes,CMTypes,CGDirectDisplay,Components,MixedMode,QuickdrawText,CGConte
  |********************************************************************************}
 
 
-const
-	invalColReq					= -1;							{ invalid color table request }
-
-																{  transfer modes  }
-	srcCopy						= 0;							{ the 16 transfer modes }
-	srcOr						= 1;
-	srcXor						= 2;
-	srcBic						= 3;
-	notSrcCopy					= 4;
-	notSrcOr					= 5;
-	notSrcXor					= 6;
-	notSrcBic					= 7;
-	patCopy						= 8;
-	patOr						= 9;
-	patXor						= 10;
-	patBic						= 11;
-	notPatCopy					= 12;
-	notPatOr					= 13;
-	notPatXor					= 14;
-	notPatBic					= 15;							{  Special Text Transfer Mode  }
-	grayishTextOr				= 49;
-	hilitetransfermode			= 50;
-	hilite						= 50;							{  Arithmetic transfer modes  }
-	blend						= 32;
-	addPin						= 33;
-	addOver						= 34;
-	subPin						= 35;
-	addMax						= 37;
-	adMax						= 37;
-	subOver						= 38;
-	adMin						= 39;
-	ditherCopy					= 64;							{  Transparent mode constant  }
-	transparent					= 36;
-
-	italicBit					= 1;
-	ulineBit					= 2;
-	outlineBit					= 3;
-	shadowBit					= 4;
-	condenseBit					= 5;
-	extendBit					= 6;
-
-																{  QuickDraw color separation constants  }
-	normalBit					= 0;							{ normal screen mapping }
-	inverseBit					= 1;							{ inverse screen mapping }
-	redBit						= 4;							{ RGB additive mapping }
-	greenBit					= 3;
-	blueBit						= 2;
-	cyanBit						= 8;							{ CMYBk subtractive mapping }
-	magentaBit					= 7;
-	yellowBit					= 6;
-	blackBit					= 5;
-
-	blackColor					= 33;							{ colors expressed in these mappings }
-	whiteColor					= 30;
-	redColor					= 205;
-	greenColor					= 341;
-	blueColor					= 409;
-	cyanColor					= 273;
-	magentaColor				= 137;
-	yellowColor					= 69;
-
-	picLParen					= 0;							{ standard picture comments }
-	picRParen					= 1;
-	clutType					= 0;							{ 0 if lookup table }
-	fixedType					= 1;							{ 1 if fixed table }
-	directType					= 2;							{ 2 if direct values }
-
-    { gdFlags bits. Bits 1..10 are legacy, and currently unused }
-	gdDevType					= 0;							{ 0 = monochrome 1 = color }
-
-	interlacedDevice			= 2;							{  1 if single pixel lines look bad  }
-	hwMirroredDevice			= 4;							{  1 if device is HW mirrored  }
-	roundedDevice				= 5;							{  1 if device has been “rounded” into the GrayRgn  }
-	hasAuxMenuBar				= 6;							{  1 if device has an aux menu bar on it  }
-	burstDevice					= 7;
-	ext32Device					= 8;
-	ramInit						= 10;							{ 1 if initialized from 'scrn' resource }
-	mainScreen					= 11;							{  1 if main screen  }
-	allInit						= 12;							{  1 if all devices initialized  }
-	screenDevice				= 13;							{ 1 if screen device [not used] }
-	noDriver					= 14;							{  1 if no driver for this GDevice  }
-	screenActive				= 15;							{ 1 if in use }
-	hiliteBit					= 7;							{ flag bit in LMGet/SetHiliteMode }
-	pHiliteBit					= 0;							{ flag bit in LMGet/SetHiliteMode when used with BitClr }
-
-    { miscellaneous constants }
-	defQDColors					= 127;							{ resource ID of clut for default QDColors } { (legacy - now unused) }
-																{  pixel type  }
-	RGBDirect					= 16;							{  16 & 32 bits/pixel pixelType value  }
-																{  pmVersion values  }
-	baseAddr32					= 4;							{ pixmap base address is 32-bit address }
-
-
-	sysPatListID				= 0;
-	iBeamCursor					= 1;
-	crossCursor					= 2;
-	plusCursor					= 3;
-	watchCursor					= 4;
-
-	kQDGrafVerbFrame			= 0;
-	kQDGrafVerbPaint			= 1;
-	kQDGrafVerbErase			= 2;
-	kQDGrafVerbInvert			= 3;
-	kQDGrafVerbFill				= 4;
-
-{$ifc OLDROUTINENAMES}
-	frame 						= kQDGrafVerbFrame;
-	paint 						= kQDGrafVerbPaint;
-	erase 						= kQDGrafVerbErase;
-	invert 						= kQDGrafVerbInvert;
-	fill 						= kQDGrafVerbFill;
-
-{$endc}  {OLDROUTINENAMES}
-
-
-type
-	GrafVerb							= SInt8;
-
-const
-	chunky						= 0;
-	chunkyPlanar				= 1;
-	planar						= 2;
-
-
-type
-	PixelType							= SInt8;
-	Bits16								= array [0..15] of SInt16;
-
-	{	**************   IMPORTANT NOTE REGARDING Pattern  **************************************
-	   Patterns were originally defined as:
-	   
-	        C:          typedef unsigned char Pattern[8];
-	        Pascal:     Pattern = packed array [0..7] of 0..255;
-	        
-	   The old array definition of Pattern would cause 68000 based CPU's to crash in certain circum-
-	   stances. The new struct definition is safe, but may require source code changes to compile.
-	    
-	********************************************************************************************	}
-	PatternPtr = ^Pattern;
-	Pattern = record
-		pat:					packed array [0..7] of UInt8;
-	end;
-
-{
- ConstPatternParam is no longer needed.  It was first created when Pattern was an array.
- Now that Pattern is a struct, it is more straight forward to just add the "const" qualifier
- on the parameter type (e.g. "const Pattern * pat" instead of "ConstPatternParam pat").
-
-	ConstPatternParam = PatternPtr;
-}
-
-	PatPtr								= ^Pattern;
-	PatHandle							= ^PatPtr;
-	QDByte								= SignedByte;
-	QDPtr								= Ptr;
-	QDHandle							= Handle;
-	QDErr								= SInt16;
-
-const
-	singleDevicesBit			= 0;
-	dontMatchSeedsBit			= 1;
-	allDevicesBit				= 2;
-
-	singleDevices				= $01;
-	dontMatchSeeds				= $02;
-	allDevices					= $04;
-
-
-type
-	DeviceLoopFlags						= UInt32;
-	{	
-	    PrinterStatusOpcode.  For communication with downloading and printing services.
-		}
-	PrinterStatusOpcode					= SInt32;
-
-const
-	kPrinterFontStatus			= 0;
-	kPrinterScalingStatus		= 1;
-
-
-type
-	PrinterFontStatusPtr = ^PrinterFontStatus;
-	PrinterFontStatus = record
-		oResult:				SInt32;
-		iFondID:				SInt16;
-		iStyle:					Style;
-	end;
-
-	PrinterScalingStatusPtr = ^PrinterScalingStatus;
-	PrinterScalingStatus = record
-		oScalingFactors:		Point;
-	end;
-
-	BitMapPtr = ^BitMap;
-	BitMap = record
-		baseAddr:				Ptr;
-		rowBytes:				SInt16;
-		bounds:					Rect;
-	end;
-
-	BitMapHandle						= ^BitMapPtr;
-	CursorPtr = ^Cursor;
-	Cursor = record
-		data:					Bits16;
-		mask:					Bits16;
-		hotSpot:				Point;
-	end;
-
-	CursPtr								= ^Cursor;
-	CursHandle							= ^CursPtr;
-	PenStatePtr = ^PenState;
-	PenState = record
-		pnLoc:					Point;
-		pnSize:					Point;
-		pnMode:					SInt16;
-		pnPat:					Pattern;
-	end;
-
-{$ifc NOT OPAQUE_TOOLBOX_STRUCTS}
-	MacRegionPtr = ^MacRegion;
-	MacRegion = record
-		rgnSize:				UInt16;									{  size in bytes; don't rely on it  }
-		rgnBBox:				Rect;									{  enclosing rectangle; in Carbon use GetRegionBounds  }
-	end;
-
-	{
-	   The type name "Region" has a name space collision on Win32.
-	   Use MacRegion to be cross-platfrom safe.
-	}
-{$ifc TARGET_OS_MAC}
-	Region								= MacRegion;
-	RegionPtr 							= ^Region;
-{$endc}  {TARGET_OS_MAC}
-	RgnPtr								= ^MacRegion;
-	RgnHandle							= ^RgnPtr;
-{$elsec}
-	RgnHandle    = ^SInt32; { an opaque 32-bit type }
-	RgnHandlePtr = ^RgnHandle;  { when a var xx:RgnHandle parameter can be nil, it is changed to xx: RgnHandlePtr }
-{$endc}
-
-	PicturePtr = ^Picture;
-	Picture = record
-		picSize:				SInt16;
-		picFrame:				Rect;
-	end;
-
-	PicPtr								= ^Picture;
-	PicHandle							= ^PicPtr;
-	MacPolygonPtr = ^MacPolygon;
-	MacPolygon = record
-		polySize:				SInt16;
-		polyBBox:				Rect;
-		polyPoints:				array [0..0] of Point;
-	end;
-
-	{
-	   The type name "Polygon" has a name space collision on Win32.
-	   Use MacPolygon to be cross-platfrom safe.
-	}
-{$ifc TARGET_OS_MAC}
-	Polygon								= MacPolygon;
-	PolygonPtr 							= ^Polygon;
-{$endc}  {TARGET_OS_MAC}
-
-	PolyPtr								= ^MacPolygon;
-	PolyHandle							= ^PolyPtr;
-{$ifc TYPED_FUNCTION_POINTERS}
-	QDTextProcPtr = procedure(byteCount: SInt16; textBuf: UnivPtr; numer: Point; denom: Point);
-{$elsec}
-	QDTextProcPtr = ProcPtr;
-{$endc}
-
-{$ifc TYPED_FUNCTION_POINTERS}
-	QDLineProcPtr = procedure(newPt: Point);
-{$elsec}
-	QDLineProcPtr = ProcPtr;
-{$endc}
-
-{$ifc TYPED_FUNCTION_POINTERS}
-	QDRectProcPtr = procedure(verb: GrafVerb; const (*var*) r: Rect);
-{$elsec}
-	QDRectProcPtr = ProcPtr;
-{$endc}
-
-{$ifc TYPED_FUNCTION_POINTERS}
-	QDRRectProcPtr = procedure(verb: GrafVerb; const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: SInt16);
-{$elsec}
-	QDRRectProcPtr = ProcPtr;
-{$endc}
-
-{$ifc TYPED_FUNCTION_POINTERS}
-	QDOvalProcPtr = procedure(verb: GrafVerb; const (*var*) r: Rect);
-{$elsec}
-	QDOvalProcPtr = ProcPtr;
-{$endc}
-
-{$ifc TYPED_FUNCTION_POINTERS}
-	QDArcProcPtr = procedure(verb: GrafVerb; const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16);
-{$elsec}
-	QDArcProcPtr = ProcPtr;
-{$endc}
-
-{$ifc TYPED_FUNCTION_POINTERS}
-	QDPolyProcPtr = procedure(verb: GrafVerb; poly: PolyHandle);
-{$elsec}
-	QDPolyProcPtr = ProcPtr;
-{$endc}
-
-{$ifc TYPED_FUNCTION_POINTERS}
-	QDRgnProcPtr = procedure(verb: GrafVerb; rgn: RgnHandle);
-{$elsec}
-	QDRgnProcPtr = ProcPtr;
-{$endc}
-
-{$ifc TYPED_FUNCTION_POINTERS}
-	QDBitsProcPtr = procedure(const (*var*) srcBits: BitMap; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect; mode: SInt16; maskRgn: RgnHandle);
-{$elsec}
-	QDBitsProcPtr = ProcPtr;
-{$endc}
-
-{$ifc TYPED_FUNCTION_POINTERS}
-	QDCommentProcPtr = procedure(kind: SInt16; dataSize: SInt16; dataHandle: Handle);
-{$elsec}
-	QDCommentProcPtr = ProcPtr;
-{$endc}
-
-{$ifc TYPED_FUNCTION_POINTERS}
-	QDTxMeasProcPtr = function(byteCount: SInt16; textAddr: UnivPtr; var numer: Point; var denom: Point; var info: FontInfo): SInt16;
-{$elsec}
-	QDTxMeasProcPtr = ProcPtr;
-{$endc}
-
-{$ifc TYPED_FUNCTION_POINTERS}
-	QDGetPicProcPtr = procedure(dataPtr: UnivPtr; byteCount: SInt16);
-{$elsec}
-	QDGetPicProcPtr = ProcPtr;
-{$endc}
-
-{$ifc TYPED_FUNCTION_POINTERS}
-	QDPutPicProcPtr = procedure(dataPtr: UnivPtr; byteCount: SInt16);
-{$elsec}
-	QDPutPicProcPtr = ProcPtr;
-{$endc}
-
-{$ifc TYPED_FUNCTION_POINTERS}
-	QDOpcodeProcPtr = procedure(const (*var*) fromRect: Rect; const (*var*) toRect: Rect; opcode: UInt16; version: SInt16);
-{$elsec}
-	QDOpcodeProcPtr = ProcPtr;
-{$endc}
-
-{ The following is unused on Mac OS X - ignore it! }
-{$ifc TYPED_FUNCTION_POINTERS}
-	QDStdGlyphsProcPtr = function(dataStream: UnivPtr; size: ByteCount): OSStatus;
-{$elsec}
-	QDStdGlyphsProcPtr = ProcPtr;
-{$endc}
-
-{$ifc TYPED_FUNCTION_POINTERS}
-	QDJShieldCursorProcPtr = procedure(left: SInt16; top: SInt16; right: SInt16; bottom: SInt16);
-{$elsec}
-	QDJShieldCursorProcPtr = ProcPtr;
-{$endc}
-
-{$ifc OPAQUE_UPP_TYPES}
-	QDTextUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	QDTextUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	QDLineUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	QDLineUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	QDRectUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	QDRectUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	QDRRectUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	QDRRectUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	QDOvalUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	QDOvalUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	QDArcUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	QDArcUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	QDPolyUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	QDPolyUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	QDRgnUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	QDRgnUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	QDBitsUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	QDBitsUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	QDCommentUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	QDCommentUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	QDTxMeasUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	QDTxMeasUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	QDGetPicUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	QDGetPicUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	QDPutPicUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	QDPutPicUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	QDOpcodeUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	QDOpcodeUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	QDStdGlyphsUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	QDStdGlyphsUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	QDJShieldCursorUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	QDJShieldCursorUPP = UniversalProcPtr;
-{$endc}	
-	QDProcsPtr = ^QDProcs;
-	QDProcs = record
-		textProc:				QDTextUPP;
-		lineProc:				QDLineUPP;
-		rectProc:				QDRectUPP;
-		rRectProc:				QDRRectUPP;
-		ovalProc:				QDOvalUPP;
-		arcProc:				QDArcUPP;
-		polyProc:				QDPolyUPP;
-		rgnProc:				QDRgnUPP;
-		bitsProc:				QDBitsUPP;
-		commentProc:			QDCommentUPP;
-		txMeasProc:				QDTxMeasUPP;
-		getPicProc:				QDGetPicUPP;
-		putPicProc:				QDPutPicUPP;
-	end;
-
-
-const
-	uppQDTextProcInfo = $00003F80;
-	uppQDLineProcInfo = $000000C0;
-	uppQDRectProcInfo = $00000340;
-	uppQDRRectProcInfo = $00002B40;
-	uppQDOvalProcInfo = $00000340;
-	uppQDArcProcInfo = $00002B40;
-	uppQDPolyProcInfo = $00000340;
-	uppQDRgnProcInfo = $00000340;
-	uppQDBitsProcInfo = $0000EFC0;
-	uppQDCommentProcInfo = $00000E80;
-	uppQDTxMeasProcInfo = $0000FFA0;
-	uppQDGetPicProcInfo = $000002C0;
-	uppQDPutPicProcInfo = $000002C0;
-	uppQDOpcodeProcInfo = $00002BC0;
-	uppQDStdGlyphsProcInfo = $000003F1;
-	uppQDJShieldCursorProcInfo = $00002A80;
-	{
-	 *  NewQDTextUPP()
-	 *  
-	 *  Availability:
-	 *    Non-Carbon CFM:   available as macro/inline
-	 *    CarbonLib:        in CarbonLib 1.0 and later
-	 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
-	 	}
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewQDTextUPP(userRoutine: QDTextProcPtr): QDTextUPP; external name '_NewQDTextUPP'; { old name was NewQDTextProc }
-
-{
- *  NewQDLineUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4
-function NewQDLineUPP(userRoutine: QDLineProcPtr): QDLineUPP; external name '_NewQDLineUPP'; { old name was NewQDLineProc }
-
-{
- *  NewQDRectUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewQDRectUPP(userRoutine: QDRectProcPtr): QDRectUPP; external name '_NewQDRectUPP'; { old name was NewQDRectProc }
-
-{
- *  NewQDRRectUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewQDRRectUPP(userRoutine: QDRRectProcPtr): QDRRectUPP; external name '_NewQDRRectUPP'; { old name was NewQDRRectProc }
-
-{
- *  NewQDOvalUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewQDOvalUPP(userRoutine: QDOvalProcPtr): QDOvalUPP; external name '_NewQDOvalUPP'; { old name was NewQDOvalProc }
-
-{
- *  NewQDArcUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewQDArcUPP(userRoutine: QDArcProcPtr): QDArcUPP; external name '_NewQDArcUPP'; { old name was NewQDArcProc }
- 
-{
- *  NewQDPolyUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewQDPolyUPP(userRoutine: QDPolyProcPtr): QDPolyUPP; external name '_NewQDPolyUPP'; { old name was NewQDPolyProc }
-
-{
- *  NewQDRgnUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewQDRgnUPP(userRoutine: QDRgnProcPtr): QDRgnUPP; external name '_NewQDRgnUPP'; { old name was NewQDRgnProc }
-
-{
- *  NewQDBitsUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewQDBitsUPP(userRoutine: QDBitsProcPtr): QDBitsUPP; external name '_NewQDBitsUPP'; { old name was NewQDBitsProc }
-
-{
- *  NewQDCommentUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewQDCommentUPP(userRoutine: QDCommentProcPtr): QDCommentUPP; external name '_NewQDCommentUPP'; { old name was NewQDCommentProc }
-
-{
- *  NewQDTxMeasUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewQDTxMeasUPP(userRoutine: QDTxMeasProcPtr): QDTxMeasUPP; external name '_NewQDTxMeasUPP'; { old name was NewQDTxMeasProc }
-
-{
- *  NewQDGetPicUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewQDGetPicUPP(userRoutine: QDGetPicProcPtr): QDGetPicUPP; external name '_NewQDGetPicUPP'; { old name was NewQDGetPicProc }
-
-{
- *  NewQDPutPicUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewQDPutPicUPP(userRoutine: QDPutPicProcPtr): QDPutPicUPP; external name '_NewQDPutPicUPP'; { old name was NewQDPutPicProc }
-
-{
- *  NewQDOpcodeUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewQDOpcodeUPP(userRoutine: QDOpcodeProcPtr): QDOpcodeUPP; external name '_NewQDOpcodeUPP'; { old name was NewQDOpcodeProc }
-
-{
- *  NewQDStdGlyphsUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewQDStdGlyphsUPP(userRoutine: QDStdGlyphsProcPtr): QDStdGlyphsUPP; external name '_NewQDStdGlyphsUPP'; { old name was NewQDStdGlyphsProc }
-
-{
- *  NewQDJShieldCursorUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewQDJShieldCursorUPP(userRoutine: QDJShieldCursorProcPtr): QDJShieldCursorUPP; external name '_NewQDJShieldCursorUPP'; { old name was NewQDJShieldCursorProc }
-
-{
- *  DisposeQDTextUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeQDTextUPP(userUPP: QDTextUPP); external name '_DisposeQDTextUPP';
-
-{
- *  DisposeQDLineUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeQDLineUPP(userUPP: QDLineUPP); external name '_DisposeQDLineUPP';
-
-{
- *  DisposeQDRectUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeQDRectUPP(userUPP: QDRectUPP); external name '_DisposeQDRectUPP';
-
-{
- *  DisposeQDRRectUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeQDRRectUPP(userUPP: QDRRectUPP); external name '_DisposeQDRRectUPP';
-
-{
- *  DisposeQDOvalUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeQDOvalUPP(userUPP: QDOvalUPP); external name '_DisposeQDOvalUPP';
-
-{
- *  DisposeQDArcUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeQDArcUPP(userUPP: QDArcUPP); external name '_DisposeQDArcUPP';
-
-{
- *  DisposeQDPolyUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeQDPolyUPP(userUPP: QDPolyUPP); external name '_DisposeQDPolyUPP';
-
-{
- *  DisposeQDRgnUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeQDRgnUPP(userUPP: QDRgnUPP); external name '_DisposeQDRgnUPP';
-
-{
- *  DisposeQDBitsUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeQDBitsUPP(userUPP: QDBitsUPP); external name '_DisposeQDBitsUPP';
-
-{
- *  DisposeQDCommentUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeQDCommentUPP(userUPP: QDCommentUPP); external name '_DisposeQDCommentUPP';
-
-{
- *  DisposeQDTxMeasUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeQDTxMeasUPP(userUPP: QDTxMeasUPP); external name '_DisposeQDTxMeasUPP';
-
-{
- *  DisposeQDGetPicUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeQDGetPicUPP(userUPP: QDGetPicUPP); external name '_DisposeQDGetPicUPP';
-
-{
- *  DisposeQDPutPicUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeQDPutPicUPP(userUPP: QDPutPicUPP); external name '_DisposeQDPutPicUPP';
-
-{
- *  DisposeQDOpcodeUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeQDOpcodeUPP(userUPP: QDOpcodeUPP); external name '_DisposeQDOpcodeUPP';
-
-{
- *  DisposeQDStdGlyphsUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeQDStdGlyphsUPP(userUPP: QDStdGlyphsUPP); external name '_DisposeQDStdGlyphsUPP';
-
-{
- *  DisposeQDJShieldCursorUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeQDJShieldCursorUPP(userUPP: QDJShieldCursorUPP); external name '_DisposeQDJShieldCursorUPP';
-
-{
- *  InvokeQDTextUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvokeQDTextUPP(byteCount: SInt16; textBuf: UnivPtr; numer: Point; denom: Point; userRoutine: QDTextUPP); external name '_InvokeQDTextUPP'; { old name was CallQDTextProc }
-
-{
- *  InvokeQDLineUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvokeQDLineUPP(newPt: Point; userRoutine: QDLineUPP); external name '_InvokeQDLineUPP'; { old name was CallQDLineProc }
-
-{
- *  InvokeQDRectUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvokeQDRectUPP(verb: GrafVerb; const (*var*) r: Rect; userRoutine: QDRectUPP); external name '_InvokeQDRectUPP'; { old name was CallQDRectProc }
-
-{
- *  InvokeQDRRectUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvokeQDRRectUPP(verb: GrafVerb; const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: SInt16; userRoutine: QDRRectUPP); external name '_InvokeQDRRectUPP'; { old name was CallQDRRectProc }
-{
- *  InvokeQDOvalUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvokeQDOvalUPP(verb: GrafVerb; const (*var*) r: Rect; userRoutine: QDOvalUPP); external name '_InvokeQDOvalUPP'; { old name was CallQDOvalProc }
-
-{
- *  InvokeQDArcUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvokeQDArcUPP(verb: GrafVerb; const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16; userRoutine: QDArcUPP); external name '_InvokeQDArcUPP'; { old name was CallQDArcProc }
-
-{
- *  InvokeQDPolyUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvokeQDPolyUPP(verb: GrafVerb; poly: PolyHandle; userRoutine: QDPolyUPP); external name '_InvokeQDPolyUPP'; { old name was CallQDPolyProc }
-
-{
- *  InvokeQDRgnUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvokeQDRgnUPP(verb: GrafVerb; rgn: RgnHandle; userRoutine: QDRgnUPP); external name '_InvokeQDRgnUPP'; { old name was CallQDRgnProc }
-
-{
- *  InvokeQDBitsUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvokeQDBitsUPP(const (*var*) srcBits: BitMap; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect; mode: SInt16; maskRgn: RgnHandle; userRoutine: QDBitsUPP); external name '_InvokeQDBitsUPP'; { old name was CallQDBitsProc }
-
-{
- *  InvokeQDCommentUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvokeQDCommentUPP(kind: SInt16; dataSize: SInt16; dataHandle: Handle; userRoutine: QDCommentUPP); external name '_InvokeQDCommentUPP'; { old name was CallQDCommentProc }
-
-{
- *  InvokeQDTxMeasUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function InvokeQDTxMeasUPP(byteCount: SInt16; textAddr: UnivPtr; var numer: Point; var denom: Point; var info: FontInfo; userRoutine: QDTxMeasUPP): SInt16; external name '_InvokeQDTxMeasUPP'; { old name was CallQDTxMeasProc }
-
-{
- *  InvokeQDGetPicUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvokeQDGetPicUPP(dataPtr: UnivPtr; byteCount: SInt16; userRoutine: QDGetPicUPP); external name '_InvokeQDGetPicUPP'; { old name was CallQDGetPicProc }
-
-{
- *  InvokeQDPutPicUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvokeQDPutPicUPP(dataPtr: UnivPtr; byteCount: SInt16; userRoutine: QDPutPicUPP); external name '_InvokeQDPutPicUPP'; { old name was CallQDPutPicProc }
-
-{
- *  InvokeQDOpcodeUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvokeQDOpcodeUPP(const (*var*) fromRect: Rect; const (*var*) toRect: Rect; opcode: UInt16; version: SInt16; userRoutine: QDOpcodeUPP); external name '_InvokeQDOpcodeUPP'; { old name was CallQDOpcodeProc }
-
-{
- *  InvokeQDStdGlyphsUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function InvokeQDStdGlyphsUPP(dataStream: UnivPtr; size: ByteCount; userRoutine: QDStdGlyphsUPP): OSStatus; external name '_InvokeQDStdGlyphsUPP'; { old name was CallQDStdGlyphsProc }
-
-{
- *  InvokeQDJShieldCursorUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvokeQDJShieldCursorUPP(left: SInt16; top: SInt16; right: SInt16; bottom: SInt16; userRoutine: QDJShieldCursorUPP); external name '_InvokeQDJShieldCursorUPP'; { old name was CallQDJShieldCursorProc }
-
-{$ifc NOT OPAQUE_TOOLBOX_STRUCTS}
-
-type
-	GrafPortPtr = ^GrafPort;
-	GrafPort = record
-		device:					SInt16;								{  not available in Carbon }
-		portBits:				BitMap;									{  in Carbon use GetPortBitMapForCopyBits or IsPortColor }
-		portRect:				Rect;									{  in Carbon use Get/SetPortBounds }
-		visRgn:					RgnHandle;								{  in Carbon use Get/SetPortVisibleRegion }
-		clipRgn:				RgnHandle;								{  in Carbon use Get/SetPortClipRegion }
-		bkPat:					Pattern;								{  not available in Carbon all GrafPorts are CGrafPorts }
-		fillPat:				Pattern;								{  not available in Carbon all GrafPorts are CGrafPorts }
-		pnLoc:					Point;									{  in Carbon use GetPortPenLocation or MoveTo }
-		pnSize:					Point;									{  in Carbon use Get/SetPortPenSize }
-		pnMode:					SInt16;								{  in Carbon use Get/SetPortPenMode }
-		pnPat:					Pattern;								{  not available in Carbon all GrafPorts are CGrafPorts }
-		pnVis:					SInt16;								{  in Carbon use GetPortPenVisibility or Show/HidePen }
-		txFont:					SInt16;								{  in Carbon use GetPortTextFont or TextFont }
-		txFace:					StyleField;								{  in Carbon use GetPortTextFace or TextFace }
-																		{ StyleField occupies 16-bits, but only first 8-bits are used }
-		txMode:					SInt16;								{  in Carbon use GetPortTextMode or TextMode }
-		txSize:					SInt16;								{  in Carbon use GetPortTextSize or TextSize }
-		spExtra:				Fixed;									{  in Carbon use GetPortSpExtra or SpaceExtra }
-		fgColor:				SInt32;								{  not available in Carbon  }
-		bkColor:				SInt32;								{  not available in Carbon }
-		colrBit:				SInt16;								{  not available in Carbon }
-		patStretch:				SInt16;								{  not available in Carbon }
-		picSave:				Handle;									{  in Carbon use IsPortPictureBeingDefined }
-		rgnSave:				Handle;									{  not available in Carbon }
-		polySave:				Handle;									{  not available in Carbon }
-		grafProcs:				QDProcsPtr;								{  not available in Carbon all GrafPorts are CGrafPorts }
-	end;
-
-	GrafPtr								= ^GrafPort;
-	{	
-	 *  This set of definitions "belongs" in Windows.
-	 *  But, there is a circularity in the headers where Windows includes Controls and
-	 *  Controls includes Windows. To break the circle, the information
-	 *  needed by Controls is moved from Windows to Quickdraw.
-	 	}
-	WindowPtr							= GrafPtr;
-	DialogPtr							= WindowPtr;
-{$elsec}
-
-type
-	WindowPtr    = ^SInt32; { an opaque 32-bit type }
-	WindowPtrPtr = ^WindowPtr;  { when a var xx:WindowPtr parameter can be nil, it is changed to xx: WindowPtrPtr }
-	DialogPtr    = ^SInt32; { an opaque 32-bit type }
-	DialogPtrPtr = ^DialogPtr;  { when a var xx:DialogPtr parameter can be nil, it is changed to xx: DialogPtrPtr }
-	GrafPtr    = ^SInt32; { an opaque 32-bit type }
-	GrafPtrPtr = ^GrafPtr;  { when a var xx:GrafPtr parameter can be nil, it is changed to xx: GrafPtrPtr }
-{$endc}
-
-	WindowRef							= WindowPtr;
-	WindowRefPtr						= ^WindowRef; { when a var xx:WindowRef parameter can be nil, it is changed to xx: WindowRefPtr }
-	{  DragConstraint constants to pass to DragGray,DragTheRgn, or ConstrainedDragRgn }
-	DragConstraint						= UInt16;
-
-const
-	kNoConstraint				= 0;
-	kVerticalConstraint			= 1;
-	kHorizontalConstraint		= 2;
-
-
-type
-{$ifc TYPED_FUNCTION_POINTERS}
-	DragGrayRgnProcPtr = procedure;
-{$elsec}
-	DragGrayRgnProcPtr = ProcPtr;
-{$endc}
-
-	{	
-	 *  Here ends the list of things that "belong" in Windows.
-	 	}
-
-
-	RGBColorPtr = ^RGBColor;
-	RGBColor = record
-		red:					UInt16;									{ magnitude of red component }
-		green:					UInt16;									{ magnitude of green component }
-		blue:					UInt16;									{ magnitude of blue component }
-	end;
-
-	RGBColorHdl							= ^RGBColorPtr;
-{$ifc TYPED_FUNCTION_POINTERS}
-	ColorSearchProcPtr = function(var rgb: RGBColor; var position: SInt32): boolean;
-{$elsec}
-	ColorSearchProcPtr = ProcPtr;
-{$endc}
-
-{$ifc TYPED_FUNCTION_POINTERS}
-	ColorComplementProcPtr = function(var rgb: RGBColor): boolean;
-{$elsec}
-	ColorComplementProcPtr = ProcPtr;
-{$endc}
-
-{$ifc OPAQUE_UPP_TYPES}
-	DragGrayRgnUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	DragGrayRgnUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	ColorSearchUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	ColorSearchUPP = UniversalProcPtr;
-{$endc}	
-{$ifc OPAQUE_UPP_TYPES}
-	ColorComplementUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	ColorComplementUPP = UniversalProcPtr;
-{$endc}	
-
-const
-	uppDragGrayRgnProcInfo = $00000000;
-	uppColorSearchProcInfo = $000003D0;
-	uppColorComplementProcInfo = $000000D0;
-	{
-	 *  NewDragGrayRgnUPP()
-	 *  
-	 *  Availability:
-	 *    Non-Carbon CFM:   available as macro/inline
-	 *    CarbonLib:        in CarbonLib 1.0 and later
-	 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
-	 	}
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewDragGrayRgnUPP(userRoutine: DragGrayRgnProcPtr): DragGrayRgnUPP; external name '_NewDragGrayRgnUPP'; { old name was NewDragGrayRgnProc }
-
-{
- *  NewColorSearchUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewColorSearchUPP(userRoutine: ColorSearchProcPtr): ColorSearchUPP; external name '_NewColorSearchUPP'; { old name was NewColorSearchProc }
-
-{
- *  NewColorComplementUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewColorComplementUPP(userRoutine: ColorComplementProcPtr): ColorComplementUPP; external name '_NewColorComplementUPP'; { old name was NewColorComplementProc }
-
-{
- *  DisposeDragGrayRgnUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-
-procedure DisposeDragGrayRgnUPP(userUPP: DragGrayRgnUPP); external name '_DisposeDragGrayRgnUPP';
-{
- *  DisposeColorSearchUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeColorSearchUPP(userUPP: ColorSearchUPP); external name '_DisposeColorSearchUPP';
-
-{
- *  DisposeColorComplementUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeColorComplementUPP(userUPP: ColorComplementUPP); external name '_DisposeColorComplementUPP';
-
-{
- *  InvokeDragGrayRgnUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-
-procedure InvokeDragGrayRgnUPP(userRoutine: DragGrayRgnUPP); external name '_InvokeDragGrayRgnUPP'; { old name was CallDragGrayRgnProc }
-{
- *  InvokeColorSearchUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function InvokeColorSearchUPP(var rgb: RGBColor; var position: SInt32; userRoutine: ColorSearchUPP): boolean; external name '_InvokeColorSearchUPP'; { old name was CallColorSearchProc }
-
-{
- *  InvokeColorComplementUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function InvokeColorComplementUPP(var rgb: RGBColor; userRoutine: ColorComplementUPP): boolean; external name '_InvokeColorComplementUPP'; { old name was CallColorComplementProc }
-
-type
-	ColorSpecPtr = ^ColorSpec;
-	ColorSpec = record
-		value:					SInt16;								{ index or other value }
-		rgb:					RGBColor;								{ true color }
-	end;
-
-	CSpecArray							= array [0..0] of ColorSpec;
-	ColorTablePtr = ^ColorTable;
-	ColorTable = record
-		ctSeed:					SInt32;								{ unique identifier for table }
-		ctFlags:				SInt16;								{ high bit: 0 = PixMap; 1 = device }
-		ctSize:					SInt16;								{ number of entries in CTTable }
-		ctTable:				CSpecArray;								{ array [0..0] of ColorSpec }
-	end;
-
-	CTabPtr								= ^ColorTable;
-	CTabHandle							= ^CTabPtr;
-	xColorSpecPtr = ^xColorSpec;
-	xColorSpec = record
-		value:					SInt16;								{ index or other value }
-		rgb:					RGBColor;								{ true color }
-		xalpha:					SInt16;
-	end;
-
-	xCSpecArray							= array [0..0] of xColorSpec;
-	MatchRecPtr = ^MatchRec;
-	MatchRec = record
-		red:					UInt16;
-		green:					UInt16;
-		blue:					UInt16;
-		matchData:				SInt32;
-	end;
-
-	{	
-	    QuickTime 3.0 makes PixMap data structure available on non-Mac OS's.
-	    In order to implement PixMap in these alternate environments, the PixMap
-	    had to be extended. The pmReserved field was changed to pmExt which is
-	    a Handle to extra info.  The planeBytes field was changed to pixelFormat.
-	    
-	    In OS X, Quickdraw also uses the new PixMap data structure.
-		}
-{$ifc undefined OLDPIXMAPSTRUCT}
-{$ifc TARGET_OS_MAC AND TARGET_API_MAC_OS8}
-{$setc OLDPIXMAPSTRUCT := 1}
-{$elsec}
-{$setc OLDPIXMAPSTRUCT := 0}
-{$endc}
-{$endc}
-
-	{  pixel formats }
-
-const
-	k1MonochromePixelFormat		= $00000001;					{  1 bit indexed }
-	k2IndexedPixelFormat		= $00000002;					{  2 bit indexed }
-	k4IndexedPixelFormat		= $00000004;					{  4 bit indexed }
-	k8IndexedPixelFormat		= $00000008;					{  8 bit indexed }
-	k16BE555PixelFormat			= $00000010;					{  16 bit BE rgb 555 (Mac) }
-	k24RGBPixelFormat			= $00000018;					{  24 bit rgb  }
-	k32ARGBPixelFormat			= $00000020;					{  32 bit argb    (Mac) }
-	k1IndexedGrayPixelFormat	= $00000021;					{  1 bit indexed gray }
-	k2IndexedGrayPixelFormat	= $00000022;					{  2 bit indexed gray }
-	k4IndexedGrayPixelFormat	= $00000024;					{  4 bit indexed gray }
-	k8IndexedGrayPixelFormat	= $00000028;					{  8 bit indexed gray }
-
-
-	{  values for PixMap.pixelFormat }
-	k16LE555PixelFormat			= FourCharCode('L555');						{  16 bit LE rgb 555 (PC) }
-	k16LE5551PixelFormat		= FourCharCode('5551');						{  16 bit LE rgb 5551 }
-	k16BE565PixelFormat			= FourCharCode('B565');						{  16 bit BE rgb 565 }
-	k16LE565PixelFormat			= FourCharCode('L565');						{  16 bit LE rgb 565 }
-	k24BGRPixelFormat			= FourCharCode('24BG');						{  24 bit bgr  }
-	k32BGRAPixelFormat			= FourCharCode('BGRA');						{  32 bit bgra    (Matrox) }
-	k32ABGRPixelFormat			= FourCharCode('ABGR');						{  32 bit abgr     }
-	k32RGBAPixelFormat			= FourCharCode('RGBA');						{  32 bit rgba     }
-	kYUVSPixelFormat			= FourCharCode('yuvs');						{  YUV 4:2:2 byte ordering 16-unsigned = 'YUY2' }
-	kYUVUPixelFormat			= FourCharCode('yuvu');						{  YUV 4:2:2 byte ordering 16-signed }
-	kYVU9PixelFormat			= FourCharCode('YVU9');						{  YVU9 Planar    9 }
-	kYUV411PixelFormat			= FourCharCode('Y411');						{  YUV 4:1:1 Interleaved  16 }
-	kYVYU422PixelFormat			= FourCharCode('YVYU');						{  YVYU 4:2:2 byte ordering   16 }
-	kUYVY422PixelFormat			= FourCharCode('UYVY');						{  UYVY 4:2:2 byte ordering   16 }
-	kYUV211PixelFormat			= FourCharCode('Y211');						{  YUV 2:1:1 Packed   8 }
-	k2vuyPixelFormat			= FourCharCode('2vuy');						{  UYVY 4:2:2 byte ordering   16 }
-
-
-type
-	PixMapPtr = ^PixMap;
-	PixMap = record
-		baseAddr:				Ptr;									{ pointer to pixels }
-		rowBytes:				SInt16;								{ offset to next line } { Carbon: uses extended rowbytes in pmExt field pixMap extension. Use ImageCompression's (QTGet|QTSet)PixMap(Handle|Ptr)RowBytes functions }
-		bounds:					Rect;									{ encloses bitmap }
-		pmVersion:				SInt16;								{ pixMap version number }
-		packType:				SInt16;								{ defines packing format }
-		packSize:				SInt32;								{ length of pixel data }
-		hRes:					Fixed;									{ horiz. resolution (ppi) }
-		vRes:					Fixed;									{ vert. resolution (ppi) }
-		pixelType:				SInt16;								{ defines pixel type }
-		pixelSize:				SInt16;								{ # bits in pixel }
-		cmpCount:				SInt16;								{ # components in pixel }
-		cmpSize:				SInt16;								{ # bits per component }
-{$ifc OLDPIXMAPSTRUCT}
-		planeBytes:				SInt32;								{ offset to next plane }
-		pmTable:				CTabHandle;								{ color map for this pixMap }
-		pmReserved:				SInt32;
-{$elsec}
-		pixelFormat:            OSType;                             {fourCharCode representation}
-		pmTable:                CTabHandle;                         {color map for this pixMap}
-		pmExt:                  Handle;                             {Handle to pixMap extension}
-{$endc}
-	end;
-
-	PixMapHandle						= ^PixMapPtr;
-	PixPatPtr = ^PixPat;
-	PixPat = record
-		patType:				SInt16;								{ type of pattern }
-		patMap:					PixMapHandle;							{ the pattern's pixMap }
-		patData:				Handle;									{ pixmap's data }
-		patXData:				Handle;									{ expanded Pattern data }
-		patXValid:				SInt16;								{ flags whether expanded Pattern valid }
-		patXMap:				Handle;									{ Handle to expanded Pattern data }
-		pat1Data:				Pattern;								{ old-Style pattern/RGB color }
-	end;
-
-	PixPatHandle						= ^PixPatPtr;
-	CCrsrPtr = ^CCrsr;
-	CCrsr = record
-		crsrType:				SInt16;								{ type of cursor }
-		crsrMap:				PixMapHandle;							{ the cursor's pixmap }
-		crsrData:				Handle;									{ cursor's data }
-		crsrXData:				Handle;									{ expanded cursor data }
-		crsrXValid:				SInt16;								{ depth of expanded data (0 if none) }
-		crsrXHandle:			Handle;									{ future use }
-		crsr1Data:				Bits16;									{ one-bit cursor }
-		crsrMask:				Bits16;									{ cursor's mask }
-		crsrHotSpot:			Point;									{ cursor's hotspot }
-		crsrXTable:				SInt32;								{ private }
-		crsrID:					SInt32;								{ private }
-	end;
-
-	CCrsrHandle							= ^CCrsrPtr;
-	GammaTblPtr = ^GammaTbl;
-	GammaTbl = record
-		gVersion:				SInt16;								{ gamma version number }
-		gType:					SInt16;								{ gamma data type }
-		gFormulaSize:			SInt16;								{ Formula data size }
-		gChanCnt:				SInt16;								{ number of channels of data }
-		gDataCnt:				SInt16;								{ number of values/channel }
-		gDataWidth:				SInt16;								{ bits/corrected value (data packed to next larger byte size) }
-		gFormulaData:			array [0..0] of SInt16;				{ data for formulas followed by gamma values }
-	end;
-
-	GammaTblHandle						= ^GammaTblPtr;
-	ITabPtr = ^ITab;
-	ITab = record
-		iTabSeed:				SInt32;								{ copy of CTSeed from source CTable }
-		iTabRes:				SInt16;								{ bits/channel resolution of iTable }
-		iTTable:				SInt8;									{ byte colortable index values }
-	end;
-
-	ITabHandle							= ^ITabPtr;
-	SProcRecPtr = ^SProcRec;
-	SProcRec = record
-		nxtSrch:				Handle;									{ SProcHndl Handle to next SProcRec }
-		srchProc:				ColorSearchUPP;							{ search procedure proc ptr }
-	end;
-
-	SProcPtr							= ^SProcRec;
-	SProcHndl							= ^SProcPtr;
-	CProcRecPtr = ^CProcRec;
-	CProcRec = record
-		nxtComp:				Handle;									{ CProcHndl Handle to next CProcRec }
-		compProc:				ColorComplementUPP;						{ complement procedure proc ptr }
-	end;
-
-	CProcPtr							= ^CProcRec;
-	CProcHndl							= ^CProcPtr;
-	{	
-	    QuickTime 3.0 makes GDevice data structure available on non-Mac OS's.
-	    In order to implement GDevice in these alternate environments, the GDevice
-	    had to be extended. The gdReserved field was changed to gdExt which is
-	    a Handle to extra info.  
-		}
-{$ifc undefined OLDGDEVICESTRUCT}
-{$ifc TARGET_OS_MAC AND TARGET_API_MAC_OS8}
-{$setc OLDGDEVICESTRUCT := 1}
-{$elsec}
-{$setc OLDGDEVICESTRUCT := 0}
-{$endc}
-{$endc}
-
-	GDevicePtr = ^GDevice;
-	GDPtr								= ^GDevice;
-	GDHandle							= ^GDPtr;
-	GDHandle_fix	                    = GDHandle;  { used as field type when a record declaration contains a GDHandle field identifier }
-	GDHandlePtr							= ^GDHandle; { when a VAR xx: GDHandle parameter can be nil, it is changed to xx: GDHandlePtr }
-	GDevice = record
-		gdRefNum:				SInt16;								{ driver's unit number }
-		gdID:					SInt16;								{ client ID for search procs }
-		gdType:					SInt16;								{ fixed/CLUT/direct }
-		gdITable:				ITabHandle;								{ Handle to inverse lookup table }
-		gdResPref:				SInt16;								{ preferred resolution of GDITable }
-		gdSearchProc:			SProcHndl;								{ search proc list head }
-		gdCompProc:				CProcHndl;								{ complement proc list }
-		gdFlags:				SInt16;								{ grafDevice flags word }
-		gdPMap:					PixMapHandle;							{ describing pixMap }
-		gdRefCon:				SInt32;								{ reference value }
-		gdNextGD:				GDHandle;								{ GDHandle Handle of next gDevice }
-		gdRect:					Rect;									{  device's bounds in global coordinates }
-		gdMode:					SInt32;								{ device's current mode }
-		gdCCBytes:				SInt16;								{ depth of expanded cursor data }
-		gdCCDepth:				SInt16;								{ depth of expanded cursor data }
-		gdCCXData:				Handle;									{ Handle to cursor's expanded data }
-		gdCCXMask:				Handle;									{ Handle to cursor's expanded mask }
-{$ifc OLDGDEVICESTRUCT}
-		gdReserved:				SInt32;								{ future use. MUST BE 0 }
-{$elsec}
-		gdExt:                  Handle;                             {QuickTime 3.0 private info}
-{$endc}
-	end;
-
-    GrafVars = record
-        rgbOpColor:             RGBColor;                               { color for addPin  subPin and average }
-        rgbHiliteColor:         RGBColor;                               { color for hiliting }
-        pmFgColor:              Handle;                                 { palette Handle for foreground color }
-        pmFgIndex:              SInt16;                                { index value for foreground }
-        pmBkColor:              Handle;                                 { palette Handle for background color }
-        pmBkIndex:              SInt16;                                { index value for background }
-        pmFlags:                SInt16;                                { flags for Palette Manager }
-    end;
-	GVarPtr								= ^GrafVars;
-	GVarHandle							= ^GVarPtr;
-
-{$ifc NOT OPAQUE_TOOLBOX_STRUCTS}
-	CGrafPortPtr = ^CGrafPort;
-	CGrafPtr							= ^CGrafPort;
-{$elsec}
-	CGrafPtr							= GrafPtr;
-{$endc}
-	CGrafPtrPtr							= ^CGrafPtr;
-
-{$ifc TYPED_FUNCTION_POINTERS}
-	QDPrinterStatusProcPtr = function(opcode: PrinterStatusOpcode; currentPort: CGrafPtr; printerStatus: UnivPtr): OSStatus;
-{$elsec}
-	QDPrinterStatusProcPtr = ProcPtr;
-{$endc}
-
-{$ifc OPAQUE_UPP_TYPES}
-	QDPrinterStatusUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	QDPrinterStatusUPP = UniversalProcPtr;
-{$endc}	
-
-	CQDProcsPtr = ^CQDProcs;
-	CQDProcs = record
-		textProc:				QDTextUPP;
-		lineProc:				QDLineUPP;
-		rectProc:				QDRectUPP;
-		rRectProc:				QDRRectUPP;
-		ovalProc:				QDOvalUPP;
-		arcProc:				QDArcUPP;
-		polyProc:				QDPolyUPP;
-		rgnProc:				QDRgnUPP;
-		bitsProc:				QDBitsUPP;
-		commentProc:			QDCommentUPP;
-		txMeasProc:				QDTxMeasUPP;
-		getPicProc:				QDGetPicUPP;
-		putPicProc:				QDPutPicUPP;
-		opcodeProc:				QDOpcodeUPP;
-		newProc1:				UniversalProcPtr;						{  this is the StdPix bottleneck -- see ImageCompression.h  }
-		glyphsProc:				QDStdGlyphsUPP;							{  unused on Mac OS X.  was newProc2; now used in Unicode text drawing  }
-		printerStatusProc:		QDPrinterStatusUPP;						{  was newProc3;  now used to communicate status between Printing code and System imaging code  }
-		newProc4:				UniversalProcPtr;
-		newProc5:				UniversalProcPtr;
-		newProc6:				UniversalProcPtr;
-	end;
-
-{$ifc NOT OPAQUE_TOOLBOX_STRUCTS}
-	CGrafPort = record
-		device:					SInt16;								{  not available in Carbon }
-		portPixMap:				PixMapHandle;							{  in Carbon use GetPortPixMap }
-		portVersion:			SInt16;								{  in Carbon use IsPortColor }
-		grafVars:				Handle;									{  not available in Carbon }
-		chExtra:				SInt16;								{  in Carbon use GetPortChExtra }
-		pnLocHFrac:				SInt16;								{  in Carbon use Get/SetPortFracHPenLocation }
-		portRect:				Rect;									{  in Carbon use Get/SetPortBounds }
-		visRgn:					RgnHandle;								{  in Carbon use Get/SetPortVisibleRegion }
-		clipRgn:				RgnHandle;								{  in Carbon use Get/SetPortClipRegion }
-		bkPixPat:				PixPatHandle;							{  in Carbon use GetPortBackPixPat or BackPixPat }
-		rgbFgColor:				RGBColor;								{  in Carbon use GetPortForeColor or RGBForeColor }
-		rgbBkColor:				RGBColor;								{  in Carbon use GetPortBackColor or RGBBackColor }
-		pnLoc:					Point;									{  in Carbon use GetPortPenLocation or MoveTo }
-		pnSize:					Point;									{  in Carbon use Get/SetPortPenSize }
-		pnMode:					SInt16;								{  in Carbon use Get/SetPortPenMode }
-		pnPixPat:				PixPatHandle;							{  in Carbon use Get/SetPortPenPixPat }
-		fillPixPat:				PixPatHandle;							{  in Carbon use GetPortFillPixPat }
-		pnVis:					SInt16;								{  in Carbon use GetPortPenVisibility or Show/HidePen }
-		txFont:					SInt16;								{  in Carbon use GetPortTextFont or TextFont }
-		txFace:					StyleField;								{  in Carbon use GetPortTextFace or TextFace }
-																		{ StyleField occupies 16-bits, but only first 8-bits are used }
-		txMode:					SInt16;								{  in Carbon use GetPortTextMode or TextMode }
-		txSize:					SInt16;								{  in Carbon use GetPortTextSize or TextSize }
-		spExtra:				Fixed;									{  in Carbon use GetPortSpExtra or SpaceExtra }
-		fgColor:				SInt32;								{  not available in Carbon }
-		bkColor:				SInt32;								{  not available in Carbon }
-		colrBit:				SInt16;								{  not available in Carbon }
-		patStretch:				SInt16;								{  not available in Carbon }
-		picSave:				Handle;									{  in Carbon use IsPortPictureBeingDefined }
-		rgnSave:				Handle;									{  in Carbon use IsPortRegionBeingDefined }
-		polySave:				Handle;									{  in Carbon use IsPortPolyBeingDefined }
-		grafProcs:				CQDProcsPtr;							{  in Carbon use Get/SetPortGrafProcs }
-	end;
-
-{$endc}
-
-{$ifc OPAQUE_TOOLBOX_STRUCTS}
-	CWindowPtr							= WindowPtr;
-{$elsec}
-	CWindowPtr							= CGrafPtr;
-{$endc}  {OPAQUE_TOOLBOX_STRUCTS}
-
-	ReqListRecPtr = ^ReqListRec;
-	ReqListRec = record
-		reqLSize:				SInt16;								{ request list size }
-		reqLData:				array [0..0] of SInt16;				{ request list data }
-	end;
-
-	OpenCPicParamsPtr = ^OpenCPicParams;
-	OpenCPicParams = record
-		srcRect:				Rect;
-		hRes:					Fixed;
-		vRes:					Fixed;
-		version:				SInt16;
-		reserved1:				SInt16;
-		reserved2:				SInt32;
-	end;
-
-
-const
-	kCursorImageMajorVersion	= $0001;
-	kCursorImageMinorVersion	= $0000;
-
-
-type
-	CursorImageRecPtr = ^CursorImageRec;
-	CursorImageRec = record
-		majorVersion:			UInt16;
-		minorVersion:			UInt16;
-		cursorPixMap:			PixMapHandle;
-		cursorBitMask:			BitMapHandle;
-	end;
-
-	CursorImagePtr						= ^CursorImageRec;
-{$ifc TYPED_FUNCTION_POINTERS}
-	DeviceLoopDrawingProcPtr = procedure(depth: SInt16; deviceFlags: SInt16; targetDevice: GDHandle; userData: SInt32);
-{$elsec}
-	DeviceLoopDrawingProcPtr = ProcPtr;
-{$endc}
-
-{$ifc OPAQUE_UPP_TYPES}
-	DeviceLoopDrawingUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	DeviceLoopDrawingUPP = UniversalProcPtr;
-{$endc}	
-
-const
-	uppQDPrinterStatusProcInfo = $00000FF1;
-	uppDeviceLoopDrawingProcInfo = $00003E80;
-{$ifc CALL_NOT_IN_CARBON}
-	{
-	 *  NewQDPrinterStatusUPP()
-	 *  
-	 *  Availability:
-	 *    Non-Carbon CFM:   available as macro/inline
-	 *    CarbonLib:        not available
-	 *    Mac OS X:         not available
-	 	}
-function NewQDPrinterStatusUPP(userRoutine: QDPrinterStatusProcPtr): QDPrinterStatusUPP; external name '_NewQDPrinterStatusUPP'; { old name was NewQDPrinterStatusProc }
-{$endc}  {CALL_NOT_IN_CARBON}
-
-{
- *  NewDeviceLoopDrawingUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewDeviceLoopDrawingUPP(userRoutine: DeviceLoopDrawingProcPtr): DeviceLoopDrawingUPP; external name '_NewDeviceLoopDrawingUPP'; { old name was NewDeviceLoopDrawingProc }
-
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  DisposeQDPrinterStatusUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure DisposeQDPrinterStatusUPP(userUPP: QDPrinterStatusUPP); external name '_DisposeQDPrinterStatusUPP';
-{$endc}  {CALL_NOT_IN_CARBON}
-
-{
- *  DisposeDeviceLoopDrawingUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeDeviceLoopDrawingUPP(userUPP: DeviceLoopDrawingUPP); external name '_DisposeDeviceLoopDrawingUPP';
-
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  InvokeQDPrinterStatusUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function InvokeQDPrinterStatusUPP(opcode: PrinterStatusOpcode; currentPort: CGrafPtr; printerStatus: UnivPtr; userRoutine: QDPrinterStatusUPP): OSStatus; external name '_InvokeQDPrinterStatusUPP'; { old name was CallQDPrinterStatusProc }
-{$endc}  {CALL_NOT_IN_CARBON}
-
-{
- *  InvokeDeviceLoopDrawingUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvokeDeviceLoopDrawingUPP(depth: SInt16; deviceFlags: SInt16; targetDevice: GDHandle; userData: SInt32; userRoutine: DeviceLoopDrawingUPP); external name '_InvokeDeviceLoopDrawingUPP'; { old name was CallDeviceLoopDrawingProc }
-
-{$ifc NOT OPAQUE_TOOLBOX_STRUCTS OR NOT TARGET_API_MAC_CARBON}
-
-type
-	QDGlobalsPtr = ^QDGlobals;
-	QDGlobals = record
-		privates:				packed array [0..75] of char;
-		randSeed:				SInt32;								{  in Carbon use GetQDGlobalsRandomSeed }
-		screenBits:				BitMap;									{  in Carbon use GetQDGlobalsScreenBits }
-		arrow:					Cursor;									{  in Carbon use GetQDGlobalsArrow }
-		dkGray:					Pattern;								{  in Carbon use GetQDGlobalsDarkGray }
-		ltGray:					Pattern;								{  in Carbon use GetQDGlobalsLightGray }
-		gray:					Pattern;								{  in Carbon use GetQDGlobalsGray }
-		black:					Pattern;								{  in Carbon use GetQDGlobalsBlack }
-		white:					Pattern;								{  in Carbon use GetQDGlobalsWhite }
-		thePort:				GrafPtr;								{  in Carbon use GetQDGlobalsThePort }
-	end;
-
-	QDGlobalsHdl						= ^QDGlobalsPtr;
-
-{ To be in sync with the C interface to QuickDraw globals, pascal code must now }
-{ qualify the QuickDraw globals with “qd.” (e.g. InitGraf(@qd.thePort);  )       }
-var qd: QDGlobals; external name '_qd'; (* attribute const *)
-{$endc}
-
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  InitGraf()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure InitGraf(globalPtr: UnivPtr); external name '_InitGraf';
-{
- *  OpenPort()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure OpenPort(port: GrafPtr); external name '_OpenPort';
-{
- *  InitPort()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure InitPort(port: GrafPtr); external name '_InitPort';
-{
- *  ClosePort()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure ClosePort(port: GrafPtr); external name '_ClosePort';
-{$endc}  {CALL_NOT_IN_CARBON}
-
 {
     General comments about thread-safety of Quickdraw
     -------------------------------------------------
@@ -1853,11 +210,74 @@ procedure ClosePort(port: GrafPtr); external name '_ClosePort';
     That's why we maintain by default the "Not thread safe" attribute in Quickdraw APIs,
     even though they may appear to be thread-safe.
 }
-{
-   These are Carbon only routines. They do nothing at all on
-   Mac OS 8, but work flawlessly on Mac OS X.
-}
+{ Break a region up into rectangles.}
 
+const
+	kQDRegionToRectsMsgInit = 1;
+	kQDRegionToRectsMsgParse = 2;
+	kQDRegionToRectsMsgTerminate = 3;
+
+const
+	kQDParseRegionFromTop = 1 shl 0;
+	kQDParseRegionFromBottom = 1 shl 1;
+	kQDParseRegionFromLeft = 1 shl 2;
+	kQDParseRegionFromRight = 1 shl 3;
+	kQDParseRegionFromTopLeft = kQDParseRegionFromTop or kQDParseRegionFromLeft;
+	kQDParseRegionFromBottomRight = kQDParseRegionFromBottom or kQDParseRegionFromRight;
+
+type
+	QDRegionParseDirection = SInt32;
+	RegionToRectsProcPtr = function( message: UInt16; rgn: RgnHandle; const (*var*) rect_: Rect; refCon: UnivPtr ): OSStatus;
+	RegionToRectsUPP = RegionToRectsProcPtr;
+{
+ *  NewRegionToRectsUPP()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
+ }
+function NewRegionToRectsUPP( userRoutine: RegionToRectsProcPtr ): RegionToRectsUPP; external name '_NewRegionToRectsUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+{
+ *  DisposeRegionToRectsUPP()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
+ }
+procedure DisposeRegionToRectsUPP( userUPP: RegionToRectsUPP ); external name '_DisposeRegionToRectsUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+{
+ *  InvokeRegionToRectsUPP()
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   available as macro/inline
+ }
+function InvokeRegionToRectsUPP( message: UInt16; rgn: RgnHandle; const (*var*) rect_: Rect; refCon: UnivPtr; userUPP: RegionToRectsUPP ): OSStatus; external name '_InvokeRegionToRectsUPP';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+{
+ *  QDRegionToRects()
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    CarbonLib:        in CarbonLib 1.0 and later
+ *    Non-Carbon CFM:   not available
+ }
+function QDRegionToRects( rgn: RgnHandle; dir: QDRegionParseDirection; proc: RegionToRectsUPP; userData: UnivPtr ): OSStatus; external name '_QDRegionToRects';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
+
+{$ifc not TARGET_CPU_64}
 {
  *  LockPortBits()   *** DEPRECATED ***
  *  
@@ -1865,12 +285,13 @@ procedure ClosePort(port: GrafPtr); external name '_ClosePort';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4
-function LockPortBits(port: GrafPtr): OSErr; external name '_LockPortBits';
+function LockPortBits( port: GrafPtr ): OSErr; external name '_LockPortBits';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  UnlockPortBits()   *** DEPRECATED ***
@@ -1879,233 +300,102 @@ function LockPortBits(port: GrafPtr): OSErr; external name '_LockPortBits';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4
-function UnlockPortBits(port: GrafPtr): OSErr; external name '_UnlockPortBits';
-
-{  Break a region up into rectangles. }
+function UnlockPortBits( port: GrafPtr ): OSErr; external name '_UnlockPortBits';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 
-const
-	kQDParseRegionFromTop		= $01;
-	kQDParseRegionFromBottom	= $02;
-	kQDParseRegionFromLeft		= $04;
-	kQDParseRegionFromRight		= $08;
-	kQDParseRegionFromTopLeft	= $05;
-	kQDParseRegionFromBottomRight = $0A;
-
-
-type
-	QDRegionParseDirection				= SInt32;
-
-const
-	kQDRegionToRectsMsgInit		= 1;
-	kQDRegionToRectsMsgParse	= 2;
-	kQDRegionToRectsMsgTerminate = 3;
-
-
-type
-{$ifc TYPED_FUNCTION_POINTERS}
-	RegionToRectsProcPtr = function(message: UInt16; rgn: RgnHandle; const (*var*) rect_: Rect; refCon: UnivPtr): OSStatus;
-{$elsec}
-	RegionToRectsProcPtr = ProcPtr;
-{$endc}
-
-{$ifc OPAQUE_UPP_TYPES}
-	RegionToRectsUPP = ^SInt32; { an opaque UPP }
-{$elsec}
-	RegionToRectsUPP = UniversalProcPtr;
-{$endc}	
-
-const
-	uppRegionToRectsProcInfo = $00003FB1;
-	{
-	 *  NewRegionToRectsUPP()
-	 *  
-	 *  Availability:
-	 *    Non-Carbon CFM:   available as macro/inline
-	 *    CarbonLib:        in CarbonLib 1.0 and later
-	 *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
-	 	}
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewRegionToRectsUPP(userRoutine: RegionToRectsProcPtr): RegionToRectsUPP; external name '_NewRegionToRectsUPP'; { old name was NewRegionToRectsProc }
-
-{
- *  DisposeRegionToRectsUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeRegionToRectsUPP(userUPP: RegionToRectsUPP); external name '_DisposeRegionToRectsUPP';
-
-{
- *  InvokeRegionToRectsUPP()
- *  
- *  Availability:
- *    Non-Carbon CFM:   available as macro/inline
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function InvokeRegionToRectsUPP(message: UInt16; rgn: RgnHandle; const (*var*) rect_: Rect; refCon: UnivPtr; userRoutine: RegionToRectsUPP): OSStatus; external name '_InvokeRegionToRectsUPP'; { old name was CallRegionToRectsProc }
-
-{
- *  QDRegionToRects()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        in CarbonLib 1.0 and later
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
- }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function QDRegionToRects(rgn: RgnHandle; dir: QDRegionParseDirection; proc: RegionToRectsUPP; userData: UnivPtr): OSStatus; external name '_QDRegionToRects';
-
-{$ifc NOT TARGET_OS_MAC}
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  UpdatePort()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function UpdatePort(port: GrafPtr): OSErr; external name '_UpdatePort';
-
-{
- *  GetPortNativeWindow()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function GetPortNativeWindow(macPort: GrafPtr): Ptr; external name '_GetPortNativeWindow';
-
-{
- *  GetNativeWindowPort()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function GetNativeWindowPort(nativeWindow: UnivPtr): GrafPtr; external name '_GetNativeWindowPort';
-
-{
- *  MacRegionToNativeRegion()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function MacRegionToNativeRegion(macRegion: RgnHandle): Ptr; external name '_MacRegionToNativeRegion';
-
-{
- *  NativeRegionToMacRegion()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-function NativeRegionToMacRegion(nativeRegion: UnivPtr): RgnHandle; external name '_NativeRegionToMacRegion';
-
-{$endc}  {CALL_NOT_IN_CARBON}
-{$endc}
+{$endc} {not TARGET_CPU_64}
 
 {$ifc TARGET_OS_WIN32}
-{$ifc CALL_NOT_IN_CARBON}
 {
  *  GetPortHWND()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  }
-function GetPortHWND(port: GrafPtr): Ptr; external name '_GetPortHWND';
+
 
 {
  *  GetHWNDPort()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  }
-function GetHWNDPort(theHWND: UnivPtr): GrafPtr; external name '_GetHWNDPort';
 
+
+// #define GetPortHWND(port)  (HWND)GetPortNativeWindow(port)
+// #define GetHWNDPort(theHWND) GetNativeWindowPort(theHWND)
 {
  *  GetPortHDC()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  }
-function GetPortHDC(port: GrafPtr): Ptr; external name '_GetPortHDC';
+
 
 {
  *  GetPortHBITMAP()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  }
-function GetPortHBITMAP(port: GrafPtr): Ptr; external name '_GetPortHBITMAP';
+
 
 {
  *  GetPortHPALETTE()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  }
-function GetPortHPALETTE(port: GrafPtr): Ptr; external name '_GetPortHPALETTE';
+
 
 {
  *  GetPortHFONT()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  }
-function GetPortHFONT(port: GrafPtr): Ptr; external name '_GetPortHFONT';
+
 
 {
  *  GetDIBFromPICT()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  }
-function GetDIBFromPICT(hPict: PicHandle): Ptr; external name '_GetDIBFromPICT';
+
 
 {
  *  GetPICTFromDIB()
  *  
  *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
  *    Mac OS X:         not available
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  }
-function GetPICTFromDIB(h: UnivPtr): PicHandle; external name '_GetPICTFromDIB';
 
-{$endc}  {CALL_NOT_IN_CARBON}
-{$endc}  {TARGET_OS_WIN32}
 
+{$endc} {TARGET_OS_WIN32}
+
+{$ifc not TARGET_CPU_64}
 {
  *  [Mac]SetPort()   *** DEPRECATED ***
  *  
@@ -2113,12 +403,15 @@ function GetPICTFromDIB(h: UnivPtr): PicHandle; external name '_GetPICTFromDIB';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetPort(port: GrafPtr); external name '_SetPort';
+procedure MacSetPort( port: GrafPtr ); external name '_SetPort';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+procedure SetPort( port: GrafPtr ); external name '_SetPort';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetPort()   *** DEPRECATED ***
@@ -2127,15 +420,16 @@ procedure SetPort(port: GrafPtr); external name '_SetPort';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure GetPort(var port: GrafPtr); external name '_GetPort';
+procedure GetPort( var port: GrafPtr ); external name '_GetPort';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  QDSwapPort()
+ *  QDSwapPort()   *** DEPRECATED ***
  *  
  *  Summary:
  *    Combines a GetPort(&savePort); SetPort(newPort) sequence.
@@ -2145,9 +439,9 @@ procedure GetPort(var port: GrafPtr); external name '_GetPort';
  *    cost more processor cycles than in the past, where they were
  *    simple memory accessors. To optimize, use the QDSwapPort call
  *    which combines both, and returns a Boolean indicating if the port
- *    actually did change. Typical usage: portChanged =
- *    QDSwapPort(newPort, &savePort); // some drawing into newPort if
- *    (portChanged) QDSwapPort(savePort, NULL);
+ *    actually did change. Typical usage: Boolean portChanged =
+ *    QDSwapPort(newPort, &savePort); (... some drawing into newPort
+ *    ...) if (portChanged) QDSwapPort(savePort, NULL);
  *  
  *  Mac OS X threading:
  *    Not thread safe
@@ -2165,12 +459,13 @@ procedure GetPort(var port: GrafPtr); external name '_GetPort';
  *    (inNewPort != *outOldPort)
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.5 and later
  *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER;
-function QDSwapPort(inNewPort: CGrafPtr; outOldPort: CGrafPtrPtr): boolean; external name '_QDSwapPort';
+function QDSwapPort( inNewPort: CGrafPtr; outOldPort: CGrafPtrPtr ): Boolean; external name '_QDSwapPort';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GrafDevice()   *** DEPRECATED ***
@@ -2179,12 +474,13 @@ function QDSwapPort(inNewPort: CGrafPtr; outOldPort: CGrafPtrPtr): boolean; exte
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure GrafDevice(device: SInt16); external name '_GrafDevice';
+procedure GrafDevice( device: SInt16 ); external name '_GrafDevice';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetPortBits()   *** DEPRECATED ***
@@ -2193,12 +489,13 @@ procedure GrafDevice(device: SInt16); external name '_GrafDevice';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetPortBits(const (*var*) bm: BitMap); external name '_SetPortBits';
+procedure SetPortBits( const (*var*) bm: BitMap ); external name '_SetPortBits';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  PortSize()   *** DEPRECATED ***
@@ -2207,12 +504,13 @@ procedure SetPortBits(const (*var*) bm: BitMap); external name '_SetPortBits';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure PortSize(width: SInt16; height: SInt16); external name '_PortSize';
+procedure PortSize( width: SInt16; height: SInt16 ); external name '_PortSize';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  MovePortTo()   *** DEPRECATED ***
@@ -2221,12 +519,13 @@ procedure PortSize(width: SInt16; height: SInt16); external name '_PortSize';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure MovePortTo(leftGlobal: SInt16; topGlobal: SInt16); external name '_MovePortTo';
+procedure MovePortTo( leftGlobal: SInt16; topGlobal: SInt16 ); external name '_MovePortTo';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetOrigin()   *** DEPRECATED ***
@@ -2235,12 +534,13 @@ procedure MovePortTo(leftGlobal: SInt16; topGlobal: SInt16); external name '_Mov
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetOrigin(h: SInt16; v: SInt16); external name '_SetOrigin';
+procedure SetOrigin( h: SInt16; v: SInt16 ); external name '_SetOrigin';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetClip()   *** DEPRECATED ***
@@ -2249,12 +549,13 @@ procedure SetOrigin(h: SInt16; v: SInt16); external name '_SetOrigin';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetClip(rgn: RgnHandle); external name '_SetClip';
+procedure SetClip( rgn: RgnHandle ); external name '_SetClip';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetClip()   *** DEPRECATED ***
@@ -2263,12 +564,13 @@ procedure SetClip(rgn: RgnHandle); external name '_SetClip';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure GetClip(rgn: RgnHandle); external name '_GetClip';
+procedure GetClip( rgn: RgnHandle ); external name '_GetClip';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  ClipRect()   *** DEPRECATED ***
@@ -2277,12 +579,13 @@ procedure GetClip(rgn: RgnHandle); external name '_GetClip';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure ClipRect(const (*var*) r: Rect); external name '_ClipRect';
+procedure ClipRect( const (*var*) r: Rect ); external name '_ClipRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  BackPat()   *** DEPRECATED ***
@@ -2291,27 +594,33 @@ procedure ClipRect(const (*var*) r: Rect); external name '_ClipRect';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure BackPat(const (*var*) pat: Pattern); external name '_BackPat';
+procedure BackPat( const (*var*) pat: Pattern ); external name '_BackPat';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  InitCursor()   *** DEPRECATED ***
+ *  InitCursor()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 procedure InitCursor; external name '_InitCursor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
+
+{ NOTE: InitCursor used to be called to initialize Quickdraw. This is not necessary
+on Mac OS X. Use SetThemeCursor (in Appearance.h) to set the cursor to one of the predefined
+system cursors.
+}
 {
  *  [Mac]SetCursor()   *** DEPRECATED ***
  *  
@@ -2319,54 +628,62 @@ procedure InitCursor; external name '_InitCursor';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetCursor(const (*var*) crsr: Cursor); external name '_SetCursor';
+procedure MacSetCursor( const (*var*) crsr: Cursor ); external name '_SetCursor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+procedure SetCursor( const (*var*) crsr: Cursor ); external name '_SetCursor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  HideCursor()   *** DEPRECATED ***
+ *  HideCursor()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 procedure HideCursor; external name '_HideCursor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  [Mac]ShowCursor()   *** DEPRECATED ***
+ *  [Mac]ShowCursor()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
+procedure MacShowCursor__NAMED_ShowCursor; external name '_MacShowCursor__NAMED_ShowCursor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 procedure ShowCursor; external name '_ShowCursor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  ObscureCursor()   *** DEPRECATED ***
+ *  ObscureCursor()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 procedure ObscureCursor; external name '_ObscureCursor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
  *  HidePen()   *** DEPRECATED ***
@@ -2375,12 +692,13 @@ procedure ObscureCursor; external name '_ObscureCursor';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 procedure HidePen; external name '_HidePen';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  ShowPen()   *** DEPRECATED ***
@@ -2389,12 +707,13 @@ procedure HidePen; external name '_HidePen';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 procedure ShowPen; external name '_ShowPen';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetPen()   *** DEPRECATED ***
@@ -2403,12 +722,13 @@ procedure ShowPen; external name '_ShowPen';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure GetPen(var pt: Point); external name '_GetPen';
+procedure GetPen( var pt: Point ); external name '_GetPen';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetPenState()   *** DEPRECATED ***
@@ -2417,12 +737,13 @@ procedure GetPen(var pt: Point); external name '_GetPen';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure GetPenState(var pnState: PenState); external name '_GetPenState';
+procedure GetPenState( var pnState: PenState ); external name '_GetPenState';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetPenState()   *** DEPRECATED ***
@@ -2431,12 +752,13 @@ procedure GetPenState(var pnState: PenState); external name '_GetPenState';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetPenState(const (*var*) pnState: PenState); external name '_SetPenState';
+procedure SetPenState( const (*var*) pnState: PenState ); external name '_SetPenState';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  PenSize()   *** DEPRECATED ***
@@ -2445,12 +767,13 @@ procedure SetPenState(const (*var*) pnState: PenState); external name '_SetPenSt
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure PenSize(width: SInt16; height: SInt16); external name '_PenSize';
+procedure PenSize( width: SInt16; height: SInt16 ); external name '_PenSize';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  PenMode()   *** DEPRECATED ***
@@ -2459,12 +782,13 @@ procedure PenSize(width: SInt16; height: SInt16); external name '_PenSize';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure PenMode(mode: SInt16); external name '_PenMode';
+procedure PenMode( mode: SInt16 ); external name '_PenMode';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  PenPat()   *** DEPRECATED ***
@@ -2473,12 +797,13 @@ procedure PenMode(mode: SInt16); external name '_PenMode';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure PenPat(const (*var*) pat: Pattern); external name '_PenPat';
+procedure PenPat( const (*var*) pat: Pattern ); external name '_PenPat';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  PenNormal()   *** DEPRECATED ***
@@ -2487,12 +812,13 @@ procedure PenPat(const (*var*) pat: Pattern); external name '_PenPat';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 procedure PenNormal; external name '_PenNormal';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  MoveTo()   *** DEPRECATED ***
@@ -2501,12 +827,13 @@ procedure PenNormal; external name '_PenNormal';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure MoveTo(h: SInt16; v: SInt16); external name '_MoveTo';
+procedure MoveTo( h: SInt16; v: SInt16 ); external name '_MoveTo';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  Move()   *** DEPRECATED ***
@@ -2515,12 +842,13 @@ procedure MoveTo(h: SInt16; v: SInt16); external name '_MoveTo';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure Move(dh: SInt16; dv: SInt16); external name '_Move';
+procedure Move( dh: SInt16; dv: SInt16 ); external name '_Move';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  [Mac]LineTo()   *** DEPRECATED ***
@@ -2529,12 +857,15 @@ procedure Move(dh: SInt16; dv: SInt16); external name '_Move';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure LineTo(h: SInt16; v: SInt16); external name '_LineTo';
+procedure MacLineTo__NAMED_LineTo( h: SInt16; v: SInt16 ); external name '_MacLineTo__NAMED_LineTo';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+procedure LineTo( h: SInt16; v: SInt16 ); external name '_LineTo';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  Line()   *** DEPRECATED ***
@@ -2543,12 +874,13 @@ procedure LineTo(h: SInt16; v: SInt16); external name '_LineTo';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure Line(dh: SInt16; dv: SInt16); external name '_Line';
+procedure Line( dh: SInt16; dv: SInt16 ); external name '_Line';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  ForeColor()   *** DEPRECATED ***
@@ -2557,12 +889,13 @@ procedure Line(dh: SInt16; dv: SInt16); external name '_Line';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure ForeColor(color: SInt32); external name '_ForeColor';
+procedure ForeColor( color: SIGNEDLONG ); external name '_ForeColor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  BackColor()   *** DEPRECATED ***
@@ -2571,12 +904,13 @@ procedure ForeColor(color: SInt32); external name '_ForeColor';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure BackColor(color: SInt32); external name '_BackColor';
+procedure BackColor( color: SIGNEDLONG ); external name '_BackColor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  ColorBit()   *** DEPRECATED ***
@@ -2585,111 +919,132 @@ procedure BackColor(color: SInt32); external name '_BackColor';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure ColorBit(whichBit: SInt16); external name '_ColorBit';
+procedure ColorBit( whichBit: SInt16 ); external name '_ColorBit';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{$endc} {not TARGET_CPU_64}
 
 {
- *  [Mac]SetRect()   *** DEPRECATED ***
+ *  [Mac]SetRect()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetRect(var r: Rect; left: SInt16; top: SInt16; right: SInt16; bottom: SInt16); external name '_SetRect';
+procedure MacSetRect( var r: Rect; left: SInt16; top: SInt16; right: SInt16; bottom: SInt16 ); external name '_SetRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+procedure SetRect( var r: Rect; left: SInt16; top: SInt16; right: SInt16; bottom: SInt16 ); external name '_SetRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  [Mac]OffsetRect()   *** DEPRECATED ***
+ *  [Mac]OffsetRect()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure OffsetRect(var r: Rect; dh: SInt16; dv: SInt16); external name '_OffsetRect';
+procedure MacOffsetRect( var r: Rect; dh: SInt16; dv: SInt16 ); external name '_OffsetRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+procedure OffsetRect( var r: Rect; dh: SInt16; dv: SInt16 ); external name '_OffsetRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  [Mac]InsetRect()   *** DEPRECATED ***
+ *  [Mac]InsetRect()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InsetRect(var r: Rect; dh: SInt16; dv: SInt16); external name '_InsetRect';
+procedure MacInsetRect( var r: Rect; dh: SInt16; dv: SInt16 ); external name '_InsetRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+procedure InsetRect( var r: Rect; dh: SInt16; dv: SInt16 ); external name '_InsetRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  SectRect()   *** DEPRECATED ***
+ *  SectRect()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function SectRect(const (*var*) src1: Rect; const (*var*) src2: Rect; var dstRect: Rect): boolean; external name '_SectRect';
+function SectRect( const (*var*) src1: Rect; const (*var*) src2: Rect; var dstRect: Rect ): Boolean; external name '_SectRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  [Mac]UnionRect()   *** DEPRECATED ***
+ *  [Mac]UnionRect()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure UnionRect(const (*var*) src1: Rect; const (*var*) src2: Rect; var dstRect: Rect); external name '_UnionRect';
+procedure MacUnionRect( const (*var*) src1: Rect; const (*var*) src2: Rect; var dstRect: Rect ); external name '_UnionRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+procedure UnionRect( const (*var*) src1: Rect; const (*var*) src2: Rect; var dstRect: Rect ); external name '_UnionRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  [Mac]EqualRect()   *** DEPRECATED ***
+ *  [Mac]EqualRect()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function EqualRect(const (*var*) rect1: Rect; const (*var*) rect2: Rect): boolean; external name '_EqualRect';
+function MacEqualRect( const (*var*) rect1: Rect; const (*var*) rect2: Rect ): Boolean; external name '_EqualRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function EqualRect( const (*var*) rect1: Rect; const (*var*) rect2: Rect ): Boolean; external name '_EqualRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  EmptyRect()   *** DEPRECATED ***
+ *  EmptyRect()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function EmptyRect(const (*var*) r: Rect): boolean; external name '_EmptyRect';
+function EmptyRect( const (*var*) r: Rect ): Boolean; external name '_EmptyRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
+
+{$ifc not TARGET_CPU_64}
 {
  *  [Mac]FrameRect()   *** DEPRECATED ***
  *  
@@ -2697,12 +1052,15 @@ function EmptyRect(const (*var*) r: Rect): boolean; external name '_EmptyRect';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FrameRect(const (*var*) r: Rect); external name '_FrameRect';
+procedure MacFrameRect( const (*var*) r: Rect ); external name '_FrameRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+procedure FrameRect( const (*var*) r: Rect ); external name '_FrameRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  PaintRect()   *** DEPRECATED ***
@@ -2711,12 +1069,13 @@ procedure FrameRect(const (*var*) r: Rect); external name '_FrameRect';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure PaintRect(const (*var*) r: Rect); external name '_PaintRect';
+procedure PaintRect( const (*var*) r: Rect ); external name '_PaintRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  EraseRect()   *** DEPRECATED ***
@@ -2725,12 +1084,13 @@ procedure PaintRect(const (*var*) r: Rect); external name '_PaintRect';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure EraseRect(const (*var*) r: Rect); external name '_EraseRect';
+procedure EraseRect( const (*var*) r: Rect ); external name '_EraseRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  [Mac]InvertRect()   *** DEPRECATED ***
@@ -2739,12 +1099,15 @@ procedure EraseRect(const (*var*) r: Rect); external name '_EraseRect';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvertRect(const (*var*) r: Rect); external name '_InvertRect';
+procedure MacInvertRect( const (*var*) r: Rect ); external name '_InvertRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+procedure InvertRect( const (*var*) r: Rect ); external name '_InvertRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  [Mac]FillRect()   *** DEPRECATED ***
@@ -2753,12 +1116,15 @@ procedure InvertRect(const (*var*) r: Rect); external name '_InvertRect';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FillRect(const (*var*) r: Rect; const (*var*) pat: Pattern); external name '_FillRect';
+procedure MacFillRect( const (*var*) r: Rect; const (*var*) pat: Pattern ); external name '_FillRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+procedure FillRect( const (*var*) r: Rect; const (*var*) pat: Pattern ); external name '_FillRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  FrameOval()   *** DEPRECATED ***
@@ -2767,12 +1133,13 @@ procedure FillRect(const (*var*) r: Rect; const (*var*) pat: Pattern); external 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FrameOval(const (*var*) r: Rect); external name '_FrameOval';
+procedure FrameOval( const (*var*) r: Rect ); external name '_FrameOval';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  PaintOval()   *** DEPRECATED ***
@@ -2781,12 +1148,13 @@ procedure FrameOval(const (*var*) r: Rect); external name '_FrameOval';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure PaintOval(const (*var*) r: Rect); external name '_PaintOval';
+procedure PaintOval( const (*var*) r: Rect ); external name '_PaintOval';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  EraseOval()   *** DEPRECATED ***
@@ -2795,12 +1163,13 @@ procedure PaintOval(const (*var*) r: Rect); external name '_PaintOval';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure EraseOval(const (*var*) r: Rect); external name '_EraseOval';
+procedure EraseOval( const (*var*) r: Rect ); external name '_EraseOval';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  InvertOval()   *** DEPRECATED ***
@@ -2809,12 +1178,13 @@ procedure EraseOval(const (*var*) r: Rect); external name '_EraseOval';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvertOval(const (*var*) r: Rect); external name '_InvertOval';
+procedure InvertOval( const (*var*) r: Rect ); external name '_InvertOval';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  FillOval()   *** DEPRECATED ***
@@ -2823,12 +1193,13 @@ procedure InvertOval(const (*var*) r: Rect); external name '_InvertOval';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FillOval(const (*var*) r: Rect; const (*var*) pat: Pattern); external name '_FillOval';
+procedure FillOval( const (*var*) r: Rect; const (*var*) pat: Pattern ); external name '_FillOval';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  FrameRoundRect()   *** DEPRECATED ***
@@ -2837,12 +1208,13 @@ procedure FillOval(const (*var*) r: Rect; const (*var*) pat: Pattern); external 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FrameRoundRect(const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: SInt16); external name '_FrameRoundRect';
+procedure FrameRoundRect( const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: SInt16 ); external name '_FrameRoundRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  PaintRoundRect()   *** DEPRECATED ***
@@ -2851,12 +1223,13 @@ procedure FrameRoundRect(const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: S
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure PaintRoundRect(const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: SInt16); external name '_PaintRoundRect';
+procedure PaintRoundRect( const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: SInt16 ); external name '_PaintRoundRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  EraseRoundRect()   *** DEPRECATED ***
@@ -2865,12 +1238,13 @@ procedure PaintRoundRect(const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: S
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure EraseRoundRect(const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: SInt16); external name '_EraseRoundRect';
+procedure EraseRoundRect( const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: SInt16 ); external name '_EraseRoundRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  InvertRoundRect()   *** DEPRECATED ***
@@ -2879,12 +1253,13 @@ procedure EraseRoundRect(const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: S
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvertRoundRect(const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: SInt16); external name '_InvertRoundRect';
+procedure InvertRoundRect( const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: SInt16 ); external name '_InvertRoundRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  FillRoundRect()   *** DEPRECATED ***
@@ -2893,12 +1268,13 @@ procedure InvertRoundRect(const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FillRoundRect(const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: SInt16; const (*var*) pat: Pattern); external name '_FillRoundRect';
+procedure FillRoundRect( const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: SInt16; const (*var*) pat: Pattern ); external name '_FillRoundRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  FrameArc()   *** DEPRECATED ***
@@ -2907,12 +1283,13 @@ procedure FillRoundRect(const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: SI
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FrameArc(const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16); external name '_FrameArc';
+procedure FrameArc( const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16 ); external name '_FrameArc';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  PaintArc()   *** DEPRECATED ***
@@ -2921,12 +1298,13 @@ procedure FrameArc(const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16);
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure PaintArc(const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16); external name '_PaintArc';
+procedure PaintArc( const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16 ); external name '_PaintArc';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  EraseArc()   *** DEPRECATED ***
@@ -2935,12 +1313,13 @@ procedure PaintArc(const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16);
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure EraseArc(const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16); external name '_EraseArc';
+procedure EraseArc( const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16 ); external name '_EraseArc';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  InvertArc()   *** DEPRECATED ***
@@ -2949,12 +1328,13 @@ procedure EraseArc(const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16);
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvertArc(const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16); external name '_InvertArc';
+procedure InvertArc( const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16 ); external name '_InvertArc';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  FillArc()   *** DEPRECATED ***
@@ -2963,26 +1343,28 @@ procedure InvertArc(const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16)
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FillArc(const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16; const (*var*) pat: Pattern); external name '_FillArc';
+procedure FillArc( const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16; const (*var*) pat: Pattern ); external name '_FillArc';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  NewRgn()   *** DEPRECATED ***
+ *  NewRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 function NewRgn: RgnHandle; external name '_NewRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
  *  OpenRgn()   *** DEPRECATED ***
@@ -2991,12 +1373,13 @@ function NewRgn: RgnHandle; external name '_NewRgn';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 procedure OpenRgn; external name '_OpenRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  CloseRgn()   *** DEPRECATED ***
@@ -3005,12 +1388,13 @@ procedure OpenRgn; external name '_OpenRgn';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure CloseRgn(dstRgn: RgnHandle); external name '_CloseRgn';
+procedure CloseRgn( dstRgn: RgnHandle ); external name '_CloseRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  BitMapToRegion()   *** DEPRECATED ***
@@ -3019,12 +1403,13 @@ procedure CloseRgn(dstRgn: RgnHandle); external name '_CloseRgn';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function BitMapToRegion(region: RgnHandle; const (*var*) bMap: BitMap): OSErr; external name '_BitMapToRegion';
+function BitMapToRegion( region: RgnHandle; const (*var*) bMap: BitMap ): OSErr; external name '_BitMapToRegion';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  RgnToHandle()
@@ -3057,222 +1442,250 @@ function BitMapToRegion(region: RgnHandle; const (*var*) bMap: BitMap): OSErr; e
  *      data.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.3 and later
  *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER;
-procedure RgnToHandle(region: RgnHandle; flattenedRgnDataHdl: Handle); external name '_RgnToHandle';
+procedure RgnToHandle( region: RgnHandle; flattenedRgnDataHdl: Handle ); external name '_RgnToHandle';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+
 
 {
- *  HandleToRgn()   *** DEPRECATED ***
+ *  HandleToRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure HandleToRgn(oldRegion: Handle; region: RgnHandle); external name '_HandleToRgn';
+procedure HandleToRgn( oldRegion: Handle; region: RgnHandle ); external name '_HandleToRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  DisposeRgn()   *** DEPRECATED ***
+ *  DisposeRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeRgn(rgn: RgnHandle); external name '_DisposeRgn';
+procedure DisposeRgn( rgn: RgnHandle ); external name '_DisposeRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  [Mac]CopyRgn()   *** DEPRECATED ***
+ *  [Mac]CopyRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure CopyRgn(srcRgn: RgnHandle; dstRgn: RgnHandle); external name '_CopyRgn';
+procedure MacCopyRgn( srcRgn: RgnHandle; dstRgn: RgnHandle ); external name '_CopyRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+procedure CopyRgn( srcRgn: RgnHandle; dstRgn: RgnHandle ); external name '_CopyRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  SetEmptyRgn()   *** DEPRECATED ***
+ *  SetEmptyRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetEmptyRgn(rgn: RgnHandle); external name '_SetEmptyRgn';
+procedure SetEmptyRgn( rgn: RgnHandle ); external name '_SetEmptyRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  [Mac]SetRectRgn()   *** DEPRECATED ***
+ *  [Mac]SetRectRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetRectRgn(rgn: RgnHandle; left: SInt16; top: SInt16; right: SInt16; bottom: SInt16); external name '_SetRectRgn';
+procedure MacSetRectRgn( rgn: RgnHandle; left: SInt16; top: SInt16; right: SInt16; bottom: SInt16 ); external name '_SetRectRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+procedure SetRectRgn( rgn: RgnHandle; left: SInt16; top: SInt16; right: SInt16; bottom: SInt16 ); external name '_SetRectRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  RectRgn()   *** DEPRECATED ***
+ *  RectRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure RectRgn(rgn: RgnHandle; const (*var*) r: Rect); external name '_RectRgn';
+procedure RectRgn( rgn: RgnHandle; const (*var*) r: Rect ); external name '_RectRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  [Mac]OffsetRgn()   *** DEPRECATED ***
+ *  [Mac]OffsetRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure OffsetRgn(rgn: RgnHandle; dh: SInt16; dv: SInt16); external name '_OffsetRgn';
+procedure MacOffsetRgn( rgn: RgnHandle; dh: SInt16; dv: SInt16 ); external name '_OffsetRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+procedure OffsetRgn( rgn: RgnHandle; dh: SInt16; dv: SInt16 ); external name '_OffsetRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  InsetRgn()   *** DEPRECATED ***
+ *  InsetRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InsetRgn(rgn: RgnHandle; dh: SInt16; dv: SInt16); external name '_InsetRgn';
+procedure InsetRgn( rgn: RgnHandle; dh: SInt16; dv: SInt16 ); external name '_InsetRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  SectRgn()   *** DEPRECATED ***
+ *  SectRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SectRgn(srcRgnA: RgnHandle; srcRgnB: RgnHandle; dstRgn: RgnHandle); external name '_SectRgn';
+procedure SectRgn( srcRgnA: RgnHandle; srcRgnB: RgnHandle; dstRgn: RgnHandle ); external name '_SectRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  [Mac]UnionRgn()   *** DEPRECATED ***
+ *  [Mac]UnionRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure UnionRgn(srcRgnA: RgnHandle; srcRgnB: RgnHandle; dstRgn: RgnHandle); external name '_UnionRgn';
+procedure MacUnionRgn( srcRgnA: RgnHandle; srcRgnB: RgnHandle; dstRgn: RgnHandle ); external name '_UnionRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+procedure UnionRgn( srcRgnA: RgnHandle; srcRgnB: RgnHandle; dstRgn: RgnHandle ); external name '_UnionRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  DiffRgn()   *** DEPRECATED ***
+ *  DiffRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DiffRgn(srcRgnA: RgnHandle; srcRgnB: RgnHandle; dstRgn: RgnHandle); external name '_DiffRgn';
+procedure DiffRgn( srcRgnA: RgnHandle; srcRgnB: RgnHandle; dstRgn: RgnHandle ); external name '_DiffRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  [Mac]XorRgn()   *** DEPRECATED ***
+ *  [Mac]XorRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure XorRgn(srcRgnA: RgnHandle; srcRgnB: RgnHandle; dstRgn: RgnHandle); external name '_XorRgn';
+procedure MacXorRgn( srcRgnA: RgnHandle; srcRgnB: RgnHandle; dstRgn: RgnHandle ); external name '_XorRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+procedure XorRgn( srcRgnA: RgnHandle; srcRgnB: RgnHandle; dstRgn: RgnHandle ); external name '_XorRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  RectInRgn()   *** DEPRECATED ***
+ *  RectInRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function RectInRgn(const (*var*) r: Rect; rgn: RgnHandle): boolean; external name '_RectInRgn';
+function RectInRgn( const (*var*) r: Rect; rgn: RgnHandle ): Boolean; external name '_RectInRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  [Mac]EqualRgn()   *** DEPRECATED ***
+ *  [Mac]EqualRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function EqualRgn(rgnA: RgnHandle; rgnB: RgnHandle): boolean; external name '_EqualRgn';
+function MacEqualRgn( rgnA: RgnHandle; rgnB: RgnHandle ): Boolean; external name '_EqualRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function EqualRgn( rgnA: RgnHandle; rgnB: RgnHandle ): Boolean; external name '_EqualRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  EmptyRgn()   *** DEPRECATED ***
+ *  EmptyRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function EmptyRgn(rgn: RgnHandle): boolean; external name '_EmptyRgn';
+function EmptyRgn( rgn: RgnHandle ): Boolean; external name '_EmptyRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
  *  [Mac]FrameRgn()   *** DEPRECATED ***
@@ -3281,12 +1694,15 @@ function EmptyRgn(rgn: RgnHandle): boolean; external name '_EmptyRgn';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FrameRgn(rgn: RgnHandle); external name '_FrameRgn';
+procedure MacFrameRgn( rgn: RgnHandle ); external name '_FrameRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+procedure FrameRgn( rgn: RgnHandle ); external name '_FrameRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  [Mac]PaintRgn()   *** DEPRECATED ***
@@ -3295,12 +1711,15 @@ procedure FrameRgn(rgn: RgnHandle); external name '_FrameRgn';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure PaintRgn(rgn: RgnHandle); external name '_PaintRgn';
+procedure MacPaintRgn( rgn: RgnHandle ); external name '_PaintRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+procedure PaintRgn( rgn: RgnHandle ); external name '_PaintRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  EraseRgn()   *** DEPRECATED ***
@@ -3309,12 +1728,13 @@ procedure PaintRgn(rgn: RgnHandle); external name '_PaintRgn';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure EraseRgn(rgn: RgnHandle); external name '_EraseRgn';
+procedure EraseRgn( rgn: RgnHandle ); external name '_EraseRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  [Mac]InvertRgn()   *** DEPRECATED ***
@@ -3323,12 +1743,15 @@ procedure EraseRgn(rgn: RgnHandle); external name '_EraseRgn';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvertRgn(rgn: RgnHandle); external name '_InvertRgn';
+procedure MacInvertRgn( rgn: RgnHandle ); external name '_InvertRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+procedure InvertRgn( rgn: RgnHandle ); external name '_InvertRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  [Mac]FillRgn()   *** DEPRECATED ***
@@ -3337,12 +1760,15 @@ procedure InvertRgn(rgn: RgnHandle); external name '_InvertRgn';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FillRgn(rgn: RgnHandle; const (*var*) pat: Pattern); external name '_FillRgn';
+procedure MacFillRgn( rgn: RgnHandle; const (*var*) pat: Pattern ); external name '_FillRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+procedure FillRgn( rgn: RgnHandle; const (*var*) pat: Pattern ); external name '_FillRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  ScrollRect()   *** DEPRECATED ***
@@ -3351,12 +1777,13 @@ procedure FillRgn(rgn: RgnHandle; const (*var*) pat: Pattern); external name '_F
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure ScrollRect(const (*var*) r: Rect; dh: SInt16; dv: SInt16; updateRgn: RgnHandle); external name '_ScrollRect';
+procedure ScrollRect( const (*var*) r: Rect; dh: SInt16; dv: SInt16; updateRgn: RgnHandle ); external name '_ScrollRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  CopyBits()   *** DEPRECATED ***
@@ -3365,13 +1792,17 @@ procedure ScrollRect(const (*var*) r: Rect; dh: SInt16; dv: SInt16; updateRgn: R
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure CopyBits(const (*var*) srcBits: BitMap; const (*var*) dstBits: BitMap; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect; mode: SInt16; maskRgn: RgnHandle); external name '_CopyBits';
+procedure CopyBits( const (*var*) srcBits: BitMap; const (*var*) dstBits: BitMap; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect; mode: SInt16; maskRgn: RgnHandle { can be NULL } ); external name '_CopyBits';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
+
+{$endc} {not TARGET_CPU_64}
+
+{$ifc not TARGET_CPU_64}
 {
  *  SeedFill()   *** DEPRECATED ***
  *  
@@ -3379,12 +1810,13 @@ procedure CopyBits(const (*var*) srcBits: BitMap; const (*var*) dstBits: BitMap;
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SeedFill(srcPtr: UnivPtr; dstPtr: UnivPtr; srcRow: SInt16; dstRow: SInt16; height: SInt16; words: SInt16; seedH: SInt16; seedV: SInt16); external name '_SeedFill';
+procedure SeedFill( srcPtr: {const} UnivPtr; dstPtr: UnivPtr; srcRow: SInt16; dstRow: SInt16; height: SInt16; words: SInt16; seedH: SInt16; seedV: SInt16 ); external name '_SeedFill';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  CalcMask()   *** DEPRECATED ***
@@ -3393,12 +1825,13 @@ procedure SeedFill(srcPtr: UnivPtr; dstPtr: UnivPtr; srcRow: SInt16; dstRow: SIn
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure CalcMask(srcPtr: UnivPtr; dstPtr: UnivPtr; srcRow: SInt16; dstRow: SInt16; height: SInt16; words: SInt16); external name '_CalcMask';
+procedure CalcMask( srcPtr: {const} UnivPtr; dstPtr: UnivPtr; srcRow: SInt16; dstRow: SInt16; height: SInt16; words: SInt16 ); external name '_CalcMask';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  CopyMask()   *** DEPRECATED ***
@@ -3407,13 +1840,17 @@ procedure CalcMask(srcPtr: UnivPtr; dstPtr: UnivPtr; srcRow: SInt16; dstRow: SIn
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure CopyMask(const (*var*) srcBits: BitMap; const (*var*) maskBits: BitMap; const (*var*) dstBits: BitMap; const (*var*) srcRect: Rect; const (*var*) maskRect: Rect; const (*var*) dstRect: Rect); external name '_CopyMask';
+procedure CopyMask( const (*var*) srcBits: BitMap; const (*var*) maskBits: BitMap; const (*var*) dstBits: BitMap; const (*var*) srcRect: Rect; const (*var*) maskRect: Rect; const (*var*) dstRect: Rect ); external name '_CopyMask';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
+
+{$endc} {not TARGET_CPU_64}
+
+{$ifc not TARGET_CPU_64}
 {
  *  OpenPicture()   *** DEPRECATED ***
  *  
@@ -3421,12 +1858,13 @@ procedure CopyMask(const (*var*) srcBits: BitMap; const (*var*) maskBits: BitMap
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function OpenPicture(const (*var*) picFrame: Rect): PicHandle; external name '_OpenPicture';
+function OpenPicture( const (*var*) picFrame: Rect ): PicHandle; external name '_OpenPicture';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  PicComment()   *** DEPRECATED ***
@@ -3435,12 +1873,13 @@ function OpenPicture(const (*var*) picFrame: Rect): PicHandle; external name '_O
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure PicComment(kind: SInt16; dataSize: SInt16; dataHandle: Handle); external name '_PicComment';
+procedure PicComment( kind: SInt16; dataSize: SInt16; dataHandle: Handle ); external name '_PicComment';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  ClosePicture()   *** DEPRECATED ***
@@ -3449,26 +1888,28 @@ procedure PicComment(kind: SInt16; dataSize: SInt16; dataHandle: Handle); extern
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 procedure ClosePicture; external name '_ClosePicture';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  QDGetPictureBounds()
+ *  QDGetPictureBounds()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available
  *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER;
 function QDGetPictureBounds( picH: PicHandle; var outRect: Rect ): RectPtr; external name '_QDGetPictureBounds'; (* attribute ignoreable *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  DrawPicture()   *** DEPRECATED ***
@@ -3477,12 +1918,13 @@ function QDGetPictureBounds( picH: PicHandle; var outRect: Rect ): RectPtr; exte
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DrawPicture(myPicture: PicHandle; const (*var*) dstRect: Rect); external name '_DrawPicture';
+procedure DrawPicture( myPicture: PicHandle; const (*var*) dstRect: Rect ); external name '_DrawPicture';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  KillPicture()   *** DEPRECATED ***
@@ -3491,12 +1933,13 @@ procedure DrawPicture(myPicture: PicHandle; const (*var*) dstRect: Rect); extern
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure KillPicture(myPicture: PicHandle); external name '_KillPicture';
+procedure KillPicture( myPicture: PicHandle ); external name '_KillPicture';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  OpenPoly()   *** DEPRECATED ***
@@ -3505,12 +1948,13 @@ procedure KillPicture(myPicture: PicHandle); external name '_KillPicture';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 function OpenPoly: PolyHandle; external name '_OpenPoly';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  ClosePoly()   *** DEPRECATED ***
@@ -3519,12 +1963,13 @@ function OpenPoly: PolyHandle; external name '_OpenPoly';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 procedure ClosePoly; external name '_ClosePoly';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  KillPoly()   *** DEPRECATED ***
@@ -3533,12 +1978,13 @@ procedure ClosePoly; external name '_ClosePoly';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure KillPoly(poly: PolyHandle); external name '_KillPoly';
+procedure KillPoly( poly: PolyHandle ); external name '_KillPoly';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  OffsetPoly()   *** DEPRECATED ***
@@ -3547,12 +1993,13 @@ procedure KillPoly(poly: PolyHandle); external name '_KillPoly';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure OffsetPoly(poly: PolyHandle; dh: SInt16; dv: SInt16); external name '_OffsetPoly';
+procedure OffsetPoly( poly: PolyHandle; dh: SInt16; dv: SInt16 ); external name '_OffsetPoly';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  FramePoly()   *** DEPRECATED ***
@@ -3561,12 +2008,13 @@ procedure OffsetPoly(poly: PolyHandle; dh: SInt16; dv: SInt16); external name '_
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FramePoly(poly: PolyHandle); external name '_FramePoly';
+procedure FramePoly( poly: PolyHandle ); external name '_FramePoly';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  PaintPoly()   *** DEPRECATED ***
@@ -3575,12 +2023,13 @@ procedure FramePoly(poly: PolyHandle); external name '_FramePoly';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure PaintPoly(poly: PolyHandle); external name '_PaintPoly';
+procedure PaintPoly( poly: PolyHandle ); external name '_PaintPoly';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  ErasePoly()   *** DEPRECATED ***
@@ -3589,12 +2038,13 @@ procedure PaintPoly(poly: PolyHandle); external name '_PaintPoly';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure ErasePoly(poly: PolyHandle); external name '_ErasePoly';
+procedure ErasePoly( poly: PolyHandle ); external name '_ErasePoly';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  InvertPoly()   *** DEPRECATED ***
@@ -3603,12 +2053,13 @@ procedure ErasePoly(poly: PolyHandle); external name '_ErasePoly';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvertPoly(poly: PolyHandle); external name '_InvertPoly';
+procedure InvertPoly( poly: PolyHandle ); external name '_InvertPoly';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  FillPoly()   *** DEPRECATED ***
@@ -3617,27 +2068,32 @@ procedure InvertPoly(poly: PolyHandle); external name '_InvertPoly';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FillPoly(poly: PolyHandle; const (*var*) pat: Pattern); external name '_FillPoly';
+procedure FillPoly( poly: PolyHandle; const (*var*) pat: Pattern ); external name '_FillPoly';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{$endc} {not TARGET_CPU_64}
 
 {
- *  SetPt()   *** DEPRECATED ***
+ *  SetPt()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetPt(var pt: Point; h: SInt16; v: SInt16); external name '_SetPt';
+procedure SetPt( var pt: Point; h: SInt16; v: SInt16 ); external name '_SetPt';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
+
+{$ifc not TARGET_CPU_64}
 {
  *  LocalToGlobal()   *** DEPRECATED ***
  *  
@@ -3645,12 +2101,13 @@ procedure SetPt(var pt: Point; h: SInt16; v: SInt16); external name '_SetPt';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure LocalToGlobal(var pt: Point); external name '_LocalToGlobal';
+procedure LocalToGlobal( var pt: Point ); external name '_LocalToGlobal';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GlobalToLocal()   *** DEPRECATED ***
@@ -3659,13 +2116,15 @@ procedure LocalToGlobal(var pt: Point); external name '_LocalToGlobal';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure GlobalToLocal(var pt: Point); external name '_GlobalToLocal';
+procedure GlobalToLocal( var pt: Point ); external name '_GlobalToLocal';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
+
+{ For a replacement, read the man pages of rand, random, arc4random in <stdlib.h> }
 {
  *  Random()   *** DEPRECATED ***
  *  
@@ -3673,12 +2132,13 @@ procedure GlobalToLocal(var pt: Point); external name '_GlobalToLocal';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 function Random: SInt16; external name '_Random';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  StuffHex()   *** DEPRECATED ***
@@ -3687,12 +2147,13 @@ function Random: SInt16; external name '_Random';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure StuffHex(thingPtr: UnivPtr; const (*var*) s: Str255); external name '_StuffHex';
+procedure StuffHex( thingPtr: UnivPtr; const (*var*) s: Str255 ); external name '_StuffHex';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  [Mac]GetPixel()   *** DEPRECATED ***
@@ -3701,68 +2162,78 @@ procedure StuffHex(thingPtr: UnivPtr; const (*var*) s: Str255); external name '_
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function GetPixel(h: SInt16; v: SInt16): boolean; external name '_GetPixel';
+function MacGetPixel( h: SInt16; v: SInt16 ): Boolean; external name '_GetPixel';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+function GetPixel( h: SInt16; v: SInt16 ): Boolean; external name '_GetPixel';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{$endc} {not TARGET_CPU_64}
 
 {
- *  ScalePt()   *** DEPRECATED ***
+ *  ScalePt()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure ScalePt(var pt: Point; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect); external name '_ScalePt';
+procedure ScalePt( var pt: Point; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect ); external name '_ScalePt';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  MapPt()   *** DEPRECATED ***
+ *  MapPt()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure MapPt(var pt: Point; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect); external name '_MapPt';
+procedure MapPt( var pt: Point; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect ); external name '_MapPt';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  MapRect()   *** DEPRECATED ***
+ *  MapRect()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure MapRect(var r: Rect; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect); external name '_MapRect';
+procedure MapRect( var r: Rect; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect ); external name '_MapRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
+
+{$ifc not TARGET_CPU_64}
 {
- *  MapRgn()   *** DEPRECATED ***
+ *  MapRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure MapRgn(rgn: RgnHandle; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect); external name '_MapRgn';
+procedure MapRgn( rgn: RgnHandle; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect ); external name '_MapRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
  *  MapPoly()   *** DEPRECATED ***
@@ -3771,12 +2242,13 @@ procedure MapRgn(rgn: RgnHandle; const (*var*) srcRect: Rect; const (*var*) dstR
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure MapPoly(poly: PolyHandle; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect); external name '_MapPoly';
+procedure MapPoly( poly: PolyHandle; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect ); external name '_MapPoly';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetStdProcs()   *** DEPRECATED ***
@@ -3785,12 +2257,13 @@ procedure MapPoly(poly: PolyHandle; const (*var*) srcRect: Rect; const (*var*) d
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetStdProcs(var procs: QDProcs); external name '_SetStdProcs';
+procedure SetStdProcs( var procs: QDProcs ); external name '_SetStdProcs';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  StdRect()   *** DEPRECATED ***
@@ -3799,12 +2272,13 @@ procedure SetStdProcs(var procs: QDProcs); external name '_SetStdProcs';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure StdRect(verb: GrafVerb; const (*var*) r: Rect); external name '_StdRect';
+procedure StdRect( verb: GrafVerb; const (*var*) r: Rect ); external name '_StdRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  StdRRect()   *** DEPRECATED ***
@@ -3813,12 +2287,13 @@ procedure StdRect(verb: GrafVerb; const (*var*) r: Rect); external name '_StdRec
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure StdRRect(verb: GrafVerb; const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: SInt16); external name '_StdRRect';
+procedure StdRRect( verb: GrafVerb; const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: SInt16 ); external name '_StdRRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  StdOval()   *** DEPRECATED ***
@@ -3827,12 +2302,13 @@ procedure StdRRect(verb: GrafVerb; const (*var*) r: Rect; ovalWidth: SInt16; ova
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure StdOval(verb: GrafVerb; const (*var*) r: Rect); external name '_StdOval';
+procedure StdOval( verb: GrafVerb; const (*var*) r: Rect ); external name '_StdOval';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  StdArc()   *** DEPRECATED ***
@@ -3841,12 +2317,13 @@ procedure StdOval(verb: GrafVerb; const (*var*) r: Rect); external name '_StdOva
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure StdArc(verb: GrafVerb; const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16); external name '_StdArc';
+procedure StdArc( verb: GrafVerb; const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16 ); external name '_StdArc';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  StdPoly()   *** DEPRECATED ***
@@ -3855,12 +2332,13 @@ procedure StdArc(verb: GrafVerb; const (*var*) r: Rect; startAngle: SInt16; arcA
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure StdPoly(verb: GrafVerb; poly: PolyHandle); external name '_StdPoly';
+procedure StdPoly( verb: GrafVerb; poly: PolyHandle ); external name '_StdPoly';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  StdRgn()   *** DEPRECATED ***
@@ -3869,12 +2347,13 @@ procedure StdPoly(verb: GrafVerb; poly: PolyHandle); external name '_StdPoly';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure StdRgn(verb: GrafVerb; rgn: RgnHandle); external name '_StdRgn';
+procedure StdRgn( verb: GrafVerb; rgn: RgnHandle ); external name '_StdRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  StdBits()   *** DEPRECATED ***
@@ -3883,12 +2362,13 @@ procedure StdRgn(verb: GrafVerb; rgn: RgnHandle); external name '_StdRgn';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure StdBits(const (*var*) srcBits: BitMap; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect; mode: SInt16; maskRgn: RgnHandle); external name '_StdBits';
+procedure StdBits( const (*var*) srcBits: BitMap; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect; mode: SInt16; maskRgn: RgnHandle ); external name '_StdBits';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  StdComment()   *** DEPRECATED ***
@@ -3897,12 +2377,13 @@ procedure StdBits(const (*var*) srcBits: BitMap; const (*var*) srcRect: Rect; co
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure StdComment(kind: SInt16; dataSize: SInt16; dataHandle: Handle); external name '_StdComment';
+procedure StdComment( kind: SInt16; dataSize: SInt16; dataHandle: Handle ); external name '_StdComment';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  StdGetPic()   *** DEPRECATED ***
@@ -3911,12 +2392,13 @@ procedure StdComment(kind: SInt16; dataSize: SInt16; dataHandle: Handle); extern
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure StdGetPic(dataPtr: UnivPtr; byteCount: SInt16); external name '_StdGetPic';
+procedure StdGetPic( dataPtr: UnivPtr; byteCount: SInt16 ); external name '_StdGetPic';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  StdPutPic()   *** DEPRECATED ***
@@ -3925,12 +2407,13 @@ procedure StdGetPic(dataPtr: UnivPtr; byteCount: SInt16); external name '_StdGet
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure StdPutPic(dataPtr: UnivPtr; byteCount: SInt16); external name '_StdPutPic';
+procedure StdPutPic( dataPtr: {const} UnivPtr; byteCount: SInt16 ); external name '_StdPutPic';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  StdOpcode()   *** DEPRECATED ***
@@ -3939,110 +2422,123 @@ procedure StdPutPic(dataPtr: UnivPtr; byteCount: SInt16); external name '_StdPut
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure StdOpcode(const (*var*) fromRect: Rect; const (*var*) toRect: Rect; opcode: UInt16; version: SInt16); external name '_StdOpcode';
+procedure StdOpcode( const (*var*) fromRect: Rect; const (*var*) toRect: Rect; opcode: UInt16; version: SInt16 ); external name '_StdOpcode';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{$endc} {not TARGET_CPU_64}
 
 {
- *  AddPt()   *** DEPRECATED ***
+ *  AddPt()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure AddPt(src: Point; var dst: Point); external name '_AddPt';
+procedure AddPt( src: Point; var dst: Point ); external name '_AddPt';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  EqualPt()   *** DEPRECATED ***
+ *  EqualPt()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function EqualPt(pt1: Point; pt2: Point): boolean; external name '_EqualPt';
+function EqualPt( pt1: Point; pt2: Point ): Boolean; external name '_EqualPt';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  [Mac]PtInRect()   *** DEPRECATED ***
+ *  [Mac]PtInRect()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function PtInRect(pt: Point; const (*var*) r: Rect): boolean; external name '_PtInRect';
+function MacPtInRect( pt: Point; const (*var*) r: Rect ): Boolean; external name '_PtInRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function PtInRect( pt: Point; const (*var*) r: Rect ): Boolean; external name '_PtInRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  Pt2Rect()   *** DEPRECATED ***
+ *  Pt2Rect()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure Pt2Rect(pt1: Point; pt2: Point; var dstRect: Rect); external name '_Pt2Rect';
+procedure Pt2Rect( pt1: Point; pt2: Point; var dstRect: Rect ); external name '_Pt2Rect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  PtToAngle()   *** DEPRECATED ***
+ *  PtToAngle()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure PtToAngle(const (*var*) r: Rect; pt: Point; var angle: SInt16); external name '_PtToAngle';
+procedure PtToAngle( const (*var*) r: Rect; pt: Point; var angle: SInt16 ); external name '_PtToAngle';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  SubPt()   *** DEPRECATED ***
+ *  SubPt()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SubPt(src: Point; var dst: Point); external name '_SubPt';
+procedure SubPt( src: Point; var dst: Point ); external name '_SubPt';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
+
+{$ifc not TARGET_CPU_64}
 {
- *  PtInRgn()   *** DEPRECATED ***
+ *  PtInRgn()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function PtInRgn(pt: Point; rgn: RgnHandle): boolean; external name '_PtInRgn';
+function PtInRgn( pt: Point; rgn: RgnHandle ): Boolean; external name '_PtInRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
  *  StdLine()   *** DEPRECATED ***
@@ -4051,42 +2547,13 @@ function PtInRgn(pt: Point; rgn: RgnHandle): boolean; external name '_PtInRgn';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure StdLine(newPt: Point); external name '_StdLine';
+procedure StdLine( newPt: Point ); external name '_StdLine';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
-{$ifc CALL_NOT_IN_CARBON}
-{
- *  OpenCPort()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure OpenCPort(port: CGrafPtr); external name '_OpenCPort';
-{
- *  InitCPort()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure InitCPort(port: CGrafPtr); external name '_InitCPort';
-{
- *  CloseCPort()
- *  
- *  Availability:
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure CloseCPort(port: CGrafPtr); external name '_CloseCPort';
-{$endc}  {CALL_NOT_IN_CARBON}
 
 {
  *  NewPixMap()   *** DEPRECATED ***
@@ -4095,12 +2562,13 @@ procedure CloseCPort(port: CGrafPtr); external name '_CloseCPort';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 function NewPixMap: PixMapHandle; external name '_NewPixMap';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  DisposePixMap()   *** DEPRECATED ***
@@ -4109,12 +2577,13 @@ function NewPixMap: PixMapHandle; external name '_NewPixMap';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposePixMap(pm: PixMapHandle); external name '_DisposePixMap';
+procedure DisposePixMap( pm: PixMapHandle ); external name '_DisposePixMap';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  CopyPixMap()   *** DEPRECATED ***
@@ -4123,12 +2592,13 @@ procedure DisposePixMap(pm: PixMapHandle); external name '_DisposePixMap';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure CopyPixMap(srcPM: PixMapHandle; dstPM: PixMapHandle); external name '_CopyPixMap';
+procedure CopyPixMap( srcPM: PixMapHandle; dstPM: PixMapHandle ); external name '_CopyPixMap';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  NewPixPat()   *** DEPRECATED ***
@@ -4137,12 +2607,13 @@ procedure CopyPixMap(srcPM: PixMapHandle; dstPM: PixMapHandle); external name '_
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 function NewPixPat: PixPatHandle; external name '_NewPixPat';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  DisposePixPat()   *** DEPRECATED ***
@@ -4151,12 +2622,13 @@ function NewPixPat: PixPatHandle; external name '_NewPixPat';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposePixPat(pp: PixPatHandle); external name '_DisposePixPat';
+procedure DisposePixPat( pp: PixPatHandle ); external name '_DisposePixPat';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  CopyPixPat()   *** DEPRECATED ***
@@ -4165,12 +2637,13 @@ procedure DisposePixPat(pp: PixPatHandle); external name '_DisposePixPat';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure CopyPixPat(srcPP: PixPatHandle; dstPP: PixPatHandle); external name '_CopyPixPat';
+procedure CopyPixPat( srcPP: PixPatHandle; dstPP: PixPatHandle ); external name '_CopyPixPat';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  PenPixPat()   *** DEPRECATED ***
@@ -4179,12 +2652,13 @@ procedure CopyPixPat(srcPP: PixPatHandle; dstPP: PixPatHandle); external name '_
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure PenPixPat(pp: PixPatHandle); external name '_PenPixPat';
+procedure PenPixPat( pp: PixPatHandle ); external name '_PenPixPat';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  BackPixPat()   *** DEPRECATED ***
@@ -4193,12 +2667,13 @@ procedure PenPixPat(pp: PixPatHandle); external name '_PenPixPat';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure BackPixPat(pp: PixPatHandle); external name '_BackPixPat';
+procedure BackPixPat( pp: PixPatHandle ); external name '_BackPixPat';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetPixPat()   *** DEPRECATED ***
@@ -4207,12 +2682,13 @@ procedure BackPixPat(pp: PixPatHandle); external name '_BackPixPat';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function GetPixPat(patID: SInt16): PixPatHandle; external name '_GetPixPat';
+function GetPixPat( patID: SInt16 ): PixPatHandle; external name '_GetPixPat';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  MakeRGBPat()   *** DEPRECATED ***
@@ -4221,12 +2697,13 @@ function GetPixPat(patID: SInt16): PixPatHandle; external name '_GetPixPat';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure MakeRGBPat(pp: PixPatHandle; const (*var*) myColor: RGBColor); external name '_MakeRGBPat';
+procedure MakeRGBPat( pp: PixPatHandle; const (*var*) myColor: RGBColor ); external name '_MakeRGBPat';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  FillCRect()   *** DEPRECATED ***
@@ -4235,12 +2712,13 @@ procedure MakeRGBPat(pp: PixPatHandle; const (*var*) myColor: RGBColor); externa
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FillCRect(const (*var*) r: Rect; pp: PixPatHandle); external name '_FillCRect';
+procedure FillCRect( const (*var*) r: Rect; pp: PixPatHandle ); external name '_FillCRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  FillCOval()   *** DEPRECATED ***
@@ -4249,12 +2727,13 @@ procedure FillCRect(const (*var*) r: Rect; pp: PixPatHandle); external name '_Fi
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FillCOval(const (*var*) r: Rect; pp: PixPatHandle); external name '_FillCOval';
+procedure FillCOval( const (*var*) r: Rect; pp: PixPatHandle ); external name '_FillCOval';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  FillCRoundRect()   *** DEPRECATED ***
@@ -4263,12 +2742,13 @@ procedure FillCOval(const (*var*) r: Rect; pp: PixPatHandle); external name '_Fi
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FillCRoundRect(const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: SInt16; pp: PixPatHandle); external name '_FillCRoundRect';
+procedure FillCRoundRect( const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: SInt16; pp: PixPatHandle ); external name '_FillCRoundRect';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  FillCArc()   *** DEPRECATED ***
@@ -4277,12 +2757,13 @@ procedure FillCRoundRect(const (*var*) r: Rect; ovalWidth: SInt16; ovalHeight: S
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FillCArc(const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16; pp: PixPatHandle); external name '_FillCArc';
+procedure FillCArc( const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16; pp: PixPatHandle ); external name '_FillCArc';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  FillCRgn()   *** DEPRECATED ***
@@ -4291,12 +2772,13 @@ procedure FillCArc(const (*var*) r: Rect; startAngle: SInt16; arcAngle: SInt16; 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FillCRgn(rgn: RgnHandle; pp: PixPatHandle); external name '_FillCRgn';
+procedure FillCRgn( rgn: RgnHandle; pp: PixPatHandle ); external name '_FillCRgn';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  FillCPoly()   *** DEPRECATED ***
@@ -4305,12 +2787,13 @@ procedure FillCRgn(rgn: RgnHandle; pp: PixPatHandle); external name '_FillCRgn';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure FillCPoly(poly: PolyHandle; pp: PixPatHandle); external name '_FillCPoly';
+procedure FillCPoly( poly: PolyHandle; pp: PixPatHandle ); external name '_FillCPoly';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  RGBForeColor()   *** DEPRECATED ***
@@ -4319,12 +2802,13 @@ procedure FillCPoly(poly: PolyHandle; pp: PixPatHandle); external name '_FillCPo
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure RGBForeColor(const (*var*) color: RGBColor); external name '_RGBForeColor';
+procedure RGBForeColor( const (*var*) color: RGBColor ); external name '_RGBForeColor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  RGBBackColor()   *** DEPRECATED ***
@@ -4333,12 +2817,13 @@ procedure RGBForeColor(const (*var*) color: RGBColor); external name '_RGBForeCo
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure RGBBackColor(const (*var*) color: RGBColor); external name '_RGBBackColor';
+procedure RGBBackColor( const (*var*) color: RGBColor ); external name '_RGBBackColor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetCPixel()   *** DEPRECATED ***
@@ -4347,12 +2832,13 @@ procedure RGBBackColor(const (*var*) color: RGBColor); external name '_RGBBackCo
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetCPixel(h: SInt16; v: SInt16; const (*var*) cPix: RGBColor); external name '_SetCPixel';
+procedure SetCPixel( h: SInt16; v: SInt16; const (*var*) cPix: RGBColor ); external name '_SetCPixel';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetPortPix()   *** DEPRECATED ***
@@ -4361,12 +2847,13 @@ procedure SetCPixel(h: SInt16; v: SInt16; const (*var*) cPix: RGBColor); externa
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetPortPix(pm: PixMapHandle); external name '_SetPortPix';
+procedure SetPortPix( pm: PixMapHandle ); external name '_SetPortPix';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetCPixel()   *** DEPRECATED ***
@@ -4375,12 +2862,13 @@ procedure SetPortPix(pm: PixMapHandle); external name '_SetPortPix';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure GetCPixel(h: SInt16; v: SInt16; var cPix: RGBColor); external name '_GetCPixel';
+procedure GetCPixel( h: SInt16; v: SInt16; var cPix: RGBColor ); external name '_GetCPixel';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetForeColor()   *** DEPRECATED ***
@@ -4389,12 +2877,13 @@ procedure GetCPixel(h: SInt16; v: SInt16; var cPix: RGBColor); external name '_G
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure GetForeColor(var color: RGBColor); external name '_GetForeColor';
+procedure GetForeColor( var color: RGBColor ); external name '_GetForeColor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetBackColor()   *** DEPRECATED ***
@@ -4403,12 +2892,13 @@ procedure GetForeColor(var color: RGBColor); external name '_GetForeColor';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure GetBackColor(var color: RGBColor); external name '_GetBackColor';
+procedure GetBackColor( var color: RGBColor ); external name '_GetBackColor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SeedCFill()   *** DEPRECATED ***
@@ -4417,12 +2907,13 @@ procedure GetBackColor(var color: RGBColor); external name '_GetBackColor';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SeedCFill(const (*var*) srcBits: BitMap; const (*var*) dstBits: BitMap; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect; seedH: SInt16; seedV: SInt16; matchProc: ColorSearchUPP; matchData: SInt32); external name '_SeedCFill';
+procedure SeedCFill( const (*var*) srcBits: BitMap; const (*var*) dstBits: BitMap; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect; seedH: SInt16; seedV: SInt16; matchProc: ColorSearchUPP; matchData: SIGNEDLONG ); external name '_SeedCFill';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  CalcCMask()   *** DEPRECATED ***
@@ -4431,12 +2922,13 @@ procedure SeedCFill(const (*var*) srcBits: BitMap; const (*var*) dstBits: BitMap
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure CalcCMask(const (*var*) srcBits: BitMap; const (*var*) dstBits: BitMap; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect; const (*var*) seedRGB: RGBColor; matchProc: ColorSearchUPP; matchData: SInt32); external name '_CalcCMask';
+procedure CalcCMask( const (*var*) srcBits: BitMap; const (*var*) dstBits: BitMap; const (*var*) srcRect: Rect; const (*var*) dstRect: Rect; const (*var*) seedRGB: RGBColor; matchProc: ColorSearchUPP; matchData: SIGNEDLONG ); external name '_CalcCMask';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  OpenCPicture()   *** DEPRECATED ***
@@ -4445,12 +2937,13 @@ procedure CalcCMask(const (*var*) srcBits: BitMap; const (*var*) dstBits: BitMap
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function OpenCPicture(const (*var*) newHeader: OpenCPicParams): PicHandle; external name '_OpenCPicture';
+function OpenCPicture( const (*var*) newHeader: OpenCPicParams ): PicHandle; external name '_OpenCPicture';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  OpColor()   *** DEPRECATED ***
@@ -4459,12 +2952,13 @@ function OpenCPicture(const (*var*) newHeader: OpenCPicParams): PicHandle; exter
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure OpColor(const (*var*) color: RGBColor); external name '_OpColor';
+procedure OpColor( const (*var*) color: RGBColor ); external name '_OpColor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  HiliteColor()   *** DEPRECATED ***
@@ -4473,12 +2967,13 @@ procedure OpColor(const (*var*) color: RGBColor); external name '_OpColor';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure HiliteColor(const (*var*) color: RGBColor); external name '_HiliteColor';
+procedure HiliteColor( const (*var*) color: RGBColor ); external name '_HiliteColor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  DisposeCTable()   *** DEPRECATED ***
@@ -4487,12 +2982,13 @@ procedure HiliteColor(const (*var*) color: RGBColor); external name '_HiliteColo
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeCTable(cTable: CTabHandle); external name '_DisposeCTable';
+procedure DisposeCTable( cTable: CTabHandle ); external name '_DisposeCTable';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetCTable()   *** DEPRECATED ***
@@ -4501,12 +2997,13 @@ procedure DisposeCTable(cTable: CTabHandle); external name '_DisposeCTable';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function GetCTable(ctID: SInt16): CTabHandle; external name '_GetCTable';
+function GetCTable( ctID: SInt16 ): CTabHandle; external name '_GetCTable';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetCCursor()   *** DEPRECATED ***
@@ -4515,12 +3012,13 @@ function GetCTable(ctID: SInt16): CTabHandle; external name '_GetCTable';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function GetCCursor(crsrID: SInt16): CCrsrHandle; external name '_GetCCursor';
+function GetCCursor( crsrID: SInt16 ): CCrsrHandle; external name '_GetCCursor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetCCursor()   *** DEPRECATED ***
@@ -4529,12 +3027,13 @@ function GetCCursor(crsrID: SInt16): CCrsrHandle; external name '_GetCCursor';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetCCursor(cCrsr: CCrsrHandle); external name '_SetCCursor';
+procedure SetCCursor( cCrsr: CCrsrHandle ); external name '_SetCCursor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  AllocCursor()   *** DEPRECATED ***
@@ -4543,12 +3042,13 @@ procedure SetCCursor(cCrsr: CCrsrHandle); external name '_SetCCursor';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 procedure AllocCursor; external name '_AllocCursor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  DisposeCCursor()   *** DEPRECATED ***
@@ -4557,14 +3057,15 @@ procedure AllocCursor; external name '_AllocCursor';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeCCursor(cCrsr: CCrsrHandle); external name '_DisposeCCursor';
+procedure DisposeCCursor( cCrsr: CCrsrHandle ); external name '_DisposeCCursor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
-{  GetCIcon(), PlotCIcon(), and DisposeCIcon() moved to Icons.h }
+
+{ GetCIcon(), PlotCIcon(), and DisposeCIcon() moved to Icons.h}
 
 {
  *  SetStdCProcs()   *** DEPRECATED ***
@@ -4573,12 +3074,13 @@ procedure DisposeCCursor(cCrsr: CCrsrHandle); external name '_DisposeCCursor';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetStdCProcs(var procs: CQDProcs); external name '_SetStdCProcs';
+procedure SetStdCProcs( var procs: CQDProcs ); external name '_SetStdCProcs';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetMaxDevice()   *** DEPRECATED ***
@@ -4587,12 +3089,13 @@ procedure SetStdCProcs(var procs: CQDProcs); external name '_SetStdCProcs';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function GetMaxDevice(const (*var*) globalRect: Rect): GDHandle; external name '_GetMaxDevice';
+function GetMaxDevice( const (*var*) globalRect: Rect ): GDHandle; external name '_GetMaxDevice';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetCTSeed()   *** DEPRECATED ***
@@ -4601,13 +3104,18 @@ function GetMaxDevice(const (*var*) globalRect: Rect): GDHandle; external name '
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function GetCTSeed: SInt32; external name '_GetCTSeed';
+function GetCTSeed: SIGNEDLONG; external name '_GetCTSeed';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
+
+{ Replacements for the following (as far as still needed in a QD-free world)
+ * can be found in CoreGraphics/CGDirectDisplay.h:
+ * CGGetActiveDisplayList, CGMainDisplayID, CGDisplayBounds, etc. 
+ }
 {
  *  GetDeviceList()   *** DEPRECATED ***
  *  
@@ -4615,12 +3123,13 @@ function GetCTSeed: SInt32; external name '_GetCTSeed';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 function GetDeviceList: GDHandle; external name '_GetDeviceList';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetMainDevice()   *** DEPRECATED ***
@@ -4629,12 +3138,13 @@ function GetDeviceList: GDHandle; external name '_GetDeviceList';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 function GetMainDevice: GDHandle; external name '_GetMainDevice';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetNextDevice()   *** DEPRECATED ***
@@ -4643,12 +3153,13 @@ function GetMainDevice: GDHandle; external name '_GetMainDevice';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function GetNextDevice(curDevice: GDHandle): GDHandle; external name '_GetNextDevice';
+function GetNextDevice( curDevice: GDHandle ): GDHandle; external name '_GetNextDevice';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  TestDeviceAttribute()   *** DEPRECATED ***
@@ -4657,12 +3168,13 @@ function GetNextDevice(curDevice: GDHandle): GDHandle; external name '_GetNextDe
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function TestDeviceAttribute(gdh: GDHandle; attribute: SInt16): boolean; external name '_TestDeviceAttribute';
+function TestDeviceAttribute( gdh: GDHandle; attribute: SInt16 ): Boolean; external name '_TestDeviceAttribute';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetDeviceAttribute()   *** DEPRECATED ***
@@ -4671,12 +3183,13 @@ function TestDeviceAttribute(gdh: GDHandle; attribute: SInt16): boolean; externa
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetDeviceAttribute(gdh: GDHandle; attribute: SInt16; value: boolean); external name '_SetDeviceAttribute';
+procedure SetDeviceAttribute( gdh: GDHandle; attribute: SInt16; value: Boolean ); external name '_SetDeviceAttribute';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  InitGDevice()   *** DEPRECATED ***
@@ -4685,12 +3198,13 @@ procedure SetDeviceAttribute(gdh: GDHandle; attribute: SInt16; value: boolean); 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InitGDevice(qdRefNum: SInt16; mode: SInt32; gdh: GDHandle); external name '_InitGDevice';
+procedure InitGDevice( qdRefNum: SInt16; mode: SIGNEDLONG; gdh: GDHandle ); external name '_InitGDevice';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  NewGDevice()   *** DEPRECATED ***
@@ -4699,12 +3213,13 @@ procedure InitGDevice(qdRefNum: SInt16; mode: SInt32; gdh: GDHandle); external n
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function NewGDevice(refNum: SInt16; mode: SInt32): GDHandle; external name '_NewGDevice';
+function NewGDevice( refNum: SInt16; mode: SIGNEDLONG ): GDHandle; external name '_NewGDevice';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  DisposeGDevice()   *** DEPRECATED ***
@@ -4713,12 +3228,13 @@ function NewGDevice(refNum: SInt16; mode: SInt32): GDHandle; external name '_New
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DisposeGDevice(gdh: GDHandle); external name '_DisposeGDevice';
+procedure DisposeGDevice( gdh: GDHandle ); external name '_DisposeGDevice';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetGDevice()   *** DEPRECATED ***
@@ -4727,12 +3243,13 @@ procedure DisposeGDevice(gdh: GDHandle); external name '_DisposeGDevice';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetGDevice(gd: GDHandle); external name '_SetGDevice';
+procedure SetGDevice( gd: GDHandle ); external name '_SetGDevice';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetGDevice()   *** DEPRECATED ***
@@ -4741,12 +3258,13 @@ procedure SetGDevice(gd: GDHandle); external name '_SetGDevice';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 function GetGDevice: GDHandle; external name '_GetGDevice';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  Color2Index()   *** DEPRECATED ***
@@ -4755,12 +3273,13 @@ function GetGDevice: GDHandle; external name '_GetGDevice';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function Color2Index(const (*var*) myColor: RGBColor): SInt32; external name '_Color2Index';
+function Color2Index( const (*var*) myColor: RGBColor ): SIGNEDLONG; external name '_Color2Index';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  Index2Color()   *** DEPRECATED ***
@@ -4769,12 +3288,13 @@ function Color2Index(const (*var*) myColor: RGBColor): SInt32; external name '_C
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure Index2Color(index: SInt32; var aColor: RGBColor); external name '_Index2Color';
+procedure Index2Color( index: SIGNEDLONG; var aColor: RGBColor ); external name '_Index2Color';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  InvertColor()   *** DEPRECATED ***
@@ -4783,12 +3303,13 @@ procedure Index2Color(index: SInt32; var aColor: RGBColor); external name '_Inde
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure InvertColor(var myColor: RGBColor); external name '_InvertColor';
+procedure InvertColor( var myColor: RGBColor ); external name '_InvertColor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  RealColor()   *** DEPRECATED ***
@@ -4797,12 +3318,13 @@ procedure InvertColor(var myColor: RGBColor); external name '_InvertColor';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function RealColor(const (*var*) color: RGBColor): boolean; external name '_RealColor';
+function RealColor( const (*var*) color: RGBColor ): Boolean; external name '_RealColor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetSubTable()   *** DEPRECATED ***
@@ -4811,12 +3333,13 @@ function RealColor(const (*var*) color: RGBColor): boolean; external name '_Real
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure GetSubTable(myColors: CTabHandle; iTabRes: SInt16; targetTbl: CTabHandle); external name '_GetSubTable';
+procedure GetSubTable( myColors: CTabHandle; iTabRes: SInt16; targetTbl: CTabHandle ); external name '_GetSubTable';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  MakeITable()   *** DEPRECATED ***
@@ -4825,12 +3348,13 @@ procedure GetSubTable(myColors: CTabHandle; iTabRes: SInt16; targetTbl: CTabHand
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure MakeITable(cTabH: CTabHandle; iTabH: ITabHandle; res: SInt16); external name '_MakeITable';
+procedure MakeITable( cTabH: CTabHandle; iTabH: ITabHandle; res: SInt16 ); external name '_MakeITable';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  AddSearch()   *** DEPRECATED ***
@@ -4839,12 +3363,13 @@ procedure MakeITable(cTabH: CTabHandle; iTabH: ITabHandle; res: SInt16); externa
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure AddSearch(searchProc: ColorSearchUPP); external name '_AddSearch';
+procedure AddSearch( searchProc: ColorSearchUPP ); external name '_AddSearch';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  AddComp()   *** DEPRECATED ***
@@ -4853,12 +3378,13 @@ procedure AddSearch(searchProc: ColorSearchUPP); external name '_AddSearch';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure AddComp(compProc: ColorComplementUPP); external name '_AddComp';
+procedure AddComp( compProc: ColorComplementUPP ); external name '_AddComp';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  DelSearch()   *** DEPRECATED ***
@@ -4867,12 +3393,13 @@ procedure AddComp(compProc: ColorComplementUPP); external name '_AddComp';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DelSearch(searchProc: ColorSearchUPP); external name '_DelSearch';
+procedure DelSearch( searchProc: ColorSearchUPP ); external name '_DelSearch';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  DelComp()   *** DEPRECATED ***
@@ -4881,12 +3408,13 @@ procedure DelSearch(searchProc: ColorSearchUPP); external name '_DelSearch';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DelComp(compProc: ColorComplementUPP); external name '_DelComp';
+procedure DelComp( compProc: ColorComplementUPP ); external name '_DelComp';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetClientID()   *** DEPRECATED ***
@@ -4895,12 +3423,13 @@ procedure DelComp(compProc: ColorComplementUPP); external name '_DelComp';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetClientID(id: SInt16); external name '_SetClientID';
+procedure SetClientID( id: SInt16 ); external name '_SetClientID';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  ProtectEntry()   *** DEPRECATED ***
@@ -4909,12 +3438,13 @@ procedure SetClientID(id: SInt16); external name '_SetClientID';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure ProtectEntry(index: SInt16; protect: boolean); external name '_ProtectEntry';
+procedure ProtectEntry( index: SInt16; protect: Boolean ); external name '_ProtectEntry';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  ReserveEntry()   *** DEPRECATED ***
@@ -4923,12 +3453,13 @@ procedure ProtectEntry(index: SInt16; protect: boolean); external name '_Protect
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure ReserveEntry(index: SInt16; reserve: boolean); external name '_ReserveEntry';
+procedure ReserveEntry( index: SInt16; reserve: Boolean ); external name '_ReserveEntry';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetEntries()   *** DEPRECATED ***
@@ -4937,12 +3468,13 @@ procedure ReserveEntry(index: SInt16; reserve: boolean); external name '_Reserve
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SetEntries(start: SInt16; count: SInt16; var aTable: CSpecArray); external name '_SetEntries';
+procedure SetEntries( start: SInt16; count: SInt16; var aTable: CSpecArray ); external name '_SetEntries';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SaveEntries()   *** DEPRECATED ***
@@ -4951,12 +3483,13 @@ procedure SetEntries(start: SInt16; count: SInt16; var aTable: CSpecArray); exte
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure SaveEntries(srcTable: CTabHandle; resultTable: CTabHandle; var selection: ReqListRec); external name '_SaveEntries';
+procedure SaveEntries( srcTable: CTabHandle; resultTable: CTabHandle; var selection: ReqListRec ); external name '_SaveEntries';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  RestoreEntries()   *** DEPRECATED ***
@@ -4965,12 +3498,13 @@ procedure SaveEntries(srcTable: CTabHandle; resultTable: CTabHandle; var selecti
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure RestoreEntries(srcTable: CTabHandle; dstTable: CTabHandle; var selection: ReqListRec); external name '_RestoreEntries';
+procedure RestoreEntries( srcTable: CTabHandle; dstTable: CTabHandle; var selection: ReqListRec ); external name '_RestoreEntries';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  QDError()   *** DEPRECATED ***
@@ -4979,12 +3513,13 @@ procedure RestoreEntries(srcTable: CTabHandle; dstTable: CTabHandle; var selecti
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 function QDError: SInt16; external name '_QDError';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  CopyDeepMask()   *** DEPRECATED ***
@@ -4993,13 +3528,17 @@ function QDError: SInt16; external name '_QDError';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure CopyDeepMask(const (*var*) srcBits: BitMap; const (*var*) maskBits: BitMap; const (*var*) dstBits: BitMap; const (*var*) srcRect: Rect; const (*var*) maskRect: Rect; const (*var*) dstRect: Rect; mode: SInt16; maskRgn: RgnHandle); external name '_CopyDeepMask';
+procedure CopyDeepMask( const (*var*) srcBits: BitMap; const (*var*) maskBits: BitMap; const (*var*) dstBits: BitMap; const (*var*) srcRect: Rect; const (*var*) maskRect: Rect; const (*var*) dstRect: Rect; mode: SInt16; maskRgn: RgnHandle { can be NULL } ); external name '_CopyDeepMask';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
+
+{$endc} {not TARGET_CPU_64}
+
+{$ifc not TARGET_CPU_64}
 {
  *  DeviceLoop()   *** DEPRECATED ***
  *  
@@ -5007,12 +3546,13 @@ procedure CopyDeepMask(const (*var*) srcBits: BitMap; const (*var*) maskBits: Bi
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure DeviceLoop(drawingRgn: RgnHandle; drawingProc: DeviceLoopDrawingUPP; userData: SInt32; flags: DeviceLoopFlags); external name '_DeviceLoop';
+procedure DeviceLoop( drawingRgn: RgnHandle; drawingProc: DeviceLoopDrawingUPP; userData: SIGNEDLONG; flags: DeviceLoopFlags ); external name '_DeviceLoop';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetMaskTable()   *** DEPRECATED ***
@@ -5021,12 +3561,13 @@ procedure DeviceLoop(drawingRgn: RgnHandle; drawingProc: DeviceLoopDrawingUPP; u
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
 function GetMaskTable: Ptr; external name '_GetMaskTable';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetPattern()   *** DEPRECATED ***
@@ -5035,12 +3576,13 @@ function GetMaskTable: Ptr; external name '_GetMaskTable';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function GetPattern(patternID: SInt16): PatHandle; external name '_GetPattern';
+function GetPattern( patternID: SInt16 ): PatHandle; external name '_GetPattern';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  [Mac]GetCursor()   *** DEPRECATED ***
@@ -5049,12 +3591,15 @@ function GetPattern(patternID: SInt16): PatHandle; external name '_GetPattern';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function GetCursor(cursorID: SInt16): CursHandle; external name '_GetCursor';
+function MacGetCursor( cursorID: SInt16 ): CursHandle; external name '_GetCursor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+function GetCursor( cursorID: SInt16 ): CursHandle; external name '_GetCursor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetPicture()   *** DEPRECATED ***
@@ -5063,12 +3608,13 @@ function GetCursor(cursorID: SInt16): CursHandle; external name '_GetCursor';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function GetPicture(pictureID: SInt16): PicHandle; external name '_GetPicture';
+function GetPicture( pictureID: SInt16 ): PicHandle; external name '_GetPicture';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  DeltaPoint()   *** DEPRECATED ***
@@ -5077,26 +3623,28 @@ function GetPicture(pictureID: SInt16): PicHandle; external name '_GetPicture';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function DeltaPoint(ptA: Point; ptB: Point): SInt32; external name '_DeltaPoint';
+function DeltaPoint( ptA: Point; ptB: Point ): SIGNEDLONG; external name '_DeltaPoint';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  ShieldCursor()   *** DEPRECATED ***
+ *  ShieldCursor()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure ShieldCursor(const (*var*) shieldRect: Rect; offsetPt: Point); external name '_ShieldCursor';
+procedure ShieldCursor( const (*var*) shieldRect: Rect; offsetPt: Point ); external name '_ShieldCursor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
  *  ScreenRes()   *** DEPRECATED ***
@@ -5105,12 +3653,13 @@ procedure ShieldCursor(const (*var*) shieldRect: Rect; offsetPt: Point); externa
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure ScreenRes(var scrnHRes: SInt16; var scrnVRes: SInt16); external name '_ScreenRes';
+procedure ScreenRes( var scrnHRes: SInt16; var scrnVRes: SInt16 ); external name '_ScreenRes';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetIndPattern()   *** DEPRECATED ***
@@ -5119,66 +3668,39 @@ procedure ScreenRes(var scrnHRes: SInt16; var scrnVRes: SInt16); external name '
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure GetIndPattern(var thePat: Pattern; patternListID: SInt16; index: SInt16); external name '_GetIndPattern';
+procedure GetIndPattern( var thePat: Pattern; patternListID: SInt16; index: SInt16 ); external name '_GetIndPattern';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
-{$ifc OLDROUTINENAMES}
-{$ifc CALL_NOT_IN_CARBON}
+
+{$endc} {not TARGET_CPU_64}
+
+{$ifc not TARGET_CPU_64}
 {
- *  DisposPixMap()
+ *  deltapoint()   *** DEPRECATED ***
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
  *  
  *  Availability:
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
  }
-procedure DisposPixMap(pm: PixMapHandle); external name '_DisposPixMap';
-{
- *  DisposPixPat()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure DisposPixPat(pp: PixPatHandle); external name '_DisposPixPat';
-{
- *  DisposCTable()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure DisposCTable(cTable: CTabHandle); external name '_DisposCTable';
-{
- *  DisposCCursor()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure DisposCCursor(cCrsr: CCrsrHandle); external name '_DisposCCursor';
-{
- *  DisposGDevice()
- *  
- *  Availability:
- *    Non-Carbon CFM:   not available
- *    CarbonLib:        not available
- *    Mac OS X:         not available
- }
-procedure DisposGDevice(gdh: GDHandle); external name '_DisposGDevice';
-{$endc}  {CALL_NOT_IN_CARBON}
-{$endc}  {OLDROUTINENAMES}
+// overloading not possible
+// function deltapoint( var ptA: Point; var ptB: Point ): SIGNEDLONG;
+// AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
+
+
+{$endc} {not TARGET_CPU_64}
 
 {
     From ToolUtils.i
 }
+{$ifc not TARGET_CPU_64}
 {
  *  PackBits()   *** DEPRECATED ***
  *  
@@ -5186,12 +3708,13 @@ procedure DisposGDevice(gdh: GDHandle); external name '_DisposGDevice';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure PackBits(var srcPtr: Ptr; var dstPtr: Ptr; srcBytes: SInt16); external name '_PackBits';
+procedure PackBits( var srcPtr: Ptr; var dstPtr: Ptr; srcBytes: SInt16 ); external name '_PackBits';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  UnpackBits()   *** DEPRECATED ***
@@ -5200,73 +3723,73 @@ procedure PackBits(var srcPtr: Ptr; var dstPtr: Ptr; srcBytes: SInt16); external
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-procedure UnpackBits(var srcPtr: Ptr; var dstPtr: Ptr; dstBytes: SInt16); external name '_UnpackBits';
+procedure UnpackBits( var srcPtr: Ptr; var dstPtr: Ptr; dstBytes: SInt16 ); external name '_UnpackBits';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  SlopeFromAngle()   *** DEPRECATED ***
+ *  SlopeFromAngle()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function SlopeFromAngle(angle: SInt16): Fixed; external name '_SlopeFromAngle';
+function SlopeFromAngle( angle: SInt16 ): Fixed; external name '_SlopeFromAngle';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  AngleFromSlope()   *** DEPRECATED ***
+ *  AngleFromSlope()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function AngleFromSlope(slope: Fixed): SInt16; external name '_AngleFromSlope';
+function AngleFromSlope( slope: Fixed ): SInt16; external name '_AngleFromSlope';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 { New transfer modes }
+{$endc} {not TARGET_CPU_64}
 
 const
-	colorXorXFer				= 52;
-	noiseXFer					= 53;
-	customXFer					= 54;
+	colorXorXFer = 52;
+	noiseXFer = 53;
+	customXFer = 54;
 
-	{	 Custom XFer flags 	}
-	kXFer1PixelAtATime			= $00000001;					{  1 pixel passed to custom XFer proc }
-	kXFerConvertPixelToRGB32	= $00000002;					{  All color depths converted to 32 bit RGB }
-
+{ Custom XFer flags }
+const
+	kXFer1PixelAtATime = $00000001; { 1 pixel passed to custom XFer proc}
+	kXFerConvertPixelToRGB32 = $00000002; { All color depths converted to 32 bit RGB}
 
 type
-	CustomXFerRecPtr = ^CustomXFerRec;
 	CustomXFerRec = record
-		version:				UInt32;
-		srcPixels:				Ptr;
-		destPixels:				Ptr;
-		resultPixels:			Ptr;
-		refCon:					UInt32;
-		pixelSize:				UInt32;
-		pixelCount:				UInt32;
-		firstPixelHV:			Point;
-		destBounds:				Rect;
+		version: UInt32;
+		srcPixels: UnivPtr;
+		destPixels: UnivPtr;
+		resultPixels: UnivPtr;
+		refCon: UInt32;
+		pixelSize: UInt32;
+		pixelCount: UInt32;
+		firstPixelHV: Point;
+		destBounds: Rect;
 	end;
-
-{$ifc TYPED_FUNCTION_POINTERS}
-	CustomXFerProcPtr = procedure(info: CustomXFerRecPtr);
-{$elsec}
-	CustomXFerProcPtr = ProcPtr;
-{$endc}
-
+	CustomXFerRecPtr = ^CustomXFerRec;
+type
+	CustomXFerProcPtr = procedure( info: CustomXFerRecPtr );
+{$ifc not TARGET_CPU_64}
 {
  *  GetPortCustomXFerProc()   *** DEPRECATED ***
  *  
@@ -5274,12 +3797,13 @@ type
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 9.0 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function GetPortCustomXFerProc(port: CGrafPtr; var proc: CustomXFerProcPtr; var flags: UInt32; var refCon: UInt32): OSErr; external name '_GetPortCustomXFerProc';
+function GetPortCustomXFerProc( port: CGrafPtr; var proc: CustomXFerProcPtr; var flags: UInt32; var refCon: UInt32 ): OSErr; external name '_GetPortCustomXFerProc';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetPortCustomXFerProc()   *** DEPRECATED ***
@@ -5288,54 +3812,58 @@ function GetPortCustomXFerProc(port: CGrafPtr; var proc: CustomXFerProcPtr; var 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 9.0 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function SetPortCustomXFerProc(port: CGrafPtr; proc: CustomXFerProcPtr; flags: UInt32; refCon: UInt32): OSErr; external name '_SetPortCustomXFerProc';
+function SetPortCustomXFerProc( port: CGrafPtr; proc: CustomXFerProcPtr; flags: UInt32; refCon: UInt32 ): OSErr; external name '_SetPortCustomXFerProc';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{$endc} {not TARGET_CPU_64}
 
 const
-	kCursorComponentsVersion	= $00010001;
+	kCursorComponentsVersion = $00010001;
 
-	kCursorComponentType		= FourCharCode('curs');
+const
+	kCursorComponentType = FourCharCode('curs');
 
-	{	 Cursor Component capabilities flags 	}
-	cursorDoesAnimate			= $00000001;
-	cursorDoesHardware			= $00000002;
-	cursorDoesUnreadableScreenBits = $00000004;
+{ Cursor Component capabilities flags }
+const
+	cursorDoesAnimate = 1 shl 0;
+	cursorDoesHardware = 1 shl 1;
+	cursorDoesUnreadableScreenBits = 1 shl 2;
 
-	{	 Cursor Component output mode flags 	}
-	kRenderCursorInHardware		= $00000001;
-	kRenderCursorInSoftware		= $00000002;
+{ Cursor Component output mode flags }
+const
+	kRenderCursorInHardware = 1 shl 0;
+	kRenderCursorInSoftware = 1 shl 1;
 
-	{	 Cursor Component Info 	}
-
+{ Cursor Component Info }
 type
 	CursorInfoPtr = ^CursorInfo;
 	CursorInfo = record
-		version:				SInt32;								{  use kCursorComponentsVersion  }
-		capabilities:			SInt32;
-		animateDuration:		SInt32;								{  approximate time between animate tickles  }
-		bounds:					Rect;
-		hotspot:				Point;
-		reserved:				SInt32;								{  must set to zero  }
+		version: SIGNEDLONG;                { use kCursorComponentsVersion }
+		capabilities: SIGNEDLONG;
+		animateDuration: SIGNEDLONG;        { approximate time between animate tickles }
+		bounds: Rect;
+		hotspot: Point;
+		reserved: SIGNEDLONG;               { must set to zero }
 	end;
-
-	{	 Cursor Component Selectors 	}
-
+{ Cursor Component Selectors }
 const
-	kCursorComponentInit		= $0001;
-	kCursorComponentGetInfo		= $0002;
+	kCursorComponentInit = $0001;
+	kCursorComponentGetInfo = $0002;
 	kCursorComponentSetOutputMode = $0003;
-	kCursorComponentSetData		= $0004;
-	kCursorComponentReconfigure	= $0005;
-	kCursorComponentDraw		= $0006;
-	kCursorComponentErase		= $0007;
-	kCursorComponentMove		= $0008;
-	kCursorComponentAnimate		= $0009;
+	kCursorComponentSetData = $0004;
+	kCursorComponentReconfigure = $0005;
+	kCursorComponentDraw = $0006;
+	kCursorComponentErase = $0007;
+	kCursorComponentMove = $0008;
+	kCursorComponentAnimate = $0009;
 	kCursorComponentLastReserved = $0050;
 
+{$ifc not TARGET_CPU_64}
 {
  *  OpenCursorComponent()   *** DEPRECATED ***
  *  
@@ -5343,12 +3871,13 @@ const
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 9.0 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function OpenCursorComponent(c: Component; var ci: ComponentInstance): OSErr; external name '_OpenCursorComponent';
+function OpenCursorComponent( c: Component; var ci: ComponentInstance ): OSErr; external name '_OpenCursorComponent';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  CloseCursorComponent()   *** DEPRECATED ***
@@ -5357,12 +3886,13 @@ function OpenCursorComponent(c: Component; var ci: ComponentInstance): OSErr; ex
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 9.0 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function CloseCursorComponent(ci: ComponentInstance): OSErr; external name '_CloseCursorComponent';
+function CloseCursorComponent( ci: ComponentInstance ): OSErr; external name '_CloseCursorComponent';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetCursorComponent()   *** DEPRECATED ***
@@ -5371,12 +3901,13 @@ function CloseCursorComponent(ci: ComponentInstance): OSErr; external name '_Clo
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 9.0 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function SetCursorComponent(ci: ComponentInstance): OSErr; external name '_SetCursorComponent';
+function SetCursorComponent( ci: ComponentInstance ): OSErr; external name '_SetCursorComponent';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  CursorComponentChanged()   *** DEPRECATED ***
@@ -5385,12 +3916,13 @@ function SetCursorComponent(ci: ComponentInstance): OSErr; external name '_SetCu
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 9.0 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function CursorComponentChanged(ci: ComponentInstance): OSErr; external name '_CursorComponentChanged';
+function CursorComponentChanged( ci: ComponentInstance ): OSErr; external name '_CursorComponentChanged';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  CursorComponentSetData()   *** DEPRECATED ***
@@ -5399,16 +3931,18 @@ function CursorComponentChanged(ci: ComponentInstance): OSErr; external name '_C
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 9.0 and later
+ *    Non-Carbon CFM:   not available
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function CursorComponentSetData(ci: ComponentInstance; data: SInt32): OSErr; external name '_CursorComponentSetData';
+function CursorComponentSetData( ci: ComponentInstance; data: SIGNEDLONG ): OSErr; external name '_CursorComponentSetData';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 { Quickdraw-specific ColorSync matching }
-{ Mac OS X active declarations location.  CMApplication.p[.pas] text copy not compiled for Mac OS X. }
+{$endc} {not TARGET_CPU_64}
 
+{$ifc not TARGET_CPU_64}
 {
  *  CWMatchPixMap()   *** DEPRECATED ***
  *  
@@ -5416,12 +3950,13 @@ function CursorComponentSetData(ci: ComponentInstance; data: SInt32): OSErr; ext
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
- *    CarbonLib:        not available [in CarbonLib 1.0 and later]
- *    Non-Carbon CFM:   not available [in ColorSyncLib 1.0 and later]
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  }
-function CWMatchPixMap( cw: CMWorldRef; var myPixMap: PixMap; progressProc: CMBitmapCallBackUPP { can be NULL }; refCon: UnivPtr ): CMError; external name '_CWMatchPixMap';
+function CWMatchPixMap( cw: CMWorldRef; var myPixMap: PixMap; progressProc: CMBitmapCallBackUPP; refCon: UnivPtr ): CMError; external name '_CWMatchPixMap';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  CWCheckPixMap()   *** DEPRECATED ***
@@ -5430,12 +3965,13 @@ function CWMatchPixMap( cw: CMWorldRef; var myPixMap: PixMap; progressProc: CMBi
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
- *    CarbonLib:        not available [in CarbonLib 1.0 and later]
- *    Non-Carbon CFM:   not available [in ColorSyncLib 1.0 and later]
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  }
-function CWCheckPixMap( cw: CMWorldRef; var myPixMap: PixMap; progressProc: CMBitmapCallBackUPP { can be NULL }; refCon: UnivPtr; var resultBitMap: BitMap ): CMError; external name '_CWCheckPixMap';
+function CWCheckPixMap( cw: CMWorldRef; var myPixMap: PixMap; progressProc: CMBitmapCallBackUPP; refCon: UnivPtr; var resultBitMap: BitMap ): CMError; external name '_CWCheckPixMap';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  NCMBeginMatching()   *** DEPRECATED ***
@@ -5444,12 +3980,13 @@ function CWCheckPixMap( cw: CMWorldRef; var myPixMap: PixMap; progressProc: CMBi
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
- *    CarbonLib:        not available [in CarbonLib 1.0 and later]
- *    Non-Carbon CFM:   not available [in ColorSyncLib 2.0 and later]
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  }
 function NCMBeginMatching( src: CMProfileRef; dst: CMProfileRef; var myRef: CMMatchRef ): CMError; external name '_NCMBeginMatching';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  CMEndMatching()   *** DEPRECATED ***
@@ -5458,12 +3995,13 @@ function NCMBeginMatching( src: CMProfileRef; dst: CMProfileRef; var myRef: CMMa
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
- *    CarbonLib:        not available [in CarbonLib 1.0 and later]
- *    Non-Carbon CFM:   not available [in ColorSyncLib 2.0 and later]
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  }
 procedure CMEndMatching( myRef: CMMatchRef ); external name '_CMEndMatching';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  NCMDrawMatchedPicture()   *** DEPRECATED ***
@@ -5472,12 +4010,13 @@ procedure CMEndMatching( myRef: CMMatchRef ); external name '_CMEndMatching';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
- *    CarbonLib:        not available [in CarbonLib 1.0 and later]
- *    Non-Carbon CFM:   not available [in ColorSyncLib 2.0 and later]
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  }
 procedure NCMDrawMatchedPicture( myPicture: PicHandle; dst: CMProfileRef; var myRect: Rect ); external name '_NCMDrawMatchedPicture';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  CMEnableMatchingComment()   *** DEPRECATED ***
@@ -5486,12 +4025,13 @@ procedure NCMDrawMatchedPicture( myPicture: PicHandle; dst: CMProfileRef; var my
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
- *    CarbonLib:        not available [in CarbonLib 1.0 and later]
- *    Non-Carbon CFM:   not available [in ColorSyncLib 2.0 and later]
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  }
 procedure CMEnableMatchingComment( enableIt: Boolean ); external name '_CMEnableMatchingComment';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  NCMUseProfileComment()   *** DEPRECATED ***
@@ -5500,14 +4040,17 @@ procedure CMEnableMatchingComment( enableIt: Boolean ); external name '_CMEnable
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
- *    CarbonLib:        not available [in CarbonLib 1.0 and later]
- *    Non-Carbon CFM:   not available [in ColorSyncLib 2.0 and later]
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        not available
+ *    Non-Carbon CFM:   not available
  }
 function NCMUseProfileComment( prof: CMProfileRef; flags: UInt32 ): CMError; external name '_NCMUseProfileComment';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
-{ Available in CarbonLib... }
+
+{$endc} {not TARGET_CPU_64}
+
+{$ifc not TARGET_CPU_64}
 {
  *  IsValidPort()   *** DEPRECATED ***
  *  
@@ -5536,12 +4079,13 @@ function NCMUseProfileComment( prof: CMProfileRef; flags: UInt32 ): CMError; ext
  *    valid (unless memory has been clobbered)
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
-function IsValidPort(port: CGrafPtr): boolean; external name '_IsValidPort';
+function IsValidPort( port: CGrafPtr ): Boolean; external name '_IsValidPort';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  IsValidRgnHandle()
@@ -5567,16 +4111,19 @@ function IsValidPort(port: CGrafPtr): boolean; external name '_IsValidPort';
  *    RgnHandle.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
 function IsValidRgnHandle( rgn: RgnHandle ): Boolean; external name '_IsValidRgnHandle';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
-{$ifc ACCESSOR_CALLS_ARE_FUNCTIONS}
+
+{$endc} {not TARGET_CPU_64}
+
 { GrafPort }
 { Getters }
+{$ifc not TARGET_CPU_64}
 {
  *  GetPortPixMap()   *** DEPRECATED ***
  *  
@@ -5584,15 +4131,16 @@ function IsValidRgnHandle( rgn: RgnHandle ): Boolean; external name '_IsValidRgn
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortPixMap(port: CGrafPtr): PixMapHandle; external name '_GetPortPixMap';
+function GetPortPixMap( port: CGrafPtr ): PixMapHandle; external name '_GetPortPixMap';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
+
 {
- *  GetPortBitMapForCopyBits()
+ *  GetPortBitMapForCopyBits()   *** DEPRECATED ***
  *  
  *  Discussion:
  *    GetPortBitMapForCopyBits is provided for the specific purpose of
@@ -5609,451 +4157,482 @@ function GetPortPixMap(port: CGrafPtr): PixMapHandle; external name '_GetPortPix
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0.2 and later
  }
-function GetPortBitMapForCopyBits(port: CGrafPtr): BitMapPtr; external name '_GetPortBitMapForCopyBits';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortBitMapForCopyBits( port: CGrafPtr ): BitMapPtr; external name '_GetPortBitMapForCopyBits';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortBounds()
+ *  GetPortBounds()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortBounds(port: CGrafPtr; var rect_: Rect): RectPtr; external name '_GetPortBounds';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortBounds( port: CGrafPtr; var rect_: Rect ): RectPtr; external name '_GetPortBounds';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortForeColor()
+ *  GetPortForeColor()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortForeColor(port: CGrafPtr; var foreColor: RGBColor): RGBColorPtr; external name '_GetPortForeColor';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortForeColor( port: CGrafPtr; var foreColor: RGBColor ): RGBColorPtr; external name '_GetPortForeColor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortBackColor()
+ *  GetPortBackColor()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortBackColor(port: CGrafPtr; var backColor: RGBColor): RGBColorPtr; external name '_GetPortBackColor';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortBackColor( port: CGrafPtr; var backColor: RGBColor ): RGBColorPtr; external name '_GetPortBackColor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortOpColor()
+ *  GetPortOpColor()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortOpColor(port: CGrafPtr; var opColor: RGBColor): RGBColorPtr; external name '_GetPortOpColor';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortOpColor( port: CGrafPtr; var opColor: RGBColor ): RGBColorPtr; external name '_GetPortOpColor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortHiliteColor()
+ *  GetPortHiliteColor()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortHiliteColor(port: CGrafPtr; var hiliteColor: RGBColor): RGBColorPtr; external name '_GetPortHiliteColor';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortHiliteColor( port: CGrafPtr; var hiliteColor: RGBColor ): RGBColorPtr; external name '_GetPortHiliteColor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortGrafProcs()
+ *  GetPortGrafProcs()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortGrafProcs(port: CGrafPtr): CQDProcsPtr; external name '_GetPortGrafProcs';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortGrafProcs( port: CGrafPtr ): CQDProcsPtr; external name '_GetPortGrafProcs';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortTextFont()
+ *  GetPortTextFont()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortTextFont(port: CGrafPtr): SInt16; external name '_GetPortTextFont';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortTextFont( port: CGrafPtr ): SInt16; external name '_GetPortTextFont';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortTextFace()
+ *  GetPortTextFace()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortTextFace(port: CGrafPtr): ByteParameter; external name '_GetPortTextFace';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortTextFace( port: CGrafPtr ): ByteParameter; external name '_GetPortTextFace';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortTextMode()
+ *  GetPortTextMode()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortTextMode(port: CGrafPtr): SInt16; external name '_GetPortTextMode';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortTextMode( port: CGrafPtr ): SInt16; external name '_GetPortTextMode';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortTextSize()
+ *  GetPortTextSize()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortTextSize(port: CGrafPtr): SInt16; external name '_GetPortTextSize';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortTextSize( port: CGrafPtr ): SInt16; external name '_GetPortTextSize';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortChExtra()
+ *  GetPortChExtra()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortChExtra(port: CGrafPtr): SInt16; external name '_GetPortChExtra';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortChExtra( port: CGrafPtr ): SInt16; external name '_GetPortChExtra';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortFracHPenLocation()
+ *  GetPortFracHPenLocation()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortFracHPenLocation(port: CGrafPtr): SInt16; external name '_GetPortFracHPenLocation';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortFracHPenLocation( port: CGrafPtr ): SInt16; external name '_GetPortFracHPenLocation';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortSpExtra()
+ *  GetPortSpExtra()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortSpExtra(port: CGrafPtr): Fixed; external name '_GetPortSpExtra';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortSpExtra( port: CGrafPtr ): Fixed; external name '_GetPortSpExtra';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortPenVisibility()
+ *  GetPortPenVisibility()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortPenVisibility(port: CGrafPtr): SInt16; external name '_GetPortPenVisibility';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortPenVisibility( port: CGrafPtr ): SInt16; external name '_GetPortPenVisibility';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortVisibleRegion()
+ *  GetPortVisibleRegion()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortVisibleRegion(port: CGrafPtr; visRgn: RgnHandle): RgnHandle; external name '_GetPortVisibleRegion';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortVisibleRegion( port: CGrafPtr; visRgn: RgnHandle ): RgnHandle; external name '_GetPortVisibleRegion';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortClipRegion()
+ *  GetPortClipRegion()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortClipRegion(port: CGrafPtr; clipRgn: RgnHandle): RgnHandle; external name '_GetPortClipRegion';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortClipRegion( port: CGrafPtr; clipRgn: RgnHandle ): RgnHandle; external name '_GetPortClipRegion';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortBackPixPat()
+ *  GetPortBackPixPat()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortBackPixPat(port: CGrafPtr; backPattern: PixPatHandle): PixPatHandle; external name '_GetPortBackPixPat';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortBackPixPat( port: CGrafPtr; backPattern: PixPatHandle ): PixPatHandle; external name '_GetPortBackPixPat';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortPenPixPat()
+ *  GetPortPenPixPat()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortPenPixPat(port: CGrafPtr; penPattern: PixPatHandle): PixPatHandle; external name '_GetPortPenPixPat';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortPenPixPat( port: CGrafPtr; penPattern: PixPatHandle ): PixPatHandle; external name '_GetPortPenPixPat';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortFillPixPat()
+ *  GetPortFillPixPat()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortFillPixPat(port: CGrafPtr; fillPattern: PixPatHandle): PixPatHandle; external name '_GetPortFillPixPat';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortFillPixPat( port: CGrafPtr; fillPattern: PixPatHandle ): PixPatHandle; external name '_GetPortFillPixPat';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortPenSize()
+ *  GetPortPenSize()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortPenSize(port: CGrafPtr; var penSize: Point): PointPtr; external name '_GetPortPenSize';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortPenSize( port: CGrafPtr; var penSize: Point ): PointPtr; external name '_GetPortPenSize';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortPenMode()
+ *  GetPortPenMode()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortPenMode(port: CGrafPtr): SInt32; external name '_GetPortPenMode';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortPenMode( port: CGrafPtr ): SInt32; external name '_GetPortPenMode';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  GetPortPenLocation()
+ *  GetPortPenLocation()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPortPenLocation(port: CGrafPtr; var penLocation: Point): PointPtr; external name '_GetPortPenLocation';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function GetPortPenLocation( port: CGrafPtr; var penLocation: Point ): PointPtr; external name '_GetPortPenLocation';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  IsPortRegionBeingDefined()
+ *  IsPortRegionBeingDefined()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function IsPortRegionBeingDefined(port: CGrafPtr): boolean; external name '_IsPortRegionBeingDefined';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function IsPortRegionBeingDefined( port: CGrafPtr ): Boolean; external name '_IsPortRegionBeingDefined';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  IsPortPictureBeingDefined()
+ *  IsPortPictureBeingDefined()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function IsPortPictureBeingDefined(port: CGrafPtr): boolean; external name '_IsPortPictureBeingDefined';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function IsPortPictureBeingDefined( port: CGrafPtr ): Boolean; external name '_IsPortPictureBeingDefined';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  IsPortPolyBeingDefined()
+ *  IsPortPolyBeingDefined()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.3 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.3 and later
  }
-function IsPortPolyBeingDefined(port: CGrafPtr): boolean; external name '_IsPortPolyBeingDefined';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function IsPortPolyBeingDefined( port: CGrafPtr ): Boolean; external name '_IsPortPolyBeingDefined';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  IsPortOffscreen()
+ *  IsPortOffscreen()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function IsPortOffscreen(port: CGrafPtr): boolean; external name '_IsPortOffscreen';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function IsPortOffscreen( port: CGrafPtr ): Boolean; external name '_IsPortOffscreen';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  IsPortColor()
+ *  IsPortColor()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.0
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0.2 and later
  }
-function IsPortColor(port: CGrafPtr): boolean; external name '_IsPortColor';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+function IsPortColor( port: CGrafPtr ): Boolean; external name '_IsPortColor';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  IsPortVisibleRegionEmpty()
+ *  IsPortVisibleRegionEmpty()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.1
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.3 and later
  *    Non-Carbon CFM:   not available
  }
-function IsPortVisibleRegionEmpty(port: CGrafPtr): boolean; external name '_IsPortVisibleRegionEmpty';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+function IsPortVisibleRegionEmpty( port: CGrafPtr ): Boolean; external name '_IsPortVisibleRegionEmpty';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  IsPortClipRegionEmpty()
+ *  IsPortClipRegionEmpty()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Thread safe since version 10.1
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.3 and later
  *    Non-Carbon CFM:   not available
  }
-function IsPortClipRegionEmpty(port: CGrafPtr): boolean; external name '_IsPortClipRegionEmpty';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+function IsPortClipRegionEmpty( port: CGrafPtr ): Boolean; external name '_IsPortClipRegionEmpty';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  SectRegionWithPortClipRegion()
+ *  SectRegionWithPortClipRegion()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.3 and later
  *    Non-Carbon CFM:   not available
  }
-procedure SectRegionWithPortClipRegion(port: CGrafPtr; ioRegion: RgnHandle); external name '_SectRegionWithPortClipRegion';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+procedure SectRegionWithPortClipRegion( port: CGrafPtr; ioRegion: RgnHandle ); external name '_SectRegionWithPortClipRegion';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  SectRegionWithPortVisibleRegion()
+ *  SectRegionWithPortVisibleRegion()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.3 and later
  *    Non-Carbon CFM:   not available
  }
-procedure SectRegionWithPortVisibleRegion(port: CGrafPtr; ioRegion: RgnHandle); external name '_SectRegionWithPortVisibleRegion';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+procedure SectRegionWithPortVisibleRegion( port: CGrafPtr; ioRegion: RgnHandle ); external name '_SectRegionWithPortVisibleRegion';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 
 { Swappers }
 {
- *  SwapPortPicSaveHandle()
+ *  SwapPortPicSaveHandle()   *** DEPRECATED ***
  *  
  *  Summary:
  *    Sets the port's picSave Handle, and returns the previous picSave
@@ -6080,41 +4659,43 @@ procedure SectRegionWithPortVisibleRegion(port: CGrafPtr; ioRegion: RgnHandle); 
  *    The previous picSave Handle in the port.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.5 and later
  *    Non-Carbon CFM:   not available
  }
-function SwapPortPicSaveHandle(port: CGrafPtr; inPicSaveHdl: Handle): Handle; external name '_SwapPortPicSaveHandle';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+function SwapPortPicSaveHandle( port: CGrafPtr; inPicSaveHdl: Handle ): Handle; external name '_SwapPortPicSaveHandle';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 { Similarly: }
 {
- *  SwapPortPolySaveHandle()
+ *  SwapPortPolySaveHandle()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.6 and later
  *    Non-Carbon CFM:   not available
  }
-function SwapPortPolySaveHandle(port: CGrafPtr; inPolySaveHdl: Handle): Handle; external name '_SwapPortPolySaveHandle';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+function SwapPortPolySaveHandle( port: CGrafPtr; inPolySaveHdl: Handle ): Handle; external name '_SwapPortPolySaveHandle';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  SwapPortRegionSaveHandle()
+ *  SwapPortRegionSaveHandle()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.6 and later
  *    Non-Carbon CFM:   not available
  }
-function SwapPortRegionSaveHandle(port: CGrafPtr; inRegionSaveHdl: Handle): Handle; external name '_SwapPortRegionSaveHandle';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+function SwapPortRegionSaveHandle( port: CGrafPtr; inRegionSaveHdl: Handle ): Handle; external name '_SwapPortRegionSaveHandle';
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 
 { Setters }
@@ -6125,12 +4706,13 @@ function SwapPortRegionSaveHandle(port: CGrafPtr; inRegionSaveHdl: Handle): Hand
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-procedure SetPortBounds(port: CGrafPtr; const (*var*) rect_: Rect); external name '_SetPortBounds';
+procedure SetPortBounds( port: CGrafPtr; const (*var*) rect_: Rect ); external name '_SetPortBounds';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetPortOpColor()   *** DEPRECATED ***
@@ -6139,12 +4721,13 @@ procedure SetPortBounds(port: CGrafPtr; const (*var*) rect_: Rect); external nam
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-procedure SetPortOpColor(port: CGrafPtr; const (*var*) opColor: RGBColor); external name '_SetPortOpColor';
+procedure SetPortOpColor( port: CGrafPtr; const (*var*) opColor: RGBColor ); external name '_SetPortOpColor';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetPortGrafProcs()   *** DEPRECATED ***
@@ -6153,68 +4736,73 @@ procedure SetPortOpColor(port: CGrafPtr; const (*var*) opColor: RGBColor); exter
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-procedure SetPortGrafProcs(port: CGrafPtr; procs: CQDProcsPtr); external name '_SetPortGrafProcs';
+procedure SetPortGrafProcs( port: CGrafPtr; procs: CQDProcsPtr ); external name '_SetPortGrafProcs';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
-{
- *  SetPortTextFont()
- *  
- *  Mac OS X threading:
- *    Not thread safe
- *  
- *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
- *    CarbonLib:        in CarbonLib 1.5 and later
- *    Non-Carbon CFM:   not available
- }
-procedure SetPortTextFont(port: CGrafPtr; txFont: SInt16); external name '_SetPortTextFont';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
 
 {
- *  SetPortTextSize()
+ *  SetPortTextFont()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.5 and later
  *    Non-Carbon CFM:   not available
  }
-procedure SetPortTextSize(port: CGrafPtr; txSize: SInt16); external name '_SetPortTextSize';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+procedure SetPortTextFont( port: CGrafPtr; txFont: SInt16 ); external name '_SetPortTextFont';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  SetPortTextFace()
+ *  SetPortTextSize()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.5 and later
  *    Non-Carbon CFM:   not available
  }
-procedure SetPortTextFace(port: CGrafPtr; face: StyleParameter); external name '_SetPortTextFace';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+procedure SetPortTextSize( port: CGrafPtr; txSize: SInt16 ); external name '_SetPortTextSize';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  SetPortTextMode()
+ *  SetPortTextFace()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.5 and later
  *    Non-Carbon CFM:   not available
  }
-procedure SetPortTextMode(port: CGrafPtr; mode: SInt16); external name '_SetPortTextMode';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+procedure SetPortTextFace( port: CGrafPtr; face: StyleParameter ); external name '_SetPortTextFace';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{
+ *  SetPortTextMode()   *** DEPRECATED ***
+ *  
+ *  Mac OS X threading:
+ *    Not thread safe
+ *  
+ *  Availability:
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
+ *    CarbonLib:        in CarbonLib 1.5 and later
+ *    Non-Carbon CFM:   not available
+ }
+procedure SetPortTextMode( port: CGrafPtr; mode: SInt16 ); external name '_SetPortTextMode';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetPortVisibleRegion()   *** DEPRECATED ***
@@ -6223,12 +4811,13 @@ procedure SetPortTextMode(port: CGrafPtr; mode: SInt16); external name '_SetPort
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-procedure SetPortVisibleRegion(port: CGrafPtr; visRgn: RgnHandle); external name '_SetPortVisibleRegion';
+procedure SetPortVisibleRegion( port: CGrafPtr; visRgn: RgnHandle ); external name '_SetPortVisibleRegion';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetPortClipRegion()   *** DEPRECATED ***
@@ -6237,12 +4826,13 @@ procedure SetPortVisibleRegion(port: CGrafPtr; visRgn: RgnHandle); external name
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-procedure SetPortClipRegion(port: CGrafPtr; clipRgn: RgnHandle); external name '_SetPortClipRegion';
+procedure SetPortClipRegion( port: CGrafPtr; clipRgn: RgnHandle ); external name '_SetPortClipRegion';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetPortPenPixPat()   *** DEPRECATED ***
@@ -6251,12 +4841,13 @@ procedure SetPortClipRegion(port: CGrafPtr; clipRgn: RgnHandle); external name '
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-procedure SetPortPenPixPat(port: CGrafPtr; penPattern: PixPatHandle); external name '_SetPortPenPixPat';
+procedure SetPortPenPixPat( port: CGrafPtr; penPattern: PixPatHandle ); external name '_SetPortPenPixPat';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetPortFillPixPat()   *** DEPRECATED ***
@@ -6265,12 +4856,13 @@ procedure SetPortPenPixPat(port: CGrafPtr; penPattern: PixPatHandle); external n
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.2 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.2 and later
  }
-procedure SetPortFillPixPat(port: CGrafPtr; penPattern: PixPatHandle); external name '_SetPortFillPixPat';
+procedure SetPortFillPixPat( port: CGrafPtr; penPattern: PixPatHandle ); external name '_SetPortFillPixPat';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetPortBackPixPat()   *** DEPRECATED ***
@@ -6279,12 +4871,13 @@ procedure SetPortFillPixPat(port: CGrafPtr; penPattern: PixPatHandle); external 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-procedure SetPortBackPixPat(port: CGrafPtr; backPattern: PixPatHandle); external name '_SetPortBackPixPat';
+procedure SetPortBackPixPat( port: CGrafPtr; backPattern: PixPatHandle ); external name '_SetPortBackPixPat';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetPortPenSize()   *** DEPRECATED ***
@@ -6293,12 +4886,13 @@ procedure SetPortBackPixPat(port: CGrafPtr; backPattern: PixPatHandle); external
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-procedure SetPortPenSize(port: CGrafPtr; penSize: Point); external name '_SetPortPenSize';
+procedure SetPortPenSize( port: CGrafPtr; penSize: Point ); external name '_SetPortPenSize';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetPortPenMode()   *** DEPRECATED ***
@@ -6307,12 +4901,13 @@ procedure SetPortPenSize(port: CGrafPtr; penSize: Point); external name '_SetPor
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-procedure SetPortPenMode(port: CGrafPtr; penMode: SInt32); external name '_SetPortPenMode';
+procedure SetPortPenMode( port: CGrafPtr; penMode: SInt32 ); external name '_SetPortPenMode';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetPortFracHPenLocation()   *** DEPRECATED ***
@@ -6321,12 +4916,13 @@ procedure SetPortPenMode(port: CGrafPtr; penMode: SInt32); external name '_SetPo
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-procedure SetPortFracHPenLocation(port: CGrafPtr; pnLocHFrac: SInt16); external name '_SetPortFracHPenLocation';
+procedure SetPortFracHPenLocation( port: CGrafPtr; pnLocHFrac: SInt16 ); external name '_SetPortFracHPenLocation';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 { PixMap }
 {
@@ -6336,12 +4932,13 @@ procedure SetPortFracHPenLocation(port: CGrafPtr; pnLocHFrac: SInt16); external 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPixBounds(pixMap: PixMapHandle; var bounds: Rect): RectPtr; external name '_GetPixBounds';
+function GetPixBounds( pixMap: PixMapHandle; var bounds: Rect ): RectPtr; external name '_GetPixBounds';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetPixDepth()   *** DEPRECATED ***
@@ -6350,12 +4947,13 @@ function GetPixBounds(pixMap: PixMapHandle; var bounds: Rect): RectPtr; external
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetPixDepth(pixMap: PixMapHandle): SInt16; external name '_GetPixDepth';
+function GetPixDepth( pixMap: PixMapHandle ): SInt16; external name '_GetPixDepth';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 { QDGlobals }
 { Getters }
@@ -6366,12 +4964,13 @@ function GetPixDepth(pixMap: PixMapHandle): SInt16; external name '_GetPixDepth'
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetQDGlobalsRandomSeed: SInt32; external name '_GetQDGlobalsRandomSeed';
+function GetQDGlobalsRandomSeed: SIGNEDLONG; external name '_GetQDGlobalsRandomSeed';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetQDGlobalsScreenBits()   *** DEPRECATED ***
@@ -6380,12 +4979,13 @@ function GetQDGlobalsRandomSeed: SInt32; external name '_GetQDGlobalsRandomSeed'
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetQDGlobalsScreenBits(var screenBits: BitMap): BitMapPtr; external name '_GetQDGlobalsScreenBits';
+function GetQDGlobalsScreenBits( var screenBits: BitMap ): BitMapPtr; external name '_GetQDGlobalsScreenBits';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetQDGlobalsArrow()   *** DEPRECATED ***
@@ -6394,12 +4994,13 @@ function GetQDGlobalsScreenBits(var screenBits: BitMap): BitMapPtr; external nam
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetQDGlobalsArrow(var arrow: Cursor): CursorPtr; external name '_GetQDGlobalsArrow';
+function GetQDGlobalsArrow( var arrow: Cursor ): CursorPtr; external name '_GetQDGlobalsArrow';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetQDGlobalsDarkGray()   *** DEPRECATED ***
@@ -6408,12 +5009,13 @@ function GetQDGlobalsArrow(var arrow: Cursor): CursorPtr; external name '_GetQDG
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetQDGlobalsDarkGray(var dkGray: Pattern): PatternPtr; external name '_GetQDGlobalsDarkGray';
+function GetQDGlobalsDarkGray( var dkGray: Pattern ): PatternPtr; external name '_GetQDGlobalsDarkGray';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetQDGlobalsLightGray()   *** DEPRECATED ***
@@ -6422,12 +5024,13 @@ function GetQDGlobalsDarkGray(var dkGray: Pattern): PatternPtr; external name '_
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetQDGlobalsLightGray(var ltGray: Pattern): PatternPtr; external name '_GetQDGlobalsLightGray';
+function GetQDGlobalsLightGray( var ltGray: Pattern ): PatternPtr; external name '_GetQDGlobalsLightGray';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetQDGlobalsGray()   *** DEPRECATED ***
@@ -6436,12 +5039,13 @@ function GetQDGlobalsLightGray(var ltGray: Pattern): PatternPtr; external name '
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetQDGlobalsGray(var gray: Pattern): PatternPtr; external name '_GetQDGlobalsGray';
+function GetQDGlobalsGray( var gray: Pattern ): PatternPtr; external name '_GetQDGlobalsGray';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetQDGlobalsBlack()   *** DEPRECATED ***
@@ -6450,12 +5054,13 @@ function GetQDGlobalsGray(var gray: Pattern): PatternPtr; external name '_GetQDG
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetQDGlobalsBlack(var black: Pattern): PatternPtr; external name '_GetQDGlobalsBlack';
+function GetQDGlobalsBlack( var black: Pattern ): PatternPtr; external name '_GetQDGlobalsBlack';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetQDGlobalsWhite()   *** DEPRECATED ***
@@ -6464,12 +5069,13 @@ function GetQDGlobalsBlack(var black: Pattern): PatternPtr; external name '_GetQ
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function GetQDGlobalsWhite(var white: Pattern): PatternPtr; external name '_GetQDGlobalsWhite';
+function GetQDGlobalsWhite( var white: Pattern ): PatternPtr; external name '_GetQDGlobalsWhite';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  GetQDGlobalsThePort()   *** DEPRECATED ***
@@ -6478,12 +5084,13 @@ function GetQDGlobalsWhite(var white: Pattern): PatternPtr; external name '_GetQ
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
 function GetQDGlobalsThePort: CGrafPtr; external name '_GetQDGlobalsThePort';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 { Setters }
 {
@@ -6493,12 +5100,13 @@ function GetQDGlobalsThePort: CGrafPtr; external name '_GetQDGlobalsThePort';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-procedure SetQDGlobalsRandomSeed(randomSeed: SInt32); external name '_SetQDGlobalsRandomSeed';
+procedure SetQDGlobalsRandomSeed( randomSeed: SIGNEDLONG ); external name '_SetQDGlobalsRandomSeed';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetQDGlobalsArrow()   *** DEPRECATED ***
@@ -6507,41 +5115,44 @@ procedure SetQDGlobalsRandomSeed(randomSeed: SInt32); external name '_SetQDGloba
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-procedure SetQDGlobalsArrow(const (*var*) arrow: Cursor); external name '_SetQDGlobalsArrow';
+procedure SetQDGlobalsArrow( const (*var*) arrow: Cursor ); external name '_SetQDGlobalsArrow';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 { Regions }
 {
- *  GetRegionBounds()   *** DEPRECATED ***
+ *  GetRegionBounds()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-//AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4;
-function GetRegionBounds(region: RgnHandle; var bounds: Rect): RectPtr; external name '_GetRegionBounds'; (* attribute ignoreable *)
+function GetRegionBounds( region: RgnHandle; var bounds: Rect ): RectPtr; external name '_GetRegionBounds'; (* attribute ignoreable *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 {
- *  IsRegionRectangular()   *** DEPRECATED ***
+ *  IsRegionRectangular()
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-function IsRegionRectangular(region: RgnHandle): boolean; external name '_IsRegionRectangular';
-(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+function IsRegionRectangular( region: RgnHandle ): Boolean; external name '_IsRegionRectangular';
+(* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
+
 
 { Utilities }
 { To prevent upward dependencies, GetWindowFromPort() is defined in Window Manager interface: }
@@ -6554,12 +5165,13 @@ function IsRegionRectangular(region: RgnHandle): boolean; external name '_IsRegi
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
 function CreateNewPort: CGrafPtr; external name '_CreateNewPort';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  DisposePort()   *** DEPRECATED ***
@@ -6568,12 +5180,13 @@ function CreateNewPort: CGrafPtr; external name '_CreateNewPort';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0 and later
  }
-procedure DisposePort(port: CGrafPtr); external name '_DisposePort';
+procedure DisposePort( port: CGrafPtr ); external name '_DisposePort';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SetQDError()   *** DEPRECATED ***
@@ -6582,17 +5195,19 @@ procedure DisposePort(port: CGrafPtr); external name '_DisposePort';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
  *    Non-Carbon CFM:   in CarbonAccessors.o 1.0.2 and later
  }
-procedure SetQDError(err: OSErr); external name '_SetQDError';
+procedure SetQDError( err: OSErr ); external name '_SetQDError';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
-{$endc}  {ACCESSOR_CALLS_ARE_FUNCTIONS}
 
-{  Helpful Carbon-only utilities (finally made public) }
+{$endc} {not TARGET_CPU_64}
 
+{ Helpful Carbon-only utilities (finally made public)}
+
+{$ifc not TARGET_CPU_64}
 {
  *  QDLocalToGlobalPoint()   *** DEPRECATED ***
  *  
@@ -6600,12 +5215,13 @@ procedure SetQDError(err: OSErr); external name '_SetQDError';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
-function QDLocalToGlobalPoint(port: CGrafPtr; var point_: Point): PointPtr; external name '_QDLocalToGlobalPoint';
+function QDLocalToGlobalPoint( port: CGrafPtr; var point_: Point ): PointPtr; external name '_QDLocalToGlobalPoint';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  QDGlobalToLocalPoint()   *** DEPRECATED ***
@@ -6614,12 +5230,13 @@ function QDLocalToGlobalPoint(port: CGrafPtr; var point_: Point): PointPtr; exte
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
-function QDGlobalToLocalPoint(port: CGrafPtr; var point_: Point): PointPtr; external name '_QDGlobalToLocalPoint';
+function QDGlobalToLocalPoint( port: CGrafPtr; var point_: Point ): PointPtr; external name '_QDGlobalToLocalPoint';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  QDLocalToGlobalRect()   *** DEPRECATED ***
@@ -6628,12 +5245,13 @@ function QDGlobalToLocalPoint(port: CGrafPtr; var point_: Point): PointPtr; exte
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
-function QDLocalToGlobalRect(port: CGrafPtr; var bounds: Rect): RectPtr; external name '_QDLocalToGlobalRect';
+function QDLocalToGlobalRect( port: CGrafPtr; var bounds: Rect ): RectPtr; external name '_QDLocalToGlobalRect';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  QDGlobalToLocalRect()   *** DEPRECATED ***
@@ -6642,12 +5260,13 @@ function QDLocalToGlobalRect(port: CGrafPtr; var bounds: Rect): RectPtr; externa
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
-function QDGlobalToLocalRect(port: CGrafPtr; var bounds: Rect): RectPtr; external name '_QDGlobalToLocalRect';
+function QDGlobalToLocalRect( port: CGrafPtr; var bounds: Rect ): RectPtr; external name '_QDGlobalToLocalRect';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  QDLocalToGlobalRegion()   *** DEPRECATED ***
@@ -6656,12 +5275,13 @@ function QDGlobalToLocalRect(port: CGrafPtr; var bounds: Rect): RectPtr; externa
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
-function QDLocalToGlobalRegion(port: CGrafPtr; region: RgnHandle): RgnHandle; external name '_QDLocalToGlobalRegion';
+function QDLocalToGlobalRegion( port: CGrafPtr; region: RgnHandle ): RgnHandle; external name '_QDLocalToGlobalRegion';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  QDGlobalToLocalRegion()   *** DEPRECATED ***
@@ -6670,11 +5290,11 @@ function QDLocalToGlobalRegion(port: CGrafPtr; region: RgnHandle): RgnHandle; ex
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
-function QDGlobalToLocalRegion(port: CGrafPtr; region: RgnHandle): RgnHandle; external name '_QDGlobalToLocalRegion';
+function QDGlobalToLocalRegion( port: CGrafPtr; region: RgnHandle ): RgnHandle; external name '_QDGlobalToLocalRegion';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 
@@ -6690,12 +5310,13 @@ function QDGlobalToLocalRegion(port: CGrafPtr; region: RgnHandle): RgnHandle; ex
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
  *    Non-Carbon CFM:   not available
  }
-function QDIsPortBuffered(port: CGrafPtr): boolean; external name '_QDIsPortBuffered';
+function QDIsPortBuffered( port: CGrafPtr ): Boolean; external name '_QDIsPortBuffered';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  QDIsPortBufferDirty()   *** DEPRECATED ***
@@ -6704,12 +5325,13 @@ function QDIsPortBuffered(port: CGrafPtr): boolean; external name '_QDIsPortBuff
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
  *    Non-Carbon CFM:   not available
  }
-function QDIsPortBufferDirty(port: CGrafPtr): boolean; external name '_QDIsPortBufferDirty';
+function QDIsPortBufferDirty( port: CGrafPtr ): Boolean; external name '_QDIsPortBufferDirty';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  QDFlushPortBuffer()   *** DEPRECATED ***
@@ -6718,12 +5340,13 @@ function QDIsPortBufferDirty(port: CGrafPtr): boolean; external name '_QDIsPortB
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0.2 and later
  *    Non-Carbon CFM:   not available
  }
-procedure QDFlushPortBuffer(port: CGrafPtr; region: RgnHandle); external name '_QDFlushPortBuffer';
+procedure QDFlushPortBuffer( port: CGrafPtr; region: RgnHandle { can be NULL } ); external name '_QDFlushPortBuffer';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  QDGetDirtyRegion()   *** DEPRECATED ***
@@ -6732,12 +5355,13 @@ procedure QDFlushPortBuffer(port: CGrafPtr; region: RgnHandle); external name '_
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
-function QDGetDirtyRegion(port: CGrafPtr; rgn: RgnHandle): OSStatus; external name '_QDGetDirtyRegion';
+function QDGetDirtyRegion( port: CGrafPtr; rgn: RgnHandle ): OSStatus; external name '_QDGetDirtyRegion';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  QDSetDirtyRegion()   *** DEPRECATED ***
@@ -6746,12 +5370,13 @@ function QDGetDirtyRegion(port: CGrafPtr; rgn: RgnHandle): OSStatus; external na
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
-function QDSetDirtyRegion(port: CGrafPtr; rgn: RgnHandle): OSStatus; external name '_QDSetDirtyRegion';
+function QDSetDirtyRegion( port: CGrafPtr; rgn: RgnHandle ): OSStatus; external name '_QDSetDirtyRegion';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  QDAddRectToDirtyRegion()   *** DEPRECATED ***
@@ -6760,12 +5385,13 @@ function QDSetDirtyRegion(port: CGrafPtr; rgn: RgnHandle): OSStatus; external na
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.5 and later
  *    Non-Carbon CFM:   not available
  }
-function QDAddRectToDirtyRegion(inPort: CGrafPtr; const (*var*) inBounds: Rect): OSStatus; external name '_QDAddRectToDirtyRegion';
+function QDAddRectToDirtyRegion( inPort: CGrafPtr; const (*var*) inBounds: Rect ): OSStatus; external name '_QDAddRectToDirtyRegion';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  QDAddRegionToDirtyRegion()   *** DEPRECATED ***
@@ -6774,11 +5400,11 @@ function QDAddRectToDirtyRegion(inPort: CGrafPtr; const (*var*) inBounds: Rect):
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.5 and later
  *    Non-Carbon CFM:   not available
  }
-function QDAddRegionToDirtyRegion(inPort: CGrafPtr; inRegion: RgnHandle): OSStatus; external name '_QDAddRegionToDirtyRegion';
+function QDAddRegionToDirtyRegion( inPort: CGrafPtr; inRegion: RgnHandle ): OSStatus; external name '_QDAddRegionToDirtyRegion';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 
@@ -6789,12 +5415,13 @@ function QDAddRegionToDirtyRegion(inPort: CGrafPtr; inRegion: RgnHandle): OSStat
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
-function CreateCGContextForPort(inPort: CGrafPtr; var outContext: CGContextRef): OSStatus; external name '_CreateCGContextForPort';
+function CreateCGContextForPort( inPort: CGrafPtr; var outContext: CGContextRef ): OSStatus; external name '_CreateCGContextForPort';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  ClipCGContextToRegion()   *** DEPRECATED ***
@@ -6832,12 +5459,13 @@ function CreateCGContextForPort(inPort: CGrafPtr; var outContext: CGContextRef):
  *    failed.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
-function ClipCGContextToRegion(gc: CGContextRef; const (*var*) portRect: Rect; region: RgnHandle): OSStatus; external name '_ClipCGContextToRegion';
+function ClipCGContextToRegion( gc: CGContextRef; const (*var*) portRect: Rect; region: RgnHandle ): OSStatus; external name '_ClipCGContextToRegion';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  SyncCGContextOriginWithPort()   *** DEPRECATED ***
@@ -6846,12 +5474,13 @@ function ClipCGContextToRegion(gc: CGContextRef; const (*var*) portRect: Rect; r
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
-function SyncCGContextOriginWithPort(inContext: CGContextRef; port: CGrafPtr): OSStatus; external name '_SyncCGContextOriginWithPort';
+function SyncCGContextOriginWithPort( inContext: CGContextRef; port: CGrafPtr ): OSStatus; external name '_SyncCGContextOriginWithPort';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  QDBeginCGContext()
@@ -6886,12 +5515,13 @@ function SyncCGContextOriginWithPort(inContext: CGContextRef; port: CGrafPtr): O
  *      The CGContextRef to be used for CG drawing
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
  *    Non-Carbon CFM:   not available
  }
-function QDBeginCGContext(inPort: CGrafPtr; var outContext: CGContextRef): OSStatus; external name '_QDBeginCGContext';
+function QDBeginCGContext( inPort: CGrafPtr; var outContext: CGContextRef ): OSStatus; external name '_QDBeginCGContext';
 (* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+
 
 {
  *  QDEndCGContext()
@@ -6900,26 +5530,28 @@ function QDBeginCGContext(inPort: CGrafPtr; var outContext: CGContextRef): OSSta
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.1 and later
  *    Non-Carbon CFM:   not available
  }
-function QDEndCGContext(inPort: CGrafPtr; var inoutContext: CGContextRef): OSStatus; external name '_QDEndCGContext';
+function QDEndCGContext( inPort: CGrafPtr; var inoutContext: CGContextRef ): OSStatus; external name '_QDEndCGContext';
 (* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
 
+
 {
-    The following routines are implemented in CarbonLib, and on Mac OS X in QD proper.
     They save the pixel data of a region in a packed format for quick save/restore 
     without using a lot of memory to do a large, hollow region, such as the region
     used when drag hiliting (which is where this is used).
 }
 
+{$endc} {not TARGET_CPU_64}
 
 type
-	QDRegionBitsRef    = ^SInt32; { an opaque 32-bit type }
+	QDRegionBitsRef = ^SInt32; { an opaque type }
 	QDRegionBitsRefPtr = ^QDRegionBitsRef;  { when a var xx:QDRegionBitsRef parameter can be nil, it is changed to xx: QDRegionBitsRefPtr }
+{$ifc not TARGET_CPU_64}
 {
- *  QDSaveRegionBits()
+ *  QDSaveRegionBits()   *** DEPRECATED ***
  *  
  *  Summary:
  *    Saves the pixel data of a region in a packed format for quick
@@ -6942,15 +5574,16 @@ type
  *    The QDRegionBitsRef to be passed later into QDRestoreRegionBits.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
-function QDSaveRegionBits(region: RgnHandle): QDRegionBitsRef; external name '_QDSaveRegionBits';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+function QDSaveRegionBits( region: RgnHandle ): QDRegionBitsRef; external name '_QDSaveRegionBits';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  QDRestoreRegionBits()
+ *  QDRestoreRegionBits()   *** DEPRECATED ***
  *  
  *  Summary:
  *    Restores the pixel data of a region, as returned from
@@ -6978,15 +5611,16 @@ function QDSaveRegionBits(region: RgnHandle): QDRegionBitsRef; external name '_Q
  *    OSStatus noErr, or paramErr if a NULL parameter is passed in
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
-function QDRestoreRegionBits(region: RgnHandle; regionBits: QDRegionBitsRef): OSStatus; external name '_QDRestoreRegionBits';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+function QDRestoreRegionBits( region: RgnHandle; regionBits: QDRegionBitsRef ): OSStatus; external name '_QDRestoreRegionBits';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  QDDisposeRegionBits()
+ *  QDDisposeRegionBits()   *** DEPRECATED ***
  *  
  *  Summary:
  *    Disposes of data allocated in QDSaveRegionBits, when the
@@ -7012,12 +5646,13 @@ function QDRestoreRegionBits(region: RgnHandle; regionBits: QDRegionBitsRef): OS
  *    OSStatus noErr, or paramErr if a NULL parameter is passed in
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
  *    Non-Carbon CFM:   not available
  }
-function QDDisposeRegionBits(regionBits: QDRegionBitsRef): OSStatus; external name '_QDDisposeRegionBits';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+function QDDisposeRegionBits( regionBits: QDRegionBitsRef ): OSStatus; external name '_QDDisposeRegionBits';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
    Developers need a way to go from a CGDirectDisplay environment to Quickdraw.
@@ -7033,12 +5668,13 @@ function QDDisposeRegionBits(regionBits: QDRegionBitsRef): OSStatus; external na
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
-function CreateNewPortForCGDisplayID(inCGDisplayID: UInt32): CGrafPtr; external name '_CreateNewPortForCGDisplayID';
+function CreateNewPortForCGDisplayID( inCGDisplayID: UInt32 ): CGrafPtr; external name '_CreateNewPortForCGDisplayID';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
    In Mac OS X, developers should be able to turn the WaitCursor (spinning wheel)
@@ -7053,15 +5689,16 @@ function CreateNewPortForCGDisplayID(inCGDisplayID: UInt32): CGrafPtr; external 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.0 and later
  *    Non-Carbon CFM:   not available
  }
-procedure QDDisplayWaitCursor(forceWaitCursor: boolean); external name '_QDDisplayWaitCursor';
+procedure QDDisplayWaitCursor( forceWaitCursor: Boolean ); external name '_QDDisplayWaitCursor';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
+
 {
- *  QDSetPatternOrigin()
+ *  QDSetPatternOrigin()   *** DEPRECATED ***
  *  
  *  Summary:
  *    Sets the pattern origin for the current port.
@@ -7093,15 +5730,16 @@ procedure QDDisplayWaitCursor(forceWaitCursor: boolean); external name '_QDDispl
  *      The new pattern origin of the port.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.3 and later
  *    Non-Carbon CFM:   in NQD 8.5 and later
  }
-procedure QDSetPatternOrigin(origin: Point); external name '_QDSetPatternOrigin';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+procedure QDSetPatternOrigin( origin: Point ); external name '_QDSetPatternOrigin';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  QDGetPatternOrigin()
+ *  QDGetPatternOrigin()   *** DEPRECATED ***
  *  
  *  Summary:
  *    Returns the pattern origin of the current port.
@@ -7115,15 +5753,16 @@ procedure QDSetPatternOrigin(origin: Point); external name '_QDSetPatternOrigin'
  *      On exit, contains the current port's pattern origin.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.1 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.3 and later
  *    Non-Carbon CFM:   in NQD 8.5 and later
  }
-procedure QDGetPatternOrigin(var origin: Point); external name '_QDGetPatternOrigin';
-(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER *)
+procedure QDGetPatternOrigin( var origin: Point ); external name '_QDGetPatternOrigin';
+(* AVAILABLE_MAC_OS_X_VERSION_10_1_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
- *  QDIsNamedPixMapCursorRegistered()
+ *  QDIsNamedPixMapCursorRegistered()   *** DEPRECATED ***
  *  
  *  Summary:
  *    Returns whether a named cursor has already been registered.
@@ -7144,16 +5783,16 @@ procedure QDGetPatternOrigin(var origin: Point); external name '_QDGetPatternOri
  *      (see below at QDRegisterNamedPixMapCursor)
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
 function QDIsNamedPixMapCursorRegistered( name: ConstCStringPtr ): Boolean; external name '_QDIsNamedPixMapCursorRegistered';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 
 {
- *  QDRegisterNamedPixMapCursor()
+ *  QDRegisterNamedPixMapCursor()   *** DEPRECATED ***
  *  
  *  Summary:
  *    Register a new cursor by name
@@ -7201,73 +5840,76 @@ function QDIsNamedPixMapCursorRegistered( name: ConstCStringPtr ): Boolean; exte
  *      as returned internally from CoreGraphics.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
 function QDRegisterNamedPixMapCursor( crsrData: PixMapHandle; crsrMask: PixMapHandle; hotSpot: Point; name: ConstCStringPtr ): OSStatus; external name '_QDRegisterNamedPixMapCursor';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 
 {
- *  QDUnregisterNamedPixMapCursur()
+ *  QDUnregisterNamedPixMapCursur()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
 function QDUnregisterNamedPixMapCursur( name: ConstCStringPtr ): OSStatus; external name '_QDUnregisterNamedPixMapCursur';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 
 {
- *  QDUnregisterNamedPixMapCursor()
+ *  QDUnregisterNamedPixMapCursor()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
 function QDUnregisterNamedPixMapCursor( name: ConstCStringPtr ): OSStatus; external name '_QDUnregisterNamedPixMapCursor';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 
 {
- *  QDSetNamedPixMapCursor()
+ *  QDSetNamedPixMapCursor()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
 function QDSetNamedPixMapCursor( name: ConstCStringPtr ): OSStatus; external name '_QDSetNamedPixMapCursor';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 
-type 
-	QDXSystemCursorID = UInt32;
+{$endc} {not TARGET_CPU_64}
+
 const
-  kQDXArrowCursor               = 0;
-  kQDXIBeamCursor               = 1;
-  kQDXIBeamXORCursor            = 2;
-  kQDXAliasCursor               = 3;
-  kQDXCopyCursor                = 4;
-  kQDXMoveCursor                = 5;
-  kQDXNumberOfSystemCursors     = 6;     { Must be last }
+	kQDXArrowCursor = 0;
+	kQDXIBeamCursor = 1;
+	kQDXIBeamXORCursor = 2;
+	kQDXAliasCursor = 3;
+	kQDXCopyCursor = 4;
+	kQDXMoveCursor = 5;
+	kQDXNumberOfSystemCursors = 6;     { Must be last }
 
 
+type
+	QDXSystemCursorID = UInt32;
+{$ifc not TARGET_CPU_64}
 {
- *  QDGetCursorNameForSystemCursor()
+ *  QDGetCursorNameForSystemCursor()   *** DEPRECATED ***
  *  
  *  Summary:
  *    Return the name of one of the predefined Mac OS X system cursors
@@ -7285,16 +5927,16 @@ const
  *    const char* name, or NULL if 'cursorID' is out of range
  *  
  *  Availability:
- *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
 function QDGetCursorNameForSystemCursor( cursorID: QDXSystemCursorID ): ConstCStringPtr; external name '_QDGetCursorNameForSystemCursor';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 
 {
- *  QDSetCursorScale()
+ *  QDSetCursorScale()   *** DEPRECATED ***
  *  
  *  Summary:
  *    Set a scaling factor for the cursor.
@@ -7313,31 +5955,31 @@ function QDGetCursorNameForSystemCursor( cursorID: QDXSystemCursorID ): ConstCSt
  *      device driver capabilities and performance considerations.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
 function QDSetCursorScale( scale: Float32 ): OSStatus; external name '_QDSetCursorScale';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 
 {
- *  QDGetCursorScale()
+ *  QDGetCursorScale()   *** DEPRECATED ***
  *  
  *  Mac OS X threading:
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
 function QDGetCursorScale( outScale: Float32Ptr ): OSStatus; external name '_QDGetCursorScale';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 
 {
- *  QDGetCursorData()
+ *  QDGetCursorData()   *** DEPRECATED ***
  *  
  *  Summary:
  *    Allocate and return a PixMapHandle with the cursor data; also
@@ -7370,25 +6012,29 @@ function QDGetCursorScale( outScale: Float32Ptr ): OSStatus; external name '_QDG
  *    levels otherwise.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
 function QDGetCursorData( contextCursor: Boolean; var crsrData: PixMapHandle; var hotSpot: Point ): OSStatus; external name '_QDGetCursorData';
-(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
+
+{$endc} {not TARGET_CPU_64}
 
 const
-  kQDUseDefaultTextRendering    = 0;    { Sets whatever is specified in system defaults. }
+	kQDUseDefaultTextRendering = 0;    { Sets whatever is specified in system defaults.}
                                         { Currently sets kQDUseTrueTypeScalerGlyphs if nothing is specified.}
-  kQDUseTrueTypeScalerGlyphs    = (1 shl 0); { bit 0}
-  kQDUseCGTextRendering         = (1 shl 1); { bit 1}
-  kQDUseCGTextMetrics           = (1 shl 2); { bit 2}
-  kQDSupportedFlags             = kQDUseTrueTypeScalerGlyphs or kQDUseCGTextRendering or kQDUseCGTextMetrics;
-  kQDDontChangeFlags            = $FFFFFFFF; { to request the current state, without changing anything }
+	kQDUseTrueTypeScalerGlyphs = 1 shl 0; { bit 0}
+	kQDUseCGTextRendering = 1 shl 1; { bit 1}
+	kQDUseCGTextMetrics = 1 shl 2; { bit 2}
+	kQDSupportedFlags = kQDUseTrueTypeScalerGlyphs or kQDUseCGTextRendering or kQDUseCGTextMetrics;
+	kQDDontChangeFlags = -1; { to request the current state, without changing anything}
 
 
+{$ifc not TARGET_CPU_64}
 {
- *  QDSwapTextFlags()
+ *  QDSwapTextFlags()   *** DEPRECATED ***
  *  
  *  Summary:
  *    Returns current flags and optionally sets new flags.
@@ -7410,16 +6056,16 @@ const
  *      kQDUseCGTextMetrics".
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
 function QDSwapTextFlags( newFlags: UInt32 ): UInt32; external name '_QDSwapTextFlags';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 
 {
- *  QDSwapPortTextFlags()
+ *  QDSwapPortTextFlags()   *** DEPRECATED ***
  *  
  *  Summary:
  *    Same as QDSwapTextFlags, but per GrafPort.
@@ -7437,12 +6083,12 @@ function QDSwapTextFlags( newFlags: UInt32 ): UInt32; external name '_QDSwapText
  *      As in QDSwapTextFlags, above.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.2 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.2 and later
  *    Non-Carbon CFM:   not available
  }
 function QDSwapPortTextFlags( port: CGrafPtr; newFlags: UInt32 ): UInt32; external name '_QDSwapPortTextFlags';
-(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER *)
+(* AVAILABLE_MAC_OS_X_VERSION_10_2_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
 
 {
@@ -7465,12 +6111,13 @@ function QDSwapPortTextFlags( port: CGrafPtr; newFlags: UInt32 ): UInt32; extern
  *    display.
  *  
  *  Availability:
- *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework
+ *    Mac OS X:         in version 10.3 and later in ApplicationServices.framework [32-bit only]
  *    CarbonLib:        not available in CarbonLib 1.x, is available on Mac OS X version 10.3 and later
  *    Non-Carbon CFM:   not available
  }
 function QDGetCGDirectDisplayID( inGDevice: GDHandle ): CGDirectDisplayID; external name '_QDGetCGDirectDisplayID';
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
+
 
 { 
     LowMem accessor functions previously in LowMem.h
@@ -7482,12 +6129,13 @@ function QDGetCGDirectDisplayID( inGDevice: GDHandle ): CGDirectDisplayID; exter
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
 function LMGetScrVRes: SInt16; external name '_LMGetScrVRes';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMSetScrVRes()   *** DEPRECATED ***
@@ -7496,12 +6144,13 @@ function LMGetScrVRes: SInt16; external name '_LMGetScrVRes';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-procedure LMSetScrVRes(value: SInt16); external name '_LMSetScrVRes';
+procedure LMSetScrVRes( value: SInt16 ); external name '_LMSetScrVRes';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMGetScrHRes()   *** DEPRECATED ***
@@ -7510,12 +6159,13 @@ procedure LMSetScrVRes(value: SInt16); external name '_LMSetScrVRes';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
 function LMGetScrHRes: SInt16; external name '_LMGetScrHRes';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMSetScrHRes()   *** DEPRECATED ***
@@ -7524,12 +6174,13 @@ function LMGetScrHRes: SInt16; external name '_LMGetScrHRes';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-procedure LMSetScrHRes(value: SInt16); external name '_LMSetScrHRes';
+procedure LMSetScrHRes( value: SInt16 ); external name '_LMSetScrHRes';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMGetMainDevice()   *** DEPRECATED ***
@@ -7538,12 +6189,13 @@ procedure LMSetScrHRes(value: SInt16); external name '_LMSetScrHRes';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
 function LMGetMainDevice: GDHandle; external name '_LMGetMainDevice';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMSetMainDevice()   *** DEPRECATED ***
@@ -7552,12 +6204,13 @@ function LMGetMainDevice: GDHandle; external name '_LMGetMainDevice';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-procedure LMSetMainDevice(value: GDHandle); external name '_LMSetMainDevice';
+procedure LMSetMainDevice( value: GDHandle ); external name '_LMSetMainDevice';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMGetDeviceList()   *** DEPRECATED ***
@@ -7566,12 +6219,13 @@ procedure LMSetMainDevice(value: GDHandle); external name '_LMSetMainDevice';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
 function LMGetDeviceList: GDHandle; external name '_LMGetDeviceList';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMSetDeviceList()   *** DEPRECATED ***
@@ -7580,12 +6234,13 @@ function LMGetDeviceList: GDHandle; external name '_LMGetDeviceList';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-procedure LMSetDeviceList(value: GDHandle); external name '_LMSetDeviceList';
+procedure LMSetDeviceList( value: GDHandle ); external name '_LMSetDeviceList';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMGetQDColors()   *** DEPRECATED ***
@@ -7594,12 +6249,13 @@ procedure LMSetDeviceList(value: GDHandle); external name '_LMSetDeviceList';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
 function LMGetQDColors: Handle; external name '_LMGetQDColors';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMSetQDColors()   *** DEPRECATED ***
@@ -7608,12 +6264,13 @@ function LMGetQDColors: Handle; external name '_LMGetQDColors';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-procedure LMSetQDColors(value: Handle); external name '_LMSetQDColors';
+procedure LMSetQDColors( value: Handle ); external name '_LMSetQDColors';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMGetWidthListHand()   *** DEPRECATED ***
@@ -7622,12 +6279,13 @@ procedure LMSetQDColors(value: Handle); external name '_LMSetQDColors';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
 function LMGetWidthListHand: Handle; external name '_LMGetWidthListHand';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMSetWidthListHand()   *** DEPRECATED ***
@@ -7636,12 +6294,13 @@ function LMGetWidthListHand: Handle; external name '_LMGetWidthListHand';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-procedure LMSetWidthListHand(value: Handle); external name '_LMSetWidthListHand';
+procedure LMSetWidthListHand( value: Handle ); external name '_LMSetWidthListHand';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMGetHiliteMode()   *** DEPRECATED ***
@@ -7650,12 +6309,13 @@ procedure LMSetWidthListHand(value: Handle); external name '_LMSetWidthListHand'
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-function LMGetHiliteMode: ByteParameter; external name '_LMGetHiliteMode';
+function LMGetHiliteMode: UInt8; external name '_LMGetHiliteMode';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMSetHiliteMode()   *** DEPRECATED ***
@@ -7664,12 +6324,13 @@ function LMGetHiliteMode: ByteParameter; external name '_LMGetHiliteMode';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-procedure LMSetHiliteMode(value: ByteParameter); external name '_LMSetHiliteMode';
+procedure LMSetHiliteMode( value: ByteParameter ); external name '_LMSetHiliteMode';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMGetWidthPtr()   *** DEPRECATED ***
@@ -7678,12 +6339,13 @@ procedure LMSetHiliteMode(value: ByteParameter); external name '_LMSetHiliteMode
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
 function LMGetWidthPtr: Ptr; external name '_LMGetWidthPtr';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMSetWidthPtr()   *** DEPRECATED ***
@@ -7692,12 +6354,13 @@ function LMGetWidthPtr: Ptr; external name '_LMGetWidthPtr';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-procedure LMSetWidthPtr(value: Ptr); external name '_LMSetWidthPtr';
+procedure LMSetWidthPtr( value: Ptr ); external name '_LMSetWidthPtr';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMGetWidthTabHandle()   *** DEPRECATED ***
@@ -7706,12 +6369,13 @@ procedure LMSetWidthPtr(value: Ptr); external name '_LMSetWidthPtr';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
 function LMGetWidthTabHandle: Handle; external name '_LMGetWidthTabHandle';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMSetWidthTabHandle()   *** DEPRECATED ***
@@ -7720,12 +6384,13 @@ function LMGetWidthTabHandle: Handle; external name '_LMGetWidthTabHandle';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-procedure LMSetWidthTabHandle(value: Handle); external name '_LMSetWidthTabHandle';
+procedure LMSetWidthTabHandle( value: Handle ); external name '_LMSetWidthTabHandle';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMGetLastSPExtra()   *** DEPRECATED ***
@@ -7734,12 +6399,13 @@ procedure LMSetWidthTabHandle(value: Handle); external name '_LMSetWidthTabHandl
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
 function LMGetLastSPExtra: SInt32; external name '_LMGetLastSPExtra';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMSetLastSPExtra()   *** DEPRECATED ***
@@ -7748,12 +6414,13 @@ function LMGetLastSPExtra: SInt32; external name '_LMGetLastSPExtra';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-procedure LMSetLastSPExtra(value: SInt32); external name '_LMSetLastSPExtra';
+procedure LMSetLastSPExtra( value: SInt32 ); external name '_LMSetLastSPExtra';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMGetLastFOND()   *** DEPRECATED ***
@@ -7762,12 +6429,13 @@ procedure LMSetLastSPExtra(value: SInt32); external name '_LMSetLastSPExtra';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
 function LMGetLastFOND: Handle; external name '_LMGetLastFOND';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMSetLastFOND()   *** DEPRECATED ***
@@ -7776,12 +6444,13 @@ function LMGetLastFOND: Handle; external name '_LMGetLastFOND';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-procedure LMSetLastFOND(value: Handle); external name '_LMSetLastFOND';
+procedure LMSetLastFOND( value: Handle ); external name '_LMSetLastFOND';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMGetFractEnable()   *** DEPRECATED ***
@@ -7790,12 +6459,13 @@ procedure LMSetLastFOND(value: Handle); external name '_LMSetLastFOND';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-function LMGetFractEnable: ByteParameter; external name '_LMGetFractEnable';
+function LMGetFractEnable: UInt8; external name '_LMGetFractEnable';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMSetFractEnable()   *** DEPRECATED ***
@@ -7804,12 +6474,13 @@ function LMGetFractEnable: ByteParameter; external name '_LMGetFractEnable';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-procedure LMSetFractEnable(value: ByteParameter); external name '_LMSetFractEnable';
+procedure LMSetFractEnable( value: ByteParameter ); external name '_LMSetFractEnable';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMGetTheGDevice()   *** DEPRECATED ***
@@ -7818,12 +6489,13 @@ procedure LMSetFractEnable(value: ByteParameter); external name '_LMSetFractEnab
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
 function LMGetTheGDevice: GDHandle; external name '_LMGetTheGDevice';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMSetTheGDevice()   *** DEPRECATED ***
@@ -7832,13 +6504,17 @@ function LMGetTheGDevice: GDHandle; external name '_LMGetTheGDevice';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-procedure LMSetTheGDevice(value: GDHandle); external name '_LMSetTheGDevice';
+procedure LMSetTheGDevice( value: GDHandle ); external name '_LMSetTheGDevice';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
+
+{$endc} {not TARGET_CPU_64}
+
+{$ifc not TARGET_CPU_64}
 {
  *  LMGetHiliteRGB()   *** DEPRECATED ***
  *  
@@ -7846,12 +6522,13 @@ procedure LMSetTheGDevice(value: GDHandle); external name '_LMSetTheGDevice';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-procedure LMGetHiliteRGB(var hiliteRGBValue: RGBColor); external name '_LMGetHiliteRGB';
+procedure LMGetHiliteRGB( var hiliteRGBValue: RGBColor ); external name '_LMGetHiliteRGB';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMSetHiliteRGB()   *** DEPRECATED ***
@@ -7860,13 +6537,17 @@ procedure LMGetHiliteRGB(var hiliteRGBValue: RGBColor); external name '_LMGetHil
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 7.1 and later
+ *    Non-Carbon CFM:   not available
  }
-procedure LMSetHiliteRGB(const (*var*) hiliteRGBValue: RGBColor); external name '_LMSetHiliteRGB';
+procedure LMSetHiliteRGB( const (*var*) hiliteRGBValue: RGBColor ); external name '_LMSetHiliteRGB';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
+
+{$endc} {not TARGET_CPU_64}
+
+{$ifc not TARGET_CPU_64}
 {
  *  LMGetCursorNew()   *** DEPRECATED ***
  *  
@@ -7874,12 +6555,13 @@ procedure LMSetHiliteRGB(const (*var*) hiliteRGBValue: RGBColor); external name 
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
+ *    Non-Carbon CFM:   not available
  }
-function LMGetCursorNew: boolean; external name '_LMGetCursorNew';
+function LMGetCursorNew: Boolean; external name '_LMGetCursorNew';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
+
 
 {
  *  LMSetCursorNew()   *** DEPRECATED ***
@@ -7888,14 +6570,20 @@ function LMGetCursorNew: boolean; external name '_LMGetCursorNew';
  *    Not thread safe
  *  
  *  Availability:
- *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework but deprecated in 10.4
+ *    Mac OS X:         in version 10.0 and later in ApplicationServices.framework [32-bit only] but deprecated in 10.4
  *    CarbonLib:        in CarbonLib 1.0 and later
- *    Non-Carbon CFM:   in InterfaceLib 8.5 and later
+ *    Non-Carbon CFM:   not available
  }
-procedure LMSetCursorNew(value: boolean); external name '_LMSetCursorNew';
+procedure LMSetCursorNew( value: Boolean ); external name '_LMSetCursorNew';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER_BUT_DEPRECATED_IN_MAC_OS_X_VERSION_10_4 *)
 
-{$ALIGN MAC68K}
 
+{$endc} {not TARGET_CPU_64}
+
+
+{$endc} {TARGET_OS_MAC}
+
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
+{$endc} {not MACOSALLINCLUDE}

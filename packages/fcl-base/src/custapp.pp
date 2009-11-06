@@ -84,7 +84,7 @@ var CustomApplication : TCustomApplication = nil;
 
 Implementation
 
-{$if defined(darwin) and (defined(cpu386) or defined(cpupowerpc32))}
+{$ifdef darwin}
 uses
   MacOSAll;
 {$endif}
@@ -92,8 +92,7 @@ uses
 { TCustomApplication }
 
 function TCustomApplication.GetExeName: string;
-{ we don't have 64 bit clean interfaces to CoreFoundation yet }
-{$if defined(darwin) and (defined(cpu386) or defined(cpupowerpc32))}
+{$if defined(darwin)}
 var
   mainBundle: CFBundleRef;
   executableUrl: CFURLRef;
