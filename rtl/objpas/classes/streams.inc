@@ -821,6 +821,9 @@ begin
   inherited Create;
   FStream:=Stream;
   FOwnership:=Ownership;
+  m_bReverted:=false;   // mantis 15003
+			// http://www.tech-archive.net/Archive/German/microsoft.public.de.vc/2005-08/msg00791.html
+			// http://code.google.com/p/ddab-lib/wiki/TPJIStreamWrapper
 end;
 
 
@@ -836,6 +839,11 @@ function TStreamAdapter.Read(pv: Pointer; cb: DWORD; pcbRead: PDWORD): HResult; 
 var
   readcount: Longint;
 begin
+  if m_bReverted then
+      begin
+        Result := STG_E_REVERTED;
+        Exit;
+      end;
   if pv = nil then
   begin
     Result := E_INVALIDARG;
@@ -851,6 +859,11 @@ function TStreamAdapter.Write(pv: Pointer; cb: DWORD; pcbWritten: PDWORD): HResu
 var
   writecount: Longint;
 begin
+  if m_bReverted then
+      begin
+        Result := STG_E_REVERTED;
+        Exit;
+      end;
   if pv = nil then
   begin
     Result := E_INVALIDARG;
@@ -866,6 +879,11 @@ function TStreamAdapter.Seek(dlibMove: Largeint; dwOrigin: Longint; out libNewPo
 var
   newpos: Int64;
 begin
+  if m_bReverted then
+      begin
+        Result := STG_E_REVERTED;
+        Exit;
+      end;
   case dwOrigin of
     STREAM_SEEK_SET: newpos := FStream.Seek(dlibMove, soBeginning);
     STREAM_SEEK_CUR: newpos := FStream.Seek(dlibMove, soCurrent);
@@ -879,42 +897,59 @@ end;
 
 function TStreamAdapter.SetSize(libNewSize: Largeint): HResult; stdcall;
 begin
+  if m_bReverted then
+      begin
+        Result := STG_E_REVERTED;
+        Exit;
+      end;
   runerror(217);
 end;
 
 
 function TStreamAdapter.CopyTo(stm: IStream; cb: Largeint; out cbRead: Largeint; out cbWritten: Largeint): HResult; stdcall;
 begin
+  if m_bReverted then
+      begin
+        Result := STG_E_REVERTED;
+        Exit;
+      end;
   runerror(217);
 end;
-
 
 function TStreamAdapter.Commit(grfCommitFlags: Longint): HResult; stdcall;
 begin
-  runerror(217);
+  if m_bReverted then
+    Result := STG_E_REVERTED
+  else
+    Result := S_OK;
 end;
-
 
 function TStreamAdapter.Revert: HResult; stdcall;
 begin
-  runerror(217);
+  m_bReverted := True;
+  Result := S_OK;
 end;
 
 
 function TStreamAdapter.LockRegion(libOffset: Largeint; cb: Largeint; dwLockType: Longint): HResult; stdcall;
 begin
-  runerror(217);
+  Result := STG_E_INVALIDFUNCTION;
 end;
 
 
 function TStreamAdapter.UnlockRegion(libOffset: Largeint; cb: Largeint; dwLockType: Longint): HResult; stdcall;
 begin
-  runerror(217);
+  Result := STG_E_INVALIDFUNCTION;
 end;
 
 
 function TStreamAdapter.Stat(out statstg: TStatStg; grfStatFlag: Longint): HResult; stdcall;
 begin
+  if m_bReverted then
+      begin
+        Result := STG_E_REVERTED;
+        Exit;
+      end;
   if grfStatFlag in [STATFLAG_DEFAULT,STATFLAG_NOOPEN,STATFLAG_NONAME] then
   begin
     if @statstg <> nil then
@@ -937,6 +972,11 @@ end;
 
 function TStreamAdapter.Clone(out stm: IStream): HResult; stdcall;
 begin
+  if m_bReverted then
+      begin
+        Result := STG_E_REVERTED;
+        Exit;
+      end;
   runerror(217);
 end;
 

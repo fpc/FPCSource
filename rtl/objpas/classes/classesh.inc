@@ -945,8 +945,9 @@ type
 { Implements OLE IStream on TStream }
   TStreamAdapter = class(TInterfacedObject, IStream)
   private
-    FStream: TStream;
-    FOwnership: TStreamOwnership;
+    FStream    : TStream;
+    FOwnership : TStreamOwnership;
+    m_bReverted: Boolean;
   public
     constructor Create(Stream: TStream; Ownership: TStreamOwnership = soReference);
     destructor Destroy; override;
