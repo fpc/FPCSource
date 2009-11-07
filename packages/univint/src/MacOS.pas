@@ -292,6 +292,7 @@ uses
   Keyboards,
   KeychainCore,
   KeychainHI,
+  KeyEvents,
   LSInfo,
   LSOpen,
   LSQuarantine,
