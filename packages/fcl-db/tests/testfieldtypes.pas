@@ -57,6 +57,7 @@ type
     procedure TestInsertReturningQuery;
 
     procedure TestTemporaryTable;
+    procedure TestRefresh;
 
     procedure TestParametersAndDates;
     procedure TestExceptOnsecClose;
@@ -923,6 +924,43 @@ procedure TTestFieldTypes.RunTest;
 begin
 //  if (SQLDbType in TSQLDBTypes) then
     inherited RunTest;
+end;
+
+procedure TTestFieldTypes.TestRefresh;
+var ADataset: TDataset;
+    i: integer;
+    AFldID, AFldName: TField;
+begin
+  ADataset := TSQLDBConnector(DBConnector).GetNDataset(true,5);
+
+  Adataset.Open;
+  AFldId:=Adataset.Fields[0];
+  AFldName:=Adataset.Fields[1];
+  for i := 1 to 5 do
+    begin
+    AssertEquals(i,AFldID.asinteger);
+    AssertEquals('TestName'+inttostr(i),AFldName.asstring);
+    ADataset.Next;
+    end;
+
+  ADataset.Next;
+  AssertTrue(ADataset.EOF);
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('update FPDEV set NAME=''test'' where ID=2');
+
+  ADataset.Refresh;
+
+  ADataset.First;
+  for i := 1 to 5 do
+    begin
+    AssertEquals(i,AFldID.AsInteger);
+    if i = 2 then
+      AssertEquals('test',AFldName.AsString)
+    else
+      AssertEquals('TestName'+inttostr(i),AFldName.AsString);
+    ADataset.Next;
+    end;
+  ADataset.Next;
+  AssertTrue(ADataset.EOF);
 end;
 
 procedure TTestFieldTypes.TestEmptyUpdateQuery;

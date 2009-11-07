@@ -438,6 +438,8 @@ type
     procedure SetOnUpdateError(const aValue: TResolverErrorEvent);
     procedure SetFilterText(const Value: String); override; {virtual;}
     procedure SetFiltered(Value: Boolean); override; {virtual;}
+    procedure InternalRefresh; override;
+    procedure BeforeRefreshOpenCursor; virtual;
   {abstracts, must be overidden by descendents}
     function Fetch : boolean; virtual;
     function LoadField(FieldDef : TFieldDef;buffer : pointer; out CreateBlob : boolean) : boolean; virtual;
@@ -2622,7 +2624,7 @@ begin
   inherited;
 
   // refilter dataset if filtered
-  if IsCursorOpen and Filtered then Refresh;
+  if IsCursorOpen and Filtered then Resync([]);
 end;
 
 procedure TBufDataset.SetFiltered(Value: Boolean); {override;}
@@ -2635,7 +2637,25 @@ begin
 
   // only refresh if active
   if IsCursorOpen then
-    Refresh;
+    Resync([]);
+end;
+
+procedure TBufDataset.InternalRefresh;
+var StoreDefaultFields: boolean;
+begin
+  StoreDefaultFields:=DefaultFields;
+  SetDefaultFields(False);
+  FreeFieldBuffers;
+  ClearBuffers;
+  InternalClose;
+  BeforeRefreshOpenCursor;
+  InternalOpen;
+  SetDefaultFields(StoreDefaultFields);
+end;
+
+procedure TBufDataset.BeforeRefreshOpenCursor;
+begin
+  // Do nothing
 end;
 
 function TBufDataset.Fetch: boolean;
