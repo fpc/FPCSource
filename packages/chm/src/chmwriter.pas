@@ -44,30 +44,17 @@ Type
                       UrlStrId  : Integer;
                     end;
 
-  { TChmWriter }
+  { TITSFWriter }
 
-  TChmWriter = class(TObject)
+  TITSFWriter = class(TObject)
     FOnLastFile: TNotifyEvent;
   private
-    FHasBinaryTOC: Boolean;
-    FHasBinaryIndex: Boolean;
     ForceExit: Boolean;
-
-    FDefaultFont: String;
-    FDefaultPage: String;
-    FFullTextSearch: Boolean;
     FInternalFiles: TFileEntryList; // Contains a complete list of files in the chm including
     FFrameSize: LongWord;           // uncompressed files and special internal files of the chm
     FCurrentStream: TStream; // used to buffer the files that are to be compressed
     FCurrentIndex: Integer;
     FOnGetFileData: TGetDataFunc;
-    FSearchTitlesOnly: Boolean;
-    FStringsStream: TMemoryStream; // the #STRINGS file
-    FTopicsStream: TMemoryStream;  // the #TOPICS file
-    FURLTBLStream: TMemoryStream;  // the #URLTBL file. has offsets of strings in URLSTR
-    FURLSTRStream: TMemoryStream;  // the #URLSTR file
-    FFiftiMainStream: TMemoryStream;
-    FContextStream: TMemoryStream; // the #IVB file
     FSection0: TMemoryStream;
     FSection1: TStream; // Compressed Stream
     FSection1Size: QWord;
@@ -78,12 +65,8 @@ Type
     FDestroyStream: Boolean;
     FTempStream: TStream;
     FPostStream: TStream;
-    FTitle: String;
-    FHasTOC: Boolean;
-    FHasIndex: Boolean;
     FWindowSize: LongWord;
     FReadCompressedSize: QWord; // Current Size of Uncompressed data that went in Section1 (compressed)
-    FIndexedFiles: TIndexedWordList;
     FPostStreamActive: Boolean;
     // Linear order of file
     ITSFHeader: TITSFHeader;
@@ -92,10 +75,6 @@ Type
     HeaderSuffix: TITSFHeaderSuffix; //contains the offset of CONTENTSection0 from zero
     HeaderSection0: TITSPHeaderPrefix;
     HeaderSection1: TITSPHeader; // DirectoryListings header
-    FAvlStrings   : TAVLTree;    // dedupe strings
-    FAvlURLStr    : TAVLTree;    // dedupe urltbl + binindex must resolve URL to topicid
-    SpareString   : TStringIndex;
-    SpareUrlStr   : TUrlStrIndex;
     // DirectoryListings
     // CONTENT Section 0 (section 1 is contained in section 0)
     // EOF
@@ -106,25 +85,16 @@ Type
     procedure WriteHeader(Stream: TStream);
     procedure CreateDirectoryListings;
     procedure WriteDirectoryListings(Stream: TStream);
+    procedure WriteInternalFilesBefore; virtual;
+    procedure WriteInternalFilesAfter; virtual;
     procedure StartCompressingStream;
-    procedure WriteSYSTEM;
-    procedure WriteITBITS;
-    procedure WriteSTRINGS;
-    procedure WriteTOPICS;
-    procedure WriteIVB; // context ids
-    procedure WriteURL_STR_TBL;
-    procedure WriteOBJINST;
-    procedure WriteFiftiMain;
     procedure WriteREADMEFile;
-    procedure WriteFinalCompressedFiles;
+    procedure WriteFinalCompressedFiles; virtual;
     procedure WriteSection0;
     procedure WriteSection1;
     procedure WriteDataSpaceFiles(const AStream: TStream);
-    function AddString(AString: String): LongWord;
-    function AddURL(AURL: String; TopicsIndex: DWord): LongWord;
-    procedure CheckFileMakeSearchable(AStream: TStream; AFileEntry: TFileEntryRec);
-    function AddTopic(ATitle,AnUrl:AnsiString):integer;
-    function NextTopicIndex: Integer;
+
+    procedure FileAdded(AStream: TStream; const AEntry: TFileEntryRec); virtual;
     // callbacks for lzxcomp
     function  AtEndOfData: Longbool;
     function  GetData(Count: LongInt; Buffer: PByte): LongInt;
@@ -140,9 +110,70 @@ Type
     {$ENDIF}
     // end callbacks
   public
-    constructor Create(OutStream: TStream; FreeStreamOnDestroy: Boolean);
+    constructor Create(AOutStream: TStream; FreeStreamOnDestroy: Boolean); virtual;
     destructor Destroy; override;
     procedure Execute;
+    procedure AddStreamToArchive(AFileName, APath: String; AStream: TStream; Compress: Boolean = True);
+    procedure PostAddStreamToArchive(AFileName, APath: String; AStream: TStream; Compress: Boolean = True);
+    property WindowSize: LongWord read FWindowSize write FWindowSize default 2; // in $8000 blocks
+    property FrameSize: LongWord read FFrameSize write FFrameSize default 1; // in $8000 blocks
+    property FilesToCompress: TStrings read FFileNames;
+    property OnGetFileData: TGetDataFunc read FOnGetFileData write FOnGetFileData;
+    property OnLastFile: TNotifyEvent read FOnLastFile write FOnLastFile;
+    property OutStream: TStream read FOutStream;
+    property TempRawStream: TStream read FTempStream write SetTempRawStream;
+    //property LocaleID: dword read ITSFHeader.LanguageID write ITSFHeader.LanguageID;
+  end;
+
+  { TChmWriter }
+
+  TChmWriter = class(TITSFWriter)
+  private
+    FHasBinaryTOC: Boolean;
+    FHasBinaryIndex: Boolean;
+    FDefaultFont: String;
+    FDefaultPage: String;
+    FFullTextSearch: Boolean;
+    FSearchTitlesOnly: Boolean;
+    FStringsStream: TMemoryStream; // the #STRINGS file
+    FTopicsStream: TMemoryStream;  // the #TOPICS file
+    FURLTBLStream: TMemoryStream;  // the #URLTBL file. has offsets of strings in URLSTR
+    FURLSTRStream: TMemoryStream;  // the #URLSTR file
+    FFiftiMainStream: TMemoryStream;
+    FContextStream: TMemoryStream; // the #IVB file
+    FTitle: String;
+    FHasTOC: Boolean;
+    FHasIndex: Boolean;
+    FIndexedFiles: TIndexedWordList;
+    FAvlStrings   : TAVLTree;    // dedupe strings
+    FAvlURLStr    : TAVLTree;    // dedupe urltbl + binindex must resolve URL to topicid
+    SpareString   : TStringIndex;
+    SpareUrlStr   : TUrlStrIndex;
+  protected
+    procedure FileAdded(AStream: TStream; const AEntry: TFileEntryRec); override;
+  private
+    procedure WriteInternalFilesBefore; override;
+    procedure WriteInternalFilesAfter; override;
+    procedure WriteFinalCompressedFiles; override;
+    procedure WriteSYSTEM;
+    procedure WriteITBITS;
+    procedure WriteSTRINGS;
+    procedure WriteTOPICS;
+    procedure WriteIVB; // context ids
+    procedure WriteURL_STR_TBL;
+    procedure WriteOBJINST;
+    procedure WriteFiftiMain;
+
+    function AddString(AString: String): LongWord;
+    function AddURL(AURL: String; TopicsIndex: DWord): LongWord;
+    procedure CheckFileMakeSearchable(AStream: TStream; AFileEntry: TFileEntryRec);
+    function AddTopic(ATitle,AnUrl:AnsiString):integer;
+    function NextTopicIndex: Integer;
+
+
+  public
+    constructor Create(AOutStream: TStream; FreeStreamOnDestroy: Boolean); override;
+    destructor Destroy; override;
     procedure AppendTOC(AStream: TStream);
     procedure AppendBinaryTOCFromSiteMap(ASiteMap: TChmSiteMap);
     procedure AppendBinaryIndexFromSiteMap(ASiteMap: TChmSiteMap;chw:boolean);
@@ -150,15 +181,8 @@ Type
     procedure AppendBinaryIndexStream(IndexStream,DataStream,MapStream,Propertystream: TStream;chw:boolean);
     procedure AppendIndex(AStream: TStream);
     procedure AppendSearchDB(AName: String; AStream: TStream);
-    procedure AddStreamToArchive(AFileName, APath: String; AStream: TStream; Compress: Boolean = True);
-    procedure PostAddStreamToArchive(AFileName, APath: String; AStream: TStream; Compress: Boolean = True);
     procedure AddContext(AContext: DWord; ATopic: String);
-    property WindowSize: LongWord read FWindowSize write FWindowSize default 2; // in $8000 blocks
-    property FrameSize: LongWord read FFrameSize write FFrameSize default 1; // in $8000 blocks
-    property FilesToCompress: TStrings read FFileNames;
-    property OnGetFileData: TGetDataFunc read FOnGetFileData write FOnGetFileData;
-    property OnLastFile: TNotifyEvent read FOnLastFile write FOnLastFile;
-    property OutStream: TStream read FOutStream;
+
     property Title: String read FTitle write FTitle;
     property FullTextSearch: Boolean read FFullTextSearch write FFullTextSearch;
     property SearchTitlesOnly: Boolean read FSearchTitlesOnly write FSearchTitlesOnly;
@@ -166,8 +190,7 @@ Type
     property HasBinaryIndex: Boolean read FHasBinaryIndex write FHasBinaryIndex;
     property DefaultFont: String read FDefaultFont write FDefaultFont;
     property DefaultPage: String read FDefaultPage write FDefaultPage;
-    property TempRawStream: TStream read FTempStream write SetTempRawStream;
-    //property LocaleID: dword read ITSFHeader.LanguageID write ITSFHeader.LanguageID;
+
   end;
 
 implementation
@@ -208,7 +231,7 @@ end;
 
 { TChmWriter }
 
-procedure TChmWriter.InitITSFHeader;
+procedure TITSFWriter.InitITSFHeader;
 begin
   with ITSFHeader do begin
     ITSFsig := ITSFFileSig;
@@ -223,7 +246,7 @@ begin
   end;
 end;
 
-procedure TChmWriter.InitHeaderSectionTable;
+procedure TITSFWriter.InitHeaderSectionTable;
 begin
   // header section 0
   HeaderSection0Table.PosFromZero := LEToN(ITSFHeader.HeaderLength);
@@ -276,7 +299,7 @@ begin
   HeaderSuffix.Offset := NToLE(HeaderSuffix.Offset);
 end;
 
-procedure TChmWriter.SetTempRawStream(const AValue: TStream);
+procedure TITSFWriter.SetTempRawStream(const AValue: TStream);
 begin
   if (FCurrentStream.Size > 0) or (FSection1.Size > 0) then
     raise Exception.Create('Cannot set the TempRawStream once data has been written to it!');
@@ -288,7 +311,7 @@ begin
   FCurrentStream := AValue;
 end;
 
-procedure TChmWriter.WriteHeader(Stream: TStream);
+procedure TITSFWriter.WriteHeader(Stream: TStream);
 begin
   Stream.Write(ITSFHeader, SizeOf(TITSFHeader));
   Stream.Write(HeaderSection0Table, SizeOf(TITSFHeaderEntry));
@@ -298,7 +321,7 @@ begin
 
 end;
 
-procedure TChmWriter.CreateDirectoryListings;
+procedure TITSFWriter.CreateDirectoryListings;
 type
   TFirstListEntry = record
     Entry: array[0..511] of byte;
@@ -453,7 +476,7 @@ begin
   HeaderSection1.IndexTreeDepth := NtoLE(HeaderSection1.IndexTreeDepth);
 end;
 
-procedure TChmWriter.WriteDirectoryListings(Stream: TStream);
+procedure TITSFWriter.WriteDirectoryListings(Stream: TStream);
 begin
   Stream.Write(HeaderSection1, SizeOf(HeaderSection1));
   FDirectoryListings.Position := 0;
@@ -461,6 +484,430 @@ begin
   FDirectoryListings.Position := 0;
   //TMemoryStream(FDirectoryListings).SaveToFile('dirlistings.pmg');
 end;
+
+procedure TITSFWriter.WriteInternalFilesBefore;
+begin
+  // written to Section0 (uncompressed)
+  WriteREADMEFile;
+end;
+
+procedure TITSFWriter.WriteInternalFilesAfter;
+begin
+end;
+
+procedure IterateWord(aword:TIndexedWord;State:pointer);
+var i,cnt : integer;
+begin
+  cnt:=pinteger(state)^;
+  for i := 0 to AWord.DocumentCount-1 do
+    Inc(cnt, AWord.GetLogicalDocument(i).NumberOfIndexEntries);
+          // was commented in original procedure, seems to list index entries per doc.
+            //WriteLn(AWord.TheWord,'             documents = ', AWord.DocumentCount, ' h
+  pinteger(state)^:=cnt;
+end;
+
+procedure TITSFWriter.WriteREADMEFile;
+const DISCLAIMER_STR = 'This archive was not made by the MS HTML Help Workshop(r)(tm) program.';
+var
+  Entry: TFileEntryRec;
+begin
+  // This procedure puts a file in the archive that says it wasn't compiled with the MS compiler
+  Entry.Compressed := False;
+  Entry.DecompressedOffset := FSection0.Position;
+  FSection0.Write(DISCLAIMER_STR, SizeOf(DISCLAIMER_STR));
+  Entry.DecompressedSize := FSection0.Position - Entry.DecompressedOffset;
+  Entry.Path := '/';
+  Entry.Name := '_#_README_#_'; //try to use a name that won't conflict with normal names
+  FInternalFiles.AddEntry(Entry);
+end;
+
+procedure TITSFWriter.WriteFinalCompressedFiles;
+begin
+
+end;
+
+
+procedure TITSFWriter.WriteSection0;
+begin
+  FSection0.Position := 0;
+  FOutStream.CopyFrom(FSection0, FSection0.Size);
+end;
+
+procedure TITSFWriter.WriteSection1;
+begin
+  WriteContentToStream(FOutStream, FSection1);
+end;
+
+procedure TITSFWriter.WriteDataSpaceFiles(const AStream: TStream);
+var
+  Entry: TFileEntryRec;
+begin
+  // This procedure will write all files starting with ::
+  Entry.Compressed := False; // None of these files are compressed
+
+  //  ::DataSpace/NameList
+  Entry.DecompressedOffset := FSection0.Position;
+  Entry.DecompressedSize := WriteNameListToStream(FSection0, [snUnCompressed,snMSCompressed]);
+  Entry.Path := '::DataSpace/';
+  Entry.Name := 'NameList';
+  FInternalFiles.AddEntry(Entry, False);
+
+  //  ::DataSpace/Storage/MSCompressed/ControlData
+  Entry.DecompressedOffset := FSection0.Position;
+  Entry.DecompressedSize := WriteControlDataToStream(FSection0, 2, 2, 1);
+  Entry.Path := '::DataSpace/Storage/MSCompressed/';
+  Entry.Name := 'ControlData';
+  FInternalFiles.AddEntry(Entry, False);
+
+  //  ::DataSpace/Storage/MSCompressed/SpanInfo
+  Entry.DecompressedOffset := FSection0.Position;
+  Entry.DecompressedSize := WriteSpanInfoToStream(FSection0, FReadCompressedSize);
+  Entry.Path := '::DataSpace/Storage/MSCompressed/';
+  Entry.Name := 'SpanInfo';
+  FInternalFiles.AddEntry(Entry, False);
+
+  //  ::DataSpace/Storage/MSCompressed/Transform/List
+  Entry.DecompressedOffset := FSection0.Position;
+  Entry.DecompressedSize := WriteTransformListToStream(FSection0);
+  Entry.Path := '::DataSpace/Storage/MSCompressed/Transform/';
+  Entry.Name := 'List';
+  FInternalFiles.AddEntry(Entry, False);
+
+  //  ::DataSpace/Storage/MSCompressed/Transform/{7FC28940-9D31-11D0-9B27-00A0C91E9C7C}/
+  //  ::DataSpace/Storage/MSCompressed/Transform/{7FC28940-9D31-11D0-9B27-00A0C91E9C7C}/InstanceData/ResetTable
+  Entry.DecompressedOffset := FSection0.Position;
+  Entry.DecompressedSize := WriteResetTableToStream(FSection0, FSection1ResetTable);
+  Entry.Path := '::DataSpace/Storage/MSCompressed/Transform/{7FC28940-9D31-11D0-9B27-00A0C91E9C7C}/InstanceData/';
+  Entry.Name := 'ResetTable';
+  FInternalFiles.AddEntry(Entry, True);
+
+
+  //  ::DataSpace/Storage/MSCompressed/Content do this last
+  Entry.DecompressedOffset := FSection0.Position;
+  Entry.DecompressedSize := FSection1Size; // we will write it directly to FOutStream later
+  Entry.Path := '::DataSpace/Storage/MSCompressed/';
+  Entry.Name := 'Content';
+  FInternalFiles.AddEntry(Entry, False);
+
+
+end;
+
+procedure TITSFWriter.FileAdded(AStream: TStream; const AEntry: TFileEntryRec);
+begin
+  // do nothing here
+end;
+
+function _AtEndOfData(arg: pointer): LongBool; cdecl;
+begin
+  Result := TITSFWriter(arg).AtEndOfData;
+end;
+
+function TITSFWriter.AtEndOfData: LongBool;
+begin
+  Result := ForceExit or (FCurrentIndex >= FFileNames.Count-1);
+  if Result then
+    Result := Integer(FCurrentStream.Position) >= Integer(FCurrentStream.Size)-1;
+end;
+
+function _GetData(arg: pointer; Count: LongInt; Buffer: Pointer): LongInt; cdecl;
+begin
+  Result := TITSFWriter(arg).GetData(Count, PByte(Buffer));
+end;
+
+function TITSFWriter.GetData(Count: LongInt; Buffer: PByte): LongInt;
+var
+  FileEntry: TFileEntryRec;
+begin
+  Result := 0;
+  while (Result < Count) and (not AtEndOfData) do begin
+    Inc(Result, FCurrentStream.Read(Buffer[Result], Count-Result));
+    if (Result < Count) and (not AtEndOfData)
+    then begin
+      // the current file has been read. move to the next file in the list
+      FCurrentStream.Position := 0;
+      Inc(FCurrentIndex);
+      ForceExit := OnGetFileData(FFileNames[FCurrentIndex], FileEntry.Path, FileEntry.Name, FCurrentStream);
+      FileEntry.DecompressedSize := FCurrentStream.Size;
+      FileEntry.DecompressedOffset := FReadCompressedSize; //269047723;//to test writing really large numbers
+      FileEntry.Compressed := True;
+
+      FileAdded(FCurrentStream, FileEntry);
+
+      FInternalFiles.AddEntry(FileEntry);
+      // So the next file knows it's offset
+      Inc(FReadCompressedSize,  FileEntry.DecompressedSize);
+      FCurrentStream.Position := 0;
+    end;
+
+    // this is intended for programs to add perhaps a file
+    // after all the other files have been added.
+    if (AtEndOfData)
+    and (FCurrentStream <> FPostStream) then
+    begin
+      FPostStreamActive := True;
+      if Assigned(FOnLastFile) then
+        FOnLastFile(Self);
+      FCurrentStream.Free;
+      WriteFinalCompressedFiles;
+      FCurrentStream := FPostStream;
+      FCurrentStream.Position := 0;
+      Inc(FReadCompressedSize, FCurrentStream.Size);
+    end;
+  end;
+end;
+
+function _WriteCompressedData(arg: pointer; Count: LongInt; Buffer: Pointer): LongInt; cdecl;
+begin
+  Result := TITSFWriter(arg).WriteCompressedData(Count, Buffer);
+end;
+
+function TITSFWriter.WriteCompressedData(Count: Longint; Buffer: Pointer): LongInt;
+begin
+  // we allocate a MB at a time to limit memory reallocation since this
+  // writes usually 2 bytes at a time
+  if (FSection1 is TMemoryStream) and (FSection1.Position >= FSection1.Size-1) then begin
+    FSection1.Size := FSection1.Size+$100000;
+  end;
+  Result := FSection1.Write(Buffer^, Count);
+  Inc(FSection1Size, Result);
+end;
+
+procedure _MarkFrame(arg: pointer; UncompressedTotal, CompressedTotal: LongWord); cdecl;
+begin
+  TITSFWriter(arg).MarkFrame(UncompressedTotal, CompressedTotal);
+end;
+
+procedure TITSFWriter.MarkFrame(UnCompressedTotal, CompressedTotal: LongWord);
+  procedure WriteQWord(Value: QWord);
+  begin
+    FSection1ResetTable.Write(NToLE(Value), 8);
+  end;
+  procedure IncEntryCount;
+  var
+    OldPos: QWord;
+    Value: DWord;
+  begin
+    OldPos := FSection1ResetTable.Position;
+    FSection1ResetTable.Position := $4;
+    Value := LeToN(FSection1ResetTable.ReadDWord)+1;
+    FSection1ResetTable.Position := $4;
+    FSection1ResetTable.WriteDWord(NToLE(Value));
+    FSection1ResetTable.Position := OldPos;
+  end;
+  procedure UpdateTotalSizes;
+  var
+    OldPos: QWord;
+  begin
+    OldPos := FSection1ResetTable.Position;
+    FSection1ResetTable.Position := $10;
+    WriteQWord(FReadCompressedSize); // size of read data that has been compressed
+    WriteQWord(CompressedTotal);
+    FSection1ResetTable.Position := OldPos;
+  end;
+begin
+  if FSection1ResetTable.Size = 0 then begin
+    // Write the header
+    FSection1ResetTable.WriteDWord(NtoLE(DWord(2)));
+    FSection1ResetTable.WriteDWord(0); // number of entries. we will correct this with IncEntryCount
+    FSection1ResetTable.WriteDWord(NtoLE(DWord(8))); // Size of Entries (qword)
+    FSection1ResetTable.WriteDWord(NtoLE(DWord($28))); // Size of this header
+    WriteQWord(0); // Total Uncompressed Size
+    WriteQWord(0); // Total Compressed Size
+    WriteQWord(NtoLE($8000)); // Block Size
+    WriteQWord(0); // First Block start
+  end;
+  IncEntryCount;
+  UpdateTotalSizes;
+  WriteQWord(CompressedTotal); // Next Block Start
+  // We have to trim the last entry off when we are done because there is no next block in that case
+end;
+
+{$IFDEF LZX_USETHREADS}
+function TITSFWriter.LTGetData(Sender: TLZXCompressor; WantedByteCount: Integer;
+  Buffer: Pointer): Integer;
+begin
+  Result := GetData(WantedByteCount, Buffer);
+  //WriteLn('Wanted ', WantedByteCount, ' got ', Result);
+end;
+
+function TITSFWriter.LTIsEndOfFile(Sender: TLZXCompressor): Boolean;
+begin
+  Result := AtEndOfData;
+end;
+
+procedure TITSFWriter.LTChunkDone(Sender: TLZXCompressor;
+  CompressedSize: Integer; UncompressedSize: Integer; Buffer: Pointer);
+begin
+  WriteCompressedData(CompressedSize, Buffer);
+end;
+
+procedure TITSFWriter.LTMarkFrame(Sender: TLZXCompressor;
+  CompressedTotal: Integer; UncompressedTotal: Integer);
+begin
+  MarkFrame(UncompressedTotal, CompressedTotal);
+  //WriteLn('Mark Frame C = ', CompressedTotal, ' U = ', UncompressedTotal);
+end;
+{$ENDIF}
+
+
+constructor TITSFWriter.Create(AOutStream: TStream; FreeStreamOnDestroy: Boolean);
+begin
+  if AOutStream = nil then Raise Exception.Create('TITSFWriter.OutStream Cannot be nil!');
+  FOutStream := AOutStream;
+  FCurrentIndex := -1;
+  FCurrentStream := TMemoryStream.Create;
+  FInternalFiles := TFileEntryList.Create;
+  FSection0 := TMemoryStream.Create;
+  FSection1 := TMemoryStream.Create;
+  FSection1ResetTable := TMemoryStream.Create;
+  FDirectoryListings := TMemoryStream.Create;
+  FPostStream := TMemoryStream.Create;;
+  FDestroyStream := FreeStreamOnDestroy;
+  FFileNames := TStringList.Create;
+end;
+
+destructor TITSFWriter.Destroy;
+begin
+  if FDestroyStream then FOutStream.Free;
+  FInternalFiles.Free;
+  FCurrentStream.Free;
+  FSection0.Free;
+  FSection1.Free;
+  FSection1ResetTable.Free;
+  FDirectoryListings.Free;
+  FFileNames.Free;
+  inherited Destroy;
+end;
+
+procedure TITSFWriter.Execute;
+begin
+  InitITSFHeader;
+  FOutStream.Position := 0;
+  FSection1Size := 0;
+
+  // write any internal files to FCurrentStream that we want in the compressed section
+  WriteInternalFilesBefore;
+
+  // move back to zero so that we can start reading from zero :)
+  FReadCompressedSize := FCurrentStream.Size;
+  FCurrentStream.Position := 0;  // when compressing happens, first the FCurrentStream is read
+                                 // before loading user files. So we can fill FCurrentStream with
+                                 // internal files first.
+
+  // this gathers ALL files that should be in section1 (the compressed section)
+  StartCompressingStream;
+  FSection1.Size := FSection1Size;
+
+  WriteInternalFilesAfter;
+
+  //this creates all special files in the archive that start with ::DataSpace
+  WriteDataSpaceFiles(FSection0);
+
+  // creates all directory listings including header
+  CreateDirectoryListings;
+
+  // do this after we have compressed everything so that we know the values that must be written
+  InitHeaderSectionTable;
+
+  // Now we can write everything to FOutStream
+  WriteHeader(FOutStream);
+  WriteDirectoryListings(FOutStream);
+  WriteSection0; //does NOT include section 1 even though section0.content IS section1
+  WriteSection1; // writes section 1 to FOutStream
+end;
+
+// this procedure is used to manually add files to compress to an internal stream that is
+// processed before FileToCompress is called. Files added this way should not be
+// duplicated in the FilesToCompress property.
+procedure TITSFWriter.AddStreamToArchive(AFileName, APath: String; AStream: TStream; Compress: Boolean = True);
+var
+  TargetStream: TStream;
+  Entry: TFileEntryRec;
+begin
+  // in case AddStreamToArchive is used after we should be writing to the post stream
+  if FPostStreamActive then
+  begin
+    PostAddStreamToArchive(AFileName, APath, AStream, Compress);
+    Exit;
+  end;
+  if AStream = nil then Exit;
+  if Compress then
+    TargetStream := FCurrentStream
+  else
+    TargetStream := FSection0;
+
+  Entry.Name := AFileName;
+  Entry.Path := APath;
+  Entry.Compressed :=  Compress;
+  Entry.DecompressedOffset := TargetStream.Position;
+  Entry.DecompressedSize := AStream.Size;
+  FileAdded(AStream,Entry);
+  FInternalFiles.AddEntry(Entry);
+  AStream.Position := 0;
+  TargetStream.CopyFrom(AStream, AStream.Size);
+end;
+
+procedure TITSFWriter.PostAddStreamToArchive(AFileName, APath: String;
+  AStream: TStream; Compress: Boolean);
+var
+  TargetStream: TStream;
+  Entry: TFileEntryRec;
+begin
+  if AStream = nil then Exit;
+  if Compress then
+    TargetStream := FPostStream
+  else
+    TargetStream := FSection0;
+
+  Entry.Name := AFileName;
+  Entry.Path := APath;
+  Entry.Compressed :=  Compress;
+  if not Compress then
+    Entry.DecompressedOffset := TargetStream.Position
+  else
+    Entry.DecompressedOffset := FReadCompressedSize + TargetStream.Position;
+  Entry.DecompressedSize := AStream.Size;
+  FInternalFiles.AddEntry(Entry);
+  AStream.Position := 0;
+  TargetStream.CopyFrom(AStream, AStream.Size);
+  FileAdded(AStream, Entry);
+end;
+
+procedure TITSFWriter.StartCompressingStream;
+var
+  {$IFNDEF LZX_USETHREADS}
+  LZXdata: Plzx_data;
+  WSize: LongInt;
+  {$ELSE}
+  Compressor: TLZXCompressor;
+  {$ENDIF}
+begin
+ {$IFNDEF LZX_USETHREADS}
+  lzx_init(@LZXdata, LZX_WINDOW_SIZE, @_GetData, Self, @_AtEndOfData,
+              @_WriteCompressedData, Self, @_MarkFrame, Self);
+
+  WSize := 1 shl LZX_WINDOW_SIZE;
+  while not AtEndOfData do begin
+    lzx_reset(LZXdata);
+    lzx_compress_block(LZXdata, WSize, True);
+  end;
+
+  //we have to mark the last frame manually
+  MarkFrame(LZXdata^.len_uncompressed_input, LZXdata^.len_compressed_output);
+
+  lzx_finish(LZXdata, nil);
+  {$ELSE}
+  Compressor := TLZXCompressor.Create(10);
+  Compressor.OnChunkDone  :=@LTChunkDone;
+  Compressor.OnGetData    :=@LTGetData;
+  Compressor.OnIsEndOfFile:=@LTIsEndOfFile;
+  Compressor.OnMarkFrame  :=@LTMarkFrame;
+  Compressor.Execute(True);
+  //Sleep(20000);
+  Compressor.Free;
+  {$ENDIF}
+end;
+
 
 procedure TChmWriter.WriteSystem;
 var
@@ -618,21 +1065,9 @@ begin
   PostAddStreamToArchive('#STRINGS', '/', FStringsStream);
 end;
 
-procedure IterateWord(aword:TIndexedWord;State:pointer);
-var i,cnt : integer;
-begin
-  cnt:=pinteger(state)^;
-  for i := 0 to AWord.DocumentCount-1 do
-    Inc(cnt, AWord.GetLogicalDocument(i).NumberOfIndexEntries);
-          // was commented in original procedure, seems to list index entries per doc.
-            //WriteLn(AWord.TheWord,'             documents = ', AWord.DocumentCount, ' h
-  pinteger(state)^:=cnt;
-end;
-
 procedure TChmWriter.WriteTOPICS;
-var
-  FHits: Integer;
-  i: Integer;
+//var
+  //FHits: Integer;
 begin
   if FTopicsStream.Size = 0 then
     Exit;
@@ -801,94 +1236,74 @@ begin
   PostAddStreamToArchive('$FIftiMain', '/', FFiftiMainStream);
 end;
 
-procedure TChmWriter.WriteREADMEFile;
-const DISCLAIMER_STR = 'This archive was not made by the MS HTML Help Workshop(r)(tm) program.';
-var
-  Entry: TFileEntryRec;
+procedure TChmWriter.WriteInternalFilesAfter;
 begin
-  // This procedure puts a file in the archive that says it wasn't compiled with the MS compiler
-  Entry.Compressed := False;
-  Entry.DecompressedOffset := FSection0.Position;
-  FSection0.Write(DISCLAIMER_STR, SizeOf(DISCLAIMER_STR));
-  Entry.DecompressedSize := FSection0.Position - Entry.DecompressedOffset;
-  Entry.Path := '/';
-  Entry.Name := '_#_README_#_'; //try to use a name that won't conflict with normal names
-  FInternalFiles.AddEntry(Entry);
+  // This creates and writes the #ITBITS (empty) file to section0
+  WriteITBITS;
+  // This creates and writes the #SYSTEM file to section0
+  WriteSystem;
+
+
 end;
 
 procedure TChmWriter.WriteFinalCompressedFiles;
 begin
+  inherited WriteFinalCompressedFiles;
   WriteTOPICS;
   WriteURL_STR_TBL;
   WriteSTRINGS;
   WriteFiftiMain;
 end;
 
-
-procedure TChmWriter.WriteSection0;
+procedure TChmWriter.FileAdded(AStream: TStream; const AEntry: TFileEntryRec);
 begin
-  FSection0.Position := 0;
-  FOutStream.CopyFrom(FSection0, FSection0.Size);
+  inherited FileAdded(AStream, AEntry);
+  if FullTextSearch then
+    CheckFileMakeSearchable(AStream, AEntry);
 end;
 
-procedure TChmWriter.WriteSection1;
+procedure TChmWriter.WriteInternalFilesBefore;
 begin
-  WriteContentToStream(FOutStream, FSection1);
+  inherited WriteInternalFilesBefore;
+  WriteIVB;
+  WriteOBJINST;
 end;
 
-procedure TChmWriter.WriteDataSpaceFiles(const AStream: TStream);
-var
-  Entry: TFileEntryRec;
+constructor TChmWriter.Create(AOutStream: TStream; FreeStreamOnDestroy: Boolean);
 begin
-  // This procedure will write all files starting with ::
-  Entry.Compressed := False; // None of these files are compressed
-
-  //  ::DataSpace/NameList
-  Entry.DecompressedOffset := FSection0.Position;
-  Entry.DecompressedSize := WriteNameListToStream(FSection0, [snUnCompressed,snMSCompressed]);
-  Entry.Path := '::DataSpace/';
-  Entry.Name := 'NameList';
-  FInternalFiles.AddEntry(Entry, False);
-
-  //  ::DataSpace/Storage/MSCompressed/ControlData
-  Entry.DecompressedOffset := FSection0.Position;
-  Entry.DecompressedSize := WriteControlDataToStream(FSection0, 2, 2, 1);
-  Entry.Path := '::DataSpace/Storage/MSCompressed/';
-  Entry.Name := 'ControlData';
-  FInternalFiles.AddEntry(Entry, False);
-
-  //  ::DataSpace/Storage/MSCompressed/SpanInfo
-  Entry.DecompressedOffset := FSection0.Position;
-  Entry.DecompressedSize := WriteSpanInfoToStream(FSection0, FReadCompressedSize);
-  Entry.Path := '::DataSpace/Storage/MSCompressed/';
-  Entry.Name := 'SpanInfo';
-  FInternalFiles.AddEntry(Entry, False);
-
-  //  ::DataSpace/Storage/MSCompressed/Transform/List
-  Entry.DecompressedOffset := FSection0.Position;
-  Entry.DecompressedSize := WriteTransformListToStream(FSection0);
-  Entry.Path := '::DataSpace/Storage/MSCompressed/Transform/';
-  Entry.Name := 'List';
-  FInternalFiles.AddEntry(Entry, False);
-
-  //  ::DataSpace/Storage/MSCompressed/Transform/{7FC28940-9D31-11D0-9B27-00A0C91E9C7C}/
-  //  ::DataSpace/Storage/MSCompressed/Transform/{7FC28940-9D31-11D0-9B27-00A0C91E9C7C}/InstanceData/ResetTable
-  Entry.DecompressedOffset := FSection0.Position;
-  Entry.DecompressedSize := WriteResetTableToStream(FSection0, FSection1ResetTable);
-  Entry.Path := '::DataSpace/Storage/MSCompressed/Transform/{7FC28940-9D31-11D0-9B27-00A0C91E9C7C}/InstanceData/';
-  Entry.Name := 'ResetTable';
-  FInternalFiles.AddEntry(Entry, True);
-
-
-  //  ::DataSpace/Storage/MSCompressed/Content do this last
-  Entry.DecompressedOffset := FSection0.Position;
-  Entry.DecompressedSize := FSection1Size; // we will write it directly to FOutStream later
-  Entry.Path := '::DataSpace/Storage/MSCompressed/';
-  Entry.Name := 'Content';
-  FInternalFiles.AddEntry(Entry, False);
-
-
+  inherited Create(AOutStream, FreeStreamOnDestroy);
+  FStringsStream := TmemoryStream.Create;
+  FTopicsStream := TMemoryStream.Create;
+  FURLSTRStream := TMemoryStream.Create;
+  FURLTBLStream := TMemoryStream.Create;
+  FFiftiMainStream := TMemoryStream.Create;
+  FIndexedFiles := TIndexedWordList.Create;
+  FAvlStrings   := TAVLTree.Create(@CompareStrings);    // dedupe strings
+  FAvlURLStr    := TAVLTree.Create(@CompareUrlStrs);    // dedupe urltbl + binindex must resolve URL to topicid
+  SpareString   := TStringIndex.Create;                 // We need an object to search in avltree
+  SpareUrlStr   := TUrlStrIndex.Create;                 //    to avoid create/free circles we keep one in spare
+                                                        //    for searching purposes
 end;
+
+destructor TChmWriter.Destroy;
+begin
+  if Assigned(FContextStream) then FContextStream.Free;
+  FIndexedFiles.Free;
+  FStringsStream.Free;
+  FTopicsStream.Free;
+  FURLSTRStream.Free;
+  FURLTBLStream.Free;
+  FFiftiMainStream.Free;
+  SpareString.free;
+  SpareUrlStr.free;
+  FAvlUrlStr.FreeAndClear;
+  FAvlUrlStr.Free;
+  FAvlStrings.FreeAndClear;
+  FAvlStrings.Free;
+
+  inherited Destroy;
+end;
+
 
 function TChmWriter.AddString(AString: String): LongWord;
 var
@@ -987,158 +1402,7 @@ begin
   FURLTBLStream.WriteDWord(NtoLE(UrlIndex));
 end;
 
-function _AtEndOfData(arg: pointer): LongBool; cdecl;
-begin
-  Result := TChmWriter(arg).AtEndOfData;
-end;
 
-function TChmWriter.AtEndOfData: LongBool;
-begin
-  Result := ForceExit or (FCurrentIndex >= FFileNames.Count-1);
-  if Result then
-    Result := Integer(FCurrentStream.Position) >= Integer(FCurrentStream.Size)-1;
-end;
-
-function _GetData(arg: pointer; Count: LongInt; Buffer: Pointer): LongInt; cdecl;
-begin
-  Result := TChmWriter(arg).GetData(Count, PByte(Buffer));
-end;
-
-function TChmWriter.GetData(Count: LongInt; Buffer: PByte): LongInt;
-var
-  FileEntry: TFileEntryRec;
-begin
-  Result := 0;
-  while (Result < Count) and (not AtEndOfData) do begin
-    Inc(Result, FCurrentStream.Read(Buffer[Result], Count-Result));
-    if (Result < Count) and (not AtEndOfData)
-    then begin
-      // the current file has been read. move to the next file in the list
-      FCurrentStream.Position := 0;
-      Inc(FCurrentIndex);
-      ForceExit := OnGetFileData(FFileNames[FCurrentIndex], FileEntry.Path, FileEntry.Name, FCurrentStream);
-      FileEntry.DecompressedSize := FCurrentStream.Size;
-      FileEntry.DecompressedOffset := FReadCompressedSize; //269047723;//to test writing really large numbers
-      FileEntry.Compressed := True;
-
-      if FullTextSearch then
-        CheckFileMakeSearchable(FCurrentStream, FileEntry);
-
-      FInternalFiles.AddEntry(FileEntry);
-      // So the next file knows it's offset
-      Inc(FReadCompressedSize,  FileEntry.DecompressedSize);
-      FCurrentStream.Position := 0;
-    end;
-
-    // this is intended for programs to add perhaps a file
-    // after all the other files have been added.
-    if (AtEndOfData)
-    and (FCurrentStream <> FPostStream) then
-    begin
-      FPostStreamActive := True;
-      if Assigned(FOnLastFile) then
-        FOnLastFile(Self);
-      FCurrentStream.Free;
-      WriteFinalCompressedFiles;
-      FCurrentStream := FPostStream;
-      FCurrentStream.Position := 0;
-      Inc(FReadCompressedSize, FCurrentStream.Size);
-    end;
-  end;
-end;
-
-function _WriteCompressedData(arg: pointer; Count: LongInt; Buffer: Pointer): LongInt; cdecl;
-begin
-  Result := TChmWriter(arg).WriteCompressedData(Count, Buffer);
-end;
-
-function TChmWriter.WriteCompressedData(Count: Longint; Buffer: Pointer): LongInt;
-begin
-  // we allocate a MB at a time to limit memory reallocation since this
-  // writes usually 2 bytes at a time
-  if (FSection1 is TMemoryStream) and (FSection1.Position >= FSection1.Size-1) then begin
-    FSection1.Size := FSection1.Size+$100000;
-  end;
-  Result := FSection1.Write(Buffer^, Count);
-  Inc(FSection1Size, Result);
-end;
-
-procedure _MarkFrame(arg: pointer; UncompressedTotal, CompressedTotal: LongWord); cdecl;
-begin
-  TChmWriter(arg).MarkFrame(UncompressedTotal, CompressedTotal);
-end;
-
-procedure TChmWriter.MarkFrame(UnCompressedTotal, CompressedTotal: LongWord);
-  procedure WriteQWord(Value: QWord);
-  begin
-    FSection1ResetTable.Write(NToLE(Value), 8);
-  end;
-  procedure IncEntryCount;
-  var
-    OldPos: QWord;
-    Value: DWord;
-  begin
-    OldPos := FSection1ResetTable.Position;
-    FSection1ResetTable.Position := $4;
-    Value := LeToN(FSection1ResetTable.ReadDWord)+1;
-    FSection1ResetTable.Position := $4;
-    FSection1ResetTable.WriteDWord(NToLE(Value));
-    FSection1ResetTable.Position := OldPos;
-  end;
-  procedure UpdateTotalSizes;
-  var
-    OldPos: QWord;
-  begin
-    OldPos := FSection1ResetTable.Position;
-    FSection1ResetTable.Position := $10;
-    WriteQWord(FReadCompressedSize); // size of read data that has been compressed
-    WriteQWord(CompressedTotal);
-    FSection1ResetTable.Position := OldPos;
-  end;
-begin
-  if FSection1ResetTable.Size = 0 then begin
-    // Write the header
-    FSection1ResetTable.WriteDWord(NtoLE(DWord(2)));
-    FSection1ResetTable.WriteDWord(0); // number of entries. we will correct this with IncEntryCount
-    FSection1ResetTable.WriteDWord(NtoLE(DWord(8))); // Size of Entries (qword)
-    FSection1ResetTable.WriteDWord(NtoLE(DWord($28))); // Size of this header
-    WriteQWord(0); // Total Uncompressed Size
-    WriteQWord(0); // Total Compressed Size
-    WriteQWord(NtoLE($8000)); // Block Size
-    WriteQWord(0); // First Block start
-  end;
-  IncEntryCount;
-  UpdateTotalSizes;
-  WriteQWord(CompressedTotal); // Next Block Start
-  // We have to trim the last entry off when we are done because there is no next block in that case
-end;
-
-{$IFDEF LZX_USETHREADS}
-function TChmWriter.LTGetData(Sender: TLZXCompressor; WantedByteCount: Integer;
-  Buffer: Pointer): Integer;
-begin
-  Result := GetData(WantedByteCount, Buffer);
-  //WriteLn('Wanted ', WantedByteCount, ' got ', Result);
-end;
-
-function TChmWriter.LTIsEndOfFile(Sender: TLZXCompressor): Boolean;
-begin
-  Result := AtEndOfData;
-end;
-
-procedure TChmWriter.LTChunkDone(Sender: TLZXCompressor;
-  CompressedSize: Integer; UncompressedSize: Integer; Buffer: Pointer);
-begin
-  WriteCompressedData(CompressedSize, Buffer);
-end;
-
-procedure TChmWriter.LTMarkFrame(Sender: TLZXCompressor;
-  CompressedTotal: Integer; UncompressedTotal: Integer);
-begin
-  MarkFrame(UncompressedTotal, CompressedTotal);
-  //WriteLn('Mark Frame C = ', CompressedTotal, ' U = ', UncompressedTotal);
-end;
-{$ENDIF}
 
 procedure TChmWriter.CheckFileMakeSearchable(AStream: TStream; AFileEntry: TFileEntryRec);
 
@@ -1190,105 +1454,6 @@ end;
 function TChmWriter.NextTopicIndex: Integer;
 begin
   Result := FTopicsStream.Size div 16;
-end;
-
-constructor TChmWriter.Create(OutStream: TStream; FreeStreamOnDestroy: Boolean);
-begin
-  if OutStream = nil then Raise Exception.Create('TChmWriter.OutStream Cannot be nil!');
-  FCurrentStream := TMemoryStream.Create;
-  FCurrentIndex := -1;
-  FOutStream := OutStream;
-  FInternalFiles := TFileEntryList.Create;
-  FStringsStream := TmemoryStream.Create;
-  FTopicsStream := TMemoryStream.Create;
-  FURLSTRStream := TMemoryStream.Create;
-  FURLTBLStream := TMemoryStream.Create;
-  FFiftiMainStream := TMemoryStream.Create;
-  FSection0 := TMemoryStream.Create;
-  FSection1 := TMemoryStream.Create;
-  FSection1ResetTable := TMemoryStream.Create;
-  FDirectoryListings := TMemoryStream.Create;
-  FPostStream := TMemoryStream.Create;;
-  FDestroyStream := FreeStreamOnDestroy;
-  FFileNames := TStringList.Create;
-  FIndexedFiles := TIndexedWordList.Create;
-  FAvlStrings   := TAVLTree.Create(@CompareStrings);    // dedupe strings
-  FAvlURLStr    := TAVLTree.Create(@CompareUrlStrs);    // dedupe urltbl + binindex must resolve URL to topicid
-  SpareString   := TStringIndex.Create;                 // We need an object to search in avltree
-  SpareUrlStr   := TUrlStrIndex.Create;                 //    to avoid create/free circles we keep one in spare
-                                                        //    for searching purposes
-end;
-
-destructor TChmWriter.Destroy;
-begin
-  if FDestroyStream then FOutStream.Free;
-  if Assigned(FContextStream) then FContextStream.Free;
-  FInternalFiles.Free;
-  FCurrentStream.Free;
-  FStringsStream.Free;
-  FTopicsStream.Free;
-  FURLSTRStream.Free;
-  FURLTBLStream.Free;
-  FFiftiMainStream.Free;
-  FSection0.Free;
-  FSection1.Free;
-  FSection1ResetTable.Free;
-  FDirectoryListings.Free;
-  FFileNames.Free;
-  FIndexedFiles.Free;
-  SpareString.free;
-  SpareUrlStr.free;
-  FAvlUrlStr.FreeAndClear;
-  FAvlUrlStr.Free;
-  FAvlStrings.FreeAndClear;
-  FAvlStrings.Free;
-  inherited Destroy;
-end;
-
-procedure TChmWriter.Execute;
-begin
-  InitITSFHeader;
-  FOutStream.Position := 0;
-  FSection1Size := 0;
-
-  // write any internal files to FCurrentStream that we want in the compressed section
-  WriteIVB;
-
-  // written to Section0 (uncompressed)
-  WriteREADMEFile;
-
-  WriteOBJINST;
-
-  // move back to zero so that we can start reading from zero :)
-  FReadCompressedSize := FCurrentStream.Size;
-  FCurrentStream.Position := 0;  // when compressing happens, first the FCurrentStream is read
-                                 // before loading user files. So we can fill FCurrentStream with
-                                 // internal files first.
-
-  // this gathers ALL files that should be in section1 (the compressed section)
-  StartCompressingStream;
-  FSection1.Size := FSection1Size;
-
-  // This creates and writes the #ITBITS (empty) file to section0
-  WriteITBITS;
-  // This creates and writes the #SYSTEM file to section0
-  WriteSystem;
-
-
-  //this creates all special files in the archive that start with ::DataSpace
-  WriteDataSpaceFiles(FSection0);
-
-  // creates all directory listings including header
-  CreateDirectoryListings;
-
-  // do this after we have compressed everything so that we know the values that must be written
-  InitHeaderSectionTable;
-
-  // Now we can write everything to FOutStream
-  WriteHeader(FOutStream);
-  WriteDirectoryListings(FOutStream);
-  WriteSection0; //does NOT include section 1 even though section0.content IS section1
-  WriteSection1; // writes section 1 to FOutStream
 end;
 
 procedure TChmWriter.AppendTOC(AStream: TStream);
@@ -1848,23 +2013,23 @@ begin
   inc(blocknr);
   // Fixup header.
   hdr.ident[0]:=chr($3B); hdr.ident[1]:=chr($29);
-  hdr.flags          :=NToLE($2);           // bit $2 is always 1, bit $0400 1 if dir? (always on)
-  hdr.blocksize      :=NToLE(defblocksize); // size of blocks (2048)
+  hdr.flags          :=NToLE(word($2));           // bit $2 is always 1, bit $0400 1 if dir? (always on)
+  hdr.blocksize      :=NToLE(word(defblocksize)); // size of blocks (2048)
   hdr.dataformat     :=AlwaysX44;           // "X44" always the same, see specs.
   hdr.unknown0       :=NToLE(0);            // always 0
-  hdr.lastlstblock   :=NToLE(ListingBlocks-1); // index of last listing block in the file;
-  hdr.indexrootblock :=NToLE(blocknr-1);    // Index of the root block in the file.
-  hdr.unknown1       :=NToLE(-1);           // always -1
+  hdr.lastlstblock   :=NToLE(dword(ListingBlocks-1)); // index of last listing block in the file;
+  hdr.indexrootblock :=NToLE(dword(blocknr-1));    // Index of the root block in the file.
+  hdr.unknown1       :=NToLE(dword(-1));           // always -1
   hdr.nrblock        :=NToLE(blocknr);      // Number of blocks
   hdr.treedepth      :=NToLE(TreeDepth);    // The depth of the tree of blocks (1 if no index blocks, 2 one level of index blocks, ...)
   hdr.nrkeywords     :=NToLE(Totalentries); // number of keywords in the file.
-  hdr.codepage       :=NToLE(1252);         // Windows code page identifier (usually 1252 - Windows 3.1 US (ANSI))
+  hdr.codepage       :=NToLE(dword(1252));         // Windows code page identifier (usually 1252 - Windows 3.1 US (ANSI))
   hdr.lcid           :=NToLE(0);            //  ???? LCID from the HHP file.
   if not chw then
-    hdr.ischm        :=NToLE(1)             // 0 if this a BTREE and is part of a CHW file, 1 if it is a BTree and is part of a CHI or CHM file
+    hdr.ischm        :=NToLE(dword(1))             // 0 if this a BTREE and is part of a CHW file, 1 if it is a BTree and is part of a CHI or CHM file
   else
     hdr.ischm        :=NToLE(0);
-  hdr.unknown2       :=NToLE(10031);        // Unknown. Almost always 10031. Also 66631 (accessib.chm, ieeula.chm, iesupp.chm, iexplore.chm, msoe.chm, mstask.chm, ratings.chm, wab.chm).
+  hdr.unknown2       :=NToLE(dword(10031));        // Unknown. Almost always 10031. Also 66631 (accessib.chm, ieeula.chm, iesupp.chm, iexplore.chm, msoe.chm, mstask.chm, ratings.chm, wab.chm).
   hdr.unknown3       :=NToLE(0);            // unknown 0
   hdr.unknown4       :=NToLE(0);            // unknown 0
   hdr.unknown5       :=NToLE(0);            // unknown 0
@@ -1920,65 +2085,6 @@ begin
 end;
 
 
-// this procedure is used to manually add files to compress to an internal stream that is
-// processed before FileToCompress is called. Files added this way should not be
-// duplicated in the FilesToCompress property.
-procedure TChmWriter.AddStreamToArchive(AFileName, APath: String; AStream: TStream; Compress: Boolean = True);
-var
-  TargetStream: TStream;
-  Entry: TFileEntryRec;
-begin
-  // in case AddStreamToArchive is used after we should be writing to the post stream
-  if FPostStreamActive then
-  begin
-    PostAddStreamToArchive(AFileName, APath, AStream, Compress);
-    Exit;
-  end;
-  if AStream = nil then Exit;
-  if Compress then
-    TargetStream := FCurrentStream
-  else
-    TargetStream := FSection0;
-
-  Entry.Name := AFileName;
-  Entry.Path := APath;
-  Entry.Compressed :=  Compress;
-  Entry.DecompressedOffset := TargetStream.Position;
-  Entry.DecompressedSize := AStream.Size;
-  if FullTextSearch then
-    CheckFileMakeSearchable(AStream, Entry); // Must check before we add it to the list so we know if the name needs to be added to #STRINGS
-  FInternalFiles.AddEntry(Entry);
-  AStream.Position := 0;
-  TargetStream.CopyFrom(AStream, AStream.Size);
-end;
-
-procedure TChmWriter.PostAddStreamToArchive(AFileName, APath: String;
-  AStream: TStream; Compress: Boolean);
-var
-  TargetStream: TStream;
-  Entry: TFileEntryRec;
-begin
-  if AStream = nil then Exit;
-  if Compress then
-    TargetStream := FPostStream
-  else
-    TargetStream := FSection0;
-
-  Entry.Name := AFileName;
-  Entry.Path := APath;
-  Entry.Compressed :=  Compress;
-  if not Compress then
-    Entry.DecompressedOffset := TargetStream.Position
-  else
-    Entry.DecompressedOffset := FReadCompressedSize + TargetStream.Position;
-  Entry.DecompressedSize := AStream.Size;
-  FInternalFiles.AddEntry(Entry);
-  AStream.Position := 0;
-  TargetStream.CopyFrom(AStream, AStream.Size);
-  if FullTextSearch then
-    CheckFileMakeSearchable(AStream, Entry);
-end;
-
 procedure TChmWriter.AddContext(AContext: DWord; ATopic: String);
 var
   Offset: DWord;
@@ -1992,41 +2098,6 @@ begin
   FContextStream.WriteDWord(NToLE(AContext));
   Offset := NToLE(AddString(ATopic));
   FContextStream.WriteDWord(Offset);
-end;
-
-procedure TChmWriter.StartCompressingStream;
-var
-  {$IFNDEF LZX_USETHREADS}
-  LZXdata: Plzx_data;
-  WSize: LongInt;
-  {$ELSE}
-  Compressor: TLZXCompressor;
-  {$ENDIF}
-begin
- {$IFNDEF LZX_USETHREADS}
-  lzx_init(@LZXdata, LZX_WINDOW_SIZE, @_GetData, Self, @_AtEndOfData,
-              @_WriteCompressedData, Self, @_MarkFrame, Self);
-
-  WSize := 1 shl LZX_WINDOW_SIZE;
-  while not AtEndOfData do begin
-    lzx_reset(LZXdata);
-    lzx_compress_block(LZXdata, WSize, True);
-  end;
-
-  //we have to mark the last frame manually
-  MarkFrame(LZXdata^.len_uncompressed_input, LZXdata^.len_compressed_output);
-
-  lzx_finish(LZXdata, nil);
-  {$ELSE}
-  Compressor := TLZXCompressor.Create(10);
-  Compressor.OnChunkDone  :=@LTChunkDone;
-  Compressor.OnGetData    :=@LTGetData;
-  Compressor.OnIsEndOfFile:=@LTIsEndOfFile;
-  Compressor.OnMarkFrame  :=@LTMarkFrame;
-  Compressor.Execute(True);
-  //Sleep(20000);
-  Compressor.Free;
-  {$ENDIF}
 end;
 
 end.
