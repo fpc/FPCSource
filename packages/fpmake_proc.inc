@@ -562,3 +562,8 @@ begin
 {$include zlib/fpmake.pp}
 end;
 
+procedure add_zorba;
+begin
+  with Installer do
+{$include zorba/fpmake.pp}
+end;
