@@ -993,6 +993,9 @@ implementation
           abssym : tabsolutevarsym;
           pt,hp  : tnode;
           st     : tsymtable;
+          {$ifdef i386}
+          tmpaddr : int64;
+          {$endif}
         begin
           abssym:=nil;
           { only allowed for one var }
@@ -1042,11 +1045,12 @@ implementation
                   pt:=expr;
                   if is_constintnode(pt) then
                     begin
-                      if (Tordconstnode(pt).value<int64(low(abssym.addroffset))) or
-                         (Tordconstnode(pt).value>int64(high(abssym.addroffset))) then
+                      tmpaddr:=abssym.addroffset shl 4+tordconstnode(pt).value.svalue;
+                      if (tmpaddr<int64(low(abssym.addroffset))) or
+                         (tmpaddr>int64(high(abssym.addroffset))) then
                         message(parser_e_range_check_error)
                       else
-                        abssym.addroffset:=abssym.addroffset shl 4+tordconstnode(pt).value.svalue;
+                        abssym.addroffset:=tmpaddr;
                       abssym.absseg:=true;
                     end
                   else
