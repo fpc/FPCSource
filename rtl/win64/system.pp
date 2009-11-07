@@ -98,11 +98,9 @@ var
   cmdshow     : longint;
   DLLreason,DLLparam:longint;
 type
-  TDLL_Process_Entry_Hook = function (dllparam : longint) : longbool;
   TDLL_Entry_Hook = procedure (dllparam : longint);
 
 const
-  Dll_Process_Attach_Hook : TDLL_Process_Entry_Hook = nil;
   Dll_Process_Detach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Attach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;

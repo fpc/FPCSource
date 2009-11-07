@@ -67,11 +67,9 @@ var
   DLLreason,DLLparam:DWord;
 
 type
-  TDLL_Process_Entry_Hook = function (dllparam : longint) : longbool;
   TDLL_Entry_Hook = procedure (dllparam : longint);
 
 const
-  Dll_Process_Attach_Hook : TDLL_Process_Entry_Hook = nil;
   Dll_Process_Detach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Attach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;
@@ -855,21 +853,12 @@ Const
      DLL_THREAD_DETACH = 3;
 
 function Dll_entry : longbool;[public, alias : '_FPC_DLL_Entry'];
-var
-  res : longbool;
-
 begin
    IsLibrary:=true;
    Dll_entry:=false;
    case DLLreason of
      DLL_PROCESS_ATTACH :
        begin
-         if assigned(Dll_Process_Attach_Hook) then
-           begin
-             res:=Dll_Process_Attach_Hook(DllParam);
-             if not res then
-               exit(false);
-           end;
          PASCALMAIN;
          Dll_entry:=true;
        end;
