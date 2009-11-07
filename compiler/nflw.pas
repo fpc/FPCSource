@@ -330,7 +330,7 @@ begin
     if assigned(tmpdef) and (tmpdef.typ=arraydef) and (tarraydef(tmpdef).arrayoptions = []) then
     begin
       elementcount:=elementcount*tarraydef(tmpdef).elecount;
-      convertdef:=tarraydef.create(0,elementcount-1,tarraydef(tmpdef).elementdef);
+      convertdef:=tarraydef.create(0,elementcount-1,s32inttype);
       tarraydef(convertdef).elementdef:=tarraydef(tmpdef).elementdef;
       expression:=expr.getcopy;
       expression:=ctypeconvnode.create_internal(expression,convertdef);
