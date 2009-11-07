@@ -58,6 +58,12 @@ begin
 {$include dts/fpmake.pp}
 end;
 
+procedure add_fastcgi;
+begin
+  with Installer do
+{$include fastcgi/fpmake.pp}
+end;
+
 procedure add_fcl_async;
 begin
   with Installer do
@@ -74,6 +80,12 @@ procedure add_fcl_db;
 begin
   with Installer do
 {$include fcl-db/fpmake.pp}
+end;
+
+procedure add_fcl_extra;
+begin
+  with Installer do
+{$include fcl-extra/fpmake.pp}
 end;
 
 procedure add_fcl_fpcunit;
@@ -152,6 +164,12 @@ procedure add_fpmkunit;
 begin
   with Installer do
 {$include fpmkunit/fpmake.pp}
+end;
+
+procedure add_fpvectorial;
+begin
+  with Installer do
+{$include fpvectorial/fpmake.pp}
 end;
 
 procedure add_fv;
@@ -298,6 +316,12 @@ begin
 {$include libpng/fpmake.pp}
 end;
 
+procedure add_librsvg;
+begin
+  with Installer do
+{$include librsvg/fpmake.pp}
+end;
+
 procedure add_libxml;
 begin
   with Installer do
@@ -350,6 +374,12 @@ procedure add_numlib;
 begin
   with Installer do
 {$include numlib/fpmake.pp}
+end;
+
+procedure add_objcrtl;
+begin
+  with Installer do
+{$include objcrtl/fpmake.pp}
 end;
 
 procedure add_odbc;
@@ -422,6 +452,12 @@ procedure add_postgres;
 begin
   with Installer do
 {$include postgres/fpmake.pp}
+end;
+
+procedure add_proj4;
+begin
+  with Installer do
+{$include proj4/fpmake.pp}
 end;
 
 procedure add_ptc;
@@ -567,3 +603,4 @@ begin
   with Installer do
 {$include zorba/fpmake.pp}
 end;
+
