@@ -303,20 +303,48 @@ function create_array_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
 var
   loopstatement, loopbodystatement: tstatementnode;
   loopvar, arrayvar: ttempcreatenode;
-  arrayindex, lowbound, highbound, loopbody, forloopnode: tnode;
+  arrayindex, lowbound, highbound, loopbody, forloopnode, expression: tnode;
   is_string: boolean;
+  tmpdef, convertdef: tdef;
+  elementcount: aword;
 begin
+  expression := expr;
+
   { result is a block of statements }
   result:=internalstatements(loopstatement);
 
-  is_string := ado_IsConstString in tarraydef(expr.resultdef).arrayoptions;
+  is_string:=ado_IsConstString in tarraydef(expr.resultdef).arrayoptions;
 
-  if (node_complexity(expr) > 1) and not is_open_array(expr.resultdef) then
+  // if array element type <> loovar type then create a conversion if possible
+  if compare_defs(tarraydef(expression.resultdef).elementdef,hloopvar.resultdef,nothingn)=te_incompatible then
+  begin
+    tmpdef:=expression.resultdef;
+    elementcount:=1;
+    while assigned(tmpdef) and (tmpdef.typ=arraydef) and
+          (tarraydef(tmpdef).arrayoptions = []) and
+          (compare_defs(tarraydef(tmpdef).elementdef,hloopvar.resultdef,nothingn)=te_incompatible) do
+    begin
+      elementcount:=elementcount*tarraydef(tmpdef).elecount;
+      tmpdef:=tarraydef(tmpdef).elementdef;
+    end;
+    if assigned(tmpdef) and (tmpdef.typ=arraydef) and (tarraydef(tmpdef).arrayoptions = []) then
+    begin
+      elementcount:=elementcount*tarraydef(tmpdef).elecount;
+      convertdef:=tarraydef.create(0,elementcount-1,tarraydef(tmpdef).elementdef);
+      tarraydef(convertdef).elementdef:=tarraydef(tmpdef).elementdef;
+      expression:=expr.getcopy;
+      expression:=ctypeconvnode.create_internal(expression,convertdef);
+      typecheckpass(expression);
+      addstatement(loopstatement,expression);
+    end;
+  end;
+
+  if (node_complexity(expression) > 1) and not is_open_array(expression.resultdef) then
   begin
     { create a temp variable for expression }
     arrayvar := ctempcreatenode.create(
-      expr.resultdef,
-      expr.resultdef.size,
+      expression.resultdef,
+      expression.resultdef.size,
       tt_persistent,true);
 
     if is_string then
@@ -331,7 +359,7 @@ begin
     end;
 
     addstatement(loopstatement,arrayvar);
-    addstatement(loopstatement,cassignmentnode.create(ctemprefnode.create(arrayvar),expr.getcopy));
+    addstatement(loopstatement,cassignmentnode.create(ctemprefnode.create(arrayvar),expression.getcopy));
   end
   else
   begin
@@ -339,19 +367,19 @@ begin
     if is_string then
     begin
       lowbound:=genintconstnode(1);
-      highbound:=cinlinenode.create(in_length_x,false,expr.getcopy);
+      highbound:=cinlinenode.create(in_length_x,false,expression.getcopy);
     end
     else
     begin
-      lowbound:=cinlinenode.create(in_low_x,false,expr.getcopy);
-      highbound:=cinlinenode.create(in_high_x,false,expr.getcopy);
+      lowbound:=cinlinenode.create(in_low_x,false,expression.getcopy);
+      highbound:=cinlinenode.create(in_high_x,false,expression.getcopy);
     end;
   end;
 
   { create a loop counter }
   loopvar := ctempcreatenode.create(
-    tarraydef(expr.resultdef).rangedef,
-    tarraydef(expr.resultdef).rangedef.size,
+    tarraydef(expression.resultdef).rangedef,
+    tarraydef(expression.resultdef).rangedef.size,
     tt_persistent,true);
 
   addstatement(loopstatement,loopvar);
@@ -365,7 +393,7 @@ begin
         cassignmentnode.create(hloopvar,cvecnode.create(ctemprefnode.create(arrayvar),arrayindex)))
   else
     addstatement(loopbodystatement,
-        cassignmentnode.create(hloopvar,cvecnode.create(expr.getcopy,arrayindex)));
+        cassignmentnode.create(hloopvar,cvecnode.create(expression.getcopy,arrayindex)));
 
   { add the actual statement to the loop }
   addstatement(loopbodystatement,hloopbody);
