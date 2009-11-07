@@ -97,7 +97,9 @@ type
         cpu_iA64,                     { 7 }
         cpu_x86_64,                   { 8 }
         cpu_mips,                     { 9 }
-        cpu_arm                       { 10 }
+        cpu_arm,                      { 10 }
+        cpu_powerpc64,                { 11 }
+        cpu_avr                       { 12 }
   );
 
 var
@@ -273,8 +275,9 @@ end;
 
 Function Cpu2Str(w:longint):string;
 const
-  CpuTxt : array[tsystemcpu] of string[8]=
-    ('none','i386','m68k','alpha','powerpc','sparc','vis','ia64','x86_64','mips','arm');
+  CpuTxt : array[tsystemcpu] of string[9]=
+    ('none','i386','m68k','alpha','powerpc','sparc','vis','ia64',
+     'x86_64','mips','arm','powerpc64','avr');
 begin
   if w<=ord(high(tsystemcpu)) then
     Cpu2Str:=CpuTxt[tsystemcpu(w)]
