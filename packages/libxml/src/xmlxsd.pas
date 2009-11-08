@@ -70,9 +70,9 @@ function xsdFormatUnsignedLong(Value: QWord): String;
 function xsdFormatEnum(enum: array of String; Value: Integer): String;
 
 { DateTime functions }
-procedure xsdTimeConvertTo(var Hour, Minute, Second, Milliseconds: Longword; var Source: TTimezone; const Target: TTimezone);
-procedure xsdDateConvertTo(var Year, Month, Day: Longword; var Source: TTimezone; const Target: TTimezone);
-procedure xsdDateTimeConvertTo(var Year, Month, Day, Hour, Minute, Second, Milliseconds: Longword; var Source: TTimezone; const Target: TTimezone);
+procedure xsdTimeConvertTo(var Hour, Minute, Second, Milliseconds: Longword; const Current, Target: TTimezone);
+procedure xsdDateConvertTo(var Year, Month, Day: Longword; const Current, Target: TTimezone);
+procedure xsdDateTimeConvertTo(var Year, Month, Day, Hour, Minute, Second, Milliseconds: Longword; const Current, Target: TTimezone);
 
 { Parse functions }
 function xsdTryParseString(Chars, Last: xmlCharPtr; out Value: String): Boolean;
@@ -484,17 +484,17 @@ begin
   Result := enum[Value];
 end;
 
-procedure xsdTimeConvertTo(var Hour, Minute, Second, Milliseconds: Longword; var Source: TTimezone; const Target: TTimezone);
+procedure xsdTimeConvertTo(var Hour, Minute, Second, Milliseconds: Longword; const Current, Target: TTimezone);
 begin
   {$warning not implemented}
 end;
 
-procedure xsdDateConvertTo(var Year, Month, Day: Longword; var Source: TTimezone; const Target: TTimezone);
+procedure xsdDateConvertTo(var Year, Month, Day: Longword; const Current, Target: TTimezone);
 begin
   {$warning not implemented}
 end;
 
-procedure xsdDateTimeConvertTo(var Year, Month, Day, Hour, Minute, Second, Milliseconds: Longword; var Source: TTimezone; const Target: TTimezone);
+procedure xsdDateTimeConvertTo(var Year, Month, Day, Hour, Minute, Second, Milliseconds: Longword; const Current, Target: TTimezone);
 begin
   {$warning not implemented}
 end;
@@ -503,20 +503,23 @@ function xsdTryParseString(Chars, Last: xmlCharPtr; out Value: String): Boolean;
 var
   Len: Integer;
 begin
-  if Assigned(Last) then
-  begin
-    Len := Last-Chars;
-    if Len > 0 then
+  if Assigned(Chars) then
+    if Assigned(Last) then
     begin
-      SetLength(Value, Len);
-      Move(Chars^, Value[1], Len);
+      Len := Last-Chars+1;
+      if Len > 0 then
+      begin
+        SetLength(Value, Len);
+        Move(Chars^, Value[1], Len);
+        Result := True;
+      end else
+        Result := False;
+    end else begin
+      Value := PChar(Chars);
       Result := True;
-    end else
-      Result := False;
-  end else begin
-    Value := PChar(Chars);
-    Result := Assigned(Chars);
-  end;
+    end
+  else
+    Result := False;
 end;
 
 function __strpas(Chars, Last: xmlCharPtr): String;
@@ -527,40 +530,47 @@ end;
 
 function xsdTryParseBoolean(Chars, Last: xmlCharPtr; out Value: Boolean): Boolean;
 var
-  P,L: PChar;
-
-  function __char(C: Char): Boolean; inline;
+  P: PChar;
+  L: PChar absolute Last;
+  Num: QWord;
+  Len: Integer;
+begin
+  if not Assigned(Last) then
   begin
-    Result := (P <= L) and (UpperCase(P^) = C);
-    if Result then Inc(P);
+    P := PChar(Chars);
+    Len := 0;
+    while (Len < 7) and (P^ <> #0) do
+    begin
+      Inc(Len);
+      Inc(P);
+    end;
+  end else
+    Len := Last-Chars+1;
+
+  case Len of
+    1: Num := PByte(Chars)^;
+    4: Num := PLongword(Chars)^;
+    5: Num := PLongword(Chars)^ or (QWord(Chars[4]) shl 32);
+    else Exit(False);
   end;
 
-begin
-  P := PChar(Chars);
-  if Assigned(Last) then
-    L := PChar(Last)
-  else
-    L := IGNORE_LAST;
+  //writeln(Len, ', ', IntToHex(Num,16));
 
-  if Assigned(P) then
-  begin
-    if (P <= L) and (P^ = '1') and (((L = IGNORE_LAST) and (P[1] = #0)) or (P = L)) then
-      Value := True
-    else
-      if (P <= L) and (P^ = '0') and (((L = IGNORE_LAST) and (P[1] = #0)) or (P = L)) then
-        Value := False
-      else
-        if __char('T') and __char('R') and __char('U') and __char('E') and (((L = IGNORE_LAST) and (P^ = #0)) or (P = L+1)) then
-          Value := True
-        else begin
-          P := PChar(Chars);
-          if __char('F') and __char('A') and __char('L') and __char('S') and __char('E') and (((L = IGNORE_LAST) and (P^ = #0)) or (P = L+1)) then
-            Value := False
-          else
-            Result := False;
-        end;
-  end else
-    Result := False;
+  case Num of
+    $30,
+    $65736C6166,$65736C6146,$65736C4166,$65736C4146,$65734C6166,$65734C6146,$65734C4166,$65734C4146,
+    $65536C6166,$65536C6146,$65536C4166,$65536C4146,$65534C6166,$65534C6146,$65534C4166,$65534C4146,
+    $45736C6166,$45736C6146,$45736C4166,$45736C4146,$45734C6166,$45734C6146,$45734C4166,$45734C4146,
+    $45536C6166,$45536C6146,$45536C4166,$45536C4146,$45534C6166,$45534C6146,$45534C4166,$45534C4146:
+      Value := False;
+    $31,
+    $65757274,$65757254,$65755274,$65755254,$65557274,$65557254,$65555274,$65555254,
+    $45757274,$45757254,$45755274,$45755254,$45557274,$45557254,$45555274,$45555254:
+      Value := True;
+    else Exit(False);
+  end;
+
+  Result := True;
 end;
 
 function __parseTimezone(var P: PChar; const L: PChar; out T: TTimezone): Boolean;
@@ -583,7 +593,7 @@ begin
       N := P^ = '-';
       Inc(P);
 
-    { expect 00..13 }
+      { expect 00..13 }
       T.Hour := 0; I := 2;
       while (P <= L) and (P^ in ['0'..'9']) and (I > 0) do
       begin
@@ -595,12 +605,12 @@ begin
       if N then
         T.Hour := -T.Hour;
 
-    { expect ':' }
+      { expect ':' }
       if (P > L) or (P^ <> ':') then
         Exit(False);
       Inc(P);
 
-    { expect 00..59 }
+      { expect 00..59 }
       T.Minute := 0; I := 2;
       while (P <= L) and (P^ in ['0'..'9']) and (I > 0) do
       begin
@@ -625,7 +635,7 @@ function __parseDate(var P: PChar; const L: PChar; out Year, Month, Day: Longwor
 var
   I: Integer;
 begin
-{ allow '-' }
+  { allow '-' }
   if (P <= L) and (P^ = '-') then
   begin
     if Assigned(BC) then
@@ -637,7 +647,7 @@ begin
     if Assigned(BC) then
       BC^ := False;
 
-{ expect Integer }
+  { expect Integer }
   Year := 0;
   while (P <= L) and (P^ in ['0'..'9']) do
   begin
@@ -645,12 +655,12 @@ begin
     Inc(P);
   end;
 
-{ expect '-' }
+  { expect '-' }
   if (P > L) or (P^ <> '-') then
     Exit(False);
   Inc(P);
 
-{ expect 01..12 }
+  { expect 01..12 }
   Month := 0; I := 2;
   while (P <= L) and (P^ in ['0'..'9']) and (I > 0) do
   begin
@@ -660,12 +670,12 @@ begin
   if (Month < 1) or (Month > 12) then
     Exit(False);
 
-{ expect '-' }
+  { expect '-' }
   if (P > L) or (P^ <> '-') then
     Exit(False);
   Inc(P);
 
-{ expect 01..31 }
+  { expect 01..31 }
   Day := 0; I := 2;
   while (P <= L) and (P^ in ['0'..'9']) and (I > 0) do
   begin
@@ -682,7 +692,7 @@ function __parseTime(var P: PChar; const L: PChar; out Hour, Minute, Second, Mil
 var
   I: Integer;
 begin
-{ expect 00..24 }
+  { expect 00..24 }
   Hour := 0; I := 2;
   while (P <= L) and (P^ in ['0'..'9']) and (I > 0) do
   begin
@@ -692,12 +702,12 @@ begin
   if Hour > 24 then
     Exit(False);
 
-{ expect ':' }
+  { expect ':' }
   if (P > L) or (P^ <> ':') then
     Exit(False);
   Inc(P);
 
-{ expect 00..59 }
+  { expect 00..59 }
   Minute := 0; I := 2;
   while (P <= L) and (P^ in ['0'..'9']) and (I > 0) do
   begin
@@ -707,12 +717,12 @@ begin
   if (Minute > 59) or ((Hour = 24) and (Minute > 0)) then
     Exit(False);
 
-{ expect ':' }
+  { expect ':' }
   if (P > L) or (P^ <> ':') then
     Exit(False);
   Inc(P);
 
-{ expect 00..59 }
+  { expect 00..59 }
   Second := 0; I := 2;
   while (P <= L) and (P^ in ['0'..'9']) and (I > 0) do
   begin
@@ -722,7 +732,7 @@ begin
   if (Second > 59) or ((Hour = 24) and (Second > 0)) then
     Exit(False);
 
-{ allow '.' }
+  { allow '.' }
   if (P <= L) and (P^ = '.') then
   begin
     Inc(P);
@@ -744,22 +754,21 @@ end;
 
 function xsdTryParseDate(Chars, Last: xmlCharPtr; out Year, Month, Day: Longword; Timezone: PTimezone; BC: PBoolean): Boolean;
 var
-  P,L: PChar;
+  P: PChar;
+  L: PChar absolute Last;
   T: TTimezone;
 begin
   P := PChar(Chars);
   if Assigned(Last) then
-    L := PChar(Last)
+    Result := Assigned(P) and
+      __parseDate(P, L, Year, Month, Day, BC) and
+      __parseTimezone(P, L, T) and (P = L+1)
   else
-    L := IGNORE_LAST;
+    Result := Assigned(P) and
+      __parseDate(P, IGNORE_LAST, Year, Month, Day, BC) and
+      __parseTimezone(P, IGNORE_LAST, T) and (P^ = #0);
 
-  Result :=
-    Assigned(P) and
-    __parseDate(P, L, Year, Month, Day, BC) and
-    __parseTimezone(P, L, T) and
-    ((L = IGNORE_LAST) and (P^ = #0)) or (P = L+1);
-
-{ assign Timezone if requested }
+  { assign Timezone if requested }
   if Result and Assigned(Timezone) then
   begin
     if Timezone^.Convert then
@@ -781,22 +790,21 @@ end;
 
 function xsdTryParseTime(Chars, Last: xmlCharPtr; out Hour, Minute, Second, Milliseconds: Longword; Timezone: PTimezone): Boolean;
 var
-  P,L: PChar;
+  P: PChar;
+  L: PChar absolute Last;
   T: TTimezone;
 begin
   P := PChar(Chars);
   if Assigned(Last) then
-    L := PChar(Last)
+    Result := Assigned(P) and
+      __parseTime(P, L, Hour, Minute, Second, Milliseconds) and
+      __parseTimezone(P, L, T) and (P = L+1)
   else
-    L := IGNORE_LAST;
+    Result := Assigned(P) and
+      __parseTime(P, IGNORE_LAST, Hour, Minute, Second, Milliseconds) and
+      __parseTimezone(P, IGNORE_LAST, T) and (P^ = #0);
 
-  Result :=
-    Assigned(P) and
-    __parseTime(P, L, Hour, Minute, Second, Milliseconds) and
-    __parseTimezone(P, L, T) and
-    ((L = IGNORE_LAST) and (P^ = #0)) or (P = L+1);
-
-{ assign Timezone if requested }
+  { assign Timezone if requested }
   if Result and Assigned(Timezone) then
   begin
     if Timezone^.Convert then
@@ -825,24 +833,25 @@ function xsdTryParseDateTime(Chars, Last: xmlCharPtr; out Year, Month, Day, Hour
     end;
 
 var
-  P,L: PChar;
+  P: PChar;
+  L: PChar absolute Last;
   T: TTimezone;
 begin
   P := PChar(Chars);
   if Assigned(Last) then
-    L := PChar(Last)
+    Result := Assigned(P) and
+      __parseDate(P, L, Year, Month, Day, BC) and
+      __parseT(P, L) and
+      __parseTime(P, L, Hour, Minute, Second, Milliseconds) and
+      __parseTimezone(P, L, T) and (P = L+1)
   else
-    L := IGNORE_LAST;
+    Result := Assigned(P) and
+      __parseDate(P, IGNORE_LAST, Year, Month, Day, BC) and
+      __parseT(P, IGNORE_LAST) and
+      __parseTime(P, IGNORE_LAST, Hour, Minute, Second, Milliseconds) and
+      __parseTimezone(P, IGNORE_LAST, T) and (P^ = #0);
 
-  Result :=
-    Assigned(P) and
-    __parseDate(P, L, Year, Month, Day, BC) and
-    __parseT(P, L) and
-    __parseTime(P, L, Hour, Minute, Second, Milliseconds) and
-    __parseTimezone(P, L, T) and
-    ((L = IGNORE_LAST) and (P^ = #0)) or (P = L+1);
-
-{ assign Timezone if requested }
+  { assign Timezone if requested }
   if Result and Assigned(Timezone) then
   begin
     if Timezone^.Convert then
@@ -865,41 +874,32 @@ end;
 
 function xsdTryParseDecimal(Chars, Last: xmlCharPtr; out Value: Extended): Boolean;
 begin
-  Result := Assigned(Chars) and TryStrToFloat(PChar(Chars), Value);
-  {$warning last param not checked!}
+  Result := Assigned(Chars) and TryStrToFloat(__strpas(Chars, Last), Value);
+  {$warning slow parser!}
 end;
 
 function xsdTryParseDouble(Chars, Last: xmlCharPtr; out Value: Double): Boolean;
 begin
-  Result := Assigned(Chars) and TryStrToFloat(PChar(Chars), Value);
+  Result := Assigned(Chars) and TryStrToFloat(__strpas(Chars, Last), Value);
 end;
 
 function xsdTryParseFloat(Chars, Last: xmlCharPtr; out Value: Single): Boolean;
 begin
-  Result := Assigned(Chars) and TryStrToFloat(PChar(Chars), Value);
+  Result := Assigned(Chars) and TryStrToFloat(__strpas(Chars, Last), Value);
 end;
 
-function xsdTryParseInteger(Chars, Last: xmlCharPtr; out Value: Int64): Boolean;
+function __parseInteger(var P: PChar; const L: PChar; out Value: Int64): Boolean;
 var
-  P,L: PChar;
   N: Boolean;
 begin
-  P := PChar(Chars);
-  if Assigned(Last) then
-    L := PChar(Last)
-  else
-    L := IGNORE_LAST;
+  Value := 0;
 
-  if not Assigned(P) then
-    Exit(False);
-
-{ allow '-' }
+  { allow '-' }
   N := (P <= L) and (P^ = '-');
   if N then
     Inc(P);
 
-{ read Integer }
-  Value := 0;
+  { read Integer }
   while (P <= L) and (P^ in ['0'..'9']) do
   begin
     Value := 10*Value + Ord(P^) - Ord('0');
@@ -908,33 +908,45 @@ begin
   if N then
     Value := -Value;
 
-{ expect #0 }
-  Result := ((L = IGNORE_LAST) and (P^ = #0)) or (P = L+1);
+  Result := True;
 end;
 
-function xsdTryParseNonNegativeInteger(Chars, Last: xmlCharPtr; out Value: QWord): Boolean;
+function xsdTryParseInteger(Chars, Last: xmlCharPtr; out Value: Int64): Boolean;
 var
-  P,L: PChar;
+  P: PChar;
+  L: PChar absolute Last;
 begin
   P := PChar(Chars);
   if Assigned(Last) then
-    L := PChar(Last)
+    Result := Assigned(P) and __parseInteger(P, L, Value) and (P = L+1)
   else
-    L := IGNORE_LAST;
+    Result := Assigned(P) and __parseInteger(P, IGNORE_LAST, Value) and (P^ = #0);
+end;
 
-  if not Assigned(P) then
-    Exit(False);
-
-{ read Integer }
+function __parseNonNegativeInteger(var P: PChar; const L: PChar; out Value: QWord): Boolean;
+begin
   Value := 0;
+
+  { read Integer }
   while (P <= L) and (P^ in ['0'..'9']) do
   begin
     Value := 10*Value + Ord(P^) - Ord('0');
     Inc(P);
   end;
 
-{ expect #0 }
-  Result := ((L = IGNORE_LAST) and (P^ = #0)) or (P = L+1);
+  Result := True;
+end;
+
+function xsdTryParseNonNegativeInteger(Chars, Last: xmlCharPtr; out Value: QWord): Boolean;
+var
+  P: PChar;
+  L: PChar absolute Last;
+begin
+  P := PChar(Chars);
+  if Assigned(Last) then
+    Result := Assigned(P) and __parseNonNegativeInteger(P, L, Value) and (P = L+1)
+  else
+    Result := Assigned(P) and __parseNonNegativeInteger(P, IGNORE_LAST, Value) and (P^ = #0);
 end;
 
 function xsdTryParseNonPositiveInteger(Chars, Last: xmlCharPtr; out Value: Int64): Boolean;
