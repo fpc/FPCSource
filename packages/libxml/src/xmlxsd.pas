@@ -12,6 +12,7 @@ interface
 
 uses
   xml2,
+  Math,
   DateUtils,
   SysUtils;
 
@@ -499,75 +500,129 @@ begin
   {$warning not implemented}
 end;
 
-function xsdTryParseString(Chars, Last: xmlCharPtr; out Value: String): Boolean;
-var
-  Len: Integer;
+function __parseNonNegativeInteger(var P: PChar; const L: PChar; out Value: QWord): Boolean;
 begin
-  if Assigned(Chars) then
-    if Assigned(Last) then
-    begin
-      Len := Last-Chars+1;
-      if Len > 0 then
-      begin
-        SetLength(Value, Len);
-        Move(Chars^, Value[1], Len);
-        Result := True;
-      end else
-        Result := False;
-    end else begin
-      Value := PChar(Chars);
-      Result := True;
-    end
-  else
-    Result := False;
-end;
-
-function __strpas(Chars, Last: xmlCharPtr): String;
-begin
-  if not xsdTryParseString(Chars, Last, Result) then
-    Result := '';
-end;
-
-function xsdTryParseBoolean(Chars, Last: xmlCharPtr; out Value: Boolean): Boolean;
-var
-  P: PChar;
-  L: PChar absolute Last;
-  Num: QWord;
-  Len: Integer;
-begin
-  if not Assigned(Last) then
+  { expect integer }
+  Value := 0;
+  while (P <= L) and (P^ in ['0'..'9']) do
   begin
-    P := PChar(Chars);
-    Len := 0;
-    while (Len < 7) and (P^ <> #0) do
-    begin
-      Inc(Len);
-      Inc(P);
-    end;
-  end else
-    Len := Last-Chars+1;
-
-  case Len of
-    1: Num := PByte(Chars)^;
-    4: Num := PLongword(Chars)^;
-    5: Num := PLongword(Chars)^ or (QWord(Chars[4]) shl 32);
-    else Exit(False);
+    Value := 10*Value + Ord(P^) - Ord('0');
+    Inc(P);
   end;
 
-  //writeln(Len, ', ', IntToHex(Num,16));
+  Result := True;
+end;
 
-  case Num of
-    $30,
-    $65736C6166,$65736C6146,$65736C4166,$65736C4146,$65734C6166,$65734C6146,$65734C4166,$65734C4146,
-    $65536C6166,$65536C6146,$65536C4166,$65536C4146,$65534C6166,$65534C6146,$65534C4166,$65534C4146,
-    $45736C6166,$45736C6146,$45736C4166,$45736C4146,$45734C6166,$45734C6146,$45734C4166,$45734C4146,
-    $45536C6166,$45536C6146,$45536C4166,$45536C4146,$45534C6166,$45534C6146,$45534C4166,$45534C4146:
-      Value := False;
-    $31,
-    $65757274,$65757254,$65755274,$65755254,$65557274,$65557254,$65555274,$65555254,
-    $45757274,$45757254,$45755274,$45755254,$45557274,$45557254,$45555274,$45555254:
-      Value := True;
-    else Exit(False);
+function __parseInteger(var P: PChar; const L: PChar; out Value: Int64): Boolean;
+var
+  N: Boolean;
+begin
+  { allow '-' }
+  N := (P <= L) and (P^ = '-');
+  if N then
+    Inc(P);
+
+  { expect integer }
+  Value := 0;
+  while (P <= L) and (P^ in ['0'..'9']) do
+  begin
+    Value := 10*Value + Ord(P^) - Ord('0');
+    Inc(P);
+  end;
+  if N then
+    Value := -Value;
+
+  Result := True;
+end;
+
+function __parseFloat(var P: PChar; const L: PChar; out Value: Extended): Boolean;
+var
+  N: Boolean;
+  Exp: Int64;
+  Int: QWord;
+begin
+  { allow 'Nan' }
+  if (P+2 <= L) and ((P^ = 'N') or (P^ = 'n')) then
+  begin
+    Inc(P);
+    if (P^ <> 'A') and (P^ <> 'a') then Exit(False);
+    Inc(P);
+    if (P^ <> 'N') and (P^ <> 'n') then Exit(False);
+    Inc(P);
+    Value := Nan;
+    Result := True;
+    Exit;
+  end;
+
+  { allow '-' }
+  N := (P <= L) and (P^ = '-');
+  if N then
+    Inc(P);
+
+  { allow 'Inf' }
+  if (P+2 <= L) and ((P^ = 'I') or (P^ = 'i')) then
+  begin
+    Inc(P);
+    if (P^ <> 'N') and (P^ <> 'n') then Exit(False);
+    Inc(P);
+    if (P^ <> 'F') and (P^ <> 'f') then Exit(False);
+    Inc(P);
+    if N then
+      Value := NegInfinity
+    else
+      Value := Infinity;
+    Result := True;
+    Exit;
+  end;
+
+  { expect integer }
+  Int := 0;
+  while (P <= L) and (P^ in ['0'..'9']) do
+  begin
+    Int := 10*Int + Ord(P^) - Ord('0');
+    Inc(P);
+  end;
+  Value := Int;
+  if N then
+    Value := -Value;
+
+  { allow '.' }
+  if (P <= L) and (P^ = '.') then
+  begin
+    Inc(P);
+
+    { expect integer }
+    Exp := 1;
+    Int := 0;
+    while (P <= L) and (P^ in ['0'..'9']) do
+    begin
+      Int := 10*Int + Ord(P^) - Ord('0');
+      Exp := 10*Exp;
+      Inc(P);
+    end;
+    Value := Value + Int / Exp;
+  end;
+
+  { allow 'E' or 'e' }
+  if (P <= L) and ((P^ = 'E') or (P^ = 'e')) then
+  begin
+    Inc(P);
+
+    { expect integer }
+    if not __parseInteger(P, L, Exp) then
+      Exit(False);
+
+    while Exp > 0 do
+    begin
+      Value := Value * 10;
+      Dec(Exp);
+    end;
+
+    while Exp < 0 do
+    begin
+      Value := Value * 0.1;
+      Inc(Exp);
+    end;
   end;
 
   Result := True;
@@ -737,17 +792,91 @@ begin
   begin
     Inc(P);
 
-    { expect Integer }
-    Milliseconds := 0;
-    while (P <= L) and (P^ in ['0'..'9']) do
+    { expect integer }
+    Milliseconds := 0; I := 4;
+    while (P <= L) and (P^ in ['0'..'9']) and (I > 0) do
     begin
       Milliseconds := 10*Milliseconds + Ord(P^) - Ord('0');
-      Inc(P);
+      Dec(I); Inc(P);
     end;
-    if (Hour = 24) and (Milliseconds > 0) then
+    if (Milliseconds > 999) or ((Hour = 24) and (Milliseconds > 0)) then
       Exit(False);
   end else
     Milliseconds := 0;
+
+  Result := True;
+end;
+
+function xsdTryParseString(Chars, Last: xmlCharPtr; out Value: String): Boolean;
+var
+  Len: Integer;
+begin
+  if Assigned(Chars) then
+    if Assigned(Last) then
+    begin
+      Len := Last-Chars+1;
+      if Len > 0 then
+      begin
+        SetLength(Value, Len);
+        Move(Chars^, Value[1], Len);
+        Result := True;
+      end else
+        Result := False;
+    end else begin
+      Value := PChar(Chars);
+      Result := True;
+    end
+  else
+    Result := False;
+end;
+
+function __strpas(Chars, Last: xmlCharPtr): String;
+begin
+  if not xsdTryParseString(Chars, Last, Result) then
+    Result := '';
+end;
+
+function xsdTryParseBoolean(Chars, Last: xmlCharPtr; out Value: Boolean): Boolean;
+var
+  P: PChar;
+  L: PChar absolute Last;
+  Num: QWord;
+  Len: Integer;
+begin
+  if not Assigned(Last) then
+  begin
+    P := PChar(Chars);
+    Len := 0;
+    while (Len < 7) and (P^ <> #0) do
+    begin
+      Inc(Len);
+      Inc(P);
+    end;
+  end else
+    Len := Last-Chars+1;
+
+  case Len of
+    1: Num := PByte(Chars)^;
+    4: Num := PLongword(Chars)^;
+    5: Num := PLongword(Chars)^ or (QWord(Chars[4]) shl 32);
+    else Exit(False);
+  end;
+
+  //writeln(Len, ', ', IntToHex(Num,16));
+
+  case Num of
+    $30,
+    $65736C6166,$65736C6146,$65736C4166,$65736C4146,$65734C6166,$65734C6146,$65734C4166,$65734C4146,
+    $65536C6166,$65536C6146,$65536C4166,$65536C4146,$65534C6166,$65534C6146,$65534C4166,$65534C4146,
+    $45736C6166,$45736C6146,$45736C4166,$45736C4146,$45734C6166,$45734C6146,$45734C4166,$45734C4146,
+    $45536C6166,$45536C6146,$45536C4166,$45536C4146,$45534C6166,$45534C6146,$45534C4166,$45534C4146:
+      Value := False;
+    $31,
+    $65757274,$65757254,$65755274,$65755254,$65557274,$65557254,$65555274,$65555254,
+    $45757274,$45757254,$45755274,$45755254,$45557274,$45557254,$45555274,$45555254:
+      Value := True;
+    else Exit(False);
+  end;
 
   Result := True;
 end;
@@ -873,42 +1002,43 @@ begin
 end;
 
 function xsdTryParseDecimal(Chars, Last: xmlCharPtr; out Value: Extended): Boolean;
+var
+  P: PChar;
+  L: PChar absolute Last;
 begin
-  Result := Assigned(Chars) and TryStrToFloat(__strpas(Chars, Last), Value);
-  {$warning slow parser!}
+  P := PChar(Chars);
+  if Assigned(Last) then
+    Result := Assigned(P) and __parseFloat(P, L, Value) and (P = L+1)
+  else
+    Result := Assigned(P) and __parseFloat(P, IGNORE_LAST, Value) and (P^ = #0);
 end;
 
 function xsdTryParseDouble(Chars, Last: xmlCharPtr; out Value: Double): Boolean;
+var
+  P: PChar;
+  L: PChar absolute Last;
+  Tmp: Extended;
 begin
-  Result := Assigned(Chars) and TryStrToFloat(__strpas(Chars, Last), Value);
+  P := PChar(Chars);
+  if Assigned(Last) then
+    Result := Assigned(P) and __parseFloat(P, L, Tmp) and (P = L+1)
+  else
+    Result := Assigned(P) and __parseFloat(P, IGNORE_LAST, Tmp) and (P^ = #0);
+  Value := Tmp;
 end;
 
 function xsdTryParseFloat(Chars, Last: xmlCharPtr; out Value: Single): Boolean;
-begin
-  Result := Assigned(Chars) and TryStrToFloat(__strpas(Chars, Last), Value);
-end;
-
-function __parseInteger(var P: PChar; const L: PChar; out Value: Int64): Boolean;
 var
-  N: Boolean;
+  P: PChar;
+  L: PChar absolute Last;
+  Tmp: Extended;
 begin
-  Value := 0;
-
-  { allow '-' }
-  N := (P <= L) and (P^ = '-');
-  if N then
-    Inc(P);
-
-  { read Integer }
-  while (P <= L) and (P^ in ['0'..'9']) do
-  begin
-    Value := 10*Value + Ord(P^) - Ord('0');
-    Inc(P);
-  end;
-  if N then
-    Value := -Value;
-
-  Result := True;
+  P := PChar(Chars);
+  if Assigned(Last) then
+    Result := Assigned(P) and __parseFloat(P, L, Tmp) and (P = L+1)
+  else
+    Result := Assigned(P) and __parseFloat(P, IGNORE_LAST, Tmp) and (P^ = #0);
+  Value := Tmp;
 end;
 
 function xsdTryParseInteger(Chars, Last: xmlCharPtr; out Value: Int64): Boolean;
@@ -921,20 +1051,6 @@ begin
     Result := Assigned(P) and __parseInteger(P, L, Value) and (P = L+1)
   else
     Result := Assigned(P) and __parseInteger(P, IGNORE_LAST, Value) and (P^ = #0);
-end;
-
-function __parseNonNegativeInteger(var P: PChar; const L: PChar; out Value: QWord): Boolean;
-begin
-  Value := 0;
-
-  { read Integer }
-  while (P <= L) and (P^ in ['0'..'9']) do
-  begin
-    Value := 10*Value + Ord(P^) - Ord('0');
-    Inc(P);
-  end;
-
-  Result := True;
 end;
 
 function xsdTryParseNonNegativeInteger(Chars, Last: xmlCharPtr; out Value: QWord): Boolean;
