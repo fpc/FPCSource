@@ -91,7 +91,10 @@ Const
      { same as stdcall only different name mangling }
      pocall_cppdecl,
      { same as stdcall but floating point numbers are handled like equal sized integers }
-     pocall_softfloat
+     pocall_softfloat,
+     { same as stdcall (requires that all const records are passed by
+       reference, but that's already done for stdcall) }
+     pocall_mwpascal
    ];
 
    cputypestr : array[tcputype] of string[8] = ('',

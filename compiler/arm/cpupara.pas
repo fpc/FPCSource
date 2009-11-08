@@ -164,6 +164,8 @@ unit cpupara;
           objectdef:
             result:=is_object(def) and ((varspez=vs_const) or (def.size=0));
           recorddef:
+            { note: should this ever be changed, make sure that const records
+                are always passed by reference for calloption=pocall_mwpascal }
             result:=(varspez=vs_const) or (def.size=0);
           variantdef,
           formaldef:

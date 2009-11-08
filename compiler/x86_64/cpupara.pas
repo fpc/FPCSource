@@ -284,6 +284,11 @@ unit cpupara;
               { Win ABI depends on size to pass it in a register or not }
               if (target_info.system=system_x86_64_win64) then
                 result:=not structure_in_registers(varspez,def.size)
+              { MetroWerks Pascal: const records always passed by reference
+                (for Mac OS X interfaces) }
+              else if (calloption=pocall_mwpascal) and
+                      (varspez=vs_const) then
+                result:=true
               else
               { linux ABI always passes it as value parameter }
                 result:=false;
