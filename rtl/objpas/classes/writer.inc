@@ -953,7 +953,7 @@ begin
         if (not Handled) and
           (MethodValue.Code <> DefMethodValue.Code) and
           ((not Assigned(MethodValue.Code)) or
-          ((Length(FLookupRoot.MethodName(MethodValue.Code)) >= 0))) then
+          ((Length(FLookupRoot.MethodName(MethodValue.Code)) > 0))) then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           if Assigned(MethodValue.Code) then
