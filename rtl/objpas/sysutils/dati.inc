@@ -469,7 +469,8 @@ begin
     if (defs.TwoDigitYearCenturyWindow > 0) and (Y < ly) then
       Inc(Y, 100);
     end;
-  Result := EncodeDate(y, m, d);
+  if not TryEncodeDate(y, m, d, result) then
+    errormsg:='Invalid date';
 end;
 
 function StrToDate(const S: PChar; Len : integer; const useformat : string; separator : char = #0): TDateTime;
@@ -600,7 +601,9 @@ begin
       if (pm=1) and ((TimeValues[0]=12)) then
         TimeValues[0]:=0;
     end;
-  result := EncodeTime(TimeValues[0], TimeValues[1], TimeValues[2], TimeValues[3]);
+
+  if not TryEncodeTime(TimeValues[0], TimeValues[1], TimeValues[2], TimeValues[3],result) Then
+    errormsg:='Invalid time.';
 end ;
 
 function StrToTime(const S: PChar; Len : integer; separator : char = #0): TDateTime;
