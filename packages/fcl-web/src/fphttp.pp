@@ -37,6 +37,7 @@ Type
     Procedure DoGetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean); virtual;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean);
     Function ProduceContent : String; virtual;
+    Procedure SetRequest(ARequest: TRequest);
   Protected
     Property BeforeRequest : TRequestEvent Read FBeforeRequest Write FBeforeRequest;
     Property AfterResponse : TResponseEvent Read FAfterResponse Write FAfterResponse;
@@ -256,6 +257,11 @@ end;
 function THTTPContentProducer.ProduceContent: String;
 begin
   Result:='';
+end;
+
+procedure THTTPContentProducer.SetRequest(ARequest: TRequest);
+begin
+  FRequest := ARequest;
 end;
 
 function THTTPContentProducer.HaveContent: Boolean;
