@@ -305,22 +305,37 @@ end;
 
 function DateToStr(Date: TDateTime): string;
 begin
-  result := FormatDateTime('ddddd', Date);
+  DateTimeToString(Result, 'ddddd', Date);
 end ;
+
+function DateToStr(Date: TDateTime; const FormatSettings: TFormatSettings): string;
+begin
+  DateTimeToString(result, FormatSettings.ShortDateFormat, Date, FormatSettings);
+end;
 
 {  TimeToStr returns a string representation of Time using LongTimeFormat   }
 
 function TimeToStr(Time: TDateTime): string;
 begin
-  result := FormatDateTime('tt', Time);
+  DateTimeToString(Result, 'tt', Time);
 end ;
+
+function TimeToStr(Time: TDateTime; const FormatSettings: TFormatSettings): string;
+begin
+  DateTimeToString(Result, FormatSettings.LongTimeFormat, Time, FormatSettings);
+end;
 
 {   DateTimeToStr returns a string representation of DateTime using LongDateTimeFormat   }
 
 function DateTimeToStr(DateTime: TDateTime): string;
 begin
-  result := FormatDateTime('c', DateTime);
+  DateTimeToString(Result, 'c', DateTime);
 end ;
+
+function DateTimeToStr(DateTime: TDateTime; const FormatSettings: TFormatSettings): string;
+begin
+  DateTimeToString(Result, 'c', DateTime ,FormatSettings);
+end;
 
 {   StrToDate converts the string S to a TDateTime value
     if S does not represent a valid date value
@@ -699,219 +714,257 @@ end;
 
 {   FormatDateTime formats DateTime to the given format string FormatStr   }
 
-function FormatDateTime(FormatStr: string; DateTime: TDateTime): string;
-var
-   ResultLen: integer;
-   ResultBuffer: array[0..255] of char;
-   ResultCurrent: pchar;
+function FormatDateTime(const FormatStr: string; DateTime: TDateTime): string;
+begin
+  DateTimeToString(Result, FormatStr, DateTime, DefaultFormatSettings);
+end;
 
-   procedure StoreStr(Str: pchar; Len: integer);
-   begin
-   if ResultLen + Len < SizeOf(ResultBuffer) then begin
+function FormatDateTime(const FormatStr: string; DateTime: TDateTime; const FormatSettings: TFormatSettings): string;
+begin
+  DateTimeToString(Result, FormatStr, DateTime, FormatSettings);
+end;
+
+{   DateTimeToString formats DateTime to the given format in FormatStr   }
+
+procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime);
+begin
+  DateTimeToString(Result, FormatStr, DateTime, DefaultFormatSettings);
+end;
+
+procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime; const FormatSettings: TFormatSettings);
+var
+  ResultLen: integer;
+  ResultBuffer: array[0..255] of char;
+  ResultCurrent: pchar;
+
+  procedure StoreStr(Str: PChar; Len: Integer);
+  begin
+    if ResultLen + Len < SizeOf(ResultBuffer) then
+    begin
       StrMove(ResultCurrent, Str, Len);
       ResultCurrent := ResultCurrent + Len;
       ResultLen := ResultLen + Len;
-      end ;
-   end ;
+    end;
+  end;
 
-   procedure StoreString(const Str: string);
-   var Len: integer;
-   begin
+  procedure StoreString(const Str: string);
+  var Len: integer;
+  begin
    Len := Length(Str);
-   if ResultLen + Len < SizeOf(ResultBuffer) then begin // strmove not safe
-      StrMove(ResultCurrent, pchar(Str), Len);
-      ResultCurrent := ResultCurrent + Len;
-      ResultLen := ResultLen + Len;
-      end;
-   end;
+   if ResultLen + Len < SizeOf(ResultBuffer) then 
+     begin
+       StrMove(ResultCurrent, pchar(Str), Len);
+       ResultCurrent := ResultCurrent + Len;
+       ResultLen := ResultLen + Len;
+     end;
+  end;
 
-   procedure StoreInt(Value, Digits: integer);
-   var S: string; Len: integer;
-   begin
-   S := IntToStr(Value);
-   Len := Length(S);
-   if Len < Digits then begin
-      S := copy('0000', 1, Digits - Len) + S;
-      Len := Digits;
-      end ;
-   StoreStr(pchar(@S[1]), Len);
-   end ;
+  procedure StoreInt(Value, Digits: Integer);
+  var
+    S: string[16];
+    Len: integer;
+  begin
+    System.Str(Value:Digits, S);
+    for Len := 1 to Length(S) do
+    begin
+      if S[Len] = ' ' then
+        S[Len] := '0'
+      else
+        Break;
+    end;
+    StoreStr(pchar(@S[1]), Length(S));
+  end ;
 
 var
-   Year, Month, Day, DayOfWeek, Hour, Minute, Second, MilliSecond: word;
+  Year, Month, Day, DayOfWeek, Hour, Minute, Second, MilliSecond: word;
 
-   procedure StoreFormat(const FormatStr: string);
-   var
-      Token,lastformattoken: char;
-      FormatCurrent: pchar;
-      FormatEnd: pchar;
-      Count: integer;
-      Clock12: boolean;
-      P: pchar;
-      tmp:integer;
+  procedure StoreFormat(const FormatStr: string; Nesting: Integer; TimeFlag: Boolean);
+  var
+    Token, lastformattoken: char;
+    FormatCurrent: pchar;
+    FormatEnd: pchar;
+    Count: integer;
+    Clock12: boolean;
+    P: pchar;
+    tmp: integer;
 
-   begin
-   FormatCurrent := Pchar(pointer(FormatStr));
-   FormatEnd := FormatCurrent + Length(FormatStr);
-   Clock12 := false;
-   P := FormatCurrent;
-   while P < FormatEnd do begin
-      Token := UpCase(P^);
-      if Token in ['"', ''''] then begin
-         P := P + 1;
-         while (P < FormatEnd) and (P^ <> Token) do
-            P := P + 1;
-         end
-      else if Token = 'A' then begin
-         if (StrLIComp(P, 'A/P', 3) = 0) or
-            (StrLIComp(P, 'AMPM', 4) = 0) or
-            (StrLIComp(P, 'AM/PM', 5) = 0) then begin
+  begin
+    if Nesting > 1 then  // 0 is original string, 1 is included FormatString
+      Exit;
+    FormatCurrent := PChar(FormatStr);
+    FormatEnd := FormatCurrent + Length(FormatStr);
+    Clock12 := false;
+    P := FormatCurrent;
+    // look for unquoted 12-hour clock token
+    while P < FormatEnd do
+    begin
+      Token := P^;
+      case Token of
+        '''', '"':
+        begin
+          Inc(P);
+          while (P < FormatEnd) and (P^ <> Token) do
+            Inc(P);
+        end;
+        'A', 'a':
+        begin
+          if (StrLIComp(P, 'A/P', 3) = 0) or
+             (StrLIComp(P, 'AMPM', 4) = 0) or
+             (StrLIComp(P, 'AM/PM', 5) = 0) then
+          begin
             Clock12 := true;
             break;
-            end ;
-         end ;
-      P := P + 1;
-      end ;
-   token:=#255;
-   lastformattoken:=' ';
-   while FormatCurrent < FormatEnd do
-     begin
+          end;
+        end;
+      end;  // case
+      Inc(P);
+    end ;
+    token := #255;
+    lastformattoken := ' ';
+    while FormatCurrent < FormatEnd do
+    begin
       Token := UpCase(FormatCurrent^);
       Count := 1;
       P := FormatCurrent + 1;
-         case Token of
-            '''', '"': begin
-               while (P < FormatEnd) and (p^ <> Token) do
-                  P := P + 1;
-               P := P + 1;
-               Count := P - FormatCurrent;
-               StoreStr(FormatCurrent + 1, Count - 2);
-               end ;
-            'A': begin
-               if StrLIComp(FormatCurrent, 'AMPM', 4) = 0 then begin
-                  Count := 4;
-                  if Hour < 12 then StoreString(TimeAMString)
-                  else StoreString(TimePMString);
-                  end
-               else if StrLIComp(FormatCurrent, 'AM/PM', 5) = 0 then begin
-                  Count := 5;
-                  if Hour < 12 then StoreStr('am', 2)
-                  else StoreStr('pm', 2);
-                  end
-               else if StrLIComp(FormatCurrent, 'A/P', 3) = 0 then begin
-                  Count := 3;
-                  if Hour < 12 then StoreStr('a', 1)
-                  else StoreStr('p', 1);
-                  end
-               else
-                 Raise EConvertError.Create('Illegal character in format string');
-               end ;
-            '/': StoreStr(@DateSeparator, 1);
-            ':': StoreStr(@TimeSeparator, 1);
-            ' ', 'C', 'D', 'H', 'M', 'N', 'S', 'T', 'Y','Z' :
-              begin
-                while (P < FormatEnd) and (UpCase(P^) = Token) do
-                  P := P + 1;
-                Count := P - FormatCurrent;
-                case Token of
-                   ' ': StoreStr(FormatCurrent, Count);
-                   'Y': begin
-                         if Count>2 then
-                           StoreInt(Year, 4)
-                         else
-                           StoreInt(Year mod 100, 2);
-                        end;
-                   'M': begin
-                         if lastformattoken='H' then
-                           begin
-                             if Count = 1 then
-                               StoreInt(Minute, 0)
-                             else
-                               StoreInt(Minute, 2);
-
-                           end
-                         else
-                           begin
-                             case Count of
-                                1: StoreInt(Month, 0);
-                                2: StoreInt(Month, 2);
-                                3: StoreString(ShortMonthNames[Month]);
-                                4: StoreString(LongMonthNames[Month]);
-                             end;
-                           end;
-                      end;
-                   'D': begin
-                         case Count of
-                            1: StoreInt(Day, 0);
-                            2: StoreInt(Day, 2);
-                            3: StoreString(ShortDayNames[DayOfWeek]);
-                            4: StoreString(LongDayNames[DayOfWeek]);
-                            5: StoreFormat(ShortDateFormat);
-                            6: StoreFormat(LongDateFormat);
-                         end ;
-                      end ;
-                   'H': begin
-                      if Clock12 then begin
-                         tmp:=hour mod 12;
-                         if tmp=0 then tmp:=12;
-                         if Count = 1 then StoreInt(tmp, 0)
-                         else StoreInt(tmp, 2);
-                         end
-                      else begin
-                         if Count = 1 then StoreInt(Hour, 0)
-                         else StoreInt(Hour, 2);
-                         end ;
-                      end ;
-                   'N': begin
-                      if Count = 1 then StoreInt(Minute, 0)
-                      else StoreInt(Minute, 2);
-                      end ;
-                   'S': begin
-                      if Count = 1 then StoreInt(Second, 0)
-                      else StoreInt(Second, 2);
-                      end ;
-                   'Z': begin
-                      if Count = 1 then StoreInt(MilliSecond, 0)
-                      else StoreInt(MilliSecond, 3);
-                      end ;
-                   'T': begin
-                      if Count = 1 then StoreFormat(ShortTimeFormat)
-                      else StoreFormat(LongTimeFormat);
-                      end ;
-                   'C':
-                     begin
-                       StoreFormat(ShortDateFormat);
-                       if (Hour<>0) or (Minute<>0) or (Second<>0) then
-                        begin
-                          StoreString(' ');
-                          StoreFormat(LongTimeFormat);
-                        end;
-                     end;
-                end;
-                lastformattoken:=token;
-              end;
+      case Token of
+        '''', '"':
+        begin
+          while (P < FormatEnd) and (p^ <> Token) do
+            Inc(P);
+          Inc(P);
+          Count := P - FormatCurrent;
+          StoreStr(FormatCurrent + 1, Count - 2);
+        end ;
+        'A':
+        begin
+          if StrLIComp(FormatCurrent, 'AMPM', 4) = 0 then
+          begin
+            Count := 4;
+            if Hour < 12 then
+              StoreString(FormatSettings.TimeAMString)
             else
-              StoreStr(@Token, 1);
-         end ;
-      FormatCurrent := FormatCurrent + Count;
+              StoreString(FormatSettings.TimePMString);
+          end
+          else if StrLIComp(FormatCurrent, 'AM/PM', 5) = 0 then
+          begin
+            Count := 5;
+            if Hour < 12 then StoreStr(FormatCurrent, 2)
+                         else StoreStr(FormatCurrent+3, 2);
+          end
+          else if StrLIComp(FormatCurrent, 'A/P', 3) = 0 then
+          begin
+            Count := 3;
+            if Hour < 12 then StoreStr(FormatCurrent, 1)
+                         else StoreStr(FormatCurrent+2, 1);
+          end
+          else
+            raise EConvertError.Create('Illegal character in format string');
+        end ;
+        '/': StoreStr(@FormatSettings.DateSeparator, 1);
+        ':': StoreStr(@FormatSettings.TimeSeparator, 1);
+        ' ', 'C', 'D', 'H', 'M', 'N', 'S', 'T', 'Y','Z' :
+        begin
+          while (P < FormatEnd) and (UpCase(P^) = Token) do
+            Inc(P);
+          Count := P - FormatCurrent;
+          case Token of
+            ' ': StoreStr(FormatCurrent, Count);
+            'Y': begin
+              if Count > 2 then
+                StoreInt(Year, 4)
+              else
+                StoreInt(Year mod 100, 2);
+            end;
+            'M': begin
+              if (lastformattoken = 'H') or TimeFlag then
+              begin
+                if Count = 1 then
+                  StoreInt(Minute, 0)
+                else
+                  StoreInt(Minute, 2);
+              end
+              else
+              begin
+                case Count of
+                  1: StoreInt(Month, 0);
+                  2: StoreInt(Month, 2);
+                  3: StoreString(FormatSettings.ShortMonthNames[Month]);
+                else  
+                  StoreString(FormatSettings.LongMonthNames[Month]);
+                end;
+              end;
+            end;
+            'D': begin
+              case Count of
+                1: StoreInt(Day, 0);
+                2: StoreInt(Day, 2);
+                3: StoreString(FormatSettings.ShortDayNames[DayOfWeek]);
+                4: StoreString(FormatSettings.LongDayNames[DayOfWeek]);
+                5: StoreFormat(FormatSettings.ShortDateFormat, Nesting+1, False);
+              else  
+                StoreFormat(FormatSettings.LongDateFormat, Nesting+1, False);
+              end ;
+            end ;
+            'H': if Clock12 then
+              begin
+                tmp := hour mod 12;
+                if tmp=0 then tmp:=12;
+                if Count = 1 then 
+                  StoreInt(tmp, 0)
+                else 
+                  StoreInt(tmp, 2);
+              end
+              else begin
+                if Count = 1 then 
+		  StoreInt(Hour, 0)
+                else 
+                  StoreInt(Hour, 2);
+              end;
+            'N': if Count = 1 then 
+                   StoreInt(Minute, 0)
+                 else 
+                   StoreInt(Minute, 2);
+            'S': if Count = 1 then 
+                   StoreInt(Second, 0)
+                 else 
+                   StoreInt(Second, 2);
+            'Z': if Count = 1 then 
+                   StoreInt(MilliSecond, 0)
+                 else 
+		   StoreInt(MilliSecond, 3);
+            'T': if Count = 1 then 
+		   StoreFormat(FormatSettings.ShortTimeFormat, Nesting+1, True)
+                 else 
+	           StoreFormat(FormatSettings.LongTimeFormat, Nesting+1, True);
+            'C': begin
+                   StoreFormat(FormatSettings.ShortDateFormat, Nesting+1, False);
+                   if (Hour<>0) or (Minute<>0) or (Second<>0) then
+                     begin
+                      StoreString(' ');
+                      StoreFormat(FormatSettings.LongTimeFormat, Nesting+1, True);
+                 end;
+            end;
+          end;
+          lastformattoken := token;
+        end;
+        else
+          StoreStr(@Token, 1);
       end ;
-   end ;
+      Inc(FormatCurrent, Count);
+    end;
+  end;
 
 begin
   DecodeDateFully(DateTime, Year, Month, Day, DayOfWeek);
   DecodeTime(DateTime, Hour, Minute, Second, MilliSecond);
   ResultLen := 0;
   ResultCurrent := @ResultBuffer[0];
-  StoreFormat(FormatStr);
+  if FormatStr <> '' then
+    StoreFormat(FormatStr, 0, False)
+  else
+    StoreFormat('C', 0, False);  
   ResultBuffer[ResultLen] := #0;
   result := StrPas(@ResultBuffer[0]);
-end ;
-
-{   DateTimeToString formats DateTime to the given format in FormatStr   }
-
-procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime);
-begin
-  Result := FormatDateTime(FormatStr, DateTime);
 end ;
 
 
@@ -935,11 +988,12 @@ begin
 {$endif unix}
 end;
 
-function CurrentYear:Word;
-var yy,mm,dd : word;
+function CurrentYear: Word;
+var
+  SysTime: TSystemTime;
 begin
-  Decodedate(now,yy,mm,dd);
-  Result:=yy;
+  GetLocalTime(SysTime);
+  Result := SysTime.Year;
 end;
 
 Function FileDateToDateTime (Filedate : Longint) : TDateTime;
