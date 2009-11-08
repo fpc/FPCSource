@@ -1,7 +1,7 @@
 {$ifdef Delphi}
 const fpcmakeini : array[0..218] of string[240]=(
 {$else Delphi}
-const fpcmakeini : array[0..218,1..240] of char=(
+const fpcmakeini : array[0..219,1..240] of char=(
 {$endif Delphi}
   ';'#010+
   '; Templates used by fpcmake to create a Makefile from Makefile.fpc'#010+
@@ -15,11 +15,11 @@ const fpcmakeini : array[0..218,1..240] of char=(
   #010+
   '# OS categories'#010+
   'BSDs = freebsd netbsd openbsd darwin'#010+
-  'UNIXs = linux $(BSDs) solaris qnx'#010+
+  'UNIXs = linux $(BSDs) solaris qnx haiku'#010+
   'LIMIT83fs = go32v2 os2 emx watcom'#010+
   'OSNeedsComspecToRunBatch = go32v2 watcom'#010+
   #010+
-  '#Empty target for rules that always should run. Needed if'#010,
+  '#Empty target for rules ', 'that always should run. Needed if'#010,
   '#the target is non-phoney, and there is non-phony prereqisites.'#010+
   '#Then add FORCE as an prerequisite'#010+
   '#See gnu make manual: 4.7 Rules without Commands or Prerequisites'#010+
