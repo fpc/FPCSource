@@ -791,10 +791,12 @@ type
     function ReadByte : Byte;
     function ReadWord : Word;
     function ReadDWord : Cardinal;
+    function ReadQWord : QWord;
     function ReadAnsiString : String;
     procedure WriteByte(b : Byte);
     procedure WriteWord(w : Word);
     procedure WriteDWord(d : Cardinal);
+    procedure WriteQWord(q : QWord);
     Procedure WriteAnsiString (const S : String);
     property Position: Int64 read GetPosition write SetPosition;
     property Size: Int64 read GetSize write SetSize64;
