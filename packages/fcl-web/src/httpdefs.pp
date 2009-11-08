@@ -1170,7 +1170,7 @@ begin
       ProcessMultiPart(M,CT, ContentFields)
     else if Pos('APPLICATION/X-WWW-FORM-URLENCODED',Uppercase(CT))<>0 then
       ProcessUrlEncoded(M, ContentFields)
-    else
+    else if CL<>0 then
       begin
 {$ifdef CGIDEBUG}
       SendDebug('InitPostVars: unsupported content type:'+CT);
