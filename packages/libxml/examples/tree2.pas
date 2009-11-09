@@ -31,41 +31,41 @@ begin
   (*
    * Creates a new document, a node and set it as a root node
    *)
-  doc := xmlNewDoc(BAD_CAST('1.0'));
-  root_node := xmlNewNode(nil, BAD_CAST('root'));
+  doc := xmlNewDoc('1.0');
+  root_node := xmlNewNode(nil, 'root');
   xmlDocSetRootElement(doc, root_node);
 
   (*
    * Creates a DTD declaration. Isn't mandatory.
    *)
-  dtd := xmlCreateIntSubset(doc, BAD_CAST('root'), nil, BAD_CAST('tree2.dtd'));
+  dtd := xmlCreateIntSubset(doc, 'root', nil, 'tree2.dtd');
 
   (*
    * xmlNewChild() creates a new node, which is "attached" as child node
    * of root_node node.
    *)
-  xmlNewChild(root_node, nil, BAD_CAST('node1'), BAD_CAST('content of node 1'));
+  xmlNewChild(root_node, nil, 'node1', 'content of node 1');
 
   (*
    * The same as above, but the new child node doesn't have a content
    *)
-  xmlNewChild(root_node, nil, BAD_CAST('node2'), nil);
+  xmlNewChild(root_node, nil, 'node2', nil);
 
   (*
    * xmlNewProp() creates attributes, which is "attached" to an node.
    * It returns xmlAttrPtr, which isn't used here.
    *)
-  node := xmlNewChild(root_node, nil, BAD_CAST('node3'), BAD_CAST('this node has attributes'));
-  xmlNewProp(node, BAD_CAST('attribute'), BAD_CAST('yes'));
-  xmlNewProp(node, BAD_CAST('foo'), BAD_CAST('bar'));
+  node := xmlNewChild(root_node, nil, 'node3', 'this node has attributes');
+  xmlNewProp(node, 'attribute', 'yes');
+  xmlNewProp(node, 'foo', 'bar');
 
   (*
    * Here goes another way to create nodes. xmlNewNode() and xmlNewText
    * creates a node and a text node separately. They are "attached"
    * by xmlAddChild()
    *)
-  node := xmlNewNode(nil, BAD_CAST('node4'));
-  node1 := xmlNewText(BAD_CAST('other way to create content (which is also a node)'));
+  node := xmlNewNode(nil, 'node4');
+  node1 := xmlNewText('other way to create content (which is also a node)');
   xmlAddChild(node, node1);
   xmlAddChild(root_node, node);
 
@@ -75,16 +75,16 @@ begin
   for i := 5 to 6 do
   begin
     buff := 'node'+inttostr(i);
-    node := xmlNewChild(root_node, nil, BAD_CAST(buff), nil);
+    node := xmlNewChild(root_node, nil, buff, nil);
 
     for j := 1 to 3 do
     begin
       buff := 'node'+inttostr(i)+inttostr(j);
-      node1 := xmlNewChild(node, nil, BAD_CAST(buff), nil);
+      node1 := xmlNewChild(node, nil, buff, nil);
       if j mod 2 = 0 then
-        xmlNewProp(node1, BAD_CAST('odd'), BAD_CAST('no'))
+        xmlNewProp(node1, 'odd', 'no')
       else
-        xmlNewProp(node1, BAD_CAST('odd'), BAD_CAST('yes'));
+        xmlNewProp(node1, 'odd', 'yes');
     end;
   end;
 

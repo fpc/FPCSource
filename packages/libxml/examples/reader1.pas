@@ -32,7 +32,7 @@ var
 begin
   name := xmlTextReaderConstName(reader);
   if not assigned(name) then
-    name := BAD_CAST('--');
+    name := '--';
 
   value := xmlTextReaderConstValue(reader);
 
