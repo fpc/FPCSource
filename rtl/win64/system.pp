@@ -93,6 +93,7 @@ var
   argv : ppchar;
 { Win32 Info }
   startupinfo : tstartupinfo;
+  StartupConsoleMode : dword;
   hprevinst,
   MainInstance : qword;
   cmdshow     : longint;
@@ -104,13 +105,13 @@ const
   Dll_Process_Detach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Attach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;
-  
+
 Const
-  { it can be discussed whether fmShareDenyNone means read and write or read, write and delete, see 
+  { it can be discussed whether fmShareDenyNone means read and write or read, write and delete, see
     also http://bugs.freepascal.org/view.php?id=8898, this allows users to configure the used
 	value
   }
-  fmShareDenyNoneFlags : DWord = 3;  
+  fmShareDenyNoneFlags : DWord = 3;
 
 implementation
 
@@ -423,12 +424,14 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      system_exit;
   end;
 
+function GetConsoleMode(hConsoleHandle: THandle; var lpMode: DWORD): Boolean; stdcall; external 'kernel32' name 'GetConsoleMode';
 
 function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} : longbool;forward;
 
 procedure _FPC_mainCRTStartup;stdcall;public name '_mainCRTStartup';
 begin
   IsConsole:=true;
+  GetConsoleMode(GetStdHandle((Std_Input_Handle)),StartupConsoleMode);
   Exe_entry;
 end;
 
