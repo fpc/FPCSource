@@ -17,7 +17,7 @@ uses
   SysUtils;
 
 resourcestring
-  ParserError = 'parsing "%s" failed';
+  ParserError = 'parsing "%s" as "%s" failed';
   ChildNotFound = 'child %s not found';
   PropNotFound  = 'attribute %s not found';
 
@@ -1160,151 +1160,151 @@ end;
 procedure xsdParseString(Chars, Last: xmlCharPtr; out Value: String);
 begin
   if not xsdTryParseString(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:string']);
 end;
 
 procedure xsdParseBoolean(Chars, Last: xmlCharPtr; out Value: Boolean);
 begin
   if not xsdTryParseBoolean(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:boolean']);
 end;
 
 procedure xsdParseDate(Chars, Last: xmlCharPtr; out Year, Month, Day: Longword; Timezone: PTimezone; BC: PBoolean);
 begin
   if not xsdTryParseDate(Chars, Last, Year, Month, Day, Timezone, BC) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:date']);
 end;
 
 procedure xsdParseDate(Chars, Last: xmlCharPtr; out Value: TDateTime; Timezone: PTimezone);
 begin
   if not xsdTryParseDate(Chars, Last, Value, Timezone) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:date']);
 end;
 
 procedure xsdParseTime(Chars, Last: xmlCharPtr; out Hour, Minute, Second, Milliseconds: Longword; Timezone: PTimezone);
 begin
   if not xsdTryParseTime(Chars, Last, Hour, Minute, Second, Milliseconds, Timezone) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:time']);
 end;
 
 procedure xsdParseTime(Chars, Last: xmlCharPtr; out Value: TDateTime; Timezone: PTimezone);
 begin
   if not xsdTryParseTime(Chars, Last, Value, Timezone) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:time']);
 end;
 
 procedure xsdParseDateTime(Chars, Last: xmlCharPtr; out Year, Month, Day, Hour, Minute, Second, Milliseconds: Longword; Timezone: PTimezone; BC: PBoolean);
 begin
   if not xsdTryParseDateTime(Chars, Last, Year, Month, Day, Hour, Minute, Second, Milliseconds, Timezone, BC) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:dateTime']);
 end;
 
 procedure xsdParseDateTime(Chars, Last: xmlCharPtr; out Value: TDateTime; Timezone: PTimezone);
 begin
   if not xsdTryParseDateTime(Chars, Last, Value, Timezone) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:dateTime']);
 end;
 
 procedure xsdParseDecimal(Chars, Last: xmlCharPtr; out Value: Extended);
 begin
   if not xsdTryParseDecimal(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:decimal']);
 end;
 
 procedure xsdParseDouble(Chars, Last: xmlCharPtr; out Value: Double);
 begin
   if not xsdTryParseDouble(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:double']);
 end;
 
 procedure xsdParseFloat(Chars, Last: xmlCharPtr; out Value: Single);
 begin
   if not xsdTryParseFloat(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:float']);
 end;
 
 procedure xsdParseInteger(Chars, Last: xmlCharPtr; out Value: Int64);
 begin
   if not xsdTryParseInteger(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:integer']);
 end;
 
 procedure xsdParseNonNegativeInteger(Chars, Last: xmlCharPtr; out Value: QWord);
 begin
   if not xsdTryParseNonNegativeInteger(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:nonNegativeInteger']);
 end;
 
 procedure xsdParseNonPositiveInteger(Chars, Last: xmlCharPtr; out Value: Int64);
 begin
   if not xsdTryParseNonPositiveInteger(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:nonPositiveInteger']);
 end;
 
 procedure xsdParseNegativeInteger(Chars, Last: xmlCharPtr; out Value: Int64);
 begin
   if not xsdTryParseNegativeInteger(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:negativeInteger']);
 end;
 
 procedure xsdParsePositiveInteger(Chars, Last: xmlCharPtr; out Value: QWord);
 begin
   if not xsdTryParsePositiveInteger(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:positiveInteger']);
 end;
 
 procedure xsdParseByte(Chars, Last: xmlCharPtr; out Value: Shortint);
 begin
   if not xsdTryParseByte(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:byte']);
 end;
 
 procedure xsdParseShort(Chars, Last: xmlCharPtr; out Value: Smallint);
 begin
   if not xsdTryParseShort(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:short']);
 end;
 
 procedure xsdParseInt(Chars, Last: xmlCharPtr; out Value: Longint);
 begin
   if not xsdTryParseInt(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:int']);
 end;
 
 procedure xsdParseLong(Chars, Last: xmlCharPtr; out Value: Int64);
 begin
   if not xsdTryParseLong(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:long']);
 end;
 
 procedure xsdParseUnsignedByte(Chars, Last: xmlCharPtr; out Value: Byte);
 begin
   if not xsdTryParseUnsignedByte(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:unsignedByte']);
 end;
 
 procedure xsdParseUnsignedShort(Chars, Last: xmlCharPtr; out Value: Word);
 begin
   if not xsdTryParseUnsignedShort(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:unsignedShort']);
 end;
 
 procedure xsdParseUnsignedInt(Chars, Last: xmlCharPtr; out Value: Longword);
 begin
   if not xsdTryParseUnsignedInt(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:unsignedInt']);
 end;
 
 procedure xsdParseUnsignedLong(Chars, Last: xmlCharPtr; out Value: QWord);
 begin
   if not xsdTryParseUnsignedLong(Chars, Last, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:unsignedLong']);
 end;
 
 procedure xsdParseEnum(Chars, Last: xmlCharPtr; enum: array of String; out Value: Integer);
 begin
   if not xsdTryParseEnum(Chars, Last, enum, Value) then
-    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last)]);
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Last), 'xs:enum']);
 end;
 
 function xsdNewChildString(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: String): xmlNodePtr;
