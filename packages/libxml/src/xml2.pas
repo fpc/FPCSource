@@ -32,9 +32,6 @@ const
 
 {$i xml2.inc}
 
-operator := (const S: String): xmlCharPtr; inline;
-//operator := (const C: AnsiChar): xmlCharPtr; inline;
-
 implementation
 
 procedure fpcxmlFree(mem: pointer); EXTDECL;
@@ -72,26 +69,6 @@ end;
 (*
  * macros from xmlversion.inc
  *)
-
-function BAD_CAST(str: pchar): xmlCharPtr;
-begin
-  result := xmlCharPtr(str);
-end;
-
-function BAD_CAST(str: string): xmlCharPtr;
-begin
-  result := xmlCharPtr(PChar(str));
-end;
-
-operator := (const S: String): xmlCharPtr; inline;
-begin
-  Result := xmlCharPtr(PChar(S));
-end;
-
-{operator := (const C: AnsiChar): xmlCharPtr; inline;
-begin
-  Result := xmlCharPtr(PChar(String(C)));
-end;}
 
 
 (*
@@ -218,7 +195,7 @@ end;
 
 function htmlElementAllowedHereDesc(parent: htmlElemDescPtr; elt: htmlElemDescPtr): cint;
 begin
-  Result := htmlElementAllowedHere(parent, BAD_CAST(elt^.name));
+  Result := htmlElementAllowedHere(parent, xmlCharPtr(elt^.name));
 end;
 
 function htmlRequiredAttrs(elt: htmlElemDescPtr): ppchar;
