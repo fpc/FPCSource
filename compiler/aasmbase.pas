@@ -73,6 +73,10 @@ interface
          sec_pdata,
          { used for darwin import stubs }
          sec_stub,
+         sec_data_nonlazy,
+         sec_data_lazy,
+         sec_init_func,
+         sec_term_func,
          { stabs }
          sec_stab,sec_stabstr,
          { win32 }

@@ -263,8 +263,8 @@ interface
       TStabType = (stab_stabs,stab_stabn,stab_stabd);
 
       TAsmDirective=(
-        asd_non_lazy_symbol_pointer,asd_indirect_symbol,asd_lazy_symbol_pointer,
-        asd_extern,asd_nasm_import, asd_toc_entry, asd_mod_init_func, asd_mod_term_func,
+        asd_indirect_symbol,
+        asd_extern,asd_nasm_import, asd_toc_entry,
         asd_reference,asd_no_dead_strip,asd_weak_reference,asd_lazy_reference,
         asd_weak_definition
       );
@@ -274,8 +274,8 @@ interface
       tempallocstr : array[boolean] of string[10]=('released','allocated');
       stabtypestr : array[TStabType] of string[5]=('stabs','stabn','stabd');
       directivestr : array[TAsmDirective] of string[23]=(
-        'non_lazy_symbol_pointer','indirect_symbol','lazy_symbol_pointer',
-        'extern','nasm_import', 'tc', 'mod_init_func', 'mod_term_func', 'reference',
+        'indirect_symbol',
+        'extern','nasm_import', 'tc', 'reference',
         'no_dead_strip','weak_reference','lazy_reference','weak_definition'
       );
 

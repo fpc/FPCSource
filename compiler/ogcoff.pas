@@ -481,8 +481,12 @@ implementation
 
        coffsecnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
           '.text','.data','.data','.data','.bss','.tls',
-          '.text',
-          '.pdata',
+          '.pdata',{pdata}
+          '.text', {stub}
+          '.data',
+          '.data',
+          '.data',
+          '.data',
           '.stab','.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',

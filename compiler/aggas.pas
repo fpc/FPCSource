@@ -270,6 +270,10 @@ implementation
           '.threadvar',
           '.pdata',
           '', { stubs }
+          '__DATA,__nl_symbol_ptr',
+          '__DATA,__la_symbol_ptr',
+          '__DATA,__mod_init_func',
+          '__DATA,__mod_term_func',
           '.stab',
           '.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
@@ -323,6 +327,10 @@ implementation
           '.threadvar',
           '.pdata',
           '', { stubs }
+          '__DATA,__nl_symbol_ptr',
+          '__DATA,__la_symbol_ptr',
+          '__DATA,__mod_init_func',
+          '__DATA,__mod_term_func',
           '.stab',
           '.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
@@ -1297,6 +1305,26 @@ implementation
                     exit;
                   end;
               end;
+            sec_data_nonlazy:
+              begin
+                result:='.section __DATA, __nl_symbol_ptr,non_lazy_symbol_pointers';
+                exit;
+              end;
+            sec_data_lazy:
+              begin
+                result:='.section __DATA, __la_symbol_ptr,lazy_symbol_pointers';
+                exit;
+              end;
+            sec_init_func:
+              begin
+                result:='.section __DATA, __mod_init_func, mod_init_funcs';
+                exit;
+              end;
+            sec_term_func:
+              begin
+                result:='.section __DATA, __mod_term_func, mod_term_funcs';
+                exit;
+              end;
             sec_objc_protocol_ext:
               begin
                 result:='.section __OBJC, __protocol_ext, regular, no_dead_strip';
@@ -1432,6 +1460,10 @@ implementation
          sec_code (* sec_pdata *),
          { used for darwin import stubs }
          sec_code (* sec_stub *),
+         sec_data,(* sec_data_nonlazy *)
+         sec_data,(* sec_data_lazy *)
+         sec_data,(* sec_init_func *)
+         sec_data,(* sec_term_func *)
          { stabs }
          sec_stab,sec_stabstr,
          { win32 }

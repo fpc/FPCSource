@@ -75,7 +75,8 @@ interface
         'csect', {read only data}
         'csect', {read only data - no relocations}
         'csect', {bss} 'csect', '',
-        'csect','csect','csect','csect',
+        'csect','csect','csect','csect','csect',
+        'csect','csect','csect',
          '','','','','','','','','','','','','','',
         '',
         '',
