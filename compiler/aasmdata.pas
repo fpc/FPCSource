@@ -313,7 +313,7 @@ implementation
           AsmLists[hal]:=TAsmList.create;
         { PIC data }
         if (target_info.system in [system_powerpc_darwin,system_powerpc64_darwin,system_i386_darwin,system_arm_darwin]) then
-          AsmLists[al_picdata].concat(tai_section.create(sec_data_nonlazy,'',0));
+          AsmLists[al_picdata].concat(tai_section.create(sec_data_nonlazy,'',sizeof(pint)));
         { CFI }
         FAsmCFI:=CAsmCFI.Create;
       end;
