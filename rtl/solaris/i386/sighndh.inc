@@ -19,6 +19,30 @@
 type
   PSigContext = ^TSigContext;
   TSigContext = record
+    { WARNING: this is a blind copy of
+      the linux strcuture, probably totally wrong PM }
+    gs, __gsh: word;
+    fs, __fsh: word;
+    es, __esh: word;
+    ds, __dsh: word;
+    edi: cardinal;
+    esi: cardinal;
+    ebp: cardinal;
+    esp: cardinal;
+    ebx: cardinal;
+    edx: cardinal;
+    ecx: cardinal;
+    eax: cardinal;
+    trapno: cardinal;
+    err: cardinal;
+    eip: cardinal;
+    cs, __csh: word;
+    eflags: cardinal;
+    esp_at_signal: cardinal;
+    ss, __ssh: word;
+    // commented out for now : fpstate: pfpstate;
+    oldmask: cardinal;
+    cr2: cardinal;
   end;
 
 
