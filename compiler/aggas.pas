@@ -595,6 +595,7 @@ implementation
       hp:=tai(p.first);
       while assigned(hp) do
        begin
+         prefetch(pointer(hp.next)^);
          if not(hp.typ in SkipLineInfo) then
           begin
             hp1 := hp as tailineinfo;
