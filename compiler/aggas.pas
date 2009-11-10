@@ -521,17 +521,48 @@ implementation
 
     procedure TGNUAssembler.WriteTree(p:TAsmList);
 
-    function needsObject(hp : tai_symbol) : boolean;
-      begin
-        needsObject :=
-            (
-              assigned(hp.next) and
-               (tai(hp.next).typ in [ait_const,ait_datablock,
-                ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit])
-            ) or
-            (hp.sym.typ=AT_DATA);
-
-      end;
+      function needsObject(hp : tai_symbol) : boolean;
+        begin
+          needsObject :=
+              (
+                assigned(hp.next) and
+                 (tai(hp.next).typ in [ait_const,ait_datablock,
+                  ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit])
+              ) or
+              (hp.sym.typ=AT_DATA);
+  
+        end;
+  
+  
+      procedure doalign(alignment: byte; use_op: boolean; fillop: byte; out last_align: longint);
+        var
+          i: longint;
+        begin
+          last_align:=alignment;
+          if alignment>1 then
+            begin
+              if not(target_info.system in systems_darwin) then
+                begin
+                  AsmWrite(#9'.balign '+tostr(alignment));
+                  if use_op then
+                    AsmWrite(','+tostr(fillop))
+{$ifdef x86}
+                  { force NOP as alignment op code }
+                  else if LastSecType=sec_code then
+                    AsmWrite(',0x90');
+{$endif x86}
+                end
+              else
+                begin
+                  { darwin as only supports .align }
+                  if not ispowerof2(alignment,i) then
+                    internalerror(2003010305);
+                  AsmWrite(#9'.align '+tostr(i));
+                  last_align:=i;
+                end;
+              AsmLn;
+            end;
+        end;
 
     var
       ch       : char;
@@ -659,30 +690,7 @@ implementation
 
            ait_align :
              begin
-               last_align := tai_align_abstract(hp).aligntype;
-               if tai_align_abstract(hp).aligntype>1 then
-                 begin
-                   if not(target_info.system in systems_darwin) then
-                     begin
-                       AsmWrite(#9'.balign '+tostr(tai_align_abstract(hp).aligntype));
-                       if tai_align_abstract(hp).use_op then
-                         AsmWrite(','+tostr(tai_align_abstract(hp).fillop))
-{$ifdef x86}
-                       { force NOP as alignment op code }
-                       else if LastSecType=sec_code then
-                         AsmWrite(',0x90');
-{$endif x86}
-                     end
-                   else
-                     begin
-                       { darwin as only supports .align }
-                       if not ispowerof2(tai_align_abstract(hp).aligntype,i) then
-                         internalerror(2003010305);
-                       AsmWrite(#9'.align '+tostr(i));
-                       last_align := i;
-                     end;
-                   AsmLn;
-                 end;
+               doalign(tai_align_abstract(hp).aligntype,tai_align_abstract(hp).use_op,tai_align_abstract(hp).fillop,last_align);
              end;
 
            ait_section :
@@ -696,6 +704,7 @@ implementation
                    AsmWriteln(' sec_none');
 {$endif EXTDEBUG}
                 end;
+               doalign(tai_section(hp).secalign,false,0,last_align);
              end;
 
            ait_datablock :
