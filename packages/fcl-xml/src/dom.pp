@@ -38,7 +38,7 @@ unit DOM;
 interface
 
 uses
-  SysUtils, Classes, AVL_Tree, xmlutils;
+  SysUtils, Classes, xmlutils;
 
 // -------------------------------------------------------
 //   DOMException
@@ -276,13 +276,10 @@ type
   TDOMNode_WithChildren = class(TDOMNode)
   protected
     FFirstChild, FLastChild: TDOMNode;
-    FChildNodeTree: TAVLTree;
     FChildNodes: TDOMNodeList;
     function GetFirstChild: TDOMNode; override;
     function GetLastChild: TDOMNode; override;
     procedure CloneChildren(ACopy: TDOMNode; ACloneOwner: TDOMDocument);
-    procedure AddToChildNodeTree(NewNode: TDOMNode);
-    procedure RemoveFromChildNodeTree(OldNode: TDOMNode);
     procedure FreeChildren;
     function GetTextContent: DOMString; override;
     procedure SetTextContent(const AValue: DOMString); override;
@@ -1261,16 +1258,6 @@ end;
 
 //------------------------------------------------------------------------------
 
-function CompareDOMNodeWithDOMNode(Node1, Node2: Pointer): integer;
-begin
-  Result := TDOMNode(Node2).CompareName(TDOMNode(Node1).NodeName);
-end;
-
-function CompareDOMStringWithDOMNode(AKey, ANode: Pointer): integer;
-begin
-  Result := TDOMNode(ANode).CompareName(PDOMString(AKey)^);
-end;
-
 type
   TNodeTypeEnum = ELEMENT_NODE..NOTATION_NODE;
   TNodeTypeSet = set of TNodeTypeEnum;
@@ -1307,7 +1294,6 @@ end;
 destructor TDOMNode_WithChildren.Destroy;
 begin
   FreeChildren;
-  FreeAndNil(FChildNodeTree);
   FChildNodes.Free; // its destructor will zero the field
   inherited Destroy;
 end;
@@ -1395,13 +1381,11 @@ begin
     RefChild.FPreviousSibling := NewChild;
   end;
   NewChild.FParentNode := Self;
-  AddToChildNodeTree(NewChild);
 end;
 
 function TDOMNode_WithChildren.ReplaceChild(NewChild, OldChild: TDOMNode):
   TDOMNode;
 begin
-  RemoveFromChildNodeTree(OldChild);
   InsertBefore(NewChild, OldChild);
   if Assigned(OldChild) then
     RemoveChild(OldChild);
@@ -1427,7 +1411,6 @@ begin
   else
     OldChild.FNextSibling.FPreviousSibling := OldChild.FPreviousSibling;
 
-  RemoveFromChildNodeTree(OldChild);
   // Make sure removed child does not contain references to nowhere
   OldChild.FPreviousSibling := nil;
   OldChild.FNextSibling := nil;
@@ -1442,14 +1425,13 @@ end;
 
 
 function TDOMNode_WithChildren.FindNode(const ANodeName: DOMString): TDOMNode;
-var AVLNode: TAVLTreeNode;
 begin
-  Result:=nil;
-  if FChildNodeTree<>nil then begin
-    AVLNode:=FChildNodeTree.FindKey(Pointer(@ANodeName),
-                                    @CompareDOMStringWithDOMNode);
-    if AVLNode<>nil then
-      Result:=TDOMNode(AVLNode.Data);
+  Result := FFirstChild;
+  while Assigned(Result) do
+  begin
+    if Result.CompareName(ANodeName)=0 then
+      Exit;
+    Result := Result.NextSibling;
   end;
 end;
 
@@ -1471,8 +1453,6 @@ procedure TDOMNode_WithChildren.FreeChildren;
 var
   child, next: TDOMNode;
 begin
-  if Assigned(FChildNodeTree) then
-    FChildNodeTree.Clear;
   child := FFirstChild;
   while Assigned(child) do
   begin
@@ -1513,21 +1493,6 @@ begin
   if AValue <> '' then
     AppendChild(FOwnerDocument.CreateTextNode(AValue));
 end;
-
-procedure TDOMNode_WithChildren.AddToChildNodeTree(NewNode: TDOMNode);
-begin
-  if FChildNodeTree=nil then
-    FChildNodeTree:=TAVLTree.Create(@CompareDOMNodeWithDOMNode);
-  if FChildNodeTree.Find(NewNode)=nil then
-    FChildNodeTree.Add(NewNode);
-end;
-
-procedure TDOMNode_WithChildren.RemoveFromChildNodeTree(OldNode: TDOMNode);
-begin
-  if FChildNodeTree<>nil then
-    FChildNodeTree.Remove(OldNode);
-end;
-
 
 // -------------------------------------------------------
 //   NodeList
