@@ -290,6 +290,7 @@ type
     function DetachChild(OldChild: TDOMNode): TDOMNode; override;
     function HasChildNodes: Boolean; override;
     function FindNode(const ANodeName: DOMString): TDOMNode; override;
+    procedure InternalAppend(NewChild: TDOMNode);
   end;
 
 
@@ -1418,6 +1419,18 @@ begin
   Result := OldChild;
 end;
 
+procedure TDOMNode_WithChildren.InternalAppend(NewChild: TDOMNode);
+begin
+  if Assigned(FFirstChild) then
+  begin
+    FLastChild.FNextSibling := NewChild;
+    NewChild.FPreviousSibling := FLastChild;
+  end else
+    FFirstChild := NewChild;
+  FLastChild := NewChild;
+  NewChild.FParentNode := Self;
+end;
+
 function TDOMNode_WithChildren.HasChildNodes: Boolean;
 begin
   Result := Assigned(FFirstChild);
@@ -1444,7 +1457,7 @@ begin
   node := FirstChild;
   while Assigned(node) do
   begin
-    ACopy.AppendChild(node.CloneNode(True, ACloneOwner));
+    TDOMNode_WithChildren(ACopy).InternalAppend(node.CloneNode(True, ACloneOwner));
     node := node.NextSibling;
   end;
 end;
