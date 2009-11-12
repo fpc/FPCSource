@@ -962,12 +962,12 @@ implementation
           if assigned(def.childof) then
             defstr:=defstr+def_llvm_vmt_name(def.childof).name+'*, '
           else
-            defstr:=defstr+'void*, ';
+            defstr:=defstr+'i8*, ';
           { class name (length+string) }
           defstr:=defstr+'['+tostr(length(def.objrealname^)+1)+' x i8]*, ';
           { the other fields }
           for i:=1 to 8 do
-            defstr:=defstr+'void*, ';
+            defstr:=defstr+'i8*, ';
           for i:= 0 to def.VMTEntries.Count-1 do
             defstr:=defstr+def_llvm_pointer_name(pvmtentry(def.VMTEntries[i])^.procdef).name+', ';
           setlength(defstr,length(defstr)-2);

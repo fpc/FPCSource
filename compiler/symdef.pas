@@ -2102,7 +2102,10 @@ implementation
 {$ifdef support_llvm}
     function tpointerdef.llvm_mangledname:string;
       begin
-        result:=pointeddef.llvm_mangledname+'*';
+        if not is_void(pointeddef) then
+          result:=pointeddef.llvm_mangledname+'*'
+        else
+          result:='i8*'
       end;
 {$endif support_llvm}
 
