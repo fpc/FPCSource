@@ -3495,6 +3495,12 @@ implementation
              for i:=0 to paras.count-1 do
                begin
                  hp:=tparavarsym(paras[i]);
+                 { no hidden parameters form part of a C++ mangled name:
+                     a) self is not included
+                     b) there are no "high" or other hidden parameters
+                 }
+                 if vo_is_hidden_para in hp.varoptions then
+                   continue;
                  s2:=getcppparaname(hp.vardef);
                  if hp.varspez in [vs_var,vs_out] then
                    s2:='R'+s2;
