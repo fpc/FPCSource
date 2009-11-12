@@ -37,9 +37,14 @@ var
   __get_exit_frame_monitor_ptr : pointer; cvar; external;
   __do_exit_code_ptr : pointer; cvar; external;
 }
+
+var
+  _environ : pointer; cvar; external;
+
 procedure _DYNAMIC;cdecl;external 'c' name '_DYNAMIC'; { should be weak }
+
 procedure __Argv;cdecl;external 'c' name '__Argv';
-procedure environ;cdecl;external 'c' name 'environ';
+//procedure environ;cdecl;external 'c' name 'environ';
 //procedure __get_exit_frame_monitor_ptr;cdecl;external 'c' name '__get_exit_frame_monitor_ptr';
 //procedure __do_exit_code_ptr;cdecl;external 'c' name '__do_exit_code_ptr';
 
@@ -77,11 +82,12 @@ asm
 .Label2:
    mov    0x8(%ebp),%eax
    mov    %eax,argc
-   mov    environ,%edx
+   mov    _environ,%edx
    test   %edx,%edx
    jne    .Label3
    lea    0x10(%ebp,%eax,4),%edx
 .Label3:
+   movl   %edx,_environ
    movl   %edx,envp
    and    $0xfffffff0,%esp
    push   %edx
