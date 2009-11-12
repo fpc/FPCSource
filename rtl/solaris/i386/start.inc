@@ -82,7 +82,6 @@ asm
    jne    .Label3
    lea    0x10(%ebp,%eax,4),%edx
 .Label3:
-   movl   %edx,environ
    movl   %edx,envp
    and    $0xfffffff0,%esp
    push   %edx
