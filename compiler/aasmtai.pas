@@ -99,7 +99,6 @@ interface
           aitconst_rva_symbol,
           aitconst_secrel32_symbol,
           { darwin only }
-          aitconst_indirect_symbol,
           { From gcc/config/darwin.c (darwin_asm_output_dwarf_delta):
             ***
             Output a difference of two labels that will be an assembly time
@@ -432,7 +431,6 @@ interface
           constructor Create_sym_offset(_sym:tasmsymbol;ofs:aint);
           constructor Create_rel_sym(_typ:taiconst_type;_sym,_endsym:tasmsymbol);
           constructor Create_rva_sym(_sym:tasmsymbol);
-          constructor Create_indirect_sym(_sym:tasmsymbol);
           constructor Createname(const name:string;ofs:aint);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
@@ -1236,13 +1234,6 @@ implementation
       end;
 
 
-    constructor tai_const.Create_indirect_sym(_sym:tasmsymbol);
-      begin
-         self.create_sym_offset(_sym,0);
-         consttype:=aitconst_indirect_symbol;
-      end;
-
-
     constructor tai_const.Createname(const name:string;ofs:aint);
       begin
          self.create_sym_offset(current_asmdata.RefAsmSymbol(name),ofs);
@@ -1295,7 +1286,6 @@ implementation
             result:=4;
           aitconst_64bit :
             result:=8;
-          aitconst_indirect_symbol,
           aitconst_secrel32_symbol,
           aitconst_rva_symbol :
             if target_info.system=system_x86_64_win64 then

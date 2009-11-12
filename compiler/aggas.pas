@@ -214,7 +214,7 @@ implementation
       ait_const2str : array[aitconst_128bit..aitconst_darwin_dwarf_delta32] of string[20]=(
         #9'.fixme128'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9,#9'.byte'#9,
         #9'.sleb128'#9,#9'.uleb128'#9,
-        #9'.rva'#9,#9'.secrel32'#9,#9'.indirect_symbol'#9,#9'.quad'#9,#9'.long'#9
+        #9'.rva'#9,#9'.secrel32'#9,#9'.quad'#9,#9'.long'#9
       );
 
 {****************************************************************************}
@@ -828,7 +828,6 @@ implementation
                  aitconst_8bit,
                  aitconst_rva_symbol,
                  aitconst_secrel32_symbol,
-                 aitconst_indirect_symbol,
                  aitconst_darwin_dwarf_delta32,
                  aitconst_darwin_dwarf_delta64:
                    begin

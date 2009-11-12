@@ -419,10 +419,10 @@ implementation
     end;
 
     const
-      ait_const2str : array[aitconst_128bit..aitconst_indirect_symbol] of string[20]=(
+      ait_const2str : array[aitconst_128bit..aitconst_secrel32_symbol] of string[20]=(
         #9''#9,#9'DQ'#9,#9'DD'#9,#9'DW'#9,#9'DB'#9,
         #9'FIXMESLEB',#9'FIXEMEULEB',
-        #9'DD RVA'#9,#9'DD SECREL32'#9,#9'FIXMEINDIRECT'#9
+        #9'DD RVA'#9,#9'DD SECREL32'#9
       );
 
     Function PadTabs(const p:string;addch:char):string;
@@ -598,8 +598,7 @@ implementation
                  aitconst_16bit,
                  aitconst_8bit,
                  aitconst_rva_symbol,
-                 aitconst_secrel32_symbol,
-                 aitconst_indirect_symbol :
+                 aitconst_secrel32_symbol :
                    begin
                      AsmWrite(ait_const2str[consttype]);
                      l:=0;

@@ -879,8 +879,7 @@ interface
                    aitconst_32bit,
                    aitconst_16bit,
                    aitconst_8bit,
-                   aitconst_rva_symbol,
-                   aitconst_indirect_symbol :
+                   aitconst_rva_symbol :
                      begin
                        AsmWrite(ait_const2str[consttype]);
                        l:=0;
