@@ -127,7 +127,7 @@ compiler/cp850.pas svneol=native#text/plain
 compiler/cp866.pas svneol=native#text/plain
 compiler/cp8859_1.pas svneol=native#text/plain
 compiler/cp8859_5.pas svneol=native#text/plain
-compiler/crefs.pas -text
+compiler/crefs.pas svneol=native#text/plain
 compiler/cresstr.pas svneol=native#text/plain
 compiler/cstreams.pas svneol=native#text/plain
 compiler/cutils.pas svneol=native#text/plain
@@ -6170,8 +6170,8 @@ rtl/embedded/arm/at91sam7x256.pp svneol=native#text/plain
 rtl/embedded/arm/lpc21x4.pp svneol=native#text/plain
 rtl/embedded/arm/stm32f103.pp svneol=native#text/plain
 rtl/embedded/check.inc svneol=native#text/plain
-rtl/embedded/empty.cfg -text
-rtl/embedded/rtl.cfg -text
+rtl/embedded/empty.cfg svneol=native#text/plain
+rtl/embedded/rtl.cfg svneol=native#text/plain
 rtl/embedded/sysdir.inc svneol=native#text/plain
 rtl/embedded/sysfile.inc svneol=native#text/plain
 rtl/embedded/sysheap.inc svneol=native#text/plain
@@ -7090,7 +7090,7 @@ rtl/symbian/Makefile svneol=native#text/plain
 rtl/symbian/Makefile.fpc svneol=native#text/plain
 rtl/symbian/bindings/pbeexe.cpp -text
 rtl/symbian/buildrtl.pp svneol=native#text/plain
-rtl/symbian/symbian.pas -text svneol=unset#text/plain
+rtl/symbian/symbian.pas svneol=native#text/plain
 rtl/symbian/symbianinc/e32def.inc svneol=native#text/plain
 rtl/symbian/symbianinc/e32err.inc svneol=native#text/plain
 rtl/symbian/symbianinc/e32std.inc svneol=native#text/plain
@@ -7100,8 +7100,8 @@ rtl/symbian/sysheap.inc svneol=native#text/plain
 rtl/symbian/sysos.inc svneol=native#text/plain
 rtl/symbian/sysosh.inc svneol=native#text/plain
 rtl/symbian/system.pp svneol=native#text/plain
-rtl/symbian/uiq.pas -text svneol=unset#text/plain
-rtl/symbian/uiqclasses.pas -text svneol=unset#text/plain
+rtl/symbian/uiq.pas svneol=native#text/plain
+rtl/symbian/uiqclasses.pas svneol=native#text/plain
 rtl/symbian/uiqinc/qikapplication.inc svneol=native#text/plain
 rtl/symbian/uiqinc/qikapplicationoo.inc svneol=native#text/plain
 rtl/ucmaps/8859-1.txt svneol=native#text/plain
@@ -11171,15 +11171,15 @@ utils/kalyptus/kalyptus -text
 utils/kalyptus/kalyptusCxxToPas.pm -text
 utils/kalyptus/kalyptusDataDict.pm -text
 utils/mksymbian/Makefile svneol=native#text/plain
-utils/mksymbian/Makefile.fpc -text
-utils/mksymbian/cfgfile.pas -text
-utils/mksymbian/cmdline.pas -text
-utils/mksymbian/compiler.pas -text
-utils/mksymbian/constants.pas -text
-utils/mksymbian/mksymbian.lpi -text
-utils/mksymbian/mksymbian.pas -text
-utils/mksymbian/projectparser.pas -text
-utils/mksymbian/sdkutil.pas -text
+utils/mksymbian/Makefile.fpc svneol=native#text/plain
+utils/mksymbian/cfgfile.pas svneol=native#text/plain
+utils/mksymbian/cmdline.pas svneol=native#text/plain
+utils/mksymbian/compiler.pas svneol=native#text/plain
+utils/mksymbian/constants.pas svneol=native#text/plain
+utils/mksymbian/mksymbian.lpi svneol=native#text/plain
+utils/mksymbian/mksymbian.pas svneol=native#text/plain
+utils/mksymbian/projectparser.pas svneol=native#text/plain
+utils/mksymbian/sdkutil.pas svneol=native#text/plain
 utils/postw32.pp svneol=native#text/plain
 utils/ppdep.pp svneol=native#text/plain
 utils/ptop.pp svneol=native#text/plain
