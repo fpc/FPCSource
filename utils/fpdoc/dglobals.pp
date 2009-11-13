@@ -154,6 +154,7 @@ resourcestring
   SDone                       = 'Done.';
   SErrCouldNotCreateOutputDir = 'Could not create output directory "%s"';
   SErrCouldNotCreateFile      = 'Could not create file "%s": %s';
+  SSeeURL                     = '(See %s)';      // For lineair text writers.
 
 Const
   SVisibility: array[TPasMemberVisibility] of string =
