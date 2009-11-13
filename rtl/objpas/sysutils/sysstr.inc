@@ -1691,9 +1691,23 @@ begin
   Result:=FloatToStrF(Value,ffGeneral,-1,0);
 end;
 
+
+Function CurrToStr(Value: Currency; Const FormatSettings: TFormatSettings): string;
+begin
+  Result:=FloatToStrF(Value,ffGeneral,-1,0,FormatSettings);
+end;  
+
+
 function StrToCurr(const S: string): Currency;
 begin
   if not TextToFloat(PChar(pointer(S)), Result, fvCurrency) then
+    Raise EConvertError.createfmt(SInValidFLoat,[S]);
+end;
+
+
+function StrToCurr(const S: string; Const FormatSettings: TFormatSettings): Currency; 
+begin
+  if not TextToFloat(PChar(pointer(S)), Result, fvCurrency,FormatSettings) then
     Raise EConvertError.createfmt(SInValidFLoat,[S]);
 end;
 
@@ -1704,12 +1718,23 @@ Begin
 End;
 
 
+function TryStrToCurr(const S: string;Out Value : Currency; Const FormatSettings: TFormatSettings): Boolean;       
+Begin
+  Result := TextToFloat(PChar(pointer(S)), Value, fvCurrency,FormatSettings);
+End;  
+
+
 function StrToCurrDef(const S: string; Default : Currency): Currency;
 begin
   if not TextToFloat(PChar(pointer(S)), Result, fvCurrency) then
     Result:=Default;
 end;
 
+function StrToCurrDef(const S: string; Default : Currency; Const FormatSettings: TFormatSettings): Currency;  
+begin
+  if not TextToFloat(PChar(pointer(S)), Result, fvCurrency,FormatSettings) then
+    Result:=Default;
+end; 
 {$endif FPUNONE}
 
 function AnsiDequotedStr(const S: string; AQuote: Char): string;
