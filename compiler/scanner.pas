@@ -65,6 +65,15 @@ interface
           constructor CreateCond(AList:TFPHashObjectList;const n:string;p:tdirectiveproc);
        end;
 
+       // stack for replay buffers
+       treplaystack = class
+         token    : ttoken;
+         settings : tsettings;
+         tokenbuf : tdynamicarray;
+         next     : treplaystack;
+         constructor Create(atoken: ttoken;asettings:tsettings;atokenbuf:tdynamicarray;anext:treplaystack);
+       end;
+
        tcompile_time_predicate = function(var valuedescr: String) : Boolean;
 
        tspecialgenerictoken = (ST_LOADSETTINGS,ST_LINE,ST_COLUMN,ST_FILEINDEX);
@@ -97,12 +106,9 @@ interface
           oldcurrent_tokenpos : tfileposinfo;
 
 
-          replaysavetoken : ttoken;
           replaytokenbuf,
           recordtokenbuf : tdynamicarray;
 
-          { old settings, i.e. settings specialization was started }
-          old_settings,
           { last settings we stored }
           last_settings : tsettings;
 
@@ -116,6 +122,7 @@ interface
           lastasmgetchar : char;
           ignoredirectives : TFPHashList; { ignore directives, used to give warnings only once }
           preprocstack   : tpreprocstack;
+          replaystack    : treplaystack;
           in_asm_string  : boolean;
 
           preproc_pattern : string;
@@ -146,6 +153,7 @@ interface
           procedure ifpreprocstack(atyp : preproctyp;compile_time_predicate:tcompile_time_predicate;messid:longint);
           procedure elseifpreprocstack(compile_time_predicate:tcompile_time_predicate);
           procedure elsepreprocstack;
+          procedure popreplaystack;
           procedure handleconditional(p:tdirectiveitem);
           procedure handledirectives;
           procedure linebreak;
@@ -1818,6 +1826,16 @@ In case not, the value returned can be arbitrary.
         next:=n;
       end;
 
+{*****************************************************************************
+                              TReplayStack
+*****************************************************************************}
+    constructor treplaystack.Create(atoken:ttoken;asettings:tsettings;atokenbuf:tdynamicarray;anext:treplaystack);
+      begin
+        token:=atoken;
+        settings:=asettings;
+        tokenbuf:=atokenbuf;
+        next:=anext;
+      end;
 
 {*****************************************************************************
                               TDirectiveItem
@@ -1853,6 +1871,7 @@ In case not, the value returned can be arbitrary.
         inputstart:=0;
       { reset scanner }
         preprocstack:=nil;
+        replaystack:=nil;
         comment_level:=0;
         yylexcount:=0;
         block_type:=bt_general;
@@ -1888,6 +1907,8 @@ In case not, the value returned can be arbitrary.
             while assigned(preprocstack) do
              poppreprocstack;
           end;
+        while assigned(replaystack) do
+          popreplaystack;
         if not inputfile.closed then
           closeinputfile;
         ignoredirectives.free;
@@ -2094,8 +2115,7 @@ In case not, the value returned can be arbitrary.
         { save current token }
         if token in [_CWCHAR,_CWSTRING,_CCHAR,_CSTRING,_INTCONST,_REALNUMBER,_ID] then
           internalerror(200511178);
-        replaysavetoken:=token;
-        old_settings:=current_settings;
+        replaystack:=treplaystack.create(token,current_settings,replaytokenbuf,replaystack);
         if assigned(inputpointer) then
           dec(inputpointer);
         { install buffer }
@@ -2117,15 +2137,16 @@ In case not, the value returned can be arbitrary.
         { End of replay buffer? Then load the next char from the file again }
         if replaytokenbuf.pos>=replaytokenbuf.size then
           begin
-            replaytokenbuf:=nil;
+            token:=replaystack.token;
+            replaytokenbuf:=replaystack.tokenbuf;
+            { restore compiler settings }
+            current_settings:=replaystack.settings;
+            popreplaystack;
             if assigned(inputpointer) then
               begin
                 c:=inputpointer^;
                 inc(inputpointer);
               end;
-            token:=replaysavetoken;
-            { restore compiler settings }
-            current_settings:=old_settings;
             exit;
           end;
         repeat
@@ -2548,6 +2569,18 @@ In case not, the value returned can be arbitrary.
          Message(scan_e_endif_without_if);
       end;
 
+
+    procedure tscannerfile.popreplaystack;
+      var
+        hp : treplaystack;
+      begin
+        if assigned(replaystack) then
+         begin
+           hp:=replaystack.next;
+           replaystack.free;
+           replaystack:=hp;
+         end;
+      end;
 
     procedure tscannerfile.handleconditional(p:tdirectiveitem);
       begin

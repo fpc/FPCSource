@@ -141,7 +141,6 @@ implementation
       end;
 
 
-
     procedure generate_specialization(var tt:tdef);
       var
         st  : TSymtable;
@@ -175,10 +174,13 @@ implementation
             onlyparsepara:=true;
           end;
 
-        { Only need to record the tokens, then we don't know the type yet }
+        { only need to record the tokens, then we don't know the type yet  ... }
         if parse_generic then
           begin
-            tt:=cundefinedtype;
+            { ... but we have to insert a def into the symtable else the deflist
+              of generic and specialization might not be equally sized which
+              is later assumed }
+            tt:=tundefineddef.create;
             onlyparsepara:=true;
           end;
 
@@ -316,6 +318,7 @@ implementation
                 tt.typesym:=srsym;
                 { Consume the semicolon if it is also recorded }
                 try_to_consume(_SEMICOLON);
+
 
                 { Build VMT indexes for classes }
                 if (tt.typ=objectdef) then

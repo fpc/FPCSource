@@ -862,8 +862,8 @@ implementation
              prefix:=s;
            st:=st.defowner.owner;
          end;
-        { object/classes symtable }
-        if (st.symtabletype=ObjectSymtable) then
+        { object/classes symtable, nested type definitions in classes require the while loop }
+        while st.symtabletype=ObjectSymtable do
          begin
            if st.defowner.typ<>objectdef then
             internalerror(200204174);
@@ -872,7 +872,7 @@ implementation
          end;
         { symtable must now be static or global }
         if not(st.symtabletype in [staticsymtable,globalsymtable]) then
-         internalerror(200204175);
+          internalerror(200204175);
         result:='';
         if typeprefix<>'' then
           result:=result+typeprefix+'_';

@@ -198,16 +198,7 @@ implementation
             (def_to.typ=undefineddef) then
           begin
             doconv:=tc_equal;
-            compare_defs_ext:=te_equal;
-            exit;
-          end;
-
-         { undefined def? then mark it as equal }
-         if (def_from.typ=undefineddef) or
-            (def_to.typ=undefineddef) then
-          begin
-            doconv:=tc_equal;
-            compare_defs_ext:=te_equal;
+            compare_defs_ext:=te_exact;
             exit;
           end;
 
