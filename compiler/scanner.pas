@@ -374,10 +374,13 @@ implementation
                  include(init_settings.moduleswitches,cs_support_goto);
              end;
 
-           { Default enum packing for delphi/tp7 }
+           { Default enum and set packing for delphi/tp7 }
            if (m_tp7 in current_settings.modeswitches) or
               (m_delphi in current_settings.modeswitches) then
-             current_settings.packenum:=1
+             begin
+               current_settings.packenum:=1;
+               current_settings.setalloc:=1;
+             end
            else if (m_mac in current_settings.modeswitches) then
              { compatible with Metrowerks Pascal }
              current_settings.packenum:=2
