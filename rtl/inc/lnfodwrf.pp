@@ -35,7 +35,6 @@ uses
 { Current issues:
 
   - ignores DW_LNS_SET_FILE
-  - slow
 }
 
 {$MACRO ON}
@@ -55,6 +54,8 @@ type
 
 const
   EBUF_SIZE = 100;
+  
+{$WARNING This code is not thread-safe, and needs improvement}  
 var
   { the input file to read DWARF debug info from, i.e. paramstr(0) }
   e : TExeFile;
