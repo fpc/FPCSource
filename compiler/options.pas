@@ -2379,6 +2379,7 @@ begin
   def_system_macro('FPC_STRTOCHARARRAYPROC');
   def_system_macro('FPC_STRTOSHORTSTRINGPROC');
   def_system_macro('FPC_OBJFPC_EXTENDED_IF');
+  def_system_macro('FPC_HAS_OPERATOR_ENUMERATOR');
 {$if defined(x86) or defined(powerpc) or defined(powerpc64)}
   def_system_macro('FPC_HAS_INTERNAL_ABS_LONG');
 {$endif}
