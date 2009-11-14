@@ -1657,8 +1657,13 @@ else
 	cd "$(TEST_OUTPUTDIR)" && "../../$(PREPUP)" $(DB_TARGZ)
 endif
 endif
-uploadrun: $(TEST_OUTPUTDIR)/$(DB_TARGZ)
+ifndef DB_USE_SSH
 ifdef inWinDOS
+UsePutty=1
+endif
+endif
+uploadrun: $(TEST_OUTPUTDIR)/$(DB_TARGZ)
+ifdef UsePutty
 	pscp -load "fpc@www.freepascal.org" $(TEST_OUTPUTDIR)/$(DB_TARGZ) $(DB_HOST):$(DB_UPLOADDIR)/$(DB_TARGZ).part $(SSH_EXTRA)
 	plink -load "fpc@www.freepascal.org" "mv $(DB_UPLOADDIR)/$(DB_TARGZ).part $(DB_UPLOADDIR)/$(DB_TARGZ)"
 else
