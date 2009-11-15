@@ -90,6 +90,7 @@ begin
     TestClass.Test26(Nil, c, 3.1416);
   except
     ExitCode := 1;
+    writeln('error');
   end;
 end.
 
