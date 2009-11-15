@@ -8315,6 +8315,7 @@ tests/test/cg/obj/macos/powerpc/ctest.o -text
 tests/test/cg/obj/netbsd/m68k/ctest.o -text
 tests/test/cg/obj/os2/i386/ctest.o -text
 tests/test/cg/obj/readme.txt svneol=native#text/plain
+tests/test/cg/obj/solaris/i386/cpptcl1.o -text
 tests/test/cg/obj/solaris/i386/ctest.o -text
 tests/test/cg/obj/solaris/i386/tcext3.o -text
 tests/test/cg/obj/solaris/i386/tcext4.o -text
