@@ -62,6 +62,6 @@ var
   c : TStringContainer;
 begin
   c:=TStringContainer.Create;
-  c.Set('abc');
-  Writeln(HexStr(c.Get));
+  c.SetV('abc');
+  Writeln(HexStr(c.GetAddr));
 end.
