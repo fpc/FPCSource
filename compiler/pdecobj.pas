@@ -486,12 +486,9 @@ implementation
 
 
         procedure chkcpp(pd:tprocdef);
-        begin
-           if is_cppclass(pd._class) then
-            begin
-              pd.setmangledname(target_info.Cprefix+pd.cplusplusmangledname);
-            end;
-        end;
+          begin
+            { nothing currently }
+          end;
 
         procedure maybe_parse_hint_directives(pd:tprocdef);
         var

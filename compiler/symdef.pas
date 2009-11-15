@@ -240,6 +240,8 @@ interface
           childof        : tobjectdef;
           childofderef   : tderef;
 
+          { for C++ classes: name of the library this class is imported from }
+          import_lib,
           objname,
           objrealname,
           { for Objective-C: protocols and classes can have the same name there }
@@ -308,9 +310,12 @@ interface
           procedure register_maybe_created_object_type;
           procedure register_created_classref_type;
           procedure register_vmt_call(index:longint);
-          { ObjC }
+          { ObjC & C++ }
           procedure make_all_methods_external;
+          { ObjC }
           procedure finish_objc_data;
+          { C++ }
+          procedure finish_cpp_data;
        end;
 
        tclassrefdef = class(tabstractpointerdef)
@@ -3437,12 +3442,25 @@ implementation
       function getcppparaname(p : tdef) : string;
 
         const
+{$ifdef NAMEMANGLING_GCC2}
            ordtype2str : array[tordtype] of string[2] = (
              '',
              'Uc','Us','Ui','Us',
              'Sc','s','i','x',
              'b','b','b','b','b',
              'c','w','x');
+{$else NAMEMANGLING_GCC2}
+           ordtype2str : array[tordtype] of string[1] = (
+             'v',
+             'h','t','j','y',
+             'a','s','i','x',
+             'b','b','b','b','b',
+             'c','w','x');
+
+           floattype2str : array[tfloattype] of string[1] = (
+             'f','d','e',
+             'd','d','g');
+{$endif NAMEMANGLING_GCC2}
 
         var
            s : string;
@@ -3453,6 +3471,10 @@ implementation
                 s:=ordtype2str[torddef(p).ordtype];
               pointerdef:
                 s:='P'+getcppparaname(tpointerdef(p).pointeddef);
+{$ifndef NAMEMANGLING_GCC2}
+              floatdef:
+                s:=floattype2str[tfloatdef(p).floattype];
+{$endif NAMEMANGLING_GCC2}
               else
                 internalerror(2103001);
            end;
@@ -3465,9 +3487,9 @@ implementation
          i    : integer;
 
       begin
-        { outdated gcc 2.x name mangling scheme }
 {$ifdef NAMEMANGLING_GCC2}
 
+        { outdated gcc 2.x name mangling scheme }
          s := procsym.realname;
          if procsym.owner.symtabletype=ObjectSymtable then
            begin
@@ -3510,14 +3532,15 @@ implementation
          else
            s:=s+'v';
          cplusplusmangledname:=s;
-{$endif NAMEMANGLING_GCC2}
+{$else NAMEMANGLING_GCC2}
 
-         { gcc 3.x name mangling scheme }
+         { gcc 3.x and 4.x name mangling scheme }
+         { see http://www.codesourcery.com/public/cxx-abi/abi.html#mangling }
          if procsym.owner.symtabletype=ObjectSymtable then
            begin
              s:='_ZN';
 
-             s2:=tobjectdef(procsym.owner.defowner).objrealname^;
+             s2:=tobjectdef(procsym.owner.defowner).objextname^;
              s:=s+tostr(length(s2))+s2;
              case proctypeoption of
                 potype_constructor:
@@ -3539,6 +3562,12 @@ implementation
              for i:=0 to paras.count-1 do
                begin
                  hp:=tparavarsym(paras[i]);
+                 { no hidden parameters form part of a C++ mangled name:
+                     a) self is not included
+                     b) there are no "high" or other hidden parameters
+                 }
+                 if vo_is_hidden_para in hp.varoptions then
+                   continue;
                  s2:=getcppparaname(hp.vardef);
                  if hp.varspez in [vs_var,vs_out] then
                    s2:='R'+s2;
@@ -3548,6 +3577,7 @@ implementation
          else
            s:=s+'v';
          cplusplusmangledname:=s;
+{$endif NAMEMANGLING_GCC2}
       end;
 
 
@@ -3778,6 +3808,10 @@ implementation
          { only used for external Objective-C classes/protocols }
          if (objextname^='') then
            stringdispose(objextname);
+         import_lib:=stringdup(ppufile.getstring);
+         { only used for external C++ classes }
+         if (import_lib^='') then
+           stringdispose(import_lib);
          symtable:=tObjectSymtable.create(self,objrealname^,0);
          tObjectSymtable(symtable).datasize:=ppufile.getaint;
          tObjectSymtable(symtable).fieldalignment:=ppufile.getbyte;
@@ -3857,6 +3891,7 @@ implementation
          stringdispose(objname);
          stringdispose(objrealname);
          stringdispose(objextname);
+         stringdispose(import_lib);
          stringdispose(iidstr);
          if assigned(ImplementedInterfaces) then
            begin
@@ -3897,6 +3932,8 @@ implementation
           tobjectdef(result).objrealname:=stringdup(objrealname^);
         if assigned(objextname) then
           tobjectdef(result).objextname:=stringdup(objextname^);
+        if assigned(import_lib) then
+          tobjectdef(result).import_lib:=stringdup(import_lib^);
         tobjectdef(result).objectoptions:=objectoptions;
         include(tobjectdef(result).defoptions,df_copied_def);
         tobjectdef(result).vmt_offset:=vmt_offset;
@@ -3931,6 +3968,10 @@ implementation
          ppufile.putstring(objrealname^);
          if assigned(objextname) then
            ppufile.putstring(objextname^)
+         else
+           ppufile.putstring('');
+         if assigned(import_lib) then
+           ppufile.putstring(import_lib^)
          else
            ppufile.putstring('');
          ppufile.putaint(tObjectSymtable(symtable).datasize);
@@ -4678,6 +4719,37 @@ implementation
         self.symtable.DefList.foreachcall(@check_and_finish_msg,nil);
         if (oo_is_external in objectoptions) then
           self.symtable.SymList.ForEachCall(@mark_private_fields_used,nil);
+      end;
+
+
+    procedure do_cpp_import_info(data: tobject; arg: pointer);
+      var
+        def: tdef absolute data;
+        pd: tprocdef absolute data;
+      begin
+        if (def.typ=procdef) then
+          begin
+            pd.setmangledname(target_info.Cprefix+pd.cplusplusmangledname);
+            if (oo_is_external in pd._class.objectoptions) then
+              begin
+                { copied from psub.read_proc }
+                if assigned(pd._class.import_lib) then
+                   current_module.AddExternalImport(pd._class.import_lib^,pd.mangledname,0,false,false)
+                 else
+                   begin
+                     { add import name to external list for DLL scanning }
+                     if tf_has_dllscanner in target_info.flags then
+                       current_module.dllscannerinputlist.Add(pd.mangledname,pd);
+                   end;
+
+              end;
+          end;
+      end;
+
+
+    procedure tobjectdef.finish_cpp_data;
+      begin
+        self.symtable.DefList.ForEachCall(@do_cpp_import_info,nil);
       end;
 
 

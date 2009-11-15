@@ -47,6 +47,7 @@ interface
 implementation
 
     uses
+       SysUtils,
        { common }
        cutils,cclasses,
        { global }
@@ -282,6 +283,50 @@ implementation
 
 
     procedure types_dec;
+
+      procedure get_cpp_class_external_status(od: tobjectdef);
+        var
+          hs: string;
+
+        begin
+          { C++ classes can be external -> all methods inside are external
+           (defined at the class level instead of per method, so that you cannot
+           define some methods as external and some not)
+          }
+          if (token=_ID) and
+             (idtoken=_EXTERNAL) then
+            begin
+              consume(_EXTERNAL);
+              { copied from pdecsub.pd_external }
+              if not(token=_SEMICOLON) and not(idtoken=_NAME) then
+                begin
+                  { Always add library prefix and suffix to create an uniform name }
+                  hs:=get_stringconst;
+                  if ExtractFileExt(hs)='' then
+                    hs:=ChangeFileExt(hs,target_info.sharedlibext);
+                  if Copy(hs,1,length(target_info.sharedlibprefix))<>target_info.sharedlibprefix then
+                    hs:=target_info.sharedlibprefix+hs;
+                  od.import_lib:=stringdup(hs);
+                end;
+              include(od.objectoptions, oo_is_external);
+              { check if we shall use another name for the class }
+              if (token=_ID) and
+                 (idtoken=_NAME) then
+                begin
+                  consume(_NAME);
+                  od.objextname:=stringdup(get_stringconst);
+                end
+              else
+                od.objextname:=stringdup(od.objrealname^);
+              consume(_SEMICOLON);
+              { now all methods need to be external }
+              od.make_all_methods_external;
+              include(od.objectoptions,oo_is_external);
+            end
+          else
+            od.objextname:=stringdup(od.objrealname^);
+          { ToDo: read the namespace of the class (influences the mangled name)}
+        end;
 
       procedure get_objc_class_or_protocol_external_status(od: tobjectdef);
         begin
@@ -520,6 +565,9 @@ implementation
                     if is_objc_class_or_protocol(hdef) then
                       get_objc_class_or_protocol_external_status(tobjectdef(hdef));
 
+                    if is_cppclass(hdef) then
+                      get_cpp_class_external_status(tobjectdef(hdef));
+
                     { Build VMT indexes, skip for type renaming and forward classes }
                     if (hdef.typesym=newtype) and
                        not(oo_is_forward in tobjectdef(hdef).objectoptions) and
@@ -539,6 +587,9 @@ implementation
                     }
                     if is_objc_class_or_protocol(hdef) then
                       tobjectdef(hdef).finish_objc_data;
+
+                    if is_cppclass(hdef) then
+                      tobjectdef(hdef).finish_cpp_data;
                   end;
                 recorddef :
                   begin
