@@ -59,7 +59,7 @@ type
     FBuffer: PChar;
     FBufPos: PChar;
     FCapacity: Integer;
-    FLineBreak: string;
+    FLineBreak: WideString;
     FNSHelper: TNSSupport;
     FAttrFixups: TFPList;
     FScratch: TFPList;
@@ -156,6 +156,16 @@ end;
     TXMLWriter
   ---------------------------------------------------------------------}
 
+const
+  AttrSpecialChars = ['<', '"', '&', #9, #10, #13];
+  TextSpecialChars = ['<', '>', '&', #10, #13];
+  CDSectSpecialChars = [']'];
+  LineEndingChars = [#13, #10];
+  QuotStr = '&quot;';
+  AmpStr = '&amp;';
+  ltStr = '&lt;';
+  gtStr = '&gt;';
+
 constructor TXMLWriter.Create;
 var
   I: Integer;
@@ -165,14 +175,22 @@ begin
   FBuffer := AllocMem(512+32);
   FBufPos := FBuffer;
   FCapacity := 512;
-  // Initialize Indent string
-  SetLength(FIndent, 100);
-  FIndent[1] := #10;
-  for I := 2 to 100 do FIndent[I] := ' ';
-  FIndentCount := 0;
   // Later on, this may be put under user control
   // for now, take OS setting
-  FLineBreak := sLineBreak;
+  if FCanonical then
+    FLineBreak := #10
+  else
+    FLineBreak := sLineBreak;
+  // Initialize Indent string
+  // TODO: this must be done in setter of FLineBreak
+  SetLength(FIndent, 100);
+  FIndent[1] := FLineBreak[1];
+  if Length(FLineBreak) > 1 then
+    FIndent[2] := FLineBreak[2]
+  else
+    FIndent[2] := ' ';
+  for I := 3 to 100 do FIndent[I] := ' ';
+  FIndentCount := 0;
   FNSHelper := TNSSupport.Create;
   FScratch := TFPList.Create;
   FNSDefs := TFPList.Create;
@@ -216,14 +234,7 @@ begin
 
     wc := Cardinal(Src^);  Inc(Src);
     case wc of
-      $0A: pb := StrECopy(pb, PChar(FLineBreak));
-      $0D: begin
-        pb := StrECopy(pb, PChar(FLineBreak));
-        if (Src < SrcEnd) and (Src^ = #$0A) then
-          Inc(Src);
-      end;
-
-      0..$09, $0B, $0C, $0E..$7F:  begin
+      0..$7F:  begin
         pb^ := char(wc); Inc(pb);
       end;
 
@@ -276,7 +287,7 @@ end;
 
 procedure TXMLWriter.wrtIndent; { inline }
 begin
-  wrtChars(PWideChar(FIndent), FIndentCount*2+1);
+  wrtChars(PWideChar(FIndent), FIndentCount*2+Length(FLineBreak));
 end;
 
 procedure TXMLWriter.IncIndent;
@@ -299,26 +310,6 @@ begin
   if FIndentCount>0 then dec(FIndentCount);
 end;
 
-procedure TXMLWriter.wrtQuotedLiteral(const ws: WideString);
-var
-  Quote: WideChar;
-begin
-  // TODO: need to check if the string also contains single quote
-  // both quotes present is a error
-  if Pos('"', ws) > 0 then
-    Quote := ''''
-  else
-    Quote := '"';
-  wrtChr(Quote);
-  wrtStr(ws);
-  wrtChr(Quote);
-end;
-
-const
-  AttrSpecialChars = ['<', '"', '&', #9, #10, #13];
-  TextSpecialChars = ['<', '>', '&'];
-  CDSectSpecialChars = [']'];
-
 procedure TXMLWriter.ConvWrite(const s: WideString; const SpecialChars: TSetOfChar;
   const SpecialCharCallback: TSpecialCharCallback);
 var
@@ -328,7 +319,7 @@ begin
   EndPos := 1;
   while EndPos <= Length(s) do
   begin
-    if (s[EndPos] < #255) and (Char(ord(s[EndPos])) in SpecialChars) then
+    if (s[EndPos] < 'A') and (Char(ord(s[EndPos])) in SpecialChars) then
     begin
       wrtChars(@s[StartPos], EndPos - StartPos);
       SpecialCharCallback(Self, s, EndPos);
@@ -339,12 +330,6 @@ begin
   if StartPos <= length(s) then
     wrtChars(@s[StartPos], EndPos - StartPos);
 end;
-
-const
-  QuotStr = '&quot;';
-  AmpStr = '&amp;';
-  ltStr = '&lt;';
-  gtStr = '&gt;';
 
 procedure AttrSpecialCharCallback(Sender: TXMLWriter; const s: DOMString;
   var idx: Integer);
@@ -362,13 +347,35 @@ begin
   end;
 end;
 
-procedure TextnodeSpecialCharCallback(Sender: TXMLWriter; const s: DOMString;
+procedure TextnodeNormalCallback(Sender: TXMLWriter; const s: DOMString;
   var idx: Integer);
 begin
   case s[idx] of
     '<': Sender.wrtStr(ltStr);
     '>': Sender.wrtStr(gtStr); // Required only in ']]>' literal, otherwise optional
     '&': Sender.wrtStr(AmpStr);
+    #13:
+      begin
+        // We normalize #13#10 and #13 to FLineBreak, going somewhat
+        // beyond the specs here, see issue #13879.
+        Sender.wrtStr(Sender.FLineBreak);
+        if (idx < Length(s)) and (s[idx+1] = #10) then
+          Inc(idx);
+      end;
+    #10: Sender.wrtStr(Sender.FLineBreak);
+  else
+    Sender.wrtChr(s[idx]);
+  end;
+end;
+
+procedure TextnodeCanonicalCallback(Sender: TXMLWriter; const s: DOMString;
+  var idx: Integer);
+begin
+  case s[idx] of
+    '<': Sender.wrtStr(ltStr);
+    '>': Sender.wrtStr(gtStr);
+    '&': Sender.wrtStr(AmpStr);
+    #13: Sender.wrtStr('&#xD;')
   else
     Sender.wrtChr(s[idx]);
   end;
@@ -385,6 +392,27 @@ begin
   end
   else
     Sender.wrtChr(s[idx]);
+end;
+
+const
+  TextnodeCallbacks: array[boolean] of TSpecialCharCallback = (
+    @TextnodeNormalCallback,
+    @TextnodeCanonicalCallback
+  );
+
+procedure TXMLWriter.wrtQuotedLiteral(const ws: WideString);
+var
+  Quote: WideChar;
+begin
+  // TODO: need to check if the string also contains single quote
+  // both quotes present is a error
+  if Pos('"', ws) > 0 then
+    Quote := ''''
+  else
+    Quote := '"';
+  wrtChr(Quote);
+  ConvWrite(ws, LineEndingChars, @TextnodeNormalCallback);
+  wrtChr(Quote);
 end;
 
 procedure TXMLWriter.WriteNode(node: TDOMNode);
@@ -605,7 +633,7 @@ end;
 
 procedure TXMLWriter.VisitText(node: TDOMNode);
 begin
-  ConvWrite(TDOMCharacterData(node).Data, TextSpecialChars, @TextnodeSpecialCharCallback);
+  ConvWrite(TDOMCharacterData(node).Data, TextSpecialChars, TextnodeCallbacks[FCanonical]);
 end;
 
 procedure TXMLWriter.VisitCDATA(node: TDOMNode);
@@ -613,7 +641,7 @@ begin
   if not FInsideTextNode then
     wrtIndent;
   if FCanonical then
-    ConvWrite(TDOMCharacterData(node).Data, TextSpecialChars, @TextnodeSpecialCharCallback)
+    ConvWrite(TDOMCharacterData(node).Data, TextSpecialChars, @TextnodeCanonicalCallback)
   else
   begin
     wrtChars('<![CDATA[', 9);
@@ -637,7 +665,8 @@ begin
   if TDOMProcessingInstruction(node).Data <> '' then
   begin
     wrtChr(' ');
-    wrtStr(TDOMProcessingInstruction(node).Data);
+    // TODO: How does this comply with c14n??
+    ConvWrite(TDOMProcessingInstruction(node).Data, LineEndingChars, @TextnodeNormalCallback);
   end;
   wrtStr('?>');
 end;
@@ -646,7 +675,8 @@ procedure TXMLWriter.VisitComment(node: TDOMNode);
 begin
   if not FInsideTextNode then wrtIndent;
   wrtChars('<!--', 4);
-  wrtStr(TDOMCharacterData(node).Data);
+  // TODO: How does this comply with c14n??
+  ConvWrite(TDOMCharacterData(node).Data, LineEndingChars, @TextnodeNormalCallback);
   wrtChars('-->', 3);
 end;
 
@@ -677,7 +707,8 @@ begin
   // TODO: now handled as a regular PI, remove this?
   if Length(TXMLDocument(node).StylesheetType) > 0 then
   begin
-    wrtStr(#10'<?xml-stylesheet type="');
+    wrtStr(FLineBreak);
+    wrtStr('<?xml-stylesheet type="');
     wrtStr(TXMLDocument(node).StylesheetType);
     wrtStr('" href="');
     wrtStr(TXMLDocument(node).StylesheetHRef);
@@ -690,7 +721,7 @@ begin
     WriteNode(Child);
     Child := Child.NextSibling;
   end;
-  wrtChars(#10, 1);
+  wrtStr(FLineBreak);
 end;
 
 procedure TXMLWriter.VisitDocument_Canonical(Node: TDOMNode);
@@ -746,7 +777,8 @@ end;
 
 procedure TXMLWriter.VisitDocumentType(Node: TDOMNode);
 begin
-  wrtStr(#10'<!DOCTYPE ');
+  wrtStr(FLineBreak);
+  wrtStr('<!DOCTYPE ');
   wrtStr(Node.NodeName);
   wrtChr(' ');
   with TDOMDocumentType(Node) do
@@ -766,7 +798,7 @@ begin
     if InternalSubset <> '' then
     begin
       wrtChr('[');
-      wrtStr(InternalSubset);
+      ConvWrite(InternalSubset, LineEndingChars, @TextnodeNormalCallback);
       wrtChr(']');
     end;
   end;
