@@ -18,7 +18,7 @@ if not caught then
 
 writeln('Masking exceptions');
 
-writeln(byte(SetExceptionMask([exDenormalized,exInvalidOp,exOverflow,exPrecision,exUnderflow,exZeroDivide])));  //Returns 61, as expected
+writeln(Integer(SetExceptionMask([exDenormalized,exInvalidOp,exOverflow,exPrecision,exUnderflow,exZeroDivide])));  //Returns 61, as expected
 writeln(integer(GetExceptionMask));  //Returns 4 - unexpected???
 writeln(byte([exZeroDivide]));    //Returns 4
 
