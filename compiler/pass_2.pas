@@ -147,7 +147,8 @@ implementation
              'rttin',
              'loadparentfpn',
              'dataconstn',
-             'objselectorn'
+             'objselectorn',
+             'objcprotocoln'
              );
       var
         p: pchar;
