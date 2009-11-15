@@ -59,6 +59,7 @@ uses
   aasmdata,aasmtai,aasmcpu,
   fmodule,
   cgbase,cgutils,cpubase,cgobj,
+  cgcpu,
   ncgutil,
   verbose;
 
@@ -135,6 +136,7 @@ var
   r : treference;
 {$endif x86}
 begin
+  create_codegen;
   new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
   hp2:=texported_item(current_module._exports.first);
   while assigned(hp2) do
@@ -180,6 +182,7 @@ begin
        end;
      hp2:=texported_item(hp2.next);
    end;
+   destroy_codegen;
 end;
 
 
