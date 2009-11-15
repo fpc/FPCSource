@@ -357,15 +357,12 @@ procedure TFPSList.SetCount(NewCount: Integer);
 begin
   if (NewCount < 0) or (NewCount > MaxListSize) then
     Error(SListCountError, NewCount);
+  if NewCount > FCapacity then
+    SetCapacity(NewCount);
   if NewCount > FCount then
-  begin
-    if NewCount > FCapacity then
-      SetCapacity(NewCount);
-    if NewCount > FCount then
-      FillByte(InternalItems[FCount]^, (NewCount-FCount) * FItemSize, 0)
-    else if NewCount < FCount then
-      Deref(NewCount, FCount-1);
-  end;
+    FillByte(InternalItems[FCount]^, (NewCount-FCount) * FItemSize, 0)
+  else if NewCount < FCount then
+    Deref(NewCount, FCount-1);
   FCount := NewCount;
 end;
 
