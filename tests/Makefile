@@ -1485,17 +1485,17 @@ units:
 	$(MAKE) -C units FPC_VERSION= FPC=$(TEST_FPC) CPU_TARGET=$(TEST_CPU_TARGET) OS_TARGET=$(TEST_OS_TARGET) OPT="$(TEST_OPT)" CCOMPILER=$(TEST_CCOMPILER) BINUTILSPREFIX=$(TEST_BINUTILSPREFIX)
 copyfiles: $(TEST_OUTPUTDIR)
 ifneq ($(TEST_ABI),)
-	$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/ctest.o test/cg
-	$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/tcext3.o test/cg
-	$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/tcext4.o test/cg
-	$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/tcext5.o test/cg
-	$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/cpptcl1.o test/cg
+	-$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/ctest.o test/cg
+	-$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/tcext3.o test/cg
+	-$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/tcext4.o test/cg
+	-$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/tcext5.o test/cg
+	-$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/cpptcl1.o test/cg
 else
-	$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/ctest.o test/cg
-	$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext3.o test/cg
-	$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext4.o test/cg
-	$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext5.o test/cg
-	$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/cpptcl1.o test/cg
+	-$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/ctest.o test/cg
+	-$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext3.o test/cg
+	-$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext4.o test/cg
+	-$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext5.o test/cg
+	-$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/cpptcl1.o test/cg
 endif
 	-$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/units/system
 	$(COPY) test/units/system/test*.txt $(TEST_OUTPUTDIR)/test/units/system
