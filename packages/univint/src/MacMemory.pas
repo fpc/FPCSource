@@ -1688,7 +1688,7 @@ procedure HSetState( h: Handle; flags: SInt8 ); external name '_HSetState';
     
 ****************************************************************************}
 
-{$ifc TARGET_CPU_64}
+{$ifc not TARGET_CPU_64}
 {
  *  BlockMove()
  *  
@@ -1746,7 +1746,7 @@ procedure BlockZero( destPtr: UnivPtr; byteCount: Size ); external name '_BlockZ
  *    Mac OS X:         in version 10.0 and later
  }
 procedure BlockZeroUncached( destPtr: UnivPtr; byteCount: Size ); external name '_BlockZeroUncached';
-{$endc} {TARGET_CPU_64}
+{$endc} {not TARGET_CPU_64}
 
 
 {
