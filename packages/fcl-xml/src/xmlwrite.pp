@@ -79,6 +79,7 @@ type
     procedure Write(const Buffer; Count: Longint); virtual; abstract;
     procedure WriteNode(Node: TDOMNode);
     procedure VisitDocument(Node: TDOMNode);
+    procedure VisitDocument_Canonical(Node: TDOMNode);
     procedure VisitElement(Node: TDOMNode);
     procedure VisitText(Node: TDOMNode);
     procedure VisitCDATA(Node: TDOMNode);
@@ -396,7 +397,11 @@ begin
     ENTITY_REFERENCE_NODE:       VisitEntityRef(node);
     PROCESSING_INSTRUCTION_NODE: VisitPI(node);
     COMMENT_NODE:                VisitComment(node);
-    DOCUMENT_NODE:               VisitDocument(node);
+    DOCUMENT_NODE:
+      if FCanonical then
+        VisitDocument_Canonical(node)
+      else
+        VisitDocument(node);
     DOCUMENT_TYPE_NODE:          VisitDocumentType(node);
     ENTITY_NODE,
     DOCUMENT_FRAGMENT_NODE:      VisitFragment(node);
@@ -487,7 +492,7 @@ begin
         if Assigned(B) then  // drop redundant namespace declarations
           FNSDefs.Add(B);
       end
-      else if TDOMAttr(node).Specified then
+      else if FCanonical or TDOMAttr(node).Specified then
       begin
         // obtain a TAttrFixup record (allocate if needed)
         if j >= FAttrFixups.Count then
@@ -571,7 +576,7 @@ begin
     for i := 0 to node.Attributes.Length - 1 do
     begin
       child := node.Attributes.Item[i];
-      if TDOMAttr(child).Specified then
+      if FCanonical or TDOMAttr(child).Specified then
         VisitAttribute(child);
     end;
   Child := node.FirstChild;
@@ -581,7 +586,7 @@ begin
   begin
     SavedInsideTextNode := FInsideTextNode;
     wrtChr('>');
-    FInsideTextNode := Child.NodeType in [TEXT_NODE, CDATA_SECTION_NODE];
+    FInsideTextNode := FCanonical or (Child.NodeType in [TEXT_NODE, CDATA_SECTION_NODE]);
     IncIndent;
     repeat
       WriteNode(Child);
@@ -686,6 +691,36 @@ begin
     Child := Child.NextSibling;
   end;
   wrtChars(#10, 1);
+end;
+
+procedure TXMLWriter.VisitDocument_Canonical(Node: TDOMNode);
+var
+  child, root: TDOMNode;
+begin
+  root := TDOMDocument(Node).DocumentElement;
+  child := node.FirstChild;
+  while Assigned(child) and (child <> root) do
+  begin
+    if child.nodeType in [COMMENT_NODE, PROCESSING_INSTRUCTION_NODE] then
+    begin
+      WriteNode(child);
+      wrtChr(#10);
+    end;
+    child := child.nextSibling;
+  end;
+  if root = nil then
+    Exit;
+  VisitElement(TDOMElement(root));
+  child := root.nextSibling;
+  while Assigned(child) do
+  begin
+    if child.nodeType in [COMMENT_NODE, PROCESSING_INSTRUCTION_NODE] then
+    begin
+      wrtChr(#10);
+      WriteNode(child);
+    end;
+    child := child.nextSibling;
+  end;
 end;
 
 procedure TXMLWriter.VisitAttribute(Node: TDOMNode);
