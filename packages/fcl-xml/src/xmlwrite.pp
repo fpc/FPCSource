@@ -316,6 +316,7 @@ end;
 const
   AttrSpecialChars = ['<', '"', '&', #9, #10, #13];
   TextSpecialChars = ['<', '>', '&'];
+  CDSectSpecialChars = [']'];
 
 procedure TXMLWriter.ConvWrite(const s: WideString; const SpecialChars: TSetOfChar;
   const SpecialCharCallback: TSpecialCharCallback);
@@ -370,6 +371,19 @@ begin
   else
     Sender.wrtChr(s[idx]);
   end;
+end;
+
+procedure CDSectSpecialCharCallback(Sender: TXMLWriter; const s: DOMString;
+  var idx: Integer);
+begin
+  if (idx <= Length(s)-2) and (s[idx+1] = ']') and (s[idx+2] = '>') then
+  begin
+    Sender.wrtStr(']]]]><![CDATA[>');
+    Inc(idx, 2);
+    // TODO: emit warning 'cdata-section-splitted'
+  end
+  else
+    Sender.wrtChr(s[idx]);
 end;
 
 procedure TXMLWriter.WriteNode(node: TDOMNode);
@@ -598,7 +612,7 @@ begin
   else
   begin
     wrtChars('<![CDATA[', 9);
-    wrtStr(TDOMCharacterData(node).Data);
+    ConvWrite(TDOMCharacterData(node).Data, CDSectSpecialChars, @CDSectSpecialCharCallback);
     wrtChars(']]>', 3);
   end;
 end;
