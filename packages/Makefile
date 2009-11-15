@@ -8993,11 +8993,11 @@ unixutil_shared: libc_shared fcl-base_shared
 unixutil_smart: libc_smart fcl-base_smart
 unixutil_debug: libc_debug fcl-base_debug
 unixutil_release: libc_release fcl-base_release
-winunits-base_all: fcl-registry fcl-base_all
-winunits-base_shared: fcl-registry fcl-base_shared
-winunits-base_smart: fcl-registry fcl-base_smart
-winunits-base_debug: fcl-registry fcl-base_debug
-winunits-base_release: fcl-registry fcl-base_release
+winunits-base_all: fcl-registry_all fcl-base_all
+winunits-base_shared: fcl-registry_shared fcl-base_shared
+winunits-base_smart: fcl-registry_smart fcl-base_smart
+winunits-base_debug: fcl-registry_debug fcl-base_debug
+winunits-base_release: fcl-registry_release fcl-base_release
 winunits-jedi_all: winunits-base_all fcl-registry fcl-base_all
 winunits-jedi_shared: winunits-base_shared fcl-registry fcl-base_shared
 winunits-jedi_smart: winunits-base_smart fcl-registry fcl-base_smart
