@@ -1594,7 +1594,7 @@ implementation
                           do_member_read(tobjectdef(hdef),getaddr,srsym,p1,again,[])
                         else
                           { no propertysyms in records (yet) }
-                          internalerror(2007012006);
+                          internalerror(2009111510);
                       end
                     else
                     { no method pointer }
