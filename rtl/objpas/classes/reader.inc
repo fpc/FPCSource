@@ -1065,6 +1065,17 @@ begin
     Result := ReadInteger;
 end;
 
+function TReader.ReadSet(EnumType: Pointer): Integer; 
+begin
+  if FDriver.NextValue = vaSet then
+    begin
+      FDriver.ReadValue;
+      Result := FDriver.ReadSet(enumtype);
+    end 
+  else
+    Result := ReadInteger;
+end;
+
 procedure TReader.ReadListBegin;
 begin
   CheckValue(vaList);

@@ -1191,6 +1191,7 @@ type
     function ReadIdent: string;
     function ReadInteger: Longint;
     function ReadInt64: Int64;
+    function ReadSet(EnumType: Pointer): Integer; 
     procedure ReadListBegin;
     procedure ReadListEnd;
     function ReadRootComponent(ARoot: TComponent): TComponent;
@@ -1369,6 +1370,7 @@ type
     procedure WriteIdent(const Ident: string);
     procedure WriteInteger(Value: Longint); overload;
     procedure WriteInteger(Value: Int64); overload;
+    procedure WriteSet(Value: LongInt; SetType: Pointer); 
     procedure WriteListBegin;
     procedure WriteListEnd;
     procedure WriteRootComponent(ARoot: TComponent);
