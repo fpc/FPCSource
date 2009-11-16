@@ -313,6 +313,8 @@ type
     PrefixLen: Integer;  // to avoid recalculation
   end;
 
+  TLiteralType = (ltPlain, ltAttr, ltTokAttr, ltPubid, ltEntity);
+
   TXMLReader = class
   private
     FSource: TXMLCharSource;
@@ -398,7 +400,8 @@ type
     function  CheckName(aFlags: TCheckNameFlags = []): Boolean;
     procedure CheckNCName;
     function  ExpectName: WideString;                                   // [5]
-    procedure SkipQuotedLiteral(out Literal: WideString; required: Boolean = True);
+    function ParseLiteral(var ToFill: TWideCharBuf; aType: TLiteralType;
+      Required: Boolean; Normalized: PBoolean = nil): Boolean;
     procedure ExpectAttValue;                                           // [10]
     procedure ParseComment;                                             // [15]
     procedure ParsePI;                                                  // [16]
@@ -413,6 +416,8 @@ type
     procedure ParseAttribute(Elem: TDOMElement; ElDef: TDOMElementDef);
     procedure ParseContent;                                             // [43]
     function  ResolvePredefined: Boolean;
+    function  EntityCheck: TDOMEntityEx;
+    procedure StartGE(AEntity: TDOMEntityEx);
     procedure IncludeEntity(InAttr: Boolean);
     procedure StartPE;
     function  ParseRef(var ToFill: TWideCharBuf): Boolean;              // [67]
@@ -421,7 +426,6 @@ type
 
     procedure BadPENesting(S: TErrorSeverity = esError);
     procedure ParseEntityDecl;
-    function  ParseEntityDeclValue(Delim: WideChar): Boolean;
     procedure ParseAttlistDecl;
     procedure ExpectChoiceOrSeq(CP: TContentParticle);
     procedure ParseElementDecl;
@@ -1695,9 +1699,6 @@ end;
 
 const
   AttrDelims: TSetOfChar = [#0, '<', '&', '''', '"', #9, #10, #13];
-  EntityValueDelims: TSetOfChar = [#0, '%', '&', '''', '"'];
-  SQ_Delim: TSetOfChar = [#0, ''''];
-  DQ_Delim: TSetOfChar = [#0, '"'];
   GT_Delim: TSetOfChar = [#0, '>'];
 
 function TXMLReader.DoParseAttValue(Delim: WideChar): Boolean;
@@ -1794,6 +1795,40 @@ begin
   end;
 end;
 
+function TXMLReader.EntityCheck: TDOMEntityEx;
+var
+  RefName: WideString;
+  cnt: Integer;
+begin
+  Result := nil;
+  SetString(RefName, FName.Buffer, FName.Length);
+  cnt := FName.Length+2;
+
+  if Assigned(FDocType) then
+    Result := FDocType.Entities.GetNamedItem(RefName) as TDOMEntityEx;
+
+  if Result = nil then
+  begin
+    if FStandalone or (FDocType = nil) or not (FHavePERefs or (FDocType.SystemID <> '')) then
+      FatalError('Reference to undefined entity ''%s''', [RefName], cnt)
+    else
+      ValidationError('Undefined entity ''%s'' referenced', [RefName], cnt);
+    Exit;
+  end;
+
+  if FStandalone and Result.FExternallyDeclared then
+    FatalError('Standalone constraint violation', cnt);
+  if Result.NotationName <> '' then
+    FatalError('Reference to unparsed entity ''%s''', [RefName], cnt);
+end;
+
+procedure TXMLReader.StartGE(AEntity: TDOMEntityEx);
+begin
+  if AEntity.FOnStack then
+    FatalError('Entity ''%s'' recursively references itself', [AEntity.FName]);
+  ContextPush(AEntity);
+end;
+
 procedure TXMLReader.IncludeEntity(InAttr: Boolean);
 var
   AEntity: TDOMEntityEx;
@@ -1802,29 +1837,18 @@ var
   SaveCursor: TDOMNode_WithChildren;
   cnt: Cardinal;
 begin
-  AEntity := nil;
   SetString(RefName, FName.Buffer, FName.Length);
   cnt := FName.Length+2;
-
-  if Assigned(FDocType) then
-    AEntity := FDocType.Entities.GetNamedItem(RefName) as TDOMEntityEx;
+  AEntity := EntityCheck;
 
   if AEntity = nil then
   begin
-    if FStandalone or (FDocType = nil) or not (FHavePERefs or (FDocType.SystemID <> '')) then
-      FatalError('Reference to undefined entity ''%s''', [RefName], cnt)
-    else
-      ValidationError('Undefined entity ''%s'' referenced', [RefName], cnt);
     FCursor.AppendChild(doc.CreateEntityReference(RefName));
     Exit;
   end;
 
   if InAttr and (AEntity.SystemID <> '') then
     FatalError('External entity reference is not allowed in attribute value', cnt);
-  if FStandalone and AEntity.FExternallyDeclared then
-    FatalError('Standalone constraint violation', cnt);
-  if AEntity.NotationName <> '' then
-    FatalError('Reference to unparsed entity ''%s''', [RefName], cnt);
 
   if not AEntity.FResolved then
   begin
@@ -1923,24 +1947,116 @@ begin
     FatalError('Literal has no closing quote',-1);
 end;
 
-procedure TXMLReader.SkipQuotedLiteral(out Literal: WideString; required: Boolean);
+procedure Normalize(var Buf: TWideCharBuf; Modified: PBoolean);
 var
-  Delim: WideChar;
+  Dst, Src: Integer;
 begin
-  SkipQuote(Delim, required);
-  if Delim <> #0 then
+  Dst := 0;
+  Src := 0;
+  // skip leading space if any
+  while (Src < Buf.Length) and (Buf.Buffer[Src] = ' ') do
+    Inc(Src);
+
+  while Src < Buf.Length do
   begin
-    StoreLocation(FTokenStart);
-    FValue.Length := 0;
-    if Delim = '''' then
-      Delim := FSource.SkipUntil(FValue, SQ_Delim)
+    if Buf.Buffer[Src] = ' ' then
+    begin
+      // Dst cannot be 0 here, because leading space is already skipped
+      if Buf.Buffer[Dst-1] <> ' ' then
+      begin
+        Buf.Buffer[Dst] := ' ';
+        Inc(Dst);
+      end;
+    end
     else
-      Delim := FSource.SkipUntil(FValue, DQ_Delim);
-    if Delim = #0 then
-      FatalError('Literal has no closing quote', -1);
-    FSource.NextChar;
-    SetString(Literal, FValue.Buffer, FValue.Length);
+    begin
+      Buf.Buffer[Dst] := Buf.Buffer[Src];
+      Inc(Dst);
+    end;
+    Inc(Src);
   end;
+  // trailing space (only one possible due to compression)
+  if (Dst > 0) and (Buf.Buffer[Dst-1] = ' ') then
+    Dec(Dst);
+
+  if Assigned(Modified) then
+    Modified^ := Dst <> Buf.Length;
+  Buf.Length := Dst;
+end;
+
+const
+  LiteralDelims: array[TLiteralType] of TSetOfChar = (
+    [#0, '''', '"'],                          // ltPlain
+    [#0, '<', '&', '''', '"', #9, #10, #13],  // ltAttr
+    [#0, '<', '&', '''', '"', #9, #10, #13],  // ltTokAttr
+    [#0, '''', '"', #13, #10],                // ltPubid
+    [#0, '%', '&', '''', '"']                 // ltEntity
+  );
+
+function TXMLReader.ParseLiteral(var ToFill: TWideCharBuf; aType: TLiteralType;
+  Required: Boolean; Normalized: PBoolean): Boolean;
+var
+  start: TObject;
+  wc, Delim: WideChar;
+  ent: TDOMEntityEx;
+begin
+  SkipQuote(Delim, Required);
+  Result := (Delim <> #0);
+  if not Result then
+    Exit;
+  StoreLocation(FTokenStart);
+  ToFill.Length := 0;
+  start := FSource.FEntity;
+  repeat
+    wc := FSource.SkipUntil(ToFill, LiteralDelims[aType]);
+    if wc = '%' then       { ltEntity only }
+    begin
+      FSource.NextChar;
+      CheckName;
+      ExpectChar(';');
+      if FSource.DTDSubsetType = dsInternal then
+        FatalError('PE reference not allowed here in internal subset', FName.Length+2);
+      StartPE;
+    end
+    else if wc = '&' then  { ltAttr, ltTokAttr, ltEntity }
+    begin
+      if ParseRef(ToFill) then   // charRefs always expanded
+        Continue;
+      if aType = ltEntity then   // bypass
+      begin
+        BufAppend(ToFill, '&');
+        BufAppendChunk(ToFill, FName.Buffer, FName.Buffer + FName.Length);
+        BufAppend(ToFill, ';');
+      end
+      else                       // include
+      begin
+        if ResolvePredefined then
+          Continue;
+        ent := EntityCheck;
+        if ent = nil then
+          Continue;
+        if ent.SystemID <> '' then
+          FatalError('External entity reference is not allowed in attribute value', FName.Length+2);
+        StartGE(ent);
+      end;
+    end
+    else if wc = '<' then
+      FatalError('Character ''<'' is not allowed in attribute value')
+    else if wc <> #0 then
+    begin
+      FSource.NextChar;
+      if (wc = #10) or (wc = #13) or (wc = #9) then
+        wc := #32
+      // terminating delimiter must be in the same context as the starting one
+      else if (wc = Delim) and (start = FSource.FEntity) then
+        Break;
+      BufAppend(ToFill, wc);
+    end
+    else if (FSource.FEntity = start) or not ContextPop then    // #0
+      FatalError('Literal has no closing quote', -1);
+  until False;
+  if aType in [ltTokAttr, ltPubid] then
+    Normalize(ToFill, Normalized);
 end;
 
 function TXMLReader.SkipUntilSeq(const Delim: TSetOfChar; c1: WideChar; c2: WideChar = #0): Boolean;
@@ -2541,54 +2657,9 @@ begin
   end;
 end;
 
-function TXMLReader.ParseEntityDeclValue(Delim: WideChar): Boolean;   // [9]
-var
-  CurrentEntity: TObject;
-  wc: WideChar;
-begin
-  CurrentEntity := FSource.FEntity;
-  if FEntityValue.Buffer = nil then
-    BufAllocate(FEntityValue, 256);
-  FEntityValue.Length := 0;
-  repeat
-    wc := FSource.SkipUntil(FEntityValue, EntityValueDelims);
-    if wc = '%' then
-    begin
-      FSource.NextChar;
-      CheckName;
-      ExpectChar(';');
-      if FSource.DTDSubsetType = dsInternal then
-        FatalError('PE reference not allowed here in internal subset', FName.Length+2);
-      StartPE;
-    end
-    else if wc = '&' then
-    begin
-// expand CharRefs, bypass (but check for well-formedness) EntityRefs
-      if not ParseRef(FEntityValue) then
-      begin
-        BufAppend(FEntityValue, '&');
-        BufAppendChunk(FEntityValue, FName.Buffer, FName.Buffer + FName.Length);
-        BufAppend(FEntityValue, ';');
-      end;
-    end
-    else if wc <> #0 then
-    begin
-      FSource.NextChar;
-      // terminating delimiter must be in the same context as the starting one
-      if (wc = Delim) and (CurrentEntity = FSource.FEntity) then
-        Break;
-      BufAppend(FEntityValue, wc);
-    end
-    else if (FSource.FEntity = CurrentEntity) or not ContextPop then    // #0
-      Break;
-  until False;
-  Result := (wc <> #0);
-end;
-
 procedure TXMLReader.ParseEntityDecl;        // [70]
 var
   NDataAllowed: Boolean;
-  Delim: WideChar;
   Entity: TDOMEntityEx;
   Map: TDOMNamedNodeMap;
 begin
@@ -2615,16 +2686,16 @@ begin
 
     // remember where the entity is declared
     Entity.FURI := FSource.SystemID;
-    if (FSource.FBuf^ = '"') or (FSource.FBuf^ = '''') then
+
+    if FEntityValue.Buffer = nil then
+      BufAllocate(FEntityValue, 256);
+
+    if ParseLiteral(FEntityValue, ltEntity, False) then
     begin
-      NDataAllowed := False;
-      Delim := FSource.FBuf^;
-      FSource.NextChar;
-      StoreLocation(Entity.FStartLocation);
-      if not ParseEntityDeclValue(Delim) then
-        DoErrorPos(esFatal, 'Literal has no closing quote', Entity.FStartLocation);
       SetString(Entity.FReplacementText, FEntityValue.Buffer, FEntityValue.Length);
       Entity.FCharCount := FEntityValue.Length;
+      Entity.FStartLocation := FTokenStart;
+      NDataAllowed := False;
     end
     else if not ParseExternalID(Entity.FSystemID, Entity.FPublicID, False) then
       FatalError('Expected entity value or external ID');
@@ -3286,33 +3357,31 @@ var
   I: Integer;
   wc: WideChar;
 begin
+  Result := False;
   if FSource.Matches('SYSTEM') then
-  begin
-    ExpectWhitespace;
-    SkipQuotedLiteral(SysID);
-    Result := True;
-  end
+    SysIdOptional := False
   else if FSource.Matches('PUBLIC') then
   begin
     ExpectWhitespace;
-    SkipQuotedLiteral(PubID);
+    ParseLiteral(FValue, ltPubid, True);
+    SetString(PubID, FValue.Buffer, FValue.Length);
     for I := 1 to Length(PubID) do
     begin
       wc := PubID[I];
       if (wc > #255) or not (Char(ord(wc)) in PubidChars) then
         FatalError('Illegal Public ID literal', -1);
-      if (wc = #10) or (wc = #13) then
-        PubID[I] := #32;
     end;
-    NormalizeSpaces(PubID);
-    if SysIdOptional then
-      SkipWhitespace
-    else
-      ExpectWhitespace;
-    SkipQuotedLiteral(SysID, not SysIdOptional);
-    Result := True;
-  end else
-    Result := False;
+  end
+  else
+    Exit;
+
+  if SysIdOptional then
+    SkipWhitespace
+  else
+    ExpectWhitespace;
+  if ParseLiteral(FValue, ltPlain, not SysIdOptional) then
+    SetString(SysID, FValue.Buffer, FValue.Length);
+  Result := True;
 end;
 
 function TXMLReader.ValidateAttrSyntax(AttrDef: TDOMAttrDef; const aValue: WideString): Boolean;
