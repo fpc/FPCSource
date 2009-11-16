@@ -44,7 +44,7 @@ var
   iconv_open: Ticonv_open;
   iconv: Ticonv;
   iconv_close: Ticonv_close;
-  IconvLibFound: boolean = true;
+  IconvLibFound: boolean = False;
 
 function TryLoadLib(LibName: string; var error: string): boolean; // can be used to load non standard libname
 function Iconvert(s: string; var res: string; FromEncoding, ToEncoding: string): cint;
