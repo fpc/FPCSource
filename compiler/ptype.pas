@@ -493,7 +493,12 @@ implementation
               begin
                 Message(parser_e_no_generics_as_types);
                 def:=generrordef;
-              end;
+              end
+            else if is_objccategory(def) then
+              begin
+                Message(parser_e_no_category_as_types);
+                def:=generrordef
+              end
           end;
       end;
 
@@ -622,7 +627,12 @@ implementation
                          begin
                            Message(parser_e_no_generics_as_types);
                            def:=generrordef;
-                         end;
+                         end
+                       else if is_objccategory(def) then
+                         begin
+                           Message(parser_e_no_category_as_types);
+                           def:=generrordef
+                         end
                      end;
                  end
                else
@@ -1022,6 +1032,14 @@ implementation
 
                 consume(token);
                 def:=object_dec(odt_objcprotocol,name,genericdef,genericlist,nil);
+               end;
+            _OBJCCATEGORY :
+               begin
+                if not(m_objectivec1 in current_settings.modeswitches) then
+                  Message(parser_f_need_objc);
+
+                consume(token);
+                def:=object_dec(odt_objccategory,name,genericdef,genericlist,nil);
                end;
             _OBJECT :
               begin

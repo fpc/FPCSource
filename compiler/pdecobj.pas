@@ -313,15 +313,20 @@ implementation
         hasparentdefined:=false;
 
         { reads the parent class }
-        if try_to_consume(_LKLAMMER) then
+        if (token=_LKLAMMER) or
+           is_objccategory(current_objectdef) then
           begin
+            consume(_LKLAMMER);
             { use single_type instead of id_type for specialize support }
             single_type(hdef,false,false);
             if (not assigned(hdef)) or
                (hdef.typ<>objectdef) then
               begin
                 if assigned(hdef) then
-                  Message1(type_e_class_type_expected,hdef.typename);
+                  Message1(type_e_class_type_expected,hdef.typename)
+                else if is_objccategory(current_objectdef) then
+                  { a category must specify the class to extend }
+                  Message(type_e_objcclass_type_expected);
               end
             else
               begin
@@ -358,13 +363,20 @@ implementation
                      if not(is_cppclass(childof)) then
                        Message(parser_e_mix_of_classes_and_objects);
                    odt_objcclass:
-                     if not(is_objcclass(childof)) then
+                     if not(is_objcclass(childof) or
+                        is_objccategory(childof)) then
                        begin
                          if is_objcprotocol(childof) then
                            begin
-                             intfchildof:=childof;
-                             childof:=nil;
-                             CGMessage(parser_h_no_objc_parent);
+                             if not(oo_is_classhelper in current_objectdef.objectoptions) then
+                               begin
+                                 intfchildof:=childof;
+                                 childof:=nil;
+                                 CGMessage(parser_h_no_objc_parent);
+                               end
+                             else
+                               { a category must specify the class to extend }
+                               CGMessage(type_e_objcclass_type_expected);
                            end
                          else
                            Message(parser_e_mix_of_classes_and_objects);
@@ -562,7 +574,7 @@ implementation
                   _PRIVATE :
                     begin
                       if is_interface(current_objectdef) or
-                         is_objcprotocol(current_objectdef) then
+                         is_objc_protocol_or_category(current_objectdef) then
                         Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PRIVATE);
                        current_objectdef.symtable.currentvisibility:=vis_private;
@@ -572,7 +584,7 @@ implementation
                    _PROTECTED :
                      begin
                        if is_interface(current_objectdef) or
-                          is_objcprotocol(current_objectdef) then
+                          is_objc_protocol_or_category(current_objectdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PROTECTED);
                        current_objectdef.symtable.currentvisibility:=vis_protected;
@@ -582,7 +594,7 @@ implementation
                    _PUBLIC :
                      begin
                        if is_interface(current_objectdef) or
-                          is_objcprotocol(current_objectdef) then
+                          is_objc_protocol_or_category(current_objectdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
                        consume(_PUBLIC);
                        current_objectdef.symtable.currentvisibility:=vis_public;
@@ -593,8 +605,7 @@ implementation
                        { we've to check for a pushlished section in non-  }
                        { publishable classes later, if a real declaration }
                        { this is the way, delphi does it                  }
-                       if is_interface(current_objectdef) or
-                          is_objcprotocol(current_objectdef) then
+                       if is_interface(current_objectdef) then
                          Message(parser_e_no_access_specifier_in_interfaces);
                        { Objective-C classes do not support "published",
                          as basically everything is published.  }
@@ -607,7 +618,7 @@ implementation
                    _STRICT :
                      begin
                        if is_interface(current_objectdef) or
-                          is_objcprotocol(current_objectdef) then
+                          is_objc_protocol_or_category(current_objectdef) then
                           Message(parser_e_no_access_specifier_in_interfaces);
                         consume(_STRICT);
                         if token=_ID then
@@ -638,7 +649,7 @@ implementation
                         if object_member_blocktype=bt_general then
                           begin
                             if is_interface(current_objectdef) or
-                               is_objcprotocol(current_objectdef) then
+                               is_objc_protocol_or_category(current_objectdef) then
                               Message(parser_e_no_vars_in_interfaces);
 
                             if (current_objectdef.symtable.currentvisibility=vis_published) and
@@ -871,6 +882,13 @@ implementation
           end
         else
           begin
+            { change objccategories into objcclass helpers }
+            if (objecttype=odt_objccategory) then
+              begin
+                current_objectdef.objecttype:=odt_objcclass;
+                include(current_objectdef.objectoptions,oo_is_classhelper);
+              end;
+
             { parse list of options (abstract / sealed) }
             parse_object_options;
 

@@ -117,11 +117,22 @@ end;
                        objcsuperclassnode
 *******************************************************************}
 
+    function objcloadbasefield(n: tnode; const fieldname: string): tnode;
+      var
+        vs         : tsym;
+      begin
+        result:=ctypeconvnode.create_internal(cderefnode.create(ctypeconvnode.create_internal(n,voidpointertype)),objc_objecttype);
+        vs:=tsym(tabstractrecorddef(objc_objecttype).symtable.Find(fieldname));
+        if not assigned(vs) or
+           (vs.typ<>fieldvarsym) then
+          internalerror(200911301);
+        result:=csubscriptnode.create(vs,result);
+      end;
+
+
     function objcsuperclassnode(def: tdef): tnode;
       var
         para       : tcallparanode;
-        class_type : tdef;
-        vs         : tsym;
       begin
         { only valid for Objective-C classes and classrefs }
         if not is_objcclass(def) and
@@ -131,11 +142,30 @@ end;
           requires extra node types. Maybe later. }
         if is_objcclassref(def) then
           begin
-            para:=ccallparanode.create(cstringconstnode.createstr(tobjectdef(tclassrefdef(def).pointeddef).objextname^),nil);
-            result:=ccallnode.createinternfromunit('OBJC','OBJC_GETMETACLASS',para);
+            if (oo_is_classhelper in tobjectdef(tclassrefdef(def).pointeddef).objectoptions) then
+              begin
+                { in case we are in a category method, we need the metaclass of the
+                  superclass class extended by this category (= metaclass of superclass of superclass) }
+                result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof.childof));
+                result:=objcloadbasefield(result,'ISA');
+                typecheckpass(result);
+                { we're done }
+                exit;
+              end
+            else
+              begin
+                { otherwise we need the superclass of the metaclass }
+                para:=ccallparanode.create(cstringconstnode.createstr(tobjectdef(tclassrefdef(def).pointeddef).objextname^),nil);
+                result:=ccallnode.createinternfromunit('OBJC','OBJC_GETMETACLASS',para);
+              end
           end
         else
-          result:=cloadvmtaddrnode.create(ctypenode.create(def));
+          begin
+            if not(oo_is_classhelper in tobjectdef(def).objectoptions) then
+              result:=cloadvmtaddrnode.create(ctypenode.create(def))
+            else
+              result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(def).childof))
+          end;
 
 {$if defined(onlymacosx10_6) or defined(arm) }
         { For the non-fragile ABI, the superclass send2 method itself loads the
@@ -145,15 +175,7 @@ end;
             (but also on all iPhone SDK revisions we support) }
         if not(target_info.system in system_objc_nfabi) then
 {$endif onlymacosx10_6 or arm}
-          begin
-            class_type:=search_named_unit_globaltype('OBJC','OBJC_OBJECT').typedef;
-            result:=ctypeconvnode.create_internal(cderefnode.create(ctypeconvnode.create_internal(result,voidpointertype)),class_type);
-            vs:=tsym(tabstractrecorddef(class_type).symtable.Find('SUPERCLASS'));
-            if not assigned(vs) or
-               (vs.typ<>fieldvarsym) then
-              internalerror(200909301);
-            result:=csubscriptnode.create(vs,result);
-          end;
+          result:=objcloadbasefield(result,'SUPERCLASS');
         typecheckpass(result);
       end;
 

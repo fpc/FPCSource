@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03275 is the last used one
+# 03280 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -913,11 +913,11 @@ parser_e_no_con_des_in_interfaces=03171_E_Con- and destructors aren't allowed in
 % be used to create a new interface.
 parser_e_no_access_specifier_in_interfaces=03172_E_Access specifiers can't be used in INTERFACEs and OBJCPROTOCOLs
 % The access specifiers \var{public}, \var{private}, \var{protected} and
-% \var{published} can't be used in interfaces and Objective-C protocols because all methods
-% of an interface/protocol must be public.
-parser_e_no_vars_in_interfaces=03173_E_An interface or Objective-C protocol cannot contain fields
-% Declarations of fields are not allowed in interfaces and Objective-C protocols. An interface/protocol
-% can contain only methods and properties with method read/write specifiers.
+% \var{published} can't be used in interfaces, Objective-C protocols and categories because all methods
+% of an interface/protocol/category must be public.
+parser_e_no_vars_in_interfaces=03173_E_An interface or Objective-C protocol or category cannot contain fields
+% Declarations of fields are not allowed in interfaces and Objective-C protocols and categories.
+% An interface/protocol/category can contain only methods and properties with method read/write specifiers.
 parser_e_no_local_proc_external=03174_E_Can't declare local procedure as EXTERNAL
 % Declaring local procedures as external is not possible. Local procedures
 % get hidden parameters that will make the chance of errors very high.
@@ -992,7 +992,7 @@ parser_e_illegal_calling_convention=03195_W_Calling convention directive ignored
 % Some calling conventions are supported only by certain CPUs. I.e. most non-i386 ports support
 % only the standard ABI calling convention of the CPU.
 parser_e_no_object_reintroduce=03196_E_REINTRODUCE can't be used in objects
-% \var{reintroduce} is not supported for objects.
+% \var{reintroduce} is not supported for objects, Objective-C classes and Objective-C protocols.
 parser_e_paraloc_only_one_para=03197_E_Each argument must have its own location
 % If locations for arguments are specified explicitly as it is required by
 % some syscall conventions, each argument must have its own location. Things
@@ -1245,13 +1245,13 @@ parser_e_no_objc_published=03271_E_Objective-C classes cannot have published sec
 parser_f_need_objc=03272_F_This module requires an Objective-C mode switch to be compiled
 % This error indicates the use of Objective-C language features without an Objective-C mode switch
 % active. Enable one via the -M command line switch, or the {\$modeswitch x} directive.
-parser_e_must_use_override_objc=03273_E_Inherited methods can only be overridden in Objective-C, add ``override''.
-parser_h_should_use_override_objc=03274_H_Inherited methods can only be overridden in Objective-C, add ``override''.
-% It is not possible to ``reintroduce'' methods in Objective-C like in Object Pascal. Methods with the same
+parser_e_must_use_override_objc=03273_E_Inherited methods can only be overridden in Objective-C, add "override".
+parser_h_should_use_override_objc=03274_H_Inherited methods can only be overridden in Objective-C, add "override".
+% It is not possible to \var{reintroduce} methods in Objective-C like in Object Pascal. Methods with the same
 % name always map to the same virtual method entry. In order to make this clear in the source code,
-% the compiler always requires the ``override'' directive to be specified when implementing overriding
+% the compiler always requires the \var{override} directive to be specified when implementing overriding
 % Objective-C methods in Pascal. If the implementation is external, this rule is relaxed because Objective-C
-% does not have any ``override''-style keyword (since it's the default and only behaviour in that language),
+% does not have any \var{override}-style keyword (since it's the default and only behaviour in that language),
 % which makes it hard for automated header conversion tools to include it everywhere.
 parser_e_objc_message_name_changed=03275_E_Message name "$1" in inherited class is different from message name "$2" in current class.
 % An overriding Objective-C method cannot have a different message name than an inherited method. The reason
@@ -1260,11 +1260,24 @@ parser_e_objc_message_name_changed=03275_E_Message name "$1" in inherited class 
 parser_e_no_objc_unique=03276_E_It is not yet possible to make unique copies of Objective-C types
 % Duplicating an Objective-C type using \var{type x = type y;} is not yet supported. You may be able to
 % obtain the desired effect using \var{type x = objcclass(y) end;} instead.
+parser_e_no_category_as_types=03277_E_Objective-C categories cannot be used as types
+% It is not possible to declare a variable as an instance of an Objective-C category. A
+% category adds methods to the scope of an existing class, but does not define a type by itself.
+parser_e_no_category_override=03278_E_Categories do not override, but replace methods. Use "reintroduce" instead.
+parser_e_must_use_reintroduce_objc=03279_E_Replaced methods can only be reintroduced in Objective-C, add "reintroduce".
+parser_h_should_use_reintroduce_objc=03280_H_Replaced methods can only be reintroduced in Objective-C, add "reintroduce".
+% A category replaces an existing method in an Objective-C class, rather than that it overrides it.
+% Calling an inherited method from an category method will call that method in
+% the extended class' parent, not in the extended class itself. The
+% replaced method in the original class is basically lost, and can no longer be
+% called or referred to. This behaviour corresponds somewhat more closely to
+% \var{reintroduce} than to \var{override} (although in case of \var{reintroduce}
+% in Object Pascal, hidden methods are still reachable via inherited).
 % \end{description}
 #
 # Type Checking
 #
-# 04093 is the last used one
+# 04094 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1578,7 +1591,9 @@ type_e_objc_type_unsupported=04092_E_The type "$1" is not supported for interact
 % interfaces) cannot be used as fields of Objective-C classes, cannot be
 % directly passed to Objective-C methods, and cannot be encoded using \var{objc_encode}.
 type_e_class_or_objcclass_type_expected=04093_E_Class or objcclass type expected, but got "$1"
-% It is only possible to create class reference types of \var{class} and
+% It is only possible to create class reference types of \var{class} and \var{objcclass}
+type_e_objcclass_type_expected=04094_E_Objcclass type expected
+% The compiler expected an Objc
 % \var{objcclass} types
 %
 % \end{description}

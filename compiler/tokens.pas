@@ -250,6 +250,7 @@ type
     _EXPERIMENTAL,
     _FINALIZATION,
     _NOSTACKFRAME,
+    _OBJCCATEGORY,
     _OBJCPROTOCOL,
     _WEAKEXTERNAL,
     _DISPINTERFACE,
@@ -510,6 +511,7 @@ const
       (str:'EXPERIMENTAL'  ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'FINALIZATION'  ;special:false;keyword:m_initfinal;op:NOTOKEN),
       (str:'NOSTACKFRAME'  ;special:false;keyword:m_none;op:NOTOKEN),
+      (str:'OBJCCATEGORY'  ;special:false;keyword:m_objectivec1;op:NOTOKEN), { Objective-C category }
       (str:'OBJCPROTOCOL'  ;special:false;keyword:m_objectivec1;op:NOTOKEN), { Objective-C protocol }
       (str:'WEAKEXTERNAL'  ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'DISPINTERFACE' ;special:false;keyword:m_class;op:NOTOKEN),

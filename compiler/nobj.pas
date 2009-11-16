@@ -281,8 +281,12 @@ implementation
             if (po_virtualmethod in vmtpd.procoptions) and
                (
                 not(po_virtualmethod in pd.procoptions) or
-                { new one has not override }
-                (is_class_or_interface_or_objc(_class) and not(po_overridingmethod in pd.procoptions))
+                (
+                 { new one does not have reintroduce in case of an objccategory }
+                 (is_objccategory(_class) and not(po_reintroduce in pd.procoptions)) or
+                 { new one does not have override in case of objpas/objc class/intf/proto }
+                 (is_class_or_interface_or_objc(_class) and not is_objccategory(_class) and not(po_overridingmethod in pd.procoptions))
+                )
                ) then
               begin
                 if (
@@ -305,12 +309,18 @@ implementation
                             because requiring override everywhere may make
                             automated header translation tools too complex.  }
                           if not(oo_is_external in _class.objectoptions) then
-                            MessagePos1(pd.fileinfo,parser_e_must_use_override_objc,pd.fullprocname(false))
+                            if not is_objccategory(_class) then
+                              MessagePos1(pd.fileinfo,parser_e_must_use_override_objc,pd.fullprocname(false))
+                            else
+                              MessagePos1(pd.fileinfo,parser_e_must_use_reintroduce_objc,pd.fullprocname(false))
                           { there may be a lot of these in auto-translated
                             heaeders, so only calculate the fullprocname if
                             the hint will be shown  }
                           else if CheckVerbosity(V_Hint) then
-                            MessagePos1(pd.fileinfo,parser_h_should_use_override_objc,pd.fullprocname(false));
+                            if not is_objccategory(_class) then
+                              MessagePos1(pd.fileinfo,parser_h_should_use_override_objc,pd.fullprocname(false))
+                            else
+                              MessagePos1(pd.fileinfo,parser_h_should_use_reintroduce_objc,pd.fullprocname(false));
                           { no new entry, but copy the message name if any from
                             the procdef in the parent class }
                           check_msg_str(vmtpd,pd);

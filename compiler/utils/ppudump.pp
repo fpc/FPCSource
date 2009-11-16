@@ -1390,7 +1390,8 @@ type
     oo_has_enumerator_movenext,
     oo_has_enumerator_current,
     oo_is_external,       { the class is externally implemented (objcclass, cppclass) }
-    oo_is_anonymous       { the class is only formally defined in this module (objcclass x = class; external;) }
+    oo_is_anonymous,      { the class is only formally defined in this module (objcclass x = class; external;) }
+    oo_is_classhelper     { objcclasses that represent categories, and Delpi-style class helpers, are marked like this }
   );
   tobjectoptions=set of tobjectoption;
   tsymopt=record
@@ -1418,7 +1419,8 @@ const
      (mask:oo_has_enumerator_movenext; str:'HasEnumeratorMoveNext'),
      (mask:oo_has_enumerator_current;  str:'HasEnumeratorCurrent'),
      (mask:oo_is_external;        str:'External'),
-     (mask:oo_is_anonymous;       str:'Anonymous'));
+     (mask:oo_is_anonymous;       str:'Anonymous'),
+     (mask:oo_is_classhelper;     str:'Class Helper/Category'));
 var
   symoptions : tobjectoptions;
   i      : longint;

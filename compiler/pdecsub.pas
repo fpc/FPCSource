@@ -1413,7 +1413,9 @@ begin
   if pd.typ<>procdef then
     internalerror(2003042611);
   if not(is_class_or_interface_or_objc(tprocdef(pd)._class)) then
-    Message(parser_e_no_object_override);
+    Message(parser_e_no_object_override)
+  else if is_objccategory(tprocdef(pd)._class) then
+    Message(parser_e_no_category_override);
 end;
 
 procedure pd_overload(pd:tabstractprocdef);
@@ -1483,7 +1485,8 @@ procedure pd_reintroduce(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200401211);
-  if not(is_class_or_interface_or_object(tprocdef(pd)._class)) then
+  if not(is_class_or_interface_or_object(tprocdef(pd)._class)) and
+     not(is_objccategory(tprocdef(pd)._class)) then
     Message(parser_e_no_object_reintroduce);
 end;
 
@@ -2036,7 +2039,7 @@ const
       mutexclpo     : [po_external]
     ),(
       idtok:_REINTRODUCE;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass];
       handler  : @pd_reintroduce;
       pocall   : pocall_none;
       pooption : [po_reintroduce];

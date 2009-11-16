@@ -440,7 +440,8 @@ implementation
                      (token=_INTERFACE) or
                      (token=_DISPINTERFACE) or
                      (token=_OBJCCLASS) or
-                     (token=_OBJCPROTOCOL)) and
+                     (token=_OBJCPROTOCOL) or
+                     (token=_OBJCCATEGORY)) and
                     (assigned(ttypesym(sym).typedef)) and
                     is_class_or_interface_or_dispinterface_or_objc(ttypesym(sym).typedef) and
                     (oo_is_forward in tobjectdef(ttypesym(sym).typedef).objectoptions) then
@@ -455,7 +456,8 @@ implementation
                           objecttype:=odt_interfacecorba;
                       _DISPINTERFACE :
                         objecttype:=odt_dispinterface;
-                      _OBJCCLASS :
+                      _OBJCCLASS,
+                      _OBJCCATEGORY :
                         objecttype:=odt_objcclass;
                       _OBJCPROTOCOL :
                         objecttype:=odt_objcprotocol;

@@ -364,6 +364,10 @@ const
   parser_h_should_use_override_objc=03274;
   parser_e_objc_message_name_changed=03275;
   parser_e_no_objc_unique=03276;
+  parser_e_no_category_as_types=03277;
+  parser_e_no_category_override=03278;
+  parser_e_must_use_reintroduce_objc=03279;
+  parser_h_should_use_reintroduce_objc=03280;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -448,6 +452,7 @@ const
   type_e_protocol_type_expected=04091;
   type_e_objc_type_unsupported=04092;
   type_e_class_or_objcclass_type_expected=04093;
+  type_e_objcclass_type_expected=04094;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -827,9 +832,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 54197;
+  MsgTxtSize = 54546;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,277,94,71,51,108,22,202,62,
+    24,87,281,95,71,51,108,22,202,62,
     48,20,1,1,1,1,1,1,1,1
   );

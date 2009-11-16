@@ -204,6 +204,7 @@ interface
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
     function  search_enumerator_operator(type_def:Tdef):Tprocdef;
+    function  search_class_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
     {Looks for macro s (must be given in upper case) in the macrosymbolstack, }
     {and returns it if found. Returns nil otherwise.}
     function  search_macro(const s : string):tsym;
@@ -1674,6 +1675,16 @@ implementation
                     exit;
                   end;
               end;
+            { also search for class helpers }
+            if (srsymtable.symtabletype=objectsymtable) and
+               is_objcclass(tdef(srsymtable.defowner)) then
+              begin
+                if search_class_helper(tobjectdef(srsymtable.defowner),s,srsym,srsymtable) then
+                  begin
+                    result:=true;
+                    exit;
+                  end;
+              end;
             stackitem:=stackitem^.next;
           end;
         srsym:=nil;
@@ -1810,7 +1821,9 @@ implementation
     function searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
         hashedid : THashedIDString;
+        orgclass : tobjectdef;
       begin
+        orgclass:=classh;
         { The contextclassh is used for visibility. The classh must be equal to
           or be a parent of contextclassh. E.g. for inherited searches the classh is the
           parent. }
@@ -1832,8 +1845,13 @@ implementation
               end;
             classh:=classh.childof;
           end;
-        srsym:=nil;
-        srsymtable:=nil;
+        if is_objcclass(orgclass) then
+          result:=search_class_helper(orgclass,s,srsym,srsymtable)
+        else
+          begin
+            srsym:=nil;
+            srsymtable:=nil;
+          end;
       end;
 
 
@@ -1993,8 +2011,6 @@ implementation
 
     function search_named_unit_globaltype(const unitname, typename: TIDString): ttypesym;
       var
-        contextobjdef : tobjectdef;
-        stackitem  : psymtablestackitem;
         srsymtable: tsymtable;
         sym: tsym;
       begin
@@ -2012,14 +2028,71 @@ implementation
       end;
 
 
+    function search_class_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
+      var
+        hashedid   : THashedIDString;
+        stackitem  : psymtablestackitem;
+        i          : longint;
+      begin
+        hashedid.id:=class_helper_prefix+s;
+        stackitem:=symtablestack.stack;
+        while assigned(stackitem) do
+          begin
+            srsymtable:=stackitem^.symtable;
+            srsym:=tsym(srsymtable.FindWithHash(hashedid));
+            if assigned(srsym) then
+              begin
+                if not(srsymtable.symtabletype in [globalsymtable,staticsymtable]) or
+                   not(srsym.owner.symtabletype in [globalsymtable,staticsymtable]) or
+                   (srsym.typ<>procsym) then
+                  internalerror(2009111505);
+                { check whether this procsym includes a helper for this particular class }
+                for i:=0 to tprocsym(srsym).procdeflist.count-1 do
+                  begin
+                    { does pd inherit from (or is the same as) the class
+                      that this method's category extended?
+                    }
+                    if pd.is_related(tobjectdef(tprocdef(tprocsym(srsym).procdeflist[i]).owner.defowner).childof) then
+                      begin
+                        { no need to keep looking. There might be other
+                          categories that extend this, a parent or child
+                          class with a method with the same name (either
+                          overriding this one, or overridden by this one),
+                          but that doesn't matter as far as the basic
+                          procsym is concerned.
+                        }
+                        srsym:=tprocdef(tprocsym(srsym).procdeflist[i]).procsym;
+                        srsymtable:=srsym.owner;
+                        { we need to know if a procedure references symbols
+                          in the static symtable, because then it can't be
+                          inlined from outside this unit }
+                        if assigned(current_procinfo) and
+                           (srsym.owner.symtabletype=staticsymtable) then
+                          include(current_procinfo.flags,pi_uses_static_symtable);
+                        addsymref(srsym);
+                        result:=true;
+                        exit;
+                      end;
+                  end;
+              end;
+            stackitem:=stackitem^.next;
+          end;
+        srsym:=nil;
+        srsymtable:=nil;
+        result:=false;
+      end;
+
 
     function search_class_member(pd : tobjectdef;const s : string):tsym;
     { searches n in symtable of pd and all anchestors }
       var
-        hashedid : THashedIDString;
+        hashedid   : THashedIDString;
         srsym      : tsym;
+        orgpd      : tobjectdef;
+        srsymtable : tsymtable;
       begin
         hashedid.id:=s;
+        orgpd:=pd;
         while assigned(pd) do
          begin
            srsym:=tsym(pd.symtable.FindWithHash(hashedid));
@@ -2030,8 +2103,14 @@ implementation
             end;
            pd:=pd.childof;
          end;
-        search_class_member:=nil;
+
+        { not found, now look for class helpers }
+        if is_objcclass(pd) then
+          search_class_helper(orgpd,s,result,srsymtable)
+        else
+          result:=nil;
       end;
+
 
     function search_macro(const s : string):tsym;
       var

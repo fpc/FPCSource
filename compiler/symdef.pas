@@ -685,6 +685,7 @@ interface
        objc_superclasstype,
        objc_idtype,
        objc_seltype         : tpointerdef;
+       objc_objecttype      : trecorddef;
        { base type of @protocol(protocolname) Objective-C statements }
        objc_protocoltype    : tobjectdef;
 
@@ -739,7 +740,9 @@ interface
     function is_objcclass(def: tdef): boolean;
     function is_objcclassref(def: tdef): boolean;
     function is_objcprotocol(def: tdef): boolean;
+    function is_objccategory(def: tdef): boolean;
     function is_objc_class_or_protocol(def: tdef): boolean;
+    function is_objc_protocol_or_category(def: tdef): boolean;
     function is_class_or_interface(def: tdef): boolean;
     function is_class_or_interface_or_objc(def: tdef): boolean;
     function is_class_or_interface_or_object(def: tdef): boolean;
@@ -3582,12 +3585,19 @@ implementation
 
 
     function  tprocdef.objcmangledname : string;
+      var
+        manglednamelen: longint;
+        iscatmethod   : boolean;
       begin
         if not (po_msgstr in procoptions) then
           internalerror(2009030901);
         { we may very well need longer strings to handle these... }
-        if ((255-length(tobjectdef(procsym.owner.defowner).objextname^)
-             -length('+"[ ]"')-length(messageinf.str^)) < 0) then
+        manglednamelen:=length(tobjectdef(procsym.owner.defowner).objextname^)+
+          length('+"[ ]"')+length(messageinf.str^);
+        iscatmethod:=oo_is_classhelper in tobjectdef(procsym.owner.defowner).objectoptions;
+        if (iscatmethod) then
+          inc(manglednamelen,length(tobjectdef(procsym.owner.defowner).childof.objextname^)+length('()'));
+        if manglednamelen>255 then
           Message1(parser_e_objc_message_name_too_long,messageinf.str^);
         if not(po_classmethod in procoptions) then
           result:='"-['
@@ -3596,9 +3606,12 @@ implementation
         { quotes are necessary because the +/- otherwise confuse the assembler
           into expecting a number
         }
-        result:=
-          result+tobjectdef(procsym.owner.defowner).objextname^+' '+
-          messageinf.str^+']"';
+        if iscatmethod then
+          result:=result+tobjectdef(procsym.owner.defowner).childof.objextname^+'(';
+        result:=result+tobjectdef(procsym.owner.defowner).objextname^;
+        if iscatmethod then
+          result:=result+')';
+        result:=result+' '+messageinf.str^+']"';
       end;
 
 
@@ -4082,6 +4095,36 @@ implementation
       end;
 
 
+    procedure create_class_helper_for_procdef(def: tobject; arg: pointer);
+      var
+        pd: tprocdef absolute def;
+        st: tsymtable;
+        psym: tsym;
+        nname: TIDString;
+      begin
+        if (tdef(def).typ<>procdef) then
+          exit;
+        { pd.owner = objcclass symtable -> defowner = objcclassdef ->
+          owner = symtable in which objcclassdef is defined
+        }
+        st:=pd.owner.defowner.owner;
+        nname:=class_helper_prefix+tprocsym(pd.procsym).name;
+        { check for an existing procsym with our special name }
+        psym:=tsym(st.find(nname));
+        if not assigned(psym) then
+          begin
+            psym:=tprocsym.create(nname);
+            { avoid warning about this symbol being unused }
+            psym.IncRefCount;
+            st.insert(psym,true);
+          end
+        else if (psym.typ<>procsym) then
+          internalerror(2009111501);
+        { add ourselves to this special procsym }
+        tprocsym(psym).procdeflist.add(def);
+      end;
+
+
     procedure tobjectdef.buildderefimpl;
       begin
          inherited buildderefimpl;
@@ -4095,6 +4138,10 @@ implementation
          inherited derefimpl;
          if not (df_copied_def in defoptions) then
            tstoredsymtable(symtable).derefimpl;
+         { the procdefs are not owned by the class helper procsyms, so they
+           are not stored/restored either -> re-add them here }
+         if (oo_is_classhelper in objectoptions) then
+           symtable.DefList.ForEachCall(@create_class_helper_for_procdef,nil);
       end;
 
 
@@ -4385,9 +4432,15 @@ implementation
                     begin
                       case rt of
                         objcclassrtti:
-                          result:=result+'_OBJC_CLASS_';
+                          if not(oo_is_classhelper in objectoptions) then
+                            result:=result+'_OBJC_CLASS_'
+                          else
+                            result:=result+'_OBJC_CATEGORY_';
                         objcmetartti:
-                          result:=result+'_OBJC_METACLASS_';
+                          if not(oo_is_classhelper in objectoptions) then
+                            result:=result+'_OBJC_METACLASS_'
+                          else
+                            internalerror(2009111511);
                         else
                          internalerror(2009092302);
                       end;
@@ -4401,9 +4454,15 @@ implementation
                 case objecttype of
                   odt_objcclass:
                     begin
+                      if (oo_is_classhelper in objectoptions) and
+                         (rt<>objcclassrtti) then
+                        internalerror(2009111512);
                       case rt of
                         objcclassrtti:
-                          result:='_OBJC_CLASS_$_';
+                          if not(oo_is_classhelper in objectoptions) then
+                            result:='_OBJC_CLASS_$_'
+                          else
+                            result:='_OBJC_$_CATEGORY_';
                         objcmetartti:
                           result:='_OBJC_METACLASS_$_';
                         objcclassrortti:
@@ -4656,35 +4715,43 @@ implementation
       begin
         if (def.typ=procdef) then
           begin
+            { add all messages also under a dummy name to the symtable in
+              which the objcclass/protocol/category is declared, so they can
+              be called via id.<name>
+            }
+            create_class_helper_for_procdef(pd,nil);
+
             { we have to wait until now to set the mangled name because it
               depends on the (possibly external) class name, which is defined
               at the very end.  }
-            if (po_msgstr in pd.procoptions) then
+            if not(po_msgstr in pd.procoptions) then
               begin
-                { Mangled name is already set in case this is a copy of
-                  another type.  }
-                if not(po_has_mangledname in pd.procoptions) then
-                  begin
-                    { check whether the number of formal parameters is correct }
-                    paracount:=0;
-                    for i:=1 to length(pd.messageinf.str^) do
-                      if pd.messageinf.str^[i]=':' then
-                        inc(paracount);
-                    for i:=0 to pd.paras.count-1 do
-                      if not(vo_is_hidden_para in tparavarsym(pd.paras[i]).varoptions) and
-                         not is_array_of_const(tparavarsym(pd.paras[i]).vardef) then
-                        dec(paracount);
-                    if (paracount<>0) then
-                      MessagePos(pd.fileinfo,sym_e_objc_para_mismatch);
+                CGMessagePos(pd.fileinfo,parser_e_objc_requires_msgstr);
+                { recover to avoid internalerror later on }
+                include(pd.procoptions,po_msgstr);
+                pd.messageinf.str:=stringdup('MissingDeclaration');
+              end;
+            { Mangled name is already set in case this is a copy of
+              another type.  }
+            if not(po_has_mangledname in pd.procoptions) then
+              begin
+                { check whether the number of formal parameters is correct }
+                paracount:=0;
+                for i:=1 to length(pd.messageinf.str^) do
+                  if pd.messageinf.str^[i]=':' then
+                    inc(paracount);
+                for i:=0 to pd.paras.count-1 do
+                  if not(vo_is_hidden_para in tparavarsym(pd.paras[i]).varoptions) and
+                     not is_array_of_const(tparavarsym(pd.paras[i]).vardef) then
+                    dec(paracount);
+                if (paracount<>0) then
+                  MessagePos(pd.fileinfo,sym_e_objc_para_mismatch);
 
-                    pd.setmangledname(pd.objcmangledname);
-                  end
-                else
-                  { all checks already done }
-                  exit;
+                pd.setmangledname(pd.objcmangledname);
               end
             else
-              MessagePos(pd.fileinfo,parser_e_objc_requires_msgstr);
+              { all checks already done }
+              exit;
             if not(oo_is_external in pd._class.objectoptions) then
               begin
                 if (po_varargs in pd.procoptions) then
@@ -5065,12 +5132,35 @@ implementation
       end;
 
 
+    function is_objccategory(def: tdef): boolean;
+      begin
+        result:=
+          assigned(def) and
+          (def.typ=objectdef) and
+          { if used as a forward type }
+          ((tobjectdef(def).objecttype=odt_objccategory) or
+          { if used as after it has been resolved }
+           ((tobjectdef(def).objecttype=odt_objcclass) and
+            (oo_is_classhelper in tobjectdef(def).objectoptions)));
+      end;
+
     function is_objc_class_or_protocol(def: tdef): boolean;
       begin
          result:=
            assigned(def) and
            (def.typ=objectdef) and
            (tobjectdef(def).objecttype in [odt_objcclass,odt_objcprotocol]);
+      end;
+
+
+    function is_objc_protocol_or_category(def: tdef): boolean;
+      begin
+         result:=
+           assigned(def) and
+           (def.typ=objectdef) and
+           ((tobjectdef(def).objecttype = odt_objcprotocol) or
+            ((tobjectdef(def).objecttype = odt_objcclass) and
+             (oo_is_classhelper in tobjectdef(def).objectoptions)));
       end;
 
 
@@ -5125,6 +5215,7 @@ implementation
         objc_superclasstype:=tpointerdef(search_named_unit_globaltype('OBJC','POBJC_SUPER').typedef);
         objc_idtype:=tpointerdef(search_named_unit_globaltype('OBJC','ID').typedef);
         objc_seltype:=tpointerdef(search_named_unit_globaltype('OBJC','SEL').typedef);
+        objc_objecttype:=trecorddef(search_named_unit_globaltype('OBJC','OBJC_OBJECT').typedef);
       end;
 
 

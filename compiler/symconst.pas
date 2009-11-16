@@ -117,6 +117,9 @@ const
   paranr_syscall_legacy   = high(word)-2;
   paranr_result_leftright = high(word)-1;
 
+  { prefix for names of class helper procsyms added to regular symtables }
+  class_helper_prefix = 'CH$';
+
 
 type
   { keep this in sync with TIntfFlag in rtl/objpas/typinfo.pp }
@@ -302,7 +305,8 @@ type
     odt_cppclass,
     odt_dispinterface,
     odt_objcclass,
-    odt_objcprotocol
+    odt_objcprotocol,
+    odt_objccategory { note that these are changed into odt_class afterwards }
   );
 
   { Variations in interfaces implementation }
@@ -335,7 +339,8 @@ type
     oo_has_enumerator_movenext,
     oo_has_enumerator_current,
     oo_is_external,       { the class is externally implemented (objcclass, cppclass) }
-    oo_is_anonymous       { the class is only formally defined in this module (objcclass x = class; external;) }
+    oo_is_anonymous,      { the class is only formally defined in this module (objcclass x = class; external;) }
+    oo_is_classhelper     { objcclasses that represent categories, and Delpi-style class helpers, are marked like this }
   );
   tobjectoptions=set of tobjectoption;
 
