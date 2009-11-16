@@ -10,11 +10,20 @@ unit gd;
 {$H+}
 {$MINENUMSIZE 4}
 
+
+{$DEFINE FPC_TARGET_SUPPORTS_DYNLIBS}
+
+{$IFDEF GO32V2}
+  {$UNDEF FPC_TARGET_SUPPORTS_DYNLIBS}
+{$ENDIF GO32V2}
+
 interface
 
 uses
   Classes,
+{$IFDEF FPC_TARGET_SUPPORTS_DYNLIBS}
   dynlibs,
+{$ENDIF FPC_TARGET_SUPPORTS_DYNLIBS}
   ctypes;
 
 {$IFDEF UNIX}
@@ -29,6 +38,14 @@ uses
     gdlib = 'bgd.dll';
     clib = 'msvcrt.dll';
 {$ENDIF}
+{$IFDEF GO32V2}
+  {$DEFINE EXTDECL := cdecl}
+    {$DEFINE gdlib := }
+    {$DEFINE clib := }
+    {$linklib gd}
+    {$linklib c}
+   {$UNDEF LOAD_DYNAMICALLY}
+{$ENDIF GO32V2}
 
 {$IFNDEF LOAD_DYNAMICALLY}
   {$IFDEF darwin}
@@ -56,8 +73,8 @@ const
  * that the above copyright notice appear in all copies and that both that
  * copyright notice and this permission notice appear in supporting
  * documentation.  This software is provided "AS IS." Thomas Boutell and
- * Boutell.Com, Inc. disclaim all warranties, either express or implied, 
- * including but not limited to implied warranties of merchantability and 
+ * Boutell.Com, Inc. disclaim all warranties, either express or implied,
+ * including but not limited to implied warranties of merchantability and
  * fitness for a particular purpose, with respect to this code and accompanying
  * documentation. *)
 
@@ -89,19 +106,19 @@ const
 
 (* Image type. See functions below; you will not need to change
   the elements directly. Use the provided macros to
-  access sx, sy, the color table, and colorsTotal for 
+  access sx, sy, the color table, and colorsTotal for
   read-only purposes. *)
 
-(* If 'truecolor' is set true, the image is truecolor; 
+(* If 'truecolor' is set true, the image is truecolor;
   pixels are represented by integers, which
-  must be 32 bits wide or more. 
+  must be 32 bits wide or more.
 
   True colors are repsented as follows:
 
   ARGB
 
   Where 'A'(alpha channel) occupies only the
-  LOWER 7 BITS of the MSB. This very small 
+  LOWER 7 BITS of the MSB. This very small
   loss of alpha channel resolution allows gd 2.x
   to keep backwards compatibility by allowing
   signed integers to be used to represent colors,
@@ -121,7 +138,7 @@ function gdTrueColorGetRed(c: cint): cint; inline;
 function gdTrueColorGetGreen(c: cint): cint; inline;
 function gdTrueColorGetBlue(c: cint): cint; inline;
 
-(* This function accepts truecolor pixel values only. The 
+(* This function accepts truecolor pixel values only. The
   source color is composited with the destination color
   based on the alpha channel value of the source color.
   The resulting color is opaque. *)
@@ -146,7 +163,7 @@ type
     open: array[0..gdMaxColors-1] of cint;
     (* For backwards compatibility, this is set to the
        first palette entry with 100% transparency,
-       and is also set and reset by the 
+       and is also set and reset by the
        gdImageColorTransparent function. Newer
        applications can allocate palette entries
        with any desired level of transparency; however,
@@ -172,7 +189,7 @@ type
        really support multiple levels of transparency in
        palettes, to my knowledge, as of 2/15/01. Most
        common browsers will display 100% opaque and
-       100% transparent correctly, and do something 
+       100% transparent correctly, and do something
        unpredictable and/or undesirable for levels
        in between. TBB *)
     alpha: array[0..gdMaxColors-1] of cint;
@@ -183,7 +200,7 @@ type
     (* Should alpha channel be copied, or applied, each time a
        pixel is drawn? This applies to truecolor images only.
        No attempt is made to alpha-blend in palette images,
-       even if semitransparent palette entries exist. 
+       even if semitransparent palette entries exist.
        To do that, build your image as a truecolor image,
        then quantize down to 8 bits. *)
     alphaBlendingFlag: cint;
@@ -312,9 +329,9 @@ procedure gdImageDestroy(im: gdImagePtr); EXTDECL; external gdlib {$IFDEF WINDOW
 
 (* Replaces or blends with the background depending on the
   most recent call to gdImageAlphaBlending and the
-  alpha channel value of 'color'; default is to overwrite. 
+  alpha channel value of 'color'; default is to overwrite.
   Tiling and line styling are also implemented
-  here. All other gd drawing functions pass through this call, 
+  here. All other gd drawing functions pass through this call,
   allowing for many useful effects. *)
 
 procedure gdImageSetPixel(im: gdImagePtr; x: cint; y: cint; color: cint); EXTDECL; external gdlib {$IFDEF WINDOWS}name '_gdImageSetPixel@16'{$ENDIF};
@@ -346,17 +363,17 @@ procedure gdImageString16(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; s: pwi
 procedure gdImageStringUp16(im: gdImagePtr; f: gdFontPtr; x: cint; y: cint; s: pwidechar; color: cint); EXTDECL; external gdlib {$IFDEF WINDOWS}name '_gdImageStringUp16@24'{$ENDIF};
 
 (* 2.0.16: for thread-safe use of gdImageStringFT and friends,
-  call this before allowing any thread to call gdImageStringFT. 
+  call this before allowing any thread to call gdImageStringFT.
   Otherwise it is invoked by the first thread to invoke
-  gdImageStringFT, with a very small but real risk of a race condition. 
+  gdImageStringFT, with a very small but real risk of a race condition.
   Return 0 on success, nonzero on failure to initialize freetype. *)
 function gdFontCacheSetup(): cint; EXTDECL; external gdlib {$IFDEF WINDOWS}name '_gdFontCacheSetup@0'{$ENDIF};
 
-(* Optional: clean up after application is done using fonts in 
+(* Optional: clean up after application is done using fonts in
 BGD_DECLARE( ) gdImageStringFT(). *)
 procedure gdFontCacheShutdown(); EXTDECL; external gdlib {$IFDEF WINDOWS}name '_gdFontCacheShutdown@0'{$ENDIF};
 (* 2.0.20: for backwards compatibility. A few applications did start calling
- this function when it first appeared although it was never documented. 
+ this function when it first appeared although it was never documented.
  Simply invokes gdFontCacheShutdown. *)
 procedure gdFreeFontCache(); EXTDECL; external gdlib {$IFDEF WINDOWS}name '_gdFreeFontCache@0'{$ENDIF};
 
@@ -374,7 +391,7 @@ type
   gdFTStringExtra = record
     flags: cint;     (* Logical OR of gdFTEX_ values *)
     linespacing: double;  (* fine tune line spacing for '\n' *)
-    charmap: cint;  
+    charmap: cint;
         (* TBB: 2.0.12: may be gdFTEX_Unicode,
            gdFTEX_Shift_JIS, gdFTEX_Big5,
            or gdFTEX_Adobe_Custom;
@@ -389,13 +406,13 @@ type
          the last string.
 
          NB. The caller is responsible for gdFree'ing
-         the xshow string. 
+         the xshow string.
        *)
     fontpath: pchar;    (* if(flags & gdFTEX_RETURNFONTPATHNAME)
                            then, on return, fontpath is a malloc'ed
                            string containing the actual font file path name
                            used, which can be interesting when fontconfig
-                           is in use. 
+                           is in use.
 
                            The caller is responsible for gdFree'ing the
                            fontpath string.
@@ -410,20 +427,20 @@ const
   gdFTEX_DISABLE_KERNING = 8;
   gdFTEX_XSHOW = 16;
 (* The default unless gdFTUseFontConfig(1); has been called:
-  fontlist is a full or partial font file pathname or list thereof 
+  fontlist is a full or partial font file pathname or list thereof
  (i.e. just like before 2.0.29) *)
   gdFTEX_FONTPATHNAME = 32;
 (* Necessary to use fontconfig patterns instead of font pathnames
-  as the fontlist argument, unless gdFTUseFontConfig(1); has 
+  as the fontlist argument, unless gdFTUseFontConfig(1); has
   been called. New in 2.0.29 *)
   gdFTEX_FONTCONFIG = 64;
 (* Sometimes interesting when fontconfig is used: the fontpath
   element of the structure above will contain a gdMalloc'd string
-  copy of the actual font file pathname used, if this flag is set 
+  copy of the actual font file pathname used, if this flag is set
    when the call is made *)
   gdFTEX_RETURNFONTPATHNAME = 128;
 
-(* If flag is nonzero, the fontlist parameter to gdImageStringFT 
+(* If flag is nonzero, the fontlist parameter to gdImageStringFT
   and gdImageStringFTEx shall be assumed to be a fontconfig font pattern
   if fontconfig was compiled into gd. This function returns zero
   if fontconfig is not available, nonzero otherwise. *)
@@ -437,7 +454,8 @@ const
   gdFTEX_Big5 = 2;
   gdFTEX_Adobe_Custom = 3;
 
-function gdImageStringFTEx(im: gdImagePtr; brect: pcint; fg: cint; fontlist: pchar; ptsize: double; angle: double; x: cint; y: cint; str: pchar; strex: gdFTStringExtraPtr): pchar; EXTDECL; external gdlib {$IFDEF WINDOWS}name '_gdImageStringFTEx@40'{$ENDIF};
+function gdImageStringFTEx(im: gdImagePtr; brect: pcint; fg: cint; fontlist: pchar; ptsize: double; angle: double; x: cint; y: cint; str: pchar; strex: gdFTStringExtraPtr): pchar; EXTDECL;
+           external gdlib {$IFDEF WINDOWS}name '_gdImageStringFTEx@40'{$ENDIF};
 
 (* Point type for use in polygon drawing. *)
 type
@@ -450,7 +468,7 @@ procedure gdImagePolygon(im: gdImagePtr; p: gdPointPtr; n: cint; c: cint); EXTDE
 procedure gdImageOpenPolygon(im: gdImagePtr; p: gdPointPtr; n: cint; c: cint); EXTDECL; external gdlib {$IFDEF WINDOWS}name '_gdImageOpenPolygon@16'{$ENDIF};
 procedure gdImageFilledPolygon(im: gdImagePtr; p: gdPointPtr; n: cint; c: cint); EXTDECL; external gdlib {$IFDEF WINDOWS}name '_gdImageFilledPolygon@16'{$ENDIF};
 
-(* These functions still work with truecolor images, 
+(* These functions still work with truecolor images,
   for which they never return error. *)
 function gdImageColorAllocate(im: gdImagePtr; r: cint; g: cint; b: cint): cint; EXTDECL; external gdlib {$IFDEF WINDOWS}name '_gdImageColorAllocate@16'{$ENDIF};
 (* gd 2.0: palette entries with non-opaque transparency are permitted. *)
@@ -498,10 +516,10 @@ procedure gdImageColorDeallocate(im: gdImagePtr; color: cint); EXTDECL; external
   Better yet, don't use these function -- write real
   truecolor PNGs and JPEGs. The disk space gain of
         conversion to palette is not great(for small images
-        it can be negative) and the quality loss is ugly. 
+        it can be negative) and the quality loss is ugly.
 
   DIFFERENCES: gdImageCreatePaletteFromTrueColor creates and
-  returns a new image. gdImageTrueColorToPalette modifies 
+  returns a new image. gdImageTrueColorToPalette modifies
   an existing image, and the truecolor pixels are discarded. *)
 
 function gdImageCreatePaletteFromTrueColor(im: gdImagePtr; ditherFlag: cint; colorsWanted: cint): gdImagePtr; EXTDECL; external gdlib {$IFDEF WINDOWS}name '_gdImageCreatePaletteFromTrueColor@16'{$ENDIF};
@@ -608,7 +626,7 @@ function gdImageGd2Ptr(im: gdImagePtr; cs: cint; fmt: cint; var size: cint): poi
   gdArc and gdChord are mutually exclusive;
   gdChord just connects the starting and ending
   angles with a straight line, while gdArc produces
-  a rounded edge. gdPie is a synonym for gdArc. 
+  a rounded edge. gdPie is a synonym for gdArc.
   gdNoFill indicates that the arc or chord should be
   outlined, not filled. gdEdged, used together with
   gdNoFill, indicates that the beginning and ending
@@ -643,8 +661,8 @@ procedure gdImageCopyResized(dst: gdImagePtr; src: gdImagePtr; dstX: cint; dstY:
   destination pixel, taking into account what portion of the
   destination pixel each source pixel represents. This is a
   floating point operation, but this is not a performance issue
-  on modern hardware, except for some embedded devices. If the 
-  destination is a palette image, gdImageCopyResized is 
+  on modern hardware, except for some embedded devices. If the
+  destination is a palette image, gdImageCopyResized is
   substituted automatically. *)
 procedure gdImageCopyResampled(dst: gdImagePtr; src: gdImagePtr; dstX: cint; dstY: cint; srcX: cint; srcY: cint; dstW: cint; dstH: cint; srcW: cint; srcH: cint); EXTDECL; external gdlib {$IFDEF WINDOWS}name '_gdImageCopyResampled@40'{$ENDIF};
 
@@ -662,7 +680,7 @@ procedure gdImageSetTile(im: gdImagePtr; tile: gdImagePtr); EXTDECL; external gd
 procedure gdImageSetAntiAliased(im: gdImagePtr; c: cint); EXTDECL; external gdlib {$IFDEF WINDOWS}name '_gdImageSetAntiAliased@8'{$ENDIF};
 procedure gdImageSetAntiAliasedDontBlend(im: gdImagePtr; c: cint; dont_blend: cint); EXTDECL; external gdlib {$IFDEF WINDOWS}name '_gdImageSetAntiAliasedDontBlend@12'{$ENDIF};
 procedure gdImageSetStyle(im: gdImagePtr; style: pcint; noOfPixels: cint); EXTDECL; external gdlib {$IFDEF WINDOWS}name '_gdImageSetStyle@12'{$ENDIF};
-(* Line thickness(defaults to 1). Affects lines, ellipses, 
+(* Line thickness(defaults to 1). Affects lines, ellipses,
   rectangles, polygons and so forth. *)
 procedure gdImageSetThickness(im: gdImagePtr; thickness: cint); EXTDECL; external gdlib {$IFDEF WINDOWS}name '_gdImageSetThickness@8'{$ENDIF};
 (* On or off(1 or 0) for all three of these. *)
@@ -698,14 +716,14 @@ function gdImageTrueColorPixel(im: gdImagePtr; x, y: cint): cint; inline;
 
 function gdNewFileCtx(p: PFILE): gdIOCtxPtr; EXTDECL; external gdlib {$IFDEF WINDOWS}name '_gdNewFileCtx@4'{$ENDIF};
  (* If data is null, size is ignored and an initial data buffer is
-    allocated automatically. NOTE: this function assumes gd has the right 
-    to free or reallocate "data" at will! Also note that gd will free 
+    allocated automatically. NOTE: this function assumes gd has the right
+    to free or reallocate "data" at will! Also note that gd will free
     "data" when the IO context is freed. If data is not null, it must point
     to memory allocated with gdMalloc, or by a call to gdImage[something]Ptr.
     If not, see gdNewDynamicCtxEx for an alternative. *)
 function gdNewDynamicCtx(size: cint; data: pointer): gdIOCtxPtr; EXTDECL; external gdlib {$IFDEF WINDOWS}name '_gdNewDynamicCtx@8'{$ENDIF};
  (* 2.0.21: if freeFlag is nonzero, gd will free and/or reallocate "data" as
-    needed as described above. If freeFlag is zero, gd will never free 
+    needed as described above. If freeFlag is zero, gd will never free
     or reallocate "data," which means that the context should only be used
     for *reading* an image from a memory buffer, or writing an image to a
     memory buffer which is already large enough. If the memory buffer is
@@ -828,7 +846,7 @@ begin
   Result :=(c and $FF0000) shr 16;
 end;
 
-function gdTrueColorGetGreen(c: cint): cint; 
+function gdTrueColorGetGreen(c: cint): cint;
 begin
   Result :=(c and $00FF00) shr 8;
 end;
