@@ -74,6 +74,7 @@ Type
   protected
     function GetSectionName: String; override;
     procedure SetSectionName(const Value: String); override;
+    function GetDisplayName: string; override;
   Public
     Constructor Create(ACollection : TCollection); override;
     Function FieldDefs : TDDFieldDefs;
@@ -1011,6 +1012,14 @@ end;
 procedure TDDFieldDef.SetSectionName(const Value: String);
 begin
   FFieldName:=Value;
+end;
+
+function TDDFieldDef.GetDisplayName: string;
+begin
+  If (FieldName<>'') then
+    Result:=FieldName
+  else
+    Result:=inherited GetDisplayName;
 end;
 
 constructor TDDFieldDef.Create(ACollection: TCollection);
