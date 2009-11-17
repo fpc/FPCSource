@@ -15,48 +15,70 @@
 
  **********************************************************************}
 
+const
+  FPE_INTDIV = 1;
+  FPE_INTOVF = 2;
+  FPE_FLTDIV = 3;
+  FPE_FLTOVF = 4;
+  FPE_FLTUND = 5;
+  FPE_FLTRES = 6;
+  FPE_FLTINV = 7;
+  FPE_FLTSUB = 8;
+
 
 procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);public name '_FPC_DEFAULTSIGHANDLER';cdecl;
 var
-  res,fpustate : word;
+  res : word;
+  addr : pointer;
+  frame : pointer;
 begin
   res:=0;
+  if assigned(sigcontext) then
+    begin
+      addr := pointer(sigcontext^.uc_mcontext.gregs[REG_PC]);
+      frame := pointer(sigcontext^.uc_mcontext.gregs[REG_FP])
+    end
+  else
+    begin
+      addr := nil;
+      frame := nil;
+    end;
   case sig of
     SIGFPE :
-          begin
-          res:=200;
-(*
-          fpustate:=GetFPUState(SigContext^);
-          if (FpuState and FPU_All) <> 0 then
-            begin
-              { first check the more precise options }
-              if (FpuState and FPU_DivisionByZero)<>0 then
-                res:=200
-              else if (FpuState and FPU_Overflow)<>0 then
-                res:=205
-              else if (FpuState and FPU_Underflow)<>0 then
-                res:=206
-              else if (FpuState and FPU_Denormal)<>0 then
-                res:=216
-              else if (FpuState and (FPU_StackOverflow or FPU_StackUnderflow or FPU_Invalid))<>0 Then
-                res:=207
-              else
-                res:=207;  {'Coprocessor Error'}
-            end;
-*)
-            sysResetFPU;
+        begin
+          case  siginfo^.si_code of
+            FPE_INTDIV:
+              res:=200;
+            FPE_INTOVF:
+              res:=205;
+            FPE_FLTDIV:
+              res:=200;
+            FPE_FLTOVF:
+              res:=205;
+            FPE_FLTUND:
+              res:=206;
+            else
+              res:=207;
+          end;
         end;
     SIGILL,
-    SIGBUS,
     SIGSEGV :
-        res:=216;
+        begin
+          res:=216;
+        end;
+    SIGBUS :
+      begin
+        res:=214;
+      end;
     SIGINT:
         res:=217;
-    SIGKILL :
+    SIGQUIT:
         res:=233;
   end;
-{ give runtime error at the position where the signal was raised }
+  reenable_signal(sig);
+  { give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleErrorAddrFrame(res,pointer(SigContext^.eip),pointer(SigContext^.ebp));
+    HandleErrorAddrFrame(res,addr,frame);
 end;
+
 
