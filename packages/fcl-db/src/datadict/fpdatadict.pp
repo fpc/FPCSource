@@ -108,6 +108,7 @@ Type
     Property Hint : String Read FHint Write FHint;
     Property ProviderFlags : TProviderFlags Read FProviderFlags Write FProviderFlags;
   end;
+  TDDFieldDefClass = Class of TDDFieldDef;
 
   { TDDTableCollection }
   TDDTableCollection = Class(TIniCollection)
@@ -135,6 +136,7 @@ Type
   Public
     Constructor Create(ATableDef : TDDTableDef);
     Constructor Create(ATableName : string);
+    Class Function FieldDefClass : TDDFieldDefClass; virtual;
     Property TableDef : TDDTableDef Read FTableDef;
     Property TableName : String Read GetTableName Write SetTableName;
     Function AddField(AFieldName: String = '') : TDDFieldDef;
@@ -1242,22 +1244,28 @@ end;
 
 constructor TDDFieldDefs.Create(ATableDef: TDDTableDef);
 begin
-  Inherited Create(TDDFieldDef);
+  Inherited Create(FieldDefClass);
   FPrefix:='Field';
   SetTableDef(ATableDef);
 end;
 
 constructor TDDFieldDefs.Create(ATableName: String);
 begin
-  Inherited Create(TDDFieldDef);
+  Inherited Create(FieldDefClass);
   FPrefix:='Field';
   TableName:=ATableName;
+end;
+
+class function TDDFieldDefs.FieldDefClass: TDDFieldDefClass;
+begin
+  Result:=TDDFieldDef
 end;
 
 function TDDFieldDefs.GetField(Index : Integer): TDDFieldDef;
 begin
   Result:=TDDFieldDef(Items[Index]);
 end;
+
 
 
 procedure TDDFieldDefs.SetField(Index : Integer; const AValue: TDDFieldDef);
