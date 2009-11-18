@@ -589,7 +589,9 @@ procedure fpc_intf_assign_by_iid(var D: pointer; const S: pointer; const iid: TG
 function  fpc_intf_as(const S: pointer; const iid: TGUID): IInterface; compilerproc;
 function fpc_class_as_intf(const S: pointer; const iid: TGUID): IInterface; compilerproc;
 function fpc_class_as_corbaintf(const S: pointer; const iid: Shortstring): Pointer; compilerproc;
+{$ifdef FPC_HAS_FEATURE_VARIANTS}
 procedure fpc_dispatch_by_id(Result: Pointer; const Dispatch: pointer;DispDesc: Pointer; Params: Pointer); compilerproc;
+{$endif FPC_HAS_FEATURE_VARIANTS}
 {$endif FPC_HAS_FEATURE_CLASSES}
 
 

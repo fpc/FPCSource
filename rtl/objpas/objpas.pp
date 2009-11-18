@@ -48,31 +48,41 @@ Var
                              Compatibility routines.
 ****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
     { Untyped file support }
 
      Procedure AssignFile(out f:File;const Name:string);
      Procedure AssignFile(out f:File;p:pchar);
      Procedure AssignFile(out f:File;c:char);
      Procedure CloseFile(var f:File);
+{$endif FPC_HAS_FEATURE_FILEIO}
 
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
      { Text file support }
      Procedure AssignFile(out t:Text;const s:string);
      Procedure AssignFile(out t:Text;p:pchar);
      Procedure AssignFile(out t:Text;c:char);
      Procedure CloseFile(Var t:Text);
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
      { Typed file supoort }
 
      Procedure AssignFile(out f:TypedFile;const Name:string);
      Procedure AssignFile(out f:TypedFile;p:pchar);
      Procedure AssignFile(out f:TypedFile;c:char);
+{$endif FPC_HAS_FEATURE_FILEIO}
 
+{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
      { ParamStr should return also an ansistring }
      Function ParamStr(Param : Integer) : Ansistring;
+{$endif FPC_HAS_FEATURE_COMMANDARGS}
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
      Procedure MkDir(const s:ansistring);overload;
      Procedure RmDir(const s:ansistring);overload;
      Procedure ChDir(const s:ansistring);overload;
+{$endif FPC_HAS_FEATURE_FILEIO}
 
 {****************************************************************************
                              Resource strings.
@@ -108,6 +118,7 @@ Var
                              Compatibility routines.
 ****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 Procedure MkDirpchar(s: pchar;len:sizeuint);[IOCheck]; external name 'FPC_SYS_MKDIR';
 Procedure ChDirpchar(s: pchar;len:sizeuint);[IOCheck]; external name 'FPC_SYS_CHDIR';
 Procedure RmDirpchar(s: pchar;len:sizeuint);[IOCheck]; external name 'FPC_SYS_RMDIR';
@@ -138,7 +149,9 @@ begin
   { Catch Runtime error/Exception }
   System.Close(f);
 end;
+{$endif FPC_HAS_FEATURE_FILEIO}
 
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 { Text file support }
 
 Procedure AssignFile(out t:Text;const s:string);
@@ -165,7 +178,9 @@ begin
   { Catch Runtime error/Exception }
   System.Close(T);
 end;
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 { Typed file support }
 
 Procedure AssignFile(out f:TypedFile;const Name:string);
@@ -185,7 +200,9 @@ Procedure AssignFile(out f:TypedFile;c:char);
 begin
   system.Assign (F,C);
 end;
+{$endif FPC_HAS_FEATURE_FILEIO}
 
+{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
 Function ParamStr(Param : Integer) : Ansistring;
 
 Var Len : longint;
@@ -213,8 +230,10 @@ begin
   else
     paramstr:='';
 end;
+{$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 Procedure MkDir(const s:ansistring);
 begin
   mkdirpchar(pchar(s),length(s));
@@ -229,6 +248,7 @@ Procedure ChDir(const s:ansistring);
 begin
   ChDirpchar(pchar(s),length(s));
 end;
+{$endif FPC_HAS_FEATURE_FILEIO}
 
 { ---------------------------------------------------------------------
     ResourceString support

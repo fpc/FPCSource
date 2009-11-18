@@ -378,7 +378,7 @@ function aligntoptr(p : pointer) : pointer;inline;
 
 {$ifdef FPC_HAS_FEATURE_RTTI}
 {$i rtti.inc}
-{$endif FPC_HAS_FEATURE_VARIANTS}
+{$endif FPC_HAS_FEATURE_RTTI}
 
 {$if defined(FPC_HAS_FEATURE_RANDOM)}
 
@@ -1322,8 +1322,10 @@ end;
                             Directory Handling
 *****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 { OS dependent dir functions }
 {$i sysdir.inc}
+{$endif FPC_HAS_FEATURE_FILEIO}
 
 {$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
 Procedure getdir(drivenr:byte;Var dir:ansistring);
