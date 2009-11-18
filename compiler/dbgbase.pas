@@ -426,9 +426,14 @@ implementation
         for i:=0 to paras.Count-1 do
           begin
             sym:=tsym(paras[i]);
-            if (sym.visibility<>vis_hidden) and
-               (not sym.isdbgwritten) then
-              appendsym(list,sym);
+            if (sym.visibility<>vis_hidden) then
+              begin
+                appendsym(list,sym);
+                { if we ever write this procdef again for some reason (this
+                  can happen with DWARF), then we want to write all the
+                  parasyms again as well. }
+                sym.isdbgwritten:=false;
+              end;
           end;
       end;
 
