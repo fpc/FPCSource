@@ -70,6 +70,10 @@ Var
      { ParamStr should return also an ansistring }
      Function ParamStr(Param : Integer) : Ansistring;
 
+     Procedure MkDir(const s:ansistring);overload;
+     Procedure RmDir(const s:ansistring);overload;
+     Procedure ChDir(const s:ansistring);overload;
+
 {****************************************************************************
                              Resource strings.
 ****************************************************************************}
@@ -103,6 +107,10 @@ Var
 {****************************************************************************
                              Compatibility routines.
 ****************************************************************************}
+
+Procedure MkDirpchar(s: pchar;len:sizeuint);[IOCheck]; external name 'FPC_SYS_MKDIR';
+Procedure ChDirpchar(s: pchar;len:sizeuint);[IOCheck]; external name 'FPC_SYS_CHDIR';
+Procedure RmDirpchar(s: pchar;len:sizeuint);[IOCheck]; external name 'FPC_SYS_RMDIR';
 
 { Untyped file support }
 
@@ -207,6 +215,20 @@ begin
 end;
 
 
+Procedure MkDir(const s:ansistring);
+begin
+  mkdirpchar(pchar(s),length(s));
+end;
+
+Procedure RmDir(const s:ansistring);
+begin
+  RmDirpchar(pchar(s),length(s));
+end;
+
+Procedure ChDir(const s:ansistring);
+begin
+  ChDirpchar(pchar(s),length(s));
+end;
 
 { ---------------------------------------------------------------------
     ResourceString support

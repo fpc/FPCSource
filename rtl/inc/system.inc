@@ -588,21 +588,6 @@ Begin
 End;
 
 
-{*****************************************************************************
-                             Directory support.
-*****************************************************************************}
-
-{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
-Procedure getdir(drivenr:byte;Var dir:ansistring);
-{ this is needed to also allow ansistrings, the shortstring version is
-  OS dependent }
-var
-  s : shortstring;
-begin
-  getdir(drivenr,s);
-  dir:=s;
-end;
-{$endif}
 
 {$ifopt R+}
 {$define RangeCheckWasOn}
@@ -1339,6 +1324,54 @@ end;
 
 { OS dependent dir functions }
 {$i sysdir.inc}
+
+{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
+Procedure getdir(drivenr:byte;Var dir:ansistring);
+{ this is needed to also allow ansistrings, the shortstring version is
+  OS dependent }
+var
+  s : shortstring;
+begin
+  getdir(drivenr,s);
+  dir:=s;
+end;
+{$endif}
+
+{$if defined(FPC_HAS_FEATURE_FILEIO)}
+
+Procedure MkDir(Const s: String);
+Var
+  Buffer: Array[0..255] of Char;
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Move(s[1], Buffer, Length(s));
+  Buffer[Length(s)] := #0;
+  MkDir(@buffer[0],length(s));
+End;
+
+Procedure RmDir(Const s: String);
+Var
+  Buffer: Array[0..255] of Char;
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Move(s[1], Buffer, Length(s));
+  Buffer[Length(s)] := #0;
+  RmDir(@buffer[0],length(s));
+End;
+
+Procedure ChDir(Const s: String);
+Var
+  Buffer: Array[0..255] of Char;
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Move(s[1], Buffer, Length(s));
+  Buffer[Length(s)] := #0;
+  ChDir(@buffer[0],length(s));
+End;
+{$endif}
 
 {*****************************************************************************
                             Resources support

@@ -874,15 +874,16 @@ Procedure SetTextLineEnding(var f:Text; Ending:string);
 
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure chdir(const s:string);
-Procedure mkdir(const s:string);
-Procedure rmdir(const s:string);
+Procedure chdir(const s:string); overload;
+Procedure mkdir(const s:string); overload;
+Procedure rmdir(const s:string); overload;
+// the pchar versions are exported via alias for use in objpas
+
 Procedure getdir(drivenr:byte;var dir:shortstring);
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure getdir(drivenr:byte;var dir:ansistring);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$endif FPC_HAS_FEATURE_FILEIO}
-
 
 {*****************************************************************************
                              Miscellaneous
