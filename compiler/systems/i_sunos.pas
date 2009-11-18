@@ -61,7 +61,7 @@ unit i_sunos;
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
-            assem        : as_ggas;
+            assem        : as_i386_elf32;
             assemextern  : as_ggas;
             link         : nil;
             linkextern   : nil;
