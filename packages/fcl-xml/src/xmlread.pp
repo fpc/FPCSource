@@ -642,7 +642,10 @@ begin
             SameText(AEncoding, 'l1') or
             SameText(AEncoding, 'IBM819') or
             SameText(AEncoding, 'CP819') or
-            SameText(AEncoding, 'csISOLatin1');
+            SameText(AEncoding, 'csISOLatin1') or
+// This one is not in character-sets.txt, but was used in FPC documentation,
+// and still being used in fcl-registry package
+            SameText(AEncoding, 'ISO8859-1');
 end;
 
 procedure BufAllocate(var ABuffer: TWideCharBuf; ALength: Integer);
