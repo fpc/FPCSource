@@ -2232,6 +2232,12 @@ implementation
                     assigned(current_objectdef) then
                   begin
                     hclassdef:=current_objectdef.childof;
+                    { Objective-C categories *replace* methods in the class
+                      they extend, or add methods to it. So calling an
+                      inherited method always calls the method inherited from
+                      the parent of the extended class }
+                    if is_objccategory(current_objectdef) then
+                      hclassdef:=hclassdef.childof;
                     { if inherited; only then we need the method with
                       the same name }
                     if token in endtokens then

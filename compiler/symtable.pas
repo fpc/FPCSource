@@ -2033,6 +2033,7 @@ implementation
         hashedid   : THashedIDString;
         stackitem  : psymtablestackitem;
         i          : longint;
+        defowner   : tobjectdef;
       begin
         hashedid.id:=class_helper_prefix+s;
         stackitem:=symtablestack.stack;
@@ -2051,8 +2052,13 @@ implementation
                   begin
                     { does pd inherit from (or is the same as) the class
                       that this method's category extended?
+
+                      Warning: this list contains both category and objcclass methods
+                       (for id.randommethod), so only check category methods here
                     }
-                    if pd.is_related(tobjectdef(tprocdef(tprocsym(srsym).procdeflist[i]).owner.defowner).childof) then
+                    defowner:=tobjectdef(tprocdef(tprocsym(srsym).procdeflist[i]).owner.defowner);
+                    if (oo_is_classhelper in defowner.objectoptions) and
+                       pd.is_related(defowner.childof) then
                       begin
                         { no need to keep looking. There might be other
                           categories that extend this, a parent or child
