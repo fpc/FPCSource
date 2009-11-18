@@ -642,9 +642,7 @@ begin
             SameText(AEncoding, 'l1') or
             SameText(AEncoding, 'IBM819') or
             SameText(AEncoding, 'CP819') or
-            SameText(AEncoding, 'csISOLatin1') or
-// This one is not in character-sets.txt, but used in most FPC documentation...
-            SameText(AEncoding, 'ISO8859-1');
+            SameText(AEncoding, 'csISOLatin1');
 end;
 
 procedure BufAllocate(var ABuffer: TWideCharBuf; ALength: Integer);
@@ -1415,6 +1413,7 @@ begin
   begin
     Delim := FSource.FBuf^;
     FSource.NextChar;  // skip quote
+    StoreLocation(FTokenStart);
   end
   else if required then
     FatalError('Expected single or double quote');
@@ -1942,7 +1941,6 @@ var
   Delim: WideChar;
 begin
   SkipQuote(Delim);
-  StoreLocation(FTokenStart);
   if not DoParseAttValue(Delim) then
     FatalError('Literal has no closing quote',-1);
 end;
@@ -2004,7 +2002,6 @@ begin
   Result := (Delim <> #0);
   if not Result then
     Exit;
-  StoreLocation(FTokenStart);
   ToFill.Length := 0;
   start := FSource.FEntity;
   repeat
@@ -2156,7 +2153,6 @@ begin
     ExpectString('version');
     ExpectEq;
     SkipQuote(Delim);
-    StoreLocation(FTokenStart);
     I := 0;
     while (I < 3) and (FSource.FBuf^ <> Delim) do
     begin
@@ -2220,7 +2216,6 @@ begin
     ExpectString('standalone');
     ExpectEq;
     SkipQuote(Delim);
-    StoreLocation(FTokenStart);
     if FSource.Matches('yes') then
       FStandalone := True
     else if not FSource.Matches('no') then
@@ -2911,33 +2906,32 @@ var
   StartNesting: Integer;
 begin
   StartNesting := FNesting;
-  with FSource do
   repeat
-    if FBuf^ = '<' then
+    if FSource.FBuf^ = '<' then
     begin
-      Inc(FBuf);
-      if FBufEnd < FBuf + 2 then
-        Reload;
-      if FBuf^ = '/' then
+      Inc(FSource.FBuf);
+      if FSource.FBufEnd < FSource.FBuf + 2 then
+        FSource.Reload;
+      if FSource.FBuf^ = '/' then
       begin
         if FNesting <= StartNesting then
           FatalError('End-tag is not allowed here');
-        Inc(FBuf);
+        Inc(FSource.FBuf);
         ParseEndTag;
       end
       else if CheckName([cnOptional]) then
         ParseElement
-      else if FBuf^ = '!' then
+      else if FSource.FBuf^ = '!' then
       begin
-        Inc(FBuf);
-        if FBuf^ = '[' then
+        Inc(FSource.FBuf);
+        if FSource.FBuf^ = '[' then
           ParseCDSect
-        else if FBuf^ = '-' then
+        else if FSource.FBuf^ = '-' then
           ParseComment
         else
           ParseDoctypeDecl;
       end
-      else if FBuf^ = '?' then
+      else if FSource.FBuf^ = '?' then
         ParsePI
       else
         RaiseNameNotFound;
@@ -2948,7 +2942,7 @@ begin
       nonWs := False;
       StoreLocation(FTokenStart);
       repeat
-        wc := SkipUntil(FValue, [#0, '<', '&', '>'], @nonWs);
+        wc := FSource.SkipUntil(FValue, [#0, '<', '&', '>'], @nonWs);
         if (wc = '<') or (wc = #0) then
           Break
         else if wc = '>' then
@@ -2957,7 +2951,7 @@ begin
             (Buffer[Length-2] = ']') then
             FatalError('Literal '']]>'' is not allowed in text', 2);
           BufAppend(FValue, wc);
-          NextChar;
+          FSource.NextChar;
         end
         else if wc = '&' then
         begin
@@ -2993,7 +2987,7 @@ begin
       else if nonWs then
         FatalError('Illegal at document level', -1);
     end;
-  until FBuf^ = #0;
+  until FSource.FBuf^ = #0;
   if FNesting > StartNesting then
     FatalError('End-tag is missing for ''%s''', [FValidator[FNesting].FElement.NSI.QName^.Key]);
 end;
