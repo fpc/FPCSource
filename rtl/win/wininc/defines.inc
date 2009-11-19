@@ -5647,6 +5647,18 @@ const
   FIND_FIRST_EX_CASE_SENSITIVE   = $00000001;
   FIND_FIRST_EX_LARGE_FETCH      = $00000002;
 
+  GPT_ATTRIBUTE_PLATFORM_REQUIRED  = $0000000000000001;
+
+//
+// The following are GPT partition attributes applicable when the
+// PartitionType is PARTITION_BASIC_DATA_GUID.
+//
+
+  GPT_BASIC_DATA_ATTRIBUTE_NO_DRIVE_LETTER    =qword($8000000000000000);
+  GPT_BASIC_DATA_ATTRIBUTE_HIDDEN             =qword($4000000000000000);
+  GPT_BASIC_DATA_ATTRIBUTE_SHADOW_COPY        =qword($2000000000000000);
+  GPT_BASIC_DATA_ATTRIBUTE_READ_ONLY          =qword($1000000000000000);
+
 {$endif read_interface}
 
 {$ifdef read_implementation}
