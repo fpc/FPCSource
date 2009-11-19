@@ -120,6 +120,15 @@
   {$define cpunodefaultint}
 {$endif avr}
 
+{$ifdef mips}
+  {$define cpu32bitalu}
+  {$define cpu32bitaddr}
+  { $define cpuflags}
+  {$define cputargethasfixedstack}
+  {$define cpurequiresproperalignment}
+  {$define cpumm}
+{$endif mips}
+
 {$IFDEF MACOS}
 {$DEFINE USE_FAKE_SYSUTILS}
 {$ENDIF MACOS}

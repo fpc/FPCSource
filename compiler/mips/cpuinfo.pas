@@ -32,13 +32,10 @@ Type
    { possible supported processors for this target }
    tcputype =
       (cpu_none,
-       mips32
+       cpu_mips32
       );
 
-   tfputype =
-     (fpu_none,
-      fpu_fpu
-     );
+   tfputype =(fpu_none,fpu_soft,fpu_mips2,fpu_mips3);
 
 Const
    {# Size of native extended floating point type }
@@ -63,7 +60,8 @@ Const
    );
 
    fputypestr : array[tfputype] of string[6] = ('',
-     'FPU'
+     'SOFT',
+     'FPU_MIPS2','FPU_MIPS3'
    );
 
    { Supported optimizations, only used for information }

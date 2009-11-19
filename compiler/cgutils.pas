@@ -80,7 +80,9 @@ unit cgutils;
          loc  : TCGLoc;
          size : TCGSize;
          case TCGLoc of
+{$ifdef cpuflags}
             LOC_FLAGS : (resflags : tresflags);
+{$endif cpuflags}
             LOC_CONSTANT : (
               case longint of
 {$ifdef FPC_BIG_ENDIAN}

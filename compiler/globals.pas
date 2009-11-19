@@ -401,6 +401,11 @@ interface
         optimizecputype : cpuinfo.cpu_avr;
         fputype : fpu_none;
 {$endif avr}
+{$ifdef mips}
+        cputype : cpu_mips32;
+        optimizecputype : cpu_mips32;
+        fputype : fpu_mips2;
+{$endif mips}
         asmmode : asmmode_standard;
         interfacetype : it_interfacecom;
         defproccall : pocall_default;

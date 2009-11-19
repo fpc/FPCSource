@@ -326,6 +326,7 @@ unit cgobj;
 
           procedure a_jmp_name(list : TAsmList;const s : string); virtual; abstract;
           procedure a_jmp_always(list : TAsmList;l: tasmlabel); virtual; abstract;
+{$ifdef cpuflags}
           procedure a_jmp_flags(list : TAsmList;const f : TResFlags;l: tasmlabel); virtual; abstract;
 
           {# Depending on the value to check in the flags, either sets the register reg to one (if the flag is set)
@@ -333,6 +334,7 @@ unit cgobj;
           }
           procedure g_flags2reg(list: TAsmList; size: TCgSize; const f: tresflags; reg: TRegister); virtual; abstract;
           procedure g_flags2ref(list: TAsmList; size: TCgSize; const f: tresflags; const ref:TReference); virtual;
+{$endif cpuflags}
 
           {
              This routine tries to optimize the op_const_reg/ref opcode, and should be
@@ -3463,6 +3465,7 @@ implementation
       end;
 
 
+{$ifdef cpuflags}
     procedure tcg.g_flags2ref(list: TAsmList; size: TCgSize; const f: tresflags; const ref:TReference);
 
       var
@@ -3472,6 +3475,7 @@ implementation
         g_flags2reg(list,size,f,tmpreg);
         a_load_reg_ref(list,size,size,tmpreg,ref);
       end;
+{$endif cpuflags}
 
 
     procedure tcg.g_maybe_testself(list : TAsmList;reg:tregister);
