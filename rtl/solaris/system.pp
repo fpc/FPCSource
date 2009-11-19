@@ -245,6 +245,11 @@ Begin
 { Setup heap }
   InitHeap;
   SysInitExceptions;
+{$if defined(cpui386) or defined(cpuarm)}
+  fpc_cpucodeinit;
+{$endif cpui386}
+
+
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
 { Reset IO Error }

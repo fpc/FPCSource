@@ -25,7 +25,7 @@ const
   FPE_FLTINV = 7;
   FPE_FLTSUB = 8;
 
-
+ 
 procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);public name '_FPC_DEFAULTSIGHANDLER';cdecl;
 var
   res : word;
@@ -59,9 +59,19 @@ begin
               res:=206;
             else
               res:=207;
-          end;
-        end;
-    SIGILL,
+         end;
+         with sigcontext^.uc_mcontext.fpregs.fpchip_state do
+           status:=status and not FPU_ExceptionMask;
+       end;
+   SIGILL:
+       if sse_check then
+        begin
+          os_supports_sse:=false;
+          res:=0;
+          inc(sigcontext^.uc_mcontext.gregs[REG_EIP],3);
+        end
+      else
+        res:=216;
     SIGSEGV :
         begin
           res:=216;
@@ -77,8 +87,17 @@ begin
   end;
   reenable_signal(sig);
   { give runtime error at the position where the signal was raised }
+  {if res<>0 then
+    HandleErrorAddrFrame(res,addr,frame);}
+{ give runtime error at the position where the signal was raised }
   if res<>0 then
-    HandleErrorAddrFrame(res,addr,frame);
+  begin
+    sigcontext^.uc_mcontext.gregs[REG_EAX] := res;
+    sigcontext^.uc_mcontext.gregs[REG_EDX] := sigcontext^.uc_mcontext.gregs[REG_EIP];
+    sigcontext^.uc_mcontext.gregs[REG_ECX] := sigcontext^.uc_mcontext.gregs[REG_EBP];
+    sigcontext^.uc_mcontext.gregs[REG_EIP] := ptruint(@HandleErrorAddrFrame);
+  end;
+
 end;
 
 
