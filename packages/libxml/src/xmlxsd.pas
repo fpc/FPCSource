@@ -882,6 +882,9 @@ var
   P: PChar;
   Num: QWord;
 begin
+  if not Assigned(Chars) then
+    Exit(False);
+
   if Len < 0 then
   begin
     P := PChar(Chars);
