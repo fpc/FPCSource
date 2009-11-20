@@ -195,7 +195,8 @@ type
         target_x86_64_darwin,      { 61 }
         target_avr_embedded,       { 62 }
         target_i386_haiku,         { 63 }
-        target_arm_darwin          { 64 }
+        target_arm_darwin,         { 64 }
+        target_x86_64_solaris      { 65 }
   );
 const
   Targets : array[ttarget] of string[18]=(
@@ -263,7 +264,8 @@ const
   { 61 }  'MacOSX-x64',
   { 62 }  'Embedded-avr',
   { 63 }  'Haiku-i386',
-  { 64 }  'Darwin-ARM'
+  { 64 }  'Darwin-ARM',
+  { 65 }  'Solaris-x86-64'
   );
 begin
   if w<=ord(high(ttarget)) then
