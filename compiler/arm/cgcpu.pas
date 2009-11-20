@@ -3067,7 +3067,7 @@ unit cgcpu;
               begin
                 { restore int registers and return }
                 list.concat(taicpu.op_reg_reg(A_MOV, NR_STACK_POINTER_REG, NR_R11));
-                
+
                 reference_reset(ref,4);
                 ref.index:=NR_STACK_POINTER_REG;
                 list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,regs),PF_DB));
@@ -3195,7 +3195,7 @@ unit cgcpu;
             tmpreg:=getintregister(list,OS_ADDR);
 
             list.concat(taicpu.op_reg_reg(A_MOV, tmpreg, NR_R15));
-        
+
             ref.base := tmpreg;
           end;
 

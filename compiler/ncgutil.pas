@@ -488,8 +488,10 @@ implementation
                hregister:=cg.getintregister(list,OS_INT);
               { load value in low register }
               case l.loc of
+{$ifdef cpuflags}
                 LOC_FLAGS :
                   cg.g_flags2reg(list,OS_INT,l.resflags,hregister);
+{$endif cpuflags}
                 LOC_JUMP :
                   begin
                     cg.a_label(list,current_procinfo.CurrTrueLabel);
@@ -574,8 +576,10 @@ implementation
              hregister := l.register;
            { load value in new register }
            case l.loc of
+{$ifdef cpuflags}
              LOC_FLAGS :
                cg.g_flags2reg(list,dst_size,l.resflags,hregister);
+{$endif cpuflags}
              LOC_JUMP :
                begin
                  cg.a_label(list,current_procinfo.CurrTrueLabel);

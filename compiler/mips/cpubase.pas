@@ -296,10 +296,20 @@ unit cpubase;
       }
       std_param_align = 4;
 
+{*****************************************************************************
+                            CPU Dependent Constants
+*****************************************************************************}
+
+    const
+      simm16lo =  -32768;
+      simm16hi =   32767;
 
 {*****************************************************************************
                                   Helpers
 *****************************************************************************}
+
+    function inverse_cond(const c: TAsmCond): TAsmCond; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+    function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
 
     { Returns the tcgsize corresponding with the size of reg.}
     function reg_cgsize(const reg: tregister) : tcgsize;
@@ -308,6 +318,10 @@ unit cpubase;
     function findreg_by_number(r:Tregister):tregisterindex;
     function std_regnum_search(const s:string):Tregister;
     function std_regname(r:Tregister):string;
+
+    var
+      STK2_dummy: aint;
+      STK2_Localsize: aint;
 
   implementation
 
@@ -386,6 +400,12 @@ unit cpubase;
       end;
 
 
+    function conditions_equal(const c1, c2: TAsmCond): boolean; {$ifdef USEINLINE}inline;{$endif USEINLINE}
+      begin
+        result := c1 = c2;
+      end;
+
+
     function std_regnum_search(const s:string):Tregister;
       begin
         result:=regnumber_table[findreg_by_name_table(s,std_regname_table,std_regname_index)];
@@ -404,4 +424,7 @@ unit cpubase;
       end;
 
 
+begin
+  STK2_dummy := 10;
+  STK2_Localsize := 0;
 end.

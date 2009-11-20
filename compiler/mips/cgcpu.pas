@@ -101,7 +101,7 @@ type
     procedure a_op64_reg_reg_reg_checkoverflow(list: tasmlist; op: TOpCG; size: tcgsize; regsrc1, regsrc2, regdst: tregister64; setflags: boolean; var ovloc: tlocation); override;
   end;
 
-
+  procedure create_codegen;
 
 implementation
 
@@ -336,20 +336,20 @@ begin
     (ref.offset > simm16hi) then
   begin
     tmpreg := GetIntRegister(list, OS_INT);
-    reference_reset(tmpref);
+    reference_reset(tmpref,sizeof(aint));
     tmpref.symbol  := ref.symbol;
     tmpref.offset  := ref.offset;
-    tmpref.refaddr := addr_hi;
+    tmpref.refaddr := addr_high;
     list.concat(taicpu.op_reg_ref(A_LUI, tmpreg, tmpref));
     if (ref.offset = 0) and (ref.index = NR_NO) and
       (ref.base = NR_NO) then
     begin
-      ref.refaddr := addr_lo;
+      ref.refaddr := addr_low;
     end
     else
     begin
       { Load the low part is left }
-      tmpref.refaddr := addr_lo;
+      tmpref.refaddr := addr_low;
       list.concat(taicpu.op_reg_reg_ref(A_ADDIU, tmpreg, tmpreg, tmpref));
       ref.offset := 0;
       { symbol is loaded }
@@ -405,7 +405,7 @@ begin
     assigned(ref.symbol) then
   begin
     tmpreg := GetIntRegister(list, OS_INT);
-    reference_reset(tmpref);
+    reference_reset(tmpref,sizeof(aint));
     tmpref.symbol  := ref.symbol;
     tmpref.refaddr := addr_pic;
     if not (pi_needs_got in current_procinfo.flags) then
@@ -435,14 +435,14 @@ begin
   tmpreg1 := GetIntRegister(list, OS_INT);
   if assigned(ref.symbol) then
   begin
-    reference_reset(tmpref);
+    reference_reset(tmpref,sizeof(aint));
     tmpref.symbol  := ref.symbol;
     tmpref.offset  := ref.offset;
-    tmpref.refaddr := addr_hi;
+    tmpref.refaddr := addr_high;
     list.concat(taicpu.op_reg_ref(A_LUI, tmpreg1, tmpref));
     { Load the low part }
 
-    tmpref.refaddr := addr_lo;
+    tmpref.refaddr := addr_low;
     list.concat(taicpu.op_reg_reg_ref(A_ADDIU, tmpreg1, tmpreg1, tmpref));
     { symbol is loaded }
     ref.symbol := nil;
@@ -554,7 +554,7 @@ begin
       begin
         if (Index = NR_SP) and (Offset < Target_info.first_parm_offset) then
           InternalError(2002081104);
-        reference_reset_base(ref, index, offset);
+        reference_reset_base(ref, index, offset, sizeof(aint));
       end;
       a_load_const_ref(list, size, a, ref);
     end;
@@ -581,7 +581,7 @@ begin
         begin
           if (Index = NR_SP) and (Offset < Target_info.first_parm_offset) then
             InternalError(2002081104);
-          reference_reset_base(ref, index, offset);
+          reference_reset_base(ref, index, offset, sizeof(aint));
         end;
         tmpreg := GetIntRegister(list, OS_INT);
         a_load_ref_reg(list, sz, sz, r, tmpreg);
@@ -607,7 +607,7 @@ begin
         a_loadaddr_ref_reg(list, r, Register);
       LOC_REFERENCE:
       begin
-        reference_reset(ref);
+        reference_reset(ref,sizeof(aint));
         ref.base   := reference.index;
         ref.offset := reference.offset;
         tmpreg     := GetAddressRegister(list);
@@ -635,7 +635,7 @@ begin
         a_load_ref_reg(list, hloc^.size, hloc^.size, href, hloc^.Register);
       LOC_REFERENCE:
       begin
-        reference_reset_base(href2, hloc^.reference.index, hloc^.reference.offset);
+        reference_reset_base(href2, hloc^.reference.index, hloc^.reference.offset, sizeof(aint));
         a_load_ref_ref(list, hloc^.size, hloc^.size, href, href2);
       end;
       else
@@ -651,16 +651,16 @@ procedure TCgMPSel.a_paramfpu_reg(list: tasmlist; size: tcgsize; const r: tregis
 var
   href: treference;
 begin
-  tg.GetTemp(list, TCGSize2Size[size], tt_normal, href);
-  a_loadfpu_reg_ref(list, size, r, href);
+  tg.GetTemp(list, TCGSize2Size[size], sizeof(aint), tt_normal, href);
+  a_loadfpu_reg_ref(list, size, size, r, href);
   a_paramfpu_ref(list, size, href, paraloc);
   tg.Ungettemp(list, href);
 end;
 
 
-procedure TCgMPSel.a_call_name(list: tasmlist; const s: string);
+procedure TCgMPSel.a_call_name(list: tasmlist; const s: string; weak: boolean);
 begin
-  list.concat(taicpu.op_sym(A_JAL, objectlibrary.newasmsymbol(s, AB_EXTERNAL, AT_FUNCTION)));
+  list.concat(taicpu.op_sym(A_JAL,current_asmdata.RefAsmSymbol(s)));
   { Delay slot }
   list.concat(taicpu.op_none(A_NOP));
 end;
@@ -827,7 +827,7 @@ begin
   begin
     tmpreg := r; //GetIntRegister(list, OS_ADDR);
     r_used := true;
-    reference_reset(tmpref);
+    reference_reset(tmpref,sizeof(aint));
     tmpref.symbol  := href.symbol;
     tmpref.refaddr := addr_pic;
     if not (pi_needs_got in current_procinfo.flags) then
@@ -858,13 +858,13 @@ begin
       hreg := r
     else
       hreg := GetAddressRegister(list);
-    reference_reset(tmpref);
+    reference_reset(tmpref,sizeof(aint));
     tmpref.symbol  := href.symbol;
     tmpref.offset  := href.offset;
-    tmpref.refaddr := addr_hi;
+    tmpref.refaddr := addr_high;
     list.concat(taicpu.op_reg_ref(A_LUI, hreg, tmpref));
     { Only the low part is left }
-    tmpref.refaddr := addr_lo;
+    tmpref.refaddr := addr_low;
     list.concat(taicpu.op_reg_reg_ref(A_ADDIU, hreg, hreg, tmpref));
     if href.base <> NR_NO then
     begin
@@ -880,8 +880,7 @@ begin
   else
   { At least small offset, maybe base and maybe index }
   if  (href.offset >= simm16lo) and
-    (href.offset <= simm16hi)
-  then
+    (href.offset <= simm16hi) then
   begin
     if href.index <> NR_NO then   { Both base and index }
     begin
@@ -903,8 +902,8 @@ begin
     begin
       list.concat(taicpu.op_reg_reg_const(A_ADDIU, r, href.base, href.offset));
     end
-    else { only offset, can be generated by absolute }
-
+    else
+      { only offset, can be generated by absolute }
       a_load_const_reg(list, OS_ADDR, href.offset, r);
   end
   else
@@ -920,10 +919,10 @@ var
 begin
   if reg1 <> reg2 then
   begin
-    instr := taicpu.op_reg_reg(fpumovinstr[size], reg2, reg1);
+    instr := taicpu.op_reg_reg(fpumovinstr[tosize], reg2, reg1);
     list.Concat(instr);
-            { Notify the register allocator that we have written a move instruction so
-              it can try to eliminate it. }
+    { Notify the register allocator that we have written a move instruction so
+      it can try to eliminate it. }
     add_move_instruction(instr);
   end;
 end;
@@ -934,15 +933,11 @@ var
   tmpref: treference;
   tmpreg: tregister;
 begin
-  case size of
+  case tosize of
     OS_F32:
-    begin
       handle_load_store_fpu(list, False, A_LWC1, reg, ref);
-    end;
     OS_F64:
-    begin
       handle_load_store_fpu(list, False, A_LDC1, reg, ref);
-    end
     else
       InternalError(2007042701);
   end;
@@ -953,15 +948,11 @@ var
   tmpref: treference;
   tmpreg: tregister;
 begin
-  case size of
+  case tosize of
     OS_F32:
-    begin
       handle_load_store_fpu(list, True, A_SWC1, reg, ref);
-    end;
     OS_F64:
-    begin
       handle_load_store_fpu(list, True, A_SDC1, reg, ref);
-    end
     else
       InternalError(2007042702);
   end;
@@ -1237,59 +1228,58 @@ begin
   list.concat(taicpu.op_reg_const(A_LI, tmpreg, a));
 end;
   case cmp_op of
-          OC_EQ:           { equality comparison              }
-            list.concat(taicpu.op_reg_reg_sym(A_BEQ, reg, tmpreg, l));
-          OC_GT:           { greater than (signed)            }
-            list.concat(taicpu.op_reg_reg_sym(A_BGT, reg, tmpreg, l));
-          OC_LT:           { less than (signed)               }
-            list.concat(taicpu.op_reg_reg_sym(A_BLT, reg, tmpreg, l));
-          OC_GTE:          { greater or equal than (signed)   }
-            list.concat(taicpu.op_reg_reg_sym(A_BGE, reg, tmpreg, l));
-          OC_LTE:          { less or equal than (signed)      }
-            list.concat(taicpu.op_reg_reg_sym(A_BLE, reg, tmpreg, l));
-          OC_NE:           { not equal                        }
-            list.concat(taicpu.op_reg_reg_sym(A_BNE, reg, tmpreg, l));
-          OC_BE:           { less or equal than (unsigned)    }
-            list.concat(taicpu.op_reg_reg_sym(A_BLEU, reg, tmpreg, l));
-          OC_B:            { less than (unsigned)             }
-            list.concat(taicpu.op_reg_reg_sym(A_BLTU, reg, tmpreg, l));
-          OC_AE:           { greater or equal than (unsigned) }
-            list.concat(taicpu.op_reg_reg_sym(A_BGEU, reg, tmpreg, l));
-          OC_A:             { greater than (unsigned)          }
-            list.concat(taicpu.op_reg_reg_sym(A_BGTU, reg, tmpreg, l));
-      else
-        internalerror(200701071);
-    end;{ case }
+    OC_EQ:           { equality comparison              }
+      list.concat(taicpu.op_reg_reg_sym(A_BEQ, reg, tmpreg, l));
+    OC_GT:           { greater than (signed)            }
+      list.concat(taicpu.op_reg_reg_sym(A_BGT, reg, tmpreg, l));
+    OC_LT:           { less than (signed)               }
+      list.concat(taicpu.op_reg_reg_sym(A_BLT, reg, tmpreg, l));
+    OC_GTE:          { greater or equal than (signed)   }
+      list.concat(taicpu.op_reg_reg_sym(A_BGE, reg, tmpreg, l));
+    OC_LTE:          { less or equal than (signed)      }
+      list.concat(taicpu.op_reg_reg_sym(A_BLE, reg, tmpreg, l));
+    OC_NE:           { not equal                        }
+      list.concat(taicpu.op_reg_reg_sym(A_BNE, reg, tmpreg, l));
+    OC_BE:           { less or equal than (unsigned)    }
+      list.concat(taicpu.op_reg_reg_sym(A_BLEU, reg, tmpreg, l));
+    OC_B:            { less than (unsigned)             }
+      list.concat(taicpu.op_reg_reg_sym(A_BLTU, reg, tmpreg, l));
+    OC_AE:           { greater or equal than (unsigned) }
+      list.concat(taicpu.op_reg_reg_sym(A_BGEU, reg, tmpreg, l));
+    OC_A:             { greater than (unsigned)          }
+      list.concat(taicpu.op_reg_reg_sym(A_BGTU, reg, tmpreg, l));
+    else
+      internalerror(200701071);
+  end;
   list.Concat(TAiCpu.Op_none(A_NOP));
-
 end;
 
 
 procedure TCgMPSel.a_cmp_reg_reg_label(list: tasmlist; size: tcgsize; cmp_op: topcmp; reg1, reg2: tregister; l: tasmlabel);
 begin
   case cmp_op of
-          OC_EQ:           { equality comparison              }
-            list.concat(taicpu.op_reg_reg_sym(A_BEQ, reg2, reg1, l));
-          OC_GT:           { greater than (signed)            }
-            list.concat(taicpu.op_reg_reg_sym(A_BGT, reg2, reg1, l));
-          OC_LT:           { less than (signed)               }
-            list.concat(taicpu.op_reg_reg_sym(A_BLT, reg2, reg1, l));
-          OC_GTE:          { greater or equal than (signed)   }
-            list.concat(taicpu.op_reg_reg_sym(A_BGE, reg2, reg1, l));
-          OC_LTE:          { less or equal than (signed)      }
-            list.concat(taicpu.op_reg_reg_sym(A_BLE, reg2, reg1, l));
-          OC_NE:           { not equal                        }
-            list.concat(taicpu.op_reg_reg_sym(A_BNE, reg2, reg1, l));
-          OC_BE:           { less or equal than (unsigned)    }
-            list.concat(taicpu.op_reg_reg_sym(A_BLEU, reg2, reg1, l));
-          OC_B:            { less than (unsigned)             }
-            list.concat(taicpu.op_reg_reg_sym(A_BLTU, reg2, reg1, l));
-          OC_AE:           { greater or equal than (unsigned) }
-            list.concat(taicpu.op_reg_reg_sym(A_BGEU, reg2, reg1, l));
-          OC_A:             { greater than (unsigned)          }
-            list.concat(taicpu.op_reg_reg_sym(A_BGTU, reg2, reg1, l));
-      else
-        internalerror(200701072);
+    OC_EQ:           { equality comparison              }
+      list.concat(taicpu.op_reg_reg_sym(A_BEQ, reg2, reg1, l));
+    OC_GT:           { greater than (signed)            }
+      list.concat(taicpu.op_reg_reg_sym(A_BGT, reg2, reg1, l));
+    OC_LT:           { less than (signed)               }
+      list.concat(taicpu.op_reg_reg_sym(A_BLT, reg2, reg1, l));
+    OC_GTE:          { greater or equal than (signed)   }
+      list.concat(taicpu.op_reg_reg_sym(A_BGE, reg2, reg1, l));
+    OC_LTE:          { less or equal than (signed)      }
+      list.concat(taicpu.op_reg_reg_sym(A_BLE, reg2, reg1, l));
+    OC_NE:           { not equal                        }
+      list.concat(taicpu.op_reg_reg_sym(A_BNE, reg2, reg1, l));
+    OC_BE:           { less or equal than (unsigned)    }
+      list.concat(taicpu.op_reg_reg_sym(A_BLEU, reg2, reg1, l));
+    OC_B:            { less than (unsigned)             }
+      list.concat(taicpu.op_reg_reg_sym(A_BLTU, reg2, reg1, l));
+    OC_AE:           { greater or equal than (unsigned) }
+      list.concat(taicpu.op_reg_reg_sym(A_BGEU, reg2, reg1, l));
+    OC_A:             { greater than (unsigned)          }
+      list.concat(taicpu.op_reg_reg_sym(A_BGTU, reg2, reg1, l));
+    else
+      internalerror(200701072);
     end;{ case }
   list.Concat(TAiCpu.Op_none(A_NOP));
 end;
@@ -1297,7 +1287,7 @@ end;
 
 procedure TCgMPSel.a_jmp_always(List: tasmlist; l: TAsmLabel);
 begin
-  List.Concat(TAiCpu.op_sym(A_J, objectlibrary.newasmsymbol(l.Name, AB_EXTERNAL, AT_FUNCTION)));
+  List.Concat(TAiCpu.op_sym(A_J,l));
   { Delay slot }
   list.Concat(TAiCpu.Op_none(A_NOP));
 end;
@@ -1305,7 +1295,7 @@ end;
 
 procedure TCgMPSel.a_jmp_name(list: tasmlist; const s: string);
 begin
-  List.Concat(TAiCpu.op_sym(A_J, objectlibrary.newasmsymbol(s, AB_EXTERNAL, AT_FUNCTION)));
+  List.Concat(TAiCpu.op_sym(A_J, current_asmdata.RefAsmSymbol(s)));
   { Delay slot }
   list.Concat(TAiCpu.Op_none(A_NOP));
 end;
@@ -1410,9 +1400,9 @@ var
   localsize: aint;
 begin
   localsize := cgcpu_calc_stackframe_size;
-  if paramanager.ret_in_param(current_procinfo.procdef.rettype.def, current_procinfo.procdef.proccalloption) then
+  if paramanager.ret_in_param(current_procinfo.procdef.returndef, current_procinfo.procdef.proccalloption) then
   begin
-    reference_reset(hr);
+    reference_reset(hr,sizeof(aint));
     hr.offset  := 12;
     hr.refaddr := addr_full;
     if nostackframe then
@@ -1488,7 +1478,7 @@ begin
   paramanager.freeparaloc(list, paraloc1);
   alloccpuregisters(list, R_INTREGISTER, paramanager.get_volatile_registers_int(pocall_default));
   alloccpuregisters(list, R_FPUREGISTER, paramanager.get_volatile_registers_fpu(pocall_default));
-  a_call_name(list, 'FPC_MOVE');
+  a_call_name(list, 'FPC_MOVE', false);
   dealloccpuregisters(list, R_FPUREGISTER, paramanager.get_volatile_registers_fpu(pocall_default));
   dealloccpuregisters(list, R_INTREGISTER, paramanager.get_volatile_registers_int(pocall_default));
   paraloc3.done;
@@ -1511,8 +1501,8 @@ begin
     g_concatcopy_move(list, Source, dest, len)
   else
   begin
-    reference_reset(src);
-    reference_reset(dst);
+    reference_reset(src,sizeof(aint));
+    reference_reset(dst,sizeof(aint));
     { load the address of source into src.base }
     src.base := GetAddressRegister(list);
     a_loadaddr_ref_reg(list, Source, src.base);
@@ -1532,7 +1522,7 @@ begin
       a_load_const_reg(list, OS_INT, Count, countreg);
       { explicitely allocate R_O0 since it can be used safely here }
       { (for holding date that's being copied)                    }
-      objectlibrary.getlabel(lab);
+      current_asmdata.getjumplabel(lab);
       a_label(list, lab);
       list.concat(taicpu.op_reg_ref(A_LW, tmpreg1, src));
       list.concat(taicpu.op_reg_ref(A_SW, tmpreg1, dst));
@@ -1595,8 +1585,8 @@ begin
     g_concatcopy_move(list, Source, dest, len)
   else
   begin
-    reference_reset(src);
-    reference_reset(dst);
+    reference_reset(src,sizeof(aint));
+    reference_reset(dst,sizeof(aint));
     { load the address of source into src.base }
     src.base := GetAddressRegister(list);
     a_loadaddr_ref_reg(list, Source, src.base);
@@ -1615,7 +1605,7 @@ begin
       a_load_const_reg(list, OS_INT, len, countreg);
       { explicitely allocate R_O0 since it can be used safely here }
       { (for holding date that's being copied)                    }
-      objectlibrary.getlabel(lab);
+      current_asmdata.getjumplabel(lab);
       a_label(list, lab);
       list.concat(taicpu.op_reg_ref(A_LBU, tmpreg1, src));
       list.concat(taicpu.op_reg_ref(A_SB, tmpreg1, dst));
@@ -1646,7 +1636,7 @@ procedure TCgMPSel.g_intf_wrapper(list: tasmlist; procdef: tprocdef; const label
         var
           href: treference;
         begin
-          reference_reset_base(href, NR_R2, 0);  { return value }
+          reference_reset_base(href, NR_R2, 0, sizeof(aint));  { return value }
           cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R24);
         end;
 
@@ -1658,7 +1648,7 @@ procedure TCgMPSel.g_intf_wrapper(list: tasmlist; procdef: tprocdef; const label
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
           { call/jmp  vmtoffs(%eax) ; method offs }
-          reference_reset_base(href, NR_R24, procdef._class.vmtmethodoffset(procdef.extnumber));
+          reference_reset_base(href, NR_R24, procdef._class.vmtmethodoffset(procdef.extnumber), sizeof(aint));
           cg.a_load_ref_reg(list, OS_ADDR, OS_ADDR, href, NR_R24);
           list.concat(taicpu.op_reg(A_JR, NR_R24));
         end;
@@ -1694,7 +1684,7 @@ begin
     op_onr24methodaddr;
   end
   else
-   list.concat(taicpu.op_sym(A_B, objectlibrary.newasmsymbol(procdef.mangledname, AB_EXTERNAL, AT_FUNCTION)));
+   list.concat(taicpu.op_sym(A_B,current_asmdata.RefAsmSymbol(procdef.mangledname)));
   { Delay slot }
   list.Concat(TAiCpu.Op_none(A_NOP));
 
@@ -1966,7 +1956,10 @@ begin
 end;
 
 
-begin
-  cg   := TCgMPSel.Create;
-  cg64 := TCg64MPSel.Create;
+    procedure create_codegen;
+      begin
+        cg:=TCgMPSel.Create;
+        cg64:=TCg64MPSel.Create;
+      end;
+
 end.

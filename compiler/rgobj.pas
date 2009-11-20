@@ -1805,10 +1805,9 @@ unit rgobj;
       end;
 
 
-    procedure Trgobj.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
-
-    var ins:Taicpu;
-
+    procedure trgobj.do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
+      var
+        ins:Taicpu;
       begin
         ins:=spilling_create_load(spilltemp,tempreg);
         add_cpu_interferences(ins);
@@ -1817,9 +1816,8 @@ unit rgobj;
 
 
     procedure Trgobj.do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);
-
-    var ins:Taicpu;
-
+      var
+        ins:Taicpu;
       begin
         ins:=spilling_create_store(tempreg,spilltemp);
         add_cpu_interferences(ins);
