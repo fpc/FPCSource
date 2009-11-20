@@ -46,6 +46,7 @@ type
   TSqlite3Dataset = class(TCustomSqliteDataset)
   protected
     procedure BuildLinkedList; override;
+    function GetLastInsertRowId: Int64; override;
     function GetRowsAffected:Integer; override;
     procedure InternalCloseHandle; override;
     function InternalGetHandle: Pointer; override;
@@ -320,6 +321,11 @@ begin
   //Todo: see if is better to nullif using FillDWord
   for Counter := 0 to FRowCount - 1 do
     FBeginItem^.Row[Counter] := nil;
+end;
+
+function TSqlite3Dataset.GetLastInsertRowId: Int64;
+begin
+  Result := sqlite3_last_insert_rowid(FSqliteHandle);
 end;
 
 function TSqlite3Dataset.ReturnString: String;

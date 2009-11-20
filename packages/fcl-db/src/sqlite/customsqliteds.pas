@@ -150,6 +150,7 @@ type
     function SqliteExec(Sql: PChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer; virtual; abstract;
     procedure InternalCloseHandle; virtual; abstract;
     function InternalGetHandle: Pointer; virtual; abstract;
+    function GetLastInsertRowId: Int64; virtual; abstract;
     procedure GetSqliteHandle;
     procedure BuildLinkedList; virtual; abstract;
     procedure FreeItem(AItem: PDataRecord);
@@ -238,6 +239,7 @@ type
     property ExpectedUpdates: Integer write SetExpectedUpdates;
     property ExpectedDeletes: Integer write SetExpectedDeletes;
     property IndexFields[Value: Integer]: TField read GetIndexFields;
+    property LastInsertRowId: Int64 read GetLastInsertRowId;
     property RowsAffected: Integer read GetRowsAffected;
     property ReturnCode: Integer read FReturnCode;
     property SqliteHandle: Pointer read FSqliteHandle;
