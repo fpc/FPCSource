@@ -50,8 +50,8 @@ const
 
 { Types }
 type
-  NSInteger = cint;
-  NSUInteger = cuint;
+  NSInteger = clong;
+  NSUInteger = culong;
   NSComparisonResult = NSInteger;
 
 {$endif}
