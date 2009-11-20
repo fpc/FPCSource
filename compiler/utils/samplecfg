@@ -273,6 +273,12 @@ $CPUCROSSIFDEF2
 #ENDIF NEEDCROSSBINUTILS
 #ENDIF
 
+# assembling
+#ifdef darwin
+# use pipes instead of temporary files for assembling
+-ap
+#endif
+
 # ----------------
 # Parsing switches
 # ----------------
