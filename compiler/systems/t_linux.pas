@@ -137,6 +137,7 @@ const
 {$ifdef sparc}  platform_select='-b elf32-sparc -m elf32_sparc';{$endif}
 {$ifdef arm}    platform_select='';{$endif} {unknown :( }
 {$ifdef m68k}    platform_select='';{$endif} {unknown :( }
+{$ifdef mips}    platform_select='';{$endif} {unknown :( }
 
 var
   defdynlinker: string;
@@ -1163,5 +1164,11 @@ initialization
   RegisterExport(system_arm_linux,texportliblinux);
   RegisterTarget(system_arm_linux_info);
 {$endif ARM}
+{$ifdef MIPS}
+  RegisterExternalLinker(system_mipsel_linux_info,TLinkerLinux);
+  RegisterImport(system_mipsel_linux,timportliblinux);
+  RegisterExport(system_mipsel_linux,texportliblinux);
+  RegisterTarget(system_mipsel_linux_info);
+{$endif MIPS}
   RegisterRes(res_elf_info,TWinLikeResourceFile);
 end.

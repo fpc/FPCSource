@@ -135,7 +135,7 @@ var
   lfcmp64_L4: tasmlabel;
 begin
 
-  objectlibrary.getlabel(lfcmp64_L4);
+  current_asmdata.getjumplabel(lfcmp64_L4);
 
   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 0));
 
@@ -155,7 +155,7 @@ var
   lfcmp64_L4: tasmlabel;
 begin
 
-  objectlibrary.getlabel(lfcmp64_L4);
+  current_asmdata.getjumplabel(lfcmp64_L4);
 
   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 1));
 
@@ -176,8 +176,8 @@ var
 begin
   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 0));
 
-  objectlibrary.getlabel(lfcmp64_L4);
-  objectlibrary.getlabel(lfcmp64_L5);
+  current_asmdata.getjumplabel(lfcmp64_L4);
+  current_asmdata.getjumplabel(lfcmp64_L5);
 
   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLT, NR_TCR11, left_reg.reghi, right_reg.reghi));
   current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, NR_TCR11, NR_R0, lfcmp64_L5));
@@ -203,8 +203,8 @@ var
 begin
   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 0));
 
-  objectlibrary.getlabel(lfcmp64_L4);
-  objectlibrary.getlabel(lfcmp64_L5);
+  current_asmdata.getjumplabel(lfcmp64_L4);
+  current_asmdata.getjumplabel(lfcmp64_L5);
 
   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLT, NR_TCR11, right_reg.reghi, left_reg.reghi));
   current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, NR_TCR11, NR_R0, lfcmp64_L4));
@@ -228,8 +228,8 @@ var
 begin
   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 0));
 
-  objectlibrary.getlabel(lfcmp64_L4);
-  objectlibrary.getlabel(lfcmp64_L5);
+  current_asmdata.getjumplabel(lfcmp64_L4);
+  current_asmdata.getjumplabel(lfcmp64_L5);
 
   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, NR_TCR11, left_reg.reghi, right_reg.reghi));
   current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, NR_TCR11, NR_R0, lfcmp64_L5));
@@ -255,8 +255,8 @@ var
 begin
   current_asmdata.CurrAsmList.concat(taicpu.op_reg_const(A_LI, NR_TCR10, 0));
 
-  objectlibrary.getlabel(lfcmp64_L4);
-  objectlibrary.getlabel(lfcmp64_L5);
+  current_asmdata.getjumplabel(lfcmp64_L4);
+  current_asmdata.getjumplabel(lfcmp64_L5);
 
   current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_SLTU, NR_TCR11, right_reg.reghi, left_reg.reghi));
   current_asmdata.CurrAsmList.concat(Taicpu.op_reg_reg_sym(A_BNE, NR_TCR11, NR_R0, lfcmp64_L4));
@@ -422,7 +422,7 @@ begin
         op := A_C_EQ_D
       else
         op := A_C_EQ_S;
-      objectlibrary.getlabel(lfcmpfalse);
+      current_asmdata.getjumplabel(lfcmpfalse);
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(A_OR, location.Register {NR_TCR0}, NR_R0, NR_R0));
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, left.location.Register, right.location.Register));
       current_asmdata.CurrAsmList.concat(Taicpu.op_sym(A_BC1F, lfcmpfalse)); //lfcmpfalse
@@ -437,7 +437,7 @@ begin
         op := A_C_EQ_D
       else
         op := A_C_EQ_S;
-      objectlibrary.getlabel(lfcmpfalse);
+      current_asmdata.getjumplabel(lfcmpfalse);
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ORI, location.Register{NR_TCR0}, NR_R0, 1));
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, left.location.Register, right.location.Register));
       current_asmdata.CurrAsmList.concat(Taicpu.op_sym(A_BC1F, lfcmpfalse));
@@ -451,7 +451,7 @@ begin
         op := A_C_LT_D
       else
         op := A_C_LT_S;
-      objectlibrary.getlabel(lfcmptrue);
+      current_asmdata.getjumplabel(lfcmptrue);
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ORI, location.Register{NR_TCR0}, NR_R0, 1));
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, left.location.Register, right.location.Register));
       current_asmdata.CurrAsmList.concat(Taicpu.op_sym(A_BC1T, lfcmptrue));
@@ -465,7 +465,7 @@ begin
         op := A_C_LE_D
       else
         op := A_C_LE_S;
-      objectlibrary.getlabel(lfcmptrue);
+      current_asmdata.getjumplabel(lfcmptrue);
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ORI, location.Register{NR_TCR0}, NR_R0, 1));
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, left.location.Register, right.location.Register));
       current_asmdata.CurrAsmList.concat(Taicpu.op_sym(A_BC1T, lfcmptrue));
@@ -479,7 +479,7 @@ begin
         op := A_C_LT_D
       else
         op := A_C_LT_S;
-      objectlibrary.getlabel(lfcmptrue);
+      current_asmdata.getjumplabel(lfcmptrue);
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ORI, location.Register{NR_TCR0}, NR_R0, 1));
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, right.location.Register, left.location.Register));
       current_asmdata.CurrAsmList.concat(Taicpu.op_sym(A_BC1T, lfcmptrue));
@@ -493,7 +493,7 @@ begin
         op := A_C_LE_D
       else
         op := A_C_LE_S;
-      objectlibrary.getlabel(lfcmptrue);
+      current_asmdata.getjumplabel(lfcmptrue);
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_const(A_ORI, location.Register{NR_TCR0}, NR_R0, 1));
       current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op, right.location.Register, left.location.Register));
       current_asmdata.CurrAsmList.concat(Taicpu.op_sym(A_BC1T, lfcmptrue));

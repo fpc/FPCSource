@@ -41,13 +41,13 @@ unit agarmgas;
         procedure WriteExtraHeader; override;
       end;
 
-     TArmInstrWriter=class(TCPUInstrWriter)
+      TArmInstrWriter=class(TCPUInstrWriter)
         procedure WriteInstruction(hp : tai);override;
-     end;
+      end;
 
-    TArmAppleGNUAssembler=class(TAppleGNUassembler)
-      constructor create(smart: boolean); override;
-    end;
+      TArmAppleGNUAssembler=class(TAppleGNUassembler)
+        constructor create(smart: boolean); override;
+      end;
 
 
     const
@@ -95,7 +95,7 @@ unit agarmgas;
       end;
 
 {****************************************************************************}
-{                      GNU/Apple PPC Assembler writer                        }
+{                      GNU/Apple ARM Assembler writer                        }
 {****************************************************************************}
 
     constructor TArmAppleGNUAssembler.create(smart: boolean);

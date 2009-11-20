@@ -728,7 +728,69 @@ unit i_linux;
           );
 {$endif FPC_ARMEB}
 {$endif FPC_ARMEL}
-
+{
+       system_fvm32_linux_info : tsysteminfo =
+          (
+            system       : system_mips_LINUX;
+            name         : 'Linux for MIPS';
+            shortname    : 'Linux';
+            flags        : [tf_needs_symbol_size];
+            cpu          : cpu_mips;
+            unit_env     : 'LINUXUNITS';
+            extradefines : 'UNIX;HASUNIX';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+//            p_ext_support : false;
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            files_case_relevent : true;
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            script       : script_unix;
+            endian       : endian_little;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 8;
+                localalignmin   : 4;
+                localalignmax   : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            stacksize    : 32*1024*1024;
+            DllScanSupported:false;
+            use_function_relative_addresses : true;
+            abi : abi_default
+          );
+}
   implementation
 
 initialization
@@ -775,5 +837,9 @@ initialization
     set_source_info(system_arm_linux_info);
   {$endif linux}
 {$endif CPUARM}
+{$ifdef CPUMIPSEL}
+  {$ifdef linux}
+    set_source_info(system_mipsel_linux_info);
+  {$endif linux}
+{$endif CPUMIPSEL}
 end.
-
