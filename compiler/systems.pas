@@ -404,6 +404,10 @@ interface
                          system_powerpc64_darwin,system_x86_64_darwin,
                          system_arm_darwin];
 
+       {all solaris systems }
+       systems_solaris = [system_sparc_solaris, system_i386_solaris,
+			  system_x86_64_solaris];
+
        { systems supporting Objective-C }
        system_objc_supported = systems_darwin;
 
@@ -428,7 +432,7 @@ interface
                                          system_ia64_win64]+system_linux;
 
        { all systems for which weak linking has been tested/is supported }
-       system_weak_linking = systems_darwin;
+       system_weak_linking = systems_darwin + systems_solaris;
 
        system_internal_sysinit = [system_i386_linux,system_i386_win32];
 

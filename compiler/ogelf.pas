@@ -933,6 +933,8 @@ implementation
                   end;
                 AB_EXTERNAL :
                   elfsym.st_info:=STB_GLOBAL shl 4;
+                AB_WEAK_EXTERNAL :
+                  elfsym.st_info:=STB_WEAK shl 4;
                 AB_GLOBAL :
                   begin
                     elfsym.st_value:=objsym.address;
