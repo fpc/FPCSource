@@ -466,6 +466,13 @@ initialization
   RegisterTarget(system_i386_solaris_info);
 {$endif i386}
 
+{$ifdef x86_64}
+  RegisterExternalLinker(system_x86_64_solaris_info,TLinkersolaris);
+  RegisterImport(system_x86_64_solaris,TImportLibsolaris);
+  RegisterExport(system_x86_64_solaris,TExportLibsolaris);
+  RegisterTarget(system_x86_64_solaris_info);
+{$endif x86_64}
+
 {$ifdef sparc}
   RegisterExternalLinker(system_sparc_solaris_info,TLinkersolaris);
   RegisterImport(system_sparc_solaris,TImportLibsolaris);
