@@ -3,6 +3,8 @@
 { %norun }
 { %recompile }
 
+{ Written by Jonas Maebe in 2009, released into the public domain }
+
 {$mode objfpc}
 {$modeswitch objectivec1}
 

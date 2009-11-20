@@ -1,6 +1,8 @@
 {$mode objfpc}
 {$modeswitch objectivec1}
 
+{ Written by Jonas Maebe in 2009, released into the public domain }
+
 unit uobjc27a;
 
 interface

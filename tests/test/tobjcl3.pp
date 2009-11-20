@@ -3,6 +3,8 @@
 { %NEEDLIBRARY }
 { %fail }
 
+{ Written by Jonas Maebe in 2009, released into the public domain }
+
 {$mode objfpc}
 {$modeswitch objectivec1}
 
@@ -20,7 +22,7 @@ type
     fa: byte;
     fb: byte;
     { this field is declared as private in the real class,
-      and the non-fragile ABI should be sure that this
+      and the non-fragile ABI should make sure that this
       gives a linker error }
     fc: byte;
     function publicfun: byte; message 'publicfun';
