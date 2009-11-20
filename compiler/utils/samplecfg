@@ -351,6 +351,13 @@ $CPUCROSSIFDEF2
 # See "fpc -i" also for more fine-grained control over which optimizations
 # to perform
 
+#ifdef darwin
+#ifdef cpui386
+-Cppentiumm
+-Oppentiumm
+#endif
+#endif
+
 # -----------------------
 # Set Filenames and Paths
 # -----------------------
