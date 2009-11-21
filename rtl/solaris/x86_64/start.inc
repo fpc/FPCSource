@@ -197,8 +197,8 @@ asm
  * the argv array to the start of the argv array.
  */
 *)
-   movq   0x16(%rbp),%rax
-   movq   %rax,argc
+   movq   0x10(%rbp),%rax
+   movl   %eax,argc
    movq   _environ,%rcx
    testq  %rcx,%rcx
    jne    .Label3
