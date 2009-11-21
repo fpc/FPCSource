@@ -1182,8 +1182,11 @@ implementation
         if procdef.parast.symtablelevel>=normal_function_level then
           symtablestack.push(procdef.parast);
 
-        { insert localsymtable }
-        symtablestack.push(procdef.localst);
+        { insert localsymtable, except for the main procedure
+          (in that case the localst is the unit's static symtable,
+           which is already on the stack) }
+        if procdef.localst.symtablelevel>=normal_function_level then
+          symtablestack.push(procdef.localst);
       end;
 
 
@@ -1192,7 +1195,8 @@ implementation
         _class : tobjectdef;
       begin
         { remove localsymtable }
-        symtablestack.pop(procdef.localst);
+        if procdef.localst.symtablelevel>=normal_function_level then
+          symtablestack.pop(procdef.localst);
 
         { remove parasymtable }
         if procdef.parast.symtablelevel>=normal_function_level then
