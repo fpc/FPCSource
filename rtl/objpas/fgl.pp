@@ -84,12 +84,24 @@ const
   MaxGListSize = MaxInt div 1024;
 
 type
+  generic TFPGListEnumerator<T> = class(TObject)
+  var protected
+    FList: TFPSList;
+    FPosition: Integer;
+    function GetCurrent: T;
+  public
+    constructor Create(AList: TFPSList);
+    function MoveNext: Boolean;
+    property Current: T read GetCurrent;
+  end;
+
   generic TFPGList<T> = class(TFPSList)
   type public
     TCompareFunc = function(const Item1, Item2: T): Integer;
     TTypeList = array[0..MaxGListSize] of T;
     PTypeList = ^TTypeList;
     PT = ^T;
+    TFPGListEnumeratorSpec = specialize TFPGListEnumerator<T>;
   var protected
     FOnCompare: TCompareFunc;
     procedure CopyItem(Src, Dest: Pointer); override;
@@ -103,6 +115,7 @@ type
     function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
     function First: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef CLASSESINLINE} inline; {$endif}
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
     function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
@@ -609,6 +622,28 @@ end;
 {$ifndef VER2_0}
 
 {****************************************************************************}
+{*             TFPGListEnumerator                                           *}
+{****************************************************************************}
+
+function TFPGListEnumerator.GetCurrent: T;
+begin
+  Result := T(FList.Items[FPosition]^);
+end;
+
+constructor TFPGListEnumerator.Create(AList: TFPSList);
+begin
+  inherited Create;
+  FList := AList;
+  FPosition := -1;
+end;
+
+function TFPGListEnumerator.MoveNext: Boolean;
+begin
+  inc(FPosition);
+  Result := FPosition < FList.Count;
+end;
+
+{****************************************************************************}
 {*                TFPGList                                                  *}
 {****************************************************************************}
 
@@ -666,6 +701,11 @@ end;
 function TFPGList.First: T;
 begin
   Result := T(inherited First^);
+end;
+
+function TFPGList.GetEnumerator: TFPGListEnumeratorSpec;
+begin
+  Result := TFPGListEnumeratorSpec.Create(Self);
 end;
 
 function TFPGList.IndexOf(const Item: T): Integer;
