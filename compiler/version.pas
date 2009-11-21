@@ -28,8 +28,8 @@ interface
     const
        { version string }
        version_nr = '2';
-       release_nr = '3';
-       patch_nr   = '1';
+       release_nr = '4';
+       patch_nr   = '0';
        minorpatch = '';
 
        { word version for ppu file }
