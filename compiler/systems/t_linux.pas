@@ -1165,10 +1165,10 @@ initialization
   RegisterTarget(system_arm_linux_info);
 {$endif ARM}
 {$ifdef MIPS}
-  RegisterExternalLinker(system_mipsel_linux_info,TLinkerLinux);
-  RegisterImport(system_mipsel_linux,timportliblinux);
-  RegisterExport(system_mipsel_linux,texportliblinux);
-  RegisterTarget(system_mipsel_linux_info);
+  RegisterExternalLinker(system_mips_linux_info,TLinkerLinux);
+  RegisterImport(system_mips_linux,timportliblinux);
+  RegisterExport(system_mips_linux,texportliblinux);
+  RegisterTarget(system_mips_linux_info);
 {$endif MIPS}
   RegisterRes(res_elf_info,TWinLikeResourceFile);
 end.
