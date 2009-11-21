@@ -875,6 +875,10 @@ begin
     default_target(system_x86_64_freebsd);
     {$define default_target_set}
    {$endif}
+   {$ifdef solaris}
+    default_target(system_x86_64_solaris);
+    {$define default_target_set}
+   {$endif}
    {$ifdef darwin}
     default_target(system_x86_64_darwin);
     {$define default_target_set}
