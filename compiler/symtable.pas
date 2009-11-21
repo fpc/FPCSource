@@ -1568,8 +1568,18 @@ implementation
             begin
               { private symbols are allowed when we are in the same
                 module as they are defined }
-              result:=(symownerdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
-                      (symownerdef.owner.iscurrentunit);
+              result:=(
+                       (symownerdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
+                       (symownerdef.owner.iscurrentunit)
+                      ) or
+                      ( // the case of specialize inside the generic declaration
+                       (symownerdef.owner.symtabletype = objectsymtable) and
+                       assigned(current_objectdef) and
+                       (
+                         (current_objectdef=symownerdef) or
+                         (current_objectdef.owner.moduleid=symownerdef.owner.moduleid)
+                       )
+                      );
             end;
           vis_strictprivate :
             begin
@@ -1596,6 +1606,14 @@ implementation
                         (contextobjdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
                         (contextobjdef.owner.iscurrentunit) and
                         contextobjdef.is_related(symownerdef)
+                       ) or
+                       ( // the case of specialize inside the generic declaration
+                        (symownerdef.owner.symtabletype = objectsymtable) and
+                        assigned(current_objectdef) and
+                        (
+                         (current_objectdef=symownerdef) or
+                         (current_objectdef.owner.moduleid=symownerdef.owner.moduleid)
+                        )
                        )
                       );
             end;
