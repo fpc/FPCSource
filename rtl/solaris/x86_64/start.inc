@@ -204,9 +204,9 @@ asm
    jne    .Label3
    lea    0x20(%rbp,%rax,8),%rcx
 .Label3:
-   movl   %rcx,_environ
+   movq   %rcx,_environ
    // Specificc to Free Pascal
-   movl   %rcx,envp
+   movq   %rcx,envp
 (*
 /*
  * Force stack alignment - below here there must have been an even
