@@ -1111,7 +1111,7 @@ function PMSessionDefaultPrintSettings( printSession: PMPrintSession; printSetti
  *    CarbonLib:        in CarbonLib 1.1 and later
  *    Non-Carbon CFM:   not available
  }
-function PMSessionValidatePrintSettings( printSession: PMPrintSession; printSettings: PMPrintSettings; var result: Boolean ): OSStatus; external name '_PMSessionValidatePrintSettings';
+function PMSessionValidatePrintSettings( printSession: PMPrintSession; printSettings: PMPrintSettings; result: BooleanPtr ): OSStatus; external name '_PMSessionValidatePrintSettings';
 (* AVAILABLE_MAC_OS_X_VERSION_10_0_AND_LATER *)
 
 {$endc} {PM_USE_SESSION_APIS}

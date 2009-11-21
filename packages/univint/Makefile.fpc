@@ -75,7 +75,9 @@ implicitunits=  ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs AEDa
   PMCore PMCoreDeprecated PMDefinitions PMDefinitionsDeprecated PMErrors \
   PMPrintAETypes PMPrintSettingsKeys PMPrintingDialogExtensions Palettes \
   Pasteboard PictUtils Power Processes QDCMCommon QDOffscreen \
-  QDPictToCGContext QTML QTSMovie QTStreamingComponents QuickTimeComponents \
+  QDPictToCGContext \
+  QLBase QLGenerator QLThumbnailImage \
+  QTML QTSMovie QTStreamingComponents QuickTimeComponents \
   QuickTimeErrors QuickTimeMusic QuickTimeStreaming QuickTimeVR \
   QuickTimeVRFormat Quickdraw QuickdrawText QuickdrawTypes Resources \
   SCDynamicStore SCDynamicStoreCopyDHCPInfos SCDynamicStoreCopySpecific \
