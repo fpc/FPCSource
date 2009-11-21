@@ -205,6 +205,7 @@ interface
     function  search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
     function  search_enumerator_operator(type_def:Tdef):Tprocdef;
     function  search_class_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
+    function  search_objc_method(const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
     {Looks for macro s (must be given in upper case) in the macrosymbolstack, }
     {and returns it if found. Returns nil otherwise.}
     function  search_macro(const s : string):tsym;
@@ -2060,6 +2061,12 @@ implementation
                     if (oo_is_classhelper in defowner.objectoptions) and
                        pd.is_related(defowner.childof) then
                       begin
+                        { we need to know if a procedure references symbols
+                          in the static symtable, because then it can't be
+                          inlined from outside this unit }
+                        if assigned(current_procinfo) and
+                           (srsym.owner.symtabletype=staticsymtable) then
+                          include(current_procinfo.flags,pi_uses_static_symtable);
                         { no need to keep looking. There might be other
                           categories that extend this, a parent or child
                           class with a method with the same name (either
@@ -2069,12 +2076,6 @@ implementation
                         }
                         srsym:=tprocdef(tprocsym(srsym).procdeflist[i]).procsym;
                         srsymtable:=srsym.owner;
-                        { we need to know if a procedure references symbols
-                          in the static symtable, because then it can't be
-                          inlined from outside this unit }
-                        if assigned(current_procinfo) and
-                           (srsym.owner.symtabletype=staticsymtable) then
-                          include(current_procinfo.flags,pi_uses_static_symtable);
                         addsymref(srsym);
                         result:=true;
                         exit;
@@ -2087,6 +2088,61 @@ implementation
         srsymtable:=nil;
         result:=false;
       end;
+
+
+    function search_objc_method(const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
+      var
+        hashedid   : THashedIDString;
+        stackitem  : psymtablestackitem;
+        i          : longint;
+      begin
+        hashedid.id:=class_helper_prefix+s;
+        stackitem:=symtablestack.stack;
+        while assigned(stackitem) do
+          begin
+            srsymtable:=stackitem^.symtable;
+            srsym:=tsym(srsymtable.FindWithHash(hashedid));
+            if assigned(srsym) then
+              begin
+                if not(srsymtable.symtabletype in [globalsymtable,staticsymtable]) or
+                   not(srsym.owner.symtabletype in [globalsymtable,staticsymtable]) or
+                   (srsym.typ<>procsym) then
+                  internalerror(2009112005);
+                { check whether this procsym includes a helper for this particular class }
+                for i:=0 to tprocsym(srsym).procdeflist.count-1 do
+                  begin
+                    { we need to know if a procedure references symbols
+                      in the static symtable, because then it can't be
+                      inlined from outside this unit }
+                    if assigned(current_procinfo) and
+                       (srsym.owner.symtabletype=staticsymtable) then
+                      include(current_procinfo.flags,pi_uses_static_symtable);
+                    { no need to keep looking. There might be other
+                      methods with the same name, but that doesn't matter
+                      as far as the basic procsym is concerned.
+                    }
+                    srsym:=tprocdef(tprocsym(srsym).procdeflist[i]).procsym;
+                    { We need the symtable in which the classhelper-like sym
+                      is located, not the objectdef. The reason is that the
+                      callnode will climb the symtablestack until it encounters
+                      this symtable to start looking for overloads (and it won't
+                      find the objectsymtable in which this method sym is
+                      located
+
+                    srsymtable:=srsym.owner;
+                    }
+                    addsymref(srsym);
+                    result:=true;
+                    exit;
+                  end;
+              end;
+            stackitem:=stackitem^.next;
+          end;
+        srsym:=nil;
+        srsymtable:=nil;
+        result:=false;
+      end;
+
 
 
     function search_class_member(pd : tobjectdef;const s : string):tsym;

@@ -4140,7 +4140,8 @@ implementation
            tstoredsymtable(symtable).derefimpl;
          { the procdefs are not owned by the class helper procsyms, so they
            are not stored/restored either -> re-add them here }
-         if (oo_is_classhelper in objectoptions) then
+         if (objecttype=odt_objcclass) or
+            (oo_is_classhelper in objectoptions) then
            symtable.DefList.ForEachCall(@create_class_helper_for_procdef,nil);
       end;
 

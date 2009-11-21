@@ -67,11 +67,11 @@ interface
         FParaLength : smallint;
         FAllowVariant : boolean;
         procedure collect_overloads_in_class(ProcdefOverloadList:TFPObjectList);
-        procedure collect_overloads_in_units(ProcdefOverloadList:TFPObjectList);
-        procedure create_candidate_list(ignorevisibility,allowdefaultparas:boolean);
-        function  proc_add(ps:tprocsym;pd:tprocdef):pcandidate;
+        procedure collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall: boolean);
+        procedure create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall:boolean);
+        function  proc_add(ps:tprocsym;pd:tprocdef;objcidcall: boolean):pcandidate;
       public
-        constructor create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas:boolean);
+        constructor create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall:boolean);
         constructor create_operator(op:ttoken;ppn:tnode);
         destructor destroy;override;
         procedure list(all:boolean);
@@ -1610,7 +1610,7 @@ implementation
                            TCallCandidates
 ****************************************************************************}
 
-    constructor tcallcandidates.create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas:boolean);
+    constructor tcallcandidates.create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall:boolean);
       begin
         if not assigned(sym) then
           internalerror(200411015);
@@ -1618,7 +1618,7 @@ implementation
         FProcsym:=sym;
         FProcsymtable:=st;
         FParanode:=ppn;
-        create_candidate_list(ignorevisibility,allowdefaultparas);
+        create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall);
       end;
 
 
@@ -1628,7 +1628,7 @@ implementation
         FProcsym:=nil;
         FProcsymtable:=nil;
         FParanode:=ppn;
-        create_candidate_list(false,false);
+        create_candidate_list(false,false,false);
       end;
 
 
@@ -1685,7 +1685,7 @@ implementation
       end;
 
 
-    procedure tcallcandidates.collect_overloads_in_units(ProcdefOverloadList:TFPObjectList);
+    procedure tcallcandidates.collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall: boolean);
       var
         j          : integer;
         pd         : tprocdef;
@@ -1698,10 +1698,15 @@ implementation
         { we search all overloaded operator definitions in the symtablestack. The found
           entries are only added to the procs list and not the procsym, because
           the list can change in every situation }
-        if FOperator<>NOTOKEN then
-          hashedid.id:=overloaded_names[FOperator]
+        if FOperator=NOTOKEN then
+          begin
+            if not objcidcall then
+              hashedid.id:=FProcsym.name
+            else
+              hashedid.id:=class_helper_prefix+FProcsym.name;
+          end
         else
-          hashedid.id:=FProcsym.name;
+          hashedid.id:=overloaded_names[FOperator];
 
         checkstack:=symtablestack.stack;
         if assigned(FProcsymtable) then
@@ -1731,8 +1736,10 @@ implementation
                           hasoverload:=true;
                         ProcdefOverloadList.Add(tprocsym(srsym).ProcdefList[j]);
                       end;
-                    { when there is no explicit overload we stop searching }
-                    if not hasoverload then
+                    { when there is no explicit overload we stop searching,
+                      except for Objective-C methods called via id }
+                    if not hasoverload and
+                       not objcidcall then
                       break;
                   end;
               end;
@@ -1741,7 +1748,7 @@ implementation
       end;
 
 
-    procedure tcallcandidates.create_candidate_list(ignorevisibility,allowdefaultparas:boolean);
+    procedure tcallcandidates.create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall:boolean);
       var
         j     : integer;
         pd    : tprocdef;
@@ -1755,11 +1762,12 @@ implementation
 
         { Find all available overloads for this procsym }
         ProcdefOverloadList:=TFPObjectList.Create(false);
-        if (FOperator=NOTOKEN) and
+        if not objcidcall and
+           (FOperator=NOTOKEN) and
            (FProcsym.owner.symtabletype=objectsymtable) then
           collect_overloads_in_class(ProcdefOverloadList)
         else
-          collect_overloads_in_units(ProcdefOverloadList);
+          collect_overloads_in_units(ProcdefOverloadList,objcidcall);
 
         { determine length of parameter list.
           for operators also enable the variant-operators if
@@ -1823,7 +1831,9 @@ implementation
                 hp:=FCandidateProcs;
                 while assigned(hp) do
                   begin
-                    if compare_paras(hp^.data.paras,pd.paras,cp_value_equal_const,[cpo_ignorehidden])>=te_equal then
+                    if (compare_paras(hp^.data.paras,pd.paras,cp_value_equal_const,[cpo_ignorehidden])>=te_equal) and
+                       (not(po_objc in pd.procoptions) or
+                        (pd.messageinf.str^=hp^.data.messageinf.str^)) then
                       begin
                         found:=true;
                         break;
@@ -1831,7 +1841,7 @@ implementation
                     hp:=hp^.next;
                   end;
                 if not found then
-                  proc_add(fprocsym,pd);
+                  proc_add(fprocsym,pd,objcidcall);
               end;
           end;
 
@@ -1839,9 +1849,10 @@ implementation
       end;
 
 
-    function tcallcandidates.proc_add(ps:tprocsym;pd:tprocdef):pcandidate;
+    function tcallcandidates.proc_add(ps:tprocsym;pd:tprocdef;objcidcall: boolean):pcandidate;
       var
         defaultparacnt : integer;
+        parentst        : tsymtable;
       begin
         { generate new candidate entry }
         new(result);
@@ -1868,7 +1879,15 @@ implementation
          end;
         { Give a small penalty for overloaded methods not in
           defined the current class/unit }
-        if ps.owner<>pd.owner then
+        parentst:=ps.owner;
+        {  when calling Objective-C methods via id.method, then the found
+           procsym will be inside an arbitrary ObjectSymtable, and we don't
+           want togive the methods of that particular objcclass precedence over
+           other methods, so instead check against the symtable in which this
+           objcclass is defined }
+        if objcidcall then
+          parentst:=parentst.defowner.owner;
+        if (parentst<>pd.owner) then
           result^.ordinal_distance:=result^.ordinal_distance+1.0;
       end;
 

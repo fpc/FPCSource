@@ -2086,9 +2086,32 @@ implementation
                          end;
                        pointerdef:
                          begin
-                           Message(parser_e_invalid_qualifier);
-                           if tpointerdef(p1.resultdef).pointeddef.typ in [recorddef,objectdef,classrefdef] then
-                             Message(parser_h_maybe_deref_caret_missing);
+                           if (p1.resultdef=objc_idtype) then
+                             begin
+                               { objc's id type can be used to call any
+                                 Objective-C method of any Objective-C class
+                                 type that's currently in scope }
+                               if search_objc_method(pattern,srsym,srsymtable) then
+                                 begin
+                                   consume(_ID);
+                                   do_proc_call(srsym,srsymtable,nil,
+                                     (getaddr and not(token in [_CARET,_POINT])),
+                                     again,p1,[cnf_objc_id_call]);
+                                   { we need to know which procedure is called }
+                                   do_typecheckpass(p1);
+                                 end
+                               else
+                                 begin
+                                   consume(_ID);
+                                   Message(parser_e_methode_id_expected);
+                                 end;
+                             end
+                           else
+                             begin
+                               Message(parser_e_invalid_qualifier);
+                               if tpointerdef(p1.resultdef).pointeddef.typ in [recorddef,objectdef,classrefdef] then
+                                 Message(parser_h_maybe_deref_caret_missing);
+                             end
                          end;
                        else
                          begin
