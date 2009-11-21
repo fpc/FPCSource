@@ -1123,17 +1123,20 @@ Implementation
         lebbuf : array[0..63] of byte;
         objsym,
         objsymend : TObjSymbol;
+        zerobuf : array[0..63] of byte;
       begin
+        fillchar(zerobuf,sizeof(zerobuf),0);
         { main loop }
         while assigned(hp) do
          begin
            case hp.typ of
              ait_align :
                begin
-                 if (oso_data in ObjData.CurrObjSec.secoptions) then
-                   ObjData.writebytes(Tai_align_abstract(hp).calculatefillbuf(fillbuffer)^,Tai_align_abstract(hp).fillsize)
+                 if oso_data in ObjData.CurrObjSec.secoptions then
+                   ObjData.writebytes(Tai_align_abstract(hp).calculatefillbuf(fillbuffer,oso_executable in ObjData.CurrObjSec.secoptions)^,
+                     Tai_align_abstract(hp).fillsize)
                  else
-                   ObjData.alloc(Tai_align_abstract(hp).fillsize);
+                   ObjData.alloc(Tai_align_abstract(hp).fillsize);                   
                end;
              ait_section :
                begin

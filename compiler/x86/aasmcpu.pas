@@ -189,7 +189,7 @@ interface
          reg       : tregister;
          constructor create(b:byte);override;
          constructor create_op(b: byte; _op: byte);override;
-         function calculatefillbuf(var buf : tfillbuffer):pchar;override;
+         function calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;override;
       end;
 
       taicpu = class(tai_cpu_abstract_sym)
@@ -451,7 +451,7 @@ implementation
       end;
 
 
-    function tai_align.calculatefillbuf(var buf : tfillbuffer):pchar;
+    function tai_align.calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;
       const
 {$ifdef x86_64}
         alignarray:array[0..3] of string[4]=(
@@ -474,8 +474,8 @@ implementation
         j : longint;
         localsize: byte;
       begin
-        inherited calculatefillbuf(buf);
-        if not use_op then
+        inherited calculatefillbuf(buf,executable);
+        if not(use_op) and executable then
          begin
            bufptr:=pchar(@buf);
            { fillsize may still be used afterwards, so don't modify }

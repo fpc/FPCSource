@@ -629,7 +629,7 @@ interface
            constructor Create_zeros(b:byte);
            constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
            procedure ppuwrite(ppufile:tcompilerppufile);override;
-           function calculatefillbuf(var buf : tfillbuffer):pchar;virtual;
+           function calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;virtual;
         end;
         tai_align_class = class of tai_align_abstract;
 
@@ -2350,7 +2350,7 @@ implementation
        end;
 
 
-     function tai_align_abstract.calculatefillbuf(var buf : tfillbuffer):pchar;
+     function tai_align_abstract.calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;
        begin
          if fillsize>sizeof(buf) then
            internalerror(200404293);
