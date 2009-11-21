@@ -406,7 +406,6 @@ type
     procedure ExpectAttValue;                                           // [10]
     procedure ParseComment;                                             // [15]
     procedure ParsePI;                                                  // [16]
-    procedure ParseCDSect;                                              // [18]
     procedure ParseXmlOrTextDecl(TextDecl: Boolean);
     procedure ExpectEq;
     procedure ParseDoctypeDecl;                                         // [28]
@@ -1227,6 +1226,7 @@ begin
   ASource.FParent := FSource;
   FSource := ASource;
   FSource.FReader := Self;
+  FSource.FStartNesting := FNesting;
   FSource.Initialize;
 end;
 
@@ -2835,17 +2835,6 @@ begin
   ParseMarkupDecl;
 end;
 
-procedure TXMLReader.ParseCDSect;               // [18]
-begin
-  ExpectString('[CDATA[');
-  if FState <> rsRoot then
-    FatalError('Illegal at document level');
-  if SkipUntilSeq(GT_Delim, ']', ']') then
-    DoCDSect(FValue.Buffer, FValue.Length)
-  else
-    FatalError('Unterminated CDATA section', -1);
-end;
-
 procedure TXMLReader.AppendReference(AEntity: TDOMEntityEx);
 var
   s: WideString;
@@ -2900,108 +2889,138 @@ begin
     wsflag^ := wsflag^ or nonws;
 end;
 
+const
+  TextDelims: array[Boolean] of TSetOfChar = (
+    [#0, '<', '&', '>'],
+    [#0, '>']
+  );
+
 procedure TXMLReader.ParseContent;
 var
   nonWs: Boolean;
   wc: WideChar;
   ent: TDOMEntityEx;
+  InCDATA: Boolean;
 begin
-  FSource.FStartNesting := FNesting;
+  InCDATA := False;
+  StoreLocation(FTokenStart);
+  nonWs := False;
+  FValue.Length := 0;
   repeat
-    if FSource.FBuf^ = '<' then
+    wc := FSource.SkipUntil(FValue, TextDelims[InCDATA], @nonWs);
+    if wc = '<' then
     begin
       Inc(FSource.FBuf);
       if FSource.FBufEnd < FSource.FBuf + 2 then
         FSource.Reload;
       if FSource.FBuf^ = '/' then
       begin
+        DoText(FValue.Buffer, FValue.Length, not nonWs);
         if FNesting <= FSource.FStartNesting then
           FatalError('End-tag is not allowed here');
         Inc(FSource.FBuf);
         ParseEndTag;
       end
       else if CheckName([cnOptional]) then
-        ParseElement
+      begin
+        DoText(FValue.Buffer, FValue.Length, not nonWs);
+        ParseElement;
+      end
       else if FSource.FBuf^ = '!' then
       begin
         Inc(FSource.FBuf);
         if FSource.FBuf^ = '[' then
-          ParseCDSect
+        begin
+          ExpectString('[CDATA[');
+          if FState <> rsRoot then
+            FatalError('Illegal at document level');
+          StoreLocation(FTokenStart);
+          InCDATA := True;
+          if not FCDSectionsAsText then
+            DoText(FValue.Buffer, FValue.Length, not nonWs)
+          else
+            Continue;
+        end
         else if FSource.FBuf^ = '-' then
-          ParseComment
+        begin
+          DoText(FValue.Buffer, FValue.Length, not nonWs);
+          ParseComment;
+        end
         else
+        begin
+          DoText(FValue.Buffer, FValue.Length, not nonWs);
           ParseDoctypeDecl;
+        end;
       end
       else if FSource.FBuf^ = '?' then
-        ParsePI
+      begin
+        DoText(FValue.Buffer, FValue.Length, not nonWs);
+        ParsePI;
+      end
       else
         RaiseNameNotFound;
     end
-    else if FSource.FBuf^ = #0 then
+    else if wc = #0 then
     begin
+      if InCDATA then
+        FatalError('Unterminated CDATA section', -1);
       if FNesting > FSource.FStartNesting then
         FatalError('End-tag is missing for ''%s''', [FValidator[FNesting].FElement.NSI.QName^.Key]);
-      if not ContextPop then Break;
+      if ContextPop then Continue;
+      Break;
     end
-    else
+    else if wc = '>' then
     begin
-      FValue.Length := 0;
-      nonWs := False;
-      StoreLocation(FTokenStart);
-      repeat
-        wc := FSource.SkipUntil(FValue, [#0, '<', '&', '>'], @nonWs);
-        if (wc = '<') or (wc = #0) then
-          Break
-        else if wc = '>' then
-        begin
-          with FValue do if (Length > 1) and (Buffer[Length-1] = ']') and
-            (Buffer[Length-2] = ']') then
-            FatalError('Literal '']]>'' is not allowed in text', 2);
-          BufAppend(FValue, wc);
-          FSource.NextChar;
-        end
-        else if wc = '&' then
-        begin
-          if FState <> rsRoot then
-            FatalError('Illegal at document level');
+      BufAppend(FValue, wc);
+      FSource.NextChar;
 
-          if FCurrContentType = ctEmpty then
-            ValidationError('References are illegal in EMPTY elements', []);
+      if (FValue.Length <= 2) or (FValue.Buffer[FValue.Length-2] <> ']') or
+        (FValue.Buffer[FValue.Length-3] <> ']') then Continue;
 
-          if ParseRef(FValue) or ResolvePredefined then
-            nonWs := True // CharRef to whitespace is not considered whitespace
-          else
-          begin
-            if (nonWs or FPreserveWhitespace) and (FValue.Length > 0)  then
-            begin
-              // 'Reference illegal at root' is checked above, no need to check here
-              DoText(FValue.Buffer, FValue.Length, not nonWs);
-              FValue.Length := 0;
-            end;
-            ent := EntityCheck;
-            if (ent = nil) or (not FExpandEntities) then
-              AppendReference(ent)
-            else
-            begin
-              StartGE(ent);
-              FSource.FStartNesting := FNesting;
-            end;
-          end;
-        end;
-      until False;
-
-      if FState = rsRoot then
+      if InCData then   // got a ']]>' separator
       begin
-        if (nonWs or FPreserveWhitespace) and (FValue.Length > 0)  then
+        Dec(FValue.Length, 3);
+        InCDATA := False;
+        if FCDSectionsAsText then
+          Continue;
+        DoCDSect(FValue.Buffer, FValue.Length);
+      end
+      else
+        FatalError('Literal '']]>'' is not allowed in text', 3);
+    end
+    else if wc = '&' then
+    begin
+      if FState <> rsRoot then
+        FatalError('Illegal at document level');
+
+      if FCurrContentType = ctEmpty then
+        ValidationError('References are illegal in EMPTY elements', []);
+
+      if ParseRef(FValue) or ResolvePredefined then
+      begin
+        nonWs := True; // CharRef to whitespace is not considered whitespace
+        Continue;
+      end
+      else
+      begin
+        ent := EntityCheck;
+        if (ent = nil) or (not FExpandEntities) then
         begin
           DoText(FValue.Buffer, FValue.Length, not nonWs);
-          FValue.Length := 0;
+          AppendReference(ent);
+        end
+        else
+        begin
+          StartGE(ent);
+          Continue;
         end;
-      end
-      else if nonWs then
-        FatalError('Illegal at document level', -1);
+      end;
     end;
+    StoreLocation(FTokenStart);
+    FValue.Length := 0;
+    nonWs := False;
   until False;
+  DoText(FValue.Buffer, FValue.Length, not nonWs);
 end;
 
 procedure TXMLCharSource.NextChar;
@@ -3471,6 +3490,15 @@ procedure TXMLReader.DoText(ch: PWideChar; Count: Integer; Whitespace: Boolean);
 var
   TextNode: TDOMText;
 begin
+  if FState <> rsRoot then
+    if not Whitespace then
+      FatalError('Illegal at document level', -1)
+    else
+      Exit;  
+
+  if (Whitespace and (not FPreserveWhitespace)) or (Count = 0) then
+    Exit;
+
   // Validating filter part
   case FCurrContentType of
     ctChildren:
