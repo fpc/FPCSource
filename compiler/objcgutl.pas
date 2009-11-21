@@ -166,7 +166,7 @@ function objcreatestringpoolentryintern(p: pchar; len: longint; pooltype: tconst
         pc[entry^.keylength]:=#0;
 
         { add the string to the approriate section }
-        new_section(current_asmdata.asmlists[al_objc_pools],stringsec,strlab.name,sizeof(pint));
+        new_section(current_asmdata.asmlists[al_objc_pools],stringsec,strlab.name,0);
         current_asmdata.asmlists[al_objc_pools].concat(Tai_label.Create(strlab));
         current_asmdata.asmlists[al_objc_pools].concat(Tai_string.Create_pchar(pc,entry^.keylength+1));
         Result := strlab;
