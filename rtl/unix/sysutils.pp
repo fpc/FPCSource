@@ -991,9 +991,6 @@ end;
                               Misc Functions
 ****************************************************************************}
 
-procedure Beep;
-begin
-end;
 
 
 {****************************************************************************
@@ -1356,6 +1353,12 @@ begin
   Result:=TheUserDir;    
 end;
 
+Procedure SysBeep;
+
+begin
+  Write(#7);
+  Flush(Output);
+end;
 
 {****************************************************************************
                               Initialization code
@@ -1365,6 +1368,8 @@ Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
   SysConfigDir:='/etc'; { Initialize system config dir }
+  OnBeep:=@SysBeep;
+  
 Finalization
   FreeDriveStr;
   DoneExceptions;
