@@ -626,7 +626,7 @@ function kQLGeneratorTypeID : CFUUIDRef; inline;
 function kQLGeneratorCallbacksInterfaceID: CFUUIDRef; inline; 
 
 
-{$endic} {TARGET_OS_MAC}
+{$endif} {TARGET_OS_MAC}
 
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 implementation
