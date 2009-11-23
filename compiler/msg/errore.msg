@@ -1589,7 +1589,7 @@ type_e_objc_type_unsupported=04092_E_The type "$1" is not supported for interact
 % to all possible Object Pascal types. In particular, types that depend on
 % reference counting by the compiler (such as ansistrings and certain kinds of
 % interfaces) cannot be used as fields of Objective-C classes, cannot be
-% directly passed to Objective-C methods, and cannot be encoded using \var{objc_encode}.
+% directly passed to Objective-C methods, and cannot be encoded using \var{objc\_encode}.
 type_e_class_or_objcclass_type_expected=04093_E_Class or objcclass type expected, but got "$1"
 % It is only possible to create class reference types of \var{class} and \var{objcclass}
 type_e_objcclass_type_expected=04094_E_Objcclass type expected
@@ -1796,7 +1796,7 @@ sym_e_objc_para_mismatch=05070_E_Mismatch between number of declared parameters 
 % checks whether this is also the case here. Note that in case of messages taking a
 % variable number of arguments translated to FPC via an \var{array of const} parameter,
 % this final \var{array of const} parameter is not counted. Neither are the hidden
-% \var{self} and \var{_cmd} parameters.
+% \var{self} and \var{\_cmd} parameters.
 % \end{description}
 #
 # Codegenerator
