@@ -424,7 +424,8 @@ implementation
 
     procedure tcgfornode.pass_generate_code;
       var
-         l3,oldclabel,oldblabel : tasmlabel;
+         l3,oldclabel,oldblabel,
+         otl, ofl : tasmlabel;
          temptovalue : boolean;
          hop : topcg;
          hcond : topcmp;
@@ -433,6 +434,7 @@ implementation
          cmp_const:Tconstexprint;
          oldflowcontrol : tflowcontrol;
          oldexecutionweight : longint;
+         isjump: boolean;
       begin
          location_reset(location,LOC_VOID,OS_NO);
          oldclabel:=current_procinfo.CurrContinueLabel;
@@ -454,7 +456,22 @@ implementation
          }
            and not(assigned(entrylabel));
 
-         secondpass(t1);
+        isjump:=(t1.expectloc=LOC_JUMP);
+        if isjump then
+          begin
+             otl:=current_procinfo.CurrTrueLabel;
+             current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
+             ofl:=current_procinfo.CurrFalseLabel;
+             current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
+          end;
+        secondpass(t1);
+        if t1.location.loc in [LOC_FLAGS,LOC_JUMP] then
+          location_force_reg(current_asmdata.CurrAsmList,t1.location,def_cgsize(t1.resultdef),false);
+        if isjump then
+          begin
+            current_procinfo.CurrTrueLabel:=otl;
+            current_procinfo.CurrFalseLabel:=ofl;
+          end;
          { calculate pointer value and check if changeable and if so }
          { load into temporary variable                       }
          if t1.nodetype<>ordconstn then
