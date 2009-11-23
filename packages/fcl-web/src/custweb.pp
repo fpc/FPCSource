@@ -113,6 +113,8 @@ Type
 
   EFPWebError = Class(Exception);
 
+procedure ExceptionToHTML(S: TStrings; const E: Exception; const Title, Email, Administrator: string);
+
 Implementation
 
 {$ifdef CGIDEBUG}
@@ -128,6 +130,35 @@ resourcestring
   SError = 'Error: ';
   SNotify = 'Notify: ';
 
+procedure ExceptionToHTML(S: TStrings; const E: Exception; const Title, Email, Administrator: string);
+var
+  FrameNumber: Integer;
+  Frames: PPointer;
+  FrameCount: integer;
+  TheEmail: String;
+begin
+  With S do
+    begin
+    Add('<html><head><title>'+Title+': '+SModuleError+'</title></head>'+LineEnding);
+    Add('<body>');
+    Add('<center><hr><h1>'+Title+': ERROR</h1><hr></center><br><br>');
+    Add(SAppEncounteredError+'<br>');
+    Add('<ul>');
+    Add('<li>'+SError+' <b>'+E.Message+'</b>');
+    Add('<li> Stack trace:<br>');
+    Add(BackTraceStrFunc(ExceptAddr)+'<br>');
+    FrameCount:=ExceptFrameCount;
+    Frames:=ExceptFrames;
+    for FrameNumber := 0 to FrameCount-1 do
+      Add(BackTraceStrFunc(Frames[FrameNumber])+'<br>');
+    Add('</ul><hr>');
+    TheEmail:=Email;
+    If (TheEmail<>'') then
+      Add('<h5><p><i>'+SNotify+Administrator+': <a href="mailto:'+TheEmail+'">'+TheEmail+'</a></i></p></h5>');
+    Add('</body></html>');
+    end;
+end;
+
 procedure TCustomWebApplication.DoRun;
 var ARequest : TRequest;
     AResponse : TResponse;
@@ -141,10 +172,6 @@ end;
 
 procedure TCustomWebApplication.ShowRequestException(R: TResponse; E: Exception);
 Var
- TheEmail : String;
- FrameCount: integer;
- Frames: PPointer;
- FrameNumber:Integer;
  S : TStrings;
 
 begin
@@ -164,26 +191,7 @@ begin
     begin
     S:=TStringList.Create;
     Try
-      With S do
-        begin
-        Add('<html><head><title>'+Title+': '+SModuleError+'</title></head>'+LineEnding);
-        Add('<body>');
-        Add('<center><hr><h1>'+Title+': ERROR</h1><hr></center><br><br>');
-        Add(SAppEncounteredError+'<br>');
-        Add('<ul>');
-        Add('<li>'+SError+' <b>'+E.Message+'</b>');
-        Add('<li> Stack trace:<br>');
-        Add(BackTraceStrFunc(ExceptAddr)+'<br>');
-        FrameCount:=ExceptFrameCount;
-        Frames:=ExceptFrames;
-        for FrameNumber := 0 to FrameCount-1 do
-          Add(BackTraceStrFunc(Frames[FrameNumber])+'<br>');
-        Add('</ul><hr>');
-        TheEmail:=Email;
-        If (TheEmail<>'') then
-          Add('<h5><p><i>'+SNotify+Administrator+': <a href="mailto:'+TheEmail+'">'+TheEmail+'</a></i></p></h5>');
-        Add('</body></html>');
-        end;
+      ExceptionToHTML(S, E, Title, Email, Administrator);
       R.Content:=S.Text;
       R.SendContent;
     Finally
