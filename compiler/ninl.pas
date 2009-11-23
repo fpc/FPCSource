@@ -2205,7 +2205,14 @@ implementation
                              if is_integer(tcallparanode(left).right.resultdef) then
                                begin
                                  set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
-                                 inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef);
+                                 { when range/overflow checking is on, we
+                                   convert this to a regular add, and for proper
+                                   checking we need the original type }
+                                 if ([cs_check_range,cs_check_overflow]*current_settings.localswitches=[]) then
+                                   if is_integer(tcallparanode(left).left.resultdef) then
+                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef)
+                                   else
+                                     inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef);
                                  if assigned(tcallparanode(tcallparanode(left).right).right) then
                                    { should be handled in the parser (JM) }
                                    internalerror(2006020901);
