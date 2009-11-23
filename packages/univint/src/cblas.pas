@@ -548,7 +548,7 @@ procedure SetBLASParamErrorProc( ErrorProc: BLASParamErrorProc ); external name 
   {$ifc not undefined TARGET_CPU_X86 or defined TARGET_CPU_X86_64}
 
   {$elsec}
-	   error Unknown architecture
+	   {$error Unknown architecture}
   {$endc}
 {$endc}
 

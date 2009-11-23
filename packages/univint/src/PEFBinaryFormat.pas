@@ -1522,7 +1522,7 @@ type
 	end;
 
 type
-	PEF2LgExportedSymbolPtr = ^PEF2LgExportedSymbol
+	PEF2LgExportedSymbolPtr = ^PEF2LgExportedSymbol;
 	PEF2LgExportedSymbol = record
 		symClass: UInt8;
 		flags: UInt8;

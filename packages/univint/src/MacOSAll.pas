@@ -196,6 +196,8 @@ interface
 {$i PMPrintingDialogExtensions.pas}
 {unit QDCMCommon}
 {$i QDCMCommon.pas}
+{unit QLBase}
+{$i QLBase.pas}
 {unit QTML}
 {$i QTML.pas}
 {unit QuickTimeErrors}
@@ -748,6 +750,8 @@ interface
 {$i NSLCore.pas}
 {unit OpenTransportProtocol}
 {$i OpenTransportProtocol.pas}
+{unit QLThumbnailImage}
+{$i QLThumbnailImage.pas}
 {unit Translation}
 {$i Translation.pas}
 {unit URLAccess}
@@ -854,6 +858,8 @@ interface
 {$i PMCore.pas}
 {unit QDPictToCGContext}
 {$i QDPictToCGContext.pas}
+{unit QLGenerator}
+{$i QLGenerator.pas}
 {unit Quickdraw}
 {$i Quickdraw.pas}
 {unit SCDynamicStore}
@@ -1960,6 +1966,23 @@ procedure SetAudioUnitParameterDisplayType(var flags : UInt32; displayType : UIn
 begin
 	flags := (flags and (not kAudioUnitParameterFlag_DisplayMask)) or displayType
 end;
+
+{implementation of unit QLGenerator}
+
+{$ifc TARGET_OS_MAC}
+
+
+function kQLGeneratorTypeID : CFUUIDRef; inline;
+begin
+	kQLGeneratorTypeID := CFUUIDGetConstantUUIDWithBytes(kCFAllocatorDefault, $5E, $2D, $96, $80, $50, $22, $40, $FA, $B8, $06, $43, $34, $96, $22, $E5, $B9)
+end;
+
+function kQLGeneratorCallbacksInterfaceID: CFUUIDRef; inline; 
+begin
+	kQLGeneratorCallbacksInterfaceID := CFUUIDGetConstantUUIDWithBytes(kCFAllocatorDefault, $86, $5A, $F5, $E0, $6D, $30, $43, $45, $95, $1B, $D3, $71, $05, $75, $4F, $2D)
+end;
+
+{$endc} {TARGET_OS_MAC}
 
 {implementation of unit Menus}
 
