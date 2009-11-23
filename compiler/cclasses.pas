@@ -2498,19 +2498,18 @@ end;
       begin
         p:=pchar(@d);
         while (len>0) do
-         with FPosnblock^ do
          begin
-           i:=FPosn-pos;
-           if i+len>=size then
+           i:=FPosn-FPosnblock^.pos;
+           if i+len>=FPosnblock^.size then
             begin
-              j:=size-i;
-              move(p^,data[i],j);
+              j:=FPosnblock^.size-i;
+              move(p^,FPosnblock^.data[i],j);
               inc(p,j);
               inc(FPosn,j);
               dec(len,j);
-              used:=size;
-              if assigned(Next) then
-               FPosnblock:=Next
+              FPosnblock^.used:=FPosnblock^.size;
+              if assigned(FPosnblock^.Next) then
+               FPosnblock:=FPosnblock^.Next
               else
                begin
                  grow;
@@ -2519,12 +2518,12 @@ end;
             end
            else
             begin
-              move(p^,data[i],len);
+              move(p^,FPosnblock^.data[i],len);
               inc(p,len);
               inc(FPosn,len);
-              i:=FPosn-pos;
-              if i>used then
-               used:=i;
+              i:=FPosn-FPosnblock^.pos;
+              if i>FPosnblock^.used then
+               FPosnblock^.used:=i;
               len:=0;
             end;
          end;
@@ -2545,25 +2544,24 @@ end;
         res:=0;
         p:=pchar(@d);
         while (len>0) do
-         with FPosnblock^ do
          begin
-           i:=FPosn-pos;
-           if i+len>=used then
+           i:=FPosn-FPosnblock^.pos;
+           if i+len>=FPosnblock^.used then
             begin
-              j:=used-i;
-              move(data[i],p^,j);
+              j:=FPosnblock^.used-i;
+              move(FPosnblock^.data[i],p^,j);
               inc(p,j);
               inc(FPosn,j);
               inc(res,j);
               dec(len,j);
-              if assigned(Next) then
-               FPosnblock:=Next
+              if assigned(FPosnblock^.Next) then
+               FPosnblock:=FPosnblock^.Next
               else
                break;
             end
            else
             begin
-              move(data[i],p^,len);
+              move(FPosnblock^.data[i],p^,len);
               inc(p,len);
               inc(FPosn,len);
               inc(res,len);
