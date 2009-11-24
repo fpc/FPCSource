@@ -29,7 +29,7 @@ interface
 { copy from t_linux
 // Up to now we use gld since the solaris ld seems not support .res-files}
 {-$DEFINE LinkTest} { DON't del link.res and write Info }
-{$DEFINE GnuLd} {The other is not implemented }
+{$DEFINE GnuLd}{The other is not implemented }
 
 implementation
 
@@ -58,6 +58,8 @@ implementation
     private
       Glibc2,
       Glibc21 : boolean;
+      use_gnu_ld : boolean;
+      linkres : TLinkRes;
       Function  WriteResponseFile(isdll:boolean) : Boolean;
     public
       constructor Create;override;
@@ -168,7 +170,7 @@ begin
          end;
       end
      else
-      Message1(parser_e_no_export_of_variables_for_target,'linux');
+      Message1(parser_e_no_export_of_variables_for_target,'solaris');
      hp2:=texported_item(hp2.next);
    end;
 end;
@@ -181,8 +183,20 @@ end;
 Constructor TLinkersolaris.Create;
 begin
   Inherited Create;
+{$ifndef x86_64}
+  use_gnu_ld:=true;
+{$endif}
+
+  if cs_link_native in init_settings.globalswitches then
+    use_gnu_ld:=false
+  else
+    use_gnu_ld:=true;
   if NOT Dontlinkstdlibpath Then
+{$ifdef x86_64}
+   LibrarySearchPath.AddPath(sysrootpath,'/lib/64;/usr/lib/64;/usr/X11R6/lib/64;/opt/sfw/lib/64',true);
+{$else not x86_64}
    LibrarySearchPath.AddPath(sysrootpath,'/lib;/usr/lib;/usr/X11R6/lib;/opt/sfw/lib',true);
+{$endif not x86_64}
 {$ifdef  LinkTest}
      if (cs_link_staticflag in current_settings.globalswitches) then  WriteLN('ForceLinkStaticFlag');
      if (cs_link_static in current_settings.globalswitches) then  WriteLN('LinkStatic-Flag');
@@ -195,14 +209,24 @@ procedure TLinkersolaris.SetDefaultInfo;
 {
   This will also detect which libc version will be used
 }
+{$ifdef x86_64}
+const
+  gld = 'gld -m elf_x86_64 ';
+  solaris_ld = '/usr/bin/ld -64 ';
+{$else}
+const
+  gld = 'gld ';
+  solaris_ld = 'ld ';
+{$endif}
 begin
   Glibc2:=false;
   Glibc21:=false;
   with Info do
    begin
 {$IFDEF GnuLd}
-     ExeCmd[1]:='gld $OPT $DYNLINK $STATIC $STRIP -L. -o $EXE $RES';
-     DllCmd[1]:='gld $OPT -shared -L. -o $EXE $RES';
+     ExeCmd[1]:=gld + '$OPT $DYNLINK $STATIC $STRIP -L. -o $EXE $RES';
+     ExeCmd[2]:=solaris_ld + '$OPT $DYNLINK $STATIC $STRIP -L . -o $EXE $RESDATA';
+     DllCmd[1]:=gld + '$OPT -shared -L. -o $EXE $RES';
      DllCmd[2]:='gstrip --strip-unneeded $EXE';
      DynamicLinker:=''; { Gnu uses the default }
      Glibc21:=false;
@@ -220,7 +244,7 @@ begin
         else
          Glibc21:=true;
       end
-     else
+     else 
       DynamicLinker:='/lib/ld-linux.so.1';
 *)
    end;
@@ -230,7 +254,6 @@ end;
 
 Function TLinkersolaris.WriteResponseFile(isdll:boolean) : Boolean;
 Var
-  linkres      : TLinkRes;
   i            : longint;
 {  cprtobj,
   gprtobj,
@@ -239,6 +262,7 @@ Var
   s,s2         : TCmdStr;
   linkdynamic,
   linklibc     : boolean;
+
 begin
   WriteResponseFile:=False;
 { set special options for some targets }
@@ -266,6 +290,8 @@ begin
        AddSharedLibrary('c'); { quick hack: this solaris implementation needs alwys libc }
    end;
 
+  if use_gnu_ld then
+    begin
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
 
@@ -366,7 +392,103 @@ begin
 { Write and Close response }
   linkres.writetodisk;
   LinkRes.Free;
+    end
+  else { not use_gnu_ld }
+    begin
+   { Open link.res file }
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
 
+ { Write path to search libraries }
+  HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
+  while assigned(HPath) do
+   begin
+     LinkRes.Add('-L '+maybequoted(HPath.Str));
+     HPath:=TCmdStrListItem(HPath.Next);
+   end;
+  HPath:=TCmdStrListItem(LibrarySearchPath.First);
+  while assigned(HPath) do
+   begin
+     LinkRes.Add('-L '+maybequoted(HPath.Str));
+     HPath:=TCmdStrListItem(HPath.Next);
+   end;
+
+  { add objectfiles, start with prt0 always }
+  { solaris port contains _start inside the system unit, it
+    needs only one entry because it is linked always against libc
+  if prtobj<>'' then
+   LinkRes.AddFileName(FindObjectFile(prtobj,'',false));
+  }
+  { try to add crti and crtbegin if linking to C }
+  if linklibc then { Needed in solaris? }
+   begin
+{     if librarysearchpath.FindFile('crtbegin.o',s) then
+      LinkRes.AddFileName(s);}
+     if librarysearchpath.FindFile('crti.o',false,s) then
+      LinkRes.AddFileName(s);
+   end;
+  { main objectfiles }
+  while not ObjectFiles.Empty do
+   begin
+     s:=ObjectFiles.GetFirst;
+     if s<>'' then
+      LinkRes.AddFileName(maybequoted(s));
+   end;
+
+  { Write staticlibraries }
+  if not StaticLibFiles.Empty then
+   begin
+     While not StaticLibFiles.Empty do
+      begin
+        S:=StaticLibFiles.GetFirst;
+        LinkRes.AddFileName(maybequoted(s))
+      end;
+   end;
+
+  { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
+    here to be sure that it gets linked this is needed for glibc2 systems (PFV) }
+  if not SharedLibFiles.Empty then
+   begin
+     While not SharedLibFiles.Empty do
+      begin
+        S:=SharedLibFiles.GetFirst;
+        if s<>'c' then
+         begin
+           i:=Pos(target_info.sharedlibext,S);
+           if i>0 then
+            Delete(S,i,255);
+           LinkRes.Add('-l'+s);
+         end
+        else
+         begin
+           linklibc:=true;
+           linkdynamic:=false; { libc will include the ld-solaris (war ld-linux) for us }
+         end;
+      end;
+     { be sure that libc is the last lib }
+     if linklibc then
+      LinkRes.Add('-lc');
+     { when we have -static for the linker the we also need libgcc }
+     if (cs_link_staticflag in current_settings.globalswitches) then begin
+      LinkRes.Add('-lgcc');
+     end;
+     if linkdynamic and (Info.DynamicLinker<>'') then { gld has a default, DynamicLinker is not set in solaris }
+       LinkRes.AddFileName(Info.DynamicLinker);
+   end;
+  { objects which must be at the end }
+  if linklibc then {needed in solaris ? }
+   begin
+     if {librarysearchpath.FindFile('crtend.o',s1) or}
+        librarysearchpath.FindFile('crtn.o',false,s2) then
+      begin
+{        LinkRes.AddFileName(s1);}
+        LinkRes.AddFileName(s2);
+      end;
+   end;
+{ Write and Close response }
+  //linkres.writetodisk;
+  //LinkRes.Free;
+
+    end;
   WriteResponseFile:=True;
 end;
 
@@ -374,6 +496,7 @@ end;
 function TLinkersolaris.MakeExecutable:boolean;
 var
   binstr,
+  s, linkstr,
   cmdstr  : TCmdStr;
   success : boolean;
   DynLinkStr : string[60];
@@ -399,18 +522,37 @@ begin
   WriteResponseFile(false);
 
 { Call linker }
-  SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
+  if use_gnu_ld then
+    SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr)
+  else
+    SplitBinCmd(Info.ExeCmd[2],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.exefilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
+  if use_gnu_ld then
+    Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName))
+  else
+    begin
+      linkstr:='';
+      while not linkres.data.Empty do
+        begin
+          s:=linkres.data.GetFirst;
+          linkstr:=linkstr+s+' ';
+        end;
+      linkres.free;
+      Replace(cmdstr,'$RESDATA',linkstr);
+    end;
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
-  success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false);
+  if use_gnu_ld then
+    success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false)
+  else { Using utilsprefix has no sense on /usr/bin/ld }
+    success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
 
 { Remove ReponseFile }
 {$IFNDEF LinkTest}
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if (success) and use_gnu_ld and
+     not(cs_link_nolink in current_settings.globalswitches) then
    DeleteFile(outputexedir+Info.ResName);
 {$ENDIF}
   MakeExecutable:=success;   { otherwise a recursive call to link method }
