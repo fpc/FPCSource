@@ -6027,11 +6027,12 @@ packages/zorba/Makefile.fpc svneol=native#text/plain
 packages/zorba/examples/simple/simple.lpi svneol=native#text/plain
 packages/zorba/examples/simple/simple.lpr svneol=native#text/plain
 packages/zorba/fpmake.pp svneol=native#text/plain
+packages/zorba/src/xqc.pas svneol=native#text/plain
+packages/zorba/src/xqc_error.inc svneol=native#text/plain
+packages/zorba/src/xqc_static_context_consts.inc svneol=native#text/plain
 packages/zorba/src/zorba.inc svneol=native#text/plain
 packages/zorba/src/zorba.pas svneol=native#text/plain
-packages/zorba/src/zorba_error.inc svneol=native#text/plain
 packages/zorba/src/zorba_options.inc svneol=native#text/plain
-packages/zorba/src/zorba_static_context_consts.inc svneol=native#text/plain
 packages/zorba/src/zorbadyn.pas svneol=native#text/plain
 rtl/COPYING.FPC -text
 rtl/COPYING.txt svneol=native#text/plain
