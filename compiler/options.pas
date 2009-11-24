@@ -1617,6 +1617,14 @@ begin
                         else
                           exclude(init_settings.globalswitches,cs_link_extern);
                       end;
+                    'n' :
+                      begin
+                        If UnsetBool(More, j) then
+                          include(init_settings.globalswitches,cs_link_native)
+                        else
+                          exclude(init_settings.globalswitches,cs_link_native);
+                      end;
+
                     'm' :
                       begin
                         If UnsetBool(More, j) then
