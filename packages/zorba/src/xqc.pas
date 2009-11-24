@@ -28,6 +28,7 @@ unit xqc;
 interface
 
 uses
+  Classes,
   ctypes;
 
 {$IFDEF UNIX}
@@ -78,7 +79,7 @@ type
 // external functions
   external_function_init = procedure(out user_data: Pointer; global_user_data: Pointer); extdecl;
 
-  external_function_next = function(args: XQC_Sequence; argc: cint; out result: XQC_Item;
+  external_function_next = function(args: XQC_Sequence; argc: cint; out res: XQC_Item;
     user_data: Pointer; global_user_data: Pointer): XQUERY_ERROR; extdecl;
 
   external_function_release = procedure(user_data: Pointer; global_user_data: Pointer); extdecl;
@@ -2047,6 +2048,86 @@ type
     data: pointer;
   end;
 
+
+(* helper functions *)
+procedure xqc_errorhandler_error(handler: XQC_ErrorHandler; error: XQUERY_ERROR; const local_name,
+  description, query_uri: pchar; line, column: cuint); extdecl;
+
+const
+  XQC_Console_ErrorHandler_impl: XQC_ErrorHandler_s = (error:@xqc_errorhandler_error; data: nil);
+  XQC_Console_ErrorHandler: XQC_ErrorHandler = @XQC_Console_ErrorHandler_impl;
+
+function XQC_InputStream_create(const Stream: TStream; const Owned: Boolean): XQC_InputStream;
+function XQC_OutputStream_create(const Stream: TStream; const Owned: Boolean): XQC_OutputStream;
+
 implementation
+
+procedure xqc_errorhandler_error(handler: XQC_ErrorHandler; error: XQUERY_ERROR; const local_name,
+  description, query_uri: pchar; line, column: cuint); extdecl;
+begin
+  WriteLn(query_uri, '(', line, ',', column, ') ', local_name, ': ', description);
+end;
+
+
+type
+  PStreamData = ^TStreamData;
+  TStreamData = record
+    Stream: TStream;
+    Owned: Boolean;
+  end;
+
+function xqc_inputstream_read(stream: XQC_InputStream; const buf: pchar; length: cuint): cint; extdecl;
+begin
+  if Assigned(buf) and (length > 0) then
+    Result := PStreamData(stream^.data)^.Stream.Read(buf^, length)
+  else
+    Result := 0;
+end;
+
+procedure xqc_inputstream_free(stream: XQC_InputStream); extdecl;
+begin
+  if PStreamData(stream^.data)^.Owned then
+    PStreamData(stream^.data)^.Stream.Free;
+  FreeMem(stream);
+end;
+
+function XQC_InputStream_create(const Stream: TStream; const Owned: Boolean): XQC_InputStream;
+begin
+  if not Assigned(Stream) then
+    Exit(nil);
+
+  GetMem(Result, Sizeof(XQC_InputStream_s)+Sizeof(TStreamData));
+  Result^.read := @xqc_inputstream_read;
+  Result^.free := @xqc_inputstream_free;
+  Result^.data := PChar(Result) + Sizeof(XQC_InputStream_s);
+  PStreamData(Result^.data)^.Owned := Owned;
+  PStreamData(Result^.data)^.Stream := Stream;
+end;
+
+procedure xqc_outputstream_write(stream: XQC_OutputStream; const buf: pchar; length: cuint); extdecl;
+begin
+  if Assigned(buf) and (length > 0) then
+    PStreamData(stream^.data)^.Stream.Write(buf^, length);
+end;
+
+procedure xqc_outputstream_free(stream: XQC_OutputStream); extdecl;
+begin
+  if PStreamData(stream^.data)^.Owned then
+    PStreamData(stream^.data)^.Stream.Free;
+  FreeMem(stream);
+end;
+
+function XQC_OutputStream_create(const Stream: TStream; const Owned: Boolean): XQC_OutputStream;
+begin
+  if not Assigned(Stream) then
+    Exit(nil);
+
+  GetMem(Result, Sizeof(XQC_OutputStream_s)+Sizeof(TStreamData));
+  Result^.write := @xqc_outputstream_write;
+  Result^.free := @xqc_outputstream_free;
+  Result^.data := PChar(Result) + Sizeof(XQC_OutputStream_s);
+  PStreamData(Result^.data)^.Owned := Owned;
+  PStreamData(Result^.data)^.Stream := Stream;
+end;
 
 end.
