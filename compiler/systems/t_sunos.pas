@@ -563,6 +563,7 @@ end;
 Function TLinkersolaris.MakeSharedLibrary:boolean;
 var
   binstr,
+  s, linkstr,
   cmdstr  : TCmdStr;
   success : boolean;
 begin
