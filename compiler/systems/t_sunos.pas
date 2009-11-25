@@ -216,7 +216,7 @@ const
 {$else}
 const
   gld = 'gld ';
-  solaris_ld = 'ld ';
+  solaris_ld = '/usr/bin/ld ';
 {$endif}
 begin
   Glibc2:=false;
@@ -228,6 +228,7 @@ begin
      ExeCmd[2]:=solaris_ld + '$OPT $DYNLINK $STATIC $STRIP -L . -o $EXE $RESDATA';
      DllCmd[1]:=gld + '$OPT -shared -L. -o $EXE $RES';
      DllCmd[2]:='gstrip --strip-unneeded $EXE';
+     DllCmd[3]:=solaris_ld + '$OPT -shared -L. -o $EXE $RES';
      DynamicLinker:=''; { Gnu uses the default }
      Glibc21:=false;
 {$ELSE}
@@ -573,11 +574,30 @@ begin
   WriteResponseFile(true);
 
 { Call linker }
-  SplitBinCmd(Info.DllCmd[1],binstr,cmdstr);
+  if use_gnu_ld then
+    SplitBinCmd(Info.DllCmd[1],binstr,cmdstr)
+  else
+    SplitBinCmd(Info.DllCmd[3],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
-  success:=DoExec(FindUtil(utilsprefix+binstr),cmdstr,true,false);
+  if use_gnu_ld then
+    Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName))
+  else
+    begin
+      linkstr:='';
+      while not linkres.data.Empty do
+        begin
+          s:=linkres.data.GetFirst;
+          linkstr:=linkstr+s+' ';
+        end;
+      linkres.free;
+      Replace(cmdstr,'$RESDATA',linkstr);
+    end;
+  if use_gnu_ld then
+    success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false)
+  else { Using utilsprefix has no sense on /usr/bin/ld }
+    success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
+
 
 { Strip the library ? }
   if success and (cs_link_strip in current_settings.globalswitches) then
