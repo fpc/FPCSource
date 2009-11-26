@@ -40,18 +40,18 @@ implementation
     symconst,script,
     fmodule,aasmbase,aasmtai,aasmdata,aasmcpu,cpubase,symsym,symdef,
     cgobj,
-    import,export,link,comprsrc,rescmn,i_sunos,ogbase;
+    import,export,expunix,link,comprsrc,rescmn,i_sunos,ogbase;
 
   type
     timportlibsolaris=class(timportlib)
       procedure generatelib;override;
     end;
 
-    texportlibsolaris=class(texportlib)
-      procedure preparelib(const s : string);override;
-      procedure exportprocedure(hp : texported_item);override;
-      procedure exportvar(hp : texported_item);override;
-      procedure generatelib;override;
+    texportlibsolaris=class(texportlibunix)
+(*
+      procedure setinitname(list: TAsmList; const s: string); override;
+      procedure setfininame(list: TAsmList; const s: string); override;
+*)
     end;
 
     tlinkersolaris=class(texternallinker)
@@ -89,93 +89,28 @@ implementation
 {*****************************************************************************
                                TEXPORTLIBsolaris
 *****************************************************************************}
-
-procedure texportlibsolaris.preparelib(const s:string);
-begin
-end;
-
-
-procedure texportlibsolaris.exportprocedure(hp : texported_item);
-var
-  hp2 : texported_item;
-begin
-  { first test the index value }
-  if (hp.options and eo_index)<>0 then
-   begin
-     Message1(parser_e_no_export_with_index_for_target,'solaris');
-     exit;
-   end;
-  { use pascal name is none specified }
-  if (hp.options and eo_name)=0 then
-    begin
-       hp.name:=stringdup(hp.sym.name);
-       hp.options:=hp.options or eo_name;
-    end;
-  { now place in correct order }
-  hp2:=texported_item(current_module._exports.first);
-  while assigned(hp2) and
-     (hp.name^>hp2.name^) do
-    hp2:=texported_item(hp2.next);
-  { insert hp there !! }
-  if assigned(hp2) and (hp2.name^=hp.name^) then
-    begin
-      { this is not allowed !! }
-      Message1(parser_e_export_name_double,hp.name^);
-      exit;
-    end;
-  if hp2=texported_item(current_module._exports.first) then
-    current_module._exports.insert(hp)
-  else if assigned(hp2) then
-    begin
-       hp.next:=hp2;
-       hp.previous:=hp2.previous;
-       if assigned(hp2.previous) then
-         hp2.previous.next:=hp;
-       hp2.previous:=hp;
-    end
-  else
-    current_module._exports.concat(hp);
-end;
-
-
-procedure texportlibsolaris.exportvar(hp : texported_item);
-begin
-  hp.is_var:=true;
-  exportprocedure(hp);
-end;
-
-
-procedure texportlibsolaris.generatelib;
-var
-  hp2 : texported_item;
-  pd  : tprocdef;
-begin
-  new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
-  hp2:=texported_item(current_module._exports.first);
-  while assigned(hp2) do
-   begin
-     if (not hp2.is_var) and
-        (hp2.sym.typ=procsym) then
+(*
+    procedure texportlibsolaris.setinitname(list: TAsmList; const s: string);
       begin
-        { the manglednames can already be the same when the procedure
-          is declared with cdecl }
-        pd:=tprocdef(tprocsym(hp2.sym).ProcdefList[0]);
-        if pd.mangledname<>hp2.name^ then
-         begin
-           { place jump in al_procedures }
-           current_asmdata.asmlists[al_procedures].concat(tai_align.create(target_info.alignment.procalign));
-           current_asmdata.asmlists[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
-           cg.a_jmp_name(current_asmdata.asmlists[al_procedures],pd.mangledname);
-           current_asmdata.asmlists[al_procedures].concat(Tai_symbol_end.Createname(hp2.name^));
-         end;
-      end
-     else
-      Message1(parser_e_no_export_of_variables_for_target,'solaris');
-     hp2:=texported_item(hp2.next);
-   end;
-end;
+        inherited setinitname(list,s);
+{$ifdef sparc}
+        list.concat(tai_section.create(sec_init,'',4));
+        list.concat(tai_symbol.createname_global('_init',AT_FUNCTION,0));
+        list.concat(taicpu.op_reg_const_reg(A_SAVE,NR_STACK_POINTER_REG,-96,NR_STACK_POINTER_REG));
+{$endif sparc}
+      end;
 
 
+    procedure texportlibsolaris.setfininame(list: TAsmList; const s: string);
+      begin
+        inherited setfininame(list,s);
+{$ifdef sparc}
+        list.concat(tai_section.create(sec_fini,'',4));
+        list.concat(tai_symbol.createname_global('_fini',AT_FUNCTION,0));
+        list.concat(taicpu.op_reg_const_reg(A_SAVE,NR_STACK_POINTER_REG,-96,NR_STACK_POINTER_REG));
+{$endif sparc}
+      end;
+*)
 {*****************************************************************************
                                   TLINKERsolaris
 *****************************************************************************}
@@ -226,28 +161,14 @@ begin
 {$IFDEF GnuLd}
      ExeCmd[1]:=gld + '$OPT $DYNLINK $STATIC $STRIP -L. -o $EXE $RES';
      ExeCmd[2]:=solaris_ld + '$OPT $DYNLINK $STATIC $STRIP -L . -o $EXE $RESDATA';
-     DllCmd[1]:=gld + '$OPT -shared -L. -o $EXE $RES';
+     DllCmd[1]:=gld + '$OPT $INITFINI -shared -L. -o $EXE $RES';
      DllCmd[2]:='gstrip --strip-unneeded $EXE';
-     DllCmd[3]:=solaris_ld + '$OPT -shared -L. -o $EXE $RES';
+     DllCmd[3]:=solaris_ld + '$OPT -M $VERSIONFILE -shared -L. -o $EXE $RESDATA';
      DynamicLinker:=''; { Gnu uses the default }
      Glibc21:=false;
 {$ELSE}
     Not Implememted
 {$ENDIF}
-(* Linux Stuff not needed?
-     { first try glibc2 } // muss noch gendert werden
-     if FileExists(DynamicLinker) then
-      begin
-        Glibc2:=true;
-        { Check for 2.0 files, else use the glibc 2.1 stub }
-        if FileExists('/lib/ld-2.0.*') then
-         Glibc21:=false
-        else
-         Glibc21:=true;
-      end
-     else 
-      DynamicLinker:='/lib/ld-linux.so.1';
-*)
    end;
 
 end;
@@ -263,7 +184,7 @@ Var
   s,s2         : TCmdStr;
   linkdynamic,
   linklibc     : boolean;
-
+  LinkRes2 : TLinkRes;
 begin
   WriteResponseFile:=False;
 { set special options for some targets }
@@ -309,6 +230,29 @@ begin
      LinkRes.Add('SEARCH_DIR('+maybequoted(HPath.Str)+')');
      HPath:=TCmdStrListItem(HPath.Next);
    end;
+
+  { force local symbol resolution (i.e., inside the shared }
+  { library itself) for all non-exorted symbols, otherwise }
+  { several RTL symbols of FPC-compiled shared libraries   }
+  { will be bound to those of a single shared library or   }
+  { to the main program                                    }
+  if (isdll) then
+    begin
+      LinkRes.add('VERSION');
+      LinkRes.add('{');
+      LinkRes.add('  {');
+      if not texportlibunix(exportlib).exportedsymnames.empty then
+        begin
+          LinkRes.add('    global:');
+          repeat
+            LinkRes.add('      '+texportlibunix(exportlib).exportedsymnames.getfirst+';');
+          until texportlibunix(exportlib).exportedsymnames.empty;
+        end;
+      LinkRes.add('    local:');
+      LinkRes.add('      *;');
+      LinkRes.add('  };');
+      LinkRes.add('}');
+    end;
 
   LinkRes.Add('INPUT(');
   { add objectfiles, start with prt0 always }
@@ -396,8 +340,8 @@ begin
     end
   else { not use_gnu_ld }
     begin
-   { Open link.res file }
-  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
+   { Open TlinkRes, will not be written to disk }
+  LinkRes:=TLinkRes.Create(outputexedir+Info.ResName+'2');
 
  { Write path to search libraries }
   HPath:=TCmdStrListItem(current_module.locallibrarysearchpath.First);
@@ -412,6 +356,32 @@ begin
      LinkRes.Add('-L '+maybequoted(HPath.Str));
      HPath:=TCmdStrListItem(HPath.Next);
    end;
+  { force local symbol resolution (i.e., inside the shared }
+  { library itself) for all non-exorted symbols, otherwise }
+  { several RTL symbols of FPC-compiled shared libraries   }
+  { will be bound to those of a single shared library or   }
+  { to the main program                                    }
+  if (isdll) then
+    begin
+      LinkRes2:=TLinkRes.Create(outputexedir+Info.ResName);
+      LinkRes2.add('VERSION');
+      LinkRes2.add('{');
+      LinkRes2.add('  {');
+      if not texportlibunix(exportlib).exportedsymnames.empty then
+        begin
+          LinkRes2.add('    global:');
+          repeat
+            LinkRes2.add('      '+texportlibunix(exportlib).exportedsymnames.getfirst+';');
+          until texportlibunix(exportlib).exportedsymnames.empty;
+        end;
+      LinkRes2.add('    local:');
+      LinkRes2.add('      *;');
+      LinkRes2.add('  };');
+      LinkRes2.add('}');
+      LinkRes2.writetodisk;
+      LinkRes2.Free;
+    end;
+
 
   { add objectfiles, start with prt0 always }
   { solaris port contains _start inside the system unit, it
@@ -562,6 +532,7 @@ end;
 
 Function TLinkersolaris.MakeSharedLibrary:boolean;
 var
+  InitFiniStr : string;
   binstr,
   s, linkstr,
   cmdstr  : TCmdStr;
@@ -574,6 +545,11 @@ begin
 { Write used files and libraries }
   WriteResponseFile(true);
 
+ { Create some replacements }
+  InitFiniStr:='-init '+exportlib.initname;
+  if (exportlib.fininame<>'') then
+    InitFiniStr:=InitFiniStr+' -fini '+exportlib.fininame;
+
 { Call linker }
   if use_gnu_ld then
     SplitBinCmd(Info.DllCmd[1],binstr,cmdstr)
@@ -581,10 +557,12 @@ begin
     SplitBinCmd(Info.DllCmd[3],binstr,cmdstr);
   Replace(cmdstr,'$EXE',maybequoted(current_module.sharedlibfilename^));
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
+  Replace(cmdstr,'$INITFINI',InitFiniStr);
   if use_gnu_ld then
     Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName))
   else
     begin
+      Replace(cmdstr,'$VERSIONFILE',maybequoted(outputexedir+Info.ResName));
       linkstr:='';
       while not linkres.data.Empty do
         begin
