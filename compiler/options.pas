@@ -1620,9 +1620,9 @@ begin
                     'n' :
                       begin
                         If UnsetBool(More, j) then
-                          include(init_settings.globalswitches,cs_link_native)
+                          exclude(init_settings.globalswitches,cs_link_native)
                         else
-                          exclude(init_settings.globalswitches,cs_link_native);
+                          include(init_settings.globalswitches,cs_link_native);
                       end;
 
                     'm' :
