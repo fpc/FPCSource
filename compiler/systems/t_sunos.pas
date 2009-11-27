@@ -365,7 +365,6 @@ begin
     begin
       LinkRes2:=TLinkRes.Create(outputexedir+Info.ResName);
       LinkRes2.add('VERSION');
-      LinkRes2.add('{');
       LinkRes2.add('  {');
       if not texportlibunix(exportlib).exportedsymnames.empty then
         begin
@@ -377,7 +376,6 @@ begin
       LinkRes2.add('    local:');
       LinkRes2.add('      *;');
       LinkRes2.add('  };');
-      LinkRes2.add('}');
       LinkRes2.writetodisk;
       LinkRes2.Free;
     end;
@@ -408,11 +406,13 @@ begin
   { Write staticlibraries }
   if not StaticLibFiles.Empty then
    begin
+     linkres.add('-('); 
      While not StaticLibFiles.Empty do
       begin
         S:=StaticLibFiles.GetFirst;
         LinkRes.AddFileName(maybequoted(s))
       end;
+     linkres.add('(-'); 
    end;
 
   { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
@@ -519,7 +519,7 @@ begin
   if use_gnu_ld then
     success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false)
   else { Using utilsprefix has no sense on /usr/bin/ld }
-    success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
+    success:=DoExec(FindUtil(BinStr),Trim(CmdStr),true,false);
 
 { Remove ReponseFile }
 {$IFNDEF LinkTest}
