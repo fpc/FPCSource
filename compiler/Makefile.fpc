@@ -32,7 +32,7 @@ fpcdir=..
 unexport FPC_VERSION FPC_COMPILERINFO
 
 # Which platforms are ready for inclusion in the cycle
-CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb
+CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb # mipsel mips
 
 # All supported targets used for clean
 ALLTARGETS=$(CYCLETARGETS)
@@ -64,6 +64,12 @@ PPC_TARGET=arm
 endif
 ifdef ARMEB
 PPC_TARGET=armeb
+endif
+ifdef MIPS
+PPC_TARGET=mips
+endif
+ifdef MIPSEL
+PPC_TARGET=mipsel
 endif
 
 # Default is to generate a compiler for the same
@@ -289,7 +295,7 @@ endif
 # CPU targets
 #####################################################################
 
-PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 alpha vis ia64
+PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 alpha vis ia64 mips mipsel
 
 .PHONY: $(PPC_TARGETS)
 
