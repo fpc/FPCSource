@@ -43,8 +43,11 @@ Const
    {# Size of a multimedia register               }
    mmreg_size = 0;
    { target cpu string (used by compiler options) }
+{$ifdef MIPSEL}
+   target_cpu_string = 'mipsel';
+{$else MIPSEL}
    target_cpu_string = 'mips';
-
+{$endif MIPSEL}
    { calling conventions supported by the code generator }
    supported_calling_conventions : tproccalloptions = [
      pocall_internproc,

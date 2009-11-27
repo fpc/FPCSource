@@ -52,7 +52,8 @@ interface
              cpu_mips,                     { 9 }
              cpu_arm,                      { 10 }
              cpu_powerpc64,                { 11 }
-             cpu_avr                       { 12 }
+             cpu_avr,                      { 12 }
+             cpu_mipsel                    { 13 }
        );
 
        tasmmode= (asmmode_none
@@ -147,7 +148,8 @@ interface
              system_i386_haiku,         { 63 }
              system_arm_darwin,         { 64 }
              system_x86_64_solaris,     { 65 }
-             system_mips_linux          { 66 }
+             system_mips_linux,         { 66 }
+             system_mipsel_linux        { 67 }
        );
 
      type
@@ -393,7 +395,8 @@ interface
        system_wince = [system_arm_wince,system_i386_wince];
        system_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
                        system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
-                       system_x86_6432_linux];
+                       system_x86_6432_linux,system_mips_linux,system_mipsel_linux];
+
        { all real windows systems, no cripple ones like wince, wdosx et. al. }
        system_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64];
        { all windows systems }
@@ -447,7 +450,7 @@ interface
 
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
-             'mips','arm', 'powerpc64', 'avr');
+             'mips','arm', 'powerpc64', 'avr', 'mipsel');
 
        abi2str : array[tabi] of string[10] =
          ('DEFAULT','SYSV','AIX','EABI','ARMEB');
@@ -979,6 +982,14 @@ begin
 {$ifdef avr}
   default_target(system_avr_embedded);
 {$endif avr}
+
+{$ifdef mips}
+{$ifdef mipsel}
+  default_target(system_mipsel_linux);
+{$else mipsel}
+  default_target(system_mips_linux);
+{$endif mipsel}
+{$endif mips}
 end;
 
 

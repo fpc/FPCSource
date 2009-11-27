@@ -559,11 +559,11 @@ var
   tmp_left_reg: TRegister;
 
 begin
-          pass_left_right;
-          force_reg_left_right(false,false);
+  pass_left_right;
+  force_reg_left_right(false,false);
 
-          unsigned:=not(is_signed(left.resultdef)) or
-                    not(is_signed(right.resultdef));
+  unsigned:=not(is_signed(left.resultdef)) or
+            not(is_signed(right.resultdef));
 
   location_reset(location, LOC_REGISTER, OS_INT);
   location.Register := GetRes64_register(unsigned, {NR_TCR0, }left.location.register64, right.location.register64); // NR_TCR0;

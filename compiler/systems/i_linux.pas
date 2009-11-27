@@ -732,7 +732,7 @@ unit i_linux;
        system_mips_linux_info : tsysteminfo =
           (
             system       : system_mips_LINUX;
-            name         : 'Linux for MIPSEL';
+            name         : 'Linux for MIPS';
             shortname    : 'Linux';
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
                             tf_use_function_relative_addresses,tf_requires_proper_alignment,
@@ -740,6 +740,70 @@ unit i_linux;
             cpu          : cpu_mips;
             unit_env     : 'LINUXUNITS';
             extradefines : 'UNIX;HASUNIX';
+            exeext       : '';
+            defext       : '.def';
+            scriptext    : '.sh';
+            smartext     : '.sl';
+            unitext      : '.ppu';
+            unitlibext   : '.ppl';
+            asmext       : '.s';
+            objext       : '.o';
+            resext       : '.res';
+            resobjext    : '.or';
+            sharedlibext : '.so';
+            staticlibext : '.a';
+            staticlibprefix : 'libp';
+            sharedlibprefix : 'lib';
+            sharedClibext : '.so';
+            staticClibext : '.a';
+            staticClibprefix : 'lib';
+            sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
+//            p_ext_support : false;
+            Cprefix      : '';
+            newline      : #10;
+            dirsep       : '/';
+            assem        : as_gas;
+            assemextern  : as_gas;
+            link         : nil;
+            linkextern   : nil;
+            ar           : ar_gnu_ar;
+            res          : res_none;
+            dbg          : dbg_stabs;
+            script       : script_unix;
+            endian       : endian_big;
+            alignment    :
+              (
+                procalign       : 4;
+                loopalign       : 4;
+                jumpalign       : 0;
+                constalignmin   : 0;
+                constalignmax   : 8;
+                varalignmin     : 0;
+                varalignmax     : 8;
+                localalignmin   : 4;
+                localalignmax   : 8;
+                recordalignmin  : 0;
+                recordalignmax  : 2;
+                maxCrecordalign : 4
+              );
+            first_parm_offset : 8;
+            stacksize    : 32*1024*1024;
+            abi : abi_default
+          );
+
+       system_mipsel_linux_info : tsysteminfo =
+          (
+            system       : system_mipsel_LINUX;
+            name         : 'Linux for MIPSEL';
+            shortname    : 'Linux';
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,tf_files_case_sensitive,
+                            tf_use_function_relative_addresses,tf_requires_proper_alignment,
+                            tf_smartlink_sections,tf_smartlink_library,tf_has_winlike_resources];
+            cpu          : cpu_mipsel;
+            unit_env     : 'LINUXUNITS';
+            extradefines : 'UNIX;HASUNIX;MIPSEL';
             exeext       : '';
             defext       : '.def';
             scriptext    : '.sh';

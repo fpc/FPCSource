@@ -254,7 +254,7 @@ unit cpugas;
         idtxt: 'AS';
         asmbin: 'as';
         asmcmd: '-mips2 -W -EL -o $OBJ $ASM';
-        supported_targets: [system_mips_linux];
+        supported_targets: [system_mips_linux,system_mipsel_linux];
         flags: [af_allowdirect, af_needar, af_smartlink_sections];
         labelprefix: '.L';
         comment: '# ';

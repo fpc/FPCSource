@@ -120,6 +120,10 @@
   {$define cpunodefaultint}
 {$endif avr}
 
+{$ifdef mipsel}
+  {$define mips}
+{$endif mipsel}
+
 {$ifdef mips}
   {$define cpu32bitalu}
   {$define cpu32bitaddr}

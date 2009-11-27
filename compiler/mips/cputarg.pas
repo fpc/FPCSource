@@ -1,7 +1,7 @@
 {
     Copyright (c) 2001 by Peter Vreman
 
-    Includes the i386 dependent target units
+    Includes the mips dependent target units
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
