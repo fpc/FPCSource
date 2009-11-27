@@ -557,7 +557,7 @@ end;
 {$ifndef FPUNONE}
 function random: extended;
 begin
-  random := cardinal(genrand_MT19937) * (1.0/(int64(1) shl 32));
+  random := cardinal(genrand_MT19937) * (extended(1.0)/(int64(1) shl 32));
 end;
 {$endif}
 {$endif FPC_HAS_FEATURE_RANDOM}
