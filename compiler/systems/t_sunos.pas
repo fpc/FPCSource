@@ -364,7 +364,7 @@ begin
   if (isdll) then
     begin
       LinkRes2:=TLinkRes.Create(outputexedir+Info.ResName);
-      LinkRes2.add('VERSION');
+      // LinkRes2.add('VERSION'); not needed for now
       LinkRes2.add('  {');
       if not texportlibunix(exportlib).exportedsymnames.empty then
         begin
@@ -568,7 +568,8 @@ begin
       while not linkres.data.Empty do
         begin
           s:=linkres.data.GetFirst;
-          linkstr:=linkstr+s+' ';
+	  if s<>'' then
+            linkstr:=linkstr+' '+s;
         end;
       linkres.free;
       Replace(cmdstr,'$RESDATA',linkstr);
@@ -576,7 +577,7 @@ begin
   if use_gnu_ld then
     success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false)
   else { Using utilsprefix has no sense on /usr/bin/ld }
-    success:=DoExec(FindUtil(BinStr),CmdStr,true,false);
+    success:=DoExec(FindUtil(BinStr),Trim(CmdStr),true,false);
 
 
 { Strip the library ? }
