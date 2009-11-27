@@ -507,7 +507,8 @@ begin
       while not linkres.data.Empty do
         begin
           s:=linkres.data.GetFirst;
-          linkstr:=linkstr+s+' ';
+	  if s<>'' then
+            linkstr:=linkstr+' '+s;
         end;
       linkres.free;
       Replace(cmdstr,'$RESDATA',linkstr);
