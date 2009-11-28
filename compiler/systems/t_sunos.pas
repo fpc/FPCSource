@@ -163,7 +163,7 @@ begin
      ExeCmd[2]:=solaris_ld + '$OPT $DYNLINK $STATIC $STRIP -L . -o $EXE $RESDATA';
      DllCmd[1]:=gld + '$OPT $INITFINI -shared -L. -o $EXE $RES';
      DllCmd[2]:='gstrip --strip-unneeded $EXE';
-     DllCmd[3]:=solaris_ld + '$OPT -M $VERSIONFILE -shared -L. -o $EXE $RESDATA';
+     DllCmd[3]:=solaris_ld + '$OPT $INITFINI -M $VERSIONFILE -shared -L. -o $EXE $RESDATA';
      DynamicLinker:=''; { Gnu uses the default }
      Glibc21:=false;
 {$ELSE}
@@ -488,6 +488,12 @@ begin
   If (cs_profile in current_settings.moduleswitches) or
      ((Info.DynamicLinker<>'') and (not SharedLibFiles.Empty)) then
    DynLinkStr:='-dynamic-linker='+Info.DynamicLinker;
+  if rlinkpath<>'' then
+    if use_gnu_ld then
+      DynLinkStr:=DynLinkStr+' --rpath-link '+rlinkpath
+    else
+      DynLinkStr:=DynLinkStr+' -R '+rlinkpath;
+
   { solaris sets DynamicLinker, but gld will (hopefully) defaults to -Bdynamic and add the default-linker }
 { Write used files and libraries }
   WriteResponseFile(false);
@@ -546,10 +552,19 @@ begin
 { Write used files and libraries }
   WriteResponseFile(true);
 
- { Create some replacements }
-  InitFiniStr:='-init '+exportlib.initname;
-  if (exportlib.fininame<>'') then
-    InitFiniStr:=InitFiniStr+' -fini '+exportlib.fininame;
+{ Create some replacements }
+  if use_gnu_ld then
+    begin
+      InitFiniStr:='-init '+exportlib.initname;
+      if (exportlib.fininame<>'') then
+        InitFiniStr:=InitFiniStr+' -fini '+exportlib.fininame;
+    end
+  else
+    begin
+      InitFiniStr:='-z initarray='+exportlib.initname;
+      if (exportlib.fininame<>'') then
+        InitFiniStr:=InitFiniStr+' -z finiarray='+exportlib.fininame;
+    end;
 
 { Call linker }
   if use_gnu_ld then
