@@ -118,9 +118,6 @@ implementation
 Constructor TLinkersolaris.Create;
 begin
   Inherited Create;
-{$ifndef x86_64}
-  use_gnu_ld:=true;
-{$endif}
 
   if cs_link_native in init_settings.globalswitches then
     use_gnu_ld:=false
@@ -148,10 +145,16 @@ procedure TLinkersolaris.SetDefaultInfo;
 const
   gld = 'gld -m elf_x86_64 ';
   solaris_ld = '/usr/bin/ld -64 ';
-{$else}
+{$endif}
+{$ifdef i386}
 const
   gld = 'gld ';
   solaris_ld = '/usr/bin/ld ';
+{$endif }
+{$ifdef sparc}
+const
+  gld = 'gld ';
+  solaris_ld = 'ld ';
 {$endif}
 begin
   Glibc2:=false;
@@ -522,10 +525,10 @@ begin
   Replace(cmdstr,'$STATIC',StaticStr);
   Replace(cmdstr,'$STRIP',StripStr);
   Replace(cmdstr,'$DYNLINK',DynLinkStr);
-  if use_gnu_ld then
+  if BinStr[1]<>'/' then
     success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false)
   else { Using utilsprefix has no sense on /usr/bin/ld }
-    success:=DoExec(FindUtil(BinStr),Trim(CmdStr),true,false);
+    success:=DoExec(BinStr,Trim(CmdStr),true,false);
 
 { Remove ReponseFile }
 {$IFNDEF LinkTest}
@@ -589,10 +592,10 @@ begin
       linkres.free;
       Replace(cmdstr,'$RESDATA',linkstr);
     end;
-  if use_gnu_ld then
+  if BinStr[1]<>'/' then
     success:=DoExec(FindUtil(utilsprefix+BinStr),CmdStr,true,false)
   else { Using utilsprefix has no sense on /usr/bin/ld }
-    success:=DoExec(FindUtil(BinStr),Trim(CmdStr),true,false);
+    success:=DoExec(BinStr,Trim(CmdStr),true,false);
 
 
 { Strip the library ? }
