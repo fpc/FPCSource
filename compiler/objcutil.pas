@@ -145,8 +145,16 @@ end;
             if (oo_is_classhelper in tobjectdef(tclassrefdef(def).pointeddef).objectoptions) then
               begin
                 { in case we are in a category method, we need the metaclass of the
-                  superclass class extended by this category (= metaclass of superclass of superclass) }
-                result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof.childof));
+                  superclass class extended by this category (= metaclass of superclass of superclass)
+                  for the fragile abi, and the metaclass of the superclass for the non-fragile ABI }
+{$if defined(onlymacosx10_6) or defined(arm) }
+                { NOTE: those send2 methods are only available on Mac OS X 10.6 and later!
+                    (but also on all iPhone SDK revisions we support) }
+                if (target_info.system in system_objc_nfabi) then
+                  result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof))
+                else
+{$endif onlymacosx10_6 or arm}
+                  result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof.childof));
                 result:=objcloadbasefield(result,'ISA');
                 typecheckpass(result);
                 { we're done }
