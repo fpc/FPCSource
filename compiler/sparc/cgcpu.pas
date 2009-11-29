@@ -1266,7 +1266,7 @@ implementation
         else
           begin
             reference_reset(src,source.alignment);
-            reference_reset(dst,dst.alignment);
+            reference_reset(dst,dest.alignment);
             { load the address of source into src.base }
             src.base:=GetAddressRegister(list);
             a_loadaddr_ref_reg(list,source,src.base);
