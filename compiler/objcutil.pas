@@ -121,7 +121,7 @@ end;
       var
         vs         : tsym;
       begin
-        result:=ctypeconvnode.create_internal(cderefnode.create(ctypeconvnode.create_internal(n,voidpointertype)),objc_objecttype);
+        result:=cderefnode.create(ctypeconvnode.create_internal(n,objc_idtype));
         vs:=tsym(tabstractrecorddef(objc_objecttype).symtable.Find(fieldname));
         if not assigned(vs) or
            (vs.typ<>fieldvarsym) then
