@@ -170,6 +170,7 @@ type
     FResolved: Boolean;
     FOnStack: Boolean;
     FBetweenDecls: Boolean;
+    FIsPE: Boolean;
     FReplacementText: DOMString;
     FURI: DOMString;
     FStartLocation: TLocation;
@@ -419,7 +420,6 @@ type
     function  EntityCheck(NoExternals: Boolean = False): TDOMEntityEx;
     procedure AppendReference(AEntity: TDOMEntityEx);
     procedure PrefetchEntity(AEntity: TDOMEntityEx);    
-    procedure StartGE(AEntity: TDOMEntityEx);
     procedure StartPE;
     function  ParseRef(var ToFill: TWideCharBuf): Boolean;              // [67]
     function  ParseExternalID(out SysID, PubID: WideString;             // [75]
@@ -1735,7 +1735,7 @@ begin
         AppendReference(ent);
       end
       else
-        StartGE(ent);
+        ContextPush(ent);
     end
     else if wc <> #0 then
     begin
@@ -1754,10 +1754,16 @@ begin
   FValue.Length := 0;
 end;
 
+const
+  PrefixChar: array[Boolean] of string = ('', '%');
+
 function TXMLReader.ContextPush(AEntity: TDOMEntityEx): Boolean;
 var
   Src: TXMLCharSource;
 begin
+  if AEntity.FOnStack then
+    FatalError('Entity ''%s%s'' recursively references itself', [PrefixChar[AEntity.FIsPE], AEntity.FName]);
+
   if (AEntity.SystemID <> '') and not AEntity.FPrefetched then
   begin
     Result := ResolveEntity(AEntity.SystemID, AEntity.PublicID, AEntity.FURI, Src);
@@ -1845,9 +1851,6 @@ begin
 
   if not Result.FResolved then
   begin
-    if Result.FOnStack then
-      FatalError('Entity ''%s'' recursively references itself', [RefName]);
-
     // To build children of the entity itself, we must parse it "out of context"
     SaveCursor := FCursor;
     SaveElDef := FValidator[FNesting].FElementDef;
@@ -1881,13 +1884,6 @@ begin
   CheckMaxChars;
 end;
 
-procedure TXMLReader.StartGE(AEntity: TDOMEntityEx);
-begin
-  if AEntity.FOnStack then
-    FatalError('Entity ''%s'' recursively references itself', [AEntity.FName]);
-  ContextPush(AEntity);
-end;
-
 procedure TXMLReader.StartPE;
 var
   PEName: WideString;
@@ -1902,9 +1898,6 @@ begin
 //    ValidationError('Undefined parameter entity referenced: %s', [PEName]);
     Exit;
   end;
-
-  if PEnt.FOnStack then
-    FatalError('Entity ''%%%s'' recursively references itself', [PEnt.FName]);
 
   { cache an external PE so it's only fetched once }
   if (PEnt.SystemID <> '') and not PEnt.FPrefetched then
@@ -2023,7 +2016,7 @@ begin
         ent := EntityCheck(True);
         if ent = nil then
           Continue;
-        StartGE(ent);
+        ContextPush(ent);
       end;
     end
     else if wc = '<' then
@@ -2643,18 +2636,18 @@ end;
 
 procedure TXMLReader.ParseEntityDecl;        // [70]
 var
-  NDataAllowed: Boolean;
+  IsPE: Boolean;
   Entity: TDOMEntityEx;
   Map: TDOMNamedNodeMap;
 begin
   if not SkipWhitespace(True) then
     FatalError('Expected whitespace');
-  NDataAllowed := True;
+  IsPE := False;
   Map := FDocType.Entities;
   if CheckForChar('%') then                  // [72]
   begin
     ExpectWhitespace;
-    NDataAllowed := False;
+    IsPE := True;
     if FPEMap = nil then
       FPEMap := TDOMNamedNodeMap.Create(FDocType, ENTITY_NODE);
     Map := FPEMap;
@@ -2664,6 +2657,7 @@ begin
   Entity.SetReadOnly(True);
   try
     Entity.FExternallyDeclared := FSource.DTDSubsetType <> dsInternal;
+    Entity.FIsPE := IsPE;
     Entity.FName := ExpectName;
     CheckNCName;
     ExpectWhitespace;
@@ -2679,22 +2673,24 @@ begin
       SetString(Entity.FReplacementText, FEntityValue.Buffer, FEntityValue.Length);
       Entity.FCharCount := FEntityValue.Length;
       Entity.FStartLocation := FTokenStart;
-      NDataAllowed := False;
     end
-    else if not ParseExternalID(Entity.FSystemID, Entity.FPublicID, False) then
-      FatalError('Expected entity value or external ID');
-
-    if NDataAllowed then                // [76]
+    else
     begin
-      if FSource.FBuf^ <> '>' then
-        ExpectWhitespace;
-      if FSource.Matches('NDATA') then
+      if not ParseExternalID(Entity.FSystemID, Entity.FPublicID, False) then
+        FatalError('Expected entity value or external ID');
+
+      if not IsPE then                // [76]
       begin
-        ExpectWhitespace;
-        StoreLocation(FTokenStart);
-        Entity.FNotationName := ExpectName;
-        AddForwardRef(FNotationRefs, FName.Buffer, FName.Length);
-        // SAX: DTDHandler.UnparsedEntityDecl(...);
+        if FSource.FBuf^ <> '>' then
+          ExpectWhitespace;
+        if FSource.Matches('NDATA') then
+        begin
+          ExpectWhitespace;
+          StoreLocation(FTokenStart);
+          Entity.FNotationName := ExpectName;
+          AddForwardRef(FNotationRefs, FName.Buffer, FName.Length);
+          // SAX: DTDHandler.UnparsedEntityDecl(...);
+        end;
       end;
     end;
   except
@@ -2703,7 +2699,7 @@ begin
   end;
 
   // Repeated declarations of same entity are legal but must be ignored
-  if Map.GetNamedItem(Entity.NodeName) = nil then
+  if Map.GetNamedItem(Entity.FName) = nil then
     Map.SetNamedItem(Entity)
   else
     Entity.Free;
@@ -3011,7 +3007,7 @@ begin
         end
         else
         begin
-          StartGE(ent);
+          ContextPush(ent);
           Continue;
         end;
       end;
