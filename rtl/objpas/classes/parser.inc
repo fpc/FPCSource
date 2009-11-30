@@ -119,6 +119,25 @@ begin
   fDeltaPos:=-(fPos-1);
 end;
 
+procedure TParser.SkipBOM;
+var
+  i : integer;
+  bom : string[3];
+  backup : integer;
+begin
+  i:=1;
+  bom:='   ';
+  backup:=fPos;
+  while (fBuf[fPos] in [#$BB,#$BF,#$EF]) and (i<=3) do
+  begin
+    bom[i]:=fBuf[fPos];
+    inc(fPos);
+    inc(i);
+  end;
+  if (bom<>(#$EF+#$BB+#$BF)) then
+    fPos:=backup;
+end;
+
 procedure TParser.SkipSpaces;
 begin
   while fBuf[fPos] in [' ',#9] do
@@ -304,6 +323,7 @@ begin
   fFloatType:=#0;
   fToken:=#0;
   LoadBuffer;
+  SkipBom;
   NextToken;
 end;
 

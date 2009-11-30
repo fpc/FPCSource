@@ -1414,6 +1414,7 @@ type
     function GetHexValue(c : char) : byte; {$ifdef CLASSESINLINE} inline; {$endif CLASSESINLINE}
     function GetAlphaNum : string;
     procedure HandleNewLine;
+    procedure SkipBOM;
     procedure SkipSpaces;
     procedure SkipWhitespace;
     procedure HandleEof;
