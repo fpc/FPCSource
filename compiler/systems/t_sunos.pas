@@ -166,7 +166,7 @@ begin
      ExeCmd[2]:=solaris_ld + '$OPT $DYNLINK $STATIC $STRIP -L . -o $EXE $RESDATA';
      DllCmd[1]:=gld + '$OPT $INITFINI -shared -L. -o $EXE $RES';
      DllCmd[2]:='gstrip --strip-unneeded $EXE';
-     DllCmd[3]:=solaris_ld + '$OPT $INITFINI -M $VERSIONFILE -shared -L. -o $EXE $RESDATA';
+     DllCmd[3]:=solaris_ld + '$OPT $INITFINI -M $VERSIONFILE -G -Bdynamic -L. -o $EXE $RESDATA';
      DynamicLinker:=''; { Gnu uses the default }
      Glibc21:=false;
 {$ELSE}
