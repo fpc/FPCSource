@@ -344,6 +344,7 @@ type
     FIntSubset: TWideCharBuf;
     FAttrTag: Cardinal;
     FOwnsDoctype: Boolean;
+    FDTDProcessed: Boolean;
 
     FNSHelper: TNSSupport;
     FWorkAtts: array of TPrefixedAttr;
@@ -419,7 +420,7 @@ type
     function  ResolvePredefined: Boolean;
     function  EntityCheck(NoExternals: Boolean = False): TDOMEntityEx;
     procedure AppendReference(AEntity: TDOMEntityEx);
-    procedure PrefetchEntity(AEntity: TDOMEntityEx);    
+    function PrefetchEntity(AEntity: TDOMEntityEx): Boolean;
     procedure StartPE;
     function  ParseRef(var ToFill: TWideCharBuf): Boolean;              // [67]
     function  ParseExternalID(out SysID, PubID: WideString;             // [75]
@@ -1893,16 +1894,20 @@ begin
   PEnt := nil;
   if Assigned(FPEMap) then
     PEnt := FPEMap.GetNamedItem(PEName) as TDOMEntityEx;
-  if PEnt = nil then    // TODO -cVC: Referencing undefined PE
-  begin                 // (These are classified as 'optional errors'...)
-//    ValidationError('Undefined parameter entity referenced: %s', [PEName]);
+  if PEnt = nil then
+  begin
+    ValidationError('Undefined parameter entity ''%s'' referenced', [PEName], FName.Length+2);
+    // cease processing declarations, unless document is standalone.
+    FDTDProcessed := FStandalone;
     Exit;
   end;
 
   { cache an external PE so it's only fetched once }
-  if (PEnt.SystemID <> '') and not PEnt.FPrefetched then
-    PrefetchEntity(PEnt);
-
+  if (PEnt.SystemID <> '') and (not PEnt.FPrefetched) and (not PrefetchEntity(PEnt)) then
+  begin
+    FDTDProcessed := FStandalone;
+    Exit;
+  end;
   Inc(FSource.FCharCount, PEnt.FCharCount);
   CheckMaxChars;
 
@@ -1911,9 +1916,10 @@ begin
   FHavePERefs := True;
 end;
 
-procedure TXMLReader.PrefetchEntity(AEntity: TDOMEntityEx);
+function TXMLReader.PrefetchEntity(AEntity: TDOMEntityEx): Boolean;
 begin
-  if ContextPush(AEntity) then
+  Result := ContextPush(AEntity);
+  if Result then
   try
     FValue.Length := 0;
     FSource.SkipUntil(FValue, [#0]);
@@ -2245,6 +2251,7 @@ begin
   SkipS(True);
 
   FDocType := TDOMDocumentTypeEx(TDOMDocumentType.Create(doc));
+  FDTDProcessed := True;    // assume success
   FState := rsDTD;
   try
     FDocType.FName := ExpectName;
@@ -2292,7 +2299,10 @@ begin
       end;
     end
     else
+    begin
       ValidationError('Unable to resolve external DTD subset', []);
+      FDTDProcessed := FStandalone;
+    end;
   end;
   FCursor := Doc;
   ValidateDTD;
@@ -2463,7 +2473,7 @@ begin
   else
     FatalError('Invalid content specification');
   // SAX: DeclHandler.ElementDecl(name, model);
-  if ElDef.ContentType = ctUndeclared then
+  if FDTDProcessed and (ElDef.ContentType = ctUndeclared) then
   begin
     ElDef.FExternallyDeclared := ExtDecl;
     ElDef.ContentType := Typ;
@@ -2484,7 +2494,8 @@ begin
   ExpectWhitespace;
   if not ParseExternalID(SysID, PubID, True) then
     FatalError('Expected external or public ID');
-  DoNotationDecl(Name, PubID, SysID);
+  if FDTDProcessed then
+    DoNotationDecl(Name, PubID, SysID);
 end;
 
 const
@@ -2520,7 +2531,7 @@ begin
       AttDef.ExternallyDeclared := FSource.DTDSubsetType <> dsInternal;
 // In case of duplicate declaration of the same attribute, we must discard it,
 // not modifying ElDef, and suppressing certain validation errors.
-      DiscardIt := Assigned(ElDef.GetAttributeNode(AttDef.Name));
+      DiscardIt := (not FDTDProcessed) or Assigned(ElDef.GetAttributeNode(AttDef.Name));
       if not DiscardIt then
         ElDef.SetAttributeNode(AttDef);
 
@@ -2699,7 +2710,7 @@ begin
   end;
 
   // Repeated declarations of same entity are legal but must be ignored
-  if Map.GetNamedItem(Entity.FName) = nil then
+  if FDTDProcessed and (Map.GetNamedItem(Entity.FName) = nil) then
     Map.SetNamedItem(Entity)
   else
     Entity.Free;
