@@ -162,19 +162,39 @@ end;
 
 Procedure TCollection.SetPropName;
 
+Var
+  TheOwner : TPersistent;
+  PropList : PPropList;
+  I, PropCount : Integer;
+
 begin
-  //!! Should be replaced by the proper routines.
   FPropName:='';
+  TheOwner:=GetOwner;
+  if (TheOwner=Nil) Or (TheOwner.Classinfo=Nil) Then Exit;
+  // get information from the owner RTTI
+  PropCount:=GetPropList(TheOwner, PropList);
+  Try
+    For I:=0 To PropCount-1 Do
+      If (PropList^[i]^.PropType^.Kind=tkClass) And
+         (GetObjectProp(TheOwner, PropList^[i], ClassType)=Self) Then
+        Begin
+          FPropName:=PropList^[i]^.Name;
+          Exit;
+        End;
+  Finally
+    FreeMem(PropList);
+  End;
 end;
 
 
 function TCollection.GetPropName: string;
 
-Var TheOWner : TPersistent;
+Var
+  TheOwner : TPersistent;
 
 begin
   Result:=FPropNAme;
-  TheOWner:=GetOwner;
+  TheOwner:=GetOwner;
   If (Result<>'') or (TheOwner=Nil) Or (TheOwner.Classinfo=Nil) then exit;
   SetPropName;
   Result:=FPropName;
