@@ -33,7 +33,8 @@ begin
           Else
             Res:=207; {coprocessor error}
         end;
-        SigContext^.uc_mcontext^.__fs.__fpscr := SigContext^.uc_mcontext^.__fs.__fpscr and not($1fff);
+        { clear "exception happened" flags }
+        SigContext^.uc_mcontext^.__fs.__fpscr := SigContext^.uc_mcontext^.__fs.__fpscr and not($df);
       end;
     SIGBUS:
         res:=214;
