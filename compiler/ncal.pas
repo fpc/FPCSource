@@ -300,7 +300,7 @@ implementation
               inc(paramssize,para.left.resultdef.size);
             else
           }
-              inc(paramssize,sizeof(voidpointertype.size));
+              inc(paramssize,voidpointertype.size);
           {
           end;
           }
