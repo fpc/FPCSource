@@ -131,6 +131,9 @@ begin
   fLine:='';
   while fLine='' do
     ReadLine(aStream);
+  //skip UTF-8 BOM, if needed
+  if (copy(fLine,1,3)=(#$EF+#$BB+#$BF)) then
+    inc(fLinePos,3);
   tmp:=lowercase(GetIdent);
   if (tmp <> 'object') and (tmp<>'inherited') then exit;
   if GetIdent='' then exit;
