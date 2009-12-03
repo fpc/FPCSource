@@ -284,6 +284,9 @@ interface
              left.location.reference:=tr;
            end;
 {$endif x86}
+         { ARM VFP values are in integer registers when they are function results }
+         if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+           location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
          case left.location.loc of
             LOC_FPUREGISTER,
             LOC_CFPUREGISTER:

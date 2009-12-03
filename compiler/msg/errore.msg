@@ -1939,7 +1939,7 @@ cg_f_unknown_type_in_unit=06050_F_Cannot find type "$1" in unit "$2". Check if y
 #
 # Assembler reader
 #
-# 07107 is the last used one
+# 07109 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2185,6 +2185,12 @@ asmr_e_need_pic_ref=07107_E_Generating PIC, but reference is not PIC-safe
 % The compiler has been configured to generate position-independent code
 % (PIC), but there are position-dependent references in the current
 % handwritten assembler instruction.
+asmr_e_mixing_regtypes=07108_E_All registers in a register set must be of the same kind and width
+% Instructions on the ARM architecture that take a register set as argument require that all registers
+% in this set are of the same kind (e.g., integer, vfp) and width (e.g., single precision, double precision).
+asmr_e_empty_regset=07109_E_A register set cannot be empty
+% Instructions on the ARM architecture that take a register set as argument require that such a set
+% contains at least one register.
 #
 # Assembler/binary writers
 #

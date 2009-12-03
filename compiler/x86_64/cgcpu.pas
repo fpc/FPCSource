@@ -41,6 +41,9 @@ unit cgcpu;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
         procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
+
+        procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize;intreg, mmreg: tregister; shuffle: pmmshuffle); override;
+        procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tcgsize;mmreg, intreg: tregister;shuffle : pmmshuffle); override;
       end;
 
     procedure create_codegen;
@@ -246,7 +249,37 @@ unit cgcpu;
         List.concat(Tai_symbol_end.Createname(labelname));
       end;
 
-      
+
+    procedure tcgx86_64.a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize; intreg, mmreg: tregister; shuffle: pmmshuffle);
+      begin
+        { this code can only be used to transfer raw data, not to perform
+          conversions }
+        if (tosize<>OS_F64) then
+          internalerror(2009112505);
+        if not(fromsize in [OS_64,OS_S64]) then
+          internalerror(2009112506);
+        if assigned(shuffle) and
+           not shufflescalar(shuffle) then
+          internalerror(2009112517);
+        list.concat(taicpu.op_reg_reg(A_MOVD,S_NO,intreg,mmreg));
+      end;
+
+
+    procedure tcgx86_64.a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tcgsize; mmreg, intreg: tregister;shuffle : pmmshuffle);
+      begin
+        { this code can only be used to transfer raw data, not to perform
+          conversions }
+        if (fromsize<>OS_F64) then
+          internalerror(2009112507);
+        if not(tosize in [OS_64,OS_S64]) then
+          internalerror(2009112408);
+        if assigned(shuffle) and
+           not shufflescalar(shuffle) then
+          internalerror(2009112515);
+        list.concat(taicpu.op_reg_reg(A_MOVD,S_NO,mmreg,intreg));
+      end;
+
+
     procedure create_codegen;
       begin
         cg:=tcgx86_64.create;

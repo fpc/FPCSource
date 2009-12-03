@@ -731,6 +731,7 @@ implementation
       var
         reg : tregister;
         href : treference;
+        newsize : tcgsize;
       begin
         if (l.loc<>LOC_MMREGISTER)  and
            ((l.loc<>LOC_CMMREGISTER) or (not maybeconst)) then
@@ -743,8 +744,30 @@ implementation
                 location_reset_ref(l,LOC_REFERENCE,l.size,0);
                 l.reference:=href;
               end;
-            reg:=cg.getmmregister(list,l.size);
-            cg.a_loadmm_loc_reg(list,l.size,l,reg,mms_movescalar);
+{$ifndef cpu64bitalu}
+            if (l.loc in [LOC_REGISTER,LOC_CREGISTER]) and
+               (l.size in [OS_64,OS_S64]) then
+              begin
+                reg:=cg.getmmregister(list,OS_F64);
+                cg64.a_loadmm_intreg64_reg(list,OS_F64,l.register64,reg);
+                l.size:=OS_F64
+              end
+            else
+{$endif not cpu64bitalu}
+              begin
+                 { on ARM, CFP values may be located in integer registers,
+                   and its second_int_to_real() also uses this routine to
+                   force integer (memory) values in an mmregister }
+                 if (l.size in [OS_32,OS_S32]) then
+                   newsize:=OS_F32
+                 else if (l.size in [OS_64,OS_S64]) then
+                   newsize:=OS_F64
+                 else
+                   newsize:=l.size;
+                 reg:=cg.getmmregister(list,newsize);
+                 cg.a_loadmm_loc_reg(list,newsize,l,reg,mms_movescalar);
+                 l.size:=newsize;
+               end;
             location_freetemp(list,l);
             location_reset(l,LOC_MMREGISTER,l.size);
             l.register:=reg;
@@ -1505,6 +1528,11 @@ implementation
                           end;
                         LOC_CREGISTER :
                           cg.a_load_reg_reg(list,OS_32,OS_32,restmploc.register64.reglo,resloc.register64.reglo);
+                        LOC_CMMREGISTER :
+                          { perform the whole move at once below, both result
+                            registers are required (and since restmploc is an mmreg
+                            and resloc intregs, they don't conflict anyway) }
+                          ;
                         else
                           internalerror(200409203);
                       end;
@@ -1522,6 +1550,8 @@ implementation
                           end;
                         LOC_CREGISTER :
                           cg.a_load_reg_reg(list,OS_32,OS_32,restmploc.register64.reghi,resloc.register64.reghi);
+                        LOC_CMMREGISTER :
+                          cg64.a_loadmm_reg_intreg64(list,restmploc.size,restmploc.register,resloc.register64);
                         else
                           internalerror(200409204);
                       end;
@@ -1550,6 +1580,8 @@ implementation
                           end;
                         LOC_CREGISTER :
                           cg.a_load_reg_reg(list,OS_32,OS_32,restmploc.register,resloc.register);
+                        LOC_CMMREGISTER :
+                          cg.a_loadmm_reg_intreg(list,restmploc.size,resloc.size,restmploc.register,resloc.register,mms_movescalar);
                         else
                           internalerror(200409203);
                       end;
@@ -1726,27 +1758,39 @@ implementation
          end;
 
 
-       procedure gen_load_reg(const paraloc:TCGParaLocation;reg:tregister; alignment: longint);
+       procedure gen_load_reg(const paraloc:TCGParaLocation; regsize: tcgsize; reg:tregister; alignment: longint);
          var
            href : treference;
          begin
             case paraloc.loc of
               LOC_REGISTER :
-                cg.a_load_reg_reg(list,paraloc.size,paraloc.size,paraloc.register,reg);
+                begin
+                  case getregtype(reg) of
+                    R_INTREGISTER:
+                      cg.a_load_reg_reg(list,paraloc.size,regsize,paraloc.register,reg);
+                    R_MMREGISTER:
+                      cg.a_loadmm_intreg_reg(list,paraloc.size,regsize,paraloc.register,reg,mms_movescalar);
+                    else
+                      internalerror(2009112422);
+                  end;
+                end;
               LOC_MMREGISTER :
-                cg.a_loadmm_reg_reg(list,paraloc.size,paraloc.size,paraloc.register,reg,mms_movescalar);
+                cg.a_loadmm_reg_reg(list,paraloc.size,regsize,paraloc.register,reg,mms_movescalar);
               LOC_FPUREGISTER :
-                cg.a_loadfpu_reg_reg(list,paraloc.size,paraloc.size,paraloc.register,reg);
+                cg.a_loadfpu_reg_reg(list,paraloc.size,regsize,paraloc.register,reg);
               LOC_REFERENCE :
                 begin
                   reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,alignment);
                   case getregtype(reg) of
                     R_INTREGISTER :
-                      cg.a_load_ref_reg(list,paraloc.size,paraloc.size,href,reg);
+                      cg.a_load_ref_reg(list,paraloc.size,regsize,href,reg);
                     R_FPUREGISTER :
-                      cg.a_loadfpu_ref_reg(list,paraloc.size,paraloc.size,href,reg);
+                      cg.a_loadfpu_ref_reg(list,paraloc.size,regsize,href,reg);
                     R_MMREGISTER :
-                      cg.a_loadmm_ref_reg(list,paraloc.size,paraloc.size,href,reg,mms_movescalar);
+                      { not paraloc.size, because it may be OS_64 instead of
+                        OS_F64 in case the parameter is passed using integer
+                        conventions (e.g., on ARM) }
+                      cg.a_loadmm_ref_reg(list,regsize,regsize,href,reg,mms_movescalar);
                     else
                       internalerror(2004101012);
                   end;
@@ -1765,6 +1809,9 @@ implementation
 {$if defined(sparc) or defined(arm)}
         tempref  : treference;
 {$endif sparc}
+{$ifndef cpu64bitalu}
+        reg64: tregister64;
+{$endif not cpu64bitalu}
       begin
         if (po_assembler in current_procinfo.procdef.procoptions) then
           exit;
@@ -1843,9 +1890,9 @@ implementation
                                 unget_para(paraloc^);
                                 gen_alloc_regvar(list,currpara);
                                 { reg->reg, alignment is irrelevant }
-                                gen_load_reg(paraloc^,currpara.initialloc.register64.reghi,4);
+                                gen_load_reg(paraloc^,OS_32,currpara.initialloc.register64.reghi,4);
                                 unget_para(paraloc^.next^);
-                                gen_load_reg(paraloc^.next^,currpara.initialloc.register64.reglo,4);
+                                gen_load_reg(paraloc^.next^,OS_32,currpara.initialloc.register64.reglo,4);
                               end
                             else
                               begin
@@ -1853,9 +1900,9 @@ implementation
                                   paraloc^.next -> high }
                                 unget_para(paraloc^);
                                 gen_alloc_regvar(list,currpara);
-                                gen_load_reg(paraloc^,currpara.initialloc.register64.reglo,4);
+                                gen_load_reg(paraloc^,OS_32,currpara.initialloc.register64.reglo,4);
                                 unget_para(paraloc^.next^);
-                                gen_load_reg(paraloc^.next^,currpara.initialloc.register64.reghi,4);
+                                gen_load_reg(paraloc^.next^,OS_32,currpara.initialloc.register64.reghi,4);
                               end;
                           end;
                         LOC_REFERENCE:
@@ -1876,7 +1923,7 @@ implementation
                         internalerror(200410105);
                       unget_para(paraloc^);
                       gen_alloc_regvar(list,currpara);
-                      gen_load_reg(paraloc^,currpara.initialloc.register,sizeof(aint));
+                      gen_load_reg(paraloc^,currpara.initialloc.size,currpara.initialloc.register,sizeof(aint));
                     end;
                 end;
               LOC_CFPUREGISTER :
@@ -1902,22 +1949,47 @@ implementation
                   unget_para(paraloc^);
                   gen_alloc_regvar(list,currpara);
                   { from register to register -> alignment is irrelevant }
-                  gen_load_reg(paraloc^,currpara.initialloc.register,0);
+                  gen_load_reg(paraloc^,currpara.initialloc.size,currpara.initialloc.register,0);
                   if assigned(paraloc^.next) then
                     internalerror(200410109);
 {$endif sparc}
                 end;
               LOC_CMMREGISTER :
                 begin
-                  unget_para(paraloc^);
-                  gen_alloc_regvar(list,currpara);
-                  { from register to register -> alignment is irrelevant }
-                  gen_load_reg(paraloc^,currpara.initialloc.register,0);
-                  { data could come in two memory locations, for now
-                    we simply ignore the sanity check (FK)
-                  if assigned(paraloc^.next) then
-                    internalerror(200410108);
-                  }
+{$ifndef cpu64bitalu}
+                  { ARM vfp floats are passed in integer registers }
+                  if (currpara.paraloc[calleeside].size=OS_F64) and
+                     (paraloc^.size in [OS_32,OS_S32]) and
+                     use_vectorfpu(currpara.vardef) then
+                    begin
+                      { we need 2x32bit reg }
+                      if not assigned(paraloc^.next) or
+                         assigned(paraloc^.next^.next) then
+                        internalerror(2009112421);
+                      unget_para(paraloc^);
+                      unget_para(paraloc^.next^);
+                      gen_alloc_regvar(list,currpara);
+                      if (target_info.endian=endian_big) then
+                        { paraloc^ -> high
+                          paraloc^.next -> low }
+                        reg64:=joinreg64(paraloc^.next^.register,paraloc^.register)
+                      else
+                        reg64:=joinreg64(paraloc^.register,paraloc^.next^.register);
+                      cg64.a_loadmm_intreg64_reg(list,OS_F64,reg64,currpara.initialloc.register);
+                    end
+                  else
+{$endif not cpu64bitalu}
+                    begin
+                      unget_para(paraloc^);
+                      gen_alloc_regvar(list,currpara);
+                      { from register to register -> alignment is irrelevant }
+                      gen_load_reg(paraloc^,currpara.initialloc.size,currpara.initialloc.register,0);
+                      { data could come in two memory locations, for now
+                        we simply ignore the sanity check (FK)
+                      if assigned(paraloc^.next) then
+                        internalerror(200410108);
+                      }
+                    end;
                 end;
             end;
           end;

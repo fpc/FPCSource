@@ -486,11 +486,7 @@ reg32,reg32,reg32,reg32  \x16\x00\x80\x90		 ARM7
 
 [FLDDcc]
 
-[FLDMDcc]
-
-[FLDMScc]
-
-[FLDMXcc]
+[FLDMcc]
 
 [FLDScc]
 
@@ -550,11 +546,7 @@ reg32,reg32,reg32,reg32  \x16\x00\x80\x90		 ARM7
 
 [FSTDcc]
 
-[FSTMDcc]
-
-[FSTMScc]
-
-[FSTMXcc]
+[FSTMcc]
 
 [FSTScc]
 
@@ -573,6 +565,12 @@ reg32,reg32,reg32,reg32  \x16\x00\x80\x90		 ARM7
 [FUITODcc]
 
 [FUITOScc]
+
+[FMDRRcc]
+
+[FMRRDcc]
+
+; Thumb-2
 
 [ASRcc]
 

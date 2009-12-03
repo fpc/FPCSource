@@ -2466,7 +2466,10 @@ implementation
 {$endif cpufpemu}
           begin
             first_real_to_real:=nil;
-            expectloc:=LOC_FPUREGISTER;
+            if not use_vectorfpu(resultdef) then
+              expectloc:=LOC_FPUREGISTER
+            else
+              expectloc:=LOC_MMREGISTER;
           end;
       end;
 

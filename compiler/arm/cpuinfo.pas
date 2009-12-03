@@ -35,6 +35,7 @@ Type
        cpu_armv3,
        cpu_armv4,
        cpu_armv5,
+       cpu_armv6,
        cpu_armv7m,
        cpu_cortexm3
       );
@@ -52,7 +53,8 @@ Type
       fpu_fpa,
       fpu_fpa10,
       fpu_fpa11,
-      fpu_vfp
+      fpu_vfpv2,
+      fpu_vfpv3
      );
 
    tcontrollertype =
@@ -101,6 +103,7 @@ Const
      'ARMV3',
      'ARMV4',
      'ARMV5',
+     'ARMV6',
      'ARMV7M',
      'CORTEXM3'
    );
@@ -111,7 +114,8 @@ Const
      'FPA',
      'FPA10',
      'FPA11',
-     'VFP'
+     'VFPV2',
+     'VFPV3'
    );
 
    controllertypestr : array[tcontrollertype] of string[20] =
@@ -137,6 +141,8 @@ Const
       'AT91SAM7x256',
       'STM32F103'
      );
+
+   vfp_scalar = [fpu_vfpv2,fpu_vfpv3];
 
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+

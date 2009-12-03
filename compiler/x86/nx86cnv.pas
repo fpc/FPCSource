@@ -76,7 +76,7 @@ implementation
             (tfloatdef(left.resultdef).floattype<>s64comp) and
             not (nf_explicit in flags) then
            CGMessage(type_w_convert_real_2_comp);
-         if use_sse(resultdef) then
+         if use_vectorfpu(resultdef) then
            expectloc:=LOC_MMREGISTER
          else
            expectloc:=LOC_FPUREGISTER;
@@ -224,7 +224,7 @@ implementation
             firstpass(left)
           end;
 
-        if use_sse(resultdef) and
+        if use_vectorfpu(resultdef) and
            (torddef(left.resultdef).ordtype = s32bit) then
           expectloc:=LOC_MMREGISTER
         else
@@ -243,7 +243,7 @@ implementation
       begin
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
           location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,false);
-        if use_sse(resultdef) and
+        if use_vectorfpu(resultdef) and
 {$ifdef cpu64bitalu}
            (torddef(left.resultdef).ordtype in [s32bit,s64bit]) then
 {$else cpu64bitalu}

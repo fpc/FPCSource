@@ -81,6 +81,8 @@ unit cg64f32;
         procedure a_param64_ref(list : TAsmList;const r : treference;const paraloc : tcgpara);override;
         procedure a_param64_loc(list : TAsmList;const l : tlocation;const paraloc : tcgpara);override;
 
+        procedure a_loadmm_intreg64_reg(list: TAsmList; mmsize: tcgsize; intreg: tregister64; mmreg: tregister);override;
+        procedure a_loadmm_reg_intreg64(list: TAsmList; mmsize: tcgsize; mmreg: tregister; intreg: tregister64);override;
         {# This routine tries to optimize the a_op64_const_reg operation, by
            removing superfluous opcodes. Returns TRUE if normal processing
            must continue in op64_const_reg, otherwise, everything is processed
@@ -99,7 +101,8 @@ unit cg64f32;
     uses
        globtype,systems,constexp,
        verbose,cutils,
-       symbase,symconst,symdef,symtable,defutil,paramgr;
+       symbase,symconst,symdef,symtable,defutil,paramgr,
+       tgobj;
 
 {****************************************************************************
                                      Helpers
@@ -460,6 +463,8 @@ unit cg64f32;
             a_load64_reg_reg(list,reg,l.register64);
           LOC_SUBSETREF, LOC_CSUBSETREF:
             a_load64_reg_subsetref(list,reg,l.sref);
+          LOC_MMREGISTER, LOC_CMMREGISTER:
+            a_loadmm_intreg64_reg(list,l.size,reg,l.register);
           else
             internalerror(200112293);
         end;
@@ -705,6 +710,32 @@ unit cg64f32;
           else
             internalerror(200203287);
         end;
+      end;
+
+
+    procedure tcg64f32.a_loadmm_intreg64_reg(list: TAsmList; mmsize: tcgsize; intreg: tregister64; mmreg: tregister);
+      var
+        tmpref: treference;
+      begin
+        if (tcgsize2size[mmsize]<>8) then
+          internalerror(2009112501);
+        tg.gettemp(list,8,8,tt_normal,tmpref);
+        a_load64_reg_ref(list,intreg,tmpref);
+        cg.a_loadmm_ref_reg(list,mmsize,mmsize,tmpref,mmreg,mms_movescalar);
+        tg.ungettemp(list,tmpref);
+      end;
+
+
+    procedure tcg64f32.a_loadmm_reg_intreg64(list: TAsmList; mmsize: tcgsize; mmreg: tregister; intreg: tregister64);
+      var
+        tmpref: treference;
+      begin
+        if (tcgsize2size[mmsize]<>8) then
+          internalerror(2009112502);
+        tg.gettemp(list,8,8,tt_normal,tmpref);
+        cg.a_loadmm_reg_ref(list,mmsize,mmsize,mmreg,tmpref,mms_movescalar);
+        a_load64_ref_reg(list,tmpref,intreg);
+        tg.ungettemp(list,tmpref);
       end;
 
 

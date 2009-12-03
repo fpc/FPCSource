@@ -104,8 +104,11 @@ unit cpubase;
         {$i rarmdwa.inc}
       );
       { registers which may be destroyed by calls }
-      VOLATILE_INTREGISTERS = [RS_R0..RS_R3,RS_R12..RS_R15];
+      VOLATILE_INTREGISTERS = [RS_R0..RS_R3,RS_R12..RS_R14];
       VOLATILE_FPUREGISTERS = [RS_F0..RS_F3];
+      VOLATILE_MMREGISTERS =  [RS_D0..RS_D7,RS_D16..RS_D31];
+
+      VOLATILE_INTREGISTERS_DARWIN = [RS_R0..RS_R3,RS_R9,RS_R12..RS_R14];
 
     type
       totherregisterset = set of tregisterindex;
@@ -127,7 +130,11 @@ unit cpubase;
         { load/store }
         PF_B,PF_SB,PF_BT,PF_H,PF_SH,PF_T,
         { multiple load/store address modes }
-        PF_IA,PF_IB,PF_DA,PF_DB,PF_FD,PF_FA,PF_ED,PF_EA
+        PF_IA,PF_IB,PF_DA,PF_DB,PF_FD,PF_FA,PF_ED,PF_EA,
+        { multiple load/store vfp address modes }
+        PF_IAD,PF_DBD,PF_FDD,PF_EAD,
+        PF_IAS,PF_DBS,PF_FDS,PF_EAS,
+        PF_IAX,PF_DBX,PF_FDX,PF_EAX
       );
 
       TRoundingMode = (RM_None,RM_P,RM_M,RM_Z);
@@ -138,11 +145,14 @@ unit cpubase;
         PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,PF_None,
         PF_S,PF_D,PF_E,PF_None,PF_None);
 
-      oppostfix2str : array[TOpPostfix] of string[2] = ('',
+      oppostfix2str : array[TOpPostfix] of string[3] = ('',
         's',
         'd','e','p','ep',
         'b','sb','bt','h','sh','t',
-        'ia','ib','da','db','fd','fa','ed','ea');
+        'ia','ib','da','db','fd','fa','ed','ea',
+        'iad','dbd','fdd','ead',
+        'ias','dbs','fds','eas',
+        'iax','dbx','fdx','eax');
 
       roundingmode2str : array[TRoundingMode] of string[1] = ('',
         'p','m','z');
@@ -393,7 +403,21 @@ unit cpubase;
 
     function cgsize2subreg(regtype: tregistertype; s:Tcgsize):Tsubregister;
       begin
-        cgsize2subreg:=R_SUBWHOLE;
+        case regtype of
+          R_MMREGISTER:
+            begin
+              case s of
+                OS_F32:
+                  cgsize2subreg:=R_SUBFS;
+                OS_F64:
+                  cgsize2subreg:=R_SUBFD;
+                else
+                  internalerror(2009112701);
+              end;
+            end;
+          else
+            cgsize2subreg:=R_SUBWHOLE;
+        end;
       end;
 
 
@@ -404,6 +428,18 @@ unit cpubase;
             reg_cgsize:=OS_32;
           R_FPUREGISTER :
             reg_cgsize:=OS_F80;
+          R_MMREGISTER :
+            begin
+              case getsubreg(reg) of
+                R_SUBFD,
+                R_SUBWHOLE:
+                  result:=OS_F64;
+                R_SUBFS:
+                  result:=OS_F32;
+                else
+                  internalerror(2009112903);
+              end;
+            end;
           else
             internalerror(200303181);
           end;

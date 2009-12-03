@@ -784,7 +784,8 @@ implementation
                     LOC_CMMREGISTER:
                       begin
 {$ifdef x86}
-                        if not use_sse(right.resultdef) then
+                        if (right.resultdef.typ=floatdef) and
+                           not use_vectorfpu(right.resultdef) then
                           begin
                             { perform size conversion if needed (the mm-code cannot }
                             { convert an extended into a double/single, since sse   }
@@ -839,17 +840,24 @@ implementation
                     end
                   else
                     begin
-                      if left.location.loc=LOC_CMMREGISTER then
-                        cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,left.location.register,mms_movescalar)
-                      else
-                        cg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,left.location.reference,mms_movescalar);
+                      case left.location.loc of
+                        LOC_CMMREGISTER,
+                        LOC_MMREGISTER:
+                          cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,left.location.register,mms_movescalar);
+                        LOC_REFERENCE,
+                        LOC_CREFERENCE:
+                          cg.a_loadmm_reg_ref(current_asmdata.CurrAsmList,right.location.size,left.location.size,right.location.register,left.location.reference,mms_movescalar);
+                        else
+                          internalerror(2009112601);
+                      end;
                     end;
                 end;
               LOC_REGISTER,
               LOC_CREGISTER :
                 begin
 {$ifndef cpu64bitalu}
-                  if left.location.size in [OS_64,OS_S64] then
+                  { also OS_F64 in case of mmreg -> intreg }
+                  if left.location.size in [OS_64,OS_S64,OS_F64] then
                     cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,
                       right.location.register64,left.location)
                   else
@@ -863,7 +871,7 @@ implementation
                   if left.location.loc in [LOC_MMREGISTER,LOC_CMMREGISTER] then
                     begin
 {$ifdef x86}
-                      if not use_sse(right.resultdef) then
+                      if not use_vectorfpu(right.resultdef) then
                         begin
                           { perform size conversion if needed (the mm-code cannot convert an   }
                           { extended into a double/single, since sse doesn't support extended) }

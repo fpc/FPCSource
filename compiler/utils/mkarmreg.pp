@@ -24,6 +24,7 @@ var s : string;
     regcount_bsstart:byte;
     names,
     regtypes,
+    subtypes,
     supregs,
     numbers,
     stdnames,
@@ -173,6 +174,8 @@ begin
         readcomma;
         regtypes[regcount]:=readstr;
         readcomma;
+        subtypes[regcount]:=readstr;
+        readcomma;
         supregs[regcount]:=readstr;
         readcomma;
         stdnames[regcount]:=readstr;
@@ -187,7 +190,7 @@ begin
             writeln('Line: "',s,'"');
             halt(1);
           end;
-        numbers[regcount]:=regtypes[regcount]+'0000'+copy(supregs[regcount],2,255);
+        numbers[regcount]:=regtypes[regcount]+copy(subtypes[regcount],2,255)+'00'+copy(supregs[regcount],2,255);
         if i<length(s) then
           begin
             writeln('Extra chars at end of line, at line ',line);

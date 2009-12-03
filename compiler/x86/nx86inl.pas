@@ -100,7 +100,7 @@ implementation
 
      function tx86inlinenode.first_abs_real : tnode;
        begin
-         if use_sse(resultdef) then
+         if use_vectorfpu(resultdef) then
            expectloc:=LOC_MMREGISTER
          else
            expectloc:=LOC_FPUREGISTER;
@@ -141,7 +141,7 @@ implementation
      function tx86inlinenode.first_round_real : tnode;
       begin
 {$ifdef x86_64}
-        if use_sse(left.resultdef) then
+        if use_vectorfpu(left.resultdef) then
           expectloc:=LOC_REGISTER
         else
 {$endif x86_64}
@@ -154,14 +154,14 @@ implementation
        begin
          if (cs_opt_size in current_settings.optimizerswitches)
 {$ifdef x86_64}
-           and not(use_sse(left.resultdef))
+           and not(use_vectorfpu(left.resultdef))
 {$endif x86_64}
            then
            result:=inherited
          else
            begin
 {$ifdef x86_64}
-             if use_sse(left.resultdef) then
+             if use_vectorfpu(left.resultdef) then
                expectloc:=LOC_REGISTER
              else
 {$endif x86_64}
@@ -222,7 +222,7 @@ implementation
        var
          href : treference;
        begin
-         if use_sse(resultdef) then
+         if use_vectorfpu(resultdef) then
            begin
              secondpass(left);
              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
@@ -249,7 +249,7 @@ implementation
      procedure tx86inlinenode.second_round_real;
        begin
 {$ifdef x86_64}
-         if use_sse(left.resultdef) then
+         if use_vectorfpu(left.resultdef) then
            begin
              secondpass(left);
              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
@@ -281,7 +281,7 @@ implementation
          oldcw,newcw : treference;
        begin
 {$ifdef x86_64}
-         if use_sse(left.resultdef) and
+         if use_vectorfpu(left.resultdef) and
            not((left.location.loc=LOC_FPUREGISTER) and (current_settings.fputype>=fpu_sse3)) then
            begin
              secondpass(left);
@@ -331,7 +331,7 @@ implementation
      procedure tx86inlinenode.second_sqr_real;
 
        begin
-         if use_sse(resultdef) then
+         if use_vectorfpu(resultdef) then
            begin
              secondpass(left);
              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
@@ -348,7 +348,7 @@ implementation
 
      procedure tx86inlinenode.second_sqrt_real;
        begin
-         if use_sse(resultdef) then
+         if use_vectorfpu(resultdef) then
            begin
              secondpass(left);
              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);

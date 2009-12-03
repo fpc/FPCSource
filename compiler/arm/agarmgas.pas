@@ -197,13 +197,13 @@ unit agarmgas;
                   begin
                     if not(first) then
                       getopstr:=getopstr+',';
-                    getopstr:=getopstr+gas_regname(newreg(R_INTREGISTER,r,R_SUBWHOLE));
+                    getopstr:=getopstr+gas_regname(newreg(o.regtyp,r,o.subreg));
                     first:=false;
                   end;
               getopstr:=getopstr+'}';
             end;
-			    top_conditioncode:
-			      getopstr:=cond2str[o.cc];
+          top_conditioncode:
+            getopstr:=cond2str[o.cc];
           top_ref:
             if o.ref^.refaddr=addr_full then
               begin
@@ -249,7 +249,7 @@ unit agarmgas;
                // writeln(taicpu(hp).fileinfo.line);
 
                { LDM and STM use references as first operand but they are written like a register }
-               if (i=0) and (op in [A_LDM,A_STM]) then
+               if (i=0) and (op in [A_LDM,A_STM,A_FSTM,A_FLDM]) then
                  begin
                    case taicpu(hp).oper[0]^.typ of
                      top_ref:
@@ -303,7 +303,7 @@ unit agarmgas;
             id     : as_darwin;
             idtxt  : 'AS-Darwin';
             asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM -arch arm';
+            asmcmd : '-o $OBJ $ASM -arch $ARCH';
             supported_targets : [system_arm_darwin];
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : 'L';

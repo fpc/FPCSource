@@ -34,7 +34,10 @@ Type
     FirstPass,
     ParaLogo,
     NoPressEnter,
-    LogoWritten : boolean;
+    LogoWritten,
+    FPUSetExplicitly,
+    CPUSetExplicitly,
+    OptCPUSetExplicitly: boolean;
     FileLevel : longint;
     QuickInfo : string;
     ParaIncludePath,
@@ -629,6 +632,7 @@ begin
                         s:=upper(copy(more,j+1,length(more)-j));
                         if not(SetFpuType(s,init_settings.fputype)) then
                           IllegalPara(opt);
+                        FPUSetExplicitly:=True;
                         break;
                       end;
                     'F' :
@@ -682,6 +686,7 @@ begin
                         s:=upper(copy(more,j+1,length(more)-j));
                         if not(Setcputype(s,init_settings.cputype)) then
                           IllegalPara(opt);
+                        CPUSetExplicitly:=true;
                         break;
                       end;
                     'P':
@@ -1140,6 +1145,7 @@ begin
                       begin
                         if not Setcputype(copy(more,j+1,length(more)),init_settings.optimizecputype) then
                           begin
+                            OptCPUSetExplicitly:=true;
                             { Give warning for old i386 switches }
                             if (Length(More)-j=1) and
                                (More[j+1]>='1') and (More[j+1]<='5')then
@@ -2240,6 +2246,13 @@ begin
           ForceStaticLinking;
         end;
     end;
+{$ifdef arm}
+  if (init_settings.cputype in [cpu_armv7m,cpu_cortexm3]) and
+     (init_settings.fputype in [fpu_vfpv2,fpu_vfpv3]) then
+    begin
+      Writeln(
+    end;
+{$endif arm}
 end;
 
 
@@ -2248,6 +2261,9 @@ begin
   LogoWritten:=false;
   NoPressEnter:=false;
   FirstPass:=false;
+  FPUSetExplicitly:=false;
+  CPUSetExplicitly:=false;
+  OptCPUSetExplicitly:=false;
   FileLevel:=0;
   Quickinfo:='';
   ParaIncludePath:=TSearchPathList.Create;
@@ -2698,12 +2714,17 @@ begin
      not(cs_link_separate_dbg_file in init_settings.globalswitches) then
     exclude(init_settings.globalswitches,cs_link_strip);
 
-  { force fpu emulation on arm/wince, arm/gba, arm/embedded and arm/nds}
-  if (target_info.system in [system_arm_wince,system_arm_gba,system_m68k_amiga,
-    system_m68k_linux,system_arm_nds,system_arm_darwin,system_arm_embedded])
+  { force fpu emulation on arm/wince, arm/gba, arm/embedded, arm/nds and
+    arm/darwin if fpu type not explicitly set }
+  if not(option.FPUSetExplicitly) and
+     ((target_info.system in [system_arm_wince,system_arm_gba,system_m68k_amiga,
+         system_m68k_linux,system_arm_nds,system_arm_embedded,system_arm_darwin])
 {$ifdef arm}
-    or (init_settings.fputype=fpu_soft)
-    or (target_info.abi=abi_eabi)
+      or (target_info.abi=abi_eabi)
+{$endif arm}
+     )
+{$ifdef arm}
+     or (init_settings.fputype=fpu_soft)
 {$endif arm}
   then
     begin
@@ -2713,6 +2734,17 @@ begin
       init_settings.fputype:=fpu_soft;
 {$endif cpufpemu}
     end;
+
+{$ifdef arm}
+{ set default cpu type to ARMv6 for Darwin unless specified otherwise }
+if (target_info.system=system_arm_darwin) then
+  begin
+    if not option.CPUSetExplicitly then
+      init_settings.cputype:=cpu_armv6;
+    if not option.OptCPUSetExplicitly then
+      init_settings.optimizecputype:=cpu_armv6;
+  end;
+{$endif arm}
 
   { now we can define cpu and fpu type }
   def_system_macro('CPU'+Cputypestr[init_settings.cputype]);

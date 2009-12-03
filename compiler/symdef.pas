@@ -751,9 +751,7 @@ interface
 
     procedure loadobjctypes;
 
-{$ifdef x86}
-    function use_sse(def : tdef) : boolean;
-{$endif x86}
+    function use_vectorfpu(def : tdef) : boolean;
 
 implementation
 
@@ -1160,7 +1158,7 @@ implementation
    function tstoreddef.is_fpuregable : boolean;
      begin
 {$ifdef x86}
-       result:=use_sse(self);
+       result:=use_vectorfpu(self);
 {$else x86}
        result:=(typ=floatdef) and not(cs_fp_emulation in current_settings.moduleswitches);
 {$endif x86}
@@ -5220,13 +5218,20 @@ implementation
       end;
 
 
-{$ifdef x86}
-
-    function use_sse(def : tdef) : boolean;
+    function use_vectorfpu(def : tdef) : boolean;
       begin
-        use_sse:=(is_single(def) and (current_settings.fputype in sse_singlescalar)) or
+{$ifdef x86}
+{$define use_vectorfpuimplemented}
+        use_vectorfpu:=(is_single(def) and (current_settings.fputype in sse_singlescalar)) or
           (is_double(def) and (current_settings.fputype in sse_doublescalar));
-      end;
 {$endif x86}
+{$ifdef arm}
+{$define use_vectorfpuimplemented}
+        use_vectorfpu:=(current_settings.fputype in vfp_scalar);
+{$endif arm}
+{$ifndef use_vectorfpuimplemented}
+        use_vectorfpu:=false;
+{$endif}
+      end;
 
 end.

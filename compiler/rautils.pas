@@ -85,7 +85,7 @@ type
       OPR_COND      : (cond : tasmcond);
 {$endif POWERPC64}
 {$ifdef arm}
-      OPR_REGSET    : (regset : tcpuregisterset);
+      OPR_REGSET    : (regset : tcpuregisterset; regtype: tregistertype; subreg: tsubregister);
       OPR_SHIFTEROP : (shifterop : tshifterop);
       OPR_COND      : (cc : tasmcond);
 {$endif arm}
@@ -1060,7 +1060,7 @@ end;
                 ai.loadref(i-1,ref);
 {$ifdef ARM}
               OPR_REGSET:
-                ai.loadregset(i-1,regset);
+                ai.loadregset(i-1,regtype,subreg,regset);
               OPR_SHIFTEROP:
                 ai.loadshifterop(i-1,shifterop);
               OPR_COND:

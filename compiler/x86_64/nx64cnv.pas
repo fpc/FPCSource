@@ -72,7 +72,7 @@ implementation
     function tx8664typeconvnode.first_int_to_real : tnode;
       begin
         result:=nil;
-        if use_sse(resultdef) and
+        if use_vectorfpu(resultdef) and
            (torddef(left.resultdef).ordtype=u32bit) then
           begin
             inserttypeconv(left,s64inttype);
@@ -80,7 +80,7 @@ implementation
           end
         else
           result:=inherited first_int_to_real;
-       if use_sse(resultdef) then
+       if use_vectorfpu(resultdef) then
          expectloc:=LOC_MMREGISTER;
       end;
 
@@ -91,7 +91,7 @@ implementation
          l1,l2 : tasmlabel;
          op : tasmop;
       begin
-        if use_sse(resultdef) then
+        if use_vectorfpu(resultdef) then
           begin
             if is_double(resultdef) then
               op:=A_CVTSI2SD

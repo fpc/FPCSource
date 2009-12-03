@@ -333,7 +333,7 @@ begin
             system_x86_64_darwin:
               LinkRes.Add('x86_64');
             system_arm_darwin:
-              LinkRes.Add('arm');
+              LinkRes.Add(lower(cputypestr[current_settings.cputype]));
           end;
       end;
   end;

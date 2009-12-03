@@ -1740,8 +1740,13 @@ unit rgobj;
               {Get a temp for the spilled register, the size must at least equal a complete register,
                take also care of the fact that subreg can be larger than a single register like doubles
                that occupy 2 registers }
-              size:=max(tcgsize2size[reg_cgsize(newreg(regtype,t,R_SUBWHOLE))],
-                             tcgsize2size[reg_cgsize(newreg(regtype,t,reginfo[t].subreg))]);
+              { only force the whole register in case of integers. Storing a register that contains
+                a single precision value as a double can cause conversion errors on e.g. ARM VFP }
+              if (regtype=R_INTREGISTER) then
+                size:=max(tcgsize2size[reg_cgsize(newreg(regtype,t,R_SUBWHOLE))],
+                               tcgsize2size[reg_cgsize(newreg(regtype,t,reginfo[t].subreg))])
+              else
+                size:=tcgsize2size[reg_cgsize(newreg(regtype,t,reginfo[t].subreg))];
               tg.gettemp(templist,
                          size,size,
                          tt_noreuse,spill_temps^[t]);

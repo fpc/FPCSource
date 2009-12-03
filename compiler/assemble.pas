@@ -509,7 +509,10 @@ Implementation
         else
           result:='-m68000 '+result;
 {$endif}
-
+{$ifdef arm}
+        if (target_info.system=system_arm_darwin) then
+          Replace(result,'$ARCH',lower(cputypestr[current_settings.cputype]));
+{$endif arm}
         if (cs_link_on_target in current_settings.globalswitches) then
          begin
            Replace(result,'$ASM',maybequoted(ScriptFixFileName(AsmFileName)));

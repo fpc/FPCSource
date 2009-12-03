@@ -71,7 +71,7 @@ interface
 
          if (left.resultdef.typ=floatdef) then
            begin
-             if use_sse(left.resultdef) then
+             if use_vectorfpu(left.resultdef) then
                expectloc:=LOC_MMREGISTER
              else
                expectloc:=LOC_FPUREGISTER;

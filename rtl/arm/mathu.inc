@@ -46,7 +46,7 @@ begin
       include(result,exPrecision);
 end;
 
-{$ifdef wince}
+{$if defined(wince)}
 
 const
   _DN_SAVE  = $00000000;
@@ -177,7 +177,167 @@ procedure ClearExceptions(RaisePending: Boolean =true);
 begin
 end;
 
-{$else wince}
+{$elseif defined(darwin) or defined(FPUVFPV2) or defined(FPUVFPV3)}
+
+const
+  _VFP_MASK_IM  =  1 shl 8;         { invalid operation      }
+  _VFP_MASK_ZM  =  1 shl 9;         { divide by zero         }
+  _VFP_MASK_OM  =  1 shl 10;        { overflow               }
+  _VFP_MASK_UM  =  1 shl 11;        { underflow              }
+  _VFP_MASK_PM  =  1 shl 12;        { inexact                }
+  _VFP_MASK_DM  =  1 shl 15;        { denormalized operation }
+  _VFP_MASK_ALL =  _VFP_MASK_IM or
+                   _VFP_MASK_ZM or
+                   _VFP_MASK_OM or
+                   _VFP_MASK_UM or
+                   _VFP_MASK_PM or
+                   _VFP_MASK_DM;    { mask for all flags     }
+                   
+  _VFP_ROUNDINGMODE_MASK_SHIFT = 22;
+  _VFP_ROUNDINGMODE_MASK = 3 shl _VFP_ROUNDINGMODE_MASK_SHIFT;
+
+  _VFP_EXCEPTIONS_PENDING_MASK =
+    (1 shl 0) or
+    (1 shl 1) or
+    (1 shl 2) or
+    (1 shl 3) or
+    (1 shl 4) or
+    (1 shl 7);
+
+function VFP_GetCW : dword; nostackframe; assembler;
+  asm
+    fmrx r0,fpscr
+  end;
+
+
+procedure VFP_SetCW(cw : dword); nostackframe; assembler;
+  asm
+    fmxr fpscr,r0
+  end;
+
+
+function GetRoundMode: TFPURoundingMode; 
+  var
+    rm: byte;
+  begin
+    case (VFP_GetCW and _VFP_ROUNDINGMODE_MASK) shr _VFP_ROUNDINGMODE_MASK_SHIFT of
+      0 : result := rmNearest;
+      1 : result := rmUp;
+      2 : result := rmDown;
+      3 : result := rmTruncate;
+    end;
+  end;
+
+
+function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
+  var
+    mode: dword;
+  begin
+    case (RoundMode) of
+      rmNearest :
+        begin
+          mode := 0;
+          softfloat_rounding_mode := float_round_nearest_even;
+        end;
+      rmUp :
+        begin
+          mode := 1;
+          softfloat_rounding_mode := float_round_up;
+        end;
+      rmDown :
+        begin
+          mode := 2;
+          softfloat_rounding_mode := float_round_down;
+        end;
+      rmTruncate :
+        begin
+          mode := 3;
+          softfloat_rounding_mode := float_round_to_zero;
+        end;
+    end;
+    mode:=mode shl _VFP_ROUNDINGMODE_MASK_SHIFT;
+    VFP_SetCW((VFP_GetCW and (not _VFP_ROUNDINGMODE_MASK)) or mode);
+    result := RoundMode;
+  end;
+
+
+function GetPrecisionMode: TFPUPrecisionMode;
+  begin
+    result := pmDouble;
+  end;
+
+
+function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
+  begin
+    { nothing to do, not supported }
+    result := pmDouble;
+  end;
+
+
+function GetExceptionMask: TFPUExceptionMask;
+  var
+    cw : dword;
+  begin
+    Result:=[];
+    cw:=VFP_GetCW;
+
+    if (cw and _VFP_MASK_IM)=0 then
+      include(Result,exInvalidOp);
+
+    if (cw and _VFP_MASK_DM)=0 then
+      include(Result,exDenormalized);
+
+    if (cw and _VFP_MASK_ZM)=0 then
+      include(Result,exZeroDivide);
+
+    if (cw and _VFP_MASK_OM)=0 then
+      include(Result,exOverflow);
+
+    if (cw and _VFP_MASK_UM)=0 then
+      include(Result,exUnderflow);
+
+    if (cw and _VFP_MASK_PM)=0 then
+      include(Result,exPrecision);
+  end;
+
+
+function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
+  var
+    cw : dword;
+  begin
+    cw:=VFP_GetCW or _VFP_MASK_ALL;
+
+    if exInvalidOp in Mask then
+      cw:=cw and not(_VFP_MASK_IM);
+
+    if exDenormalized in Mask then
+      cw:=cw and not(_VFP_MASK_DM);
+
+    if exZeroDivide in Mask then
+      cw:=cw and not(_VFP_MASK_ZM);
+
+    if exOverflow in Mask then
+      cw:=cw and not(_VFP_MASK_OM);
+
+    if exUnderflow in Mask then
+      cw:=cw and not(_VFP_MASK_UM);
+
+    if exPrecision in Mask then
+      cw:=cw and not(_VFP_MASK_PM);
+    VFP_SetCW(cw);
+    result:=Mask;
+
+    softfloat_exception_mask:=FPUExceptionMaskToSoftFloatMask(Mask);
+  end;
+
+
+procedure ClearExceptions(RaisePending: Boolean =true);
+  begin
+    { RaisePending has no effect on ARM, it always raises them at the correct location }
+    VFP_SetCW(VFP_GetCW and (not _VFP_EXCEPTIONS_PENDING_MASK));
+  end;
+
+{$else wince/darwin/vfpv2/vfpv3}
 
 {*****************************************************************************
                                    FPA code
@@ -281,25 +441,53 @@ procedure FPU_SetCW(cw : dword); nostackframe; assembler;
 
 function GetRoundMode: TFPURoundingMode;
   begin
-    { does not apply }
+    case softfloat_rounding_mode of
+      float_round_nearest_even:
+        GetRoundMode:=rmNearest;
+      float_round_up:
+        GetRoundMode:=rmUp;
+      float_round_down:
+        GetRoundMode:=rmDown;
+      float_round_to_zero:
+        GetRoundMode:=rmTruncate;
+    end;
   end;
 
 
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
   begin
-    { does not apply }
+    case (RoundMode) of
+      rmNearest :
+        begin
+          softfloat_rounding_mode := float_round_nearest_even;
+        end;
+      rmUp :
+        begin
+          softfloat_rounding_mode := float_round_up;
+        end;
+      rmDown :
+        begin
+          softfloat_rounding_mode := float_round_down;
+        end;
+      rmTruncate :
+        begin
+          softfloat_rounding_mode := float_round_to_zero;
+        end;
+    end;
+    SetRoundMode:=RoundMode;
   end;
 
 
 function GetPrecisionMode: TFPUPrecisionMode;
   begin
-    { does not apply }
+    result := pmDouble;
   end;
 
 
 function SetPrecisionMode(const Precision: TFPUPrecisionMode): TFPUPrecisionMode;
   begin
     { does not apply }
+    result := pmDouble;
   end;
 
 
@@ -362,6 +550,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
     FPU_SetCW(cw);
 {$endif}
     softfloat_exception_mask:=FPUExceptionMaskToSoftFloatMask(Mask);
+    Result:=Mask;
   end;
 
 

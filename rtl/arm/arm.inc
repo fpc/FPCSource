@@ -28,7 +28,9 @@ const
 {$endif FPC_SYSTEM_FPC_MOVE}
 
 {$if not(defined(wince)) and not(defined(gba)) and not(defined(nds)) and not(defined(FPUSOFT)) and not(defined(FPULIBGCC))}
+
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
+{$if not defined(darwin) and not defined(FPUVFPV2) and not defined(FPUVFPV3)}
 Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
@@ -39,6 +41,30 @@ begin
     wfs r0
   end;
 end;
+{$else}
+Procedure SysInitFPU;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  { Enable FPU exceptions, but disable INEXACT, UNDERFLOW, DENORMAL }
+  asm
+    fmrx r0,fpscr
+    // set "round to nearest" mode
+    and  r0,r0,#0xff3fffff
+    // mask "exception happened" and overflow flags
+    and  r0,r0,#0xffffff20
+    // mask exception flags
+    and  r0,r0,#0xffff40ff    
+{$ifndef darwin}
+    // Floating point exceptions cause kernel panics on iPhoneOS 2.2.1...
+
+    // disable flush-to-zero mode (IEEE math compliant)
+    and  r0,r0,#0xfeffffff
+    // enable invalid operation, div-by-zero and overflow exceptions
+    orr  r0,r0,#0x00000700
+{$endif}
+    fmxr fpscr,r0
+  end;
+end;
+{$endif}
 {$endif}
 
 procedure fpc_cpuinit;
@@ -92,6 +118,7 @@ function get_caller_frame(framebp:pointer):pointer;assembler;
 asm
   movs r0,r0
   beq .Lgnf_null
+  // see comments in arm/cgcpu.pas, g_proc_entry
   ldr r0,[r0,#-12]
 .Lgnf_null:
 end;
@@ -477,6 +504,16 @@ var
 
 function InterLockedDecrement (var Target: longint) : longint; assembler; nostackframe;
 asm
+{$if defined(cpuarmv6) or defined(cpuarmv7m) or defined(cpucortexm3)}
+.Lloop:
+  ldrex r1, [r0]
+  sub   r1, r1, #1
+  strex r2, r1, [r0]
+  cmp r2, #0
+  bne .Lloop
+  mov r0, r1
+  mov pc, lr
+{$else}
 // lock
   ldr r3, .Lfpc_system_lock
   mov r1, #1
@@ -495,11 +532,22 @@ asm
 
 .Lfpc_system_lock:
   .long fpc_system_lock
+{$endif}
 end;
 
 
 function InterLockedIncrement (var Target: longint) : longint; assembler; nostackframe;
 asm
+{$if defined(cpuarmv6) or defined(cpuarmv7m) or defined(cpucortexm3)}
+.Lloop:
+  ldrex r1, [r0]
+  add   r1, r1, #1
+  strex r2, r1, [r0]
+  cmp r2, #0
+  bne .Lloop
+  mov r0, r1
+  mov pc, lr
+{$else}
 // lock
   ldr r3, .Lfpc_system_lock
   mov r1, #1
@@ -518,17 +566,39 @@ asm
 
 .Lfpc_system_lock:
   .long fpc_system_lock
+{$endif}
 end;
 
 
 function InterLockedExchange (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
+{$if defined(cpuarmv6) or defined(cpuarmv7m) or defined(cpucortexm3)}
+// swp is deprecated on ARMv6 and above
+.Lloop:
+  ldrex r2, [r0]
+  strex r3, r1, [r0]
+  cmp r3, #0
+  bne .Lloop
+  mov r0, r2
+  mov pc, lr
+{$else}
   swp r1, r1, [r0]
   mov r0,r1
+{$endif}
 end;
 
 function InterLockedExchangeAdd (var Target: longint;Source : longint) : longint; assembler; nostackframe;
 asm
+{$if defined(cpuarmv6) or defined(cpuarmv7m) or defined(cpucortexm3)}
+.Lloop:
+  ldrex r2, [r0]
+  add   r12, r1, r2
+  strex r3, r12, [r0]
+  cmp r3, #0
+  bne .Lloop
+  mov  r0, r2
+  mov pc, lr
+{$else}
 // lock
   ldr r3, .Lfpc_system_lock
   mov r2, #1
@@ -548,11 +618,23 @@ asm
 
 .Lfpc_system_lock:
   .long fpc_system_lock
+{$endif}
 end;
 
 
 function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comperand: longint): longint; assembler; nostackframe;
 asm
+{$if defined(cpuarmv6) or defined(cpuarmv7m) or defined(cpucortexm3)}
+.Lloop:
+  ldrex    r3, [r0]
+  mov      r12, #0
+  cmp      r3, r2
+  strexeq  r12, r1, [r0]
+  cmp      r12, #0
+  bne      .Lloop
+  mov      r0, r3
+  mov      pc, lr
+{$else}
 // lock
   ldr r12, .Lfpc_system_lock
   mov r3, #1
@@ -572,6 +654,7 @@ asm
 
 .Lfpc_system_lock:
   .long fpc_system_lock
+{$endif}
 end;
 
 {$define FPC_SYSTEM_HAS_DECLOCKED_LONGINT}

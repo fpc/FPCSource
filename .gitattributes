@@ -8283,6 +8283,7 @@ tests/test/cg/obj/beos/i386/tcext3.o -text
 tests/test/cg/obj/beos/i386/tcext4.o -text
 tests/test/cg/obj/beos/i386/tcext5.o -text
 tests/test/cg/obj/cpptcl1.cpp svneol=native#text/plain
+tests/test/cg/obj/darwin/arm/cpptcl1.o -text
 tests/test/cg/obj/darwin/arm/ctest.o -text
 tests/test/cg/obj/darwin/arm/tcext3.o -text
 tests/test/cg/obj/darwin/arm/tcext4.o -text

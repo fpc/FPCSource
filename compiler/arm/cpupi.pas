@@ -63,7 +63,16 @@ unit cpupi;
           this extra memory should hurt less than generating all local contants with offsets
           >256 as non shifter constants }
         if tg.direction = -1 then
-          tg.setfirsttemp(-12-28)
+          begin
+            if (target_info.system<>system_arm_darwin) then
+              { Non-Darwin, worst case: r4-r10,r11,r13,r14,r15 is saved -> -28-16, but we
+                always adjust the frame pointer to point to the first stored
+                register (= last register in list above) -> + 4 }
+              tg.setfirsttemp(-28-16+4)
+            else
+              { on Darwin r9 is not usable -> one less register to save }
+              tg.setfirsttemp(-24-16+4)
+          end
         else
           tg.setfirsttemp(maxpushedparasize);
       end;
@@ -74,21 +83,38 @@ unit cpupi;
          firstfloatreg,lastfloatreg,
          r : byte;
          floatsavesize : aword;
+         regs: tcpuregisterset;
       begin
         maxpushedparasize:=align(maxpushedparasize,max(current_settings.alignment.localalignmin,4));
-        firstfloatreg:=RS_NO;
-        { save floating point registers? }
-        for r:=RS_F0 to RS_F7 do
-          if r in cg.rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall) then
+        floatsavesize:=0;
+        case current_settings.fputype of
+          fpu_fpa,
+          fpu_fpa10,
+          fpu_fpa11:
             begin
-              if firstfloatreg=RS_NO then
-                firstfloatreg:=r;
-              lastfloatreg:=r;
+              { save floating point registers? }
+              firstfloatreg:=RS_NO;
+              regs:=cg.rg[R_FPUREGISTER].used_in_proc-paramanager.get_volatile_registers_fpu(pocall_stdcall);
+              for r:=RS_F0 to RS_F7 do
+                if r in regs then
+                  begin
+                    if firstfloatreg=RS_NO then
+                      firstfloatreg:=r;
+                    lastfloatreg:=r;
+                  end;
+              if firstfloatreg<>RS_NO then
+                floatsavesize:=(lastfloatreg-firstfloatreg+1)*12;
             end;
-        if firstfloatreg<>RS_NO then
-          floatsavesize:=(lastfloatreg-firstfloatreg+1)*12
-        else
-          floatsavesize:=0;
+          fpu_vfpv2,
+          fpu_vfpv3:
+            begin
+              floatsavesize:=0;
+              regs:=cg.rg[R_MMREGISTER].used_in_proc-paramanager.get_volatile_registers_mm(pocall_stdcall);
+              for r:=RS_D0 to RS_D31 do
+                if r in regs then
+                  inc(floatsavesize,8);
+            end;
+        end;
         floatsavesize:=align(floatsavesize,max(current_settings.alignment.localalignmin,4));
         result:=Align(tg.direction*tg.lasttemp,max(current_settings.alignment.localalignmin,4))+maxpushedparasize+aint(floatsavesize);
         floatregstart:=tg.direction*result+maxpushedparasize;

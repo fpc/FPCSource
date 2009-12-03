@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-{$if defined(FPUFPA) or defined(FPUFPA10) or defined(FPUFPA11)}
+{$if defined(FPUFPA) or defined(FPUFPA10) or defined(FPUFPA11) or defined(FPUVFPV2) or defined(FPUVFPV3)}
     {$define FPC_SYSTEM_HAS_ABS}
     function fpc_abs_real(d : ValReal) : ValReal;compilerproc;
     begin

@@ -1136,13 +1136,10 @@ implementation
                  ) and }
                  tstoreddef(vardef).is_fpuregable then
                  begin
-{$ifdef x86}
-                   if use_sse(vardef) then
+                   if use_vectorfpu(vardef) then
                      varregable:=vr_mmreg
                    else
-{$else x86}
                      varregable:=vr_fpureg;
-{$endif x86}
                  end;
           end;
       end;

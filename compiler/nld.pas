@@ -584,7 +584,16 @@ implementation
                 { sse register to an extended value in memory more      }
                 { efficiently than a type conversion node, so don't     }
                 { bother implementing support for that                  }
-                and (use_sse(left.resultdef) or not(use_sse(right.resultdef)))
+                and (use_vectorfpu(left.resultdef) or not(use_vectorfpu(right.resultdef)))
+{$endif}
+
+{$ifdef arm}
+                { the assignment node code can't convert a single in
+                  an interger register to a double in an mmregister or
+                  vice versa }
+                and (use_vectorfpu(left.resultdef) and
+                     use_vectorfpu(right.resultdef) and
+                     (tfloatdef(left.resultdef).floattype=tfloatdef(right.resultdef).floattype))
 {$endif}
         then
           begin

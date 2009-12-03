@@ -212,7 +212,7 @@ interface
           { local varsym that will be inserted in pass_generate_code }
           top_local  : (localoper:plocaloper);
       {$ifdef arm}
-          top_regset : (regset:^tcpuregisterset);
+          top_regset : (regset:^tcpuregisterset; regtyp: tregistertype; subreg: tsubregister);
           top_shifterop : (shifterop : pshifterop);
           top_conditioncode: (cc: TAsmCond);
       {$endif arm}

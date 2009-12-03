@@ -834,7 +834,7 @@ unit nx86add;
       var
         op : TAsmOp;
       begin
-        if use_sse(resultdef) then
+        if use_vectorfpu(resultdef) then
           begin
             second_addfloatsse;
             exit;
@@ -878,7 +878,7 @@ unit nx86add;
       var
         resflags   : tresflags;
       begin
-        if use_sse(left.resultdef) or use_sse(right.resultdef) then
+        if use_vectorfpu(left.resultdef) or use_vectorfpu(right.resultdef) then
           begin
             second_cmpfloatsse;
             exit;

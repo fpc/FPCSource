@@ -36,6 +36,7 @@ unit cpupara;
        tarmparamanager = class(tparamanager)
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
+          function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
           procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);override;
@@ -59,13 +60,22 @@ unit cpupara;
 
     function tarmparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
-        result:=VOLATILE_INTREGISTERS;
+        if (target_info.system<>system_arm_darwin) then
+          result:=VOLATILE_INTREGISTERS
+        else
+          result:=VOLATILE_INTREGISTERS_DARWIN;
       end;
 
 
     function tarmparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=VOLATILE_FPUREGISTERS;
+      end;
+
+
+    function tarmparamanager.get_volatile_registers_mm(calloption: tproccalloption): tcpuregisterset;
+      begin
+        result:=VOLATILE_MMREGISTERS;
       end;
 
 
@@ -109,7 +119,11 @@ unit cpupara;
             orddef:
               getparaloc:=LOC_REGISTER;
             floatdef:
-              if (calloption in [pocall_cdecl,pocall_cppdecl,pocall_softfloat]) or (cs_fp_emulation in current_settings.moduleswitches) then
+              if (calloption in [pocall_cdecl,pocall_cppdecl,pocall_softfloat]) or
+                 (cs_fp_emulation in current_settings.moduleswitches) or
+                 (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3]) then
+                { the ARM eabi also allows passing VFP values via VFP registers,
+                  but at least neither Mac OS X nor Linux seems to do that }
                 getparaloc:=LOC_REGISTER
               else
                 getparaloc:=LOC_FPUREGISTER;
@@ -466,7 +480,9 @@ unit cpupara;
         { Return in FPU register? }
         if def.typ=floatdef then
           begin
-            if (p.proccalloption in [pocall_softfloat]) or (cs_fp_emulation in current_settings.moduleswitches) then
+            if (p.proccalloption in [pocall_softfloat]) or
+               (cs_fp_emulation in current_settings.moduleswitches) or
+               (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3]) then
               begin
                 case retcgsize of
                   OS_64,

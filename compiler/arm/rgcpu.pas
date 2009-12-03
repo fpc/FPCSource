@@ -37,6 +37,8 @@ unit rgcpu;
        trgcpu = class(trgobj)
          procedure do_spill_read(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
          procedure do_spill_written(list:TAsmList;pos:tai;const spilltemp:treference;tempreg:tregister);override;
+         procedure add_constraints(reg:tregister);override;
+         function  get_spill_subreg(r:tregister) : tsubregister;override;
        end;
 
        trgcputhumb2 = class(trgobj)
@@ -159,6 +161,32 @@ unit rgcpu;
           end
         else
           inherited do_spill_written(list,pos,spilltemp,tempreg);
+      end;
+
+
+    procedure trgcpu.add_constraints(reg:tregister);
+      var
+        supreg,i : Tsuperregister;
+      begin
+        case getsubreg(reg) of
+          { Let 32bit floats conflict with all double precision regs > 15
+            (since these don't have 32 bit equivalents) }
+          R_SUBFS:
+            begin
+              supreg:=getsupreg(reg);
+              for i:=RS_D16 to RS_D31 do
+                add_edge(supreg,i);
+            end;
+        end;
+      end;
+
+
+    function  trgcpu.get_spill_subreg(r:tregister) : tsubregister;
+      begin
+        if (getregtype(r)<>R_MMREGISTER) then
+          result:=defaultsub
+        else
+          result:=getsubreg(r);
       end;
 
 

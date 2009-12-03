@@ -50,7 +50,7 @@ interface
         }
         procedure second_prefetch; override;
       private
-        procedure load_fpu_location;
+        procedure load_fpu_location(out singleprec: boolean);
       end;
 
 
@@ -72,26 +72,57 @@ implementation
                               tarminlinenode
 *****************************************************************************}
 
-    procedure tarminlinenode.load_fpu_location;
+    procedure tarminlinenode.load_fpu_location(out singleprec: boolean);
       begin
         secondpass(left);
-        location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
-        location_copy(location,left.location);
-        if left.location.loc=LOC_CFPUREGISTER then
-          begin
-           location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-           location.loc := LOC_FPUREGISTER;
-         end;
+        case current_settings.fputype of
+          fpu_fpa,
+          fpu_fpa10,
+          fpu_fpa11:
+            begin
+              location_force_fpureg(current_asmdata.CurrAsmList,left.location,true);
+              location_copy(location,left.location);
+              if left.location.loc=LOC_CFPUREGISTER then
+                begin
+                 location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
+                 location.loc := LOC_FPUREGISTER;
+               end;
+            end;
+          fpu_vfpv2,
+          fpu_vfpv3:
+            begin
+              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,true);
+              location_copy(location,left.location);
+              if left.location.loc=LOC_CMMREGISTER then
+                begin
+                 location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+                 location.loc := LOC_MMREGISTER;
+               end;
+            end;
+          else
+            internalerror(2009111801);
+        end;
+        singleprec:=tfloatdef(left.resultdef).floattype=s32real;
       end;
 
 
     function tarminlinenode.first_abs_real : tnode;
       begin
-        if cs_fp_emulation in current_settings.moduleswitches then
+        if (cs_fp_emulation in current_settings.moduleswitches) then
           result:=inherited first_abs_real
         else
           begin
-            expectloc:=LOC_FPUREGISTER;
+            case current_settings.fputype of
+              fpu_fpa,
+              fpu_fpa10,
+              fpu_fpa11:
+                expectloc:=LOC_FPUREGISTER;
+              fpu_vfpv2,
+              fpu_vfpv3:
+                expectloc:=LOC_MMREGISTER;
+              else
+                internalerror(2009112401);
+            end;
             first_abs_real:=nil;
           end;
       end;
@@ -99,11 +130,21 @@ implementation
 
     function tarminlinenode.first_sqr_real : tnode;
       begin
-        if cs_fp_emulation in current_settings.moduleswitches then
+        if (cs_fp_emulation in current_settings.moduleswitches) then
           result:=inherited first_sqr_real
         else
           begin
-            expectloc:=LOC_FPUREGISTER;
+            case current_settings.fputype of
+              fpu_fpa,
+              fpu_fpa10,
+              fpu_fpa11:
+                expectloc:=LOC_FPUREGISTER;
+              fpu_vfpv2,
+              fpu_vfpv3:
+                expectloc:=LOC_MMREGISTER;
+              else
+                internalerror(2009112402);
+            end;
             first_sqr_real:=nil;
           end;
       end;
@@ -115,7 +156,17 @@ implementation
           result:=inherited first_sqrt_real
         else
           begin
-            expectloc:=LOC_FPUREGISTER;
+            case current_settings.fputype of
+              fpu_fpa,
+              fpu_fpa10,
+              fpu_fpa11:
+                expectloc:=LOC_FPUREGISTER;
+              fpu_vfpv2,
+              fpu_vfpv3:
+                expectloc:=LOC_MMREGISTER;
+              else
+                internalerror(2009112403);
+            end;
             first_sqrt_real := nil;
           end;
       end;
@@ -151,23 +202,80 @@ implementation
 
 
     procedure tarminlinenode.second_abs_real;
+      var
+        singleprec: boolean;
+        op: TAsmOp;
       begin
-        load_fpu_location;
-        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_ABS,location.register,left.location.register),get_fpu_postfix(resultdef)));
+        load_fpu_location(singleprec);
+        case current_settings.fputype of
+          fpu_fpa,
+          fpu_fpa10,
+          fpu_fpa11:
+            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_ABS,location.register,left.location.register),get_fpu_postfix(resultdef)));
+          fpu_vfpv2,
+          fpu_vfpv3:
+            begin
+              if singleprec then
+                op:=A_FABSS
+              else
+                op:=A_FABSD;
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,location.register,left.location.register));
+            end;
+        else
+          internalerror(2009111402);
+        end;
       end;
 
 
     procedure tarminlinenode.second_sqr_real;
+      var
+        singleprec: boolean;
+        op: TAsmOp;
       begin
-        load_fpu_location;
-        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_MUF,location.register,left.location.register,left.location.register),get_fpu_postfix(resultdef)));
+        load_fpu_location(singleprec);
+        case current_settings.fputype of
+          fpu_fpa,
+          fpu_fpa10,
+          fpu_fpa11:
+            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_reg(A_MUF,location.register,left.location.register,left.location.register),get_fpu_postfix(resultdef)));
+          fpu_vfpv2,
+          fpu_vfpv3:
+            begin
+              if singleprec then
+                op:=A_FMULS
+              else
+                op:=A_FMULD;
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg_reg(op,location.register,left.location.register,left.location.register));
+            end;
+        else
+          internalerror(2009111403);
+        end;
       end;
 
 
     procedure tarminlinenode.second_sqrt_real;
+      var
+        singleprec: boolean;
+        op: TAsmOp;
       begin
-        load_fpu_location;
-        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_SQT,location.register,left.location.register),get_fpu_postfix(resultdef)));
+        load_fpu_location(singleprec);
+        case current_settings.fputype of
+          fpu_fpa,
+          fpu_fpa10,
+          fpu_fpa11:
+            current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg(A_SQT,location.register,left.location.register),get_fpu_postfix(resultdef)));
+          fpu_vfpv2,
+          fpu_vfpv3:
+            begin
+              if singleprec then
+                op:=A_FSQRTS
+              else
+                op:=A_FSQRTD;
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,location.register,left.location.register));
+            end;
+        else
+          internalerror(2009111402);
+        end;
       end;
 
 
