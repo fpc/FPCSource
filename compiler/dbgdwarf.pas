@@ -275,6 +275,7 @@ interface
         procedure appenddef_float(list:TAsmList;def:tfloatdef);override;
         procedure appenddef_enum(list:TAsmList;def:tenumdef);override;
         procedure appenddef_array(list:TAsmList;def:tarraydef);override;
+        procedure appenddef_record_named(list:TAsmList;def:trecorddef;const name: shortstring);
         procedure appenddef_record(list:TAsmList;def:trecorddef);override;
         procedure appenddef_pointer(list:TAsmList;def:tpointerdef);override;
         procedure appenddef_string(list:TAsmList;def:tstringdef);override;
@@ -1416,8 +1417,17 @@ implementation
     procedure TDebugInfoDwarf.appenddef_record(list:TAsmList;def:trecorddef);
       begin
         if assigned(def.typesym) then
+          appenddef_record_named(list,def,symname(def.typesym))
+        else
+          appenddef_record_named(list,def,'');
+      end;
+
+
+    procedure TDebugInfoDwarf.appenddef_record_named(list:TAsmList;def:trecorddef;const name: shortstring);
+      begin
+        if (name<>'') then
           append_entry(DW_TAG_structure_type,true,[
-            DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
+            DW_AT_name,DW_FORM_string,name+#0,
             DW_AT_byte_size,DW_FORM_udata,def.size
             ])
         else
@@ -3246,7 +3256,7 @@ implementation
     procedure TDebugInfoDwarf2.appenddef_variant(list:TAsmList;def: tvariantdef);
       begin
         { variants aren't known to dwarf2 but writting tvardata should be enough }
-        appenddef_record(list,trecorddef(vardatadef));
+        appenddef_record_named(list,trecorddef(vardatadef),'Variant');
       end;
 
     function TDebugInfoDwarf2.dwarf_version: Word;
