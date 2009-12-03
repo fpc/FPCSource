@@ -90,7 +90,7 @@ const
 
 Implementation
 
-{$if defined(macos) or defined(windows) or defined(shell_implemented)}
+{$if defined(macos) or defined(windows) or defined(shell_implemented) or defined(go32v2)}
 {$define usedos}
 {$endif}
 
