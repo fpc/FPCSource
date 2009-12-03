@@ -1104,6 +1104,7 @@ implementation
         inherited ppuload(t,ppufile);
         ppufile.getderef(rttidefderef);
         rttitype:=trttitype(ppufile.getbyte);
+        rttidatatype:=trttidatatype(ppufile.getbyte);
       end;
 
 
@@ -1112,6 +1113,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putderef(rttidefderef);
         ppufile.putbyte(byte(rttitype));
+        ppufile.putbyte(byte(rttidatatype));
       end;
 
 
@@ -1136,6 +1138,7 @@ implementation
          n:=trttinode(inherited dogetcopy);
          n.rttidef:=rttidef;
          n.rttitype:=rttitype;
+         n.rttidatatype:=rttidatatype;
          result:=n;
       end;
 
