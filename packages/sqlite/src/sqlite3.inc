@@ -3782,8 +3782,8 @@ type
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_bytes{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_bytes16{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_double{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cdouble; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_cint{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_cint64{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): sqlite3_int64; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_int{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): cint; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_int64{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): sqlite3_int64; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_text{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): pchar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_text16{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): pwidechar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}function{$ELSE}var{$ENDIF}sqlite3_value_text16le{$IFDEF D}: function{$ENDIF}(val: psqlite3_value): pwidechar; cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
@@ -4167,8 +4167,8 @@ type
 {$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_error_toobig{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_error_nomem{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_error_code{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: cint); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_cint{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: cint); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
-{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_cint64{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: sqlite3_int64); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_int{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: cint); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
+{$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_int64{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: sqlite3_int64); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_null{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_text{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: pchar; N: cint; D: sqlite3_destructor_type); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
 {$IFDEF S}procedure{$ELSE}var{$ENDIF}sqlite3_result_text16{$IFDEF D}: procedure{$ENDIF}(ctx: psqlite3_context; V: pwidechar; N: cint; D: sqlite3_destructor_type); cdecl;{$IFDEF S}external Sqlite3Lib;{$ENDIF}
@@ -5820,8 +5820,8 @@ begin
   pointer(sqlite3_value_bytes) := GetProcedureAddress(LibHandle,'sqlite3_value_bytes');
   pointer(sqlite3_value_bytes16) := GetProcedureAddress(LibHandle,'sqlite3_value_bytes16');
   pointer(sqlite3_value_double) := GetProcedureAddress(LibHandle,'sqlite3_value_double');
-  pointer(sqlite3_value_cint) := GetProcedureAddress(LibHandle,'sqlite3_value_cint');
-  pointer(sqlite3_value_cint64) := GetProcedureAddress(LibHandle,'sqlite3_value_cint64');
+  pointer(sqlite3_value_int) := GetProcedureAddress(LibHandle,'sqlite3_value_int');
+  pointer(sqlite3_value_int64) := GetProcedureAddress(LibHandle,'sqlite3_value_int64');
   pointer(sqlite3_value_text) := GetProcedureAddress(LibHandle,'sqlite3_value_text');
   pointer(sqlite3_value_text16) := GetProcedureAddress(LibHandle,'sqlite3_value_text16');
   pointer(sqlite3_value_text16le) := GetProcedureAddress(LibHandle,'sqlite3_value_text16le');
@@ -5882,8 +5882,8 @@ begin
   pointer(sqlite3_result_error_toobig) := GetProcedureAddress(LibHandle,'sqlite3_result_error_toobig');
   pointer(sqlite3_result_error_nomem) := GetProcedureAddress(LibHandle,'sqlite3_result_error_nomem');
   pointer(sqlite3_result_error_code) := GetProcedureAddress(LibHandle,'sqlite3_result_error_code');
-  pointer(sqlite3_result_cint) := GetProcedureAddress(LibHandle,'sqlite3_result_cint');
-  pointer(sqlite3_result_cint64) := GetProcedureAddress(LibHandle,'sqlite3_result_cint64');
+  pointer(sqlite3_result_int) := GetProcedureAddress(LibHandle,'sqlite3_result_int');
+  pointer(sqlite3_result_int64) := GetProcedureAddress(LibHandle,'sqlite3_result_int64');
   pointer(sqlite3_result_null) := GetProcedureAddress(LibHandle,'sqlite3_result_null');
   pointer(sqlite3_result_text) := GetProcedureAddress(LibHandle,'sqlite3_result_text');
   pointer(sqlite3_result_text16) := GetProcedureAddress(LibHandle,'sqlite3_result_text16');
