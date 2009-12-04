@@ -333,7 +333,9 @@ begin
             system_x86_64_darwin:
               LinkRes.Add('x86_64');
             system_arm_darwin:
-              LinkRes.Add(lower(cputypestr[current_settings.cputype]));
+              { don't specify architecture subtype, because then CPU_SUBTYPE_ALL
+                files, such as compiled resources, are rejected }
+              LinkRes.Add('arm');
           end;
       end;
   end;
