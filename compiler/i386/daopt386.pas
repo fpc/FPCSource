@@ -1086,7 +1086,7 @@ begin
     oldp := p;
     if (p.typ in SkipInstr) or
        ((p.typ = ait_marker) and
-        (tai_Marker(p).Kind in [mark_AsmBlockEnd,mark_InlineStart,mark_InlineEnd])) then
+        (tai_Marker(p).Kind in [mark_AsmBlockEnd,mark_NoLineInfoStart,mark_NoLineInfoEnd])) then
       GetNextInstruction(p,p)
     else if ((p.Typ = Ait_Marker) and
         (tai_Marker(p).Kind = mark_NoPropInfoStart)) then
@@ -1143,7 +1143,7 @@ begin
            ((p.typ = ait_label) and
             labelCanBeSkipped(tai_label(p))) or
            ((p.typ = ait_marker) and
-            (tai_Marker(p).Kind in [mark_AsmBlockEnd,mark_InlineStart,mark_InlineEnd]))) do
+            (tai_Marker(p).Kind in [mark_AsmBlockEnd,mark_NoLineInfoStart,mark_NoLineInfoEnd]))) do
          p := tai(p.next);
     while assigned(p) and
           (p.typ=ait_RegAlloc) Do

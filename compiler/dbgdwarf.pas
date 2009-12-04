@@ -2866,7 +2866,8 @@ implementation
         diffline,
         prevline,
         prevfileidx,
-        currfileidx: Integer;
+        currfileidx,
+        nolineinfolevel : Integer;
         prevlabel,
         currlabel     : tasmlabel;
       begin
@@ -2880,6 +2881,7 @@ implementation
         prevline := 1;
         prevfileidx := 1;
         prevlabel := nil;
+        nolineinfolevel:=0;
         while assigned(hp) do
           begin
             case hp.typ of
@@ -2890,13 +2892,24 @@ implementation
                   currfuncname:=tai_function_name(hp).funcname;
                   asmline.concat(tai_comment.Create(strpnew('function: '+currfuncname^)));
                 end;
-              ait_force_line : begin
-                lastfileinfo.line:=-1;
-              end;
+              ait_force_line :
+                begin
+                  lastfileinfo.line:=-1;
+                end;
+              ait_marker :
+                begin
+                  case tai_marker(hp).kind of
+                    mark_NoLineInfoStart:
+                      inc(nolineinfolevel);
+                    mark_NoLineInfoEnd:
+                      dec(nolineinfolevel);
+                  end;
+                end;
             end;
 
             if (currsectype=sec_code) and
-               (hp.typ=ait_instruction) then
+               (hp.typ=ait_instruction) and
+               (nolineinfolevel=0) then
               begin
                 currfileinfo:=tailineinfo(hp).fileinfo;
                 { file changed ? (must be before line info) }

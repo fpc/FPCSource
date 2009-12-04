@@ -253,7 +253,7 @@ interface
       TAsmMarker = (
         mark_NoPropInfoStart,mark_NoPropInfoEnd,
         mark_AsmBlockStart,mark_AsmBlockEnd,
-        mark_InlineStart,mark_InlineEnd,mark_BlockStart,
+        mark_NoLineInfoStart,mark_NoLineInfoEnd,mark_BlockStart,
         mark_Position
       );
 

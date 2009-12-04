@@ -1010,9 +1010,9 @@ interface
              end;
 
            ait_marker :
-             if tai_marker(hp).kind=mark_InlineStart then
+             if tai_marker(hp).kind=mark_NoLineInfoStart then
                inc(InlineLevel)
-             else if tai_marker(hp).kind=mark_InlineEnd then
+             else if tai_marker(hp).kind=mark_NoLineInfoEnd then
                dec(InlineLevel);
 
            ait_directive :

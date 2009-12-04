@@ -1116,11 +1116,17 @@ implementation
          if codegenerror then
            goto errorexit;
 
+         { don't generate line info for internal cleanup }
+         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
+
          cg.a_label(current_asmdata.CurrAsmList,exceptlabel);
 
          free_exception(current_asmdata.CurrAsmList, excepttemps, 0, endexceptlabel, false);
 
          cg.a_label(current_asmdata.CurrAsmList,doexceptlabel);
+
+         { end cleanup }
+         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
 
          { set control flow labels for the except block }
          { and the on statements                        }
@@ -1135,6 +1141,9 @@ implementation
          { on statements }
          if assigned(right) then
            secondpass(right);
+
+         { don't generate line info for internal cleanup }
+         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
 
          cg.a_label(current_asmdata.CurrAsmList,lastonlabel);
          { default handling except handling }
@@ -1285,6 +1294,9 @@ implementation
          unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
          cg.a_label(current_asmdata.CurrAsmList,endexceptlabel);
 
+         { end cleanup }
+         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
+
        errorexit:
          { restore all saved labels }
          endexceptlabel:=oldendexceptlabel;
@@ -1389,6 +1401,10 @@ implementation
 
               secondpass(right);
            end;
+
+         { don't generate lineinfo for internal cleanup }
+         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
+
          current_asmdata.getjumplabel(doobjectdestroy);
          cg.a_label(current_asmdata.CurrAsmList,doobjectdestroyandreraise);
 
@@ -1458,6 +1474,7 @@ implementation
          cg.a_label(current_asmdata.CurrAsmList,nextonlabel);
          flowcontrol:=oldflowcontrol+(flowcontrol-[fc_inflowcontrol]);
          paraloc1.done;
+         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
 
          { next on node }
          if assigned(left) then
@@ -1531,9 +1548,15 @@ implementation
                 exit;
            end;
 
+         { don't generate line info for internal cleanup }
+         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
+
          cg.a_label(current_asmdata.CurrAsmList,finallylabel);
          { just free the frame information }
          free_exception(current_asmdata.CurrAsmList,excepttemps,1,finallylabel,true);
+
+         { end cleanup }
+         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
 
          { finally code }
          flowcontrol:=[fc_inflowcontrol];
@@ -1544,6 +1567,9 @@ implementation
            CGMessage(cg_e_control_flow_outside_finally);
          if codegenerror then
            exit;
+
+         { don't generate line info for internal cleanup }
+         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoStart));
 
          { the value should now be in the exception handler }
          cg.g_exception_reason_load(current_asmdata.CurrAsmList,excepttemps.reasonbuf);
@@ -1636,6 +1662,9 @@ implementation
            end;
          unget_exception_temps(current_asmdata.CurrAsmList,excepttemps);
          cg.a_label(current_asmdata.CurrAsmList,endfinallylabel);
+
+         { end cleanup }
+         current_asmdata.CurrAsmList.concat(tai_marker.create(mark_NoLineInfoEnd));
 
          current_procinfo.CurrExitLabel:=oldCurrExitLabel;
          if assigned(current_procinfo.CurrBreakLabel) then
