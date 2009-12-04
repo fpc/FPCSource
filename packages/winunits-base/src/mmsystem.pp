@@ -245,6 +245,8 @@ Const
     MOD_SQSYNTH = 3;
     MOD_FMSYNTH = 4;
     MOD_MAPPER = 5;
+    MOD_WAVETABLE =  6;  { hardware wavetable synth }
+    MOD_SWSYNTH   =  7;  { software synth }
     MIDICAPS_VOLUME = 1;
     MIDICAPS_LRVOLUME = 2;
     MIDICAPS_CACHE = 4;
