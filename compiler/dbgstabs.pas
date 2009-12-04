@@ -60,6 +60,7 @@ interface
         writing_def_stabs  : boolean;
         global_stab_number : word;
         defnumberlist      : TFPObjectList;
+        vardatadef: trecorddef;
         { tsym writing }
         function  sym_var_value(const s:string;arg:pointer):string;
         function  sym_stabstr_evaluate(sym:tsym;const s:string;const vars:array of string):ansistring;
@@ -138,6 +139,7 @@ implementation
 
       tagtypes = [
         recorddef,
+        variantdef,
         enumdef,
         stringdef,
         filedef,
@@ -784,7 +786,9 @@ implementation
       var
         ss : ansistring;
       begin
-        ss:=def_stabstr_evaluate(def,'${numberstring};',[]);
+        ss:='s'+tostr(vardatadef.size);
+        vardatadef.symtable.SymList.ForEachCall(@field_add_stabstr,@ss);
+        ss[length(ss)]:=';';
         write_def_stabstr(list,def,ss);
       end;
 
@@ -1486,6 +1490,8 @@ implementation
         defnumberlist:=TFPObjectlist.create(false);
         stabsvarlist:=TAsmList.create;
         stabstypelist:=TAsmList.create;
+
+        vardatadef:=trecorddef(search_system_type('TVARDATA').typedef);
 
         { include symbol that will be referenced from the main to be sure to
           include this debuginfo .o file }
