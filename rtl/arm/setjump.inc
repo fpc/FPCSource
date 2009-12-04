@@ -34,7 +34,7 @@ function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJM
     {$else}
     stmia   r0,{v1-v6, sl, fp, sp, lr}
     mov     r0,#0
-    mov     pc,lr
+    bx      lr
     {$endif}
   end;
 

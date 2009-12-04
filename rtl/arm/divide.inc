@@ -107,12 +107,20 @@ asm
 .Ldiv_next:
   bcs .Ldiv_loop
   mov r0, r3
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
   mov pc, lr
+{$else}
+  bx  lr
+{$endif}
 .Ldiv_by_0:
   mov r0, #200
   mov r1, r11
   bl handleerrorframe
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
   mov pc, lr
+{$else}
+  bx  lr
+{$endif}
   {$endif}
   {$else}
   mov r3, #0
@@ -167,12 +175,20 @@ asm
 .Ldiv_next:
   bcs .Ldiv_loop
   mov r0, r3
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
   mov pc, lr
+{$else}
+  bx  lr
+{$endif}
 .Ldiv_by_0:
   mov r0, #200
   mov r1, r11
   bl handleerrorframe
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
   mov pc, lr
+{$else}
+  bx  lr
+{$endif}
   {$endif}
 end;
 

@@ -307,6 +307,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
   begin
     cw:=VFP_GetCW and not(_VFP_ENABLE_ALL);
 
+{$ifndef darwin}
     if exInvalidOp in Mask then
       cw:=cw or _VFP_ENABLE_IM;
 
@@ -324,6 +325,7 @@ function SetExceptionMask(const Mask: TFPUExceptionMask): TFPUExceptionMask;
 
     if exPrecision in Mask then
       cw:=cw or _VFP_ENABLE_PM;
+{$endif}
     VFP_SetCW(cw);
     result:=Mask;
 

@@ -527,8 +527,14 @@ unit cgcpu;
 
     procedure tcgarm.a_call_reg(list : TAsmList;reg: tregister);
       begin
-        list.concat(taicpu.op_reg_reg(A_MOV,NR_R14,NR_PC));
-        list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,reg));
+        { check not really correct: should only be used for non-Thumb cpus }
+        if (current_settings.cputype<cpu_armv6) then
+          begin
+            list.concat(taicpu.op_reg_reg(A_MOV,NR_R14,NR_PC));
+            list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,reg));
+          end
+        else
+          list.concat(taicpu.op_reg(A_BLX, reg));
 {
         the compiler does not properly set this flag anymore in pass 1, and
         for now we only need it after pass 2 (I hope) (JM)
@@ -543,8 +549,7 @@ unit cgcpu;
       begin
         a_reg_alloc(list,NR_R12);
         a_load_ref_reg(list,OS_ADDR,OS_ADDR,ref,NR_R12);
-        list.concat(taicpu.op_reg_reg(A_MOV,NR_R14,NR_PC));
-        list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R12));
+        a_call_reg(list,NR_R12);
         a_reg_dealloc(list,NR_R12);
         include(current_procinfo.flags,pi_do_call);
       end;
@@ -1653,7 +1658,12 @@ unit cgcpu;
                   end;
 
                 if regs=[] then
-                  list.concat(taicpu.op_reg_reg(A_MOV,NR_R15,NR_R14))
+                  begin
+                    if (current_settings.cputype<cpu_armv6) then
+                      list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14))
+                    else
+                      list.concat(taicpu.op_reg(A_BX,NR_R14))
+                  end
                 else
                   begin
                     reference_reset(ref,4);
@@ -1670,8 +1680,10 @@ unit cgcpu;
                 list.concat(setoppostfix(taicpu.op_ref_regset(A_LDM,ref,R_INTREGISTER,R_SUBWHOLE,regs),PF_EA));
               end;
           end
+        else if (current_settings.cputype<cpu_armv6) then
+          list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14))
         else
-          list.concat(taicpu.op_reg_reg(A_MOV,NR_PC,NR_R14));
+          list.concat(taicpu.op_reg(A_BX,NR_R14))
       end;
 
 

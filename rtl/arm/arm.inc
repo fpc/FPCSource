@@ -137,7 +137,11 @@ Procedure FillChar(var x;count:longint;value:byte);assembler;nostackframe;
 asm
         // less than 0?
         cmp r1,#0
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
         movlt pc,lr
+{$else}
+        bxlt  lr
+{$endif}
         mov     r3,r0
         cmp     r1,#8           // at least 8 bytes to do?
         blt     .LFillchar2
@@ -168,7 +172,11 @@ asm
         bge     .LFillchar1
 .LFillchar2:
         movs r1,r1              // anything left?
-        moveq pc,lr
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
+        moveq   pc,lr
+{$else}
+        bxeq    lr
+{$endif}
         rsb     r1,r1,#7
         add     pc,pc,r1,lsl #2
         mov     r0,r0
@@ -179,7 +187,11 @@ asm
         strb r2,[r3],#1
         strb r2,[r3],#1
         strb r2,[r3],#1
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
         mov pc,lr
+{$else}
+        bx  lr
+{$endif}
 end;
 {$endif FPC_SYSTEM_HAS_FILLCHAR}
 
@@ -191,7 +203,11 @@ asm
   pld [r1]
   // count <=0 ?
   cmp r2,#0
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
   movle pc,lr
+{$else}
+  bxle  lr
+{$endif}
   // overlap?
   cmp r1,r0
   bls .Lnooverlap
@@ -204,7 +220,11 @@ asm
   ldrb r3,[r0,r2]
   strb r3,[r1,r2]
   bne .Loverlapped
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
   mov pc,lr
+{$else}
+  bx  lr
+{$endif}
 .Lnooverlap:
   // less then 16 bytes to copy?
   cmp r2,#8
@@ -247,20 +267,32 @@ asm
   str r3,[r1],#4
   bcs .Ldwordloop
   cmp r2,#0
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
   moveq pc,lr
+{$else}
+  bxeq  lr
+{$endif}
 .Lbyteloop:
   subs r2,r2,#1
   ldrb r3,[r0],#1
   strb r3,[r1],#1
   bne .Lbyteloop
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
   mov pc,lr
+{$else}
+  bx  lr
+{$endif}
 end;
 
 procedure Move_blended(const source;var dest;count:longint);assembler;nostackframe;
 asm
   // count <=0 ?
   cmp r2,#0
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
   movle pc,lr
+{$else}
+  bxle  lr
+{$endif}
   // overlap?
   cmp r1,r0
   bls .Lnooverlap
@@ -273,7 +305,11 @@ asm
   ldrb r3,[r0,r2]
   strb r3,[r1,r2]
   bne .Loverlapped
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
   mov pc,lr
+{$else}
+  bx  lr
+{$endif}
 .Lnooverlap:
   // less then 16 bytes to copy?
   cmp r2,#8
@@ -311,13 +347,21 @@ asm
   str r3,[r1],#4
   bcs .Ldwordloop
   cmp r2,#0
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
   moveq pc,lr
+{$else}
+  bxeq  lr
+{$endif}
 .Lbyteloop:
   subs r2,r2,#1
   ldrb r3,[r0],#1
   strb r3,[r1],#1
   bne .Lbyteloop
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
   mov pc,lr
+{$else}
+  bx  lr
+{$endif}
 end;
 
 
@@ -492,7 +536,11 @@ asm
       terminating 0, due to the known carry flag sbc can do this.*)
     sbc r0,r1,r0
 .Ldone:
+{$if defined(cpuarmv3) or defined(cpuarmv4) or defined(cpuarmv5)}
     mov pc,lr
+{$else}
+    bx  lr
+{$endif}
 .L01010101:
     .long 0x01010101
 end;
@@ -512,7 +560,7 @@ asm
   cmp r2, #0
   bne .Lloop
   mov r0, r1
-  mov pc, lr
+  bx  lr
 {$else}
 // lock
   ldr r3, .Lfpc_system_lock
@@ -528,7 +576,7 @@ asm
   mov r0, r1
 // unlock and return
   str r2, [r3]
-  mov pc, lr
+  bx  lr
 
 .Lfpc_system_lock:
   .long fpc_system_lock
@@ -546,7 +594,7 @@ asm
   cmp r2, #0
   bne .Lloop
   mov r0, r1
-  mov pc, lr
+  bx  lr
 {$else}
 // lock
   ldr r3, .Lfpc_system_lock
@@ -562,7 +610,7 @@ asm
   mov r0, r1
 // unlock and return
   str r2, [r3]
-  mov pc, lr
+  bx  lr
 
 .Lfpc_system_lock:
   .long fpc_system_lock
@@ -580,7 +628,7 @@ asm
   cmp r3, #0
   bne .Lloop
   mov r0, r2
-  mov pc, lr
+  bx  lr
 {$else}
   swp r1, r1, [r0]
   mov r0,r1
@@ -597,7 +645,7 @@ asm
   cmp r3, #0
   bne .Lloop
   mov  r0, r2
-  mov pc, lr
+  bx  lr
 {$else}
 // lock
   ldr r3, .Lfpc_system_lock
@@ -614,7 +662,7 @@ asm
 // unlock and return
   mov r2, #0
   str r2, [r3]
-  mov pc, lr
+  bx  lr
 
 .Lfpc_system_lock:
   .long fpc_system_lock
@@ -633,7 +681,7 @@ asm
   cmp      r12, #0
   bne      .Lloop
   mov      r0, r3
-  mov      pc, lr
+  bx       lr
 {$else}
 // lock
   ldr r12, .Lfpc_system_lock
@@ -650,7 +698,7 @@ asm
 // unlock and return
   mov r3, #0
   str r3, [r12]
-  mov pc, lr
+  bx  lr
 
 .Lfpc_system_lock:
   .long fpc_system_lock
