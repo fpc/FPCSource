@@ -2246,13 +2246,6 @@ begin
           ForceStaticLinking;
         end;
     end;
-{$ifdef arm}
-  if (init_settings.cputype in [cpu_armv7m,cpu_cortexm3]) and
-     (init_settings.fputype in [fpu_vfpv2,fpu_vfpv3]) then
-    begin
-      Writeln(
-    end;
-{$endif arm}
 end;
 
 
