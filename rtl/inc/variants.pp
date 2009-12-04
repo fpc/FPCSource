@@ -2197,6 +2197,8 @@ begin
       RefAnyProc(Dest);
     end else if vType and varArray <> 0 then
       DoVarCopyArray(Dest, Source, @DoVarCopy)
+    else if (vType and varByRef <> 0) and (vType xor varByRef = varString) then
+      Dest := Source
     else if FindCustomVariantType(vType, Handler) then
       Handler.Copy(Dest, Source, False)
     else
