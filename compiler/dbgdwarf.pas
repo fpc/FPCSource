@@ -1469,7 +1469,7 @@ implementation
             current_asmdata.getaddrlabel(arr);
           append_entry(DW_TAG_structure_type,true,[
             DW_AT_name,DW_FORM_string,name+#0,
-            DW_AT_byte_size,DW_FORM_data1,2*sizeof(pint)
+            DW_AT_byte_size,DW_FORM_udata,qword(lendef.size)+slen
             ]);
           finish_entry;
 
