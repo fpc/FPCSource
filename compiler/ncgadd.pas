@@ -85,9 +85,9 @@ interface
     procedure tcgaddnode.pass_left_right;
       var
         tmpreg     : tregister;
-{$ifdef i386}
+{$ifdef x86}
         pushedfpu,
-{$endif i386}
+{$endif x86}
         isjump     : boolean;
         otl,ofl    : tasmlabel;
       begin
@@ -115,7 +115,7 @@ interface
             current_procinfo.CurrFalseLabel:=ofl;
           end;
 
-{$ifdef i386}
+{$ifdef x86}
         { are too few registers free? }
         pushedfpu:=false;
         if (left.location.loc=LOC_FPUREGISTER) and
@@ -124,7 +124,7 @@ interface
             location_force_mem(current_asmdata.CurrAsmList,left.location);
             pushedfpu:=true;
           end;
-{$endif i386}
+{$endif x86}
 
         isjump:=(right.expectloc=LOC_JUMP);
         if isjump then
@@ -142,7 +142,7 @@ interface
             current_procinfo.CurrTrueLabel:=otl;
             current_procinfo.CurrFalseLabel:=ofl;
           end;
-{$ifdef i386}
+{$ifdef x86}
         if pushedfpu then
           begin
             if use_vectorfpu(left.resultdef) then
@@ -165,7 +165,7 @@ interface
                   toggleflag(nf_swapped);
               end;
           end;
-{$endif i386}
+{$endif x86}
       end;
 
 
