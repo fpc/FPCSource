@@ -171,7 +171,12 @@ interface
           { if the include file is moved (otherwise, things still work  }
           { if your source hierarchy is the same, but has a different   }
           { base path)                                                  }
-          ds_stabs_abs_include_files
+          ds_stabs_abs_include_files,
+          { prefix method names by "classname__" in DWARF (like is done }
+          { for Stabs); not enabled by default, because otherwise once  }
+          { support for calling methods has been added to gdb, you'd    }
+          { always have to type classinstance.classname__methodname()   }
+          ds_dwarf_method_class_prefix
        );
        tdebugswitches = set of tdebugswitch;
 
@@ -215,8 +220,8 @@ interface
          'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
        );
 
-       DebugSwitchStr : array[tdebugswitch] of string[16] = ('',
-         'DWARFSETS','STABSABSINCLUDES');
+       DebugSwitchStr : array[tdebugswitch] of string[22] = ('',
+         'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX');
 
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1];

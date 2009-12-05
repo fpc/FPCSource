@@ -2928,8 +2928,9 @@ S*2Aas_Assemble using GNU AS
 *g2gh_Use heaptrace unit (for memory leak/corruption debugging)
 *g2gl_Use line info unit (show more info with backtraces)
 *g2go<x>_Set debug information options
-*g3godwarfsets_ Enable DWARF set debug information (breaks gdb < 6.5)
+*g3godwarfsets_ Enable DWARF 'set' type debug information (breaks gdb < 6.5)
 *g3gostabsabsincludes_ Store absolute/full include file paths in Stabs
+*g3godwarfmethodclassprefix_ Prefix method names in DWARF with class name
 *g2gp_Preserve case in stabs symbol names
 *g2gs_Generate Stabs debug information
 *g2gt_Trash local variables (to detect uninitialized uses)

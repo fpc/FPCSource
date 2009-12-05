@@ -2890,6 +2890,10 @@ implementation
         else if (sym.typ=typesym) and
                 is_objc_class_or_protocol(ttypesym(sym).typedef) then
           result:=tobjectdef(ttypesym(sym).typedef).objextname^
+        else if (ds_dwarf_method_class_prefix in current_settings.debugswitches) and
+                (sym.typ=procsym) and
+                (tprocsym(sym).owner.symtabletype=objectsymtable) then
+          result:=tprocsym(sym).owner.name^+'__'+sym.name
         else
           result:=sym.name;
       end;
