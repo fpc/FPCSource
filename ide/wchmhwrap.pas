@@ -160,7 +160,10 @@ begin
   for i:=0 to findex.items.count-1 do
     begin
       item:=findex.items.item[i];
-      tli:=TopicLinks^.AddItem('/'+item.local);
+      if (length(item.local)>0) and (item.local[1]<>'/') then
+        tli:=TopicLinks^.AddItem('/'+item.local)
+      else
+        tli:=TopicLinks^.AddItem(item.local)
       TLI:=EncodeHTMLCtx(ID,TLI+1);
       IndexEntries^.Insert(NewIndexEntry(  FormatAlias(item.text),ID,TLI));
     end;
