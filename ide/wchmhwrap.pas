@@ -163,7 +163,7 @@ begin
       if (length(item.local)>0) and (item.local[1]<>'/') then
         tli:=TopicLinks^.AddItem('/'+item.local)
       else
-        tli:=TopicLinks^.AddItem(item.local)
+        tli:=TopicLinks^.AddItem(item.local);
       TLI:=EncodeHTMLCtx(ID,TLI+1);
       IndexEntries^.Insert(NewIndexEntry(  FormatAlias(item.text),ID,TLI));
     end;
