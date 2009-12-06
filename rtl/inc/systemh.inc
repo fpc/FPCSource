@@ -994,7 +994,7 @@ procedure DumpExceptionBackTrace(var f:text);
 
 Procedure RunError(w:Word);
 Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}
-Procedure halt(errnum:byte);
+Procedure halt(errnum:Longint);
 {$ifdef FPC_HAS_FEATURE_HEAP}
 Procedure AddExitProc(Proc:TProcedure);
 {$endif FPC_HAS_FEATURE_HEAP}
