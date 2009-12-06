@@ -34,7 +34,7 @@ unit i_watcom;
             system       : system_i386_Watcom;
             name         : 'Watcom compatible DOS extenders';
             shortname    : 'WATCOM';
-            flags        : [tf_use_8_3,tf_use_function_relative_addresses];
+            flags        : [tf_use_8_3];
             cpu          : cpu_i386;
             unit_env     : 'WATCOMUNITS';
             extradefines : 'DPMI';

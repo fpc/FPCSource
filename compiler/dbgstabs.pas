@@ -1038,7 +1038,7 @@ implementation
         if target_info.cpu=cpu_powerpc64 then
           ss:=ss+'.';
         ss:=ss+def.mangledname;
-        if (tf_use_function_relative_addresses in target_info.flags) then
+        if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
           begin
             ss:=ss+'-';
             if target_info.cpu=cpu_powerpc64 then
@@ -1050,7 +1050,7 @@ implementation
         templist.concat(Tai_stab.Create(stab_stabn,p));
         // RBRAC
         ss:=tostr(N_RBRAC)+',0,0,'+stabsendlabel.name;
-        if (tf_use_function_relative_addresses in target_info.flags) then
+        if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
           begin
             ss:=ss+'-';
             if target_info.cpu=cpu_powerpc64 then
@@ -1605,7 +1605,7 @@ implementation
                 if (currfileinfo.line>lastfileinfo.line) and (currfileinfo.line<>0) then
                   begin
                      if assigned(currfuncname) and
-                        (tf_use_function_relative_addresses in target_info.flags) then
+                        not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
                       begin
                         current_asmdata.getlabel(hlabel,alt_dbgline);
                         list.insertbefore(Tai_stab.Create_str(stab_stabn,tostr(n_textline)+',0,'+tostr(currfileinfo.line)+','+

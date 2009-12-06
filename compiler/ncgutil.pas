@@ -2198,7 +2198,7 @@ implementation
             if assigned(previtem) and
                (target_info.system in systems_darwin) then
               list.concat(tai_directive.create(asd_reference,previtem.str));
-            if tf_use_function_relative_addresses in target_info.flags then
+            if not(af_stabs_use_function_absolute_addresses in target_asm.flags) then
               list.concat(Tai_function_name.create(item.str));
             previtem:=item;
             item := TCmdStrListItem(item.next);

@@ -34,7 +34,7 @@ unit i_wdosx;
             system       : system_i386_wdosx;
             name         : 'WDOSX DOS extender';
             shortname    : 'WDOSX';
-            flags        : [tf_use_8_3,tf_use_function_relative_addresses,tf_has_dllscanner];
+            flags        : [tf_use_8_3,tf_has_dllscanner];
             cpu          : cpu_i386;
             unit_env     : 'WDOSXUNITS';
             extradefines : 'MSWINDOWS';

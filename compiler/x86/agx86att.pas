@@ -353,7 +353,7 @@ interface
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
             supported_targets : [system_i386_linux,system_i386_OS2,system_i386_freebsd,system_i386_netbsd,system_i386_openbsd,system_i386_EMX,system_i386_embedded];
-            flags : [af_allowdirect,af_needar];
+            flags : [af_allowdirect,af_needar,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
             comment : '# ';
           );
@@ -366,7 +366,7 @@ interface
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM -arch i386';
             supported_targets : [system_i386_darwin];
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
             comment : '# ';
           );

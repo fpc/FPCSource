@@ -36,7 +36,7 @@ unit i_symbian;
             name         : 'Symbian OS for i386';
             shortname    : 'Symbian';
             flags        : [tf_files_case_aware, tf_has_dllscanner,
-                            tf_smartlink_library,tf_use_function_relative_addresses];
+                            tf_smartlink_library];
             cpu          : cpu_i386;
             unit_env     : 'SYMBIANUNITS';
             extradefines : 'SYMBIAN';
@@ -98,7 +98,6 @@ unit i_symbian;
             name         : 'Symbian OS for ARM';
             shortname    : 'Symbian';
             flags        : [tf_files_case_aware, tf_has_dllscanner,
-                            tf_use_function_relative_addresses,
                             tf_requires_proper_alignment,tf_no_pic_supported];
             cpu          : cpu_arm;
             unit_env     : 'SYMBIANUNITS';

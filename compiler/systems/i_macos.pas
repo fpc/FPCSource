@@ -33,7 +33,7 @@ unit i_macos;
             system       : system_powerpc_MACOS;
             name         : 'Mac OS for PowerPC';
             shortname    : 'MacOS';
-            flags        : [tf_p_ext_support,tf_files_case_aware,tf_use_function_relative_addresses];
+            flags        : [tf_p_ext_support,tf_files_case_aware];
             cpu          : cpu_powerpc;
             unit_env     : '';
             extradefines : '';

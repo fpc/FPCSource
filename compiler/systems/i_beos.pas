@@ -34,7 +34,7 @@ unit i_beos;
             system       : system_i386_BeOS;
             name         : 'Beos for i386';
             shortname    : 'Beos';
-            flags        : [tf_under_development,tf_needs_symbol_size,tf_files_case_sensitive,tf_use_function_relative_addresses,
+            flags        : [tf_under_development,tf_needs_symbol_size,tf_files_case_sensitive,
                             tf_smartlink_sections, tf_smartlink_library];
             cpu          : cpu_i386;
             unit_env     : 'BEOSUNITS';

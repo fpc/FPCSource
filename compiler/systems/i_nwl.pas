@@ -34,7 +34,7 @@ unit i_nwl;
             system       : system_i386_netwlibc;
             name         : 'Netware for i386(libc)';
             shortname    : 'Netwlibc';
-            flags        : [tf_use_function_relative_addresses,tf_smartlink_library];
+            flags        : [tf_smartlink_library];
             cpu          : cpu_i386;
             unit_env     : 'NETWLIBCUNITS';
             extradefines : 'NETWARE;NETWARE_LIBC';

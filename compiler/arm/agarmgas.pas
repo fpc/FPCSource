@@ -305,7 +305,7 @@ unit agarmgas;
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM -arch $ARCH';
             supported_targets : [system_arm_darwin];
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
             comment : '# ';
           );
