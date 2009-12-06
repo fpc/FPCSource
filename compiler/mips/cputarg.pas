@@ -42,16 +42,12 @@ implementation
     {$ifndef NOTARGETLINUX}
       ,t_linux
     {$endif}
-    {$ifndef NOTARGETSUNOS}
-      ,t_sunos
-    {$endif}
 
 {**************************************
              Assemblers
 **************************************}
 
       ,CpuGas
-
       ;
 
 end.
