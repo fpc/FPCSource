@@ -28,6 +28,10 @@ interface
 {$i systemh.inc}
 {$i gbabiosh.inc}
 
+{$i libch.inc}
+
+
+
 {$define fpc_softfpu_interface}
   {$i softfpu.pp}
 {$undef fpc_softfpu_interface}
@@ -48,23 +52,24 @@ const
  MaxPathLen = 255;
  AllFilesMask = '*';
 
-
  sLineBreak : string[1] = LineEnding;
  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
-const
   UnusedHandle    = $ffff;
   StdInputHandle  = 0;
   StdOutputHandle = 1;
   StdErrorHandle  = $ffff;
 
 
+
+
 var
   argc: LongInt = 0;
   argv: PPChar;
   envp: PPChar;
-  errno: integer;
+//  errno: integer;
   fake_heap_end: ^byte; cvar; external;
+
 
 procedure randomize(value: integer);
 
@@ -89,9 +94,12 @@ implementation
 {$i system.inc}
 {$i gbabios.inc}
 
+{$i libc.inc}
+
 {$ifdef FPC_HAS_FEATURE_PROCESSES}
 function GetProcessID: SizeUInt;
 begin
+  GetProcessID := 0;
 end;
 {$endif}
 
@@ -101,6 +109,7 @@ end;
 *****************************************************************************}
 procedure System_exit;
 begin
+
 end;
 
 
@@ -154,16 +163,16 @@ function paramstr(l : longint) : string;
 begin
   paramstr:='';
 end;
-{$endif}
+{$endif FPC_HAS_FEATURE_COMMANDARGS}
 
-{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 procedure SysInitStdIO;
 begin
   OpenStdIO(Input,fmInput,StdInputHandle);
   OpenStdIO(Output,fmOutput,StdOutputHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
 end;
-{$endif}
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
@@ -177,17 +186,19 @@ begin
   StackBottom := StackTop - StackLength;
 { OS specific startup }
 
+{ Set up signals handlers }
+  fpc_cpucodeinit;
+
 { Setup heap }
   InitHeap;
   SysInitExceptions;
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   { Setup stdin, stdout and stderr }
   SysInitStdIO;
-{$endif FPC_HAS_FEATURE_CONSOLEIO}
-{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   { Reset IO Error }
   InOutRes:=0;
 {$endif FPC_HAS_FEATURE_CONSOLEIO}
+
 {$ifdef FPC_HAS_FEATURE_THREADING}
   { threading }
   InitSystemThreads;

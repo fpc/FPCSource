@@ -40,7 +40,7 @@
 
 {$ifdef NDS_INTERFACE}
 const
-  EXCEPTION_VECTOR : ^VoidFunctionPointer = pointer($27FFD9C);
+  EXCEPTION_VECTOR : ^VoidFunctionPointer = pointer($2FFFD9C);
 
 var
   exceptionC: ^VoidFunctionPointer; cvar; external;

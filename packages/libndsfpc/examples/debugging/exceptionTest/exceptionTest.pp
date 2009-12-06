@@ -16,7 +16,7 @@ begin
   defaultExceptionHandler();
 
   // generate an exception
-  pu32(250)^ := 100;
+  pu32(8192)^ := 100;
   
   while true do
     swiWaitForVBlank();

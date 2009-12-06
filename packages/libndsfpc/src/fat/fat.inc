@@ -41,7 +41,7 @@
 function fatInit(cacheSize: cuint32; setAsDefaultDevice: cbool): cbool; cdecl; external;
 function fatInitDefault(): cbool; cdecl; external;
 function fatMountSimple (const name: pcchar; const ainterface: PDISC_INTERFACE): cbool; cdecl; external;
-function fatMount (const name: pcchar; const ainterface: PDISC_INTERFACE; startSector, cacheSize: cuint32): cbool; cdecl; external;
+function fatMount (const name: pcchar; const ainterface: PDISC_INTERFACE; startSector, cacheSize, SectorsPerPage: cuint32): cbool; cdecl; external;
 function fatUnmount(const name: pcchar): cbool; cdecl; external;
 {$endif NDS_INTERFACE}
 
