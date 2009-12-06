@@ -137,7 +137,7 @@ const
 {$ifdef sparc}  platform_select='-b elf32-sparc -m elf32_sparc';{$endif}
 {$ifdef arm}    platform_select='';{$endif} {unknown :( }
 {$ifdef m68k}    platform_select='';{$endif} {unknown :( }
-{$ifdef mips}    platform_select='';{$endif} {unknown :( }
+{$ifdef mipsel}    platform_select='-EL';{$endif} {unknown :( }
 
 var
   defdynlinker: string;
