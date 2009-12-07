@@ -200,7 +200,7 @@ type
 const
   REG_KEYINPUT	: pcuint16 = pointer($04000130);
   REG_KEYCNT		: pcuint16 = pointer($04000132);
-  PersonalData  : PPERSONAL_DATA = pointer($27FFC80);
+  PersonalData  : PPERSONAL_DATA = pointer($2FFFC80);
 
 
 type 
@@ -216,7 +216,7 @@ type
   Pargv = ^Targv;
 
 const
-  __system_argv: Pargv = pointer($027FFF70);
+  __system_argv: Pargv = pointer($02FFFE70);
   ARGV_MAGIC = $5f617267;
   
 
@@ -231,6 +231,13 @@ type
     seconds: cuint8;     // 0 to 59
     padding: cuint8;
   end;
+
+
+{$ifdef ARM9}
+procedure memCached(address: pointer); cdecl; external;
+procedure memUncached(address: pointer); cdecl; external;
+{$endif ARM9}
+
 
 {$endif NDS_INTERFACE}
 

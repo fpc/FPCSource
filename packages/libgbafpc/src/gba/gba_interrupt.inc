@@ -49,7 +49,7 @@ type
 
   IntTable = record
     handler: IntFn;
-    mask: u32;
+    mask: cuint32;
   end;
   PIntTable = ^IntTable;
 
@@ -87,7 +87,7 @@ const
 
 var
 //  IntrTable: array [0..MAX_INTS-1] of IntTable; cvar; // cvar used in order to gain access from assembly unit
-  IntrTable: array [0..0] of IntTable; cvar; external;
+  IntrTable: array [0..0] of IntTable; cvar; external;         
 
 procedure irqInit(); cdecl; external;
 

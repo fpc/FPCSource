@@ -37,8 +37,9 @@ var
   sprites: array[0..4] of MySprite;
 
 
-function myEventHandler(msg, param: mm_word): mm_callback;
-begin
+<<<<<<< .minefunction myEventHandler(msg, param: mm_word): mm_word;
+=======function myEventHandler(msg, param: mm_word): pmm_word;
+>>>>>>> .theirsbegin
   case msg of
     MMCB_SONGMESSAGE:	// process song messages
     begin
@@ -50,7 +51,7 @@ begin
     end;
     MMCB_SONGFINISHED:;	// process song finish message (only triggered in songs played with MM_PLAY_ONCE)
   end;
-  result := nil;
+  result := 0;
 end;
 
 

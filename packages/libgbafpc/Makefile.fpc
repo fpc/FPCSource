@@ -9,7 +9,7 @@ version=2.4.0
 [target]
 loaders=core_asm
 units=gba maxmod
-exampledirs=examples
+#exampledirs=examples
 
 
 [compiler]

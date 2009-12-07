@@ -20,9 +20,8 @@ target=nds
 fpcdir=../../../../../..
 
 [clean]
-files=*.elf *.o *.s *.nds *.nef *.h *.bin *.map \
-       $(BUILD)/* \
-       $(INC)/*
+files=*.elf *.o *.s *.nds *.nef *.h *.bin \
+       $(BUILD)/*
 units=*
 
 [prerules]
@@ -32,17 +31,9 @@ GFX_FILES = $(foreach dir,gfx,$(notdir $(wildcard $(dir)/*.png)))
 
 [rules]
 .NOTPARALLEL:
-clean: dir_delete fpc_clean fpc_cleanall
 all: direc fpc_all 
-
-#
-# Delete temp directories
-#
-dir_delete:
-        @$(DELTREE) $(CURDIR)/$(BUILD)
-        @$(DELTREE) $(CURDIR)/$(INC)
-
-direc:
+<<<<<<< .mine=======
+>>>>>>> .theirsdirec:
 ifneq ($(BUILD), $(CURDIR))
         $(MKDIR) $(BUILD)
 endif

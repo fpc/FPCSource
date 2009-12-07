@@ -12,10 +12,10 @@ units=$(SYSTEMUNIT) objpas macpas strings \
       sysutils \
       classes math typinfo varutils fmtbcd ctypes \
       charset ucomplex getopts matrix \
-      variants types rtlconsts sysconst dateutil fgl \
+      variants types rtlconsts sysconst dateutil lineinfo fgl \
 #      exec timer doslib utility hardware inputevent graphics layers \
 # these can be moved to packages later
-#      clipboard datatypes asl ahi tinygl get9 muihelper lineinfo \
+#      clipboard datatypes asl ahi tinygl get9 muihelper  \
 #rsts=math rtlconsts varutils typinfo variants classes sysconst dateutil
 # implicitunits=exeinfo
 
@@ -42,7 +42,6 @@ COMMON=$(RTL)/common
 PROCINC=$(RTL)/$(CPU_TARGET)
 UNITPREFIX=rtl
 SYSTEMUNIT=system
-BINUTILSPREFIX=arm-eabi-
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -179,7 +178,7 @@ getopts$(PPUEXT) : $(INC)/getopts.pp $(SYSTEMUNIT)$(PPUEXT)
 heaptrc$(PPUEXT) : $(INC)/heaptrc.pp $(SYSTEMUNIT)$(PPUEXT)
         $(COMPILER) -Sg $(INC)/heaptrc.pp $(REDIR)
 
-#lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
+lineinfo$(PPUEXT) : $(INC)/lineinfo.pp $(SYSTEMUNIT)$(PPUEXT)
 #lnfodwrf$(PPUEXT) : $(INC)/lnfodwrf.pp $(SYSTEMUNIT)$(PPUEXT)
 
 charset$(PPUEXT) : $(INC)/charset.pp $(SYSTEMUNIT)$(PPUEXT)

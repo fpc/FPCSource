@@ -48,7 +48,7 @@
 
 {$ifdef GBA_INTERFACE}
 {$H+}
-
+    (*
 procedure memset16(dest: pointer; hw: word; hwcount: dword); cdecl; external;
 procedure memcpy16(dest: pointer; const src: pointer; hwcount: dword); cdecl; external;
 
@@ -71,7 +71,7 @@ function realloc(ptr: pointer; size: integer): pointer; cdecl; external;
 procedure free(ptr: pointer); cdecl; external;
 function memcpy(dest: pointer; src: pointer; n: integer): pointer; cdecl; external;
 
-(* libc file handling types and routines *)
+
 type
   _FILE = record
     firstCluster: cuint;
@@ -105,7 +105,6 @@ function ftell(stream: P_FILE): longint; cdecl; external;
 function fseek(stream: P_FILE; off: longint; whence: longint): longint; cdecl; external;
 function fclose(stream: P_FILE): longint; cdecl; external;
 
-(* Directory iterator for mantaining state between dir* calls *)
 type
   DIR_ITER = record
     device: cint;
@@ -160,7 +159,7 @@ function diropen(const path: pchar): PDIR_ITER; cdecl; external;
 function dirreset(dirState: PDIR_ITER): cint; cdecl; external;
 function dirnext(dirState: PDIR_ITER; filename: pchar; filestat: Pstat): cint; cdecl; external;
 function dirclose(dirState: PDIR_ITER): cint; cdecl; external;
-
+  *)
 procedure DebugPrint(s: string); assembler; inline;
 function GBAIntToStr(i: integer): string;
 
