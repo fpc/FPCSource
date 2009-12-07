@@ -343,6 +343,7 @@ var
   lockop: cint;
   lockres: cint;
   closeres: cint;
+  lockerr: cint;
 begin
   DoFileLocking:=Handle;
 {$ifdef beos}
@@ -392,7 +393,13 @@ begin
         lockres:=fpflock(Handle,lockop);
       until (lockres=0) or
             (fpgeterrno<>ESysEIntr);
-      if (lockres<>0) then
+      lockerr:=fpgeterrno;
+      { Only return an error if locks are working and the file was already
+        locked. Not if locks are simply unsupported (e.g., on Angstrom Linux
+        you always get ESysNOLCK in the default configuration) }
+      if (lockres<>0) and
+         ((lockerr=ESysEAGAIN) or
+          (lockerr=EsysEDEADLK)) then
         begin
           repeat
             closeres:=FpClose(Handle);
