@@ -18,6 +18,14 @@
                          IOCtl and Termios calls
 ******************************************************************************}
 
+{ Old version directly called the C code but
+  this is wrong if the constant is pusehd directly on stack,
+  without passing the address as is done for i386 code generator PM }
+
+function tcsetattr(_para1:cint; _para2:cint; const _para3:termios):cint;cdecl;
+  begin
+    tcsetattr:=tcsetattr(_para1,_para2,@_para3);
+  end;
 
 
 Procedure CFMakeRaw(var tios:TermIOS);
