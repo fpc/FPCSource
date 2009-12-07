@@ -2,7 +2,7 @@ program console;
 
 uses
   gba;
-
+           
 begin
   // the vblank interrupt must be enabled for VBlankIntrWait() to work
   // since the default dispatcher handles the bios flags no vblank handler
