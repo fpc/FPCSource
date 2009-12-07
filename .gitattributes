@@ -442,6 +442,7 @@ compiler/ppcgen/ngppccnv.pas svneol=native#text/plain
 compiler/ppcgen/ngppcinl.pas svneol=native#text/plain
 compiler/ppcgen/ngppcset.pas svneol=native#text/plain
 compiler/ppcgen/rgcpu.pas svneol=native#text/plain
+compiler/ppcmipsel.lpi svneol=native#text/plain
 compiler/ppcppc.lpi svneol=native#text/plain
 compiler/ppcsparc.lpi svneol=native#text/plain
 compiler/ppheap.pas svneol=native#text/plain
