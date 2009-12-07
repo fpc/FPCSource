@@ -181,11 +181,13 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
     my0 : size_t;
     err: cint;
   begin
+{$ifndef VER2_2}
     if PtrInt(iconv_wide2ansi)=-1 then
       begin
         DefaultUnicode2AnsiMove(source,dest,len);
 	exit;
       end;
+{$endif VER2_2}
     mynil:=nil;
     my0:=0;
     { rought estimation }
@@ -245,12 +247,13 @@ procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
     my0 : size_t;
     err: cint;
   begin
+{$ifndef VER2_2}
     if PtrInt(iconv_ansi2wide)=-1 then
       begin
         DefaultAnsi2UnicodeMove(source,dest,len);
 	exit;
       end;
-
+{$endif VER2_2}
     mynil:=nil;
     my0:=0;
     // extra space
