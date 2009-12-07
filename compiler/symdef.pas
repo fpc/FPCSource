@@ -3367,7 +3367,10 @@ implementation
         else
           begin
             { safety }
-            funcretsym:=nil;
+            { Not safe! A unit may be reresolved after its interface has been
+              parsed but before its implementation has been parsed, and in that
+              case the funcretsym is still required!
+            funcretsym:=nil; }
           end;
       end;
 
