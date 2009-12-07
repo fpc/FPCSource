@@ -415,7 +415,7 @@ begin
         S:=StaticLibFiles.GetFirst;
         LinkRes.AddFileName(maybequoted(s))
       end;
-     linkres.add('(-'); 
+     linkres.add('-)'); 
    end;
 
   { Write sharedlibraries like -l<lib>, also add the needed dynamic linker
