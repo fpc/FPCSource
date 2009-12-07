@@ -2961,6 +2961,7 @@ begin
     Result := OldAttr;
     if Assigned(OldAttr.FNSI.QName) then  // safeguard
       FAttributes.RestoreDefault(OldAttr.FNSI.QName^.Key);
+    Result.FOwnerElement := nil;
   end
   else
     raise EDOMNotFound.Create('Element.RemoveAttributeNode');

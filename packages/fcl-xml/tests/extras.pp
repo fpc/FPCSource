@@ -29,6 +29,7 @@ type
     procedure attr_ownership02;
     procedure attr_ownership03;
     procedure attr_ownership04;
+    procedure attr_ownership05;
     procedure nsFixup1;
     procedure nsFixup2;
     procedure nsFixup3;
@@ -114,6 +115,24 @@ begin
   AssertSame('retNode', attr, retNode);
   AssertNull('ownerElement_after', attr.OwnerElement);
   AssertEquals('ownerElement2', el, attr2.OwnerElement);
+end;
+
+
+// verify that Element.removeAttributeNode() resets ownerElement
+// of the attribute being removed
+procedure TDOMTestExtra.attr_ownership05;
+var
+  doc: TDOMDocument;
+  el: TDOMElement;
+  attr: TDOMAttr;
+begin
+  LoadStringData(doc, '<doc/>');
+  el := doc.CreateElement('element1');
+  attr := doc.CreateAttributeNS('http://www.freepascal.org', 'fpc:newAttr');
+  el.SetAttributeNodeNS(attr);
+  AssertEquals('ownerElement_before', el, attr.OwnerElement);
+  el.RemoveAttributeNode(attr);
+  AssertNull('ownerElement_after', attr.ownerElement);
 end;
 
 const
