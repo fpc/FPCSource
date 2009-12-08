@@ -2166,13 +2166,9 @@ begin
 
   ID := Attr.Value;
   p := FIDList.FindOrAdd(DOMPChar(ID), Length(ID), Exists);
-  if not Exists then
-  begin
+  Result := not Exists;
+  if Result then
     p^.Data := Attr.OwnerElement;
-    Result := True;
-  end
-  else
-    Result := False;
 end;
 
 // This shouldn't be called if document has no IDs,
@@ -2951,14 +2947,9 @@ end;
 function TDOMElement.RemoveAttributeNode(OldAttr: TDOMAttr): TDOMAttr;
 begin
   Changing;
-  Result:=nil;
-  // TODO: DOM 2: must raise NOT_FOUND_ERR if OldAttr is not ours.
-  //       -- but what is the purpose of return value then?
-  // TODO: delegate to TNamedNodeMap?  Nope, it does not have such method
-  // (note) one way around is to remove by name
+  Result:=OldAttr;
   if Assigned(FAttributes) and (FAttributes.FList.Remove(OldAttr) > -1) then
   begin
-    Result := OldAttr;
     if Assigned(OldAttr.FNSI.QName) then  // safeguard
       FAttributes.RestoreDefault(OldAttr.FNSI.QName^.Key);
     Result.FOwnerElement := nil;
