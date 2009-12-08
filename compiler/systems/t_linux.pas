@@ -130,14 +130,18 @@ procedure TLinkerLinux.SetDefaultInfo;
 }
 
 const
-{$ifdef i386}   platform_select='-b elf32-i386 -m elf_i386';{$endif}
-{$ifdef x86_64} platform_select='-b elf64-x86-64 -m elf_x86_64';{$endif}
-{$ifdef powerpc}platform_select='-b elf32-powerpc -m elf32ppclinux';{$endif}
-{$ifdef POWERPC64}  platform_select='-b elf64-powerpc -m elf64ppc';{$endif}
-{$ifdef sparc}  platform_select='-b elf32-sparc -m elf32_sparc';{$endif}
-{$ifdef arm}    platform_select='';{$endif} {unknown :( }
-{$ifdef m68k}    platform_select='';{$endif} {unknown :( }
-{$ifdef mipsel}    platform_select='-EL';{$endif} {unknown :( }
+{$ifdef i386}      platform_select='-b elf32-i386 -m elf_i386';{$endif}
+{$ifdef x86_64}    platform_select='-b elf64-x86-64 -m elf_x86_64';{$endif}
+{$ifdef powerpc}   platform_select='-b elf32-powerpc -m elf32ppclinux';{$endif}
+{$ifdef POWERPC64} platform_select='-b elf64-powerpc -m elf64ppc';{$endif}
+{$ifdef sparc}     platform_select='-b elf32-sparc -m elf32_sparc';{$endif}
+{$ifdef arm}       platform_select='';{$endif} {unknown :( }
+{$ifdef m68k}      platform_select='';{$endif} {unknown :( }
+{$ifdef mips}
+  {$ifdef mipsel}  platform_select='-EL';{$else}
+                   platform_select='-EB';{$endif}
+{$endif}
+
 
 var
   defdynlinker: string;
