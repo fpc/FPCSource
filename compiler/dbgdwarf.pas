@@ -1433,7 +1433,8 @@ implementation
         begin
           { fix length of openshortstring }
           slen:=aword(def.len);
-          if slen=0 then
+          if (slen=0) or
+             (slen>maxlen) then
             slen:=maxlen;
 
           { create a structure with two elements }
@@ -1443,7 +1444,7 @@ implementation
             current_asmdata.getaddrlabel(arr);
           append_entry(DW_TAG_structure_type,true,[
             DW_AT_name,DW_FORM_string,name+#0,
-            DW_AT_byte_size,DW_FORM_data1,2*sizeof(pint)
+            DW_AT_byte_size,DW_FORM_udata,qword(lendef.size)+slen
             ]);
           finish_entry;
 
@@ -1494,10 +1495,19 @@ implementation
             end;
           st_longstring:
             begin
+              { a) we don't actually support variables of this type currently
+                b) this type is only used as the type for constant strings
+                   > 255 characters
+                c) in such a case, gdb will allocate and initialise enough
+                   memory to hold the maximum size for such a string
+                -> don't use high(qword)/high(cardinal) as maximum, since that
+                 will cause exhausting the VM space, but some "reasonably high"
+                 number that should be enough for most constant strings
+              }
 {$ifdef cpu64bitaddr}
-              addnormalstringdef('LongString',u64inttype,qword(-1));
+              addnormalstringdef('LongString',u64inttype,qword(1024*1024));
 {$else cpu64bitaddr}
-              addnormalstringdef('LongString',u32inttype,cardinal(-1));
+              addnormalstringdef('LongString',u32inttype,cardinal(1024*1024));
 {$endif cpu64bitaddr}
            end;
          st_ansistring:
@@ -2141,24 +2151,62 @@ implementation
 
 
     procedure TDebugInfoDwarf.appendsym_const(list:TAsmList;sym:tconstsym);
+      var
+        i: aint;
+        usedef: tdef;
       begin
-        append_entry(DW_TAG_constant,false,[
+        append_entry(DW_TAG_variable,false,[
           DW_AT_name,DW_FORM_string,symname(sym)+#0
           ]);
         { for string constants, constdef isn't set because they have no real type }
-        if not(sym.consttyp in [conststring,constresourcestring,constwstring]) then
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.constdef));
+        case sym.consttyp of
+          conststring:
+            begin
+              { if DW_FORM_string is used below one day, this usedef should
+                probably become 0 }
+              if (sym.value.len<=255) then
+                usedef:=cshortstringtype
+              else
+                usedef:=clongstringtype;
+            end;
+          constresourcestring,
+          constwstring:
+            usedef:=nil;
+          else
+            usedef:=sym.constdef;
+          end;
+        if assigned(usedef) then
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(usedef));
         current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_AT_const_value)));
         case sym.consttyp of
           conststring:
             begin
-              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_string)));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(strpas(pchar(sym.value.valueptr))));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(0));
+              { DW_FORM_string isn't supported yet by the Pascal value printer
+                -> create a string using raw bytes }
+              if (sym.value.len<=255) then
+                begin
+                  current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block1)));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sym.value.len+1));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sym.value.len));
+                end
+              else
+                begin
+                  current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block)));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(sym.value.len+sizeof(pint)));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_pint(sym.value.len));
+                end;
+              for i:=0 to sym.value.len-1 do
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit((pbyte(sym.value.valueptr+i)^)));
             end;
-          constset,
-          constwstring,
           constguid,
+          constset:
+            begin
+              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block1)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(usedef.size));
+              for i:=0 to sym.constdef.size-1 do
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit((pbyte(sym.value.valueptr+i)^)));
+            end;
+          constwstring,
           constresourcestring:
             begin
               { write dummy for now }
@@ -2168,8 +2216,16 @@ implementation
             end;
           constord:
             begin
-              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_sdata)));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(sym.value.valueord.svalue));
+              if (sym.value.valueord<0) then
+                begin
+                  current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_sdata)));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(sym.value.valueord.svalue));
+                end
+              else
+                begin
+                  current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_udata)));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(sym.value.valueord.uvalue));
+                end;
             end;
           constnil:
             begin
@@ -2714,6 +2770,10 @@ implementation
         if (sym.typ=paravarsym) and
            (vo_is_self in tparavarsym(sym).varoptions) then
           result:='this'
+        else if (ds_dwarf_method_class_prefix in current_settings.debugswitches) and
+                (sym.typ=procsym) and
+                (tprocsym(sym).owner.symtabletype=objectsymtable) then
+          result:=tprocsym(sym).owner.name^+'__'+sym.name
         else
           result := sym.Name;
       end;
