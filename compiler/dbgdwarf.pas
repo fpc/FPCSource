@@ -2305,10 +2305,11 @@ implementation
                 end;
               i:=0;
               size:=sym.value.len;
-              repeat
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit((pbyte(sym.value.valueptr+i)^)));
-                inc(i);
-              until (i=size);
+              while(i<size) do
+                begin
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit((pbyte(sym.value.valueptr+i)^)));
+                  inc(i);
+                end;
             end;
           constguid,
           constset:
@@ -2317,10 +2318,11 @@ implementation
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(usedef.size));
               i:=0;
               size:=sym.constdef.size;
-              repeat
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit((pbyte(sym.value.valueptr+i)^)));
-                inc(i);
-              until(i=size);
+              while (i<size) do
+                begin
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit((pbyte(sym.value.valueptr+i)^)));
+                  inc(i);
+                end;
             end;
           constwstring,
           constresourcestring:
