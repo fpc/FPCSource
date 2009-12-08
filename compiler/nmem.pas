@@ -893,7 +893,12 @@ implementation
          else if is_widestring(left.resultdef) and (tf_winlikewidestring in target_info.flags) then
            exclude(flags,nf_callunique);
 
-         if (not is_packed_array(left.resultdef)) or
+         { a range node as array index can only appear in function calls, and
+           those convert the range node into something else in
+           tcallnode.gen_high_tree }
+         if (right.nodetype=rangen) then
+           CGMessagePos(right.fileinfo,parser_e_illegal_expression)
+         else if (not is_packed_array(left.resultdef)) or
             ((tarraydef(left.resultdef).elepackedbitsize mod 8) = 0) then
            if left.expectloc=LOC_CREFERENCE then
              expectloc:=LOC_CREFERENCE
