@@ -98,7 +98,6 @@ implementation
         href    : treference;
         pool    : THashSet;
         entry   : PHashSetItem;
-        typename: string;
 
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
