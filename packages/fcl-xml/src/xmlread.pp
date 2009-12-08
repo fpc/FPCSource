@@ -367,7 +367,7 @@ type
     procedure SkipQuote(out Delim: WideChar; required: Boolean = True);
     procedure Initialize(ASource: TXMLCharSource);
     function ContextPush(AEntity: TDOMEntityEx): Boolean;
-    function ContextPop: Boolean;
+    function ContextPop(Forced: Boolean = False): Boolean;
     procedure XML11_BuildTables;
     procedure ParseQuantity(CP: TContentParticle);
     procedure StoreLocation(out Loc: TLocation);
@@ -1474,7 +1474,7 @@ begin
   FreeMem(FName.Buffer);
   FreeMem(FValue.Buffer);
   if Assigned(FSource) then
-    while ContextPop do;     // clean input stack
+    while ContextPop(True) do;     // clean input stack
   FSource.Free;
   FPEMap.Free;
   ClearRefs(FNotationRefs);
@@ -1796,12 +1796,12 @@ begin
   Result := True;
 end;
 
-function TXMLReader.ContextPop: Boolean;
+function TXMLReader.ContextPop(Forced: Boolean): Boolean;
 var
   Src: TXMLCharSource;
   Error: Boolean;
 begin
-  Result := Assigned(FSource.FParent) and (FSource.DTDSubsetType = dsNone);
+  Result := Assigned(FSource.FParent) and (Forced or (FSource.DTDSubsetType = dsNone));
   if Result then
   begin
     Src := FSource.FParent;
@@ -1876,8 +1876,7 @@ begin
       FreeMem(FValue.Buffer);
       FValue := SaveValue;
       Result.SetReadOnly(True);
-      FSource.DTDSubsetType := dsNone;
-      ContextPop;
+      ContextPop(True);
       FCursor := SaveCursor;
       FState := SaveState;
       FValidator[FNesting].FElementDef := SaveElDef;
@@ -2298,8 +2297,7 @@ begin
         Src.DTDSubsetType := dsExternal;
         ParseMarkupDecl;
       finally
-        Src.DTDSubsetType := dsNone;
-        ContextPop;
+        ContextPop(True);
       end;
     end
     else
