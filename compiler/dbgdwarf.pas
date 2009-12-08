@@ -2251,7 +2251,8 @@ implementation
 
     procedure TDebugInfoDwarf.appendsym_const(list:TAsmList;sym:tconstsym);
       var
-        i: aint;
+        i,
+        size: aint;
         usedef: tdef;
       begin
         { These are default values of parameters. These should be encoded
@@ -2302,16 +2303,24 @@ implementation
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(sym.value.len+sizeof(pint)));
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_pint(sym.value.len));
                 end;
-              for i:=0 to sym.value.len-1 do
+              i:=0;
+              size:=sym.value.len;
+              repeat
                 current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit((pbyte(sym.value.valueptr+i)^)));
+                inc(i);
+              until (i=size);
             end;
           constguid,
           constset:
             begin
               current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block1)));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(usedef.size));
-              for i:=0 to sym.constdef.size-1 do
+              i:=0;
+              size:=sym.constdef.size;
+              repeat
                 current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit((pbyte(sym.value.valueptr+i)^)));
+                inc(i);
+              until(i=size);
             end;
           constwstring,
           constresourcestring:
