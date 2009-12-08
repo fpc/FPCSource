@@ -694,7 +694,7 @@ implementation
                 if token<>_SEMICOLON then
                   p:=statement
                 else
-                  p:=cerrornode.create;
+                  p:=cnothingnode.create;
               end;
 
             { remove symtables in reverse order from the stack }
