@@ -515,9 +515,11 @@ implementation
 
                   stringdef :
                     begin
+                        if (p2.nodetype<>stringconstn) then
+                          Message(parser_e_illegal_expression)
                         { if we've already set elements which are constants }
                         { throw an error                                    }
-                        if ((hdef=nil) and assigned(buildp)) or
+                        else if ((hdef=nil) and assigned(buildp)) or
                           not(is_char(hdef)) then
                           CGMessage(type_e_typeconflict_in_set)
                         else
