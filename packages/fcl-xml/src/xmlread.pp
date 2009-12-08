@@ -1131,7 +1131,11 @@ begin
   if BytesRead < FCapacity then
     FEof := True;
   FCharBufEnd := FAllocated + (Slack-4) + BytesRead;
-  PWideChar(FCharBufEnd)^ := #0;
+  { Null-termination has been removed:
+    1) Built-in decoders don't need it because they respect the buffer length.
+    2) It was causing unaligned access errors on ARM CPUs.
+  }
+  //PWideChar(FCharBufEnd)^ := #0;
 end;
 
 { TXMLFileInputSource }
