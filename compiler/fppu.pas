@@ -1094,7 +1094,11 @@ uses
            begin
              tstoredsymtable(globalsymtable).buildderef;
              derefdataintflen:=derefdata.size;
-           end;
+           end
+         else
+           { the unit may have been re-resolved, in which case the current
+             position in derefdata is not necessarily at the end }
+            derefdata.seek(derefdata.size);
          tstoredsymtable(globalsymtable).buildderefimpl;
          if (flags and uf_local_symtable)<>0 then
            begin
