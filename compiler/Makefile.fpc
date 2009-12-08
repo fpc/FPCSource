@@ -32,7 +32,7 @@ fpcdir=..
 unexport FPC_VERSION FPC_COMPILERINFO
 
 # Which platforms are ready for inclusion in the cycle
-CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb # mipsel mips
+CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips
 
 # All supported targets used for clean
 ALLTARGETS=$(CYCLETARGETS)
@@ -148,6 +148,12 @@ endif
 ifeq ($(CPC_TARGET),arm)
 CPUSUF=arm
 endif
+ifeq ($(CPC_TARGET),mips)
+CPUSUF=mips
+endif
+ifeq ($(CPC_TARGET),mipsel)
+CPUSUF=mipsel
+endif
 
 # Do not define the default -d$(CPU_TARGET) because that
 # will conflict with our -d$(CPC_TARGET)
@@ -223,6 +229,12 @@ endif
 ifeq ($(PPC_TARGET),arm)
 override LOCALOPT+=
 endif
+
+# mipsel specific
+ifeq ($(PPC_TARGET),mipsel)
+override LOCALOPT+=-Fumips
+endif
+
 
 OPTWPOCOLLECT=-OWdevirtcalls,optvmts -FW$(BASEDIR)/pp1.wpo
 OPTWPOPERFORM=-Owdevirtcalls,optvmts -Fw$(BASEDIR)/pp1.wpo
