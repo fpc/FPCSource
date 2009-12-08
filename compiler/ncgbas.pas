@@ -381,7 +381,8 @@ interface
           internalerror(200108222);
 
         { get a (persistent) temp }
-        if tempinfo^.typedef.needs_inittable then
+        if (tempinfo^.typedef.needs_inittable) and
+           not is_class(tempinfo^.typedef) then
           begin
             location_reset_ref(tempinfo^.location,LOC_REFERENCE,def_cgsize(tempinfo^.typedef),0);
             tg.GetTempTyped(current_asmdata.CurrAsmList,tempinfo^.typedef,tempinfo^.temptype,tempinfo^.location.reference);
