@@ -26,8 +26,14 @@ unit GdbInt;
 
 { Possible optional conditionals:
   GDB_DISABLE_INTL              To explicitly not use libintl
+
+  GDB_DISABLE_PYTHON            To explicitly not use libpython,
+  if gdb was configured using --without-python
+
   GDB_CORE_ADDR_FORCE_64BITS    To force 64 bits for CORE_ADDR
+
   Verbose                       To test gdbint
+
   DebugCommand                  To debug Command method
 }
 
@@ -105,7 +111,8 @@ interface
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
-  {$define GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+  {$define GDB_USES_LIBDECNUMBER}
+  // {$define GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
   {$define GDB_HAS_BP_NONE}
 {$endif def GDB_V608}
 
@@ -123,6 +130,9 @@ interface
   {$define GDB_USES_EXPAT_LIB}
   {$define GDB_USES_LIBDECNUMBER}
   {$define GDB_USES_LIBINTL}
+  {$ifndef GDB_DISABLE_PYTHON}
+    {$define GDB_USES_LIBPYTHON}
+  {$endif}
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
   {$define GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
   {$define GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
@@ -148,6 +158,17 @@ interface
   {$define GDB_HAS_SIM}
 {$endif cpupowerpc}
 
+{$ifdef Solaris}
+  {$ifdef Sparc}
+    { Sparc/i386 solaris gdb also supports 64bit mode, thus
+      CORE_ADDR is 8-byte long }
+    {$define GDB_CORE_ADDR_FORCE_64BITS}
+  {$endif Sparc}
+  {$ifdef i386}
+    {$define GDB_CORE_ADDR_FORCE_64BITS}
+  {$endif i386}
+{$endif Solaris}
+
 {$ifdef NotImplemented}
 {$ifdef go32v2}
   {$undef NotImplemented}
@@ -166,6 +187,9 @@ interface
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
   {$ifndef GDB_DISABLE_INTL}
     {$LINKLIB intl}
   {$endif ndef GDB_DISABLE_INTL}
@@ -184,9 +208,15 @@ interface
   {$LINKLIB libopcodes.a}
   {$LINKLIB libhistory.a}
   {$LINKLIB libiberty.a}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
   {$LINKLIB ncurses}
   {$LINKLIB m}
   {$LINKLIB dl}
@@ -214,11 +244,17 @@ interface
   {$ifndef GDB_DISABLE_INTL}
     {$LINKLIB intl}
   {$endif ndef GDB_DISABLE_INTL}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
      { does not seem to exist on netbsd LINKLIB dl,
                             but I use GDB CVS snapshots for the *BSDs}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif freebsd}
@@ -238,13 +274,49 @@ interface
   {$LINKLIB m}
   {$LINKLIB iberty}
   {$LINKLIB intl}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
   { does not seem to exist on netbsd LINKLIB dl}
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif netbsd}
+
+{$ifdef solaris}
+  {$undef NotImplemented}
+  {$LINKLIB gdb}
+  {$ifdef GDB_HAS_SIM}
+    {$LINKLIB sim}
+  {$endif GDB_HAS_SIM}
+  {$LINKLIB bfd}
+  {$LINKLIB readline}
+  {$LINKLIB opcodes}
+  {$LINKLIB history}
+  {$LINKLIB iberty}
+  {$LINKLIB curses}
+  {$LINKLIB m}
+  {$LINKLIB iberty}
+  {$LINKLIB intl}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
+  {$LINKLIB dl}
+  {$LINKLIB socket}
+  {$LINKLIB nsl}
+  {$LINKLIB c}
+{$endif solaris}
 
 {$ifdef openbsd}
   {$undef NotImplemented}
@@ -263,9 +335,15 @@ interface
   {$ifndef GDB_DISABLE_INTL}
     {$LINKLIB intl}
   {$endif ndef GDB_DISABLE_INTL}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
   { does not seem to exist on netbsd LINKLIB dl}
   {$LINKLIB c}
   {$LINKLIB gcc}
@@ -292,20 +370,32 @@ interface
     {$LINKLIB libmingw32.a}
     {$LINKLIB libmsvcrt.a}
     {$LINKLIB libdecnumber.a}
+    {$ifdef GDB_USES_LIBDECNUMBER}
+      {$LINKLIB decnumber}
+    {$endif GDB_USES_LIBDECNUMBER}
     {$ifdef GDB_USES_EXPAT_LIB}
       {$LINKLIB expat}
     {$endif GDB_USES_EXPAT_LIB}
+    {$ifdef GDB_USES_LIBPYTHON}
+      {$LINKLIB python}
+    {$endif GDB_USES_LIBPYTHON}
   {$else not USE_MINGW_GDB}
     {$LINKLIB libiconv.a}
     {$LINKLIB libncurses.a}
+    {$ifdef GDB_USES_LIBDECNUMBER}
+      {$LINKLIB decnumber}
+    {$endif GDB_USES_LIBDECNUMBER}
     {$ifdef GDB_USES_EXPAT_LIB}
       {$LINKLIB expat}
     {$endif GDB_USES_EXPAT_LIB}
+    {$ifdef GDB_USES_LIBPYTHON}
+      {$LINKLIB python}
+    {$endif GDB_USES_LIBPYTHON}
     {$LINKLIB gcc}
     {$LINKLIB cygwin} { alias of libm.a and libc.a }
   {$LINKLIB libintl.a}
   {$LINKLIB imagehlp}
-  {$endif not USE_MINGW_GDB}	
+  {$endif not USE_MINGW_GDB}
   {$LINKLIB kernel32}
   {$LINKLIB user32}
 {$endif win32}
@@ -327,9 +417,15 @@ interface
   {$ifndef GDB_DISABLE_INTL}
     {$LINKLIB intl}
   {$endif ndef GDB_DISABLE_INTL}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
   { does not seem to exist on netbsd LINKLIB dl}
   { $ LINKLIB c} // This is libroot under BeOS, and always linked
   {$LINKLIB debug}
