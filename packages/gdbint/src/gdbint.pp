@@ -144,6 +144,11 @@ interface
   {$define GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
   {$define GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
   {$define GDB_HAS_BP_NONE}
+
+  {$ifdef GDB_CVS}
+    {$define GDB_BP_LOCATION_HAS_GDBARCH}
+    {$define GDB_HAS_PROGRAM_SPACE}
+  {$endif GDB_CVS}
 {$endif def GDB_V7}
 
 
@@ -878,8 +883,10 @@ type
          duplicate : byte;
 {$ifdef GDB_BP_LOCATION_HAS_GDBARCH}
          gdbarch : pointer;{pgdbarch;}
-         pspace : pointer;{pprogram_space;}
 {$endif GDB_BP_LOCATION_HAS_GDBARCH}
+{$ifdef GDB_HAS_PROGRAM_SPACE}
+         pspace : pointer;{pprogram_space;}
+{$endif GDB_HAS_PROGRAM_SPACE}
          address : CORE_ADDR;
 {$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
          length : longint;
@@ -923,6 +930,9 @@ type
 
      psymtab_and_line = ^symtab_and_line;
      symtab_and_line = record
+         {$ifdef GDB_HAS_PROGRAM_SPACE}
+         pspace : pointer;
+         {$endif GDB_HAS_PROGRAM_SPACE}
           symtab : psymtab;
           section : pointer; {^asection;}
           line : longint;
