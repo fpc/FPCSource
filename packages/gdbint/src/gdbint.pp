@@ -88,6 +88,7 @@ interface
   {$info using gdb 6.6.x}
   {$define GDB_V6}
   {$define GDB_HAS_DB_COMMANDS}
+  {$define GDB_USES_BP_LOCATION}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
@@ -98,6 +99,7 @@ interface
   {$info using gdb 6.7.x}
   {$define GDB_V6}
   {$define GDB_HAS_DB_COMMANDS}
+  {$define GDB_USES_BP_LOCATION}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
@@ -108,6 +110,7 @@ interface
   {$info using gdb 6.8.x}
   {$define GDB_V6}
   {$define GDB_HAS_DB_COMMANDS}
+  {$define GDB_USES_BP_LOCATION}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
@@ -126,6 +129,7 @@ interface
 {$ifdef GDB_V7}
   {$define GDB_V6}
   {$define GDB_HAS_DB_COMMANDS}
+  {$define GDB_USES_BP_LOCATION}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
   {$define GDB_USES_LIBDECNUMBER}
@@ -2317,7 +2321,12 @@ var
   not restored correctly PM }
   procedure get_pc_line;
     begin
+
+{$ifdef GDB_USES_BP_LOCATION}
+      sym:=find_pc_line(b.loc^.address,0);
+{$else not GDB_USES_BP_LOCATION}
       sym:=find_pc_line(b.address,0);
+{$endif not GDB_USES_BP_LOCATION}
     end;
 begin
   get_pc_line;
@@ -2327,7 +2336,11 @@ begin
      { function breakpoints have zero as file and as line !!
        but they are valid !! }
      invalid_breakpoint_line:=(b.line_number<>sym.line) and (b.line_number<>0);
+{$ifdef GDB_USES_BP_LOCATION}
+     last_breakpoint_address:=b.loc^.address;
+{$else not GDB_USES_BP_LOCATION}
      last_breakpoint_address:=b.address;
+{$endif not GDB_USES_BP_LOCATION}
      last_breakpoint_line:=sym.line;
      if assigned(sym.symtab) then
       last_breakpoint_file:=sym.symtab^.filename
