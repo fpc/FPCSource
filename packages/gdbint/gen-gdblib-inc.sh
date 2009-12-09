@@ -12,7 +12,7 @@ if [ "${PATHEXT}" != "" ]; then
   fi
 else
   EXEEXT=
-  libdir=/libdir
+  libdir=/lib
 fi
 
 echo "Deleting gdb${EXEEXT} to force recompile"
@@ -44,12 +44,13 @@ cat make.log | gawk '
 BEGIN {
 doprint=0
 }
-
-/gcc / { doprint=1; }
+# We look for the compilation line
+# either gcc or cc
+/cc / { doprint=1; }
 
 {
 if ( doprint == 1 ) {
-  print $0  
+  print $0
 }
 }
 
@@ -76,7 +77,7 @@ BEGIN {
 
 {
   nb = split ($0,list);
- 
+
   for (i=1; i<=nb; i++) {
   if ( list[i] ~ /lib[^ ]*\.a/ ) {
   staticlib = gensub (/([^ ]*)(lib[^ ]*\.a)/,"\\1\\2 ","g",list[i]);
@@ -95,9 +96,9 @@ BEGIN {
   }
 }
 ' | tee copy-libs.sh
-chmod u+x ./copy-libs.sh           
+chmod u+x ./copy-libs.sh
 # For later
- 
+
 echo Creating ./gdblib.inc file
 # Generate gdblib.inc file
 cat comp-cmd.log |gawk -v destdir=${destdir} -v gdbversion=${gdbversion} '
@@ -110,7 +111,7 @@ BEGIN {
 
 {
   nb = split ($0,list);
- 
+
   for (i=1; i<=nb; i++) {
   if ( list[i] ~ /lib[^ ]*\.a/ ) {
     staticlib = gensub (/([^ ]*)(lib[^ ]*\.a)/,"{$LINKLIB \\2} { found in \\1 }","g",list[i]);
@@ -130,8 +131,8 @@ END {
   print "{$undef NotImplemented}"
   if ( use_mingw == 1 ) {
     print "{$define USE_MINGW_GDB}"
-  }  
+  }
 }
 ' | tee  gdblib.inc
- 
+
 
