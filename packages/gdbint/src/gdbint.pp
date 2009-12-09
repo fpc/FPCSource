@@ -111,6 +111,7 @@ interface
   {$define GDB_V6}
   {$define GDB_HAS_DB_COMMANDS}
   {$define GDB_USES_BP_LOCATION}
+  {$define GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
@@ -130,6 +131,8 @@ interface
   {$define GDB_V6}
   {$define GDB_HAS_DB_COMMANDS}
   {$define GDB_USES_BP_LOCATION}
+  {$define GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+  {$define GDB_BP_LOCATION_HAS_GDBARCH}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
   {$define GDB_USES_LIBDECNUMBER}
@@ -861,21 +864,32 @@ type
 
      bp_location = record
          next : pbp_location;
+{$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+         global_next : pbp_location;
+{$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
          loc_type : bp_loc_type;
          owner : pbreakpoint;
+{$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
          cond : pointer;{pexpression;}
          shlib_disabled : byte;
          enabled : byte;
+{$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
          inserted : byte;
          duplicate : byte;
+{$ifdef GDB_BP_LOCATION_HAS_GDBARCH}
          gdbarch : pointer;{pgdbarch;}
          pspace : pointer;{pprogram_space;}
+{$endif GDB_BP_LOCATION_HAS_GDBARCH}
          address : CORE_ADDR;
+{$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
          length : longint;
          watchpoint_type : target_hw_bp_type;
+{$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
          section : pointer;{pobj_section;}
          requested_address : CORE_ADDR;
+{$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
          function_name : ^char;
+{$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
          target_info : bp_target_info;
          overlay_target_info : bp_target_info;
          events_till_retirement : longint;
