@@ -798,6 +798,14 @@ type
 
      bpdisp = (del,del_at_next_stop,disable,donttouch);
 
+     pbp_location = ^bp_location;
+
+     bp_loc_type = (bp_loc_software_breakpoint, bp_loc_hardware_breakpoint,
+                    bp_loc_hardware_watchpoint, bp_loc_other);
+
+
+     target_hw_bp_type = (hw_write, hw_read, hw_access, hw_execute);
+
 {$PACKRECORDS 4}
      pbreakpoint = ^breakpoint;
      breakpoint = record
@@ -806,14 +814,20 @@ type
           enable : tenable;
           disposition : bpdisp;
           number : longint;
+{$ifdef GDB_USES_BP_LOCATION}
+          loc : pbp_location;
+{$else not GDB_USES_BP_LOCATION}
           address : CORE_ADDR;
+{$endif not GDB_USES_BP_LOCATION}
           line_number : longint;
           source_file : pchar;
           silent : byte;
           ignore_count : longint;
+{$ifndef GDB_USES_BP_LOCATION}
           shadow_contents : array[0..15] of char;
           inserted : char;
           duplicate : char;
+{$endif not GDB_USES_BP_LOCATION}
           commands : pointer; {^command_line}
           frame : CORE_ADDR;
           cond : pointer; {^expression}
@@ -832,6 +846,36 @@ type
           hit_count : longint;
           section : pointer; {^asection}
        end;
+
+     bp_target_info = record
+          placed_address_space : pointer;{paddress_space;}
+          placed_address : CORE_ADDR;
+          shadow_contents : array[0..15] of char;
+          shadow_len : longint;
+          placed_size : longint;
+       end;
+
+     bp_location = record
+         next : pbp_location;
+         loc_type : bp_loc_type;
+         owner : pbreakpoint;
+         cond : pointer;{pexpression;}
+         shlib_disabled : byte;
+         enabled : byte;
+         inserted : byte;
+         duplicate : byte;
+         gdbarch : pointer;{pgdbarch;}
+         pspace : pointer;{pprogram_space;}
+         address : CORE_ADDR;
+         length : longint;
+         watchpoint_type : target_hw_bp_type;
+         section : pointer;{pobj_section;}
+         requested_address : CORE_ADDR;
+         function_name : ^char;
+         target_info : bp_target_info;
+         overlay_target_info : bp_target_info;
+         events_till_retirement : longint;
+      end;
 
      tfreecode=(free_nothing,free_contents,free_linetable);
 
