@@ -121,12 +121,14 @@ __longdouble_used:
 
 *)
 var
-  _environ : pointer; cvar;
-  __environ_lock : Array[0..24-1] of byte; cvar;
-  ___Argv : pointer;cvar;
-  __longdouble_used : longint; cvar;
+  _environ : pointer; cvar; public;
+  __environ_lock : Array[0..24-1] of byte; cvar; public;
+  ___Argv : pointer;cvar; public;
+  __longdouble_used : longint; cvar; public;
+var
+  _DYNAMIC : pointer;cvar;weakexternal;
 
-procedure _DYNAMIC;cdecl;external 'c' name '_DYNAMIC'; { should be weak }
+//procedure _DYNAMIC;cdecl;external 'c' name '_DYNAMIC'; { should be weak }
 
 (*
 /*
@@ -182,11 +184,15 @@ asm
  *	  0			0(%rbp)
  */
 *)
+{$ifdef FPC_PIC}
+   movq   _DYNAMIC@GOTPCREL(%rip),%rax
+{$else FPC_PIC}
    movq   $_DYNAMIC,%rax
+{$endif FPC_PIC}
    testq  %rax,%rax
    je     .Label1
    movq   %rdx,%rdi { register rt_do_exit }
-   call   atexit
+   call   atexit{$ifdef FPC_PIC}@PLT{$endif}
 .Label1:
 (* What should we do about this?
    movq   $_fini,%rdi
@@ -198,15 +204,36 @@ asm
  */
 *)
    movq   0x10(%rbp),%rax
-   movl   %eax,argc
-   movq   _environ,%rcx
+{$ifdef FPC_PIC}
+   movq   argc@GOTPCREL(%rip),%rcx
+{$else FPC_PIC}
+   movq   $argc,%rcx
+{$endif FPC_PIC}
+   movl   %eax,(%rcx)
+{$ifdef FPC_PIC}
+   movq   _environ@GOTPCREL(%rip),%rcx
+   movq   (%rcx),%rcx
+{$else FPC_PIC}
+   movq   _environ{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif},%rcx
+{$endif FPC_PIC}
    testq  %rcx,%rcx
    jne    .Label3
    lea    0x20(%rbp,%rax,8),%rcx
 .Label3:
-   movq   %rcx,_environ
-   // Specificc to Free Pascal
-   movq   %rcx,envp
+{$ifdef FPC_PIC}
+   movq   _environ@GOTPCREL(%rip),%rbx
+   movq   %rcx,(%rbx)
+{$else FPC_PIC}
+   movq   %rcx,_environ{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
+{$endif FPC_PIC}
+   // Specific to Free Pascal
+{$ifdef FPC_PIC}
+   movq   envp@GOTPCREL(%rip),%rbx
+   movq   %rcx,(%rbx)
+{$else FPC_PIC}
+   movq   %rcx,envp{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
+{$endif FPC_PIC}
+
 (*
 /*
  * Force stack alignment - below here there must have been an even
@@ -216,8 +243,18 @@ asm
    andq   $-16,%rsp
    pushq  %rdx
    leaq   24(%rbp),%rdx   { argv (B) }
-   movq   %rdx,___Argv
-   mov    %rdx,argv
+{$ifdef FPC_PIC}
+   movq   ___Argv@GOTPCREL(%rip),%rbx
+   movq   %rdx,(%rbx)
+{$else FPC_PIC}
+   movq   %rdx,___Argv{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
+{$endif FPC_PIC}
+{$ifdef FPC_PIC}
+   movq   argv@GOTPCREL(%rip),%rbx
+{$else FPC_PIC}
+   movq   $argv,%rbx
+{$endif FPC_PIC}
+   movq    %rdx,(%rbx)
    pushq   %rcx
    pushq   %rdx
    pushq   %rax
@@ -228,14 +265,14 @@ asm
    popq   %rsi
    popq   %rdx
    popq   %rcx
-   call   PASCALMAIN      { main(argc,argv,envp) }
+   call   PASCALMAIN{$ifdef FPC_PIC}@PLT{$endif}      { main(argc,argv,envp) }
    pushq  %rax
    pushq  %rax
    movq   %rax,%rdi	  { and call exit }
-   call   C_exit
+   call   C_exit{$ifdef FPC_PIC}@PLT{$endif}
    popq   %rdi
    popq   %rdi
-   call   _exit		  { if user redefined exit, call _exit }
+   call   _exit{$ifdef FPC_PIC}@PLT{$endif}	  { if user redefined exit, call _exit }
    hlt
 end;
 
