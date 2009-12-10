@@ -368,6 +368,7 @@ const
   parser_e_no_category_override=03278;
   parser_e_must_use_reintroduce_objc=03279;
   parser_h_should_use_reintroduce_objc=03280;
+  parser_e_implements_getter_not_default_cc=03281;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -834,9 +835,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 54741;
+  MsgTxtSize = 54831;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,281,95,71,51,110,22,202,62,
+    24,87,282,95,71,51,110,22,202,62,
     48,20,1,1,1,1,1,1,1,1
   );

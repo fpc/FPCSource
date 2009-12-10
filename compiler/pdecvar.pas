@@ -719,6 +719,9 @@ implementation
                  message(parser_e_implements_must_read_specifier);
                  exit;
                end;
+             if assigned(p.propaccesslist[palt_read].procdef) and
+                (tprocdef(p.propaccesslist[palt_read].procdef).proccalloption<>pocall_default) then
+               message(parser_e_implements_getter_not_default_cc);
              if assigned(p.propaccesslist[palt_write].firstsym) then
                begin
                  message(parser_e_implements_must_not_have_write_specifier);
