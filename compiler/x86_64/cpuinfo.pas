@@ -81,8 +81,8 @@ Const
      'SSE3'
    );
 
-   sse_singlescalar : set of tfputype = [fpu_sse64];
-   sse_doublescalar : set of tfputype = [fpu_sse64];
+   sse_singlescalar : set of tfputype = [fpu_sse64,fpu_sse3];
+   sse_doublescalar : set of tfputype = [fpu_sse64,fpu_sse3];
 
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+
