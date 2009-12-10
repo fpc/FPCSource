@@ -933,7 +933,10 @@ unit cgx86;
                           a_op_const_reg(list,OP_ADD,OS_ADDR,offset,r);
                       end
 {$ifdef x86_64}
-                    else if (target_info.system in (system_all_windows+[system_x86_64_darwin])) then
+                    else if (target_info.system in (system_all_windows+[system_x86_64_darwin])) 
+			 or ((target_info.system = system_x86_64_solaris) and
+                             (cs_create_pic in current_settings.moduleswitches))
+			 then
                       begin
                         { Win64 and Darwin/x86_64 always require RIP-relative addressing }
                         tmpref:=ref;
