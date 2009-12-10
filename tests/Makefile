@@ -1464,7 +1464,7 @@ TESTPACKAGESUBDIRS=cg packages/win-base packages/webtbs packages/hash packages/f
 ifdef QUICKTEST
 export QUICKTEST
 else
-override TESTSUBDIRS+=TESTSUBDIRS $(TESTPACKAGESUBDIRS)
+override TESTSUBDIRS+=$(TESTPACKAGESUBDIRS) alglib
 endif
 TESTDIRS:=test $(addprefix test/,$(TESTSUBDIRS))
 .PHONY: utils units copyfiles testprep
