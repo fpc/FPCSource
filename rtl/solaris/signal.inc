@@ -148,12 +148,20 @@ type
   PSignalRestorer = ^SignalRestorer;
   SigActionHandler = procedure(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
 
+{$ifdef x86_64}
+  SigActionRec = record  // this needs correct 8-byte alignment for hander
+    Sa_Flags    : cuint;
+    sa_handler  : SigActionHandler;
+    Sa_Mask     : SigSet;
+  end;
+{$else not x86_64}
   SigActionRec = packed record  // this is temporary for the migration
     Sa_Flags    : cuint;
     sa_handler  : SigActionHandler;
     Sa_Mask     : SigSet;
     sa_resv : array[1..2] of cint;  { for non-_LP64 platforms only                       }
   end;
+{$endif not x86_64}
   TSigActionRec = SigActionRec;
   PSigActionRec = ^SigActionRec;
 
