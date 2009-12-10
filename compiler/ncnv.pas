@@ -1934,15 +1934,15 @@ implementation
       end;
 
 
-{$ifndef cpu64bitaddr}
+{$ifndef cpu64bitalu}
 
     { checks whether we can safely remove 64 bit typeconversions }
     { in case range and overflow checking are off, and in case   }
     { the result of this node tree is downcasted again to a      }
     { 8/16/32 bit value afterwards                               }
-    function checkremove64bittypeconvs(n: tnode): boolean;
+    function checkremove64bittypeconvs(n: tnode; out gotsint: boolean): boolean;
       var
-        gotmuldivmod, gotsint: boolean;
+        gotmuldivmod: boolean;
 
       { checks whether a node is either an u32bit, or originally }
       { was one but was implicitly converted to s64bit           }
@@ -2021,22 +2021,23 @@ implementation
       end;
 
 
-    procedure doremove64bittypeconvs(var n: tnode; todef: tdef);
+    procedure doremove64bittypeconvs(var n: tnode; todef: tdef; forceunsigned: boolean);
       begin
         case n.nodetype of
           subn,addn,muln,divn,modn,xorn,andn,orn:
             begin
               exclude(n.flags,nf_internal);
-              if is_signed(n.resultdef) then
+              if not forceunsigned and
+                 is_signed(n.resultdef) then
                 begin
-                  doremove64bittypeconvs(tbinarynode(n).left,s32inttype);
-                  doremove64bittypeconvs(tbinarynode(n).right,s32inttype);
+                  doremove64bittypeconvs(tbinarynode(n).left,s32inttype,false);
+                  doremove64bittypeconvs(tbinarynode(n).right,s32inttype,false);
                   n.resultdef:=s32inttype
                 end
               else
                 begin
-                  doremove64bittypeconvs(tbinarynode(n).left,u32inttype);
-                  doremove64bittypeconvs(tbinarynode(n).right,u32inttype);
+                  doremove64bittypeconvs(tbinarynode(n).left,u32inttype,forceunsigned);
+                  doremove64bittypeconvs(tbinarynode(n).right,u32inttype,forceunsigned);
                   n.resultdef:=u32inttype
                 end;
             end;
@@ -2046,12 +2047,15 @@ implementation
             n.resultdef:=todef;
         end;
       end;
-{$endif not cpu64bitaddr}
+{$endif not cpu64bitalu}
 
 
     function ttypeconvnode.simplify: tnode;
       var
         hp: tnode;
+{$ifndef cpu64bitalu}
+        foundsint: boolean;
+{$endif not cpu64bitalu}
       begin
         result := nil;
         { Constant folding and other node transitions to
@@ -2211,7 +2215,7 @@ implementation
             end;
         end;
 
-{$ifndef cpu64bitaddr}
+{$ifndef cpu64bitalu}
         { must be done before code below, because we need the
           typeconversions for ordconstn's as well }
         case convtype of
@@ -2222,15 +2226,15 @@ implementation
                  (resultdef.size <= 4) and
                  is_64bitint(left.resultdef) and
                  (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn]) and
-                 checkremove64bittypeconvs(left) then
+                 checkremove64bittypeconvs(left,foundsint) then
                 begin
                   { avoid unnecessary widening of intermediary calculations }
                   { to 64 bit                                               }
-                  doremove64bittypeconvs(left,generrordef);
+                  doremove64bittypeconvs(left,generrordef,not foundsint);
                 end;
             end;
         end;
-{$endif not cpu64bitaddr}
+{$endif not cpu64bitalu}
 
       end;
 
