@@ -225,9 +225,19 @@ Unit Rax86int;
 
 
     function tx86intreader.is_register(const s:string):boolean;
+      var
+        entry: TSymEntry;
       begin
         is_register:=false;
         actasmregister:=masm_regnum_search(lower(s));
+        if (actasmregister=NR_NO) and (current_procinfo.procdef.proccalloption=pocall_register) then
+          begin
+            entry := current_procinfo.procdef.parast.Find(s);
+            if assigned(entry) and (entry.typ=paravarsym) and
+              assigned(tparavarsym(entry).paraloc[calleeside].Location) and
+              (tparavarsym(entry).paraloc[calleeside].Location^.Loc=LOC_REGISTER) then
+                actasmregister:=tparavarsym(entry).paraloc[calleeside].Location^.register;
+          end;
         if actasmregister<>NR_NO then
           begin
             is_register:=true;
@@ -2081,6 +2091,8 @@ Unit Rax86int;
       curlist:=TAsmList.Create;
       { setup label linked list }
       LocalLabelList:=TLocalLabelList.Create;
+      { we might need to know which parameters are passed in registers }
+      current_procinfo.generate_parameter_info;
       { start tokenizer }
       c:=current_scanner.asmgetcharstart;
       gettoken;

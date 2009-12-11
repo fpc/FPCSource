@@ -10760,6 +10760,7 @@ tests/webtbs/tw6769.pp svneol=native#text/plain
 tests/webtbs/tw6822a.pp svneol=native#text/plain
 tests/webtbs/tw6822b.pp svneol=native#text/plain
 tests/webtbs/tw6822c.pp svneol=native#text/plain
+tests/webtbs/tw6851.pp svneol=native#text/plain
 tests/webtbs/tw6865.pp svneol=native#text/plain
 tests/webtbs/tw6868.pp svneol=native#text/plain
 tests/webtbs/tw6960.pp svneol=native#text/plain
