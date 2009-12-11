@@ -819,7 +819,8 @@ begin
         execcmd:=execcmd+s;
       end;
       execcmd:=execcmd+' '+TestRemoteExe+' ; echo "TestExitCode: $?"';
-      if deAfter in DelExecutable then
+      if (deAfter in DelExecutable) and
+         not Config.NeededAfter then
         execcmd:=execcmd+' ; rm -f '+TestRemoteExe;
       execcmd:=execcmd+rquote;
       execres:=ExecuteRemote(rshprog,execcmd);
@@ -899,7 +900,7 @@ done:
      RunExecutable:=true;
    end;
 
-  if deAfter in DelExecutable then
+  if (deAfter in DelExecutable) and not Config.NeededAfter then
     begin
       Verbose(V_Debug,'Deleting executable '+TestExe);
       RemoveFile(TestExe);

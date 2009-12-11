@@ -28,6 +28,7 @@ type
     KnownCompileError : longint;
     NeedRecompile : boolean;
     NeedLibrary   : boolean;
+    NeededAfter   : boolean;
     IsInteractive : boolean;
     IsKnownRunError,
     IsKnownCompileError : boolean;
@@ -212,6 +213,9 @@ begin
               else
                if GetEntry('NEEDLIBRARY') then
                 r.NeedLibrary:=true
+              else
+               if GetEntry('NEEDEDAFTER') then
+                r.NeededAfter:=true
               else
                if GetEntry('KNOWNRUNERROR') then
                 begin
