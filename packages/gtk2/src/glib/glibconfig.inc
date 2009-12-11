@@ -32,9 +32,9 @@
    guint64  = qword;
 
    pgssize  = ^gssize;
-   gssize   = longint;
+   gssize   = SizeInt;
    pgsize   = ^gsize;
-   gsize    = dword;
+   gsize    = SizeUInt;
 
 {$ENDIF read_forward_definitions}
 
