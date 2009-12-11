@@ -2152,7 +2152,8 @@ implementation
 
     procedure TDebugInfoDwarf.appendsym_const(list:TAsmList;sym:tconstsym);
       var
-        i: aint;
+        i,
+        size: aint;
         usedef: tdef;
       begin
         append_entry(DW_TAG_variable,false,[
@@ -2195,16 +2196,26 @@ implementation
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(sym.value.len+sizeof(pint)));
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_pint(sym.value.len));
                 end;
-              for i:=0 to sym.value.len-1 do
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit((pbyte(sym.value.valueptr+i)^)));
+              i:=0;
+              size:=sym.value.len;
+              while(i<size) do
+                begin
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit((pbyte(sym.value.valueptr+i)^)));
+                  inc(i);
+                end;
             end;
           constguid,
           constset:
             begin
               current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block1)));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(usedef.size));
-              for i:=0 to sym.constdef.size-1 do
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit((pbyte(sym.value.valueptr+i)^)));
+              i:=0;
+              size:=sym.constdef.size;
+              while (i<size) do
+                begin
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit((pbyte(sym.value.valueptr+i)^)));
+                  inc(i);
+                end;
             end;
           constwstring,
           constresourcestring:
