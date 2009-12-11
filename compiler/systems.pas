@@ -449,6 +449,17 @@ interface
        { all symbian systems }
        systems_symbian = [system_i386_symbian,system_arm_symbian];
 
+       { all systems for which istack must be at a 16 byte boundary 
+         when calling a function }
+       system_needs_16_byte_stack_alignment = [
+      	system_i386_darwin,
+        system_x86_64_darwin,
+        system_x86_64_win64,
+        system_x86_64_linux,
+        system_x86_64_freebsd,
+	system_x86_64_solaris];
+
+
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
              'mips','arm', 'powerpc64', 'avr', 'mipsel');

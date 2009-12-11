@@ -168,7 +168,7 @@ unit cgcpu;
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
                 stacksize:=current_procinfo.calc_stackframe_size;
-                if (target_info.system in [system_x86_64_win64,system_x86_64_linux,system_x86_64_freebsd,system_x86_64_darwin]) and
+                if (target_info.system in system_needs_16_byte_stack_alignment) and
                    ((stacksize <> 0) or
                     (pi_do_call in current_procinfo.flags) or
                     { can't detect if a call in this case -> use nostackframe }
