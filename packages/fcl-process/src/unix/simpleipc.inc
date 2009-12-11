@@ -59,10 +59,11 @@ procedure TPipeClientComm.Connect;
 begin
   If Not ServerRunning then
     Owner.DoError(SErrServerNotActive,[Owner.ServerID]);
-  // Use this line to allow more then one client communicating with one server
-  // at the same time
-  // FStream:=TFileStream.Create(FFileName,fmOpenWrite+fmShareDenyNone);
-  FStream:=TFileStream.Create(FFileName,fmOpenWrite);
+  // Use the sharedenynone line to allow more then one client 
+  // communicating with one server at the same time
+  // see also mantis 15219
+  FStream:=TFileStream.Create(FFileName,fmOpenWrite+fmShareDenyNone);
+  // FStream:=TFileStream.Create(FFileName,fmOpenWrite);
 end;
 
 procedure TPipeClientComm.Disconnect;
