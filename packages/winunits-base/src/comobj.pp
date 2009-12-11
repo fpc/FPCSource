@@ -19,7 +19,10 @@ unit comobj;
   interface
 
 { $define DEBUG_COM}
-{ $define DUMMY_REG}
+
+{$ifdef wince}
+  {$define DUMMY_REG}
+{$endif}
     uses
       Windows,Types,Variants,Sysutils,ActiveX,classes;
 
@@ -305,7 +308,7 @@ unit comobj;
 implementation
 
     uses
-      ComConst, Ole2, Registry, RtlConsts;
+      ComConst, Ole2, {$ifndef dummy_reg} Registry, {$endif} RtlConsts;
 
     var
       Uninitializing : boolean;
@@ -492,9 +495,12 @@ implementation
       end;
 
     function GetRegStringValue(const Key, ValueName: string): string;
+    {$ifndef DUMMY_REG}
       var
         Reg: TRegistry;
+    {$endif}
       begin
+       {$ifndef DUMMY_REG}
         Reg := TRegistry.Create();
         try
           Reg.RootKey := HKEY_CLASSES_ROOT;
@@ -511,6 +517,7 @@ implementation
         finally
           Reg.Free;
         end;
+       {$endif}
       end;
 
    procedure OleError(Code: HResult);
@@ -972,7 +979,9 @@ HKCR
 
     procedure TComObjectFactory.UpdateRegistry(Register: Boolean);
       var
+        {$ifndef DUMMY_REG}
         reg: TRegistry;
+        {$endif}
         classidguid: String;
 
         function ThreadModelToString(model: TThreadingModel): String;
@@ -987,6 +996,7 @@ HKCR
         end;
 
       begin
+{$ifndef DUMMY_REG}
 {$ifdef DEBUG_COM}
         WriteLn('UpdateRegistry begin');
 {$endif}
@@ -1036,6 +1046,7 @@ HKCR
 {$ifdef DEBUG_COM}
         WriteLn('UpdateRegistry end');
 {$endif}
+{$endif DUMMY_REG}
       end;
 
 
