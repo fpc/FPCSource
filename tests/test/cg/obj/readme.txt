@@ -22,4 +22,4 @@ Macos-powerpc : MrC C Compiler 4.1.0f1c1 for MPW (dont know yet if it
 wince 4.21 : GCC 3.3.3
 
 Solaris-i386 : gcc (GCC) 3.4.3 (csl-sol210-3_4-20050802)
-
+Solaris-x86_64 : gcc (GCC) 3.4.3 (csl-sol210-3_4-20050802) with -m64 option
