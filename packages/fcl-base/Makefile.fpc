@@ -35,7 +35,7 @@ rsts=cachecls custapp cgiapp eventlog registry streamcoll inicol
 
 [compiler]
 options=-S2h
-includedir=src/$(OS_TARGET) src src/dummy
+includedir=src/$(OS_TARGET) src 
 includedir_linux=src/unix
 includedir_freebsd=src/unix
 includedir_darwin=src/unix
@@ -49,6 +49,14 @@ includedir_emx=src/os2
 includedir_win32=src/win
 includedir_win64=src/win
 includedir_wince=src/win
+includedir_go32v2=src/dummy
+includedir_emx=src/dummy
+includedir_netware=src/dummy
+includedir_netwlibc=src/dummy
+includedir_palmos=src/dummy
+includedir_amiga=src/dummy
+includedir_morphos=src/dummy
+
 sourcedir=src/$(OS_TARGET) src
 
 [prerules]
