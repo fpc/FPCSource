@@ -3253,7 +3253,12 @@ In case not, the value returned can be arbitrary.
                    continue;
                  end;
                #10,#13 :
-                 linebreak;
+                 begin
+                   if found=4 then
+                    inc_comment_level;
+                   linebreak;
+                   found:=0;
+                 end;
                '*' :
                  begin
                    if found=3 then
@@ -3270,7 +3275,9 @@ In case not, the value returned can be arbitrary.
                        found:=2
                       else
                        found:=0;
-                    end;
+                    end
+                   else
+                    found:=0;
                  end;
                '(' :
                  begin
