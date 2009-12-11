@@ -17,7 +17,7 @@ type
   TClass1 = class(TInterfacedObject, IIntf1, IIntf2)
     private
       FIntf2:IIntf2;
-      function GetIntf2:IIntf2;stdcall; // <--- should be forbidden
+      function GetIntf2:IIntf2;cdecl; // <--- should be forbidden
     public
       constructor Create;
       property I:IIntf2 read GetIntf2 implements IIntf2;
