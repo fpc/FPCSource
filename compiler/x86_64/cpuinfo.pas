@@ -45,7 +45,7 @@ Type
 
    tfputype =
      (fpu_none,
-      fpu_soft,  { generic }
+//      fpu_soft,  { generic }
       fpu_sse64,
       fpu_sse3
      );
@@ -76,7 +76,7 @@ Const
    );
 
    fputypestr : array[tfputype] of string[6] = ('',
-     'SOFT',
+//     'SOFT',
      'SSE64',
      'SSE3'
    );
