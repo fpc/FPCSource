@@ -47,9 +47,10 @@ Unit aopt;
         procedure clear;
         procedure pass_1;
       End;
+      TAsmOptimizerClass = class of TAsmOptimizer;
 
     var
-      casmoptimizer : class of tasmoptimizer;
+      casmoptimizer : TAsmOptimizerClass;
 
     procedure Optimize(AsmL:TAsmList);
 
