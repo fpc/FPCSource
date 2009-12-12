@@ -174,12 +174,17 @@ function TMOFile.Translate(AOrig: PChar; ALen: Integer; AHash: LongWord): String
 var
   idx, incr, nstr: LongWord;
 begin
+  if AHash = $FFFFFFFF then
+  begin
+    Result := '';
+    exit;
+  end;
   idx := AHash mod HashTableSize;
   incr := 1 + (AHash mod (HashTableSize - 2));
   while True do
   begin
     nstr := HashTable^[idx];
-    if nstr = 0 then
+    if (nstr = 0) or (nstr > StringCount) then
     begin
       Result := '';
       exit;
