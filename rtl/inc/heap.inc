@@ -951,7 +951,7 @@ begin
   iter := high(iter);
   while assigned(pcurr) and (iter>0) do
   begin
-    if (pcurr^.size>size) then
+    if (pcurr^.size>=size) then
     begin
       if not assigned(pbest) or (pcurr^.size<pbest^.size) then
       begin
