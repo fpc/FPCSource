@@ -2432,7 +2432,7 @@ unit_e_different_wpo_file=10061_E_Unit $1 wurde mit einer anderen Feedback-Einga
 #
 #  Options
 #
-# 11046 is the last used one
+# 11047 is the last used one
 #
 option_usage=11000_O_$1 [Optionen] <Eingabedatei> [Optionen]
 # BeginOfTeX
@@ -2553,7 +2553,9 @@ option_unsupported_target_for_feature=11045_F_Das Feature "$1" wird fÅr die ausg
 option_dwarf_smart_linking=11046_N_DWARF Debug-Information kann auf dieser Zielplattform nicht zusammen mit Smartlinking benutzt werden, es wird auf statisches Linken umgeschaltet
 % Smart linking is currently incompatble with DWARF debug information on most
 % platforms, so smart linking is disabled in such cases.
-
+option_ignored_target=11047_W_Option "$1" wird fÅr die ausgewÑhlte Zielplatform ignoriert
+% Not all options are supported or implemented for all target platforms. This message informs you that a chosen
+% option is ignored for the currently selected target platform.
 # EndOfTeX
 
 #

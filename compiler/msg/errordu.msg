@@ -2422,17 +2422,17 @@ unit_u_skipping_reresolving_unit=10059_U_Erneutes Resolving der Unit $1 wird üb
 unit_u_unload_resunit=10060_U_Entlade die Resource-Unit $1 (wird nicht benötigt) 
 % When you use the \var{-vu} flag, the compiler warns that it is unloading the 
 % resource handling unit, since no resources are used.
-% \end{description}
 unit_e_different_wpo_file=10061_E_Unit $1 wurde mit einer anderen Feedback-Eingabe ($2, $3) für die Gesamtprogramm-Optimierung (wpo) übersetzt. Bitte erneut ohne wpo oder mit der gleichen wpo-Feedback-Eingabe-Datei übersetzen
 % When a unit has been compiled using a particular whole program optimization (wpo) feedback file (\var{-FW<x>} \var{-OW<x>}),
 % this compiled version of the unit is specialised for that particular compilation scenario and cannot be used in
 % any other context. It has to be recompiled before you can use it in another program or with another wpo feedback input file.
+% \end{description}
 # EndOfTeX
 
 #
 #  Options
 #
-# 11046 is the last used one
+# 11047 is the last used one
 #
 option_usage=11000_O_$1 [Optionen] <Eingabedatei> [Optionen]
 # BeginOfTeX
@@ -2552,7 +2552,9 @@ option_unsupported_target_for_feature=11045_F_Das Feature "$1" wird für die aus
 option_dwarf_smart_linking=11046_N_DWARF Debug-Information kann auf dieser Zielplattform nicht zusammen mit Smartlinking benutzt werden, es wird auf statisches Linken umgeschaltet
 % Smart linking is currently incompatble with DWARF debug information on most
 % platforms, so smart linking is disabled in such cases.
-
+option_ignored_target=11047_W_Option "$1" wird für die ausgewählte Zielplatform ignoriert
+% Not all options are supported or implemented for all target platforms. This message informs you that a chosen
+% option is ignored for the currently selected target platform.
 %\end{description}
 # EndOfTeX
 
