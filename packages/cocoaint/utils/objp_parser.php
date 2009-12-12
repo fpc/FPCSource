@@ -29,7 +29,7 @@ class TObjPParser extends TPasCocoaParser {
 								"unsigned char"=>"char", "short"=>"cshort", "double"=>"double", "long long"=>"clonglong",
 								
 								// ??? new in instance var parser: (add to main section eventually)
-								"signed char"=>"char", "uint64_t"=>"clonglong", 
+								"signed char"=>"char", "uint64_t"=>"qword", 
 								
 								// work-arounds - the type replacement needs regex to handle with spaces I guess
 								"void*"=>"Pointer",
@@ -38,9 +38,9 @@ class TObjPParser extends TPasCocoaParser {
 								"IBAction"=>"void", "IBOutlet"=>"",
 								
 								// special pointers
-								"const id *"=>"NSObjectArrayOfObjectsPtr", "Protocol *"=>"objc_protocol", "NSObject *"=>"NSObject",
-								"const char *"=>"PChar", "const void *"=>"Pointer", "unsigned char *"=>"Pointer", "char *"=>"Pointer",
-								"unsigned *"=>"Pointer", "unichar *"=>"PChar", "const unichar *"=>"PChar", 
+								"const id *"=>"NSObjectArrayOfObjectsPtr", "Protocol *"=>"Protocol", "NSObject *"=>"NSObject",
+								"const char *"=>"PChar", "const void *"=>"Pointer", "unsigned char *"=>"Pointer", "char *"=>"PChar",
+								"unsigned *"=>"Pointer", "unichar *"=>"PWideChar", "const unichar *"=>"PWideChar", 
 								);
 		
 	// These methods require that the last parameter append a trailing underscore (if $trailing_underscore is on)
