@@ -1255,6 +1255,7 @@ var
   oldsize,
   currsize : ptruint;
   pcurr : pmemchunk_var;
+  loc_freelists : pfreelists;
 begin
   SysTryResizeMem := false;
 
@@ -1301,7 +1302,10 @@ begin
     end;
 
   { get pointer to block }
+  loc_freelists := @freelists;
   pcurr := pmemchunk_var(pointer(p)-sizeof(tmemchunk_var_hdr));
+  if pcurr^.freelists <> loc_freelists then
+    exit;
   oldsize := currsize;
 
   { do we need to allocate more memory ? }
@@ -1319,7 +1323,7 @@ begin
   if currsize>size then
     currsize := split_block(pcurr, size);
 
-  with pcurr^.freelists^.internal_status do
+  with loc_freelists^.internal_status do
   begin
     inc(currheapused, currsize-oldsize);
     if currheapused > maxheapused then
