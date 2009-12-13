@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 106;
+  CurrentPPUVersion = 107;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -156,6 +156,7 @@ const
   uf_has_resourcefiles = $80000; { this unit has external resources (using $R directive)}
   uf_has_exports = $100000;   { this module or a used unit has exports }
   uf_has_dwarf_debuginfo = $200000;  { this unit has dwarf debuginfo generated }
+  uf_wideinits = $400000;     { this unit has winlike widestring typed constants }
 
 
 type

@@ -71,7 +71,7 @@ implementation
       symconst,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
       cpuinfo,cpubase,
       cgbase,cgobj,cgutils,
-      ncgutil, cclasses
+      ncgutil, cclasses,asmutils
       ;
 
 
@@ -306,41 +306,13 @@ implementation
               { :-(, we must generate a new entry }
               if not assigned(entry^.Data) then
                 begin
-                   current_asmdata.getdatalabel(lastlabel);
-                   lab_str:=lastlabel;
-                   entry^.Data := lastlabel;
-                   maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                   if (len=0) or
-                      not(cst_type in [cst_ansistring,cst_widestring,cst_unicodestring]) then
-                     new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(pint)))
-                   else
-                     new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,lastlabel.name,const_align(sizeof(pint)));
-                   { generate an ansi string ? }
                    case cst_type of
                       cst_ansistring:
                         begin
                            if len=0 then
                              InternalError(2008032301)   { empty string should be handled above }
                            else
-                             begin
-                                current_asmdata.getdatalabel(l1);
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(-1));
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(len));
-
-                                { make sure the string doesn't get dead stripped if the header is referenced }
-                                if (target_info.system in systems_darwin) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,lastlabel.name));
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
-                                { ... and vice versa }
-                                if (target_info.system in systems_darwin) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,l1.name));
-                                { include also terminating zero }
-                                getmem(pc,len+1);
-                                move(value_str^,pc^,len);
-                                pc[len]:=#0;
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create_pchar(pc,len+1));
-                             end;
+                             lastlabel:=emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len);
                         end;
                       cst_unicodestring,
                       cst_widestring:
@@ -348,35 +320,16 @@ implementation
                            if len=0 then
                              InternalError(2008032302)   { empty string should be handled above }
                            else
-                             begin
-                                current_asmdata.getdatalabel(l1);
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
-                                { we use always UTF-16 coding for constants }
-                                { at least for now                          }
-                                { Consts.concat(Tai_const.Create_8bit(2)); }
-                                if (cst_type=cst_widestring) and (tf_winlikewidestring in target_info.flags) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(len*cwidechartype.size))
-                                else
-                                  begin
-                                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(-1));
-                                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(len*cwidechartype.size));
-                                  end;
-
-                                { make sure the string doesn't get dead stripped if the header is referenced }
-                                if (target_info.system in systems_darwin) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,lastlabel.name));
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
-                                { ... and vice versa }
-                                if (target_info.system in systems_darwin) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,l1.name));
-                                for i:=0 to len-1 do
-                                  current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(pcompilerwidestring(value_str)^.data[i]));
-                                { terminating zero }
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(0));
-                             end;
+                             lastlabel := emit_unicodestring_const(current_asmdata.AsmLists[al_typedconsts],
+                                             value_str,
+                                             (cst_type=cst_widestring) and (tf_winlikewidestring in target_info.flags));
                         end;
                       cst_shortstring:
                         begin
+                          current_asmdata.getdatalabel(lastlabel);
+                          maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
+                          new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(pint)));
+
                           current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                           { truncate strings larger than 255 chars }
                           if len>255 then
@@ -392,6 +345,10 @@ implementation
                         end;
                       cst_conststring:
                         begin
+                          current_asmdata.getdatalabel(lastlabel);
+                          maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
+                          new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(pint)));
+
                           current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                           { include terminating zero }
                           getmem(pc,len+1);
@@ -400,6 +357,8 @@ implementation
                           current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create_pchar(pc,len+1));
                         end;
                    end;
+                   lab_str:=lastlabel;
+                   entry^.Data:=lastlabel;
                 end;
            end;
          if cst_type in [cst_ansistring, cst_widestring, cst_unicodestring] then
