@@ -159,37 +159,14 @@ end;
     P1 > P2    > 0
     P1 = P2    = 0    }
 
-function CompareMemRange(P1, P2: Pointer; Length: cardinal): integer;
-
-var
-  i: cardinal;
-
+function CompareMemRange(P1, P2: Pointer; Length: PtrUInt): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
 begin
-  i := 0;
-  result := 0;
-  while (result=0) and (I<length) do
-    begin
-    result:=byte(P1^)-byte(P2^);
-    P1:=pchar(P1)+1;            // VP compat.
-    P2:=pchar(P2)+1;
-    i := i + 1;
-   end ;
-end ;
+  Result:=CompareByte(P1^,P2^,Length);
+end;
 
-function CompareMem(P1, P2: Pointer; Length: cardinal): Boolean;
-var
-  i: cardinal;
+function CompareMem(P1, P2: Pointer; Length: PtrUInt): Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
 begin
-  Result:=True;
-  I:=0;
-  If (P1)<>(P2) then
-    While Result and (i<Length) do
-      begin
-      Result:=PByte(P1)^=PByte(P2)^;
-      Inc(I);
-      Inc(pchar(P1));
-      Inc(pchar(P2));
-      end;
+  Result:=CompareByte(P1^,P2^,Length)=0;
 end;
 
 
