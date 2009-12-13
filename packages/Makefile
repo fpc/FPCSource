@@ -8931,7 +8931,7 @@ fpmkunit_debug: fcl-base_debug fcl-process_debug paszlib_debug
 fpmkunit_smart: fcl-base_smart fcl-process_smart paszlib_smart
 fpmkunit_release: fcl-base_release fcl-process_release paszlib_release
 fpmkunit_shared: fcl-base_shared fcl-process_shared paszlib_shared
-ifneq ($(findstring $(FULL_TARGET),powerpc-darwin i386-darwin),)
+ifneq ($(findstring $(OS_TARGET),darwin),)
 fcl-base_all: univint_all paszlib_all
 fcl-base_debug: univint_debug paszlib_debug
 fcl-base_smart: univint_smart paszlib_smart
@@ -8951,7 +8951,7 @@ fcl-extra_smart: fcl-base_smart winunits-base_smart winunits-jedi_smart
 fcl-extra_release: fcl-base_release winunits-base_release winunits-jedi_release
 fcl-extra_shared: fcl-base_shared winunits-base_shared winunits-jedi_shared
 else
-ifneq ($(findstring $(OS_TARGET),darwin darwin),)
+ifneq ($(findstring $(OS_TARGET),darwin),)
 fcl-extra_all: univint_all fcl-base_all
 fcl-extra_debug: univint_debug fcl-base_debug
 fcl-extra_smart: univint_smart fcl-base_release
@@ -9041,11 +9041,6 @@ fcl_debug: fcl-base_debug fcl-xml_debug fcl-fpcunit_debug fcl-db_debug fcl-web_d
 fcl_smart: fcl-base_smart fcl-xml_smart fcl-fpcunit_smart fcl-db_smart fcl-web_smart fcl-registry_smart fcl-passrc_smart fcl-image_smart fcl-net_smart fcl-json_smart fcl-res_smart
 fcl_release: fcl-base_release fcl-xml_release fcl-fpcunit_release fcl-db_release fcl-web_release fcl-registry_release fcl-passrc_release fcl-image_release fcl-net_release fcl-json_release fcl-res_release
 fcl_shared: fcl-base_shared fcl-xml_shared fcl-fpcunit_shared fcl-db_shared fcl-web_shared fcl-registry_shared fcl-passrc_shared fcl-image_shared fcl-net_shared fcl-json_shared fcl-res_shared
-paszlib_all: hash_all
-paszlib_debug: hash_debug
-paszlib_smart: hash_smart
-paszlib_release: hash_release
-paszlib_shared: hash_shared
 libpng_all: zlib_all
 libpng_debug: zlib_debug
 libpng_smart: zlib_smart
