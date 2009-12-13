@@ -258,11 +258,44 @@ function Win32UnicodeLower(const s : UnicodeString) : UnicodeString;
       CharLowerBuff(LPWSTR(result),length(result));
   end;
 
+type
+  PWStrInitEntry = ^TWStrInitEntry;
+  TWStrInitEntry = record
+    addr: PPointer;
+    data: Pointer;
+  end;
+
+  PWStrInitTablesTable = ^TWStrInitTablesTable;
+  TWStrInitTablesTable = packed record
+    count  : longint;
+    tables : packed array [1..32767] of PWStrInitEntry;
+  end;
+
+{$ifndef VER2_4}
+var
+  WStrInitTablesTable: TWStrInitTablesTable; external name 'FPC_WIDEINITTABLES';
+{$endif VER2_4}
 
 { there is a similiar procedure in sysutils which inits the fields which
   are only relevant for the sysutils units }
 procedure InitWin32Widestrings;
+  var
+    i: longint;
+    ptable: PWStrInitEntry;
   begin
+{$ifndef VER2_4}
+    { assign initial values to global Widestring typed consts }
+    for i:=1 to WStrInitTablesTable.count do
+      begin
+        ptable:=WStrInitTablesTable.tables[i];
+        while Assigned(ptable^.addr) do
+          begin
+            fpc_widestr_assign(ptable^.addr^, ptable^.data);
+            Inc(ptable);
+          end;
+      end;
+{$endif VER2_4}
+
     { Widestring }
     widestringmanager.Wide2AnsiMoveProc:=@Win32Wide2AnsiMove;
     widestringmanager.Ansi2WideMoveProc:=@Win32Ansi2WideMove;

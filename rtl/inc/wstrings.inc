@@ -53,15 +53,18 @@ Const
 procedure DefaultWide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
 var
   i : SizeInt;
+  destp: PChar;
 begin
   setlength(dest,len);
+  destp := PChar(Pointer(dest));
   for i:=1 to len do
     begin
       if word(source^)<256 then
-        dest[i]:=char(word(source^))
+        destp^:=char(word(source^))
       else
-        dest[i]:='?';
+        destp^:='?';
       inc(source);
+      inc(destp);
     end;
 end;
 
@@ -173,31 +176,13 @@ begin
   S:=Nil;
 end;
 
-var
-  __data_start: byte; external name '__data_start__';
-  __data_end: byte; external name '__data_end__';
-
-function IsWideStringConstant(S: pointer): boolean;{$ifdef SYSTEMINLINE}inline;{$endif}
-{
-  Returns True if widestring is constant (located in .data section);
-}
-begin
-  Result:=(S>=@__data_start) and (S<@__data_end);
-end;
-
 Procedure fpc_WideStr_Decr_Ref (Var S : Pointer);[Public,Alias:'FPC_WIDESTR_DECR_REF']; compilerproc;
 {
   Decreases the ReferenceCount of a non constant widestring;
   If the reference count is zero, deallocate the string;
 }
-Type
-  pSizeInt = ^SizeInt;
 Begin
-  { Zero string }
-  if S=Nil then
-    exit;
-  if not IsWideStringConstant(S) then
-    DisposeWideString(S);
+  DisposeWideString(S);  { does test for nil }
 end;
 
 { alias for internal use }
@@ -331,12 +316,6 @@ begin
   if S1=S2 then exit;
   if S2<>nil then
     begin
-      if IsWideStringConstant(S1) then
-        begin
-          S1:=NewWidestring(length(WideString(S2)));
-          move(s2^,s1^,(length(WideString(s1))+1)*sizeof(widechar));
-        end
-      else
 {$ifdef MSWINDOWS}
         if winwidestringalloc then
           begin
@@ -787,7 +766,7 @@ begin
 {$ifdef MSWINDOWS}
               not winwidestringalloc and
 {$endif MSWINDOWS}
-              not IsWideStringConstant(pointer(S))
+              True
               then
         begin
           Dec(Pointer(S),WideFirstOff);
