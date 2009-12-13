@@ -500,12 +500,12 @@ procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out
 procedure fpc_shortstr_currency(c : currency; len,f : SizeInt; out s : shortstring);[public,alias:'FPC_SHORTSTR_CURRENCY']; compilerproc;
 const
   MinLen = 8; { Minimal string length in scientific format }
-
 var
   buf : array[1..19] of char;
   i,j,k,reslen,tlen,sign,r,point : longint;
   ic : qword;
 begin
+  fillchar(buf,length(buf),'0');
   { default value for length is -32767 }
   if len=-32767 then
     len:=25;
@@ -594,7 +594,26 @@ begin
             break;
         end;
       If (k=1) and (buf[i-1]='0') then
-        buf[i]:=chr(Ord(buf[i])+1);
+	    begin
+		  { 1.9996 rounded to two decimal digits after the decimal separator must result in
+		    2.00, i.e. the rounding is propagated
+		  }
+          while buf[i]='9' do
+		    begin
+			  buf[i]:='0';
+     		  inc(i);
+		    end;
+		  buf[i]:=chr(Ord(buf[i])+1);
+		  { did we add another digit? This happens when rounding
+		    e.g. 99.9996 to two decimal digits after the decimal separator which should result in
+			100.00
+		  }
+		  if i>reslen then
+		    begin
+			  inc(reslen);
+			  inc(tlen);
+			end;
+		end;		  
     end;
   { preparing result string }
   if reslen<len then
