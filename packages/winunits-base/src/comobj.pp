@@ -47,11 +47,11 @@ unit comobj;
         property Source: string read FSource write FSource;
       end;
 
-      EOleRegistrationError = class(EOleError);
+      EOleRegistrationError = class(EOleSysError);
 
       TOleStream = Class(TProxyStream)
-                  procedure Check(err:integer);override;
-		end;
+        procedure Check(err:integer);override;
+      end;
 
       TComServerObject = class(TObject)
       protected
