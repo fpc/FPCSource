@@ -1326,7 +1326,11 @@ begin
       end;
     ftBoolean, ftWord:
       begin
-        Str(Word(Buffer^), TempStr);
+        //ensure that boolean True value is stored as 1
+        if Field.DataType = ftBoolean then
+          TempStr := IfThen(Boolean(Buffer^), '1', '0')
+        else
+          Str(Word(Buffer^), TempStr);
         EditItem^.Row[FieldOffset] := StrAlloc(Length(TempStr) + 1);
         Move(PChar(TempStr)^, (EditItem^.Row[FieldOffset])^, Length(TempStr) + 1);
       end;  
