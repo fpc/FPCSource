@@ -271,10 +271,10 @@ type
     tables : packed array [1..32767] of PWStrInitEntry;
   end;
 
-{$ifndef VER2_4}
+{$if not(defined(VER2_2) or defined(VER2_4))}
 var
   WStrInitTablesTable: TWStrInitTablesTable; external name 'FPC_WIDEINITTABLES';
-{$endif VER2_4}
+{$endif}
 
 { there is a similiar procedure in sysutils which inits the fields which
   are only relevant for the sysutils units }
@@ -283,7 +283,7 @@ procedure InitWin32Widestrings;
     i: longint;
     ptable: PWStrInitEntry;
   begin
-{$ifndef VER2_4}
+{$if not(defined(VER2_2) or defined(VER2_4))}
     { assign initial values to global Widestring typed consts }
     for i:=1 to WStrInitTablesTable.count do
       begin
@@ -294,7 +294,7 @@ procedure InitWin32Widestrings;
             Inc(ptable);
           end;
       end;
-{$endif VER2_4}
+{$endif}
 
     { Widestring }
     widestringmanager.Wide2AnsiMoveProc:=@Win32Wide2AnsiMove;
