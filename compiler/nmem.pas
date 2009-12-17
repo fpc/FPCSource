@@ -733,9 +733,9 @@ implementation
           exit;
 
          { maybe type conversion for the index value, but
-           do not convert enums,booleans,char
+           do not convert enums, char (why not? (JM))
            and do not convert range nodes }
-         if (right.nodetype<>rangen) and (is_integer(right.resultdef) or (left.resultdef.typ<>arraydef)) then
+         if (right.nodetype<>rangen) and (is_integer(right.resultdef) or is_boolean(right.resultdef) or (left.resultdef.typ<>arraydef)) then
            case left.resultdef.typ of
              arraydef:
                if ado_isvariant in Tarraydef(left.resultdef).arrayoptions then
@@ -748,6 +748,9 @@ implementation
                  {Arrays without a high bound (dynamic arrays, open arrays) are zero based,
                   convert indexes into these arrays to aword.}
                  inserttypeconv(right,uinttype)
+               { convert between pasbool and cbool if necessary }
+               else if is_boolean(right.resultdef) then
+                 inserttypeconv(right,tarraydef(left.resultdef).rangedef)
                else
                  {Convert array indexes to low_bound..high_bound.}
                  inserttypeconv(right,Torddef.create(Torddef(sinttype).ordtype,
