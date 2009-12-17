@@ -4,7 +4,7 @@
 program test_word_ref;
 
 var
-  loc : word;
+  j,loc : word;
 {$asmmode att}
 procedure TestAtt(w : word);
 
@@ -19,17 +19,25 @@ end;
 procedure TestIntel(w : word);
 
 begin
+  loc:=56*j;
   asm
-      mov ax,[w]
+      mov ax,w
       mov [loc],ax
   end;
 end;
 
 begin
+  j:=6;
   TestAtt(6);
   if loc<>6 then
-    halt(1);
+    begin
+      Writeln('Error in att code');
+      halt(1);
+    end;
   TestIntel(46);
   if loc<>46 then
-    halt(1);
+    begin
+      Writeln('Error in intel code');
+      halt(1);
+    end;
 end.
