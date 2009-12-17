@@ -2894,7 +2894,13 @@ implementation
       begin
         if (sym.typ=paravarsym) and
            (vo_is_self in tparavarsym(sym).varoptions) then
-          if not is_objc_class_or_protocol(tdef(sym.owner.defowner.owner.defowner)) then
+          { We use 'this' for regular methods because that's what gdb triggers
+            on to automatically search fields. Don't do this for class methods,
+            because search class fields is not supported, and gdb 7.0+ fails
+            in this case because "this" is not a record in that case (it's a
+            pointer to a vmt) }
+          if not is_objc_class_or_protocol(tdef(sym.owner.defowner.owner.defowner)) and
+             not(po_classmethod in tprocdef(sym.owner.defowner).procoptions) then
             result:='this'
           else
             result:='self'
