@@ -233,10 +233,12 @@ Unit Rax86int;
         if (actasmregister=NR_NO) and (current_procinfo.procdef.proccalloption=pocall_register) then
           begin
             entry := current_procinfo.procdef.parast.Find(s);
-            if assigned(entry) and (entry.typ=paravarsym) and
-              assigned(tparavarsym(entry).paraloc[calleeside].Location) and
-              (tparavarsym(entry).paraloc[calleeside].Location^.Loc=LOC_REGISTER) then
-                actasmregister:=tparavarsym(entry).paraloc[calleeside].Location^.register;
+            if assigned(entry) and
+               (po_assembler in current_procinfo.procdef.procoptions) and
+               (entry.typ=paravarsym) and
+               assigned(tparavarsym(entry).paraloc[calleeside].Location) and
+               (tparavarsym(entry).paraloc[calleeside].Location^.Loc=LOC_REGISTER) then
+              actasmregister:=tparavarsym(entry).paraloc[calleeside].Location^.register;
           end;
         if actasmregister<>NR_NO then
           begin
