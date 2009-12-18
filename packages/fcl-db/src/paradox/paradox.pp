@@ -14,6 +14,14 @@
 {$H+}
 {
   TParadox : Dataset wich can handle paradox files, based on PXLib.
+  pxlib is an open source C library for handling paradox files. It
+  is available from sourceforge:
+  http://pxlib.sourceforge.net/
+  it must be downloaded and installed separately. The header translations
+  for version 0.6.2 of pxlib are available in the pxlib unit in the Free 
+  Pascal Packages.
+  
+  The TParadox component was implemented by Michael Van Canneyt
 }
 
 unit paradox;
