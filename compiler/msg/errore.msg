@@ -2573,7 +2573,7 @@ unit_e_different_wpo_file=10061_E_Unit $1 was compiled using a different whole p
 #
 #  Options
 #
-# 11047 is the last used one
+# 11048 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -2696,6 +2696,9 @@ option_dwarf_smart_linking=11046_N_DWARF debug information cannot be used with s
 option_ignored_target=11047_W_Option "$1" is ignored for the current target platform.
 % Not all options are supported or implemented for all target platforms. This message informs you that a chosen
 % option is ignored for the currently selected target platform.
+option_debug_external_unsupported=11048_W_Disabling external debug information because it is unsupported for the selected target/debug format combination.
+% Not all debug formats can be stored in an external file on all platforms. In particular, on
+% Mac OS X only DWARF debug information can be stored externally.
 %\end{description}
 # EndOfTeX
 

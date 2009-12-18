@@ -811,6 +811,7 @@ const
   option_unsupported_target_for_feature=11045;
   option_dwarf_smart_linking=11046;
   option_ignored_target=11047;
+  option_debug_external_unsupported=11048;
   wpo_cant_find_file=12000;
   wpo_begin_processing=12001;
   wpo_end_processing=12002;
@@ -835,9 +836,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 54831;
+  MsgTxtSize = 54952;
 
   MsgIdxMax : array[1..20] of longint=(
     24,87,282,95,71,51,110,22,202,62,
-    48,20,1,1,1,1,1,1,1,1
+    49,20,1,1,1,1,1,1,1,1
   );
