@@ -1918,6 +1918,7 @@ implementation
       var
         elesize : pint;
         currdef : tdef;
+        indirection: boolean;
       begin
         result:=false;
         if not assigned(symlist) then
@@ -1925,6 +1926,7 @@ implementation
         sym:=nil;
         offset:=0;
         currdef:=nil;
+        indirection:=false;
         repeat
           case symlist^.sltype of
             sl_load:
@@ -1936,6 +1938,9 @@ implementation
                   exit;
                 sym:=tabstractvarsym(symlist^.sym);
                 currdef:=tabstractvarsym(sym).vardef;
+                if ((sym.typ=paravarsym) and
+                    paramanager.push_addr_param(tparavarsym(sym).varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption)) then
+                  indirection:=true;
               end;
             sl_subscript:
               begin
@@ -1943,6 +1948,9 @@ implementation
                   internalerror(2009031301);
                 if (symlist^.sym.typ<>fieldvarsym) then
                   internalerror(2009031202);
+                { can't handle offsets with indirections yet }
+                if indirection then
+                  exit;
                 if is_packed_record_or_object(currdef) then
                   begin
                     { can't calculate the address of a non-byte aligned field }
@@ -1965,6 +1973,9 @@ implementation
                 if not assigned(currdef) or
                    (currdef.typ<>arraydef) then
                   internalerror(2009031201);
+                { can't handle offsets with indirections yet }
+                if indirection then
+                  exit;
                 if not is_packed_array(currdef) then
                   elesize:=tarraydef(currdef).elesize
                 else
@@ -2474,13 +2485,15 @@ implementation
           tovar:
             begin
               symlist:=tabsolutevarsym(sym).ref.firstsym;
-              get_symlist_sym_offset(symlist,tosym,offset);
-              if (tosym.typ=fieldvarsym) then
-                internalerror(2009031402);
-              flags:=[];
-              if (sym.owner.symtabletype=localsymtable) then
-                include(flags,dvf_force_local_var);
-              appendsym_var_with_name_type_offset(list,tabstractnormalvarsym(tosym),symname(sym),tabstractvarsym(sym).vardef,offset,flags);
+              if get_symlist_sym_offset(symlist,tosym,offset) then
+                begin
+                  if (tosym.typ=fieldvarsym) then
+                    internalerror(2009031402);
+                  flags:=[];
+                  if (sym.owner.symtabletype=localsymtable) then
+                    include(flags,dvf_force_local_var);
+                  appendsym_var_with_name_type_offset(list,tabstractnormalvarsym(tosym),symname(sym),tabstractvarsym(sym).vardef,offset,flags);
+                end;
               templist.free;
               exit;
             end;
