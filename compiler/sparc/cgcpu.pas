@@ -90,6 +90,8 @@ interface
         procedure g_concatcopy_unaligned(list : TAsmList;const source,dest : treference;len : aint);override;
         procedure g_concatcopy_move(list : TAsmList;const source,dest : treference;len : aint);
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
+       private
+        g1_used : boolean;
       end;
 
       TCg64Sparc=class(tcg64f32)
@@ -250,9 +252,17 @@ implementation
         if (a<simm13lo) or
            (a>simm13hi) then
           begin
-            tmpreg:=GetIntRegister(list,OS_INT);
+            if g1_used then
+              GetIntRegister(list,OS_INT)
+            else
+              begin
+                tmpreg:=NR_G1;
+                g1_used:=true;
+              end;   
             a_load_const_reg(list,OS_INT,a,tmpreg);
             list.concat(taicpu.op_reg_reg_reg(op,src,tmpreg,dst));
+            if tmpreg=NR_G1 then
+              g1_used:=false;
           end
         else
           list.concat(taicpu.op_reg_const_reg(op,src,a,dst));
@@ -357,9 +367,17 @@ implementation
                         InternalError(2002081104);
                       reference_reset_base(ref,index,offset,paraloc.alignment);
                     end;
-                  tmpreg:=GetIntRegister(list,OS_INT);
+                  if g1_used then
+                    GetIntRegister(list,OS_INT)
+                  else
+                    begin
+                      tmpreg:=NR_G1;
+                      g1_used:=true;
+                    end;   
                   a_load_ref_reg(list,sz,sz,r,tmpreg);
                   a_load_reg_ref(list,sz,sz,tmpreg,ref);
+                  if tmpreg=NR_G1 then
+                    g1_used:=false;
                 end;
               else
                 internalerror(2002081103);
@@ -1061,7 +1079,9 @@ implementation
         if LocalSize>4096 then
           begin
             a_load_const_reg(list,OS_ADDR,-LocalSize,NR_G1);
+            g1_used:=true;
             list.concat(Taicpu.Op_reg_reg_reg(A_SAVE,NR_STACK_POINTER_REG,NR_G1,NR_STACK_POINTER_REG));
+            g1_used:=false;
           end
         else
           list.concat(Taicpu.Op_reg_const_reg(A_SAVE,NR_STACK_POINTER_REG,-LocalSize,NR_STACK_POINTER_REG));
@@ -1349,19 +1369,23 @@ implementation
             { mov  0(%rdi),%rax ; load vmt}
             reference_reset_base(href,NR_O0,0,sizeof(pint));
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_G1);
+            g1_used:=true; 
             { jmp *vmtoffs(%eax) ; method offs }
             reference_reset_base(href,NR_G1,procdef._class.vmtmethodoffset(procdef.extnumber),sizeof(pint));
             list.concat(taicpu.op_ref_reg(A_LD,href,NR_G1));
             list.concat(taicpu.op_reg(A_JMP,NR_G1));
+	    g1_used:=false;
           end
         else
           begin
             reference_reset_symbol(href,current_asmdata.RefAsmSymbol(procdef.mangledname),0,sizeof(pint));
             href.refaddr := addr_high;
             list.concat(taicpu.op_ref_reg(A_SETHI,href,NR_G1));
+	    g1_used:=true;
             href.refaddr := addr_low;
             list.concat(taicpu.op_reg_ref_reg(A_OR,NR_G1,href,NR_G1));
             list.concat(taicpu.op_reg(A_JMP,NR_G1));
+	    g1_used:=false;
           end;
         { Delay slot }
         list.Concat(TAiCpu.Op_none(A_NOP));
