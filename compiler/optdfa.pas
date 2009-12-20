@@ -241,6 +241,7 @@ unit optdfa;
         var
           dfainfo : tdfainfo;
           l : TDFASet;
+          save: TDFASet;
           i : longint;
 
         begin
@@ -265,34 +266,50 @@ unit optdfa;
           case node.nodetype of
             whilerepeatn:
               begin
-                calclife(node);
-                { take care of repeat until! }
-                if lnf_testatbegin in twhilerepeatnode(node).loopflags then
+                { analyze the loop condition }
+                if not(assigned(node.optinfo^.def)) and
+                   not(assigned(node.optinfo^.use)) then
                   begin
-                    node.allocoptinfo;
-                    if not(assigned(node.optinfo^.def)) and
-                       not(assigned(node.optinfo^.use)) then
-                      begin
-                        dfainfo.use:=@node.optinfo^.use;
-                        dfainfo.def:=@node.optinfo^.def;
-                        dfainfo.map:=map;
-                        foreachnodestatic(pm_postprocess,twhilerepeatnode(node).left,@AddDefUse,@dfainfo);
-                      end;
-                    calclife(node);
-
-                    { now iterate through the loop }
-                    CreateInfo(twhilerepeatnode(node).right);
-
-                    { update while node }
-                    { life:=life+use+right.life }
-                    l:=node.optinfo^.life;
-                    DFASetIncludeSet(l,node.optinfo^.use);
-                    DFASetIncludeSet(l,twhilerepeatnode(node).right.optinfo^.life);
-                    UpdateLifeInfo(node,l);
-
-                    { ... and a second iteration for fast convergence }
-                    CreateInfo(twhilerepeatnode(node).right);
+                    dfainfo.use:=@node.optinfo^.use;
+                    dfainfo.def:=@node.optinfo^.def;
+                    dfainfo.map:=map;
+                    foreachnodestatic(pm_postprocess,twhilerepeatnode(node).left,@AddDefUse,@dfainfo);
                   end;
+
+                { NB: this node should typically have empty def set }                  
+                if assigned(node.successor) then
+                  DFASetDiff(l,node.successor.optinfo^.life,node.optinfo^.def)
+                else if assigned(resultnode) then
+                  DFASetDiff(l,resultnode.optinfo^.life,node.optinfo^.def)
+                else
+                  l:=nil;
+
+                { for repeat..until, node use set in included at the end of loop }
+                if not (lnf_testatbegin in twhilerepeatnode(node).loopflags) then
+                  DFASetIncludeSet(l,node.optinfo^.use);
+
+                DFASetIncludeSet(l,node.optinfo^.life);
+
+                save:=node.optinfo^.life;
+                { to process body correctly, we need life info in place (because
+                  whilerepeatnode is successor of its body). }
+                node.optinfo^.life:=l;
+
+                { now process the body }
+                CreateInfo(twhilerepeatnode(node).right);
+
+                { restore, to prevent infinite recursion via changed flag }
+                node.optinfo^.life:=save;
+
+                { for while loops, node use set is included at the beginning of loop }
+                l:=twhilerepeatnode(node).right.optinfo^.life;
+                if lnf_testatbegin in twhilerepeatnode(node).loopflags then
+                  DFASetIncludeSet(l,node.optinfo^.use);
+
+                UpdateLifeInfo(node,l);
+
+                { ... and a second iteration for fast convergence }
+                CreateInfo(twhilerepeatnode(node).right);
               end;
 
             forn:
@@ -326,9 +343,11 @@ unit optdfa;
 
                 { update for node }
                 { life:=life+use+body }
-                l:=node.optinfo^.life;
+                l:=copy(node.optinfo^.life);
                 DFASetIncludeSet(l,node.optinfo^.use);
                 DFASetIncludeSet(l,tfornode(node).t2.optinfo^.life);
+                { the for loop always updates its control variable }
+                DFASetDiff(l,l,node.optinfo^.def);
                 UpdateLifeInfo(node,l);
 
                 { ... and a second iteration for fast convergence }
