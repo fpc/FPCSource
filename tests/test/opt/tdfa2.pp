@@ -1,10 +1,6 @@
 { %OPT=-Oodfa -Sew -vw}
-unit tdfa;
+program tdfa2;
 {$mode objfpc}{$h+}
-
-interface
-
-implementation
 
 procedure test0;
 const
@@ -50,5 +46,5 @@ begin
 end;
 
 
-
+begin
 end.
