@@ -4,9 +4,10 @@ program tres4;
 
 
 uses
+{$ifdef MSWINDOWS}
+  windows,
+{$endif}
   classes,
-
-
   sysutils;
 
 {$R tres4.res}
