@@ -1182,7 +1182,10 @@ implementation
              if not(p.nodetype in [nothingn,errorn,calln,ifn,assignn,breakn,inlinen,
                                    continuen,labeln,blockn,exitn]) or
                 ((p.nodetype=inlinen) and
-                 not is_void(p.resultdef)) then
+                 not is_void(p.resultdef)) or
+                ((p.nodetype=calln) and
+                 (assigned(tcallnode(p).procdefinition)) and
+                 (tcallnode(p).procdefinition.proctypeoption=potype_operator)) then
                Message(parser_e_illegal_expression);
 
              { Specify that we don't use the value returned by the call.
