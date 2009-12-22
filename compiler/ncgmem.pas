@@ -308,6 +308,11 @@ implementation
                      location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
                      cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,left.location,location.reference.base);
                   end;
+                LOC_CONSTANT:
+                  begin
+                    { can happen with @classtype(pointerconst).field }
+                    location.reference.offset:=left.location.value;
+                  end;
                 else
                   internalerror(2009092401);
              end;
