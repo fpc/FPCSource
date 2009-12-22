@@ -363,7 +363,7 @@ Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
 
 begin
   PT:=GetTypeData(TypeInfo);
-  if TypeInfo^.Kind=tkBool then 
+  if TypeInfo^.Kind=tkBool then
     begin
       case Value of
         0,1:
@@ -375,6 +375,7 @@ begin
  else
    begin
      PS:=@PT^.NameList;
+     dec(Value,PT^.MinValue);
      While Value>0 Do
        begin
          PS:=PShortString(pointer(PS)+PByte(PS)^+1);
@@ -399,8 +400,8 @@ begin
   PT:=GetTypeData(TypeInfo);
   Count:=0;
   Result:=-1;
-  
-  if TypeInfo^.Kind=tkBool then 
+
+  if TypeInfo^.Kind=tkBool then
     begin
     If CompareText(BooleanIdents[false],Name)=0 then
       result:=0
@@ -409,7 +410,7 @@ begin
     end
  else
    begin
-  
+
      PS:=@PT^.NameList;
      While (Result=-1) and (PByte(PS)^<>0) do
        begin
@@ -429,20 +430,20 @@ var
   Count: SizeInt;
 begin
   PT:=GetTypeData(enum1);
-  if enum1^.Kind=tkBool then 
+  if enum1^.Kind=tkBool then
     Result:=2
   else
     begin
       Count:=0;
       Result:=0;
-    
+
       PS:=@PT^.NameList;
       While (PByte(PS)^<>0) do
         begin
           PS:=PShortString(pointer(PS)+PByte(PS)^+1);
           Inc(Count);
         end;
-    
+
       Result := Count;
     end;
 end;
@@ -795,7 +796,7 @@ begin
       GetPropInfos(TypeInfo,PropList);
     end
   else
-    PropList:=Nil;  
+    PropList:=Nil;
 end;
 
 function GetPropList(AClass: TClass; out PropList: PPropList): Integer;
@@ -1461,7 +1462,7 @@ begin
     tkSString,tkAString:
       Result:=GetStrProp(Instance,PropInfo);
     tkWString:
-      Result:=GetWideStrProp(Instance,PropInfo);      
+      Result:=GetWideStrProp(Instance,PropInfo);
     tkUString:
       begin
         case (PropInfo^.PropProcs) and 3 of
