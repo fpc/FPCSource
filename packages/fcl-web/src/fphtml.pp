@@ -159,6 +159,7 @@ type
   private
     FControlName: string;
     FItems: TStrings;
+    FjsOnChange: string;
     FPreSelected: string;
     FSize: integer;
     FUseValues: boolean;
@@ -173,6 +174,7 @@ type
     property PreSelected : string read FPreSelected write FPreSelected;
     property Size : integer read FSize write FSize default 1;
     property ControlName : string read FControlName write FControlName;
+    property jsOnChange: string read FjsOnChange write FjsOnChange;
   end;
 
   { THTMLDatasetSelectProducer }
@@ -399,6 +401,7 @@ end;
 function THTMLSelectProducer.WriteContent(aWriter: THTMLWriter): THTMLCustomElement;
 begin
   result := aWriter.FormSelect(FControlName, FPreselected, FSize, FItems, FUseValues);
+  THTML_select(result).onchange:=FjsOnChange;
 end;
 
 constructor THTMLSelectProducer.create(aOwner: TComponent);
