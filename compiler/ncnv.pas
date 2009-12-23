@@ -2703,26 +2703,34 @@ implementation
                    etStandard:
                      { handle in pass 2 }
                      ;
-                   etFieldValue:
+                   etFieldValue, etFieldValueClass:
                      if is_interface(tobjectdef(resultdef)) then
                        begin
                          result:=left;
                          propaccesslist_to_node(result,tpropertysym(implintf.implementsgetter).owner,tpropertysym(implintf.implementsgetter).propaccesslist[palt_read]);
+                         { this ensures proper refcounting when field is of class type }
+                         if not is_interface(result.resultdef) then
+                           inserttypeconv(result, resultdef);
                          left:=nil;
                        end
                      else
                        begin
                          internalerror(200802213);
                        end;
-                   etStaticMethodResult,
-                   etVirtualMethodResult:
+                   etStaticMethodResult, etStaticMethodClass,
+                   etVirtualMethodResult, etVirtualMethodClass:
                      if is_interface(tobjectdef(resultdef)) then
                        begin
+                         { TODO: generating a call to TObject.GetInterface instead could yield
+                           smaller code size. OTOH, refcounting gotchas are possible that way. }
                          { constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags); }
                          result:=ccallnode.create(nil,tprocsym(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym),
                            tprocsym(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym).owner,
                            left,[]);
                          addsymref(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym);
+                         { if it is a class, process it further in a similar way }
+                         if not is_interface(result.resultdef) then
+                           inserttypeconv(result, resultdef);
                          left:=nil;
                        end
                      else if is_class(tobjectdef(resultdef)) then

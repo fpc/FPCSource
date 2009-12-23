@@ -315,7 +315,10 @@ type
   tinterfaceentrytype = (etStandard,
     etVirtualMethodResult,
     etStaticMethodResult,
-    etFieldValue
+    etFieldValue,
+    etVirtualMethodClass,
+    etStaticMethodClass,
+    etFieldValueClass
   );
 
   { options for objects and classes }

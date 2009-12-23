@@ -764,6 +764,14 @@ implementation
                    else
                      internalerror(200802161);
                  end;
+                 if not is_interface(p.propdef) then
+                   case ImplIntf.IType of
+                     etVirtualMethodResult: ImplIntf.IType := etVirtualMethodClass;
+                     etStaticMethodResult:  ImplIntf.IType := etStaticMethodClass;
+                     etFieldValue:          ImplIntf.IType := etFieldValueClass;
+                   else
+                     internalerror(200912101);
+                   end;
                end
              else
                message1(parser_e_implements_uses_non_implemented_interface,def.GetTypeName);

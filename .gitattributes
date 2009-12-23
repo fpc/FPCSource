@@ -8873,6 +8873,7 @@ tests/test/tclassinfo1.pp svneol=native#text/pascal
 tests/test/tclrprop.pp svneol=native#text/plain
 tests/test/tcmp.pp svneol=native#text/plain
 tests/test/tcmp0.pp svneol=native#text/plain
+tests/test/tdel1.pp svneol=native#text/plain
 tests/test/tendian1.pp svneol=native#text/plain
 tests/test/tenum1.pp svneol=native#text/plain
 tests/test/tenum2.pp svneol=native#text/plain

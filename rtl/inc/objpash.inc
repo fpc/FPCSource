@@ -151,7 +151,14 @@
        end;
 
        // This enumerate is found both in the rtl and compiler. Do not change the order of the fields.
-       tinterfaceentrytype = (etStandard, etVirtualMethodResult, etStaticMethodResult, etFieldValue);
+       tinterfaceentrytype = (etStandard,
+         etVirtualMethodResult,
+         etStaticMethodResult,
+         etFieldValue, 
+         etVirtualMethodClass,
+         etStaticMethodClass,
+         etFieldValueClass           
+       );
 
        pinterfaceentry = ^tinterfaceentry;
        tinterfaceentry = record

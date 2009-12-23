@@ -606,53 +606,94 @@
             (PDWORD(@guid1.D4[4])^=PDWORD(@guid2.D4[4])^);
         end;
 
-      function getinterfacebyentry(Instance: pointer; IEntry: pinterfaceentry; Corba: Boolean; out obj): boolean;
+      // Use of managed types should be avoided here; implicit _Addref/_Release
+      // will end up in unpredictable behaviour if called on CORBA interfaces.
+      type
+        TInterfaceGetter = procedure(out Obj) of object;
+        TClassGetter = function: TObject of object;
+
+      function getinterfacebyentry(Instance: pointer; IEntry: pinterfaceentry; out obj): boolean;
         var
-          Getter: function: IInterface of object;
+          Getter: TMethod;
         begin
           Pointer(Obj) := nil;
+          Getter.Data := Instance;
           if Assigned(IEntry) and Assigned(Instance) then
           begin
             case IEntry^.IType of
               etStandard:
-                begin
-                  //writeln('Doing etStandard cast of ', TObject(Instance).classname(), ' with self = ', ptruint(Instance), ' and offset = ', IEntry^.IOffset);
-                  Pbyte(Obj):=Pbyte(instance)+IEntry^.IOffset;
-                end;
-              etFieldValue:
-                begin
-                  // writeln('Doing etFieldValue cast of ', TObject(Instance).classname(), ' with offset = ', IEntry^.IOffset);
+                  Pointer(Obj) := Pbyte(instance)+IEntry^.IOffset;
+              etFieldValue, etFieldValueClass:
                   Pointer(obj) := PPointer(Pbyte(Instance)+IEntry^.IOffset)^;
-                end;
               etVirtualMethodResult:
                 begin
-                  //writeln('Doing etVirtualMethodResult cast of ', TObject(Instance).classname());
-                  TMethod(Getter).data := Instance;
-                  TMethod(Getter).code := ppointer(Pbyte(Instance) + IEntry^.IOffset)^;
-                  Pointer(obj) := Pointer(Getter());
+                  // IOffset is relative to the VMT, not to instance.
+                  Getter.code := ppointer(PByte(PPointer(Instance)^) + IEntry^.IOffset)^;
+                  TInterfaceGetter(Getter)(obj);
+                end;
+              etVirtualMethodClass:
+                begin
+                  // IOffset is relative to the VMT, not to instance.
+                  Getter.code := ppointer(PByte(PPointer(Instance)^) + IEntry^.IOffset)^;
+                  TObject(obj) := TClassGetter(Getter)();
                 end;
               etStaticMethodResult:
                 begin
-                  //writeln('Doing etStaticMethodResult cast of ', TObject(Instance).classname());
-                  TMethod(Getter).data := Instance;
-                  TMethod(Getter).code := pointer(IEntry^.IOffset);
-                  Pointer(obj) := Pointer(Getter());
+                  Getter.code := pointer(IEntry^.IOffset);
+                  TInterfaceGetter(Getter)(obj);
+                end;
+              etStaticMethodClass:
+                begin
+                  Getter.code := Pointer(IEntry^.IOffset);
+                  TObject(obj) := TClassGetter(Getter)();
                 end;
             end;
           end;
           result := assigned(pointer(obj));
-          if result and not Corba then
-            IInterface(obj)._AddRef;
         end;
 
       function TObject.getinterface(const iid : tguid;out obj) : boolean;
+        var
+          IEntry: PInterfaceEntry;
+          Instance: TObject;
         begin
-          Result := getinterfacebyentry(self, getinterfaceentry(iid), false, obj);
+          Instance := self;
+          repeat
+            IEntry := Instance.getinterfaceentry(iid);
+            result := getinterfacebyentry(Instance, IEntry, obj);
+
+            if (not result) or
+              (IEntry^.IType in [etStandard, etFieldValue,
+               etStaticMethodResult, etVirtualMethodResult]) then
+              Break;
+            { if interface is implemented by a class-type property or field,
+              continue search }
+            Instance := TObject(obj);
+          until False;
+          { Getter function will normally AddRef, so adding another reference here
+            will cause memleak.  }
+          if result and (IEntry^.IType in [etStandard, etFieldValue]) then
+            IInterface(obj)._AddRef;
         end;
 
       function TObject.getinterfacebystr(const iidstr : shortstring;out obj) : boolean;
+        var
+          IEntry: PInterfaceEntry;
+          Instance: TObject;
         begin
-          Result := getinterfacebyentry(self, getinterfaceentrybystr(iidstr), true, obj);
+          Instance := self;
+          repeat
+            IEntry := Instance.getinterfaceentrybystr(iidstr);
+            result := getinterfacebyentry(Instance, IEntry, obj);
+
+            if (not result) or
+              (IEntry^.IType in [etStandard, etFieldValue,
+               etStaticMethodResult, etVirtualMethodResult]) then
+              Break;
+            { if interface is implemented by a class-type property or field,
+              continue search }
+            Instance := TObject(obj);
+          until False;
         end;
 
       function TObject.getinterface(const iidstr : shortstring;out obj) : boolean;
