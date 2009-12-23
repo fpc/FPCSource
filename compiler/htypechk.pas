@@ -1543,6 +1543,9 @@ implementation
 
 
     procedure para_allowed(var eq:tequaltype;p:tcallparanode;def_to:tdef);
+      var
+        acn: tarrayconstructornode;
+        tmpeq: tequaltype;
       begin
         { Note: eq must be already valid, it will only be updated! }
         case def_to.typ of
@@ -1593,6 +1596,34 @@ implementation
                 if (m_mac_procvar in current_settings.modeswitches) and
                    is_procvar_load(p.left) then
                   eq:=te_convert_l2;
+            end;
+          arraydef :
+            begin
+              { an arrayconstructor of proccalls may have to be converted to
+                an array of procvars }
+              if ((m_tp_procvar in current_settings.modeswitches) or
+                  (m_mac_procvar in current_settings.modeswitches)) and
+                 (tarraydef(def_to).elementdef.typ=procvardef) and
+                 is_array_constructor(p.resultdef) and
+                 not is_variant_array(p.resultdef) then
+                begin
+                  acn:=tarrayconstructornode(p.left);
+                  if assigned(acn.left) then
+                    begin
+                      eq:=te_exact;
+                      while assigned(acn) and
+                            (eq<>te_incompatible) do
+                        begin
+                          if (acn.left.nodetype=calln) then
+                            tmpeq:=proc_to_procvar_equal(tprocdef(tcallnode(acn.left).procdefinition),tprocvardef(tarraydef(def_to).elementdef))
+                          else
+                            tmpeq:=compare_defs(acn.left.resultdef,tarraydef(def_to).elementdef,acn.left.nodetype);
+                          if tmpeq<eq then
+                            eq:=tmpeq;
+                          acn:=tarrayconstructornode(acn.right);
+                        end;
+                    end
+                end;
             end;
         end;
       end;
@@ -1973,6 +2004,7 @@ implementation
         def_to   : tdef;
         currpt,
         pt       : tcallparanode;
+        tmpeq,
         eq       : tequaltype;
         convtype : tconverttype;
         pdtemp,
