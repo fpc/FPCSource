@@ -8807,6 +8807,7 @@ tests/test/tasout.pp svneol=native#text/plain
 tests/test/tassignmentoperator1.pp svneol=native#text/pascal
 tests/test/tbopr.pp svneol=native#text/plain
 tests/test/tbrtlevt.pp svneol=native#text/plain
+tests/test/tcase0.pp svneol=native#text/pascal
 tests/test/tcase1.pp svneol=native#text/plain
 tests/test/tcase10.pp svneol=native#text/pascal
 tests/test/tcase11.pp svneol=native#text/pascal

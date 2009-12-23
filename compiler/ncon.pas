@@ -135,6 +135,7 @@ interface
           function getpcharcopy : pchar;
           function docompare(p: tnode) : boolean; override;
           procedure changestringtype(def:tdef);
+          function fullcompare(p: tstringconstnode): longint;
        end;
        tstringconstnodeclass = class of tstringconstnode;
 
@@ -191,8 +192,7 @@ interface
 
     { some helper routines }
     function get_ordinal_value(p : tnode) : TConstExprInt;
-    function get_string_value(p : tnode; is_wide : boolean = false) : TConstString;
-    function compare_strings(str1, str2: pchar) : longint;
+    function get_string_value(p : tnode; def: tstringdef) : tstringconstnode;
     function is_constresourcestringnode(p : tnode) : boolean;
     function is_emptyset(p : tnode):boolean;
     function genconstsymtree(p : tconstsym) : tnode;
@@ -238,103 +238,32 @@ implementation
           Message(type_e_constant_expr_expected);
       end;
 
-    function get_string_value(p : tnode; is_wide : boolean) : TConstString;
+    function get_string_value(p: tnode; def: tstringdef): tstringconstnode;
       var
-        pCharVal: pchar;
         stringVal: string;
         pWideStringVal: pcompilerwidestring;
-        ordValRecord: TConstExprInt;
       begin
-        if is_conststring_or_constcharnode(p) then
+        if is_constcharnode(p) then
           begin
-            if is_constcharnode(p) or is_constwidecharnode(p) then
-              begin
-                { if we have case like 'aa'..'b' the right part will never be ordinal }
-                { but in case 'a' it will go here }
-                ordValRecord := tordconstnode(p).value;
-                if (not is_wide) then
-                  begin
-                    if ordValRecord.signed then
-                      stringVal := char(ordValRecord.svalue)
-                    else
-                      stringVal := char(ordValRecord.uvalue);
-                    getmem(pCharVal, length(stringVal) + 1);
-                    strpcopy(pCharVal, stringVal);
-                    pCharVal[length(stringVal)] := #0;
-                    get_string_value := pCharVal;
-                  end
-                else
-                  begin
-                    initwidestring(pWideStringVal);
-                    if ordValRecord.signed then
-                      concatwidestringchar(pWideStringVal, tcompilerwidechar(ordValRecord.svalue))
-                    else
-                      concatwidestringchar(pWideStringVal, tcompilerwidechar(ordValRecord.uvalue));
-                    get_string_value := TConstString(pWideStringVal);
-                  end;
-              end
-            else
-              begin
-                if is_wide then
-                  begin
-                    if (tstringconstnode(p).cst_type in [cst_widestring, cst_unicodestring]) then
-                      begin
-                        initwidestring(pWideStringVal);
-                        copywidestring(pcompilerwidestring(tstringconstnode(p).value_str), pWideStringVal);
-                        get_string_value := TConstString(pWideStringVal);
-                      end
-                    else
-                      { if string must be wide, but actually was parsed as usual }
-                      begin
-                        initwidestring(pWideStringVal);
-                        ascii2unicode(tstringconstnode(p).value_str, tstringconstnode(p).len, pWideStringVal);
-                        get_string_value := TConstString(pWideStringVal);
-                      end;
-                  end
-                else
-                  begin
-                    if (tstringconstnode(p).cst_type in [cst_widestring, cst_unicodestring]) then
-                      { string is wide but it must be usual }
-                      begin
-                        getmem(pCharVal, pcompilerwidestring(tstringconstnode(p).value_str)^.len + 1);
-                        unicode2ascii(pcompilerwidestring(tstringconstnode(p).value_str), pCharVal);
-                        pCharVal[pcompilerwidestring(tstringconstnode(p).value_str)^.len] := #0;
-                        get_string_value := pCharVal;
-                      end
-                    else
-                      begin
-                        getmem(pCharVal, tstringconstnode(p).len + 1);
-                        move(tstringconstnode(p).value_str^, pCharVal^, tstringconstnode(p).len);
-                        pCharVal[tstringconstnode(p).len] := #0;
-                        get_string_value := pCharVal;
-                      end;
-                  end;
-              end;
+            SetLength(stringVal,1);
+            stringVal[1]:=char(tordconstnode(p).value.uvalue);
+            result:=cstringconstnode.createstr(stringVal);
           end
+        else if is_constwidecharnode(p) then
+          begin
+            initwidestring(pWideStringVal);
+            concatwidestringchar(pWideStringVal, tcompilerwidechar(tordconstnode(p).value.uvalue));
+            result:=cstringconstnode.createwstr(pWideStringVal);
+          end
+        else if is_conststringnode(p) then
+          result:=tstringconstnode(p.getcopy)
         else
           begin
             Message(type_e_string_expr_expected);
-            getmem(get_string_value, 1);
-            get_string_value[0] := #0;
+            stringVal:='';
+            result:=cstringconstnode.createstr(stringVal);
           end;
-      end;
-
-
-    function compare_strings(str1, str2: pchar) : longint;
-      var
-        minlen, len1, len2: integer;
-      begin
-        len1 := length(str1);
-        len2 := length(str2);
-        if len1 < len2 then
-          minlen := len1
-        else
-          minlen := len2;
-
-        minlen := comparebyte(str1^, str2^, minlen);
-        if minlen = 0 then
-          minlen := len1 - len2;
-        Result := minlen;
+        result.changestringtype(def);
       end;
 
 
@@ -1049,6 +978,15 @@ implementation
         resultdef:=def;
       end;
 
+    function tstringconstnode.fullcompare(p: tstringconstnode): longint;
+      begin
+        if cst_type<>p.cst_type then
+          InternalError(2009121701);
+        if cst_type in [cst_widestring,cst_unicodestring] then
+          result:=comparewidestrings(pcompilerwidestring(value_str),pcompilerwidestring(p.value_str))
+        else
+          result:=compareansistrings(value_str,p.value_str,len,p.len);
+      end;
 
 {*****************************************************************************
                              TSETCONSTNODE

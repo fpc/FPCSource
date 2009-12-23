@@ -42,7 +42,7 @@ implementation
        cutils,cclasses,
        { global }
        globtype,globals,verbose,constexp,
-       strings,systems,
+       systems,
        { aasm }
        cpubase,aasmbase,aasmtai,aasmdata,
        { symtable }
@@ -115,16 +115,12 @@ implementation
 
 
     function case_statement : tnode;
-      const
-        st2cst : array[tstringtype] of tconststringtype = (
-          cst_shortstring,cst_longstring,cst_ansistring,
-          cst_widestring,cst_unicodestring);
       var
          casedef : tdef;
          caseexpr,p : tnode;
          blockid : longint;
          hl1,hl2 : TConstExprInt;
-         sl1,sl2 : TConstString;
+         sl1,sl2 : tstringconstnode;
          casedeferror, caseofstring : boolean;
          casenode : tcasenode;
       begin
@@ -192,12 +188,10 @@ implementation
                    is_conststring_or_constcharnode(trangenode(p).left) and
                    is_conststring_or_constcharnode(trangenode(p).right) then
                  begin
-                   sl1 := get_string_value(trangenode(p).left, is_wide_or_unicode_string(casedef));
-                   sl2 := get_string_value(trangenode(p).right, is_wide_or_unicode_string(casedef));
-                   if (
-                     (is_wide_or_unicode_string(casedef) and (
-                       comparewidestrings(pcompilerwidestring(sl1), pcompilerwidestring(sl2)) > 0)) or
-                     ((not is_wide_or_unicode_string(casedef)) and (compare_strings(sl1, sl2) > 0))) then
+                   { we need stringconstnodes, even if expression contains single chars }
+                   sl1 := get_string_value(trangenode(p).left, tstringdef(casedef));
+                   sl2 := get_string_value(trangenode(p).right, tstringdef(casedef));
+                   if sl1.fullcompare(sl2) > 0 then
                      CGMessage(parser_e_case_lower_less_than_upper_bound);
                  end
                  { type checking for ordinal case statements }
@@ -219,7 +213,7 @@ implementation
                    CGMessage(parser_e_case_mismatch);
 
                  if caseofstring then
-                   casenode.addlabel(blockid,sl1,sl2,st2cst[tstringdef(casedef).stringtype])
+                   casenode.addlabel(blockid,sl1,sl2)
                  else
                    casenode.addlabel(blockid,hl1,hl2);
                end
@@ -233,8 +227,8 @@ implementation
                   
                  if caseofstring then
                    begin
-                     sl1:=get_string_value(p, is_wide_or_unicode_string(casedef));
-                     casenode.addlabel(blockid,sl1,sl1,st2cst[tstringdef(casedef).stringtype]);
+                     sl1:=get_string_value(p, tstringdef(casedef));
+                     casenode.addlabel(blockid,sl1,sl1);
                    end
                  else
                    begin
@@ -245,29 +239,9 @@ implementation
                    end;
                end;
              p.free;
-             if caseofstring then
-               begin
-                 if is_wide_or_unicode_string(casedef) then
-                   begin
-                     if assigned(sl1) then
-                       donewidestring(pcompilerwidestring(sl1));
-                     if assigned(sl2) then
-                       donewidestring(pcompilerwidestring(sl2));
-                   end
-                 else
-                   begin
-                     if assigned(sl1) then
-                       begin
-                         freemem(sl1);
-                         sl1 := nil;
-                       end;
-                     if assigned(sl2) then
-                       begin
-                         freemem(sl2);
-                         sl2 := nil;
-                       end;
-                   end;
-               end;
+             sl1.free;
+             sl2.free;
+
              if token=_COMMA then
                consume(_COMMA)
              else
