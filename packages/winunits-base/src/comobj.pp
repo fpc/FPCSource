@@ -285,6 +285,9 @@ unit comobj;
 
     function ComClassManager : TComClassManager;
 
+    procedure CreateRegKey(const Key, ValueName, Value: string; RootKey: DWord = HKEY_CLASSES_ROOT);
+    procedure DeleteRegKey(const Key: string; RootKey: DWord = HKEY_CLASSES_ROOT);
+    function GetRegStringValue(const Key, ValueName: string; RootKey: DWord = HKEY_CLASSES_ROOT): string;
 
     type
       TCoCreateInstanceExProc = function(const clsid: TCLSID; unkOuter: IUnknown; dwClsCtx: DWORD; ServerInfo: PCoServerInfo;
@@ -442,7 +445,7 @@ implementation
      end;
 {$endif wince}
 
-    procedure CreateRegKey(const Key, ValueName, Value: string);
+    procedure CreateRegKey(const Key, ValueName, Value: string; RootKey: DWord = HKEY_CLASSES_ROOT);
 {$ifndef DUMMY_REG}
       var
         Reg: TRegistry;
@@ -454,7 +457,7 @@ implementation
 {$ifndef DUMMY_REG}
         Reg := TRegistry.Create;
         try
-          Reg.RootKey := HKEY_CLASSES_ROOT;
+          Reg.RootKey := RootKey;
           if Reg.OpenKey(Key, True) then
           begin
             try
@@ -464,7 +467,7 @@ implementation
             end;
           end
           else
-            raise ERegistryException.CreateResFmt(@SRegCreateFailed, [Key]);
+            raise EOleRegistrationError.CreateResFmt(@SRegCreateFailed,[Key]);
         finally
           Reg.Free;
         end;
@@ -474,7 +477,8 @@ implementation
 {$endif}
       end;
 
-    procedure DeleteRegKey(const Key: string);
+
+    procedure DeleteRegKey(const Key: string; RootKey: DWord = HKEY_CLASSES_ROOT);
 {$ifndef DUMMY_REG}
       var
         Reg: TRegistry;
@@ -486,7 +490,7 @@ implementation
 {$ifndef DUMMY_REG}
         Reg := TRegistry.Create;
         try
-          Reg.RootKey := HKEY_CLASSES_ROOT;
+          Reg.RootKey := RootKey;
           Reg.DeleteKey(Key);
         finally
           Reg.Free;
@@ -494,7 +498,8 @@ implementation
 {$endif}
       end;
 
-    function GetRegStringValue(const Key, ValueName: string): string;
+
+    function GetRegStringValue(const Key, ValueName: string; RootKey: DWord = HKEY_CLASSES_ROOT): string;
     {$ifndef DUMMY_REG}
       var
         Reg: TRegistry;
@@ -503,7 +508,7 @@ implementation
        {$ifndef DUMMY_REG}
         Reg := TRegistry.Create();
         try
-          Reg.RootKey := HKEY_CLASSES_ROOT;
+          Reg.RootKey := RootKey;
           if Reg.OpenKeyReadOnly(Key) then
           begin
             try
@@ -519,6 +524,7 @@ implementation
         end;
        {$endif}
       end;
+
 
    procedure OleError(Code: HResult);
      begin
@@ -1659,11 +1665,11 @@ HKCR
         inherited Create(AComServer, AutoClass, AClassID, AInstancing, AThreadingModel);
       end;
 
-procedure TOleStream.Check(err:integer);
-begin
-  OleCheck(err);
-end;
 
+    procedure TOleStream.Check(err:integer);
+      begin
+        OleCheck(err);
+      end;
 
 const
   Initialized : boolean = false;
