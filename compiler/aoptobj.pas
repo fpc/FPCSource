@@ -216,8 +216,8 @@ Unit AoptObj;
       TLabelInfo = Record
         { the highest and lowest label number occurring in the current code }
         { fragment                                                          }
-        LowLabel, HighLabel: AWord;
-        LabelDif: AWord;
+        LowLabel, HighLabel: longint;
+        LabelDif: cardinal;
         { table that contains the addresses of the Pai_Label objects associated
           with each label number                                                }
         LabelTable: PLabelTable;
