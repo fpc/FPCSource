@@ -1,6 +1,7 @@
 {$ifdef fpc}
 {$mode delphi}
 {$endif}
+program tw9347b;
 
 {$r-}
 uses
@@ -17,6 +18,12 @@ type
   end;
 
 begin
-  { fails in Delphi 6, succeeds in Delphi 7 }
-  SetPropValue(TBla.Create, 'int', 'true');
+  { fails in Delphi 6, succeeds in Delphi 7, fails in D2007 }
+  try
+    SetPropValue(TBla.Create, 'int', 'true');
+  except
+    on E: EVariantError do
+      halt(0);
+  end;
+  halt(1);
 end.
