@@ -89,6 +89,7 @@ procedure NSUnregisterServicesProvider(namePointer: NSString); cdecl; external n
 { External symbols }
 var
   NSAppKitVersionNumber: double; external name '_NSAppKitVersionNumber';
+  NSApp: id; external name '_NSApp';
 
 { External string constants }
 var

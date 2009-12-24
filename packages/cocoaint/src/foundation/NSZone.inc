@@ -48,7 +48,7 @@ function NSPageSize: NSUInteger; cdecl; external name 'NSPageSize';
 function NSLogPageSize: NSUInteger; cdecl; external name 'NSLogPageSize';
 function NSRoundUpToMultipleOfPageSize(bytes: NSUInteger): NSUInteger; cdecl; external name 'NSRoundUpToMultipleOfPageSize';
 function NSRoundDownToMultipleOfPageSize(bytes: NSUInteger): NSUInteger; cdecl; external name 'NSRoundDownToMultipleOfPageSize';
-procedure NSAllocateMemoryPages(bytes: NSUInteger); cdecl; external name 'NSAllocateMemoryPages';
+function NSAllocateMemoryPages(bytes: NSUInteger): pointer; cdecl; external name 'NSAllocateMemoryPages';
 procedure NSDeallocateMemoryPages(ptrPointer: Pointer; bytes: NSUInteger); cdecl; external name 'NSDeallocateMemoryPages';
 procedure NSCopyMemoryPages(sourcePointer: Pointer; destPointer: Pointer; bytes: NSUInteger); cdecl; external name 'NSCopyMemoryPages';
 function NSRealMemoryAvailable: NSUInteger; cdecl; external name 'NSRealMemoryAvailable';
