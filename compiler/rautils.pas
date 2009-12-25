@@ -378,12 +378,14 @@ begin
   Case _Operator OF
     '(' :
       Priority:=0;
-    '+', '-' :
-      Priority:=1;
-    '*', '/','%','<','>' :
-      Priority:=2;
-    '|','&','^','~' :
+    '|','^','~' :             // the lowest priority: OR, XOR, NOT
       Priority:=0;
+    '&' :                     // bigger priority: AND
+      Priority:=1;
+    '+', '-' :                // bigger priority: +, -
+      Priority:=2;
+    '*', '/','%','<','>' :   // the highest priority: *, /, MOD, SHL, SHR
+      Priority:=3;
     else
       Message(asmr_e_expr_illegal);
   end;
@@ -440,7 +442,7 @@ begin
                    end;
                   { if start of expression then surely a prefix }
                   { or if previous char was also an operator    }
-                  if (I = 1) or (not (Expr[I-1] in ['0'..'9','(',')'])) then
+                  if (I = 1) or (not (Expr[I-1] in ['0'..'9',')'])) then
                     OpPush(Expr[I],true)
                   else
                     Begin
