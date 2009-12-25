@@ -1,6 +1,6 @@
-{$warn+}
+{$warn symbol_platform on}
 {$warnings-}
-{$warn-}
+{$warn symbol_platform off}
 {$warnings+}
 begin
 end.
