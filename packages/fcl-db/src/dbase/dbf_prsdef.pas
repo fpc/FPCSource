@@ -18,15 +18,10 @@ type
   TExpressionType = (etInteger, etString, etBoolean, etLargeInt, etFloat, etDateTime,
     etLeftBracket, etRightBracket, etComma, etUnknown);
 
-  PPChar = ^PChar;
-  PBoolean = ^Boolean;
-  PInteger = ^Integer;
-  PDateTime = ^TDateTime;
   EParserException = class(Exception);
   PExpressionRec = ^TExpressionRec;
   PDynamicType = ^TDynamicType;
   PDateTimeRec = ^TDateTimeRec;
-  PDouble = ^Double;
 {$ifdef SUPPORT_INT64}
   PLargeInt = ^Int64;
 {$endif}

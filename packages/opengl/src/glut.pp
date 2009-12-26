@@ -60,8 +60,6 @@ uses
   GL;
 
 type
-  PInteger = ^Integer;
-  PPChar = ^PChar;
   TGlutVoidCallback = procedure; cdecl;
   TGlut1IntCallback = procedure(value: Integer); cdecl;
   TGlut2IntCallback = procedure(v1, v2: Integer); cdecl;

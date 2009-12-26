@@ -275,6 +275,7 @@ Type
 { Zero - terminated strings }
   PChar               = ^Char;
   PPChar              = ^PChar;
+  PPPChar             = ^PPChar;
 
   { AnsiChar is equivalent of Char, so we need
     to use type renamings }
@@ -306,6 +307,8 @@ Type
   PSingle             = ^Single;
   PDouble             = ^Double;
   PExtended           = ^Extended;
+
+  PPDouble            = ^PDouble;
 {$endif}
   PCurrency           = ^Currency;
 {$ifdef SUPPORT_COMP}
@@ -327,6 +330,9 @@ Type
   PPtrUInt            = ^PtrUInt;
   PSizeInt            = ^SizeInt;
 
+  PPByte              = ^PByte;
+  PPLongint           = ^PLongint;
+
   PPointer            = ^Pointer;
   PPPointer           = ^PPointer;
 
@@ -347,6 +353,7 @@ Type
 
   PWideChar           = ^WideChar;
   PPWideChar          = ^PWideChar;
+  PPPWideChar         = ^PPWideChar;
   WChar               = Widechar;
   UCS2Char            = WideChar;
   PUCS2Char           = PWideChar;
