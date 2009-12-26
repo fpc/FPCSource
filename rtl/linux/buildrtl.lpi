@@ -42,7 +42,7 @@
   <CompilerOptions>
     <Version Value="8"/>
     <SearchPaths>
-      <IncludeFiles Value="../inc/;../$(TargetCPU)/;../unix/;../objpas/classes/;../objpas/sysutils/;../objpas/"/>
+      <IncludeFiles Value="../inc/;../$(TargetCPU)/;../unix/;../objpas/classes/;../objpas/sysutils/;../objpas/;$(TargetCPU)"/>
       <OtherUnitFiles Value="../objpas/;../objpas/classes/;../objpas/sysutils/;../inc/;../unix/;../$(TargetCPU)/"/>
       <UnitOutputDirectory Value="../units/$(TargetCPU)-linux"/>
     </SearchPaths>
