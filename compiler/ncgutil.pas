@@ -2679,7 +2679,9 @@ implementation
             begin
               if (tabstractvarsym(tloadnode(n).symtableentry).varoptions * [vo_is_dll_var, vo_is_thread_var] = []) and
                  not assigned(tloadnode(n).left) and
-                 (tloadnode(n).symtableentry <> rr^.ressym) and
+                 ((tloadnode(n).symtableentry <> rr^.ressym) or
+                  not(fc_exit in flowcontrol)
+                 ) and
                  (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.loc in [LOC_CREGISTER,LOC_CFPUREGISTER,LOC_CMMXREGISTER,LOC_CMMREGISTER]) and
                  (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.register = rr^.old) then
                 begin
