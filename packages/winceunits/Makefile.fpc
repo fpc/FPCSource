@@ -13,9 +13,9 @@ implicitunits_wince=aygshell commctrl commdlg iphlpapi notify oleauto power shel
                     sipapi cpl bt_api bt_sdp bthapi bthutil pimstore ril sms ws2bth keybd nled \
                     phone connmgr devload devmgmt mmreg mmsystem msacm wininet ras raserror \
                     sip projects wap tsp extapi imm \
-                    activex ole2 comconst
+                    activex ole2 comconst rapitypes
 
-units_win32=rapi cesync
+units_win32=rapi cesync rapitypes
 
 rsts=comconst
 

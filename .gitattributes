@@ -5654,6 +5654,7 @@ packages/winceunits/src/pm.pp svneol=native#text/plain
 packages/winceunits/src/power.pp svneol=native#text/plain
 packages/winceunits/src/projects.pp svneol=native#text/plain
 packages/winceunits/src/rapi.pp svneol=native#text/plain
+packages/winceunits/src/rapitypes.pp svneol=native#text/plain
 packages/winceunits/src/ras.pp svneol=native#text/plain
 packages/winceunits/src/raserror.pp svneol=native#text/plain
 packages/winceunits/src/ril.pp svneol=native#text/plain
