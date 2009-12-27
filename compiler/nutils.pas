@@ -630,6 +630,9 @@ implementation
     { at will, probably best mainly in terms of required memory      }
     { accesses                                                       }
     function node_complexity(p: tnode): cardinal;
+      var
+        correction,
+        dummy : byte;
       begin
         result := 0;
         while assigned(p) do
@@ -705,9 +708,14 @@ implementation
               equaln,unequaln,gtn,gten,ltn,lten,
               assignn:
                 begin
-                  inc(result,node_complexity(tbinarynode(p).left)+1);
+{$ifdef CPU64BITALU}
+                  correction:=1;
+{$else CPU64BITALU}
+                  correction:=2;
+{$endif CPU64BITALU}
+                  inc(result,node_complexity(tbinarynode(p).left)+1*correction);
                   if (p.nodetype in [muln,divn,modn]) then
-                    inc(result,5);
+                    inc(result,5*correction*correction);
                   if (result >= NODE_COMPLEXITY_INF) then
                     begin
                       result := NODE_COMPLEXITY_INF;
@@ -715,10 +723,17 @@ implementation
                     end;
                   p := tbinarynode(p).right;
                 end;
+              ordconstn:
+                begin
+{$ifdef ARM}
+                  if not(is_shifter_const(tordconstnode(p).value.svalue,dummy)) then
+                    result:=2;
+{$endif ARM}
+                  exit;
+                end;
               stringconstn,
               tempcreaten,
               tempdeleten,
-              ordconstn,
               pointerconstn,
               nothingn,
               niln:
