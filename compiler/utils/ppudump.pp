@@ -630,7 +630,7 @@ begin
 end;
 
 
-procedure readderef;
+procedure readderef(const derefspace: string);
 type
   tdereftype = (deref_nil,
     deref_unit,
@@ -653,7 +653,7 @@ begin
       writeln('!! Error: Deref idx ',idx,' > ',derefdatalen);
       exit;
     end;
-  write('(',idx,') ');
+  write(derefspace,'(',idx,') ');
   pdata:=@derefdata[idx];
   i:=0;
   n:=pdata[i];
@@ -725,7 +725,7 @@ const
 var
   sl : tsltype;
 begin
-  readderef;
+  readderef('');
   repeat
     sl:=tsltype(ppufile.getbyte);
     if sl=sl_none then
@@ -735,14 +735,14 @@ begin
       sl_call,
       sl_load,
       sl_subscript :
-        readderef;
+        readderef('');
       sl_absolutetype,
       sl_typeconv :
-        readderef;
+        readderef('');
       sl_vec :
         begin
           writeln(ppufile.getlongint);
-          readderef;
+          readderef('');
         end;
     end;
   until false;
@@ -889,7 +889,7 @@ begin
   writeln(space,'** Definition Id ',ppufile.getlongint,' **');
   writeln(space,s);
   write  (space,'      Type symbol : ');
-  readderef;
+  readderef('');
   write  (space,'       DefOptions : ');
   ppufile.getsmallset(defoptions);
   if defoptions<>[] then
@@ -1027,7 +1027,7 @@ begin
   if df_specialization in defoptions then
     begin
       write  (space,' Orig. GenericDef : ');
-      readderef;
+      readderef('');
     end;
   current_defoptions:=defoptions;
 end;
@@ -1234,7 +1234,7 @@ var
   tempbuf : array[0..255] of byte;
 begin
   write(space,'      Return type : ');
-  readderef;
+  readderef('');
   writeln(space,'         Fpu used : ',ppufile.getbyte);
   proctypeoption:=tproctypeoption(ppufile.getbyte);
   write(space,'       TypeOption : ');
@@ -1350,7 +1350,7 @@ begin
   writeln(space,'      Regable : ',Varregable2Str(ppufile.getbyte));
   writeln(space,'   Addr Taken : ',(ppufile.getbyte<>0));
   write  (space,'     Var Type : ');
-  readderef;
+  readderef('');
   ppufile.getsmallset(varoptions);
   if varoptions<>[] then
    begin
@@ -1522,6 +1522,64 @@ begin
 end;
 
 
+procedure ReadCreatedObjTypes;
+var
+  i,j,
+  len,
+  bssize: longint;
+  bs: pbyte;
+begin
+  if ppufile.readentry<>ibcreatedobjtypes then
+    begin
+      writeln('!! ibcreatedobjtypes entry not found');
+      ppufile.skipdata(ppufile.entrysize);
+      exit
+    end;
+  writeln;
+  writeln(space,'WPO info');
+  writeln(space,'--------');
+
+  len:=ppufile.getlongint;
+  writeln(space,'** Instantiated Object/Class types: ',len,' **');
+  space:=space+'  ';
+  for i:=0 to len-1 do
+    readderef(space);
+  setlength(space,length(space)-2);
+
+  len:=ppufile.getlongint;
+  writeln(space,'** Instantiated ClassRef types: ',len,' **');
+  space:=space+'  ';
+  for i:=0 to len-1 do
+    readderef(space);
+  setlength(space,length(space)-2);
+
+  len:=ppufile.getlongint;
+  writeln(space,'** Possibly instantiated ClassRef types : ',len,' **');
+  space:=space+'  ';
+  for i:=0 to len-1 do
+    readderef(space);
+  setlength(space,length(space)-2);
+
+  len:=ppufile.getlongint;
+  writeln(space,'** Class types with called virtual methods info : ',len,' **');
+  space:=space+'  ';
+  for i:=0 to len-1 do
+    begin
+      write(space,'Class def : ');
+      readderef('');
+      write(space+'  ','Called vmtentries : ');
+      bssize:=ppufile.getlongint;
+      getmem(bs,bssize);
+      ppufile.readdata(bs^,bssize);
+      for j:=0 to bssize*8-1 do
+        if (((bs+j shr 3)^ shr (j and 7)) and 1) <> 0 then
+          write(j,', ');
+      writeln;
+      freemem(bs);
+    end;
+  setlength(space,length(space)-2);
+end;
+
 {****************************************************************************
                              Read Symbols Part
 ****************************************************************************}
@@ -1575,7 +1633,7 @@ begin
            begin
              readcommonsym('Type symbol ');
              write(space,'  Result Type : ');
-             readderef;
+             readderef('');
            end;
 
          ibprocsym :
@@ -1585,7 +1643,7 @@ begin
              for i:=1 to len do
               begin
                 write(space,'   Definition : ');
-                readderef;
+                readderef('');
               end;
            end;
 
@@ -1597,13 +1655,13 @@ begin
                constord :
                  begin
                    write  (space,'  OrdinalType : ');
-                   readderef;
+                   readderef('');
                    writeln(space,'        Value : ',constexp.tostr(getexprint));
                  end;
                constpointer :
                  begin
                    write  (space,'  PointerType : ');
-                   readderef;
+                   readderef('');
                    writeln(space,'        Value : ',getlongint)
                  end;
                conststring,
@@ -1622,7 +1680,7 @@ begin
                constset :
                  begin
                    write (space,'      Set Type : ');
-                   readderef;
+                   readderef('');
                    for i:=1to 4 do
                     begin
                       write (space,'        Value : ');
@@ -1685,7 +1743,7 @@ begin
            begin
              readabstractvarsym('Global Variable symbol ',varoptions);
              write  (space,' DefaultConst : ');
-             readderef;
+             readderef('');
              if (vo_has_mangledname in varoptions) then
                writeln(space,' Mangledname : ',getstring);
            end;
@@ -1694,14 +1752,14 @@ begin
            begin
              readabstractvarsym('Local Variable symbol ',varoptions);
              write  (space,' DefaultConst : ');
-             readderef;
+             readderef('');
            end;
 
          ibparavarsym :
            begin
              readabstractvarsym('Parameter Variable symbol ',varoptions);
              write  (space,' DefaultConst : ');
-             readderef;
+             readderef('');
              writeln(space,'       ParaNr : ',getword);
              writeln(space,'     VarState : ',getbyte);
              if (vo_has_explicit_paraloc in varoptions) then
@@ -1715,7 +1773,7 @@ begin
            begin
              readcommonsym('Enumeration symbol ');
              write  (space,'   Definition : ');
-             readderef;
+             readderef('');
              writeln(space,'        Value : ',getlongint);
            end;
 
@@ -1749,13 +1807,13 @@ begin
              i:=getlongint;
              writeln(space,'  PropOptions : ',i);
              write  (space,' OverrideProp : ');
-             readderef;
+             readderef('');
              write  (space,'    Prop Type : ');
-             readderef;
+             readderef('');
              writeln(space,'        Index : ',getlongint);
              writeln(space,'      Default : ',getlongint);
              write  (space,'   Index Type : ');
-             readderef;
+             readderef('');
              write  (space,'   Readaccess : ');
              readpropaccesslist(space+'         Sym: ');
              write  (space,'  Writeaccess : ');
@@ -1832,7 +1890,7 @@ begin
            begin
              readcommondef('Pointer definition');
              write  (space,'     Pointed Type : ');
-             readderef;
+             readderef('');
              writeln(space,'           Is Far : ',(getbyte<>0));
            end;
 
@@ -1873,9 +1931,9 @@ begin
            begin
              readcommondef('Array definition');
              write  (space,'     Element type : ');
-             readderef;
+             readderef('');
              write  (space,'       Range Type : ');
-             readderef;
+             readderef('');
              writeln(space,'            Range : ',getaint,' to ',getaint);
              write  (space,'          Options : ');
              readarraydefoptions;
@@ -1890,9 +1948,9 @@ begin
              writeln(space,'           Number : ',getword);
              writeln(space,'            Level : ',getbyte);
              write  (space,'            Class : ');
-             readderef;
+             readderef('');
              write  (space,'          Procsym : ');
-             readderef;
+             readderef('');
              write  (space,'         File Pos : ');
              readposinfo;
              writeln(space,'       Visibility : ',Visibility2Str(ppufile.getbyte));
@@ -1902,7 +1960,7 @@ begin
                begin
                  { library symbol for AmigaOS/MorphOS }
                  write  (space,'   Library symbol : ');
-                 readderef;
+                 readderef('');
                end;
              if (po_has_importdll in procoptions) then
                writeln(space,'      Import DLL : ',getstring);
@@ -1918,7 +1976,7 @@ begin
              if (po_has_inlininginfo in procoptions) then
               begin
                 write  (space,'       FuncretSym : ');
-                readderef;
+                readderef('');
                 ppufile.getsmallset(procinfooptions);
                 writeln(space,'  ProcInfoOptions : ',dword(procinfooptions));
               end;
@@ -2023,12 +2081,13 @@ begin
              end;
              writeln(space,'    Name of Class : ',getstring);
              writeln(space,'    External name : ',getstring);
+             writeln(space,'       Import lib : ',getstring);
              writeln(space,'         DataSize : ',getaint);
              writeln(space,'       FieldAlign : ',getbyte);
              writeln(space,'      RecordAlign : ',getbyte);
              writeln(space,'       Vmt offset : ',getlongint);
              write  (space,  '   Ancestor Class : ');
-             readderef;
+             readderef('');
              write  (space,'          Options : ');
              readobjectdefoptions;
 
@@ -2046,7 +2105,7 @@ begin
              for j:=1 to l do
                begin
                  write(space,'    ');
-                 readderef;
+                 readderef('');
                  writeln(space,'      Visibility: ',Visibility2Str(getbyte));
                end;
 
@@ -2057,7 +2116,7 @@ begin
                 for j:=1 to l do
                  begin
                    write  (space,'  - Definition : ');
-                   readderef;
+                   readderef('');
                    writeln(space,'       IOffset : ',getlongint);
                  end;
               end;
@@ -2065,7 +2124,7 @@ begin
              if df_copied_def in current_defoptions then
                begin
                  writeln('  Copy of def: ');
-                 readderef;
+                 readderef('');
                end;
 
              if not EndOfEntry then
@@ -2089,7 +2148,7 @@ begin
               1 : begin
                     writeln('Typed');
                     write  (space,'      File of Type : ');
-                    readderef;
+                    readderef('');
                   end;
               2 : writeln('Untyped');
              end;
@@ -2108,7 +2167,7 @@ begin
            begin
              readcommondef('Enumeration type definition');
              write(space,'Base enumeration type : ');
-             readderef;
+             readderef('');
              writeln(space,' Smallest element : ',getaint);
              writeln(space,'  Largest element : ',getaint);
              writeln(space,'             Size : ',getaint);
@@ -2118,14 +2177,14 @@ begin
            begin
              readcommondef('Class reference definition');
              write  (space,'    Pointed Type : ');
-             readderef;
+             readderef('');
            end;
 
          ibsetdef :
            begin
              readcommondef('Set definition');
              write  (space,'     Element type : ');
-             readderef;
+             readderef('');
              writeln(space,'             Size : ',getaint);
              writeln(space,'         Set Base : ',getaint);
              writeln(space,'          Set Max : ',getaint);
@@ -2442,6 +2501,7 @@ begin
      else
       ppufile.skipuntilentry(ibendsyms);
    end;
+  ReadCreatedObjTypes;
 {shutdown ppufile}
   ppufile.closefile;
   ppufile.free;
