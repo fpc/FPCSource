@@ -2203,8 +2203,11 @@ Var
                 { Everything unexpected is written before the first digit }
                 For N := 1 To UnexpectedDigits Do
                   Begin
-                  Buf[0] := Digits[N];
-                  Inc(Buf);
+                    if (Digits[N]<>' ') Then
+                    begin
+                      Buf[0] := Digits[N];
+                      Inc(Buf);
+                    end;
                   If thousand And (Digits[N]<>'-') Then
                     Begin
                     If (DigitExponent Mod 3 = 0) And (DigitExponent>0) Then
