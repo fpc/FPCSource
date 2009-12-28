@@ -33,6 +33,7 @@ begin
  currentDt := EncodeDateTime(1899, 12, 29, 6, 0, 0, 0);
  convertedDt := EncodeDateTime(1899, 12, 30, 6, 0, 0, 0);
  writeln(currentDt:0:4,' - ',convertedDt:0:4);
+ DateSeparator := '-'; // further test assumes we have '-' as a date separator
  s1:=FormatDateTime('mm/dd/yyyy HH:nn:ss', currentDt);
  s2:=FormatDateTime('mm/dd/yyyy HH:nn:ss', convertedDt);
  writeln(s1);
