@@ -251,6 +251,8 @@ begin
     If (M=Nil) then
       M:=MC.Create(Self);
     M.HandleRequest(ARequest,AResponse);
+    if M.Kind=wkOneShot then
+      M.Free;
   except
     On E : Exception do
       begin
@@ -294,7 +296,7 @@ Var
   I : Integer;
 begin
   I:=ComponentCount-1;
-  While (I>=0) and (Not (Components[i] is ModuleClass)) do
+  While (I>=0) and (Not ((Components[i] is ModuleClass) and (TCustomHTTPModule(Components[i]).Kind<>wkOneShot))) do
     Dec(i);
   if (I>=0) then
     Result:=Components[i] as TCustomHTTPModule

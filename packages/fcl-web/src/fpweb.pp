@@ -150,6 +150,7 @@ Type
     Property DefActionWhenUnknown;
     Property CreateSession;
     Property Session;
+    property Kind;
     Property OnNewSession;
     Property OnSessionExpired;
   end;
@@ -468,9 +469,6 @@ begin
   SendMethodExit('WebModule('+Name+').handlerequest');
 {$endif cgidebug}
 end;
-
-
-
 
 { TTemplateVar }
 

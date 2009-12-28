@@ -20,6 +20,8 @@ Interface
 uses sysutils,classes,httpdefs;
 
 Type
+{ TODO : Implement wkSession }
+  TWebModuleKind = (wkPooled, wkOneShot{, wkSession});
 
   { THTTPContentProducer }
   TWebActionEvent = Procedure (Sender : TObject;
@@ -96,9 +98,14 @@ Type
     Property DefActionWhenUnknown : Boolean read FDefActionWhenUnknown write FDefActionWhenUnknown;
   end;
   
+  { TCustomHTTPModule }
+
   TCustomHTTPModule = Class(TDataModule)
+  private
+    FWebModuleKind: TWebModuleKind;
   public
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual; abstract;
+    property Kind: TWebModuleKind read FWebModuleKind write FWebModuleKind default wkOneShot;
   end;
   
   TCustomHTTPModuleClass = Class of TCustomHTTPModule;
