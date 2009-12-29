@@ -212,8 +212,11 @@ begin
   begin
     nd:=TChmContextNode(files.objects[i]);
     Cfg.SetValue('Files/FileName'+IntToStr(I)+'/Value', Files.Strings[I]);
-    Cfg.SetValue('Files/FileName'+IntToStr(I)+'/ContextNumber', nd.contextnumber);
-    Cfg.SetValue('Files/FileName'+IntToStr(I)+'/ContextName', nd.contextname);
+    if assigned(nd) then
+      begin
+        Cfg.SetValue('Files/FileName'+IntToStr(I)+'/ContextNumber', nd.contextnumber);
+        Cfg.SetValue('Files/FileName'+IntToStr(I)+'/ContextName', nd.contextname);
+      end;  
   end;
   Cfg.SetValue('Files/IndexFile/Value', IndexFileName);
   Cfg.SetValue('Files/TOCFile/Value', TableOfContentsFileName);
