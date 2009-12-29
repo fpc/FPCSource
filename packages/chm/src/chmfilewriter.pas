@@ -59,6 +59,7 @@ type
     procedure SaveToFile(AFileName: String);
     procedure WriteChm(AOutStream: TStream);
     function ProjectDir: String;
+    procedure AddFileWithContext(contextid:integer;filename:ansistring;contextname:ansistring='');
     // though stored in the project file, it is only there for the program that uses the unit
     // since we actually write to a stream
     property OutputFileName: String read FOutputFileName write FOutputFileName;
@@ -77,16 +78,15 @@ type
     property OnProgress: TChmProgressCB read FOnProgress write FOnProgress;
   end;
 
-implementation
-
-uses XmlCfg, chmsitemap;
-
-Type
   TChmContextNode = Class
                      URLName       : AnsiString;
                      ContextNumber : Integer;
                      ContextName   : AnsiString;
                     End;
+
+implementation
+
+uses XmlCfg, chmsitemap;
 
 { TChmProject }
 
@@ -129,7 +129,7 @@ begin
       IndexSitemap := TChmSiteMap.Create(stIndex);
       indexSitemap.LoadFromStream(IndexStream);
       Writer.AppendBinaryIndexFromSiteMap(IndexSitemap,False);
-      IndexSitemap.Free;	
+      IndexSitemap.Free;
     end;
     IndexStream.Free;
   end;
@@ -162,12 +162,13 @@ begin
   FFiles.Free;
   inherited Destroy;
 end;
+
 procedure TChmProject.LoadFromFile(AFileName: String);
 var
   Cfg: TXMLConfig;
   FileCount: Integer;
   I  : Integer;
-  nd : TChmContextNode; 
+  nd : TChmContextNode;
 begin
   Cfg := TXMLConfig.Create(nil);
   Cfg.Filename := AFileName;
@@ -175,12 +176,12 @@ begin
 
   Files.Clear;
   FileCount := Cfg.GetValue('Files/Count/Value', 0);
-  for I := 0 to FileCount-1 do 
+  for I := 0 to FileCount-1 do
     begin
-      nd:=TChmContextNode.Create; 
+      nd:=TChmContextNode.Create;
       nd.urlname:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/Value','');
       nd.contextnumber:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/ContextNumber',0);
-      nd.contextname:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/ContextName','');      
+      nd.contextname:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/ContextName','');
       Files.AddObject(nd.urlname,nd);
     end;
   IndexFileName := Cfg.GetValue('Files/IndexFile/Value','');
@@ -197,6 +198,33 @@ begin
   Cfg.Free;
 end;
 
+procedure TChmProject.AddFileWithContext(contextid:integer;filename:ansistring;contextname:ansistring='');
+var x : integer;
+    nd : TChmContextNode;
+begin
+  x:=files.indexof(filename);
+  if x=-1 then
+    begin
+      nd:=TChmContextNode.Create;
+      nd.urlname:=filename;
+      nd.contextnumber:=contextid;
+      nd.contextname:=contextname;
+      Files.AddObject(nd.urlname,nd);
+    end
+  else
+   begin
+     nd:=TChmContextNode(files.objects[x]);
+     if not assigned(nd) then
+       begin
+         nd:=TChmContextNode.Create;
+         nd.urlname:=filename;
+         files.objects[x]:=nd;
+       end;
+      nd.contextnumber:=contextid;
+      nd.contextname:=contextname;
+   end;
+end;
+
 procedure TChmProject.SaveToFile(AFileName: String);
 var
   Cfg: TXMLConfig;
@@ -208,7 +236,7 @@ begin
   Cfg.Filename := FileName;
   Cfg.Clear;
   Cfg.SetValue('Files/Count/Value', Files.Count);
-  for I := 0 to Files.Count-1 do 
+  for I := 0 to Files.Count-1 do
   begin
     nd:=TChmContextNode(files.objects[i]);
     Cfg.SetValue('Files/FileName'+IntToStr(I)+'/Value', Files.Strings[I]);
@@ -216,7 +244,7 @@ begin
       begin
         Cfg.SetValue('Files/FileName'+IntToStr(I)+'/ContextNumber', nd.contextnumber);
         Cfg.SetValue('Files/FileName'+IntToStr(I)+'/ContextName', nd.contextname);
-      end;  
+      end;
   end;
   Cfg.SetValue('Files/IndexFile/Value', IndexFileName);
   Cfg.SetValue('Files/TOCFile/Value', TableOfContentsFileName);
@@ -268,7 +296,8 @@ begin
   for i:=0 to files.count-1 do
     begin
       nd:=TChmContextNode(files.objects[i]);
-      Writer.AddContext(nd.ContextNumber,files[i]);
+      if assigned(nd) and (nd.contextnumber<>0) then
+        Writer.AddContext(nd.ContextNumber,files[i]);
     end;
 
   // and write!

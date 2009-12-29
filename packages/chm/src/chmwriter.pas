@@ -204,7 +204,7 @@ const
     procedure logentry(s:string);
     begin
       Writeln(s);
-      flush(stdout);     
+      flush(stdout);
     end;
   {$endif}
 {$I chmobjinstconst.inc}
@@ -1883,17 +1883,17 @@ Var i             : Integer;
     EntryBytes    : Integer;
     Hdr           : TBTreeHeader;
     TreeDepth     : Integer;
-   
+
 {$ifdef binindex}
 procedure printloopvars(i:integer);
 
-begin   
+begin
   Writeln('location :' ,i, ' blocknr :', blocknr,' level:',TreeDepth);
   Writeln('blockn      length: ',length(blockn),' indexblocknr: ',indexblocknr,' blockind ',blockind);
   Writeln('blocknplus1 length: ',length(blocknplus1),' blocknplusindex:',blocknplusindex,' entries:',blocknplusentries);
   flush(stdout);
 end;
-{$endif}   
+{$endif}
 begin
   IndexStream:=TMemoryStream.Create;
   indexstream.size:=sizeof(TBTreeHeader);
@@ -1955,7 +1955,7 @@ begin
       {$endif}
       FinalizeIndexBlockN(@blockn[indexblocknr][0],blockind,blockentries); // also increasing indexblocknr
       inc(IndexBlockNr);
-    end; 
+    end;
   {$ifdef binindex}
     writeln('binindex: listingblocks : '+inttostr(listingblocks),' indexblocks: ',indexblocknr,' entries:',blockentries);
   {$endif}
@@ -2058,11 +2058,11 @@ procedure stadd(fn:string;stream:TStream);
 
 begin
   Stream.Position:=0;
-  if CHW then 
+  if CHW then
     fn:=uppercase(fn);
   {$ifdef binindex}
     logentry('before append '+fn);
-  {$endif}  
+  {$endif}
   AddStreamToArchive(fn,'/$WWKeywordLinks/',stream,True);
 end;
 
@@ -2090,6 +2090,7 @@ var
   Offset: DWord;
 begin
   if FContextStream = nil then begin
+    FContextStream:=TMemoryStream.Create;
     // #IVB starts with a dword which is the size of the stream - sizeof(dword)
     FContextStream.WriteDWord(0);
     // we will update this when we write the file to the final stream
