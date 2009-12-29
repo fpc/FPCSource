@@ -631,8 +631,10 @@ implementation
     { accesses                                                       }
     function node_complexity(p: tnode): cardinal;
       var
-        correction,
+        correction: byte;
+{$ifdef ARM}
         dummy : byte;
+{$endif ARM}
       begin
         result := 0;
         while assigned(p) do

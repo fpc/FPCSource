@@ -262,10 +262,9 @@ implementation
 
     procedure tcgstringconstnode.pass_generate_code;
       var
-         l1,
          lastlabel   : tasmlabel;
          pc       : pchar;
-         l,i : longint;
+         l: longint;
          href: treference;
          pooltype: TConstPoolType;
          pool: THashSet;

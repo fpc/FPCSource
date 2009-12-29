@@ -208,7 +208,6 @@ implementation
   procedure tunitwpoinfo.deref;
     var
       i: longint;
-      len: longint;
 
     begin
       if (init_settings.genwpoptimizerswitches=[]) then

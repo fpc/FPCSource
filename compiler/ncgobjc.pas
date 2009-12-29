@@ -54,12 +54,9 @@ uses
 
 procedure tcgobjcselectornode.pass_generate_code;
   var
-    reflab,
-    strlab : tasmlabel;
     pool   : THashSet;
     entry  : PHashSetItem;
     name   : pshortstring;
-    pc     : pchar;
   begin
     if current_asmdata.ConstPools[sp_varnamerefs]=nil then
       current_asmdata.ConstPools[sp_varnamerefs]:=THashSet.Create(64, True, False);

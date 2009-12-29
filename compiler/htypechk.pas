@@ -2004,7 +2004,6 @@ implementation
         def_to   : tdef;
         currpt,
         pt       : tcallparanode;
-        tmpeq,
         eq       : tequaltype;
         convtype : tconverttype;
         pdtemp,
