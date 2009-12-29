@@ -24,7 +24,7 @@ unit optcse;
 {$i fpcdefs.inc}
 
 { $define csedebug}
-{$define csestats}
+{ $define csestats}
 
   interface
 
@@ -71,17 +71,19 @@ unit optcse;
 
     function collectnodes(var n:tnode; arg: pointer) : foreachnoderesult;
       begin
+        result:=fen_false;
         { node worth to add? }
         if (node_complexity(n)>1) and (tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
-          { adding tempref nodes is worthless but there complexity is probably <= 1 anyways }
+          { adding tempref nodes is worthless but their complexity is probably <= 1 anyways }
           not(n.nodetype in [temprefn]) then
           begin
             plists(arg)^.nodelist.Add(n);
             plists(arg)^.locationlist.Add(@n);
-            result:=fen_false;
-          end
+          end;
+        {
         else
           result:=fen_norecurse_false;
+        }
       end;
 
 
@@ -110,6 +112,7 @@ unit optcse;
 {$ifdef csedebug}
                 writeln('============ cse domain ==================');
                 printnode(output,n);
+                writeln('Complexity: ',node_complexity(n));
 {$endif csedebug}
 
                 lists.nodelist:=tfplist.create;
@@ -155,7 +158,7 @@ unit optcse;
                                     def.is_intregable or def.is_fpuregable);
                                   addstatement(creates,tnode(templist[i]));
 
-                                  { properties can't be passed by var }
+                                  { properties can't be passed by "var" }
                                   hp:=ttempcreatenode(templist[i]);
                                   do_firstpass(tnode(hp));
 
