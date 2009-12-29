@@ -81,6 +81,13 @@ implementation
 
 uses XmlCfg, chmsitemap;
 
+Type
+  TChmContextNode = Class
+                     URLName       : AnsiString;
+                     ContextNumber : Integer;
+                     ContextName   : AnsiString;
+                    End;
+
 { TChmProject }
 
 function TChmProject.GetData(const DataName: String; out PathInChm: String; out
@@ -148,16 +155,19 @@ begin
 end;
 
 destructor TChmProject.Destroy;
+var i : integer;
 begin
-  FFIles.Free;
+  for i:=0 to ffiles.count -1 do
+    ffiles.objects[i].free;
+  FFiles.Free;
   inherited Destroy;
 end;
-
 procedure TChmProject.LoadFromFile(AFileName: String);
 var
   Cfg: TXMLConfig;
   FileCount: Integer;
-  I: Integer;
+  I  : Integer;
+  nd : TChmContextNode; 
 begin
   Cfg := TXMLConfig.Create(nil);
   Cfg.Filename := AFileName;
@@ -165,9 +175,14 @@ begin
 
   Files.Clear;
   FileCount := Cfg.GetValue('Files/Count/Value', 0);
-  for I := 0 to FileCount-1 do begin
-    Files.Add(Cfg.GetValue('Files/FileName'+IntToStr(I)+'/Value',''));
-  end;
+  for I := 0 to FileCount-1 do 
+    begin
+      nd:=TChmContextNode.Create; 
+      nd.urlname:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/Value','');
+      nd.contextnumber:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/ContextNumber',0);
+      nd.contextname:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/ContextName','');      
+      Files.AddObject(nd.urlname,nd);
+    end;
   IndexFileName := Cfg.GetValue('Files/IndexFile/Value','');
   TableOfContentsFileName := Cfg.GetValue('Files/TOCFile/Value','');
   // For chm file merging, bintoc must be false and binindex true. Change defaults in time?
@@ -185,16 +200,20 @@ end;
 procedure TChmProject.SaveToFile(AFileName: String);
 var
   Cfg: TXMLConfig;
-  I: Integer;
-
+  I  : Integer;
+  nd : TChmContextNode;
 begin
   Cfg := TXMLConfig.Create(nil);
   Cfg.StartEmpty := True;
   Cfg.Filename := FileName;
   Cfg.Clear;
   Cfg.SetValue('Files/Count/Value', Files.Count);
-  for I := 0 to Files.Count-1 do begin
+  for I := 0 to Files.Count-1 do 
+  begin
+    nd:=TChmContextNode(files.objects[i]);
     Cfg.SetValue('Files/FileName'+IntToStr(I)+'/Value', Files.Strings[I]);
+    Cfg.SetValue('Files/FileName'+IntToStr(I)+'/ContextNumber', nd.contextnumber);
+    Cfg.SetValue('Files/FileName'+IntToStr(I)+'/ContextName', nd.contextname);
   end;
   Cfg.SetValue('Files/IndexFile/Value', IndexFileName);
   Cfg.SetValue('Files/TOCFile/Value', TableOfContentsFileName);
@@ -217,10 +236,11 @@ end;
 
 procedure TChmProject.WriteChm(AOutStream: TStream);
 var
-  Writer: TChmWriter;
+  Writer     : TChmWriter;
   TOCStream,
   IndexStream: TFileStream;
-
+  nd         : TChmContextNode;
+  I          : Integer;
 begin
   IndexStream := nil;
   TOCStream := nil;
@@ -241,6 +261,12 @@ begin
   Writer.FullTextSearch := MakeSearchable;
   Writer.HasBinaryTOC := MakeBinaryTOC;
   Writer.HasBinaryIndex := MakeBinaryIndex;
+
+  for i:=0 to files.count-1 do
+    begin
+      nd:=TChmContextNode(files.objects[i]);
+      Writer.AddContext(nd.ContextNumber,files[i]);
+    end;
 
   // and write!
   Writer.Execute;
