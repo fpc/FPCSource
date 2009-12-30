@@ -2118,9 +2118,11 @@ implementation
                    { Give wrong sign a small penalty, this is need to get a diffrence
                      from word->[longword,longint] }
                    if is_signed(def_from)<>is_signed(def_to) then
-                   {$ifopt r+}{$define ena_rq}{$q-}{$r-}{$endif}
+{$push}
+{$r-}
+{$q-}
                      hp^.ordinal_distance:=nextafter(hp^.ordinal_distance,inf);
-                   {$ifdef ena_rq}{$r+}{$q+}{$endif}
+{$pop}
                  end
               else
               { for value and const parameters check precision of real, give
