@@ -4296,6 +4296,8 @@ begin
        Result := GetVariantProp(Instance, PropInfo);
      tkInt64:
        Result := GetInt64Prop(Instance, PropInfo);
+     tkQWord:
+       Result := QWord(GetInt64Prop(Instance, PropInfo));
    else
      raise EPropertyConvertError.CreateFmt('Invalid Property Type: %s',[PropInfo^.PropType^.Name]);
    end;
@@ -4306,10 +4308,12 @@ Procedure SetPropValue(Instance: TObject; const PropName: string;  const Value: 
 
 var
  PropInfo: PPropInfo;
-// TypeData: PTypeData;
- O : Integer;
- S : String;
- B : Boolean;
+ TypeData: PTypeData;
+ O: Integer;
+ I64: Int64;
+ Qw: QWord;
+ S: String;
+ B: Boolean;
 
 begin
    // find the property
@@ -4318,36 +4322,57 @@ begin
      raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName])
    else
      begin
-//     TypeData := GetTypeData(PropInfo^.PropType);
+     TypeData := GetTypeData(PropInfo^.PropType);
      // call Right SetxxxProp
      case PropInfo^.PropType^.Kind of
        tkBool:
          begin
          { to support the strings 'true' and 'false' }
-         B:=Value;
-         SetOrdProp(Instance, PropInfo, ord(B));
+         if (VarType(Value)=varOleStr) or
+            (VarType(Value)=varString) or
+            (VarType(Value)=varBoolean) then
+           begin
+             B:=Value;
+             SetOrdProp(Instance, PropInfo, ord(B));
+           end
+         else
+           begin
+             I64:=Value;
+             if (I64<TypeData^.MinValue) or (I64>TypeData^.MaxValue) then
+               raise ERangeError.Create(SRangeError);
+             SetOrdProp(Instance, PropInfo, I64);
+           end;
          end;
        tkInteger, tkChar, tkWChar:
          begin
-         O:=Value;
-         SetOrdProp(Instance, PropInfo, O);
+         I64:=Value;
+         if (TypeData^.OrdType=otULong) then
+           if (I64<LongWord(TypeData^.MinValue)) or (I64>LongWord(TypeData^.MaxValue)) then
+             raise ERangeError.Create(SRangeError)
+           else
+         else
+         if (I64<TypeData^.MinValue) or (I64>TypeData^.MaxValue) then
+           raise ERangeError.Create(SRangeError);
+         SetOrdProp(Instance, PropInfo, I64);
          end;
        tkEnumeration :
          begin
-         if (VarType(Value)=varOleStr) or  (VarType(Value)=varString) then
+         if (VarType(Value)=varOleStr) or (VarType(Value)=varString) then
            begin
            S:=Value;
            SetEnumProp(Instance,PropInfo,S);
            end
          else
            begin
-           O:=Value;
-           SetOrdProp(Instance, PropInfo, O);
+           I64:=Value;
+           if (I64<TypeData^.MinValue) or (I64>TypeData^.MaxValue) then
+             raise ERangeError.Create(SRangeError);
+           SetOrdProp(Instance, PropInfo, I64);
            end;
          end;
        tkSet :
          begin
-         if (VarType(Value)=varOleStr) or  (VarType(Value)=varString) then
+         if (VarType(Value)=varOleStr) or (VarType(Value)=varString) then
            begin
            S:=Value;
            SetSetProp(Instance,PropInfo,S);
@@ -4371,7 +4396,19 @@ begin
        tkVariant:
          SetVariantProp(Instance, PropInfo, Value);
        tkInt64:
-         SetInt64Prop(Instance, PropInfo, Value);
+         begin
+           I64:=Value;
+           if (I64<TypeData^.MinInt64Value) or (I64>TypeData^.MaxInt64Value) then
+             raise ERangeError.Create(SRangeError);
+           SetInt64Prop(Instance, PropInfo, I64);
+         end;
+       tkQWord:
+         begin
+           Qw:=Value;
+           if (Qw<TypeData^.MinQWordValue) or (Qw>TypeData^.MaxQWordValue) then
+             raise ERangeError.Create(SRangeError);
+           SetInt64Prop(Instance, PropInfo,Qw);
+         end
      else
        raise EPropertyConvertError.CreateFmt('SetPropValue: Invalid Property Type %s',
                                       [PropInfo^.PropType^.Name]);
