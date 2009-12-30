@@ -115,7 +115,8 @@ interface
         mainfilepos   : tfileposinfo;
         recompile_reason : trecompile_reason;  { the reason why the unit should be recompiled }
         crc,
-        interface_crc : cardinal;
+        interface_crc,
+        indirect_crc  : cardinal;
         flags         : cardinal;  { the PPU flags }
         islibrary     : boolean;  { if it is a library (win32 dll) }
         IsPackage     : boolean;
@@ -183,7 +184,8 @@ interface
 
        tused_unit = class(tlinkedlistitem)
           checksum,
-          interface_checksum : cardinal;
+          interface_checksum,
+          indirect_checksum: cardinal;
           in_uses,
           in_interface    : boolean;
           u               : tmodule;
@@ -420,11 +422,13 @@ implementation
          begin
            checksum:=u.crc;
            interface_checksum:=u.interface_crc;
+           indirect_checksum:=u.indirect_crc;
          end
         else
          begin
            checksum:=0;
            interface_checksum:=0;
+           indirect_checksum:=0;
          end;
       end;
 
@@ -480,6 +484,7 @@ implementation
         FImportLibraryList:=TFPHashObjectList.Create(true);
         crc:=0;
         interface_crc:=0;
+        indirect_crc:=0;
         flags:=0;
         scanner:=nil;
         unitmap:=nil;
@@ -728,6 +733,7 @@ implementation
         is_reset:=false;
         crc:=0;
         interface_crc:=0;
+        indirect_crc:=0;
         flags:=0;
         mainfilepos.line:=0;
         mainfilepos.column:=0;

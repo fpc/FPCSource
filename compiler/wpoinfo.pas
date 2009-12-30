@@ -44,6 +44,7 @@ type
     fcalledvmtentriestemplist: tfpobjectlist;
    { devirtualisation information -- end }
 
+    procedure clearderefinfo;
    public
 
     destructor destroy; override;
@@ -75,8 +76,7 @@ implementation
     symdef,
     verbose;
 
-
-  destructor tunitwpoinfo.destroy;
+  procedure tunitwpoinfo.clearderefinfo;
     begin
       if assigned(fcreatedobjtypesderefs) then
         begin
@@ -99,7 +99,11 @@ implementation
           fcalledvmtentriestemplist.free;
           fcalledvmtentriestemplist:=nil;
         end;
+    end;
 
+  destructor tunitwpoinfo.destroy;
+    begin
+      clearderefinfo;
       inherited destroy;
     end;
     
@@ -121,9 +125,9 @@ implementation
       for i:=0 to fmaybecreatedbyclassrefdeftypes.count-1 do
         ppufile.putderef(fmaybecreatedbyclassrefdeftypesderefs^[i]);
 
-      ppufile.putlongint(fcalledvmtentries.count);
-      for i:=0 to fcalledvmtentries.count-1 do
-        tcalledvmtentries(fcalledvmtentries[i]).ppuwrite(ppufile);
+      ppufile.putlongint(fcalledvmtentriestemplist.count);
+      for i:=0 to fcalledvmtentriestemplist.count-1 do
+        tcalledvmtentries(fcalledvmtentriestemplist[i]).ppuwrite(ppufile);
 
       ppufile.writeentry(ibcreatedobjtypes);
 
@@ -183,6 +187,10 @@ implementation
     var
       i: longint;
     begin
+      { ppuload may have already been called before -> deref info structures
+        may already have been allocated }
+      clearderefinfo;
+
       getmem(fcreatedobjtypesderefs,fcreatedobjtypes.count*sizeof(tderef));
       for i:=0 to fcreatedobjtypes.count-1 do
         fcreatedobjtypesderefs^[i].build(fcreatedobjtypes[i]);
@@ -195,13 +203,29 @@ implementation
       for i:=0 to fmaybecreatedbyclassrefdeftypes.count-1 do
         fmaybecreatedbyclassrefdeftypesderefs^[i].build(fmaybecreatedbyclassrefdeftypes[i]);
 
+      fcalledvmtentriestemplist:=tfpobjectlist.create(false);
+      fcalledvmtentriestemplist.count:=fcalledvmtentries.count;
       for i:=0 to fcalledvmtentries.count-1 do
-        tcalledvmtentries(fcalledvmtentries[i]).objdefderef.build(tcalledvmtentries(fcalledvmtentries[i]).objdef);
+        begin
+          tcalledvmtentries(fcalledvmtentries[i]).buildderef;
+          { necessary in case we have unit1 loads unit2, unit2 is recompiled,
+            then unit1 derefs unit2 -> in this case we have buildderef for unit2
+            -> ppuwrite for unit2 -> deref for unit2 (without a load) -> ensure
+            that the fcalledvmtentriestemplist, normally constructed by ppuload,
+            is created here as well since deref needs it }
+          fcalledvmtentriestemplist[i]:=tobject(fcalledvmtentries[i]);
+        end;
     end;
 
 
   procedure tunitwpoinfo.buildderefimpl;
+    var
+      i: longint;
     begin
+      for i:=0 to fcalledvmtentriestemplist.count-1 do
+        begin
+          tcalledvmtentries(fcalledvmtentriestemplist[i]).buildderefimpl;
+        end;
     end;
 
 
@@ -210,7 +234,8 @@ implementation
       i: longint;
 
     begin
-      if (init_settings.genwpoptimizerswitches=[]) then
+      if (init_settings.genwpoptimizerswitches=[]) or
+         not assigned(fcalledvmtentriestemplist) then
         exit;
 
       { don't free deref arrays immediately after use, as the types may need
@@ -227,7 +252,6 @@ implementation
 
       { in case we are re-resolving, free previous batch }
       if (fcalledvmtentries.count<>0) then
-        { don't just re-deref, in case the name might have changed (?) }
         fcalledvmtentries.clear;
       { allocate enough internal memory in one go }
       fcalledvmtentries.capacity:=fcalledvmtentriestemplist.count;
@@ -236,7 +260,7 @@ implementation
         begin
           with tcalledvmtentries(fcalledvmtentriestemplist[i]) do
             begin
-              objdef:=tdef(objdefderef.resolve);
+              deref;
               fcalledvmtentries.add(tobjectdef(objdef).vmt_mangledname,
                 fcalledvmtentriestemplist[i]);
             end;
@@ -245,7 +269,17 @@ implementation
 
 
   procedure tunitwpoinfo.derefimpl;
+    var
+      i: longint;
     begin
+      if (init_settings.genwpoptimizerswitches=[]) or
+         not assigned(fcalledvmtentriestemplist) then
+        exit;
+
+      for i:=0 to fcalledvmtentriestemplist.count-1 do
+        begin
+          tcalledvmtentries(fcalledvmtentriestemplist[i]).derefimpl;
+        end;
     end;
 
 

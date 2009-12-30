@@ -177,7 +177,7 @@ type
     interface_checksum : cardinal;
     deflistsize,
     symlistsize : longint;
-    future   : array[0..0] of longint;
+    indirect_checksum: cardinal;
   end;
 
   tppuentry=packed record
@@ -218,11 +218,18 @@ type
     entrytyp : byte;
     header           : tppuheader;
     size             : integer;
+    { crc for the entire unit }
     crc,
-    interface_crc    : cardinal;
+    { crc for the interface definitions in this unit }
+    interface_crc,
+    { crc of all object/class definitions in the interface of this unit, xor'ed
+      by the crc's of all object/class definitions in the interfaces of units
+      used by this unit. Reason: see mantis #13840 }
+    indirect_crc     : cardinal;
     error,
     do_crc,
-    do_interface_crc : boolean;
+    do_interface_crc,
+    do_indirect_crc  : boolean;
     crc_only         : boolean;    { used to calculate interface_crc before implementation }
     constructor Create(const fn:string);
     destructor  Destroy;override;
@@ -432,6 +439,7 @@ begin
   header.size := swapendian(header.size);
   header.checksum := swapendian(header.checksum);
   header.interface_checksum := swapendian(header.interface_checksum);
+  header.indirect_checksum := swapendian(header.indirect_checksum);
   header.deflistsize:=swapendian(header.deflistsize);
   header.symlistsize:=swapendian(header.symlistsize);
 {$ENDIF}
@@ -847,7 +855,9 @@ begin
 {reset}
   crc:=0;
   interface_crc:=0;
+  indirect_crc:=0;
   do_interface_crc:=true;
+  do_indirect_crc:=false;
   Error:=false;
   do_crc:=true;
   size:=0;
@@ -881,6 +891,7 @@ begin
     header.size := swapendian(header.size);
     header.checksum := swapendian(header.checksum);
     header.interface_checksum := swapendian(header.interface_checksum);
+    header.indirect_checksum := swapendian(header.indirect_checksum);
     header.deflistsize:=swapendian(header.deflistsize);
     header.symlistsize:=swapendian(header.symlistsize);
 {$endif not FPC_BIG_ENDIAN}
@@ -1031,6 +1042,11 @@ begin
             inc(crcindex);
           end;
 {$endif def Test_Double_checksum}
+         { indirect crc must only be calculated for the interface; changes
+           to a class in the implementation cannot require another unit to
+           be recompiled }
+         if do_indirect_crc then
+           indirect_crc:=UpdateCrc32(indirect_crc,b,len);
        end;
     end;
   if not crc_only then

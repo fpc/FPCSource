@@ -10088,6 +10088,11 @@ tests/webtbs/tw1376.pp svneol=native#text/plain
 tests/webtbs/tw13763.pp svneol=native#text/plain
 tests/webtbs/tw13813.pp svneol=native#text/plain
 tests/webtbs/tw13820.pp svneol=native#text/plain
+tests/webtbs/tw13840/doit.sh svneol=LF#text/plain eol=lf
+tests/webtbs/tw13840/tw13840a.pp svneol=native#text/plain
+tests/webtbs/tw13840/tw13840b.pp svneol=native#text/plain
+tests/webtbs/tw13840/tw13840c.pp svneol=native#text/plain
+tests/webtbs/tw13840/tw13840d.pp svneol=native#text/plain
 tests/webtbs/tw13872.pp svneol=native#text/plain
 tests/webtbs/tw13890.pp svneol=native#text/plain
 tests/webtbs/tw13948.pp svneol=native#text/plain

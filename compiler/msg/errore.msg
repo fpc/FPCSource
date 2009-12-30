@@ -2370,7 +2370,7 @@ link_w_32bit_absolute_reloc=09201_W_Object file "$1" contains 32-bit absolute re
 #
 # Unit loading
 #
-# 10061 is the last used one
+# 10062 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -2521,7 +2521,7 @@ unit_u_implementation_crc_changed=10046_U_Implementation CRC changed for unit $1
 unit_u_finished_compiling=10047_U_Finished compiling unit $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has finished compiling the unit.
-unit_u_add_depend_to=10048_U_Add dependency of $1 to $2
+unit_u_add_depend_to=10048_U_Adding dependency: $1 depends on $2
 % When you use the \var{-vu} flag, the compiler warns that it
 % has added a dependency between the two units.
 unit_u_no_reload_is_caller=10049_U_No reload, is caller: $1
@@ -2567,6 +2567,11 @@ unit_e_different_wpo_file=10061_E_Unit $1 was compiled using a different whole p
 % When a unit has been compiled using a particular whole program optimization (wpo) feedback file (\var{-FW<x>} \var{-OW<x>}),
 % this compiled version of the unit is specialised for that particular compilation scenario and cannot be used in
 % any other context. It has to be recompiled before you can use it in another program or with another wpo feedback input file.
+unit_u_indirect_crc_changed=10062_U_Indirect interface (objects/classes) CRC changed for unit $1
+% When you use the \var{-vu} flag, the compiler warns that the
+% indirect CRC calculated for the unit (this is the CRC of all classes/objects/interfaces/$\ldots$
+% in the interfaces of units directly or indirectly used by this unit in the interface) has been changed after the
+% implementation has been parsed.
 % \end{description}
 # EndOfTeX
 

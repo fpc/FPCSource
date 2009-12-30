@@ -3976,7 +3976,17 @@ implementation
          i : longint;
          vmtentry : pvmtentry;
          ImplIntf : TImplementedInterface;
+         old_do_indirect_crc: boolean;
       begin
+         { if class1 in unit A changes, and class2 in unit B inherits from it
+           (so unit B uses unit A), then unit B with class2 will be recompiled.
+           However, if there is also a class3 in unit C that only depends on
+           unit B, then unit C will not be recompiled because nothing changed
+           to the interface of unit B. Nevertheless, unit C can indirectly
+           depend on unit A via derefs, and these must be updated -> the
+           indirect crc keeps track of such changes. }
+         old_do_indirect_crc:=ppufile.do_indirect_crc;
+         ppufile.do_indirect_crc:=true;
          inherited ppuwrite(ppufile);
          ppufile.putbyte(byte(objecttype));
          ppufile.putstring(objrealname^);
@@ -4027,6 +4037,8 @@ implementation
 
          if not(df_copied_def in defoptions) then
            tObjectSymtable(symtable).ppuwrite(ppufile);
+
+         ppufile.do_indirect_crc:=old_do_indirect_crc;
       end;
 
 
