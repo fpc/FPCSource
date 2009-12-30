@@ -21,7 +21,7 @@ Uses
   {$IFDEF UNIX}
    BaseUnix,
   {$ENDIF}
-   SysUtils,Classes,ZStream;
+   SysUtils,Classes,zstream;
 
 
 Const
