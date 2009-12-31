@@ -1127,7 +1127,8 @@ implementation
 
          { First reload all units depending on our interface, we need to do this
            in the implementation part to prevent erroneous circular references }
-         reload_flagged_units;
+         tppumodule(current_module).setdefgeneration;
+         tppumodule(current_module).reload_flagged_units;
 
          { Parse the implementation section }
          if (m_mac in current_settings.modeswitches) and try_to_consume(_END) then

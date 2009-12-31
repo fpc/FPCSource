@@ -61,7 +61,16 @@ interface
           procedure writeppu;
           procedure loadppu;
           function  needrecompile:boolean;
+          procedure setdefgeneration;
+          procedure reload_flagged_units;
        private
+         { Each time a unit's defs are (re)created, its defsgeneration is
+           set to the value of a global counter, and the global counter is
+           increased. We only reresolve its dependent units' defs in case
+           they have been resolved only for an older generation, in order to
+           avoid endless resolving loops in case of cyclic dependencies. }
+          defsgeneration : longint;
+
           function  search_unit(onlysource,shortname:boolean):boolean;
           procedure load_interface;
           procedure load_implementation;
@@ -90,7 +99,6 @@ interface
 {$ENDIF}
        end;
 
-    procedure reload_flagged_units;
     function registerunit(callermodule:tmodule;const s : TIDString;const fn:string) : tppumodule;
 
 
@@ -107,24 +115,9 @@ uses
   parser,
   comphook;
 
-{****************************************************************************
-                                 Helpers
- ****************************************************************************}
 
-    procedure reload_flagged_units;
-      var
-        hp : tmodule;
-      begin
-        { now reload all dependent units }
-        hp:=tmodule(loaded_units.first);
-        while assigned(hp) do
-         begin
-           if hp.do_reload then
-             tppumodule(hp).loadppu;
-           hp:=tmodule(hp.next);
-         end;
-      end;
-
+var
+  currentdefgeneration: longint;
 
 {****************************************************************************
                                 TPPUMODULE
@@ -152,6 +145,7 @@ uses
 
     procedure tppumodule.reset;
       begin
+        inc(currentdefgeneration);
         if assigned(ppufile) then
          begin
            ppufile.free;
@@ -1423,13 +1417,40 @@ uses
       end;
 
 
+    procedure tppumodule.setdefgeneration;
+      begin
+        defsgeneration:=currentdefgeneration;
+        inc(currentdefgeneration);
+      end;
+
+
+    procedure tppumodule.reload_flagged_units;
+      var
+        hp : tppumodule;
+      begin
+        { now reload all dependent units with outdated defs }
+        hp:=tppumodule(loaded_units.first);
+        while assigned(hp) do
+         begin
+           if hp.do_reload and
+              (hp.defsgeneration<defsgeneration) then
+             begin
+               hp.defsgeneration:=defsgeneration;
+               hp.loadppu
+             end
+           else
+             hp.do_reload:=false;
+           hp:=tppumodule(hp.next);
+         end;
+      end;
+
+
     procedure tppumodule.loadppu;
       const
         ImplIntf : array[boolean] of string[15]=('implementation','interface');
       var
         do_load,
-        second_time,
-        reresolvedependent: boolean;
+        second_time        : boolean;
         old_current_module : tmodule;
       begin
         old_current_module:=current_module;
@@ -1449,7 +1470,6 @@ uses
         { reset }
         do_load:=true;
         second_time:=false;
-        reresolvedependent:=false;
         set_current_module(self);
 
         { A force reload }
@@ -1474,7 +1494,23 @@ uses
                       tstoredsymtable(localsymtable).deref;
                       tstoredsymtable(localsymtable).derefimpl;
                     end;
-                   reresolvedependent:=true;
+                   if assigned(wpoinfo) then
+                     begin
+                       tunitwpoinfo(wpoinfo).deref;
+                       tunitwpoinfo(wpoinfo).derefimpl;
+                     end;
+
+                   { We have to flag the units that depend on this unit even
+                     though it didn't change, because they might also
+                     indirectly depend on the unit that did change (e.g.,
+                     in case rgobj, rgx86 and rgcpu have been compiled
+                     already, and then rgobj is recompiled for some reason
+                     -> rgx86 is re-reresolved, but the vmtentries of trgcpu
+                     must also be re-resolved, because they will also contain
+                     pointers to procdefs in the old trgobj (in case of a
+                     recompile, all old defs are freed) }
+                   flagdependent(current_module);
+                   reload_flagged_units;
                  end
                else
                  Message1(unit_u_skipping_reresolving_unit,modulename^);
@@ -1524,6 +1560,7 @@ uses
               if not do_compile then
                begin
                  load_interface;
+                 setdefgeneration;
                  if not do_compile then
                   begin
                     load_usedunits;
@@ -1572,6 +1609,7 @@ uses
               if not(state in [ms_compile,ms_second_compile]) then
                 state:=ms_compile;
               compile(mainsource^);
+              setdefgeneration;
             end
            else
             state:=ms_compiled;
@@ -1595,29 +1633,7 @@ uses
               assigned(tppumodule(old_current_module).ppufile) then
              tppumodule(old_current_module).ppufile.tempopen;
 {$endif SHORT_ON_FILE_HANDLES}
-         end
-        else if reresolvedependent then
-          begin
-            { only reresolve the wpoinfo now that this unit (and hence all of
-              its dependent units) have been reloaded/recompiled, because the
-              wpo info can depend those units' interface defs. }
-            if assigned(wpoinfo) then
-              begin
-                tunitwpoinfo(wpoinfo).deref;
-                tunitwpoinfo(wpoinfo).derefimpl;
-              end;
-            { We have to flag the units that depend on this unit even
-              though it didn't change, because they might also
-              indirectly depend on the unit that did change (e.g.,
-              in case rgobj, rgx86 and rgcpu have been compiled
-              already, and then rgobj is recompiled for some reason
-              -> rgx86 is re-reresolved, but the vmtentries of trgcpu
-              must also be re-resolved, because they will also contain
-              pointers to procdefs in the old trgobj (in case of a
-              recompile, all old defs are freed) }
-            flagdependent(old_current_module);
-            reload_flagged_units;
-          end;
+         end;
 
         { we are back, restore current_module }
         set_current_module(old_current_module);
