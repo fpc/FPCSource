@@ -866,13 +866,13 @@ type
   TCustomMemoryStream = class(TStream)
   private
     FMemory: Pointer;
-    FSize, FPosition: Longint;
+    FSize, FPosition: PtrInt;
   protected
-    procedure SetPointer(Ptr: Pointer; ASize: Longint);
+    procedure SetPointer(Ptr: Pointer; ASize: PtrInt);
   public
     Function GetSize : Int64; Override;
-    function Read(var Buffer; Count: Longint): Longint; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
+    function Read(var Buffer; Count: PtrInt): PtrInt; override;
+    function Seek(Offset: PtrInt; Origin: Word): PtrInt; override;
     procedure SaveToStream(Stream: TStream);
     procedure SaveToFile(const FileName: string);
     property Memory: Pointer read FMemory;
@@ -882,18 +882,18 @@ type
 
   TMemoryStream = class(TCustomMemoryStream)
   private
-    FCapacity: Longint;
-    procedure SetCapacity(NewCapacity: Longint);
+    FCapacity: PtrInt;
+    procedure SetCapacity(NewCapacity: PtrInt);
   protected
-    function Realloc(var NewCapacity: Longint): Pointer; virtual;
-    property Capacity: Longint read FCapacity write SetCapacity;
+    function Realloc(var NewCapacity: PtrInt): Pointer; virtual;
+    property Capacity: PtrInt read FCapacity write SetCapacity;
   public
     destructor Destroy; override;
     procedure Clear;
     procedure LoadFromStream(Stream: TStream);
     procedure LoadFromFile(const FileName: string);
-    procedure SetSize(NewSize: Longint); override;
-    function Write(const Buffer; Count: Longint): Longint; override;
+    procedure SetSize(NewSize: PtrInt); override;
+    function Write(const Buffer; Count: PtrInt): PtrInt; override;
   end;
 
 { TStringStream }
