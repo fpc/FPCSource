@@ -866,6 +866,12 @@ implementation
              prefix:=s+'_'+prefix
            else
              prefix:=s;
+           if length(prefix)>128 then
+             begin
+               crc:=0;
+               crc:=UpdateCrc32(crc,prefix[1],length(prefix));
+               prefix:='$CRC'+hexstr(crc,8);
+             end;
            st:=st.defowner.owner;
          end;
         { object/classes symtable, nested type definitions in classes require the while loop }
