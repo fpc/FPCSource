@@ -625,6 +625,23 @@ implementation
 
         procedure procvardef_rtti(def:tprocvardef);
 
+           const
+             ProcCallOptionToCallConv: array[tproccalloption] of byte = (
+              { pocall_none       } 0,
+              { pocall_cdecl      } 1,
+              { pocall_cppdecl    } 5,
+              { pocall_far16      } 6,
+              { pocall_oldfpccall } 7,
+              { pocall_internproc } 8,
+              { pocall_syscall    } 9,
+              { pocall_pascal     } 2,
+              { pocall_register   } 0,
+              { pocall_safecall   } 4,
+              { pocall_stdcall    } 3,
+              { pocall_softfloat  } 10,
+              { pocall_mwpascal   } 11
+             );
+
            procedure write_para(parasym:tparavarsym);
            var
              paraspec : byte;
@@ -689,8 +706,22 @@ implementation
                for i:=0 to def.paras.count-1 do
                  write_para(tparavarsym(def.paras[i]));
 
-               { write name of result type }
-               write_rtti_name(def.returndef);
+               if methodkind=mkFunction then
+               begin
+                 { write name of result type }
+                 write_rtti_name(def.returndef);
+
+                 { write result typeinfo }
+                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.returndef,fullrtti)))
+               end;
+
+               { write calling convention }
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(ProcCallOptionToCallConv[def.proccalloption]));
+
+               { write params typeinfo }
+               for i:=0 to def.paras.count-1 do
+                 if not(vo_is_hidden_para in tparavarsym(def.paras[i]).varoptions) then
+                   current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(tparavarsym(def.paras[i]).vardef,fullrtti)));
             end
           else
             begin
@@ -728,8 +759,7 @@ implementation
               current_asmdata.asmlists[al_rtti].concat(Tai_const.create_sym(nil));
 
             { write parent typeinfo }
-            if assigned(def.childof) and
-               (oo_can_have_published in def.childof.objectoptions) then
+            if assigned(def.childof) then
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.childof,fullrtti)))
             else
               current_asmdata.asmlists[al_rtti].concat(Tai_const.create_sym(nil));

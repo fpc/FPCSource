@@ -57,6 +57,13 @@ unit typinfo;
        TIntfFlags     = set of TIntfFlag;
        TIntfFlagsBase = set of TIntfFlag;
 
+       // don't rely on integer values of TCallConv since it includes all conventions
+       // which both delphi and fpc support. In the future delphi can support more and
+       // fpc own conventions will be shifted/reordered accordinly
+       TCallConv = (ccReg, ccCdecl, ccPascal, ccStdCall, ccSafeCall,
+                    ccCppdecl, ccFar16, ccOldFPCCall, ccInternProc,
+                    ccSysCall, ccSoftFloat, ccMWPascal);
+
 {$MINENUMSIZE DEFAULT}
 
    const
@@ -129,7 +136,10 @@ unit typinfo;
                     TypeName : ShortString;
                   end;
               followed by
-                  ResultType : ShortString}
+                  ResultType : ShortString     // for mkFunction only
+                  ResultTypeRef : PPTypeInfo;  // for mkFunction only
+                  CC : TCallConv;
+                  ParamTypeRefs : array[1..ParamCount] of PPTypeInfo;}
               );
             tkInt64:
               (MinInt64Value, MaxInt64Value: Int64);
