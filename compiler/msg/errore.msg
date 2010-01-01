@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03281 is the last used one
+# 03282 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1277,6 +1277,9 @@ parser_e_implements_getter_not_default_cc=03281_E_Getter for implements interfac
 % Interface getters are called via a helper in the run time library, and hence
 % have to use the default calling convention for the target (\var{register} on
 % i386 and x86_64, \var{stdcall} on other architectures).
+parser_e_no_refcounted_typed_file=03282_E_Typed files cannot contain reference-counted types.
+% The data in a typed file cannot be of a reference counted type (such as
+% \var{ansistring} or a record containing a field that is reference counted).
 % \end{description}
 #
 # Type Checking
