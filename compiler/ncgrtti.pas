@@ -436,10 +436,12 @@ implementation
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.max));
           if (tf_requires_proper_alignment in target_info.flags) then
             current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUint)));
+          { write base type }
           if assigned(def.basedef) then
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.basedef,rt)))
           else
             current_asmdata.asmlists[al_rtti].concat(Tai_const.create_sym(nil));
+          { write name list }
           hp:=tenumsym(def.firstenum);
           while assigned(hp) do
             begin
@@ -447,7 +449,9 @@ implementation
               current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(hp.realname));
               hp:=hp.nextenum;
             end;
-          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(0));
+          { write unit name }
+          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(current_module.realmodulename^)));
+          current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(current_module.realmodulename^));
         end;
 
         procedure orddef_rtti(def:torddef);
@@ -603,8 +607,9 @@ implementation
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)))
                else
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(0));
-               { dummy DynUnitName }
-               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(0));
+               { write unit name }
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(current_module.realmodulename^)));
+               current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(current_module.realmodulename^));
              end;
         end;
 

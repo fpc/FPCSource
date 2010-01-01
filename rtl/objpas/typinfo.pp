@@ -107,7 +107,8 @@ unit typinfo;
                       tkEnumeration:
                         (
                         BaseType : PTypeInfo;
-                        NameList : ShortString)
+                        NameList : ShortString;
+                        {EnumUnitName: ShortString;})
                     );
                   tkSet:
                     (CompType : PTypeInfo)
