@@ -697,11 +697,28 @@ implementation
                if (tf_requires_proper_alignment in target_info.flags) then
                  current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
 
-               { write kind of method (can only be function or procedure)}
-               if def.returndef = voidtype then
-                 methodkind := mkProcedure
+               { write kind of method }
+               case def.proctypeoption of
+                 potype_constructor: methodkind:=mkConstructor;
+                 potype_destructor: methodkind:=mkDestructor;
+                 potype_procedure: 
+                   if po_classmethod in def.procoptions then 
+                     methodkind:=mkClassProcedure
+                   else
+                     methodkind:=mkProcedure;
+                 potype_function:
+                   if po_classmethod in def.procoptions then 
+                     methodkind:=mkClassFunction
+                   else
+                     methodkind:=mkFunction;
                else
-                 methodkind := mkFunction;
+                 begin                   
+                   if def.returndef = voidtype then
+                     methodkind:=mkProcedure
+                   else
+                     methodkind:=mkFunction;
+                 end;
+               end;
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(methodkind));
 
                { write parameter info. The parameters must be written in reverse order
@@ -711,7 +728,7 @@ implementation
                for i:=0 to def.paras.count-1 do
                  write_para(tparavarsym(def.paras[i]));
 
-               if methodkind=mkFunction then
+               if (methodkind=mkFunction) or (methodkind=mkClassFunction) then
                begin
                  { write name of result type }
                  write_rtti_name(def.returndef);

@@ -137,8 +137,8 @@ unit typinfo;
                     TypeName : ShortString;
                   end;
               followed by
-                  ResultType : ShortString     // for mkFunction only
-                  ResultTypeRef : PPTypeInfo;  // for mkFunction only
+                  ResultType : ShortString     // for mkFunction, mkClassFunction only
+                  ResultTypeRef : PPTypeInfo;  // for mkFunction, mkClassFunction only
                   CC : TCallConv;
                   ParamTypeRefs : array[1..ParamCount] of PPTypeInfo;}
               );
