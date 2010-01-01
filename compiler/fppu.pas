@@ -1509,7 +1509,7 @@ var
                      must also be re-resolved, because they will also contain
                      pointers to procdefs in the old trgobj (in case of a
                      recompile, all old defs are freed) }
-                   flagdependent(current_module);
+                   flagdependent(old_current_module);
                    reload_flagged_units;
                  end
                else
