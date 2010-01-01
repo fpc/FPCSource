@@ -68,11 +68,7 @@ _startlib:
         .globl  _haltproc
         .type   _haltproc,@function
 _haltproc:
-        movl    $231,%eax                 /* exit_group call */
-        movq    operatingsystem_result@GOTPCREL(%rip),%rbx
-        movzwl  (%rbx),%edi
-        syscall
-        jmp     _haltproc@PLT
+	ret
 
 /* Define a symbol for the first piece of initialized data.  */
 	.data
