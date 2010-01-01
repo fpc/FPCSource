@@ -380,7 +380,8 @@ end;
 
 operator mod (const a,b:Tconstexprint):Tconstexprint;
 
-var aa,bb:qword;
+var aa,bb,r:qword;
+    sa,sb:boolean;
 
 begin
   if a.overflow or b.overflow then
@@ -389,20 +390,32 @@ begin
       exit;
     end;
   result.overflow:=false;
-  if a.signed then
-    aa:=qword(a.svalue)
+  sa:=a.signed and (a.svalue<0);
+  if sa then
+    {$Q-}
+    aa:=qword(-a.svalue)
+    {$ifdef ena_q}{$Q+}{$endif}
   else
     aa:=a.uvalue;
-  if b.signed then
-    bb:=qword(b.svalue)
+  sb:=b.signed and (b.svalue<0);
+  if sb then
+    {$Q-}
+    bb:=qword(-b.svalue)
+    {$ifdef ena_q}{$Q+}{$endif}
   else
     bb:=b.uvalue;
   if bb=0 then
     result.overflow:=true
   else
     begin
-      result.signed:=false;
-      result.uvalue:=aa mod bb;
+      { the sign of a modulo operation only depends on the sign of the
+        dividend }
+      r:=aa mod bb;
+      result.signed:=sa;
+      if not sa then
+        result.uvalue:=r
+      else
+        result.svalue:=-int64(r);
     end;
 end;
 
