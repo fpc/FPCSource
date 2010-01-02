@@ -562,6 +562,10 @@ implementation
 
     procedure insert_varargstypeconv(var p : tnode; iscvarargs: boolean);
       begin
+        { procvars without arguments in variant arrays are always called by
+          Delphi }
+        if not(iscvarargs) then
+          maybe_call_procvar(p,true);
         if not(iscvarargs) and
            (p.nodetype=stringconstn) then
           p:=ctypeconvnode.create_internal(p,cansistringtype)
