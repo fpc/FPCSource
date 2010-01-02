@@ -260,8 +260,6 @@ begin
       end
     else
       M.HandleRequest(ARequest,AResponse);
-    if M.Kind=wkOneShot then
-      M.Free;
   except
     On E : Exception do
       begin
