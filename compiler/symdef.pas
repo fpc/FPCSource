@@ -846,7 +846,7 @@ implementation
            newlen:=length(s);
            { Replace with CRC if the parameter line is very long }
            if (newlen-oldlen>12) and
-              ((newlen+length(prefix)>128) or (newlen-oldlen>32)) then
+              ((newlen+length(prefix)>100) or (newlen-oldlen>32)) then
              begin
                crc:=0;
                for i:=0 to tprocdef(st.defowner).paras.count-1 do
@@ -866,7 +866,7 @@ implementation
              prefix:=s+'_'+prefix
            else
              prefix:=s;
-           if length(prefix)>128 then
+           if length(prefix)>100 then
              begin
                crc:=0;
                crc:=UpdateCrc32(crc,prefix[1],length(prefix));
@@ -3423,7 +3423,7 @@ implementation
         newlen:=length(mangledname);
         { Replace with CRC if the parameter line is very long }
         if (newlen-oldlen>12) and
-           ((newlen>128) or (newlen-oldlen>64)) then
+           ((newlen>100) or (newlen-oldlen>64)) then
           begin
             crc:=0;
             for i:=0 to paras.count-1 do
