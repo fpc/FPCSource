@@ -105,7 +105,7 @@ Type
     FWebModuleKind: TWebModuleKind;
   public
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual; abstract;
-    property Kind: TWebModuleKind read FWebModuleKind write FWebModuleKind default wkOneShot;
+    property Kind: TWebModuleKind read FWebModuleKind write FWebModuleKind default wkPooled;
   end;
   
   TCustomHTTPModuleClass = Class of TCustomHTTPModule;

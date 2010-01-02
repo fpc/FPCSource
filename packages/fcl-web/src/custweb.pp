@@ -250,7 +250,16 @@ begin
     M:=FindModule(MC); // Check if a module exists already
     If (M=Nil) then
       M:=MC.Create(Self);
-    M.HandleRequest(ARequest,AResponse);
+    if M.Kind=wkOneShot then
+      begin
+      try
+        M.HandleRequest(ARequest,AResponse);
+      finally
+        M.Free;
+      end;
+      end
+    else
+      M.HandleRequest(ARequest,AResponse);
     if M.Kind=wkOneShot then
       M.Free;
   except
