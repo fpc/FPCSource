@@ -2192,16 +2192,34 @@ In case not, the value returned can be arbitrary.
                   ST_LINE:
                     begin
                       replaytokenbuf.read(current_tokenpos.line,sizeof(current_tokenpos.line));
+
+                      { don't generate invalid line info if no sources are available for the current module }
+                      if not(get_module(current_filepos.moduleindex).sources_avail) then
+                        current_tokenpos.line:=0;
+
                       current_filepos:=current_tokenpos;
                     end;
                   ST_COLUMN:
                     begin
                       replaytokenbuf.read(current_tokenpos.column,sizeof(current_tokenpos.column));
+
+                      { don't generate invalid line info if no sources are available for the current module }
+                      if not(get_module(current_filepos.moduleindex).sources_avail) then
+                        current_tokenpos.column:=0;
+
                       current_filepos:=current_tokenpos;
                     end;
                   ST_FILEINDEX:
                     begin
                       replaytokenbuf.read(current_tokenpos.fileindex,sizeof(current_tokenpos.fileindex));
+
+                      { don't generate invalid line info if no sources are available for the current module }
+                      if not(get_module(current_filepos.moduleindex).sources_avail) then
+                        begin
+                          current_tokenpos.column:=0;
+                          current_tokenpos.line:=0;
+                        end;
+
                       current_filepos:=current_tokenpos;
                     end;
                   else
