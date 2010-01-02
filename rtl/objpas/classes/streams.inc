@@ -515,7 +515,7 @@ begin
 end;
 
 
-function TCustomMemoryStream.Read(var Buffer; Count: PtrInt): PtrInt;
+function TCustomMemoryStream.Read(var Buffer; Count: LongInt): LongInt;
 
 begin
   Result:=0;
@@ -529,10 +529,10 @@ begin
 end;
 
 
-function TCustomMemoryStream.Seek(Offset: PtrInt; Origin: Word): PtrInt;
+function TCustomMemoryStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 
 begin
-  Case Origin of
+  Case Word(Origin) of
     soFromBeginning : FPosition:=Offset;
     soFromEnd       : FPosition:=FSize+Offset;
     soFromCurrent   : FPosition:=FPosition+Offset;
@@ -646,7 +646,7 @@ begin
 end;
 
 
-procedure TMemoryStream.SetSize(NewSize: PtrInt);
+procedure TMemoryStream.SetSize({$ifdef CPU64}const{$endif CPU64} NewSize: PtrInt);
 
 begin
   SetCapacity (NewSize);
@@ -655,7 +655,7 @@ begin
     FPosition:=FSize;
 end;
 
-function TMemoryStream.Write(const Buffer; Count: PtrInt): PtrInt;
+function TMemoryStream.Write(const Buffer; Count: LongInt): LongInt;
 
 Var NewPos : PtrInt;
 

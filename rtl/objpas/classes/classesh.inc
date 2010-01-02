@@ -871,8 +871,8 @@ type
     procedure SetPointer(Ptr: Pointer; ASize: PtrInt);
   public
     Function GetSize : Int64; Override;
-    function Read(var Buffer; Count: PtrInt): PtrInt; override;
-    function Seek(Offset: PtrInt; Origin: Word): PtrInt; override;
+    function Read(var Buffer; Count: LongInt): LongInt; override;
+    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
     procedure SaveToStream(Stream: TStream);
     procedure SaveToFile(const FileName: string);
     property Memory: Pointer read FMemory;
@@ -892,8 +892,8 @@ type
     procedure Clear;
     procedure LoadFromStream(Stream: TStream);
     procedure LoadFromFile(const FileName: string);
-    procedure SetSize(NewSize: PtrInt); override;
-    function Write(const Buffer; Count: PtrInt): PtrInt; override;
+    procedure SetSize({$ifdef CPU64}const{$endif CPU64} NewSize: PtrInt); override;
+    function Write(const Buffer; Count: LongInt): LongInt; override;
   end;
 
 { TStringStream }
