@@ -1,18 +1,17 @@
 <?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
-    <PathDelim Value="/"/>
-    <Version Value="6"/>
+    <Version Value="7"/>
     <General>
       <Flags>
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
         <Runnable Value="False"/>
+        <LRSInOutputDirectory Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <IconPath Value="./"/>
       <TargetFileExt Value=".exe"/>
       <Title Value="buildrtl"/>
     </General>
@@ -42,7 +41,7 @@
   <CompilerOptions>
     <Version Value="8"/>
     <SearchPaths>
-      <IncludeFiles Value="../inc/;../$(TargetCPU)/;../unix/;../objpas/classes/;../objpas/sysutils/;../objpas/;$(TargetCPU)"/>
+      <IncludeFiles Value="../inc/;../$(TargetCPU)/;../unix/;../objpas/classes/;../objpas/sysutils/;../objpas/;$(TargetCPU)/"/>
       <OtherUnitFiles Value="../objpas/;../objpas/classes/;../objpas/sysutils/;../inc/;../unix/;../$(TargetCPU)/"/>
       <UnitOutputDirectory Value="../units/$(TargetCPU)-linux"/>
     </SearchPaths>
