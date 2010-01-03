@@ -1,3 +1,4 @@
+{$mode objfpc}
 uses
   math;
 { tests:
@@ -55,5 +56,18 @@ begin
     doerror(3003);
   if RemainderInteger<>15 then
     doerror(3004);
+	
+  DivMod(-9, 5, QuotientInteger,RemainderInteger);
+  if QuotientInteger<>-1 then
+    doerror(3005);
+  if RemainderInteger<>-4 then
+    doerror(3006);
+	
+  DivMod(-9, -5, QuotientInteger,RemainderInteger);
+  if QuotientInteger<>1 then
+    doerror(3007);
+  if RemainderInteger<>-4 then
+    doerror(3008);
+	
 end.
 	

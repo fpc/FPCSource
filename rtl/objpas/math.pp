@@ -2221,33 +2221,71 @@ end;
 {$ifndef FPC_MATH_HAS_DIVMOD}
 procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: Word);
 begin
-  Result:=Dividend Div Divisor;
-  Remainder:=Dividend -(Result*Divisor);
+  if Dividend < 0 then
+    begin
+      { Use DivMod with >=0 dividend }
+	  Dividend:=-Dividend;
+      { The documented behavior of Pascal's div/mod operators and DivMod
+        on negative dividends is to return Result closer to zero and
+        a negative Remainder. Which means that we can just negate both
+        Result and Remainder, and all it's Ok. }
+      Result:=-(Dividend Div Divisor);
+      Remainder:=-(Dividend+(Result*Divisor));
+    end 
+  else
+    begin
+	  Result:=Dividend Div Divisor;
+      Remainder:=Dividend-(Result*Divisor);
+	end;
 end;
 
 
 procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: SmallInt);
-var
-  UnsignedResult: Word absolute Result;
-  UnsignedRemainder: Word absolute Remainder;
 begin
-  DivMod(Dividend, Divisor, UnsignedResult, UnsignedRemainder);
+  if Dividend < 0 then
+    begin
+      { Use DivMod with >=0 dividend }
+	  Dividend:=-Dividend;
+      { The documented behavior of Pascal's div/mod operators and DivMod
+        on negative dividends is to return Result closer to zero and
+        a negative Remainder. Which means that we can just negate both
+        Result and Remainder, and all it's Ok. }
+      Result:=-(Dividend Div Divisor);
+      Remainder:=-(Dividend+(Result*Divisor));
+    end 
+  else
+    begin
+	  Result:=Dividend Div Divisor;
+      Remainder:=Dividend-(Result*Divisor);
+	end;
 end;
 
 
 procedure DivMod(Dividend: DWord; Divisor: DWord; var Result, Remainder: DWord);
 begin
   Result:=Dividend Div Divisor;
-  Remainder:=Dividend -(Result*Divisor);
+  Remainder:=Dividend-(Result*Divisor);
 end;
 
 
 procedure DivMod(Dividend: Integer; Divisor: Integer; var Result, Remainder: Integer);
-var
-  UnsignedResult: DWord absolute Result;
-  UnsignedRemainder: DWord absolute Remainder;
 begin
-  DivMod(Dividend, Divisor, UnsignedResult, UnsignedRemainder);
+  if Dividend < 0 then
+    begin
+      { Use DivMod with >=0 dividend }
+	  Dividend:=-Dividend;
+      { The documented behavior of Pascal's div/mod operators and DivMod
+        on negative dividends is to return Result closer to zero and
+        a negative Remainder. Which means that we can just negate both
+        Result and Remainder, and all it's Ok. }
+      Result:=-(Dividend Div Divisor);
+      Remainder:=-(Dividend+(Result*Divisor));
+    end 
+  else
+    begin
+	  Result:=Dividend Div Divisor;
+      Remainder:=Dividend-(Result*Divisor);
+	end;
 end;
 {$endif FPC_MATH_HAS_DIVMOD}
 
