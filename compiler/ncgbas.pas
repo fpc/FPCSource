@@ -206,6 +206,21 @@ interface
                         op.reg:=sym.localloc.register;
                       end;
                   end;
+                LOC_MMREGISTER :
+                  begin
+                    if getoffset then
+                      Message(asmr_e_invalid_reference_syntax);
+                    { Subscribed access }
+                    if forceref or (sofs<>0) then
+                      internalerror(201001032)
+                    else
+                      begin
+                        op.typ:=top_reg;
+                        op.reg:=sym.localloc.register;
+                      end;
+                  end;
+                else
+                  internalerror(201001031);
               end;
             end;
         end;

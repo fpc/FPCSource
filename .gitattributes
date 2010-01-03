@@ -10140,6 +10140,7 @@ tests/webtbs/tw1451.pp svneol=native#text/plain
 tests/webtbs/tw14514.pp svneol=native#text/plain
 tests/webtbs/tw14536.pp svneol=native#text/plain
 tests/webtbs/tw14553.pp svneol=native#text/pascal
+tests/webtbs/tw14566.pp svneol=native#text/pascal
 tests/webtbs/tw14617.pp svneol=native#text/plain
 tests/webtbs/tw1470.pp svneol=native#text/plain
 tests/webtbs/tw1472.pp svneol=native#text/plain
