@@ -1072,12 +1072,14 @@ Function fpc_Val_Real_ShortStr(const s : shortstring; out Code : ValSInt): ValRe
 var
   hd,
   esign,sign : valreal;
-  exponent,i : SizeInt;
+  exponent,
+  decpoint,i : SizeInt;
   flags      : byte;
 begin
   fpc_Val_Real_ShortStr:=0.0;
   code:=1;
   exponent:=0;
+  decpoint:=0;
   esign:=1;
   flags:=0;
   sign:=1;
@@ -1101,17 +1103,15 @@ begin
 { Decimal ? }
   if (length(s)>=code) and (s[code]='.') then
     begin
-      hd:=1.0;
       inc(code);
       while (length(s)>=code) and (s[code] in ['0'..'9']) do
         begin
            { Read fractional part. }
           flags:=flags or 2;
           fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
-          hd:=hd*10.0;
+          inc(decpoint);
           inc(code);
         end;
-      fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr/hd;
    end;
  { Again, read integer and fractional part}
   if flags=0 then
@@ -1120,7 +1120,7 @@ begin
       exit;
     end;
  { Exponent ? }
-  if (length(s)>=code) and (upcase(s[code])='E') then
+  if (length(s)>=code) and (s[code] in ['e','E']) then
     begin
       inc(code);
       if Length(s) >= code then
@@ -1144,6 +1144,18 @@ begin
           inc(code);
         end;
     end;
+{ adjust exponent based on decimal point }
+  if esign>0 then
+    begin
+      dec(exponent,decpoint);
+      if (exponent<0) then
+        begin
+          esign:=-1;
+          exponent:=-exponent;
+        end
+    end
+  else
+    inc(exponent,decpoint);
 { evaluate sign }
 { (before exponent, because the exponent may turn it into a denormal) }
   fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*sign;
