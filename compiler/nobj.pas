@@ -518,8 +518,8 @@ implementation
         for i:=0 to _class.ImplementedInterfaces.count-1 do
           begin
             ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
-            { if it implements itself }
-            if ImplIntf.VtblImplIntf=ImplIntf then
+            { if it implements itself and if it's not implemented by delegation }
+            if (ImplIntf.VtblImplIntf=ImplIntf) and (ImplIntf.IType=etStandard) then
               begin
                 { allocate a pointer in the object memory }
                 with tObjectSymtable(_class.symtable) do
@@ -536,7 +536,7 @@ implementation
           begin
             ImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[i]);
             if ImplIntf.VtblImplIntf<>ImplIntf then
-              ImplIntf.Ioffset:=ImplIntf.VtblImplIntf.Ioffset;
+              ImplIntf.IOffset:=ImplIntf.VtblImplIntf.IOffset;
           end;
       end;
 
@@ -1106,9 +1106,9 @@ implementation
         current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(intf_get_vtbl_name(AImplIntf.VtblImplIntf),0));
         { IOffset field }
         case AImplIntf.VtblImplIntf.IType of
+          etFieldValue,
           etStandard:
             current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(AImplIntf.VtblImplIntf.IOffset));
-          etFieldValue,
           etVirtualMethodResult,
           etStaticMethodResult:
             current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(0));
