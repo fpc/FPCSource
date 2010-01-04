@@ -507,15 +507,6 @@ end;
 
 
 {****************************************************************************
-                              Misc Functions
-****************************************************************************}
-
-procedure Beep;
-begin
-end;
-
-
-{****************************************************************************
                               Locale Functions
 ****************************************************************************}
 
@@ -662,6 +653,8 @@ end;
 Initialization
   InitExceptions;
   InitInternational;    { Initialize internationalization settings }
+  OnBeep:=Nil;          { No SysBeep() on MorphOS, for now. Figure out if we want 
+                          to use intuition.library/DisplayBeep() for this (KB) }
 Finalization
   DoneExceptions;
 end.
