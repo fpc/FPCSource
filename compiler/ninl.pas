@@ -1413,7 +1413,6 @@ implementation
         hp        : tnode;
         vl,vl2    : TConstExprInt;
         vr        : bestreal;
-        checkrange: boolean;
 
       begin { simplify }
          result:=nil;
@@ -1635,16 +1634,20 @@ implementation
               in_pred_x,
               in_succ_x:
                 begin
-                  { only perform range checking if the result is an enum }
-                  checkrange:=(resultdef.typ=enumdef);
-
                   if (left.nodetype=ordconstn) then
-                   begin
-                     if (inlinenumber=in_succ_x) then
-                       result:=cordconstnode.create(tordconstnode(left).value+1,left.resultdef,checkrange)
-                     else
-                       result:=cordconstnode.create(tordconstnode(left).value-1,left.resultdef,checkrange);
-                   end;
+                    begin
+                      if (inlinenumber=in_succ_x) then
+                        vl:=tordconstnode(left).value+1
+                      else
+                        vl:=tordconstnode(left).value-1;
+                      if is_integer(left.resultdef) then
+                      { the type of the original integer constant is irrelevant,
+                        it should be automatically adapted to the new value }
+                        result:=genintconstnode(vl)
+                      else
+                        { check the range for enums, chars, booleans }
+                        result:=cordconstnode.create(vl,left.resultdef,true)
+                    end
                 end;
               in_low_x,
               in_high_x:
