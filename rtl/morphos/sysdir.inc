@@ -17,14 +17,14 @@
 {*****************************************************************************
                            Directory Handling
 *****************************************************************************}
-procedure mkdir(const s : string);[IOCheck];
+Procedure MkDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_MKDIR'];
 var
   tmpStr : array[0..255] of char;
   tmpLock: LongInt;
 begin
   checkCTRLC;
-  if (s='') or (InOutRes<>0) then exit;
-  tmpStr:=PathConv(s)+#0;
+  if not assigned(s) or (len=0) or (InOutRes<>0) then exit;
+  tmpStr:=PathConv(strpas(s))+#0;
   tmpLock:=dosCreateDir(@tmpStr);
   if tmpLock=0 then begin
     dosError2InOut(IoErr);
@@ -33,27 +33,28 @@ begin
   UnLock(tmpLock);
 end;
 
-procedure rmdir(const s : string);[IOCheck];
+Procedure RmDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_RMDIR'];
 var
   tmpStr : array[0..255] of Char;
 begin
   checkCTRLC;
+  if not assigned(s) or (len=0) then exit;
   if (s='.') then InOutRes:=16;
   If (s='') or (InOutRes<>0) then exit;
-  tmpStr:=PathConv(s)+#0;
+  tmpStr:=PathConv(strpas(s))+#0;
   if not dosDeleteFile(@tmpStr) then
     dosError2InOut(IoErr);
 end;
 
-procedure chdir(const s : string);[IOCheck];
+Procedure ChDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
 var
   tmpStr : array[0..255] of Char;
   tmpLock: LongInt;
   FIB    : PFileInfoBlock;
 begin
   checkCTRLC;
-  If (s='') or (InOutRes<>0) then exit;
-  tmpStr:=PathConv(s)+#0;
+  if not assigned(s) or (len=0) or (InOutRes<>0) then exit;
+  tmpStr:=PathConv(strpas(s))+#0;
   tmpLock:=0;
 
   { Changing the directory is a pretty complicated affair }
@@ -92,6 +93,3 @@ begin
   else
     Dir:=strpas(tmpbuf);
 end;
-
-
-
