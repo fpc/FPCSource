@@ -2913,7 +2913,7 @@ implementation
             in this case because "this" is not a record in that case (it's a
             pointer to a vmt) }
           if not is_objc_class_or_protocol(tdef(sym.owner.defowner.owner.defowner)) and
-             not(po_classmethod in tprocdef(sym.owner.defowner).procoptions) then
+             not(po_classmethod in tabstractprocdef(sym.owner.defowner).procoptions) then
             result:='this'
           else
             result:='self'
