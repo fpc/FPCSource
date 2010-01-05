@@ -209,7 +209,7 @@ implementation
                           need to be in the initfinal table (PFV) }
                         block:=statement_block(_INITIALIZATION);
                         { optimize empty initialization block away }
-                        if (tstatementnode(block).left=nil) then
+                        if (block.nodetype=blockn) and (tblocknode(block).left=nil) then
                             FreeAndNil(block)
                         else
                           if not islibrary then
@@ -224,7 +224,7 @@ implementation
                          begin
                            block:=statement_block(_FINALIZATION);
                            { optimize empty finalization block away }
-                           if (tstatementnode(block).left=nil) then
+                           if (block.nodetype=blockn) and (tblocknode(block).left=nil) then
                                FreeAndNil(block)
                            else
                              if not islibrary then
