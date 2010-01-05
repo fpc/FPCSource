@@ -210,7 +210,7 @@ implementation
                         block:=statement_block(_INITIALIZATION);
                         { optimize empty initialization block away }
                         if (block.nodetype=blockn) and (tblocknode(block).left=nil) then
-                            FreeAndNil(block)
+                          FreeAndNil(block)
                         else
                           if not islibrary then
                             current_module.flags:=current_module.flags or uf_init;
@@ -225,11 +225,13 @@ implementation
                            block:=statement_block(_FINALIZATION);
                            { optimize empty finalization block away }
                            if (block.nodetype=blockn) and (tblocknode(block).left=nil) then
-                               FreeAndNil(block)
+                             FreeAndNil(block)
                            else
                              if not islibrary then
                                current_module.flags:=current_module.flags or uf_finalize;
-                         end;
+                         end
+                         else
+                           block:=nil;
                      end
                    else
                      begin
