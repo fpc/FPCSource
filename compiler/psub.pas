@@ -207,21 +207,29 @@ implementation
                      begin
                         { The library init code is already called and does not
                           need to be in the initfinal table (PFV) }
-                        if not islibrary then
-                          current_module.flags:=current_module.flags or uf_init;
                         block:=statement_block(_INITIALIZATION);
-                     end
-                   else if (token=_FINALIZATION) then
-                     begin
-                        if (current_module.flags and uf_finalize)<>0 then
-                          block:=statement_block(_FINALIZATION)
+                        { optimize empty initialization block away }
+                        if (tstatementnode(block).left=nil) then
+                            FreeAndNil(block)
                         else
-                          begin
-                          { can we allow no INITIALIZATION for DLL ??
-                            I think it should work PM }
-                             block:=nil;
-                             exit;
-                          end;
+                          if not islibrary then
+                            current_module.flags:=current_module.flags or uf_init;
+                     end
+                   else if token=_FINALIZATION then
+                     begin
+                       { when a unit has only a finalization section, we can come to this
+                         point when we try to read the nonh existing initalization section
+                         so we've to check if we are really try to parse the finalization }
+                       if current_procinfo.procdef.proctypeoption=potype_unitfinalize then
+                         begin
+                           block:=statement_block(_FINALIZATION);
+                           { optimize empty finalization block away }
+                           if (tstatementnode(block).left=nil) then
+                               FreeAndNil(block)
+                           else
+                             if not islibrary then
+                               current_module.flags:=current_module.flags or uf_finalize;
+                         end;
                      end
                    else
                      begin

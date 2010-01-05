@@ -1209,7 +1209,7 @@ implementation
          if not current_module.interface_only and (token=_FINALIZATION) then
            begin
               { set module options }
-              current_module.flags:=current_module.flags or uf_finalize;
+              // current_module.flags:=current_module.flags or uf_finalize;
 
               { Compile the finalize }
               finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
@@ -2138,7 +2138,7 @@ implementation
          if token=_FINALIZATION then
            begin
               { set module options }
-              current_module.flags:=current_module.flags or uf_finalize;
+              //current_module.flags:=current_module.flags or uf_finalize;
               { Parse the finalize }
               finalize_procinfo:=create_main_proc(make_mangledname('',current_module.localsymtable,'finalize'),potype_unitfinalize,current_module.localsymtable);
               finalize_procinfo.procdef.aliasnames.insert(make_mangledname('FINALIZE$',current_module.localsymtable,''));
