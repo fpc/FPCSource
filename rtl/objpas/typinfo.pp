@@ -421,12 +421,11 @@ begin
     end
  else
    begin
-
      PS:=@PT^.NameList;
      While (Result=-1) and (PByte(PS)^<>0) do
        begin
          If ShortCompareText(PS^, sName) = 0 then
-           Result:=Count;
+           Result:=Count+PT^.MinValue;
          PS:=PShortString(pointer(PS)+PByte(PS)^+1);
          Inc(Count);
        end;
