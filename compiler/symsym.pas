@@ -731,6 +731,8 @@ implementation
         for i:=0 to ProcdefList.Count-1 do
           begin
             pd:=tprocdef(ProcdefList[i]);
+            if (pd.owner.symtabletype=staticsymtable) and not pd.owner.iscurrentunit then
+              continue;
             if (equal_defs(todef,pd.returndef) or
                 { shortstrings of different lengths are ok as result }
                 (is_shortstring(todef) and is_shortstring(pd.returndef))) and
@@ -803,6 +805,8 @@ implementation
         for i:=0 to ProcdefList.Count-1 do
           begin
             pd:=tprocdef(ProcdefList[i]);
+            if (pd.owner.symtabletype=staticsymtable) and not pd.owner.iscurrentunit then
+              continue;
             paraidx:=0;
             { ignore vs_hidden parameters }
             while (paraidx<pd.paras.count) and
