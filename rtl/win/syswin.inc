@@ -23,9 +23,6 @@ Const
    DLLExitOK : boolean = true;
 Var
   DLLBuf : Jmp_buf;
-  MainThreadIdWin32 : DWORD;
-  AttachingThread : TRTLCriticalSection;
-
 
 function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} : longbool; [public,alias:'_FPC_DLL_Entry'];
   begin
@@ -39,6 +36,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
          begin
            WinInitCriticalSection(AttachingThread);
            MainThreadIdWin32 := Win32GetCurrentThreadId;
+
            If SetJmp(DLLBuf) = 0 then
              begin
 {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
@@ -56,13 +54,13 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
            inclocked(Thread_count);
 
            WinEnterCriticalSection(AttachingThread);
-           if (Win32GetCurrentThreadId <> MainThreadIdWin32) then
+           if Win32GetCurrentThreadId <> MainThreadIdWin32 then
            begin
              { Set up TLS slot for the DLL }
              SysInitMultiThreading;
              { Allocate Threadvars  }
              { NS : no idea what is correct to pass here - pass dummy value for now }
-			 { passing a dummy is ok, the correct value is read from the coff header of SysInstance (FK) }
+             { passing a dummy is ok, the correct value is read from the coff header of SysInstance (FK) }
              InitThread($1000000); { Assume everything is idempotent there, as the thread could have been created with BeginThread... }
            end;
 
@@ -77,7 +75,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
            if assigned(Dll_Thread_Detach_Hook) then
              Dll_Thread_Detach_Hook(DllParam);
            { Release Threadvars }
-           if (Win32GetCurrentThreadId<>MainThreadIdWin32) then
+           if Win32GetCurrentThreadId<>MainThreadIdWin32 then
              DoneThread; { Assume everything is idempotent there }
            Dll_entry:=true; { return value is ignored }
          end;
@@ -309,3 +307,4 @@ procedure InitWin32Widestrings;
     widestringmanager.LowerUnicodeStringProc:=@Win32UnicodeLower;
 {$endif VER2_2}
   end;
+
