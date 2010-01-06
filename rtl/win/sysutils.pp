@@ -60,6 +60,10 @@ function GetFileVersion(const AFileName: string): Cardinal;
 
 procedure GetFormatSettings;
 
+// OS specific versions for windows, to keep redir working
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;ExecInheritsHandles:boolean):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString;ExecInheritsHandles:boolean):integer;
+
 implementation
 
   uses
@@ -813,7 +817,8 @@ begin
 end;
 
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;ExecInheritsHandles:boolean):integer;
+// win specific  function
 var
   SI: TStartupInfo;
   PI: TProcessInformation;
@@ -841,7 +846,7 @@ begin
     CommandLine := CommandLine + #0;
 
   if not CreateProcess(nil, pchar(CommandLine),
-    Nil, Nil, False,$20, Nil, Nil, SI, PI) then
+    Nil, Nil, ExecInheritsHandles,$20, Nil, Nil, SI, PI) then
     begin
       e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,GetLastError]);
       e.ErrorCode:=GetLastError;
@@ -865,7 +870,13 @@ begin
     end;
 end;
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
+// os independant function
+begin
+ result:=Executeprocess(path,comline,false);
+end;
+
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString;ExecInheritsHandles:boolean):integer;
 
 var
   CommandLine: AnsiString;
@@ -878,7 +889,13 @@ begin
     CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
    else
     CommandLine := CommandLine + ' ' + Comline [I];
-  ExecuteProcess := ExecuteProcess (Path, CommandLine);
+  ExecuteProcess := ExecuteProcess (Path, CommandLine,ExecInheritsHandles);
+end;
+
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString):integer;
+// os independant function
+begin
+ result:=Executeprocess(path,comline,false);
 end;
 
 Procedure Sleep(Milliseconds : Cardinal);
