@@ -227,8 +227,7 @@ implementation
                            if (block.nodetype=blockn) and (tblocknode(block).left=nil) then
                              FreeAndNil(block)
                            else
-                             if not islibrary then
-                               current_module.flags:=current_module.flags or uf_finalize;
+                             current_module.flags:=current_module.flags or uf_finalize;
                          end
                          else
                            block:=nil;
