@@ -847,21 +847,21 @@ implementation
 
         { test again if assigned, it can be reset to recover }
         if not assigned(aprocsym) then
-         begin
-           { create a new procsym and set the real filepos }
-           current_tokenpos:=procstartfilepos;
-           { for operator we have only one procsym for each overloaded
-             operation }
-           if (potype=potype_operator) then
-             begin
-               Aprocsym:=Tprocsym(symtablestack.top.Find(sp));
-               if Aprocsym=nil then
-                 Aprocsym:=tprocsym.create('$'+sp);
-             end
-            else
-             aprocsym:=tprocsym.create(orgsp);
-            symtablestack.top.insert(aprocsym);
-         end;
+          begin
+            { create a new procsym and set the real filepos }
+            current_tokenpos:=procstartfilepos;
+            { for operator we have only one procsym for each overloaded
+              operation }
+            if (potype=potype_operator) then
+              begin
+                Aprocsym:=Tprocsym(symtablestack.top.Find(sp));
+                if Aprocsym=nil then
+                  Aprocsym:=tprocsym.create('$'+sp);
+              end
+             else
+              aprocsym:=tprocsym.create(orgsp);
+             symtablestack.top.insert(aprocsym);
+          end;
 
         { to get the correct symtablelevel we must ignore ObjectSymtables }
         st:=nil;
@@ -1447,7 +1447,7 @@ begin
     end;
   pt:=comp_expr(true);
   { message is 1-character long }
-  if is_constcharnode(pt) then 
+  if is_constcharnode(pt) then
     begin
       include(pd.procoptions,po_msgstr);
       tprocdef(pd).messageinf.str:=stringdup(chr(byte(tordconstnode(pt).value.uvalue and $FF)));
