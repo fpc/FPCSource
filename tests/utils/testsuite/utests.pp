@@ -10,9 +10,13 @@ uses cgiapp,sysutils,mysql50conn,sqldb,whtml,dbwhtml,db,
 
 const
   TestsuiteURLPrefix='http://www.freepascal.org/testsuite/';
-  TestsuiteCGIURL = TestsuiteURLPrefix+'cgi-bin/testsuite.cgi';
-  ViewVCURL='http://svn.freepascal.org/cgi-bin/viewvc.cgi/trunk/tests/';
-
+  TestsuiteBin='testsuite.cgi';
+  ViewURL='http://svn.freepascal.org/cgi-bin/viewvc.cgi/';
+  ViewVCTrunkURL=ViewURL+'trunk/tests/';
+  ViewVCBranchURL=ViewURL+'%s/tests/';
+  ViewVCDataBaseURL=ViewURL+'trunk/packages/fcl-db/tests/';
+var
+  TestsuiteCGIURL : string;
 Type
   TTestSuite = Class(TCgiApplication)
   Private
@@ -25,8 +29,10 @@ Type
     FTestFileID,
     FTestFileName,
     FVersion,
+    FVersionBranch,
     FCPU,
     FOS  : String;
+    FViewVCURL : String;
     FDate : TDateTime;
     FDebug,
     FNoSkipped,
@@ -89,8 +95,38 @@ Const
   DefPassword = ''; // fill this in, too.
 }
 
-Const
-  SDetailsURL = TestsuiteCGIURL + '?action=1&run1id=%s';
+Var
+  SDetailsURL : string;
+
+type 
+  known_versions = (
+    ver_unknown,
+    ver_1_0_10,
+    ver_2_4_0,
+    ver_2_4_1,
+    ver_2_5_1);
+
+const
+  ver_trunk = high (known_versions);
+
+const
+  ver_string : array[known_versions] of string =
+  (
+   'unknown',
+   '1.0.10',
+   '2.4.0',
+   '2.4.1',
+   '2.5.1'
+  );
+
+  ver_branch : array [known_versions] of string = 
+  (
+   '',
+   '',
+   'tags/release_2_4_0',
+   'branches/fixes_2_4',
+   'trunk'
+  );
 
 Procedure TTestSuite.DoRun;
 
@@ -109,17 +145,20 @@ begin
 {$ifdef TEST}        
         98 :
           begin
-            EmitOverviewForm;
-            Writeln(stdout,'<PRE>');
-            FreeMem(pointer($ffffffff));
-            Writeln(stdout,'</PRE>');
+            ///EmitOverviewForm;
+            system.Writeln(stdout,'<PRE>');
+            system.Writeln(stdout,'paramstr(0) is ',paramstr(0));
+            system.FreeMem(pointer($ffffffff));
+            system.Writeln(stdout,'</PRE>');
+            system.Flush(stdout);
           end;
         99 : 
           begin
             EmitOverviewForm;
-            Writeln(stdout,'<PRE>');
-            Dump_stack(stdout,get_frame);
-            Writeln(stdout,'</PRE>');
+            system.Writeln(stdout,'<PRE>');
+            system.Dump_stack(stdout,get_frame);
+            system.Writeln(stdout,'</PRE>');
+            system.Flush(stdout);
           end;
 {$endif TEST}
         end;
@@ -154,6 +193,7 @@ begin
   FVersion:=RequestVariables['version'];
   if Length(FVersion) = 0 then
     FVersion:=RequestVariables['TESTVERSION'];
+  
   FOS:=RequestVariables['os'];
   if Length(FOS) = 0 then
     FOS:=RequestVariables['TESTOS'];
@@ -533,7 +573,7 @@ Function TTestSuite.ShowRunData : Boolean;
 
 Const
   SGetRunData = 'SELECT TU_ID,TU_DATE,TC_NAME,TO_NAME,' +
-                'TU_SUBMITTER,TU_MACHINE,TU_COMMENT,TV_VERSION '+
+                'TU_SUBMITTER,TU_MACHINE,TU_COMMENT,TV_VERSION'+
                 ' FROM TESTRUN,TESTCPU,TESTOS,TESTVERSION '+
                 'WHERE '+
                 ' (TC_ID=TU_CPU_FK) AND '+
@@ -787,11 +827,13 @@ Procedure TTestSuite.ShowOneTest;
 Var
   S : String;
   Qry : String;
+  Category : string;
   Q : TSQLQuery;
   i : longint;
   FieldName,FieldValue,
   Log,Source : String;
   Res : Boolean;
+  ver : known_versions;
 begin
   ConnectToDB;
   ContentType:='text/html';
@@ -924,6 +966,8 @@ begin
              //If FDebug then
             if FRunId<>'' then
               begin
+                Category:=getsingleton('select TU_CATEGORY_FK from TESTRUN where TU_ID='+FRunId);
+                FVersionBranch:=GetVersionName(getsingleton('select TU_VERSION_FK from TESTRUN where TU_ID='+fRunId));
                 log:=''; 
                 Try
                 log:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
@@ -988,12 +1032,31 @@ begin
                 PreformatEnd;
               end;
             Finally 
+            FViewVCURL:=ViewVCTrunkURL;
+            if  FVersionBranch<>'' then
+              begin
+                // Test all but last version, which is assumed to be trunk
+                for ver:=low(known_versions) to pred(high(known_versions)) do
+                  if ver_string[ver]=FVersionBranch then
+                    begin
+                      FViewVCURL:=Format(ViewVCBranchURL,[ver_branch[ver]]);
+                      break;
+                    end;
+              end;
+            if Category<>'1' then
+              begin
+                FViewVCURL:=ViewVCDatabaseURL;
+                // This assumes that type TAnyType is
+                // defined in anytype.pas source PM
+                if pos('/',FTestFileName)>0 then
+                  FTestfilename:=lowercase(copy(FTestFilename,2,pos('/',FTestFilename)-2)+'.pas');
+              end;
             if Source='' then
               begin
                 HeaderStart(3);
                 DumpLn('<P>No Source in TestSuite DataBase.</P>');
                 DumpLn('Link to SVN view of '+
-                  '<A HREF="'+ViewVCURL+FTestFileName+'?view=markup'+
+                  '<A HREF="'+FViewVCURL+FTestFileName+'?view=markup'+
                   '" TARGET="_blank"> '+FTestFileName+'</A> source. ');
                 HeaderEnd(3);
               end
@@ -1001,7 +1064,7 @@ begin
               begin
                 HeaderStart(3);
                 DumpLn('Link to SVN view of '+
-                  '<A HREF="'+ViewVCURL+FTestFileName+'?view=markup'+
+                  '<A HREF="'+FViewVCURL+FTestFileName+'?view=markup'+
                   '" TARGET="_blank"> '+FTestFileName+'</A> source. ');
                 HeaderEnd(3);
               end;  
@@ -1393,5 +1456,11 @@ begin
   // Writeln('All done');
 end;
 
+begin
+  if paramstr(0)<>'' then
+    TestsuiteCGIURL:=TestsuiteURLPrefix+'cgi-bin/'+extractfilename(paramstr(0))
+  else
+    TestsuiteCGIURL:=TestsuiteURLPrefix+'cgi-bin/'+TestsuiteBin;
 
+  SDetailsURL := TestsuiteCGIURL + '?action=1&run1id=%s';
 end.
