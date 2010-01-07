@@ -31,6 +31,7 @@ dirs_gba=gba
 dirs_nds=nds
 dirs_symbian=symbian
 dirs_embedded=embedded
+dirs_nativent=nativent
 
 [install]
 fpcpackage=y

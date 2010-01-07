@@ -1,0 +1,108 @@
+#
+#   Makefile.fpc for Free Pascal NativeNT RTL
+#
+
+[package]
+main=rtl
+
+[target]
+loaders=
+#units=system objpas macpas buildrtl lineinfo lnfodwrf
+units=system objpas buildrtl
+implicitunits=ndk ndkutils ddk
+#      ctypes strings
+#      heaptrc matrix \
+#      windows winsock winsock2 initc cmem dynlibs signals \
+#      dos crt objects messages \
+#      rtlconsts sysconst sysutils math types \
+#      strutils dateutils varutils variants typinfo fgl classes \
+#      convutils stdconvs cpu mmx charset ucomplex getopts \
+#      winevent sockets printer \
+#      video mouse keyboard fmtbcd \
+#      winsysut sharemem exeinfo fpintres
+
+# shared=$(DLLS)
+
+rsts=math varutils typinfo variants classes dateutils sysconst
+
+[require]
+nortl=y
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+target=nativent
+
+[compiler]
+includedir=$(INC) $(PROCINC) $(DDKINC)
+sourcedir=$(INC) $(PROCINC) $(COMMON)
+
+
+[prerules]
+RTL=..
+INC=$(RTL)/inc
+COMMON=$(RTL)/common
+PROCINC=$(RTL)/$(CPU_TARGET)
+DDKINC=ddk
+
+UNITPREFIX=rtl
+
+ifneq ($(findstring 2.0.,$(FPC_VERSION)),)
+#LOADERS=wprt0 wdllprt0 gprt0 wcygprt0
+DLLS=
+else
+DLLS=fpcmemdll
+endif
+
+# Paths
+OBJPASDIR=$(RTL)/objpas
+
+# Files used by windows.pp
+#include $(WININC)/makefile.inc
+
+WINDOWS_SOURCE_FILES=$(addprefix $(WININC)/,$(addsuffix .inc,$(WINDOWS_FILES)))
+
+
+[rules]
+.NOTPARALLEL:
+SYSTEMPPU=$(addsuffix $(PPUEXT),system)
+
+# Get the system independent include file names.
+# This will set the following variables :
+# SYSINCNAMES
+include $(INC)/makefile.inc
+SYSINCDEPS=$(addprefix $(INC)/,$(SYSINCNAMES))
+
+# Get the processor dependent include file names.
+# This will set the following variables :
+# CPUINCNAMES
+include $(PROCINC)/makefile.cpu
+SYSCPUDEPS=$(addprefix $(PROCINC)/,$(CPUINCNAMES))
+
+# Put system unit dependencies together.
+SYSDEPS=$(SYSINCDEPS) $(SYSCPUDEPS)
+
+
+#
+# Loaders
+#
+
+# none
+
+#
+# Unit specific rules
+#
+
+system$(PPUEXT) : system.pp $(SYSDEPS)
+        $(COMPILER) -Us -Sg system.pp
+
+objpas$(PPUEXT): $(OBJPASDIR)/objpas.pp $(INC)/except.inc system$(PPUEXT)
+        $(COMPILER) -I$(OBJPASDIR) $(OBJPASDIR)/objpas.pp
+
+#macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) buildrtl$(PPUEXT)
+#        $(COMPILER) $(INC)/macpas.pp $(REDIR)
+
+buildrtl$(PPUEXT): buildrtl.pp system$(PPUEXT) objpas$(PPUEXT)
+        $(COMPILER) -Fi$(OBJPASDIR)/sysutils -Fi$(OBJPASDIR)/classes -Fu$(PROCINC) -I$(OBJPASDIR) -Fi$(DDKINC) -I$(INC) -Fu$(INC) -Fu$(OBJPASDIR) buildrtl
