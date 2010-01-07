@@ -117,7 +117,7 @@ implementation
                    current_asmdata.ConstPools[sp_objcclassnamerefs]:=THashSet.Create(64, True, False);
                  pool:=current_asmdata.ConstPools[sp_objcclassnamerefs];
                  entry:=pool.FindOrAdd(@tobjectdef(left.resultdef).objextname^[1],length(tobjectdef(left.resultdef).objextname^));
-                 if (target_info.system in system_objc_nfabi) then
+                 if (target_info.system in systems_objc_nfabi) then
                    begin
                      { find/add necessary classref/classname pool entries }
                      objcfinishclassrefnfpoolentry(entry,tobjectdef(left.resultdef));
@@ -417,7 +417,7 @@ implementation
            end;
 
          if is_objc_class_or_protocol(left.resultdef) and
-            (target_info.system in system_objc_nfabi) then
+            (target_info.system in systems_objc_nfabi) then
            begin
              if (location.loc<>LOC_REFERENCE) or
                 (location.reference.index<>NR_NO) then

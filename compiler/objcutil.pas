@@ -150,7 +150,7 @@ end;
 {$if defined(onlymacosx10_6) or defined(arm) }
                 { NOTE: those send2 methods are only available on Mac OS X 10.6 and later!
                     (but also on all iPhone SDK revisions we support) }
-                if (target_info.system in system_objc_nfabi) then
+                if (target_info.system in systems_objc_nfabi) then
                   result:=cloadvmtaddrnode.create(ctypenode.create(tobjectdef(tclassrefdef(def).pointeddef).childof))
                 else
 {$endif onlymacosx10_6 or arm}
@@ -181,7 +181,7 @@ end;
 
           NOTE: those send2 methods are only available on Mac OS X 10.6 and later!
             (but also on all iPhone SDK revisions we support) }
-        if not(target_info.system in system_objc_nfabi) then
+        if not(target_info.system in systems_objc_nfabi) then
 {$endif onlymacosx10_6 or arm}
           result:=objcloadbasefield(result,'SUPERCLASS');
         typecheckpass(result);
@@ -870,7 +870,7 @@ end;
 
     procedure exportobjcclass(def: tobjectdef);
       begin
-        if (target_info.system in system_objc_nfabi) then
+        if (target_info.system in systems_objc_nfabi) then
           begin
             { export class and metaclass symbols }
             exportname(def.rtti_mangledname(objcclassrtti),0);

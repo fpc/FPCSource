@@ -441,7 +441,7 @@ unit cgx86;
               end
             else
               { Always use RIP relative symbol addressing for Windows and Darwin targets. }
-              if (target_info.system in (system_all_windows+[system_x86_64_darwin])) and (ref.base<>NR_RIP) then
+              if (target_info.system in (systems_all_windows+[system_x86_64_darwin])) and (ref.base<>NR_RIP) then
                 begin
                   if (ref.refaddr=addr_no) and (ref.base=NR_NO) and (ref.index=NR_NO) then
                     begin
@@ -932,7 +932,7 @@ unit cgx86;
                           a_op_const_reg(list,OP_ADD,OS_ADDR,offset,r);
                       end
 {$ifdef x86_64}
-                    else if (target_info.system in (system_all_windows+[system_x86_64_darwin])) 
+                    else if (target_info.system in (systems_all_windows+[system_x86_64_darwin]))
 			 or ((target_info.system = system_x86_64_solaris) and
                              (cs_create_pic in current_settings.moduleswitches))
 			 then
@@ -2115,12 +2115,12 @@ unit cgx86;
 
             { allocate stackframe space }
             if (localsize<>0) or
-               ((target_info.system in system_needs_16_byte_stack_alignment) and
+               ((target_info.system in systems_need_16_byte_stack_alignment) and
                 (stackmisalignment <> 0) and
                 ((pi_do_call in current_procinfo.flags) or
                  (po_assembler in current_procinfo.procdef.procoptions))) then
               begin
-                if (target_info.system in system_needs_16_byte_stack_alignment) then
+                if (target_info.system in systems_need_16_byte_stack_alignment) then
                   localsize := align(localsize+stackmisalignment,16)-stackmisalignment;
                 cg.g_stackpointer_alloc(list,localsize);
                 if current_procinfo.framepointer=NR_STACK_POINTER_REG then

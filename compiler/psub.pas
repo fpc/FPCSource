@@ -754,7 +754,7 @@ implementation
 
 {$if defined(x86) or defined(arm)}
         { set implicit_finally flag for if procedure is safecall }
-        if (target_info.system in system_all_windows) and
+        if (target_info.system in systems_all_windows) and
            (procdef.proccalloption=pocall_safecall) then
           include(flags, pi_needs_implicit_finally);
 {$endif}
@@ -1083,7 +1083,7 @@ implementation
 {$if defined(x86) or defined(arm)}
             { Set return value of safecall procedure if implicit try/finally blocks are disabled }
             if not (cs_implicit_exceptions in current_settings.moduleswitches) and
-               (target_info.system in system_all_windows) and
+               (target_info.system in systems_all_windows) and
                (procdef.proccalloption=pocall_safecall) then
               cg.a_load_const_reg(aktproccode,OS_ADDR,0,NR_FUNCTION_RETURN_REG);
 {$endif}
@@ -1743,7 +1743,7 @@ implementation
                         consume_all_until(_SEMICOLON);
                      end
                    else if islibrary or
-                     (target_info.system in system_unit_program_exports) then
+                     (target_info.system in systems_unit_program_exports) then
                      read_exports
                    else
                      begin

@@ -472,7 +472,7 @@ implementation
               }
               if doinclude and
                  (i=m_objectivec1) and
-                 not(target_info.system in system_objc_supported) then
+                 not(target_info.system in systems_objc_supported) then
                 begin
                   Message1(option_unsupported_target_for_feature,'Objective-C');
                   break;

@@ -664,7 +664,7 @@ implementation
          _use_64bit_headers:=state;
          if not(state) then
            begin
-             if (target_info.system in system_windows+system_wince) then
+             if (target_info.system in systems_windows+systems_wince) then
                offsetabstype:=aitconst_secrel32_symbol
              else
                offsetabstype:=aitconst_32bit;

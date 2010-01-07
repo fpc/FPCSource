@@ -124,7 +124,7 @@ const
                         + [system_i386_netbsd]
                         + [system_i386_wdosx];
                         
-  suppported_targets_x_smallr = system_linux + systems_solaris
+  suppported_targets_x_smallr = systems_linux + systems_solaris
                              + [system_i386_haiku]
                              + [system_i386_beos];
 
@@ -1575,7 +1575,7 @@ begin
                       end;
                     'X':
                       begin
-                        if (target_info.system in system_linux) then
+                        if (target_info.system in systems_linux) then
                           begin
                             if UnsetBool(More, j) then
                               exclude(init_settings.moduleswitches,cs_executable_stack)
@@ -2387,7 +2387,7 @@ begin
   option.firstpass:=false;
 
 { target is set here, for wince the default app type is gui }
-  if target_info.system in system_wince then
+  if target_info.system in systems_wince then
     apptype:=app_gui;
 
 { default defines }
@@ -2809,7 +2809,7 @@ if (target_info.system=system_arm_darwin) then
   set_system_macro('FPC_PATCH',patch_nr);
   set_system_macro('FPC_FULLVERSION',Format('%d%.02d%.02d',[StrToInt(version_nr),StrToInt(release_nr),StrToInt(patch_nr)]));
 
-  if not(target_info.system in system_windows) then
+  if not(target_info.system in systems_windows) then
     def_system_macro('FPC_WIDESTRING_EQUAL_UNICODESTRING');
 
   for i:=low(tfeature) to high(tfeature) do

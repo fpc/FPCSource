@@ -200,7 +200,7 @@ procedure objcfinishstringrefpoolentry(entry: phashsetitem; stringpool: tconstpo
         { in case of a class reference, also add a lazy symbol reference for
           the class (the linker requires this for the fragile ABI). }
         if (refsec=sec_objc_cls_refs) and
-           not(target_info.system in system_objc_nfabi) then
+           not(target_info.system in systems_objc_nfabi) then
           begin
             setlength(classname,entry^.keylength);
             move(entry^.key^,classname[1],entry^.keylength);
@@ -1588,7 +1588,7 @@ procedure MaybeGenerateObjectiveCImageInfo(globalst, localst: tsymtable);
 
         { generate rtti for all obj-c classes, protocols and categories
           defined in this module. }
-        if not(target_info.system in system_objc_nfabi) then
+        if not(target_info.system in systems_objc_nfabi) then
           objcrttiwriter:=tobjcrttiwriter_fragile.create
         else
           objcrttiwriter:=tobjcrttiwriter_nonfragile.create;

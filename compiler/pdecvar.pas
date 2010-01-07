@@ -900,7 +900,7 @@ implementation
 
       { Windows uses an indirect reference using import tables }
       if is_dll and
-         (target_info.system in system_all_windows) then
+         (target_info.system in systems_all_windows) then
         include(vs.varoptions,vo_is_dll_var);
 
       { Add C _ prefix }
@@ -928,7 +928,7 @@ implementation
           include(vs.varoptions,vo_is_external);
           if (is_weak_external) then
             begin
-              if not(target_info.system in system_weak_linking) then
+              if not(target_info.system in systems_weak_linking) then
                 message(parser_e_weak_external_not_supported);
               include(vs.varoptions,vo_is_weak_external);
             end;

@@ -810,7 +810,7 @@ implementation
                 internalerror(2001020801);
               {$endif} {$endif}
             {$endif}
-            
+
             if not(nf_explicit in flags) then
               if (tordconstnode(left).value.svalue=0) then
                 CGMessage(type_w_zero_to_nil)
@@ -935,7 +935,7 @@ implementation
          result:=nil;
          { we can't do widechar to ansichar conversions at compile time, since }
          { this maps all non-ascii chars to '?' -> loses information           }
-         
+
          if (left.nodetype=ordconstn) and
             ((tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) or
              (torddef(left.resultdef).ordtype=uchar) or
@@ -2324,7 +2324,7 @@ implementation
       var
         fname: string[32];
       begin
-        if target_info.system in system_wince then
+        if target_info.system in systems_wince then
           begin
             { converting a 64bit integer to a float requires a helper }
             if is_64bitint(left.resultdef) or
@@ -2401,7 +2401,7 @@ implementation
 {$ifdef cpufpemu}
         if cs_fp_emulation in current_settings.moduleswitches then
           begin
-            if target_info.system in system_wince then
+            if target_info.system in systems_wince then
               begin
                 case tfloatdef(left.resultdef).floattype of
                   s32real:

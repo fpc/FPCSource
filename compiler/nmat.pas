@@ -675,7 +675,7 @@ implementation
 
         if (cs_fp_emulation in current_settings.moduleswitches) and (left.resultdef.typ=floatdef) then
           begin
-            if not(target_info.system in system_wince) then
+            if not(target_info.system in systems_wince) then
               begin
                 case tfloatdef(resultdef).floattype of
                   s32real:

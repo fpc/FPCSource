@@ -106,7 +106,7 @@ implementation
 
 {$if defined(i386)}
            { For left to right add it at the end to be delphi compatible }
-           if (target_info.system in system_all_windows) and
+           if (target_info.system in systems_all_windows) and
               (pd.proccalloption in (pushleftright_pocalls+[pocall_safecall])) then
              paranr:=paranr_result_leftright
            else
@@ -114,7 +114,7 @@ implementation
            { other platforms don't have a "safecall" convention,
              and never reverse the parameter pushing order
            }
-           if (target_info.system in system_all_windows) and
+           if (target_info.system in systems_all_windows) and
               (pd.proccalloption = pocall_safecall)  then
              paranr:=paranr_result_leftright
            else
@@ -1741,7 +1741,7 @@ end;
 
 procedure pd_weakexternal(pd:tabstractprocdef);
 begin
-  if not(target_info.system in system_weak_linking) then
+  if not(target_info.system in systems_weak_linking) then
     message(parser_e_weak_external_not_supported)
   else
     pd_external(pd);
@@ -2372,7 +2372,7 @@ const
 *)
                 if assigned(pd.import_name) then
                   begin
-                    if target_info.system in (system_all_windows + systems_nativent +
+                    if target_info.system in (systems_all_windows + systems_nativent +
                                        [system_i386_emx, system_i386_os2]) then
                    { cprefix is not used in DLL imports under Windows or OS/2 }
                       result:=pd.import_name^
@@ -2431,7 +2431,7 @@ const
                         { Replace ? and @ in import name, since GNU AS does not allow these characters in symbol names. }
                         { This allows to import VC++ mangled names from DLLs. }
                         { Do not perform replacement, if external symbol is not imported from DLL. }
-                        if (target_info.system in system_all_windows) and (pd.import_dll<>nil) then
+                        if (target_info.system in systems_all_windows) and (pd.import_dll<>nil) then
                           begin
                             Replace(s,'?','__q$$');
 {$ifdef arm}
@@ -2465,7 +2465,7 @@ const
                   else
                     begin
                       { Export names are not mangled on Windows and OS/2, see also pexports.pas }
-                      if (target_info.system in (system_all_windows+[system_i386_emx, system_i386_os2])) and
+                      if (target_info.system in (systems_all_windows+[system_i386_emx, system_i386_os2])) and
                         (po_exports in pd.procoptions) then
                         pd.aliasnames.insert(pd.procsym.realname)
                       else

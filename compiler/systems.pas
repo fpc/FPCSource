@@ -394,15 +394,15 @@ interface
        { alias for supported_target field in tasminfo }
        system_any = system_none;
 
-       system_wince = [system_arm_wince,system_i386_wince];
-       system_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
+       systems_wince = [system_arm_wince,system_i386_wince];
+       systems_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
                        system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
                        system_x86_6432_linux,system_mips_linux,system_mipsel_linux];
 
        { all real windows systems, no cripple ones like wince, wdosx et. al. }
-       system_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64];
+       systems_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64];
        { all windows systems }
-       system_all_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64,
+       systems_all_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64,
                              system_arm_wince,system_i386_wince];
 
        { all darwin systems }
@@ -415,10 +415,10 @@ interface
 			  system_x86_64_solaris];
 
        { systems supporting Objective-C }
-       system_objc_supported = systems_darwin;
+       systems_objc_supported = systems_darwin;
 
        { systems using the non-fragile Objective-C ABI }
-       system_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_darwin];
+       systems_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_darwin];
 
        { all embedded systems }
        systems_embedded = [system_i386_embedded,system_m68k_embedded,
@@ -429,23 +429,18 @@ interface
                            system_powerpc64_embedded];
 
        { all systems supporting exports from programs or units }
-       system_unit_program_exports = [system_i386_win32,
+       systems_unit_program_exports = [system_i386_win32,
                                          system_i386_wdosx,
                                          system_i386_Netware,
                                          system_i386_netwlibc,
                                          system_arm_wince,
                                          system_x86_64_win64,
-                                         system_ia64_win64]+system_linux;
+                                         system_ia64_win64]+systems_linux;
 
        { all systems for which weak linking has been tested/is supported }
-       system_weak_linking = systems_darwin + systems_solaris;
+       systems_weak_linking = systems_darwin + systems_solaris;
 
-       system_internal_sysinit = [system_i386_linux,system_i386_win32];
-
-       system_embedded = [system_i386_embedded,system_m68k_embedded,system_alpha_embedded,
-             system_powerpc_embedded,system_sparc_embedded,system_vm_embedded,
-             system_iA64_embedded,system_x86_64_embedded,system_mips_embedded,
-             system_arm_embedded,system_powerpc64_embedded];
+       systems_internal_sysinit = [system_i386_linux,system_i386_win32];
 
        { all symbian systems }
        systems_symbian = [system_i386_symbian,system_arm_symbian];
@@ -453,16 +448,15 @@ interface
        { all native nt systems }
        systems_nativent = [system_i386_nativent];
 
-       { all systems for which istack must be at a 16 byte boundary 
+       { all systems for which istack must be at a 16 byte boundary
          when calling a function }
-       system_needs_16_byte_stack_alignment = [
+       systems_need_16_byte_stack_alignment = [
       	system_i386_darwin,
         system_x86_64_darwin,
         system_x86_64_win64,
         system_x86_64_linux,
         system_x86_64_freebsd,
         system_x86_64_solaris];
-
 
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',

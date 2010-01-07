@@ -966,7 +966,7 @@ implementation
                 if IsSharedLibrary then
                   imagebase:={$ifdef cpu64bitaddr} $110000000 {$else} $10000000 {$endif}
                 else
-                  if target_info.system in system_wince then
+                  if target_info.system in systems_wince then
                     imagebase:=$10000
                   else
                     imagebase:={$ifdef cpu64bitaddr} $100000000 {$else} $400000 {$endif};
@@ -1346,7 +1346,7 @@ implementation
           RelocStr:='--base-file base.$$$';
         if create_smartlink_sections then
           GCSectionsStr:='--gc-sections';
-        if target_info.system in system_wince then
+        if target_info.system in systems_wince then
           AppTypeStr:='--subsystem wince'
         else
           begin
@@ -1615,7 +1615,7 @@ implementation
         { gui=2 }
         { cui=3 }
         { wincegui=9 }
-        if target_info.system in system_wince then
+        if target_info.system in systems_wince then
           peoptheader.Subsystem:=9
         else
           case apptype of

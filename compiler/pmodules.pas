@@ -535,7 +535,7 @@ implementation
            - loaded_units list, so that the unit object file doesn't get linked
              with the executable. }
         { Note: on windows we always need resources! }
-        resources_used:=(target_info.system in system_all_windows)
+        resources_used:=(target_info.system in systems_all_windows)
                          or CheckResourcesUsed;
         if (not resources_used) and (tf_has_winlike_resources in target_info.flags) then
           begin
@@ -669,7 +669,7 @@ implementation
 
         { CPU targets with microcontroller support can add a controller specific unit }
 {$if defined(ARM)}
-        if (target_info.system in system_embedded) and (current_settings.controllertype<>ct_none) then
+        if (target_info.system in systems_embedded) and (current_settings.controllertype<>ct_none) then
           AddUnit(controllerunitstr[current_settings.controllertype]);
 {$endif ARM}
       end;
@@ -1032,7 +1032,7 @@ implementation
              dispose(s1);
           end;
 
-         if (target_info.system in system_unit_program_exports) then
+         if (target_info.system in systems_unit_program_exports) then
            exportlib.preparelib(current_module.realmodulename^);
 
          consume(_ID);
@@ -1704,7 +1704,7 @@ implementation
          { AV error when DLL is loaded and relocation is needed.  }
          { Internal linker does not have this problem.            }
          if RelocSection and
-            (target_info.system in system_all_windows+[system_i386_wdosx]) and
+            (target_info.system in systems_all_windows+[system_i386_wdosx]) and
             (cs_link_extern in current_settings.globalswitches) then
            begin
               include(current_settings.globalswitches,cs_link_strip);
@@ -1999,7 +1999,7 @@ implementation
          { AV error when DLL is loaded and relocation is needed.  }
          { Internal linker does not have this problem.            }
          if RelocSection and
-            (target_info.system in system_all_windows+[system_i386_wdosx]) and
+            (target_info.system in systems_all_windows+[system_i386_wdosx]) and
             (cs_link_extern in current_settings.globalswitches) then
            begin
               include(current_settings.globalswitches,cs_link_strip);
@@ -2038,7 +2038,7 @@ implementation
             begin
               consume(_PROGRAM);
               current_module.setmodulename(orgpattern);
-              if (target_info.system in system_unit_program_exports) then
+              if (target_info.system in systems_unit_program_exports) then
                 exportlib.preparelib(orgpattern);
               consume(_ID);
               if token=_LKLAMMER then
@@ -2051,7 +2051,7 @@ implementation
                 end;
               consume(_SEMICOLON);
             end
-         else if (target_info.system in system_unit_program_exports) then
+         else if (target_info.system in systems_unit_program_exports) then
            exportlib.preparelib(current_module.realmodulename^);
 
          { global switches are read, so further changes aren't allowed }
@@ -2222,7 +2222,7 @@ implementation
          resources_used:=MaybeRemoveResUnit;
 
          linker.initsysinitunitname;
-         if target_info.system in system_internal_sysinit then
+         if target_info.system in systems_internal_sysinit then
          begin
            { add start/halt unit }
            AddUnit(linker.sysinitunit);
@@ -2257,7 +2257,7 @@ implementation
          if (cs_debuginfo in current_settings.moduleswitches) then
            current_debuginfo.inserttypeinfo;
 
-         if islibrary or (target_info.system in system_unit_program_exports) then
+         if islibrary or (target_info.system in systems_unit_program_exports) then
            exportlib.generatelib;
 
          { Reference all DEBUGINFO sections from the main .fpc section }

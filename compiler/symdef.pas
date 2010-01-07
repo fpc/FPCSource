@@ -4444,7 +4444,7 @@ implementation
           result:=inherited rtti_mangledname(rt)
         else
           begin
-            if not(target_info.system in system_objc_nfabi) then
+            if not(target_info.system in systems_objc_nfabi) then
               begin
                 result:=target_asm.labelprefix;
                 case objecttype of

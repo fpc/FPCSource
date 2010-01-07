@@ -231,7 +231,7 @@ unit scandir;
       var
          hs : string;
       begin
-        if not (target_info.system in system_all_windows + [system_i386_os2,
+        if not (target_info.system in systems_all_windows + [system_i386_os2,
                                        system_i386_emx, system_powerpc_macos,
                                        system_arm_nds] + systems_nativent) then
           begin
@@ -252,7 +252,7 @@ unit scandir;
                    apptype:=app_gui
                  else if hs='CONSOLE' then
                    apptype:=app_cui
-                 else if (hs='NATIVE') and (target_info.system in system_windows + systems_nativent) then
+                 else if (hs='NATIVE') and (target_info.system in systems_windows + systems_nativent) then
                    apptype:=app_native
                  else if (hs='FS') and (target_info.system in [system_i386_os2,
                                                              system_i386_emx]) then
@@ -312,7 +312,7 @@ unit scandir;
 
     procedure dir_description;
       begin
-        if not (target_info.system in system_all_windows+[system_i386_os2,system_i386_emx,
+        if not (target_info.system in systems_all_windows+[system_i386_os2,system_i386_emx,
                  system_i386_netware,system_i386_wdosx,system_i386_netwlibc]) then
           Message(scan_w_description_not_support);
         { change description global var in all cases }
@@ -407,7 +407,7 @@ unit scandir;
 
     procedure dir_imagebase;
       begin
-        if not (target_info.system in (system_windows+system_wince)) then
+        if not (target_info.system in (systems_windows+systems_wince)) then
           Message(scan_w_imagebase_not_support);
         current_scanner.skipspace;
         imagebase:=current_scanner.readval;
@@ -648,7 +648,7 @@ unit scandir;
 
     procedure dir_maxstacksize;
       begin
-        if not (target_info.system in (system_windows+system_wince)) then
+        if not (target_info.system in (systems_windows+systems_wince)) then
           Message(scan_w_maxstacksize_not_support);
         current_scanner.skipspace;
         maxstacksize:=current_scanner.readval;
@@ -721,7 +721,7 @@ unit scandir;
 
     procedure dir_minstacksize;
       begin
-        if not (target_info.system in (system_windows+system_wince)) then
+        if not (target_info.system in (systems_windows+systems_wince)) then
           Message(scan_w_minstacksize_not_support);
         current_scanner.skipspace;
         minstacksize:=current_scanner.readval;
@@ -1019,7 +1019,7 @@ unit scandir;
 
     procedure dir_setpeflags;
       begin
-        if not (target_info.system in (system_all_windows)) then
+        if not (target_info.system in (systems_all_windows)) then
           Message(scan_w_setpeflags_not_support);
         current_scanner.skipspace;
         peflags:=current_scanner.readval;
@@ -1100,7 +1100,7 @@ unit scandir;
         major, minor, revision : longint;
         error : integer;
       begin
-        if not (target_info.system in system_all_windows+[system_i386_os2,system_i386_emx,
+        if not (target_info.system in systems_all_windows+[system_i386_os2,system_i386_emx,
                  system_i386_netware,system_i386_wdosx,
                  system_i386_netwlibc]) then
           begin

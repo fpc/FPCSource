@@ -1990,7 +1990,7 @@ const pemagic : array[0..3] of byte = (
         if target_info.system in [system_x86_64_win64] then
           MaxMemPos:=$FFFFFFFF
         else
-          if target_info.system in system_wince then
+          if target_info.system in systems_wince then
             MaxMemPos:=$1FFFFFF
           else
             MaxMemPos:=$7FFFFFFF;
@@ -2300,7 +2300,7 @@ const pemagic : array[0..3] of byte = (
             peoptheader.MinorOperatingSystemVersion:=0;
             peoptheader.MajorImageVersion:=dllmajor;
             peoptheader.MinorImageVersion:=dllminor;
-            if target_info.system in system_wince then
+            if target_info.system in systems_wince then
               peoptheader.MajorSubsystemVersion:=3
             else
               peoptheader.MajorSubsystemVersion:=4;
@@ -2314,7 +2314,7 @@ const pemagic : array[0..3] of byte = (
                 not checked in DLLs except for maybe drivers}
               peoptheader.Subsystem:=PE_SUBSYSTEM_NATIVE
             else
-              if target_info.system in system_wince then
+              if target_info.system in systems_wince then
                 peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CE_GUI
               else
                 if apptype=app_gui then
@@ -2355,7 +2355,7 @@ const pemagic : array[0..3] of byte = (
         { For some unknown reason WM 6.1 requires .idata section to be read only.
           Otherwise it refuses to load DLLs greater than 64KB.
           Earlier versions of WinCE load DLLs regardless of .idata flags. }
-        if target_info.system in system_wince then
+        if target_info.system in systems_wince then
           begin
             idataExeSec:=FindExeSection('.idata');
             if idataExeSec<>nil then

@@ -1926,7 +1926,7 @@ implementation
                 only need to compare the length with 0 }
               if (nodetype in [equaln,unequaln,gtn,gten,ltn,lten]) and
                 { windows widestrings are too complicated to be handled optimized }
-                not(is_widestring(left.resultdef) and (target_info.system in system_windows)) and
+                not(is_widestring(left.resultdef) and (target_info.system in systems_windows)) and
                  (((left.nodetype=stringconstn) and (tstringconstnode(left).len=0)) or
                   ((right.nodetype=stringconstn) and (tstringconstnode(right).len=0))) then
                 begin
@@ -2310,7 +2310,7 @@ implementation
         if not (cs_fp_emulation in current_settings.moduleswitches) then
           exit;
 
-        if not(target_info.system in system_wince) then
+        if not(target_info.system in systems_wince) then
           begin
             case tfloatdef(left.resultdef).floattype of
               s32real:
@@ -2408,7 +2408,7 @@ implementation
 
           end;
         { cast softfpu result? }
-        if not(target_info.system in system_wince) then
+        if not(target_info.system in systems_wince) then
           begin
             if nodetype in [ltn,lten,gtn,gten,equaln,unequaln] then
               resultdef:=booltype;

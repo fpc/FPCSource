@@ -1586,7 +1586,7 @@ implementation
              if codegenerror then
                exit;
 {$if defined(x86) or defined(arm)}
-             if (target_info.system in system_all_windows) and
+             if (target_info.system in systems_all_windows) and
                 (current_procinfo.procdef.proccalloption=pocall_safecall) then
                begin
                  { Remove and destroy the last exception object }

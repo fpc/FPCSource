@@ -1724,7 +1724,7 @@ implementation
             if not(cnf_inherited in callnodeflags) then
               msgsendname:='OBJC_MSGSEND_STRET'
 {$if defined(onlymacosx10_6) or defined(arm) }
-            else if (target_info.system in system_objc_nfabi) then
+            else if (target_info.system in systems_objc_nfabi) then
               msgsendname:='OBJC_MSGSENDSUPER2_STRET'
 {$endif onlymacosx10_6 or arm}
             else
@@ -1741,7 +1741,7 @@ implementation
         else if not(cnf_inherited in callnodeflags) then
           msgsendname:='OBJC_MSGSEND'
 {$if defined(onlymacosx10_6) or defined(arm) }
-        else if (target_info.system in system_objc_nfabi) then
+        else if (target_info.system in systems_objc_nfabi) then
           msgsendname:='OBJC_MSGSENDSUPER2'
 {$endif onlymacosx10_6 or arm}
         else

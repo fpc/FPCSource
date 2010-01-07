@@ -414,7 +414,7 @@ implementation
            (aname<>'') and
            (atype<>sec_toc) and
            { on embedded systems every byte counts, so smartlink bss too }
-           ((atype<>sec_bss) or (target_info.system in system_embedded)) then
+           ((atype<>sec_bss) or (target_info.system in systems_embedded)) then
           begin
             case aorder of
               secorder_begin :
@@ -1242,7 +1242,7 @@ implementation
         AsmWriteLn(#9'.subsections_via_symbols');
 
       { "no executable stack" marker for Linux }
-      if (target_info.system in system_linux) and
+      if (target_info.system in systems_linux) and
          not(cs_executable_stack in current_settings.moduleswitches) then
         begin
           AsmWriteLn('.section .note.GNU-stack,"",%progbits');
@@ -1366,7 +1366,7 @@ implementation
               end;
             sec_objc_message_refs:
               begin
-                if (target_info.system in system_objc_nfabi) then
+                if (target_info.system in systems_objc_nfabi) then
                   begin
                     result:='.section __DATA, __objc_selrefs, literal_pointers, no_dead_strip';
                     exit;
@@ -1374,7 +1374,7 @@ implementation
               end;
             sec_objc_cls_refs:
               begin
-                if (target_info.system in system_objc_nfabi) then
+                if (target_info.system in systems_objc_nfabi) then
                   begin
                     result:='.section __DATA, __objc_clsrefs, regular, no_dead_strip';
                     exit;
@@ -1383,7 +1383,7 @@ implementation
             sec_objc_meth_var_names,
             sec_objc_class_names:
               begin
-                if (target_info.system in system_objc_nfabi) then
+                if (target_info.system in systems_objc_nfabi) then
                   begin
                     result:='.cstring';
                     exit
@@ -1394,7 +1394,7 @@ implementation
             sec_objc_cat_inst_meth,
             sec_objc_cat_cls_meth:
               begin
-                if (target_info.system in system_objc_nfabi) then
+                if (target_info.system in systems_objc_nfabi) then
                   begin
                     result:='.section __DATA, __objc_const';
                     exit;
@@ -1403,7 +1403,7 @@ implementation
             sec_objc_meta_class,
             sec_objc_class:
               begin
-                if (target_info.system in system_objc_nfabi) then
+                if (target_info.system in systems_objc_nfabi) then
                   begin
                     result:='.section __DATA, __objc_data';
                     exit;
