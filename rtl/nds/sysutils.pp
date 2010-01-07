@@ -261,13 +261,13 @@ begin
   result := '';
 end;
 
-function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString): integer;
+function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString;Flags:TExecuteFlags=[]): integer;
 begin
   result := -1;
 end;
 
 function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString): integer;
+                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
 begin
   result := -1;
 end;

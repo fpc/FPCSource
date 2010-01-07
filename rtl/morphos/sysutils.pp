@@ -577,7 +577,7 @@ begin
   Result:=Dos.EnvStr(Index);
 end;
 
-function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString):
+function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString;Flags:TExecuteFlags=[]):
                                                                        integer;
 var
   tmpPath: AnsiString;
@@ -624,7 +624,7 @@ begin
 end;
 
 function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString): integer;
+                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
 var
   CommandLine: AnsiString;
   I: integer;
