@@ -845,7 +845,11 @@ implementation
                end;
              ObjectSymtable :
                begin
-                 p1:=load_self_node;
+                 if (assigned(current_procinfo) and ([po_staticmethod,po_classmethod] <= current_procinfo.procdef.procoptions)) then
+                   { We are calling from the static class method which has no self node }
+                   p1 := cloadvmtaddrnode.create(ctypenode.create(current_procinfo.procdef._class))
+                 else
+                   p1:=load_self_node;
                  { We are calling a member }
                  maybe_load_methodpointer:=true;
                end;
@@ -871,12 +875,8 @@ implementation
 
          { when it is a call to a member we need to load the
            methodpointer first
-           (except if we are in a static class method)
          }
-         membercall:=
-           not(assigned(current_procinfo) and
-               ([po_staticmethod,po_classmethod] <= current_procinfo.procdef.procoptions)) and
-           maybe_load_methodpointer(st,p1);
+         membercall:=maybe_load_methodpointer(st,p1);
 
          { When we are expecting a procvar we also need
            to get the address in some cases }

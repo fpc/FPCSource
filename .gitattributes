@@ -9220,6 +9220,7 @@ tests/test/tset6.pp svneol=native#text/plain
 tests/test/tset7.pp svneol=native#text/plain
 tests/test/tsetsize.pp svneol=native#text/plain
 tests/test/tstack.pp svneol=native#text/plain
+tests/test/tstatic1.pp svneol=native#text/pascal
 tests/test/tstprocv.pp svneol=native#text/plain
 tests/test/tstring1.pp svneol=native#text/plain
 tests/test/tstring10.pp svneol=native#text/plain
