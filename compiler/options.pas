@@ -2224,7 +2224,10 @@ begin
     system_arm_gba:
       target_unsup_features:=[f_threading,f_commandargs,f_fileio,f_textio,f_consoleio,f_dynlibs];
     system_arm_nds:
-      target_unsup_features:=[f_threading,f_commandargs,f_fileio,f_textio,f_consoleio,f_dynlibs]
+      target_unsup_features:=[f_threading,f_commandargs,f_fileio,f_textio,f_consoleio,f_dynlibs];
+    system_i386_nativent:
+      // until these features are implemented, they are disabled in the compiler
+      target_unsup_features:=[f_threading,f_processes,f_fileio,f_textio,f_consoleio,f_commandargs,f_stackcheck];
     else
       target_unsup_features:=[];
   end;

@@ -68,6 +68,7 @@ interface
         constructor create;override;
         procedure DefaultLinkScript;override;
         procedure InitSysInitUnitName;override;
+        procedure ConcatEntryName; virtual;
       end;
 
       TExternalLinkerWin=class(texternallinker)
@@ -958,20 +959,8 @@ implementation
                   Comment(V_Error,'Import library not found for '+S);
               end;
             if IsSharedLibrary then
-              begin
-                Concat('ISSHAREDLIBRARY');
-                if apptype=app_gui then
-                  Concat('ENTRYNAME _DLLWinMainCRTStartup')
-                else
-                  Concat('ENTRYNAME _DLLMainCRTStartup');
-              end
-            else
-              begin
-                if apptype=app_gui then
-                  Concat('ENTRYNAME _WinMainCRTStartup')
-                else
-                  Concat('ENTRYNAME _mainCRTStartup');
-              end;
+              Concat('ISSHAREDLIBRARY');
+            ConcatEntryName;
             if not ImageBaseSetExplicity then
               begin
                 if IsSharedLibrary then
@@ -1060,6 +1049,28 @@ implementation
       begin
         if target_info.system=system_i386_win32 then
           GlobalInitSysInitUnitName(self);
+      end;
+
+    procedure TInternalLinkerWin.ConcatEntryName;
+      begin
+        with LinkScript do
+          begin
+            if IsSharedLibrary then
+              begin
+                Concat('ISSHAREDLIBRARY');
+                if apptype=app_gui then
+                  Concat('ENTRYNAME _DLLWinMainCRTStartup')
+                else
+                  Concat('ENTRYNAME _DLLMainCRTStartup');
+              end
+            else
+              begin
+                if apptype=app_gui then
+                  Concat('ENTRYNAME _WinMainCRTStartup')
+                else
+                  Concat('ENTRYNAME _mainCRTStartup');
+              end;
+          end;
       end;
 
 

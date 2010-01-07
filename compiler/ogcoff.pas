@@ -333,6 +333,7 @@ implementation
        COFF_STYP_DATA   = $0040;
        COFF_STYP_BSS    = $0080;
 
+       PE_SUBSYSTEM_NATIVE         = 1;
        PE_SUBSYSTEM_WINDOWS_GUI    = 2;
        PE_SUBSYSTEM_WINDOWS_CUI    = 3;
        PE_SUBSYSTEM_WINDOWS_CE_GUI = 9;
@@ -2084,7 +2085,13 @@ const pemagic : array[0..3] of byte = (
             sechdr.nrelocs:=0;
             sechdr.relocpos:=0;
             if win32 then
-              sechdr.flags:=peencodesechdrflags(SecOptions,SecAlign)
+              begin
+                if (target_info.system in systems_nativent) and
+                   (apptype = app_native) then
+                  sechdr.flags:=peencodesechdrflags(SecOptions,SecAlign) or PE_SCN_MEM_NOT_PAGED
+                else
+                  sechdr.flags:=peencodesechdrflags(SecOptions,SecAlign);
+              end
             else
               sechdr.flags:=djencodesechdrflags(SecOptions);
             FWriter.write(sechdr,sizeof(sechdr));
@@ -2302,13 +2309,18 @@ const pemagic : array[0..3] of byte = (
             peoptheader.SizeOfImage:=Align(CurrMemPos,SectionMemAlign);
             peoptheader.SizeOfHeaders:=textExeSec.DataPos;
             peoptheader.CheckSum:=0;
-            if target_info.system in system_wince then
-              peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CE_GUI
+            if (target_info.system in systems_nativent) and (not IsSharedLibrary or (apptype = app_native)) then
+              { Although I did not really test this, it seems that Subsystem is
+                not checked in DLLs except for maybe drivers}
+              peoptheader.Subsystem:=PE_SUBSYSTEM_NATIVE
             else
-              if apptype=app_gui then
-                peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_GUI
+              if target_info.system in system_wince then
+                peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CE_GUI
               else
-                peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CUI;
+                if apptype=app_gui then
+                  peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_GUI
+                else
+                  peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CUI;
             peoptheader.DllCharacteristics:=0;
             peoptheader.SizeOfStackReserve:=stacksize;
             peoptheader.SizeOfStackCommit:=$1000;
@@ -2906,7 +2918,7 @@ const pemagic : array[0..3] of byte = (
             idtxt  : 'PECOFF';
             asmbin : '';
             asmcmd : '';
-            supported_targets : [system_i386_win32];
+            supported_targets : [system_i386_win32,system_i386_nativent];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';

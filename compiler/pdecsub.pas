@@ -2372,7 +2372,7 @@ const
 *)
                 if assigned(pd.import_name) then
                   begin
-                    if target_info.system in (system_all_windows +
+                    if target_info.system in (system_all_windows + systems_nativent +
                                        [system_i386_emx, system_i386_os2]) then
                    { cprefix is not used in DLL imports under Windows or OS/2 }
                       result:=pd.import_name^

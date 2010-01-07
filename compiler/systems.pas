@@ -149,7 +149,8 @@ interface
              system_arm_darwin,         { 64 }
              system_x86_64_solaris,     { 65 }
              system_mips_linux,         { 66 }
-             system_mipsel_linux        { 67 }
+             system_mipsel_linux,       { 67 }
+             system_i386_nativent       { 68 }
        );
 
      type
@@ -449,6 +450,9 @@ interface
        { all symbian systems }
        systems_symbian = [system_i386_symbian,system_arm_symbian];
 
+       { all native nt systems }
+       systems_nativent = [system_i386_nativent];
+
        { all systems for which istack must be at a 16 byte boundary 
          when calling a function }
        system_needs_16_byte_stack_alignment = [
@@ -457,7 +461,7 @@ interface
         system_x86_64_win64,
         system_x86_64_linux,
         system_x86_64_freebsd,
-	system_x86_64_solaris];
+        system_x86_64_solaris];
 
 
        cpu2str : array[TSystemCpu] of string[10] =

@@ -233,7 +233,7 @@ unit scandir;
       begin
         if not (target_info.system in system_all_windows + [system_i386_os2,
                                        system_i386_emx, system_powerpc_macos,
-                                       system_arm_nds]) then
+                                       system_arm_nds] + systems_nativent) then
           begin
             if m_delphi in current_settings.modeswitches then
               Message(scan_n_app_type_not_support)
@@ -252,7 +252,7 @@ unit scandir;
                    apptype:=app_gui
                  else if hs='CONSOLE' then
                    apptype:=app_cui
-                 else if (hs='NATIVE') and (target_info.system in system_windows) then
+                 else if (hs='NATIVE') and (target_info.system in system_windows + systems_nativent) then
                    apptype:=app_native
                  else if (hs='FS') and (target_info.system in [system_i386_os2,
                                                              system_i386_emx]) then

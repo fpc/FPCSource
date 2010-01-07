@@ -77,6 +77,9 @@ implementation
     {$ifndef NOTARGETSYMBIAN}
       ,t_symbian
     {$endif}
+    {$ifndef NOTARGETNATIVENT}
+      ,t_nativent
+    {$endif}
 
 {**************************************
              Assemblers

@@ -110,6 +110,9 @@ uses
 {$ifdef symbian}
   ,i_symbian
 {$endif symbian}
+{$ifdef nativent}
+  ,i_nativent
+{$endif nativent}
   ,globtype;
 
 function Compile(const cmd:string):longint;
