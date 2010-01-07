@@ -177,7 +177,6 @@ CONST
         if dataindex=nil then
           begin
             SysAllocateThreadVars;
-
             dataindex:=TlsGetValue(tlskey);
           end;
         SetLastError(errorsave);
@@ -484,3 +483,4 @@ begin
   if IsLibrary then
     SysInitMultithreading;
 end;
+

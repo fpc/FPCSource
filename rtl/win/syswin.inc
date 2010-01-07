@@ -56,9 +56,9 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
            WinEnterCriticalSection(AttachingThread);
            if Win32GetCurrentThreadId <> MainThreadIdWin32 then
            begin
-             { Set up TLS slot for the DLL }
-             SysInitMultiThreading;
              { Allocate Threadvars  }
+             SysAllocateThreadVars;
+
              { NS : no idea what is correct to pass here - pass dummy value for now }
              { passing a dummy is ok, the correct value is read from the coff header of SysInstance (FK) }
              InitThread($1000000); { Assume everything is idempotent there, as the thread could have been created with BeginThread... }

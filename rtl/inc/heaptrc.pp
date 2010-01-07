@@ -1344,6 +1344,12 @@ begin
       Rewrite(error_file);
     end;
 {$endif EXTRA}
+  { if multithreading was initialized before heaptrc gets initialized (this is currently
+    the case for windows dlls), then RelocateHeap gets never called and the lock
+    must be initialized already here
+  }
+  if IsMultithread then
+    initcriticalsection(todo_lock);
 end;
 
 procedure TraceExit;
