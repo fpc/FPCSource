@@ -1345,10 +1345,7 @@ begin
                          else
                            include(init_settings.globalswitches,cs_constructor_name);
                        't' :
-                         If UnsetBool(More, j) then
-                           exclude(init_settings.moduleswitches,cs_static_keyword)
-                         else
-                           include(init_settings.moduleswitches,cs_static_keyword);
+                         Message1(option_obsolete_switch,'-St');
                        'v' :
                          If UnsetBool(More, j) then
                            exclude(init_settings.globalswitches,cs_support_vectors)
@@ -1364,8 +1361,7 @@ begin
                            init_settings.globalswitches:=init_settings.globalswitches - [cs_constructor_name,cs_support_exceptions];
                            init_settings.localswitches:=init_settings.localswitches - [cs_do_assertion, cs_do_inline, cs_ansistrings];
                            init_settings.moduleswitches:=init_settings.moduleswitches - [cs_support_c_operators, cs_support_goto,
-                                                                     cs_support_macro,
-                                                                     cs_static_keyword];
+                                                                     cs_support_macro];
                          end;
                        else
                          IllegalPara(opt);

@@ -2282,7 +2282,6 @@ S*2Aas_assemblar utilitzant GNU AS
 **2So_Igual que -Mtp
 **2Sp_Igual que -Mgpc
 **2Ss_El nom del constructor ha de ser init (destructor = done)
-**2St_Permet la paraula clau -static- en els objectes
 **1s_No cridis l'assemblador ni l'enllaçador
 **2sh_Genera la seqüència per enllaçar a l'anfitrió
 **2st_Genera la seqüència per enllaçar al destí

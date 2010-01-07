@@ -1805,7 +1805,6 @@ option_help_pages=11025_[
 **2So_essaye d'ˆtre compatible avec TP/BP 7.0
 **2Sp_essaye d'ˆtre compatible avec GPC
 **2Ss_les constructeurs doivent s'appeler init (et les destructeurs done)
-**2St_autorise "static" dans les objects
 **1s_n'appelle pas l'assembleur ni le linker
 **1u<x>_rend le symbole <x> non d‚fini
 **1U_options d'unit‚s :

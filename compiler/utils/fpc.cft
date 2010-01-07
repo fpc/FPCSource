@@ -73,7 +73,6 @@
 #      -So        same as -Mtp
 #      -Sp        same as -Mgpc
 #      -Ss        constructor name must be init (destructor must be done)
-#      -St        allow static keyword in objects
 #
 # Allow goto, inline, C-operators, C-vars
 -Sgic

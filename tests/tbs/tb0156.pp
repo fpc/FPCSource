@@ -1,4 +1,4 @@
-{ %OPT=-St -Cr }
+{ %OPT=-Cr }
 
 { Old file: tbs0187.pp }
 { constructor in a WIth statement isn't called correct. (works at lest in the case stated)                    OK 0.99.11 (PM) }

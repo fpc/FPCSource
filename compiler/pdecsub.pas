@@ -1400,12 +1400,9 @@ end;
 
 procedure pd_static(pd:tabstractprocdef);
 begin
-  if (cs_static_keyword in current_settings.moduleswitches) then
-    begin
-      if pd.typ=procdef then
-        include(tprocdef(pd).procsym.symoptions,sp_static);
-      include(pd.procoptions,po_staticmethod);
-    end;
+  if pd.typ=procdef then
+    include(tprocdef(pd).procsym.symoptions,sp_static);
+  include(pd.procoptions,po_staticmethod);
 end;
 
 procedure pd_override(pd:tabstractprocdef);
@@ -2227,10 +2224,6 @@ const
               Message1(parser_w_unknown_proc_directive_ignored,name);
             exit;
          end;
-
-        { static needs a special treatment }
-        if (idtoken=_STATIC) and not (cs_static_keyword in current_settings.moduleswitches) then
-          exit;
 
         { check if method and directive not for object, like public.
           This needs to be checked also for procvars }

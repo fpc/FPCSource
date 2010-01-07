@@ -121,7 +121,7 @@ interface
          cs_fp_emulation,cs_extsyntax,cs_openstring,
          { support }
          cs_support_goto,cs_support_macro,
-         cs_support_c_operators,cs_static_keyword,
+         cs_support_c_operators,
          { generation }
          cs_profile,cs_debuginfo,cs_compilesystem,
          cs_lineinfo,cs_implicit_exceptions,

@@ -3002,7 +3002,6 @@ S*2Aas_Monta usando o GNU AS
 **2Sm_Suporta macros semelhantes C (global)
 **2So_Mesmo que -Mtp
 **2Ss_Nome construtor deve ser 'init' (destruidor deve ser 'done')
-**2St_Permite palavras-chave estáticas em objetos
 **2Sx_Habilita palavras-chave exceções (padrão nos modos Delphi/ObjFPC)
 **1s_Não chama o montador assembler e o vinculador
 **2sh_Gera roteiro para vincular no servidor

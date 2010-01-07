@@ -2294,7 +2294,6 @@ S*2Aas_ensamblar usando GNU AS
 **2So_igual que -Mtp
 **2Sp_igual que -Mgpc
 **2Ss_el nombre del constructor debe ser init (el destructor debe ser done)
-**2St_permitir la palabra reservada static en objetos
 **1s_no llamar al ensamblador ni enlazador
 **2sh_Generar script para enlazar en host
 **2st_Generar script para enlazar en destino

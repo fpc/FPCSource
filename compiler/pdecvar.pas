@@ -1463,8 +1463,7 @@ implementation
                handle_calling_convention(tprocvardef(hdef));
 
              { Check for STATIC directive }
-             if (vd_object in options) and
-                (cs_static_keyword in current_settings.moduleswitches) and
+             if (vd_object in options) and                
                 (try_to_consume(_STATIC)) then
                begin
                  { add static flag and staticvarsyms }

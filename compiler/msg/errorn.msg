@@ -2288,7 +2288,6 @@ option_help_pages=11025_[
 **2So_Probeer TP/BP-7.0-compatibel te zijn
 **2Sp_Probeer GNU-Pascal-compatibel te zijn
 **2Ss_Constructor naam moet init zijn (destructor moet done zijn)
-**2St_Sta het sleutelwoord "static" toe in objecten
 **1s_Roep assembler en linker niet op (slechts met -a)
 **1sh_Genereer een script om op het hostplatform te linken
 **1sr_Voer geen registertoewijzing uit (optimalisaties worden uitgeschakeld)

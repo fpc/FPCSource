@@ -83,7 +83,6 @@ const DefaultConfig : array[0..25,1..240] of char=(
   '#      -Sp        same as -Mgpc'#013#010+
   '#      -Ss        constructor name must be init (','destructor must be '+
   'done)'#013#010+
-  '#      -St        allow static keyword in objects'#013#010+
   '#'#013#010+
   '# Allow goto, inline, C-operators, C-vars'#013#010+
   '-Sgic'#013#010+
@@ -92,9 +91,9 @@ const DefaultConfig : array[0..25,1..240] of char=(
   '# Code generation'#013#010+
   '# ---------------'#013#010+
   #013#010+
-  '# Uncomment the next line if you always want stat','ic/dynamic units by'+
-  ' default'#013#010+
-  '# (can be overruled with -CD, -CS at the commandline)'#013#010+
+  '# Uncomment the next line if you always want static/dynamic units by d'+
+  'efault'#013#010+
+  '# (can be overruled wi','th -CD, -CS at the commandline)'#013#010+
   '#-CS'#013#010+
   '#-CD'#013#010+
   #013#010+
@@ -106,21 +105,21 @@ const DefaultConfig : array[0..25,1..240] of char=(
   '#-Ci'#013#010+
   '#-Co'#013#010+
   '#-Cr'#013#010+
-  '#-C','t'#013#010+
+  '#-Ct'#013#010+
   #013#010+
   '# Optimizer switches for i386 compiler'#013#010+
-  '# -Os        generate smaller code'#013#010+
+  '# -Os ','       generate smaller code'#013#010+
   '# -O1        level 1 optimizations (quick optimizations)'#013#010+
   '# -O2        level 2 optimizations (-O1 + slower optimizations)'#013#010+
-  '# -O3        level 3 optimizations (','same as -O2u)'#013#010+
+  '# -O3        level 3 optimizations (same as -O2u)'#013#010+
   '# -Oa=N      set alignment to N'#013#010+
-  '# -OoX       switch on optimalization X. '#013#010+
+  '# -','OoX       switch on optimalization X. '#013#010+
   '# -OoNOX     switch off optimalization X.'#013#010+
   '#               X is one of REGVAR UNCERTAIN STACKFRAME PEEPHOLE ASMCS'+
   'E LOOPUNROLL'#013#010+
-  '# -OpCPU     set targe','t processor.'#013#010+
-  '#             CPU is one of 386, PENTIUM, PENTIUM2, PENTIUM3, PENTIUM4'+
-  ', PENTIUMM '#013#010+
+  '# -OpCPU     set target processor.'#013#010+
+  '#             CPU is one of 386, PENT','IUM, PENTIUM2, PENTIUM3, PENTIU'+
+  'M4, PENTIUMM '#013#010+
   #013#010+
   #013#010+
   '# -----------------------'#013#010+
@@ -129,32 +128,32 @@ const DefaultConfig : array[0..25,1..240] of char=(
   #013#010+
   '# Both slashes and backslashes are allowed in paths'#013#010+
   #013#010+
-  '#',' path to the messagefile, not necessary anymore but can be used to '+
+  '# path to the messagefile, not necessary anymore but',' can be used to '+
   'override'#013#010+
   '# the default language'#013#010+
   '#-Fr%basepath%/msg/errore.msg'#013#010+
   '#-Fr%basepath%/msg/errorn.msg'#013#010+
   '#-Fr%basepath%/msg/errores.msg'#013#010+
   '#-Fr%basepath%/msg/errord.msg'#013#010+
-  '#-Fr%basepath%','/msg/errorr.msg'#013#010+
+  '#-Fr%basepath%/msg/errorr.msg'#013#010+
   #013#010+
   '# path to the gcclib'#013#010+
-  '#-Fl%basepath%/lib'#013#010+
+  '#-Fl%basep','ath%/lib'#013#010+
   #013#010+
   '# searchpath for includefiles'#013#010+
   '#-Fi/pp/inc;/pp/rtl/inc'#013#010+
   #013#010+
   '# searchpath for includefiles'#013#010+
   '# release them only if you know what you do'#013#010+
-  '# because this could cause a rebuild of the',' runtime library'#013#010+
-  '# if you tell them compiler/ide to build the project (FK)'#013#010+
+  '# because this could cause a rebuild of the runtime library'#013#010+
+  '# if you tell them compiler/ide t','o build the project (FK)'#013#010+
   '#-Fi%basepath%/source/rtl/inc;%basepath%/source/rtl/i386'#013#010+
   #013#010+
   '# searchpath for objectfiles'#013#010+
   '#-Fo%basepath%/source/rtl/inc;%basepath%/source/rtl/i386'#013#010+
   #013#010+
-  '#IFDEF FPCAPA','CHE_1_13'#013#010+
-  '-Fu%basepath%/units/$FPCTARGET/httpd-1.3/'#013#010+
+  '#IFDEF FPCAPACHE_1_13'#013#010+
+  '-Fu%basepath%/units/$FPCTARGET/httpd-1.3/',#013#010+
   '#ELSE'#013#010+
   '#IFDEF FPCAPACHE_2_0'#013#010+
   '-Fu%basepath%/units/$FPCTARGET/httpd-2.0'#013#010+
@@ -163,9 +162,9 @@ const DefaultConfig : array[0..25,1..240] of char=(
   '#ENDIF'#013#010+
   '#ENDIF'#013#010+
   #013#010+
-  '# searchpath for units and other system dependent',' things'#013#010+
+  '# searchpath for units and other system dependent things'#013#010+
   '-Fu%basepath%/units/$FPCTARGET/'#013#010+
-  '-Fu%basepath%/units/$FPCTARGET/*'#013#010+
+  '-Fu%basep','ath%/units/$FPCTARGET/*'#013#010+
   '-Fu%basepath%/units/$FPCTARGET/rtl'#013#010+
   #013#010+
   '# searchpath for libraries'#013#010+
@@ -175,8 +174,8 @@ const DefaultConfig : array[0..25,1..240] of char=(
   '# searchpath for tools'#013#010+
   '-FD%basepath%/bin/$FPCTARGET'#013#010+
   #013#010+
-  '#',' binutils prefix for cross compiling'#013#010+
-  '#IFDEF FPC_CROSSCOMPILING'#013#010+
+  '# binutils prefix for cross compiling'#013#010+
+  '#IFDEF FPC_CR','OSSCOMPILING'#013#010+
   '  -XP$FPCTARGET-'#013#010+
   '#ENDIF'#013#010+
   #013#010+
@@ -188,13 +187,13 @@ const DefaultConfig : array[0..25,1..240] of char=(
   '# generate always debugging information for GDB (slows down the compil'+
   'ing'#013#010+
   '# process)'#013#010+
-  '#      -gc ','       generate checks for pointers'#013#010+
-  '#      -gd        use dbx'#013#010+
+  '#      -gc        generate checks for pointers'#013#010+
+  '#      -gd    ','    use dbx'#013#010+
   '#      -gg        use gsym'#013#010+
   '#      -gh        use heap trace unit (for memory leak debugging)'#013#010+
   '#      -gl        use line info unit to show more info for backtraces'#013+
   #010+
-  '#      -gv','        generates programs tracable with valgrind'#013#010+
+  '#      -gv        generates programs tracable with valgrind'#013#010,
   '#      -gw        generate dwarf debugging info'#013#010+
   '#'#013#010+
   '# Enable debuginfo and use the line info unit by default'#013#010+
@@ -203,12 +202,12 @@ const DefaultConfig : array[0..25,1..240] of char=(
   '# always pass an option to the linker'#013#010+
   '#-k-s'#013#010+
   #013#010+
-  '# Always strip debuginf','o from the executable'#013#010+
+  '# Always strip debuginfo from the executable'#013#010+
   '-Xs'#013#010+
   #013#010+
   #013#010+
   '# -------------'#013#010+
-  '# Miscellaneous'#013#010+
+  '# ','Miscellaneous'#013#010+
   '# -------------'#013#010+
   #013#010+
   '# Write always a nice FPC logo ;)'#013#010+
@@ -216,21 +215,22 @@ const DefaultConfig : array[0..25,1..240] of char=(
   #013#010+
   '# Verbosity'#013#010+
   '#      e : Show errors (default)       d : Show debug info'#013#010+
-  '#      w : Show warnings               u ',': Show unit info'#013#010+
-  '#      n : Show notes                  t : Show tried/used files'#013#010+
+  '#      w : Show warnings               u : Show unit info'#013#010+
+  '#      n : Show notes            ','      t : Show tried/used files'#013+
+  #010+
   '#      h : Show hints                  m : Show defined macros'#013#010+
   '#      i : Show general info           p : Show compiled procedures'#013+
   #010+
-  '#      l : Show linenum','bers            c : Show conditionals'#013#010+
-  '#      a : Show everything             0 : Show nothing (except errors'+
-  ')'#013#010+
+  '#      l : Show linenumbers            c : Show conditionals'#013#010+
+  '#      a : S','how everything             0 : Show nothing (except erro'+
+  'rs)'#013#010+
   '#      b : Show all procedure          r : Rhide/GCC compatibility mod'+
   'e'#013#010+
-  '#          declarations if an error    x : Executable i','nfo (Win32 on'+
-  'ly)'#013#010+
+  '#          declarations if an error    x : Executable info (Win32 only'+
+  ')'#013#010+
   '#          occurs'#013#010+
   '#'#013#010+
-  '# Display Info, Warnings, Notes and Hints'#013#010+
+  '# Display I','nfo, Warnings, Notes and Hints'#013#010+
   '-viwn'#013#010+
   '# If you don'#039't want so much verbosity use'#013#010+
   '#-vw'#013#010

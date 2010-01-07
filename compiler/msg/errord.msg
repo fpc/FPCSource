@@ -2888,7 +2888,6 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2So_Sei TP/BP 7.0 kompatibel (wie -Mtp)
 **2Sp_Sei gpc-kompatibel (wie -Mgpc)
 **2Ss_Konstruktor- und Destruktorname mÅssen "Init" und "Done" sein
-**2St_Erlaube SchlÅsselwort static in Objekten
 **2Sx_Exception SchlÅsselwîrter einschalten (Voreinstellung in Delphi/ObjFPC Moden)
 **1s_Rufe weder Assembler noch Linker auf (nur mit -a)
 **2sh_Erzeuge Script um auf dem Host zu linken

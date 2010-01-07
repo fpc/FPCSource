@@ -3011,7 +3011,6 @@ S*2Aas_Assemble using GNU AS
 **2Sm_Support macros like C (global)
 **2So_Same as -Mtp
 **2Ss_Constructor name must be init (destructor must be done)
-**2St_Allow static keyword in objects
 **2Sx_Enable exception keywords (default in Delphi/ObjFPC modes)
 **1s_Do not call assembler and linker
 **2sh_Generate script to link on host

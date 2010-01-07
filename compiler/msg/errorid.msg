@@ -2620,7 +2620,6 @@ S*2Aas_Rangkai menggunakan GNU AS
 **2Sm_Dukung makro seperti C (global)
 **2So_Sama seperti -Mtp
 **2Ss_Nama konstruktor harus init (destruktor harus done)
-**2St_Ijinkan kata kunci static dalam obyek
 **2Sx_Hidupkan kata kunci exception (standar dalam mode Delphi/ObjFPC)
 **1s_Jangan panggil assembler dan linker
 **2sh_Hasilkan naskah untuk me-link pada host

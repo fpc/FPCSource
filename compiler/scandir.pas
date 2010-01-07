@@ -1036,11 +1036,6 @@ unit scandir;
         do_delphiswitch('W');
       end;
 
-    procedure dir_static;
-      begin
-        do_moduleswitch(cs_static_keyword);
-      end;
-
     procedure dir_stop;
       begin
         do_message(scan_f_user_defined);
@@ -1388,7 +1383,6 @@ unit scandir;
         AddDirective('SCREENNAME',directive_all, @dir_screenname);
         AddDirective('SMARTLINK',directive_all, @dir_smartlink);
         AddDirective('STACKFRAMES',directive_all, @dir_stackframes);
-        AddDirective('STATIC',directive_all, @dir_static);
         AddDirective('STOP',directive_all, @dir_stop);
 {$ifdef powerpc}
         AddDirective('SYSCALL',directive_all, @dir_syscall);

@@ -2307,7 +2307,6 @@ S*2Aas_asemblacja przy u¿yciu GNU AS
 **2So_to samo co -Mtp
 **2Sp_to samo co -Mgpc
 **2Ss_konstruktory musz± mieæ nazwê init (destruktory - done)
-**2St_zezwalanie na s³owo kluczowe static w obiektach
 **1s_pominiêcie wywo³ania asemblera i linkera
 **2sh_generacja skryptu do linkowania na ho¶cie
 **2st_generacja skryptu do linkowania na celu

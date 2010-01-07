@@ -2438,7 +2438,6 @@ S*2Aas_assembler avec GNU AS
 **2So_identique à -Mtp
 **2Sp_identique à -Mgpc
 **2Ss_les constructeurs doivent s'appeler init (et les destructeurs done)
-**2St_autorise "static" dans les objects
 **1s_n'appelle pas l'assembleur ni le linker
 **2sh_générer un script à lier sur l'hôte
 **2st_générer un script à lier sur la cible
