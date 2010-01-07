@@ -733,12 +733,18 @@ implementation
                  { write name of result type }
                  write_rtti_name(def.returndef);
 
+                 if (tf_requires_proper_alignment in target_info.flags) then
+                   current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUint)));
+
                  { write result typeinfo }
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.returndef,fullrtti)))
                end;
 
                { write calling convention }
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(ProcCallOptionToCallConv[def.proccalloption]));
+
+               if (tf_requires_proper_alignment in target_info.flags) then
+                 current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUint)));
 
                { write params typeinfo }
                for i:=0 to def.paras.count-1 do
