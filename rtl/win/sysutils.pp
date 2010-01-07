@@ -703,6 +703,8 @@ var
   { A call to GetSystemMetrics changes the value of the 8087 Control Word on
     Pentium4 with WinXP SP2 }
   old8087CW: word;
+  DefaultCustomLocaleID : LCID;   // typedef DWORD LCID;
+  DefaultCustomLanguageID : Word; // typedef WORD LANGID;
 begin
   InitInternationalGeneric;
   old8087CW:=Get8087CW;
@@ -712,6 +714,28 @@ begin
   SysLocale.PriLangID := LANG_ENGLISH;
   SysLocale.SubLangID := SUBLANG_ENGLISH_US;
   // probably needs update with getthreadlocale. post 2.0.2
+
+  DefaultCustomLocaleID := GetThreadLocale;
+  if DefaultCustomLocaleID <> 0 then
+    begin
+      { Locale Identifiers
+        +-------------+---------+-------------------------+
+        |   Reserved  | Sort ID |      Language ID        |
+        +-------------+---------+-------------------------+
+        31         20 19      16 15                       0   bit }
+      DefaultCustomLanguageID := DefaultCustomLocaleID and $FFFF; // 2^16
+      if DefaultCustomLanguageID <> 0 then
+        begin
+          SysLocale.DefaultLCID := DefaultCustomLocaleID;
+          { Language Identifiers
+            +-------------------------+-------------------------+
+            |     SubLanguage ID      |   Primary Language ID   |
+            +-------------------------+-------------------------+
+            15                      10  9                         0   bit  }
+          SysLocale.PriLangID := DefaultCustomLanguageID and $3ff; // 2^10
+          SysLocale.SubLangID := DefaultCustomLanguageID shr 10;
+        end;
+     end;
 
   Set8087CW(old8087CW);
   GetFormatSettings;
