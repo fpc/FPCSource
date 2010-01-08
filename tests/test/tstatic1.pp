@@ -6,6 +6,8 @@ program tstatic1;
 
 type
   TSomeClass = class
+  private
+    {$ifndef fpc}class var{$endif}FSomethingStatic: Integer; {$ifdef fpc}static;{$endif}
   public
     class procedure SomeClassMethod(A: Integer);
     class procedure SomeStaticMethod(A: Integer); static;
@@ -22,9 +24,11 @@ end;
 class procedure TSomeClass.SomeStaticMethod(A: Integer); {$ifdef fpc} static; {$endif}
 begin
   WriteLn('TSomeClass.SomeStaticMethod: ', A);
+  WriteLn('TSomeClass.FSomethingStatic: ', FSomethingStatic);
   SomeClassMethod(A + 1);
 end;
 
 begin
+  TSomeClass.FSomethingStatic := 4;
   TSomeClass.SomeStaticMethod(1);
 end.

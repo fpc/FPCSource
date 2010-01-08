@@ -847,7 +847,7 @@ implementation
                begin
                  if (assigned(current_procinfo) and ([po_staticmethod,po_classmethod] <= current_procinfo.procdef.procoptions)) then
                    { We are calling from the static class method which has no self node }
-                   p1 := cloadvmtaddrnode.create(ctypenode.create(current_procinfo.procdef._class))
+                   p1:=cloadvmtaddrnode.create(ctypenode.create(current_procinfo.procdef._class))
                  else
                    p1:=load_self_node;
                  { We are calling a member }
@@ -1383,9 +1383,14 @@ implementation
                     if is_member_read(srsym,srsymtable,p1,hdef) then
                       begin
                         { if the field was originally found in an    }
-                        { objectsymtable, it means it's part of self }
+                        { objectsymtable, it means it's part of self
+                          if only method from which it was called is
+                          not class static                          }
                         if (srsymtable.symtabletype=ObjectSymtable) then
-                          p1:=load_self_node;
+                          if (assigned(current_procinfo) and ([po_staticmethod,po_classmethod] <= current_procinfo.procdef.procoptions)) then
+                            p1:=cloadvmtaddrnode.create(ctypenode.create(current_procinfo.procdef._class))
+                          else
+                            p1:=load_self_node;
                         { now, if the field itself is part of an objectsymtab }
                         { (it can be even if it was found in a withsymtable,  }
                         {  e.g., "with classinstance do field := 5"), then    }
