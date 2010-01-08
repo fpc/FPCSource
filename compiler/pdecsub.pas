@@ -2774,12 +2774,15 @@ const
                       if not (po_staticmethod in currpd.procoptions) then
                        begin
                          include(currpd.procoptions, po_staticmethod);
-                         { remove self from the hidden paras }
-                         symentry:=currpd.parast.Find('self');
-                         if symentry<>nil then
+                         if (po_classmethod in currpd.procoptions) then
                           begin
-                            currpd.parast.Delete(symentry);
-                            currpd.calcparas;
+                           { remove self from the hidden paras }
+                           symentry:=currpd.parast.Find('self');
+                           if symentry<>nil then
+                            begin
+                              currpd.parast.Delete(symentry);
+                              currpd.calcparas;
+                            end;
                           end;
                        end;
                     end;
