@@ -144,9 +144,11 @@ unit scandir;
              begin
                { Support switches used in Apples Universal Interfaces}
                if (hs='MAC68K') then
-                 current_settings.packrecords:=2
+                 current_settings.packrecords:=mac68k_alignment
+               { "power" alignment is the default C packrecords setting on
+                 Mac OS X }
                else if (hs='POWER') then
-                 current_settings.packrecords:=4
+                 current_settings.packrecords:=C_alignment
                else if (hs='RESET') then
                  current_settings.packrecords:=0
                else

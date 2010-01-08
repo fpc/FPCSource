@@ -757,7 +757,9 @@ implementation
         case usealign of
           C_alignment,
           bit_alignment:
-            fieldalignment:=1
+            fieldalignment:=1;
+          mac68k_alignment:
+            fieldalignment:=2;
           else
             fieldalignment:=usealign;
         end;
@@ -813,10 +815,14 @@ implementation
       var
         varalignrecord: shortint;
       begin
-        if (usefieldalignment=C_alignment) then
-          varalignrecord:=used_align(varalign,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign)
-        else
-          varalignrecord:=field2recordalignment(fieldoffset,varalign);
+        case usefieldalignment of
+          C_alignment:
+            varalignrecord:=used_align(varalign,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
+          mac68k_alignment:
+            varalignrecord:=2;
+          else
+            varalignrecord:=field2recordalignment(fieldoffset,varalign);
+        end;
         recordalignment:=max(recordalignment,varalignrecord);
       end;
 
@@ -840,70 +846,85 @@ implementation
         vardef:=sym.vardef;
         varalign:=vardef.alignment;
 
-        if (usefieldalignment=bit_alignment) then
-          begin
-            { bitpacking only happens for ordinals, the rest is aligned at }
-            { 1 byte (compatible with GPC/GCC)                             }
-            if is_ordinal(vardef) then
-              begin
-                sym.fieldoffset:=databitsize;
-                l:=sym.getpackedbitsize;
-              end
-            else
-              begin
-                databitsize:=_datasize*8;
-                sym.fieldoffset:=databitsize;
-                if (l>high(aint) div 8) then
+        case usefieldalignment of
+          bit_alignment:
+            begin
+              { bitpacking only happens for ordinals, the rest is aligned at }
+              { 1 byte (compatible with GPC/GCC)                             }
+              if is_ordinal(vardef) then
+                begin
+                  sym.fieldoffset:=databitsize;
+                  l:=sym.getpackedbitsize;
+                end
+              else
+                begin
+                  databitsize:=_datasize*8;
+                  sym.fieldoffset:=databitsize;
+                  if (l>high(aint) div 8) then
+                    Message(sym_e_segment_too_large);
+                  l:=l*8;
+                end;
+              if varalign=0 then
+                varalign:=size_2_align(l);
+              recordalignment:=max(recordalignment,field2recordalignment(databitsize mod 8,varalign));
+              { bit packed records are limited to high(aint) bits }
+              { instead of bytes to avoid double precision        }
+              { arithmetic in offset calculations                 }
+              if int64(l)>high(aint)-sym.fieldoffset then
+                begin
                   Message(sym_e_segment_too_large);
-                l:=l*8;
-              end;
-            if varalign=0 then
-              varalign:=size_2_align(l);
-            recordalignment:=max(recordalignment,field2recordalignment(databitsize mod 8,varalign));
-            { bit packed records are limited to high(aint) bits }
-            { instead of bytes to avoid double precision        }
-            { arithmetic in offset calculations                 }
-            if int64(l)>high(aint)-sym.fieldoffset then
-              begin
-                Message(sym_e_segment_too_large);
-                _datasize:=high(aint);
-                databitsize:=high(aint);
-              end
-            else
-              begin
-                databitsize:=sym.fieldoffset+l;
-                _datasize:=(databitsize+7) div 8;
-              end;
-            { rest is not applicable }
-            exit;
-          end;
-        { Calc the alignment size for C style records }
-        if (usefieldalignment=C_alignment) then
-          begin
-            if (varalign>4) and
-              ((varalign mod 4)<>0) and
-              (vardef.typ=arraydef) then
-              Message1(sym_w_wrong_C_pack,vardef.typename);
-            if varalign=0 then
-              varalign:=l;
-            if (fieldalignment<current_settings.alignment.maxCrecordalign) then
-              begin
-                if (varalign>16) and (fieldalignment<32) then
-                  fieldalignment:=32
-                else if (varalign>12) and (fieldalignment<16) then
-                  fieldalignment:=16
-                { 12 is needed for long double }
-                else if (varalign>8) and (fieldalignment<12) then
-                  fieldalignment:=12
-                else if (varalign>4) and (fieldalignment<8) then
-                  fieldalignment:=8
-                else if (varalign>2) and (fieldalignment<4) then
-                  fieldalignment:=4
-                else if (varalign>1) and (fieldalignment<2) then
-                  fieldalignment:=2;
-              end;
-            fieldalignment:=min(fieldalignment,current_settings.alignment.maxCrecordalign);
-          end;
+                  _datasize:=high(aint);
+                  databitsize:=high(aint);
+                end
+              else
+                begin
+                  databitsize:=sym.fieldoffset+l;
+                  _datasize:=(databitsize+7) div 8;
+                end;
+              { rest is not applicable }
+              exit;
+            end;
+          { Calc the alignment size for C style records }
+          C_alignment:
+            begin
+              if (varalign>4) and
+                ((varalign mod 4)<>0) and
+                (vardef.typ=arraydef) then
+                Message1(sym_w_wrong_C_pack,vardef.typename);
+              if varalign=0 then
+                varalign:=l;
+              if (fieldalignment<current_settings.alignment.maxCrecordalign) then
+                begin
+                  if (varalign>16) and (fieldalignment<32) then
+                    fieldalignment:=32
+                  else if (varalign>12) and (fieldalignment<16) then
+                    fieldalignment:=16
+                  { 12 is needed for long double }
+                  else if (varalign>8) and (fieldalignment<12) then
+                    fieldalignment:=12
+                  else if (varalign>4) and (fieldalignment<8) then
+                    fieldalignment:=8
+                  else if (varalign>2) and (fieldalignment<4) then
+                    fieldalignment:=4
+                  else if (varalign>1) and (fieldalignment<2) then
+                    fieldalignment:=2;
+                end;
+              fieldalignment:=min(fieldalignment,current_settings.alignment.maxCrecordalign);
+            end;
+          mac68k_alignment:
+            begin
+              { mac68k alignment (C description):
+                 * char is aligned to 1 byte
+                 * everything else (except vector) is aligned to 2 bytes
+                 * vector is aligned to 16 bytes
+              }
+              if l>1 then
+                fieldalignment:=2
+              else
+                fieldalignment:=1;
+              varalign:=2;
+            end;
+        end;
         if varalign=0 then
           varalign:=size_2_align(l);
         varalignfield:=used_align(varalign,current_settings.alignment.recordalignmin,fieldalignment);
@@ -934,6 +955,9 @@ implementation
             { bitpacked }
             bit_alignment:
               padalignment:=1;
+            { mac68k: always round to multiple of 2 }
+            mac68k_alignment:
+              padalignment:=2;
             { default/no packrecords specified }
             0:
               padalignment:=recordalignment
@@ -1062,11 +1086,13 @@ implementation
                 varalignrecord:=field2recordalignment(tfieldvarsym(sym).fieldoffset,varalign);
               end;
             { update alignment of this record }
-            if (usefieldalignment<>C_alignment) then
+            if (usefieldalignment<>C_alignment) and
+               (usefieldalignment<>mac68k_alignment) then
               recordalignment:=max(recordalignment,varalignrecord);
           end;
         { update alignment for C records }
-        if (usefieldalignment=C_alignment) then
+        if (usefieldalignment=C_alignment) and
+           (usefieldalignment<>mac68k_alignment) then
           recordalignment:=max(recordalignment,unionst.recordalignment);
         { Register defs in the new record symtable }
         for i:=0 to unionst.DefList.Count-1 do

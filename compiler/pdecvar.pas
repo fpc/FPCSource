@@ -1613,6 +1613,8 @@ implementation
                 { 1 byte alignment if we are bitpacked }
                 bit_alignment:
                   usedalign:=1;
+                mac68k_alignment:
+                  usedalign:=2;
                 { otherwise alignment at the packrecords alignment of the }
                 { current record                                          }
                 else

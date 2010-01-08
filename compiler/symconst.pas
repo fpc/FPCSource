@@ -28,10 +28,11 @@ uses
   globtype;
 
 const
-  def_alignment = 4;
+  def_alignment     = 4;
 
-  C_alignment   = -1;
-  bit_alignment = -2;
+  C_alignment       = -1;
+  bit_alignment     = -2;
+  mac68k_alignment  = -3;
 
   { if you change one of the following contants, }
   { you have also to change the typinfo unit}
