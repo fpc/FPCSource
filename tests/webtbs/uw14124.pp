@@ -1,7 +1,6 @@
 unit uw14124;
 
 {$mode objfpc}{$H+}
-{$static on}
 
 interface
 

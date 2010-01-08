@@ -1,7 +1,7 @@
 { %OPT=-gl }
 program Project1;
 
-{$mode objfpc}{$H+}{$static on}
+{$mode objfpc}{$H+}
 
 type
   MyClass = class(TObject)

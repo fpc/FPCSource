@@ -2,7 +2,6 @@
 { Submitted by "Sergey Kosarevsky" on  2003-05-01 }
 { e-mail: netsurfer@au.ru }
 {$mode objfpc}
-{$static on}
 
 Type tSingleton=Class
        Private

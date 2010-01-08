@@ -7,7 +7,7 @@
 }
 program staticbug;
 
-{$mode delphi}{$STATIC ON}
+{$mode delphi}
 
 uses
   Classes, SysUtils;

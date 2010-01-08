@@ -19,7 +19,6 @@
 
 {$ifndef USE_PASCAL_OBJECT}
 {$MODE OBJFPC}
-{$STATIC ON}
 {$R+}
 uses strings,ctypes;
 {$L ctest.o}

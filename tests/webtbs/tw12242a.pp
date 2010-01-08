@@ -1,5 +1,4 @@
 {$mode objfpc}
-{$static on}
 
 type
   tc = class

@@ -4,7 +4,7 @@
 { e-mail: vsnijders@quicknet.nl }
 program Project1;
 
-{$mode objfpc}{$H+}{$static on}
+{$mode objfpc}{$H+}
 
 uses
   Classes

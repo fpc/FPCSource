@@ -3,8 +3,6 @@
 { here sizeof directly returns a constant value }
 
 
-{$static on}
-
 type
    pbaseclass = ^tbaseclass;
    pderivedclass = ^tderivedclass;

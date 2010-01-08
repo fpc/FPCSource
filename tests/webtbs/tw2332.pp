@@ -2,8 +2,6 @@
 { Submitted by "Sergey Kosarevsky" on  2003-01-21 }
 { e-mail: netsurfer@au.ru }
 
-{$static on }
-
 Type tObject=Object
         Constructor Init;
         Function GetVMT:Pointer;Static;
