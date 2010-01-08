@@ -300,8 +300,8 @@ Type
   HRESULT             = type Longint;
 {$ifndef FPUNONE}
   TDateTime           = type Double;
-  TDate               = type TDateTime;
-  TTime               = type TDateTime;
+//  TDate               = type TDateTime;
+//  TTime               = type TDateTime;
 {$endif}
   TError               = type Longint;
 
