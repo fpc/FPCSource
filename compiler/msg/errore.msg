@@ -1280,6 +1280,12 @@ parser_e_implements_getter_not_default_cc=03281_E_Getter for implements interfac
 parser_e_no_refcounted_typed_file=03282_E_Typed files cannot contain reference-counted types.
 % The data in a typed file cannot be of a reference counted type (such as
 % \var{ansistring} or a record containing a field that is reference counted).
+parser_e_operator_not_overloaded_2=03283_E_Operator is not overloaded: $2 "$1"
+% You're trying to use an overloaded operator when it is not overloaded for
+% this type.
+parser_e_operator_not_overloaded_3=03284_E_Operator is not overloaded: "$1" $2 "$3"
+% You're trying to use an overloaded operator when it is not overloaded for
+% this type.
 % \end{description}
 #
 # Type Checking
@@ -1587,7 +1593,7 @@ type_e_ordinal_or_string_expr_expected=04088_E_Ordinal or string expression expe
 type_e_string_expr_expected=04089_E_String expression expected
 % The expression must be a string type.
 type_w_zero_to_nil=04090_W_Converting 0 to NIL
-% Use NIL rather than 0 when initialising a pointer. 
+% Use NIL rather than 0 when initialising a pointer.
 type_e_protocol_type_expected=04091_E_Objective-C protocol type expected, but got "$1"
 % The compiler expected a protocol type name, but found something else.
 type_e_objc_type_unsupported=04092_E_The type "$1" is not supported for interaction with the Objective-C runtime.
@@ -1789,13 +1795,13 @@ sym_w_deprecated_symbol_with_msg=05066_W_Symbol "$1" is deprecated: "$2"
 % should be avoided as much as possible.
 sym_e_no_enumerator=05067_E_Can not find an enumerator for the type "$1"
 % This means that compiler can not find an apropriate enumerator to use in the for-in loop.
-% To create an enumerator you need to defind an operator enumerator or add a public or published 
+% To create an enumerator you need to defind an operator enumerator or add a public or published
 % GetEnumerator method to the class or object definition.
 sym_e_no_enumerator_move=05068_E_Can not find a "MoveNext" method in enumerator "$1"
 % This means that compiler can not find a public MoveNext method with the Boolean return type in
 % the enumerator class or object definition.
 sym_e_no_enumerator_current=05069_E_Can not find a "Current" property in enumerator "$1"
-% This means that compiler can not find a public Current property in  the enumerator class or object 
+% This means that compiler can not find a public Current property in  the enumerator class or object
 % definition.
 sym_e_objc_para_mismatch=05070_E_Mismatch between number of declared parameters and number of colons in message string.
 % In Objective-C, a message name automatically contains as many colons as parameters.
