@@ -342,8 +342,8 @@ procedure TSessionHTTPModule.CheckSession(ARequest : TRequest);
 
 begin
 {$ifdef cgidebug}SendMethodEnter('SessionHTTPModule('+Name+').CheckSession');{$endif}
-  If CreateSession and Assigned(FSession) then
-    FSession.InitSession(ARequest,FOnNewSession,FOnSessionExpired);
+  If CreateSession and Assigned(Session) then
+    Session.InitSession(ARequest,FOnNewSession,FOnSessionExpired);
 {$ifdef cgidebug}SendMethodExit('SessionHTTPModule('+Name+').CheckSession');{$endif}
 end;
 
