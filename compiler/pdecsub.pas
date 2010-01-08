@@ -1053,7 +1053,7 @@ implementation
               consume(_PROCEDURE);
               if parse_proc_head(aclass,potype_procedure,pd) then
                 begin
-                  { pd=nil when it is a interface mapping }
+                  { pd=nil when it is an interface mapping }
                   if assigned(pd) then
                     begin
                       pd.returndef:=voidtype;
@@ -2694,6 +2694,7 @@ const
         po_comp : tprocoptions;
         paracompopt: tcompare_paras_options;
         forwardfound : boolean;
+        symentry: TSymEntry;
       begin
         forwardfound:=false;
 
@@ -2765,6 +2766,22 @@ const
                           { restore interface settings }
                           currpd.proccalloption:=fwpd.proccalloption;
                         end;
+                    end;
+
+                   { Check static }
+                   if (po_staticmethod in fwpd.procoptions) then
+                    begin
+                      if not (po_staticmethod in currpd.procoptions) then
+                       begin
+                         include(currpd.procoptions, po_staticmethod);
+                         { remove self from the hidden paras }
+                         symentry:=currpd.parast.Find('self');
+                         if symentry<>nil then
+                          begin
+                            currpd.parast.Delete(symentry);
+                            currpd.calcparas;
+                          end;
+                       end;
                     end;
 
                    { Check if the procedure type and return type are correct,

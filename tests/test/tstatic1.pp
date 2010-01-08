@@ -21,7 +21,7 @@ begin
 end;
 
 // for now fpc requires 'static' modifiers also in the class implementation
-class procedure TSomeClass.SomeStaticMethod(A: Integer); {$ifdef fpc} static; {$endif}
+class procedure TSomeClass.SomeStaticMethod(A: Integer);
 begin
   WriteLn('TSomeClass.SomeStaticMethod: ', A);
   WriteLn('TSomeClass.FSomethingStatic: ', FSomethingStatic);
