@@ -1,6 +1,6 @@
 {
     This file is part of the Free Pascal run time library.
-    Copyright (c) 2005 by the Free Pascal development team
+    Copyright (c) 2005,2009 by the Free Pascal development team
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -12,33 +12,146 @@
  **********************************************************************}
 
 
-constructor TMultiReadExclusiveWriteSynchronizer.Create;
+constructor TSimpleRWSync.Create;
 begin
   System.InitCriticalSection(Crit);
 end;
 
-destructor TMultiReadExclusiveWriteSynchronizer.Destroy;
+destructor TSimpleRWSync.Destroy;
 begin
   System.DoneCriticalSection(Crit);
 end;
 
-function  TMultiReadExclusiveWriteSynchronizer.Beginwrite : boolean;
+function  TSimpleRWSync.Beginwrite : boolean;
 begin
   System.EnterCriticalSection(Crit);
   result:=true;
 end;
 
-procedure  TMultiReadExclusiveWriteSynchronizer.Endwrite;
+procedure  TSimpleRWSync.Endwrite;
 begin
   System.LeaveCriticalSection(Crit);
 end;
 
-procedure  TMultiReadExclusiveWriteSynchronizer.Beginread;
+procedure  TSimpleRWSync.Beginread;
 begin
   System.EnterCriticalSection(Crit);
 end;
 
-procedure  TMultiReadExclusiveWriteSynchronizer.Endread;
+procedure  TSimpleRWSync.Endread;
 begin
   System.LeaveCriticalSection(Crit);
+end;
+
+
+
+constructor TMultiReadExclusiveWriteSynchronizer.Create;
+begin
+  fwritelock:=RTLEventCreate;
+  RTLeventSetEvent(fwritelock);
+  fwaitingwriterlock:=RTLEventCreate;
+  RTLEventResetEvent(fwaitingwriterlock);
+  fwritelocked:=0;
+  freadercount:=0;
+  freaderqueue:=BasicEventCreate(nil,true,false,'');
+end;
+
+
+destructor TMultiReadExclusiveWriteSynchronizer.Destroy;
+begin
+  InterlockedExchange(fwritelocked,0);
+  RtlEventDestroy(fwritelock);
+  BasicEventDestroy(freaderqueue);
+end;
+
+
+function  TMultiReadExclusiveWriteSynchronizer.Beginwrite : boolean;
+begin
+  { wait for any other writers that may be in progress }
+  RTLEventWaitFor(fwritelock);
+  { it is possible that we earlier on missed waiting on the
+    fwaitingwriterlock and that it's still set (must be done
+    after aquiring the fwritelock, because otherwise one
+    writer could reset the fwaitingwriterlock of another one
+    that's about to wait on it) }
+  BasicEventResetEvent(fwaitingwriterlock);
+  { new readers have to block from now on; writers get priority to avoid
+    writer starvation (since they have to compete with potentially many
+    concurrent readers) }
+  BasicEventResetEvent(freaderqueue);
+  { for quick checking by candidate-readers }
+  InterlockedExchange(fwritelocked,1);
+
+  { wait until all readers are gone -- freadercount and fwritelocked are only
+    accessed using atomic operations (that's why we use
+    InterLockedExchangeAdd(x,0) below) -> always in-order. The writer always
+    first sets fwritelocked and then checks freadercount, while the readers
+    always first increase freadercount and then check fwritelocked }
+  while (InterLockedExchangeAdd(freadercount,0)<>0) do
+    RTLEventWaitFor(fwaitingwriterlock);
+
+  { we have the writer lock, and all readers are gone }
+  result:=true;
+end;
+
+
+procedure  TMultiReadExclusiveWriteSynchronizer.Endwrite;
+begin
+  { Finish all writes inside the section so that everything executing
+    afterwards will certainly see these results }
+  WriteBarrier;
+
+  { signal potential readers that the coast is clear }
+  InterlockedExchange(fwritelocked,0);
+  { wake up waiting readers (if any); do not check first whether freadercount
+    is <> 0, because the InterlockedDecrement in the while loop of BeginRead
+    can have already occurred, so a single reader may be about to wait on
+    freaderqueue even though freadercount=0. Setting an event multiple times
+    is no problem. }
+  BasicEventSetEvent(freaderqueue);
+  { free the writer lock so another writer can become active }
+  RTLeventSetEvent(fwritelock);
+end;
+
+
+procedure  TMultiReadExclusiveWriteSynchronizer.Beginread;
+Const
+  wrSignaled = 0;
+  wrTimeout  = 1;
+  wrAbandoned= 2;
+  wrError    = 3;
+begin
+  InterlockedIncrement(freadercount);
+  { wait until there is no more writer }
+  while InterLockedExchangeAdd(fwritelocked,0)<>0 do
+    begin
+      { there's a writer busy or ir wanting to start -> wait until it's
+        finished; a writer may already be blocked in the mean time, so
+        wake it up if we're the last to go to sleep }
+      if InterlockedDecrement(freadercount)=0 then
+        RTLEventSetEvent(fwaitingwriterlock);
+      if (BasicEventWaitFor(high(cardinal),freaderqueue) in [wrAbandoned,wrError]) then
+        raise Exception.create('BasicEventWaitFor failed in TMultiReadExclusiveWriteSynchronizer.Beginread');
+      { and try again: first increase freadercount, only then check
+        fwritelocked }
+      InterlockedIncrement(freadercount);
+    end;
+end;
+
+
+procedure  TMultiReadExclusiveWriteSynchronizer.Endread;
+begin
+  { Make sure that all read operations have finished, so that none of those
+    can still be executed after a writer starts working and changes some
+    things }
+  ReadBarrier;
+
+  { If no more readers, wake writer in the ready-queue if any. Since a writer
+    always first atomically sets the fwritelocked and then atomically checks
+    the freadercount, first modifying freadercount and then checking fwritelock
+    ensures that we cannot miss one of the events regardless of execution
+    order. }
+  if (InterlockedDecrement(freadercount)=0) and
+     (InterLockedExchangeAdd(fwritelocked,0)<>0) then
+    RTLEventSetEvent(fwaitingwriterlock);
 end;

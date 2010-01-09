@@ -9421,6 +9421,7 @@ tests/test/units/sysutils/tfile2.pp svneol=native#text/plain
 tests/test/units/sysutils/tfilename.pp svneol=native#text/plain
 tests/test/units/sysutils/tfloattostr.pp svneol=native#text/plain
 tests/test/units/sysutils/tlocale.pp svneol=native#text/plain
+tests/test/units/sysutils/trwsync.pp svneol=native#text/plain
 tests/test/units/sysutils/tsscanf.pp svneol=native#text/plain
 tests/test/units/sysutils/tstrtobool.pp svneol=native#text/plain
 tests/test/uobjc24.pp svneol=native#text/plain

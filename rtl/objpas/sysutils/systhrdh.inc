@@ -21,7 +21,7 @@ type
      procedure EndWrite;
    end;
 
-   TMultiReadExclusiveWriteSynchronizer = class(TInterfacedObject,IReadWriteSync)
+   TSimpleRWSync = class(TInterfacedObject,IReadWriteSync)
    private
       crit : TRtlCriticalSection;
    public
@@ -33,3 +33,18 @@ type
       procedure Endread;
    end;
 
+   TMultiReadExclusiveWriteSynchronizer = class(TInterfacedObject,IReadWriteSync)
+   private
+      freaderqueue: peventstate;
+      fwritelock,
+      fwaitingwriterlock: prtlevent;
+      freadercount: cardinal;
+      fwritelocked: longint;
+   public
+      constructor Create; virtual;
+      destructor  Destroy; override;
+      function Beginwrite : boolean;
+      procedure Endwrite;
+      procedure Beginread;
+      procedure Endread;
+   end;
