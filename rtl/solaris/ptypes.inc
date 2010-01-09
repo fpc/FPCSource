@@ -93,7 +93,8 @@ Type
     pSSize    = ^ssize_t;
     TClock    = clock_t;
     pClock    = ^clock_t;
-    TTime     = time_t;
+    // TTime    = time_t;    // Not allowed in system unit, -> unixtype
+
     pTime     = ^time_t;
     ptime_t   = ^time_t;
     clockid_t = cint;
