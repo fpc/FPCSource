@@ -9081,6 +9081,7 @@ tests/test/tobjc30.pp svneol=native#text/plain
 tests/test/tobjc30a.pp svneol=native#text/plain
 tests/test/tobjc30b.pp svneol=native#text/plain
 tests/test/tobjc30c.pp svneol=native#text/plain
+tests/test/tobjc31.pp svneol=native#text/plain
 tests/test/tobjc4.pp svneol=native#text/plain
 tests/test/tobjc4a.pp svneol=native#text/plain
 tests/test/tobjc5.pp svneol=native#text/plain

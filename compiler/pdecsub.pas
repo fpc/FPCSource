@@ -166,7 +166,8 @@ implementation
         sl       : tpropaccesslist;
       begin
         if (pd.typ=procdef) and
-           is_objc_class_or_protocol(tprocdef(pd)._class) then
+           is_objc_class_or_protocol(tprocdef(pd)._class) and
+           (pd.parast.symtablelevel=normal_function_level) then
           begin
             { insert Objective-C self and selector parameters }
             vs:=tparavarsym.create('$_cmd',paranr_objc_cmd,vs_value,objc_seltype,[vo_is_msgsel,vo_is_hidden_para]);
