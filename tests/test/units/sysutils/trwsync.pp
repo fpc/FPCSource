@@ -12,8 +12,13 @@ uses
 var
   lock: TMultiReadExclusiveWriteSynchronizer;
   gcount: longint;
+  waiting: boolean;
 
 type
+  terrorcheck = class(tthread)
+    procedure execute; override;
+  end;
+
   tcounter = class(tthread)
    private
     flock: TMultiReadExclusiveWriteSynchronizer;
@@ -87,10 +92,27 @@ procedure twritecounter.execute;
       end;
   end;
   
+
+
+procedure terrorcheck.execute;
+begin
+  { make sure we don't exit before this thread has initialised, since    }
+  { it can allocate memory in its initialisation, which would cause      }
+  { problems for heaptrc as it goes over the memory map in its exit code }
+  waiting:=true;
+  { avoid deadlocks/bugs from causing this test to never quit }
+  sleep(1000*15);
+  writeln('error 3');
+  halt(4);
+end;
+
+
 var
   r1,r2,r3,r4,r5,r6: treadcounter;
   w1,w2,w3,w4: twritecounter;
 begin
+  waiting:=false;
+  terrorcheck.create(false);
   randomize;
   lock:=TMultiReadExclusiveWriteSynchronizer.create;
   { first try some writers }
@@ -109,7 +131,7 @@ begin
   
   { must not have caused any data races }
   if (gcount<>w1.localcount+w2.localcount+w3.localcount+w4.localcount) then
-    halt(1);
+    halt(2);
 
   w1.free;
   w2.free;
@@ -147,7 +169,7 @@ begin
   
   { updating via the readcount must have caused data races }
   if (gcount>=r1.localcount+r2.localcount+r3.localcount+r4.localcount+r5.localcount+r6.localcount+w1.localcount+w2.localcount) then
-    halt(2);
+    halt(3);
 
   r1.free;
   r2.free;
@@ -159,4 +181,7 @@ begin
   w2.free;
 
   lock.free;
+
+  while not waiting do
+    sleep(20);
 end.
