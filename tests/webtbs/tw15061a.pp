@@ -1,3 +1,6 @@
+{ %cpu=powerpc,powerpc64 }
+{ %target=darwin }
+
 {$ifdef FPC}
 {$mode macpas}
 {$align power}

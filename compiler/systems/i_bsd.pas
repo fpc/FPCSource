@@ -611,7 +611,7 @@ unit i_bsd;
                 localalignmax   : 8;
                 recordalignmin  : 0;
                 recordalignmax  : 8;
-                maxCrecordalign : 8
+                maxCrecordalign : 4
               );
             first_parm_offset : 48;
             stacksize   : 262144;
