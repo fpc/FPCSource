@@ -111,6 +111,11 @@ begin
   if (gcount<>w1.localcount+w2.localcount+w3.localcount+w4.localcount) then
     halt(1);
 
+  w1.free;
+  w2.free;
+  w3.free;
+  w4.free;
+
   { now try some mixed readers/writers }
   gcount:=0;
   r1:=treadcounter.create;
@@ -143,4 +148,15 @@ begin
   { updating via the readcount must have caused data races }
   if (gcount>=r1.localcount+r2.localcount+r3.localcount+r4.localcount+r5.localcount+r6.localcount+w1.localcount+w2.localcount) then
     halt(2);
+
+  r1.free;
+  r2.free;
+  r3.free;
+  r4.free;
+  r5.free;
+  r6.free;
+  w1.free;
+  w2.free;
+
+  lock.free;
 end.

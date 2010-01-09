@@ -61,6 +61,7 @@ destructor TMultiReadExclusiveWriteSynchronizer.Destroy;
 begin
   InterlockedExchange(fwritelocked,0);
   RtlEventDestroy(fwritelock);
+  RtlEventDestroy(fwaitingwriterlock);
   BasicEventDestroy(freaderqueue);
 end;
 
@@ -125,7 +126,7 @@ begin
   { wait until there is no more writer }
   while InterLockedExchangeAdd(fwritelocked,0)<>0 do
     begin
-      { there's a writer busy or ir wanting to start -> wait until it's
+      { there's a writer busy or wanting to start -> wait until it's
         finished; a writer may already be blocked in the mean time, so
         wake it up if we're the last to go to sleep }
       if InterlockedDecrement(freadercount)=0 then
