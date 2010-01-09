@@ -19,7 +19,7 @@
                      --- Main:The System Call Self ---
 *****************************************************************************}
 
-function Fptime(tloc:pTime): TTime; [public, alias : 'FPC_SYSC_TIME'];
+function Fptime(tloc:pTime_t): Time_t; [public, alias : 'FPC_SYSC_TIME'];
 {$ifdef FPC_USEGETTIMEOFDAY}
 VAR tv     : timeval;
     tz     : timezone;
