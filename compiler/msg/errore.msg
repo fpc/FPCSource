@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03282 is the last used one
+# 03284 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -514,7 +514,7 @@ parser_e_fail_only_in_constructor=03051_E_FAIL can be used in constructors only
 parser_e_no_paras_for_destructor=03052_E_Destructors can't have parameters
 % You are declaring a destructor with a parameter list. Destructor methods
 % cannot have parameters.
-parser_e_only_class_methods_via_class_ref=03053_E_Only class methods can be referred with class references
+parser_e_only_class_members_via_class_ref=03053_E_Only class methods, class properties and class variables can be referred with class references
 % This error occurs in a situation like the following:
 % \begin{verbatim}
 % Type :
@@ -528,7 +528,7 @@ parser_e_only_class_methods_via_class_ref=03053_E_Only class methods can be refe
 % \end{verbatim}
 % \var{Free} is not a class method and hence cannot be called with a class
 % reference.
-parser_e_only_class_methods=03054_E_Only class methods can be accessed in class methods
+parser_e_only_class_members=03054_E_Only class class methods, class properties and class variables can be accessed in class methods
 % This is related to the previous error. You cannot call a method of an object
 % from inside a class method. The following code would produce this error:
 % \begin{verbatim}

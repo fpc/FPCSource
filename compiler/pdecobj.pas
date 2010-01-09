@@ -82,7 +82,7 @@ implementation
       end;
 
 
-    procedure property_dec;
+    procedure property_dec(is_classproperty:boolean);
       var
         p : tpropertysym;
       begin
@@ -91,7 +91,7 @@ implementation
            (not(m_tp7 in current_settings.modeswitches) and (is_object(current_objectdef)))) then
           Message(parser_e_syntax_error);
         consume(_PROPERTY);
-        p:=read_property_dec(current_objectdef);
+        p:=read_property_dec(is_classproperty, current_objectdef);
         consume(_SEMICOLON);
         if try_to_consume(_DEFAULT) then
           begin
@@ -526,7 +526,7 @@ implementation
         oldparse_only,
         old_parse_generic : boolean;
         object_member_blocktype : tblock_type;
-        fields_allowed: boolean;
+        fields_allowed, is_classdef: boolean;
       begin
         { empty class declaration ? }
         if (current_objectdef.objecttype in [odt_class,odt_objcclass]) and
@@ -544,6 +544,7 @@ implementation
         testcurobject:=1;
         has_destructor:=false;
         fields_allowed:=true;
+        is_classdef:=false;
         object_member_blocktype:=bt_general;
         repeat
           case token of
@@ -667,12 +668,29 @@ implementation
               end;
             _PROPERTY :
               begin
-                property_dec;
+                property_dec(is_classdef);
                 fields_allowed:=false;
+                is_classdef:=false;
+              end;
+            _CLASS:
+              begin
+                is_classdef:=false;
+                { read class method }
+                if try_to_consume(_CLASS) then
+                 begin
+                   { class method only allowed for procedures and functions }
+                   if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY]) then
+                     Message(parser_e_procedure_or_function_expected);
+
+                   if is_interface(current_objectdef) then
+                     Message(parser_e_no_static_method_in_interfaces)
+                   else
+                     { class methods are also allowed for Objective-C protocols }
+                     is_classdef:=true;
+                 end;
               end;
             _PROCEDURE,
-            _FUNCTION,
-            _CLASS :
+            _FUNCTION:
               begin
                 if (current_objectdef.symtable.currentvisibility=vis_published) and
                    not(oo_can_have_published in current_objectdef.objectoptions) then
@@ -680,7 +698,7 @@ implementation
 
                 oldparse_only:=parse_only;
                 parse_only:=true;
-                pd:=parse_proc_dec(current_objectdef);
+                pd:=parse_proc_dec(is_classdef, current_objectdef);
 
                 { this is for error recovery as well as forward }
                 { interface mappings, i.e. mapping to a method  }
@@ -716,6 +734,7 @@ implementation
 
                 parse_only:=oldparse_only;
                 fields_allowed:=false;
+                is_classdef:=false;
               end;
             _CONSTRUCTOR :
               begin

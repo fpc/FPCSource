@@ -151,8 +151,8 @@ const
   parser_e_error_in_real=03050;
   parser_e_fail_only_in_constructor=03051;
   parser_e_no_paras_for_destructor=03052;
-  parser_e_only_class_methods_via_class_ref=03053;
-  parser_e_only_class_methods=03054;
+  parser_e_only_class_members_via_class_ref=03053;
+  parser_e_only_class_members=03054;
   parser_e_case_mismatch=03055;
   parser_e_illegal_symbol_exported=03056;
   parser_w_should_use_override=03057;
@@ -840,7 +840,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 55145;
+  MsgTxtSize = 55227;
 
   MsgIdxMax : array[1..20] of longint=(
     24,87,285,95,71,51,110,22,202,63,

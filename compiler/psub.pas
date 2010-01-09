@@ -1545,7 +1545,7 @@ implementation
       end;
 
 
-    procedure read_proc;
+    procedure read_proc(isclassmethod:boolean);
       {
         Parses the procedure directives, then parses the procedure body, then
         generates the code for it
@@ -1568,7 +1568,7 @@ implementation
          current_objectdef:=nil;
 
          { parse procedure declaration }
-         pd:=parse_proc_dec(old_current_objectdef);
+         pd:=parse_proc_dec(isclassmethod, old_current_objectdef);
 
          { set the default function options }
          if parse_only then
@@ -1713,8 +1713,11 @@ implementation
 
 
     procedure read_declarations(islibrary : boolean);
+      var
+        is_classdef:boolean;
       begin
-         repeat
+        is_classdef:=false;
+        repeat
            if not assigned(current_procinfo) then
              internalerror(200304251);
            case token of
@@ -1728,13 +1731,31 @@ implementation
                 var_dec;
               _THREADVAR:
                 threadvar_dec;
+              _CLASS:
+                begin
+                  is_classdef:=false;
+                  if try_to_consume(_CLASS) then
+                   begin
+                     { class method only allowed for procedures and functions }
+                     if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY]) then
+                       Message(parser_e_procedure_or_function_expected);
+
+                     if is_interface(current_objectdef) then
+                       Message(parser_e_no_static_method_in_interfaces)
+                     else
+                       { class methods are also allowed for Objective-C protocols }
+                       is_classdef:=true;
+                   end;
+                end;
               _CONSTRUCTOR,
               _DESTRUCTOR,
               _FUNCTION,
               _PROCEDURE,
-              _OPERATOR,
-              _CLASS:
-                read_proc;
+              _OPERATOR:
+                begin
+                  read_proc(is_classdef);
+                  is_classdef:=false;
+                end;
               _EXPORTS:
                 begin
                    if (current_procinfo.procdef.localst.symtablelevel>main_program_level) then
@@ -1766,7 +1787,10 @@ implementation
                     _PROPERTY:
                       begin
                         if (m_fpc in current_settings.modeswitches) then
-                          property_dec
+                        begin
+                          property_dec(is_classdef);
+                          is_classdef:=false;
+                        end
                         else
                           break;
                       end;
@@ -1799,7 +1823,7 @@ implementation
              _FUNCTION,
              _PROCEDURE,
              _OPERATOR :
-               read_proc;
+               read_proc(false);
              else
                begin
                  case idtoken of
@@ -1808,7 +1832,7 @@ implementation
                    _PROPERTY:
                      begin
                        if (m_fpc in current_settings.modeswitches) then
-                         property_dec
+                         property_dec(false)
                        else
                          break;
                      end;

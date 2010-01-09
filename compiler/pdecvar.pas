@@ -33,7 +33,7 @@ interface
       tvar_dec_option=(vd_record,vd_object,vd_threadvar);
       tvar_dec_options=set of tvar_dec_option;
 
-    function  read_property_dec(aclass:tobjectdef):tpropertysym;
+    function  read_property_dec(is_classproperty:boolean; aclass:tobjectdef):tpropertysym;
 
     procedure read_var_decls(options:Tvar_dec_options);
 
@@ -66,7 +66,7 @@ implementation
        ;
 
 
-    function read_property_dec(aclass:tobjectdef):tpropertysym;
+    function read_property_dec(is_classproperty:boolean; aclass:tobjectdef):tpropertysym;
 
         { convert a node tree to symlist and return the last
           symbol }
@@ -269,8 +269,8 @@ implementation
          writeprocdef:=tprocvardef.create(normal_function_level);
          storedprocdef:=tprocvardef.create(normal_function_level);
 
-         { make it method pointers }
-         if assigned(aclass) then
+         { make them method pointers }
+         if assigned(aclass) and not is_classproperty then
            begin
              include(readprocdef.procoptions,po_methodpointer);
              include(writeprocdef.procoptions,po_methodpointer);
@@ -290,6 +290,8 @@ implementation
          p:=tpropertysym.create(orgpattern);
          p.visibility:=symtablestack.top.currentvisibility;
          p.default:=longint($80000000);
+         if is_classproperty then
+           include(p.symoptions, sp_static);
          symtablestack.top.insert(p);
          consume(_ID);
          { property parameters ? }
@@ -461,8 +463,9 @@ implementation
                                the parameter.
                                Note: In the help of Kylix it is written
                                that it isn't allowed, but the compiler accepts it (PFV) }
-                             if (ppo_hasparameters in p.propoptions) then
-                              Message(parser_e_ill_property_access_sym);
+                             if (ppo_hasparameters in p.propoptions) or
+                                ((sp_static in p.symoptions) <> (sp_static in sym.symoptions)) then
+                               Message(parser_e_ill_property_access_sym);
                            end
                           else
                            IncompatibleTypes(def,p.propdef);
@@ -505,7 +508,8 @@ implementation
                                the parameter.
                                Note: In the help of Kylix it is written
                                that it isn't allowed, but the compiler accepts it (PFV) }
-                             if (ppo_hasparameters in p.propoptions) then
+                             if (ppo_hasparameters in p.propoptions) or
+                                ((sp_static in p.symoptions) <> (sp_static in sym.symoptions)) then
                               Message(parser_e_ill_property_access_sym);
                            end
                           else
@@ -536,7 +540,7 @@ implementation
                end;
            end;
 
-         if assigned(aclass) and not(is_dispinterface(aclass)) then
+         if assigned(aclass) and not(is_dispinterface(aclass)) and not is_classproperty then
            begin
              { ppo_stored is default on for not overriden properties }
              if not assigned(p.overridenpropsym) then

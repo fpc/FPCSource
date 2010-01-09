@@ -60,7 +60,7 @@ interface
     procedure parse_var_proc_directives(sym:tsym);
     procedure parse_object_proc_directives(pd:tabstractprocdef);
     function  parse_proc_head(aclass:tobjectdef;potype:tproctypeoption;var pd:tprocdef):boolean;
-    function  parse_proc_dec(aclass:tobjectdef):tprocdef;
+    function  parse_proc_dec(isclassmethod:boolean; aclass:tobjectdef):tprocdef;
 
 implementation
 
@@ -948,30 +948,15 @@ implementation
       end;
 
 
-    function parse_proc_dec(aclass:tobjectdef):tprocdef;
+    function parse_proc_dec(isclassmethod:boolean; aclass:tobjectdef):tprocdef;
       var
         pd : tprocdef;
-        isclassmethod : boolean;
         locationstr: string;
         old_parse_generic,
         popclass           : boolean;
       begin
         locationstr:='';
         pd:=nil;
-        isclassmethod:=false;
-        { read class method }
-        if try_to_consume(_CLASS) then
-         begin
-           { class method only allowed for procedures and functions }
-           if not(token in [_FUNCTION,_PROCEDURE]) then
-             Message(parser_e_procedure_or_function_expected);
-
-           if is_interface(aclass) then
-             Message(parser_e_no_static_method_in_interfaces)
-           else
-             { class methods are also allowed for Objective-C protocols }
-             isclassmethod:=true;
-         end;
         case token of
           _FUNCTION :
             begin

@@ -1028,6 +1028,9 @@ implementation
          membercall : boolean;
          callflags  : tcallnodeflags;
          propaccesslist : tpropaccesslist;
+         static_name : shortstring;
+         sym: tsym;
+         srsymtable : tsymtable;
       begin
          { property parameters? read them only if the property really }
          { has parameters                                             }
@@ -1052,7 +1055,8 @@ implementation
            begin
               if getpropaccesslist(propsym,palt_write,propaccesslist) then
                 begin
-                   case propaccesslist.firstsym^.sym.typ of
+                   sym:=propaccesslist.firstsym^.sym;
+                   case sym.typ of
                      procsym :
                        begin
                          callflags:=[];
@@ -1060,8 +1064,8 @@ implementation
                          membercall:=maybe_load_methodpointer(st,p1);
                          if membercall then
                            include(callflags,cnf_member_call);
-                         p1:=ccallnode.create(paras,tprocsym(propaccesslist.firstsym^.sym),st,p1,callflags);
-                         addsymref(propaccesslist.firstsym^.sym);
+                         p1:=ccallnode.create(paras,tprocsym(sym),st,p1,callflags);
+                         addsymref(sym);
                          paras:=nil;
                          consume(_ASSIGNMENT);
                          { read the expression }
@@ -1078,7 +1082,19 @@ implementation
                      fieldvarsym :
                        begin
                          { generate access code }
-                         propaccesslist_to_node(p1,st,propaccesslist);
+                         if (sp_static in sym.symoptions) then
+                           begin
+                             static_name:=lower(sym.owner.name^)+'_'+sym.name;
+                             searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable);
+                             if assigned(sym) then
+                               check_hints(sym,sym.symoptions,sym.deprecatedmsg);
+                             p1.free;
+                             p1:=nil;
+                             { static syms are always stored as absolutevarsym to handle scope and storage properly }
+                             propaccesslist_to_node(p1,nil,tabsolutevarsym(sym).ref);
+                           end
+                         else
+                           propaccesslist_to_node(p1,st,propaccesslist);
                          include(p1.flags,nf_isproperty);
                          consume(_ASSIGNMENT);
                          { read the expression }
@@ -1102,12 +1118,25 @@ implementation
            begin
               if getpropaccesslist(propsym,palt_read,propaccesslist) then
                 begin
-                   case propaccesslist.firstsym^.sym.typ of
+                   sym := propaccesslist.firstsym^.sym;
+                   case sym.typ of
                      fieldvarsym :
                        begin
-                          { generate access code }
-                          propaccesslist_to_node(p1,st,propaccesslist);
-                          include(p1.flags,nf_isproperty);
+                         { generate access code }
+                         if (sp_static in sym.symoptions) then
+                           begin
+                             static_name:=lower(sym.owner.name^)+'_'+sym.name;
+                             searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable);
+                             if assigned(sym) then
+                               check_hints(sym,sym.symoptions,sym.deprecatedmsg);
+                             p1.free;
+                             p1:=nil;
+                             { static syms are always stored as absolutevarsym to handle scope and storage properly }
+                             propaccesslist_to_node(p1,nil,tabsolutevarsym(sym).ref);
+                           end
+                         else
+                           propaccesslist_to_node(p1,st,propaccesslist);
+                         include(p1.flags,nf_isproperty);
                        end;
                      procsym :
                        begin
@@ -1116,7 +1145,7 @@ implementation
                           membercall:=maybe_load_methodpointer(st,p1);
                           if membercall then
                             include(callflags,cnf_member_call);
-                          p1:=ccallnode.create(paras,tprocsym(propaccesslist.firstsym^.sym),st,p1,callflags);
+                          p1:=ccallnode.create(paras,tprocsym(sym),st,p1,callflags);
                           paras:=nil;
                           include(p1.flags,nf_isproperty);
                        end
@@ -1184,7 +1213,7 @@ implementation
                          assigned(tcallnode(p1).procdefinition) and
                          not(po_classmethod in tcallnode(p1).procdefinition.procoptions) and
                          not(tcallnode(p1).procdefinition.proctypeoption=potype_constructor) then
-                        Message(parser_e_only_class_methods_via_class_ref);
+                        Message(parser_e_only_class_members_via_class_ref);
                    end;
                  fieldvarsym:
                    begin
@@ -1203,17 +1232,20 @@ implementation
                         begin
                           if isclassref then
                             if assigned(p1) and
-                               is_self_node(p1) then
-                              Message(parser_e_only_class_methods)
+                              (
+                                is_self_node(p1) or
+                                (assigned(current_procinfo) and ([po_staticmethod,po_classmethod] <= current_procinfo.procdef.procoptions) and
+                                 (current_procinfo.procdef._class = classh))) then
+                              Message(parser_e_only_class_members)
                             else
-                              Message(parser_e_only_class_methods_via_class_ref);
+                              Message(parser_e_only_class_members_via_class_ref);
                           p1:=csubscriptnode.create(sym,p1);
                         end;
                    end;
                  propertysym:
                    begin
-                      if isclassref then
-                        Message(parser_e_only_class_methods_via_class_ref);
+                      if isclassref and not (sp_static in sym.symoptions) then
+                        Message(parser_e_only_class_members_via_class_ref);
                       handle_propertysym(tpropertysym(sym),sym.owner,p1);
                    end;
                  typesym:
@@ -1595,7 +1627,11 @@ implementation
                     if is_member_read(srsym,srsymtable,p1,hdef) then
                       begin
                         if (srsymtable.symtabletype=ObjectSymtable) then
-                          p1:=load_self_node;
+                           if (assigned(current_procinfo) and ([po_staticmethod,po_classmethod] <= current_procinfo.procdef.procoptions)) then
+                          { no self node in static class methods }
+                            p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
+                          else
+                            p1:=load_self_node;
                         { not srsymtable.symtabletype since that can be }
                         { withsymtable as well                          }
                         if (srsym.owner.symtabletype=ObjectSymtable) then

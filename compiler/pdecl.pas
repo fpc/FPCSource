@@ -41,7 +41,7 @@ interface
     procedure types_dec;
     procedure var_dec;
     procedure threadvar_dec;
-    procedure property_dec;
+    procedure property_dec(is_classpropery: boolean);
     procedure resourcestring_dec;
 
 implementation
@@ -642,7 +642,7 @@ implementation
       end;
 
 
-    procedure property_dec;
+    procedure property_dec(is_classpropery: boolean);
       var
          old_block_type : tblock_type;
       begin
@@ -652,7 +652,7 @@ implementation
          old_block_type:=block_type;
          block_type:=bt_const;
          repeat
-           read_property_dec(nil);
+           read_property_dec(is_classpropery, nil);
            consume(_SEMICOLON);
          until token<>_ID;
          block_type:=old_block_type;

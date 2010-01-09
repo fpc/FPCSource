@@ -2771,6 +2771,14 @@ implementation
                 while assigned(hpt) and (hpt.nodetype in [subscriptn,vecn]) do
                   hpt:=tunarynode(hpt).left;
 
+                if ((hpt.nodetype=loadvmtaddrn) or
+                   ((hpt.nodetype=loadn) and assigned(tloadnode(hpt).resultdef) and (tloadnode(hpt).resultdef.typ=classrefdef))) and
+                   not (procdefinition.proctypeoption=potype_constructor) and
+                   not (po_classmethod in procdefinition.procoptions) and
+                   not (po_staticmethod in procdefinition.procoptions) then
+                  { error: we are calling instance method from the class method/static method }
+                  CGMessage(parser_e_only_class_members);
+
                if (procdefinition.proctypeoption=potype_constructor) and
                   assigned(symtableproc) and
                   (symtableproc.symtabletype=withsymtable) and
