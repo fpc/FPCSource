@@ -33,6 +33,8 @@ unit optcse;
 
     {
       the function  creates non optimal code so far:
+      - call para nodes are cse barriers because they can be reordered and thus the
+        temp. creation can be done too late
       - cse's in chained expressions are not recognized: the common subexpression
         in (a1 and b and c) vs. (a2 and b and c) is not recognized because there is no common
         subtree b and c
@@ -52,15 +54,15 @@ unit optcse;
       cclasses,
       verbose,
       nutils,
-      nbas,nld,ninl,
+      nbas,nld,ninl,ncal,
       pass_1,
-      symtype,symdef;
+      symconst,symtype,symdef;
 
     const
       cseinvariant : set of tnodetype = [loadn,addn,muln,subn,divn,slashn,modn,andn,orn,xorn,notn,vecn,
         derefn,equaln,unequaln,ltn,gtn,lten,gten,typeconvn,subscriptn,
         inn,symdifn,shrn,shln,ordconstn,realconstn,unaryminusn,pointerconstn,stringconstn,setconstn,
-        isn,asn,starstarn,nothingn,temprefn,callparan];
+        isn,asn,starstarn,nothingn,temprefn {,callparan}];
 
     function searchsubdomain(var n:tnode; arg: pointer) : foreachnoderesult;
       begin
@@ -91,10 +93,26 @@ unit optcse;
         i : longint;
       begin
         result:=fen_false;
-        { node worth to add? }
-        if (node_complexity(n)>1) and (tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
+        { don't add the tree below an untyped const parameter: there is
+          no information available that this kind of tree actually needs
+          to be addresable, this could be improved }
+        if ((n.nodetype=callparan) and
+          (tcallparanode(n).left.resultdef.typ=formaldef) and
+          (tcallparanode(n).parasym.varspez=vs_const)) then
+          begin
+            result:=fen_norecurse_false;
+            exit;
+          end;
+        { so far, we can handle only nodes being read }
+        if (n.flags*[nf_write,nf_modify]=[]) and
+          { node possible to add? }
+          assigned(n.resultdef) and (tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
+          { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
+          not(n.resultdef.typ in [arraydef,recorddef]) and
           { adding tempref nodes is worthless but their complexity is probably <= 1 anyways }
-          not(n.nodetype in [temprefn]) then
+          not(n.nodetype in [temprefn]) and
+          { node worth to add? }
+          (node_complexity(n)>1) then
           begin
             plists(arg)^.nodelist.Add(n);
             plists(arg)^.locationlist.Add(@n);
@@ -154,6 +172,7 @@ unit optcse;
                 templist:=tfplist.create;
                 templist.count:=lists.nodelist.count;
 
+                { check all nodes if one is used more than once }
                 for i:=0 to lists.nodelist.count-1 do
                   begin
                     { current node used more than once? }
@@ -209,9 +228,23 @@ unit optcse;
 
                 if assigned(statements) then
                   begin
-                    addstatement(statements,n);
-                    n:=nodes;
-                    do_firstpass(n);
+                    { call para nodes need a special handling because
+                      they can be only children nodes of call nodes
+                      so the initialization code is inserted below the
+                      call para node
+                    }
+                    if n.nodetype=callparan then
+                      begin
+                        addstatement(statements,tcallparanode(n).left);
+                        tcallparanode(n).left:=nodes;
+                        do_firstpass(tcallparanode(n).left);
+                      end
+                    else
+                      begin
+                        addstatement(statements,n);
+                        n:=nodes;
+                        do_firstpass(n);
+                      end;
 {$ifdef csedebug}
                     printnode(output,nodes);
 {$endif csedebug}
