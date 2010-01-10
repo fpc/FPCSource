@@ -75,7 +75,7 @@ begin
     after aquiring the fwritelock, because otherwise one
     writer could reset the fwaitingwriterlock of another one
     that's about to wait on it) }
-  BasicEventResetEvent(fwaitingwriterlock);
+  RTLeventResetEvent(fwaitingwriterlock);
   { new readers have to block from now on; writers get priority to avoid
     writer starvation (since they have to compete with potentially many
     concurrent readers) }
