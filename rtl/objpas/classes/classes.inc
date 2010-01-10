@@ -1688,7 +1688,7 @@ begin
   ClassList := TThreadList.Create;
   ClassAliasList := TStringList.Create;
   { on unix this maps to a simple rw synchornizer }
-  GlobalNameSpace := TMultiReadExclusiveWriteSynchronizer.Create;
+  GlobalNameSpace := TSimpleRWSync.Create;
   RegisterInitComponentHandler(TComponent,@DefaultInitHandler);
 end;
 
