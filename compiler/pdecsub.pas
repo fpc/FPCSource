@@ -571,11 +571,29 @@ implementation
                   end;
 
                 { open string ? }
-                if (varspez in [vs_out,vs_var]) and
-                   (cs_openstring in current_settings.moduleswitches) and
-                   is_shortstring(hdef) then
-                  hdef:=openshortstringtype;
-
+                if is_shortstring(hdef) then
+                  begin
+                    case varspez of
+                      vs_var,vs_out:
+                        begin
+                          { not 100% Delphi-compatible: type xstr=string[255] cannot
+                            become an openstring there, while here it can }
+                          if (cs_openstring in current_settings.moduleswitches) and
+                             (tstringdef(hdef).len=255) then
+                            hdef:=openshortstringtype
+                        end;
+                      vs_value:
+                       begin
+                         { value "openstring" parameters don't make sense (the
+                            original string can never be modified, so there's no
+                            use in passing its original length), so change these
+                            into regular shortstring parameters (seems to be what
+                            Delphi also does) }
+                        if is_open_string(hdef) then
+                          hdef:=cshortstringtype;
+                       end;
+                    end;
+                  end;
                 if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) then
                   begin
                     if (idtoken=_LOCATION) then
