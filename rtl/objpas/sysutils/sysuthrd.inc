@@ -68,28 +68,33 @@ end;
 
 function  TMultiReadExclusiveWriteSynchronizer.Beginwrite : boolean;
 begin
-  { wait for any other writers that may be in progress }
-  RTLEventWaitFor(fwritelock);
-  { it is possible that we earlier on missed waiting on the
-    fwaitingwriterlock and that it's still set (must be done
-    after aquiring the fwritelock, because otherwise one
-    writer could reset the fwaitingwriterlock of another one
-    that's about to wait on it) }
-  RTLeventResetEvent(fwaitingwriterlock);
-  { new readers have to block from now on; writers get priority to avoid
-    writer starvation (since they have to compete with potentially many
-    concurrent readers) }
-  BasicEventResetEvent(freaderqueue);
-  { for quick checking by candidate-readers }
-  System.InterlockedExchange(fwritelocked,1);
-
-  { wait until all readers are gone -- freadercount and fwritelocked are only
-    accessed using atomic operations (that's why we use
-    InterLockedExchangeAdd(x,0) below) -> always in-order. The writer always
-    first sets fwritelocked and then checks freadercount, while the readers
-    always first increase freadercount and then check fwritelocked }
-  while (System.InterLockedExchangeAdd(freadercount,0)<>0) do
-    RTLEventWaitFor(fwaitingwriterlock);
+  { if IsMultiThread is false, no thread manager may be installed
+    under unix and hence the event routines may throw an error }
+  if IsMultiThread then
+    begin
+      { wait for any other writers that may be in progress }
+      RTLEventWaitFor(fwritelock);
+      { it is possible that we earlier on missed waiting on the
+        fwaitingwriterlock and that it's still set (must be done
+        after aquiring the fwritelock, because otherwise one
+        writer could reset the fwaitingwriterlock of another one
+        that's about to wait on it) }
+      RTLeventResetEvent(fwaitingwriterlock);
+      { new readers have to block from now on; writers get priority to avoid
+        writer starvation (since they have to compete with potentially many
+        concurrent readers) }
+      BasicEventResetEvent(freaderqueue);
+      { for quick checking by candidate-readers }
+      System.InterlockedExchange(fwritelocked,1);
+    
+      { wait until all readers are gone -- freadercount and fwritelocked are only
+        accessed using atomic operations (that's why we use
+        InterLockedExchangeAdd(x,0) below) -> always in-order. The writer always
+        first sets fwritelocked and then checks freadercount, while the readers
+        always first increase freadercount and then check fwritelocked }
+      while (System.InterLockedExchangeAdd(freadercount,0)<>0) do
+        RTLEventWaitFor(fwaitingwriterlock);
+    end;
 
   { we have the writer lock, and all readers are gone }
   result:=true;
@@ -98,20 +103,25 @@ end;
 
 procedure  TMultiReadExclusiveWriteSynchronizer.Endwrite;
 begin
-  { Finish all writes inside the section so that everything executing
-    afterwards will certainly see these results }
-  WriteBarrier;
+  { if IsMultiThread is false, no thread manager may be installed
+    under unix and hence the event routines may throw an error }
+  if IsMultiThread then
+    begin
+      { Finish all writes inside the section so that everything executing
+        afterwards will certainly see these results }
+      WriteBarrier;
 
-  { signal potential readers that the coast is clear }
-  System.InterlockedExchange(fwritelocked,0);
-  { wake up waiting readers (if any); do not check first whether freadercount
-    is <> 0, because the InterlockedDecrement in the while loop of BeginRead
-    can have already occurred, so a single reader may be about to wait on
-    freaderqueue even though freadercount=0. Setting an event multiple times
-    is no problem. }
-  BasicEventSetEvent(freaderqueue);
-  { free the writer lock so another writer can become active }
-  RTLeventSetEvent(fwritelock);
+      { signal potential readers that the coast is clear }
+      System.InterlockedExchange(fwritelocked,0);
+      { wake up waiting readers (if any); do not check first whether freadercount
+        is <> 0, because the InterlockedDecrement in the while loop of BeginRead
+        can have already occurred, so a single reader may be about to wait on
+        freaderqueue even though freadercount=0. Setting an event multiple times
+        is no problem. }
+      BasicEventSetEvent(freaderqueue);
+      { free the writer lock so another writer can become active }
+      RTLeventSetEvent(fwritelock);
+    end;
 end;
 
 
@@ -122,37 +132,47 @@ Const
   wrAbandoned= 2;
   wrError    = 3;
 begin
-  System.InterlockedIncrement(freadercount);
-  { wait until there is no more writer }
-  while System.InterLockedExchangeAdd(fwritelocked,0)<>0 do
+  { if IsMultiThread is false, no thread manager may be installed
+    under unix and hence the event routines may throw an error }
+  if IsMultiThread then
     begin
-      { there's a writer busy or wanting to start -> wait until it's
-        finished; a writer may already be blocked in the mean time, so
-        wake it up if we're the last to go to sleep }
-      if System.InterlockedDecrement(freadercount)=0 then
-        RTLEventSetEvent(fwaitingwriterlock);
-      if (BasicEventWaitFor(high(cardinal),freaderqueue) in [wrAbandoned,wrError]) then
-        raise Exception.create('BasicEventWaitFor failed in TMultiReadExclusiveWriteSynchronizer.Beginread');
-      { and try again: first increase freadercount, only then check
-        fwritelocked }
       System.InterlockedIncrement(freadercount);
+      { wait until there is no more writer }
+      while System.InterLockedExchangeAdd(fwritelocked,0)<>0 do
+        begin
+          { there's a writer busy or wanting to start -> wait until it's
+            finished; a writer may already be blocked in the mean time, so
+            wake it up if we're the last to go to sleep }
+          if System.InterlockedDecrement(freadercount)=0 then
+            RTLEventSetEvent(fwaitingwriterlock);
+          if (BasicEventWaitFor(high(cardinal),freaderqueue) in [wrAbandoned,wrError]) then
+            raise Exception.create('BasicEventWaitFor failed in TMultiReadExclusiveWriteSynchronizer.Beginread');
+          { and try again: first increase freadercount, only then check
+            fwritelocked }
+          System.InterlockedIncrement(freadercount);
+        end;
     end;
 end;
 
 
 procedure  TMultiReadExclusiveWriteSynchronizer.Endread;
 begin
-  { Make sure that all read operations have finished, so that none of those
-    can still be executed after a writer starts working and changes some
-    things }
-  ReadBarrier;
+  { if IsMultiThread is false, no thread manager may be installed
+    under unix and hence the event routines may throw an error }
+  if IsMultiThread then
+    begin
+      { Make sure that all read operations have finished, so that none of those
+        can still be executed after a writer starts working and changes some
+        things }
+      ReadBarrier;
 
-  { If no more readers, wake writer in the ready-queue if any. Since a writer
-    always first atomically sets the fwritelocked and then atomically checks
-    the freadercount, first modifying freadercount and then checking fwritelock
-    ensures that we cannot miss one of the events regardless of execution
-    order. }
-  if (System.InterlockedDecrement(freadercount)=0) and
-     (System.InterLockedExchangeAdd(fwritelocked,0)<>0) then
-    RTLEventSetEvent(fwaitingwriterlock);
+      { If no more readers, wake writer in the ready-queue if any. Since a writer
+        always first atomically sets the fwritelocked and then atomically checks
+        the freadercount, first modifying freadercount and then checking fwritelock
+        ensures that we cannot miss one of the events regardless of execution
+        order. }
+      if (System.InterlockedDecrement(freadercount)=0) and
+         (System.InterLockedExchangeAdd(fwritelocked,0)<>0) then
+        RTLEventSetEvent(fwaitingwriterlock);
+    end;
 end;
