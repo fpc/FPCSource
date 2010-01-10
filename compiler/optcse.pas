@@ -31,21 +31,17 @@ unit optcse;
     uses
       node;
 
-
     {
-      the function is not ready for use yet
-      - when handling short boolean evaluation, the cse's are evaluated before the
-        whole expression, this is wrong and can lead to crashes
-
-      further, it creates non optimal code:
-      - nested cse's in another cse are not recognized
+      the function  creates non optimal code so far:
       - cse's in chained expressions are not recognized: the common subexpression
         in (a1 and b and c) vs. (a2 and b and c) is not recognized because there is no common
         subtree b and c
       - the cse knows nothing about register pressure. In case of high register pressure, cse might
         have a negative impact
+      - assignment nodes are currently cse borders: things like a[i,j]:=a[i,j]+1; are not improved
+      - the list of cseinvariant node types and inline numbers is not complete yet
 
-      - it could be done probably in a faster way, currently the complexity is approx. O(n^4)
+      Further, it could be done probably in a faster way though the complexity can't probably not reduced
     }
     function do_optcse(var rootnode : tnode) : tnode;
 
@@ -56,7 +52,7 @@ unit optcse;
       cclasses,
       verbose,
       nutils,
-      nbas,nld,
+      nbas,nld,ninl,
       pass_1,
       symtype,symdef;
 
@@ -64,28 +60,35 @@ unit optcse;
       cseinvariant : set of tnodetype = [loadn,addn,muln,subn,divn,slashn,modn,andn,orn,xorn,notn,vecn,
         derefn,equaln,unequaln,ltn,gtn,lten,gten,typeconvn,subscriptn,
         inn,symdifn,shrn,shln,ordconstn,realconstn,unaryminusn,pointerconstn,stringconstn,setconstn,
-        isn,asn,starstarn,nothingn,temprefn];
+        isn,asn,starstarn,nothingn,temprefn,callparan];
 
     function searchsubdomain(var n:tnode; arg: pointer) : foreachnoderesult;
       begin
-        if not(n.nodetype in cseinvariant) then
+        if (n.nodetype in cseinvariant) or
+          ((n.nodetype=inlinen) and
+            (tinlinenode(n).inlinenumber in [in_assigned_x])
+          ) then
+          result:=fen_true
+        else
           begin
             pboolean(arg)^:=false;
             result:=fen_norecurse_true;
-          end
-        else
-          result:=fen_true;
+          end;
       end;
 
     type
       tlists = record
         nodelist : tfplist;
         locationlist : tfplist;
+        equalto : tfplist;
+        refs : tfplist;
       end;
 
       plists = ^tlists;
 
     function collectnodes(var n:tnode; arg: pointer) : foreachnoderesult;
+      var
+        i : longint;
       begin
         result:=fen_false;
         { node worth to add? }
@@ -95,21 +98,32 @@ unit optcse;
           begin
             plists(arg)^.nodelist.Add(n);
             plists(arg)^.locationlist.Add(@n);
+            plists(arg)^.refs.Add(nil);
+            plists(arg)^.equalto.Add(pointer(-1));
+            for i:=0 to plists(arg)^.nodelist.count-2 do
+              begin
+                if tnode(plists(arg)^.nodelist[i]).isequal(n) then
+                  begin
+                    { use always the first occurence }
+                    if ptrint(plists(arg)^.equalto[i])<>-1 then
+                      plists(arg)^.equalto[plists(arg)^.nodelist.count-1]:=plists(arg)^.equalto[i]
+                    else
+                      plists(arg)^.equalto[plists(arg)^.nodelist.count-1]:=pointer(i);
+                    plists(arg)^.refs[i]:=pointer(plists(arg)^.refs[i])+1;
+                    exit;
+                  end;
+              end;
+
           end;
-        {
-        else
-          result:=fen_norecurse_false;
-        }
       end;
 
 
     function searchcsedomain(var n: tnode; arg: pointer) : foreachnoderesult;
       var
-        restart : boolean;
         csedomain : boolean;
         lists : tlists;
         templist : tfplist;
-        i,j : longint;
+        i : longint;
         def : tstoreddef;
         nodes : tblocknode;
         creates,
@@ -131,102 +145,68 @@ unit optcse;
                 printnode(output,n);
                 writeln('Complexity: ',node_complexity(n));
 {$endif csedebug}
-                repeat
-                  lists.nodelist:=tfplist.create;
-                  lists.locationlist:=tfplist.create;
-                  foreachnodestatic(pm_postprocess,n,@collectnodes,@lists);
+                lists.nodelist:=tfplist.create;
+                lists.locationlist:=tfplist.create;
+                lists.equalto:=tfplist.create;
+                lists.refs:=tfplist.create;
+                foreachnodestatic(pm_postprocess,n,@collectnodes,@lists);
 
-                  templist:=tfplist.create;
-                  templist.count:=lists.nodelist.count;
+                templist:=tfplist.create;
+                templist.count:=lists.nodelist.count;
 
-                  restart:=false;
+                for i:=0 to lists.nodelist.count-1 do
+                  begin
+                    { current node used more than once? }
+                    if ptrint(lists.refs[i])<>0 then
+                      begin
+                        if not(assigned(statements)) then
+                          begin
+                            nodes:=internalstatements(statements);
+                            addstatement(statements,internalstatements(creates));
+                          end;
 
-                  { this is poorly coded, just comparing every node with all other nodes }
+                        def:=tstoreddef(tnode(lists.nodelist[i]).resultdef);
+                        templist[i]:=ctempcreatenode.create_value(def,def.size,tt_persistent,
+                          def.is_intregable or def.is_fpuregable,tnode(lists.nodelist[i]));
+                        addstatement(creates,tnode(templist[i]));
 
-                  { the nodes are sorted by size so we'll find the largest matching tree
-                    first }
-                  for i:=0 to lists.nodelist.count-1 do
-                    begin
-                      for j:=lists.nodelist.count-1 downto i+1 do
-                        begin
-                        {
-                          writeln(i);
-                          writeln(j);
-                          writeln(dword(tnode(lists.nodelist[i]).nodetype));
-                          writeln(dword(tnode(lists.nodelist[j]).nodetype)); }
-                          if not(tnode(lists.nodelist[i]).nodetype in [tempcreaten,temprefn]) and
-                            not(tnode(lists.nodelist[j]).nodetype in [tempcreaten,temprefn]) and
-                            tnode(lists.nodelist[i]).isequal(tnode(lists.nodelist[j])) then
-                            begin
-                              if not(assigned(statements)) then
-                                begin
-                                  nodes:=internalstatements(statements);
-                                  addstatement(statements,internalstatements(creates));
-                                end;
+                        hp:=ttempcreatenode(templist[i]);
+                        do_firstpass(tnode(hp));
+                        templist[i]:=hp;
+
+                        pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[i]));
+                        do_firstpass(pnode(lists.locationlist[i])^);
+{$ifdef csedebug}
+                        printnode(output,statements);
+{$endif csedebug}
+                      end
+                    { current node reference to another node? }
+                    else if ptrint(lists.equalto[i])<>-1 then
+                      begin
 {$if defined(csedebug) or defined(csestats)}
-                              writeln('    ====     ');
-                              printnode(output,tnode(lists.nodelist[i]));
-                              writeln('    equals   ');
-                              printnode(output,tnode(lists.nodelist[j]));
-                              writeln('    ====     ');
+                        printnode(output,tnode(lists.nodelist[i]));
+                        writeln(i,'    equals   ',ptrint(lists.equalto[i]));
+                        printnode(output,tnode(lists.nodelist[ptrint(lists.equalto[i])]));
 {$endif defined(csedebug) or defined(csestats)}
-
-                              def:=tstoreddef(tnode(lists.nodelist[i]).resultdef);
-                              if assigned(def) then
-                                begin
-                                  restart:=true;
-                                  if assigned(templist[i])  then
-                                    begin
-                                      templist[j]:=templist[i];
-                                      pnode(lists.locationlist[j])^.free;
-                                      pnode(lists.locationlist[j])^:=ctemprefnode.create(ttempcreatenode(templist[j]));
-                                      do_firstpass(pnode(lists.locationlist[j])^);
-                                      lists.nodelist[j]:=pnode(lists.locationlist[j])^;
-                                    end
-                                  else
-                                    begin
-                                      templist[i]:=ctempcreatenode.create(def,def.size,tt_persistent,
-                                        def.is_intregable or def.is_fpuregable);
-                                      addstatement(creates,tnode(templist[i]));
-
-                                      { properties can't be passed by "var" }
-                                      hp:=ttempcreatenode(templist[i]);
-                                      do_firstpass(tnode(hp));
-
-                                      addstatement(statements,cassignmentnode.create(ctemprefnode.create(ttempcreatenode(templist[i])),
-                                        tnode(lists.nodelist[i]).getcopy));
-                                      pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[i]));
-                                      do_firstpass(pnode(lists.locationlist[i])^);
-
-                                      templist[j]:=templist[i];
-
-                                      pnode(lists.locationlist[j])^.free;
-                                      pnode(lists.locationlist[j])^:=ctemprefnode.create(ttempcreatenode(templist[j]));
-                                      do_firstpass(pnode(lists.locationlist[j])^);
-                                      lists.nodelist[j]:=pnode(lists.locationlist[j])^;
+                        templist[i]:=templist[ptrint(lists.equalto[i])];
+                        pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[ptrint(lists.equalto[i])]));
+                        do_firstpass(pnode(lists.locationlist[i])^);
+                      end;
+                  end;
+                { clean up unused trees }
+                for i:=0 to lists.nodelist.count-1 do
+                  if ptrint(lists.equalto[i])<>-1 then
+                    tnode(lists.nodelist[i]).free;
 {$ifdef csedebug}
-                                      printnode(output,statements);
+                writeln('nodes: ',lists.nodelist.count);
+                writeln('==========================================');
 {$endif csedebug}
-                                    end;
-                                  end
-                                else
-                                  internalerror(2007091701);
-                            end;
-                        end;
-                      { if a node in a cse domain has been replaced, we've to restart
-                        searching else we could find nested trees of the replaced node
-                      }
-                      if restart then
-                        break;
-                    end;
-{$ifdef csedebug}
-                  writeln('nodes: ',lists.nodelist.count);
-                  writeln('==========================================');
-{$endif csedebug}
-                  lists.nodelist.free;
-                  lists.locationlist.free;
-                  templist.free;
-                until not(restart);
+                lists.nodelist.free;
+                lists.locationlist.free;
+                lists.equalto.free;
+                lists.refs.free;
+                templist.free;
+
                 if assigned(statements) then
                   begin
                     addstatement(statements,n);

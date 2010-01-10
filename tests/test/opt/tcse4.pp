@@ -13,6 +13,10 @@ type
 function tc.f : longint;
   begin
     result:=r^.data1+r^.data2*r^.data1;
+    r^.data1:=r^.data2*r^.data1;
+
+    if assigned(r) and (r^.data1=r^.data2) then
+      writeln(':)');
   end;
 
 begin
