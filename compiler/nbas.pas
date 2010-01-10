@@ -94,7 +94,8 @@ interface
 
        ttempcreatenode = class;
 
-       ttempinfoflag = (ti_may_be_in_reg,ti_valid,ti_nextref_set_hookoncopy_nil,ti_addr_taken);
+       ttempinfoflag = (ti_may_be_in_reg,ti_valid,ti_nextref_set_hookoncopy_nil,
+                        ti_addr_taken,ti_executeinitialisation);
        ttempinfoflags = set of ttempinfoflag;
 
 const
@@ -116,6 +117,7 @@ type
          withnode                   : tnode;
          location                   : tlocation;
          flags                      : ttempinfoflags;
+         tempinitcode               : tnode;
        end;
 
        { a node which will create a (non)persistent temp of a given type with a given  }
@@ -123,6 +125,7 @@ type
        ttempcreatenode = class(tnode)
           size: aint;
           tempinfo: ptempinfo;
+          ftemplvalue : tnode;
           { * persistent temps are used in manually written code where the temp }
           { be usable among different statements and where you can manually say }
           { when the temp has to be freed (using a ttempdeletenode)             }
@@ -132,6 +135,7 @@ type
           { to it and *not* generate a ttempdeletenode                          }
           constructor create(_typedef: tdef; _size: aint; _temptype: ttemptype;allowreg:boolean); virtual;
           constructor create_withnode(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean; withnode: tnode); virtual;
+          constructor create_value(_typedef:tdef; _size: aint; _temptype: ttemptype;allowreg:boolean; templvalue: tnode);
           constructor ppuload(t:tnodetype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderefimpl;override;
@@ -732,10 +736,21 @@ implementation
           include(tempinfo^.flags,ti_may_be_in_reg);
       end;
 
+
     constructor ttempcreatenode.create_withnode(_typedef: tdef; _size: aint; _temptype: ttemptype; allowreg:boolean; withnode: tnode);
       begin
         self.create(_typedef,_size,_temptype,allowreg);
         tempinfo^.withnode:=withnode.getcopy;
+      end;
+
+
+    constructor ttempcreatenode.create_value(_typedef:tdef; _size: aint; _temptype: ttemptype;allowreg:boolean; templvalue: tnode);
+      begin
+        self.create(_typedef,_size,_temptype,allowreg);
+        // store in ppuwrite
+        ftemplvalue:=templvalue;
+        // create from stored ftemplvalue in ppuload
+        tempinfo^.tempinitcode:=cassignmentnode.create(ctemprefnode.create(self),ftemplvalue);
       end;
 
 
@@ -756,6 +771,11 @@ implementation
           n.tempinfo^.withnode := tempinfo^.withnode.getcopy
         else
           n.tempinfo^.withnode := nil;
+
+        if assigned(tempinfo^.tempinitcode) then
+          n.tempinfo^.tempinitcode := tempinfo^.tempinitcode.getcopy
+        else
+          n.tempinfo^.tempinitcode := nil;
 
         { when the tempinfo has already a hookoncopy then it is not
           reset by a tempdeletenode }
@@ -784,6 +804,7 @@ implementation
         tempinfo^.temptype := ttemptype(ppufile.getbyte);
         tempinfo^.owner:=self;
         tempinfo^.withnode:=ppuloadnode(ppufile);
+        ftemplvalue:=ppuloadnode(ppufile);
       end;
 
 
@@ -795,6 +816,7 @@ implementation
         ppufile.putderef(tempinfo^.typedefderef);
         ppufile.putbyte(byte(tempinfo^.temptype));
         ppuwritenode(ppufile,tempinfo^.withnode);
+        ppuwritenode(ppufile,ftemplvalue);
       end;
 
 
@@ -804,6 +826,8 @@ implementation
         tempinfo^.typedefderef.build(tempinfo^.typedef);
         if assigned(tempinfo^.withnode) then
           tempinfo^.withnode.buildderefimpl;
+        if assigned(ftemplvalue) then
+          ftemplvalue.buildderefimpl;
       end;
 
 
@@ -813,6 +837,11 @@ implementation
         tempinfo^.typedef:=tdef(tempinfo^.typedefderef.resolve);
         if assigned(tempinfo^.withnode) then
           tempinfo^.withnode.derefimpl;
+        if assigned(ftemplvalue) then
+          begin
+            ftemplvalue.derefimpl;
+            tempinfo^.tempinitcode:=cassignmentnode.create(ctemprefnode.create(self),ftemplvalue);
+          end;
       end;
 
 
@@ -824,6 +853,8 @@ implementation
           include(current_procinfo.flags,pi_needs_implicit_finally);
         if assigned(tempinfo^.withnode) then
           firstpass(tempinfo^.withnode);
+        if assigned(tempinfo^.tempinitcode) then
+          firstpass(tempinfo^.tempinitcode);
       end;
 
 
@@ -834,6 +865,8 @@ implementation
         resultdef := voidtype;
         if assigned(tempinfo^.withnode) then
           typecheckpass(tempinfo^.withnode);
+        if assigned(tempinfo^.tempinitcode) then
+          typecheckpass(tempinfo^.tempinitcode);
       end;
 
 
@@ -843,8 +876,9 @@ implementation
           inherited docompare(p) and
           (ttempcreatenode(p).size = size) and
           (ttempcreatenode(p).tempinfo^.flags*tempinfostoreflags=tempinfo^.flags*tempinfostoreflags) and
+          equal_defs(ttempcreatenode(p).tempinfo^.typedef,tempinfo^.typedef) and
           (ttempcreatenode(p).tempinfo^.withnode.isequal(tempinfo^.withnode)) and
-          equal_defs(ttempcreatenode(p).tempinfo^.typedef,tempinfo^.typedef);
+          (ttempcreatenode(p).tempinfo^.tempinitcode.isequal(tempinfo^.tempinitcode));
       end;
 
 
@@ -959,6 +993,7 @@ implementation
         result := nil;
       end;
 
+
     function ttemprefnode.pass_typecheck: tnode;
       begin
         { check if the temp is already resultdef passed }
@@ -968,6 +1003,7 @@ implementation
         resultdef := tempinfo^.typedef;
       end;
 
+
     function ttemprefnode.docompare(p: tnode): boolean;
       begin
         result :=
@@ -976,7 +1012,8 @@ implementation
           (ttemprefnode(p).offset = offset);
       end;
 
-    procedure Ttemprefnode.mark_write;
+
+    procedure ttemprefnode.mark_write;
 
     begin
       include(flags,nf_write);

@@ -449,6 +449,8 @@ interface
             tg.GetTemp(current_asmdata.CurrAsmList,size,tempinfo^.typedef.alignment,tempinfo^.temptype,tempinfo^.location.reference);
           end;
         include(tempinfo^.flags,ti_valid);
+        if assigned(tempinfo^.tempinitcode) then
+          include(tempinfo^.flags,ti_executeinitialisation);
       end;
 
 
@@ -458,6 +460,12 @@ interface
 
     procedure tcgtemprefnode.pass_generate_code;
       begin
+        if ti_executeinitialisation in tempinfo^.flags then
+          begin
+            { avoid recursion }
+            exclude(tempinfo^.flags, ti_executeinitialisation);
+            secondpass(tempinfo^.tempinitcode);
+          end;
         { check if the temp is valid }
         if not(ti_valid in tempinfo^.flags) then
           internalerror(200108231);
