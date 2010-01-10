@@ -1737,7 +1737,7 @@ implementation
                   if try_to_consume(_CLASS) then
                    begin
                      { class method only allowed for procedures and functions }
-                     if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY]) then
+                     if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR]) then
                        Message(parser_e_procedure_or_function_expected);
 
                      if is_interface(current_objectdef) then

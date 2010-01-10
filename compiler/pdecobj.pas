@@ -526,7 +526,7 @@ implementation
         oldparse_only,
         old_parse_generic : boolean;
         object_member_blocktype : tblock_type;
-        fields_allowed, is_classdef: boolean;
+        fields_allowed, is_classdef, classfields: boolean;
       begin
         { empty class declaration ? }
         if (current_objectdef.objecttype in [odt_class,odt_objcclass]) and
@@ -545,6 +545,7 @@ implementation
         has_destructor:=false;
         fields_allowed:=true;
         is_classdef:=false;
+        classfields:=false;
         object_member_blocktype:=bt_general;
         repeat
           case token of
@@ -557,10 +558,14 @@ implementation
               end;
             _VAR :
               begin
-                if ([df_generic,df_specialization]*current_objectdef.defoptions)=[] then
+                if (([df_generic,df_specialization]*current_objectdef.defoptions)=[]) and
+                   (current_objectdef.objecttype<>odt_class) then
                   Message(parser_e_type_and_var_only_in_generics);
                 consume(_VAR);
+                fields_allowed:=true;
                 object_member_blocktype:=bt_general;
+                classfields:=is_classdef;
+                is_classdef:=false;
               end;
             _ID :
               begin
@@ -659,7 +664,10 @@ implementation
                             if (not fields_allowed) then
                               Message(parser_e_field_not_allowed_here);
 
-                            read_record_fields([vd_object])
+                            if classfields then
+                              read_record_fields([vd_object,vd_class])
+                            else
+                              read_record_fields([vd_object])
                           end
                         else
                           types_dec;
@@ -679,7 +687,7 @@ implementation
                 if try_to_consume(_CLASS) then
                  begin
                    { class method only allowed for procedures and functions }
-                   if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY]) then
+                   if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR]) then
                      Message(parser_e_procedure_or_function_expected);
 
                    if is_interface(current_objectdef) then

@@ -7,7 +7,8 @@ program tstatic2;
 type
   TSomeClass = class
   private
-    {$ifndef fpc}class var{$endif}FSomethingStatic: Integer; {$ifdef fpc}static;{$endif}
+    class var
+      FSomethingStatic: Integer;
   public
     class procedure SetSomethingStatic(AValue: Integer); static;
     class property SomethingStatic: Integer read FSomethingStatic write SetSomethingStatic;

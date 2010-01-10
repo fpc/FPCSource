@@ -30,7 +30,7 @@ interface
       symsym,symdef;
 
     type
-      tvar_dec_option=(vd_record,vd_object,vd_threadvar);
+      tvar_dec_option=(vd_record,vd_object,vd_threadvar,vd_class);
       tvar_dec_options=set of tvar_dec_option;
 
     function  read_property_dec(is_classproperty:boolean; aclass:tobjectdef):tpropertysym;
@@ -1466,27 +1466,33 @@ implementation
                 (hdef.typesym=nil) then
                handle_calling_convention(tprocvardef(hdef));
 
-             { Check for STATIC directive }
-             if (vd_object in options) and                
-                (try_to_consume(_STATIC)) then
+             { check if it is a class field }
+             if (vd_object in options) then
                begin
-                 { add static flag and staticvarsyms }
-                 for i:=0 to sc.count-1 do
+                 { if it is not a class var section and token=STATIC then it is a class field too }
+                 if not (vd_class in options) and try_to_consume(_STATIC) then
                    begin
-                     fieldvs:=tfieldvarsym(sc[i]);
-                     include(fieldvs.symoptions,sp_static);
-                     { generate the symbol which reserves the space }
-                     hstaticvs:=tstaticvarsym.create('$_static_'+lower(symtablestack.top.name^)+'_'+fieldvs.name,vs_value,hdef,[]);
-                     recst.defowner.owner.insert(hstaticvs);
-                     insertbssdata(hstaticvs);
-                     { generate the symbol for the access }
-                     sl:=tpropaccesslist.create;
-                     sl.addsym(sl_load,hstaticvs);
-                     recst.insert(tabsolutevarsym.create_ref('$'+lower(symtablestack.top.name^)+'_'+fieldvs.name,hdef,sl));
+                     consume(_SEMICOLON);
+                     include(options, vd_class);
                    end;
-                 consume(_SEMICOLON);
+                 if vd_class in options then
+                 begin
+                   { add static flag and staticvarsyms }
+                   for i:=0 to sc.count-1 do
+                     begin
+                       fieldvs:=tfieldvarsym(sc[i]);
+                       include(fieldvs.symoptions,sp_static);
+                       { generate the symbol which reserves the space }
+                       hstaticvs:=tstaticvarsym.create('$_static_'+lower(symtablestack.top.name^)+'_'+fieldvs.name,vs_value,hdef,[]);
+                       recst.defowner.owner.insert(hstaticvs);
+                       insertbssdata(hstaticvs);
+                       { generate the symbol for the access }
+                       sl:=tpropaccesslist.create;
+                       sl.addsym(sl_load,hstaticvs);
+                       recst.insert(tabsolutevarsym.create_ref('$'+lower(symtablestack.top.name^)+'_'+fieldvs.name,hdef,sl));
+                     end;
+                 end;
                end;
-
              if (visibility=vis_published) and
                 not(is_class(hdef)) then
                begin
