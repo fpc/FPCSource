@@ -47,8 +47,7 @@ end;
 
 constructor TMultiReadExclusiveWriteSynchronizer.Create;
 begin
-  fwritelock:=RTLEventCreate;
-  RTLeventSetEvent(fwritelock);
+  System.InitCriticalSection(fwritelock);
   fwaitingwriterlock:=RTLEventCreate;
   RTLEventResetEvent(fwaitingwriterlock);
   fwritelocked:=0;
@@ -60,7 +59,7 @@ end;
 destructor TMultiReadExclusiveWriteSynchronizer.Destroy;
 begin
   System.InterlockedExchange(fwritelocked,0);
-  RtlEventDestroy(fwritelock);
+  System.DoneCriticalSection(fwritelock);
   RtlEventDestroy(fwaitingwriterlock);
   BasicEventDestroy(freaderqueue);
 end;
@@ -73,7 +72,7 @@ begin
   if IsMultiThread then
     begin
       { wait for any other writers that may be in progress }
-      RTLEventWaitFor(fwritelock);
+      System.EnterCriticalSection(fwritelock);
       { it is possible that we earlier on missed waiting on the
         fwaitingwriterlock and that it's still set (must be done
         after aquiring the fwritelock, because otherwise one
@@ -120,7 +119,7 @@ begin
         is no problem. }
       BasicEventSetEvent(freaderqueue);
       { free the writer lock so another writer can become active }
-      RTLeventSetEvent(fwritelock);
+      System.LeaveCriticalSection(fwritelock);
     end;
 end;
 

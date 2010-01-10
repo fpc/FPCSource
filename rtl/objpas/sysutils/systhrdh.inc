@@ -36,7 +36,7 @@ type
    TMultiReadExclusiveWriteSynchronizer = class(TInterfacedObject,IReadWriteSync)
    private
       freaderqueue: peventstate;
-      fwritelock,
+      fwritelock : TRtlCriticalSection;
       fwaitingwriterlock: prtlevent;
       freadercount: cardinal;
       fwritelocked: longint;

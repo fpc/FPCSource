@@ -115,6 +115,12 @@ begin
   terrorcheck.create(false);
   randomize;
   lock:=TMultiReadExclusiveWriteSynchronizer.create;
+  { verify that the lock is recursive }
+  lock.beginwrite;
+  lock.beginwrite;
+  lock.endwrite;
+  lock.endwrite;
+
   { first try some writers }
   w1:=twritecounter.create;
   w2:=twritecounter.create;
