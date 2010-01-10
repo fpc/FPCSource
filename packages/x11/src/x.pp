@@ -39,8 +39,8 @@ type
    PVisualID = ^TVisualID;
    TVisualID = culong;
 
-   PTime = ^TTime;
    TTime = culong;
+   PTime = ^TTime;
 
    PPWindow = ^PWindow;
    PWindow = ^TWindow;
