@@ -184,8 +184,6 @@ Var
    procedure Beep;
    function SysErrorMessage(ErrorCode: Integer): String;
 
-
-
 Type
    TCreateGUIDFunc = Function(Out GUID : TGUID) : Integer;
    
