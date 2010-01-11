@@ -1252,7 +1252,8 @@ implementation
                    begin
                      p1.free;
                      p1:=ctypenode.create(ttypesym(sym).typedef);
-                     if not(block_type in [bt_type,bt_const_type,bt_var_type]) then
+                     if (is_class(ttypesym(sym).typedef) or is_objcclass(ttypesym(sym).typedef)) and
+                        not(block_type in [bt_type,bt_const_type,bt_var_type]) then
                        p1:=cloadvmtaddrnode.create(p1);
                    end;
                  constsym:
