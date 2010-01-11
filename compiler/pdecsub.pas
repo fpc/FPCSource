@@ -702,6 +702,7 @@ implementation
         popclass : boolean;
         ImplIntf : TImplementedInterface;
         old_parse_generic : boolean;
+        old_current_objectdef: tobjectdef;
       begin
         { Save the position where this procedure really starts }
         procstartfilepos:=current_tokenpos;
@@ -962,6 +963,8 @@ implementation
                (symtablestack.top.symtabletype<>ObjectSymtable) then
               begin
                 symtablestack.push(pd._class.symtable);
+                old_current_objectdef:=current_objectdef;
+                current_objectdef:=pd._class;
                 popclass:=true;
               end;
             { Add parameter symtable }
@@ -971,7 +974,10 @@ implementation
             if pd.parast.symtabletype<>staticsymtable then
               symtablestack.pop(pd.parast);
             if popclass then
+            begin
+              current_objectdef:=old_current_objectdef;
               symtablestack.pop(pd._class.symtable);
+            end;
           end;
 
         parse_generic:=old_parse_generic;
