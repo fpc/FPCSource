@@ -397,7 +397,9 @@ type
     { Objective-C message selector parameter }
     vo_is_msgsel,
     { first field of a record or variant part of a record }
-    vo_is_first_field
+    vo_is_first_field,
+    { symbols which inserts compiler for special use. they don't generate notes }
+    vo_is_internal
   );
   tvaroptions=set of tvaroption;
 

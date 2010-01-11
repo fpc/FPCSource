@@ -1299,7 +1299,10 @@ type
     vo_is_range_check,
     vo_is_overflow_check,
     vo_is_typinfo_para,
-    vo_is_weak_external
+    vo_is_weak_external,
+    vo_is_msgsel,
+    vo_is_first_field,
+    vo_is_internal
   );
   tvaroptions=set of tvaroption;
   { register variable }
@@ -1340,7 +1343,10 @@ const
      (mask:vo_is_range_check;  str:'RangeCheckSwitch'),
      (mask:vo_is_overflow_check; str:'OverflowCheckSwitch'),
      (mask:vo_is_typinfo_para; str:'TypeInfo'),
-     (mask:vo_is_weak_external;str:'WeakExternal')
+     (mask:vo_is_msgsel;str:'MsgSel'),
+     (mask:vo_is_weak_external;str:'WeakExternal'),
+     (mask:vo_is_first_field;str:'IsFirstField'),
+     (mask:vo_is_internal;str:'IsInternal')
   );
 var
   i : longint;

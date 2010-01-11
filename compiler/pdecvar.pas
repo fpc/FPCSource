@@ -1485,7 +1485,7 @@ implementation
                        fieldvs:=tfieldvarsym(sc[i]);
                        include(fieldvs.symoptions,sp_static);
                        { generate the symbol which reserves the space }
-                       hstaticvs:=tstaticvarsym.create('$_static_'+lower(symtablestack.top.name^)+'_'+fieldvs.name,vs_value,hdef,[]);
+                       hstaticvs:=tstaticvarsym.create('$_static_'+lower(symtablestack.top.name^)+'_'+fieldvs.name,vs_value,hdef,[vo_is_internal]);
                        recst.defowner.owner.insert(hstaticvs);
                        insertbssdata(hstaticvs);
                        { generate the symbol for the access }
