@@ -434,7 +434,9 @@ unit optvirt;
         for i:=0 to node.def.vmtentries.count-1 do
           begin
             currnode:=node;
-            pd:=pvmtentry(currnode.def.vmtentries[i])^.procdef;
+            { extra tprocdef(tobject(..)) typecasts so that -CR can catch
+              errors in case the vmtentries are not properly (re)deref'd }
+            pd:=tprocdef(tobject(pvmtentry(currnode.def.vmtentries[i])^.procdef));
             { abstract methods cannot be called directly }
             if (po_abstractmethod in pd.procoptions) then
               continue;
