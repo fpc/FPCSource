@@ -11,8 +11,11 @@ type
       PrivateConst = 1;
     type
       PrivateType = type Integer;
+    var
+      FPrivateField: PrivateType;
   public
     procedure DoSomething(Value: PrivateType = PrivateConst);
+    property SomeProp: PrivateType read FPrivateField write FPrivateField default PrivateConst;
   end;
 
   procedure TSomeClass.DoSomething(Value: PrivateType = PrivateConst);
