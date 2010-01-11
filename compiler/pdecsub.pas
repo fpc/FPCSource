@@ -990,7 +990,8 @@ implementation
         pd : tprocdef;
         locationstr: string;
         old_parse_generic,
-        popclass           : boolean;
+        popclass: boolean;
+        old_current_objectdef: tobjectdef;
       begin
         locationstr:='';
         pd:=nil;
@@ -1016,10 +1017,15 @@ implementation
                              symtablestack.push(pd._class.symtable);
                              popclass:=true;
                              parse_generic:=(df_generic in pd._class.defoptions);
+                             old_current_objectdef:=current_objectdef;
+                             current_objectdef:=pd._class;
                            end;
                          single_type(pd.returndef,false,false);
                          if popclass then
-                           symtablestack.pop(pd._class.symtable);
+                           begin
+                             current_objectdef:=old_current_objectdef;
+                             symtablestack.pop(pd._class.symtable);
+                           end;
                          dec(testcurobject);
                          parse_generic:=old_parse_generic;
 

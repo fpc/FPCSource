@@ -15,11 +15,17 @@ type
       FPrivateField: PrivateType;
   public
     procedure DoSomething(Value: PrivateType = PrivateConst);
+    function ReturnSomething: PrivateType;
     property SomeProp: PrivateType read FPrivateField write FPrivateField default PrivateConst;
   end;
 
   procedure TSomeClass.DoSomething(Value: PrivateType = PrivateConst);
   begin
+  end;
+
+  function TSomeClass.ReturnSomething: PrivateType;
+  begin
+    Result := PrivateConst;
   end;
 
 begin
