@@ -312,7 +312,7 @@ const
   parser_e_packed_element_no_var_addr=03221;
   parser_e_packed_dynamic_open_array=03222;
   parser_e_packed_element_no_loop=03223;
-  parser_e_type_and_var_only_in_generics=03224;
+  parser_e_type_and_var_only_in_generics_and_classes=03224;
   parser_e_cant_create_generics_of_this_type=03225;
   parser_w_no_lineinfo_use_switch=03226;
   parser_e_no_funcret_specified=03227;
@@ -840,7 +840,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 55227;
+  MsgTxtSize = 55239;
 
   MsgIdxMax : array[1..20] of longint=(
     24,87,285,95,71,51,110,22,202,63,
