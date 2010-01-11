@@ -553,7 +553,7 @@ implementation
               begin
                 if (([df_generic,df_specialization]*current_objectdef.defoptions)=[]) and
                    (current_objectdef.objecttype<>odt_class) then
-                  Message(parser_e_type_and_var_only_in_generics_and_classes);
+                  Message(parser_e_type_var_const_only_in_generics_and_classes);
                  consume(_TYPE);
                  object_member_blocktype:=bt_type;
               end;
@@ -561,12 +561,20 @@ implementation
               begin
                 if (([df_generic,df_specialization]*current_objectdef.defoptions)=[]) and
                    (current_objectdef.objecttype<>odt_class) then
-                  Message(parser_e_type_and_var_only_in_generics_and_classes);
+                  Message(parser_e_type_var_const_only_in_generics_and_classes);
                 consume(_VAR);
                 fields_allowed:=true;
                 object_member_blocktype:=bt_general;
                 classfields:=is_classdef;
                 is_classdef:=false;
+              end;
+            _CONST:
+              begin
+                if (([df_generic,df_specialization]*current_objectdef.defoptions)=[]) and
+                   (current_objectdef.objecttype<>odt_class) then
+                  Message(parser_e_type_var_const_only_in_generics_and_classes);
+                consume(_CONST);
+                object_member_blocktype:=bt_const;
               end;
             _ID :
               begin
@@ -671,7 +679,13 @@ implementation
                               read_record_fields([vd_object])
                           end
                         else
-                          types_dec(true);
+                        if object_member_blocktype=bt_type then
+                          types_dec(true)
+                        else
+                        if object_member_blocktype=bt_const then
+                          consts_dec(true)
+                        else
+                          internalerror(201001110);
                       end;
                 end;
               end;

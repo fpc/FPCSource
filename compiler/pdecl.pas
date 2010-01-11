@@ -36,6 +36,7 @@ interface
     function  readconstant(const orgname:string;const filepos:tfileposinfo):tconstsym;
 
     procedure const_dec;
+    procedure consts_dec(in_class: boolean);
     procedure label_dec;
     procedure type_dec;
     procedure types_dec(in_class: boolean);
@@ -154,8 +155,13 @@ implementation
         readconstant:=hp;
       end;
 
-
     procedure const_dec;
+      begin
+        consume(_CONST);
+        consts_dec(false);
+      end;
+
+    procedure consts_dec(in_class: boolean);
       var
          orgname : TIDString;
          hdef : tdef;
@@ -168,7 +174,6 @@ implementation
          tclist : tasmlist;
          varspez : tvarspez;
       begin
-         consume(_CONST);
          old_block_type:=block_type;
          block_type:=bt_const;
          repeat
@@ -189,6 +194,7 @@ implementation
                      begin
                        sym.symoptions:=sym.symoptions+dummysymoptions;
                        sym.deprecatedmsg:=deprecatedmsg;
+                       sym.visibility:=symtablestack.top.currentvisibility;
                        symtablestack.top.insert(sym);
                      end
                    else
@@ -213,6 +219,7 @@ implementation
                    else
                      varspez:=vs_value;
                    sym:=tstaticvarsym.create(orgname,varspez,hdef,[]);
+                   sym.visibility:=symtablestack.top.currentvisibility;
                    current_tokenpos:=storetokenpos;
                    symtablestack.top.insert(sym);
                    { procvar can have proc directives, but not type references }
@@ -255,7 +262,7 @@ implementation
                 { generate an error }
                 consume(_EQUAL);
            end;
-         until token<>_ID;
+         until (token<>_ID)or(in_class and (idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]));
          block_type:=old_block_type;
       end;
 

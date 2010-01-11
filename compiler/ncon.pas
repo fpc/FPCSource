@@ -291,15 +291,23 @@ implementation
         p1:=nil;
         case p.consttyp of
           constord :
-            p1:=cordconstnode.create(p.value.valueord,p.constdef,true);
+            begin
+              if p.constdef=nil then
+                internalerror(200403232);
+              p1:=cordconstnode.create(p.value.valueord,p.constdef,true);
+            end;
           conststring :
             begin
               len:=p.value.len;
+              if not(cs_ansistrings in current_settings.localswitches) and (len>255) then
+               len:=255;
               getmem(pc,len+1);
               move(pchar(p.value.valueptr)^,pc^,len);
               pc[len]:=#0;
               p1:=cstringconstnode.createpchar(pc,len);
             end;
+          constwstring :
+            p1:=cstringconstnode.createwstr(pcompilerwidestring(p.value.valueptr));
           constreal :
             p1:=crealconstnode.create(pbestreal(p.value.valueptr)^,pbestrealtype^);
           constset :
@@ -308,6 +316,8 @@ implementation
             p1:=cpointerconstnode.create(p.value.valueordptr,p.constdef);
           constnil :
             p1:=cnilnode.create;
+          constguid :
+            p1:=cguidconstnode.create(pguid(p.value.valueptr)^);
           else
             internalerror(200205103);
         end;

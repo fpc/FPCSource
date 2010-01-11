@@ -1252,7 +1252,12 @@ implementation
                    begin
                      p1:=ctypenode.create(ttypesym(sym).typedef);
                    end;
-                 else internalerror(16);
+                 constsym:
+                   begin
+                     p1:=genconstsymtree(tconstsym(sym));
+                   end
+                 else
+                   internalerror(16);
               end;
            end;
       end;
@@ -1559,44 +1564,14 @@ implementation
 
                 constsym :
                   begin
-                    case tconstsym(srsym).consttyp of
-                      constord :
-                        begin
-                          if tconstsym(srsym).constdef=nil then
-                            internalerror(200403232);
-                          p1:=cordconstnode.create(tconstsym(srsym).value.valueord,tconstsym(srsym).constdef,true);
-                        end;
-                      conststring :
-                        begin
-                          len:=tconstsym(srsym).value.len;
-                          if not(cs_ansistrings in current_settings.localswitches) and (len>255) then
-                           len:=255;
-                          getmem(pc,len+1);
-                          move(pchar(tconstsym(srsym).value.valueptr)^,pc^,len);
-                          pc[len]:=#0;
-                          p1:=cstringconstnode.createpchar(pc,len);
-                        end;
-                      constwstring :
-                        p1:=cstringconstnode.createwstr(pcompilerwidestring(tconstsym(srsym).value.valueptr));
-                      constreal :
-                        p1:=crealconstnode.create(pbestreal(tconstsym(srsym).value.valueptr)^,pbestrealtype^);
-                      constset :
-                        p1:=csetconstnode.create(pconstset(tconstsym(srsym).value.valueptr),tconstsym(srsym).constdef);
-                      constpointer :
-                        p1:=cpointerconstnode.create(tconstsym(srsym).value.valueordptr,tconstsym(srsym).constdef);
-                      constnil :
-                        p1:=cnilnode.create;
-                      constresourcestring:
-                        begin
-                          p1:=cloadnode.create(srsym,srsymtable);
-                          do_typecheckpass(p1);
-                          p1.resultdef:=cansistringtype;
-                        end;
-                      constguid :
-                        p1:=cguidconstnode.create(pguid(tconstsym(srsym).value.valueptr)^);
-                      else
-                        internalerror(200507181);
-                    end;
+                    if tconstsym(srsym).consttyp=constresourcestring then
+                      begin
+                        p1:=cloadnode.create(srsym,srsymtable);
+                        do_typecheckpass(p1);
+                        p1.resultdef:=cansistringtype;
+                      end
+                    else
+                      p1:=genconstsymtree(tconstsym(srsym));
                   end;
 
                 procsym :
