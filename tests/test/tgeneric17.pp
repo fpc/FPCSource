@@ -7,7 +7,7 @@ type
     procedure Assign(Source: TGListItem);
   end;
 
-procedure TGListItem.Assign(Source: TGListItem)
+procedure TGListItem.Assign(Source: TGListItem);
 begin
   FNext := Source;
 end;
