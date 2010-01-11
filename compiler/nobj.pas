@@ -1394,13 +1394,11 @@ implementation
          methodnametable,intmessagetable,
          strmessagetable,classnamelabel,
          fieldtablelabel : tasmlabel;
+         hs: string;
 {$ifdef WITHDMT}
          dmtlabel : tasmlabel;
 {$endif WITHDMT}
          interfacetable : tasmlabel;
-{$ifdef vtentry}
-         hs: string;
-{$endif vtentry}
       begin
 {$ifdef WITHDMT}
          dmtlabel:=gendmt;
@@ -1422,8 +1420,9 @@ implementation
             fieldtablelabel:=generate_field_table;
             { write class name }
             current_asmdata.asmlists[al_globals].concat(Tai_label.Create(classnamelabel));
-            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_8bit(length(_class.objrealname^)));
-            current_asmdata.asmlists[al_globals].concat(Tai_string.Create(_class.objrealname^));
+            hs:=_class.RttiName;
+            current_asmdata.asmlists[al_globals].concat(Tai_const.Create_8bit(length(hs)));
+            current_asmdata.asmlists[al_globals].concat(Tai_string.Create(hs));
 
             { generate message and dynamic tables }
             if (oo_has_msgstr in _class.objectoptions) then

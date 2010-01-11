@@ -316,6 +316,7 @@ interface
           procedure finish_objc_data;
           { C++ }
           procedure finish_cpp_data;
+          function RttiName: string;
        end;
 
        tclassrefdef = class(tabstractpointerdef)
@@ -3230,7 +3231,6 @@ implementation
       var
         s : string;
         t : ttoken;
-        tmp: tobjectdef;
       begin
 {$ifdef EXTDEBUG}
         showhidden:=true;
@@ -3238,15 +3238,7 @@ implementation
         s:='';
         if assigned(_class) then
          begin
-           tmp:=_class;
-           while assigned(tmp) do
-           begin
-             s:=tmp.objrealname^+'.'+s;
-             if assigned(tmp.owner) and (tmp.owner.symtabletype=ObjectSymtable) then
-               tmp:=tobjectdef(tmp.owner.defowner)
-             else
-               tmp:=nil;
-           end;
+           s:=_class.RttiName+'.';
            if (po_classmethod in procoptions) then
              s:='class ' + s;
          end;
@@ -4846,6 +4838,21 @@ implementation
     procedure tobjectdef.finish_cpp_data;
       begin
         self.symtable.DefList.ForEachCall(@do_cpp_import_info,nil);
+      end;
+
+    function tobjectdef.RttiName: string;
+      var
+        tmp: tobjectdef;
+      begin
+        Result:=objrealname^;
+        tmp:=self;
+        repeat
+          if tmp.owner.symtabletype=ObjectSymtable then
+            tmp:=tobjectdef(tmp.owner.defowner)
+          else
+            break;
+          Result:=tmp.objrealname^+'.'+Result;
+        until tmp=nil;
       end;
 
 

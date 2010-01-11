@@ -1601,10 +1601,16 @@ implementation
                       ) or
                       ( // the case of specialize inside the generic declaration
                        (symownerdef.owner.symtabletype = objectsymtable) and
-                       assigned(current_objectdef) and
                        (
-                         (current_objectdef=symownerdef) or
-                         (current_objectdef.owner.moduleid=symownerdef.owner.moduleid)
+                         assigned(current_objectdef) and
+                         (
+                           (current_objectdef=symownerdef) or
+                           (current_objectdef.owner.moduleid=symownerdef.owner.moduleid)
+                         )
+                       ) or
+                       (
+                         not assigned(current_objectdef) and
+                         (symownerdef.owner.moduleid=current_module.moduleid)
                        )
                       );
             end;
@@ -1636,11 +1642,17 @@ implementation
                        ) or
                        ( // the case of specialize inside the generic declaration
                         (symownerdef.owner.symtabletype = objectsymtable) and
-                        assigned(current_objectdef) and
                         (
-                         (current_objectdef=symownerdef) or
-                         (current_objectdef.owner.moduleid=symownerdef.owner.moduleid)
-                        )
+                          assigned(current_objectdef) and
+                          (
+                            (current_objectdef=symownerdef) or
+                            (current_objectdef.owner.moduleid=symownerdef.owner.moduleid)
+                          )
+                        ) or
+                        (
+                          not assigned(current_objectdef) and
+                          (symownerdef.owner.moduleid=current_module.moduleid)
+                         )
                        )
                       );
             end;
