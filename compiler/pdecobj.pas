@@ -551,7 +551,8 @@ implementation
           case token of
             _TYPE :
               begin
-                if ([df_generic,df_specialization]*current_objectdef.defoptions)=[] then
+                if (([df_generic,df_specialization]*current_objectdef.defoptions)=[]) and
+                   (current_objectdef.objecttype<>odt_class) then
                   Message(parser_e_type_and_var_only_in_generics);
                  consume(_TYPE);
                  object_member_blocktype:=bt_type;

@@ -1381,10 +1381,12 @@ implementation
              consume(_COLON);
 
              { Don't search in the recordsymtable for types }
-             if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) then
+             if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) and
+                not is_class(tdef(recst.defowner)) then
                symtablestack.pop(recst);
              read_anon_type(hdef,false);
-             if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) then
+             if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) and
+                not is_class(tdef(recst.defowner)) then
                symtablestack.push(recst);
 
              { Process procvar directives }
