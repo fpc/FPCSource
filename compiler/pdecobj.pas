@@ -671,7 +671,7 @@ implementation
                               read_record_fields([vd_object])
                           end
                         else
-                          types_dec;
+                          types_dec(true);
                       end;
                 end;
               end;
@@ -843,7 +843,7 @@ implementation
         current_objectdef:=nil;
 
         { objects and class types can't be declared local }
-        if not(symtablestack.top.symtabletype in [globalsymtable,staticsymtable]) and
+        if not(symtablestack.top.symtabletype in [globalsymtable,staticsymtable,objectsymtable]) and
            not assigned(genericlist) then
           Message(parser_e_no_local_objects);
 

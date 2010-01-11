@@ -764,52 +764,65 @@ implementation
            (symtablestack.top.symtablelevel=main_program_level) and
            try_to_consume(_POINT) then
          begin
-           { search for object name }
-           storepos:=current_tokenpos;
-           current_tokenpos:=procstartfilepos;
-           searchsym(sp,srsym,srsymtable);
-           if not assigned(srsym) then
-            begin
-              identifier_not_found(orgsp);
-              srsym:=generrorsym;
-            end;
-           current_tokenpos:=storepos;
-           { consume proc name }
-           sp:=pattern;
-           orgsp:=orgpattern;
-           procstartfilepos:=current_tokenpos;
-           consume(_ID);
-           { qualifier is class name ? }
-           if (srsym.typ=typesym) and
-              (ttypesym(srsym).typedef.typ=objectdef) then
-            begin
-              aclass:=tobjectdef(ttypesym(srsym).typedef);
-              srsym:=tsym(aclass.symtable.Find(sp));
-              if assigned(srsym) then
+           repeat
+             searchagain:=false;
+             if not assigned(aclass) then
                begin
-                 if srsym.typ=procsym then
-                   aprocsym:=tprocsym(srsym)
-                 else
-                   begin
-                     {  we use a different error message for tp7 so it looks more compatible }
-                     if (m_fpc in current_settings.modeswitches) then
-                       Message1(parser_e_overloaded_no_procedure,srsym.realname)
-                     else
-                       Message(parser_e_methode_id_expected);
-                     { rename the name to an unique name to avoid an
-                       error when inserting the symbol in the symtable }
-                     orgsp:=orgsp+'$'+tostr(current_filepos.line);
-                   end;
-               end
-              else
-               begin
-                 Message(parser_e_methode_id_expected);
-                 { recover by making it a normal procedure instead of method }
-                 aclass:=nil;
+                 { search for object name }
+                 storepos:=current_tokenpos;
+                 current_tokenpos:=procstartfilepos;
+                 searchsym(sp,srsym,srsymtable);
+                 if not assigned(srsym) then
+                  begin
+                    identifier_not_found(orgsp);
+                    srsym:=generrorsym;
+                  end;
+                 current_tokenpos:=storepos;
                end;
-            end
-           else
-            Message(parser_e_class_id_expected);
+             { consume proc name }
+             sp:=pattern;
+             orgsp:=orgpattern;
+             procstartfilepos:=current_tokenpos;
+             consume(_ID);
+             { qualifier is class name ? }
+             if (srsym.typ=typesym) and
+                (ttypesym(srsym).typedef.typ=objectdef) then
+              begin
+                aclass:=tobjectdef(ttypesym(srsym).typedef);
+                srsym:=tsym(aclass.symtable.Find(sp));
+                if assigned(srsym) then
+                 begin
+                   if srsym.typ=procsym then
+                     aprocsym:=tprocsym(srsym)
+                   else
+                   if (srsym.typ=typesym) and
+                      (ttypesym(srsym).typedef.typ=objectdef) then
+                     begin
+                       searchagain:=true;
+                       consume(_POINT);
+                     end
+                   else
+                     begin
+                       {  we use a different error message for tp7 so it looks more compatible }
+                       if (m_fpc in current_settings.modeswitches) then
+                         Message1(parser_e_overloaded_no_procedure,srsym.realname)
+                       else
+                         Message(parser_e_methode_id_expected);
+                       { rename the name to an unique name to avoid an
+                         error when inserting the symbol in the symtable }
+                       orgsp:=orgsp+'$'+tostr(current_filepos.line);
+                     end;
+                 end
+                else
+                 begin
+                   Message(parser_e_methode_id_expected);
+                   { recover by making it a normal procedure instead of method }
+                   aclass:=nil;
+                 end;
+              end
+             else
+              Message(parser_e_class_id_expected);
+           until not searchagain;
          end
         else
          begin

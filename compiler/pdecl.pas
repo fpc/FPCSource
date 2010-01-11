@@ -38,7 +38,7 @@ interface
     procedure const_dec;
     procedure label_dec;
     procedure type_dec;
-    procedure types_dec;
+    procedure types_dec(in_class: boolean);
     procedure var_dec;
     procedure threadvar_dec;
     procedure property_dec(is_classpropery: boolean);
@@ -282,7 +282,7 @@ implementation
       end;
 
 
-    procedure types_dec;
+    procedure types_dec(in_class: boolean);
 
       procedure get_cpp_class_external_status(od: tobjectdef);
         var
@@ -483,6 +483,7 @@ implementation
               hdef:=generrordef;
               storetokenpos:=current_tokenpos;
               newtype:=ttypesym.create(orgtypename,hdef);
+              newtype.visibility:=symtablestack.top.currentvisibility;
               symtablestack.top.insert(newtype);
               current_tokenpos:=defpos;
               current_tokenpos:=storetokenpos;
@@ -619,7 +620,7 @@ implementation
              end;
            if assigned(generictypelist) then
              generictypelist.free;
-         until token<>_ID;
+         until (token<>_ID)or(in_class and (idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]));
          resolve_forward_types;
          block_type:=old_block_type;
       end;
@@ -629,7 +630,7 @@ implementation
     procedure type_dec;
       begin
         consume(_TYPE);
-        types_dec;
+        types_dec(false);
       end;
 
 

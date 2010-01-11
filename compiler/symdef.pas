@@ -3230,19 +3230,28 @@ implementation
       var
         s : string;
         t : ttoken;
+        tmp: tobjectdef;
       begin
 {$ifdef EXTDEBUG}
         showhidden:=true;
 {$endif EXTDEBUG}
         s:='';
-        if owner.symtabletype=localsymtable then
-         s:=s+'local ';
         if assigned(_class) then
          begin
-           if po_classmethod in procoptions then
-            s:=s+'class ';
-           s:=s+_class.objrealname^+'.';
+           tmp:=_class;
+           while assigned(tmp) do
+           begin
+             s:=tmp.objrealname^+'.'+s;
+             if assigned(tmp.owner) and (tmp.owner.symtabletype=ObjectSymtable) then
+               tmp:=tobjectdef(tmp.owner.defowner)
+             else
+               tmp:=nil;
+           end;
+           if (po_classmethod in procoptions) then
+             s:='class ' + s;
          end;
+        if owner.symtabletype=localsymtable then
+          s:='local ' + s;
         if proctypeoption=potype_operator then
           begin
             for t:=NOTOKEN to last_overloaded do
