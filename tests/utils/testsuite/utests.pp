@@ -12,9 +12,8 @@ const
   TestsuiteURLPrefix='http://www.freepascal.org/testsuite/';
   TestsuiteBin='testsuite.cgi';
   ViewURL='http://svn.freepascal.org/cgi-bin/viewvc.cgi/';
-  ViewVCTrunkURL=ViewURL+'trunk/tests/';
-  ViewVCBranchURL=ViewURL+'%s/tests/';
-  ViewVCDataBaseURL=ViewURL+'trunk/packages/fcl-db/tests/';
+  TestsSubDir='/tests/';
+  DataBaseSubDir='/packages/fcl-db/tests/';
 var
   TestsuiteCGIURL : string;
 Type
@@ -30,6 +29,10 @@ Type
     FTestFileName,
     FVersion,
     FVersionBranch,
+    FCond,
+    FSubmitter,
+    FMachine,
+    FComment,
     FCPU,
     FOS  : String;
     FViewVCURL : String;
@@ -72,6 +75,7 @@ Type
     Procedure ShowRunResults;
     Procedure ShowRunComparison;
     Procedure ShowOneTest;
+    Procedure ShowHistory;
     Function ConnectToDB : Boolean;
     procedure DisconnectFromDB;
     Procedure EmitTitle(ATitle : String);
@@ -102,6 +106,21 @@ type
   known_versions = (
     ver_unknown,
     ver_1_0_10,
+    ver_2_0_0,
+    ver_2_0_1,
+    ver_2_0_2,
+    ver_2_0_3,
+    ver_2_0_4,
+    ver_2_0_5,
+    ver_2_1_2,
+    ver_2_1_4,
+    ver_2_2_0,
+    ver_2_2_1,
+    ver_2_2_2,
+    ver_2_2_3,
+    ver_2_2_4,
+    ver_2_2_5,
+    ver_2_3_1,
     ver_2_4_0,
     ver_2_4_1,
     ver_2_5_1);
@@ -114,6 +133,21 @@ const
   (
    'unknown',
    '1.0.10',
+   '2.0.0',
+   '2.0.1',
+   '2.0.2',
+   '2.0.3',
+   '2.0.4',
+   '2.0.5',
+   '2.1.2',
+   '2.1.4',
+   '2.2.0',
+   '2.2.1',
+   '2.2.2',
+   '2.2.3',
+   '2.2.4',
+   '2.2.5',
+   '2.3.1',
    '2.4.0',
    '2.4.1',
    '2.5.1'
@@ -123,6 +157,21 @@ const
   (
    '',
    '',
+   'tags/release_2_0_0',
+   'branches/fixes_2_0',
+   'tags/release_2_0_2',
+   'branches/fixes_2_0',
+   'tags/release_2_0_4',
+   'branches/fixes_2_0',
+   'tags/release_2_1_2',
+   'tags/release_2_1_4',
+   'tags/release_2_2_0',
+   'branches/fixes_2_2',
+   'tags/release_2_2_2',
+   'branches/fixes_2_2',
+   'tags/release_2_2_4',
+   'branches/fixes_2_2',
+   'tags/release_2_4_0',
    'tags/release_2_4_0',
    'branches/fixes_2_4',
    'trunk'
@@ -142,6 +191,7 @@ begin
             ShowRunComparison;
         2 : CreateRunPie;
         3 : ShowOneTest;
+        4 : ShowHistory;
 {$ifdef TEST}        
         98 :
           begin
@@ -200,6 +250,19 @@ begin
   FCPU:=RequestVariables['cpu'];
   if Length(FCPU) = 0 then
     FCPU:=RequestVariables['TESTCPU'];
+  FCond:=RequestVariables['cond'];
+  if Length(FCond) = 0 then
+    FCond:=RequestVariables['TESTCOND'];
+  FComment:=RequestVariables['comment'];
+  if Length(FComment) = 0 then
+    FComment:=RequestVariables['TESTCOMMENT'];
+  FSubmitter:=RequestVariables['submitter'];
+  if Length(FSubmitter) = 0 then
+    FSubmitter:=RequestVariables['TESTSUBMITTER'];
+  FMachine:=RequestVariables['machine'];
+  if Length(FMachine) = 0 then
+    FMachine:=RequestVariables['TESTMACHINE'];
+
   FRunID:=RequestVariables['run1id'];
   if Length(FRunID) = 0 then
     FRunID:=RequestVariables['TESTRUN'];
@@ -350,6 +413,9 @@ begin
     Write('Please specify search criteria:');
     ParagraphStart;
     FormStart(TestsuiteCGIURL,'');
+    if FDebug then
+      EmitHiddenVar('DEBUGCGI', '1');
+
     TableStart(2,true);
     RowStart;
       CellStart;
@@ -378,6 +444,46 @@ begin
         else
           EmitInput('date',DateToStr(FDate));
       CellEnd;
+    if FDebug then
+      begin
+        RowNext;
+        CellStart;
+        Write('Submitter');
+        CellNext;
+        If (FSubmitter='') then
+          EmitInput('submitter','')
+        else
+          EmitInput('submitter',FSubmitter);
+        CellEnd;
+       RowNext;
+        CellStart;
+        Write('Machine');
+        CellNext;
+        If (FMachine='') then
+          EmitInput('machine','')
+        else
+          EmitInput('machine',FMachine);
+        CellEnd;
+        RowNext;
+        CellStart;
+        Write('Comment');
+        CellNext;
+        If (FComment='') then
+          EmitInput('comment','')
+        else
+          EmitInput('comment',FComment);
+        CellEnd;
+
+        RowNext;
+        CellStart;
+        Write('Cond');
+        CellNext;
+        If (FCond='') then
+          EmitInput('cond','')
+        else
+          EmitInput('cond',FCond);
+        CellEnd;
+      end;
     RowNext;
       CellStart;
         Write('Only failed tests');
@@ -504,7 +610,15 @@ begin
    if (FOS<>'') and (GetOSName(FOS)<>'All') then
      S:=S+' AND (TU_OS_FK='+FOS+')';
    If (Round(FDate)<>0) then
-     S:=S+' AND (TU_DATE="'+FormatDateTime('YYYY/MM/DD',FDate)+'")';
+     S:=S+' AND (TU_DATE LIKE '''+FormatDateTime('YYYY-MM-DD',FDate)+'%'')';
+   If FSubmitter<>'' then
+     S:=S+' AND (TU_SUBMITTER='''+FSubmitter+''')';
+   If FMachine<>'' then
+     S:=S+' AND TU_MACHINE='''+FMachine+''')';
+   If FComment<>'' then
+     S:=S+' AND TU_COMMENT='''+Fcomment+''')';
+   If FCond<>'' then
+     S:=S+' AND ('+FCond+')';
    If FOnlyFailed then
      S:=S+' AND (TR_OK="-")';
    A:=SDetailsURL;
@@ -827,7 +941,7 @@ Procedure TTestSuite.ShowOneTest;
 Var
   S : String;
   Qry : String;
-  Category : string;
+  Base, Category : string;
   Q : TSQLQuery;
   i : longint;
   FieldName,FieldValue,
@@ -946,6 +1060,7 @@ begin
                 Border:=True;
                 //FL:='TR_ID,TR_TESTRUN_FK,T_NAME,T_CPU,T_VERSION';
                 CreateColumns(Nil);
+                TableColumns.Delete(TableColumns.ColumnByName('TR_TEST_FK').Index);
                 TableColumns.ColumnByNAme('TR_TESTRUN_FK').OnGetCellContents:=
                   @FormatTestRunOverview;
                 //OnGetRowAttributes:=@GetRunRowAttr;
@@ -964,6 +1079,7 @@ begin
           Free;
         end;
              //If FDebug then
+            Category:='1';
             if FRunId<>'' then
               begin
                 Category:=getsingleton('select TU_CATEGORY_FK from TESTRUN where TU_ID='+FRunId);
@@ -1032,20 +1148,351 @@ begin
                 PreformatEnd;
               end;
             Finally 
-            FViewVCURL:=ViewVCTrunkURL;
+            Base:='trunk';
             if  FVersionBranch<>'' then
               begin
                 // Test all but last version, which is assumed to be trunk
                 for ver:=low(known_versions) to pred(high(known_versions)) do
                   if ver_string[ver]=FVersionBranch then
                     begin
-                      FViewVCURL:=Format(ViewVCBranchURL,[ver_branch[ver]]);
+                      base:=ver_branch[ver];
                       break;
                     end;
               end;
-            if Category<>'1' then
+            FViewVCURL:=ViewURL+Base;
+            if Category='1' then
+              FViewVCUrl:=FViewVCURL+TestsSubDir
+            else
               begin
-                FViewVCURL:=ViewVCDatabaseURL;
+                FViewVCUrl:=FViewVCURL+DataBaseSubDir;
+                // This assumes that type TAnyType is
+                // defined in anytype.pas source PM
+                if pos('/',FTestFileName)>0 then
+                  FTestfilename:=lowercase(copy(FTestFilename,2,pos('/',FTestFilename)-2)+'.pas');
+              end;
+            if Source='' then
+              begin
+                HeaderStart(3);
+                DumpLn('<P>No Source in TestSuite DataBase.</P>');
+                DumpLn('Link to SVN view of '+
+                  '<A HREF="'+FViewVCURL+FTestFileName+'?view=markup'+
+                  '" TARGET="_blank"> '+FTestFileName+'</A> source. ');
+                HeaderEnd(3);
+              end
+            else
+              begin
+                HeaderStart(3);
+                DumpLn('Link to SVN view of '+
+                  '<A HREF="'+FViewVCURL+FTestFileName+'?view=markup'+
+                  '" TARGET="_blank"> '+FTestFileName+'</A> source. ');
+                HeaderEnd(3);
+              end;  
+            end;  
+             if FDebug then
+              Write('After Source.');
+    end
+    else
+      Write(Format('No data for test file with ID: %s',[FTestFileID]));
+      
+    end;
+end;
+
+
+Procedure TTestSuite.ShowHistory;
+
+Var
+  S,FL : String;
+  Qry : String;
+  Base, Category : string;
+  Q : TSQLQuery;
+  i : longint;
+  error : word;
+  OK_count, not_OK_count,resi,
+  total_count, skip_count, not_skip_count : longint;
+  TS : TTestStatus;
+  result_count : array[TTestStatus] of longint;
+  FieldName,FieldValue,
+  Log,Source : String;
+  Res : Boolean;
+  ver : known_versions;
+begin
+  ConnectToDB;
+  ContentType:='text/html';
+  EmitContentType;
+  if FTestFileID='' then
+    FTestFileID:=GetSingleton('SELECT T_ID FROM TESTS WHERE T_NAME LIKE ''%'+
+     FTestFileName+'%''');
+  if FTestFileID<>'' then
+    FTestFileName:=GetTestFileName(FTestFileID);
+  EmitTitle(Title+' : File '+FTestFileName+' Results');
+  With FHTMLWriter do
+    begin
+    HeaderStart(1);
+    Write('Test suite results for test file '+FTestFileName);
+    HeaderEnd(1);
+    HeaderStart(2);
+    Write('Test run data : ');
+    HeaderEnd(2);
+    if FRunID<>'' then
+      begin
+        Res:=ShowRunData;
+        Res:=true;
+      end
+    else 
+      begin
+        // This is useless as it is now
+        // It should be integrated into a form probably PM 
+        Write('Only failed tests');
+        EmitCheckBox('failedonly','1',FonlyFailed);
+        Write('Hide skipped tests');
+        EmitCheckBox('noskipped','1',FNoSkipped);
+        Res:=true;
+      end;
+    If Res then
+      begin
+      HeaderStart(2);
+      Write('Test file "'+FTestFileName+'" information:');
+      HeaderEnd(2);
+      ParaGraphStart;
+      if FTestFileID<>'' then
+        S:='SELECT * FROM TESTS WHERE T_ID='+FTestFileID
+      else
+        S:='SELECT * FROM TESTS WHERE T_NAME='+FTestFileName;
+      Q:=CreateDataSet(S);
+      With Q do
+        Try
+          Open;
+          Try
+            For i:=0 to FieldCount-1 do
+              begin
+                FieldValue:=Fields[i].AsString;
+                FieldName:=Fields[i].DisplayName;
+                
+                if (FieldValue<>'') and (FieldValue<>'-') and 
+                   (FieldName<>'T_NAME') and (FieldName<>'T_SOURCE') then
+                  begin
+                    if (FieldValue='+') then
+                      Write('Flag ');
+                    Write(FieldName);
+                    Write(' ');
+                    if FieldValue='+' then
+                      Write(' set')
+                    else
+                      Write(FieldValue);
+                    DumpLn('<BR>');
+                  end;
+              end;
+           
+          Finally
+            Close;
+          end;
+        Finally
+          Free;
+        end;
+      ParaGraphEnd;  
+      HeaderStart(2);
+      Write('Detailed test run results:');
+
+      HeaderEnd(2);
+      ParaGraphStart;
+      S:='SELECT TR_ID,TR_TESTRUN_FK,TR_TEST_FK,TR_OK, TR_SKIP,TR_RESULT '
+      //S:='SELECT * '
+        +',TU_ID,TU_DATE,TU_SUBMITTER,TU_MACHINE,TU_COMMENT '
+        +' FROM TESTRUN LEFT JOIN TESTRESULTS ON  (TR_TESTRUN_FK=TU_ID)'
+        +' WHERE  (TR_TEST_FK='+FTestFileID+')'
+        +' AND (TR_TESTRUN_FK=TU_ID)';
+      If FOnlyFailed then
+        S:=S+' AND (TR_OK="-")';
+      If FSubmitter<>'' then
+        S:=S+' AND (TU_SUBMITTER='''+FSubmitter+''')';
+      If FMachine<>'' then
+        S:=S+' AND (TU_MACHINE='''+FMachine+''')';
+      If FComment<>'' then
+        S:=S+' AND (TU_COMMENT='''+FComment+''')';
+
+      S:=S+' ORDER BY TU_ID DESC LIMIT '+IntToStr(FLimit);
+      Qry:=S;
+      If FDebug then
+      begin
+        Writeln(system.stdout,'Query : '+Qry);
+        system.Flush(system.stdout);
+      end;
+      FRunCount:=0;
+      FRunSkipCount:=0;
+      FRunFailedCount:=0;
+      Q:=CreateDataset(Qry);
+      With Q do
+        try
+          Open;
+            With CreateTableProducer(Q) do
+              Try
+                Border:=True;
+                FL:='TR_TESTRUN_FK,TU_DATE,TR_OK,TR_SKIP,TR_RESULT';
+                if FSubmitter='' then
+                  FL:=FL+',TU_SUBMITTER';
+                if FMachine='' then
+                  FL:=FL+',TU_MACHINE';
+                if Fcomment='' then
+                  FL:=FL+',TU_COMMENT';
+                CreateColumns(FL);
+                //TableColumns.Delete(TableColumns.ColumnByName('TR_TEST_FK').Index);
+                TableColumns.ColumnByNAme('TR_TESTRUN_FK').OnGetCellContents:=
+                  @FormatTestRunOverview;
+                //OnGetRowAttributes:=@GetRunRowAttr;
+                TableColumns.ColumnByNAme('TR_RESULT').OnGetCellContents:=
+                  @FormatTestResult;
+                //(TableColumns.Items[0] as TTableColumn).ActionURL:=ALink;
+                CreateTable(Response);
+              Finally
+                Free;
+              end;
+           DumpLn(Format('<p>Record count: %d </p>',[Q.RecordCount]));
+
+          Try
+           if FDebug then
+             begin
+               Writeln(stdout,'FieldKind=',Fields[0].FieldKind);
+               Writeln(stdout,'iDataType=',Fields[0].DataType);
+               system.flush(stdout);
+             end;
+
+          total_count:=0;
+          OK_count:=0;
+          not_OK_count:=0;
+          skip_count:=0;
+          not_skip_count:=0;
+          fillchar(Result_Count,Sizeof(Result_count),#0);
+          For i:=0 to Q.RecordCount-1 do
+            begin
+              Q.RecNo:=i;
+              inc(total_count);
+              S:=Fields[0].AsString;
+              if FDebug then
+                begin
+                  Writeln(stdout,'i=',i);
+                  Writeln(stdout,'S=',S);
+                  system.flush(stdout);
+                end;
+              S:=Fields[3].AsString;
+              if S='+' then
+                inc(OK_count)
+              else
+                inc(not_OK_count);
+              S:=Fields[4].AsString;
+              if S='+' then
+                inc(skip_count)
+              else
+                inc(not_skip_count);
+              S:=Fields[5].AsString;
+              system.val(S,resi,error);
+              if (error=0) and (Resi>=longint(FirstStatus)) and
+                 (Resi<=longint(LastStatus)) then
+                begin   
+                  TS:=TTestStatus(Resi);
+                  inc(Result_count[TS]);
+                end
+              else if Fdebug then
+                writeln(stdout,'Error for Result, S=',S);
+            end;
+          DumpLn(Format('<p>Total = %d </p>',[total_count]));
+          DumpLn(Format('<p>OK=%d Percentage= %3.2f </p>',[OK_count,OK_count*100/total_count]));
+          For TS:=FirstStatus to LastStatus do
+            if Result_count[TS]>0 then
+              DumpLn(Format('%s=%d </p>', [StatusText[TS],Result_count[TS]]));
+
+          Finally
+            Close;
+          end;
+        finally
+          Free;
+        end;
+             //If FDebug then
+            Category:='1';
+            if FRunId<>'' then
+              begin
+                Category:=getsingleton('select TU_CATEGORY_FK from TESTRUN where TU_ID='+FRunId);
+                FVersionBranch:=GetVersionName(getsingleton('select TU_VERSION_FK from TESTRUN where TU_ID='+fRunId));
+                log:=''; 
+                Try
+                log:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
+                     +') and (TR_TESTRUN_FK='+frunid+')');
+                if Log<>'' then
+                  begin
+                    HeaderStart(2);
+                    Write('Log of '+FRunId+':');
+                    HeaderEnd(2);
+                    PreformatStart;
+                    system.Write(Log);
+                    system.flush(output);
+                    PreformatEnd;
+                  end;
+                Finally
+                  if Log='' then
+                    begin
+                      HeaderStart(2);
+                      Write('No log of '+FRunId+'.');
+                      HeaderEnd(2);
+                    end;  
+                end;  
+              end;  
+            if FCompareRunId<>'' then
+              begin
+                log:=''; 
+                Try
+                log:=getsingleton('select TR_LOG from TESTRESULTS where (TR_TEST_FK='+ftestfileid
+                     +') and (TR_TESTRUN_FK='+fcomparerunid+')');
+                if Log<>'' then
+                  begin
+                    HeaderStart(2);
+                    Write('Log of '+FCompareRunId+':');
+                    HeaderEnd(2);
+                    PreformatStart;
+                    system.Write(Log);
+                    system.flush(output);
+                    PreformatEnd;
+                  end;
+                Finally
+                  if Log='' then
+                    begin
+                      HeaderStart(2);
+                      Write('No log of '+FCompareRunId+'.');
+                      HeaderEnd(2);
+                    end;  
+                end;  
+              end;  
+            if FDebug then
+              Write('After Log.');
+            Source:='';
+            Try  
+            Source:=getsingleton('select T_SOURCE from TESTS where T_ID='+ftestfileid);
+            if Source<>'' then
+              begin
+                HeaderStart(2);
+                Write('Source:');
+                HeaderEnd(2);
+                PreformatStart;
+                system.Write(Source);
+                system.flush(output);
+                PreformatEnd;
+              end;
+            Finally 
+            Base:='trunk';
+            if  FVersionBranch<>'' then
+              begin
+                // Test all but last version, which is assumed to be trunk
+                for ver:=low(known_versions) to pred(high(known_versions)) do
+                  if ver_string[ver]=FVersionBranch then
+                    begin
+                      base:=ver_branch[ver];
+                      break;
+                    end;
+              end;
+            FViewVCURL:=ViewURL+Base;
+            if Category='1' then
+              FViewVCUrl:=FViewVCURL+TestsSubDir
+            else
+              begin
+                FViewVCUrl:=FViewVCURL+DataBaseSubDir;
                 // This assumes that type TAnyType is
                 // defined in anytype.pas source PM
                 if pos('/',FTestFileName)>0 then
@@ -1397,22 +1844,36 @@ begin
     AntiAliased:=False;
     Resolution:=96;
     end;
-  // Writeln('Creating image');
+  if FDebug then
+    Writeln(stdout,'Creating image');
   Cnv:=TFPImageCanvas.Create(Img);
-  // Writeln('Getting width and height');
+  if FDebug then
+    Writeln(stdout,'CNV=0x',hexstr(ptruint(cnv),16));
+
+  if FDebug then
+   Writeln(stdout,'Getting width and height');
   W:=Img.Width;
   H:=Img.Height;
+  if FDebug then
+    begin
+      Writeln(stdout,'width=',W,' height=',H);
+      //system.flush(stdout);
+    end;
   // Writeln('Transparant');
   cnv.Brush.Style:=bsSolid;
   cnv.Brush.FPColor:=colTransparent;
   cnv.Pen.FPColor:=colWhite;
   Cnv.Rectangle(0,0,W,H);
-  // Writeln('Setting font');
+  if FDEbug then
+    Writeln(stdout,'Setting font');
   Cnv.Font:=F;
-  // Writeln('Getting textwidth ');
+  if FDebug then
+    Writeln(stdout,'Getting textwidth ');
   FH:=CNV.GetTextHeight('A');
   If FH=0 then
     FH:=14; // 3 * 14;
+  if FDebug then
+    writeln(stdout,'FH=',FH);
   Inc(FH,3);
   R.Top:=FH*4;
   R.Left:=0;
@@ -1423,16 +1884,27 @@ begin
   else
     R.Right:=W;
   Ra:=CR div 2;
-  // Writeln('Setting pen color');
+  if FDEbug then
+    begin
+      Writeln(stdout,'Setting pen color');
+      system.flush(stdout);
+    end;
   Cnv.Pen.FPColor:=colBlack;
-  // Writeln('Palette size : ',Img.Palette.Count);
-  // Writeln('Setting brush style');
+  if FDebug then
+    begin
+      Writeln(stdout,'Palette size : ',Img.Palette.Count);
+      Writeln(stdout,'Setting brush style');
+      system.flush(stdout);
+    end;
   cnv.brush.FPColor:=colRed;
 //  cnv.pen.width:=1;
   // Writeln('Drawing ellipse');
   Cnv.Ellipse(R);
-  // Writeln('Setting text');
-  // Writeln('Palette size : ',Img.Palette.Count);
+  if FDebug then
+    begin
+      Writeln(stdout,'Setting text');
+      Writeln(stdout,'Palette size : ',Img.Palette.Count);
+    end;
 
   cnv.font.FPColor:=colred;
   Inc(FH,4);
