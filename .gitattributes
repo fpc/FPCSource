@@ -5173,6 +5173,7 @@ packages/winunits-base/src/shlobj.pp svneol=native#text/plain
 packages/winunits-base/src/tmschema.inc svneol=native#text/plain
 packages/winunits-base/src/uxtheme.pp svneol=native#text/plain
 packages/winunits-base/src/wininet.pp svneol=native#text/plain
+packages/winunits-base/src/winutils.pp svneol=native#text/pascal
 packages/winunits-base/src/winver.pp svneol=native#text/plain
 packages/winunits-base/tests/OOHelper.pp svneol=native#text/plain
 packages/winunits-base/tests/OOTest.pp svneol=native#text/plain

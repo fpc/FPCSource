@@ -728,7 +728,7 @@ Procedure TStrings.LoadFromFile(const FileName: string);
 Var
         TheStream : TFileStream;
 begin
-  TheStream:=TFileStream.Create(FileName,fmOpenRead);
+  TheStream:=TFileStream.Create(FileName,fmOpenRead or fmShareDenyWrite);
   LoadFromStream(TheStream);
   TheStream.Free;
 end;
