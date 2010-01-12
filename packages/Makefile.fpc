@@ -358,3 +358,9 @@ fcl-xml_smart: iconvenc_smart
 fcl-xml_debug: iconvenc_debug
 fcl-xml_release: iconvenc_release
 endif
+
+opencl_all:  opengl_all
+opencl_debug:  opengl_debug
+opencl_smart:  opengl_smart
+opencl_release:  opengl_release
+opencl_shared:  opengl_shared
