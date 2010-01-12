@@ -4,7 +4,24 @@ unit utests;
 
 interface
 
-uses cgiapp,sysutils,mysql50conn,sqldb,whtml,dbwhtml,db,
+{$ifdef FPC}
+  {$ifdef VER2_4}
+    {$define USE_FPCGI}
+  {$endif VER2_4}
+  {$ifdef VER2_5}
+    {$define USE_FPCGI}
+  {$endif VER2_5}
+{$endif FPC}
+
+{$undef USE_FPCGI}
+
+uses 
+{$ifdef USE_FPCGI}
+     fpcgi,
+{$else not USE_FPCGI}
+     cgiapp,
+{$endif not USE_FPCGI}     
+     sysutils,mysql50conn,sqldb,whtml,dbwhtml,db,
      tresults,
      Classes,ftFont,fpimage,fpimgcanv,fpWritePng,fpcanvas;
 
@@ -38,6 +55,7 @@ Type
     FViewVCURL : String;
     FDate : TDateTime;
     FDebug,
+    FListAll,
     FNoSkipped,
     FOnlyFailed : Boolean;
     FRunSkipCount,
@@ -56,6 +74,7 @@ Type
     Procedure FormatFailedOverview(Sender : TObject; Var CellData : String);
     Procedure FormatTestRunOverview(Sender : TObject; Var CellData : String);
     Procedure FormatFileDetails(Sender: TObject; var CellData: String);
+    Procedure FormatFileIDDetails(Sender: TObject; var CellData: String);
     Procedure FormatTestResult(Sender: TObject; var CellData: String);
     Procedure DoDrawPie(Img : TFPCustomImage; Skipped,Failed,Total : Integer);
   Public
@@ -72,6 +91,7 @@ Type
     Function InitCGIVars : Integer;
     Procedure DoRun; override;
     Procedure EmitOverviewForm;
+    Procedure EmitHistoryForm;
     Procedure ShowRunResults;
     Procedure ShowRunComparison;
     Procedure ShowOneTest;
@@ -295,6 +315,8 @@ begin
   FRunFailedCount:=StrToIntDef(RequestVariables['PIEFAILED'],0);
   S:=RequestVariables['DEBUGCGI'];
   FDebug:=(S='1');
+  S:=RequestVariables['listall'];
+  FListAll:=(S='1');
   Result:=FAction;
 end;
 
@@ -505,6 +527,137 @@ begin
     end;
   ShowRunOverview;
 end;
+
+Procedure TTestSuite.EmitHistoryForm;
+
+begin
+  ConnectToDB;
+  ContentType:='text/html';
+  EmitContentType;
+  EmitTitle(Title);
+  With FHTMLWriter do
+    begin
+    HeaderStart(1);
+    Write('View Test suite results');
+    HeaderEnd(1);
+    Write('Please specify search criteria:');
+    ParagraphStart;
+    FormStart(TestsuiteCGIURL,'');
+    if FDebug then
+      EmitHiddenVar('DEBUGCGI', '1');
+    EmitHiddenVar('action','4');
+    TableStart(2,true);
+    RowStart;
+      CellStart;
+        Write('File:');
+      CellNext;
+        EmitInput('testfilename',FTestfilename);
+      CellEnd;
+    RowNext;
+    (*   CellStart;
+        Write('FileID:');
+      CellNext;
+        EmitInput('testfileid',FTestfileid);
+      CellEnd;
+    RowNext; *)
+ 
+      CellStart;
+        Write('Operating system:');
+      CellNext;
+        ComboBoxFromQuery('os','SELECT TO_ID,TO_NAME FROM TESTOS ORDER BY TO_NAME',FOS);
+      CellEnd;
+    RowNext;
+      CellStart;
+        Write('Processor:');
+      CellNext;
+        ComboBoxFromQuery('cpu','SELECT TC_ID,TC_NAME FROM TESTCPU ORDER BY TC_NAME',FCPU);
+      CellEnd;
+    RowNext;
+      CellStart;
+        Write('Version');
+      CellNext;
+        ComboBoxFromQuery('version','SELECT TV_ID,TV_VERSION FROM TESTVERSION ORDER BY TV_VERSION DESC',FVERSION);
+      CellEnd;
+    RowNext;
+      CellStart;
+        Write('Date');
+      CellNext;
+        If (FDate=0) then
+          EmitInput('date','')
+        else
+          EmitInput('date',DateToStr(FDate));
+      CellEnd;
+        RowNext;
+        CellStart;
+        Write('Submitter');
+        CellNext;
+        If (FSubmitter='') then
+          EmitInput('submitter','')
+        else
+          EmitInput('submitter',FSubmitter);
+        CellEnd;
+       RowNext;
+        CellStart;
+        Write('Machine');
+        CellNext;
+        If (FMachine='') then
+          EmitInput('machine','')
+        else
+          EmitInput('machine',FMachine);
+        CellEnd;
+        RowNext;
+        CellStart;
+        Write('Comment');
+        CellNext;
+        If (FComment='') then
+          EmitInput('comment','')
+        else
+          EmitInput('comment',FComment);
+        CellEnd;
+        RowNext;
+        CellStart;
+        Write('Limit');
+        CellNext;
+        EmitInput('limit',IntToStr(FLimit));
+        CellEnd;
+
+        RowNext;
+        CellStart;
+        Write('Cond');
+        CellNext;
+        If (FCond='') then
+          EmitInput('cond','')
+        else
+          EmitInput('cond',FCond);
+        CellEnd;
+    RowNext;
+      CellStart;
+        Write('Only failed tests');
+      CellNext;
+        EmitCheckBox('failedonly','1',FonlyFailed);
+      CellEnd;
+    RowNext;
+      CellStart;
+        Write('Hide skipped tests');
+      CellNext;
+        EmitCheckBox('noskipped','1',FNoSkipped);
+      CellEnd;
+    RowNext;
+      CellStart;
+        Write('List all tests');
+      CellNext;
+        EmitCheckBox('listall','1',FListAll);
+      CellEnd;
+
+    RowEnd;
+    TableEnd;
+    ParaGraphStart;
+    EmitSubmitButton('','Search');
+    EmitResetButton('','Reset form');
+    FormEnd;
+    end;
+end;
+
 
 procedure TTestSuite.EmitEnd;
 begin  
@@ -897,6 +1050,11 @@ begin
       With Q do
         try
           Open;
+          while not EOF do
+            Next;
+          RecNo:=0;
+
+          DumpLn(Format('<p>Record count: %d </p>',[Q.RecordCount]));
           Try
             With CreateTableProducer(Q) do
               Try
@@ -909,6 +1067,9 @@ begin
                 FL:=FL+',Result';
                 CreateColumns(FL);
                 OnGetRowAttributes:=@GetRunRowAttr;
+                TableColumns.ColumnByNAme('Id').OnGetCellContents:=
+                  @FormatFileIDDetails;
+
                 TableColumns.ColumnByNAme('Filename').OnGetCellContents:=
                   @FormatFileDetails;
                 TableColumns.ColumnByNAme('Result').OnGetCellContents:=
@@ -918,7 +1079,6 @@ begin
               Finally
                 Free;
               end;
-            DumpLn(Format('<p>Record count: %d </p>',[Q.RecordCount]));
           Finally
             Close;
           end;
@@ -1201,7 +1361,8 @@ end;
 Procedure TTestSuite.ShowHistory;
 
 Var
-  S,FL : String;
+  S,FL,cpu,version,os : String;
+  date : TDateTime;
   Qry : String;
   Base, Category : string;
   Q : TSQLQuery;
@@ -1211,6 +1372,7 @@ Var
   total_count, skip_count, not_skip_count : longint;
   TS : TTestStatus;
   result_count : array[TTestStatus] of longint;
+  first_date, last_date : array[TTestStatus] of TDateTime;
   FieldName,FieldValue,
   Log,Source : String;
   Res : Boolean;
@@ -1242,11 +1404,12 @@ begin
       begin
         // This is useless as it is now
         // It should be integrated into a form probably PM 
-        Write('Only failed tests');
-        EmitCheckBox('failedonly','1',FonlyFailed);
-        Write('Hide skipped tests');
-        EmitCheckBox('noskipped','1',FNoSkipped);
+        //Write('Only failed tests');
+        //EmitCheckBox('failedonly','1',FonlyFailed);
+        //Write('Hide skipped tests');
+        //EmitCheckBox('noskipped','1',FNoSkipped);
         Res:=true;
+        EmitHistoryForm;
       end;
     If Res then
       begin
@@ -1254,10 +1417,7 @@ begin
       Write('Test file "'+FTestFileName+'" information:');
       HeaderEnd(2);
       ParaGraphStart;
-      if FTestFileID<>'' then
-        S:='SELECT * FROM TESTS WHERE T_ID='+FTestFileID
-      else
-        S:='SELECT * FROM TESTS WHERE T_NAME='+FTestFileName;
+      S:='SELECT * FROM TESTS WHERE T_ID='+FTestFileID;
       Q:=CreateDataSet(S);
       With Q do
         Try
@@ -1267,7 +1427,6 @@ begin
               begin
                 FieldValue:=Fields[i].AsString;
                 FieldName:=Fields[i].DisplayName;
-                
                 if (FieldValue<>'') and (FieldValue<>'-') and 
                    (FieldName<>'T_NAME') and (FieldName<>'T_SOURCE') then
                   begin
@@ -1297,20 +1456,35 @@ begin
       ParaGraphStart;
       S:='SELECT TR_ID,TR_TESTRUN_FK,TR_TEST_FK,TR_OK, TR_SKIP,TR_RESULT '
       //S:='SELECT * '
+        +',TC_NAME AS CPU, TV_VERSION AS VERSION, TO_NAME AS OS'
         +',TU_ID,TU_DATE,TU_SUBMITTER,TU_MACHINE,TU_COMMENT '
-        +' FROM TESTRUN LEFT JOIN TESTRESULTS ON  (TR_TESTRUN_FK=TU_ID)'
-        +' WHERE  (TR_TEST_FK='+FTestFileID+')'
-        +' AND (TR_TESTRUN_FK=TU_ID)';
+        +' FROM TESTRUN '
+        +' LEFT JOIN TESTRESULTS ON  (TR_TESTRUN_FK=TU_ID)'
+        +' LEFT JOIN TESTOS ON  (TU_OS_FK=TO_ID)'
+        +' LEFT JOIN TESTCPU ON  (TU_CPU_FK=TC_ID)'
+        +' LEFT JOIN TESTVERSION ON  (TU_VERSION_FK=TV_ID)'
+        +' WHERE  (TR_TEST_FK='+FTestFileID+')';
       If FOnlyFailed then
         S:=S+' AND (TR_OK="-")';
+      If (FCPU<>'') and (GetCPUName(FCPU)<>'All') then
+        S:=S+' AND (TU_CPU_FK='+FCPU+')';
+      If (FVersion<>'') and (GetVersionName(FVersion)<>'All')  then
+        S:=S+' AND (TU_VERSION_FK='+FVERSION+')';
+      if (FOS<>'') and (GetOSName(FOS)<>'All') then
+        S:=S+' AND (TU_OS_FK='+FOS+')';
+
       If FSubmitter<>'' then
         S:=S+' AND (TU_SUBMITTER='''+FSubmitter+''')';
       If FMachine<>'' then
         S:=S+' AND (TU_MACHINE='''+FMachine+''')';
       If FComment<>'' then
         S:=S+' AND (TU_COMMENT='''+FComment+''')';
+      if FDATE<>0 then
+        S:=S+' AND (TU_DATE >= '''+FormatDateTime('YYYY-MM-DD',FDate)+''')';
 
-      S:=S+' ORDER BY TU_ID DESC LIMIT '+IntToStr(FLimit);
+      S:=S+' ORDER BY TU_ID DESC';
+      if FDATE=0 then
+        S:=S+' LIMIT '+IntToStr(FLimit);
       Qry:=S;
       If FDebug then
       begin
@@ -1324,6 +1498,13 @@ begin
       With Q do
         try
           Open;
+          
+          while not EOF do
+            Next;
+          RecNo:=0;
+          If FDebug or FListAll then
+           begin
+
             With CreateTableProducer(Q) do
               Try
                 Border:=True;
@@ -1334,6 +1515,13 @@ begin
                   FL:=FL+',TU_MACHINE';
                 if Fcomment='' then
                   FL:=FL+',TU_COMMENT';
+                if (FOS='') or (GetOSName(FOS)='All') then
+                  FL:=FL+',OS';
+                if (FCPU='') or (GetCPUName(FCPU)='All') then
+                  FL:=FL+',CPU';
+                if (FVersion='') or (GetVersionName(FVersion)='All') then
+                  FL:=FL+',VERSION';
+                
                 CreateColumns(FL);
                 //TableColumns.Delete(TableColumns.ColumnByName('TR_TEST_FK').Index);
                 TableColumns.ColumnByNAme('TR_TESTRUN_FK').OnGetCellContents:=
@@ -1346,13 +1534,15 @@ begin
               Finally
                 Free;
               end;
-           DumpLn(Format('<p>Record count: %d </p>',[Q.RecordCount]));
+           end;
+           
+          DumpLn(Format('<p>Record count: %d </p>',[Q.RecordCount]));
 
           Try
            if FDebug then
              begin
                Writeln(stdout,'FieldKind=',Fields[0].FieldKind);
-               Writeln(stdout,'iDataType=',Fields[0].DataType);
+               Writeln(stdout,'DataType=',Fields[0].DataType);
                system.flush(stdout);
              end;
 
@@ -1366,13 +1556,6 @@ begin
             begin
               Q.RecNo:=i;
               inc(total_count);
-              S:=Fields[0].AsString;
-              if FDebug then
-                begin
-                  Writeln(stdout,'i=',i);
-                  Writeln(stdout,'S=',S);
-                  system.flush(stdout);
-                end;
               S:=Fields[3].AsString;
               if S='+' then
                 inc(OK_count)
@@ -1384,21 +1567,44 @@ begin
               else
                 inc(not_skip_count);
               S:=Fields[5].AsString;
+              cpu:=Fields[6].ASString;
+              version:=Fields[7].AsString;
+              os:=Fields[8].AsString;
+              date:=Fields[10].ASDateTime;
               system.val(S,resi,error);
               if (error=0) and (Resi>=longint(FirstStatus)) and
                  (Resi<=longint(LastStatus)) then
                 begin   
                   TS:=TTestStatus(Resi);
+                  if Result_count[TS]=0 then
+                    begin
+                      first_date[TS]:=date;
+                      last_date[TS]:=date;
+                    end
+                  else 
+                    begin
+                      if (date>last_date[TS]) then
+                        last_date[TS]:=date;
+                      if date<first_date[TS] then
+                        first_date[TS]:=date;
+                    end;
+                    
                   inc(Result_count[TS]);
                 end
               else if Fdebug then
                 writeln(stdout,'Error for Result, S=',S);
             end;
           DumpLn(Format('<p>Total = %d </p>',[total_count]));
-          DumpLn(Format('<p>OK=%d Percentage= %3.2f </p>',[OK_count,OK_count*100/total_count]));
+          if Total_count > 0 then
+            DumpLn(Format('<p>OK=%d Percentage= %3.2f </p>',[OK_count,OK_count*100/total_count]));
+          if Skip_count > 0 then
+            DumpLn(Format('<p>Skipped=%d Percentage= %3.2f </p>',[Skip_count,Skip_count*100/total_count]));
           For TS:=FirstStatus to LastStatus do
             if Result_count[TS]>0 then
-              DumpLn(Format('%s=%d </p>', [StatusText[TS],Result_count[TS]]));
+              DumpLn(Format('<p>%s=%d From %s to %s</p>',
+                [StatusText[TS],Result_count[TS],
+                 DateTimeToStr(first_date[TS]),
+                 DateTimeToStr(last_date[TS])]));
 
           Finally
             Close;
@@ -1729,6 +1935,24 @@ begin
     S:=S+'&noskipped=1';
   CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
 end;
+
+procedure TTestSuite.FormatFileIDDetails(Sender: TObject; var CellData: String);
+
+Var
+  S: String;
+  P : TTableProducer;
+
+begin
+  P:=(Sender as TTableProducer);
+  if FVersion<>'' then
+    S:=Format(TestSuiteCGIURL + '?action=4&version=%s&testfileid=%s',
+       [FVersion,P.DataSet.FieldByName('Id').AsString])
+  else 
+    S:=Format(TestSuiteCGIURL + '?action=4&testfileid=%s',
+       [P.DataSet.FieldByName('Id').AsString]);
+  CellData:=Format('<A HREF="%s">%s</A>',[S,CellData]);
+end;
+
 
 procedure TTestSuite.FormatFileDetails(Sender: TObject; var CellData: String);
 
