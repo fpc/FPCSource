@@ -67,6 +67,7 @@ type
     FWriteStream: TStream;
     FBlockStream: TMemoryStream;
     ParentNode: TFIftiNode;
+    OwnsParentNode : boolean;
     function  AdjustedWord(AWord: String; out AOffset: Byte; AOldWord: String): String;
     procedure ChildIsFull(AWord: String; ANodeOffset: DWord); virtual; abstract;
     function  GuessIfCanHold(AWord: String): Boolean; virtual; abstract;
@@ -91,6 +92,7 @@ type
   public
     procedure WriteToStream;
     constructor Create(AStream: TStream; AWordList: TIndexedWordList);
+    destructor Destroy; override;
   end;
 
   { TChmSearchReader }
@@ -259,6 +261,7 @@ begin
     FActiveLeafNode.Flush(False); // causes the unwritten parts of the tree to be written
 end;
 
+
 procedure TChmSearchWriter.WriteHeader ( IsPlaceHolder: Boolean ) ;
 var
   TmpNode: TFIftiNode;
@@ -344,6 +347,7 @@ begin
 end;
 
 procedure TChmSearchWriter.WriteAWord ( AWord: TIndexedWord ) ;
+
 begin
   if FActiveLeafNode = nil then
   begin
@@ -363,7 +367,6 @@ begin
   TLeafNode(FActiveLeafNode).AddWord(AWord);
 end;
 
-
 procedure TChmSearchWriter.WriteToStream;
 begin
   WriteHeader(True);
@@ -376,8 +379,15 @@ constructor TChmSearchWriter.Create ( AStream: TStream;
 begin
   FStream := AStream;
   FWordList := AWordList;
-
+  FActiveLeafNode:=NIL; 
 end;
+
+destructor TChmSearchWriter.Destroy;
+
+begin
+ freeandnil(FActiveLeafNode);
+end;
+
 
 { TLeafNode }
 
@@ -391,11 +401,13 @@ begin
   inherited Create;
   FWriteStream := AStream;
   FBlockStream := TMemoryStream.Create;
+  OwnsParentNode :=false;
 end;
 
 destructor TFIftiNode.Destroy;
 begin
   FBlockStream.Free;
+  if OwnsParentNode then ParentNode.Free;
   inherited Destroy;
 end;
 
@@ -486,8 +498,10 @@ begin
   if NewBlockNeeded or ((NewBlockNeeded = False) and (ParentNode <> nil)) then
   begin
     if ParentNode = nil then
-      ParentNode := TIndexNode.Create(FWriteStream);
-
+      begin
+        ParentNode := TIndexNode.Create(FWriteStream);
+        OwnsParentNode:=True;
+      end;
     ParentNode.ChildIsFull(FLastWord, FLastNodeStart);
     if (NewBlockNeeded = False) then
       ParentNode.Flush(False);
@@ -675,7 +689,10 @@ begin
   if NewBlockNeeded then
   begin
     if ParentNode = nil then
-      ParentNode := TIndexNode.Create(FWriteStream);
+      begin
+        ParentNode := TIndexNode.Create(FWriteStream);
+        OwnsParentNode:=True;
+      end;
   end;
 
   if ParentNode <> nil then

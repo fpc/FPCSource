@@ -116,7 +116,8 @@ type
   public
     function GetContextUrl(Context: THelpContext): String;
     function LookupTopicByID(ATopicID: Integer; out ATitle: String): String; // returns a url
-    function GetTOCSitemap: TChmSiteMap;
+    function GetTOCSitemap(ForceXML:boolean=false): TChmSiteMap;
+    function GetIndexSitemap(ForceXML:boolean=false): TChmSiteMap;
     function HasContextList: Boolean;
     property DefaultPage: String read fDefaultPage;
     property IndexFile: String read fIndexFile;
@@ -875,7 +876,241 @@ begin
   end;
 end;
 
-function TChmReader.GetTOCSitemap: TChmSiteMap;
+const DefBlockSize = 2048;
+
+function LoadBtreeHeader(m:TMemoryStream;var btreehdr:TBtreeHeader):boolean;
+
+begin
+  if m.size<sizeof(TBtreeHeader) Then
+    Exit(False);
+  result:=true;
+  m.read(btreeHdr,sizeof(TBtreeHeader));
+  {$IFDEF ENDIAN_BIG}
+     btreehdr.flags         :=LEToN(btreehdr.flags);
+     btreehdr.blocksize     :=LEToN(btreehdr.blocksize);
+     btreehdr.lastlstblock  :=LEToN(btreehdr.lastlstblock);
+     btreehdr.indexrootblock:=LEToN(btreehdr.indexrootblock);
+     btreehdr.nrblock       :=LEToN(btreehdr.nrblock);
+     btreehdr.treedepth     :=LEToN(btreehdr.treedepth);
+     btreehdr.nrkeywords    :=LEToN(btreehdr.nrkeywords);
+     btreehdr.codepage      :=LEToN(btreehdr.codepage);
+     btreehdr.lcid          :=LEToN(btreehdr.lcid);
+     btreehdr.ischm         :=LEToN(btreehdr.ischm);
+  {$endif}
+end;
+
+function readwcharstring(var head:pbyte;tail:pbyte;var readv : ansistring):boolean;
+
+var pw      : PWord;
+    oldhead : PByte;
+    ws      : WideString;
+    n       : Integer;
+begin
+  oldhead:=head;
+  pw:=pword(head);
+  while (pw<pword(tail)) and (pw^<>word(0)) do
+    inc(pw);
+  inc(pw); // skip #0#0.
+  head:=pbyte(pw);
+  result:=head<tail;
+
+  n:=head-oldhead;
+  setlength(ws,n div sizeof(widechar));
+  move(oldhead^,ws[1],n);
+  for n:=1 to length(ws) do
+    word(ws[n]):=LEToN(word(ws[n]));
+  readv:=ws; // force conversion for now, and hope it doesn't require cwstring
+end;
+
+function TChmReader.GetIndexSitemap(ForceXML:boolean=false): TChmSiteMap;
+var Index   : TMemoryStream;
+    sitemap : TChmSiteMap;
+    Item    : TChmSiteMapItem;
+    
+function  AbortAndTryTextual:tchmsitemap;
+
+begin
+     if Assigned(Index) Then Index.Free;
+     // Second Try text Index
+     Index := GetObject(IndexFile);
+     if Index <> nil then
+     begin
+       Result := TChmSiteMap.Create(stIndex);
+       Result.LoadFromStream(Index);
+       Index.Free;
+     end
+    else
+      result:=nil;
+end;
+
+procedure createentry(Name:ansistring;CharIndex:integer;Topic,Title:ansistring);
+var litem : TChmSiteMapItem;
+    shortname : ansistring;
+    longpart  : ansistring;
+begin
+ if charindex=0 then
+   begin
+     item:=sitemap.items.NewItem;
+     item.keyword:=Name;
+     item.local:=topic;
+     item.text:=title;
+   end
+ else
+   begin
+     shortname:=copy(name,1,charindex-2);
+     longpart:=copy(name,charindex,length(name)-charindex+1);
+     if assigned(item) and (shortname=item.text) then
+       begin
+         litem:=item.children.newitem;
+         litem.local:=topic;
+         litem.keyword :=longpart; // recursively split this? No examples.
+         litem.text:=title;
+       end
+      else
+       begin
+         item:=sitemap.items.NewItem;
+         item.keyword:=shortname;
+         item.local:=topic;
+         item.text:=title;
+         litem:=item.children.newitem;
+         litem.keyword:=longpart;
+         litem.local:=topic;
+         litem.text :=Title; // recursively split this? No examples.
+       end;
+   end;  
+end;
+
+procedure parselistingblock(p:pbyte);
+var hdr:PBTreeBlockHeader;
+    head,tail : pbyte;
+    isseealso,
+    nrpairs : Integer;
+    i : integer;
+    PE : PBtreeBlockEntry;
+    title : string;
+    CharIndex,
+    ind:integer;
+    seealsostr,
+    topic,
+    Name : AnsiString;
+    item : TChmSiteMapItem;
+begin
+  hdr:=PBTreeBlockHeader(p);
+  hdr^.Length          :=LEToN(hdr^.Length);
+  hdr^.NumberOfEntries :=LEToN(hdr^.NumberOfEntries);
+  hdr^.IndexOfPrevBlock:=LEToN(hdr^.IndexOfPrevBlock);
+  hdr^.IndexOfNextBlock:=LEToN(hdr^.IndexOfNextBlock);
+
+  tail:=p+(2048-hdr^.length);
+  head:=p+sizeof(TBtreeBlockHeader);
+  
+  {$ifdef binindex}
+  writeln('previndex  : ',hdr^.IndexOfPrevBlock);
+  writeln('nextindex  : ',hdr^.IndexOfNextBlock);
+  {$endif}
+  while head<tail do
+    begin
+      if not ReadWCharString(Head,Tail,Name) Then
+        Break;
+      {$ifdef binindex}
+         Writeln('name : ',name);
+      {$endif}
+       if (head+sizeof(TBtreeBlockEntry))>=tail then
+         break;
+      PE :=PBtreeBlockEntry(head);
+      NrPairs  :=LEToN(PE^.nrpairs);
+      IsSeealso:=LEToN(PE^.isseealso);
+      CharIndex:=LEToN(PE^.CharIndex);
+      {$ifdef binindex}
+        Writeln('seealso:     ',IsSeeAlso);
+        Writeln('entrydepth:  ',LEToN(PE^.entrydepth));
+        Writeln('charindex :  ',charindex );
+        Writeln('Nrpairs   :  ',NrPairs);
+        writeln('seealso data : ');
+      {$endif}
+
+      inc(head,sizeof(TBtreeBlockEntry));
+      if isseealso>0 then
+        begin
+          if not ReadWCharString(Head,Tail,SeeAlsoStr) Then
+            Break;
+          // have to figure out first what to do with it.
+        end
+      else
+        begin
+         if NrPairs>0 Then
+            for i:=0 to nrpairs-1 do
+              begin
+                if head<tail Then
+                  begin
+                    ind:=LEToN(plongint(head)^);
+                    topic:=lookuptopicbyid(ind,title);
+                    {$ifdef binindex}
+                      writeln(i:3,' topic: ',topic);
+                      writeln('    title: ',title);
+                    {$endif}
+                    inc(head,4);
+                  end;
+              end;
+          end;
+      if nrpairs<>0 Then
+        createentry(Name,CharIndex,Topic,Title);
+      inc(head,4); // always 1
+      {$ifdef binindex}
+        if head<tail then
+        writeln('Zero based index (13 higher than last) :',plongint(head)^);
+      {$endif}
+      inc(head,4); // zero based index (13 higher than last
+    end;
+end;
+
+var TryTextual : boolean;
+    BHdr       : TBTreeHeader;
+    block      : Array[0..2047] of Byte;
+    i          : Integer;
+begin
+   Result := nil;  SiteMap:=Nil;
+   // First Try Binary
+   Index := GetObject('/$WWKeywordLinks/BTree');
+   if (Index = nil) or ForceXML then
+   begin
+     Result:=AbortAndTryTextual;
+     Exit;
+   end;
+   if not CheckCommonStreams then
+   begin
+     Result:=AbortAndTryTextual;
+     Exit;
+   end;
+   SiteMap:=TChmSitemap.Create(StIndex);
+   Item   :=Nil;  // cached last created item, in case we need to make 
+                  // a child.
+   TryTextual:=True;
+   BHdr.LastLstBlock:=0;
+   if LoadBtreeHeader(index,BHdr) and (BHdr.LastLstBlock>0) Then
+    begin 
+       if BHdr.BlockSize=defblocksize then
+         begin
+           for i:=0 to BHdr.lastlstblock do
+             begin
+               if (index.size-index.position)>=defblocksize then
+                 begin
+                   Index.read(block,defblocksize);
+                   parselistingblock(@block)
+                end;
+             end;
+            trytextual:=false;
+            result:=sitemap; 
+          end;   
+    end;
+  if trytextual then
+    begin
+      sitemap.free;
+      Result:=AbortAndTryTextual;
+    end;
+end;
+
+function TChmReader.GetTOCSitemap(ForceXML:boolean=false): TChmSiteMap;
     function AddTOCItem(TOC: TStream; AItemOffset: DWord; SiteMapITems: TChmSiteMapItems): DWord;
     var
       Props: DWord;
@@ -919,8 +1154,9 @@ begin
    Result := nil;
    // First Try Binary
    TOC := GetObject('/#TOCIDX');
-   if TOC = nil then
+   if (TOC = nil) or ForceXML then
    begin
+     if Assigned(TOC) Then Toc.Free;
      // Second Try text toc
      TOC := GetObject(TOCFile);
      if TOC <> nil then

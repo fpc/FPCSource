@@ -129,7 +129,9 @@ begin
      debugmessageS({$i %file%},'TCHMWrapper: indexfilename:'+fchmr.indexfile,{$i %line%},'1',0,0);
  {$endif}
 
-  m:=fchmr.getobject(fchmr.indexfile);
+
+  findex:=fchmr.GetIndexSitemap(false);
+(*  m:=fchmr.getobject(fchmr.indexfile);
   try
    if assigned(m) then
      begin
@@ -141,6 +143,7 @@ begin
   finally
     freeandnil(m);
     end;
+    *)
    {$ifdef wdebug}
      debugmessageS({$i %file%},'TCHMWrapper: loadindex after final ',{$i %line%},'1',0,0);
   {$endif}
@@ -148,6 +151,12 @@ begin
   tli:=TopicLinks^.AddItem(fchmr.defaultpage);
   TLI:=EncodeHTMLCtx(ID,TLI+1);
   IndexEntries^.Insert(NewIndexEntry(  FormatAlias('Table of contents'),ID,TLI));
+  if findex= Nil Then
+    begin
+      floaded:=true;
+      exit(true);
+    end;
+  if assigned(findex.items) and (findex.items.count>0) Then
   for i:=0 to findex.items.count-1 do
     begin
       item:=findex.items.item[i];
@@ -289,7 +298,7 @@ begin
                Afileid:=chmw.fileid;
                alinkid:=chmw.fTopicLinks.additem(restlink);
                result:=true;
-            end;    
+            end;
          end;
     end
 end;

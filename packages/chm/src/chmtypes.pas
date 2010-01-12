@@ -25,13 +25,13 @@ unit chmtypes;
 interface
 
 uses
-  Classes, SysUtils; 
-  
+  Classes, SysUtils;
+
 type
   TSectionName = (snMSCompressed, snUnCompressed);
-  
+
   TSectionNames = set of TSectionName;
-  
+
    { TDirectoryChunk }
 
   TDirectoryChunk = class(TObject)
@@ -52,7 +52,7 @@ type
     property ItemCount: Word read FItemCount;
     constructor Create(AHeaderSize: Integer);
   end;
-  
+
   { TPMGIDirectoryChunk }
 
   TPMGIDirectoryChunk = class(TDirectoryChunk)
@@ -134,8 +134,60 @@ type
     Unknown: Word; // 0,2,4,8,10,12,16,32
   end;
 
+  TBtreeHeader = packed record
+                        ident          : array[0..1] of ansichar; // $3B $29
+                        flags          : word;	// bit $2 is always 1, bit $0400 1 if dir? (always on)
+                        blocksize      : word;  // size of blocks (2048)
+                        dataformat     : array[0..15] of ansichar;  // "X44" always the same, see specs.
+                        unknown0       : dword; // always 0
+			lastlstblock   : dword; // index of last listing block in the file;
+                        indexrootblock : dword; // Index of the root block in the file.
+                        unknown1       : dword; // always -1
+                        nrblock	       : dword; // Number of blocks
+                        treedepth      : word;  // The depth of the tree of blocks (1 if no index blocks, 2 one level of index blocks, ...)
+                        nrkeywords     : dword; // number of keywords in the file.
+                        codepage       : dword; // Windows code page identifier (usually 1252 - Windows 3.1 US (ANSI))
+			lcid	       : dword; // LCID from the HHP file.
+                        ischm	       : dword; // 0 if this a BTREE and is part of a CHW file, 1 if it is a BTree and is part of a CHI or CHM file
+                        unknown2       : dword; // Unknown. Almost always 10031. Also 66631 (accessib.chm, ieeula.chm, iesupp.chm, iexplore.chm, msoe.chm, mstask.chm, ratings.chm, wab.chm).
+                        unknown3       : dword; // unknown 0
+		        unknown4       : dword; // unknown 0
+			unknown5       : dword; // unknown 0
+                      end;
+  PBTreeBlockHeader = ^TBtreeBlockHeader;
+  TBtreeBlockHeader = packed record
+                        Length             : word;  // Length of free space at the end of the block.
+                        NumberOfEntries    : word;  // Number of entries in the block.
+                        IndexOfPrevBlock   : dword; // Index of the previous block. -1 if this is the first listing block.
+                        IndexOfNextBlock   : dword; // Index of the next block. -1 if this is the last listing block.
+                      end;
 
-  function PageBookInfoRecordSize(ARecord: PTOCEntryPageBookInfo): Integer;
+  PBtreeBlockEntry = ^TBtreeBlockEntry;
+  TBtreeBlockEntry = packed record
+                        isseealso  : word; // 2 if this keyword is a See Also keyword, 0 if it is not.
+                        entrydepth : word; // Depth of this entry into the tree.
+                        charindex  : dword;// Character index of the last keyword in the ", " separated list.
+                        unknown0   : dword;// 0 (unknown)
+                        NrPairs    : dword;// Number of Name, Local pairs
+                      end;
+
+  PBtreeIndexBlockHeader = ^TBtreeIndexBlockHeader;
+  TBtreeIndexBlockHeader = packed record
+                        length             : word;  // Length of free space at the end of the block.
+                        NumberOfEntries    : word;  // Number of entries in the block.
+                        IndexOfChildBlock  : dword; // Index of Child Block
+                      end;
+
+  PBtreeIndexBlockEntry = ^TBtreeIndexBlockEntry;
+  TBtreeIndexBlockEntry = packed record
+                        isseealso  : word; // 2 if this keyword is a See Also keyword, 0 if it is not.
+                        entrydepth : word; // Depth of this entry into the tree.
+                        charindex  : dword;// Character index of the last keyword in the ", " separated list.
+                        unknown0   : dword;// 0 (unknown)
+                        NrPairs    : dword;// Number of Name, Local pairs
+                      end;
+
+function PageBookInfoRecordSize(ARecord: PTOCEntryPageBookInfo): Integer;
 
 implementation
 uses chmbase;
@@ -174,7 +226,7 @@ begin
   Move(Data^, Buffer[CurrentPos], Size);
   Inc(CurrentPos, Size);
   Inc(FItemCount);
-  
+
   // now put a quickref entry if needed
   if ItemCount mod 5 = 0 then begin
     Inc(FQuickRefEntries);
@@ -312,7 +364,7 @@ begin
   WriteChunkToStream(Stream);
   NewPos := Stream.Position;
   Inc(FChunkLevelCount);
-  
+
   if Final and (ChunkLevelCount < 2) then begin
     FParentChunk.Free;
     FParentChunk := nil;
@@ -332,7 +384,7 @@ begin
   if not FParentChunk.CanHold(WriteSize) then begin
     FinishBlock;
   end;
-  
+
   FParentChunk.WriteEntry(WriteSize, @NewBuffer[0]);
   if Final then FinishBlock;
   //WriteLn(ChunkLevelCount);

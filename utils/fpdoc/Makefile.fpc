@@ -26,7 +26,7 @@ fpcpackage=y
 fpcdir=../..
 
 [clean]
-units=dglobals dwriter dw_xml sh_pas dw_html dw_latex dw_ipf dw_txt dw_man
+units=dglobals dwriter dw_xml sh_pas dw_html dw_latex dw_ipf dw_txt dw_man dwlinear dw_linrtf 
 files=dwriter.rst fpdoc.rst dglobals.rst makeskel.rst
 
 [rules]
