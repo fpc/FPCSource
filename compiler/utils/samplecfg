@@ -374,9 +374,6 @@ $CPUCROSSIFDEF2
 #-Fr$FPCPATH/msg/errore.msg
 #-Fr$FPCPATH/msg/errorn.msg
 
-# searchpath for includefiles
-#-Fi/pp/inc;/pp/rtl/inc
-
 #IFDEF FPCAPACHE_1_3
 -Fu$FPCPATH/units/\$fpctarget/httpd13/
 #ELSE
