@@ -18,8 +18,8 @@
   This unit provides classes which implement the interfaces defined in the
   DOM (Document Object Model) specification.
   The current state is:
-  DOM Level 1  -  Almost completely implemented
-  DOM Level 2  -  Partially implemented
+  DOM Levels 1 and 2 -  Completely implemented
+  DOM Level 3  -  Partially implemented
 
   Specification used for this implementation:
 
@@ -99,9 +99,13 @@ type
   TDOMProcessingInstruction = class;
 
   TDOMAttrDef = class;
-  PNodePool = ^TNodePool;
   TNodePool = class;
+  PNodePoolArray = ^TNodePoolArray;
+  TNodePoolArray = array[0..0] of TNodePool;
 
+{$ifndef fpc}
+  TFPList = TList;
+{$endif}
 
 // -------------------------------------------------------
 //   DOMString
@@ -430,7 +434,7 @@ type
     FEmptyNode: TDOMElement;
     FNodeLists: THashTable;
     FMaxPoolSize: Integer;
-    FPools: PNodePool;
+    FPools: PNodePoolArray;
     FDocumentURI: DOMString;
     function GetDocumentElement: TDOMElement;
     function GetDocType: TDOMDocumentType;
@@ -2081,7 +2085,7 @@ begin
   FEmptyNode.Free;
   inherited Destroy;
   for i := 0 to (FMaxPoolSize div sizeof(TNodePool))-1 do
-    FPools[i].Free;
+    FPools^[i].Free;
   FreeMem(FPools);
   FNames.Free;           // free the nametable after inherited has destroyed the children
                          // (because children reference the nametable)
@@ -2099,11 +2103,11 @@ begin
     Exit;
   end;
 
-  pp := FPools[size div sizeof(TNodePool)];
+  pp := FPools^[size div sizeof(TNodePool)];
   if pp = nil then
   begin
     pp := TNodePool.Create(size);
-    FPools[size div sizeof(TNodePool)] := pp;
+    FPools^[size div sizeof(TNodePool)] := pp;
   end;
   Result := pp.AllocNode(AClass);
 end;
@@ -3163,16 +3167,16 @@ end;
 destructor TNodePool.Destroy;
 var
   ext, next: PExtent;
-  ptr, ptr_end: Pointer;
+  ptr, ptr_end: PAnsiChar;
   sz: Integer;
 begin
   ext := FCurrExtent;
-  ptr := Pointer(FCurrBlock) + FElementSize;
+  ptr := PAnsiChar(FCurrBlock) + FElementSize;
   sz := FCurrExtentSize;
   while Assigned(ext) do
   begin
     // call destructors for everyone still there
-    ptr_end := Pointer(ext) + sizeof(TExtent) + (sz - 1) * FElementSize;
+    ptr_end := PAnsiChar(ext) + sizeof(TExtent) + (sz - 1) * FElementSize;
     while ptr <= ptr_end do
     begin
       if TDOMNode(ptr).FPool = Self then
@@ -3184,7 +3188,7 @@ begin
     FreeMem(ext);
     ext := next;
     sz := sz div 2;
-    ptr := Pointer(ext) + sizeof(TExtent);
+    ptr := PAnsiChar(ext) + sizeof(TExtent);
   end;
   inherited Destroy;
 end;
@@ -3194,13 +3198,13 @@ var
   ext: PExtent;
 begin
   Assert((FCurrExtent = nil) or
-    (Pointer(FCurrBlock) = Pointer(FCurrExtent) + sizeof(TExtent)));
+    (PAnsiChar(FCurrBlock) = PAnsiChar(FCurrExtent) + sizeof(TExtent)));
   Assert(AElemCount > 0);
 
   GetMem(ext, sizeof(TExtent) + AElemCount * FElementSize);
   ext^.Next := FCurrExtent;
   // point to the beginning of the last block of extent
-  FCurrBlock := TDOMNode(Pointer(ext) + sizeof(TExtent) + (AElemCount - 1) * FElementSize);
+  FCurrBlock := TDOMNode(PAnsiChar(ext) + sizeof(TExtent) + (AElemCount - 1) * FElementSize);
   FCurrExtent := ext;
   FCurrExtentSize := AElemCount;
 end;
@@ -3214,7 +3218,7 @@ begin
   end
   else
   begin
-    if Pointer(FCurrBlock) = Pointer(FCurrExtent) + sizeof(TExtent) then
+    if PAnsiChar(FCurrBlock) = PAnsiChar(FCurrExtent) + sizeof(TExtent) then
       AddExtent(FCurrExtentSize * 2);
     Result := FCurrBlock;
     Dec(PAnsiChar(FCurrBlock), FElementSize);
