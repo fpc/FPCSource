@@ -1969,6 +1969,7 @@ implementation
         rfield,
         data,s,opidx : longint;
         ea_data : ea;
+        relsym : TObjSymbol;
       begin
         { safety check }
         if objdata.currobjsec.size<>longword(insoffset) then
@@ -2303,6 +2304,14 @@ implementation
                            else
 {$endif x86_64}
                              currabsreloc:=RELOC_ABSOLUTE32;
+
+                           if (currabsreloc=RELOC_ABSOLUTE32) and
+                            (Assigned(oper[opidx]^.ref^.relsymbol)) then
+                           begin
+                             relsym:=objdata.symbolref(oper[opidx]^.ref^.relsymbol);
+                             currabsreloc:=RELOC_PIC_PAIR;
+                             currval:=relsym.offset;
+                           end;
                          objdata.writereloc(currval,ea_data.bytes,currsym,currabsreloc);
                          inc(s,ea_data.bytes);
                        end;

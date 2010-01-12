@@ -74,7 +74,9 @@ interface
          { No relocation is needed. It is used in ARM object files.
            Also internal linker use this reloc to make virtual (not real)
            links to some sections }
-         RELOC_NONE
+         RELOC_NONE,
+         { Darwin relocation, using PAIR }
+         RELOC_PIC_PAIR
       );
 
 {$ifndef x86_64}
@@ -143,6 +145,10 @@ interface
        size       : aword;
        { Used for external and common solving during linking }
        exesymbol  : TExeSymbol;
+
+       { Darwin asm is using indirect symbols resolving }
+       indsymbol  : TObjSymbol;
+
        constructor create(AList:TFPHashObjectList;const AName:string);
        function  address:aword;
        procedure SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
@@ -536,7 +542,7 @@ implementation
           internalerror(200603016);
         if not assigned(aobjsec) then
           internalerror(200603017);
-        if (bind=AB_EXTERNAL) then
+        if (bind in [AB_EXTERNAL,AB_LAZY]) then
           begin
             bind:=abind;
             typ:=atyp;

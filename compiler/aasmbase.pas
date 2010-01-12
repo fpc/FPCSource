@@ -40,7 +40,7 @@ interface
        TAsmsymbind=(
          AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL,AB_WEAK_EXTERNAL,
          { global in the current program/library, but not visible outside it }
-         AB_PRIVATE_EXTERN);
+         AB_PRIVATE_EXTERN,AB_LAZY);
 
        TAsmsymtype=(
          AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL,

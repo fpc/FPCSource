@@ -173,6 +173,7 @@ interface
              ,as_m68k_mit
              ,as_powerpc_mpw
              ,as_darwin
+             ,as_i386_macho
              ,as_x86_64_masm
              ,as_x86_64_pecoff
              ,as_i386_pecoffwince

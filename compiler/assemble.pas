@@ -131,6 +131,8 @@ interface
         procedure MakeObject;override;
       end;
 
+      { TInternalAssembler }
+
       TInternalAssembler=class(TAssembler)
       private
         FCObjOutput : TObjOutputclass;
@@ -142,6 +144,7 @@ interface
         currlist     : TAsmList;
         procedure WriteStab(p:pchar);
         function  MaybeNextList(var hp:Tai):boolean;
+        function  SetIndirectToSymbol(hp: Tai; const indirectname: string): Boolean;
         function  TreePass0(hp:Tai):Tai;
         function  TreePass1(hp:Tai):Tai;
         function  TreePass2(hp:Tai):Tai;
@@ -925,6 +928,33 @@ Implementation
       end;
 
 
+    function TInternalAssembler.SetIndirectToSymbol(hp: Tai; const indirectname: string): Boolean;
+      var
+        objsym  : TObjSymbol;
+        indsym  : TObjSymbol;
+      begin
+        Result:=
+          Assigned(hp) and
+          (hp.typ=ait_symbol);
+        if not Result then
+          Exit;
+        objsym:=Objdata.SymbolRef(tai_symbol(hp).sym);
+        objsym.size:=0;
+
+        indsym := TObjSymbol(ObjData.ObjSymbolList.Find(indirectname));
+        if not Assigned(indsym) then
+          begin
+            { it's possible that indirect symbol is not present in the list,
+              so we must create it as undefined }
+            indsym:=TObjSymbol.Create(ObjData.ObjSymbolList, indirectname);
+            indsym.typ:=AT_NONE;
+            indsym.bind:=AB_NONE;
+          end;
+        objsym.indsymbol:=indsym;
+        Result:=true;
+      end;
+
+
     function TInternalAssembler.TreePass0(hp:Tai):Tai;
       var
         objsym,
@@ -989,6 +1019,26 @@ Implementation
                    end;
                  ObjData.alloc(tai_const(hp).size);
                end;
+             ait_directive:
+               begin
+                 case tai_directive(hp).directive of
+                   asd_indirect_symbol:
+                     { handled in TreePass1 }
+                     ;
+                   asd_lazy_reference:
+                     begin
+                       if tai_directive(hp).name = nil then
+                         Internalerror(2009112101);
+                       objsym:=ObjData.symbolref(tai_directive(hp).name^);
+                       objsym.bind:=AB_LAZY;
+                     end;
+                   asd_reference:
+                     { ignore for now, but should be added}
+                     ;
+                   else
+                     internalerror(2010011101);
+                 end;
+               end;
              ait_section:
                begin
                  ObjData.CreateSection(Tai_section(hp).sectype,Tai_section(hp).name^,Tai_section(hp).secorder);
@@ -997,8 +1047,9 @@ Implementation
              ait_symbol :
                begin
                  { needs extra support in the internal assembler }
-                 if tai_symbol(hp).has_value then
-                   internalerror(2009090804);
+                 { the value is just ignored }
+                 {if tai_symbol(hp).has_value then
+                      internalerror(2009090804); ;}
                  ObjData.SymbolDefine(Tai_symbol(hp).sym);
                end;
              ait_label :
@@ -1109,6 +1160,24 @@ Implementation
              ait_cutobject :
                if SmartAsm then
                 break;
+             ait_directive :
+               begin
+                 case tai_directive(hp).directive of
+                   asd_indirect_symbol:
+                     if tai_directive(hp).name = nil then
+                       Internalerror(2009101103)
+                     else if not SetIndirectToSymbol(Tai(hp.Previous), tai_directive(hp).name^) then
+                       Internalerror(2009101102);
+                   asd_lazy_reference:
+                     { handled in TreePass0 }
+                     ;
+                   asd_reference:
+                     { ignore for now, but should be added}
+                     ;
+                   else
+                     internalerror(2010011102);
+                 end;
+               end;
            end;
            hp:=Tai(hp.next);
          end;
@@ -1139,7 +1208,7 @@ Implementation
                    ObjData.writebytes(Tai_align_abstract(hp).calculatefillbuf(fillbuffer,oso_executable in ObjData.CurrObjSec.secoptions)^,
                      Tai_align_abstract(hp).fillsize)
                  else
-                   ObjData.alloc(Tai_align_abstract(hp).fillsize);                   
+                   ObjData.alloc(Tai_align_abstract(hp).fillsize);
                end;
              ait_section :
                begin
@@ -1224,6 +1293,9 @@ Implementation
                          internalerror(200709271);
                        ObjData.writebytes(lebbuf,leblen);
                      end;
+                   aitconst_darwin_dwarf_delta32,
+                   aitconst_darwin_dwarf_delta64:
+                     ObjData.writebytes(Tai_const(hp).value,tai_const(hp).size);
                    else
                      internalerror(200603254);
                  end;

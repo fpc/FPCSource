@@ -2872,6 +2872,7 @@ option_help_pages=11025_[
 **1A<x>_Output format:
 **2Adefault_Use default assembler
 3*2Aas_Assemble using GNU AS
+3*2Amacho_Mach-O (Darwin, Intel 32 bit) using internal writer
 3*2Anasmcoff_COFF (Go32v2) file using Nasm
 3*2Anasmelf_ELF32 (Linux) file using Nasm
 3*2Anasmwin32_Win32 object file using Nasm

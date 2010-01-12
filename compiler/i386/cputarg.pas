@@ -97,6 +97,7 @@ implementation
 
       ,ogcoff
       ,ogelf
+      ,ogmacho
 
 {**************************************
         Assembler Readers
