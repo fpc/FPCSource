@@ -55,7 +55,7 @@ type
     FBucketCount: LongWord;
     FBucket: PPHashItem;
     FOwnsObjects: Boolean;
-    function Lookup(Key: PWideChar; KeyLength: Integer; var Found: Boolean; CanCreate: Boolean): PHashItem;
+    function Lookup(Key: PWideChar; KeyLength: Integer; out Found: Boolean; CanCreate: Boolean): PHashItem;
     procedure Resize(NewCapacity: LongWord);
   public
     constructor Create(InitSize: Integer; OwnObjects: Boolean);
@@ -73,7 +73,6 @@ type
 
 { another hash, for detecting duplicate namespaced attributes without memory allocations }
 
-  PWideString = ^WideString;
   PExpHashEntry = ^TExpHashEntry;
   TExpHashEntry = record
     rev: LongWord;
@@ -129,7 +128,7 @@ begin
   Result := Xml11Pg;
 end;
 
-function IsXml11Char(Value: PWideChar; var Index: Integer): Boolean; overload;
+function IsXml11Char(Value: PWideChar; var Index: Integer): Boolean;
 begin
   if (Value[Index] >= #$D800) and (Value[Index] <= #$DB7F) then
   begin
@@ -140,7 +139,7 @@ begin
     Result := False;
 end;
 
-function IsXml11Char(const Value: WideString; var Index: Integer): Boolean; overload;
+function IsXml11Char(const Value: WideString; var Index: Integer): Boolean;
 begin
   if (Value[Index] >= #$D800) and (Value[Index] <= #$DB7F) then
   begin
@@ -156,7 +155,7 @@ begin
   Result := IsXmlName(PWideChar(Value), Length(Value), Xml11);
 end;
 
-function IsXmlName(Value: PWideChar; Len: Integer; Xml11: Boolean = False): Boolean; overload;
+function IsXmlName(Value: PWideChar; Len: Integer; Xml11: Boolean = False): Boolean;
 var
   Pages: PByteArray;
   I: Integer;
@@ -424,7 +423,7 @@ begin
 end;
 
 function THashTable.Lookup(Key: PWideChar; KeyLength: Integer;
-  var Found: Boolean; CanCreate: Boolean): PHashItem;
+  out Found: Boolean; CanCreate: Boolean): PHashItem;
 var
   Entry: PPHashItem;
   h: LongWord;

@@ -3217,7 +3217,7 @@ begin
     if Pointer(FCurrBlock) = Pointer(FCurrExtent) + sizeof(TExtent) then
       AddExtent(FCurrExtentSize * 2);
     Result := FCurrBlock;
-    Dec(PChar(FCurrBlock), FElementSize);
+    Dec(PAnsiChar(FCurrBlock), FElementSize);
   end;
   AClass.InitInstance(Result);
   Result.FPool := Self;        // mark as used
