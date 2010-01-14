@@ -615,6 +615,9 @@ implementation
         else if ((tsym(sym).owner.symtabletype in
               [ObjectSymtable,parasymtable,localsymtable,staticsymtable])) then
           begin
+           if (Errorcount<>0) or
+              (sp_internal in tsym(sym).symoptions) then
+             exit;
            { do not claim for inherited private fields !! }
            if (tsym(sym).refs=0) and (tsym(sym).owner.symtabletype=ObjectSymtable) then
              case tsym(sym).typ of
