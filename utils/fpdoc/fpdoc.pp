@@ -22,6 +22,7 @@ uses
   dwlinear,  // Linear (abstract) writer
   dw_LaTeX,  // TLaTex writer
   dw_XML,    // XML writer
+  dw_dxml,   // Delphi XML doc.
   dw_HTML,   // HTML writer
   dw_ipf,    // IPF writer
   dw_man,    // Man page writer
