@@ -591,7 +591,7 @@ implementation
                  else if (tsym(sym).owner.symtabletype=parasymtable) then
                    MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_not_used,tsym(sym).prettyname)
                  else if (tsym(sym).owner.symtabletype=ObjectSymtable) then
-                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_not_used,tsym(sym).owner.realname^,tsym(sym).prettyname)
+                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_not_used,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname)
                  else
                    MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_not_used,tsym(sym).prettyname);
               end
@@ -604,7 +604,7 @@ implementation
                        MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_only_set,tsym(sym).prettyname)
                    end
                  else if (tsym(sym).owner.symtabletype=ObjectSymtable) then
-                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_only_set,tsym(sym).owner.realname^,tsym(sym).prettyname)
+                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_only_set,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname)
                  else if tabstractvarsym(sym).varoptions*[vo_is_funcret,vo_is_public,vo_is_external]=[] then
                    MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_only_set,tsym(sym).prettyname);
               end
@@ -617,7 +617,16 @@ implementation
           begin
            { do not claim for inherited private fields !! }
            if (tsym(sym).refs=0) and (tsym(sym).owner.symtabletype=ObjectSymtable) then
-             MessagePos2(tsym(sym).fileinfo,sym_n_private_method_not_used,tsym(sym).owner.realname^,tsym(sym).prettyname)
+             case tsym(sym).typ of
+               typesym:
+                 MessagePos2(tsym(sym).fileinfo,sym_n_private_type_not_used,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
+               constsym:
+                 MessagePos2(tsym(sym).fileinfo,sym_n_private_const_not_used,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
+               propertysym:
+                 MessagePos2(tsym(sym).fileinfo,sym_n_private_property_not_used,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
+             else
+               MessagePos2(tsym(sym).fileinfo,sym_n_private_method_not_used,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
+             end
            { units references are problematic }
            else
             begin
@@ -644,7 +653,7 @@ implementation
 
     procedure TStoredSymtable.TestPrivate(sym:TObject;arg:pointer);
       begin
-        if tsym(sym).visibility=vis_private then
+        if tsym(sym).visibility in [vis_private,vis_strictprivate] then
           varsymbolused(sym,arg);
       end;
 

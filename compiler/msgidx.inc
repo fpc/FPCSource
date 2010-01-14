@@ -514,6 +514,9 @@ const
   sym_e_no_enumerator_move=05068;
   sym_e_no_enumerator_current=05069;
   sym_e_objc_para_mismatch=05070;
+  sym_n_private_type_not_used=05071;
+  sym_n_private_const_not_used=05072;
+  sym_n_private_property_not_used=05073;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -840,9 +843,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 55308;
+  MsgTxtSize = 55433;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,285,95,71,51,110,22,202,63,
+    24,87,285,95,74,51,110,22,202,63,
     49,20,1,1,1,1,1,1,1,1
   );

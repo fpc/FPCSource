@@ -1613,7 +1613,7 @@ type_e_objcclass_type_expected=04094_E_Objcclass type expected
 #
 # Symtable
 #
-# 05070 is the last used one
+# 05073 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1810,6 +1810,12 @@ sym_e_objc_para_mismatch=05070_E_Mismatch between number of declared parameters 
 % variable number of arguments translated to FPC via an \var{array of const} parameter,
 % this final \var{array of const} parameter is not counted. Neither are the hidden
 % \var{self} and \var{\_cmd} parameters.
+sym_n_private_type_not_used=05071_N_Private type "$1.$2" never used
+% The indicated private type is declared but is never used in the code.
+sym_n_private_const_not_used=05072_N_Private const "$1.$2" never used
+% The indicated private const is declared but is never used in the code.
+sym_n_private_property_not_used=05073_N_Private property "$1.$2" never used
+% The indicated private property is declared but is never used in the code.
 % \end{description}
 #
 # Codegenerator
