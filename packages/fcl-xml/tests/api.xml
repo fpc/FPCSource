@@ -262,6 +262,7 @@
 <item id="isId"/>
 <item id="documentURI" type="prop"/>
 <!--
+<item id="baseURI"/>
 // assertNotEquals
 // assertLowerSeverity
 
@@ -273,9 +274,13 @@
 <item id="lookupNamespaceURI">
   <arg>prefix</arg>
 </item>
+<item id="lookupPrefix">
+  <arg>namespaceURI</arg>
+</item>
+<item id="isDefaultNamespace">
+  <arg>namespaceURI</arg>
+</item>  
 <!--
-<item id="lookupPrefix"/>
-<item id="isDefaultNamespace"/>
 <item id="adoptNode"/>
 <item id="renameNode"/>
 <item id="replaceWholeText"/>

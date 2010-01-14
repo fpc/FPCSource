@@ -16,11 +16,12 @@ unit xmlutils;
 
 {$ifdef fpc}{$mode objfpc}{$endif}
 {$H+}
+{$ifopt Q+}{$define overflow_check}{$endif}
 
 interface
 
 uses
-  SysUtils;
+  SysUtils, Classes;
 
 function IsXmlName(const Value: WideString; Xml11: Boolean = False): Boolean; overload;
 function IsXmlName(Value: PWideChar; Len: Integer; Xml11: Boolean = False): Boolean; overload;
@@ -40,6 +41,7 @@ function WStrLIComp(S1, S2: PWideChar; Len: Integer): Integer;
 type
 {$ifndef fpc}
   PtrInt = LongInt;
+  TFPList = TList;
 {$endif}  
 
   PPHashItem = ^PHashItem;
@@ -50,7 +52,7 @@ type
     Next: PHashItem;
     Data: TObject;
   end;
-  THashItemArray = array[0..0] of PHashItem;
+  THashItemArray = array[0..MaxInt div sizeof(Pointer)-1] of PHashItem;
   PHashItemArray = ^THashItemArray;
 
   THashForEach = function(Entry: PHashItem; arg: Pointer): Boolean;
@@ -86,7 +88,7 @@ type
     lname: PWideChar;
     lnameLen: Integer;
   end;
-  TExpHashEntryArray = array[0..0] of TExpHashEntry;
+  TExpHashEntryArray = array[0..MaxInt div sizeof(TExpHashEntry)-1] of TExpHashEntry;
   PExpHashEntryArray = ^TExpHashEntryArray;
 
   TDblHashArray = class(TObject)
@@ -98,6 +100,43 @@ type
     procedure Init(NumSlots: Integer);
     function Locate(uri: PWideString; localName: PWideChar; localLength: Integer): Boolean;
     destructor Destroy; override;
+  end;
+
+  TBinding = class
+  public
+    uri: WideString;
+    next: TBinding;
+    prevPrefixBinding: TObject;
+    Prefix: PHashItem;
+  end;
+
+  TAttributeAction = (
+    aaUnchanged,
+    aaPrefix,         // only override the prefix
+    aaBoth            // override prefix and emit namespace definition
+  );
+
+  TNSSupport = class(TObject)
+  private
+    FNesting: Integer;
+    FPrefixSeqNo: Integer;
+    FFreeBindings: TBinding;
+    FBindings: TFPList;
+    FBindingStack: array of TBinding;
+    FPrefixes: THashTable;
+    FDefaultPrefix: THashItem;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure DefineBinding(const Prefix, nsURI: WideString; out Binding: TBinding);
+    function CheckAttribute(const Prefix, nsURI: WideString;
+      out Binding: TBinding): TAttributeAction;
+    function IsPrefixBound(P: PWideChar; Len: Integer; out Prefix: PHashItem): Boolean;
+    function GetPrefix(P: PWideChar; Len: Integer): PHashItem;
+    function BindPrefix(const nsURI: WideString; aPrefix: PHashItem): TBinding;
+    function DefaultNSBinding: TBinding;
+    procedure StartElement;
+    procedure EndElement;
   end;
 
 {$i names.inc}
@@ -345,7 +384,9 @@ begin
   Result := InitValue;
   while KeyLen <> 0 do
   begin
+{$ifdef overflow_check}{$q-}{$endif}
     Result := Result * $F4243 xor ord(Key^);
+{$ifdef overflow_check}{$q+}{$endif}
     Inc(Key);
     Dec(KeyLen);
   end;
@@ -440,7 +481,7 @@ var
   h: LongWord;
 begin
   h := Hash(0, Key, KeyLength);
-  Entry := @FBucket[h mod FBucketCount];
+  Entry := @FBucket^[h mod FBucketCount];
   while Assigned(Entry^) and not ((Entry^^.HashValue = h) and KeyCompare(Entry^^.Key, Key, KeyLength) ) do
     Entry := @Entry^^.Next;
   Found := Assigned(Entry^);
@@ -457,8 +498,7 @@ begin
   else
   begin
     New(Result);
-    // SetString for WideStrings trims on zero chars
-    // need to investigate and report
+    // SetString for WideStrings trims on zero chars [fixed, #14740]
     SetLength(Result^.Key, KeyLength);
     Move(Key^, Pointer(Result^.Key)^, KeyLength*sizeof(WideChar));
     Result^.HashValue := h;
@@ -482,7 +522,7 @@ begin
     e := FBucket^[i];
     while Assigned(e) do
     begin
-      chain := @p[e^.HashValue mod NewCapacity];
+      chain := @p^[e^.HashValue mod NewCapacity];
       n := e^.Next;
       e^.Next := chain^;
       chain^ := e;
@@ -498,7 +538,7 @@ function THashTable.Remove(Entry: PHashItem): Boolean;
 var
   chain: PPHashItem;
 begin
-  chain := @FBucket[Entry^.HashValue mod FBucketCount];
+  chain := @FBucket^[Entry^.HashValue mod FBucketCount];
   while Assigned(chain^) do
   begin
     if chain^ = Entry then
@@ -525,7 +565,7 @@ var
 begin
   for i := 0 to FBucketCount-1 do
   begin
-    chain := @FBucket[i];
+    chain := @FBucket^[i];
     while Assigned(chain^) do
     begin
       if chain^^.Data = aData then
@@ -624,6 +664,172 @@ begin
   end;
   result := False;
 end;
+
+{ TNSSupport }
+
+constructor TNSSupport.Create;
+var
+  b: TBinding;
+begin
+  inherited Create;
+  FPrefixes := THashTable.Create(16, False);
+  FBindings := TFPList.Create;
+  SetLength(FBindingStack, 16);
+
+  { provide implicit binding for the 'xml' prefix }
+  // TODO: move stduri_xml, etc. to this unit, so they are reused.
+  DefineBinding('xml', 'http://www.w3.org/XML/1998/namespace', b);
+end;
+
+destructor TNSSupport.Destroy;
+var
+  I: Integer;
+begin
+  for I := FBindings.Count-1 downto 0 do
+    TObject(FBindings.List^[I]).Free;
+  FBindings.Free;
+  FPrefixes.Free;
+  inherited Destroy;
+end;
+
+function TNSSupport.BindPrefix(const nsURI: WideString; aPrefix: PHashItem): TBinding;
+begin
+  { try to reuse an existing binding }
+  result := FFreeBindings;
+  if Assigned(result) then
+    FFreeBindings := result.Next
+  else { no free bindings, create a new one }
+  begin
+    result := TBinding.Create;
+    FBindings.Add(result);
+  end;
+
+  { link it into chain of bindings at the current element level }
+  result.Next := FBindingStack[FNesting];
+  FBindingStack[FNesting] := result;
+
+  { bind }
+  result.uri := nsURI;
+  result.Prefix := aPrefix;
+  result.PrevPrefixBinding := aPrefix^.Data;
+  aPrefix^.Data := result;
+end;
+
+function TNSSupport.DefaultNSBinding: TBinding;
+begin
+  result := TBinding(FDefaultPrefix.Data);
+end;
+
+procedure TNSSupport.DefineBinding(const Prefix, nsURI: WideString;
+  out Binding: TBinding);
+var
+  Pfx: PHashItem;
+begin
+  Pfx := @FDefaultPrefix;
+  if (nsURI <> '') and (Prefix <> '') then
+    Pfx := FPrefixes.FindOrAdd(PWideChar(Prefix), Length(Prefix));
+  if (Pfx^.Data = nil) or (TBinding(Pfx^.Data).uri <> nsURI) then
+    Binding := BindPrefix(nsURI, Pfx)
+  else
+    Binding := nil;
+end;
+
+function TNSSupport.CheckAttribute(const Prefix, nsURI: WideString;
+  out Binding: TBinding): TAttributeAction;
+var
+  Pfx: PHashItem;
+  I: Integer;
+  b: TBinding;
+  buf: array[0..31] of WideChar;
+  p: PWideChar;
+begin
+  Binding := nil;
+  Pfx := nil;
+  Result := aaUnchanged;
+  if Prefix <> '' then
+    Pfx := FPrefixes.FindOrAdd(PWideChar(Prefix), Length(Prefix))
+  else if nsURI = '' then
+    Exit;
+  { if the prefix is already bound to correct URI, we're done }
+  if Assigned(Pfx) and Assigned(Pfx^.Data) and (TBinding(Pfx^.Data).uri = nsURI) then
+    Exit;
+
+  { see if there's another prefix bound to the target URI }
+  // TODO: should use something faster than linear search
+  for i := FNesting downto 0 do
+  begin
+    b := FBindingStack[i];
+    while Assigned(b) do
+    begin
+      if (b.uri = nsURI) and (b.Prefix <> @FDefaultPrefix) then
+      begin
+        Binding := b;   // found one -> override the attribute's prefix
+        Result := aaPrefix;
+        Exit;
+      end;
+      b := b.Next;
+    end;
+  end;
+  { no prefix, or bound (to wrong URI) -> use generated prefix instead }
+  if (Pfx = nil) or Assigned(Pfx^.Data) then
+  repeat
+    Inc(FPrefixSeqNo);
+    i := FPrefixSeqNo;    // This is just 'NS'+IntToStr(FPrefixSeqNo);
+    p := @Buf[high(Buf)]; // done without using strings
+    while i <> 0 do
+    begin
+      p^ := WideChar(i mod 10+ord('0'));
+      dec(p);
+      i := i div 10;
+    end;
+    p^ := 'S'; dec(p);
+    p^ := 'N';
+    Pfx := FPrefixes.FindOrAdd(p, @Buf[high(Buf)]-p+1);
+  until Pfx^.Data = nil;
+  Binding := BindPrefix(nsURI, Pfx);
+  Result := aaBoth;
+end;
+
+function TNSSupport.IsPrefixBound(P: PWideChar; Len: Integer; out
+  Prefix: PHashItem): Boolean;
+begin
+  Prefix := FPrefixes.FindOrAdd(P, Len);
+  Result := Assigned(Prefix^.Data) and (TBinding(Prefix^.Data).uri <> '');
+end;
+
+function TNSSupport.GetPrefix(P: PWideChar; Len: Integer): PHashItem;
+begin
+  if Assigned(P) and (Len > 0) then
+    Result := FPrefixes.FindOrAdd(P, Len)
+  else
+    Result := @FDefaultPrefix;
+end;
+
+procedure TNSSupport.StartElement;
+begin
+  Inc(FNesting);
+  if FNesting >= Length(FBindingStack) then
+    SetLength(FBindingStack, FNesting * 2);
+end;
+
+procedure TNSSupport.EndElement;
+var
+  b, temp: TBinding;
+begin
+  temp := FBindingStack[FNesting];
+  while Assigned(temp) do
+  begin
+    b := temp;
+    temp := b.next;
+    b.next := FFreeBindings;
+    FFreeBindings := b;
+    b.Prefix^.Data := b.prevPrefixBinding;
+  end;
+  FBindingStack[FNesting] := nil;
+  if FNesting > 0 then
+    Dec(FNesting);
+end;
+
 
 initialization
 

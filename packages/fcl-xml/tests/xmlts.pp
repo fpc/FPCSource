@@ -168,7 +168,7 @@ begin
   try
     for I := 0 to tables.Count-1 do
     begin
-      el := TDOMElement(tables.Item[I]);
+      el := TDOMElement(tables[I]);
       id := el['id'];
       if id = 'valid' then
         table_valid := el
@@ -208,7 +208,7 @@ begin
   Index := 0;
 
   repeat
-    Child := Children.Item[Index];
+    Child := Children[Index];
     if Child = nil then Break;
     Inc(index);
 
@@ -314,7 +314,7 @@ begin
   writeln('Testing, validation = ', FValidating);
   try
     for I := 0 to Cases.Count-1 do
-      RunTest(Cases.Item[I] as TDOMElement);
+      RunTest(Cases[I] as TDOMElement);
     I := Cases.Count;
   finally
     Cases.Free;
@@ -349,6 +349,7 @@ var
   Positive: Boolean;
   outURI: UTF8string;
   FailMsg: string;
+  ExceptionClass: TClass;
   docNode, refNode: TDOMNode;
   docMap, refMap: TDOMNamedNodeMap;
   docN, refN: TDOMNotation;
@@ -407,6 +408,7 @@ begin
       on E: Exception do
         if E.ClassType <> EAbort then
         begin
+          ExceptionClass := E.ClassType;
           FailMsg := E.Message;
           FValError := '';
         end;
@@ -435,7 +437,7 @@ begin
         if FailMsg <> '' then  // Fatal error
         begin
           { outside not-wf category it is a test failure }
-          if table <> table_not_wf then
+          if (table <> table_not_wf) or (ExceptionClass <> EXMLReadError) then
           begin
             Inc(FFailCount);
             Diagnose(Element, table, dcFail, FailMsg);

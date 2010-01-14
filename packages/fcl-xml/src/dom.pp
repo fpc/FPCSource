@@ -101,7 +101,7 @@ type
   TDOMAttrDef = class;
   TNodePool = class;
   PNodePoolArray = ^TNodePoolArray;
-  TNodePoolArray = array[0..0] of TNodePool;
+  TNodePoolArray = array[0..MaxInt div sizeof(Pointer)-1] of TNodePool;
 
 {$ifndef fpc}
   TFPList = TList;
@@ -216,6 +216,7 @@ type
     function GetPrefix: DOMString; virtual;
     procedure SetPrefix(const Value: DOMString); virtual;
     function GetOwnerDocument: TDOMDocument; virtual;
+    function GetBaseURI: DOMString;
     procedure SetReadOnly(Value: Boolean);
     procedure Changing;
   public
@@ -255,11 +256,15 @@ type
     property Prefix: DOMString read GetPrefix write SetPrefix;
     // DOM level 3
     property TextContent: DOMString read GetTextContent write SetTextContent;
+    function LookupPrefix(const nsURI: DOMString): DOMString;
     function LookupNamespaceURI(const APrefix: DOMString): DOMString;
+    function IsDefaultNamespace(const nsURI: DOMString): Boolean;
+    property baseURI: DOMString read GetBaseURI;
     // Extensions to DOM interface:
     function CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; virtual;
     function FindNode(const ANodeName: DOMString): TDOMNode; virtual;
     function CompareName(const name: DOMString): Integer; virtual;
+    property Flags: TNodeFlags read FFlags;
   end;
 
   TDOMNodeClass = class of TDOMNode;
@@ -450,6 +455,8 @@ type
     function Alloc(AClass: TDOMNodeClass): TDOMNode;
   public
     function IndexOfNS(const nsURI: DOMString; AddIfAbsent: Boolean = False): Integer;
+    function InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode; override;
+    function ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode; override;
     property DocType: TDOMDocumentType read GetDocType;
     property Impl: TDOMImplementation read FImplementation;
     property DocumentElement: TDOMElement read GetDocumentElement;
@@ -575,6 +582,7 @@ type
     function GetNodeType: Integer; override;
     function GetAttributes: TDOMNamedNodeMap; override;
     procedure AttachDefaultAttrs;
+    function InternalLookupPrefix(const nsURI: DOMString; Original: TDOMElement): DOMString;
     procedure RestoreDefaultAttr(AttrDef: TDOMAttr);
   public
     destructor Destroy; override;
@@ -1140,10 +1148,17 @@ function GetAncestorElement(n: TDOMNode): TDOMElement;
 var
   parent: TDOMNode;
 begin
-  parent := n.ParentNode;
-  while Assigned(parent) and (parent.NodeType <> ELEMENT_NODE) do
-    parent := parent.ParentNode;
-  Result := TDOMElement(parent);
+  case n.nodeType of
+    DOCUMENT_NODE:
+      result := TDOMDocument(n).documentElement;
+    ATTRIBUTE_NODE:
+      result := TDOMAttr(n).OwnerElement;
+  else
+    parent := n.ParentNode;
+    while Assigned(parent) and (parent.NodeType <> ELEMENT_NODE) do
+      parent := parent.ParentNode;
+    Result := TDOMElement(parent);
+  end;  
 end;
 
 // TODO: specs prescribe to return default namespace if APrefix=null,
@@ -1158,39 +1173,89 @@ begin
   Result := '';
   if Self = nil then
     Exit;
-  case NodeType of
-    ELEMENT_NODE:
+  if nodeType = ELEMENT_NODE then
+  begin
+    if (nfLevel2 in FFlags) and (TDOMElement(Self).Prefix = APrefix) then
     begin
-      if (nfLevel2 in FFlags) and (TDOMElement(Self).Prefix = APrefix) then
-      begin
-        result := Self.NamespaceURI;
-        Exit;
-      end;
-      if HasAttributes then
-      begin
-        Map := Attributes;
-        for I := 0 to Map.Length-1 do
-        begin
-          Attr := TDOMAttr(Map[I]);
-          // should ignore level 1 atts here
-          if ((Attr.Prefix = 'xmlns') and (Attr.localName = APrefix)) or
-             ((Attr.localName = 'xmlns') and (APrefix = '')) then
-          begin
-            result := Attr.NodeValue;
-            Exit;
-          end;
-        end
-      end;
-      result := GetAncestorElement(Self).LookupNamespaceURI(APrefix);
+      result := Self.NamespaceURI;
+      Exit;
     end;
-    DOCUMENT_NODE:
-      result := TDOMDocument(Self).documentElement.LookupNamespaceURI(APrefix);
+    if HasAttributes then
+    begin
+      Map := Attributes;
+      for I := 0 to Map.Length-1 do
+      begin
+        Attr := TDOMAttr(Map[I]);
+        // should ignore level 1 atts here
+        if ((Attr.Prefix = 'xmlns') and (Attr.localName = APrefix)) or
+           ((Attr.localName = 'xmlns') and (APrefix = '')) then
+        begin
+          result := Attr.NodeValue;
+          Exit;
+        end;
+      end
+    end;
+  end;  
+  result := GetAncestorElement(Self).LookupNamespaceURI(APrefix);
+end;
 
-    ATTRIBUTE_NODE:
-      result := TDOMAttr(Self).OwnerElement.LookupNamespaceURI(APrefix);
-
+function TDOMNode.LookupPrefix(const nsURI: DOMString): DOMString;
+begin
+  Result := '';
+  if (nsURI = '') or (Self = nil) then
+    Exit;
+  if nodeType = ELEMENT_NODE then
+    result := TDOMElement(Self).InternalLookupPrefix(nsURI, TDOMElement(Self))
   else
-    Result := GetAncestorElement(Self).LookupNamespaceURI(APrefix);
+    result := GetAncestorElement(Self).LookupPrefix(nsURI);
+end;
+
+function TDOMNode.IsDefaultNamespace(const nsURI: DOMString): Boolean;
+var
+  Attr: TDOMAttr;
+  Map: TDOMNamedNodeMap;
+  I: Integer;
+begin
+  Result := False;
+  if Self = nil then
+    Exit;
+  if nodeType = ELEMENT_NODE then
+  begin
+    if TDOMElement(Self).FNSI.PrefixLen = 0 then
+    begin
+      result := (nsURI = namespaceURI);
+      Exit;
+    end  
+    else if HasAttributes then
+    begin
+      Map := Attributes;
+      for I := 0 to Map.Length-1 do
+      begin
+        Attr := TDOMAttr(Map[I]);
+        if Attr.LocalName = 'xmlns' then
+        begin
+          result := (Attr.Value = nsURI);
+          Exit;
+        end;
+      end;
+    end;
+  end;
+  result := GetAncestorElement(Self).IsDefaultNamespace(nsURI);
+end;
+
+function TDOMNode.GetBaseURI: DOMString;
+begin
+  case NodeType of
+  // !! Incomplete !!
+    DOCUMENT_NODE:
+      result := TDOMDocument(Self).FDocumentURI;
+    PROCESSING_INSTRUCTION_NODE:
+      if Assigned(ParentNode) then
+        result := ParentNode.GetBaseURI
+      else
+        result := OwnerDocument.DocumentURI;
+  else
+    result := '';
   end;
 end;
 
@@ -2167,6 +2232,32 @@ begin
   Result := nil;
 end;
 
+function TDOMDocument.InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode;
+var
+  nType: Integer;
+begin
+  nType := NewChild.NodeType;
+  if ((nType = ELEMENT_NODE) and Assigned(DocumentElement)) or
+     ((nType = DOCUMENT_TYPE_NODE) and Assigned(DocType)) then
+       raise EDOMHierarchyRequest.Create('Document.InsertBefore');
+  Result := inherited InsertBefore(NewChild, RefChild);
+end;
+
+function TDOMDocument.ReplaceChild(NewChild, OldChild: TDOMNode): TDOMNode;
+var
+  nType: Integer;
+begin
+  nType := NewChild.NodeType;
+  if ((nType = ELEMENT_NODE) and (OldChild = DocumentElement)) or   // root can be replaced by another element
+     ((nType = DOCUMENT_TYPE_NODE) and (OldChild = DocType)) then   // and so can be DTD
+  begin
+    inherited InsertBefore(NewChild, OldChild);
+    Result := RemoveChild(OldChild);
+  end
+  else
+    Result := inherited ReplaceChild(NewChild, OldChild);
+end;
+
 function TDOMDocument.GetDocumentElement: TDOMElement;
 var
   node: TDOMNode;
@@ -2675,6 +2766,36 @@ begin
         RestoreDefaultAttr(attrdef);
     end;
   end;
+end;
+
+function TDOMElement.InternalLookupPrefix(const nsURI: DOMString; Original: TDOMElement): DOMString;
+var
+  I: Integer;
+  Attr: TDOMAttr;
+begin
+  result := '';
+  if Self = nil then
+    Exit;
+  if (nfLevel2 in FFlags) and (namespaceURI = nsURI) and (FNSI.PrefixLen > 0) then
+  begin
+    Result := Prefix;
+    if Original.LookupNamespaceURI(result) = nsURI then
+      Exit;
+  end;
+  if Assigned(FAttributes) then
+  begin
+    for I := 0 to FAttributes.Length-1 do
+    begin
+      Attr := TDOMAttr(FAttributes[I]);
+      if (Attr.Prefix = 'xmlns') and (Attr.Value = nsURI) then
+      begin
+        result := Attr.LocalName;
+        if Original.LookupNamespaceURI(result) = nsURI then
+          Exit;
+      end;
+    end;
+  end;
+  result := GetAncestorElement(Self).InternalLookupPrefix(nsURI, Original);
 end;
 
 procedure TDOMElement.RestoreDefaultAttr(AttrDef: TDOMAttr);
@@ -3218,7 +3339,7 @@ begin
   end
   else
   begin
-    if PAnsiChar(FCurrBlock) = PAnsiChar(FCurrExtent) + sizeof(TExtent) then
+    if PAnsiChar(FCurrBlock) < PAnsiChar(FCurrExtent) + sizeof(TExtent) then
       AddExtent(FCurrExtentSize * 2);
     Result := FCurrBlock;
     Dec(PAnsiChar(FCurrBlock), FElementSize);
