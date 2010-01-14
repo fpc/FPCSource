@@ -576,7 +576,7 @@ implementation
             { also don't claim for high param of open parameters (PM) }
             if (Errorcount<>0) or
                ([vo_is_hidden_para,vo_is_funcret] * tabstractvarsym(sym).varoptions = [vo_is_hidden_para]) or
-               (vo_is_internal in tabstractvarsym(sym).varoptions) then
+               (sp_internal in tsym(sym).symoptions) then
               exit;
             if (tstoredsym(sym).refs=0) then
               begin
@@ -615,9 +615,6 @@ implementation
         else if ((tsym(sym).owner.symtabletype in
               [ObjectSymtable,parasymtable,localsymtable,staticsymtable])) then
           begin
-           if (Errorcount<>0) or
-              (sp_internal in tsym(sym).symoptions) then
-             exit;
            { do not claim for inherited private fields !! }
            if (tsym(sym).refs=0) and (tsym(sym).owner.symtabletype=ObjectSymtable) then
              MessagePos2(tsym(sym).fileinfo,sym_n_private_method_not_used,tsym(sym).owner.realname^,tsym(sym).prettyname)

@@ -1317,14 +1317,12 @@ implementation
 
        procedure factor_read_id(out p1:tnode;var again:boolean);
          var
-           pc    : pchar;
            srsym : tsym;
            unit_found : boolean;
            srsymtable : TSymtable;
            hdef  : tdef;
            orgstoredpattern,
            storedpattern : string;
-           len   : longint;
            t : ttoken;
          begin
            { allow post fix operators }
