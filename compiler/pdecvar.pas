@@ -423,7 +423,7 @@ implementation
                 end;
            end;
          if ((p.visibility=vis_published) or is_dispinterface(aclass)) and
-            not(p.propdef.is_publishable) then
+            (not(p.propdef.is_publishable) or (sp_static in p.symoptions)) then
            begin
              Message(parser_e_cant_publish_that_property);
              p.visibility:=vis_public;

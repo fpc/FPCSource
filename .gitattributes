@@ -8900,6 +8900,7 @@ tests/test/tclass12b.pp svneol=native#text/pascal
 tests/test/tclass12c.pp svneol=native#text/pascal
 tests/test/tclass13.pp svneol=native#text/pascal
 tests/test/tclass14a.pp svneol=native#text/pascal
+tests/test/tclass14b.pp svneol=native#text/pascal
 tests/test/tclass2.pp svneol=native#text/plain
 tests/test/tclass3.pp svneol=native#text/plain
 tests/test/tclass4.pp svneol=native#text/plain
