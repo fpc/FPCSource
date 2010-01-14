@@ -56,7 +56,10 @@ procedure treadcounter.execute;
         lock.beginread;
         inc(flocalcount);
         l:=gcount;
-        if (random(10000)=0) then
+        { guarantee at least one sleep }
+        if i=50000 then
+          sleep(20+random(30))
+        else if (random(10000)=0) then
           sleep(20);
         { this must cause data races/loss at some point }
         gcount:=l+1;
@@ -79,11 +82,17 @@ procedure twritecounter.execute;
         lock.beginwrite;
         inc(flocalcount);
         l:=gcount;
-        if (random(100)=0) then
+        { guarantee at least one sleep }
+        if i=250 then
+          sleep(20+random(30))
+        else if (random(100)=0) then
           sleep(20);
         { we must be exclusive }
         if gcount<>l then
-          halt(1);
+          begin
+            writeln('error 1');
+            halt(1);
+          end;
         gcount:=l+1;
         lock.endwrite;
         r:=random(30);
@@ -102,7 +111,7 @@ begin
   waiting:=true;
   { avoid deadlocks/bugs from causing this test to never quit }
   sleep(1000*15);
-  writeln('error 3');
+  writeln('error 4');
   halt(4);
 end;
 
@@ -137,7 +146,10 @@ begin
   
   { must not have caused any data races }
   if (gcount<>w1.localcount+w2.localcount+w3.localcount+w4.localcount) then
-    halt(2);
+    begin
+      writeln('error 2');
+      halt(2);
+    end;
 
   w1.free;
   w2.free;
@@ -175,7 +187,10 @@ begin
   
   { updating via the readcount must have caused data races }
   if (gcount>=r1.localcount+r2.localcount+r3.localcount+r4.localcount+r5.localcount+r6.localcount+w1.localcount+w2.localcount) then
-    halt(3);
+    begin
+      writeln('error 3');
+      halt(3);
+    end;
 
   r1.free;
   r2.free;
