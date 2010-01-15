@@ -227,14 +227,16 @@ const HttpToCGI : THttpToCGI =
      12,  // 31 'REQUEST_METHOD'
       0,  // 32
       7,  // 33 'QUERY_STRING'
-     27   // 34 'HTTP_HOST'
+     27,  // 34 'HTTP_HOST'
+      0,  // 35 'CONTENT'
+     36   // 36 'XHTTPREQUESTEDWITH'
     );
 
 var ACgiVarNr : Integer;
 
 begin
   Result := '';
-  if assigned(FCGIParams) and (index < high(HttpToCGI)) and (index > 0) then
+  if assigned(FCGIParams) and (index < high(HttpToCGI)) and (index > 0) and (index<>35) then
     begin
     ACgiVarNr:=HttpToCGI[Index];
     if ACgiVarNr>0 then

@@ -136,7 +136,9 @@ Const
     { 31: 'SERVER_ADMIN'           } '',
     { 32: 'SCRIPT_FILENAME'        } '',
     { 33: 'REMOTE_PORT'            } '',
-    { 34: 'REQUEST_URI'            } ''
+    { 34: 'REQUEST_URI'            } '',
+    { 35: 'CONTENT'                } '',
+    { 36: 'XHTTPREQUESTEDWITH'     } ''
   );
 
 Procedure TCustomCGIApplication.GetCGIVarList(List : TStrings);
@@ -357,6 +359,7 @@ begin
     30 : Result:=DecodeVar(15); // Property ServerPort
     31 : Result:=DecodeVar(12); // Property RequestMethod
     33 : Result:=DecodeVar(7); // Property QueryString
+    36 : Result:=DecodeVar(36); // Property XRequestedWith
   else
     Result:=Inherited GetFieldValue(Index);
   end;
