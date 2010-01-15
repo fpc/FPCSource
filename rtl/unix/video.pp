@@ -1116,14 +1116,24 @@ begin
          cur_term_strings:=terminal_data[i];
     if cur_term_strings=@term_codes_xterm then
     begin
+      {$ifdef haiku}
+      TerminalSupportsBold := true;
+      TerminalSupportsHighIntensityColors := false;
+      {$else}
       TerminalSupportsBold := false;
       TerminalSupportsHighIntensityColors := true;
+      {$endif}
     end
     else
     begin
       TerminalSupportsBold := true;
       TerminalSupportsHighIntensityColors := false;
     end;
+    if cur_term_strings=@term_codes_beos then
+    begin
+      TerminalSupportsBold := false;
+      TerminalSupportsHighIntensityColors := false;      
+    end;  
     if cur_term_strings=@term_codes_freebsd then
       console:=ttyFreeBSD;
 {$ifdef linux}
