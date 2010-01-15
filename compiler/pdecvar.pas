@@ -449,7 +449,9 @@ implementation
                             non default calling conventions which might change the hidden stuff;
                             see tw3216.pp (FK) }
                           p.propaccesslist[palt_read].procdef:=Tprocsym(sym).Find_procdef_bypara(readprocdef.paras,p.propdef,[cpo_allowdefaults,cpo_ignorehidden]);
-                          if not assigned(p.propaccesslist[palt_read].procdef) then
+                          if not assigned(p.propaccesslist[palt_read].procdef) or
+                            { because of cpo_ignorehidden we need to compare if it is a static class method and we have a class property }
+                            ((sp_static in p.symoptions) <> ([po_classmethod,po_staticmethod]<=tprocdef(p.propaccesslist[palt_read].procdef).procoptions)) then
                             Message(parser_e_ill_property_access_sym);
                         end;
                       fieldvarsym :
