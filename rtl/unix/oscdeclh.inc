@@ -134,10 +134,6 @@ const
 //    function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
 {$endif}
     function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt; cdecl; external clib name 'getrlimit';
-    {$ifdef HAS_UGETRLIMIT}
-    { there is no ugetrlimit libc call, just map it to the getrlimit call in these cases }
-    function FpUGetRLimit(resource : cInt; rlim : PRLimit) : cInt; cdecl; external clib name 'getrlimit';
-    {$endif}
 
 {$ifdef linux}
 {$ifndef FPC_IS_SYSTEM}
