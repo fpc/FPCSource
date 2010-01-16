@@ -41,6 +41,8 @@ resourcestring
   SErrInvalidDayOfWeekInMonth = 'Year %d Month %d NDow %d DOW %d is not a valid date';
   SErrInvalidDayOfYear   = 'Year %d does not have a day number %d';
   SErrInvalidTimeStamp   = 'Invalid date/timestamp : "%s"';
+  SErrIllegalDateFormatString   = '"%s" is not a valid date format string';
+  SErrInvalidTimeFormat  = '"%s" is not a valid time';
   SExceptionErrorMessage = 'exception at %p';
   SExceptionStack        = 'Exception stack error';
   SExecuteProcessFailed  = 'Failed to execute "%s", error code: %d';
