@@ -134,7 +134,9 @@ type
 const
   GUID_NULL: TGUID  = '{00000000-0000-0000-0000-000000000000}';
 
-{$ifndef Windows}
+{$ifndef Wince}
+  // in Wince these are in unit windows. Under 32/64 in ActiveX.
+  // for now duplicate them. Not that bad for untyped constants.
   STGTY_STORAGE   = 1;
   STGTY_STREAM    = 2;
   STGTY_LOCKBYTES = 3;
@@ -148,7 +150,8 @@ const
   LOCK_EXCLUSIVE = 2;
   LOCK_ONLYONCE  = 4;
 
-  E_FAIL = HRESULT($80004005);
+  E_FAIL 		      = HRESULT($80004005);
+  E_INVALIDARG                = HRESULT($80070057);
 
   STG_E_INVALIDFUNCTION       = HRESULT($80030001);
   STG_E_FILENOTFOUND          = HRESULT($80030002);
@@ -193,6 +196,11 @@ const
   STG_S_RETRYNOW              = $00030202;
   STG_S_MONITORING            = $00030203;
 
+  STATFLAG_DEFAULT   	      = 0;
+  STATFLAG_NONAME    	      = 1;
+  STATFLAG_NOOPEN    	      = 2; 
+{$endif}
+{$ifndef Windows}
 type
   PCLSID = PGUID;
   TCLSID = TGUID;

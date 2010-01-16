@@ -703,6 +703,7 @@ type
   end;
 
 {$endif}
+  
 
 { TStream abstract class }
 
@@ -743,6 +744,19 @@ type
     Procedure WriteAnsiString (const S : String);
     property Position: Int64 read GetPosition write SetPosition;
     property Size: Int64 read GetSize write SetSize64;
+  end;
+
+  TProxyStream = class(TStream)
+  private
+    FStream: IStream;
+  protected
+    function GetIStream: IStream;
+  public
+    constructor Create(const Stream: IStream);
+    function Read(var Buffer; Count: Longint): Longint; override;
+    function Write(const Buffer; Count: Longint): Longint; override;
+    function Seek(Offset: Longint; Origin: Word): Longint; override;
+    procedure Check(err:longint); virtual;
   end;
 
   { TOwnerStream }
@@ -877,8 +891,9 @@ type
 { Implements OLE IStream on TStream }
   TStreamAdapter = class(TInterfacedObject, IStream)
   private
-    FStream: TStream;
-    FOwnership: TStreamOwnership;
+    FStream    : TStream;
+    FOwnership : TStreamOwnership;
+    m_bReverted: Boolean;
   public
     constructor Create(Stream: TStream; Ownership: TStreamOwnership = soReference);
     destructor Destroy; override;
