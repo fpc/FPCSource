@@ -48,6 +48,7 @@ type
     procedure TestSetBlobAsMemoParam;
     procedure TestSetBlobAsBlobParam;
     procedure TestSetBlobAsStringParam;
+    procedure TestNonNullableParams;
     procedure TestGetIndexDefs;
     procedure TestDblQuoteEscComments;
     procedure TestpfInUpdateFlag; // bug 7565
@@ -926,7 +927,35 @@ end;
 
 procedure TTestFieldTypes.TestEmptyUpdateQuery;
 begin
-  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('update fpdev set name=''nothing'' where (1=0)');
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('update FPDEV set name=''nothing'' where (1=0)');
+end;
+
+procedure TTestFieldTypes.TestNonNullableParams;
+var ASQLQuery : TSQLQuery;
+    Passed: Boolean;
+begin
+  // Check for an exception when a null value is stored into a non-nullable
+  // field using a parameter
+  // There was a bug in IBConnection so that in this case the last used value
+  // for the parameter was used.
+
+  // To make sure that any changes are cancelled in the case the test fails
+  TSQLDBConnector(DBConnector).GetNDataset(true,5);
+
+  ASQLQuery := TSQLDBConnector(DBConnector).Query;
+  ASQLQuery.SQL.text := 'update fpdev set ID=:ID1 where id = :ID2';
+  ASQLQuery.Params[0].Clear;
+  ASQLQuery.Params[1].AsInteger := 1;
+  AssertTrue(ASQLQuery.Params[0].IsNull);
+  Passed:=False;
+  try
+    @ASQLQuery.ExecSQL;
+  except
+    on E: Exception do
+      if E.ClassType.InheritsFrom(EDatabaseError) then
+        Passed := true;
+  end;
+  AssertTrue(Passed);
 end;
 
 procedure TTestFieldTypes.TestStringLargerThen8192;
@@ -1238,7 +1267,7 @@ begin
 // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
     TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
     Connection.ExecuteDirect('insert into FPDEV2(ID,"NAME-TEST") values (1,''test1'')');
-    Query.SQL.Text := 'select * from fpdev2';
+    Query.SQL.Text := 'select * from FPDEV2';
     Query.Open;
     AssertEquals(1,Query.FieldByName('ID').AsInteger);
     AssertEquals('test1',Query.FieldByName('NAME-TEST').AsString);

@@ -618,7 +618,7 @@
  * Returns 1 if true
  *)
   hasExternalSubsetSAXFunc = function(ctx: pointer): cint; EXTDECL;
-
+{$ENDIF}
 
 (************************************************************************
  *									*
@@ -630,8 +630,11 @@
  *
  * Special constant found in SAX2 blocks initialized fields
  *)
-{$DEFINE XML_SAX2_MAGIC := $DEEDBEAF}
+{$IFDEF CONST}
+  XML_SAX2_MAGIC = $DEEDBEAF;
+{$ENDIF}
 
+{$IFDEF TYPE}
 (**
  * startElementNsSAX2Func:
  * @ctx:  the user data (XML parser context)
@@ -954,7 +957,7 @@ function xmlReadDoc(cur: xmlCharPtr; URL, encoding: pchar; options: cint): xmlDo
 function xmlReadFile(filename, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
 function xmlReadMemory(buffer: pchar; size: cint; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
 function xmlReadFd(fd: cint; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
-function xmlReadIO(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pchar; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
+function xmlReadIO(ioread: xmlInputReadCallback; ioclose: xmlInputCloseCallback; ioctx: pointer; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
 function xmlCtxtReadDoc(ctxt: xmlParserCtxtPtr; cur: xmlCharPtr; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
 function xmlCtxtReadFile(ctxt: xmlParserCtxtPtr; filename, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
 function xmlCtxtReadMemory(ctxt: xmlParserCtxtPtr; buffer: pchar; size: cint; URL, encoding: pchar; options: cint): xmlDocPtr; EXTDECL; external xml2lib;
