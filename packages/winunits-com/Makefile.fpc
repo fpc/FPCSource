@@ -1,0 +1,31 @@
+#
+#   Makefile.fpc for WinUnits
+#
+
+[package]
+name=winunits-com
+version=2.5.1
+
+[target]
+units=buildwinunitscom
+implicitunits=comobj comserv
+
+examples=examples
+
+rsts = 
+
+[install]
+buildunit=buildwinunitscom
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+options=-Ur
+sourcedir=src
+
+[rules]
+.NOTPARALLEL:
+
+

@@ -16,14 +16,12 @@
    Free Software Foundation, Inc., 59 Temple Place - Suite 330,
    Boston, MA 02111-1307, USA.
 }
-unit buildwinutilsbase;
+unit buildwinunitscom;
 
 interface
 
 uses
-    flatsb, winver, mmsystem, comconst, commctrl, comobj, commdlg,
-    ole2, activex, shellapi, shlobj, oleserver,  shfolder, richedit,
-    imagehlp, wininet, uxtheme, dwmapi, multimon, htmlhelp, winutils,comserv;
+  comobj,comserv;
 
 implementation
 
