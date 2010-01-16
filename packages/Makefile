@@ -271,7 +271,7 @@ ifeq ($(FULL_TARGET),i386-go32v2)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2  fv graph unzip gdbint
 endif
 ifeq ($(FULL_TARGET),i386-win32)
-override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2  fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick gdbint libpng mad tcl opengl gtk1 gtk2 librsvg a52 cdrom fpgtk openal fftw lua fcl-extra oggvorbis sdl openssl graph pcap httpd13 httpd20 httpd22 pxlib numlib winceunits cairo libxml gmp
+override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2  fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick gdbint libpng mad tcl opengl gtk1 gtk2 librsvg a52 cdrom fpgtk openal fftw lua fcl-extra oggvorbis sdl openssl graph pcap httpd13 httpd20 httpd22 pxlib numlib cairo libxml gmp
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 override TARGET_DIRS+=hash pasjpeg paszlib fpmkunit fcl-xml fcl-base fcl-db fcl-image fcl-net fcl-passrc fcl-registry fcl-fpcunit fcl-json  fcl-process unzip regexpr chm fcl-res libgd symbolic bzip2  fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
@@ -1714,7 +1714,6 @@ TARGET_DIRS_HTTPD20=1
 TARGET_DIRS_HTTPD22=1
 TARGET_DIRS_PXLIB=1
 TARGET_DIRS_NUMLIB=1
-TARGET_DIRS_WINCEUNITS=1
 TARGET_DIRS_CAIRO=1
 TARGET_DIRS_LIBXML=1
 TARGET_DIRS_GMP=1
