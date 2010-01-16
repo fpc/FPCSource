@@ -3373,7 +3373,7 @@ implementation
              CGMessage1(type_e_class_type_expected,left.resultdef.typename);
             resultdef:=tclassrefdef(right.resultdef).pointeddef;
           end
-         else if is_interface(right.resultdef) then
+         else if is_interface(right.resultdef) or is_dispinterface(right.resultdef) then
           begin
             { left is a class }
             if not(is_class(left.resultdef) or

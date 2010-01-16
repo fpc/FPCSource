@@ -281,7 +281,7 @@ implementation
               begin
                 { <> and = are defined for classes }
                 if (treetyp in [equaln,unequaln]) and
-                   is_class_or_interface_or_objc(ld) then
+                   is_class_or_interface_or_dispinterface_or_objc(ld) then
                  begin
                    allowed:=false;
                    exit;

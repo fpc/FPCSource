@@ -1564,18 +1564,18 @@ implementation
           end
 
          { class or interface equation }
-         else if is_class_or_interface_or_objc(rd) or is_class_or_interface_or_objc(ld) then
+         else if is_class_or_interface_or_dispinterface_or_objc(rd) or is_class_or_interface_or_dispinterface_or_objc(ld) then
           begin
             if (nodetype in [equaln,unequaln]) then
               begin
-                if is_class_or_interface_or_objc(rd) and is_class_or_interface_or_objc(ld) then
+                if is_class_or_interface_or_dispinterface_or_objc(rd) and is_class_or_interface_or_dispinterface_or_objc(ld) then
                  begin
                    if tobjectdef(rd).is_related(tobjectdef(ld)) then
                     inserttypeconv(right,left.resultdef)
                    else
                     inserttypeconv(left,right.resultdef);
                  end
-                else if is_class_or_interface_or_objc(rd) then
+                else if is_class_or_interface_or_dispinterface_or_objc(rd) then
                   inserttypeconv(left,right.resultdef)
                 else
                   inserttypeconv(right,left.resultdef);
@@ -1599,7 +1599,7 @@ implementation
           end
 
          { allows comperasion with nil pointer }
-         else if is_class_or_interface_or_objc(rd) or (rd.typ=classrefdef) then
+         else if is_class_or_interface_or_dispinterface_or_objc(rd) or (rd.typ=classrefdef) then
           begin
             if (nodetype in [equaln,unequaln]) then
               inserttypeconv(left,right.resultdef)
@@ -1607,7 +1607,7 @@ implementation
               CGMessage3(type_e_operator_not_supported_for_types,node2opstr(nodetype),ld.typename,rd.typename);
           end
 
-         else if is_class_or_interface_or_objc(ld) or (ld.typ=classrefdef) then
+         else if is_class_or_interface_or_dispinterface_or_objc(ld) or (ld.typ=classrefdef) then
           begin
             if (nodetype in [equaln,unequaln]) then
               inserttypeconv(right,left.resultdef)
