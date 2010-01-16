@@ -328,12 +328,14 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
        http://java.sun.com/j2se/1.4.2/docs/guide/misc/threadPrimitiveDeprecation.html
     }
 //      result := pthread_kill(threadHandle,SIGSTOP);
+      result:=dword(-1);
     end;
 
 
   function  CResumeThread  (threadHandle : TThreadID) : dword;
     begin
 //      result := pthread_kill(threadHandle,SIGCONT);
+      result:=dword(-1);
     end;
 
 
@@ -367,12 +369,14 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
     function  CThreadSetPriority (threadHandle : TThreadID; Prio: longint): boolean; {-15..+15, 0=normal}
     begin
       {$Warning ThreadSetPriority needs to be implemented}
+      result:=false;
     end;
 
 
   function  CThreadGetPriority (threadHandle : TThreadID): Integer;
     begin
       {$Warning ThreadGetPriority needs to be implemented}
+      result:=0;
     end;
 
 

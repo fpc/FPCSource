@@ -54,6 +54,8 @@
        vmtAfterConstruction    = vmtMethodStart+sizeof(pointer)*5;
        vmtBeforeDestruction    = vmtMethodStart+sizeof(pointer)*6;
        vmtDefaultHandlerStr    = vmtMethodStart+sizeof(pointer)*7;
+       vmtDispatch             = vmtMethodStart+sizeof(pointer)*8;
+       vmtDispatchStr          = vmtMethodStart+sizeof(pointer)*9;
 
        { IInterface }
        S_OK          = 0;
@@ -113,6 +115,8 @@
          vAfterConstruction: Pointer;
          vBeforeDestruction: Pointer;
          vDefaultHandlerStr: Pointer;
+         vDispatch: Pointer;
+         vDispatchStr: Pointer;
        end;
 
        PGuid = ^TGuid;
@@ -192,9 +196,6 @@
           class function InstanceSize : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
           class function InheritsFrom(aclass : tclass) : boolean;
           class function StringMessageTable : pstringmessagetable;
-          { message handling routines }
-          procedure Dispatch(var message);
-          procedure DispatchStr(var message);
 
           class function MethodAddress(const name : shortstring) : pointer;
           class function MethodName(address : pointer) : shortstring;
@@ -206,6 +207,10 @@
 
           { new for gtk, default handler for text based messages }
           procedure DefaultHandlerStr(var message);virtual;
+
+          { message handling routines }
+          procedure Dispatch(var message);virtual;
+          procedure DispatchStr(var message);virtual;
 
           { interface functions }
           function GetInterface(const iid : tguid; out obj) : boolean;

@@ -30,10 +30,10 @@ Type
     procedure SortElementList(List : TList);
     procedure StartListing(Frames: Boolean);
     Function  ShowMember(M : TPasElement) : boolean;
-    procedure StartChapter(ChapterName : String; ChapterLabel : String);
-    procedure StartSection(SectionName : String; SectionLabel : String);
-    procedure StartSubSection(SubSectionName : String; SubSectionLabel : String);
-    procedure StartSubSubSection(SubSubSectionName : String; SubSubSectionLabel : String);
+    procedure StartChapter(ChapterName : String; ChapterLabel : String); virtual;
+    procedure StartSection(SectionName : String; SectionLabel : String); virtual;
+    procedure StartSubSection(SubSectionName : String; SubSectionLabel : String); virtual;
+    procedure StartSubSubSection(SubSubSectionName : String; SubSubSectionLabel : String); virtual;
     Function  GetDescrString(AContext: TPasElement; DescrNode: TDOMElement) : String;
     function  ConstValue(ConstDecl: TPasConst): String; virtual;
     procedure ProcessSection(ASection: TPasSection); virtual;
@@ -442,7 +442,6 @@ procedure TLinearWriter.WriteDoc;
 
 var
   i : Integer;
-  DocNode : TDocNode;
   L : TstringList;
 
 begin
@@ -467,9 +466,7 @@ begin
         WriteCommentLine;
         StartChapter(Format(SDocUnitTitle, [Module.Name]));
         WriteLabel(Module);
-        DocNode:=Engine.FindDocNode(Module);
-        If Assigned(DocNode) then
-          ProcessTopics(DocNode,1);
+        // extra Topics now get processed in ProcessSection()
         ProcessSection(Module.InterfaceSection);
         end;
     Finally
@@ -482,7 +479,8 @@ begin
 end;
 
 procedure TLinearWriter.ProcessSection(ASection: TPasSection);
-
+var
+  DocNode: TDocNode;
 begin
   With ASection do
     begin
@@ -496,6 +494,12 @@ begin
     SortElementList(Variables);
     end;
   WriteUnitOverView(ASection);
+
+  // Now process unit (extra) Topics
+  DocNode:=Engine.FindDocNode(Module);
+  If Assigned(DocNode) then
+    ProcessTopics(DocNode,1);
+
   WriteVarsConstsTypes(ASection);
   WriteFunctionsAndProcedures(ASection);
   WriteClasses(ASection);

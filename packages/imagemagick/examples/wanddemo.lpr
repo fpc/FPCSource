@@ -28,6 +28,7 @@ end;
 var
   status: MagickBooleanType;
   wand: PMagickWand;
+
 begin
   { Read an image. }
 
