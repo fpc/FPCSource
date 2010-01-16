@@ -1,4 +1,4 @@
-{$mode objfpc}
+{$mode objfpc}{$h+}
 
 {$ifdef BSD}
   {$linklib c}
@@ -5725,7 +5725,7 @@ procedure ReleaseSQLite;
 
 var
   SQLiteLibraryHandle: TLibHandle;
-  DefaultLibrary: String = Sqlite3Lib;
+  SQLiteDefaultLibrary: String = Sqlite3Lib;
 {$ENDIF LOAD_DYNAMICALLY}
 
 implementation
@@ -5912,46 +5912,45 @@ var
 
 function TryInitialiseSqlite(const LibraryName: string): Boolean;
 begin
-  Result := false;
-  if (RefCount=0) then
+  if InterlockedIncrement(RefCount) = 1 then
   begin
     SQLiteLibraryHandle := LoadLibrary(LibraryName);
-    Result := (SQLiteLibraryHandle <> nilhandle);
+    Result := (SQLiteLibraryHandle <> NilHandle);
     if not Result then
+    begin
+      RefCount := 0;
       Exit;
-    Inc(RefCount);
+    end;
     LoadedLibrary := LibraryName;
     LoadAddresses(SQLiteLibraryHandle);
-  end else begin
-    if (LoadedLibrary <> LibraryName) then
-      raise EInoutError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
-    Inc(RefCount);
+  end else
     Result := True;
-  end;
 end;
 
 procedure InitialiseSQLite;
 begin
-  InitialiseSQLite(DefaultLibrary);
+  InitialiseSQLite(SQLiteDefaultLibrary);
 end;
 
 procedure InitialiseSQLite(LibraryName: String);
 begin
+  if (LoadedLibrary <> '') and (LoadedLibrary <> LibraryName) then
+    raise EInoutError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
+
   if not TryInitialiseSQLIte(LibraryName) then
     raise EInOutError.CreateFmt(SErrLoadFailed,[LibraryName]);
 end;
 
 procedure ReleaseSQLite;
 begin
-  if RefCount > 1 then
-    Dec(RefCount)
-  else
-    if UnloadLibrary(SQLiteLibraryHandle) then
-    begin
-      Dec(RefCount);
-      SQLiteLibraryHandle := NilHandle;
-      LoadedLibrary := '';
-    end;
+  if InterlockedDecrement(RefCount) <= 0 then
+  begin
+    if SQLiteLibraryHandle <> NilHandle then
+      UnloadLibrary(SQLiteLibraryHandle);
+    SQLiteLibraryHandle := NilHandle;
+    LoadedLibrary := '';
+    RefCount := 0;
+  end;
 end;
 
 {$ENDIF}
