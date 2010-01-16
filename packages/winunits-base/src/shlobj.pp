@@ -838,11 +838,51 @@ Const
   SMSET_DONTOWN           = $00000001;    // The Menuband doesn't own the non-ref counted object
   SMINV_REFRESH           = $00000001;
   SMINV_ID                = $00000008;
-
+  FDEOR_DEFAULT           = 0;
+  FDEOR_ACCEPT	          = 1;
+  FDEOR_REFUSE            = 2;
+  FDESVR_DEFAULT          = 0;
+  FDESVR_ACCEPT           = 1;
+  FDESVR_REFUSE           = 2;
+  FDAP_BOTTOM             = 0;
+  FDAP_TOP                = 1;
+  FOS_OVERWRITEPROMPT     =        $2;
+  FOS_STRICTFILETYPES     =        $4;
+  FOS_NOCHANGEDIR         =        $8;
+  FOS_PICKFOLDERS         =       $20;
+  FOS_FORCEFILESYSTEM	  =       $40;
+  FOS_ALLNONSTORAGEITEMS  =       $80;
+  FOS_NOVALIDATE	  =      $100;
+  FOS_ALLOWMULTISELECT    =      $200;
+  FOS_PATHMUSTEXIST       =      $800;
+  FOS_FILEMUSTEXIST       =     $1000;
+  FOS_CREATEPROMPT        =     $2000;
+  FOS_SHAREAWARE          =     $4000;
+  FOS_NOREADONLYRETURN    =     $8000;
+  FOS_NOTESTFILECREATE    =    $10000;
+  FOS_HIDEMRUPLACES       =    $20000;
+  FOS_HIDEPINNEDPLACES    =    $40000;
+  FOS_NODEREFERENCELINKS  =   $100000;
+  FOS_DONTADDTORECENT     =  $2000000;
+  FOS_FORCESHOWHIDDEN     = $10000000;
+  FOS_DEFAULTNOMINIMODE	  = $20000000;
+  FOS_FORCEPREVIEWPANEON  = $40000000;
+   
 Type
-      SFGAOF = ULONG;
+      SFGAOF  = ULONG;
       TSFGAOF = SFGAOF;
       PSFGAOF = ^SFGAOF;
+      SHCONTF    = longint;
+      TSHCONTF   = SHCONTF;
+      PSHCONTF   = ^SHCONTF;
+      SIGDN      = longint;
+      TSIGDN     = SIGDN;
+      PSIGDN     = ^SIGDN;
+      SICHINTF   = longint;
+      TSICHINTF  = SICHINTF;
+      PSICHINTF  = ^SICHINTF; 
+
+
       PROPERTYUI_NAME_FLAGS = DWord; // enum
       PROPERTYUI_FORMAT_FLAGS = DWord;
       PROPERTYUI_FLAGS = Dword;
@@ -1715,7 +1755,28 @@ Type
      LPAASHELLMENUITEM = PtagAASHELLMENUITEM;
      PLPAASHELLMENUITEM = ^LPAASHELLMENUITEM;
 
+   FDE_OVERWRITE_RESPONSE       = longint;
+   TFDE_OVERWRITE_RESPONSE      = FDE_OVERWRITE_RESPONSE;
+   PFDE_OVERWRITE_RESPONSE      = ^longint;
+   FDE_SHAREVIOLATION_RESPONSE  = longint;
+   TFDE_SHAREVIOLATION_RESPONSE = FDE_SHAREVIOLATION_RESPONSE;
+   PFDE_SHAREVIOLATION_RESPONSE = ^FDE_SHAREVIOLATION_RESPONSE;    
+   FILEOPENDIALOGOPTIONS        = longint;
+   TFILEOPENDIALOGOPTIONS       = FILEOPENDIALOGOPTIONS;
+   PFILEOPENDIALOGOPTIONS       = ^TFILEOPENDIALOGOPTIONS;
+   FDAP = longint;
+   TFDAP= FDAP;
+   PFDAP= ^FDAP;
+   _COMDLG_FILTERSPEC = packed record
+                            pszName : LPCWSTR;
+			    pszSpec : LPCWSTR;
+                          end;
 
+   COMDLG_FILTERSPEC  = _COMDLG_FILTERSPEC;
+   TCOMDLG_FILTERSPEC = _COMDLG_FILTERSPEC;
+   PCOMDLG_FILTERSPEC = ^_COMDLG_FILTERSPEC;
+
+	
    IPersistFolder = Interface(IPersist)
         ['{000214EA-0000-0000-C000-000000000046}']
         function Initialize (pild : LPCITEMIDLIST): HResult; StdCall;
@@ -1998,6 +2059,67 @@ Type
         function SetPath(pszFile:LPCWSTR):HRESULT;StdCall;
         end;
      IShellLink = IShellLinkA;
+
+    PIShellItem= ^IShellItem;
+    IShellItem = interface(IUnknown)
+               ['{43826d1e-e718-42ee-bc55-a1e261c37bfe}']
+               function BindToHandler(pbc:IBindCTX;bhid:PGUID;RIID:PIID;ppv:ppointer):HResult;Stdcall;          
+               function GetParent(ppsi:PISHellItem):HResult;Stdcall;
+               function GetDisplayName(sigdnname:SIGDN;ppszName:LPWSTR):HResult; Stdcall;
+               function GetAttributes(sfgaomask:SFGAOF;psfgaoAttribs:PSFGAOF):HResult;Stdcall;
+               function Compare(psi:IShellItem;hint:SICHINTF;piorder:PINT):HResult; Stdcall;
+               end;
+
+    IModalWindow = Interface(IUnknown)
+	             ['{b4db1657-70d7-485e-8e3e-6fcb5a5c1802}']
+				   function Show(hwndparent:HWND):HResult;StdCall;
+				   end;
+				   
+    IShellItemFilter = Interface(IUnknown)
+	              ['{2659B475-EEB8-48b7-8F07-B378810F48CF}']
+                    function IncludeItem(psi:IShellItem):HResult;StdCall;
+                    function GetEnumFlagsForItem(psi:IShellItem;pgrfflags :PSHCONTF):HRESULT;Stdcall;
+                   end;					
+
+    IFileDialog = Interface;     
+    IFileDialogEvents = Interface(IUnknown)
+                   ['{973510db-7d7f-452b-8975-74a85828d354}']
+                    function OnFileOk         (pfd:IFileDialog):HResult; Stdcall;
+                    function OnFolderChanging (pfd:IFileDialog;psifolder:IShellItem):HResult; Stdcall;
+                    function OnFolderChange   (pfd:IFileDialog):HResult; Stdcall;
+                    function OnSelectionChange(pfd:IFileDialog):HResult; Stdcall;
+                    function OnShareViolation (pfd:IFileDialog;psi:IShellItem;pResponse :pFDE_SHAREVIOLATION_RESPONSE):HResult; Stdcall;
+                    function OnTypeChange     (pfd:IFileDialog):HResult; Stdcall;
+                    function OnOverwrite      (pfd:IFileDialog;psi:IShellItem;pResponse :pFDE_OVERWRITE_RESPONSE):HResult; Stdcall;
+                 end;
+
+    IFileDialog = Interface(IModalWindow) 
+                  ['{42f85136-db7e-439c-85f1-e4075d135fc8}']
+                    function SetFileTypes(cFileTypes:UINT;rgFilterSpec:pCOMDLG_FILTERSPEC):HRESULT;Stdcall;
+		    function SetFileTypeIndex(iFileType:UINT):HRESULT;Stdcall;
+		    function GetFileTypeIndex(piFileType:pUINT):HRESULT;Stdcall;
+		    function Advise(pdfde:IFileDialogEvents;pdwcookie:PDWORD):HRESULT;Stdcall;
+		    function unadvise(dwCookie:DWORD):HRESULT;Stdcall;
+		    function SetOptions(fos:FILEOPENDIALOGOPTIONS):HRESULT;Stdcall;
+		    function GetOptions(pfos:pFILEOPENDIALOGOPTIONS):HRESULT;Stdcall;
+		    function SetDefaultFolder(psi:IShellItem):HRESULT;Stdcall;
+		    function SetFolder(psi:IShellItem):HRESULT;Stdcall;
+		    function Getfolder(ppsi:pIShellItem):HRESULT;Stdcall;
+		    function GetCurrentSelection(ppsi:pIShellItem):HRESULT;Stdcall;
+		    function SetFileName(pszName:LPCWSTR):HRESULT;Stdcall;
+		    function GetFileName(pszName:pLPWSTR):HRESULT;Stdcall;
+		    function SetTitle(pszTitle:LPCWSTR):HRESULT;Stdcall;
+		    function SetOkButtonLabel(pszText:LPCWSTR):HRESULT;Stdcall;
+		    function SetFileNameLabel(pszLabel:LPCWSTR):HRESULT;Stdcall;
+		    function GetResult(ppsi:pIShellItem):HRESULT;Stdcall;
+		    function AddPlace(psi:IShellItem;fdap:FDAP):HRESULT;Stdcall;
+		    function SetDefaultExtension(pszDefaultExtension:LPCWSTR):HRESULT;Stdcall;
+		    function Close(hr:HRESULT):HRESULT;Stdcall;
+		    function SetClientGuid(GUID:PGUID):HRESULT;Stdcall;
+		    function ClearClientData:HRESULT;Stdcall;
+		    function SetFilter(pfilter:IShellItemFilter):HRESULT;Stdcall;
+		  end;
+
 
 function SHGetMalloc(out ppmalloc: IMalloc):HResult;StdCall; external 'shell32' name 'SHGetMalloc';
 function SHGetDesktopFolder(out ppshf:IShellFolder):HResult;StdCall; external 'shell32' name 'SHGetDesktopFolder';

@@ -19,7 +19,10 @@ unit comobj;
   interface
 
 { $define DEBUG_COM}
-{ $define DUMMY_REG}
+
+{$ifdef wince}
+  {$define DUMMY_REG}
+{$endif}
     uses
       Windows,Types,Variants,Sysutils,ActiveX,classes;
 
@@ -44,11 +47,11 @@ unit comobj;
         property Source: string read FSource write FSource;
       end;
 
-      EOleRegistrationError = class(EOleError);
+      EOleRegistrationError = class(EOleSysError);
 
       TOleStream = Class(TProxyStream)
-                  procedure Check(err:integer);override;
-		end;
+        procedure Check(err:integer);override;
+      end;
 
       TComServerObject = class(TObject)
       protected
@@ -282,6 +285,9 @@ unit comobj;
 
     function ComClassManager : TComClassManager;
 
+    procedure CreateRegKey(const Key, ValueName, Value: string; RootKey: DWord = HKEY_CLASSES_ROOT);
+    procedure DeleteRegKey(const Key: string; RootKey: DWord = HKEY_CLASSES_ROOT);
+    function GetRegStringValue(const Key, ValueName: string; RootKey: DWord = HKEY_CLASSES_ROOT): string;
 
     type
       TCoCreateInstanceExProc = function(const clsid: TCLSID; unkOuter: IUnknown; dwClsCtx: DWORD; ServerInfo: PCoServerInfo;
@@ -305,7 +311,7 @@ unit comobj;
 implementation
 
     uses
-      ComConst, Ole2, Registry, RtlConsts;
+      ComConst, Ole2, {$ifndef dummy_reg} Registry, {$endif} RtlConsts;
 
     var
       Uninitializing : boolean;
@@ -439,7 +445,7 @@ implementation
      end;
 {$endif wince}
 
-    procedure CreateRegKey(const Key, ValueName, Value: string);
+    procedure CreateRegKey(const Key, ValueName, Value: string; RootKey: DWord = HKEY_CLASSES_ROOT);
 {$ifndef DUMMY_REG}
       var
         Reg: TRegistry;
@@ -451,7 +457,7 @@ implementation
 {$ifndef DUMMY_REG}
         Reg := TRegistry.Create;
         try
-          Reg.RootKey := HKEY_CLASSES_ROOT;
+          Reg.RootKey := RootKey;
           if Reg.OpenKey(Key, True) then
           begin
             try
@@ -461,7 +467,7 @@ implementation
             end;
           end
           else
-            raise ERegistryException.CreateResFmt(@SRegCreateFailed, [Key]);
+            raise EOleRegistrationError.CreateResFmt(@SRegCreateFailed,[Key]);
         finally
           Reg.Free;
         end;
@@ -471,7 +477,8 @@ implementation
 {$endif}
       end;
 
-    procedure DeleteRegKey(const Key: string);
+
+    procedure DeleteRegKey(const Key: string; RootKey: DWord = HKEY_CLASSES_ROOT);
 {$ifndef DUMMY_REG}
       var
         Reg: TRegistry;
@@ -483,7 +490,7 @@ implementation
 {$ifndef DUMMY_REG}
         Reg := TRegistry.Create;
         try
-          Reg.RootKey := HKEY_CLASSES_ROOT;
+          Reg.RootKey := RootKey;
           Reg.DeleteKey(Key);
         finally
           Reg.Free;
@@ -491,13 +498,17 @@ implementation
 {$endif}
       end;
 
-    function GetRegStringValue(const Key, ValueName: string): string;
+
+    function GetRegStringValue(const Key, ValueName: string; RootKey: DWord = HKEY_CLASSES_ROOT): string;
+    {$ifndef DUMMY_REG}
       var
         Reg: TRegistry;
+    {$endif}
       begin
+       {$ifndef DUMMY_REG}
         Reg := TRegistry.Create();
         try
-          Reg.RootKey := HKEY_CLASSES_ROOT;
+          Reg.RootKey := RootKey;
           if Reg.OpenKeyReadOnly(Key) then
           begin
             try
@@ -511,7 +522,9 @@ implementation
         finally
           Reg.Free;
         end;
+       {$endif}
       end;
+
 
    procedure OleError(Code: HResult);
      begin
@@ -972,7 +985,9 @@ HKCR
 
     procedure TComObjectFactory.UpdateRegistry(Register: Boolean);
       var
+        {$ifndef DUMMY_REG}
         reg: TRegistry;
+        {$endif}
         classidguid: String;
 
         function ThreadModelToString(model: TThreadingModel): String;
@@ -987,6 +1002,7 @@ HKCR
         end;
 
       begin
+{$ifndef DUMMY_REG}
 {$ifdef DEBUG_COM}
         WriteLn('UpdateRegistry begin');
 {$endif}
@@ -1036,6 +1052,7 @@ HKCR
 {$ifdef DEBUG_COM}
         WriteLn('UpdateRegistry end');
 {$endif}
+{$endif DUMMY_REG}
       end;
 
 
@@ -1648,11 +1665,11 @@ HKCR
         inherited Create(AComServer, AutoClass, AClassID, AInstancing, AThreadingModel);
       end;
 
-procedure TOleStream.Check(err:integer);
-begin
-  OleCheck(err);
-end;
 
+    procedure TOleStream.Check(err:integer);
+      begin
+        OleCheck(err);
+      end;
 
 const
   Initialized : boolean = false;
