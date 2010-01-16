@@ -9,8 +9,8 @@
  *)
 
 {$IFDEF POINTER}
-  xmlCharPtr = ^xmlChar;
-  xmlCharPtrPtr = ^xmlCharPtr;
+  xmlCharPtr = PChar;
+  xmlCharPtrPtr = PPChar;
 {$ENDIF}
 
 {$IFDEF TYPE}
@@ -21,7 +21,7 @@
  * It's unsigned allowing to pinpoint case where char * are assigned
  * to xmlChar * (possibly making serialization back impossible).
  *)
-  xmlChar = cchar;
+  xmlChar = Char;
 {$ENDIF}
 
 {$IFDEF FUNCTION}
@@ -30,8 +30,7 @@
  *
  * Macro to cast a string to an xmlChar * when one know its safe.
  *)
-function BAD_CAST(str: pchar): xmlCharPtr; inline;
-function BAD_CAST(str: string): xmlCharPtr; inline;
+//function BAD_CAST(str: string): xmlCharPtr; inline;
 
 (*
  * xmlChar handling

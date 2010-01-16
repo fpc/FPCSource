@@ -522,6 +522,7 @@ implementation
         procedure AddPackage(const pack,prefix:string);
         var
           packdirvar,unitdirvar : string;
+          fpcmadedirvar : string;
         begin
           FOutput.Add('ifdef '+Prefix+VarName(pack));
           { create needed variables }
@@ -537,9 +538,14 @@ implementation
           FOutput.Add(unitdirvar+'=$('+packdirvar+')');
           FOutput.Add('endif');
           FOutput.Add('ifdef CHECKDEPEND');
-          FOutput.Add('$('+packdirvar+')/$(FPCMADE):');
-          FOutput.Add(#9'$(MAKE) -C $('+packdirvar+') $(FPCMADE)');
-          FOutput.Add('override ALLDEPENDENCIES+=$('+packdirvar+')/$(FPCMADE)');
+          { rtl needs special handling for FPCMADE }
+          if pack='rtl' then
+            fpcmadedirvar:='/$(OS_TARGET)'
+          else
+            fpcmadedirvar:='';
+          FOutput.Add('$('+packdirvar+')'+fpcmadedirvar+'/$(FPCMADE):');
+          FOutput.Add(#9'$(MAKE) -C $('+packdirvar+')'+fpcmadedirvar+' $(FPCMADE)');
+          FOutput.Add('override ALLDEPENDENCIES+=$('+packdirvar+')'+fpcmadedirvar+'/$(FPCMADE)');
           FOutput.Add('endif');
           { Package dir doesn't exists, check unit dir }
           FOutput.Add('else');

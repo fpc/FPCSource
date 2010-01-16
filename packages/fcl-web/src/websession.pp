@@ -261,11 +261,11 @@ begin
     FIniFile:=TMemIniFile.Create(IncludeTrailingPathDelimiter(SessionDir)+SessionID);
     FIniFile.WriteDateTime(SSession,KeyStart,Now);
     FIniFile.WriteInteger(SSession,KeyTimeOut,Self.TimeOutMinutes);
+    FSessionStarted:=True;
     end;
   FIniFile.WriteDateTime(SSession,KeyLast,Now);
   If not FCached then
     FIniFile.UpdateFile;
-  FSessionStarted:=True;
 {$ifdef cgidebug}SendMethodExit('TIniWebSession.InitSession');{$endif}
 end;
 

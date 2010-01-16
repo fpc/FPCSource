@@ -1681,9 +1681,9 @@
      SIF_RANGE = 1;
      SIF_DISABLENOSCROLL = 8;
   { GetStdHandle  }
-     STD_INPUT_HANDLE = HANDLE(-10);
-     STD_OUTPUT_HANDLE = HANDLE(-11);
-     STD_ERROR_HANDLE = HANDLE(-12);
+     STD_INPUT_HANDLE = DWORD(-10);
+     STD_OUTPUT_HANDLE = DWORD(-11);
+     STD_ERROR_HANDLE = DWORD(-12);
 
      INVALID_HANDLE_VALUE = HANDLE(-1);
 
@@ -5643,6 +5643,9 @@ const
   DMDO_90         = 1;
   DMDO_180        = 2;
   DMDO_270        = 3;
+
+  FIND_FIRST_EX_CASE_SENSITIVE   = $00000001;
+  FIND_FIRST_EX_LARGE_FETCH      = $00000002;
 
 {$endif read_interface}
 

@@ -56,17 +56,22 @@ type
     Previous: PDataRecord;
   end;
   
+  { TDSStream }
+  //todo: refactor into two or three classes
   TDSStream = class(TStream)
   private
-    FActiveItem: PDataRecord;
+    FEditItem: PDataRecord;
     FDataset: TCustomSqliteDataset;
     FFieldRow: PChar;
     FField: TField;
     FFieldOffset: Integer;
     FRowSize: Integer;
     FPosition: LongInt;
+    FWriteMode: Boolean;
   public
-    constructor Create(Dataset: TCustomSqliteDataset; Field: TField);
+    constructor Create(Dataset: TCustomSqliteDataset; Field: TField;
+      FieldOffset: Integer; EditItem: PDataRecord; WriteMode: Boolean);
+    destructor Destroy; override;
     function Write(const Buffer; Count: LongInt): LongInt; override;
     function Read(var Buffer; Count: LongInt): LongInt; override;
     function Seek(Offset: LongInt; Origin: Word): LongInt; override;
@@ -329,23 +334,29 @@ end;
 
 // TDSStream
 
-constructor TDSStream.Create(Dataset: TCustomSqliteDataset; Field: TField);
+constructor TDSStream.Create(Dataset: TCustomSqliteDataset; Field: TField;
+  FieldOffset: Integer; EditItem: PDataRecord; WriteMode: Boolean);
 begin
   inherited Create;
   //FPosition := 0;
   FDataset := Dataset;
   FField := Field;
-  if Field.FieldNo >= 0 then
-    FFieldOffset := Field.FieldNo - 1
-  else
-    FFieldOffset := Dataset.FieldDefs.Count + Dataset.FCalcFieldList.IndexOf(Field);
-  FActiveItem := PPDataRecord(Dataset.ActiveBuffer)^;
-  FFieldRow := FActiveItem^.Row[FFieldOffset];
+  FFieldOffset := FieldOffset;
+  FWriteMode := WriteMode;
+  FEditItem := EditItem;
+  FFieldRow := FEditItem^.Row[FFieldOffset];
   if FFieldRow <> nil then
     FRowSize := StrLen(FFieldRow);
   //else
   //  FRowSize := 0;  
-end;  
+end;
+
+destructor TDSStream.Destroy;
+begin
+  if FWriteMode and not (FDataset.State in [dsCalcFields, dsFilter, dsNewValue]) then
+    FDataset.DataEvent(deFieldChange, PtrInt(FField));
+  inherited Destroy;
+end;
 
 function TDSStream.Seek(Offset: LongInt; Origin: Word): LongInt;
 begin
@@ -362,30 +373,29 @@ var
   NewRow: PChar;
 begin
   Result := Count;
-  if Count = 0 then
-    Exit;
-  //FRowSize is always 0 when FPosition = 0,
-  //so there's no need to check FPosition
-  NewRow := StrAlloc(FRowSize + Count + 1);
-  (NewRow + Count + FRowSize)^ := #0;
-  if FRowSize > 0 then
-    Move(FFieldRow^, NewRow^, FRowSize);
-  Move(Buffer, (NewRow + FRowSize)^, Count);
-  FActiveItem^.Row[FFieldOffset] := NewRow;
-  StrDispose(FFieldRow);
-  {$ifdef DEBUG_SQLITEDS}
-  WriteLn('##TDSStream.Write##');
-  WriteLn('  FPosition(Before): ', FPosition);
-  WriteLn('  FRowSize(Before): ', FRowSize);
-  WriteLn('  FPosition(After): ', FPosition+Count);
-  WriteLn('  FRowSize(After): ', StrLen(NewRow));
-  //WriteLn('  Stream Value: ',NewRow);
-  {$endif}
-  FFieldRow := NewRow;
-  FRowSize := StrLen(NewRow);
-  Inc(FPosition, Count);
-  if not (FDataset.State in [dsCalcFields, dsFilter, dsNewValue]) then
-    FDataset.DataEvent(deFieldChange, PtrInt(FField));
+  if Count > 0 then
+  begin
+    //FRowSize is always 0 when FPosition = 0,
+    //so there's no need to check FPosition
+    NewRow := StrAlloc(FRowSize + Count + 1);
+    (NewRow + Count + FRowSize)^ := #0;
+    if FRowSize > 0 then
+      Move(FFieldRow^, NewRow^, FRowSize);
+    Move(Buffer, (NewRow + FRowSize)^, Count);
+    FEditItem^.Row[FFieldOffset] := NewRow;
+    StrDispose(FFieldRow);
+    {$ifdef DEBUG_SQLITEDS}
+    WriteLn('##TDSStream.Write##');
+    WriteLn('  FPosition(Before): ', FPosition);
+    WriteLn('  FRowSize(Before): ', FRowSize);
+    WriteLn('  FPosition(After): ', FPosition+Count);
+    WriteLn('  FRowSize(After): ', StrLen(NewRow));
+    //WriteLn('  Stream Value: ',NewRow);
+    {$endif}
+    FFieldRow := NewRow;
+    FRowSize := StrLen(NewRow);
+    Inc(FPosition, Count);
+  end;
 end; 
  
 function TDSStream.Read(var Buffer; Count: Longint): LongInt;
@@ -456,18 +466,31 @@ begin
 end;
 
 function TCustomSqliteDataset.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
+var
+  FieldOffset: Integer;
+  EditItem: PDataRecord;
 begin
+  if Field.FieldNo >= 0 then
+  begin
+    if Mode = bmWrite then
+      EditItem := FCacheItem
+    else
+      EditItem := PPDataRecord(ActiveBuffer)^;
+    FieldOffset := Field.FieldNo - 1;
+  end
+  else
+  begin
+    EditItem := PPDataRecord(CalcBuffer)^;
+    FieldOffset := FieldDefs.Count + FCalcFieldList.IndexOf(Field);
+  end;
   if Mode = bmWrite then
   begin
-    if not (State in [dsEdit, dsInsert]) then
-    begin
-      DatabaseErrorFmt(SNotEditing,[Name],Self);
-      Exit;
-    end;
-    StrDispose(FCacheItem^.Row[Field.FieldNo - 1]);
-    FCacheItem^.Row[Field.FieldNo - 1] := nil;
+    if not (State in [dsEdit, dsInsert, dsCalcFields]) then
+      DatabaseErrorFmt(SNotEditing, [Name], Self);
+    StrDispose(EditItem^.Row[FieldOffset]);
+    EditItem^.Row[FieldOffset] := nil;
   end;
-  Result := TDSStream.Create(Self, Field);
+  Result := TDSStream.Create(Self, Field, FieldOffset, EditItem, Mode = bmWrite);
 end;
 
 procedure TCustomSqliteDataset.DoBeforeClose;

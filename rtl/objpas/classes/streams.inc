@@ -345,6 +345,15 @@ end;
        ReadDWord:=d;
     end;
 
+  function TStream.ReadQWord: QWord;
+    var
+       q: QWord;
+    begin
+      ReadBuffer(q,8);
+      ReadQWord:=q;
+
+    end;
+
   Function TStream.ReadAnsiString : String;
 
   Var
@@ -388,6 +397,11 @@ end;
 
     begin
        WriteBuffer(d,4);
+    end;
+
+  procedure TStream.WriteQWord(q: QWord);
+    begin
+      WriteBuffer(q,8);
     end;
 
 

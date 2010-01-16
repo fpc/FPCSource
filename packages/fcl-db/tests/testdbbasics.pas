@@ -139,7 +139,7 @@ begin
     begin
     open;
     delete;
-    refresh;
+    Resync([]);
     applyupdates;
     AssertTrue(IsEmpty);
 
