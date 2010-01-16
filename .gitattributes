@@ -1121,7 +1121,6 @@ packages/fcl-base/src/bufstream.pp svneol=native#text/plain
 packages/fcl-base/src/cachecls.pp svneol=native#text/plain
 packages/fcl-base/src/contnrs.pp svneol=native#text/plain
 packages/fcl-base/src/custapp.pp svneol=native#text/plain
-packages/fcl-base/src/daemonapp.pp svneol=native#text/plain
 packages/fcl-base/src/dummy/eventlog.inc svneol=native#text/plain
 packages/fcl-base/src/eventlog.pp svneol=native#text/plain
 packages/fcl-base/src/fpexprpars.pp svneol=native#text/plain
@@ -1146,13 +1145,10 @@ packages/fcl-base/src/streamcoll.pp svneol=native#text/plain
 packages/fcl-base/src/streamex.pp svneol=native#text/plain
 packages/fcl-base/src/streamio.pp svneol=native#text/plain
 packages/fcl-base/src/syncobjs.pp svneol=native#text/plain
-packages/fcl-base/src/unix/daemonapp.inc svneol=native#text/plain
 packages/fcl-base/src/unix/eventlog.inc svneol=native#text/plain
 packages/fcl-base/src/uriparser.pp svneol=native#text/plain
 packages/fcl-base/src/wformat.pp svneol=native#text/plain
 packages/fcl-base/src/whtml.pp svneol=native#text/plain
-packages/fcl-base/src/win/ServiceManager.pas -text
-packages/fcl-base/src/win/daemonapp.inc svneol=native#text/plain
 packages/fcl-base/src/win/eventlog.inc svneol=native#text/plain
 packages/fcl-base/src/win/fclel.mc -text
 packages/fcl-base/src/win/fclel.rc -text
@@ -1358,6 +1354,10 @@ packages/fcl-db/tests/toolsunit.pas -text
 packages/fcl-extra/Makefile svneol=native#text/plain
 packages/fcl-extra/Makefile.fpc svneol=native#text/plain
 packages/fcl-extra/fpmake.pp svneol=native#text/pascal
+packages/fcl-extra/src/daemonapp.pp svneol=native#text/plain
+packages/fcl-extra/src/unix/daemonapp.inc svneol=native#text/plain
+packages/fcl-extra/src/win/ServiceManager.pas svneol=native#text/plain
+packages/fcl-extra/src/win/daemonapp.inc svneol=native#text/plain
 packages/fcl-fpcunit/Makefile svneol=native#text/plain
 packages/fcl-fpcunit/Makefile.fpc svneol=native#text/plain
 packages/fcl-fpcunit/fpmake.pp svneol=native#text/plain
@@ -5191,10 +5191,6 @@ packages/winunits-base/tests/hhex2.pp svneol=native#text/pascal
 packages/winunits-base/tests/testcom1.pp svneol=native#text/plain
 packages/winunits-base/tests/testcom2.pp svneol=native#text/plain
 packages/winunits-base/tests/testver.pp svneol=native#text/plain
-packages/winunits-com/Makefile svneol=native#text/plain
-packages/winunits-com/Makefile.fpc svneol=native#text/plain
-packages/winunits-com/fpmake.pp svneol=native#text/pascal
-packages/winunits-com/src/buildwinunitscom.pp svneol=native#text/pascal
 packages/winunits-jedi/Makefile svneol=native#text/plain
 packages/winunits-jedi/Makefile.fpc svneol=native#text/plain
 packages/winunits-jedi/fpmake.pp svneol=native#text/plain
