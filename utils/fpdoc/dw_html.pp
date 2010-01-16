@@ -149,6 +149,8 @@ type
     procedure DescrWriteVarEl(const AText: DOMString); override;
     procedure DescrBeginLink(const AId: DOMString); override;
     procedure DescrEndLink; override;
+    procedure DescrBeginURL(const AURL: DOMString); override;
+    procedure DescrEndURL; override;
     procedure DescrWriteLinebreak; override;
     procedure DescrBeginParagraph; override;
     procedure DescrEndParagraph; override;
@@ -1084,6 +1086,16 @@ begin
 end;
 
 procedure THTMLWriter.DescrEndLink;
+begin
+  PopOutputNode;
+end;
+
+procedure THTMLWriter.DescrBeginURL(const AURL: DOMString);
+begin
+  PushOutputNode(CreateLink(CurOutputNode, AURL));
+end;
+
+procedure THTMLWriter.DescrEndURL;
 begin
   PopOutputNode;
 end;

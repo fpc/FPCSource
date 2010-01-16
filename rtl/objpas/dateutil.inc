@@ -1410,7 +1410,7 @@ end;
     Increment/decrement functions.
   ---------------------------------------------------------------------}
 
-Procedure MaybeSkipTimeWarp(OldDate: TDateTime; out NewDate: TDateTime);
+Procedure MaybeSkipTimeWarp(OldDate: TDateTime; var NewDate: TDateTime);
 begin
   if (OldDate>0) and (NewDate<0) then
     NewDate:=NewDate-0.5

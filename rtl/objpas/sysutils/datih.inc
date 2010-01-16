@@ -122,8 +122,11 @@ function IncMonth(const DateTime: TDateTime; NumberOfMonths: integer = 1 ): TDat
 procedure IncAMonth(var Year, Month, Day: Word; NumberOfMonths: Integer = 1);
 function IsLeapYear(Year: Word): boolean;
 function DateToStr(Date: TDateTime): string;
+function DateToStr(Date: TDateTime; const FormatSettings: TFormatSettings): string;
 function TimeToStr(Time: TDateTime): string;
+function TimeToStr(Time: TDateTime; const FormatSettings: TFormatSettings): string;
 function DateTimeToStr(DateTime: TDateTime): string;
+function DateTimeToStr(DateTime: TDateTime; const FormatSettings: TFormatSettings): string;
 function StrToDate(const S: ShortString): TDateTime;                  {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToDate(const S: Ansistring): TDateTime;                   {$ifdef SYSUTILSINLINE}inline;{$endif}
 function StrToDate(const S: ShortString; separator : char): TDateTime;{$ifdef SYSUTILSINLINE}inline;{$endif}
@@ -139,8 +142,10 @@ function StrToDate(const S: PChar; Len : integer; const useformat : string; sepa
 function StrToDateTime(const S: string): TDateTime;
 function StrToDateTime(const s: ShortString; const UseFormat : TFormatSettings): TDateTime;
 function StrToDateTime(const s: AnsiString; const UseFormat : TFormatSettings): TDateTime;
-function FormatDateTime(FormatStr: string; DateTime: TDateTime):string;
+function FormatDateTime(const FormatStr: string; DateTime: TDateTime):string;
+function FormatDateTime(const FormatStr: string; DateTime: TDateTime; const FormatSettings: TFormatSettings): string;
 procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime);
+procedure DateTimeToString(out Result: string; const FormatStr: string; const DateTime: TDateTime; const FormatSettings: TFormatSettings);
 Function DateTimeToFileDate(DateTime : TDateTime) : Longint;
 Function FileDateToDateTime (Filedate : Longint) :TDateTime;
 function TryStrToDate(const S: ShortString; out Value: TDateTime): Boolean;                         {$ifdef SYSUTILSINLINE}inline;{$endif}

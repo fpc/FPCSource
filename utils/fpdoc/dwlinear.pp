@@ -15,8 +15,8 @@ Type
     PackageName: String;
     Module: TPasModule;
     ModuleName: String;
+    FLastURL : DomString;
   Protected
-
     // Writing support.
     procedure Write(const s: String); virtual;
     procedure WriteLn(const s: String); virtual;
@@ -27,6 +27,8 @@ Type
     procedure WriteLabel(El: TPasElement);
     procedure WriteIndex(El: TPasElement);
     // Auxiliary routines
+    procedure DescrBeginURL(const AURL: DOMString); override; // Provides a default implementation
+    procedure DescrEndURL; override;
     procedure SortElementList(List : TList);
     procedure StartListing(Frames: Boolean);
     Function  ShowMember(M : TPasElement) : boolean;
@@ -75,6 +77,7 @@ Type
     procedure WriteUnitEntry(UnitRef : TPasType);virtual; Abstract;
     procedure EndUnitOverview; virtual; Abstract;
     Class Function FileNameExtension : String;virtual; Abstract;
+    Property LastURL : DomString Read FLastURL Write FLastURL;
   Public
     Constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
     procedure WriteDoc; override;
@@ -194,6 +197,18 @@ end;
 procedure TLinearWriter.WriteIndex(El: TPasElement);
 begin
   WriteIndex(EL.Name);
+end;
+
+procedure TLinearWriter.DescrBeginURL(const AURL: DOMString);
+begin
+  FLastURL:=AURL;
+end;
+
+procedure TLinearWriter.DescrEndURL;
+begin
+  If (FLastURL<>'') then
+    Writeln(Format(SSeeURL,[EscapeText(FLastURL)]));
+  FLastURL:='';
 end;
 
 procedure TLinearWriter.StartListing(Frames: Boolean);

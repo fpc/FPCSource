@@ -195,9 +195,13 @@ Function FloattoCurr (Const Value : Extended) : Currency;
 function TryFloatToCurr(const Value: Extended; var AResult: Currency): Boolean;
 
 Function CurrToStr(Value: Currency): string;
+Function CurrToStr(Value: Currency; Const FormatSettings: TFormatSettings): string;
 function StrToCurr(const S: string): Currency;
+function StrToCurr(const S: string; Const FormatSettings: TFormatSettings): Currency;  
 function TryStrToCurr(const S: string;Out Value : Currency): Boolean;
+function TryStrToCurr(const S: string;Out Value : Currency; Const FormatSettings: TFormatSettings): Boolean;       
 function StrToCurrDef(const S: string; Default : Currency): Currency;
+function StrToCurrDef(const S: string; Default : Currency; Const FormatSettings: TFormatSettings): Currency;  
 
 Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar; FormatSettings : TFormatSettings): Integer;
 Function FloatToTextFmt(Buffer: PChar; Value: Extended; format: PChar): Integer;

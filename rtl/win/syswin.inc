@@ -62,7 +62,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
        DLL_THREAD_ATTACH :
          begin
            inclocked(Thread_count);
-           
+
            WinEnterCriticalSection(AttachingThread);
            if (Win32GetCurrentThreadId <> MainThreadIdWin32) then
            begin
@@ -97,6 +97,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
            if assigned(Dll_Process_Detach_Hook) then
              Dll_Process_Detach_Hook(DllParam);
 
+           DoneThread;
            { Free TLS resources used by ThreadVars }
            SysFiniMultiThreading;
            WinDoneCriticalSection(AttachingThread);

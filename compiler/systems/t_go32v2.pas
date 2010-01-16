@@ -103,7 +103,7 @@ begin
 
   { Open link.res file }
   LinkRes:=TLinkRes.Create(outputexedir+Info.ResName);
-  
+
   { Add all options to link.res instead of passing them via command line:
     DOS command line is limited to 126 characters! }
   LinkRes.Add('--script='+maybequoted(outputexedir+Info.ScriptName));
@@ -189,7 +189,8 @@ begin
        end;
    end;
   ScriptRes.Add('    *(.text)');
-  ScriptRes.Add('    etext  =  . ; _etext = .;');
+  ScriptRes.Add('    etext  =  . ;');
+  ScriptRes.Add('    PROVIDE(_etext  =  .);');
   ScriptRes.Add('    . = ALIGN(0x200);');
   ScriptRes.Add('  }');
   ScriptRes.Add('    .data  ALIGN(0x200) : {');
@@ -203,6 +204,9 @@ begin
   ScriptRes.Add('      *(.dtor)');
   ScriptRes.Add('      *(.dtors)');
   ScriptRes.Add('      djgpp_last_dtor = . ;');
+  ScriptRes.Add('      __environ = . ;');
+  ScriptRes.Add('      PROVIDE(_environ = .);');
+  ScriptRes.Add('      LONG(0)');
   ScriptRes.Add('      *(.data)');
   ScriptRes.Add('      *(.fpc*)');
   ScriptRes.Add('      *(.gcc_exc)');
@@ -216,7 +220,7 @@ begin
   ScriptRes.Add('    .bss  SIZEOF(.data) + ADDR(.data) :');
   ScriptRes.Add('    {');
   ScriptRes.Add('      _object.2 = . ;');
-  ScriptRes.Add('      . += 24 ;');
+  ScriptRes.Add('      . += 32 ;');
   ScriptRes.Add('      *(.bss)');
   ScriptRes.Add('      *(COMMON)');
   ScriptRes.Add('       end = . ; _end = .;');

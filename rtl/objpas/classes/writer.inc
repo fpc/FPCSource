@@ -804,6 +804,12 @@ begin
   Driver.WriteInteger(Value);
 end;
 
+procedure TWriter.WriteSet(Value: LongInt; SetType: Pointer); 
+
+begin
+  Driver.WriteSet(Value,SetType);
+end;
+
 procedure TWriter.WriteVariant(const VarValue: Variant);
 begin
   Driver.WriteVariant(VarValue);

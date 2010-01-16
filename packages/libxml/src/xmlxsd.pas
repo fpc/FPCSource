@@ -630,8 +630,6 @@ begin
     Inc(P);
   end;
   Value := Int;
-  if N then
-    Value := -Value;
 
   { allow '.' }
   if (P < L) and (P^ = '.') then
@@ -671,6 +669,9 @@ begin
       Inc(Exp);
     end;
   end;
+
+  if N then
+    Value := -Value;
 
   Result := True;
 end;

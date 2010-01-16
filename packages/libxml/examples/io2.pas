@@ -29,9 +29,9 @@ begin
   (*
    * Create the document.
    *)
-  doc := xmlNewDoc(BAD_CAST('1.0'));
-  n := xmlNewNode(nil, BAD_CAST('root'));
-  xmlNodeSetContent(n, BAD_CAST('content'));
+  doc := xmlNewDoc('1.0');
+  n := xmlNewNode(nil, 'root');
+  xmlNodeSetContent(n, 'content');
   xmlDocSetRootElement(doc, n);
 
   (*

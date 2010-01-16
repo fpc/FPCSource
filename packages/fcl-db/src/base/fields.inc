@@ -2796,6 +2796,25 @@ begin
   SetData(@aValue);
 end;
 
+{ TFieldsEnumerator }
+
+function TFieldsEnumerator.GetCurrent: TField;
+begin
+  Result := FFields[FPosition];
+end;
+
+constructor TFieldsEnumerator.Create(AFields: TFields);
+begin
+  inherited Create;
+  FFields := AFields;
+  FPosition := -1;
+end;
+
+function TFieldsEnumerator.MoveNext: Boolean;
+begin
+  inc(FPosition);
+  Result := FPosition < FFields.Count;
+end;
 
 { TFields }
 
@@ -2953,6 +2972,12 @@ begin
       Result:=TField(FFieldList[i]);
       Exit;
       end;
+end;
+
+Function TFields.GetEnumerator: TFieldsEnumerator;
+
+begin
+  Result:=TFieldsEnumerator.Create(Self);
 end;
 
 Procedure TFields.GetFieldNames (Values : TStrings);
