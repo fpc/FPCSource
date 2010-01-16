@@ -1572,8 +1572,8 @@ type
 {$endif}    
     procedure WriteState(Writer: TWriter); virtual;
     constructor Create(AOwner: TComponent); virtual;
-    procedure BeforeDestruction; override;
     destructor Destroy; override;
+    procedure BeforeDestruction; override;
     procedure DestroyComponents;
     procedure Destroying;
     function ExecuteAction(Action: TBasicAction): Boolean; dynamic;
