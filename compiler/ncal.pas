@@ -2838,7 +2838,7 @@ implementation
          if assigned(methodpointer) and is_dispinterface(methodpointer.resultdef) then
            begin
              { if the result is used, we've to insert a call to convert the type to be on the "safe side" }
-             if cnf_return_value_used in callnodeflags then
+             if (cnf_return_value_used in callnodeflags) and not is_void(procdefinition.returndef) then
                begin
                  result:=internalstatements(statements);
                  converted_result_data:=ctempcreatenode.create(procdefinition.returndef,sizeof(procdefinition.returndef),tt_persistent,true);
