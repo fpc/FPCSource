@@ -319,7 +319,7 @@ program h2pas;
          flag_index:=0;
          writeln(outfile);
          writeln(outfile,aktspace,'const');
-         shift(3);
+         shift(2);
          while not eof(tempfile) do
            begin
               readln(tempfile,line);
@@ -362,7 +362,7 @@ program h2pas;
                         write_p_a_def(implemfile,hp3^.p1^.p1,hp2^.p1);
                         writeln(implemfile,';');
                         writeln(implemfile,aktspace,'begin');
-                        shift(3);
+                        shift(2);
                         write(implemfile,aktspace,name,':=(a.flag',flag_index);
                         writeln(implemfile,' and bm_',ph,'_',name,') shr bp_',ph,'_',name,';');
                         popshift;
@@ -385,7 +385,7 @@ program h2pas;
                         write_p_a_def(implemfile,hp3^.p1^.p1,hp2^.p1);
                         writeln(implemfile,');');
                         writeln(implemfile,aktspace,'begin');
-                        shift(3);
+                        shift(2);
                         write(implemfile,aktspace,'a.flag',flag_index,':=');
                         write(implemfile,'a.flag',flag_index,' or ');
                         writeln(implemfile,'((__',name,' shl bp_',ph,'_',name,') and bm_',ph,'_',name,');');
@@ -563,8 +563,6 @@ program h2pas;
                end;
              t_funcname :
                begin
-                  if not compactmode then
-                   shift(2);
                   if if_nb>0 then
                     begin
                        writeln(outfile,aktspace,'var');
@@ -581,7 +579,7 @@ program h2pas;
                        if_nb:=0;
                     end;
                   writeln(outfile,aktspace,'begin');
-                  shift(3);
+                  shift(2);
                   write(outfile,aktspace);
                   write_all_ifexpr(outfile,p^.p2);
                   write_expr(outfile,p^.p1);
@@ -1059,7 +1057,7 @@ program h2pas;
                         writeln(outfile,'packed record')
                       else
                         writeln(outfile,'record');
-                      shift(3);
+                      shift(2);
                       hp1:=p^.p1;
 
                       (* walk through all members *)
@@ -1192,7 +1190,7 @@ program h2pas;
                         writeln(outfile,'record');
                       shift(2);
                       writeln(outfile,aktspace,'case longint of');
-                      shift(3);
+                      shift(2);
                       l:=0;
                       hp1:=p^.p1;
 
@@ -1623,7 +1621,7 @@ begin
          end;
          block_type:=bt_var;
          
-         shift(3);
+         shift(2);
          
          IsExtern:=assigned(yyv[yysp-4])and(yyv[yysp-4]^.str='extern');
          (* walk through all declarations *)
@@ -1807,7 +1805,7 @@ begin
          end;
          block_type:=bt_var;
          
-         shift(3);
+         shift(2);
          
          IsExtern:=assigned(yyv[yysp-5])and(yyv[yysp-5]^.str='extern');
          (* walk through all declarations *)
@@ -1849,7 +1847,7 @@ begin
          writeln(outfile,aktspace,'type');
          block_type:=bt_type;
          end;
-         shift(3);
+         shift(2);
          if ( yyv[yysp-1]^.p2  <> nil ) then
          begin
          (* write new type name *)
@@ -1905,7 +1903,7 @@ begin
          TN:=TypeName(yyv[yysp-1]^.p);
          if Uppercase(tn)<>Uppercase(pn) then
          begin
-         shift(3);
+         shift(2);
          writeln(outfile,aktspace,PN,' = ',TN,';');
          popshift;
          end;
@@ -1926,7 +1924,7 @@ begin
          block_type:=bt_type;
          end;
          no_pop:=assigned(yyv[yysp-7]) and (yyv[yysp-7]^.str='no_pop');
-         shift(3);
+         shift(2);
          (* walk through all declarations *)
          hp:=yyv[yysp-6];
          if assigned(hp) then
@@ -1974,7 +1972,7 @@ begin
          else
          writeln(outfile);
          no_pop:=assigned(yyv[yysp-2]) and (yyv[yysp-2]^.str='no_pop');
-         shift(3);
+         shift(2);
          (* Get the name to write the type definition for, try
          to use the tag name first *)
          if assigned(yyv[yysp-3]^.p2) then
@@ -2051,7 +2049,7 @@ begin
          end
          else
          writeln(outfile);
-         shift(3);
+         shift(2);
          (* write as pointer *)
          writeln(outfile,'(* generic typedef  *)');
          writeln(outfile,aktspace,yyv[yysp-1]^.p,' = pointer;');
@@ -2090,6 +2088,9 @@ begin
          writeln(implemfile,aktspace,'{ return type might be wrong }   ');
          end;
          end;
+         if block_type<>bt_func then
+         writeln(outfile);
+         
          block_type:=bt_func;
          write(outfile,aktspace,'function ',yyv[yysp-5]^.p);
          write(implemfile,aktspace,'function ',yyv[yysp-5]^.p);
@@ -2158,11 +2159,12 @@ begin
          begin
          if block_type<>bt_const then
          begin
+         if block_type<>bt_func then
          writeln(outfile);
          writeln(outfile,aktspace,'const');
          end;
          block_type:=bt_const;
-         shift(3);
+         shift(2);
          write(outfile,aktspace,yyv[yysp-3]^.p);
          write(outfile,' = ');
          flush(outfile);
@@ -2176,6 +2178,8 @@ begin
          end
          else
          begin
+         if block_type<>bt_func then
+         writeln(outfile);
          if not stripinfo then
          begin
          writeln (outfile,aktspace,'{ was #define dname def_expr }');
@@ -2187,11 +2191,9 @@ begin
          shift(2);
          if not assigned(yyv[yysp-1]^.p3) then
          begin
-         writeln(outfile,' : longint;');
-         writeln(outfile,aktspace,'  { return type might be wrong }');
+         writeln(outfile,' : longint; { return type might be wrong }');
          flush(outfile);
-         writeln(implemfile,' : longint;');
-         writeln(implemfile,aktspace,'  { return type might be wrong }');
+         writeln(implemfile,' : longint; { return type might be wrong }');
          end
          else
          begin

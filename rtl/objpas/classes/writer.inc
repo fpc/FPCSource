@@ -953,7 +953,7 @@ begin
         if (not Handled) and
           (MethodValue.Code <> DefMethodValue.Code) and
           ((not Assigned(MethodValue.Code)) or
-          ((Length(FLookupRoot.MethodName(MethodValue.Code)) >= 0))) then
+          ((Length(FLookupRoot.MethodName(MethodValue.Code)) > 0))) then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           if Assigned(MethodValue.Code) then
@@ -1040,11 +1040,14 @@ begin
              (ObjValue is TComponent) then
           begin
             //writeln('TWriter.WriteProperty AncestorObj=',TComponent(AncestorObj).Name,' OwnerFit=',TComponent(AncestorObj).Owner = FRootAncestor,' ',TComponent(ObjValue).Name,' OwnerFit=',TComponent(ObjValue).Owner = Root);
-            if (TComponent(AncestorObj).Owner <> FRootAncestor) or
-             (TComponent(ObjValue).Owner <> Root) or
-             (UpperCase(TComponent(AncestorObj).Name) <> UpperCase(TComponent(ObjValue).Name)) then
+            if (AncestorObj<> ObjValue) and
+             (TComponent(AncestorObj).Owner = FRootAncestor) and
+             (TComponent(ObjValue).Owner = Root) and
+             (UpperCase(TComponent(AncestorObj).Name) = UpperCase(TComponent(ObjValue).Name)) then
             begin
-              AncestorObj := nil;
+              // different components, but with the same name
+              // treat it like an override
+              AncestorObj := ObjValue;
             end;
           end;
         end else

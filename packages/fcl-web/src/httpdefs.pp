@@ -171,7 +171,8 @@ type
   private
     FContentFields: TStrings;
     FCookieFields: TStrings;
-    FHTTPVersion : String;
+    FHTTPVersion: String;
+    FHTTPXRequestedWith: String;
     FFields : THttpFields;
     FQueryFields: TStrings;
     function GetSetField(AIndex: Integer): String;
@@ -249,6 +250,7 @@ type
     Property Query : String Index 33 read GetFieldValue Write SetFieldValue;
     Property Host : String Index 34 Read GetFieldValue Write SetFieldValue;
     Property Content : String Index 35 Read GetFieldValue Write SetFieldValue;
+    Property HTTPXRequestedWith : String Index 36 read GetFieldValue Write SetFieldValue;
     // Lists
     Property CookieFields : TStrings Read FCookieFields Write SetCookieFields;
     Property ContentFields: TStrings read FContentFields;
@@ -604,6 +606,7 @@ begin
   else
     case Index of
       0  : Result:=FHTTPVersion;
+      36 : Result:=FHTTPXRequestedWith;
     else
       Result := '';
     end;
@@ -633,6 +636,7 @@ begin
       28 : ; // Property RemoteHost : String Index 28 read  GetFieldValue Write SetFieldValue;
       29 : ; // Property ScriptName : String Index 29 read  GetFieldValue Write SetFieldValue;
       30 : ; // Property ServerPort : Word Read GetServerPort; // Index 30
+      36 : FHTTPXRequestedWith:=Value;
     end;
 end;
 

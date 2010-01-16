@@ -16,6 +16,7 @@
     class procedure CheckNull(obj: IUnknown; msg: string = ''); overload;
     class procedure CheckNull(obj: TObject; msg: string = ''); overload;
     class procedure CheckNotNull(obj: TObject; msg: string = ''); overload;
+    class procedure CheckNotNull(obj: IUnknown; msg: string = ''); overload; virtual;
     class procedure CheckIs(obj :TObject; pClass: TClass; msg: string = ''); overload;
     class procedure CheckSame(expected, actual: TObject; msg: string = ''); overload;
     class procedure FailNotEquals(expected, actual: string; msg: string = ''; errorAddr: Pointer = nil); virtual;
@@ -118,6 +119,11 @@ end;
 class procedure TAssert.CheckNotNull(obj: TObject; msg: string);
 begin
   AssertNotNull(msg, obj);
+end;
+
+class procedure TAssert.CheckNotNull(obj: IUnknown; msg: string);
+begin
+  AssertNotNullIntf(msg, obj);
 end;
 
 class procedure TAssert.CheckIs(obj: TObject; pClass: TClass; msg: string);
