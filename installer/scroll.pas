@@ -52,6 +52,7 @@ type
     private
       DrawLock: Byte;
       DrawFlag: Boolean;
+      ScrollFlag : boolean;
       procedure CheckDraw;
       procedure UpdateLimits;
       procedure ShiftViews(DX,DY: sw_integer);
@@ -86,6 +87,11 @@ procedure TScrollBox.HandleEvent(var Event: TEvent);
 begin
   if (Event.What=evBroadcast) and (Event.Command=cmCursorChanged) then
     TrackCursor;
+   If (Event.What = evBroadcast) AND
+     (Event.Command = cmScrollBarChanged) AND         { Scroll bar change }
+     Not ScrollFlag AND
+     ((Event.InfoPtr = HScrollBar) OR                 { Our scrollbar? }
+      (Event.InfoPtr = VScrollBar)) Then ScrollDraw;  { Redraw scroller }
   inherited HandleEvent(Event);
 end;
 
@@ -123,7 +129,7 @@ begin
   if (D.X <> Delta.X) or (D.Y <> Delta.Y) then
    begin
      SetCursor(Cursor.X + Delta.X - D.X, Cursor.Y + Delta.Y - D.Y);
-     Delta := D;
+     ScrollTo(D.X,D.Y);
      if DrawLock <> 0 then
       DrawFlag := True
      else
@@ -134,14 +140,19 @@ end;
 
 procedure TScrollBox.ScrollTo(X, Y: Sw_Integer);
 var DX,DY: sw_integer;
+    PrevScrollFlag : boolean;
 begin
   Inc(DrawLock);
   DX:=Delta.X-X;
   DY:=Delta.Y-Y;
+  PrevScrollFlag:=ScrollFlag;
+  ScrollFlag:=true;
+
   if HScrollBar <> nil then
    HScrollBar^.SetValue(X);
   if VScrollBar <> nil then
    VScrollBar^.SetValue(Y);
+  ScrollFlag:=PrevScrollFlag;
   ShiftViews(DX,DY);
   Dec(DrawLock);
   CheckDraw;
@@ -154,6 +165,8 @@ procedure TScrollBox.ShiftViews(DX,DY: sw_integer);
   end;
 begin
   ForEach(@DoShift);
+  Delta.X:=Delta.X-DX;
+  Delta.Y:=Delta.Y-DY;
 end;
 
 procedure TScrollBox.SetLimit(X, Y: Sw_Integer);
@@ -162,9 +175,9 @@ begin
   Limit.Y := Y;
   Inc(DrawLock);
   if HScrollBar <> nil then
-    HScrollBar^.SetParams(HScrollBar^.Value, 0, X - Size.X, Size.X - 1, HScrollBar^.ArStep);
+    HScrollBar^.SetParams(HScrollBar^.Value, HScrollBar^.Min, HScrollBar^.Max, HScrollBar^.PgStep, HScrollBar^.ArStep);
   if VScrollBar <> nil then
-    VScrollBar^.SetParams(VScrollBar^.Value, 0, Y - Size.Y, Size.Y - 1, VScrollBar^.ArStep);
+    VScrollBar^.SetParams(VScrollBar^.Value, VScrollBar^.Min, VScrollBar^.Max, VScrollBar^.PgStep, VScrollBar^.ArStep);
   Dec(DrawLock);
   CheckDraw;
 end;

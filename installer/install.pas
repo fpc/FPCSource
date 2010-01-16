@@ -1106,14 +1106,22 @@ program install;
                  else
 {$endif MAYBE_LFN}
                    begin
-                      items[j]:=newsitem(package[i].name+diskspacestr(package[i].diskspace),items[j]);
+                      items[j]:=newsitem(package[i].name+diskspacestr(package[i].diskspace)
+{$ifdef DEBUG}
+                                         +' ('+dotstr(i)+')'
+{$endif DEBUG}
+                                         ,items[j]);
                       packmask[j]:=packmask[j] or packagemask(i);
                       enabmask[j]:=enabmask[j] or packagemask(i);
                       firstitem[j]:=i-1;
                    end;
                end
               else
-               items[j]:=newsitem(package[i].name,items[j]);
+               items[j]:=newsitem(package[i].name
+{$ifdef DEBUG}
+                          +' ('+dotstr(i)+')'
+{$endif DEBUG}
+                           ,items[j]);
             end;
          end;
 
@@ -1186,7 +1194,10 @@ program install;
          if (sbr.b.y-sbr.a.y)<cfg.pack[j].packages then
           begin
             sbsbr.assign(sbr.b.x,sbr.a.y,sbr.b.x+1,sbr.b.y);
-            New(sbsb, init(sbsbr));
+            sbsb:=CreateIdScrollBar (sbsbr.a.x, sbsbr.a.y,sbsbr.b.y-sbsbr.a.y,j,false);
+            sbsb^.SetRange(0,cfg.pack[j].packages-(sbsbr.b.y-sbsbr.a.y)-1);
+            sbsb^.SetStep(5,1);
+            //New(sbsb, init(sbsbr));
           end
          else
            sbsb:=nil;
