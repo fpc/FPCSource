@@ -8,7 +8,7 @@ UNIT RAPI;
 
 INTERFACE
 
-uses Windows;
+uses Windows, RAPITypes;
 
 const
   FAF_ATTRIBUTES = $00000001;
@@ -343,6 +343,8 @@ type
   TCeFindAllFiles = function(Path: PWideChar; Attr: DWORD; var Count: DWord;
     var FindData: PCe_Find_Data_array): BOOL stdcall;
   TRapiFreeBuffer = procedure(p: Pointer) stdcall;
+  TCeRapiInvoke = function (pDllPath: LPCWSTR; pFunctionName: LPCWSTR; cbInput: DWord; pInput: PByte;
+    pcbOutput: PDWord; ppOutput: PPByte; ppIRAPIStream: PIRAPIStream; dwReserved: DWord): HResult; stdcall;
 
 function CeRapiInit: LongInt;
 function CeRapiInitEx(var RInit: TRapiInit) : LongInt;
@@ -435,6 +437,8 @@ function CeGetSystemPowerStatusEx(pStatus: PSYSTEM_POWER_STATUS_EX; fUpdate: BOO
 function DesktopToDevice(DesktopLocation, TableList: String; Sync: BOOL; Overwrite: Integer; DeviceLocation: String): Longint;
 //added 01/19/2003 - Octavio Hernandez
 function DeviceToDesktop(DesktopLocation, TableList: String; Sync: BOOL; Overwrite: Integer; DeviceLocation: String): Longint;
+function CeRapiInvoke(pDllPath: LPCWSTR; pFunctionName: LPCWSTR; cbInput: DWord; pInput: PByte;
+  pcbOutput: PDWord; ppOutput: PPByte; ppIRAPIStream: PIRAPIStream; dwReserved: DWord): HResult;
 
 IMPLEMENTATION
 
@@ -506,6 +510,7 @@ var
   mDesktopToDevice: TDesktopToDevice;
   //added 01/19/2003 - Octavio Hernandez
   mDeviceToDesktop: TDeviceToDesktop;
+  mCeRapiInvoke: TCeRapiInvoke;
 
   RapiModule, AdoCEModule: THandle;
 
@@ -588,6 +593,7 @@ begin
     @mCeGetClassName:= GetProcAddress(RapiModule, 'CeGetClassName');
     @mCeGlobalMemoryStatus:= GetProcAddress(RapiModule, 'CeGlobalMemoryStatus');
     @mCeGetSystemPowerStatusEx:= GetProcAddress(RapiModule, 'CeGetSystemPowerStatusEx');
+    @mCeRapiInvoke:= GetProcAddress(RapiModule, 'CeRapiInvoke');
   end
   else
     Result := False;
@@ -1489,6 +1495,21 @@ begin
 
   if @mDeviceToDesktop <> nil then
     Result := mDeviceToDesktop(DesktopLocation, TableList, Sync, Overwrite, DeviceLocation)
+  else
+    Result := $FFFF;
+end;
+
+function CeRapiInvoke(pDllPath: LPCWSTR; pFunctionName: LPCWSTR;
+  cbInput: DWord; pInput: PByte; pcbOutput: PDWord; ppOutput: PPByte;
+  ppIRAPIStream: PIRAPIStream; dwReserved: DWord): HResult;
+begin
+  if not RapiLoaded then begin
+    Result := $FFFF;
+    Exit;
+  end;
+
+  if @mCeRapiInvoke <> nil then
+    Result := mCeRapiInvoke(pDllPath, pFunctionName, cbInput, pInput, pcbOutput, ppOutput, ppIRAPIStream, dwReserved)
   else
     Result := $FFFF;
 end;
