@@ -35,32 +35,40 @@ CONST
     ST_FSTYPSZ = 16;           {* array size for file system type name *}
 
 TYPE
-    blksize_t = longint;
-    blkcnt_t = longint;
+    blksize_t = clong;
+    blkcnt_t = clong;
 
    { file characteristics services }
    stat = packed record { verify the alignment of the members }
      st_dev : dev_t;
+{$ifndef CPU64}
      st_pad1 : array[1..3] of longint;  { reserve for dev expansion }
+{$endif ndef CPU64}
      st_ino : ino_t;
      st_mode : mode_t;
      st_nlink : nlink_t;
      st_uid : uid_t;
      st_gid : gid_t;
      st_rdev : dev_t;
+{$ifndef CPU64}
      st_pad2 : array[1..2] of longint;
+{$endif ndef CPU64}
      st_size : off_t;
+{$ifndef CPU64}
      st_pad3 : longint;   {* reserve pad for future off_t expansion *}
+{$endif ndef CPU64}
      st_atime : time_t;
-     st_atimens : longint;    { access time nanosecond field         }
+     st_atimens : clong;    { access time nanosecond field         }
      st_mtime : time_t;
-     st_mtimens : longint;    { modification time nanosecond field   }
+     st_mtimens : clong;    { modification time nanosecond field   }
      st_ctime : time_t;
-     st_ctimens : longint;    { modification time nanosecond field   }
+     st_ctimens : clong;    { modification time nanosecond field   }
      st_blksize : blksize_t;
      st_blocks : blkcnt_t;
      st_fstype : array[0..ST_FSTYPSZ-1] of char;
+{$ifndef CPU64}
      st_pad4 : array[1..8] of longint;
+{$endif ndef CPU64}
    end;
    TStat             = Stat;
    PStat             = ^Stat;

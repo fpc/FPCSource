@@ -7,7 +7,7 @@ name=zorba
 version=0.9.9
 
 [target]
-units=zorba zorbadyn
+units=xqc zorba zorbadyn
 
 [require]
 

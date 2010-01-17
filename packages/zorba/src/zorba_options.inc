@@ -14,7 +14,7 @@
  * limitations under the License.
  *)
 
-
+type
 (** \brief The optimization level used for optimizing the query. *)
   Zorba_opt_level_t = (
     ZORBA_OPT_LEVEL_O0, (**< Don't use any optimization. *)

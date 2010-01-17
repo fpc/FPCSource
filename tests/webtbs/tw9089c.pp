@@ -9,7 +9,7 @@ const
 {$if defined(windows) or defined(mswindows)}
   libname='tw9089b.dll';
 {$else}
-  libname='tw9089a';
+  libname='tw9089b';
   {$linklib tw9089b}
 {$ifend}
 

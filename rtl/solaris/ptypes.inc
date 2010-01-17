@@ -33,7 +33,7 @@ introduction)
 
 Type
 
-    dev_t    = cuint;          { used for device numbers      }
+    dev_t    = culong;          { used for device numbers      }
     TDev     = dev_t;
     pDev     = ^dev_t;
 
