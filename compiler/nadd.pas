@@ -744,6 +744,35 @@ implementation
              exit;
           end;
 
+        { the comparison is might be expensive and the nodes are usually only
+          equal if some previous optimizations were done so don't check
+          this simplification always
+        }
+        if (cs_opt_level2 in current_settings.optimizerswitches) and
+          is_boolean(left.resultdef) and is_boolean(right.resultdef) and
+          { since the expressions might have sideeffects, we may only remove them
+            if short boolean evaluation is turned on }
+          (nf_short_bool in flags) then
+            begin
+              if left.isequal(right) then
+                begin
+                  case nodetype of
+                    andn,orn:
+                      begin
+                        result:=left;
+                        left:=nil;
+                        exit;
+                      end;
+                    {
+                    xorn:
+                      begin
+                        result:=cordconstnode.create(0,resultdef,true);
+                        exit;
+                      end;
+                    }
+                  end;
+                end;
+            end;
       end;
 
 
