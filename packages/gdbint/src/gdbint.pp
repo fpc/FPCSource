@@ -15,6 +15,9 @@ unit GdbInt;
 
 {$mode objfpc}
 
+{$define NotImplemented}
+
+{$define COMPILING_GDBINT_UNIT}
 {$ifdef USE_GDBLIBINC}
   {$i gdblib.inc}
 {$else not USE_GDBLIBINC}
@@ -32,7 +35,6 @@ interface
 
 {$smartlink off}
 
-{$define NotImplemented}
 
 { Is create_breakpoint_hook deprecated? }
 { Seem not so for 6.1 }
@@ -123,7 +125,6 @@ interface
   {$define GDB_USES_LIBINTL}
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
   {$define GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
-  {$define GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
   {$define GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
   {$define GDB_HAS_BP_NONE}
 {$endif def GDB_V7}
@@ -291,7 +292,9 @@ interface
     {$LINKLIB libmingw32.a}
     {$LINKLIB libmsvcrt.a}
     {$LINKLIB libdecnumber.a}
-    {$undef GDB_HAS_DEBUG_FILE_DIRECTORY}
+    {$ifdef GDB_USES_EXPAT_LIB}
+      {$LINKLIB expat}
+    {$endif GDB_USES_EXPAT_LIB}
   {$else not USE_MINGW_GDB}
     {$LINKLIB libiconv.a}
     {$LINKLIB libncurses.a}
@@ -767,6 +770,11 @@ type
           line : longint;
           pc : CORE_ADDR;
           _end : CORE_ADDR;
+          { Added fields, not used in gdbint,
+            but necessary to allocated enough space to
+            avoid stack memory corruption PM }
+          explicit_pc : longint;
+          explicit_line : longint;
        end;
 
      symtabs_and_lines = record
@@ -1276,8 +1284,8 @@ procedure gdb_init(argv0 : pchar);cdecl;external;
 procedure gdb_init;cdecl;external;
 {$endif not GDB_INIT_HAS_ARGV0}
 procedure execute_command(p:pchar;i:longint);cdecl;external;
-procedure target_kill;cdecl;external;
 {$ifdef GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
+procedure target_kill;cdecl;external;
 procedure target_close(pt : ptarget_ops; i:longint);cdecl;external;
 {$else not GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
 procedure target_close(i:longint);cdecl;external;
@@ -2287,10 +2295,11 @@ procedure tgdbinterface.gdb_done;
 begin
   if debuggee_started then
     begin
-      target_kill;
 {$ifdef GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
+      target_kill;
       target_close(@current_target,1);
 {$else not GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
+      current_target.to_kill;
       target_close(1);
 {$endif ndef GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
     end;
