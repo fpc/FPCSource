@@ -595,19 +595,18 @@ const
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 Procedure SysInitFPU;
+  var
+    { these locals are so we don't have to hack pic code in the assembler }
+    localmxcsr: dword;
+    localfpucw: word;
+ 
 begin
+  localmxcsr:=mxcsr;
+  localfpucw:=fpucw;
   asm
-{$ifdef FPC_PIC}
-    movq fpucw@GOTPCREL(%rip),%rax
-    fldcw (%rax)
+    fldcw localfpucw
     { set sse exceptions }
-    movq mxcsr@GOTPCREL(%rip),%rax
-    ldmxcsr (%rax)
-{$else FPC_PIC}
-    fldcw fpucw{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
-    { set sse exceptions }
-    ldmxcsr mxcsr{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
-{$endif FPC_PIC}
+    ldmxcsr localmxcsr
   end ['RAX'];
   { x86-64 might use softfloat code }
   softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
