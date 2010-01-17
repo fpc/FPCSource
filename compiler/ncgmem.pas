@@ -196,7 +196,15 @@ implementation
          location_reset(location,LOC_REGISTER,OS_ADDR);
          location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
          if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-           internalerror(2006111510);
+           { on x86_64-win64, array of chars can be returned in registers, however,
+             when passing these arrays to other functions, the compiler wants to take
+             the address of the array so when the addrnode has been created internally,
+             we have to force the data into memory, see also tw14388.pp
+           }
+           if nf_internal in flags then
+             location_force_mem(current_asmdata.CurrAsmList,left.location)
+           else
+             internalerror(2006111510);
          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
       end;
 
