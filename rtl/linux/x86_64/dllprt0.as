@@ -72,11 +72,7 @@ _haltproc:
 	.type FPC_SHARED_LIB_EXIT,@function
 FPC_SHARED_LIB_EXIT:
 	call	FPC_LIB_EXIT@PLT
-        movl    $231,%eax                 /* exit_group call */
-        movq    operatingsystem_result@GOTPCREL(%rip),%rbx
-        movzwl  (%rbx),%edi
-        syscall
-        jmp     _haltproc@PLT
+	ret
 
 /* Define a symbol for the first piece of initialized data.  */
 	.data

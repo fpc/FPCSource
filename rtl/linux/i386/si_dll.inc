@@ -76,24 +76,4 @@ procedure _FPC_shared_lib_haltproc; assembler; nostackframe; public name 'FPC_SH
 asm
 .Lhaltproc:
   call	  lib_exit
- {$ifdef FPC_PIC}
-  call    get1eipasebx
-  addl    $_GLOBAL_OFFSET_TABLE_,%ebx
-  movl    ExitCode@GOT(%ebx),%ebx
- {$if sizeof(ExitCode)=2}
-  movzwl  (%ebx),%ebx
- {$else}
-  mov     (%ebx),%ebx
- {$endif}
-{$else FPC_PIC}
- {$if sizeof(ExitCode)=2}
-  movzwl  ExitCode,%ebx
- {$else}
-  mov     ExitCode,%ebx
- {$endif}
-{$endif FPC_PIC}
-  xorl    %eax,%eax
-  incl    %eax                    { eax=1, exit call }
-  int     $0x80
-  jmp     .Lhaltproc
 end;
