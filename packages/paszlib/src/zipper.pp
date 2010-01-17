@@ -664,13 +664,23 @@ Var
   Buf : PByte;
   I,Count,NewCount : Integer;
   C : TCompressionStream;
-
+  BytesNow : Integer;
+  NextMark : Integer;
+  OnBytes : Integer;
+  FSize    : Integer;
 begin
   CRC32Val:=$FFFFFFFF;
   Buf:=GetMem(FBufferSize);
+  if FOnPercent = 0 then 
+    FOnPercent := 1; 
+  OnBytes:=Round((FInFile.Size * FOnPercent) / 100);
+  BytesNow:=0; NextMark := OnBytes;
+  FSize:=FInfile.Size;
   Try
     C:=TCompressionStream.Create(FCompressionLevel,FOutFile,True);
     Try
+      if assigned(FOnProgress) then
+        fOnProgress(self,0);
       Repeat
         Count:=FInFile.Read(Buf^,FBufferSize);
         For I:=0 to Count-1 do
@@ -678,6 +688,13 @@ begin
         NewCount:=Count;
         While (NewCount>0) do
           NewCount:=NewCount-C.Write(Buf^,NewCount);
+        inc(BytesNow,Count);
+        if BytesNow>NextMark Then
+          begin
+            if (FSize>0) and assigned(FOnProgress) Then
+              FOnProgress(self,100 * ( BytesNow / FSize));
+            inc(NextMark,OnBytes);
+          end;   
       Until (Count=0);
     Finally
       C.Free;
@@ -685,6 +702,8 @@ begin
   Finally
     FreeMem(Buf);
   end;
+  if assigned(FOnProgress) then
+    fOnProgress(self,100.0);
   Crc32Val:=NOT Crc32Val;
 end;
 
@@ -709,9 +728,22 @@ Var
   Buf : PByte;
   I,Count : Integer;
   C : TDeCompressionStream;
+  BytesNow : Integer;
+  NextMark : Integer;
+  OnBytes  : Integer;
+  FSize    : Integer;
 
 begin
   CRC32Val:=$FFFFFFFF;
+  if FOnPercent = 0 then
+    FOnPercent := 1;
+  OnBytes:=Round((FInFile.Size * FOnPercent) / 100);
+  BytesNow:=0; NextMark := OnBytes;
+  FSize:=FInfile.Size;
+
+  If Assigned(FOnProgress) then
+    fOnProgress(self,0);
+
   Buf:=GetMem(FBufferSize);
   Try
     C:=TDeCompressionStream.Create(FInFile,True);
@@ -721,6 +753,13 @@ begin
         For I:=0 to Count-1 do
           UpdC32(Buf[i]);
         FOutFile.Write(Buf^,Count);
+        inc(BytesNow,Count);
+        if BytesNow>NextMark Then
+           begin
+             if (FSize>0) and assigned(FOnProgress) Then
+               FOnProgress(self,100 * ( BytesNow / FSize));
+             inc(NextMark,OnBytes);
+           end;
       Until (Count=0);
     Finally
       C.Free;
@@ -728,6 +767,8 @@ begin
   Finally
     FreeMem(Buf);
   end;
+ if assigned(FOnProgress) then
+   fOnProgress(self,100.0);
   Crc32Val:=NOT Crc32Val;
 end;
 
