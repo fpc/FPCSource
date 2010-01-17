@@ -880,7 +880,7 @@ begin
 end;
 
 
-Procedure Halt(ErrNum: Byte);
+Procedure Halt(ErrNum: Longint);
 Begin
   ExitCode:=Errnum;
   Do_Exit;

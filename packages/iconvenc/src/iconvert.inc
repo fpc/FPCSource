@@ -50,7 +50,7 @@ begin
     // iconv has a buffer that needs flushing, specially if the last char is not #0
     iconv(H, nil, nil, @Dst, @Outlen);
     lerr:=cerrno;
-    if (iconvres=Cint(-1)) and (lerr=ESysE2BIG) then
+    if (iconvres=size_t(-1)) and (lerr=ESysE2BIG) then
       begin
         Offset:=Dst-PChar(Res);
         SetLength(Res, Length(Res)+InLen*2+5); // 5 is minimally one utf-8 char

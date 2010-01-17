@@ -106,6 +106,7 @@ TYPE
    pStat = ^stat;
 
   { directory services }
+{$ifndef darwinarm}
    dirent  = record
         d_fileno      : cuint32;                        // file number of entry
         d_reclen      : cuint16;                        // length of this record
@@ -113,6 +114,19 @@ TYPE
         d_namlen      : cuint8;                         // length of string in d_name
         d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
    end;
+{$else not darwinarm}
+   {$packrecords 4}
+   { available on Mac OS X 10.6 and later, and used by all iPhoneOS versions }
+   dirent  = record
+        d_fileno      : cuint64;                        // file number of entry
+        d_seekoff     : cuint64;                        // seek offset (optional, used by servers)
+        d_reclen      : cuint16;                        // length of this record
+        d_namlen      : cuint16;                        // length of string in d_name
+        d_type        : cuint8;                         // file type, see below
+        d_name        : array[0..PATH_MAX-1] of char;        // name must be no longer than this
+   end;
+   {$packrecords c}
+{$endif darwinarm}
    TDirent = dirent;
    pDirent = ^dirent;
 
@@ -130,6 +144,10 @@ TYPE
 {$endif}
         dd_rewind : clong;        // magic cookie for rewinding
         dd_flags  : cint;         // flags for readdir
+{$ifdef darwin}
+        __dd_lock : pthread_mutex_t; // for thread locking
+        __dd_td : pointer;        // telldir position recording
+{$endif}
    end;
    TDir    = dir;
    pDir    = ^dir;

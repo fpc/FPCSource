@@ -1127,19 +1127,7 @@ end;
 {$ifndef FPUNONE}
 function DoVarCmpFloat(const Left, Right: Double; const OpCode: TVarOp): ShortInt;
 begin
-  if SameValue(Left, Right) then
-    Result := 0
-  else if (OpCode in [opCmpEq, opCmpNe]) or (Left < Right) then
-    Result := -1
-  else
-    Result := 1;
-end;
-
-
-function DoVarCmpDate(const Left, Right: TDateTime; const OpCode: TVarOp): ShortInt;
-begin
-  { dates have to match exactly, all bits encode time information }
-  if(Left = Right) then
+  if Left = Right then
     Result := 0
   else if (OpCode in [opCmpEq, opCmpNe]) or (Left < Right) then
     Result := -1
@@ -1275,7 +1263,7 @@ begin
       else
         Result := DoVarCmpWStr(vl, vr, OpCode);
 {$ifndef FPUNONE}
-    ctDate:     Result := DoVarCmpDate(VariantToDate(vl), VariantToDate(vr), OpCode);
+    ctDate:     Result := DoVarCmpFloat(VariantToDate(vl), VariantToDate(vr), OpCode);
     ctCurrency: Result := DoVarCmpCurr(VariantToCurrency(vl), VariantToCurrency(vr));
 {$endif}
     ctString:
@@ -2197,6 +2185,8 @@ begin
       RefAnyProc(Dest);
     end else if vType and varArray <> 0 then
       DoVarCopyArray(Dest, Source, @DoVarCopy)
+    else if (vType and varByRef <> 0) and (vType xor varByRef = varString) then
+      Dest := Source
     else if FindCustomVariantType(vType, Handler) then
       Handler.Copy(Dest, Source, False)
     else

@@ -3,7 +3,7 @@
 #
 
 [target]
-programs=madopenal
+programs=madopenal captureplaybackopenal
 
 [require]
 packages=openal mad oggvorbis a52 dts modplug matroska
