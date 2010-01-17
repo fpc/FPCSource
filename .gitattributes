@@ -5520,7 +5520,6 @@ packages/zlib/fpmake.pp svneol=native#text/plain
 packages/zlib/src/zlib.pp svneol=native#text/plain
 packages/zorba/Makefile svneol=native#text/plain
 packages/zorba/Makefile.fpc svneol=native#text/plain
-packages/zorba/Package.fpc svneol=native#text/plain
 packages/zorba/examples/simple/simple.lpi svneol=native#text/plain
 packages/zorba/examples/simple/simple.lpr svneol=native#text/plain
 packages/zorba/fpmake.pp svneol=native#text/plain
