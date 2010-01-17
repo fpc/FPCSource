@@ -33,9 +33,6 @@ const
   {$DEFINE S}
 {$ENDIF}
 
-type
-  PPPChar = ^PPChar;
-
 (*
 ** 2001 September 15
 **

@@ -77,9 +77,6 @@ uses
        Pmy_socket = ^my_socket;
        my_socket = cint;
 
-       pppchar = ^ppchar;
-       PPByte     = ^PByte;
-
 {  ------------ Start of declaration in "mysql_com.h"   ---------------------  }
 
   {

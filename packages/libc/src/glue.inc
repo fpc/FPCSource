@@ -15,8 +15,6 @@ Type
   wchar_t = widechar;
   Pwchar_t = ^wchar_t;
   PPwchar_t = ^Pwchar_t;
-  PPByte = ^PByte;
-  PPPChar = ^PPChar;
 
 { ---------------------------------------------------------------------
     Declarations moved forward because C headers are a mess.

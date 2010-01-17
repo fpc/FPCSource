@@ -8,7 +8,6 @@
 {$ifdef read_interface}
 
    type
-     PPPChar   = ^PPchar;
      PPguchar  = Pguchar;
      PPgchar   = ^Pgchar;
      PPPgchar  = ^PPgchar;

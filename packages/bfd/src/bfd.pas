@@ -132,7 +132,6 @@ type
 
   flagword = LongWord;  (* 32 bits of flags *)
 
-  pppchar = ^ppchar;
   Pbfd_byte = ^bfd_byte;
   bfd_byte = Byte;
   bfd_boolean = LongBool;

@@ -29,8 +29,6 @@ type
 
 { boolean size must be fixed at 4 bytes due to wire protocol! }
   dbus_bool_t = dbus_uint32_t;
-
-  PPPChar = ^PPChar;
   
   va_list = Pointer;
 

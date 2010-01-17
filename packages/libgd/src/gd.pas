@@ -56,7 +56,6 @@ uses
 
 type
   ppcint = ^pcint;
-  ppbyte = ^pbyte;
   PFILE = pointer;
 
 const

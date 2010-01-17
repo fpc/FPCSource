@@ -78,9 +78,7 @@ type
    png_charpp = PPchar;
    ppng_charpp = ^png_charpp;
    png_fixed_point_pp = PPpng_fixed_point;
-   PPDouble = ^PDouble;
    png_doublepp = PPdouble;
-   PPPChar = ^PPCHar;
    png_charppp = PPPchar;
    Pcharf = Pchar;
    PPcharf = ^Pcharf;

@@ -91,7 +91,6 @@ const
   SQLITE_ARGS    = -3;
 
 Type
-  PPPchar   = ^ppchar;
   Psqlite = Pointer;
   Psqlite_vm = Pointer;
   PPsqlite_vm = ^Psqlite_vm;

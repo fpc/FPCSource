@@ -202,7 +202,6 @@ ResourceString
 {$ifdef ver130}
 
 Type
-  PPChar = ^PChar;
   PCharArray = Array[Word] of PChar;
   PPCharArray = ^PCharArray;
 
