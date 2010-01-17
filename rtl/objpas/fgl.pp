@@ -490,9 +490,13 @@ begin
   if (Index < 0) or (Index > FCount) then
     Error(SListIndexError, Index);
   if FCount = FCapacity then Self.Expand;
-  if Index<FCount then
-    System.Move(InternalItems[Index]^, InternalItems[Index+1]^, (FCount - Index) * FItemSize);
   Result := InternalItems[Index];
+  if Index<FCount then
+  begin
+    System.Move(Result^, (Result+FItemSize)^, (FCount - Index) * FItemSize);
+    { clear for compiler assisted types }
+    System.FillByte(Result^, FItemSize, 0);
+  end;
   Inc(FCount);
 end;
 
@@ -695,7 +699,7 @@ begin
   if ResPtr <> nil then
     Result := T(ResPtr^)
   else
-    FillByte(Result, 0, sizeof(T));
+    FillByte(Result, sizeof(T), 0);
 end;
 
 function TFPGList.First: T;
@@ -801,7 +805,7 @@ begin
   if ResPtr <> nil then
     Result := T(ResPtr^)
   else
-    FillByte(Result, 0, sizeof(T));
+    FillByte(Result, sizeof(T), 0);
 end;
 
 function TFPGObjectList.First: T;
@@ -898,7 +902,7 @@ begin
   if ResPtr <> nil then
     Result := T(ResPtr^)
   else
-    FillByte(Result, 0, sizeof(T));
+    FillByte(Result, sizeof(T), 0);
 end;
 
 function TFPGInterfacedObjectList.First: T;
