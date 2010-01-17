@@ -102,13 +102,6 @@ unit optcse;
       end;
 
     function collectnodes(var n:tnode; arg: pointer) : foreachnoderesult;
-
-      procedure AddAvail(child : tnode);
-        begin
-          if assigned(child) and assigned(child.optinfo) then
-            DFASetIncludeSet(n.optinfo^.avail,child.optinfo^.avail);
-        end;
-
       var
         i,j : longint;
       begin
@@ -153,12 +146,6 @@ unit optcse;
             plists(arg)^.refs.Add(nil);
             plists(arg)^.equalto.Add(pointer(-1));
 
-            {
-            { setup set of available expressions }
-            n.allocoptinfo;
-            n.optinfo^.avail:=nil;
-            DFASetInclude(n.optinfo^.avail,plists(arg)^.nodelist.count-1);
-            }
             DFASetInclude(plists(arg)^.avail,plists(arg)^.nodelist.count-1);
 
             for i:=0 to plists(arg)^.nodelist.count-2 do
@@ -314,51 +301,6 @@ unit optcse;
       begin
         foreachnodestatic(pm_postprocess,rootnode,@searchcsedomain,nil);
         result:=nil;
-(*
-        { create a linear list of nodes }
-
-        { create hash values }
-
-        { sort by hash values, taking care of nf_csebarrier and keeping the
-          original order of the nodes }
-
-        { compare nodes with equal hash values }
-
-        { search barrier }
-        for i:=0 to nodelist.length-1 do
-          begin
-            { and then search backward so we get always the largest equal trees }
-            j:=i+1;
-            { collect equal nodes }
-            while (j<=nodelist.length-1) and
-              nodelist[i].isequal(nodelist[j]) do
-              inc(j);
-            dec(j);
-            if j>i then
-              begin
-                { cse found }
-
-                { create temp. location }
-
-                { replace first node by
-                  - temp. creation
-                  - expression calculation
-                  - assignment of expression to temp. }
-                tempnode:=ctempcreatenode.create(nodelist[i].resultdef,nodelist[i].resultdef.size,tt_persistent,
-                  nodelist[i].resultdef.is_intregable or nodelist[i].resultdef.is_fpuregable);
-                addstatement(createstatement,tempnode);
-                addstatement(createstatement,cassignmentnode.create(ctemprefnode.create(tempnode),
-                      caddrnode.create_internal(para.left)));
-                    para.left := ctypeconvnode.create_internal(cderefnode.create(ctemprefnode.create(tempnode)),para.left.resultdef);
-                    addstatement(deletestatement,ctempdeletenode.create(tempnode));
-
-                { replace next nodes by loading the temp. reference }
-
-                { replace last node by loading the temp. reference and
-                  delete the temp. }
-              end;
-          end;
-*)
       end;
 
 end.
