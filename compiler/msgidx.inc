@@ -372,6 +372,7 @@ const
   parser_e_no_refcounted_typed_file=03282;
   parser_e_operator_not_overloaded_2=03283;
   parser_e_operator_not_overloaded_3=03284;
+  parser_e_more_array_elements_expected=03285;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -843,9 +844,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 55433;
+  MsgTxtSize = 55476;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,285,95,74,51,110,22,202,63,
+    24,87,286,95,74,51,110,22,202,63,
     49,20,1,1,1,1,1,1,1,1
   );

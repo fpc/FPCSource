@@ -9258,6 +9258,7 @@ tests/test/tsubdecl.pp svneol=native#text/plain
 tests/test/tsymlibrary1.pp svneol=native#text/pascal
 tests/test/ttpara1.pp svneol=native#text/plain
 tests/test/ttpara2.pp svneol=native#text/plain
+tests/test/ttypedarray1.pp svneol=native#text/pascal
 tests/test/tunaligned1.pp svneol=native#text/plain
 tests/test/tunistr1.pp svneol=native#text/plain
 tests/test/tunistr2.pp svneol=native#text/plain

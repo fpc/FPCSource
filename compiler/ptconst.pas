@@ -847,7 +847,14 @@ implementation
                 begin
                   read_typed_const_data(hr,def.elementdef);
                   Inc(hr.offset,def.elementdef.size);
-                  consume(_COMMA);
+                  if token=_RKLAMMER then
+                    begin
+                      Message1(parser_e_more_array_elements_expected,tostr(def.highrange-i));
+                      consume(_RKLAMMER);
+                      exit;
+                    end
+                  else
+                    consume(_COMMA);
                 end;
               read_typed_const_data(hr,def.elementdef);
               consume(_RKLAMMER);

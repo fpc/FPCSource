@@ -1281,11 +1281,13 @@ parser_e_no_refcounted_typed_file=03282_E_Typed files cannot contain reference-c
 % The data in a typed file cannot be of a reference counted type (such as
 % \var{ansistring} or a record containing a field that is reference counted).
 parser_e_operator_not_overloaded_2=03283_E_Operator is not overloaded: $2 "$1"
-% You're trying to use an overloaded operator when it is not overloaded for
+% You are trying to use an overloaded operator when it is not overloaded for
 % this type.
 parser_e_operator_not_overloaded_3=03284_E_Operator is not overloaded: "$1" $2 "$3"
-% You're trying to use an overloaded operator when it is not overloaded for
+% You are trying to use an overloaded operator when it is not overloaded for
 % this type.
+parser_e_more_array_elements_expected=03285_E_Expected another $1 array elements
+% When declaring a typed constant array, you provided to few elements to initialize the array
 % \end{description}
 #
 # Type Checking
