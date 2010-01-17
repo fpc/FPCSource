@@ -21,7 +21,7 @@ units=$(SYSTEMUNIT) unixtype ctypes strings objpas macpas \
       keyboard variants types dateutils sysconst \
       strutils fmtbcd rtlconsts cthreads \
       dos objects \
-      cwstring fpintres
+      cwstring fpintres $(CPU_UNITS)
 
 implicitunits=exeinfo
 
@@ -49,7 +49,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       unix  \
       dos crt objects printer \
       sysutils typinfo math \
-      cpu mmx getopts heaptrc \
+      $(CPU_UNITS) getopts heaptrc \
       errors sockets ipc
 
 [prerules]
@@ -60,8 +60,15 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 OSPROCINC=$(RTL)/solaris/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
+CPU_UNITS=
 
 SYSTEMUNIT=system
+
+
+ifeq ($(ARCH),i386)
+CPU_UNITS=cpu mmx
+endif
+
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files

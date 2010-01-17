@@ -187,8 +187,7 @@ end;
 Function TProcess.GetExitStatus : Integer;
 
 begin
-  If FRunning then
-    PeekExitStatus;
+  GetRunning;
   Result:=FExitCode;
 end;
 

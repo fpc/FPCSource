@@ -6570,6 +6570,7 @@ rtl/solaris/errno.inc svneol=native#text/plain
 rtl/solaris/errnostr.inc svneol=native#text/plain
 rtl/solaris/i386/sighnd.inc svneol=native#text/plain
 rtl/solaris/i386/sighndh.inc svneol=native#text/plain
+rtl/solaris/i386/start.inc svneol=native#text/plain
 rtl/solaris/osdefs.inc svneol=native#text/plain
 rtl/solaris/osmacro.inc svneol=native#text/plain
 rtl/solaris/ostypes.inc svneol=native#text/plain
@@ -7823,6 +7824,11 @@ tests/test/cg/obj/macos/powerpc/ctest.o -text
 tests/test/cg/obj/netbsd/m68k/ctest.o -text
 tests/test/cg/obj/os2/i386/ctest.o -text
 tests/test/cg/obj/readme.txt svneol=native#text/plain
+tests/test/cg/obj/solaris/i386/cpptcl1.o -text
+tests/test/cg/obj/solaris/i386/ctest.o -text
+tests/test/cg/obj/solaris/i386/tcext3.o -text
+tests/test/cg/obj/solaris/i386/tcext4.o -text
+tests/test/cg/obj/solaris/i386/tcext5.o -text
 tests/test/cg/obj/solaris/sparc/ctest.o -text
 tests/test/cg/obj/solaris/sparc/tcext3.o -text svneol=unset#unset
 tests/test/cg/obj/solaris/sparc/tcext4.o -text svneol=unset#unset
