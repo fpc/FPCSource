@@ -94,7 +94,9 @@ type
 
     time_t   = clong;           { used for returning the time, clong
                                         is 64-bit on AMD64}
-    TTime    = time_t;
+
+    // TTime    = time_t;    // Not allowed in system unit, -> unixtype
+
     pTime    = ^time_t;
     ptime_t =  ^time_t;
 

@@ -5659,6 +5659,36 @@ const
   GPT_BASIC_DATA_ATTRIBUTE_SHADOW_COPY        =qword($2000000000000000);
   GPT_BASIC_DATA_ATTRIBUTE_READ_ONLY          =qword($1000000000000000);
 
+    IMAGE_FILE_MACHINE_UNKNOWN           = 0;
+    IMAGE_FILE_MACHINE_I386              = $014c;  // Intel 386.
+    IMAGE_FILE_MACHINE_R3000             = $0162;  // MIPS little-endian, = $160 big-endian
+    IMAGE_FILE_MACHINE_R4000             = $0166;  // MIPS little-endian
+    IMAGE_FILE_MACHINE_R10000            = $0168;  // MIPS little-endian
+    IMAGE_FILE_MACHINE_WCEMIPSV2         = $0169;  // MIPS little-endian WCE v2
+    IMAGE_FILE_MACHINE_ALPHA             = $0184;  // Alpha_AXP
+    IMAGE_FILE_MACHINE_SH3               = $01a2;  // SH3 little-endian
+    IMAGE_FILE_MACHINE_SH3DSP            = $01a3;
+    IMAGE_FILE_MACHINE_SH3E              = $01a4;  // SH3E little-endian
+    IMAGE_FILE_MACHINE_SH4               = $01a6;  // SH4 little-endian
+    IMAGE_FILE_MACHINE_SH5               = $01a8;  // SH5
+    IMAGE_FILE_MACHINE_ARM               = $01c0;  // ARM Little-Endian
+    IMAGE_FILE_MACHINE_THUMB             = $01c2;
+    IMAGE_FILE_MACHINE_AM33              = $01d3;
+    IMAGE_FILE_MACHINE_POWERPC           = $01F0;  // IBM PowerPC Little-Endian
+    IMAGE_FILE_MACHINE_POWERPCFP         = $01f1;
+    IMAGE_FILE_MACHINE_IA64              = $0200;  // Intel 64
+    IMAGE_FILE_MACHINE_MIPS16            = $0266;  // MIPS
+    IMAGE_FILE_MACHINE_ALPHA64           = $0284;  // ALPHA64
+    IMAGE_FILE_MACHINE_MIPSFPU           = $0366;  // MIPS
+    IMAGE_FILE_MACHINE_MIPSFPU16         = $0466;  // MIPS
+    IMAGE_FILE_MACHINE_AXP64             = IMAGE_FILE_MACHINE_ALPHA64;
+    IMAGE_FILE_MACHINE_TRICORE           = $0520;  // Infineon
+    IMAGE_FILE_MACHINE_CEF               = $0CEF;
+    IMAGE_FILE_MACHINE_EBC               = $0EBC;  // EFI Byte Code
+    IMAGE_FILE_MACHINE_AMD64             = $8664;  // AMD64 (K8)
+    IMAGE_FILE_MACHINE_M32R              = $9041;  // M32R little-endian
+    IMAGE_FILE_MACHINE_CEE               = $C0EE;
+
 {$endif read_interface}
 
 {$ifdef read_implementation}

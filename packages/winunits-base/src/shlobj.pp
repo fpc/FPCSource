@@ -22,6 +22,7 @@ uses
       windows,activex,shellapi,commctrl;
 
 Const 
+   IID_IShellExtInit    ='{000214E8-0000-0000-C000-000000000046}';
    IID_IShellFolder    : TGUID ='{000214E6-0000-0000-C000-000000000046}';
    IID_IEnumList       : TGUID ='{000214F2-0000-0000-C000-000000000046}';
    IID_IAutoComplete   : TGUID ='{00bb2762-6a77-11d0-a535-00c04fd7d062}';
@@ -2120,6 +2121,12 @@ Type
 		    function SetFilter(pfilter:IShellItemFilter):HRESULT;Stdcall;
 		  end;
 
+
+
+    IShellExtInit = Interface(IUnknown)
+          [IID_IShellExtInit]
+         function Initialize(pidlfolder: LPCITEMIDLIST; pdtobj : IDataObject;hkeyProgID : HKEY):HResult; stdcall;
+         end;
 
 function SHGetMalloc(out ppmalloc: IMalloc):HResult;StdCall; external 'shell32' name 'SHGetMalloc';
 function SHGetDesktopFolder(out ppshf:IShellFolder):HResult;StdCall; external 'shell32' name 'SHGetDesktopFolder';

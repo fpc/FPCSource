@@ -86,7 +86,7 @@ type
     pClock   = ^clock_t;
 
     time_t   = clong;           { used for returning the time  }
-    TTime    = time_t; 
+    // TTime    = time_t;    // Not allowed in system unit, -> unixtype
     pTime    = ^time_t;
     ptime_t =  ^time_t;
     

@@ -26,7 +26,6 @@ const
   MOFileHeaderMagic = $950412de;
 
 type
-
   TMOFileHeader = packed record
     magic: LongWord;             // MOFileHeaderMagic
     revision: LongWord;          // 0
@@ -85,17 +84,54 @@ uses
 {$endif}
 
 
+procedure Endianfixmotable(p:PMOStringTable;n:integer);
+var I:integer;
+begin
+  if n>0 then
+    for i:=0 to n-1 do
+      begin 
+        p^[i].length:=swapendian(p^[i].length);
+        p^[i].offset:=swapendian(p^[i].offset);
+      end;
+end;
+
+procedure Endianfixhashtable(p:PLongwordArray;n:integer);
+var I:integer;
+begin
+  if n>0 then
+    for i:=0 to n-1 do
+      begin 
+        p^[i]:=swapendian(p^[i]);
+      end;
+end;
+
 constructor TMOFile.Create(AStream: TStream);
 var
   header: TMOFileHeader;
   i: Integer;
+  endianswap : boolean;
+
 begin
   inherited Create;
 
   AStream.Read(header, Sizeof(header));
 
-  if header.magic <> MOFileHeaderMagic then
+  if (header.magic <> MOFileHeaderMagic) and (swapendian(header.magic)<>MOFileHeaderMagic) then
     raise EMOFileError.Create('Invalid magic - not a MO file?');
+
+  endianswap:=header.magic<>MOFileHeaderMagic;
+  If EndianSwap then 
+    begin
+     with header do
+       begin 
+          revision	:=SwapEndian(revision);
+          nstrings	:=SwapEndian(nstrings);
+          OrigTabOffset :=SwapEndian(OrigTabOffset);
+          TransTabOffset:=SwapEndian(TransTabOffset);
+          HashTabSize   :=SwapEndian(HashTabSize);
+          HashTabOffset :=SwapEndian(HashTabOffset);
+       end;
+    end;
 
   GetMem(OrigTable, header.nstrings * SizeOf(TMOStringInfo));
   GetMem(TranslTable, header.nstrings * SizeOf(TMOStringInfo));
@@ -105,9 +141,13 @@ begin
 
   AStream.Position := header.OrigTabOffset;
   AStream.Read(OrigTable^, header.nstrings * SizeOf(TMOStringInfo));
+  if EndianSwap then 
+    EndianFixmotable(OrigTable,Header.NStrings);
 
   AStream.Position := header.TransTabOffset;
   AStream.Read(TranslTable^, header.nstrings * SizeOf(TMOStringInfo));
+  if EndianSwap then 
+    EndianFixmotable(TranslTable,Header.NStrings);
 
   StringCount := header.nstrings;
 
@@ -139,6 +179,8 @@ begin
   GetMem(HashTable, 4 * HashTableSize);
   AStream.Position := header.HashTabOffset;
   AStream.Read(HashTable^, 4 * HashTableSize);
+  if EndianSwap then 
+    EndianFixHashTable(hashtable,hashtablesize);
 end;
 
 constructor TMOFile.Create(const AFilename: String);

@@ -3289,7 +3289,7 @@ var
   ext: PExtent;
 begin
   Assert((FCurrExtent = nil) or
-    (PAnsiChar(FCurrBlock) = PAnsiChar(FCurrExtent) + sizeof(TExtent)));
+    (PAnsiChar(FCurrBlock) < PAnsiChar(FCurrExtent) + sizeof(TExtent)));
   Assert(AElemCount > 0);
 
   GetMem(ext, sizeof(TExtent) + AElemCount * FElementSize);
