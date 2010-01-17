@@ -173,15 +173,24 @@ type
    procedure ShowException(ExceptObject: TObject; ExceptAddr: Pointer);
    procedure Abort;
    procedure OutOfMemoryError;
+
+
+Type
+   TBeepHandler = Procedure;
+
+Var
+   OnBeep : TBeephandler = Nil;
+
    procedure Beep;
    function SysErrorMessage(ErrorCode: Integer): String;
 
+
+
 Type
    TCreateGUIDFunc = Function(Out GUID : TGUID) : Integer;
-
+   
 Var
    OnCreateGUID : TCreateGUIDFunc = Nil;
-
    Function CreateGUID(out GUID : TGUID) : Integer;
 
 type

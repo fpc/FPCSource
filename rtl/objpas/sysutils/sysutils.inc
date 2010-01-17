@@ -683,3 +683,11 @@ begin
   Result:='';
 {$ENDIF}
 end;
+
+{ Beep support }
+
+procedure Beep;
+begin
+  If Assigned(OnBeep) then
+    OnBeep;
+end;

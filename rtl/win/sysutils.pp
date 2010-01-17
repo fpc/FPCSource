@@ -604,7 +604,7 @@ end;
                               Misc Functions
 ****************************************************************************}
 
-procedure Beep;
+procedure sysbeep;
 begin
   MessageBeep(0);
 end;
@@ -1221,6 +1221,7 @@ Initialization
   InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;
   InitSysConfigDir;
+  OnBeep:=@SysBeep;
 Finalization
   DoneExceptions;
   if kernel32dll<>0 then
