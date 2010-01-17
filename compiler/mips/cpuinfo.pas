@@ -68,10 +68,10 @@ Const
    );
 
    { Supported optimizations, only used for information }
-   supported_optimizerswitches = [cs_opt_regvar,cs_opt_loopunroll];
+   supported_optimizerswitches = [cs_opt_regvar,cs_opt_loopunroll,cs_opt_nodecse];
 
    level1optimizerswitches = [];
-   level2optimizerswitches = level1optimizerswitches + [cs_opt_regvar,cs_opt_stackframe];
+   level2optimizerswitches = level1optimizerswitches + [cs_opt_regvar,cs_opt_stackframe,cs_opt_nodecse];
    level3optimizerswitches = level2optimizerswitches + [cs_opt_loopunroll];
 
 Implementation

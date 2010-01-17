@@ -150,10 +150,12 @@ Const
                                  genericlevel3optimizerswitches-
                                  { no need to write info about those }
                                  [cs_opt_level1,cs_opt_level2,cs_opt_level3]+
-                                 [cs_opt_regvar,cs_opt_loopunroll,cs_opt_tailrecursion,cs_opt_stackframe];
+                                 [cs_opt_regvar,cs_opt_loopunroll,cs_opt_tailrecursion,
+								  cs_opt_stackframe,cs_opt_nodecse];
 
    level1optimizerswitches = genericlevel1optimizerswitches;
-   level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches + [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion];
+   level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches + 
+     [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
 
 Implementation
