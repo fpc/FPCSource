@@ -75,7 +75,7 @@ Const
    ];
 
    cputypestr : array[tcputype] of string[10] = ('',
-     '386',
+     '80386',
      'PENTIUM',
      'PENTIUM2',
      'PENTIUM3',
@@ -105,7 +105,7 @@ Const
 								  cs_opt_tailrecursion,cs_opt_nodecse];
 
    level1optimizerswitches = genericlevel1optimizerswitches + [cs_opt_peephole];
-   level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches + 
+   level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches +
      [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
 
