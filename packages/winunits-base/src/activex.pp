@@ -3566,6 +3566,8 @@ type
   function OleDraw(pUnknown:IUnknown; dwAspect:DWORD; hdcDraw:HDC;const lprcBounds:TRect):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleDraw';
   function OleRun(pUnknown:IUnknown):WINOLEAPI;stdcall;external 'ole32.dll' name 'OleRun';
   function OleIsRunning(pObject:IOleObject):BOOL;stdcall;external 'ole32.dll' name 'OleIsRunning';
+
+  procedure ReleaseStgMedium(var _para1:STGMEDIUM);stdcall;external 'ole32.dll' name 'ReleaseStgMedium';
   procedure ReleaseStgMedium(_para1:LPSTGMEDIUM);stdcall;external 'ole32.dll' name 'ReleaseStgMedium';
   function CreateOleAdviseHolder(out ppOAHolder:IOleAdviseHolder):WINOLEAPI;stdcall;external 'ole32.dll' name 'CreateOleAdviseHolder';
 
