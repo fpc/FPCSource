@@ -29,7 +29,7 @@ uses
   cpubase, cgbase;
 
 const
-  gas_op2str: array[tasmop] of string[14] = ({$INCLUDE strinst.inc});
+  gas_op2str: array[tasmop] of string[15] = ({$INCLUDE strinst.inc});
 
 function gas_regnum_search(const s: string): Tregister;
 function gas_regname(r: Tregister): string;
