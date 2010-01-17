@@ -94,10 +94,12 @@ function mmx_support : boolean;
        mmx_support:=false;
   end;
 
+{$ifndef FPC_PIC}
 {$if not defined(FPC_SYSTEM_HAS_MOVE) and defined(REGCALL) }
 {$define USE_FASTMOVE}
 {$i fastmove.inc}
 {$endif FPC_SYSTEM_HAS_MOVE}
+{$endif FPC_PIC}
 
 procedure fpc_cpuinit;
   begin
@@ -1476,7 +1478,17 @@ asm
         jl      .Lj3596
 .Lj3603:
 // [104] If declocked(l^) then
+  {$ifdef FPC_PIC}
+	pushl	%ebx
+        call	fpc_geteipasebx
+        addl	$_GLOBAL_OFFSET_TABLE_,%ebx
+        movl	ismultithread@GOT(%ebx),%ebx
+        movl	(%ebx),%ebx
+        cmp	$0, %ebx
+	popl    %ebx
+  {$else FPC_PIC}
         cmpl    $0,ismultithread
+  {$endif FPC_PIC}
         jne     .Lj3610
         decl    (%edx)
         je      .Lj3620

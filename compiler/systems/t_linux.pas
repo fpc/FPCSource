@@ -1074,8 +1074,8 @@ begin
 
  { Create some replacements }
  { note: linux does not use exportlib.initname/fininame due to the custom startup code }
-  InitStr:='-init FPC_LIB_START';
-  FiniStr:='-fini FPC_LIB_EXIT';
+  InitStr:='-init FPC_SHARED_LIB_START';
+  FiniStr:='-fini FPC_SHARED_LIB_EXIT';
   SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename^);
 
 { Call linker }
