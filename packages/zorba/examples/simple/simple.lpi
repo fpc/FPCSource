@@ -35,8 +35,8 @@
         <Filename Value="simple.lpr"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="simple"/>
-        <CursorPos X="1" Y="12"/>
-        <TopLine Value="1"/>
+        <CursorPos X="24" Y="19"/>
+        <TopLine Value="17"/>
         <EditorIndex Value="0"/>
         <UsageCount Value="20"/>
         <Loaded Value="True"/>
@@ -70,7 +70,7 @@
       <Unit5>
         <Filename Value="../../../../../zorba/zorba/include/zorba/zorbac.h"/>
         <CursorPos X="17" Y="262"/>
-        <TopLine Value="312"/>
+        <TopLine Value="262"/>
         <EditorIndex Value="4"/>
         <UsageCount Value="10"/>
         <Loaded Value="True"/>
