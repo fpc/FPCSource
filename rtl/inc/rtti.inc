@@ -133,15 +133,28 @@ end;
 Procedure fpc_Initialize (Data,TypeInfo : pointer);[Public,Alias : 'FPC_INITIALIZE'];  compilerproc;
 begin
   case PByte(TypeInfo)^ of
-    tkAstring,tkWstring,tkUString,tkInterface,tkDynArray:
+{$ifdef FPC_HAS_FEATURE_DYNARRAYS}
+    tkDynArray,
+{$endif FPC_HAS_FEATURE_DYNARRAYS}
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+    tkAstring,
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+    tkWstring,tkUString,
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
+    tkInterface:
       PPchar(Data)^:=Nil;
     tkArray:
       arrayrtti(data,typeinfo,@int_initialize);
+{$ifdef FPC_HAS_FEATURE_OBJECTS}
     tkObject,
+{$endif FPC_HAS_FEATURE_OBJECTS}
     tkRecord:
       recordrtti(data,typeinfo,@int_initialize);
+{$ifdef FPC_HAS_FEATURE_VARIANTS}
     tkVariant:
       variant_init(PVarData(Data)^);
+{$endif FPC_HAS_FEATURE_VARIANTS}
   end;
 end;
 
@@ -149,28 +162,34 @@ end;
 Procedure fpc_finalize (Data,TypeInfo: Pointer);[Public,Alias : 'FPC_FINALIZE'];  compilerproc;
 begin
   case PByte(TypeInfo)^ of
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
     tkAstring :
       begin
         fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
         PPointer(Data)^:=nil;
       end;
-{$ifndef VER2_2}
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+  {$ifndef VER2_2}
     tkUstring :
       begin
         fpc_UnicodeStr_Decr_Ref(PPointer(Data)^);
         PPointer(Data)^:=nil;
       end;
-{$endif VER2_2}
-{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+  {$endif VER2_2}
+  {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     tkWstring :
       begin
         fpc_WideStr_Decr_Ref(PPointer(Data)^);
         PPointer(Data)^:=nil;
       end;
-{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+  {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
     tkArray :
       arrayrtti(data,typeinfo,@int_finalize);
+{$ifdef FPC_HAS_FEATURE_OBJECTS}
     tkObject,
+{$endif FPC_HAS_FEATURE_OBJECTS}
     tkRecord:
       recordrtti(data,typeinfo,@int_finalize);
     tkInterface:
@@ -178,13 +197,17 @@ begin
         Intf_Decr_Ref(PPointer(Data)^);
         PPointer(Data)^:=nil;
       end;
+{$ifdef FPC_HAS_FEATURE_DYNARRAYS}
     tkDynArray:
       begin
         fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
         PPointer(Data)^:=nil;
       end;
+{$endif FPC_HAS_FEATURE_DYNARRAYS}
+{$ifdef FPC_HAS_FEATURE_VARIANTS}
     tkVariant:
       variant_clear(PVarData(Data)^);
+{$endif FPC_HAS_FEATURE_VARIANTS}
   end;
 end;
 
@@ -192,27 +215,37 @@ end;
 Procedure fpc_Addref (Data,TypeInfo : Pointer); [Public,alias : 'FPC_ADDREF'];  compilerproc;
 begin
   case PByte(TypeInfo)^ of
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
     tkAstring :
       fpc_AnsiStr_Incr_Ref(PPointer(Data)^);
-{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+  {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     tkWstring :
       fpc_WideStr_Incr_Ref(PPointer(Data)^);
-{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
-{$ifndef VER2_2}
+  {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+  {$ifndef VER2_2}
     tkUstring :
       fpc_UnicodeStr_Incr_Ref(PPointer(Data)^);
-{$endif VER2_2}
+  {$endif VER2_2}
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
     tkArray :
       arrayrtti(data,typeinfo,@int_addref);
+{$ifdef FPC_HAS_FEATURE_OBJECTS}
     tkobject,
+{$endif FPC_HAS_FEATURE_OBJECTS}
     tkrecord :
       recordrtti(data,typeinfo,@int_addref);
+{$ifdef FPC_HAS_FEATURE_DYNARRAYS}
     tkDynArray:
       fpc_dynarray_incr_ref(PPointer(Data)^);
+{$endif FPC_HAS_FEATURE_DYNARRAYS}
     tkInterface:
       Intf_Incr_Ref(PPointer(Data)^);
+{$ifdef FPC_HAS_FEATURE_VARIANTS}
     tkVariant:
       variant_addref(pvardata(Data)^);
+{$endif FPC_HAS_FEATURE_DYNARRAYS}
   end;
 end;
 
@@ -225,27 +258,37 @@ Procedure fpc_DecRef (Data, TypeInfo : Pointer);[Public,alias : 'FPC_DECREF'];  
 begin
   case PByte(TypeInfo)^ of
     { see AddRef for comment about below construct (JM) }
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
     tkAstring:
       fpc_AnsiStr_Decr_Ref(PPointer(Data)^);
-{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+  {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     tkWstring:
       fpc_WideStr_Decr_Ref(PPointer(Data)^);
-{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
-{$ifndef VER2_2}
+  {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+  {$ifndef VER2_2}
     tkUString:
       fpc_UnicodeStr_Decr_Ref(PPointer(Data)^);
-{$endif VER2_2}
+  {$endif VER2_2}
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
     tkArray:
       arrayrtti(data,typeinfo,@fpc_systemDecRef);
+{$ifdef FPC_HAS_FEATURE_OBJECTS}
     tkobject,
+{$endif FPC_HAS_FEATURE_OBJECTS}
     tkrecord:
       recordrtti(data,typeinfo,@fpc_systemDecRef);
+{$ifdef FPC_HAS_FEATURE_DYNARRAYS}
     tkDynArray:
       fpc_dynarray_decr_ref(PPointer(Data)^,TypeInfo);
+{$endif FPC_HAS_FEATURE_DYNARRAYS}
     tkInterface:
       Intf_Decr_Ref(PPointer(Data)^);
+{$ifdef FPC_HAS_FEATURE_VARIANTS}
     tkVariant:
       variant_clear(pvardata(data)^);
+{$endif FPC_HAS_FEATURE_VARIANTS}
   end;
 end;
 
@@ -266,20 +309,24 @@ var
 begin
   result:=sizeof(pointer);
   case PByte(TypeInfo)^ of
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
     tkAstring:
       begin
         fpc_AnsiStr_Incr_Ref(PPointer(Src)^);
         fpc_AnsiStr_Decr_Ref(PPointer(Dest)^);
         PPointer(Dest)^:=PPointer(Src)^;
       end;
-{$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
+{$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
+  {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     tkWstring:
       fpc_WideStr_Assign(PPointer(Dest)^,PPointer(Src)^);
-{$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
-{$ifndef VER2_2}
+  {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
+  {$ifndef VER2_2}
     tkUstring:
       fpc_UnicodeStr_Assign(PPointer(Dest)^,PPointer(Src)^);
-{$endif VER2_2}
+  {$endif VER2_2}
+{$endif FPC_HAS_FEATURE_WIDESTRINGS}
     tkArray:
       begin
         Temp:=PByte(TypeInfo);
@@ -303,7 +350,9 @@ begin
           fpc_Copy_internal(Src+(I*size),Dest+(I*size),Info);
         Result:=size*count;
       end;
+{$ifdef FPC_HAS_FEATURE_OBJECTS}
     tkobject,
+{$endif FPC_HAS_FEATURE_OBJECTS}
     tkrecord:
       begin
         Temp:=PByte(TypeInfo);
@@ -338,23 +387,27 @@ begin
         if result>expectedoffset then
           move((Src+expectedoffset)^,(Dest+expectedoffset)^,Result-expectedoffset);
       end;
+{$ifdef FPC_HAS_FEATURE_DYNARRAYS}
     tkDynArray:
       begin
         fpc_dynarray_Incr_Ref(PPointer(Src)^);
         fpc_dynarray_Decr_Ref(PPointer(Dest)^,typeinfo);
         PPointer(Dest)^:=PPointer(Src)^;
       end;
+{$endif FPC_HAS_FEATURE_DYNARRAYS}
     tkInterface:
       begin
         Intf_Incr_Ref(PPointer(Src)^);
         Intf_Decr_Ref(PPointer(Dest)^);
         PPointer(Dest)^:=PPointer(Src)^;
       end;
+{$ifdef FPC_HAS_FEATURE_VARIANTS}
     tkVariant:
       begin
         VarCopyProc(pvardata(dest)^,pvardata(src)^);
         result:=sizeof(tvardata);
       end;
+{$endif FPC_HAS_FEATURE_VARIANTS}
   end;
 end;
 

@@ -48,6 +48,7 @@ type
     function GetSqliteEncoding: String;
   protected
     procedure BuildLinkedList; override;
+    function GetLastInsertRowId: Int64; override;
     function GetRowsAffected:Integer; override;
     function InternalGetHandle: Pointer; override;
     procedure InternalCloseHandle; override;
@@ -273,6 +274,11 @@ begin
   GetMem(FBeginItem^.Row, FRowBufferSize);
   for Counter := 0 to FRowCount - 1 do
     FBeginItem^.Row[Counter] := nil;
+end;
+
+function TSqliteDataset.GetLastInsertRowId: Int64;
+begin
+  Result := sqlite_last_insert_rowid(FSqliteHandle);
 end;
 
 function TSqliteDataset.ReturnString: String;

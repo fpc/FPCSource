@@ -2250,17 +2250,100 @@ Const
      PDRAWTEXTPARAMS = ^DRAWTEXTPARAMS;
 
      PARTITION_INFORMATION = record
-          PartitionType : BYTE;
-          BootIndicator : BOOLEAN;
-          RecognizedPartition : BOOLEAN;
-          RewritePartition : BOOLEAN;
           StartingOffset : LARGE_INTEGER;
-          PartitionLength : LARGE_INTEGER;
-          HiddenSectors : LARGE_INTEGER;
+          PartitionLength: LARGE_INTEGER;
+          HiddenSectors  : DWORD;
+	  PartitionNumber: DWORD;
+          PartitionType  : BYTE;
+	  BootIndicator       : BYTEBOOL;
+          RecognizedPartition : BYTEBOOL;
+          RewritePartition    : BYTEBOOL;
        end;
      _PARTITION_INFORMATION = PARTITION_INFORMATION;
      TPARTITIONINFORMATION = PARTITION_INFORMATION;
      PPARTITIONINFORMATION = ^PARTITION_INFORMATION;
+     
+     PARTITION_INFORMATION_GPT = record
+		                   PartitionType  : TGUID;
+				   PartitionID    : TGUID;
+				   Attributes     : DWORD64;
+				   Name		  : array[0..35] OF WCHAR;
+				  end; 	
+     TPARTITION_INFORMATION_GPT= PARTITION_INFORMATION_GPT;
+     PPARTITION_INFORMATION_GPT= ^PARTITION_INFORMATION_GPT;
+
+     PARTITION_INFORMATION_MBR = record
+		                   PartitionType  : Byte;
+				   BootIndicator  : ByteBool;
+				   RecognizedPartition : ByteBool;
+				   HiddenSectors  : DWORD;
+				  end; 	
+     TPARTITION_INFORMATION_MBR=  PARTITION_INFORMATION_MBR;
+     PPARTITION_INFORMATION_MBR= ^PARTITION_INFORMATION_MBR;
+
+     SET_PARTITION_INFORMATION = record
+          PartitionType : BYTE;
+       end;
+     _SET_PARTITION_INFORMATION = SET_PARTITION_INFORMATION;
+     TSETPARTITIONINFORMATION = SET_PARTITION_INFORMATION;
+     PSETPARTITIONINFORMATION = ^SET_PARTITION_INFORMATION;
+
+     SET_PARTITION_INFORMATION_MBR  = PARTITION_INFORMATION;
+     TSET_PARTITION_INFORMATION_MBR = PARTITION_INFORMATION;
+
+     SET_PARTITION_INFORMATION_GPT  = PARTITION_INFORMATION_GPT;
+     TSET_PARTITION_INFORMATION_GPT = PARTITION_INFORMATION_GPT;
+
+     SET_PARTITION_INFORMATION_EX   = record
+                                      PartitionStyle : TPartition_Style;
+				      case integer of 
+					0 : (mbr : SET_PARTITION_INFORMATION_MBR);
+					1 : (GPT : SET_PARTITION_INFORMATION_GPT);
+				      end;
+     TSET_PARTITION_INFORMATION_EX  = SET_PARTITION_INFORMATION_EX;  
+     PSET_PARTITION_INFORMATION_EX  = ^SET_PARTITION_INFORMATION_EX;  
+
+     CREATE_DISK_GPT = record
+			 DiskID 	   : TGUID;
+			 MaxPartitionCount : DWord;
+		        end;
+     TCREATE_DISK_GPT = CREATE_DISK_GPT;
+     PCREATE_DISK_GPT = ^TCREATE_DISK_GPT;
+
+     CREATE_DISK_MBR = record
+			 Signature 	   : DWord;
+		        end;
+     TCREATE_DISK_MBR = CREATE_DISK_MBR;
+     PCREATE_DISK_MBR = ^TCREATE_DISK_MBR;
+
+     CREATE_DISK  = record
+		       PartitionStyle : TPartition_Style;
+		       case integer of 
+			 0: ( MBR : Create_Disk_MBR);
+		         1: ( GPT : Create_Disk_GPT);	 
+		      end;
+     TCREATE_DISK = CREATE_DISK;
+     PCREATE_DISK = ^TCREATE_DISK;
+    
+     GET_LENGTH_INFORMATION = record
+	                        Length : LARGE_INTEGER;
+			      end;
+     TGET_LENGTH_INFORMATION = GET_LENGTH_INFORMATION; 
+     PGET_LENGTH_INFORMATION = ^GET_LENGTH_INFORMATION;
+
+     PARTITION_INFORMATION_EX = record
+	  PartitionStyle  : TPartition_Style;
+          StartingOffset  : LARGE_INTEGER;
+          PartitionLength : LARGE_INTEGER;
+	  PartitionNumber : DWORD;
+          RewritePartition: BYTEBOOL;
+	  case integer of 
+	    0: ( MBR : PARTITION_INFORMATION_MBR);
+	    1: ( GPT : PARTITION_INFORMATION_GPT);	 
+       end;
+     _PARTITION_INFORMATION_EX = PARTITION_INFORMATION_EX;
+     TPARTITIONINFORMATION_EX  = PARTITION_INFORMATION_EX;
+     PPARTITIONINFORMATION_EX  = ^PARTITION_INFORMATION_EX;
 
      DRIVE_LAYOUT_INFORMATION = record
           PartitionCount : DWORD;
@@ -5822,12 +5905,6 @@ Const
      TSESSIONHEADER = SESSION_HEADER;
      PSESSIONHEADER = ^SESSION_HEADER;
 
-     SET_PARTITION_INFORMATION = record
-          PartitionType : BYTE;
-       end;
-     _SET_PARTITION_INFORMATION = SET_PARTITION_INFORMATION;
-     TSETPARTITIONINFORMATION = SET_PARTITION_INFORMATION;
-     PSETPARTITIONINFORMATION = ^SET_PARTITION_INFORMATION;
 
      SHCONTF = (SHCONTF_FOLDERS := 32,SHCONTF_NONFOLDERS := 64,
        SHCONTF_INCLUDEHIDDEN := 128);

@@ -18,53 +18,44 @@
                            Directory Handling
 *****************************************************************************}
 
-Procedure MkDir(Const s: String);[IOCheck];
+Procedure MkDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_MKDIR'];
 const
   { read/write search permission for everyone }
   MODE_MKDIR = S_IWUSR OR S_IRUSR OR
                S_IWGRP OR S_IRGRP OR
                S_IWOTH OR S_IROTH OR
                S_IXUSR OR S_IXGRP OR S_IXOTH;
-Var
-  Buffer: Array[0..255] of Char;
+
+// len is not passed to the *nix functions because the unix API doesn't 
+// use length safeguards for these functions. (probably because there
+// already is a length limit due to PATH_MAX)
+
 Begin
-  If (s='') or (InOutRes <> 0) then
-   exit;
-  Move(s[1], Buffer, Length(s));
-  Buffer[Length(s)] := #0;
-  If Fpmkdir(@buffer[0], MODE_MKDIR)<0 Then
+  If not assigned(s) or (len=0) or (InOutRes <> 0) then
+    exit;
+  If Fpmkdir(s, MODE_MKDIR)<0 Then
    Errno2Inoutres
   Else
    InOutRes:=0;
 End;
 
-
-Procedure RmDir(Const s: String);[IOCheck];
-Var
-  Buffer: Array[0..255] of Char;
+Procedure RmDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_RMDIR'];
 Begin
-  if (s = '.') then
+  if (len=1) and (s^ = '.') then
     InOutRes := 16;
-  If (s='') or (InOutRes <> 0) then
-   exit;
-  Move(s[1], Buffer, Length(s));
-  Buffer[Length(s)] := #0;
-  If Fprmdir(@buffer[0])<0 Then
+  If not assigned(s) or (len=0) or (InOutRes <> 0) then
+    exit;
+  If Fprmdir(s)<0 Then
    Errno2Inoutres
   Else
    InOutRes:=0;
 End;
 
-
-Procedure ChDir(Const s: String);[IOCheck];
-Var
-  Buffer: Array[0..255] of Char;
+Procedure ChDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
 Begin
-  If (s='') or (InOutRes <> 0) then
+  If not assigned(s) or (len=0) or (InOutRes <> 0) then
    exit;
-  Move(s[1], Buffer, Length(s));
-  Buffer[Length(s)] := #0;
-  If Fpchdir(@buffer[0])<0 Then
+  If Fpchdir(s)<0 Then
    Errno2Inoutres
   Else
    InOutRes:=0;

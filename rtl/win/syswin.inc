@@ -28,8 +28,6 @@ Var
 
 
 function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} : longbool; [public,alias:'_FPC_DLL_Entry'];
-  var
-    res : longbool;
   begin
 {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
      EntryInformation:=info;
@@ -43,12 +41,6 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
            MainThreadIdWin32 := Win32GetCurrentThreadId;
            If SetJmp(DLLBuf) = 0 then
              begin
-               if assigned(Dll_Process_Attach_Hook) then
-                 begin
-                   res:=Dll_Process_Attach_Hook(DllParam);
-                   if not res then
-                     exit(false);
-                 end;
 {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
                EntryInformation.PascalMain();
 {$else FPC_HAS_INDIRECT_MAIN_INFORMATION}

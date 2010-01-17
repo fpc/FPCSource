@@ -1,5 +1,5 @@
 uses
-  math;
+  Math;
 
 begin
   if not(isnan(nan)) then

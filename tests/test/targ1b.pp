@@ -39,6 +39,13 @@ uses
   dos;
 
 const
+  Prefix =
+{$ifdef Unix}
+  './'
+{$else}
+  ''
+{$endif}
+  ;
   ExeSuffix =
 {$ifdef HasExeSuffix}
   '.exe'
@@ -60,7 +67,7 @@ var
 const
   Everything_ok : boolean = true;
 begin
-  cmd:='targ1a'+ExeSuffix;
+  cmd:=Prefix+'targ1a'+ExeSuffix;
   arg:='';
   first_wrong:=-1;
   for i:=0 to MAX do
@@ -70,7 +77,8 @@ begin
       Exec(cmd,arg);
       if (DosExitCode<>0) or (DosError<>0) then
         begin
-          Writeln(stderr,'Crash detected');
+          Writeln(stderr,'Crash detected, DosError=', DosError);
+          Writeln(stderr,'DosExitCode=',DosExitCode);
           if first_wrong=-1 then
             first_wrong:=i;
           Everything_ok := false;

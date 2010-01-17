@@ -13,6 +13,7 @@
 
  **********************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_VARIANTS}
     procedure DoDispCallByIDError(res : Pointer; const disp : IDispatch;desc : PDispDesc; params : Pointer);
       begin
         handleerrorframe(RuntimeErrorExitCodes[reVarDispatch],get_frame);
@@ -26,6 +27,7 @@
       begin
         TDispProc(DispCallByIDProc)(Result,IDispatch(Dispatch),DispDesc,Params);
       end;
+{$endif FPC_HAS_FEATURE_VARIANTS}
 
 {****************************************************************************
                   Internal Routines called from the Compiler

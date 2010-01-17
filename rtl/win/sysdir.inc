@@ -17,18 +17,13 @@
 {*****************************************************************************
                            Directory Handling
 *****************************************************************************}
-
 type
  TDirFnType=function(name:pointer):longbool;stdcall;
 
-procedure dirfn(afunc : TDirFnType;const s:string);
-var
-  buffer : array[0..255] of char;
+procedure dirfn(afunc : TDirFnType;s:pchar;len:integer);
 begin
-  move(s[1],buffer,length(s));
-  buffer[length(s)]:=#0;
-  DoDirSeparators(pchar(@buffer));
-  if not aFunc(@buffer) then
+  DoDirSeparators(s);
+  if not aFunc(s) then
     begin
       errno:=GetLastError;
       Errno2InoutRes;
@@ -40,36 +35,38 @@ begin
   CreateDirectoryTrunc:=CreateDirectory(name,nil);
 end;
 
-procedure mkdir(const s:string);[IOCHECK];
+Procedure MkDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_MKDIR'];
 begin
-  If (s='') or (InOutRes <> 0) then
+  If not assigned(s) or (len=0) or (InOutRes <> 0) then
    exit;
-  dirfn(TDirFnType(@CreateDirectoryTrunc),s);
+  dirfn(TDirFnType(@CreateDirectoryTrunc),s,len);
 end;
 
-procedure rmdir(const s:string);[IOCHECK];
+Procedure RmDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_RMDIR'];
+
 begin
-  if (s ='.') then
+  if (len=1) and (s^ ='.') then
     InOutRes := 16;
+  If not assigned(s) or (len=0) or (InOutRes <> 0) then
+   exit;
 {$ifdef WINCE}
-  if (s ='..') then
+  if (len=2) and (s[0]='.') and (s[1]='.') then
     InOutRes := 5;
 {$endif WINCE}
-  If (s='') or (InOutRes <> 0) then
-   exit;
-  dirfn(TDirFnType(@RemoveDirectory),s);
+  dirfn(TDirFnType(@RemoveDirectory),s,len);
 {$ifdef WINCE}
   if (Inoutres=3) and (Pos(DirectorySeparator, s)<2) then
     Inoutres:=2;
 {$endif WINCE}
 end;
 
-procedure chdir(const s:string);[IOCHECK];
+Procedure ChDir(s: pchar;len:sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
+
 begin
 {$ifndef WINCE}
-  If (s='') or (InOutRes <> 0) then
+  If not assigned(s) or (len=0) or (InOutRes <> 0) then
    exit;
-  dirfn(TDirFnType(@SetCurrentDirectory),s);
+  dirfn(TDirFnType(@SetCurrentDirectory),s,len);
   if Inoutres=2 then
    Inoutres:=3;
 {$else WINCE}
