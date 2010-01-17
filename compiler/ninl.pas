@@ -396,7 +396,7 @@ implementation
           readfunctype:=nil;
 
           { can't read/write types }
-          if para.left.nodetype=typen then
+          if (para.left.nodetype=typen) and not(ttypenode(para.left).typedef.typ=undefineddef) then
             begin
               CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
               error_para := true;
@@ -510,8 +510,10 @@ implementation
                         readfunctype:=booltype;
                       end
                   else
-                    CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
-                    error_para := true;
+                    begin
+                      CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                      error_para := true;
+                    end;
                 end;
               end;
             variantdef :
@@ -525,10 +527,16 @@ implementation
                     CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
                     error_para := true;
                   end
-              end
+              end;
+            { generic parameter }
+            undefineddef:
+              { don't try to generate any code for a writeln on a generic parameter }
+              error_para:=true;
             else
-              CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
-              error_para := true;
+              begin
+                CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                error_para := true;
+              end;
           end;
 
           { check for length/fractional colon para's }
