@@ -26,8 +26,14 @@ unit GdbInt;
 
 { Possible optional conditionals:
   GDB_DISABLE_INTL              To explicitly not use libintl
+
+  GDB_DISABLE_PYTHON            To explicitly not use libpython,
+  if gdb was configured using --without-python
+
   GDB_CORE_ADDR_FORCE_64BITS    To force 64 bits for CORE_ADDR
+
   Verbose                       To test gdbint
+
   DebugCommand                  To debug Command method
 }
 
@@ -82,6 +88,7 @@ interface
   {$info using gdb 6.6.x}
   {$define GDB_V6}
   {$define GDB_HAS_DB_COMMANDS}
+  {$define GDB_USES_BP_LOCATION}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
@@ -92,6 +99,7 @@ interface
   {$info using gdb 6.7.x}
   {$define GDB_V6}
   {$define GDB_HAS_DB_COMMANDS}
+  {$define GDB_USES_BP_LOCATION}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
@@ -102,10 +110,13 @@ interface
   {$info using gdb 6.8.x}
   {$define GDB_V6}
   {$define GDB_HAS_DB_COMMANDS}
+  {$define GDB_USES_BP_LOCATION}
+  {$define GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
-  {$define GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+  {$define GDB_USES_LIBDECNUMBER}
+  // {$define GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
   {$define GDB_HAS_BP_NONE}
 {$endif def GDB_V608}
 
@@ -119,14 +130,25 @@ interface
 {$ifdef GDB_V7}
   {$define GDB_V6}
   {$define GDB_HAS_DB_COMMANDS}
+  {$define GDB_USES_BP_LOCATION}
+  {$define GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+  {$define GDB_BP_LOCATION_HAS_GDBARCH}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
   {$define GDB_USES_LIBDECNUMBER}
   {$define GDB_USES_LIBINTL}
+  {$ifndef GDB_DISABLE_PYTHON}
+    {$define GDB_USES_LIBPYTHON}
+  {$endif}
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
   {$define GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
   {$define GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
   {$define GDB_HAS_BP_NONE}
+
+  {$ifdef GDB_CVS}
+    {$define GDB_BP_LOCATION_HAS_GDBARCH}
+    {$define GDB_HAS_PROGRAM_SPACE}
+  {$endif GDB_CVS}
 {$endif def GDB_V7}
 
 
@@ -148,6 +170,17 @@ interface
   {$define GDB_HAS_SIM}
 {$endif cpupowerpc}
 
+{$ifdef Solaris}
+  {$ifdef Sparc}
+    { Sparc/i386 solaris gdb also supports 64bit mode, thus
+      CORE_ADDR is 8-byte long }
+    {$define GDB_CORE_ADDR_FORCE_64BITS}
+  {$endif Sparc}
+  {$ifdef i386}
+    {$define GDB_CORE_ADDR_FORCE_64BITS}
+  {$endif i386}
+{$endif Solaris}
+
 {$ifdef NotImplemented}
 {$ifdef go32v2}
   {$undef NotImplemented}
@@ -166,6 +199,9 @@ interface
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
   {$ifndef GDB_DISABLE_INTL}
     {$LINKLIB intl}
   {$endif ndef GDB_DISABLE_INTL}
@@ -184,9 +220,15 @@ interface
   {$LINKLIB libopcodes.a}
   {$LINKLIB libhistory.a}
   {$LINKLIB libiberty.a}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
   {$LINKLIB ncurses}
   {$LINKLIB m}
   {$LINKLIB dl}
@@ -214,11 +256,17 @@ interface
   {$ifndef GDB_DISABLE_INTL}
     {$LINKLIB intl}
   {$endif ndef GDB_DISABLE_INTL}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
      { does not seem to exist on netbsd LINKLIB dl,
                             but I use GDB CVS snapshots for the *BSDs}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif freebsd}
@@ -238,13 +286,49 @@ interface
   {$LINKLIB m}
   {$LINKLIB iberty}
   {$LINKLIB intl}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
   { does not seem to exist on netbsd LINKLIB dl}
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif netbsd}
+
+{$ifdef solaris}
+  {$undef NotImplemented}
+  {$LINKLIB gdb}
+  {$ifdef GDB_HAS_SIM}
+    {$LINKLIB sim}
+  {$endif GDB_HAS_SIM}
+  {$LINKLIB bfd}
+  {$LINKLIB readline}
+  {$LINKLIB opcodes}
+  {$LINKLIB history}
+  {$LINKLIB iberty}
+  {$LINKLIB curses}
+  {$LINKLIB m}
+  {$LINKLIB iberty}
+  {$LINKLIB intl}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
+  {$LINKLIB dl}
+  {$LINKLIB socket}
+  {$LINKLIB nsl}
+  {$LINKLIB c}
+{$endif solaris}
 
 {$ifdef openbsd}
   {$undef NotImplemented}
@@ -263,9 +347,15 @@ interface
   {$ifndef GDB_DISABLE_INTL}
     {$LINKLIB intl}
   {$endif ndef GDB_DISABLE_INTL}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
   { does not seem to exist on netbsd LINKLIB dl}
   {$LINKLIB c}
   {$LINKLIB gcc}
@@ -292,20 +382,32 @@ interface
     {$LINKLIB libmingw32.a}
     {$LINKLIB libmsvcrt.a}
     {$LINKLIB libdecnumber.a}
+    {$ifdef GDB_USES_LIBDECNUMBER}
+      {$LINKLIB decnumber}
+    {$endif GDB_USES_LIBDECNUMBER}
     {$ifdef GDB_USES_EXPAT_LIB}
       {$LINKLIB expat}
     {$endif GDB_USES_EXPAT_LIB}
+    {$ifdef GDB_USES_LIBPYTHON}
+      {$LINKLIB python}
+    {$endif GDB_USES_LIBPYTHON}
   {$else not USE_MINGW_GDB}
     {$LINKLIB libiconv.a}
     {$LINKLIB libncurses.a}
+    {$ifdef GDB_USES_LIBDECNUMBER}
+      {$LINKLIB decnumber}
+    {$endif GDB_USES_LIBDECNUMBER}
     {$ifdef GDB_USES_EXPAT_LIB}
       {$LINKLIB expat}
     {$endif GDB_USES_EXPAT_LIB}
+    {$ifdef GDB_USES_LIBPYTHON}
+      {$LINKLIB python}
+    {$endif GDB_USES_LIBPYTHON}
     {$LINKLIB gcc}
     {$LINKLIB cygwin} { alias of libm.a and libc.a }
   {$LINKLIB libintl.a}
   {$LINKLIB imagehlp}
-  {$endif not USE_MINGW_GDB}	
+  {$endif not USE_MINGW_GDB}
   {$LINKLIB kernel32}
   {$LINKLIB user32}
 {$endif win32}
@@ -327,9 +429,15 @@ interface
   {$ifndef GDB_DISABLE_INTL}
     {$LINKLIB intl}
   {$endif ndef GDB_DISABLE_INTL}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
   { does not seem to exist on netbsd LINKLIB dl}
   { $ LINKLIB c} // This is libroot under BeOS, and always linked
   {$LINKLIB debug}
@@ -702,6 +810,14 @@ type
 
      bpdisp = (del,del_at_next_stop,disable,donttouch);
 
+     pbp_location = ^bp_location;
+
+     bp_loc_type = (bp_loc_software_breakpoint, bp_loc_hardware_breakpoint,
+                    bp_loc_hardware_watchpoint, bp_loc_other);
+
+
+     target_hw_bp_type = (hw_write, hw_read, hw_access, hw_execute);
+
 {$PACKRECORDS 4}
      pbreakpoint = ^breakpoint;
      breakpoint = record
@@ -710,14 +826,20 @@ type
           enable : tenable;
           disposition : bpdisp;
           number : longint;
+{$ifdef GDB_USES_BP_LOCATION}
+          loc : pbp_location;
+{$else not GDB_USES_BP_LOCATION}
           address : CORE_ADDR;
+{$endif not GDB_USES_BP_LOCATION}
           line_number : longint;
           source_file : pchar;
           silent : byte;
           ignore_count : longint;
+{$ifndef GDB_USES_BP_LOCATION}
           shadow_contents : array[0..15] of char;
           inserted : char;
           duplicate : char;
+{$endif not GDB_USES_BP_LOCATION}
           commands : pointer; {^command_line}
           frame : CORE_ADDR;
           cond : pointer; {^expression}
@@ -736,6 +858,49 @@ type
           hit_count : longint;
           section : pointer; {^asection}
        end;
+
+     bp_target_info = record
+          placed_address_space : pointer;{paddress_space;}
+          placed_address : CORE_ADDR;
+          shadow_contents : array[0..15] of char;
+          shadow_len : longint;
+          placed_size : longint;
+       end;
+
+     bp_location = record
+         next : pbp_location;
+{$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+         global_next : pbp_location;
+{$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+         loc_type : bp_loc_type;
+         owner : pbreakpoint;
+{$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+         cond : pointer;{pexpression;}
+         shlib_disabled : byte;
+         enabled : byte;
+{$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+         inserted : byte;
+         duplicate : byte;
+{$ifdef GDB_BP_LOCATION_HAS_GDBARCH}
+         gdbarch : pointer;{pgdbarch;}
+{$endif GDB_BP_LOCATION_HAS_GDBARCH}
+{$ifdef GDB_HAS_PROGRAM_SPACE}
+         pspace : pointer;{pprogram_space;}
+{$endif GDB_HAS_PROGRAM_SPACE}
+         address : CORE_ADDR;
+{$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+         length : longint;
+         watchpoint_type : target_hw_bp_type;
+{$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+         section : pointer;{pobj_section;}
+         requested_address : CORE_ADDR;
+{$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+         function_name : ^char;
+{$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+         target_info : bp_target_info;
+         overlay_target_info : bp_target_info;
+         events_till_retirement : longint;
+      end;
 
      tfreecode=(free_nothing,free_contents,free_linetable);
 
@@ -765,6 +930,9 @@ type
 
      psymtab_and_line = ^symtab_and_line;
      symtab_and_line = record
+         {$ifdef GDB_HAS_PROGRAM_SPACE}
+         pspace : pointer;
+         {$endif GDB_HAS_PROGRAM_SPACE}
           symtab : psymtab;
           section : pointer; {^asection;}
           line : longint;
@@ -2177,7 +2345,12 @@ var
   not restored correctly PM }
   procedure get_pc_line;
     begin
+
+{$ifdef GDB_USES_BP_LOCATION}
+      sym:=find_pc_line(b.loc^.address,0);
+{$else not GDB_USES_BP_LOCATION}
       sym:=find_pc_line(b.address,0);
+{$endif not GDB_USES_BP_LOCATION}
     end;
 begin
   get_pc_line;
@@ -2187,7 +2360,11 @@ begin
      { function breakpoints have zero as file and as line !!
        but they are valid !! }
      invalid_breakpoint_line:=(b.line_number<>sym.line) and (b.line_number<>0);
+{$ifdef GDB_USES_BP_LOCATION}
+     last_breakpoint_address:=b.loc^.address;
+{$else not GDB_USES_BP_LOCATION}
      last_breakpoint_address:=b.address;
+{$endif not GDB_USES_BP_LOCATION}
      last_breakpoint_line:=sym.line;
      if assigned(sym.symtab) then
       last_breakpoint_file:=sym.symtab^.filename

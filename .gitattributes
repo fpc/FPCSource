@@ -1800,6 +1800,7 @@ packages/gdbint/examples/mingw.pas svneol=native#text/plain
 packages/gdbint/examples/symify.pp svneol=native#text/plain
 packages/gdbint/examples/testgdb.pp svneol=native#text/plain
 packages/gdbint/fpmake.pp svneol=native#text/plain
+packages/gdbint/gen-gdblib-inc.sh svneol=native#text/plain
 packages/gdbint/src/freadlin.pp svneol=native#text/x-pascal
 packages/gdbint/src/gdbcon.pp svneol=native#text/plain
 packages/gdbint/src/gdbint.pp svneol=native#text/plain
