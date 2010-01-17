@@ -42,6 +42,7 @@ unit optbase;
         use : tdfaset;
         life : tdfaset;
         defsum : tdfaset;
+        avail : tdfaset;
       end;
 
       poptinfo = ^toptinfo;

@@ -54,9 +54,11 @@ unit optcse;
       cclasses,
       verbose,
       nutils,
-      nbas,nld,ninl,ncal,
+      nbas,nld,ninl,ncal,ncnv,nadd,
       pass_1,
-      symconst,symtype,symdef;
+      symconst,symtype,symdef,
+      defutil,
+      optbase;
 
     const
       cseinvariant : set of tnodetype = [loadn,addn,muln,subn,divn,slashn,modn,andn,orn,xorn,notn,vecn,
@@ -84,13 +86,31 @@ unit optcse;
         locationlist : tfplist;
         equalto : tfplist;
         refs : tfplist;
+        avail : TDFASet;
       end;
 
       plists = ^tlists;
 
+    { collectnodes needs the address of itself to call foreachnodestatic,
+      so we need a wrapper because @<func> inside <func doesn't work }
+
+    function collectnodes(var n:tnode; arg: pointer) : foreachnoderesult;forward;
+
+    function collectnodes2(var n:tnode; arg: pointer) : foreachnoderesult;
+      begin
+        result:=collectnodes(n,arg);
+      end;
+
     function collectnodes(var n:tnode; arg: pointer) : foreachnoderesult;
+
+      procedure AddAvail(child : tnode);
+        begin
+          if assigned(child) and assigned(child.optinfo) then
+            DFASetIncludeSet(n.optinfo^.avail,child.optinfo^.avail);
+        end;
+
       var
-        i : longint;
+        i,j : longint;
       begin
         result:=fen_false;
         { don't add the tree below an untyped const parameter: there is
@@ -111,16 +131,39 @@ unit optcse;
           not(n.resultdef.typ in [arraydef,recorddef]) and
           { adding tempref nodes is worthless but their complexity is probably <= 1 anyways }
           not(n.nodetype in [temprefn]) and
-          { node worth to add? }
-          (node_complexity(n)>1) then
+
+          { node worth to add?
+
+            We consider every node because even loading a variables from
+            a register instead of memory is more beneficial. This behaviour should
+            not increase register pressure because if a variable is already
+            in a register, the reg. allocator can merge the nodes. If a variable
+            is loaded from memory, loading this variable and spilling another register
+            should not add a speed penalty.
+
+            Const nodes however are only considered if their complexity is >1
+            This might be the case for the risc architectures if they need
+            more than one instruction to load this particular value
+          }
+
+          (not(is_constnode(n)) or (node_complexity(n)>1)) then
           begin
             plists(arg)^.nodelist.Add(n);
             plists(arg)^.locationlist.Add(@n);
             plists(arg)^.refs.Add(nil);
             plists(arg)^.equalto.Add(pointer(-1));
+
+            {
+            { setup set of available expressions }
+            n.allocoptinfo;
+            n.optinfo^.avail:=nil;
+            DFASetInclude(n.optinfo^.avail,plists(arg)^.nodelist.count-1);
+            }
+            DFASetInclude(plists(arg)^.avail,plists(arg)^.nodelist.count-1);
+
             for i:=0 to plists(arg)^.nodelist.count-2 do
               begin
-                if tnode(plists(arg)^.nodelist[i]).isequal(n) then
+                if tnode(plists(arg)^.nodelist[i]).isequal(n) and DFASetIn(plists(arg)^.avail,i) then
                   begin
                     { use always the first occurence }
                     if ptrint(plists(arg)^.equalto[i])<>-1 then
@@ -128,10 +171,23 @@ unit optcse;
                     else
                       plists(arg)^.equalto[plists(arg)^.nodelist.count-1]:=pointer(i);
                     plists(arg)^.refs[i]:=pointer(plists(arg)^.refs[i])+1;
-                    exit;
+                    break;
                   end;
               end;
 
+            { boolean and/or require a special handling: after evaluating the and/or node,
+              the expressions of the right side might not be available due to short boolean
+              evaluation, so after handling the right side, mark those expressions
+              as unavailable }
+            if (n.nodetype in [orn,andn]) and is_boolean(taddnode(n).left.resultdef) then
+              begin
+                foreachnodestatic(pm_postprocess,taddnode(n).left,@collectnodes2,arg);
+                j:=plists(arg)^.nodelist.count;
+                foreachnodestatic(pm_postprocess,taddnode(n).right,@collectnodes2,arg);
+                for i:=j to plists(arg)^.nodelist.count-1 do
+                  DFASetExclude(plists(arg)^.avail,i);
+                result:=fen_norecurse_false;
+              end;
           end;
       end;
 
