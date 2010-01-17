@@ -122,7 +122,7 @@ const
                         + [system_i386_netbsd]
                         + [system_i386_wdosx];
                         
-  suppported_targets_x_smallr = system_linux
+  suppported_targets_x_smallr = system_linux + systems_solaris
                              + [system_i386_haiku]
                              + [system_i386_beos];
 
@@ -1618,6 +1618,14 @@ begin
                         else
                           exclude(init_settings.globalswitches,cs_link_extern);
                       end;
+                    'n' :
+                      begin
+                        If UnsetBool(More, j) then
+                          exclude(init_settings.globalswitches,cs_link_native)
+                        else
+                          include(init_settings.globalswitches,cs_link_native);
+                      end;
+
                     'm' :
                       begin
                         If UnsetBool(More, j) then

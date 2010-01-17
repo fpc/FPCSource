@@ -145,7 +145,8 @@ interface
              system_x86_64_darwin,      { 61 }
              system_avr_embedded,       { 62 }
              system_i386_haiku,         { 63 }
-             system_arm_darwin          { 64 }
+             system_arm_darwin,         { 64 }
+             system_x86_64_solaris      { 65 }
        );
 
      type
