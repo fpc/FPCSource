@@ -99,7 +99,8 @@ unit i_sunos;
             system       : system_x86_64_solaris;
             name         : 'Solaris for x86-64';
             shortname    : 'solaris';
-            flags        : [tf_needs_symbol_size,tf_under_development,
+            flags        : [tf_needs_symbol_size,tf_needs_symbol_type,
+			    tf_under_development,
                             tf_files_case_sensitive,tf_use_function_relative_addresses,
                             tf_requires_proper_alignment,tf_smartlink_library,
                             tf_has_winlike_resources];
