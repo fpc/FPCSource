@@ -24,7 +24,7 @@ uses
   CustApp,Classes,SysUtils, httpdefs, fphttp;
 
 Const
-  CGIVarCount = 34;
+  CGIVarCount = 36;
 
 Type
   TCGIVarArray = Array[1..CGIVarCount] of String;
@@ -65,7 +65,9 @@ Const
     { 31 } 'SERVER_ADMIN',
     { 32 } 'SCRIPT_FILENAME',
     { 33 } 'REMOTE_PORT',
-    { 34 } 'REQUEST_URI'
+    { 34 } 'REQUEST_URI',
+    { 35 } 'CONTENT',
+    { 36 } 'HTTP_X_REQUESTED_WITH'
     );
 
 Type
@@ -250,7 +252,16 @@ begin
     M:=FindModule(MC); // Check if a module exists already
     If (M=Nil) then
       M:=MC.Create(Self);
-    M.HandleRequest(ARequest,AResponse);
+    if M.Kind=wkOneShot then
+      begin
+      try
+        M.HandleRequest(ARequest,AResponse);
+      finally
+        M.Free;
+      end;
+      end
+    else
+      M.HandleRequest(ARequest,AResponse);
   except
     On E : Exception do
       begin
@@ -294,7 +305,7 @@ Var
   I : Integer;
 begin
   I:=ComponentCount-1;
-  While (I>=0) and (Not (Components[i] is ModuleClass)) do
+  While (I>=0) and (Not ((Components[i] is ModuleClass) and (TCustomHTTPModule(Components[i]).Kind<>wkOneShot))) do
     Dec(i);
   if (I>=0) then
     Result:=Components[i] as TCustomHTTPModule
