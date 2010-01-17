@@ -1506,9 +1506,8 @@ uses
 {$endif}
 
 {$IFDEF LOAD_DYNAMICALLY}
-function InitializeMysql(argc: cint = -1; argv: PPchar = nil; groups: PPchar = nil): Integer;
-function InitializeMysql(const LibraryName: String; argc: cint = -1; argv: PPchar = nil; groups: PPchar = nil): Integer;
-function TryInitializeMysql(const LibraryName: string; argc: cint = -1; argv: PPchar = nil; groups: PPchar = nil): Integer;
+function InitializeMysql(const LibraryName: String = ''; argc: cint = -1; argv: PPchar = nil; groups: PPchar = nil): Integer;
+function TryInitializeMysql(const LibraryName: string = ''; argc: cint = -1; argv: PPchar = nil; groups: PPchar = nil): Integer;
 function ReleaseMysql: Integer;
 
 var
@@ -1689,16 +1688,20 @@ type
     groups: PPchar;
   end;
 
-function mysql_initialize(User: Pointer; Handler: PLibHandler; out ErrorMsg: String): Boolean;
+function mysql_initialize(User: Pointer; Handler: PLibHandler): Boolean;
 var
   args: PMysqlArgs absolute User;
 begin
-  Result := mysql_library_init(args^.argc, args^.argv, args^.groups) = 0;
+  if Assigned(args) then
+    Result := mysql_library_init(args^.argc, args^.argv, args^.groups) = 0
+  else
+    Result := mysql_library_init(0, nil, nil) = 0;
+
   if not Result then
-    ErrorMsg := 'mysql_library_init failed';
+    AppendLibraryError(Handler^, 'mysql_library_init failed');
 end;
 
-procedure mysql_finalize(User: Pointer; Handler: PLibHandler);
+procedure mysql_finalize(Handler: PLibHandler);
 begin
   mysql_library_end();
 end;
@@ -1711,16 +1714,6 @@ begin
   args.argv := argv;
   args.groups := groups;
   Result := TryInitializeLibrary(MysqlLibrary, LibraryName, @args);
-end;
-
-function InitializeMysql(argc: cint; argv: PPchar; groups: PPchar): Integer;
-var
-  args: TMysqlArgs;
-begin
-  args.argc := argc;
-  args.argv := argv;
-  args.groups := groups;
-  Result := InitializeLibrary(MysqlLibrary, [mysqllib,mysqlvlib], @args);
 end;
 
 function InitializeMysql(const LibraryName: String; argc: cint; argv: PPchar; groups: PPchar): Integer;
@@ -1740,7 +1733,7 @@ end;
 
 function InitialiseMysql(argc: cint; argv: PPchar; groups: PPchar): Integer;
 begin
-  Result := InitializeMysql(argc, argv, groups);
+  Result := InitializeMysql('', argc, argv, groups);
 end;
 
 function InitialiseMysql(const LibraryName: String; argc: cint; argv: PPchar; groups: PPchar): Integer;
@@ -1754,7 +1747,7 @@ begin
 end;
 
 initialization
-  MysqlLibrary := LibraryHandler('mysql', @mysql_symbols, Length(mysql_symbols), @mysql_initialize, @mysql_finalize);
+  MysqlLibrary := LibraryHandler('mysql', [mysqllib,mysqlvlib], @mysql_symbols, Length(mysql_symbols), @mysql_initialize, @mysql_finalize);
 {$ENDIF}
 
 end.

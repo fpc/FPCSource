@@ -1,20 +1,11 @@
-{
-}
-
 {$MODE objfpc}
 {$MACRO on}
+{$PACKRECORDS C}
 
 interface
 
-{$IFDEF LinkDynamically}
-uses Dynlibs, sysutils,ctypes;
-
-Var
-  UseEmbeddedFirebird : Boolean = False;
-
-{$ELSE}
-uses Dynlibs,ctypes;
-{$ENDIF}
+uses
+  Dynlibs, ctypes;
 
 {$IFDEF Unix}
   {$DEFINE extdecl:=cdecl}
@@ -31,58 +22,41 @@ uses Dynlibs,ctypes;
     fbembedlib = 'fbembed.dll';
 {$ENDIF}
 
-type
-  {  Unsigned types }
-
-  UChar                = Byte;
-  UShort               = Word;
-  UInt                 = DWord;
-  ULong                = DWord;
-
-  { Signed types }
-
-  Int                  = LongInt;
-  Long                 = LongInt;
-  Short                = SmallInt;
-  Float                = Single;
-
-  { Pointers to basic types }
-
-  PInt                 = ^Int;
-  PShort               = ^Short;
-  PUShort              = ^UShort;
-  PLong                = ^Long;
-  PULong               = ^ULong;
-  PFloat               = ^Float;
-  PUChar               = ^UChar;
-  PVoid                = ^Pointer;
-
-{$PACKRECORDS C}
-
-  const
-     ISC_TRUE = 1;
-     ISC_FALSE = 0;
-  const
-     ISC__TRUE = ISC_TRUE;
-     ISC__FALSE = ISC_FALSE;
+const
+   ISC_TRUE      = 1;
+   ISC_FALSE     = 0;
+   ISC__TRUE     = ISC_TRUE;
+   ISC__FALSE    = ISC_FALSE;
 
 Type
-   ISC_USHORT    = word;
+   ISC_SCHAR     = char;
+   ISC_UCHAR     = cuchar;
+   ISC_SHORT     = cshort;
+   ISC_USHORT    = cushort;
    ISC_STATUS    = clong;
-   ISC_INT64     = int64;
-   ISC_UINT64    = qword;
-   ISC_LONG      = Longint;
+   ISC_INT64     = clonglong;
+   ISC_UINT64    = culonglong;
+{$IFDEF CPU64}
+   ISC_LONG      = cint;
+   ISC_ULONG     = cuint;
+{$ELSE}
+   ISC_LONG      = clong;
+   ISC_ULONG     = culong;
+{$ENDIF}
 
-   PISC_USHORT = ^ISC_USHORT;
-   PISC_STATUS = ^ISC_STATUS;
-   PPISC_STATUS = ^PISC_STATUS;
-   PISC_INT64 = ^ISC_INT64;
-   PISC_UINT64 = ^ISC_UINT64;
-   PISC_LONG = ^ISC_LONG;
+   PISC_SCHAR    = pchar;
+   PISC_UCHAR    = ^ISC_UCHAR;
+   PISC_SHORT    = ^ISC_SHORT;
+   PISC_USHORT   = ^ISC_USHORT;
+   PISC_STATUS   = ^ISC_STATUS;
+   PPISC_STATUS  = ^PISC_STATUS;
+   PISC_INT64    = ^ISC_INT64;
+   PISC_UINT64   = ^ISC_UINT64;
+   PISC_LONG     = ^ISC_LONG;
 
-  const
-     DSQL_close = 1;
-     DSQL_drop = 2;
+const
+   DSQL_close    = 1;
+   DSQL_drop     = 2;
 
   {!!MVC
     Removed all ISC_FAR, ISC_EXPORT_VARARG and ISC_EXPORT
@@ -96,8 +70,8 @@ Type
 
   type
 
-     ISC_DATE = longint;
-     ISC_TIME = dword;
+     ISC_DATE = cint;
+     ISC_TIME = cuint;
      ISC_TIMESTAMP = record
           timestamp_date : ISC_DATE;
           timestamp_time : ISC_TIME;
@@ -119,209 +93,18 @@ Type
   { Blob id structure                                                }
   {                                                                  }
 
-Type
-
-   GDS_QUAD = record
-      gds_quad_high : ISC_LONG;
-      gds_quad_low : ISC_LONG;
-   end;
-   TGDS_QUAD = GDS_QUAD;
-   PGDS_QUAD = ^GDS_QUAD;
-
-Type
-     ISC_QUAD = GDS_QUAD;
-     TISC_QUAD = ISC_QUAD;
-     PISC_QUAD = ^ISC_QUAD;
-
-{ !!field redefinitions !!
-     isc_quad_high = gds_quad_high;
-     isc_quad_low = gds_quad_low;
-}
-
 type
+  PGDS_QUAD = ^GDS_QUAD;
+  GDS_QUAD = record
+    gds_quad_high : ISC_LONG;
+    gds_quad_low : ISC_LONG;
+  end;
+  TGDS_QUAD = GDS_QUAD;
 
-     ISC_ARRAY_BOUND = record
-          array_bound_lower : smallint;
-          array_bound_upper : smallint;
-       end;
-     TISC_ARRAY_BOUND = ISC_ARRAY_BOUND;
-     PISC_ARRAY_BOUND = ^ISC_ARRAY_BOUND;
+  ISC_QUAD = GDS_QUAD;
+  TISC_QUAD = ISC_QUAD;
+  PISC_QUAD = ^ISC_QUAD;
 
-     ISC_ARRAY_DESC = record
-          array_desc_dtype : byte;
-          array_desc_scale : char;
-          array_desc_length : word;
-          array_desc_field_name : array[0..31] of char;
-          array_desc_relation_name : array[0..31] of char;
-          array_desc_dimensions : smallint;
-          array_desc_flags : smallint;
-          array_desc_bounds : array[0..15] of ISC_ARRAY_BOUND;
-       end;
-     TISC_ARRAY_DESC = ISC_ARRAY_DESC;
-     PISC_ARRAY_DESC = ^ISC_ARRAY_DESC;
-
-     ISC_BLOB_DESC = record
-          blob_desc_subtype : smallint;
-          blob_desc_charset : smallint;
-          blob_desc_segment_size : smallint;
-          blob_desc_field_name : array[0..31] of byte;
-          blob_desc_relation_name : array[0..31] of byte;
-       end;
-     TISC_BLOB_DESC = ISC_BLOB_DESC;
-     PISC_BLOB_DESC = ^ISC_BLOB_DESC ;
-  {                          }
-  { Blob control structure   }
-  {                          }
-  {!!MVC
-  !!MVC }
-  { Source filter  }
-  {!!MVC
-  !!MVC }
-  { Argument to pass to source  }
-  { filter  }
-  { Target type  }
-  { Source type  }
-  { Length of buffer  }
-  { Length of current segment  }
-  { Length of blob parameter  }
-  { block  }
-  { Address of blob parameter  }
-  { block  }
-  { Address of segment buffer  }
-  { Length of longest segment  }
-  { Total number of segments  }
-  { Total length of blob  }
-  { Address of status vector  }
-  { Application specific data  }
-  TCTLSourceFunction  = function : isc_long;
-
-     PISC_BLOB_CTL = ^ISC_BLOB_CTL ;
-     ISC_BLOB_CTL = record
-          ctl_source : TCTLSourceFunction;     //  was ISC_STATUS ( *ctl_source)();
-          ctl_source_handle : pisc_blob_ctl  ; // was struct isc_blob_ctl  * ctl_source_handle;
-          ctl_to_sub_type : smallint;
-          ctl_from_sub_type : smallint;
-          ctl_buffer_length : word;
-          ctl_segment_length : word;
-          ctl_bpb_length : word;
-          ctl_bpb : Pchar;
-          ctl_buffer : Pbyte;
-          ctl_max_segment : ISC_LONG;
-          ctl_number_segments : ISC_LONG;
-          ctl_total_length : ISC_LONG;
-          ctl_status : PISC_STATUS;
-          ctl_data : array[0..7] of longint;
-       end;
-     TISC_BLOB_CTL = ISC_BLOB_CTL;
-
-  {                          }
-  { Blob stream definitions  }
-  {                          }
-  { Blob handle  }
-  { Address of buffer  }
-  { Next character  }
-  { Length of buffer  }
-  { Characters in buffer  }
-  { (mode) ? OUTPUT : INPUT  }
-
-     BSTREAM = record
-          bstr_blob : pointer;
-          bstr_buffer : Pchar;
-          bstr_ptr : Pchar;
-          bstr_length : smallint;
-          bstr_cnt : smallint;
-          bstr_mode : char;
-       end;
-     TBSTREAM = BSTREAM;
-     PBstream = ^BSTREAM;
-  {!!MVC
-
-  #define getb(p)       (--(p)->bstr_cnt >= 0 ?  (p)->bstr_ptr++ & 0377: BLOB_get (p))
-  #define putb(x,p) (((x) == '\n' || (!(--(p)->bstr_cnt))) ? BLOB_put ((x),p) : ((int) ( (p)->bstr_ptr++ = (unsigned) (x))))
-  #define putbx(x,p) ((!(--(p)->bstr_cnt)) ? BLOB_put ((x),p) : ((int) ( (p)->bstr_ptr++ = (unsigned) (x))))
-
-  !!MVC  }
-  {                          }
-  { Dynamic SQL definitions  }
-  {                          }
-  {                             }
-  { Declare the extended SQLDA  }
-  {                             }
-  { datatype of field  }
-  { scale factor  }
-  { datatype subtype - BLOBs & Text  }
-  { types only  }
-  { length of data area  }
-  { address of data  }
-  { address of indicator variable  }
-  { length of sqlname field  }
-  { name of field, name length + space  }
-  { for NULL  }
-  { length of relation name  }
-  { field's relation name + space for  }
-  { NULL  }
-  { length of owner name  }
-  { relation's owner name + space for  }
-  { NULL  }
-  { length of alias name  }
-  { relation's alias name + space for  }
-  { NULL  }
-
-     XSQLVAR = record
-          sqltype : smallint;
-          sqlscale : smallint;
-          sqlsubtype : smallint;
-          sqllen : smallint;
-          sqldata : Pchar;
-          sqlind : Psmallint;
-          sqlname_length : smallint;
-          sqlname : array[0..31] of char;
-          relname_length : smallint;
-          relname : array[0..31] of char;
-          ownname_length : smallint;
-          ownname : array[0..31] of char;
-          aliasname_length : smallint;
-          aliasname : array[0..31] of char;
-       end;
-     TXSQLVAR = XSQLVAR;
-     PXSQLVAR =^XSQLVAR;
-  { version of this XSQLDA  }
-  { XSQLDA name field  }
-  { length in bytes of SQLDA  }
-  { number of fields allocated  }
-  { actual number of fields  }
-  { first field address  }
-
-     XSQLDA = record
-          version : smallint;
-          sqldaid : array[0..7] of char;
-          sqldabc : ISC_LONG;
-          sqln : smallint;
-          sqld : smallint;
-          sqlvar : array[0..0] of XSQLVAR;
-       end;
-     TXSQLDA = XSQLDA;
-     PXSQLDA =^XSQLDA;
-
-  function XSQLDA_LENGTH(n: Integer): Integer;
-
-
-  const
-     SQLDA_VERSION1 = 1;
-  { meaning is same as DIALECT_xsqlda  }
-     SQL_DIALECT_V5 = 1;
-  { flagging anything that is delimited
-                                              by double quotes as an error and
-                                              flagging keyword DATE as an error  }
-     SQL_DIALECT_V6_TRANSITION = 2;
-  { supports SQL delimited identifier,
-                                              SQLDATE/DATE, TIME, TIMESTAMP,
-                                              CURRENT_DATE, CURRENT_TIME,
-                                              CURRENT_TIMESTAMP, and 64-bit exact
-                                              numeric type  }
-     SQL_DIALECT_V6 = 3;
-  { latest IB DIALECT  }
-     SQL_DIALECT_CURRENT = SQL_DIALECT_V6;
   {                               }
   { InterBase Handle Definitions  }
   {                               }
@@ -362,6 +145,197 @@ type
      pisc_resv_handle  =^isc_resv_handle ;
 
 
+{ !!field redefinitions !!
+     isc_quad_high = gds_quad_high;
+     isc_quad_low = gds_quad_low;
+}
+
+type
+
+     ISC_ARRAY_BOUND = record
+          array_bound_lower : cshort;
+          array_bound_upper : cshort;
+       end;
+     TISC_ARRAY_BOUND = ISC_ARRAY_BOUND;
+     PISC_ARRAY_BOUND = ^ISC_ARRAY_BOUND;
+
+     ISC_ARRAY_DESC = record
+          array_desc_dtype : ISC_UCHAR;
+          array_desc_scale : ISC_SCHAR;
+          array_desc_length : cushort;
+          array_desc_field_name : array[0..31] of ISC_SCHAR;
+          array_desc_relation_name : array[0..31] of ISC_SCHAR;
+          array_desc_dimensions : cushort;
+          array_desc_flags : cushort;
+          array_desc_bounds : array[0..15] of ISC_ARRAY_BOUND;
+       end;
+     TISC_ARRAY_DESC = ISC_ARRAY_DESC;
+     PISC_ARRAY_DESC = ^ISC_ARRAY_DESC;
+
+     ISC_BLOB_DESC = record
+          blob_desc_subtype : cushort;
+          blob_desc_charset : cushort;
+          blob_desc_segment_size : cushort;
+          blob_desc_field_name : array[0..31] of ISC_UCHAR;
+          blob_desc_relation_name : array[0..31] of ISC_UCHAR;
+       end;
+     TISC_BLOB_DESC = ISC_BLOB_DESC;
+     PISC_BLOB_DESC = ^ISC_BLOB_DESC ;
+  {                          }
+  { Blob control structure   }
+  {                          }
+  {!!MVC
+  !!MVC }
+  { Source filter  }
+  {!!MVC
+  !!MVC }
+  { Argument to pass to source  }
+  { filter  }
+  { Target type  }
+  { Source type  }
+  { Length of buffer  }
+  { Length of current segment  }
+  { Length of blob parameter  }
+  { block  }
+  { Address of blob parameter  }
+  { block  }
+  { Address of segment buffer  }
+  { Length of longest segment  }
+  { Total number of segments  }
+  { Total length of blob  }
+  { Address of status vector  }
+  { Application specific data  }
+  TCTLSourceFunction  = function : ISC_STATUS;
+
+     PISC_BLOB_CTL = ^ISC_BLOB_CTL ;
+     ISC_BLOB_CTL = record
+          ctl_source : TCTLSourceFunction;     //  was ISC_STATUS ( *ctl_source)();
+          ctl_source_handle : pisc_blob_ctl  ; // was struct isc_blob_ctl  * ctl_source_handle;
+          ctl_to_sub_type : cshort;
+          ctl_from_sub_type : cshort;
+          ctl_buffer_length : cushort;
+          ctl_segment_length : cushort;
+          ctl_bpb_length : cushort;
+          ctl_bpb : PISC_SCHAR;
+          ctl_buffer : PISC_UCHAR;
+          ctl_max_segment : ISC_LONG;
+          ctl_number_segments : ISC_LONG;
+          ctl_total_length : ISC_LONG;
+          ctl_status : PISC_STATUS;
+          ctl_data : array[0..7] of clong;
+       end;
+     TISC_BLOB_CTL = ISC_BLOB_CTL;
+
+  {                          }
+  { Blob stream definitions  }
+  {                          }
+  { Blob handle  }
+  { Address of buffer  }
+  { Next character  }
+  { Length of buffer  }
+  { Characters in buffer  }
+  { (mode) ? OUTPUT : INPUT  }
+
+     BSTREAM = record
+          bstr_blob : isc_blob_handle;
+          bstr_buffer : PISC_SCHAR;
+          bstr_ptr : PISC_SCHAR;
+          bstr_length : cshort;
+          bstr_cnt : cshort;
+          bstr_mode : cchar;
+       end;
+     TBSTREAM = BSTREAM;
+     PBstream = ^BSTREAM;
+  {!!MVC
+
+  #define getb(p)       (--(p)->bstr_cnt >= 0 ?  (p)->bstr_ptr++ & 0377: BLOB_get (p))
+  #define putb(x,p) (((x) == '\n' || (!(--(p)->bstr_cnt))) ? BLOB_put ((x),p) : ((int) ( (p)->bstr_ptr++ = (unsigned) (x))))
+  #define putbx(x,p) ((!(--(p)->bstr_cnt)) ? BLOB_put ((x),p) : ((int) ( (p)->bstr_ptr++ = (unsigned) (x))))
+
+  !!MVC  }
+  {                          }
+  { Dynamic SQL definitions  }
+  {                          }
+  {                             }
+  { Declare the extended SQLDA  }
+  {                             }
+  { datatype of field  }
+  { scale factor  }
+  { datatype subtype - BLOBs & Text  }
+  { types only  }
+  { length of data area  }
+  { address of data  }
+  { address of indicator variable  }
+  { length of sqlname field  }
+  { name of field, name length + space  }
+  { for NULL  }
+  { length of relation name  }
+  { field's relation name + space for  }
+  { NULL  }
+  { length of owner name  }
+  { relation's owner name + space for  }
+  { NULL  }
+  { length of alias name  }
+  { relation's alias name + space for  }
+  { NULL  }
+
+     XSQLVAR = record
+          sqltype : ISC_SHORT;
+          sqlscale : ISC_SHORT;
+          sqlsubtype : ISC_SHORT;
+          sqllen : ISC_SHORT;
+          sqldata : PISC_SCHAR;
+          sqlind : PISC_SHORT;
+          sqlname_length : ISC_SHORT;
+          sqlname : array[0..31] of ISC_SCHAR;
+          relname_length : ISC_SHORT;
+          relname : array[0..31] of ISC_SCHAR;
+          ownname_length : ISC_SHORT;
+          ownname : array[0..31] of ISC_SCHAR;
+          aliasname_length : ISC_SHORT;
+          aliasname : array[0..31] of ISC_SCHAR;
+       end;
+     TXSQLVAR = XSQLVAR;
+     PXSQLVAR =^XSQLVAR;
+  { version of this XSQLDA  }
+  { XSQLDA name field  }
+  { length in bytes of SQLDA  }
+  { number of fields allocated  }
+  { actual number of fields  }
+  { first field address  }
+
+     XSQLDA = record
+          version : ISC_SHORT;
+          sqldaid : array[0..7] of ISC_SCHAR;
+          sqldabc : ISC_LONG;
+          sqln : ISC_SHORT;
+          sqld : ISC_SHORT;
+          sqlvar : array[0..0] of XSQLVAR;
+       end;
+     TXSQLDA = XSQLDA;
+     PXSQLDA =^XSQLDA;
+
+  function XSQLDA_LENGTH(n: Integer): Integer;
+
+
+  const
+     SQLDA_VERSION1 = 1;
+  { meaning is same as DIALECT_xsqlda  }
+     SQL_DIALECT_V5 = 1;
+  { flagging anything that is delimited
+                                              by double quotes as an error and
+                                              flagging keyword DATE as an error  }
+     SQL_DIALECT_V6_TRANSITION = 2;
+  { supports SQL delimited identifier,
+                                              SQLDATE/DATE, TIME, TIMESTAMP,
+                                              CURRENT_DATE, CURRENT_TIME,
+                                              CURRENT_TIMESTAMP, and 64-bit exact
+                                              numeric type  }
+     SQL_DIALECT_V6 = 3;
+  { latest IB DIALECT  }
+     SQL_DIALECT_CURRENT = SQL_DIALECT_V6;
+
+
   {                                    }
   { Security structures                }
   {                                    }
@@ -398,19 +372,19 @@ type
   type
 
      USER_SEC_DATA = record
-          sec_flags : smallint;
-          uid : longint;
-          gid : longint;
-          protocol : longint;
+          sec_flags : cshort;
+          uid : cint;
+          gid : cint;
+          protocol : cint;
           server : Pchar;
-          user_name : Pchar;
-          password : Pchar;
-          group_name : Pchar;
-          first_name : Pchar;
-          middle_name : Pchar;
-          last_name : Pchar;
-          dba_user_name : Pchar;
-          dba_password : Pchar;
+          user_name : PISC_SCHAR;
+          password : PISC_SCHAR;
+          group_name : PISC_SCHAR;
+          first_name : PISC_SCHAR;
+          middle_name : PISC_SCHAR;
+          last_name : PISC_SCHAR;
+          dba_user_name : PISC_SCHAR;
+          dba_password : PISC_SCHAR;
        end;
      TUSER_SEC_DATA = USER_SEC_DATA;
      PUSER_SEC_DATA = ^USER_SEC_DATA;
@@ -1625,7 +1599,7 @@ type
      isc_blob_dbase_ole = 23;
      isc_blob_typed_binary = 24;
 
-{$IFNDEF LinkDynamically}
+{$IFNDEF LOAD_DYNAMICALLY}
 
   {                          }
   { OSRI database functions  }
@@ -1743,7 +1717,7 @@ type
 
   function isc_event_block(_para1:PPchar; _para2:PPchar; _para3:word; args:array of const):ISC_LONG; cdecl; external gdslib;
 
-  procedure isc_event_counts(_para1: PISC_STATUS; _para2: short; _para3: pchar; _para4: pchar); extdecl;  external gdslib;
+  procedure isc_event_counts(_para1: PISC_STATUS; _para2: cshort; _para3: pchar; _para4: pchar); extdecl;  external gdslib;
 
   procedure isc_expand_dpb(_para1:PPchar; _para2:Psmallint; args:array of const); cdecl; external gdslib;
 
@@ -2222,7 +2196,7 @@ type
   function Bopen2:PBSTREAM; extdecl; external gdslib;
 {$ENDIF}
 
-{$ELSE} // LinkDynamically
+{$ELSE} // LOAD_DYNAMICALLY
 
 var
 
@@ -2276,7 +2250,7 @@ var
   isc_encode_sql_time : procedure (_para1:pointer; _para2:PISC_TIME); extdecl;
   isc_encode_timestamp : procedure (_para1:pointer; _para2:PISC_TIMESTAMP); extdecl;
   isc_event_block : function (_para1:PPchar; _para2:PPchar; _para3:word; args:array of const):ISC_LONG; cdecl;
-  isc_event_counts: procedure (_para1: PISC_STATUS; _para2: short; _para3: pchar; _para4: pchar); extdecl;
+  isc_event_counts: procedure (_para1: PISC_STATUS; _para2: cshort; _para3: pchar; _para4: pchar); extdecl;
   isc_expand_dpb : procedure (_para1:PPchar; _para2:Psmallint; args:array of const); cdecl;
   isc_modify_dpb : function (_para1:PPchar; _para2:Psmallint; _para3:word; _para4:Pchar; _para5:smallint):longint; extdecl;
   isc_free : function (_para1:Pchar):ISC_LONG; extdecl;
@@ -2430,263 +2404,242 @@ var
   isc_suspend_window : function (_para1:PISC_STATUS; _para2:Pisc_win_handle):ISC_STATUS; extdecl;
 {$ENDIF}
 
-function InitialiseIBase60(Const LibraryName : String) : integer;
-function InitialiseIBase60 : integer;
-procedure ReleaseIBase60;
+function InitializeIBase(UseEmbeddedFirebird: Boolean = False): Integer;
+function InitializeIBase(const LibraryName: String): Integer;
+function TryInitializeIBase(const LibraryName: string): Integer;
+function ReleaseIBase: Integer;
 
-var IBaseLibraryHandle : TLibHandle;
+var
+  IBaseLibrary: TLibHandler;
+
+function InitialiseIBase60(Const LibraryName : String) : integer; deprecated;
+function InitialiseIBase60 : integer; deprecated;
+procedure ReleaseIBase60; deprecated;
+
+Var
+  UseEmbeddedFirebird: Boolean = False deprecated;
 
 {$ENDIF}
 
 implementation
 
-{$IFDEF LinkDynamically}
-
-ResourceString
-  SErrEmbeddedFailed = 'Can not load embedded Firebird client "%s". Check your installation.';
-  SErrDefaultsFailed = 'Can not load default Firebird clients ("%s" or "%s"). Check your installation.';
-  SErrLoadFailed     = 'Can not load Firebird client library "%s". Check your installation.';
-  SErrAlreadyLoaded  = 'Firebird interface already initialized from library %s.';
-  
-var 
-  RefCount : integer;
-  LoadedLibrary : String;
-
-Function TryInitialiseIBase60(Const LibraryName : String) : integer;
-
-begin
-  Result := 0;
-  if (RefCount=0) then
-    begin
-    IBaseLibraryHandle:=LoadLibrary(LibraryName);
-    if (IBaseLibraryHandle=nilhandle) then
-      Exit;
-    inc(RefCount);
-    LoadedLibrary:=LibraryName;
-    pointer(isc_attach_database) := GetProcedureAddress(IBaseLibraryHandle,'isc_attach_database');
-    pointer(isc_array_gen_sdl) := GetProcedureAddress(IBaseLibraryHandle,'isc_array_gen_sdl');
-    pointer(isc_array_get_slice) := GetProcedureAddress(IBaseLibraryHandle,'isc_array_get_slice');
-    pointer(isc_array_lookup_bounds) := GetProcedureAddress(IBaseLibraryHandle,'isc_array_lookup_bounds');
-    pointer(isc_array_lookup_desc) := GetProcedureAddress(IBaseLibraryHandle,'isc_array_lookup_desc');
-    pointer(isc_array_set_desc) := GetProcedureAddress(IBaseLibraryHandle,'isc_array_set_desc');
-    pointer(isc_array_put_slice) := GetProcedureAddress(IBaseLibraryHandle,'isc_array_put_slice');
-    pointer(isc_blob_default_desc) := GetProcedureAddress(IBaseLibraryHandle,'isc_blob_default_desc');
-    pointer(isc_blob_gen_bpb) := GetProcedureAddress(IBaseLibraryHandle,'isc_blob_gen_bpb');
-    pointer(isc_blob_info) := GetProcedureAddress(IBaseLibraryHandle,'isc_blob_info');
-    pointer(isc_blob_lookup_desc) := GetProcedureAddress(IBaseLibraryHandle,'isc_blob_lookup_desc');
-    pointer(isc_blob_set_desc) := GetProcedureAddress(IBaseLibraryHandle,'isc_blob_set_desc');
-    pointer(isc_cancel_blob) := GetProcedureAddress(IBaseLibraryHandle,'isc_cancel_blob');
-    pointer(isc_cancel_events) := GetProcedureAddress(IBaseLibraryHandle,'isc_cancel_events');
-    pointer(isc_close_blob) := GetProcedureAddress(IBaseLibraryHandle,'isc_close_blob');
-    pointer(isc_commit_retaining) := GetProcedureAddress(IBaseLibraryHandle,'isc_commit_retaining');
-    pointer(isc_commit_transaction) := GetProcedureAddress(IBaseLibraryHandle,'isc_commit_transaction');
-    pointer(isc_create_blob) := GetProcedureAddress(IBaseLibraryHandle,'isc_create_blob');
-    pointer(isc_create_blob2) := GetProcedureAddress(IBaseLibraryHandle,'isc_create_blob2');
-    pointer(isc_create_database) := GetProcedureAddress(IBaseLibraryHandle,'isc_create_database');
-    pointer(isc_database_info) := GetProcedureAddress(IBaseLibraryHandle,'isc_database_info');
-    pointer(isc_decode_date) := GetProcedureAddress(IBaseLibraryHandle,'isc_decode_date');
-    pointer(isc_decode_sql_date) := GetProcedureAddress(IBaseLibraryHandle,'isc_decode_sql_date');
-    pointer(isc_decode_sql_time) := GetProcedureAddress(IBaseLibraryHandle,'isc_decode_sql_time');
-    pointer(isc_decode_timestamp) := GetProcedureAddress(IBaseLibraryHandle,'isc_decode_timestamp');
-    pointer(isc_detach_database) := GetProcedureAddress(IBaseLibraryHandle,'isc_detach_database');
-    pointer(isc_drop_database) := GetProcedureAddress(IBaseLibraryHandle,'isc_drop_database');
-    pointer(isc_dsql_allocate_statement) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_allocate_statement');
-    pointer(isc_dsql_alloc_statement2) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_alloc_statement2');
-    pointer(isc_dsql_describe) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_describe');
-    pointer(isc_dsql_describe_bind) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_describe_bind');
-    pointer(isc_dsql_exec_immed2) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_exec_immed2');
-    pointer(isc_dsql_execute) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_execute');
-    pointer(isc_dsql_execute2) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_execute2');
-    pointer(isc_dsql_execute_immediate) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_execute_immediate');
-    pointer(isc_dsql_fetch) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_fetch');
-    pointer(isc_dsql_finish) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_finish');
-    pointer(isc_dsql_free_statement) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_free_statement');
-    pointer(isc_dsql_insert) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_insert');
-    pointer(isc_dsql_prepare) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_prepare');
-    pointer(isc_dsql_set_cursor_name) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_set_cursor_name');
-    pointer(isc_dsql_sql_info) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_sql_info');
-    pointer(isc_encode_date) := GetProcedureAddress(IBaseLibraryHandle,'isc_encode_date');
-    pointer(isc_encode_sql_date) := GetProcedureAddress(IBaseLibraryHandle,'isc_encode_sql_date');
-    pointer(isc_encode_sql_time) := GetProcedureAddress(IBaseLibraryHandle,'isc_encode_sql_time');
-    pointer(isc_encode_timestamp) := GetProcedureAddress(IBaseLibraryHandle,'isc_encode_timestamp');
-    pointer(isc_event_block) := GetProcedureAddress(IBaseLibraryHandle,'isc_event_block');
-    pointer(isc_event_counts) := GetProcedureAddress(IBaseLibraryHandle,'isc_event_counts');
-    pointer(isc_expand_dpb) := GetProcedureAddress(IBaseLibraryHandle,'isc_expand_dpb');
-    pointer(isc_modify_dpb) := GetProcedureAddress(IBaseLibraryHandle,'isc_modify_dpb');
-    pointer(isc_free) := GetProcedureAddress(IBaseLibraryHandle,'isc_free');
-    pointer(isc_get_segment) := GetProcedureAddress(IBaseLibraryHandle,'isc_get_segment');
-    pointer(isc_get_slice) := GetProcedureAddress(IBaseLibraryHandle,'isc_get_slice');
-    pointer(isc_interprete) := GetProcedureAddress(IBaseLibraryHandle,'isc_interprete');
-    pointer(isc_open_blob) := GetProcedureAddress(IBaseLibraryHandle,'isc_open_blob');
-    pointer(isc_open_blob2) := GetProcedureAddress(IBaseLibraryHandle,'isc_open_blob2');
-    pointer(isc_prepare_transaction2) := GetProcedureAddress(IBaseLibraryHandle,'isc_prepare_transaction2');
-    pointer(isc_print_sqlerror) := GetProcedureAddress(IBaseLibraryHandle,'isc_print_sqlerror');
-    pointer(isc_print_status) := GetProcedureAddress(IBaseLibraryHandle,'isc_print_status');
-    pointer(isc_put_segment) := GetProcedureAddress(IBaseLibraryHandle,'isc_put_segment');
-    pointer(isc_put_slice) := GetProcedureAddress(IBaseLibraryHandle,'isc_put_slice');
-    pointer(isc_que_events) := GetProcedureAddress(IBaseLibraryHandle,'isc_que_events');
-    pointer(isc_rollback_retaining) := GetProcedureAddress(IBaseLibraryHandle,'isc_rollback_retaining');
-    pointer(isc_rollback_transaction) := GetProcedureAddress(IBaseLibraryHandle,'isc_rollback_transaction');
-    pointer(isc_start_multiple) := GetProcedureAddress(IBaseLibraryHandle,'isc_start_multiple');
-    pointer(isc_start_transaction) := GetProcedureAddress(IBaseLibraryHandle,'isc_start_transaction');
-    pointer(isc_sqlcode) := GetProcedureAddress(IBaseLibraryHandle,'isc_sqlcode');
-    pointer(isc_sql_interprete) := GetProcedureAddress(IBaseLibraryHandle,'isc_sql_interprete');
-    pointer(isc_transaction_info) := GetProcedureAddress(IBaseLibraryHandle,'isc_transaction_info');
-    pointer(isc_transact_request) := GetProcedureAddress(IBaseLibraryHandle,'isc_transact_request');
-    pointer(isc_vax_integer) := GetProcedureAddress(IBaseLibraryHandle,'isc_vax_integer');
-    pointer(isc_portable_integer) := GetProcedureAddress(IBaseLibraryHandle,'isc_portable_integer');
-    pointer(isc_add_user) := GetProcedureAddress(IBaseLibraryHandle,'isc_add_user');
-    pointer(isc_delete_user) := GetProcedureAddress(IBaseLibraryHandle,'isc_delete_user');
-    pointer(isc_modify_user) := GetProcedureAddress(IBaseLibraryHandle,'isc_modify_user');
-    pointer(isc_compile_request) := GetProcedureAddress(IBaseLibraryHandle,'isc_compile_request');
-    pointer(isc_compile_request2) := GetProcedureAddress(IBaseLibraryHandle,'isc_compile_request2');
-    pointer(isc_ddl) := GetProcedureAddress(IBaseLibraryHandle,'isc_ddl');
-    pointer(isc_prepare_transaction) := GetProcedureAddress(IBaseLibraryHandle,'isc_prepare_transaction');
-    pointer(isc_receive) := GetProcedureAddress(IBaseLibraryHandle,'isc_receive');
-    pointer(isc_reconnect_transaction) := GetProcedureAddress(IBaseLibraryHandle,'isc_reconnect_transaction');
-    pointer(isc_release_request) := GetProcedureAddress(IBaseLibraryHandle,'isc_release_request');
-    pointer(isc_request_info) := GetProcedureAddress(IBaseLibraryHandle,'isc_request_info');
-    pointer(isc_seek_blob) := GetProcedureAddress(IBaseLibraryHandle,'isc_seek_blob');
-    pointer(isc_send) := GetProcedureAddress(IBaseLibraryHandle,'isc_send');
-    pointer(isc_start_and_send) := GetProcedureAddress(IBaseLibraryHandle,'isc_start_and_send');
-    pointer(isc_start_request) := GetProcedureAddress(IBaseLibraryHandle,'isc_start_request');
-    pointer(isc_unwind_request) := GetProcedureAddress(IBaseLibraryHandle,'isc_unwind_request');
-    pointer(isc_wait_for_event) := GetProcedureAddress(IBaseLibraryHandle,'isc_wait_for_event');
-    pointer(isc_close) := GetProcedureAddress(IBaseLibraryHandle,'isc_close');
-    pointer(isc_declare) := GetProcedureAddress(IBaseLibraryHandle,'isc_declare');
-    pointer(isc_describe) := GetProcedureAddress(IBaseLibraryHandle,'isc_describe');
-    pointer(isc_describe_bind) := GetProcedureAddress(IBaseLibraryHandle,'isc_describe_bind');
-    pointer(isc_execute) := GetProcedureAddress(IBaseLibraryHandle,'isc_execute');
-    pointer(isc_execute_immediate) := GetProcedureAddress(IBaseLibraryHandle,'isc_execute_immediate');
-    pointer(isc_fetch) := GetProcedureAddress(IBaseLibraryHandle,'isc_fetch');
-    pointer(isc_open) := GetProcedureAddress(IBaseLibraryHandle,'isc_open');
-    pointer(isc_prepare) := GetProcedureAddress(IBaseLibraryHandle,'isc_prepare');
-    pointer(isc_dsql_execute_m) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_execute_m');
-    pointer(isc_dsql_execute2_m) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_execute2_m');
-    pointer(isc_dsql_execute_immediate_m) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_execute_immediate_m');
-    pointer(isc_dsql_exec_immed3_m) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_exec_immed3_m');
-    pointer(isc_dsql_fetch_m) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_fetch_m');
-    pointer(isc_dsql_insert_m) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_insert_m');
-    pointer(isc_dsql_prepare_m) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_prepare_m');
-    pointer(isc_dsql_release) := GetProcedureAddress(IBaseLibraryHandle,'isc_dsql_release');
-    pointer(isc_embed_dsql_close) := GetProcedureAddress(IBaseLibraryHandle,'isc_embed_dsql_close');
-    pointer(isc_embed_dsql_declare) := GetProcedureAddress(IBaseLibraryHandle,'isc_embed_dsql_declare');
-    pointer(isc_embed_dsql_describe) := GetProcedureAddress(IBaseLibraryHandle,'isc_embed_dsql_describe');
-    pointer(isc_embed_dsql_describe_bind) := GetProcedureAddress(IBaseLibraryHandle,'isc_embed_dsql_describe_bind');
-    pointer(isc_embed_dsql_execute) := GetProcedureAddress(IBaseLibraryHandle,'isc_embed_dsql_execute');
-    pointer(isc_embed_dsql_execute2) := GetProcedureAddress(IBaseLibraryHandle,'isc_embed_dsql_execute2');
-    pointer(isc_embed_dsql_execute_immed) := GetProcedureAddress(IBaseLibraryHandle,'isc_embed_dsql_execute_immed');
-    pointer(isc_embed_dsql_fetch) := GetProcedureAddress(IBaseLibraryHandle,'isc_embed_dsql_fetch');
-    pointer(isc_embed_dsql_open) := GetProcedureAddress(IBaseLibraryHandle,'isc_embed_dsql_open');
-    pointer(isc_embed_dsql_open2) := GetProcedureAddress(IBaseLibraryHandle,'isc_embed_dsql_open2');
-    pointer(isc_embed_dsql_insert) := GetProcedureAddress(IBaseLibraryHandle,'isc_embed_dsql_insert');
-    pointer(isc_embed_dsql_prepare) := GetProcedureAddress(IBaseLibraryHandle,'isc_embed_dsql_prepare');
-    pointer(isc_embed_dsql_release) := GetProcedureAddress(IBaseLibraryHandle,'isc_embed_dsql_release');
-    pointer(BLOB_open) := GetProcedureAddress(IBaseLibraryHandle,'BLOB_open');
-    pointer(BLOB_put) := GetProcedureAddress(IBaseLibraryHandle,'BLOB_put');
-    pointer(BLOB_close) := GetProcedureAddress(IBaseLibraryHandle,'BLOB_close');
-    pointer(BLOB_get) := GetProcedureAddress(IBaseLibraryHandle,'BLOB_get');
-    pointer(BLOB_display) := GetProcedureAddress(IBaseLibraryHandle,'BLOB_display');
-    pointer(BLOB_dump) := GetProcedureAddress(IBaseLibraryHandle,'BLOB_dump');
-    pointer(BLOB_edit) := GetProcedureAddress(IBaseLibraryHandle,'BLOB_edit');
-    pointer(BLOB_load) := GetProcedureAddress(IBaseLibraryHandle,'BLOB_load');
-    pointer(BLOB_text_dump) := GetProcedureAddress(IBaseLibraryHandle,'BLOB_text_dump');
-    pointer(BLOB_text_load) := GetProcedureAddress(IBaseLibraryHandle,'BLOB_text_load');
-    pointer(Bopen) := GetProcedureAddress(IBaseLibraryHandle,'Bopen');
-{$IFDEF Unix}
-    pointer(Bopen2) := GetProcedureAddress(IBaseLibraryHandle,'Bopen2');
-{$ENDIF}
-    pointer(isc_ftof) := GetProcedureAddress(IBaseLibraryHandle,'isc_ftof');
-    pointer(isc_print_blr) := GetProcedureAddress(IBaseLibraryHandle,'isc_print_blr');
-    pointer(isc_set_debug) := GetProcedureAddress(IBaseLibraryHandle,'isc_set_debug');
-    pointer(isc_qtoq) := GetProcedureAddress(IBaseLibraryHandle,'isc_qtoq');
-    pointer(isc_vtof) := GetProcedureAddress(IBaseLibraryHandle,'isc_vtof');
-    pointer(isc_vtov) := GetProcedureAddress(IBaseLibraryHandle,'isc_vtov');
-    pointer(isc_version) := GetProcedureAddress(IBaseLibraryHandle,'isc_version');
-{$IFDEF Unix}
-    pointer(isc_reset_fpe) := GetProcedureAddress(IBaseLibraryHandle,'isc_reset_fpe');
-{$ENDIF}
-    pointer(isc_service_attach) := GetProcedureAddress(IBaseLibraryHandle,'isc_service_attach');
-    pointer(isc_service_detach) := GetProcedureAddress(IBaseLibraryHandle,'isc_service_detach');
-    pointer(isc_service_query) := GetProcedureAddress(IBaseLibraryHandle,'isc_service_query');
-    pointer(isc_service_start) := GetProcedureAddress(IBaseLibraryHandle,'isc_service_start');
-{$IFDEF Unix}
-    pointer(isc_compile_map) := GetProcedureAddress(IBaseLibraryHandle,'isc_compile_map');
-    pointer(isc_compile_menu) := GetProcedureAddress(IBaseLibraryHandle,'isc_compile_menu');
-    pointer(isc_compile_sub_map) := GetProcedureAddress(IBaseLibraryHandle,'isc_compile_sub_map');
-    pointer(isc_create_window) := GetProcedureAddress(IBaseLibraryHandle,'isc_create_window');
-    pointer(isc_delete_window) := GetProcedureAddress(IBaseLibraryHandle,'isc_delete_window');
-    pointer(isc_drive_form) := GetProcedureAddress(IBaseLibraryHandle,'isc_drive_form');
-    pointer(isc_drive_menu) := GetProcedureAddress(IBaseLibraryHandle,'isc_drive_menu');
-    pointer(isc_form_delete) := GetProcedureAddress(IBaseLibraryHandle,'isc_form_delete');
-    pointer(isc_form_fetch) := GetProcedureAddress(IBaseLibraryHandle,'isc_form_fetch');
-    pointer(isc_form_insert) := GetProcedureAddress(IBaseLibraryHandle,'isc_form_insert');
-    pointer(isc_get_entree) := GetProcedureAddress(IBaseLibraryHandle,'isc_get_entree');
-    pointer(isc_initialize_menu) := GetProcedureAddress(IBaseLibraryHandle,'isc_initialize_menu');
-    pointer(isc_menu) := GetProcedureAddress(IBaseLibraryHandle,'isc_menu');
-    pointer(isc_load_form) := GetProcedureAddress(IBaseLibraryHandle,'isc_load_form');
-    pointer(isc_pop_window) := GetProcedureAddress(IBaseLibraryHandle,'isc_pop_window');
-    pointer(isc_put_entree) := GetProcedureAddress(IBaseLibraryHandle,'isc_put_entree');
-    pointer(isc_reset_form) := GetProcedureAddress(IBaseLibraryHandle,'isc_reset_form');
-    pointer(isc_suspend_window) := GetProcedureAddress(IBaseLibraryHandle,'isc_suspend_window');
-{$ENDIF}
-    end
-  else
-    inc(RefCount);
-  Result := RefCount;
-end;
-
-function InitialiseIBase60 : integer;
-
-begin
-  Result := 0;
-  If UseEmbeddedFirebird then
-    begin
-    If (TryInitialiseIBase60(fbembedlib)=0) then
-      Raise EInOutError.CreateFmt(SErrEmbeddedFailed,[fbembedlib]);
-    end
-  else
-    begin
-    If (TryInitialiseIBase60(fbclib)=0) and
-       (TryInitialiseIBase60(gdslib)=0) then
-        Raise EInOutError.CreateFmt(SErrDefaultsFailed,[gdslib,fbclib]);
-    end;    
-  Result := RefCount;
-end;
-
-function InitialiseIBase60(Const LibraryName : String) : integer;
-
-begin
-  Result := TryInitialiseIBase60(LibraryName);
-  If Result = 0 then
-    Raise EInOutError.CreateFmt(SErrLoadFailed,[LibraryName])
-  else If (LibraryName<>LoadedLibrary) then
-    begin
-    Dec(RefCount);
-    Result := RefCount;
-    Raise EInOUtError.CreateFmt(SErrAlreadyLoaded,[LoadedLibrary]);
-    end;
-end;
-
-
-Procedure ReleaseIBase60;
-
-begin
-  if RefCount>1 then
-    Dec(RefCount)
-  else if UnloadLibrary(IBaseLibraryHandle) then 
-    begin
-    Dec(RefCount);
-    IBaseLibraryHandle := NilHandle;
-    LoadedLibrary:='';
-    end;
-end;
-
-{$ENDIF}
-
 function XSQLDA_LENGTH(n: Integer): Integer;
 begin
   Result := SizeOf(XSQLDA) + (n - 1) * SizeOf(XSQLVAR);
 end;
+
+{$IFDEF LOAD_DYNAMICALLY}
+const
+  ibsymbols: array[0..140{$IFDEF UNIX}+20{$ENDIF}] of TLibSymbol = (
+    (pvar:@isc_attach_database; name:'isc_attach_database'; weak:false),
+    (pvar:@isc_array_gen_sdl; name:'isc_array_gen_sdl'; weak:false),
+    (pvar:@isc_array_get_slice; name:'isc_array_get_slice'; weak:false),
+    (pvar:@isc_array_lookup_bounds; name:'isc_array_lookup_bounds'; weak:false),
+    (pvar:@isc_array_lookup_desc; name:'isc_array_lookup_desc'; weak:false),
+    (pvar:@isc_array_set_desc; name:'isc_array_set_desc'; weak:false),
+    (pvar:@isc_array_put_slice; name:'isc_array_put_slice'; weak:false),
+    (pvar:@isc_blob_default_desc; name:'isc_blob_default_desc'; weak:false),
+    (pvar:@isc_blob_gen_bpb; name:'isc_blob_gen_bpb'; weak:false),
+    (pvar:@isc_blob_info; name:'isc_blob_info'; weak:false),
+    (pvar:@isc_blob_lookup_desc; name:'isc_blob_lookup_desc'; weak:false),
+    (pvar:@isc_blob_set_desc; name:'isc_blob_set_desc'; weak:false),
+    (pvar:@isc_cancel_blob; name:'isc_cancel_blob'; weak:false),
+    (pvar:@isc_cancel_events; name:'isc_cancel_events'; weak:false),
+    (pvar:@isc_close_blob; name:'isc_close_blob'; weak:false),
+    (pvar:@isc_commit_retaining; name:'isc_commit_retaining'; weak:false),
+    (pvar:@isc_commit_transaction; name:'isc_commit_transaction'; weak:false),
+    (pvar:@isc_create_blob; name:'isc_create_blob'; weak:false),
+    (pvar:@isc_create_blob2; name:'isc_create_blob2'; weak:false),
+    (pvar:@isc_create_database; name:'isc_create_database'; weak:false),
+    (pvar:@isc_database_info; name:'isc_database_info'; weak:false),
+    (pvar:@isc_decode_date; name:'isc_decode_date'; weak:false),
+    (pvar:@isc_decode_sql_date; name:'isc_decode_sql_date'; weak:false),
+    (pvar:@isc_decode_sql_time; name:'isc_decode_sql_time'; weak:false),
+    (pvar:@isc_decode_timestamp; name:'isc_decode_timestamp'; weak:false),
+    (pvar:@isc_detach_database; name:'isc_detach_database'; weak:false),
+    (pvar:@isc_drop_database; name:'isc_drop_database'; weak:false),
+    (pvar:@isc_dsql_allocate_statement; name:'isc_dsql_allocate_statement'; weak:false),
+    (pvar:@isc_dsql_alloc_statement2; name:'isc_dsql_alloc_statement2'; weak:false),
+    (pvar:@isc_dsql_describe; name:'isc_dsql_describe'; weak:false),
+    (pvar:@isc_dsql_describe_bind; name:'isc_dsql_describe_bind'; weak:false),
+    (pvar:@isc_dsql_exec_immed2; name:'isc_dsql_exec_immed2'; weak:false),
+    (pvar:@isc_dsql_execute; name:'isc_dsql_execute'; weak:false),
+    (pvar:@isc_dsql_execute2; name:'isc_dsql_execute2'; weak:false),
+    (pvar:@isc_dsql_execute_immediate; name:'isc_dsql_execute_immediate'; weak:false),
+    (pvar:@isc_dsql_fetch; name:'isc_dsql_fetch'; weak:false),
+    (pvar:@isc_dsql_finish; name:'isc_dsql_finish'; weak:false),
+    (pvar:@isc_dsql_free_statement; name:'isc_dsql_free_statement'; weak:false),
+    (pvar:@isc_dsql_insert; name:'isc_dsql_insert'; weak:false),
+    (pvar:@isc_dsql_prepare; name:'isc_dsql_prepare'; weak:false),
+    (pvar:@isc_dsql_set_cursor_name; name:'isc_dsql_set_cursor_name'; weak:false),
+    (pvar:@isc_dsql_sql_info; name:'isc_dsql_sql_info'; weak:false),
+    (pvar:@isc_encode_date; name:'isc_encode_date'; weak:false),
+    (pvar:@isc_encode_sql_date; name:'isc_encode_sql_date'; weak:false),
+    (pvar:@isc_encode_sql_time; name:'isc_encode_sql_time'; weak:false),
+    (pvar:@isc_encode_timestamp; name:'isc_encode_timestamp'; weak:false),
+    (pvar:@isc_event_block; name:'isc_event_block'; weak:false),
+    (pvar:@isc_event_counts; name:'isc_event_counts'; weak:false),
+    (pvar:@isc_expand_dpb; name:'isc_expand_dpb'; weak:false),
+    (pvar:@isc_modify_dpb; name:'isc_modify_dpb'; weak:false),
+    (pvar:@isc_free; name:'isc_free'; weak:false),
+    (pvar:@isc_get_segment; name:'isc_get_segment'; weak:false),
+    (pvar:@isc_get_slice; name:'isc_get_slice'; weak:false),
+    (pvar:@isc_interprete; name:'isc_interprete'; weak:false),
+    (pvar:@isc_open_blob; name:'isc_open_blob'; weak:false),
+    (pvar:@isc_open_blob2; name:'isc_open_blob2'; weak:false),
+    (pvar:@isc_prepare_transaction2; name:'isc_prepare_transaction2'; weak:false),
+    (pvar:@isc_print_sqlerror; name:'isc_print_sqlerror'; weak:false),
+    (pvar:@isc_print_status; name:'isc_print_status'; weak:false),
+    (pvar:@isc_put_segment; name:'isc_put_segment'; weak:false),
+    (pvar:@isc_put_slice; name:'isc_put_slice'; weak:false),
+    (pvar:@isc_que_events; name:'isc_que_events'; weak:false),
+    (pvar:@isc_rollback_retaining; name:'isc_rollback_retaining'; weak:false),
+    (pvar:@isc_rollback_transaction; name:'isc_rollback_transaction'; weak:false),
+    (pvar:@isc_start_multiple; name:'isc_start_multiple'; weak:false),
+    (pvar:@isc_start_transaction; name:'isc_start_transaction'; weak:false),
+    (pvar:@isc_sqlcode; name:'isc_sqlcode'; weak:false),
+    (pvar:@isc_sql_interprete; name:'isc_sql_interprete'; weak:false),
+    (pvar:@isc_transaction_info; name:'isc_transaction_info'; weak:false),
+    (pvar:@isc_transact_request; name:'isc_transact_request'; weak:false),
+    (pvar:@isc_vax_integer; name:'isc_vax_integer'; weak:false),
+    (pvar:@isc_portable_integer; name:'isc_portable_integer'; weak:false),
+    (pvar:@isc_add_user; name:'isc_add_user'; weak:false),
+    (pvar:@isc_delete_user; name:'isc_delete_user'; weak:false),
+    (pvar:@isc_modify_user; name:'isc_modify_user'; weak:false),
+    (pvar:@isc_compile_request; name:'isc_compile_request'; weak:false),
+    (pvar:@isc_compile_request2; name:'isc_compile_request2'; weak:false),
+    (pvar:@isc_ddl; name:'isc_ddl'; weak:false),
+    (pvar:@isc_prepare_transaction; name:'isc_prepare_transaction'; weak:false),
+    (pvar:@isc_receive; name:'isc_receive'; weak:false),
+    (pvar:@isc_reconnect_transaction; name:'isc_reconnect_transaction'; weak:false),
+    (pvar:@isc_release_request; name:'isc_release_request'; weak:false),
+    (pvar:@isc_request_info; name:'isc_request_info'; weak:false),
+    (pvar:@isc_seek_blob; name:'isc_seek_blob'; weak:false),
+    (pvar:@isc_send; name:'isc_send'; weak:false),
+    (pvar:@isc_start_and_send; name:'isc_start_and_send'; weak:false),
+    (pvar:@isc_start_request; name:'isc_start_request'; weak:false),
+    (pvar:@isc_unwind_request; name:'isc_unwind_request'; weak:false),
+    (pvar:@isc_wait_for_event; name:'isc_wait_for_event'; weak:false),
+    (pvar:@isc_close; name:'isc_close'; weak:false),
+    (pvar:@isc_declare; name:'isc_declare'; weak:false),
+    (pvar:@isc_describe; name:'isc_describe'; weak:false),
+    (pvar:@isc_describe_bind; name:'isc_describe_bind'; weak:false),
+    (pvar:@isc_execute; name:'isc_execute'; weak:false),
+    (pvar:@isc_execute_immediate; name:'isc_execute_immediate'; weak:false),
+    (pvar:@isc_fetch; name:'isc_fetch'; weak:false),
+    (pvar:@isc_open; name:'isc_open'; weak:false),
+    (pvar:@isc_prepare; name:'isc_prepare'; weak:false),
+    (pvar:@isc_dsql_execute_m; name:'isc_dsql_execute_m'; weak:false),
+    (pvar:@isc_dsql_execute2_m; name:'isc_dsql_execute2_m'; weak:false),
+    (pvar:@isc_dsql_execute_immediate_m; name:'isc_dsql_execute_immediate_m'; weak:false),
+    (pvar:@isc_dsql_exec_immed3_m; name:'isc_dsql_exec_immed3_m'; weak:false),
+    (pvar:@isc_dsql_fetch_m; name:'isc_dsql_fetch_m'; weak:false),
+    (pvar:@isc_dsql_insert_m; name:'isc_dsql_insert_m'; weak:false),
+    (pvar:@isc_dsql_prepare_m; name:'isc_dsql_prepare_m'; weak:false),
+    (pvar:@isc_dsql_release; name:'isc_dsql_release'; weak:false),
+    (pvar:@isc_embed_dsql_close; name:'isc_embed_dsql_close'; weak:false),
+    (pvar:@isc_embed_dsql_declare; name:'isc_embed_dsql_declare'; weak:false),
+    (pvar:@isc_embed_dsql_describe; name:'isc_embed_dsql_describe'; weak:false),
+    (pvar:@isc_embed_dsql_describe_bind; name:'isc_embed_dsql_describe_bind'; weak:false),
+    (pvar:@isc_embed_dsql_execute; name:'isc_embed_dsql_execute'; weak:false),
+    (pvar:@isc_embed_dsql_execute2; name:'isc_embed_dsql_execute2'; weak:false),
+    (pvar:@isc_embed_dsql_execute_immed; name:'isc_embed_dsql_execute_immed'; weak:false),
+    (pvar:@isc_embed_dsql_fetch; name:'isc_embed_dsql_fetch'; weak:false),
+    (pvar:@isc_embed_dsql_open; name:'isc_embed_dsql_open'; weak:false),
+    (pvar:@isc_embed_dsql_open2; name:'isc_embed_dsql_open2'; weak:false),
+    (pvar:@isc_embed_dsql_insert; name:'isc_embed_dsql_insert'; weak:false),
+    (pvar:@isc_embed_dsql_prepare; name:'isc_embed_dsql_prepare'; weak:false),
+    (pvar:@isc_embed_dsql_release; name:'isc_embed_dsql_release'; weak:false),
+    (pvar:@BLOB_open; name:'BLOB_open'; weak:false),
+    (pvar:@BLOB_put; name:'BLOB_put'; weak:false),
+    (pvar:@BLOB_close; name:'BLOB_close'; weak:false),
+    (pvar:@BLOB_get; name:'BLOB_get'; weak:false),
+    (pvar:@BLOB_display; name:'BLOB_display'; weak:false),
+    (pvar:@BLOB_dump; name:'BLOB_dump'; weak:false),
+    (pvar:@BLOB_edit; name:'BLOB_edit'; weak:false),
+    (pvar:@BLOB_load; name:'BLOB_load'; weak:false),
+    (pvar:@BLOB_text_dump; name:'BLOB_text_dump'; weak:false),
+    (pvar:@BLOB_text_load; name:'BLOB_text_load'; weak:false),
+    (pvar:@Bopen; name:'Bopen'; weak:false),
+{$IFDEF Unix} { weak functions, be careful! }
+    (pvar:@Bopen2; name:'Bopen2'; weak:true),
+{$ENDIF}
+    (pvar:@isc_ftof; name:'isc_ftof'; weak:false),
+    (pvar:@isc_print_blr; name:'isc_print_blr'; weak:false),
+    (pvar:@isc_set_debug; name:'isc_set_debug'; weak:false),
+    (pvar:@isc_qtoq; name:'isc_qtoq'; weak:false),
+    (pvar:@isc_vtof; name:'isc_vtof'; weak:false),
+    (pvar:@isc_vtov; name:'isc_vtov'; weak:false),
+    (pvar:@isc_version; name:'isc_version'; weak:false),
+{$IFDEF Unix}
+    (pvar:@isc_reset_fpe; name:'isc_reset_fpe'; weak:false),
+{$ENDIF}
+    (pvar:@isc_service_attach; name:'isc_service_attach'; weak:false),
+    (pvar:@isc_service_detach; name:'isc_service_detach'; weak:false),
+    (pvar:@isc_service_query; name:'isc_service_query'; weak:false),
+    (pvar:@isc_service_start; name:'isc_service_start'; weak:false)
+{$IFDEF Unix} { weak functions, be careful! }
+   ,(pvar:@isc_compile_map; name:'isc_compile_map'; weak:true),
+    (pvar:@isc_compile_menu; name:'isc_compile_menu'; weak:true),
+    (pvar:@isc_compile_sub_map; name:'isc_compile_sub_map'; weak:true),
+    (pvar:@isc_create_window; name:'isc_create_window'; weak:true),
+    (pvar:@isc_delete_window; name:'isc_delete_window'; weak:true),
+    (pvar:@isc_drive_form; name:'isc_drive_form'; weak:true),
+    (pvar:@isc_drive_menu; name:'isc_drive_menu'; weak:true),
+    (pvar:@isc_form_delete; name:'isc_form_delete'; weak:true),
+    (pvar:@isc_form_fetch; name:'isc_form_fetch'; weak:true),
+    (pvar:@isc_form_insert; name:'isc_form_insert'; weak:true),
+    (pvar:@isc_get_entree; name:'isc_get_entree'; weak:true),
+    (pvar:@isc_initialize_menu; name:'isc_initialize_menu'; weak:true),
+    (pvar:@isc_menu; name:'isc_menu'; weak:true),
+    (pvar:@isc_load_form; name:'isc_load_form'; weak:true),
+    (pvar:@isc_pop_window; name:'isc_pop_window'; weak:true),
+    (pvar:@isc_put_entree; name:'isc_put_entree'; weak:true),
+    (pvar:@isc_reset_form; name:'isc_reset_form'; weak:true),
+    (pvar:@isc_suspend_window; name:'isc_suspend_window'; weak:true)
+{$ENDIF}
+  );
+
+function InitializeIBase(UseEmbeddedFirebird: Boolean): Integer;
+begin
+  if UseEmbeddedFirebird then
+    Result := InitializeLibrary(IBaseLibrary, fbembedlib)
+  else
+    Result := InitializeLibrary(IBaseLibrary);
+end;
+
+function InitializeIBase(const LibraryName: String): Integer;
+begin
+  Result := InitializeLibrary(IBaseLibrary, LibraryName);
+end;
+
+function TryInitializeIBase(const LibraryName: string): Integer;
+begin
+  Result := TryInitializeLibrary(IBaseLibrary, LibraryName);
+end;
+
+function ReleaseIBase: Integer;
+begin
+  Result := ReleaseLibrary(IBaseLibrary);
+end;
+
+function InitialiseIBase60(Const LibraryName : String) : integer;
+begin
+  Result := InitializeIBase(LibraryName);
+end;
+
+function InitialiseIBase60: integer;
+begin
+  Result := InitializeIBase(UseEmbeddedFirebird);
+end;
+
+procedure ReleaseIBase60;
+begin
+  ReleaseIBase;
+end;
+
+initialization
+  IBaseLibrary := LibraryHandler('Interbase', [gdslib,fbclib], @ibsymbols, length(ibsymbols));
+{$ENDIF}
 
 

@@ -2,7 +2,7 @@
 }
 unit ibase60;
 
-{$UNDEF LinkDynamically}
+{$UNDEF LOAD_DYNAMICALLY}
 
 {$i ibase60.inc}
 
