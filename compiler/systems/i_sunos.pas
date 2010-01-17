@@ -102,7 +102,7 @@ unit i_sunos;
             flags        : [tf_needs_symbol_size,tf_needs_symbol_type,
 			    tf_under_development,
                             tf_files_case_sensitive,tf_use_function_relative_addresses,
-                            tf_requires_proper_alignment,tf_smartlink_library,
+                            tf_requires_proper_alignment,tf_smartlink_library,tf_library_needs_pic,
                             tf_has_winlike_resources];
             cpu          : cpu_x86_64;
             unit_env     : 'SOLARISUNITS';
