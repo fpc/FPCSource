@@ -635,7 +635,7 @@ end ;
                               Misc Functions
 ****************************************************************************}
 
-procedure sysBeep;
+procedure Beep;
 begin
 end;
 
@@ -844,7 +844,6 @@ end;
 Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
-  OnBeep:=@SysBeep;
 Finalization
   DoneExceptions;
 end.

@@ -152,7 +152,6 @@ ResourceString
   SInvalidDateMonthWeek         = '(%d, %d, %d, %d) is not a valid DateMonthWeek quad';
   SInvalidDateWeek              = '(%d, %d, %d) is not a valid DateWeek triplet';
   SInvalidDayOfWeekInMonth      = '(%d, %d, %d, %d) is not a valid DayOfWeekInMonth quad';
-  SErrIllegalDateFormatString   = '"%s" is not a valid date format string';
   SInvalidFileName              = '"%s" is not a valid file name.';
   SInvalidIcon                  = 'Invalid Icon';
   SInvalidImage                 = 'Invalid stream format';
