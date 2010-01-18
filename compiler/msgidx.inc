@@ -340,6 +340,13 @@ const
   parser_n_ignore_lower_visibility=03250;
   parser_e_field_not_allowed_here=03251;
   parser_e_no_local_para_def=03252;
+  parser_e_invalid_enumerator_identifier=03259;
+  parser_e_enumerator_identifier_required=03260;
+  parser_e_enumerator_movenext_is_not_valid=03261;
+  parser_e_enumerator_current_is_not_valid=03262;
+  parser_e_only_one_enumerator_movenext=03263;
+  parser_e_only_one_enumerator_current=03264;
+  parser_e_for_in_loop_cannot_be_used_for_the_type=03265;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -469,6 +476,9 @@ const
   sym_h_abstract_method_list=05062;
   sym_w_experimental_symbol=05063;
   sym_w_forward_not_resolved=05064;
+  sym_e_no_enumerator=05067;
+  sym_e_no_enumerator_move=05068;
+  sym_e_no_enumerator_current=05069;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -791,9 +801,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 51811;
+  MsgTxtSize = 52493;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,253,88,65,50,108,22,202,63,
+    24,87,266,88,70,50,108,22,202,63,
     48,20,1,1,1,1,1,1,1,1
   );

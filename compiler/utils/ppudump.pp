@@ -1128,7 +1128,9 @@ type
     po_kylixlocal,
     po_dispid,
     { weakly linked (i.e., may or may not exist at run time) }
-    po_weakexternal
+    po_weakexternal,
+    po_objc,
+    po_enumerator_movenext
   );
   tprocoptions=set of tprocoption;
 
@@ -1211,7 +1213,9 @@ const
      (mask:po_has_importname;  str:'HasImportName'),
      (mask:po_kylixlocal;      str:'KylixLocal'),
      (mask:po_dispid;          str:'DispId'),
-     (mask:po_weakexternal;    str:'WeakExternal')
+     (mask:po_weakexternal;    str:'WeakExternal'),
+     (mask:po_objc;            str:'ObjC'),
+     (mask:po_enumerator_movenext; str:'EnumeratorMoveNext')
   );
 var
   proctypeoption  : tproctypeoption;
@@ -1372,7 +1376,9 @@ type
     oo_has_msgint,
     oo_can_have_published,{ the class has rtti, i.e. you can publish properties }
     oo_has_default_property,
-    oo_has_valid_guid
+    oo_has_valid_guid,
+    oo_has_enumerator_movenext,
+    oo_has_enumerator_current
   );
   tobjectoptions=set of tobjectoption;
   tsymopt=record
@@ -1394,7 +1400,9 @@ const
      (mask:oo_has_msgint;         str:'HasMsgInt'),
      (mask:oo_can_have_published; str:'CanHavePublished'),
      (mask:oo_has_default_property;str:'HasDefaultProperty'),
-     (mask:oo_has_valid_guid;     str:'HasValidGUID')
+     (mask:oo_has_valid_guid;     str:'HasValidGUID'),
+     (mask:oo_has_enumerator_movenext; str:'HasEnumeratorMoveNext'),
+     (mask:oo_has_enumerator_current;  str:'HasEnumeratorCurrent')
   );
 var
   symoptions : tobjectoptions;

@@ -366,7 +366,7 @@ scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure 
 #
 # Parser
 #
-# 03252 is the last used one
+# 03265 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1189,6 +1189,20 @@ parser_e_no_local_para_def=03252_E_Parameters cannot contain local type definiti
 % refer to the same type definition in the procedure headers of the interface and implementation of a unit
 % (both procedure headers would define a separate type). Keep in mind that expressions such as
 % ``file of byte'' or ``string[50]'' also define a new type.
+parser_e_invalid_enumerator_identifier=03259_E_Invalid enumerator identifier: "$1"
+% Only "MoveNext" and "Current" enumerator identifiers are supported.
+parser_e_enumerator_identifier_required=03260_E_Enumerator identifier required
+% "MoveNext" or "Current" identifier must follow the \var{enumerator} modifier.
+parser_e_enumerator_movenext_is_not_valid=03261_E_Enumerator MoveNext pattern method is not valid. Method must be a function with the Boolean return type and no required arguments.
+% "MoveNext" enumerator pattern method must be a function with Boolean return type and no required arguments
+parser_e_enumerator_current_is_not_valid=03262_E_Enumerator Current pattern property is not valid. Property must have a getter.
+% "Current" enumerator pattern property must have a getter
+parser_e_only_one_enumerator_movenext=03263_E_Only one enumerator MoveNext method is allowed per class/object
+% Class or Object can have only one enumerator MoveNext declaration.
+parser_e_only_one_enumerator_current=03264_E_Only one enumerator Current property is allowed per class/object
+% Class or Object can have only one enumerator Current declaration.
+parser_e_for_in_loop_cannot_be_used_for_the_type=03265_E_For in loop can not be used for the type "$1"
+% For in loop can be used not for all types. For example it can not be used for the enumerations with jumps.
 % \end{description}
 #
 # Type Checking
@@ -1495,7 +1509,7 @@ type_e_no_type_info=04087_E_No type info available for this type
 #
 # Symtable
 #
-# 05064 is the last used one
+# 05069 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1666,6 +1680,16 @@ sym_w_experimental_symbol=05063_W_Symbol "$1" is experimental
 sym_w_forward_not_resolved=05064_W_Forward declaration "$1" not resolved, assumed external
 % This happens if you declare a function in the \var{interface} of a unit in macpas mode,
 % but do not implement it.
+sym_e_no_enumerator=05067_E_Can not find an enumerator for the type "$1"
+% This means that compiler can not find an apropriate enumerator to use in the for-in loop.
+% To create an enumerator you need to defind an operator enumerator or add a public or published 
+% GetEnumerator method to the class or object definition.
+sym_e_no_enumerator_move=05068_E_Can not find a "MoveNext" method in enumerator "$1"
+% This means that compiler can not find a public MoveNext method with the Boolean return type in
+% the enumerator class or object definition.
+sym_e_no_enumerator_current=05069_E_Can not find a "Current" property in enumerator "$1"
+% This means that compiler can not find a public Current property in  the enumerator class or object 
+% definition.
 % \end{description}
 #
 # Codegenerator

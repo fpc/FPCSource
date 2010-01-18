@@ -274,7 +274,11 @@ type
     po_kylixlocal,
     po_dispid,
     { weakly linked (i.e., may or may not exist at run time) }
-    po_weakexternal
+    po_weakexternal,
+    { Objective-C method }
+    po_objc,
+    { enumerator support }
+    po_enumerator_movenext
   );
   tprocoptions=set of tprocoption;
 
@@ -314,7 +318,9 @@ type
     oo_has_msgint,
     oo_can_have_published,{ the class has rtti, i.e. you can publish properties }
     oo_has_default_property,
-    oo_has_valid_guid
+    oo_has_valid_guid,
+    oo_has_enumerator_movenext,
+    oo_has_enumerator_current
   );
   tobjectoptions=set of tobjectoption;
 
@@ -335,7 +341,8 @@ type
     ppo_defaultproperty,
     ppo_stored,
     ppo_hasparameters,
-    ppo_implements
+    ppo_implements,
+    ppo_enumerator_current
   );
   tpropertyoptions=set of tpropertyoption;
 

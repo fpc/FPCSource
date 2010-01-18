@@ -108,9 +108,9 @@ interface
         (tok:_LTE     ;nod:lten;op_overloading_supported:true),      { binary overloading supported }
         (tok:_SYMDIF  ;nod:symdifn;op_overloading_supported:true),   { binary overloading supported }
         (tok:_STARSTAR;nod:starstarn;op_overloading_supported:true), { binary overloading supported }
-        (tok:_OP_AS     ;nod:asn;op_overloading_supported:false),     { binary overloading NOT supported }
-        (tok:_OP_IN     ;nod:inn;op_overloading_supported:false),     { binary overloading NOT supported }
-        (tok:_OP_IS     ;nod:isn;op_overloading_supported:false),     { binary overloading NOT supported }
+        (tok:_OP_AS     ;nod:asn;op_overloading_supported:false),    { binary overloading NOT supported }
+        (tok:_OP_IN     ;nod:inn;op_overloading_supported:false),    { binary overloading NOT supported }
+        (tok:_OP_IS     ;nod:isn;op_overloading_supported:false),    { binary overloading NOT supported }
         (tok:_OP_OR     ;nod:orn;op_overloading_supported:true),     { binary overloading supported }
         (tok:_OP_AND    ;nod:andn;op_overloading_supported:true),    { binary overloading supported }
         (tok:_OP_DIV    ;nod:divn;op_overloading_supported:true),    { binary overloading supported }
@@ -120,7 +120,7 @@ interface
         (tok:_OP_SHR    ;nod:shrn;op_overloading_supported:true),    { binary overloading supported }
         (tok:_OP_XOR    ;nod:xorn;op_overloading_supported:true),    { binary overloading supported }
         (tok:_ASSIGNMENT;nod:assignn;op_overloading_supported:true), { unary overloading supported }
-        (tok:_UNEQUAL ;nod:unequaln;op_overloading_supported:false)   { binary overloading NOT supported  overload = instead }
+        (tok:_UNEQUAL ;nod:unequaln;op_overloading_supported:false)  { binary overloading NOT supported  overload = instead }
       );
 
       { true, if we are parsing stuff which allows array constructors }
@@ -420,6 +420,13 @@ implementation
                       }
                       (not is_shortstring(pf.returndef) or
                        (tstringdef(pf.returndef).len=255));
+                  end
+                else
+                { enumerator is a special case too }
+                if optoken=_OP_ENUMERATOR then
+                  begin
+                    result:=
+                      is_class_or_interface_or_object(pf.returndef);
                   end
                 else
                   begin
