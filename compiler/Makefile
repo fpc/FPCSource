@@ -354,13 +354,20 @@ CPUSUF=arm
 endif
 NOCPUDEF=1
 MSGFILE=msg/error$(FPCLANG).msg
+SVNVERSION:=$(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH)))
 REVINC:=$(wildcard revision.inc)
 ifneq ($(REVINC),)
 override LOCALOPT+=-dREVINC
 ifeq ($(REVSTR),)
-SVNVERSION:=$(wildcard svnversion$(EXEEXT))
-REVSTR:=$(shell svnversion .)
+ifneq ($(SVNVERSION),)
+REVSTR:=$(shell $(SVNVERSION) -c .)
 export REVSTR
+else
+ifeq ($(REVINC),force)
+REVSTR:=exported
+export REVSTR
+endif
+endif
 endif
 endif
 override LOCALOPT+=-d$(CPC_TARGET) -dGDB -dBROWSERLOG
@@ -3373,11 +3380,38 @@ insdat: insdatx86 insdatarm
 regdatarm : arm/armreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmreg.pp
 	cd arm && ../utils/mkarmreg$(SRCEXEEXT)
+revision.inc :
+ifneq ($(REVSTR),)
+ifdef USEZIPWRAPPER
+ifneq ($(ECHOREDIR),echo)
+	$(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+else
+	$(ECHOREDIR) '$(REVSTR)' > revision.inc
+endif
+else
+	$(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+endif
+else
+	$(MAKE) revision.inc REVINC=force
+endif
+.PHONY : revision
+revision :
+	$(DEL) revision.inc
+	$(MAKE) revision.inc
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
 	     $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
 	     $(wildcard $(CPC_TARGET)/*.pas) $(wildcard $(CPC_TARGET)/*.inc)
 ifneq ($(REVSTR),)
+ifdef USEZIPWRAPPER
+ifneq ($(ECHOREDIR),echo)
 	$(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+else
+	$(ECHOREDIR) '$(REVSTR)' > revision.inc
+endif
+else
+	$(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+endif
+	$(COMPILER) version.pas
 endif
 	$(COMPILER) pp.pas
 	$(EXECPPAS)

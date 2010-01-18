@@ -156,13 +156,26 @@ NOCPUDEF=1
 # Default message file
 MSGFILE=msg/error$(FPCLANG).msg
 
+
+SVNVERSION:=$(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH)))
+# Check if revision.inc is present
 REVINC:=$(wildcard revision.inc)
 ifneq ($(REVINC),)
+# File revision.inc is present
+#Use it to compile version.pas unit
 override LOCALOPT+=-dREVINC
+# Automatically update revision.inc if
+# svnversion executable is available
 ifeq ($(REVSTR),)
-SVNVERSION:=$(wildcard svnversion$(EXEEXT))
-REVSTR:=$(shell svnversion .)
+ifneq ($(SVNVERSION),)
+REVSTR:=$(shell $(SVNVERSION) -c .)
 export REVSTR
+else
+ifeq ($(REVINC),force)
+REVSTR:=exported
+export REVSTR
+endif
+endif
 endif
 endif
 
@@ -362,12 +375,44 @@ regdatarm : arm/armreg.dat
 	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmreg.pp
         cd arm && ../utils/mkarmreg$(SRCEXEEXT)
 
+# revision.inc rule
+revision.inc :
+ifneq ($(REVSTR),)
+ifdef USEZIPWRAPPER
+ifneq ($(ECHOREDIR),echo)
+        $(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+else
+        $(ECHOREDIR) '$(REVSTR)' > revision.inc
+endif
+else
+        $(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+endif
+else
+	$(MAKE) revision.inc REVINC=force
+endif
+
+.PHONY : revision
+
+revision :
+	$(DEL) revision.inc
+	$(MAKE) revision.inc
+
 # Make only the compiler
+# ECHOREDIR sometimes does not remove double quotes
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
              $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
              $(wildcard $(CPC_TARGET)/*.pas) $(wildcard $(CPC_TARGET)/*.inc)
 ifneq ($(REVSTR),)
+ifdef USEZIPWRAPPER
+ifneq ($(ECHOREDIR),echo)
         $(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+else
+        $(ECHOREDIR) '$(REVSTR)' > revision.inc
+endif
+else
+        $(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+endif
+        $(COMPILER) version.pas
 endif
         $(COMPILER) pp.pas
         $(EXECPPAS)
