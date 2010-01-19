@@ -383,8 +383,11 @@ implementation
         calldescnode:=cdataconstnode.create;
 
         if dispintfinvoke then
+        begin
           calldescnode.append(dispid,sizeof(dispid));
-
+          // add dymmy restype byte which is not used by fpc
+          calldescnode.append(dispid,sizeof(byte));
+        end;
         { build up parameters and description }
         para:=tcallparanode(parametersnode);
         currargpos:=0;
