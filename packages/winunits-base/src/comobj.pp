@@ -1335,9 +1335,8 @@ HKCR
         invokeresult : HRESULT;
         preallocateddata : array[0..15] of TVarData;
         Arguments : ^TVarData;
-        NamedArguments : PPointer;
-        CurrType : byte;
-        namedcount,i : byte;
+        CurrType, i : byte;
+        dispidNamed: dispid;
       begin
         { use preallocated space, i.e. can we avoid a getmem call? }
         if desc^.calldesc.argcount<=Length(preallocateddata) then
@@ -1402,16 +1401,24 @@ HKCR
             end;
         dispparams.cArgs:=desc^.calldesc.argcount;
         dispparams.rgvarg:=pointer(Arguments);
+        dispparams.cNamedArgs:=desc^.calldesc.namedargcount;
+        dispparams.rgdispidNamedArgs:=@desc^.CallDesc.ArgTypes[desc^.CallDesc.ArgCount];
+        flags:=desc^.calldesc.calltype;
 
-        { handle properties properly here ! }
-        namedcount:=desc^.calldesc.namedargcount;
-        if desc^.calldesc.calltype=DISPATCH_PROPERTYPUT then
-          inc(namedcount)
-        else
-          NamedArguments:=@desc^.CallDesc.ArgTypes[desc^.CallDesc.ArgCount];
-        dispparams.cNamedArgs:=namedcount;
-        dispparams.rgdispidNamedArgs:=pointer(NamedArguments);
-        flags:=0;
+        case flags of
+          DISPATCH_PROPERTYPUT:
+            begin
+              inc(dispparams.cNamedArgs);
+              if (Arguments[0].VType and varTypeMask) = varDispatch then
+                flags:=DISPATCH_PROPERTYPUTREF;
+              dispidNamed:=DISPID_PROPERTYPUT;
+              DispParams.rgdispidNamedArgs:=@dispidNamed;
+            end;
+          DISPATCH_METHOD:
+            if assigned(res) and (desc^.calldesc.argcount=0) then
+              flags:=DISPATCH_METHOD or DISPATCH_PROPERTYGET;
+        end;
+
         invokeresult:=disp.Invoke(
                 desc^.DispId, { DispID: LongInt; }
                 GUID_NULL, { const iid : TGUID; }
