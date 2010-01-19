@@ -22,6 +22,9 @@ begin
 
   II := CreateOleObject('InternetExplorer.Application') as IIE;
 
+  if II = nil then
+    halt(1);
+
   if not II.Visible then // test dispid property getter
     II.Visible := True;  // test dispid property setter
 
