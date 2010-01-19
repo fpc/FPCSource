@@ -2704,7 +2704,7 @@ implementation
                 expectloc:=LOC_FLAGS;
            end
 
-         else if is_class_or_interface_or_objc(ld) then
+         else if is_class_or_interface_or_dispinterface_or_objc(ld) then
             begin
               expectloc:=LOC_FLAGS;
             end

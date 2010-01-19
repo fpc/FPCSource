@@ -979,7 +979,7 @@ implementation
             end;
           objectdef :
             begin
-              if is_class_or_interface_or_objc(def) then
+              if is_class_or_interface_or_dispinterface_or_objc(def) then
                 result := OS_ADDR
               else
                 result:=int_cgsize(def.size);

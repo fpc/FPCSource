@@ -649,7 +649,7 @@ implementation
           exit;
 
          { classes must be dereferenced implicitly }
-         if is_class_or_interface_or_objc(left.resultdef) then
+         if is_class_or_interface_or_dispinterface_or_objc(left.resultdef) then
            expectloc:=LOC_REFERENCE
          else
            begin

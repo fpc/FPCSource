@@ -668,7 +668,7 @@ implementation
                 end;
               subscriptn:
                 begin
-                  if is_class_or_interface_or_objc(tunarynode(p).left.resultdef) then
+                  if is_class_or_interface_or_dispinterface_or_objc(tunarynode(p).left.resultdef) then
                     inc(result,2);
                   if (result = NODE_COMPLEXITY_INF) then
                     exit;

@@ -1148,7 +1148,7 @@ implementation
           procvardef :
             is_intregable:=not(po_methodpointer in tprocvardef(self).procoptions);
           objectdef:
-            is_intregable:=(is_class_or_interface_or_objc(self)) and not needs_inittable;
+            is_intregable:=(is_class_or_interface_or_dispinterface_or_objc(self)) and not needs_inittable;
           setdef:
             is_intregable:=is_smallset(self);
           recorddef:
