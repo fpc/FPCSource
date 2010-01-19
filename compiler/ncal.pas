@@ -327,8 +327,12 @@ implementation
         paramssize:=0;
         while assigned(para) do
           begin
-            inc(paracount);
             typecheckpass(para.left);
+
+            { if it is not a parameter then break the loop }
+            if para.left.nodetype=nothingn then
+              break;
+            inc(paracount);
 
             { insert some extra casts }
             if is_constintnode(para.left) and not(is_64bitint(para.left.resultdef)) then
