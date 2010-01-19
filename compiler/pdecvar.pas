@@ -241,6 +241,45 @@ implementation
                (ppo_hasparameters in p.propoptions);
           end;
 
+          procedure parse_dispinterface(p : tpropertysym);
+            var
+              {procsym: tprocsym;
+              procdef: tprocdef;
+              valuepara: tparavarsym;}
+              hasread, haswrite: boolean;
+              pt: tnode;
+            begin
+              p.propaccesslist[palt_read].clear;
+              p.propaccesslist[palt_write].clear;
+
+              hasread:=true;
+              haswrite:=true;
+
+              if try_to_consume(_READONLY) then
+                haswrite:=false
+              else if try_to_consume(_WRITEONLY) then
+                hasread:=false;
+
+              if hasread then
+                include(p.propoptions, ppo_dispid_read);
+
+              if haswrite then
+                include(p.propoptions, ppo_dispid_write);
+
+              if try_to_consume(_DISPID) then
+                begin
+                  pt:=comp_expr(true);
+                  if is_constintnode(pt) then
+                    if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
+                      message(parser_e_range_check_error)
+                    else
+                      p.dispid:=Tordconstnode(pt).value.svalue
+                  else
+                    Message(parser_e_dispid_must_be_ord_const);
+                  pt.free;
+                end;
+            end;
+
       var
          sym : tsym;
          srsymtable: tsymtable;
@@ -524,23 +563,7 @@ implementation
                end;
            end
          else
-           begin
-             if try_to_consume(_READONLY) then
-               begin
-               end
-             else if try_to_consume(_WRITEONLY) then
-               begin
-               end;
-             if try_to_consume(_DISPID) then
-               begin
-                 pt:=comp_expr(true);
-                 if is_constintnode(pt) then
-                   // tprocdef(pd).extnumber:=tordconstnode(pt).value
-                 else
-                   Message(parser_e_dispid_must_be_ord_const);
-                 pt.free;
-               end;
-           end;
+           parse_dispinterface(p);
 
          if assigned(aclass) and not(is_dispinterface(aclass)) and not is_classproperty then
            begin

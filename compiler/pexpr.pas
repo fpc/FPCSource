@@ -1031,6 +1031,8 @@ implementation
          static_name : shortstring;
          sym: tsym;
          srsymtable : tsymtable;
+         statements : tstatementnode;
+         converted_result_data : ttempcreatenode;
       begin
          { property parameters? read them only if the property really }
          { has parameters                                             }
@@ -1109,6 +1111,16 @@ implementation
                   end;
                 end
               else
+              if (ppo_dispid_write in propsym.propoptions) then
+                begin
+                  consume(_ASSIGNMENT);
+                  p2:=comp_expr(true);
+                  { concat value parameter too }
+                  p2:=ccallparanode.create(p2,nil);
+                  { passing p3 here is only for information purposes }
+                  p1:=translate_disp_call(p1,p2,p2,'',propsym.dispid,false);
+                end
+              else
                 begin
                    p1:=cerrornode.create;
                    Message(parser_e_no_procedure_to_access_property);
@@ -1155,6 +1167,19 @@ implementation
                           Message(type_e_mismatch);
                        end;
                   end;
+                end
+              else
+              if (ppo_dispid_read in propsym.propoptions) then
+                begin
+                  p2:=internalstatements(statements);
+                  converted_result_data:=ctempcreatenode.create(propsym.propdef,sizeof(propsym.propdef),tt_persistent,true);
+                  addstatement(statements,converted_result_data);
+                  addstatement(statements,cassignmentnode.create(ctemprefnode.create(converted_result_data),
+                    ctypeconvnode.create_internal(translate_disp_call(p1,nil,nil,'',propsym.dispid,true),
+                    propsym.propdef)));
+                  addstatement(statements,ctempdeletenode.create_normal_temp(converted_result_data));
+                  addstatement(statements,ctemprefnode.create(converted_result_data));
+                  p1:=p2;
                 end
               else
                 begin

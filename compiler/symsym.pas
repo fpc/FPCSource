@@ -233,8 +233,9 @@ interface
           indexdef      : tdef;
           indexdefderef : tderef;
           index,
-          default        : longint;
-          propaccesslist : array[tpropaccesslisttypes] of tpropaccesslist;
+          default       : longint;
+          dispid        : longint;
+          propaccesslist: array[tpropaccesslisttypes] of tpropaccesslist;
           constructor create(const n : string);
           destructor  destroy;override;
           constructor ppuload(ppufile:tcompilerppufile);

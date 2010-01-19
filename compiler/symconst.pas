@@ -366,7 +366,9 @@ type
     ppo_stored,
     ppo_hasparameters,
     ppo_implements,
-    ppo_enumerator_current
+    ppo_enumerator_current,
+    ppo_dispid_read,
+    ppo_dispid_write
   );
   tpropertyoptions=set of tpropertyoption;
 

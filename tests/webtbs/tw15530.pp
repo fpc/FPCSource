@@ -2,21 +2,30 @@
 
 program tw15530;
 
-{$mode objfpc}
+{$ifdef fpc}
+  {$mode objfpc}
+{$endif}
 
 uses
-  ComObj;
+  SysUtils, ActiveX, ComObj;
 
 type
   IIE = dispinterface
     ['{0002DF05-0000-0000-C000-000000000046}']
+    procedure Quit; dispid 300;
     property Visible: wordbool dispid 402;
   end;
-
 var
   II: IIE;
 begin
+  OleInitialize(nil);
+
   II := CreateOleObject('InternetExplorer.Application') as IIE;
-  if II <> nil then
-    ;
+
+  if not II.Visible then // test dispid property getter
+    II.Visible := True;  // test dispid property setter
+
+  II.Quit; // test dipid method call
+
+  OleUninitialize;
 end.
