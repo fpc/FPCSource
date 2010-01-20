@@ -1,4 +1,4 @@
-{ %TARGET=win32}
+{ %TARGET=win32,win64}
 
 program tw15530;
 
