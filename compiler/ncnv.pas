@@ -3019,7 +3019,7 @@ implementation
         docompare :=
           inherited docompare(p) and
           (convtype = ttypeconvnode(p).convtype) and
-          equal_defs(resultdef,left.resultdef);
+          equal_defs(totypedef,ttypeconvnode(p).totypedef);
       end;
 
 
