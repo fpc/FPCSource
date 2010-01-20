@@ -78,6 +78,30 @@ unit typinfo;
       TTypeKinds = set of TTypeKind;
       ShortStringBase = string[255];
 
+      PVmtFieldEntry = ^TVmtFieldEntry;
+      TVmtFieldEntry =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        FieldOffset: PtrUInt;
+        TypeIndex: Word;
+        Name: ShortString;
+      end;
+
+      PVmtFieldTable = ^TVmtFieldTable;
+      TVmtFieldTable =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Count: Word;
+        ClassTab: Pointer;
+        { should be array[Word] of TFieldInfo;  but
+          Elements have variant size! force at least proper alignment }
+        Fields: array[0..0] of TVmtFieldEntry
+      end;
+
 {$PACKRECORDS 1}
       TTypeInfo = record
          Kind : TTypeKind;
