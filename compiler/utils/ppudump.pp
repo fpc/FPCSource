@@ -1080,6 +1080,7 @@ type
     po_classmethod,       { class method }
     po_virtualmethod,     { Procedure is a virtual method }
     po_abstractmethod,    { Procedure is an abstract method }
+    po_finalmethod,       { Procedure is a final method }
     po_staticmethod,      { static method }
     po_overridingmethod,  { method with override directive }
     po_methodpointer,     { method pointer, only in procvardef, also used for 'with object do' }
@@ -1177,6 +1178,7 @@ const
      (mask:po_classmethod;     str:'ClassMethod'),
      (mask:po_virtualmethod;   str:'VirtualMethod'),
      (mask:po_abstractmethod;  str:'AbstractMethod'),
+     (mask:po_finalmethod;     str:'FinalMethod'),
      (mask:po_staticmethod;    str:'StaticMethod'),
      (mask:po_overridingmethod;str:'OverridingMethod'),
      (mask:po_methodpointer;   str:'MethodPointer'),

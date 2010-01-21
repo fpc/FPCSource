@@ -1266,6 +1266,16 @@ begin
   tprocdef(pd).forwarddef:=false;
 end;
 
+procedure pd_final(pd:tabstractprocdef);
+begin
+  if pd.typ<>procdef then
+    internalerror(200910170);
+  if (po_virtualmethod in pd.procoptions) then
+    include(pd.procoptions,po_finalmethod)
+  else
+    Message(parser_e_only_virtual_methods_final);
+end;
+
 procedure pd_enumerator(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
@@ -1684,7 +1694,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=41;
+  num_proc_directives=42;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -1796,6 +1806,15 @@ const
       mutexclpocall : [];
       mutexclpotype : [];
       mutexclpo     : [po_external]
+    ),(
+      idtok:_FINAL;
+      pd_flags : [pd_interface,pd_object,pd_notobjintf];
+      handler  : @pd_final;
+      pocall   : pocall_none;
+      pooption : [po_finalmethod];
+      mutexclpocall : [pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : [po_exports,po_interrupt,po_external,po_inline]
     ),(
       idtok:_FORWARD;
       pd_flags : [pd_implemen,pd_notobject,pd_notobjintf];

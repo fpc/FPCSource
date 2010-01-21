@@ -1195,6 +1195,12 @@ parser_e_sealed_descendant=03254_E_Can not create a descendant of the sealed cla
 % Sealed means that class can not be derived by another class.
 parser_e_sealed_class_cannot_have_abstract_methods=03255_E_SEALED class can not have an ABSTRACT method
 % Sealed means that class cannot be derived. Therefore no one class is able to override an abstract method in a sealed class.
+parser_e_only_virtual_methods_final=03256_E_Only virtual methods can be final
+% You are declaring a method as final, when it is not declared to be
+% virtual.
+parser_e_final_can_no_be_overridden=03257_E_Final method can not be overridden: "$1"
+% You are trying to \var{override} a virtual method of a parent class that does
+% not exist.
 parser_e_invalid_enumerator_identifier=03259_E_Invalid enumerator identifier: "$1"
 % Only "MoveNext" and "Current" enumerator identifiers are supported.
 parser_e_enumerator_identifier_required=03260_E_Enumerator identifier required
