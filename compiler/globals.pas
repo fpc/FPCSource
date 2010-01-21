@@ -1381,6 +1381,7 @@ implementation
         do_release:=false;
         do_make:=true;
         compile_level:=0;
+        codegenerror:=false;
         DLLsource:=false;
         paratarget:=system_none;
         paratargetasm:=as_none;
