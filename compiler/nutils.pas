@@ -130,6 +130,10 @@ implementation
           raisen:
             { frame tree }
             result := foreachnode(traisenode(n).third,f,arg) or result;
+          tempcreaten:
+            { temp. initialization code }
+            if assigned(ttempcreatenode(n).tempinfo^.tempinitcode) then
+              result := foreachnode(ttempcreatenode(n).tempinfo^.tempinitcode,f,arg) or result;
           casen:
             begin
               for i := 0 to tcasenode(n).blocks.count-1 do
@@ -209,6 +213,10 @@ implementation
           raisen:
             { frame tree }
             result := foreachnodestatic(traisenode(n).third,f,arg) or result;
+          tempcreaten:
+            { temp. initialization code }
+            if assigned(ttempcreatenode(n).tempinfo^.tempinitcode) then
+              result := foreachnodestatic(ttempcreatenode(n).tempinfo^.tempinitcode,f,arg) or result;
           casen:
             begin
               for i := 0 to tcasenode(n).blocks.count-1 do
