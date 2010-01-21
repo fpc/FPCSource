@@ -54,6 +54,7 @@ unit optcse;
       cclasses,
       verbose,
       nutils,
+      procinfo,
       nbas,nld,ninl,ncal,ncnv,nadd,
       pass_1,
       symconst,symtype,symdef,
@@ -127,18 +128,27 @@ unit optcse;
 
           { node worth to add?
 
-            We consider every node because even loading a variables from
+            We consider almost every node because even loading a variables from
             a register instead of memory is more beneficial. This behaviour should
             not increase register pressure because if a variable is already
             in a register, the reg. allocator can merge the nodes. If a variable
             is loaded from memory, loading this variable and spilling another register
             should not add a speed penalty.
+          }
+          {
+            load nodes are not considered if they load para or local symbols from the
+            current stack frame, those are in registers anyways if possible
+          }
+          (not(n.nodetype=loadn) or
+           not(tloadnode(n).symtableentry.typ in [paravarsym,localvarsym]) or
+           (tloadnode(n).symtable.symtablelevel<>current_procinfo.procdef.parast.symtablelevel)
+          ) and
 
+          {
             Const nodes however are only considered if their complexity is >1
             This might be the case for the risc architectures if they need
             more than one instruction to load this particular value
           }
-
           (not(is_constnode(n)) or (node_complexity(n)>1)) then
           begin
             plists(arg)^.nodelist.Add(n);
