@@ -1692,6 +1692,10 @@ sym_w_experimental_symbol=05063_W_Symbol "$1" is experimental
 sym_w_forward_not_resolved=05064_W_Forward declaration "$1" not resolved, assumed external
 % This happens if you declare a function in the \var{interface} of a unit in macpas mode,
 % but do not implement it.
+sym_w_library_symbol=05065_W_Symbol "$1" is belongs to a library
+% This means that a symbol (a variable, routine, etc...) which is
+% declared as \var{library} is used. Library symbols may not be
+% available in other libraries.
 sym_e_no_enumerator=05067_E_Can not find an enumerator for the type "$1"
 % This means that compiler can not find an apropriate enumerator to use in the for-in loop.
 % To create an enumerator you need to defind an operator enumerator or add a public or published 
