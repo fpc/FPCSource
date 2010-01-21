@@ -17,6 +17,7 @@
 Unit Redir;
 Interface
 
+{$mode objfpc}
 {$H+}
 {$R-}
 {$ifndef Linux}
@@ -25,9 +26,6 @@ Interface
 {$endif}
 {$endif}
 
-{$ifdef TP}
-{$define implemented}
-{$endif TP}
 {$ifdef Go32v2}
 {$define implemented}
 {$endif}
@@ -52,11 +50,6 @@ Interface
 {$ifdef sunos}
 {$define implemented}
 {$endif}
-
-{ be sure msdos is not set for FPC compiler }
-{$ifdef FPC}
-{$UnDef MsDos}
-{$endif FPC}
 
 Var
   IOStatus                   : Integer;
@@ -90,8 +83,15 @@ const
 
 Implementation
 
-{$if defined(macos) or defined(windows) or defined(shell_implemented) or defined(go32v2)}
+//or defined(windows)
+{$if defined(macos) or defined(shell_implemented) or defined(go32v2)}
 {$define usedos}
+{$endif}
+
+{$if defined(windows) and not defined(usedos)}
+  {$ifdef ver2_4}
+    {$define redirexecuteprocess}
+  {$endif}
 {$endif}
 
 Uses
@@ -102,13 +102,15 @@ Uses
   windows,
 {$endif windows}
 {$ifdef unix}
-  {$ifdef ver1_0}
-    linux,
-  {$else}
     baseunix,
     unix,
-  {$endif}
 {$endif unix}
+{$ifdef redirexecuteprocess}
+    sysconst,
+
+{$endif}
+
+
 {$ifdef usedos}
   dos;
 {$else}
@@ -191,64 +193,107 @@ end;
 
 {$ifdef implemented}
 
-{$ifdef TP}
 
-{$ifndef windows}
-const
-  UnusedHandle    = -1;
-  StdInputHandle  = 0;
-  StdOutputHandle = 1;
-  StdErrorHandle  = 2;
-{$endif windows}
+{$ifndef usedos}
+{$if defined(ver2_4_0) or defined(ver2_4_1)}
 
 Type
-  PtrRec = packed record
-             Ofs, Seg : Word;
-           end;
+  TExecuteFlags= set of (ExecInheritsHandles);
+{$ifdef redirexecuteprocess}
 
-  PHandles = ^THandles;
-  THandles = Array [Byte] of Byte;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
+// win specific  function
+var
+  SI: TStartupInfo;
+  PI: TProcessInformation;
+  Proc : THandle;
+  l    : DWord;
+  CommandLine : ansistring;
+  e : EOSError;
+  ExecInherits : longbool;
+begin
+  FillChar(SI, SizeOf(SI), 0);
+  SI.cb:=SizeOf(SI);
+  SI.wShowWindow:=1;
+  { always surround the name of the application by quotes
+    so that long filenames will always be accepted. But don't
+    do it if there are already double quotes, since Win32 does not
+    like double quotes which are duplicated!
+  }
+  if pos('"',path)=0 then
+    CommandLine:='"'+path+'"'
+  else
+    CommandLine:=path;
+  if ComLine <> '' then
+    CommandLine:=Commandline+' '+ComLine+#0
+  else
+    CommandLine := CommandLine + #0;
 
-  PWord = ^Word;
+  ExecInherits:=ExecInheritsHandles in Flags;
 
-Var
-  MinBlockSize : Word;
-  MyBlockSize  : Word;
-  Handles      : PHandles;
-  PrefSeg      : Word;
-  OldHandleOut,OldHandleIn,OldHandleError    : Byte;
-{$endif TP}
+  if not CreateProcess(nil, pchar(CommandLine),
+    Nil, Nil, ExecInherits,$20, Nil, Nil, SI, PI) then
+    begin
+      e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,GetLastError]);
+      e.ErrorCode:=GetLastError;
+      raise e;
+    end;
+  Proc:=PI.hProcess;
+  if WaitForSingleObject(Proc, dword($ffffffff)) <> $ffffffff then
+    begin
+      GetExitCodeProcess(Proc,l);
+      CloseHandle(Proc);
+      CloseHandle(PI.hThread);
+      result:=l;
+    end
+  else
+    begin
+      e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,GetLastError]);
+      e.ErrorCode:=GetLastError;
+      CloseHandle(Proc);
+      CloseHandle(PI.hThread);
+      raise e;
+    end;
+end;
+{$else}
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
+begin
+    result:=ExecuteProcess(path,comline);
+end;
+{$endif}
+{$ifend}
+{$endif}
+
 
 var
   TempHOut, TempHIn,TempHError : longint;
 
 {
-For linux the following functions exist
+For Unix the following functions exist
 Function  fpdup(oldfile:longint;var newfile:longint):Boolean;
 Function  fpdup2(oldfile,newfile:longint):Boolean;
 Function  fpClose(fd:longint):boolean;
 }
 {$ifdef go32v2}
 
-function dup(fh : longint;var nh : longint) : boolean;
+function fpdup(fh : longint) : longint;
 var
   Regs : Registers;
 begin
     Regs.ah:=$45;
     Regs.bx:=fh;
     MsDos (Regs);
-    dup:=true;
     If (Regs.Flags and fCarry)=0 then
-      nh:=Regs.Ax
+      fpdup:=Regs.Ax
     else
-      dup:=false;
+      fpdup:=-1;
 end;
 
-function dup2(fh,nh : longint) : boolean;
+function fpdup2(fh,nh : longint) : longint;
 var
   Regs : Registers;
 begin
-    dup2:=true;
+    fpdup2:=0;
     If fh=nh then
       exit;
     Regs.ah:=$46;
@@ -256,61 +301,36 @@ begin
     Regs.cx:=nh;
     MsDos (Regs);
     If (Regs.Flags and fCarry)<>0 then
-      dup2:=false;
+      fpdup2:=-1;
 end;
 
-{$ifndef ver1_0}
-function fpdup(fh:longint):longint;
-begin
-  if not dup(fh,fpdup) then
-   fpdup:=-1;
-end;
-
-function fpdup2(fh,nh:longint):longint;
-begin
-  if dup2(fh,nh) then
-   fpdup2:=0
-  else
-   fpdup2:=-1;
-end;
-{$endif ver1_0}
-
-
-Function {$ifdef ver1_0}fdclose{$else}fpclose{$endif} (Handle : Longint) : boolean;
+Function fpclose (Handle : Longint) : boolean;
 var Regs: registers;
 begin
   Regs.Eax := $3e00;
   Regs.Ebx := Handle;
   MsDos(Regs);
-  {$ifdef ver1_0}fdclose{$else}fpclose{$endif}:=(Regs.Flags and fCarry)=0;
+  fpclose:=(Regs.Flags and fCarry)=0;
 end;
 
 {$endif def go32v2}
 
 {$ifdef windows}
-Function {$ifdef ver1_0}fdclose{$else}fpclose{$endif} (Handle : Longint) : boolean;
+Function fpclose (Handle : Longint) : boolean;
 begin
   { Do we need this ?? }
-  {$ifdef ver1_0}fdclose{$else}fpclose{$endif}:=true;
+  fpclose:=true;
 end;
 {$endif}
 
 {$ifdef os2}
-Function {$ifdef ver1_0}fdclose{$else}fpclose{$endif} (Handle : Longint) : boolean;
+Function fpclose (Handle : Longint) : boolean;
 begin
   { Do we need this ?? }
-  {$ifdef ver1_0}fdclose{$else}fpclose{$endif}:=true;
+  fpclose:=true;
 end;
 {$endif}
 
-{$ifdef TP}
-Function {$ifdef ver1_0}fdclose{$else}fpclose{$endif} (Handle : Longint) : boolean;
-begin
-  { if executed as under GO32 this hangs the DOS-prompt }
-  {$ifdef ver1_0}fdclose{$else}fpclose{$endif}:=true;
-end;
-
-{$endif}
 
 {$I-}
 function FileExist(const FileName : PathStr) : Boolean;
@@ -415,13 +435,8 @@ function ChangeRedirOut(Const Redir : String; AppendToFile : Boolean) : Boolean;
 {$ifdef windows}
     if SetStdHandle(Std_Output_Handle,FileRec(FOUT^).Handle) then
 {$else not windows}
-    {$ifdef ver1_0}
-    dup(StdOutputHandle,TempHOut);
-    dup2(FileRec(FOUT^).Handle,StdOutputHandle);
-    {$else}
     TempHOut:=fpdup(StdOutputHandle);
     fpdup2(FileRec(FOUT^).Handle,StdOutputHandle);
-    {$endif}
     if (TempHOut<>UnusedHandle) and
        (StdOutputHandle<>UnusedHandle) then
 {$endif not windows}
@@ -453,13 +468,8 @@ function ChangeRedirIn(Const Redir : String) : Boolean;
 {$ifdef windows}
     if SetStdHandle(Std_Input_Handle,FileRec(FIN^).Handle) then
 {$else not windows}
-    {$ifdef ver1_0}
-    dup(StdInputHandle,TempHIn);
-    dup2(FileRec(FIn^).Handle,StdInputHandle);
-    {$else}
     TempHIn:=fpdup(StdInputHandle);
     fpdup2(FileRec(FIn^).Handle,StdInputHandle);
-    {$endif}
     if (TempHIn<>UnusedHandle) and
        (StdInputHandle<>UnusedHandle) then
 {$endif not windows}
@@ -511,13 +521,8 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
 {$ifdef windows}
     if SetStdHandle(Std_Error_Handle,FileRec(PF^).Handle) then
 {$else not windows}
-    {$ifdef ver1_0}
-    dup(StdErrorHandle,TempHError);
-    dup2(FileRec(PF^).Handle,StdErrorHandle);
-    {$else}
     TempHError:=fpdup(StdErrorHandle);
     fpdup2(FileRec(PF^).Handle,StdErrorHandle);
-    {$endif}
     if (TempHError<>UnusedHandle) and
        (StdErrorHandle<>UnusedHandle) then
 {$endif not windows}
@@ -530,56 +535,17 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
   end;
 
 
-{$IfDef MsDos}
-{Set HeapEnd Pointer to Current Used Heapsize}
-Procedure SmallHeap;assembler;
-asm
-                mov     bx,word ptr HeapPtr
-                shr     bx,4
-                inc     bx
-                add     bx,word ptr HeapPtr+2
-                mov     ax,PrefixSeg
-                sub     bx,ax
-                mov     es,ax
-                mov     ah,4ah
-                int     21h
-end;
-
-
-
-{Set HeapEnd Pointer to Full Heapsize}
-Procedure FullHeap;assembler;
-asm
-                mov     bx,word ptr HeapEnd
-                shr     bx,4
-                inc     bx
-                add     bx,word ptr HeapEnd+2
-                mov     ax,PrefixSeg
-                sub     bx,ax
-                mov     es,ax
-                mov     ah,4ah
-                int     21h
-end;
-
-{$EndIf MsDos}
-
-
   procedure RestoreRedirOut;
 
   begin
     If not RedirChangedOut then Exit;
-{$ifndef FPC}
-    Handles^[StdOutputHandle]:=OldHandleOut;
-    OldHandleOut:=StdOutputHandle;
-{$else}
 {$ifdef windows}
     SetStdHandle(Std_Output_Handle,StdOutputHandle);
 {$else not windows}
-    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(TempHOut,StdOutputHandle);
+    fpdup2(TempHOut,StdOutputHandle);
 {$endif not windows}
-{$endif FPC}
     Close (FOUT^);
-    {$ifdef ver1_0}fdclose{$else}fpclose{$endif}(TempHOut);
+    fpclose(TempHOut);
     RedirChangedOut:=false;
   end;
 
@@ -596,11 +562,11 @@ end;
 {$ifdef windows}
     SetStdHandle(Std_Input_Handle,StdInputHandle);
 {$else not windows}
-    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(TempHIn,StdInputHandle);
+    fpdup2(TempHIn,StdInputHandle);
 {$endif not windows}
 {$endif}
     Close (FIn^);
-    {$ifdef ver1_0}fdclose{$else}fpclose{$endif}(TempHIn);
+    fpclose(TempHIn);
     RedirChangedIn:=false;
   end;
 
@@ -617,7 +583,7 @@ end;
 {$ifdef windows}
     SetStdHandle(Std_Input_Handle,StdInputHandle);
 {$else not windows}
-    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(TempHIn,StdInputHandle);
+    fpdup2(TempHIn,StdInputHandle);
 {$endif not windows}
 {$endif}
     InRedirDisabled:=True;
@@ -637,7 +603,7 @@ end;
 {$ifdef windows}
     SetStdHandle(Std_Input_Handle,FileRec(FIn^).Handle);
 {$else not windows}
-    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(FileRec(FIn^).Handle,StdInputHandle);
+    fpdup2(FileRec(FIn^).Handle,StdInputHandle);
 {$endif not windows}
 {$endif}
     InRedirDisabled:=False;
@@ -656,7 +622,7 @@ end;
 {$ifdef windows}
     SetStdHandle(Std_Output_Handle,StdOutputHandle);
 {$else not windows}
-    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(TempHOut,StdOutputHandle);
+    fpdup2(TempHOut,StdOutputHandle);
 {$endif not windows}
 {$endif}
     OutRedirDisabled:=True;
@@ -676,7 +642,7 @@ end;
 {$ifdef windows}
     SetStdHandle(Std_Output_Handle,FileRec(FOut^).Handle);
 {$else not windows}
-    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(FileRec(FOut^).Handle,StdOutputHandle);
+    fpdup2(FileRec(FOut^).Handle,StdOutputHandle);
 {$endif not windows}
 {$endif}
     OutRedirDisabled:=False;
@@ -695,13 +661,13 @@ end;
 {$ifdef windows}
     SetStdHandle(Std_Error_Handle,StdErrorHandle);
 {$else not windows}
-    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(TempHError,StdErrorHandle);
+    fpdup2(TempHError,StdErrorHandle);
 {$endif not windows}
 {$endif}
     { don't close when redirected to STDOUT }
     if not RedirStdErrToStdOut then
       Close (FERR^);
-    {$ifdef ver1_0}fdclose{$else}fpclose{$endif}(TempHError);
+    fpclose(TempHError);
     RedirChangedError:=false;
   end;
 
@@ -718,7 +684,7 @@ end;
 {$ifdef windows}
     SetStdHandle(Std_Error_Handle,StdErrorHandle);
 {$else not windows}
-    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(TempHError,StdErrorHandle);
+    fpdup2(TempHError,StdErrorHandle);
 {$endif not windows}
 {$endif}
     ErrorRedirDisabled:=True;
@@ -738,7 +704,7 @@ end;
 {$ifdef windows}
     SetStdHandle(Std_Error_Handle,FileRec(FErr^).Handle);
 {$else not windows}
-    {$ifdef ver1_0}dup2{$else}fpdup2{$endif}(FileRec(FERR^).Handle,StdErrorHandle);
+    fpdup2(FileRec(FERR^).Handle,StdErrorHandle);
 {$endif not windows}
 {$endif}
     ErrorRedirDisabled:=False;
@@ -793,9 +759,6 @@ procedure RedirEnableAll;
 
 procedure InitRedir;
 begin
-{$ifndef FPC}
-  PrefSeg:=PrefixSeg;
-{$endif FPC}
 end;
 
 {$else not  implemented}
@@ -1004,10 +967,7 @@ end;
 {............................................................................}
 
   procedure DosExecute(ProgName, ComLine : String);
-{$ifdef windows}
-    var
-      StoreInherit : BOOL;
-{$endif windows}
+
 
   Begin
 {$IfDef MsDos}
@@ -1020,55 +980,63 @@ end;
 {$ifdef UNIX}
     IOStatus:=0;
     ExecuteResult:=Shell(FixPath(Progname)+' '+Comline);
-  {$ifdef ver1_0}
-    { Signal that causes the stop of the shell }
-    IOStatus:=ExecuteResult and $7F;
-    { Exit Code seems to be in the second byte,
-      is this also true for BSD ??
-      $80 bit is a CoreFlag apparently }
-    ExecuteResult:=(ExecuteResult and $ff00) shr 8;
-  {$else}
     if ExecuteResult<0 then
       begin
         IOStatus:=(-ExecuteResult) and $7f;
         ExecuteResult:=((-ExecuteResult) and $ff00) shr 8;
       end;
-  {$endif}
 {$else}
   {$ifdef windows}
-    StoreInherit:=ExecInheritsHandles;
-    ExecInheritsHandles:=true;
+
     { Avoid dialog boxes if dll loading fails }
     SetErrorMode(SEM_FAILCRITICALERRORS);
   {$endif windows}
-    DosError:=0;
     If UseComSpec then
+      begin
       {$ifndef usedos}
-      Sysutils.ExecuteProcess (Getenv('COMSPEC'),'/C '+FixPath(progname)+' '+Comline)
+        try
+          ExecuteResult:=ExecuteProcess (Getenvironmentvariable('COMSPEC'),'/C '+FixPath(progname)+' '+Comline,[ExecInheritsHandles])
+        except
+          on e : exception do
+            IOStatus:=2;
+          end;
       {$else}
-      Exec (Getenv('COMSPEC'),'/C '+FixPath(progname)+' '+Comline)
+        DosError:=0;
+        Exec (Getenv('COMSPEC'),'/C '+FixPath(progname)+' '+Comline)
+        IOStatus:=DosError;
+        ExecuteResult:=DosExitCode;
       {$endif}
+      end
     else
       begin
         if LocateExeFile(progname) then
-          {$ifndef usedos}
-          Sysutils.ExecuteProcess(ProgName,Comline)
-          {$else}
-          {$ifdef macos}
-          Dos.Exec(''''+ProgName+'''',Comline) {Quotes needed !}
-          {$else}
-          Dos.Exec(ProgName,Comline)
-          {$endif}
-          {$endif}
+          begin
+           {$ifndef usedos}
+            try
+              ExecuteResult:=ExecuteProcess(ProgName,Comline,[execinheritshandles])
+            except
+              on e : exception do
+              IOStatus:=2;
+              end;
+            {$else}
+              doserror:=0;
+              {$ifdef macos}
+                Dos.Exec(''''+ProgName+'''',Comline) {Quotes needed !}
+              {$else}
+                Dos.Exec(ProgName,Comline)
+             {$endif}
+             IOStatus:=DosError;
+             ExecuteResult:=DosExitCode;
+           {$endif}
+          end
         else
-          DosError:=2;
+          IOStatus:=2
+          ;
       end;
   {$ifdef windows}
-    ExecInheritsHandles:=StoreInherit;
     SetErrorMode(0);
   {$endif windows}
-    IOStatus:=DosError;
-    ExecuteResult:=DosExitCode;
+
 {$endif}
 {$ifdef usedos}
     SwapVectors;

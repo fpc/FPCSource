@@ -1144,7 +1144,7 @@ begin
 end;
 
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
 var
   pid    : longint;
   e      : EOSError;
@@ -1209,7 +1209,7 @@ Begin
     end;
 End;
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array Of AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array Of AnsiString;Flags:TExecuteFlags=[]):integer;
 
 var
   pid    : longint;

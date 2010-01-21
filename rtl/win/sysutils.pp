@@ -837,7 +837,8 @@ begin
 end;
 
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
+// win specific  function
 var
   SI: TStartupInfo;
   PI: TProcessInformation;
@@ -845,7 +846,7 @@ var
   l    : DWord;
   CommandLine : ansistring;
   e : EOSError;
-
+  ExecInherits : longbool;
 begin
   FillChar(SI, SizeOf(SI), 0);
   SI.cb:=SizeOf(SI);
@@ -864,8 +865,10 @@ begin
   else
     CommandLine := CommandLine + #0;
 
+  ExecInherits:=ExecInheritsHandles in Flags;
+
   if not CreateProcess(nil, pchar(CommandLine),
-    Nil, Nil, False,$20, Nil, Nil, SI, PI) then
+    Nil, Nil, ExecInherits,$20, Nil, Nil, SI, PI) then
     begin
       e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,GetLastError]);
       e.ErrorCode:=GetLastError;
@@ -889,7 +892,7 @@ begin
     end;
 end;
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString;Flags:TExecuteFlags=[]):integer;
 
 var
   CommandLine: AnsiString;
@@ -902,7 +905,7 @@ begin
     CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
    else
     CommandLine := CommandLine + ' ' + Comline [I];
-  ExecuteProcess := ExecuteProcess (Path, CommandLine);
+  ExecuteProcess := ExecuteProcess (Path, CommandLine,Flags);
 end;
 
 Procedure Sleep(Milliseconds : Cardinal);

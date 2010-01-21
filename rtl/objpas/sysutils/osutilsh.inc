@@ -12,6 +12,8 @@
 
  **********************************************************************}
 
+Type TExecuteFlags = Set of ( ExecInheritsHandles);
+
 { OS handling utilities }
 
 {$ifdef HAS_OSERROR}
@@ -24,9 +26,8 @@ Function GetEnvironmentString(Index : Integer) : String;
 {$IFDEF HAS_SLEEP}
 procedure Sleep(milliseconds: Cardinal);
 {$ENDIF}
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString):integer;
-
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString;Flags:TExecuteFlags=[]):integer;
 
 Function GetTempDir(Global : Boolean) : String;
 Function GetTempDir : String;

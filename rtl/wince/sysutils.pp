@@ -647,7 +647,7 @@ begin
 end;
 
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
 var
   PI: TProcessInformation;
   Proc : THandle;
@@ -680,7 +680,7 @@ begin
     end;
 end;
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString;Flags:TExecuteFlags=[]):integer;
 
 var
   CommandLine: AnsiString;

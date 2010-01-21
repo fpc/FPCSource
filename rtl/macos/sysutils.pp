@@ -661,7 +661,7 @@ begin
   Result:='';
 end;
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
 var
   s: AnsiString;
   wdpath: AnsiString;
@@ -696,7 +696,7 @@ Begin
     Result := 0;
 End;
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array Of AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array Of AnsiString;Flags:TExecuteFlags=[]):integer;
 begin
 end;
 
