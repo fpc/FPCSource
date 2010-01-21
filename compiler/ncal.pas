@@ -2455,7 +2455,7 @@ implementation
 
           { check for hints (deprecated etc) }
           if (procdefinition.typ = procdef) then
-            check_hints(tprocdef(procdefinition).procsym,tprocdef(procdefinition).symoptions);
+            check_hints(tprocdef(procdefinition).procsym,tprocdef(procdefinition).symoptions,tprocdef(procdefinition).deprecatedmsg);
 
           { add needed default parameters }
           if assigned(procdefinition) and

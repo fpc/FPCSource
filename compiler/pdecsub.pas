@@ -2786,6 +2786,11 @@ const
                    fwpd.fileinfo:=currpd.fileinfo;
                    if assigned(fwpd.funcretsym) then
                      fwpd.funcretsym.fileinfo:=currpd.fileinfo;
+                   if assigned(currpd.deprecatedmsg) then
+                     begin
+                       stringdispose(fwpd.deprecatedmsg);
+                       fwpd.deprecatedmsg:=stringdup(currpd.deprecatedmsg^);
+                     end;
                    { import names }
                    if assigned(currpd.import_dll) then
                      begin

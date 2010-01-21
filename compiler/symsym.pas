@@ -364,6 +364,10 @@ implementation
          ppufile.getposinfo(fileinfo);
          visibility:=tvisibility(ppufile.getbyte);
          ppufile.getsmallset(symoptions);
+         if sp_has_deprecated_msg in symoptions then
+           deprecatedmsg:=stringdup(ppufile.getstring)
+         else
+           deprecatedmsg:=nil;
       end;
 
 
@@ -374,6 +378,8 @@ implementation
          ppufile.putposinfo(fileinfo);
          ppufile.putbyte(byte(visibility));
          ppufile.putsmallset(symoptions);
+         if sp_has_deprecated_msg in symoptions then
+           ppufile.putstring(deprecatedmsg^);
       end;
 
 

@@ -482,6 +482,7 @@ const
   sym_w_experimental_symbol=05063;
   sym_w_forward_not_resolved=05064;
   sym_w_library_symbol=05065;
+  sym_w_deprecated_symbol_with_msg=05066;
   sym_e_no_enumerator=05067;
   sym_e_no_enumerator_move=05068;
   sym_e_no_enumerator_current=05069;
@@ -807,7 +808,7 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 52779;
+  MsgTxtSize = 52819;
 
   MsgIdxMax : array[1..20] of longint=(
     24,87,266,88,70,50,108,22,202,63,

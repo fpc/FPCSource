@@ -146,7 +146,8 @@ type
     sp_internal,  { internal symbol, not reported as unused }
     sp_implicitrename,
     sp_hint_experimental,
-    sp_generic_para
+    sp_generic_para,
+    sp_has_deprecated_msg
   );
   tsymoptions=set of tsymoption;
 
