@@ -730,6 +730,13 @@ implementation
                   begin
                     parse_object_proc_directives(pd);
 
+                    { check if dispid is set }
+                    if is_dispinterface(pd._class) and not (po_dispid in pd.procoptions) then
+                      begin
+                        pd.dispid:=pd._class.get_next_dispid;
+                        include(pd.procoptions, po_dispid);
+                      end;
+
                     { all Macintosh Object Pascal methods are virtual.  }
                     { this can't be a class method, because macpas mode }
                     { has no m_class                                    }

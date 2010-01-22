@@ -277,7 +277,9 @@ implementation
                   else
                     Message(parser_e_dispid_must_be_ord_const);
                   pt.free;
-                end;
+                end
+              else
+                p.dispid:=aclass.get_next_dispid;
             end;
 
       var

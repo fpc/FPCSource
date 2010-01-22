@@ -235,6 +235,8 @@ interface
        pmvcallstaticinfo = ^tmvcallstaticinfo;
        tmvcallstaticinfo = array[0..1024*1024-1] of tvmcallstatic;
        tobjectdef = class(tabstractrecorddef)
+       private
+          fcurrent_dispid: longint;
        public
           dwarf_struct_lab : tasmsymbol;
           childof        : tobjectdef;
@@ -301,6 +303,8 @@ interface
           function FindDestructor : tprocdef;
           function implements_any_interfaces: boolean;
           procedure reset; override;
+          { dispinterface support }
+          function get_next_dispid: longint;
           { enumerator support }
           function search_enumerator_get: tprocdef;
           function search_enumerator_move: tprocdef;
@@ -3792,6 +3796,7 @@ implementation
    constructor tobjectdef.create(ot : tobjecttyp;const n : string;c : tobjectdef);
      begin
         inherited create(objectdef);
+        fcurrent_dispid:=0;
         objecttype:=ot;
         objectoptions:=[];
         childof:=nil;
@@ -4551,6 +4556,12 @@ implementation
         created_in_current_module:=false;
         maybe_created_in_current_module:=false;
         classref_created_in_current_module:=false;
+      end;
+
+    function tobjectdef.get_next_dispid: longint;
+      begin
+        inc(fcurrent_dispid);
+        result:=fcurrent_dispid;
       end;
 
     function tobjectdef.search_enumerator_get: tprocdef;
