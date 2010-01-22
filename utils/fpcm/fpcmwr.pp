@@ -762,6 +762,7 @@ implementation
            { Clean }
            AddTargetVariable('clean_units');
            AddTargetVariable('clean_files');
+           AddTargetVariable('clean_programs');
            { Install }
            AddTargetVariable('install_units');
            AddTargetVariable('install_files');
