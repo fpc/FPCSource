@@ -10,7 +10,7 @@ Uses
   mysql4,
 {$else}
   mysql,
-{$endif}  
+{$endif}
   testu;
 
 { ---------------------------------------------------------------------
@@ -40,7 +40,7 @@ Function CleanTestRun(ID : Integer) : Boolean;
 Type
   TQueryResult = PMYSQL_RES;
 
-Function  ConnectToDatabase(DatabaseName,Host,User,Password : String) : Boolean;
+Function  ConnectToDatabase(DatabaseName,Host,User,Password,Port : String) : Boolean;
 Procedure DisconnectDatabase;
 Function  RunQuery (Qry : String; Var res : TQueryResult) : Boolean ;
 Procedure FreeQueryResult (Res : TQueryResult);
@@ -67,19 +67,26 @@ Var
   Connection : TMYSQL;
 
 
-Function ConnectToDatabase(DatabaseName,Host,User,Password : String) : Boolean;
+Function ConnectToDatabase(DatabaseName,Host,User,Password,Port : String) : Boolean;
 
 Var
   S : String;
-
+  PortNb : longint;
+  Error : word;
 begin
-  Verbose(V_DEBUG,'Connection params : '+DatabaseName+' '+Host+' '+User+' '+Password);
-{$ifdef ver1_0}  
+  Verbose(V_DEBUG,'Connection params : '+DatabaseName+' '+Host+' '+User+' '+Password+' '+Port);
+  if Port<>'' then
+    begin
+      Val(Port,PortNb,Error);
+      if Error<>0 then
+        PortNb:=0;
+    end;
+{$ifdef ver1_0}
   Result:=mysql_connect(@Connection,PChar(Host),PChar(User),PChar(Password))<>Nil;
-{$else}  
+{$else}
   mysql_init(@Connection);
-  Result:=mysql_real_connect(@Connection,PChar(Host),PChar(User),PChar(Password),Nil,0,Nil,0)<>Nil;
-{$endif}  
+  Result:=mysql_real_connect(@Connection,PChar(Host),PChar(User),PChar(Password),Nil,PortNb,Nil,0)<>Nil;
+{$endif}
   If Not Result then
     begin
     S:=Strpas(mysql_error(@connection));
@@ -294,7 +301,7 @@ begin
   else if FileExists(FileName+'.pp') then
     FileName := FileName + '.pp'
   else exit;
-  
+
   Verbose(V_Debug,'Reading '+FileName);
   assign(t,FileName);
   {$I-}

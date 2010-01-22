@@ -65,6 +65,7 @@ TConfigOpt = (
   soHost,
   coUserName,
   coPassword,
+  coPort,
   coLogFile,
   coOS,
   coCPU,
@@ -86,6 +87,7 @@ ConfigStrings : Array [TConfigOpt] of string = (
   'host',
   'username',
   'password',
+  'port',
   'logfile',
   'os',
   'cpu',
@@ -101,7 +103,7 @@ ConfigStrings : Array [TConfigOpt] of string = (
 );
 
 ConfigOpts : Array[TConfigOpt] of char
-           = ('d','h','u','p','l','o','c','a','v','t','s','m','C','S','r','V');
+           = ('d','h','u','p','P','l','o','c','a','v','t','s','m','C','S','r','V');
 
 Var
   TestOS,
@@ -112,6 +114,7 @@ Var
   HostName,
   UserName,
   Password,
+  Port,
   LogFileName,
   Submitter,
   Machine,
@@ -127,12 +130,13 @@ begin
     soHost         : HostName:=Value;
     coUserName     : UserName:=Value;
     coPassword     : Password:=Value;
+    coPort         : Port:=Value;
     coLogFile      : LogFileName:=Value;
     coOS           : TestOS:=Value;
     coCPU          : TestCPU:=Value;
     coCategory     : TestCategory:=Value;
     coVersion      : TestVersion:=Value;
-    coDate         : 
+    coDate         :
       begin
         { Formated like YYYYMMDDhhmm }
 	if Length(value)=12 then
@@ -145,7 +149,7 @@ begin
 	    TestDate:=EncodeDate(year,month,day)+EncodeTime(hour,min,0,0);
 	  end
 	else
-	  Verbose(V_Error,'Error in date format, use YYYYMMDDhhmm');  
+	  Verbose(V_Error,'Error in date format, use YYYYMMDDhhmm');
       end;
     coSubmitter    : Submitter:=Value;
     coMachine      : Machine:=Value;
@@ -362,7 +366,7 @@ begin
               TestLog:=GetExecuteLog(Line);
               if pos(failed_to_compile,TestLog)=1 then
                 TestLog:=GetLog(Line);
-            end  
+            end
           else
             TestLog:='';
           AddTestResult(ID,TestRunID,Ord(TS),TestOK[TS],TestSkipped[TS],TestLog);
@@ -397,7 +401,7 @@ begin
   ProcessCommandLine;
   If LogFileName<>'' then
     begin
-    ConnectToDatabase(DatabaseName,HostName,UserName,Password);
+    ConnectToDatabase(DatabaseName,HostName,UserName,Password,Port);
     GetIDs;
     ProcessFile(LogFileName);
     UpdateTestRun;
