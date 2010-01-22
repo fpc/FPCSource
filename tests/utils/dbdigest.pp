@@ -80,6 +80,17 @@ TConfigOpt = (
   coVerbose
  );
 
+{ Additional options only for dbdigest.cfg file }
+
+TConfigAddOpt = (
+  coCompilerDate,
+  coCompilerFullVersion,
+  coSvnCompilerRevision,
+  coSvnTestsRevision,
+  coSvnRTLRevision,
+  coSvnPackagesRevision
+ );
+
 Const
 
 ConfigStrings : Array [TConfigOpt] of string = (
@@ -102,6 +113,24 @@ ConfigStrings : Array [TConfigOpt] of string = (
   'verbose'
 );
 
+ConfigAddStrings : Array [TConfigAddOpt] of string = (
+  'compilerdate',
+  'compilerfullversion',
+  'svncompilerrevision',
+  'svntestsrevision',
+  'svntlrevision',
+  'svnpackagesrevision'
+ );
+
+ConfigAddCols : Array [TConfigAddOpt] of string = (
+  'TU_COMPILERDATE',
+  'TU_COMPILERFULLVERSION',
+  'TU_SVNCOMPILERREVIVISION',
+  'TU_SVNTESTSREVISION',
+  'TU_SVNRTLREVISION',
+  'TU_SVNPACKAGESREVISION'
+ );
+
 ConfigOpts : Array[TConfigOpt] of char
            = ('d','h','u','p','P','l','o','c','a','v','t','s','m','C','S','r','V');
 
@@ -120,6 +149,30 @@ Var
   Machine,
   Comment : String;
   TestDate : TDateTime;
+  TestCompilerDate,
+  TestCompilerFullVersion,
+  TestSvnCompilerRevision,
+  TestSvnTestsRevision,
+  TestSvnRTLRevision,
+  TestSvnPackagesRevision : String;
+
+Procedure SetAddOpt (O : TConfigAddOpt; Value : string);
+begin
+  Case O of
+    coCompilerDate:
+      TestCompilerDate:=Value;
+    coCompilerFullVersion:
+      TestCompilerFullVersion:=Value;
+    coSvnCompilerRevision:
+      TestSvnCompilerRevision:=Value;
+    coSvnTestsRevision:
+      TestSvnTestsRevision:=Value;
+    coSvnRTLRevision:
+      TestSvnRTLRevision:=Value;
+    coSvnPackagesRevision:
+      TestSvnPackagesRevision:=Value;
+  end;
+end;
 
 Procedure SetOpt (O : TConfigOpt; Value : string);
 var
@@ -178,6 +231,7 @@ Var
   N : String;
   I : Integer;
   co : TConfigOpt;
+  coa : TConfigAddOpt;
 
 begin
   Verbose(V_DEBUG,'Processing option: '+S);
@@ -191,13 +245,22 @@ begin
       begin
       Result:=CompareText(ConfigStrings[co],N)=0;
       If Result then
-        Break;
+        begin
+          SetOpt(co,S);
+          Exit;
+        end;
+      end;
+    For coa:=low(TConfigAddOpt) to high(TConfigAddOpt) do
+      begin
+      Result:=CompareText(ConfigAddStrings[coa],N)=0;
+      If Result then
+        begin
+          SetAddOpt(coa,S);
+          Exit;
+        end;
       end;
     end;
- If Result then
-   SetOpt(co,S)
- else
-   Verbose(V_ERROR,'Unknown option : '+n+S);
+  Verbose(V_ERROR,'Unknown option : '+n+S);
 end;
 
 Procedure ProcessConfigfile(FN : String);
@@ -390,6 +453,19 @@ procedure UpdateTestRun;
     qry:='UPDATE TESTRUN SET ';
     for i:=low(TTestStatus) to high(TTestStatus) do
       qry:=qry+format('%s=%d, ',[SQLField[i],StatusCount[i]]);
+    if TestCompilerDate<>'' then
+      qry:=qry+format('%s="%s", ',[ConfigAddCols[coCompilerDate],EscapeSQL(TestCompilerDate)]);
+    if TestCompilerFullVersion<>'' then
+      qry:=qry+format('%s="%s", ',[ConfigAddCols[coCompilerFullVersion],EscapeSQL(TestCompilerFullVersion)]);
+    if TestSvnCompilerRevision<>'' then
+      qry:=qry+format('%s="%s", ',[ConfigAddCols[coSvnCompilerRevision],EscapeSQL(TestSvnCompilerRevision)]);
+    if TestSvnTestsRevision<>'' then
+      qry:=qry+format('%s="%s", ',[ConfigAddCols[coSvnTestsRevision],EscapeSQL(TestSvnTestsRevision)]);
+    if TestSvnRTLRevision<>'' then
+      qry:=qry+format('%s="%s", ',[ConfigAddCols[coSvnRTLRevision],EscapeSQL(TestSvnRTLRevision)]);
+    if TestSvnPackagesRevision<>'' then
+      qry:=qry+format('%s="%s", ',[ConfigAddCols[coSvnPackagesRevision],EscapeSQL(TestSvnPackagesRevision)]);
+
     qry:=qry+format('TU_SUBMITTER="%s", TU_MACHINE="%s", TU_COMMENT="%s", TU_DATE="%s"',[Submitter,Machine,Comment,SqlDate(TestDate)]);
     qry:=qry+' WHERE TU_ID='+format('%d',[TestRunID]);
     RunQuery(Qry,res)
