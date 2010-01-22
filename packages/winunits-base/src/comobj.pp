@@ -1346,59 +1346,60 @@ HKCR
           GetMem(Arguments,desc^.calldesc.argcount*sizeof(TVarData));
 
         { prepare parameters }
-        for i:=0 to desc^.CallDesc.ArgCount-1 do
-          begin
-{$ifdef DEBUG_DISPATCH}
-            writeln('DoDispCallByID: Params = ',hexstr(PtrInt(Params),SizeOf(Pointer)*2));
-{$endif DEBUG_DISPATCH}
-            { get plain type }
-            CurrType:=desc^.CallDesc.ArgTypes[i] and $3f;
-            { by reference? }
-            if (desc^.CallDesc.ArgTypes[i] and $80)<>0 then
-              begin
-{$ifdef DEBUG_DISPATCH}
-                write('DispatchInvoke: Got ref argument with type = ',CurrType);
-                writeln;
-{$endif DEBUG_DISPATCH}
-                Arguments[i].VType:=CurrType or VarByRef;
-                Arguments[i].VPointer:=PPointer(Params)^;
-                inc(PPointer(Params));
-              end
-            else
-              begin
-{$ifdef DEBUG_DISPATCH}
-                writeln('DispatchInvoke: Got ref argument with type = ',CurrType);
-{$endif DEBUG_DISPATCH}
-                case CurrType of
-                  varVariant:
+        if desc^.CallDesc.ArgCount > 0 then
+          for i:=0 to desc^.CallDesc.ArgCount-1 do
+            begin
+  {$ifdef DEBUG_DISPATCH}
+              writeln('DoDispCallByID: Params = ',hexstr(PtrInt(Params),SizeOf(Pointer)*2));
+  {$endif DEBUG_DISPATCH}
+              { get plain type }
+              CurrType:=desc^.CallDesc.ArgTypes[i] and $3f;
+              { by reference? }
+              if (desc^.CallDesc.ArgTypes[i] and $80)<>0 then
+                begin
+  {$ifdef DEBUG_DISPATCH}
+                  write('DispatchInvoke: Got ref argument with type = ',CurrType);
+                  writeln;
+  {$endif DEBUG_DISPATCH}
+                  Arguments[i].VType:=CurrType or VarByRef;
+                  Arguments[i].VPointer:=PPointer(Params)^;
+                  inc(PPointer(Params));
+                end
+              else
+                begin
+  {$ifdef DEBUG_DISPATCH}
+                  writeln('DispatchInvoke: Got ref argument with type = ',CurrType);
+  {$endif DEBUG_DISPATCH}
+                  case CurrType of
+                    varVariant:
+                      begin
+                        Arguments[i].VType:=CurrType;
+                        move(PVarData(Params)^,Arguments[i],sizeof(TVarData));
+                        inc(PVarData(Params));
+                      end;
+                    varCurrency,
+                    varDouble,
+                    VarDate:
+                      begin
+  {$ifdef DEBUG_DISPATCH}
+                        writeln('DispatchInvoke: Got 8 byte float argument');
+  {$endif DEBUG_DISPATCH}
+                        Arguments[i].VType:=CurrType;
+                        move(PPointer(Params)^,Arguments[i].VDouble,sizeof(Double));
+                        inc(PDouble(Params));
+                      end;
+                  else
                     begin
+  {$ifdef DEBUG_DISPATCH}
+                      writeln('DispatchInvoke: Got argument with type ',CurrType);
+  {$endif DEBUG_DISPATCH}
                       Arguments[i].VType:=CurrType;
-                      move(PVarData(Params)^,Arguments[i],sizeof(TVarData));
-                      inc(PVarData(Params));
+                      Arguments[i].VPointer:=PPointer(Params)^;
+                      inc(PPointer(Params));
                     end;
-                  varCurrency,
-                  varDouble,
-                  VarDate:
-                    begin
-{$ifdef DEBUG_DISPATCH}
-                      writeln('DispatchInvoke: Got 8 byte float argument');
-{$endif DEBUG_DISPATCH}
-                      Arguments[i].VType:=CurrType;
-                      move(PPointer(Params)^,Arguments[i].VDouble,sizeof(Double));
-                      inc(PDouble(Params));
-                    end;
-                else
-                  begin
-{$ifdef DEBUG_DISPATCH}
-                    writeln('DispatchInvoke: Got argument with type ',CurrType);
-{$endif DEBUG_DISPATCH}
-                    Arguments[i].VType:=CurrType;
-                    Arguments[i].VPointer:=PPointer(Params)^;
-                    inc(PPointer(Params));
-                  end;
+                end;
               end;
             end;
-          end;
         dispparams.cArgs:=desc^.calldesc.argcount;
         dispparams.rgvarg:=pointer(Arguments);
 
