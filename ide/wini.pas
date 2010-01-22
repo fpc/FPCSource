@@ -92,6 +92,10 @@ uses
   {$Q-}
   {$DEFINE REENABLE_Q}
 {$ENDIF}
+{$IFOPT R+}
+  {$R-}
+  {$DEFINE REENABLE_R}
+{$ENDIF}
 
 function CalcHash(const s: String): Cardinal;
 var
@@ -104,6 +108,9 @@ end;
 
 {$IFDEF REENABLE_Q}
   {$Q+}
+{$ENDIF}
+{$IFDEF REENABLE_R}
+  {$R+}
 {$ENDIF}
 
 constructor TINIEntry.Init(const ALine: string);
