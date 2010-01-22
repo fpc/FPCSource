@@ -2229,6 +2229,54 @@ begin
    end;
 end;
 
+procedure readmoduleoptions(space : string);
+type
+  tmoduleoption = (mo_none,
+    mo_hint_deprecated,
+    mo_hint_platform,
+    mo_hint_library,
+    mo_hint_unimplemented,
+    mo_hint_experimental,
+    mo_has_deprecated_msg
+  );
+  tmoduleoptions = set of tmoduleoption;
+  tmoduleopt=record
+    mask : tmoduleoption;
+    str  : string[30];
+  end;
+const
+  moduleopts=6;
+  moduleopt : array[1..moduleopts] of tmoduleopt=(
+     (mask:mo_hint_deprecated;    str:'Hint Deprecated'),
+     (mask:mo_hint_platform;      str:'Hint Platform'),
+     (mask:mo_hint_library;       str:'Hint Library'),
+     (mask:mo_hint_unimplemented; str:'Hint Unimplemented'),
+     (mask:mo_hint_experimental;  str:'Hint Experimental'),
+     (mask:mo_has_deprecated_msg; str:'Has Deprecated Message')
+  );
+var
+  moduleoptions : tmoduleoptions;
+  i      : longint;
+  first  : boolean;
+begin
+  ppufile.getsmallset(moduleoptions);
+  if moduleoptions<>[] then
+   begin
+     first:=true;
+     for i:=1to moduleopts do
+      if (moduleopt[i].mask in moduleoptions) then
+       begin
+         if first then
+           first:=false
+         else
+           write(', ');
+         write(moduleopt[i].str);
+       end;
+   end;
+  writeln;
+  if mo_has_deprecated_msg in moduleoptions then
+    writeln(space,'Deprecated : ', ppufile.getstring);
+end;
 
 {****************************************************************************
                            Read General Part
@@ -2247,6 +2295,9 @@ begin
 
          ibmodulename :
            Writeln('Module Name: ',getstring);
+
+         ibmoduleoptions:
+           readmoduleoptions('  ');
 
          ibsourcefiles :
            begin
