@@ -781,6 +781,8 @@ implementation
                if (m_mac in current_settings.modeswitches) and
                   assigned(pu.u.globalmacrosymtable) then
                  macrosymtablestack.push(pu.u.globalmacrosymtable);
+               { check hints }
+               pu.u.check_hints;
              end;
             pu:=tused_unit(pu.next);
           end;
@@ -945,6 +947,55 @@ implementation
         current_module.globalmacrosymtable.insert(tmacro(p).getcopy);
       end;
 
+    function try_consume_hintdirective(var moduleopt:tmoduleoptions; var deprecatedmsg:pshortstring):boolean;
+      var
+        last_is_deprecated:boolean;
+      begin
+        try_consume_hintdirective:=false;
+        repeat
+          last_is_deprecated:=false;
+          case idtoken of
+            _LIBRARY :
+              begin
+                include(moduleopt,mo_hint_library);
+                try_consume_hintdirective:=true;
+              end;
+            _DEPRECATED :
+              begin
+                include(moduleopt,mo_hint_deprecated);
+                try_consume_hintdirective:=true;
+                last_is_deprecated:=true;
+              end;
+            _EXPERIMENTAL :
+              begin
+                include(moduleopt,mo_hint_experimental);
+                try_consume_hintdirective:=true;
+              end;
+            _PLATFORM :
+              begin
+                include(moduleopt,mo_hint_platform);
+                try_consume_hintdirective:=true;
+              end;
+            _UNIMPLEMENTED :
+              begin
+                include(moduleopt,mo_hint_unimplemented);
+                try_consume_hintdirective:=true;
+              end;
+            else
+              break;
+          end;
+          consume(Token);
+          { handle deprecated message }
+          if ((token=_CSTRING) or (token=_CCHAR)) and last_is_deprecated then
+            begin
+              if deprecatedmsg<>nil then
+                internalerror(201001221);
+              deprecatedmsg:=stringdup(pattern);
+              consume(token);
+              include(moduleopt,mo_has_deprecated_msg);
+            end;
+        until false;
+      end;
 
     procedure proc_unit;
 
@@ -1036,6 +1087,10 @@ implementation
            exportlib.preparelib(current_module.realmodulename^);
 
          consume(_ID);
+
+         { parse hint directives }
+         try_consume_hintdirective(current_module.moduleoptions, current_module.deprecatedmsg);
+
          consume(_SEMICOLON);
          consume(_INTERFACE);
          { global switches are read, so further changes aren't allowed }

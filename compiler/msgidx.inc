@@ -518,6 +518,12 @@ const
   sym_n_private_type_not_used=05071;
   sym_n_private_const_not_used=05072;
   sym_n_private_property_not_used=05073;
+  sym_w_deprecated_unit=05074;
+  sym_w_deprecated_unit_with_msg=05075;
+  sym_w_non_portable_unit=05076;
+  sym_w_library_unit=05077;
+  sym_w_non_implemented_unit=05078;
+  sym_w_experimental_unit=05079;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -844,9 +850,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 55476;
+  MsgTxtSize = 55693;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,87,286,95,74,51,110,22,202,63,
+    24,87,286,95,80,51,110,22,202,63,
     49,20,1,1,1,1,1,1,1,1
   );

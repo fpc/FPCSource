@@ -1,5 +1,10 @@
 { %version=1.1 }
 
+program thintdir;
+
+uses
+  uhintdir;
+
 {$mode delphi}
 
 type

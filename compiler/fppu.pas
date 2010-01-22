@@ -949,6 +949,15 @@ var
                  modulename:=stringdup(upper(newmodulename));
                  realmodulename:=stringdup(newmodulename);
                end;
+             ibmoduleoptions:
+               begin
+                 ppufile.getsmallset(moduleoptions);
+                 if mo_has_deprecated_msg in moduleoptions then
+                   begin
+                     stringdispose(deprecatedmsg);
+                     deprecatedmsg:=stringdup(ppufile.getstring);
+                   end;
+               end;
              ibsourcefiles :
                readsourcefiles;
 {$IFDEF MACRO_DIFF_HINT}
@@ -1048,6 +1057,11 @@ var
          { first the unitname }
          ppufile.putstring(realmodulename^);
          ppufile.writeentry(ibmodulename);
+
+         ppufile.putsmallset(moduleoptions);
+         if mo_has_deprecated_msg in moduleoptions then
+           ppufile.putstring(deprecatedmsg^);
+         ppufile.writeentry(ibmoduleoptions);
 
          { write the alternate main procedure name if any }
          if assigned(mainname) then
@@ -1195,6 +1209,11 @@ var
          { first the unitname }
          ppufile.putstring(realmodulename^);
          ppufile.writeentry(ibmodulename);
+
+         ppufile.putsmallset(moduleoptions);
+         if mo_has_deprecated_msg in moduleoptions then
+           ppufile.putstring(deprecatedmsg^);
+         ppufile.writeentry(ibmoduleoptions);
 
          { the interface units affect the crc }
          writeusedunit(true);

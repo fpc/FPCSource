@@ -9305,6 +9305,7 @@ tests/test/ugeneric14.pp svneol=native#text/plain
 tests/test/ugeneric3.pp svneol=native#text/plain
 tests/test/ugeneric4.pp svneol=native#text/plain
 tests/test/ugeneric7.pp svneol=native#text/plain
+tests/test/uhintdir.pp svneol=native#text/plain
 tests/test/uimpluni1.pp svneol=native#text/plain
 tests/test/uimpluni2.pp svneol=native#text/plain
 tests/test/uinline4a.pp svneol=native#text/plain

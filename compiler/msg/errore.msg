@@ -1615,7 +1615,7 @@ type_e_objcclass_type_expected=04094_E_Objcclass type expected
 #
 # Symtable
 #
-# 05073 is the last used one
+# 05079 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1818,6 +1818,34 @@ sym_n_private_const_not_used=05072_N_Private const "$1.$2" never used
 % The indicated private const is declared but is never used in the code.
 sym_n_private_property_not_used=05073_N_Private property "$1.$2" never used
 % The indicated private property is declared but is never used in the code.
+sym_w_deprecated_unit=05074_W_Unit "$1" is deprecated
+% This means that a unit which is
+% declared as \var{deprecated} is used. Deprecated units may no longer
+% be available in newer versions of the library. Use of this unit
+% should be avoided as much as possible.
+sym_w_deprecated_unit_with_msg=05075_W_Unit "$1" is deprecated: "$2"
+% This means that a unit which is
+% declared as \var{deprecated} is used. Deprecated units may no longer
+% be available in newer versions of the library. Use of this unit
+% should be avoided as much as possible.
+sym_w_non_portable_unit=05076_W_Unit "$1" is not portable
+% This means that a unit which is
+% declared as \var{platform} is used. This unit use
+% and availability is platform specific and should not be used
+% if the source code must be portable.
+sym_w_library_unit=05077_W_Unit "$1" is belongs to a library
+% This means that a unit which is
+% declared as \var{library} is used. Library units may not be
+% available in other libraries.
+sym_w_non_implemented_unit=05078_W_Unit "$1" is not implemented
+% This means that a unit which is
+% declared as \var{unimplemented} is used. This unit is defined,
+% but is not yet implemented on this specific platform.
+sym_w_experimental_unit=05079_W_Unit "$1" is experimental
+% This means that a unit which is
+% declared as \var{experimental} is used. Experimental units
+% might disappear or change semantics in future versions. Usage of this unit
+% should be avoided as much as possible.
 % \end{description}
 #
 # Codegenerator

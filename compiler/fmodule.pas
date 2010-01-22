@@ -57,6 +57,17 @@ interface
         rr_noppu,rr_sourcenewer,rr_build,rr_crcchanged
       );
 
+      { unit options }
+      tmoduleoption = (mo_none,
+        mo_hint_deprecated,
+        mo_hint_platform,
+        mo_hint_library,
+        mo_hint_unimplemented,
+        mo_hint_experimental,
+        mo_has_deprecated_msg
+      );
+      tmoduleoptions = set of tmoduleoption;
+
       tlinkcontaineritem=class(tlinkedlistitem)
       public
          data : pshortstring;
@@ -90,6 +101,8 @@ interface
         modulename  : pshortstring;
       end;
       pderefmap = ^tderefmaprec;
+
+      { tmodule }
 
       tmodule = class(tmodulebase)
       private
@@ -163,6 +176,9 @@ interface
         locallibrarysearchpath,
         localframeworksearchpath : TSearchPathList;
 
+        moduleoptions: tmoduleoptions;
+        deprecatedmsg: pshortstring;
+
         {create creates a new module which name is stored in 's'. LoadedFrom
         points to the module calling it. It is nil for the first compiled
         module. This allow inheritence of all path lists. MUST pay attention
@@ -174,6 +190,7 @@ interface
         procedure flagdependent(callermodule:tmodule);
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
         procedure updatemaps;
+        procedure check_hints;
         function  derefidx_unit(id:longint):longint;
         function  resolve_unit(id:longint):tmodule;
         procedure allunitsused;
@@ -518,6 +535,8 @@ implementation
         is_dbginfo_written:=false;
         is_reset:=false;
         mode_switch_allowed:= true;
+        moduleoptions:=[];
+        deprecatedmsg:=nil;
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=TAsmData.create(realmodulename^);
@@ -596,6 +615,7 @@ implementation
         stringdispose(realmodulename);
         stringdispose(mainsource);
         stringdispose(asmprefix);
+        stringdispose(deprecatedmsg);
         localunitsearchpath.Free;
         localobjectsearchpath.free;
         localincludesearchpath.free;
@@ -729,6 +749,8 @@ implementation
         in_interface:=true;
         in_global:=true;
         mode_switch_allowed:=true;
+        stringdispose(deprecatedmsg);
+        moduleoptions:=[];
         is_dbginfo_written:=false;
         is_reset:=false;
         crc:=0;
@@ -837,6 +859,23 @@ implementation
             inc(i);
             hp:=tmodule(hp.next);
           end;
+      end;
+
+    procedure tmodule.check_hints;
+      begin
+        if mo_hint_deprecated in moduleoptions then
+          if (mo_has_deprecated_msg in moduleoptions) and (deprecatedmsg <> nil) then
+            Message2(sym_w_deprecated_unit_with_msg,realmodulename^,deprecatedmsg^)
+          else
+            Message1(sym_w_deprecated_unit,realmodulename^);
+        if mo_hint_experimental in moduleoptions then
+          Message1(sym_w_experimental_unit,realmodulename^);
+        if mo_hint_platform in moduleoptions then
+          Message1(sym_w_non_portable_unit,realmodulename^);
+        if mo_hint_library in moduleoptions then
+          Message1(sym_w_library_unit,realmodulename^);
+        if mo_hint_unimplemented in moduleoptions then
+          Message1(sym_w_non_implemented_unit,realmodulename^);
       end;
 
 
