@@ -618,43 +618,55 @@ begin
   Result:=SearchBuf(Buf,BufLen,SelStart,SelLength,SearchString,[soDown]);
 end;
 
-
 Function PosEx(const SubStr, S: string; Offset: Cardinal): Integer;
 
-var i : pchar;
+var
+  i,MaxLen, SubLen : SizeInt;
+  SubFirst: Char;
+  pc : pchar;
 begin
-  if (offset<1) or (offset>SizeUInt(length(s))) then exit(0);
-  i:=strpos(@s[offset],@substr[1]);
-  if i=nil then
-    PosEx:=0
-  else
-    PosEx:=succ(i-pchar(pointer(s)));
+  PosEx:=0;
+  SubLen := Length(SubStr);
+  if (SubLen > 0) and (Offset > 0) and (Offset <= Cardinal(Length(S))) then
+   begin
+    MaxLen := Length(S)- SubLen;
+    SubFirst := SubStr[1];
+    i := indexbyte(S[Offset],Length(S) - Offset + 1, Byte(SubFirst));
+    while (i >= 0) and ((i + sizeint(Offset) - 1) <= MaxLen) do
+    begin
+      pc := @S[i+SizeInt(Offset)];
+      //we know now that pc^ = SubFirst, because indexbyte returned a value > -1
+      if (CompareByte(Substr[1],pc^,SubLen) = 0) then
+      begin
+        PosEx := i + SizeInt(Offset);
+        Exit;
+      end;
+      //point Offset to next char in S
+      Offset := sizeuint(i) + Offset + 1;
+      i := indexbyte(S[Offset],Length(S) - Offset + 1, Byte(SubFirst));
+    end;
+  end;
 end;
 
+Function PosEx(c:char; const S: string; Offset: Cardinal): Integer;
+
+var
+  Len : longint;
+  p: SizeInt;
+begin
+  Len := length(S);
+  if (Offset < 1) or (Offset > SizeUInt(Length(S))) then exit(0);
+  Len := length(S);
+  p := indexbyte(S[Offset],Len-offset+1,Byte(c));
+  if (p < 0) then
+    PosEx := 0
+  else
+    PosEx := p + sizeint(Offset);
+end; 
 
 Function PosEx(const SubStr, S: string): Integer;inline; // Offset: Cardinal = 1
 begin
   posex:=posex(substr,s,1);
-end;
-
-
-Function PosEx(c:char; const S: string; Offset: Cardinal): Integer;
-
-var l : longint;
-begin
-  if (offset<1) or (offset>SizeUInt(length(s))) then exit(0);
-  l:=length(s);
-{$ifndef useindexbyte}
-  while (SizeInt(offset)<=l) and (s[offset]<>c) do inc(offset);
-  if SizeInt(offset)>l then
-   posex:=0
-  else
-   posex:=offset;
-{$else}
-  posex:=offset+indexbyte(s[offset],l-offset+1);
-  if posex=(offset-1) then
-    posex:=0;
-{$endif}
 end;
 
 function StringsReplace(const S: string; OldPattern, NewPattern: array of string;  Flags: TReplaceFlags): string;
