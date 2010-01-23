@@ -399,6 +399,9 @@ implementation
         names := '';
         while assigned(para) do
           begin
+            if para.left.nodetype=nothingn then
+              break;
+
             if assigned(para.parametername) then
               begin
                 if para.parametername.nodetype=stringconstn then
@@ -410,34 +413,43 @@ implementation
             dispatchbyref:=para.left.resultdef.typ in [variantdef];
 
             { assign the argument/parameter to the temporary location }
-            if para.left.nodetype<>nothingn then
-              if dispatchbyref then
+
+            if dispatchbyref then
+              addstatement(statements,cassignmentnode.create(
+                ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
+                  caddrnode.create(ctemprefnode.create(params)),
+                  cordconstnode.create(qword(paramssize),ptruinttype,false)
+                )),voidpointertype),
+                ctypeconvnode.create_internal(caddrnode.create_internal(para.left),voidpointertype)))
+            else
+              begin
+                case para.left.resultdef.size of
+                  1..4:
+                    assignmenttype:=u32inttype;
+                  8:
+                    assignmenttype:=u64inttype;
+                  else
+                    internalerror(2007042801);
+                end;
                 addstatement(statements,cassignmentnode.create(
                   ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
                     caddrnode.create(ctemprefnode.create(params)),
-                    cordconstnode.create(qword(paramssize),ptruinttype,false)
-                  )),voidpointertype),
-                  ctypeconvnode.create_internal(caddrnode.create_internal(para.left),voidpointertype)))
-              else
-                begin
-                  case para.left.resultdef.size of
-                    1..4:
-                      assignmenttype:=u32inttype;
-                    8:
-                      assignmenttype:=u64inttype;
-                    else
-                      internalerror(2007042801);
-                  end;
-                  addstatement(statements,cassignmentnode.create(
-                    ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
-                      caddrnode.create(ctemprefnode.create(params)),
-                      cordconstnode.create(paramssize,ptruinttype,false)
-                    )),assignmenttype),
-                    ctypeconvnode.create_internal(para.left,assignmenttype)));
-                end;
+                    cordconstnode.create(paramssize,ptruinttype,false)
+                  )),assignmenttype),
+                  ctypeconvnode.create_internal(para.left,assignmenttype)));
+              end;
 
             if is_ansistring(para.left.resultdef) then
               calldesc.argtypes[currargpos]:=varStrArg
+            else
+            if is_interface(para.left.resultdef) then
+              begin
+                { distinct IDispatch and IUnknown interfaces }
+                if tobjectdef(para.left.resultdef).is_related(tobjectdef(search_system_type('IDISPATCH').typedef)) then
+                  calldesc.argtypes[currargpos]:=vardispatch
+                else
+                  calldesc.argtypes[currargpos]:=varunknown;
+              end
             else
               calldesc.argtypes[currargpos]:=para.left.resultdef.getvardef;
 
