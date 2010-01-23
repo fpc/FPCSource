@@ -508,6 +508,7 @@ implementation
             addstatement(statements,ctempdeletenode.create_normal_temp(result_data));
             addstatement(statements,ctemprefnode.create(result_data));
           end;
+        addstatement(statements,ctempdeletenode.create(params));
       end;
 
 
