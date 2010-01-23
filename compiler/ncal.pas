@@ -410,7 +410,8 @@ implementation
                   internalerror(200611041);
               end;
 
-            dispatchbyref:=(para.parasym.varspez in [vs_var,vs_out]) or (para.left.resultdef.typ in [variantdef]);
+            dispatchbyref:=(assigned(para.parasym) and (para.parasym.varspez in [vs_var,vs_out])) or
+                           (para.left.resultdef.typ in [variantdef]);
 
             { assign the argument/parameter to the temporary location }
 
