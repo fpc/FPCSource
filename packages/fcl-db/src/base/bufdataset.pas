@@ -1323,7 +1323,7 @@ end;
 procedure TBufDataset.ProcessFieldCompareStruct(AField: TField; var ACompareRec : TDBCompareRec);
 begin
   case AField.DataType of
-    ftString : ACompareRec.Comparefunc := @DBCompareText;
+    ftString, ftFixedChar : ACompareRec.Comparefunc := @DBCompareText;
     ftSmallint : ACompareRec.Comparefunc := @DBCompareSmallInt;
     ftInteger, ftBCD : ACompareRec.Comparefunc :=
       @DBCompareInt;
@@ -1334,7 +1334,7 @@ begin
       @DBCompareDouble;
     ftLargeint : ACompareRec.Comparefunc := @DBCompareLargeInt;
   else
-    DatabaseErrorFmt(SErrIndexBasedOnInvField, [Fieldtypenames[AField.DataType]]);
+    DatabaseErrorFmt(SErrIndexBasedOnInvField, [AField.FieldName,Fieldtypenames[AField.DataType]]);
   end;
 
   ACompareRec.Off1:=sizeof(TBufRecLinkItem)*FMaxIndexesCount+
