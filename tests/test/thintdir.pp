@@ -2,10 +2,10 @@
 
 program thintdir;
 
+{$mode delphi}
+
 uses
   uhintdir;
-
-{$mode delphi}
 
 type
   t1 = record
