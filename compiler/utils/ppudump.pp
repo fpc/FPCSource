@@ -32,9 +32,9 @@ uses
   tokens;
 
 const
-  Version   = 'Version 2.3.1';
+  Version   = 'Version 2.5.1';
   Title     = 'PPU-Analyser';
-  Copyright = 'Copyright (c) 1998-2007 by the Free Pascal Development Team';
+  Copyright = 'Copyright (c) 1998-2010 by the Free Pascal Development Team';
 
 { verbosity }
   v_none           = $0;
@@ -886,6 +886,9 @@ var
   first  : boolean;
   tokenbufsize : longint;
   tokenbuf : pbyte;
+  len : sizeint;
+  wstring : widestring;
+  astring : ansistring;
 begin
   writeln(space,'** Definition Id ',ppufile.getlongint,' **');
   writeln(space,s);
@@ -942,24 +945,30 @@ begin
             _CWSTRING :
               begin
                 inc(i);
-              {
-                replaytokenbuf.read(wlen,sizeof(SizeInt));
-                setlengthwidestring(patternw,wlen);
-                replaytokenbuf.read(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
-                pattern:='';
-              }
+                len:=psizeint(@tokenbuf[i])^;
+                inc(i,sizeof(sizeint));
+                setlength(wstring,len);
+                move(tokenbuf[i],wstring[1],len*2);
+                write(' ',wstring);
+                inc(i,len*2);
+              end;
+            _CSTRING:
+              begin
+                inc(i);
+                len:=psizeint(@tokenbuf[i])^;
+                inc(i,sizeof(sizeint));
+                setlength(astring,len);
+                move(tokenbuf[i],astring[1],len);
+                write(' ',astring);
+                inc(i,len);
               end;
             _CCHAR,
-            _CSTRING,
             _INTCONST,
             _REALNUMBER :
               begin
                 inc(i);
-              {
-                replaytokenbuf.read(pattern[0],1);
-                replaytokenbuf.read(pattern[1],length(pattern));
-                orgpattern:='';
-              }
+                write(' ',pshortstring(@tokenbuf[i])^);
+                inc(i,tokenbuf[i]+1);
               end;
             _ID :
               begin
