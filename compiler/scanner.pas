@@ -2094,7 +2094,7 @@ In case not, the value returned can be arbitrary.
             begin
               len:=length(cstringpattern);
               recordtokenbuf.write(len,sizeof(sizeint));
-              recordtokenbuf.write(pattern[1],length(pattern));
+              recordtokenbuf.write(cstringpattern[1],length(cstringpattern));
             end;
           _CCHAR,
           _INTCONST,
@@ -2181,7 +2181,7 @@ In case not, the value returned can be arbitrary.
               begin
                 replaytokenbuf.read(wlen,sizeof(sizeint));
                 setlength(cstringpattern,wlen);
-                replaytokenbuf.read(pattern[1],length(pattern));
+                replaytokenbuf.read(cstringpattern[1],wlen);
                 orgpattern:='';
                 pattern:='';
               end;
