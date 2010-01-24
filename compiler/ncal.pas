@@ -201,7 +201,7 @@ interface
        tcallparanodeclass = class of tcallparanode;
 
     function reverseparameters(p: tcallparanode): tcallparanode;
-    function translate_disp_call(selfnode,parametersnode,putvalue : tnode;methodname : ansistring = '';dispid : longint = 0;useresult : boolean = false) : tnode;
+    function translate_disp_call(selfnode,parametersnode,putvalue : tnode;methodname : ansistring;dispid : longint;resultdef : tdef) : tnode;
 
     var
       ccallnode : tcallnodeclass;
@@ -255,7 +255,7 @@ implementation
       end;
 
 
-    function translate_disp_call(selfnode,parametersnode,putvalue : tnode;methodname : ansistring = '';dispid : longint = 0;useresult : boolean = false) : tnode;
+    function translate_disp_call(selfnode,parametersnode,putvalue : tnode;methodname : ansistring;dispid : longint;resultdef : tdef) : tnode;
       const
         DISPATCH_METHOD = $1;
         DISPATCH_PROPERTYGET = $2;
@@ -277,6 +277,8 @@ implementation
         vardatadef,
         pvardatadef : tdef;
         dispatchbyref : boolean;
+        useresult: boolean;
+        restype: byte;
 
         calldesc : packed record
             calltype,argcount,namedargcount : byte;
@@ -306,6 +308,23 @@ implementation
           }
         end;
 
+      function getvardef(sourcedef: TDef): longint;
+        begin
+          if is_ansistring(sourcedef) then
+            result:=varStrArg
+          else
+          if is_interface(sourcedef) then
+            begin
+              { distinct IDispatch and IUnknown interfaces }
+              if tobjectdef(sourcedef).is_related(tobjectdef(search_system_type('IDISPATCH').typedef)) then
+                result:=vardispatch
+              else
+                result:=varunknown;
+            end
+          else
+            result:=sourcedef.getvardef;
+        end;
+
       begin
         variantdispatch:=selfnode.resultdef.typ=variantdef;
         dispintfinvoke:=not(variantdispatch);
@@ -313,6 +332,7 @@ implementation
         result:=internalstatements(statements);
         fillchar(calldesc,sizeof(calldesc),0);
 
+        useresult := assigned(resultdef) and not is_void(resultdef);
         if useresult then
           begin
             { get temp for the result }
@@ -329,9 +349,12 @@ implementation
           begin
             typecheckpass(para.left);
 
-            { if it is not a parameter then break the loop }
+            { skip non parameters }
             if para.left.nodetype=nothingn then
-              break;
+            begin
+              para:=tcallparanode(para.nextpara);
+              continue;
+            end;
             inc(paracount);
 
             { insert some extra casts }
@@ -388,9 +411,14 @@ implementation
 
         if dispintfinvoke then
         begin
+          { dispid  }
           calldescnode.append(dispid,sizeof(dispid));
-          // add dymmy restype byte which is not used by fpc
-          calldescnode.append(dispid,sizeof(byte));
+          { restype }
+          if useresult then
+            restype:=getvardef(resultdef)
+          else
+            restype:=0;
+          calldescnode.append(restype,sizeof(restype));
         end;
         { build up parameters and description }
         para:=tcallparanode(parametersnode);
@@ -399,8 +427,12 @@ implementation
         names := '';
         while assigned(para) do
           begin
+            { skip non parameters }
             if para.left.nodetype=nothingn then
-              break;
+            begin
+              para:=tcallparanode(para.nextpara);
+              continue;
+            end;
 
             if assigned(para.parametername) then
               begin
@@ -440,20 +472,7 @@ implementation
                   ctypeconvnode.create_internal(para.left,assignmenttype)));
               end;
 
-            if is_ansistring(para.left.resultdef) then
-              calldesc.argtypes[currargpos]:=varStrArg
-            else
-            if is_interface(para.left.resultdef) then
-              begin
-                { distinct IDispatch and IUnknown interfaces }
-                if tobjectdef(para.left.resultdef).is_related(tobjectdef(search_system_type('IDISPATCH').typedef)) then
-                  calldesc.argtypes[currargpos]:=vardispatch
-                else
-                  calldesc.argtypes[currargpos]:=varunknown;
-              end
-            else
-              calldesc.argtypes[currargpos]:=para.left.resultdef.getvardef;
-
+            calldesc.argtypes[currargpos]:=getvardef(para.left.resultdef);
             if dispatchbyref then
               calldesc.argtypes[currargpos]:=calldesc.argtypes[currargpos] or $80;
 
@@ -2865,13 +2884,13 @@ implementation
                  converted_result_data:=ctempcreatenode.create(procdefinition.returndef,sizeof(procdefinition.returndef),tt_persistent,true);
                  addstatement(statements,converted_result_data);
                  addstatement(statements,cassignmentnode.create(ctemprefnode.create(converted_result_data),
-                   ctypeconvnode.create_internal(translate_disp_call(methodpointer,parameters,nil,'',tprocdef(procdefinition).dispid,true),
+                   ctypeconvnode.create_internal(translate_disp_call(methodpointer,parameters,nil,'',tprocdef(procdefinition).dispid,procdefinition.returndef),
                    procdefinition.returndef)));
                  addstatement(statements,ctempdeletenode.create_normal_temp(converted_result_data));
                  addstatement(statements,ctemprefnode.create(converted_result_data));
                end
              else
-               result:=translate_disp_call(methodpointer,parameters,nil,'',tprocdef(procdefinition).dispid,false);
+               result:=translate_disp_call(methodpointer,parameters,nil,'',tprocdef(procdefinition).dispid,voidtype);
 
              { don't free reused nodes }
              methodpointer:=nil;

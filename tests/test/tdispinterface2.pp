@@ -18,12 +18,13 @@ type
     property Disp402: wordbool dispid 402;
     procedure DispArg1(Arg: IUnknown);
     procedure DispArg2(Arg: IDispatch);
-    procedure DispArg3(var Arg: wordbool);
+    function DispArg3(var Arg: wordbool): widestring;
   end;
 
 var
   cur_dispid: longint;
   cur_argtype: byte;
+  cur_restype: byte;
 
 {$HINTS OFF}
   procedure DoDispCallByID(res: Pointer; const disp: IDispatch; desc: PDispDesc;
@@ -40,6 +41,8 @@ var
       halt(4);
     if desc^.calldesc.argtypes[0] <> cur_argtype then
       halt(cur_argtype);
+    if desc^.restype <> cur_restype then
+      halt($FF);
   end;
 
 
@@ -61,10 +64,12 @@ begin
   II.Disp402 := True;
   // check arguments
   DispCallByIDProc := @DoDispCallByIDArg;
+  cur_restype := varempty;
   cur_argtype := varunknown;
   II.DispArg1(nil);
   cur_argtype := vardispatch;
   II.DispArg2(nil);
+  cur_restype := varolestr;
   cur_argtype := varboolean or $80;
   B := False;
   II.DispArg3(B);

@@ -1118,7 +1118,7 @@ implementation
                   { concat value parameter too }
                   p2:=ccallparanode.create(p2,nil);
                   { passing p3 here is only for information purposes }
-                  p1:=translate_disp_call(p1,p2,p2,'',propsym.dispid,false);
+                  p1:=translate_disp_call(p1,p2,p2,'',propsym.dispid,voidtype);
                 end
               else
                 begin
@@ -1175,7 +1175,7 @@ implementation
                   converted_result_data:=ctempcreatenode.create(propsym.propdef,sizeof(propsym.propdef),tt_persistent,true);
                   addstatement(statements,converted_result_data);
                   addstatement(statements,cassignmentnode.create(ctemprefnode.create(converted_result_data),
-                    ctypeconvnode.create_internal(translate_disp_call(p1,nil,nil,'',propsym.dispid,true),
+                    ctypeconvnode.create_internal(translate_disp_call(p1,nil,nil,'',propsym.dispid,propsym.propdef),
                     propsym.propdef)));
                   addstatement(statements,ctempdeletenode.create_normal_temp(converted_result_data));
                   addstatement(statements,ctemprefnode.create(converted_result_data));
@@ -2069,15 +2069,15 @@ implementation
                                    { concat value parameter too }
                                    p2:=ccallparanode.create(p3,p2);
                                    { passing p3 here is only for information purposes }
-                                   p1:=translate_disp_call(p1,p2,p3,dispatchstring,0,false);
+                                   p1:=translate_disp_call(p1,p2,p3,dispatchstring,0,voidtype);
                                  end
                                else
-                                 begin
-                                   p1:=translate_disp_call(p1,p2,nil,dispatchstring,0,
-                                     { this is only an approximation
-                                       setting useresult if not necessary is only a waste of time, no more, no less (FK) }
-                                     afterassignment or in_args or (token<>_SEMICOLON));
-                                 end;
+                               { this is only an approximation
+                                 setting useresult if not necessary is only a waste of time, no more, no less (FK) }
+                               if afterassignment or in_args or (token<>_SEMICOLON) then
+                                 p1:=translate_disp_call(p1,p2,nil,dispatchstring,0,cvarianttype)
+                               else
+                                 p1:=translate_disp_call(p1,p2,nil,dispatchstring,0,voidtype);
                              end
                            else { Error }
                              Consume(_ID);
