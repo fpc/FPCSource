@@ -218,13 +218,13 @@ implementation
                    casenode.addlabel(blockid,hl1,hl2);
                end
              else
-               begin                
+               begin
                  { type check for string case statements }
                  if (caseofstring and (not is_conststring_or_constcharnode(p))) or
                  { type checking for ordinal case statements }
                    ((not caseofstring) and (not is_subequal(casedef, p.resultdef))) then
                    CGMessage(parser_e_case_mismatch);
-                  
+
                  if caseofstring then
                    begin
                      sl1:=get_string_value(p, tstringdef(casedef));
@@ -474,7 +474,7 @@ implementation
 
            result:=cfornode.create(hloopvar,hfrom,hto,hblock,backward);
         end;
-         
+
         function for_in_loop_create(hloopvar: tnode): tnode;
         var
           expr: tnode;
@@ -487,7 +487,7 @@ implementation
           set_varstate(hloopvar,vs_read,[vsf_must_be_valid]);
 
           result := create_for_in_loop(hloopvar, statement, expr);
- 
+
           expr.free;
         end;
 
@@ -975,7 +975,7 @@ implementation
                   Message(parser_w_register_list_ignored);
                 repeat
                   { it's possible to specify the modified registers }
-                  reg:=std_regnum_search(lower(pattern));
+                  reg:=std_regnum_search(lower(cstringpattern));
                   if reg<>NR_NO then
                     begin
                       if (getregtype(reg)=R_INTREGISTER) and not(po_assembler in current_procinfo.procdef.procoptions) then

@@ -990,7 +990,10 @@ implementation
             begin
               if deprecatedmsg<>nil then
                 internalerror(201001221);
-              deprecatedmsg:=stringdup(pattern);
+              if token=_CSTRING then
+                deprecatedmsg:=stringdup(cstringpattern)
+              else
+                deprecatedmsg:=stringdup(pattern);
               consume(token);
               include(moduleopt,mo_has_deprecated_msg);
             end;

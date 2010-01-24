@@ -85,6 +85,7 @@ implementation
          c:=#0;
          pattern:='';
          orgpattern:='';
+         cstringpattern:='';
          current_scanner:=nil;
          switchesstatestackpos:=0;
 
@@ -211,16 +212,16 @@ implementation
              _CSTRING :
                begin
                  i:=0;
-                 while (i<length(pattern)) do
+                 while (i<length(cstringpattern)) do
                   begin
                     inc(i);
-                    if pattern[i]='''' then
+                    if cstringpattern[i]='''' then
                      begin
-                       insert('''',pattern,i);
+                       insert('''',cstringpattern,i);
                        inc(i);
                      end;
                   end;
-                 preprocfile^.Add(''''+pattern+'''');
+                 preprocfile^.Add(''''+cstringpattern+'''');
                end;
              _CCHAR :
                begin

@@ -162,11 +162,9 @@ implementation
                      begin
                        pt:=comp_expr(true);
                        if pt.nodetype=stringconstn then
-                        hpname:=strpas(tstringconstnode(pt).value_str)
+                         hpname:=strpas(tstringconstnode(pt).value_str)
                        else
-                        begin
-                          consume(_CSTRING);
-                        end;
+                         consume(_CSTRING);
                        options:=options or eo_name;
                        pt.free;
                        DefString:=hpname+'='+InternalProcName;

@@ -599,7 +599,7 @@ implementation
                     if (idtoken=_LOCATION) then
                       begin
                         consume(_LOCATION);
-                        locationstr:=pattern;
+                        locationstr:=cstringpattern;
                         consume(_CSTRING);
                       end
                     else
@@ -1036,7 +1036,7 @@ implementation
                              if po_explicitparaloc in pd.procoptions then
                               begin
                                consume(_LOCATION);
-                               locationstr:=pattern;
+                               locationstr:=cstringpattern;
                                consume(_CSTRING);
                               end
                              else
@@ -1276,11 +1276,16 @@ procedure pd_asmname(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200304267);
-  tprocdef(pd).aliasnames.insert(target_info.Cprefix+pattern);
   if token=_CCHAR then
-    consume(_CCHAR)
+    begin
+      tprocdef(pd).aliasnames.insert(target_info.Cprefix+pattern);
+      consume(_CCHAR)
+    end
   else
-    consume(_CSTRING);
+    begin
+      tprocdef(pd).aliasnames.insert(target_info.Cprefix+cstringpattern);
+      consume(_CSTRING);
+    end;
   { we don't need anything else }
   tprocdef(pd).forwarddef:=false;
 end;

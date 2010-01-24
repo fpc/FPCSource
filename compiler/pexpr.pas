@@ -2508,7 +2508,7 @@ implementation
 
              _CSTRING :
                begin
-                 p1:=cstringconstnode.createstr(pattern);
+                 p1:=cstringconstnode.createpchar(ansistring2pchar(cstringpattern),length(cstringpattern));
                  consume(_CSTRING);
                end;
 

@@ -327,7 +327,10 @@ implementation
             begin
               if deprecatedmsg<>nil then
                 internalerror(200910181);
-              deprecatedmsg:=stringdup(pattern);
+              if token=_CSTRING then
+                deprecatedmsg:=stringdup(cstringpattern)
+              else
+                deprecatedmsg:=stringdup(pattern);
               consume(token);
               include(symopt,sp_has_deprecated_msg);
             end;

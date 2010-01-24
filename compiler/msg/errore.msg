@@ -1288,6 +1288,9 @@ parser_e_operator_not_overloaded_3=03284_E_Operator is not overloaded: "$1" $2 "
 % this type.
 parser_e_more_array_elements_expected=03285_E_Expected another $1 array elements
 % When declaring a typed constant array, you provided to few elements to initialize the array
+parser_e_string_const_too_long=03286_E_String constant too long while ansistrings are disabled
+% Only when a piece of code is compiled with ansistrings enabled (\var{\{\$H+\}}), string constants
+% longer than 255 characters are allowed.
 % \end{description}
 #
 # Type Checking

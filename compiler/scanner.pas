@@ -201,6 +201,7 @@ interface
         c              : char;
         orgpattern,
         pattern        : string;
+        cstringpattern : ansistring;
         patternw       : pcompilerwidestring;
 
         { token }
@@ -2038,6 +2039,7 @@ In case not, the value returned can be arbitrary.
     procedure tscannerfile.recordtoken;
       var
         a : array[0..1] of byte;
+        len : sizeint;
       begin
         if not assigned(recordtokenbuf) then
           internalerror(200511176);
@@ -2088,8 +2090,13 @@ In case not, the value returned can be arbitrary.
               recordtokenbuf.write(patternw^.len,sizeof(sizeint));
               recordtokenbuf.write(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
             end;
+          _CSTRING:
+            begin
+              len:=length(cstringpattern);
+              recordtokenbuf.write(len,sizeof(sizeint));
+              recordtokenbuf.write(pattern[1],length(pattern));
+            end;
           _CCHAR,
-          _CSTRING,
           _INTCONST,
           _REALNUMBER :
             begin
@@ -2166,10 +2173,19 @@ In case not, the value returned can be arbitrary.
                 replaytokenbuf.read(wlen,sizeof(SizeInt));
                 setlengthwidestring(patternw,wlen);
                 replaytokenbuf.read(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
+                orgpattern:='';
+                pattern:='';
+                cstringpattern:='';
+              end;
+            _CSTRING:
+              begin
+                replaytokenbuf.read(wlen,sizeof(sizeint));
+                setlength(cstringpattern,wlen);
+                replaytokenbuf.read(pattern[1],length(pattern));
+                orgpattern:='';
                 pattern:='';
               end;
             _CCHAR,
-            _CSTRING,
             _INTCONST,
             _REALNUMBER :
               begin
@@ -3760,7 +3776,7 @@ In case not, the value returned can be arbitrary.
                begin
                  len:=0;
                  msgwritten:=false;
-                 pattern:='';
+                 cstringpattern:='';
                  iswidestring:=false;
                  if c='^' then
                   begin
@@ -3776,10 +3792,11 @@ In case not, the value returned can be arbitrary.
                     else
                      begin
                        inc(len);
+                       setlength(cstringpattern,256);
                        if c<#64 then
-                        pattern[len]:=chr(ord(c)+64)
+                         cstringpattern[len]:=chr(ord(c)+64)
                        else
-                        pattern[len]:=chr(ord(c)-64);
+                         cstringpattern[len]:=chr(ord(c)-64);
                        readchar;
                      end;
                   end;
@@ -3838,7 +3855,7 @@ In case not, the value returned can be arbitrary.
                                 begin
                                   if not iswidestring then
                                    begin
-                                     ascii2unicode(@pattern[1],len,patternw);
+                                     ascii2unicode(@cstringpattern[1],len,patternw);
                                      iswidestring:=true;
                                      len:=0;
                                    end;
@@ -3851,19 +3868,10 @@ In case not, the value returned can be arbitrary.
                            concatwidestringchar(patternw,asciichar2unicode(char(m)))
                          else
                            begin
-                             if len<255 then
-                              begin
-                                inc(len);
-                                pattern[len]:=chr(m);
-                              end
-                             else
-                              begin
-                                if not msgwritten then
-                                 begin
-                                   Message(scan_e_string_exceeds_255_chars);
-                                   msgwritten:=true;
-                                 end;
-                              end;
+                             if len>=length(cstringpattern) then
+                               setlength(cstringpattern,length(cstringpattern)+256);
+                              inc(len);
+                              cstringpattern[len]:=chr(m);
                            end;
                        end;
                      '''' :
@@ -3888,7 +3896,7 @@ In case not, the value returned can be arbitrary.
                                { convert existing string to an utf-8 string }
                                if not iswidestring then
                                  begin
-                                   ascii2unicode(@pattern[1],len,patternw);
+                                   ascii2unicode(@cstringpattern[1],len,patternw);
                                    iswidestring:=true;
                                    len:=0;
                                  end;
@@ -3934,19 +3942,10 @@ In case not, the value returned can be arbitrary.
                              end
                            else
                              begin
-                               if len<255 then
-                                begin
-                                  inc(len);
-                                  pattern[len]:=c;
-                                end
-                               else
-                                begin
-                                  if not msgwritten then
-                                   begin
-                                     Message(scan_e_string_exceeds_255_chars);
-                                     msgwritten:=true;
-                                   end;
-                                end;
+                               if len>=length(cstringpattern) then
+                                 setlength(cstringpattern,length(cstringpattern)+256);
+                                inc(len);
+                                cstringpattern[len]:=c;
                              end;
                          until false;
                        end;
@@ -3963,19 +3962,10 @@ In case not, the value returned can be arbitrary.
                            concatwidestringchar(patternw,asciichar2unicode(c))
                          else
                            begin
-                             if len<255 then
-                              begin
-                                inc(len);
-                                pattern[len]:=c;
-                              end
-                             else
-                              begin
-                                if not msgwritten then
-                                 begin
-                                   Message(scan_e_string_exceeds_255_chars);
-                                   msgwritten:=true;
-                                 end;
-                              end;
+                             if len>=length(cstringpattern) then
+                               setlength(cstringpattern,length(cstringpattern)+256);
+                              inc(len);
+                              cstringpattern[len]:=c;
                            end;
 
                          readchar;
@@ -3987,17 +3977,20 @@ In case not, the value returned can be arbitrary.
                  { strings with length 1 become const chars }
                  if iswidestring then
                    begin
-                      if patternw^.len=1 then
+                     if patternw^.len=1 then
                        token:=_CWCHAR
-                      else
+                     else
                        token:=_CWSTRING;
                    end
                  else
                    begin
-                      pattern[0]:=chr(len);
-                      if len=1 then
-                       token:=_CCHAR
-                      else
+                     setlength(cstringpattern,len);
+                     if length(cstringpattern)=1 then
+                       begin
+                         token:=_CCHAR;
+                         pattern:=cstringpattern;
+                       end
+                     else
                        token:=_CSTRING;
                    end;
                  goto exit_label;
