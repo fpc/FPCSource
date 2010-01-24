@@ -6,6 +6,9 @@ program tdispinterface2;
   {$mode objfpc}
 {$endif}
 
+uses
+  Variants;
+
 type
 
   { IIE }
