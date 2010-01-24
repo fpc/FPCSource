@@ -503,13 +503,13 @@ implementation
               ccallparanode.create(ctypeconvnode.create_internal(resultvalue,pvardatadef),nil)))))
             );
           end;
+        addstatement(statements,ctempdeletenode.create(params));
         if useresult then
           begin
             { clean up }
             addstatement(statements,ctempdeletenode.create_normal_temp(result_data));
             addstatement(statements,ctemprefnode.create(result_data));
           end;
-        addstatement(statements,ctempdeletenode.create(params));
       end;
 
 
