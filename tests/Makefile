@@ -1400,15 +1400,17 @@ ifndef TEST_OPT
 TEST_OPT=
 endif
 ifndef TEST_FPC_VERSION
-TEST_FPC_COMPILERINFO:=$(shell $(TEST_FPC) -iVSPTPSOTO)
+TEST_FPC_COMPILERINFO:=$(shell $(TEST_FPC) -iVSPTPSOTODW)
 TEST_FPC_VERSION:=$(word 1,$(TEST_FPC_COMPILERINFO))
 endif
 export TEST_FPC TEST_FPC_VERSION TEST_FPC_COMPILERINFO
-ifneq ($(words $(TEST_FPC_COMPILERINFO)),5)
+ifneq ($(words $(TEST_FPC_COMPILERINFO)),7)
 TEST_FPC_COMPILERINFO+=$(shell $(TEST_FPC) -iSP)
 TEST_FPC_COMPILERINFO+=$(shell $(TEST_FPC) -iTP)
 TEST_FPC_COMPILERINFO+=$(shell $(TEST_FPC) -iSO)
 TEST_FPC_COMPILERINFO+=$(shell $(TEST_FPC) -iTO)
+TEST_FPC_COMPILERINFO+=$(shell $(TEST_FPC) -iD)
+TEST_FPC_COMPILERINFO+=$(shell $(TEST_FPC) -iW)
 endif
 ifndef TEST_CPU_SOURCE
 TEST_CPU_SOURCE:=$(word 2,$(TEST_FPC_COMPILERINFO))
@@ -1421,6 +1423,12 @@ TEST_OS_SOURCE:=$(word 4,$(TEST_FPC_COMPILERINFO))
 endif
 ifndef TEST_OS_TARGET
 TEST_OS_TARGET:=$(word 5,$(TEST_FPC_COMPILERINFO))
+endif
+ifndef TEST_FPC_DATE
+TEST_FPC_DATE:=$(word 6,$(TEST_FPC_COMPILERINFO))
+endif
+ifndef TEST_FPC_FULLVERSION
+TEST_FPC_FULLVERSION:=$(word 7,$(TEST_FPC_COMPILERINFO))
 endif
 TEST_FULL_TARGET=$(TEST_CPU_TARGET)-$(TEST_OS_TARGET)
 ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
@@ -1635,6 +1643,13 @@ distclean: clean fpc_distclean
 .PHONY: all full digest onlyknown onlygraph onlyinteractive
 digest : utils
 	-$(DIGEST) $(LOG)
+SVNVERSION:=$(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH)))
+ifneq ($(SVNVERSION),)
+SVN_TESTS_REV_STR=$(shell $(SVNVERSION) -c .)
+SVN_COMPILER_REV_STR=$(shell $(SVNVERSION) -c ../compiler)
+SVN_RTL_REV_STR=$(shell $(SVNVERSION) -c ../rtl)
+SVN_PACKAGES_REV_STR=$(shell $(SVNVERSION) -c ../packages)
+endif
 $(TEST_OUTPUTDIR)/dbdigest.cfg:
 	$(ECHOREDIR) OS=$(TEST_OS_TARGET) > $(TEST_OUTPUTDIR)/dbdigest.cfg
 	$(ECHOREDIR) CPU=$(TEST_CPU_TARGET) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
@@ -1643,6 +1658,18 @@ $(TEST_OUTPUTDIR)/dbdigest.cfg:
 	$(ECHOREDIR) Submitter=$(TEST_USER) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 	$(ECHOREDIR) Machine=$(TEST_HOSTNAME) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 	$(ECHOREDIR) Comment=$(TEST_OPT) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+ifneq ($(TEST_FPC_DATE),)
+	$(ECHOREDIR) CompilerDate=$(TEST_FPC_DATE) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+endif
+ifneq ($(TEST_FPC_FULLVERSION),)
+	$(ECHOREDIR) CompilerFullVersion=$(TEST_FPC_FULLVERSION) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+endif
+ifneq ($(SVNVERSION),)
+	$(ECHOREDIR) svntestsrevision=$(SVN_TESTS_REV_STR) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) svncompilerrevision=$(SVN_COMPILER_REV_STR) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) svnrtlrevision=$(SVN_RTL_REV_STR) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) svnpackagesrevision=$(SVN_PACKAGES_REV_STR) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+endif
 ifndef inWinDOS
 $(TEST_OUTPUTDIR)/tar.lst:
 	cd $(TEST_OUTPUTDIR) && find . -name '*.log' -o -name '*.elg' > tar.lst
