@@ -762,9 +762,7 @@ end;
 
 procedure ReadBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-{$ifdef FPC_HAS_LWSYNC}
-  lwsync
-{$endif}
+  isync
 end;
 
 procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -774,12 +772,17 @@ end;
 
 procedure ReadWriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-  sync
+  isync
+{$ifdef FPC_HAS_LWSYNC}
+  lwsync
+{$endif}
 end;
 
 procedure WriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-  eieio
+{$ifdef FPC_HAS_LWSYNC}
+  lwsync
+{$endif}
 end;
 
 {$endif}

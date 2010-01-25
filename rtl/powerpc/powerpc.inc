@@ -1208,7 +1208,7 @@ end;
 
 procedure ReadBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-  sync
+  isync
 end;
 
 procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1218,7 +1218,8 @@ end;
 
 procedure ReadWriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-  sync
+  isync
+  eieio
 end;
 
 procedure WriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
