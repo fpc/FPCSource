@@ -118,14 +118,14 @@ ConfigAddStrings : Array [TConfigAddOpt] of string = (
   'compilerfullversion',
   'svncompilerrevision',
   'svntestsrevision',
-  'svntlrevision',
+  'svnrtlrevision',
   'svnpackagesrevision'
  );
 
 ConfigAddCols : Array [TConfigAddOpt] of string = (
   'TU_COMPILERDATE',
   'TU_COMPILERFULLVERSION',
-  'TU_SVNCOMPILERREVIVISION',
+  'TU_SVNCOMPILERREVISION',
   'TU_SVNTESTSREVISION',
   'TU_SVNRTLREVISION',
   'TU_SVNPACKAGESREVISION'
