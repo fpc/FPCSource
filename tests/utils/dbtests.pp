@@ -162,9 +162,9 @@ end;
 
 Function EscapeSQL( S : String) : String;
 
-
 begin
-  Result:=StringReplace(S,'"','\"',[rfReplaceAll]);
+  Result:=StringReplace(S,'\','\\',[rfReplaceAll]);
+  Result:=StringReplace(Result,'"','\"',[rfReplaceAll]);
   Verbose(V_DEBUG,'EscapeSQL : "'+S+'" -> "'+Result+'"');
 end;
 
@@ -414,10 +414,10 @@ Function AddTestResult(TestID,RunID,TestRes : Integer;
 
 Const
   SInsertRes='Insert into TESTRESULTS '+
-             '(TR_TEST_FK,TR_TESTRUN_FK,TR_OK,TR_SKIP,TR_RESULT,TR_LOG) '+
+             '(TR_TEST_FK,TR_TESTRUN_FK,TR_OK,TR_SKIP,TR_RESULT) '+
              ' VALUES '+
-             '(%d,%d,"%s","%s",%d,"%s") ';
-
+             '(%d,%d,"%s","%s",%d) ';
+  SInsertLog='Update TESTRESULTS SET TR_LOG="%s" WHERE (TR_ID=%d)';
 Var
   Qry : String;
   Res : TQueryResult;
@@ -427,7 +427,17 @@ begin
   Qry:=Format(SInsertRes,
               [TestID,RunID,B[OK],B[Skipped],TestRes,EscapeSQL(Log)]);
   If RunQuery(Qry,Res) then
-    Result:=mysql_insert_id(@connection);
+    Result:=mysql_insert_id(@connection)
+  else
+    Verbose(V_Warning,'AddTestResult failed');
+  if (Result<>-1) and (Log<>'') then
+    begin
+      Qry:=format(SInsertLog,[EscapeSQL(Log),Result]);
+      if not RunQuery(Qry,Res) then
+        begin
+          Verbose(V_Warning,'Insert Log failed');
+        end;
+    end;
 end;
 
 Function RequireTestID(Name : String): Integer;

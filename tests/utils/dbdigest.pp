@@ -400,13 +400,15 @@ Procedure Processfile (FN: String);
 
 var
   logfile : text;
-  line : string;
-  TS : TTestStatus;
-  ID : integer;
+  line,prevLine : string;
+  TS,PrevTS : TTestStatus;
+  ID,PrevID : integer;
   Testlog : string;
-
 begin
   Assign(logfile,FN);
+  PrevId:=-1;
+  PrevLine:='';
+  PrevTS:=low(TTestStatus);
 {$i-}
   reset(logfile);
   if ioresult<>0 then
@@ -418,10 +420,19 @@ begin
     If analyse(line,TS) then
       begin
       Verbose(V_NORMAL,'Analysing result for test '+Line);
-      Inc(StatusCount[TS]);
       If Not ExpectRun[TS] then
         begin
         ID:=RequireTestID(Line);
+        if (PrevID<>-1) and (PrevID<>ID) then
+          begin
+            { This can only happen if a Successfully compiled message
+              is not followed by any other line about the same test }
+            TestLog:='';
+            AddTestResult(PrevID,TestRunId,ord(PrevTS),
+              TestOK[PrevTS],TestSkipped[PrevTS],TestLog);
+            Verbose(V_Warning,'Orphaned test: "'+prevline+'"');
+          end;
+        PrevID:=-1;
         If (ID<>-1) then
           begin
           If Not (TestOK[TS] or TestSkipped[TS]) then
@@ -432,12 +443,34 @@ begin
             end
           else
             TestLog:='';
-          AddTestResult(ID,TestRunID,Ord(TS),TestOK[TS],TestSkipped[TS],TestLog);
+          { AddTestResult can fail for test that contain %recompile 
+            as the same }
+          if AddTestResult(ID,TestRunID,Ord(TS),TestOK[TS],
+               TestSkipped[TS],TestLog) <> -1 then
+            begin
+              Inc(StatusCount[TS]);
+            end
+          else
+            begin
+              Verbose(V_Warning,'Test: "'+line+'" already registered');
+            end;
+              
           end;
         end
+      else  
+        begin
+          Inc(StatusCount[TS]);
+          PrevTS:=TS;
+          PrevID:=RequireTestID(line);
+          PrevLine:=line;
+        end;
+ 
       end
     else
-      Inc(UnknownLines);
+      begin
+        Inc(UnknownLines);
+        Verbose(V_Warning,'Unknown line: "'+line+'"');
+      end;
     end;
   close(logfile);
 end;
