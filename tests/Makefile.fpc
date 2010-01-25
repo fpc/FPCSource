@@ -87,7 +87,9 @@ endif
 TEST_OUTPUTDIR=output/$(TEST_TARGETSUFFIX)
 
 # Date and time the testsuite was run
+ifneq ($(DATE),__missing_command_DATE)
 TEST_DATETIME:=$(shell $(DATE) +%Y%m%d%H%M)
+endif
 
 ifndef TEST_USER
 TEST_USER=$(USER)
@@ -409,6 +411,9 @@ $(TEST_OUTPUTDIR)/dbdigest.cfg:
         $(ECHOREDIR) Submitter=$(TEST_USER) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
         $(ECHOREDIR) Machine=$(TEST_HOSTNAME) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 	$(ECHOREDIR) Comment=$(TEST_OPT) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+ifneq ($(TEST_DATETIME),)
+        $(ECHOREDIR) Date=$(TEST_DATETIME) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+endif
 ifneq ($(TEST_FPC_DATE),)
         $(ECHOREDIR) CompilerDate=$(TEST_FPC_DATE) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
 endif
