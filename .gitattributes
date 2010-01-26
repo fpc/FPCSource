@@ -2173,6 +2173,7 @@ packages/fcl-web/src/fphttp.pp svneol=native#text/plain
 packages/fcl-web/src/fptemplate.pp svneol=native#text/plain
 packages/fcl-web/src/fpweb.pp svneol=native#text/plain
 packages/fcl-web/src/httpdefs.pp svneol=native#text/plain
+packages/fcl-web/src/webpage.pp svneol=native#text/plain
 packages/fcl-web/src/websession.pp svneol=native#text/plain
 packages/fcl-web/src/webutil.pp svneol=native#text/plain
 packages/fcl-xml/Makefile svneol=native#text/plain

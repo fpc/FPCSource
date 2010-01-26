@@ -8,7 +8,7 @@ version=2.5.1
 
 [target]
 units=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb \
-      webutil fpdatasetform cgiapp ezcgi fpapache
+      webutil fpdatasetform cgiapp ezcgi fpapache webpage
 rsts=fpcgi fphtml fpweb websession cgiapp
 
 # these units are listed separately because they don't work for

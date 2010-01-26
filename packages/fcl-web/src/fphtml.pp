@@ -18,7 +18,7 @@ unit fphtml;
 interface
 
 uses
-  Classes, SysUtils, htmlelements, htmlwriter, httpdefs, fphttp, db;
+  Classes, SysUtils, htmlelements, htmlwriter, httpdefs, fphttp, DB, DOM, contnrs;
 
 type
   THtmlEntities = (heHtml,heBody,heHead,heDiv,heParagraph);
@@ -29,24 +29,177 @@ const
 
 type
 
+  { TJavaScriptStack }
+  TWebButtonType = (btOk, btCancel, btCustom);
+  TWebButton = record
+    ButtonType: TWebButtonType;
+    Caption: String;
+    OnClick: String;
+  end;
+  TWebButtons = array of TWebButton;
+
+  TMessageBoxHandler = function(Sender: TObject; AText: String; Buttons: TWebButtons): string of object;
+  TWebController = class;
+  THTMLContentProducer = class;
+
+  TJavaScriptStack = class(TObject)
+  private
+    FMessageBoxHandler: TMessageBoxHandler;
+    FScript: TStrings;
+    FWebController: TWebController;
+  protected
+    function GetWebController: TWebController;
+  public
+    constructor Create(const AWebController: TWebController); virtual;
+    destructor Destroy; override;
+    procedure AddScriptLine(ALine: String); virtual;
+    procedure MessageBox(AText: String; Buttons: TWebButtons); virtual;
+    procedure RedrawContentProducer(AContentProducer: THTMLContentProducer); virtual;
+    procedure CallServerEvent(AHTMLContentProducer: THTMLContentProducer; AEvent: Integer; APostVariable: string = ''); virtual;
+    procedure Clear; virtual;
+    function ScriptIsEmpty: Boolean; virtual;
+    function GetScript: String; virtual;
+    property WebController: TWebController read GetWebController;
+  end;
+
+  { TWebController }
+
+  TWebController = class(TComponent)
+  private
+    FBaseURL: string;
+    FMessageBoxHandler: TMessageBoxHandler;
+    FScriptName: string;
+    procedure SetBaseURL(const AValue: string);
+    procedure SetScriptName(const AValue: string);
+  protected
+    function GetScriptFileReferences: TStringList; virtual; abstract;
+    function GetCurrentJavaScriptStack: TJavaScriptStack; virtual; abstract;
+    function GetScripts: TFPObjectList; virtual; abstract;
+    function GetRequest: TRequest;
+  public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    procedure AddScriptFileReference(AScriptFile: String); virtual; abstract;
+    function InitializeJavaScriptStack: TJavaScriptStack; virtual; abstract;
+    function HasJavascriptStack: boolean; virtual; abstract;
+    function GetUrl(ParamNames, ParamValues, KeepParams: array of string; Action: string = ''): string; virtual; abstract;
+    procedure InitializeAjaxRequest; virtual;
+    procedure InitializeShowRequest; virtual;
+    procedure CleanupAfterRequest; virtual;
+    procedure FreeJavascriptStack; virtual; abstract;
+    procedure BindJavascriptCallstackToElement(AComponent: TComponent; AnElement: THtmlCustomElement; AnEvent: string); virtual; abstract;
+    function MessageBox(AText: String; Buttons: TWebButtons): string; virtual;
+    function DefaultMessageBoxHandler(Sender: TObject; AText: String; Buttons: TWebButtons): string; virtual; abstract;
+    function CreateNewScript: TStringList; virtual; abstract;
+    procedure FreeScript(var AScript: TStringList); virtual; abstract;
+    property ScriptFileReferences: TStringList read GetScriptFileReferences;
+    property Scripts: TFPObjectList read GetScripts;
+    property CurrentJavaScriptStack: TJavaScriptStack read GetCurrentJavaScriptStack;
+    property MessageBoxHandler: TMessageBoxHandler read FMessageBoxHandler write FMessageBoxHandler;
+  published
+    property BaseURL: string read FBaseURL write SetBaseURL;
+    property ScriptName: string read FScriptName write SetScriptName;
+  end;
+
+  { TAjaxResponse }
+
+  TAjaxResponse= class(TObject)
+  private
+    FJavascriptCallStack: TJavaScriptStack;
+    FResponse: TResponse;
+    FSendXMLAnswer: boolean;
+    FXMLAnswer: TXMLDocument;
+    FRootNode: TDOMNode;
+    function GetXMLAnswer: TXMLDocument;
+  public
+    constructor Create(AWebController: TWebController; AResponse: TResponse); virtual;
+    destructor Destroy; override;
+    procedure BindToResponse; virtual;
+    property Response: TResponse read FResponse;
+    property XMLAnswer: TXMLDocument read GetXMLAnswer;
+    property SendXMLAnswer: boolean read FSendXMLAnswer;
+    property JavascriptCallStack: TJavaScriptStack read FJavascriptCallStack;
+  end;
+
+  TCSAjaxEvent=procedure(Sender: TComponent; AJavascriptClass: TJavaScriptStack; var Handled: boolean) of object;
+  THandleAjaxEvent = procedure(Sender: TObject; ARequest: TRequest; AnAjaxResponse: TAjaxResponse) of object;
+
+  TEventRecord = record
+    csCallback: TCSAjaxEvent;
+    ServerEvent: THandleAjaxEvent;
+    ServerEventID: integer;
+    JavaEventName: string;
+  end;
+  TEventRecords = array of TEventRecord;
+
+  TForeachContentProducerProc = procedure(const AContentProducer: THTMLContentProducer) of object;
+
+  IHTMLContentProducerContainer = interface
+   ['{8B4D8AE0-4873-49BF-B677-D03C8A02CDA5}']
+    procedure AddContentProducer(AContentProducer: THTMLContentProducer);
+    procedure RemoveContentProducer(AContentProducer: THTMLContentProducer);
+    function ExchangeContentProducers(Child1, Child2: THTMLContentProducer) : boolean;
+    function MoveContentProducer(MoveElement, MoveBeforeElement: THTMLContentProducer) : boolean;
+    procedure ForeachContentProducer(AForeachChildsProc: TForeachContentProducerProc; Recursive: boolean);
+  end;
+
   { THTMLContentProducer }
 
-  THTMLContentProducer = Class(THTTPContentProducer)
+  THTMLContentProducer = Class(THTTPContentProducer, IHTMLContentProducerContainer)
   private
     FDocument: THTMLDocument;
     FElement: THTMLCustomElement;
     FWriter: THTMLWriter;
     procedure SetDocument(const AValue: THTMLDocument);
     procedure SetWriter(const AValue: THTMLWriter);
+  private
+    // for streaming
+    FChilds: TFPList; // list of THTMLContentProducer
+    FParent: TComponent;
+    function GetContentProducerList: TFPList;
+    function GetContentProducers(Index: integer): THTMLContentProducer;
+    procedure SetParent(const AValue: TComponent);
   Protected
     function CreateWriter (Doc : THTMLDocument) : THTMLWriter; virtual;
+  protected
+    // Methods for streaming
+    FAcceptChildsAtDesignTime: boolean;
+    procedure SetParentComponent(Value: TComponent); override;
+    procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
+    procedure DoBeforeGenerateContent(const AContentProducer: THTMLContentProducer);
+    function GetEvents: TEventRecords; virtual;
+    procedure AddEvent(var Events: TEventRecords; AServerEventID: integer; AServerEvent: THandleAjaxEvent; AJavaEventName: string; AcsCallBack: TCSAjaxEvent); virtual;
+    procedure DoOnEventCS(AnEvent: TEventRecord; AJavascriptStack: TJavaScriptStack; var Handled: boolean); virtual;
+    procedure SetupEvents(AHtmlElement: THtmlCustomElement); virtual;
+    function GetWebController(const ExceptIfNotAvailable: boolean = true): TWebController;
+    property ContentProducerList: TFPList read GetContentProducerList;
   public
-    function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement; virtual; abstract;
+    procedure BeforeGenerateContent; virtual;
+    function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement; virtual;
     Function ProduceContent : String; override; // Here to test the output. Replace to protected after tests
+    function GetParentComponent: TComponent; override;
     property ParentElement : THTMLCustomElement read FElement write FElement;
     property Writer : THTMLWriter read FWriter write SetWriter;
     Property HTMLDocument : THTMLDocument read FDocument write SetDocument;
+  public
+    // for streaming
+    constructor Create(AOwner: TComponent); override;
+    destructor destroy; override;
+    function HasParent: Boolean; override;
+    function ChildCount: integer;
+    procedure CleanupAfterRequest; virtual;
+    procedure AddContentProducer(AContentProducer: THTMLContentProducer);
+    procedure RemoveContentProducer(AContentProducer: THTMLContentProducer);
+    function ExchangeContentProducers(Child1, Child2: THTMLContentProducer) : boolean;
+    function MoveContentProducer(MoveElement, MoveBeforeElement: THTMLContentProducer) : boolean;
+    procedure HandleAjaxRequest(ARequest: TRequest; AnAjaxResponse: TAjaxResponse); virtual;
+    procedure ForeachContentProducer(AForeachChildsProc: TForeachContentProducerProc; Recursive: boolean);
+    property Childs[Index: integer]: THTMLContentProducer read GetContentProducers;
+    property AcceptChildsAtDesignTime: boolean read FAcceptChildsAtDesignTime;
+    property parent: TComponent read FParent write SetParent;
   end;
+  THTMLContentProducerClas = class of THTMLContentProducer;
+
 
   TWriterElementEvent = procedure (Sender:THTMLContentProducer; aWriter : THTMLWriter; var anElement : THTMLCustomElement) of object;
   TAfterElementEvent = procedure (Sender:THTMLContentProducer; anElement : THTMLCustomElement) of object;
@@ -228,7 +381,6 @@ type
     Procedure HandleRequest(ARequest : TRequest; HTMLPage : THTMLWriter; Var Handled : Boolean);
   end;
 
-
   { TCustomHTMLDataModule }
 
   { TCustomHTMLModule }
@@ -262,16 +414,74 @@ type
   end;
   
   EHTMLError = Class(Exception);
-  
-implementation
 
+const SimpleOkButton: array[0..0] of TWebButton = ((buttontype: btok;caption: 'Ok';onclick: ''));
+
+implementation
+Uses
 {$ifdef cgidebug}
-Uses dbugintf;
+  dbugintf
 {$endif cgidebug}
+  webpage, XMLWrite;
 
 resourcestring
   SErrRequestNotHandled = 'Web request was not handled by actions.';
   SErrNoContentProduced = 'The content producer "%s" didn''t produce any content.';
+
+{ TJavaScriptStack }
+
+function TJavaScriptStack.GetWebController: TWebController;
+begin
+  result := FWebController;
+end;
+
+constructor TJavaScriptStack.Create(const AWebController: TWebController);
+begin
+  FWebController := AWebController;
+  FScript := TStringList.Create;
+end;
+
+destructor TJavaScriptStack.Destroy;
+begin
+  FScript.Free;
+  inherited Destroy;
+end;
+
+procedure TJavaScriptStack.AddScriptLine(ALine: String);
+begin
+  FScript.Add(ALine);
+end;
+
+procedure TJavaScriptStack.MessageBox(AText: String; Buttons: TWebButtons);
+begin
+  AddScriptLine(WebController.MessageBox(AText,Buttons));
+end;
+
+procedure TJavaScriptStack.RedrawContentProducer(AContentProducer: THTMLContentProducer);
+begin
+  raise exception.Create('RedrawContentProducer not supported by current WebController');
+end;
+
+procedure TJavaScriptStack.CallServerEvent(AHTMLContentProducer: THTMLContentProducer; AEvent: Integer; APostVariable: string = '');
+begin
+  raise exception.Create('SendServerEvent not supported by current WebController');
+end;
+
+procedure TJavaScriptStack.Clear;
+begin
+  FScript.Clear;
+end;
+
+function TJavaScriptStack.ScriptIsEmpty: Boolean;
+begin
+  result := FScript.Count=0;
+end;
+
+function TJavaScriptStack.GetScript: String;
+begin
+  result := FScript.Text;
+end;
+
 
 { THTMLContentProducer }
 
@@ -291,6 +501,28 @@ begin
     FWriter.Document := AValue;
 end;
 
+procedure THTMLContentProducer.SetParent(const AValue: TComponent);
+begin
+  if FParent=AValue then exit;
+  if FParent<>nil then
+    (FParent as IHTMLContentProducerContainer).RemoveContentProducer(Self);
+  FParent:=AValue;
+  if FParent<>nil then
+    (FParent as IHTMLContentProducerContainer).AddContentProducer(Self);
+end;
+
+function THTMLContentProducer.GetContentProducers(Index: integer): THTMLContentProducer;
+begin
+  Result:=THTMLContentProducer(ContentProducerList[Index]);
+end;
+
+function THTMLContentProducer.GetContentProducerList: TFPList;
+begin
+  if not assigned(FChilds) then
+    fchilds := tfplist.Create;
+  Result := FChilds;
+end;
+
 function THTMLContentProducer.ProduceContent: String;
 var WCreated, created : boolean;
     el : THtmlCustomElement;
@@ -307,6 +539,7 @@ begin
       el := WriteContent (FWriter);
       if not assigned(el) then
         Raise EHTMLError.CreateFmt(SErrNoContentProduced,[Self.Name]);
+      ForeachContentProducer(@DoBeforeGenerateContent,True);
       result := el.asstring;
     finally
       if WCreated then
@@ -318,10 +551,221 @@ begin
   end;
 end;
 
+constructor THTMLContentProducer.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FAcceptChildsAtDesignTime:=True;
+end;
+
+destructor THTMLContentProducer.destroy;
+begin
+  Parent:=nil;
+  while ChildCount>0 do Childs[ChildCount-1].Free;
+  FreeAndNil(FChilds);
+  inherited destroy;
+end;
+
+function THTMLContentProducer.GetEvents: TEventRecords;
+begin
+  result := nil;
+end;
+
+procedure THTMLContentProducer.AddEvent(var Events: TEventRecords;
+  AServerEventID: integer; AServerEvent: THandleAjaxEvent; AJavaEventName: string;
+  AcsCallBack: TCSAjaxEvent);
+begin
+  SetLength(Events,length(Events)+1);
+  with Events[high(Events)] do
+    begin
+    ServerEvent:=AServerEvent;
+    ServerEventID:=AServerEventID;
+    JavaEventName:=AJavaEventName;
+    csCallback:=AcsCallBack;
+    end;
+end;
+
+procedure THTMLContentProducer.DoOnEventCS(AnEvent: TEventRecord; AJavascriptStack: TJavaScriptStack; var Handled: boolean);
+begin
+  if assigned(AnEvent.csCallback) then
+    AnEvent.csCallback(self, AJavascriptStack, Handled);
+end;
+
+procedure THTMLContentProducer.SetupEvents(AHtmlElement: THtmlCustomElement);
+var AJSClass: TJavaScriptStack;
+    wc: TWebController;
+    Handled: boolean;
+    Events: TEventRecords;
+    i: integer;
+begin
+  Events := GetEvents;
+  if length(Events)>0 then
+    begin
+    wc := GetWebController(false);
+    if assigned(wc) then
+      begin
+      AJSClass := wc.InitializeJavaScriptStack;
+      try
+        for i := 0 to high(Events) do
+          begin
+          Handled:=false;
+          DoOnEventCS(events[i],AJSClass, Handled);
+          if not handled and assigned(events[i].ServerEvent) then
+            AJSClass.CallServerEvent(self,events[i].ServerEventID);
+          wc.BindJavascriptCallstackToElement(Self, AHtmlElement,events[i].JavaEventName);
+          AJSClass.clear;
+          end;
+      finally
+        wc.FreeJavascriptStack;
+      end;
+      end
+    else
+      begin
+      for i := 0 to high(Events) do if assigned(events[i].csCallback) or assigned(events[i].ServerEvent) then
+        raise exception.Create('There is no webcontroller available, which is necessary to use events.');
+      end;
+    end;
+end;
+
+function THTMLContentProducer.GetWebController(const ExceptIfNotAvailable: boolean): TWebController;
+var i : integer;
+begin
+  result := nil;
+  if assigned(owner)  then
+    begin
+    if (owner is TWebPage) and TWebPage(owner).HasWebController then
+      begin
+      result := TWebPage(owner).WebController;
+      exit;
+      end
+    else //if (owner is TDataModule) then
+      begin
+      for i := 0 to owner.ComponentCount-1 do if owner.Components[i] is TWebController then
+        begin
+        result := TWebController(Owner.Components[i]);
+        Exit;
+        end;
+      end;
+    end;
+  if ExceptIfNotAvailable then
+    raise Exception.Create('No webcontroller available');
+end;
+
+procedure THTMLContentProducer.BeforeGenerateContent;
+begin
+  // do nothing
+end;
+
+function THTMLContentProducer.WriteContent(aWriter: THTMLWriter): THTMLCustomElement;
+var i: integer;
+begin
+  for i := 0 to ChildCount-1 do
+    if Childs[i] is THTMLContentProducer then
+      result := THTMLContentProducer(Childs[i]).WriteContent(aWriter);
+end;
+
+function THTMLContentProducer.ChildCount: integer;
+begin
+  if assigned(FChilds) then
+    result := FChilds.Count
+  else
+    result := 0;
+end;
+
+procedure THTMLContentProducer.CleanupAfterRequest;
+begin
+  // Do Nothing
+end;
+
+procedure THTMLContentProducer.AddContentProducer(AContentProducer: THTMLContentProducer);
+begin
+  ContentProducerList.Add(AContentProducer);
+end;
+
+procedure THTMLContentProducer.RemoveContentProducer(AContentProducer: THTMLContentProducer);
+begin
+  ContentProducerList.Remove(AContentProducer);
+end;
+
+function THTMLContentProducer.ExchangeContentProducers(Child1, Child2: THTMLContentProducer): boolean;
+var ChildIndex1, ChildIndex2: integer;
+begin
+  result := false;
+  ChildIndex1:=GetContentProducerList.IndexOf(Child1);
+  if (ChildIndex1=-1) then
+    Exit;
+  ChildIndex2:=GetContentProducerList.IndexOf(Child2);
+  if (ChildIndex2=-1) then
+    Exit;
+  GetContentProducerList.Exchange(ChildIndex1,ChildIndex2);
+  result := true;
+end;
+
+function THTMLContentProducer.MoveContentProducer(MoveElement, MoveBeforeElement: THTMLContentProducer): boolean;
+var ChildIndex1, ChildIndex2: integer;
+begin
+  result := false;
+  ChildIndex1:=GetContentProducerList.IndexOf(MoveElement);
+  if (ChildIndex1=-1) then
+    Exit;
+  ChildIndex2:=GetContentProducerList.IndexOf(MoveBeforeElement);
+  if (ChildIndex2=-1) then
+    Exit;
+  GetContentProducerList.Move(ChildIndex1,ChildIndex2);
+  result := true;
+end;
+
+procedure THTMLContentProducer.HandleAjaxRequest(ARequest: TRequest; AnAjaxResponse: TAjaxResponse);
+begin
+  // Do nothing
+end;
+
+procedure THTMLContentProducer.ForeachContentProducer(AForeachChildsProc: TForeachContentProducerProc; Recursive: boolean);
+var i : integer;
+    tmpChild: THTMLContentProducer;
+begin
+  for i := 0 to ChildCount -1 do
+    begin
+    tmpChild := Childs[i];
+    AForeachChildsProc(tmpChild);
+    if recursive then
+      tmpChild.ForeachContentProducer(AForeachChildsProc,Recursive);
+    end;
+end;
+
 function THTMLContentProducer.CreateWriter (Doc : THTMLDocument): THTMLWriter;
 begin
   FDocument := Doc;
   result := THTMLWriter.Create (Doc);
+end;
+
+procedure THTMLContentProducer.SetParentComponent(Value: TComponent);
+begin
+  if Supports(Value,IHTMLContentProducerContainer) then
+    Parent:=Value;
+end;
+
+function THTMLContentProducer.HasParent: Boolean;
+begin
+  Result:=FParent<>nil;
+end;
+
+function THTMLContentProducer.GetParentComponent: TComponent;
+begin
+  Result:=TComponent(Parent);
+end;
+
+procedure THTMLContentProducer.GetChildren(Proc: TGetChildProc; Root: TComponent);
+var
+  i: Integer;
+begin
+  for i:=0 to ChildCount-1 do
+    if Childs[i].Owner=Root then
+      Proc(Childs[i]);
+end;
+
+procedure THTMLContentProducer.DoBeforeGenerateContent(const AContentProducer: THTMLContentProducer);
+begin
+  AContentProducer.BeforeGenerateContent;
 end;
 
 { THTMLCustomDatasetContentProducer }
@@ -564,6 +1008,7 @@ function THTMLCustomEntityProducer.WriteContent(aWriter: THTMLWriter
 begin
   result := aWriter.StartElement(THtmlEntitiesClasses[FEntity]);
   DoWriteEntity(aWriter);
+  inherited WriteContent(aWriter);
   aWriter.EndElement(THtmlEntitiesClasses[FEntity]);
 end;
 
@@ -629,6 +1074,110 @@ begin
   inherited Create(AOwner);
   Entity := heHtml;
 end;
+
+{ TAjaxResponse }
+
+function TAjaxResponse.GetXMLAnswer: TXMLDocument;
+begin
+  if not assigned(FXMLAnswer) then
+    begin
+    FXMLAnswer := TXMLDocument.create;
+    FRootNode := FXMLAnswer.CreateElement('CallResponse');
+    FXMLAnswer.Appendchild(FRootNode);
+    end;
+  result := FXMLAnswer;
+end;
+
+constructor TAjaxResponse.Create(AWebController: TWebController;
+  AResponse: TResponse);
+begin
+  FSendXMLAnswer:=true;
+  FResponse:=AResponse;
+  FJavascriptCallStack:=AWebController.InitializeJavaScriptStack;
+end;
+
+destructor TAjaxResponse.Destroy;
+begin
+  FXMLAnswer.Free;
+  FJavascriptCallStack.Free;
+  inherited Destroy;
+end;
+
+procedure TAjaxResponse.BindToResponse;
+var SubNode: TDOMNode;
+begin
+  if SendXMLAnswer then
+    begin
+    SubNode := XMLAnswer.CreateElement('ExecScript');
+    FRootNode.Appendchild(SubNode);
+    SubNode.Appendchild(XMLAnswer.CreateTextNode(FJavascriptCallStack.GetScript));
+
+    Response.ContentStream := TMemoryStream.Create;
+    Response.ContentType:='text/xml';
+    writeXMLFile(XMLAnswer,Response.ContentStream);
+    Response.ContentLength := Response.ContentStream.Size;
+    end
+end;
+
+{ TWebController }
+
+procedure TWebController.SetBaseURL(const AValue: string);
+begin
+  if FBaseURL=AValue then exit;
+  FBaseURL:=AValue;
+end;
+
+procedure TWebController.SetScriptName(const AValue: string);
+begin
+  if FScriptName=AValue then exit;
+  FScriptName:=AValue;
+end;
+
+procedure TWebController.InitializeAjaxRequest;
+begin
+  // do nothing
+end;
+
+procedure TWebController.InitializeShowRequest;
+begin
+  // do nothing
+end;
+
+procedure TWebController.CleanupAfterRequest;
+begin
+  // Do Nothing
+end;
+
+function TWebController.MessageBox(AText: String; Buttons: TWebButtons): string;
+begin
+  if assigned(MessageBoxHandler) then
+    result := MessageBoxHandler(self,AText,Buttons)
+  else
+    result := DefaultMessageBoxHandler(self,AText,Buttons);
+end;
+
+function TWebController.GetRequest: TRequest;
+begin
+  if assigned(Owner) and (owner is TWebPage) then
+    result := TWebPage(Owner).Request
+  else
+    result := nil;
+end;
+
+constructor TWebController.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  { TODO : Do this prperly using a notification. And make the WebController property readonly }
+  if owner is TWebPage then TWebPage(Owner).WebController := self;
+end;
+
+destructor TWebController.Destroy;
+begin
+  if (Owner is TWebPage) and (TWebPage(Owner).WebController=self) then
+    TWebPage(Owner).WebController := nil;
+  inherited Destroy;
+end;
+
 
 end.
 
