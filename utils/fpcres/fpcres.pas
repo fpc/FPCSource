@@ -20,7 +20,7 @@ program fpcres;
 
 uses
   SysUtils, Classes, paramparser, target, msghandler, sourcehandler,
-  resource,
+  closablefilestream, resource,
 //readers
   resreader, coffreader, winpeimagereader, elfreader, machoreader,
   externalreader, dfmreader,
@@ -279,13 +279,13 @@ begin
 end;
 
 procedure WriteOutputFile;
-var aStream : TFileStream;
+var aStream : TClosableFileStream;
     aWriter : TAbstractResourceWriter;
     msg : string;
 begin
   Messages.DoVerbose(Format('Trying to create output file %s...',[params.OutputFile]));
   try
-    aStream:=TFileStream.Create(params.OutputFile,fmCreate or fmShareDenyWrite);
+    aStream:=TClosableFileStream.Create(params.OutputFile,fmCreate or fmShareDenyWrite);
   except
     Messages.DoError(Format(SCantCreateFile,[params.OutputFile]));
     halt(halt_write_err);

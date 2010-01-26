@@ -11209,6 +11209,7 @@ utils/fpcm/printmakefilefpcrequirements.sh svneol=native#text/plain
 utils/fpcm/readme.txt svneol=native#text/plain
 utils/fpcres/Makefile svneol=native#text/plain
 utils/fpcres/Makefile.fpc svneol=native#text/plain
+utils/fpcres/closablefilestream.pas svneol=native#text/plain
 utils/fpcres/fpcres.pas svneol=native#text/plain
 utils/fpcres/msghandler.pas svneol=native#text/plain
 utils/fpcres/paramparser.pas svneol=native#text/plain
