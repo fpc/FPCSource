@@ -76,7 +76,7 @@ type
     currentsource : string;   { filename }
     currentline,
     currentcolumn : longint;  { current line and column }
-		currentmodulestate : string[20];
+    currentmodulestate : string[20];
   { Total Status }
     compiledlines : longint;  { the number of lines which are compiled }
     errorcount,

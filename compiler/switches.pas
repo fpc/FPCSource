@@ -32,6 +32,7 @@ procedure HandleSwitch(switch,state:char);
 function CheckSwitch(switch,state:char):boolean;
 
 procedure recordpendingverbosityswitch(sw: char; state: char);
+procedure recordpendingmessagestate(msg: longint; state: tmsgstate);
 procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
 procedure recordpendinglocalfullswitch(const switches: tlocalswitches);
 procedure recordpendingverbosityfullswitch(verbosity: longint);
@@ -263,6 +264,10 @@ procedure recordpendingverbosityswitch(sw: char; state: char);
     pendingstate.nextverbositystr:=pendingstate.nextverbositystr+sw+state;
   end;
 
+procedure recordpendingmessagestate(msg: longint; state: tmsgstate);
+  begin
+    { todo }
+  end;
 
 procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
   begin

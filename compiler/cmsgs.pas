@@ -25,6 +25,9 @@ unit cmsgs;
 
 interface
 
+uses
+  globtype;
+
 const
   maxmsgidxparts = 20;
 
@@ -33,6 +36,9 @@ type
 
   TArrayOfPChar = array[0..1000] of pchar;
   PArrayOfPChar = ^TArrayOfPChar;
+
+  TArrayOfState = array[0..1000] of tmsgstate;
+  PArrayOfState = ^TArrayOfState;
 
   PMessage=^TMessage;
   TMessage=object
@@ -45,6 +51,7 @@ type
     msgtxt      : pchar;
     msgidx      : array[1..maxmsgidxparts] of PArrayOfPChar;
     msgidxmax   : array[1..maxmsgidxparts] of longint;
+    msgstates   : array[1..maxmsgidxparts] of PArrayOfState;
     constructor Init(n:longint;const idxmax:array of longint);
     destructor  Done;
     function  LoadIntern(p:pointer;n:longint):boolean;
@@ -109,8 +116,12 @@ begin
   for i:=1 to n do
    begin
      msgidxmax[i]:=idxmax[i-1];
+     { create array of msgidx }
      getmem(msgidx[i],msgidxmax[i]*sizeof(pointer));
      fillchar(msgidx[i]^,msgidxmax[i]*sizeof(pointer),0);
+     { create array of states }
+     getmem(msgstates[i],msgidxmax[i]*sizeof(tmsgstate));
+     fillchar(msgstates[i]^,msgidxmax[i]*sizeof(tmsgstate),0);
    end;
 end;
 
@@ -120,7 +131,10 @@ var
   i : longint;
 begin
   for i:=1 to msgparts do
+  begin
    freemem(msgidx[i],msgidxmax[i]*sizeof(pointer));
+   freemem(msgstates[i],msgidxmax[i]*sizeof(tmsgstate));
+  end;
   if msgallocsize>0 then
    begin
      freemem(msgtxt,msgsize);
@@ -380,26 +394,12 @@ var
   hp: pchar;
   i, txtbegin: longint;
 begin
-   result:=false;
-  if ((nr div 1000) < low(msgidx)) or
-     ((nr div 1000) > msgparts) then
+  result:=false;
+  i:=nr div 1000;
+  if (i < low(msgstates)) or
+     (i > msgparts) then
     exit;
-  hp := GetPChar(nr);
-  if (hp=nil) then
-    exit;
-  txtbegin:=-1;
-  for i:=0 to 4 do
-    begin
-      if hp[i]=#0 then
-        exit;
-      if hp[i]='_' then
-        begin
-          txtbegin:=i;
-          break;
-        end;
-    end;
-  for i:=0 to txtbegin-1 do
-    hp[i]:='_';
+  msgstates[i]^[nr mod 1000]:=ms_off;
   result:=true;
 end;
 

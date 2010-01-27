@@ -128,7 +128,7 @@ general_i_number_of_notes=01023_I_$1 note(s) issued
 #
 # Scanner
 #
-# 02086 is the last used one
+# 02087 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -344,7 +344,7 @@ scan_w_minstacksize_not_support=02077_W_MINSTACKSIZE is not supported by the tar
 % The \var{\{\$MINSTACKSIZE\}} directive is not supported by the target OS.
 scan_w_maxstacksize_not_support=02078_W_MAXSTACKSIZE is not supported by the target OS
 % The \var{\{\$MAXSTACKSIZE\}} directive is not supported by the target OS.
-scanner_e_illegal_warn_state=02079_E_Illegal state for $WARN directive
+scanner_e_illegal_warn_state=02079_E_Illegal state "$1" for $WARN directive
 % Only ON and OFF can be used as state with a \var{\{\$WARN\}} compiler directive.
 scan_e_only_packset=02080_E_Illegal set packing value
 % Only 0, 1, 2, 4, 8, DEFAULT and NORMAL are allowed as packset parameters.
@@ -362,6 +362,8 @@ scan_e_illegal_minfpconstprec=02085_E_Illegal minimal floating point constant pr
 scan_w_multiple_main_name_overrides=02086_W_Overriding name of "main" procedure multiple times, was previously set to "$1"
 % The name for the main entry procedure is specified more than once. Only the last
 % name will be used.
+scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN directive
+% Identifier is not known by a \var{\{\$WARN\}} compiler directive.
 % \end{description}
 #
 # Parser

@@ -179,7 +179,7 @@ implementation
 
     function ClearMessageVerbosity(s: string; var i: integer): boolean;
       var
-        tok : string;
+        tok  : string;
         code : longint;
         msgnr: longint;
       begin
@@ -247,7 +247,7 @@ implementation
                             status.print_source_path:=true;
                        end;
                  'M' : if inverse or
-                          not ClearMessageVerbosity(s, i) then
+                         not ClearMessageVerbosity(s, i) then
                          begin
                            result:=false;
                            exit
@@ -542,12 +542,25 @@ implementation
          end;
       end;
 
+    function GetMessageState(m:longint):tmsgstate;
+      var
+        i: integer;
+      begin
+        i:=m div 1000;
+        { get the default state }
+        Result:=msg^.msgstates[i]^[m mod 1000];
+
+        { and search at the current unit settings }
+        { todo }
+      end;
 
     Procedure Msg2Comment(s:ansistring;w:longint;onqueue:tmsgqueueevent);
       var
         idx,i,v : longint;
         dostop  : boolean;
         doqueue : boolean;
+        st      : tmsgstate;
+        ch      : char;
       begin
       {Reset}
         dostop:=false;
@@ -562,47 +575,58 @@ implementation
           begin
             for i:=1 to idx do
              begin
-               case upcase(s[i]) of
+               ch:=upcase(s[i]);
+               case ch of
                 'F' :
                   begin
                     v:=v or V_Fatal;
                     inc(status.errorcount);
                     dostop:=true;
                   end;
-                'E' :
+                'E','W','N','H':
                   begin
-                    v:=v or V_Error;
-                    inc(status.errorcount);
+                    if ch='E' then
+                      st:=ms_error
+                    else
+                      st:=GetMessageState(w);
+                    if st=ms_error then
+                      begin
+                        v:=v or V_Error;
+                        inc(status.errorcount);
+                      end
+                    else if st<>ms_off then
+                      case ch of
+                       'W':
+                         begin
+                           v:=v or V_Warning;
+                           if CheckVerbosity(V_Warning) then
+                             if status.errorwarning then
+                              inc(status.errorcount)
+                             else
+                              inc(status.countWarnings);
+                         end;
+                       'N' :
+                         begin
+                           v:=v or V_Note;
+                           if CheckVerbosity(V_Note) then
+                             if status.errornote then
+                              inc(status.errorcount)
+                             else
+                              inc(status.countNotes);
+                         end;
+                       'H' :
+                         begin
+                           v:=v or V_Hint;
+                           if CheckVerbosity(V_Hint) then
+                             if status.errorhint then
+                              inc(status.errorcount)
+                             else
+                              inc(status.countHints);
+                         end;
+                      end;
                   end;
                 'O' :
                   v:=v or V_Normal;
-                'W':
-                  begin
-                    v:=v or V_Warning;
-                    if CheckVerbosity(V_Warning) then
-                      if status.errorwarning then
-                       inc(status.errorcount)
-                      else
-                       inc(status.countWarnings);
-                  end;
-                'N' :
-                  begin
-                    v:=v or V_Note;
-                    if CheckVerbosity(V_Note) then
-                      if status.errornote then
-                       inc(status.errorcount)
-                      else
-                       inc(status.countNotes);
-                  end;
-                'H' :
-                  begin
-                    v:=v or V_Hint;
-                    if CheckVerbosity(V_Hint) then
-                      if status.errorhint then
-                       inc(status.errorcount)
-                      else
-                       inc(status.countHints);
-                  end;
                 'I' :
                   v:=v or V_Info;
                 'L' :

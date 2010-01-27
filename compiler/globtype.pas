@@ -477,6 +477,14 @@ interface
        link_smart   = $4;
        link_shared  = $8;
 
+    type
+      { a message state }
+      tmsgstate = (
+        ms_on,    // turn on output
+        ms_off,   // turn off output
+        ms_error  // cast to error
+      );
+
 implementation
 
 end.
