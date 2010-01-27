@@ -115,6 +115,8 @@ type
     constructor Create(AWebController: TWebController; AResponse: TResponse); virtual;
     destructor Destroy; override;
     procedure BindToResponse; virtual;
+    procedure SetError(HelpContext: longint; ErrorMessage: string);
+    procedure CancelXMLAnswer;
     property Response: TResponse read FResponse;
     property XMLAnswer: TXMLDocument read GetXMLAnswer;
     property SendXMLAnswer: boolean read FSendXMLAnswer;
@@ -1117,6 +1119,25 @@ begin
     writeXMLFile(XMLAnswer,Response.ContentStream);
     Response.ContentLength := Response.ContentStream.Size;
     end
+end;
+
+procedure TAjaxResponse.SetError(HelpContext: longint; ErrorMessage: string);
+var SubNode: TDOMNode;
+    ErrNode: TDOMNode;
+begin
+  ErrNode := XMLAnswer.CreateElement('Error');
+  FRootNode.AppendChild(ErrNode);
+  SubNode := XMLAnswer.CreateElement('HelpContext');
+  SubNode.AppendChild(XMLAnswer.CreateTextNode(IntToStr(HelpContext)));
+  ErrNode.AppendChild(SubNode);
+  SubNode := XMLAnswer.CreateElement('Message');
+  SubNode.AppendChild(XMLAnswer.CreateTextNode(ErrorMessage));
+  ErrNode.AppendChild(SubNode);
+end;
+
+procedure TAjaxResponse.CancelXMLAnswer;
+begin
+  FSendXMLAnswer:=false;
 end;
 
 { TWebController }

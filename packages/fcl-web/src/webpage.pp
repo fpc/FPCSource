@@ -10,7 +10,8 @@ uses
 type
   TRequestResponseEvent = procedure(Sender: TObject; ARequest: TRequest; AResponse: TResponse) of object;
   TRequestEvent = procedure(Sender: TObject; ARequest: TRequest) of object;
-  THandleAjaxRequest = procedure(Sender: TObject; ARequest: TRequest; AResponse: TResponse; var handled: boolean) of object;
+  THandleAjaxRequest = procedure(Sender: TObject; ARequest: TRequest; AnAjaxResponse: TAjaxResponse; var handled: boolean) of object;
+  TAjaxRequestResponseEvent = procedure(Sender: TObject; ARequest: TRequest; AResponse: TAjaxResponse) of object;
 
 type
   IWebPageDesigner = interface(IUnknown)
@@ -46,9 +47,8 @@ type
 
   TWebPage = class(TDataModule, IHTMLContentProducerContainer)
   private
-    FAfterAjaxRequest: TRequestResponseEvent;
+    FAfterAjaxRequest: TAjaxRequestResponseEvent;
     FBaseURL: string;
-    FBeforeAjaxRequest: TRequestResponseEvent;
     FBeforeRequest: TRequestEvent;
     FBeforeShowPage: TRequestEvent;
     FDesigner: IWebPageDesigner;
@@ -63,9 +63,8 @@ type
     function GetHasWebController: boolean;
     function GetWebController: TWebController;
   protected
-    procedure DoBeforeAjaxRequest(ARequest: TRequest; AResponse: TResponse); virtual;
-    procedure DoAfterAjaxRequest(ARequest: TRequest; AResponse: TResponse); virtual;
-    procedure DoHandleAjaxRequest(ARequest: TRequest; AResponse: TResponse; var Handled: boolean); virtual;
+    procedure DoAfterAjaxRequest(ARequest: TRequest; AnAjaxResponse: TAjaxResponse); virtual;
+    procedure DoHandleAjaxRequest(ARequest: TRequest; AnAjaxResponse: TAjaxResponse; var Handled: boolean); virtual;
     procedure DoBeforeRequest(ARequest: TRequest); virtual;
     procedure DoBeforeShowPage(ARequest: TRequest); virtual;
     property WebModule: TFPWebModule read FWebModule;
@@ -94,8 +93,7 @@ type
   published
     property BeforeRequest: TRequestEvent read FBeforeRequest write FBeforeRequest;
     property BeforeShowPage: TRequestEvent read FBeforeShowPage write FBeforeShowPage;
-    property BeforeAjaxRequest: TRequestResponseEvent read FBeforeAjaxRequest write FBeforeAjaxRequest;
-    property AfterAjaxRequest: TRequestResponseEvent read FAfterAjaxRequest write FAfterAjaxRequest;
+    property AfterAjaxRequest: TAjaxRequestResponseEvent read FAfterAjaxRequest write FAfterAjaxRequest;
     property OnAjaxRequest: THandleAjaxRequest read FOnAjaxRequest write FOnAjaxRequest;
     property BaseURL: string read FBaseURL write FBaseURL;
   end;
@@ -182,21 +180,24 @@ begin
         begin
         AnAjaxResponse := TAjaxResponse.Create(GetWebController, AResponse);
         try
-          DoBeforeAjaxRequest(ARequest, AResponse);
-          if HasWebController then
-            WebController.InitializeAjaxRequest;
-          Handled := false;
-          DoHandleAjaxRequest(ARequest, AResponse, Handled);
-          if not Handled then
-            begin
-            CompName := Request.QueryFields.Values['AjaxID'];
-            if CompName='' then CompName := Request.GetNextPathInfo;
-            AComponent := FindComponent(CompName);
-            if assigned(AComponent) and (AComponent is THTMLContentProducer) then
-              THTMLContentProducer(AComponent).HandleAjaxRequest(ARequest, AnAjaxResponse);
-            AnAjaxResponse.BindToResponse;
-            end;
-          DoAfterAjaxRequest(ARequest, AResponse);
+          try
+            if HasWebController then
+              WebController.InitializeAjaxRequest;
+            Handled := false;
+            DoHandleAjaxRequest(ARequest, AnAjaxResponse, Handled);
+            if not Handled then
+              begin
+              CompName := Request.QueryFields.Values['AjaxID'];
+              if CompName='' then CompName := Request.GetNextPathInfo;
+              AComponent := FindComponent(CompName);
+              if assigned(AComponent) and (AComponent is THTMLContentProducer) then
+                THTMLContentProducer(AComponent).HandleAjaxRequest(ARequest, AnAjaxResponse);
+              end;
+            DoAfterAjaxRequest(ARequest, AnAjaxResponse);
+          except on E: Exception do
+            AnAjaxResponse.SetError(e.HelpContext, e.Message);
+          end;
+          AnAjaxResponse.BindToResponse;
         finally
           AnAjaxResponse.Free;
         end;
@@ -285,22 +286,16 @@ begin
   Result := THTMLContentProducer(ContentProducerList[Index]);
 end;
 
-procedure TWebPage.DoBeforeAjaxRequest(ARequest: TRequest; AResponse: TResponse);
-begin
-  if assigned(BeforeAjaxRequest) then
-    BeforeAjaxRequest(Self,ARequest,AResponse);
-end;
-
-procedure TWebPage.DoAfterAjaxRequest(ARequest: TRequest; AResponse: TResponse);
+procedure TWebPage.DoAfterAjaxRequest(ARequest: TRequest; AnAjaxResponse: TAjaxResponse);
 begin
   if assigned(AfterAjaxRequest) then
-    AfterAjaxRequest(Self,ARequest,AResponse);
+    AfterAjaxRequest(Self,ARequest,AnAjaxResponse);
 end;
 
-procedure TWebPage.DoHandleAjaxRequest(ARequest: TRequest; AResponse: TResponse; var Handled: boolean);
+procedure TWebPage.DoHandleAjaxRequest(ARequest: TRequest; AnAjaxResponse: TAjaxResponse; var Handled: boolean);
 begin
   if assigned(OnAjaxRequest) then
-    OnAjaxRequest(Self,ARequest,AResponse, Handled);
+    OnAjaxRequest(Self,ARequest,AnAjaxResponse, Handled);
 end;
 
 procedure TWebPage.DoBeforeRequest(ARequest: TRequest);
