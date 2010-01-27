@@ -74,6 +74,7 @@ Type
   { TCustomWebApplication }
   TGetModuleEvent = Procedure (Sender : TObject; ARequest : TRequest;
                                Var ModuleClass : TCustomHTTPModuleClass) of object;
+  TOnShowRequestException = procedure(AResponse: TResponse; AnException: Exception; var handled: boolean);
 
   TCustomWebApplication = Class(TCustomApplication)
   Private
@@ -82,6 +83,7 @@ Type
     FEmail: String;
     FModuleVar: String;
     FOnGetModule: TGetModuleEvent;
+    FOnShowRequestException: TOnShowRequestException;
     FRequest : TRequest;
     FHandleGetOnPost : Boolean;
     FRedirectOnError : Boolean;
@@ -111,6 +113,7 @@ Type
     Property OnGetModule : TGetModuleEvent Read FOnGetModule Write FOnGetModule;
     Property Email : String Read GetEmail Write FEmail;
     Property Administrator : String Read GetAdministrator Write FAdministrator;
+    property OnShowRequestException: TOnShowRequestException read FOnShowRequestException write FOnShowRequestException;
   end;
 
   EFPWebError = Class(Exception);
@@ -175,9 +178,16 @@ end;
 procedure TCustomWebApplication.ShowRequestException(R: TResponse; E: Exception);
 Var
  S : TStrings;
+ handled: boolean;
 
 begin
   if R.ContentSent then exit;
+  if assigned(OnShowRequestException) then
+    begin
+    handled:=false;
+    OnShowRequestException(R,E,Handled);
+    if handled then exit;
+    end;
   If RedirectOnError and not R.HeadersSent then
     begin
     R.SendRedirect(format(RedirectOnErrorURL,[HTTPEncode(E.Message)]));
