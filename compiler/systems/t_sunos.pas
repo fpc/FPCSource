@@ -556,17 +556,38 @@ begin
   WriteResponseFile(true);
 
 { Create some replacements }
+{ initname and fininame may contain $, which can be wrongly interpreted
+  in a link script, thus we surround them with single quotes 
+  in cs_link_nolink is in globalswitches }
   if use_gnu_ld then
     begin
-      InitFiniStr:='-init '+exportlib.initname;
+      InitFiniStr:='-init ';
+      if cs_link_nolink in current_settings.globalswitches then
+        InitFiniStr:=InitFiniStr+''''+exportlib.initname+''''
+      else
+        InitFiniStr:=InitFiniStr+exportlib.initname;
       if (exportlib.fininame<>'') then
-        InitFiniStr:=InitFiniStr+' -fini '+exportlib.fininame;
+        begin
+          if cs_link_nolink in current_settings.globalswitches then
+            InitFiniStr:=InitFiniStr+' -fini '''+exportlib.initname+''''
+          else
+            InitFiniStr:=InitFiniStr+' -fini '+exportlib.fininame;
+        end;
     end
   else
     begin
-      InitFiniStr:='-z initarray='+exportlib.initname;
+      InitFiniStr:='-z initarray=';
+      if cs_link_nolink in current_settings.globalswitches then
+        InitFiniStr:=InitFiniStr+''''+exportlib.initname+''''
+      else
+        InitFiniStr:=InitFiniStr+exportlib.initname;
       if (exportlib.fininame<>'') then
-        InitFiniStr:=InitFiniStr+' -z finiarray='+exportlib.fininame;
+        begin
+          if cs_link_nolink in current_settings.globalswitches then
+            InitFiniStr:=InitFiniStr+' -z finiarray='''+exportlib.initname+''''
+          else
+            InitFiniStr:=InitFiniStr+' -z finiarray='+exportlib.fininame;
+        end;
     end;
 
 { Call linker }
