@@ -174,7 +174,7 @@ function TFPList.Expand: TFPList;
 var
   IncSize : Longint;
 begin
-  if FCount < FCapacity then exit;
+  if FCount < FCapacity then exit(self);
   IncSize := 4;
   if FCapacity > 3 then IncSize := IncSize + 4;
   if FCapacity > 8 then IncSize := IncSize+8;
