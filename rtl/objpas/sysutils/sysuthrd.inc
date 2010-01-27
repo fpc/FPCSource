@@ -93,6 +93,10 @@ begin
         always first increase freadercount and then check fwritelocked }
       while (System.InterLockedExchangeAdd(freadercount,0)<>0) do
         RTLEventWaitFor(fwaitingwriterlock);
+
+      { Make sure that out-of-order execution cannot already perform reads
+        inside the critical section before the lock has been acquired }
+      ReadBarrier;
     end;
 
   { we have the writer lock, and all readers are gone }
@@ -150,6 +154,9 @@ begin
             fwritelocked }
           System.InterlockedIncrement(freadercount);
         end;
+      { Make sure that out-of-order execution cannot perform reads
+        inside the critical section before the lock has been acquired }
+      ReadBarrier;
     end;
 end;
 
@@ -160,11 +167,6 @@ begin
     under unix and hence the event routines may throw an error }
   if IsMultiThread then
     begin
-      { Make sure that all read operations have finished, so that none of those
-        can still be executed after a writer starts working and changes some
-        things }
-      ReadBarrier;
-
       { If no more readers, wake writer in the ready-queue if any. Since a writer
         always first atomically sets the fwritelocked and then atomically checks
         the freadercount, first modifying freadercount and then checking fwritelock
