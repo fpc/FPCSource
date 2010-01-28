@@ -283,7 +283,11 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 {$endif DEBUG_MT}
       pthread_attr_init(@thread_attr);
       {$ifndef HAIKU}
+      {$ifdef solaris}
+      pthread_attr_setinheritsched(@thread_attr, PTHREAD_INHERIT_SCHED);
+      {$else not solaris}
       pthread_attr_setinheritsched(@thread_attr, PTHREAD_EXPLICIT_SCHED);
+      {$endif not solaris}
       {$endif}
 
       // will fail under linux -- apparently unimplemented
@@ -297,6 +301,7 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       if (pthread_attr_setstacksize(@thread_attr, stacksize)<>0) or
          // and create the thread
          (pthread_create(ppthread_t(@threadid), @thread_attr, @ThreadMain,ti) <> 0) then
+
         begin
           dispose(ti);
           threadid := TThreadID(0);
