@@ -119,3 +119,46 @@ Function fpFlock (fd,mode : longint) : cint;
 		if (fpFlock=-1) and (errno=ESysEACCES) then
 			errno:=ESysEWOULDBLOCK;
   end;
+
+const
+  SolarisTimeZoneFile = '/etc/default/init';
+  SolarisTimeZoneDir = '/usr/share/lib/zoneinfo/';
+
+{$define FPC_HAS_GETTIMEZONEFILE}  
+
+function GetTimezoneFile:shortstring;
+var
+  s : shortstring;
+  p : longint;
+  ft : text;
+begin
+  GetTimezoneFile:='';
+  assign(ft,SolarisTimeZoneFile);
+{$ifopt I+}
+  {$define OPT_I}
+{$endif}
+{$I-}  
+  reset(ft);
+  if IOResult=0 then
+    begin
+      while not eof(ft) do
+        begin
+          readln(ft,s);
+          p:=pos('#',s);
+          if p>0 then
+            s[0]:=chr(p-1);
+	  p:=pos('TZ=',s);
+          if p>0 then
+            begin
+	      GetTimeZoneFile:=SolarisTimeZoneDir+copy(s,p+3,length(s));
+              close(ft);
+              exit;
+	    end;
+	end;
+      close(ft);	
+    end;
+{$ifdef OPT_I}    
+  {$I+}
+{$endif}  
+end;
+
