@@ -2020,7 +2020,10 @@ implementation
                   begin
                     consume(_POINT);
                     if (p1.resultdef.typ=pointerdef) and
-                       (m_autoderef in current_settings.modeswitches) then
+                       (m_autoderef in current_settings.modeswitches) and
+                       { don't auto-deref objc.id, because then the code
+                         below for supporting id.anyobjcmethod isn't triggered }
+                       (p1.resultdef<>objc_idtype) then
                       begin
                         p1:=cderefnode.create(p1);
                         do_typecheckpass(p1);
