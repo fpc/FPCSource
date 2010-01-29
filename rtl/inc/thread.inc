@@ -455,7 +455,10 @@ end;
 function  nobasiceventWaitFor(Timeout : Cardinal;state:peventstate) : longint;
 
 begin
-  NoThreadError;
+  if IsMultiThread then
+    NoThreadError
+  else
+    ThreadingAlreadyUsed:=true;
   result:=-1;
 end;
 
@@ -498,19 +501,28 @@ end;
 
 procedure NORTLeventWaitFor(state:pRTLEvent);
   begin
-    NoThreadError;
+  if IsMultiThread then
+    NoThreadError
+  else
+    ThreadingAlreadyUsed:=true;
   end;
 
 
 procedure NORTLeventWaitForTimeout(state:pRTLEvent;timeout : longint);
   begin
-    NoThreadError;
+  if IsMultiThread then
+    NoThreadError
+  else
+    ThreadingAlreadyUsed:=true;
   end;
 
 
 procedure NORTLeventsync(m:trtlmethod;p:tprocedure);
   begin
-    NoThreadError;
+  if IsMultiThread then
+    NoThreadError
+  else
+    ThreadingAlreadyUsed:=true;
   end;
 
 function NoSemaphoreInit: Pointer;
