@@ -1,5 +1,5 @@
 {%CPU=i386}
-
+{%opt=-Cg-}
 
 program test_word_ref;
 
