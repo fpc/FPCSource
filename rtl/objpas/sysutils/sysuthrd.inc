@@ -107,14 +107,17 @@ begin
     afterwards will certainly see these results }
   WriteBarrier;
 
-  { signal potential readers that the coast is clear }
-  System.InterlockedDecrement(fwritelocked);
-  { wake up waiting readers (if any); do not check first whether freadercount
-    is <> 0, because the InterlockedDecrement in the while loop of BeginRead
-    can have already occurred, so a single reader may be about to wait on
-    freaderqueue even though freadercount=0. Setting an event multiple times
-    is no problem. }
-  BasicEventSetEvent(freaderqueue);
+  { signal potential readers that the coast is clear if all recursive
+    write locks have been freed }
+  if System.InterlockedDecrement(fwritelocked)=0 then
+    begin
+      { wake up waiting readers (if any); do not check first whether freadercount
+        is <> 0, because the InterlockedDecrement in the while loop of BeginRead
+        can have already occurred, so a single reader may be about to wait on
+        freaderqueue even though freadercount=0. Setting an event multiple times
+        is no problem. }
+      BasicEventSetEvent(freaderqueue);
+    end;
   { free the writer lock so another writer can become active }
   System.LeaveCriticalSection(fwritelock);
 end;
