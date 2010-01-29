@@ -21,6 +21,7 @@
 
   const
     PTHREAD_EXPLICIT_SCHED       = 0;
+    PTHREAD_INHERIT_SCHED        = 1;
     PTHREAD_CREATE_DETACHED      = $40;
     PTHREAD_SCOPE_PROCESS        = 0;
 
