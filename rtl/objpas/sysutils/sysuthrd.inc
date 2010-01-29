@@ -83,8 +83,10 @@ begin
         writer starvation (since they have to compete with potentially many
         concurrent readers) }
       BasicEventResetEvent(freaderqueue);
-      { for quick checking by candidate-readers }
-      System.InterlockedExchange(fwritelocked,1);
+      { for quick checking by candidate-readers -- use interlockedincrement/
+        decrement instead of setting 1/0, because a single thread can
+        recursively acquire the write lock multiple times }
+      System.InterlockedIncrement(fwritelocked);
     
       { wait until all readers are gone -- freadercount and fwritelocked are only
         accessed using atomic operations (that's why we use
@@ -115,7 +117,7 @@ begin
       WriteBarrier;
 
       { signal potential readers that the coast is clear }
-      System.InterlockedExchange(fwritelocked,0);
+      System.InterlockedDecrement(fwritelocked);
       { wake up waiting readers (if any); do not check first whether freadercount
         is <> 0, because the InterlockedDecrement in the while loop of BeginRead
         can have already occurred, so a single reader may be about to wait on
