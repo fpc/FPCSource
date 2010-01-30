@@ -57,6 +57,14 @@ type
    BSTR	               = POLESTR;
    TOleDate	       = DATE;
    POleDate	       = ^TOleDate;	
+   OLE_HANDLE	       = UINT;
+   LPOLE_HANDLE        = ^OLE_HANDLE;
+   OLE_COLOR	       = DWORD;
+   LPOLE_COLOR         = ^OLE_COLOR;
+   TOleHandle          = OLE_HANDLE;
+   POleHandle          = LPOLE_HANDLE;
+   TOleColor           = OLE_COLOR;
+   POleColor           = LPOle_Color;
 
 CONST
    GUID_NULL  : TGUID =  '{00000000-0000-0000-0000-000000000000}';
