@@ -292,8 +292,19 @@ operator := (const v:double) r:clongdouble;
 
 begin
   Pword(@r[r128_exponent_ofs])^:=qword(v) shr 52;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+{$ifdef ENDIAN_LITTLE}
   Pqword(@r[r128_mantissa_ofs])^:=qword(v) shl 12;
   Pcardinal(@r[r128_mantissa_ofs+8])^:=0;
+{$else not ENDIAN_LITTLE}
+  unaligned(Pqword(@r[r128_mantissa_ofs])^):=qword(v) shl 12;
+  Pword(@r[r128_mantissa_ofs+8])^:=0;
+  Pword(@r[r128_mantissa_ofs+10])^:=0;
+{$endif not ENDIAN_LITTLE}
+{$else not FPC_REQUIRES_PROPER_ALIGNMENT}
+  Pqword(@r[r128_mantissa_ofs])^:=qword(v) shl 12;
+  Pcardinal(@r[r128_mantissa_ofs+8])^:=0;
+{$endif not FPC_REQUIRES_PROPER_ALIGNMENT}
   Pword(@r[r128_mantissa_ofs+12])^:=0;
 end;
 
