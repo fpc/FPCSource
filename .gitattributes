@@ -8576,6 +8576,7 @@ tests/test/cg/traise4.pp svneol=native#text/plain
 tests/test/cg/traise5.pp svneol=native#text/plain
 tests/test/cg/traise6.pp svneol=native#text/plain
 tests/test/cg/treadwrt.pp svneol=native#text/plain
+tests/test/cg/tsar1.pp svneol=native#text/pascal
 tests/test/cg/tshlshr.pp svneol=native#text/plain
 tests/test/cg/tstr.pp svneol=native#text/plain
 tests/test/cg/tsubst.pp svneol=native#text/plain

@@ -2229,3 +2229,43 @@ function RolQWord(Const AValue : QWord;Dist : Byte): QWord;{$ifdef SYSTEMINLINE}
 {$endif FPC_SYSTEM_HAS_ROX_QWORD}
 {$endif FPC_HAS_INTERNAL_ROX_QWORD}
 
+{$ifndef FPC_HAS_INTERNAL_SAR_BYTE}
+{$ifndef FPC_SYSTEM_HAS_SAR_BYTE}
+function SarShortint(Const AValue : Shortint;Shift : Byte): Shortint;
+  begin
+    Shift:=Shift and 7;
+    Result:=shortint(byte(byte(byte(AValue) shr Shift) or (byte(shortint(byte(0-byte(byte(AValue) shr 7)) and byte(shortint(0-(ord(Shift<>0){ and 1}))))) shl (8-Shift))));
+  end;
+{$endif FPC_HAS_INTERNAL_SAR_BYTE}
+{$endif FPC_SYSTEM_HAS_SAR_BYTE}
+
+{$ifndef FPC_HAS_INTERNAL_SAR_WORD}
+{$ifndef FPC_SYSTEM_HAS_SAR_WORD}
+function SarSmallint(Const AValue : Smallint;Shift : Byte): Smallint;
+  begin
+    Shift:=Shift and 15;
+    Result:=smallint(word(word(word(AValue) shr Shift) or (word(smallint(word(0-word(word(AValue) shr 15)) and word(smallint(0-(ord(Shift<>0){ and 1}))))) shl (16-Shift))));
+  end;
+{$endif FPC_HAS_INTERNAL_SAR_WORD}
+{$endif FPC_SYSTEM_HAS_SAR_WORD}
+
+{$ifndef FPC_HAS_INTERNAL_SAR_DWORD}
+{$ifndef FPC_SYSTEM_HAS_SAR_DWORD}
+function SarLongint(Const AValue : Longint;Shift : Byte): Longint;
+  begin
+    Shift:=Shift and 31;
+    Result:=longint(dword(dword(dword(AValue) shr Shift) or (dword(longint(dword(0-dword(dword(AValue) shr 31)) and dword(longint(0-(ord(Shift<>0){ and 1}))))) shl (32-Shift))));
+  end;
+{$endif FPC_HAS_INTERNAL_SAR_DWORD}
+{$endif FPC_SYSTEM_HAS_SAR_DWORD}
+
+{$ifndef FPC_HAS_INTERNAL_SAR_QWORD}
+{$ifndef FPC_SYSTEM_HAS_SAR_QWORD}
+function SarInt64(Const AValue : Int64;Shift : Byte): Int64;
+  begin
+    Shift:=Shift and 63;
+    Result:=int64(qword(qword(qword(AValue) shr Shift) or (qword(int64(qword(0-qword(qword(AValue) shr 63)) and qword(int64(0-(ord(Shift<>0){ and 1}))))) shl (64-Shift))));
+  end;
+{$endif FPC_HAS_INTERNAL_SAR_QWORD}
+{$endif FPC_SYSTEM_HAS_SAR_QWORD}
+

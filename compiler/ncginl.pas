@@ -55,6 +55,7 @@ interface
           procedure second_trunc_real; virtual;
           procedure second_abs_long; virtual;
           procedure second_rox; virtual;
+          procedure second_sar; virtual;
        end;
 
 implementation
@@ -165,6 +166,9 @@ implementation
             in_ror_x,
             in_ror_x_x:
               second_rox;
+            in_sar_x,
+            in_sar_x_y:
+              second_sar;
             else internalerror(9);
          end;
       end;
@@ -766,6 +770,46 @@ implementation
           end
         else
           cg.a_op_const_reg(current_asmdata.CurrAsmList,op,location.size,1,location.register);
+      end;
+
+
+    procedure tcginlinenode.second_sar;
+      var
+        {hcountreg : tregister;}
+        op1,op2 : tnode;
+      begin
+        if (left.nodetype=callparan) and
+           assigned(tcallparanode(left).right) then
+          begin
+            op1:=tcallparanode(tcallparanode(left).right).left;
+            op2:=tcallparanode(left).left;
+          end
+        else
+          begin
+            op1:=left;
+            op2:=nil;
+          end;
+        secondpass(op1);
+        { load left operator in a register }
+        location_copy(location,op1.location);
+
+        location_force_reg(current_asmdata.CurrAsmList,location,location.size,false);
+
+        if not(assigned(op2)) then
+          cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,location.size,1,location.register)
+        else
+          begin
+            secondpass(op2);
+            { shifting by a constant directly coded: }
+            if op2.nodetype=ordconstn then
+              cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,location.size,
+                                  tordconstnode(op2).value.uvalue and (resultdef.size*8-1),location.register)
+            else
+              begin
+                location_force_reg(current_asmdata.CurrAsmList,op2.location,location.size,false);
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SAR,location.size,op2.location.register,location.register);
+             end;
+          end;
       end;
 
 begin

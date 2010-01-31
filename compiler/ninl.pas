@@ -1417,6 +1417,60 @@ implementation
         end;
 
 
+      function handle_const_sar : tnode;
+        var
+          vl,vl2    : TConstExprInt;
+          bits,shift: integer;
+          mask : qword;
+          def : tdef;
+        begin
+          result:=nil;
+          if (left.nodetype=ordconstn) or ((left.nodetype=callparan) and (tcallparanode(left).left.nodetype=ordconstn)) then
+            begin
+              if (left.nodetype=callparan) and
+                 assigned(tcallparanode(left).right) then
+                begin
+                  if (tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn) then
+                    begin
+                      def:=tcallparanode(tcallparanode(left).right).left.resultdef;
+                      vl:=tordconstnode(tcallparanode(left).left).value;
+                      vl2:=tordconstnode(tcallparanode(tcallparanode(left).right).left).value;
+                    end
+                  else
+                    internalerror(2010013101);
+                end
+              else
+                begin
+                  def:=left.resultdef;
+                  vl:=1;
+                  vl2:=tordconstnode(left).value;
+                end;
+
+              bits:=def.size*8;
+              shift:=vl.svalue and (bits-1);
+              case bits of
+                 8:
+                   mask:=$ff;
+                 16:
+                   mask:=$ffff;
+                 32:
+                   mask:=$ffffffff;
+                 64:
+                   mask:=$ffffffffffffffff;
+                 else 
+                   mask:=qword(1 shl bits)-1;
+              end;
+              if shift=0 then 
+                result:=cordconstnode.create(vl2.svalue,def,false)
+              else if vl2.svalue<0 then
+                result:=cordconstnode.create(((vl2.svalue shr shift) or (mask shl (bits-shift))) and mask,def,false)
+              else
+                result:=cordconstnode.create((vl2.svalue shr shift) and mask,def,false);
+            end
+          else
+        end;
+
+
       var
         hp        : tnode;
         vl,vl2    : TConstExprInt;
@@ -1813,6 +1867,11 @@ implementation
                   if not(cs_do_assertion in current_settings.localswitches) then
                     { we need a valid node, so insert a nothingn }
                     result:=cnothingnode.create;
+                end;
+              in_sar_x,
+              in_sar_x_y :
+                begin
+                  result:=handle_const_sar;
                 end;
             end;
           end;
@@ -2468,13 +2527,15 @@ implementation
                   resultdef:=voidpointertype;
                 end;
               in_rol_x,
-              in_ror_x:
+              in_ror_x,
+              in_sar_x:
                 begin
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                   resultdef:=left.resultdef;
                 end;
               in_rol_x_x,
-              in_ror_x_x:
+              in_ror_x_x,
+              in_sar_x_y:
                 begin
                   set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
                   set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
@@ -2844,7 +2905,9 @@ implementation
          in_rol_x,
          in_rol_x_x,
          in_ror_x,
-         in_ror_x_x:
+         in_ror_x_x,
+         in_sar_x,
+         in_sar_x_y:
            expectloc:=LOC_REGISTER;
          else
            internalerror(89);

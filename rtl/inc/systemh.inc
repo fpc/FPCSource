@@ -710,6 +710,52 @@ function RolQWord(Const AValue : QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$end
 function RolQWord(Const AValue : QWord;Dist : Byte): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_ROX_QWORD}
 
+{$ifdef FPC_HAS_INTERNAL_SAR}
+
+{$if defined(cpux86_64) or defined(cpui386)}
+{$define FPC_HAS_INTERNAL_SAR_BYTE}
+{$define FPC_HAS_INTERNAL_SAR_WORD}
+{$endif defined(cpux86_64) or defined(cpui386)}
+
+{$if defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64)}
+{$define FPC_HAS_INTERNAL_SAR_DWORD}
+{$endif defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64)}
+
+{$if defined(cpux86_64) or defined(powerpc64)}
+{$define FPC_HAS_INTERNAL_SAR_QWORD}
+{$endif defined(cpux86_64) or defined(powerpc64)}
+
+{$endif FPC_HAS_INTERNAL_SAR}
+
+{$ifdef FPC_HAS_INTERNAL_SAR_BYTE}
+function SarShortint(Const AValue : Shortint): Shortint;[internproc:fpc_in_sar_x];
+function SarShortint(Const AValue : Shortint;Shift : Byte): Shortint;[internproc:fpc_in_sar_x_y];
+{$else FPC_HAS_INTERNAL_ROX_BYTE}
+function SarShortint(Const AValue : Shortint;Shift : Byte = 1): Shortint;
+{$endif FPC_HAS_INTERNAL_ROX_BYTE}
+
+{$ifdef FPC_HAS_INTERNAL_SAR_WORD}
+function SarSmallint(Const AValue : Smallint): Smallint;[internproc:fpc_in_sar_x];
+function SarSmallint(Const AValue : Smallint;Shift : Byte): Smallint;[internproc:fpc_in_sar_x_y];
+{$else FPC_HAS_INTERNAL_SAR_WORD}
+function SarSmallint(Const AValue : Smallint;Shift : Byte = 1): Smallint;
+{$endif FPC_HAS_INTERNAL_SAR_WORD}
+
+{$ifdef FPC_HAS_INTERNAL_SAR_DWORD}
+function SarLongint(Const AValue : Longint): Longint;[internproc:fpc_in_sar_x];
+function SarLongint(Const AValue : Longint;Shift : Byte): Longint;[internproc:fpc_in_sar_x_y];
+{$else FPC_HAS_INTERNAL_SAR_DWORD}
+function SarLongint(Const AValue : Longint;Shift : Byte = 1): Longint;
+{$endif FPC_HAS_INTERNAL_SAR_DWORD}
+
+{$ifdef FPC_HAS_INTERNAL_SAR_QWORD}
+function SarInt64(Const AValue : Int64): Int64;[internproc:fpc_in_sar_x];
+function SarInt64(Const AValue : Int64;Shift : Byte): Int64;[internproc:fpc_in_sar_x_y];
+{$else FPC_HAS_INTERNAL_SAR_QWORD}
+function SarInt64(Const AValue : Int64;Shift : Byte = 1): Int64;
+{$endif FPC_HAS_INTERNAL_SAR_QWORD}
+
+
 {$ifndef FPUNONE}
 { float math routines }
 {$I mathh.inc}
