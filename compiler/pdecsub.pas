@@ -522,7 +522,7 @@ implementation
              handle_calling_convention(pv);
            end
           else
-          { read type declaration, force reading for value and const paras }
+          { read type declaration, force reading for value paras }
            if (token=_COLON) or (varspez=vs_value) then
            begin
              consume(_COLON);
