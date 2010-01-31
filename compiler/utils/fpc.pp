@@ -86,7 +86,10 @@ program fpc;
         extrapath:=extrapath+DirectorySeparator;
       { get path of fpc.exe }
       path:=splitpath(paramstr(0));
-      if FileExists(extrapath+ppcbin) then
+      { don't try with an empty extra patch, this might have strange results
+        if the current directory contains a compiler
+      }
+      if (extrapath<>'') and FileExists(extrapath+ppcbin) then
        begin
          ppcbin:=extrapath+ppcbin;
          findexe:=true;
