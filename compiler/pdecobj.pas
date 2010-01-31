@@ -527,6 +527,7 @@ implementation
         old_parse_generic : boolean;
         object_member_blocktype : tblock_type;
         fields_allowed, is_classdef, classfields: boolean;
+        vdoptions: tvar_dec_options;
       begin
         { empty class declaration ? }
         if (current_objectdef.objecttype in [odt_class,odt_objcclass]) and
@@ -673,16 +674,14 @@ implementation
                             if (not fields_allowed) then
                               Message(parser_e_field_not_allowed_here);
 
+                            vdoptions:=[vd_object];
                             if classfields then
-                              read_record_fields([vd_object,vd_class])
-                            else
-                              read_record_fields([vd_object])
+                              include(vdoptions,vd_class);
+                            read_record_fields(vdoptions);
                           end
-                        else
-                        if object_member_blocktype=bt_type then
+                        else if object_member_blocktype=bt_type then
                           types_dec(true)
-                        else
-                        if object_member_blocktype=bt_const then
+                        else if object_member_blocktype=bt_const then
                           consts_dec(true)
                         else
                           internalerror(201001110);
