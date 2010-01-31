@@ -109,7 +109,7 @@ type
 begin
   check('tra',objcencode(tra),'{tra=ii}');
   check('TStrippedVarRec',objcencode(TStrippedVarRec),'{TStrippedVarRec=c(?={?=i}{?=B}{?=C}{?=S}{?=^[256C]}{?=^v}{?=*}{?=^{TObject}}{?=^{TClass}}{?=^S}{?=^v}{?=^v}{?=^v}{?=^q}{?=^Q})}');
-  check('TObject',objcencode(TObject),'^{TObject=^v}');
+  check('TObject',objcencode(TObject),'^{TObject}');
   check('tnestedvarrec',objcencode(tnestedvarrec),'{tnestedvarrec=i^{tra}(?={?={tnestedvarrechelper1=(?={?=f}{?=d})}}{?={tnestedvarrechelper2=ic}}{?=i})}');
 end;
 

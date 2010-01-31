@@ -45,7 +45,7 @@ implementation
     systems,
     aasmtai,
     cgbase,
-    objcutil,
+    objcdef,objcutil,
     symconst,symtype,symsym,symtable,
     verbose;
 
@@ -443,6 +443,13 @@ procedure tobjcrttiwriter.gen_objc_rtti_sections(list:TAsmList; st:TSymtable);
     for i:=0 to st.DefList.Count-1 do
       begin
         def:=tdef(st.DefList[i]);
+        { check whether all types used in Objective-C class/protocol/category
+          declarations can be used with the Objective-C run time (can only be
+          done now, because at parse-time some of these types can still be
+          forwarddefs) }
+        if is_objc_class_or_protocol(def) then
+          if not tobjectdef(def).check_objc_types then
+            continue;
         if is_objcclass(def) and
            not(oo_is_external in tobjectdef(def).objectoptions) then
           begin
@@ -519,7 +526,7 @@ procedure tobjcrttiwriter_fragile.gen_objc_ivars(list: TAsmList; objccls: tobjec
               inc(vcnt);
             end
           else
-            { must be caught during parsing }
+            { Should be caught during parsing }
             internalerror(2009090601);
         end;
     if vcnt=0 then

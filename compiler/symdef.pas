@@ -318,6 +318,7 @@ interface
           procedure make_all_methods_external;
           { ObjC }
           procedure finish_objc_data;
+          function check_objc_types: boolean;
           { C++ }
           procedure finish_cpp_data;
           function RttiName: string;
@@ -768,7 +769,7 @@ implementation
       { target }
       systems,aasmcpu,paramgr,
       { symtable }
-      symsym,symtable,symutil,defutil,
+      symsym,symtable,symutil,defutil,objcdef,
       { module }
       fmodule,
       { other }
@@ -4742,6 +4743,7 @@ implementation
       var
         def: tdef absolute data;
         pd: tprocdef absolute data;
+        founderrordef: tdef;
         i,
         paracount: longint;
       begin
@@ -4767,7 +4769,8 @@ implementation
               another type.  }
             if not(po_has_mangledname in pd.procoptions) then
               begin
-                { check whether the number of formal parameters is correct }
+                { check whether the number of formal parameters is correct,
+                  and whether they have valid Objective-C types }
                 paracount:=0;
                 for i:=1 to length(pd.messageinf.str^) do
                   if pd.messageinf.str^[i]=':' then
@@ -4818,6 +4821,56 @@ implementation
         self.symtable.DefList.foreachcall(@check_and_finish_msg,nil);
         if (oo_is_external in objectoptions) then
           self.symtable.SymList.ForEachCall(@mark_private_fields_used,nil);
+      end;
+
+
+    procedure verify_objc_vardef(data: tobject; arg: pointer);
+      var
+        sym: tabstractvarsym absolute data;
+        res: pboolean absolute arg;
+        founderrordef: tdef;
+      begin
+        if not(tsym(data).typ in [paravarsym,fieldvarsym]) then
+          exit;
+        if (sym.typ=paravarsym) and
+           ((vo_is_hidden_para in tparavarsym(sym).varoptions) or
+            is_array_of_const(tparavarsym(sym).vardef)) then
+          exit;
+        if not objcchecktype(sym.vardef,founderrordef) then
+          begin
+            MessagePos1(sym.fileinfo,type_e_objc_type_unsupported,founderrordef.typename);
+            res^:=false;
+          end;
+      end;
+
+
+    procedure verify_objc_procdef_paras(data: tobject; arg: pointer);
+      var
+        def: tdef absolute data;
+        res: pboolean absolute arg;
+        founderrordef: tdef;
+      begin
+        if (def.typ<>procdef) then
+          exit;
+        { check parameter types for validity }
+        tprocdef(def).paras.foreachcall(@verify_objc_vardef,arg);
+        { check the result type for validity }
+        if not objcchecktype(tprocdef(def).returndef,founderrordef) then
+          begin
+            MessagePos1(tprocdef(def).funcretsym.fileinfo,type_e_objc_type_unsupported,founderrordef.typename);
+            res^:=false;
+          end;
+      end;
+
+
+    function tobjectdef.check_objc_types: boolean;
+      begin
+        { done in separate step from finish_objc_data, because when
+          finish_objc_data is called, not all forwarddefs have been resolved
+          yet and we need to know all types here }
+        result:=true;
+        self.symtable.symlist.foreachcall(@verify_objc_vardef,@result);
+        self.symtable.deflist.foreachcall(@verify_objc_procdef_paras,@result);
       end;
 
 

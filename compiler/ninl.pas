@@ -87,7 +87,7 @@ implementation
       symconst,symdef,symsym,symtable,paramgr,defutil,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,
-      nobjc,objcutil,
+      nobjc,objcdef,
       cgbase,procinfo
       ;
 
