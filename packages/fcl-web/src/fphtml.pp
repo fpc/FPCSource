@@ -249,6 +249,7 @@ type
     procedure DoWriteVisualHeader (aWriter : THTMLWriter); virtual;
     procedure DoWriteVisualBody (aWriter : THTMLWriter); virtual;
     procedure DoWriteVisualFooter (aWriter : THTMLWriter); virtual;
+    procedure BeforeGenerateContent; override;
     Property HeaderProducer : THTMLContentProducer read FHeaderProducer write FHeaderProducer;
     Property VisualHeaderProducer : THTMLContentProducer read FVisualHeaderProducer write FVisualHeaderProducer;
     Property VisualBodyProducer : THTMLContentProducer read FVisualBodyProducer write FVisualBodyProducer;
@@ -541,6 +542,7 @@ begin
       el := WriteContent (FWriter);
       if not assigned(el) then
         Raise EHTMLError.CreateFmt(SErrNoContentProduced,[Self.Name]);
+      BeforeGenerateContent;
       ForeachContentProducer(@DoBeforeGenerateContent,True);
       result := el.asstring;
     finally
@@ -1069,6 +1071,19 @@ begin
     FOnWriteVisualFooter(self,aWriter);
   if assigned(FVisualFooterProducer) then
     aWriter.AddElement(FVisualFooterProducer.WriteContent(aWriter));
+end;
+
+procedure THTMLCustomPageProducer.BeforeGenerateContent;
+begin
+  inherited BeforeGenerateContent;
+  if assigned(FHeaderProducer) then
+    FHeaderProducer.BeforeGenerateContent;
+  if assigned(FVisualHeaderProducer) then
+    FVisualHeaderProducer.BeforeGenerateContent;
+  if assigned(FVisualBodyProducer) then
+    FVisualBodyProducer.BeforeGenerateContent;
+  if assigned(FVisualFooterProducer) then
+    FVisualFooterProducer.BeforeGenerateContent;
 end;
 
 constructor THTMLCustomPageProducer.Create(AOwner: TComponent);
