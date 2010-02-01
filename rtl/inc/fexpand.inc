@@ -207,7 +207,7 @@ begin
                     if Copy (Pa, 1, PathStart - 2) = Copy (S, 1, PathStart - 2)
                                                                            then
   {$ELSE FPC_FEXPAND_VOLUMES}
-                    if Pa [1] = S [1] then
+                    if UpCase(Pa [1]) = UpCase(S [1]) then
   {$ENDIF FPC_FEXPAND_VOLUMES}
                         begin
                             { remove ending slash if it already exists }
