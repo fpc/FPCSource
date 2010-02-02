@@ -51,7 +51,7 @@ unit cgobj;
           the methods of this class are generic, while others must
           be overriden for all new processors which will be supported
           by Free Pascal. For 32-bit processors, the base class
-          sould be @link(tcg64f32) and not @var(tcg).
+          should be @link(tcg64f32) and not @var(tcg).
        }
        tcg = class
        public

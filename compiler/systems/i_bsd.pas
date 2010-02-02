@@ -1,7 +1,8 @@
 {
     Copyright (c) 1998-2008 by Peter Vreman
 
-    This unit implements support information structures for FreeBSD/NetBSD
+    This unit implements support information structures for FreeBSD/NetBSD,
+    OpenBSD and Darwin (Mac OS X)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
