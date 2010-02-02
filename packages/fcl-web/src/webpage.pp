@@ -414,20 +414,27 @@ var qs,p : String;
     i,j  : integer;
     found: boolean;
     FancyTitle: boolean;
+    ConnectChar: char;
     CGIScriptName: string;
     ActionVar: string;
     ARequest: TRequest;
+    WebMod: TFPWebModule;
 
 begin
   FancyTitle:=false;
   qs := '';
   result := Action;
   ARequest := GetRequest;
-  if assigned(owner) and (owner is TWebPage) and assigned(TWebPage(Owner).WebModule) then
+  if assigned(owner) then
     begin
-    ActionVar := TWebPage(Owner).WebModule.ActionVar;
+    if (owner is TWebPage) and assigned(TWebPage(Owner).WebModule) then
+      WebMod := TWebPage(Owner).WebModule
+    else if (owner is TFPWebModule) then
+      WebMod := TFPWebModule(Owner);
+
+    ActionVar := WebMod.ActionVar;
     if action = '' then
-      result := TWebPage(Owner).WebModule.Actions.CurrentAction.Name;
+      result := WebMod.Actions.CurrentAction.Name;
     end
   else
     ActionVar := '';
@@ -461,21 +468,24 @@ begin
   for i := 0 to high(ParamNames) do
     qs := qs + ParamNames[i] + '=' + ParamValues[i] + '&';
 
+  ConnectChar:='?';
   if ScriptName='' then CGIScriptName:='.'
-  else CGIScriptName:=ScriptName;
+  else
+    begin
+    CGIScriptName:=ScriptName;
+    if pos('?',ScriptName)>-1 then ConnectChar := '&';
+    end;
   if FancyTitle then // use ? or /
     result := CGIScriptName + '/' + Result
   else
-    result := CGIScriptName + '?'+ActionVar+'=' + Result;
+    begin
+    result := CGIScriptName + ConnectChar +ActionVar+'=' + Result;
+    ConnectChar:='&';
+    end;
 
   p := copy(qs,1,length(qs)-1);
   if p <> '' then
-    begin
-    if FancyTitle then
-      result := result + '?' + p
-    else
-      result := result + '&' + p;
-    end
+    result := result + ConnectChar + p
 end;
 
 procedure TStandardWebController.FreeJavascriptStack;
@@ -492,9 +502,8 @@ begin
 end;
 
 procedure TStandardWebController.AddScriptFileReference(AScriptFile: String);
-var i: integer;
 begin
-  if not FScriptFileReferences.Find(AScriptFile,i) then
+  if FScriptFileReferences.IndexOf(AScriptFile)=-1 then
     FScriptFileReferences.Add(AScriptFile);
 end;
 
