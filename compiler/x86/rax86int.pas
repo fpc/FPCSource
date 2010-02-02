@@ -230,11 +230,12 @@ Unit Rax86int;
       begin
         is_register:=false;
         actasmregister:=masm_regnum_search(lower(s));
-        if (actasmregister=NR_NO) and (current_procinfo.procdef.proccalloption=pocall_register) then
+        if (actasmregister=NR_NO) and
+           (current_procinfo.procdef.proccalloption=pocall_register) and
+           (po_assembler in current_procinfo.procdef.procoptions) then
           begin
-            entry := current_procinfo.procdef.parast.Find(s);
+            entry:=current_procinfo.procdef.parast.Find(s);
             if assigned(entry) and
-               (po_assembler in current_procinfo.procdef.procoptions) and
                (entry.typ=paravarsym) and
                assigned(tparavarsym(entry).paraloc[calleeside].Location) and
                (tparavarsym(entry).paraloc[calleeside].Location^.Loc=LOC_REGISTER) then
