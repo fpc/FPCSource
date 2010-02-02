@@ -18,6 +18,7 @@
 unit ctypes;
 
 {$inline on}
+{$define dummy}
 
 interface
 
@@ -279,32 +280,48 @@ const r128_mantissa_ofs=0;
 {$else}
 const r128_mantissa_ofs=2;
       r128_exponent_ofs=0;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  {$define USE_UNALIGNED}
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
 {$endif}
 
 operator := (const v:clongdouble) r:double;
-
+var
+  exp : word;
+  mant : qword;
+  is_neg : boolean;
 begin
-  qword(r):=(qword(Pword(@v[r128_exponent_ofs])^) shl 52) or
-            (Pqword(@v[r128_mantissa_ofs])^ shr 12);
+  is_neg:=(pword(@v[r128_exponent_ofs])^and $8000)<>0;
+  exp:=((Pword(@v[r128_exponent_ofs])^and $7fff)-$4000)+$400;
+  if is_neg then
+    exp:=exp+$800;
+{$ifdef USE_UNALIGNED}
+  mant:=unaligned(Pqword(@v[r128_mantissa_ofs])^);
+{$else not USE_UNALIGNED}
+  mant:=Pqword(@v[r128_mantissa_ofs])^;
+{$endif not USE_UNALIGNED}
+  qword(r):=(qword(exp) shl 52) or
+            (mant shr 12);
 end;
 
 operator := (const v:double) r:clongdouble;
-
+var
+  is_neg : boolean;
+   exp : word;
 begin
-  Pword(@r[r128_exponent_ofs])^:=qword(v) shr 52;
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-{$ifdef ENDIAN_LITTLE}
-  Pqword(@r[r128_mantissa_ofs])^:=qword(v) shl 12;
-  Pcardinal(@r[r128_mantissa_ofs+8])^:=0;
-{$else not ENDIAN_LITTLE}
+  is_neg:=(qword(v) shr 63) <> 0;
+  exp:=$4000 + ((qword(v) shr 52) and $7ff) -$400;
+  if is_neg then
+    exp:=exp+$8000;
+  Pword(@r[r128_exponent_ofs])^:=exp;
+{$ifdef USE_UNALIGNED}
   unaligned(Pqword(@r[r128_mantissa_ofs])^):=qword(v) shl 12;
   Pword(@r[r128_mantissa_ofs+8])^:=0;
   Pword(@r[r128_mantissa_ofs+10])^:=0;
-{$endif not ENDIAN_LITTLE}
-{$else not FPC_REQUIRES_PROPER_ALIGNMENT}
+{$else not USE_UNALIGNED}
   Pqword(@r[r128_mantissa_ofs])^:=qword(v) shl 12;
   Pcardinal(@r[r128_mantissa_ofs+8])^:=0;
-{$endif not FPC_REQUIRES_PROPER_ALIGNMENT}
+{$endif not USE_UNALIGNED}
   Pword(@r[r128_mantissa_ofs+12])^:=0;
 end;
 
@@ -314,92 +331,92 @@ end;
 
 operator +(const e:Double;const c:clongdouble) r:Double;inline;
 begin
-  r:=e+c.value;
+  r:=e+double(c);
 end;
 
 operator +(const c:clongdouble;const e:Double) r:Double;inline;
 begin
-  r:=c.value+e;
+  r:=double(c)+e;
 end;
 
 operator -(const e:Double;const c:clongdouble) r:Double;inline;
 begin
-  r:=e-c.value;
+  r:=e-double(c);
 end;
 
 operator -(const c:clongdouble;const e:Double) r:Double;inline;
 begin
-  r:=c.value-e;
+  r:=double(c)-e;
 end;
 
 operator *(const e:Double;const c:clongdouble) r:Double;inline;
 begin
-  r:=e*c.value;
+  r:=e*double(c);
 end;
 
 operator *(const c:clongdouble;const e:Double) r:Double;inline;
 begin
-  r:=c.value*e;
+  r:=double(c)*e;
 end;
 
 operator /(const e:Double;const c:clongdouble) r:Double;inline;
 begin
-  r:=e/c.value;
+  r:=e/double(c);
 end;
 
 operator /(const c:clongdouble;const e:Double) r:Double;inline;
 begin
-  r:=c.value/e;
+  r:=double(c)/e;
 end;
 
 operator =(const e:Double;const c:clongdouble) r:boolean;inline;
 begin
-  r:=e=c.value;
+  r:=e=double(c);
 end;
 
 operator =(const c:clongdouble;const e:Double) r:boolean;inline;
 begin
-  r:=c.value=e;
+  r:=double(c)=e;
 end;
 
 operator <(const e:Double;const c:clongdouble) r:boolean;inline;
 begin
-  r:=e<c.value;
+  r:=e<double(c);
 end;
 
 operator <(const c:clongdouble;const e:Double) r:boolean;inline;
 begin
-  r:=c.value<e;
+  r:=double(c)<e;
 end;
 
 operator >(const e:Double;const c:clongdouble) r:boolean;inline;
 begin
-  r:=e>c.value;
+  r:=e>double(c);
 end;
 
 operator >(const c:clongdouble;const e:Double) r:boolean;inline;
 begin
-  r:=c.value>e;
+  r:=double(c)>e;
 end;
 
 operator >=(const e:Double;const c:clongdouble) r:boolean;inline;
 begin
-  r:=e>=c.value;
+  r:=e>=double(c);
 end;
 
 operator >=(const c:clongdouble;const e:Double) r:boolean;inline;
 begin
-  r:=c.value>=e;
+  r:=double(c)>=e;
 end;
 
 operator <=(const e:Double;const c:clongdouble) r:boolean;inline;
 begin
-  r:=e<=c.value;
+  r:=e<=double(c);
 end;
 
 operator <=(const c:clongdouble;const e:Double) r:boolean;inline;
 begin
-  r:=c.value<=e;
+  r:=double(c)<=e;
 end;
 {$endif}
 {$endif}
