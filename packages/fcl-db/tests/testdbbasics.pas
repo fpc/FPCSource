@@ -133,9 +133,9 @@ type THackDataLink=class(TdataLink);
 
 procedure TTestDBBasics.TestIsEmpty;
 begin
-  if not (DBConnector.GetNDataset(5) is TBufDataset) then
-    Ignore('This test only applies to TBufDataset and descendents.');
-  with tbufdataset(DBConnector.GetNDataset(True,1)) do
+  if not (DBConnector.GetNDataset(5) is TCustomBufDataset) then
+    Ignore('This test only applies to TCustomBufDataset and descendents.');
+  with tCustombufdataset(DBConnector.GetNDataset(True,1)) do
     begin
     open;
     delete;
@@ -544,44 +544,44 @@ end;
 
 procedure TTestDBBasics.TestSafeAsXML;
 var ds    : TDataset;
-    LoadDs: TBufDataset;
+    LoadDs: TCustomBufDataset;
 begin
   ds := DBConnector.GetNDataset(true,5);
-  if not (ds is TBufDataset) then
-    Ignore('This test only applies to TBufDataset and descendents.');
+  if not (ds is TCustomBufDataset) then
+    Ignore('This test only applies to TCustomBufDataset and descendents.');
 
   ds.open;
-  TBufDataset(ds).SaveToFile('test.xml');
+  TCustomBufDataset(ds).SaveToFile('test.xml');
   ds.close;
 
-  LoadDs := TBufDataset.Create(nil);
+  LoadDs := TCustomBufDataset.Create(nil);
   LoadDs.LoadFromFile('test.xml');
   FTestXMLDatasetDefinition(LoadDS);
 end;
 
 procedure TTestDBBasics.TestFileNameProperty;
 var ds    : TDataset;
-    LoadDs: TBufDataset;
+    LoadDs: TCustomBufDataset;
 begin
   ds := DBConnector.GetNDataset(true,5);
-  if not (ds is TBufDataset) then
-    Ignore('This test only applies to TBufDataset and descendents.');
+  if not (ds is TCustomBufDataset) then
+    Ignore('This test only applies to TCustomBufDataset and descendents.');
 
   ds.open;
-  TBufDataset(ds).FileName:='test.xml';
+  TCustomBufDataset(ds).FileName:='test.xml';
   ds.close;
 
   ds := DBConnector.GetNDataset(True,7);
-  TBufDataset(ds).FileName:='test.xml';
+  TCustomBufDataset(ds).FileName:='test.xml';
   ds.Open;
   FTestXMLDatasetDefinition(Ds);
 end;
 
 procedure TTestDBBasics.TestClientDatasetAsMemDataset;
-var ds : TBufDataset;
+var ds : TCustomBufDataset;
     i  : integer;
 begin
-  ds := TBufDataset.Create(nil);
+  ds := TCustomBufDataset.Create(nil);
   DS.FieldDefs.Add('ID',ftInteger);
   DS.FieldDefs.Add('NAME',ftString,50);
   DS.CreateDataset;
@@ -894,9 +894,9 @@ begin
     
   if TestCancelUpdate then
     begin
-    if not (ds is TBufDataset) then
-      Ignore('This test only applies to TBufDataset and descendents.');
-    with TBufDataset(ds) do
+    if not (ds is TCustomBufDataset) then
+      Ignore('This test only applies to TCustomBufDataset and descendents.');
+    with TCustomBufDataset(ds) do
       begin
       CancelUpdates;
 
@@ -963,9 +963,9 @@ begin
 
   if TestCancelUpdate then
     begin
-    if not (ds is TBufDataset) then
-      Ignore('This test only applies to TBufDataset and descendents.');
-    with TBufDataset(ds) do
+    if not (ds is TCustomBufDataset) then
+      Ignore('This test only applies to TCustomBufDataset and descendents.');
+    with TCustomBufDataset(ds) do
       begin
       CancelUpdates;
 
@@ -1087,12 +1087,12 @@ begin
 end;
 
 procedure TTestDBBasics.TestAddIndexFieldType(AFieldType: TFieldType; ActiveDS : boolean);
-var ds : TBufDataset;
+var ds : TCustomBufDataset;
     FList : TStringList;
     LastValue : Variant;
     StrValue : String;
 begin
-  ds := DBConnector.GetFieldDataset as TBufDataset;
+  ds := DBConnector.GetFieldDataset as TCustomBufDataset;
   with ds do
     begin
     
@@ -1186,12 +1186,12 @@ begin
 end;
 
 procedure TTestDBBasics.TestAddIndex;
-var ds : TBufDataset;
+var ds : TCustomBufDataset;
     AFieldType : TFieldType;
     FList : TStringList;
     i : integer;
 begin
-  ds := DBConnector.GetFieldDataset as TBufDataset;
+  ds := DBConnector.GetFieldDataset as TCustomBufDataset;
   with ds do
     begin
 
@@ -1230,12 +1230,12 @@ begin
 end;
 
 procedure TTestDBBasics.TestAddDescIndex;
-var ds : TBufDataset;
+var ds : TCustomBufDataset;
     AFieldType : TFieldType;
     FList : TStringList;
     i : integer;
 begin
-  ds := DBConnector.GetFieldDataset as TBufDataset;
+  ds := DBConnector.GetFieldDataset as TCustomBufDataset;
   with ds do
     begin
 
@@ -1274,12 +1274,12 @@ begin
 end;
 
 procedure TTestDBBasics.TestAddCaseInsIndex;
-var ds : TBufDataset;
+var ds : TCustomBufDataset;
     AFieldType : TFieldType;
     FList : TStringList;
     i : integer;
 begin
-  ds := DBConnector.GetFieldDataset as TBufDataset;
+  ds := DBConnector.GetFieldDataset as TCustomBufDataset;
   with ds do
     begin
 
@@ -1319,11 +1319,11 @@ end;
 procedure TTestDBBasics.TestInactSwitchIndex;
 // Test if the default-index is properly build when the active index is not
 // the default-index while opening then dataset
-var ds : TBufDataset;
+var ds : TCustomBufDataset;
     AFieldType : TFieldType;
     i : integer;
 begin
-  ds := DBConnector.GetFieldDataset as TBufDataset;
+  ds := DBConnector.GetFieldDataset as TCustomBufDataset;
   with ds do
     begin
 
@@ -1346,18 +1346,18 @@ begin
 end;
 
 procedure TTestDBBasics.TestAddIndexActiveDS;
-var ds   : TBufDataset;
+var ds   : TCustomBufDataset;
     I    : integer;
 begin
   TestAddIndexFieldType(ftString,true);
 end;
 
 procedure TTestDBBasics.TestAddIndexEditDS;
-var ds        : TBufDataset;
+var ds        : TCustomBufDataset;
     I         : integer;
     LastValue : String;
 begin
-  ds := DBConnector.GetNDataset(True,5) as TBufDataset;
+  ds := DBConnector.GetNDataset(True,5) as TCustomBufDataset;
   with ds do
     begin
     MaxIndexesCount:=3;
@@ -1386,12 +1386,12 @@ begin
 end;
 
 procedure TTestDBBasics.TestIndexFieldNamesAct;
-var ds : TBufDataset;
+var ds : TCustomBufDataset;
     AFieldType : TFieldType;
     FList : TStringList;
     i : integer;
 begin
-  ds := DBConnector.GetFieldDataset as TBufDataset;
+  ds := DBConnector.GetFieldDataset as TCustomBufDataset;
   with ds do
     begin
     AFieldType:=ftString;
@@ -1458,13 +1458,13 @@ end;
 
 procedure TTestDBBasics.TestIndexCurRecord;
 // Test if the currentrecord stays the same after an index change
-var ds : TBufDataset;
+var ds : TCustomBufDataset;
     AFieldType : TFieldType;
     i : integer;
     OldID : Integer;
     OldStringValue : string;
 begin
-  ds := DBConnector.GetFieldDataset as TBufDataset;
+  ds := DBConnector.GetFieldDataset as TCustomBufDataset;
   with ds do
     begin
     AFieldType:=ftString;
@@ -1505,11 +1505,11 @@ begin
 end;
 
 procedure TTestDBBasics.TestAddDblIndex;
-var ds : TBufDataset;
+var ds : TCustomBufDataset;
     LastInteger : Integer;
     LastString : string;
 begin
-  ds := DBConnector.GetFieldDataset as TBufDataset;
+  ds := DBConnector.GetFieldDataset as TCustomBufDataset;
   with ds do
     begin
 
@@ -1550,13 +1550,13 @@ begin
 end;
 
 procedure TTestDBBasics.TestIndexEditRecord;
-var ds : TBufDataset;
+var ds : TCustomBufDataset;
     AFieldType : TFieldType;
     i : integer;
     OldID : Integer;
     OldStringValue : string;
 begin
-  ds := DBConnector.GetFieldDataset as TBufDataset;
+  ds := DBConnector.GetFieldDataset as TCustomBufDataset;
   with ds do
     begin
     AFieldType:=ftString;
@@ -1584,11 +1584,11 @@ begin
 end;
 
 procedure TTestDBBasics.TestIndexFieldNames;
-var ds : TBufDataset;
+var ds : TCustomBufDataset;
     AFieldType : TFieldType;
     PrevValue : String;
 begin
-  ds := DBConnector.GetFieldDataset as TBufDataset;
+  ds := DBConnector.GetFieldDataset as TCustomBufDataset;
   with ds do
     begin
     AFieldType:=ftString;
@@ -1917,9 +1917,9 @@ end;
 procedure TTestDBBasics.TestBufDatasetCancelUpd;
 var i : byte;
 begin
-  if not (DBConnector.GetNDataset(5) is TBufDataset) then
-    Ignore('This test only applies to TBufDataset and descendents.');
-  with DBConnector.GetNDataset(5) as TBufDataset do
+  if not (DBConnector.GetNDataset(5) is TCustomBufDataset) then
+    Ignore('This test only applies to TCustomBufDataset and descendents.');
+  with DBConnector.GetNDataset(5) as TCustomBufDataset do
     begin
     open;
     next;
@@ -2032,9 +2032,9 @@ end;
 procedure TTestDBBasics.TestBufDatasetCancelUpd1;
 var i : byte;
 begin
-  if not (DBConnector.GetNDataset(5) is TBufDataset) then
-    Ignore('This test only applies to TBufDataset and descendents.');
-  with DBConnector.GetNDataset(5) as TBufDataset do
+  if not (DBConnector.GetNDataset(5) is TCustomBufDataset) then
+    Ignore('This test only applies to TCustomBufDataset and descendents.');
+  with DBConnector.GetNDataset(5) as TCustomBufDataset do
     begin
     open;
     next;
@@ -2062,11 +2062,11 @@ procedure TTestDBBasics.TestMultipleDeleteUpdateBuffer;
 var ds    : TDataset;
 begin
   ds := DBConnector.GetNDataset(true,5);
-  if not (ds is TBufDataset) then
-    Ignore('This test only applies to TBufDataset and descendents.');
+  if not (ds is TCustomBufDataset) then
+    Ignore('This test only applies to TCustomBufDataset and descendents.');
 
   ds.open;
-  with TBufDataset(ds) do
+  with TCustomBufDataset(ds) do
     begin
     AssertEquals(0,ChangeCount);
     edit;
@@ -2085,11 +2085,11 @@ begin
 end;
 
 procedure TTestDBBasics.TestDoubleDelete;
-var ds    : TBufDataset;
+var ds    : TCustomBufDataset;
 begin
-  ds := TBufDataset(DBConnector.GetNDataset(true,5));
-  if not (ds is TBufDataset) then
-    Ignore('This test only applies to TBufDataset and descendents.');
+  ds := TCustomBufDataset(DBConnector.GetNDataset(true,5));
+  if not (ds is TCustomBufDataset) then
+    Ignore('This test only applies to TCustomBufDataset and descendents.');
 
   with ds do
     begin

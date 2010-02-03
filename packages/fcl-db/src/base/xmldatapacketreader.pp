@@ -49,13 +49,13 @@ type
   public
     destructor destroy; override;
     procedure StoreFieldDefs(AFieldDefs : TFieldDefs); override;
-    procedure StoreRecord(ADataset : TBufDataset; ARowState : TRowState; AUpdOrder : integer = 0); override;
+    procedure StoreRecord(ADataset : TCustomBufDataset; ARowState : TRowState; AUpdOrder : integer = 0); override;
     procedure FinalizeStoreRecords; override;
     procedure LoadFieldDefs(AFieldDefs : TFieldDefs); override;
     procedure InitLoadRecords; override;
     function GetCurrentRecord : boolean; override;
     function GetRecordRowState(out AUpdOrder : Integer) : TRowState; override;
-    procedure RestoreRecord(ADataset : TBufDataset); override;
+    procedure RestoreRecord(ADataset : TCustomBufDataset); override;
     procedure GotoNextRecord; override;
     class function RecognizeStream(AStream : TStream) : boolean; override;
   end;
@@ -328,7 +328,7 @@ begin
     end;
 end;
 
-procedure TXMLDatapacketReader.RestoreRecord(ADataset : TBufDataset);
+procedure TXMLDatapacketReader.RestoreRecord(ADataset : TCustomBufDataset);
 var FieldNr    : integer;
     AFieldNode : TDomNode;
 begin
@@ -342,7 +342,7 @@ begin
     end;
 end;
 
-procedure TXMLDatapacketReader.StoreRecord(ADataset : TBufDataset; ARowState : TRowState; AUpdOrder : integer = 0);
+procedure TXMLDatapacketReader.StoreRecord(ADataset : TCustomBufDataset; ARowState : TRowState; AUpdOrder : integer = 0);
 var FieldNr : Integer;
     ARecordNode : TDOMElement;
 begin

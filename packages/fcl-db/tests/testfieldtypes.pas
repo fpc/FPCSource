@@ -133,10 +133,10 @@ const
 
 
 procedure TTestFieldTypes.TestpfInUpdateFlag;
-var ds   : TBufDataset;
+var ds   : TCustomBufDataset;
     AFld1, AFld2, AFld3 : Tfield;
 begin
-  ds := (DBConnector.GetNDataset(True,5) as TBufDataset);
+  ds := (DBConnector.GetNDataset(True,5) as TCustomBufDataset);
   with ds do
     begin
     AFld1 := TIntegerField.Create(ds);
