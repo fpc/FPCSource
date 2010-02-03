@@ -218,21 +218,21 @@ function CGPathEqualToPath( path1: CGPathRef; path2: CGPathRef ): CBool; externa
 { Move the current point to `(x, y)' in `path' and begin a new subpath. If
    `m' is non-NULL, then transform `(x, y)' by `m' first. }
 
-procedure CGPathMoveToPoint( path: CGMutablePathRef; const (*var*) m: CGAffineTransform; x: CGFloat; y: CGFloat ); external name '_CGPathMoveToPoint';
+procedure CGPathMoveToPoint( path: CGMutablePathRef; m: CGAffineTransformPtr; x: CGFloat; y: CGFloat ); external name '_CGPathMoveToPoint';
 (* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
 { Append a straight line segment from the current point to `(x, y)' in
    `path' and move the current point to `(x, y)'. If `m' is non-NULL, then
    transform `(x, y)' by `m' first. }
 
-procedure CGPathAddLineToPoint( path: CGMutablePathRef; const (*var*) m: CGAffineTransform; x: CGFloat; y: CGFloat ); external name '_CGPathAddLineToPoint';
+procedure CGPathAddLineToPoint( path: CGMutablePathRef; m: CGAffineTransformPtr; x: CGFloat; y: CGFloat ); external name '_CGPathAddLineToPoint';
 (* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
 { Append a quadratic curve from the current point to `(x, y)' with control
    point `(cpx, cpy)' in `path' and move the current point to `(x, y)'. If
    `m' is non-NULL, then transform all points by `m' first. }
 
-procedure CGPathAddQuadCurveToPoint( path: CGMutablePathRef; const (*var*) m: CGAffineTransform; cpx: CGFloat; cpy: CGFloat; x: CGFloat; y: CGFloat ); external name '_CGPathAddQuadCurveToPoint';
+procedure CGPathAddQuadCurveToPoint( path: CGMutablePathRef; m: CGAffineTransformPtr; cpx: CGFloat; cpy: CGFloat; x: CGFloat; y: CGFloat ); external name '_CGPathAddQuadCurveToPoint';
 (* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
 { Append a cubic BŽzier curve from the current point to `(x,y)' with
@@ -240,7 +240,7 @@ procedure CGPathAddQuadCurveToPoint( path: CGMutablePathRef; const (*var*) m: CG
    current point to `(x, y)'. If `m' is non-NULL, then transform all points
    by `m' first. }
 
-procedure CGPathAddCurveToPoint( path: CGMutablePathRef; const (*var*) m: CGAffineTransform; cp1x: CGFloat; cp1y: CGFloat; cp2x: CGFloat; cp2y: CGFloat; x: CGFloat; y: CGFloat ); external name '_CGPathAddCurveToPoint';
+procedure CGPathAddCurveToPoint( path: CGMutablePathRef; m: CGAffineTransformPtr; cp1x: CGFloat; cp1y: CGFloat; cp2x: CGFloat; cp2y: CGFloat; x: CGFloat; y: CGFloat ); external name '_CGPathAddCurveToPoint';
 (* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
 { Append a line from the current point to the starting point of the current
@@ -254,21 +254,21 @@ procedure CGPathCloseSubpath( path: CGMutablePathRef ); external name '_CGPathCl
 { Add `rect' to `path'. If `m' is non-NULL, then first transform `rect' by
    `m' before adding it to `path'. }
 
-procedure CGPathAddRect( path: CGMutablePathRef; const (*var*) m: CGAffineTransform; rect: CGRect ); external name '_CGPathAddRect';
+procedure CGPathAddRect( path: CGMutablePathRef; m: CGAffineTransformPtr; rect: CGRect ); external name '_CGPathAddRect';
 (* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
 { Add each rectangle specified by `rects', an array of `count' CGRects, to
    `path'. If `m' is non-NULL, then first transform each rectangle by `m'
    before adding it to `path'. }
 
-procedure CGPathAddRects( path: CGMutablePathRef; const (*var*) m: CGAffineTransform; {const} rects: {variable-size-array} CGRectPtr; count: size_t ); external name '_CGPathAddRects';
+procedure CGPathAddRects( path: CGMutablePathRef; m: CGAffineTransformPtr; {const} rects: {variable-size-array} CGRectPtr; count: size_t ); external name '_CGPathAddRects';
 (* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
 { Move to the first element of `points', an array of `count' CGPoints, and
    append a line from each point to the next point in `points'. If `m' is
    non-NULL, then first transform each point by `m'. }
 
-procedure CGPathAddLines( path: CGMutablePathRef; const (*var*) m: CGAffineTransform; {const} points: {variable-size-array} CGPointPtr; count: size_t ); external name '_CGPathAddLines';
+procedure CGPathAddLines( path: CGMutablePathRef; m: CGAffineTransformPtr; {const} points: {variable-size-array} CGPointPtr; count: size_t ); external name '_CGPathAddLines';
 (* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
 { Add an ellipse (an oval) inside `rect' to `path'. The ellipse is
@@ -282,7 +282,7 @@ procedure CGPathAddLines( path: CGMutablePathRef; const (*var*) m: CGAffineTrans
    `m' is non-NULL, then the constructed BŽzier curves representing the
    ellipse will be transformed by `m' before they are added to `path'. }
 
-procedure CGPathAddEllipseInRect( path: CGMutablePathRef; const (*var*) m: CGAffineTransform; rect: CGRect ); external name '_CGPathAddEllipseInRect';
+procedure CGPathAddEllipseInRect( path: CGMutablePathRef; m: CGAffineTransformPtr; rect: CGRect ); external name '_CGPathAddEllipseInRect';
 (* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
 
 { Add an arc of a circle to `path', possibly preceded by a straight line
@@ -295,7 +295,7 @@ procedure CGPathAddEllipseInRect( path: CGMutablePathRef; const (*var*) m: CGAff
    curves representing the arc will be transformed by `m' before they are
    added to `path'. }
 
-procedure CGPathAddArc( path: CGMutablePathRef; const (*var*) m: CGAffineTransform; x: CGFloat; y: CGFloat; radius: CGFloat; startAngle: CGFloat; endAngle: CGFloat; clockwise: CBool ); external name '_CGPathAddArc';
+procedure CGPathAddArc( path: CGMutablePathRef; m: CGAffineTransformPtr; x: CGFloat; y: CGFloat; radius: CGFloat; startAngle: CGFloat; endAngle: CGFloat; clockwise: CBool ); external name '_CGPathAddArc';
 (* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
 { Add an arc of a circle to `path', possibly preceded by a straight line
@@ -306,13 +306,13 @@ procedure CGPathAddArc( path: CGMutablePathRef; const (*var*) m: CGAffineTransfo
    representing the arc will be transformed by `m' before they are added to
    `path'. }
 
-procedure CGPathAddArcToPoint( path: CGMutablePathRef; const (*var*) m: CGAffineTransform; x1: CGFloat; y1: CGFloat; x2: CGFloat; y2: CGFloat; radius: CGFloat ); external name '_CGPathAddArcToPoint';
+procedure CGPathAddArcToPoint( path: CGMutablePathRef; m: CGAffineTransformPtr; x1: CGFloat; y1: CGFloat; x2: CGFloat; y2: CGFloat; radius: CGFloat ); external name '_CGPathAddArcToPoint';
 (* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
 { Add `path2' to `path1'. If `m' is non-NULL, then the points in `path2'
    will be transformed by `m' before they are added to `path1'. }
 
-procedure CGPathAddPath( path1: CGMutablePathRef; const (*var*) m: CGAffineTransform; path2: CGPathRef ); external name '_CGPathAddPath';
+procedure CGPathAddPath( path1: CGMutablePathRef; m: CGAffineTransformPtr; path2: CGPathRef ); external name '_CGPathAddPath';
 (* CG_AVAILABLE_STARTING(__MAC_10_2, __IPHONE_2_0) *)
 
 {** Path information functions. **}
@@ -356,7 +356,7 @@ function CGPathGetPathBoundingBox( path: CGPathRef ): CGRect; external name '_CG
    fill rule is used. If `m' is non-NULL, then the point is transformed by
    `m' before determining whether the path contains it. }
 
-function CGPathContainsPoint( path: CGPathRef; const (*var*) m: CGAffineTransform; point: CGPoint; eoFill: CBool ): CBool; external name '_CGPathContainsPoint';
+function CGPathContainsPoint( path: CGPathRef; m: CGAffineTransformPtr; point: CGPoint; eoFill: CBool ): CBool; external name '_CGPathContainsPoint';
 (* CG_AVAILABLE_STARTING(__MAC_10_4, __IPHONE_2_0) *)
 
 { The types of path elements returned by `CGPathApply'. }
