@@ -3460,6 +3460,10 @@ implementation
 {$define overflowon}
 {$Q-}
 {$endif}
+{$ifopt R+}
+{$define rangeon}
+{$R-}
+{$endif}
                 if to_signed then
                   begin
                     { calculation of the low/high ranges must not overflow 64 bit
@@ -3481,6 +3485,10 @@ implementation
 {$ifdef overflowon}
 {$Q+}
 {$undef overflowon}
+{$endif}
+{$ifdef rangeon}
+{$R+}
+{$undef rangeon}
 {$endif}
               end
           end;
