@@ -3855,7 +3855,10 @@ In case not, the value returned can be arbitrary.
                                 begin
                                   if not iswidestring then
                                    begin
-                                     ascii2unicode(@cstringpattern[1],len,patternw);
+                                     if len>0 then
+                                       ascii2unicode(@cstringpattern[1],len,patternw)
+                                     else
+                                       ascii2unicode(nil,len,patternw);
                                      iswidestring:=true;
                                      len:=0;
                                    end;
