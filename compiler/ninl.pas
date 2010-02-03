@@ -1456,11 +1456,11 @@ implementation
                  32:
                    mask:=$ffffffff;
                  64:
-                   mask:=$ffffffffffffffff;
-                 else 
+                   mask:=qword($ffffffffffffffff);
+                 else
                    mask:=qword(1 shl bits)-1;
               end;
-              if shift=0 then 
+              if shift=0 then
                 result:=cordconstnode.create(vl2.svalue,def,false)
               else if vl2.svalue<0 then
                 result:=cordconstnode.create(((vl2.svalue shr shift) or (mask shl (bits-shift))) and mask,def,false)
