@@ -495,10 +495,10 @@ end;
 
 procedure TStandardWebController.BindJavascriptCallstackToElement(AComponent: TComponent; AnElement: THtmlCustomElement; AnEvent: string);
 begin
-  case AnEvent of
-    'onclick' : (AnElement as THTMLAttrsElement).onclick:=CurrentJavaScriptStack.GetScript;
-    'onchange' : if AnElement is THTML_input then (AnElement as THTML_input).onchange:=CurrentJavaScriptStack.GetScript;
-  end; {case}
+  if AnEvent='onclick' then
+    (AnElement as THTMLAttrsElement).onclick:=CurrentJavaScriptStack.GetScript
+  else if AnEvent='onchange' then
+    if AnElement is THTML_input then (AnElement as THTML_input).onchange:=CurrentJavaScriptStack.GetScript;
 end;
 
 procedure TStandardWebController.AddScriptFileReference(AScriptFile: String);
