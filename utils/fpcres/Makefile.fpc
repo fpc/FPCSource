@@ -6,7 +6,7 @@
 programs=fpcres
 
 [clean]
-units=msghandler paramparser sourcehandler target
+units=closablefilestream msghandler paramparser sourcehandler target
 
 [require]
 packages=rtl fcl-res
@@ -19,4 +19,4 @@ fpcdir=../..
 
 [rules]
 .NOTPARALLEL:
-fpcres$(EXEEXT): target.pas msghandler.pas paramparser.pas sourcehandler.pas fpcres.pas
+fpcres$(EXEEXT): target.pas msghandler.pas closablefilestream.pas paramparser.pas sourcehandler.pas fpcres.pas

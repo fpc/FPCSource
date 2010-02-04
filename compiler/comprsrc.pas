@@ -288,7 +288,7 @@ begin
       if fCollectCount=0 then
         s:=s+' '+maybequoted(fname)
       else
-        s:=s+' @'+maybequoted(fScriptName);
+        s:=s+' '+maybequoted('@'+fScriptName);
     end;
   { windres doesn't like empty include paths }
   if respath='' then
