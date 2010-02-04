@@ -1437,7 +1437,7 @@ implementation
                       vl2:=tordconstnode(tcallparanode(tcallparanode(left).right).left).value;
                     end
                   else
-                    internalerror(2010013101);
+                    exit;
                 end
               else
                 begin

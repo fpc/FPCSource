@@ -3,6 +3,10 @@ program tsar1;
 {$o-}
 var
   c0,c4,c7,c15,c31,c63,c36,c20,c68,c12 : integer;
+  c3f : shortint;
+  c3fff : smallint;
+  c3fffffff : longint;
+  c3fffffffffffffff : int64;
 
 begin
  c0:=0;
@@ -15,6 +19,11 @@ begin
  c20:=20;
  c68:=68;
  c12:=12;
+ c3f:=$3f;
+ c3fff:=$3fff;
+ c3fffffff:=$3fffffff;
+ c3fffffffffffffff:=$3fffffffffffffff;
+
  writeln('Testing constant SarInt64...');
  if SarInt64(-$3FFFFFFFFFFFFFFF,4)<>-$400000000000000 then begin
   writeln('Fail!');
@@ -291,6 +300,16 @@ begin
  end else begin
   writeln('Pass!');
  end;
+ if SarInt64(-c3FFFFFFFFFFFFFFF,63)<>-1 then begin
+  halt(1);
+ end else begin
+  writeln('Pass!');
+ end;
+ if SarInt64(c3FFFFFFFFFFFFFFF,63)<>0 then begin
+  halt(1);
+ end else begin
+  writeln('Pass!');
+ end;
  if SarInt64(-$3FFFFFFFFFFFFFFF)<>-$2000000000000000 then begin
   halt(1);
  end else begin
@@ -340,6 +359,16 @@ begin
   writeln('Pass!');
  end;
  if SarLongint($3FFFFFFF,c31)<>0 then begin
+  halt(1);
+ end else begin
+  writeln('Pass!');
+ end;
+ if SarLongint(-c3FFFFFFF,31)<>-1 then begin
+  halt(1);
+ end else begin
+  writeln('Pass!');
+ end;
+ if SarLongint(c3FFFFFFF,31)<>0 then begin
   halt(1);
  end else begin
   writeln('Pass!');
@@ -397,6 +426,16 @@ begin
  end else begin
   writeln('Pass!');
  end;
+ if SarSmallint(-c3FFF,15)<>-1 then begin
+  halt(1);
+ end else begin
+  writeln('Pass!');
+ end;
+ if SarSmallint(c3FFF,15)<>0 then begin
+  halt(1);
+ end else begin
+  writeln('Pass!');
+ end;
  if SarSmallint(-$3FFF)<>-$2000 then begin
   halt(1);
  end else begin
@@ -441,6 +480,16 @@ begin
   writeln('Pass!');
  end;
  if SarShortint(-$3F,c7)<>-1 then begin
+  halt(1);
+ end else begin
+  writeln('Pass!');
+ end;
+ if SarShortint(c3F,7)<>0 then begin
+  halt(1);
+ end else begin
+  writeln('Pass!');
+ end;
+ if SarShortint(-c3F,7)<>-1 then begin
   halt(1);
  end else begin
   writeln('Pass!');
