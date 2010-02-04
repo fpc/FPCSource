@@ -8,7 +8,7 @@ type
     My_socket = longint;
     my_bool = byte;
     gptr = Pointer;
-
+    pppchar = ^ppchar;
   {
      Common definition between mysql server & client
    }
