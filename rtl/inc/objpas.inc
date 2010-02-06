@@ -754,7 +754,7 @@
           getinterfacetable:=PVmt(Self)^.vIntfTable;
         end;
 
-      class function TObject.UnitName : string;
+      class function TObject.UnitName : ansistring;
         type
           // from the typinfo unit
           TClassTypeInfo = {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
@@ -791,7 +791,7 @@
           result:=PtrInt(Self);
         end;
 
-      function TObject.ToString: string;
+      function TObject.ToString: ansistring;
         begin
           result:=ClassName;
         end;

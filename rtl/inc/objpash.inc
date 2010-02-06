@@ -234,10 +234,10 @@
           class function GetInterfaceTable : pinterfacetable;
 
           { new since Delphi 2009 }
-          class function UnitName : string;
+          class function UnitName : ansistring;
           function Equals(Obj: TObject) : boolean;virtual;
           function GetHashCode: PtrInt;virtual;
-          function ToString: string;virtual;
+          function ToString: ansistring;virtual;
        end;
 
        IUnknown = interface

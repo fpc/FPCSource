@@ -6,10 +6,13 @@ var
   Obj: TObject;
 begin
   Obj := TObject.Create;
-  WriteLn(Obj.Equals(Obj)); // true
+  if not Obj.Equals(Obj) then
+    halt(1); // true
   WriteLn(Obj.GetHashCode); // PtrInt(Obj)
-  WriteLn(Obj.UnitName); // System
-  WriteLn(Obj.ToString); // TObject
+  if Obj.UnitName<>'System' then
+    halt(2); // System
+  if Obj.ToString<>'TObject' then
+    halt(3); // TObject
   Obj.Free;
 end.
 
