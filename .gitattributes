@@ -9398,6 +9398,7 @@ tests/test/units/math/tmask.inc svneol=native#text/plain
 tests/test/units/math/tmask.pp svneol=native#text/plain
 tests/test/units/math/tmask2.pp svneol=native#text/plain
 tests/test/units/math/tnaninf.pp svneol=native#text/plain
+tests/test/units/math/tpower.pp svneol=native#text/pascal
 tests/test/units/math/ttrig1.pp svneol=native#text/plain
 tests/test/units/objects/testobj.pp svneol=native#text/plain
 tests/test/units/objects/testobj1.pp svneol=native#text/plain

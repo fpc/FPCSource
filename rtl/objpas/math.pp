@@ -102,7 +102,7 @@ interface
 
        tpaymenttime = (ptendofperiod,ptstartofperiod);
 
-       einvalidargument = class(ematherror);
+       EInvalidArgument = class(ematherror);
 
        TValueRelationship = -1..1;
 
@@ -875,10 +875,7 @@ function power(base,exponent : float) : float;
 
   begin
     if Exponent=0.0 then
-      if base <> 0.0 then
-        result:=1.0
-      else
-        InvalidArgument
+      result:=1.0
     else if (base=0.0) and (exponent>0.0) then
       result:=0.0
     else if (abs(exponent)<=maxint) and (frac(exponent)=0.0) then
@@ -896,21 +893,24 @@ function intpower(base : float;const exponent : Integer) : float;
 
   begin
      if (base = 0.0) and (exponent = 0) then
-       InvalidArgument;
-     i:=abs(exponent);
-     intpower:=1.0;
-     while i>0 do
+       result:=1
+     else
        begin
-          while (i and 1)=0 do
-            begin
-               i:=i shr 1;
-               base:=sqr(base);
-            end;
-          i:=i-1;
-          intpower:=intpower*base;
+         i:=abs(exponent);
+         intpower:=1.0;
+         while i>0 do
+           begin
+              while (i and 1)=0 do
+                begin
+                   i:=i shr 1;
+                   base:=sqr(base);
+                end;
+              i:=i-1;
+              intpower:=intpower*base;
+           end;
+         if exponent<0 then
+           intpower:=1.0/intpower;
        end;
-     if exponent<0 then
-       intpower:=1.0/intpower;
   end;
 
 
