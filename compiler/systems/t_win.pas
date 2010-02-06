@@ -1094,7 +1094,7 @@ implementation
         with Info do
          begin
            if target_info.system=system_arm_wince then
-             targetopts:='-m armpe'
+             targetopts:='-m arm-wince-pe'
            else
              targetopts:='-b pe-i386 -m i386pe';
            ExeCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
