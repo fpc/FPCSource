@@ -373,13 +373,20 @@ unit cgx86;
               ref.index:=hreg
             else
               begin
+                { don't use add, as the flags may contain a value }
+                reference_reset_base(href,ref.base,0,8);
+                href.index:=hreg;
                 if ref.scalefactor<>0 then
                   begin
-                    list.concat(taicpu.op_reg_reg(A_ADD,S_Q,ref.base,hreg));
+                    reference_reset_base(href,ref.base,0,8);
+                    href.index:=hreg;
+                    list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,hreg));
                     ref.base:=hreg;
                   end
                 else
                   begin
+                    reference_reset_base(href,ref.index,0,8);
+                    href.index:=hreg;
                     list.concat(taicpu.op_reg_reg(A_ADD,S_Q,ref.index,hreg));
                     ref.index:=hreg;
                   end;
@@ -435,7 +442,10 @@ unit cgx86;
                   end
                 else
                   begin
-                    list.concat(taicpu.op_reg_reg(A_ADD,S_Q,ref.base,hreg));
+                    { don't use add, as the flags may contain a value }
+                    reference_reset_base(href,ref.base,0,8);
+                    href.index:=hreg;
+                    list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,hreg));
                     ref.base:=hreg;
                   end;
               end
@@ -467,7 +477,10 @@ unit cgx86;
                         end
                       else
                         begin
-                          list.concat(taicpu.op_reg_reg(A_ADD,S_Q,ref.base,hreg));
+                          { don't use add, as the flags may contain a value }
+                          reference_reset_base(href,ref.base,0,8);
+                          href.index:=hreg;
+                          list.concat(taicpu.op_ref_reg(A_LEA,S_Q,href,hreg));
                           ref.base:=hreg;
                         end;
                     end;
@@ -525,7 +538,10 @@ unit cgx86;
               end
             else
               begin
-                list.concat(taicpu.op_reg_reg(A_ADD,S_L,ref.base,hreg));
+                { don't use add, as the flags may contain a value }
+                reference_reset_base(href,ref.base,0,8);
+                href.index:=hreg;
+                list.concat(taicpu.op_ref_reg(A_LEA,S_L,href,hreg));
                 ref.base:=hreg;
               end;
           end;
