@@ -4528,6 +4528,7 @@ packages/openal/src/openal.pas svneol=native#text/plain
 packages/opencl/Makefile svneol=native#text/plain
 packages/opencl/Makefile.fpc svneol=native#text/plain
 packages/opencl/examples/basicsample.pas svneol=native#text/pascal
+packages/opencl/examples/clinfo.pp svneol=native#text/pascal
 packages/opencl/fpmake.pp svneol=native#text/pascal
 packages/opencl/src/cl.pp svneol=native#text/pascal
 packages/opencl/src/cl_gl.pp svneol=native#text/pascal
