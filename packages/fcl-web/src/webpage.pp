@@ -473,7 +473,7 @@ begin
   else
     begin
     CGIScriptName:=ScriptName;
-    if pos('?',ScriptName)>-1 then ConnectChar := '&';
+    if pos('?',ScriptName)>0 then ConnectChar := '&';
     end;
   if FancyTitle then // use ? or /
     result := CGIScriptName + '/' + Result
