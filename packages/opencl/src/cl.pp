@@ -340,6 +340,8 @@ const
   CL_PLATFORM_VERSION                         = $0901;
   CL_PLATFORM_NAME                            = $0902;
   CL_PLATFORM_VENDOR                          = $0903;
+  CL_PLATFORM_EXTENSIONS                      = $0904;
+
 
 // cl_device_type - bitfield
   CL_DEVICE_TYPE_DEFAULT                      = (1 shl 0);
