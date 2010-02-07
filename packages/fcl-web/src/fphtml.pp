@@ -281,6 +281,8 @@ type
   THTMLCustomDatasetContentProducer = class (THTMLContentProducer)
   private
     FDatasource: TDatasource;
+    FOnChange: THandleAjaxEvent;
+    FOnChangeCS: TCSAjaxEvent;
     FOnWriteFooter: TWriterEvent;
     FOnWriteHeader: TWriterElementEvent;
     FOnWriteRecord: TWriterEvent;
@@ -291,6 +293,8 @@ type
     procedure DoWriteHeader (aWriter : THTMLWriter; var el : THTMLCustomElement); virtual;
     procedure DoWriteFooter (aWriter : THTMLWriter); virtual;
     procedure DoWriteRecord (aWriter : THTMLWriter); virtual;
+    function GetEvents: TEventRecords; override;
+    procedure HandleAjaxRequest(ARequest: TRequest; AnAjaxResponse: TAjaxResponse); override;
   public
     function WriteContent (aWriter : THTMLWriter) : THTMLCustomElement; override;
     Property OnWriteHeader : TWriterElementEvent read FOnWriteHeader write FOnWriteHeader;
@@ -298,6 +302,8 @@ type
     Property OnWriteRecord : TWriterEvent read FOnWriteRecord write FOnWriteRecord;
   published
     Property DataSource : TDataSource read FDataSource write FDataSource;
+    property OnChangeCS: TCSAjaxEvent read FOnChangeCS write FOnChangeCS;
+    property OnChange: THandleAjaxEvent read FOnChange write FOnChange;
   end;
 
   { THTMLDatasetContentProducer }
@@ -419,6 +425,9 @@ type
   EHTMLError = Class(Exception);
 
 const SimpleOkButton: array[0..0] of TWebButton = ((buttontype: btok;caption: 'Ok';onclick: ''));
+
+const jseButtonClick = 1000;
+      jseInputChange = 1001;
 
 implementation
 Uses
@@ -814,6 +823,7 @@ begin
             if not opened then
               close;
           end;
+      SetupEvents(Result);
     finally
       WriteFooter (aWriter);
     end;
@@ -836,6 +846,20 @@ procedure THTMLCustomDatasetContentProducer.DoWriteRecord(aWriter: THTMLWriter);
 begin
   if assigned (FOnWriteRecord) then
     FOnWriteRecord (self, aWriter);
+end;
+
+function THTMLCustomDatasetContentProducer.GetEvents: TEventRecords;
+begin
+  AddEvent(result,jseInputChange,OnChange,'onchange',OnChangeCS);
+end;
+
+procedure THTMLCustomDatasetContentProducer.HandleAjaxRequest(ARequest: TRequest;
+  AnAjaxResponse: TAjaxResponse);
+begin
+  inherited HandleAjaxRequest(ARequest, AnAjaxResponse);
+  case StrToIntDef(ARequest.QueryFields.Values['event'],-1) of
+    jseInputChange : if assigned(OnChange) then OnChange(Self, ARequest, AnAjaxResponse);
+  end;
 end;
 
 { THTMLSelectProducer }
