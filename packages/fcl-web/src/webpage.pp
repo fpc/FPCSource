@@ -354,21 +354,16 @@ function TStandardWebController.DefaultMessageBoxHandler(Sender: TObject;
   AText: String; Buttons: TWebButtons): string;
 var i : integer;
     HasCancel: boolean;
-    HasOk: boolean;
     OnOk: string;
     OnCancel: string;
 begin
   HasCancel:=false;
-  HasOk:=false;
   OnOk:='';
   OnCancel:='';
   for i := low(Buttons) to High(Buttons) do
     begin
     if Buttons[i].ButtonType=btOk then
-      begin
-      HasOk := True;
       OnOk := Buttons[i].OnClick;
-      end;
     if Buttons[i].ButtonType=btCancel then
       begin
       HasCancel := True;
@@ -425,6 +420,7 @@ begin
   qs := '';
   result := Action;
   ARequest := GetRequest;
+  ActionVar := '';
   if assigned(owner) then
     begin
     if (owner is TWebPage) and assigned(TWebPage(Owner).WebModule) then
@@ -433,11 +429,9 @@ begin
       WebMod := TFPWebModule(Owner);
 
     ActionVar := WebMod.ActionVar;
-    if action = '' then
+    if (action = '') and assigned(WebMod.Actions) and assigned(WebMod.Actions.CurrentAction) then
       result := WebMod.Actions.CurrentAction.Name;
-    end
-  else
-    ActionVar := '';
+    end;
   if ActionVar='' then FancyTitle:=true;
   if Assigned(ARequest) then
     begin
