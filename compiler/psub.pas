@@ -49,7 +49,7 @@ interface
         dfabuilder : TDFABuilder;
         constructor create(aparent:tprocinfo);override;
         destructor  destroy;override;
-        procedure printproc;
+        procedure printproc(pass:string);
         procedure generate_code;
         procedure resetprocdef;
         procedure add_to_symtablestack;
@@ -534,7 +534,7 @@ implementation
        end;
 
 
-    procedure tcgprocinfo.printproc;
+    procedure tcgprocinfo.printproc(pass:string);
       begin
         assign(printnodefile,treelogfilename);
         {$I-}
@@ -549,6 +549,7 @@ implementation
          end;
         writeln(printnodefile);
         writeln(printnodefile,'*******************************************************************************');
+        writeln(printnodefile, pass);
         writeln(printnodefile,procdef.fullprocname(false));
         writeln(printnodefile,'*******************************************************************************');
         printnode(printnodefile,code);
@@ -766,6 +767,10 @@ implementation
         if procdef.fpu_used>0 then
           include(flags,pi_uses_fpu);
 {$endif i386}
+
+        { Print the node to tree.log }
+        if paraprintnodetree=1 then
+          printproc( 'after the firstpass');
 
         { do this before adding the entry code else the tail recursion recognition won't work,
           if this causes troubles, it must be if'ed
@@ -1399,7 +1404,7 @@ implementation
 
          { Print the node to tree.log }
          if paraprintnodetree=1 then
-           printproc;
+           printproc( 'after parsing');
 
          { ... remove symbol tables }
          remove_from_symtablestack;
