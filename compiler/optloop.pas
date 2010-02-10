@@ -127,9 +127,13 @@ unit optloop;
                     { for itself increases at the last iteration }
                     if i<unrolls then
                       begin
-                        { insert incrementation of counter var }
-                        addstatement(unrollstatement,
-                          geninlinenode(in_inc_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil)));
+                        { insert incr/decrementation of counter var }
+                        if lnf_backward in tfornode(node).loopflags then
+                          addstatement(unrollstatement,
+                            geninlinenode(in_dec_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil)))
+                        else
+                          addstatement(unrollstatement,
+                            geninlinenode(in_inc_x,false,ccallparanode.create(tfornode(node).left.getcopy,nil)));
                       end;
                   end;
                 { can we get rid of the for statement? }
