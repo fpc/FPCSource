@@ -587,7 +587,16 @@ implementation
               begin
                 if is_integer(p.resultdef) and
                    not(is_64bitint(p.resultdef)) then
-                  p:=ctypeconvnode.create(p,s32inttype)
+                  if not(m_delphi in current_settings.modeswitches) then
+                    p:=ctypeconvnode.create(p,s32inttype)
+                  else
+                    { delphi doesn't generate a range error when passing a
+                      cardinal >= $80000000, but since these are seen as
+                      longint on the callee side, this causes data loss;
+                      as a result, we require an explicit longint()
+                      typecast in FPC mode on the caller side if range
+                      checking should be disabled, but not in Delphi mode }
+                    p:=ctypeconvnode.create_internal(p,s32inttype)
                 else if is_void(p.resultdef) then
                   CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
                 else if iscvarargs and is_currency(p.resultdef)
