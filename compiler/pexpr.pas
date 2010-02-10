@@ -2028,6 +2028,10 @@ implementation
                         p1:=cderefnode.create(p1);
                         do_typecheckpass(p1);
                       end;
+                    { procvar.<something> can never mean anything so always
+                      try to call it in case it returns a record/object/... }
+                    maybe_call_procvar(p1,false);
+
                     case p1.resultdef.typ of
                       recorddef:
                         begin
