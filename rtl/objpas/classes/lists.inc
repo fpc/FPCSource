@@ -618,9 +618,17 @@ begin
 end;
 
 Procedure TList.AddList(AList : TList);
+var
+  I: Integer;
 begin
-  FList.AddList(AList.FList);
-end;
+  { this only does FList.AddList(AList.FList), avoiding notifications }
+  AddList(AList);
+
+  { make lnAdded notifications }
+  for I := 0 to AList.Count - 1 do
+    if AList[I] <> nil then
+      Notify(AList[I], lnAdded);
+end;            
 
 procedure TList.Clear;
 
