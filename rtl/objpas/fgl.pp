@@ -216,11 +216,11 @@ type
       ADataSize: integer = sizeof(Pointer));
     function Add(AKey, AData: Pointer): Integer;
     function Add(AKey: Pointer): Integer;
-    function Find(AKey: Pointer; var Index: Integer): Boolean;
+    function Find(AKey: Pointer; out Index: Integer): Boolean;
     function IndexOf(AKey: Pointer): Integer;
     function IndexOfData(AData: Pointer): Integer;
     function Insert(Index: Integer): Pointer;
-    procedure Insert(Index: Integer; var AKey, AData: Pointer);
+    procedure Insert(Index: Integer; out AKey, AData: Pointer);
     procedure InsertKey(Index: Integer; AKey: Pointer);
     procedure InsertKeyData(Index: Integer; AKey, AData: Pointer);
     function Remove(AKey: Pointer): Integer;
@@ -262,7 +262,7 @@ type
     constructor Create;
     function Add(const AKey: TKey; const AData: TData): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Add(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
-    function Find(const AKey: TKey; var Index: Integer): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Find(const AKey: TKey; out Index: Integer): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
     function IndexOf(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function IndexOfData(const AData: TData): Integer;
     procedure InsertKey(Index: Integer; const AKey: TKey);
@@ -1048,7 +1048,7 @@ begin
   Data[Result] := AData;
 end;
 
-function TFPSMap.Find(AKey: Pointer; var Index: Integer): Boolean;
+function TFPSMap.Find(AKey: Pointer; out Index: Integer): Boolean;
 { Searches for the first item <= Key, returns True if exact match,
   sets index to the index f the found string. }
 var
@@ -1122,7 +1122,7 @@ begin
   Result := inherited Insert(Index);
 end;
 
-procedure TFPSMap.Insert(Index: Integer; var AKey, AData: Pointer);
+procedure TFPSMap.Insert(Index: Integer; out AKey, AData: Pointer);
 begin
   AKey := Insert(Index);
   AData := PByte(AKey) + FKeySize;
@@ -1256,7 +1256,7 @@ begin
   Result := inherited Add(@AKey, @AData);
 end;
 
-function TFPGMap.Find(const AKey: TKey; var Index: Integer): Boolean;
+function TFPGMap.Find(const AKey: TKey; out Index: Integer): Boolean;
 begin
   Result := inherited Find(@AKey, Index);
 end;
