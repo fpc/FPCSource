@@ -119,8 +119,16 @@ begin
    begin
      FileName:=FExpand(LocatePasFile(FileName));
      if ExistsFile(FileName) then
+       begin
      { like for BP unexistant files should  be created PM }
-       OpenEditorWindow(nil,FileName,0,0)
+         OpenEditorWindow(nil,FileName,0,0);
+         if (MiscOptions and moChangeDirOnOpen)<>0 then
+          begin
+            ChDir(DirOf(filename)); 
+            CurDirChanged;
+            GetDir(0,StartUpDir);
+          end;
+       end
      else
        {ErrorBox(FormatStrStr(msg_cantfindfile,FileName),nil);}
        begin
