@@ -768,8 +768,11 @@ Var
         TheStream : TFileStream;
 begin
   TheStream:=TFileStream.Create(FileName,fmOpenRead or fmShareDenyWrite);
-  LoadFromStream(TheStream);
-  TheStream.Free;
+  try
+    LoadFromStream(TheStream);
+  finally
+    TheStream.Free;
+  end;
 end;
 
 
@@ -834,8 +837,11 @@ Var TheStream : TFileStream;
 
 begin
   TheStream:=TFileStream.Create(FileName,fmCreate);
-  SaveToStream(TheStream);
-  TheStream.Free;
+  try
+    SaveToStream(TheStream);
+  finally
+    TheStream.Free;
+  end;
 end;
 
 
