@@ -533,92 +533,169 @@ end;
     if S does not represent a valid time value an
     EConvertError will be raised   }
 
+
 function IntStrToTime(Out ErrorMsg : AnsiString; const S: PChar; Len : integer;const defs:TFormatSettings; separator : char = #0): TDateTime;
+const
+  AMPM_None = 0;
+  AMPM_AM = 1;
+  AMPM_PM = 2;
+  tiHour = 0;
+  tiMin = 1;
+  tiSec = 2;
+  tiMSec = 3;
+type
+  TTimeValues = array[tiHour..tiMSec] of Word;
 var
-   Current: integer; PM: integer;
+   AmPm: integer;
+   TimeValues: TTimeValues;
 
     function StrPas(Src : PChar; len: integer = 0) : ShortString;
-    var
-       tmp : integer;
     begin
-        {tmp := IndexChar(Src[0], len, #0);
-        len :=ifthen(tmp >= 0, tmp, len);
-        len :=ifthen(len > 255, 255, len);}
+        //this is unsafe for len > 255, it will trash memory (I tested this)
+        //reducing it is safe, since whenever we use this a string > 255 is invalid anyway
+        if len > 255 then len := 255;
         SetLength(Result, len);
         move(src[0],result[1],len);
     end;
 
-   function GetElement: integer;
+   function SplitElements(out TimeValues: TTimeValues; out AmPm: Integer): Boolean;
+   //Strict version. It does not allow #32 as Separator, it will treat it as whitespace always
+   const
+     Digits = ['0'..'9'];
    var
-     j, c: integer;
-     CurrentChar : Char;
+      Cur, Offset, ElemLen, Err, TimeIndex, FirstSignificantDigit: Integer;
+      Value: Word;
+      DigitPending, MSecPending: Boolean;
+      AmPmStr: ShortString;
+      CurChar: Char;
    begin
-   result := -1;
-   while (result = -1) and (Current < Len) do
+     Result := False;
+     AmPm := AMPM_None; //No Am or PM in string found yet
+     MSecPending := False;
+     TimeIndex := 0; //indicating which TTimeValue must be filled next
+     FillChar(TimeValues, SizeOf(TTimeValues), 0);
+     Cur := 0;
+     //skip leading blanks
+     While (Cur < Len) and (S[Cur] =#32) do Inc(Cur);
+     Offset := Cur;
+     //First non-blank cannot be Separator or DecimalSeparator
+     if (Cur > Len - 1) or (S[Cur] = Separator) or (S[Cur] = defs.Decimalseparator) then Exit;
+     DigitPending := (S[Cur] in Digits);
+     While (Cur < Len) do
      begin
-       CurrentChar := S[Current];
-       if CurrentChar in ['0'..'9'] then
-          begin
-            j := Current;
-            while (Current+1 < Len) and (s[Current + 1] in ['0'..'9']) do
-              Inc(Current);
-            val(StrPas(S+j, 1 + current - j), result, c);
-          end
-       else if ((defs.TimeAMString<>'') and (CurrentChar = defs.TimeAMString[1])) or (S[Current] in ['a', 'A']) then
-          begin
-            pm:=1;
-            Current := 1 + Len;
-          end
-       else if ((defs.TimePMString<>'') and (CurrentChar = defs.TimePMString[1])) or (S[Current] in ['p', 'P']) then
+       //writeln;
+       //writeln('Main While loop:  Cur = ',Cur,' S[Cur] = "',S[Cur],'" Len = ',Len);
+       CurChar := S[Cur];
+       if CurChar in Digits then
+       begin//Digits
+         //HH, MM, SS, or Msec?
+         //writeln('Digit');
+         //Digits are only allowed after starting Am/PM or at beginning of string or after Separator
+         //and TimeIndex must be <= tiMSec
+         //Uncomment "or (#32 = Separator)" and it will allllow #32 as separator
+         if (not (DigitPending {or (#32 = Separator)})) or (TimeIndex > tiMSec) then Exit;
+         OffSet := Cur;
+         if (CurChar <> '0') then FirstSignificantDigit := OffSet else FirstSignificantDigit := -1;
+         while (Cur < Len -1) and (S[Cur + 1] in Digits) do
          begin
-           Current := 1 + Len;
-           PM := 2;
+           //Mark first Digit that is not '0'
+           if (FirstSignificantDigit = -1) and (S[Cur] <> '0') then FirstSignificantDigit := Cur;
+           Inc(Cur);
+         end;
+         if (FirstSignificantDigit = -1) then FirstSignificantDigit := Cur;
+         ElemLen := 1 + Cur - FirstSignificantDigit;
+         //writeln('  S[FirstSignificantDigit] = ',S[FirstSignificantDigit], ' S[Cur] = ',S[Cur],' ElemLen = ',ElemLen,' -> ', StrPas(S + Offset, ElemLen));
+         //writeln('  Cur = ',Cur);
+         //this way we know that Val() will never overflow Value !
+         if (ElemLen <= 2) or ((ElemLen <= 3) and (TimeIndex = tiMSec) ) then
+         begin
+           Val(StrPas(S + FirstSignificantDigit, ElemLen), Value, Err);
+           //writeln('  Value = ',Value,' HH = ',TimeValues[0],' MM = ',TimeValues[1],' SS = ',TimeValues[2],' MSec = ',Timevalues[3]);
+           //This is safe now, because we know Value < High(Word)
+           TimeValues[TimeIndex] := Value;
+           Inc(TimeIndex);
+           DigitPending := False;
          end
-      else if (CurrentChar = Separator) or (CurrentChar = ' ') then
-         Inc(Current)
-      else
-        ErrorMsg:=Format(SErrInvalidTimeFormat,[StrPas(S)]);
-      end ;
-   end ;
+         else  Exit; //Value to big, so it must be a wrong timestring
+       end//Digits
+       else if (CurChar = #32) then
+       begin
+         //writeln('#32');
+         //just skip, but we must adress this, or it will be parsed by either AM/PM or Separator
+       end
+       else if (CurChar = Separator) then
+       begin
+         //writeln('Separator');
+         if DigitPending or (TimeIndex > tiSec) then Exit;
+         DigitPending := True;
+         MSecPending := False;
+       end
+       else if (CurChar = defs.DecimalSeparator) then
+       begin
+         //writeln('DecimalSeparator');
+         if DigitPending or MSecPending or (TimeIndex <> tiMSec) then Exit;
+         DigitPending := True;
+         MSecPending := True;
+       end
+       else
+       begin//AM/PM?
+         //None of the above, so this char _must_ be the start of AM/PM string
+         //If we already have found AM/PM or we expect a digit then then timestring must be wrong at this point
+         //writeln('AM/PM?');
+         if (AmPm <> AMPM_None) or DigitPending then Exit;
+         OffSet := Cur;
+         while (Cur < Len -1) and (not (S[Cur + 1] in [Separator, #32, defs.DecimalSeparator]))
+           and not (S[Cur + 1] in Digits) do Inc(Cur);
+         ElemLen := 1 + Cur - OffSet;
+         //writeln('  S[Offset] = ',S[Offset], ' S[Cur] = ',S[Cur],' ElemLen = ',ElemLen,' -> ', StrPas(S + Offset, ElemLen));
+         //writeln('  Cur = ',Cur);
+         AmPmStr := StrPas(S + OffSet, ElemLen);
 
-var
-   i: integer;
-   TimeValues: array[0..4] of integer;
+         //writeln('AmPmStr = ',ampmstr,' (',length(ampmstr),')');
+         //We must compare to TimeAMString before hardcoded 'AM' for delphi compatibility
+         //Also it is perfectly legal, though insane to have TimeAMString = 'PM' and vice versa
+         if (AnsiCompareText(AmPmStr, defs.TimeAMString) = 0) then AmPm := AMPM_AM
+         else if (AnsiCompareText(AmPmStr, defs.TimePMString) = 0) then AmPm := AMPM_PM
+         else if (CompareText(AmPmStr, 'AM') = 0) then AmPm := AMPM_AM
+         else if (CompareText(AmPmStr, 'PM') = 0) then AmPm := AMPM_PM
+         else Exit; //If text does not match any of these, timestring must be wrong;
+         //if AM/PM is at beginning of string, then a digit is mandatory after it
+         if (TimeIndex = tiHour) then
+         begin
+           DigitPending := True;
+         end
+         //otherwise, no more TimeValues allowed after this
+         else
+         begin
+           TimeIndex := tiMSec + 1;
+           DigitPending := False;
+         end;
+       end;//AM/PM
+       Inc(Cur)
+     end;//while
+
+     //If we arrive here, parsing the elements has been successfull
+     //if not at least Hours specified then input is not valid
+     //when am/pm is specified Hour must be <= 12 and not 0
+     if (TimeIndex = tiHour) or ((AmPm <> AMPM_None) and ((TimeValues[tiHour] > 12) or (TimeValues[tiHour] = 0))) or DigitPending then Exit;
+     Result := True;
+   end;
 
 begin
   if separator = #0 then
         separator := defs.TimeSeparator;
-  Current := 0;
-  PM := 0;
-  for i:=0 to 4 do
-    timevalues[i]:=0;
-  i := 0;
-  TimeValues[i] := GetElement;
-  If ErrorMsg<>'' then 
+  AmPm := AMPM_None;
+  if not SplitElements(TimeValues, AmPm) then
+  begin
+    ErrorMsg:=Format(SErrInvalidTimeFormat,[StrPas(S, Len)]);
     Exit;
-  while (i < 5) and (TimeValues[i] <> -1) do 
-    begin
-     i := i + 1;
-     Inc(Current);
-     TimeValues[i] := GetElement;
-     If ErrorMsg<>'' then
-        Exit;
-   end ;
-  If (i<5) and (TimeValues[I]=-1) then
-    TimeValues[I]:=0;
-  if PM=2 then
-    begin
-     if (TimeValues[0] <> 12) then
-       Inc(TimeValues[0], 12);
-    end
-  else
-    begin
-      if (pm=1) and ((TimeValues[0]=12)) then
-        TimeValues[0]:=0;
-    end;
+  end;
+  if (AmPm=AMPM_PM) and (TimeValues[tiHour]<>12) then Inc(TimeValues[tiHour], 12)
+  else if (AmPm=AMPM_AM) and (TimeValues[tiHour]=12) then TimeValues[tiHour]:=0;
 
-  if not TryEncodeTime(TimeValues[0], TimeValues[1], TimeValues[2], TimeValues[3],result) Then
-    errormsg:='Invalid time.';
+  if not TryEncodeTime(TimeValues[tiHour], TimeValues[tiMin], TimeValues[tiSec], TimeValues[tiMSec], result) Then
+    //errormsg:='Invalid time.';
+    ErrorMsg:=Format(SErrInvalidTimeFormat,[StrPas(S, Len)]);
 end ;
 
 function StrToTime(const S: PChar; Len : integer; separator : char = #0): TDateTime;
