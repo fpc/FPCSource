@@ -622,7 +622,7 @@ var
   I: Integer;
 begin
   { this only does FList.AddList(AList.FList), avoiding notifications }
-  AddList(AList);
+  FList.AddList(AList.FList);
 
   { make lnAdded notifications }
   for I := 0 to AList.Count - 1 do
