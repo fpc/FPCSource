@@ -90,6 +90,12 @@ interface
     procedure propaccesslist_to_node(var p1:tnode;st:TSymtable;pl:tpropaccesslist);
     function node_to_propaccesslist(p1:tnode):tpropaccesslist;
 
+    { returns true if n is an array element access of a bitpacked array with
+      elements of the which the vitsize mod 8 <> 0, or if is a field access
+      with bitsize mod 8 <> 0 or bitoffset mod 8 <> 0 of an element in a
+      bitpacked structure }
+    function is_bitpacked_access(n: tnode): boolean;
+
 implementation
 
     uses
@@ -1068,6 +1074,24 @@ implementation
         sl:=tpropaccesslist.create;
         addnode(p1);
         result:=sl;
+      end;
+
+
+    function is_bitpacked_access(n: tnode): boolean;
+      begin
+        case n.nodetype of
+          vecn:
+            result:=
+              is_packed_array(tvecnode(n).left.resultdef) and
+              (tarraydef(tvecnode(n).left.resultdef).elepackedbitsize mod 8 <> 0);
+          subscriptn:
+            result:=
+              is_packed_record_or_object(tsubscriptnode(n).left.resultdef) and
+              ((tsubscriptnode(n).vs.vardef.packedbitsize mod 8 <> 0) or
+               (tsubscriptnode(n).vs.fieldoffset mod 8 <> 0));
+          else
+            result:=false;
+        end;
       end;
 
 

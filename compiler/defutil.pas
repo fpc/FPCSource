@@ -249,6 +249,11 @@ interface
     { # returns true if the procdef has no parameters and no specified return type }
     function is_bareprocdef(pd : tprocdef): boolean;
 
+    { # returns the smallest base integer type whose range encompasses that of
+        both ld and rd; if keep_sign_if_equal, then if ld and rd have the same
+        signdness, the result will also get that signdness }
+    function get_common_intdef(ld, rd: torddef; keep_sign_if_equal: boolean): torddef;
+
 implementation
 
     uses
@@ -1044,6 +1049,56 @@ implementation
         result:=(pd.maxparacount=0) and
                 (is_void(pd.returndef) or
                  (pd.proctypeoption = potype_constructor));
+      end;
+
+
+    function get_common_intdef(ld, rd: torddef; keep_sign_if_equal: boolean): torddef;
+      var
+        llow, lhigh: tconstexprint;
+      begin
+        llow:=rd.low;
+        if llow<ld.low then
+          llow:=ld.low;
+        lhigh:=rd.high;
+        if lhigh<ld.high then
+          lhigh:=ld.high;
+        case range_to_basetype(llow,lhigh) of
+          s8bit:
+            result:=torddef(s8inttype);
+          u8bit:
+            result:=torddef(u8inttype);
+          s16bit:
+            result:=torddef(s16inttype);
+          u16bit:
+            result:=torddef(u16inttype);
+          s32bit:
+            result:=torddef(s32inttype);
+          u32bit:
+            result:=torddef(u32inttype);
+          s64bit:
+            result:=torddef(s64inttype);
+          u64bit:
+            result:=torddef(u64inttype);
+          else
+            begin
+              { avoid warning }
+              result:=nil;
+              internalerror(200802291);
+            end;
+        end;
+        if keep_sign_if_equal and
+           (is_signed(ld)=is_signed(rd)) and
+           (is_signed(result)<>is_signed(ld)) then
+          case result.ordtype of
+            s8bit:
+              result:=torddef(u8inttype);
+            s16bit:
+              result:=torddef(u16inttype);
+            s32bit:
+              result:=torddef(u32inttype);
+            s64bit:
+              result:=torddef(u64inttype);
+          end;
       end;
 
 end.

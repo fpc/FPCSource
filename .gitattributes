@@ -8306,6 +8306,7 @@ tests/tbs/tb0566.pp svneol=native#text/plain
 tests/tbs/tb0567.pp svneol=native#text/plain
 tests/tbs/tb0568.pp svneol=native#text/plain
 tests/tbs/tb0569.pp svneol=native#text/pascal
+tests/tbs/tb0570.pp svneol=native#text/plain
 tests/tbs/tb205.pp svneol=native#text/plain
 tests/tbs/ub0060.pp svneol=native#text/plain
 tests/tbs/ub0069.pp svneol=native#text/plain

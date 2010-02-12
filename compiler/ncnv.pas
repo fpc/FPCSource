@@ -243,8 +243,11 @@ implementation
             exit;
          end;
 
-        { don't insert obsolete type conversions }
-        if equal_defs(p.resultdef,def) then
+        { don't insert superfluous type conversions, but
+          in case of bitpacked accesses, the original type must
+          remain too so that not too many/few bits are laoded }
+        if equal_defs(p.resultdef,def) and
+           not is_bitpacked_access(p) then
           p.resultdef:=def
         else
          begin
@@ -265,8 +268,11 @@ implementation
             exit;
          end;
 
-        { don't insert obsolete type conversions }
-        if equal_defs(p.resultdef,def) then
+        { don't insert superfluous type conversions, but
+          in case of bitpacked accesses, the original type must
+          remain too so that not too many/few bits are laoded }
+        if equal_defs(p.resultdef,def) and
+           not is_bitpacked_access(p) then
           p.resultdef:=def
         else
          begin
@@ -1692,6 +1698,10 @@ implementation
                   if assigned(result) then
                     exit;
 
+                  { in case of bitpacked accesses, the original type must
+                    remain so that not too many/few bits are laoded }
+                  if is_bitpacked_access(left) then
+                    convtype:=tc_int_2_int;
                   { Only leave when there is no conversion to do.
                     We can still need to call a conversion routine,
                     like the routine to convert a stringconstnode }

@@ -371,8 +371,7 @@ implementation
               hp:=right;
               realdef:=hp.resultdef;
               while (hp.nodetype=typeconvn) and
-                    ([nf_internal,nf_explicit] * hp.flags = []) and
-                    is_in_limit(ttypeconvnode(hp).left.resultdef,realdef) do
+                    ([nf_internal,nf_explicit] * hp.flags = []) do
                 begin
                   hp:=ttypeconvnode(hp).left;
                   realdef:=hp.resultdef;
@@ -421,8 +420,7 @@ implementation
               hp:=left;
               realdef:=hp.resultdef;
               while (hp.nodetype=typeconvn) and
-                    ([nf_internal,nf_explicit] * hp.flags = []) and
-                    is_in_limit(ttypeconvnode(hp).left.resultdef,realdef) do
+                    ([nf_internal,nf_explicit] * hp.flags = []) do
                 begin
                   hp:=ttypeconvnode(hp).left;
                   realdef:=hp.resultdef;
@@ -1157,17 +1155,28 @@ implementation
                    begin
                      if (rd.size=ld.size) and
                         is_signed(ld) then
-                       inserttypeconv_internal(left,right.resultdef)
+                       inserttypeconv_internal(left,rd)
                      else
-                       inserttypeconv(left,right.resultdef)
+                       begin
+                         { not to left right.resultdef, because that may
+                           cause a range error if left and right's def don't
+                           completely overlap }
+                         nd:=get_common_intdef(torddef(ld),torddef(rd),true);
+                         inserttypeconv(left,nd);
+                         inserttypeconv(right,nd);
+                       end;
                    end
                  else
                    begin
                      if (rd.size=ld.size) and
                         is_signed(rd) then
-                       inserttypeconv_internal(right,left.resultdef)
+                       inserttypeconv_internal(right,ld)
                      else
-                       inserttypeconv(right,left.resultdef)
+                       begin
+                         nd:=get_common_intdef(torddef(ld),torddef(rd),true);
+                         inserttypeconv(left,nd);
+                         inserttypeconv(right,nd);
+                       end;
                    end
                end
              { is there a signed 64 bit type ? }
@@ -1277,33 +1286,8 @@ implementation
                     (nodetype=subn) then
                    begin
 {$ifdef cpunodefaultint}
-                      { for small cpus we use the smallest common type }
-                      llow:=torddef(rd).low;
-                      if llow<torddef(ld).low then
-                        llow:=torddef(ld).low;
-                      lhigh:=torddef(rd).high;
-                      if lhigh<torddef(ld).high then
-                        lhigh:=torddef(ld).high;
-                      case range_to_basetype(llow,lhigh) of
-                        s8bit:
-                          nd:=s8inttype;
-                        u8bit:
-                          nd:=u8inttype;
-                        s16bit:
-                          nd:=s16inttype;
-                        u16bit:
-                          nd:=u16inttype;
-                        s32bit:
-                          nd:=s32inttype;
-                        u32bit:
-                          nd:=u32inttype;
-                        s64bit:
-                          nd:=s64inttype;
-                        u64bit:
-                          nd:=u64inttype;
-                        else
-                          internalerror(200802291);
-                      end;
+                     { for small cpus we use the smallest common type }
+                     nd:=get_common_intdef(torddef(ld),torddef(rd),false);
                      inserttypeconv(right,nd);
                      inserttypeconv(left,nd);
 {$else cpunodefaultint}
