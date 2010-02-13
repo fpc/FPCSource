@@ -69,6 +69,7 @@ interface
          procedure derefimpl;virtual;abstract;
          function  typename:string;
          function  GetTypeName:string;virtual;
+         function  typesymbolprettyname:string;virtual;
          function  mangledparaname:string;
          function  getmangledparaname:string;virtual;
          function  rtti_mangledname(rt:trttitype):string;virtual;abstract;
@@ -269,6 +270,14 @@ implementation
          GetTypeName:='<unknown type>'
       end;
 
+
+    function tdef.typesymbolprettyname:string;
+      begin
+        if assigned(typesym) then
+          result:=typesym.prettyname
+        else
+          result:='<no type symbol>'
+      end;
 
     function tdef.mangledparaname:string;
       begin

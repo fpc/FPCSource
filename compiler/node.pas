@@ -843,7 +843,7 @@ implementation
       begin
         write(t,nodetype2str[nodetype]);
         if assigned(resultdef) then
-          write(t,', resultdef = "',resultdef.GetTypeName,'"')
+          write(t,', resultdef = ',resultdef.typesymbolprettyname,' = "',resultdef.GetTypeName,'"')
         else
           write(t,', resultdef = <nil>');
         write(t,', pos = (',fileinfo.line,',',fileinfo.column,')',
