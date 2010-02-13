@@ -2889,7 +2889,9 @@ or
 # line, the current possibilities are :
 #    * = every target
 #    3 = 80x86 targets
+#    4 = x86_64
 #    6 = 680x0 targets
+#    A = ARM
 #    e = in extended debug mode only
 #    P = PowerPC targets
 #    S = Sparc targets
@@ -3127,6 +3129,8 @@ P*2WC_Specify console type application (Classic Mac OS)
 3*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)
 A*2WD_Use DEFFILE to export functions of DLL or EXE (Windows)
 3*2We_Use external resources (Darwin)
+4*2We_Use external resources (Darwin)
+A*2We_Use external resources (Darwin)
 P*2We_Use external resources (Darwin)
 p*2We_Use external resources (Darwin)
 3*2WF_Specify full-screen type application (EMX, OS/2)
