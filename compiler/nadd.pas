@@ -1149,7 +1149,10 @@ implementation
              { size either as long as both values are signed or unsigned   }
              { "xor" and "or" also don't care about the sign if the values }
              { occupy an entire register                                   }
+             { don't do it if either type is 64 bit, since in that case we }
+             { can't safely find a "common" type                           }
              else if is_integer(ld) and is_integer(rd) and
+                     not is_64bitint(ld) and not is_64bitint(rd) and
                      ((nodetype=andn) or
                       ((nodetype in [orn,xorn,equaln,unequaln,gtn,gten,ltn,lten]) and
                        not(is_signed(ld) xor is_signed(rd)))) then
