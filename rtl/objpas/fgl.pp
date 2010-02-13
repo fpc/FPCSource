@@ -236,7 +236,7 @@ type
     property Data[Index: Integer]: Pointer read GetData write PutData;
     property KeyData[Key: Pointer]: Pointer read GetKeyData write PutKeyData; default;
     property Sorted: Boolean read FSorted write SetSorted;
-    property OnPtrCompare: TFPSListCompareFunc read FOnKeyPtrCompare write SetOnKeyPtrCompare; deprecated;
+    property OnPtrCompare: TFPSListCompareFunc read FOnKeyPtrCompare write SetOnKeyPtrCompare; //deprecated;
     property OnKeyPtrCompare: TFPSListCompareFunc read FOnKeyPtrCompare write SetOnKeyPtrCompare;
     property OnDataPtrCompare: TFPSListCompareFunc read FOnDataPtrCompare write SetOnDataPtrCompare;
   end;
@@ -282,7 +282,7 @@ type
     property Keys[Index: Integer]: TKey read GetKey write PutKey;
     property Data[Index: Integer]: TData read GetData write PutData;
     property KeyData[const AKey: TKey]: TData read GetKeyData write PutKeyData; default;
-    property OnCompare: TKeyCompareFunc read FOnKeyCompare write SetOnKeyCompare; deprecated;
+    property OnCompare: TKeyCompareFunc read FOnKeyCompare write SetOnKeyCompare; //deprecated;
     property OnKeyCompare: TKeyCompareFunc read FOnKeyCompare write SetOnKeyCompare;
     property OnDataCompare: TDataCompareFunc read FOnDataCompare write SetOnDataCompare;
   end;
