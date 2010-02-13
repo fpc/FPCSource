@@ -551,6 +551,8 @@ var
    ColCounter  : Longint;
    smallforce  : boolean;
    x1,y1,x2,y2 : longint;
+   p1,p2,p3    : PCardinal;
+   j           : integer;
 begin
   if force then
    smallforce:=true
@@ -587,8 +589,17 @@ begin
         popq    %rsi
      end;
     {$else}
-      {$INFO compare of videobuffers not available for this arch}
-      BREAK AND DIE
+      {$INFO No optimized version for this CPU, reverting to a pascal version}
+       j:=Videobufsize shr 2;
+       smallforce:=false;
+       p1:=pcardinal(VideoBuf);
+       p2:=pcardinal(OldVideoBuf);
+       p3:=@pcardinal(videobuf)[j];
+       while (p1<p3) and (p1^=p2^) do
+         begin
+           inc(p1); inc(p2);
+         end; 
+       smallforce:=p1<>p3;  
     {$ENDIF}
    {$endif}
    end;
