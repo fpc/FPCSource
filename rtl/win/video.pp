@@ -556,6 +556,7 @@ begin
    smallforce:=true
   else
    begin
+    {$ifdef cpui386}
      asm
         pushl   %esi
         pushl   %edi
@@ -569,6 +570,27 @@ begin
         popl    %edi
         popl    %esi
      end;
+   {$else}
+    {$ifdef cpux86_64}
+     asm
+        pushq   %rsi
+        pushq   %rdi
+        xorq    %rcx,%rcx  
+        movq    VideoBuf,%rsi
+        movq    OldVideoBuf,%edi
+        movl    VideoBufSize,%ecx
+        shrq    $2,%rcx
+        repe
+        cmpsl
+        setne   smallforce
+        popq    %rdi
+        popq    %rsi
+     end;
+    {$else}
+      {$INFO compare of videobuffers not available for this arch}
+      BREAK AND DIE
+    {$ENDIF}
+   {$endif}
    end;
   if SmallForce then
    begin
