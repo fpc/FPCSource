@@ -122,27 +122,35 @@ begin
 end;
 
 procedure TFPPalette.SetCount (Value:integer);
-var NewData : PFPColorArray;
+var
     O : integer;
 begin
   if Value <> FCount then
     begin
     if Value > FCapacity then
       begin
-      O := FCapacity;
-      FCapacity := Value + 8;
-      if FCapacity > 0 then
-        GetMem (NewData, sizeof(TFPColor)*FCapacity)
-      else
-        FData := nil;
-      move (FData^, NewData^, sizeof(TFPColor)*FCount);
-      if O > 0 then
-        FreeMem (FData);
-      FData := NewData;
+        FCapacity := Value+8;
+        Reallocmem(FData,sizeof(TFPColor)*FCapacity);
       end;
     for o := FCount to Value-1 do
       FData^[o] := colBlack;
     FCount := Value;
+    end;
+end;
+
+procedure TFPPalette.SetCapacity (ind : Integer);
+var o : Integer;
+begin
+  if ind<count then ind:=count;
+  if ind<>fcapacity then
+    begin
+      fcapacity:=ind;
+      Reallocmem(FData,sizeof(TFPColor)*FCapacity);
+    end;
+  if ind>count then
+    begin
+      for o := FCount to ind-1 do
+        FData^[o] := colBlack;
     end;
 end;
 

@@ -73,6 +73,7 @@ type
       function GetCount : integer;
       procedure SetColor (index:integer; const Value:TFPColor); virtual;
       function GetColor (index:integer) : TFPColor;
+      procedure SetCapacity (ind : Integer);
       procedure CheckIndex (index:integer); virtual;
       procedure EnlargeData; virtual;
     public
@@ -86,6 +87,7 @@ type
       procedure Clear; virtual;
       property Color [Index : integer] : TFPColor read GetColor write SetColor; default;
       property Count : integer read GetCount write SetCount;
+      property Capacity : integer read FCapacity write SetCapacity;
   end;
 
   TFPCustomImage = class(TPersistent)
