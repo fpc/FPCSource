@@ -370,8 +370,14 @@ implementation
               t:=nil;
               hp:=right;
               realdef:=hp.resultdef;
+              { stop with finding the real def when we either encounter
+                 a) an explicit type conversion (then the value has to be
+                    re-interpreted)
+                 b) an "absolute" type conversion (also requires
+                    re-interpretation)
+              }
               while (hp.nodetype=typeconvn) and
-                    ([nf_internal,nf_explicit] * hp.flags = []) do
+                    ([nf_internal,nf_explicit,nf_absolute] * hp.flags = []) do
                 begin
                   hp:=ttypeconvnode(hp).left;
                   realdef:=hp.resultdef;
@@ -420,7 +426,7 @@ implementation
               hp:=left;
               realdef:=hp.resultdef;
               while (hp.nodetype=typeconvn) and
-                    ([nf_internal,nf_explicit] * hp.flags = []) do
+                    ([nf_internal,nf_explicit,nf_absolute] * hp.flags = []) do
                 begin
                   hp:=ttypeconvnode(hp).left;
                   realdef:=hp.resultdef;
