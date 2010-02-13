@@ -113,21 +113,6 @@ function LoadLibrarySymbols(const Lib: TLibHandle; const Symbols: PLibSymbol; co
 procedure ClearLibrarySymbols(const Symbols: PLibSymbol; const Count: Integer);
 
 
-// these are for easier crossplatform construction of dll names in dynloading libs.
-Const
- {$ifdef Windows}
-  SharedSuffix  = 'dll';
- {$else}
-   {$ifdef Darwin}
-     SharedSuffix = 'dylib';
-   {$else}
-     {$ifdef OS2}
-       SharedSuffix = 'dll';
-     {$else}
-       SharedSuffix = 'so';
-     {$endif}
-   {$endif}
- {$endif}
 
 Implementation
 

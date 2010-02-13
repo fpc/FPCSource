@@ -25,6 +25,12 @@ Type
 
 Const
   NilHandle = TLibHandle(0);
+// these are for easier crossplatform construction of dll names in dynloading libs.
+{$ifdef Darwin}
+  SharedSuffix = 'dylib';
+{$else Darwin}
+  SharedSuffix = 'so';
+{$endif Darwin}
 
 {$else}
 
