@@ -604,7 +604,7 @@ implementation
                     { MSB first in memory and e.g. byte(word_var) should  }
                     { return  the second byte in this case (JM)           }
                     if (target_info.endian = ENDIAN_BIG) and
-                       (l.loc in [LOC_REFERENCE,LOC_CREFERENCE,LOC_SUBSETREF,LOC_CSUBSETREF]) then
+                       (l.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
                       begin
                         inc(l.reference.offset,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
                         l.reference.alignment:=newalignment(l.reference.alignment,TCGSize2Size[l.size]-TCGSize2Size[dst_size]);
