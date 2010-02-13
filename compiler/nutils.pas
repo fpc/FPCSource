@@ -1114,6 +1114,14 @@ implementation
               result:=has_no_code(tblocknode(n).left);
               exit;
             end;
+          statementn:
+            begin
+              repeat
+                result:=has_no_code(tstatementnode(n).left);
+                n:=tstatementnode(n).right;
+              until not(result) or not assigned(n);
+              exit;
+            end;
         end;
       end;
 
