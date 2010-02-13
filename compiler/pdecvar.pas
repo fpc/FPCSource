@@ -1365,6 +1365,7 @@ implementation
          srsymtable : TSymtable;
          visibility : tvisibility;
          recst : tabstractrecordsymtable;
+         recstlist : tfpobjectlist;
          unionsymtable : trecordsymtable;
          offset : longint;
          uniondef : trecorddef;
@@ -1388,6 +1389,7 @@ implementation
           consume(_ID);
          { read vars }
          sc:=TFPObjectList.create(false);
+         recstlist:=TFPObjectList.create(false);;
          while (token=_ID) and
             not((vd_object in options) and
                 (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT])) do
@@ -1407,14 +1409,29 @@ implementation
              until not try_to_consume(_COMMA);
              consume(_COLON);
 
-             { Don't search in the recordsymtable for types }
+             { Don't search in the recordsymtable for types (can be nested!) }
+             recstlist.count:=0;
              if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) and
-                not is_class(tdef(recst.defowner)) then
-               symtablestack.pop(recst);
+                 not is_class(tdef(recst.defowner)) then
+               begin
+                 recstlist.add(recst);
+                 symtablestack.pop(recst);
+                 while (is_object(tdef(symtablestack.top.defowner)) or
+                        (symtablestack.top.symtabletype=recordsymtable)) and
+                       ([df_generic,df_specialization]*tdef(symtablestack.top.defowner).defoptions=[]) do
+                   begin
+                     recst:=tabstractrecordsymtable(symtablestack.top);
+                     recstlist.add(recst);
+                     symtablestack.pop(recst);
+                   end;
+               end;
              read_anon_type(hdef,false);
-             if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) and
-                not is_class(tdef(recst.defowner)) then
-               symtablestack.push(recst);
+             { restore stack }
+             for i:=recstlist.count-1 downto 0 do
+               begin
+                 recst:=tabstractrecordsymtable(recstlist[i]);
+                 symtablestack.push(recst);
+               end;
 
              { Process procvar directives }
              if maybe_parse_proc_directives(hdef) then
@@ -1547,6 +1564,7 @@ implementation
                    recst.addfield(fieldvs,visibility);
                end;
            end;
+          recstlist.free;
 
          { Check for Case }
          if (vd_record in options) and
