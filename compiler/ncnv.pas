@@ -3004,6 +3004,7 @@ implementation
                 (
                  (convtype=tc_int_2_int) and
                  (
+                  not is_bitpacked_access(left) and
                   (resultdef.size=left.resultdef.size) or
                   ((m_tp7 in current_settings.modeswitches) and
                    (resultdef.size<left.resultdef.size))
