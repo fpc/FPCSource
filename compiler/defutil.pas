@@ -1092,10 +1092,16 @@ implementation
           case result.ordtype of
             s8bit:
               result:=torddef(u8inttype);
+            u8bit:
+              result:=torddef(s16inttype);
             s16bit:
               result:=torddef(u16inttype);
+            u16bit:
+              result:=torddef(s32inttype);
             s32bit:
               result:=torddef(u32inttype);
+            u32bit:
+              result:=torddef(s64inttype);
             s64bit:
               result:=torddef(u64inttype);
           end;
