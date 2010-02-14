@@ -1425,6 +1425,7 @@ unit scandir;
         AddDirective('OBJECTPATH',directive_all, @dir_objectpath);
         AddDirective('OPENSTRINGS',directive_all, @dir_openstrings);
         AddDirective('OPTIMIZATION',directive_all, @dir_optimization);
+        AddDirective('OV',directive_mac, @dir_overflowchecks);
         AddDirective('OVERFLOWCHECKS',directive_all, @dir_overflowchecks);
         AddDirective('PACKENUM',directive_all, @dir_packenum);
         AddDirective('PACKRECORDS',directive_all, @dir_packrecords);
