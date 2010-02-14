@@ -1176,6 +1176,8 @@ implementation
 
                   if token=_SEMICOLON then
                     consume(_SEMICOLON)
+                  else if (token=_COMMA) and (m_mac in current_settings.modeswitches) then
+                    consume(_COMMA)
                   else
                     break;
                 end;
