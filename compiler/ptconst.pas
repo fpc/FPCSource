@@ -312,7 +312,9 @@ implementation
 {$endif ARM}
                  list.concat(Tai_real_64bit.Create(ts64real(value)));
              s80real :
-               list.concat(Tai_real_80bit.Create(value));
+               list.concat(Tai_real_80bit.Create(value,s80floattype.size));
+             sc80real :
+               list.concat(Tai_real_80bit.Create(value,sc80floattype.size));
              s64comp :
                { the round is necessary for native compilers where comp isn't a float }
                list.concat(Tai_comp_64bit.Create(round(value)));

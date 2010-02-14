@@ -913,6 +913,8 @@ implementation
                    AsmWrite(',');
                   AsmWrite(tostr(t80bitarray(e)[i]));
                 end;
+               for i:=11 to tai_real_80bit(hp).savesize do
+                 AsmWrite(',0');
                AsmLn;
              end;
 {$endif cpuextended}

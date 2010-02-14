@@ -89,7 +89,8 @@ unit cpupara;
            floatdef:
              begin
                case tfloatdef(p).floattype of
-                  s80real:
+                  s80real,
+                  sc80real:
                     loc1:=LOC_REFERENCE;
                   s32real,
                   s64real :
@@ -438,7 +439,8 @@ unit cpupara;
                 end;
               s64currency,
               s64comp,
-              s80real:
+              s80real,
+              sc80real:
                 begin
                   result.loc:=LOC_FPUREGISTER;
                   result.register:=NR_FPU_RESULT_REG;

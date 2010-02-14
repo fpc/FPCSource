@@ -535,9 +535,9 @@ implementation
 
         procedure floatdef_rtti(def:tfloatdef);
         const
-          {tfloattype = (s32real,s64real,s80real,s64bit,s128bit);}
+          {tfloattype = (s32real,s64real,s80real,sc80real,s64bit,s128bit);}
           translate : array[tfloattype] of byte =
-             (ftSingle,ftDouble,ftExtended,ftComp,ftCurr,ftFloat128);
+             (ftSingle,ftDouble,ftExtended,ftExtended,ftComp,ftCurr,ftFloat128);
         begin
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkFloat));
            write_rtti_name(def);

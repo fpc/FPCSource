@@ -25,7 +25,7 @@ uses strings,ctypes;
 {$endif USE_PASCAL_OBJECT}
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-{define test_longdouble}
+{$define test_longdouble}
 {$endif}
 
 { Use C alignment of records }
@@ -407,17 +407,8 @@ begin
   array_long_double[1] := RESULT_LONGDOUBLE;
   test_array_param_longdouble(array_long_double);
   if trunc(global_long_double) <> trunc(RESULT_LONGDOUBLE) then
-    begin
-{$ifdef cpui386}
-      if sizeof(global_long_double)=10 then
-        begin
-          { Known issue, ignore tcalext2 contains that test }
-        end
-      else
-{$endif cpui386}
-        failed := true;
-    end;
-{$endif}
+    failed := true;
+{$endif test_longdouble}
 
   If failed then
    fail

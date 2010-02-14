@@ -116,7 +116,7 @@ implementation
     function getbestreal(t1,t2 : tdef) : tdef;
       const
         floatweight : array[tfloattype] of byte =
-          (2,3,4,0,1,5);
+          (2,3,4,5,0,1,6);
       begin
         if t1.typ=floatdef then
           begin

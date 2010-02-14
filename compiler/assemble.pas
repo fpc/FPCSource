@@ -990,7 +990,7 @@ Implementation
                    end;
                end;
              ait_real_80bit :
-               ObjData.alloc(10);
+               ObjData.alloc(tai_real_80bit(hp).savesize);
              ait_real_64bit :
                ObjData.alloc(8);
              ait_real_32bit :
@@ -1113,7 +1113,7 @@ Implementation
                    end;
                end;
              ait_real_80bit :
-               ObjData.alloc(10);
+               ObjData.alloc(tai_real_80bit(hp).savesize);
              ait_real_64bit :
                ObjData.alloc(8);
              ait_real_32bit :
@@ -1232,7 +1232,10 @@ Implementation
                    end;
                end;
              ait_real_80bit :
-               ObjData.writebytes(Tai_real_80bit(hp).value,10);
+               begin
+                 ObjData.writebytes(Tai_real_80bit(hp).value,10);
+                 ObjData.writebytes(zerobuf,Tai_real_80bit(hp).savesize-10);
+               end;
              ait_real_64bit :
                ObjData.writebytes(Tai_real_64bit(hp).value,8);
              ait_real_32bit :

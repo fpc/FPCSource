@@ -1565,7 +1565,8 @@ end;
            else
 {$endif ARM}
              p.concat(Tai_real_64bit.Create(value));
-          s80real : p.concat(Tai_real_80bit.Create(value));
+          s80real : p.concat(Tai_real_80bit.Create(value,s80floattype.size));
+          sc80real : p.concat(Tai_real_80bit.Create(value,sc80floattype.size));
           s64comp : p.concat(Tai_comp_64bit.Create(trunc(value)));
        end;
     end;

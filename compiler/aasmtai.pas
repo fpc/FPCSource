@@ -465,7 +465,8 @@ interface
        { Generates an extended float (80 bit real) }
        tai_real_80bit = class(tai)
           value : ts80real;
-          constructor Create(_value : ts80real);
+          savesize : byte;
+          constructor Create(_value : ts80real; _savesize: byte);
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
        end;
@@ -1376,12 +1377,13 @@ implementation
                                TAI_real_80bit
  ****************************************************************************}
 
-    constructor tai_real_80bit.Create(_value : ts80real);
+    constructor tai_real_80bit.Create(_value : ts80real; _savesize: byte);
 
       begin
          inherited Create;
          typ:=ait_real_80bit;
          value:=_value;
+         savesize:=_savesize;
       end;
 
 
@@ -1389,6 +1391,7 @@ implementation
       begin
         inherited ppuload(t,ppufile);
         value:=ppufile.getreal;
+        savesize:=ppufile.getbyte;
       end;
 
 
@@ -1396,6 +1399,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putreal(value);
+        ppufile.putbyte(savesize);
       end;
 
 

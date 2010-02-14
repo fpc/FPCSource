@@ -426,9 +426,10 @@ interface
        tprocinfoflags=set of tprocinfoflag;
 
     type
-      { float types }
+      { float types -- warning, this enum/order is used internally by the RTL
+        as well in rtl/inc/real2str.inc }
       tfloattype = (
-        s32real,s64real,s80real,
+        s32real,s64real,s80real,sc80real { the C "long double" type on x86 },
         s64comp,s64currency,s128real
       );
 

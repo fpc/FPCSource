@@ -108,7 +108,7 @@ implementation
       { constants are actually supported by the target processor? (JM) }
       const
         floattype2ait:array[tfloattype] of taitype=
-          (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_comp_64bit,ait_real_128bit);
+          (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_real_80bit,ait_comp_64bit,ait_comp_64bit,ait_real_128bit);
       var
          hp1 : tai;
          lastlabel : tasmlabel;
@@ -145,7 +145,7 @@ implementation
                                  ((tai_real_64bit(hp1).formatoptions=fo_hiloswapped)=hiloswapped) and
 {$endif ARM}
                                  (tai_real_64bit(hp1).value=value_real) and is_number_float(tai_real_64bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_real_64bit(hp1).value))) or
-                               ((realait=ait_real_80bit) and (tai_real_80bit(hp1).value=value_real) and is_number_float(tai_real_80bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_real_80bit(hp1).value))) or
+                               ((realait=ait_real_80bit) and (tai_real_80bit(hp1).value=value_real) and (tai_real_80bit(hp1).savesize=resultdef.size) and is_number_float(tai_real_80bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_real_80bit(hp1).value))) or
 {$ifdef cpufloat128}
                                ((realait=ait_real_128bit) and (tai_real_128bit(hp1).value=value_real) and is_number_float(tai_real_128bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_real_128bit(hp1).value))) or
 {$endif cpufloat128}
@@ -196,7 +196,7 @@ implementation
 
                     ait_real_80bit :
                       begin
-                        current_asmdata.asmlists[al_typedconsts].concat(Tai_real_80bit.Create(value_real));
+                        current_asmdata.asmlists[al_typedconsts].concat(Tai_real_80bit.Create(value_real,resultdef.size));
 
                         { range checking? }
                         if floating_point_range_check_error and

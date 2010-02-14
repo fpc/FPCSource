@@ -1887,7 +1887,7 @@ implementation
       procedure setfloatresultdef;
         begin
           if (left.resultdef.typ=floatdef) and
-            (tfloatdef(left.resultdef).floattype in [s32real,s64real,s80real,s128real]) then
+            (tfloatdef(left.resultdef).floattype in [s32real,s64real,s80real,sc80real,s128real]) then
             resultdef:=left.resultdef
           else
             begin
@@ -2463,7 +2463,7 @@ implementation
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                   { for direct float rounding, no best real type cast should be necessary }
                   if not((left.resultdef.typ=floatdef) and
-                         (tfloatdef(left.resultdef).floattype in [s32real,s64real,s80real,s128real])) and
+                         (tfloatdef(left.resultdef).floattype in [s32real,s64real,s80real,sc80real,s128real])) and
                      { converting an int64 to double on platforms without }
                      { extended can cause precision loss                  }
                      not(left.nodetype in [ordconstn,realconstn]) then

@@ -268,7 +268,7 @@ interface
          1,2,4,8,16,1,2,4,8,16);
 
        tfloat2tcgsize: array[tfloattype] of tcgsize =
-         (OS_F32,OS_F64,OS_F80,OS_C64,OS_C64,OS_F128);
+         (OS_F32,OS_F64,OS_F80,OS_F80,OS_C64,OS_C64,OS_F128);
 
        tcgsize2tfloat: array[OS_F32..OS_C64] of tfloattype =
          (s32real,s64real,s80real,s64comp);

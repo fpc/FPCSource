@@ -647,9 +647,10 @@ interface
        s32inttype,                { 32-Bit signed integer }
        u64inttype,                { 64-bit unsigned integer }
        s64inttype,                { 64-bit signed integer }
-       s32floattype,              { pointer for realconstn }
-       s64floattype,              { pointer for realconstn }
-       s80floattype,              { pointer to type of temp. floats }
+       s32floattype,              { 32 bit floating point number }
+       s64floattype,              { 64 bit floating point number }
+       s80floattype,              { 80 bit floating point number }
+       sc80floattype,             { 80 bit floating point number but stored like in C }
        s64currencytype,           { pointer to a currency type }
        cshortstringtype,          { pointer to type of short string const   }
        clongstringtype,           { pointer to type of long string const   }
@@ -1717,7 +1718,7 @@ implementation
       begin
         if (target_info.system in [system_i386_darwin,system_arm_darwin]) then
           case floattype of
-            s80real : result:=16;
+            s80real: result:=16;
             s64real,
             s64currency,
             s64comp : result:=4;
@@ -1734,6 +1735,13 @@ implementation
          case floattype of
            s32real : savesize:=4;
            s80real : savesize:=10;
+           sc80real:
+             if target_info.system in [system_i386_darwin,system_x86_64_darwin,
+                  system_x86_64_linux,system_x86_64_freebsd,
+                  system_x86_64_solaris,system_x86_64_embedded] then
+               savesize:=16
+             else
+               savesize:=12;
            s64real,
            s64currency,
            s64comp : savesize:=8;
@@ -1746,7 +1754,7 @@ implementation
     function tfloatdef.getvardef : longint;
       const
         floattype2vardef : array[tfloattype] of longint = (
-          varSingle,varDouble,varUndefined,
+          varSingle,varDouble,varUndefined,varUndefined,
           varUndefined,varCurrency,varUndefined);
       begin
         if (upper(typename)='TDATETIME') and
@@ -1776,7 +1784,7 @@ implementation
     function tfloatdef.GetTypeName : string;
       const
         names : array[tfloattype] of string[20] = (
-          'Single','Double','Extended','Comp','Currency','Float128');
+          'Single','Double','Extended','CExtended','Comp','Currency','Float128');
       begin
          GetTypeName:=names[floattype];
       end;
@@ -3474,7 +3482,7 @@ implementation
              'c','w','x');
 
            floattype2str : array[tfloattype] of string[1] = (
-             'f','d','e',
+             'f','d','e','e',
              'd','d','g');
 {$endif NAMEMANGLING_GCC2}
 

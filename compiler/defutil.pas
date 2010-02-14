@@ -301,7 +301,7 @@ implementation
     function is_extended(def : tdef) : boolean;
       begin
         result:=(def.typ=floatdef) and
-          (tfloatdef(def).floattype=s80real);
+          (tfloatdef(def).floattype in [s80real,sc80real]);
       end;
 
 

@@ -15,7 +15,7 @@
 type
   { See symconst.pas tfloattype }
   treal_type = (
-    rt_s32real,rt_s64real,rt_s80real,
+    rt_s32real,rt_s64real,rt_s80real,rt_sc80real,
     rt_c64bit,rt_currency,rt_s128real
   );
   { corresponding to single   double   extended   fixed      comp for i386 }
@@ -199,7 +199,8 @@ begin
          minlen:=9;
          explen:=5;
       end;
-    rt_s80real :
+    rt_s80real,
+    rt_sc80real:
       begin
          { Different in TP help, but this way the output is the same (JM) }
          maxlen:=25;

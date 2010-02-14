@@ -1265,13 +1265,27 @@ implementation
         case def.floattype of
           s32real,
           s64real,
-          s80real:
+          s80real,
+          sc80real:
             if assigned(def.typesym) then
-              append_entry(DW_TAG_base_type,false,[
-                DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
-                DW_AT_encoding,DW_FORM_data1,DW_ATE_float,
-                DW_AT_byte_size,DW_FORM_data1,def.size
-                ])
+              begin
+                append_entry(DW_TAG_base_type,false,[
+                  DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
+                  DW_AT_encoding,DW_FORM_data1,DW_ATE_float,
+                  DW_AT_byte_size,DW_FORM_data1,def.size
+                  ]);
+                if (def.floattype in [s80real,sc80real]) and
+                   (def.size<>10) then
+                  begin
+                    append_attribute(DW_AT_bit_size,DW_FORM_data1,[10*8]);
+                    { "The bit offset attribute describes the offset in bits
+                        of the high order bit of a value of the given type
+                        from the high order bit of the storage unit used to
+                        contain that value." }
+                    if target_info.endian=endian_little then
+                      append_attribute(DW_AT_bit_offset,DW_FORM_data1,[(def.size-10)*8]);
+                  end;
+              end
             else
               append_entry(DW_TAG_base_type,false,[
                 DW_AT_encoding,DW_FORM_data1,DW_ATE_float,
@@ -2392,10 +2406,11 @@ implementation
                     current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(8));
                     current_asmdata.asmlists[al_dwarf_info].concat(tai_real_64bit.create(pdouble(sym.value.valueptr)^));
                   end;
-                s80real:
+                s80real,
+                sc80real:
                   begin
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(10));
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_real_80bit.create(pextended(sym.value.valueptr)^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sym.constdef.size));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_real_80bit.create(pextended(sym.value.valueptr)^,sym.constdef.size));
                   end;
                 else
                   internalerror(200601291);
