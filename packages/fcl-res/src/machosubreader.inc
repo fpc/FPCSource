@@ -21,12 +21,12 @@ type
   private
     fSection : _TSection_;
     fResHdr : _TResHdr_;
-    procedure ReadNode(aStream : TStream; aParent : TResourceTreeNode;
-      aResources : TResources; named : boolean); override;
     function FindResSection(aStream : TStream) : boolean;
     procedure ReadResHeader(aStream : TStream);
   protected
     procedure Load(aResources : TResources; aStream : TStream); override;
+    procedure ReadNode(aStream : TStream; aParent : TResourceTreeNode;
+      aResources : TResources; named : boolean); override;
   public
     constructor Create(aParent : TMachOResourceReader; const aHeader : TMachHdr;
       const aOppositeEndianess : boolean); override;
