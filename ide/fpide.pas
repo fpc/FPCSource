@@ -1468,6 +1468,7 @@ begin
 
   if Assigned(UserScreen) then
     UserScreen^.SwitchBackToIDEScreen;
+  Video.SetCursorType(crHidden);
 {$ifdef Windows}
   { This message was sent when the VideoBuffer was smaller
     than was the IdeApp thought => writes to random memory and random crashes... PM }
@@ -1476,7 +1477,7 @@ begin
 {$ifdef Unix}
   SetKnownKeys;
 {$endif Unix}
-{$ifndef Windows}
+ {$ifndef Windows}
 {$ifndef go32v2}
   UpdateScreen(true);
 {$endif go32v2}
