@@ -1034,7 +1034,8 @@ begin
     finally
       FreeMem(List);
     end;
-  end;
+  end else
+    FOnCompare:=AValue;
 end;
 
 procedure TAVLTree.SetNodeManager(newmgr:TBaseAVLTreeNodeManager);

@@ -903,8 +903,6 @@ begin
     else Exit(False);
   end;
 
-  //writeln(Len, ', ', IntToHex(Num,16));
-
   case Num of
     $30,
     $65736C6166,$65736C6146,$65736C4166,$65736C4146,$65734C6166,$65734C6146,$65734C4166,$65734C4146,
