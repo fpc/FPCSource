@@ -196,13 +196,14 @@ implementation
     procedure tsparctypeconvnode.second_real_to_real;
       const
         conv_op : array[tfloattype,tfloattype] of tasmop = (
-          {    from:   s32     s64     s80     c64     cur    f128 }
-          { s32 }  ( A_FMOVS,A_FDTOS,A_NONE, A_NONE, A_NONE, A_NONE ),
-          { s64 }  ( A_FSTOD,A_FMOVD,A_NONE, A_NONE, A_NONE, A_NONE ),
-          { s80 }  ( A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE ),
-          { c64 }  ( A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE ),
-          { cur }  ( A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE ),
-          { f128 } ( A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE )
+          {    from:   s32     s64     s80     sc80    c64     cur    f128 }
+          { s32 }  ( A_FMOVS,A_FDTOS,A_NONE, A_NONE, A_NONE, A_NONE, A_NONE ),
+          { s64 }  ( A_FSTOD,A_FMOVD,A_NONE, A_NONE, A_NONE, A_NONE, A_NONE ),
+          { s80 }  ( A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE ),
+          { sc80 } ( A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE ),
+          { c64 }  ( A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE ),
+          { cur }  ( A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE ),
+          { f128 } ( A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE, A_NONE )
         );
       var
         op : tasmop;

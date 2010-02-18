@@ -55,7 +55,7 @@ interface
       { constants are actually supported by the target processor? (JM) }
       const
         floattype2ait:array[tfloattype] of taitype=
-          (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_comp_64bit,ait_real_128bit);
+          (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_real_80bit,ait_comp_64bit,ait_comp_64bit,ait_real_128bit);
       var
          lastlabel : tasmlabel;
          realait : taitype;
@@ -100,7 +100,7 @@ interface
 
               ait_real_80bit :
                 begin
-                  current_procinfo.aktlocaldata.concat(Tai_real_80bit.Create(value_real));
+                  current_procinfo.aktlocaldata.concat(Tai_real_80bit.Create(value_real,tfloatdef(resultdef).size));
 
                   { range checking? }
                   if ((cs_check_range in current_settings.localswitches) or
