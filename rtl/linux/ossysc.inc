@@ -244,7 +244,12 @@ end;
 procedure linux_restore; cdecl; nostackframe; assembler;
 {$ifdef cpuarm}
 asm
+{$ifdef FPC_ABI_EABI}
+  mov r7, syscall_nr_sigreturn
+  swi #0x0
+{$else}
   swi syscall_nr_sigreturn
+{$endif}
 end;
 {$endif}
 {$ifdef cpui386}
@@ -268,7 +273,12 @@ end;
 procedure linux_restore_rt; cdecl; nostackframe; assembler;
 {$ifdef cpuarm}
 asm
+{$ifdef FPC_ABI_EABI}
+  mov r7, syscall_nr_rt_sigreturn
+  swi #0x0
+{$else}
   swi syscall_nr_rt_sigreturn
+{$endif}
 end;
 {$endif}
 {$ifdef cpui386}
