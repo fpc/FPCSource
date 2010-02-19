@@ -2283,7 +2283,8 @@ implementation
         if not is_void(left.resultdef) then
           begin
             if (left.expectloc<>LOC_REGISTER) and
-               (resultdef.size>left.resultdef.size) then
+                ((resultdef.size>left.resultdef.size) or
+                 (left.expectloc in [LOC_SUBSETREF,LOC_CSUBSETREF,LOC_SUBSETREG,LOC_CSUBSETREG])) then
               expectloc:=LOC_REGISTER
             else
               if (left.expectloc=LOC_CREGISTER) and
