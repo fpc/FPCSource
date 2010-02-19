@@ -224,6 +224,8 @@ implementation
            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),resultdef.alignment)
          else
            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
+         if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE,LOC_CONSTANT]) then
+           location_force_reg(current_asmdata.CurrAsmList,left.location,OS_ADDR,true);
          case left.location.loc of
             LOC_CREGISTER,
             LOC_REGISTER:
