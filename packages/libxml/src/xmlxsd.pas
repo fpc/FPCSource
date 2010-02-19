@@ -78,6 +78,7 @@ procedure xsdDateTimeConvertTo(var Year, Month, Day, Hour, Minute, Second, Milli
 
 { Parse functions }
 function xsdTryParseString(Chars: xmlCharPtr; Len: Integer; out Value: Utf8String): Boolean;
+function xsdTryParseStringLower(Chars: xmlCharPtr; Len: Integer; out Value: Utf8String): Boolean;
 function xsdTryParseBoolean(Chars: xmlCharPtr; Len: Integer; out Value: Boolean): Boolean;
 function xsdTryParseDate(Chars: xmlCharPtr; Len: Integer; out Year, Month, Day: Longword; Timezone: PTimezone = nil; BC: PBoolean = nil): Boolean;
 function xsdTryParseDate(Chars: xmlCharPtr; Len: Integer; out Value: TDateTime; Timezone: PTimezone = nil): Boolean;
@@ -104,6 +105,7 @@ function xsdTryParseUnsignedLong(Chars: xmlCharPtr; Len: Integer; out Value: QWo
 function xsdTryParseEnum(Chars: xmlCharPtr; Len: Integer; enum: array of Utf8String; out Value: Integer): Boolean;
 
 function xsdParseStringDef(Chars: xmlCharPtr; Len: Integer; Default: Utf8String): Utf8String;
+function xsdParseStringLowerDef(Chars: xmlCharPtr; Len: Integer; Default: Utf8String): Utf8String;
 function xsdParseBooleanDef(Chars: xmlCharPtr; Len: Integer; Default: Boolean): Boolean;
 function xsdParseDateDef(Chars: xmlCharPtr; Len: Integer; Default: TDateTime; Timezone: PTimezone = nil): TDateTime;
 function xsdParseTimeDef(Chars: xmlCharPtr; Len: Integer; Default: TDateTime; Timezone: PTimezone = nil): TDateTime;
@@ -127,6 +129,7 @@ function xsdParseUnsignedLongDef(Chars: xmlCharPtr; Len: Integer; Default: QWord
 function xsdParseEnumDef(Chars: xmlCharPtr; Len: Integer; enum: array of Utf8String; Default: Integer): Integer;
 
 procedure xsdParseString(Chars: xmlCharPtr; Len: Integer; out Value: Utf8String);
+procedure xsdParseStringLower(Chars: xmlCharPtr; Len: Integer; out Value: Utf8String);
 procedure xsdParseBoolean(Chars: xmlCharPtr; Len: Integer; out Value: Boolean);
 procedure xsdParseDate(Chars: xmlCharPtr; Len: Integer; out Year, Month, Day: Longword; Timezone: PTimezone = nil; BC: PBoolean = nil);
 procedure xsdParseDate(Chars: xmlCharPtr; Len: Integer; out Value: TDateTime; Timezone: PTimezone = nil);
@@ -153,6 +156,7 @@ procedure xsdParseUnsignedLong(Chars: xmlCharPtr; Len: Integer; out Value: QWord
 procedure xsdParseEnum(Chars: xmlCharPtr; Len: Integer; enum: array of Utf8String; out Value: Integer);
 
 function xsdParseString(Chars: xmlCharPtr; Len: Integer): Utf8String;
+function xsdParseStringLower(Chars: xmlCharPtr; Len: Integer): Utf8String;
 function xsdParseBoolean(Chars: xmlCharPtr; Len: Integer): Boolean;
 function xsdParseDate(Chars: xmlCharPtr; Len: Integer; Timezone: PTimezone = nil): TDateTime;
 function xsdParseTime(Chars: xmlCharPtr; Len: Integer; Timezone: PTimezone = nil): TDateTime;
@@ -858,16 +862,52 @@ end;
 function xsdTryParseString(Chars: xmlCharPtr; Len: Integer; out Value: Utf8String): Boolean;
 begin
   if Assigned(Chars) then
+  begin
     if Len >= 0 then
     begin
       SetLength(Value, Len);
       Move(Chars^, Value[1], Len);
-      Result := True;
-    end else begin
+    end else
       Value := PChar(Chars);
-      Result := True;
-    end
-  else
+    Result := True;
+  end else
+    Result := False;
+end;
+
+function xsdTryParseStringLower(Chars: xmlCharPtr; Len: Integer; out Value: Utf8String): Boolean;
+var
+  P,L,D: PByte;
+  C: Byte;
+begin
+  if Assigned(Chars) then
+  begin
+    P := PByte(Chars);
+    if Len >= 0 then
+    begin
+      L := P + Len;
+      SetLength(Value, Len);
+      D := @Value[1];
+      while P < L do
+      begin
+        C := P^;
+        if (C>=65) and (C<=90) then Inc(C, 32);
+        D^ := C;
+        Inc(D);
+        Inc(P);
+      end;
+    end else begin
+      SetLength(Value, 255);
+      //D := @Value[1];
+      while P^ <> 0 do
+      begin
+        C := P^;
+        if (C>=65) and (C<=90) then Inc(C, 32);
+        Value := Value + Chr(C); {$warning assign char by char maybe quite slow!}
+        Inc(P);
+      end;
+    end;
+    Result := True;
+  end else
     Result := False;
 end;
 
@@ -1218,6 +1258,12 @@ begin
     Result := Default;
 end;
 
+function xsdParseStringLowerDef(Chars: xmlCharPtr; Len: Integer; Default: Utf8String): Utf8String;
+begin
+  if not xsdTryParseStringLower(Chars, Len, Result) then
+    Result := Default;
+end;
+
 function xsdParseBooleanDef(Chars: xmlCharPtr; Len: Integer; Default: Boolean): Boolean;
 begin
   if not xsdTryParseBoolean(Chars, Len, Result) then
@@ -1347,6 +1393,12 @@ end;
 procedure xsdParseString(Chars: xmlCharPtr; Len: Integer; out Value: Utf8String);
 begin
   if not xsdTryParseString(Chars, Len, Value) then
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Len), 'xs:string']);
+end;
+
+procedure xsdParseStringLower(Chars: xmlCharPtr; Len: Integer; out Value: Utf8String);
+begin
+  if not xsdTryParseStringLower(Chars, Len, Value) then
     raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Len), 'xs:string']);
 end;
 
@@ -1497,6 +1549,11 @@ end;
 function xsdParseString(Chars: xmlCharPtr; Len: Integer): Utf8String;
 begin
   xsdParseString(Chars, Len, Result);
+end;
+
+function xsdParseStringLower(Chars: xmlCharPtr; Len: Integer): Utf8String;
+begin
+  xsdParseStringLower(Chars, Len, Result);
 end;
 
 function xsdParseBoolean(Chars: xmlCharPtr; Len: Integer): Boolean;
