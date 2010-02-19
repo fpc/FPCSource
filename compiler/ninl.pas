@@ -3037,6 +3037,7 @@ implementation
 
      function tinlinenode.first_abs_long : tnode;
       begin
+        expectloc:=LOC_REGISTER;
         result:=nil;
       end;
 
