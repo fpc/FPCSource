@@ -115,6 +115,7 @@ const
   EPOLLOUT = $04; { The associated file is available for write(2) operations. }
   EPOLLERR = $08; { Error condition happened on the associated file descriptor. }
   EPOLLHUP = $10; { Hang up happened on the associated file descriptor. }
+  EPOLLONESHOT = $40000000; { Sets the One-Shot behaviour for the associated file descriptor. }
   EPOLLET  = $80000000; { Sets  the  Edge  Triggered  behaviour  for  the  associated file descriptor. }
 
   { Valid opcodes ( "op" parameter ) to issue to epoll_ctl }
