@@ -403,7 +403,7 @@ type
 	end;
 	CIconPtr = ^CIcon;
 type
-	CIconHandle = CIconPtr;
+	CIconHandle = ^CIconPtr;
 	CIconHandle_fix = ^CIconPtr; { used as field type when a record declaration contains a CIconHandle field identifier }
 {
     Note:   IconSuiteRef and IconCacheRef should be an abstract types, 
