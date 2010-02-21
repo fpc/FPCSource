@@ -194,7 +194,7 @@ uses MacTypes,QuickdrawTypes,MixedMode;
 {$ALIGN MAC68K}
 
 type
-	TERecPtr = ^SInt32; { an opaque type }
+	TERecPtr = ^TERec;
 	TEPtr = TERecPtr;
 	TEHandle = ^TEPtr;
 	HighHookProcPtr = procedure( const (*var*) r: Rect; pTE: TEPtr );
@@ -356,7 +356,6 @@ type
             <=  charPosition            D0.W
             
 }
-type
 	HighHookUPP = HighHookProcPtr;
 	EOLHookUPP = EOLHookProcPtr;
 	CaretHookUPP = CaretHookProcPtr;
