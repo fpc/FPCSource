@@ -195,7 +195,7 @@
           class function newinstance : tobject;virtual;
           procedure FreeInstance;virtual;
           function SafeCallException(exceptobject : tobject;
-            exceptaddr : pointer) : longint;virtual;
+            exceptaddr : pointer) : HResult;virtual;
           procedure DefaultHandler(var message);virtual;
 
           procedure Free;

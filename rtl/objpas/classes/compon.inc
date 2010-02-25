@@ -608,10 +608,10 @@ end;
 
 
 Function  TComponent.SafeCallException(ExceptObject: TObject;
-  ExceptAddr: Pointer): Integer;
+  ExceptAddr: Pointer): HResult;
 
 begin
-  SafeCallException:=0;
+  SafeCallException:=inherited SafeCallException(ExceptObject, ExceptAddr);
 end;
 
 procedure TComponent.SetSubComponent(ASubComponent: Boolean);

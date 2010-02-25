@@ -378,10 +378,10 @@
         end;
 
       function TObject.SafeCallException(exceptobject : tobject;
-        exceptaddr : pointer) : longint;
+        exceptaddr : pointer) : HResult;
 
         begin
-           safecallexception:=0;
+           safecallexception:=E_UNEXPECTED;
         end;
 
       class function TObject.ClassInfo : pointer;

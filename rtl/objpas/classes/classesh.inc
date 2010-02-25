@@ -1657,7 +1657,7 @@ type
     procedure InsertComponent(AComponent: TComponent);
     procedure RemoveComponent(AComponent: TComponent);
     function SafeCallException(ExceptObject: TObject;
-      ExceptAddr: Pointer): Integer; override;
+      ExceptAddr: Pointer): HResult; override;
     procedure SetSubComponent(ASubComponent: Boolean);
     function UpdateAction(Action: TBasicAction): Boolean; dynamic;
     // property ComObject: IUnknown read GetComObject;
