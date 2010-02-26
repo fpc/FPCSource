@@ -7,7 +7,7 @@ main=fcl-db
 
 [target]
 units=oracleconnection
-
+rsts=oracleconnection
 [require]
 packages=fcl-xml oracle
 
