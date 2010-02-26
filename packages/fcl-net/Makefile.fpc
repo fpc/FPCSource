@@ -9,7 +9,7 @@ version=2.5.1
 [target]
 units=servlets
 units_linux=netdb resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
-units_freebsd=netdb resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
+units_freebsd=netdb resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc cnetdb
 units_netbsd=netdb resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
 units_openbsd=netdb resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
 units_darwin=netdb resolve ssockets 
