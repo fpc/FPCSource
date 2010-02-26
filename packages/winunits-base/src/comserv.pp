@@ -47,6 +47,8 @@ type
     fTypeLib: ITypeLib;
     fServerName,
     fServerFileName: String;
+    fHelpFileName : String;
+    fStartSuspended : Boolean;
   protected
     function CountObject(Created: Boolean): Integer; override;
     function CountFactory(Created: Boolean): Integer; override;
@@ -232,7 +234,7 @@ end;
 
 function TComServer.GetHelpFileName: string;
 begin
-  RunError(217);
+  result:=fhelpfilename;
 end;
 
 function TComServer.GetServerFileName: string;
@@ -242,7 +244,7 @@ end;
 
 function TComServer.GetServerKey: string;
 begin
-  RunError(217);
+  result:='LocalServer32';
 end;
 
 function TComServer.GetServerName: string;
@@ -252,7 +254,7 @@ end;
 
 function TComServer.GetStartSuspended: Boolean;
 begin
-  RunError(217);
+  result:=fStartSuspended;
 end;
 
 function TComServer.GetTypeLib: ITypeLib;
@@ -262,7 +264,7 @@ end;
 
 procedure TComServer.SetHelpFileName(const Value: string);
 begin
-  RunError(217);
+  FHelpFileName:=value;
 end;
 
 procedure TComServer.RegisterServerFactory(Factory: TComObjectFactory);
