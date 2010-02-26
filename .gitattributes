@@ -9261,6 +9261,7 @@ tests/test/trtti2.pp svneol=native#text/plain
 tests/test/trtti3.pp svneol=native#text/plain
 tests/test/trtti4.pp svneol=native#text/plain
 tests/test/trtti5.pp svneol=native#text/plain
+tests/test/tsafecall1.pp svneol=native#text/plain
 tests/test/tsealed1.pp svneol=native#text/pascal
 tests/test/tsealed2.pp svneol=native#text/pascal
 tests/test/tsealed3.pp svneol=native#text/pascal
