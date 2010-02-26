@@ -63,7 +63,7 @@ type
     tkDotDot,                // '..'
     tkAssign,                // ':='
     tkNotEqual,              // '<>'
-    tkLessEqualThan, 	     // '<='
+    tkLessEqualThan,         // '<='
     tkGreaterEqualThan,      // '>='
     tkPower,                 // '**'
     tkSymmetricalDifference, // '><'
@@ -145,8 +145,11 @@ type
     function ReadLine: string; virtual; abstract;
   end;
 
+  { TFileLineReader }
+
   TFileLineReader = class(TLineReader)
   private
+    FFilename: string;
     FTextFile: Text;
     FileOpened: Boolean;
   public
@@ -154,10 +157,14 @@ type
     destructor Destroy; override;
     function IsEOF: Boolean; override;
     function ReadLine: string; override;
+    property Filename: string read FFilename;
   end;
+
+  { TFileResolver }
 
   TFileResolver = class
   private
+    FBaseDirectory: string;
     FIncludePaths: TStringList;
     FStrictFileCase : Boolean;
   public
@@ -167,6 +174,7 @@ type
     function FindSourceFile(const AName: string): TLineReader;
     function FindIncludeFile(const AName: string): TLineReader;
     Property StrictFileCase : Boolean Read FStrictFileCase Write FStrictFileCase;
+    property BaseDirectory: string read FBaseDirectory write FBaseDirectory;
   end;
 
   EScannerError       = class(Exception);
@@ -329,6 +337,9 @@ const
     'xor'
   );
 
+function FilenameIsAbsolute(const TheFilename: string):boolean;
+function FilenameIsWinAbsolute(const TheFilename: string): boolean;
+function FilenameIsUnixAbsolute(const TheFilename: string): boolean;
 
 implementation
 
@@ -343,10 +354,34 @@ type
     TokenStr: PChar;
   end;
 
+function FilenameIsAbsolute(const TheFilename: string):boolean;
+begin
+  {$IFDEF WINDOWS}
+  // windows
+  Result:=FilenameIsWinAbsolute(TheFilename);
+  {$ELSE}
+  // unix
+  Result:=FilenameIsUnixAbsolute(TheFilename);
+  {$ENDIF}
+end;
+
+function FilenameIsWinAbsolute(const TheFilename: string): boolean;
+begin
+  Result:=((length(TheFilename)>=2) and (TheFilename[1] in ['A'..'Z','a'..'z'])
+           and (TheFilename[2]=':'))
+     or ((length(TheFilename)>=2)
+         and (TheFilename[1]='\') and (TheFilename[2]='\'));
+end;
+
+function FilenameIsUnixAbsolute(const TheFilename: string): boolean;
+begin
+  Result:=(TheFilename<>'') and (TheFilename[1]='/');
+end;
 
 constructor TFileLineReader.Create(const AFilename: string);
 begin
   inherited Create;
+  FFilename:=AFilename;
   Assign(FTextFile, AFilename);
   Reset(FTextFile);
   FileOpened := true;
@@ -400,40 +435,64 @@ begin
 end;
 
 function TFileResolver.FindIncludeFile(const AName: string): TLineReader;
+
+  function SearchLowUpCase(FN: string): string;
+  var
+    Dir: String;
+  begin
+    If FileExists(FN) then
+      Result:=FN
+    else if StrictFileCase then
+      Result:=''
+    else
+      begin
+      Dir:=ExtractFilePath(FN);
+      FN:=ExtractFileName(FN);
+      Result:=Dir+LowerCase(FN);
+      If FileExists(Result) then exit;
+      Result:=Dir+uppercase(Fn);
+      If FileExists(Result) then exit;
+      Result:='';
+      end;
+  end;
+
 var
   i: Integer;
   FN : string;
 
 begin
   Result := nil;
-  If FileExists(AName) then
-    Result := TFileLineReader.Create(AName)
+  // convert pathdelims to system
+  FN:=SetDirSeparators(AName);
+
+  If FilenameIsAbsolute(FN) then
+    begin
+      if FileExists(FN) then
+        Result := TFileLineReader.Create(FN);
+    end
   else
     begin
+    // file name is relative
+
+    // search in include path
     I:=0;
     While (Result=Nil) and (I<FIncludePaths.Count) do
       begin
       Try
-        FN:=FIncludePaths[i]+AName;
-        If not FileExists(FN) then
-          If StrictFileCase then
-            FN:=''
-          else
-            begin 
-            fn:=LowerCase(FN);
-            If not FileExists(Fn) then
-              begin
-              FN:=uppercase(Fn);
-              If not FileExists(FN) then
-                FN:='';
-              end;    
-            end;  
+        FN:=SearchLowUpCase(FIncludePaths[i]+AName);
         If (FN<>'') then
           Result := TFileLineReader.Create(FN);
       except
         Result:=Nil;
       end;
       Inc(I);
+      end;
+    // search in BaseDirectory
+    if BaseDirectory<>'' then
+      begin
+      FN:=SearchLowUpCase(BaseDirectory+AName);
+      If (FN<>'') then
+        Result := TFileLineReader.Create(FN);
       end;
     end;
 end;
@@ -466,6 +525,7 @@ procedure TPascalScanner.OpenFile(const AFilename: string);
 begin
   FCurSourceFile := FileResolver.FindSourceFile(AFilename);
   FCurFilename := AFilename;
+  FileResolver.BaseDirectory := IncludeTrailingPathDelimiter(ExtractFilePath(AFilename));
 end;
 
 function TPascalScanner.FetchToken: TToken;
@@ -506,6 +566,7 @@ end;
 
 procedure TPascalScanner.Error(const Msg: string; Args: array of Const);
 begin
+  writeln('TPascalScanner.Error ',FileResolver.FIncludePaths.Text);
   raise EScannerError.CreateFmt(Msg, Args);
 end;
 
@@ -801,10 +862,10 @@ begin
           Inc(TokenStr);
           Result := tkNotEqual;
         end else if TokenStr[0] = '=' then
-	begin
-	  Inc(TokenStr);
-	  Result := tkLessEqualThan;
-	end else
+        begin
+          Inc(TokenStr);
+          Result := tkLessEqualThan;
+        end else
           Result := tkLessThan;
       end;
     '=':
@@ -815,16 +876,16 @@ begin
     '>':
       begin
         Inc(TokenStr);
-	if TokenStr[0] = '=' then
-	begin
-	  Inc(TokenStr);
-	  Result := tkGreaterEqualThan;
-        end else if TokenStr[0] = '<' then
+        if TokenStr[0] = '=' then
         begin
-	  Inc(TokenStr);
-	  Result := tkSymmetricalDifference;
-	end else
-	  Result := tkGreaterThan;
+          Inc(TokenStr);
+          Result := tkGreaterEqualThan;
+            end else if TokenStr[0] = '<' then
+            begin
+          Inc(TokenStr);
+          Result := tkSymmetricalDifference;
+        end else
+          Result := tkGreaterThan;
       end;
     '@':
       begin
@@ -914,7 +975,7 @@ begin
             // WriteLn('Direktive: "', Directive, '", Param: "', Param, '"');
             if (Directive = 'I') or (Directive = 'INCLUDE') then
             begin
-              if not PPIsSkipping then
+              if (not PPIsSkipping) and ((Param='') or (Param[1]<>'%')) then
               begin
                 IncludeStackItem := TIncludeStackItem.Create;
                 IncludeStackItem.SourceFile := CurSourceFile;
@@ -929,6 +990,8 @@ begin
                 if not Assigned(CurSourceFile) then
                   Error(SErrIncludeFileNotFound, [Param]);
                 FCurFilename := Param;
+                if FCurSourceFile is TFileLineReader then
+                  FCurFilename := TFileLineReader(FCurSourceFile).Filename; // nicer error messages
                 FCurRow := 0;
               end;
             end else if Directive = 'DEFINE' then
@@ -1071,10 +1134,10 @@ begin
 
         Result := tkIdentifier;
       end;
-  else 
+  else
     if PPIsSkipping then
       Inc(TokenStr)
-    else  
+    else
       Error(SErrInvalidCharacter, [TokenStr[0]]);
   end;
 
