@@ -475,6 +475,9 @@ implementation
         pd : tprocdef;
         newstatement : tstatementnode;
         oldlocalswitches: tlocalswitches;
+        { safecall handling }
+        exceptnode: ttempcreatenode;
+        sym,exceptsym: tsym;
       begin
         generate_except_block:=internalstatements(newstatement);
 
@@ -510,6 +513,50 @@ implementation
                (not paramanager.ret_in_param(current_procinfo.procdef.returndef, current_procinfo.procdef.proccalloption)) and
                (not is_class(current_procinfo.procdef.returndef)) then
               addstatement(newstatement,finalize_data_node(load_result_node));
+{$if defined(x86) or defined(arm)}
+            { safecall handling }
+            if (target_info.system in systems_all_windows) and
+               (current_procinfo.procdef.proccalloption=pocall_safecall) then
+              begin
+                { create a local hidden variable "safe_result"    }
+                { it will be used in ncgflw unit                  }
+                { to set "real" result value for safecall routine }
+                sym:=tlocalvarsym.create('$safe_result',vs_value,hresultdef,[]);
+                include(sym.symoptions,sp_internal);
+                current_procinfo.procdef.localst.insert(sym);
+                { temp variable to store popped up exception }
+                exceptnode:=ctempcreatenode.create(class_tobject,class_tobject.size,
+                  tt_persistent,true);
+                addstatement(newstatement,exceptnode);
+                addstatement(newstatement,
+                  cassignmentnode.create(
+                    ctemprefnode.create(exceptnode),
+                    ccallnode.createintern('fpc_popobjectstack', nil)));
+                { if safecall is used for a class method we need to call }
+                { SafecallException virtual method                       }
+                { In other case we return E_UNEXPECTED error value       }
+                if is_class(current_procinfo.procdef._class) then
+                  begin
+                    exceptsym:=search_class_member(current_procinfo.procdef._class,'SAFECALLEXCEPTION');
+                    addstatement(newstatement,
+                      cassignmentnode.create(
+                        cloadnode.create(sym,sym.Owner),
+                        ccallnode.create(
+                          ccallparanode.create(cpointerconstnode.create(0,voidpointertype),
+                          ccallparanode.create(ctemprefnode.create(exceptnode),nil)),
+                          tprocsym(exceptsym), tprocsym(exceptsym).owner,load_self_node,[])));
+                  end
+                else
+                  addstatement(newstatement,
+                    cassignmentnode.create(
+                      cloadnode.create(sym,sym.Owner),
+                      genintconstnode(HResult($8000FFFF))));
+                { destroy popped up exception }
+                addstatement(newstatement,ccallnode.createintern('fpc_destroyexception',
+                  ccallparanode.create(ctemprefnode.create(exceptnode),nil)));
+                addstatement(newstatement,ctempdeletenode.create(exceptnode));
+              end;
+{$endif}
           end;
       end;
 

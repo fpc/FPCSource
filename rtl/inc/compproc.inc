@@ -608,6 +608,7 @@ function fpc_PopObjectStack : TObject; compilerproc;
 function fpc_PopSecondObjectStack : TObject; compilerproc;
 Procedure fpc_ReRaise; compilerproc;
 Function fpc_Catches(Objtype : TClass) : TObject; compilerproc;
+Procedure fpc_DestroyException(o : TObject); compilerproc;
 {$endif FPC_HAS_FEATURE_EXCEPTIONS}
 
 
@@ -619,7 +620,6 @@ procedure fpc_help_fail(_self:pointer;var _vmt:pointer;vmt_pos:cardinal);compile
 
 
 {$ifdef dummy}
-Procedure fpc_DestroyException(o : TObject); compilerproc;
 procedure fpc_check_object(obj:pointer); compilerproc;
 procedure fpc_check_object_ext(vmt,expvmt:pointer);compilerproc;
 {$endif dummy}

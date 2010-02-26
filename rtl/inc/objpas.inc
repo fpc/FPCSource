@@ -381,7 +381,7 @@
         exceptaddr : pointer) : HResult;
 
         begin
-           safecallexception:=E_UNEXPECTED;
+          safecallexception:=E_UNEXPECTED;
         end;
 
       class function TObject.ClassInfo : pointer;

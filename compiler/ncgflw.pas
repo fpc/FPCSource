@@ -1499,6 +1499,7 @@ implementation
          oldflowcontrol,tryflowcontrol : tflowcontrol;
          decconst : longint;
          excepttemps : texceptiontemps;
+         retsym: tlocalvarsym;
       begin
          location_reset(location,LOC_VOID,OS_NO);
 
@@ -1589,13 +1590,12 @@ implementation
              if (target_info.system in systems_all_windows) and
                 (current_procinfo.procdef.proccalloption=pocall_safecall) then
                begin
-                 { Remove and destroy the last exception object }
-                 cg.a_call_name(current_asmdata.CurrAsmList,'FPC_POPOBJECTSTACK',false);
-                 cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DESTROYEXCEPTION',false);
+                 { find safe_result variable we created in the generate_except_block }
+                 retsym:=tlocalvarsym(current_procinfo.procdef.localst.Find('safe_result'));
                  { Set return value of safecall procedure to indicate exception.       }
                  { Exception will be raised after procedure exit based on return value }
                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-                 cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_ADDR,aint($8000FFFF),NR_FUNCTION_RETURN_REG);
+                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,retsym.localloc.size,retsym.localloc.size,retsym.localloc.reference,NR_FUNCTION_RESULT_REG);
                  cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
                end
              else
