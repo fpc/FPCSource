@@ -54,7 +54,10 @@ begin
   if inheritsFrom (TFPCustomDrawFont) then
     result := TFPCustomDrawFont(self).DoGetTextHeight (text)
   else
-    result := FCanvas.GetTextHeight (text);
+   if assigned(FCanvas) then
+     result := FCanvas.GetTextHeight (text)
+   else 
+     result :=16; // *some* default better than none.
 end;
 
 function TFPCustomFont.GetTextWidth (text:string) : integer;
