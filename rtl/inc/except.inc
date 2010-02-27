@@ -343,6 +343,16 @@ begin
   o.Free;
 end;
 
+function fpc_GetExceptionAddr : Pointer;[Public, Alias : 'FPC_GETEXCEPTIONADDR']; compilerproc;
+var
+  _ExceptObjectStack : PExceptObject;
+begin
+  _ExceptObjectStack:=ExceptObjectStack;
+  if _ExceptObjectStack=nil then
+    fpc_GetExceptionAddr:=nil
+  else
+    fpc_GetExceptionAddr:=_ExceptObjectStack^.Addr;
+end;
 
 Procedure SysInitExceptions;
 {

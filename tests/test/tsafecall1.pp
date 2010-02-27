@@ -12,15 +12,21 @@ type
   end;
 
 var
+  ExceptObj: TObject;
   Handled: Boolean;
 
 procedure TTest.SomeError; safecall;
 begin
-  raise Exception.Create('SomeException');
+  ExceptObj := Exception.Create('SomeException');
+  raise ExceptObj;
 end;
 
 function TTest.SafeCallException(ExceptObject: TObject; ExceptAddr: Pointer): HResult;
 begin
+  if ExceptAddr = nil then
+    halt(2);
+  if ExceptObject <> ExceptObj then
+    halt(3);
   Handled := True;
   Result := 0;
 end;
