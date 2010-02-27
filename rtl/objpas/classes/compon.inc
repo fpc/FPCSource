@@ -40,9 +40,17 @@ end;
 
 function TComponent.GetComObject: IUnknown;
 begin
+  { Check if VCLComObject is not assigned - we need to create it by    }
+  { the call to CreateVCLComObject routine. If in the end we are still }
+  { have no valid VCLComObject pointer we need to raise an exception   }
   if not Assigned(VCLComObject) then
-    raise EComponentError.Create(SNoComSupport);
-  // VCLComObject is IVCComObject but we need to return IUnknown
+    begin
+      if Assigned(CreateVCLComObjectProc) then
+        CreateVCLComObjectProc(Self);
+      if not Assigned(VCLComObject) then
+        raise EComponentError.CreateFmt(SNoComSupport,[Name]);
+    end;
+  { VCLComObject is IVCComObject but we need to return IUnknown }
   IVCLComObject(VCLComObject).QueryInterface(IUnknown, Result);
 end;
 

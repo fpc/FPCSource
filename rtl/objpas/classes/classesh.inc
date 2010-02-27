@@ -1873,8 +1873,8 @@ var
   RegisterNoIconProc: procedure(ComponentClasses: array of TComponentClass);
 {!!!!  RegisterNonActiveXProc: procedure(ComponentClasses: array of TComponentClass;
     AxRegType: TActiveXRegType) = nil;
-  CurrentGroup: Integer = -1;
-  CreateVCLComObjectProc: procedure(Component: TComponent) = nil;}
+  CurrentGroup: Integer = -1;}
+  CreateVCLComObjectProc: procedure(Component: TComponent) = nil;
 
 { Point and rectangle constructors }
 
