@@ -1595,7 +1595,7 @@ implementation
                  { Set return value of safecall procedure to indicate exception.       }
                  { Exception will be raised after procedure exit based on return value }
                  cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,retsym.localloc.size,retsym.localloc.size,retsym.localloc.reference,NR_FUNCTION_RESULT_REG);
+                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,retsym.localloc.size,OS_INT,retsym.localloc.reference,NR_FUNCTION_RESULT_REG);
                  cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
                end
              else
