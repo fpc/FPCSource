@@ -38,6 +38,14 @@ end;
 {*                             TComponent                                   *}
 {****************************************************************************}
 
+function TComponent.GetComObject: IUnknown;
+begin
+  if not Assigned(VCLComObject) then
+    raise EComponentError.Create(SNoComSupport);
+  // VCLComObject is IVCComObject but we need to return IUnknown
+  IVCLComObject(VCLComObject).QueryInterface(IUnknown, Result);
+end;
+
 Function  TComponent.GetComponent(AIndex: Integer): TComponent;
 
 begin
@@ -563,9 +571,9 @@ end;
 
 
 Procedure TComponent.FreeOnRelease;
-
 begin
-  // Delphi compatibility only at the moment.
+  if Assigned(VCLComObject) then
+    IVCLComObject(VCLComObject).FreeOnRelease;
 end;
 
 
@@ -609,9 +617,11 @@ end;
 
 Function  TComponent.SafeCallException(ExceptObject: TObject;
   ExceptAddr: Pointer): HResult;
-
 begin
-  SafeCallException:=inherited SafeCallException(ExceptObject, ExceptAddr);
+  if Assigned(VCLComObject) then
+    Result := IVCLComObject(VCLComObject).SafeCallException(ExceptObject, ExceptAddr)
+  else
+    Result := inherited SafeCallException(ExceptObject, ExceptAddr);
 end;
 
 procedure TComponent.SetSubComponent(ASubComponent: Boolean);
@@ -636,24 +646,69 @@ end;
 
 function TComponent.QueryInterface(const IID: TGUID; out Obj): HResult;stdcall;
 begin
-  if GetInterface(IID, Obj) then
-    result:=S_OK
+  if Assigned(VCLComObject) then
+    Result := IVCLComObject(VCLComObject).QueryInterface(IID, Obj)
   else
-    result:=E_NOINTERFACE;
+  if GetInterface(IID, Obj) then
+    Result := S_OK
+  else
+    Result := E_NOINTERFACE;
 end;
 
 function TComponent._AddRef: Integer;stdcall;
 begin
-  result:=-1;
+  if Assigned(VCLComObject) then
+    Result := IVCLComObject(VCLComObject)._AddRef
+  else
+    Result := -1;
 end;
 
 function TComponent._Release: Integer;stdcall;
 begin
-  result:=-1;
+  if Assigned(VCLComObject) then
+    Result := IVCLComObject(VCLComObject)._Release
+  else
+    Result := -1;
 end;
 
 function TComponent.iicrGetComponent: TComponent;
 
 begin
   result:=self;
+end;
+
+function TComponent.GetTypeInfoCount(out Count: Integer): HResult; stdcall;
+begin
+  if Assigned(VCLComObject) then
+    Result := IVCLComObject(VCLComObject).GetTypeInfoCount(Count)
+  else
+    Result := E_NOTIMPL;
+end;
+
+function TComponent.GetTypeInfo(Index, LocaleID: Integer; out TypeInfo): HResult; stdcall;
+begin
+  if Assigned(VCLComObject) then
+    Result := IVCLComObject(VCLComObject).GetTypeInfo(Index, LocaleID, TypeInfo)
+  else
+    Result := E_NOTIMPL;
+end;
+
+function TComponent.GetIDsOfNames(const IID: TGUID; Names: Pointer; NameCount,
+  LocaleID: Integer; DispIDs: Pointer): HResult; stdcall;
+begin
+  if Assigned(VCLComObject) then
+    Result := IVCLComObject(VCLComObject).GetIDsOfNames(IID, Names, NameCount, LocaleID, DispIDs)
+  else
+    Result := E_NOTIMPL;
+end;
+
+function TComponent.Invoke(DispID: Integer; const IID: TGUID;
+  LocaleID: Integer; Flags: Word; var Params; VarResult, ExcepInfo,
+  ArgErr: Pointer): HResult; stdcall;
+begin
+  if Assigned(VCLComObject) then
+    Result := IVCLComObject(VCLComObject).Invoke(DispID, IID, LocaleID, Flags, Params,
+      VarResult, ExcepInfo, ArgErr)
+  else
+    Result := E_NOTIMPL;
 end;
