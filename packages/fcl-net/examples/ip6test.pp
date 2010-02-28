@@ -17,16 +17,16 @@ var
 
 begin
   setlength(x, 100);
-  setlength(x,resolvename6('www.6bone.net', x));
+  setlength(x,resolvename6('whatismyv6.com', x));
   if length(x) = 0 then halt(2);
   with dest do begin
     sin6_family := PF_INET6;
     sin6_port   := shorthosttonet(80);
-    sin6_addr.u6_addr16 := x[0];
+    sin6_addr.u6_addr16 := x[0].u6_addr16;
   end;
-  sock := socket(PF_INET6, SOCK_STREAM, 6 {TCP});
+  sock := fpsocket(PF_INET6, SOCK_STREAM, 6 {TCP});
 
-  if Connect(sock, dest, sizeof(dest)) then begin
+  if fpConnect(sock, @dest, sizeof(dest))=0 then begin
     sock2text(sock,t1,t2);
     writeln(t2, 'GET / HTTP/1.0');
     writeln(t2);
@@ -35,7 +35,7 @@ begin
       writeln(s);
     end;
   end else begin
-    writeln('not connected: ',getlasterror, ': ', StrError(getlasterror));
+    writeln('not connected: ',socketerror, ': ', StrError(socketerror));
   end;
   closesocket(sock);
 end.
