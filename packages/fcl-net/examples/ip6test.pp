@@ -14,10 +14,23 @@ var
   i: integer;
   t1,t2:text;
   x: array of thostaddr6;
+  hname : string;
+
+Const
+  ip6hosttest = 'whatismyv6.com';
 
 begin
+  hname:=ip6hosttest;
+  if paramcount>0 then
+    hname:=paramstr(1);
   setlength(x, 100);
-  setlength(x,resolvename6('whatismyv6.com', x));
+  i:=resolvename6(hname, x);
+  if i=-1 then
+    begin
+      writeln('Domain not found, ',hname);
+      halt;
+    end;
+  setlength(x,i);
   if length(x) = 0 then halt(2);
   with dest do begin
     sin6_family := PF_INET6;
