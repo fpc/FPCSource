@@ -67,6 +67,7 @@ type
     procedure DoHandleAjaxRequest(ARequest: TRequest; AnAjaxResponse: TAjaxResponse; var Handled: boolean); virtual;
     procedure DoBeforeRequest(ARequest: TRequest); virtual;
     procedure DoBeforeShowPage(ARequest: TRequest); virtual;
+    function IsAjaxCall: boolean; virtual;
     property WebModule: TFPWebModule read FWebModule;
     procedure DoCleanupAfterRequest(const AContentProducer: THTMLContentProducer);
     procedure SetRequest(ARequest: TRequest); virtual;
@@ -164,8 +165,7 @@ begin
 end;
 
 procedure TWebPage.HandlePage(ARequest: TRequest; AResponse: TResponse; AWriter: THTMLwriter; AWebModule: TFPWebModule=nil);
-var s : string;
-    Handled: boolean;
+var Handled: boolean;
     CompName: string;
     AComponent: TComponent;
     AnAjaxResponse: TAjaxResponse;
@@ -175,8 +175,7 @@ begin
   try
     try
       DoBeforeRequest(ARequest);
-      s := Request.HTTPXRequestedWith;
-      if sametext(s,'XmlHttpRequest') then
+      if IsAjaxCall then
         begin
         AnAjaxResponse := TAjaxResponse.Create(GetWebController, AResponse);
         try
@@ -308,6 +307,13 @@ procedure TWebPage.DoBeforeShowPage(ARequest: TRequest);
 begin
   if assigned(BeforeShowPage) then
     BeforeShowPage(Self,ARequest);
+end;
+
+function TWebPage.IsAjaxCall: boolean;
+var s : string;
+begin
+  s := Request.HTTPXRequestedWith;
+  result := sametext(s,'XmlHttpRequest');
 end;
 
 { TStandardWebController }
