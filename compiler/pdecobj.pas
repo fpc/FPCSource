@@ -955,6 +955,7 @@ implementation
 
         { generate vmt space if needed }
         if not(oo_has_vmt in current_objectdef.objectoptions) and
+           not(oo_is_forward in current_objectdef.objectoptions) and
            (
             ([oo_has_virtual,oo_has_constructor,oo_has_destructor]*current_objectdef.objectoptions<>[]) or
             (current_objectdef.objecttype in [odt_class])
