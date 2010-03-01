@@ -398,7 +398,7 @@ type
     vo_is_weak_external,
     { Objective-C message selector parameter }
     vo_is_msgsel,
-    { first field of a record or variant part of a record }
+    { first field of variant part of a record }
     vo_is_first_field
   );
   tvaroptions=set of tvaroption;

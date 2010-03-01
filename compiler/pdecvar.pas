@@ -1372,7 +1372,6 @@ implementation
          hintsymoptions : tsymoptions;
          deprecatedmsg : pshortstring;
          semicoloneaten: boolean;
-         is_first_field: boolean;
 {$if defined(powerpc) or defined(powerpc64)}
          tempdef: tdef;
          is_first_type: boolean;
@@ -1380,7 +1379,6 @@ implementation
          sl       : tpropaccesslist;
       begin
          recst:=tabstractrecordsymtable(symtablestack.top);
-         is_first_field:=true;
 {$if defined(powerpc) or defined(powerpc64)}
          is_first_type:=true;
 {$endif powerpc or powerpc64}
@@ -1478,13 +1476,6 @@ implementation
              hintsymoptions:=[];
              deprecatedmsg:=nil;
              try_consume_hintdirective(hintsymoptions,deprecatedmsg);
-
-             { mark first field }
-             if (is_first_field) then
-               begin
-                 include(tfieldvarsym(sc[0]).varoptions,vo_is_first_field);
-                 is_first_field:=false;
-               end;
 
              { update variable type and hints }
              for i:=0 to sc.count-1 do
@@ -1588,12 +1579,6 @@ implementation
               read_anon_type(casetype,true);
               if assigned(fieldvs) then
                 begin
-                 { mark first field if not yet marked }
-                 if (is_first_field) then
-                   begin
-                     include(fieldvs.varoptions,vo_is_first_field);
-                     is_first_field:=false;
-                   end;
                   fieldvs.vardef:=casetype;
                   recst.addfield(fieldvs,recst.currentvisibility);
                 end;

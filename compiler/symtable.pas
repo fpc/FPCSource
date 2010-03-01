@@ -1047,6 +1047,9 @@ implementation
             sym:=TSym(unionst.SymList[i]);
             if sym.typ<>fieldvarsym then
               internalerror(200601272);
+            if tfieldvarsym(sym).fieldoffset=0 then
+              include(tfieldvarsym(sym).varoptions,vo_is_first_field);
+
             { add to this record symtable }
 //            unionst.SymList.List.List^[i].Data:=nil;
             sym.ChangeOwner(self);
