@@ -429,14 +429,17 @@ begin
   ActionVar := '';
   if assigned(owner) then
     begin
-    if (owner is TWebPage) and assigned(TWebPage(Owner).WebModule) then
+    if (owner is TWebPage) then
       WebMod := TWebPage(Owner).WebModule
     else if (owner is TFPWebModule) then
       WebMod := TFPWebModule(Owner);
 
-    ActionVar := WebMod.ActionVar;
-    if (action = '') and assigned(WebMod.Actions) and assigned(WebMod.Actions.CurrentAction) then
-      result := WebMod.Actions.CurrentAction.Name;
+    if assigned(WebMod) then
+      begin
+      ActionVar := WebMod.ActionVar;
+      if (action = '') and assigned(WebMod.Actions) and assigned(WebMod.Actions.CurrentAction) then
+        result := WebMod.Actions.CurrentAction.Name;
+      end;
     end;
   if ActionVar='' then FancyTitle:=true;
   if Assigned(ARequest) then
