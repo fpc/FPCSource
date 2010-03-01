@@ -245,13 +245,11 @@ var
         flags:=ppufile.header.flags;
         crc:=ppufile.header.checksum;
         interface_crc:=ppufile.header.interface_checksum;
-        indirect_crc:=ppufile.header.indirect_checksum;
       { Show Debug info }
         Message1(unit_u_ppu_time,filetimestring(ppufiletime));
         Message1(unit_u_ppu_flags,tostr(flags));
         Message1(unit_u_ppu_crc,hexstr(ppufile.header.checksum,8));
         Message1(unit_u_ppu_crc,hexstr(ppufile.header.interface_checksum,8)+' (intfc)');
-        Message1(unit_u_ppu_crc,hexstr(ppufile.header.indirect_checksum,8)+' (indc)');
         Comment(V_used,'Number of definitions: '+tostr(ppufile.header.deflistsize));
         Comment(V_used,'Number of symbols: '+tostr(ppufile.header.symlistsize));
         do_compile:=false;
@@ -511,11 +509,7 @@ var
                ppufile.do_crc:=false;
                ppufile.putlongint(longint(hp.checksum));
                ppufile.putlongint(longint(hp.interface_checksum));
-               ppufile.putlongint(longint(hp.indirect_checksum));
                ppufile.do_crc:=oldcrc;
-               { combine all indirect checksums from units used by this unit }
-               if intf then
-                 ppufile.indirect_crc:=ppufile.indirect_crc xor hp.indirect_checksum;
              end;
            hp:=tused_unit(hp.next);
          end;
@@ -810,7 +804,6 @@ var
         hs : string;
         pu : tused_unit;
         hp : tppumodule;
-        indchecksum,
         intfchecksum,
         checksum : cardinal;
       begin
@@ -819,14 +812,12 @@ var
            hs:=ppufile.getstring;
            checksum:=cardinal(ppufile.getlongint);
            intfchecksum:=cardinal(ppufile.getlongint);
-           indchecksum:=cardinal(ppufile.getlongint);
            { set the state of this unit before registering, this is
              needed for a correct circular dependency check }
            hp:=registerunit(self,hs,'');
            pu:=addusedunit(hp,false,nil);
            pu.checksum:=checksum;
            pu.interface_checksum:=intfchecksum;
-           pu.indirect_checksum:=indchecksum;
          end;
         in_interface:=false;
       end;
@@ -1155,7 +1146,6 @@ var
          ppufile.header.size:=ppufile.size;
          ppufile.header.checksum:=ppufile.crc;
          ppufile.header.interface_checksum:=ppufile.interface_crc;
-         ppufile.header.indirect_checksum:=ppufile.indirect_crc;
          ppufile.header.compiler:=wordversion;
          ppufile.header.cpu:=word(target_cpu);
          ppufile.header.target:=word(target_info.system);
@@ -1167,7 +1157,6 @@ var
          { save crc in current module also }
          crc:=ppufile.crc;
          interface_crc:=ppufile.interface_crc;
-         indirect_crc:=ppufile.indirect_crc;
 
 {$ifdef Test_Double_checksum_write}
          close(CRCFile);
@@ -1226,7 +1215,6 @@ var
          { save crc  }
          crc:=ppufile.crc;
          interface_crc:=ppufile.interface_crc;
-         indirect_crc:=ppufile.indirect_crc;
 
          { end of implementation, to generate a correct ppufile
            for ppudump when using INTFPPU define }
@@ -1250,7 +1238,6 @@ var
          ppufile.header.size:=ppufile.size;
          ppufile.header.checksum:=ppufile.crc;
          ppufile.header.interface_checksum:=ppufile.interface_crc;
-         ppufile.header.indirect_checksum:=ppufile.indirect_crc;
          ppufile.header.compiler:=wordversion;
          ppufile.header.cpu:=word(target_cpu);
          ppufile.header.target:=word(target_info.system);
@@ -1287,21 +1274,12 @@ var
                 crc. And when not compiled with -Ur then check the complete
                 crc }
               if (pu.u.interface_crc<>pu.interface_checksum) or
-                 (pu.u.indirect_crc<>pu.indirect_checksum) or
                  (
                   ((ppufile.header.flags and uf_release)=0) and
                   (pu.u.crc<>pu.checksum)
                  ) then
                begin
                  Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.realmodulename^,@queuecomment);
-{$ifdef DEBUG_UNIT_CRC_CHANGES}
-                 if (pu.u.interface_crc<>pu.interface_checksum) then
-                   writeln('  intfcrc change: ',hexstr(pu.u.interface_crc,8),' <> ',hexstr(pu.interface_checksum,8))
-                 else if (pu.u.indirect_crc<>pu.indirect_checksum) then
-                   writeln('  indcrc change: ',hexstr(pu.u.indirect_crc,8),' <> ',hexstr(pu.indirect_checksum,8))
-                 else
-                   writeln('  implcrc change: ',hexstr(pu.u.crc,8),' <> ',hexstr(pu.checksum,8));
-{$endif DEBUG_UNIT_CRC_CHANGES}
                  recompile_reason:=rr_crcchanged;
                  do_compile:=true;
                  exit;
@@ -1346,16 +1324,9 @@ var
               { add this unit to the dependencies }
               pu.u.adddependency(self);
               { need to recompile the current unit ? }
-              if (pu.u.interface_crc<>pu.interface_checksum) or
-                 (pu.u.indirect_crc<>pu.indirect_checksum) then
+              if (pu.u.interface_crc<>pu.interface_checksum) then
                 begin
                   Message2(unit_u_recompile_crc_change,realmodulename^,pu.u.realmodulename^+' {impl}',@queuecomment);
-{$ifdef DEBUG_UNIT_CRC_CHANGES}
-                  if (pu.u.interface_crc<>pu.interface_checksum) then
-                    writeln('  intfcrc change (2): ',hexstr(pu.u.interface_crc,8),' <> ',hexstr(pu.interface_checksum,8))
-                  else if (pu.u.indirect_crc<>pu.indirect_checksum) then
-                    writeln('  indcrc change (2): ',hexstr(pu.u.indirect_crc,8),' <> ',hexstr(pu.indirect_checksum,8));
-{$endif DEBUG_UNIT_CRC_CHANGES}
                   recompile_reason:=rr_crcchanged;
                   do_compile:=true;
                   exit;
@@ -1395,20 +1366,11 @@ var
              crc. And when not compiled with -Ur then check the complete
              crc }
            if (pu.u.interface_crc<>pu.interface_checksum) or
-              (pu.u.indirect_crc<>pu.indirect_checksum) or
               (
                (pu.in_interface) and
                (pu.u.crc<>pu.checksum)
               ) then
              begin
-{$ifdef DEBUG_UNIT_CRC_CHANGES}
-               if (pu.u.interface_crc<>pu.interface_checksum) then
-                 writeln('  intfcrc change (3): ',hexstr(pu.u.interface_crc,8),' <> ',hexstr(pu.interface_checksum,8))
-               else if (pu.u.indirect_crc<>pu.indirect_checksum) then
-                 writeln('  indcrc change (3): ',hexstr(pu.u.indirect_crc,8),' <> ',hexstr(pu.indirect_checksum,8))
-               else
-                 writeln('  implcrc change (3): ',hexstr(pu.u.crc,8),' <> ',hexstr(pu.checksum,8));
-{$endif DEBUG_UNIT_CRC_CHANGES}
                result:=true;
                exit;
              end;
@@ -1450,7 +1412,7 @@ var
         ImplIntf : array[boolean] of string[15]=('implementation','interface');
       var
         do_load,
-        second_time        : boolean;
+        second_time : boolean;
         old_current_module : tmodule;
       begin
         old_current_module:=current_module;
@@ -1499,18 +1461,6 @@ var
                        tunitwpoinfo(wpoinfo).deref;
                        tunitwpoinfo(wpoinfo).derefimpl;
                      end;
-
-                   { We have to flag the units that depend on this unit even
-                     though it didn't change, because they might also
-                     indirectly depend on the unit that did change (e.g.,
-                     in case rgobj, rgx86 and rgcpu have been compiled
-                     already, and then rgobj is recompiled for some reason
-                     -> rgx86 is re-reresolved, but the vmtentries of trgcpu
-                     must also be re-resolved, because they will also contain
-                     pointers to procdefs in the old trgobj (in case of a
-                     recompile, all old defs are freed) }
-                   flagdependent(old_current_module);
-                   reload_flagged_units;
                  end
                else
                  Message1(unit_u_skipping_reresolving_unit,modulename^);

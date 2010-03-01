@@ -472,15 +472,14 @@ end;
 
 procedure ReadLoadUnit;
 var
-  ucrc,uintfcrc, indcrc : cardinal;
+  ucrc,uintfcrc : cardinal;
 begin
   while not ppufile.EndOfEntry do
     begin
       write('Uses unit: ',ppufile.getstring);
       ucrc:=cardinal(ppufile.getlongint);
       uintfcrc:=cardinal(ppufile.getlongint);
-      indcrc:=cardinal(ppufile.getlongint);
-      writeln(' (Crc: ',hexstr(ucrc,8),', IntfcCrc: ',hexstr(uintfcrc,8),', IndCrc: ',hexstr(indcrc,8),')');
+      writeln(' (Crc: ',hexstr(ucrc,8),', IntfcCrc: ',hexstr(uintfcrc,8),')');
     end;
 end;
 
@@ -2332,7 +2331,6 @@ begin
         Writeln('FileSize (w/o header)   : ',size);
         Writeln('Checksum                : ',hexstr(checksum,8));
         Writeln('Interface Checksum      : ',hexstr(interface_checksum,8));
-        Writeln('Indirect Checksum       : ',hexstr(indirect_checksum,8));
         Writeln('Definitions stored      : ',tostr(deflistsize));
         Writeln('Symbols stored          : ',tostr(symlistsize));
       end;
