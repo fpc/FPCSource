@@ -20,6 +20,7 @@ unit sysutils;
 interface
 
 {$MODE objfpc}
+{$modeswitch out}
 { force ansistrings }
 {$H+}
 
@@ -140,7 +141,7 @@ begin
 end;
 
 
-Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
+Function FileRead (Handle : Longint; Out Buffer; Count : longint) : Longint;
 var
   regs     : registers;
   size,

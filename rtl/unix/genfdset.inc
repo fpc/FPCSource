@@ -32,7 +32,7 @@ Begin
    fpFD_CLR:=0;
 End;
 
-function fpFD_ZERO(var nset : TFDSet):cint;
+function fpFD_ZERO(out nset : TFDSet):cint;
 
 var i :longint;
 

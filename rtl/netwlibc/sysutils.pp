@@ -17,6 +17,7 @@ unit sysutils;
 interface
 
 {$MODE objfpc}
+{$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
 
@@ -114,7 +115,7 @@ begin
 end;
 
 
-Function FileRead (Handle : THandle; Var Buffer; Count : longint) : Longint;
+Function FileRead (Handle : THandle; Out Buffer; Count : longint) : Longint;
 begin
   FileRead:=libc.fpread (Handle,@Buffer,Count);
 end;
