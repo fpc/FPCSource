@@ -90,9 +90,9 @@ begin
   GlobalOptions.CompilerConfig:=GlobalOptions.DefaultCompilerConfig;
   // Tracing of what we've done above, need to be done after the verbosity is set
   if GeneratedConfig then
-    Log(vlDebug,SLogGeneratingGlobalConfig,[cfgfile])
+    pkgglobals.Log(vlDebug,SLogGeneratingGlobalConfig,[cfgfile])
   else
-    Log(vlDebug,SLogLoadingGlobalConfig,[cfgfile]);
+    pkgglobals.Log(vlDebug,SLogLoadingGlobalConfig,[cfgfile]);
   // Log configuration
   GlobalOptions.LogValues;
 end;
@@ -114,7 +114,7 @@ begin
   S:=GlobalOptions.CompilerConfigDir+GlobalOptions.CompilerConfig;
   if FileExists(S) then
     begin
-      Log(vlDebug,SLogLoadingCompilerConfig,[S]);
+      pkgglobals.Log(vlDebug,SLogLoadingCompilerConfig,[S]);
       CompilerOptions.LoadCompilerFromFile(S)
     end
   else
@@ -122,7 +122,7 @@ begin
       // Generate a default configuration if it doesn't exists
       if GlobalOptions.CompilerConfig='default' then
         begin
-          Log(vlDebug,SLogGeneratingCompilerConfig,[S]);
+          pkgglobals.Log(vlDebug,SLogGeneratingCompilerConfig,[S]);
           CompilerOptions.InitCompilerDefaults;
           CompilerOptions.SaveCompilerToFile(S);
           if CompilerOptions.Dirty then
@@ -137,7 +137,7 @@ begin
   S:=GlobalOptions.CompilerConfigDir+GlobalOptions.FPMakeCompilerConfig;
   if FileExists(S) then
     begin
-      Log(vlDebug,SLogLoadingFPMakeCompilerConfig,[S]);
+      pkgglobals.Log(vlDebug,SLogLoadingFPMakeCompilerConfig,[S]);
       FPMakeCompilerOptions.LoadCompilerFromFile(S);
       if FPMakeCompilerOptions.Dirty then
         FPMakeCompilerOptions.SaveCompilerToFile(S);
@@ -307,7 +307,7 @@ begin
           pkghandler.ExecuteAction('','update');
         except
           on E: Exception do
-            Log(vlWarning,E.Message);
+            pkgglobals.Log(vlWarning,E.Message);
         end;
       end;
     LoadLocalAvailableRepository;
@@ -346,7 +346,7 @@ begin
               end
             else
               begin
-                Log(vlDebug,SLogCommandLineAction,['['+ParaPackages[i]+']',ParaAction]);
+                pkgglobals.Log(vlDebug,SLogCommandLineAction,['['+ParaPackages[i]+']',ParaAction]);
                 pkghandler.ExecuteAction(ParaPackages[i],ParaAction);
               end;
           end;
