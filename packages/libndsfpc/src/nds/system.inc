@@ -198,8 +198,6 @@ type
   PPERSONAL_DATA = ^tPERSONAL_DATA;
 
 const
-  REG_KEYINPUT	: pcuint16 = pointer($04000130);
-  REG_KEYCNT		: pcuint16 = pointer($04000132);
   PersonalData  : PPERSONAL_DATA = pointer($2FFFC80);
 
 
@@ -218,6 +216,15 @@ type
 const
   __system_argv: Pargv = pointer($02FFFE70);
   ARGV_MAGIC = $5f617267;
+  BOOTSIG = $62757473746F6F62; // ULL?
+
+type
+  __bootstub = packed record      // packed ?
+    bootsig: 	cuint64;
+    arm9reboot: VoidFn;
+    arm7reboot: VoidFn;
+    bootsize: cuint32;
+  end;
   
 
 type
@@ -236,7 +243,12 @@ type
 {$ifdef ARM9}
 procedure memCached(address: pointer); cdecl; external;
 procedure memUncached(address: pointer); cdecl; external;
+procedure resetARM7(address: cuint32); cdecl; external;
 {$endif ARM9}
+
+{$ifdef ARM7}
+procedure resetARM9(address: cuint32); cdecl; external;
+{$endif ARM7}
 
 
 {$endif NDS_INTERFACE}

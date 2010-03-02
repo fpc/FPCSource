@@ -256,15 +256,15 @@ var
 function vramSetMainBanks(a: VRAM_A_TYPE; b: VRAM_B_TYPE; c: VRAM_C_TYPE; d: VRAM_D_TYPE): cuint32; cdecl; external;
 procedure vramRestoreMainBanks(vramTemp: cuint32); cdecl; external;
 
-procedure vramSetBankA(a: VRAM_A_TYPE); cdecl; external;
-procedure vramSetBankB(b: VRAM_B_TYPE); cdecl; external;
-procedure vramSetBankC(c: VRAM_C_TYPE); cdecl; external;
-procedure vramSetBankD(d: VRAM_D_TYPE); cdecl; external;
-procedure vramSetBankE(e: VRAM_E_TYPE); cdecl; external;
-procedure vramSetBankF(f: VRAM_F_TYPE); cdecl; external;
-procedure vramSetBankG(g: VRAM_G_TYPE); cdecl; external;
-procedure vramSetBankH(h: VRAM_H_TYPE); cdecl; external;
-procedure vramSetBankI(i: VRAM_I_TYPE); cdecl; external;
+procedure vramSetBankA(a: VRAM_A_TYPE); inline;
+procedure vramSetBankB(b: VRAM_B_TYPE); inline;
+procedure vramSetBankC(c: VRAM_C_TYPE); inline;
+procedure vramSetBankD(d: VRAM_D_TYPE); inline;
+procedure vramSetBankE(e: VRAM_E_TYPE); inline;
+procedure vramSetBankF(f: VRAM_F_TYPE); inline;
+procedure vramSetBankG(g: VRAM_G_TYPE); inline;
+procedure vramSetBankH(h: VRAM_H_TYPE); inline;
+procedure vramSetBankI(i: VRAM_I_TYPE); inline;
 
 const
   REG_DISPCNT       : pcuint32 = pointer($04000000);
@@ -626,6 +626,51 @@ end;
 function GFX_BUSY: boolean; inline;
 begin
 	GFX_BUSY := GFX_STATUS^ and (1 shl 27) <> 0;
+end;
+
+procedure vramSetBankA(a: VRAM_A_TYPE); inline;
+begin
+  VRAM_A_CR^ := VRAM_ENABLE or a;
+end;
+
+procedure vramSetBankB(b: VRAM_B_TYPE); inline;
+begin
+  VRAM_B_CR^ := VRAM_ENABLE or b;
+end;
+
+procedure vramSetBankC(c: VRAM_C_TYPE); inline;
+begin
+  VRAM_C_CR^ := VRAM_ENABLE or c;
+end;
+
+procedure vramSetBankD(d: VRAM_D_TYPE); inline;
+begin
+  VRAM_D_CR^ := VRAM_ENABLE or d;
+end;
+
+procedure vramSetBankE(e: VRAM_E_TYPE); inline;
+begin
+  VRAM_E_CR^ := VRAM_ENABLE or e;
+end;
+
+procedure vramSetBankF(f: VRAM_F_TYPE); inline;
+begin
+  VRAM_F_CR^ := VRAM_ENABLE or f;
+end;
+
+procedure vramSetBankG(g: VRAM_G_TYPE); inline;
+begin
+  VRAM_G_CR^ := VRAM_ENABLE or g;
+end;
+
+procedure vramSetBankH(h: VRAM_H_TYPE); inline;
+begin
+  VRAM_H_CR^ := VRAM_ENABLE or h;
+end;
+
+procedure vramSetBankI(i: VRAM_I_TYPE); inline;
+begin
+  VRAM_I_CR^ := VRAM_ENABLE or i;
 end;
 
 {$endif NDS_IMPLEMENTATION}
