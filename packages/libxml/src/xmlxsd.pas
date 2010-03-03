@@ -860,7 +860,49 @@ begin
 end;
 
 function xsdTryParseString(Chars: xmlCharPtr; Len: Integer; out Value: Utf8String): Boolean;
+const
+  AllocChars = 256;
+var
+  P,L,D: PByte;
 begin
+  if Assigned(Chars) then
+  begin
+    P := PByte(Chars);
+    if Len >= 0 then
+    begin
+      L := P + Len;
+      SetLength(Value, Len);
+      D := @Value[1];
+      while P < L do
+      begin
+        D^ := P^;
+        Inc(D);
+        Inc(P);
+      end;
+    end else begin
+      SetLength(Value, AllocChars);
+      D := @Value[1];
+      L := D + AllocChars;
+      while P^ <> 0 do
+      begin
+        if D = L then
+        begin
+          Len := Length(Value);
+          SetLength(Value, Len+AllocChars);
+          D := @Value[Len+1];
+          L := D + AllocChars;
+        end;
+        D^ := P^;
+        Inc(D);
+        Inc(P);
+      end;
+      SetLength(Value, P-PByte(Chars));
+    end;
+    Result := True;
+  end else
+    Result := False;
+end;
+{begin
   if Assigned(Chars) then
   begin
     if Len >= 0 then
@@ -872,9 +914,11 @@ begin
     Result := True;
   end else
     Result := False;
-end;
+end;}
 
 function xsdTryParseStringLower(Chars: xmlCharPtr; Len: Integer; out Value: Utf8String): Boolean;
+const
+  AllocChars = 256;
 var
   P,L,D: PByte;
   C: Byte;
@@ -896,15 +940,25 @@ begin
         Inc(P);
       end;
     end else begin
-      SetLength(Value, 255);
-      //D := @Value[1];
+      SetLength(Value, AllocChars);
+      D := @Value[1];
+      L := D + AllocChars;
       while P^ <> 0 do
       begin
         C := P^;
         if (C>=65) and (C<=90) then Inc(C, 32);
-        Value := Value + Chr(C); {$warning assign char by char maybe quite slow!}
+        if D = L then
+        begin
+          Len := Length(Value);
+          SetLength(Value, Len+AllocChars);
+          D := @Value[Len+1];
+          L := D + AllocChars;
+        end;
+        D^ := C;
+        Inc(D);
         Inc(P);
       end;
+      SetLength(Value, P-PByte(Chars));
     end;
     Result := True;
   end else
