@@ -397,13 +397,16 @@ unit cgx86;
           begin
             if cs_create_pic in current_settings.moduleswitches then
               begin
+                { Local data symbols must not be accessed via the GOT on
+                  darwin/x86_64 under certain circumstances (and do not
+                  have to be in other cases); however, linux/x86_64 does
+                  require it; don't know about others, so do use GOT for
+                  safety reasons
+                }
                 if (ref.symbol.bind=AB_LOCAL) and
-                   (ref.symbol.typ=AT_DATA) then
+                   (ref.symbol.typ=AT_DATA) and
+                   (target_info.system=system_x86_64_darwin) then
                   begin
-                    { Local data symbols don't have to go via the GOT (and in
-                      case of darwin must not in some cases), but they still
-                      have to be addressed using PIC (RIP-relative).
-                    }
                     { unfortunately, RIP-based addresses don't support an index }
                     if (ref.base<>NR_NO) or
                        (ref.index<>NR_NO) then
@@ -928,7 +931,9 @@ unit cgx86;
                       end
                     else if (cs_create_pic in current_settings.moduleswitches)
 {$ifdef x86_64}
-                             and not((ref.symbol.bind=AB_LOCAL) and (ref.symbol.typ=AT_DATA))
+                             and not((ref.symbol.bind=AB_LOCAL) and
+                                     (ref.symbol.typ=AT_DATA) and
+                                     (target_info.system=system_x86_64_darwin))
 {$endif x86_64}
                             then
                       begin
