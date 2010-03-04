@@ -661,11 +661,11 @@ procedure TWriter.WriteComponent(Component: TComponent);
 
 var
   SA : TPersistent;
-  SR : TComponent;
-  
+  SR, SRA : TComponent;
 begin
   SR:=FRoot;
   SA:=FAncestor;
+  SRA:=FRootAncestor;
   Try
     Component.FComponentState:=Component.FComponentState+[csWriting];
     Try
@@ -681,6 +681,7 @@ begin
   Finally
     FAncestor:=SA;
     FRoot:=SR;
+    FRootAncestor:=SRA;
   end;
 end;
 
