@@ -15,6 +15,13 @@
  **********************************************************************}
 {$mode objfpc}
 {$ifdef linux}
+{ we can combine both compile-time linking and dynamic loading, in order to:
+    a) solve a problem on some systems with dynamically loading libpthread if
+       it's not linked at compile time
+    b) still enabling dynamically checking whether or not certain functions
+       are available (could also be implemented via weak linking)
+}
+{$linklib pthread}
 {$define dynpthreads} // Useless on BSD, since they are in libc
 {$endif}
 
