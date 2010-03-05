@@ -65,6 +65,9 @@ begin
   if inheritsFrom (TFPCustomDrawFont) then
     result := TFPCustomDrawFont(self).DoGetTextWidth (text)
   else
-    result := FCanvas.GetTextWidth (text);
+   if assigned(FCanvas) then
+     result := FCanvas.GetTextWidth (text)
+   else 
+     result :=16; // *some* default better than none.
 end;
 
