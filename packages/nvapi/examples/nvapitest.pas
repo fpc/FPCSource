@@ -51,7 +51,7 @@ begin
       end;
   end;
 
-  if NvAPI_EnumLogicalGPUs(log, cnt) = NVAPI_OK then 
+  if NvAPI_EnumLogicalGPUs(log, cnt) = NVAPI_OK then
     writeln('Logical GPUs ', cnt);
 
   writeln;
@@ -114,8 +114,6 @@ end;
 var
   ver  : NvAPI_ShortString;
   res  : NvAPI_Status;
-  
-{$R nvapitest.res}
 
 begin
   res:=NvAPI_Initialize;
