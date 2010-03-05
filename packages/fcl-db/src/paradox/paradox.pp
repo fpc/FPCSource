@@ -491,7 +491,7 @@ begin
     end;
   If (BFN<>'') then
     begin
-    Writeln('opening blib file',bfn);
+    //Writeln('opening blib file',bfn);
     if PX_set_blob_file(FDoc,PChar(BFN))<>0 then
       RaiseError(SErrInvalidBlobFile,[BFN]);
     FBlobFileName:=BFN;
