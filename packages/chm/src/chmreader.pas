@@ -417,7 +417,7 @@ procedure TChmReader.ReadCommonData;
      OffSet: DWord;
      //TotalSize: DWord;
    begin
-     fIVB := GetObject('/#IBV');
+     fIVB := GetObject('/#IVB');
      if fIVB = nil then Exit;
      fStrings := GetObject('/#STRINGS');
      if fStrings = nil then begin
