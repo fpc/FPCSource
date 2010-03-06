@@ -255,6 +255,7 @@ type
   private
     FFile: ^Text;
     FString: string;
+    FTmp: string;
   public
     constructor Create(var AFile: Text);
     procedure FetchData; override;
@@ -1148,11 +1149,18 @@ begin
 end;
 
 procedure TXMLFileInputSource.FetchData;
+var
+  Remainder: Integer;
 begin
   if not Eof(FFile^) then
   begin
+    Remainder := FCharBufEnd - FCharBuf;
+    if Remainder > 0 then
+      SetString(FTmp, FCharBuf, Remainder);
     ReadLn(FFile^, FString);
     FString := FString + #10;    // bad solution...
+    if Remainder > 0 then
+      Insert(FTmp, FString, 1);
     FCharBuf := PChar(FString);
     FCharBufEnd := FCharBuf + Length(FString);
   end;
