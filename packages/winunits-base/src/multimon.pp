@@ -50,7 +50,7 @@ const
 // HMONITOR is already declared if WINVER >= 0x0500 in windef.h
 // This is for components built with an older version number.
 type
-  HMONITOR = HANDLE;
+  HMONITOR = Windows.HMonitor;
 
 const
   MONITOR_DEFAULTTONULL    = $00000000;
