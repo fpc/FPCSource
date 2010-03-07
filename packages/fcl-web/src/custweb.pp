@@ -102,7 +102,7 @@ Type
   Public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    Procedure CreateForm(AClass : TComponentClass; Var Reference : TComponent);
+    Procedure CreateForm(AClass : TComponentClass; out Reference);
     Procedure Initialize; override;
     Procedure ShowException(E: Exception);override;
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse);
@@ -365,9 +365,9 @@ begin
   inherited Destroy;
 end;
 
-procedure TCustomWebApplication.CreateForm(AClass: TComponentClass; var Reference: TComponent);
+procedure TCustomWebApplication.CreateForm(AClass: TComponentClass; out Reference);
 begin
-  Reference:=AClass.Create(Self);
+  TComponent(Reference):=AClass.Create(Self);
 end;
 
 end.
