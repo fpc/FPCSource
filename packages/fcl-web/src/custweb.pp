@@ -21,7 +21,7 @@ unit custweb;
 Interface
 
 uses
-  CustApp,Classes,SysUtils, httpdefs, fphttp;
+  CustApp,Classes,SysUtils, httpdefs, fphttp, eventlog;
 
 Const
   CGIVarCount = 36;
@@ -88,6 +88,8 @@ Type
     FHandleGetOnPost : Boolean;
     FRedirectOnError : Boolean;
     FRedirectOnErrorURL : String;
+    FEventLog: TEventLog;
+    function GetEventLog: TEventLog;
   protected
     Function GetModuleName(Arequest : TRequest) : string;
     function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; virtual; abstract;
@@ -99,11 +101,13 @@ Type
     Function GetAdministrator : String; virtual;
   Public
     constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
     Procedure CreateForm(AClass : TComponentClass; Var Reference : TComponent);
     Procedure Initialize; override;
     Procedure ShowException(E: Exception);override;
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse);
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual;
+    Procedure Log(EventType: TEventType; Msg: String); override;
     Property HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
     Property RedirectOnError : boolean Read FRedirectOnError Write FRedirectOnError;
     Property RedirectOnErrorURL : string Read FRedirectOnErrorURL Write FRedirectOnErrorURL;
@@ -114,6 +118,7 @@ Type
     Property Email : String Read GetEmail Write FEmail;
     Property Administrator : String Read GetAdministrator Write FAdministrator;
     property OnShowRequestException: TOnShowRequestException read FOnShowRequestException write FOnShowRequestException;
+    Property EventLog: TEventLog read GetEventLog;
   end;
 
   EFPWebError = Class(Exception);
@@ -281,11 +286,23 @@ begin
   end;
 end;
 
+procedure TCustomWebApplication.Log(EventType: TEventType; Msg: String);
+begin
+  EventLog.log(EventType,Msg);
+end;
+
 Procedure TCustomWebApplication.Initialize;
 
 begin
   StopOnException:=True;
   Inherited;
+end;
+
+function TCustomWebApplication.GetEventLog: TEventLog;
+begin
+  if not assigned(FEventLog) then
+    FEventLog := TEventLog.Create(self);
+  Result := FEventLog;
 end;
 
 function TCustomWebApplication.GetModuleName(Arequest: TRequest): string;
@@ -339,6 +356,13 @@ begin
   FHandleGetOnPost := True;
   FRedirectOnError := False;
   FRedirectOnErrorURL := '';
+end;
+
+destructor TCustomWebApplication.Destroy;
+begin
+  if assigned(FEventLog) then
+    FEventLog.Free;
+  inherited Destroy;
 end;
 
 procedure TCustomWebApplication.CreateForm(AClass: TComponentClass; var Reference: TComponent);
