@@ -15,6 +15,7 @@
 Unit BaseUnix;
 
 Interface
+{$modeswitch out}
 {$inline on}
 Uses UnixType;
 
