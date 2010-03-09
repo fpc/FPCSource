@@ -23,19 +23,15 @@ type
   TStandardWebController = class(TWebController)
   private
     FScriptFileReferences: TStringList;
-    FCurrentJavascriptStack: TJavaScriptStack;
     FScripts: TFPObjectList;
   protected
     function GetScriptFileReferences: TStringList; override;
     function GetScripts: TFPObjectList; override;
-    function GetCurrentJavaScriptStack: TJavaScriptStack; override;
-    procedure SetCurrentJavascriptStack(const AJavascriptStack: TJavaScriptStack);
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
-    function InitializeJavaScriptStack: TJavaScriptStack; override;
+    function CreateNewJavascriptStack: TJavaScriptStack; override;
     function GetUrl(ParamNames, ParamValues, KeepParams: array of string; Action: string = ''): string; override;
-    procedure FreeJavascriptStack; override;
     procedure BindJavascriptCallstackToElement(AComponent: TComponent; AnElement: THtmlCustomElement; AnEvent: string); override;
     procedure AddScriptFileReference(AScriptFile: String); override;
     function DefaultMessageBoxHandler(Sender: TObject; AText: String; Buttons: TWebButtons): string; override;
@@ -207,6 +203,8 @@ begin
           WebController.InitializeShowRequest;
         DoBeforeShowPage(ARequest);
         AResponse.Content := ProduceContent;
+        if HasWebController then
+          WebController.CleanupShowRequest;
         end;
     finally
       CleanupAfterRequest;
@@ -333,16 +331,6 @@ begin
   Result:=FScripts;
 end;
 
-function TStandardWebController.GetCurrentJavaScriptStack: TJavaScriptStack;
-begin
-  Result:=FCurrentJavascriptStack;
-end;
-
-procedure TStandardWebController.SetCurrentJavascriptStack(const AJavascriptStack: TJavaScriptStack);
-begin
-  FCurrentJavascriptStack := AJavascriptStack;
-end;
-
 function TStandardWebController.CreateNewScript: TStringList;
 begin
   Result:=TStringList.Create;
@@ -400,12 +388,9 @@ begin
   inherited Destroy;
 end;
 
-function TStandardWebController.InitializeJavaScriptStack: TJavaScriptStack;
+function TStandardWebController.CreateNewJavascriptStack: TJavaScriptStack;
 begin
-  if assigned(FCurrentJavascriptStack) then
-    raise exception.Create('There is still an old JavascriptStack available');
-  FCurrentJavascriptStack := TJavaScriptStack.Create(self);
-  Result:=FCurrentJavascriptStack;
+  Result:=TJavaScriptStack.Create(self);
 end;
 
 function TStandardWebController.GetUrl(ParamNames, ParamValues,
@@ -489,11 +474,6 @@ begin
   p := copy(qs,1,length(qs)-1);
   if p <> '' then
     result := result + ConnectChar + p
-end;
-
-procedure TStandardWebController.FreeJavascriptStack;
-begin
-  FreeAndNil(FCurrentJavascriptStack);
 end;
 
 procedure TStandardWebController.BindJavascriptCallstackToElement(AComponent: TComponent; AnElement: THtmlCustomElement; AnEvent: string);

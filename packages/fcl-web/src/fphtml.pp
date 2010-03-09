@@ -69,24 +69,28 @@ type
     FBaseURL: string;
     FMessageBoxHandler: TMessageBoxHandler;
     FScriptName: string;
+    FScriptStack: TFPObjectList;
     procedure SetBaseURL(const AValue: string);
     procedure SetScriptName(const AValue: string);
   protected
     function GetScriptFileReferences: TStringList; virtual; abstract;
-    function GetCurrentJavaScriptStack: TJavaScriptStack; virtual; abstract;
+    function GetCurrentJavaScriptStack: TJavaScriptStack; virtual;
     function GetScripts: TFPObjectList; virtual; abstract;
     function GetRequest: TRequest;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure AddScriptFileReference(AScriptFile: String); virtual; abstract;
-    function InitializeJavaScriptStack: TJavaScriptStack; virtual; abstract;
+    function CreateNewJavascriptStack: TJavaScriptStack; virtual; abstract;
+    function InitializeJavaScriptStack: TJavaScriptStack;
+    procedure FreeJavascriptStack; virtual;
     function HasJavascriptStack: boolean; virtual; abstract;
     function GetUrl(ParamNames, ParamValues, KeepParams: array of string; Action: string = ''): string; virtual; abstract;
     procedure InitializeAjaxRequest; virtual;
     procedure InitializeShowRequest; virtual;
+    procedure CleanupShowRequest; virtual;
     procedure CleanupAfterRequest; virtual;
-    procedure FreeJavascriptStack; virtual; abstract;
+    procedure BeforeGenerateHead; virtual;
     procedure BindJavascriptCallstackToElement(AComponent: TComponent; AnElement: THtmlCustomElement; AnEvent: string); virtual; abstract;
     function MessageBox(AText: String; Buttons: TWebButtons): string; virtual;
     function DefaultMessageBoxHandler(Sender: TObject; AText: String; Buttons: TWebButtons): string; virtual; abstract;
@@ -110,6 +114,7 @@ type
     FSendXMLAnswer: boolean;
     FXMLAnswer: TXMLDocument;
     FRootNode: TDOMNode;
+    FWebController: TWebController;
     function GetXMLAnswer: TXMLDocument;
   public
     constructor Create(AWebController: TWebController; AResponse: TResponse); virtual;
@@ -1134,13 +1139,16 @@ constructor TAjaxResponse.Create(AWebController: TWebController;
 begin
   FSendXMLAnswer:=true;
   FResponse:=AResponse;
-  FJavascriptCallStack:=AWebController.InitializeJavaScriptStack;
+  FWebController := AWebController;
+  FJavascriptCallStack:=FWebController.InitializeJavaScriptStack;
 end;
 
 destructor TAjaxResponse.Destroy;
 begin
   FXMLAnswer.Free;
-  FJavascriptCallStack.Free;
+  assert(FWebController.CurrentJavaScriptStack=FJavascriptCallStack);
+  FWebController.FreeJavascriptStack;
+  FJavascriptCallStack:=nil;
   inherited Destroy;
 end;
 
@@ -1193,6 +1201,11 @@ begin
   FScriptName:=AValue;
 end;
 
+function TWebController.GetCurrentJavaScriptStack: TJavaScriptStack;
+begin
+  result := TJavaScriptStack(FScriptStack.Items[FScriptStack.Count-1]);
+end;
+
 procedure TWebController.InitializeAjaxRequest;
 begin
   // do nothing
@@ -1203,9 +1216,19 @@ begin
   // do nothing
 end;
 
+procedure TWebController.CleanupShowRequest;
+begin
+  // Do Nothing
+end;
+
 procedure TWebController.CleanupAfterRequest;
 begin
   // Do Nothing
+end;
+
+procedure TWebController.BeforeGenerateHead;
+begin
+  // do nothing
 end;
 
 function TWebController.MessageBox(AText: String; Buttons: TWebButtons): string;
@@ -1229,13 +1252,26 @@ begin
   inherited Create(AOwner);
   { TODO : Do this prperly using a notification. And make the WebController property readonly }
   if owner is TWebPage then TWebPage(Owner).WebController := self;
+  FScriptStack := TFPObjectList.Create(true);
 end;
 
 destructor TWebController.Destroy;
 begin
   if (Owner is TWebPage) and (TWebPage(Owner).WebController=self) then
     TWebPage(Owner).WebController := nil;
+  FScriptStack.Free;
   inherited Destroy;
+end;
+
+function TWebController.InitializeJavaScriptStack: TJavaScriptStack;
+begin
+  result := CreateNewJavascriptStack;
+  FScriptStack.Add(result);
+end;
+
+procedure TWebController.FreeJavascriptStack;
+begin
+  FScriptStack.Delete(FScriptStack.Count-1);
 end;
 
 
