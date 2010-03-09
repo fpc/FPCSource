@@ -161,7 +161,7 @@ implementation
          repeat
            { maybe an instruction has more case labels }
            repeat
-             p:=expr;
+             p:=expr(true);
              if is_widechar(casedef) then
                begin
                   if (p.nodetype=rangen) then
@@ -1105,7 +1105,10 @@ implementation
              Message(scan_f_end_of_file);
          else
            begin
-             p:=expr;
+             { don't typecheck yet, because that will also simplify, which may
+               result in not detecting certain kinds of syntax errors --
+               see mantis #15594 }
+             p:=expr(false);
              { save the pattern here for latter usage, the label could be "000",
                even if we read an expression, the pattern is still valid if it's really
                a label (FK)
@@ -1166,6 +1169,8 @@ implementation
                  (tcallnode(p).procdefinition.proctypeoption=potype_operator)) then
                Message(parser_e_illegal_expression);
 
+             if not assigned(p.resultdef) then
+               do_typecheckpass(p);
              { Specify that we don't use the value returned by the call.
                This is used for :
                 - dispose of temp stack space

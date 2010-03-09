@@ -31,7 +31,7 @@ interface
       tokens,globtype,globals,constexp;
 
     { reads a whole expression }
-    function expr : tnode;
+    function expr(dotypecheck : boolean) : tnode;
 
     { reads an expression without assignements and .. }
     function comp_expr(accept_equal : boolean):tnode;
@@ -2840,7 +2840,7 @@ implementation
       end;
 
 
-    function expr : tnode;
+    function expr(dotypecheck : boolean) : tnode;
 
       var
          p1,p2 : tnode;
@@ -2852,7 +2852,8 @@ implementation
          oldafterassignment:=afterassignment;
          p1:=sub_expr(opcompare,true);
          { get the resultdef for this expression }
-         if not assigned(p1.resultdef) then
+         if not assigned(p1.resultdef) and
+            dotypecheck then
           do_typecheckpass(p1);
          filepos:=current_tokenpos;
          if token in [_ASSIGNMENT,_PLUSASN,_MINUSASN,_STARASN,_SLASHASN] then
@@ -2904,7 +2905,8 @@ implementation
             updatefpos:=false;
          end;
          { get the resultdef for this expression }
-         if not assigned(p1.resultdef) then
+         if not assigned(p1.resultdef) and
+            dotypecheck then
           do_typecheckpass(p1);
          afterassignment:=oldafterassignment;
          if updatefpos then

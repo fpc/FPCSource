@@ -748,7 +748,7 @@ implementation
                    end
                   else
                    begin
-                     pt:=expr;
+                     pt:=expr(true);
                      if pt.nodetype=typen then
                        setdefdecl(pt.resultdef)
                      else

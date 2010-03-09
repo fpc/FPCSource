@@ -1047,7 +1047,7 @@ implementation
           if vo_is_typed_const in vs.varoptions then
             Message(parser_e_initialized_not_for_external);
           { parse the rest }
-          pt:=expr;
+          pt:=expr(true);
           { check allowed absolute types }
           if (pt.nodetype=stringconstn) or
             (is_constcharnode(pt)) then
@@ -1084,7 +1084,7 @@ implementation
                   try_to_consume(_COLON) then
                 begin
                   pt.free;
-                  pt:=expr;
+                  pt:=expr(true);
                   if is_constintnode(pt) then
                     begin
                       tmpaddr:=abssym.addroffset shl 4+tordconstnode(pt).value.svalue;
