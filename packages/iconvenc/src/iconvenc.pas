@@ -59,7 +59,7 @@ Const
   {$endif}
 {$endif}
 
-{$if defined(darwin) and defined(cpupowerpc32)}
+{$if (defined(darwin) and defined(cpupowerpc32)) or defined(haiku)}
   iconvprefix='lib';  
 {$else}
   iconvprefix='';
