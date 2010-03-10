@@ -118,7 +118,7 @@ interface
 implementation
 
     uses
-      comphook,fmodule,constexp,globals;
+      comphook,fmodule,constexp,globals,cfileutl;
 
 {****************************************************************************
                        Extra Handlers for default compiler
@@ -422,6 +422,9 @@ implementation
               status.currentmodulestate:=ModuleStateStr[module.state];
               status.currentsource:=module.sourcefiles.get_file_name(current_filepos.fileindex);
               status.currentsourcepath:=module.sourcefiles.get_file_path(current_filepos.fileindex);
+              { if currentsourcepath is relative, make it absolute }
+              if not path_absolute(status.currentsourcepath) then
+                status.currentsourcepath:=GetCurrentDir+status.currentsourcepath;
 
               { update lastfileidx only if name known PM }
               if status.currentsource<>'' then
