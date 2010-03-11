@@ -2134,6 +2134,7 @@ packages/fcl-res/src/resreader.pp svneol=native#text/plain
 packages/fcl-res/src/reswriter.pp svneol=native#text/plain
 packages/fcl-res/src/stringtableresource.pp svneol=native#text/plain
 packages/fcl-res/src/strtable.pp svneol=native#text/plain
+packages/fcl-res/src/tlbreader.pp svneol=native#text/plain
 packages/fcl-res/src/versionconsts.pp svneol=native#text/plain
 packages/fcl-res/src/versionresource.pp svneol=native#text/plain
 packages/fcl-res/src/versiontypes.pp svneol=native#text/plain

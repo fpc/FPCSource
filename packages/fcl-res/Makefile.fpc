@@ -12,7 +12,7 @@ units=acceleratorsresource bitmapresource coffconsts coffreader cofftypes \
       externaltypes externalwriter fpcrestypes groupcursorresource groupiconresource \
       groupresource icocurtypes machoconsts machoreader machotypes machowriter \
       resdatastream resfactory resmerger resource resourcetree resreader reswriter \
-      stringtableresource strtable versionconsts versionresource versiontypes \
+      stringtableresource strtable tlbreader versionconsts versionresource versiontypes \
       winpeimagereader
 rsts=versiontypes stringtableresource resource resfactory
 
