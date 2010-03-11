@@ -320,7 +320,7 @@ const
   ResSignature : array [1..32] of byte =
   ($00,$00,$00,$00,$20,$00,$00,$00,$FF,$FF,$00,$00,$FF,$FF,$00,$00,
    $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00);
-  dfmexts : array[1..3] of string[4] = ('.lfm', '.dfm', '.xfm');
+  knownexts : array[1..4] of string[4] = ('.lfm', '.dfm', '.xfm', '.tlb');
 var
   f : file;
   oldfmode : byte;
@@ -331,9 +331,9 @@ begin
   ext:=lower(ExtractFileExt(fn));
   Result:=CompareText(ext, target_info.resext) = 0;
   if not Result then
-    for i:=1 to high(dfmexts) do
+    for i:=1 to high(knownexts) do
     begin
-      Result:=CompareText(ext, dfmexts[i]) = 0;
+      Result:=CompareText(ext, knownexts[i]) = 0;
       if Result then break;
     end;
 
