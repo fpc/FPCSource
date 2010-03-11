@@ -53,7 +53,6 @@ unit Cairo;
 interface
 
 Uses
-  Classes,
   CTypes;
 
 const
@@ -641,10 +640,6 @@ function  cairo_svg_version_to_string(version: cairo_svg_version_t): PChar; cdec
 
 procedure cairo_debug_reset_static_data; cdecl; external LIB_CAIRO;
 
-
-(* FreePascal helpers *)
-function cairo_write_fpstream_func(closure: Pointer; data: PByte; length: LongWord): cairo_status_t; cdecl;
-
 implementation
 
 procedure cairo_version(out major, minor, micro: LongInt);
@@ -655,14 +650,6 @@ begin
   major := version div 10000;
   minor := (version mod (major * 10000)) div 100;
   micro := (version mod ((major * 10000) + (minor * 100)));
-end;
-
-function cairo_write_fpstream_func(closure: Pointer; data: PByte; length: LongWord): cairo_status_t; cdecl;
-var
-  Stream: TStream absolute closure;
-begin
-  Stream.Write(data^, length);
-  Result := CAIRO_STATUS_SUCCESS;
 end;
 
 end.
