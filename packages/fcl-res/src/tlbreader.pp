@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 2008 by Giulio Bernardi
 
-    Resource reader for DFM files
+    Resource reader for TLB files
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
