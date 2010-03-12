@@ -532,9 +532,12 @@ begin
 end;
 
 function DBCompareText(subValue, aValue: pointer; options: TLocateOptions): LargeInt;
-
 begin
-  if loCaseInsensitive in options then
+  if [loCaseInsensitive,loPartialKey]=options then
+    Result := AnsiStrLIComp(pchar(subValue),pchar(aValue),length(pchar(subValue)))
+  else if [loPartialKey] = options then
+    Result := AnsiStrLComp(pchar(subValue),pchar(aValue),length(pchar(subValue)))
+  else if [loCaseInsensitive] = options then
     Result := AnsiCompareText(pchar(subValue),pchar(aValue))
   else
     Result := AnsiCompareStr(pchar(subValue),pchar(aValue));
@@ -2759,7 +2762,10 @@ begin
 
     SetLength(DBCompareStruct,FieldsAmount);
     for FieldNr:=0 to FieldsAmount-1 do
+      begin
       ProcessFieldCompareStruct(TField(SearchFields[FieldNr]),DBCompareStruct[FieldNr]);
+      DBCompareStruct[FieldNr].Options:=options;
+      end;
   finally
     SearchFields.Free;
   end;

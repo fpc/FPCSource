@@ -38,6 +38,7 @@ type
     procedure TestBookmarkValid;
 
     procedure TestLocate;
+    procedure TestLocateCaseIns;
 
     procedure TestFirst;
     procedure TestDelete1;
@@ -753,6 +754,24 @@ begin
 
     assertFalse(Locate('id;name',vararrayof([4,'TestName5']),[]));
 
+    end;
+end;
+
+procedure TTestDBBasics.TestLocateCaseIns;
+begin
+  with DBConnector.GetNDataset(true,13) do
+    begin
+    open;
+    assertfalse(Locate('name',vararrayof(['TEstName5']),[]));
+    asserttrue(Locate('name',vararrayof(['TEstName5']),[loCaseInsensitive]));
+    AssertEquals(5,FieldByName('id').AsInteger);
+
+    assertfalse(Locate('name',vararrayof(['TestN']),[]));
+    asserttrue(Locate('name',vararrayof(['TestN']),[loPartialKey]));
+
+    assertfalse(Locate('name',vararrayof(['TestNA']),[loPartialKey]));
+    asserttrue(Locate('name',vararrayof(['TestNA']),[loPartialKey, loCaseInsensitive]));
+    close;
     end;
 end;
 
