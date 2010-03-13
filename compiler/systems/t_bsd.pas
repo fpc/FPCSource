@@ -166,9 +166,9 @@ begin
              ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
 {$endif ndef cpu64bitaddr}
              if (apptype<>app_bundle) then
-               DllCmd[1]:='ld $PRTOBJ $OPT -dynamic -dylib -multiply_defined suppress -L. -o $EXE `cat $RES`'
+               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -dylib -multiply_defined suppress -L. -o $EXE `cat $RES`'
              else
-               DllCmd[1]:='ld $PRTOBJ $OPT -dynamic -bundle -multiply_defined suppress -L. -o $EXE `cat $RES`'
+               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -bundle -multiply_defined suppress -L. -o $EXE `cat $RES`'
            end
        end
      else
@@ -620,15 +620,25 @@ var
   cmdstr,
   extdbgbinstr,
   extdbgcmdstr  : TCmdStr;
+  GCSectionsStr : string[40];
   exportedsyms: text;
   success : boolean;
 begin
   MakeSharedLibrary:=false;
+  GCSectionsStr:='';
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.sharedlibfilename^);
 
 { Write used files and libraries }
   WriteResponseFile(true);
+
+  if (cs_link_smart in current_settings.globalswitches) and
+     (tf_smartlink_sections in target_info.flags) then
+    if not(target_info.system in systems_darwin) then
+     { disabled because not tested
+      GCSectionsStr:='--gc-sections' }
+    else
+      GCSectionsStr:='-dead_strip -no_dead_strip_inits_and_terms';
 
   InitStr:='-init FPC_LIB_START';
   FiniStr:='-fini FPC_LIB_EXIT';
@@ -645,6 +655,7 @@ begin
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$INIT',InitStr);
   Replace(cmdstr,'$FINI',FiniStr);
+  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
   if (target_info.system in systems_darwin) then
     Replace(cmdstr,'$PRTOBJ',GetDarwinPrtobjName(true));
