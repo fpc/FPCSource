@@ -2148,6 +2148,10 @@ begin
     if Assigned(DocNode.ErrorsDoc) then
       AppendDescrSection(AElement, BodyElement, DocNode.ErrorsDoc, SDocErrors);
 
+    // Append Version info
+    if Assigned(DocNode.Version) then
+      AppendDescrSection(AElement, BodyElement, DocNode.Version, SDocVersion);
+
     // Append "See also" section
     AppendSeeAlsoSection(AElement,DocNode);
 

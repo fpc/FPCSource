@@ -158,7 +158,7 @@ type
     Function InterpretOption(Const Cmd,Arg : String) : Boolean; Virtual;
     Class Procedure Usage(List : TStrings); virtual;
     procedure WriteDoc; virtual; Abstract;
-    procedure WriteDescr(Element: TPasElement);
+    Function WriteDescr(Element: TPasElement) : TDocNode;
     procedure WriteDescr(Element: TPasElement; DocNode: TDocNode);
     procedure WriteDescr(AContext: TPasElement; DescrNode: TDOMElement); virtual;
     Procedure FPDocError(Msg : String);
@@ -1038,10 +1038,11 @@ begin
   Inherited;
 end;
 
-procedure TFPDocWriter.WriteDescr(Element: TPasElement);
+Function TFPDocWriter.WriteDescr(Element: TPasElement) : TDocNode;
 
 begin
-  WriteDescr(ELement,Engine.FindDocNode(Element));
+  Result:=Engine.FindDocNode(Element);
+  WriteDescr(ELement,Result);
 end;
 
 procedure TFPDocWriter.WriteDescr(Element: TPasElement; DocNode: TDocNode);

@@ -58,6 +58,7 @@ Type
     Procedure StartDescription; override;
     Procedure StartAccess; override;
     Procedure StartErrors; override;
+    Procedure StartVersion; override;
     Procedure StartSeealso; override;
     Procedure EndSeealso; override;
     procedure StartUnitOverview(AModuleName,AModuleLabel : String);override;
@@ -595,6 +596,11 @@ Procedure TLatexWriter.StartErrors;
 
 begin
   Writeln('\Errors');
+end;
+
+procedure TLaTeXWriter.StartVersion;
+begin
+  Writeln('\VersionInfo');
 end;
 
 Procedure TLatexWriter.StartAccess;

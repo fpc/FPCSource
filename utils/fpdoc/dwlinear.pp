@@ -16,6 +16,7 @@ Type
     Module: TPasModule;
     ModuleName: String;
     FLastURL : DomString;
+  private
   Protected
     // Writing support.
     procedure Write(const s: String); virtual;
@@ -54,6 +55,7 @@ Type
     Procedure StartDescription; Virtual;
     Procedure StartAccess; Virtual;
     Procedure StartErrors; Virtual;
+    Procedure StartVersion; Virtual;
     Procedure StartSeealso; Virtual;
     Procedure EndSeealso; Virtual;
     // Procedures which MUST be overridden in descendents;
@@ -305,6 +307,13 @@ begin
   Writeln(SDocErrors+':');
 end;
 
+Procedure TLinearWriter.StartVersion;
+
+begin
+  Writeln('');
+  Writeln(SDocVersion+':');
+end;
+
 Procedure TLinearWriter.StartSeealso;
 
 begin
@@ -353,7 +362,12 @@ begin
     (not IsDescrNodeEmpty(DocNode.ShortDescr))) then
   begin
     StartSubSection(SDocDescription);
-    WriteDescr(ClassDecl);
+    WriteDescr(ClassDecl,DocNode);
+    If Assigned(DocNode.Version) then
+      begin
+      StartSubSection(SDocVersion);
+      WriteDescr(ClassDecl,DocNode.Version);
+      end;
   end;
 
   // Write method overview
@@ -539,6 +553,7 @@ procedure TLinearWriter.WriteResourceStrings(ASection: TPasSection);
 var
   ResStrDecl: TPasResString;
   i: Integer;
+  DocNode : TDocNode;
 begin
   if ASection.ResStrings.Count > 0 then
   begin
@@ -551,7 +566,12 @@ begin
       EndListing;
       WriteLabel(ResStrDecl);
       WriteIndex(ResStrDecl);
-      WriteDescr(ResStrDecl);
+      DocNode:=WriteDescr(ResStrDecl);
+      If Assigned(DocNode) and Assigned(DocNode.Version) then
+        begin
+        Writeln(Format('%s : ',[SDocVersion]));
+        WriteDescr(ResStrDecl, DocNode.Version);
+        end;
     end;
   end;
 end;
@@ -743,8 +763,13 @@ begin
         WriteENumElements(TypeDecl as TPasEnumType);
         end;
       WriteDescr(TypeDecl);
+      If Assigned(DocNode) and Assigned(DocNode.Version) then
+        begin
+        Writeln(Format('%s : ',[SDocVersion]));
+        WriteDescr(TypeDecl, DocNode.Version);
+        end;
       DescrEndParaGraph;
-    end;
+      end;
   end;
 end;
 
@@ -752,6 +777,8 @@ procedure TLinearWriter.WriteVars(ASection: TPasSection);
 var
   VarDecl: TPasVariable;
   i: Integer;
+  DocNode : TDocNode;
+
 begin
   if ASection.Variables.Count > 0 then
   begin
@@ -765,7 +792,12 @@ begin
       EndListing;
       WriteLabel(VarDecl);
       WriteIndex(VarDecl);
-      WriteDescr(VarDecl);
+      DocNode:=WriteDescr(VarDecl);
+      If Assigned(DocNode) and Assigned(DocNode.Version) then
+        begin
+        Writeln(Format('%s : ',[SDocVersion]));
+        WriteDescr(VarDecl, DocNode.Version);
+        end;
       DescrEndParaGraph;
     end;
   end;
@@ -817,19 +849,27 @@ begin
       StartVisibility;
       Writeln(VisibilityNames[Visibility])
       end;
-    if Assigned(DocNode) and Assigned(DocNode.Descr) then
+    if Assigned(DocNode) then
       begin
-      StartDescription;
-      WriteDescr(ProcDecl);
+      If Assigned(DocNode.Descr) then
+        begin
+        StartDescription;
+        WriteDescr(ProcDecl);
+        end;
+      if Assigned(DocNode.ErrorsDoc) then
+        begin
+        StartErrors;
+        WriteDescr(ProcDecl, DocNode.ErrorsDoc);
+        end;
+      if Assigned(DocNode.Version) then
+        begin
+        StartVersion;
+        WriteDescr(ProcDecl, DocNode.Version);
+        end;
+      WriteSeeAlso(DocNode);
+      EndProcedure;
+      WriteExample(DocNode);
       end;
-    if Assigned(DocNode) and Assigned(DocNode.ErrorsDoc) then
-      begin
-      StartErrors;
-      WriteDescr(ProcDecl, DocNode.ErrorsDoc);
-      end;
-    WriteSeeAlso(DocNode);
-    EndProcedure;
-    WriteExample(DocNode);
     end;
 end;
 
@@ -910,19 +950,27 @@ begin
       S:=S+'Write';
       end;
     Writeln(S);
-    if Assigned(DocNode) and Assigned(DocNode.Descr) then
+    if Assigned(DocNode) then
       begin
-      StartDescription;
-      WriteDescr(PropDecl);
+      if Assigned(DocNode.Descr) then
+        begin
+        StartDescription;
+        WriteDescr(PropDecl);
+        end;
+      if Assigned(DocNode.ErrorsDoc) then
+        begin
+        StartErrors;
+        WriteDescr(PropDecl, DocNode.ErrorsDoc);
+        end;
+      if Assigned(DocNode.Version) then
+        begin
+        StartVersion;
+        WriteDescr(PropDecl, DocNode.Version);
+        end;
+      WriteSeeAlso(DocNode);
+      EndProperty;
+      WriteExample(DocNode);
       end;
-    if Assigned(DocNode) and Assigned(DocNode.ErrorsDoc) then
-      begin
-      StartErrors;
-      WriteDescr(PropDecl, DocNode.ErrorsDoc);
-      end;
-    WriteSeeAlso(DocNode);
-    EndProperty;
-    WriteExample(DocNode);
     end;
 end;
 
