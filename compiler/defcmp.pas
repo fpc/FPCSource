@@ -34,10 +34,10 @@ interface
      type
        { if acp is cp_all the var const or nothing are considered equal }
        tcompare_paras_type = ( cp_none, cp_value_equal_const, cp_all,cp_procvar);
-       tcompare_paras_option = (cpo_allowdefaults,cpo_ignorehidden,cpo_allowconvert,cpo_comparedefaultvalue,cpo_openequalisexact);
+       tcompare_paras_option = (cpo_allowdefaults,cpo_ignorehidden,cpo_allowconvert,cpo_comparedefaultvalue,cpo_openequalisexact,cpo_ignoreuniv,cpo_warn_incompatible_univ);
        tcompare_paras_options = set of tcompare_paras_option;
 
-       tcompare_defs_option = (cdo_internal,cdo_explicit,cdo_check_operator,cdo_allow_variant,cdo_parameter);
+       tcompare_defs_option = (cdo_internal,cdo_explicit,cdo_check_operator,cdo_allow_variant,cdo_parameter,cdo_warn_incompatible_univ);
        tcompare_defs_options = set of tcompare_defs_option;
 
        tconverttype = (tc_none,
@@ -100,10 +100,13 @@ interface
     function is_subequal(def1, def2: tdef): boolean;
 
      {# true, if two parameter lists are equal
-      if acp is cp_none, all have to match exactly
+      if acp is cp_all, all have to match exactly
       if acp is cp_value_equal_const call by value
       and call by const parameter are assumed as
       equal
+      if acp is cp_procvar then the varspez have to match,
+      and all parameter types must be at least te_equal
+      if acp is cp_none, then we don't check the varspez at all
       allowdefaults indicates if default value parameters
       are allowed (in this case, the search order will first
       search for a routine with default parameters, before
@@ -114,7 +117,7 @@ interface
     { True if a function can be assigned to a procvar }
     { changed first argument type to pabstractprocdef so that it can also be }
     { used to test compatibility between two pprocvardefs (JM)               }
-    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef):tequaltype;
+    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;checkincompatibleuniv: boolean):tequaltype;
 
     { Parentdef is the definition of a method defined in a parent class or interface }
     { Childdef is the definition of a method defined in a child class, interface or  }
@@ -1186,7 +1189,7 @@ implementation
                      if (m_tp_procvar in current_settings.modeswitches) or
                         (m_mac_procvar in current_settings.modeswitches) then
                       begin
-                        subeq:=proc_to_procvar_equal(tprocdef(def_from),tprocvardef(def_to));
+                        subeq:=proc_to_procvar_equal(tprocdef(def_from),tprocvardef(def_to),cdo_warn_incompatible_univ in cdoptions);
                         if subeq>te_incompatible then
                          begin
                            doconv:=tc_proc_2_procvar;
@@ -1197,7 +1200,7 @@ implementation
                  procvardef :
                    begin
                      { procvar -> procvar }
-                     eq:=proc_to_procvar_equal(tprocvardef(def_from),tprocvardef(def_to));
+                     eq:=proc_to_procvar_equal(tprocvardef(def_from),tprocvardef(def_to),cdo_warn_incompatible_univ in cdoptions);
                    end;
                  pointerdef :
                    begin
@@ -1533,6 +1536,39 @@ implementation
       end;
 
 
+    function potentially_incompatible_univ_paras(def1, def2: tdef): boolean;
+      begin
+        result :=
+          { not entirely safe: different records can be passed differently
+            depending on the types of their fields, but they're hard to compare
+            (variant records, bitpacked vs non-bitpacked) }
+          ((def1.typ in [floatdef,recorddef,arraydef,filedef,variantdef]) and
+           (def1.typ<>def2.typ)) or
+          { pointers, ordinals and small sets are all passed the same}
+          (((def1.typ in [orddef,enumdef,pointerdef,procvardef,classrefdef]) or
+            (is_class_or_interface_or_objc(def1)) or
+            is_dynamic_array(def1) or
+            is_smallset(def1) or
+            is_ansistring(def1) or
+            is_unicodestring(def1)) <>
+           (def2.typ in [orddef,enumdef,pointerdef,procvardef,classrefdef]) or
+            (is_class_or_interface_or_objc(def2)) or
+            is_dynamic_array(def2) or
+             is_smallset(def2) or
+            is_ansistring(def2) or
+            is_unicodestring(def2)) or
+           { shortstrings }
+           (is_shortstring(def1)<>
+            is_shortstring(def2)) or
+           { winlike widestrings }
+           (is_widestring(def1)<>
+            is_widestring(def2)) or
+           { TP-style objects }
+           (is_object(def1) <>
+            is_object(def2));
+      end;
+
+
     function compare_paras(para1,para2 : TFPObjectList; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
       var
         currpara1,
@@ -1594,6 +1630,10 @@ implementation
                 case acp of
                   cp_value_equal_const :
                     begin
+                       { this one is used for matching parameters from a call
+                         statement to a procdef -> univ state can't be equal
+                         in any case since the call statement does not contain
+                         any information about that }
                        if (
                            (currpara1.varspez<>currpara2.varspez) and
                            ((currpara1.varspez in [vs_var,vs_out]) or
@@ -1605,7 +1645,10 @@ implementation
                     end;
                   cp_all :
                     begin
-                       if (currpara1.varspez<>currpara2.varspez) then
+                       { used to resolve forward definitions -> headers must
+                         match exactly, including the "univ" specifier }
+                       if (currpara1.varspez<>currpara2.varspez) or
+                          (currpara1.univpara<>currpara2.univpara) then
                          exit;
                        eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
                                             convtype,hpd,cdoptions);
@@ -1614,6 +1657,10 @@ implementation
                     begin
                        if (currpara1.varspez<>currpara2.varspez) then
                          exit;
+                       { "univ" state doesn't matter here: from univ to non-univ
+                          matches if the types are compatible (i.e., as usual),
+                          from from non-univ to univ also matches if the types
+                          have the same size (checked below) }
                        eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
                                             convtype,hpd,cdoptions);
                        { Parameters must be at least equal otherwise the are incompatible }
@@ -1627,7 +1674,30 @@ implementation
                end;
               { check type }
               if eq=te_incompatible then
-                exit;
+                begin
+                  { special case: "univ" parameters match if their size is equal }
+                  if not(cpo_ignoreuniv in cpoptions) and
+                     currpara2.univpara and
+                     is_valid_univ_para_type(currpara1.vardef) and
+                     (currpara1.vardef.size=currpara2.vardef.size) then
+                    begin
+                      { only pick as last choice }
+                      eq:=te_convert_l5;
+                      if (acp=cp_procvar) and
+                         (cpo_warn_incompatible_univ in cpoptions) then
+                        begin
+                          { if the types may be passed in different ways by the
+                            calling convention then this can lead to crashes
+                            (note: not an exhaustive check, and failing this
+                             this check does not mean things will crash on all
+                             platforms) }
+                          if potentially_incompatible_univ_paras(currpara1.vardef,currpara2.vardef) then
+                            Message2(type_w_procvar_univ_conflicting_para,currpara1.vardef.typename,currpara2.vardef.typename)
+                        end;
+                    end
+                  else
+                    exit;
+                end;
               { open strings can never match exactly, since you cannot define }
               { a separate "open string" type -> we have to be able to        }
               { consider those as exact when resolving forward definitions.   }
@@ -1676,10 +1746,11 @@ implementation
       end;
 
 
-    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef):tequaltype;
+    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef; checkincompatibleuniv: boolean):tequaltype;
       var
         eq : tequaltype;
         po_comp : tprocoptions;
+        pa_comp: tcompare_paras_options;
       begin
          proc_to_procvar_equal:=te_incompatible;
          if not(assigned(def1)) or not(assigned(def2)) then
@@ -1688,6 +1759,9 @@ implementation
          if (def1.is_methodpointer xor def2.is_methodpointer) or
             (def1.is_addressonly xor def2.is_addressonly) then
            exit;
+         pa_comp:=[];
+         if checkincompatibleuniv then
+           include(pa_comp,cpo_warn_incompatible_univ);
          { check return value and options, methodpointer is already checked }
          po_comp:=[po_staticmethod,po_interrupt,
                    po_iocheck,po_varargs];
@@ -1700,7 +1774,7 @@ implementation
             { return equal type based on the parameters, but a proc->procvar
               is never exact, so map an exact match of the parameters to
               te_equal }
-            eq:=compare_paras(def1.paras,def2.paras,cp_procvar,[]);
+            eq:=compare_paras(def1.paras,def2.paras,cp_procvar,pa_comp);
             if eq=te_exact then
              eq:=te_equal;
             proc_to_procvar_equal:=eq;

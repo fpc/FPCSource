@@ -254,6 +254,10 @@ interface
         signdness, the result will also get that signdness }
     function get_common_intdef(ld, rd: torddef; keep_sign_if_equal: boolean): torddef;
 
+    { # returns whether the type is potentially a valid type of/for an "univ" parameter
+        (basically: it must have a compile-time size) }
+    function is_valid_univ_para_type(def: tdef): boolean;
+
 implementation
 
     uses
@@ -1105,6 +1109,15 @@ implementation
             s64bit:
               result:=torddef(u64inttype);
           end;
+      end;
+
+
+    function is_valid_univ_para_type(def: tdef): boolean;
+      begin
+        result:=
+          not is_open_array(def) and
+          not is_void(def) and
+          (def.typ<>formaldef);
       end;
 
 end.

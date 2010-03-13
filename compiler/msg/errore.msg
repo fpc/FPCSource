@@ -368,7 +368,7 @@ scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN dire
 #
 # Parser
 #
-# 03284 is the last used one
+# 03287 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1293,11 +1293,14 @@ parser_e_more_array_elements_expected=03285_E_Expected another $1 array elements
 parser_e_string_const_too_long=03286_E_String constant too long while ansistrings are disabled
 % Only when a piece of code is compiled with ansistrings enabled (\var{\{\$H+\}}), string constants
 % longer than 255 characters are allowed.
+parser_e_invalid_univ_para=03287_E_Type cannot be used as univ parameter because its size is unknown at compile time: "$1"
+% \var{univ} parameters are compatible with all values of the same size, but this
+% cannot be checked in case a parameter's size is unknown at compile time.
 % \end{description}
 #
 # Type Checking
 #
-# 04094 is the last used one
+# 04095 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1613,8 +1616,32 @@ type_e_objc_type_unsupported=04092_E_The type "$1" is not supported for interact
 type_e_class_or_objcclass_type_expected=04093_E_Class or objcclass type expected, but got "$1"
 % It is only possible to create class reference types of \var{class} and \var{objcclass}
 type_e_objcclass_type_expected=04094_E_Objcclass type expected
-% The compiler expected an Objc
-% \var{objcclass} types
+% The compiler expected an \var{objcclass} type
+type_w_procvar_univ_conflicting_para=04095_W_Coerced univ parameter type in procedural variable may cause crash or memory corruption: $1 to $2
+% \var{univ} parameters are implicitly compatible with all types of the same size,
+% also in procedural variable definitions. That means that the following code is
+% legal, because \var{single} and \var{longint} have the same size:
+% \begin{verbatim}
+% {$mode macpas}
+% Type
+%   TIntProc = procedure (l: univ longint);
+%
+%   procedure test(s: single);
+%     begin
+%       writeln(s);
+%     end;
+%
+%   var
+%     p: TIntProc;
+%   begin
+%     p:=test;
+%     p(4);
+%   end.
+% \end{verbatim}
+% This code may however crash on platforms that pass integers in registers and
+% floating point values on the stack, because then the stack will be unbalanced.
+% Note that this warning will not flagg all potentially dangerous situations.
+% when \var{test} returns.
 %
 % \end{description}
 #

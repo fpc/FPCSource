@@ -269,7 +269,7 @@ implementation
               end;
 
             { compare parameter types only, no specifiers yet }
-            hasequalpara:=(compare_paras(vmtpd.paras,pd.paras,cp_none,[])>=te_equal);
+            hasequalpara:=(compare_paras(vmtpd.paras,pd.paras,cp_none,[cpo_ignoreuniv])>=te_equal);
 
             { check that we are not trying to override a final method }
             if (po_finalmethod in vmtpd.procoptions) and 
@@ -349,7 +349,7 @@ implementation
 
                     { All parameter specifiers and some procedure the flags have to match
                       except abstract and override }
-                    if (compare_paras(vmtpd.paras,pd.paras,cp_all,[])<te_equal) or
+                    if (compare_paras(vmtpd.paras,pd.paras,cp_all,[cpo_ignoreuniv])<te_equal) or
                        (vmtpd.proccalloption<>pd.proccalloption) or
                        (vmtpd.proctypeoption<>pd.proctypeoption) or
                        ((vmtpd.procoptions*po_comp)<>(pd.procoptions*po_comp)) then
@@ -429,7 +429,7 @@ implementation
                   begin
                     implprocdef:=tprocdef(tprocsym(srsym).ProcdefList[i]);
                     if (implprocdef.procsym=tprocsym(srsym)) and
-                       (compare_paras(proc.paras,implprocdef.paras,cp_all,[cpo_ignorehidden,cpo_comparedefaultvalue])>=te_equal) and
+                       (compare_paras(proc.paras,implprocdef.paras,cp_all,[cpo_ignorehidden,cpo_comparedefaultvalue,cpo_ignoreuniv])>=te_equal) and
                        (compare_defs(proc.returndef,implprocdef.returndef,nothingn)>=te_equal) and
                        (proc.proccalloption=implprocdef.proccalloption) and
                        (proc.proctypeoption=implprocdef.proctypeoption) and

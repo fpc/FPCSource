@@ -375,6 +375,7 @@ const
   parser_e_operator_not_overloaded_3=03284;
   parser_e_more_array_elements_expected=03285;
   parser_e_string_const_too_long=03286;
+  parser_e_invalid_univ_para=03287;
   type_e_mismatch=04000;
   type_e_incompatible_types=04001;
   type_e_not_equal_types=04002;
@@ -460,6 +461,7 @@ const
   type_e_objc_type_unsupported=04092;
   type_e_class_or_objcclass_type_expected=04093;
   type_e_objcclass_type_expected=04094;
+  type_w_procvar_univ_conflicting_para=04095;
   sym_e_id_not_found=05000;
   sym_f_internal_error_in_symtablestack=05001;
   sym_e_duplicate_id=05002;
@@ -852,9 +854,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 55890;
+  MsgTxtSize = 56081;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,88,287,95,80,51,110,22,202,63,
+    24,88,288,96,80,51,110,22,202,63,
     49,20,1,1,1,1,1,1,1,1
   );

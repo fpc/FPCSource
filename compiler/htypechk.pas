@@ -1590,7 +1590,7 @@ implementation
               if ((m_tp_procvar in current_settings.modeswitches) or
                   (m_mac_procvar in current_settings.modeswitches)) and
                  (p.left.nodetype=calln) and
-                 (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def_to))>=te_equal) then
+                 (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def_to),false)>=te_equal) then
                 eq:=te_equal
               else
                 if (m_mac_procvar in current_settings.modeswitches) and
@@ -1615,7 +1615,7 @@ implementation
                             (eq<>te_incompatible) do
                         begin
                           if (acn.left.nodetype=calln) then
-                            tmpeq:=proc_to_procvar_equal(tprocdef(tcallnode(acn.left).procdefinition),tprocvardef(tarraydef(def_to).elementdef))
+                            tmpeq:=proc_to_procvar_equal(tprocdef(tcallnode(acn.left).procdefinition),tprocvardef(tarraydef(def_to).elementdef),false)
                           else
                             tmpeq:=compare_defs(acn.left.resultdef,tarraydef(def_to).elementdef,acn.left.nodetype);
                           if tmpeq<eq then
@@ -2206,7 +2206,16 @@ implementation
                   end;
                end;
 
-              { when a procvar was changed to a call an exact much is
+              { univ parameters match if the size matches (don't override the
+                comparison result if it was ok, since a match based on the
+                "univ" character is the lowest possible match) }
+                if (eq=te_incompatible) and
+                   currpara.univpara and
+                   is_valid_univ_para_type(def_from) and
+                   (def_from.size=def_to.size) then
+                  eq:=te_convert_l5;
+
+               { when a procvar was changed to a call an exact match is
                 downgraded to equal. This way an overload call with the
                 procvar is choosen. See tb0471 (PFV) }
               if (pt<>currpt) and (eq=te_exact) then

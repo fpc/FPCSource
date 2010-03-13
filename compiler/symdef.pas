@@ -2900,6 +2900,8 @@ implementation
                  vs_out :
                    s:=s+'out ';
                end;
+               if hp.univpara then
+                 s:=s+'univ ';
                if assigned(hp.vardef.typesym) then
                  begin
                    hs:=hp.vardef.typesym.realname;

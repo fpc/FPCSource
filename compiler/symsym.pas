@@ -180,6 +180,10 @@ interface
       tparavarsym = class(tabstractnormalvarsym)
           paraloc       : array[tcallercallee] of TCGPara;
           paranr        : word; { position of this parameter }
+          { in MacPas mode, "univ" parameters mean that type checking should
+            be disabled, except that the size of the passed parameter must
+            match the size of the formal parameter }
+          univpara      : boolean;
 {$ifdef EXTDEBUG}
           eqval         : tequaltype;
 {$endif EXTDEBUG}
@@ -695,7 +699,7 @@ implementation
         for i:=0 to ProcdefList.Count-1 do
           begin
             pd:=tprocdef(ProcdefList[i]);
-            eq:=proc_to_procvar_equal(pd,d);
+            eq:=proc_to_procvar_equal(pd,d,false);
             if eq>=te_equal then
               begin
                 { multiple procvars with the same equal level }
@@ -1401,6 +1405,7 @@ implementation
       begin
          inherited ppuload(paravarsym,ppufile);
          paranr:=ppufile.getword;
+         univpara:=boolean(ppufile.getbyte);
 
          { The var state of parameter symbols is fixed after writing them so
            we write them to the unit file.
@@ -1429,6 +1434,7 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putword(paranr);
+         ppufile.putbyte(byte(univpara));
 
          { The var state of parameter symbols is fixed after writing them so
            we write them to the unit file.

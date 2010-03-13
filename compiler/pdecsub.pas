@@ -428,7 +428,8 @@ implementation
         paranr : integer;
         dummytype : ttypesym;
         explicit_paraloc,
-        need_array: boolean;
+        need_array,
+        is_univ: boolean;
       begin
         old_block_type:=block_type;
         explicit_paraloc:=false;
@@ -446,6 +447,7 @@ implementation
         paranr:=0;
         inc(testcurobject);
         block_type:=bt_var;
+        is_univ:=false;
         repeat
           parseprocvar:=pv_none;
           if try_to_consume(_VAR) then
@@ -560,7 +562,8 @@ implementation
              else
               begin
                 if (m_mac in current_settings.modeswitches) then
-                  try_to_consume(_UNIV); {currently does nothing}
+                  is_univ:=try_to_consume(_UNIV);
+
                 if try_to_consume(_TYPE) then
                   hdef:=ctypedformaltype
                 else
@@ -645,9 +648,16 @@ implementation
              not(varspez in [vs_out,vs_var]) then
             CGMessage(cg_e_file_must_call_by_reference);
 
+          { univ cannot be used with types whose size is not known at compile
+            time }
+          if is_univ and
+             not is_valid_univ_para_type(hdef) then
+            Message1(parser_e_invalid_univ_para,hdef.typename);
+
           for i:=0 to sc.count-1 do
             begin
               vs:=tparavarsym(sc[i]);
+              vs.univpara:=is_univ;
               { update varsym }
               vs.vardef:=hdef;
               vs.defaultconstsym:=defaultvalue;
@@ -2754,7 +2764,7 @@ const
               { check arguments, we need to check only the user visible parameters. The hidden parameters
                 can be in a different location because of the calling convention, eg. L-R vs. R-L order (PFV) }
               (
-               (compare_paras(currpd.paras,fwpd.paras,cp_none,[cpo_comparedefaultvalue,cpo_ignorehidden,cpo_openequalisexact])=te_exact) and
+               (compare_paras(currpd.paras,fwpd.paras,cp_none,[cpo_comparedefaultvalue,cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv])=te_exact) and
                (fwpd.returndef=currpd.returndef)
               ) then
              begin
@@ -2767,9 +2777,9 @@ const
 
                    if not(m_repeat_forward in current_settings.modeswitches) and
                       (fwpd.proccalloption<>currpd.proccalloption) then
-                     paracompopt:=[cpo_ignorehidden,cpo_comparedefaultvalue,cpo_openequalisexact]
+                     paracompopt:=[cpo_ignorehidden,cpo_comparedefaultvalue,cpo_openequalisexact,cpo_ignoreuniv]
                    else
-                     paracompopt:=[cpo_comparedefaultvalue,cpo_openequalisexact];
+                     paracompopt:=[cpo_comparedefaultvalue,cpo_openequalisexact,cpo_ignoreuniv];
 
                    { Check calling convention }
                    if (fwpd.proccalloption<>currpd.proccalloption) then

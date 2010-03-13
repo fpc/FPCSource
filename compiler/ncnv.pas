@@ -213,6 +213,7 @@ interface
        cisnode : tisnodeclass;
 
     procedure inserttypeconv(var p:tnode;def:tdef);
+    procedure inserttypeconv_explicit(var p:tnode;def:tdef);
     procedure inserttypeconv_internal(var p:tnode;def:tdef);
     procedure arrayconstructor_to_set(var p : tnode);
     procedure insert_varargstypeconv(var p : tnode; iscvarargs: boolean);
@@ -232,8 +233,10 @@ implementation
 {*****************************************************************************
                                    Helpers
 *****************************************************************************}
+    type
+      ttypeconvnodetype = (tct_implicit,tct_explicit,tct_internal);
 
-    procedure inserttypeconv(var p:tnode;def:tdef);
+    procedure do_inserttypeconv(var p: tnode;def: tdef; convtype: ttypeconvnodetype);
 
       begin
         if not assigned(p.resultdef) then
@@ -251,35 +254,37 @@ implementation
           p.resultdef:=def
         else
          begin
-           p:=ctypeconvnode.create(p,def);
+           case convtype of
+             tct_implicit:
+               p:=ctypeconvnode.create(p,def);
+             tct_explicit:
+               p:=ctypeconvnode.create_explicit(p,def);
+             tct_internal:
+               p:=ctypeconvnode.create_internal(p,def);
+           end;
            p.fileinfo:=ttypeconvnode(p).left.fileinfo;
            typecheckpass(p);
          end;
       end;
 
 
+    procedure inserttypeconv(var p:tnode;def:tdef);
+
+      begin
+        do_inserttypeconv(p,def,tct_implicit);
+      end;
+
+
+    procedure inserttypeconv_explicit(var p: tnode; def: tdef);
+
+      begin
+        do_inserttypeconv(p,def,tct_explicit);
+      end;
+
     procedure inserttypeconv_internal(var p:tnode;def:tdef);
 
       begin
-        if not assigned(p.resultdef) then
-         begin
-           typecheckpass(p);
-           if codegenerror then
-            exit;
-         end;
-
-        { don't insert superfluous type conversions, but
-          in case of bitpacked accesses, the original type must
-          remain too so that not too many/few bits are laoded }
-        if equal_defs(p.resultdef,def) and
-           not is_bitpacked_access(p) then
-          p.resultdef:=def
-        else
-         begin
-           p:=ctypeconvnode.create_internal(p,def);
-           p.fileinfo:=ttypeconvnode(p).left.fileinfo;
-           typecheckpass(p);
-         end;
+        do_inserttypeconv(p,def,tct_internal);
       end;
 
 
@@ -1684,7 +1689,7 @@ implementation
 
         if convtype=tc_none then
           begin
-            cdoptions:=[cdo_check_operator,cdo_allow_variant];
+            cdoptions:=[cdo_check_operator,cdo_allow_variant,cdo_warn_incompatible_univ];
             if nf_explicit in flags then
               include(cdoptions,cdo_explicit);
             if nf_internal in flags then
@@ -1785,7 +1790,7 @@ implementation
                      { Now check if the procedure we are going to assign to
                        the procvar, is compatible with the procvar's type }
                      if not(nf_explicit in flags) and
-                        (proc_to_procvar_equal(currprocdef,tprocvardef(resultdef))=te_incompatible) then
+                        (proc_to_procvar_equal(currprocdef,tprocvardef(resultdef),false)=te_incompatible) then
                        IncompatibleTypes(left.resultdef,resultdef);
                      exit;
                    end;

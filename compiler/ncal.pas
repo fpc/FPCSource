@@ -658,7 +658,7 @@ implementation
            begin
              { Convert tp procvars, this is needs to be done
                here to make the change permanent. in the overload
-               choosing the changes are only made temporary }
+               choosing the changes are only made temporarily }
              if (left.resultdef.typ=procvardef) and
                 not(parasym.vardef.typ in [procvardef,formaldef]) then
                begin
@@ -738,7 +738,8 @@ implementation
                  { test conversions }
                  if not(is_shortstring(left.resultdef) and
                         is_shortstring(parasym.vardef)) and
-                    (parasym.vardef.typ<>formaldef) then
+                    (parasym.vardef.typ<>formaldef) and
+                    not(parasym.univpara) then
                    begin
                       { Process open parameters }
                       if paramanager.push_high_param(parasym.varspez,parasym.vardef,aktcallnode.procdefinition.proccalloption) then
@@ -805,6 +806,29 @@ implementation
                      CGMessagePos(left.fileinfo,type_e_strict_var_string_violation);
                    end;
 
+                 { passing a value to an "univ" parameter implies an explicit
+                   typecast to the parameter type. Must be done before the
+                   valid_for_var() check, since the typecast can result in
+                   an invalid lvalue in case of var/out parameters. }
+                 if (parasym.univpara) then
+                   begin
+                     { load procvar if a procedure is passed }
+                     if ((m_tp_procvar in current_settings.modeswitches) or
+                         (m_mac_procvar in current_settings.modeswitches)) and
+                        (left.nodetype=calln) and
+                        (is_void(left.resultdef)) then
+                       begin
+                         load_procvar_from_calln(left);
+                         { load_procvar_from_calln() creates a loadn for a
+                           a procedure, which means that the type conversion
+                           below will type convert the first instruction
+                           bytes of the procedure -> convert to a procvar }
+                         left:=ctypeconvnode.create_proc_to_procvar(left);
+                         typecheckpass(left);
+                       end;
+                     inserttypeconv_explicit(left,parasym.vardef);
+                   end;
+
                  { Handle formal parameters separate }
                  if (parasym.vardef.typ=formaldef) then
                    begin
@@ -844,7 +868,7 @@ implementation
                    parameter and we can pass the address transparently (but
                    that is handled by make_not_regable if ra_addr_regable is
                    passed, and make_not_regable always needs to called for
-                   the ra_addr_taken info for non-invisble parameters }
+                   the ra_addr_taken info for non-invisble parameters) }
                  if (
                      not(
                          (vo_is_hidden_para in parasym.varoptions) and
