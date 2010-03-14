@@ -1641,7 +1641,6 @@ implementation
              begin
                initwidestring(pw);
                setlengthwidestring(pw,ppufile.getlongint);
-               pw^.len:=pw^.maxlen;
                { don't use getdata, because the compilerwidechars may have to
                  be byteswapped
                }
