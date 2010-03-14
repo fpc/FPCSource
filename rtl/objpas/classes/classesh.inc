@@ -505,6 +505,7 @@ type
     function GetNamePath: string; override;
     function Insert(Index: Integer): TCollectionItem;
     function FindItemID(ID: Integer): TCollectionItem;
+    procedure Exchange(Const Index1, index2: integer);
     procedure Sort(Const Compare : TCollectionSortCompare);
     property Count: Integer read GetCount;
     property ItemClass: TCollectionItemClass read FItemClass;

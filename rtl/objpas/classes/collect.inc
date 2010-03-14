@@ -389,6 +389,12 @@ begin
   end;
 end;
 
+procedure TCollection.Exchange(Const Index1, index2: integer);
+
+begin
+  FItems.Exchange(Index1,Index2);
+end;
+
 
 {****************************************************************************}
 {*                             TOwnedCollection                             *}
