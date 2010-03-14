@@ -168,7 +168,19 @@ begin
 
     // Write msg entry
     WriteLn(f, '#: ', item.ModuleName, ':', item.ConstName);
-    WriteLn(f, 'msgid "', s, '"');
+    j := Pos('\n', s);
+    if j > 0 then begin
+      WriteLn(f, 'msgid ""');
+      while j > 0 do begin
+        Writeln(f, '"',copy(s, 1, j+1),'"');
+        Delete(s, 1, j+1);
+        j := Pos('\n', s);
+      end;
+      if s <> '' then
+        Writeln(f, '"',s,'"');
+    end
+    else
+      WriteLn(f, 'msgid "', s, '"');
     WriteLn(f, 'msgstr ""');
     WriteLn(f);
   end;
