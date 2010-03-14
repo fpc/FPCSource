@@ -1775,6 +1775,7 @@ begin
              write  (space,' DefaultConst : ');
              readderef('');
              writeln(space,'       ParaNr : ',getword);
+             writeln(space,'        Univ  : ',boolean(getbyte));
              writeln(space,'     VarState : ',getbyte);
              if (vo_has_explicit_paraloc in varoptions) then
                begin
