@@ -620,7 +620,7 @@ var
   cmdstr,
   extdbgbinstr,
   extdbgcmdstr  : TCmdStr;
-  GCSectionsStr : string[40];
+  GCSectionsStr : string[63];
   exportedsyms: text;
   success : boolean;
 begin
