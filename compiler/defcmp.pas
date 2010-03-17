@@ -34,7 +34,17 @@ interface
      type
        { if acp is cp_all the var const or nothing are considered equal }
        tcompare_paras_type = ( cp_none, cp_value_equal_const, cp_all,cp_procvar);
-       tcompare_paras_option = (cpo_allowdefaults,cpo_ignorehidden,cpo_allowconvert,cpo_comparedefaultvalue,cpo_openequalisexact,cpo_ignoreuniv,cpo_warn_incompatible_univ);
+       tcompare_paras_option = (
+          cpo_allowdefaults,
+          cpo_ignorehidden,           // ignore hidden parameters
+          cpo_allowconvert,
+          cpo_comparedefaultvalue,
+          cpo_openequalisexact,
+          cpo_ignoreuniv,
+          cpo_warn_incompatible_univ,
+          cpo_ignorevarspez           // ignore parameter access type
+       );
+
        tcompare_paras_options = set of tcompare_paras_option;
 
        tcompare_defs_option = (cdo_internal,cdo_explicit,cdo_check_operator,cdo_allow_variant,cdo_parameter,cdo_warn_incompatible_univ);
@@ -1619,7 +1629,8 @@ implementation
                 if not(vo_is_self in currpara1.varoptions) and
                    not(vo_is_self in currpara2.varoptions) then
                  begin
-                   if (currpara1.varspez<>currpara2.varspez) then
+                   if not(cpo_ignorevarspez in cpoptions) and
+                      (currpara1.varspez<>currpara2.varspez) then
                     exit;
                    eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
                                         convtype,hpd,cdoptions);
@@ -1635,6 +1646,7 @@ implementation
                          in any case since the call statement does not contain
                          any information about that }
                        if (
+                           not(cpo_ignorevarspez in cpoptions) and
                            (currpara1.varspez<>currpara2.varspez) and
                            ((currpara1.varspez in [vs_var,vs_out]) or
                             (currpara2.varspez in [vs_var,vs_out]))
@@ -1647,7 +1659,8 @@ implementation
                     begin
                        { used to resolve forward definitions -> headers must
                          match exactly, including the "univ" specifier }
-                       if (currpara1.varspez<>currpara2.varspez) or
+                       if (not(cpo_ignorevarspez in cpoptions) and
+                           (currpara1.varspez<>currpara2.varspez)) or
                           (currpara1.univpara<>currpara2.univpara) then
                          exit;
                        eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
@@ -1655,7 +1668,8 @@ implementation
                     end;
                   cp_procvar :
                     begin
-                       if (currpara1.varspez<>currpara2.varspez) then
+                       if not(cpo_ignorevarspez in cpoptions) and
+                          (currpara1.varspez<>currpara2.varspez) then
                          exit;
                        { "univ" state doesn't matter here: from univ to non-univ
                           matches if the types are compatible (i.e., as usual),

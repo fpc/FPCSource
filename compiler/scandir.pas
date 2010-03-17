@@ -1087,6 +1087,11 @@ unit scandir;
             end;
       end;
 
+    procedure dir_varpropsetter;
+      begin
+        do_localswitch(cs_varpropsetter);
+      end;
+
     procedure dir_varstringchecks;
       begin
         do_delphiswitch('V');
@@ -1454,6 +1459,7 @@ unit scandir;
         AddDirective('TYPEDADDRESS',directive_all, @dir_typedaddress);
         AddDirective('TYPEINFO',directive_all, @dir_typeinfo);
         AddDirective('UNITPATH',directive_all, @dir_unitpath);
+        AddDirective('VARPROPSETTER',directive_all, @dir_varpropsetter);
         AddDirective('VARSTRINGCHECKS',directive_all, @dir_varstringchecks);
         AddDirective('VERSION',directive_all, @dir_version);
         AddDirective('WAIT',directive_all, @dir_wait);

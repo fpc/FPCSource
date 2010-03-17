@@ -536,7 +536,10 @@ implementation
                           { Insert hidden parameters }
                           handle_calling_convention(writeprocdef);
                           { search procdefs matching writeprocdef }
-                          p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults]);
+                          if cs_varpropsetter in current_settings.localswitches then
+                            p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults,cpo_ignorevarspez])
+                          else
+                            p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults]);
                           if not assigned(p.propaccesslist[palt_write].procdef) then
                             Message(parser_e_ill_property_access_sym);
                         end;
