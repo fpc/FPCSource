@@ -52,6 +52,14 @@ Abstract:
 { For the latest updates, visit Delphi3D: http://www.delphi3d.net              }
 {******************************************************************************}
 
+
+{******************************************************************************}
+{  									       }
+{ WARNING: CALLBACKS IN THIS UNIT MIGHT REQUIRE STDCALL; AS CC WITH SOME       }
+{ GLU/GLUT DLLS IN ROULATION                                                   }
+{                                                                              }
+{******************************************************************************}
+
 {$MACRO ON}
 {$MODE Delphi}
 {$IFDEF Windows}
