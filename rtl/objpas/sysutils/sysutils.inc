@@ -629,7 +629,7 @@ begin
     {$ELSE}
     GetRandomBytes(GUID,SizeOf(Guid));
     guid.clock_seq_hi_and_reserved:=(guid.clock_seq_hi_and_reserved and $3F) + 64;
-    guid.time_hi_and_version      :=(time_hi_and_version and $0FFF)+ $4000;
+    guid.time_hi_and_version      :=(guid.time_hi_and_version and $0FFF)+ $4000;
     Result:=0;
     {$ENDIF}
     end;
