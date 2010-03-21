@@ -1561,9 +1561,15 @@ Begin
     for Windows compatibility: it allows both '/' and '\'
     as directory separator. We don't want that behaviour
     here, since 'abc\' is a valid file name under Unix.
+	
+	(mantis 15836) On the other hand, many archives on 
+	 windows have '/' as pathseparator, even Windows 
+	 generated .odt files. So we disable this for windows.
   }
   OldDirectorySeparators:=AllowDirectorySeparators;
+  {$ifndef Windows}
   AllowDirectorySeparators:=[DirectorySeparator];
+  {$endif}
   Path:=ExtractFilePath(OutFileName);
   OutStream:=Nil;
   If Assigned(FOnCreateStream) then
@@ -1576,10 +1582,12 @@ Begin
     AllowDirectorySeparators:=OldDirectorySeparators;
     OutStream:=TFileStream.Create(OutFileName,fmCreate);
     end;
-
+	
+  AllowDirectorySeparators:=OldDirectorySeparators;
   Result:=True;
   If Assigned(FOnStartFile) then
     FOnStartFile(Self,OutFileName);
+	
 End;
 
 

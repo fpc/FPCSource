@@ -20,7 +20,7 @@ begin
   FileName:=paramstr(1);
   if not fileexists(FileName) then
     Usage;
-  edir:=extractfilename(filename)+'extractiondir';
+  edir:=extractfilename(filename)+'.extractiondir';
   mkdir(edir);
   unzipper:=TUnzipper.create;
   unzipper.FileName:=FileName;
