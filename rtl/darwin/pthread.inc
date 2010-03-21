@@ -55,6 +55,7 @@ function  pthread_self:pthread_t; cdecl;external 'c';
 function  pthread_mutex_init (p:ppthread_mutex_t;o:ppthread_mutexattr_t):cint; cdecl;external 'c';
 function  pthread_mutex_destroy (p:ppthread_mutex_t):cint; cdecl;external 'c';
 function  pthread_mutex_lock    (p:ppthread_mutex_t):cint; cdecl;external 'c';
+function  pthread_mutex_trylock (p:ppthread_mutex_t):cint; cdecl;external 'c';
 function  pthread_mutex_unlock  (p:ppthread_mutex_t):cint; cdecl;external 'c';
 function  pthread_cancel(_para1:pthread_t):cint;cdecl;external 'c';
 function  pthread_detach(_para1:pthread_t):cint;cdecl;external 'c';
