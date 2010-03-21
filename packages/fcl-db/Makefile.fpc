@@ -32,8 +32,11 @@ fpcpackage=y
 [default]
 fpcdir=../..
 
-
 [rules]
+distclean: $(addsuffix _distclean,$(TARGET_DIRS)) fpc_distclean 
+clean: $(addsuffix _clean,$(TARGET_DIRS)) fpc_clean
+cleanall: $(addsuffix _cleanall,$(TARGET_DIRS)) fpc_cleanall
+
 .NOTPARALLEL:
 
 src/export_all: src/base_all src/dbase_all
