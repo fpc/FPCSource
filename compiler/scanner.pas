@@ -3494,7 +3494,7 @@ In case not, the value returned can be arbitrary.
 
              '&' :
                begin
-                 if m_fpc in current_settings.modeswitches then
+                 if [m_fpc,m_delphi] * current_settings.modeswitches <> [] then
                   begin
                     readnumber;
                     if length(pattern)=1 then
