@@ -1417,11 +1417,18 @@ implementation
         len : integer;
         loadconst : boolean;
         hightree,l,r : tnode;
+        defkind: tdeftyp;
       begin
         len:=-1;
         loadconst:=true;
         hightree:=nil;
-        case p.resultdef.typ of
+        { constant strings are internally stored as array of char, but if the
+          parameter is a string also treat it like one  }
+        defkind:=p.resultdef.typ;
+        if (p.nodetype=stringconstn) and
+           (paradef.typ=stringdef) then
+          defkind:=stringdef;
+        case defkind of
           arraydef :
             begin
               if (paradef.typ<>arraydef) then
@@ -1510,7 +1517,14 @@ implementation
             begin
               if is_open_string(paradef) then
                begin
-                 maybe_load_in_temp(p);
+                 { a stringconstn is not a simple parameter and hence would be
+                   loaded in a temp, but in that case the high() node
+                     a) goes wrong (it cannot deal with a temp node)
+                     b) would give a generic result instead of one specific to
+                        this constant string
+                 }
+                 if p.nodetype<>stringconstn then
+                   maybe_load_in_temp(p);
                  { handle via a normal inline in_high_x node }
                  loadconst := false;
                  hightree := geninlinenode(in_high_x,false,p.getcopy);
