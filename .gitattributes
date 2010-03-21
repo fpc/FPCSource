@@ -1548,6 +1548,7 @@ packages/fcl-base/examples/b64test2.pp svneol=native#text/plain
 packages/fcl-base/examples/base64decodingtestcase.pas svneol=native#text/plain
 packages/fcl-base/examples/cachetest.pp svneol=native#text/plain
 packages/fcl-base/examples/cfgtest.pp svneol=native#text/plain
+packages/fcl-base/examples/crittest.pp svneol=native#text/plain
 packages/fcl-base/examples/daemon.pp svneol=native#text/plain
 packages/fcl-base/examples/daemon.txt svneol=native#text/plain
 packages/fcl-base/examples/dbugsrv.pp svneol=native#text/plain

@@ -35,6 +35,7 @@ type
   TThreadGetPriorityHandler = Function (threadHandle : TThreadID): longint;
   TGetCurrentThreadIdHandler = Function : TThreadID;
   TCriticalSectionHandler = Procedure (var cs);
+  TCriticalSectionHandlerTryEnter = function (var cs):longint;
   TInitThreadVarHandler = Procedure(var offset : dword;size : dword);
   TRelocateThreadVarHandler = Function(offset : dword) : pointer;
   TAllocateThreadVarsHandler = Procedure;
@@ -69,6 +70,7 @@ type
     InitCriticalSection    : TCriticalSectionHandler;
     DoneCriticalSection    : TCriticalSectionHandler;
     EnterCriticalSection   : TCriticalSectionHandler;
+    TryEnterCriticalSection: TCriticalSectionHandlerTryEnter;
     LeaveCriticalSection   : TCriticalSectionHandler;
     InitThreadVar          : TInitThreadVarHandler;
     RelocateThreadVar      : TRelocateThreadVarHandler;
@@ -146,7 +148,7 @@ procedure InitCriticalSection(var cs : TRTLCriticalSection);
 procedure DoneCriticalsection(var cs : TRTLCriticalSection);
 procedure EnterCriticalsection(var cs : TRTLCriticalSection);
 procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
-
+function  TryEnterCriticalsection(var cs : TRTLCriticalSection):longint;
 function  BasicEventCreate(EventAttributes : Pointer; AManualReset,InitialState : Boolean;const Name : ansistring):pEventState;
 procedure basiceventdestroy(state:peventstate);
 procedure basiceventResetEvent(state:peventstate);

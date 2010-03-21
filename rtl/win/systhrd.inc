@@ -65,6 +65,9 @@ procedure WinDoneCriticalSection(var cs : TRTLCriticalSection);
 procedure WinEnterCriticalSection(var cs : TRTLCriticalSection);
   {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'EnterCriticalSection';
 
+function  WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
+  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'TryEnterCriticalSection';
+
 procedure WinLeaveCriticalSection(var cs : TRTLCriticalSection);
   {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'LeaveCriticalSection';
 
@@ -343,6 +346,10 @@ begin
   WinEnterCriticalSection(PRTLCriticalSection(@cs)^);
 end;
 
+function SysTryEnterCriticalSection(var cs):longint;
+begin
+  result:=WinTryEnterCriticalSection(PRTLCriticalSection(@cs)^);
+end;
 
 procedure SySLeaveCriticalSection(var cs);
 begin
@@ -461,6 +468,7 @@ begin
     InitCriticalSection    :=@SysInitCriticalSection;
     DoneCriticalSection    :=@SysDoneCriticalSection;
     EnterCriticalSection   :=@SysEnterCriticalSection;
+    TryEnterCriticalSection:=@SysTryEnterCriticalSection;
     LeaveCriticalSection   :=@SysLeaveCriticalSection;
     InitThreadVar          :=@SysInitThreadVar;
     RelocateThreadVar      :=@SysRelocateThreadVar;

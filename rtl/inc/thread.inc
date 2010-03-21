@@ -196,6 +196,12 @@ begin
   CurrentTM.EnterCriticalSection(cs);
 end;
 
+function TryEnterCriticalsection(var cs : TRTLCriticalSection):longint;
+
+begin
+  result:=CurrentTM.TryEnterCriticalSection(cs);
+end;
+
 procedure LeaveCriticalsection(var cs : TRTLCriticalSection);
 
 begin
@@ -381,6 +387,15 @@ begin
 end;
 
 procedure NoCriticalSection(var CS);
+
+begin
+  if IsMultiThread then
+    NoThreadError
+  else
+    ThreadingAlreadyUsed:=true;
+end;
+
+function NoTryEnterCriticalSection(var CS):longint;
 
 begin
   if IsMultiThread then
@@ -578,6 +593,7 @@ begin
     InitCriticalSection    :=@NoCriticalSection;
     DoneCriticalSection    :=@NoCriticalSection;
     EnterCriticalSection   :=@NoCriticalSection;
+    TryEnterCriticalSection:=@NoTryEnterCriticalSection;
     LeaveCriticalSection   :=@NoCriticalSection;
     InitThreadVar          :=@NoInitThreadVar;
     RelocateThreadVar      :=@NoRelocateThreadVar;

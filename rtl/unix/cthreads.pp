@@ -431,6 +431,14 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
            fpc_threaderror
       end;
 
+    function CTryEnterCriticalSection(var CS):longint;
+      begin
+         if pthread_mutex_Trylock(@CS)=0 then
+           result:=1  // succes
+         else
+           result:=0; // failure
+      end;
+
     procedure CLeaveCriticalSection(var CS);
       begin
          if pthread_mutex_unlock(@CS) <> 0 then
@@ -943,6 +951,7 @@ begin
     InitCriticalSection    :=@CInitCriticalSection;
     DoneCriticalSection    :=@CDoneCriticalSection;
     EnterCriticalSection   :=@CEnterCriticalSection;
+    TryEnterCriticalSection:=@CTryEnterCriticalSection;
     LeaveCriticalSection   :=@CLeaveCriticalSection;
     InitThreadVar          :=@CInitThreadVar;
     RelocateThreadVar      :=@CRelocateThreadVar;

@@ -42,6 +42,7 @@ type
       procedure Acquire;override;
       procedure Release;override;
       procedure Enter;
+      function  TryEnter:boolean;
       procedure Leave;
       constructor Create;
       destructor Destroy;override;
@@ -100,6 +101,10 @@ begin
   Release;
 end;
 
+function  TCriticalSection.TryEnter:boolean;
+begin
+  result:=TryEnterCriticalSection(CriticalSection)<>0;
+end;
 
 procedure TCriticalSection.Acquire;
 
