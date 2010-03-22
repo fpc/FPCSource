@@ -158,7 +158,6 @@ ResourceString
   SInvalidImage                 = 'Invalid stream format';
   SInvalidImageList             = 'Invalid ImageList';
   SInvalidImageSize             = 'Invalid image size';
-  SInvalidJulianDate            = '%f Julian cannot be represented as a DateTime';
   SInvalidMask                  = '"%s" is not a valid mask at (%d)';
   SInvalidMemoSize              = 'Text larger than memo capacity';
   SInvalidMetafile              = 'Invalid Metafile';
