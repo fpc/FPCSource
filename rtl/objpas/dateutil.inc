@@ -2047,7 +2047,7 @@ var
   a,b,c,d,e,m:integer;
   day,month,year: word;
 begin
-  a := round(AValue + 32044);
+  a := trunc(AValue + 32044.5);
   b := (4*a + 3) div 146097;
   c := a - (146097*b div 4);
   d := (4*c + 3) div 1461;
