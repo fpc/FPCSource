@@ -458,7 +458,7 @@ implementation
                    else
                      begin
                        id_type(def,isforwarddef);
-                       { handle types inside classes for generics, e.g. TNode.TLongint }
+                       { handle types inside classes, e.g. TNode.TLongint }
                        while (token=_POINT) do
                          begin
                            if parse_generic then
@@ -466,7 +466,7 @@ implementation
                                 consume(_POINT);
                                 consume(_ID);
                              end
-                            else if ((def.typ=objectdef) and (df_specialization in def.defoptions)) then
+                            else if is_class(def) then
                               begin
                                 symtablestack.push(tobjectdef(def).symtable);
                                 consume(_POINT);
