@@ -911,14 +911,15 @@ begin
         exit(nil);
       poc := poschunk(pointer(pmc)-fixedfirstoffset);
     end;
+  prefetch(poc^.used);
   { get a pointer to the block we should return }
   result := pointer(pmc)+sizeof(tmemchunk_fixed_hdr);
   { update freelist }
   pmc_next := pmc^.next_fixed;
   loc_freelists^.fixedlists[chunkindex] := pmc_next;
+  prefetch((pointer(@chunksize)-4)^);
   if assigned(pmc_next) then
     pmc_next^.prev_fixed := nil;
-  inc(poc^.used);
   { statistics }
   with loc_freelists^.internal_status do
   begin
@@ -931,6 +932,7 @@ begin
 {$endif}        
     end;
   end;
+  inc(poc^.used);
 end;
 
 function SysGetMem_Var(size: ptruint): pointer;
@@ -1120,6 +1122,8 @@ var
   size: sizeint;
 {$endif}
 begin
+  pmc := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr));
+  prefetch(pmc^.size);
   if p=nil then
     begin
       result:=0;
@@ -1132,8 +1136,8 @@ begin
   else
     dec(sizeusage[size shr sizeusageshift]);
 {$endif}
+  { loc_freelists is a threadvar, so it can be worth it to prefetch }
   loc_freelists := @freelists;
-  pmc := pmemchunk_fixed(p-sizeof(tmemchunk_fixed_hdr));
   { check if this is a fixed- or var-sized chunk }
   if (pmc^.size and fixedsizeflag) = 0 then
     result := sysfreemem_var(loc_freelists, pmemchunk_var(p-sizeof(tmemchunk_var_hdr)))
