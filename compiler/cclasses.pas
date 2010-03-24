@@ -2014,6 +2014,7 @@ end;
         while assigned(NewNode) do
          begin
            Next:=NewNode.Next;
+           prefetch(next.next);
            NewNode.Free;
            NewNode:=Next;
           end;
