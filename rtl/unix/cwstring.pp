@@ -29,6 +29,7 @@ implementation
 {$if not defined(linux) and not defined(solaris)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
  {$if defined(haiku)}
    {$linklib textencoding}
+   {$linklib locale}
  {$else}
    {$linklib iconv}
  {$endif}
@@ -132,8 +133,13 @@ type
   piconv_t = ^iconv_t;
   iconv_t = pointer;
   nl_item = cint;
-{$ifndef beos}
-function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
+
+{$ifdef haiku}
+  function nl_langinfo(__item:nl_item):pchar;cdecl;external 'locale' name 'nl_langinfo';
+{$else}
+  {$ifndef beos}
+  function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
+  {$endif}
 {$endif}
 
 {$if (not defined(bsd) and not defined(beos)) or (defined(darwin) and not defined(cpupowerpc32))}
@@ -153,7 +159,7 @@ threadvar
   iconv_ansi2wide,
   iconv_wide2ansi : iconv_t;
 
-{$ifdef beos}
+{$if defined(beos) and not defined(haiku)}
 function nl_langinfo(__item:nl_item):pchar;
 begin
   {$warning TODO BeOS nl_langinfo or more uptodate port of iconv...}

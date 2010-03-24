@@ -52,6 +52,17 @@ Abstract:
 { For the latest updates, visit Delphi3D: http://www.delphi3d.net              }
 {******************************************************************************}
 
+
+{******************************************************************************}
+{  									       }
+{ WARNING: CALLBACKS TYPES IN THIS UNIT (TCALLBACK) ARE SOMETIMES CDECL AND    }
+{ SOMETIMES STDCALL, DEPENDING ON THE EXACT DLL USED. THE MOST COMMON ONE SEEMS}
+{ TO USE STDCALL. THIS IS VERIFIED TO BE THE CASE FOR THE TESSELATOR ROUTINES  }
+{ BUT PROBABLY ALSO APPLIES TO THE OTHER CALLBACKS IN THIS UNIT                }               
+{ FOR UP TO DATE INFO SEE http://wiki.freepascal.org/OpenGL                    }
+{                                                                              }
+{******************************************************************************}
+
 {$MACRO ON}
 {$MODE Delphi}
 {$IFDEF Windows}

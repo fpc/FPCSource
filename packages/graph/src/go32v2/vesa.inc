@@ -337,34 +337,17 @@ end;
        SearchVESAModes := ModeSupported;
     end;
 
-
-
-  procedure SetBankIndex(win: byte; BankNr: smallint); assembler;
-   asm
-{$IFDEF REGCALL}
-     mov  bl, al
-{$ELSE REGCALL}
-     mov  bl,[Win]
-{$ENDIF REGCALL}
-     mov  ax,4f05h
-     mov  bh,00h
-{$IFNDEF REGCALL}
-     mov  dx,[BankNr]
-{$ENDIF REGCALL}
-{$ifdef fpc}
-     push ebp
-     push esi
-     push edi
-     push ebx
-{$endif fpc}
-     int  10h
-{$ifdef fpc}
-     pop ebx
-     pop edi
-     pop esi
-     pop ebp
-{$endif fpc}
-   end ['EDX','EBX','EAX'];
+procedure SetBankIndex(win: byte; BankNr: smallint);
+{I don't know why but the previous assembler version changed by some mechanism
+ unknown to me some places in memory what lead to changing some variables not
+ belonging to this procedure (Laaca)}
+var r:TDPMIregisters;
+begin
+  r.ax:=$4f05;
+  r.bx:=win;
+  r.dx:=BankNr;
+  RealIntr($10,r);
+end;
 
   {********************************************************}
   { There are two routines for setting banks. This may in  }
@@ -1318,6 +1301,9 @@ end;
   procedure PutPixVESA32kOr64k(x, y : smallint; color : word); {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
+     place: word;
+     bank : shortint;
+
   begin
 {$ifdef logging}
      logln('putpixvesa32kor64k('+strf(x)+','+strf(y)+')');
@@ -1334,11 +1320,14 @@ end;
      end;
      Y := Y + YOffset; { adjust pixel for correct virtual page }
      offs := longint(y) * BytesPerLine + 2*x;
-     SetWriteBank(smallint(offs shr 16));
+     bank := offs div 65536;
+     place:= offs mod 65536;
+     SetWriteBank(bank);
+
 {$ifdef logging}
      logln('putpixvesa32kor64k offset: '+strf(word(offs)));
 {$endif logging}
-     memW[WinWriteSeg : word(offs)] := color;
+     memW[WinWriteSeg : place] := color;
   end;
 
   function GetPixVESA32kOr64k(x, y : smallint): word; {$ifndef fpc}far;{$endif fpc}
@@ -1355,29 +1344,34 @@ end;
   procedure DirectPutPixVESA32kOr64k(x, y : smallint); {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
-     col : word;
+     bank : smallint;
+     place,col : word;
   begin
 {$ifdef logging}
      logln('directputpixvesa32kor64k('+strf(x)+','+strf(y)+')');
 {$endif logging}
      y:= Y + YOffset;
+
      offs := longint(y) * BytesPerLine + 2*x;
-     SetWriteBank(smallint((offs shr 16) and $ff));
+     bank:=offs div 65536;
+     place:=offs mod 65536;
+
+     SetWriteBank(bank and $FF); // unknown why this and $FF is here.
      Case CurrentWriteMode of
        XorPut:
          Begin
-           SetReadBank(smallint(offs shr 16));
-           memW[WinWriteSeg : word(offs)] := memW[WinReadSeg : word(offs)] xor currentcolor;
+           SetReadBank(bank);
+           memW[WinWriteSeg : place] := memW[WinReadSeg : place] xor currentcolor;
          End;
        AndPut:
          Begin
-           SetReadBank(smallint(offs shr 16));
-           memW[WinWriteSeg : word(offs)] := memW[WinReadSeg : word(offs)] And currentcolor;
+           SetReadBank(bank);
+           memW[WinWriteSeg : place] := memW[WinReadSeg : place] And currentcolor;
          End;
        OrPut:
          Begin
-           SetReadBank(smallint(offs shr 16));
-           memW[WinWriteSeg : word(offs)] := memW[WinReadSeg : word(offs)] or currentcolor;
+           SetReadBank(bank);
+           memW[WinWriteSeg : place] := memW[WinReadSeg : place] or currentcolor;
          End
        else
          Begin
@@ -1387,7 +1381,7 @@ end;
 {$ifdef logging}
            logln('directputpixvesa32kor64k offset: '+strf(word(offs)));
 {$endif logging}
-           memW[WinWriteSeg : word(offs)] := Col;
+           memW[WinWriteSeg : place] := Col;
          End
      End;
   end;

@@ -55,6 +55,7 @@ resourcestring
   SDocDeclaration            = 'Declaration';
   SDocDescription            = 'Description';
   SDocErrors                 = 'Errors';
+  SDocVersion                = 'Version info';
   SDocSeeAlso                = 'See also';
   SDocExample                = 'Example';
   SDocArguments              = 'Arguments';
@@ -208,6 +209,8 @@ type
     members, and so on...
   }
 
+  { TDocNode }
+
   TDocNode = class
   private
     FFirstChild, FNextSibling: TDocNode;
@@ -222,6 +225,7 @@ type
     FLink: String;
     FTopicNode : Boolean;
     FRefCount : Integer;
+    FVersion: TDomElement;
   public
     constructor Create(const AName: String; ANode: TDOMElement);
     destructor Destroy; override;
@@ -239,6 +243,7 @@ type
     property ShortDescr: TDOMElement read FShortDescr;
     property Descr: TDOMElement read FDescr;
     property ErrorsDoc: TDOMElement read FErrorsDoc;
+    Property Version : TDomElement Read FVersion;
     property SeeAlso: TDOMElement read FSeeAlso;
     property FirstExample: TDOMElement read FFirstExample;
     property Link: String read FLink;
@@ -1044,6 +1049,11 @@ procedure TFPDocEngine.AddDocFile(const AFilename: String);
           Result.FShortDescr := TDOMElement(Subnode)
         else if Subnode.NodeName = 'descr' then
           Result.FDescr := TDOMElement(Subnode)
+        else if Subnode.NodeName = 'version' then
+          begin
+          Writeln('Detected version',ELement['name']);
+          Result.FVersion := TDOMElement(Subnode)
+          end
         else if Subnode.NodeName = 'errors' then
           Result.FErrorsDoc := TDOMElement(Subnode)
         else if Subnode.NodeName = 'seealso' then

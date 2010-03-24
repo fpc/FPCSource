@@ -676,6 +676,7 @@ end;
 destructor TCustomDatasetExporter.Destroy;
 begin
   FreeAndNil(FExportFields);
+  FreeAndNil(FFormatSettings);
   inherited Destroy;
 end;
 
