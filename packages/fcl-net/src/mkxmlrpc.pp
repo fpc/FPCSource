@@ -698,7 +698,8 @@ procedure WriteFPCServerSource;
 var
   i, j: Integer;
   Module: TPasModule;
-  InterfaceSection, ImplementationSection: TPasSection;
+  InterfaceSection:TInterfaceSection;
+   ImplementationSection: TImplementationSection;
   VarMember: TPasVariable;
   PropertyMember: TPasProperty;
   ProcMember: TPasProcedure;
@@ -710,9 +711,9 @@ var
 begin
   Module := TPasModule.Create(UnitName, nil);
   try
-    InterfaceSection := TPasSection.Create('', Module);
+    InterfaceSection := TInterfaceSection.Create('', Module);
     Module.InterfaceSection := InterfaceSection;
-    ImplementationSection := TPasSection.Create('', Module);
+    ImplementationSection := TImplementationSection.Create('', Module);
     Module.ImplementationSection := ImplementationSection;
     InterfaceSection.AddUnitToUsesList('Classes');
     InterfaceSection.AddUnitToUsesList('XMLRPC');

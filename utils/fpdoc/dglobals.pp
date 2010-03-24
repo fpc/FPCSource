@@ -671,7 +671,7 @@ var
       if not Assigned(Module) then
       begin
         Module := TPasModule.Create(s, HPackage);
-        Module.InterfaceSection := TPasSection.Create('', Module);
+        Module.InterfaceSection := TInterfaceSection.Create('', Module);
         HPackage.Modules.Add(Module);
       end;
 
