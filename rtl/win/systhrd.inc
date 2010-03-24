@@ -56,6 +56,21 @@ function  ResetEvent(hEvent:THandle):LONGBOOL; stdcall; external KernelDLL name 
 function  SetEvent(hEvent:THandle):LONGBOOL; stdcall; external KernelDLL name 'SetEvent';
 {$endif WINCE}
 
+procedure WinInitCriticalSection(var cs : TRTLCriticalSection);
+  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'InitializeCriticalSection';
+
+procedure WinDoneCriticalSection(var cs : TRTLCriticalSection);
+  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'DeleteCriticalSection';
+
+procedure WinEnterCriticalSection(var cs : TRTLCriticalSection);
+  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'EnterCriticalSection';
+
+function  WinTryEnterCriticalSection(var cs : TRTLCriticalSection):longint;
+  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'TryEnterCriticalSection';
+
+procedure WinLeaveCriticalSection(var cs : TRTLCriticalSection);
+  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'LeaveCriticalSection';
+
 CONST
    WAIT_OBJECT_0 = 0;
    WAIT_ABANDONED_0 = $80;
@@ -74,6 +89,9 @@ CONST
 
     const
       TLSKey : DWord = $ffffffff;
+    var
+      MainThreadIdWin32 : DWORD;
+      AttachingThread : TRTLCriticalSection;
 
     procedure SysInitThreadvar(var offset : dword;size : dword);
       begin
@@ -99,6 +117,32 @@ CONST
         TlsSetValue(tlskey,dataindex);
       end;
 
+    function SysRelocateThreadvar(offset : dword) : pointer; forward;
+
+    procedure SysInitMultithreading;
+      begin
+        { do not check IsMultiThread, as program could have altered it, out of Delphi habit }
+
+        { the thread attach/detach code uses locks to avoid multiple calls of this }
+        if TLSKey=$ffffffff then
+         begin
+           { We're still running in single thread mode, setup the TLS }
+           TLSKey:=TlsAlloc;
+           InitThreadVars(@SysRelocateThreadvar);
+
+           IsMultiThread:=true;
+         end;
+      end;
+
+
+    procedure SysFiniMultithreading;
+      begin
+        if IsMultiThread then
+          begin
+            TlsFree(TLSKey);
+            TLSKey:=$ffffffff;
+          end;
+      end;
 
     function SysRelocateThreadvar(offset : dword) : pointer;
       var
@@ -114,7 +158,7 @@ CONST
           movl %fs:(0x2c),%eax
           orl  %eax,%eax
           jnz  .LAddressInEAX
-		  { this works on Windows 7, but I don't know if it works on other OSes (FK) }
+          { this works on Windows 7, but I don't know if it works on other OSes (FK) }
           movl %fs:(0x18),%eax
           movl 0xe10(%eax,%edx,4),%eax
           jmp  .LToDataIndex
@@ -185,29 +229,6 @@ CONST
         ThreadMain:=ti.f(ti.p);
       end;
 
-    procedure SysInitMultithreading;
-      begin
-        { do not check IsMultiThread, as program could have altered it, out of Delphi habit }
-        
-        { the thread attach/detach code uses locks to avoid multiple calls of this }
-        if TLSKey=$ffffffff then
-         begin
-           { We're still running in single thread mode, setup the TLS }
-           TLSKey:=TlsAlloc;
-           InitThreadVars(@SysRelocateThreadvar);
-		   { allocate the thread vars for the main thread }
-           IsMultiThread:=true;
-         end;
-      end;
-
-    procedure SysFiniMultithreading;
-      begin
-        if IsMultiThread then
-          begin
-            TlsFree(TLSKey);
-            TLSKey:=$ffffffff;
-          end;
-      end;
 
     function SysBeginThread(sa : Pointer;stacksize : ptruint;
                          ThreadFunction : tthreadfunc;p : pointer;
@@ -308,18 +329,6 @@ CONST
                           Delphi/Win32 compatibility
 *****************************************************************************}
 
-procedure WinInitCriticalSection(var cs : TRTLCriticalSection);
-  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'InitializeCriticalSection';
-
-procedure WinDoneCriticalSection(var cs : TRTLCriticalSection);
-  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'DeleteCriticalSection';
-
-procedure WinEnterCriticalSection(var cs : TRTLCriticalSection);
-  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'EnterCriticalSection';
-
-procedure WinLeaveCriticalSection(var cs : TRTLCriticalSection);
-  {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'LeaveCriticalSection';
-
 procedure SySInitCriticalSection(var cs);
 begin
   WinInitCriticalSection(PRTLCriticalSection(@cs)^);
@@ -337,6 +346,10 @@ begin
   WinEnterCriticalSection(PRTLCriticalSection(@cs)^);
 end;
 
+function SysTryEnterCriticalSection(var cs):longint;
+begin
+  result:=WinTryEnterCriticalSection(PRTLCriticalSection(@cs)^);
+end;
 
 procedure SySLeaveCriticalSection(var cs);
 begin
@@ -455,6 +468,7 @@ begin
     InitCriticalSection    :=@SysInitCriticalSection;
     DoneCriticalSection    :=@SysDoneCriticalSection;
     EnterCriticalSection   :=@SysEnterCriticalSection;
+    TryEnterCriticalSection:=@SysTryEnterCriticalSection;
     LeaveCriticalSection   :=@SysLeaveCriticalSection;
     InitThreadVar          :=@SysInitThreadVar;
     RelocateThreadVar      :=@SysRelocateThreadVar;
@@ -474,4 +488,7 @@ begin
     end;
   SetThreadManager(WinThreadManager);
   ThreadID := GetCurrentThreadID;
+  if IsLibrary then
+    SysInitMultithreading;
 end;
+
