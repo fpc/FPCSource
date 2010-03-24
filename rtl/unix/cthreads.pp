@@ -600,7 +600,7 @@ begin
 {$ifdef has_sem_open}
   { avoid a potential temporary nameclash with another process/thread }
   str(fpGetPid,semname);
-  str(ptruint(pthread_self),tid);
+  str(ptruint(pthread_self()),tid);
   semname:='/FPC'+semname+'T'+tid+#0;
   cIntSemaphoreInit:=cIntSemaphoreOpen(@semname[1],initvalue);
 {$else}
@@ -912,7 +912,7 @@ begin
 {$else}
   Result:=LoadPthreads;
 {$endif}
-  ThreadID := TThreadID (pthread_self);
+  ThreadID := TThreadID (pthread_self());
 {$ifdef DEBUG_MT}
   Writeln('InitThreads : ',Result);
 {$endif DEBUG_MT}
