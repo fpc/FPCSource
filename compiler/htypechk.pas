@@ -2708,7 +2708,15 @@ implementation
           not is_boolean(source.resultdef) and
           not is_constrealnode(source) then
          begin
-           if (destdef.size < source.resultdef.size) then
+           if ((destdef.size < source.resultdef.size) and
+               { s80real and sc80real have a different size but the same precision }
+               not((destdef.typ=floatdef) and
+                   (source.resultdef.typ=floatdef) and
+                   (tfloatdef(source.resultdef).floattype in [s80real,sc80real]) and
+                   (tfloatdef(destdef).floattype in [s80real,sc80real]))) or
+              ((destdef.typ<>floatdef) and
+               (source.resultdef.typ<>floatdef) and
+               not is_in_limit(source.resultdef,destdef)) then
              begin
                if (cs_check_range in current_settings.localswitches) then
                  MessagePos(location,type_w_smaller_possible_range_check)
