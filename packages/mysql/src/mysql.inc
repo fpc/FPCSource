@@ -68,6 +68,8 @@ uses
     type
        my_bool = cchar;
        Pmy_bool  = ^my_bool;
+       pppchar = ^ppchar;
+       ppbyte = ^pbyte;
 
        PVIO = Pointer;
 
