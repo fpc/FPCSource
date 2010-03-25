@@ -1,4 +1,4 @@
-{ %OPT=-vh -Seh }
+{ %OPT=-vh -Seh -CO }
 { %fail }
 
 var
