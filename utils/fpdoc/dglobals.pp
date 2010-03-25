@@ -1051,7 +1051,6 @@ procedure TFPDocEngine.AddDocFile(const AFilename: String);
           Result.FDescr := TDOMElement(Subnode)
         else if Subnode.NodeName = 'version' then
           begin
-          Writeln('Detected version',ELement['name']);
           Result.FVersion := TDOMElement(Subnode)
           end
         else if Subnode.NodeName = 'errors' then
