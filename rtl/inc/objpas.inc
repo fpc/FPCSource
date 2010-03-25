@@ -409,10 +409,15 @@
            vmt: PVmt;
 
         begin
-           vmt:=PVmt(self);
-           while assigned(vmt) and (vmt <> PVmt(aclass)) do
-             vmt := vmt^.vParent;
-           InheritsFrom := (vmt = PVmt(aclass));
+           if assigned(aclass) then
+             begin
+               vmt:=PVmt(self);
+               while assigned(vmt) and (vmt <> PVmt(aclass)) do
+                 vmt := vmt^.vParent;
+               InheritsFrom := (vmt = PVmt(aclass));
+             end
+           else
+             inheritsFrom := False;
         end;
 
       class function TObject.stringmessagetable : pstringmessagetable;
