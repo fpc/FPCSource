@@ -416,6 +416,7 @@ implementation
 
         procedure enumdef_rtti(def:tenumdef);
         var
+           i  : integer;
            hp : tenumsym;
         begin
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkEnumeration));
@@ -441,13 +442,16 @@ implementation
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.basedef,rt)))
           else
             current_asmdata.asmlists[al_rtti].concat(Tai_const.create_sym(nil));
-          { write name list }
-          hp:=tenumsym(def.firstenum);
-          while assigned(hp) do
+          for i := 0 to def.symtable.SymList.Count - 1 do
             begin
+              hp:=tenumsym(def.symtable.SymList[i]);
+              if hp.value<def.minval then
+                continue
+              else
+              if hp.value>def.maxval then
+                break;
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(hp.realname)));
               current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(hp.realname));
-              hp:=hp.nextenum;
             end;
           { write unit name }
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(current_module.realmodulename^)));
@@ -969,9 +973,14 @@ implementation
           sym_count:=0;
           sym_alloc:=64;
           st:=0;
-          t:=Tenumsym(def.firstenum);
-          while assigned(t) do
+          for i := 0 to def.symtable.SymList.Count - 1 do
             begin
+              t:=tenumsym(def.symtable.SymList[i]);
+              if t.value<def.minval then
+                continue
+              else
+              if t.value>def.maxval then
+                break;
               if sym_count>=sym_alloc then
                 begin
                   reallocmem(syms,2*sym_alloc*sizeof(Tenumsym));
@@ -982,7 +991,6 @@ implementation
               offsets[sym_count]:=st;
               inc(sym_count);
               st:=st+length(t.realname)+1;
-              t:=t.nextenum;
             end;
           {Sort the syms by enum value}
           if sym_count>=2 then
@@ -1098,9 +1106,14 @@ implementation
           sym_count:=0;
           sym_alloc:=64;
           st:=0;
-          t:=Tenumsym(def.firstenum);
-          while assigned(t) do
+          for i := 0 to def.symtable.SymList.Count - 1 do
             begin
+              t:=tenumsym(def.symtable.SymList[i]);
+              if t.value<def.minval then
+                continue
+              else
+              if t.value>def.maxval then
+                break;
               if sym_count>=sym_alloc then
                 begin
                   reallocmem(syms,2*sym_alloc*sizeof(Tenumsym));
@@ -1111,7 +1124,6 @@ implementation
               offsets[sym_count]:=st;
               inc(sym_count);
               st:=st+length(t.realname)+1;
-              t:=t.nextenum;
             end;
           {Sort the syms by enum name}
           if sym_count>=2 then

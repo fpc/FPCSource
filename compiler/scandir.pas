@@ -1019,6 +1019,11 @@ unit scandir;
         do_localswitch(cs_fpu_fwait);
       end;
 
+    procedure dir_scopedenums;
+      begin
+        do_localswitch(cs_scopedenums);
+      end;
+
     procedure dir_setpeflags;
       begin
         if not (target_info.system in (systems_all_windows)) then
@@ -1447,6 +1452,7 @@ unit scandir;
         AddDirective('RESOURCE',directive_all, @dir_resource);
         AddDirective('SATURATION',directive_all, @dir_saturation);
         AddDirective('SAFEFPUEXCEPTIONS',directive_all, @dir_safefpuexceptions);
+        AddDirective('SCOPEDENUMS',directive_all, @dir_scopedenums);
         AddDirective('SETPEFLAGS', directive_all, @dir_setpeflags);
         AddDirective('SCREENNAME',directive_all, @dir_screenname);
         AddDirective('SMARTLINK',directive_all, @dir_smartlink);

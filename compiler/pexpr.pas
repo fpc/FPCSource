@@ -2050,9 +2050,28 @@ implementation
                                   p1.destroy;
                                   p1:=cerrornode.create;
                                 end;
-                             end;
-                           consume(_ID);
-                         end;
+                            end;
+                          consume(_ID);
+                        end;
+                      enumdef:
+                        begin
+                          if token=_ID then
+                            begin
+                              srsym:=tsym(tenumdef(p1.resultdef).symtable.Find(pattern));
+                              p1.destroy;
+                              if assigned(srsym) and (srsym.typ=enumsym) then
+                                begin
+                                  check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                                  p1:=genenumnode(tenumsym(srsym));
+                                end
+                              else
+                                begin
+                                  Message1(sym_e_id_no_member,orgpattern);
+                                  p1:=cerrornode.create;
+                                end;
+                            end;
+                          consume(_ID);
+                        end;
                        variantdef:
                          begin
                            { dispatch call? }

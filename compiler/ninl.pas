@@ -1330,6 +1330,7 @@ implementation
            v    : tconstexprint;
            enum : tenumsym;
            hp   : tnode;
+           i    : integer;
         begin
            case def.typ of
              orddef:
@@ -1346,11 +1347,17 @@ implementation
              enumdef:
                begin
                   set_varstate(left,vs_read,[]);
-                  enum:=tenumsym(tenumdef(def).firstenum);
-                  v:=tenumdef(def).maxval;
                   if inlinenumber=in_high_x then
-                    while assigned(enum) and (enum.value <> v) do
-                      enum:=enum.nextenum;
+                    v:=tenumdef(def).maxval
+                  else
+                    v:=tenumdef(def).minval;
+                  enum:=nil;
+                  for i := 0 to tenumdef(def).symtable.SymList.Count - 1 do
+                    if tenumsym(tenumdef(def).symtable.SymList[i]).value=v then
+                      begin
+                        enum:=tenumsym(tenumdef(def).symtable.SymList[i]);
+                        break;
+                      end;
                   if not assigned(enum) then
                     internalerror(309993)
                   else

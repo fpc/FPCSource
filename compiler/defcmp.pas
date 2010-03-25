@@ -594,7 +594,7 @@ implementation
                           begin
                             { assignment of an enum symbol to an unique type? }
                             if (fromtreetype=ordconstn) and
-                              (tenumsym(tenumdef(hd1).firstenum)=tenumsym(tenumdef(hd2).firstenum)) then
+                              (tenumsym(tenumdef(hd1).getfirstsym)=tenumsym(tenumdef(hd2).getfirstsym)) then
                               begin
                                 { because of packenum they can have different sizes! (JM) }
                                 eq:=te_convert_l1;

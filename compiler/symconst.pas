@@ -419,7 +419,8 @@ type
     ObjectSymtable,recordsymtable,
     localsymtable,parasymtable,
     withsymtable,stt_excepTSymtable,
-    exportedmacrosymtable, localmacrosymtable
+    exportedmacrosymtable, localmacrosymtable,
+    enumsymtable
   );
 
 

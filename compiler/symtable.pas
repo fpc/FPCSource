@@ -173,6 +173,14 @@ interface
           constructor create(exported: boolean);
        end;
 
+       { tenumsymtable }
+
+       tenumsymtable = class(tstoredsymtable)
+       public
+          procedure insert(sym: TSymEntry; checkdup: boolean = true); override;
+          constructor create(adefowner:tdef);
+       end;
+
     var
        systemunit     : tglobalsymtable; { pointer to the system unit }
 
@@ -1508,6 +1516,49 @@ implementation
         symtablelevel:=main_program_level;
       end;
 
+{****************************************************************************
+                          TEnumSymtable
+****************************************************************************}
+
+    procedure tenumsymtable.insert(sym: TSymEntry; checkdup: boolean);
+      var
+        value: longint;
+        def: tenumdef;
+      begin
+        // defowner = nil only when we are loading from ppu
+        if defowner<>nil then
+          begin
+            { First entry? Then we need to set the minval }
+            value:=tenumsym(sym).value;
+            def:=tenumdef(defowner);
+            if SymList.count=0 then
+              begin
+                if value>0 then
+                  def.has_jumps:=true;
+                def.setmin(value);
+                def.setmax(value);
+              end
+            else
+              begin
+                { check for jumps }
+                if value>def.max+1 then
+                  def.has_jumps:=true;
+                { update low and high }
+                if def.min>value then
+                  def.setmin(value);
+                if def.max<value then
+                  def.setmax(value);
+              end;
+          end;
+        inherited insert(sym, checkdup);
+      end;
+
+    constructor tenumsymtable.create(adefowner: tdef);
+      begin
+        inherited Create('');
+        symtabletype:=enumsymtable;
+        defowner:=adefowner;
+      end;
 
 {*****************************************************************************
                              Helper Routines

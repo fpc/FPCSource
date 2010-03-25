@@ -575,7 +575,6 @@ implementation
           result:='@s'+tostr(def.size*8)+';e'
         else
           result:='e';
-        p := tenumsym(def.firstenum);
         { the if-test is required because pred(def.minval) might overflow;
           the longint() typecast should be safe because stabs is not
           supported for 64 bit targets }
@@ -583,10 +582,15 @@ implementation
           for i:=lowerbound to pred(longint(def.minval)) do
             result:=result+'<invalid>:'+tostr(i)+',';
 
-        while assigned(p) do
+        for i := 0 to def.symtable.SymList.Count - 1 do
           begin
+            p := tenumsym(def.symtable.SymList[i]);
+            if p.value<def.minval then
+              continue
+            else
+            if p.value>def.maxval then
+              break;
             result:=result+GetSymName(p)+':'+tostr(p.value)+',';
-            p:=p.nextenum;
           end;
         { the final ',' is required to have a valid stabs }
         result:=result+';';

@@ -579,21 +579,23 @@ interface
           function  getvardef:longint;override;
        end;
 
+       { tenumdef }
+
        tenumdef = class(tstoreddef)
           minval,
           maxval    : aint;
           has_jumps : boolean;
-          firstenum : tsym;  {tenumsym}
           basedef   : tenumdef;
           basedefderef : tderef;
+          symtable  : TSymtable;
           constructor create;
           constructor create_subrange(_basedef:tenumdef;_min,_max:aint);
           constructor ppuload(ppufile:tcompilerppufile);
+          destructor destroy;override;
           function getcopy : tstoreddef;override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
-          procedure derefimpl;override;
           function  GetTypeName:string;override;
           function  is_publishable : boolean;override;
           procedure calcsavesize;
@@ -602,6 +604,7 @@ interface
           procedure setmin(_min:aint);
           function  min:aint;
           function  max:aint;
+          function  getfirstsym:tsym;
        end;
 
        tsetdef = class(tstoreddef)
@@ -1392,7 +1395,7 @@ implementation
          calcsavesize;
          has_jumps:=false;
          basedef:=nil;
-         firstenum:=nil;
+         symtable:=tenumsymtable.create(self);
       end;
 
 
@@ -1404,21 +1407,37 @@ implementation
          basedef:=_basedef;
          calcsavesize;
          has_jumps:=false;
-         firstenum:=basedef.firstenum;
-         while assigned(firstenum) and (tenumsym(firstenum).value<>minval) do
-           firstenum:=tenumsym(firstenum).nextenum;
-      end;
+         symtable:=basedef.symtable.getcopy;
+         include(defoptions, df_copied_def);
+       end;
 
 
     constructor tenumdef.ppuload(ppufile:tcompilerppufile);
       begin
          inherited ppuload(enumdef,ppufile);
-         ppufile.getderef(basedefderef);
          minval:=ppufile.getaint;
          maxval:=ppufile.getaint;
          savesize:=ppufile.getaint;
          has_jumps:=false;
-         firstenum:=Nil;
+         if df_copied_def in defoptions then
+           begin
+             symtable:=nil;
+             ppufile.getderef(basedefderef);
+           end
+         else
+           begin
+             // create with nil defowner first to prevent values changes on insert
+             symtable:=tenumsymtable.create(nil);
+             tenumsymtable(symtable).ppuload(ppufile);
+             symtable.defowner:=self;
+           end;
+      end;
+
+    destructor tenumdef.destroy;
+      begin
+        symtable.free;
+        symtable:=nil;
+        inherited destroy;
       end;
 
 
@@ -1431,10 +1450,13 @@ implementation
             result:=tenumdef.create;
             tenumdef(result).minval:=minval;
             tenumdef(result).maxval:=maxval;
+            tenumdef(result).symtable.free;
+            tenumdef(result).symtable:=symtable.getcopy;
+            tenumdef(result).basedef:=self;
           end;
         tenumdef(result).has_jumps:=has_jumps;
-        tenumdef(result).firstenum:=firstenum;
         tenumdef(result).basedefderef:=basedefderef;
+        include(tenumdef(result).defoptions,df_copied_def);
       end;
 
 
@@ -1501,43 +1523,54 @@ implementation
         max:=maxval;
       end;
 
+    function tenumdef.getfirstsym: tsym;
+      var
+        i:integer;
+      begin
+        for i := 0 to symtable.SymList.Count - 1 do
+          begin
+            result:=tsym(symtable.SymList[i]);
+            if tenumsym(result).value=minval then
+              exit;
+          end;
+        result:=nil;
+      end;
+
 
     procedure tenumdef.buildderef;
       begin
         inherited buildderef;
-        basedefderef.build(basedef);
+        if df_copied_def in defoptions then
+          basedefderef.build(basedef)
+        else
+          tenumsymtable(symtable).buildderef;
       end;
 
 
     procedure tenumdef.deref;
       begin
         inherited deref;
-        basedef:=tenumdef(basedefderef.resolve);
-        { restart ordering }
-        firstenum:=nil;
-      end;
-
-
-    procedure tenumdef.derefimpl;
-      begin
-        if assigned(basedef) and
-           (firstenum=nil) then
+        if df_copied_def in defoptions then
           begin
-            firstenum:=basedef.firstenum;
-            while assigned(firstenum) and (tenumsym(firstenum).value<>minval) do
-              firstenum:=tenumsym(firstenum).nextenum;
-          end;
+            basedef:=tenumdef(basedefderef.resolve);
+            symtable:=basedef.symtable.getcopy;
+          end
+        else
+          tenumsymtable(symtable).deref;
       end;
 
 
     procedure tenumdef.ppuwrite(ppufile:tcompilerppufile);
       begin
          inherited ppuwrite(ppufile);
-         ppufile.putderef(basedefderef);
          ppufile.putaint(min);
          ppufile.putaint(max);
          ppufile.putaint(savesize);
+         if df_copied_def in defoptions then
+           ppufile.putderef(basedefderef);
          ppufile.writeentry(ibenumdef);
+         if not (df_copied_def in defoptions) then
+           tenumsymtable(symtable).ppuwrite(ppufile);
       end;
 
 

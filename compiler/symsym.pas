@@ -277,13 +277,11 @@ interface
           value      : longint;
           definition : tenumdef;
           definitionderef : tderef;
-          nextenum   : tenumsym;
           constructor create(const n : string;def : tenumdef;v : longint);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
-          procedure order;
        end;
 
        tsyssym = class(Tstoredsym)
@@ -1774,26 +1772,6 @@ implementation
          inherited create(enumsym,n);
          definition:=def;
          value:=v;
-         { First entry? Then we need to set the minval }
-         if def.firstenum=nil then
-           begin
-             if v>0 then
-               def.has_jumps:=true;
-             def.setmin(v);
-             def.setmax(v);
-           end
-         else
-           begin
-             { check for jumps }
-             if v>def.max+1 then
-              def.has_jumps:=true;
-             { update low and high }
-             if def.min>v then
-               def.setmin(v);
-             if def.max<v then
-               def.setmax(v);
-           end;
-         order;
       end;
 
 
@@ -1802,7 +1780,6 @@ implementation
          inherited ppuload(enumsym,ppufile);
          ppufile.getderef(definitionderef);
          value:=ppufile.getlongint;
-         nextenum := Nil;
       end;
 
 
@@ -1815,33 +1792,6 @@ implementation
     procedure tenumsym.deref;
       begin
          definition:=tenumdef(definitionderef.resolve);
-         order;
-      end;
-
-   procedure tenumsym.order;
-      var
-         sym : tenumsym;
-      begin
-         sym := tenumsym(definition.firstenum);
-         if sym = nil then
-          begin
-            definition.firstenum := self;
-            nextenum := nil;
-            exit;
-          end;
-         { reorder the symbols in increasing value }
-         if value < sym.value then
-          begin
-            nextenum := sym;
-            definition.firstenum := self;
-          end
-         else
-          begin
-            while (sym.value <= value) and assigned(sym.nextenum) do
-             sym := sym.nextenum;
-            nextenum := sym.nextenum;
-            sym.nextenum := self;
-          end;
       end;
 
     procedure tenumsym.ppuwrite(ppufile:tcompilerppufile);

@@ -1330,6 +1330,7 @@ implementation
     procedure TDebugInfoDwarf.appenddef_enum(list:TAsmList;def:tenumdef);
       var
         hp : tenumsym;
+        i  : integer;
       begin
         if assigned(def.typesym) then
           append_entry(DW_TAG_enumeration_type,true,[
@@ -1345,15 +1346,19 @@ implementation
         finish_entry;
 
         { write enum symbols }
-        hp:=tenumsym(def.firstenum);
-        while assigned(hp) do
+        for i := 0 to def.symtable.SymList.Count - 1 do
           begin
+            hp:=tenumsym(def.symtable.SymList[i]);
+            if hp.value<def.minval then
+              continue
+            else
+            if hp.value>def.maxval then
+              break;
             append_entry(DW_TAG_enumerator,false,[
               DW_AT_name,DW_FORM_string,symname(hp)+#0,
               DW_AT_const_value,DW_FORM_data4,hp.value
             ]);
             finish_entry;
-            hp:=tenumsym(hp).nextenum;
           end;
 
         finish_children;

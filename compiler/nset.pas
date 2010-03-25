@@ -190,18 +190,15 @@ implementation
         function createsetconst(psd : tsetdef) : pconstset;
         var
           pcs : pconstset;
-          pes : tenumsym;
           i : longint;
         begin
           new(pcs);
           case psd.elementdef.typ of
             enumdef :
               begin
-                pes:=tenumsym(tenumdef(psd.elementdef).firstenum);
-                while assigned(pes) do
+                for i := 0 to tenumdef(psd.elementdef).symtable.SymList.Count - 1 do
                   begin
-                    include(pcs^,pes.value);
-                    pes:=pes.nextenum;
+                    include(pcs^,tenumsym(tenumdef(psd.elementdef).symtable.SymList[i]).value);
                   end;
               end;
             orddef :

@@ -1259,19 +1259,17 @@ end;
   end;
   function GetDefinitionStr(def: tdef): string; forward;
   function GetEnumDefStr(def: tenumdef): string;
-  var Name: string;
-      esym: tenumsym;
-      Count: integer;
+  var
+    Name: string;
+    esym: tenumsym;
+    i: integer;
   begin
     Name:='(';
-    esym:=tenumsym(def.Firstenum); Count:=0;
-    while (esym<>nil) do
+    for i := 0 to def.symtable.SymList.Count - 1 do
       begin
-        if Count>0 then
+        if i>0 then
           Name:=Name+', ';
-        Name:=Name+esym.name;
-        esym:=esym.nextenum;
-        Inc(Count);
+        Name:=Name+tenumsym(def.symtable.SymList[i]).name;
       end;
     Name:=Name+')';
     GetEnumDefStr:=Name;

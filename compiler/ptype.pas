@@ -840,7 +840,7 @@ implementation
         pd : tabstractprocdef;
         is_func,
         enumdupmsg, first : boolean;
-        newtype    : ttypesym;
+        newtype : ttypesym;
         oldlocalswitches : tlocalswitches;
         bitpacking: boolean;
       begin
@@ -904,7 +904,9 @@ implementation
                   first := false;
                   storepos:=current_tokenpos;
                   current_tokenpos:=defpos;
-                  tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));
+                  tenumsymtable(aktenumdef.symtable).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));
+                  if not (cs_scopedenums in current_settings.localswitches) then
+                    tstoredsymtable(aktenumdef.owner).insert(tenumsym.create(s,aktenumdef,longint(l.svalue)));
                   current_tokenpos:=storepos;
                 until not try_to_consume(_COMMA);
                 def:=aktenumdef;
