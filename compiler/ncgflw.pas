@@ -490,7 +490,22 @@ implementation
          cg.executionweight:=oldexecutionweight;
 
          { load from value }
+         isjump:=(right.expectloc=LOC_JUMP);
+         if isjump then
+           begin
+              otl:=current_procinfo.CurrTrueLabel;
+              current_asmdata.getjumplabel(current_procinfo.CurrTrueLabel);
+              ofl:=current_procinfo.CurrFalseLabel;
+              current_asmdata.getjumplabel(current_procinfo.CurrFalseLabel);
+           end;
          secondpass(right);
+         if right.location.loc in [LOC_FLAGS,LOC_JUMP] then
+           location_force_reg(current_asmdata.CurrAsmList,right.location,def_cgsize(right.resultdef),false);
+         if isjump then
+           begin
+             current_procinfo.CurrTrueLabel:=otl;
+             current_procinfo.CurrFalseLabel:=ofl;
+           end;
 
          maybechangeloadnodereg(current_asmdata.CurrAsmList,left,false);
          oldflowcontrol:=flowcontrol;
