@@ -22,12 +22,17 @@
 
 function Supports(const Instance: IInterface; const IID: TGUID; out Intf): Boolean;
 begin
-  Result:=(Instance<>nil) and (Instance.QueryInterface(IID,Intf)=0);
+  Result:=(Instance<>nil) and (Instance.QueryInterface(IID,Intf)=S_OK);
 end;
 
 function Supports(const Instance: TObject; const IID: TGUID; out Intf): Boolean;
+var
+  Temp: IInterface;
 begin
-  Result:=(Instance<>nil) and Instance.GetInterface(IID,Intf);
+  Result:=(Instance<>nil) and ((Instance.GetInterface(IInterface,Temp) and (Temp.QueryInterface(IID,Intf)=S_OK))
+    or Instance.GetInterface(IID,Intf));
+  { Some applications expect that the QueryInterface method is invoked as first priority
+    to query for an interface and GetInterface as 2nd priority }
 end;
 
 function Supports(const Instance: TObject; const IID: Shortstring; out Intf): Boolean;
@@ -43,8 +48,10 @@ begin
 end;
 
 function Supports(const Instance: TObject; const IID: TGUID): Boolean;
+var
+  Temp: IInterface;
 begin
-  Result:=(Instance<>nil) and (Instance.GetInterfaceEntry(IID)<>nil);
+  Result:=Supports(Instance,IID,Temp);
 end;
 
 function Supports(const Instance: TObject; const IID: Shortstring): Boolean;
