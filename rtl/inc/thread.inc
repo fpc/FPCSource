@@ -143,6 +143,12 @@ begin
   Result:=CurrentTM.ResumeThread(ThreadHandle);
 end;
 
+function CloseThread  (threadHandle : TThreadID):dword;
+
+begin
+  result:=CurrentTM.CloseThread(ThreadHandle);
+end;
+
 procedure ThreadSwitch;
 
 begin
@@ -357,6 +363,13 @@ end;
 procedure NoThreadSwitch;  {give time to other threads}
 begin
   NoThreadError;
+end;
+
+function NoCloseThread  (threadHandle : TThreadID):dword;
+
+begin
+ Result:=0;      // avoid warnings.
+ NoThreadError;
 end;
 
 function  NoWaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;  {0=no timeout}
@@ -585,6 +598,7 @@ begin
     SuspendThread          :=@NoThreadHandler;
     ResumeThread           :=@NoThreadHandler;
     KillThread             :=@NoThreadHandler;
+    CloseThread		   :=@NoCloseThread;
     ThreadSwitch           :=@NoThreadSwitch;
     WaitForThreadTerminate :=@NoWaitForThreadTerminate;
     ThreadSetPriority      :=@NoThreadSetPriority;
