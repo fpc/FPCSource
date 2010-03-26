@@ -87,6 +87,7 @@
       begin
          if assigned(S) then
            begin
+             tmp:=nil;
              if IUnknown(S).QueryInterface(iid,tmp)<>S_OK then
                handleerror(219);
              if assigned(D) then
@@ -108,6 +109,7 @@
       begin
         if assigned(S) then
           begin
+             tmpi:=nil;
              if IUnknown(S).QueryInterface(iid,tmpi)<>S_OK then
                handleerror(219);
              pointer(fpc_intf_as):=tmpi;
@@ -119,11 +121,17 @@
 
     function fpc_class_as_intf(const S: pointer; const iid: TGUID): IInterface;[public,alias: 'FPC_CLASS_AS_INTF']; compilerproc;
       var
-        tmpi: pointer; // _AddRef before _Release
+        tmpi,tmpi2: pointer; // _AddRef before _Release
+        res: boolean;
       begin
         if assigned(S) then
           begin
-             if not TObject(S).GetInterface(iid,tmpi) then
+             tmpi:=nil;
+             tmpi2:=nil;
+             res := (TObject(S).GetInterface(IUnknown,tmpi2) and (IUnknown(tmpi2).QueryInterface(IID,tmpi)=S_OK)) or TObject(S).GetInterface(IID,tmpi);
+             if tmpi2<>nil then
+               IUnknown(tmpi2)._Release;
+             if not res then
                handleerror(219);
              pointer(fpc_class_as_intf):=tmpi;
           end
@@ -138,6 +146,7 @@
       begin
         if assigned(S) then
           begin
+             tmpi:=nil;
              if not TObject(S).GetInterface(iid,tmpi) then
                handleerror(219);
              fpc_class_as_corbaintf:=tmpi;
@@ -809,7 +818,7 @@
 
       begin
          if getinterface(iid,obj) then
-           result:=0
+           result:=S_OK
          else
            result:=longint(E_NOINTERFACE);
       end;
@@ -897,7 +906,7 @@
 
     begin
       if getinterface(iid,obj) then
-        result:=0
+        result:=S_OK
       else
         result:=longint(E_NOINTERFACE);
     end;
