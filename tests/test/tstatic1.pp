@@ -11,7 +11,7 @@ type
       FSomethingStatic: Integer;
   public
     class procedure SomeClassMethod(A: Integer);
-    class procedure SomeStaticMethod(A: Integer); static;
+    class procedure SomeStaticMethod(A: Integer); inline; static;
   end;
 
 { TSomeClass }
