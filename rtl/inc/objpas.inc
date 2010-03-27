@@ -632,7 +632,6 @@
           Getter.Data := Instance;
           if Assigned(IEntry) and Assigned(Instance) then
           begin
-            writeln(IEntry^.IType);
             case IEntry^.IType of
               etStandard:
                   Pointer(Obj) := PByte(instance)+IEntry^.IOffset;
