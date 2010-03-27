@@ -50,8 +50,10 @@ begin
   System.InitCriticalSection(fwritelock);
   fwaitingwriterlock:=RTLEventCreate;
   RTLEventResetEvent(fwaitingwriterlock);
-  fwritelocked:=0;
-  freadercount:=0;
+  { make sure all threads see the initialisation of fwritelock and
+    freadercount (we only use atomic operation further on as well) }
+  System.InterlockedExchange(freadercount,0);
+  System.InterlockedExchange(fwritelocked,0);
   freaderqueue:=BasicEventCreate(nil,true,false,'');
 end;
 
@@ -69,15 +71,15 @@ function  TMultiReadExclusiveWriteSynchronizer.Beginwrite : boolean;
 begin
   { wait for any other writers that may be in progress }
   System.EnterCriticalSection(fwritelock);
-  { it is possible that we earlier on missed waiting on the
+  { it is possible that earlier on we missed waiting on the
     fwaitingwriterlock and that it's still set (must be done
-    after aquiring the fwritelock, because otherwise one
+    after acquiring the fwritelock, because otherwise one
     writer could reset the fwaitingwriterlock of another one
     that's about to wait on it) }
   RTLeventResetEvent(fwaitingwriterlock);
   { new readers have to block from now on; writers get priority to avoid
     writer starvation (since they have to compete with potentially many
-    concurrent readers) }
+    concurrent readers and other writers) }
   BasicEventResetEvent(freaderqueue);
   { for quick checking by candidate-readers -- use interlockedincrement/
     decrement instead of setting 1/0, because a single thread can
@@ -154,8 +156,8 @@ end;
 procedure  TMultiReadExclusiveWriteSynchronizer.Endread;
 begin
   { If no more readers, wake writer in the ready-queue if any. Since a writer
-    always first atomically sets the fwritelocked and then atomically checks
-    the freadercount, first modifying freadercount and then checking fwritelock
+    always first atomically sets fwritelocked and then atomically checks the
+    freadercount, first modifying freadercount and then checking fwritelock
     ensures that we cannot miss one of the events regardless of execution
     order. }
   if (System.InterlockedDecrement(freadercount)=0) and
