@@ -708,6 +708,10 @@
               continue search }
             Instance := TObject(obj);
           until False;
+          { Getter function will normally AddRef, so adding another reference here
+            will cause memleak. com interfaces only!! }
+          if result and Assigned(IEntry^.IID) and (IEntry^.IType in [etStandard, etFieldValue]) then
+            IInterface(obj)._AddRef;
         end;
 
       function TObject.getinterface(const iidstr : shortstring;out obj) : boolean;
