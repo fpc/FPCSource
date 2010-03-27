@@ -121,17 +121,14 @@
 
     function fpc_class_as_intf(const S: pointer; const iid: TGUID): IInterface;[public,alias: 'FPC_CLASS_AS_INTF']; compilerproc;
       var
-        tmpi,tmpi2: pointer; // _AddRef before _Release
-        res: boolean;
+        tmpi: pointer; // _AddRef before _Release
+        tmpi2: pointer; // weak!
       begin
         if assigned(S) then
           begin
              tmpi:=nil;
              tmpi2:=nil;
-             res := (TObject(S).GetInterface(IUnknown,tmpi2) and (IUnknown(tmpi2).QueryInterface(IID,tmpi)=S_OK)) or TObject(S).GetInterface(IID,tmpi);
-             if tmpi2<>nil then
-               IUnknown(tmpi2)._Release;
-             if not res then
+             if not ((TObject(S).GetInterfaceWeak(IUnknown,tmpi2) and (IUnknown(tmpi2).QueryInterface(IID,tmpi)=S_OK)) or TObject(S).GetInterface(IID,tmpi)) then
                handleerror(219);
              pointer(fpc_class_as_intf):=tmpi;
           end
@@ -158,6 +155,7 @@
 {****************************************************************************
                                TOBJECT
 ****************************************************************************}
+
       constructor TObject.Create;
         begin
         end;
@@ -626,7 +624,7 @@
         TInterfaceGetter = procedure(out Obj) of object;
         TClassGetter = function: TObject of object;
 
-      function getinterfacebyentry(Instance: pointer; IEntry: pinterfaceentry; out obj): boolean;
+      function GetInterfaceByEntry(Instance: pointer; IEntry: pinterfaceentry; out obj): boolean;
         var
           Getter: TMethod;
         begin
@@ -634,26 +632,27 @@
           Getter.Data := Instance;
           if Assigned(IEntry) and Assigned(Instance) then
           begin
+            writeln(IEntry^.IType);
             case IEntry^.IType of
               etStandard:
-                  Pointer(Obj) := Pbyte(instance)+IEntry^.IOffset;
+                  Pointer(Obj) := PByte(instance)+IEntry^.IOffset;
               etFieldValue, etFieldValueClass:
-                  Pointer(obj) := PPointer(Pbyte(Instance)+IEntry^.IOffset)^;
+                  Pointer(obj) := PPointer(PByte(Instance)+IEntry^.IOffset)^;
               etVirtualMethodResult:
                 begin
                   // IOffset is relative to the VMT, not to instance.
-                  Getter.code := ppointer(PByte(PPointer(Instance)^) + IEntry^.IOffset)^;
+                  Getter.code := PPointer(PByte(PPointer(Instance)^) + IEntry^.IOffset)^;
                   TInterfaceGetter(Getter)(obj);
                 end;
               etVirtualMethodClass:
                 begin
                   // IOffset is relative to the VMT, not to instance.
-                  Getter.code := ppointer(PByte(PPointer(Instance)^) + IEntry^.IOffset)^;
+                  Getter.code := PPointer(PByte(PPointer(Instance)^) + IEntry^.IOffset)^;
                   TObject(obj) := TClassGetter(Getter)();
                 end;
               etStaticMethodResult:
                 begin
-                  Getter.code := pointer(IEntry^.IOffset);
+                  Getter.code := Pointer(IEntry^.IOffset);
                   TInterfaceGetter(Getter)(obj);
                 end;
               etStaticMethodClass:
@@ -666,60 +665,90 @@
           result := assigned(pointer(obj));
         end;
 
-      function TObject.getinterface(const iid : tguid;out obj) : boolean;
+      function TObject.GetInterface(const iid : tguid;out obj) : boolean;
         var
           IEntry: PInterfaceEntry;
           Instance: TObject;
         begin
           Instance := self;
           repeat
-            IEntry := Instance.getinterfaceentry(iid);
-            result := getinterfacebyentry(Instance, IEntry, obj);
+            IEntry := Instance.GetInterfaceEntry(iid);
+            result := GetInterfaceByEntry(Instance, IEntry, obj);
 
             if (not result) or
               (IEntry^.IType in [etStandard, etFieldValue,
                etStaticMethodResult, etVirtualMethodResult]) then
               Break;
+
             { if interface is implemented by a class-type property or field,
               continue search }
             Instance := TObject(obj);
           until False;
+
           { Getter function will normally AddRef, so adding another reference here
-            will cause memleak.  }
+            will cause memleak. }
           if result and (IEntry^.IType in [etStandard, etFieldValue]) then
             IInterface(obj)._AddRef;
         end;
 
-      function TObject.getinterfacebystr(const iidstr : shortstring;out obj) : boolean;
+      function TObject.GetInterfaceWeak(const iid : tguid; out obj) : boolean;
         var
           IEntry: PInterfaceEntry;
           Instance: TObject;
         begin
           Instance := self;
           repeat
-            IEntry := Instance.getinterfaceentrybystr(iidstr);
-            result := getinterfacebyentry(Instance, IEntry, obj);
+            IEntry := Instance.GetInterfaceEntry(iid);
+            result := GetInterfaceByEntry(Instance, IEntry, obj);
 
             if (not result) or
               (IEntry^.IType in [etStandard, etFieldValue,
                etStaticMethodResult, etVirtualMethodResult]) then
               Break;
+
             { if interface is implemented by a class-type property or field,
               continue search }
             Instance := TObject(obj);
           until False;
+
+          { Getter function will normally AddRef, so we have to release it,
+            else the ref is not weak. }
+          if result and not (IEntry^.IType in [etStandard, etFieldValue]) then
+            IInterface(obj)._Release;
+        end;
+
+      function TObject.GetInterfaceByStr(const iidstr : shortstring;out obj) : boolean;
+        var
+          IEntry: PInterfaceEntry;
+          Instance: TObject;
+        begin
+          Instance := self;
+          repeat
+            IEntry := Instance.GetInterfaceEntryByStr(iidstr);
+            result := GetInterfaceByEntry(Instance, IEntry, obj);
+
+            if (not result) or
+              (IEntry^.IType in [etStandard, etFieldValue,
+               etStaticMethodResult, etVirtualMethodResult]) then
+              Break;
+
+            { if interface is implemented by a class-type property or field,
+              continue search }
+            Instance := TObject(obj);
+          until False;
+
           { Getter function will normally AddRef, so adding another reference here
-            will cause memleak. com interfaces only!! }
+            will cause memleak. (com interfaces only!) }
           if result and Assigned(IEntry^.IID) and (IEntry^.IType in [etStandard, etFieldValue]) then
             IInterface(obj)._AddRef;
         end;
 
-      function TObject.getinterface(const iidstr : shortstring;out obj) : boolean;
+      function TObject.GetInterface(const iidstr : shortstring;out obj) : boolean;
         begin
-          Result := getinterfacebystr(iidstr,obj);
+          Result := GetInterfaceByStr(iidstr,obj);
         end;
 
-      class function TObject.getinterfaceentry(const iid : tguid) : pinterfaceentry;
+      class function TObject.GetInterfaceEntry(const iid : tguid) : pinterfaceentry;
         var
           i: longint;
           intftable: pinterfacetable;
@@ -743,7 +772,7 @@
           result := nil;
         end;
 
-      class function TObject.getinterfaceentrybystr(const iidstr : shortstring) : pinterfaceentry;
+      class function TObject.GetInterfaceEntryByStr(const iidstr : shortstring) : pinterfaceentry;
         var
           i: longint;
           intftable: pinterfacetable;
@@ -767,7 +796,7 @@
           result:=nil;
         end;
 
-      class function TObject.getinterfacetable : pinterfacetable;
+      class function TObject.GetInterfaceTable : pinterfacetable;
         begin
           getinterfacetable:=PVmt(Self)^.vIntfTable;
         end;
@@ -813,6 +842,7 @@
         begin
           result:=ClassName;
         end;
+
 {****************************************************************************
                                TINTERFACEDOBJECT
 ****************************************************************************}
