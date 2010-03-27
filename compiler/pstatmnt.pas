@@ -1171,13 +1171,24 @@ implementation
 
              if not assigned(p.resultdef) then
                do_typecheckpass(p);
+
              { Specify that we don't use the value returned by the call.
                This is used for :
                 - dispose of temp stack space
-                - dispose on FPU stack }
+                - dispose on FPU stack
+                - extended syntax checking }
              if (p.nodetype=calln) then
-               exclude(tcallnode(p).callnodeflags,cnf_return_value_used);
+               begin
+                 exclude(tcallnode(p).callnodeflags,cnf_return_value_used);
 
+                 { in {$x-} state, the function result must not be ignored }
+                 if not(cs_extsyntax in current_settings.moduleswitches) and
+                    not(is_void(p.resultdef)) and
+                    not((tcallnode(p).procdefinition.proctypeoption=potype_constructor) and
+                        assigned(tprocdef(tcallnode(p).procdefinition)._class) and
+                        is_object(tprocdef(tcallnode(p).procdefinition)._class)) then
+                   Message(parser_e_illegal_expression);
+               end;
              code:=p;
            end;
          end;

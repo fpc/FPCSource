@@ -396,14 +396,6 @@ implementation
 
          { left is the statement itself calln assignn or a complex one }
          typecheckpass(left);
-         if (not (cs_extsyntax in current_settings.moduleswitches)) and
-            assigned(left.resultdef) and
-            not((left.nodetype=calln) and
-                { don't complain when the value is used. And also not for constructors }
-                ((cnf_return_value_used in tcallnode(left).callnodeflags) or
-                 (tcallnode(left).procdefinition.proctypeoption=potype_constructor))) and
-            not(is_void(left.resultdef)) then
-           CGMessage(parser_e_illegal_expression);
          if codegenerror then
            exit;
 
@@ -502,15 +494,6 @@ implementation
                 begin
                    codegenerror:=false;
                    typecheckpass(hp.left);
-                   if not(codegenerror) and
-                      not(cs_extsyntax in current_settings.moduleswitches) and
-                      (hp.left.nodetype=calln) and
-                      not(is_void(hp.left.resultdef)) and
-                      not(cnf_return_value_used in tcallnode(hp.left).callnodeflags) and
-                      not((tcallnode(hp.left).procdefinition.proctypeoption=potype_constructor) and
-                          assigned(tprocdef(tcallnode(hp.left).procdefinition)._class) and
-                          is_object(tprocdef(tcallnode(hp.left).procdefinition)._class)) then
-                     CGMessagePos(hp.left.fileinfo,parser_e_illegal_expression);
                    { the resultdef of the block is the last type that is
                      returned. Normally this is a voidtype. But when the
                      compiler inserts a block of multiple statements then the

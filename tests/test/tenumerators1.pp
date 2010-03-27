@@ -4,6 +4,7 @@ program tenumerators1;
 {$mode objfpc}{$H+}
 {$endif}
 {$apptype console}
+{$x-}
 uses
   Classes;
 
@@ -18,12 +19,13 @@ var
   Item: Pointer;
   List: TFPList;
   Enumerator: TFPListEnumerator;
+  i: integer;
 begin
   // check TFPList enumerator
   List := TFPList.Create;
-  List.Add(Pointer(1));
-  List.Add(Pointer(2));
-  List.Add(Pointer(3));
+  i:=List.Add(Pointer(1));
+  i:=List.Add(Pointer(2));
+  i:=List.Add(Pointer(3));
 
   Enumerator := List.GetEnumerator;
   while Enumerator.MoveNext do
@@ -41,12 +43,13 @@ var
   Item: Pointer;
   List: TList;
   Enumerator: TListEnumerator;
+  i: integer;
 begin
   // check TList enumerator
   List := TList.Create;
-  List.Add(Pointer(1));
-  List.Add(Pointer(2));
-  List.Add(Pointer(3));
+  i:=List.Add(Pointer(1));
+  i:=List.Add(Pointer(2));
+  i:=List.Add(Pointer(3));
 
   Enumerator := List.GetEnumerator;
   while Enumerator.MoveNext do
@@ -66,9 +69,9 @@ var
 begin
   // check TCollection enumerator
   Collection := TCollection.Create(TCollectionItem);
-  Collection.Add;
-  Collection.Add;
-  Collection.Add;
+  item:=Collection.Add;
+  item:=Collection.Add;
+  item:=Collection.Add;
 
   Enumerator := Collection.GetEnumerator;
   while Enumerator.MoveNext do
@@ -85,12 +88,13 @@ var
   Item: String;
   Strings: TStrings;
   Enumerator: TStringsEnumerator;
+  i: integer;
 begin
   // check TStrings enumerator
   Strings := TStringList.Create;
-  Strings.Add('1');
-  Strings.Add('2');
-  Strings.Add('3');
+  i:=Strings.Add('1');
+  i:=Strings.Add('2');
+  i:=Strings.Add('3');
 
   Enumerator := Strings.GetEnumerator;
   while Enumerator.MoveNext do
@@ -110,9 +114,9 @@ var
 begin
   // check TComponent enumerator
   Component := TComponent.Create(nil);
-  TComponent.Create(Component);
-  TComponent.Create(Component);
-  TComponent.Create(Component);
+  item:=TComponent.Create(Component);
+  item:=TComponent.Create(Component);
+  item:=TComponent.Create(Component);
 
   Enumerator := Component.GetEnumerator;
   while Enumerator.MoveNext do
@@ -129,15 +133,16 @@ var
   Item: IUnknown;
   List: TInterfaceList;
   Enumerator: TInterfaceListEnumerator;
+  i: integer;
 begin
   // check TInterfaceList enumerator
   List := TInterfaceList.Create;
   Item := TInterfacedObject.Create;
-  List.Add(Item);
+  i:=List.Add(Item);
   Item := TInterfacedObject.Create;
-  List.Add(Item);
+  i:=List.Add(Item);
   Item := TInterfacedObject.Create;
-  List.Add(Item);
+  i:=List.Add(Item);
 
   Enumerator := List.GetEnumerator;
   while Enumerator.MoveNext do
