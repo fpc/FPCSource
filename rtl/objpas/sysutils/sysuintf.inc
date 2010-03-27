@@ -27,9 +27,9 @@ end;
 
 function Supports(const Instance: TObject; const IID: TGUID; out Intf): Boolean;
 var
-  Temp: IInterface;
+  Temp: Pointer; // weak
 begin
-  Result:=(Instance<>nil) and ((Instance.GetInterface(IInterface,Temp) and (Temp.QueryInterface(IID,Intf)=S_OK))
+  Result:=(Instance<>nil) and ((Instance.GetInterfaceWeak(IInterface,Temp) and (IInterface(Temp).QueryInterface(IID,Intf)=S_OK))
     or Instance.GetInterface(IID,Intf));
   { Some applications expect that the QueryInterface method is invoked as first priority
     to query for an interface and GetInterface as 2nd priority }
