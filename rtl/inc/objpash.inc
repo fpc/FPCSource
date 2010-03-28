@@ -279,21 +279,13 @@
             VarResult,ExcepInfo,ArgErr : pointer) : HResult;stdcall;
        end;
 
-       { for safe as operator support }
-       IImplementorGetter = interface
-         ['{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}']
-         function GetObject : TObject;
-       end;
-
-       TInterfacedObject = class(TObject,IUnknown,IImplementorGetter)
+       TInterfacedObject = class(TObject,IUnknown)
        protected
           frefcount : longint;
           { implement methods of IUnknown }
           function QueryInterface(const iid : tguid;out obj) : longint;stdcall;
           function _AddRef : longint;stdcall;
           function _Release : longint;stdcall;
-          { implement methods of IImplementorGetter }
-          function GetObject : TObject;
         public
           procedure AfterConstruction;override;
           procedure BeforeDestruction;override;
@@ -431,3 +423,7 @@
 
   var
     DispCallByIDProc : pointer;
+
+  const
+    { for safe as operator support }
+    IObjectInstance: TGuid = '{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}';

@@ -118,18 +118,9 @@
 
     function fpc_intf_is_class(const S: pointer; const aclass: tclass): Boolean;[public,alias: 'FPC_INTF_IS_CLASS']; compilerproc;
       var
-        tmpi: pointer;
         tmpo: tobject;
       begin
-        tmpi := nil;
-        if Assigned(S) and (IUnknown(S).QueryInterface(IImplementorGetter,tmpi)=S_OK) then
-          begin
-            tmpo := IImplementorGetter(tmpi).GetObject;
-            IUnknown(tmpi)._Release;
-            fpc_intf_is_class:=Assigned(tmpo) and tmpo.InheritsFrom(aclass);
-          end
-        else
-          fpc_intf_is_class:=false;
+        fpc_intf_is_class:=Assigned(S) and (IUnknown(S).QueryInterface(IObjectInstance,tmpo)=S_OK)  and tmpo.InheritsFrom(aclass);
       end;
 
 
@@ -167,19 +158,10 @@
 
     function fpc_intf_cast_class(const S: pointer; const aclass: tclass): pointer;[public,alias: 'FPC_INTF_CAST_CLASS']; compilerproc;
       var
-        tmpi: pointer;
         tmpo: tobject;
       begin
-        tmpi:=nil;
-        if Assigned(S) and (IUnknown(S).QueryInterface(IImplementorGetter,tmpi)=S_OK) then
-          begin
-            tmpo := IImplementorGetter(tmpi).GetObject;
-            IUnknown(tmpi)._Release;
-            if Assigned(tmpo) and tmpo.InheritsFrom(aclass) then
-              fpc_intf_cast_class:=tmpo
-            else
-              fpc_intf_cast_class:=nil;
-          end
+        if Assigned(S) and (IUnknown(S).QueryInterface(IObjectInstance,tmpo)=S_OK) and tmpo.InheritsFrom(aclass) then
+          fpc_intf_cast_class:=tmpo
         else
           fpc_intf_cast_class:=nil;
       end;
@@ -229,22 +211,13 @@
 
     function fpc_intf_as_class(const S: pointer; const aclass: tclass): pointer;[public,alias: 'FPC_INTF_AS_CLASS']; compilerproc;
       var
-        tmpi: pointer;
         tmpo: tobject;
       begin
         if assigned(S) then
           begin
-            tmpi := nil;
-            if IUnknown(S).QueryInterface(IImplementorGetter,tmpi)=S_OK then
-              begin
-                tmpo := IImplementorGetter(tmpi).GetObject;
-                IUnknown(tmpi)._Release;
-                if not assigned(tmpo) or not tmpo.inheritsfrom(aclass) then
-                  handleerror(219);
-                fpc_intf_as_class:=tmpo;
-              end
-            else
+            if not ((IUnknown(S).QueryInterface(IObjectInstance,tmpo)=S_OK) and tmpo.inheritsfrom(aclass)) then
               handleerror(219);
+            fpc_intf_as_class:=tmpo;
           end
         else
           fpc_intf_as_class:=nil;
@@ -802,6 +775,13 @@
           IEntry: PInterfaceEntry;
           Instance: TObject;
         begin
+          if IsGUIDEqual(IObjectInstance,iid) then
+          begin
+            TObject(Obj) := Self;
+            Result := True;
+            Exit;
+          end;
+
           Instance := self;
           repeat
             IEntry := Instance.GetInterfaceEntry(iid);
@@ -828,6 +808,13 @@
           IEntry: PInterfaceEntry;
           Instance: TObject;
         begin
+          if IsGUIDEqual(IObjectInstance,iid) then
+          begin
+            TObject(Obj) := Self;
+            Result := True;
+            Exit;
+          end;
+
           Instance := self;
           repeat
             IEntry := Instance.GetInterfaceEntry(iid);
@@ -1001,12 +988,6 @@
          _Release:=interlockeddecrement(frefcount);
          if _Release=0 then
            self.destroy;
-      end;
-
-    function TInterfacedObject.GetObject : TObject;
-
-      begin
-         GetObject:=Self;
       end;
 
     procedure TInterfacedObject.AfterConstruction;

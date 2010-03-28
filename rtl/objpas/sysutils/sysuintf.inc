@@ -21,15 +21,8 @@
 }
 
 function Supports(const Instance: IInterface; const AClass: TClass; out Obj): Boolean;
-var
-  Getter: IImplementorGetter;
 begin
-  if (Instance<>nil) and (Instance.QueryInterface(IImplementorGetter,Getter)=S_OK) then
-  begin
-    TObject(Obj) := Getter.GetObject;
-    Result := Assigned(TObject(Obj)) and (TObject(Obj).InheritsFrom(AClass));
-  end else
-    Result := False;
+  Result := (Instance<>nil) and (Instance.QueryInterface(IObjectInstance,Obj)=S_OK) and (TObject(Obj).InheritsFrom(AClass));
 end;
 
 function Supports(const Instance: IInterface; const IID: TGUID; out Intf): Boolean;
