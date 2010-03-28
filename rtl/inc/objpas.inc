@@ -29,6 +29,7 @@
       end;
 {$endif FPC_HAS_FEATURE_VARIANTS}
 
+
 {****************************************************************************
                   Internal Routines called from the Compiler
 ****************************************************************************}
@@ -81,7 +82,8 @@
          D:=S;
       end;
 
-    procedure fpc_intf_assign_by_iid(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_ASSIGN2']; compilerproc;
+
+    {procedure fpc_intf_assign_by_iid(var D: pointer; const S: pointer; const iid: TGUID);[public,alias: 'FPC_INTF_ASSIGN2']; compilerproc;
       var
         tmp : pointer;
       begin
@@ -100,6 +102,96 @@
                IUnknown(D)._Release;
              D:=nil;
            end;
+      end;}
+
+
+    function fpc_intf_is(const S: pointer; const iid: TGUID): Boolean;[public,alias: 'FPC_INTF_IS']; compilerproc;
+      var
+        tmpi: pointer;
+      begin
+        tmpi:=nil;
+        fpc_intf_is:=Assigned(S) and (IUnknown(S).QueryInterface(iid,tmpi)=S_OK);
+        if Assigned(tmpi) then
+          IUnknown(tmpi)._Release;
+      end;
+
+
+    function fpc_intf_is_class(const S: pointer; const aclass: tclass): Boolean;[public,alias: 'FPC_INTF_IS_CLASS']; compilerproc;
+      var
+        tmpi: pointer;
+        tmpo: tobject;
+      begin
+        tmpi := nil;
+        if Assigned(S) and (IUnknown(S).QueryInterface(IImplementorGetter, tmpi)=S_OK) then
+          begin
+            tmpo := IImplementorGetter(tmpi).GetObject;
+            IUnknown(tmpi)._Release;
+            fpc_intf_is_class:=Assigned(tmpo) and tmpo.InheritsFrom(aclass);
+          end
+        else
+          fpc_intf_is_class:=false;
+      end;
+
+
+    function fpc_class_is_intf(const S: pointer; const iid: TGUID): Boolean;[public,alias: 'FPC_CLASS_IS_INTF']; compilerproc;
+      var
+        tmpi: pointer;
+        tmpi2: pointer; // weak!
+      begin
+        tmpi:=nil;
+        tmpi2:=nil;
+        fpc_class_is_intf:=Assigned(S) and ((TObject(S).GetInterfaceWeak(IUnknown,tmpi2) and (IUnknown(tmpi2).QueryInterface(IID,tmpi)=S_OK)) or
+            TObject(S).GetInterface(IID,tmpi));
+        if Assigned(tmpi) then
+          IUnknown(tmpi)._Release;
+      end;
+
+
+
+    function fpc_intf_cast(const S: pointer; const iid: TGUID): IInterface;[public,alias: 'FPC_INTF_CAST']; compilerproc;
+      var
+        tmpi: pointer;
+      begin
+        tmpi:=nil;
+        if Assigned(S) and (IUnknown(S).QueryInterface(iid,tmpi)=S_OK) then
+          pointer(fpc_intf_cast):=tmpi
+        else
+          fpc_intf_cast:= nil;
+      end;
+
+
+    function fpc_intf_cast_class(const S: pointer; const aclass: tclass): pointer;[public,alias: 'FPC_INTF_CAST_CLASS']; compilerproc;
+      var
+        tmpi: pointer;
+        tmpo: tobject;
+      begin
+        tmpi:=nil;
+        if Assigned(S) and (IUnknown(S).QueryInterface(IImplementorGetter,tmpi)=S_OK) then
+          begin
+            tmpo := IImplementorGetter(tmpi).GetObject;
+            IUnknown(tmpi)._Release;
+            if Assigned(tmpo) and tmpo.InheritsFrom(aclass) then
+              fpc_intf_cast_class:=tmpo
+            else
+              fpc_intf_cast_class:=nil;
+          end
+        else
+          fpc_intf_cast_class:=nil;
+      end;
+
+
+    function fpc_class_cast_intf(const S: pointer; const iid: TGUID): IInterface;[public,alias: 'FPC_CLASS_CAST_INTF']; compilerproc;
+      var
+        tmpi: pointer;
+        tmpi2: pointer; // weak!
+      begin
+        tmpi:=nil;
+        tmpi2:=nil;
+        if Assigned(S) and ((TObject(S).GetInterfaceWeak(IUnknown,tmpi2) and (IUnknown(tmpi2).QueryInterface(IID,tmpi)=S_OK)) or
+            TObject(S).GetInterface(IID,tmpi)) then
+          pointer(fpc_class_cast_intf):=tmpi
+        else
+          fpc_class_cast_intf:=nil;
       end;
 
 
@@ -175,6 +267,7 @@
         else
           fpc_class_as_corbaintf:=nil;
       end;
+
 
 {****************************************************************************
                                TOBJECT
