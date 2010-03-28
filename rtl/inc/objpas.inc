@@ -122,7 +122,7 @@
         tmpo: tobject;
       begin
         tmpi := nil;
-        if Assigned(S) and (IUnknown(S).QueryInterface(IImplementorGetter, tmpi)=S_OK) then
+        if Assigned(S) and (IUnknown(S).QueryInterface(IImplementorGetter,tmpi)=S_OK) then
           begin
             tmpo := IImplementorGetter(tmpi).GetObject;
             IUnknown(tmpi)._Release;
@@ -146,6 +146,11 @@
           IUnknown(tmpi)._Release;
       end;
 
+
+    function fpc_class_is_corbaintf(const S: pointer; const iid: Shortstring): Boolean;[public,alias: 'FPC_CLASS_IS_CORBAINTF']; compilerproc;
+      begin
+        fpc_class_is_corbaintf:=Assigned(S) and Assigned(TObject(S).GetInterfaceEntryByStr(iid));
+      end;
 
 
     function fpc_intf_cast(const S: pointer; const iid: TGUID): IInterface;[public,alias: 'FPC_INTF_CAST']; compilerproc;
@@ -195,6 +200,17 @@
       end;
 
 
+    function fpc_class_cast_corbaintf(const S: pointer; const iid: Shortstring): Pointer;[public,alias: 'FPC_CLASS_CAST_CORBAINTF']; compilerproc;
+      var
+        tmpi: pointer;
+      begin
+        if Assigned(S) and TObject(S).GetInterface(iid,tmpi) then
+          fpc_class_cast_corbaintf:=tmpi
+        else
+          fpc_class_cast_corbaintf:=nil;
+      end;
+
+
     function fpc_intf_as(const S: pointer; const iid: TGUID): IInterface;[public,alias: 'FPC_INTF_AS']; compilerproc;
       var
         tmpi: pointer; // _AddRef before _Release
@@ -219,7 +235,7 @@
         if assigned(S) then
           begin
             tmpi := nil;
-            if IUnknown(S).QueryInterface(IImplementorGetter, tmpi)=S_OK then
+            if IUnknown(S).QueryInterface(IImplementorGetter,tmpi)=S_OK then
               begin
                 tmpo := IImplementorGetter(tmpi).GetObject;
                 IUnknown(tmpi)._Release;
