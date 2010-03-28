@@ -20,6 +20,18 @@
     System Utilities For Free Pascal
 }
 
+function Supports(const Instance: IInterface; const AClass: TClass; out Obj): Boolean;
+var
+  Getter: IImplementorGetter;
+begin
+  if (Instance<>nil) and (Instance.QueryInterface(IImplementorGetter,Getter)=S_OK) then
+  begin
+    TObject(Obj) := Getter.GetObject;
+    Result := Assigned(TObject(Obj)) and (TObject(Obj).InheritsFrom(AClass));
+  end else
+    Result := False;
+end;
+
 function Supports(const Instance: IInterface; const IID: TGUID; out Intf): Boolean;
 begin
   Result:=(Instance<>nil) and (Instance.QueryInterface(IID,Intf)=S_OK);
@@ -38,6 +50,15 @@ end;
 function Supports(const Instance: TObject; const IID: Shortstring; out Intf): Boolean;
 begin
   Result:=(Instance<>nil) and Instance.GetInterface(IID,Intf);
+end;
+
+
+
+function Supports(const Instance: IInterface; const AClass: TClass): Boolean;
+var
+  Temp: TObject;
+begin
+  Result:=Supports(Instance,AClass,Temp);
 end;
 
 function Supports(const Instance: IInterface; const IID: TGUID): Boolean;
@@ -59,6 +80,8 @@ begin
   Result:=(Instance<>nil) and (Instance.GetInterfaceEntryByStr(IID)<>nil);
 end;
 
+
+
 function Supports(const AClass: TClass; const IID: TGUID): Boolean;
 begin
   Result:=(AClass<>nil) and (AClass.GetInterfaceEntry(IID)<>nil);
@@ -70,12 +93,12 @@ begin
 end;
 
 
+
 function StringToGUID(const S: string): TGUID;
 begin
   if not TryStringToGUID(S, Result) then
     raise EConvertError.CreateFmt(SInvalidGUID, [S]);
 end;
-
 
 function TryStringToGUID(const S: string; out Guid: TGUID): Boolean;
 var
@@ -124,7 +147,6 @@ begin
   Result := e;
 end;
 
-
 function IsEqualGUID(const guid1, guid2: TGUID): Boolean;
 var
   a1,a2: PIntegerArray;
@@ -137,7 +159,6 @@ begin
           (a1^[3]=a2^[3]);
 end;
 
-
 function GuidCase(const GUID: TGUID; const List: array of TGuid): Integer;
 begin
   for Result := High(List) downto 0 do
@@ -145,7 +166,6 @@ begin
       Exit;
   Result := -1;
 end;
-
 
 function GUIDToString(const GUID: TGUID): string;
 begin
