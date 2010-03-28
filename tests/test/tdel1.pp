@@ -1,5 +1,5 @@
 {%OPT=-gh}
-program td;
+program tdel1;
 {$ifdef fpc}{$mode objfpc}{$h+}{$endif}
 { A test for correct refcounting when using different methods of casting
   object to delegated COM interface. The requirement is no memleaks.
