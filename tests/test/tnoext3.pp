@@ -79,7 +79,7 @@ begin
   val(ss,b,w);
   val(ss,c,b);
 {$ifdef cpu64}
-  val(ss,c,q);
+  val(ss,q,ii);
 {$endif}
   val(ss,q,si);
   val(ss,si,i);
