@@ -3384,7 +3384,14 @@ implementation
 
          if (right.resultdef.typ=classrefdef) then
           begin
-            { left must be a class }
+            { left maybe an interface reference }
+            if is_interfacecom(left.resultdef) then
+             begin
+               { relation checks are not possible }
+             end
+            else
+
+            { or left must be a class }
             if is_class(left.resultdef) then
              begin
                { the operands must be related }
@@ -3397,7 +3404,7 @@ implementation
                     FullTypeName(tclassrefdef(right.resultdef).pointeddef,left.resultdef));
              end
             else
-             CGMessage1(type_e_class_type_expected,left.resultdef.typename);
+             CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
             resultdef:=tclassrefdef(right.resultdef).pointeddef;
           end
          else if is_interface(right.resultdef) or is_dispinterface(right.resultdef) then
@@ -3487,7 +3494,10 @@ implementation
                   else
                     procname := 'fpc_class_as_intf'
                 else
-                  procname := 'fpc_intf_as';
+                  if right.resultdef.typ=classrefdef then
+                    procname := 'fpc_intf_as_class'
+                  else
+                    procname := 'fpc_intf_as';
                 call := ccallnode.createintern(procname,
                    ccallparanode.create(right,ccallparanode.create(left,nil)));
                 call := ctypeconvnode.create_internal(call,resultdef);

@@ -119,6 +119,30 @@
       end;
 
 
+    function fpc_intf_as_class(const S: pointer; const aclass: tclass): pointer;[public,alias: 'FPC_INTF_AS_CLASS']; compilerproc;
+      var
+        tmpi: pointer;
+        tmpo: tobject;
+      begin
+        if assigned(S) then
+          begin
+            tmpi := nil;
+            if IUnknown(S).QueryInterface(IImplementorGetter, tmpi)=S_OK then
+              begin
+                tmpo := IImplementorGetter(tmpi).GetObject;
+                IUnknown(tmpi)._Release;
+                if not assigned(tmpo) or not tmpo.inheritsfrom(aclass) then
+                  handleerror(219);
+                fpc_intf_as_class:=tmpo;
+              end
+            else
+              handleerror(219);
+          end
+        else
+          fpc_intf_as_class:=nil;
+      end;
+
+
     function fpc_class_as_intf(const S: pointer; const iid: TGUID): IInterface;[public,alias: 'FPC_CLASS_AS_INTF']; compilerproc;
       var
         tmpi: pointer; // _AddRef before _Release
@@ -868,6 +892,12 @@
          _Release:=interlockeddecrement(frefcount);
          if _Release=0 then
            self.destroy;
+      end;
+
+    function TInterfacedObject.GetObject : TObject;
+
+      begin
+         GetObject:=Self;
       end;
 
     procedure TInterfacedObject.AfterConstruction;
