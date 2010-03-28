@@ -227,6 +227,7 @@ implementation
                 exit;
               end;
             recordsymtable,
+            enumsymtable,
             localsymtable,
             parasymtable,
             ObjectSymtable :
