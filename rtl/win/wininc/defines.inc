@@ -1782,7 +1782,11 @@
      SM_ARRANGE = 56;
      SM_CLEANBOOT = 67;
   { The right value for SM_CEMETRICS for NT 3.5 is 75.  For Windows 95
-     and NT 4.0, it is 76.  The meaning is undocumented, anyhow.   }
+     and NT 4.0, it is 76.  The meaning is undocumented, anyhow.  
+    win2000=83,XP=90, vista/w7=93, but I suspect that is not properly
+    updated for win7 (which should be 96) in platform SDK 7. 
+    It seems to be the highest SM_ constant occupied.
+ }
      SM_CMETRICS = 76;
      SM_CMOUSEBUTTONS = 43;
      SM_CXBORDER = 5;
@@ -1848,13 +1852,32 @@
      SM_MENUDROPALIGNMENT = 40;
      SM_MIDEASTENABLED = 74;
      SM_MOUSEPRESENT = 19;
-     SM_MOUSEWHEELPRESENT = 75;
+     SM_MOUSEWHEELPRESENT = 75;    // w2k+
      SM_NETWORK = 63;
      SM_PENWINDOWS = 41;
      SM_SECURE = 44;
      SM_SHOWSOUNDS = 70;
      SM_SLOWMACHINE = 73;
      SM_SWAPBUTTON = 23;
+     SM_XVIRTUALSCREEN       = 76; // w2k+
+     SM_YVIRTUALSCREEN       = 77; // w2k+
+     SM_CXVIRTUALSCREEN      = 78; // w2k+
+     SM_CYVIRTUALSCREEN      = 79; // w2k+
+     SM_CMONITORS            = 80; // w2k+
+     SM_SAMEDISPLAYFORMAT    = 81; // w2k+
+     SM_IMMENABLED           = 82; // w2k+
+     SM_CXFOCUSBORDER        = 83; // w2k+
+     SM_CYFOCUSBORDER        = 84; // w2k+
+     SM_TABLETPC             = 86; // WinXP+
+     SM_MEDIACENTER          = 87; // WinXP+
+     SM_STARTER              = 88; // WinXP+
+     SM_SERVERR2             = 89; // WiNXP+
+     SM_MOUSEHORIZONTALWHEELPRESENT = 91; // Vista+
+     SM_CXPADDEDBORDER       = 92; // Vista+
+
+     SM_DIGITIZER            = 94; // win7+ 
+     SM_MAXIMUMTOUCHES       = 95; // win7+   
+
      ARW_BOTTOMLEFT = 0;
      ARW_BOTTOMRIGHT = $1;
      ARW_HIDE = $8;
