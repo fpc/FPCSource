@@ -416,8 +416,7 @@ begin
   { Set up signals handlers }
   InstallSignals;
 
-  SysInitStdIO;
-{ Setup heap }
+  { Setup heap }
   myheapsize:=4096*100;// $ 20000;
   myheaprealsize:=4096*100;// $ 20000;
   heapstart:=nil;
