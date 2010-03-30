@@ -494,7 +494,6 @@ implementation
       relpc       : Boolean;
       relextern   : Boolean;
       reltype     : Integer;
-      spos        : LongWord;
 
     begin
       s:=TMachoObjSection(p);

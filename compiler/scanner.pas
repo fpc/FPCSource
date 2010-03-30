@@ -3347,7 +3347,6 @@ In case not, the value returned can be arbitrary.
         m       : longint;
         mac     : tmacro;
         asciinr : string[6];
-        msgwritten,
         iswidestring : boolean;
       label
          exit_label;
@@ -3775,7 +3774,6 @@ In case not, the value returned can be arbitrary.
              '''','#','^' :
                begin
                  len:=0;
-                 msgwritten:=false;
                  cstringpattern:='';
                  iswidestring:=false;
                  if c='^' then

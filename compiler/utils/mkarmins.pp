@@ -179,12 +179,12 @@ var
    maxinfolen,
    code : byte;
    insns : longint;
-   attsuffile,propfile,opfile,
+   attsuffile,{propfile,}opfile,
    nopfile,attfile,
    infile,insfile : text;
    { instruction fields }
    skip : boolean;
-   last,
+   {last,}
    ops    : longint;
    attopcode,
    opcode,
@@ -333,7 +333,7 @@ begin
         { codes }
         skipspace;
         j:=0;
-        last:=0;
+(*        last:=0;*)
         if s[i] in ['\','0'..'9'] then
           begin
              while not(s[i] in [' ',#9]) do
@@ -352,7 +352,7 @@ begin
                   end;
 *)
                  codes:=codes+'#'+tostr(code);
-                 last:=code;
+(*                 last:=code;*)
                  inc(j);
                end;
           end

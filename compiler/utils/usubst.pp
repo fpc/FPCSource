@@ -53,7 +53,7 @@ end;
 Function AddPair(List : TStrings; Const NV : String) : Boolean;
 
 Var
-  P,I : Integer;
+  P : Integer;
   N,V : string;
 
 begin

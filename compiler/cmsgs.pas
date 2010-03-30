@@ -391,8 +391,7 @@ end;
 
 function TMessage.ClearVerbosity(nr:longint):boolean;
 var
-  hp: pchar;
-  i, txtbegin: longint;
+  i: longint;
 begin
   result:=false;
   i:=nr div 1000;
