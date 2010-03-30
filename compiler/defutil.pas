@@ -80,6 +80,9 @@ interface
     {# Returns true if definition is a widechar }
     function is_widechar(def : tdef) : boolean;
 
+    {# Returns true if definition is either an AnsiChar or a WideChar }
+    function is_anychar(def : tdef) : boolean;
+
     {# Returns true if definition is a void}
     function is_void(def : tdef) : boolean;
 
@@ -473,6 +476,14 @@ implementation
       begin
         result:=(def.typ=orddef) and
                  (torddef(def).ordtype=uwidechar);
+      end;
+
+
+    { true if p is a char or wchar }
+    function is_anychar(def : tdef) : boolean;
+      begin
+        result:=(def.typ=orddef) and
+                 (torddef(def).ordtype in [uchar,uwidechar])
       end;
 
 

@@ -422,6 +422,7 @@ interface
           constructor Create_32bit(_value : longint);
           constructor Create_16bit(_value : word);
           constructor Create_8bit(_value : byte);
+          constructor Create_char(size: integer; _value: dword);
           constructor Create_sleb128bit(_value : int64);
           constructor Create_uleb128bit(_value : qword);
           constructor Create_aint(_value : aint);
@@ -1134,6 +1135,27 @@ implementation
          value:=_value;
          sym:=nil;
          endsym:=nil;
+      end;
+
+
+    constructor tai_const.Create_char(size: integer; _value: dword);
+      begin
+         inherited Create;
+         typ:=ait_const;
+         case size of
+            1:
+              begin
+                consttype:=aitconst_8bit;
+                value:=byte(_value)
+              end;
+             2:
+               begin
+                 consttype:=aitconst_16bit;
+                 value:=word(_value)
+               end
+             else
+               InternalError(2010030701)
+         end
       end;
 
 

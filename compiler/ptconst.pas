@@ -824,8 +824,10 @@ implementation
           n : tnode;
           i : longint;
           len : aint;
-          ch  : char;
-          ca  : pchar;
+          ch  : array[0..1] of char;
+          ca  : pbyte;
+          int_const: tai_const;
+          char_size: integer;
         begin
           { dynamic array nil }
           if is_dynamic_array(def) then
@@ -862,22 +864,46 @@ implementation
               consume(_RKLAMMER);
             end
           { if array of char then we allow also a string }
-          else if is_char(def.elementdef) then
+          else if is_anychar(def.elementdef) then
             begin
+               char_size:=def.elementdef.size;
                n:=comp_expr(true);
                if n.nodetype=stringconstn then
                  begin
                    len:=tstringconstnode(n).len;
+                    case char_size of
+                      1:
+                        ca:=pointer(tstringconstnode(n).value_str);
+                      2:
+                        begin
+                          inserttypeconv(n,cwidestringtype);
+                          if n.nodetype<>stringconstn then
+                            internalerror(2010033003);
+                          ca:=pointer(pcompilerwidestring(tstringconstnode(n).value_str)^.data)
+                        end;
+                      else
+                        internalerror(2010033005);
+                    end;
                    { For tp7 the maximum lentgh can be 255 }
                    if (m_tp7 in current_settings.modeswitches) and
                       (len>255) then
                     len:=255;
-                   ca:=tstringconstnode(n).value_str;
                  end
-               else
-                 if is_constcharnode(n) then
+               else if is_constcharnode(n) then
                   begin
-                    ch:=chr(tordconstnode(n).value.uvalue and $ff);
+                    case char_size of
+                      1:
+                        ch[0]:=chr(tordconstnode(n).value.uvalue and $ff);
+                      2:
+                        begin
+                          inserttypeconv(n,cwidechartype);
+                          if not is_constwidecharnode(n) then
+                            internalerror(2010033001);
+                          widechar(ch):=widechar(tordconstnode(n).value.uvalue and $ffff);
+                        end;
+                      else
+                        internalerror(2010033002);
+                    end;
                     ca:=@ch;
                     len:=1;
                   end
@@ -888,16 +914,24 @@ implementation
                  end;
                if len>(def.highrange-def.lowrange+1) then
                  Message(parser_e_string_larger_array);
-               for i:=def.lowrange to def.highrange do
+               for i:=0 to def.highrange-def.lowrange do
                  begin
-                    if i+1-def.lowrange<=len then
-                      begin
-                         hr.list.concat(Tai_const.Create_8bit(byte(ca^)));
-                         inc(ca);
-                      end
-                    else
-                      {Fill the remaining positions with #0.}
-                      hr.list.concat(Tai_const.Create_8bit(0));
+                   if i<len then
+                     begin
+                       case char_size of
+                         1:
+                          int_const:=Tai_const.Create_char(char_size,pbyte(ca)^);
+                         2:
+                          int_const:=Tai_const.Create_char(char_size,pword(ca)^);
+                         else
+                           internalerror(2010033004);
+                       end;
+                       inc(ca, char_size);
+                     end
+                   else
+                     {Fill the remaining positions with #0.}
+                     int_const:=Tai_const.Create_char(char_size,0);
+                   hr.list.concat(int_const)
                  end;
                n.free;
             end
