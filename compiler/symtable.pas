@@ -1828,7 +1828,7 @@ implementation
                 records
                 objects
                 parameters
-              Exception are classes, generic definitions and specializations
+              Exception are classes, objects, generic definitions and specializations
               that have the parameterized types inserted in the symtable.
             }
             srsymtable:=stackitem^.symtable;
@@ -1837,7 +1837,7 @@ implementation
                 (
                  (df_generic in tdef(srsymtable.defowner).defoptions) or
                  (df_specialization in tdef(srsymtable.defowner).defoptions) or
-                 is_class(tdef(srsymtable.defowner)))
+                 is_class_or_object(tdef(srsymtable.defowner)))
                 ) then
               begin
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));

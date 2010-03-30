@@ -758,6 +758,7 @@ interface
     function is_class_or_interface_or_object(def: tdef): boolean;
     function is_class_or_interface_or_dispinterface(def: tdef): boolean;
     function is_class_or_interface_or_dispinterface_or_objc(def: tdef): boolean;
+    function is_class_or_object(def: tdef): boolean;
 
     procedure loadobjctypes;
 
@@ -4786,7 +4787,6 @@ implementation
       var
         def: tdef absolute data;
         pd: tprocdef absolute data;
-        founderrordef: tdef;
         i,
         paracount: longint;
       begin
@@ -5351,6 +5351,13 @@ implementation
           (tobjectdef(def).objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_objcclass,odt_objcprotocol]);
       end;
 
+    function is_class_or_object(def: tdef): boolean;
+      begin
+        result:=
+          assigned(def) and
+          (def.typ=objectdef) and
+          (tobjectdef(def).objecttype in [odt_class,odt_object]);
+      end;
 
     procedure loadobjctypes;
       begin

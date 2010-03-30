@@ -552,7 +552,7 @@ implementation
             _TYPE :
               begin
                 if (([df_generic,df_specialization]*current_objectdef.defoptions)=[]) and
-                   (current_objectdef.objecttype<>odt_class) then
+                   not(current_objectdef.objecttype in [odt_class,odt_object]) then
                   Message(parser_e_type_var_const_only_in_generics_and_classes);
                  consume(_TYPE);
                  object_member_blocktype:=bt_type;
@@ -560,7 +560,7 @@ implementation
             _VAR :
               begin
                 if (([df_generic,df_specialization]*current_objectdef.defoptions)=[]) and
-                   (current_objectdef.objecttype<>odt_class) then
+                   not(current_objectdef.objecttype in [odt_class,odt_object]) then
                   Message(parser_e_type_var_const_only_in_generics_and_classes);
                 consume(_VAR);
                 fields_allowed:=true;
@@ -571,7 +571,7 @@ implementation
             _CONST:
               begin
                 if (([df_generic,df_specialization]*current_objectdef.defoptions)=[]) and
-                   (current_objectdef.objecttype<>odt_class) then
+                   not(current_objectdef.objecttype in [odt_class,odt_object]) then
                   Message(parser_e_type_var_const_only_in_generics_and_classes);
                 consume(_CONST);
                 object_member_blocktype:=bt_const;

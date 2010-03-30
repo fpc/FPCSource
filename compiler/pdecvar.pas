@@ -1413,12 +1413,11 @@ implementation
              { Don't search in the recordsymtable for types (can be nested!) }
              recstlist.count:=0;
              if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) and
-                 not is_class(tdef(recst.defowner)) then
+                 not is_class_or_object(tdef(recst.defowner)) then
                begin
                  recstlist.add(recst);
                  symtablestack.pop(recst);
-                 while (is_object(tdef(symtablestack.top.defowner)) or
-                        (symtablestack.top.symtabletype=recordsymtable)) and
+                 while (symtablestack.top.symtabletype=recordsymtable) and
                        ([df_generic,df_specialization]*tdef(symtablestack.top.defowner).defoptions=[]) do
                    begin
                      recst:=tabstractrecordsymtable(symtablestack.top);

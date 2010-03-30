@@ -1530,7 +1530,8 @@ implementation
                               if assigned(srsym) then
                                 begin
                                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
-                                  if not(getaddr) and not(sp_static in srsym.symoptions) then
+                                  if not(getaddr) and
+                                     not((sp_static in srsym.symoptions) or (srsym.typ=constsym)) then
                                     Message(sym_e_only_static_in_static)
                                   else
                                     begin
