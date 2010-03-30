@@ -357,7 +357,6 @@ implementation
                        if not(is_interface(childof)) then
                          Message(parser_e_mix_of_classes_and_objects);
                        current_objectdef.objecttype:=childof.objecttype;
-                       current_objectdef.objecttype:=current_objectdef.objecttype;
                      end;
                    odt_cppclass:
                      if not(is_cppclass(childof)) then
