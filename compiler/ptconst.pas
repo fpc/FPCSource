@@ -27,7 +27,7 @@ interface
 
    uses symtype,symsym,aasmdata;
 
-    procedure read_typed_const(list:tasmlist;sym:tstaticvarsym);
+    procedure read_typed_const(list:tasmlist;sym:tstaticvarsym;in_class:boolean);
 
 
 implementation
@@ -1375,7 +1375,7 @@ implementation
 
 {$maxfpuregisters default}
 
-    procedure read_typed_const(list:tasmlist;sym:tstaticvarsym);
+    procedure read_typed_const(list:tasmlist;sym:tstaticvarsym;in_class:boolean);
       var
         storefilepos : tfileposinfo;
         cursectype   : TAsmSectionType;
@@ -1407,7 +1407,8 @@ implementation
         consume(_SEMICOLON);
 
         { parse public/external/export/... }
-        if (
+        if not in_class and
+           (
             (
              (token = _ID) and
              (idtoken in [_EXPORT,_EXTERNAL,_WEAKEXTERNAL,_PUBLIC,_CVAR]) and

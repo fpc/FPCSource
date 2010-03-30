@@ -999,11 +999,11 @@ implementation
                 include(tcsym.symoptions,sp_internal);
                 vs.defaultconstsym:=tcsym;
                 symtablestack.top.insert(tcsym);
-                read_typed_const(current_asmdata.asmlists[al_typedconsts],tcsym);
+                read_typed_const(current_asmdata.asmlists[al_typedconsts],tcsym,false);
               end;
             staticvarsym :
               begin
-                read_typed_const(current_asmdata.asmlists[al_typedconsts],tstaticvarsym(vs));
+                read_typed_const(current_asmdata.asmlists[al_typedconsts],tstaticvarsym(vs),false);
               end;
             else
               internalerror(200611051);

@@ -254,7 +254,7 @@ implementation
                         tclist:=current_asmdata.asmlists[al_rotypedconsts]
                       else
                         tclist:=current_asmdata.asmlists[al_typedconsts];
-                      read_typed_const(tclist,tstaticvarsym(sym));
+                      read_typed_const(tclist,tstaticvarsym(sym),in_class);
                     end;
                 end;
 

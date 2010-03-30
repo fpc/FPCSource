@@ -1285,6 +1285,12 @@ implementation
                    begin
                      p1.free;
                      p1:=genconstsymtree(tconstsym(sym));
+                   end;
+                 staticvarsym:
+                   begin
+                     // typed constant is a staticvarsym
+                     p1.free;
+                     p1:=cloadnode.create(sym,sym.Owner);
                    end
                  else
                    internalerror(16);
@@ -1531,7 +1537,7 @@ implementation
                                 begin
                                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                   if not(getaddr) and
-                                     not((sp_static in srsym.symoptions) or (srsym.typ=constsym)) then
+                                     not((sp_static in srsym.symoptions) or (srsym.typ in [constsym,staticvarsym])) then
                                     Message(sym_e_only_static_in_static)
                                   else
                                     begin
