@@ -1,4 +1,4 @@
-program tobject1;
+program tobject5;
 
 {$apptype console}
 {$mode objfpc}{$H+}
