@@ -418,6 +418,7 @@ function maxvalue(const data : PInteger; Const N : Integer) : Integer;
 { returns random values with gaussian distribution }
 function randg(mean,stddev : float) : float;
 function RandomRange(const aFrom, aTo: Integer): Integer;
+function RandomRange(const aFrom, aTo: Int64): Int64;
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 { calculates the standard deviation }
@@ -1226,6 +1227,12 @@ function randg(mean,stddev : float) : float;
 
 
 function RandomRange(const aFrom, aTo: Integer): Integer;
+begin
+  Result:=Random(Abs(aFrom-aTo))+Min(aTo,AFrom);
+end;
+
+
+function RandomRange(const aFrom, aTo: Int64): Int64;
 begin
   Result:=Random(Abs(aFrom-aTo))+Min(aTo,AFrom);
 end;
