@@ -371,7 +371,13 @@ implementation
                LOC_REGISTER,
                LOC_CREGISTER:
                  begin
-                   if (left.resultdef.size > sizeof(pint)) then
+                   // in case the result is not something that can be put
+                   // into an integer register (e.g.
+                   // function_returning_record().non_regable_field, or
+                   // a function returning a value > sizeof(intreg))
+                   // -> force to memory
+                   if not tstoreddef(left.resultdef).is_intregable or
+                      not tstoreddef(resultdef).is_intregable then
                      location_force_mem(current_asmdata.CurrAsmList,location)
                    else
                      begin

@@ -629,9 +629,10 @@ implementation
         maybe_call_procvar(left,true);
         resultdef:=vs.vardef;
 
-        // don't put records from which we load fields which aren't regable in integer registers
-        if (left.resultdef.typ = recorddef) and
-           not(tstoreddef(resultdef).is_intregable) then
+        // don't put records from which we load float fields
+        // in integer registers
+        if (left.resultdef.typ=recorddef) and
+           (resultdef.typ=floatdef) then
           make_not_regable(left,[ra_addr_regable]);
       end;
 
