@@ -1,4 +1,4 @@
-﻿#
+#
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2000 by the Free Pascal Development team
 #

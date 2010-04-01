@@ -1,4 +1,4 @@
-﻿#
+#
 #   $Id: errorda.msg 621 2006-07-02 15:44:03Z chrivers $
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2000 by the Free Pascal Development team
