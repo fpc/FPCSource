@@ -284,7 +284,7 @@ implementation
 
     procedure parse_object_options;
       begin
-        if current_objectdef.objecttype = odt_class then
+        if current_objectdef.objecttype in [odt_object,odt_class] then
           begin
             while true do
               begin
@@ -389,7 +389,10 @@ implementation
                      end;
                    odt_object:
                      if not(is_object(childof)) then
-                       Message(parser_e_mix_of_classes_and_objects);
+                       Message(parser_e_mix_of_classes_and_objects)
+                     else
+                       if oo_is_sealed in childof.objectoptions then
+                         Message1(parser_e_sealed_descendant,childof.typename);
                    odt_dispinterface:
                      Message(parser_e_dispinterface_cant_have_parent);
                 end;
