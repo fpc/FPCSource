@@ -213,6 +213,19 @@ interface
         );
       tdwarfvarsymflags = set of tdwarfvarsymflag;
 
+      pAbbrevSearchTreeItem = ^tAbbrevSearchTreeItem;
+      tAbbrevSearchTreeItem = record
+        value: QWord;
+        Abbrev: longint;
+        // When this item does not match the abbrev-value, look for it
+        // in the next SearchItem
+        SearchItem: pAbbrevSearchTreeItem;
+        // Next and prior item of the abbrev-section
+        NextItem: pAbbrevSearchTreeItem;
+        PriorItem: pAbbrevSearchTreeItem;
+        bit8: boolean;
+      end;
+
       { TDebugInfoDwarf }
 
       TDebugInfoDwarf = class(TDebugInfo)
@@ -233,6 +246,20 @@ interface
         filesequence: Integer;
         loclist: tdynamicarray;
         asmline: TAsmList;
+
+        // The current entry in dwarf_info with the link to the abbrev-section
+        dwarf_info_abbref_tai: tai_const;
+        // Empty start-item of the abbrev-searchtree
+        AbbrevSearchTree: pAbbrevSearchTreeItem;
+        // The current abbrev-item
+        CurrentSearchTreeItem: pAbbrevSearchTreeItem;
+        // Is true when the abbrev-section is newly created
+        NewAbbrev: boolean;
+        procedure StartAbbrevSearch;
+        procedure AddConstToAbbrev(Value: QWord; bit8:boolean=false);
+        procedure StartAbbrevSectionFromSearchtree;
+        procedure WriteSearchItemToAbbrevSection(SI: pAbbrevSearchTreeItem);
+        function FinishAbbrevSearch: longint;
 
         function def_dwarf_lab(def:tdef) : tasmsymbol;
         function def_dwarf_ref_lab(def:tdef) : tasmsymbol;
@@ -618,6 +645,21 @@ implementation
       end;
 
 
+    function AllocateNewAiSearchItem: pAbbrevSearchTreeItem;
+      begin
+        new(result);
+        FillChar(result^,sizeof(result^),#0);
+      end;
+
+    procedure FreeSearchItem(SI: pAbbrevSearchTreeItem);
+      begin
+        if assigned(SI^.NextItem) then
+          FreeSearchItem(SI^.NextItem);
+        if assigned(SI^.SearchItem) then
+          FreeSearchItem(SI^.SearchItem);
+        Dispose(SI);
+      end;
+
 {****************************************************************************
                               TDirIndexItem
 ****************************************************************************}
@@ -652,6 +694,134 @@ implementation
 {****************************************************************************
                               TDebugInfoDwarf
 ****************************************************************************}
+
+    procedure TDebugInfoDwarf.StartAbbrevSearch;
+      begin
+        CurrentSearchTreeItem:=AbbrevSearchTree;
+      end;
+
+
+    procedure TDebugInfoDwarf.WriteSearchItemToAbbrevSection(SI: pAbbrevSearchTreeItem);
+      begin
+        if SI^.bit8 then
+          current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.Create_8bit(SI^.value))
+        else
+          current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.Create_uleb128bit(SI^.value));
+      end;
+
+
+    procedure TDebugInfoDwarf.StartAbbrevSectionFromSearchtree;
+
+      procedure AddCurrentAndPriorItemsToAbrev(SI: pAbbrevSearchTreeItem);
+        begin
+          if assigned(SI^.PriorItem) then
+            AddCurrentAndPriorItemsToAbrev(SI^.PriorItem);
+          WriteSearchItemToAbbrevSection(SI);
+        end;
+
+      begin
+        NewAbbrev:=true;
+        inc(currabbrevnumber);
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_comment.Create(strpnew('Abbrev '+tostr(currabbrevnumber))));
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(currabbrevnumber));
+
+        if CurrentSearchTreeItem<>AbbrevSearchTree then
+          AddCurrentAndPriorItemsToAbrev(CurrentSearchTreeItem);
+      end;
+
+
+    function TDebugInfoDwarf.FinishAbbrevSearch: longint;
+
+      procedure FinalizeAbbrevSection;
+        begin
+          current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
+          current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
+          CurrentSearchTreeItem^.Abbrev:=currabbrevnumber;
+          NewAbbrev := false;
+        end;
+
+      begin
+        if NewAbbrev then
+          FinalizeAbbrevSection;
+        result := CurrentSearchTreeItem^.Abbrev;
+        if result=0 then
+          begin
+            // In this case the abbrev-section equals an existing longer abbrev section.
+            // So a new abbrev-section has to be made which ends on the current
+            // searchtree item
+            StartAbbrevSectionFromSearchtree;
+            FinalizeAbbrevSection;
+            result := CurrentSearchTreeItem^.Abbrev;
+          end;
+      end;
+
+
+    procedure TDebugInfoDwarf.AddConstToAbbrev(Value: QWord; bit8:boolean);
+
+        procedure AddCurrentItemToAbbrev;
+          begin
+            CurrentSearchTreeItem^.value:=value;
+            CurrentSearchTreeItem^.bit8:=bit8;
+            WriteSearchItemToAbbrevSection(CurrentSearchTreeItem);
+          end;
+
+      var si: pAbbrevSearchTreeItem;
+      begin
+        // Instead of adding this value directly to the ai-tree, search if an
+        // abbrev section with the same values already exist, and use the existing
+        // one or create one.
+        if NewAbbrev then
+          begin
+          // The current abbrev-section is new, so add the value to the abbrev-section
+          // and add it to the search-list.
+          CurrentSearchTreeItem^.NextItem:=AllocateNewAiSearchItem;
+          CurrentSearchTreeItem^.NextItem^.PriorItem:=CurrentSearchTreeItem;
+          CurrentSearchTreeItem := CurrentSearchTreeItem^.NextItem;
+          AddCurrentItemToAbbrev;
+          end
+        else
+          begin
+          // Search for the value which is added in the next sections of the
+          // searchtree for a match
+          si := CurrentSearchTreeItem^.NextItem;
+          while assigned(si) do
+            begin
+              if (SI^.value=Value) and (si^.bit8=bit8) then
+                begin
+                // If a match is found, set the current searchtree item to the next item
+                CurrentSearchTreeItem:=SI;
+                Exit;
+                end
+              else if si^.SearchItem=nil then
+                begin
+                // If no match is found, add a new item to the searchtree and write
+                // a new abbrev-section.
+                StartAbbrevSectionFromSearchtree;
+
+                si^.SearchItem:=AllocateNewAiSearchItem;
+                if currentsearchtreeitem<>AbbrevSearchTree then
+                  si^.SearchItem^.PriorItem:=CurrentSearchTreeItem;
+                CurrentSearchTreeItem := si^.SearchItem;
+
+                AddCurrentItemToAbbrev;
+                Exit;
+                end;
+              Si := SI^.SearchItem;
+            end;
+          // The abbrev section we are looking for is longer than the one
+          // which is already in the search-tree. So expand the searchtree with
+          // the new value and write a new abbrev section
+          StartAbbrevSectionFromSearchtree;
+
+          CurrentSearchTreeItem^.NextItem:=AllocateNewAiSearchItem;
+          if currentsearchtreeitem^.PriorItem<>AbbrevSearchTree then
+            CurrentSearchTreeItem^.NextItem^.PriorItem:=CurrentSearchTreeItem;
+          CurrentSearchTreeItem := CurrentSearchTreeItem^.NextItem;
+
+          AddCurrentItemToAbbrev;
+          end;
+      end;
+
 
     function TDebugInfoDwarf.relative_dwarf_path(const s:tcmdstr):tcmdstr;
       begin
@@ -780,12 +950,16 @@ implementation
         TDirIndexItem.Create(dirlist,'.', 0);
         asmline := TAsmList.create;
         loclist := tdynamicarray.Create(4096);
+
+        AbbrevSearchTree:=AllocateNewAiSearchItem;
       end;
 
 
     destructor TDebugInfoDwarf.Destroy;
       begin
         dirlist.Free;
+        if assigned(AbbrevSearchTree) then
+          FreeSearchItem(AbbrevSearchTree);
         dirlist := nil;
         asmline.free;
         asmline:=nil;
@@ -849,10 +1023,10 @@ implementation
     procedure TDebugInfoDwarf.append_attribute(attr: tdwarf_attribute; form: tdwarf_form; const value: tvarrec);
       begin
         { attribute }
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(cardinal(attr)));
+        AddConstToAbbrev(cardinal(attr));
 
         { form }
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(cardinal(form)));
+        AddConstToAbbrev(cardinal(form));
 
         { info itself }
         case form of
@@ -967,19 +1141,18 @@ implementation
       var
         i : longint;
       begin
-        { todo: store defined abbrevs, so you have to define tehm only once (for this unit) (MWE) }
-        inc(currabbrevnumber);
-
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_comment.Create(strpnew('Abbrev '+tostr(currabbrevnumber))));
-
         { abbrev number }
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(currabbrevnumber));
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(currabbrevnumber));
+        // Store the ai with the reference to the abbrev number and start a search
+        // to find the right abbrev-section. (Or create one)
+        dwarf_info_abbref_tai := tai_const.create_uleb128bit(currabbrevnumber);
+        current_asmdata.asmlists[al_dwarf_info].concat(dwarf_info_abbref_tai);
+        StartAbbrevSearch;
+
         { tag }
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(tag)));
+        AddConstToAbbrev(ord(tag));
 
         { children? }
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(ord(has_children)));
+        AddConstToAbbrev(ord(has_children),true);
 
         i:=0;
         while i<=high(data) do
@@ -998,33 +1171,33 @@ implementation
 
     procedure TDebugInfoDwarf.append_block1(attr: tdwarf_attribute; size: aint);
       begin
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block1)));
+        AddConstToAbbrev(ord(attr));
+        AddConstToAbbrev(ord(DW_FORM_block1));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(size));
       end;
 
 
     procedure TDebugInfoDwarf.append_labelentry(attr : tdwarf_attribute;sym : tasmsymbol);
       begin
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_addr)));
+        AddConstToAbbrev(ord(attr));
+        AddConstToAbbrev(ord(DW_FORM_addr));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sym(sym));
       end;
 
     procedure TDebugInfoDwarf.append_labelentry_addr_ref(attr : tdwarf_attribute;sym : tasmsymbol);
       begin
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref_addr)));
+        AddConstToAbbrev(ord(DW_FORM_ref_addr));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sym(sym))
       end;
 
     procedure TDebugInfoDwarf.append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
       begin
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
+        AddConstToAbbrev(ord(attr));
         if not(tf_dwarf_only_local_labels in target_info.flags) then
           append_labelentry_addr_ref(attr, sym)
         else
           begin
-            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref4)));
+            AddConstToAbbrev(ord(DW_FORM_ref4));
             current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_info0'),sym));
           end;
       end;
@@ -1032,11 +1205,11 @@ implementation
 
     procedure TDebugInfoDwarf.append_labelentry_dataptr_common(attr : tdwarf_attribute);
       begin
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
+        AddConstToAbbrev(ord(attr));
         if use_64bit_headers then
-          current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)))
+          AddConstToAbbrev(ord(DW_FORM_data8))
         else
-          current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
+          AddConstToAbbrev(ord(DW_FORM_data4));
       end;
 
 
@@ -1071,8 +1244,7 @@ implementation
 
     procedure TDebugInfoDwarf.finish_entry;
       begin
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
+        dwarf_info_abbref_tai.value:=FinishAbbrevSearch;
       end;
 
 
@@ -2319,7 +2491,7 @@ implementation
           end;
         if assigned(usedef) then
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(usedef));
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_AT_const_value)));
+        AddConstToAbbrev(ord(DW_AT_const_value));
         case sym.consttyp of
           conststring:
             begin
@@ -2327,13 +2499,13 @@ implementation
                 -> create a string using raw bytes }
               if (sym.value.len<=255) then
                 begin
-                  current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block1)));
+                  AddConstToAbbrev(ord(DW_FORM_block1));
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sym.value.len+1));
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sym.value.len));
                 end
               else
                 begin
-                  current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block)));
+                  AddConstToAbbrev(ord(DW_FORM_block));
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(sym.value.len+sizeof(pint)));
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_pint(sym.value.len));
                 end;
@@ -2348,7 +2520,7 @@ implementation
           constguid,
           constset:
             begin
-              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block1)));
+              AddConstToAbbrev(ord(DW_FORM_block1));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(usedef.size));
               i:=0;
               size:=sym.constdef.size;
@@ -2362,7 +2534,7 @@ implementation
           constresourcestring:
             begin
               { write dummy for now }
-              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_string)));
+              AddConstToAbbrev(ord(DW_FORM_string));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(''));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(0));
             end;
@@ -2370,38 +2542,38 @@ implementation
             begin
               if (sym.value.valueord<0) then
                 begin
-                  current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_sdata)));
+                  AddConstToAbbrev(ord(DW_FORM_sdata));
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(sym.value.valueord.svalue));
                 end
               else
                 begin
-                  current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_udata)));
+                  AddConstToAbbrev(ord(DW_FORM_udata));
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(sym.value.valueord.uvalue));
                 end;
             end;
           constnil:
             begin
 {$ifdef cpu64bitaddr}
-              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
+              AddConstToAbbrev(ord(DW_FORM_data8));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(0));
 {$else cpu64bitaddr}
-              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
+              AddConstToAbbrev(ord(DW_FORM_data4));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(0));
 {$endif cpu64bitaddr}
             end;
           constpointer:
             begin
 {$ifdef cpu64bitaddr}
-              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
+              AddConstToAbbrev(ord(DW_FORM_data8));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(int64(sym.value.valueordptr)));
 {$else cpu64bitaddr}
-              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
+              AddConstToAbbrev(ord(DW_FORM_data4));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(longint(sym.value.valueordptr)));
 {$endif cpu64bitaddr}
             end;
           constreal:
             begin
-              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block1)));
+              AddConstToAbbrev(ord(DW_FORM_block1));
               case tfloatdef(sym.constdef).floattype of
                 s32real:
                   begin
@@ -3397,7 +3569,7 @@ implementation
 
     procedure TDebugInfoDwarf3.append_labelentry_addr_ref(attr : tdwarf_attribute;sym : tasmsymbol);
       begin
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref_addr)));
+        AddConstToAbbrev(ord(DW_FORM_ref_addr));
         { Since Dwarf 3 the length of a DW_FORM_ref_addr entry is not dependent on the pointer size of the
           target platform, but on the used Dwarf-format (32 bit or 64 bit) for the current compilation section. }
         if use_64bit_headers then
