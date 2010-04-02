@@ -279,10 +279,7 @@ begin
       M.HandleRequest(ARequest,AResponse);
   except
     On E : Exception do
-      begin
-      ShowException(E);
       ShowRequestException(AResponse,E);
-      end;
   end;
 end;
 
