@@ -492,7 +492,7 @@ implementation
                           p.propaccesslist[palt_read].procdef:=Tprocsym(sym).Find_procdef_bypara(readprocdef.paras,p.propdef,[cpo_allowdefaults,cpo_ignorehidden]);
                           if not assigned(p.propaccesslist[palt_read].procdef) or
                             { because of cpo_ignorehidden we need to compare if it is a static class method and we have a class property }
-                            ((sp_static in p.symoptions) <> ([po_classmethod,po_staticmethod]<=tprocdef(p.propaccesslist[palt_read].procdef).procoptions)) then
+                            ((sp_static in p.symoptions) <> tprocdef(p.propaccesslist[palt_read].procdef).no_self_node) then
                             Message(parser_e_ill_property_access_sym);
                         end;
                       fieldvarsym :

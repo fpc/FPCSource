@@ -50,6 +50,29 @@ implementation
       current_procinfo = 'error';
 
 
+    function class_constructor_head:tprocdef;
+      var
+        pd : tprocdef;
+      begin
+        result:=nil;
+        consume(_CONSTRUCTOR);
+        { must be at same level as in implementation }
+        parse_proc_head(current_objectdef,potype_class_constructor,pd);
+        if not assigned(pd) then
+          begin
+            consume(_SEMICOLON);
+            exit;
+          end;
+        pd.calcparas;
+        if (pd.maxparacount>0) then
+          Message(parser_e_no_paras_for_class_constructor);
+        consume(_SEMICOLON);
+        include(current_objectdef.objectoptions,oo_has_class_constructor);
+        { no return value }
+        pd.returndef:=voidtype;
+        result:=pd;
+      end;
+
     function constructor_head:tprocdef;
       var
         pd : tprocdef;
@@ -140,6 +163,28 @@ implementation
       end;
 
 
+    function class_destructor_head:tprocdef;
+      var
+        pd : tprocdef;
+      begin
+        result:=nil;
+        consume(_DESTRUCTOR);
+        parse_proc_head(current_objectdef,potype_class_destructor,pd);
+        if not assigned(pd) then
+          begin
+            consume(_SEMICOLON);
+            exit;
+          end;
+        pd.calcparas;
+        if (pd.maxparacount>0) then
+          Message(parser_e_no_paras_for_class_destructor);
+        consume(_SEMICOLON);
+        include(current_objectdef.objectoptions,oo_has_class_destructor);
+        { no return value }
+        pd.returndef:=voidtype;
+        result:=pd;
+      end;
+
     function destructor_head:tprocdef;
       var
         pd : tprocdef;
@@ -155,6 +200,7 @@ implementation
         if (cs_constructor_name in current_settings.globalswitches) and
            (pd.procsym.name<>'DONE') then
           Message(parser_e_destructorname_must_be_done);
+        pd.calcparas;
         if not(pd.maxparacount=0) and
            (m_fpc in current_settings.modeswitches) then
           Message(parser_e_no_paras_for_destructor);
@@ -702,8 +748,9 @@ implementation
                 { read class method }
                 if try_to_consume(_CLASS) then
                  begin
-                   { class method only allowed for procedures and functions }
-                   if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR]) then
+                   { class modifier is only allowed for procedures, functions, }
+                   { constructors, destructors, fields and properties          }
+                   if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR]) then
                      Message(parser_e_procedure_or_function_expected);
 
                    if is_interface(current_objectdef) then
@@ -773,7 +820,7 @@ implementation
                   not(oo_can_have_published in current_objectdef.objectoptions) then
                   Message(parser_e_cant_have_published);
 
-                if not(current_objectdef.symtable.currentvisibility in [vis_public,vis_published]) then
+                if not is_classdef and not(current_objectdef.symtable.currentvisibility in [vis_public,vis_published]) then
                   Message(parser_w_constructor_should_be_public);
 
                 if is_interface(current_objectdef) then
@@ -783,9 +830,16 @@ implementation
                 if is_objc_class_or_protocol(current_objectdef) then
                   Message(parser_e_objc_no_constructor_destructor);
 
+                { only 1 class constructor is allowed }
+                if is_classdef and (oo_has_class_constructor in current_objectdef.objectoptions) then
+                  Message1(parser_e_only_one_class_constructor_allowed, current_objectdef.objrealname^);
+
                 oldparse_only:=parse_only;
                 parse_only:=true;
-                pd:=constructor_head;
+                if is_classdef then
+                  pd:=class_constructor_head
+                else
+                  pd:=constructor_head;
                 parse_object_proc_directives(pd);
                 handle_calling_convention(pd);
 
@@ -800,6 +854,7 @@ implementation
 
                 parse_only:=oldparse_only;
                 fields_allowed:=false;
+                is_classdef:=false;
               end;
             _DESTRUCTOR :
               begin
@@ -807,23 +862,32 @@ implementation
                    not(oo_can_have_published in current_objectdef.objectoptions) then
                   Message(parser_e_cant_have_published);
 
-                if has_destructor then
-                  Message(parser_n_only_one_destructor);
-                has_destructor:=true;
+                if not is_classdef then
+                  if has_destructor then
+                    Message(parser_n_only_one_destructor)
+                  else
+                    has_destructor:=true;
 
                 if is_interface(current_objectdef) then
                   Message(parser_e_no_con_des_in_interfaces);
 
-                if (current_objectdef.symtable.currentvisibility<>vis_public) then
+                if not is_classdef and (current_objectdef.symtable.currentvisibility<>vis_public) then
                   Message(parser_w_destructor_should_be_public);
 
                 { Objective-C does not know the concept of a destructor }
                 if is_objc_class_or_protocol(current_objectdef) then
                   Message(parser_e_objc_no_constructor_destructor);
 
+                { only 1 class destructor is allowed }
+                if is_classdef and (oo_has_class_destructor in current_objectdef.objectoptions) then
+                  Message1(parser_e_only_one_class_destructor_allowed, current_objectdef.objrealname^);
+
                 oldparse_only:=parse_only;
                 parse_only:=true;
-                pd:=destructor_head;
+                if is_classdef then
+                  pd:=class_destructor_head
+                else
+                  pd:=destructor_head;
                 parse_object_proc_directives(pd);
                 handle_calling_convention(pd);
 
@@ -839,6 +903,7 @@ implementation
 
                 parse_only:=oldparse_only;
                 fields_allowed:=false;
+                is_classdef:=false;
               end;
             _END :
               begin

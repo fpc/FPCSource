@@ -81,12 +81,18 @@ const
   ftCurr     = 4;
   ftFloat128 = 5;
 
-  mkProcedure= 0;
-  mkFunction = 1;
-  mkConstructor   = 2;
-  mkDestructor    = 3;
-  mkClassProcedure= 4;
-  mkClassFunction = 5;
+  mkProcedure        = 0;
+  mkFunction         = 1;
+  mkConstructor      = 2;
+  mkDestructor       = 3;
+  mkClassProcedure   = 4;
+  mkClassFunction    = 5;
+  mkClassConstructor = 6;
+  mkClassDestructor  = 7;
+// delphi has the next too:
+//mkOperatorOverload = 8;
+//mkSafeProcedure    = 9;
+//mkSafeFunction     = 10;
 
   pfvar      = 1;
   pfConst    = 2;
@@ -227,7 +233,9 @@ type
     potype_destructor,   { Procedure is a destructor }
     potype_operator,     { Procedure defines an operator }
     potype_procedure,
-    potype_function
+    potype_function,
+    potype_class_constructor, { class constructor }
+    potype_class_destructor   { class destructor  }
   );
   tproctypeoptions=set of tproctypeoption;
 
@@ -344,7 +352,9 @@ type
     oo_has_enumerator_current,
     oo_is_external,       { the class is externally implemented (objcclass, cppclass) }
     oo_is_anonymous,      { the class is only formally defined in this module (objcclass x = class; external;) }
-    oo_is_classhelper     { objcclasses that represent categories, and Delpi-style class helpers, are marked like this }
+    oo_is_classhelper,    { objcclasses that represent categories, and Delpi-style class helpers, are marked like this }
+    oo_has_class_constructor, { the object/class has a class constructor }
+    oo_has_class_destructor   { the object/class has a class destructor  }
   );
   tobjectoptions=set of tobjectoption;
 

@@ -1801,8 +1801,9 @@ implementation
                   is_classdef:=false;
                   if try_to_consume(_CLASS) then
                    begin
-                     { class method only allowed for procedures and functions }
-                     if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR]) then
+                     { class modifier is only allowed for procedures, functions, }
+                     { constructors, destructors, fields and properties          }
+                     if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR]) then
                        Message(parser_e_procedure_or_function_expected);
 
                      if is_interface(current_objectdef) then

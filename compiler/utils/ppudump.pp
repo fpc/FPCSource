@@ -1086,7 +1086,9 @@ type
     potype_destructor,   { Procedure is a destructor }
     potype_operator,     { Procedure defines an operator }
     potype_procedure,
-    potype_function
+    potype_function,
+    potype_class_constructor, { class constructor }
+    potype_class_destructor   { class destructor  }
   );
   tproctypeoptions=set of tproctypeoption;
   tprocoption=(po_none,
@@ -1182,14 +1184,16 @@ const
      'MWPascal'
    );
   proctypeopt : array[1..ord(high(tproctypeoption))] of tproctypeopt=(
-     (mask:potype_proginit;    str:'ProgInit'),
-     (mask:potype_unitinit;    str:'UnitInit'),
-     (mask:potype_unitfinalize;str:'UnitFinalize'),
-     (mask:potype_constructor; str:'Constructor'),
-     (mask:potype_destructor;  str:'Destructor'),
-     (mask:potype_operator;    str:'Operator'),
-     (mask:potype_procedure;   str:'Procedure'),
-     (mask:potype_function;    str:'Function')
+     (mask:potype_proginit;          str:'ProgInit'),
+     (mask:potype_unitinit;          str:'UnitInit'),
+     (mask:potype_unitfinalize;      str:'UnitFinalize'),
+     (mask:potype_constructor;       str:'Constructor'),
+     (mask:potype_destructor;        str:'Destructor'),
+     (mask:potype_operator;          str:'Operator'),
+     (mask:potype_procedure;         str:'Procedure'),
+     (mask:potype_function;          str:'Function'),
+     (mask:potype_class_constructor; str:'Class Constructor'),
+     (mask:potype_class_destructor;  str:'Class Destructor')
   );
   procopt : array[1..ord(high(tprocoption))] of tprocopt=(
      (mask:po_classmethod;     str:'ClassMethod'),
@@ -1407,7 +1411,9 @@ type
     oo_has_enumerator_current,
     oo_is_external,       { the class is externally implemented (objcclass, cppclass) }
     oo_is_anonymous,      { the class is only formally defined in this module (objcclass x = class; external;) }
-    oo_is_classhelper     { objcclasses that represent categories, and Delpi-style class helpers, are marked like this }
+    oo_is_classhelper,    { objcclasses that represent categories, and Delpi-style class helpers, are marked like this }
+    oo_has_class_constructor, { the object/class has a class constructor }
+    oo_has_class_destructor   { the object/class has a class destructor  }
   );
   tobjectoptions=set of tobjectoption;
   tsymopt=record
@@ -1436,7 +1442,10 @@ const
      (mask:oo_has_enumerator_current;  str:'HasEnumeratorCurrent'),
      (mask:oo_is_external;        str:'External'),
      (mask:oo_is_anonymous;       str:'Anonymous'),
-     (mask:oo_is_classhelper;     str:'Class Helper/Category'));
+     (mask:oo_is_classhelper;     str:'Class Helper/Category'),
+     (mask:oo_has_class_constructor; str:'HasClassConstructor'),
+     (mask:oo_has_class_destructor; str:'HasClassDestructor')
+  );
 var
   symoptions : tobjectoptions;
   i      : longint;

@@ -845,8 +845,8 @@ implementation
                end;
              ObjectSymtable :
                begin
-                 if (assigned(current_procinfo) and ([po_staticmethod,po_classmethod] <= current_procinfo.procdef.procoptions)) then
-                   { We are calling from the static class method which has no self node }
+                 { We are calling from the static class method which has no self node }
+                 if assigned(current_procinfo) and current_procinfo.procdef.no_self_node then
                    p1:=cloadvmtaddrnode.create(ctypenode.create(current_procinfo.procdef._class))
                  else
                    p1:=load_self_node;
@@ -1259,7 +1259,7 @@ implementation
                             if assigned(p1) and
                               (
                                 is_self_node(p1) or
-                                (assigned(current_procinfo) and ([po_staticmethod,po_classmethod] <= current_procinfo.procdef.procoptions) and
+                                (assigned(current_procinfo) and (current_procinfo.procdef.no_self_node) and
                                  (current_procinfo.procdef._class = classh))) then
                               Message(parser_e_only_class_members)
                             else
@@ -1458,7 +1458,7 @@ implementation
                           if only method from which it was called is
                           not class static                          }
                         if (srsymtable.symtabletype=ObjectSymtable) then
-                          if (assigned(current_procinfo) and ([po_staticmethod,po_classmethod] <= current_procinfo.procdef.procoptions)) then
+                          if assigned(current_procinfo) and current_procinfo.procdef.no_self_node then
                             p1:=cloadvmtaddrnode.create(ctypenode.create(current_procinfo.procdef._class))
                           else
                             p1:=load_self_node;
@@ -1637,7 +1637,7 @@ implementation
                     if is_member_read(srsym,srsymtable,p1,hdef) then
                       begin
                         if (srsymtable.symtabletype=ObjectSymtable) then
-                           if (assigned(current_procinfo) and ([po_staticmethod,po_classmethod] <= current_procinfo.procdef.procoptions)) then
+                           if assigned(current_procinfo) and current_procinfo.procdef.no_self_node then
                           { no self node in static class methods }
                             p1:=cloadvmtaddrnode.create(ctypenode.create(hdef))
                           else

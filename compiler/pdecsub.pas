@@ -202,8 +202,7 @@ implementation
                 (pd.parast.symtablelevel=normal_function_level) then
               begin
                 { static class methods have no hidden self/vmt pointer }
-                if (po_staticmethod in pd.procoptions) and
-                   (po_classmethod in pd.procoptions) then
+                if pd.no_self_node then
                    exit;
 
                 storepos:=current_tokenpos;
@@ -722,7 +721,7 @@ implementation
         pd:=nil;
         aprocsym:=nil;
 
-        if (potype=potype_operator) then
+        if potype=potype_operator then
           begin
             sp:=overloaded_names[optoken];
             orgsp:=sp;
@@ -800,6 +799,8 @@ implementation
                 (ttypesym(srsym).typedef.typ=objectdef) then
               begin
                 aclass:=tobjectdef(ttypesym(srsym).typedef);
+                if (token<>_POINT) and (potype in [potype_class_constructor,potype_class_destructor]) then
+                  sp := lower(sp);
                 srsym:=tsym(aclass.symtable.Find(sp));
                 if assigned(srsym) then
                  begin
@@ -839,7 +840,8 @@ implementation
          begin
            { check for constructor/destructor which is not allowed here }
            if (not parse_only) and
-              (potype in [potype_constructor,potype_destructor]) then
+              (potype in [potype_constructor,potype_destructor,
+                          potype_class_constructor,potype_class_destructor]) then
              Message(parser_e_constructors_always_objects);
 
            repeat
@@ -897,13 +899,16 @@ implementation
               operation }
             if (potype=potype_operator) then
               begin
-                Aprocsym:=Tprocsym(symtablestack.top.Find(sp));
-                if Aprocsym=nil then
-                  Aprocsym:=tprocsym.create('$'+sp);
+                aprocsym:=Tprocsym(symtablestack.top.Find(sp));
+                if aprocsym=nil then
+                  aprocsym:=tprocsym.create('$'+sp);
               end
-             else
+            else
+            if (potype in [potype_class_constructor,potype_class_destructor]) then
+              aprocsym:=tprocsym.create('$'+lower(sp))
+            else
               aprocsym:=tprocsym.create(orgsp);
-             symtablestack.top.insert(aprocsym);
+            symtablestack.top.insert(aprocsym);
           end;
 
         { to get the correct symtablelevel we must ignore ObjectSymtables }
@@ -1105,8 +1110,12 @@ implementation
           _CONSTRUCTOR :
             begin
               consume(_CONSTRUCTOR);
-              parse_proc_head(aclass,potype_constructor,pd);
-              if assigned(pd) and
+              if isclassmethod then
+                parse_proc_head(aclass,potype_class_constructor,pd)
+              else
+                parse_proc_head(aclass,potype_constructor,pd);
+              if not isclassmethod and
+                 assigned(pd) and
                  assigned(pd._class) then
                 begin
                   { Set return type, class constructors return the
@@ -1119,13 +1128,18 @@ implementation
 {$else CPU64bitaddr}
                     pd.returndef:=bool32type;
 {$endif CPU64bitaddr}
-                end;
+                end
+              else
+                pd.returndef:=voidtype;
             end;
 
           _DESTRUCTOR :
             begin
               consume(_DESTRUCTOR);
-              parse_proc_head(aclass,potype_destructor,pd);
+              if isclassmethod then
+                parse_proc_head(aclass,potype_class_destructor,pd)
+              else
+                parse_proc_head(aclass,potype_destructor,pd);
               if assigned(pd) then
                 pd.returndef:=voidtype;
             end;
@@ -1849,7 +1863,7 @@ const
       pocall   : pocall_cdecl;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_assembler,po_external]
     ),(
       idtok:_CDECL;
@@ -1858,7 +1872,7 @@ const
       pocall   : pocall_cdecl;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_assembler,po_external]
     ),(
       idtok:_DISPID;
@@ -1867,7 +1881,7 @@ const
       pocall   : pocall_none;
       pooption : [po_dispid];
       mutexclpocall : [pocall_internproc];
-      mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_operator,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_interrupt,po_external,po_inline]
     ),(
       idtok:_DYNAMIC;
@@ -1876,7 +1890,7 @@ const
       pocall   : pocall_none;
       pooption : [po_virtualmethod];
       mutexclpocall : [pocall_internproc];
-      mutexclpotype : [];
+      mutexclpotype : [potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_exports,po_interrupt,po_external,po_overridingmethod,po_inline]
     ),(
       idtok:_EXPORT;
@@ -1885,7 +1899,7 @@ const
       pocall   : pocall_none;
       pooption : [po_exports,po_global];
       mutexclpocall : [pocall_internproc];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external,po_interrupt,po_inline]
     ),(
       idtok:_EXTERNAL;
@@ -1895,7 +1909,7 @@ const
       pooption : [po_external];
       mutexclpocall : [pocall_internproc,pocall_syscall];
       { allowed for external cpp classes }
-      mutexclpotype : [{potype_constructor,potype_destructor}];
+      mutexclpotype : [{potype_constructor,potype_destructor}potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
     ),(
       idtok:_FAR;
@@ -1949,7 +1963,7 @@ const
       pocall   : pocall_none;
       pooption : [po_inline];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_exports,po_external,po_interrupt,po_virtualmethod]
     ),(
       idtok:_INTERNCONST;
@@ -1967,7 +1981,7 @@ const
       pocall   : pocall_internproc;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_operator,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_exports,po_external,po_interrupt,po_assembler,po_iocheck,po_virtualmethod]
     ),(
       idtok:_INTERRUPT;
@@ -1977,7 +1991,7 @@ const
       pooption : [po_interrupt];
       mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,pocall_stdcall,
                        pocall_pascal,pocall_far16,pocall_oldfpccall];
-      mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_operator,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external,po_inline]
     ),(
       idtok:_IOCHECK;
@@ -2004,7 +2018,7 @@ const
       pocall   : pocall_none;
       pooption : []; { can be po_msgstr or po_msgint }
       mutexclpocall : [pocall_internproc];
-      mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_operator,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_interrupt,po_external,po_inline]
     ),(
       idtok:_MWPASCAL;
@@ -2058,7 +2072,7 @@ const
       pocall   : pocall_pascal;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external]
     ),(
       idtok:_PUBLIC;
@@ -2076,7 +2090,7 @@ const
       pocall   : pocall_register;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external]
     ),(
       idtok:_REINTRODUCE;
@@ -2094,7 +2108,7 @@ const
       pocall   : pocall_safecall;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external]
     ),(
       idtok:_SOFTFLOAT;
@@ -2103,7 +2117,7 @@ const
       pocall   : pocall_softfloat;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       { it's available with po_external because the libgcc floating point routines on the arm
         uses this calling convention }
       mutexclpo     : []
@@ -2114,7 +2128,7 @@ const
       pocall   : pocall_none;
       pooption : [po_staticmethod];
       mutexclpocall : [pocall_internproc];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external,po_interrupt,po_exports]
     ),(
       idtok:_STDCALL;
@@ -2123,7 +2137,7 @@ const
       pocall   : pocall_stdcall;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external]
     ),(
       idtok:_SYSCALL;
@@ -2135,7 +2149,7 @@ const
       pocall   : pocall_syscall;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external,po_assembler,po_interrupt,po_exports]
     ),(
       idtok:_VIRTUAL;
@@ -2144,7 +2158,7 @@ const
       pocall   : pocall_none;
       pooption : [po_virtualmethod];
       mutexclpocall : [pocall_internproc];
-      mutexclpotype : [];
+      mutexclpotype : [potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external,po_interrupt,po_exports,po_overridingmethod,po_inline]
     ),(
       idtok:_CPPDECL;
@@ -2153,7 +2167,7 @@ const
       pocall   : pocall_cppdecl;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_assembler,po_external,po_virtualmethod]
     ),(
       idtok:_VARARGS;
@@ -2172,7 +2186,7 @@ const
       pocall   : pocall_none;
       pooption : [po_compilerproc];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_interrupt]
     ),(
       idtok:_WEAKEXTERNAL;
@@ -2185,7 +2199,7 @@ const
       pooption : [po_external,po_weakexternal];
       mutexclpocall : [pocall_internproc,pocall_syscall];
       { allowed for external cpp classes }
-      mutexclpotype : [{potype_constructor,potype_destructor}];
+      mutexclpotype : [{potype_constructor,potype_destructor}potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
     ),(
       idtok:_ENUMERATOR;
@@ -2637,6 +2651,17 @@ const
             include(pd.procoptions,po_public);
             include(pd.procoptions,po_has_public_name);
             include(pd.procoptions,po_global);
+          end;
+
+        { Class constructors and destructor are static class methods in real. }
+        { There are many places in the compiler where either class or static  }
+        { method flag changes the behavior. It is simplier to add them to     }
+        { the class constructors/destructors options than to fix all the      }
+        { occurencies. (Paul)                                                 }
+        if pd.proctypeoption in [potype_class_constructor,potype_class_destructor] then
+          begin
+            include(pd.procoptions,po_classmethod);
+            include(pd.procoptions,po_staticmethod);
           end;
 
         while token in [_ID,_LECKKLAMMER] do

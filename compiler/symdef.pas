@@ -394,6 +394,8 @@ interface
           function  getvardef:longint;override;
        end;
 
+       { tabstractprocdef }
+
        tabstractprocdef = class(tstoreddef)
           { saves a definition to the return type }
           returndef       : tdef;
@@ -422,6 +424,7 @@ interface
           function  typename_paras(showhidden:boolean): string;
           function  is_methodpointer:boolean;virtual;
           function  is_addressonly:boolean;virtual;
+          function  no_self_node:boolean;
        private
           procedure count_para(p:TObject;arg:pointer);
           procedure insert_para(p:TObject;arg:pointer);
@@ -468,6 +471,8 @@ interface
           fpuregvars_refs : array[1..maxfpuvarregs] of longint;
        end;
 {$endif oldregvars}
+
+       { tprocdef }
 
        tprocdef = class(tabstractprocdef)
        private
@@ -3008,6 +3013,12 @@ implementation
         result:=true;
       end;
 
+    function tabstractprocdef.no_self_node: boolean;
+      begin
+        Result:=([po_staticmethod,po_classmethod]<=procoptions)or
+                (proctypeoption in [potype_class_constructor,potype_class_destructor]);
+      end;
+
 
 {***************************************************************************
                                   TPROCDEF
@@ -3309,6 +3320,10 @@ implementation
             s:='constructor '+s;
           potype_destructor:
             s:='destructor '+s;
+          potype_class_constructor:
+            s:='class constructor '+s;
+          potype_class_destructor:
+            s:='class destructor '+s;
           else
             if assigned(returndef) and
               not(is_void(returndef)) then
@@ -3335,7 +3350,6 @@ implementation
         result:=assigned(owner) and
                 (owner.symtabletype<>ObjectSymtable);
       end;
-
 
     function tprocdef.GetSymtable(t:tGetSymtable):TSymtable;
       begin

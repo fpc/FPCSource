@@ -368,7 +368,7 @@ scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN dire
 #
 # Parser
 #
-# 03287 is the last used one
+# 03291 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1296,6 +1296,16 @@ parser_e_string_const_too_long=03286_E_String constant too long while ansistring
 parser_e_invalid_univ_para=03287_E_Type cannot be used as univ parameter because its size is unknown at compile time: "$1"
 % \var{univ} parameters are compatible with all values of the same size, but this
 % cannot be checked in case a parameter's size is unknown at compile time.
+parser_e_only_one_class_constructor_allowed=03288_E_Only one class constructor can be declared in class: "$1"
+% You are trying to declare more than one class constructor but only one class constructor can be declared.
+parser_e_only_one_class_destructor_allowed=03289_E_Only one class destructor can be declared in class: "$1"
+% You are trying to declare more than one class destructor but only one class destructor can be declared.
+parser_e_no_paras_for_class_constructor=03290_E_Class constructors can't have parameters
+% You are declaring a class constructor with a parameter list. Class constructor methods
+% cannot have parameters.
+parser_e_no_paras_for_class_destructor=03291_E_Class destructors can't have parameters
+% You are declaring a class destructor with a parameter list. Class destructor methods
+% cannot have parameters.
 % \end{description}
 #
 # Type Checking
