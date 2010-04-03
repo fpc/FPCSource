@@ -45,7 +45,7 @@ var
 
 procedure uclibc_init; external name '__uClibc_init';
 procedure uclibc_fini; external name '__uClibc_fini';
-procedure uclibc_exit; external name '_exit';
+procedure uclibc_exit; external name 'exit';
 procedure uclibc_main; external name '__uClibc_main';
 procedure PASCALMAIN; external name 'PASCALMAIN';
 
