@@ -1197,10 +1197,11 @@ Begin
             else
               Str(Extended(Value):0:precision, Result);
           end;
+          Negative := Result[1] = '-';
           P := Pos('.', Result);
           if P<>0 then
             Result[P] := DS;
-          TooLarge :=(P > Precision + 1) or (Pos('E', Result)<>0);
+          TooLarge :=(P > Precision + ord(Negative) + 1) or (Pos('E', Result)<>0);
         End;
 
         If TooSmall Or TooLarge Then
@@ -1231,14 +1232,14 @@ Begin
             { significant digits" rather than "number of digits after the }
             { decimal point" (as it does in the system unit) -> adjust    }
             { (precision+1 to count the decimal point character)          }
-            if Result[1] = '-' then
-              Inc(Precision);
-            if (Length(Result) > Precision + 1) and
-               (Precision + 1 > P) then
-              begin
-                P := Precision + 1;
-                SetLength(Result,P);
-              end;
+            { don't just cut off the string, as rounding must be taken    }
+            { into account based on the final digit                       }
+            
+            if (Length(Result) > Precision + ord(Negative) + 1) and
+               (Precision + ord(Negative) + 1 >= P) then
+              Result := FloatToStrFIntl(Value, ffFixed,
+                0, Precision - (P - Ord(Negative) - 1),
+                ValueType, FormatSettings);
             P := Length(Result);
             While (P>0) and (Result[P] = '0') Do
               Dec(P);
