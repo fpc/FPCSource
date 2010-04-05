@@ -1812,13 +1812,13 @@ exec_e_unit_not_shared_or_static_linkable=09027_E_Modu³ $1 nie mo¿e byæ linkowan
 #
 # Executable information
 #
-execinfo_f_cant_process_executable=09028_F_Nie mo¿na przetwarzaæ pliku $1
-execinfo_f_cant_open_executable=09029_F_Nie mo¿na otworzyæ pliku wykonywalnego $1
-execinfo_x_codesize=09030_X_Rozmiar kodu: $1 bajtów
-execinfo_x_initdatasize=09031_X_Rozmiar zainicjowanych danych: $1 bajtów
-execinfo_x_uninitdatasize=09032_X_Rozmiar niezainicjowanych danych: $1 bajtów
-execinfo_x_stackreserve=09033_X_Zarezerwowany rozmiar stosu: $1 bajtów
-execinfo_x_stackcommit=09034_X_Aktywny rozmiar stosu: $1 bajtów
+execinfo_f_cant_process_executable=09128_F_Nie mo¿na przetwarzaæ pliku $1
+execinfo_f_cant_open_executable=09129_F_Nie mo¿na otworzyæ pliku wykonywalnego $1
+execinfo_x_codesize=09130_X_Rozmiar kodu: $1 bajtów
+execinfo_x_initdatasize=09131_X_Rozmiar zainicjowanych danych: $1 bajtów
+execinfo_x_uninitdatasize=09132_X_Rozmiar niezainicjowanych danych: $1 bajtów
+execinfo_x_stackreserve=09133_X_Zarezerwowany rozmiar stosu: $1 bajtów
+execinfo_x_stackcommit=09134_X_Aktywny rozmiar stosu: $1 bajtów
 
 #
 # Unit loading

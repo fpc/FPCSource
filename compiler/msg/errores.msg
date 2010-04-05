@@ -1807,13 +1807,13 @@ exec_e_unit_not_shared_or_static_linkable=09027_E_La unidad $1 no admite enlazad
 #
 # Executable information
 #
-execinfo_f_cant_process_executable=09028_F_No se puede post-procesar el ejecutable $1
-execinfo_f_cant_open_executable=09029_F_No se puede abrir el ejecutable $1
-execinfo_x_codesize=09030_X_Tamaño de Código: $1 bytes
-execinfo_x_initdatasize=09031_X_Tamaño de datos inicializados: $1 bytes
-execinfo_x_uninitdatasize=09032_X_Tamaño de datos sin inicializar: $1 bytes
-execinfo_x_stackreserve=09033_X_Espacio reservado para la pila: $1 bytes
-execinfo_x_stackcommit=09034_X_Stack space commited: $1 bytes
+execinfo_f_cant_process_executable=09128_F_No se puede post-procesar el ejecutable $1
+execinfo_f_cant_open_executable=09129_F_No se puede abrir el ejecutable $1
+execinfo_x_codesize=09130_X_Tamaño de Código: $1 bytes
+execinfo_x_initdatasize=09131_X_Tamaño de datos inicializados: $1 bytes
+execinfo_x_uninitdatasize=09132_X_Tamaño de datos sin inicializar: $1 bytes
+execinfo_x_stackreserve=09133_X_Espacio reservado para la pila: $1 bytes
+execinfo_x_stackcommit=09134_X_Stack space commited: $1 bytes
 
 #
 # Unit loading

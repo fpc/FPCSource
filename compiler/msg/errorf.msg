@@ -1512,13 +1512,13 @@ exec_i_compilingresource=09022_I_Compiling resource $1
 #
 # Executable information
 #
-execinfo_f_cant_process_executable=09023_F_Can't post process executable $1
-execinfo_f_cant_open_executable=09024_F_Can't open executable $1
-execinfo_x_codesize=09025_X_Size of Code: $1 bytes
-execinfo_x_initdatasize=09026_X_Size of initialized data: $1 bytes
-execinfo_x_uninitdatasize=09027_X_Size of uninitialized data: $1 bytes
-execinfo_x_stackreserve=09028_X_Stack space reserved: $1 bytes
-execinfo_x_stackcommit=09029_X_Stack space commited: $1 bytes
+execinfo_f_cant_process_executable=09128_F_Can't post process executable $1
+execinfo_f_cant_open_executable=09129_F_Can't open executable $1
+execinfo_x_codesize=09130_X_Size of Code: $1 bytes
+execinfo_x_initdatasize=09131_X_Size of initialized data: $1 bytes
+execinfo_x_uninitdatasize=09132_X_Size of uninitialized data: $1 bytes
+execinfo_x_stackreserve=09133_X_Stack space reserved: $1 bytes
+execinfo_x_stackcommit=09134_X_Stack space commited: $1 bytes
 # Unit loading
 #
 # BeginOfTeX
