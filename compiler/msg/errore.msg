@@ -1278,7 +1278,7 @@ parser_h_should_use_reintroduce_objc=03280_H_Replaced methods can only be reintr
 parser_e_implements_getter_not_default_cc=03281_E_Getter for implements interface must use the target's default calling convention.
 % Interface getters are called via a helper in the run time library, and hence
 % have to use the default calling convention for the target (\var{register} on
-% i386 and x86_64, \var{stdcall} on other architectures).
+% i386 and x86\_64, \var{stdcall} on other architectures).
 parser_e_no_refcounted_typed_file=03282_E_Typed files cannot contain reference-counted types.
 % The data in a typed file cannot be of a reference counted type (such as
 % \var{ansistring} or a record containing a field that is reference counted).
