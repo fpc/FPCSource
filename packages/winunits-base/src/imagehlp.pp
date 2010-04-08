@@ -24,6 +24,7 @@ Interface
 
 Uses Windows;
 
+{$packrecords 8}
 {$ifdef win64}
  {$define imagehlp64}
 {$endif}
@@ -354,7 +355,7 @@ Type
   MINIDUMP_TYPE = _MINIDUMP_TYPE;
   TMINIDUMP_TYPE = _MINIDUMP_TYPE;
   
-  TLOADED_IMAGE = packed record
+  TLOADED_IMAGE = record
           ModuleName : PSTR;
           hFile : THANDLE;
           MappedAddress : PUCHAR;
@@ -377,7 +378,7 @@ Type
   PPLOADED_IMAGE = ^PLOADED_IMAGE;
 {$ifndef win64}  
   PIMAGE_DEBUG_INFORMATION = ^TIMAGE_DEBUG_INFORMATION;
-  TIMAGE_DEBUG_INFORMATION = packed record
+  TIMAGE_DEBUG_INFORMATION = record
           List : TLISTENTRY;
           ReservedSize : DWORD;
           ReservedMappedBase : POINTER;
@@ -413,7 +414,7 @@ Type
   IMAGE_DEBUG_INFORMATION = TIMAGE_DEBUG_INFORMATION;
 {$ENDIF}  
   PMODLOAD_DATA = ^TMODLOAD_DATA;
-  TMODLOAD_DATA = packed record
+  TMODLOAD_DATA = record
           ssize : DWORD;
           ssig  : DWORD;
           data  : POINTER;
@@ -421,7 +422,7 @@ Type
           flags : DWORD;
        end;
   MODLOAD_DATA	= TMODLOAD_DATA;
-  tagADDRESS64 = packed record
+  tagADDRESS64 = record
           Offset : dword64;
           Segment : word;
           Mode : TADDRESS_MODE;
@@ -434,7 +435,7 @@ Type
 	PADRESS=PADDRESS64;
 	LPADRESS=PADDRESS64;
   {$ELSE}
-    tagADDRESS = packed record
+    tagADDRESS = record
           Offset : dword;
           Segment : word;
           Mode : TADDRESS_MODE;
@@ -444,7 +445,7 @@ Type
     LPADDRESS = PADDRESS;
   {$ENDIF}
   PKDHELP64 = ^TKDHELP64;
-  TKDHELP64 = packed record          
+  TKDHELP64 = record          
           Thread : DWORD64;
           ThCallbackStack : DWORD;
           ThCallbackBStore : DWORD;
@@ -462,7 +463,7 @@ Type
     PKDHELP  = PKDHELP64;
   {$ELSE}
     PKDHELP = ^TKDHELP;
-    TKDHELP = packed record
+    TKDHELP = record
           Thread : DWORD;
           ThCallbackStack : DWORD;
           NextCallback : DWORD;
@@ -475,7 +476,7 @@ Type
        end;
     KDHELP = TKDHELP;     
   {$ENDIF}
-  tagSTACKFRAME64 = packed record
+  tagSTACKFRAME64 = record
           AddrPC : TADDRESS64;
           AddrReturn : TADDRESS64;
           AddrFrame : TADDRESS64;
@@ -497,7 +498,7 @@ Type
 	TSTACKFRAME  = TSTACKFRAME64;     
     PSTACKFRAME  = PSTACKFRAME64;     	
   {$ELSE}    
-    tagSTACKFRAME = packed record
+    tagSTACKFRAME = record
           AddrPC : TADDRESS;
           AddrReturn : TADDRESS;
           AddrFrame : TADDRESS;
@@ -516,7 +517,7 @@ Type
   {$ENDIF}
    PAPI_VERSION = ^TAPI_VERSION;
    LPAPI_VERSION= PAPI_VERSION;   
-   TAPI_VERSION = packed record
+   TAPI_VERSION = record
           MajorVersion : ushort;
           MinorVersion : ushort;
           Revision : ushort;
@@ -525,7 +526,7 @@ Type
    API_VERSION = TAPI_VERSION;
       
    PIMAGEHLP_SYMBOL64 = ^TIMAGEHLP_SYMBOL64;
-   TIMAGEHLP_SYMBOL64 = packed record
+   TIMAGEHLP_SYMBOL64 = record
           SizeOfStruct : dword;
           Address : dword64;
           Size : dword;
@@ -537,7 +538,7 @@ Type
    LPIMAGEHLP_SYMBOL64 = PIMAGEHLP_SYMBOL64;
    
    PIMAGEHLP_SYMBOL64_PACKAGE = ^TIMAGEHLP_SYMBOL64_PACKAGE;
-   TIMAGEHLP_SYMBOL64_PACKAGE = packed record
+   TIMAGEHLP_SYMBOL64_PACKAGE = record
           sym : TIMAGEHLP_SYMBOL64;
           name : array[0..(MAX_SYM_NAME+1)-1] of TCHAR;
        end;
@@ -553,7 +554,7 @@ Type
     PIMAGEHLP_SYMBOL_PACKAGE= PIMAGEHLP_SYMBOL64_PACKAGE
    {$ELSE}
     PIMAGEHLP_SYMBOL = ^TIMAGEHLP_SYMBOL;
-    TIMAGEHLP_SYMBOL = packed record
+    TIMAGEHLP_SYMBOL = record
           SizeOfStruct : dword;
           Address : dword;
           Size : dword;
@@ -565,7 +566,7 @@ Type
     LPIMAGEHLP_SYMBOL = PIMAGEHLP_SYMBOL;
 
     PIMAGEHLP_SYMBOL_PACKAGE = ^TIMAGEHLP_SYMBOL_PACKAGE;
-    TIMAGEHLP_SYMBOL_PACKAGE = packed record
+    TIMAGEHLP_SYMBOL_PACKAGE = record
           sym : TIMAGEHLP_SYMBOL;
           name : array[0..(MAX_SYM_NAME+1)-1] of TCHAR;
        end;
@@ -573,7 +574,7 @@ Type
     LPIMAGEHLP_SYMBOL_PACKAGE = PIMAGEHLP_SYMBOL_PACKAGE;
    {$ENDIF}
    PIMAGEHLP_MODULE64 = ^TIMAGEHLP_MODULE64;
-   TIMAGEHLP_MODULE64 = packed record
+   TIMAGEHLP_MODULE64 = record
           SizeOfStruct : dword;
           BaseOfImage : dword64;
           ImageSize : dword;
@@ -599,7 +600,7 @@ Type
    IMAGEHLP_MODULE64 = TIMAGEHLP_MODULE64;
      
    PIMAGEHLP_MODULE64W = ^TIMAGEHLP_MODULE64W;
-   TIMAGEHLP_MODULE64W = packed record
+   TIMAGEHLP_MODULE64W = record
           SizeOfStruct : dword;
           BaseOfImage : dword64;
           ImageSize : dword;
@@ -634,7 +635,7 @@ Type
    LPIMAGEHLP_MODULEW = PIMAGEHLP_MODULE64W;  
   {$ELSE}
    PIMAGEHLP_MODULE = ^TIMAGEHLP_MODULE;
-   TIMAGEHLP_MODULE = packed record
+   TIMAGEHLP_MODULE = record
           SizeOfStruct : dword;
           BaseOfImage : dword;
           ImageSize : dword;
@@ -650,7 +651,7 @@ Type
    LPIMAGEHLP_MODULE = PIMAGEHLP_MODULE;
    
    PIMAGEHLP_MODULEW = ^TIMAGEHLP_MODULEW;
-   TIMAGEHLP_MODULEW = packed record
+   TIMAGEHLP_MODULEW = record
           SizeOfStruct : dword;
           BaseOfImage : dword;
           ImageSize : dword;
@@ -667,7 +668,7 @@ Type
   {$ENDIF}
   
    PIMAGEHLP_LINE64 = ^TIMAGEHLP_LINE64;
-   TIMAGEHLP_LINE64 = packed record
+   TIMAGEHLP_LINE64 = record
           SizeOfStruct : dword;
           Key : pointer;
           LineNumber : dword;
@@ -684,7 +685,7 @@ Type
 	 LPIMAGEHLP_LINE = PIMAGEHLP_LINE64;     
 {$else}
      PIMAGEHLP_LINE = ^TIMAGEHLP_LINE;
-     TIMAGEHLP_LINE = packed record
+     TIMAGEHLP_LINE = record
           SizeOfStruct : dword;
           Key : pointer;
           LineNumber : dword;
@@ -696,13 +697,13 @@ Type
 {$endif}
   
   PSOURCEFILE = ^TSOURCEFILE;
-  TSOURCEFILE = packed record
+  TSOURCEFILE = record
           ModBase : dword64;
           FileName : pchar;
        end;  
   
   PIMAGEHLP_CBA_READ_MEMORY = ^TIMAGEHLP_CBA_READ_MEMORY;
-  TIMAGEHLP_CBA_READ_MEMORY = packed record
+  TIMAGEHLP_CBA_READ_MEMORY = record
           addr : dword64;
           buf : pointer;
           bytes : dword;
@@ -712,7 +713,7 @@ Type
   LPIMAGEHLP_CBA_READ_MEMORY = PIMAGEHLP_CBA_READ_MEMORY;
    
   PIMAGEHLP_CBA_EVENT = ^TIMAGEHLP_CBA_EVENT;
-  TIMAGEHLP_CBA_EVENT = packed record
+  TIMAGEHLP_CBA_EVENT = record
           severity : dword;
           code : dword;
           desc : pchar;
@@ -722,7 +723,7 @@ Type
   LPIMAGEHLP_CBA_EVENT = PIMAGEHLP_CBA_EVENT;
     
   PIMAGEHLP_DEFERRED_SYMBOL_LOAD64 = ^TIMAGEHLP_DEFERRED_SYMBOL_LOAD64;
-  TIMAGEHLP_DEFERRED_SYMBOL_LOAD64 = packed record
+  TIMAGEHLP_DEFERRED_SYMBOL_LOAD64 = record
           SizeOfStruct : dword;
           BaseOfImage : dword64;
           CheckSum : dword;
@@ -741,7 +742,7 @@ Type
   PIMAGEHLP_DEFERRED_SYMBOL_LOAD = PIMAGEHLP_DEFERRED_SYMBOL_LOAD64;     
 {$else}
   PIMAGEHLP_DEFERRED_SYMBOL_LOAD = ^TIMAGEHLP_DEFERRED_SYMBOL_LOAD;
-  TIMAGEHLP_DEFERRED_SYMBOL_LOAD = packed record
+  TIMAGEHLP_DEFERRED_SYMBOL_LOAD = record
           SizeOfStruct : dword;
           BaseOfImage : dword;
           CheckSum : dword;
@@ -755,7 +756,7 @@ Type
 {$endif}
 
   PIMAGEHLP_DUPLICATE_SYMBOL64 = ^TIMAGEHLP_DUPLICATE_SYMBOL64;
-  TIMAGEHLP_DUPLICATE_SYMBOL64 = packed record
+  TIMAGEHLP_DUPLICATE_SYMBOL64 = record
           SizeOfStruct : dword;
           NumberOfDups : dword;
           Symbol : PIMAGEHLP_SYMBOL64;
@@ -770,7 +771,7 @@ Type
   LPIMAGEHLP_DUPLICATE_SYMBOL = PIMAGEHLP_DUPLICATE_SYMBOL64;       
 {$else}
   PIMAGEHLP_DUPLICATE_SYMBOL = ^TIMAGEHLP_DUPLICATE_SYMBOL;
-  TIMAGEHLP_DUPLICATE_SYMBOL = packed record
+  TIMAGEHLP_DUPLICATE_SYMBOL = record
           SizeOfStruct : dword;
           NumberOfDups : dword;
           Symbol : PIMAGEHLP_SYMBOL;
@@ -780,7 +781,7 @@ Type
   LPIMAGEHLP_DUPLICATE_SYMBOL = PIMAGEHLP_DUPLICATE_SYMBOL;
 {$endif}
   PSRCCODEINFO = ^TSRCCODEINFO;
-  TSRCCODEINFO = packed record
+  TSRCCODEINFO = record
           SizeOfStruct : dword;
           Key : pointer;
           ModBase : dword64;
@@ -793,7 +794,7 @@ Type
   LPSRCCODEINFO = PSRCCODEINFO;
 
   PIMAGEHLP_SYMBOL_SRC = ^TIMAGEHLP_SYMBOL_SRC;
-  TIMAGEHLP_SYMBOL_SRC = packed record
+  TIMAGEHLP_SYMBOL_SRC = record
           sizeofstruct : dword;
           _type : dword;
           _file : array[0..(MAX_PATH)-1] of char;
@@ -802,7 +803,7 @@ Type
   LPIMAGEHLP_SYMBOL_SRC = PIMAGEHLP_SYMBOL_SRC;
   
   PMODULE_TYPE_INFO = ^TMODULE_TYPE_INFO;
-  TMODULE_TYPE_INFO = packed record
+  TMODULE_TYPE_INFO = record
           dataLength : USHORT;
           leaf : USHORT;
           data : array[0..0] of TBYTE;
@@ -811,7 +812,7 @@ Type
   LPMODULE_TYPE_INFO = PMODULE_TYPE_INFO;
   
   PSYMBOL_INFO = ^TSYMBOL_INFO;
-  TSYMBOL_INFO = packed record
+  TSYMBOL_INFO = record
           SizeOfStruct : ULONG;
           TypeIndex : ULONG;
           Reserved : array[0..1] of ULONG64;
@@ -832,7 +833,7 @@ Type
   LPSYMBOL_INFO = PSYMBOL_INFO;
 
   PSYMBOL_INFO_PACKAGE = ^TSYMBOL_INFO_PACKAGE;
-  TSYMBOL_INFO_PACKAGE = packed record
+  TSYMBOL_INFO_PACKAGE = record
           si : TSYMBOL_INFO;
           name : array[0..(MAX_SYM_NAME+1)-1] of TCHAR;
        end;
@@ -840,7 +841,7 @@ Type
   LPSYMBOL_INFO_PACKAGE = PSYMBOL_INFO_PACKAGE;
 
   PIMAGEHLP_STACK_FRAME = ^TIMAGEHLP_STACK_FRAME;
-  TIMAGEHLP_STACK_FRAME = packed record
+  TIMAGEHLP_STACK_FRAME = record
           InstructionOffset : ULONG64;
           ReturnOffset : ULONG64;
           FrameOffset : ULONG64;
@@ -860,27 +861,27 @@ Type
   PPIMAGEHLP_CONTEXT = ^PIMAGEHLP_CONTEXT;
   
   PTI_FINDCHILDREN_PARAMS = ^TTI_FINDCHILDREN_PARAMS;
-  TTI_FINDCHILDREN_PARAMS = packed record
+  TTI_FINDCHILDREN_PARAMS = record
           Count : ULONG;
           Start : ULONG;
           ChildId : array[0..0] of ULONG;
        end;
   PMINIDUMP_LOCATION_DESCRIPTOR = ^TMINIDUMP_LOCATION_DESCRIPTOR;
-  TMINIDUMP_LOCATION_DESCRIPTOR = packed record
+  TMINIDUMP_LOCATION_DESCRIPTOR = record
           DataSize : ULONG32;
           Rva : TRVA;
        end;
   MINIDUMP_LOCATION_DESCRIPTOR = TMINIDUMP_LOCATION_DESCRIPTOR ;
 
   PMINIDUMP_LOCATION_DESCRIPTOR64 = ^TMINIDUMP_LOCATION_DESCRIPTOR64;
-  TMINIDUMP_LOCATION_DESCRIPTOR64 = packed record
+  TMINIDUMP_LOCATION_DESCRIPTOR64 = record
           DataSize : ULONG64;
           Rva : TRVA64;
        end;
   MINIDUMP_LOCATION_DESCRIPTOR64 =   TMINIDUMP_LOCATION_DESCRIPTOR64;
   
   PMINIDUMP_MEMORY_DESCRIPTOR = ^TMINIDUMP_MEMORY_DESCRIPTOR;
-  TMINIDUMP_MEMORY_DESCRIPTOR = packed record
+  TMINIDUMP_MEMORY_DESCRIPTOR = record
           StartOfMemoryRange : ULONG64;
           Memory : TMINIDUMP_LOCATION_DESCRIPTOR;
        end;
@@ -888,7 +889,7 @@ Type
   LPMINIDUMP_MEMORY_DESCRIPTOR = PMINIDUMP_MEMORY_DESCRIPTOR;
   
   PMINIDUMP_MEMORY_DESCRIPTOR64 = ^TMINIDUMP_MEMORY_DESCRIPTOR64;
-  TMINIDUMP_MEMORY_DESCRIPTOR64 = packed record
+  TMINIDUMP_MEMORY_DESCRIPTOR64 = record
           StartOfMemoryRange : ULONG64;
           DataSize : ULONG64;
        end;
@@ -896,7 +897,7 @@ Type
   LPMINIDUMP_MEMORY_DESCRIPTOR64 = PMINIDUMP_MEMORY_DESCRIPTOR64;
 
   PMINIDUMP_HEADER = ^TMINIDUMP_HEADER;
-  TMINIDUMP_HEADER = packed record
+  TMINIDUMP_HEADER = record
           Signature : ULONG32;
           Version : ULONG32;
           NumberOfStreams : ULONG32;
@@ -913,7 +914,7 @@ Type
   LPMINIDUMP_HEADER = PMINIDUMP_HEADER;
   
   PMINIDUMP_DIRECTORY = ^TMINIDUMP_DIRECTORY;
-  TMINIDUMP_DIRECTORY = packed record
+  TMINIDUMP_DIRECTORY = record
           StreamType : ULONG32;
           Location : TMINIDUMP_LOCATION_DESCRIPTOR;
        end;
@@ -922,7 +923,7 @@ Type
   PPMINIDUMP_DIRECTORY = ^PMINIDUMP_DIRECTORY;
   
   PMINIDUMP_STRING = ^TMINIDUMP_STRING;
-  TMINIDUMP_STRING = packed record
+  TMINIDUMP_STRING = record
           Length : ULONG32;
           Buffer : array[0..0] of WCHAR;
        end;
@@ -931,7 +932,7 @@ Type
   
   
   PCPU_INFORMATION = ^TCPU_INFORMATION;
-  TCPU_INFORMATION = packed record
+  TCPU_INFORMATION = record
          case longint of
             0 : ( X86CpuInfo : packed record
                  VendorId : array[0..2] of ULONG32;
@@ -947,7 +948,7 @@ Type
   LPCPU_INFORMATION = PCPU_INFORMATION;
   
   PMINIDUMP_SYSTEM_INFO = ^TMINIDUMP_SYSTEM_INFO;
-  TMINIDUMP_SYSTEM_INFO = packed record
+  TMINIDUMP_SYSTEM_INFO = record
           ProcessorArchitecture : USHORT;
           ProcessorLevel : USHORT;
           ProcessorRevision : USHORT;
@@ -978,7 +979,7 @@ Type
   LPMINIDUMP_SYSTEM_INFO = PMINIDUMP_SYSTEM_INFO;
   
   PMINIDUMP_THREAD = ^TMINIDUMP_THREAD;
-  TMINIDUMP_THREAD = packed record
+  TMINIDUMP_THREAD = record
           ThreadId : ULONG32;
           SuspendCount : ULONG32;
           PriorityClass : ULONG32;
@@ -991,7 +992,7 @@ Type
   LPMINIDUMP_THREAD = PMINIDUMP_THREAD;
   
   PMINIDUMP_THREAD_LIST = ^TMINIDUMP_THREAD_LIST;
-  TMINIDUMP_THREAD_LIST = packed record
+  TMINIDUMP_THREAD_LIST = record
           NumberOfThreads : ULONG32;
           Threads : array[0..0] of TMINIDUMP_THREAD;
        end;
@@ -999,7 +1000,7 @@ Type
   LPMINIDUMP_THREAD_LIST = PMINIDUMP_THREAD_LIST;
 
   PMINIDUMP_THREAD_EX = ^TMINIDUMP_THREAD_EX;
-  TMINIDUMP_THREAD_EX = packed record
+  TMINIDUMP_THREAD_EX = record
           ThreadId : ULONG32;
           SuspendCount : ULONG32;
           PriorityClass : ULONG32;
@@ -1014,7 +1015,7 @@ Type
   
 
   PMINIDUMP_THREAD_EX_LIST = ^TMINIDUMP_THREAD_EX_LIST;
-  TMINIDUMP_THREAD_EX_LIST = packed record
+  TMINIDUMP_THREAD_EX_LIST = record
           NumberOfThreads : ULONG32;
           Threads : array[0..0] of TMINIDUMP_THREAD_EX;
        end;
@@ -1023,7 +1024,7 @@ Type
  
 
   PMINIDUMP_EXCEPTION = ^TMINIDUMP_EXCEPTION;
-  TMINIDUMP_EXCEPTION = packed record
+  TMINIDUMP_EXCEPTION = record
           ExceptionCode : ULONG32;
           ExceptionFlags : ULONG32;
           ExceptionRecord : ULONG64;
@@ -1037,7 +1038,7 @@ Type
    
 
   PMINIDUMP_EXCEPTION_STREAM = ^TMINIDUMP_EXCEPTION_STREAM;
-  TMINIDUMP_EXCEPTION_STREAM = packed record
+  TMINIDUMP_EXCEPTION_STREAM = record
           ThreadId : ULONG32;
           __alignment : ULONG32;
           ExceptionRecord : TMINIDUMP_EXCEPTION;
@@ -1047,7 +1048,7 @@ Type
   LPMINIDUMP_EXCEPTION_STREAM = PMINIDUMP_EXCEPTION_STREAM;
   
   PMINIDUMP_MODULE = ^TMINIDUMP_MODULE;
-  TMINIDUMP_MODULE = packed record
+  TMINIDUMP_MODULE = record
           BaseOfImage : ULONG64;
           SizeOfImage : ULONG32;
           CheckSum : ULONG32;
@@ -1064,7 +1065,7 @@ Type
   
 
   PMINIDUMP_MODULE_LIST = ^TMINIDUMP_MODULE_LIST;
-  TMINIDUMP_MODULE_LIST = packed record
+  TMINIDUMP_MODULE_LIST = record
           NumberOfModules : ULONG32;
           Modules : array[0..0] of TMINIDUMP_MODULE;
        end;
@@ -1073,7 +1074,7 @@ Type
    
 
   PMINIDUMP_MEMORY_LIST = ^TMINIDUMP_MEMORY_LIST;
-  TMINIDUMP_MEMORY_LIST = packed record
+  TMINIDUMP_MEMORY_LIST = record
           NumberOfMemoryRanges : ULONG32;
           MemoryRanges : array[0..0] of TMINIDUMP_MEMORY_DESCRIPTOR;
        end;
@@ -1081,7 +1082,7 @@ Type
   LPMINIDUMP_MEMORY_LIST = PMINIDUMP_MEMORY_LIST;
 
   PMINIDUMP_MEMORY64_LIST = ^TMINIDUMP_MEMORY64_LIST;
-  TMINIDUMP_MEMORY64_LIST = packed record
+  TMINIDUMP_MEMORY64_LIST = record
           NumberOfMemoryRanges : ULONG64;
           BaseRva : TRVA64;
           MemoryRanges : array[0..0] of TMINIDUMP_MEMORY_DESCRIPTOR64;
@@ -1090,7 +1091,7 @@ Type
   LPMINIDUMP_MEMORY64_LIST = PMINIDUMP_MEMORY64_LIST;
   
   PMINIDUMP_EXCEPTION_INFORMATION = ^TMINIDUMP_EXCEPTION_INFORMATION;
-  TMINIDUMP_EXCEPTION_INFORMATION = packed record
+  TMINIDUMP_EXCEPTION_INFORMATION = record
           ThreadId : dword;
           ExceptionPointers : PEXCEPTION_POINTERS;
           ClientPointers : BOOL;
@@ -1099,7 +1100,7 @@ Type
   LPMINIDUMP_EXCEPTION_INFORMATION = PMINIDUMP_EXCEPTION_INFORMATION;
 
   PMINIDUMP_EXCEPTION_INFORMATION64 = ^TMINIDUMP_EXCEPTION_INFORMATION64;
-  TMINIDUMP_EXCEPTION_INFORMATION64 = packed record
+  TMINIDUMP_EXCEPTION_INFORMATION64 = record
           ThreadId : dword;
           ExceptionRecord : ULONG64;
           ContextRecord : ULONG64;
@@ -1109,7 +1110,7 @@ Type
   LPMINIDUMP_EXCEPTION_INFORMATION64 = PMINIDUMP_EXCEPTION_INFORMATION64;
   
   PMINIDUMP_HANDLE_DESCRIPTOR = ^TMINIDUMP_HANDLE_DESCRIPTOR;
-  TMINIDUMP_HANDLE_DESCRIPTOR = packed record
+  TMINIDUMP_HANDLE_DESCRIPTOR = record
           Handle : ULONG64;
           TypeNameRva : TRVA;
           ObjectNameRva : TRVA;
@@ -1122,7 +1123,7 @@ Type
   LPMINIDUMP_HANDLE_DESCRIPTOR = PMINIDUMP_HANDLE_DESCRIPTOR;
 
   PMINIDUMP_HANDLE_DATA_STREAM = ^TMINIDUMP_HANDLE_DATA_STREAM;
-  TMINIDUMP_HANDLE_DATA_STREAM = packed record
+  TMINIDUMP_HANDLE_DATA_STREAM = record
           SizeOfHeader : ULONG32;
           SizeOfDescriptor : ULONG32;
           NumberOfDescriptors : ULONG32;
@@ -1133,7 +1134,7 @@ Type
   
 
   PMINIDUMP_FUNCTION_TABLE_DESCRIPTOR = ^TMINIDUMP_FUNCTION_TABLE_DESCRIPTOR;
-  TMINIDUMP_FUNCTION_TABLE_DESCRIPTOR = packed record
+  TMINIDUMP_FUNCTION_TABLE_DESCRIPTOR = record
           MinimumAddress : ULONG64;
           MaximumAddress : ULONG64;
           BaseAddress : ULONG64;
@@ -1144,7 +1145,7 @@ Type
   LPMINIDUMP_FUNCTION_TABLE_DESCRIPTOR = PMINIDUMP_FUNCTION_TABLE_DESCRIPTOR;
 
   PMINIDUMP_FUNCTION_TABLE_STREAM = ^TMINIDUMP_FUNCTION_TABLE_STREAM;
-  TMINIDUMP_FUNCTION_TABLE_STREAM = packed record
+  TMINIDUMP_FUNCTION_TABLE_STREAM = record
           SizeOfHeader : ULONG32;
           SizeOfDescriptor : ULONG32;
           SizeOfNativeDescriptor : ULONG32;
@@ -1157,7 +1158,7 @@ Type
   
 
   PMINIDUMP_UNLOADED_MODULE = ^TMINIDUMP_UNLOADED_MODULE;
-  TMINIDUMP_UNLOADED_MODULE = packed record
+  TMINIDUMP_UNLOADED_MODULE = record
           BaseOfImage : ULONG64;
           SizeOfImage : ULONG32;
           CheckSum : ULONG32;
@@ -1168,7 +1169,7 @@ Type
   LPMINIDUMP_UNLOADED_MODULE = PMINIDUMP_UNLOADED_MODULE;
   
   PMINIDUMP_UNLOADED_MODULE_LIST = ^TMINIDUMP_UNLOADED_MODULE_LIST;
-  TMINIDUMP_UNLOADED_MODULE_LIST = packed record
+  TMINIDUMP_UNLOADED_MODULE_LIST = record
           SizeOfHeader : ULONG32;
           SizeOfEntry : ULONG32;
           NumberOfEntries : ULONG32;
@@ -1177,7 +1178,7 @@ Type
   LPMINIDUMP_UNLOADED_MODULE_LIST = PMINIDUMP_UNLOADED_MODULE_LIST;
   
   PMINIDUMP_MISC_INFO = ^TMINIDUMP_MISC_INFO;
-  TMINIDUMP_MISC_INFO = packed record
+  TMINIDUMP_MISC_INFO = record
           SizeOfInfo : ULONG32;
           Flags1 : ULONG32;
           ProcessId : ULONG32;
@@ -1189,7 +1190,7 @@ Type
   LPMINIDUMP_MISC_INFO = PMINIDUMP_MISC_INFO;
 
   PMINIDUMP_USER_RECORD = ^TMINIDUMP_USER_RECORD;
-  TMINIDUMP_USER_RECORD = packed record
+  TMINIDUMP_USER_RECORD = record
           _Type : ULONG32;
           Memory : TMINIDUMP_LOCATION_DESCRIPTOR;
        end;
@@ -1197,7 +1198,7 @@ Type
   LPMINIDUMP_USER_RECORD = PMINIDUMP_USER_RECORD;
 
   PMINIDUMP_USER_STREAM = ^TMINIDUMP_USER_STREAM;
-  TMINIDUMP_USER_STREAM = packed record
+  TMINIDUMP_USER_STREAM = record
           _Type : ULONG32;
           BufferSize : ULONG;
           Buffer : pointer;
@@ -1206,7 +1207,7 @@ Type
   LPMINIDUMP_USER_STREAM = PMINIDUMP_USER_STREAM;
 
   PMINIDUMP_USER_STREAM_INFORMATION = ^TMINIDUMP_USER_STREAM_INFORMATION;
-  TMINIDUMP_USER_STREAM_INFORMATION = packed record
+  TMINIDUMP_USER_STREAM_INFORMATION = record
           UserStreamCount : ULONG;
           UserStreamArray : PMINIDUMP_USER_STREAM;
        end;
@@ -1214,7 +1215,7 @@ Type
   LPMINIDUMP_USER_STREAM_INFORMATION = PMINIDUMP_USER_STREAM_INFORMATION;
   	 
   PMINIDUMP_THREAD_CALLBACK = ^TMINIDUMP_THREAD_CALLBACK;
-  TMINIDUMP_THREAD_CALLBACK = packed record
+  TMINIDUMP_THREAD_CALLBACK = record
           ThreadId : ULONG;
           ThreadHandle : THANDLE;
           Context : TCONTEXT;
@@ -1226,7 +1227,7 @@ Type
   LPMINIDUMP_THREAD_CALLBACK = PMINIDUMP_THREAD_CALLBACK;
 
   PMINIDUMP_THREAD_EX_CALLBACK = ^TMINIDUMP_THREAD_EX_CALLBACK;
-  TMINIDUMP_THREAD_EX_CALLBACK = packed record
+  TMINIDUMP_THREAD_EX_CALLBACK = record
           ThreadId : ULONG;
           ThreadHandle : THANDLE;
           Context : TCONTEXT;
@@ -1240,14 +1241,14 @@ Type
   LPMINIDUMP_THREAD_EX_CALLBACK = PMINIDUMP_THREAD_EX_CALLBACK;
 
   PMINIDUMP_INCLUDE_THREAD_CALLBACK = ^TMINIDUMP_INCLUDE_THREAD_CALLBACK;
-  TMINIDUMP_INCLUDE_THREAD_CALLBACK = packed record
+  TMINIDUMP_INCLUDE_THREAD_CALLBACK = record
           ThreadId : ULONG;
        end;
   MINIDUMP_INCLUDE_THREAD_CALLBACK = TMINIDUMP_INCLUDE_THREAD_CALLBACK;
   LPMINIDUMP_INCLUDE_THREAD_CALLBACK = PMINIDUMP_INCLUDE_THREAD_CALLBACK;
 
   PMINIDUMP_MODULE_CALLBACK = ^TMINIDUMP_MODULE_CALLBACK;
-  TMINIDUMP_MODULE_CALLBACK = packed record
+  TMINIDUMP_MODULE_CALLBACK = record
           FullPath : PWCHAR;
           BaseOfImage : ULONG64;
           SizeOfImage : ULONG;
@@ -1263,7 +1264,7 @@ Type
   LPMINIDUMP_MODULE_CALLBACK = PMINIDUMP_MODULE_CALLBACK;
 
   PMINIDUMP_INCLUDE_MODULE_CALLBACK = ^TMINIDUMP_INCLUDE_MODULE_CALLBACK;
-  TMINIDUMP_INCLUDE_MODULE_CALLBACK = packed record
+  TMINIDUMP_INCLUDE_MODULE_CALLBACK = record
           BaseOfImage : ULONG64;
        end;
   MINIDUMP_INCLUDE_MODULE_CALLBACK = TMINIDUMP_INCLUDE_MODULE_CALLBACK;
@@ -1271,7 +1272,7 @@ Type
 
      
   PMINIDUMP_CALLBACK_INPUT = ^TMINIDUMP_CALLBACK_INPUT;
-  TMINIDUMP_CALLBACK_INPUT = packed record
+  TMINIDUMP_CALLBACK_INPUT = record
           ProcessId : ULONG;
           ProcessHandle : THANDLE;
           CallbackType : ULONG;
@@ -1288,7 +1289,7 @@ Type
   LPMINIDUMP_CALLBACK_INPUT = PMINIDUMP_CALLBACK_INPUT;
 
   PMINIDUMP_CALLBACK_OUTPUT = ^TMINIDUMP_CALLBACK_OUTPUT;
-  TMINIDUMP_CALLBACK_OUTPUT = packed record
+  TMINIDUMP_CALLBACK_OUTPUT = record
           anony3 : packed record
               case longint of
                  0 : ( ModuleWriteFlags : ULONG );
@@ -1364,7 +1365,7 @@ Type
    TDBGHELP_CREATE_USER_DUMP_CALLBACK = function (DataType:dword; Data:PPOINTER; DataLength:lpdword; UserData:pointer):BOOL;stdcall;   
    TMINIDUMP_CALLBACK_ROUTINE = function (CallbackParam:pointer; CallbackInput:PMINIDUMP_CALLBACK_INPUT; CallbackOutput:PMINIDUMP_CALLBACK_OUTPUT):BOOL;stdcall;
    PMINIDUMP_CALLBACK_INFORMATION = ^TMINIDUMP_CALLBACK_INFORMATION;
-   TMINIDUMP_CALLBACK_INFORMATION = packed record
+   TMINIDUMP_CALLBACK_INFORMATION = record
           CallbackRoutine : TMINIDUMP_CALLBACK_ROUTINE;
           CallbackParam : pointer;
        end;
