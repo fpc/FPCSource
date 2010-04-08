@@ -24,6 +24,10 @@ Interface
 
 Uses Windows;
 
+{$ifdef win64}
+ {$define imagehlp64}
+{$endif}
+
 Const 
      IMAGE_SEPARATION    = 64*1024;  	
      DBHHEADER_DEBUGDIRS = $1;     
