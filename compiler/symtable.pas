@@ -1568,7 +1568,10 @@ implementation
       var
         s1,s2 : string;
       begin
-        s1:=def.typename;
+        if def.typ=objectdef then
+          s1:=tobjectdef(def).RttiName
+        else
+          s1:=def.typename;
         { When the names are the same try to include the unit name }
         if assigned(otherdef) and
            (def.owner.symtabletype in [globalsymtable,staticsymtable]) then
