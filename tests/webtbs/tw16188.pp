@@ -35,6 +35,7 @@ end;
 var ext:extended;
   str: shortstring;
 begin
+  DecimalSeparator:='.';
   ext:=234.56789; 
   check(FloatToStrF(ext,ffGeneral,4,1),1);
   check(FloatToStrF(ext,ffGeneral,5,1),2);
