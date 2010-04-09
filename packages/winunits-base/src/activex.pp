@@ -2113,7 +2113,7 @@ TYPE
 
     IPersist = Interface (IUnknown)
        ['{0000010c-0000-0000-C000-000000000046}']
-       Function GetClassId(clsid:TClsId):HResult; StdCall;
+       Function GetClassId(out clsid:TClsId):HResult; StdCall;
        End;
 
     IPersistStream = Interface(IPersist)
