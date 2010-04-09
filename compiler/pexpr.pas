@@ -1276,10 +1276,19 @@ implementation
                  typesym:
                    begin
                      p1.free;
-                     p1:=ctypenode.create(ttypesym(sym).typedef);
-                     if (is_class(ttypesym(sym).typedef) or is_objcclass(ttypesym(sym).typedef)) and
-                        not(block_type in [bt_type,bt_const_type,bt_var_type]) then
-                       p1:=cloadvmtaddrnode.create(p1);
+                     if try_to_consume(_LKLAMMER) then
+                      begin
+                        p1:=comp_expr(true);
+                        consume(_RKLAMMER);
+                        p1:=ctypeconvnode.create_explicit(p1,ttypesym(sym).typedef);
+                      end
+                     else
+                       begin
+                         p1:=ctypenode.create(ttypesym(sym).typedef);
+                         if (is_class(ttypesym(sym).typedef) or is_objcclass(ttypesym(sym).typedef)) and
+                            not(block_type in [bt_type,bt_const_type,bt_var_type]) then
+                           p1:=cloadvmtaddrnode.create(p1);
+                       end;
                    end;
                  constsym:
                    begin
