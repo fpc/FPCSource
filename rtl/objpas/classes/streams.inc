@@ -853,15 +853,15 @@ var
   readcount: Longint;
 begin
   if m_bReverted then
-      begin
-        Result := STG_E_REVERTED;
-        Exit;
-      end;
+    begin
+      Result := STG_E_REVERTED;
+      Exit;
+    end;
   if pv = nil then
-  begin
-    Result := E_INVALIDARG;
-    Exit;
-  end;
+    begin
+      Result := STG_E_INVALIDPOINTER;
+      Exit;
+    end;
 
   readcount := FStream.Read(pv^, cb);
   if pcbRead <> nil then pcbRead^ := readcount;
@@ -873,15 +873,15 @@ var
   writecount: Longint;
 begin
   if m_bReverted then
-      begin
-        Result := STG_E_REVERTED;
-        Exit;
-      end;
+    begin
+      Result := STG_E_REVERTED;
+      Exit;
+    end;
   if pv = nil then
-  begin
-    Result := E_INVALIDARG;
-    Exit;
-  end;
+    begin
+      Result := STG_E_INVALIDPOINTER;
+      Exit;
+    end;
 
   writecount := FStream.Write(pv^, cb);
   if pcbWritten <> nil then pcbWritten^ := writecount;
@@ -893,15 +893,19 @@ var
   newpos: Int64;
 begin
   if m_bReverted then
-      begin
-        Result := STG_E_REVERTED;
-        Exit;
-      end;
+    begin
+      Result := STG_E_REVERTED;
+      Exit;
+    end;
   case dwOrigin of
     STREAM_SEEK_SET: newpos := FStream.Seek(dlibMove, soBeginning);
     STREAM_SEEK_CUR: newpos := FStream.Seek(dlibMove, soCurrent);
     STREAM_SEEK_END: newpos := FStream.Seek(dlibMove, soEnd);
-    else begin Result := E_INVALIDARG; exit; end;
+    else 
+      begin 
+        Result := STG_E_INVALIDFUNCTION; 
+        Exit; 
+      end;
   end;
   if @libNewPosition <> nil then
     libNewPosition := newpos;
@@ -911,10 +915,10 @@ end;
 function TStreamAdapter.SetSize(libNewSize: Largeint): HResult; stdcall;
 begin
   if m_bReverted then
-      begin
-        Result := STG_E_REVERTED;
-        Exit;
-      end;
+    begin
+      Result := STG_E_REVERTED;
+      Exit;
+    end;
   runerror(217);
 end;
 
@@ -922,10 +926,10 @@ end;
 function TStreamAdapter.CopyTo(stm: IStream; cb: Largeint; out cbRead: Largeint; out cbWritten: Largeint): HResult; stdcall;
 begin
   if m_bReverted then
-      begin
-        Result := STG_E_REVERTED;
-        Exit;
-      end;
+    begin
+      Result := STG_E_REVERTED;
+      Exit;
+    end;
   runerror(217);
 end;
 
@@ -959,10 +963,10 @@ end;
 function TStreamAdapter.Stat(out statstg: TStatStg; grfStatFlag: Longint): HResult; stdcall;
 begin
   if m_bReverted then
-      begin
-        Result := STG_E_REVERTED;
-        Exit;
-      end;
+    begin
+      Result := STG_E_REVERTED;
+      Exit;
+    end;
   if grfStatFlag in [STATFLAG_DEFAULT,STATFLAG_NOOPEN,STATFLAG_NONAME] then
   begin
     if @statstg <> nil then
@@ -986,10 +990,10 @@ end;
 function TStreamAdapter.Clone(out stm: IStream): HResult; stdcall;
 begin
   if m_bReverted then
-      begin
-        Result := STG_E_REVERTED;
-        Exit;
-      end;
+    begin
+      Result := STG_E_REVERTED;
+      Exit;
+    end;
   runerror(217);
 end;
 
