@@ -1,9 +1,9 @@
   
 type
   //Obsolete types, kept for backwards compatibility
-  TResourceHandle = Cardinal;
-  HMODULE = Cardinal;
-  HGLOBAL = Cardinal;
+  TResourceHandle = PtrUint;
+  HMODULE = PtrUint;
+  HGLOBAL = PtrUint;
   //New types
   TFPResourceHandle = PtrUInt;
   TFPResourceHMODULE = PtrUInt;

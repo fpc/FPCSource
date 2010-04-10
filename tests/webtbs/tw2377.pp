@@ -1,4 +1,4 @@
-{ %target=i386 }
+{ %cpu=i386 }
 { Source provided for Free Pascal Bug Report 2377 }
 { Submitted by "Christian Keck" on  2003-02-12 }
 { e-mail: c.keck@gmx.net }

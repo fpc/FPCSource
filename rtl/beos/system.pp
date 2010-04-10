@@ -383,8 +383,7 @@ begin
   { Set up signals handlers (may be needed by init code to test cpu features) }
   InstallSignals;
 
-  SysInitStdIO;
-{ Setup heap }
+  { Setup heap }
   myheapsize:=4096*1;// $ 20000;
   myheaprealsize:=4096*1;// $ 20000;
   heapstart:=nil;

@@ -1,4 +1,4 @@
-{ %target=i386 }
+{ %CPU=i386 }
 {$asmmode intel}
 
 var
