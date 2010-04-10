@@ -255,6 +255,7 @@ end;
 
     function SysCloseThread (threadHandle : TThreadID) : dword;
     begin
+      SysCloseThread := 0;
 //      SysCloseThread:=CloseHandle(threadHandle);
     end;
 
@@ -455,7 +456,7 @@ begin
     WaitForThreadTerminate :=@SysWaitForThreadTerminate;
     ThreadSetPriority      :=@SysThreadSetPriority;
     ThreadGetPriority      :=@SysThreadGetPriority;
-    CloseThrad		   :=@SysCloseThread;
+    CloseThread		   :=@SysCloseThread;
     GetCurrentThreadId     :=@SysGetCurrentThreadId;
     InitCriticalSection    :=@SysInitCriticalSection;
     DoneCriticalSection    :=@SysDoneCriticalSection;
