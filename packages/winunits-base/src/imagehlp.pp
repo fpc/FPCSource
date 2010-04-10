@@ -431,9 +431,9 @@ Type
   PADDRESS64 = ^TADDRESS64;
   LPADDRESS64 = PADDRESS64;
   {$IFDEF IMAGEHLP64}
-    TADRESS=TADDRESS64;
-	PADRESS=PADDRESS64;
-	LPADRESS=PADDRESS64;
+    TADDRESS=TADDRESS64;
+	PADDRESS=PADDRESS64;
+	LPADDRESS=PADDRESS64;
   {$ELSE}
     tagADDRESS = record
           Offset : dword;
@@ -493,7 +493,7 @@ Type
   PSTACKFRAME64 = ^TSTACKFRAME64;
   LPSTACKFRAME64= ^TSTACKFRAME64;  
   {$IFDEF IMAGEHLP64}
-    STACKFRAME   = STACKFRAME64;     
+    STACKFRAME   = TSTACKFRAME64;     
     LPSTACKFRAME = LPSTACKFRAME64;     
 	TSTACKFRAME  = TSTACKFRAME64;     
     PSTACKFRAME  = PSTACKFRAME64;     	
@@ -548,10 +548,10 @@ Type
    {$IFDEF IMAGEHLP64}
     IMAGEHLP_SYMBOL  = IMAGEHLP_SYMBOL64;
     TIMAGEHLP_SYMBOL = IMAGEHLP_SYMBOL64;
-    PIMAGEHLP_SYMBOL = PIMAGEHLP_SYMBOL64
-    TIMAGEHLP_SYMBOL_PACKAGE = IMAGEHLP_SYMBOL64_PACKAGE	
-    IMAGEHLP_SYMBOL_PACKAGE = IMAGEHLP_SYMBOL64_PACKAGE
-    PIMAGEHLP_SYMBOL_PACKAGE= PIMAGEHLP_SYMBOL64_PACKAGE
+    PIMAGEHLP_SYMBOL = PIMAGEHLP_SYMBOL64;
+    TIMAGEHLP_SYMBOL_PACKAGE = IMAGEHLP_SYMBOL64_PACKAGE;	
+    IMAGEHLP_SYMBOL_PACKAGE = IMAGEHLP_SYMBOL64_PACKAGE;
+    PIMAGEHLP_SYMBOL_PACKAGE= PIMAGEHLP_SYMBOL64_PACKAGE;
    {$ELSE}
     PIMAGEHLP_SYMBOL = ^TIMAGEHLP_SYMBOL;
     TIMAGEHLP_SYMBOL = record
@@ -1328,10 +1328,10 @@ Type
   TGET_MODULE_BASE_ROUTINE64      = function (hProcess:THANDLE; Address:dword64):dword64;stdcall;
   TTRANSLATE_ADDRESS_ROUTINE64    = function (hProcess:THANDLE; hThread:THANDLE; lpaddr:LPADDRESS64):dword64;stdcall;
   {$IFDEF IMAGEHLP64}
-    TREAD_PROCESS_MEMORY_ROUTINE PREAD_PROCESS_MEMORY_ROUTINE =TREAD_PROCESS_MEMORY_ROUTINE PREAD_PROCESS_MEMORY_ROUTINE64;
-    TFUNCTION_TABLE_ACCESS_ROUTINE PFUNCTION_TABLE_ACCESS_ROUTINE = TFUNCTION_TABLE_ACCESS_ROUTINE PFUNCTION_TABLE_ACCESS_ROUTINE64;
-    TGET_MODULE_BASE_ROUTINE PGET_MODULE_BASE_ROUTINE = TGET_MODULE_BASE_ROUTINE PGET_MODULE_BASE_ROUTINE64;
-    TTRANSLATE_ADDRESS_ROUTINE PTRANSLATE_ADDRESS_ROUTINE = TTRANSLATE_ADDRESS_ROUTINE PTRANSLATE_ADDRESS_ROUTINE64;
+    TREAD_PROCESS_MEMORY_ROUTINE    = TREAD_PROCESS_MEMORY_ROUTINE64 ;
+    TFUNCTION_TABLE_ACCESS_ROUTINE  = TFUNCTION_TABLE_ACCESS_ROUTINE64;
+    TGET_MODULE_BASE_ROUTINE        = TGET_MODULE_BASE_ROUTINE64;
+    TTRANSLATE_ADDRESS_ROUTINE      = TTRANSLATE_ADDRESS_ROUTINE64;
   {$ELSE}
     TREAD_PROCESS_MEMORY_ROUTINE = function (hProcess:THANDLE; lpBaseAddress:dword; lpBuffer:pointer; nSize:dword; lpNumberOfBytesRead:PDWORD):bool;stdcall;
     TFUNCTION_TABLE_ACCESS_ROUTINE = function (hProcess:THANDLE; AddrBase:dword):pointer;stdcall;
@@ -1462,8 +1462,8 @@ function SymGetSymPrev64(hProcess:THANDLE; Symbol:PIMAGEHLP_SYMBOL64):BOOL;stdca
 {$ifdef IMAGEHLP64}
 function SymEnumerateModules(hProcess:THANDLE; EnumModulesCallback:TSYM_ENUMMODULES_CALLBACK64; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumerateModules64';
 function SymEnumerateSymbols(hProcess:THANDLE; BaseOfDll:dword64; EnumSymbolsCallback:TSYM_ENUMSYMBOLS_CALLBACK64; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumerateSymbols64';  
-function SymEnumerateSymbolsW(hProcess:THANDLE; BaseOfDll:dword64; EnumSymbolsCallback:TSYM_ENUMSYMBOLS_CALLBACK64W; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumerateSymbolsW64'
-function EnumerateLoadedModules(hProcess:THANDLE; EnumLoadedModulesCallback:TPENUMLOADED_MODULES_CALLBACK64; UserContext:pointer):BOOL;stdcall;external External_library name 'EnumerateLoadedModules64';;
+function SymEnumerateSymbolsW(hProcess:THANDLE; BaseOfDll:dword64; EnumSymbolsCallback:TSYM_ENUMSYMBOLS_CALLBACK64W; UserContext:pointer):BOOL;stdcall;external External_library name 'SymEnumerateSymbolsW64';
+function EnumerateLoadedModules(hProcess:THANDLE; EnumLoadedModulesCallback:TENUMLOADED_MODULES_CALLBACK64; UserContext:pointer):BOOL;stdcall;external External_library name 'EnumerateLoadedModules64';
 function SymFunctionTableAccess(hProcess:THANDLE; AddrBase:dword64):pointer;stdcall;external External_library name 'SymFunctionTableAccess64';
 function SymGetModuleInfo(hProcess:THANDLE; qwAddr:dword64; ModuleInfo:PIMAGEHLP_MODULE64):BOOL;stdcall;external External_library name 'SymGetModuleInfo64';
 function SymGetModuleInfoW(hProcess:THANDLE; qwAddr:dword64; ModuleInfo:PIMAGEHLP_MODULEW64):BOOL;stdcall;external External_library name 'SymGetModuleInfoW64';
@@ -1496,7 +1496,7 @@ function SymRegisterFunctionEntryCallback64(hProcess:THANDLE; CallbackFunction:T
 
 {$ifdef IMAGEHLP64}
 function SymGetLineFromAddr(hProcess:THANDLE; qwAddr:dword64; pdwDisplacement:PDWORD; Line64:PIMAGEHLP_LINE64):BOOL;stdcall;external External_library name 'SymGetLineFromAddr64';
-function SymGetLineFromName(hProcess:THANDLE; ModuleName:PSTR; FileName:PSTR; dwLineNumber:dword; plDisplacement:TPLONG; 
+function SymGetLineFromName(hProcess:THANDLE; ModuleName:PSTR; FileName:PSTR; dwLineNumber:dword; plDisplacement:PLONG; 
              Line:PIMAGEHLP_LINE64):BOOL;stdcall;external External_library name 'SymGetLineFromName64';
 function SymGetLineNext(hProcess:THANDLE; Line:PIMAGEHLP_LINE64):BOOL;stdcall;external External_library name 'SymGetLineNext64';			 
 function SymGetLinePrev(hProcess:THANDLE; Line:PIMAGEHLP_LINE64):BOOL;stdcall;external External_library name 'SymGetLinePrev64'; 
