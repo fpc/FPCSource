@@ -425,13 +425,36 @@ begin
 end;
 
 
-CONST INFINITE=-1;
-
 procedure IntRTLEventWaitFor (AEvent: PRTLEvent);
+CONST INFINITE=-1;
 begin
 {$WARNING TODO!}
 {
   WaitForSingleObject(THANDLE(AEvent), INFINITE);
+}
+end;
+
+
+function SysTryEnterCriticalSection (var CS): longint;
+begin
+{$WARNING TODO!}
+end;
+
+
+procedure IntRTLEventWaitForTimeout (AEvent: PRTLEvent; Timeout: longint);
+begin
+{$WARNING TODO!}
+{
+  WaitForSingleObject(THANDLE(AEvent), Timeout);
+}
+end;
+
+
+procedure intRTLEventResetEvent (AEvent: PRTLEvent);
+begin
+{$WARNING TODO!}
+{
+  ResetEvent(THANDLE(AEvent));
 }
 end;
 
@@ -453,14 +476,15 @@ begin
     ResumeThread           :=@SysResumeThread;
     KillThread             :=@SysKillThread;
     ThreadSwitch           :=@SysThreadSwitch;
+    CloseThread		   :=@SysCloseThread;
     WaitForThreadTerminate :=@SysWaitForThreadTerminate;
     ThreadSetPriority      :=@SysThreadSetPriority;
     ThreadGetPriority      :=@SysThreadGetPriority;
-    CloseThread		   :=@SysCloseThread;
     GetCurrentThreadId     :=@SysGetCurrentThreadId;
     InitCriticalSection    :=@SysInitCriticalSection;
     DoneCriticalSection    :=@SysDoneCriticalSection;
     EnterCriticalSection   :=@SysEnterCriticalSection;
+    TryEnterCriticalSection:=@SysTryEnterCriticalSection;
     LeaveCriticalSection   :=@SysLeaveCriticalSection;
     InitThreadVar          :=@SysInitThreadVar;
     RelocateThreadVar      :=@SysRelocateThreadVar;
@@ -474,9 +498,10 @@ begin
     RTLEventCreate         :=@IntRTLEventCreate;
     RTLEventDestroy        :=@IntRTLEventDestroy;
     RTLEventSetEvent       :=@IntRTLEventSetEvent;
+    RTLEventResetEvent     :=@intRTLEventResetEvent;
     RTLEventWaitFor        :=@IntRTLEventWaitFor;
+    RTLEventWaitForTimeout :=@intRTLEventWaitForTimeout;
     end;
   SetThreadManager (OS2ThreadManager);
 end;
-
 
