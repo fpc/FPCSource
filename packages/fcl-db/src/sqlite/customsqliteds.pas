@@ -113,6 +113,7 @@ type
     FOnGetHandle: TDataSetNotifyEvent;
     FOptions: TSqliteOptions;
     FSQLList: TStrings;
+    FStoreDefs: Boolean;
     procedure CopyCacheToItem(AItem: PDataRecord);
     function GetIndexFields(Value: Integer): TField;
     procedure SetMasterIndexValue;
@@ -150,6 +151,7 @@ type
     function SqliteExec(Sql: PChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer; virtual; abstract;
     procedure InternalCloseHandle; virtual; abstract;
     function InternalGetHandle: Pointer; virtual; abstract;
+    function FieldDefsStored: Boolean;
     function GetLastInsertRowId: Int64; virtual; abstract;
     procedure GetSqliteHandle;
     procedure BuildLinkedList; virtual; abstract;
@@ -255,12 +257,13 @@ type
     property SaveOnClose: Boolean read FSaveOnClose write FSaveOnClose default False;
     property SaveOnRefetch: Boolean read FSaveOnRefetch write FSaveOnRefetch default False;
     property SQL: String read FSQL write FSQL;
+    property StoreDefs: Boolean read FStoreDefs write FStoreDefs default False;
     property TableName: String read FTableName write FTableName;   
     property MasterSource: TDataSource read GetMasterSource write SetMasterSource;
     property MasterFields: String read GetMasterFields write SetMasterFields;
     
     property Active;
-    property FieldDefs;   
+    property FieldDefs stored FieldDefsStored;
     //Events
     property BeforeOpen;
     property AfterOpen;
@@ -1209,6 +1212,11 @@ begin
   end;
   //set FSQL considering MasterSource active record
   SetDetailFilter;
+end;
+
+function TCustomSqliteDataset.FieldDefsStored: Boolean;
+begin
+  Result := FStoreDefs and (FieldDefs.Count > 0);
 end;
 
 procedure TCustomSqliteDataset.GetSqliteHandle;
