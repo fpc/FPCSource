@@ -919,18 +919,53 @@ begin
       Result := STG_E_REVERTED;
       Exit;
     end;
-  runerror(217);
+  if libNewSize<0 then
+    begin
+      Result := STG_E_INVALIDFUNCTION;
+      Exit;
+    end;
+  try
+    FStream.Size := libNewSize;
+    Result := S_OK;
+  except
+    // TODO: return different error value according to exception like STG_E_MEDIUMFULL
+    Result := E_FAIL;
+  end;
 end;
 
 
 function TStreamAdapter.CopyTo(stm: IStream; cb: Largeint; out cbRead: Largeint; out cbWritten: Largeint): HResult; stdcall;
+var
+  sz: dword;
+  buffer : array[0..1023] of byte;
 begin
   if m_bReverted then
     begin
       Result := STG_E_REVERTED;
       Exit;
     end;
-  runerror(217);
+
+  // the method is similar to TStream.CopyFrom => use CopyFrom implementation
+  cbWritten := 0;
+  cbRead := 0;
+  while cb > 0 do
+    begin
+      if (cb > sizeof(buffer)) then
+        sz := sizeof(Buffer)
+      else
+        sz := cb;
+      sz := FStream.Read(buffer, sz);
+      inc(cbRead, sz);
+      stm.Write(@buffer[0], sz, @sz);
+      inc(cbWritten, sz);
+      if sz = 0 then
+        begin
+          Result := E_FAIL;
+          Exit;
+        end;
+      dec(cb, sz);
+    end;
+  Result := S_OK;
 end;
 
 function TStreamAdapter.Commit(grfCommitFlags: Longint): HResult; stdcall;
@@ -994,7 +1029,9 @@ begin
       Result := STG_E_REVERTED;
       Exit;
     end;
-  runerror(217);
+  // don't raise an exception here return error value that function is not implemented
+  // to implement this we need a clone method for TStream class
+  Result := STG_E_UNIMPLEMENTEDFUNCTION;
 end;
 
 constructor TProxyStream.Create(const Stream: IStream);
