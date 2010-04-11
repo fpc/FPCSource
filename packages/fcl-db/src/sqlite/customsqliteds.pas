@@ -613,7 +613,7 @@ var
   i: Integer;
 begin
   for i := 0 to FIndexFieldList.Count - 1 do
-    TField(FIndexFieldList[i]).AsString := TField(FMasterLink.Fields[i]).AsString;
+    TField(FIndexFieldList[i]).Value := TField(FMasterLink.Fields[i]).Value;
 end;
 
 procedure TCustomSqliteDataset.SetOptions(const AValue: TSqliteOptions);
