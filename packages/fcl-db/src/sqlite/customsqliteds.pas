@@ -116,6 +116,7 @@ type
     FStoreDefs: Boolean;
     procedure CopyCacheToItem(AItem: PDataRecord);
     function GetIndexFields(Value: Integer): TField;
+    function GetSQLList: TStrings;
     procedure SetMasterIndexValue;
     procedure SetOptions(const AValue: TSqliteOptions);
     procedure UpdateCalcFieldList;
@@ -246,7 +247,7 @@ type
     property RowsAffected: Integer read GetRowsAffected;
     property ReturnCode: Integer read FReturnCode;
     property SqliteHandle: Pointer read FSqliteHandle;
-    property SQLList:TStrings read FSQLList;
+    property SQLList: TStrings read GetSQLList;
    published
     property AutoIncrementKey: Boolean read FAutoIncrementKey write FAutoIncrementKey default False;
     property IndexFieldNames: string read FIndexFieldNames write FIndexFieldNames;
@@ -467,7 +468,6 @@ begin
   FUpdatedItems := TFPList.Create;
   FAddedItems := TFPList.Create;
   FDeletedItems := TFPList.Create;
-  FSQLList := TStringList.Create;
   inherited Create(AOwner);
 end;
 
@@ -531,8 +531,8 @@ begin
   FAddedItems.Destroy;
   FDeletedItems.Destroy;
   FMasterLink.Destroy;
-  FSQLList.Destroy;
   //lists created on demand
+  FSQLList.Free;
   FIndexFieldList.Free;
   FCalcFieldList.Free;
   // dispose special items
@@ -599,6 +599,13 @@ end;
 function TCustomSqliteDataset.GetIndexFields(Value: Integer): TField;
 begin
   Result := TField(FIndexFieldList[Value]);
+end;
+
+function TCustomSqliteDataset.GetSQLList: TStrings;
+begin
+  if FSQLList = nil then
+    FSQLList := TStringList.Create;
+  Result := FSQLList;
 end;
 
 procedure TCustomSqliteDataset.SetMasterIndexValue;
