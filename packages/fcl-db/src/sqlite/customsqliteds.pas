@@ -220,6 +220,7 @@ type
     procedure ExecCallback(const ASql: String; UserData: Pointer = nil);
     procedure ExecSQL;
     procedure ExecSQL(const ASql: String);
+    procedure ExecSQL(ASqlList: TStrings);
     procedure ExecSQLList;
     procedure ExecuteDirect(const ASql: String); virtual; abstract;
     function GetSQLValue(Values: PPChar; FieldIndex: Integer): String;
@@ -1515,13 +1516,18 @@ begin
   ExecuteDirect(ASQL);
 end;
 
-procedure TCustomSqliteDataset.ExecSQLList;
+procedure TCustomSqliteDataset.ExecSQL(ASqlList: TStrings);
 begin
   if FSqliteHandle = nil then
     GetSqliteHandle;
-  FReturnCode := SqliteExec(PChar(FSQLList.Text), nil, nil);
+  FReturnCode := SqliteExec(PChar(ASQLList.Text), nil, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
+end;
+
+procedure TCustomSqliteDataset.ExecSQLList;
+begin
+  ExecSQL(SQLList);
 end;
 
 function TCustomSqliteDataset.GetSQLValue(Values: PPChar; FieldIndex: Integer
