@@ -394,6 +394,7 @@ begin
       shl ecx, 1
       shl ecx, 1
       mov CLen, ecx
+      cld
 @no_update:
       pop edi
       pop esi
