@@ -6,7 +6,7 @@ program tw16161;
 {$apptype console}
 
 uses
-  Classes, ActiveX;
+  Classes, {$ifdef fpc}Types{$else}ActiveX{$endif};
 
 var
   Stream1: TMemoryStream;
