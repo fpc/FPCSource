@@ -41,7 +41,7 @@ begin
     T:=P.Targets.AddImplicitUnit('pdfvrsintaticoa');
 
     // Build unit depending on all implicit units
-    TBuild:=P.Targets.AddUnit('fpvectorialbuildunit.pp');
+    TBuild:=P.Targets.AddUnit('fpvectbuildunit.pas');
     TBuild.Install:=False;
     For I:=0 to P.Targets.Count-1 do
       begin

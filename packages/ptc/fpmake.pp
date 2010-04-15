@@ -37,6 +37,9 @@ begin
     P.IncludePath.Add('src/wince',[wince]);
     P.IncludePath.Add('src/x11',AllUnixOSes);
 
+  P.Dependencies.Add('hermes');
+  P.Dependencies.Add('x');
+
   T:=P.Targets.AddUnit('ptc.pp');
   with T.Dependencies do
     begin
@@ -95,16 +98,6 @@ begin
       AddInclude('x11dga2displayi.inc',allunixoses);
       AddInclude('x11consolei.inc',allunixoses);
       AddInclude('consolei.inc');
-      AddUnit('hermes');
-      AddUnit('x',AllUnixOSes);
-      AddUnit('xlib',AllUnixOSes);
-      AddUnit('xutil',AllUnixOSes);
-      AddUnit('xatom',AllUnixOSes);
-      AddUnit('keysym',AllUnixOSes);
-      AddUnit('xrandr',AllUnixOSes);
-      AddUnit('xf86vmode',AllUnixOSes);
-      AddUnit('xf86dga',AllUnixOSes);
-      AddUnit('xshm',AllUnixOSes);
       AddUnit('directdr',[Win32,win64]);
       AddUnit('p_gx',[Wince]);
       AddUnit('textfx2',[Go32v2]);

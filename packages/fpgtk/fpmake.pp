@@ -24,27 +24,18 @@ begin
     P.Description := 'Lightweight OOP wrapper over GTK1.';
     P.NeedLibC:= True;
 
+    P.Dependencies.Add('gtk1');
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('fpglib.pp');
-      with T.Dependencies do
-        begin
-          AddUnit('glib');
-        end;
     T:=P.Targets.AddUnit('fpgtkext.pp');
       with T.Dependencies do
         begin
           AddUnit('fpgtk');
-          AddUnit('gtk');
-          AddUnit('gdk');
-          AddUnit('glib');
         end;
     T:=P.Targets.AddUnit('fpgtk.pp');
       with T.Dependencies do
         begin
-          AddUnit('gtk');
-          AddUnit('gdk');
-          AddUnit('glib');
           AddUnit('fpglib');
         end;
 

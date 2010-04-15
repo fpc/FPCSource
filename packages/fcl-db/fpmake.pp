@@ -52,6 +52,15 @@ begin
     P.IncludePath.Add('src/sqlite');
     P.IncludePath.Add('src/dbase');
 
+    P.Dependencies.Add('fcl-base');
+    P.Dependencies.Add('ibase');
+    P.Dependencies.Add('mysql');
+    P.Dependencies.Add('odbc');
+    P.Dependencies.Add('oracle');
+    P.Dependencies.Add('postgres');
+    P.Dependencies.Add('sqlite');
+    P.Dependencies.Add('pxlib');
+
 
     T:=P.Targets.AddUnit('bufdataset.pas');
       with T.Dependencies do
@@ -259,7 +268,6 @@ begin
       with T.Dependencies do
         begin
           AddUnit('db');
-          AddUnit('whtml');
           AddUnit('dbconst');
         end;
     T:=P.Targets.AddUnit('fpcgcreatedbf.pp');
@@ -294,16 +302,12 @@ begin
     T:=P.Targets.AddUnit('fpdatadict.pp');
       with T.Dependencies do
         begin
-          AddUnit('inicol');
-          AddUnit('inifiles');
-          AddUnit('contnrs');
           AddUnit('db');
         end;
     T:=P.Targets.AddUnit('fpdbexport.pp');
       with T.Dependencies do
         begin
           AddUnit('db');
-          AddUnit('streamio');
         end;
     T:=P.Targets.AddUnit('fpdbfexport.pp');
       with T.Dependencies do
@@ -467,7 +471,6 @@ begin
           AddUnit('db');
           AddUnit('dbconst');
           AddUnit('bufdataset');
-          AddUnit('ibase60dyn');
         end;
     T:=P.Targets.AddUnit('memds.pp');
       with T.Dependencies do
@@ -481,7 +484,6 @@ begin
           AddUnit('bufdataset');
           AddUnit('sqldb');
           AddUnit('db');
-          AddUnit('mysql40dyn');
           AddUnit('dbconst');
         end;
     T:=P.Targets.AddUnit('mysql41conn.pas');
@@ -491,7 +493,6 @@ begin
           AddUnit('bufdataset');
           AddUnit('sqldb');
           AddUnit('db');
-          AddUnit('mysql41dyn');
           AddUnit('dbconst');
         end;
     T:=P.Targets.AddUnit('mysql4conn.pas');
@@ -501,7 +502,6 @@ begin
           AddUnit('bufdataset');
           AddUnit('sqldb');
           AddUnit('db');
-          AddUnit('mysql40dyn');
           AddUnit('dbconst');
         end;
     T:=P.Targets.AddUnit('mysql50conn.pas');
@@ -511,7 +511,6 @@ begin
           AddUnit('bufdataset');
           AddUnit('sqldb');
           AddUnit('db');
-          AddUnit('mysql50dyn');
           AddUnit('dbconst');
         end;
     T:=P.Targets.AddUnit('odbcconn.pas');
@@ -519,7 +518,6 @@ begin
         begin
           AddUnit('sqldb');
           AddUnit('db');
-          AddUnit('odbcsqldyn');
           AddUnit('bufdataset');
           AddUnit('dbconst');
         end;
@@ -529,14 +527,11 @@ begin
           AddUnit('sqldb');
           AddUnit('db');
           AddUnit('dbconst');
-          AddUnit('ocidyn');
-          AddUnit('oratypes');
         end;
     T:=P.Targets.AddUnit('paradox.pp');
       with T.Dependencies do
         begin
           AddUnit('db');
-          AddUnit('pxlib');
           AddUnit('bufdataset_parser');
         end;
     T:=P.Targets.AddUnit('pqconnection.pp');
@@ -546,7 +541,6 @@ begin
           AddUnit('db');
           AddUnit('dbconst');
           AddUnit('bufdataset');
-          AddUnit('postgres3dyn');
         end;
     T:=P.Targets.AddUnit('sdfdata.pp');
       with T.Dependencies do
@@ -566,21 +560,18 @@ begin
           AddUnit('db');
           AddUnit('bufdataset');
           AddUnit('sqldb');
-          AddUnit('sqlite3dyn');
           AddUnit('dbconst');
         end;
     T:=P.Targets.AddUnit('sqlite3ds.pas');
       with T.Dependencies do
         begin
           AddUnit('customsqliteds');
-          AddUnit('sqlite3');
           AddUnit('db');
         end;
     T:=P.Targets.AddUnit('sqliteds.pas');
       with T.Dependencies do
         begin
           AddUnit('customsqliteds');
-          AddUnit('sqlite');
           AddUnit('db');
         end;
 

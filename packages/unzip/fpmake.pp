@@ -19,7 +19,7 @@ begin
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
 
-    T:=P.Targets.AddUnit('unzip.pp');
+    T:=P.Targets.AddUnit('unzip51g.pp');
       with T.Dependencies do
         begin
           AddUnit('ziptypes');

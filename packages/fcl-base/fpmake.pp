@@ -21,7 +21,6 @@ begin
 
     P.Author := '<various>';
     P.License := 'LGPL with modification, ';
-    P.ExternalURL := 'www.freepascal.org';
     P.Email := '';
     P.Description := 'Base library of Free Component Libraries(FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
@@ -46,13 +45,6 @@ begin
     T:=P.Targets.AddUnit('contnrs.pp');
     T:=P.Targets.AddUnit('custapp.pp');
       T.ResourceStrings:=true;
-    T:=P.Targets.AddUnit('daemonapp.pp',AllWindowsOSes+AllUnixOSes);
-      with T.Dependencies do
-        begin
-          AddInclude('daemonapp.inc');
-          AddUnit('custapp');
-          AddUnit('eventlog');
-        end;
     T:=P.Targets.AddUnit('eventlog.pp');
       T.ResourceStrings:=true;
       with T.Dependencies do
