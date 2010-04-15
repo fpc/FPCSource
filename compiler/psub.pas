@@ -490,7 +490,7 @@ implementation
             { why (JM)                                                      }
             oldlocalswitches:=current_settings.localswitches;
             current_settings.localswitches:=oldlocalswitches-[cs_check_object,cs_check_range];
-            pd:=current_objectdef.Finddestructor;
+            pd:=current_objectdef.find_destructor;
             if assigned(pd) then
               begin
                 { if vmt<>0 then call destructor }

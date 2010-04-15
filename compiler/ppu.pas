@@ -135,30 +135,29 @@ const
   iblinkotherframeworks = 100;
 
 { unit flags }
-  uf_init          = $1;
-  uf_finalize      = $2;
-  uf_big_endian    = $4;
-//  uf_has_browser   = $10;
-  uf_in_library    = $20;     { is the file in another file than <ppufile>.* ? }
-  uf_smart_linked  = $40;     { the ppu can be smartlinked }
-  uf_static_linked = $80;     { the ppu can be linked static }
-  uf_shared_linked = $100;    { the ppu can be linked shared }
-//  uf_local_browser = $200;
-  uf_no_link       = $400;    { unit has no .o generated, but can still have
-                                external linking! }
-  uf_has_resourcestrings = $800;    { unit has resource string section }
-  uf_little_endian = $1000;
-  uf_release       = $2000;   { unit was compiled with -Ur option }
-  uf_threadvars    = $4000;   { unit has threadvars }
-  uf_fpu_emulation = $8000;   { this unit was compiled with fpu emulation on }
-  uf_has_stabs_debuginfo = $10000;  { this unit has stabs debuginfo generated }
-  uf_local_symtable = $20000; { this unit has a local symtable stored }
-  uf_uses_variants  = $40000; { this unit uses variants }
-  uf_has_resourcefiles = $80000; { this unit has external resources (using $R directive)}
-  uf_has_exports = $100000;   { this module or a used unit has exports }
-  uf_has_dwarf_debuginfo = $200000;  { this unit has dwarf debuginfo generated }
-  uf_wideinits = $400000;     { this unit has winlike widestring typed constants }
-
+  uf_init                = $000001; { unit has initialization section }
+  uf_finalize            = $000002; { unit has finalization section   }
+  uf_big_endian          = $000004;
+//uf_has_browser         = $000010;
+  uf_in_library          = $000020; { is the file in another file than <ppufile>.* ? }
+  uf_smart_linked        = $000040; { the ppu can be smartlinked }
+  uf_static_linked       = $000080; { the ppu can be linked static }
+  uf_shared_linked       = $000100; { the ppu can be linked shared }
+//uf_local_browser       = $000200;
+  uf_no_link             = $000400; { unit has no .o generated, but can still have external linking! }
+  uf_has_resourcestrings = $000800; { unit has resource string section }
+  uf_little_endian       = $001000;
+  uf_release             = $002000; { unit was compiled with -Ur option }
+  uf_threadvars          = $004000; { unit has threadvars }
+  uf_fpu_emulation       = $008000; { this unit was compiled with fpu emulation on }
+  uf_has_stabs_debuginfo = $010000; { this unit has stabs debuginfo generated }
+  uf_local_symtable      = $020000; { this unit has a local symtable stored }
+  uf_uses_variants       = $040000; { this unit uses variants }
+  uf_has_resourcefiles   = $080000; { this unit has external resources (using $R directive)}
+  uf_has_exports         = $100000; { this module or a used unit has exports }
+  uf_has_dwarf_debuginfo = $200000; { this unit has dwarf debuginfo generated }
+  uf_wideinits           = $400000; { this unit has winlike widestring typed constants }
+  uf_classinits          = $800000; { this unit has class constructors/destructors }
 
 type
   { bestreal is defined based on the target architecture }

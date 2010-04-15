@@ -556,7 +556,7 @@ begin
   if enumerator_is_class then
   begin
     { insert a try-finally and call the destructor for the enumerator in the finally section }
-    enumerator_destructor:=tobjectdef(enumerator_get.returndef).Finddestructor;
+    enumerator_destructor:=tobjectdef(enumerator_get.returndef).find_destructor;
     if assigned(enumerator_destructor) then
     begin
       whileloopnode:=ctryfinallynode.create(
@@ -577,7 +577,7 @@ begin
   if is_object(enumerator_get.returndef) then
   begin
     // call the object destructor too
-    enumerator_destructor:=tobjectdef(enumerator_get.returndef).Finddestructor;
+    enumerator_destructor:=tobjectdef(enumerator_get.returndef).find_destructor;
     if assigned(enumerator_destructor) then
     begin
       addstatement(loopstatement,

@@ -376,46 +376,89 @@ implementation
         ResourceStringTables.free;
       end;
 
+    procedure AddToClasInits(p:TObject;arg:pointer);
+      var
+        ClassList: TFPList absolute arg;
+      begin
+        if (tdef(p).typ=objectdef) and
+           ([oo_has_class_constructor,oo_has_class_destructor] * tobjectdef(p).objectoptions <> []) then
+          ClassList.Add(p);
+      end;
 
     procedure InsertInitFinalTable;
       var
         hp : tused_unit;
         unitinits : TAsmList;
         count : longint;
+
+        procedure write_class_inits(u: tmodule);
+          var
+            i: integer;
+            classlist: TFPList;
+            pd: tprocdef;
+          begin
+            classlist := TFPList.Create;
+            if assigned(u.globalsymtable) then
+              u.globalsymtable.DefList.ForEachCall(@AddToClasInits,classlist);
+            u.localsymtable.DefList.ForEachCall(@AddToClasInits,classlist);
+            { write classes }
+            for i := 0 to classlist.Count - 1 do
+            begin
+              pd := tobjectdef(classlist[i]).find_procdef_bytype(potype_class_constructor);
+              if assigned(pd) then
+                unitinits.concat(Tai_const.Createname(pd.mangledname,0))
+              else
+                unitinits.concat(Tai_const.Create_pint(0));
+              pd := tobjectdef(classlist[i]).find_procdef_bytype(potype_class_destructor);
+              if assigned(pd) then
+                unitinits.concat(Tai_const.Createname(pd.mangledname,0))
+              else
+                unitinits.concat(Tai_const.Create_pint(0));
+              inc(count);
+            end;
+            classlist.free;
+          end;
+
       begin
         unitinits:=TAsmList.Create;
         count:=0;
         hp:=tused_unit(usedunits.first);
         while assigned(hp) do
          begin
+           { insert class constructors/destructors of the unit }
+           if (hp.u.flags and uf_classinits) <> 0 then
+             write_class_inits(hp.u);
            { call the unit init code and make it external }
            if (hp.u.flags and (uf_init or uf_finalize))<>0 then
-            begin
-              if (hp.u.flags and uf_init)<>0 then
-               unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),0))
-              else
-               unitinits.concat(Tai_const.Create_sym(nil));
-              if (hp.u.flags and uf_finalize)<>0 then
-               unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),0))
-              else
-               unitinits.concat(Tai_const.Create_sym(nil));
-              inc(count);
-            end;
+             begin
+               if (hp.u.flags and uf_init)<>0 then
+                 unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',hp.u.globalsymtable,''),0))
+               else
+                 unitinits.concat(Tai_const.Create_sym(nil));
+               if (hp.u.flags and uf_finalize)<>0 then
+                 unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',hp.u.globalsymtable,''),0))
+               else
+                 unitinits.concat(Tai_const.Create_sym(nil));
+               inc(count);
+             end;
            hp:=tused_unit(hp.next);
          end;
+        { insert class constructors/destructor of the program }
+        if (current_module.flags and uf_classinits) <> 0 then
+          write_class_inits(current_module);
         { Insert initialization/finalization of the program }
         if (current_module.flags and (uf_init or uf_finalize))<>0 then
-         begin
-           if (current_module.flags and uf_init)<>0 then
-            unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',current_module.localsymtable,''),0))
-           else
-            unitinits.concat(Tai_const.Create_sym(nil));
-           if (current_module.flags and uf_finalize)<>0 then
-            unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,''),0))
-           else
-            unitinits.concat(Tai_const.Create_sym(nil));
-           inc(count);
-         end;
+          begin
+            if (current_module.flags and uf_init)<>0 then
+              unitinits.concat(Tai_const.Createname(make_mangledname('INIT$',current_module.localsymtable,''),0))
+            else
+              unitinits.concat(Tai_const.Create_sym(nil));
+            if (current_module.flags and uf_finalize)<>0 then
+              unitinits.concat(Tai_const.Createname(make_mangledname('FINALIZE$',current_module.localsymtable,''),0))
+            else
+              unitinits.concat(Tai_const.Create_sym(nil));
+            inc(count);
+          end;
         { Insert TableCount,InitCount at start }
         unitinits.insert(Tai_const.Create_32bit(0));
         unitinits.insert(Tai_const.Create_32bit(count));
@@ -429,7 +472,7 @@ implementation
       end;
 
 
-    procedure insertmemorysizes;
+    procedure InsertMemorySizes;
 {$IFDEF POWERPC}
       var
         stkcookie: string;
@@ -1343,7 +1386,7 @@ implementation
          write_persistent_type_info(current_module.localsymtable);
 
          { Tables }
-         insertThreadVars;
+         InsertThreadvars;
 
          { Resource strings }
          GenerateResourceStrings;
@@ -2329,11 +2372,11 @@ implementation
          InsertWideInits;
 
          { insert Tables and StackLength }
-         insertinitfinaltable;
+         InsertInitFinalTable;
          InsertThreadvarTablesTable;
          InsertResourceTablesTable;
          InsertWideInitsTablesTable;
-         insertmemorysizes;
+         InsertMemorySizes;
 
          { Insert symbol to resource info }
          InsertResourceInfo(resources_used);

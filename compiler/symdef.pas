@@ -293,14 +293,15 @@ interface
           { this should be called when this class implements an interface }
           procedure prepareguid;
           function  is_publishable : boolean;override;
+          function  is_related(d : tdef) : boolean;override;
           function  needs_inittable : boolean;override;
           function  rtti_mangledname(rt:trttitype):string;override;
           function  vmt_mangledname : string;
           procedure check_forwards;
-          function  is_related(d : tdef) : boolean;override;
           procedure insertvmt;
           procedure set_parent(c : tobjectdef);
-          function FindDestructor : tprocdef;
+          function find_procdef_bytype(pt:tproctypeoption): tprocdef;
+          function find_destructor: tprocdef;
           function implements_any_interfaces: boolean;
           procedure reset; override;
           { dispinterface support }
@@ -3299,7 +3300,8 @@ implementation
         if assigned(_class) then
          begin
            s:=_class.RttiName+'.';
-           if (po_classmethod in procoptions) then
+           if (po_classmethod in procoptions) and
+              not (proctypeoption in [potype_class_constructor,potype_class_destructor]) then
              s:='class ' + s;
          end;
         if owner.symtabletype=localsymtable then
@@ -3333,7 +3335,8 @@ implementation
         { forced calling convention? }
         if (po_hascallingconvention in procoptions) then
           s:=s+' '+ProcCallOptionStr[proccalloption]+';';
-        if po_staticmethod in procoptions then
+        if (po_staticmethod in procoptions) and
+           not (proctypeoption in [potype_class_constructor,potype_class_destructor]) then
           s:=s+' Static;';
         fullprocname:=s;
       end;
@@ -4398,33 +4401,37 @@ implementation
         is_related:=false;
      end;
 
-
-   function tobjectdef.FindDestructor : tprocdef;
+   function tobjectdef.find_procdef_bytype(pt:tproctypeoption): tprocdef;
      var
-        objdef : tobjectdef;
-        i   : longint;
-        sym : tsym;
-        pd  : tprocdef;
+       i: longint;
+       sym: tsym;
      begin
-        result:=nil;
+       for i:=0 to symtable.SymList.Count-1 do
+         begin
+           sym:=tsym(symtable.SymList[i]);
+           if sym.typ=procsym then
+             begin
+               result:=tprocsym(sym).find_procdef_bytype(pt);
+               if assigned(result) then
+                 exit;
+             end;
+         end;
+         result:=nil;
+     end;
+
+   function tobjectdef.find_destructor: tprocdef;
+     var
+       objdef: tobjectdef;
+     begin
         objdef:=self;
         while assigned(objdef) do
           begin
-            for i:=0 to objdef.symtable.SymList.Count-1 do
-              begin
-                sym:=TSym(objdef.symtable.SymList[i]);
-                if sym.typ=procsym then
-                  begin
-                    pd:=Tprocsym(sym).Find_procdef_bytype(potype_destructor);
-                    if assigned(pd) then
-                      begin
-                        result:=pd;
-                        exit;
-                      end;
-                  end;
-               end;
-             objdef:=objdef.childof;
+            result:=find_procdef_bytype(potype_destructor);
+            if assigned(result) then
+              exit;
+            objdef:=objdef.childof;
           end;
+        result:=nil;
      end;
 
     function tobjectdef.implements_any_interfaces: boolean;

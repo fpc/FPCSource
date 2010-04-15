@@ -40,7 +40,7 @@ implementation
       symbase,symsym,symtable,
       node,nld,nmem,ncon,ncnv,ncal,
       fmodule,scanner,
-      pbase,pexpr,pdecsub,pdecvar,ptype,pdecl
+      pbase,pexpr,pdecsub,pdecvar,ptype,pdecl,ppu
       ;
 
     const
@@ -68,6 +68,7 @@ implementation
           Message(parser_e_no_paras_for_class_constructor);
         consume(_SEMICOLON);
         include(current_objectdef.objectoptions,oo_has_class_constructor);
+        current_module.flags:=current_module.flags or uf_classinits;
         { no return value }
         pd.returndef:=voidtype;
         result:=pd;
@@ -180,6 +181,7 @@ implementation
           Message(parser_e_no_paras_for_class_destructor);
         consume(_SEMICOLON);
         include(current_objectdef.objectoptions,oo_has_class_destructor);
+        current_module.flags:=current_module.flags or uf_classinits;
         { no return value }
         pd.returndef:=voidtype;
         result:=pd;
