@@ -196,7 +196,10 @@ type
         target_avr_embedded,       { 62 }
         target_i386_haiku,         { 63 }
         target_arm_darwin,         { 64 }
-        target_x86_64_solaris      { 65 }
+        target_x86_64_solaris,     { 65 }
+        target_mips_linux,         { 66 }
+        target_mipsel_linux,       { 67 }
+        target_i386_nativent       { 68 }
   );
 const
   Targets : array[ttarget] of string[18]=(
@@ -265,7 +268,10 @@ const
   { 62 }  'Embedded-avr',
   { 63 }  'Haiku-i386',
   { 64 }  'Darwin-ARM',
-  { 65 }  'Solaris-x86-64'
+  { 65 }  'Solaris-x86-64',
+  { 66 }  'Linux-MIPS',
+  { 67 }  'Linux-MIPSel',
+  { 68 }  'NativeNT-i386'
   );
 begin
   if w<=ord(high(ttarget)) then
