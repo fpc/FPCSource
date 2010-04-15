@@ -980,6 +980,7 @@ ResourceString
   SErrDependencyNotFound = 'Could not find unit directory for dependency package "%s"';
   SErrAlreadyInitialized = 'Installer can only be initialized once';
   SErrInvalidState      = 'Invalid state for target %s';
+  SErrCouldNotCompile   = 'Could not compile target %s from package %s';
 
   SWarnCircularTargetDependency = 'Warning: Circular dependency detected when compiling target %s with target %s';
   SWarnCircularPackageDependency = 'Warning: Circular dependency detected when compiling package %s with package %s';
@@ -987,8 +988,8 @@ ResourceString
   SWarnFailedToGetTime    = 'Warning: Failed to get timestamp from file "%s"';
   SWarnFileDoesNotExist   = 'Warning: File "%s" does not exist';
   SWarnAttemptingToCompileNonNeutralTarget = 'Warning: Attempting to compile non-neutral target %s';
-  SWarnSourceFileNotFound  = 'Warning: Source file "%s" not found for %s';
-  SWarnIncludeFileNotFound = 'Warning: Include file "%s" not found for %s';
+  SWarnSourceFileNotFound  = 'Warning: Source file "%s" from package %s not found for %s';
+  SWarnIncludeFileNotFound = 'Warning: Include file "%s" from package %s not found for %s';
   SWarnDepUnitNotFound     = 'Warning: Dependency on unit %s is not supported for %s';
 
   SInfoCompilingPackage   = 'Compiling package %s';
@@ -3406,7 +3407,7 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
       Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetSourceFileName])
     else
       begin
-        Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName,MakeTargetString(ACPU,AOS)]);
+        Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName,APackage.Name,MakeTargetString(ACPU,AOS)]);
         T.FTargetSourceFileName:='';
       end;
   end;
@@ -3444,7 +3445,7 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
                   Log(vlDebug,SDbgResolvedIncludeFile,[D.Value,D.TargetFileName])
                 else
                   begin
-                    Log(vlWarning,SWarnIncludeFileNotFound,[D.Value,MakeTargetString(ACPU,AOS)]);
+                    Log(vlWarning,SWarnIncludeFileNotFound,[D.Value, APackage.Name, MakeTargetString(ACPU,AOS)]);
                     D.TargetFileName:='';
                   end;
               end;
@@ -3468,7 +3469,7 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
       Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetSourceFileName])
     else
       begin
-        Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName,MakeTargetString(ACPU,AOS)]);
+        Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName, APackage.Name, MakeTargetString(ACPU,AOS)]);
         T.FTargetSourceFileName:='';
       end;
   end;
@@ -3607,6 +3608,9 @@ Var
   L,Args : TStringList;
   i : Integer;
 begin
+  if ATarget.TargetSourceFileName = '' then
+    Error(SErrCouldNotCompile,[ATarget.Name, APackage.Name]);
+
   Args:=TStringList.Create;
   Args.Duplicates:=dupIgnore;
 
