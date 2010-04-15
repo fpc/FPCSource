@@ -964,7 +964,7 @@ ResourceString
   SErrNeedArgument      = 'Option at position %d (%s) needs an argument';
   SErrNoPackagesDefined = 'No action possible: No packages were defined.';
   SErrInstaller         = 'The installer encountered the following error:';
-  SErrDepUnknownTarget  = 'Unknown target in dependencies for %s: %s';
+  SErrDepUnknownTarget  = 'Unknown target for unit "%s" in dependencies for %s in package %s';
   SErrExternalCommandFailed = 'External command "%s" failed with exit code %d';
   SErrCreatingDirectory = 'Failed to create directory "%s"';
   SErrDeletingFile      = 'Failed to delete file "%s"';
@@ -3813,7 +3813,7 @@ begin
                   begin
                     T:=TTarget(D.Target);
                     If (T=Nil) then
-                      Error(SErrDepUnknownTarget,[ATarget.Name,D.Value]);
+                      Error(SErrDepUnknownTarget,[D.Value, ATarget.Name, APackage.Name]);
                     // If a dependent package is compiled we always need to recompile
                     Log(vldebug, SDbgDependencyOnUnit, [ATarget.Name,T.Name]);
                     Result:=(T.State=tsCompiled);
@@ -3890,7 +3890,7 @@ begin
                 Log(vlWarning, Format(SWarnDepUnitNotFound, [T.Name, MakeTargetString(Defaults.CPU,Defaults.OS)]));
             end
           else
-            Error(SErrDepUnknownTarget,[ATarget.Name,D.Value]);
+            Error(SErrDepUnknownTarget,[D.Value, ATarget.Name, APackage.Name]);
         end;
     end;
   LogUnIndent;
