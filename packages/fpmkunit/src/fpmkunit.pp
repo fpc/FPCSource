@@ -991,8 +991,12 @@ ResourceString
   SWarnSourceFileNotFound  = 'Warning: Source file "%s" from package %s not found for %s';
   SWarnIncludeFileNotFound = 'Warning: Include file "%s" from package %s not found for %s';
   SWarnDepUnitNotFound     = 'Warning: Dependency on unit %s is not supported for %s';
+  SWarnTargetDependsOnPackage = 'Warning: Target %s of package %s depends on another package (%s). These kind of dependencies are not processed';
+  SWarnDependOnOtherPlatformPackage = 'Warning: Package %s depends on package %s which is not available for the %s platform';
+  SWarnDone               = 'Done';
 
   SInfoCompilingPackage   = 'Compiling package %s';
+  SInfoPackageAlreadyProcessed = 'Package %s is already processed';
   SInfoCompilingTarget    = 'Compiling target %s';
   SInfoExecutingCommand   = 'Executing command "%s %s"';
   SInfoCreatingOutputDir  = 'Creating output dir "%s"';
@@ -2931,6 +2935,7 @@ procedure TCustomInstaller.Compile(Force: Boolean);
 begin
   FBuildEngine.ForceCompile:=Force;
   FBuildEngine.Compile(FPackages);
+  Log(vlWarning,SWarnDone);
 end;
 
 
@@ -3528,7 +3533,7 @@ begin
   //  - LocalUnitDir
   //  - GlobalUnitDir
   if (APackage.UnitDir='') and
-     (APackage.State=tsCompiled) then
+     (APackage.State in [tsCompiled, tsNoCompile]) then
     begin
       APackage.UnitDir:=IncludeTrailingPathDelimiter(FStartDir)+IncludeTrailingPathDelimiter(APackage.Directory)+APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS);
     end;
@@ -3825,6 +3830,10 @@ begin
                     if D.TargetFileName<>'' then
                       Result:=FileNewer(D.TargetFileName,OFN)
                   end;
+                depPackage :
+                  begin
+                    log(vlWarning,SWarnTargetDependsOnPackage,[ATarget.Name, APackage.Name, d.Value]);
+                  end;
               end;
               if result then
                 break;
@@ -3866,7 +3875,9 @@ begin
   For I:=0 to ATarget.Dependencies.Count-1 do
     begin
       D:=ATarget.Dependencies[i];
-      if (D.DependencyType=depUnit) and
+      if (D.DependencyType=depPackage) then
+        log(vlWarning,SWarnTargetDependsOnPackage,[ATarget.Name, APackage.Name, d.Value])
+      else if (D.DependencyType=depUnit) and
          (Defaults.CPU in D.CPUs) and (Defaults.OS in D.OSes) then
         begin
           T:=TTarget(D.Target);
@@ -4024,12 +4035,17 @@ begin
           P:=TPackage(D.Target);
           If Assigned(P) then
             begin
-              case P.State of
-                tsNeutral :
-                  MaybeCompile(P);
-                tsConsidering :
-                  Log(vlWarning,SWarnCircularPackageDependency,[APackage.Name,P.Name]);
-              end;
+              if (Defaults.CPU in P.CPUs) and (Defaults.OS in P.OSes) then
+                begin
+                  case P.State of
+                    tsNeutral :
+                      MaybeCompile(P);
+                    tsConsidering :
+                      Log(vlWarning,SWarnCircularPackageDependency,[APackage.Name,P.Name]);
+                  end;
+                end
+              else
+                Log(vlWarning,SWarnDependOnOtherPlatformPackage,[APackage.Name, D.Value, MakeTargetString(Defaults.CPU, Defaults.OS)]);
             end
           else
             begin
@@ -4089,6 +4105,11 @@ end;
 
 procedure TBuildEngine.MaybeCompile(APackage: TPackage);
 begin
+  if APackage.State in [tsCompiled, tsNoCompile] then
+    begin
+      Log(vlInfo,SInfoPackageAlreadyProcessed,[APackage.Name]);
+      Exit;
+    end;
   if APackage.State<>tsNeutral then
     Error(SErrInvalidState,[APackage.Name]);
   Log(vlDebug,SDbgConsideringPackage,[APackage.Name]);
