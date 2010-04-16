@@ -28,7 +28,39 @@ begin
     P.Dependencies.Add('x11',AllUnixOSes);
     P.Dependencies.Add('cairo');
 
-    T:=P.Targets.AddUnit('src/atk/atk.pas');
+    P.SourcePath.Add('src');
+    P.SourcePath.Add('src/glib');
+    P.SourcePath.Add('src/atk');
+    P.SourcePath.Add('src/pango');
+    P.SourcePath.Add('src/pangocairo');
+    P.SourcePath.Add('src/gtk+');
+    P.SourcePath.Add('src/gtk+/gdk-pixbuf');
+    P.SourcePath.Add('src/gtk+/gdk');
+    P.SourcePath.Add('src/gtk+/gtk');
+    P.SourcePath.Add('src/libglade');
+    P.SourcePath.Add('src/gtkglext');
+    P.SourcePath.Add('src/gtkext');
+
+    // This is all so complex... Use the build-unit just like the Makefile.fpc does
+    // and be happy with it. ;)
+    T:=P.Targets.AddUnit('buildgtk2.pp');
+      with t.UnitPath do
+        begin
+          Add('src/glib');
+          Add('src/atk');
+          Add('src/pango');
+          Add('src/pangocairo');
+          Add('src/gtk+');
+          Add('src/gtk+/gdk-pixbuf');
+          Add('src/gtk+/gdk');
+          Add('src/gtk+/gtk');
+          Add('src/libglade');
+          Add('src/gtkglext');
+          Add('src/gtkext');
+          Add('src/gtk2x11');
+        end;
+
+    T:=P.Targets.AddImplicitUnit('src/atk/atk.pas');
      T.IncludePath.Add('src/atk');
      with T.Dependencies do
        begin
@@ -120,27 +152,15 @@ begin
          AddInclude('atktext.inc');
          AddInclude('atkutil.inc');
          AddInclude('atkvalue.inc');
-         AddUnit('glib2');
        end;
-    T:=P.Targets.AddUnit('src/buildgtk2.pp');
-      with T.Dependencies do
-        begin
-          AddUnit('gtk2');
-          AddUnit('libglade2');
-          AddUnit('gdkglext');
-          AddUnit('gtkglext');
-          AddUnit('gdk2x',AllUnixOSes);
-          AddUnit('pangocairo');
-        end;
-    T:=P.Targets.AddUnit('src/gtk+/gdk-pixbuf/gdk2pixbuf.pas');
+    T:=P.Targets.AddImplicitUnit('src/gtk+/gdk-pixbuf/gdk2pixbuf.pas');
       T.IncludePath.Add('src/gtk+/gdk-pixbuf');
       with T.Dependencies do
         begin
           AddInclude('gdk-pixbuf-loader.inc');
           AddInclude('gdk-pixbuf-loader.inc');
-          AddUnit('glib2');
         end;
-    T:=P.Targets.AddUnit('src/gtk+/gdk/gdk2.pas');
+    T:=P.Targets.AddImplicitUnit('src/gtk+/gdk/gdk2.pas');
       T.IncludePath.Add('src/gtk+/gdk');
       with T.Dependencies do
         begin
@@ -244,11 +264,8 @@ begin
           AddInclude('gdktypes.inc');
           AddInclude('gdkvisual.inc');
           AddInclude('gdkwindow.inc');
-          AddUnit('glib2');
-          AddUnit('gdk2pixbuf');
-          AddUnit('pango');
         end;
-    T:=P.Targets.AddUnit('src/gtk2x11/gdk2x.pas',AllUnixOSes);
+    T:=P.Targets.AddImplicitUnit('src/gtk2x11/gdk2x.pas',AllUnixOSes);
       T.IncludePath.Add('src/gtk2x11');
       T.IncludePath.Add('src/gtk2x11/include');
       with T.Dependencies do
@@ -292,10 +309,8 @@ begin
           AddInclude('gdkx.inc');
           AddInclude('gxid_proto.inc');
           AddInclude('mwmutil.inc');
-          AddUnit('glib2');
-          AddUnit('gdk2');
         end;
-    T:=P.Targets.AddUnit('src/gtkglext/gdkglext.pas');
+    T:=P.Targets.AddImplicitUnit('src/gtkglext/gdkglext.pas');
       T.IncludePath.Add('src/gtkglext');
       with T.Dependencies do
         begin
@@ -344,10 +359,8 @@ begin
           AddInclude('gdkglwindow.inc');
           AddInclude('gdkglfont.inc');
           AddInclude('gdkglshapes.inc');
-          AddUnit('glib2');
-          AddUnit('gdk2');
         end;
-    T:=P.Targets.AddUnit('src/glib/glib2.pas');
+    T:=P.Targets.AddImplicitUnit('src/glib/glib2.pas');
       T.IncludePath.Add('src/glib');
       with T.Dependencies do
         begin
@@ -422,7 +435,7 @@ begin
           AddInclude('gmodule.inc');
           AddInclude('gmarshal.inc');
         end;
-    T:=P.Targets.AddUnit('src/gtk+/gtk/gtk2.pas');
+    T:=P.Targets.AddImplicitUnit('src/gtk+/gtk/gtk2.pas');
       T.IncludePath.Add('src/gtk+/gtk');
       with T.Dependencies do
         begin
@@ -1114,13 +1127,8 @@ begin
           AddInclude('gtkentrycompletion.inc');
           AddInclude('gtkuimanager.inc');
           AddInclude('gtktreemodelfilter.inc');
-          AddUnit('glib2');
-          AddUnit('atk');
-          AddUnit('pango');
-          AddUnit('gdk2pixbuf');
-          AddUnit('gdk2');
         end;
-    T:=P.Targets.AddUnit('src/gtkglext/gtkglext.pas');
+    T:=P.Targets.AddImplicitUnit('src/gtkglext/gtkglext.pas');
       T.IncludePath.Add('src/gtkglext');
       with T.Dependencies do
         begin
@@ -1139,21 +1147,15 @@ begin
           AddInclude('gtkglversion.inc');
           AddInclude('gtkglinit.inc');
           AddInclude('gtkglwidget.inc');
-          AddUnit('glib2');
-          AddUnit('gdk2');
-          AddUnit('gtk2');
-          AddUnit('gdkglext');
         end;
-    T:=P.Targets.AddUnit('src/libglade/libglade2.pas');
+    T:=P.Targets.AddImplicitUnit('src/libglade/libglade2.pas');
       T.IncludePath.Add('src/libglade');
       with T.Dependencies do
         begin
           AddInclude('glade-init.inc');
           AddInclude('glade-xml.inc');
-          AddUnit('glib2');
-          AddUnit('gtk2');
         end;
-    T:=P.Targets.AddUnit('src/pango/pango.pas');
+    T:=P.Targets.AddImplicitUnit('src/pango/pango.pas');
       T.IncludePath.Add('src/pango');
       with T.Dependencies do
         begin
@@ -1213,18 +1215,12 @@ begin
           AddInclude('pango-item.inc');
           AddInclude('pango-layout.inc');
           AddInclude('pango-tabs.inc');
-          AddUnit('glib2');
         end;
     
-    T:=P.Targets.AddUnit('src/pangocairo/pangocairo.pas');
+    T:=P.Targets.AddImplicitUnit('src/pangocairo/pangocairo.pas');
       T.IncludePath.Add('src/pangocairo');
-      with T.Dependencies do
-        begin
-          AddUnit('glib2');
-          AddUnit('pango');
-        end;
 
-    T:=P.Targets.AddUnit('src/gtkext/gtk2ext.pp');
+    T:=P.Targets.AddImplicitUnit('src/gtkext/gtk2ext.pp');
       T.IncludePath.Add('src/gtkext');
       with T.Dependencies do
         begin
@@ -1239,8 +1235,8 @@ begin
 	  AddInclude('gtktextiterh.inc');
 	  AddInclude('gtktextiter.inc');
         end;
-
-     T:=P.Targets.AddUnit('src/gtkhtml/gtkhtml.pas');
+// For some reson this isn't build in the buildunit nor the Makefile.fpc
+{     T:=P.Targets.AddUnit('src/gtkhtml/gtkhtml.pas');
        T.IncludePath.Add('src/gtkhtml');
        with T.Dependencies do
          begin
@@ -1264,13 +1260,7 @@ begin
            AddInclude('htmlstreambuffer.inc');
            AddInclude('htmldocument.inc');
            AddInclude('htmlview.inc');
-           AddUnit('gtk2');
-           AddUnit('glib2');
-           AddUnit('atk');
-           AddUnit('pango');
-           AddUnit('gdk2pixbuf');
-           AddUnit('gdk2');
-         end;
+         end;}
 {$ifndef ALLPACKAGES}
     Run;
     end;
