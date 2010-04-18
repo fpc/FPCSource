@@ -1307,10 +1307,15 @@ implementation
                     st:=nil;
                 end;
 
-              if srsym=nil then
+              if (srsym=nil) or
+                 (srsym.typ<>fieldvarsym) then
                 begin
-                  Message1(sym_e_id_not_found,sorg);
-                  consume_all_until(_SEMICOLON);
+                  if (srsym=nil) then
+                    Message1(sym_e_id_not_found,sorg)
+                  else
+                    Message1(sym_e_illegal_field,sorg);
+                  consume_all_until(_RKLAMMER);
+                  break;
                 end
               else
                 with tfieldvarsym(srsym) do
