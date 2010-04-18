@@ -12,6 +12,7 @@ var
   Stream1: TMemoryStream;
   _Stream1, _Stream2: IStream;
   cbRead, cbWritten: LargeInt;
+  cbRead1: DWord;
   NewPos: Int64;
   buf: array[0..3] of char;
 begin
@@ -25,10 +26,10 @@ begin
   _Stream2.Seek(0, STREAM_SEEK_SET, NewPos);
   if (cbRead <> 3) or (cbWritten <> 3) then
     halt(1);
-  _Stream2.Read(@buf[0], cbRead, @cbWritten);
+  _Stream2.Read(@buf[0], cbRead, @cbRead1);
   if (buf[0] <> 't') or (buf[1] <> 'e') or (buf[2] <> 's') then
     halt(2);
-  if (cbRead <> 3) or (cbWritten <> 3) then
+  if (cbRead <> 3) or (cbRead1 <> 3) then
     halt(3);
   Stream1.Free;
 end.
