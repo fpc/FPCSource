@@ -29,9 +29,9 @@ type
   end;
 
 { core }  
-procedure SHA1Init(var ctx: TSHA1Context);
+procedure SHA1Init(out ctx: TSHA1Context);
 procedure SHA1Update(var ctx: TSHA1Context; const Buf; BufLen: PtrUInt);
-procedure SHA1Final(var ctx: TSHA1Context; var Digest: TSHA1Digest);
+procedure SHA1Final(var ctx: TSHA1Context; out Digest: TSHA1Digest);
 
 { auxiliary }
 function SHA1String(const S: String): TSHA1Digest;
@@ -61,7 +61,7 @@ begin
   end;
 end;
 
-procedure SHA1Init(var ctx: TSHA1Context);
+procedure SHA1Init(out ctx: TSHA1Context);
 begin
   FillChar(ctx, sizeof(TSHA1Context), 0);
   ctx.State[0] := $67452301;
@@ -201,7 +201,7 @@ const
        0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
     );
 
-procedure SHA1Final(var ctx: TSHA1Context; var Digest: TSHA1Digest);
+procedure SHA1Final(var ctx: TSHA1Context; out Digest: TSHA1Digest);
 var
   Length: QWord;
   Pads: Cardinal;
