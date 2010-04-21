@@ -159,7 +159,17 @@ implementation
           classrefdef :
             resultdef:=left.resultdef;
           objectdef :
-            resultdef:=tclassrefdef.create(left.resultdef);
+            { access to the classtype while specializing? }
+            if (df_generic in left.resultdef.defoptions) and
+              assigned(current_objectdef.genericdef) then
+              begin
+                if current_objectdef.genericdef=left.resultdef then
+                  resultdef:=tclassrefdef.create(current_objectdef)
+                else
+                  message(parser_e_cant_create_generics_of_this_type);
+              end
+            else
+              resultdef:=tclassrefdef.create(left.resultdef);
           else
             Message(parser_e_pointer_to_class_expected);
         end;
