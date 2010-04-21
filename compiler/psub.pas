@@ -388,30 +388,6 @@ implementation
             { has been called, so it may no longer be valid (JM)    }
             oldlocalswitches:=current_settings.localswitches;
             current_settings.localswitches:=oldlocalswitches-[cs_check_object,cs_check_range];
-            { maybe call AfterConstruction for classes }
-            if (current_procinfo.procdef.proctypeoption=potype_constructor) and
-               is_class(current_objectdef) then
-              begin
-                srsym:=search_class_member(current_objectdef,'AFTERCONSTRUCTION');
-                if assigned(srsym) and
-                   (srsym.typ=procsym) then
-                  begin
-                    { Self can be nil when fail is called }
-                    { if self<>nil and vmt<>nil then afterconstruction }
-                    addstatement(newstatement,cifnode.create(
-                        caddnode.create(andn,
-                            caddnode.create(unequaln,
-                                load_self_pointer_node,
-                                cnilnode.create),
-                            caddnode.create(unequaln,
-                                load_vmt_pointer_node,
-                                cnilnode.create)),
-                        ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
-                        nil));
-                  end
-                else
-                  internalerror(200305106);
-              end;
 
             { a destructor needs a help procedure }
             if (current_procinfo.procdef.proctypeoption=potype_destructor) then
@@ -574,6 +550,47 @@ implementation
       end;
 
 
+    procedure maybe_add_afterconstruction(var tocode: tnode);
+      var
+        oldlocalswitches: tlocalswitches;
+        srsym: tsym;
+        newblock: tblocknode;
+        newstatement: tstatementnode;
+      begin
+        { maybe call AfterConstruction for classes }
+        if (current_procinfo.procdef.proctypeoption=potype_constructor) and
+           is_class(current_objectdef) then
+          begin
+            srsym:=search_class_member(current_objectdef,'AFTERCONSTRUCTION');
+            if assigned(srsym) and
+               (srsym.typ=procsym) then
+              begin
+                { Don't test self and the vmt here. See }
+                { generate_bodyexit_block why (JM)      }
+                oldlocalswitches:=current_settings.localswitches;
+                current_settings.localswitches:=oldlocalswitches-[cs_check_object,cs_check_range];
+                newblock:=internalstatements(newstatement);
+                addstatement(newstatement,tocode);
+                { Self can be nil when fail is called }
+                { if self<>nil and vmt<>nil then afterconstruction }
+                addstatement(newstatement,cifnode.create(
+                    caddnode.create(andn,
+                        caddnode.create(unequaln,
+                            load_self_pointer_node,
+                            cnilnode.create),
+                        caddnode.create(unequaln,
+                            load_vmt_pointer_node,
+                            cnilnode.create)),
+                    ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
+                    nil));
+                tocode:=newblock;
+                current_settings.localswitches:=oldlocalswitches;
+              end
+            else
+              internalerror(200305106);
+          end;
+      end;
+
 {****************************************************************************
                                   TCGProcInfo
 ****************************************************************************}
@@ -641,6 +658,7 @@ implementation
         exitlabel_asmnode:=casmnode.create_get_position;
         final_asmnode:=casmnode.create_get_position;
         bodyexitcode:=generate_bodyexit_block;
+        maybe_add_afterconstruction(code);
 
         { Generate procedure by combining init+body+final,
           depending on the implicit finally we need to add
