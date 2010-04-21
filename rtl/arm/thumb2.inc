@@ -147,7 +147,8 @@ asm
         it eq
         moveq pc,lr
         rsb     r1,r1,#7
-        add     pc,pc,r1,lsl #2
+        mov     r1,r1,lsl #2
+        add     pc,pc,r1
         mov     r0,r0
         strb r2,[r3],#1
         strb r2,[r3],#1
@@ -643,7 +644,8 @@ begin
   cpu_has_edsp:=true;
   in_edsp_test:=true;
   asm
-    bic r0,sp,#7
+    mov r1,sp
+    bic r0,r1,#7
     ldrd r0,[r0]
   end;
   in_edsp_test:=false;
