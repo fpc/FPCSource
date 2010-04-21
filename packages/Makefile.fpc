@@ -100,7 +100,7 @@ else
 ifneq ($(findstring $(OS_TARGET),darwin),)
 fcl-extra_all: univint_all fcl-base_all
 fcl-extra_debug: univint_debug fcl-base_debug
-fcl-extra_smart: univint_smart fcl-base_release
+fcl-extra_smart: univint_smart fcl-base_smart
 fcl-extra_release: univint_release fcl-base_release
 fcl-extra_shared: univint_shared fcl-base_shared
 else
