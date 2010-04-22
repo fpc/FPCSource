@@ -7,7 +7,7 @@ name=fcl-web
 version=2.5.1
 
 [target]
-units=httpdefs fphttp custweb custcgi fpcgi fptemplate fphtml websession fpweb \
+units=httpdefs fphttp custweb custcgi fpcgi fphtml websession fpweb \
       webutil fpdatasetform cgiapp ezcgi fpapache webpage
 rsts=fpcgi fphtml fpweb websession cgiapp
 
