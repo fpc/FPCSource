@@ -2,8 +2,8 @@
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2009 by the Free Pascal Development team
 #
-#   Portuguese (DOS CP850) language file for Free Pascal Compiler
-#   Contributed by Marcelo B Paula, based on errore.msg SVN Rev.14440
+#   Portuguese (DOS CP-850) language file for Free Pascal Compiler
+#   Contributed by Marcelo B Paula, based on errore.msg SVN Rev.15157
 #   Former translator: Ari Ricardo Ody <ary.odi at japinfo.com.br>
 #
 #   See the file COPYING.FPC, included in this distribution,
@@ -116,9 +116,9 @@ general_e_path_does_not_exist=01017_E_Caminho "$1" n∆o existe
 % The specified path does not exist.
 general_f_compilation_aborted=01018_F_Compilaá∆o abortada
 % Compilation was aborted.
-general_text_bytes_code=01019_c¢digo gerado (bytes)
+general_text_bytes_code=01019_bytes (c¢digo gerado)
 % The size of the generated executable code, in bytes.
-general_text_bytes_data=01020_dados gerados (bytes)
+general_text_bytes_data=01020_bytes (dados gerados)
 % The size of the generated program data, in bytes.
 general_i_number_of_warnings=01021_I_$1 aviso(s) emitido(s)
 % Total number of warnings issued during compilation.
@@ -130,7 +130,7 @@ general_i_number_of_notes=01023_I_$1 nota(s) emitida(s)
 #
 # Scanner
 #
-# 02086 is the last used one
+# 02087 is the last used one
 #
 % \section{Scanner messages.}
 % This section lists the messages that the scanner emits. The scanner takes
@@ -346,7 +346,7 @@ scan_w_minstacksize_not_support=02077_W_MINSTACKSIZE n∆o Ç suportado pelo SO alv
 % The \var{\{\$MINSTACKSIZE\}} directive is not supported by the target OS.
 scan_w_maxstacksize_not_support=02078_W_MAXSTACKSIZE n∆o Ç suportado pelo SO alvo
 % The \var{\{\$MAXSTACKSIZE\}} directive is not supported by the target OS.
-scanner_e_illegal_warn_state=02079_E_Estado ilegal para a diretiva $WARN
+scanner_e_illegal_warn_state=02079_E_Estado "$1" ilegal para a diretiva $WARN
 % Only ON and OFF can be used as state with a \var{\{\$WARN\}} compiler directive.
 scan_e_only_packset=02080_E_Valor ilegal para conjunto empacotamento
 % Only 0, 1, 2, 4, 8, DEFAULT and NORMAL are allowed as packset parameters.
@@ -364,11 +364,13 @@ scan_e_illegal_minfpconstprec=02085_E_Constante precis∆o m°nima ponto flutuante 
 scan_w_multiple_main_name_overrides=02086_W_Sobrescrevendo nome do procedimento "main" m£ltiplas vezes, foi previamente ajustado para "$1"
 % The name for the main entry procedure is specified more than once. Only the last
 % name will be used.
+scanner_w_illegal_warn_identifier=02087_W_Identificador "$1" ilegal para a diretiva $WARN
+% Identifier is not known by a \var{\{\$WARN\}} compiler directive.
 % \end{description}
 #
 # Parser
 #
-# 03281 is the last used one
+# 03291 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -516,7 +518,7 @@ parser_e_fail_only_in_constructor=03051_E_FAIL s¢ pode ser usado em contrutores
 parser_e_no_paras_for_destructor=03052_E_Destruidores n∆o podem ter parÉmetros
 % You are declaring a destructor with a parameter list. Destructor methods
 % cannot have parameters.
-parser_e_only_class_methods_via_class_ref=03053_E_Apenas mÇtodos classe podem ser referenciadas por referàncias classe
+parser_e_only_class_members_via_class_ref=03053_E_Apenas mÇtodos, propriedades e vari†veis de classe podem ser referenciadas por referàncias classe
 % This error occurs in a situation like the following:
 % \begin{verbatim}
 % Type :
@@ -530,7 +532,7 @@ parser_e_only_class_methods_via_class_ref=03053_E_Apenas mÇtodos classe podem se
 % \end{verbatim}
 % \var{Free} is not a class method and hence cannot be called with a class
 % reference.
-parser_e_only_class_methods=03054_E_Apenas mÇtodos classe podem ser acessadas em mÇtodos de classe
+parser_e_only_class_members=03054_E_Apenas mÇtodos, propriedades e vari†veis de classe podem ser acessadas em mÇtodos de classe
 % This is related to the previous error. You cannot call a method of an object
 % from inside a class method. The following code would produce this error:
 % \begin{verbatim}
@@ -633,7 +635,7 @@ parser_e_operator_not_overloaded=03082_E_Operador n∆o Ç sobrecarregado
 % You're trying to use an overloaded operator when it is not overloaded for
 % this type.
 parser_e_no_such_assignment=03083_E_Imposs°vel sobrecarregar atribuiá‰es para tipos iguais
-% You can not overload assignment for types
+% You cannot overload assignment for types
 % that the compiler considers as equal.
 parser_e_overload_impossible=03084_E_Operador sobrecarga imposs°vel
 % The combination of operator, arguments and return type are
@@ -655,7 +657,7 @@ parser_e_overload_operator_failed=03089_E_N∆o Ç poss°vel sobrecarregar este oper
 % \begin{verbatim}
 %    +, -, *, /, =, >, <, <=, >=, is, as, in, **, :=
 % \end{verbatim}
-parser_e_comparative_operator_return_boolean=03090_E_Operador de comparaá∆o deve retornar um valor boleano
+parser_e_comparative_operator_return_boolean=03090_E_Operador de comparaá∆o deve retornar um valor booleano
 % When overloading the \var{=} operator, the function must return a boolean
 % value.
 parser_e_only_virtual_methods_abstract=03091_E_Apenas mÇtodos virtuais podem ser abstratos
@@ -841,12 +843,12 @@ parser_e_cant_use_inittable_here=03151_E_Tipos de dados que requerem inicializaá
 % code which is implicitly generated by the compiler. Such data types
 % can't be used in the variant part of a record.
 parser_e_resourcestring_only_sg=03152_E_Recursos 'String' podem ser apenas est†ticos ou globais
-% Resourcestring can not be declared local, only global or using the static
+% Resourcestring cannot be declared local, only global or using the static
 % directive.
 parser_e_exit_with_argument_not__possible=03153_E_EXIT com argumentos n∆o pode ser usado aqui
 % An exit statement with an argument for the return value can't be used here. This
 % can happen for example in \var{try..except} or \var{try..finally} blocks.
-parser_e_stored_property_must_be_boolean=03154_E_O tipo do s°mbolo de armazenamento deve ser boleano
+parser_e_stored_property_must_be_boolean=03154_E_O tipo do s°mbolo de armazenamento deve ser booleano
 % If you specify a storage symbol in a property declaration, it must be a
 % boolean type.
 parser_e_ill_property_storage_sym=03155_E_Este s°mbolo n∆o Ç permitido como s°mbolo de armazenamento
@@ -953,7 +955,7 @@ parser_e_no_procvarobj_const=03183_E_Constantes tipadas do tipo "procedimento de
 % You can't assign the address of a method to a typed constant which has a
 % 'procedure of object' type, because such a constant requires two addresses:
 % that of the method (which is known at compile time) and that of the object or
-% class instance it operates on (which can not be known at compile time).
+% class instance it operates on (which cannot be known at compile time).
 parser_e_default_value_only_one_para=03184_E_Valor padr∆o pode ser atribu°do apenas Ö um parÉmetro
 % It is not possible to specify a default value for several parameters at once.
 % The following is invalid:
@@ -972,7 +974,7 @@ parser_h_c_arrays_are_references=03187_H_Matrizes C s∆o passadas por referància
 % Any array passed to a C function is passed
 % by a pointer (i.e. by reference).
 parser_e_C_array_of_const_must_be_last=03188_E_Matrizes de constantes C devem ser o £ltimo argumento
-% You can not add any other argument after an \var{array of const} for
+% You cannot add any other argument after an \var{array of const} for
 % \var{cdecl} functions, as the size pushed on stack for this argument is
 % not known.
 parser_h_type_redef=03189_H_Redefiniá∆o do tipo "$1"
@@ -984,7 +986,7 @@ parser_w_cdecl_has_no_high=03190_W_Funá‰es declaradas com cdecl n∆o tem um parÉm
 parser_w_cdecl_no_openstring=03191_W_Funá‰es declaradas com cdecl n∆o suportam 'String' aberta
 % Openstring is not supported for functions that have the \var{cdecl} modifier.
 parser_e_initialized_not_for_threadvar=03192_E_Imposs°vel inicializar vari†veis declaradas como threadvar
-% Variables declared as threadvar can not be initialized with a default value.
+% Variables declared as threadvar cannot be initialized with a default value.
 % The variables will always be filled with zero at the start of a new thread.
 parser_e_msg_only_for_classes=03193_E_Diretiva mensagem Ç permitida apenas em Classes
 % The message directive is only supported for Class types.
@@ -1106,9 +1108,9 @@ parser_e_packed_element_no_loop=03223_E_Elementos de matrizes de bits compactado
 % (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
 % be packed at the bit level. For performance reasons, they cannot be
 % used as loop variables.
-parser_e_type_and_var_only_in_generics=03224_E_VAR e TYPE s∆o permitidos apenas em genÇricos
-% The usage of VAR and TYPE to declare new types inside an object is allowed only inside
-% generics.
+parser_e_type_and_var_only_in_generics=03224_E_VAR, TYPE e CONST s∆o permitidos apenas em genÇricos e classes
+% The usage of VAR, TYPE and CONST to declare new types inside an object is allowed only inside
+% generics and classes.
 parser_e_cant_create_generics_of_this_type=03225_E_Este tipo n∆o pode ser um genÇrico
 % Only Classes, Objects, Interfaces and Records are allowed to be used as generic.
 parser_w_no_lineinfo_use_switch=03226_W_N∆o caregue a unidade LINEINFO manualmente, Em vez disso utilize a chave de compilador -gl
@@ -1131,9 +1133,9 @@ parser_e_label_outside_proc=03231_E_Obter o endereáo de r¢tulos definidos fora d
 % It isn't allowed to take the address of labels outside the
 % current procedure.
 parser_e_initialized_not_for_external=03233_E_Imposs°vel inicializar vari†veis declaradas como externas
-% Variables declared as external can not be initialized with a default value.
+% Variables declared as external cannot be initialized with a default value.
 parser_e_illegal_function_result=03234_E_Tipo de retorno de funá∆o ilegal
-% Some types like file types can not be used as function result.
+% Some types like file types cannot be used as function result.
 parser_e_no_common_type=03235_E_Nenhum tipo comum entre "$1" e "$2"
 % To perform an operation on integers, the compiler converts both operands
 % to their common type, which appears to be an invalid type. To determine the
@@ -1173,7 +1175,7 @@ parser_e_weak_external_not_supported=03248_E_S°mbolos externos fracos n∆o s∆o su
 % on the current cpu/OS target.
 parser_e_forward_mismatch=03249_E_Definiá∆o posterior tipo incompat°vel
 % Classes and interfaces being defined forward must have the same type
-% when being implemented. A forward interface can not be changed into a class.
+% when being implemented. A forward interface cannot be changed into a class.
 parser_n_ignore_lower_visibility=03250_N_MÇtodo virtual "$1" tem baixa visibilidade ($2) que a classe pai $3 ($4)
 % The virtual method overrides an method that is declared with a higher visibility. This might give
 % unexpected results. In case the new visibility is private than it might be that a call to inherited in a
@@ -1192,9 +1194,9 @@ parser_e_no_local_para_def=03252_E_ParÉmetros n∆o podem conter definiá‰es locais
 % (both procedure headers would define a separate type). Keep in mind that expressions such as
 % ``file of byte'' or ``string[50]'' also define a new type.
 parser_e_abstract_and_sealed_conflict=03253_E_Conflito ABSTRACT e SEALED
-% ABSTRACT and SEALED can not be used together in one declaration
+% ABSTRACT and SEALED cannot be used together in one declaration
 parser_e_sealed_descendant=03254_E_Imposs°vel criar um descendente da classe selada "$1"
-% Sealed means that class can not be derived by another class.
+% Sealed means that class cannot be derived by another class.
 parser_e_sealed_class_cannot_have_abstract_methods=03255_E_Classe selada n∆o pode ter um mÇtodo abstrato
 % Sealed means that class cannot be derived. Therefore no one class is able to override an abstract method in a sealed class.
 parser_e_only_virtual_methods_final=03256_E_Apenas mÇtodos virtuais podem ser finais
@@ -1209,7 +1211,7 @@ parser_e_invalid_enumerator_identifier=03259_E_Identificador enumerador inv†lido
 % Only "MoveNext" and "Current" enumerator identifiers are supported.
 parser_e_enumerator_identifier_required=03260_E_Identificador enumerador requerido
 % "MoveNext" or "Current" identifier must follow the \var{enumerator} modifier.
-parser_e_enumerator_movenext_is_not_valid=03261_E_MÇtodo enumerador 'MoveNext' padr∆o inv†lido. MÇtodo deve ser uma funá∆o com tipo de retorno boleano e sem argumentos requeridos.
+parser_e_enumerator_movenext_is_not_valid=03261_E_MÇtodo enumerador 'MoveNext' padr∆o inv†lido. MÇtodo deve ser uma funá∆o com tipo de retorno booleano e sem argumentos requeridos.
 % "MoveNext" enumerator pattern method must be a function with Boolean return type and no required arguments
 parser_e_enumerator_current_is_not_valid=03262_E_Propriedade enumerador 'Current' padr∆o inv†lido. Propriedade deve ter um 'getter'.
 % "Current" enumerator pattern property must have a getter
@@ -1218,7 +1220,7 @@ parser_e_only_one_enumerator_movenext=03263_E_Apenas um mÇtodo enumerador 'MoveN
 parser_e_only_one_enumerator_current=03264_E_Apenas uma propriedade enumerador 'Current' Ç permitida por classe/objeto
 % Class or Object can have only one enumerator Current declaration.
 parser_e_for_in_loop_cannot_be_used_for_the_type=03265_E_Laáo 'for in' n∆o pode ser usado para o tipo "$1"
-% For in loop can be used not for all types. For example it can not be used for the enumerations with jumps.
+% For in loop can be used not for all types. For example it cannot be used for the enumerations with jumps.
 parser_e_objc_requires_msgstr=03266_E_Mensagens Objective-C requerem que seu nome seletor Objective-C seja especificado usando a diretiva "message".
 % Objective-C messages require their Objective-C name (selector name) to be specified using the \var{message `someName:'} procedure directive.
 % While bindings to other languages automatically generate such names based on the identifier you use (by replacing
@@ -1278,12 +1280,39 @@ parser_h_should_use_reintroduce_objc=03280_H_MÇtodos substitu°dos podem apenas s
 parser_e_implements_getter_not_default_cc=03281_E_'Getter' para implementaá∆o interface deve usar a convená∆o de chamada padr∆o do alvo.
 % Interface getters are called via a helper in the run time library, and hence
 % have to use the default calling convention for the target (\var{register} on
-% i386 and x86_64, \var{stdcall} on other architectures).
+% i386 and x86\_64, \var{stdcall} on other architectures).
+parser_e_no_refcounted_typed_file=03282_E_Arquivos tipados n∆o podem conter tipos referància-contados.
+% The data in a typed file cannot be of a reference counted type (such as
+% \var{ansistring} or a record containing a field that is reference counted).
+parser_e_operator_not_overloaded_2=03283_E_Operador n∆o est† sobrecarregado: $2 "$1"
+% You are trying to use an overloaded operator when it is not overloaded for
+% this type.
+parser_e_operator_not_overloaded_3=03284_E_Operador n∆o est† sobrecarregado: "$1" $2 "$3"
+% You are trying to use an overloaded operator when it is not overloaded for
+% this type.
+parser_e_more_array_elements_expected=03285_E_Esperados outros $1 elementos matriz
+% When declaring a typed constant array, you provided to few elements to initialize the array
+parser_e_string_const_too_long=03286_E_Constante 'String' muito longa, enquanto 'ansistrings' est∆o desabilitadas
+% Only when a piece of code is compiled with ansistrings enabled (\var{\{\$H+\}}), string constants
+% longer than 255 characters are allowed.
+parser_e_invalid_univ_para=03287_E_Tipo n∆o pode ser usado como parÉmetro 'univ' porque seu tamanho Ç desconhecido em tempo compilaá∆o: "$1"
+% \var{univ} parameters are compatible with all values of the same size, but this
+% cannot be checked in case a parameter's size is unknown at compile time.
+parser_e_only_one_class_constructor_allowed=03288_E_Apenas um construtor de classe pode ser definido na classe: "$1"
+% You are trying to declare more than one class constructor but only one class constructor can be declared.
+parser_e_only_one_class_destructor_allowed=03289_E_Apenas um destruidor de classe pode ser definido na classe: "$1"
+% You are trying to declare more than one class destructor but only one class destructor can be declared.
+parser_e_no_paras_for_class_constructor=03290_E_Construtores de classe n∆o podem ter parÉmetros
+% You are declaring a class constructor with a parameter list. Class constructor methods
+% cannot have parameters.
+parser_e_no_paras_for_class_destructor=03291_E_Destruidores de classe n∆o podem ter parÉmetros
+% You are declaring a class destructor with a parameter list. Class destructor methods
+% cannot have parameters.
 % \end{description}
 #
 # Type Checking
 #
-# 04094 is the last used one
+# 04095 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1321,7 +1350,7 @@ type_e_variable_id_expected=04004_E_Identificador de vari†vel esperado
 type_e_integer_expr_expected=04005_E_Express∆o inteira esperada, mas obtido "$1"
 % The compiler expects an expression of type integer, but gets a different
 % type.
-type_e_boolean_expr_expected=04006_E_Express∆o boleana esperada, mas obtido "$1"
+type_e_boolean_expr_expected=04006_E_Express∆o booleana esperada, mas obtido "$1"
 % The expression must be a boolean type. It should be return \var{True} or
 % \var{False}.
 type_e_ordinal_expr_expected=04007_E_Express∆o ordinal esperada
@@ -1558,7 +1587,7 @@ type_h_convert_sub_operands_to_prevent_overflow=04080_H_Convertendo os operandos
 type_h_convert_mul_operands_to_prevent_overflow=04081_H_Convertendo os operados para "$1" antes de realizar a multiplicaá∆o pode prevenir erros de transbordamento.
 % Multiplying two types can cause overflow errors. Since you are converting the result to a larger type, you
 % could prevent such errors by converting the operands to this type before doing the multiplication.
-type_w_pointer_to_signed=04082_W_Convertendo ponteiros para inteiros assinados poe resultar em comparaá‰es de resultados incorretas e erros de faixa. Ao invÇs disso, use tipos n∆o assinados.
+type_w_pointer_to_signed=04082_W_Convertendo ponteiros para inteiros assinados pode resultar em comparaá‰es de resultados incorretas e erros de faixa. Ao invÇs disso, use tipos n∆o assinados.
 % The virtual address space on 32-bit machines runs from \$00000000 to \$ffffffff.
 % Many operating systems allow you to allocate memory above \$80000000.
 % For example both \windows and \linux allow pointers in the range \$0000000 to \$bfffffff.
@@ -1599,14 +1628,38 @@ type_e_objc_type_unsupported=04092_E_O tipo "$1" n∆o Ç suportado para interaá∆o 
 type_e_class_or_objcclass_type_expected=04093_E_Tipo classe ou 'objcclass' esperados, mas obtido "$1"
 % It is only possible to create class reference types of \var{class} and \var{objcclass}
 type_e_objcclass_type_expected=04094_E_Tipo 'Objcclass' esperado
-% The compiler expected an Objc
-% \var{objcclass} types
+% The compiler expected an \var{objcclass} type
+type_w_procvar_univ_conflicting_para=04095_W_Tipo parÉmetro 'univ' foráado em vari†vel procedimental pode causar travamento ou corrupá∆o de mem¢ria: $1 para $2
+% \var{univ} parameters are implicitly compatible with all types of the same size,
+% also in procedural variable definitions. That means that the following code is
+% legal, because \var{single} and \var{longint} have the same size:
+% \begin{verbatim}
+% {$mode macpas}
+% Type
+%   TIntProc = procedure (l: univ longint);
+%
+%   procedure test(s: single);
+%     begin
+%       writeln(s);
+%     end;
+%
+%   var
+%     p: TIntProc;
+%   begin
+%     p:=test;
+%     p(4);
+%   end.
+% \end{verbatim}
+% This code may however crash on platforms that pass integers in registers and
+% floating point values on the stack, because then the stack will be unbalanced.
+% Note that this warning will not flagg all potentially dangerous situations.
+% when \var{test} returns.
 %
 % \end{description}
 #
 # Symtable
 #
-# 05070 is the last used one
+# 05079 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1787,14 +1840,14 @@ sym_w_deprecated_symbol_with_msg=05066_W_S°mbolo "$1" est† depreciado: "$2"
 % be available in newer versions of the unit / library. Use of this symbol
 % should be avoided as much as possible.
 sym_e_no_enumerator=05067_E_Imposs°vel encontrar um enumerador para o tipo "$1"
-% This means that compiler can not find an apropriate enumerator to use in the for-in loop.
+% This means that compiler cannot find an apropriate enumerator to use in the for-in loop.
 % To create an enumerator you need to defind an operator enumerator or add a public or published 
 % GetEnumerator method to the class or object definition.
 sym_e_no_enumerator_move=05068_E_Imposs°vel encontrar um mÇtodo "MoveNext" no enumerador "$1"
-% This means that compiler can not find a public MoveNext method with the Boolean return type in
+% This means that compiler cannot find a public MoveNext method with the Boolean return type in
 % the enumerator class or object definition.
 sym_e_no_enumerator_current=05069_E_Imposs°vel encontrar uma propriedade "Current" no enumerador "$1"
-% This means that compiler can not find a public Current property in  the enumerator class or object 
+% This means that compiler cannot find a public Current property in  the enumerator class or object
 % definition.
 sym_e_objc_para_mismatch=05070_E_Incompatibilidade entre n£mero de parÉmetros declarados e n£mero de dois pontos (:) na 'string' mensagem.
 % In Objective-C, a message name automatically contains as many colons as parameters.
@@ -1803,6 +1856,40 @@ sym_e_objc_para_mismatch=05070_E_Incompatibilidade entre n£mero de parÉmetros de
 % variable number of arguments translated to FPC via an \var{array of const} parameter,
 % this final \var{array of const} parameter is not counted. Neither are the hidden
 % \var{self} and \var{\_cmd} parameters.
+sym_n_private_type_not_used=05071_N_Tipo privado "$1.$2" nunca usado
+% The indicated private type is declared but is never used in the code.
+sym_n_private_const_not_used=05072_N_Constante privada "$1.$2" nunca usada
+% The indicated private const is declared but is never used in the code.
+sym_n_private_property_not_used=05073_N_Propriedade privada "$1.$2" nunca usada
+% The indicated private property is declared but is never used in the code.
+sym_w_deprecated_unit=05074_W_Unidade "$1" est† depreciada
+% This means that a unit which is
+% declared as \var{deprecated} is used. Deprecated units may no longer
+% be available in newer versions of the library. Use of this unit
+% should be avoided as much as possible.
+sym_w_deprecated_unit_with_msg=05075_W_Unidade "$1" est† depreciada: "$2"
+% This means that a unit which is
+% declared as \var{deprecated} is used. Deprecated units may no longer
+% be available in newer versions of the library. Use of this unit
+% should be avoided as much as possible.
+sym_w_non_portable_unit=05076_W_Unidade "$1" n∆o Ç port†vel
+% This means that a unit which is
+% declared as \var{platform} is used. This unit use
+% and availability is platform specific and should not be used
+% if the source code must be portable.
+sym_w_library_unit=05077_W_Unidade "$1" pertence a uma biblioteca
+% This means that a unit which is
+% declared as \var{library} is used. Library units may not be
+% available in other libraries.
+sym_w_non_implemented_unit=05078_W_Unidade "$1" n∆o est† implementada
+% This means that a unit which is
+% declared as \var{unimplemented} is used. This unit is defined,
+% but is not yet implemented on this specific platform.
+sym_w_experimental_unit=05079_W_Unidade "$1" Ç experimental
+% This means that a unit which is
+% declared as \var{experimental} is used. Experimental units
+% might disappear or change semantics in future versions. Usage of this unit
+% should be avoided as much as possible.
 % \end{description}
 #
 # Codegenerator
@@ -1934,12 +2021,12 @@ cg_h_inherited_ignored=06048_H_Chamada herdada para mÇtodo abstrato ignorada
 cg_e_goto_label_not_found=06049_E_R¢tulo 'Goto' "$1" n∆o definido ou eliminado pela otimizaá∆o
 % The label used in the goto definition is not defined or optimized away by the
 % unreachable code elemination.
-% \end{description}
 cg_f_unknown_type_in_unit=06050_F_Imposs°vel encontrar o tipo "$1" na unidade "$2". Verifique se vocà usa a biblioteca de tempo de execuá∆o correta.
 % The compiler expects that the runtime library contains certain type definitions. If you see this error
 % and you didn't change the runtime library code, it's very likely that the runtime library
 % you're using doesn't match the compiler in use. If you changed the runtime library this error means
 % that you removed a type which the compiler needs for internal use.
+% \end{description}
 # EndOfTeX
 
 #
@@ -1984,7 +2071,7 @@ asmr_e_relocatable_symbol_not_allowed=07013_E_S°mbolo reloc†vel n∆o Ç permitido
 asmr_e_invalid_reference_syntax=07014_E_Sintaxe referància inv†lida
 % There is an error in the reference.
 asmr_e_local_para_unreachable=07015_E_Vocà n∆o pode atingir $1 a partir desse c¢digo
-% You can not read directly the value of a local variable or parameter
+% You cannot read directly the value of a local variable or parameter
 % of a higher level procedure in assembler code (except for
 % local assembler code without parameter nor locals).
 asmr_e_local_label_not_allowed_as_ref=07016_E_S°mbolos locais/r¢tulos n∆o s∆o permitidos como referàncias
@@ -2281,7 +2368,7 @@ exec_e_cant_call_linker=09014_E_Imposs°vel chamar vinculador, mudando para vincu
 % can be used to assemble and link the program.
 exec_i_linking=09015_I_Vinculando $1
 % An informational message, showing which program or library is being linked.
-exec_e_util_not_found=09016_E_Utilit†rio $1 ∆o encontrado, mudando para vinculaá∆o externa
+exec_e_util_not_found=09016_E_Utilit†rio $1 n∆o encontrado, mudando para vinculaá∆o externa
 % An external tool was not found. The compiler will produce a script that
 % can be used to assemble and link or postprocess the program.
 exec_t_using_util=09017_T_Usando utilit†rio $1
@@ -2318,9 +2405,9 @@ exec_e_cant_call_resource_compiler=09030_E_Imposs°vel chamar o compilador recurs
 % a script that can be used to assemble, compile resources and link or
 % postprocess the program.
 exec_e_cant_open_resource_file=09031_E_Imposs°vel abrir arquivo recursos "$1"
-% An error occurred resource file can not be opened.
+% An error occurred resource file cannot be opened.
 exec_e_cant_write_resource_file=09032_E_Imposs°vel gravar arquivo recursos "$1"
-% An error occurred resource file can not be written.
+% An error occurred resource file cannot be written.
 %\end{description}
 # EndOfTeX
 
@@ -2372,7 +2459,7 @@ link_w_32bit_absolute_reloc=09201_W_Arquivo objeto "$1" contàm relocaá∆o absolut
 #
 # Unit loading
 #
-# 10061 is the last used one
+# 10062 is the last used one
 #
 # BeginOfTeX
 % \section{Unit loading messages.}
@@ -2523,7 +2610,7 @@ unit_u_implementation_crc_changed=10046_U_Implementation CRC alterado para a uni
 unit_u_finished_compiling=10047_U_Terminada a compilaá∆o da unidade $1
 % When you use the \var{-vu} flag, the compiler warns that it
 % has finished compiling the unit.
-unit_u_add_depend_to=10048_U_Adicionar dependància de $1 para $2
+unit_u_add_depend_to=10048_U_Adiá∆o dependància: $1 depende de $2
 % When you use the \var{-vu} flag, the compiler warns that it
 % has added a dependency between the two units.
 unit_u_no_reload_is_caller=10049_U_Nenhum recarregamento, Ç o chamador: $1
@@ -2570,12 +2657,18 @@ unit_e_different_wpo_file=10061_E_Unidade $1 foi compilada usando uma entrada de
 % this compiled version of the unit is specialised for that particular compilation scenario and cannot be used in
 % any other context. It has to be recompiled before you can use it in another program or with another wpo feedback input file.
 % \end{description}
+unit_u_indirect_crc_changed=10062_U_CRC interface indireta (objetos/classes) alterado para a unidade $1
+% When you use the \var{-vu} flag, the compiler warns that the
+% indirect CRC calculated for the unit (this is the CRC of all classes/objects/interfaces/$\ldots$
+% in the interfaces of units directly or indirectly used by this unit in the interface) has been changed after the
+% implementation has been parsed.
+% \end{description}
 # EndOfTeX
 
 #
 #  Options
 #
-# 11047 is the last used one
+# 11048 is the last used one
 #
 option_usage=11000_O_$1 [options] <inputfile> [options]
 # BeginOfTeX
@@ -2591,7 +2684,7 @@ option_only_one_source_support=11001_W_Apenas uma arquivo fonte suportado, alter
 option_def_only_for_os2=11002_W_Arquivo DEF pode ser criado apenas para OS/2
 % This option can only be specified when you're compiling for OS/2.
 option_no_nested_response_file=11003_E_Arquivos respostas aninhados n∆o s∆o suportados
-% You can not nest response files with the \var{@file} command line option.
+% You cannot nest response files with the \var{@file} command line option.
 option_no_source_found=11004_F_Nenhm nome arquivo fonte na linha de comando
 % The compiler expects a source file name on the command line.
 option_no_option_found=11005_N_Nenhuma opá∆o dentro do arquivo de configuraá‰es $1
@@ -2643,7 +2736,7 @@ option_switch_bin_to_src_assembler=11020_N_Mudando montador assembler para o pad
 % -a switch, which can't be used with a binary assembler writer.
 option_incompatible_asm=11021_W_Sa°da Assembler selecionado "$1" incompat°vel com "$2"
 option_asm_forced=11022_W_"$1" uso foráado montador assembler
-% The assembler output selected can not generate
+% The assembler output selected cannot generate
 % object files with the correct format. Therefore, the
 % default assembler for this target is used instead.
 option_using_file=11026_T_Lendo opá‰es do arquivo $1
@@ -2698,6 +2791,10 @@ option_dwarf_smart_linking=11046_N_Informaá∆o de depuraá∆o DWARF n∆o pode ser us
 option_ignored_target=11047_W_Opá∆o "$1" ignorada pela plataforma alvo atual
 % Not all options are supported or implemented for all target platforms. This message informs you that a chosen
 % option is ignored for the currently selected target platform.
+%\end{description}
+option_debug_external_unsupported=11048_W_Desabilitando informaá∆o externa depuraá∆o porque n∆o Ç suportada pela combinaá∆o formato alvo/depuraá∆o selecionado.
+% Not all debug formats can be stored in an external file on all platforms. In particular, on
+% Mac OS X only DWARF debug information can be stored externally.
 %\end{description}
 # EndOfTeX
 
@@ -2833,7 +2930,9 @@ ou
 # line, the current possibilities are :
 #    * = every target
 #    3 = 80x86 targets
+#    4 = x86_64
 #    6 = 680x0 targets
+#    A = ARM
 #    e = in extended debug mode only
 #    P = PowerPC targets
 #    S = Sparc targets
@@ -2847,7 +2946,7 @@ ou
 #  The third character represents the indentation level.
 #
 option_help_pages=11025_[
-**0*_Ponha + ap¢s uma chave de opá∆o boleana para habilit†-la, - para desabilit†-la
+**0*_Ponha + ap¢s uma chave de opá∆o booleana para habilit†-la, - para desabilit†-la
 **1a_O compilador n∆o elimina o arquivo gerado do montador assembler
 **2al_Lista linhas do c¢digo fonte no arquivo assembler
 **2an_Lista informaá‰es n¢ no arquivo assembler
@@ -2857,6 +2956,7 @@ option_help_pages=11025_[
 **1A<x>_Formato sa°da:
 **2Adefault_Usa montador assembler padr∆o
 3*2Aas_Monta usando o GNU AS
+3*2Amacho_Mach-O (Darwin, Intel 32 bit) usando gravador interno
 3*2Anasmcoff_Arquivo COFF (Go32v2) usando Nasm
 3*2Anasmelf_Arquivo ELF32 (Linux) usando Nasm
 3*2Anasmwin32_Arquivo objeto Win32 usando Nasm
@@ -2985,7 +3085,7 @@ S*2Aas_Monta usando o GNU AS
 **1S<x>_Opá‰es sintaxe:
 **2S2_Mesmo que -Mobjfpc
 **2Sc_Suporte operadores similares C (*=,+=,/= and -=)
-**2Sa_Liga afirmaá‰es (assertions)
+**2Sa_Liga asserá‰es
 **2Sd_Mesmo que -Mdelphi
 **2Se<x>_Opá‰es erros. <x> Ç uma combinaá∆o do seguinte:
 **3*_<n> : Compilador para depois de <n> erros (padr∆o Ç 1)
@@ -3067,18 +3167,20 @@ A*2WB_Cria uma imagem reloc†vel (Windows, Symbian)
 3*2WC_Especifica tipo aplicaá∆o console (EMX, OS/2, Windows)
 A*2WC_Especifica tipo aplicaá∆o console (Windows)
 P*2WC_Especifica tipo aplicaá∆o console (Classic Mac OS)
-3*2WD_Use DEFFILE para exportar funá‰es de DLL ou EXE (Windows)
-A*2WD_Use DEFFILE para exportar funá‰es de DLL ou EXE (Windows)
-3*2We_Use recursos externos (Darwin)
-P*2We_Use recursos externos (Darwin)
-p*2We_Use recursos externos (Darwin)
+3*2WD_Usa DEFFILE para exportar funá‰es de DLL ou EXE (Windows)
+A*2WD_Usa DEFFILE para exportar funá‰es de DLL ou EXE (Windows)
+3*2We_Usa recursos externos (Darwin)
+4*2We_Usa recursos externos (Darwin)
+A*2We_Usa recursos externos (Darwin)
+P*2We_Usa recursos externos (Darwin)
+p*2We_Usa recursos externos (Darwin)
 3*2WF_Especifica tipo aplicaá∆o tela-cheia (EMX, OS/2)
 3*2WG_Especifica tipo aplicaá∆o gr†fica (EMX, OS/2, Windows)
 A*2WG_Especifica tipo aplicaá∆o gr†fica (Windows)
 P*2WG_Especifica tipo aplicaá∆o gr†fica (Mac OS Cl†ssico)
-3*2Wi_Use recursos internos (Darwin)
-P*2Wi_Use recursos internos (Darwin)
-p*2Wi_Use recursos internos (Darwin)
+3*2Wi_Usa recursos internos (Darwin)
+P*2Wi_Usa recursos internos (Darwin)
+p*2Wi_Usa recursos internos (Darwin)
 3*2WN_N∆o gera c¢digo relocaá∆o, necess†rio para depuraá∆o (Windows)
 A*2WN_N∆o gera c¢digo relocaá∆o, necess†rio para depuraá∆o (Windows)
 3*2WR_Gera c¢digo relocaá∆o (Windows)
