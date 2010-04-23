@@ -37,7 +37,6 @@ Type
   Public
     Constructor Create;
     Destructor Destroy;override;
-    Function GetConfigFileName : String;
     Procedure LoadGlobalDefaults;
     Procedure LoadCompilerDefaults;
     Procedure ProcessCommandLine;
@@ -49,20 +48,12 @@ Type
 
 { TMakeTool }
 
-function TMakeTool.GetConfigFileName: String;
-begin
-  if HasOption('C','config-file') then
-    Result:=GetOptionValue('C','config-file')
-  else
-    Result:=GetAppConfigFile(IsSuperUser,False);
-end;
-
-
 procedure TMakeTool.LoadGlobalDefaults;
 var
   i : integer;
   cfgfile : String;
-  GeneratedConfig : boolean;
+  GeneratedConfig,
+  UseGlobalConfig : boolean;
 begin
   // Default verbosity
   LogLevels:=DefaultLogLevels;
@@ -72,20 +63,42 @@ begin
         LogLevels:=AllLogLevels+[vlDebug];
         break;
       end;
-  // Load file or create new default configuration
-  cfgfile:=GetConfigFileName;
   GeneratedConfig:=false;
-  if FileExists(cfgfile) then
+  UseGlobalConfig:=false;
+  // First try config file from command line
+  if HasOption('C','config-file') then
     begin
-      GlobalOptions.LoadGlobalFromFile(cfgfile);
-      if GlobalOptions.Dirty then
-        GlobalOptions.SaveGlobalToFile(cfgfile);
+      cfgfile:=GetOptionValue('C','config-file');
+      if not FileExists(cfgfile) then
+        Error(SErrNoSuchFile,[cfgfile]);
     end
   else
     begin
-      ForceDirectories(ExtractFilePath(cfgfile));
-      GlobalOptions.SaveGlobalToFile(cfgfile);
-      GeneratedConfig:=true;
+      // Now try if a local config-file exists
+      cfgfile:=GetAppConfigFile(False,False);
+      if not FileExists(cfgfile) then
+        begin
+          // If not, try to find a global configuration file
+          cfgfile:=GetAppConfigFile(True,False);
+          if FileExists(cfgfile) then
+            UseGlobalConfig := true
+          else
+            begin
+              // Create a new configuration file
+              if not IsSuperUser then // Make a local, not global, configuration file
+                cfgfile:=GetAppConfigFile(False,False);
+              ForceDirectories(ExtractFilePath(cfgfile));
+              GlobalOptions.SaveGlobalToFile(cfgfile);
+              GeneratedConfig:=true;
+            end;
+        end;
+    end;
+  // Load file or create new default configuration
+  if not GeneratedConfig then
+    begin
+      GlobalOptions.LoadGlobalFromFile(cfgfile);
+      if GlobalOptions.Dirty and (not UseGlobalConfig or IsSuperUser) then
+        GlobalOptions.SaveGlobalToFile(cfgfile);
     end;
   GlobalOptions.CompilerConfig:=GlobalOptions.DefaultCompilerConfig;
   // Tracing of what we've done above, need to be done after the verbosity is set
