@@ -106,6 +106,14 @@ function ThreadProc(ThreadObjPtr: Pointer): PtrInt;
 { system-dependent code }
 {$i tthread.inc}
 
+procedure TThread.Start;
+begin
+  { suspend/resume are now deprecated in Delphi (they also don't work
+    on most platforms in FPC), so a different method was required
+    to start a thread if it's create with fSuspended=true -> that's
+    what this method is for. }
+  Resume;
+end;
 
 function TThread.GetSuspended: Boolean;
 begin
