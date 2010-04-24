@@ -351,7 +351,7 @@ begin
         // Process packages
         for i:=0 to ParaPackages.Count-1 do
           begin
-            if FileExists(ParaPackages[i]) then
+            if sametext(ExtractFileExt(ParaPackages[i]),'.zip') and FileExists(ParaPackages[i]) then
               begin
                 ActionPackage:=AvailableRepository.AddPackage(CmdLinePackageName);
                 ActionPackage.LocalFileName:=ExpandFileName(ParaPackages[i]);
