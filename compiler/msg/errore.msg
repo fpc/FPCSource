@@ -1307,6 +1307,9 @@ parser_e_no_paras_for_class_destructor=03291_E_Class destructors can't have para
 % You are declaring a class destructor with a parameter list. Class destructor methods
 % cannot have parameters.
 % \end{description}
+parser_f_modeswitch_objc_required=03292_F_This construct requires the \{\$modeswitch objectivec1\} mode switch to be active
+% Objective-Pascal constructs are not supported when \{\$modeswitch ObjectiveC1\}
+% is not active.
 #
 # Type Checking
 #
