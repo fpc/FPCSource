@@ -584,7 +584,11 @@ implementation
          { everything can be handled using the the regular array code.        }
          if ((l mod 8) = 0) and
             (ispowerof2(l div 8,temp) or
-             not is_ordinal(resultdef)) then
+             not is_ordinal(resultdef)
+{$ifndef cpu64bitalu}
+             or is_64bitint(resultdef)
+{$endif not cpu64bitalu}
+             ) then
            begin
              update_reference_reg_mul(maybe_const_reg,l div 8);
              exit;
@@ -818,7 +822,11 @@ implementation
              ((mulsize mod 8 = 0) and
               ispowerof2(mulsize div 8,temp)) or
               { only orddefs are bitpacked }
-              not is_ordinal(resultdef)) then
+              not is_ordinal(resultdef)
+{$ifndef cpu64bitalu}
+              or is_64bitint(resultdef)
+{$endif not cpu64bitalu}
+              ) then
            dec(location.reference.offset,bytemulsize*tarraydef(left.resultdef).lowrange);
 
          if right.nodetype=ordconstn then

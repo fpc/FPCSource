@@ -1661,10 +1661,14 @@ implementation
         if ordtype = uvoid then
           exit;
 
+{$ifndef cpu64bitalu}
+        if (ordtype in [s64bit,u64bit]) then
+{$else not cpu64bitalu}
         if (ordtype = u64bit) or
            ((ordtype = s64bit) and
             ((low <= (system.low(int64) div 2)) or
              (high > (system.high(int64) div 2)))) then
+{$endif cpu64bitalu}
           result := 64
         else if (low >= 0) and
            (high <= 1) then
