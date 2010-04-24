@@ -46,7 +46,7 @@
 
 {$ifdef read_interface}
 
-Const 
+Const
   IMAGE_SIZEOF_SHORT_NAME = 8;
 
   type
@@ -1480,7 +1480,7 @@ Const
      PCONVINFO = ^CONVINFO;
 
      COPYDATASTRUCT = record
-          dwData : DWORD;
+          dwData : ULONG_PTR;
           cbData : DWORD;
           lpData : PVOID;
        end;
@@ -1792,9 +1792,9 @@ Const
      _EXCEPTION_DEBUG_INFO = EXCEPTION_DEBUG_INFO;
      TEXCEPTIONDEBUGINFO = EXCEPTION_DEBUG_INFO;
      PEXCEPTIONDEBUGINFO = ^EXCEPTION_DEBUG_INFO;
-     
+
      { Explicit forms to debug targets running on a different architecture (32-bit versus 64-bit)}
-     
+
      EXCEPTION_RECORD32 = record
           ExceptionCode : DWORD;
           ExceptionFlags : DWORD;
@@ -2261,7 +2261,7 @@ Const
      _PARTITION_INFORMATION = PARTITION_INFORMATION;
      TPARTITIONINFORMATION = PARTITION_INFORMATION;
      PPARTITIONINFORMATION = ^PARTITION_INFORMATION;
-     
+
      PARTITION_INFORMATION_GPT = record
 		                   PartitionType  : TGUID;
 				   PartitionID    : TGUID;
@@ -2295,12 +2295,12 @@ Const
 
      SET_PARTITION_INFORMATION_EX   = record
                                       PartitionStyle : TPartition_Style;
-				      case integer of 
+				      case integer of
 					0 : (mbr : SET_PARTITION_INFORMATION_MBR);
 					1 : (GPT : SET_PARTITION_INFORMATION_GPT);
 				      end;
-     TSET_PARTITION_INFORMATION_EX  = SET_PARTITION_INFORMATION_EX;  
-     PSET_PARTITION_INFORMATION_EX  = ^SET_PARTITION_INFORMATION_EX;  
+     TSET_PARTITION_INFORMATION_EX  = SET_PARTITION_INFORMATION_EX;
+     PSET_PARTITION_INFORMATION_EX  = ^SET_PARTITION_INFORMATION_EX;
 
      CREATE_DISK_GPT = record
 			 DiskID 	   : TGUID;
@@ -2317,17 +2317,17 @@ Const
 
      CREATE_DISK  = record
 		       PartitionStyle : TPartition_Style;
-		       case integer of 
+		       case integer of
 			 0: ( MBR : Create_Disk_MBR);
-		         1: ( GPT : Create_Disk_GPT);	 
+		         1: ( GPT : Create_Disk_GPT);	
 		      end;
      TCREATE_DISK = CREATE_DISK;
      PCREATE_DISK = ^TCREATE_DISK;
-    
+
      GET_LENGTH_INFORMATION = record
 	                        Length : LARGE_INTEGER;
 			      end;
-     TGET_LENGTH_INFORMATION = GET_LENGTH_INFORMATION; 
+     TGET_LENGTH_INFORMATION = GET_LENGTH_INFORMATION;
      PGET_LENGTH_INFORMATION = ^GET_LENGTH_INFORMATION;
 
      PARTITION_INFORMATION_EX = record
@@ -2336,9 +2336,9 @@ Const
           PartitionLength : LARGE_INTEGER;
 	  PartitionNumber : DWORD;
           RewritePartition: BYTEBOOL;
-	  case integer of 
+	  case integer of
 	    0: ( MBR : PARTITION_INFORMATION_MBR);
-	    1: ( GPT : PARTITION_INFORMATION_GPT);	 
+	    1: ( GPT : PARTITION_INFORMATION_GPT);	
        end;
      _PARTITION_INFORMATION_EX = PARTITION_INFORMATION_EX;
      TPARTITIONINFORMATION_EX  = PARTITION_INFORMATION_EX;
@@ -4965,7 +4965,7 @@ Const
           lpTemplateName : LPCTSTR;
           pvReserved : pointer;
           dwreserved : dword;
-          FlagsEx    : dword; 
+          FlagsEx    : dword;
        end;
      LPOPENFILENAME = ^OPENFILENAME;
      TOPENFILENAME = OPENFILENAME;
@@ -6029,9 +6029,9 @@ Const
      TSTICKYKEYS = STICKYKEYS;
      PSTICKYKEYS = ^STICKYKEYS;
 
-     STRRET = record 
+     STRRET = record
           utype : UINT;
-          case longint of 
+          case longint of
            0: ( polestr:LPWSTR);
            1: ( uOffset : UINT);
            2: ( cStr : array[0..(MAX_PATH)-1] of char );
@@ -6081,7 +6081,7 @@ Const
                        wProcessorLevel : WORD;
                        wProcessorRevision : WORD;	
 			 );
-                 1 : ( 
+                 1 : (
                       wProcessorArchitecture : WORD;
                     );
        end;
@@ -6994,7 +6994,7 @@ Const
           e_oemid : WORD;
           e_oeminfo : WORD;
           e_res2 : array[0..9] of WORD;
-          case boolean of 
+          case boolean of
              true : (e_lfanew : LONG);
              false: (_lfanew : LONG); // delphi naming
        end;
@@ -7349,7 +7349,7 @@ type
    _IMAGE_FUNCTION_ENTRY64 = record
        StartingAddress,
        EndingAddress :   ULONGLONG   ;
-       case boolean of 
+       case boolean of
          false : (EndOfPrologue : ULONGLONG);
          true  : (UnwindInfoAddress : ULONGLONG);
        end;
@@ -7378,7 +7378,7 @@ type
     ulOffStart: DWORD;             // offset 1st byte of function code
     cbProcSize: DWORD;             // # bytes in function
     cdwLocals : DWORD;             // # bytes in locals/4
-    bitvalues : word;              // 
+    bitvalues : word;              //
 {
     WORD        cdwParams;              // # bytes in params/4
     WORD        cbProlog : 8;           // # bytes in prolog
@@ -7506,7 +7506,7 @@ type
   PCURSORINFO = ^CURSORINFO;
   TCURSORINFO = CURSORINFO;
 
-const 
+const
   SECURITY_DESCRIPTOR_MIN_LENGTH = SIZEOF(SECURITY_DESCRIPTOR);
 
 {$endif read_interface}
