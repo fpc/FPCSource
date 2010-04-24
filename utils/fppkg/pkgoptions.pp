@@ -450,8 +450,8 @@ end;
 
 function TCompilerOptions.LocalUnitDir:string;
 begin
-  if FLocalInstallDir<>'' then
-    result:=FLocalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
+  if LocalInstallDir<>'' then
+    result:=LocalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
   else
     result:='';
 end;
@@ -459,8 +459,8 @@ end;
 
 function TCompilerOptions.GlobalUnitDir:string;
 begin
-  if FGlobalInstallDir<>'' then
-    result:=FGlobalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
+  if GlobalInstallDir<>'' then
+    result:=GlobalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
   else
     result:='';
 end;
