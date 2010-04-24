@@ -274,10 +274,47 @@ begin
   Result:=Copy(Path,1,L);
 end;
 
+function IncludeLeadingPathDelimiter(Const Path : String) : String;
+
+Var
+  l : Integer;
+
+begin
+  Result:=Path;
+  l:=Length(Result);
+  If (L=0) or not(Result[1] in AllowDirectorySeparators) then
+    Result:=DirectorySeparator+Result;
+end;
+
+function ExcludeLeadingPathDelimiter(Const Path: string): string;
+
+Var
+  L : Integer;
+
+begin
+  L:=Length(Path);
+  If (L>0) and (Path[1] in AllowDirectorySeparators) then
+    Dec(L);
+  Result:=Copy(Path,2,L);
+end;
+
 function IsPathDelimiter(Const Path: string; Index: Integer): Boolean;
 
 begin
   Result:=(Index>0) and (Index<=Length(Path)) and (Path[Index] in AllowDirectorySeparators);
+end;
+
+function ConcatPaths(const Paths: array of String): String;
+var
+  I: Integer;
+begin
+  if Length(Paths) > 0 then
+  begin
+    Result := Paths[0];
+    for I := 1 to Length(Paths) - 1 do
+      Result := IncludeTrailingPathDelimiter(Result) + ExcludeLeadingPathDelimiter(Paths[I]);
+  end else
+    Result := '';
 end;
 
 Function GetFileHandle(var f : File):Longint;
