@@ -1352,6 +1352,7 @@ implementation
                     { check if we are reading a field of an object/class/   }
                     { record. is_member_read() will deal with withsymtables }
                     { if needed.                                            }
+                    p1:=nil;
                     if is_member_read(srsym,srsymtable,p1,hdef) then
                       begin
                         { if the field was originally found in an    }
@@ -1535,6 +1536,7 @@ implementation
 
                 procsym :
                   begin
+                    p1:=nil;
                     { check if it's a method/class method }
                     if is_member_read(srsym,srsymtable,p1,hdef) then
                       begin
@@ -1555,6 +1557,7 @@ implementation
 
                 propertysym :
                   begin
+                    p1:=nil;
                     { property of a class/object? }
                     if is_member_read(srsym,srsymtable,p1,hdef) then
                       begin
@@ -1571,7 +1574,6 @@ implementation
                     else
                     { no method pointer }
                       begin
-                        p1:=nil;
                         handle_propertysym(tpropertysym(srsym),srsymtable,p1);
                       end;
                   end;

@@ -1044,7 +1044,7 @@ end;
           begin
             j:=Pos(';',s);
             if j=0 then
-             j:=255;
+             j:=length(s)+1;
             currPath:= TrimSpace(Copy(s,1,j-1));
             System.Delete(s,1,j);
           end;
@@ -1060,9 +1060,9 @@ end;
             if (CurrentDir<>'') and (Copy(currPath,1,length(CurrentDir))=CurrentDir) then
              begin
 {$if defined(amiga) and defined(morphos)}
-               currPath:= CurrentDir+Copy(currPath,length(CurrentDir)+1,255);
+               currPath:= CurrentDir+Copy(currPath,length(CurrentDir)+1,length(currPath));
 {$else}
-               currPath:= CurDirRelPath(source_info)+Copy(currPath,length(CurrentDir)+1,255);
+               currPath:= CurDirRelPath(source_info)+Copy(currPath,length(CurrentDir)+1,length(currPath));
 {$endif}
              end;
           end;

@@ -390,11 +390,19 @@ implementation
                   { load left in register }
                   location_force_reg(current_asmdata.CurrAsmList,left.location,location.size,true);
                   register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
-                  location_force_reg(current_asmdata.CurrAsmList,right.location,opsize,true);
-                  { emit bit test operation }
-                  cg.a_bit_test_reg_reg_reg(current_asmdata.CurrAsmList,
-                    left.location.size,right.location.size,location.size,
-                    left.location.register,right.location.register,location.register);
+                  { emit bit test operation -- warning: do not use
+                    location_force_reg() to force a set into a register, except
+                    to a register of the same size as the set. The reason is
+                    that on big endian systems, this would require moving the
+                    set to the most significant part of the new register,
+                    and location_force_register can't do that (it does not
+                    know the type).
+
+                   a_bit_test_reg_loc_reg() properly takes into account the
+                   size of the set to adjust the register index to test }
+                  cg.a_bit_test_reg_loc_reg(current_asmdata.CurrAsmList,
+                    left.location.size,location.size,
+                    left.location.register,right.location,location.register);
 
                   { now zero the result if left > nr_of_bits_in_right_register }
                   hr := cg.getintregister(current_asmdata.CurrAsmList,location.size);

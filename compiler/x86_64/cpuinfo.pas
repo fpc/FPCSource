@@ -45,7 +45,7 @@ Type
 
    tfputype =
      (fpu_none,
-      fpu_soft,  { generic }
+//      fpu_soft,  { generic }
       fpu_sse64,
       fpu_sse3
      );
@@ -75,13 +75,13 @@ Const
    );
 
    fputypestr : array[tfputype] of string[6] = ('',
-     'SOFT',
+//     'SOFT',
      'SSE64',
      'SSE3'
    );
 
-   sse_singlescalar : set of tfputype = [fpu_sse64];
-   sse_doublescalar : set of tfputype = [fpu_sse64];
+   sse_singlescalar : set of tfputype = [fpu_sse64,fpu_sse3];
+   sse_doublescalar : set of tfputype = [fpu_sse64,fpu_sse3];
 
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+

@@ -260,7 +260,7 @@ unit rgobj;
     {Ok, sorting pointers is silly, but it does the job to make Trgobj.combine
      faster.}
 
-    var h,i,p:word;
+    var h,i,p:longword;
         t:Tlinkedlistitem;
 
     begin
@@ -790,7 +790,7 @@ unit rgobj;
      registers in it cause. This allows simplify to execute in
      constant time.}
 
-    var p,h,i,leni,lent:word;
+    var p,h,i,leni,lent:longword;
         t:Tsuperregister;
         adji,adjt:Psuperregisterworklist;
 

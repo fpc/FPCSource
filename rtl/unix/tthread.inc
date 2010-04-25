@@ -85,6 +85,7 @@ end;
 function ThreadFunc(parameter: Pointer): ptrint;
 var
   LThread: TThread;
+  LFreeOnTerminate: boolean;
 {$ifdef DEBUG_MT}
   lErrorAddr, lErrorBase: Pointer;
 {$endif}
@@ -143,8 +144,9 @@ begin
   Result := LThread.FReturnValue;
   WRITE_DEBUG('Result is ',Result);
   LThread.FFinished := True;
+  LFreeOnTerminate := LThread.FreeOnTerminate;
   LThread.DoTerminate;
-  if LThread.FreeOnTerminate then
+  if LFreeOnTerminate then
     begin
       WRITE_DEBUG('Thread ',ptruint(lthread),' should be freed');
       LThread.Free;

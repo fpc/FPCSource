@@ -1121,7 +1121,7 @@ implementation
         { check if codepara is valid }
         if assigned(codepara) and
            (
-            (codepara.resultdef.typ <> orddef)
+            not is_integer(codepara.resultdef)
 {$ifndef cpu64bitaddr}
             or is_64bitint(codepara.resultdef)
 {$endif not cpu64bitaddr}
@@ -1132,7 +1132,9 @@ implementation
           end;
 
         { check if dest para is valid }
-        if not(destpara.resultdef.typ in [orddef,floatdef,enumdef]) then
+        if not is_integer(destpara.resultdef) and
+           not is_currency(destpara.resultdef) and
+           not(destpara.resultdef.typ in [floatdef,enumdef]) then
           begin
             CGMessagePos(destpara.fileinfo,type_e_integer_or_real_expr_expected);
             exit;
@@ -2586,9 +2588,9 @@ implementation
 
                    if not((hpp.resultdef.typ=orddef) and
 {$ifndef cpu64bitaddr}
-                          (torddef(hpp.resultdef).ordtype<>u32bit)) then
+                          (torddef(hpp.resultdef).ordtype=u32bit)) then
 {$else not cpu64bitaddr}
-                          (torddef(hpp.resultdef).ordtype<>u64bit)) then
+                          (torddef(hpp.resultdef).ordtype=u64bit)) then
 {$endif not cpu64bitaddr}
                      inserttypeconv_internal(hpp,sinttype);
                    { make sure we don't call functions part of the left node twice (and generally }

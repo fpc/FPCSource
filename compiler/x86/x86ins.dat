@@ -475,7 +475,7 @@ mem32                 \300\323\1\xDB\203              8086,FPU
 mem16                 \300\324\1\xDF\203              8086,FPU
 mem64                 \300\323\1\xDF\207              8086,FPU
 
-[FISTTP]
+[FISTTP,fisttpR]
 (Ch_Wop1, Ch_None, Ch_None)
 mem32                 \300\323\1\xDB\201              PRESCOTT,FPU
 mem16                 \300\323\1\xDF\201              PRESCOTT,FPU

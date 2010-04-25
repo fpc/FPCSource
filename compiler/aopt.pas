@@ -73,7 +73,7 @@ Unit aopt;
       Var LabelFound: Boolean;
           p: tai;
       Begin
-        LabelInfo^.LowLabel := High(AWord);
+        LabelInfo^.LowLabel := High(longint);
         LabelInfo^.HighLabel := 0;
         LabelInfo^.LabelDif := 0;
         LabelInfo^.LabelTable:=nil;
@@ -90,9 +90,9 @@ Unit aopt;
                    (tai_Label(p).labsym.is_used) Then
                   Begin
                     LabelFound := True;
-                    If (tai_Label(p).labsym.labelnr < int64(LowLabel)) Then
+                    If (tai_Label(p).labsym.labelnr < LowLabel) Then
                       LowLabel := tai_Label(p).labsym.labelnr;
-                    If (tai_Label(p).labsym.labelnr > int64(HighLabel)) Then
+                    If (tai_Label(p).labsym.labelnr > HighLabel) Then
                       HighLabel := tai_Label(p).labsym.labelnr
                   End;
                 GetNextInstruction(p, p)
@@ -190,7 +190,7 @@ Unit aopt;
             LabelInfo^.labeltable := nil;
           end;
         LabelInfo^.labeldif:=0;
-        LabelInfo^.lowlabel:=high(AWord);
+        LabelInfo^.lowlabel:=high(longint);
         LabelInfo^.highlabel:=0;
       end;
 
