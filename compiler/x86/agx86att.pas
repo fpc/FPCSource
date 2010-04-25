@@ -162,7 +162,7 @@ interface
           top_reg :
             owner.AsmWrite(gas_regname(o.reg));
           top_ref :
-            if o.ref^.refaddr in [addr_no,addr_pic] then
+            if o.ref^.refaddr in [addr_no,addr_pic,addr_pic_no_got] then
               WriteReference(o.ref^)
             else
               begin

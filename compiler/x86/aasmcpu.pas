@@ -931,7 +931,7 @@ implementation
                   if (ref^.refaddr=addr_no)
 {$ifdef x86_64}
                      or (
-                         (ref^.refaddr=addr_pic) and
+                         (ref^.refaddr in [addr_pic,addr_pic_no_got]) and
                          (ref^.base<>NR_NO)
                         )
 {$endif x86_64}

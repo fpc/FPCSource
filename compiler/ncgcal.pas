@@ -45,6 +45,8 @@ interface
 
        tcgcallnode = class(tcallnode)
        private
+          retloc: tlocation;
+
           procedure handle_return_value;
           procedure release_unused_return_value;
           procedure release_para_temps;
@@ -510,7 +512,6 @@ implementation
       var
         tmpcgsize,
         cgsize    : tcgsize;
-        retloc    : tlocation;
 {$ifdef cpu64bitaddr}
         ref       : treference;
 {$endif cpu64bitaddr}
@@ -529,12 +530,12 @@ implementation
           end;
 
         { Load normal (ordinal,float,pointer) result value from accumulator }
-        cgsize:=procdefinition.funcretloc[callerside].size;
-        case procdefinition.funcretloc[callerside].loc of
+        cgsize:=retloc.size;
+        case retloc.loc of
            LOC_FPUREGISTER:
              begin
                location_reset(location,LOC_FPUREGISTER,cgsize);
-               location.register:=procdefinition.funcretloc[callerside].register;
+               location.register:=retloc.register;
 {$ifdef x86}
                tcgx86(cg).inc_fpu_stack;
 {$else x86}
@@ -548,8 +549,8 @@ implementation
                  (mantis #13536).  }
                if (cnf_return_value_used in callnodeflags) then
                  begin
-                   if getsupreg(procdefinition.funcretloc[callerside].register)<first_fpu_imreg then
-                     cg.ungetcpuregister(current_asmdata.CurrAsmList,procdefinition.funcretloc[callerside].register);
+                   if getsupreg(retloc.register)<first_fpu_imreg then
+                     cg.ungetcpuregister(current_asmdata.CurrAsmList,retloc.register);
                    hregister:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
                    cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,location.size,location.size,location.register,hregister);
                    location.register:=hregister;
@@ -567,7 +568,6 @@ implementation
                     structs with up to 16 bytes are returned in registers }
                   if cgsize in [OS_128,OS_S128] then
                     begin
-                      retloc:=procdefinition.funcretloc[callerside];
                       if retloc.loc<>LOC_REGISTER then
                         internalerror(2009042001);
                       { See #13536 comment above.  }
@@ -591,7 +591,6 @@ implementation
 {$else cpu64bitaddr}
                   if cgsize in [OS_64,OS_S64] then
                     begin
-                      retloc:=procdefinition.funcretloc[callerside];
                       if retloc.loc<>LOC_REGISTER then
                         internalerror(200409141);
                       { See #13536 comment above.  }
@@ -621,8 +620,8 @@ implementation
                       { See #13536 comment above.  }
                       if (cnf_return_value_used in callnodeflags) then
                         begin
-                          if getsupreg(procdefinition.funcretloc[callerside].register)<first_int_imreg then
-                            cg.ungetcpuregister(current_asmdata.CurrAsmList,procdefinition.funcretloc[callerside].register);
+                          if getsupreg(retloc.register)<first_int_imreg then
+                            cg.ungetcpuregister(current_asmdata.CurrAsmList,retloc.register);
 
                           { but use def_size only if it returns something valid because in
                             case of odd sized structured results in registers def_cgsize(resultdef)
@@ -633,10 +632,10 @@ implementation
                             tmpcgsize:=cgsize;
 
                           location.register:=cg.getintregister(current_asmdata.CurrAsmList,tmpcgsize);
-                          cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,tmpcgsize,procdefinition.funcretloc[callerside].register,location.register);
+                          cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,tmpcgsize,retloc.register,location.register);
                         end
                       else
-                        location:=procdefinition.funcretloc[callerside];
+                        location:=retloc;
                     end;
 {$ifdef arm}
                   if (resultdef.typ=floatdef) and (current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
@@ -658,13 +657,13 @@ implementation
                if (cnf_return_value_used in callnodeflags) then
                  begin
                    location_reset(location,LOC_MMREGISTER,cgsize);
-                   if getsupreg(procdefinition.funcretloc[callerside].register)<first_mm_imreg then
-                     cg.ungetcpuregister(current_asmdata.CurrAsmList,procdefinition.funcretloc[callerside].register);
+                   if getsupreg(retloc.register)<first_mm_imreg then
+                     cg.ungetcpuregister(current_asmdata.CurrAsmList,retloc.register);
                    location.register:=cg.getmmregister(current_asmdata.CurrAsmList,cgsize);
-                   cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,procdefinition.funcretloc[callerside].register,location.register,mms_movescalar);
+                   cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,retloc.register,location.register,mms_movescalar);
                  end
                else
-                 location:=procdefinition.funcretloc[callerside];
+                 location:=retloc;
              end;
 
            else
@@ -735,8 +734,8 @@ implementation
                 end;
 {$endif x86}
            end;
-            if procdefinition.funcretloc[callerside].size<>OS_NO then
-              location_free(current_asmdata.CurrAsmList,procdefinition.funcretloc[callerside]);
+            if retloc.size<>OS_NO then
+              location_free(current_asmdata.CurrAsmList,retloc);
             location_reset(location,LOC_VOID,OS_NO);
           end;
       end;
@@ -944,16 +943,49 @@ implementation
          { Include Function result registers }
          if (not is_void(resultdef)) then
           begin
-            case procdefinition.funcretloc[callerside].loc of
+            { The forced returntype may have a different size than the one
+              declared for the procdef }
+            if not assigned(typedef) then
+              retloc:=procdefinition.funcretloc[callerside]
+            else
+              retloc:=paramanager.get_funcretloc(procdefinition,callerside,typedef);
+            case retloc.loc of
               LOC_REGISTER,
               LOC_CREGISTER:
-                include(regs_to_save_int,getsupreg(procdefinition.funcretloc[callerside].register));
+                begin
+{$ifdef cpu64bitaddr}
+                  { x86-64 system v abi:
+                    structs with up to 16 bytes are returned in registers }
+                  if retloc.size in [OS_128,OS_S128] then
+                    begin
+                      include(regs_to_save_int,getsupreg(retloc.register));
+                      include(regs_to_save_int,getsupreg(retloc.registerhi));
+                    end
+                  else
+{$else cpu64bitaddr}
+                  if retloc.size in [OS_64,OS_S64] then
+                    begin
+                      include(regs_to_save_int,getsupreg(retloc.register64.reglo));
+                      include(regs_to_save_int,getsupreg(retloc.register64.reghi));
+                    end
+                  else
+{$endif not cpu64bitaddr}
+                    include(regs_to_save_int,getsupreg(retloc.register));
+                end;
               LOC_FPUREGISTER,
               LOC_CFPUREGISTER:
-                include(regs_to_save_fpu,getsupreg(procdefinition.funcretloc[callerside].register));
+                begin
+                  include(regs_to_save_fpu,getsupreg(retloc.register));
+{$ifdef SPARC}
+                  { SPARC uses two successive single precision fpu registers
+                    for double-precision values  }
+                  if retloc.size=OS_F64 then
+                    include(regs_to_save_fpu,succ(getsupreg(retloc.register)));
+{$endif SPARC}
+                end;
               LOC_MMREGISTER,
               LOC_CMMREGISTER:
-                include(regs_to_save_mm,getsupreg(procdefinition.funcretloc[callerside].register));
+                include(regs_to_save_mm,getsupreg(retloc.register));
               LOC_REFERENCE,
               LOC_VOID:
                 ;
@@ -1145,26 +1177,32 @@ implementation
            function result }
          if (not is_void(resultdef)) then
            begin
-             case procdefinition.funcretloc[callerside].loc of
+             case retloc.loc of
                LOC_REGISTER,
                LOC_CREGISTER:
                  begin
 {$ifndef cpu64bitalu}
-                   if procdefinition.funcretloc[callerside].size in [OS_64,OS_S64] then
+                   if retloc.size in [OS_64,OS_S64] then
                      begin
-                       exclude(regs_to_save_int,getsupreg(procdefinition.funcretloc[callerside].register64.reghi));
-                       exclude(regs_to_save_int,getsupreg(procdefinition.funcretloc[callerside].register64.reglo));
+                       exclude(regs_to_save_int,getsupreg(retloc.register64.reghi));
+                       exclude(regs_to_save_int,getsupreg(retloc.register64.reglo));
                      end
-                   else
+{$else not cpu64bitalu}
+                   if retloc.size in [OS_128,OS_S128] then
+                     begin
+                       exclude(regs_to_save_int,getsupreg(retloc.register));
+                       exclude(regs_to_save_int,getsupreg(retloc.registerhi));
+                     end
 {$endif not cpu64bitalu}
-                     exclude(regs_to_save_int,getsupreg(procdefinition.funcretloc[callerside].register));
+                   else
+                     exclude(regs_to_save_int,getsupreg(retloc.register));
                  end;
                LOC_FPUREGISTER,
                LOC_CFPUREGISTER:
-                 exclude(regs_to_save_fpu,getsupreg(procdefinition.funcretloc[callerside].register));
+                 exclude(regs_to_save_fpu,getsupreg(retloc.register));
                LOC_MMREGISTER,
                LOC_CMMREGISTER:
-                 exclude(regs_to_save_mm,getsupreg(procdefinition.funcretloc[callerside].register));
+                 exclude(regs_to_save_mm,getsupreg(retloc.register));
                LOC_REFERENCE,
                LOC_VOID:
                  ;

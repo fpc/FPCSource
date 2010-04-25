@@ -29,7 +29,7 @@ unit cpupara;
     uses
        globtype,globals,
        aasmtai,aasmdata,
-       cpuinfo,cpubase,cgbase,
+       cpuinfo,cpubase,cgbase,cgutils,
        symconst,symbase,symtype,symdef,parabase,paramgr;
 
     type
@@ -52,8 +52,7 @@ unit cpupara;
     uses
        verbose,systems,
        rgobj,
-       defutil,symsym,
-       cgutils;
+       defutil,symsym;
 
 
     function tavrparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
@@ -396,30 +395,44 @@ unit cpupara;
 
         result:=create_paraloc_info_intern(p,side,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset);
 
+        create_funcretloc_info(p,side);
+     end;
+
+
+    procedure tavrparamanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
+      begin
+        p.funcretloc[side]:=get_funcretloc(p,side,p.returndef);
+      end;
+
+
+    function  tavrparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tlocation;
+      var
+        retcgsize  : tcgsize;
+      begin
         { Constructors return self instead of a boolean }
         if (p.proctypeoption=potype_constructor) then
           retcgsize:=OS_ADDR
         else
-          retcgsize:=def_cgsize(p.returndef);
+          retcgsize:=def_cgsize(def);
 
-        location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
-        p.funcretloc[side].size:=retcgsize;
+        location_reset(result,LOC_INVALID,OS_NO);
+        result.size:=retcgsize;
 
         { void has no location }
-        if is_void(p.returndef) then
+        if is_void(def) then
           begin
-            location_reset(p.funcretloc[side],LOC_VOID,OS_NO);
+            location_reset(result,LOC_VOID,OS_NO);
             exit;
           end;
         { Return is passed as var parameter }
-        if ret_in_param(p.returndef,p.proccalloption) then
+        if ret_in_param(def,p.proccalloption) then
           begin
-            p.funcretloc[side].loc:=LOC_REFERENCE;
-            p.funcretloc[side].size:=retcgsize;
+            result.loc:=LOC_REFERENCE;
+            result.size:=retcgsize;
             exit;
           end;
         { Return in FPU register? }
-        if p.returndef.typ=floatdef then
+        if def.typ=floatdef then
           begin
             if (p.proccalloption in [pocall_softfloat]) or (cs_fp_emulation in current_settings.moduleswitches) then
               begin
@@ -428,17 +441,17 @@ unit cpupara;
                   OS_F64:
                     begin
                       { low }
-                      p.funcretloc[side].loc:=LOC_REGISTER;
-                      p.funcretloc[side].register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG;
-                      p.funcretloc[side].register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG;
-                      p.funcretloc[side].size:=OS_64;
+                      result.loc:=LOC_REGISTER;
+                      result.register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG;
+                      result.register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG;
+                      result.size:=OS_64;
                     end;
                   OS_32,
                   OS_F32:
                     begin
-                      p.funcretloc[side].loc:=LOC_REGISTER;
-                      p.funcretloc[side].register:=NR_FUNCTION_RETURN_REG;
-                      p.funcretloc[side].size:=OS_32;
+                      result.loc:=LOC_REGISTER;
+                      result.register:=NR_FUNCTION_RETURN_REG;
+                      result.size:=OS_32;
                     end;
                   else
                     internalerror(2005082603);
@@ -446,8 +459,8 @@ unit cpupara;
               end
             else
               begin
-                p.funcretloc[side].loc:=LOC_FPUREGISTER;
-                p.funcretloc[side].register:=NR_FPU_RESULT_REG;
+                result.loc:=LOC_FPUREGISTER;
+                result.register:=NR_FPU_RESULT_REG;
               end;
           end
           { Return in register }
@@ -456,18 +469,18 @@ unit cpupara;
             if retcgsize in [OS_64,OS_S64] then
               begin
                 { low }
-                p.funcretloc[side].loc:=LOC_REGISTER;
-                p.funcretloc[side].register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG;
-                p.funcretloc[side].register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG;
+                result.loc:=LOC_REGISTER;
+                result.register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG;
+                result.register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG;
               end
             else
               begin
-                p.funcretloc[side].loc:=LOC_REGISTER;
-                p.funcretloc[side].register:=NR_FUNCTION_RETURN_REG;
+                result.loc:=LOC_REGISTER;
+                result.register:=NR_FUNCTION_RETURN_REG;
               end;
 
           end;
-     end;
+      end;
 
 
     function tavrparamanager.create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;

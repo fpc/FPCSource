@@ -27,7 +27,7 @@ unit cpupara;
 
     uses
       globtype,
-      cpubase,cgbase,
+      cpubase,cgbase,cgutils,
       symconst,symtype,symsym,symdef,
       aasmtai,aasmdata,
       parabase,paramgr;
@@ -48,6 +48,7 @@ unit cpupara;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
+          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tlocation;override;
        end;
 
   implementation
@@ -55,8 +56,7 @@ unit cpupara;
     uses
        cutils,verbose,
        systems,
-       defutil,
-       cgutils;
+       defutil;
 
     const
       paraintsupregs : array[0..5] of tsuperregister = (RS_RDI,RS_RSI,RS_RDX,RS_RCX,RS_R8,RS_R9);
@@ -393,6 +393,12 @@ unit cpupara;
 
 
     procedure tx86_64paramanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
+      begin
+        p.funcretloc[side]:=get_funcretloc(p,side,p.returndef);
+      end;
+
+
+    function tx86_64paramanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tlocation;
       var
         retcgsize : tcgsize;
       begin
@@ -400,38 +406,38 @@ unit cpupara;
         if (p.proctypeoption=potype_constructor) then
           retcgsize:=OS_ADDR
         else
-          retcgsize:=def_cgsize(p.returndef);
-        location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
+          retcgsize:=def_cgsize(def);
+        location_reset(result,LOC_INVALID,OS_NO);
         { void has no location }
-        if is_void(p.returndef) then
+        if is_void(def) then
           begin
-            location_reset(p.funcretloc[side],LOC_VOID,OS_NO);
+            location_reset(result,LOC_VOID,OS_NO);
             exit;
           end;
         { Return is passed as var parameter }
-        if ret_in_param(p.returndef,p.proccalloption) then
+        if ret_in_param(def,p.proccalloption) then
           begin
-            p.funcretloc[side].loc:=LOC_REFERENCE;
-            p.funcretloc[side].size:=retcgsize;
+            result.loc:=LOC_REFERENCE;
+            result.size:=retcgsize;
             exit;
           end;
         { Return in FPU register? }
-        if p.returndef.typ=floatdef then
+        if def.typ=floatdef then
           begin
-            case tfloatdef(p.returndef).floattype of
+            case tfloatdef(def).floattype of
               s32real,s64real:
                 begin
-                  p.funcretloc[side].loc:=LOC_MMREGISTER;
-                  p.funcretloc[side].register:=NR_MM_RESULT_REG;
-                  p.funcretloc[side].size:=retcgsize;
+                  result.loc:=LOC_MMREGISTER;
+                  result.register:=NR_MM_RESULT_REG;
+                  result.size:=retcgsize;
                 end;
               s64currency,
               s64comp,
               s80real:
                 begin
-                  p.funcretloc[side].loc:=LOC_FPUREGISTER;
-                  p.funcretloc[side].register:=NR_FPU_RESULT_REG;
-                  p.funcretloc[side].size:=retcgsize;
+                  result.loc:=LOC_FPUREGISTER;
+                  result.register:=NR_FPU_RESULT_REG;
+                  result.size:=retcgsize;
                 end;
               else
                 internalerror(200405034);
@@ -440,41 +446,41 @@ unit cpupara;
         else
          { Return in register }
           begin
-            p.funcretloc[side].loc:=LOC_REGISTER;
+            result.loc:=LOC_REGISTER;
             if retcgsize=OS_NO then
               begin
-                case p.returndef.size of
+                case def.size of
                   0..4:
                     begin
-                      p.funcretloc[side].size:=OS_32;
-                      p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBD);
+                      result.size:=OS_32;
+                      result.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBD);
                     end;
                   5..8:
                     begin
-                      p.funcretloc[side].size:=OS_64;
-                      p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBQ);
+                      result.size:=OS_64;
+                      result.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBQ);
                     end;
                   9..16:
                     begin
-                      p.funcretloc[side].size:=OS_128;
-                      p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBWHOLE);
-                      p.funcretloc[side].registerhi:=newreg(R_INTREGISTER,RS_RDX,R_SUBWHOLE);
+                      result.size:=OS_128;
+                      result.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBWHOLE);
+                      result.registerhi:=newreg(R_INTREGISTER,RS_RDX,R_SUBWHOLE);
                     end;
                 end;
               end
             else if retcgsize in [OS_128,OS_S128] then
               begin
-                p.funcretloc[side].size:=retcgsize;
-                p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBWHOLE);
-                p.funcretloc[side].registerhi:=newreg(R_INTREGISTER,RS_RDX,R_SUBWHOLE);                
+                result.size:=retcgsize;
+                result.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBWHOLE);
+                result.registerhi:=newreg(R_INTREGISTER,RS_RDX,R_SUBWHOLE);
               end
             else
               begin
-                p.funcretloc[side].size:=retcgsize;
+                result.size:=retcgsize;
                 if side=callerside then
-                  p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
+                  result.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
                 else
-                  p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
+                  result.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
               end;
           end;
       end;
