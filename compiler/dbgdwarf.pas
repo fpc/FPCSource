@@ -1853,6 +1853,7 @@ implementation
       var
         elesize : pint;
         currdef : tdef;
+        indirection: boolean;
       begin
         result:=false;
         if not assigned(symlist) then
@@ -1860,6 +1861,7 @@ implementation
         sym:=nil;
         offset:=0;
         currdef:=nil;
+        indirection:=false;
         repeat
           case symlist^.sltype of
             sl_load:
@@ -1871,6 +1873,9 @@ implementation
                   exit;
                 sym:=tabstractvarsym(symlist^.sym);
                 currdef:=tabstractvarsym(sym).vardef;
+                if ((sym.typ=paravarsym) and
+                    paramanager.push_addr_param(tparavarsym(sym).varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption)) then
+                  indirection:=true;
               end;
             sl_subscript:
               begin
@@ -1878,6 +1883,9 @@ implementation
                   internalerror(2009031301);
                 if (symlist^.sym.typ<>fieldvarsym) then
                   internalerror(2009031202);
+                { can't handle offsets with indirections yet }
+                if indirection then
+                  exit;
                 if is_packed_record_or_object(currdef) then
                   begin
                     { can't calculate the address of a non-byte aligned field }
@@ -1900,6 +1908,9 @@ implementation
                 if not assigned(currdef) or
                    (currdef.typ<>arraydef) then
                   internalerror(2009031201);
+                { can't handle offsets with indirections yet }
+                if indirection then
+                  exit;
                 if not is_packed_array(currdef) then
                   elesize:=tarraydef(currdef).elesize
                 else
@@ -2380,10 +2391,12 @@ implementation
           tovar:
             begin
               symlist:=tabsolutevarsym(sym).ref.firstsym;
-              get_symlist_sym_offset(symlist,tosym,offset);
-              if (tosym.typ=fieldvarsym) then
-                internalerror(2009031402);
-              appendsym_var_with_name_type_offset(list,tabstractnormalvarsym(tosym),symname(sym),tabstractvarsym(sym).vardef,offset,false);
+              if get_symlist_sym_offset(symlist,tosym,offset) then
+                begin
+                  if (tosym.typ=fieldvarsym) then
+                    internalerror(2009031402);
+                  appendsym_var_with_name_type_offset(list,tabstractnormalvarsym(tosym),symname(sym),tabstractvarsym(sym).vardef,offset,false);
+                end;
               templist.free;
               exit;
             end;
@@ -2794,7 +2807,15 @@ implementation
       begin
         if (sym.typ=paravarsym) and
            (vo_is_self in tparavarsym(sym).varoptions) then
-          result:='this'
+          { We use 'this' for regular methods because that's what gdb triggers
+            on to automatically search fields. Don't do this for class methods,
+            because search class fields is not supported, and gdb 7.0+ fails
+            in this case because "this" is not a record in that case (it's a
+            pointer to a vmt) }
+          if not(po_classmethod in tabstractprocdef(sym.owner.defowner).procoptions) then
+            result:='this'
+          else
+            result:='self'
         else if (ds_dwarf_method_class_prefix in current_settings.debugswitches) and
                 (sym.typ=procsym) and
                 (tprocsym(sym).owner.symtabletype=objectsymtable) then
