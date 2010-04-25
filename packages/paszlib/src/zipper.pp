@@ -1459,6 +1459,7 @@ Procedure TZipper.ZipFiles(AFileName : String; FileList : TStrings);
 
 begin
   FFileName:=AFileName;
+  ZipFiles(FileList);
 end;
 
 procedure TZipper.ZipFiles(FileList: TStrings);
