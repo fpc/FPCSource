@@ -125,6 +125,7 @@ var
 begin
   // Load default compiler config
   S:=GlobalOptions.CompilerConfigDir+GlobalOptions.CompilerConfig;
+  CompilerOptions.UpdateLocalRepositoryOption;
   if FileExists(S) then
     begin
       pkgglobals.Log(vlDebug,SLogLoadingCompilerConfig,[S]);
@@ -148,6 +149,7 @@ begin
   CompilerOptions.LogValues('');
   // Load FPMake compiler config, this is normally the same config as above
   S:=GlobalOptions.CompilerConfigDir+GlobalOptions.FPMakeCompilerConfig;
+  FPMakeCompilerOptions.UpdateLocalRepositoryOption;
   if FileExists(S) then
     begin
       pkgglobals.Log(vlDebug,SLogLoadingFPMakeCompilerConfig,[S]);

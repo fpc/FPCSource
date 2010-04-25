@@ -107,10 +107,11 @@ Type
     Procedure LoadCompilerFromFile(const AFileName : String);
     Procedure SaveCompilerToFile(const AFileName : String);
     procedure LogValues(const ACfgName:string);
-    Property Dirty : Boolean Read FDirty;
-    Property ConfigVersion : Integer read FConfigVersion;
+    procedure UpdateLocalRepositoryOption;
     Function LocalUnitDir:string;
     Function GlobalUnitDir:string;
+    Property Dirty : Boolean Read FDirty;
+    Property ConfigVersion : Integer read FConfigVersion;
   Published
     Property Compiler : String Index 1 Read GetOptString Write SetOptString;
     Property CompilerTarget : String Index 2 Read GetOptString Write SetOptString;
@@ -390,7 +391,6 @@ begin
   FOptionParser := TTemplateParser.Create;
   FOptionParser.Values['AppConfigDir'] := GetAppConfigDir(false);
   FOptionParser.Values['UserDir'] := GetUserDir;
-  FOptionParser.Values['LocalRepository'] := GlobalOptions.LocalRepository;
 end;
 
 destructor TCompilerOptions.Destroy;
@@ -436,6 +436,12 @@ begin
     exit;
   FCompilerCPU:=AValue;
   FDirty:=True;
+end;
+
+
+procedure TCompilerOptions.UpdateLocalRepositoryOption;
+begin
+  FOptionParser.Values['LocalRepository'] := GlobalOptions.LocalRepository;
 end;
 
 
