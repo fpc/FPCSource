@@ -106,7 +106,7 @@ ifeq ($(wildcard $(GDBLIBDIR)/libmingw32.a),)
 	@$(ECHO) Using GDB $(GDBVER)
         $(COMPILER) -d$(GDBVER) $(GDBLIBINCCOND) -Fisrc -Fusrc src/gdbint.pp
 else
-	@$(ECHO) Using GDB $(GDBVER) (MingW)
+	@$(ECHO) Using GDB $(GDBVER) \(MingW\)
 	$(COMPILER) -d$(GDBVER) $(GDBLIBINCCOND) -dUSE_MINGW_GDB -Fisrc -Fusrc src/gdbint.pp
 endif
 	$(DEL) gdbver$(EXEEXT) gdbver$(OEXT)
