@@ -2758,6 +2758,16 @@ begin
   try
     TPasClassType(Result).ObjKind := AObjKind;
 
+    // nettism/new delphi features
+    if (CurToken = tkIdentifier) and (AObjKind = okClass) then begin
+      s := LowerCase(CurTokenString);
+      if (s = 'sealed') or (s = 'abstract') then begin
+        TPasClassType(Result).Modifiers.Add(s);
+        NextToken;
+      end else
+        ExpectToken(tkSemicolon);
+    end;
+
     // Parse ancestor list
     if CurToken = tkBraceOpen then
     begin
@@ -2833,6 +2843,9 @@ begin
               TPasClassType(Result).Members.Add(Element);
               ParseProperty(Element);
             end;
+          tkVar: // vars (nettism/new delphi features)
+            if AObjKind<>okClass then ExpectToken(tkSemicolon);
+          //todo: class vars
         end; // end case
         NextToken;
       end;

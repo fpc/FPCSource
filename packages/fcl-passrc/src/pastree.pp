@@ -349,6 +349,9 @@ type
     IsForward : Boolean;
     Members: TList;     // array of TPasElement objects
     InterfaceGUID : string; // 15/06/07 - Inoussa
+
+    ClassVars: TList;   // class vars
+    Modifiers: TStringList;
   end;
 
   TArgumentAccess = (argDefault, argConst, argVar, argOut);
@@ -1170,6 +1173,8 @@ begin
   inherited Create(AName, AParent);
   IsPacked := False;                     // 12/04/04 - Dave - Added
   Members := TList.Create;
+  Modifiers := TStringList.Create;
+  ClassVars := TList.Create;
 end;
 
 destructor TPasClassType.Destroy;
@@ -1181,6 +1186,8 @@ begin
   Members.Free;
   if Assigned(AncestorType) then
     AncestorType.Release;
+  Modifiers.Free;
+  ClassVars.Free;
   inherited Destroy;
 end;
 
