@@ -30,7 +30,6 @@ begin
       AddInclude('SAX2.inc');
       AddInclude('xmlversion.inc');
       AddInclude('globals.inc');
-      AddInclude('xmlexports.inc');
       AddInclude('nanoftp.inc');
       AddInclude('SAX.inc');
       AddInclude('uri.inc');
@@ -71,6 +70,9 @@ begin
       AddInclude('c14n.inc');
       AddInclude('schematron.inc');
     end;
+
+  T:=P.Targets.AddUnit('xmlxsd.pas');
+  T.ResourceStrings := True;
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('reader1.pas');

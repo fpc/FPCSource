@@ -19,16 +19,9 @@ begin
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
+    P.Dependencies.Add('gtk2');
 
   T:=P.Targets.AddUnit('rsvg.pas');
-  with T.Dependencies do
-    begin
-    end;
-
-    // 'Makefile
-    // 'Makefile.fpc
-    // 'test1.xml
-    // 'test2.xml
 
 {$ifndef ALLPACKAGES}
     Run;
