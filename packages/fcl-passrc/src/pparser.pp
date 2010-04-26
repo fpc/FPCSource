@@ -2733,7 +2733,10 @@ var
   i, SourceLinenumber: Integer;
   VarList: TList;
   Element: TPasElement;
+  isStrict: Boolean;
 begin
+  isStrict:=False;
+
   // Save current parsing position to get it correct in all cases
   SourceFilename := Scanner.CurFilename;
   SourceLinenumber := Scanner.CurRow;
@@ -2802,6 +2805,15 @@ begin
           tkIdentifier:
             begin
               s := LowerCase(CurTokenString);
+              if s = 'strict' then
+              begin
+                isStrict:=True;
+                NextToken;
+                s := LowerCase(CurTokenString);
+              end
+              else
+                isStrict:=False;
+
               if s = 'private' then
                 CurVisibility := visPrivate
               else if s = 'protected' then
@@ -2827,6 +2839,16 @@ begin
                   VarList.Free;
                 end;
               end;
+              if isStrict then
+              begin
+                case CurVisibility of
+                  visPrivate   : CurVisibility:=visStrictPrivate;
+                  visProtected : CurVisibility:=visStrictProtected;
+                else
+                  ParseExc('strange strict visiblity');
+                end;
+              end;
+
             end;
           tkProcedure:
             ProcessMethod('procedure', False);

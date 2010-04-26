@@ -78,7 +78,8 @@ type
   TPasModule = class;
 
   TPasMemberVisibility = (visDefault, visPrivate, visProtected, visPublic,
-    visPublished, visAutomated);
+    visPublished, visAutomated,
+    visStrictPrivate, visStrictProtected);
 
   TCallingConvention = (ccDefault,ccRegister,ccPascal,ccCDecl,ccStdCall,ccOldFPCCall,ccSafeCall);
 
@@ -847,7 +848,7 @@ const
       visPublished, visAutomated];
 
   VisibilityNames: array[TPasMemberVisibility] of string = (
-    'default', 'private', 'protected', 'public', 'published', 'automated');
+    'default', 'private', 'protected', 'public', 'published', 'automated','strict private', 'strict protected');
 
   ObjKindNames: array[TPasObjKind] of string = (
     'object', 'class', 'interface');
