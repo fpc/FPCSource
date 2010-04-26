@@ -1128,6 +1128,13 @@ begin
     ASection.UsesList.Add(Element);
 
     NextToken;
+
+    if CurToken = tkin then begin
+      // todo: store unit's file name somewhere
+      NextToken; // skip in
+      ExpectToken(tkString); // skip unit's real file name
+    end;
+
     if CurToken = tkSemicolon then
       break
     else if CurToken <> tkComma then
