@@ -48,7 +48,10 @@ const
     { the difference to stdcall is only the name mangling }
     pocall_cdecl,
     { the difference to stdcall is only the name mangling }
-    pocall_cppdecl
+    pocall_cppdecl,
+    { the difference with stdcall is that all const record
+      parameters are passed by reference }
+    pocall_mwpascal
     ];
 
   cputypestr: array[tcputype] of string[10] = ('',

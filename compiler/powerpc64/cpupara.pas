@@ -173,10 +173,11 @@ begin
     recorddef:
       result :=
         ((varspez = vs_const) and
-        (
-         (not (calloption in [pocall_cdecl, pocall_cppdecl]) and
-         (def.size > 8))
-        )
+         (
+          (not (calloption in [pocall_cdecl, pocall_cppdecl]) and
+          (def.size > 8))
+         ) or
+         (calloption = pocall_mwpascal)
         );
     arraydef:
       result := (tarraydef(def).highrange >= tarraydef(def).lowrange) or
