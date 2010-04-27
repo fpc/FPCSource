@@ -2096,4 +2096,8 @@ fpcfg.inc : fpinc.cfg
 	$(DATA2INC) -b -s fpinc.cfg fpcfg.inc fpcfg
 fpini.inc : fpinc.ini
 	$(DATA2INC) -b -s fpinc.ini fpini.inc fpini
+fppkg.inc : fppkg.cfg
+	$(DATA2INC) -b -s fppkg.cfg fppkg.inc fppkg
+default.inc : default.cft
+	$(DATA2INC) -b -s default.cft default.inc fppkg_default
 endif

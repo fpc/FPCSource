@@ -24,11 +24,15 @@ uses SysUtils,Classes,fpTemplate;
   data2inc -b -s fpc.cft fpccfg.inc DefaultConfig
   data2inc -b -s fpinc.ini fpini.inc fpini
   data2inc -b -s fpinc.cfg fpcfg.inc fpcfg
+  data2inc -b -s fppkg.cfg fppkg.inc fppkg
+  data2inc -b -s default.cft default.inc fppkg_default
 }
 
 {$i fpccfg.inc}
 {$i fpini.inc}
 {$i fpcfg.inc}
+{$i fppkg.inc}
+{$i default.inc}
 
 Const
   BuildVersion={$I %FPCVERSION%};
@@ -50,6 +54,8 @@ Resourcestring
   Susage100 = '  -0            use built in fpc.cfg template (default)';
   Susage110 = '  -1            use built in fp.cfg template';
   Susage120 = '  -2            use built in fp.ini template';
+  Susage130 = '  -3            use built in fppkg.cfg template';
+  Susage140 = '  -4            use built in fppkg default compiler template';
   SErrUnknownOption   = 'Error: Unknown option.';
   SErrArgExpected     = 'Error: Option "%s" requires an argument.';
   SErrIncompletePair  = 'Error: Incomplete name-value pair "%s".';
@@ -71,6 +77,15 @@ Var
   OutputFileName : String;
   IDEBuildin : Integer;
 
+function GetDefaultLocalRepository: string;
+
+begin
+{$IFDEF Unix}
+  result := '{UserDir}.fppkg'+PathDelim;
+{$ELSE Unix}
+  result := '{AppConfigDir}';
+{$ENDIF Unix}
+end;
 
 procedure Init;
 
@@ -87,6 +102,8 @@ begin
   TemplateParser.Values['PWD'] := GetCurrentDir;
   TemplateParser.Values['BUILDDATE'] := DateToStr(Date);
   TemplateParser.Values['BUILDTIME'] := TimeToStr(Time);
+
+  TemplateParser.Values['LOCALREPOSITORY'] := GetDefaultLocalRepository;
 
   Cfg:=TStringList.Create;
   Cfg.Text:=StrPas(Addr(DefaultConfig[0][1]));
@@ -115,6 +132,8 @@ begin
   Writeln(SUsage100);
   Writeln(SUsage110);
   Writeln(SUsage120);
+  Writeln(SUsage130);
+  Writeln(SUsage140);
   Halt(1);
 end;
 
@@ -194,6 +213,8 @@ begin
         '0' : IDEBuildin:=0;
         '1' : IDEBuildin:=1;
         '2' : IDEBuildin:=2;
+        '3' : IDEBuildin:=3;
+        '4' : IDEBuildin:=4;
       else
         UnknownOption(S);
       end;
@@ -216,6 +237,10 @@ begin
            Cfg.Text:=StrPas(Addr(fpcfg[0][1]));
         2:
            Cfg.Text:=StrPas(Addr(fpini[0][1]));
+        3:
+           Cfg.Text:=StrPas(Addr(fppkg[0][1]));
+        4:
+           Cfg.Text:=StrPas(Addr(fppkg_default[0][1]));
       end;
 
     TemplateParser.Values['TEMPLATEFILE'] := 'builtin';
