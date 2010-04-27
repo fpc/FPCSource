@@ -64,6 +64,7 @@ Type
     function GetValue(Key : String): String;
     procedure SetDelimiter(Index: integer; const AValue: TParseDelimiter);
     procedure SetValue(Key : String; const AValue: String);
+    Function IntParseString(Src : String) : String;
   Public
     Constructor Create;
     Destructor Destroy; override;
@@ -290,7 +291,7 @@ begin
       FOnGetParam(Self,Key,AValue);
     end;
   If Result and Recursive then
-    AValue:=ParseString(AValue);
+    AValue:=IntParseString(AValue);
 end;
 
 function TTemplateParser.ReplaceTag(const Key: String; TagParams:TStringList; out ReplaceWith: String): Boolean;
@@ -405,6 +406,12 @@ begin
 end;
 
 function TTemplateParser.ParseString(Src: String): String;
+begin
+  FParseLevel:=0;
+  Result:=IntParseString(Src);
+end;
+
+function TTemplateParser.IntParseString(Src: String): String;
 
 Var
   PN,PV,ReplaceWith : String;
@@ -529,7 +536,6 @@ begin
   Finally
     SS.Free;
   end;
-  FParseLevel := 0;
   R:=ParseString(S);
   Result:=Length(R);
   If (Result>0) then
@@ -543,10 +549,7 @@ Var
 
 begin
   For I:=0 to Src.Count-1 do
-  begin
-    FParseLevel := 0;
     Dest.Add(ParseString(Src[i]));
-  end;
 end;
 
 { TFPCustomTemplate }
@@ -619,7 +622,7 @@ begin
           Result:=S.DataString;
           end
         else
-          Result:=P.ParseString(FTemplate);
+          Result:=P.IntParseString(FTemplate);
       Finally
         P.Free;
       end;
