@@ -447,556 +447,7 @@ endif
 ifeq ($(FULL_TARGET),mipsel-linux)
 override TARGET_PROGRAMS+=fpcmkcfg
 endif
-ifeq ($(FULL_TARGET),i386-linux)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-haiku)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),i386-nativent)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),arm-darwin)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),avr-embedded)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),armeb-linux)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),armeb-embedded)
-override CLEAN_UNITS+=usubst
-endif
-ifeq ($(FULL_TARGET),mipsel-linux)
-override CLEAN_UNITS+=usubst
-endif
 override INSTALL_FPCPACKAGE=y
-ifeq ($(FULL_TARGET),i386-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-haiku)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-nativent)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),arm-darwin)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),avr-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),armeb-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),armeb-embedded)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),mipsel-linux)
-override COMPILER_UNITDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-linux)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-go32v2)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-win32)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-os2)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-freebsd)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-beos)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-haiku)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-netbsd)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-solaris)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-qnx)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-netware)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-openbsd)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-wdosx)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-darwin)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-emx)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-watcom)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-netwlibc)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-wince)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-embedded)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-symbian)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),i386-nativent)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),m68k-linux)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),m68k-freebsd)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),m68k-netbsd)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),m68k-amiga)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),m68k-atari)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),m68k-openbsd)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),m68k-palmos)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),m68k-embedded)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc-linux)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc-netbsd)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc-amiga)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc-macos)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc-darwin)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc-morphos)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc-embedded)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),sparc-linux)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),sparc-netbsd)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),sparc-solaris)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),sparc-embedded)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),x86_64-linux)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),x86_64-freebsd)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),x86_64-solaris)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),x86_64-darwin)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),x86_64-win64)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),x86_64-embedded)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),arm-linux)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),arm-palmos)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),arm-darwin)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),arm-wince)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),arm-gba)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),arm-nds)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),arm-embedded)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),arm-symbian)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc64-linux)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc64-darwin)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),powerpc64-embedded)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),avr-embedded)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),armeb-linux)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),armeb-embedded)
-override COMPILER_SOURCEDIR+=..
-endif
-ifeq ($(FULL_TARGET),mipsel-linux)
-override COMPILER_SOURCEDIR+=..
-endif
 override SHARED_BUILD=n
 override SHARED_BUILD=n
 ifdef REQUIRE_UNITSDIR
@@ -1769,189 +1220,255 @@ else
 TAROPT=vz
 TAREXT=.tar.gz
 endif
-override REQUIRE_PACKAGES=rtl 
+override REQUIRE_PACKAGES=rtl fcl-base
 ifeq ($(FULL_TARGET),i386-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-go32v2)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-os2)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-freebsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-beos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-haiku)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-solaris)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-qnx)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-netware)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-openbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-wdosx)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_UNIVINT=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-emx)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-watcom)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-netwlibc)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-wince)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-symbian)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),i386-nativent)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-amiga)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-atari)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-openbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-palmos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),m68k-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-amiga)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-macos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_UNIVINT=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-morphos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),sparc-solaris)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),sparc-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-solaris)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_UNIVINT=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-win64)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),x86_64-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-palmos)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_UNIVINT=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-wince)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-gba)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-nds)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),arm-symbian)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_UNIVINT=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),powerpc64-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),avr-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),armeb-embedded)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
 REQUIRE_PACKAGES_RTL=1
+REQUIRE_PACKAGES_FCL-BASE=1
 endif
 ifdef REQUIRE_PACKAGES_RTL
 PACKAGEDIR_RTL:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /rtl/Makefile.fpc,$(PACKAGESDIR))))))
@@ -1977,6 +1494,58 @@ endif
 endif
 ifdef UNITDIR_RTL
 override COMPILER_UNITDIR+=$(UNITDIR_RTL)
+endif
+endif
+ifdef REQUIRE_PACKAGES_FCL-BASE
+PACKAGEDIR_FCL-BASE:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /fcl-base/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_FCL-BASE),)
+ifneq ($(wildcard $(PACKAGEDIR_FCL-BASE)/units/$(TARGETSUFFIX)),)
+UNITDIR_FCL-BASE=$(PACKAGEDIR_FCL-BASE)/units/$(TARGETSUFFIX)
+else
+UNITDIR_FCL-BASE=$(PACKAGEDIR_FCL-BASE)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_FCL-BASE)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_FCL-BASE) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_FCL-BASE)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_FCL-BASE=
+UNITDIR_FCL-BASE:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /fcl-base/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_FCL-BASE),)
+UNITDIR_FCL-BASE:=$(firstword $(UNITDIR_FCL-BASE))
+else
+UNITDIR_FCL-BASE=
+endif
+endif
+ifdef UNITDIR_FCL-BASE
+override COMPILER_UNITDIR+=$(UNITDIR_FCL-BASE)
+endif
+endif
+ifdef REQUIRE_PACKAGES_UNIVINT
+PACKAGEDIR_UNIVINT:=$(firstword $(subst /Makefile.fpc,,$(strip $(wildcard $(addsuffix /univint/Makefile.fpc,$(PACKAGESDIR))))))
+ifneq ($(PACKAGEDIR_UNIVINT),)
+ifneq ($(wildcard $(PACKAGEDIR_UNIVINT)/units/$(TARGETSUFFIX)),)
+UNITDIR_UNIVINT=$(PACKAGEDIR_UNIVINT)/units/$(TARGETSUFFIX)
+else
+UNITDIR_UNIVINT=$(PACKAGEDIR_UNIVINT)
+endif
+ifdef CHECKDEPEND
+$(PACKAGEDIR_UNIVINT)/$(FPCMADE):
+	$(MAKE) -C $(PACKAGEDIR_UNIVINT) $(FPCMADE)
+override ALLDEPENDENCIES+=$(PACKAGEDIR_UNIVINT)/$(FPCMADE)
+endif
+else
+PACKAGEDIR_UNIVINT=
+UNITDIR_UNIVINT:=$(subst /Package.fpc,,$(strip $(wildcard $(addsuffix /univint/Package.fpc,$(UNITSDIR)))))
+ifneq ($(UNITDIR_UNIVINT),)
+UNITDIR_UNIVINT:=$(firstword $(UNITDIR_UNIVINT))
+else
+UNITDIR_UNIVINT=
+endif
+endif
+ifdef UNITDIR_UNIVINT
+override COMPILER_UNITDIR+=$(UNITDIR_UNIVINT)
 endif
 endif
 ifndef NOCPUDEF
@@ -2485,6 +2054,15 @@ DATA2INC:=$(firstword $(DATA2INC))
 endif
 endif
 export DATA2INC
+ifndef DATA2INC
+DATA2INC:=$(strip $(wildcard $(addsuffix /data2inc$(SRCEXEEXT),$(SEARCHPATH))))
+ifeq ($(DATA2INC),)
+DATA2INC= __missing_command_DATA2INC
+else
+DATA2INC:=$(firstword $(DATA2INC))
+endif
+endif
+export DATA2INC
 all: fpc_all
 debug: fpc_debug
 smart: fpc_smart
@@ -2510,7 +2088,7 @@ ifneq ($(wildcard fpcmake.loc),)
 include fpcmake.loc
 endif
 .NOTPARALLEL:
-fpcmkcfg$(EXEEXT): fpcmkcfg.pp usubst.pp fpccfg.inc fpcfg.inc fpini.inc
+fpcmkcfg$(EXEEXT): fpcmkcfg.pp fpccfg.inc fpcfg.inc fpini.inc
 ifneq ($(DATA2INC),)
 fpccfg.inc: fpc.cft
 	$(DATA2INC) -b -s fpc.cft fpccfg.inc DefaultConfig

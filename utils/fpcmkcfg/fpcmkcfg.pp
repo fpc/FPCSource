@@ -16,7 +16,7 @@
  **********************************************************************}
 program fpcmkcfg;
 
-uses usubst,SysUtils,Classes;
+uses SysUtils,Classes,fpTemplate;
 
 {
   The inc files must be built from a template with the data2inc
@@ -44,7 +44,7 @@ Resourcestring
   SUsage40  = '  -d name=value define name=value pair.';
   SUsage50  = '  -h            show this help and exit.';
   SUsage60  = '  -u name       remove name from list of name/value pairs.';
-  SUsage70  = '  -l filename   read name/value pairs from filename';
+//  SUsage70  = '  -l filename   read name/value pairs from filename';
   SUsage80  = '  -b            show builtin template and exit.';
   SUsage90  = '  -v            be verbose.';
   Susage100 = '  -0            use built in fpc.cfg template (default)';
@@ -52,6 +52,7 @@ Resourcestring
   Susage120 = '  -2            use built in fp.ini template';
   SErrUnknownOption   = 'Error: Unknown option.';
   SErrArgExpected     = 'Error: Option "%s" requires an argument.';
+  SErrIncompletePair  = 'Error: Incomplete name-value pair "%s".';
   SErrNoSuchFile      = 'Error: File "%s" does not exist.';
   SErrBackupFailed    = 'Error: Backup of file "%s" to "%s" failed.';
   SErrDelBackupFailed = 'Error: Delete of old backup file "%s" failed.';
@@ -64,7 +65,8 @@ Resourcestring
 Var
   Verbose : Boolean;
   SkipBackup : Boolean;
-  List,Cfg : TStringList;
+  Cfg : TStringList;
+  TemplateParser: TTemplateParser;
   TemplateFileName,
   OutputFileName : String;
   IDEBuildin : Integer;
@@ -75,13 +77,17 @@ procedure Init;
 begin
   Verbose:=False;
   IDEBuildIn:=0;
-  List:=TStringList.Create;
-  AddToList(List,'FPCVERSION',BuildVersion);
-  AddToList(List,'FPCTARGET',BuildTarget);
-  AddToList(List,'FPCTARGETOS',BuildOSTarget);
-  AddToList(List,'PWD',GetCurrentDir);
-  AddToList(List,'BUILDDATE',DateToStr(Date));
-  AddToList(List,'BUILDTIME',TimeToStr(Time));
+
+  TemplateParser := TTemplateParser.Create;
+  TemplateParser.StartDelimiter:='%';
+  TemplateParser.EndDelimiter:='%';
+  TemplateParser.Values['FPCVERSION'] := BuildVersion;
+  TemplateParser.Values['FPCTARGET'] := BuildTarget;
+  TemplateParser.Values['FPCTARGETOS'] := BuildOSTarget;
+  TemplateParser.Values['PWD'] := GetCurrentDir;
+  TemplateParser.Values['BUILDDATE'] := DateToStr(Date);
+  TemplateParser.Values['BUILDTIME'] := TimeToStr(Time);
+
   Cfg:=TStringList.Create;
   Cfg.Text:=StrPas(Addr(DefaultConfig[0][1]));
 end;
@@ -89,8 +95,8 @@ end;
 Procedure Done;
 
 begin
-  FreeAndNil(List);
   FreeAndNil(Cfg);
+  FreeAndNil(TemplateParser);
 end;
 
 Procedure Usage;
@@ -103,7 +109,7 @@ begin
   Writeln(SUsage40);
   Writeln(SUsage50);
   Writeln(SUsage60);
-  Writeln(SUsage70);
+//  Writeln(SUsage70);
   Writeln(SUsage80);
   Writeln(SUsage90);
   Writeln(SUsage100);
@@ -149,6 +155,22 @@ Var
     Result:=ParamStr(I);
   end;
 
+  procedure AddPair(const Value: String);
+  var P: integer;
+      N,V: String;
+  begin
+    P:=Pos('=',Value);
+    If p=0 then
+      begin
+      Writeln(StdErr,Format(SErrIncompletePair,[Value]));
+      Halt(1);
+      end;
+    V:=Value;
+    N:=Copy(V,1,P-1);
+    Delete(V,1,P);
+    TemplateParser.Values[N] := V;
+  end;
+
 begin
   I:=1;
   While( I<=ParamCount) do
@@ -165,8 +187,8 @@ begin
               halt(0);
               end;
         't' : TemplateFileName:=GetOptArg;
-        'd' : AddPair(List,GetOptArg);
-        'u' : AddPair(List,GetOptArg+'=');
+        'd' : AddPair(GetOptArg);
+        'u' : TemplateParser.Values[GetOptArg]:='';
         'o' : OutputFileName:=GetoptArg;
         's' : SkipBackup:=True;
         '0' : IDEBuildin:=0;
@@ -185,7 +207,7 @@ begin
       Halt(1);
       end;
     Cfg.LoadFromFile(TemplateFileName);
-    AddToList(List,'TEMPLATEFILE',TemplateFileName);
+    TemplateParser.Values['TEMPLATEFILE'] := TemplateFileName;
     end
   else
     begin
@@ -196,7 +218,7 @@ begin
            Cfg.Text:=StrPas(Addr(fpini[0][1]));
       end;
 
-      AddToList(List,'TEMPLATEFILE','builtin');
+    TemplateParser.Values['TEMPLATEFILE'] := 'builtin';
     end;
 end;
 
@@ -206,7 +228,7 @@ Procedure CreateFile;
 Var
   Fout : Text;
   S,BFN : String;
-  I,RCount : INteger;
+  I : Integer;
 
 begin
   If (OutputFileName<>'')
@@ -228,15 +250,12 @@ begin
   Assign(Fout,OutputFileName);
   Rewrite(FOut);
   Try
-    RCount:=0;
     For I:=0 to Cfg.Count-1 do
       begin
       S:=Cfg[i];
-      Inc(RCount,DoSubstitutions(List,S));
+      S := TemplateParser.ParseString(S);
       Writeln(FOut,S);
       end;
-    If Verbose then
-      Writeln(StdErr,Format(SStats,[RCount,Cfg.Count]));
   Finally
     Close(Fout);
   end;

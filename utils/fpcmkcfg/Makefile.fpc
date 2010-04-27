@@ -6,17 +6,12 @@
 programs=fpcmkcfg
 rst=fpcmkcfg
 
-[clean]
-units=usubst
-
-[compiler]
-unitdir=..
-sourcedir=..
-
 [install]
 fpcpackage=y
 
 [require]
+tools=data2inc
+packages=fcl-base
 tools=data2inc
 
 [default]
@@ -34,7 +29,7 @@ build=n
 # due to overwriting each other's link.res file
 .NOTPARALLEL:
 
-fpcmkcfg$(EXEEXT): fpcmkcfg.pp usubst.pp fpccfg.inc fpcfg.inc fpini.inc
+fpcmkcfg$(EXEEXT): fpcmkcfg.pp fpccfg.inc fpcfg.inc fpini.inc
 
 ifneq ($(DATA2INC),)
 fpccfg.inc: fpc.cft

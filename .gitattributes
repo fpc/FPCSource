@@ -11321,7 +11321,6 @@ utils/fpcmkcfg/fpcmkcfg.pp svneol=native#text/plain
 utils/fpcmkcfg/fpinc.cfg svneol=native#text/plain
 utils/fpcmkcfg/fpinc.ini svneol=native#text/plain
 utils/fpcmkcfg/fpini.inc svneol=native#text/plain
-utils/fpcmkcfg/usubst.pp svneol=native#text/plain
 utils/fpcres/Makefile svneol=native#text/plain
 utils/fpcres/Makefile.fpc svneol=native#text/plain
 utils/fpcres/closablefilestream.pas svneol=native#text/plain
