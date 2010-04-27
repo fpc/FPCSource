@@ -1,13 +1,13 @@
 #
-#   Makefile.fpc for Free Pascal Compiler Utils
+#   Makefile.fpc for fpcmkcfg
 #
 
 [target]
-programs=fpc ppufiles ppudump ppumove fpcsubst mkarmins mkx86ins
-rst=fpcsubst
+programs=fpcmkcfg
+rst=fpcmkcfg
 
 [clean]
-units=ppu crc usubst
+units=usubst
 
 [compiler]
 unitdir=..
@@ -34,20 +34,6 @@ build=n
 # due to overwriting each other's link.res file
 .NOTPARALLEL:
 
-ppu$(PPUEXT): ppu.pas
-
-ppufiles$(EXEEXT): ppufiles.pp ppu$(PPUEXT)
-
-
-ppudump$(EXEEXT): ppudump.pp ppu$(PPUEXT)
-        $(COMPILER) ppudump.pp -Fu../$(CPU_TARGET) -Fi..
-
-ppumove$(EXEEXT): ppumove.pp ppu$(PPUEXT)
-
-msg2inc$(EXEEXT): $(COMPILER_UNITTARGETDIR) msg2inc.pp
-
-fpcsubst$(EXEEXT): fpcsubst.pp usubst.pp
-
 fpcmkcfg$(EXEEXT): fpcmkcfg.pp usubst.pp fpccfg.inc fpcfg.inc fpini.inc
 
 ifneq ($(DATA2INC),)
@@ -61,9 +47,3 @@ fpini.inc : fpinc.ini
         $(DATA2INC) -b -s fpinc.ini fpini.inc fpini
 endif
 
-#
-# Don't export some tools, which are found in the current dir if it's in
-# the path, so are not valid for the subdirs
-#
-
-unexport PPUFILES PPUMOVE
