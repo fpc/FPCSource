@@ -492,6 +492,7 @@ begin
       else
         begin
         I:=TS-P;
+        inc(TS,Length(FStartDelimiter));
         TE:=FindDelimiter(TS,FEndDelimiter,SLen-I+1);
         If (TE=Nil) then
           begin
@@ -503,7 +504,6 @@ begin
           // Add text prior to template to result
           AddToString(Result,P,I);
           // retrieve template name
-          inc(TS,Length(FStartDelimiter));
           I:=TE-TS;
           Setlength(PN,I);
           Move(TS^,PN[1],I);
