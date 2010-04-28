@@ -1137,7 +1137,7 @@ begin
                        end;
                      end;
           ppFrom   : begin
-                     if (s = 'WHERE') or (s = 'ORDER') or (s = 'GROUP') or (CurrentP^=#0) or (CurrentP^=';') then
+                     if (s = 'WHERE') or (s = 'ORDER') or (s = 'GROUP') or (s = 'LIMIT') or (CurrentP^=#0) or (CurrentP^=';') then
                        begin
                        if (s = 'WHERE') then
                          begin
@@ -1152,6 +1152,11 @@ begin
                        else if (s = 'ORDER') then
                          begin
                          ParsePart := ppOrder;
+                         StrLength := PhraseP-PStatementPart
+                         end
+                       else if (s = 'LIMIT') then
+                         begin
+                         ParsePart := ppBogus;
                          StrLength := PhraseP-PStatementPart
                          end
                        else
@@ -1180,11 +1185,11 @@ begin
                        end;
                      end;
           ppWhere  : begin
-                     if (s = 'ORDER') or (s = 'GROUP') or (CurrentP^=#0) or (CurrentP^=';') then
+                     if (s = 'ORDER') or (s = 'GROUP') or (s = 'LIMIT') or (CurrentP^=#0) or (CurrentP^=';') then
                        begin
                        ParsePart := ppBogus;
                        FWhereStartPos := PStatementPart-PSQL;
-                       if (s = 'ORDER') or (s = 'GROUP') then
+                       if (s = 'ORDER') or (s = 'GROUP') or (s = 'LIMIT') then
                          FWhereStopPos := PhraseP-PSQL+1
                        else
                          FWhereStopPos := CurrentP-PSQL+1;
