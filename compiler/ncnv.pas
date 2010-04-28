@@ -189,6 +189,17 @@ interface
        ttypeconvnodeclass = class of ttypeconvnode;
 
        tasnode = class(tbinarynode)
+          { as nodes cannot be translated directly into call nodes bcause:
+
+            When using -CR, explicit class typecasts are replaced with as-nodes to perform
+            class type checking. The problem is that if a typecasted class instance is
+            passed as a var-parameter, then you cannot replace it with a function call. So the as-node
+            a) call the as helper to perform the type checking
+            b) still pass the original instance as parameter to var-parameters
+            (and in general: to return it as the result of the as-node)
+
+            so the call field is required
+          }
           call: tnode;
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
