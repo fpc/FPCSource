@@ -36,6 +36,7 @@ type
     procedure TestInsertLargeStrFields; // bug 9600
     procedure TestNumericNames; // Bug9661
     procedure TestApplyUpdFieldnames; // Bug 12275;
+    procedure TestLimitQuery; // bug 15456
     procedure Test11Params;
     procedure TestRowsAffected; // bug 9758
     procedure TestStringsReplace;
@@ -1318,6 +1319,23 @@ begin
     AssertEquals(1,Query.FieldByName('ID').AsInteger);
     AssertEquals('Edited',Query.FieldByName('NAME-TEST').AsString);
     Query.Close;
+    end;
+end;
+
+procedure TTestFieldTypes.TestLimitQuery;
+begin
+  with TSQLDBConnector(DBConnector) do
+    begin
+    with query do
+      begin
+      SQL.Text:='select NAME from FPDEV where NAME=''TestName21'' limit 1';
+      Open;
+      close;
+      ServerFilter:='ID=21';
+      ServerFiltered:=true;
+      open;
+      close;
+      end;
     end;
 end;
 
