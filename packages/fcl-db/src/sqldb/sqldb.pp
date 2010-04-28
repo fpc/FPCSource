@@ -235,7 +235,7 @@ type
     procedure OnChangeSQL(Sender : TObject);
     procedure OnChangeModifySQL(Sender : TObject);
     procedure Execute;
-    Function SQLParser(var ASQL : string) : TStatementType;
+    Function SQLParser(const ASQL : string) : TStatementType;
     procedure ApplyFilter;
     Function AddFilter(SQLstr : string) : string;
   protected
@@ -861,10 +861,16 @@ end;
 Function TCustomSQLQuery.AddFilter(SQLstr : string) : string;
 
 begin
+  if (FWhereStartPos > 0) and (FWhereStopPos > 0) then
+    begin
+    system.insert('(',SQLstr,FWhereStartPos+1);
+    system.insert(')',SQLstr,FWhereStopPos+1);
+    end;
+
   if FWhereStartPos = 0 then
     SQLstr := SQLstr + ' where (' + Filter + ')'
   else if FWhereStopPos > 0 then
-    system.insert(' and ('+ServerFilter+') ',SQLstr,FWhereStopPos+1)
+    system.insert(' and ('+ServerFilter+') ',SQLstr,FWhereStopPos+2)
   else
     system.insert(' where ('+ServerFilter+') ',SQLstr,FWhereStartPos);
   Result := SQLstr;
@@ -1060,7 +1066,7 @@ begin
   end;
 end;
 
-function TCustomSQLQuery.SQLParser(var ASQL : string) : TStatementType;
+function TCustomSQLQuery.SQLParser(const ASQL : string) : TStatementType;
 
 type TParsePart = (ppStart,ppSelect,ppWhere,ppFrom,ppOrder,ppComment,ppGroup,ppBogus);
 
@@ -1206,12 +1212,6 @@ begin
       end
     end;
   until CurrentP^=#0;
-  if (FWhereStartPos > 0) and (FWhereStopPos > 0) then
-    begin
-    system.insert('(',ASQL,FWhereStartPos+1);
-    inc(FWhereStopPos);
-    system.insert(')',ASQL,FWhereStopPos);
-    end
 end;
 
 procedure TCustomSQLQuery.InternalOpen;
