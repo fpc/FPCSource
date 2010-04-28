@@ -110,7 +110,7 @@ const {The following constants were variables in the past.
       LowAscii = true;
       NoExtendedFrame = false;
 
-      FVMaxWidth = 132;
+      FVMaxWidth = 240;
 
 Procedure LockScreenUpdate;
 { Increments the screen update lock count with one.}
