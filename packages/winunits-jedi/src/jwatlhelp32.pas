@@ -54,12 +54,17 @@ unit JwaTlHelp32;
 {$IFNDEF JWA_OMIT_SECTIONS}
 {$I jediapilib.inc}
 
+// switch back to default (natural alignment), bug 16361
+{$ifdef FPC} {$ifdef cpu64}{$packrecords 8} {$endif} {$endif}
 interface
 
 uses
   JwaWinType;
 {$ENDIF JWA_OMIT_SECTIONS}
+
+
 {$IFNDEF JWA_IMPLEMENTATIONSECTION}
+
 
 const
   MAX_MODULE_NAME32 = 255;
