@@ -2368,6 +2368,7 @@ begin
   Inherited Create(AOwner);
   FMaxvalue := 0;
   FMinvalue := 0;
+  FValidChars := [DecimalSeparator, '+', '-', '0'..'9'];
   SetDataType(ftBCD);
   FPrecision := 15;
   Size:=4;
