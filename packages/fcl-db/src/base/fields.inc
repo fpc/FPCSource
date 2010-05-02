@@ -1920,6 +1920,19 @@ begin
     Result:=Length(FDisplays[false,True]);
 end;
 
+function TBooleanField.GetAsInteger: integer;
+begin
+   if GetAsBoolean then
+    Result:=1
+   else
+    Result:=0;
+end;
+
+procedure TBooleanField.SetAsInteger(AValue: Integer);
+begin
+  SetAsBoolean(avalue<>0);
+end;
+
 procedure TBooleanField.SetAsBoolean(AValue: Boolean);
 
 var b : wordbool;
