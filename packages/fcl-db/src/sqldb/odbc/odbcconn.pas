@@ -1279,13 +1279,19 @@ var
   Res:SQLRETURN;
 begin
   // free environment handle
-  Res:=SQLFreeHandle(SQL_HANDLE_ENV, FENVHandle);
-  if Res=SQL_ERROR then
-    ODBCCheckResult(Res,SQL_HANDLE_ENV, FENVHandle, 'Could not free ODBC Environment handle.');
+  if assigned(FENVHandle) then
+    begin
+    Res:=SQLFreeHandle(SQL_HANDLE_ENV, FENVHandle);
+    if Res=SQL_ERROR then
+      ODBCCheckResult(Res,SQL_HANDLE_ENV, FENVHandle, 'Could not free ODBC Environment handle.');
+    end;
 
   // free odbc if not used by any TODBCEnvironment object anymore
-  Dec(ODBCLoadCount);
-  if ODBCLoadCount=0 then ReleaseOdbc;
+  if ODBCLoadCount>0 then
+    begin
+    Dec(ODBCLoadCount);
+    if ODBCLoadCount=0 then ReleaseOdbc;
+    end;
 end;
 
 { TODBCCursor }
