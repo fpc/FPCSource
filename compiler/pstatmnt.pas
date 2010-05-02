@@ -548,7 +548,7 @@ implementation
          if (p.nodetype=vecn) and
             (nf_memseg in p.flags) then
            CGMessage(parser_e_no_with_for_variable_in_other_segments);
-         
+
          { "with procvar" can never mean anything, so always try
            to call it in case it returns a record/object/... }
          maybe_call_procvar(p,false);
@@ -1181,7 +1181,7 @@ implementation
                begin
                  exclude(tcallnode(p).callnodeflags,cnf_return_value_used);
 
-                 { in {$x-} state, the function result must not be ignored }
+                 { in $x- state, the function result must not be ignored }
                  if not(cs_extsyntax in current_settings.moduleswitches) and
                     not(is_void(p.resultdef)) and
                     not((tcallnode(p).procdefinition.proctypeoption=potype_constructor) and
