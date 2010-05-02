@@ -97,7 +97,7 @@ unit widestr;
          getlengthwidestring:=r^.len;
       end;
 
-    procedure setlengthwidestring(r : pcompilerwidestring;l : SizeInt);
+    procedure growwidestring(r : pcompilerwidestring;l : SizeInt);
 
       begin
          if r^.maxlen>=l then
@@ -109,18 +109,26 @@ unit widestr;
          r^.maxlen:=l;
       end;
 
+    procedure setlengthwidestring(r : pcompilerwidestring;l : SizeInt);
+
+      begin
+         r^.len:=l;
+         if l>r^.maxlen then
+           growwidestring(r,l);
+      end;
+
     procedure concatwidestringchar(r : pcompilerwidestring;c : tcompilerwidechar);
 
       begin
          if r^.len>=r^.maxlen then
-           setlengthwidestring(r,r^.len+16);
+           growwidestring(r,r^.len+16);
          r^.data[r^.len]:=c;
          inc(r^.len);
       end;
 
     procedure concatwidestrings(s1,s2 : pcompilerwidestring);
       begin
-         setlengthwidestring(s1,s1^.len+s2^.len);
+         growwidestring(s1,s1^.len+s2^.len);
          move(s2^.data^,s1^.data[s1^.len],s2^.len*sizeof(tcompilerwidechar));
          inc(s1^.len,s2^.len);
       end;
@@ -129,7 +137,6 @@ unit widestr;
 
       begin
          setlengthwidestring(d,s^.len);
-         d^.len:=s^.len;
          move(s^.data^,d^.data^,s^.len*sizeof(tcompilerwidechar));
       end;
 
@@ -183,7 +190,6 @@ unit widestr;
          m:=getmap(current_settings.sourcecodepage);
          setlengthwidestring(r,l);
          source:=p;
-         r^.len:=l;
          dest:=tcompilerwidecharptr(r^.data);
          if (current_settings.sourcecodepage <> 'utf8') then
            begin

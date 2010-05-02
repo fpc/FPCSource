@@ -779,6 +779,7 @@ implementation
     constructor tstringconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       var
         pw : pcompilerwidestring;
+        i : longint;
       begin
         inherited ppuload(t,ppufile);
         cst_type:=tconststringtype(ppufile.getbyte);
@@ -787,7 +788,18 @@ implementation
           begin
             initwidestring(pw);
             setlengthwidestring(pw,len);
-            ppufile.getdata(pw^.data,pw^.len*sizeof(tcompilerwidechar));
+            { don't use getdata, because the compilerwidechars may have to
+              be byteswapped
+            }
+{$if sizeof(tcompilerwidechar) = 2}
+            for i:=0 to pw^.len-1 do
+              pw^.data[i]:=ppufile.getword;
+{$elseif sizeof(tcompilerwidechar) = 4}
+            for i:=0 to pw^.len-1 do
+              pw^.data[i]:=cardinal(ppufile.getlongint);
+{$else}
+           {$error Unsupported tcompilerwidechar size}
+{$endif}
             pcompilerwidestring(value_str):=pw
           end
         else
@@ -806,7 +818,7 @@ implementation
         ppufile.putbyte(byte(cst_type));
         ppufile.putlongint(len);
         if cst_type in [cst_widestring,cst_unicodestring] then
-          ppufile.putdata(pcompilerwidestring(value_str)^.data,len*sizeof(tcompilerwidechar))
+          ppufile.putdata(pcompilerwidestring(value_str)^.data^,len*sizeof(tcompilerwidechar))
         else
           ppufile.putdata(value_str^,len);
         ppufile.putasmsymbol(lab_str);
