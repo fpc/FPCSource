@@ -458,9 +458,9 @@ begin
         TrLen := SQLLen;
       end;
     SQL_TYPE_DATE :
-      TrType := ftDate{Time};
+      TrType := ftDate;
     SQL_TYPE_TIME :
-        TrType := ftDateTime;
+        TrType := ftTime;
     SQL_TIMESTAMP :
         TrType := ftDateTime;
     SQL_ARRAY :

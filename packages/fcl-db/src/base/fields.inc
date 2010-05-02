@@ -2046,7 +2046,7 @@ begin
       F:=FDisplayFormat
     else
       Case DataType of
-       ftTime : F:=ShortTimeFormat;
+       ftTime : F:=LongTimeFormat;
        ftDate : F:=ShortDateFormat;
       else
        F:='c'

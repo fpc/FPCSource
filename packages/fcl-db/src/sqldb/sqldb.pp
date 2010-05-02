@@ -186,7 +186,7 @@ type
 
 { TCustomSQLQuery }
 
-  TCustomSQLQuery = class (Tbufdataset)
+  TCustomSQLQuery = class (TCustomBufDataset)
   private
     FCursor              : TSQLCursor;
     FUpdateable          : boolean;
