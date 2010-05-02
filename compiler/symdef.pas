@@ -4520,6 +4520,15 @@ implementation
           result:=inherited rtti_mangledname(rt)
         else
           begin
+            { necessary in case of a dynamic array of nsobject, or
+              if an nsobject field appears in a record that needs
+              init/finalisation }
+            if rt=initrtti then
+              begin
+                result:=voidpointertype.rtti_mangledname(rt);
+                exit;
+              end;
+
             if not(target_info.system in systems_objc_nfabi) then
               begin
                 result:=target_asm.labelprefix;
