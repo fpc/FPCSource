@@ -99,6 +99,10 @@ type
   TDBCompareRec = record
                    Comparefunc : TCompareFunc;
                    Off1,Off2   : PtrInt;
+                   FieldInd1,
+                   FieldInd2   : longint;
+                   NullBOff1,
+                   NullBOff2   : PtrInt;
                    Options     : TLocateOptions;
                    Desc        : Boolean;
                   end;
@@ -605,21 +609,6 @@ begin
     result := 0;
 end;
 
-function IndexCompareRecords(Rec1,Rec2 : pointer; ADBCompareRecs : TDBCompareStruct) : LargeInt;
-var IndexFieldNr : Integer;
-begin
-  for IndexFieldNr:=0 to length(ADBCompareRecs)-1 do with ADBCompareRecs[IndexFieldNr] do
-    begin
-    Result := Comparefunc(Rec1+Off1,Rec2+Off2,Options);
-    if Result <> 0 then
-      begin
-      if Desc then
-        Result := -Result;
-      break;
-      end;
-    end;
-end;
-
 procedure unSetFieldIsNull(NullMask : pbyte;x : longint); //inline;
 begin
   NullMask[x div 8] := (NullMask[x div 8]) and not (1 shl (x mod 8));
@@ -633,6 +622,32 @@ end;
 function GetFieldIsNull(NullMask : pbyte;x : longint) : boolean; //inline;
 begin
   result := ord(NullMask[x div 8]) and (1 shl (x mod 8)) > 0
+end;
+
+function IndexCompareRecords(Rec1,Rec2 : pointer; ADBCompareRecs : TDBCompareStruct) : LargeInt;
+var IndexFieldNr : Integer;
+    IsNull1, IsNull2 : boolean;
+begin
+  for IndexFieldNr:=0 to length(ADBCompareRecs)-1 do with ADBCompareRecs[IndexFieldNr] do
+    begin
+    IsNull1:=GetFieldIsNull(rec1+NullBOff1,FieldInd1);
+    IsNull2:=GetFieldIsNull(rec2+NullBOff2,FieldInd2);
+    if IsNull1 and IsNull2 then
+      result := 0
+    else if IsNull1 then
+      result := -1
+    else if IsNull2 then
+      result := 1
+    else
+      Result := Comparefunc(Rec1+Off1,Rec2+Off2,Options);
+
+    if Result <> 0 then
+      begin
+      if Desc then
+        Result := -Result;
+      break;
+      end;
+    end;
 end;
 
 { ---------------------------------------------------------------------
@@ -1349,6 +1364,12 @@ begin
   ACompareRec.Off1:=sizeof(TBufRecLinkItem)*FMaxIndexesCount+
     FFieldBufPositions[AField.FieldNo-1];
   ACompareRec.Off2:=ACompareRec.Off1;
+
+  ACompareRec.FieldInd1:=AField.FieldNo-1;
+  ACompareRec.FieldInd2:=ACompareRec.FieldInd1;
+
+  ACompareRec.NullBOff1:=sizeof(TBufRecLinkItem)*MaxIndexesCount;
+  ACompareRec.NullBOff2:=ACompareRec.NullBOff1;
 end;
 
 procedure TCustomBufDataset.SetIndexFieldNames(const AValue: String);
