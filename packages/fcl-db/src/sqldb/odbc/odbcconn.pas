@@ -90,6 +90,7 @@ type
     procedure RollbackRetaining(trans:TSQLHandle); override;
     // - Statement execution
     procedure Execute(cursor:TSQLCursor; ATransaction:TSQLTransaction; AParams:TParams); override;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
     // - Result retrieving
     procedure AddFieldDefs(cursor:TSQLCursor; FieldDefs:TFieldDefs); override;
     function Fetch(cursor:TSQLCursor):boolean; override;
@@ -650,6 +651,19 @@ begin
 
   // free parameter buffers
   FreeParamBuffers(ODBCCursor);
+end;
+
+function TODBCConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
+var
+  RowCount: SQLINTEGER;
+begin
+  if assigned(cursor) then
+    if ODBCSucces( SQLRowCount((cursor as TODBCCursor).FSTMTHandle, RowCount) ) then
+       Result:=RowCount
+    else
+       Result:=-1
+  else
+    Result:=-1;
 end;
 
 function TODBCConnection.Fetch(cursor: TSQLCursor): boolean;
