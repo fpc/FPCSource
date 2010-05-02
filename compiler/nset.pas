@@ -28,7 +28,7 @@ interface
     uses
        cclasses,constexp,
        node,globtype,globals,
-       aasmbase,aasmtai,aasmdata,ncon,symtype;
+       aasmbase,aasmtai,aasmdata,ncon,nflw,symtype;
 
     type
        TLabelType = (ltOrdinal, ltConstString);
@@ -59,6 +59,8 @@ interface
        tcaseblock = record
           { label (only used in pass_generate_code) }
           blocklabel : tasmlabel;
+
+          statementlabel : tlabelnode;
           { instructions }
           statement  : tnode;
        end;
@@ -128,7 +130,7 @@ implementation
       verbose,
       symconst,symdef,symsym,symtable,defutil,defcmp,
       htypechk,pass_1,
-      nadd,nbas,ncnv,nld,nflw,cgobj,cgbase,
+      nadd,nbas,ncnv,nld,cgobj,cgbase,
       widestr;
 
 
@@ -651,8 +653,9 @@ implementation
          i  : integer;
          node_thenblock,node_elseblock,if_node : tnode;
          tempcaseexpr : ttempcreatenode;
-         if_block, init_block : tblocknode;
+         if_block, init_block,stmt_block : tblocknode;
          stmt : tstatementnode;
+         endlabel : tlabelnode;
 
       function makeifblock(const labtree : pcaselabel; prevconditblock : tnode): tnode;
         var
@@ -675,8 +678,7 @@ implementation
 
           result :=
             cifnode.create(
-              condit, pcaseblock(blocks[labtree^.blockid])^.statement, result);
-          pcaseblock(blocks[labtree^.blockid])^.statement := nil;
+              condit, cgotonode.create(pcaseblock(blocks[labtree^.blockid])^.statementlabel.labsym), result);
 
           if assigned(labtree^.greater) then
             result := makeifblock(labtree^.greater, result);
@@ -742,17 +744,34 @@ implementation
 
          if (labels^.label_type = ltConstString) then
            begin
-             if_node := makeifblock(labels, elseblock);
-             if assigned(init_block) then
+             endlabel:=clabelnode.create(cnothingnode.create,tlabelsym.create('$casestrofend'));
+             stmt_block:=internalstatements(stmt);
+             for i:=0 to blocks.count-1 do
                begin
-                 firstpass(tnode(init_block));
-                 if_block := internalstatements(stmt);
-                 addstatement(stmt, init_block);
-                 addstatement(stmt, if_node);
-                 result := if_block;
-               end
-             else
-               result := if_node;
+                 pcaseblock(blocks[i])^.statementlabel:=clabelnode.create(cnothingnode.create,tlabelsym.create('$casestrof'));
+                 addstatement(stmt,pcaseblock(blocks[i])^.statementlabel);
+                 addstatement(stmt,pcaseblock(blocks[i])^.statement);
+                 pcaseblock(blocks[i])^.statement:=nil;
+                 addstatement(stmt,cgotonode.create(endlabel.labsym));
+               end;
+
+             firstpass(tnode(stmt_block));
+
+             if_node := makeifblock(labels, elseblock);
+
+             if assigned(init_block) then
+               firstpass(tnode(init_block));
+
+             if_block := internalstatements(stmt);
+
+             if assigned(init_block) then
+               addstatement(stmt, init_block);
+
+             addstatement(stmt, if_node);
+             addstatement(stmt,cgotonode.create(endlabel.labsym));
+             addstatement(stmt, stmt_block);
+             addstatement(stmt, endlabel);
+             result := if_block;
              elseblock := nil;
              exit;
            end;
