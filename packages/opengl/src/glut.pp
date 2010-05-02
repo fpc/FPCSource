@@ -2089,8 +2089,12 @@ initialization
   {$ifdef darwin}
   LoadGlut('/System/Library/Frameworks/GLUT.framework/GLUT');
   {$else}
+  {$IFDEF haiku}
+  LoadGlut('libglut.so');
+  {$ELSE}
   {$IFNDEF MORPHOS}
   LoadGlut('libglut.so.3');
+  {$ENDIF}
   {$ENDIF}
   {$endif}
   {$ENDIF}
