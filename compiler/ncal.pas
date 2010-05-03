@@ -3478,7 +3478,12 @@ implementation
                    )
                   ) then
                   begin
-                    if para.left.nodetype<>temprefn then
+                    { don't create a new temp unnecessarily, but make sure we
+                      do create a new one if the old one could be a regvar and
+                      the new one cannot be one }
+                    if (para.left.nodetype<>temprefn) or
+                       (((tparavarsym(para.parasym).varregable in [vr_none,vr_addr])) and
+                        (ti_may_be_in_reg in ttemprefnode(para.left).tempinfo^.flags)) then
                       begin
                         tempnode := ctempcreatenode.create(para.parasym.vardef,para.parasym.vardef.size,tt_persistent,tparavarsym(para.parasym).is_regvar(false));
                         addstatement(inlineinitstatement,tempnode);
