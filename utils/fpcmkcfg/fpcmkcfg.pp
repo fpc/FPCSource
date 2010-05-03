@@ -86,6 +86,32 @@ begin
 {$ENDIF Unix}
 end;
 
+function GetDefaultNeedCrossBinutilsIfdef: string;
+
+begin
+  result := '';
+  // On Darwin there is never a need for a crossbinutils prefix
+  if BuildOSTarget='Darwin' then
+    Exit;
+
+  if (BuildTarget = 'i386') or (BuildTarget = 'x86_64') then
+    begin
+    // Cross-binutils are not needed to compile for i386 on an x86_64 system
+    result := '#IFNDEF CPUI386' + LineEnding +
+              '#IFNDEF CPUAMD64' + LineEnding +
+              '#DEFINE NEEDCROSSBINUTILS' + LineEnding +
+              '#ENDIF' + LineEnding +
+              '#ENDIF' + LineEnding +
+              LineEnding +
+              '#IFNDEF ' + BuildOSTarget + LineEnding +
+              '#DEFINE NEEDCROSSBINUTILS' + LineEnding +
+              '#ENDIF';
+    end
+  else
+    result := '#DEFINE NEEDCROSSBINUTILS';
+end;
+
+
 procedure Init;
 
 begin
@@ -103,6 +129,7 @@ begin
   TemplateParser.Values['BUILDTIME'] := TimeToStr(Time);
 
   TemplateParser.Values['LOCALREPOSITORY'] := GetDefaultLocalRepository;
+  TemplateParser.Values['NEEDCROSSBINUTILSIFDEF'] := GetDefaultNeedCrossBinutilsIfdef;
 
   Cfg:=TStringList.Create;
   Cfg.Text:=StrPas(Addr(DefaultConfig[0][1]));

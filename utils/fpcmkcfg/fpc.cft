@@ -147,9 +147,13 @@
 # searchpath for tools
 -FD%basepath%/bin/$FPCTARGET
 
+%NEEDCROSSBINUTILSIFDEF%
+
 # binutils prefix for cross compiling
 #IFDEF FPC_CROSSCOMPILING
+#IFDEF NEEDCROSSBINUTILS
   -XP$FPCTARGET-
+#ENDIF
 #ENDIF
 
 
