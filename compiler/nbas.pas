@@ -960,10 +960,16 @@ implementation
           begin
             if tempinfo^.typedef.typ=floatdef then
               begin
-                if (tempinfo^.temptype = tt_persistent) then
-                  expectloc := LOC_CFPUREGISTER
+                if not use_vectorfpu(tempinfo^.typedef) then
+                  if (tempinfo^.temptype = tt_persistent) then
+                    expectloc := LOC_CFPUREGISTER
+                  else
+                    expectloc := LOC_FPUREGISTER
                 else
-                  expectloc := LOC_FPUREGISTER;
+                  if (tempinfo^.temptype = tt_persistent) then
+                    expectloc := LOC_CMMREGISTER
+                  else
+                    expectloc := LOC_MMREGISTER
               end
             else
               begin
