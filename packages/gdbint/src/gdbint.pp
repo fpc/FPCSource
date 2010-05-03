@@ -120,6 +120,19 @@ interface
   {$define GDB_HAS_BP_NONE}
 {$endif def GDB_V608}
 
+{ 7.2.x }
+{$ifdef GDB_V702}
+  {$info using gdb 7.2.x}
+  {$define GDB_V7}
+{$endif def GDB_V702}
+
+{ 7.1.x }
+{$ifdef GDB_V701}
+  {$info using gdb 7.1.x}
+  {$define GDB_V7}
+{$endif def GDB_V701}
+
+
 
 { 7.0.x }
 {$ifdef GDB_V700}
@@ -2974,6 +2987,7 @@ var gdb_sysroot  : pchar; cvar;public;
     return_child_result : longbool;cvar;public;
     return_child_result_value : longint;cvar;public;
     batch_silent : longbool;cvar;public;
+    batch_flag : longbool;cvar;public;
 {$endif}
 {$ifdef GDB_HAS_DEBUG_FILE_DIRECTORY}
 var
