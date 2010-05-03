@@ -49,6 +49,7 @@ Resourcestring
   SUsage50  = '  -h            show this help and exit.';
   SUsage60  = '  -u name       remove name from list of name/value pairs.';
 //  SUsage70  = '  -l filename   read name/value pairs from filename';
+  SUsage70  = '  -m            show builtin macros and exit.';
   SUsage80  = '  -b            show builtin template and exit.';
   SUsage90  = '  -v            be verbose.';
   Susage100 = '  -0            use built in fpc.cfg template (default)';
@@ -64,8 +65,6 @@ Resourcestring
   SErrDelBackupFailed = 'Error: Delete of old backup file "%s" failed.';
   SWarnIgnoringFile   = 'Warning: Ignoring non-existent file: ';
   SWarnIgnoringPair   = 'Warning: ignoring wrong name/value pair: ';
-  SStats              = 'Replaced %d placeholders in %d lines.';
-  SSubstInLine        = 'Replaced %s placeholders in line %d.';
 
 
 Var
@@ -126,7 +125,7 @@ begin
   Writeln(SUsage40);
   Writeln(SUsage50);
   Writeln(SUsage60);
-//  Writeln(SUsage70);
+  Writeln(SUsage70);
   Writeln(SUsage80);
   Writeln(SUsage90);
   Writeln(SUsage100);
@@ -153,6 +152,17 @@ Var
 begin
   For I:=0 to Cfg.Count-1 do
     Writeln(Cfg[I]);
+end;
+
+
+Procedure ShowBuiltInMacros;
+
+Var
+  I : Integer;
+
+begin
+  For I:=0 to TemplateParser.ValueCount-1 do
+    Writeln(TemplateParser.NamesByIndex[I]+'='+TemplateParser.ValuesByIndex[I]);
 end;
 
 
@@ -203,6 +213,10 @@ begin
         'h' : Usage;
         'b' : begin
               ShowBuiltin;
+              halt(0);
+              end;
+        'm' : begin
+              ShowBuiltinMacros;
               halt(0);
               end;
         't' : TemplateFileName:=GetOptArg;
