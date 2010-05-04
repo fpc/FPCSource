@@ -98,9 +98,10 @@ begin
   result := '';
   // On Darwin there is never a need for a crossbinutils prefix
   if SameText(BuildOSTarget,'Darwin') then
-    Exit;
-
-  if (BuildTarget = 'i386') or (BuildTarget = 'x86_64') then
+    result := '#IFNDEF ' + BuildOSTarget + LineEnding +
+              '#DEFINE NEEDCROSSBINUTILS' + LineEnding +
+              '#ENDIF'
+  else if (BuildTarget = 'i386') or (BuildTarget = 'x86_64') then
     begin
     // Cross-binutils are not needed to compile for i386 on an x86_64 system
     result := '#IFNDEF CPUI386' + LineEnding +
