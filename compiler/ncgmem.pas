@@ -1017,19 +1017,15 @@ implementation
               else if (right.location.loc = LOC_JUMP) then
                 internalerror(2006010801);
 
-              { only range check now, we can't range check loc_flags/loc_jump }
-              if cs_check_range in current_settings.localswitches then
-               begin
-                 if left.resultdef.typ=arraydef then
-                   rangecheck_array;
-               end;
-
             { produce possible range check code: }
               if cs_check_range in current_settings.localswitches then
                begin
                  if left.resultdef.typ=arraydef then
                    begin
-                     { done defore (PM) }
+		     { do not do any range checking when this is an array access to a pointer which has been
+		       typecasted from an array }
+		     if (not (ado_isconvertedpointer in tarraydef(left.resultdef).arrayoptions)) then
+                       rangecheck_array
                    end
                  else if (left.resultdef.typ=stringdef) then
                    begin
