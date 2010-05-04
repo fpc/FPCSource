@@ -83,10 +83,10 @@ implementation
             begin
                node_changed:=true;
                p.free;
-               { run typecheckpass }
-               typecheckpass(hp);
                { switch to new node }
                p:=hp;
+               { run typecheckpass }
+               typecheckpass(p);
             end;
            current_settings.localswitches:=oldlocalswitches;
            current_filepos:=oldpos;
@@ -164,10 +164,10 @@ implementation
                  if assigned(hp) then
                   begin
                      p.free;
-                     { run typecheckpass }
-                     typecheckpass(hp);
                      { switch to new node }
                      p:=hp;
+                     { run typecheckpass }
+                     typecheckpass(p);
                   end;
                  if codegenerror then
                   begin
@@ -186,10 +186,10 @@ implementation
                  if assigned(hp) then
                   begin
                     p.free;
-                    { run firstpass }
-                    firstpass(hp);
                     { switch to new node }
-                    p:=hp;
+                    p := hp;
+                    { run firstpass }
+                    firstpass(p);
                   end
                  else
                    begin
@@ -199,8 +199,8 @@ implementation
                      if assigned(hp) then
                        begin
                          p.free;
-                         firstpass(hp);
-                         p:=hp;
+                         p := hp;
+                         firstpass(p);
                        end;
                    end;
                  if codegenerror then
