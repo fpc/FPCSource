@@ -478,8 +478,8 @@ begin
           PS:=PShortString(pointer(PS)+PByte(PS)^+1);
           Inc(Count);
         end;
-
-      Result := Count;
+      { the last string is the unit name }
+      Result := Count - 1;
     end;
 end;
 
