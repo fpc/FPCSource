@@ -7,7 +7,7 @@ main=fcl-db
 
 [target]
 units=dbconst db dbwhtml bufdataset_parser bufdataset dbcoll sqlscript xmldatapacketreader
-rsts=dbwhtml dbconst dbcoll sqlscript xmldatapacketreader
+rsts=dbconst dbcoll sqlscript xmldatapacketreader
 
 [require]
 packages=fcl-base fcl-xml
