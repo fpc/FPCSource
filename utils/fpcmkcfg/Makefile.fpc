@@ -11,7 +11,7 @@ fpcpackage=y
 
 [require]
 tools=data2inc
-packages=fcl-base
+packages=fcl-base fcl-process
 tools=data2inc
 
 [default]

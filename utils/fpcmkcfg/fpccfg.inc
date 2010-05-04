@@ -135,16 +135,13 @@ const DefaultConfig : array[0..23,1..240] of char=(
   '#-Fr%basepath%/msg/errord.msg'#010+
   '#-Fr%basepath%/msg/errorr.msg'#010+
   #010+
-  '# path to the gcclib'#010+
-  '#-Fl%basepath%/lib'#010+
-  #010+
   '#IFDEF FPCAPACHE_1_13'#010+
   '-Fu%basepath%/units/$FPCTARGET/httpd13/'#010+
   '#ELSE'#010+
   '#IFDEF FPCAPACHE_2_0'#010+
-  '-Fu%basepath%/units/$FPCTA','RGET/httpd20'#010+
+  '-Fu%basepath%/units/$FPCTARGET/httpd20'#010+
   '#ELSE'#010+
-  '-Fu%basepath%/units/$FPCTARGET/httpd22'#010+
+  '-Fu%basepath%/units/$F','PCTARGET/httpd22'#010+
   '#ENDIF'#010+
   '#ENDIF'#010+
   #010+
@@ -153,7 +150,10 @@ const DefaultConfig : array[0..23,1..240] of char=(
   '-Fu%basepath%/units/$FPCTARGET/*'#010+
   '-Fu%basepath%/units/$FPCTARGET/rtl'#010+
   #010+
-  '# searchp','ath for libraries'#010+
+  '# path to the gcclib'#010+
+  '%gcclibpath%'#010+
+  #010+
+  '# searchpath fo','r libraries'#010+
   '#-Fl%basepath%/lib'#010+
   '#-Fl/lib;/usr/lib'#010+
   #010+
@@ -165,8 +165,8 @@ const DefaultConfig : array[0..23,1..240] of char=(
   '# binutils prefix for cross compiling'#010+
   '#IFDEF FPC_CROSSCOMPILING'#010+
   '#IFDEF NEEDCROSSBINUTILS'#010+
-  '  -XP$FPCTARGET-',#010+
-  '#ENDIF'#010+
+  '  -XP$FPCTARGET-'#010+
+  '#ENDI','F'#010+
   '#ENDIF'#010+
   #010+
   #010+
@@ -179,11 +179,11 @@ const DefaultConfig : array[0..23,1..240] of char=(
   '# process)'#010+
   '#      -gc        generate checks for pointers'#010+
   '#      -gd        use dbx'#010+
-  '#      -gg        use ','gsym'#010+
-  '#      -gh        use heap trace unit (for memory leak debugging)'#010+
+  '#      -gg        use gsym'#010+
+  '#','      -gh        use heap trace unit (for memory leak debugging)'#010+
   '#      -gl        use line info unit to show more info for backtraces'#010+
   '#      -gv        generates programs tracable with valgrind'#010+
-  '#      -gw        generate dwarf debugg','ing info'#010+
+  '#      -gw        generate dwarf debugging in','fo'#010+
   '#'#010+
   '# Enable debuginfo and use the line info unit by default'#010+
   '#-gl'#010+
@@ -199,19 +199,19 @@ const DefaultConfig : array[0..23,1..240] of char=(
   '# Miscellaneous'#010+
   '# -------------'#010+
   #010+
-  '# Write always a nice',' FPC logo ;)'#010+
+  '# Write always a nice FPC l','ogo ;)'#010+
   '-l'#010+
   #010+
   '# Verbosity'#010+
   '#      e : Show errors (default)       d : Show debug info'#010+
   '#      w : Show warnings               u : Show unit info'#010+
   '#      n : Show notes                  t : Show tried/used files'#010+
-  '#      h : Show hints        ','          m : Show defined macros'#010+
+  '#      h : Show hints              ','    m : Show defined macros'#010+
   '#      i : Show general info           p : Show compiled procedures'#010+
   '#      l : Show linenumbers            c : Show conditionals'#010+
   '#      a : Show everything             0 : Show nothing (except errors'+
   ')'#010+
-  '#    ','  b : Show all procedure          r : Rhide/GCC compatibility m'+
+  '#      b : ','Show all procedure          r : Rhide/GCC compatibility m'+
   'ode'#010+
   '#          declarations if an error    x : Executable info (Win32 only'+
   ')'#010+
@@ -219,6 +219,6 @@ const DefaultConfig : array[0..23,1..240] of char=(
   '#'#010+
   '# Display Info, Warnings, Notes and Hints'#010+
   '-viwn'#010+
-  '# If you don'#039't want so much verbo','sity use'#010+
+  '# If you don'#039't want so much verbosity u','se'#010+
   '#-vw'#010
 );
