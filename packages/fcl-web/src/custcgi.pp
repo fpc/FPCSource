@@ -320,14 +320,37 @@ var
   I : TIOStream;
   Cl : Integer;
   B : Byte;
+  retrycount: integer;
+  BytesRead, a: longint;
 begin
   Cl := ContentLength;
   I:=TIOStream.Create(iosInput);
   Try
     if (CL<>0) then
       begin
+      // It can be that the complete content is not yet send by the server so repeat the read
+      // until all data is really read
       SetLength(FContent,Cl);
-      I.Read(FContent[1],Cl);
+      BytesRead:=0;
+      repeat
+      a := I.Read(FContent[BytesRead+1],Cl-BytesRead);
+      BytesRead:=BytesRead+a;
+      if a=0 then // In fact this can not happen, but the content could be delayed...
+        begin
+        sleep(10);
+        a := I.Read(FContent[BytesRead+1],Cl-BytesRead);
+        if a=0 then for retrycount := 0 to 149 do // timeout of about 15 seconds
+          begin
+          sleep(100);
+          a := I.Read(FContent[BytesRead+1],Cl-BytesRead);
+          if a<>0 then break;
+          end;
+        BytesRead:=BytesRead+a;
+        end;
+      until (BytesRead>=Cl) or (a=0);
+      // In fact the request is incomplete, but this is not the place thrown an error for that
+      if BytesRead<Cl then
+        SetLength(FContent,BytesRead);
       end
     else
       begin

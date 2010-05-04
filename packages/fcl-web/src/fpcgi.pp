@@ -32,10 +32,13 @@ Var
   
 Implementation
 
+uses CustApp;
+
 Procedure InitCGI;
 
 begin
   Application:=TCGIApplication.Create(Nil);
+  CustomApplication:=Application;
 end;
 
 Procedure DoneCGI;

@@ -67,6 +67,8 @@ Type
     FRequestsArray : Array of TReqResp;
     FRequestsAvail : integer;
     FHandle : THandle;
+    Socket: longint;
+    FPort: integer;
     function Read_FCGIRecord : PFCGI_Header;
   protected
     function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
@@ -74,10 +76,14 @@ Type
   Public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
+    property Port: integer read FPort write FPort;
   end;
 
 ResourceString
   SNoInputHandle = 'Failed to open input-handle passed from server. Socket Error: %d';
+  SNoSocket      = 'Failed to open socket. Socket Error: %d';
+  SBindFailed    = 'Failed to bind to port %d. Socket Error: %d';
+  SListenFailed  = 'Failed to listen to port %d. Socket Error: %d';
 
 Implementation
 
@@ -319,6 +325,7 @@ begin
   EndRequest.header.contentLength:=NtoBE(8);
   EndRequest.header.paddingLength:=0;
   EndRequest.header.requestId:=NToBE(TFCGIRequest(Request).RequestID);
+  EndRequest.body.protocolStatus:=FCGI_REQUEST_COMPLETE;
   Write_FCGIRecord(PFCGI_Header(@EndRequest));
 end;
 
@@ -335,6 +342,8 @@ end;
 destructor TCustomFCgiApplication.Destroy;
 begin
   SetLength(FRequestsArray,0);
+  if port<>0 then
+    fpshutdown(Socket,2);
   inherited Destroy;
 end;
 
@@ -405,12 +414,33 @@ var
   ARequestID    : word;
   AFCGI_Record  : PFCGI_Header;
   ATempRequest  : TFCGIRequest;
+
 begin
   Result := False;
   AddressLength:=Sizeof(Address);
+
+  if Socket=0 then
+    begin
+    if Port<>0 then
+      begin
+      Socket := fpsocket(AF_INET,SOCK_STREAM,0);
+      if Socket=-1 then
+        raise Exception.CreateFmt(SNoSocket,[socketerror]);
+      Address.sin_family:=AF_INET;
+      Address.sin_port:=htons(Port);
+      Address.sin_addr.s_addr:=0;
+      if fpbind(Socket,@Address,AddressLength)=-1 then
+        raise Exception.CreateFmt(SBindFailed,[port,socketerror]);
+      if fplisten(Socket,1)=-1 then
+        raise Exception.CreateFmt(SListenFailed,[port,socketerror]);
+      end
+    else
+      Socket:=StdInputHandle;
+    end;
+
   if FHandle=-1 then
     begin
-    FHandle:=fpaccept(StdInputHandle,psockaddr(@Address),@AddressLength);
+    FHandle:=fpaccept(Socket,psockaddr(@Address),@AddressLength);
     if FHandle=-1 then
       raise Exception.CreateFmt(SNoInputHandle,[socketerror]);
     end;
