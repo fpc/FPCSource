@@ -10313,6 +10313,7 @@ tests/webtbs/tw15504.pp svneol=native#text/plain
 tests/webtbs/tw15530.pp svneol=native#text/pascal
 tests/webtbs/tw15592.pp svneol=native#text/plain
 tests/webtbs/tw15607.pp svneol=native#text/plain
+tests/webtbs/tw15610.pp svneol=native#text/plain
 tests/webtbs/tw15619.pp svneol=native#text/plain
 tests/webtbs/tw15668.pp svneol=native#text/pascal
 tests/webtbs/tw1567.pp svneol=native#text/plain

@@ -282,6 +282,19 @@ implementation
                 p.dispid:=aclass.get_next_dispid;
             end;
 
+          procedure add_index_parameter(var paranr: word; p: tpropertysym; readprocdef, writeprocdef, storedprocdef: tprocvardef);
+            var
+              hparavs: tparavarsym;
+            begin
+              inc(paranr);
+              hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
+              readprocdef.parast.insert(hparavs);
+              hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
+              writeprocdef.parast.insert(hparavs);
+              hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
+              storedprocdef.parast.insert(hparavs);
+            end;
+
       var
          sym : tsym;
          srsymtable: tsymtable;
@@ -431,13 +444,7 @@ implementation
                    p.indexdef:=pt.resultdef;
                    include(p.propoptions,ppo_indexed);
                    { concat a longint to the para templates }
-                   inc(paranr);
-                   hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
-                   readprocdef.parast.insert(hparavs);
-                   hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
-                   writeprocdef.parast.insert(hparavs);
-                   hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
-                   storedprocdef.parast.insert(hparavs);
+                   add_index_parameter(paranr,p,readprocdef,writeprocdef,storedprocdef);
                    pt.free;
                 end;
            end
@@ -456,6 +463,8 @@ implementation
                   p.index:=tpropertysym(overriden).index;
                   p.default:=tpropertysym(overriden).default;
                   p.propoptions:=tpropertysym(overriden).propoptions;
+                  if ppo_indexed in p.propoptions then
+                    add_index_parameter(paranr,p,readprocdef,writeprocdef,storedprocdef);
                 end
               else
                 begin
