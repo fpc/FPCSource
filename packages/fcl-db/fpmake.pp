@@ -98,6 +98,8 @@ begin
         begin
           AddUnit('db');
         end;
+    T.ResourceStrings:=true;
+
 
     T:=P.Targets.AddUnit('dbconst.pas');
     T.ResourceStrings:=true;
@@ -303,6 +305,7 @@ begin
         begin
           AddUnit('fpddcodegen');
         end;
+    T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('fpcgtiopf.pp');
       with T.Dependencies do
         begin
@@ -310,29 +313,43 @@ begin
           AddUnit('fpddcodegen');
         end;
     T:=P.Targets.AddUnit('fpcsvexport.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('db');
           AddUnit('fpdbexport');
         end;
     T:=P.Targets.AddUnit('fpdatadict.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('db');
         end;
     T:=P.Targets.AddUnit('fpdbexport.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('db');
         end;
     T:=P.Targets.AddUnit('fpdbfexport.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('db');
           AddUnit('dbf');
           AddUnit('fpdbexport');
         end;
+
+    T:=P.Targets.AddUnit('fpddpopcode.pp');
+    T.ResourceStrings:=true;
+    T.Dependencies.AddUnit('fpdatadict');
+
+    T:=P.Targets.AddUnit('fpdddiff.pp');
+    T.ResourceStrings:=true;
+    T.Dependencies.AddUnit('fpdatadict');
+
     T:=P.Targets.AddUnit('fpddcodegen.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('db');
@@ -423,6 +440,7 @@ begin
           AddUnit('dbconst');
         end;
     T:=P.Targets.AddUnit('fpddsqldb.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('db');
@@ -438,30 +456,35 @@ begin
           AddUnit('sqlite3conn');
         end;
     T:=P.Targets.AddUnit('fpfixedexport.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('db');
           AddUnit('fpdbexport');
         end;
     T:=P.Targets.AddUnit('fprtfexport.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('db');
           AddUnit('fpdbexport');
         end;
     T:=P.Targets.AddUnit('fpsimplejsonexport.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('db');
           AddUnit('fpdbexport');
         end;
     T:=P.Targets.AddUnit('fpsimplexmlexport.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('db');
           AddUnit('fpdbexport');
         end;
     T:=P.Targets.AddUnit('fpsqlexport.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('db');
@@ -481,6 +504,7 @@ begin
           AddUnit('fpdbfexport');
         end;
     T:=P.Targets.AddUnit('fptexexport.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('db');
@@ -495,11 +519,13 @@ begin
           AddUnit('bufdataset');
         end;
     T:=P.Targets.AddUnit('memds.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('db');
         end;
     T:=P.Targets.AddUnit('mysql40conn.pas');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddInclude('mysqlconn.inc');
@@ -509,6 +535,7 @@ begin
           AddUnit('dbconst');
         end;
     T:=P.Targets.AddUnit('mysql41conn.pas');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddInclude('mysqlconn.inc');
@@ -518,6 +545,7 @@ begin
           AddUnit('dbconst');
         end;
     T:=P.Targets.AddUnit('mysql4conn.pas');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddInclude('mysqlconn.inc');
@@ -527,6 +555,7 @@ begin
           AddUnit('dbconst');
         end;
     T:=P.Targets.AddUnit('mysql50conn.pas');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddInclude('mysqlconn.inc');
@@ -544,6 +573,7 @@ begin
           AddUnit('dbconst');
         end;
     T:=P.Targets.AddUnit('oracleconnection.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('sqldb');
@@ -551,12 +581,14 @@ begin
           AddUnit('dbconst');
         end;
     T:=P.Targets.AddUnit('paradox.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('db');
           AddUnit('bufdataset_parser');
         end;
     T:=P.Targets.AddUnit('pqconnection.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('sqldb');
