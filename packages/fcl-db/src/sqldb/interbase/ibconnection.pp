@@ -162,7 +162,8 @@ constructor TIBConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat] + [sqQuoteFieldnames];
+  FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat];
+  FieldNameQuoteChars:=DoubleQuotes;
   FBLobSegmentSize := 80;
   FDialect := -1;
   FDBDialect := -1;
