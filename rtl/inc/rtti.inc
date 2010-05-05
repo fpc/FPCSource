@@ -14,36 +14,7 @@
 
 { Run-Time type information routines }
 
-{ The RTTI is implemented through a series of constants : }
-
-Const
-       tkUnknown       = 0;
-       tkInteger       = 1;
-       tkChar          = 2;
-       tkEnumeration   = 3;
-       tkFloat         = 4;
-       tkSet           = 5;
-       tkMethod        = 6;
-       tkSString       = 7;
-       tkString        = tkSString;
-       tkLString       = 8;
-       tkAString       = 9;
-       tkWString       = 10;
-       tkVariant       = 11;
-       tkArray         = 12;
-       tkRecord        = 13;
-       tkInterface     = 14;
-       tkClass         = 15;
-       tkObject        = 16;
-       tkWChar         = 17;
-       tkBool          = 18;
-       tkInt64         = 19;
-       tkQWord         = 20;
-       tkDynArray      = 21;
-       tkInterfaceCorba = 22;
-       tkProcVar       = 23;
-       tkUString       = 24;
-
+{ the tk* constants are now declared in system.inc }
 
 type
   TRTTIProc=procedure(Data,TypeInfo:Pointer);
