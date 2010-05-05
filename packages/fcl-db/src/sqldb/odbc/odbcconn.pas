@@ -310,6 +310,7 @@ var
   FloatVal: cdouble;
   DateVal: SQL_DATE_STRUCT;
   TimeStampVal: SQL_TIMESTAMP_STRUCT;
+  BoolVal: byte;
   ColumnSize, BufferLength, StrLenOrInd: SQLINTEGER;
   CType, SqlType, DecimalDigits:SQLSMALLINT;
 begin
@@ -332,7 +333,7 @@ begin
     StrLenOrInd:=0;
 
     case AParams[ParamIndex].DataType of
-      ftInteger, ftSmallInt:
+      ftInteger, ftSmallInt, ftWord:
         begin
           IntVal:=AParams[ParamIndex].AsInteger;
           PVal:=@IntVal;
@@ -401,6 +402,15 @@ begin
           SqlType:=SQL_TYPE_TIMESTAMP;
           ColumnSize:=Size;
         end;
+      ftBoolean:
+        begin
+          BoolVal:=ord(AParams[ParamIndex].AsBoolean);
+          PVal:=@BoolVal;
+          Size:=SizeOf(BoolVal);
+          CType:=SQL_C_BIT;
+          SqlType:=SQL_BIT;
+          ColumnSize:=Size;
+        end
       else
         raise EDataBaseError.CreateFmt('Parameter %d is of type %s, which not supported yet',[ParamIndex, Fieldtypenames[AParams[ParamIndex].DataType]]);
     end;
