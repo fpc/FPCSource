@@ -986,7 +986,6 @@ ResourceString
   SWarnCircularPackageDependency = 'Warning: Circular dependency detected when compiling package %s with package %s';
   SWarnFailedToSetTime    = 'Warning: Failed to set timestamp on file "%s"';
   SWarnFailedToGetTime    = 'Warning: Failed to get timestamp from file "%s"';
-  SWarnFileDoesNotExist   = 'Warning: File "%s" does not exist';
   SWarnAttemptingToCompileNonNeutralTarget = 'Warning: Attempting to compile non-neutral target %s';
   SWarnSourceFileNotFound  = 'Warning: Source file "%s" from package %s not found for %s';
   SWarnIncludeFileNotFound = 'Warning: Include file "%s" from package %s not found for %s';
@@ -1035,6 +1034,7 @@ ResourceString
   SDbgSearchPath            = 'Using %s path "%s"';
   SDbgEnterDir              = 'Entering directory "%s"';
   SDbgPackageChecksumChanged = 'Dependent package %s is modified';
+  SDbgFileDoesNotExist      = 'File "%s" does not exist';
 
   // Help messages for usage
   SValue              = 'Value';
@@ -3158,7 +3158,7 @@ end;
 procedure TBuildEngine.SysDeleteFile(Const AFileName : String);
 begin
   if not FileExists(AFileName) then
-    Log(vlWarning,SWarnFileDoesNotExist,[AFileName])
+    Log(vldebug,SDbgFileDoesNotExist,[AFileName])
   else If Not DeleteFile(AFileName) then
     Error(SErrDeletingFile,[AFileName]);
 end;
