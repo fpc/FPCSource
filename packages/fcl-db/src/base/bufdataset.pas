@@ -2772,6 +2772,7 @@ var CurrLinkItem    : PBufRecLinkItem;
 
 begin
   Result := False;
+  CheckActive;
   if IsEmpty then exit;
 
   // Build the DBCompare structure

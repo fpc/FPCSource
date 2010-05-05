@@ -115,6 +115,7 @@ type
     procedure TestRecNo;                   // bug 5061
     procedure TestSetRecNo;                // bug 6919
     procedure TestRequired;
+    procedure TestExceptionLocateClosed;    // bug 13938
     procedure TestCanModifySpecialFields;
   end;
 
@@ -493,6 +494,23 @@ begin
     FieldByName('ID').AsInteger := 1000;
     Post;
     Close;
+    end;
+end;
+
+procedure TTestDBBasics.TestExceptionLocateClosed;
+var passed: boolean;
+begin
+  with DBConnector.GetNDataset(15) do
+    begin
+    passed := false;
+    try
+      locate('name','TestName1',[]);
+    except on E: Exception do
+      begin
+      passed := E.classname = EDatabaseError.className
+      end;
+    end;
+    AssertTrue(passed);
     end;
 end;
 
