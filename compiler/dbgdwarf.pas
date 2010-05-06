@@ -232,10 +232,6 @@ interface
       private
         currabbrevnumber : longint;
 
-        { collect all defs in one list so we can reset them easily }
-        defnumberlist,
-        deftowritelist   : TFPObjectList;
-
         { use this defs to create info for variants and file handles }
         { unused (MWE)
         filerecdef,
@@ -1333,7 +1329,7 @@ implementation
                       ]);
                   append_labelentry_ref(DW_AT_type,def_dwarf_lab(basedef));
                 end;
-                
+
               finish_entry;
             end;
           uvoid :
@@ -2901,41 +2897,6 @@ implementation
 
     procedure TDebugInfoDwarf.inserttypeinfo;
 
-      procedure write_defs_to_write;
-        var
-          n       : integer;
-          looplist,
-          templist: TFPObjectList;
-          def     : tdef;
-        begin
-          templist := TFPObjectList.Create(False);
-          looplist := deftowritelist;
-          while looplist.count > 0 do
-            begin
-              deftowritelist := templist;
-              for n := 0 to looplist.count - 1 do
-                begin
-                  def := tdef(looplist[n]);
-                  case def.dbg_state of
-                    dbg_state_written:
-                      continue;
-                    dbg_state_writing:
-                      internalerror(200610052);
-                    dbg_state_unused:
-                      internalerror(200610053);
-                    dbg_state_used:
-                      appenddef(nil,def)
-                  else
-                    internalerror(200610054);
-                  end;
-                end;
-              looplist.clear;
-              templist := looplist;
-              looplist := deftowritelist;
-            end;
-          templist.free;
-        end;
-
 
       var
         storefilepos  : tfileposinfo;
@@ -3044,7 +3005,7 @@ implementation
           write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],current_module.localsymtable);
 
         { write defs not written yet }
-        write_defs_to_write;
+        write_remaining_defs_to_write(current_asmdata.asmlists[al_dwarf_info]);
 
         { close compilation unit entry }
         finish_children;

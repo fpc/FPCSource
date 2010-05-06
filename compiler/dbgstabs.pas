@@ -59,7 +59,6 @@ interface
       private
         writing_def_stabs  : boolean;
         global_stab_number : word;
-        defnumberlist      : TFPObjectList;
         vardatadef: trecorddef;
         { tsym writing }
         function  sym_var_value(const s:string;arg:pointer):string;
@@ -295,7 +294,10 @@ implementation
           referenced by the symbols. Definitions will always include all
           required stabs }
         if def.dbg_state=dbg_state_unused then
-          def.dbg_state:=dbg_state_used;
+          begin
+            def.dbg_state:=dbg_state_used;
+            deftowritelist.Add(def);
+          end;
         { Need a new number? }
         if def.stab_number=0 then
           begin
@@ -1348,8 +1350,12 @@ implementation
                         [c+def_stab_number(tprocdef(sym.owner.defowner)._class),tostr(sym.localloc.reference.offset)])
                 else
                   begin
+                    if (c='p') then
+                      c:='R'
+                    else
+                      c:='a';
                     regidx:=findreg_by_number(sym.localloc.register);
-                    ss:=sym_stabstr_evaluate(sym,'"$$t:r$1",${N_RSYM},0,0,$2',
+                    ss:=sym_stabstr_evaluate(sym,'"$$t:$1",${N_RSYM},0,0,$2',
                         [c+def_stab_number(tprocdef(sym.owner.defowner)._class),tostr(regstabs_table[regidx])]);
                   end
               end;
@@ -1493,6 +1499,7 @@ implementation
 
         global_stab_number:=0;
         defnumberlist:=TFPObjectlist.create(false);
+        deftowritelist:=TFPObjectlist.create(false);
         stabsvarlist:=TAsmList.create;
         stabstypelist:=TAsmList.create;
 
@@ -1532,6 +1539,8 @@ implementation
         if assigned(current_module.localsymtable) then
           write_symtable_defs(stabstypelist,current_module.localsymtable);
 
+        write_remaining_defs_to_write(stabstypelist);
+
         current_asmdata.asmlists[al_stabs].concatlist(stabstypelist);
         current_asmdata.asmlists[al_stabs].concatlist(stabsvarlist);
 
@@ -1547,6 +1556,8 @@ implementation
 
         defnumberlist.free;
         defnumberlist:=nil;
+        deftowritelist.free;
+        deftowritelist:=nil;
 
         stabsvarlist.free;
         stabstypelist.free;

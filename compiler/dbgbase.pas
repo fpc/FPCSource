@@ -37,6 +37,9 @@ interface
       TDebugInfo=class
       protected
         { definitions }
+        { collect all defs in one list so we can reset them easily }
+        defnumberlist      : TFPObjectList;
+        deftowritelist     : TFPObjectList;
         procedure appenddef(list:TAsmList;def:tdef);
         procedure beforeappenddef(list:TAsmList;def:tdef);virtual;
         procedure afterappenddef(list:TAsmList;def:tdef);virtual;
@@ -56,6 +59,7 @@ interface
         procedure appenddef_formal(list:TAsmList;def:tformaldef);virtual;
         procedure appenddef_undefined(list:TAsmList;def: tundefineddef);virtual;
         procedure appendprocdef(list:TAsmList;def:tprocdef);virtual;
+        procedure write_remaining_defs_to_write(list:TAsmList);
         { symbols }
         procedure appendsym(list:TAsmList;sym:tsym);
         procedure beforeappendsym(list:TAsmList;sym:tsym);virtual;
@@ -283,6 +287,42 @@ implementation
       end;
 
 
+    procedure TDebugInfo.write_remaining_defs_to_write(list:TAsmList);
+      var
+        n       : integer;
+        looplist,
+        templist: TFPObjectList;
+        def     : tdef;
+      begin
+        templist := TFPObjectList.Create(False);
+        looplist := deftowritelist;
+        while looplist.count > 0 do
+          begin
+            deftowritelist := templist;
+            for n := 0 to looplist.count - 1 do
+              begin
+                def := tdef(looplist[n]);
+                case def.dbg_state of
+                  dbg_state_written:
+                    continue;
+                  dbg_state_writing:
+                    internalerror(200610052);
+                  dbg_state_unused:
+                    internalerror(200610053);
+                  dbg_state_used:
+                    appenddef(list,def);
+                else
+                  internalerror(200610054);
+                end;
+              end;
+            looplist.clear;
+            templist := looplist;
+            looplist := deftowritelist;
+          end;
+        templist.free;
+      end;
+
+
 {**************************************
           Symbols
 **************************************}
@@ -396,6 +436,7 @@ implementation
       var
         def : tdef;
         i   : longint;
+        nonewadded : boolean;
       begin
         case st.symtabletype of
           staticsymtable :
@@ -403,12 +444,18 @@ implementation
           globalsymtable :
             list.concat(tai_comment.Create(strpnew('Defs - Begin unit '+st.name^+' has index '+tostr(st.moduleid))));
         end;
-        for i:=0 to st.DefList.Count-1 do
-          begin
-            def:=tdef(st.DefList[i]);
-            if (def.dbg_state in [dbg_state_used,dbg_state_queued]) then
-              appenddef(list,def);
-          end;
+        repeat
+          nonewadded:=true;
+          for i:=0 to st.DefList.Count-1 do
+            begin
+              def:=tdef(st.DefList[i]);
+              if (def.dbg_state in [dbg_state_used,dbg_state_queued]) then
+                begin
+                  appenddef(list,def);
+                  nonewadded:=false;
+                end;
+            end;
+        until nonewadded;
         case st.symtabletype of
           staticsymtable :
             list.concat(tai_comment.Create(strpnew('Defs - End Staticsymtable')));
