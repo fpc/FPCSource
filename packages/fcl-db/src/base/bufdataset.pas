@@ -2880,7 +2880,7 @@ begin
       Result := True;
       break;
       end;
-    CurrLinkItem := CurrLinkItem^.next;
+    CurrLinkItem := CurrLinkItem[(FCurrentIndex as TDoubleLinkedBufIndex).IndNr].next;
     if CurrLinkItem = (FCurrentIndex as TDoubleLinkedBufIndex).FLastRecBuf then
       getnextpacket;
     end;
