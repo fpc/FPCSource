@@ -1419,7 +1419,7 @@ begin
   case AField.DataType of
     ftString, ftFixedChar : ACompareRec.Comparefunc := @DBCompareText;
     ftSmallint : ACompareRec.Comparefunc := @DBCompareSmallInt;
-    ftInteger, ftBCD : ACompareRec.Comparefunc :=
+    ftInteger, ftBCD, ftAutoInc : ACompareRec.Comparefunc :=
       @DBCompareInt;
     ftWord : ACompareRec.Comparefunc := @DBCompareWord;
     ftBoolean : ACompareRec.Comparefunc := @DBCompareByte;
@@ -1556,6 +1556,7 @@ begin
       ftWideString:result := (FieldDef.Size + 1)*2;
     ftSmallint,
       ftInteger,
+      ftAutoInc,
       ftword     : result := sizeof(longint);
     ftBoolean    : result := sizeof(wordbool);
     ftBCD        : result := sizeof(currency);

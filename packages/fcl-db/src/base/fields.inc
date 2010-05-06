@@ -1707,6 +1707,7 @@ begin
   Inherited Create(AOWner);
   SetDataType(ftAutoInc);
   FReadOnly:=True;
+  FProviderFlags:=FProviderFlags-[pfInUpdate];
 end;
 
 Procedure TAutoIncField.SetAsLongint(AValue : Longint);

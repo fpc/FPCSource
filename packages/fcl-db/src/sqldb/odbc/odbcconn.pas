@@ -333,7 +333,7 @@ begin
     StrLenOrInd:=0;
 
     case AParams[ParamIndex].DataType of
-      ftInteger, ftSmallInt, ftWord:
+      ftInteger, ftSmallInt, ftWord, ftAutoInc:
         begin
           IntVal:=AParams[ParamIndex].AsInteger;
           PVal:=@IntVal;
@@ -729,7 +729,7 @@ begin
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_CHAR, buffer, FieldDef.Size, @StrLenOrInd);
     ftSmallint:           // mapped to TSmallintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SSHORT, buffer, SizeOf(Smallint), @StrLenOrInd);
-    ftInteger,ftWord:     // mapped to TLongintField
+    ftInteger,ftWord,ftAutoInc:     // mapped to TLongintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SLONG, buffer, SizeOf(Longint), @StrLenOrInd);
     ftLargeint:           // mapped to TLargeintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SBIGINT, buffer, SizeOf(Largeint), @StrLenOrInd);
@@ -962,6 +962,7 @@ var
   ColName,TypeName:string;
   FieldType:TFieldType;
   FieldSize:word;
+  AutoIncAttr: SQLINTEGER;
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
@@ -971,6 +972,7 @@ begin
     SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not determine number of columns in result set.'
   );
 
+  AutoIncAttr:=SQL_FALSE;
   for i:=1 to ColumnCount do
   begin
     SetLength(ColName,ColNameDefaultLength); // also garantuees uniqueness
@@ -1060,6 +1062,24 @@ begin
        (FieldSize >= dsMaxStringSize) then
     begin
       FieldSize:=dsMaxStringSize-1;
+    end
+    else
+    if (FieldType in [ftInteger]) and (AutoIncAttr=SQL_FALSE) then //if the column is an autoincrementing column
+                                                                   //any exact numeric type with scale 0 can have identity attr.
+                                                                   //only one column per table can have identity attr.
+    begin
+      ODBCCheckResult(
+        SQLColAttribute(ODBCCursor.FSTMTHandle, // statement handle
+                        i,                      // column number
+                        SQL_DESC_AUTO_UNIQUE_VALUE, // FieldIdentifier
+                        nil,                        // buffer
+                        0,                          // buffer size
+                        nil,                        // actual length
+                        @AutoIncAttr),              // NumericAttribute
+        SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get autoincrement attribute for column %d.',[i]
+      );
+      if AutoIncAttr=SQL_TRUE then
+        FieldType:=ftAutoInc;
     end;
 
     if FieldType=ftUnknown then // if unknown field type encountered, try finding more specific information about the ODBC SQL DataType
