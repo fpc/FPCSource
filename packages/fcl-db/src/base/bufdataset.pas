@@ -123,7 +123,6 @@ type
   public
     DBCompareStruct : TDBCompareStruct;
     Name            : String;
-    Fields          : TField;
     FieldsName      : String;
     CaseinsFields   : String;
     DescFields      : String;
@@ -701,6 +700,77 @@ begin
   until (getnextpacket < FPacketRecords) or (FPacketRecords = -1);
 end;
 
+{
+// Code to dump raw dataset data, including indexes information, usefull for debugging
+  procedure DumpRawMem(const Data: pointer; ALength: PtrInt);
+  var
+    b: integer;
+    s1,s2: string;
+  begin
+    s1 := '';
+    s2 := '';
+    for b := 0 to ALength-1 do
+      begin
+      s1 := s1 + ' ' + hexStr(pbyte(Data)[b],2);
+      if pchar(Data)[b] in ['a'..'z','A'..'Z','1'..'9',' '..'/',':'..'@'] then
+        s2 := s2 + pchar(Data)[b]
+      else
+        s2 := s2 + '.';
+      if length(s2)=16 then
+        begin
+        write('    ',s1,'    ');
+        writeln(s2);
+        s1 := '';
+        s2 := '';
+        end;
+      end;
+    write('    ',s1,'    ');
+    writeln(s2);
+  end;
+
+  procedure DumpRecord(Dataset: TCustomBufDataset; RecBuf: PBufRecLinkItem; RawData: boolean = false);
+  var ptr: pointer;
+      NullMask: pointer;
+      FieldData: pointer;
+      NullMaskSize: integer;
+      i: integer;
+  begin
+    if RawData then
+      DumpRawMem(RecBuf,Dataset.RecordSize)
+    else
+      begin
+      ptr := RecBuf;
+      NullMask:= ptr + (sizeof(TBufRecLinkItem)*Dataset.MaxIndexesCount);
+      NullMaskSize := 1+(Dataset.Fields.Count-1) div 8;
+      FieldData:= ptr + (sizeof(TBufRecLinkItem)*Dataset.MaxIndexesCount) +NullMaskSize;
+      write('record: $',hexstr(ptr),'  nullmask: $');
+      for i := 0 to NullMaskSize-1 do
+        write(hexStr(byte((NullMask+i)^),2));
+      write('=');
+      for i := 0 to NullMaskSize-1 do
+        write(binStr(byte((NullMask+i)^),8));
+      writeln('%');
+      for i := 0 to Dataset.MaxIndexesCount-1 do
+        writeln('  ','Index ',inttostr(i),' Prior rec: ' + hexstr(pointer((ptr+(i*2)*sizeof(ptr))^)) + ' Next rec: ' + hexstr(pointer((ptr+((i*2)+1)*sizeof(ptr))^)));
+      DumpRawMem(FieldData,Dataset.RecordSize-((sizeof(TBufRecLinkItem)*Dataset.MaxIndexesCount) +NullMaskSize));
+      end;
+  end;
+
+  procedure DumpDataset(AIndex: TBufIndex;RawData: boolean = false);
+  var RecBuf: PBufRecLinkItem;
+  begin
+    writeln('Dump records, order based on index ',AIndex.IndNr);
+    writeln('Current record:',hexstr(AIndex.CurrentRecord));
+
+    RecBuf:=(AIndex as TDoubleLinkedBufIndex).FFirstRecBuf;
+    while RecBuf<>(AIndex as TDoubleLinkedBufIndex).FLastRecBuf do
+      begin
+      DumpRecord(AIndex.FDataset,RecBuf,RawData);
+      RecBuf:=RecBuf[(AIndex as TDoubleLinkedBufIndex).IndNr].next;
+      end;
+  end;
+}
+
 procedure TCustomBufDataset.BuildIndex(var AIndex: TBufIndex);
 
 var PCurRecLinkItem : PBufRecLinkItem;
@@ -1223,7 +1293,7 @@ begin
   while TmpRecBuffer <> ABookmark^.BookmarkData do
     begin
     inc(recnr);
-    TmpRecBuffer := TmpRecBuffer^.next;
+    TmpRecBuffer := TmpRecBuffer[IndNr].next;
     end;
   Result := recnr;
 end;
