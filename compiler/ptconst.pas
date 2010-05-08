@@ -662,14 +662,21 @@ implementation
               { convert to the expected string type so that
                 for widestrings strval is a pcompilerwidestring }
               inserttypeconv(n,def);
-              if not codegenerror then
+              if (not codegenerror) and
+                 (n.nodetype=stringconstn) then
                 begin
                   strlength:=tstringconstnode(n).len;
                   strval:=tstringconstnode(n).value_str;
                 end
               else
-                { an error occurred trying to convert the result to a string }
-                strlength:=-1;
+                begin
+                  { an error occurred trying to convert the result to a string }
+                  strlength:=-1;
+                  { it's possible that the type conversion could not be
+                    evaluated at compile-time }
+                  if not codegenerror then
+                    CGMessage(parser_e_widestring_to_ansi_compile_time);
+                end;
             end
           else if is_constcharnode(n) then
             begin
