@@ -1,5 +1,5 @@
-// compile as
-// gcc -fno-exceptions -c -o cpptestclass1.o cpptestclass1.cpp
+// compile with
+// gcc -fno-exceptions -c -o $OS/$PLATFORM/cpptcl1.o cpptcl1.cpp
 
 class TestClass
 {
