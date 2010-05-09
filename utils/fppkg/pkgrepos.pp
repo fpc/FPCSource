@@ -19,6 +19,7 @@ function  PackageIsBroken(APackage:TFPPackage):boolean;
 function  FindBrokenPackages(SL:TStrings):Boolean;
 procedure CheckFPMakeDependencies;
 function  PackageInstalledVersionStr(const AName:String):string;
+function  PackageInstalledStateStr(const AName:String):string;
 function  PackageAvailableVersionStr(const AName:String):string;
 procedure ListAvailablePackages;
 procedure ListPackages;
@@ -477,6 +478,16 @@ begin
 end;
 
 
+function PackageInstalledStateStr(const AName:String):string;
+var
+  P : TFPPackage;
+begin
+  result := '';
+  P:=InstalledRepository.FindPackage(AName);
+  if (P<>nil) and PackageIsBroken(P) then
+    result:='B';
+end;
+
 
 procedure ListAvailablePackages;
 var
@@ -515,12 +526,12 @@ begin
     SL.Add(AvailableRepository.Packages[i].Name);
   for i:=0 to InstalledRepository.PackageCount-1 do
     SL.Add(InstalledRepository.Packages[i].Name);
-  Writeln(Format('%-20s %-12s %-12s',['Name','Installed','Available']));
+  Writeln(Format('%-20s %-12s %-3s %-12s',['Name','Installed','','Available']));
   for i:=0 to SL.Count-1 do
     begin
       PackageName:=SL[i];
       if (PackageName<>CmdLinePackageName) and (PackageName<>CurrentDirPackageName) then
-        Writeln(Format('%-20s %-12s %-12s',[PackageName,PackageInstalledVersionStr(PackageName),PackageAvailableVersionStr(PackageName)]));
+        Writeln(Format('%-20s %-12s %-3s %-12s',[PackageName,PackageInstalledVersionStr(PackageName),PackageInstalledStateStr(PackageName),PackageAvailableVersionStr(PackageName)]));
     end;
   FreeAndNil(SL);
 end;

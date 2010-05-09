@@ -168,23 +168,25 @@ procedure TMakeTool.ShowUsage;
 begin
   Writeln('Usage: ',Paramstr(0),' [options] <action> <package>');
   Writeln('Options:');
-  Writeln('  -c --config        Set compiler configuration to use');
-  Writeln('  -h --help          This help');
-  Writeln('  -v --verbose       Show more information');
-  Writeln('  -d --debug         Show debugging information');
-  Writeln('  -g --global        Force installation to global (system-wide) directory');
-  Writeln('  -f --force         Force installation also if the package is already installed');
-  Writeln('  -r --recovery      Recovery mode, use always internal fpmkunit');
+  Writeln('  -c --config       Set compiler configuration to use');
+  Writeln('  -h --help         This help');
+  Writeln('  -v --verbose      Show more information');
+  Writeln('  -d --debug        Show debugging information');
+  Writeln('  -g --global       Force installation to global (system-wide) directory');
+  Writeln('  -f --force        Force installation also if the package is already installed');
+  Writeln('  -r --recovery     Recovery mode, use always internal fpmkunit');
+  Writeln('  -b --broken       Do not stop on broken packages');
   Writeln('Actions:');
-  Writeln('  update             Update packages list');
-  Writeln('  list               List available and installed packages');
-  Writeln('  build              Build package');
-  Writeln('  compile            Compile package');
-  Writeln('  install            Install package');
-  Writeln('  clean              Clean package');
-  Writeln('  archive            Create archive of package');
-  Writeln('  download           Download package');
-  Writeln('  convertmk          Convert Makefile.fpc to fpmake.pp');
+  Writeln('  update            Update packages list');
+  Writeln('  list              List available and installed packages');
+  Writeln('  build             Build package');
+  Writeln('  compile           Compile package');
+  Writeln('  install           Install package');
+  Writeln('  clean             Clean package');
+  Writeln('  archive           Create archive of package');
+  Writeln('  download          Download package');
+  Writeln('  convertmk         Convert Makefile.fpc to fpmake.pp');
+  Writeln('  fixbroken         Recompile all (broken) packages with changed dependencies');
 //  Writeln('  addconfig          Add a compiler configuration for the supplied compiler');
   Halt(0);
 end;
@@ -335,8 +337,13 @@ begin
 
     // Check for broken dependencies
     if not GlobalOptions.AllowBroken and
-       not((ParaPackages.Count=0) and (ParaAction='fixbroken')) then
+       (((ParaAction='fixbroken') and (ParaPackages.Count>0)) or
+        (ParaAction='compile') or
+        (ParaAction='build') or
+        (ParaAction='install') or
+        (ParaAction='archive')) then
       begin
+        pkgglobals.Log(vlDebug,SLogCheckBrokenDependenvies);
         SL:=TStringList.Create;
         if FindBrokenPackages(SL) then
           Error(SErrBrokenPackagesFound);

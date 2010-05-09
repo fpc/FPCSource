@@ -77,6 +77,7 @@ Resourcestring
   SLogUpgradingConfig        = 'Configuration file "%s" is updated with new configuration settings';
   SLogPackageDependency      = 'Dependency on package %s %s, installed %s, available %s  (%s)';
   SLogPackageChecksumChanged = 'Package %s needs to be rebuild, dependency %s is modified';
+  SLogCheckBrokenDependenvies= 'Checking for broken dependencies';
 
   SLogGlobalCfgHeader        = 'Using global configuration:';
   SLogGlobalCfgRemoteMirrorsURL = ' RemoteMirrorsURL: "%s"';
