@@ -26,6 +26,9 @@ uses
 {$ENDIF FPC_TARGET_SUPPORTS_DYNLIBS}
   ctypes;
 
+(* cdecl as default unless defined differently below *)
+{$DEFINE EXTDECL := cdecl}
+
 {$IFDEF UNIX}
   {$DEFINE EXTDECL := cdecl}
   const
@@ -46,6 +49,13 @@ uses
     {$linklib c}
    {$UNDEF LOAD_DYNAMICALLY}
 {$ENDIF GO32V2}
+{$IFDEF OS2}
+(* Force static linking under OS/2 for now to avoid     *)
+(* dependency on dll for a one particular libc version. *)
+  {$UNDEF LOAD_DYNAMICALLY}
+  {$DEFINE gdlib := }
+  {$DEFINE clib := }
+{$ENDIF OS2}
 
 {$IFNDEF LOAD_DYNAMICALLY}
   {$IFDEF darwin}
