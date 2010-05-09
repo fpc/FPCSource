@@ -82,7 +82,9 @@ Var
 
 procedure SysInitVideo;
 
-var MI: TVioModeInfo;
+var
+  MI: TVioModeInfo;
+  NewBuf: PVideoBuf;
 
 begin
   MI.cb := SizeOf (MI);
@@ -96,9 +98,9 @@ begin
   VioGetCurPos (CursorY, CursorX, 0);
   SetCursorType (LastCursorType);
 { Get the address of the videobuffer.}
-  if VioGetBuf (SysVideoBuf, PWord (@VideoBufSize)^, 0) = 0 then
+  if VioGetBuf (NewBuf, PWord (@VideoBufSize)^, 0) = 0 then
     begin
-    SysVideoBuf := SelToFlat (cardinal (SysVideoBuf));
+    SysVideoBuf := SelToFlat (PtrUInt (NewBuf));
     SetHighBitBlink (true);
     end
   else
@@ -215,7 +217,7 @@ begin
     if (VioGetBuf (PScr, PWord (@ScrSize)^, 0) = 0) and
        (ScrSize = OrigScreenSize) then
       begin
-      PScr := SelToFlat (cardinal (PScr));
+      PScr := SelToFlat (PtrUInt (PScr));
       Move (OrigScreen^, PScr^, OrigScreenSize);
       VioShowBuf (0, ScrSize, 0);
       end;
@@ -232,7 +234,9 @@ end;
 
 function SysVideoModeSelector (const VideoMode: TVideoMode): boolean;
 
-var OldMI, MI: TVioModeInfo;
+var
+  OldMI, MI: TVioModeInfo;
+  NewBuf: PVideoBuf;
 
 begin
   OldMI.cb := SizeOf (OldMI);
@@ -252,9 +256,9 @@ begin
       Row := VideoMode.Row;
       end;
     if VioSetMode (MI, 0) = 0 then
-      if VioGetBuf (SysVideoBuf, PWord (@VideoBufSize)^, 0) = 0 then
+      if VioGetBuf (NewBuf, PWord (@VideoBufSize)^, 0) = 0 then
         begin
-        SysVideoBuf := SelToFlat (cardinal (SysVideoBuf));
+        SysVideoBuf := SelToFlat (PtrUInt (NewBuf));
         SysVideoModeSelector := true;
         SetHighBitBlink (true);
         CheckCellHeight;
@@ -265,8 +269,8 @@ begin
         begin
         SysVideoModeSelector := false;
         VioSetMode (OldMI, 0);
-        VioGetBuf (SysVideoBuf, PWord (@VideoBufSize)^, 0);
-        SysVideoBuf := SelToFlat (cardinal (SysVideoBuf));
+        if (VioGetBuf (NewBuf, PWord (@VideoBufSize)^, 0) = 0) then
+          SysVideoBuf := SelToFlat (PtrUInt (NewBuf));
         SetHighBitBlink (true);
         CheckCellHeight;
         SetCursorType (LastCursorType);
@@ -275,8 +279,8 @@ begin
     else
       begin
       SysVideoModeSelector := false;
-      VioGetBuf (SysVideoBuf, PWord (@VideoBufSize)^, 0);
-      SysVideoBuf := SelToFlat (cardinal (SysVideoBuf));
+      if VioGetBuf (NewBuf, PWord (@VideoBufSize)^, 0) = 0 then
+        SysVideoBuf := SelToFlat (PtrUInt (NewBuf));
       SetHighBitBlink (true);
       SetCursorType (LastCursorType);
       end;
@@ -406,6 +410,7 @@ begin
     CLen := VideoBufSize;
     end;
   // .MVC. Move video buffer to system video buffer.
+{$HINT Change so that only relevant parts calculated above are moved}
   Move(VideoBuf^,SysVideoBuf^,VideoBufSize);
   if Force then
     begin
@@ -444,6 +449,12 @@ begin
 {Remember original video mode, cursor type and high bit behaviour setting}
   OrigVioMode.cb := SizeOf (OrigVioMode);
   VioGetMode (OrigVioMode, 0);
+  with OrigVioMode do
+    begin
+    ScreenWidth := Col;
+    ScreenHeight := Row;
+    ScreenColor := Color >= Colors_16;
+    end;
   VioGetCurType (OrigCurType, 0);
   VioGetCurPos (OrigCurRow, OrigCurCol, 0);
   with OrigHighBit do
@@ -463,7 +474,7 @@ begin
   {Get the address of the original videobuffer and size.}
   if VioGetBuf (PScr, PWord (@OrigScreenSize)^, 0) = 0 then
     begin
-    PScr := SelToFlat (cardinal (PScr));
+    PScr := SelToFlat (PtrUInt (PScr));
     GetMem (OrigScreen, OrigScreenSize);
     Move (PScr^, OrigScreen^, OrigScreenSize);
     end;
@@ -471,6 +482,16 @@ end;
 
 
 initialization
+begin
   SetVideoDriver(SysVideoDriver);
   TargetEntry;
+end;
+
+finalization
+  if (OrigScreenSize <> 0) and (OrigScreen <> nil) then
+    begin
+      FreeMem (OrigScreen, OrigScreenSize);
+      OrigScreen := nil;
+      OrigScreenSize := 0;
+    end;
 end.
