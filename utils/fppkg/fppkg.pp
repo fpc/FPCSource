@@ -176,6 +176,7 @@ begin
   Writeln('  -f --force        Force installation also if the package is already installed');
   Writeln('  -r --recovery     Recovery mode, use always internal fpmkunit');
   Writeln('  -b --broken       Do not stop on broken packages');
+  Writeln('  -l --showlocation Show if the packages are installed globally or locally');
   Writeln('Actions:');
   Writeln('  update            Update packages list');
   Writeln('  list              List available and installed packages');
@@ -266,6 +267,8 @@ begin
         GlobalOptions.RecoveryMode:=true
       else if CheckOption(I,'b','broken') then
         GlobalOptions.AllowBroken:=true
+      else if CheckOption(I,'l','showlocation') then
+        GlobalOptions.ShowLocation:=true
       else if CheckOption(I,'h','help') then
         begin
           ShowUsage;

@@ -18,11 +18,11 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
 function  PackageIsBroken(APackage:TFPPackage):boolean;
 function  FindBrokenPackages(SL:TStrings):Boolean;
 procedure CheckFPMakeDependencies;
-function  PackageInstalledVersionStr(const AName:String):string;
+function  PackageInstalledVersionStr(const AName:String;const ShowUsed: boolean = false;const Local: boolean = false):string;
 function  PackageInstalledStateStr(const AName:String):string;
 function  PackageAvailableVersionStr(const AName:String):string;
 procedure ListAvailablePackages;
-procedure ListPackages;
+procedure ListPackages(const ShowGlobalAndLocal: boolean);
 
 procedure ListRemoteRepository;
 procedure RebuildRemoteRepository;
@@ -256,17 +256,19 @@ end;
 
 procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boolean=true);
 
-  function AddInstalledPackage(const AName,AFileName: String):TFPPackage;
+  function AddInstalledPackage(const AName,AFileName: String; const Local: boolean):TFPPackage;
   begin
     result:=InstalledRepository.FindPackage(AName);
     if not assigned(result) then
       result:=InstalledRepository.AddPackage(AName)
     else
       begin
+        result.UnusedVersion:=result.Version;
         // Log packages found in multiple locations (local and global) ?
         if showdups then
           Log(vlDebug,SDbgPackageMultipleLocations,[result.Name,ExtractFilePath(AFileName)]);
       end;
+    result.InstalledLocally:=Local;
   end;
 
   procedure LoadPackagefpcFromFile(APackage:TFPPackage;const AFileName: String);
@@ -284,7 +286,7 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
     end;
   end;
 
-  function CheckUnitDir(const AUnitDir:string):boolean;
+  function CheckUnitDir(const AUnitDir:string; const Local: boolean):boolean;
   var
     SR : TSearchRec;
     P  : TFPPackage;
@@ -302,7 +304,7 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
               UF:=UD+UnitConfigFileName;
               if FileExistsLog(UF) then
                 begin
-                  P:=AddInstalledPackage(SR.Name,UF);
+                  P:=AddInstalledPackage(SR.Name,UF,Local);
                   LoadUnitConfigFromFile(P,UF)
                 end
               else
@@ -311,7 +313,7 @@ procedure FindInstalledPackages(ACompilerOptions:TCompilerOptions;showdups:boole
                   UF:=UD+'Package.fpc';
                   if FileExistsLog(UF) then
                     begin
-                      P:=AddInstalledPackage(SR.Name,UF);
+                      P:=AddInstalledPackage(SR.Name,UF,Local);
                       LoadPackagefpcFromFile(P,UF);
                     end;
                 end;
@@ -327,9 +329,9 @@ begin
   // First scan the global directory
   // The local directory will overwrite the versions
   if ACompilerOptions.GlobalUnitDir<>'' then
-    CheckUnitDir(ACompilerOptions.GlobalUnitDir);
+    CheckUnitDir(ACompilerOptions.GlobalUnitDir, False);
   if ACompilerOptions.LocalUnitDir<>'' then
-    CheckUnitDir(ACompilerOptions.LocalUnitDir);
+    CheckUnitDir(ACompilerOptions.LocalUnitDir, True);
 end;
 
 
@@ -466,13 +468,22 @@ begin
 end;
 
 
-function PackageInstalledVersionStr(const AName:String):string;
+function PackageInstalledVersionStr(const AName:String;const ShowUsed: boolean = false;const Local: boolean = false):string;
 var
   P : TFPPackage;
 begin
   P:=InstalledRepository.FindPackage(AName);
   if P<>nil then
-    result:=P.Version.AsString
+    begin
+      if not ShowUsed then
+        result:=P.Version.AsString
+      else if Local=p.InstalledLocally then
+        result:=P.Version.AsString
+      else if not P.UnusedVersion.Empty then
+        result:=P.UnusedVersion.AsString
+      else
+        result:='-';
+    end
   else
     result:='-';
 end;
@@ -513,7 +524,7 @@ begin
 end;
 
 
-procedure ListPackages;
+procedure ListPackages(const ShowGlobalAndLocal: boolean);
 var
   i : integer;
   SL : TStringList;
@@ -526,12 +537,20 @@ begin
     SL.Add(AvailableRepository.Packages[i].Name);
   for i:=0 to InstalledRepository.PackageCount-1 do
     SL.Add(InstalledRepository.Packages[i].Name);
-  Writeln(Format('%-20s %-12s %-3s %-12s',['Name','Installed','','Available']));
+  if ShowGlobalAndLocal then
+    Writeln(Format('%-20s %-14s %-14s %-3s %-12s',['Name','Installed (G)','Installed (L)','','Available']))
+  else
+    Writeln(Format('%-20s %-12s %-3s %-12s',['Name','Installed','','Available']));
   for i:=0 to SL.Count-1 do
     begin
       PackageName:=SL[i];
       if (PackageName<>CmdLinePackageName) and (PackageName<>CurrentDirPackageName) then
-        Writeln(Format('%-20s %-12s %-3s %-12s',[PackageName,PackageInstalledVersionStr(PackageName),PackageInstalledStateStr(PackageName),PackageAvailableVersionStr(PackageName)]));
+        begin
+          if ShowGlobalAndLocal then
+            Writeln(Format('%-20s %-14s %-14s %-3s %-12s',[PackageName,PackageInstalledVersionStr(PackageName,True,False),PackageInstalledVersionStr(PackageName,True,True),PackageInstalledStateStr(PackageName),PackageAvailableVersionStr(PackageName)]))
+          else
+            Writeln(Format('%-20s %-12s %-3s %-12s',[PackageName,PackageInstalledVersionStr(PackageName),PackageInstalledStateStr(PackageName),PackageAvailableVersionStr(PackageName)]));
+        end;
     end;
   FreeAndNil(SL);
 end;

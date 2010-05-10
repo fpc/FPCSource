@@ -113,11 +113,13 @@ type
     FAuthor: String;
     FDescription: String;
     FEmail: String;
+    FInstalledLocally: boolean;
     FLicense: String;
     FName: String;
     FHomepageURL: String;
     FDownloadURL: String;
     FFileName: String;
+    FUnusedVersion: TFPVersion;
     FVersion: TFPVersion;
     FDependencies : TFPDependencies;
     FOSes : TOSES;
@@ -127,6 +129,7 @@ type
     FLocalFileName : String;
     function GetFileName: String;
     procedure SetName(const AValue: String);
+    procedure SetUnusedVersion(const AValue: TFPVersion);
     procedure SetVersion(const AValue: TFPVersion);
   Public
     Constructor Create(ACollection : TCollection); override;
@@ -136,6 +139,9 @@ type
     Procedure Assign(Source : TPersistent); override;
     Function AddDependency(Const APackageName : String; const AMinVersion : String = '') : TFPDependency;
     Property Dependencies : TFPDependencies Read FDependencies;
+    // Only for installed packages: (is false for packages which are installed globally)
+    Property InstalledLocally : boolean read FInstalledLocally write FInstalledLocally;
+    Property UnusedVersion : TFPVersion Read FUnusedVersion Write SetUnusedVersion;
   Published
     Property Name : String Read FName Write SetName;
     Property Author : String Read FAuthor Write FAuthor;
@@ -506,6 +512,7 @@ constructor TFPPackage.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
   FVersion:=TFPVersion.Create;
+  FUnusedVersion:=TFPVersion.Create;
   FChecksum:=$ffffffff;
   FOSes:=AllOSes;
   FCPUs:=AllCPUs;
@@ -517,6 +524,7 @@ destructor TFPPackage.Destroy;
 begin
   FreeAndNil(FDependencies);
   FreeAndNil(FVersion);
+  FreeAndNil(FUnusedVersion);
   inherited Destroy;
 end;
 
@@ -530,6 +538,14 @@ begin
         If TFPPackages(Collection).IndexOfPackage(AValue)<>-1 then
           Raise EPackage.CreateFmt(SErrDuplicatePackageName,[AValue]);
   FName:=AValue;
+end;
+
+
+procedure TFPPackage.SetUnusedVersion(const AValue: TFPVersion);
+begin
+  if FUnusedVersion=AValue then
+    exit;
+  FUnusedVersion.Assign(AValue);
 end;
 
 

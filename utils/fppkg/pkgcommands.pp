@@ -147,7 +147,7 @@ end;
 
 procedure TCommandListPackages.Execute;
 begin
-  ListPackages;
+  ListPackages(GlobalOptions.ShowLocation);
 end;
 
 
