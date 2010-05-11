@@ -29,14 +29,14 @@ begin
     T:=P.Targets.AddUnit('zorbadyn.pas');
       with T.Dependencies do
         begin
-          AddUnit('xqc.pas');
+          AddUnit('xqc');
           AddInclude('zorba.inc');
           AddInclude('zorba_options.inc');
         end;
     T:=P.Targets.AddUnit('zorba.pas');
       with T.Dependencies do
         begin
-          AddUnit('xqc.pas');
+          AddUnit('xqc');
           AddInclude('zorba.inc');
           AddInclude('zorba_options.inc');
         end;

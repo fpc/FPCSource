@@ -74,7 +74,7 @@ begin
           AddUnit('paslzxcomp');
           AddUnit('chmfiftimain');
         end;
-    T:=P.Targets.AddUnit('lzxcompressthread');
+    T:=P.Targets.AddUnit('lzxcompressthread.pas');
       with T.Dependencies do
         begin
           AddUnit('paslzxcomp');

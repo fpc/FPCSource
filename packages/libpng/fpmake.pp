@@ -17,15 +17,10 @@ begin
     P.Directory:='libpng';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+    P.Dependencies.Add('zlib');
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('png.pp');
-      with T.Dependencies do
-        begin
-          AddUnit('zlib');
-        end;
-
-
 {$ifndef ALLPACKAGES}
     Run;
     end;

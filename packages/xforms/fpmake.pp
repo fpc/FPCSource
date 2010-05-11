@@ -25,8 +25,6 @@ begin
       with T.Dependencies do
         begin
           AddInclude('cursorfont.inc');
-          AddUnit('xlib');
-          AddUnit('xresource');
         end;
 
     

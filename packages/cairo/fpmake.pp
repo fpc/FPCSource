@@ -33,21 +33,15 @@ begin
     with T.Dependencies do
       begin
         AddUnit('cairo');
-        AddUnit('freetypeh');
       end;
    T:=P.Targets.AddUnit('cairoxlib.pp',AllUnixOSes);
     with T.Dependencies do
       begin
         AddUnit('cairo');
-        AddUnit('xlib');
-        AddUnit('xrender');
       end;
    T:=P.Targets.AddUnit('cairowin32.pp',AllWindowsOses);
     with T.Dependencies do
-      begin
         AddUnit('cairo');
-        AddUnit('windows');
-      end;
 {$ifndef ALLPACKAGES}
     Run;
     end;
