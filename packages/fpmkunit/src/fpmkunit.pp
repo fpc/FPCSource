@@ -964,7 +964,7 @@ ResourceString
   SErrNeedArgument      = 'Option at position %d (%s) needs an argument';
   SErrNoPackagesDefined = 'No action possible: No packages were defined.';
   SErrInstaller         = 'The installer encountered the following error:';
-  SErrDepUnknownTarget  = 'Unknown target in dependencies for %s: %s';
+  SErrDepUnknownTarget  = 'Unknown target for unit "%s" in dependencies for %s in package %s';
   SErrExternalCommandFailed = 'External command "%s" failed with exit code %d';
   SErrCreatingDirectory = 'Failed to create directory "%s"';
   SErrDeletingFile      = 'Failed to delete file "%s"';
@@ -980,18 +980,22 @@ ResourceString
   SErrDependencyNotFound = 'Could not find unit directory for dependency package "%s"';
   SErrAlreadyInitialized = 'Installer can only be initialized once';
   SErrInvalidState      = 'Invalid state for target %s';
+  SErrCouldNotCompile   = 'Could not compile target %s from package %s';
 
   SWarnCircularTargetDependency = 'Warning: Circular dependency detected when compiling target %s with target %s';
   SWarnCircularPackageDependency = 'Warning: Circular dependency detected when compiling package %s with package %s';
   SWarnFailedToSetTime    = 'Warning: Failed to set timestamp on file "%s"';
   SWarnFailedToGetTime    = 'Warning: Failed to get timestamp from file "%s"';
-  SWarnFileDoesNotExist   = 'Warning: File "%s" does not exist';
   SWarnAttemptingToCompileNonNeutralTarget = 'Warning: Attempting to compile non-neutral target %s';
-  SWarnSourceFileNotFound  = 'Warning: Source file "%s" not found for %s';
-  SWarnIncludeFileNotFound = 'Warning: Include file "%s" not found for %s';
+  SWarnSourceFileNotFound  = 'Warning: Source file "%s" from package %s not found for %s';
+  SWarnIncludeFileNotFound = 'Warning: Include file "%s" from package %s not found for %s';
   SWarnDepUnitNotFound     = 'Warning: Dependency on unit %s is not supported for %s';
+  SWarnTargetDependsOnPackage = 'Warning: Target %s of package %s depends on another package (%s). These kind of dependencies are not processed';
+  SWarnDependOnOtherPlatformPackage = 'Warning: Package %s depends on package %s which is not available for the %s platform';
+  SWarnDone               = 'Done';
 
   SInfoCompilingPackage   = 'Compiling package %s';
+  SInfoPackageAlreadyProcessed = 'Package %s is already processed';
   SInfoCompilingTarget    = 'Compiling target %s';
   SInfoExecutingCommand   = 'Executing command "%s %s"';
   SInfoCreatingOutputDir  = 'Creating output dir "%s"';
@@ -1030,6 +1034,7 @@ ResourceString
   SDbgSearchPath            = 'Using %s path "%s"';
   SDbgEnterDir              = 'Entering directory "%s"';
   SDbgPackageChecksumChanged = 'Dependent package %s is modified';
+  SDbgFileDoesNotExist      = 'File "%s" does not exist';
 
   // Help messages for usage
   SValue              = 'Value';
@@ -2930,6 +2935,7 @@ procedure TCustomInstaller.Compile(Force: Boolean);
 begin
   FBuildEngine.ForceCompile:=Force;
   FBuildEngine.Compile(FPackages);
+  Log(vlWarning,SWarnDone);
 end;
 
 
@@ -3152,7 +3158,7 @@ end;
 procedure TBuildEngine.SysDeleteFile(Const AFileName : String);
 begin
   if not FileExists(AFileName) then
-    Log(vlWarning,SWarnFileDoesNotExist,[AFileName])
+    Log(vldebug,SDbgFileDoesNotExist,[AFileName])
   else If Not DeleteFile(AFileName) then
     Error(SErrDeletingFile,[AFileName]);
 end;
@@ -3406,7 +3412,7 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
       Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetSourceFileName])
     else
       begin
-        Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName,MakeTargetString(ACPU,AOS)]);
+        Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName,APackage.Name,MakeTargetString(ACPU,AOS)]);
         T.FTargetSourceFileName:='';
       end;
   end;
@@ -3444,7 +3450,7 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
                   Log(vlDebug,SDbgResolvedIncludeFile,[D.Value,D.TargetFileName])
                 else
                   begin
-                    Log(vlWarning,SWarnIncludeFileNotFound,[D.Value,MakeTargetString(ACPU,AOS)]);
+                    Log(vlWarning,SWarnIncludeFileNotFound,[D.Value, APackage.Name, MakeTargetString(ACPU,AOS)]);
                     D.TargetFileName:='';
                   end;
               end;
@@ -3468,7 +3474,7 @@ Procedure TBuildEngine.ResolveFileNames(APackage : TPackage; ACPU:TCPU;AOS:TOS;D
       Log(vlDebug,SDbgResolvedSourceFile,[T.SourceFileName,T.TargetSourceFileName])
     else
       begin
-        Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName,MakeTargetString(ACPU,AOS)]);
+        Log(vlWarning,SWarnSourceFileNotFound,[T.SourceFileName, APackage.Name, MakeTargetString(ACPU,AOS)]);
         T.FTargetSourceFileName:='';
       end;
   end;
@@ -3527,7 +3533,7 @@ begin
   //  - LocalUnitDir
   //  - GlobalUnitDir
   if (APackage.UnitDir='') and
-     (APackage.State=tsCompiled) then
+     (APackage.State in [tsCompiled, tsNoCompile]) then
     begin
       APackage.UnitDir:=IncludeTrailingPathDelimiter(FStartDir)+IncludeTrailingPathDelimiter(APackage.Directory)+APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS);
     end;
@@ -3607,6 +3613,9 @@ Var
   L,Args : TStringList;
   i : Integer;
 begin
+  if ATarget.TargetSourceFileName = '' then
+    Error(SErrCouldNotCompile,[ATarget.Name, APackage.Name]);
+
   Args:=TStringList.Create;
   Args.Duplicates:=dupIgnore;
 
@@ -3809,7 +3818,7 @@ begin
                   begin
                     T:=TTarget(D.Target);
                     If (T=Nil) then
-                      Error(SErrDepUnknownTarget,[ATarget.Name,D.Value]);
+                      Error(SErrDepUnknownTarget,[D.Value, ATarget.Name, APackage.Name]);
                     // If a dependent package is compiled we always need to recompile
                     Log(vldebug, SDbgDependencyOnUnit, [ATarget.Name,T.Name]);
                     Result:=(T.State=tsCompiled);
@@ -3820,6 +3829,10 @@ begin
                   begin
                     if D.TargetFileName<>'' then
                       Result:=FileNewer(D.TargetFileName,OFN)
+                  end;
+                depPackage :
+                  begin
+                    log(vlWarning,SWarnTargetDependsOnPackage,[ATarget.Name, APackage.Name, d.Value]);
                   end;
               end;
               if result then
@@ -3862,7 +3875,9 @@ begin
   For I:=0 to ATarget.Dependencies.Count-1 do
     begin
       D:=ATarget.Dependencies[i];
-      if (D.DependencyType=depUnit) and
+      if (D.DependencyType=depPackage) then
+        log(vlWarning,SWarnTargetDependsOnPackage,[ATarget.Name, APackage.Name, d.Value])
+      else if (D.DependencyType=depUnit) and
          (Defaults.CPU in D.CPUs) and (Defaults.OS in D.OSes) then
         begin
           T:=TTarget(D.Target);
@@ -3886,7 +3901,7 @@ begin
                 Log(vlWarning, Format(SWarnDepUnitNotFound, [T.Name, MakeTargetString(Defaults.CPU,Defaults.OS)]));
             end
           else
-            Error(SErrDepUnknownTarget,[ATarget.Name,D.Value]);
+            Error(SErrDepUnknownTarget,[D.Value, ATarget.Name, APackage.Name]);
         end;
     end;
   LogUnIndent;
@@ -4020,12 +4035,17 @@ begin
           P:=TPackage(D.Target);
           If Assigned(P) then
             begin
-              case P.State of
-                tsNeutral :
-                  MaybeCompile(P);
-                tsConsidering :
-                  Log(vlWarning,SWarnCircularPackageDependency,[APackage.Name,P.Name]);
-              end;
+              if (Defaults.CPU in P.CPUs) and (Defaults.OS in P.OSes) then
+                begin
+                  case P.State of
+                    tsNeutral :
+                      MaybeCompile(P);
+                    tsConsidering :
+                      Log(vlWarning,SWarnCircularPackageDependency,[APackage.Name,P.Name]);
+                  end;
+                end
+              else
+                Log(vlWarning,SWarnDependOnOtherPlatformPackage,[APackage.Name, D.Value, MakeTargetString(Defaults.CPU, Defaults.OS)]);
             end
           else
             begin
@@ -4085,6 +4105,11 @@ end;
 
 procedure TBuildEngine.MaybeCompile(APackage: TPackage);
 begin
+  if APackage.State in [tsCompiled, tsNoCompile] then
+    begin
+      Log(vlInfo,SInfoPackageAlreadyProcessed,[APackage.Name]);
+      Exit;
+    end;
   if APackage.State<>tsNeutral then
     Error(SErrInvalidState,[APackage.Name]);
   Log(vlDebug,SDbgConsideringPackage,[APackage.Name]);
