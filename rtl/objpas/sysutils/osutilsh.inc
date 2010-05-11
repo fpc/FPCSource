@@ -52,6 +52,9 @@ Type
   TGetTempDirEvent  = Function (Global : Boolean) : String;
   TGetTempFileEvent = Function (Const Dir,Prefix : String) : String;
 
+Type
+  TEventType = (etCustom,etInfo,etWarning,etError,etDebug);
+
 Var
   OnGetVendorName      : TGetVendorNameEvent;
   OnGetApplicationName : TGetAppNameEvent;

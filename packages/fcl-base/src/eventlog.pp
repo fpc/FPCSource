@@ -23,7 +23,6 @@ uses SysUtils,Classes;
 
 Type
   TEventLog = Class;
-  TEventType = (etCustom,etInfo,etWarning,etError,etDebug);
   TLogType = (ltSystem,ltFile);
   TLogCodeEvent = Procedure (Sender : TObject; Var Code : DWord) of Object;
   TLogCategoryEvent = Procedure (Sender : TObject; Var Code : Word) of Object;
