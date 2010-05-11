@@ -22,6 +22,7 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('fastcgi');
+    P.Dependencies.Add('httpd22');
 
     P.Author := 'FreePascal development team';
     P.License := 'LGPL with modification, ';
@@ -33,7 +34,9 @@ begin
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('cgiapp.pp');
+    T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('custcgi.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('httpdefs');
@@ -51,27 +54,30 @@ begin
           AddUnit('fphtml');
         end;
     T:=P.Targets.AddUnit('fphtml.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('httpdefs');
           AddUnit('fphttp');
         end;
     T:=P.Targets.AddUnit('fphttp.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('httpdefs');
         end;
-    T:=P.Targets.AddUnit('fptemplate.pp');
     T:=P.Targets.AddUnit('fpweb.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('httpdefs');
           AddUnit('fphttp');
-          AddUnit('fptemplate');
           AddUnit('websession');
         end;
     T:=P.Targets.AddUnit('httpdefs.pp');
+    T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('websession.pp');
+    T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('fphttp');
@@ -82,6 +88,34 @@ begin
         begin
           AddUnit('httpdefs');
         end;
+    with P.Targets.AddUnit('custweb.pp') do
+      begin
+        ResourceStrings:=true;
+        Dependencies.AddUnit('httpdefs');
+        Dependencies.AddUnit('fphttp');
+      end;
+    with P.Targets.AddUnit('webpage.pp') do
+      begin
+        Dependencies.AddUnit('httpdefs');
+        Dependencies.AddUnit('fphtml');
+        Dependencies.AddUnit('fpweb');
+      end;
+    with P.Targets.AddUnit('fpfcgi.pp') do
+      begin
+        Dependencies.AddUnit('custfcgi');
+      end;
+    with P.Targets.AddUnit('custfcgi.pp') do
+      begin
+        Dependencies.AddUnit('httpdefs');
+        Dependencies.AddUnit('custweb');
+        ResourceStrings:=true;
+      end;
+    with P.Targets.AddUnit('fpapache.pp') do
+      begin
+        Dependencies.AddUnit('fphttp');
+        Dependencies.AddUnit('custweb');
+        ResourceStrings:=true;
+      end;
 
 {$ifndef ALLPACKAGES}
     Run;
