@@ -235,7 +235,7 @@ type
     procedure OnChangeSQL(Sender : TObject);
     procedure OnChangeModifySQL(Sender : TObject);
     procedure Execute;
-    Function SQLParser(var ASQL : string) : TStatementType;
+    Function SQLParser(const ASQL : string) : TStatementType;
     procedure ApplyFilter;
     Function AddFilter(SQLstr : string) : string;
   protected
@@ -861,10 +861,16 @@ end;
 Function TCustomSQLQuery.AddFilter(SQLstr : string) : string;
 
 begin
+  if (FWhereStartPos > 0) and (FWhereStopPos > 0) then
+    begin
+    system.insert('(',SQLstr,FWhereStartPos+1);
+    system.insert(')',SQLstr,FWhereStopPos+1);
+    end;
+
   if FWhereStartPos = 0 then
     SQLstr := SQLstr + ' where (' + Filter + ')'
   else if FWhereStopPos > 0 then
-    system.insert(' and ('+ServerFilter+') ',SQLstr,FWhereStopPos+1)
+    system.insert(' and ('+ServerFilter+') ',SQLstr,FWhereStopPos+2)
   else
     system.insert(' where ('+ServerFilter+') ',SQLstr,FWhereStartPos);
   Result := SQLstr;
@@ -1060,7 +1066,7 @@ begin
   end;
 end;
 
-function TCustomSQLQuery.SQLParser(var ASQL : string) : TStatementType;
+function TCustomSQLQuery.SQLParser(const ASQL : string) : TStatementType;
 
 type TParsePart = (ppStart,ppSelect,ppWhere,ppFrom,ppOrder,ppComment,ppGroup,ppBogus);
 
@@ -1137,7 +1143,7 @@ begin
                        end;
                      end;
           ppFrom   : begin
-                     if (s = 'WHERE') or (s = 'ORDER') or (s = 'GROUP') or (CurrentP^=#0) or (CurrentP^=';') then
+                     if (s = 'WHERE') or (s = 'ORDER') or (s = 'GROUP') or (s = 'LIMIT') or (CurrentP^=#0) or (CurrentP^=';') then
                        begin
                        if (s = 'WHERE') then
                          begin
@@ -1152,6 +1158,11 @@ begin
                        else if (s = 'ORDER') then
                          begin
                          ParsePart := ppOrder;
+                         StrLength := PhraseP-PStatementPart
+                         end
+                       else if (s = 'LIMIT') then
+                         begin
+                         ParsePart := ppBogus;
                          StrLength := PhraseP-PStatementPart
                          end
                        else
@@ -1180,11 +1191,11 @@ begin
                        end;
                      end;
           ppWhere  : begin
-                     if (s = 'ORDER') or (s = 'GROUP') or (CurrentP^=#0) or (CurrentP^=';') then
+                     if (s = 'ORDER') or (s = 'GROUP') or (s = 'LIMIT') or (CurrentP^=#0) or (CurrentP^=';') then
                        begin
                        ParsePart := ppBogus;
                        FWhereStartPos := PStatementPart-PSQL;
-                       if (s = 'ORDER') or (s = 'GROUP') then
+                       if (s = 'ORDER') or (s = 'GROUP') or (s = 'LIMIT') then
                          FWhereStopPos := PhraseP-PSQL+1
                        else
                          FWhereStopPos := CurrentP-PSQL+1;
@@ -1201,12 +1212,6 @@ begin
       end
     end;
   until CurrentP^=#0;
-  if (FWhereStartPos > 0) and (FWhereStopPos > 0) then
-    begin
-    system.insert('(',ASQL,FWhereStartPos+1);
-    inc(FWhereStopPos);
-    system.insert(')',ASQL,FWhereStopPos);
-    end
 end;
 
 procedure TCustomSQLQuery.InternalOpen;

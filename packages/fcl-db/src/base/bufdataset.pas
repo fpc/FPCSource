@@ -99,6 +99,10 @@ type
   TDBCompareRec = record
                    Comparefunc : TCompareFunc;
                    Off1,Off2   : PtrInt;
+                   FieldInd1,
+                   FieldInd2   : longint;
+                   NullBOff1,
+                   NullBOff2   : PtrInt;
                    Options     : TLocateOptions;
                    Desc        : Boolean;
                   end;
@@ -119,7 +123,6 @@ type
   public
     DBCompareStruct : TDBCompareStruct;
     Name            : String;
-    Fields          : TField;
     FieldsName      : String;
     CaseinsFields   : String;
     DescFields      : String;
@@ -605,21 +608,6 @@ begin
     result := 0;
 end;
 
-function IndexCompareRecords(Rec1,Rec2 : pointer; ADBCompareRecs : TDBCompareStruct) : LargeInt;
-var IndexFieldNr : Integer;
-begin
-  for IndexFieldNr:=0 to length(ADBCompareRecs)-1 do with ADBCompareRecs[IndexFieldNr] do
-    begin
-    Result := Comparefunc(Rec1+Off1,Rec2+Off2,Options);
-    if Result <> 0 then
-      begin
-      if Desc then
-        Result := -Result;
-      break;
-      end;
-    end;
-end;
-
 procedure unSetFieldIsNull(NullMask : pbyte;x : longint); //inline;
 begin
   NullMask[x div 8] := (NullMask[x div 8]) and not (1 shl (x mod 8));
@@ -633,6 +621,32 @@ end;
 function GetFieldIsNull(NullMask : pbyte;x : longint) : boolean; //inline;
 begin
   result := ord(NullMask[x div 8]) and (1 shl (x mod 8)) > 0
+end;
+
+function IndexCompareRecords(Rec1,Rec2 : pointer; ADBCompareRecs : TDBCompareStruct) : LargeInt;
+var IndexFieldNr : Integer;
+    IsNull1, IsNull2 : boolean;
+begin
+  for IndexFieldNr:=0 to length(ADBCompareRecs)-1 do with ADBCompareRecs[IndexFieldNr] do
+    begin
+    IsNull1:=GetFieldIsNull(rec1+NullBOff1,FieldInd1);
+    IsNull2:=GetFieldIsNull(rec2+NullBOff2,FieldInd2);
+    if IsNull1 and IsNull2 then
+      result := 0
+    else if IsNull1 then
+      result := -1
+    else if IsNull2 then
+      result := 1
+    else
+      Result := Comparefunc(Rec1+Off1,Rec2+Off2,Options);
+
+    if Result <> 0 then
+      begin
+      if Desc then
+        Result := -Result;
+      break;
+      end;
+    end;
 end;
 
 { ---------------------------------------------------------------------
@@ -685,6 +699,77 @@ begin
   repeat
   until (getnextpacket < FPacketRecords) or (FPacketRecords = -1);
 end;
+
+{
+// Code to dump raw dataset data, including indexes information, usefull for debugging
+  procedure DumpRawMem(const Data: pointer; ALength: PtrInt);
+  var
+    b: integer;
+    s1,s2: string;
+  begin
+    s1 := '';
+    s2 := '';
+    for b := 0 to ALength-1 do
+      begin
+      s1 := s1 + ' ' + hexStr(pbyte(Data)[b],2);
+      if pchar(Data)[b] in ['a'..'z','A'..'Z','1'..'9',' '..'/',':'..'@'] then
+        s2 := s2 + pchar(Data)[b]
+      else
+        s2 := s2 + '.';
+      if length(s2)=16 then
+        begin
+        write('    ',s1,'    ');
+        writeln(s2);
+        s1 := '';
+        s2 := '';
+        end;
+      end;
+    write('    ',s1,'    ');
+    writeln(s2);
+  end;
+
+  procedure DumpRecord(Dataset: TCustomBufDataset; RecBuf: PBufRecLinkItem; RawData: boolean = false);
+  var ptr: pointer;
+      NullMask: pointer;
+      FieldData: pointer;
+      NullMaskSize: integer;
+      i: integer;
+  begin
+    if RawData then
+      DumpRawMem(RecBuf,Dataset.RecordSize)
+    else
+      begin
+      ptr := RecBuf;
+      NullMask:= ptr + (sizeof(TBufRecLinkItem)*Dataset.MaxIndexesCount);
+      NullMaskSize := 1+(Dataset.Fields.Count-1) div 8;
+      FieldData:= ptr + (sizeof(TBufRecLinkItem)*Dataset.MaxIndexesCount) +NullMaskSize;
+      write('record: $',hexstr(ptr),'  nullmask: $');
+      for i := 0 to NullMaskSize-1 do
+        write(hexStr(byte((NullMask+i)^),2));
+      write('=');
+      for i := 0 to NullMaskSize-1 do
+        write(binStr(byte((NullMask+i)^),8));
+      writeln('%');
+      for i := 0 to Dataset.MaxIndexesCount-1 do
+        writeln('  ','Index ',inttostr(i),' Prior rec: ' + hexstr(pointer((ptr+(i*2)*sizeof(ptr))^)) + ' Next rec: ' + hexstr(pointer((ptr+((i*2)+1)*sizeof(ptr))^)));
+      DumpRawMem(FieldData,Dataset.RecordSize-((sizeof(TBufRecLinkItem)*Dataset.MaxIndexesCount) +NullMaskSize));
+      end;
+  end;
+
+  procedure DumpDataset(AIndex: TBufIndex;RawData: boolean = false);
+  var RecBuf: PBufRecLinkItem;
+  begin
+    writeln('Dump records, order based on index ',AIndex.IndNr);
+    writeln('Current record:',hexstr(AIndex.CurrentRecord));
+
+    RecBuf:=(AIndex as TDoubleLinkedBufIndex).FFirstRecBuf;
+    while RecBuf<>(AIndex as TDoubleLinkedBufIndex).FLastRecBuf do
+      begin
+      DumpRecord(AIndex.FDataset,RecBuf,RawData);
+      RecBuf:=RecBuf[(AIndex as TDoubleLinkedBufIndex).IndNr].next;
+      end;
+  end;
+}
 
 procedure TCustomBufDataset.BuildIndex(var AIndex: TBufIndex);
 
@@ -1208,7 +1293,7 @@ begin
   while TmpRecBuffer <> ABookmark^.BookmarkData do
     begin
     inc(recnr);
-    TmpRecBuffer := TmpRecBuffer^.next;
+    TmpRecBuffer := TmpRecBuffer[IndNr].next;
     end;
   Result := recnr;
 end;
@@ -1334,7 +1419,7 @@ begin
   case AField.DataType of
     ftString, ftFixedChar : ACompareRec.Comparefunc := @DBCompareText;
     ftSmallint : ACompareRec.Comparefunc := @DBCompareSmallInt;
-    ftInteger, ftBCD : ACompareRec.Comparefunc :=
+    ftInteger, ftBCD, ftAutoInc : ACompareRec.Comparefunc :=
       @DBCompareInt;
     ftWord : ACompareRec.Comparefunc := @DBCompareWord;
     ftBoolean : ACompareRec.Comparefunc := @DBCompareByte;
@@ -1349,6 +1434,12 @@ begin
   ACompareRec.Off1:=sizeof(TBufRecLinkItem)*FMaxIndexesCount+
     FFieldBufPositions[AField.FieldNo-1];
   ACompareRec.Off2:=ACompareRec.Off1;
+
+  ACompareRec.FieldInd1:=AField.FieldNo-1;
+  ACompareRec.FieldInd2:=ACompareRec.FieldInd1;
+
+  ACompareRec.NullBOff1:=sizeof(TBufRecLinkItem)*MaxIndexesCount;
+  ACompareRec.NullBOff2:=ACompareRec.NullBOff1;
 end;
 
 procedure TCustomBufDataset.SetIndexFieldNames(const AValue: String);
@@ -1465,6 +1556,7 @@ begin
       ftWideString:result := (FieldDef.Size + 1)*2;
     ftSmallint,
       ftInteger,
+      ftAutoInc,
       ftword     : result := sizeof(longint);
     ftBoolean    : result := sizeof(wordbool);
     ftBCD        : result := sizeof(currency);
@@ -2751,6 +2843,7 @@ var CurrLinkItem    : PBufRecLinkItem;
 
 begin
   Result := False;
+  CheckActive;
   if IsEmpty then exit;
 
   // Build the DBCompare structure
@@ -2788,7 +2881,7 @@ begin
       Result := True;
       break;
       end;
-    CurrLinkItem := CurrLinkItem^.next;
+    CurrLinkItem := CurrLinkItem[(FCurrentIndex as TDoubleLinkedBufIndex).IndNr].next;
     if CurrLinkItem = (FCurrentIndex as TDoubleLinkedBufIndex).FLastRecBuf then
       getnextpacket;
     end;

@@ -90,6 +90,7 @@ type
     procedure RollbackRetaining(trans:TSQLHandle); override;
     // - Statement execution
     procedure Execute(cursor:TSQLCursor; ATransaction:TSQLTransaction; AParams:TParams); override;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
     // - Result retrieving
     procedure AddFieldDefs(cursor:TSQLCursor; FieldDefs:TFieldDefs); override;
     function Fetch(cursor:TSQLCursor):boolean; override;
@@ -309,6 +310,7 @@ var
   FloatVal: cdouble;
   DateVal: SQL_DATE_STRUCT;
   TimeStampVal: SQL_TIMESTAMP_STRUCT;
+  BoolVal: byte;
   ColumnSize, BufferLength, StrLenOrInd: SQLINTEGER;
   CType, SqlType, DecimalDigits:SQLSMALLINT;
 begin
@@ -331,7 +333,7 @@ begin
     StrLenOrInd:=0;
 
     case AParams[ParamIndex].DataType of
-      ftInteger, ftSmallInt:
+      ftInteger, ftSmallInt, ftWord, ftAutoInc:
         begin
           IntVal:=AParams[ParamIndex].AsInteger;
           PVal:=@IntVal;
@@ -400,6 +402,15 @@ begin
           SqlType:=SQL_TYPE_TIMESTAMP;
           ColumnSize:=Size;
         end;
+      ftBoolean:
+        begin
+          BoolVal:=ord(AParams[ParamIndex].AsBoolean);
+          PVal:=@BoolVal;
+          Size:=SizeOf(BoolVal);
+          CType:=SQL_C_BIT;
+          SqlType:=SQL_BIT;
+          ColumnSize:=Size;
+        end
       else
         raise EDataBaseError.CreateFmt('Parameter %d is of type %s, which not supported yet',[ParamIndex, Fieldtypenames[AParams[ParamIndex].DataType]]);
     end;
@@ -652,6 +663,19 @@ begin
   FreeParamBuffers(ODBCCursor);
 end;
 
+function TODBCConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
+var
+  RowCount: SQLINTEGER;
+begin
+  if assigned(cursor) then
+    if ODBCSucces( SQLRowCount((cursor as TODBCCursor).FSTMTHandle, RowCount) ) then
+       Result:=RowCount
+    else
+       Result:=-1
+  else
+    Result:=-1;
+end;
+
 function TODBCConnection.Fetch(cursor: TSQLCursor): boolean;
 var
   ODBCCursor:TODBCCursor;
@@ -705,7 +729,7 @@ begin
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_CHAR, buffer, FieldDef.Size, @StrLenOrInd);
     ftSmallint:           // mapped to TSmallintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SSHORT, buffer, SizeOf(Smallint), @StrLenOrInd);
-    ftInteger,ftWord:     // mapped to TLongintField
+    ftInteger,ftWord,ftAutoInc:     // mapped to TLongintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SLONG, buffer, SizeOf(Longint), @StrLenOrInd);
     ftLargeint:           // mapped to TLargeintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SBIGINT, buffer, SizeOf(Largeint), @StrLenOrInd);
@@ -938,6 +962,7 @@ var
   ColName,TypeName:string;
   FieldType:TFieldType;
   FieldSize:word;
+  AutoIncAttr: SQLINTEGER;
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
@@ -947,6 +972,7 @@ begin
     SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not determine number of columns in result set.'
   );
 
+  AutoIncAttr:=SQL_FALSE;
   for i:=1 to ColumnCount do
   begin
     SetLength(ColName,ColNameDefaultLength); // also garantuees uniqueness
@@ -1036,6 +1062,24 @@ begin
        (FieldSize >= dsMaxStringSize) then
     begin
       FieldSize:=dsMaxStringSize-1;
+    end
+    else
+    if (FieldType in [ftInteger]) and (AutoIncAttr=SQL_FALSE) then //if the column is an autoincrementing column
+                                                                   //any exact numeric type with scale 0 can have identity attr.
+                                                                   //only one column per table can have identity attr.
+    begin
+      ODBCCheckResult(
+        SQLColAttribute(ODBCCursor.FSTMTHandle, // statement handle
+                        i,                      // column number
+                        SQL_DESC_AUTO_UNIQUE_VALUE, // FieldIdentifier
+                        nil,                        // buffer
+                        0,                          // buffer size
+                        nil,                        // actual length
+                        @AutoIncAttr),              // NumericAttribute
+        SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get autoincrement attribute for column %d.',[i]
+      );
+      if AutoIncAttr=SQL_TRUE then
+        FieldType:=ftAutoInc;
     end;
 
     if FieldType=ftUnknown then // if unknown field type encountered, try finding more specific information about the ODBC SQL DataType
@@ -1279,13 +1323,19 @@ var
   Res:SQLRETURN;
 begin
   // free environment handle
-  Res:=SQLFreeHandle(SQL_HANDLE_ENV, FENVHandle);
-  if Res=SQL_ERROR then
-    ODBCCheckResult(Res,SQL_HANDLE_ENV, FENVHandle, 'Could not free ODBC Environment handle.');
+  if assigned(FENVHandle) then
+    begin
+    Res:=SQLFreeHandle(SQL_HANDLE_ENV, FENVHandle);
+    if Res=SQL_ERROR then
+      ODBCCheckResult(Res,SQL_HANDLE_ENV, FENVHandle, 'Could not free ODBC Environment handle.');
+    end;
 
   // free odbc if not used by any TODBCEnvironment object anymore
-  Dec(ODBCLoadCount);
-  if ODBCLoadCount=0 then ReleaseOdbc;
+  if ODBCLoadCount>0 then
+    begin
+    Dec(ODBCLoadCount);
+    if ODBCLoadCount=0 then ReleaseOdbc;
+    end;
 end;
 
 { TODBCCursor }

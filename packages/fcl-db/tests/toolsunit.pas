@@ -228,7 +228,6 @@ var DBConnectorClass : TPersistentClass;
 begin
   testValues[ftString] := testStringValues;
   testValues[ftFixedChar] := testStringValues;
-  testValues[ftDate] := testDateValues;
   for i := 0 to testValuesCount-1 do
     begin
     testValues[ftFloat,i] := FloatToStr(testFloatValues[i]);
@@ -242,6 +241,7 @@ begin
     testValues[ftCurrency,i] := CurrToStr(testCurrencyValues[i]);
     // DecimalSeparator:='.';
     testValues[ftBCD,i] := CurrToStr(testCurrencyValues[i]);
+    testValues[ftDate,i] := DateToStr(StrToDate(testDateValues[i], 'yyyy/mm/dd', '-'));
     end;
 
   if dbconnectorname = '' then raise Exception.Create('There is no db-connector specified');

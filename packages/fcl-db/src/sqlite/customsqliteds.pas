@@ -113,8 +113,10 @@ type
     FOnGetHandle: TDataSetNotifyEvent;
     FOptions: TSqliteOptions;
     FSQLList: TStrings;
+    FStoreDefs: Boolean;
     procedure CopyCacheToItem(AItem: PDataRecord);
     function GetIndexFields(Value: Integer): TField;
+    function GetSQLList: TStrings;
     procedure SetMasterIndexValue;
     procedure SetOptions(const AValue: TSqliteOptions);
     procedure UpdateCalcFieldList;
@@ -150,6 +152,7 @@ type
     function SqliteExec(Sql: PChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer; virtual; abstract;
     procedure InternalCloseHandle; virtual; abstract;
     function InternalGetHandle: Pointer; virtual; abstract;
+    function FieldDefsStored: Boolean;
     function GetLastInsertRowId: Int64; virtual; abstract;
     procedure GetSqliteHandle;
     procedure BuildLinkedList; virtual; abstract;
@@ -218,6 +221,7 @@ type
     procedure ExecCallback(const ASql: String; UserData: Pointer = nil);
     procedure ExecSQL;
     procedure ExecSQL(const ASql: String);
+    procedure ExecSQL(ASqlList: TStrings);
     procedure ExecSQLList;
     procedure ExecuteDirect(const ASql: String); virtual; abstract;
     function GetSQLValue(Values: PPChar; FieldIndex: Integer): String;
@@ -243,7 +247,7 @@ type
     property RowsAffected: Integer read GetRowsAffected;
     property ReturnCode: Integer read FReturnCode;
     property SqliteHandle: Pointer read FSqliteHandle;
-    property SQLList:TStrings read FSQLList;
+    property SQLList: TStrings read GetSQLList;
    published
     property AutoIncrementKey: Boolean read FAutoIncrementKey write FAutoIncrementKey default False;
     property IndexFieldNames: string read FIndexFieldNames write FIndexFieldNames;
@@ -255,12 +259,13 @@ type
     property SaveOnClose: Boolean read FSaveOnClose write FSaveOnClose default False;
     property SaveOnRefetch: Boolean read FSaveOnRefetch write FSaveOnRefetch default False;
     property SQL: String read FSQL write FSQL;
+    property StoreDefs: Boolean read FStoreDefs write FStoreDefs default False;
     property TableName: String read FTableName write FTableName;   
     property MasterSource: TDataSource read GetMasterSource write SetMasterSource;
     property MasterFields: String read GetMasterFields write SetMasterFields;
     
     property Active;
-    property FieldDefs;   
+    property FieldDefs stored FieldDefsStored;
     //Events
     property BeforeOpen;
     property AfterOpen;
@@ -463,7 +468,6 @@ begin
   FUpdatedItems := TFPList.Create;
   FAddedItems := TFPList.Create;
   FDeletedItems := TFPList.Create;
-  FSQLList := TStringList.Create;
   inherited Create(AOwner);
 end;
 
@@ -527,8 +531,8 @@ begin
   FAddedItems.Destroy;
   FDeletedItems.Destroy;
   FMasterLink.Destroy;
-  FSQLList.Destroy;
   //lists created on demand
+  FSQLList.Free;
   FIndexFieldList.Free;
   FCalcFieldList.Free;
   // dispose special items
@@ -597,12 +601,19 @@ begin
   Result := TField(FIndexFieldList[Value]);
 end;
 
+function TCustomSqliteDataset.GetSQLList: TStrings;
+begin
+  if FSQLList = nil then
+    FSQLList := TStringList.Create;
+  Result := FSQLList;
+end;
+
 procedure TCustomSqliteDataset.SetMasterIndexValue;
 var
   i: Integer;
 begin
   for i := 0 to FIndexFieldList.Count - 1 do
-    TField(FIndexFieldList[i]).AsString := TField(FMasterLink.Fields[i]).AsString;
+    TField(FIndexFieldList[i]).Value := TField(FMasterLink.Fields[i]).Value;
 end;
 
 procedure TCustomSqliteDataset.SetOptions(const AValue: TSqliteOptions);
@@ -1211,6 +1222,11 @@ begin
   SetDetailFilter;
 end;
 
+function TCustomSqliteDataset.FieldDefsStored: Boolean;
+begin
+  Result := FStoreDefs and (FieldDefs.Count > 0);
+end;
+
 procedure TCustomSqliteDataset.GetSqliteHandle;
 begin
   if FFileName = '' then
@@ -1507,13 +1523,18 @@ begin
   ExecuteDirect(ASQL);
 end;
 
-procedure TCustomSqliteDataset.ExecSQLList;
+procedure TCustomSqliteDataset.ExecSQL(ASqlList: TStrings);
 begin
   if FSqliteHandle = nil then
     GetSqliteHandle;
-  FReturnCode := SqliteExec(PChar(FSQLList.Text), nil, nil);
+  FReturnCode := SqliteExec(PChar(ASQLList.Text), nil, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
+end;
+
+procedure TCustomSqliteDataset.ExecSQLList;
+begin
+  ExecSQL(SQLList);
 end;
 
 function TCustomSqliteDataset.GetSQLValue(Values: PPChar; FieldIndex: Integer

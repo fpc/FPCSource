@@ -1707,6 +1707,7 @@ begin
   Inherited Create(AOWner);
   SetDataType(ftAutoInc);
   FReadOnly:=True;
+  FProviderFlags:=FProviderFlags-[pfInUpdate];
 end;
 
 Procedure TAutoIncField.SetAsLongint(AValue : Longint);
@@ -1918,6 +1919,19 @@ begin
   Result:=Length(FDisplays[false,false]);
   If Result<Length(FDisplays[false,True]) then
     Result:=Length(FDisplays[false,True]);
+end;
+
+function TBooleanField.GetAsInteger: integer;
+begin
+   if GetAsBoolean then
+    Result:=1
+   else
+    Result:=0;
+end;
+
+procedure TBooleanField.SetAsInteger(AValue: Integer);
+begin
+  SetAsBoolean(avalue<>0);
 end;
 
 procedure TBooleanField.SetAsBoolean(AValue: Boolean);
@@ -2368,6 +2382,7 @@ begin
   Inherited Create(AOwner);
   FMaxvalue := 0;
   FMinvalue := 0;
+  FValidChars := [DecimalSeparator, '+', '-', '0'..'9'];
   SetDataType(ftBCD);
   FPrecision := 15;
   Size:=4;

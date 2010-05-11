@@ -100,8 +100,7 @@ begin
       FieldByName('FINTEGER').AsInteger := testIntValues[i];
       FieldByName('FBOOLEAN').AsBoolean := testBooleanValues[i];
       FieldByName('FFLOAT').AsFloat := testFloatValues[i];
-      ShortDateFormat := 'yyyy-mm-dd';
-      FieldByName('FDATE').AsDateTime := StrToDate(testDateValues[i]);
+      FieldByName('FDATE').AsDateTime := StrToDate(testDateValues[i], 'yyyy/mm/dd', '-');
       FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
       Post;
       end;
