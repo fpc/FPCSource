@@ -659,6 +659,8 @@ begin
       Description:=P.Description;
       HomepageURL:=P.HomepageURL;
       DownloadURL:=P.DownloadURL;
+      OSes:=P.OSes;
+      CPUs:=P.CPUs;
       FileName:=P.FileName;
       Checksum:=P.Checksum;
       Dependencies.Clear;

@@ -244,6 +244,7 @@ end;
 
 Function TFPMakeRunner.RunFPMake(const Command:string) : Integer;
 Var
+  ManifestPackage,
   P : TFPPackage;
   FPMakeBin,
   OOptions : string;
@@ -259,7 +260,16 @@ begin
   OOptions:='';
   // Does the current package support this CPU-OS?
   if PackageName<>'' then
-    P:=AvailableRepository.PackageByName(PackageName)
+    begin
+      P:=AvailableRepository.PackageByName(PackageName);
+      if (PackageName=CurrentDirPackageName) and (FileExists(ManifestFileName)) then
+        begin
+          ManifestPackage:=LoadManifestFromFile(ManifestFileName);
+          P.OSes:=ManifestPackage.OSes;
+          P.CPUs:=ManifestPackage.CPUs;
+          ManifestPackage.Free;
+        end;
+    end
   else
     P:=nil;
   if assigned(P) then
