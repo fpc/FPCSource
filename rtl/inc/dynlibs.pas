@@ -64,6 +64,9 @@ type
   TLibEventLoading = function(User: Pointer; Handler: PLibHandler): Boolean;
   TLibEventUnloading = procedure(Handler: PLibHandler);
 
+  TLibIdent = QWord;
+  TLibIdentGetter = function(const Filename: String): TLibIdent;
+
   PPLibSymbol = ^PLibSymbol;
   PLibSymbol = ^TLibSymbol;
   TLibSymbol = record
@@ -75,10 +78,12 @@ type
   TLibHandler = record
     InterfaceName: String;                { abstract name of the library }
     Defaults     : array of String;       { list of default library filenames }
-    Filename     : String;                { handle of the current loaded library }
-    Handle       : TLibHandle;            { filename of the current loaded library }
+    Filename     : String;                { filename of the current loaded library }
+    Handle       : TLibHandle;            { handle of the current loaded library }
     Loading      : TLibEventLoading;      { loading event, called after the unit is loaded }
     Unloading    : TLibEventUnloading;    { unloading event, called before the unit is unloaded }
+    IdentGetter  : TLibIdentGetter;
+    Ident         : TLibIdent;              { crc Ident of the current loaded library }
     SymCount     : Integer;               { number of symbols }
     Symbols      : PLibSymbol;            { symbol address- and namelist }
     ErrorMsg     : String;                { last error message }
@@ -89,7 +94,7 @@ type
 { handler definition }
 function LibraryHandler(const InterfaceName: String; const DefaultLibraries: array of String;
   const Symbols: PLibSymbol; const SymCount: Integer; const AfterLoading: TLibEventLoading = nil;
-  const BeforeUnloading: TLibEventUnloading = nil): TLibHandler;
+  const BeforeUnloading: TLibEventUnloading = nil; const IdentGetter: TLibIdentGetter = nil): TLibHandler;
 
 { initialization/finalization }
 function TryInitializeLibrary(var Handler: TLibHandler; const LibraryNames: array of String;
@@ -153,7 +158,7 @@ End;
 
 function LibraryHandler(const InterfaceName: String; const DefaultLibraries: array of String;
   const Symbols: PLibSymbol; const SymCount: Integer; const AfterLoading: TLibEventLoading;
-  const BeforeUnloading: TLibEventUnloading): TLibHandler;
+  const BeforeUnloading: TLibEventUnloading; const IdentGetter: TLibIdentGetter): TLibHandler;
 var
   I: Integer;
 begin
@@ -162,6 +167,8 @@ begin
   Result.Handle        := NilHandle;
   Result.Loading       := AfterLoading;
   Result.Unloading     := BeforeUnloading;
+  Result.IdentGetter      := IdentGetter;
+  Result.Ident          := 0;
   Result.SymCount      := SymCount;
   Result.Symbols       := Symbols;
   Result.ErrorMsg      := '';
@@ -176,12 +183,22 @@ function TryInitializeLibraryInternal(var Handler: TLibHandler; const LibraryNam
   const User: Pointer; const NoSymbolErrors: Boolean): Integer;
 var
   ErrSym: PLibSymbol;
+  NewIdent: TLibIdent;
 begin
-  if (Handler.Filename <> '') and (Handler.Filename <> LibraryName) then
+  if Handler.Filename <> '' then
   begin
-    AppendLibraryError(Handler, Format(SLibraryAlreadyLoaded, [Handler.InterfaceName, Handler.Filename]));
-    Result := -1;
-    Exit;
+    if Assigned(Handler.IdentGetter) then
+    begin
+      NewIdent := Handler.IdentGetter(LibraryName);
+      if NewIdent <> Handler.Ident then
+      begin
+        AppendLibraryError(Handler, Format(SLibraryAlreadyLoaded, [Handler.InterfaceName, Handler.Filename]));
+        Result := -1;
+        Exit;
+      end;
+    end else
+      if IsConsole then
+        WriteLn(Format(SLibraryAlreadyLoaded, [Handler.InterfaceName, Handler.Filename]));
   end;
 
   Result := InterlockedIncrement(Handler.RefCount);
@@ -218,6 +235,11 @@ begin
       Result := -1;
       Exit;
     end;
+
+    if Assigned(Handler.IdentGetter) then
+      Handler.Ident := Handler.IdentGetter(Handler.Filename)
+    else
+      Handler.Ident := 0;
   end;
 end;
 
@@ -292,6 +314,7 @@ begin
     UnloadLibrary(Handler.Handle);
     Handler.Handle := NilHandle;
     Handler.Filename := '';
+    Handler.Ident := 0;
   end else
     if Result < 0 then
       Handler.RefCount := 0;
