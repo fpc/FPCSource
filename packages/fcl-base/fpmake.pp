@@ -26,23 +26,26 @@ begin
     P.NeedLibC:= false;
 
     P.SourcePath.Add('src');
+    P.SourcePath.Add('src/$(OS)');
     P.SourcePath.Add('src/unix',AllUnixOSes);
     P.SourcePath.Add('src/win',AllWindowsOSes);
-    P.SourcePath.Add('src/$(OS)',AllOSes-AllWindowsOSes-AllUnixOSes);
     P.IncludePath.Add('src');
+    P.IncludePath.Add('src/$(OS)');
     P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/win',AllWindowsOSes);
-    P.IncludePath.Add('src/$(OS)',AllOSes-AllWindowsOSes-AllUnixOSes);
     P.IncludePath.Add('src/dummy',AllOSes);
 
     T:=P.Targets.AddUnit('ascii85.pp');
     T:=P.Targets.AddUnit('avl_tree.pp');
     T:=P.Targets.AddUnit('base64.pp');
     T:=P.Targets.AddUnit('blowfish.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('bufstream.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('cachecls.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('contnrs.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('custapp.pp');
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('eventlog.pp');
@@ -68,6 +71,7 @@ begin
     T:=P.Targets.AddUnit('iostream.pp');
     T:=P.Targets.AddUnit('libtar.pp');
     T:=P.Targets.AddUnit('maskutils.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('pooledmm.pp');
     T:=P.Targets.AddUnit('rtfpars.pp');
       with T.Dependencies do
@@ -79,6 +83,9 @@ begin
       T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('streamex.pp');
     T:=P.Targets.AddUnit('streamio.pp');
+      T.ResourceStrings:=true;
+    T:=P.Targets.AddUnit('fptemplate.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('syncobjs.pp',AllOSes-[GO32v2,OS2,EMX]);
     T:=P.Targets.AddUnit('uriparser.pp');
     T:=P.Targets.AddUnit('wformat.pp');
@@ -93,9 +100,9 @@ begin
           AddUnit('wformat');
         end;
     T:=P.Targets.AddUnit('fpexprpars.pp');
+      T.ResourceStrings:=true;
 
     // Windows units
-    T:=P.Targets.AddUnit('ServiceManager.pas',[Win32,Win64]);
     T:=P.Targets.AddUnit('fileinfo.pp',AllWindowsOSes);
 
     // Additional sources

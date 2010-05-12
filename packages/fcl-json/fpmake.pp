@@ -28,19 +28,23 @@ begin
     P.SourcePath.Add('src');
 
     T:=P.Targets.AddUnit('fpjson.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('jsonconf.pp');
+      T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('fpjson');
           AddUnit('jsonparser');
         end;
     T:=P.Targets.AddUnit('jsonparser.pp');
+      T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('fpjson');
           AddUnit('jsonscanner');
         end;
     T:=P.Targets.AddUnit('jsonscanner.pp');
+      T.ResourceStrings:=true;
 
     P.ExamplePath.Add('examples');
     T:=P.Targets.AddExampleProgram('confdemo.pp');

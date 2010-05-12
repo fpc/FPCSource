@@ -29,7 +29,9 @@ begin
     T:=P.Targets.AddUnit('jsbase.pp');
     T:=P.Targets.AddUnit('jstree.pp');
     T:=P.Targets.AddUnit('jsscanner.pp');
+      T.ResourceStrings:=true;
     T:=P.Targets.AddUnit('jsparser.pp');
+      T.ResourceStrings:=true;
 {$ifndef ALLPACKAGES}
     Run;
     end;

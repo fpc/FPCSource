@@ -29,9 +29,9 @@ begin
     P.NeedLibC:= false;
 
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src/$(OS)',AllOSes-AllWindowsOSes-AllUnixOSes);
     P.IncludePath.Add('src/unix',AllUnixOSes);
     P.IncludePath.Add('src/win',AllWindowsOSes);
-    P.IncludePath.Add('src/$(OS)',AllOSes-AllWindowsOSes-AllUnixOSes);
     P.IncludePath.Add('src/dummy',AllOSes);
 
     T:=P.Targets.AddUnit('daemonapp.pp',AllWindowsOSes+AllUnixOSes);
