@@ -226,12 +226,6 @@ begin
 {$include hash/fpmake.pp}
 end;
 
-procedure add_hermes;
-begin
-  with Installer do
-{$include hermes/fpmake.pp}
-end;
-
 procedure add_httpd13;
 begin
   with Installer do
@@ -322,6 +316,12 @@ begin
 {$include librsvg/fpmake.pp}
 end;
 
+procedure add_libsee;
+begin
+  with Installer do
+{$include libsee/fpmake.pp}
+end;
+
 procedure add_libxml;
 begin
   with Installer do
@@ -376,6 +376,12 @@ begin
 {$include numlib/fpmake.pp}
 end;
 
+procedure add_nvapi;
+begin
+  with Installer do
+{$include nvapi/fpmake.pp}
+end;
+
 procedure add_objcrtl;
 begin
   with Installer do
@@ -398,6 +404,12 @@ procedure add_openal;
 begin
   with Installer do
 {$include openal/fpmake.pp}
+end;
+
+procedure add_opencl;
+begin
+  with Installer do
+{$include opencl/fpmake.pp}
 end;
 
 procedure add_opengl;
@@ -460,12 +472,6 @@ begin
 {$include proj4/fpmake.pp}
 end;
 
-procedure add_ptc;
-begin
-  with Installer do
-{$include ptc/fpmake.pp}
-end;
-
 procedure add_pthreads;
 begin
   with Installer do
@@ -494,12 +500,6 @@ procedure add_sdl;
 begin
   with Installer do
 {$include sdl/fpmake.pp}
-end;
-
-procedure add_sndfile;
-begin
-  with Installer do
-{$include sndfile/fpmake.pp}
 end;
 
 procedure add_sqlite;

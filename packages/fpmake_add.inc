@@ -36,7 +36,6 @@
   add_gtk1;
   add_gtk2;
   add_hash;
-  add_hermes;
   add_httpd13;
   add_httpd20;
   add_httpd22;
@@ -52,6 +51,7 @@
   add_libndsfpc;
   add_libpng;
   add_librsvg;
+  add_libsee;
   add_libxml;
   add_lua;
   add_mad;
@@ -61,10 +61,12 @@
   add_ncurses;
   add_newt;
   add_numlib;
+  add_nvapi;
   add_objcrtl;
   add_odbc;
   add_oggvorbis;
   add_openal;
+  add_opencl;
   add_opengl;
   add_openssl;
   add_oracle;
@@ -75,13 +77,11 @@
   add_pcap;
   add_postgres;
   add_proj4;
-  add_ptc;
   add_pthreads;
   add_pxlib;
   add_regexpr;
   add_rexx;
   add_sdl;
-  add_sndfile;
   add_sqlite;
   add_svgalib;
   add_symbolic;
