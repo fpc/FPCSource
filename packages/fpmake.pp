@@ -29,13 +29,6 @@ begin
       // Create fpc-all package
       PBuild:=AddPackage('fpc-all');
       PBuild.Version:='2.2.2-0';
-      for i:=0 to Packages.Count-1 do
-        begin
-          P:=Packages.PackageItems[i];
-          if P.Name<>'fpc-all' then
-            D:=PBuild.Dependencies.Add(P.Name,P.CPUs,P.OSes);
-        end;
-
       Run;
     end;
 end.
