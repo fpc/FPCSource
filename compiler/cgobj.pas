@@ -1717,7 +1717,7 @@ implementation
                       end
                     else
                       begin
-                        { Y-x = -(Y-x) }
+                        { Y-x = -(x-Y) }
                         a_op_const_reg_reg(list,OP_SUB,OS_INT,loadbitsize,sref.bitindexreg,tmpindexreg);
                         a_op_reg_reg(list,OP_NEG,OS_INT,tmpindexreg,tmpindexreg);
                         a_load_const_reg(list,OS_INT,aint((aword(1) shl sref.bitlen)-1),maskreg);
