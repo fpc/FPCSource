@@ -3223,23 +3223,7 @@ implementation
              else
              { we have only to handle the result if it is used }
               if (cnf_return_value_used in callnodeflags) then
-               begin
-                 case resultdef.typ of
-                   enumdef,
-                   orddef :
-                     begin
-                       expectloc:=LOC_REGISTER;
-                     end;
-                   floatdef :
-                     begin
-                       expectloc:=LOC_FPUREGISTER;
-                     end;
-                   else
-                     begin
-                       expectloc:=procdefinition.funcretloc[callerside].loc;
-                     end;
-                 end;
-               end
+               expectloc:=procdefinition.funcretloc[callerside].loc
              else
                expectloc:=LOC_VOID;
            end
