@@ -33,7 +33,7 @@ begin
         begin
           P:=Packages.PackageItems[i];
           if P.Name<>'fpc-all' then
-            D:=PBuild.Dependencies.Add(P.Name);
+            D:=PBuild.Dependencies.Add(P.Name,P.CPUs,P.OSes);
         end;
 
       Run;
