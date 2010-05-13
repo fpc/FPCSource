@@ -274,8 +274,9 @@ begin
     P:=nil;
   if assigned(P) then
     begin
-      if not(CompilerOptions.CompilerOS in P.OSes) or
-         not(CompilerOptions.CompilerCPU in P.CPUs) then
+      if (command<>'archive') and (command<>'manifest') and
+         (not(CompilerOptions.CompilerOS in P.OSes) or
+          not(CompilerOptions.CompilerCPU in P.CPUs)) then
         Error(SErrPackageDoesNotSupportTarget,[P.Name,MakeTargetString(CompilerOptions.CompilerCPU,CompilerOptions.CompilerOS)]);
     end;
   { Maybe compile fpmake executable? }
