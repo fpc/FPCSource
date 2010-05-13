@@ -282,7 +282,9 @@ begin
   ExecuteAction(PackageName,'compilefpmake');
   { Create options }
   AddOption('--nofpccfg');
-  if vlInfo in LogLevels then
+  if vlDebug in LogLevels then
+    AddOption('--debug')
+  else if vlInfo in LogLevels then
     AddOption('--verbose');
   AddOption('--compiler='+CompilerOptions.Compiler);
   AddOption('--cpu='+CPUToString(CompilerOptions.CompilerCPU));
