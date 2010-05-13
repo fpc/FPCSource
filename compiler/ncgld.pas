@@ -173,8 +173,7 @@ implementation
         rr.new := @newref;
         rr.ressym := nil;
 
-        if (current_procinfo.procdef.funcretloc[calleeside].loc<>LOC_VOID) and
-           assigned(current_procinfo.procdef.funcretsym) and
+        if assigned(current_procinfo.procdef.funcretsym) and
            (tabstractvarsym(current_procinfo.procdef.funcretsym).refs <> 0) then
           if (current_procinfo.procdef.proctypeoption=potype_constructor) then
             rr.ressym:=tsym(current_procinfo.procdef.parast.Find('self'))

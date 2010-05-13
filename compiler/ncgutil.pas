@@ -1379,7 +1379,7 @@ implementation
         funcretloc : tlocation;
       begin
         { Is the loading needed? }
-        if (current_procinfo.procdef.funcretloc[calleeside].loc=LOC_VOID) or
+        if is_void(current_procinfo.procdef.returndef) or
            (
             (po_assembler in current_procinfo.procdef.procoptions) and
             (not(assigned(current_procinfo.procdef.funcretsym)) or
