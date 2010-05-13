@@ -1,6 +1,6 @@
 { lNet MIME Wrapper
 
-  CopyRight (C) 2007 Ales Katona
+  CopyRight (C) 2007-2008 by Ales Katona
 
   This library is Free software; you can rediStribute it and/or modify it
   under the terms of the GNU Library General Public License as published by
@@ -612,8 +612,6 @@ begin
 end;
 
 procedure TMimeStream.DoRead(const aSize: Integer);
-var
-  n: Integer;
 begin
   ActivateFirstSection;
   

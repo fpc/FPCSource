@@ -1,4 +1,4 @@
-unit fastcgi;
+unit fastcgi_base;
 
 interface
 

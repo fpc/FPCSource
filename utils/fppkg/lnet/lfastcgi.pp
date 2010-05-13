@@ -1,6 +1,6 @@
 { FastCGI requester support for lNet
 
-  Copyright (C) 2006-2007 Micha Nelissen
+  Copyright (C) 2006-2008 Micha Nelissen
 
   This library is Free software; you can redistribute it and/or modify it
   under the terms of the GNU Library General Public License as published by
@@ -28,7 +28,7 @@ unit lfastcgi;
 interface
 
 uses
-  classes, sysutils, fastcgi, lnet, levents, lstrbuffer, ltimer;
+  classes, sysutils, fastcgi_base, lnet, levents, lstrbuffer, ltimer;
 
 type
   TLFastCGIClient = class;
@@ -123,7 +123,7 @@ type
     function Connect: Boolean; override;
     procedure ConnectEvent(ASocket: TLHandle); override;
     procedure DisconnectEvent(ASocket: TLHandle); override;
-    procedure ErrorEvent(const Msg: string; ASocket: TLHandle); override;
+    procedure ErrorEvent(ASocket: TLHandle; const msg: string); override;
     function  CreateRequester: TLFastCGIRequest;
     procedure HandleGetValuesResult;
     procedure HandleReceive(ASocket: TLSocket);
@@ -572,7 +572,7 @@ begin
     Connect;
 end;
 
-procedure TLFastCGIClient.ErrorEvent(const Msg: string; ASocket: TLHandle);
+procedure TLFastCGIClient.ErrorEvent(ASocket: TLHandle; const msg: string);
 begin
   if (FState = fsConnectingAgain) 
     or ((FState = fsConnecting) and (FPool.FSpawnState = ssSpawned)) then

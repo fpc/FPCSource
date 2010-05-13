@@ -1,6 +1,6 @@
 { lNet FastCGI Spawner
 
-  CopyRight (C) 2006-2007 Ales Katona
+  CopyRight (C) 2006-2008 Ales Katona
 
   This library is Free software; you can rediStribute it and/or modify it
   under the terms of the GNU Library General Public License as published by

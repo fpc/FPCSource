@@ -1,4 +1,4 @@
-{ lTelnet CopyRight (C) 2004-2007 Ales Katona
+{ lTelnet CopyRight (C) 2004-2008 Ales Katona
 
   This library is Free software; you can rediStribute it and/or modify it
   under the terms of the GNU Library General Public License as published by
@@ -76,7 +76,7 @@ type
     FStack: TLControlStack;
     FConnection: TLTcp;
     FPossible: TLTelnetControlChars;
-    FActive: TLTelnetControlChars;
+    FActiveOpts: TLTelnetControlChars;
     FOutput: TMemoryStream;
     FOperation: Char;
     FCommandCharIndex: Byte;
@@ -86,25 +86,30 @@ type
     FOnError: TLSocketErrorEvent;
     FCommandArgs: string[3];
     FOrders: TLTelnetControlChars;
-    FConnected: Boolean;
-    FBuffer: string;
-
+    FBuffer: array of Char;
+    FBufferIndex: Integer;
+    FBufferEnd: Integer;
+    procedure InflateBuffer;
+    function AddToBuffer(const aStr: string): Boolean; inline;
+    
     function Question(const Command: Char; const Value: Boolean): Char;
+    
+    function GetConnected: Boolean;
     
     function GetTimeout: Integer;
     procedure SetTimeout(const Value: Integer);
 
     function GetSocketClass: TLSocketClass;
     procedure SetSocketClass(Value: TLSocketClass);
-    
+
+    function GetSession: TLSession;
+    procedure SetSesssion(const AValue: TLSession);
+    procedure SetCreator(AValue: TLComponent); override;
+
     procedure StackFull;
-    
     procedure DoubleIAC(var s: string);
-    
-    procedure TelnetParse(const msg: string);
-    
+    function TelnetParse(const msg: string): Integer;
     procedure React(const Operation, Command: Char); virtual; abstract;
-    
     procedure SendCommand(const Command: Char; const Value: Boolean); virtual; abstract;
 
     procedure OnCs(aSocket: TLSocket);
@@ -112,7 +117,7 @@ type
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
     
-    function Get(var aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; virtual; abstract;
+    function Get(out aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; virtual; abstract;
     function GetMessage(out msg: string; aSocket: TLSocket = nil): Integer; virtual; abstract;
     
     function Send(const aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; virtual; abstract;
@@ -123,12 +128,12 @@ type
     procedure SetOption(const Option: Char);
     procedure UnSetOption(const Option: Char);
     
-    procedure Disconnect; override;
+    procedure Disconnect(const Forced: Boolean = True); override;
     
     procedure SendCommand(const aCommand: Char; const How: TLHowEnum); virtual;
    public
     property Output: TMemoryStream read FOutput;
-    property Connected: Boolean read FConnected;
+    property Connected: Boolean read GetConnected;
     property Timeout: Integer read GetTimeout write SetTimeout;
     property OnReceive: TLSocketEvent read FOnReceive write FOnReceive;
     property OnDisconnect: TLSocketEvent read FOnDisconnect write FOnDisconnect;
@@ -136,6 +141,7 @@ type
     property OnError: TLSocketErrorEvent read FOnError write FOnError;
     property Connection: TLTCP read FConnection;
     property SocketClass: TLSocketClass read GetSocketClass write SetSocketClass;
+    property Session: TLSession read GetSession write SetSesssion;
   end;
 
   { TLTelnetClient }
@@ -157,7 +163,7 @@ type
     function Connect(const anAddress: string; const aPort: Word): Boolean;
     function Connect: Boolean;
     
-    function Get(var aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; override;
+    function Get(out aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; override;
     function GetMessage(out msg: string; aSocket: TLSocket = nil): Integer; override;
     
     function Send(const aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; override;
@@ -171,7 +177,7 @@ type
 implementation
 
 uses
-  SysUtils;
+  SysUtils, Math;
 
 var
   zz: Char;
@@ -183,7 +189,8 @@ constructor TLTelnet.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
   
-  FConnection := TLTCP.Create(aOwner);
+  FConnection := TLTCP.Create(nil);
+  FConnection.Creator := Self;
   FConnection.OnCanSend := @OnCs;
   
   FOutput := TMemoryStream.Create;
@@ -194,11 +201,51 @@ end;
 
 destructor TLTelnet.Destroy;
 begin
-  Disconnect;
+  Disconnect(True);
   FOutput.Free;
   FConnection.Free;
   FStack.Free;
   inherited Destroy;
+end;
+
+function TLTelnet.GetConnected: Boolean;
+begin
+  Result := FConnection.Connected;
+end;
+
+function TLTelnet.GetSession: TLSession;
+begin
+  Result := FConnection.Session;
+end;
+
+procedure TLTelnet.SetSesssion(const AValue: TLSession);
+begin
+  FConnection.Session := aValue;
+end;
+
+procedure TLTelnet.SetCreator(AValue: TLComponent);
+begin
+  inherited SetCreator(AValue);
+  FConnection.Creator := aValue;
+end;
+
+procedure TLTelnet.InflateBuffer;
+var
+  n: Integer;
+begin
+  n := Max(Length(FBuffer), 25);
+  SetLength(FBuffer, n * 10);
+end;
+
+function TLTelnet.AddToBuffer(const aStr: string): Boolean; inline;
+begin
+  Result := False;
+  
+  while Length(aStr) + FBufferEnd > Length(FBuffer) do
+    InflateBuffer;
+    
+  Move(aStr[1], FBuffer[FBufferEnd], Length(aStr));
+  Inc(FBufferEnd, Length(aStr));
 end;
 
 function TLTelnet.Question(const Command: Char; const Value: Boolean): Char;
@@ -265,18 +312,21 @@ begin
     end;
 end;
 
-procedure TLTelnet.TelnetParse(const msg: string);
+function TLTelnet.TelnetParse(const msg: string): Integer;
 var
   i: Longint;
 begin
+  Result := 0;
   for i := 1 to Length(msg) do
     if (FStack.ItemIndex > 0) or (msg[i] = TS_IAC) then begin
       if msg[i] = TS_GA then
         FStack.Clear
       else
         FStack.Push(msg[i])
-    end else
+    end else begin
       FOutput.WriteByte(Byte(msg[i]));
+      Inc(Result);
+    end;
 end;
 
 procedure TLTelnet.OnCs(aSocket: TLSocket);
@@ -285,18 +335,24 @@ var
 begin
   n := 1;
 
-  while n > 0 do begin
-    n := FConnection.SendMessage(FBuffer);
+  while (n > 0) and (FBufferIndex < FBufferEnd) do begin
+    n := FConnection.Send(FBuffer[FBufferIndex], FBufferEnd - FBufferIndex);
 
     if n > 0 then
-      System.Delete(FBuffer, 1, n);
+      Inc(FBufferIndex, n);
+  end;
+  
+  if FBufferEnd - FBufferIndex < FBufferIndex then begin // if we can move the "right" side of the buffer back to the left
+    Move(FBuffer[FBufferIndex], FBuffer[0], FBufferEnd - FBufferIndex);
+    FBufferEnd := FBufferEnd - FBufferIndex;
+    FBufferIndex := 0;
   end;
 end;
 
 function TLTelnet.OptionIsSet(const Option: Char): Boolean;
 begin
   Result := False;
-  Result := Option in FActive;
+  Result := Option in FActiveOpts;
 end;
 
 function TLTelnet.RegisterOption(const aOption: Char;
@@ -323,10 +379,9 @@ begin
     SendCommand(Option, False);
 end;
 
-procedure TLTelnet.Disconnect;
+procedure TLTelnet.Disconnect(const Forced: Boolean = True);
 begin
-  FConnection.Disconnect;
-  FConnected := False;
+  FConnection.Disconnect(Forced);
 end;
 
 procedure TLTelnet.SendCommand(const aCommand: Char; const How: TLHowEnum);
@@ -334,7 +389,7 @@ begin
   {$ifdef debug}
   Writeln('**SENT** ', TNames[Char(How)], ' ', TNames[aCommand]);
   {$endif}
-  FBuffer := FBuffer + TS_IAC + Char(How) + aCommand;
+  AddToBuffer(TS_IAC + Char(How) + aCommand);
   OnCs(nil);
 end;
 
@@ -348,9 +403,8 @@ begin
   FConnection.OnReceive := @OnRe;
   FConnection.OnConnect := @OnCo;
 
-  FConnected := False;
   FPossible := [TS_ECHO, TS_HYI, TS_SGA];
-  FActive := [];
+  FActiveOpts := [];
   FOrders := [];
 end;
 
@@ -372,16 +426,13 @@ procedure TLTelnetClient.OnRe(aSocket: TLSocket);
 var
   s: string;
 begin
-  if aSocket.GetMessage(s) > 0 then begin
-    TelnetParse(s);
-    if Assigned(FOnReceive) then
+  if aSocket.GetMessage(s) > 0 then
+    if (TelnetParse(s) > 0) and Assigned(FOnReceive) then
       FOnReceive(aSocket);
-  end;
 end;
 
 procedure TLTelnetClient.OnCo(aSocket: TLSocket);
 begin
-  FConnected := True;
   if Assigned(FOnConnect) then
     FOnConnect(aSocket);
 end;
@@ -390,21 +441,21 @@ procedure TLTelnetClient.React(const Operation, Command: Char);
 
   procedure Accept(const Operation, Command: Char);
   begin
-    FActive := FActive + [Command];
+    FActiveOpts := FActiveOpts + [Command];
     {$ifdef debug}
     Writeln('**SENT** ', TNames[Operation], ' ', TNames[Command]);
     {$endif}
-    FBuffer := FBuffer + TS_IAC + Operation + Command;
+    AddToBuffer(TS_IAC + Operation + Command);
     OnCs(nil);
   end;
   
   procedure Refuse(const Operation, Command: Char);
   begin
-    FActive := FActive - [Command];
+    FActiveOpts := FActiveOpts - [Command];
     {$ifdef debug}
     Writeln('**SENT** ', TNames[Operation], ' ', TNames[Command]);
     {$endif}
-    FBuffer := FBuffer + TS_IAC + Operation + Command;
+    AddToBuffer(TS_IAC + Operation + Command);
     OnCs(nil);
   end;
   
@@ -418,23 +469,23 @@ begin
               
     TS_DONT : if Command in FPossible then Refuse(TS_WONT, Command);
     
-    TS_WILL : if Command in FPossible then FActive := FActive + [Command]
+    TS_WILL : if Command in FPossible then FActiveOpts := FActiveOpts + [Command]
               else Refuse(TS_DONT, Command);
                  
-    TS_WONT : if Command in FPossible then FActive := FActive - [Command];
+    TS_WONT : if Command in FPossible then FActiveOpts := FActiveOpts - [Command];
   end;
 end;
 
 procedure TLTelnetClient.SendCommand(const Command: Char; const Value: Boolean);
 begin
-  if FConnected then begin
+  if Connected then begin
     {$ifdef debug}
     Writeln('**SENT** ', TNames[Question(Command, Value)], ' ', TNames[Command]);
     {$endif}
     case Question(Command, Value) of
-      TS_WILL : FActive := FActive + [Command];
+      TS_WILL : FActiveOpts := FActiveOpts + [Command];
     end;
-    FBuffer := FBuffer + TS_IAC + Question(Command, Value) + Command;
+    AddToBuffer(TS_IAC + Question(Command, Value) + Command);
     OnCs(nil);
   end;
 end;
@@ -449,7 +500,7 @@ begin
   Result  :=  FConnection.Connect(FHost, FPort);
 end;
 
-function TLTelnetClient.Get(var aData; const aSize: Integer; aSocket: TLSocket): Integer;
+function TLTelnetClient.Get(out aData; const aSize: Integer; aSocket: TLSocket): Integer;
 begin
   Result := FOutput.Read(aData, aSize);
   if FOutput.Position = FOutput.Size then
@@ -484,7 +535,7 @@ begin
     if LocalEcho and (not OptionIsSet(TS_ECHO)) and (not OptionIsSet(TS_HYI)) then
       FOutput.Write(PChar(Tmp)^, Length(Tmp));
       
-    FBuffer := FBuffer + Tmp;
+    AddToBuffer(Tmp);
     OnCs(nil);
     
     Result := aSize;

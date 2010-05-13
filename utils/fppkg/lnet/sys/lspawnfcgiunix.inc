@@ -21,7 +21,7 @@ begin
       Exit(LSocketError);
 
     TheSocket:=TLSocket.Create;
-    TheSocket.Blocking:=True;
+    TheSocket.SetState(ssBlocking);
 
     if not TheSocket.Listen(aPort) then
       Exit(LSocketError);

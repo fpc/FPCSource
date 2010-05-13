@@ -1,6 +1,6 @@
 { lNet SMTP unit
 
-  CopyRight (C) 2005-2007 Ales Katona
+  CopyRight (C) 2005-2008 Ales Katona
 
   This library is Free software; you can rediStribute it and/or modify it
   under the terms of the GNU Library General Public License as published by
@@ -29,14 +29,15 @@ unit lsmtp;
 interface
 
 uses
-  Classes, SysUtils, Contnrs, lNet, lEvents, lCommon, lMimeWrapper, lMimeStreams;
+  Classes, SysUtils, Contnrs, Base64,
+  lNet, lEvents, lCommon, lMimeWrapper, lMimeStreams;
   
 type
   TLSMTP = class;
   TLSMTPClient = class;
   
-  TLSMTPStatus = (ssNone, ssCon, ssHelo, ssEhlo, ssMail,
-                  ssRcpt, ssData, ssRset, ssQuit);
+  TLSMTPStatus = (ssNone, ssCon, ssHelo, ssEhlo, ssAuthLogin, ssAuthPlain,
+                  ssStartTLS, ssMail, ssRcpt, ssData, ssRset, ssQuit, ssLast);
 
   TLSMTPStatusSet = set of TLSMTPStatus;
 
@@ -73,6 +74,7 @@ type
     procedure AddStreamSection(aStream: TStream; const FreeStream: Boolean = False);
     procedure DeleteSection(const i: Integer);
     procedure RemoveSection(aSection: TMimeSection);
+    procedure Reset;
    public
     property MailText: string read FMailText write FMailText; deprecated; // use sections!
     property Sender: string read FSender write FSender;
@@ -85,10 +87,15 @@ type
   TLSMTP = class(TLComponent)
    protected
     FConnection: TLTcp;
+    FFeatureList: TStringList;
    protected
     function GetTimeout: Integer;
     procedure SetTimeout(const AValue: Integer);
     
+    function GetSession: TLSession;
+    procedure SetSession(const AValue: TLSession);
+    procedure SetCreator(AValue: TLComponent); override;
+
     function GetConnected: Boolean;
 
     function GetSocketClass: TLSocketClass;
@@ -99,6 +106,8 @@ type
    public
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
+    
+    function HasFeature(aFeature: string): Boolean;
    public
     property Connected: Boolean read GetConnected;
     property Connection: TLTcp read FConnection;
@@ -106,6 +115,8 @@ type
     property SocketClass: TLSocketClass read GetSocketClass write SetSocketClass;
     property Eventer: TLEventer read GetEventer write SetEventer;
     property Timeout: Integer read GetTimeout write SetTimeout;
+    property Session: TLSession read GetSession write SetSession;
+    property FeatureList: TStringList read FFeatureList;
   end;
 
   { TLSMTPClient }
@@ -115,6 +126,7 @@ type
     FStatus: TLSMTPStatusFront;
     FCommandFront: TLSMTPStatusFront;
     FPipeLine: Boolean;
+    FAuthStep: Integer;
 
     FOnConnect: TLSocketEvent;
     FOnReceive: TLSocketEvent;
@@ -128,6 +140,7 @@ type
     FStatusSet: TLSMTPStatusSet;
     FBuffer: string;
     FDataBuffer: string; // intermediate wait buffer on DATA command
+    FTempBuffer: string; // used independently from FBuffer for feature list
     FCharCount: Integer; // count of chars from last CRLF
     FStream: TStream;
    protected
@@ -141,12 +154,14 @@ type
     
     function CleanInput(var s: string): Integer;
     
+    procedure EvaluateServer;
+    procedure EvaluateFeatures;
     procedure EvaluateAnswer(const Ans: string);
-    
     procedure ExecuteFrontCommand;
     
-    procedure ClearCR_LF;
+    procedure AddToBuffer(s: string);
     procedure SendData(const FromStream: Boolean = False);
+    function EncodeBase64(const s: string): string;
    public
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
@@ -163,13 +178,16 @@ type
     
     procedure Helo(aHost: string = '');
     procedure Ehlo(aHost: string = '');
+    procedure StartTLS;
+    procedure AuthLogin(aName, aPass: string);
+    procedure AuthPlain(aName, aPass: string);
     procedure Mail(const From: string);
     procedure Rcpt(const RcptTo: string);
     procedure Data(const Msg: string);
     procedure Rset;
     procedure Quit;
     
-    procedure Disconnect; override;
+    procedure Disconnect(const Forced: Boolean = True); override;
     
     procedure CallAction; override;
    public
@@ -193,8 +211,9 @@ const
 
 function StatusToStr(const aStatus: TLSMTPStatus): string;
 const
-  STATAR: array[ssNone..ssQuit] of string = ('ssNone', 'ssCon', 'ssHelo', 'ssEhlo', 'ssMail',
-                                             'ssRcpt', 'ssData', 'ssRset', 'ssQuit');
+  STATAR: array[ssNone..ssLast] of string = ('ssNone', 'ssCon', 'ssHelo', 'ssEhlo',
+                                             'ssStartTLS', 'ssAuthLogin', 'ssAuthPlain',
+                                             'ssMail', 'ssRcpt', 'ssData', 'ssRset', 'ssQuit', 'ssLast');
 begin
   Result := STATAR[aStatus];
 end;
@@ -207,6 +226,23 @@ begin
 end;
 
 { TLSMTP }
+
+function TLSMTP.GetSession: TLSession;
+begin
+  Result := FConnection.Session;
+end;
+
+procedure TLSMTP.SetSession(const AValue: TLSession);
+begin
+  FConnection.Session := aValue;
+end;
+
+procedure TLSMTP.SetCreator(AValue: TLComponent);
+begin
+  inherited SetCreator(AValue);
+  
+  FConnection.Creator := AValue;
+end;
 
 function TLSMTP.GetTimeout: Integer;
 begin
@@ -247,14 +283,53 @@ constructor TLSMTP.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
   
+  FFeatureList := TStringList.Create;
   FConnection := TLTcp.Create(nil);
+  FConnection.Creator := Self;
+  // TODO: rework to use the new TLSocketTCP
+  FConnection.SocketClass := TLSocket;
 end;
 
 destructor TLSMTP.Destroy;
 begin
+  FFeatureList.Free;
   FConnection.Free;
 
   inherited Destroy;
+end;
+
+function TLSMTP.HasFeature(aFeature: string): Boolean;
+var
+  tmp: TStringList;
+  i, j: Integer;
+  AllArgs: Boolean;
+begin
+  Result := False;
+  try
+    tmp := TStringList.Create;
+    aFeature := UpperCase(aFeature);
+    aFeature := StringReplace(aFeature, ' ', ',', [rfReplaceAll]);
+    tmp.CommaText := aFeature;
+    for i := 0 to FFeatureList.Count - 1 do begin
+      if Pos(tmp[0], FFeatureList[i]) = 1 then begin
+        if tmp.Count = 1 then // no arguments, feature found, just exit true
+          Exit(True)
+        else begin // check arguments
+          AllArgs := True;
+          for j := 1 to tmp.Count - 1 do
+            if Pos(tmp[j], FFeatureList[i]) <= 0 then begin // some argument not found
+              AllArgs := False;
+              Break;
+            end;
+          if AllArgs then
+            Exit(True);
+        end;
+      end;
+    end;
+
+  finally
+    tmp.Free;
+  end;
 end;
 
 { TLSMTPClient }
@@ -263,7 +338,7 @@ constructor TLSMTPClient.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
   FPort := 25;
-  FStatusSet := []; // empty set for "ok/not-ok" Event
+  FStatusSet := [ssNone..ssLast]; // full set
   FSL := TStringList.Create;
 //  {$warning TODO: fix pipelining support when server does it}
   FPipeLine := False;
@@ -280,7 +355,8 @@ end;
 
 destructor TLSMTPClient.Destroy;
 begin
-  Quit;
+  if FConnection.Connected then
+    Quit;
   FSL.Free;
   FStatus.Free;
   FCommandFront.Free;
@@ -290,6 +366,12 @@ end;
 
 procedure TLSMTPClient.OnEr(const msg: string; aSocket: TLSocket);
 begin
+  if Assigned(FOnFailure) then begin
+    while not FStatus.Empty do
+      FOnFailure(aSocket, FStatus.Remove.Status);
+  end else
+    FStatus.Clear;
+
   if Assigned(FOnError) then
     FOnError(msg, aSocket);
 end;
@@ -329,14 +411,55 @@ var
   i: Integer;
 begin
   FSL.Text := s;
+
+  case FStatus.First.Status of // TODO: clear this to a proper place, the whole thing needs an overhaul
+    ssCon,
+    ssEhlo: FTempBuffer := FTempBuffer + UpperCase(s);
+  end;
+
   if FSL.Count > 0 then
-    for i := 0 to FSL.Count-1 do
+    for i := 0 to FSL.Count - 1 do
       if Length(FSL[i]) > 0 then EvaluateAnswer(FSL[i]);
   s := StringReplace(s, CRLF, LineEnding, [rfReplaceAll]);
   i := Pos('PASS', s);
   if i > 0 then
     s := Copy(s, 1, i-1) + 'PASS';
   Result := Length(s);
+end;
+
+procedure TLSMTPClient.EvaluateServer;
+begin
+  FFeatureList.Clear;
+  if Length(FTempBuffer) = 0 then
+    Exit;
+
+  if Pos('ESMTP', FTempBuffer) > 0 then
+    FFeatureList.Append('EHLO');
+  FTempBuffer := '';
+end;
+
+procedure TLSMTPClient.EvaluateFeatures;
+var
+  i: Integer;
+begin
+  FFeatureList.Clear;
+  if Length(FTempBuffer) = 0 then
+    Exit;
+
+  FFeatureList.Text := FTempBuffer;
+  FTempBuffer := '';
+  FFeatureList.Delete(0);
+
+  i := 0;
+  while i < FFeatureList.Count do begin;
+    FFeatureList[i] := Copy(FFeatureList[i], 5, Length(FFeatureList[i])); // delete the response code crap
+    FFeatureList[i] := StringReplace(FFeatureList[i], '=', ' ', [rfReplaceAll]);
+    if FFeatureList.IndexOf(FFeatureList[i]) <> i then begin
+      FFeatureList.Delete(i);
+      Continue;
+    end;
+    Inc(i);
+  end;
 end;
 
 procedure TLSMTPClient.EvaluateAnswer(const Ans: string);
@@ -363,6 +486,7 @@ procedure TLSMTPClient.EvaluateAnswer(const Ans: string);
   
   procedure Eventize(const aStatus: TLSMTPStatus; const Res: Boolean);
   begin
+    FStatus.Remove;
     if Res then begin
       if Assigned(FOnSuccess) and (aStatus in FStatusSet) then
         FOnSuccess(FConnection.Iterator, aStatus);
@@ -376,55 +500,102 @@ var
   x: Integer;
 begin
   x := GetNum;
+
   if ValidResponse(Ans) and not FStatus.Empty then
     case FStatus.First.Status of
       ssCon,
       ssHelo,
       ssEhlo: case x of
                 200..299: begin
+                            case FStatus.First.Status of
+                              ssCon  : EvaluateServer;
+                              ssEhlo : EvaluateFeatures;
+                            end;
                             Eventize(FStatus.First.Status, True);
-                            FStatus.Remove;
                           end;
               else        begin
                             Eventize(FStatus.First.Status, False);
-                            Disconnect;
+                            Disconnect(False);
+                            FFeatureList.Clear;
+                            FTempBuffer := '';
                           end;
               end;
-               
+              
+      ssStartTLS:
+              case x of
+                200..299: begin
+                            Eventize(FStatus.First.Status, True);
+                            FConnection.Iterator.SetState(ssSSLActive);
+                          end;
+              else        begin
+                            Eventize(FStatus.First.Status, False);
+                          end;
+              end;
+              
+      ssAuthLogin:
+              case x of
+                200..299: begin
+                            Eventize(FStatus.First.Status, True);
+                          end;
+                300..399: if FAuthStep = 0 then begin
+                            AddToBuffer(FStatus.First.Args[1] + CRLF);
+                            Inc(FAuthStep);
+                            SendData;
+                          end else if FAuthStep = 1 then begin
+                            AddToBuffer(FStatus.First.Args[2] + CRLF);
+                            Inc(FAuthStep);
+                            SendData;
+                          end else begin
+                            Eventize(FStatus.First.Status, False);
+                          end;
+              else        begin
+                            Eventize(FStatus.First.Status, False);
+                          end;
+              end;
+              
+      ssAuthPlain:
+              case x of
+                200..299: begin
+                            Eventize(FStatus.First.Status, True);
+                          end;
+                300..399: begin
+                            AddToBuffer(FStatus.First.Args[1] + FStatus.First.Args[2] + CRLF);
+                            SendData;
+                          end;
+              else        begin
+                            Eventize(FStatus.First.Status, False);
+                          end;
+              end;
+
       ssMail,
       ssRcpt: begin
                 Eventize(FStatus.First.Status, (x >= 200) and (x < 299));
-                FStatus.Remove;
               end;
 
       ssData: case x of
                 200..299: begin
                             Eventize(FStatus.First.Status, True);
-                            FStatus.Remove;
                           end;
                 300..399: begin
-                            FBuffer := FDataBuffer;
+                            AddToBuffer(FDataBuffer);
                             FDataBuffer := '';
                             SendData(True);
                           end;
               else        begin
                             FDataBuffer := '';
                             Eventize(FStatus.First.Status, False);
-                            FStatus.Remove;
                           end;
               end;
               
       ssRset: begin
                 Eventize(FStatus.First.Status, (x >= 200) and (x < 299));
-                FStatus.Remove;
               end;
               
       ssQuit: begin
                 Eventize(FStatus.First.Status, (x >= 200) and (x < 299));
-                FStatus.Remove;
-                if Assigned(FOnDisconnect) then
-                  FOnDisconnect(FConnection.Iterator);
-                Disconnect;
+{                if Assigned(FOnDisconnect) then
+                  FOnDisconnect(FConnection.Iterator);}
+                Disconnect(False);
               end;
     end;
     
@@ -447,40 +618,42 @@ begin
   FCommandFront.Remove;
 end;
 
-procedure TLSMTPClient.ClearCR_LF;
+procedure TLSMTPClient.AddToBuffer(s: string);
 var
   i: Integer;
   Skip: Boolean = False;
 begin
-  for i := 1 to Length(FBuffer) do begin
+  for i := 1 to Length(s) do begin
     if Skip then begin
       Skip := False;
       Continue;
     end;
-    
-    if (FBuffer[i] = #13) or (FBuffer[i] = #10) then begin
-      if FBuffer[i] = #13 then
-        if (i < Length(FBuffer)) and (FBuffer[i + 1] = #10) then begin
+
+    if (s[i] = #13) or (s[i] = #10) then begin
+      if s[i] = #13 then
+        if (i < Length(s)) and (s[i + 1] = #10) then begin
           FCharCount := 0;
           Skip := True; // skip the crlf
         end else begin // insert LF to a standalone CR
-          System.Insert(#10, FBuffer, i + 1);
+          System.Insert(#10, s, i + 1);
           FCharCount := 0;
           Skip := True; // skip the new crlf
         end;
-        
-      if FBuffer[i] = #10 then begin
-        System.Insert(#13, FBuffer, i);
+
+      if s[i] = #10 then begin
+        System.Insert(#13, s, i);
         FCharCount := 0;
         Skip := True; // skip the new crlf
       end;
     end else if FCharCount >= 1000 then begin // line too long
-      System.Insert(CRLF, FBuffer, i);
+      System.Insert(CRLF, s, i);
       FCharCount := 0;
       Skip := True;
     end else
       Inc(FCharCount);
   end;
+  
+  FBuffer := FBuffer + s;
 end;
 
 procedure TLSMTPClient.SendData(const FromStream: Boolean = False);
@@ -494,10 +667,10 @@ const
     SetLength(s, SBUF_SIZE - Length(FBuffer));
     SetLength(s, FStream.Read(s[1], Length(s)));
     
-    FBuffer := FBuffer + s;
+    AddToBuffer(s);
     
     if FStream.Position = FStream.Size then begin // we finished the stream
-      FBuffer := FBuffer + CRLF + '.' + CRLF;
+      AddToBuffer(CRLF + '.' + CRLF);
       FStream := nil;
     end;
   end;
@@ -512,8 +685,6 @@ begin
   n := 1;
   Sent := 0;
   while (Length(FBuffer) > 0) and (n > 0) do begin
-    ClearCR_LF;
-  
     n := FConnection.SendMessage(FBuffer);
     Sent := Sent + n;
     if n > 0 then
@@ -527,11 +698,32 @@ begin
     FOnSent(FConnection.Iterator, Sent);
 end;
 
+function TLSMTPClient.EncodeBase64(const s: string): string;
+var
+  Dummy: TBogusStream;
+  Enc: TBase64EncodingStream;
+begin
+  Result := '';
+  if Length(s) = 0 then
+    Exit;
+  
+  Dummy := TBogusStream.Create;
+  Enc := TBase64EncodingStream.Create(Dummy);
+
+  Enc.Write(s[1], Length(s));
+  Enc.Free;
+  SetLength(Result, Dummy.Size);
+  Dummy.Read(Result[1], Dummy.Size);
+
+  Dummy.Free;
+end;
+
 function TLSMTPClient.Connect(const aHost: string; const aPort: Word = 25): Boolean;
 begin
   Result := False;
-  Disconnect;
+  Disconnect(True);
   if FConnection.Connect(aHost, aPort) then begin
+    FTempBuffer := '';
     FHost := aHost;
     FPort := aPort;
     FStatus.Insert(MakeStatusRec(ssCon, '', ''));
@@ -577,8 +769,7 @@ begin
     FSL.CommaText := StringReplace(Recipients, ' ', ',', [rfReplaceAll]);
     for i := 0 to FSL.Count-1 do
       Rcpt(FSL[i]);
-    Data('From: ' + From + CRLF + 'Subject: ' + Subject + CRLF + 'To: ' + FSL.CommaText + CRLF + Msg);
-    Rset;
+    Data('From: ' + From + CRLF + 'Subject: ' + Subject + CRLF + 'To: ' + FSL.CommaText + CRLF + CRLF + Msg);
   end;
 end;
 
@@ -598,7 +789,6 @@ begin
     for i := 0 to FSL.Count-1 do
       Rcpt(FSL[i]);
     Data('From: ' + From + CRLF + 'Subject: ' + Subject + CRLF + 'To: ' + FSL.CommaText + CRLF);
-    Rset;
   end;
 end;
 
@@ -612,10 +802,11 @@ end;
 
 procedure TLSMTPClient.Helo(aHost: string = '');
 begin
-  if Length(Host) = 0 then
+  if Length(aHost) = 0 then
     aHost := FHost;
+
   if CanContinue(ssHelo, aHost, '') then begin
-    FBuffer := FBuffer + 'HELO ' + aHost + CRLF;
+    AddToBuffer('HELO ' + aHost + CRLF);
     FStatus.Insert(MakeStatusRec(ssHelo, '', ''));
     SendData;
   end;
@@ -626,8 +817,44 @@ begin
   if Length(aHost) = 0 then
     aHost := FHost;
   if CanContinue(ssEhlo, aHost, '') then begin
-    FBuffer := FBuffer + 'EHLO ' + aHost + CRLF;
+    FTempBuffer := ''; // for ehlo response
+    AddToBuffer('EHLO ' + aHost + CRLF);
     FStatus.Insert(MakeStatusRec(ssEhlo, '', ''));
+    SendData;
+  end;
+end;
+
+procedure TLSMTPClient.StartTLS;
+begin
+  if CanContinue(ssStartTLS, '', '') then begin
+    AddToBuffer('STARTTLS' + CRLF);
+    FStatus.Insert(MakeStatusRec(ssStartTLS, '', ''));
+    SendData;
+  end;
+end;
+
+procedure TLSMTPClient.AuthLogin(aName, aPass: string);
+begin
+  aName := EncodeBase64(aName);
+  aPass := EncodeBase64(aPass);
+  FAuthStep := 0; // first, send username
+  
+  if CanContinue(ssAuthLogin, aName, aPass) then begin
+    AddToBuffer('AUTH LOGIN' + CRLF);
+    FStatus.Insert(MakeStatusRec(ssAuthLogin, aName, aPass));
+    SendData;
+  end;
+end;
+
+procedure TLSMTPClient.AuthPlain(aName, aPass: string);
+begin
+  aName := EncodeBase64(#0 + aName);
+  aPass := EncodeBase64(#0 + aPass);
+  FAuthStep := 0;
+
+  if CanContinue(ssAuthPlain, aName, aPass) then begin
+    AddToBuffer('AUTH PLAIN' + CRLF);
+    FStatus.Insert(MakeStatusRec(ssAuthPlain, aName, aPass));
     SendData;
   end;
 end;
@@ -635,7 +862,7 @@ end;
 procedure TLSMTPClient.Mail(const From: string);
 begin
   if CanContinue(ssMail, From, '') then begin
-    FBuffer := FBuffer + 'MAIL FROM:' + '<' + From + '>' + CRLF;
+    AddToBuffer('MAIL FROM:' + '<' + From + '>' + CRLF);
     FStatus.Insert(MakeStatusRec(ssMail, '', ''));
     SendData;
   end;
@@ -644,7 +871,7 @@ end;
 procedure TLSMTPClient.Rcpt(const RcptTo: string);
 begin
   if CanContinue(ssRcpt, RcptTo, '') then begin
-    FBuffer := FBuffer + 'RCPT TO:' + '<' + RcptTo + '>' + CRLF;
+    AddToBuffer('RCPT TO:' + '<' + RcptTo + '>' + CRLF);
     FStatus.Insert(MakeStatusRec(ssRcpt, '', ''));
     SendData;
   end;
@@ -653,7 +880,7 @@ end;
 procedure TLSMTPClient.Data(const Msg: string);
 begin
   if CanContinue(ssData, Msg, '') then begin
-    FBuffer := 'DATA ' + CRLF;
+    AddToBuffer('DATA ' + CRLF);
     FDataBuffer := '';
 
     if Assigned(FStream) then begin
@@ -670,7 +897,7 @@ end;
 procedure TLSMTPClient.Rset;
 begin
   if CanContinue(ssRset, '', '') then begin
-    FBuffer := FBuffer + 'RSET' + CRLF;
+    AddToBuffer('RSET' + CRLF);
     FStatus.Insert(MakeStatusRec(ssRset, '', ''));
     SendData;
   end;
@@ -679,15 +906,15 @@ end;
 procedure TLSMTPClient.Quit;
 begin
   if CanContinue(ssQuit, '', '') then begin
-    FBuffer := FBuffer + 'QUIT' + CRLF;
+    AddToBuffer('QUIT' + CRLF);
     FStatus.Insert(MakeStatusRec(ssQuit, '', ''));
     SendData;
   end;
 end;
 
-procedure TLSMTPClient.Disconnect;
+procedure TLSMTPClient.Disconnect(const Forced: Boolean = True);
 begin
-  FConnection.Disconnect;
+  FConnection.Disconnect(Forced);
   FStatus.Clear;
   FCommandFront.Clear;
 end;
@@ -747,6 +974,11 @@ end;
 procedure TMail.RemoveSection(aSection: TMimeSection);
 begin
   FMailStream.Remove(aSection);
+end;
+
+procedure TMail.Reset;
+begin
+  FMailStream.Reset;
 end;
 
 

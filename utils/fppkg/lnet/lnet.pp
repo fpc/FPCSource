@@ -1,6 +1,6 @@
-{ lNet v0.5.8
+{ lNet v0.6.2
 
-  CopyRight (C) 2004-2007 Ales Katona
+  CopyRight (C) 2004-2008 Ales Katona
 
   This library is Free software; you can rediStribute it and/or modify it
   under the terms of the GNU Library General Public License as published by
@@ -29,50 +29,24 @@ unit lNet;
 interface
 
 uses
-  Classes, lEvents,
+  Classes, lEvents, lCommon,
   {$i sys/osunits.inc}
 
 const
-  { Address constants }
-  LADDR_ANY = '0.0.0.0';
-  LADDR_BR  = '255.255.255.255';
-  LADDR_LO  = '127.0.0.1';
-  { ICMP }
-  LICMP_ECHOREPLY     = 0;
-  LICMP_UNREACH       = 3;
-  LICMP_ECHO          = 8;
-  LICMP_TIME_EXCEEDED = 11;
-  { Protocols }
-  LPROTO_IP     =     0;
-  LPROTO_ICMP   =     1;
-  LPROTO_IGMP   =     2;
-  LPROTO_TCP    =     6;
-  LPROTO_UDP    =    17;
-  LPROTO_IPV6   =    41;
-  LPROTO_ICMPV6 =    58;
-  LPROTO_RAW    =   255;
-  LPROTO_MAX    =   256;
+  { API compatibility, these had to be moved to prevent circular unit usage and a
+    fpc bug with inline }
+  LADDR_ANY   = lCommon.LADDR_ANY;
+  LADDR_BR    = lCommon.LADDR_BR;
+  LADDR_LO    = lCommon.LADDR_LO;
+  LADDR6_ANY  = lCommon.LADDR6_ANY;
+  LADDR6_LO   = lCommon.LADDR6_LO;
 
 type
-  PLIPHeader = ^TLIPHeader;
-  TLIPHeader = record
-      VerLen      : Byte;
-      TOS         : Byte;
-      TotalLen    : Word;
-      Identifer   : Word;
-      FragOffsets : Word;
-      TTL         : Byte;
-      Protocol    : Byte;
-      CheckSum    : Word;
-      SourceIp    : DWord;
-      DestIp      : DWord;
-      Options     : DWord;
-  end;  // TLIPHeader
-
-
   TLSocket = class;
   TLComponent = class;
-  
+  TLConnection = class;
+  TLSession = class;
+
   { Callback Event procedure for errors }
   TLSocketErrorEvent = procedure(const msg: string; aSocket: TLSocket) of object;
 
@@ -82,83 +56,109 @@ type
   { Callback Event procedure for progress reports}
   TLSocketProgressEvent = procedure (aSocket: TLSocket; const Bytes: Integer) of object;
 
-  { Base socket class, Holds Address and socket info, perForms basic
-    socket operations, uses select always to figure out if it can work (slow) }
+  { TLSocketState }
+  TLSocketState = (ssServerSocket, ssBlocking, ssReuseAddress, ssCanSend,
+                   ssCanReceive, ssSSLActive{, ssNoDelay});
+
+  { TLSocketStates }
+  TLSocketStates = set of TLSocketState;
+
+  { TLSocketConnection }
+  TLSocketConnectionStatus = (scNone, scConnecting, scConnected, scDisconnecting);
+
+  { TLSocketOperation }
+  TLSocketOperation = (soSend, soReceive);
 
   { TLSocket }
 
   TLSocket = class(TLHandle)
    protected
-    FAddress: TInetSockAddr;
-    FPeerAddress: TInetSockAddr;
+    FAddress: TLSocketAddress;
+    FPeerAddress: TLSocketAddress;
     FReuseAddress: Boolean;
-    FConnected: Boolean;
-    FConnecting: Boolean;
+    FConnectionStatus: TLSocketConnectionStatus;
     FNextSock: TLSocket;
     FPrevSock: TLSocket;
-    FIgnoreShutdown: Boolean;
-    FCanSend: Boolean;
-    FCanReceive: Boolean;
-    FServerSocket: Boolean;
+    FSocketState: TLSocketStates;
     FOnFree: TLSocketEvent;
     FBlocking: Boolean;
     FListenBacklog: Integer;
     FProtocol: Integer;
     FSocketType: Integer;
+    FSocketNet: Integer;
     FCreator: TLComponent;
+    FSession: TLSession;
+    FConnection: TLConnection;
    protected
-    function DoSend(const TheData; const TheSize: Integer): Integer;
-    
+    function GetConnected: Boolean; virtual; deprecated;
+    function GetConnecting: Boolean; virtual; deprecated;
+    function GetConnectionStatus: TLSocketConnectionStatus; virtual;
+    function GetIPAddressPointer: psockaddr;
+    function GetIPAddressLength: TSocklen;
+
     function SetupSocket(const APort: Word; const Address: string): Boolean; virtual;
+    
+    function DoSend(const aData; const aSize: Integer): Integer; virtual;
+    function DoGet(out aData; const aSize: Integer): Integer; virtual;
+
+    function HandleResult(const aResult: Integer; aOp: TLSocketOperation): Integer; virtual;
     
     function GetLocalPort: Word;
     function GetPeerPort: Word;
     function GetPeerAddress: string;
     function GetLocalAddress: string;
-    function CanSend: Boolean; virtual;
-    function CanReceive: Boolean; virtual;
-    
+    function SendPossible: Boolean; inline;
+    function ReceivePossible: Boolean; inline;
+
     procedure SetOptions; virtual;
     procedure SetBlocking(const aValue: Boolean);
     procedure SetReuseAddress(const aValue: Boolean);
+//    procedure SetNoDelay(const aValue: Boolean);
+
+    procedure HardDisconnect(const NoShutdown: Boolean = False);
+    procedure SoftDisconnect;
 
     function Bail(const msg: string; const ernum: Integer): Boolean;
     
-    procedure LogError(const msg: string; const ernum: Integer); virtual;
+    function LogError(const msg: string; const ernum: Integer): Boolean; virtual;
+    
+    property SocketType: Integer read FSocketType write FSocketType; // inherit and publicize if you need to set this outside
    public
     constructor Create; override;
     destructor Destroy; override;
     
-    function Listen(const APort: Word; const AIntf: string = LADDR_ANY): Boolean;
-    function Accept(const SerSock: Integer): Boolean;
+    function SetState(const aState: TLSocketState; const TurnOn: Boolean = True): Boolean; virtual;
     
+    function Listen(const APort: Word; const AIntf: string = LADDR_ANY): Boolean;
+    function Accept(const SerSock: TSocket): Boolean;
     function Connect(const Address: string; const APort: Word): Boolean;
     
     function Send(const aData; const aSize: Integer): Integer; virtual;
     function SendMessage(const msg: string): Integer;
     
-    function Get(var aData; const aSize: Integer): Integer; virtual;
+    function Get(out aData; const aSize: Integer): Integer; virtual;
     function GetMessage(out msg: string): Integer;
     
-    procedure Disconnect; virtual;
+    procedure Disconnect(const Forced: Boolean = True); virtual;
    public
-    property Connected: Boolean read FConnected;
-    property Connecting: Boolean read FConnecting;
-    property Blocking: Boolean read FBlocking write SetBlocking;
+    property Connected: Boolean read GetConnected; deprecated;
+    property Connecting: Boolean read GetConnecting; deprecated;
+    property ConnectionStatus: TLSocketConnectionStatus read GetConnectionStatus;
     property ListenBacklog: Integer read FListenBacklog write FListenBacklog;
     property Protocol: Integer read FProtocol write FProtocol;
-    property SocketType: Integer read FSocketType write FSocketType;
+    property SocketNet: Integer read FSocketNet write FSocketNet;
     property PeerAddress: string read GetPeerAddress;
     property PeerPort: Word read GetPeerPort;
     property LocalAddress: string read GetLocalAddress;
     property LocalPort: Word read GetLocalPort;
-    property ReuseAddress: Boolean read FReuseAddress write SetReuseAddress;
     property NextSock: TLSocket read FNextSock write FNextSock;
     property PrevSock: TLSocket read FPrevSock write FPrevSock;
+    property SocketState: TLSocketStates read FSocketState;
     property Creator: TLComponent read FCreator;
+    property Session: TLSession read FSession;
   end;
   TLSocketClass = class of TLSocket;
-
+  
   { this is the socket used by TLConnection }
   
   TLActionEnum = (acConnect, acAccept, acSend, acReceive, acError);
@@ -166,7 +166,7 @@ type
   { Base interface common to ALL connections }
   
   ILComponent = interface
-    procedure Disconnect;
+    procedure Disconnect(const Forced: Boolean = True);
     procedure CallAction;
     
     property SocketClass: TLSocketClass;
@@ -177,7 +177,7 @@ type
   { Interface for protools with direct send/get capabilities }
 
   ILDirect = interface
-    function Get(var aData; const aSize: Integer; aSocket: TLSocket = nil): Integer;
+    function Get(out aData; const aSize: Integer; aSocket: TLSocket = nil): Integer;
     function GetMessage(out msg: string; aSocket: TLSocket = nil): Integer;
 
     function Send(const aData; const aSize: Integer; aSocket: TLSocket = nil): Integer;
@@ -204,19 +204,22 @@ type
     FHost: string;
     FPort: Word;
     FCreator: TLComponent;
+    FActive: Boolean;
+    procedure SetCreator(AValue: TLComponent); virtual;
    public
     constructor Create(aOwner: TComponent); override;
-    procedure Disconnect; virtual; abstract;
+    procedure Disconnect(const Forced: Boolean = True); virtual; abstract;
     procedure CallAction; virtual; abstract;
    public
     SocketClass: TLSocketClass;
     property Host: string read FHost write FHost;
     property Port: Word read FPort write FPort;
-    property Creator: TLComponent read FCreator write FCreator;
+    property Creator: TLComponent read FCreator write SetCreator;
+    property Active: Boolean read FActive;
   end;
   
   { TLConnection
-    Common ancestor for TLBaseTcp and TLUdp classes. Holds Event properties
+    Common ancestor for TLTcp and TLUdp classes. Holds Event properties
     and common variables. }
 
   TLConnection = class(TLComponent, ILDirect, ILServer, ILClient)
@@ -235,6 +238,7 @@ type
     FEventerClass: TLEventerClass;
     FTimeout: Integer;
     FListenBacklog: Integer;
+    FSession: TLSession;
    protected
     function InitSocket(aSocket: TLSocket): TLSocket; virtual;
     
@@ -246,7 +250,9 @@ type
     procedure SetTimeout(const AValue: Integer);
     
     procedure SetEventer(Value: TLEventer);
-    
+    procedure SetSession(aSession: TLSession);
+    procedure Notification(AComponent: TComponent; Operation: TOperation); override;
+
     procedure ConnectAction(aSocket: TLHandle); virtual;
     procedure AcceptAction(aSocket: TLHandle); virtual;
     procedure ReceiveAction(aSocket: TLHandle); virtual;
@@ -258,12 +264,12 @@ type
     procedure AcceptEvent(aSocket: TLHandle); virtual;
     procedure ReceiveEvent(aSocket: TLHandle); virtual;
     procedure CanSendEvent(aSocket: TLHandle); virtual;
-    procedure ErrorEvent(const msg: string; aSocket: TLHandle); virtual;
+    procedure ErrorEvent(aSocket: TLHandle; const msg: string); virtual;
     procedure EventerError(const msg: string; Sender: TLEventer);
     
     procedure RegisterWithEventer; virtual;
     
-    procedure FreeSocks; virtual;
+    procedure FreeSocks(const Forced: Boolean); virtual;
    public
     constructor Create(aOwner: TComponent); override;
     destructor Destroy; override;
@@ -274,7 +280,7 @@ type
     function Listen(const APort: Word; const AIntf: string = LADDR_ANY): Boolean; virtual; abstract; overload;
     function Listen: Boolean; virtual; overload;
     
-    function Get(var aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; virtual; abstract;
+    function Get(out aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; virtual; abstract;
     function GetMessage(out msg: string; aSocket: TLSocket = nil): Integer; virtual; abstract;
     
     function Send(const aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; virtual; abstract;
@@ -295,10 +301,9 @@ type
     property Timeout: Integer read GetTimeout write SetTimeout;
     property Eventer: TLEventer read FEventer write SetEventer;
     property EventerClass: TLEventerClass read FEventerClass write FEventerClass;
+    property Session: TLSession read FSession write SetSession;
   end;
   
-  { UDP Client/Server class. Provided to enable usage of UDP sockets }
-
   { TLUdp }
 
   TLUdp = class(TLConnection)
@@ -308,7 +313,6 @@ type
     function GetConnected: Boolean; override;
     
     procedure ReceiveAction(aSocket: TLHandle); override;
-    procedure SendAction(aSocket: TLHandle); override;
     procedure ErrorAction(aSocket: TLHandle; const msg: string); override;
     
     function Bail(const msg: string): Boolean;
@@ -320,7 +324,7 @@ type
     function Connect(const Address: string; const APort: Word): Boolean; override;
     function Listen(const APort: Word; const AIntf: string = LADDR_ANY): Boolean; override;
     
-    function Get(var aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; override;
+    function Get(out aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; override;
     function GetMessage(out msg: string; aSocket: TLSocket = nil): Integer; override;
     
     function SendMessage(const msg: string; aSocket: TLSocket = nil): Integer; override;
@@ -332,17 +336,16 @@ type
     function IterNext: Boolean; override;
     procedure IterReset; override;
 
-    procedure Disconnect; override;
+    procedure Disconnect(const Forced: Boolean = True); override;
 
     procedure CallAction; override;
   end;
   
-  { TCP Client/Server class. Provided to enable usage of TCP sockets }
-
   { TLTcp }
 
   TLTcp = class(TLConnection)
    protected
+    FSocketNet: Integer;
     FCount: Integer;
     FReuseAddress: Boolean;
     function InitSocket(aSocket: TLSocket): TLSocket; override;
@@ -350,8 +353,10 @@ type
     function GetConnected: Boolean; override;
     function GetConnecting: Boolean;
     function GetCount: Integer; override;
+    function GetValidSocket: TLSocket;
 
     procedure SetReuseAddress(const aValue: Boolean);
+    procedure SetSocketNet(const aValue: Integer);
 
     procedure ConnectAction(aSocket: TLHandle); override;
     procedure AcceptAction(aSocket: TLHandle); override;
@@ -368,7 +373,7 @@ type
     function Connect(const Address: string; const APort: Word): Boolean; override;
     function Listen(const APort: Word; const AIntf: string = LADDR_ANY): Boolean; override;
 
-    function Get(var aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; override;
+    function Get(out aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; override;
     function GetMessage(out msg: string; aSocket: TLSocket = nil): Integer; override;
 
     function Send(const aData; const aSize: Integer; aSocket: TLSocket = nil): Integer; override;
@@ -379,36 +384,57 @@ type
 
     procedure CallAction; override;
 
-    procedure Disconnect; override;
+    procedure Disconnect(const Forced: Boolean = True); override;
    public
     property Connecting: Boolean read GetConnecting;
     property OnAccept: TLSocketEvent read FOnAccept write FOnAccept;
     property OnConnect: TLSocketEvent read FOnConnect write FOnConnect;
     property ReuseAddress: Boolean read FReuseAddress write SetReuseAddress;
+    property SocketNet: Integer read FSocketNet write SetSocketNet;
   end;
-  
+
+  { TLSession }
+
+  TLSession = class(TComponent)
+   protected
+    FActive: Boolean;
+   public
+    procedure RegisterWithComponent(aConnection: TLConnection); virtual;
+
+    procedure InitHandle(aHandle: TLHandle); virtual;
+
+    procedure ReceiveEvent(aHandle: TLHandle); virtual;
+    procedure SendEvent(aHandle: TLHandle); virtual;
+    procedure ErrorEvent(aHandle: TLHandle; const msg: string); virtual;
+    procedure ConnectEvent(aHandle: TLHandle); virtual;
+    procedure AcceptEvent(aHandle: TLHandle); virtual;
+    procedure DisconnectEvent(aHandle: TLHandle); virtual;
+
+    procedure CallReceiveEvent(aHandle: TLHandle); inline;
+    procedure CallSendEvent(aHandle: TLHandle); inline;
+    procedure CallErrorEvent(aHandle: TLHandle; const msg: string); inline;
+    procedure CallConnectEvent(aHandle: TLHandle); inline;
+    procedure CallAcceptEvent(aHandle: TLHandle); inline;
+    procedure CallDisconnectEvent(aHandle: TLHandle); inline;
+   public
+    property Active: Boolean read FActive;
+  end;
+
 implementation
 
-uses
-  lCommon;
-  
 //********************************TLSocket*************************************
 
 constructor TLSocket.Create;
 begin
   inherited Create;
   FHandle := INVALID_SOCKET;
-  FBlocking := False;
   FListenBacklog := LDEFAULT_BACKLOG;
-  FServerSocket := False;
   FPrevSock := nil;
   FNextSock := nil;
-  FCanSend := True;
-  FCanReceive := False;
-  FConnected := False;
-  FConnecting := False;
-  FIgnoreShutdown := False;
+  FSocketState := [ssCanSend];
+  FConnectionStatus := scNone;
   FSocketType := SOCK_STREAM;
+  FSocketNet := LAF_INET;
   FProtocol := LPROTO_TCP;
 end;
 
@@ -418,36 +444,46 @@ begin
     FOnFree(Self);
 
   inherited Destroy; // important! must be called before disconnect
-  Disconnect;
+  Disconnect(True);
 end;
 
-procedure TLSocket.Disconnect;
-var
-  WasConnected: Boolean;
+function TLSocket.SetState(const aState: TLSocketState; const TurnOn: Boolean = True): Boolean;
 begin
-  WasConnected := FConnected;
-  FDispose := True;
-  FCanSend := True;
-  FCanReceive := True;
-  FIgnoreWrite := True;
-  if FConnected or FConnecting then begin
-    FConnected := False;
-    FConnecting := False;
-    if (FSocketType = SOCK_STREAM) and (not FIgnoreShutdown) and WasConnected then
-      if fpShutDown(FHandle, 2) <> 0 then
-        LogError('Shutdown error', LSocketError);
-        
-    if Assigned(FEventer) then
-      FEventer.UnregisterHandle(Self);
-        
-    if CloseSocket(FHandle) <> 0 then
-      LogError('Closesocket error', LSocketError);
-    FHandle := INVALID_SOCKET;
+  Result := False;
+
+  case aState of
+    ssServerSocket      : if TurnOn then
+                            FSocketState := FSocketState + [aState]
+                          else
+                            raise Exception.Create('Can not turn off server socket feature');
+                            
+    ssBlocking          : SetBlocking(TurnOn);
+    ssReuseAddress      : SetReuseAddress(TurnOn);
+
+    ssCanSend,
+    ssCanReceive        : if TurnOn then
+                            FSocketState := FSocketState + [aState]
+                          else
+                            FSocketState := FSocketState - [aState];
+    
+    ssSSLActive         : raise Exception.Create('Can not turn SSL/TLS on in TLSocket instance');
+{    ssNoDelay           : SetNoDelay(TurnOn);}
   end;
+  
+  Result := True;
 end;
 
-procedure TLSocket.LogError(const msg: string; const ernum: Integer);
+procedure TLSocket.Disconnect(const Forced: Boolean = True);
 begin
+  if Forced then
+    HardDisconnect
+  else
+    SoftDisconnect;
+end;
+
+function TLSocket.LogError(const msg: string; const ernum: Integer): Boolean;
+begin
+  Result := False;
   if Assigned(FOnError) then
     if ernum > 0 then
       FOnError(Self, msg + LStrError(ernum))
@@ -458,8 +494,9 @@ end;
 function TLSocket.Bail(const msg: string; const ernum: Integer): Boolean;
 begin
   Result := False; // return the result for the caller
-
-  Disconnect;
+  if FDispose then // why?
+    Exit;
+  Disconnect(True);
   LogError(msg, ernum);
 end;
 
@@ -467,9 +504,9 @@ function TLSocket.GetPeerAddress: string;
 begin
   Result := '';
   if FSocketType = SOCK_STREAM then
-    Result := NetAddrtoStr(FAddress.Addr)
+    Result := NetAddrtoStr(FAddress.IPv4.sin_addr)
   else
-    Result := NetAddrtoStr(FPeerAddress.Addr);
+    Result := NetAddrtoStr(FPeerAddress.IPv4.sin_addr);
 end;
 
 function TLSocket.GetLocalAddress: string;
@@ -480,17 +517,30 @@ begin
   Result := '';
   l := SizeOf(a);
   if fpGetSockName(FHandle, @a, @l) = 0 then
-    Result := NetAddrToStr(LongWord(a.sin_addr));
+    Result := NetAddrToStr(a.sin_addr);
 end;
 
-function TLSocket.CanSend: Boolean;
+function TLSocket.SendPossible: Boolean; inline;
 begin
-  Result := FCanSend and FConnected;
+  Result := True;
+  if FConnectionStatus <> scConnected then
+    Exit(LogError('Can''t send when not connected', -1));
+
+  if not (ssCanSend in FSocketState) then begin
+    if not Assigned(FConnection)
+    or not Assigned(FConnection.FOnCanSend) then
+      LogError('Send buffer full, try again later', -1);
+    Exit(False);
+  end;
+
+  if ssServerSocket in FSocketState then
+    Exit(LogError('Can''t send on server socket', -1));
 end;
 
-function TLSocket.CanReceive: Boolean;
+function TLSocket.ReceivePossible: Boolean; inline;
 begin
-  Result := FCanReceive and FConnected;
+  Result := (FConnectionStatus in [scConnected, scDisconnecting])
+    and (ssCanReceive in FSocketState) and not (ssServerSocket in FSocketState);
 end;
 
 procedure TLSocket.SetOptions;
@@ -500,17 +550,81 @@ end;
 
 procedure TLSocket.SetBlocking(const aValue: Boolean);
 begin
-  FBlocking := aValue;
   if FHandle >= 0 then // we already set our socket
     if not lCommon.SetBlocking(FHandle, aValue) then
-      Bail('Error on SetBlocking', LSocketError);
+      Bail('Error on SetBlocking', LSocketError)
+    else begin
+      FBlocking := aValue;
+      if aValue then
+        FSocketState := FSocketState + [ssBlocking]
+      else
+        FSocketState := FSocketState - [ssBlocking];
+    end;
 end;
 
 procedure TLSocket.SetReuseAddress(const aValue: Boolean);
 begin
-  if not FConnected then
+  if FConnectionStatus = scNone then begin
     FReuseAddress := aValue;
+    if aValue then
+      FSocketState := FSocketState + [ssReuseAddress]
+    else
+      FSocketState := FSocketState - [ssReuseAddress];
+  end;
 end;
+
+procedure TLSocket.HardDisconnect(const NoShutdown: Boolean = False);
+var
+  NeedsShutdown: Boolean;
+begin
+  NeedsShutdown := (FConnectionStatus = scConnected) and (FSocketType = SOCK_STREAM)
+               and (not (ssServerSocket in FSocketState));
+  if NoShutdown then
+    NeedsShutdown := False;
+
+  FDispose := True;
+  FSocketState := FSocketState + [ssCanSend, ssCanReceive];
+  FIgnoreWrite := True;
+  if FConnectionStatus in [scConnected, scConnecting] then begin
+    FConnectionStatus := scNone;
+    if NeedsShutdown then
+      if fpShutDown(FHandle, SHUT_RDWR) <> 0 then
+        LogError('Shutdown error', LSocketError);
+
+    if Assigned(FEventer) then
+      FEventer.UnregisterHandle(Self);
+
+    if CloseSocket(FHandle) <> 0 then
+      LogError('Closesocket error', LSocketError);
+    FHandle := INVALID_SOCKET;
+  end;
+end;
+
+procedure TLSocket.SoftDisconnect;
+begin
+  if FConnectionStatus in [scConnected, scConnecting] then begin
+    if  (FConnectionStatus = scConnected) and (not (ssServerSocket in FSocketState))
+    and (FSocketType = SOCK_STREAM) then begin
+      FConnectionStatus := scDisconnecting;
+      if fpShutDown(FHandle, SHUT_WR) <> 0 then
+        LogError('Shutdown error', LSocketError);
+    end else
+      HardDisconnect; // UDP or ServerSocket
+  end;
+end;
+
+{procedure TLSocket.SetNoDelay(const aValue: Boolean);
+begin
+  if FHandle >= 0 then // we already set our socket
+    if not lCommon.SetNoDelay(FHandle, aValue) then
+      Bail('Error on SetNoDelay', LSocketError)
+    else begin
+      if aValue then
+        FSocketState := FSocketState + [ssNoDelay]
+      else
+        FSocketState := FSocketState - [ssNoDelay];
+    end;
+end;}
 
 function TLSocket.GetMessage(out msg: string): Integer;
 begin
@@ -520,45 +634,61 @@ begin
   Result := Length(msg);
 end;
 
-function TLSocket.Get(var aData; const aSize: Integer): Integer;
-var
-  AddressLength: Integer = SizeOf(FPeerAddress);
-  LastError: Longint;
+function TLSocket.Get(out aData; const aSize: Integer): Integer;
 begin
   Result := 0;
-  if CanReceive then begin
-    if FSocketType = SOCK_STREAM then
-      Result := sockets.fpRecv(FHandle, @aData, aSize, LMSG)
-    else
-      Result := sockets.fpRecvfrom(FHandle, @aData, aSize, LMSG, @FPeerAddress, @AddressLength);
-      
+  
+  if aSize = 0 then
+    raise Exception.Create('Invalid buffer size 0 in Get');
+
+  if ReceivePossible then begin
+    Result := DoGet(aData, aSize);
+
     if Result = 0 then
       if FSocketType = SOCK_STREAM then
-        Disconnect
-      else
+        Disconnect(True)
+      else begin
         Bail('Receive Error [0 on recvfrom with UDP]', 0);
+        Exit(0);
+      end;
       
-    if Result = SOCKET_ERROR then begin
-      LastError := LSocketError;
-      if IsBlockError(LastError) then begin
-        FCanReceive  :=  False;
-        IgnoreRead  :=  False;
-      end else
-        Bail('Receive Error', LastError);
-      Result := 0;
-    end;
+    Result := HandleResult(Result, soReceive);
   end;
 end;
 
-function TLSocket.DoSend(const TheData; const TheSize: Integer): Integer;
-var
-  AddressLength: Integer;
+function TLSocket.GetConnected: Boolean;
 begin
-  AddressLength := SizeOf(FPeerAddress);
-  if FSocketType = SOCK_STREAM then
-    Result := sockets.fpsend(FHandle, @TheData, TheSize, LMSG)
+  Result := (FConnectionStatus = scConnected);
+end;
+
+function TLSocket.GetConnecting: Boolean;
+begin
+  Result := FConnectionStatus = scConnecting;
+end;
+
+function TLSocket.GetConnectionStatus: TLSocketConnectionStatus;
+begin
+  Result := FConnectionStatus;
+end;
+
+function TLSocket.GetIPAddressPointer: psockaddr;
+begin
+  case FSocketNet of
+    LAF_INET  : Result := psockaddr(@FAddress.IPv4);
+    LAF_INET6 : Result := psockaddr(@FAddress.IPv6);
   else
-    Result := sockets.fpsendto(FHandle, @TheData, TheSize, LMSG, @FPeerAddress, AddressLength);
+    raise Exception.Create('Unknown socket network type (not IPv4 or IPv6)');
+  end;
+end;
+
+function TLSocket.GetIPAddressLength: TSocklen;
+begin
+  case FSocketNet of
+    LAF_INET  : Result := SizeOf(FAddress.IPv4);
+    LAF_INET6 : Result := SizeOf(FAddress.IPv6);
+  else
+    raise Exception.Create('Unknown socket network type (not IPv4 or IPv6)');
+  end;
 end;
 
 function TLSocket.SetupSocket(const APort: Word; const Address: string): Boolean;
@@ -567,9 +697,9 @@ var
   Arg, Opt: Integer;
 begin
   Result := false;
-  if not FConnected and not FConnecting then begin
+  if FConnectionStatus = scNone then begin
     Done := true;
-    FHandle := fpSocket(AF_INET, FSocketType, FProtocol);
+    FHandle := fpSocket(FSocketNet, FSocketType, FProtocol);
     if FHandle = INVALID_SOCKET then
       Exit(Bail('Socket error', LSocketError));
     SetOptions;
@@ -594,65 +724,123 @@ begin
       Exit(Bail('SetSockOpt error', LSocketError));
     {$endif}
     
-    FillAddressInfo(FAddress, AF_INET, Address, aPort);
-    FillAddressInfo(FPeerAddress, AF_INET, LADDR_BR, aPort);
+    FillAddressInfo(FAddress, FSocketNet, Address, aPort);
+    FillAddressInfo(FPeerAddress, FSocketNet, LADDR_BR, aPort);
 
     Result  :=  Done;
   end;
 end;
 
+function TLSocket.DoSend(const aData; const aSize: Integer): Integer;
+var
+  AddressLength: Longint = SizeOf(FPeerAddress);
+begin
+  if FSocketType = SOCK_STREAM then
+    Result := Sockets.fpSend(FHandle, @aData, aSize, LMSG)
+  else
+    Result := sockets.fpsendto(FHandle, @aData, aSize, LMSG, @FPeerAddress, AddressLength);
+end;
+
+function TLSocket.DoGet(out aData; const aSize: Integer): Integer;
+var
+  AddressLength: Longint = SizeOf(FPeerAddress);
+begin
+  if FSocketType = SOCK_STREAM then
+    Result := sockets.fpRecv(FHandle, @aData, aSize, LMSG)
+  else
+    Result := sockets.fpRecvfrom(FHandle, @aData, aSize, LMSG, @FPeerAddress, @AddressLength);
+end;
+
+function TLSocket.HandleResult(const aResult: Integer; aOp: TLSocketOperation): Integer;
+const
+  GSStr: array[TLSocketOperation] of string = ('Send', 'Get');
+var
+  LastError: Longint;
+begin
+  Result := aResult;
+  if Result = SOCKET_ERROR then begin
+    LastError := LSocketError;
+    if IsBlockError(LastError) then case aOp of
+      soSend:
+         begin
+           FSocketState := FSocketState - [ssCanSend];
+           IgnoreWrite := False;
+         end;
+      soReceive:
+         begin
+           FSocketState := FSocketState - [ssCanReceive];
+           IgnoreRead := False;
+         end;
+    end else if IsNonFatalError(LastError) then
+      LogError(GSStr[aOp] + ' error', LastError) // non fatals don't cause disconnect
+    else if (aOp = soSend) and IsPipeError(LastError) then begin
+      LogError(GSStr[aOp] + ' error', LastError);
+      HardDisconnect(True); {$warning check if we need aOp = soSend in the IF, perhaps bad recv is possible?}
+    end else
+      Bail(GSStr[aOp] + ' error', LastError);
+      
+    Result := 0;
+  end;
+end;
+
 function TLSocket.GetLocalPort: Word;
 begin
-  Result := ntohs(FAddress.sin_port);
+  Result := ntohs(FAddress.IPv4.sin_port);
 end;
 
 function TLSocket.GetPeerPort: Word;
 begin
-  Result := ntohs(FPeerAddress.sin_port);
+  Result := ntohs(FPeerAddress.IPv4.sin_port);
 end;
 
 function TLSocket.Listen(const APort: Word; const AIntf: string = LADDR_ANY): Boolean;
 begin
-  if not Connected then begin
-    Result := false;
-    SetupSocket(APort, AIntf);
-    if fpBind(FHandle, psockaddr(@FAddress), SizeOf(FAddress)) = SOCKET_ERROR then
-      Bail('Error on bind', LSocketError)
+  Result := False;
+
+  if FConnectionStatus <> scNone then
+    Disconnect(True);
+
+  SetupSocket(APort, AIntf);
+  if fpBind(FHandle, GetIPAddressPointer, GetIPAddressLength) = SOCKET_ERROR then
+    Bail('Error on bind', LSocketError)
+  else
+    Result := true;
+  if (FSocketType = SOCK_STREAM) and Result then
+    if fpListen(FHandle, FListenBacklog) = SOCKET_ERROR then
+      Result := Bail('Error on Listen', LSocketError)
     else
       Result := true;
-    if (FSocketType = SOCK_STREAM) and Result then
-      if fpListen(FHandle, FListenBacklog) = SOCKET_ERROR then
-        Result := Bail('Error on Listen', LSocketError)
-      else
-        Result := true;
-  end;
 end;
 
-function TLSocket.Accept(const sersock: Integer): Boolean;
+function TLSocket.Accept(const sersock: TSocket): Boolean;
 var
-  AddressLength: tsocklen = SizeOf(FAddress);
+  AddressLength: tsocklen;
 begin
   Result := false;
-  if not Connected then begin
-    FHandle := fpAccept(sersock, psockaddr(@FAddress), @AddressLength);
-    if FHandle <> INVALID_SOCKET then begin
-      SetOptions;
-      Result := true;
-      FConnected := true;
-    end else
-      Bail('Error on accept', LSocketError);
-  end;
+  AddressLength := GetIPAddressLength;
+
+  if FConnectionStatus <> scNone then
+    Disconnect(True);
+
+  FHandle := fpAccept(sersock, GetIPAddressPointer, @AddressLength);
+  if FHandle <> INVALID_SOCKET then begin
+    SetOptions;
+    Result := true;
+  end else
+    Bail('Error on accept', LSocketError);
 end;
 
 function TLSocket.Connect(const Address: string; const aPort: Word): Boolean;
 begin
   Result := False;
-  if Connected or FConnecting then
-    Disconnect;
+  
+  if FConnectionStatus <> scNone then
+    Disconnect(True);
+    
   if SetupSocket(APort, Address) then begin
-    fpConnect(FHandle, psockaddr(@FAddress), SizeOf(FAddress));
-    FConnecting := True;
-    Result := FConnecting;
+    fpConnect(FHandle, GetIPAddressPointer, GetIPAddressLength);
+    FConnectionStatus := scConnecting;
+    Result := True;
   end;
 end;
 
@@ -662,29 +850,33 @@ begin
 end;
 
 function TLSocket.Send(const aData; const aSize: Integer): Integer;
-var
-  LastError: Longint;
 begin
   Result := 0;
-  if not FServerSocket then begin
+  
+  if aSize = 0 then
+    raise Exception.Create('Invalid buffersize 0 in Send');
+
+  if SendPossible then begin
     if aSize <= 0 then begin
-      Bail('Send error: wrong size (Size <= 0)', -1);
+      LogError('Send error: Size <= 0', -1);
       Exit(0);
     end;
 
-    if CanSend then begin
-      Result := DoSend(aData, aSize);
-      if Result = SOCKET_ERROR then begin
-        LastError := LSocketError;
-        if IsBlockError(LastError) then begin
-          FCanSend := False;
-          IgnoreWrite := False;
-        end else
-          Bail('Send error', LastError);
-        Result := 0;
-      end;
-    end;
- end;
+    Result := HandleResult(DoSend(aData, aSize), soSend);
+  end;
+end;
+
+//*******************************TLComponent*********************************
+
+procedure TLComponent.SetCreator(AValue: TLComponent);
+begin
+  FCreator := aValue;
+end;
+
+constructor TLComponent.Create(aOwner: TComponent);
+begin
+  inherited Create(aOwner);
+  FCreator := Self;
 end;
 
 //*******************************TLConnection*********************************
@@ -692,6 +884,7 @@ end;
 constructor TLConnection.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
+
   FHost := '';
   FPort := 0;
   FListenBacklog := LDEFAULT_BACKLOG;
@@ -712,7 +905,7 @@ end;
 
 destructor TLConnection.Destroy;
 begin
-  FreeSocks;
+  FreeSocks(True);
   if Assigned(FEventer) then
     FEventer.DeleteRef;
   inherited Destroy;
@@ -736,13 +929,41 @@ begin
   Result := Listen(FPort, FHost);
 end;
 
+procedure TLConnection.SetSession(aSession: TLSession);
+begin
+  if FSession = aSession then Exit;
+
+  if FActive then
+    raise Exception.Create('Cannot change session on active component');
+
+  FSession := aSession;
+  if Assigned(FSession) then begin
+    FSession.FreeNotification(Self);
+    FSession.RegisterWithComponent(Self);
+  end;
+end;
+
+procedure TLConnection.Notification(AComponent: TComponent;
+  Operation: TOperation);
+begin
+  inherited Notification(AComponent, Operation);
+  
+  if (Operation = opRemove) and (AComponent = FSession) then
+    FSession := nil;
+end;
+
 function TLConnection.InitSocket(aSocket: TLSocket): TLSocket;
 begin
+  FActive := True; // once we got a socket, we're considered active
   aSocket.OnRead := @ReceiveAction;
   aSocket.OnWrite := @SendAction;
   aSocket.OnError := @ErrorAction;
   aSocket.ListenBacklog := FListenBacklog;
   aSocket.FCreator := FCreator;
+  aSocket.FConnection := Self;
+  aSocket.FSession := FSession;
+  if Assigned(FSession) then
+    FSession.InitHandle(aSocket);
   Result := aSocket;
 end;
 
@@ -789,6 +1010,15 @@ end;
 
 procedure TLConnection.SendAction(aSocket: TLHandle);
 begin
+  with TLSocket(aSocket) do begin
+    SetState(ssCanSend);
+    IgnoreWrite := True;
+
+    if Assigned(FSession) then
+      FSession.SendEvent(aSocket)
+    else
+      CanSendEvent(aSocket);
+  end;
 end;
 
 procedure TLConnection.ErrorAction(aSocket: TLHandle; const msg: string);
@@ -825,7 +1055,7 @@ begin
     FOnCanSend(TLSocket(aSocket));
 end;
 
-procedure TLConnection.ErrorEvent(const msg: string; aSocket: TLHandle);
+procedure TLConnection.ErrorEvent(aSocket: TLHandle; const msg: string);
 begin
   if Assigned(FOnError) then
     FOnError(msg, TLSocket(aSocket));
@@ -848,7 +1078,7 @@ end;
 
 procedure TLConnection.EventerError(const msg: string; Sender: TLEventer);
 begin
-  ErrorEvent(msg, nil);
+  ErrorEvent(nil, msg);
 end;
 
 procedure TLConnection.RegisterWithEventer;
@@ -867,7 +1097,7 @@ begin
     FTimeout := FEventer.Timeout;
 end;
 
-procedure TLConnection.FreeSocks;
+procedure TLConnection.FreeSocks(const Forced: Boolean);
 var
   Tmp, Tmp2: TLSocket;
 begin
@@ -875,8 +1105,9 @@ begin
   while Assigned(Tmp) do begin
     Tmp2 := Tmp;
     Tmp := Tmp.NextSock;
-    Tmp2.Disconnect;
-    Tmp2.Free;
+    Tmp2.Disconnect(Forced);
+    if Forced then
+      Tmp2.Free;
   end;
 end;
 
@@ -889,10 +1120,10 @@ begin
   FTimeVal.tv_sec := 0;
 end;
 
-procedure TLUdp.Disconnect;
+procedure TLUdp.Disconnect(const Forced: Boolean = True);
 begin
   if Assigned(FRootSock) then begin
-    FRootSock.Disconnect;
+    FRootSock.Disconnect(True);
     FRootSock := nil; // even if the old one exists, eventer takes care of it
   end;
 end;
@@ -901,8 +1132,8 @@ function TLUdp.Connect(const Address: string; const APort: Word): Boolean;
 begin
   Result := inherited Connect(Address, aPort);
 
-  if Assigned(FRootSock) and FRootSock.Connected then
-    Disconnect;
+  if Assigned(FRootSock) and (FRootSock.FConnectionStatus <> scNone) then
+    Disconnect(True);
 
   FRootSock := InitSocket(SocketClass.Create);
   FIterator := FRootSock;
@@ -910,8 +1141,8 @@ begin
   Result := FRootSock.SetupSocket(APort, LADDR_ANY);
   
   if Result then begin
-    FillAddressInfo(FRootSock.FPeerAddress, AF_INET, Address, aPort);
-    FRootSock.FConnected := true;
+    FillAddressInfo(FRootSock.FPeerAddress, FRootSock.FSocketNet, Address, aPort);
+    FRootSock.FConnectionStatus := scConnected;
     RegisterWithEventer;
   end;
 end;
@@ -920,16 +1151,16 @@ function TLUdp.Listen(const APort: Word; const AIntf: string = LADDR_ANY): Boole
 begin
   Result := False;
 
-  if Assigned(FRootSock) and FRootSock.Connected then
-    Disconnect;
+  if Assigned(FRootSock) and (FRootSock.FConnectionStatus <> scNone) then
+    Disconnect(True);
 
   FRootSock := InitSocket(SocketClass.Create);
   FIterator := FRootSock;
   
   if FRootSock.Listen(APort, AIntf) then begin
-    FillAddressInfo(FRootSock.FPeerAddress, AF_INET, LADDR_BR, aPort);
+    FillAddressInfo(FRootSock.FPeerAddress, FRootSock.FSocketNet, LADDR_BR, aPort);
   
-    FRootSock.FConnected := True;
+    FRootSock.FConnectionStatus := scConnected;
     RegisterWithEventer;
     Result := True;
   end;
@@ -937,10 +1168,14 @@ end;
 
 function TLUdp.Bail(const msg: string): Boolean;
 begin
-  Result  :=  False;
+  Result := False;
 
-  Disconnect;
-  ErrorEvent(msg, FRootSock);
+  Disconnect(True);
+
+  if Assigned(FSession) then
+    FSession.ErrorEvent(nil, msg)
+  else
+    ErrorEvent(FRootSock, msg);
 end;
 
 procedure TLUdp.SetAddress(const Address: string);
@@ -954,9 +1189,9 @@ begin
     s := Copy(Address, 1, n-1);
     p := Word(StrToInt(Copy(Address, n+1, Length(Address))));
 
-    FillAddressInfo(FRootSock.FPeerAddress, AF_INET, s, p);
+    FillAddressInfo(FRootSock.FPeerAddress, FRootSock.FSocketNet, s, p);
   end else
-    FillAddressInfo(FRootSock.FPeerAddress, AF_INET, Address,
+    FillAddressInfo(FRootSock.FPeerAddress, FRootSock.FSocketNet, Address,
                                             FRootSock.PeerPort);
 end;
 
@@ -964,32 +1199,29 @@ function TLUdp.InitSocket(aSocket: TLSocket): TLSocket;
 begin
   Result := FRootSock;
   if not Assigned(FRootSock) then begin
-    Result := inherited InitSocket(aSocket);
     aSocket.SocketType := SOCK_DGRAM;
     aSocket.Protocol := LPROTO_UDP;
+    Result := inherited InitSocket(aSocket); // call last, to make sure sessions get their turn in overriding
   end;
 end;
 
 procedure TLUdp.ReceiveAction(aSocket: TLHandle);
 begin
   with TLSocket(aSocket) do begin
-    FCanReceive := True;
-    ReceiveEvent(aSocket);
-  end;
-end;
-
-procedure TLUdp.SendAction(aSocket: TLHandle);
-begin
-  with TLSocket(aSocket) do begin
-    FCanSend := True;
-    IgnoreWrite := True;
-    CanSendEvent(aSocket);
+    SetState(ssCanReceive);
+    if Assigned(FSession) then
+      FSession.ReceiveEvent(aSocket)
+    else
+      ReceiveEvent(aSocket);
   end;
 end;
 
 procedure TLUdp.ErrorAction(aSocket: TLHandle; const msg: string);
 begin
-  Bail(msg);
+  if Assigned(FSession) then
+    FSession.ErrorEvent(aSocket, msg)
+  else
+    ErrorEvent(aSocket, msg);
 end;
 
 function TLUdp.IterNext: Boolean;
@@ -1011,10 +1243,10 @@ function TLUdp.GetConnected: Boolean;
 begin
   Result := False;
   if Assigned(FRootSock) then
-  Result := FRootSock.Connected;
+  Result := FRootSock.ConnectionStatus = scConnected;
 end;
 
-function TLUdp.Get(var aData; const aSize: Integer; aSocket: TLSocket): Integer;
+function TLUdp.Get(out aData; const aSize: Integer; aSocket: TLSocket): Integer;
 begin
   Result := 0;
   if Assigned(FRootSock) then
@@ -1066,9 +1298,10 @@ end;
 constructor TLTcp.Create(aOwner: TComponent);
 begin
   inherited Create(aOwner);
-  FIterator := nil;
-  FCount := 0;
-  FRootSock := nil;
+  FSocketNet := LAF_INET; // default to IPv4
+  FIterator  := nil;
+  FCount     := 0;
+  FRootSock  := nil;
 end;
 
 function TLTcp.Connect(const Address: string; const APort: Word): Boolean;
@@ -1076,7 +1309,7 @@ begin
   Result := inherited Connect(Address, aPort);
   
   if Assigned(FRootSock) then
-    Disconnect;
+    Disconnect(True);
     
   FRootSock := InitSocket(SocketClass.Create);
   Result := FRootSock.Connect(Address, aPort);
@@ -1096,14 +1329,13 @@ begin
   Result := false;
   
   if Assigned(FRootSock) then
-    Disconnect;
+    Disconnect(True);
   
   FRootSock := InitSocket(SocketClass.Create);
-  FRootSock.FIgnoreShutdown := True;
   FRootSock.SetReuseAddress(FReuseAddress);
   if FRootSock.Listen(APort, AIntf) then begin
-    FRootSock.FConnected := True;
-    FRootSock.FServerSocket := True;
+    FRootSock.SetState(ssServerSocket);
+    FRootSock.FConnectionStatus := scConnected;
     FIterator := FRootSock;
     Inc(FCount);
     RegisterWithEventer;
@@ -1114,12 +1346,16 @@ end;
 function TLTcp.Bail(const msg: string; aSocket: TLSocket): Boolean;
 begin
   Result  :=  False;
-  
-  ErrorEvent(msg, aSocket);
-  if Assigned(aSocket) then
-    aSocket.Disconnect
+
+  if Assigned(FSession) then
+    FSession.ErrorEvent(aSocket, msg)
   else
-    Disconnect;
+    ErrorEvent(aSocket, msg);
+
+  if Assigned(aSocket) then
+    aSocket.Disconnect(True)
+  else
+    Disconnect(True);
 end;
 
 procedure TLTcp.SocketDisconnect(aSocket: TLSocket);
@@ -1130,7 +1366,7 @@ begin
     else if Assigned(FIterator.PrevSock) then
       FIterator := FIterator.PrevSock
     else FIterator := nil; // NOT iterreset, not reorganized yet
-    if Assigned(FIterator) and FIterator.FServerSocket then
+    if Assigned(FIterator) and (ssServerSocket in FIterator.SocketState) then
       FIterator := nil;
   end;
 
@@ -1146,10 +1382,12 @@ end;
 
 function TLTcp.InitSocket(aSocket: TLSocket): TLSocket;
 begin
-  Result := inherited InitSocket(aSocket);
   aSocket.SocketType := SOCK_STREAM;
   aSocket.Protocol := LPROTO_TCP;
+  aSocket.SocketNet := FSocketNet;
   aSocket.FOnFree := @SocketDisconnect;
+
+  Result := inherited InitSocket(aSocket); // call last to make sure session can override options
 end;
 
 function TLTcp.IterNext: Boolean;
@@ -1166,9 +1404,9 @@ begin
   FIterator := FRootSock;
 end;
 
-procedure TLTcp.Disconnect;
+procedure TLTcp.Disconnect(const Forced: Boolean = True);
 begin
-  FreeSocks;
+  FreeSocks(Forced);
   FRootSock := nil;
   FCount := 0;
   FIterator := nil;
@@ -1190,9 +1428,12 @@ begin
     if Sockets.fpGetPeerName(FHandle, @a, @l) <> 0 then
       Self.Bail('Error on connect: connection refused', TLSocket(aSocket))
     else begin
-      FConnected := True;
-      FConnecting := False;
-      ConnectEvent(aSocket);
+      FConnectionStatus := scConnected;
+      IgnoreWrite := True;
+      if Assigned(FSession) then
+        FSession.ConnectEvent(aSocket)
+      else
+        ConnectEvent(aSocket);
     end;
   end;
 end;
@@ -1202,31 +1443,47 @@ var
   Tmp: TLSocket;
 begin
   Tmp := InitSocket(SocketClass.Create);
+  
   if Tmp.Accept(FRootSock.FHandle) then begin
     if Assigned(FRootSock.FNextSock) then begin
       Tmp.FNextSock := FRootSock.FNextSock;
       FRootSock.FNextSock.FPrevSock := Tmp;
     end;
+    
     FRootSock.FNextSock := Tmp;
     Tmp.FPrevSock := FRootSock;
+    
     if not Assigned(FIterator)      // if we don't have (bug?) an iterator yet
-    or FIterator.FServerSocket then // or if it's the first socket accepted
+    or (ssServerSocket in FIterator.SocketState) then // or if it's the first socket accepted
       FIterator := Tmp;  // assign it as iterator (don't assign later acceptees)
+      
     Inc(FCount);
     FEventer.AddHandle(Tmp);
-    AcceptEvent(Tmp);
-  end else Tmp.Free;
+    
+    Tmp.FConnectionStatus := scConnected;
+    Tmp.IgnoreWrite := True;
+
+    if Assigned(FSession) then
+      FSession.AcceptEvent(Tmp)
+    else
+      AcceptEvent(Tmp);
+  end else
+    Tmp.Free;
 end;
 
 procedure TLTcp.ReceiveAction(aSocket: TLHandle);
 begin
-  if (TLSocket(aSocket) = FRootSock) and TLSocket(aSocket).FServerSocket then
+  if (TLSocket(aSocket) = FRootSock) and (ssServerSocket in TLSocket(aSocket).SocketState) then
     AcceptAction(aSocket)
   else with TLSocket(aSocket) do begin
-    if Connected then begin
-      FCanReceive := True;
-      ReceiveEvent(aSocket);
-      if not Connected then begin
+    if FConnectionStatus in [scConnected, scDisconnecting] then begin
+      SetState(ssCanReceive);
+      if Assigned(FSession) then
+        FSession.ReceiveEvent(aSocket)
+      else
+        ReceiveEvent(aSocket);
+
+      if not (FConnectionStatus = scConnected) then begin
         DisconnectEvent(aSocket);
         aSocket.Free;
       end;
@@ -1237,22 +1494,24 @@ end;
 procedure TLTcp.SendAction(aSocket: TLHandle);
 begin
   with TLSocket(aSocket) do begin
-    if Connecting then
-      ConnectAction(aSocket);
-    FCanSend := True;
-    IgnoreWrite := True;
-    CanSendEvent(aSocket);
+    if FConnectionStatus = scConnecting then
+      ConnectAction(aSocket)
+    else
+      inherited;
   end;
 end;
 
 procedure TLTcp.ErrorAction(aSocket: TLHandle; const msg: string);
 begin
-  with TLSocket(aSocket) do begin
-    if Connecting then
-      Self.Bail('Error on connect: connection refused' , TLSocket(aSocket))
-    else
-      Self.Bail(msg, TLSocket(aSocket));
+  if TLSocket(aSocket).ConnectionStatus = scConnecting then begin
+    Self.Bail('Error on connect: connection refused', TLSocket(aSocket));
+    Exit;
   end;
+  
+  if Assigned(FSession) then
+    FSession.ErrorEvent(aSocket, msg)
+  else
+    ErrorEvent(aSocket, msg);
 end;
 
 function TLTcp.GetConnected: Boolean;
@@ -1262,7 +1521,7 @@ begin
   Result := False;
   Tmp := FRootSock;
   while Assigned(Tmp) do begin
-    if Tmp.Connected then begin
+    if Tmp.ConnectionStatus = scConnected then begin
       Result := True;
       Exit;
     end else Tmp := Tmp.NextSock;
@@ -1273,7 +1532,7 @@ function TLTcp.GetConnecting: Boolean;
 begin
   Result := False;
   if Assigned(FRootSock) then
-    Result := FRootSock.Connecting;
+    Result := FRootSock.ConnectionStatus = scConnecting;
 end;
 
 function TLTcp.GetCount: Integer;
@@ -1281,38 +1540,68 @@ begin
   Result := FCount;
 end;
 
+function TLTcp.GetValidSocket: TLSocket;
+begin
+  Result := nil;
+  
+  if Assigned(FIterator) and not (ssServerSocket in FIterator.SocketState) then
+    Result := FIterator
+  else if Assigned(FRootSock) and Assigned(FRootSock.FNextSock) then
+    Result := FRootSock.FNextSock;
+end;
+
 procedure TLTcp.SetReuseAddress(const aValue: Boolean);
 begin
   if not Assigned(FRootSock)
-  or not FRootSock.Connected then
+  or (FRootSock.FConnectionStatus = scNone) then
     FReuseAddress := aValue;
 end;
 
-function TLTcp.Get(var aData; const aSize: Integer; aSocket: TLSocket): Integer;
+procedure TLTcp.SetSocketNet(const aValue: Integer);
+begin
+  if GetConnected then
+    raise Exception.Create('Cannot set socket network on a connected system');
+
+  FSocketNet := aValue;
+end;
+
+function TLTcp.Get(out aData; const aSize: Integer; aSocket: TLSocket): Integer;
 begin
   Result := 0;
+
   if not Assigned(aSocket) then
-    aSocket := FIterator;
+    aSocket := GetValidSocket;
+
   if Assigned(aSocket) then
-    Result := aSocket.Get(aData, aSize);
+    Result := aSocket.Get(aData, aSize)
+  else
+    Bail('No connected socket to get through', nil);
 end;
 
 function TLTcp.GetMessage(out msg: string; aSocket: TLSocket): Integer;
 begin
   Result := 0;
+
   if not Assigned(aSocket) then
-    aSocket := FIterator;
+    aSocket := GetValidSocket;
+
   if Assigned(aSocket) then
-    Result := aSocket.GetMessage(msg);
+    Result := aSocket.GetMessage(msg)
+  else
+    Bail('No connected socket to get through', nil);
 end;
 
 function TLTcp.Send(const aData; const aSize: Integer; aSocket: TLSocket): Integer;
 begin
   Result := 0;
+
   if not Assigned(aSocket) then
-    aSocket := FIterator;
-  if Assigned(aSocket) and (aSize > 0) then
-    Result := aSocket.Send(aData, aSize);
+    aSocket := GetValidSocket;
+
+  if Assigned(aSocket) then
+    Result := aSocket.Send(aData, aSize)
+  else
+    Bail('No connected socket to send through', nil);
 end;
 
 function TLTcp.SendMessage(const msg: string; aSocket: TLSocket): Integer;
@@ -1320,14 +1609,86 @@ begin
   Result := Send(PChar(msg)^, Length(msg), aSocket);
 end;
 
+//*******************************TLSession*********************************
 
-{ TLComponent }
-
-constructor TLComponent.Create(aOwner: TComponent);
+procedure TLSession.RegisterWithComponent(aConnection: TLConnection);
 begin
-  inherited Create(aOwner);
-  FCreator := Self;
+  if not Assigned(aConnection) then
+    raise Exception.Create('Cannot register session with nil connection');
 end;
+
+procedure TLSession.InitHandle(aHandle: TLHandle);
+begin
+  TLSocket(aHandle).FSession := Self;
+end;
+
+procedure TLSession.ReceiveEvent(aHandle: TLHandle);
+begin
+  FActive := True;
+  CallReceiveEvent(aHandle);
+end;
+
+procedure TLSession.SendEvent(aHandle: TLHandle);
+begin
+  FActive := True;
+  CallSendEvent(aHandle);
+end;
+
+procedure TLSession.ErrorEvent(aHandle: TLHandle; const msg: string);
+begin
+  FActive := True;
+  CallErrorEvent(aHandle, msg);
+end;
+
+procedure TLSession.ConnectEvent(aHandle: TLHandle);
+begin
+  FActive := True;
+  CallConnectEvent(aHandle);
+end;
+
+procedure TLSession.AcceptEvent(aHandle: TLHandle);
+begin
+  FActive := True;
+  CallAcceptEvent(aHandle);
+end;
+
+procedure TLSession.DisconnectEvent(aHandle: TLHandle);
+begin
+  FActive := True;
+  CallDisconnectEvent(aHandle);
+end;
+
+procedure TLSession.CallReceiveEvent(aHandle: TLHandle); inline;
+begin
+  TLSocket(aHandle).FConnection.ReceiveEvent(TLSocket(aHandle));
+end;
+
+procedure TLSession.CallSendEvent(aHandle: TLHandle); inline;
+begin
+  TLSocket(aHandle).FConnection.CanSendEvent(TLSocket(aHandle));
+end;
+
+procedure TLSession.CallErrorEvent(aHandle: TLHandle; const msg: string);
+  inline;
+begin
+  TLSocket(aHandle).FConnection.ErrorEvent(TLSocket(aHandle), msg);
+end;
+
+procedure TLSession.CallConnectEvent(aHandle: TLHandle); inline;
+begin
+  TLSocket(aHandle).FConnection.ConnectEvent(TLSocket(aHandle));
+end;
+
+procedure TLSession.CallAcceptEvent(aHandle: TLHandle); inline;
+begin
+  TLSocket(aHandle).FConnection.AcceptEvent(TLSocket(aHandle));
+end;
+
+procedure TLSession.CallDisconnectEvent(aHandle: TLHandle); inline;
+begin
+  TLSocket(aHandle).FConnection.DisconnectEvent(TLSocket(aHandle));
+end;
+
 
 end.
 
