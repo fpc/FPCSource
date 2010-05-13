@@ -594,14 +594,13 @@ implementation
                 it can generate smallset data instead of normalset (PFV) }
               inserttypeconv(p,def);
               { we only allow const sets }
-              if assigned(tsetconstnode(p).left) then
+              if (p.nodetype<>setconstn) or
+                 assigned(tsetconstnode(p).left) then
                 Message(parser_e_illegal_expression)
               else
                 begin
                   tsetconstnode(p).adjustforsetbase;
-                  { this writing is endian independant   }
-                  { untrue - because they are considered }
-                  { arrays of 32-bit values CEC          }
+                  { this writing is endian-dependant   }
                   if source_info.endian = target_info.endian then
                     begin
                       for i:=0 to p.resultdef.size-1 do
@@ -775,8 +774,8 @@ implementation
             result:=true;
             n:=comp_expr(true);
             if (n.nodetype <> ordconstn) or
-               not equal_defs(n.resultdef,def) and
-               not is_subequal(n.resultdef,def) then
+               (not equal_defs(n.resultdef,def) and
+                not is_subequal(n.resultdef,def)) then
               begin
                 n.free;
                 incompatibletypes(n.resultdef,def);
