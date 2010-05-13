@@ -28,7 +28,7 @@ begin
         end;
 
     
-    P.Sources.AddSrc('README');
+    P.Sources.AddSrc('README.txt');
 
     P.ExamplePath.Add('examples/');
     P.Targets.AddExampleProgram('newbutton.pp');

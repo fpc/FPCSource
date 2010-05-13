@@ -265,7 +265,7 @@ begin
           AddUnit('kerneldefs');
           AddUnit('kernelioctl');
         end;
-     p.Sources.Adddoc('README');
+     p.Sources.Adddoc('README.txt');
 
 {$ifndef ALLPACKAGES}
     Run;

@@ -84,7 +84,7 @@ begin
     P.Sources.AddSrc('LGPL');
     P.Sources.AddSrc('LGPL.addon');
     P.Sources.AddSrc('MPL-1.1');
-    P.Sources.AddSrc('README');
+    P.Sources.AddSrc('README.txt');
 
 {$ifndef ALLPACKAGES}
     Run;

@@ -174,7 +174,7 @@ begin
     T:=P.Targets.AddExampleProgram('envprint.pas');
     T:=P.Targets.AddExampleProgram('penshare.pas');
 
-    P.Sources.AddDoc('README');
+    P.Sources.AddDoc('README.txt');
     P.Sources.AddDoc('units.txt');
 
 {$ifndef ALLPACKAGES}

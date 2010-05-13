@@ -17,6 +17,8 @@ begin
     P.Directory:='unixutil';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+    P.OSes:=[Linux];
+    P.CPUs:=[i386];
     P.SourcePath.Add('src');
     T:=P.Targets.AddUnit('unixutils.pp',[i386],[linux]);
       with T.Dependencies do

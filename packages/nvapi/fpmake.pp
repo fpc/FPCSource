@@ -23,6 +23,7 @@ begin
     P.Email := '';
     P.Description := 'NvAPI header';
     P.NeedLibC:= true;
+    P.OSes:=[win32,win64];
 
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
