@@ -172,6 +172,29 @@ unit cgobj;
           }
           procedure a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : TCGPara);virtual;
 
+          {# Load a cgparaloc into a memory reference.
+
+           @param(paraloc the source parameter sublocation)
+           @param(ref the destination reference)
+           @param(sizeleft indicates the total number of bytes left in all of
+                  the remaining sublocations of this parameter (the current
+                  sublocation and all of the sublocations coming after it).
+                  In case this location is also a reference, it is assumed
+                  to be the final part sublocation of the parameter and that it
+                  contains all of the "sizeleft" bytes).)
+           @param(alignment the alignment of the paraloc in case it's a reference)
+          }
+          procedure a_load_cgparaloc_ref(list : TAsmList;const paraloc : TCGParaLocation;const ref : treference;sizeleft : aint;align : longint);
+
+          {# Load a cgparaloc into any kind of register (int, fp, mm).
+
+           @param(regsize the size of the destination register)
+           @param(paraloc the source parameter sublocation)
+           @param(reg the destination register)
+           @param(alignment the alignment of the paraloc in case it's a reference)
+          }
+          procedure a_load_cgparaloc_anyreg(list : TAsmList;regsize : tcgsize;const paraloc : TCGParaLocation;reg : tregister;align : longint);
+
           { Remarks:
             * If a method specifies a size you have only to take care
               of that number of bits, i.e. load_const_reg with OP_8 must
@@ -950,6 +973,79 @@ implementation
              a_loadaddr_ref_reg(list,r,hr);
              a_param_reg(list,OS_ADDR,hr,cgpara);
            end;
+      end;
+
+    procedure tcg.a_load_cgparaloc_ref(list : TAsmList;const paraloc : TCGParaLocation;const ref : treference;sizeleft : aint;align : longint);
+      var
+        href : treference;
+      begin
+         case paraloc.loc of
+           LOC_REGISTER :
+             begin
+{$IFDEF POWERPC64}
+               if (paraloc.shiftval <> 0) then
+                 a_op_const_reg_reg(list, OP_SHL, OS_INT, paraloc.shiftval, paraloc.register, paraloc.register);
+{$ENDIF POWERPC64}
+               a_load_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
+             end;
+           LOC_MMREGISTER :
+             cg.a_loadmm_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref,mms_movescalar);
+           LOC_FPUREGISTER :
+             cg.a_loadfpu_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
+           LOC_REFERENCE :
+             begin
+               reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,align);
+               { use concatcopy, because it can also be a float which fails when
+                 load_ref_ref is used. Don't copy data when the references are equal }
+               if not((href.base=ref.base) and (href.offset=ref.offset)) then
+                 cg.g_concatcopy(list,href,ref,sizeleft);
+             end;
+           else
+             internalerror(2002081302);
+         end;
+      end;
+
+
+    procedure tcg.a_load_cgparaloc_anyreg(list: TAsmList;regsize: tcgsize;const paraloc: TCGParaLocation;reg: tregister;align: longint);
+      var
+        href : treference;
+      begin
+         case paraloc.loc of
+           LOC_REGISTER :
+             begin
+               case getregtype(reg) of
+                 R_INTREGISTER:
+                   a_load_reg_reg(list,paraloc.size,regsize,paraloc.register,reg);
+                 R_MMREGISTER:
+                   a_loadmm_intreg_reg(list,paraloc.size,regsize,paraloc.register,reg,mms_movescalar);
+                 else
+                   internalerror(2009112422);
+               end;
+             end;
+           LOC_MMREGISTER :
+             a_loadmm_reg_reg(list,paraloc.size,regsize,paraloc.register,reg,mms_movescalar);
+           LOC_FPUREGISTER :
+             a_loadfpu_reg_reg(list,paraloc.size,regsize,paraloc.register,reg);
+           LOC_REFERENCE :
+             begin
+               reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,align);
+               case getregtype(reg) of
+                 R_INTREGISTER :
+                   a_load_ref_reg(list,paraloc.size,regsize,href,reg);
+                 R_FPUREGISTER :
+                   a_loadfpu_ref_reg(list,paraloc.size,regsize,href,reg);
+                 R_MMREGISTER :
+                   { not paraloc.size, because it may be OS_64 instead of
+                     OS_F64 in case the parameter is passed using integer
+                     conventions (e.g., on ARM) }
+                   a_loadmm_ref_reg(list,regsize,regsize,href,reg,mms_movescalar);
+                 else
+                   internalerror(2004101012);
+               end;
+             end;
+           else
+             internalerror(2002081302);
+         end;
       end;
 
 

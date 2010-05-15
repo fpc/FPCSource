@@ -1396,39 +1396,7 @@ implementation
           ressym:=tabstractnormalvarsym(current_procinfo.procdef.funcretsym);
         if (ressym.refs>0) or (ressym.vardef.needs_inittable) then
           begin
-{$ifdef OLDREGVARS}
-            case ressym.localloc.loc of
-              LOC_CFPUREGISTER,
-              LOC_FPUREGISTER:
-                begin
-                  location_reset(restmploc,LOC_CFPUREGISTER,funcretloc^.size);
-                  restmploc.register:=ressym.localloc.register;
-                end;
-
-              LOC_CREGISTER,
-              LOC_REGISTER:
-                begin
-                  location_reset(restmploc,LOC_CREGISTER,funcretloc^.size);
-                  restmploc.register:=ressym.localloc.register;
-                end;
-
-              LOC_MMREGISTER:
-                begin
-                  location_reset(restmploc,LOC_CMMREGISTER,funcretloc^.size);
-                  restmploc.register:=ressym.localloc.register;
-                end;
-
-              LOC_REFERENCE:
-                begin
-                  location_reset_ref(restmploc,LOC_REFERENCE,funcretloc^.size,0);
-                  restmploc.reference:=ressym.localloc.reference;
-                end;
-              else
-                internalerror(200309184);
-            end;
-{$else}
             restmploc:=ressym.localloc;
-{$endif}
 
             { Here, we return the function result. In most architectures, the value is
               passed into the FUNCTION_RETURN_REG, but in a windowed architecure like sparc a
@@ -1436,7 +1404,7 @@ implementation
             case funcretloc.loc of
               LOC_REGISTER:
                 begin
-{$ifdef cpu64bitaddr}
+{$ifdef cpu64bitalu}
                   if current_procinfo.procdef.funcretloc[calleeside].size in [OS_128,OS_S128] then
                     begin
                       resloc:=current_procinfo.procdef.funcretloc[calleeside];
@@ -1506,7 +1474,7 @@ implementation
                         end;
                       end
                     else
-{$else cpu64bitaddr}
+{$else cpu64bitalu}
                   if current_procinfo.procdef.funcretloc[calleeside].size in [OS_64,OS_S64] then
                     begin
                       resloc:=current_procinfo.procdef.funcretloc[calleeside];
@@ -1557,7 +1525,7 @@ implementation
                       end;
                     end
                   else
-{$endif not cpu64bitaddr}
+{$endif cpu64bitalu}
                   { this code is for structures etc. being returned in registers and having odd sizes }
                   if (current_procinfo.procdef.funcretloc[calleeside].size=OS_32) and
                     not(restmploc.size in [OS_S32,OS_32]) then
@@ -1630,7 +1598,7 @@ implementation
 {$ifdef x86}
          else
           begin
-            { the caller will pop a value off the cpu stack }
+            { the caller will pop a value from the fpu stack }
             if (funcretloc.loc = LOC_FPUREGISTER) then
               list.concat(taicpu.op_none(A_FLDZ));
           end;
@@ -1727,79 +1695,6 @@ implementation
          end;
 
 
-       procedure gen_load_ref(const paraloc:TCGParaLocation;const ref:treference;sizeleft:aint; alignment: longint);
-         var
-           href : treference;
-         begin
-            case paraloc.loc of
-              LOC_REGISTER :
-                begin
-                  {$IFDEF POWERPC64}
-                  if (paraloc.shiftval <> 0) then
-                    cg.a_op_const_reg_reg(list, OP_SHL, OS_INT, paraloc.shiftval, paraloc.register, paraloc.register);
-                  {$ENDIF POWERPC64}
-                  cg.a_load_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
-                end;
-              LOC_MMREGISTER :
-                cg.a_loadmm_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref,mms_movescalar);
-              LOC_FPUREGISTER :
-                cg.a_loadfpu_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
-              LOC_REFERENCE :
-                begin
-                  reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,alignment);
-                  { use concatcopy, because it can also be a float which fails when
-                    load_ref_ref is used. Don't copy data when the references are equal }
-                  if not((href.base=ref.base) and (href.offset=ref.offset)) then
-                    cg.g_concatcopy(list,href,ref,sizeleft);
-                end;
-              else
-                internalerror(2002081302);
-            end;
-         end;
-
-
-       procedure gen_load_reg(const paraloc:TCGParaLocation; regsize: tcgsize; reg:tregister; alignment: longint);
-         var
-           href : treference;
-         begin
-            case paraloc.loc of
-              LOC_REGISTER :
-                begin
-                  case getregtype(reg) of
-                    R_INTREGISTER:
-                      cg.a_load_reg_reg(list,paraloc.size,regsize,paraloc.register,reg);
-                    R_MMREGISTER:
-                      cg.a_loadmm_intreg_reg(list,paraloc.size,regsize,paraloc.register,reg,mms_movescalar);
-                    else
-                      internalerror(2009112422);
-                  end;
-                end;
-              LOC_MMREGISTER :
-                cg.a_loadmm_reg_reg(list,paraloc.size,regsize,paraloc.register,reg,mms_movescalar);
-              LOC_FPUREGISTER :
-                cg.a_loadfpu_reg_reg(list,paraloc.size,regsize,paraloc.register,reg);
-              LOC_REFERENCE :
-                begin
-                  reference_reset_base(href,paraloc.reference.index,paraloc.reference.offset,alignment);
-                  case getregtype(reg) of
-                    R_INTREGISTER :
-                      cg.a_load_ref_reg(list,paraloc.size,regsize,href,reg);
-                    R_FPUREGISTER :
-                      cg.a_loadfpu_ref_reg(list,paraloc.size,regsize,href,reg);
-                    R_MMREGISTER :
-                      { not paraloc.size, because it may be OS_64 instead of
-                        OS_F64 in case the parameter is passed using integer
-                        conventions (e.g., on ARM) }
-                      cg.a_loadmm_ref_reg(list,regsize,regsize,href,reg,mms_movescalar);
-                    else
-                      internalerror(2004101012);
-                  end;
-                end;
-              else
-                internalerror(2002081302);
-            end;
-         end;
-
       var
         i : longint;
         currpara : tparavarsym;
@@ -1857,13 +1752,13 @@ implementation
                               if (paraloc^.loc<>LOC_REFERENCE) or
                                  assigned(paraloc^.next) then
                                 internalerror(2005013010);
-                              gen_load_ref(paraloc^,href,sizeleft,currpara.initialloc.reference.alignment);
+                              cg.a_load_cgparaloc_ref(list,paraloc^,href,sizeleft,currpara.initialloc.reference.alignment);
                               inc(href.offset,sizeleft);
                               sizeleft:=0;
                             end
                           else
                             begin
-                              gen_load_ref(paraloc^,href,tcgsize2size[paraloc^.size],currpara.initialloc.reference.alignment);
+                              cg.a_load_cgparaloc_ref(list,paraloc^,href,tcgsize2size[paraloc^.size],currpara.initialloc.reference.alignment);
                               inc(href.offset,TCGSize2Size[paraloc^.size]);
                               dec(sizeleft,TCGSize2Size[paraloc^.size]);
                             end;
@@ -1890,9 +1785,9 @@ implementation
                                 unget_para(paraloc^);
                                 gen_alloc_regvar(list,currpara);
                                 { reg->reg, alignment is irrelevant }
-                                gen_load_reg(paraloc^,OS_32,currpara.initialloc.register64.reghi,4);
+                                cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^,currpara.initialloc.register64.reghi,4);
                                 unget_para(paraloc^.next^);
-                                gen_load_reg(paraloc^.next^,OS_32,currpara.initialloc.register64.reglo,4);
+                                cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^.next^,currpara.initialloc.register64.reglo,4);
                               end
                             else
                               begin
@@ -1900,9 +1795,9 @@ implementation
                                   paraloc^.next -> high }
                                 unget_para(paraloc^);
                                 gen_alloc_regvar(list,currpara);
-                                gen_load_reg(paraloc^,OS_32,currpara.initialloc.register64.reglo,4);
+                                cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^,currpara.initialloc.register64.reglo,4);
                                 unget_para(paraloc^.next^);
-                                gen_load_reg(paraloc^.next^,OS_32,currpara.initialloc.register64.reghi,4);
+                                cg.a_load_cgparaloc_anyreg(list,OS_32,paraloc^.next^,currpara.initialloc.register64.reghi,4);
                               end;
                           end;
                         LOC_REFERENCE:
@@ -1923,7 +1818,7 @@ implementation
                         internalerror(200410105);
                       unget_para(paraloc^);
                       gen_alloc_regvar(list,currpara);
-                      gen_load_reg(paraloc^,currpara.initialloc.size,currpara.initialloc.register,sizeof(aint));
+                      cg.a_load_cgparaloc_anyreg(list,currpara.initialloc.size,paraloc^,currpara.initialloc.register,sizeof(aint));
                     end;
                 end;
               LOC_CFPUREGISTER :
@@ -1937,7 +1832,7 @@ implementation
                   while assigned(paraloc) do
                     begin
                       unget_para(paraloc^);
-                      gen_load_ref(paraloc^,href,sizeleft,currpara.initialloc.reference.alignment);
+                      cg.a_load_cgparaloc_ref(list,paraloc^,href,sizeleft,currpara.initialloc.reference.alignment);
                       inc(href.offset,TCGSize2Size[paraloc^.size]);
                       dec(sizeleft,TCGSize2Size[paraloc^.size]);
                       paraloc:=paraloc^.next;
@@ -1949,7 +1844,7 @@ implementation
                   unget_para(paraloc^);
                   gen_alloc_regvar(list,currpara);
                   { from register to register -> alignment is irrelevant }
-                  gen_load_reg(paraloc^,currpara.initialloc.size,currpara.initialloc.register,0);
+                  cg.a_load_cgparaloc_anyreg(list,currpara.initialloc.size,paraloc^,currpara.initialloc.register,0);
                   if assigned(paraloc^.next) then
                     internalerror(200410109);
 {$endif sparc}
@@ -1983,7 +1878,7 @@ implementation
                       unget_para(paraloc^);
                       gen_alloc_regvar(list,currpara);
                       { from register to register -> alignment is irrelevant }
-                      gen_load_reg(paraloc^,currpara.initialloc.size,currpara.initialloc.register,0);
+                      cg.a_load_cgparaloc_anyreg(list,currpara.initialloc.size,paraloc^,currpara.initialloc.register,0);
                       { data could come in two memory locations, for now
                         we simply ignore the sanity check (FK)
                       if assigned(paraloc^.next) then
