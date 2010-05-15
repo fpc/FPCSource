@@ -11,10 +11,12 @@ programs_go32v2=install writeidx
 programs_win32=install writeidx
 programs_os2=install writeidx
 programs_linux=installer writeidx
+programs_freebsd=installer writeidx
 
 [clean]
 units=scroll insthelp
 files_linux=installer.pas
+files_freebsd=installer.pas
 
 [require]
 packages=fv unzip
