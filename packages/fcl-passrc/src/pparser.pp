@@ -117,6 +117,7 @@ type
       AParent: TPasElement): TPasElement;overload;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility): TPasElement;overload;
+    Function IsHint(Const S : String; AHint : TPasMemberHint) : Boolean;
     Function CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
   public
     Options : set of TPOptions;
@@ -331,30 +332,43 @@ begin
   Result:=ParseType(Parent,'');
 end;
 
+Function TPasParser.IsHint(Const S : String; AHint : TPasMemberHint) : Boolean;
+
+Var
+  T : string;
+
+begin
+  T:=LowerCase(S);
+  Result:=(T='deprecated');
+  If Result then
+    Ahint:=hDeprecated
+  else
+    begin
+    Result:=(T='library');
+    if Result then
+      Ahint:=hLibrary
+    else
+      begin
+      Result:=(T='platform');
+      If result then
+        AHint:=hPlatform;
+      end;
+    end;  
+end;
+
 Function TPasParser.CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
 
 Var
   Found : Boolean;
-
+  h : TPasMemberHint;
+  
 begin
   Result:=[];
   Repeat
     NextToken;
-    Found:=CompareText(CurTokenString,'deprecated')=0;
+    Found:=IsHint(CurTokenString,h);
     If Found then
-      Include(Result,hDeprecated)
-    else
-     begin
-     Found:=CompareText(CurTokenString,'library')=0;
-     if Found then
-       Include(Result,hLibrary)
-     else
-       begin
-       Found:=CompareText(CurTokenString,'platform')=0;
-       If Found then
-         Include(Result,hPlatform);
-       end;
-     end;
+      Include(Result,h)
   Until Not Found;
   UnGetToken;
   If Assigned(Element) then
@@ -1180,7 +1194,8 @@ var
   Prefix : String;
   HadPackedModifier : Boolean;           // 12/04/04 - Dave - Added
   IsBitPacked : Boolean;
-
+  H : TPasMemberHint;
+  
 begin
   TypeName := CurTokenString;
   ExpectToken(tkEqual);
@@ -1248,7 +1263,7 @@ begin
           end
         else
           Prefix:='';
-        if CurToken = tkSemicolon then
+        if (CurToken = tkSemicolon) or IsHint(CurtokenString,h)then
         begin
           UngetToken;
           UngetToken;
@@ -1276,7 +1291,8 @@ begin
             Result.Free;
             raise;
           end;
-        end else
+        end
+        else  
         begin
           UngetToken;
           UngetToken;
