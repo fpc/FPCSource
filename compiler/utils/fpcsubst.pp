@@ -28,6 +28,7 @@ Resourcestring
   SWarnIgnoringPair = 'Warning: ignoring wrong name/value pair: ';
   SStats = 'Replaced %d placeholders in %d lines.';
   SSubstInLine = 'Replaced %s placeholders in line %d.';
+  SWarningDeprecated = 'Warning: This utility is deprecated and will be removed from fpc in the future. Please use fpcmkcfg instead.';
 
 
 Var
@@ -231,6 +232,7 @@ begin
 end;
 
 begin
+  WriteLn(StdErr,SWarningDeprecated);
   Init;
   Try
     ProcessCommandLine;
