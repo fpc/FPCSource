@@ -74,12 +74,12 @@ type
       );
    true: (
   {$ifdef SOCK_HAS_SINLEN}
-     len     : cuchar;
+     len     : cuchar deprecated;
   {$endif}
-     family  : sa_family_t;
-     port    : cushort;
-     addr    : cardinal;
-     pad         : array [0..7] of char; { to get to the size of sockaddr... }
+     family  : sa_family_t deprecated;
+     port    : cushort deprecated;
+     addr    : cardinal deprecated;
+     pad         : array [0..7] of char deprecated; { to get to the size of sockaddr... }
       );
   end;
 
