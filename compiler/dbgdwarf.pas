@@ -3558,9 +3558,6 @@ implementation
             ]);
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
-        append_block1(DW_AT_allocated,2);
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
 
         append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
         finish_entry;
@@ -3568,10 +3565,20 @@ implementation
         append_entry(DW_TAG_subrange_type,false,[
           DW_AT_byte_stride,DW_FORM_udata,def.elesize,
           DW_AT_lower_bound,DW_FORM_udata,0,
-          DW_AT_upper_bound,DW_FORM_block1,5
+          DW_AT_upper_bound,DW_FORM_block1,14
           ]);
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_dup)));
+        { pointer = nil? }
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_bra)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(5));
+        { yes -> length = 0 }
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_const1s)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(byte(-1)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_skip)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(3));
+        { no -> load length }
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit0)+sizeof(ptrint)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_minus)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
@@ -3607,13 +3614,6 @@ implementation
                 we point to address of the string
               }
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
-
-              { also add how to detect whether or not the string is allocated: if the pointer is 0
-                then it isn't, otherwise it is
-              }
-              append_block1(DW_AT_allocated,2);
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
             end
           else
             begin
@@ -3630,9 +3630,9 @@ implementation
           if deref then
             begin
               if (chardef.size=1) then
-                upperopcodes:=5
+                upperopcodes:=13
               else
-                upperopcodes:=7;
+                upperopcodes:=15;
               { lower bound is always 1, upper bound (length) needs to be calculated }
               append_entry(DW_TAG_subrange_type,false,[
                 DW_AT_lower_bound,DW_FORM_udata,1,
@@ -3642,14 +3642,24 @@ implementation
               { high(string) is stored sizeof(ptrint) bytes before the string data }
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_dup)));
+              { pointer = nil? }
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_bra)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(4));
+              { yes -> length = 0 }
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit0)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_skip)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(3));
+              { no -> load length }
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit0)+sizeof(ptrint)));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_minus)));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+
               { for widestrings, the length is specified in bytes, so divide by two }
-              if (upperopcodes=7) then
+              if (upperopcodes=15) then
                 begin
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit1)));
-                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_shra)));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_shr)));
                 end;
             end
           else
