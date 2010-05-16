@@ -951,7 +951,13 @@ Procedure SplitCommand(Const Cmd : String; Var Exe,Options : String);
 
 Implementation
 
-uses typinfo;
+uses typinfo, rtlconsts;
+
+type
+  TUnsortedDuplicatesStringList = class(TStringList)
+  public
+    function Add(const S: string): Integer; override;
+  end;
 
 ResourceString
   SErrInvalidCPU        = 'Invalid CPU name "%s"';
@@ -1551,6 +1557,22 @@ begin
 end;
 {$endif HAS_UNIT_PROCESS}
 
+
+{****************************************************************************
+                           TUnsortedDuplicatesStringList
+****************************************************************************}
+
+function TUnsortedDuplicatesStringList.Add(const S: string): Integer;
+
+begin
+  result := IndexOf(S);
+  If result > -1 then
+    Case DUplicates of
+      DupIgnore : Exit;
+      DupError : Error(SDuplicateString,0)
+    end;
+  inherited Add(S);
+end;
 
 {****************************************************************************
                                 TNamedItem
@@ -3610,7 +3632,8 @@ end;
 
 Function TBuildEngine.GetCompilerCommand(APackage : TPackage; ATarget : TTarget) : String;
 Var
-  L,Args : TStringList;
+  L : TUnsortedDuplicatesStringList;
+  Args : TStringList;
   i : Integer;
 begin
   if ATarget.TargetSourceFileName = '' then
@@ -3638,8 +3661,7 @@ begin
     Args.Add('-FE'+APackage.GetBinOutputDir(Defaults.CPU,Defaults.OS));
   Args.Add('-FU'+APackage.GetUnitsOutputDir(Defaults.CPU,Defaults.OS));
   // Object Path
-  L:=TStringList.Create;
-  L.Sorted:=true;
+  L:=TUnsortedDuplicatesStringList.Create;
   L.Duplicates:=dupIgnore;
   AddConditionalStrings(L,APackage.ObjectPath,Defaults.CPU,Defaults.OS);
   AddConditionalStrings(L,ATarget.ObjectPath,Defaults.CPU,Defaults.OS);
@@ -3647,8 +3669,7 @@ begin
     Args.Add('-Fo'+L[i]);
   FreeAndNil(L);
   // Unit Dirs
-  L:=TStringList.Create;
-  L.Sorted:=true;
+  L:=TUnsortedDuplicatesStringList.Create;
   L.Duplicates:=dupIgnore;
   AddDependencyUnitPaths(L,APackage);
   AddConditionalStrings(L,APackage.UnitPath,Defaults.CPU,Defaults.OS);
@@ -3657,8 +3678,7 @@ begin
     Args.Add('-Fu'+L[i]);
   FreeAndNil(L);
   // Include Path
-  L:=TStringList.Create;
-  L.Sorted:=true;
+  L:=TUnsortedDuplicatesStringList.Create;
   L.Duplicates:=dupIgnore;
   AddDependencyIncludePaths(L,ATarget);
   AddConditionalStrings(L,APackage.IncludePath,Defaults.CPU,Defaults.OS);
