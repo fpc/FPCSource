@@ -23,7 +23,7 @@ uses
   closablefilestream, resource,
 //readers
   resreader, coffreader, winpeimagereader, elfreader, machoreader,
-  externalreader, dfmreader,
+  externalreader, dfmreader, tlbreader,
 //writers
   reswriter, coffwriter, elfwriter, machowriter, externalwriter,
 //misc
