@@ -422,7 +422,7 @@ implementation
         timpls    = array[0..1000] of longint;
         pimpls    = ^timpls;
       var
-        equals: pequals;
+        aequals: pequals;
         compats: pcompintfs;
         impls: pimpls;
         ImplIntfCount,
@@ -436,10 +436,10 @@ implementation
         if ImplIntfCount>=High(tequals) then
           Internalerror(200006135);
         getmem(compats,sizeof(tcompintfentry)*ImplIntfCount);
-        getmem(equals,sizeof(longint)*ImplIntfCount);
+        getmem(aequals,sizeof(longint)*ImplIntfCount);
         getmem(impls,sizeof(longint)*ImplIntfCount);
         filldword(compats^,(sizeof(tcompintfentry) div sizeof(dword))*ImplIntfCount,dword(-1));
-        filldword(equals^,ImplIntfCount,dword(-1));
+        filldword(aequals^,ImplIntfCount,dword(-1));
         filldword(impls^,ImplIntfCount,dword(-1));
         { ismergepossible is a containing relation
           meaning of ismergepossible(a,b,w) =
@@ -458,8 +458,8 @@ implementation
                 if cij and cji then { i equal j }
                   begin
                     { get minimum index of equal }
-                    if equals^[j]=-1 then
-                      equals^[j]:=i;
+                    if aequals^[j]=-1 then
+                      aequals^[j]:=i;
                   end
                 else if cij then
                   begin
@@ -496,8 +496,8 @@ implementation
             begin
               if compats^[impls^[i]].compintf<>-1 then
                 impls^[i]:=compats^[impls^[i]].compintf
-              else if equals^[impls^[i]]<>-1 then
-                impls^[i]:=equals^[impls^[i]]
+              else if aequals^[impls^[i]]<>-1 then
+                impls^[i]:=aequals^[impls^[i]]
               else
                 inc(k);
             end;
@@ -509,7 +509,7 @@ implementation
             ImplIntfI.VtblImplIntf:=TImplementedInterface(_class.ImplementedInterfaces[impls^[i]]);
           end;
         freemem(compats);
-        freemem(equals);
+        freemem(aequals);
         freemem(impls);
       end;
 
