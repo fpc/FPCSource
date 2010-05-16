@@ -2334,7 +2334,11 @@ initialization
   {$IFDEF MorphOS}
   InitTinyGLLibrary;
   {$ELSE}
+  {$ifdef haiku}
+  LoadOpenGL('libGL.so');
+  {$else}
   LoadOpenGL('libGL.so.1');
+  {$endif}
   {$ENDIF}
   {$endif}
   {$ENDIF}

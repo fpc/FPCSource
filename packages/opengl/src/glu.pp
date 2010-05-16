@@ -570,9 +570,13 @@ initialization
   {$ifdef darwin}
   LoadGLu('/System/Library/Frameworks/OpenGL.framework/Libraries/libGLU.dylib');
   {$else}
+  {$IFDEF haiku}
+  LoadGLu('libGLU.so');
+  {$ELSE}
   {$ifndef MorphOS}
   LoadGLu('libGLU.so.1');
   {$endif}
+  {$ENDIF}
   {$ENDIF}
   {$endif}
 
