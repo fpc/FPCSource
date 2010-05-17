@@ -131,7 +131,7 @@ begin
         end;
 
  
-    P.Sources.AddSrc('src/README');
+    P.Sources.AddSrc('src/README.txt');
 
 
     P.ExamplePath.Add('examples');

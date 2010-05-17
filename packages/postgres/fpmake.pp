@@ -48,7 +48,7 @@ begin
           AddUnit('dllist');
         end;
 
-    P.Sources.AddSrc('README');
+    P.Sources.AddSrc('README.txt');
 
     P.ExamplePath.Add('tests/');
     P.Targets.AddExampleProgram('testpg2.pp');

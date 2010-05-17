@@ -12,7 +12,7 @@ begin
     begin
 {$endif ALLPACKAGES}
 
-    P:=AddPackage('proj');
+    P:=AddPackage('proj4');
 {$ifdef ALLPACKAGES}
     P.Directory:='proj4';
 {$endif ALLPACKAGES}

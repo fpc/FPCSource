@@ -22,7 +22,7 @@ begin
     T:=P.Targets.AddUnit('libuuid.pp');
     T:=P.Targets.AddUnit('macuuid.pp');
 
-    P.Sources.AddSrc('README');
+    P.Sources.AddSrc('README.txt');
 
     P.ExamplePath.Add('tests/');
     P.Targets.AddExampleProgram('testlibuid.pp');
