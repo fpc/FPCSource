@@ -105,7 +105,8 @@ type
 type
   DebugDevice = integer;
 const
-  DebugDevice_NOCASH: DebugDevice = $01;
+  DebugDevice_NULL: DebugDevice = $0;
+  DebugDevice_NOCASH: DebugDevice = $1;
   DebugDevice_CONSOLE: DebugDevice = $02;
   
 
