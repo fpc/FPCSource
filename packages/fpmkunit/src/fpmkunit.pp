@@ -1065,6 +1065,7 @@ ResourceString
   SHelpGlobalUnitDir  = 'Use indicated directory as global unit dir.';
   SHelpCompiler       = 'Use indicated binary as compiler';
   SHelpConfig         = 'Use indicated config file when compiling.';
+  SHelpOptions        = 'Pass extra options to the compiler.';
   SHelpVerbose        = 'Be verbose when working.';
 
 
@@ -2840,9 +2841,26 @@ procedure TCustomInstaller.AnalyzeOptions;
       end;
   end;
 
+  function SplitSpaces(var SplitString: string) : string;
+  var i : integer;
+  begin
+    i := pos(' ',SplitString);
+    if i > 0 then
+      begin
+        result := copy(SplitString,1,i-1);
+        delete(SplitString,1,i);
+      end
+    else
+      begin
+        result := SplitString;
+        SplitString:='';
+      end;
+  end;
+
 Var
   I : Integer;
   DefaultsFileName : string;
+  OptString : string;
 begin
   I:=0;
   FListMode:=False;
@@ -2886,6 +2904,12 @@ begin
       Defaults.LocalUnitDir:=OptionArg(I)
     else if CheckOption(I,'UG','globalunitdir') then
       Defaults.GlobalUnitDir:=OptionArg(I)
+    else if CheckOption(I,'o','options') then
+      begin
+        OptString := OptionArg(I);
+        while OptString <> '' do
+          Defaults.Options.Add(SplitSpaces(OptString));
+      end
     else if CheckOption(I,'r','compiler') then
       Defaults.Compiler:=OptionArg(I)
     else if CheckOption(I,'f','config') then
@@ -2945,6 +2969,7 @@ begin
   LogArgOption('UG','globalunitdir',SHelpGlobalUnitdir);
   LogArgOption('r','compiler',SHelpCompiler);
   LogArgOption('f','config',SHelpConfig);
+  LogArgOption('o','options',SHelpOptions);
   Log(vlInfo,'');
   If (FMT<>'') then
     halt(1)
