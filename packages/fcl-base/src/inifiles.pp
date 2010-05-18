@@ -753,7 +753,9 @@ begin
         // the value consist of a single double-quote character. (see
         // mantis bug 6555)
         If (J>1) and ((oKey.Value[1] in ['"','''']) and (oKey.Value[J]=oKey.Value[1])) then
-           Result:=Copy(oKey.Value,2,J-2);
+           Result:=Copy(oKey.Value,2,J-2)
+        else
+           Result:=oKey.Value;
       end 
       else Result:=oKey.Value;
     end;
