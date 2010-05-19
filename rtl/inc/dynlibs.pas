@@ -82,8 +82,8 @@ type
     Handle       : TLibHandle;            { handle of the current loaded library }
     Loading      : TLibEventLoading;      { loading event, called after the unit is loaded }
     Unloading    : TLibEventUnloading;    { unloading event, called before the unit is unloaded }
-    IdentGetter  : TLibIdentGetter;
-    Ident         : TLibIdent;              { crc Ident of the current loaded library }
+    IdentGetter  : TLibIdentGetter;       { identifier getter event }
+    Ident        : TLibIdent;             { identifier of the current loaded library }
     SymCount     : Integer;               { number of symbols }
     Symbols      : PLibSymbol;            { symbol address- and namelist }
     ErrorMsg     : String;                { last error message }
@@ -167,8 +167,8 @@ begin
   Result.Handle        := NilHandle;
   Result.Loading       := AfterLoading;
   Result.Unloading     := BeforeUnloading;
-  Result.IdentGetter      := IdentGetter;
-  Result.Ident          := 0;
+  Result.IdentGetter   := IdentGetter;
+  Result.Ident         := 0;
   Result.SymCount      := SymCount;
   Result.Symbols       := Symbols;
   Result.ErrorMsg      := '';
@@ -196,9 +196,7 @@ begin
         Result := -1;
         Exit;
       end;
-    end else
-      if IsConsole then
-        WriteLn(Format(SLibraryAlreadyLoaded, [Handler.InterfaceName, Handler.Filename]));
+    end;
   end;
 
   Result := InterlockedIncrement(Handler.RefCount);
