@@ -675,12 +675,12 @@ begin
   if atablename <> '' then 
     begin
     ar1:= stringsquery('PRAGMA table_info('+atablename+');');
-    for int1:= 0 to high(ar1) do 
+    for int1:= 0 to high(ar1) do
       begin
       if (high(ar1[int1]) >= 5) and (ar1[int1][5] <> '0') then 
         begin
-        result:= ar1[int1][1];
-        break;
+        if result<>'' then result := result+';';
+        result:= result+ar1[int1][1];
         end;
       end;
     end;

@@ -45,6 +45,7 @@ type
     procedure TestCrossStringDateParam;
     procedure TestGetFieldNames;
     procedure TestUpdateIndexDefs;
+    procedure TestMultipleFieldPKIndexDefs;
     procedure TestSetBlobAsMemoParam;
     procedure TestSetBlobAsBlobParam;
     procedure TestSetBlobAsStringParam;
@@ -1586,6 +1587,26 @@ begin
   AssertTrue(CompareText('ID',ds.ServerIndexDefs[0].Fields)=0);
   Asserttrue(ds.ServerIndexDefs[0].Options=[ixPrimary,ixUnique]);
 end;
+
+procedure TTestFieldTypes.TestMultipleFieldPKIndexDefs;
+var ds : TSQLQuery;
+begin
+  TSQLDBConnector(DBConnector).Connection.ExecuteDirect('create table FPDEV2 (' +
+                              '  ID1 INT NOT NULL,           ' +
+                              '  ID2 INT NOT NULL,           ' +
+                              '  NAME VARCHAR(50),           ' +
+                              '  PRIMARY KEY (ID1, ID2)      ' +
+                              ')                            ');
+  ds := TSQLDBConnector(DBConnector).Query;
+  ds.sql.Text:='select * from FPDEV2';
+  ds.Prepare;
+  ds.ServerIndexDefs.Update;
+  AssertEquals(1,ds.ServerIndexDefs.count);
+  writeln(ds.ServerIndexDefs[0].Fields);
+  AssertTrue(SameText('ID1;ID2',ds.ServerIndexDefs[0].Fields));
+  Asserttrue(ds.ServerIndexDefs[0].Options=[ixPrimary,ixUnique]);
+end;
+
 
 procedure TTestFieldTypes.TestSetBlobAsMemoParam;
 begin
