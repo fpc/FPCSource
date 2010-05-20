@@ -1880,6 +1880,7 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
+    AssertEquals(CurrToStr(testCurrencyValues[i]),Fld.AsString);
     AssertEquals(testCurrencyValues[i],Fld.AsCurrency);
     AssertEquals(testCurrencyValues[i],Fld.AsFloat);
     ds.Next;
