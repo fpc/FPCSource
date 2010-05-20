@@ -181,7 +181,7 @@ function GetMessageW(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:U
 function DispatchMessageW(lpMsg:LPMSG):LONG; external 'user32' name 'DispatchMessageW';
 function PeekMessageW(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT; wRemoveMsg:UINT):WINBOOL; external 'user32' name 'PeekMessageW';
 function SendMessageW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'SendMessageW';
-function SendMessageTimeoutW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; fuFlags:UINT;uTimeout:UINT; lpdwResult:LPDWORD):LRESULT; external 'user32' name 'SendMessageTimeoutW';
+function SendMessageTimeoutW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; fuFlags:UINT;uTimeout:UINT; lpdwResult:PDWORD_PTR):LRESULT; external 'user32' name 'SendMessageTimeoutW';
 function SendNotifyMessageW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external 'user32' name 'SendNotifyMessageW';
 function SendMessageCallbackW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; lpResultCallBack:SENDASYNCPROC;dwData:DWORD):WINBOOL; external 'user32' name 'SendMessageCallbackW';
 function PostMessageW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external 'user32' name 'PostMessageW';
