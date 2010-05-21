@@ -1597,12 +1597,15 @@ begin
                               '  NAME VARCHAR(50),           ' +
                               '  PRIMARY KEY (ID1, ID2)      ' +
                               ')                            ');
+
+  // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
+  if SQLDbType=interbase then TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
+
   ds := TSQLDBConnector(DBConnector).Query;
   ds.sql.Text:='select * from FPDEV2';
   ds.Prepare;
   ds.ServerIndexDefs.Update;
   AssertEquals(1,ds.ServerIndexDefs.count);
-  writeln(ds.ServerIndexDefs[0].Fields);
   AssertTrue(SameText('ID1;ID2',ds.ServerIndexDefs[0].Fields));
   Asserttrue(ds.ServerIndexDefs[0].Options=[ixPrimary,ixUnique]);
 end;
