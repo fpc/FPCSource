@@ -694,9 +694,10 @@ implementation
                cg.allocallcpuregisters(current_asmdata.CurrAsmList);
                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DYNARRAY_RANGECHECK',false);
                cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-            end
-         else
-           cg.g_rangecheck(current_asmdata.CurrAsmList,right.location,right.resultdef,left.resultdef);
+            end;
+{ for regular arrays, we don't have to do anything because the index has been
+  type converted to the index type, which already inserted a range check if
+  necessary }
          paraloc1.done;
          paraloc2.done;
        end;
