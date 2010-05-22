@@ -440,7 +440,7 @@ implementation
                            Message(parser_e_no_local_para_def);
                          consume(_OF);
                          single_type(t2,false,false);
-                         if is_refcounted_type(t2) then
+                         if is_managed_type(t2) then
                            Message(parser_e_no_refcounted_typed_file);
                          def:=tfiledef.createtyped(t2);
                       end

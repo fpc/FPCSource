@@ -99,7 +99,7 @@ interface
     function is_in_limit(def_from,def_to : tdef) : boolean;
 
     {# Returns whether def is reference counted }
-    function is_refcounted_type(def: tdef) : boolean;
+    function is_managed_type(def: tdef) : boolean;
 
 
 {    function is_in_limit_value(val_from:TConstExprInt;def_from,def_to : tdef) : boolean;}
@@ -526,7 +526,7 @@ implementation
       end;
 
 
-    function is_refcounted_type(def: tdef): boolean;
+    function is_managed_type(def: tdef): boolean;
       begin
         result:=
           def.needs_inittable and

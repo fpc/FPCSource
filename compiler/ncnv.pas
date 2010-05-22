@@ -1725,7 +1725,7 @@ implementation
                      { some conversions, like dynarray to pointer in Delphi
                        mode, must not be removed, because then we get memory
                        leaks due to missing temp finalization }
-                     (not is_refcounted_type(left.resultdef) or
+                     (not is_managed_type(left.resultdef) or
                      { different kinds of refcounted types may need calls
                        to different kinds of refcounting helpers }
                       (resultdef=left.resultdef)) then

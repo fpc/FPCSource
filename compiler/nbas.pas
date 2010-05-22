@@ -712,10 +712,7 @@ implementation
            { size of register operations must be known }
            (def_cgsize(_typedef)<>OS_NO) and
            { no init/final needed }
-           not (_typedef.needs_inittable) and
-           ((_typedef.typ <> pointerdef) or
-            (is_object(tpointerdef(_typedef).pointeddef) or
-             not tpointerdef(_typedef).pointeddef.needs_inittable)) then
+           not is_managed_type(_typedef) then
           include(tempinfo^.flags,ti_may_be_in_reg);
       end;
 
