@@ -237,11 +237,7 @@ type
 {$endif Windows}
 
 type
-  tagSTATSTG =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
-  packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-  record
+  tagSTATSTG = record
      pwcsName      : POleStr;
      dwType        : DWord;
      cbSize        : Large_uint;
