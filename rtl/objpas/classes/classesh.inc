@@ -1504,6 +1504,7 @@ type
                        const StackSize: SizeUInt = DefaultStackSize);
     destructor Destroy; override;
     procedure AfterConstruction; override;
+    procedure Start;
     procedure Resume;
     procedure Suspend;
     procedure Terminate;
