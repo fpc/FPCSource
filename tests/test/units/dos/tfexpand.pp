@@ -185,7 +185,8 @@ begin
  if (Length (S) > 1) and (S [2] = ':') then Delete (S, 1, 2);
 {$ELSE UNIX}
  for I := 1 to Length (S) do if S [I] = '/' then S [I] := DirSep;
- if (Length (S) > 0) and (S [1] in ['a'..'z']) then S [1] := UpCase (S [1]);
+ if (Length (S) > 1) and (S [1] in ['a'..'z']) and (S[2]=DriveSep) then
+   S [1] := UpCase (S [1]);
 {$ENDIF UNIX}
  if not (FileNameCaseSensitive) then
                            for I := 1 to Length (S) do S [I] := UpCase (S [I]);
@@ -201,6 +202,10 @@ begin
 {$ENDIF DEBUG}
  Rslt := Translate (Rslt);
  Rslt2 := FExpand (Src);
+{$IFNDEF UNIX}
+ if (Length (Rslt2) > 1) and (Rslt2 [1] in ['a'..'z']) and (Rslt2[2]=DriveSep) then
+   Rslt2 [1] := UpCase (Rslt2 [1]);
+{$ENDIF NDEF UNIX}
  if Rslt <> Rslt2 then
  begin
   WriteLn ('Error: FExpand (', Src, ') should be "', Rslt, '", not "',
@@ -389,13 +394,14 @@ if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
  Check (TestDrive + '.' + DirSep + '.', CurDir);
  Check (TestDrive + '.' + DirSep + '..', TestDir + TestDir1Name);
 {$I-}
-{ $ ifndef unix
- { avoid a and b drives for
+(*
+{ $ ifndef unix }
+{   avoid a and b drives for
    no unix systems to reduce the
    probablility of getting an alert message box }
- (* This should not be needed - unit popuperr should solve this?! TH *)
+ { This should not be needed - unit popuperr should solve this?! TH }
  I := 3;
-$else unix}
+{$else unix} *)
  I := 1;
 { $ endif unix}
  repeat

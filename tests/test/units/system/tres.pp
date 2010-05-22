@@ -1,6 +1,6 @@
 { Test for resources support. }
 
-{%TARGET=win32,win64,wince,linux,freebsd,darwin,netbsd,openbsd,solaris}
+{%TARGET=win32,win64,wince,linux,freebsd,darwin,netbsd,openbsd,solaris,haiku}
 
 {$mode objfpc}
 
