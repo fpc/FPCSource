@@ -42,7 +42,7 @@ unit cgcpu;
         { left to right), this allows to move the parameter to    }
         { register, if the cpu supports register calling          }
         { conventions                                             }
-        procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : tcgpara);override;
+        procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : tcgpara);override;
 
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
@@ -184,7 +184,7 @@ const
       end;
 
 
-    procedure tcgppc.a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : tcgpara);
+    procedure tcgppc.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : tcgpara);
 
       var
         tmpref, ref: treference;
@@ -217,7 +217,7 @@ const
                       dec(tmpref.offset,2);
                     end;
 {$else not cpu64bitaddr}
-{$error add 64 bit support for non power of 2 loads in a_param_ref}
+{$error add 64 bit support for non power of 2 loads in a_load_ref_cgpara}
 {$endif not cpu64bitaddr}
                 end;
               LOC_REFERENCE:

@@ -46,11 +46,11 @@ interface
         procedure handle_load_store(list:TAsmList;isstore:boolean;op: tasmop;reg:tregister;ref: treference);
         procedure handle_reg_const_reg(list:TAsmList;op:Tasmop;src:tregister;a:aint;dst:tregister);
         { parameter }
-        procedure a_param_const(list:TAsmList;size:tcgsize;a:aint;const paraloc:TCGPara);override;
-        procedure a_param_ref(list:TAsmList;sz:tcgsize;const r:TReference;const paraloc:TCGPara);override;
-        procedure a_paramaddr_ref(list:TAsmList;const r:TReference;const paraloc:TCGPara);override;
-        procedure a_paramfpu_reg(list : TAsmList;size : tcgsize;const r : tregister;const paraloc : TCGPara);override;
-        procedure a_paramfpu_ref(list : TAsmList;size : tcgsize;const ref : treference;const paraloc : TCGPara);override;
+        procedure a_load_const_cgpara(list:TAsmList;size:tcgsize;a:aint;const paraloc:TCGPara);override;
+        procedure a_load_ref_cgpara(list:TAsmList;sz:tcgsize;const r:TReference;const paraloc:TCGPara);override;
+        procedure a_loadaddr_ref_cgpara(list:TAsmList;const r:TReference;const paraloc:TCGPara);override;
+        procedure a_loadfpu_reg_cgpara(list : TAsmList;size : tcgsize;const r : tregister;const paraloc : TCGPara);override;
+        procedure a_loadfpu_ref_cgpara(list : TAsmList;size : tcgsize;const ref : treference;const paraloc : TCGPara);override;
         procedure a_call_name(list:TAsmList;const s:string; weak: boolean);override;
         procedure a_call_reg(list:TAsmList;Reg:TRegister);override;
         { General purpose instructions }
@@ -100,7 +100,7 @@ interface
       public
         procedure a_load64_reg_ref(list : TAsmList;reg : tregister64;const ref : treference);override;
         procedure a_load64_ref_reg(list : TAsmList;const ref : treference;reg : tregister64);override;
-        procedure a_param64_ref(list : TAsmList;const r : treference;const paraloc : tcgpara);override;
+        procedure a_load64_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara);override;
         procedure a_op64_reg_reg(list:TAsmList;op:TOpCG;size : tcgsize;regsrc,regdst:TRegister64);override;
         procedure a_op64_const_reg(list:TAsmList;op:TOpCG;size : tcgsize;value:int64;regdst:TRegister64);override;
         procedure a_op64_const_reg_reg(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64);override;
@@ -322,7 +322,7 @@ implementation
       end;
 
 
-    procedure TCgSparc.a_param_const(list:TAsmList;size:tcgsize;a:aint;const paraloc:TCGPara);
+    procedure TCgSparc.a_load_const_cgpara(list:TAsmList;size:tcgsize;a:aint;const paraloc:TCGPara);
       var
         Ref:TReference;
       begin
@@ -347,7 +347,7 @@ implementation
       end;
 
 
-    procedure TCgSparc.a_param_ref(list:TAsmList;sz:TCgSize;const r:TReference;const paraloc:TCGPara);
+    procedure TCgSparc.a_load_ref_cgpara(list:TAsmList;sz:TCgSize;const r:TReference;const paraloc:TCGPara);
       var
         ref: treference;
         tmpreg:TRegister;
@@ -386,7 +386,7 @@ implementation
       end;
 
 
-    procedure TCgSparc.a_paramaddr_ref(list:TAsmList;const r:TReference;const paraloc:TCGPara);
+    procedure TCgSparc.a_loadaddr_ref_cgpara(list:TAsmList;const r:TReference;const paraloc:TCGPara);
       var
         Ref:TReference;
         TmpReg:TRegister;
@@ -413,7 +413,7 @@ implementation
       end;
 
 
-    procedure tcgsparc.a_paramfpu_ref(list : TAsmList;size : tcgsize;const ref : treference;const paraloc : TCGPara);
+    procedure tcgsparc.a_loadfpu_ref_cgpara(list : TAsmList;size : tcgsize;const ref : treference;const paraloc : TCGPara);
       var
          href,href2 : treference;
          hloc : pcgparalocation;
@@ -439,13 +439,13 @@ implementation
       end;
 
 
-    procedure tcgsparc.a_paramfpu_reg(list : TAsmList;size : tcgsize;const r : tregister;const paraloc : TCGPara);
+    procedure tcgsparc.a_loadfpu_reg_cgpara(list : TAsmList;size : tcgsize;const r : tregister;const paraloc : TCGPara);
       var
         href : treference;
       begin
         tg.GetTemp(list,TCGSize2Size[size],TCGSize2Size[size],tt_normal,href);
         a_loadfpu_reg_ref(list,size,size,r,href);
-        a_paramfpu_ref(list,size,href,paraloc);
+        a_loadfpu_ref_cgpara(list,size,href,paraloc);
         tg.Ungettemp(list,href);
       end;
 
@@ -1161,11 +1161,11 @@ implementation
         paramanager.getintparaloc(pocall_default,2,paraloc2);
         paramanager.getintparaloc(pocall_default,3,paraloc3);
         paramanager.allocparaloc(list,paraloc3);
-        a_param_const(list,OS_INT,len,paraloc3);
+        a_load_const_cgpara(list,OS_INT,len,paraloc3);
         paramanager.allocparaloc(list,paraloc2);
-        a_paramaddr_ref(list,dest,paraloc2);
+        a_loadaddr_ref_cgpara(list,dest,paraloc2);
         paramanager.allocparaloc(list,paraloc2);
-        a_paramaddr_ref(list,source,paraloc1);
+        a_loadaddr_ref_cgpara(list,source,paraloc1);
         paramanager.freeparaloc(list,paraloc3);
         paramanager.freeparaloc(list,paraloc2);
         paramanager.freeparaloc(list,paraloc1);
@@ -1422,7 +1422,7 @@ implementation
       end;
 
 
-    procedure tcg64sparc.a_param64_ref(list : TAsmList;const r : treference;const paraloc : tcgpara);
+    procedure tcg64sparc.a_load64_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara);
       var
         hreg64 : tregister64;
       begin
@@ -1431,7 +1431,7 @@ implementation
         hreg64.reglo:=cg.GetIntRegister(list,OS_32);
         hreg64.reghi:=cg.GetIntRegister(list,OS_32);
         a_load64_ref_reg(list,r,hreg64);
-        a_param64_reg(list,hreg64,paraloc);
+        a_load64_reg_cgpara(list,hreg64,paraloc);
       end;
 
 

@@ -152,7 +152,7 @@ implementation
          { compare against zero, if not zero continue }
          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_S32,OC_NE,0,denum,continuelabel);
 //       paraloc1.init;
-//         cg.a_param_const(current_asmdata.CurrAsmList,OS_S32,200,paramanager.getintparaloc(pocall_default,1,paraloc1));
+//         cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_S32,200,paramanager.getintparaloc(pocall_default,1,paraloc1));
 
          cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR',false);
          cg.a_label(current_asmdata.CurrAsmList, continuelabel);
@@ -199,7 +199,7 @@ implementation
          current_asmdata.getjumplabel(continuelabel);
          { compare against zero, if not zero continue }
          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_S32,OC_NE,0,denum,continuelabel);
-//         cg.a_param_const(current_asmdata.CurrAsmList, OS_S32,200,paramanager.getintparaloc(pocall_default,1));
+//         cg.a_load_const_cgpara(current_asmdata.CurrAsmList, OS_S32,200,paramanager.getintparaloc(pocall_default,1));
          cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR',false);
          cg.a_label(current_asmdata.CurrAsmList, continuelabel);
 

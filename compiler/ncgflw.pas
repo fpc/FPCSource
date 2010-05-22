@@ -980,12 +980,12 @@ implementation
                   paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc3);
                   { frame tree }
                   if assigned(third) then
-                    cg.a_param_loc(current_asmdata.CurrAsmList,third.location,paraloc3)
+                    cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,third.location,paraloc3)
                   else
-                    cg.a_param_const(current_asmdata.CurrAsmList,OS_INT,0,paraloc3);
+                    cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_INT,0,paraloc3);
                   { push address }
                   paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
-                  cg.a_param_loc(current_asmdata.CurrAsmList,right.location,paraloc2);
+                  cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
                 end
               else
                 begin
@@ -995,16 +995,16 @@ implementation
                    reference_reset_symbol(href2,a,0,1);
                    { push current frame }
                    paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc3);
-                   cg.a_param_reg(current_asmdata.CurrAsmList,OS_ADDR,NR_FRAME_POINTER_REG,paraloc3);
+                   cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,NR_FRAME_POINTER_REG,paraloc3);
                    { push current address }
                    paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
                    if target_info.system <> system_powerpc_macos then
-                     cg.a_paramaddr_ref(current_asmdata.CurrAsmList,href2,paraloc2)
+                     cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc2)
                    else
-                     cg.a_param_const(current_asmdata.CurrAsmList,OS_INT,0,paraloc2);
+                     cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_INT,0,paraloc2);
                 end;
               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-              cg.a_param_loc(current_asmdata.CurrAsmList,left.location,paraloc1);
+              cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc3);
@@ -1047,7 +1047,7 @@ implementation
          paramanager.getintparaloc(pocall_default,1,paraloc1);
          paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
          cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
-         cg.a_param_reg(current_asmdata.CurrAsmList,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
+         cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
          paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
          cg.allocallcpuregisters(current_asmdata.CurrAsmList);
          cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DESTROYEXCEPTION',false);
@@ -1170,7 +1170,7 @@ implementation
               paraloc1.init;
               paramanager.getintparaloc(pocall_default,1,paraloc1);
               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-              cg.a_param_const(current_asmdata.CurrAsmList,OS_ADDR,-1,paraloc1);
+              cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_ADDR,-1,paraloc1);
               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CATCHES',false);
@@ -1203,7 +1203,7 @@ implementation
               paramanager.getintparaloc(pocall_default,1,paraloc1);
               cg.a_reg_alloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-              cg.a_param_reg(current_asmdata.CurrAsmList, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
+              cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DESTROYEXCEPTION',false);
@@ -1359,7 +1359,7 @@ implementation
          reference_reset_symbol(href2,current_asmdata.RefAsmSymbol(excepttype.vmt_mangledname),0,sizeof(pint));
          paramanager.getintparaloc(pocall_default,1,paraloc1);
          paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-         cg.a_paramaddr_ref(current_asmdata.CurrAsmList,href2,paraloc1);
+         cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,href2,paraloc1);
          paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
          cg.allocallcpuregisters(current_asmdata.CurrAsmList);
          cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CATCHES',false);
@@ -1432,7 +1432,7 @@ implementation
          paramanager.getintparaloc(pocall_default,1,paraloc1);
          cg.a_reg_dealloc(current_asmdata.CurrAsmList,NR_FUNCTION_RESULT_REG);
          paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-         cg.a_param_reg(current_asmdata.CurrAsmList, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
+         cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR, NR_FUNCTION_RESULT_REG, paraloc1);
          paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
          cg.allocallcpuregisters(current_asmdata.CurrAsmList);
          cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DESTROYEXCEPTION',false);

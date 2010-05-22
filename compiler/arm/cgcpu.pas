@@ -40,9 +40,9 @@ unit cgcpu;
         { true, if the next arithmetic operation should modify the flags }
         cgsetflags : boolean;
 
-        procedure a_param_const(list : TAsmList;size : tcgsize;a : aint;const paraloc : TCGPara);override;
-        procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
-        procedure a_paramaddr_ref(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
+        procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const paraloc : TCGPara);override;
+        procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
+        procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg: tregister);override;
@@ -69,7 +69,7 @@ unit cgcpu;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
         procedure a_loadfpu_reg_ref(list: TAsmList; fromsize, tosize: tcgsize; reg: tregister; const ref: treference); override;
 
-        procedure a_paramfpu_ref(list : TAsmList;size : tcgsize;const ref : treference;const paraloc : TCGPara);override;
+        procedure a_loadfpu_ref_cgpara(list : TAsmList;size : tcgsize;const ref : treference;const paraloc : TCGPara);override;
         {  comparison operations }
         procedure a_cmp_const_reg_label(list : TAsmList;size : tcgsize;cmp_op : topcmp;a : aint;reg : tregister;
           l : tasmlabel);override;
@@ -413,7 +413,7 @@ unit cgcpu;
        end;
 
 
-    procedure tcgarm.a_param_const(list : TAsmList;size : tcgsize;a : aint;const paraloc : TCGPara);
+    procedure tcgarm.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const paraloc : TCGPara);
       var
         ref: treference;
       begin
@@ -434,7 +434,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);
+    procedure tcgarm.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);
       var
         tmpref, ref: treference;
         location: pcgparalocation;
@@ -482,7 +482,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgarm.a_paramaddr_ref(list : TAsmList;const r : treference;const paraloc : TCGPara);
+    procedure tcgarm.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);
       var
         ref: treference;
         tmpreg: tregister;
@@ -1227,7 +1227,7 @@ unit cgcpu;
        end;
 
 
-    procedure tcgarm.a_paramfpu_ref(list : TAsmList;size : tcgsize;const ref : treference;const paraloc : TCGPara);
+    procedure tcgarm.a_loadfpu_ref_cgpara(list : TAsmList;size : tcgsize;const ref : treference;const paraloc : TCGPara);
       var
          href,href2 : treference;
          hloc : pcgparalocation;
@@ -1246,7 +1246,7 @@ unit cgcpu;
                     a_load_ref_reg(list,OS_32,OS_32,href,hloc^.register);
                   OS_64,
                   OS_F64:
-                    cg64.a_param64_ref(list,href,paraloc);
+                    cg64.a_load64_ref_cgpara(list,href,paraloc);
                   else
                     a_load_ref_reg(list,hloc^.size,hloc^.size,href,hloc^.register);
                 end;
@@ -1814,11 +1814,11 @@ unit cgcpu;
         paramanager.getintparaloc(pocall_default,2,paraloc2);
         paramanager.getintparaloc(pocall_default,3,paraloc3);
         paramanager.allocparaloc(list,paraloc3);
-        a_param_const(list,OS_INT,len,paraloc3);
+        a_load_const_cgpara(list,OS_INT,len,paraloc3);
         paramanager.allocparaloc(list,paraloc2);
-        a_paramaddr_ref(list,dest,paraloc2);
+        a_loadaddr_ref_cgpara(list,dest,paraloc2);
         paramanager.allocparaloc(list,paraloc2);
-        a_paramaddr_ref(list,source,paraloc1);
+        a_loadaddr_ref_cgpara(list,source,paraloc1);
         paramanager.freeparaloc(list,paraloc3);
         paramanager.freeparaloc(list,paraloc2);
         paramanager.freeparaloc(list,paraloc1);

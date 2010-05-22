@@ -408,12 +408,12 @@ implementation
         paramanager.getintparaloc(pocall_default,2,paraloc2);
         paramanager.getintparaloc(pocall_default,3,paraloc3);
         paramanager.allocparaloc(list,paraloc3);
-        cg.a_paramaddr_ref(list,t.envbuf,paraloc3);
+        cg.a_loadaddr_ref_cgpara(list,t.envbuf,paraloc3);
         paramanager.allocparaloc(list,paraloc2);
-        cg.a_paramaddr_ref(list,t.jmpbuf,paraloc2);
+        cg.a_loadaddr_ref_cgpara(list,t.jmpbuf,paraloc2);
         { push type of exceptionframe }
         paramanager.allocparaloc(list,paraloc1);
-        cg.a_param_const(list,OS_S32,1,paraloc1);
+        cg.a_load_const_cgpara(list,OS_S32,1,paraloc1);
         paramanager.freeparaloc(list,paraloc3);
         paramanager.freeparaloc(list,paraloc2);
         paramanager.freeparaloc(list,paraloc1);
@@ -423,7 +423,7 @@ implementation
 
         paramanager.getintparaloc(pocall_default,1,paraloc1);
         paramanager.allocparaloc(list,paraloc1);
-        cg.a_param_reg(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
+        cg.a_load_reg_cgpara(list,OS_ADDR,NR_FUNCTION_RESULT_REG,paraloc1);
         paramanager.freeparaloc(list,paraloc1);
         cg.allocallcpuregisters(list);
         cg.a_call_name(list,'FPC_SETJMP',false);
@@ -2192,7 +2192,7 @@ implementation
         paraloc1.init;
         paramanager.getintparaloc(pocall_default,1,paraloc1);
         paramanager.allocparaloc(list,paraloc1);
-        cg.a_param_const(list,OS_INT,current_procinfo.calc_stackframe_size,paraloc1);
+        cg.a_load_const_cgpara(list,OS_INT,current_procinfo.calc_stackframe_size,paraloc1);
         paramanager.freeparaloc(list,paraloc1);
         paraloc1.done;
       end;

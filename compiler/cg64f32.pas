@@ -76,10 +76,10 @@ unit cg64f32;
         procedure a_op64_loc_reg(list : TAsmList;op:TOpCG;size : tcgsize;const l : tlocation;reg : tregister64);override;
         procedure a_op64_const_ref(list : TAsmList;op:TOpCG;size : tcgsize;value : int64;const ref : treference);override;
 
-        procedure a_param64_reg(list : TAsmList;reg : tregister64;const paraloc : tcgpara);override;
-        procedure a_param64_const(list : TAsmList;value : int64;const paraloc : tcgpara);override;
-        procedure a_param64_ref(list : TAsmList;const r : treference;const paraloc : tcgpara);override;
-        procedure a_param64_loc(list : TAsmList;const l : tlocation;const paraloc : tcgpara);override;
+        procedure a_load64_reg_cgpara(list : TAsmList;reg : tregister64;const paraloc : tcgpara);override;
+        procedure a_load64_const_cgpara(list : TAsmList;value : int64;const paraloc : tcgpara);override;
+        procedure a_load64_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara);override;
+        procedure a_load64_loc_cgpara(list : TAsmList;const l : tlocation;const paraloc : tcgpara);override;
 
         procedure a_loadmm_intreg64_reg(list: TAsmList; mmsize: tcgsize; intreg: tregister64; mmreg: tregister);override;
         procedure a_loadmm_reg_intreg64(list: TAsmList; mmsize: tcgsize; mmreg: tregister; intreg: tregister64);override;
@@ -641,7 +641,7 @@ unit cg64f32;
       end;
 
 
-    procedure tcg64f32.a_param64_reg(list : TAsmList;reg : tregister64;const paraloc : tcgpara);
+    procedure tcg64f32.a_load64_reg_cgpara(list : TAsmList;reg : tregister64;const paraloc : tcgpara);
       var
         tmplochi,tmploclo: tcgpara;
       begin
@@ -650,14 +650,14 @@ unit cg64f32;
         splitparaloc64(paraloc,tmploclo,tmplochi);
         { Keep this order of first hi before lo to have
           the correct push order for i386 }
-        cg.a_param_reg(list,OS_32,reg.reghi,tmplochi);
-        cg.a_param_reg(list,OS_32,reg.reglo,tmploclo);
+        cg.a_load_reg_cgpara(list,OS_32,reg.reghi,tmplochi);
+        cg.a_load_reg_cgpara(list,OS_32,reg.reglo,tmploclo);
         tmploclo.done;
         tmplochi.done;
       end;
 
 
-    procedure tcg64f32.a_param64_const(list : TAsmList;value : int64;const paraloc : tcgpara);
+    procedure tcg64f32.a_load64_const_cgpara(list : TAsmList;value : int64;const paraloc : tcgpara);
       var
         tmplochi,tmploclo: tcgpara;
       begin
@@ -666,14 +666,14 @@ unit cg64f32;
         splitparaloc64(paraloc,tmploclo,tmplochi);
         { Keep this order of first hi before lo to have
           the correct push order for i386 }
-        cg.a_param_const(list,OS_32,aint(hi(value)),tmplochi);
-        cg.a_param_const(list,OS_32,aint(lo(value)),tmploclo);
+        cg.a_load_const_cgpara(list,OS_32,aint(hi(value)),tmplochi);
+        cg.a_load_const_cgpara(list,OS_32,aint(lo(value)),tmploclo);
         tmploclo.done;
         tmplochi.done;
       end;
 
 
-    procedure tcg64f32.a_param64_ref(list : TAsmList;const r : treference;const paraloc : tcgpara);
+    procedure tcg64f32.a_load64_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara);
       var
         tmprefhi,tmpreflo : treference;
         tmploclo,tmplochi : tcgpara;
@@ -689,24 +689,24 @@ unit cg64f32;
           inc(tmprefhi.offset,4);
         { Keep this order of first hi before lo to have
           the correct push order for i386 }
-        cg.a_param_ref(list,OS_32,tmprefhi,tmplochi);
-        cg.a_param_ref(list,OS_32,tmpreflo,tmploclo);
+        cg.a_load_ref_cgpara(list,OS_32,tmprefhi,tmplochi);
+        cg.a_load_ref_cgpara(list,OS_32,tmpreflo,tmploclo);
         tmploclo.done;
         tmplochi.done;
       end;
 
 
-    procedure tcg64f32.a_param64_loc(list : TAsmList;const l:tlocation;const paraloc : tcgpara);
+    procedure tcg64f32.a_load64_loc_cgpara(list : TAsmList;const l:tlocation;const paraloc : tcgpara);
       begin
         case l.loc of
           LOC_REGISTER,
           LOC_CREGISTER :
-            a_param64_reg(list,l.register64,paraloc);
+            a_load64_reg_cgpara(list,l.register64,paraloc);
           LOC_CONSTANT :
-            a_param64_const(list,l.value64,paraloc);
+            a_load64_const_cgpara(list,l.value64,paraloc);
           LOC_CREFERENCE,
           LOC_REFERENCE :
-            a_param64_ref(list,l.reference,paraloc);
+            a_load64_ref_cgpara(list,l.reference,paraloc);
           else
             internalerror(200203287);
         end;

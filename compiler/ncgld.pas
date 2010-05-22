@@ -351,7 +351,7 @@ implementation
                         else
                           reference_reset_symbol(href,current_asmdata.WeakRefAsmSymbol(gvs.mangledname),0,sizeof(pint));
                         paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-                        cg.a_param_ref(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
+                        cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
                         paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
                         paraloc1.done;
                         cg.allocallcpuregisters(current_asmdata.CurrAsmList);

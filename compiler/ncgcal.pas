@@ -114,7 +114,7 @@ implementation
       begin
         if not(left.location.loc in [LOC_CREFERENCE,LOC_REFERENCE]) then
           internalerror(200304235);
-        cg.a_paramaddr_ref(current_asmdata.CurrAsmList,left.location.reference,tempcgpara);
+        cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,left.location.reference,tempcgpara);
       end;
 
 
@@ -176,7 +176,7 @@ implementation
                  size:=align(left.resultdef.size,tempcgpara.alignment);
                  if (not use_fixed_stack) and
                     (tempcgpara.location^.reference.index=NR_STACK_POINTER_REG) then
-                   cg.a_param_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara)
+                   cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara)
                  else
                    begin
                      reference_reset_base(href,tempcgpara.location^.reference.index,tempcgpara.location^.reference.offset,tempcgpara.alignment);
@@ -197,12 +197,12 @@ implementation
                  LOC_CMMREGISTER,
                  LOC_REGISTER,
                  LOC_CREGISTER :
-                   cg.a_parammm_reg(current_asmdata.CurrAsmList,left.location.size,left.location.register,tempcgpara,mms_movescalar);
+                   cg.a_loadmm_reg_cgpara(current_asmdata.CurrAsmList,left.location.size,left.location.register,tempcgpara,mms_movescalar);
                  LOC_FPUREGISTER,
                  LOC_CFPUREGISTER:
                    begin
                      location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
-                     cg.a_paramfpu_reg(current_asmdata.CurrAsmList,left.location.size,left.location.register,tempcgpara);
+                     cg.a_loadfpu_reg_cgpara(current_asmdata.CurrAsmList,left.location.size,left.location.register,tempcgpara);
                    end;
                  else
                    internalerror(200204249);
@@ -214,7 +214,7 @@ implementation
                  LOC_CMMREGISTER:
                    begin
                      location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
-                     cg.a_parammm_reg(current_asmdata.CurrAsmList,left.location.size,left.location.register,tempcgpara,mms_movescalar);
+                     cg.a_loadmm_reg_cgpara(current_asmdata.CurrAsmList,left.location.size,left.location.register,tempcgpara,mms_movescalar);
                    end;
 {$ifdef cpu64bitalu}
                  LOC_REGISTER,
@@ -223,7 +223,7 @@ implementation
                      location_force_mem(current_asmdata.CurrAsmList,left.location);
                      { force integer size }
                      left.location.size:=int_cgsize(tcgsize2size[left.location.size]);
-                     cg.a_param_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara);
+                     cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara);
                    end;
 {$endif cpu64bitalu}
 {$ifdef powerpc}
@@ -236,9 +236,9 @@ implementation
                      { force integer size }
                      left.location.size:=int_cgsize(tcgsize2size[left.location.size]);
                      if (left.location.size in [OS_32,OS_S32]) then
-                       cg.a_param_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara)
+                       cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara)
                      else
-                       cg64.a_param64_ref(current_asmdata.CurrAsmList,left.location.reference,tempcgpara);
+                       cg64.a_load64_ref_cgpara(current_asmdata.CurrAsmList,left.location.reference,tempcgpara);
                    end;
 {$endif powerpc}
 {$if defined(sparc) or defined(arm) or defined(m68k)}
@@ -250,7 +250,7 @@ implementation
                  LOC_CREFERENCE,
                  LOC_FPUREGISTER,
                  LOC_CFPUREGISTER:
-                   cg.a_paramfpu_reg(current_asmdata.CurrAsmList,left.location.size,left.location.register,tempcgpara);
+                   cg.a_loadfpu_reg_cgpara(current_asmdata.CurrAsmList,left.location.size,left.location.register,tempcgpara);
                  else
                    internalerror(2002042433);
                end;
@@ -259,14 +259,14 @@ implementation
                case tempcgpara.location^.loc of
                  LOC_MMREGISTER,
                  LOC_CMMREGISTER:
-                   cg.a_parammm_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara,mms_movescalar);
+                   cg.a_loadmm_ref_cgpara(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara,mms_movescalar);
 {$ifdef cpu64bitalu}
                  LOC_REGISTER,
                  LOC_CREGISTER :
                    begin
                      { force integer size }
                      left.location.size:=int_cgsize(tcgsize2size[left.location.size]);
-                     cg.a_param_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara);
+                     cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara);
                    end;
 {$endif cpu64bitalu}
 {$ifdef powerpc}
@@ -277,9 +277,9 @@ implementation
                      { force integer size }
                      left.location.size:=int_cgsize(tcgsize2size[left.location.size]);
                      if (left.location.size in [OS_32,OS_S32]) then
-                       cg.a_param_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara)
+                       cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara)
                      else
-                       cg64.a_param64_ref(current_asmdata.CurrAsmList,left.location.reference,tempcgpara);
+                       cg64.a_load64_ref_cgpara(current_asmdata.CurrAsmList,left.location.reference,tempcgpara);
                    end;
 {$endif powerpc}
 {$if defined(sparc) or defined(arm) or defined(m68k)}
@@ -291,7 +291,7 @@ implementation
                  LOC_CREFERENCE,
                  LOC_FPUREGISTER,
                  LOC_CFPUREGISTER:
-                   cg.a_paramfpu_ref(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara);
+                   cg.a_loadfpu_ref_cgpara(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara);
                  else
                    internalerror(2002042431);
                end;
@@ -301,19 +301,19 @@ implementation
 {$ifndef cpu64bitalu}
                  { use cg64 only for int64, not for 8 byte records }
                  if is_64bit(left.resultdef) then
-                   cg64.a_param64_loc(current_asmdata.CurrAsmList,left.location,tempcgpara)
+                   cg64.a_load64_loc_cgpara(current_asmdata.CurrAsmList,left.location,tempcgpara)
                  else
 {$endif not cpu64bitalu}
                    begin
 {$ifndef cpu64bitalu}
-                     { Only a_param_ref supports multiple locations, when the
+                     { Only a_load_ref_cgpara supports multiple locations, when the
                        value is still a const or in a register then write it
                        to a reference first. This situation can be triggered
                        by typecasting an int64 constant to a record of 8 bytes }
                      if left.location.size in [OS_64,OS_S64] then
                        location_force_mem(current_asmdata.CurrAsmList,left.location);
 {$endif not cpu64bitalu}
-                     cg.a_param_loc(current_asmdata.CurrAsmList,left.location,tempcgpara);
+                     cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,tempcgpara);
                    end;
                end;
              else
@@ -333,25 +333,25 @@ implementation
 {$ifndef cpu64bitalu}
                  { use cg64 only for int64, not for 8 byte records }
                  if is_64bit(left.resultdef) then
-                   cg64.a_param64_loc(current_asmdata.CurrAsmList,left.location,tempcgpara)
+                   cg64.a_load64_loc_cgpara(current_asmdata.CurrAsmList,left.location,tempcgpara)
                  else
 {$endif not cpu64bitalu}
                    begin
 {$ifndef cpu64bitalu}
-                     { Only a_param_ref supports multiple locations, when the
+                     { Only a_load_ref_cgpara supports multiple locations, when the
                        value is still a const or in a register then write it
                        to a reference first. This situation can be triggered
                        by typecasting an int64 constant to a record of 8 bytes }
                      if left.location.size in [OS_64,OS_S64] then
                        location_force_mem(current_asmdata.CurrAsmList,left.location);
 {$endif not cpu64bitalu}
-                     cg.a_param_loc(current_asmdata.CurrAsmList,left.location,tempcgpara);
+                     cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,tempcgpara);
                    end;
                end;
 {$ifdef SUPPORT_MMX}
              LOC_MMXREGISTER,
              LOC_CMMXREGISTER:
-               cg.a_parammm_reg(current_asmdata.CurrAsmList,OS_M64,left.location.register,tempcgpara,nil);
+               cg.a_loadmm_reg_cgpara(current_asmdata.CurrAsmList,OS_M64,left.location.register,tempcgpara,nil);
 {$endif SUPPORT_MMX}
              else
                internalerror(200204241);
@@ -450,7 +450,7 @@ implementation
                           if (left.location.reference.index<>NR_NO) or
                              (left.location.reference.offset<>0) then
                             internalerror(200410107);
-                          cg.a_param_reg(current_asmdata.CurrAsmList,OS_ADDR,left.location.reference.base,tempcgpara)
+                          cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,left.location.reference.base,tempcgpara)
                         end
                       else
                         begin
@@ -1216,7 +1216,7 @@ implementation
 {$ifdef x86_64}
              cgpara.init;
              paramanager.getintparaloc(pocall_default,1,cgpara);
-             cg.a_param_reg(current_asmdata.CurrAsmList,OS_ADDR,NR_RAX,cgpara);
+             cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,NR_RAX,cgpara);
              cgpara.done;
 {$endif x86_64}
              cg.allocallcpuregisters(current_asmdata.CurrAsmList);

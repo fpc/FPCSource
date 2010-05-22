@@ -43,10 +43,10 @@ unit cgcpu;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
-        procedure a_param_reg(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
-        procedure a_param_const(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);override;
-        procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
-        procedure a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
+        procedure a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
+        procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);override;
+        procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
+        procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg : tregister);override;
@@ -67,7 +67,7 @@ unit cgcpu;
         procedure a_loadmm_reg_reg(list: TAsmList;fromsize,tosize : tcgsize; reg1, reg2: tregister;shuffle : pmmshuffle); override;
         procedure a_loadmm_ref_reg(list: TAsmList;fromsize,tosize : tcgsize; const ref: treference; reg: tregister;shuffle : pmmshuffle); override;
         procedure a_loadmm_reg_ref(list: TAsmList;fromsize,tosize : tcgsize; reg: tregister; const ref: treference;shuffle : pmmshuffle); override;
-        procedure a_parammm_reg(list: TAsmList; size: tcgsize; reg: tregister;const locpara : TCGPara;shuffle : pmmshuffle); override;
+        procedure a_loadmm_reg_cgpara(list: TAsmList; size: tcgsize; reg: tregister;const locpara : TCGPara;shuffle : pmmshuffle); override;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tcgsize; a: aint; reg: TRegister); override;
 //        procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: aint; const ref: TReference); override;
@@ -237,13 +237,13 @@ unit cgcpu;
       end;
 
 
-    procedure tcg68k.a_param_reg(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);
+    procedure tcg68k.a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);
       var
         pushsize : tcgsize;
         ref : treference;
       begin
 {$ifdef DEBUG_CHARLIE}
-//        writeln('a_param_reg');
+//        writeln('a_load_reg');_cgpara
 {$endif DEBUG_CHARLIE}
         { it's probably necessary to port this from x86 later, or provide an m68k solution (KB) }
 { TODO: FIX ME! check_register_size()}
@@ -261,17 +261,17 @@ unit cgcpu;
             list.concat(taicpu.op_reg_ref(A_MOVE,tcgsize2opsize[pushsize],makeregsize(list,r,pushsize),ref));
           end
         else
-          inherited a_param_reg(list,size,r,cgpara);
+          inherited a_load_reg_cgpara(list,size,r,cgpara);
       end;
 
 
-    procedure tcg68k.a_param_const(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);
+    procedure tcg68k.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);
       var
         pushsize : tcgsize;
         ref : treference;
       begin
 {$ifdef DEBUG_CHARLIE}
-//        writeln('a_param_const');
+//        writeln('a_load_const');_cgpara
 {$endif DEBUG_CHARLIE}
         if use_push(cgpara) then
           begin
@@ -286,11 +286,11 @@ unit cgcpu;
             list.concat(taicpu.op_const_ref(A_MOVE,tcgsize2opsize[pushsize],a,ref));
           end
         else
-          inherited a_param_const(list,size,a,cgpara);
+          inherited a_load_const_cgpara(list,size,a,cgpara);
       end;
 
 
-    procedure tcg68k.a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);
+    procedure tcg68k.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);
 
         procedure pushdata(paraloc:pcgparalocation;ofs:aint);
         var
@@ -339,7 +339,7 @@ unit cgcpu;
         href : treference;
       begin
 {$ifdef DEBUG_CHARLIE}
-//        writeln('a_param_ref');
+//        writeln('a_load_ref');_cgpara
 {$endif DEBUG_CHARLIE}
 
         { cgpara.size=OS_NO requires a copy on the stack }
@@ -364,17 +364,17 @@ unit cgcpu;
               end
           end
         else
-          inherited a_param_ref(list,size,r,cgpara);
+          inherited a_load_ref_cgpara(list,size,r,cgpara);
       end;
 
 
-    procedure tcg68k.a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : tcgpara);
+    procedure tcg68k.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);
       var
         tmpreg : tregister;
         opsize : topsize;
       begin
 {$ifdef DEBUG_CHARLIE}
-//        writeln('a_paramaddr_ref');
+//        writeln('a_loadaddr_ref');_cgpara
 {$endif DEBUG_CHARLIE}
         with r do
           begin
@@ -406,7 +406,7 @@ unit cgcpu;
                   end;
               end
             else
-              inherited a_paramaddr_ref(list,r,cgpara);
+              inherited a_loadaddr_ref_cgpara(list,r,cgpara);
           end;
       end;
 
@@ -658,7 +658,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg68k.a_parammm_reg(list: TAsmList; size: tcgsize; reg: tregister;const locpara : TCGPara;shuffle : pmmshuffle);
+    procedure tcg68k.a_loadmm_reg_cgpara(list: TAsmList; size: tcgsize; reg: tregister;const locpara : TCGPara;shuffle : pmmshuffle);
       begin
         internalerror(20020729);
       end;

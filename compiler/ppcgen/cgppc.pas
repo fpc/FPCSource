@@ -34,8 +34,8 @@ unit cgppc;
 
     type
       tcgppcgen = class(tcg)
-        procedure a_param_const(list: TAsmList; size: tcgsize; a: aint; const paraloc : tcgpara); override;
-        procedure a_paramaddr_ref(list : TAsmList;const r : treference;const paraloc : tcgpara); override;
+        procedure a_load_const_cgpara(list: TAsmList; size: tcgsize; a: aint; const paraloc : tcgpara); override;
+        procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara); override;
 
         procedure a_call_reg(list : TAsmList;reg: tregister); override;
         procedure a_call_ref(list : TAsmList;ref: treference); override;
@@ -157,7 +157,7 @@ unit cgppc;
       end;
 
 
-    procedure tcgppcgen.a_param_const(list: TAsmList; size: tcgsize; a: aint; const
+    procedure tcgppcgen.a_load_const_cgpara(list: TAsmList; size: tcgsize; a: aint; const
       paraloc: tcgpara);
     var
       ref: treference;
@@ -179,7 +179,7 @@ unit cgppc;
     end;
 
 
-    procedure tcgppcgen.a_paramaddr_ref(list : TAsmList;const r : treference;const paraloc : tcgpara);
+    procedure tcgppcgen.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : tcgpara);
       var
         ref: treference;
         tmpreg: tregister;
@@ -615,7 +615,7 @@ unit cgppc;
         begin
           paraloc1.init;
           paramanager.getintparaloc(pocall_cdecl,1,paraloc1);
-          a_param_reg(list,OS_ADDR,NR_R0,paraloc1);
+          a_load_reg_cgpara(list,OS_ADDR,NR_R0,paraloc1);
           paramanager.freeparaloc(list,paraloc1);
           paraloc1.done;
           allocallcpuregisters(list);

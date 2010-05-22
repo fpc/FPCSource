@@ -126,7 +126,7 @@ unit cgobj;
              @param(r register source of the operand)
              @param(cgpara where the parameter will be stored)
           }
-          procedure a_param_reg(list : TAsmList;size : tcgsize;r : tregister;const cgpara : TCGPara);virtual;
+          procedure a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : TCGPara);virtual;
           {# Pass a parameter, which is a constant, to a routine.
 
              A generic version is provided. This routine should
@@ -137,7 +137,7 @@ unit cgobj;
              @param(a value of constant to send)
              @param(cgpara where the parameter will be stored)
           }
-          procedure a_param_const(list : TAsmList;size : tcgsize;a : aint;const cgpara : TCGPara);virtual;
+          procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const cgpara : TCGPara);virtual;
           {# Pass the value of a parameter, which is located in memory, to a routine.
 
              A generic version is provided. This routine should
@@ -148,7 +148,7 @@ unit cgobj;
              @param(r Memory reference of value to send)
              @param(cgpara where the parameter will be stored)
           }
-          procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : TCGPara);virtual;
+          procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : TCGPara);virtual;
           {# Pass the value of a parameter, which can be located either in a register or memory location,
              to a routine.
 
@@ -158,7 +158,7 @@ unit cgobj;
              @param(nr parameter number (starting from one) of routine (from left to right))
              @param(cgpara where the parameter will be stored)
           }
-          procedure a_param_loc(list : TAsmList;const l : tlocation;const cgpara : TCGPara);
+          procedure a_load_loc_cgpara(list : TAsmList;const l : tlocation;const cgpara : TCGPara);
           {# Pass the address of a reference to a routine. This routine
              will calculate the address of the reference, and pass this
              calculated address as a parameter.
@@ -170,7 +170,7 @@ unit cgobj;
              @param(r reference to get address from)
              @param(nr parameter number (starting from one) of routine (from left to right))
           }
-          procedure a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : TCGPara);virtual;
+          procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : TCGPara);virtual;
 
           {# Load a cgparaloc into a memory reference.
 
@@ -182,7 +182,7 @@ unit cgobj;
                   In case this location is also a reference, it is assumed
                   to be the final part sublocation of the parameter and that it
                   contains all of the "sizeleft" bytes).)
-           @param(alignment the alignment of the paraloc in case it's a reference)
+           @param(align the alignment of the paraloc in case it's a reference)
           }
           procedure a_load_cgparaloc_ref(list : TAsmList;const paraloc : TCGParaLocation;const ref : treference;sizeleft : aint;align : longint);
 
@@ -191,7 +191,7 @@ unit cgobj;
            @param(regsize the size of the destination register)
            @param(paraloc the source parameter sublocation)
            @param(reg the destination register)
-           @param(alignment the alignment of the paraloc in case it's a reference)
+           @param(align the alignment of the paraloc in case it's a reference)
           }
           procedure a_load_cgparaloc_anyreg(list : TAsmList;regsize : tcgsize;const paraloc : TCGParaLocation;reg : tregister;align : longint);
 
@@ -286,8 +286,8 @@ unit cgobj;
           procedure a_loadfpu_ref_ref(list: TAsmList; fromsize, tosize: tcgsize; const ref1,ref2: treference);
           procedure a_loadfpu_loc_reg(list: TAsmList; tosize: tcgsize; const loc: tlocation; const reg: tregister);
           procedure a_loadfpu_reg_loc(list: TAsmList; fromsize: tcgsize; const reg: tregister; const loc: tlocation);
-          procedure a_paramfpu_reg(list : TAsmList;size : tcgsize;const r : tregister;const cgpara : TCGPara);virtual;
-          procedure a_paramfpu_ref(list : TAsmList;size : tcgsize;const ref : treference;const cgpara : TCGPara);virtual;
+          procedure a_loadfpu_reg_cgpara(list : TAsmList;size : tcgsize;const r : tregister;const cgpara : TCGPara);virtual;
+          procedure a_loadfpu_ref_cgpara(list : TAsmList;size : tcgsize;const ref : treference;const cgpara : TCGPara);virtual;
 
           { vector register move instructions }
           procedure a_loadmm_reg_reg(list: TAsmList; fromsize, tosize : tcgsize;reg1, reg2: tregister;shuffle : pmmshuffle); virtual;
@@ -295,9 +295,9 @@ unit cgobj;
           procedure a_loadmm_reg_ref(list: TAsmList; fromsize, tosize : tcgsize;reg: tregister; const ref: treference;shuffle : pmmshuffle); virtual;
           procedure a_loadmm_loc_reg(list: TAsmList; size: tcgsize; const loc: tlocation; const reg: tregister;shuffle : pmmshuffle);
           procedure a_loadmm_reg_loc(list: TAsmList; size: tcgsize; const reg: tregister; const loc: tlocation;shuffle : pmmshuffle);
-          procedure a_parammm_reg(list: TAsmList; size: tcgsize; reg: tregister;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
-          procedure a_parammm_ref(list: TAsmList; size: tcgsize; const ref: treference;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
-          procedure a_parammm_loc(list: TAsmList; const loc: tlocation; const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
+          procedure a_loadmm_reg_cgpara(list: TAsmList; size: tcgsize; reg: tregister;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
+          procedure a_loadmm_ref_cgpara(list: TAsmList; size: tcgsize; const ref: treference;const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
+          procedure a_loadmm_loc_cgpara(list: TAsmList; const loc: tlocation; const cgpara : TCGPara;shuffle : pmmshuffle); virtual;
           procedure a_opmm_reg_reg(list: TAsmList; Op: TOpCG; size : tcgsize;src,dst: tregister;shuffle : pmmshuffle); virtual;
           procedure a_opmm_ref_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const ref: treference; reg: tregister;shuffle : pmmshuffle); virtual;
           procedure a_opmm_loc_reg(list: TAsmList; Op: TOpCG; size : tcgsize;const loc: tlocation; reg: tregister;shuffle : pmmshuffle); virtual;
@@ -577,10 +577,10 @@ unit cgobj;
         procedure a_op64_ref_subsetref(list : TAsmList; Op : TOpCG; size : TCGSize; const ref: treference; const sref: tsubsetreference);
         procedure a_op64_subsetref_subsetref(list : TAsmList; Op : TOpCG; size : TCGSize; const ssref,dsref: tsubsetreference);
 
-        procedure a_param64_reg(list : TAsmList;reg64 : tregister64;const loc : TCGPara);virtual;abstract;
-        procedure a_param64_const(list : TAsmList;value : int64;const loc : TCGPara);virtual;abstract;
-        procedure a_param64_ref(list : TAsmList;const r : treference;const loc : TCGPara);virtual;abstract;
-        procedure a_param64_loc(list : TAsmList;const l : tlocation;const loc : TCGPara);virtual;abstract;
+        procedure a_load64_reg_cgpara(list : TAsmList;reg64 : tregister64;const loc : TCGPara);virtual;abstract;
+        procedure a_load64_const_cgpara(list : TAsmList;value : int64;const loc : TCGPara);virtual;abstract;
+        procedure a_load64_ref_cgpara(list : TAsmList;const r : treference;const loc : TCGPara);virtual;abstract;
+        procedure a_load64_loc_cgpara(list : TAsmList;const l : tlocation;const loc : TCGPara);virtual;abstract;
 
         procedure a_loadmm_intreg64_reg(list: TAsmList; mmsize: tcgsize; intreg: tregister64; mmreg: tregister); virtual;abstract;
         procedure a_loadmm_reg_intreg64(list: TAsmList; mmsize: tcgsize; mmreg: tregister; intreg: tregister64); virtual;abstract;
@@ -875,7 +875,7 @@ implementation
           for better code generation these methods should be overridden
 ******************************************************************************}
 
-    procedure tcg.a_param_reg(list : TAsmList;size : tcgsize;r : tregister;const cgpara : TCGPara);
+    procedure tcg.a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : TCGPara);
       var
          ref : treference;
       begin
@@ -894,7 +894,7 @@ implementation
       end;
 
 
-    procedure tcg.a_param_const(list : TAsmList;size : tcgsize;a : aint;const cgpara : TCGPara);
+    procedure tcg.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const cgpara : TCGPara);
       var
          ref : treference;
       begin
@@ -913,7 +913,7 @@ implementation
       end;
 
 
-    procedure tcg.a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : TCGPara);
+    procedure tcg.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : TCGPara);
       var
          ref : treference;
       begin
@@ -943,24 +943,24 @@ implementation
       end;
 
 
-    procedure tcg.a_param_loc(list : TAsmList;const l:tlocation;const cgpara : TCGPara);
+    procedure tcg.a_load_loc_cgpara(list : TAsmList;const l:tlocation;const cgpara : TCGPara);
       begin
         case l.loc of
           LOC_REGISTER,
           LOC_CREGISTER :
-            a_param_reg(list,l.size,l.register,cgpara);
+            a_load_reg_cgpara(list,l.size,l.register,cgpara);
           LOC_CONSTANT :
-            a_param_const(list,l.size,l.value,cgpara);
+            a_load_const_cgpara(list,l.size,l.value,cgpara);
           LOC_CREFERENCE,
           LOC_REFERENCE :
-            a_param_ref(list,l.size,l.reference,cgpara);
+            a_load_ref_cgpara(list,l.size,l.reference,cgpara);
           else
             internalerror(2002032211);
         end;
       end;
 
 
-    procedure tcg.a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : TCGPara);
+    procedure tcg.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : TCGPara);
       var
          hr : tregister;
       begin
@@ -971,7 +971,7 @@ implementation
            begin
              hr:=getaddressregister(list);
              a_loadaddr_ref_reg(list,r,hr);
-             a_param_reg(list,OS_ADDR,hr,cgpara);
+             a_load_reg_cgpara(list,OS_ADDR,hr,cgpara);
            end;
       end;
 
@@ -2599,7 +2599,7 @@ implementation
       end;
 
 
-    procedure tcg.a_paramfpu_reg(list : TAsmList;size : tcgsize;const r : tregister;const cgpara : TCGPara);
+    procedure tcg.a_loadfpu_reg_cgpara(list : TAsmList;size : tcgsize;const r : tregister;const cgpara : TCGPara);
       var
          ref : treference;
       begin
@@ -2620,7 +2620,7 @@ implementation
                 { paramfpu_ref does the check_simpe_location check here if necessary }
                 tg.GetTemp(list,TCGSize2Size[size],TCGSize2Size[size],tt_normal,ref);
                 a_loadfpu_reg_ref(list,size,size,r,ref);
-                a_paramfpu_ref(list,size,ref,cgpara);
+                a_loadfpu_ref_cgpara(list,size,ref,cgpara);
                 tg.Ungettemp(list,ref);
               end;
             else
@@ -2629,7 +2629,7 @@ implementation
       end;
 
 
-    procedure tcg.a_paramfpu_ref(list : TAsmList;size : tcgsize;const ref : treference;const cgpara : TCGPara);
+    procedure tcg.a_loadfpu_ref_cgpara(list : TAsmList;size : tcgsize;const ref : treference;const cgpara : TCGPara);
       var
          href : treference;
       begin
@@ -3028,7 +3028,7 @@ implementation
       end;
 
 
-    procedure tcg.a_parammm_reg(list: TAsmList; size: tcgsize; reg: tregister;const cgpara : TCGPara;shuffle : pmmshuffle);
+    procedure tcg.a_loadmm_reg_cgpara(list: TAsmList; size: tcgsize; reg: tregister;const cgpara : TCGPara;shuffle : pmmshuffle);
       var
         href  : treference;
 {$ifndef cpu64bitalu}
@@ -3101,7 +3101,7 @@ implementation
       end;
 
 
-    procedure tcg.a_parammm_ref(list: TAsmList; size: tcgsize;const ref: treference;const cgpara : TCGPara;shuffle : pmmshuffle);
+    procedure tcg.a_loadmm_ref_cgpara(list: TAsmList; size: tcgsize;const ref: treference;const cgpara : TCGPara;shuffle : pmmshuffle);
       var
          hr : tregister;
          hs : tmmshuffle;
@@ -3113,20 +3113,20 @@ implementation
            begin
              hs:=shuffle^;
              removeshuffles(hs);
-             a_parammm_reg(list,cgpara.location^.size,hr,cgpara,@hs);
+             a_loadmm_reg_cgpara(list,cgpara.location^.size,hr,cgpara,@hs);
            end
          else
-           a_parammm_reg(list,cgpara.location^.size,hr,cgpara,shuffle);
+           a_loadmm_reg_cgpara(list,cgpara.location^.size,hr,cgpara,shuffle);
       end;
 
 
-    procedure tcg.a_parammm_loc(list: TAsmList;const loc: tlocation; const cgpara : TCGPara;shuffle : pmmshuffle);
+    procedure tcg.a_loadmm_loc_cgpara(list: TAsmList;const loc: tlocation; const cgpara : TCGPara;shuffle : pmmshuffle);
       begin
         case loc.loc of
           LOC_MMREGISTER,LOC_CMMREGISTER:
-            a_parammm_reg(list,loc.size,loc.register,cgpara,shuffle);
+            a_loadmm_reg_cgpara(list,loc.size,loc.register,cgpara,shuffle);
           LOC_REFERENCE,LOC_CREFERENCE:
-            a_parammm_ref(list,loc.size,loc.reference,cgpara,shuffle);
+            a_loadmm_ref_cgpara(list,loc.size,loc.reference,cgpara,shuffle);
           else
             internalerror(200310123);
         end;
@@ -3231,11 +3231,11 @@ implementation
         paramanager.getintparaloc(pocall_default,2,cgpara2);
         paramanager.getintparaloc(pocall_default,3,cgpara3);
         paramanager.allocparaloc(list,cgpara3);
-        a_paramaddr_ref(list,dest,cgpara3);
+        a_loadaddr_ref_cgpara(list,dest,cgpara3);
         paramanager.allocparaloc(list,cgpara2);
-        a_paramaddr_ref(list,source,cgpara2);
+        a_loadaddr_ref_cgpara(list,source,cgpara2);
         paramanager.allocparaloc(list,cgpara1);
-        a_param_const(list,OS_INT,len,cgpara1);
+        a_load_const_cgpara(list,OS_INT,len,cgpara1);
         paramanager.freeparaloc(list,cgpara3);
         paramanager.freeparaloc(list,cgpara2);
         paramanager.freeparaloc(list,cgpara1);
@@ -3257,9 +3257,9 @@ implementation
         paramanager.getintparaloc(pocall_default,1,cgpara1);
         paramanager.getintparaloc(pocall_default,2,cgpara2);
         paramanager.allocparaloc(list,cgpara2);
-        a_paramaddr_ref(list,dest,cgpara2);
+        a_loadaddr_ref_cgpara(list,dest,cgpara2);
         paramanager.allocparaloc(list,cgpara1);
-        a_paramaddr_ref(list,source,cgpara1);
+        a_loadaddr_ref_cgpara(list,source,cgpara1);
         paramanager.freeparaloc(list,cgpara2);
         paramanager.freeparaloc(list,cgpara1);
         allocallcpuregisters(list);
@@ -3299,10 +3299,10 @@ implementation
             { widestrings aren't ref. counted on all platforms so we need the address
               to create a real copy }
             if is_widestring(t) then
-              a_paramaddr_ref(list,ref,cgpara1)
+              a_loadaddr_ref_cgpara(list,ref,cgpara1)
             else
               { these functions get the pointer by value }
-              a_param_ref(list,OS_ADDR,ref,cgpara1);
+              a_load_ref_cgpara(list,OS_ADDR,ref,cgpara1);
             paramanager.freeparaloc(list,cgpara1);
             allocallcpuregisters(list);
             a_call_name(list,incrfunc,false);
@@ -3312,9 +3312,9 @@ implementation
           begin
             reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
             paramanager.allocparaloc(list,cgpara2);
-            a_paramaddr_ref(list,href,cgpara2);
+            a_loadaddr_ref_cgpara(list,href,cgpara2);
             paramanager.allocparaloc(list,cgpara1);
-            a_paramaddr_ref(list,ref,cgpara1);
+            a_loadaddr_ref_cgpara(list,ref,cgpara1);
             paramanager.freeparaloc(list,cgpara1);
             paramanager.freeparaloc(list,cgpara2);
             allocallcpuregisters(list);
@@ -3368,11 +3368,11 @@ implementation
             if needrtti then
               begin
                 paramanager.allocparaloc(list,cgpara2);
-                a_param_reg(list,OS_ADDR,tempreg2,cgpara2);
+                a_load_reg_cgpara(list,OS_ADDR,tempreg2,cgpara2);
                 paramanager.freeparaloc(list,cgpara2);
               end;
             paramanager.allocparaloc(list,cgpara1);
-            a_param_reg(list,OS_ADDR,tempreg1,cgpara1);
+            a_load_reg_cgpara(list,OS_ADDR,tempreg1,cgpara1);
             paramanager.freeparaloc(list,cgpara1);
             allocallcpuregisters(list);
             a_call_name(list,decrfunc,false);
@@ -3382,9 +3382,9 @@ implementation
           begin
             reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
             paramanager.allocparaloc(list,cgpara2);
-            a_paramaddr_ref(list,href,cgpara2);
+            a_loadaddr_ref_cgpara(list,href,cgpara2);
             paramanager.allocparaloc(list,cgpara1);
-            a_paramaddr_ref(list,ref,cgpara1);
+            a_loadaddr_ref_cgpara(list,ref,cgpara1);
             paramanager.freeparaloc(list,cgpara1);
             paramanager.freeparaloc(list,cgpara2);
             allocallcpuregisters(list);
@@ -3415,9 +3415,9 @@ implementation
            begin
               reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
               paramanager.allocparaloc(list,cgpara2);
-              a_paramaddr_ref(list,href,cgpara2);
+              a_loadaddr_ref_cgpara(list,href,cgpara2);
               paramanager.allocparaloc(list,cgpara1);
-              a_paramaddr_ref(list,ref,cgpara1);
+              a_loadaddr_ref_cgpara(list,ref,cgpara1);
               paramanager.freeparaloc(list,cgpara1);
               paramanager.freeparaloc(list,cgpara2);
               allocallcpuregisters(list);
@@ -3450,9 +3450,9 @@ implementation
            begin
               reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
               paramanager.allocparaloc(list,cgpara2);
-              a_paramaddr_ref(list,href,cgpara2);
+              a_loadaddr_ref_cgpara(list,href,cgpara2);
               paramanager.allocparaloc(list,cgpara1);
-              a_paramaddr_ref(list,ref,cgpara1);
+              a_loadaddr_ref_cgpara(list,ref,cgpara1);
               paramanager.freeparaloc(list,cgpara1);
               paramanager.freeparaloc(list,cgpara2);
               allocallcpuregisters(list);
@@ -3686,7 +3686,7 @@ implementation
            cgpara1.init;
            paramanager.getintparaloc(pocall_default,1,cgpara1);
            paramanager.allocparaloc(list,cgpara1);
-           a_param_const(list,OS_INT,210,cgpara1);
+           a_load_const_cgpara(list,OS_INT,210,cgpara1);
            paramanager.freeparaloc(list,cgpara1);
            a_call_name(list,'FPC_HANDLEERROR',false);
            a_label(list,oklabel);
@@ -3708,9 +3708,9 @@ implementation
          begin
            reference_reset_symbol(hrefvmt,current_asmdata.RefAsmSymbol(objdef.vmt_mangledname),0,sizeof(pint));
            paramanager.allocparaloc(list,cgpara2);
-           a_paramaddr_ref(list,hrefvmt,cgpara2);
+           a_loadaddr_ref_cgpara(list,hrefvmt,cgpara2);
            paramanager.allocparaloc(list,cgpara1);
-           a_param_reg(list,OS_ADDR,reg,cgpara1);
+           a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
            paramanager.freeparaloc(list,cgpara1);
            paramanager.freeparaloc(list,cgpara2);
            allocallcpuregisters(list);
@@ -3721,7 +3721,7 @@ implementation
          if (cs_check_range in current_settings.localswitches) then
           begin
             paramanager.allocparaloc(list,cgpara1);
-            a_param_reg(list,OS_ADDR,reg,cgpara1);
+            a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
             paramanager.freeparaloc(list,cgpara1);
             allocallcpuregisters(list);
             a_call_name(list,'FPC_CHECK_OBJECT',false);
@@ -3767,7 +3767,7 @@ implementation
         cgpara1.init;
         paramanager.getintparaloc(pocall_default,1,cgpara1);
         paramanager.allocparaloc(list,cgpara1);
-        a_param_reg(list,OS_INT,sizereg,cgpara1);
+        a_load_reg_cgpara(list,OS_INT,sizereg,cgpara1);
         paramanager.freeparaloc(list,cgpara1);
         allocallcpuregisters(list);
         a_call_name(list,'FPC_GETMEM',false);
@@ -3785,13 +3785,13 @@ implementation
         paramanager.getintparaloc(pocall_default,3,cgpara3);
         { load size }
         paramanager.allocparaloc(list,cgpara3);
-        a_param_reg(list,OS_INT,sizereg,cgpara3);
+        a_load_reg_cgpara(list,OS_INT,sizereg,cgpara3);
         { load destination }
         paramanager.allocparaloc(list,cgpara2);
-        a_param_reg(list,OS_ADDR,destreg,cgpara2);
+        a_load_reg_cgpara(list,OS_ADDR,destreg,cgpara2);
         { load source }
         paramanager.allocparaloc(list,cgpara1);
-        a_param_reg(list,OS_ADDR,sourcereg,cgpara1);
+        a_load_reg_cgpara(list,OS_ADDR,sourcereg,cgpara1);
         paramanager.freeparaloc(list,cgpara3);
         paramanager.freeparaloc(list,cgpara2);
         paramanager.freeparaloc(list,cgpara1);
@@ -3813,7 +3813,7 @@ implementation
         paramanager.getintparaloc(pocall_default,1,cgpara1);
         { load source }
         paramanager.allocparaloc(list,cgpara1);
-        a_param_loc(list,l,cgpara1);
+        a_load_loc_cgpara(list,l,cgpara1);
         paramanager.freeparaloc(list,cgpara1);
         allocallcpuregisters(list);
         a_call_name(list,'FPC_FREEMEM',false);

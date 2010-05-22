@@ -217,16 +217,16 @@ implementation
           exit;
        { push erroraddr }
        paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc4);
-       cg.a_param_reg(current_asmdata.CurrAsmList,OS_ADDR,NR_FRAME_POINTER_REG,paraloc4);
+       cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,NR_FRAME_POINTER_REG,paraloc4);
        { push lineno }
        paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc3);
-       cg.a_param_const(current_asmdata.CurrAsmList,OS_INT,current_filepos.line,paraloc3);
+       cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_INT,current_filepos.line,paraloc3);
        { push filename }
        paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
-       cg.a_paramaddr_ref(current_asmdata.CurrAsmList,hp2.location.reference,paraloc2);
+       cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,hp2.location.reference,paraloc2);
        { push msg }
        paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-       cg.a_paramaddr_ref(current_asmdata.CurrAsmList,hp3.location.reference,paraloc1);
+       cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,hp3.location.reference,paraloc1);
        { call }
        paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
        paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);

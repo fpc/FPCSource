@@ -39,10 +39,10 @@ unit cgcpu;
         procedure do_register_allocation(list:TAsmList;headertai:tai);override;
 
         { passing parameter using push instead of mov }
-        procedure a_param_reg(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
-        procedure a_param_const(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);override;
-        procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
-        procedure a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
+        procedure a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
+        procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);override;
+        procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
+        procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
 
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
         procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);override;
@@ -108,7 +108,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg386.a_param_reg(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);
+    procedure tcg386.a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);
       var
         pushsize : tcgsize;
       begin
@@ -123,11 +123,11 @@ unit cgcpu;
             list.concat(taicpu.op_reg(A_PUSH,tcgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
           end
         else
-          inherited a_param_reg(list,size,r,cgpara);
+          inherited a_load_reg_cgpara(list,size,r,cgpara);
       end;
 
 
-    procedure tcg386.a_param_const(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);
+    procedure tcg386.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);
       var
         pushsize : tcgsize;
       begin
@@ -141,11 +141,11 @@ unit cgcpu;
             list.concat(taicpu.op_const(A_PUSH,tcgsize2opsize[pushsize],a));
           end
         else
-          inherited a_param_const(list,size,a,cgpara);
+          inherited a_load_const_cgpara(list,size,a,cgpara);
       end;
 
 
-    procedure tcg386.a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);
+    procedure tcg386.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);
 
         procedure pushdata(paraloc:pcgparalocation;ofs:aint);
         var
@@ -211,11 +211,11 @@ unit cgcpu;
               end
           end
         else
-          inherited a_param_ref(list,size,r,cgpara);
+          inherited a_load_ref_cgpara(list,size,r,cgpara);
       end;
 
 
-    procedure tcg386.a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : tcgpara);
+    procedure tcg386.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);
       var
         tmpreg : tregister;
         opsize : topsize;
@@ -249,7 +249,7 @@ unit cgcpu;
                   end;
               end
             else
-              inherited a_paramaddr_ref(list,r,cgpara);
+              inherited a_loadaddr_ref_cgpara(list,r,cgpara);
           end;
       end;
 

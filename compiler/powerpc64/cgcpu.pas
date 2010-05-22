@@ -42,7 +42,7 @@ type
     { left to right), this allows to move the parameter to    }
     { register, if the cpu supports register calling          }
     { conventions                                             }
-    procedure a_param_ref(list: TAsmList; size: tcgsize; const r: treference;
+    procedure a_load_ref_cgpara(list: TAsmList; size: tcgsize; const r: treference;
       const paraloc: tcgpara); override;
 
     procedure a_call_name(list: TAsmList; const s: string; weak: boolean); override;
@@ -394,7 +394,7 @@ begin
   inherited done_register_allocators;
 end;
 
-procedure tcgppc.a_param_ref(list: TAsmList; size: tcgsize; const r:
+procedure tcgppc.a_load_ref_cgpara(list: TAsmList; size: tcgsize; const r:
   treference; const paraloc: tcgpara);
 
 var

@@ -42,9 +42,9 @@ unit cgcpu;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
-        procedure a_param_const(list : TAsmList;size : tcgsize;a : aint;const paraloc : TCGPara);override;
-        procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
-        procedure a_paramaddr_ref(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
+        procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const paraloc : TCGPara);override;
+        procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
+        procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg: tregister);override;
@@ -146,7 +146,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgavr.a_param_const(list : TAsmList;size : tcgsize;a : aint;const paraloc : TCGPara);
+    procedure tcgavr.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const paraloc : TCGPara);
       var
         ref: treference;
       begin
@@ -167,7 +167,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgavr.a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);
+    procedure tcgavr.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);
       var
         tmpref, ref: treference;
         location: pcgparalocation;
@@ -208,7 +208,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgavr.a_paramaddr_ref(list : TAsmList;const r : treference;const paraloc : TCGPara);
+    procedure tcgavr.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);
       var
         ref: treference;
         tmpreg: tregister;
@@ -715,11 +715,11 @@ unit cgcpu;
         paramanager.getintparaloc(pocall_default,2,paraloc2);
         paramanager.getintparaloc(pocall_default,3,paraloc3);
         paramanager.allocparaloc(list,paraloc3);
-        a_param_const(list,OS_INT,len,paraloc3);
+        a_load_const_cgpara(list,OS_INT,len,paraloc3);
         paramanager.allocparaloc(list,paraloc2);
-        a_paramaddr_ref(list,dest,paraloc2);
+        a_loadaddr_ref_cgpara(list,dest,paraloc2);
         paramanager.allocparaloc(list,paraloc2);
-        a_paramaddr_ref(list,source,paraloc1);
+        a_loadaddr_ref_cgpara(list,source,paraloc1);
         paramanager.freeparaloc(list,paraloc3);
         paramanager.freeparaloc(list,paraloc2);
         paramanager.freeparaloc(list,paraloc1);

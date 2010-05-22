@@ -266,7 +266,7 @@ implementation
             paraloc1.init;
             paramanager.getintparaloc(pocall_default,1,paraloc1);
             paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-            cg.a_param_reg(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
+            cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
             paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
             cg.allocallcpuregisters(current_asmdata.CurrAsmList);
@@ -333,7 +333,7 @@ implementation
               begin
                 paramanager.getintparaloc(pocall_default,1,paraloc1);
                 paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-                cg.a_param_reg(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
+                cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
                 paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
                 cg.allocallcpuregisters(current_asmdata.CurrAsmList);
                 cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
@@ -352,7 +352,7 @@ implementation
               begin
                 paramanager.getintparaloc(pocall_default,1,paraloc1);
                 paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-                cg.a_param_reg(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
+                cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
                 paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
                 cg.allocallcpuregisters(current_asmdata.CurrAsmList);
                 cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
@@ -686,9 +686,9 @@ implementation
                paramanager.getintparaloc(pocall_default,1,paraloc1);
                paramanager.getintparaloc(pocall_default,2,paraloc2);
                paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
-               cg.a_param_loc(current_asmdata.CurrAsmList,right.location,paraloc2);
+               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
                paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-               cg.a_param_loc(current_asmdata.CurrAsmList,left.location,paraloc1);
+               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
                paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
                paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
                cg.allocallcpuregisters(current_asmdata.CurrAsmList);
@@ -772,7 +772,7 @@ implementation
                 begin
                    paramanager.getintparaloc(pocall_default,1,paraloc1);
                    paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-                   cg.a_param_reg(current_asmdata.CurrAsmList,OS_ADDR,location.reference.base,paraloc1);
+                   cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,location.reference.base,paraloc1);
                    paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
                    cg.allocallcpuregisters(current_asmdata.CurrAsmList);
                    cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_CHECKZERO',false);
@@ -877,20 +877,20 @@ implementation
                               paramanager.getintparaloc(pocall_default,1,paraloc1);
                               paramanager.getintparaloc(pocall_default,2,paraloc2);
                               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
-                              cg.a_param_const(current_asmdata.CurrAsmList,OS_INT,tordconstnode(right).value.svalue,paraloc2);
+                              cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_INT,tordconstnode(right).value.svalue,paraloc2);
                               href:=location.reference;
                               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                               if not(tf_winlikewidestring in target_info.flags) or
                                  (tstringdef(left.resultdef).stringtype<>st_widestring) then
                                 begin
                                   dec(href.offset,sizeof(pint)-offsetdec);
-                                  cg.a_param_ref(current_asmdata.CurrAsmList,OS_ADDR,href,paraloc1);
+                                  cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_ADDR,href,paraloc1);
                                 end
                               else
                                 begin
                                   { winlike widestrings have a 4 byte length }
                                   dec(href.offset,4-offsetdec);
-                                  cg.a_param_ref(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
+                                  cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
                                 end;
                               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
                               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
@@ -1039,7 +1039,7 @@ implementation
                               paramanager.getintparaloc(pocall_default,1,paraloc1);
                               paramanager.getintparaloc(pocall_default,2,paraloc2);
                               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
-                              cg.a_param_reg(current_asmdata.CurrAsmList,OS_INT,right.location.register,paraloc2);
+                              cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_INT,right.location.register,paraloc2);
                               href:=location.reference;
                               dec(href.offset,sizeof(pint)-offsetdec);
 
@@ -1049,13 +1049,13 @@ implementation
                                  (tstringdef(left.resultdef).stringtype<>st_widestring) then
                                 begin
                                   dec(href.offset,sizeof(pint)-offsetdec);
-                                  cg.a_param_ref(current_asmdata.CurrAsmList,OS_ADDR,href,paraloc1);
+                                  cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_ADDR,href,paraloc1);
                                 end
                               else
                                 begin
                                   { winlike widestrings have a 4 byte length }
                                   dec(href.offset,4-offsetdec);
-                                  cg.a_param_ref(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
+                                  cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
                                 end;
 
                               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
