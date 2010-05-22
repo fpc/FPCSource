@@ -106,7 +106,7 @@ function GetProcessHeaps(NumberOfHeaps:DWORD; ProcessHeaps:PHANDLE):DWORD; exter
 function HeapLock(hHeap:HANDLE):WINBOOL; external 'kernel32' name 'HeapLock';
 function HeapUnlock(hHeap:HANDLE):WINBOOL; external 'kernel32' name 'HeapUnlock';
 function HeapWalk(hHeap:HANDLE; lpEntry:LPPROCESS_HEAP_ENTRY):WINBOOL; external 'kernel32' name 'HeapWalk';
-function GetProcessAffinityMask(hProcess:HANDLE; lpProcessAffinityMask:LPDWORD; lpSystemAffinityMask:LPDWORD):WINBOOL; external 'kernel32' name 'GetProcessAffinityMask';
+function GetProcessAffinityMask(hProcess:HANDLE; lpProcessAffinityMask:PDWORD_PTR; lpSystemAffinityMask:PDWORD_PTR):WINBOOL; external 'kernel32' name 'GetProcessAffinityMask';
 function GetProcessTimes(hProcess:HANDLE; lpCreationTime:LPFILETIME; lpExitTime:LPFILETIME; lpKernelTime:LPFILETIME; lpUserTime:LPFILETIME):WINBOOL; external 'kernel32' name 'GetProcessTimes';
 function GetProcessWorkingSetSize(hProcess:HANDLE; lpMinimumWorkingSetSize:LPDWORD; lpMaximumWorkingSetSize:LPDWORD):WINBOOL; external 'kernel32' name 'GetProcessWorkingSetSize';
 function SetProcessWorkingSetSize(hProcess:HANDLE; dwMinimumWorkingSetSize:DWORD; dwMaximumWorkingSetSize:DWORD):WINBOOL; external 'kernel32' name 'SetProcessWorkingSetSize';
@@ -115,7 +115,7 @@ function GetCurrentProcess:HANDLE; external 'kernel32' name 'GetCurrentProcess';
 function GetCurrentProcessId:DWORD; external 'kernel32' name 'GetCurrentProcessId';
 procedure ExitProcess(uExitCode:UINT);external 'kernel32' name 'ExitProcess';
 function TerminateProcess(hProcess:HANDLE; uExitCode:UINT):WINBOOL; external 'kernel32' name 'TerminateProcess';
-function SetProcessAffinityMask(hProcess: THandle; dwProcessAffinityMask: DWORD): BOOL; external 'kernel32' name 'SetProcessAffinityMask';
+function SetProcessAffinityMask(hProcess: THandle; dwProcessAffinityMask: DWORD_PTR): BOOL; external 'kernel32' name 'SetProcessAffinityMask';
 function GetExitCodeProcess(hProcess:HANDLE; lpExitCode:LPDWORD):WINBOOL; external 'kernel32' name 'GetExitCodeProcess';
 procedure FatalExit(ExitCode:longint); external 'kernel32' name 'FatalExit';
 procedure RaiseException(dwExceptionCode:DWORD; dwExceptionFlags:DWORD; nNumberOfArguments:DWORD; lpArguments:LPDWORD); external 'kernel32' name 'RaiseException';
@@ -124,7 +124,7 @@ function CreateRemoteThread(hProcess:HANDLE; lpThreadAttributes:LPSECURITY_ATTRI
   dwCreationFlags:DWORD; lpThreadId:LPDWORD):HANDLE; external 'kernel32' name 'CreateRemoteThread';
 function GetCurrentThread:HANDLE; external 'kernel32' name 'GetCurrentThread';
 function GetCurrentThreadId:DWORD; external 'kernel32' name 'GetCurrentThreadId';
-function SetThreadAffinityMask(hThread:HANDLE; dwThreadAffinityMask:DWORD):DWORD; external 'kernel32' name 'SetThreadAffinityMask';
+function SetThreadAffinityMask(hThread:HANDLE; dwThreadAffinityMask:DWORD_PTR):DWORD_PTR; external 'kernel32' name 'SetThreadAffinityMask';
 function SetThreadPriority(hThread:HANDLE; nPriority:longint):WINBOOL; external 'kernel32' name 'SetThreadPriority';
 function GetThreadPriority(hThread:HANDLE):longint; external 'kernel32' name 'GetThreadPriority';
 function GetThreadTimes(hThread:HANDLE; lpCreationTime:LPFILETIME; lpExitTime:LPFILETIME; lpKernelTime:LPFILETIME; lpUserTime:LPFILETIME):WINBOOL; external 'kernel32' name 'GetThreadTimes';

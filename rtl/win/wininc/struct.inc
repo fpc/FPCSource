@@ -3805,7 +3805,7 @@ Const
           iContextType : longint;
           iCtrlId : longint;
           hItemHandle : HANDLE;
-          dwContextId : DWORD;
+          dwContextId : DWORD_PTR;
           MousePos : POINT;
        end;
      LPHELPINFO = ^HELPINFO;
@@ -4608,7 +4608,7 @@ Const
           lpszCaption : LPCSTR;
           dwStyle : DWORD;
           lpszIcon : LPCSTR;
-          dwContextHelpId : DWORD;
+          dwContextHelpId : DWORD_PTR;
           lpfnMsgBoxCallback : MSGBOXCALLBACK;
           dwLanguageId : DWORD;
        end;
@@ -6074,7 +6074,7 @@ Const
 		       dwPageSize : DWORD;
           	       lpMinimumApplicationAddress : LPVOID;
           	       lpMaximumApplicationAddress : LPVOID;
-          	       dwActiveProcessorMask : DWORD;
+          	       dwActiveProcessorMask : DWORD_PTR;
           	       dwNumberOfProcessors : DWORD;
                        dwProcessorType : DWORD;
                        dwAllocationGranularity : DWORD;
