@@ -233,33 +233,9 @@ implementation
                  LOC_MMREGISTER,
                  LOC_CMMREGISTER:
                    cg.a_loadmm_ref_cgpara(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara,mms_movescalar);
-{$ifdef cpu64bitalu}
-                 LOC_REGISTER,
-                 LOC_CREGISTER :
-                   begin
-                     { force integer size }
-                     left.location.size:=int_cgsize(tcgsize2size[left.location.size]);
-                     cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara);
-                   end;
-{$endif cpu64bitalu}
-{$ifdef powerpc}
-                 { x86_64 pushes s64comp in normal register }
-                 LOC_REGISTER,
-                 LOC_CREGISTER :
-                   begin
-                     { force integer size }
-                     left.location.size:=int_cgsize(tcgsize2size[left.location.size]);
-                     if (left.location.size in [OS_32,OS_S32]) then
-                       cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara)
-                     else
-                       cg64.a_load64_ref_cgpara(current_asmdata.CurrAsmList,left.location.reference,tempcgpara);
-                   end;
-{$endif powerpc}
-{$if defined(sparc) or defined(arm) or defined(m68k)}
-                 { sparc and arm pass floats in normal registers }
+                 { Some targets pass floats in normal registers }
                  LOC_REGISTER,
                  LOC_CREGISTER,
-{$endif}
                  LOC_REFERENCE,
                  LOC_CREFERENCE,
                  LOC_FPUREGISTER,
