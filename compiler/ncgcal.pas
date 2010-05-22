@@ -216,36 +216,9 @@ implementation
                      location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
                      cg.a_loadmm_reg_cgpara(current_asmdata.CurrAsmList,left.location.size,left.location.register,tempcgpara,mms_movescalar);
                    end;
-{$ifdef cpu64bitalu}
-                 LOC_REGISTER,
-                 LOC_CREGISTER :
-                   begin
-                     location_force_mem(current_asmdata.CurrAsmList,left.location);
-                     { force integer size }
-                     left.location.size:=int_cgsize(tcgsize2size[left.location.size]);
-                     cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara);
-                   end;
-{$endif cpu64bitalu}
-{$ifdef powerpc}
-                 LOC_REGISTER,
-                 LOC_CREGISTER :
-                   begin
-                     { aix abi passes floats of varargs in both fpu and }
-                     { integer registers                                }
-                     location_force_mem(current_asmdata.CurrAsmList,left.location);
-                     { force integer size }
-                     left.location.size:=int_cgsize(tcgsize2size[left.location.size]);
-                     if (left.location.size in [OS_32,OS_S32]) then
-                       cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,left.location.size,left.location.reference,tempcgpara)
-                     else
-                       cg64.a_load64_ref_cgpara(current_asmdata.CurrAsmList,left.location.reference,tempcgpara);
-                   end;
-{$endif powerpc}
-{$if defined(sparc) or defined(arm) or defined(m68k)}
-                 { sparc and arm pass floats in normal registers }
+                 { Some targets pass floats in normal registers }
                  LOC_REGISTER,
                  LOC_CREGISTER,
-{$endif sparc}
                  LOC_REFERENCE,
                  LOC_CREFERENCE,
                  LOC_FPUREGISTER,

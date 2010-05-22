@@ -2632,17 +2632,35 @@ implementation
     procedure tcg.a_loadfpu_ref_cgpara(list : TAsmList;size : tcgsize;const ref : treference;const cgpara : TCGPara);
       var
          href : treference;
+         hsize: tcgsize;
       begin
-         cgpara.check_simple_location;
          case cgpara.location^.loc of
           LOC_FPUREGISTER,LOC_CFPUREGISTER:
-            a_loadfpu_ref_reg(list,size,size,ref,cgpara.location^.register);
+            begin
+              cgpara.check_simple_location;
+              a_loadfpu_ref_reg(list,size,size,ref,cgpara.location^.register);
+            end;
           LOC_REFERENCE,LOC_CREFERENCE:
             begin
+              cgpara.check_simple_location;
               reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
               { concatcopy should choose the best way to copy the data }
               g_concatcopy(list,ref,href,tcgsize2size[size]);
             end;
+          LOC_REGISTER,LOC_CREGISTER:
+            begin
+              { force integer size }
+              hsize:=int_cgsize(tcgsize2size[size]);
+{$ifndef cpu64bitalu}
+              if (hsize in [OS_S64,OS_64]) then
+                cg64.a_load64_ref_cgpara(list,ref,cgpara)
+              else
+{$endif not cpu64bitalu}
+                begin
+                  cgpara.check_simple_location;
+                  a_load_ref_cgpara(list,hsize,ref,cgpara)
+                end;
+            end
           else
             internalerror(200402201);
         end;
