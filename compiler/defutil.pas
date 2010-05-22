@@ -99,7 +99,7 @@ interface
     function is_in_limit(def_from,def_to : tdef) : boolean;
 
     {# Returns whether def is reference counted }
-    function is_managed_type(def: tdef) : boolean;
+    function is_managed_type(def: tdef) : boolean;{$ifdef USEINLINE}inline;{$endif}
 
 
 {    function is_in_limit_value(val_from:TConstExprInt;def_from,def_to : tdef) : boolean;}
@@ -526,11 +526,9 @@ implementation
       end;
 
 
-    function is_managed_type(def: tdef): boolean;
+    function is_managed_type(def: tdef): boolean;{$ifdef USEINLINE}inline;{$endif}
       begin
-        result:=
-          def.needs_inittable and
-          not is_class(def);
+        result:=def.needs_inittable;
       end;
 
 

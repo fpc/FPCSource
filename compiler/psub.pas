@@ -148,8 +148,7 @@ implementation
       begin
         if (tsym(p).typ=paravarsym) and
            (tparavarsym(p).varspez=vs_value) and
-           not is_class(tparavarsym(p).vardef) and
-           tparavarsym(p).vardef.needs_inittable then
+           is_managed_type(tparavarsym(p).vardef) then
           include(current_procinfo.flags,pi_needs_implicit_finally);
       end;
 
@@ -160,8 +159,7 @@ implementation
         { occurs                                                            }
         if (tsym(p).typ=localvarsym) and
            (tlocalvarsym(p).refs>0) and
-           not(is_class(tlocalvarsym(p).vardef)) and
-           tlocalvarsym(p).vardef.needs_inittable then
+           is_managed_type(tlocalvarsym(p).vardef) then
           include(current_procinfo.flags,pi_needs_implicit_finally);
       end;
 
@@ -419,7 +417,7 @@ implementation
                   if is_object(current_objectdef) then
                     begin
                       { finalize object data }
-                      if current_objectdef.needs_inittable then
+                      if is_managed_type(current_objectdef) then
                         addstatement(newstatement,finalize_data_node(load_self_node));
                       { parameter 3 : vmt_offset }
                       { parameter 2 : pointer to vmt }
@@ -485,7 +483,7 @@ implementation
             { no constructor }
             { must be the return value finalized before reraising the exception? }
             if (not is_void(current_procinfo.procdef.returndef)) and
-               (current_procinfo.procdef.returndef.needs_inittable) and
+               is_managed_type(current_procinfo.procdef.returndef) and
                (not paramanager.ret_in_param(current_procinfo.procdef.returndef, current_procinfo.procdef.proccalloption)) and
                (not is_class(current_procinfo.procdef.returndef)) then
               addstatement(newstatement,finalize_data_node(load_result_node));
@@ -1509,9 +1507,8 @@ implementation
         if tsym(p).typ<>paravarsym then
          exit;
         with tparavarsym(p) do
-          if (not is_class(vardef) and
-             vardef.needs_inittable and
-             (varspez in [vs_value,vs_out])) then
+          if is_managed_type(vardef) and
+             (varspez in [vs_value,vs_out]) then
             include(current_procinfo.flags,pi_do_call);
       end;
 

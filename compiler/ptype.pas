@@ -523,7 +523,7 @@ implementation
          { restore symtable stack }
          symtablestack.pop(recst);
          if trecorddef(record_dec).is_packed and
-            record_dec.needs_inittable then
+            is_managed_type(record_dec) then
            Message(type_e_no_packed_inittable);
       end;
 
@@ -829,7 +829,7 @@ implementation
              begin
                arrdef.elementdef:=tt2;
                if is_packed and
-                  tt2.needs_inittable then
+                  is_managed_type(tt2) then
                  Message(type_e_no_packed_inittable);
              end;
         end;
@@ -1148,7 +1148,7 @@ implementation
                 (st.symtabletype=globalsymtable) and
                 not is_objc_class_or_protocol(def)
                ) or
-               def.needs_inittable or
+               is_managed_type(def) or
                (ds_init_table_used in def.defstates) then
               RTTIWriter.write_rtti(def,initrtti);
             { RTTI }

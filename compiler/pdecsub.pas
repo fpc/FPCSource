@@ -396,7 +396,7 @@ implementation
          exit;
         with tparavarsym(p) do
          begin
-           if not vardef.needs_inittable and
+           if not is_managed_type(vardef) and
               paramanager.push_addr_param(varspez,vardef,tprocdef(arg).proccalloption) then
              varregable:=vr_intreg;
          end;

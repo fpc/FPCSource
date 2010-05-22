@@ -1480,7 +1480,7 @@ implementation
              { types that use init/final are not allowed in variant parts, but
                classes are allowed }
              if (variantrecordlevel>0) and
-                (hdef.needs_inittable and not is_class(hdef)) then
+                is_managed_type(hdef) then
                Message(parser_e_cant_use_inittable_here);
 
              { try to parse the hint directives }

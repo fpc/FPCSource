@@ -312,7 +312,7 @@ implementation
                          ccallnode.createintern('fpc_getmem',para)));
 
                      { create call to fpc_initialize }
-                     if tpointerdef(p.resultdef).pointeddef.needs_inittable then
+                     if is_managed_type(tpointerdef(p.resultdef).pointeddef) then
                        addstatement(newstatement,initialize_data_node(cderefnode.create(ctemprefnode.create(temp))));
 
                      { copy the temp to the destination }
@@ -326,7 +326,7 @@ implementation
                   else
                    begin
                      { create call to fpc_finalize }
-                     if tpointerdef(p.resultdef).pointeddef.needs_inittable then
+                     if is_managed_type(tpointerdef(p.resultdef).pointeddef) then
                        addstatement(newstatement,finalize_data_node(cderefnode.create(p.getcopy)));
 
                      { create call to fpc_freemem }
@@ -394,7 +394,7 @@ implementation
                 ccallnode.createintern('fpc_getmem',para)));
 
             { create call to fpc_initialize }
-            if tpointerdef(p1.resultdef).pointeddef.needs_inittable then
+            if is_managed_type(tpointerdef(p1.resultdef).pointeddef) then
              begin
                para := ccallparanode.create(caddrnode.create_internal(crttinode.create
                           (tstoreddef(tpointerdef(p1.resultdef).pointeddef),initrtti,rdt_normal)),

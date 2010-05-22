@@ -923,10 +923,8 @@ implementation
           begin
             { look for type conversion nodes which convert a }
             { refcounted type into a non-refcounted type     }
-            if (not n.resultdef.needs_inittable or
-                is_class(n.resultdef)) and
-               (ttypeconvnode(n).left.resultdef.needs_inittable and
-                not is_class(ttypeconvnode(n).left.resultdef)) then
+            if not is_managed_type(n.resultdef) and
+               is_managed_type(ttypeconvnode(n).left.resultdef) then
               exit;
             n:=ttypeconvnode(n).left;
           end;
@@ -2160,7 +2158,7 @@ implementation
            not assigned(funcretnode) and
             (
              (cnf_do_inline in callnodeflags) or
-             resultdef.needs_inittable or
+             is_managed_type(resultdef) or
              paramanager.ret_in_param(resultdef,procdefinition.proccalloption)
             ) then
           begin

@@ -1223,7 +1223,7 @@ implementation
         if ((tsym(p).typ=localvarsym) or
             ((tsym(p).typ=paravarsym) and
              (vo_is_funcret in tparavarsym(p).varoptions))) and
-           not(tabstractnormalvarsym(p).vardef.needs_inittable) and
+           not(is_managed_type(tabstractnormalvarsym(p).vardef)) and
            not(assigned(tabstractnormalvarsym(p).defaultconstsym)) then
          begin
            trashintval := trashintvalues[localvartrashing];
@@ -1324,8 +1324,7 @@ implementation
            ) and
            not(vo_is_typed_const in tabstractvarsym(p).varoptions) and
            not(vo_is_external in tabstractvarsym(p).varoptions) and
-           not(is_class(tabstractvarsym(p).vardef)) and
-           tabstractvarsym(p).vardef.needs_inittable then
+           is_managed_type(tabstractvarsym(p).vardef) then
          begin
            OldAsmList:=current_asmdata.CurrAsmList;
            current_asmdata.CurrAsmList:=TAsmList(arg);
@@ -1361,8 +1360,7 @@ implementation
            (tlocalvarsym(p).refs>0) and
            not(vo_is_external in tlocalvarsym(p).varoptions) and
            not(vo_is_funcret in tlocalvarsym(p).varoptions) and
-           not(is_class(tlocalvarsym(p).vardef)) and
-           tlocalvarsym(p).vardef.needs_inittable then
+           is_managed_type(tlocalvarsym(p).vardef) then
           finalize_sym(TAsmList(arg),tsym(p));
       end;
 
@@ -1388,8 +1386,7 @@ implementation
                  (tstaticvarsym(p).varspez<>vs_const) and
                  not(vo_is_funcret in tstaticvarsym(p).varoptions) and
                  not(vo_is_external in tstaticvarsym(p).varoptions) and
-                 not(is_class(tstaticvarsym(p).vardef)) and
-                 tstaticvarsym(p).vardef.needs_inittable then
+                 is_managed_type(tstaticvarsym(p).vardef) then
                 finalize_sym(TAsmList(arg),tsym(p));
             end;
           procsym :
@@ -1420,10 +1417,8 @@ implementation
         list:=TAsmList(arg);
         if (tsym(p).typ=paravarsym) then
          begin
-           needs_inittable :=
-             not is_class(tparavarsym(p).vardef) and
-             tparavarsym(p).vardef.needs_inittable;
-           do_trashing :=
+           needs_inittable:=is_managed_type(tparavarsym(p).vardef);
+           do_trashing:=
              (localvartrashing <> -1) and
              (not assigned(tparavarsym(p).defaultconstsym)) and
              not needs_inittable;
@@ -1499,8 +1494,7 @@ implementation
         if not(tsym(p).typ=paravarsym) then
           exit;
         list:=TAsmList(arg);
-        if not is_class(tparavarsym(p).vardef) and
-           tparavarsym(p).vardef.needs_inittable then
+        if is_managed_type(tparavarsym(p).vardef) then
          begin
            if (tparavarsym(p).varspez=vs_value) then
             begin
@@ -1532,7 +1526,7 @@ implementation
         while assigned(hp) do
          begin
            if assigned(hp^.def) and
-              hp^.def.needs_inittable then
+              is_managed_type(hp^.def) then
             begin
               reference_reset_base(href,current_procinfo.framepointer,hp^.pos,sizeof(pint));
               cg.g_initialize(list,hp^.def,href);
@@ -1551,7 +1545,7 @@ implementation
         while assigned(hp) do
          begin
            if assigned(hp^.def) and
-              hp^.def.needs_inittable then
+              is_managed_type(hp^.def) then
             begin
               include(current_procinfo.flags,pi_needs_implicit_finally);
               reference_reset_base(href,current_procinfo.framepointer,hp^.pos,sizeof(pint));
@@ -1587,7 +1581,8 @@ implementation
           ressym:=tabstractnormalvarsym(current_procinfo.procdef.parast.Find('self'))
         else
           ressym:=tabstractnormalvarsym(current_procinfo.procdef.funcretsym);
-        if (ressym.refs>0) or (ressym.vardef.needs_inittable) then
+        if (ressym.refs>0) or
+           is_managed_type(ressym.vardef) then
           begin
             restmploc:=ressym.localloc;
 

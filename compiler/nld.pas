@@ -666,8 +666,7 @@ implementation
            exit;
 
          { assignment to refcounted variable -> inc/decref }
-         if (not is_class(left.resultdef) and
-            left.resultdef.needs_inittable) then
+         if is_managed_type(left.resultdef) then
            include(current_procinfo.flags,pi_do_call);
 
         if (is_shortstring(left.resultdef)) then
@@ -689,7 +688,7 @@ implementation
             end;
            end
         { call helpers for composite types containing automated types }
-        else if (left.resultdef.needs_inittable) and
+        else if is_managed_type(left.resultdef) and
             (left.resultdef.typ in [arraydef,objectdef,recorddef]) and
             not is_interfacecom(left.resultdef) and
             not is_dynamic_array(left.resultdef) then

@@ -741,8 +741,7 @@ implementation
            localvarsym,
            paravarsym :
              begin
-               if not(is_class(tabstractvarsym(sym).vardef)) and
-                  tstoreddef(tabstractvarsym(sym).vardef).needs_inittable then
+               if is_managed_type(tabstractvarsym(sym).vardef) then
                  b_needs_init_final:=true;
              end;
          end;

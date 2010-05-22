@@ -153,8 +153,7 @@ implementation
            ([fc_inflowcontrol,fc_gotolabel] * flowcontrol <> []) or
            { not for refcounted types, because those locations are   }
            { still used later on in initialisation/finalisation code }
-           (not(is_class(n.resultdef)) and
-            n.resultdef.needs_inittable) or
+           is_managed_type(n.resultdef) or
            { source and destination are temps (= not global variables) }
            not tg.istemp(n.location.reference) or
            not tg.istemp(newref) or
@@ -582,13 +581,13 @@ implementation
           loading the left node afterwards can destroy the flags.
         }
         if not(right.expectloc in [LOC_FLAGS,LOC_JUMP]) and
-           ((right.resultdef.needs_inittable) or
+           (is_managed_type(right.resultdef) or
             (node_complexity(right)>node_complexity(left))) then
          begin
            secondpass(right);
            { increment source reference counter, this is
              useless for constants }
-           if (right.resultdef.needs_inittable) and
+           if is_managed_type(right.resultdef) and
               not is_constnode(right) then
             begin
               location_force_mem(current_asmdata.CurrAsmList,right.location);
@@ -602,7 +601,7 @@ implementation
            { can be false                                             }
            secondpass(left);
            { decrement destination reference counter }
-           if (left.resultdef.needs_inittable) then
+           if is_managed_type(left.resultdef) then
              begin
                location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false,sizeof(pint));
                cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
@@ -615,7 +614,7 @@ implementation
            { calculate left sides }
            secondpass(left);
            { decrement destination reference counter }
-           if (left.resultdef.needs_inittable) then
+           if is_managed_type(left.resultdef) then
              begin
                location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false,sizeof(pint));
                cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
@@ -635,7 +634,7 @@ implementation
            flowcontrol:=oldflowcontrol;
            { increment source reference counter, this is
              useless for string constants}
-           if (right.resultdef.needs_inittable) and
+           if is_managed_type(right.resultdef) and
               (right.nodetype<>stringconstn) then
              begin
                location_force_mem(current_asmdata.CurrAsmList,right.location);
@@ -1171,7 +1170,7 @@ implementation
               else
               { normal array constructor of the same type }
                begin
-                 if resultdef.needs_inittable then
+                 if is_managed_type(resultdef) then
                    freetemp:=false;
                  case hp.left.location.loc of
                    LOC_MMREGISTER,

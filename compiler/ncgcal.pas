@@ -163,7 +163,7 @@ implementation
 
              { release memory for refcnt out parameters }
              if (parasym.varspez=vs_out) and
-                (left.resultdef.needs_inittable) then
+                is_managed_type(left.resultdef) then
                begin
                  location_get_data_ref(current_asmdata.CurrAsmList,left.location,href,false,sizeof(pint));
                  cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
@@ -455,7 +455,7 @@ implementation
               we have used a temp, because then it is already done from tempcreatenode.
               Also no finalize is needed, because there is no risk of exceptions from the
               function since this is code is only executed after the function call has returned }
-            if funcretnode.resultdef.needs_inittable and
+            if is_managed_type(funcretnode.resultdef) and
                (funcretnode.nodetype<>temprefn) then
               cg.g_decrrefcount(current_asmdata.CurrAsmList,funcretnode.resultdef,funcretnode.location.reference);
 
@@ -496,7 +496,7 @@ implementation
            case location.loc of
              LOC_REFERENCE :
                begin
-                 if resultdef.needs_inittable then
+                 if is_managed_type(resultdef) then
                     cg.g_finalize(current_asmdata.CurrAsmList,resultdef,location.reference);
                   tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
                end;
