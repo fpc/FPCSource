@@ -253,6 +253,12 @@ end;
 }
     end;
 
+    function SysCloseThread (threadHandle : TThreadID) : dword;
+    begin
+      SysCloseThread := 0;
+//      SysCloseThread:=CloseHandle(threadHandle);
+    end;
+
     function SysWaitForThreadTerminate (ThreadHandle: dword;
                                                     TimeoutMs: longint): dword;
     begin
@@ -473,6 +479,7 @@ begin
     WaitForThreadTerminate :=@SysWaitForThreadTerminate;
     ThreadSetPriority      :=@SysThreadSetPriority;
     ThreadGetPriority      :=@SysThreadGetPriority;
+    CloseThread		   :=@SysCloseThread;
     GetCurrentThreadId     :=@SysGetCurrentThreadId;
     InitCriticalSection    :=@SysInitCriticalSection;
     DoneCriticalSection    :=@SysDoneCriticalSection;

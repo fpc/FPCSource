@@ -46,6 +46,7 @@ function LocalFree(hMem : Pointer):Pointer; {$ifdef wince}cdecl{$else}stdcall{$e
 procedure Sleep(dwMilliseconds: DWord); {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'Sleep';
 function  WinSuspendThread (threadHandle : THandle) : dword; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SuspendThread';
 function  WinResumeThread  (threadHandle : THandle) : dword; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'ResumeThread';
+function  WinCloseHandle  (threadHandle : THandle) : dword; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'CloseHandle';
 function  TerminateThread  (threadHandle : THandle; var exitCode : dword) : boolean; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'TerminateThread';
 function  WaitForSingleObject (hHandle : THandle;Milliseconds: dword): dword; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'WaitForSingleObject';
 function  WinThreadSetPriority (threadHandle : THandle; Prio: longint): boolean; {$ifdef wince}cdecl{$else}stdcall{$endif};external KernelDLL name 'SetThreadPriority';
@@ -302,6 +303,11 @@ CONST
         SysKillThread := 0;
     end;
 
+    function  SysCloseThread (threadHandle : TThreadID) : dword;
+    begin
+      SysCloseThread:=winCloseHandle(threadHandle);
+    end;
+
     function  SysWaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;
     begin
       if timeoutMs = 0 then dec (timeoutMs);  // $ffffffff is INFINITE
@@ -461,6 +467,7 @@ begin
     ResumeThread           :=@SysResumeThread;
     KillThread             :=@SysKillThread;
     ThreadSwitch           :=@SysThreadSwitch;
+    CloseThread		   :=@SysCloseThread;
     WaitForThreadTerminate :=@SysWaitForThreadTerminate;
     ThreadSetPriority      :=@SysThreadSetPriority;
     ThreadGetPriority      :=@SysThreadGetPriority;

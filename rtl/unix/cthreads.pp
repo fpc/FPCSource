@@ -369,6 +369,10 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
       CKillThread := pthread_cancel(pthread_t(threadHandle));
     end;
 
+  function CCloseThread (threadHandle : TThreadID) : dword;
+    begin
+      result:=0;
+    end;
 
   function  CWaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;  {0=no timeout}
     var
@@ -944,6 +948,7 @@ begin
     ResumeThread           :=@CResumeThread;
     KillThread             :=@CKillThread;
     ThreadSwitch           :=@CThreadSwitch;
+    CloseThread	           :=@CCloseThread;
     WaitForThreadTerminate :=@CWaitForThreadTerminate;
     ThreadSetPriority      :=@CThreadSetPriority;
     ThreadGetPriority      :=@CThreadGetPriority;

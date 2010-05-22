@@ -62,6 +62,7 @@ type
     SuspendThread          : TThreadHandler;
     ResumeThread           : TThreadHandler;
     KillThread             : TThreadHandler;
+    CloseThread            : TThreadHandler;
     ThreadSwitch           : TThreadSwitchHandler;
     WaitForThreadTerminate : TWaitForThreadTerminateHandler;
     ThreadSetPriority      : TThreadSetPriorityHandler;
@@ -133,6 +134,7 @@ procedure EndThread;
 procedure FlushThread;
 function  SuspendThread (threadHandle : TThreadID) : dword;
 function  ResumeThread  (threadHandle : TThreadID) : dword;
+function  CloseThread   (threadHandle : TThreadID) : dword;
 procedure ThreadSwitch;                                                                {give time to other threads}
 function  KillThread (threadHandle : TThreadID) : dword;
 function  WaitForThreadTerminate (threadHandle : TThreadID; TimeoutMs : longint) : dword;  {0=no timeout}
