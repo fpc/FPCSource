@@ -174,7 +174,7 @@ begin
   vp := 1;
   Result := '';
   for vp := 1 to Length(Src) do
-    Result += UnicodeToUTF8(Src[vp]);
+    Result := Result + UnicodeToUTF8(Src[vp]);
 end;
 
 function UTF8ToUCS32(const UTF8Char:TUTF8Char):TUCS32Char;
@@ -223,10 +223,10 @@ begin
   SetLength(Result, Length(Src));
   while lp <= Length(Src) do
   begin
-    vp += 1;
+    vp := vp + 1;
     c := LCharOf(Src, lp);
     Result[vp] := WideChar(UTF8ToUCS16(c));
-    lp += Length(c);
+    lp := lp + Length(c);
   end;
   SetLength(Result, vp);
 end;
