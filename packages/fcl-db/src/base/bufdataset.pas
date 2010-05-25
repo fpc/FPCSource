@@ -398,7 +398,7 @@ type
     procedure SetMaxIndexesCount(const AValue: Integer);
     procedure SetPacketRecords(aValue : integer);
     function  IntAllocRecordBuffer: PChar;
-    procedure DoFilterRecord(var Acceptable: Boolean);
+    procedure DoFilterRecord(out Acceptable: Boolean);
     procedure ParseFilter(const AFilter: string);
     procedure IntLoadFielddefsFromFile;
     procedure IntLoadRecordsFromFile;
@@ -2700,7 +2700,7 @@ begin
     FMaxIndexesCount := FIndexesCount;
 end;
 
-procedure TCustomBufDataset.DoFilterRecord(var Acceptable: Boolean);
+procedure TCustomBufDataset.DoFilterRecord(out Acceptable: Boolean);
 begin
   Acceptable := true;
   // check user filter
@@ -2839,7 +2839,7 @@ var CurrLinkItem    : PBufRecLinkItem;
     FieldNr         : Integer;
     StoreDSState    : TDataSetState;
     FilterBuffer    : PChar;
-
+    FiltAcceptable  : boolean;
 
 begin
   Result := False;
@@ -2871,21 +2871,35 @@ begin
   CurrLinkItem := (FCurrentIndex as TDoubleLinkedBufIndex).FFirstRecBuf;
   FilterBuffer:=IntAllocRecordBuffer;
   move((FCurrentIndex as TDoubleLinkedBufIndex).FLastRecBuf^,FilterBuffer^,FRecordsize+sizeof(TBufRecLinkItem)*FMaxIndexesCount);
-  RestoreState(StoreDSState);
 
   // Iterate through the records until a match is found
   while (CurrLinkItem <> (FCurrentIndex as TDoubleLinkedBufIndex).FLastRecBuf) do
     begin
     if (IndexCompareRecords(FilterBuffer,CurrLinkItem,DBCompareStruct) = 0) then
       begin
-      Result := True;
-      break;
+      if Filtered then
+        begin
+        FFilterBuffer:=pointer(CurrLinkItem)+(sizeof(TBufRecLinkItem)*MaxIndexesCount);
+        // The dataset-state is still dsFilter at this point, so we don't have to set it.
+        DoFilterRecord(FiltAcceptable);
+        if FiltAcceptable then
+          begin
+          Result := True;
+          break;
+          end;
+        end
+      else
+        begin
+        Result := True;
+        break;
+        end;
       end;
     CurrLinkItem := CurrLinkItem[(FCurrentIndex as TDoubleLinkedBufIndex).IndNr].next;
     if CurrLinkItem = (FCurrentIndex as TDoubleLinkedBufIndex).FLastRecBuf then
       getnextpacket;
     end;
-    
+
+  RestoreState(StoreDSState);
   FreeRecordBuffer(FilterBuffer);
 
   // If a match is found, jump to the found record
