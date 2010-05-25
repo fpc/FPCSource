@@ -80,6 +80,7 @@ Type
   Private
     FAdministrator: String;
     FAllowDefaultModule: Boolean;
+    FApplicationURL: String;
     FEmail: String;
     FModuleVar: String;
     FOnGetModule: TGetModuleEvent;
@@ -95,6 +96,8 @@ Type
     function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; virtual; abstract;
     procedure EndRequest(ARequest : TRequest;AResponse : TResponse); virtual;
     function FindModule(ModuleClass : TCustomHTTPModuleClass): TCustomHTTPModule;
+    Procedure SetBaseURL(AModule : TCustomHTTPModule; Const AModuleName : String; ARequest : TRequest); virtual;
+    function GetApplicationURL(ARequest : TRequest): String; virtual;
     Procedure DoRun; override;
     procedure ShowRequestException(R: TResponse; E: Exception); virtual;
     Function GetEmail : String; virtual;
@@ -111,6 +114,7 @@ Type
     Property HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
     Property RedirectOnError : boolean Read FRedirectOnError Write FRedirectOnError;
     Property RedirectOnErrorURL : string Read FRedirectOnErrorURL Write FRedirectOnErrorURL;
+    Property ApplicationURL : String Read FApplicationURL Write FApplicationURL;
     Property Request : TRequest read FRequest;
     Property AllowDefaultModule : Boolean Read FAllowDefaultModule Write FAllowDefaultModule;
     Property ModuleVariable : String Read FModuleVar Write FModuleVar;
@@ -253,20 +257,15 @@ begin
     If (MC=Nil) then
       begin
       MN:=GetModuleName(ARequest);
-      If (MN='') and Not AllowDefaultModule then
-        Raise EFPWebError.Create(SErrNoModuleNameForRequest);
       MI:=ModuleFactory.FindModule(MN);
-      If (MI=Nil) and (ModuleFactory.Count=1) then
-        MI:=ModuleFactory[0];
       if (MI=Nil) then
-        begin
         Raise EFPWebError.CreateFmt(SErrNoModuleForRequest,[MN]);
-        end;
       MC:=MI.ModuleClass;
       end;
     M:=FindModule(MC); // Check if a module exists already
     If (M=Nil) then
       M:=MC.Create(Self);
+    SetBaseURL(M,MN,ARequest);
     if M.Kind=wkOneShot then
       begin
       try
@@ -302,19 +301,43 @@ begin
   Result := FEventLog;
 end;
 
+function TCustomWebApplication.GetApplicationURL(ARequest: TRequest): String;
+begin
+  Result:=FApplicationURL;
+  If (Result='') then
+    Result:=ARequest.ScriptName;
+end;
+
 function TCustomWebApplication.GetModuleName(Arequest: TRequest): string;
+
+   Function GetDefaultModuleName : String;
+
+   begin
+      If (ModuleFactory.Count=1) then
+        Result:=ModuleFactory[0].ModuleName;
+   end;
+
 var
   S : String;
+  I : Integer;
+
 begin
   If (FModuleVar<>'') then
     Result:=ARequest.QueryFields.Values[FModuleVar];//Module name from query parameter using the FModuleVar as parameter name (default is 'Module')
   If (Result='') then
     begin
     S:=ARequest.PathInfo;
-    Delete(S,1,1);
-    if (Pos('/',S) <= 0) and AllowDefaultModule then
-      Exit;//There is only 1 '/' in ARequest.PathInfo -> only ActionName is there -> use default module
-    Result:=ARequest.GetNextPathInfo;
+    If (Length(S)>0) and (S[1]='/') then
+      Delete(S,1,1);
+    I:=Pos('/',S);
+    if (I>0) then
+      Result:=ARequest.GetNextPathInfo;
+    end;
+  If (Result='') then
+    begin
+    if Not AllowDefaultModule then
+      Raise EFPWebError.Create(SErrNoModuleNameForRequest);
+    Result:=GetDefaultModuleName
     end;
 end;
 
@@ -335,6 +358,25 @@ begin
     Result:=Components[i] as TCustomHTTPModule
   else
     Result:=Nil;
+end;
+
+procedure TCustomWebApplication.SetBaseURL(AModule: TCustomHTTPModule;
+  Const AModuleName : String; ARequest: TRequest);
+
+Var
+  S,P : String;
+
+begin
+  S:=IncludeHTTPPathDelimiter(GetApplicationURL(ARequest));
+  P:=IncludeHTTPPathDelimiter(ARequest.ProcessedPathinfo);
+  If (P='') or (P='/') then
+    P:=IncludeHTTPPathDelimiter(AModuleName);
+  if (Length(P)>0) and (P[1]='/') then
+    Delete(P,1,1);
+{$ifdef CGIDEBUG}
+  senddebug(Format('SetBaseURL : "%s" "%s"',[S,P]));
+{$endif CGIDEBUG}
+  AModule.BaseURL:=S+P;
 end;
 
 procedure TCustomWebApplication.DoHandleRequest(ARequest: TRequest; AResponse: TResponse);

@@ -83,6 +83,7 @@ Type
     Procedure DoRun; override;
     function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
     Function AllowRequest(P : PRequest_Rec) : Boolean; virtual;
+    function GetApplicationURL(ARequest : TRequest): String; override;
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
@@ -245,6 +246,14 @@ begin
   Result:=CompareText(HN,FHandlerName)=0;
   If Assigned(FBeforeRequest) then
     FBeforeRequest(Self,HN,Result);
+end;
+
+function TCustomApacheApplication.GetApplicationURL(ARequest: TRequest
+  ): String;
+begin
+  Result:=inherited GetApplicationURL(ARequest);
+  If (Result='') then
+    Result:=BaseLocation;
 end;
 
 constructor TCustomApacheApplication.Create(AOwner: TComponent);
@@ -493,7 +502,7 @@ Constructor TApacheRequest.CreateReq(App : TCustomApacheApplication; ARequest : 
 begin
   FApache:=App;
   FRequest:=Arequest;
-  ReturnedPathInfo:=App.BaseLocation;
+  ProcessedPathInfo:=App.BaseLocation;
   Inherited Create;
   InitFromRequest;
 end;

@@ -267,7 +267,7 @@ type
     FHandleGetOnPost: Boolean;
     FURI: String;
     FFiles : TUploadedFiles;
-    FReturnedPathInfo : String;
+    FProcessedPathInfo : String;
     procedure ParseFirstHeaderLine(const line: String);override;
     function GetFirstHeaderLine: String;
   Protected
@@ -282,11 +282,11 @@ type
     Procedure InitRequestVars; virtual;
     Procedure InitPostVars; virtual;
     Procedure InitGetVars; virtual;
-    Property ReturnedPathInfo : String Read FReturnedPathInfo Write FReturnedPathInfo;
   public
     constructor Create; override;
     destructor destroy; override;
     Function  GetNextPathInfo : String;
+    Property  ProcessedPathInfo : String Read FProcessedPathInfo Write FProcessedPathInfo;
     Property  CommandLine : String Read FCommandLine;
     Property  Command : String read FCommand;
     Property  URI : String read FURI;                // Uniform Resource Identifier
@@ -377,6 +377,7 @@ type
 
 Function HTTPDecode(const AStr: String): String;
 Function HTTPEncode(const AStr: String): String;
+Function IncludeHTTPPathDelimiter(const AStr: String): String;
 
 implementation
 
@@ -501,6 +502,18 @@ begin
     Inc(S);
     end;
   SetLength(Result,R-PChar(Result));
+end;
+
+function IncludeHTTPPathDelimiter(const AStr: String): String;
+
+Var
+  l : Integer;
+
+begin
+  Result:=AStr;
+  L:=Length(Result);
+  If (L>0) and (Result[L]<>'/') then
+    Result:=Result+'/';
 end;
 
 
@@ -921,20 +934,19 @@ Var
   
 begin
   P:=PathInfo;
+{$ifdef CGIDEBUG}SendDebug(Format('Pathinfo: "%s" "%s"',[P,FProcessedPathInfo]));{$ENDIF}
   if (P <> '') and (P[length(P)] = '/') then
     Delete(P, length(P), 1);//last char is '/'
   If (P<>'') and (P[1]='/') then
     Delete(P,1,1);
+  Delete(P,1,Length(IncludeHTTPPathDelimiter(FProcessedPathInfo)));
+ {$ifdef CGIDEBUG}SendDebug(Format('Pathinfo: "%s" "%s"',[P,FProcessedPathInfo]));{$ENDIF}
   I:=Pos('/',P);
-  If (I>0) then
-  begin//only if there was a module name, otherwise only the action name is there
-    Delete(P,1,Length(FReturnedPathInfo));
-    I:=Pos('/',P);
-  end;
   If (I=0) then
     I:=Length(P)+1;
   Result:=Copy(P,1,I-1);
-  FReturnedPathInfo:=FReturnedPathInfo+'/'+Result;
+  FProcessedPathInfo:=IncludeHTTPPathDelimiter(FProcessedPathInfo)+Result;
+ {$ifdef CGIDEBUG}SendDebug(Format('Pathinfo: "%s" "%s" : %s',[P,FProcessedPathInfo,Result]));{$ENDIF}
 end;
 
 procedure TRequest.ParseFirstHeaderLine(const line: String);
@@ -1157,29 +1169,25 @@ begin
   SendMethodEnter('InitPostVars');
 {$endif}
   CL:=ContentLength;
-  M:=TCapacityStream.Create;
-  Try
-    if CL<>0 then
-      begin
-      M.Capacity:=Cl;
-      M.WriteBuffer(Content[1], Cl);
-      end;
-    M.Position:=0;
-    CT:=ContentType;
-    if Pos('MULTIPART/FORM-DATA',Uppercase(CT))<>0 then
-      ProcessMultiPart(M,CT, ContentFields)
-    else if Pos('APPLICATION/X-WWW-FORM-URLENCODED',Uppercase(CT))<>0 then
-      ProcessUrlEncoded(M, ContentFields)
-    else if CL<>0 then
-      begin
-{$ifdef CGIDEBUG}
-      SendDebug('InitPostVars: unsupported content type:'+CT);
-{$endif}
-      Raise Exception.CreateFmt(SErrUnsupportedContentType,[CT]);
-      end;
-  finally
-    M.Free;
-  end;
+  if CL<>0 then
+    begin
+    M:=TCapacityStream.Create;
+    Try
+      if CL<>0 then
+        begin
+        M.Capacity:=Cl;
+        M.WriteBuffer(Content[1], Cl);
+        end;
+      M.Position:=0;
+      CT:=ContentType;
+      if Pos('MULTIPART/FORM-DATA',Uppercase(CT))<>0 then
+        ProcessMultiPart(M,CT, ContentFields)
+      else if Pos('APPLICATION/X-WWW-FORM-URLENCODED',Uppercase(CT))<>0 then
+        ProcessUrlEncoded(M, ContentFields)
+    finally
+     M.Free;
+    end;
+    end;
 {$ifdef CGIDEBUG}
   SendMethodExit('InitPostVars');
 {$endif}

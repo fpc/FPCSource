@@ -20,13 +20,13 @@ interface
 uses
   Classes, SysUtils, httpdefs;
 
-procedure DumpRequest (ARequest : TRequest; Dump : TStrings);
+procedure DumpRequest (ARequest : TRequest; Dump : TStrings; Environment : Boolean = False);
 
 implementation
 
 
 
-procedure DumpRequest (ARequest : TRequest; Dump : TStrings);
+procedure DumpRequest (ARequest : TRequest; Dump : TStrings; Environment : Boolean = False);
 
   Procedure AddNV(Const N,V : String);
   
@@ -35,7 +35,7 @@ procedure DumpRequest (ARequest : TRequest; Dump : TStrings);
   end;
 
 Var
-  I   : integer;
+  I,J   : integer;
   N,V : String;
 begin
   With ARequest, Dump do
@@ -85,6 +85,23 @@ begin
         begin
         QueryFields.GetNameValue(i,N,V);
         AddNV(N,V);
+        end;
+      Add('</TABLE><P>');
+      end;
+    If Environment then
+      begin
+      Add('<H1>Environment variables: ('+IntToStr(GetEnvironmentVariableCount)+') </H1>');
+      Add('<TABLE BORDER="1"><TR><TD>Name</TD><TD>Value</TD></TR>');
+      For I:=1 to GetEnvironmentVariableCount do
+        begin
+        V:=GetEnvironmentString(i);
+        j:=Pos('=',V);
+        If (J>0) then
+          begin
+          N:=Copy(V,1,J-1);
+          system.Delete(V,1,J);
+          AddNV(N,V);
+          end;
         end;
       Add('</TABLE><P>');
       end;
