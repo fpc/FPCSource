@@ -128,15 +128,8 @@ implementation
         if left.location.loc in [LOC_FLAGS,LOC_JUMP,LOC_SUBSETREG,LOC_CSUBSETREG,LOC_SUBSETREF,LOC_CSUBSETREF] then
           location_force_reg(current_asmdata.CurrAsmList,left.location,def_cgsize(left.resultdef),false);
 
-        { Handle Floating point types differently
-
-          This doesn't depend on emulator settings, emulator settings should
-          be handled by cpupara }
-
-        if left.resultdef.typ=floatdef then
-          gen_loadfpu_loc_cgpara(current_asmdata.CurrAsmList,left.location,tempcgpara,left.resultdef.size)
-        else
-          gen_load_locnonfpu_cgpara(current_asmdata.CurrAsmList,left.location,tempcgpara,is_64bit(left.resultdef))
+        { load the parameter's tlocation into its cgpara }
+        gen_load_loc_cgpara(current_asmdata.CurrAsmList,left.resultdef,left.location,tempcgpara)
       end;
 
 
