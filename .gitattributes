@@ -9495,6 +9495,7 @@ tests/webtbs/tw15391.pp svneol=native#text/plain
 tests/webtbs/tw15446.pp svneol=native#text/plain
 tests/webtbs/tw15453a.pp svneol=native#text/plain
 tests/webtbs/tw15467.pp svneol=native#text/pascal
+tests/webtbs/tw15599.pp svneol=native#text/plain
 tests/webtbs/tw1567.pp svneol=native#text/plain
 tests/webtbs/tw15690.pp svneol=native#text/plain
 tests/webtbs/tw15693.pp svneol=native#text/plain

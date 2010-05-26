@@ -1142,7 +1142,7 @@ var
     while (SendBytes>0) do
      begin
        LeftX:=WindMaxX-CurrX+1;
-       if (SendBytes>LeftX) then
+       if (SendBytes>=LeftX) then
         begin
           ttyWrite(Copy(s,i-SendBytes,LeftX));
           dec(SendBytes,LeftX);
