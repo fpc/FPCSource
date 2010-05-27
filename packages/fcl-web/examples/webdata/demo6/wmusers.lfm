@@ -1,0 +1,131 @@
+object FPWebProviderDataModule1: TFPWebProviderDataModule1
+  OnCreate = DataModuleCreate
+  OldCreateOrder = False
+  InputAdaptor = ExtJSJSonWebdataInputAdaptor1
+  ContentProducer = ExtJSJSONDataFormatter1
+  OnGetContentProducer = DataModuleGetContentProducer
+  OnGetInputAdaptor = DataModuleGetInputAdaptor
+  Height = 300
+  HorizontalOffset = 635
+  VerticalOffset = 230
+  Width = 400
+  object ExtJSJSonWebdataInputAdaptor1: TExtJSJSonWebdataInputAdaptor
+    left = 232
+    top = 152
+  end
+  object ExtJSXMLWebdataInputAdaptor1: TExtJSXMLWebdataInputAdaptor
+    left = 272
+    top = 152
+  end
+  object ExtJSXMLDataFormatter1: TExtJSXMLDataFormatter
+    AllowPageSize = False
+    left = 272
+    top = 192
+  end
+  object ExtJSJSONDataFormatter1: TExtJSJSONDataFormatter
+    AllowPageSize = False
+    left = 232
+    top = 192
+  end
+  object ANAME: TSQLDBWebDataProvider
+    SelectSQL.Strings = (
+      'SELECT * FROM FPCUSERS'
+    )
+    UpdateSQL.Strings = (
+      'UPDATE FPCUSERS SET'
+      '  NAME=:NAME,'
+      '  LOGIN=:LOGIN,'
+      '  EMAIL=:EMAIL,'
+      '  LASTLOGIN=:LASTLOGIN'
+      'WHERE'
+      '  (ID=:ID)'
+    )
+    DeleteSQL.Strings = (
+      'DELETE FROM FPCUSERS WHERE (ID=:ID)'
+    )
+    InsertSQL.Strings = (
+      'INSERT INTO FPCUSERS '
+      '(ID, LOGIN, NAME, EMAIL, LASTLOGIN)'
+      'VALUES'
+      '(:ID, :LOGIN, :NAME, :EMAIL, :LASTLOGIN)'
+    )
+    Connection = IBConnection1
+    IDFieldName = 'ID'
+    OnGetNewID = ANAMEGetNewID
+    left = 113
+    top = 120
+  end
+  object IBConnection1: TIBConnection
+    Connected = False
+    LoginPrompt = False
+    DatabaseName = '/wisa/firebird/fpcusers.fb'
+    KeepConnection = False
+    Password = 'SysteemD'
+    Transaction = SQLTransaction1
+    UserName = 'WISASOFT'
+    left = 72
+    top = 120
+  end
+  object QGetID: TSQLQuery
+    IndexName = 'DEFAULT_ORDER'
+    AutoCalcFields = False
+    Database = IBConnection1
+    Transaction = SQLTransaction1
+    ReadOnly = False
+    SQL.Strings = (
+      'SELECT GEN_ID(GEN_FPCUSERS,1) AS THEID  FROM RDB$DATABASE'
+    )
+    Params = <>
+    left = 155
+    top = 63
+  end
+  object SQLTransaction1: TSQLTransaction
+    Active = False
+    Action = caNone
+    Database = IBConnection1
+    left = 74
+    top = 64
+  end
+  object SQLQuery1: TSQLQuery
+    IndexName = 'DEFAULT_ORDER'
+    AutoCalcFields = False
+    Database = IBConnection1
+    Transaction = SQLTransaction1
+    ReadOnly = False
+    SQL.Strings = (
+      'INSERT INTO FPCUSERS'
+      '(ID, LOGIN, NAME, EMAIL, LASTLOGIN)'
+      'VALUES'
+      '(:ID, :LOGIN, :NAME, :EMAIL, :LASTLOGIN)'
+      ''
+    )
+    Params = <    
+      item
+        DataType = ftUnknown
+        Name = 'ID'
+        ParamType = ptUnknown
+      end    
+      item
+        DataType = ftUnknown
+        Name = 'LOGIN'
+        ParamType = ptUnknown
+      end    
+      item
+        DataType = ftUnknown
+        Name = 'NAME'
+        ParamType = ptUnknown
+      end    
+      item
+        DataType = ftUnknown
+        Name = 'EMAIL'
+        ParamType = ptUnknown
+      end    
+      item
+        DataType = ftUnknown
+        Name = 'LASTLOGIN'
+        ParamType = ptUnknown
+      end>
+    left = 174
+    top = 111
+  end
+end
