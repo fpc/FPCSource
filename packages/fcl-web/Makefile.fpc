@@ -7,10 +7,10 @@ name=fcl-web
 version=2.5.1
 
 [target]
-dirs=src/base
+dirs=src/base src/webdata
 
 [require]
-packages=fcl-base fcl-xml fcl-db fcl-json
+packages=fcl-base fcl-xml fcl-db fcl-json fcl-net
 
 [compiler]
 options=-S2h
