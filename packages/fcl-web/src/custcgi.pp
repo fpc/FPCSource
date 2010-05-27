@@ -71,6 +71,8 @@ Type
   protected
     Function GetEmail : String; override;
     Function GetAdministrator : String; override;
+    Function CreateResponse(AOutput : TStream) : TCGIResponse; virtual;
+    Function CreateRequest : TCGIRequest; virtual;
     function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
     procedure EndRequest(ARequest : TRequest;AResponse : TResponse); override;
   Public
@@ -184,13 +186,23 @@ begin
     Result:=SWebMaster;
 end;
 
+function TCustomCGIApplication.CreateResponse(AOutput : TStream): TCGIResponse;
+begin
+  TCGIResponse.CreateCGI(Self,AOutput);
+end;
+
+function TCustomCGIApplication.CreateRequest: TCGIRequest;
+begin
+  Result:=TCGIRequest.CreateCGI(Self);
+end;
+
 function TCustomCGIApplication.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
 begin
-  FRequest:=TCGIRequest.CreateCGI(Self);
+  FRequest:=CreateRequest;
   FRequest.InitFromEnvironment;
   FRequest.InitRequestVars;
   FOutput:=TIOStream.Create(iosOutput);
-  FResponse:=TCGIResponse.CreateCGI(Self,Self.FOutput);
+  FResponse:=CreateResponse(FOutput);
   ARequest:=FRequest;
   AResponse:=FResponse;
   Result := True;
