@@ -2241,6 +2241,8 @@ packages/fcl-web/examples/webdata/demos.txt svneol=native#text/plain
 packages/fcl-web/examples/webdata/users.dbf -text
 packages/fcl-web/fpmake.pp svneol=native#text/plain
 packages/fcl-web/fptemplate.txt svneol=native#text/plain
+packages/fcl-web/src/base/Makefile svneol=native#text/plain
+packages/fcl-web/src/base/Makefile.fpc svneol=native#text/plain
 packages/fcl-web/src/base/README.txt svneol=native#text/plain
 packages/fcl-web/src/base/cgiapp.pp svneol=native#text/plain
 packages/fcl-web/src/base/custcgi.pp svneol=native#text/plain
