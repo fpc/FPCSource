@@ -57,6 +57,7 @@ type
     Constructor Create; virtual;
     Class function JSONType: TJSONType; virtual;
     Procedure Clear;  virtual; Abstract;
+    Function Clone : TJSONData; virtual; abstract;
     property Count: Integer read GetCount;
     property Items[Index: Integer]: TJSONData read GetItem write SetItem;
     property Value: variant read GetValue write SetValue;
@@ -102,6 +103,7 @@ type
     Constructor Create(AValue : TJSONFloat); reintroduce;
     class function NumberType : TJSONNumberType; override;
     Procedure Clear;  override;
+    Function Clone : TJSONData; override;
   end;
   
   { TJSONIntegerNumber }
@@ -127,6 +129,7 @@ type
     Constructor Create(AValue : Integer); reintroduce;
     class function NumberType : TJSONNumberType; override;
     Procedure Clear;  override;
+    Function Clone : TJSONData; override;
   end;
 
   { TJSONInt64Number }
@@ -152,6 +155,7 @@ type
     Constructor Create(AValue : Int64); reintroduce;
     class function NumberType : TJSONNumberType; override;
     Procedure Clear;  override;
+    Function Clone : TJSONData; override;
   end;
 
   { TJSONString }
@@ -177,6 +181,7 @@ type
     Constructor Create(AValue : TJSONStringType); reintroduce;
     class function JSONType: TJSONType; override;
     Procedure Clear;  override;
+    Function Clone : TJSONData; override;
   end;
 
   { TJSONboolean }
@@ -202,6 +207,7 @@ type
     Constructor Create(AValue : Boolean); reintroduce;
     class function JSONType: TJSONType; override;
     Procedure Clear;  override;
+    Function Clone : TJSONData; override;
   end;
 
   { TJSONnull }
@@ -226,6 +232,7 @@ type
   public
     class function JSONType: TJSONType; override;
     Procedure Clear;  override;
+    Function Clone : TJSONData; override;
   end;
 
   TJSONArrayIterator = procedure(Item: TJSONData; Data: TObject; var Continue: Boolean) of object;
@@ -275,6 +282,7 @@ type
     Constructor Create(const Elements : Array of Const); overload;
     Destructor Destroy; override;
     class function JSONType: TJSONType; override;
+    Function Clone : TJSONData; override;
     // Examine
     procedure Iterate(Iterator : TJSONArrayIterator; Data: TObject);
     function IndexOf(obj: TJSONData): Integer;
@@ -354,6 +362,7 @@ type
     Constructor Create(const Elements : Array of Const); overload;
     destructor Destroy; override;
     class function JSONType: TJSONType; override;
+    Function Clone : TJSONData; override;
     // Examine
     procedure Iterate(Iterator : TJSONObjectIterator; Data: TObject);
     function IndexOf(Item: TJSONData): Integer;
@@ -370,6 +379,7 @@ type
     function Add(const AName: TJSONStringType; AValue : TJSONArray): Integer; overload;
     procedure Delete(Index : Integer);
     procedure Remove(Item : TJSONData);
+    Function Extract(Index : Integer) : TJSONData;
 
     // Easy access properties.
     property Names[Index : Integer] : TJSONStringType read GetNameOf;
@@ -551,6 +561,12 @@ begin
   FValue:='';
 end;
 
+function TJSONString.Clone: TJSONData;
+
+begin
+  Result:=TJSONString.Create(Self.FValue);
+end;
+
 function TJSONstring.GetValue: Variant;
 begin
   Result:=FValue;
@@ -647,6 +663,11 @@ begin
   FValue:=False;
 end;
 
+function TJSONBoolean.Clone: TJSONData;
+begin
+  Result:=TJSONBoolean.Create(Self.Fvalue);
+end;
+
 
 procedure TJSONboolean.SetValue(const AValue: Variant);
 begin
@@ -696,9 +717,9 @@ end;
 function TJSONboolean.GetAsJSON: TJSONStringType;
 begin
   If FValue then
-    Result:='True'
+    Result:='true'
   else
-    Result:='False';
+    Result:='false';
 end;
 
 function TJSONboolean.GetAsString: TJSONStringType;
@@ -806,6 +827,12 @@ procedure TJSONNull.Clear;
 begin
   // Do nothing
 end;
+
+function TJSONNull.Clone: TJSONData;
+begin
+  Result:=TJSONNull.Create;
+end;
+
 {$warnings on}
 
 
@@ -898,6 +925,12 @@ begin
   FValue:=0;
 end;
 
+function TJSONFloatNumber.Clone: TJSONData;
+
+begin
+  Result:=TJSONFloatNumber.Create(Self.FValue);
+end;
+
 { TJSONIntegerNumber }
 
 function TJSONIntegerNumber.GetAsBoolean: Boolean;
@@ -980,6 +1013,12 @@ begin
   FValue:=0;
 end;
 
+function TJSONIntegerNumber.Clone: TJSONData;
+
+begin
+  Result:=TJSONIntegerNumber.Create(Self.FValue);
+end;
+
 { TJSONInt64Number }
 
 function TJSONInt64Number.GetAsInt64: Int64;
@@ -1060,6 +1099,12 @@ end;
 procedure TJSONInt64Number.Clear;
 begin
   FValue:=0;
+end;
+
+function TJSONInt64Number.Clone: TJSONData;
+
+begin
+  Result:=TJSONInt64Number.Create(Self.FValue);
 end;
 
 { TJSONArray }
@@ -1308,6 +1353,24 @@ end;
 class function TJSONArray.JSONType: TJSONType;
 begin
   Result:=jtArray;
+end;
+
+function TJSONArray.Clone: TJSONData;
+
+Var
+  A : TJSONArray;
+  I : Integer;
+
+begin
+  A:=TJSONArray.Create;
+  try
+    For I:=0 to Count-1 do
+      A.Add(Self.Items[I].Clone);
+    Result:=A;
+  except
+    A.Free;
+    Raise;
+  end;
 end;
 
 procedure TJSONArray.Iterate(Iterator: TJSONArrayIterator; Data: TObject);
@@ -1664,6 +1727,25 @@ begin
   Result:=jtObject;
 end;
 
+function TJSONObject.Clone: TJSONData;
+
+Var
+  O : TJSONObject;
+  I: Integer;
+  N : TJSONStringType;
+
+begin
+  O:=TJSONObject.Create;
+  try
+    For I:=0 to Count-1 do
+      O.Add(Self.Names[I],Self.Items[I].Clone);
+    Result:=O;
+  except
+    FreeAndNil(O);
+    Raise;
+  end;
+end;
+
 procedure TJSONObject.Iterate(Iterator: TJSONObjectIterator; Data: TObject);
 
 Var
@@ -1746,6 +1828,12 @@ end;
 procedure TJSONObject.Remove(Item: TJSONData);
 begin
   FHash.Remove(Item);
+end;
+
+function TJSONObject.Extract(Index: Integer): TJSONData;
+begin
+  Result:=Items[Index];
+  FHash.Extract(Result);
 end;
 
 end.

@@ -201,8 +201,8 @@ Var
 begin
   DoTestArray('[]',0);
   DoTestArray('[Null]',1);
-  DoTestArray('[True]',1);
-  DoTestArray('[False]',1);
+  DoTestArray('[true]',1);
+  DoTestArray('[false]',1);
   DoTestArray('[1]',1);
   DoTestArray('[1, 2]',2);
   DoTestArray('[1, 2, 3]',3);
@@ -218,8 +218,8 @@ begin
   DoTestArray('["A string"]',1);
   DoTestArray('["A string", "Another string"]',2);
   DoTestArray('["A string", "Another string", "Yet another string"]',3);
-  DoTestArray('[Null, False]',2);
-  DoTestArray('[True, False]',2);
+  DoTestArray('[Null, false]',2);
+  DoTestArray('[true, false]',2);
   DoTestArray('[Null, 1]',2);
   DoTestArray('[1, "A string"]',2);
   DoTestArray('[1, []]',2);
