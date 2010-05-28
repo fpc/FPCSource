@@ -17,9 +17,11 @@ begin
     P.Directory:='fcl-web';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+    P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-db');
     P.Dependencies.Add('fcl-xml');
-    P.Dependencies.Add('fcl-base');
+    P.Dependencies.Add('fcl-json');
+    P.Dependencies.Add('fcl-net');
     P.Dependencies.Add('fcl-process');
     P.Dependencies.Add('fastcgi');
     P.Dependencies.Add('httpd22');
@@ -31,7 +33,8 @@ begin
     P.Description := 'Web(app) related parts of Free Component Libraries (FCL), FPC''s OOP library.';
     P.NeedLibC:= false;
 
-    P.SourcePath.Add('src');
+    P.SourcePath.Add('src/base');
+    P.SourcePath.Add('src/webdata');
 
     T:=P.Targets.AddUnit('cgiapp.pp');
     T.ResourceStrings:=true;
@@ -116,7 +119,46 @@ begin
         Dependencies.AddUnit('custweb');
         ResourceStrings:=true;
       end;
-
+    T:=P.Targets.AddUnit('fcgigate.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('httpdefs');
+      AddUnit('custcgi');
+      end;
+    T:=P.Targets.AddUnit('fpwebdata.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('httpdefs');
+      AddUnit('fphttp');
+      AddUnit('websession');
+      end;
+    T:=P.Targets.AddUnit('sqldbwebdata.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fpwebdata');
+      AddUnit('fphttp');
+      end;
+    T:=P.Targets.AddUnit('fpextjs.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fpwebdata');
+      AddUnit('httpdefs');
+      AddUnit('fphttp');
+      end;
+    T:=P.Targets.AddUnit('extjsxml.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fpwebdata');
+      AddUnit('httpdefs');
+      AddUnit('fpextjs');
+      end;
+    T:=P.Targets.AddUnit('extjsjson.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fpwebdata');
+      AddUnit('httpdefs');
+      AddUnit('fpextjs');
+      end;
 {$ifndef ALLPACKAGES}
     Run;
     end;
