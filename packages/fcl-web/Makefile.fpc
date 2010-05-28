@@ -22,7 +22,9 @@ fpcpackage=y
 fpcdir=../..
 
 [rules]
+.NOTPARALLEL:
 distclean: $(addsuffix _distclean,$(TARGET_DIRS)) fpc_distclean 
 clean: $(addsuffix _clean,$(TARGET_DIRS)) fpc_clean
 cleanall: $(addsuffix _cleanall,$(TARGET_DIRS)) fpc_cleanall
+
 
