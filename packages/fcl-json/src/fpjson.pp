@@ -795,7 +795,7 @@ end;
 
 function TJSONnull.GetAsJSON: TJSONStringType;
 begin
-  Result:='Null';
+  Result:='null';
 end;
 
 function TJSONnull.GetAsString: TJSONStringType;

@@ -461,7 +461,7 @@ begin
   try
     TestJSONType(J,jtNull);
     TestItemCount(J,0);
-    TestJSON(J,'Null');
+    TestJSON(J,'null');
     TestIsNull(J,True);
     TestAsBoolean(J,False,True);
     TestAsInteger(J,0,true);
@@ -1292,7 +1292,7 @@ begin
     AssertEquals('J[0] is TJSONNull',TJSONNull,J[0].ClassType);
     AssertEquals('J.Nulls[0]=True',True,J.Nulls[0]);
     TestIsNull(J[0],true);
-    TestJSON(J,'[Null]');
+    TestJSON(J,'[null]');
   finally
     FreeAndNil(J);
   end;
@@ -1621,7 +1621,7 @@ begin
     AssertEquals('J[''a''] is TJSONNull',TJSONNull,J[A].ClassType);
     AssertEquals('J.Nulls[''a'']=True',True,J.Nulls[A]);
     TestIsNull(J[a],true);
-    TestJSON(J,'{ "'+a+'" : Null }');
+    TestJSON(J,'{ "'+a+'" : null }');
   finally
     FreeAndNil(J);
   end;
