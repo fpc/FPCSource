@@ -7,7 +7,6 @@ name=fcl-net
 version=2.5.1
 
 [target]
-units=servlets
 units_linux=netdb resolve ssockets fpsock 
 units_freebsd=netdb resolve ssockets fpsock cnetdb
 units_netbsd=netdb resolve ssockets fpsock 
@@ -24,7 +23,7 @@ units_win64=resolve ssockets
 units_wince=resolve ssockets 
 
 [require]
-packages=fcl-base fcl-xml fcl-passrc
+packages=fcl-base fcl-xml fcl-passrc fcl-async
 
 [compiler]
 options=-S2h
