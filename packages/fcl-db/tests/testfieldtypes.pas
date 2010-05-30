@@ -88,6 +88,7 @@ type
     procedure TestAggregates;
 
     procedure TestStringLargerThen8192;
+    procedure TestQueryAfterReconnect; // bug 16438
 
     // SchemaType tests
     procedure TestTableNames;
@@ -928,6 +929,21 @@ procedure TTestFieldTypes.RunTest;
 begin
 //  if (SQLDbType in TSQLDBTypes) then
     inherited RunTest;
+end;
+
+procedure TTestFieldTypes.TestQueryAfterReconnect;
+var DS: TDataset;
+begin
+  ds := DBConnector.GetNDataset(true,5);
+  with ds do
+    begin
+    open;
+    close;
+    TSQLDBConnector(DBConnector).Connection.Close;
+    TSQLDBConnector(DBConnector).Connection.Open;
+    open;
+    close;
+    end;
 end;
 
 procedure TTestFieldTypes.TestLocateNull;
