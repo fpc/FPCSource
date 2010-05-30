@@ -216,22 +216,18 @@ implementation
        if codegenerror then
           exit;
        { push erroraddr }
-       paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc4);
        cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,NR_FRAME_POINTER_REG,paraloc4);
        { push lineno }
-       paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc3);
        cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_INT,current_filepos.line,paraloc3);
        { push filename }
-       paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
        cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,hp2.location.reference,paraloc2);
        { push msg }
-       paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
        cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,hp3.location.reference,paraloc1);
        { call }
-       paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
-       paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
-       paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc3);
-       paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc4);
+       paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+       paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
+       paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc3);
+       paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc4);
        cg.allocallcpuregisters(current_asmdata.CurrAsmList);
        cg.a_call_name(current_asmdata.CurrAsmList,'FPC_ASSERT',false);
        cg.deallocallcpuregisters(current_asmdata.CurrAsmList);

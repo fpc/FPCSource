@@ -289,17 +289,29 @@ unit cgcpu;
            { this messes up stack alignment }
            (target_info.system <> system_i386_darwin) then
           begin
-            if (current_procinfo.procdef.funcretloc[calleeside].loc<>LOC_VOID) and
-               (current_procinfo.procdef.funcretloc[calleeside].loc=LOC_REGISTER) then
-              list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
+            if assigned(current_procinfo.procdef.funcretloc[calleeside].location) and
+               (current_procinfo.procdef.funcretloc[calleeside].location^.loc=LOC_REGISTER) then
+              begin
+                if (getsupreg(current_procinfo.procdef.funcretloc[calleeside].location^.register)=RS_EAX) then
+                  list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
+                else
+                  internalerror(2010053001);
+              end
             else
               list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EAX));
             list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EBX));
             list.concat(Taicpu.Op_reg(A_POP,S_L,NR_ECX));
 
-            if (current_procinfo.procdef.funcretloc[calleeside].loc=LOC_REGISTER) and
-               (current_procinfo.procdef.funcretloc[calleeside].size in [OS_64,OS_S64]) then
-              list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
+            if (current_procinfo.procdef.funcretloc[calleeside].size in [OS_64,OS_S64]) and
+               assigned(current_procinfo.procdef.funcretloc[calleeside].location) and
+               assigned(current_procinfo.procdef.funcretloc[calleeside].location^.next) and
+               (current_procinfo.procdef.funcretloc[calleeside].location^.next^.loc=LOC_REGISTER) then
+              begin
+                if (getsupreg(current_procinfo.procdef.funcretloc[calleeside].location^.next^.register)=RS_EDX) then
+                  list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
+                else
+                  internalerror(2010053002);
+              end
             else
               list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EDX));
 

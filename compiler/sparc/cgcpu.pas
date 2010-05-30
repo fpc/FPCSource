@@ -327,6 +327,7 @@ implementation
         Ref:TReference;
       begin
         paraloc.check_simple_location;
+        paramanager.alloccgpara(list,paraloc);
         case paraloc.location^.loc of
           LOC_REGISTER,LOC_CREGISTER:
             a_load_const_reg(list,size,a,paraloc.location^.register);
@@ -353,11 +354,12 @@ implementation
         tmpreg:TRegister;
       begin
         paraloc.check_simple_location;
+        paramanager.alloccgpara(list,paraloc);
         with paraloc.location^ do
           begin
             case loc of
               LOC_REGISTER,LOC_CREGISTER :
-                a_load_ref_reg(list,sz,sz,r,Register);
+                a_load_ref_reg(list,sz,paraloc.location^.size,r,Register);
               LOC_REFERENCE:
                 begin
                   { Code conventions need the parameters being allocated in %o6+92 }
@@ -392,6 +394,7 @@ implementation
         TmpReg:TRegister;
       begin
         paraloc.check_simple_location;
+        paramanager.alloccgpara(list,paraloc);
         with paraloc.location^ do
           begin
             case loc of
@@ -422,14 +425,17 @@ implementation
         hloc:=paraloc.location;
         while assigned(hloc) do
           begin
+            paramanager.allocparaloc(list,hloc);
             case hloc^.loc of
-              LOC_REGISTER :
+              LOC_REGISTER,LOC_CREGISTER :
                 a_load_ref_reg(list,hloc^.size,hloc^.size,href,hloc^.register);
               LOC_REFERENCE :
                 begin
                   reference_reset_base(href2,hloc^.reference.index,hloc^.reference.offset,paraloc.alignment);
                   a_load_ref_ref(list,hloc^.size,hloc^.size,href,href2);
                 end;
+              LOC_FPUREGISTER,LOC_CFPUREGISTER :
+                a_loadfpu_ref_reg(list,hloc^.size,hloc^.size,href,hloc^.register);
               else
                 internalerror(200408241);
            end;
@@ -443,10 +449,20 @@ implementation
       var
         href : treference;
       begin
-        tg.GetTemp(list,TCGSize2Size[size],TCGSize2Size[size],tt_normal,href);
-        a_loadfpu_reg_ref(list,size,size,r,href);
-        a_loadfpu_ref_cgpara(list,size,href,paraloc);
-        tg.Ungettemp(list,href);
+        { happens for function result loc }
+        if paraloc.location^.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER] then
+          begin
+            paraloc.check_simple_location;
+            paramanager.allocparaloc(list,paraloc.location);
+            a_loadfpu_reg_reg(list,size,paraloc.location^.size,r,paraloc.location^.register);
+          end
+        else
+          begin
+            tg.GetTemp(list,TCGSize2Size[size],TCGSize2Size[size],tt_normal,href);
+            a_loadfpu_reg_ref(list,size,size,r,href);
+            a_loadfpu_ref_cgpara(list,size,href,paraloc);
+            tg.Ungettemp(list,href);
+          end;
       end;
 
 
@@ -1160,15 +1176,12 @@ implementation
         paramanager.getintparaloc(pocall_default,1,paraloc1);
         paramanager.getintparaloc(pocall_default,2,paraloc2);
         paramanager.getintparaloc(pocall_default,3,paraloc3);
-        paramanager.allocparaloc(list,paraloc3);
         a_load_const_cgpara(list,OS_INT,len,paraloc3);
-        paramanager.allocparaloc(list,paraloc2);
         a_loadaddr_ref_cgpara(list,dest,paraloc2);
-        paramanager.allocparaloc(list,paraloc2);
         a_loadaddr_ref_cgpara(list,source,paraloc1);
-        paramanager.freeparaloc(list,paraloc3);
-        paramanager.freeparaloc(list,paraloc2);
-        paramanager.freeparaloc(list,paraloc1);
+        paramanager.freecgpara(list,paraloc3);
+        paramanager.freecgpara(list,paraloc2);
+        paramanager.freecgpara(list,paraloc1);
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         alloccpuregisters(list,R_FPUREGISTER,paramanager.get_volatile_registers_fpu(pocall_default));
         a_call_name(list,'FPC_MOVE',false);

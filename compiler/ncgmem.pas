@@ -265,9 +265,8 @@ implementation
           begin
             paraloc1.init;
             paramanager.getintparaloc(pocall_default,1,paraloc1);
-            paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
             cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
-            paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
+            paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
             cg.allocallcpuregisters(current_asmdata.CurrAsmList);
             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
@@ -332,9 +331,8 @@ implementation
                 not(cs_compilesystem in current_settings.moduleswitches) then
               begin
                 paramanager.getintparaloc(pocall_default,1,paraloc1);
-                paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                 cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
-                paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
+                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                 cg.allocallcpuregisters(current_asmdata.CurrAsmList);
                 cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
                 cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
@@ -351,9 +349,8 @@ implementation
                 not(cs_compilesystem in current_settings.moduleswitches) then
               begin
                 paramanager.getintparaloc(pocall_default,1,paraloc1);
-                paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                 cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
-                paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
+                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                 cg.allocallcpuregisters(current_asmdata.CurrAsmList);
                 cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
                 cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
@@ -685,12 +682,10 @@ implementation
             begin
                paramanager.getintparaloc(pocall_default,1,paraloc1);
                paramanager.getintparaloc(pocall_default,2,paraloc2);
-               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
                cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
-               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
-               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
-               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
+               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
                cg.allocallcpuregisters(current_asmdata.CurrAsmList);
                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DYNARRAY_RANGECHECK',false);
                cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
@@ -771,9 +766,8 @@ implementation
               if (cs_check_range in current_settings.localswitches) then
                 begin
                    paramanager.getintparaloc(pocall_default,1,paraloc1);
-                   paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                    cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,location.reference.base,paraloc1);
-                   paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
+                   paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                    cg.allocallcpuregisters(current_asmdata.CurrAsmList);
                    cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_CHECKZERO',false);
                    cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
@@ -876,10 +870,8 @@ implementation
                            begin
                               paramanager.getintparaloc(pocall_default,1,paraloc1);
                               paramanager.getintparaloc(pocall_default,2,paraloc2);
-                              paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
                               cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_INT,tordconstnode(right).value.svalue,paraloc2);
                               href:=location.reference;
-                              paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                               if not(tf_winlikewidestring in target_info.flags) or
                                  (tstringdef(left.resultdef).stringtype<>st_widestring) then
                                 begin
@@ -892,8 +884,8 @@ implementation
                                   dec(href.offset,4-offsetdec);
                                   cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
                                 end;
-                              paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
-                              paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
+                              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+                              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
                               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
                               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_RANGECHECK',false);
                               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
@@ -1038,13 +1030,11 @@ implementation
                            begin
                               paramanager.getintparaloc(pocall_default,1,paraloc1);
                               paramanager.getintparaloc(pocall_default,2,paraloc2);
-                              paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
                               cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_INT,right.location.register,paraloc2);
                               href:=location.reference;
                               dec(href.offset,sizeof(pint)-offsetdec);
 
                               href:=location.reference;
-                              paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                               if not(tf_winlikewidestring in target_info.flags) or
                                  (tstringdef(left.resultdef).stringtype<>st_widestring) then
                                 begin
@@ -1058,8 +1048,8 @@ implementation
                                   cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
                                 end;
 
-                              paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
-                              paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
+                              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+                              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
                               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
                               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_RANGECHECK',false);
                               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);

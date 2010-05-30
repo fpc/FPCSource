@@ -120,7 +120,8 @@ unit cgobj;
 
              This routine should push/send the parameter to the routine, as
              required by the specific processor ABI and routine modifiers.
-             This must be overriden for each CPU target.
+             It must generate register allocation information for the cgpara in
+             case it consists of cpuregisters.
 
              @param(size size of the operand in the register)
              @param(r register source of the operand)
@@ -132,6 +133,8 @@ unit cgobj;
              A generic version is provided. This routine should
              be overriden for optimization purposes if the cpu
              permits directly sending this type of parameter.
+             It must generate register allocation information for the cgpara in
+             case it consists of cpuregisters.
 
              @param(size size of the operand in constant)
              @param(a value of constant to send)
@@ -143,6 +146,8 @@ unit cgobj;
              A generic version is provided. This routine should
              be overriden for optimization purposes if the cpu
              permits directly sending this type of parameter.
+             It must generate register allocation information for the cgpara in
+             case it consists of cpuregisters.
 
              @param(size size of the operand in constant)
              @param(r Memory reference of value to send)
@@ -162,6 +167,8 @@ unit cgobj;
           {# Pass the address of a reference to a routine. This routine
              will calculate the address of the reference, and pass this
              calculated address as a parameter.
+             It must generate register allocation information for the cgpara in
+             case it consists of cpuregisters.
 
              A generic version is provided. This routine should
              be overriden for optimization purposes if the cpu
@@ -173,6 +180,8 @@ unit cgobj;
           procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : TCGPara);virtual;
 
           {# Load a cgparaloc into a memory reference.
+             It must generate register allocation information for the cgpara in
+             case it consists of cpuregisters.
 
            @param(paraloc the source parameter sublocation)
            @param(ref the destination reference)
@@ -880,6 +889,7 @@ implementation
          ref : treference;
       begin
          cgpara.check_simple_location;
+         paramanager.alloccgpara(list,cgpara);
          case cgpara.location^.loc of
             LOC_REGISTER,LOC_CREGISTER:
               a_load_reg_reg(list,size,cgpara.location^.size,r,cgpara.location^.register);
@@ -899,6 +909,7 @@ implementation
          ref : treference;
       begin
          cgpara.check_simple_location;
+         paramanager.alloccgpara(list,cgpara);
          case cgpara.location^.loc of
             LOC_REGISTER,LOC_CREGISTER:
               a_load_const_reg(list,cgpara.location^.size,a,cgpara.location^.register);
@@ -915,31 +926,134 @@ implementation
 
     procedure tcg.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : TCGPara);
       var
-         ref : treference;
+        tmpref, ref: treference;
+        tmpreg: tregister;
+        location: pcgparalocation;
+        orgsizeleft,
+        sizeleft: aint;
+        reghasvalue: boolean;
       begin
-         cgpara.check_simple_location;
-         case cgpara.location^.loc of
-            LOC_REGISTER,LOC_CREGISTER:
-              a_load_ref_reg(list,size,cgpara.location^.size,r,cgpara.location^.register);
-            LOC_REFERENCE,LOC_CREFERENCE:
-              begin
-                 reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
-                 if (size <> OS_NO) and
-                    (tcgsize2size[size] < sizeof(aint)) then
-                   begin
-                     if (cgpara.size = OS_NO) or
-                        assigned(cgpara.location^.next) then
-                       internalerror(2006052401);
-                     a_load_ref_ref(list,size,cgpara.size,r,ref);
-                   end
-                 else
-                   { use concatcopy, because the parameter can be larger than }
-                   { what the OS_* constants can handle                       }
-                   g_concatcopy(list,r,ref,cgpara.intsize);
-              end
-            else
-              internalerror(2002071004);
-         end;
+        location:=cgpara.location;
+        tmpref:=r;
+        sizeleft:=cgpara.intsize;
+        while assigned(location) do
+          begin
+            paramanager.allocparaloc(list,location);
+            case location^.loc of
+              LOC_REGISTER,LOC_CREGISTER:
+                begin
+                   { Parameter locations are often allocated in multiples of
+                     entire registers. If a parameter only occupies a part of
+                     such a register (e.g. a 16 bit int on a 32 bit
+                     architecture), the size of this parameter can only be
+                     determined by looking at the "size" parameter of this
+                     method -> if the size parameter is <= sizeof(aint), then
+                     we check that there is only one parameter location and
+                     then use this "size" to load the value into the parameter
+                     location }
+                   if (size<>OS_NO) and
+                      (tcgsize2size[size]<=sizeof(aint)) then
+                     begin
+                       cgpara.check_simple_location;
+                       a_load_ref_reg(list,size,location^.size,tmpref,location^.register);
+                     end
+                   { there's a lot more data left, and the current paraloc's
+                     register is entirely filled with part of that data }
+                   else if (sizeleft>sizeof(aint)) then
+                     begin
+                       a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
+                     end
+                   { we're at the end of the data, and it can be loaded into
+                     the current location's register with a single regular
+                     load }
+                   else if (sizeleft in [1,2{$ifndef cpu16bitalu},4{$endif}{$ifdef cpu64bitalu},8{$endif}]) then
+                     begin
+                       a_load_ref_reg(list,int_cgsize(sizeleft),location^.size,tmpref,location^.register);
+                     end
+                   { we're at the end of the data, and we need multiple loads
+                     to get it in the register because it's an irregular size }
+                   else
+                     begin
+                       { should be the last part }
+                       if assigned(location^.next) then
+                         internalerror(2010052907);
+                       { load the value piecewise to get it into the register }
+                       orgsizeleft:=sizeleft;
+                       reghasvalue:=false;
+{$ifdef cpu64bitalu}
+                       if sizeleft>=4 then
+                         begin
+                           a_load_ref_reg(list,OS_32,location^.size,tmpref,location^.register);
+                           dec(sizeleft,4);
+                           if target_info.endian=endian_big then
+                             a_op_const_reg(list,OP_SHL,location^.size,sizeleft*8,location^.register);
+                           inc(tmpref.offset,4);
+                           reghasvalue:=true;
+                         end;
+{$endif cpu64bitalu}
+                       if sizeleft>=2 then
+                         begin
+                           tmpreg:=getintregister(list,location^.size);
+                           a_load_ref_reg(list,OS_16,location^.size,tmpref,tmpreg);
+                           dec(sizeleft,2);
+                           if reghasvalue then
+                             begin
+                               if target_info.endian=endian_big then
+                                 a_op_const_reg(list,OP_SHL,location^.size,sizeleft*8,tmpreg)
+                               else
+                                 a_op_const_reg(list,OP_SHL,location^.size,(orgsizeleft-(sizeleft+2))*8,tmpreg);
+                               a_op_reg_reg(list,OP_OR,location^.size,tmpreg,location^.register);
+                             end
+                           else
+                             begin
+                               if target_info.endian=endian_big then
+                                 a_op_const_reg_reg(list,OP_SHL,location^.size,sizeleft*8,tmpreg,location^.register)
+                               else
+                                 a_load_reg_reg(list,location^.size,location^.size,tmpreg,location^.register);
+                             end;
+                           inc(tmpref.offset,2);
+                           reghasvalue:=true;
+                         end;
+                       if sizeleft=1 then
+                         begin
+                           tmpreg:=getintregister(list,location^.size);
+                           a_load_ref_reg(list,OS_8,location^.size,tmpref,tmpreg);
+                           dec(sizeleft,1);
+                           if reghasvalue then
+                             begin
+                               if target_info.endian=endian_little then
+                                 a_op_const_reg(list,OP_SHL,location^.size,(orgsizeleft-(sizeleft+1))*8,tmpreg);
+                               a_op_reg_reg(list,OP_OR,location^.size,tmpreg,location^.register)
+                             end
+                           else
+                             a_load_reg_reg(list,location^.size,location^.size,tmpreg,location^.register);
+                           inc(tmpref.offset);
+                         end;
+                       { the loop will already adjust the offset and sizeleft }
+                       dec(tmpref.offset,orgsizeleft);
+                       sizeleft:=orgsizeleft;
+                     end;
+                end;
+              LOC_REFERENCE,LOC_CREFERENCE:
+                begin
+                   if assigned(location^.next) then
+                     internalerror(2010052906);
+                   reference_reset_base(ref,location^.reference.index,location^.reference.offset,newalignment(cgpara.alignment,cgpara.intsize-sizeleft));
+                   if (size <> OS_NO) and
+                      (tcgsize2size[size] <= sizeof(aint)) then
+                     a_load_ref_ref(list,size,location^.size,tmpref,ref)
+                   else
+                     { use concatcopy, because the parameter can be larger than }
+                     { what the OS_* constants can handle                       }
+                     g_concatcopy(list,tmpref,ref,sizeleft);
+                end
+              else
+                internalerror(2002071004);
+            end;
+            inc(tmpref.offset,tcgsize2size[location^.size]);
+            dec(sizeleft,tcgsize2size[location^.size]);
+            location:=location^.next;
+          end;
       end;
 
 
@@ -966,7 +1080,10 @@ implementation
       begin
          cgpara.check_simple_location;
          if cgpara.location^.loc in [LOC_CREGISTER,LOC_REGISTER] then
-           a_loadaddr_ref_reg(list,r,cgpara.location^.register)
+           begin
+             paramanager.allocparaloc(list,cgpara.location);
+             a_loadaddr_ref_reg(list,r,cgpara.location^.register)
+           end
          else
            begin
              hr:=getaddressregister(list);
@@ -2603,6 +2720,7 @@ implementation
       var
          ref : treference;
       begin
+        paramanager.alloccgpara(list,cgpara);
          case cgpara.location^.loc of
             LOC_FPUREGISTER,LOC_CFPUREGISTER:
               begin
@@ -2638,6 +2756,7 @@ implementation
           LOC_FPUREGISTER,LOC_CFPUREGISTER:
             begin
               cgpara.check_simple_location;
+              paramanager.alloccgpara(list,cgpara);
               a_loadfpu_ref_reg(list,size,size,ref,cgpara.location^.register);
             end;
           LOC_REFERENCE,LOC_CREFERENCE:
@@ -3059,6 +3178,7 @@ implementation
             (size<>OS_F64) then
 {$endif not cpu64bitalu}
            cgpara.check_simple_location;
+         paramanager.alloccgpara(list,cgpara);
          case cgpara.location^.loc of
           LOC_MMREGISTER,LOC_CMMREGISTER:
             a_loadmm_reg_reg(list,size,cgpara.location^.size,reg,cgpara.location^.register,shuffle);
@@ -3248,15 +3368,12 @@ implementation
         paramanager.getintparaloc(pocall_default,1,cgpara1);
         paramanager.getintparaloc(pocall_default,2,cgpara2);
         paramanager.getintparaloc(pocall_default,3,cgpara3);
-        paramanager.allocparaloc(list,cgpara3);
         a_loadaddr_ref_cgpara(list,dest,cgpara3);
-        paramanager.allocparaloc(list,cgpara2);
         a_loadaddr_ref_cgpara(list,source,cgpara2);
-        paramanager.allocparaloc(list,cgpara1);
         a_load_const_cgpara(list,OS_INT,len,cgpara1);
-        paramanager.freeparaloc(list,cgpara3);
-        paramanager.freeparaloc(list,cgpara2);
-        paramanager.freeparaloc(list,cgpara1);
+        paramanager.freecgpara(list,cgpara3);
+        paramanager.freecgpara(list,cgpara2);
+        paramanager.freecgpara(list,cgpara1);
         allocallcpuregisters(list);
         a_call_name(list,'FPC_SHORTSTR_ASSIGN',false);
         deallocallcpuregisters(list);
@@ -3274,12 +3391,10 @@ implementation
         cgpara2.init;
         paramanager.getintparaloc(pocall_default,1,cgpara1);
         paramanager.getintparaloc(pocall_default,2,cgpara2);
-        paramanager.allocparaloc(list,cgpara2);
         a_loadaddr_ref_cgpara(list,dest,cgpara2);
-        paramanager.allocparaloc(list,cgpara1);
         a_loadaddr_ref_cgpara(list,source,cgpara1);
-        paramanager.freeparaloc(list,cgpara2);
-        paramanager.freeparaloc(list,cgpara1);
+        paramanager.freecgpara(list,cgpara2);
+        paramanager.freecgpara(list,cgpara1);
         allocallcpuregisters(list);
         a_call_name(list,'FPC_VARIANT_COPY_OVERWRITE',false);
         deallocallcpuregisters(list);
@@ -3313,7 +3428,6 @@ implementation
          { call the special incr function or the generic addref }
          if incrfunc<>'' then
           begin
-            paramanager.allocparaloc(list,cgpara1);
             { widestrings aren't ref. counted on all platforms so we need the address
               to create a real copy }
             if is_widestring(t) then
@@ -3321,7 +3435,7 @@ implementation
             else
               { these functions get the pointer by value }
               a_load_ref_cgpara(list,OS_ADDR,ref,cgpara1);
-            paramanager.freeparaloc(list,cgpara1);
+            paramanager.freecgpara(list,cgpara1);
             allocallcpuregisters(list);
             a_call_name(list,incrfunc,false);
             deallocallcpuregisters(list);
@@ -3329,12 +3443,10 @@ implementation
          else
           begin
             reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
-            paramanager.allocparaloc(list,cgpara2);
             a_loadaddr_ref_cgpara(list,href,cgpara2);
-            paramanager.allocparaloc(list,cgpara1);
             a_loadaddr_ref_cgpara(list,ref,cgpara1);
-            paramanager.freeparaloc(list,cgpara1);
-            paramanager.freeparaloc(list,cgpara2);
+            paramanager.freecgpara(list,cgpara1);
+            paramanager.freecgpara(list,cgpara2);
             allocallcpuregisters(list);
             a_call_name(list,'FPC_ADDREF',false);
             deallocallcpuregisters(list);
@@ -3384,14 +3496,11 @@ implementation
             tempreg1:=getaddressregister(list);
             a_loadaddr_ref_reg(list,ref,tempreg1);
             if needrtti then
-              begin
-                paramanager.allocparaloc(list,cgpara2);
-                a_load_reg_cgpara(list,OS_ADDR,tempreg2,cgpara2);
-                paramanager.freeparaloc(list,cgpara2);
-              end;
-            paramanager.allocparaloc(list,cgpara1);
+              a_load_reg_cgpara(list,OS_ADDR,tempreg2,cgpara2);
             a_load_reg_cgpara(list,OS_ADDR,tempreg1,cgpara1);
-            paramanager.freeparaloc(list,cgpara1);
+            paramanager.freecgpara(list,cgpara1);
+            if needrtti then
+              paramanager.freecgpara(list,cgpara2);
             allocallcpuregisters(list);
             a_call_name(list,decrfunc,false);
             deallocallcpuregisters(list);
@@ -3399,12 +3508,10 @@ implementation
          else
           begin
             reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
-            paramanager.allocparaloc(list,cgpara2);
             a_loadaddr_ref_cgpara(list,href,cgpara2);
-            paramanager.allocparaloc(list,cgpara1);
             a_loadaddr_ref_cgpara(list,ref,cgpara1);
-            paramanager.freeparaloc(list,cgpara1);
-            paramanager.freeparaloc(list,cgpara2);
+            paramanager.freecgpara(list,cgpara1);
+            paramanager.freecgpara(list,cgpara2);
             allocallcpuregisters(list);
             a_call_name(list,'FPC_DECREF',false);
             deallocallcpuregisters(list);
@@ -3432,12 +3539,10 @@ implementation
          else
            begin
               reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
-              paramanager.allocparaloc(list,cgpara2);
               a_loadaddr_ref_cgpara(list,href,cgpara2);
-              paramanager.allocparaloc(list,cgpara1);
               a_loadaddr_ref_cgpara(list,ref,cgpara1);
-              paramanager.freeparaloc(list,cgpara1);
-              paramanager.freeparaloc(list,cgpara2);
+              paramanager.freecgpara(list,cgpara1);
+              paramanager.freecgpara(list,cgpara2);
               allocallcpuregisters(list);
               a_call_name(list,'FPC_INITIALIZE',false);
               deallocallcpuregisters(list);
@@ -3467,12 +3572,10 @@ implementation
          else
            begin
               reference_reset_symbol(href,RTTIWriter.get_rtti_label(t,initrtti),0,sizeof(pint));
-              paramanager.allocparaloc(list,cgpara2);
               a_loadaddr_ref_cgpara(list,href,cgpara2);
-              paramanager.allocparaloc(list,cgpara1);
               a_loadaddr_ref_cgpara(list,ref,cgpara1);
-              paramanager.freeparaloc(list,cgpara1);
-              paramanager.freeparaloc(list,cgpara2);
+              paramanager.freecgpara(list,cgpara1);
+              paramanager.freecgpara(list,cgpara2);
               allocallcpuregisters(list);
               a_call_name(list,'FPC_FINALIZE',false);
               deallocallcpuregisters(list);
@@ -3703,9 +3806,8 @@ implementation
            a_cmp_const_reg_label(list,OS_ADDR,OC_NE,0,reg,oklabel);
            cgpara1.init;
            paramanager.getintparaloc(pocall_default,1,cgpara1);
-           paramanager.allocparaloc(list,cgpara1);
            a_load_const_cgpara(list,OS_INT,210,cgpara1);
-           paramanager.freeparaloc(list,cgpara1);
+           paramanager.freecgpara(list,cgpara1);
            a_call_name(list,'FPC_HANDLEERROR',false);
            a_label(list,oklabel);
            cgpara1.done;
@@ -3725,12 +3827,10 @@ implementation
         if (cs_check_object in current_settings.localswitches) then
          begin
            reference_reset_symbol(hrefvmt,current_asmdata.RefAsmSymbol(objdef.vmt_mangledname),0,sizeof(pint));
-           paramanager.allocparaloc(list,cgpara2);
            a_loadaddr_ref_cgpara(list,hrefvmt,cgpara2);
-           paramanager.allocparaloc(list,cgpara1);
            a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
-           paramanager.freeparaloc(list,cgpara1);
-           paramanager.freeparaloc(list,cgpara2);
+           paramanager.freecgpara(list,cgpara1);
+           paramanager.freecgpara(list,cgpara2);
            allocallcpuregisters(list);
            a_call_name(list,'FPC_CHECK_OBJECT_EXT',false);
            deallocallcpuregisters(list);
@@ -3738,9 +3838,8 @@ implementation
         else
          if (cs_check_range in current_settings.localswitches) then
           begin
-            paramanager.allocparaloc(list,cgpara1);
             a_load_reg_cgpara(list,OS_ADDR,reg,cgpara1);
-            paramanager.freeparaloc(list,cgpara1);
+            paramanager.freecgpara(list,cgpara1);
             allocallcpuregisters(list);
             a_call_name(list,'FPC_CHECK_OBJECT',false);
             deallocallcpuregisters(list);
@@ -3784,9 +3883,8 @@ implementation
         { do getmem call }
         cgpara1.init;
         paramanager.getintparaloc(pocall_default,1,cgpara1);
-        paramanager.allocparaloc(list,cgpara1);
         a_load_reg_cgpara(list,OS_INT,sizereg,cgpara1);
-        paramanager.freeparaloc(list,cgpara1);
+        paramanager.freecgpara(list,cgpara1);
         allocallcpuregisters(list);
         a_call_name(list,'FPC_GETMEM',false);
         deallocallcpuregisters(list);
@@ -3802,17 +3900,14 @@ implementation
         paramanager.getintparaloc(pocall_default,2,cgpara2);
         paramanager.getintparaloc(pocall_default,3,cgpara3);
         { load size }
-        paramanager.allocparaloc(list,cgpara3);
         a_load_reg_cgpara(list,OS_INT,sizereg,cgpara3);
         { load destination }
-        paramanager.allocparaloc(list,cgpara2);
         a_load_reg_cgpara(list,OS_ADDR,destreg,cgpara2);
         { load source }
-        paramanager.allocparaloc(list,cgpara1);
         a_load_reg_cgpara(list,OS_ADDR,sourcereg,cgpara1);
-        paramanager.freeparaloc(list,cgpara3);
-        paramanager.freeparaloc(list,cgpara2);
-        paramanager.freeparaloc(list,cgpara1);
+        paramanager.freecgpara(list,cgpara3);
+        paramanager.freecgpara(list,cgpara2);
+        paramanager.freecgpara(list,cgpara1);
         allocallcpuregisters(list);
         a_call_name(list,'FPC_MOVE',false);
         deallocallcpuregisters(list);
@@ -3830,9 +3925,8 @@ implementation
         cgpara1.init;
         paramanager.getintparaloc(pocall_default,1,cgpara1);
         { load source }
-        paramanager.allocparaloc(list,cgpara1);
         a_load_loc_cgpara(list,l,cgpara1);
-        paramanager.freeparaloc(list,cgpara1);
+        paramanager.freecgpara(list,cgpara1);
         allocallcpuregisters(list);
         a_call_name(list,'FPC_FREEMEM',false);
         deallocallcpuregisters(list);

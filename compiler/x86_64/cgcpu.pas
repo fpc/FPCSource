@@ -40,8 +40,6 @@ unit cgcpu;
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
-        procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
-
         procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize;intreg, mmreg: tregister; shuffle: pmmshuffle); override;
         procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tcgsize;mmreg, intreg: tregister;shuffle : pmmshuffle); override;
       end;
@@ -105,52 +103,6 @@ unit cgcpu;
         inherited done_register_allocators;
         setlength(saved_standard_registers,0);
         setlength(saved_mm_registers,0);
-      end;
-
-
-    procedure tcgx86_64.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);
-      var
-        tmpref, ref: treference;
-        location: pcgparalocation;
-        sizeleft: aint;
-        sourcesize: tcgsize;
-      begin
-        location := paraloc.location;
-        tmpref := r;
-        { make sure we handle passing a 32 bit value in memory to a }
-        { 64 bit register location etc. correctly                   }
-        if (size<>OS_NO) and
-           (tcgsize2size[size]<paraloc.intsize) then
-          begin
-            paraloc.check_simple_location;
-            if not(location^.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-              internalerror(2008031801);
-            sizeleft:=tcgsize2size[size]
-          end
-        else
-          sizeleft:=paraloc.intsize;
-        while assigned(location) do
-          begin
-            case location^.loc of
-              LOC_REGISTER,LOC_CREGISTER:
-                begin
-                  sourcesize:=int_cgsize(sizeleft);
-                  if (sourcesize=OS_NO) then
-                    sourcesize:=location^.size;
-                  a_load_ref_reg(list,sourcesize,location^.size,tmpref,location^.register);
-                end;
-              LOC_REFERENCE:
-                begin
-                  reference_reset_base(ref,location^.reference.index,location^.reference.offset,paraloc.alignment);
-                  g_concatcopy(list,tmpref,ref,sizeleft);
-                end;
-              else
-                internalerror(2002081103);
-            end;
-            inc(tmpref.offset,tcgsize2size[location^.size]);
-            dec(sizeleft,tcgsize2size[location^.size]);
-            location := location^.next;
-          end;
       end;
 
 

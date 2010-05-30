@@ -409,6 +409,7 @@ begin
   sizeleft := paraloc.intsize;
   adjusttail := false;
   while assigned(location) do begin
+    paramanager.allocparaloc(list,location);
     case location^.loc of
       LOC_REGISTER, LOC_CREGISTER:
         begin

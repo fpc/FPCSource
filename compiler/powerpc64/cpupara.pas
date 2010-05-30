@@ -45,7 +45,7 @@ type
     function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
     function create_varargs_paraloc_info(p: tabstractprocdef; varargspara:
       tvarargsparalist): longint; override;
-    function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tlocation;override;
+    function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;override;
     procedure create_funcretloc_info(p: tabstractprocdef; side: tcallercallee);
 
   private
@@ -210,47 +210,62 @@ begin
 end;
 
 function tppcparamanager.get_funcretloc(p : tabstractprocdef; side:
-  tcallercallee; def: tdef): tlocation;
+  tcallercallee; def: tdef): tcgpara;
 var
-  retcgsize: tcgsize;
+  paraloc : pcgparalocation;
+  retcgsize  : tcgsize;
 begin
-  { Constructors return self instead of a boolean }
-  if (p.proctypeoption = potype_constructor) then
-    retcgsize := OS_ADDR
-  else
-    retcgsize := def_cgsize(def);
-
-  location_reset(result, LOC_INVALID, OS_NO);
-  result.size := retcgsize;
+  result.init;
+  result.alignment:=get_para_align(p.proccalloption);
   { void has no location }
-  if is_void(def) then begin
-    result.loc := LOC_VOID;
-    exit;
-  end;
-  { Return is passed as var parameter }
-  if ret_in_param(def, p.proccalloption) then
+  if is_void(def) then
     begin
-      result.loc := LOC_REFERENCE;
-      result.size := retcgsize;
+      paraloc:=result.add_location;
+      result.size:=OS_NO;
+      result.intsize:=0;
+      paraloc^.size:=OS_NO;
+      paraloc^.loc:=LOC_VOID;
       exit;
     end;
-  { Return in FPU register? }
-  if def.typ = floatdef then begin
-    result.loc := LOC_FPUREGISTER;
-    result.register := NR_FPU_RESULT_REG;
-    result.size := retcgsize;
-  end else
-    { Return in register }
+  { Constructors return self instead of a boolean }
+  if (p.proctypeoption=potype_constructor) then
     begin
-      result.loc := LOC_REGISTER;
-      result.size := retcgsize;
-      if side = callerside then
-        result.register := newreg(R_INTREGISTER,
-          RS_FUNCTION_RESULT_REG, cgsize2subreg(R_INTREGISTER, retcgsize))
-      else
-        result.register := newreg(R_INTREGISTER,
-          RS_FUNCTION_RETURN_REG, cgsize2subreg(R_INTREGISTER, retcgsize));
+      retcgsize:=OS_ADDR;
+      result.intsize:=sizeof(pint);
+    end
+  else
+    begin
+      retcgsize:=def_cgsize(def);
+      result.intsize:=def.size;
     end;
+  result.size:=retcgsize;
+  { Return is passed as var parameter }
+  if ret_in_param(def,p.proccalloption) then
+    begin
+      paraloc:=result.add_location;
+      paraloc^.loc:=LOC_REFERENCE;
+      paraloc^.size:=retcgsize;
+      exit;
+    end;
+
+  paraloc:=result.add_location;
+  { Return in FPU register? }
+  if def.typ=floatdef then
+    begin
+      paraloc^.loc:=LOC_FPUREGISTER;
+      paraloc^.register:=NR_FPU_RESULT_REG;
+      paraloc^.size:=retcgsize;
+    end
+  else
+   { Return in register }
+    begin
+       paraloc^.loc:=LOC_REGISTER;
+       if side=callerside then
+         paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
+       else
+         paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
+       paraloc^.size:=retcgsize;
+     end;
 end;
 
 function tppcparamanager.create_paraloc_info(p: tabstractprocdef; side:

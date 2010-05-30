@@ -413,7 +413,7 @@ interface
 {$ifdef m68k}
           exp_funcretloc : tregister;   { explicit funcretloc for AmigaOS }
 {$endif}
-          funcretloc : array[tcallercallee] of TLocation;
+          funcretloc : array[tcallercallee] of TCGPara;
           has_paraloc_info : boolean; { paraloc info is available }
           constructor create(dt:tdeftyp;level:byte);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
@@ -2755,8 +2755,8 @@ implementation
          savesize:=sizeof(pint);
          requiredargarea:=0;
          has_paraloc_info:=false;
-         location_reset(funcretloc[callerside],LOC_INVALID,OS_NO);
-         location_reset(funcretloc[calleeside],LOC_INVALID,OS_NO);
+         funcretloc[callerside].init;
+         funcretloc[calleeside].init;
       end;
 
 
@@ -2784,6 +2784,8 @@ implementation
             memprocparast.stop;
 {$endif MEMDEBUG}
           end;
+         funcretloc[callerside].done;
+         funcretloc[calleeside].done;
          inherited destroy;
       end;
 
@@ -2870,15 +2872,9 @@ implementation
          proccalloption:=tproccalloption(ppufile.getbyte);
          ppufile.getnormalset(procoptions);
 
-         location_reset(funcretloc[callerside],LOC_INVALID,OS_NO);
-         location_reset(funcretloc[calleeside],LOC_INVALID,OS_NO);
+         funcretloc[callerside].init;
          if po_explicitparaloc in procoptions then
-           begin
-             b:=ppufile.getbyte;
-             if b<>sizeof(funcretloc[callerside]) then
-               internalerror(200411155);
-             ppufile.getdata(funcretloc[callerside],sizeof(funcretloc[callerside]));
-           end;
+           funcretloc[callerside].ppuload(ppufile);
 
          savesize:=sizeof(pint);
          has_paraloc_info:=(po_explicitparaloc in procoptions);
@@ -2903,11 +2899,7 @@ implementation
          ppufile.do_interface_crc:=oldintfcrc;
 
          if (po_explicitparaloc in procoptions) then
-           begin
-             { Make a 'valid' funcretloc for procedures }
-             ppufile.putbyte(sizeof(funcretloc[callerside]));
-             ppufile.putdata(funcretloc[callerside],sizeof(funcretloc[callerside]));
-           end;
+           funcretloc[callerside].ppuwrite(ppufile);
       end;
 
 
@@ -3758,7 +3750,7 @@ implementation
         tprocvardef(result).maxparacount:=maxparacount;
         tprocvardef(result).minparacount:=minparacount;
         for i:=low(tcallercallee) to high(tcallercallee) do
-          location_copy(tprocvardef(result).funcretloc[i],funcretloc[i]);
+          tprocvardef(result).funcretloc[i]:=funcretloc[i].getcopy;
         tprocvardef(result).has_paraloc_info:=has_paraloc_info;
 {$ifdef m68k}
         tprocvardef(result).exp_funcretloc:=exp_funcretloc;

@@ -45,7 +45,6 @@ interface
 
        tcgcallnode = class(tcallnode)
        private
-          retloc: tlocation;
 
           procedure handle_return_value;
           procedure release_unused_return_value;
@@ -53,6 +52,8 @@ interface
           procedure pushparas;
           procedure freeparas;
        protected
+          retloc: tcgpara;
+
           framepointer_paraloc : tcgpara;
           {# This routine is used to push the current frame pointer
              on the stack. This is used in nested routines where the
@@ -68,8 +69,15 @@ interface
           procedure extra_call_code;virtual;
           procedure extra_post_call_code;virtual;
           procedure do_syscall;virtual;abstract;
+
+          { The function result is returned in a tcgpara. This tcgpara has to
+            be translated into a tlocation so the rest of the code generator
+            can work with it. This routine decides what the most appropriate
+            tlocation is and sets self.location based on that. }
+          procedure set_result_location(realresdef: tstoreddef);virtual;
        public
           procedure pass_generate_code;override;
+          destructor destroy;override;
        end;
 
 
@@ -271,6 +279,27 @@ implementation
       end;
 
 
+    procedure tcgcallnode.set_result_location(realresdef: tstoreddef);
+      begin
+        if realresdef.is_intregable or
+           realresdef.is_fpuregable or
+           { avoid temporarily storing pointer-sized entities that can't be
+             regvars, such as reference-counted pointers, to memory --
+             no exception can occur right now (except in case of existing
+             memory corruption), and we'd store them to a regular temp
+             anyway and that is not safer than keeping them in a register }
+           ((realresdef.size=sizeof(aint)) and
+            (retloc.location^.loc=LOC_REGISTER) and
+            not assigned(retloc.location^.next)) then
+          location_allocate_register(current_asmdata.CurrAsmList,location,realresdef,false)
+        else
+          begin
+            location_reset_ref(location,LOC_REFERENCE,def_cgsize(realresdef),0);
+            tg.GetTemp(current_asmdata.CurrAsmList,retloc.intsize,retloc.Alignment,tt_normal,location.reference);
+          end;
+      end;
+
+
     procedure tcgcallnode.pop_parasize(pop_size:longint);
       begin
       end;
@@ -278,165 +307,61 @@ implementation
 
     procedure tcgcallnode.handle_return_value;
       var
-        tmpcgsize,
-        cgsize    : tcgsize;
-{$ifdef cpu64bitaddr}
-        ref       : treference;
-{$endif cpu64bitaddr}
-{$ifndef x86}
-        hregister : tregister;
-{$endif not x86}
+        realresdef: tstoreddef;
       begin
         { Check that the return location is set when the result is passed in
           a parameter }
         if (procdefinition.proctypeoption<>potype_constructor) and
            paramanager.ret_in_param(resultdef,procdefinition.proccalloption) then
           begin
+            { self.location is set near the end of secondcallparan so it
+              refers to the implicit result parameter }
             if location.loc<>LOC_REFERENCE then
               internalerror(200304241);
             exit;
           end;
 
-        { Load normal (ordinal,float,pointer) result value from accumulator }
-        cgsize:=retloc.size;
-        case retloc.loc of
-           LOC_FPUREGISTER:
-             begin
-               location_reset(location,LOC_FPUREGISTER,cgsize);
-               location.register:=retloc.register;
+        if not assigned(typedef) then
+          realresdef:=tstoreddef(resultdef)
+        else
+          realresdef:=tstoreddef(typedef);
+
 {$ifdef x86}
-               tcgx86(cg).inc_fpu_stack;
-{$else x86}
-               { Do not move the physical register to a virtual one in case
-                 the return value is not used, because if the virtual one is
-                 then mapped to the same register as the physical one, we will
-                 end up with two deallocs of this register (one inserted here,
-                 one inserted by the register allocator), which unbalances the
-                 register allocation information.  The return register(s) will
-                 be freed by location_free() in release_unused_return_value
-                 (mantis #13536).  }
-               if (cnf_return_value_used in callnodeflags) then
-                 begin
-                   if getsupreg(retloc.register)<first_fpu_imreg then
-                     cg.ungetcpuregister(current_asmdata.CurrAsmList,retloc.register);
-                   hregister:=cg.getfpuregister(current_asmdata.CurrAsmList,location.size);
-                   cg.a_loadfpu_reg_reg(current_asmdata.CurrAsmList,location.size,location.size,location.register,hregister);
-                   location.register:=hregister;
-                 end;
+        if (retloc.location^.loc=LOC_FPUREGISTER) then
+          begin
+            tcgx86(cg).inc_fpu_stack;
+            location_reset(location,LOC_FPUREGISTER,retloc.location^.size);
+            location.register:=retloc.location^.register;
+          end
+        else
 {$endif x86}
-             end;
+          begin
+            { get a tlocation that can hold the return value that's currently in
+            the the return value's tcgpara }
+            set_result_location(realresdef);
 
-           LOC_REGISTER:
-             begin
-               if cgsize<>OS_NO then
-                begin
-                  location_reset(location,LOC_REGISTER,cgsize);
-{$ifdef cpu64bitaddr}
-                  { x86-64 system v abi:
-                    structs with up to 16 bytes are returned in registers }
-                  if cgsize in [OS_128,OS_S128] then
-                    begin
-                      if retloc.loc<>LOC_REGISTER then
-                        internalerror(2009042001);
-                      { See #13536 comment above.  }
-                      if (cnf_return_value_used in callnodeflags) then
-                        begin
-                          tg.GetTemp(current_asmdata.CurrAsmList,16,8,tt_normal,ref);
-                          location_reset_ref(location,LOC_REFERENCE,OS_NO,0);
-                          location.reference:=ref;
-                          if getsupreg(retloc.register)<first_int_imreg then
-                            cg.ungetcpuregister(current_asmdata.CurrAsmList,retloc.register);
-                          cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_64,OS_64,retloc.register,ref);
-                          inc(ref.offset,8);
-                          if getsupreg(retloc.registerhi)<first_int_imreg then
-                            cg.ungetcpuregister(current_asmdata.CurrAsmList,retloc.registerhi);
-                          cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_64,OS_64,retloc.registerhi,ref);
-                        end
-                      else
-                        location:=retloc;
-                    end
-                  else
-{$else cpu64bitaddr}
-                  if cgsize in [OS_64,OS_S64] then
-                    begin
-                      if retloc.loc<>LOC_REGISTER then
-                        internalerror(200409141);
-                      { See #13536 comment above.  }
-                      if (cnf_return_value_used in callnodeflags) then
-                        begin
-                          { the function result registers are already allocated }
-                          if getsupreg(retloc.register64.reglo)<first_int_imreg then
-                            cg.ungetcpuregister(current_asmdata.CurrAsmList,retloc.register64.reglo);
-                          location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                          cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,retloc.register64.reglo,location.register64.reglo);
-                          if getsupreg(retloc.register64.reghi)<first_int_imreg then
-                            cg.ungetcpuregister(current_asmdata.CurrAsmList,retloc.register64.reghi);
-                          location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                          cg.a_load_reg_reg(current_asmdata.CurrAsmList,OS_32,OS_32,retloc.register64.reghi,location.register64.reghi);
-                        end
-                      else
-                        location:=retloc;
-                    end
-                  else
-{$endif not cpu64bitaddr}
-                    begin
-                      { change register size after the unget because the
-                        getregister was done for the full register
-                        def_cgsize(resultdef) is used here because
-                        it could be a constructor call }
-
-                      { See #13536 comment above.  }
-                      if (cnf_return_value_used in callnodeflags) then
-                        begin
-                          if getsupreg(retloc.register)<first_int_imreg then
-                            cg.ungetcpuregister(current_asmdata.CurrAsmList,retloc.register);
-
-                          { but use def_size only if it returns something valid because in
-                            case of odd sized structured results in registers def_cgsize(resultdef)
-                            could return OS_NO }
-                          if def_cgsize(resultdef)<>OS_NO then
-                            tmpcgsize:=def_cgsize(resultdef)
-                          else
-                            tmpcgsize:=cgsize;
-
-                          location.register:=cg.getintregister(current_asmdata.CurrAsmList,tmpcgsize);
-                          cg.a_load_reg_reg(current_asmdata.CurrAsmList,cgsize,tmpcgsize,retloc.register,location.register);
-                        end
-                      else
-                        location:=retloc;
-                    end;
+            { Do not move the physical register to a virtual one in case
+              the return value is not used, because if the virtual one is
+              then mapped to the same register as the physical one, we will
+              end up with two deallocs of this register (one inserted here,
+              one inserted by the register allocator), which unbalances the
+              register allocation information.  The return register(s) will
+              be freed by location_free() in release_unused_return_value
+              (mantis #13536).  }
+            if (cnf_return_value_used in callnodeflags) or
+               assigned(funcretnode) then
+              begin
+                gen_load_cgpara_loc(current_asmdata.CurrAsmList,realresdef,retloc,location,false);
 {$ifdef arm}
-                  if (resultdef.typ=floatdef) and (current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
-                    begin
-                      location_force_mem(current_asmdata.CurrAsmList,location);
-                    end;
+                if (resultdef.typ=floatdef) and
+                   (location.loc=LOC_REGISTER) and
+                   (current_settings.fputype in [fpu_fpa,fpu_fpa10,fpu_fpa11]) then
+                  begin
+                    location_force_mem(current_asmdata.CurrAsmList,location);
+                  end;
 {$endif arm}
-                end
-               else
-                begin
-                  if resultdef.size>0 then
-                    internalerror(200305131);
-                end;
-             end;
-
-           LOC_MMREGISTER:
-             begin
-               { See #13536 comment above.  }
-               if (cnf_return_value_used in callnodeflags) then
-                 begin
-                   location_reset(location,LOC_MMREGISTER,cgsize);
-                   if getsupreg(retloc.register)<first_mm_imreg then
-                     cg.ungetcpuregister(current_asmdata.CurrAsmList,retloc.register);
-                   location.register:=cg.getmmregister(current_asmdata.CurrAsmList,cgsize);
-                   cg.a_loadmm_reg_reg(current_asmdata.CurrAsmList,cgsize,cgsize,retloc.register,location.register,mms_movescalar);
-                 end
-               else
-                 location:=retloc;
-             end;
-
-           else
-             internalerror(200405023);
-        end;
+              end;
+          end;
 
         { copy value to the final location if this was already provided to the
           callnode. This must be done after the call node, because the location can
@@ -455,16 +380,16 @@ implementation
             case location.loc of
               LOC_REGISTER :
 {$ifndef cpu64bitalu}
-                if cgsize in [OS_64,OS_S64] then
+                if location.size in [OS_64,OS_S64] then
                   cg64.a_load64_reg_loc(current_asmdata.CurrAsmList,location.register64,funcretnode.location)
                 else
 {$endif}
-                  cg.a_load_reg_loc(current_asmdata.CurrAsmList,cgsize,location.register,funcretnode.location);
+                  cg.a_load_reg_loc(current_asmdata.CurrAsmList,location.size,location.register,funcretnode.location);
               LOC_REFERENCE:
                 begin
                   case funcretnode.location.loc of
                     LOC_REGISTER:
-                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,cgsize,cgsize,location.reference,funcretnode.location.register);
+                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,location.size,location.size,location.reference,funcretnode.location.register);
                     LOC_REFERENCE:
                       cg.g_concatcopy(current_asmdata.CurrAsmList,location.reference,funcretnode.location.reference,resultdef.size);
                     else
@@ -486,24 +411,24 @@ implementation
           tree is generated, because that converts the temp from persistent to normal }
         if not(cnf_return_value_used in callnodeflags) then
           begin
-           case location.loc of
-             LOC_REFERENCE :
-               begin
-                 if is_managed_type(resultdef) then
-                    cg.g_finalize(current_asmdata.CurrAsmList,resultdef,location.reference);
-                  tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
-               end;
-{$ifdef x86}
-             LOC_FPUREGISTER :
+            case location.loc of
+              LOC_REFERENCE :
                 begin
-                  { release FPU stack }
-                  emit_reg(A_FSTP,S_NO,NR_FPU_RESULT_REG);
-                  tcgx86(cg).dec_fpu_stack;
+                  if is_managed_type(resultdef) then
+                     cg.g_finalize(current_asmdata.CurrAsmList,resultdef,location.reference);
+                   tg.ungetiftemp(current_asmdata.CurrAsmList,location.reference);
                 end;
+{$ifdef x86}
+              LOC_FPUREGISTER :
+                 begin
+                   { release FPU stack }
+                   emit_reg(A_FSTP,S_NO,NR_FPU_RESULT_REG);
+                   tcgx86(cg).dec_fpu_stack;
+                 end;
 {$endif x86}
-           end;
-            if retloc.size<>OS_NO then
-              location_free(current_asmdata.CurrAsmList,retloc);
+            end;
+            if (retloc.intsize<>0) then
+              paramanager.freecgpara(current_asmdata.CurrAsmList,retloc);
             location_reset(location,LOC_VOID,OS_NO);
           end;
       end;
@@ -570,7 +495,7 @@ implementation
                  { better check for the real location of the parameter here, when stack passed parameters
                    are saved temporary in registers, checking for the tmpparaloc.loc is wrong
                  }
-                 paramanager.freeparaloc(current_asmdata.CurrAsmList,ppn.tempcgpara);
+                 paramanager.freecgpara(current_asmdata.CurrAsmList,ppn.tempcgpara);
                  tmpparaloc:=ppn.tempcgpara.location;
                  sizeleft:=ppn.tempcgpara.intsize;
                  calleralignment:=ppn.parasym.paraloc[callerside].alignment;
@@ -670,7 +595,7 @@ implementation
              if (ppn.left.nodetype<>nothingn) then
                begin
                  if (ppn.parasym.paraloc[callerside].location^.loc <> LOC_REFERENCE) then
-                   paramanager.freeparaloc(current_asmdata.CurrAsmList,ppn.parasym.paraloc[callerside]);
+                   paramanager.freecgpara(current_asmdata.CurrAsmList,ppn.parasym.paraloc[callerside]);
                end;
              ppn:=tcgcallparanode(ppn.right);
            end;
@@ -690,6 +615,7 @@ implementation
         pvreg,
         vmtreg : tregister;
         oldaktcallnode : tcallnode;
+        retlocitem: pcgparalocation;
 {$ifdef vtentry}
         sym : tasmsymbol;
 {$endif vtentry}
@@ -717,48 +643,23 @@ implementation
               retloc:=procdefinition.funcretloc[callerside]
             else
               retloc:=paramanager.get_funcretloc(procdefinition,callerside,typedef);
-            case retloc.loc of
-              LOC_REGISTER,
-              LOC_CREGISTER:
-                begin
-{$ifdef cpu64bitaddr}
-                  { x86-64 system v abi:
-                    structs with up to 16 bytes are returned in registers }
-                  if retloc.size in [OS_128,OS_S128] then
-                    begin
-                      include(regs_to_save_int,getsupreg(retloc.register));
-                      include(regs_to_save_int,getsupreg(retloc.registerhi));
-                    end
+            retlocitem:=retloc.location;
+            while assigned(retlocitem) do
+              begin
+                case retlocitem^.loc of
+                  LOC_REGISTER:
+                    include(regs_to_save_int,getsupreg(retlocitem^.register));
+                  LOC_FPUREGISTER:
+                    include(regs_to_save_fpu,getsupreg(retlocitem^.register));
+                  LOC_MMREGISTER:
+                    include(regs_to_save_mm,getsupreg(retlocitem^.register));
+                  LOC_REFERENCE,
+                  LOC_VOID:
+                    ;
                   else
-{$else cpu64bitaddr}
-                  if retloc.size in [OS_64,OS_S64] then
-                    begin
-                      include(regs_to_save_int,getsupreg(retloc.register64.reglo));
-                      include(regs_to_save_int,getsupreg(retloc.register64.reghi));
-                    end
-                  else
-{$endif not cpu64bitaddr}
-                    include(regs_to_save_int,getsupreg(retloc.register));
+                    internalerror(2004110213);
                 end;
-              LOC_FPUREGISTER,
-              LOC_CFPUREGISTER:
-                begin
-                  include(regs_to_save_fpu,getsupreg(retloc.register));
-{$ifdef SPARC}
-                  { SPARC uses two successive single precision fpu registers
-                    for double-precision values  }
-                  if retloc.size=OS_F64 then
-                    include(regs_to_save_fpu,succ(getsupreg(retloc.register)));
-{$endif SPARC}
-                end;
-              LOC_MMREGISTER,
-              LOC_CMMREGISTER:
-                include(regs_to_save_mm,getsupreg(retloc.register));
-              LOC_REFERENCE,
-              LOC_VOID:
-                ;
-              else
-                internalerror(2004110213);
+                retlocitem:=retlocitem^.next;
               end;
           end;
 
@@ -948,38 +849,24 @@ implementation
            function result }
          if (not is_void(resultdef)) then
            begin
-             case retloc.loc of
-               LOC_REGISTER,
-               LOC_CREGISTER:
-                 begin
-{$ifndef cpu64bitalu}
-                   if retloc.size in [OS_64,OS_S64] then
-                     begin
-                       exclude(regs_to_save_int,getsupreg(retloc.register64.reghi));
-                       exclude(regs_to_save_int,getsupreg(retloc.register64.reglo));
-                     end
-{$else not cpu64bitalu}
-                   if retloc.size in [OS_128,OS_S128] then
-                     begin
-                       exclude(regs_to_save_int,getsupreg(retloc.register));
-                       exclude(regs_to_save_int,getsupreg(retloc.registerhi));
-                     end
-{$endif not cpu64bitalu}
+             retlocitem:=retloc.location;
+             while assigned(retlocitem) do
+               begin
+                 case retlocitem^.loc of
+                   LOC_REGISTER:
+                     exclude(regs_to_save_int,getsupreg(retlocitem^.register));
+                   LOC_FPUREGISTER:
+                     exclude(regs_to_save_fpu,getsupreg(retlocitem^.register));
+                   LOC_MMREGISTER:
+                     exclude(regs_to_save_mm,getsupreg(retlocitem^.register));
+                   LOC_REFERENCE,
+                   LOC_VOID:
+                     ;
                    else
-                     exclude(regs_to_save_int,getsupreg(retloc.register));
+                     internalerror(2004110214);
                  end;
-               LOC_FPUREGISTER,
-               LOC_CFPUREGISTER:
-                 exclude(regs_to_save_fpu,getsupreg(retloc.register));
-               LOC_MMREGISTER,
-               LOC_CMMREGISTER:
-                 exclude(regs_to_save_mm,getsupreg(retloc.register));
-               LOC_REFERENCE,
-               LOC_VOID:
-                 ;
-               else
-                 internalerror(2004110214);
-              end;
+                 retlocitem:=retlocitem^.next;
+               end;
            end;
 
 {$if defined(x86) or defined(arm)}
@@ -1034,6 +921,14 @@ implementation
               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_IOCHECK',false);
               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
            end;
+      end;
+
+
+    destructor tcgcallnode.destroy;
+      begin
+        if assigned(typedef) then
+          retloc.done;
+        inherited destroy;
       end;
 
 

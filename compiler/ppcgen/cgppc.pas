@@ -163,6 +163,7 @@ unit cgppc;
       ref: treference;
     begin
       paraloc.check_simple_location;
+      paramanager.allocparaloc(list,paraloc.location);
       case paraloc.location^.loc of
         LOC_REGISTER, LOC_CREGISTER:
           a_load_const_reg(list, size, a, paraloc.location^.register);
@@ -186,6 +187,7 @@ unit cgppc;
 
       begin
         paraloc.check_simple_location;
+        paramanager.allocparaloc(list,paraloc.location);
         case paraloc.location^.loc of
            LOC_REGISTER,LOC_CREGISTER:
              a_loadaddr_ref_reg(list,r,paraloc.location^.register);
@@ -616,7 +618,7 @@ unit cgppc;
           paraloc1.init;
           paramanager.getintparaloc(pocall_cdecl,1,paraloc1);
           a_load_reg_cgpara(list,OS_ADDR,NR_R0,paraloc1);
-          paramanager.freeparaloc(list,paraloc1);
+          paramanager.freecgpara(list,paraloc1);
           paraloc1.done;
           allocallcpuregisters(list);
           a_call_name(list,'mcount',false);

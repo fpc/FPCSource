@@ -28,7 +28,7 @@ interface
     uses
        cutils,cclasses,
        globtype,constexp,
-       paramgr,parabase,
+       paramgr,parabase,cgbase,
        node,nbas,nutils,
        {$ifdef state_tracking}
        nstate,
@@ -75,6 +75,7 @@ interface
           procedure check_inlining;
           function  pass1_normal:tnode;
           procedure register_created_object_types;
+          function get_expect_loc: tcgloc;
        protected
           procedure objc_convert_to_message_send;virtual;
 
@@ -222,7 +223,6 @@ implementation
       ncnv,nld,ninl,nadd,ncon,nmem,nset,nobjc,
       objcutil,
       procinfo,cpuinfo,
-      cgbase,
       wpobase
       ;
 
@@ -1762,6 +1762,26 @@ implementation
        end;
 
 
+    function tcallnode.get_expect_loc: tcgloc;
+      var
+        realresdef: tstoreddef;
+      begin
+        if not assigned(typedef) then
+          realresdef:=tstoreddef(resultdef)
+        else
+          realresdef:=tstoreddef(typedef);
+        if realresdef.is_intregable then
+          result:=LOC_REGISTER
+        else if realresdef.is_fpuregable then
+          if use_vectorfpu(realresdef) then
+            result:=LOC_MMREGISTER
+          else
+            result:=LOC_FPUREGISTER
+        else
+          result:=LOC_REFERENCE
+      end;
+
+
     procedure tcallnode.objc_convert_to_message_send;
       var
         block,
@@ -3221,7 +3241,7 @@ implementation
              else
              { we have only to handle the result if it is used }
               if (cnf_return_value_used in callnodeflags) then
-               expectloc:=procdefinition.funcretloc[callerside].loc
+                expectloc:=get_expect_loc
              else
                expectloc:=LOC_VOID;
            end

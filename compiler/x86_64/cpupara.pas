@@ -48,7 +48,7 @@ unit cpupara;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
-          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tlocation;override;
+          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;override;
        end;
 
   implementation
@@ -404,47 +404,71 @@ unit cpupara;
       end;
 
 
-    function tx86_64paramanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tlocation;
+    function tx86_64paramanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;
       var
         retcgsize : tcgsize;
+        paraloc : pcgparalocation;
       begin
-        { Constructors return self instead of a boolean }
-        if (p.proctypeoption=potype_constructor) then
-          retcgsize:=OS_ADDR
-        else
-          retcgsize:=def_cgsize(def);
-        location_reset(result,LOC_INVALID,OS_NO);
+        result.init;
+        result.alignment:=get_para_align(p.proccalloption);
         { void has no location }
         if is_void(def) then
           begin
-            location_reset(result,LOC_VOID,OS_NO);
+            paraloc:=result.add_location;
+            result.size:=OS_NO;
+            result.intsize:=0;
+            paraloc^.size:=OS_NO;
+            paraloc^.loc:=LOC_VOID;
             exit;
           end;
+        { Constructors return self instead of a boolean }
+        if (p.proctypeoption=potype_constructor) then
+          begin
+            retcgsize:=OS_ADDR;
+            result.intsize:=sizeof(pint);
+          end
+        else
+          begin
+            retcgsize:=def_cgsize(def);
+            result.intsize:=def.size;
+          end;
+        result.size:=retcgsize;
         { Return is passed as var parameter }
         if ret_in_param(def,p.proccalloption) then
           begin
-            result.loc:=LOC_REFERENCE;
-            result.size:=retcgsize;
+            paraloc:=result.add_location;
+            paraloc^.loc:=LOC_REFERENCE;
+            paraloc^.size:=retcgsize;
             exit;
           end;
+
+        paraloc:=result.add_location;
         { Return in FPU register? }
         if def.typ=floatdef then
           begin
             case tfloatdef(def).floattype of
-              s32real,s64real:
+              s32real:
                 begin
-                  result.loc:=LOC_MMREGISTER;
-                  result.register:=NR_MM_RESULT_REG;
-                  result.size:=retcgsize;
+                  paraloc^.loc:=LOC_MMREGISTER;
+                  paraloc^.register:=newreg(R_MMREGISTER,RS_MM_RESULT_REG,R_SUBMMS);
+                  paraloc^.size:=retcgsize;
                 end;
+              s64real:
+                begin
+                  paraloc^.loc:=LOC_MMREGISTER;
+                  paraloc^.register:=newreg(R_MMREGISTER,RS_MM_RESULT_REG,R_SUBMMD);
+                  paraloc^.size:=retcgsize;
+                end;
+              { the first two only exist on targets with an x87, on others
+                they are replace by int64 }
               s64currency,
               s64comp,
               s80real,
               sc80real:
                 begin
-                  result.loc:=LOC_FPUREGISTER;
-                  result.register:=NR_FPU_RESULT_REG;
-                  result.size:=retcgsize;
+                  paraloc^.loc:=LOC_FPUREGISTER;
+                  paraloc^.register:=NR_FPU_RESULT_REG;
+                  paraloc^.size:=retcgsize;
                 end;
               else
                 internalerror(200405034);
@@ -453,41 +477,47 @@ unit cpupara;
         else
          { Return in register }
           begin
-            result.loc:=LOC_REGISTER;
+            paraloc^.loc:=LOC_REGISTER;
             if retcgsize=OS_NO then
               begin
                 case def.size of
                   0..4:
                     begin
-                      result.size:=OS_32;
-                      result.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBD);
+                      paraloc^.size:=OS_32;
+                      paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBD);
                     end;
                   5..8:
                     begin
-                      result.size:=OS_64;
-                      result.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBQ);
+                      paraloc^.size:=OS_64;
+                      paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBQ);
                     end;
                   9..16:
                     begin
-                      result.size:=OS_128;
-                      result.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBWHOLE);
-                      result.registerhi:=newreg(R_INTREGISTER,RS_RDX,R_SUBWHOLE);
+                      paraloc^.size:=OS_64;
+                      paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBWHOLE);
+                      paraloc:=result.add_location;
+                      paraloc^.size:=OS_64;
+                      paraloc^.loc:=LOC_REGISTER;
+                      paraloc^.register:=newreg(R_INTREGISTER,RS_RDX,R_SUBWHOLE);
                     end;
                 end;
               end
             else if retcgsize in [OS_128,OS_S128] then
               begin
-                result.size:=retcgsize;
-                result.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBWHOLE);
-                result.registerhi:=newreg(R_INTREGISTER,RS_RDX,R_SUBWHOLE);
+                paraloc^.size:=OS_64;
+                paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,R_SUBWHOLE);
+                paraloc:=result.add_location;
+                paraloc^.size:=OS_64;
+                paraloc^.loc:=LOC_REGISTER;
+                paraloc^.register:=newreg(R_INTREGISTER,RS_RDX,R_SUBWHOLE);
               end
             else
               begin
-                result.size:=retcgsize;
+                paraloc^.size:=retcgsize;
                 if side=callerside then
-                  result.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
+                  paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
                 else
-                  result.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
+                  paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
               end;
           end;
       end;

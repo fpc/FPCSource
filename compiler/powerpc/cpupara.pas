@@ -40,7 +40,7 @@ unit cpupara;
           procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
-          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tlocation;override;
+          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;override;
           procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
          private
           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
@@ -250,65 +250,81 @@ unit cpupara;
       end;
 
 
-    function tppcparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tlocation;
+    function tppcparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;
       var
+        paraloc : pcgparalocation;
         retcgsize  : tcgsize;
       begin
-        { Constructors return self instead of a boolean }
-        if (p.proctypeoption=potype_constructor) then
-          retcgsize:=OS_ADDR
-        else
-          retcgsize:=def_cgsize(def);
-
-        location_reset(result,LOC_INVALID,OS_NO);
-        result.size:=retcgsize;
+        result.init;
+        result.alignment:=get_para_align(p.proccalloption);
         { void has no location }
         if is_void(def) then
           begin
-            result.loc:=LOC_VOID;
+            paraloc:=result.add_location;
+            result.size:=OS_NO;
+            result.intsize:=0;
+            paraloc^.size:=OS_NO;
+            paraloc^.loc:=LOC_VOID;
             exit;
           end;
+        { Constructors return self instead of a boolean }
+        if (p.proctypeoption=potype_constructor) then
+          begin
+            retcgsize:=OS_ADDR;
+            result.intsize:=sizeof(pint);
+          end
+        else
+          begin
+            retcgsize:=def_cgsize(def);
+            result.intsize:=def.size;
+          end;
+        result.size:=retcgsize;
         { Return is passed as var parameter }
         if ret_in_param(def,p.proccalloption) then
           begin
-            result.loc:=LOC_REFERENCE;
-            result.size:=retcgsize;
+            paraloc:=result.add_location;
+            paraloc^.loc:=LOC_REFERENCE;
+            paraloc^.size:=retcgsize;
             exit;
           end;
+
+        paraloc:=result.add_location;
         { Return in FPU register? }
         if def.typ=floatdef then
           begin
-            result.loc:=LOC_FPUREGISTER;
-            result.register:=NR_FPU_RESULT_REG;
-            result.size:=retcgsize;
+            paraloc^.loc:=LOC_FPUREGISTER;
+            paraloc^.register:=NR_FPU_RESULT_REG;
+            paraloc^.size:=retcgsize;
           end
         else
          { Return in register }
           begin
-{$ifndef cpu64bitaddr}
             if retcgsize in [OS_64,OS_S64] then
              begin
                { low 32bits }
-               result.loc:=LOC_REGISTER;
+               paraloc^.loc:=LOC_REGISTER;
                if side=callerside then
-                 result.register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG
+                 paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG
                else
-                 result.register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
+                 paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
+               paraloc^.size:=OS_32;
                { high 32bits }
+               paraloc:=result.add_location;
+               paraloc^.loc:=LOC_REGISTER;
                if side=callerside then
-                 result.register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG
+                 paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG
                else
-                 result.register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
+                 paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
+               paraloc^.size:=OS_32;
              end
             else
-{$endif cpu64bitaddr}
              begin
-               result.loc:=LOC_REGISTER;
-               result.size:=retcgsize;
+               paraloc^.loc:=LOC_REGISTER;
                if side=callerside then
-                 result.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
+                 paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
                else
-                 result.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
+                 paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
+               paraloc^.size:=retcgsize;
              end;
           end;
       end;

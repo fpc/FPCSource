@@ -37,14 +37,6 @@ unit cgcpu;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
-        { passing parameters, per default the parameter is pushed }
-        { nr gives the number of the parameter (enumerated from   }
-        { left to right), this allows to move the parameter to    }
-        { register, if the cpu supports register calling          }
-        { conventions                                             }
-        procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : tcgpara);override;
-
-
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg: tregister); override;
 
@@ -182,71 +174,6 @@ const
         rg[R_MMREGISTER].free;
         inherited done_register_allocators;
       end;
-
-
-    procedure tcgppc.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : tcgpara);
-
-      var
-        tmpref, ref: treference;
-        location: pcgparalocation;
-        sizeleft: aint;
-
-      begin
-        location := paraloc.location;
-        tmpref := r;
-        sizeleft := paraloc.intsize;
-        while assigned(location) do
-          begin
-            case location^.loc of
-              LOC_REGISTER,LOC_CREGISTER:
-                begin
-{$ifndef cpu64bitaddr}
-                  if (sizeleft <> 3) then
-                    begin
-                      a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
-                    end
-                  else
-                    begin
-                      a_load_ref_reg(list,OS_16,OS_16,tmpref,location^.register);
-                      a_reg_alloc(list,NR_R0);
-                      inc(tmpref.offset,2);
-                      a_load_ref_reg(list,OS_8,OS_8,tmpref,newreg(R_INTREGISTER,RS_R0,R_SUBNONE));
-                      a_op_const_reg(list,OP_SHL,OS_INT,16,location^.register);
-                      list.concat(taicpu.op_reg_reg_const_const_const(A_RLWIMI,location^.register,newreg(R_INTREGISTER,RS_R0,R_SUBNONE),8,16,31-8));
-                      a_reg_dealloc(list,NR_R0);
-                      dec(tmpref.offset,2);
-                    end;
-{$else not cpu64bitaddr}
-{$error add 64 bit support for non power of 2 loads in a_load_ref_cgpara}
-{$endif not cpu64bitaddr}
-                end;
-              LOC_REFERENCE:
-                begin
-                   reference_reset_base(ref,location^.reference.index,location^.reference.offset,paraloc.alignment);
-                   g_concatcopy(list,tmpref,ref,sizeleft);
-                   if assigned(location^.next) then
-                     internalerror(2005010710);
-                end;
-              LOC_FPUREGISTER,LOC_CFPUREGISTER:
-                case location^.size of
-                   OS_F32, OS_F64:
-                     a_loadfpu_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
-                   else
-                     internalerror(2002072801);
-                end;
-              LOC_VOID:
-                begin
-                  // nothing to do
-                end;
-              else
-                internalerror(2002081103);
-            end;
-            inc(tmpref.offset,tcgsize2size[location^.size]);
-            dec(sizeleft,tcgsize2size[location^.size]);
-            location := location^.next;
-          end;
-      end;
-
 
     { calling a procedure by name }
     procedure tcgppc.a_call_name(list : TAsmList;const s : string; weak: boolean);

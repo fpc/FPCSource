@@ -26,7 +26,8 @@ unit parabase;
 
     uses
        cclasses,globtype,
-       cpubase,cgbase,cgutils;
+       cpubase,cgbase,cgutils,
+       symtype, ppu;
 
     type
        TCGParaReference = record
@@ -62,9 +63,9 @@ unit parabase;
 
        TCGPara = object
           Location  : PCGParalocation;
+          IntSize   : aint; { size of the total location in bytes }
           Alignment : ShortInt;
           Size      : TCGSize;  { Size of the parameter included in all locations }
-          IntSize: aint; { size of the total location in bytes }
 {$ifdef powerpc}
           composite: boolean; { under the AIX abi, how certain parameters are passed depends on whether they are composite or not }
 {$endif powerpc}
@@ -75,6 +76,9 @@ unit parabase;
           procedure   check_simple_location;
           function    add_location:pcgparalocation;
           procedure   get_location(var newloc:tlocation);
+
+          procedure   ppuwrite(ppufile:tcompilerppufile);
+          procedure   ppuload(ppufile:tcompilerppufile);
        end;
 
        tvarargsinfo = (
@@ -237,6 +241,90 @@ implementation
               newloc.reference.alignment:=alignment;
             end;
         end;
+      end;
+
+
+    procedure TCGPara.ppuwrite(ppufile: tcompilerppufile);
+      var
+        hparaloc: PCGParaLocation;
+        nparaloc: byte;
+      begin
+        ppufile.putbyte(byte(Alignment));
+        ppufile.putbyte(ord(Size));
+        ppufile.putaint(IntSize);
+{$ifdef powerpc}
+        ppufile.putbyte(byte(composite));
+{$endif}
+        nparaloc:=0;
+        hparaloc:=location;
+        while assigned(hparaloc) do
+          begin
+            inc(nparaloc);
+            hparaloc:=hparaloc^.Next;
+          end;
+        ppufile.putbyte(nparaloc);
+        hparaloc:=location;
+        while assigned(hparaloc) do
+          begin
+            ppufile.putbyte(byte(hparaloc^.Size));
+            ppufile.putbyte(byte(hparaloc^.loc));
+            if hparaloc^.loc=LOC_REFERENCE then
+              begin
+                ppufile.putlongint(longint(hparaloc^.reference.index));
+                ppufile.putaint(hparaloc^.reference.offset);
+              end
+            else
+              begin
+{$ifdef powerpc64}
+                ppufile.putbyte(hparaloc^.shiftval);
+{$endif}
+                ppufile.putlongint(longint(hparaloc^.register));
+              end;
+          end;
+      end;
+
+
+    procedure TCGPara.ppuload(ppufile: tcompilerppufile);
+      var
+        hparaloc: PCGParaLocation;
+        nparaloc: byte;
+      begin
+        reset;
+        Alignment:=shortint(ppufile.getbyte);
+        Size:=TCgSize(ppufile.getbyte);
+        IntSize:=ppufile.getaint;
+{$ifdef powerpc}
+        composite:=boolean(ppufile.getbyte);
+{$endif}
+        nparaloc:=ppufile.getbyte;
+        while nparaloc>0 do
+          begin
+            hparaloc:=add_location;
+            hparaloc^.size:=TCGSize(ppufile.getbyte);
+            hparaloc^.loc:=TCGLoc(ppufile.getbyte);
+            case hparaloc^.loc of
+              LOC_REFERENCE:
+                begin
+                  hparaloc^.reference.index:=tregister(ppufile.getlongint);
+                  hparaloc^.reference.offset:=ppufile.getaint;
+                end;
+              LOC_FPUREGISTER,
+              LOC_CFPUREGISTER,
+              LOC_MMREGISTER,
+              LOC_CMMREGISTER,
+              LOC_REGISTER,
+              LOC_CREGISTER :
+                begin
+{$ifdef powerpc64}
+                  hparaloc^.shiftval:=ppufile.getbyte;
+{$endif}
+                  hparaloc^.register:=tregister(ppufile.getlongint);
+                end
+              else
+                internalerror(2010051301);
+            end;
+            dec(nparaloc);
+          end;
       end;
 
 

@@ -545,6 +545,7 @@ var
   Ref: TReference;
 begin
   paraloc.check_simple_location;
+  paramanager.allocparaloc(list,paraloc.location);
   case paraloc.location^.loc of
     LOC_REGISTER, LOC_CREGISTER:
       a_load_const_reg(list, size, a, paraloc.location^.Register);
@@ -570,6 +571,7 @@ var
   tmpreg: TRegister;
 begin
   paraloc.check_simple_location;
+  paramanager.allocparaloc(list,paraloc.location);
   with paraloc.location^ do
   begin
     case loc of
@@ -600,6 +602,7 @@ var
   TmpReg: TRegister;
 begin
   paraloc.check_simple_location;
+  paramanager.allocparaloc(list,paraloc.location);
   with paraloc.location^ do
   begin
     case loc of
@@ -630,6 +633,7 @@ begin
   hloc := paraloc.location;
   while assigned(hloc) do
   begin
+    paramanager.allocparaloc(list,hloc);
     case hloc^.loc of
       LOC_REGISTER:
         a_load_ref_reg(list, hloc^.size, hloc^.size, href, hloc^.Register);
@@ -1467,15 +1471,12 @@ begin
   paramanager.getintparaloc(pocall_default, 1, paraloc1);
   paramanager.getintparaloc(pocall_default, 2, paraloc2);
   paramanager.getintparaloc(pocall_default, 3, paraloc3);
-  paramanager.allocparaloc(list, paraloc3);
   a_load_const_cgpara(list, OS_INT, len, paraloc3);
-  paramanager.allocparaloc(list, paraloc2);
   a_loadaddr_ref_cgpara(list, dest, paraloc2);
-  paramanager.allocparaloc(list, paraloc2);
   a_loadaddr_ref_cgpara(list, Source, paraloc1);
-  paramanager.freeparaloc(list, paraloc3);
-  paramanager.freeparaloc(list, paraloc2);
-  paramanager.freeparaloc(list, paraloc1);
+  paramanager.freecgpara(list, paraloc3);
+  paramanager.freecgpara(list, paraloc2);
+  paramanager.freecgpara(list, paraloc1);
   alloccpuregisters(list, R_INTREGISTER, paramanager.get_volatile_registers_int(pocall_default));
   alloccpuregisters(list, R_FPUREGISTER, paramanager.get_volatile_registers_fpu(pocall_default));
   a_call_name(list, 'FPC_MOVE', false);

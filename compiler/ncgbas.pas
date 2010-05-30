@@ -70,7 +70,7 @@ interface
       cutils,verbose,
       aasmbase,aasmtai,aasmdata,aasmcpu,
       symsym,symconst,symdef,defutil,
-      nflw,pass_2,
+      nflw,pass_2,ncgutil,
       cgbase,cgobj,
       procinfo,
       tgobj
@@ -406,41 +406,7 @@ interface
           end
         else if (ti_may_be_in_reg in tempinfo^.flags) then
           begin
-            if tempinfo^.typedef.typ=floatdef then
-              begin
-                if use_vectorfpu(tempinfo^.typedef) then
-                  begin
-                    if (tempinfo^.temptype = tt_persistent) then
-                      location_reset(tempinfo^.location,LOC_CMMREGISTER,def_cgsize(tempinfo^.typedef))
-                    else
-                      location_reset(tempinfo^.location,LOC_MMREGISTER,def_cgsize(tempinfo^.typedef));
-                    tempinfo^.location.register:=cg.getmmregister(current_asmdata.CurrAsmList,tempinfo^.location.size);
-                  end
-                else
-                  begin
-                    if (tempinfo^.temptype = tt_persistent) then
-                      location_reset(tempinfo^.location,LOC_CFPUREGISTER,def_cgsize(tempinfo^.typedef))
-                    else
-                      location_reset(tempinfo^.location,LOC_FPUREGISTER,def_cgsize(tempinfo^.typedef));
-                    tempinfo^.location.register:=cg.getfpuregister(current_asmdata.CurrAsmList,tempinfo^.location.size);
-                  end;
-              end
-            else
-              begin
-                if (tempinfo^.temptype = tt_persistent) then
-                  location_reset(tempinfo^.location,LOC_CREGISTER,def_cgsize(tempinfo^.typedef))
-                else
-                  location_reset(tempinfo^.location,LOC_REGISTER,def_cgsize(tempinfo^.typedef));
-{$ifndef cpu64bitalu}
-                if tempinfo^.location.size in [OS_64,OS_S64] then
-                  begin
-                    tempinfo^.location.register64.reglo:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                    tempinfo^.location.register64.reghi:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                  end
-                else
-{$endif not cpu64bitalu}
-                  tempinfo^.location.register:=cg.getintregister(current_asmdata.CurrAsmList,tempinfo^.location.size);
-              end;
+            location_allocate_register(current_asmdata.CurrAsmList,tempinfo^.location,tempinfo^.typedef,tempinfo^.temptype = tt_persistent);
           end
         else
           begin

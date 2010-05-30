@@ -151,6 +151,7 @@ unit cgcpu;
         ref: treference;
       begin
         paraloc.check_simple_location;
+        paramanager.allocparaloc(list,paraloc.location);
         case paraloc.location^.loc of
           LOC_REGISTER,LOC_CREGISTER:
             a_load_const_reg(list,size,a,paraloc.location^.register);
@@ -178,6 +179,7 @@ unit cgcpu;
         sizeleft := paraloc.intsize;
         while assigned(location) do
           begin
+            paramanager.allocparaloc(list,location);
             case location^.loc of
               LOC_REGISTER,LOC_CREGISTER:
                 a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
@@ -214,6 +216,7 @@ unit cgcpu;
         tmpreg: tregister;
       begin
         paraloc.check_simple_location;
+        paramanager.allocparaloc(list,paraloc.location);
         case paraloc.location^.loc of
           LOC_REGISTER,LOC_CREGISTER:
             a_loadaddr_ref_reg(list,r,paraloc.location^.register);
@@ -714,15 +717,12 @@ unit cgcpu;
         paramanager.getintparaloc(pocall_default,1,paraloc1);
         paramanager.getintparaloc(pocall_default,2,paraloc2);
         paramanager.getintparaloc(pocall_default,3,paraloc3);
-        paramanager.allocparaloc(list,paraloc3);
         a_load_const_cgpara(list,OS_INT,len,paraloc3);
-        paramanager.allocparaloc(list,paraloc2);
         a_loadaddr_ref_cgpara(list,dest,paraloc2);
-        paramanager.allocparaloc(list,paraloc2);
         a_loadaddr_ref_cgpara(list,source,paraloc1);
-        paramanager.freeparaloc(list,paraloc3);
-        paramanager.freeparaloc(list,paraloc2);
-        paramanager.freeparaloc(list,paraloc1);
+        paramanager.freecgpara(list,paraloc3);
+        paramanager.freecgpara(list,paraloc2);
+        paramanager.freecgpara(list,paraloc1);
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         a_call_name_static(list,'FPC_MOVE');
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));

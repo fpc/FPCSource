@@ -30,20 +30,44 @@ interface
 
     type
        tarmcallnode = class(tcgcallnode)
-          // procedure push_framepointer;override;
+         procedure set_result_location(realresdef: tstoreddef);override;
        end;
 
 implementation
 
   uses
+    verbose,globtype,globals,aasmdata,
+    symconst,
+    cgbase,
+    cpubase,cpuinfo,
+    ncgutil,
     paramgr;
 
-(*
-  procedure tarmcallnode.push_framepointer;
+  procedure tarmcallnode.set_result_location(realresdef: tstoreddef);
     begin
-      framepointer_paraloc:=paramanager.getintparaloc(procdefinition.proccalloption,1);
+      if (realresdef.typ=floatdef) and
+         ((cs_fp_emulation in current_settings.moduleswitches) or
+          (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3])) then
+        begin
+          { keep the fpu values in integer registers for now, the code
+            generator will move them to memory or an mmregister when necessary
+            (avoids double moves in case a function result is assigned to
+             another function result, or passed as a parameter) }
+          case retloc.size of
+            OS_32,
+            OS_F32:
+              location_allocate_register(current_asmdata.CurrAsmList,location,s32inttype,false);
+            OS_64,
+            OS_F64:
+              location_allocate_register(current_asmdata.CurrAsmList,location,s64inttype,false);
+            else
+              internalerror(2010053008);
+          end
+        end
+      else
+        inherited;
     end;
-*)
+
 
 begin
    ccallnode:=tarmcallnode;
