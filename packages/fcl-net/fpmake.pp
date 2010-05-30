@@ -20,7 +20,6 @@ begin
     P.Dependencies.Add('fcl-base');
     P.Dependencies.Add('fcl-xml');
     P.Dependencies.Add('fcl-passrc');
-    P.Dependencies.Add('fcl-async');
 
     P.Author := 'Sebastian Guenther and Free Pascal development team';
     P.License := 'LGPL with modification, ';
@@ -50,52 +49,21 @@ begin
         end;
 
     // HTTP Client
-    T:=P.Targets.AddUnit('servlets.pp');
     T:=P.Targets.AddUnit('fpsock.pp',AllUnixOSes);
       with T.Dependencies do
         begin
           AddUnit('resolve');
         end;
-    T:=P.Targets.AddUnit('httpbase.pp',AllUnixOSes);
-    T:=P.Targets.AddUnit('httpclient.pp',AllUnixOSes);
-      with T.Dependencies do
-        begin
-          AddUnit('httpbase');
-          AddUnit('fpsock');
-        end;
-    T:=P.Targets.AddUnit('httpsvlt.pp',AllUnixOSes);
-      with T.Dependencies do
-        begin
-          AddUnit('fpsock');
-          AddUnit('httpbase');
-          AddUnit('servlets');
-        end;
-
-    // XML-RPC
-    T:=P.Targets.AddUnit('xmlrpc.pp',AllUnixOSes);
-      with T.Dependencies do
-        begin
-          AddUnit('ssockets');
-          AddUnit('httpclient');
-          AddUnit('httpsvlt');
-        end;
-    T:=P.Targets.AddProgram('mkxmlrpc.pp',AllUnixOSes);
     P.ExamplePath.Add('examples');
-    P.Targets.AddExampleProgram('examples/rpccli.pp');
-    P.Targets.AddExampleProgram('examples/svrclass_xmlrpc.pp');
     P.Targets.AddExampleProgram('examples/ip6test.pp');
     P.Targets.AddExampleProgram('examples/svrclass.pp');
     P.Targets.AddExampleProgram('examples/testdns.pp');
     P.Targets.AddExampleProgram('examples/testnet.pp');
     P.Targets.AddExampleProgram('examples/testhosts.pp');
-    P.Targets.AddExampleProgram('examples/rpcserv.pp');
     P.Targets.AddExampleProgram('examples/testsvc.pp');
     P.Targets.AddExampleProgram('examples/testhst.pp');
     P.Targets.AddExampleProgram('examples/testuri.pp');
     P.Targets.AddExampleProgram('examples/testproto.pp');
-    // 'examples/Makefile
-    // 'examples/Makefile.fpc
-    // 'examples/readme.txt
 
 {$ifndef ALLPACKAGES}
     Run;

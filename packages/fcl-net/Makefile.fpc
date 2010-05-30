@@ -8,10 +8,10 @@ version=2.5.1
 
 [target]
 units=servlets
-units_linux=netdb resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
-units_freebsd=netdb resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc cnetdb
-units_netbsd=netdb resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
-units_openbsd=netdb resolve ssockets fpsock httpbase httpclient httpsvlt xmlrpc
+units_linux=netdb resolve ssockets fpsock 
+units_freebsd=netdb resolve ssockets fpsock cnetdb
+units_netbsd=netdb resolve ssockets fpsock 
+units_openbsd=netdb resolve ssockets fpsock
 units_darwin=netdb resolve ssockets 
 units_solaris=netdb resolve ssockets 
 units_qnx=netdb resolve ssockets 
@@ -22,20 +22,9 @@ units_os2=resolve ssockets
 units_win32=resolve ssockets 
 units_win64=resolve ssockets 
 units_wince=resolve ssockets 
-programs_linux=mkxmlrpc
-programs_freebsd=mkxmlrpc
-programs_darwin=mkxmlrpc
-programs_solaris=mkxmlrpc
-programs_netbsd=mkxmlrpc
-programs_openbsd=mkxmlrpc
-rsts_linux=fpsock httpsvlt mkxmlrpc
-rsts_freebsd=fpsock httpsvlt mkxmlrpc
-rsts_darwin=fpsock httpsvlt mkxmlrpc
-rsts_netbsd=fpsock httpsvlt mkxmlrpc
-rsts_openbsd=fpsock httpsvlt mkxmlrpc
 
 [require]
-packages=fcl-base fcl-xml fcl-passrc fcl-async
+packages=fcl-base fcl-xml fcl-passrc
 
 [compiler]
 options=-S2h
