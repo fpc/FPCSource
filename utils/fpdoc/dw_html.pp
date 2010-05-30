@@ -659,7 +659,8 @@ begin
   Doc := THTMLDocument.Create;
   Result := Doc;
   Doc.AppendChild(Doc.Impl.CreateDocumentType(
-    'HTML', '-//W3C//DTD HTML 4.0 Transitional//EN', ''));
+    'HTML', '-//W3C//DTD HTML 4.01 Transitional//EN',
+    'http://www.w3.org/TR/html4/loose.dtd'));
 
   HTMLEl := Doc.CreateHtmlElement;
   Doc.AppendChild(HTMLEl);
