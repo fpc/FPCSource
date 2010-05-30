@@ -168,7 +168,7 @@ begin
                     else if
                      ((taicpu(p).ops <= 2) or
                       (taicpu(p).oper[2]^.typ = Top_Reg)) and
-                     (current_settings.optimizecputype < cpu_Pentium2) and
+                     (current_settings.optimizecputype <> cpu_Pentium3) and
                      (taicpu(p).oper[0]^.val <= 12) and
                      not(cs_opt_size in current_settings.optimizerswitches) and
                      (not(GetNextInstruction(p, hp1)) or
