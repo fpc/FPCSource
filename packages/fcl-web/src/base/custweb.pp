@@ -368,7 +368,7 @@ Var
 
 begin
   S:=IncludeHTTPPathDelimiter(GetApplicationURL(ARequest));
-  P:=IncludeHTTPPathDelimiter(ARequest.ProcessedPathinfo);
+  P:=IncludeHTTPPathDelimiter(ARequest.ReturnedPathInfo);
   If (P='') or (P='/') then
     P:=IncludeHTTPPathDelimiter(AModuleName);
   if (Length(P)>0) and (P[1]='/') then

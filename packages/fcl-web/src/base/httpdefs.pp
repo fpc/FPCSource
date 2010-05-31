@@ -267,7 +267,7 @@ type
     FHandleGetOnPost: Boolean;
     FURI: String;
     FFiles : TUploadedFiles;
-    FProcessedPathInfo : String;
+    FReturnedPathInfo : String;
     procedure ParseFirstHeaderLine(const line: String);override;
     function GetFirstHeaderLine: String;
   Protected
@@ -286,7 +286,7 @@ type
     constructor Create; override;
     destructor destroy; override;
     Function  GetNextPathInfo : String;
-    Property  ProcessedPathInfo : String Read FProcessedPathInfo Write FProcessedPathInfo;
+    Property  ReturnedPathInfo : String Read FReturnedPathInfo Write FReturnedPathInfo;
     Property  CommandLine : String Read FCommandLine;
     Property  Command : String read FCommand;
     Property  URI : String read FURI;                // Uniform Resource Identifier
@@ -934,19 +934,19 @@ Var
   
 begin
   P:=PathInfo;
-{$ifdef CGIDEBUG}SendDebug(Format('Pathinfo: "%s" "%s"',[P,FProcessedPathInfo]));{$ENDIF}
+{$ifdef CGIDEBUG}SendDebug(Format('Pathinfo: "%s" "%s"',[P,FReturnedPathInfo]));{$ENDIF}
   if (P <> '') and (P[length(P)] = '/') then
     Delete(P, length(P), 1);//last char is '/'
   If (P<>'') and (P[1]='/') then
     Delete(P,1,1);
-  Delete(P,1,Length(IncludeHTTPPathDelimiter(FProcessedPathInfo)));
- {$ifdef CGIDEBUG}SendDebug(Format('Pathinfo: "%s" "%s"',[P,FProcessedPathInfo]));{$ENDIF}
+  Delete(P,1,Length(IncludeHTTPPathDelimiter(FReturnedPathInfo)));
+ {$ifdef CGIDEBUG}SendDebug(Format('Pathinfo: "%s" "%s"',[P,FReturnedPathInfo]));{$ENDIF}
   I:=Pos('/',P);
   If (I=0) then
     I:=Length(P)+1;
   Result:=Copy(P,1,I-1);
-  FProcessedPathInfo:=IncludeHTTPPathDelimiter(FProcessedPathInfo)+Result;
- {$ifdef CGIDEBUG}SendDebug(Format('Pathinfo: "%s" "%s" : %s',[P,FProcessedPathInfo,Result]));{$ENDIF}
+  FReturnedPathInfo:=IncludeHTTPPathDelimiter(FReturnedPathInfo)+Result;
+ {$ifdef CGIDEBUG}SendDebug(Format('Pathinfo: "%s" "%s" : %s',[P,FReturnedPathInfo,Result]));{$ENDIF}
 end;
 
 procedure TRequest.ParseFirstHeaderLine(const line: String);
