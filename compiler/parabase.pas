@@ -268,19 +268,28 @@ implementation
           begin
             ppufile.putbyte(byte(hparaloc^.Size));
             ppufile.putbyte(byte(hparaloc^.loc));
-            if hparaloc^.loc=LOC_REFERENCE then
-              begin
-                ppufile.putlongint(longint(hparaloc^.reference.index));
-                ppufile.putaint(hparaloc^.reference.offset);
-              end
-            else
-              begin
+            case hparaloc^.loc of
+              LOC_REFERENCE:
+                begin
+                  ppufile.putlongint(longint(hparaloc^.reference.index));
+                  ppufile.putaint(hparaloc^.reference.offset);
+                end;
+              LOC_FPUREGISTER,
+              LOC_CFPUREGISTER,
+              LOC_MMREGISTER,
+              LOC_CMMREGISTER,
+              LOC_REGISTER,
+              LOC_CREGISTER :
+                begin
 {$ifdef powerpc64}
-                ppufile.putbyte(hparaloc^.shiftval);
+                  ppufile.putbyte(hparaloc^.shiftval);
 {$endif}
-                ppufile.putlongint(longint(hparaloc^.register));
-              end;
-            hparaloc:=hparaloc^.Next;
+                  ppufile.putlongint(longint(hparaloc^.register));
+                end;
+              else
+                internalerror(2010053115);
+            end;
+            hparaloc:=hparaloc^.next;
           end;
       end;
 
