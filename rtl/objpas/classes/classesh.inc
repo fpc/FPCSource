@@ -1842,6 +1842,7 @@ type
     property OnDestroy: TNotifyEvent read FOnDestroy write FOnDestroy;
     property OldCreateOrder: Boolean read FOldOrder write FOldOrder;
   end;
+  TDataModuleClass = Class of TDataModule;
 
 var
   // IDE hooks for TDatamodule support.
