@@ -280,6 +280,7 @@ implementation
 {$endif}
                 ppufile.putlongint(longint(hparaloc^.register));
               end;
+            hparaloc:=hparaloc^.Next;
           end;
       end;
 
