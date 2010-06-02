@@ -8601,7 +8601,6 @@ tests/test/cg/tcalcst7.pp svneol=native#text/plain
 tests/test/cg/tcalcst8.pp svneol=native#text/plain
 tests/test/cg/tcalcst9.pp svneol=native#text/plain
 tests/test/cg/tcalext.pp svneol=native#text/plain
-tests/test/cg/tcalext2.pp svneol=native#text/plain
 tests/test/cg/tcalext3.pp svneol=native#text/plain
 tests/test/cg/tcalext4.pp svneol=native#text/plain
 tests/test/cg/tcalext5.pp svneol=native#text/plain
