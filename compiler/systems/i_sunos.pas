@@ -151,7 +151,7 @@ unit i_sunos;
                 localalignmax   : 16;
                 recordalignmin  : 0;
                 recordalignmax  : 16;
-                maxCrecordalign : 8
+                maxCrecordalign : 16
               );
             first_parm_offset : 16;
             stacksize    : 8*1024*1024;

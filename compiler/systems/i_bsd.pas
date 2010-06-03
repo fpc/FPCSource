@@ -178,7 +178,7 @@ unit i_bsd;
                 localalignmax   : 16;
                 recordalignmin  : 0;
                 recordalignmax  : 16;
-                maxCrecordalign : 8
+                maxCrecordalign : 16
               );
             first_parm_offset : 16;
             stacksize    : 256*1024;
@@ -672,10 +672,10 @@ unit i_bsd;
                 varalignmin     : 0;
                 varalignmax     : 16;
                 localalignmin   : 4;
-                localalignmax   : 8;
+                localalignmax   : 16;
                 recordalignmin  : 0;
-                recordalignmax  : 8;
-                maxCrecordalign : 8
+                recordalignmax  : 16;
+                maxCrecordalign : 16
               );
             first_parm_offset : 16;
             stacksize   : 262144;
