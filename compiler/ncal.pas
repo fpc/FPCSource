@@ -1033,7 +1033,7 @@ implementation
         { parameter or not, but no mixing (JM)                                      }
         if paramanager.ret_in_param(typedef,pd.proccalloption) xor
           paramanager.ret_in_param(pd.returndef,pd.proccalloption) then
-          internalerror(200108291);
+          internalerror(2001082911);
       end;
 
 
