@@ -2164,6 +2164,7 @@ packages/fcl-res/xml/versiontypes.xml svneol=native#text/plain
 packages/fcl-res/xml/winpeimagereader.xml svneol=native#text/plain
 packages/fcl-web/Makefile svneol=native#text/plain
 packages/fcl-web/Makefile.fpc svneol=native#text/plain
+packages/fcl-web/examples/jsonrpc/demo1/README.txt svneol=native#text/plain
 packages/fcl-web/examples/jsonrpc/demo1/demo.lpi svneol=native#text/plain
 packages/fcl-web/examples/jsonrpc/demo1/demo.lpr svneol=native#text/plain
 packages/fcl-web/examples/jsonrpc/demo1/echo.in svneol=native#text/plain
