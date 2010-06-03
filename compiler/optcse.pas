@@ -123,6 +123,8 @@ unit optcse;
           assigned(n.resultdef) and (tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
           { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
           not(n.resultdef.typ in [arraydef,recorddef]) and
+          { same for voiddef }
+          not(is_void(n.resultdef)) and
           { adding tempref nodes is worthless but their complexity is probably <= 1 anyways }
           not(n.nodetype in [temprefn]) and
 
@@ -240,13 +242,21 @@ unit optcse;
                         def:=tstoreddef(tnode(lists.nodelist[i]).resultdef);
                         templist[i]:=ctempcreatenode.create_value(def,def.size,tt_persistent,
                           def.is_intregable or def.is_fpuregable,tnode(lists.nodelist[i]));
+                        { make debugging easier and set temp. location to the original location }
+                        tnode(templist[i]).fileinfo:=tnode(lists.nodelist[i]).fileinfo;
+
                         addstatement(creates,tnode(templist[i]));
+                        { make debugging easier and set temp. location to the original location }
+                        creates.fileinfo:=tnode(lists.nodelist[i]).fileinfo;
 
                         hp:=ttempcreatenode(templist[i]);
                         do_firstpass(tnode(hp));
                         templist[i]:=hp;
 
                         pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[i]));
+                        { make debugging easier and set temp. location to the original location }
+                        pnode(lists.locationlist[i])^.fileinfo:=tnode(lists.nodelist[i]).fileinfo;
+
                         do_firstpass(pnode(lists.locationlist[i])^);
 {$ifdef csedebug}
                         printnode(output,statements);
@@ -262,6 +272,10 @@ unit optcse;
 {$endif defined(csedebug) or defined(csestats)}
                         templist[i]:=templist[ptrint(lists.equalto[i])];
                         pnode(lists.locationlist[i])^:=ctemprefnode.create(ttempcreatenode(templist[ptrint(lists.equalto[i])]));
+
+                        { make debugging easier and set temp. location to the original location }
+                        pnode(lists.locationlist[i])^.fileinfo:=tnode(lists.nodelist[i]).fileinfo;
+
                         do_firstpass(pnode(lists.locationlist[i])^);
                       end;
                   end;
