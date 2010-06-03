@@ -1,0 +1,26 @@
+#
+#   Makefile.fpc for FCL Web components
+#
+
+[package]
+main=fcl-web
+version=2.5.1
+
+[target]
+units=fpjsonrpc  webjsonrpc fpextdirect
+
+[require]
+packages=fcl-base fcl-xml fcl-json
+
+[compiler]
+options=-S2h
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
+
+
+[rules]
+.NOTPARALLEL:
