@@ -349,7 +349,7 @@ implementation
               on arm it reduces executable size of the compiler by 2.1 per cent (FK) }
             { Does it fit a register? }
             if (len<=sizeof(pint)) and
-               (cgpara.size in [OS_8,OS_16,OS_32,OS_64,OS_128,OS_S8,OS_S16,OS_S32,OS_S64,OS_S128]) then
+               (paraloc^.size in [OS_8,OS_16,OS_32,OS_64,OS_128,OS_S8,OS_S16,OS_S32,OS_S64,OS_S128]) then
               newparaloc^.loc:=LOC_REGISTER
             else
               newparaloc^.loc:=paraloc^.loc;
