@@ -258,6 +258,7 @@ begin
   M:=TMemoryStream.Create;
   DoGetContent(ARequest,M,Handled);
   AResponse.ContentStream:=M;
+  AResponse.ContentLength:=M.Size;
 end;
 
 procedure THTTPContentProducer.DoGetContent(ARequest: TRequest; Content: TStream; Var Handled : Boolean);

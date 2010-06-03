@@ -1,0 +1,1 @@
+{ "method": "echo", "params": ["Hello JSON-RPC"], "id": null }
