@@ -196,6 +196,7 @@ unit cgx86;
             result:=rg[R_MMREGISTER].getregister(list,R_SUBMMD);
           OS_F32:
             result:=rg[R_MMREGISTER].getregister(list,R_SUBMMS);
+          OS_M64,
           OS_M128:
             result:=rg[R_MMREGISTER].getregister(list,R_SUBMMWHOLE);
           else
@@ -1087,7 +1088,14 @@ unit cgx86;
           (A_NONE,A_NONE,A_NONE,A_MOVQ,A_NONE),
           (A_NONE,A_NONE,A_NONE,A_NONE,A_NONE));
       begin
-        result:=convertop[fromsize,tosize];
+        if (fromsize in [low(convertop)..high(convertop)]) and
+           (tosize in [low(convertop)..high(convertop)]) then
+          result:=convertop[fromsize,tosize]
+        else if (fromsize=tosize) and
+                (fromsize=OS_M64) then
+          result:=A_MOVQ
+        else
+          internalerror(2010060104);
         if result=A_NONE then
           internalerror(200312205);
       end;
@@ -1106,6 +1114,8 @@ unit cgx86;
                   instr:=taicpu.op_reg_reg(A_MOVAPS,S_NO,reg1,reg2);
                 OS_F64:
                   instr:=taicpu.op_reg_reg(A_MOVAPD,S_NO,reg1,reg2);
+                OS_M64:
+                  instr:=taicpu.op_reg_reg(A_MOVQ,S_NO,reg1,reg2);
                 else
                   internalerror(2006091201);
               end
@@ -1246,6 +1256,7 @@ unit cgx86;
         //!!!
         if (shuffle<>nil) and not(shufflescalar(shuffle)) then
           begin
+            internalerror(2010060101);
           end
         else if (shuffle=nil) then
           asmop:=opmm2asmop[1,size,op]
@@ -1256,7 +1267,7 @@ unit cgx86;
             if asmop=A_NOP then
               begin
                 { do vectorized and shuffle finally }
-                //!!!
+                internalerror(2010060102);
               end;
           end
         else
