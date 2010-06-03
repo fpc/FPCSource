@@ -26,11 +26,14 @@ unit nx64cal;
 interface
 
     uses
+      symdef,
       ncal,ncgcal;
 
     type
        tx8664callnode = class(tcgcallnode)
+        protected
          procedure extra_call_code;override;
+         procedure set_result_location(realresdef: tstoreddef);override;
        end;
 
 
@@ -39,7 +42,7 @@ implementation
     uses
       globtype,
       systems,
-      cpubase,
+      cpubase,cgbase,cgutils,cgobj,
       aasmtai,aasmdata,aasmcpu;
 
     procedure tx8664callnode.extra_call_code;
@@ -57,6 +60,22 @@ implementation
           end;
       end;
 
+
+    procedure tx8664callnode.set_result_location(realresdef: tstoreddef);
+      begin
+        { avoid useless "movq %xmm0,%rax" and "movq %rax,%xmm0" instructions
+          (which moreover for some reason are not supported by the Darwin
+           x86-64 assembler) }
+        if assigned(retloc.location) and
+           not assigned(retloc.location^.next) and
+           (retloc.location^.loc in [LOC_MMREGISTER,LOC_CMMREGISTER]) then
+          begin
+            location_reset(location,LOC_MMREGISTER,retloc.location^.size);
+            location.register:=cg.getmmregister(current_asmdata.CurrAsmList,retloc.location^.size);
+          end
+        else
+          inherited
+      end;
 
 begin
    ccallnode:=tx8664callnode;

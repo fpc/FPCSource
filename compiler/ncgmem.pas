@@ -366,7 +366,9 @@ implementation
                LOC_CREFERENCE:
                  ;
                LOC_REGISTER,
-               LOC_CREGISTER:
+               LOC_CREGISTER,
+               LOC_MMREGISTER,
+               LOC_FPUREGISTER:
                  begin
                    // in case the result is not something that can be put
                    // into an integer register (e.g.
@@ -374,7 +376,8 @@ implementation
                    // a function returning a value > sizeof(intreg))
                    // -> force to memory
                    if not tstoreddef(left.resultdef).is_intregable or
-                      not tstoreddef(resultdef).is_intregable then
+                      not tstoreddef(resultdef).is_intregable or
+                      (location.loc in [LOC_MMREGISTER,LOC_FPUREGISTER]) then
                      location_force_mem(current_asmdata.CurrAsmList,location)
                    else
                      begin
@@ -804,7 +807,15 @@ implementation
               location.reference.alignment:=sizeof(pint);
            end
          else
-           location_copy(location,left.location);
+           begin
+              { may happen in case of function results }
+              case left.location.loc of
+                LOC_REGISTER,
+                LOC_MMREGISTER:
+                  location_force_mem(current_asmdata.CurrAsmList,left.location);
+              end;
+             location_copy(location,left.location);
+           end;
 
          { location must be memory }
          if not(location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then

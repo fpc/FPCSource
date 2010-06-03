@@ -90,6 +90,7 @@ interface
           procedure addalignmentpadding;
           procedure insertdef(def:TDefEntry);override;
           function is_packed: boolean;
+          function has_single_field(out sym:tfieldvarsym): boolean;
         protected
           _datasize       : aint;
           { size in bits of the data in case of bitpacked record. Only important during construction, }
@@ -1000,6 +1001,27 @@ implementation
     function tabstractrecordsymtable.is_packed: boolean;
       begin
         result:=usefieldalignment=bit_alignment;
+      end;
+
+
+    function tabstractrecordsymtable.has_single_field(out sym: tfieldvarsym): boolean;
+      var
+        i: longint;
+      begin
+        result:=false;
+        for i:=0 to SymList.Count-1 do
+          begin
+            if tsym(symlist[i]).typ=fieldvarsym then
+              begin
+                if result then
+                  begin
+                    result:=false;
+                    exit;
+                  end;
+                result:=true;
+                sym:=tfieldvarsym(symlist[i])
+              end;
+          end;
       end;
 
 

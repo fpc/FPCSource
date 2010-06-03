@@ -62,6 +62,7 @@ unit cpupara;
     uses
        cutils,
        systems,verbose,
+       symtable,
        defutil;
 
       const
@@ -316,6 +317,7 @@ unit cpupara;
       var
         retcgsize  : tcgsize;
         paraloc : pcgparalocation;
+        sym: tfieldvarsym;
       begin
         result.init;
         result.alignment:=get_para_align(p.proccalloption);
@@ -329,6 +331,15 @@ unit cpupara;
             paraloc^.loc:=LOC_VOID;
             exit;
           end;
+        { on darwin/i386, if a record has only one field and that field is a
+          single or double, it has to be returned like a single/double }
+        if (target_info.system=system_i386_darwin) and
+           ((def.typ=recorddef) or
+            is_object(def)) and
+           tabstractrecordsymtable(tabstractrecorddef(def).symtable).has_single_field(sym) and
+           (sym.vardef.typ=floatdef) and
+           (tfloatdef(sym.vardef).floattype in [s32real,s64real]) then
+          def:=sym.vardef;
         { Constructors return self instead of a boolean }
         if (p.proctypeoption=potype_constructor) then
           begin

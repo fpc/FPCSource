@@ -897,7 +897,9 @@ implementation
               begin
                  reference_reset_base(ref,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
                  a_load_reg_ref(list,size,cgpara.location^.size,r,ref);
-              end
+              end;
+            LOC_MMREGISTER,LOC_CMMREGISTER:
+              a_loadmm_intreg_reg(list,size,cgpara.location^.size,r,cgpara.location^.register,mms_movescalar);
             else
               internalerror(2002071004);
          end;
@@ -919,7 +921,7 @@ implementation
                  a_load_const_ref(list,cgpara.location^.size,a,ref);
               end
             else
-              internalerror(2002071004);
+              internalerror(2010053109);
          end;
       end;
 
@@ -1046,9 +1048,23 @@ implementation
                      { use concatcopy, because the parameter can be larger than }
                      { what the OS_* constants can handle                       }
                      g_concatcopy(list,tmpref,ref,sizeleft);
+                end;
+              LOC_MMREGISTER,LOC_CMMREGISTER:
+                begin
+                   case location^.size of
+                     OS_F32,
+                     OS_F64,
+                     OS_F128:
+                       a_loadmm_ref_reg(list,location^.size,location^.size,tmpref,location^.register,mms_movescalar);
+                     OS_M8..OS_M128,
+                     OS_MS8..OS_MS128:
+                       a_loadmm_ref_reg(list,location^.size,location^.size,tmpref,location^.register,nil);
+                     else
+                       internalerror(2010053101);
+                   end;
                 end
               else
-                internalerror(2002071004);
+                internalerror(2010053111);
             end;
             inc(tmpref.offset,tcgsize2size[location^.size]);
             dec(sizeleft,tcgsize2size[location^.size]);
@@ -1106,7 +1122,19 @@ implementation
                a_load_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
              end;
            LOC_MMREGISTER :
-             cg.a_loadmm_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref,mms_movescalar);
+             begin
+               case paraloc.size of
+                 OS_F32,
+                 OS_F64,
+                 OS_F128:
+                   a_loadmm_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref,mms_movescalar);
+                 OS_M8..OS_M128,
+                 OS_MS8..OS_MS128:
+                   a_loadmm_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref,nil);
+                 else
+                   internalerror(2010053102);
+               end;
+             end;
            LOC_FPUREGISTER :
              cg.a_loadfpu_reg_ref(list,paraloc.size,paraloc.size,paraloc.register,ref);
            LOC_REFERENCE :
@@ -1115,7 +1143,7 @@ implementation
                { use concatcopy, because it can also be a float which fails when
                  load_ref_ref is used. Don't copy data when the references are equal }
                if not((href.base=ref.base) and (href.offset=ref.offset)) then
-                 cg.g_concatcopy(list,href,ref,sizeleft);
+                 g_concatcopy(list,href,ref,sizeleft);
              end;
            else
              internalerror(2002081302);
@@ -1140,7 +1168,28 @@ implementation
                end;
              end;
            LOC_MMREGISTER :
-             a_loadmm_reg_reg(list,paraloc.size,regsize,paraloc.register,reg,mms_movescalar);
+             begin
+               case getregtype(reg) of
+                 R_INTREGISTER:
+                   a_loadmm_reg_intreg(list,paraloc.size,regsize,paraloc.register,reg,mms_movescalar);
+                 R_MMREGISTER:
+                   begin
+                     case paraloc.size of
+                       OS_F32,
+                       OS_F64,
+                       OS_F128:
+                        a_loadmm_reg_reg(list,paraloc.size,regsize,paraloc.register,reg,mms_movescalar);
+                       OS_M8..OS_M128,
+                       OS_MS8..OS_MS128:
+                         a_loadmm_reg_reg(list,paraloc.size,paraloc.size,paraloc.register,reg,nil);
+                       else
+                         internalerror(2010053102);
+                     end;
+                   end;
+                 else
+                   internalerror(2010053104);
+               end;
+             end;
            LOC_FPUREGISTER :
              a_loadfpu_reg_reg(list,paraloc.size,regsize,paraloc.register,reg);
            LOC_REFERENCE :
@@ -2742,7 +2791,7 @@ implementation
                 tg.Ungettemp(list,ref);
               end;
             else
-              internalerror(2002071004);
+              internalerror(2010053112);
          end;
       end;
 

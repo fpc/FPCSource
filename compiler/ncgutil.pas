@@ -814,6 +814,24 @@ implementation
                      begin
                        cg.a_loadfpu_reg_reg(list,l.size,cgpara.location^.size,l.register,cgpara.location^.register);
                      end;
+                   { can happen if a record with only 1 "single field" is
+                     returned in a floating point register and then is directly
+                     passed to a regcall parameter }
+                   LOC_REGISTER:
+                     begin
+                       tmploc:=l;
+                       location_force_mem(list,tmploc);
+                       case l.size of
+                         OS_F32:
+                           tmploc.size:=OS_32;
+                         OS_F64:
+                           tmploc.size:=OS_64;
+                         else
+                           internalerror(2010053116);
+                       end;
+                       cg.a_load_loc_cgpara(list,tmploc,cgpara);
+                       location_freetemp(list,tmploc);
+                     end
                    else
                      internalerror(2010053003);
                  end;
@@ -971,7 +989,9 @@ implementation
 
           This doesn't depend on emulator settings, emulator settings should
           be handled by cpupara }
-        if vardef.typ=floatdef then
+        if (vardef.typ=floatdef) or
+           { some ABIs return certain records in an fpu register }
+           (l.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
           begin
             gen_loadfpu_loc_cgpara(list,l,cgpara,vardef.size);
             exit;
@@ -1007,6 +1027,17 @@ implementation
 {$endif not cpu64bitalu}
                     cg.a_load_loc_cgpara(list,l,cgpara);
                 end;
+            end;
+          LOC_MMREGISTER,
+          LOC_CMMREGISTER:
+            begin
+              case l.size of
+                OS_F32,
+                OS_F64:
+                  cg.a_loadmm_loc_cgpara(list,l,cgpara,mms_movescalar);
+                else
+                  cg.a_loadmm_loc_cgpara(list,l,cgpara,nil);
+              end;
             end;
 {$ifdef SUPPORT_MMX}
           LOC_MMXREGISTER,

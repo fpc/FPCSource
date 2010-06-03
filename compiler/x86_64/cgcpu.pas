@@ -203,32 +203,50 @@ unit cgcpu;
 
 
     procedure tcgx86_64.a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize; intreg, mmreg: tregister; shuffle: pmmshuffle);
+      var
+        opc: tasmop;
       begin
         { this code can only be used to transfer raw data, not to perform
           conversions }
-        if (tosize<>OS_F64) then
+        if (tcgsize2size[fromsize]<>tcgsize2size[tosize]) or
+           not(tosize in [OS_F32,OS_F64,OS_M64]) then
           internalerror(2009112505);
-        if not(fromsize in [OS_64,OS_S64]) then
-          internalerror(2009112506);
+        case fromsize of
+          OS_32,OS_S32:
+            opc:=A_MOVD;
+          OS_64,OS_S64:
+            opc:=A_MOVQ;
+          else
+            internalerror(2009112506);
+        end;
         if assigned(shuffle) and
            not shufflescalar(shuffle) then
           internalerror(2009112517);
-        list.concat(taicpu.op_reg_reg(A_MOVD,S_NO,intreg,mmreg));
+        list.concat(taicpu.op_reg_reg(opc,S_NO,intreg,mmreg));
       end;
 
 
     procedure tcgx86_64.a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tcgsize; mmreg, intreg: tregister;shuffle : pmmshuffle);
+      var
+        opc: tasmop;
       begin
         { this code can only be used to transfer raw data, not to perform
           conversions }
-        if (fromsize<>OS_F64) then
+        if (tcgsize2size[fromsize]<>tcgsize2size[tosize]) or
+           not (fromsize in [OS_F32,OS_F64,OS_M64]) then
           internalerror(2009112507);
-        if not(tosize in [OS_64,OS_S64]) then
-          internalerror(2009112408);
+        case tosize of
+          OS_32,OS_S32:
+            opc:=A_MOVD;
+          OS_64,OS_S64:
+            opc:=A_MOVQ;
+          else
+            internalerror(2009112408);
+        end;
         if assigned(shuffle) and
            not shufflescalar(shuffle) then
           internalerror(2009112515);
-        list.concat(taicpu.op_reg_reg(A_MOVD,S_NO,mmreg,intreg));
+        list.concat(taicpu.op_reg_reg(opc,S_NO,mmreg,intreg));
       end;
 
 
