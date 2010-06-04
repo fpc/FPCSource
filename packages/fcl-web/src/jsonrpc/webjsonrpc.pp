@@ -1,6 +1,7 @@
 unit webjsonrpc;
 
 {$mode objfpc}{$H+}
+{$define debugjsonrpc}
 
 interface
 
@@ -98,6 +99,11 @@ Type
   end;
 
 implementation
+
+{$ifdef debugjsonrpc}
+uses dbugintf;
+{$endif}
+
 { TCustomJSONRPCContentProducer }
 
 function TCustomJSONRPCContentProducer.GetIDProperty: String;
@@ -278,6 +284,7 @@ begin
         Req:=P.Parse;
         C:=CreateContext;
         try
+         {$ifdef debugjsonrpc}SendDebugFmt('Dispatching request : "%s"',[Req.AsJSON]);{$endif}
           Result:=ADispatcher.Execute(Req,C);
         finally
           C.Free;
