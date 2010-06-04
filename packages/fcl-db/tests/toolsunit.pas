@@ -7,7 +7,7 @@ unit ToolsUnit;
 interface
 
 uses
-  Classes, SysUtils, DB;
+  Classes, SysUtils, DB, testdecorator;
   
 Const MaxDataSet = 35;
   
@@ -59,6 +59,13 @@ type
        procedure StopTest;
      end;
 
+  { TDBBasicsTestSetup }
+
+  TDBBasicsTestSetup = class(TTestSetup)
+    protected
+      procedure OneTimeSetup; override;
+      procedure OneTimeTearDown; override;
+    end;
 
 { TTestDataLink }
 
@@ -322,6 +329,18 @@ begin
     fillchar(FChangedDatasets,sizeof(FChangedDatasets),ord(False));
     break;
     end;
+end;
+
+{ TDBBasicsTestSetup }
+
+procedure TDBBasicsTestSetup.OneTimeSetup;
+begin
+  InitialiseDBConnector;
+end;
+
+procedure TDBBasicsTestSetup.OneTimeTearDown;
+begin
+  FreeAndNil(DBConnector);
 end;
 
 initialization

@@ -67,14 +67,6 @@ type
     procedure TestFileNameProperty;
   end;
 
-  { TSQLTestSetup }
-
-  TDBBasicsTestSetup = class(TTestSetup)
-  protected
-    procedure OneTimeSetup; override;
-    procedure OneTimeTearDown; override;
-  end;
-
 implementation
 
 uses toolsunit, SQLDBToolsUnit, sqldb, XMLDatapacketReader;
@@ -444,17 +436,6 @@ end;
 procedure TTestBufDatasetStreams.DeleteAllInsertApplUpd;
 begin
   TestChangesApplyUpdates(@DeleteAllInsertChange, False);
-end;
-
-{ TSQLTestSetup }
-procedure TDBBasicsTestSetup.OneTimeSetup;
-begin
-  InitialiseDBConnector;
-end;
-
-procedure TDBBasicsTestSetup.OneTimeTearDown;
-begin
-  FreeAndNil(DBConnector);
 end;
 
 initialization

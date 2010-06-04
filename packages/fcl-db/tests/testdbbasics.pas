@@ -119,14 +119,6 @@ type
     procedure TestCanModifySpecialFields;
   end;
 
-  { TSQLTestSetup }
-
-  TDBBasicsTestSetup = class(TTestSetup)
-  protected
-    procedure OneTimeSetup; override;
-    procedure OneTimeTearDown; override;
-  end;
-
 implementation
 
 uses toolsunit, bufdataset, variants, strutils;
@@ -2171,17 +2163,6 @@ begin
     AssertTrue('Field isn''t NULL after cancel',fieldbyname('id').IsNull);
     end;
 
-end;
-
-{ TSQLTestSetup }
-procedure TDBBasicsTestSetup.OneTimeSetup;
-begin
-  InitialiseDBConnector;
-end;
-
-procedure TDBBasicsTestSetup.OneTimeTearDown;
-begin
-  FreeAndNil(DBConnector);
 end;
 
 initialization
