@@ -260,7 +260,7 @@ end;
 
 function check31(s : struct31) : cextended;
 begin
-  {Êdon't perform an addition, because that causes the C code to depend on
+  { don't perform an addition, because that causes the C code to depend on
     libgcc }
   result := s.v1;
 end;
@@ -307,29 +307,29 @@ function pass15a(b: byte; s : struct15) : struct15; cdecl; external;
 function pass16a(b: byte; s : struct16) : struct16; cdecl; external;
 function pass17a(b: byte; s : struct17) : struct17; cdecl; external;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function pass31a(b: byte; s : struct31; var ss: single) : struct31; cdecl; external;
+function pass31a(b: byte; s : struct31) : struct31; cdecl; external;
 {$endif}
 
 procedure dotest;
 var
-  s1 : struct1;
-  s2 : struct2;
-  s3 : struct3;
-  s4 : struct4;
-  s5 : struct5;
-  s6 : struct6;
-  s7 : struct7;
-  s8 : struct8;
-  s9 : struct9;
-  s10 : struct10;
-  s11 : struct11;
-  s12 : struct12;
-  s13 : struct13;
-  s14 : struct14;
-  s15 : struct15;
-  s16 : struct16;
-  s17 : struct17;
-  s31 : struct31;
+  s1, s1a: struct1;
+  s2, s2a: struct2;
+  s3, s3a: struct3;
+  s4, s4a: struct4;
+  s5, s5a: struct5;
+  s6, s6a: struct6;
+  s7, s7a: struct7;
+  s8, s8a: struct8;
+  s9, s9a: struct9;
+  s10, s10a: struct10;
+  s11, s11a: struct11;
+  s12, s12a: struct12;
+  s13, s13a: struct13;
+  s14, s14a: struct14;
+  s15, s15a: struct15;
+  s16, s16a: struct16;
+  s17, s17a: struct17;
+  s31, s31a: struct31;
   
   ss: single;
 
@@ -436,8 +436,7 @@ begin
   verify(check16(pass16a(16,s16)), check16(s16), 56);
   verify(check17(pass17a(17,s17)), check17(s17), 57);
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-  verify(check31(pass31a(31,s31,ss)), check31(s31), 71);
-  verify(ss,s31.v2,72);
+  verify(check31(pass31a(31,s31)), check31(s31), 71);
 {$endif}
 
   verify(pass1a(1,s1).v, s1.v, 81);
@@ -461,8 +460,53 @@ begin
   verify(pass16a(16,s16).v1, s16.v1, 96);
   verify(pass17a(17,s17).v1, s17.v1, 97);
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-  verify(pass31a(31,s31,ss).v1, s31.v1, 101);
-  verify(ss,s31.v2,102);
+  verify(pass31a(31,s31).v1, s31.v1, 101);
+{$endif}
+
+  s1a:=pass1a(1,s1);
+  verify(check1(s1a), check1(s1), 111);
+  s2a:=pass2a(2,s2);
+  verify(check2(s2a), check2(s2), 112);
+  s3a:=pass3a(3,s3);
+  verify(check3(s3a), check3(s3), 113);
+  s3a:=pass3a(3,s3);
+  verify(check3(s3a), check3(s3), 114);
+  s4a:=pass4a(4,s4);
+  verify(check4(s4a), check4(s4), 115);
+  s5a:=pass5a(5,s5);
+  verify(check5(s5a), check5(s5), 116);
+  s6a:=pass6a(6,s6);
+  verify(check6(s6a), check6(s6), 117);
+  s7a:=pass7a(7,s7);
+  verify(check7(s7a), check7(s7), 118);
+  s7a:=pass7a(7,s7);
+  verify(check7(s7a), check7(s7), 119);
+  s8a:=pass8a(8,s8);
+  verify(check8(s8a), check8(s8), 120);
+  s9a:=pass9a(9,s9);
+  verify(check9(s9a), check9(s9), 121);
+  s10a:=pass10a(10,s10);
+  verify(check10(s10a), check10(s10), 122);
+  s10a:=pass10a(10,s10);
+  verify(check10(s10a), check10(s10), 123);
+  s11a:=pass11a(11,s11);
+  verify(check11(s11a), check11(s11), 124);
+  s12a:=pass12a(12,s12);
+  verify(check12(s12a), check12(s12), 125);
+  s13a:=pass13a(13,s13);
+  verify(check13(s13a), check13(s13), 126);
+  s14a:=pass14a(14,s14);
+  verify(check14(s14a), check14(s14), 127);
+  s15a:=pass15a(15,s15);
+  verify(check15(s15a), check15(s15), 128);
+  s16a:=pass16a(16,s16);
+  verify(check16(s16a), check16(s16), 129);
+  s17a:=pass17a(17,s17);
+  verify(check17(s17a), check17(s17), 130);
+{$ifdef FPC_HAS_TYPE_EXTENDED}
+  s31a:=pass31a(31,s31);
+  verify(check31(s31a), check31(s31), 131);
+  verify(s31.v2,s31a.v2,132);
 {$endif}
 
 {$endif ndef nofloat}

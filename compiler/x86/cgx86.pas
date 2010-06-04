@@ -1073,6 +1073,18 @@ unit cgx86;
 
     procedure tcgx86.a_loadfpu_reg_ref(list: TAsmList; fromsize,tosize: tcgsize; reg: tregister; const ref: treference);
        begin
+         { in case a record returned in a floating point register
+           (LOC_FPUREGISTER with OS_F32/OS_F64) is stored in memory
+           (LOC_REFERENCE with OS_32/OS_64), we have to adjust the
+           tosize }
+        if (fromsize in [OS_F32,OS_F64]) and
+           (tcgsize2size[fromsize]=tcgsize2size[tosize]) then
+          case tosize of
+            OS_32:
+              tosize:=OS_F32;
+            OS_64:
+              tosize:=OS_F64;
+          end;
          if reg<>NR_ST then
            a_loadfpu_reg_reg(list,fromsize,tosize,reg,NR_ST);
          floatstore(list,tosize,ref);
@@ -1088,10 +1100,22 @@ unit cgx86;
           (A_NONE,A_NONE,A_NONE,A_MOVQ,A_NONE),
           (A_NONE,A_NONE,A_NONE,A_NONE,A_NONE));
       begin
+        { we can have OS_F32/OS_F64 (record in function result/LOC_MMREGISTER) to
+          OS_32/OS_64 (record in memory/LOC_REFERENCE) }
+        if (fromsize in [OS_F32,OS_F64]) and
+           (tcgsize2size[fromsize]=tcgsize2size[tosize]) then
+          case tosize of
+            OS_32:
+              tosize:=OS_F32;
+            OS_64:
+              tosize:=OS_F64;
+          end;
         if (fromsize in [low(convertop)..high(convertop)]) and
            (tosize in [low(convertop)..high(convertop)]) then
           result:=convertop[fromsize,tosize]
-        else if (fromsize=tosize) and
+        { we can have OS_M64 (record in function result/LOC_MMREGISTER) to
+          OS_64 (record in memory/LOC_REFERENCE) }
+        else if (tcgsize2size[fromsize]=tcgsize2size[tosize]) and
                 (fromsize=OS_M64) then
           result:=A_MOVQ
         else
@@ -1182,7 +1206,7 @@ unit cgx86;
            end
          else if shufflescalar(shuffle) then
            begin
-             if tosize<>fromsize then
+             if tcgsize2size[tosize]<>tcgsize2size[fromsize] then
                begin
                  hreg:=getmmregister(list,tosize);
                  list.concat(taicpu.op_reg_reg(get_scalar_mm_op(fromsize,tosize),S_NO,reg,hreg));
