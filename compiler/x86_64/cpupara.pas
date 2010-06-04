@@ -912,7 +912,10 @@ unit cpupara;
                             paraloc^.size:=OS_F64;
                           end;
                         else
-                          paraloc^.size:=OS_M64;
+                          begin
+                            setsubreg(paraloc^.register,R_SUBMMWHOLE);
+                            paraloc^.size:=OS_M64;
+                          end;
                       end;
                       inc(mmretregidx);
                     end;
