@@ -1,7 +1,7 @@
 unit fpextdirect;
 
 {$mode objfpc}{$H+}
-{$define extdebug}
+{ $define extdebug}
 
 interface
 

@@ -1,7 +1,7 @@
 unit webjsonrpc;
 
 {$mode objfpc}{$H+}
-{$define debugjsonrpc}
+{ $define debugjsonrpc}
 
 interface
 
