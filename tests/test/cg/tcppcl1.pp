@@ -1,4 +1,3 @@
-{%CPU=i386}
 {%TARGET=linux,darwin}
 { Test the C++ name mangling for different parameter combinations }
 program tcppclass1;
