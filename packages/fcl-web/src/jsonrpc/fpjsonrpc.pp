@@ -24,6 +24,7 @@ Type
     procedure SetName(const AValue: TJSONStringType);
   public
     Constructor Create(ACollection : TCollection); override;
+    Procedure Assign(Source : TPersistent); override;
   Published
     Property Name : TJSONStringType Read FName Write SetName;
     Property DataType : TJSONtype Read FType Write FType default jtString;
@@ -91,6 +92,7 @@ Type
     Property AfterExecute;
     Property OnParamError;
     Property Options;
+    Property ParamDefs;
   end;
 
   { TJSONRPCEcho }
@@ -425,6 +427,23 @@ begin
   inherited Create(ACollection);
   FType:=jtString;
   FRequired:=True;
+end;
+
+procedure TJSONParamDef.Assign(Source: TPersistent);
+
+Var
+  P : TJSONParamDef;
+
+begin
+  If Source is TJSONParamDef then
+    begin
+    P:=TJSONParamDef(Source);
+    FType:=P.DataType;
+    FName:=P.Name;
+    FRequired:=P.Required;
+    end
+  else
+    inherited Assign(Source);
 end;
 
 { TJSONParamDefs }
