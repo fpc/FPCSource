@@ -545,7 +545,7 @@ implementation
                                { Can't have a data copied to the stack, every location
                                  must contain a valid size field }
 
-                              if (ppn.tempcgpara.size=OS_NO) and
+                              if (tmpparaloc^.size=OS_NO) and
                                  ((tmpparaloc^.loc<>LOC_REFERENCE) or
                                   assigned(tmpparaloc^.next)) then
                                 internalerror(200501281);
