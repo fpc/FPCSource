@@ -1,6 +1,7 @@
 unit fpextdirect;
 
 {$mode objfpc}{$H+}
+{$define extdebug}
 
 interface
 
@@ -100,9 +101,15 @@ Type
     // Create API
     procedure CreateAPI(ADispatcher: TCustomExtDirectDispatcher; ARequest: TRequest; AResponse: TResponse); virtual;
     Function CreateDispatcher : TCustomExtDirectDispatcher; virtual;
-    Property Dispatcher :  TCustomExtDirectDispatcher Read FDispatcher Write SetDispatcher;
-    Property DispatchOptions : TJSONRPCDispatchOptions Read FOptions Write FOptions default DefaultDispatchOptions;
     procedure Notification(AComponent: TComponent; Operation: TOperation);override;
+    // Set to a custom dispatcher. If not set, one is created (and kept for all subsequent requests)
+    Property Dispatcher :  TCustomExtDirectDispatcher Read FDispatcher Write SetDispatcher;
+    // Options to use when creating a dispatcher.
+    Property DispatchOptions : TJSONRPCDispatchOptions Read FOptions Write FOptions default DefaultDispatchOptions;
+    // API path/action. Append to BaseURL to get API. Default 'API'
+    Property APIPath : String Read FAPIPath Write FAPIPath;
+    // Router path/action. Append to baseURL to get router. Default 'router'
+    Property RouterPath : String Read FRouterPath Write FRouterPath;
   Public
     Constructor CreateNew(AOwner : TComponent; CreateMode : Integer); override;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
@@ -110,19 +117,21 @@ Type
     Property Request: TRequest Read FRequest;
     // Access to response
     Property Response: TResponse Read FResponse;
-    // API path/action. Append to BaseURL to get API. Default 'API'
-    Property APIPath : String Read FAPIPath Write FAPIPath;
-    // Router path/action. Append to baseURL to get router. Default 'router'
-    Property RouterPath : String Read FRouterPath Write FRouterPath;
   end;
 
   TExtDirectModule = Class(TCustomExtDirectModule)
   Published
+    Property Dispatcher;
+    Property DispatchOptions;
     Property APIPath;
     Property RouterPath;
   end;
 
 implementation
+
+{$ifdef extdebug}
+uses dbugintf;
+{$endif}
 
 Resourcestring
   SErrInvalidPath = 'Invalid path';
@@ -177,9 +186,11 @@ function TCustomExtDirectDispatcher.FindHandler(const AClassName,
   AMethodName: TJSONStringType; AContext: TJSONRPCCallContext; out
   FreeObject: TComponent): TCustomJSONRPCHandler;
 begin
+  {$ifdef extdebug}SendDebugFmt('Searching for %s %s',[AClassName,AMethodName]);{$endif}
   Result:=inherited FindHandler(AClassName, AMethodName, AContext, FreeObject);
   If (AContext is TJSONRPCSessionContext) and (FreeObject is TCustomJSONRPCModule) then
     TCustomJSONRPCModule(FreeObject).Session:=TJSONRPCSessionContext(AContext).Session;
+  {$ifdef extdebug}SendDebugFmt('Done with searching for %s %s : %d',[AClassName,AMethodName,Ord(Assigned(Result))]);{$endif}
 end;
 
 function TCustomExtDirectDispatcher.DoAPI: TJSONData;
@@ -365,6 +376,8 @@ constructor TCustomExtDirectModule.CreateNew(AOwner: TComponent;
 begin
   inherited CreateNew(AOwner, CreateMode);
   FOptions:=DefaultDispatchOptions+[jdoSearchRegistry];
+  APIPath:='API';
+  RouterPath:='router'
 end;
 
 procedure TCustomExtDirectModule.CreateAPI(ADispatcher : TCustomExtDirectDispatcher; ARequest: TRequest;   AResponse: TResponse);
@@ -390,7 +403,8 @@ begin
   Disp:=Dispatcher as TCustomExtDirectDispatcher;
   R:=ARequest.QueryFields.Values['action'];
   If (R='') then
-    ARequest.GetNextPathInfo;
+    R:=ARequest.GetNextPathInfo;
+  {$ifdef extdebug}SendDebugFmt('Ext.Direct handlerequest: action is "%s"',[R]);{$endif}
   If (CompareText(R,APIPath)=0) then
     begin
     CreateAPI(Disp,ARequest,AResponse);
