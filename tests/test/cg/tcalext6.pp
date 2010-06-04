@@ -14,6 +14,11 @@ program calext6;
   {$define NO_FLOAT}
 {$endif}
 
+{$ifdef CPUARMEL}
+{ for softfloat calls in the C code }
+{$linklib gcc}
+{$endif}
+
 type
   int8_t = shortint;
   pint8_t = ^int8_t;
@@ -156,6 +161,7 @@ begin
     WriteLn('Failed');
 end;
 
+{$ifdef FPC_HAS_TYPE_EXTENDED}
 procedure verify(val1, val2 : cextended; nr : Integer); overload;
 begin
   success := success and (val1 = val2);
@@ -165,6 +171,7 @@ begin
   else
     WriteLn('Failed');
 end;
+{$endif FPC_HAS_TYPE_EXTENDED}
 
 function check1(s : struct1) : single;
 begin
@@ -253,7 +260,9 @@ end;
 
 function check31(s : struct31) : cextended;
 begin
-  result := s.v1 + s.v2;
+  {Êdon't perform an addition, because that causes the C code to depend on
+    libgcc }
+  result := s.v1;
 end;
 
 
@@ -277,7 +286,7 @@ function pass15(s : struct15; b: byte) : int64_t; cdecl; external;
 function pass16(s : struct16; b: byte) : single; cdecl; external;
 function pass17(s : struct17; b: byte) : single; cdecl; external;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function pass31(s : struct31; b: byte) : cextended; cdecl; external;
+function pass31(s : struct31; b: byte; var ss: single) : cextended; cdecl; external;
 {$endif}
 
 function pass1a(b: byte; s : struct1) : struct1; cdecl; external;
@@ -298,7 +307,7 @@ function pass15a(b: byte; s : struct15) : struct15; cdecl; external;
 function pass16a(b: byte; s : struct16) : struct16; cdecl; external;
 function pass17a(b: byte; s : struct17) : struct17; cdecl; external;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function pass31a(b: byte; s : struct31) : struct31; cdecl; external;
+function pass31a(b: byte; s : struct31; var ss: single) : struct31; cdecl; external;
 {$endif}
 
 procedure dotest;
@@ -321,6 +330,8 @@ var
   s16 : struct16;
   s17 : struct17;
   s31 : struct31;
+  
+  ss: single;
 
 begin
   success := true;
@@ -403,7 +414,8 @@ begin
   verify(pass16(s16,16), check16(s16), 16);
   verify(pass17(s17,17), check17(s17), 17);
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-  verify(pass31(s31,31), check31(s31), 31);
+  verify(pass31(s31,31,ss), check31(s31), 31);
+  verify(ss,s31.v2,32);
 {$endif}
 
   verify(check1(pass1a(1,s1)), check1(s1), 41);
@@ -424,7 +436,8 @@ begin
   verify(check16(pass16a(16,s16)), check16(s16), 56);
   verify(check17(pass17a(17,s17)), check17(s17), 57);
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-  verify(check31(pass31a(31,s31)), check31(s31), 71);
+  verify(check31(pass31a(31,s31,ss)), check31(s31), 71);
+  verify(ss,s31.v2,72);
 {$endif}
 
   verify(pass1a(1,s1).v, s1.v, 81);
@@ -448,7 +461,8 @@ begin
   verify(pass16a(16,s16).v1, s16.v1, 96);
   verify(pass17a(17,s17).v1, s17.v1, 97);
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-  verify(pass31a(31,s31).v1, s31.v1, 101);
+  verify(pass31a(31,s31,ss).v1, s31.v1, 101);
+  verify(ss,s31.v2,102);
 {$endif}
 
 {$endif ndef nofloat}
