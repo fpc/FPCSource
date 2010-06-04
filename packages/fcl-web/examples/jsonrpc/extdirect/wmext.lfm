@@ -1,0 +1,24 @@
+object DemoClass: TDemoClass
+  OldCreateOrder = False
+  APIPath = 'API'
+  RouterPath = 'Router'
+  Height = 313
+  HorizontalOffset = 548
+  VerticalOffset = 230
+  Width = 359
+  object Add: TJSONRPCHandler
+    OnExecute = AddExecute
+    Options = []
+    ParamDefs = <    
+      item
+        Name = 'A'
+        DataType = jtNumber
+      end    
+      item
+        Name = 'B'
+        DataType = jtNumber
+      end>
+    left = 56
+    top = 32
+  end
+end
