@@ -260,31 +260,40 @@ double pass8(struct struct8 s) {
 }
 
 int64_t pass9(struct struct9 s) {
-  return s.v1 + double2float64(s.v2);
+  double d2 = s.v2;
+  return s.v1 + float64_to_int64(double2float64(d2));
 }
 
 int64_t pass10(struct struct10 s) {
-  return s.v1 + s.v2 + double2float64(s.v3);
+  double d3 = s.v3;
+  return s.v1 + s.v2 + float64_to_int64(double2float64(d3));
 }
 
 int64_t pass11(struct struct11 s) {
-  return s.v1 + double2float64(s.v2);
+  double d2 = s.v2;
+  return s.v1 + float64_to_int64(double2float64(d2));
 }
 
 int64_t pass12(struct struct12 s) {
-  return s.v1 + double2float64(s.v2) + double2float64(s.v3);
+  double d2 = s.v2;
+  double d3 = s.v3;
+  return s.v1 + float64_to_int64(double2float64(d2)) + float64_to_int64(double2float64(d3));
 }
 
 int64_t pass13(struct struct13 s) {
-  return double2float64(s.v1) + s.v2;
+  double d1 = s.v1;
+  return float64_to_int64(double2float64(d1)) + s.v2;
 }
 
 int64_t pass14(struct struct14 s) {
-  return double2float64(s.v1) + s.v2 + s.v3;
+  double d1 = s.v1;
+  return float64_to_int64(double2float64(d1)) + s.v2 + s.v3;
 }
 
 int64_t pass15(struct struct15 s) {
-  return double2float64(s.v1) + s.v2 + double2float64(s.v3);
+  double d1 = s.v1;
+  double d3 = s.v3;
+  return float64_to_int64(double2float64(d1)) + s.v2 + float64_to_int64(double2float64(d3));
 }
 
 float pass16(struct struct16 s) {
@@ -295,7 +304,7 @@ float pass17(struct struct17 s) {
   return s.v1 + s.v2;
 }
 
-long double pass31(struct struct31 s, float *v2) {
+long double pass31(struct struct31 s, char b, float *v2) {
   *v2 = s.v2;
   return s.v1;
 }
