@@ -47,4 +47,5 @@ begin
     FXMLResultsWriter.Free;
     FDigestResultsWriter.Free;
   end;
+  FreeDBConnector;
 end.

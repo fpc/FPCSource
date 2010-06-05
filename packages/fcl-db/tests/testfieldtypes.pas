@@ -922,7 +922,7 @@ procedure TTestFieldTypes.TearDown;
 begin
   if assigned(DBConnector) then
     TSQLDBConnector(DBConnector).Transaction.Rollback;
-  FreeAndNil(DBConnector);
+  FreeDBConnector;
 end;
 
 procedure TTestFieldTypes.RunTest;

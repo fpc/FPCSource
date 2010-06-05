@@ -165,11 +165,14 @@ var dbtype,
 
 
 procedure InitialiseDBConnector;
+procedure FreeDBConnector;
 
 implementation
 
 uses
   inifiles;
+
+var DBConnectorRefCount: integer;
 
 constructor TDBConnector.create;
 begin
@@ -233,6 +236,7 @@ procedure InitialiseDBConnector;
 var DBConnectorClass : TPersistentClass;
     i                : integer;
 begin
+  if DBConnectorRefCount>0 then exit;
   testValues[ftString] := testStringValues;
   testValues[ftFixedChar] := testStringValues;
   for i := 0 to testValuesCount-1 do
@@ -256,6 +260,14 @@ begin
   if assigned(DBConnectorClass) then
     DBConnector := TDBConnectorClass(DBConnectorClass).create
   else Raise Exception.Create('Unknown db-connector specified');
+  inc(DBConnectorRefCount);
+end;
+
+procedure FreeDBConnector;
+begin
+  dec(DBConnectorRefCount);
+  if DBConnectorRefCount=0 then
+    FreeAndNil(DBConnector);
 end;
 
 { TTestDataLink }
@@ -340,10 +352,11 @@ end;
 
 procedure TDBBasicsTestSetup.OneTimeTearDown;
 begin
-  FreeAndNil(DBConnector);
+  FreeDBConnector;
 end;
 
 initialization
   ReadIniFile;
+  DBConnectorRefCount:=0;
 end.
 
