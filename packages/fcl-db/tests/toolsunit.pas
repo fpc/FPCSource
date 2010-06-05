@@ -21,6 +21,8 @@ type
        FUsedDatasets : TFPList;
        FChangedFieldDataset : boolean;
      protected
+       procedure SetTestUniDirectional(const AValue: boolean); virtual;
+       function GetTestUniDirectional: boolean; virtual;
        // These methods should be implemented by any descendents
        // They are called eacht time a test need a TDataset descendent
        Function InternalGetNDataset(n : integer) : TDataset;  virtual; abstract;
@@ -57,6 +59,7 @@ type
 
        procedure StartTest;
        procedure StopTest;
+       property TestUniDirectional: boolean read GetTestUniDirectional write SetTestUniDirectional;
      end;
 
   { TDBBasicsTestSetup }
@@ -186,6 +189,16 @@ begin
   if assigned(FUsedDatasets) then FUsedDatasets.Destroy;
   DropNDatasets;
   DropFieldDataset;
+end;
+
+function TDBConnector.GetTestUniDirectional: boolean;
+begin
+  result := false;
+end;
+
+procedure TDBConnector.SetTestUniDirectional(const AValue: boolean);
+begin
+  raise exception.create('Connector does not support tests for unidirectional datasets');
 end;
 
 procedure TDBConnector.ResetNDatasets;
