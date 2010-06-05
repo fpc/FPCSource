@@ -53,7 +53,7 @@ unit cpupara;
   implementation
 
     uses
-       verbose,systems,
+       verbose,systems,cutils,
        rgobj,
        defutil,symsym;
 
@@ -201,16 +201,12 @@ unit cpupara;
       begin
         case def.typ of
           recorddef:
-            { this is how gcc 4.0.4 on linux seems to do it, it doesn't look like being
-              ARM ABI standard compliant
-            }
-            result:=not((trecorddef(def).symtable.SymList.count=1) and
-              not(ret_in_param(tabstractvarsym(trecorddef(def).symtable.SymList[0]).vardef,calloption)));
-          {
-          objectdef
-          arraydef:
-            result:=not(def.size in [1,2,4]);
-          }
+            result:=def.size>4;
+          procvardef:
+            if (po_methodpointer in tprocvardef(def).procoptions) then
+              result:=true
+            else
+              result:=false
           else
             result:=inherited ret_in_param(def,calloption);
         end;
@@ -239,6 +235,7 @@ unit cpupara;
         paracgsize   : tcgsize;
         paralen : longint;
         i : integer;
+        firstparaloc: boolean;
 
       procedure assignintreg;
         begin
@@ -321,6 +318,7 @@ unit cpupara;
              hp.paraloc[side].size:=paracgsize;
              hp.paraloc[side].Alignment:=std_param_align;
              hp.paraloc[side].intsize:=paralen;
+             firstparaloc:=true;
 
 {$ifdef EXTDEBUG}
              if paralen=0 then
@@ -348,11 +346,14 @@ unit cpupara;
                       begin
                         { align registers for eabi }
                         if (target_info.abi=abi_eabi) and
-                          (paracgsize in [OS_F64,OS_64,OS_S64]) and
-                          (nextintreg in [RS_R1,RS_R3]) and
-                          { first location? }
-                          (paralen=8) then
-                          inc(nextintreg);
+                           firstparaloc and
+                           (paradef.alignment=8) then
+                          begin
+                            if (nextintreg in [RS_R1,RS_R3]) then
+                              inc(nextintreg)
+                            else if nextintreg>RS_R3 then
+                              stack_offset:=align(stack_offset,8);
+                          end;
                         { this is not abi compliant
                           why? (FK) }
                         if nextintreg<=RS_R3 then
@@ -363,7 +364,7 @@ unit cpupara;
                           end
                         else
                           begin
-                            { LOC_REFERENCE covers always the overleft }
+                            { LOC_REFERENCE always contains everything that's left }
                             paraloc^.loc:=LOC_REFERENCE;
                             paraloc^.size:=int_cgsize(paralen);
                             if (side=callerside) then
@@ -402,25 +403,25 @@ unit cpupara;
                       end;
                     LOC_REFERENCE:
                       begin
-                        { align stack for eabi }
-                        if (target_info.abi=abi_eabi) and
-                          (paracgsize in [OS_F64,OS_64,OS_S64]) and
-                          (stack_offset mod 8<>0) and
-                          { first location? }
-                          (paralen=8) then
-                          inc(stack_offset,8-(stack_offset mod 8));
-
-                        paraloc^.size:=OS_ADDR;
-                        if push_addr_param(hp.varspez,paradef,p.proccalloption) or
-                          is_open_array(paradef) or
-                          is_array_of_const(paradef) then
-                          assignintreg
+                        if push_addr_param(hp.varspez,paradef,p.proccalloption) then
+                          begin
+                            paraloc^.size:=OS_ADDR;
+                            assignintreg
+                          end
                         else
                           begin
+                            { align stack for eabi }
+                            if (target_info.abi=abi_eabi) and
+                               firstparaloc and
+                               (paradef.alignment=8) then
+                              stack_offset:=align(stack_offset,8);
+
+                             paraloc^.size:=paracgsize;
                              paraloc^.loc:=LOC_REFERENCE;
                              paraloc^.reference.index:=NR_STACK_POINTER_REG;
                              paraloc^.reference.offset:=stack_offset;
-                             inc(stack_offset,hp.vardef.size);
+                             inc(stack_offset,align(paralen,4));
+                             paralen:=0
                           end;
                       end;
                     else
@@ -435,6 +436,7 @@ unit cpupara;
                        end;
                    end;
                  dec(paralen,tcgsize2size[paraloc^.size]);
+                 firstparaloc:=false
                end;
           end;
         curintreg:=nextintreg;
@@ -544,7 +546,10 @@ unit cpupara;
               begin
                 paraloc^.loc:=LOC_REGISTER;
                 paraloc^.register:=NR_FUNCTION_RETURN_REG;
-                paraloc^.size:=retcgsize;
+                if (result.intsize<>3) then
+                  paraloc^.size:=retcgsize
+                else
+                  paraloc^.size:=OS_32;
               end;
           end;
       end;
