@@ -590,21 +590,28 @@ begin
 end;
 
 procedure TTestDBBasics.TestFileNameProperty;
-var ds    : TDataset;
+var ds1,ds2: TDataset;
     LoadDs: TCustomBufDataset;
 begin
-  ds := DBConnector.GetNDataset(true,5);
-  if not (ds is TCustomBufDataset) then
-    Ignore('This test only applies to TCustomBufDataset and descendents.');
+  ds2 := nil;
+  ds1 := DBConnector.GetNDataset(true,5);
+  try
+    if not (ds1 is TCustomBufDataset) then
+      Ignore('This test only applies to TCustomBufDataset and descendents.');
 
-  ds.open;
-  TCustomBufDataset(ds).FileName:='test.xml';
-  ds.close;
+    ds1.open;
+    TCustomBufDataset(ds1).FileName:='test.xml';
+    ds1.close;
 
-  ds := DBConnector.GetNDataset(True,7);
-  TCustomBufDataset(ds).FileName:='test.xml';
-  ds.Open;
-  FTestXMLDatasetDefinition(Ds);
+    ds2 := DBConnector.GetNDataset(True,7);
+    TCustomBufDataset(ds2).FileName:='test.xml';
+    ds2.Open;
+    FTestXMLDatasetDefinition(Ds2);
+  finally
+    TCustomBufDataset(ds1).FileName:='';
+    if assigned(ds2) then
+      TCustomBufDataset(ds2).FileName:='';
+  end;
 end;
 
 procedure TTestDBBasics.TestClientDatasetAsMemDataset;
