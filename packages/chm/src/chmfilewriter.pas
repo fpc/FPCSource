@@ -233,7 +233,7 @@ var
 begin
   Cfg := TXMLConfig.Create(nil);
   Cfg.StartEmpty := True;
-  Cfg.Filename := FileName;
+  Cfg.Filename := AFileName;
   Cfg.Clear;
   Cfg.SetValue('Files/Count/Value', Files.Count);
   for I := 0 to Files.Count-1 do
