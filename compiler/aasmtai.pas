@@ -1305,9 +1305,9 @@ implementation
             result:=1;
           aitconst_16bit :
             result:=2;
-          aitconst_32bit :
+          aitconst_32bit,aitconst_darwin_dwarf_delta32:
             result:=4;
-          aitconst_64bit :
+          aitconst_64bit,aitconst_darwin_dwarf_delta64:
             result:=8;
           aitconst_secrel32_symbol,
           aitconst_rva_symbol :
