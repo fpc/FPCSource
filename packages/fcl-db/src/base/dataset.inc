@@ -1133,7 +1133,7 @@ begin
   Writeln('Getting next buffers');
 {$endif}
   GetNextRecords;
-  if FRecordCount < FBufferCount then
+  if (FRecordCount < FBufferCount) and not IsUniDirectional then
     begin
     FActiveRecord := FActiveRecord + GetPriorRecords;
     CursorPosChanged;

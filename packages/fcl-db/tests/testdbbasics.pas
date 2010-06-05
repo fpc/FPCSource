@@ -8,7 +8,7 @@ interface
 
 uses
   fpcunit, testutils, testregistry, testdecorator,
-  Classes, SysUtils, db;
+  Classes, SysUtils, db, ToolsUnit;
 
 type
 
@@ -119,9 +119,20 @@ type
     procedure TestCanModifySpecialFields;
   end;
 
+  TTestUniDirectionalDBBasics = class(TTestDBBasics)
+  end;
+
+  { TDBBasicsUniDirectionalTestSetup }
+
+  TDBBasicsUniDirectionalTestSetup = class(TDBBasicsTestSetup)
+  protected
+    procedure OneTimeSetup; override;
+    procedure OneTimeTearDown; override;
+  end;
+
 implementation
 
-uses toolsunit, bufdataset, variants, strutils;
+uses bufdataset, variants, strutils, sqldb;
 
 type THackDataLink=class(TdataLink);
 
@@ -2170,9 +2181,25 @@ begin
     cancel;
     AssertTrue('Field isn''t NULL after cancel',fieldbyname('id').IsNull);
     end;
+end;
 
+{ TDBBasicsUniDirectionalTestSetup }
+
+procedure TDBBasicsUniDirectionalTestSetup.OneTimeSetup;
+begin
+  inherited OneTimeSetup;
+  DBConnector.TestUniDirectional:=true;
+end;
+
+procedure TDBBasicsUniDirectionalTestSetup.OneTimeTearDown;
+begin
+  DBConnector.TestUniDirectional:=false;
+  inherited OneTimeTearDown;
 end;
 
 initialization
   RegisterTestDecorator(TDBBasicsTestSetup, TTestDBBasics);
+
+  if uppercase(dbconnectorname)='SQL' then
+    RegisterTestDecorator(TDBBasicsUniDirectionalTestSetup, TTestUniDirectionalDBBasics);
 end.

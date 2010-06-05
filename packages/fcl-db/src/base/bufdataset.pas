@@ -157,7 +157,7 @@ type
     procedure BeginUpdate; virtual; abstract;
     // Adds a record to the end of the index as the new last record (spare record)
     // Normally only used in GetNextPacket
-    procedure AddRecord(Const ARecord : PChar); virtual; abstract;
+    procedure AddRecord; virtual; abstract;
     // Inserts a record before the current record, or if the record is sorted,
     // insert it to the proper position
     procedure InsertRecordBeforeCurrentRecord(Const ARecord : PChar); virtual; abstract;
@@ -226,10 +226,56 @@ type
     Function GetRecNo(const ABookmark : PBufBookmark) : integer; override;
 
     procedure BeginUpdate; override;
-    procedure AddRecord(Const ARecord : PChar); override;
+    procedure AddRecord; override;
     procedure InsertRecordBeforeCurrentRecord(Const ARecord : PChar); override;
     procedure EndUpdate; override;
   end;
+
+  { TUniDirectionalBufIndex }
+
+  TUniDirectionalBufIndex = class(TBufIndex)
+  private
+    FSPareBuffer: PChar;
+  protected
+    function GetBookmarkSize: integer; override;
+    function GetCurrentBuffer: Pointer; override;
+    function GetCurrentRecord: PChar; override;
+    function GetIsInitialized: boolean; override;
+    function GetSpareBuffer: PChar; override;
+    function GetSpareRecord: PChar; override;
+  public
+    function ScrollBackward : TGetResult; override;
+    function ScrollForward : TGetResult; override;
+    function GetCurrent : TGetResult; override;
+    function ScrollFirst : TGetResult; override;
+    procedure ScrollLast; override;
+
+    procedure SetToFirstRecord; override;
+    procedure SetToLastRecord; override;
+
+    procedure StoreCurrentRecord; override;
+    procedure RestoreCurrentRecord; override;
+
+    function CanScrollForward : Boolean; override;
+    procedure DoScrollForward; override;
+
+    procedure StoreCurrentRecIntoBookmark(const ABookmark: PBufBookmark); override;
+    procedure StoreSpareRecIntoBookmark(const ABookmark: PBufBookmark); override;
+    procedure GotoBookmark(const ABookmark : PBufBookmark); override;
+
+    procedure InitialiseIndex; override;
+    procedure InitialiseSpareRecord(const ASpareRecord : PChar); override;
+    procedure ReleaseSpareRecord; override;
+
+    procedure RemoveRecordFromIndex(const ABookmark : TBufBookmark); override;
+    Function GetRecNo(const ABookmark : PBufBookmark) : integer; override;
+
+    procedure BeginUpdate; override;
+    procedure AddRecord; override;
+    procedure InsertRecordBeforeCurrentRecord(Const ARecord : PChar); override;
+    procedure EndUpdate; override;
+  end;
+
 
   { TArrayBufIndex }
 
@@ -282,7 +328,7 @@ type
     procedure InsertRecordBeforeCurrentRecord(Const ARecord : PChar); override;
 
     procedure BeginUpdate; override;
-    procedure AddRecord(Const ARecord : PChar); override;
+    procedure AddRecord; override;
     procedure EndUpdate; override;
   end;
 
@@ -387,6 +433,7 @@ type
     procedure CalcRecordSize;
     function GetIndexFieldNames: String;
     function GetIndexName: String;
+    function GetBufUniDirectional: boolean;
     function LoadBuffer(Buffer : PChar): TGetResult;
     function GetFieldSize(FieldDef : TFieldDef) : longint;
     function GetRecordUpdateBuffer(const ABookmark : TBufBookmark; IncludePrior : boolean = false; AFindNext : boolean = false) : boolean;
@@ -403,6 +450,8 @@ type
     procedure IntLoadFielddefsFromFile;
     procedure IntLoadRecordsFromFile;
     procedure CurrentRecordToBuffer(Buffer: PChar);
+    procedure SetBufUniDirectional(const AValue: boolean);
+    procedure InitDefaultIndexes;
   protected
     procedure UpdateIndexDefs; override;
     function GetNewBlobBuffer : PBlobBuffer;
@@ -486,6 +535,7 @@ type
     property IndexDefs : TIndexDefs read GetIndexDefs;
     property IndexName : String read GetIndexName write SetIndexName;
     property IndexFieldNames : String read GetIndexFieldNames write SetIndexFieldNames;
+    property UniDirectional: boolean read GetBufUniDirectional write SetBufUniDirectional;
   end;
 
   TBufDataset = class(TCustomBufDataset)
@@ -658,16 +708,12 @@ begin
   Inherited Create(AOwner);
   FMaxIndexesCount:=2;
   FIndexesCount:=0;
-  InternalAddIndex('DEFAULT_ORDER','',[],'','');
-  FCurrentIndex:=FIndexes[0];
-  InternalAddIndex('','',[],'','');
 
   FIndexDefs := TIndexDefs.Create(Self);
 
   SetLength(FUpdateBuffer,0);
   SetLength(FBlobBuffers,0);
   SetLength(FUpdateBlobBuffers,0);
-  BookmarkSize := FCurrentIndex.BookmarkSize;
   FParser := nil;
   FPacketRecords := 10;
 end;
@@ -1010,6 +1056,7 @@ procedure TCustomBufDataset.InternalOpen;
 var IndexNr : integer;
 
 begin
+  InitDefaultIndexes;
   if not Assigned(FDatasetReader) and (FileName<>'') then
     begin
     FFileStream := TFileStream.Create(FileName,fmOpenRead);
@@ -1046,7 +1093,7 @@ var r  : integer;
 
 begin
   FOpen:=False;
-  with FIndexes[0] do if IsInitialized then
+  if FIndexesCount>0 then with FIndexes[0] do if IsInitialized then
     begin
     iGetResult:=ScrollFirst;
     while iGetResult = grOK do
@@ -1306,8 +1353,10 @@ begin
     FCursOnFirstRec := False;
 end;
 
-procedure TDoubleLinkedBufIndex.AddRecord(Const ARecord : PChar);
+procedure TDoubleLinkedBufIndex.AddRecord;
+var ARecord: PChar;
 begin
+  ARecord := FDataset.IntAllocRecordBuffer;
   FLastRecBuf[IndNr].next := pointer(ARecord);
   FLastRecBuf[IndNr].next[IndNr].prior := FLastRecBuf;
 
@@ -1349,6 +1398,30 @@ begin
     end;
 
   GetCalcFields(Buffer);
+end;
+
+procedure TCustomBufDataset.SetBufUniDirectional(const AValue: boolean);
+begin
+  CheckInactive;
+  if (AValue<>IsUniDirectional) then
+    begin
+    SetUniDirectional(AValue);
+    SetLength(FIndexes,0);
+    FPacketRecords := 1; // temporary
+    FIndexesCount:=0;
+    end;
+end;
+
+procedure TCustomBufDataset.InitDefaultIndexes;
+begin
+  if FIndexesCount=0 then
+    begin
+    InternalAddIndex('DEFAULT_ORDER','',[],'','');
+    FCurrentIndex:=FIndexes[0];
+    if not IsUniDirectional then
+      InternalAddIndex('','',[],'','');
+    BookmarkSize := FCurrentIndex.BookmarkSize;
+    end;
 end;
 
 function TCustomBufDataset.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
@@ -1446,6 +1519,8 @@ procedure TCustomBufDataset.SetIndexFieldNames(const AValue: String);
 begin
   if AValue<>'' then
     begin
+    if FIndexesCount=0 then
+      InitDefaultIndexes;
     FIndexes[1].FieldsName:=AValue;
     FCurrentIndex:=FIndexes[1];
     if active then
@@ -1534,7 +1609,7 @@ begin
     begin
     with FIndexes[0] do
       begin
-      AddRecord(IntAllocRecordBuffer);
+      AddRecord;
       pb := SpareBuffer;
       end;
     inc(i);
@@ -2131,6 +2206,11 @@ begin
   result := FCurrentIndex.Name;
 end;
 
+function TCustomBufDataset.GetBufUniDirectional: boolean;
+begin
+  result := IsUniDirectional;
+end;
+
 function TCustomBufDataset.GetRecordSize : Word;
 
 begin
@@ -2345,7 +2425,11 @@ end;
 procedure TCustomBufDataset.AddIndex(const AName, AFields : string; AOptions : TIndexOptions; const ADescFields: string = '';
                                const ACaseInsFields: string = '');
 begin
+  CheckBiDirectional;
   if AFields='' then DatabaseError(SNoIndexFieldNameGiven);
+
+  if FIndexesCount=0 then
+    InitDefaultIndexes;
   
   if active and (FIndexesCount=FMaxIndexesCount) then
     DatabaseError(SMaxIndexes);
@@ -2485,6 +2569,7 @@ procedure TCustomBufDataset.LoadFromStream(AStream: TStream; Format: TDataPacket
 var APacketReaderReg : TDatapacketReaderRegistration;
     APacketReader : TDataPacketReader;
 begin
+  CheckBiDirectional;
   if GetRegisterDatapacketReader(AStream,format,APacketReaderReg) then
     APacketReader := APacketReaderReg.ReaderClass.create(AStream)
   else if TFpcBinaryDatapacketReader.RecognizeStream(AStream) then
@@ -2505,6 +2590,7 @@ procedure TCustomBufDataset.SaveToStream(AStream: TStream; Format: TDataPacketFo
 var APacketReaderReg : TDatapacketReaderRegistration;
     APacketWriter : TDataPacketReader;
 begin
+  CheckBiDirectional;
   if GetRegisterDatapacketReader(Nil,format,APacketReaderReg) then
     APacketWriter := APacketReaderReg.ReaderClass.create(AStream)
   else if Format = dfBinary then
@@ -2538,7 +2624,7 @@ end;
 
 function TCustomBufDataset.BookmarkValid(ABookmark: TBookmark): Boolean;
 begin
-  Result:=FCurrentIndex.BookmarkValid(ABookmark);
+  Result:=assigned(FCurrentIndex) and  FCurrentIndex.BookmarkValid(ABookmark);
 end;
 
 function TCustomBufDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark
@@ -2566,6 +2652,7 @@ var StoreState      : TDataSetState;
     x               : integer;
 
 begin
+  CheckBiDirectional;
   FDatasetReader.InitLoadRecords;
   StoreState:=SetTempState(dsFilter);
 
@@ -2598,7 +2685,7 @@ begin
       fillchar(FFilterBuffer^,FNullmaskSize,0);
 
       FDatasetReader.RestoreRecord(self);
-      FIndexes[0].AddRecord(IntAllocRecordBuffer);
+      FIndexes[0].AddRecord;
       inc(FBRecordCount);
 
       AddRecordBuffer:=False;
@@ -2618,7 +2705,7 @@ begin
 
       FUpdateBuffer[FCurrentUpdateBuffer].UpdateKind:= ukDelete;
       FIndexes[0].StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
-      FIndexes[0].AddRecord(IntAllocRecordBuffer);
+      FIndexes[0].AddRecord;
       FIndexes[0].RemoveRecordFromIndex(FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
       FIndexes[0].StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].NextBookmarkData);
 
@@ -2647,7 +2734,7 @@ begin
         FCurrentIndex.StoreSpareRecIntoBookmark(@FUpdateBuffer[FCurrentUpdateBuffer].BookmarkData);
         end;
 
-      FIndexes[0].AddRecord(IntAllocRecordBuffer);
+      FIndexes[0].AddRecord;
       inc(FBRecordCount);
       end;
 
@@ -2676,7 +2763,10 @@ begin
   inc(FIndexesCount);
   setlength(FIndexes,FIndexesCount); // This invalidates the currentindex! -> not anymore
   FCurrentIndex:=FIndexes[StoreIndNr];
-  FIndexes[FIndexesCount-1] := TDoubleLinkedBufIndex.Create(self);
+  if IsUniDirectional then
+    FIndexes[FIndexesCount-1] := TUniDirectionalBufIndex.Create(self)
+  else
+    FIndexes[FIndexesCount-1] := TDoubleLinkedBufIndex.Create(self);
 //  FIndexes[FIndexesCount-1] := TArrayBufIndex.Create(self);
   FIndexes[FIndexesCount-1].InitialiseIndex;
   with (FIndexes[FIndexesCount-1] as TBufIndex) do
@@ -3107,8 +3197,10 @@ begin
 //  inherited BeginUpdate;
 end;
 
-procedure TArrayBufIndex.AddRecord(const ARecord: PChar);
+procedure TArrayBufIndex.AddRecord;
+var ARecord: PChar;
 begin
+  ARecord := FDataset.IntAllocRecordBuffer;
   inc(FLastRecInd);
   if FLastRecInd >= length(FRecordArray) then
     SetLength(FRecordArray,length(FRecordArray)+FGrowBuffer);
@@ -3255,6 +3347,162 @@ begin
     Result := True
   else
     Result := False;
+end;
+
+{ TUniDirectionalBufIndex }
+
+function TUniDirectionalBufIndex.GetBookmarkSize: integer;
+begin
+  // In principle there are no bookmarks, and the size should be 0.
+  // But there is quite some code in TCustomBufDataset that relies on
+  // an existing bookmark of the TBufBookmark type.
+  // This code could be moved to the TBufIndex but that would make things
+  // more complicated and probably slower. So use a 'fake' bookmark of
+  // size TBufBookmark.
+  // When there are other TBufIndexes which also need special bookmark-code
+  // this can be adapted.
+  Result:=sizeof(TBufBookmark);
+end;
+
+function TUniDirectionalBufIndex.GetCurrentBuffer: Pointer;
+begin
+  result := FSPareBuffer;
+end;
+
+function TUniDirectionalBufIndex.GetCurrentRecord: PChar;
+begin
+//  Result:=inherited GetCurrentRecord;
+end;
+
+function TUniDirectionalBufIndex.GetIsInitialized: boolean;
+begin
+  Result := Assigned(FSPareBuffer);
+end;
+
+function TUniDirectionalBufIndex.GetSpareBuffer: PChar;
+begin
+  result := FSPareBuffer;
+end;
+
+function TUniDirectionalBufIndex.GetSpareRecord: PChar;
+begin
+  result := FSPareBuffer;
+end;
+
+function TUniDirectionalBufIndex.ScrollBackward: TGetResult;
+begin
+  result := grError;
+end;
+
+function TUniDirectionalBufIndex.ScrollForward: TGetResult;
+begin
+  result := grOk;
+end;
+
+function TUniDirectionalBufIndex.GetCurrent: TGetResult;
+begin
+  result := grOk;
+end;
+
+function TUniDirectionalBufIndex.ScrollFirst: TGetResult;
+begin
+  Result:=grError;
+end;
+
+procedure TUniDirectionalBufIndex.ScrollLast;
+begin
+  DatabaseError(SUniDirectional);
+end;
+
+procedure TUniDirectionalBufIndex.SetToFirstRecord;
+begin
+  DatabaseError(SUniDirectional);
+end;
+
+procedure TUniDirectionalBufIndex.SetToLastRecord;
+begin
+  DatabaseError(SUniDirectional);
+end;
+
+procedure TUniDirectionalBufIndex.StoreCurrentRecord;
+begin
+  DatabaseError(SUniDirectional);
+end;
+
+procedure TUniDirectionalBufIndex.RestoreCurrentRecord;
+begin
+  DatabaseError(SUniDirectional);
+end;
+
+function TUniDirectionalBufIndex.CanScrollForward: Boolean;
+begin
+  // should return true if a next record is already fetched
+  result := false;
+end;
+
+procedure TUniDirectionalBufIndex.DoScrollForward;
+begin
+  // do nothing
+end;
+
+procedure TUniDirectionalBufIndex.StoreCurrentRecIntoBookmark(const ABookmark: PBufBookmark);
+begin
+  // do nothing
+end;
+
+procedure TUniDirectionalBufIndex.StoreSpareRecIntoBookmark(const ABookmark: PBufBookmark);
+begin
+  // do nothing
+end;
+
+procedure TUniDirectionalBufIndex.GotoBookmark(const ABookmark: PBufBookmark);
+begin
+  DatabaseError(SUniDirectional);
+end;
+
+procedure TUniDirectionalBufIndex.InitialiseIndex;
+begin
+  // do nothing
+end;
+
+procedure TUniDirectionalBufIndex.InitialiseSpareRecord(const ASpareRecord: PChar);
+begin
+  FSPareBuffer:=ASpareRecord;
+end;
+
+procedure TUniDirectionalBufIndex.ReleaseSpareRecord;
+begin
+  FSPareBuffer:=nil;
+end;
+
+procedure TUniDirectionalBufIndex.RemoveRecordFromIndex(const ABookmark: TBufBookmark);
+begin
+  DatabaseError(SUniDirectional);
+end;
+
+function TUniDirectionalBufIndex.GetRecNo(const ABookmark: PBufBookmark): integer;
+begin
+  result := -1;
+end;
+
+procedure TUniDirectionalBufIndex.BeginUpdate;
+begin
+  // Do nothing
+end;
+
+procedure TUniDirectionalBufIndex.AddRecord;
+begin
+  // Do nothing
+end;
+
+procedure TUniDirectionalBufIndex.InsertRecordBeforeCurrentRecord(const ARecord: PChar);
+begin
+  // Do nothing
+end;
+
+procedure TUniDirectionalBufIndex.EndUpdate;
+begin
+  // Do nothing
 end;
 
 initialization
