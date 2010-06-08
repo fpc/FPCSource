@@ -1371,7 +1371,8 @@ function TChmWriter.AddURL ( AURL: String; TopicsIndex: DWord ) : LongWord;
       FAvlUrlStr.Add(UrlStrRec);
       FURLSTRStream.WriteDWord(NToLE(DWord(0))); // URL Offset for topic after the the "Local" value
       FURLSTRStream.WriteDWord(NToLE(DWord(0))); // Offset of FrameName??
-      FURLSTRStream.Write(AString[1], Length(AString));
+      if Length(AString) > 0 then
+        FURLSTRStream.Write(AString[1], Length(AString));
       FURLSTRStream.WriteByte(0); //NT
   end;
 
@@ -1390,7 +1391,7 @@ function TChmWriter.AddURL ( AURL: String; TopicsIndex: DWord ) : LongWord;
 var UrlIndex : Integer;
 
 begin
-  if AURL[1] = '/' then Delete(AURL,1,1);
+  if (Length(AURL) > 0) and (AURL[1] = '/') then Delete(AURL,1,1);
   UrlIndex:=LookupUrlString(AUrl);
 
   //if $1000 - (FURLTBLStream.Size mod $1000) = 4 then // we are at 4092
