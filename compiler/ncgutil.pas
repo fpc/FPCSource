@@ -1357,9 +1357,24 @@ implementation
 {$define overflowon}
 {$q-}
 {$endif}
-               cg.a_load_const_reg(list,reg_cgsize(tabstractnormalvarsym(p).initialloc.register),
-                 trashintval and (aword(1) shl (tcgsize2size[reg_cgsize(tabstractnormalvarsym(p).initialloc.register)] * 8) - 1),
-                   tabstractnormalvarsym(p).initialloc.register);
+               begin
+                 { avoid problems with broken x86 shifts }
+                 case tcgsize2size[tabstractnormalvarsym(p).initialloc.size] of
+                   1: cg.a_load_const_reg(list,OS_8,byte(trashintval),tabstractnormalvarsym(p).initialloc.register);
+                   2: cg.a_load_const_reg(list,OS_16,word(trashintval),tabstractnormalvarsym(p).initialloc.register);
+                   4: cg.a_load_const_reg(list,OS_32,longint(trashintval),tabstractnormalvarsym(p).initialloc.register);
+                   8:
+                     begin
+{$ifdef cpu64bitalu}
+                       cg.a_load_const_reg(list,OS_64,aint(trashintval),tabstractnormalvarsym(p).initialloc.register);
+{$else}
+                       cg64.a_load64_const_reg(list,int64(trashintval) shl 32 or int64(trashintval),tabstractnormalvarsym(p).initialloc.register64);
+{$endif}
+                     end;
+                   else
+                     internalerror(2010060801);
+                 end;
+               end;
 {$ifdef overflowon}
 {$undef overflowon}
 {$q+}
