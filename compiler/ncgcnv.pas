@@ -60,7 +60,7 @@ interface
     uses
       cutils,verbose,globtype,globals,
       aasmbase,aasmtai,aasmdata,aasmcpu,symconst,symdef,paramgr,
-      ncon,ncal,
+      nutils,ncon,ncal,
       cpubase,systems,
       procinfo,pass_2,
       cgbase,
@@ -88,7 +88,8 @@ interface
           nothing that we can load in a register }
         ressize := resultdef.size;
         leftsize := left.resultdef.size;
-        if (ressize<>leftsize) and
+        if ((ressize<>leftsize) or
+            is_bitpacked_access(left)) and
            not is_void(left.resultdef) then
           begin
             location_copy(location,left.location);

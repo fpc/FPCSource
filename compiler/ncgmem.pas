@@ -172,7 +172,15 @@ implementation
          location_reset(location,LOC_REGISTER,OS_ADDR);
          location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
          if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-           internalerror(2006111510);
+           { on x86_64-win64, array of chars can be returned in registers, however,
+             when passing these arrays to other functions, the compiler wants to take
+             the address of the array so when the addrnode has been created internally,
+             we have to force the data into memory, see also tw14388.pp
+           }
+           if nf_internal in flags then
+             location_force_mem(current_asmdata.CurrAsmList,left.location)
+           else
+             internalerror(2006111510);
          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
       end;
 
@@ -192,6 +200,8 @@ implementation
            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),resultdef.alignment)
          else
            location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
+         if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE,LOC_CONSTANT]) then
+           location_force_reg(current_asmdata.CurrAsmList,left.location,OS_ADDR,true);
          case left.location.loc of
             LOC_CREGISTER,
             LOC_REGISTER:
@@ -327,7 +337,13 @@ implementation
                LOC_REGISTER,
                LOC_CREGISTER:
                  begin
-                   if (left.resultdef.size > sizeof(pint)) then
+                   // in case the result is not something that can be put
+                   // into an integer register (e.g.
+                   // function_returning_record().non_regable_field, or
+                   // a function returning a value > sizeof(intreg))
+                   // -> force to memory
+                   if not tstoreddef(left.resultdef).is_intregable or
+                      not tstoreddef(resultdef).is_intregable then
                      location_force_mem(current_asmdata.CurrAsmList,location)
                    else
                      begin
@@ -928,19 +944,15 @@ implementation
               else if (right.location.loc = LOC_JUMP) then
                 internalerror(2006010801);
 
-              { only range check now, we can't range check loc_flags/loc_jump }
-              if cs_check_range in current_settings.localswitches then
-               begin
-                 if left.resultdef.typ=arraydef then
-                   rangecheck_array;
-               end;
-
             { produce possible range check code: }
               if cs_check_range in current_settings.localswitches then
                begin
                  if left.resultdef.typ=arraydef then
                    begin
-                     { done defore (PM) }
+		     { do not do any range checking when this is an array access to a pointer which has been
+		       typecasted from an array }
+		     if (not (ado_isconvertedpointer in tarraydef(left.resultdef).arrayoptions)) then
+                       rangecheck_array
                    end
                  else if (left.resultdef.typ=stringdef) then
                    begin

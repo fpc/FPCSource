@@ -62,7 +62,7 @@ Unit Rax86int;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
          procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
-         procedure BuildConstSymbolExpression(needofs,isref:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
+         procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
          function BuildConstExpression:aint;
          function BuildRefConstExpression:aint;
          procedure BuildReference(oper : tx86operand);
@@ -746,7 +746,7 @@ Unit Rax86int;
       end;
 
 
-    Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
+    Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
       var
         tempstr,expr,hs,mangledname : string;
         parenlevel : longint;
@@ -768,6 +768,8 @@ Unit Rax86int;
         errorflag:=FALSE;
         tempstr:='';
         expr:='';
+        if startingminus then
+          expr:='-';
         inexpression:=TRUE;
         parenlevel:=0;
         sym:=nil;
@@ -1116,7 +1118,7 @@ Unit Rax86int;
         hs : string;
         hssymtyp : TAsmsymtype;
       begin
-        BuildConstSymbolExpression(false,false,l,hs,hssymtyp);
+        BuildConstSymbolExpression(false,false,false,l,hs,hssymtyp);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildConstExpression:=l;
@@ -1129,7 +1131,7 @@ Unit Rax86int;
         hs : string;
         hssymtyp : TAsmsymtype;
       begin
-        BuildConstSymbolExpression(false,true,l,hs,hssymtyp);
+        BuildConstSymbolExpression(false,true,false,l,hs,hssymtyp);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildRefConstExpression:=l;
@@ -1429,7 +1431,11 @@ Unit Rax86int;
               begin
                 if not GotPlus and not GotStar then
                   Message(asmr_e_invalid_reference_syntax);
-                BuildConstSymbolExpression(true,true,l,tempstr,tempsymtyp);
+                BuildConstSymbolExpression(true,true,GotPlus and negative,l,tempstr,tempsymtyp);
+                { already handled by BuildConstSymbolExpression(); must be
+                  handled there to avoid [reg-1+1] being interpreted as
+                  [reg-(1+1)] }
+                negative:=false;
 
                 if tempstr<>'' then
                  begin
@@ -1453,12 +1459,7 @@ Unit Rax86int;
                            scale:=l;
                        end
                       else
-                       begin
-                         if negative then
-                           Dec(oper.opr.ref.offset,l)
-                         else
-                           Inc(oper.opr.ref.offset,l);
-                       end;
+                       Inc(oper.opr.ref.offset,l);
                     end;
                   OPR_LOCAL :
                     begin
@@ -1472,12 +1473,7 @@ Unit Rax86int;
                            scale:=l;
                        end
                       else
-                       begin
-                         if negative then
-                           Dec(oper.opr.localsymofs,l)
-                         else
-                           Inc(oper.opr.localsymofs,l);
-                       end;
+                        Inc(oper.opr.localsymofs,l);
                     end;
                 end;
                 GotPlus:=(prevasmtoken=AS_PLUS) or
@@ -1514,7 +1510,7 @@ Unit Rax86int;
       begin
         if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
           Message(asmr_e_invalid_operand_type);
-        BuildConstSymbolExpression(true,false,l,tempstr,tempsymtyp);
+        BuildConstSymbolExpression(true,false,false,l,tempstr,tempsymtyp);
         if tempstr<>'' then
           begin
             oper.opr.typ:=OPR_SYMBOL;
@@ -2042,7 +2038,7 @@ Unit Rax86int;
             AS_INTNUM,
             AS_ID :
               Begin
-                BuildConstSymbolExpression(false,false,value,asmsym,asmsymtyp);
+                BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp);
                 if asmsym<>'' then
                  begin
                    if constsize<>sizeof(pint) then
