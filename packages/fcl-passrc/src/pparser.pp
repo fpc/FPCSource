@@ -50,6 +50,7 @@ type
   TPasTreeContainer = class
   protected
     FPackage: TPasPackage;
+    FInterfaceOnly : Boolean;
   public
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; const ASourceFilename: String;
@@ -64,6 +65,7 @@ type
     function FindElement(const AName: String): TPasElement; virtual; abstract;
     function FindModule(const AName: String): TPasModule; virtual;
     property Package: TPasPackage read FPackage;
+    property InterfaceOnly : Boolean Read FInterfaceOnly Write FInterFaceOnly;
   end;
 
   EParserError = class(Exception)
@@ -919,7 +921,8 @@ begin
       tkimplementation:
         if (CurToken = tkImplementation) and (Declarations is TInterfaceSection) then
           begin
-          ParseImplementation;
+          If Not Engine.InterfaceOnly then
+            ParseImplementation;
           break;
           end;
       tkinitialization:
