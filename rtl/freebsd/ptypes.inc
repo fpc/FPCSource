@@ -117,15 +117,24 @@ type
   ptimespec= ^timespec;
   Ttimespec= timespec;
 
-   pthread_t            = pointer;
-   pthread_attr_t       = pointer;
+   pthread_t_rec        = record end;
+   pthread_attr_t_rec   = record end;
+//   pthread_mutex_t_rec   = record end;
+   pthread_mutexattr_t_rec   = record end;
+   pthread_cond_t_rec   = record end;
+   pthread_condattr_t_rec   = record end;
+   pthread_rwlock_t_rec   = record end;
+   pthread_rwlockattr_t_rec   = record end;
+
+   pthread_t            = ^pthread_t_rec;
+   pthread_attr_t       = ^pthread_attr_t_rec;
    pthread_mutex_t      = {$i pmutext.inc}
-   pthread_mutexattr_t  = pointer;
-   pthread_cond_t       = pointer;
-   pthread_condattr_t   = pointer;
+   pthread_mutexattr_t  = ^pthread_mutexattr_t_rec;
+   pthread_cond_t       = ^pthread_cond_t_rec;
+   pthread_condattr_t   = ^pthread_condattr_t_rec;
    pthread_key_t        = cint;
-   pthread_rwlock_t     = pointer;
-   pthread_rwlockattr_t = pointer;
+   pthread_rwlock_t     = ^pthread_rwlock_t_rec;
+   pthread_rwlockattr_t = ^pthread_rwlock_t_rec;
 
    sem_t                = pointer;
    rlim_t		= int64;
