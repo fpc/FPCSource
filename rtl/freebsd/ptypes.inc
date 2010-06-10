@@ -136,7 +136,8 @@ type
    pthread_rwlock_t     = ^pthread_rwlock_t_rec;
    pthread_rwlockattr_t = ^pthread_rwlock_t_rec;
 
-   sem_t                = pointer;
+   sem_t_rec		= record end;
+   sem_t                = ^sem_t_rec;
    rlim_t		= int64;
    TRlim		= rlim_t;
   {
