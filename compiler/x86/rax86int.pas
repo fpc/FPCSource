@@ -1653,7 +1653,11 @@ Unit Rax86int;
                   end;
                 Consume(AS_PTR);
                 oper.InitRef;
+                { if the operand subscripts a record, the typesize will be
+                  rest -> save it here and restore it afterwards }
+                l:=oper.typesize;
                 BuildOperand(oper,false);
+                oper.setsize(l,true);
               end;
 
             AS_ID : { A constant expression, or a Variable ref. }
@@ -1812,14 +1816,20 @@ Unit Rax86int;
                   AS_QWORD : oper.typesize:=8;
                   AS_DQWORD : oper.typesize:=16;
                   AS_TBYTE : oper.typesize:=10;
+                  else
+                    internalerror(2010061101);
                 end;
                 Consume(actasmtoken);
                 if (actasmtoken=AS_LPAREN) then
                   begin
-                    { Support Type([Reference]) }
+                    { Support "xxx ptr [Reference]" }
+                    { in case the expression subscripts a record, the typesize
+                      is reset, so save the explicit size we set above }
+                    l:=oper.typesize;
                     Consume(AS_LPAREN);
                     BuildOperand(oper,true);
                     Consume(AS_RPAREN);
+                    oper.setsize(l,true);
                   end;
               end;
 
