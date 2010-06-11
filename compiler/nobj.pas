@@ -500,7 +500,7 @@ implementation
                 else
                   if (ImplIntf.IType=etStandard) and
                      not(po_optional in tprocdef(def).procoptions) then
-                    Message1(sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
+                    MessagePos1(_Class.typesym.fileinfo,sym_e_no_matching_implementation_found,tprocdef(def).fullprocname(false));
               end;
           end;
       end;
