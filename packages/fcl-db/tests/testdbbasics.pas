@@ -28,6 +28,7 @@ type
     procedure SetUp; override;
     procedure TearDown; override;
   published
+    procedure TestClosedIndexFieldNames; // bug 16695
     procedure TestFileNameProperty;
     procedure TestClientDatasetAsMemDataset;
     procedure TestCancelUpdDelete1;
@@ -534,6 +535,14 @@ end;
 procedure TTestDBBasics.TearDown;
 begin
   DBConnector.StopTest;
+end;
+
+procedure TTestDBBasics.TestClosedIndexFieldNames;
+var s : string;
+    bufds: TCustomBufDataset;
+begin
+  bufds := DBConnector.GetNDataset(5) as TCustomBufDataset;
+  s := bufds.IndexFieldNames;
 end;
 
 procedure TTestDBBasics.TestCanModifySpecialFields;

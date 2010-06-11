@@ -396,6 +396,7 @@ type
   TCustomBufDataset = class(TDBDataSet)
   private
     FFileName: string;
+    FReadFromFile   : boolean;
     FFileStream     : TFileStream;
     FDatasetReader  : TDataPacketReader;
     FIndexes        : array of TBufIndex;
@@ -1061,6 +1062,7 @@ begin
     begin
     FFileStream := TFileStream.Create(FileName,fmOpenRead);
     FDatasetReader := TFpcBinaryDatapacketReader.Create(FFileStream);
+    FReadFromFile := True;
     end;
   if assigned(FDatasetReader) then IntLoadFielddefsFromFile;
   CalcRecordSize;
@@ -1132,6 +1134,7 @@ begin
   SetLength(FFieldBufPositions,0);
 
   if assigned(FParser) then FreeAndNil(FParser);
+  FReadFromFile:=false;
 end;
 
 procedure TCustomBufDataset.InternalFirst;
@@ -2195,7 +2198,7 @@ end;
 
 function TCustomBufDataset.GetIndexFieldNames: String;
 begin
-  if FCurrentIndex<>FIndexes[1] then
+  if (FIndexesCount=0) or (FCurrentIndex<>FIndexes[1]) then
     result := ''
   else
     result := FCurrentIndex.FieldsName;
@@ -2865,7 +2868,7 @@ end;
 
 function TCustomBufDataset.IsReadFromPacket: Boolean;
 begin
-  Result := (FDatasetReader<>nil) or (FFileName<>'');
+  Result := (FDatasetReader<>nil) or (FFileName<>'') or FReadFromFile;
 end;
 
 procedure TCustomBufDataset.ParseFilter(const AFilter: string);
