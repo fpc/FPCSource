@@ -2206,7 +2206,10 @@ end;
 
 function TCustomBufDataset.GetIndexName: String;
 begin
-  result := FCurrentIndex.Name;
+  if FIndexesCount>0 then
+    result := FCurrentIndex.Name
+  else
+    result := '';
 end;
 
 function TCustomBufDataset.GetBufUniDirectional: boolean;
@@ -2633,7 +2636,7 @@ end;
 function TCustomBufDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark
   ): Longint;
 begin
-  if FCurrentIndex.CompareBookmarks(Bookmark1,Bookmark2) then
+  if Assigned(FCurrentIndex) and FCurrentIndex.CompareBookmarks(Bookmark1,Bookmark2) then
     Result := 0
   else
     Result := -1;

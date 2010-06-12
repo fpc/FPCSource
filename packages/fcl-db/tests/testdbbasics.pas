@@ -543,6 +543,8 @@ var s : string;
 begin
   bufds := DBConnector.GetNDataset(5) as TCustomBufDataset;
   s := bufds.IndexFieldNames;
+  s := bufds.IndexName;
+  bufds.CompareBookmarks(nil,nil);
 end;
 
 procedure TTestDBBasics.TestCanModifySpecialFields;
