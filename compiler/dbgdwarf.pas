@@ -383,7 +383,7 @@ implementation
     uses
       sysutils,cutils,cfileutl,constexp,
       version,globals,verbose,systems,
-      cpubase,cgbase,paramgr,
+      cpubase,cpuinfo,cgbase,paramgr,
       fmodule,
       defutil,symtable,ppu
       ;
@@ -2473,8 +2473,11 @@ implementation
           conststring:
             begin
               { if DW_FORM_string is used below one day, this usedef should
-                probably become 0 }
-              if (sym.value.len<=255) then
+                probably become nil }
+              { note: < 255 instead of <= 255 because we have to store the
+                entire length of the string as well, and 256 does not fit in
+                a byte }
+              if (sym.value.len<255) then
                 usedef:=cshortstringtype
               else
                 usedef:=clongstringtype;
@@ -2493,7 +2496,7 @@ implementation
             begin
               { DW_FORM_string isn't supported yet by the Pascal value printer
                 -> create a string using raw bytes }
-              if (sym.value.len<=255) then
+              if (sym.value.len<255) then
                 begin
                   AddConstToAbbrev(ord(DW_FORM_block1));
                   current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sym.value.len+1));
@@ -2574,14 +2577,18 @@ implementation
                 s32real:
                   begin
                     current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(4));
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_real_32bit.create(psingle(sym.value.valueptr)^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_real_32bit.create(pbestreal(sym.value.valueptr)^));
                   end;
-                s64comp,
-                s64currency,
                 s64real:
                   begin
                     current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(8));
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_real_64bit.create(pdouble(sym.value.valueptr)^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_real_64bit.create(pbestreal(sym.value.valueptr)^));
+                  end;
+                s64comp,
+                s64currency:
+                  begin
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(8));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(trunc(pbestreal(sym.value.valueptr)^)));
                   end;
                 s80real,
                 sc80real:
