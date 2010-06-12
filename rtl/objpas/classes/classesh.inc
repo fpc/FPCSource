@@ -1423,7 +1423,8 @@ type
     procedure HandleNumber;
     procedure HandleHexNumber;
     function HandleQuotedString : string;
-    function HandleDecimalString(var ascii : boolean) : widestring;
+    procedure HandleDecimalCharacter(var ascii : boolean;
+                                     out WideChr: widechar; out StringChr: char);
     procedure HandleString;
     procedure HandleMinus;
     procedure HandleUnknown;
@@ -1973,6 +1974,13 @@ function CollectionsEqual(C1, C2: TCollection; Owner1, Owner2: TComponent): Bool
 
 { Object conversion routines }
 
+type
+  TObjectTextEncoding = (
+    oteDFM,
+    oteLFM
+    );
+
+procedure ObjectBinaryToText(Input, Output: TStream; Encoding: TObjectTextEncoding);
 procedure ObjectBinaryToText(Input, Output: TStream);
 procedure ObjectTextToBinary(Input, Output: TStream);
 
