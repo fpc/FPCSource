@@ -141,7 +141,8 @@ begin
   end;
 
   FEndOfStream := False;
-  while True do
+  FStopFlag := False;
+  while not FStopFlag do
   begin
     // Read data into the input buffer
     BufferSize := AInput.Stream.Read(Buffer, MaxBufferSize);
@@ -152,7 +153,7 @@ begin
     end;
 
     BufferPos := 0;
-    while BufferPos < BufferSize do
+    while (BufferPos < BufferSize) and not FStopFlag do
       case ScannerContext of
         scUnknown:
           case Buffer[BufferPos] of
@@ -337,9 +338,7 @@ procedure TSAXXMLReader.EnterNewScannerContext(NewContext: TXMLScannerContext);
 var
   Attr: TSAXAttributes;
   TagName: String;
-  Found: Boolean;
   Ent: SAXChar;
-  i: Integer;
 begin
   case ScannerContext of
     scWhitespace:

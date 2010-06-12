@@ -177,6 +177,7 @@ type
   protected
     FCurColumnNumber, FCurLineNumber: Integer;
     FCurPublicID, FCurSystemID: SAXString;
+    FStopFlag: Boolean;
 
     function GetFeature(const Name: String): Boolean; virtual;
     function GetProperty(const Name: String): TObject; virtual;
@@ -213,6 +214,7 @@ type
     procedure Parse(AInput: TSAXInputSource); virtual; abstract; overload;
     procedure Parse(const SystemID: SAXString); virtual; overload;
     procedure ParseStream(AStream: TStream);
+    procedure Abort;
 
     // Current location
     property CurColumnNumber: Integer read FCurColumnNumber;
@@ -651,6 +653,11 @@ begin
   finally
     Input.Free;
   end;
+end;
+
+procedure TSAXReader.Abort;
+begin
+  FStopFlag := True;
 end;
 
 function TSAXReader.DoResolveEntity(const PublicID,
