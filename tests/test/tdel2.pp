@@ -6,6 +6,7 @@ program tdel2;
  }
 
 uses
+  //heaptrc,
   SysUtils;
 
 const
@@ -130,35 +131,6 @@ var
   P: Pointer;
   O: TImpl;
 begin
-  (*C1 := TC1.Create;
-  C2 := TC2.Create;
-  C3 := TC3.Create;
-  writeln('Testing typecasting...');
-  
-  I := C1;
-  if I<>nil then
-    succ('field', I.GetRefCount)
-  else
-    fail('field');
-  
-  I := C2;
-  if I<>nil then
-    succ('function', I.GetRefCount)
-  else
-    fail('function');
-
-  I := C3;
-  if I<>nil then
-    succ('class field', I.GetRefCount)
-  else
-    fail('class field');
-
-  {clean up}
-  I := nil;
-  C1.Free;
-  C2.Free;
-  C3.Free;*)
-
 
 (*******************************************************************************
  * GetInterface function
@@ -233,8 +205,7 @@ begin
  * IS operator
  *******************************************************************************)
 
- {$warning THIS PART IS ENABLED AS SOON AS "IS" OPERATOR IS COMPLETELY IMPLEMENTED}
-  {writeln('Testing ''object is interface'' operator...');
+  writeln('Testing ''object is interface'' operator...');
   for T := 0 to High(tests) do
   begin
     C := tests[T].c.Create;
@@ -277,7 +248,7 @@ begin
       fail(tests[T].by);
     I := nil;
     C.Free;
-  end;}
+  end;
 
 
 (*******************************************************************************
