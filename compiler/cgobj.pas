@@ -900,6 +900,13 @@ implementation
               end;
             LOC_MMREGISTER,LOC_CMMREGISTER:
               a_loadmm_intreg_reg(list,size,cgpara.location^.size,r,cgpara.location^.register,mms_movescalar);
+            LOC_FPUREGISTER,LOC_CFPUREGISTER:
+              begin
+                tg.GetTemp(list,TCGSize2Size[size],TCGSize2Size[size],tt_normal,ref);
+                a_load_reg_ref(list,size,size,r,ref);
+                a_loadfpu_ref_cgpara(list,cgpara.location^.size,ref,cgpara);
+                tg.Ungettemp(list,ref);
+              end
             else
               internalerror(2002071004);
          end;

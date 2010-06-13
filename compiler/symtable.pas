@@ -1009,6 +1009,13 @@ implementation
         i: longint;
       begin
         result:=false;
+        { If a record contains a union, it does not contain a "single
+          non-composite field" in the context of certain ABIs requiring
+          special treatment for such records }
+        if (defowner.typ=recorddef) and
+           trecorddef(defowner).isunion then
+          exit;
+        { a record/object can contain other things than fields }
         for i:=0 to SymList.Count-1 do
           begin
             if tsym(symlist[i]).typ=fieldvarsym then
@@ -1144,6 +1151,11 @@ implementation
           end;
         _datasize:=storesize;
         fieldalignment:=storealign;
+        { If a record contains a union, it does not contain a "single
+          non-composite field" in the context of certain ABIs requiring
+          special treatment for such records }
+        if defowner.typ=recorddef then
+          trecorddef(defowner).isunion:=true;
       end;
 
 

@@ -53,7 +53,7 @@ unit cpupara;
 
     uses
        verbose,systems,
-       defutil,
+       defutil,symtable,
        procinfo,cpupi;
 
 
@@ -357,6 +357,7 @@ unit cpupara;
          hp : tparavarsym;
          loc : tcgloc;
          paracgsize: tcgsize;
+         sym: tfieldvarsym;
 
       begin
 {$ifdef extdebug}
@@ -417,7 +418,6 @@ unit cpupara;
                     paralen := paradef.size
                   else
                     paralen := tcgsize2size[def_cgsize(paradef)];
-                  loc := getparaloc(paradef);
                   if (target_info.abi = abi_powerpc_aix) and
                      (paradef.typ = recorddef) and
                      (hp.varspez in [vs_value,vs_const]) then
@@ -425,14 +425,12 @@ unit cpupara;
                       { if a record has only one field and that field is }
                       { non-composite (not array or record), it must be  }
                       { passed according to the rules of that type.       }
-                      if (trecorddef(hp.vardef).symtable.SymList.count = 1) and
-                         (not trecorddef(hp.vardef).isunion) and
-                         ((tabstractvarsym(trecorddef(hp.vardef).symtable.SymList[0]).vardef.typ = floatdef) or
-                          ((target_info.system = system_powerpc_darwin) and
-                           (tabstractvarsym(trecorddef(hp.vardef).symtable.SymList[0]).vardef.typ in [orddef,enumdef]))) then
+                      if tabstractrecordsymtable(tabstractrecorddef(paradef).symtable).has_single_field(sym) and
+                         ((sym.vardef.typ=floatdef) or
+                          ((target_info.system=system_powerpc_darwin) and
+                           (sym.vardef.typ in [orddef,enumdef]))) then
                         begin
-                          paradef :=
-                           tabstractvarsym(trecorddef(hp.vardef).symtable.SymList[0]).vardef;
+                          paradef:=sym.vardef;
                           paracgsize:=def_cgsize(paradef);
                         end
                       else
@@ -452,6 +450,7 @@ unit cpupara;
                     end
                 end;
 
+              loc := getparaloc(paradef);
               if varargsparas and
                  (target_info.abi = abi_powerpc_aix) and
                  (paradef.typ = floatdef) then

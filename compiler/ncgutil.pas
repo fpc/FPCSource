@@ -789,8 +789,13 @@ implementation
         href   : treference;
         size   : longint;
 {$endif i386}
+        locsize : tcgsize;
         tmploc : tlocation;
       begin
+           if not(l.size in [OS_32,OS_64,OS_128]) then
+             locsize:=l.size
+           else
+             locsize:=int_float_cgsize(tcgsize2size[l.size]);
 {$ifdef i386}
            case l.loc of
              LOC_FPUREGISTER,
@@ -808,11 +813,11 @@ implementation
                          end
                        else
                          reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
-                       cg.a_loadfpu_reg_ref(list,l.size,l.size,l.register,href);
+                       cg.a_loadfpu_reg_ref(list,locsize,locsize,l.register,href);
                      end;
                    LOC_FPUREGISTER:
                      begin
-                       cg.a_loadfpu_reg_reg(list,l.size,cgpara.location^.size,l.register,cgpara.location^.register);
+                       cg.a_loadfpu_reg_reg(list,locsize,cgpara.location^.size,l.register,cgpara.location^.register);
                      end;
                    { can happen if a record with only 1 "single field" is
                      returned in a floating point register and then is directly
@@ -821,7 +826,7 @@ implementation
                      begin
                        tmploc:=l;
                        location_force_mem(list,tmploc);
-                       case l.size of
+                       case locsize of
                          OS_F32:
                            tmploc.size:=OS_32;
                          OS_F64:
@@ -853,7 +858,7 @@ implementation
                          end
                        else
                          reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
-                       cg.a_loadmm_reg_ref(list,l.size,l.size,l.register,href,mms_movescalar);
+                       cg.a_loadmm_reg_ref(list,locsize,locsize,l.register,href,mms_movescalar);
                      end;
                    LOC_FPUREGISTER:
                      begin
@@ -875,7 +880,7 @@ implementation
                        size:=align(locintsize,cgpara.alignment);
                        if (not use_fixed_stack) and
                           (cgpara.location^.reference.index=NR_STACK_POINTER_REG) then
-                         cg.a_load_ref_cgpara(list,l.size,l.reference,cgpara)
+                         cg.a_load_ref_cgpara(list,locsize,l.reference,cgpara)
                        else
                          begin
                            reference_reset_base(href,cgpara.location^.reference.index,cgpara.location^.reference.offset,cgpara.alignment);
@@ -884,7 +889,7 @@ implementation
                      end;
                    LOC_FPUREGISTER:
                      begin
-                       cg.a_loadfpu_ref_cgpara(list,l.size,l.reference,cgpara);
+                       cg.a_loadfpu_ref_cgpara(list,locsize,l.reference,cgpara);
                      end;
                    else
                      internalerror(2010053005);
@@ -904,7 +909,7 @@ implementation
                  LOC_CMMREGISTER,
                  LOC_REGISTER,
                  LOC_CREGISTER :
-                   cg.a_loadmm_reg_cgpara(list,l.size,l.register,cgpara,mms_movescalar);
+                   cg.a_loadmm_reg_cgpara(list,locsize,l.register,cgpara,mms_movescalar);
                  LOC_FPUREGISTER,
                  LOC_CFPUREGISTER:
                    begin
@@ -932,7 +937,7 @@ implementation
                  LOC_CREFERENCE,
                  LOC_FPUREGISTER,
                  LOC_CFPUREGISTER:
-                   cg.a_loadfpu_reg_cgpara(list,l.size,l.register,cgpara);
+                   cg.a_loadfpu_reg_cgpara(list,locsize,l.register,cgpara);
                  else
                    internalerror(2002042433);
                end;
@@ -941,7 +946,7 @@ implementation
                case cgpara.location^.loc of
                  LOC_MMREGISTER,
                  LOC_CMMREGISTER:
-                   cg.a_loadmm_ref_cgpara(list,l.size,l.reference,cgpara,mms_movescalar);
+                   cg.a_loadmm_ref_cgpara(list,locsize,l.reference,cgpara,mms_movescalar);
                  { Some targets pass floats in normal registers }
                  LOC_REGISTER,
                  LOC_CREGISTER,
@@ -949,7 +954,7 @@ implementation
                  LOC_CREFERENCE,
                  LOC_FPUREGISTER,
                  LOC_CFPUREGISTER:
-                   cg.a_loadfpu_ref_cgpara(list,l.size,l.reference,cgpara);
+                   cg.a_loadfpu_ref_cgpara(list,locsize,l.reference,cgpara);
                  else
                    internalerror(2002042431);
                end;
@@ -961,7 +966,7 @@ implementation
                     value is still a const or in a register then write it
                     to a reference first. This situation can be triggered
                     by typecasting an int64 constant to a record of 8 bytes }
-                  if l.size in [OS_64,OS_S64] then
+                  if locsize = OS_F64 then
                     begin
                       tmploc:=l;
                       location_force_mem(list,tmploc);
@@ -991,7 +996,9 @@ implementation
           be handled by cpupara }
         if (vardef.typ=floatdef) or
            { some ABIs return certain records in an fpu register }
-           (l.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) then
+           (l.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER]) or
+           (assigned(cgpara.location) and
+            (cgpara.Location^.loc in [LOC_FPUREGISTER,LOC_CFPUREGISTER])) then
           begin
             gen_loadfpu_loc_cgpara(list,l,cgpara,vardef.size);
             exit;
