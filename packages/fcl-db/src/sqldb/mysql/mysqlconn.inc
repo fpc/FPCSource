@@ -192,6 +192,7 @@ Resourcestring
   SErrNotversion50 = 'TMySQL50Connection can not work with the installed MySQL client version (%s).';
   SErrNotversion41 = 'TMySQL41Connection can not work with the installed MySQL client version (%s).';
   SErrNotversion40 = 'TMySQL40Connection can not work with the installed MySQL client version (%s).';
+  SErrSettingParameter = 'Error setting parameter "%s"';
 
 Procedure MySQlError(R : PMySQL;Msg: String;Comp : TComponent);
 
@@ -275,7 +276,7 @@ begin
       else
         Opt := pchar(OptStr);
       if mysql_options(HMySQL,AMysql_Option,Opt) <> 0 then
-          MySQlError(HMySQL,'Error setting parameter',Self);
+          MySQlError(HMySQL,Format(SErrSettingParameter,[params.Names[i]]),Self);
       end;
     end;
 
