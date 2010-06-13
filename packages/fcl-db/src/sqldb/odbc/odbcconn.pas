@@ -351,7 +351,7 @@ begin
           SqlType:=SQL_BIGINT;
           ColumnSize:=19;
         end;
-      ftString, ftBlob, ftMemo:
+      ftString, ftFixedChar, ftBlob, ftMemo:
         begin
           StrVal:=AParams[ParamIndex].AsString;
           StrLenOrInd:=Length(StrVal);
@@ -364,16 +364,23 @@ begin
           Size:=Length(StrVal);
           ColumnSize:=Size;
           BufferLength:=Size;
-          if AParams[ParamIndex].DataType = ftString then
-            begin
-            CType:=SQL_C_CHAR;
-            SqlType:=SQL_LONGVARCHAR;
-            end
-          else // ftBlob, ftMemo
-            begin
-            CType:=SQL_C_BINARY;
-            SqlType:=SQL_BINARY;
-            end;
+          case AParams[ParamIndex].DataType of
+            ftBlob:
+              begin
+              CType:=SQL_C_BINARY;
+              SqlType:=SQL_BINARY;
+              end;
+            ftMemo:
+              begin
+              CType:=SQL_C_CHAR;
+              SqlType:=SQL_LONGVARCHAR;
+              end
+            else // ftString, ftFixedChar
+              begin
+              CType:=SQL_C_CHAR;
+              SqlType:=SQL_VARCHAR;
+              end;
+          end;
         end;
       ftFloat:
         begin
