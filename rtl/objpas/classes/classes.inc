@@ -842,7 +842,7 @@ begin
     end;
 end;
 
-procedure ObjectBinaryToText(Input, Output: TStream);
+procedure ObjectBinaryToText(Input, Output: TStream; Encoding: TObjectTextEncoding);
 
   procedure OutStr(s: String);
   begin
@@ -855,7 +855,8 @@ procedure ObjectBinaryToText(Input, Output: TStream);
     OutStr(s + LineEnding);
   end;
 
-  procedure Outchars(P, LastP : Pointer; CharToOrdFunc: CharToOrdFuncty);
+  procedure Outchars(P, LastP : Pointer; CharToOrdFunc: CharToOrdFuncty;
+    UseBytes: boolean = false);
 
   var
     res, NewStr: String;
@@ -879,8 +880,8 @@ procedure ObjectBinaryToText(Input, Output: TStream);
           NewInString := True;
         NewStr := '''''';
         end 
-      else if (Ord(w) >= 32) and (Ord(w) < 127) then 
-        begin //printable ascii
+      else if (Ord(w) >= 32) and ((Ord(w) < 127) or (UseBytes and (Ord(w)<256))) then
+        begin //printable ascii or bytes
         if not InString then
           NewInString := True;
         NewStr := char(w);
@@ -906,7 +907,7 @@ procedure ObjectBinaryToText(Input, Output: TStream);
 
   procedure OutString(s: String);
   begin
-    OutChars(Pointer(S),PChar(S)+Length(S),@CharToOrd);
+    OutChars(Pointer(S),PChar(S)+Length(S),@CharToOrd,Encoding=oteLFM);
   end;
 
   procedure OutWString(W: WideString);
@@ -921,7 +922,10 @@ procedure ObjectBinaryToText(Input, Output: TStream);
 
   procedure OutUtf8Str(s: String);
   begin
-    OutChars(Pointer(S),PChar(S)+Length(S),@Utf8ToOrd);
+    if Encoding=oteLFM then
+      OutChars(Pointer(S),PChar(S)+Length(S),@CharToOrd)
+    else
+      OutChars(Pointer(S),PChar(S)+Length(S),@Utf8ToOrd);
   end;
 
   function ReadWord : word; {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
@@ -1260,6 +1264,10 @@ begin
   ReadObject('');
 end;
 
+procedure ObjectBinaryToText(Input, Output: TStream);
+begin
+  ObjectBinaryToText(Input,Output,oteDFM);
+end;
 
 procedure ObjectTextToBinary(Input, Output: TStream);
 var
