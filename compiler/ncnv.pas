@@ -3265,26 +3265,28 @@ implementation
 
     function tisnode.pass_typecheck:tnode;
       var
-        paras: tcallparanode;
+        hp : tnode;
       begin
          result:=nil;
-         typecheckpass(left);
          typecheckpass(right);
+         typecheckpass(left);
 
-         set_varstate(left,vs_read,[vsf_must_be_valid]);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
+         set_varstate(left,vs_read,[vsf_must_be_valid]);
 
          if codegenerror then
            exit;
 
-         { Passing a class type to an "is" expression cannot result in a class
-           of that type to be constructed.
-         }
-         include(right.flags,nf_ignore_for_wpo);
-
          if (right.resultdef.typ=classrefdef) then
           begin
-            { left must be a class }
+            { left maybe an interface reference }
+            if is_interfacecom(left.resultdef) then
+             begin
+               { relation checks are not possible }
+             end
+            else
+
+            { or left must be a class }
             if is_class(left.resultdef) then
              begin
                { the operands must be related }
@@ -3292,64 +3294,93 @@ implementation
                   tobjectdef(tclassrefdef(right.resultdef).pointeddef)))) and
                   (not(tobjectdef(tclassrefdef(right.resultdef).pointeddef).is_related(
                   tobjectdef(left.resultdef)))) then
-                 CGMessage2(type_e_classes_not_related,left.resultdef.typename,
-                            tclassrefdef(right.resultdef).pointeddef.typename);
+                 CGMessage2(type_e_classes_not_related,
+                    FullTypeName(left.resultdef,tclassrefdef(right.resultdef).pointeddef),
+                    FullTypeName(tclassrefdef(right.resultdef).pointeddef,left.resultdef));
              end
             else
-             CGMessage1(type_e_class_type_expected,left.resultdef.typename);
-
-            { call fpc_do_is helper }
-            paras := ccallparanode.create(
-                         left,
-                     ccallparanode.create(
-                         right,nil));
-            result := ccallnode.createintern('fpc_do_is',paras);
-            left := nil;
-            right := nil;
+             CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
+            resultdef:=booltype;
           end
-         else if is_interface(right.resultdef) then
+         else if is_interface(right.resultdef) or is_dispinterface(right.resultdef) then
           begin
             { left is a class }
-            if is_class(left.resultdef) then
+            if not(is_class(left.resultdef) or
+                   is_interfacecom(left.resultdef)) then
+              CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
+
+            resultdef:=booltype;
+
+            { load the GUID of the interface }
+            if (right.nodetype=typen) then
              begin
-               { the class must implement the interface }
-               if tobjectdef(left.resultdef).find_implemented_interface(tobjectdef(right.resultdef))=nil then
-                 CGMessage2(type_e_classes_not_related,
-                    FullTypeName(left.resultdef,right.resultdef),
-                    FullTypeName(right.resultdef,left.resultdef))
-             end
-            { left is an interface }
-            else if is_interface(left.resultdef) then
-             begin
-               { the operands must be related }
-               if (not(tobjectdef(left.resultdef).is_related(tobjectdef(right.resultdef)))) and
-                  (not(tobjectdef(right.resultdef).is_related(tobjectdef(left.resultdef)))) then
-                 CGMessage2(type_e_classes_not_related,
-                    FullTypeName(left.resultdef,right.resultdef),
-                    FullTypeName(right.resultdef,left.resultdef));
-             end
-            else
-             CGMessage1(type_e_class_type_expected,left.resultdef.typename);
-            { call fpc_do_is helper }
-            paras := ccallparanode.create(
-                         left,
-                     ccallparanode.create(
-                         right,nil));
-            result := ccallnode.createintern('fpc_do_is',paras);
-            left := nil;
-            right := nil;
+               if tobjectdef(right.resultdef).objecttype=odt_interfacecorba then
+                 begin
+                   if assigned(tobjectdef(right.resultdef).iidstr) then
+                     begin
+                       hp:=cstringconstnode.createstr(tobjectdef(right.resultdef).iidstr^);
+                       tstringconstnode(hp).changestringtype(cshortstringtype);
+                       right.free;
+                       right:=hp;
+                     end
+                   else
+                     internalerror(201006131);
+                 end
+               else
+                 begin
+                   if assigned(tobjectdef(right.resultdef).iidguid) then
+                     begin
+                       if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
+                         CGMessage1(type_interface_has_no_guid,tobjectdef(right.resultdef).typename);
+                       hp:=cguidconstnode.create(tobjectdef(right.resultdef).iidguid^);
+                       right.free;
+                       right:=hp;
+                     end
+                   else
+                     internalerror(201006132);
+                 end;
+               typecheckpass(right);
+             end;
           end
          else
           CGMessage1(type_e_class_or_interface_type_expected,right.resultdef.typename);
-
-         resultdef:=booltype;
       end;
 
-
     function tisnode.pass_1 : tnode;
+      var
+        procname: string;
       begin
-        internalerror(200204254);
         result:=nil;
+        { Passing a class type to an "is" expression cannot result in a class
+          of that type to be constructed.
+        }
+        include(right.flags,nf_ignore_for_wpo);
+
+        if is_class(left.resultdef) and
+           (right.resultdef.typ=classrefdef) then
+          result := ccallnode.createinternres('fpc_do_is',
+            ccallparanode.create(left,ccallparanode.create(right,nil)),
+            resultdef)
+        else
+          begin
+            if is_class(left.resultdef) then
+              if is_shortstring(right.resultdef) then
+                procname := 'fpc_class_is_corbaintf'
+              else
+                procname := 'fpc_class_is_intf'
+            else
+              if right.resultdef.typ=classrefdef then
+                procname := 'fpc_intf_is_class'
+              else
+                procname := 'fpc_intf_is';
+            result := ctypeconvnode.create_internal(ccallnode.createintern(procname,
+               ccallparanode.create(right,ccallparanode.create(left,nil))),resultdef);
+          end;
+        left := nil;
+        right := nil;
+        //firstpass(call);
+        if codegenerror then
+          exit;
       end;
 
     { dummy pass_2, it will never be called, but we need one since }
@@ -3509,9 +3540,8 @@ implementation
                     procname := 'fpc_intf_as_class'
                   else
                     procname := 'fpc_intf_as';
-                call := ccallnode.createintern(procname,
-                   ccallparanode.create(right,ccallparanode.create(left,nil)));
-                call := ctypeconvnode.create_internal(call,resultdef);
+                call := ctypeconvnode.create_internal(ccallnode.createintern(procname,
+                   ccallparanode.create(right,ccallparanode.create(left,nil))),resultdef);
               end;
             left := nil;
             right := nil;
