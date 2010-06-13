@@ -1126,7 +1126,7 @@ begin
     end;
 
     // add FieldDef
-    TFieldDef.Create(FieldDefs, ColName, FieldType, FieldSize, False, i);
+    TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, False, i);
   end;
 end;
 
