@@ -71,6 +71,7 @@ type
     procedure TestMove;                    // bug 5048
     procedure TestActiveBufferWhenClosed;
     procedure TestEOFBOFClosedDataset;
+    procedure TestLayoutChangedEvents;
     procedure TestDataEventsResync;
     procedure TestBug7007;
     procedure TestBug6893;
@@ -267,9 +268,9 @@ begin
 
           Next;
           if (i > ABufferCount) and not EOF then
-            AssertEquals('deCheckBrowseMode:0;deDataSetScroll:-1;DataSetScrolled:1;',DataEvents)
+            AssertEquals('deCheckBrowseMode:0;deDataSetScroll:-1;DataSetScrolled:1;DataSetChanged;',DataEvents)
           else
-            AssertEquals('deCheckBrowseMode:0;deDataSetScroll:0;DataSetScrolled:0;',DataEvents);
+            AssertEquals('deCheckBrowseMode:0;deDataSetScroll:0;DataSetScrolled:0;DataSetChanged;',DataEvents);
           DataEvents := '';
           end;
         AssertEquals(count,i-1);
@@ -335,6 +336,37 @@ begin
     end;
 end;
 
+procedure TTestDBBasics.TestLayoutChangedEvents;
+var aDatasource : TDataSource;
+    aDatalink   : TDataLink;
+    ds          : tdataset;
+
+begin
+  aDatasource := TDataSource.Create(nil);
+  aDatalink := TTestDataLink.Create;
+  try
+    aDatalink.DataSource := aDatasource;
+    ds := DBConnector.GetNDataset(6);
+    aDatasource.DataSet:=ds;
+    with ds do
+      begin
+      open;
+
+      DataEvents := '';
+      DisableControls;
+      Active:=False;
+      Active:=True;
+      EnableControls;
+      AssertEquals('deLayoutChange:0;DataSetChanged;',DataEvents);
+
+      close;
+      end;
+  finally
+    aDatasource.Free;
+    aDatalink.Free;
+  end;
+end;
+
 procedure TTestDBBasics.TestDataEventsResync;
 var i,count     : integer;
     aDatasource : TDataSource;
@@ -354,10 +386,10 @@ begin
       open;
       DataEvents := '';
       Resync([rmExact]);
-      AssertEquals('deDataSetChange:0;',DataEvents);
+      AssertEquals('deDataSetChange:0;DataSetChanged;',DataEvents);
       DataEvents := '';
       next;
-      AssertEquals('deCheckBrowseMode:0;DataEvent;deDataSetScroll:0;DataSetScrolled:1;',DataEvents);
+      AssertEquals('deCheckBrowseMode:0;DataEvent;deDataSetScroll:0;DataSetScrolled:1;DataSetChanged;',DataEvents);
       close;
       end;
   finally
@@ -2040,7 +2072,7 @@ begin
 
     DataEvents := '';
     query1.append;
-    AssertEquals('deCheckBrowseMode:0;deUpdateState:0;deDataSetChange:0;',DataEvents);
+    AssertEquals('deCheckBrowseMode:0;deUpdateState:0;deDataSetChange:0;DataSetChanged;',DataEvents);
     AssertEquals(5, datalink1.ActiveRecord);
     AssertEquals(6, datalink1.RecordCount);
     AssertEquals(6, query1.RecordCount);
@@ -2048,7 +2080,7 @@ begin
 
     DataEvents := '';
     query1.cancel;
-    AssertEquals('deCheckBrowseMode:0;deUpdateState:0;deDataSetChange:0;',DataEvents);
+    AssertEquals('deCheckBrowseMode:0;deUpdateState:0;deDataSetChange:0;DataSetChanged;',DataEvents);
     AssertEquals(5, datalink1.ActiveRecord);
     AssertEquals(6, datalink1.RecordCount);
     AssertEquals(6, query1.RecordCount);

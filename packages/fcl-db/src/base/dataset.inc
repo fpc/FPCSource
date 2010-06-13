@@ -254,6 +254,7 @@ begin
     deFieldChange   : HandleFieldChange(TField(Info));
     deDataSetChange,
     deDataSetScroll : HandleScrollOrChange;
+    deLayoutChange  : FEnableControlsEvent:=deLayoutChange;    
   end;
 
   if not ControlsDisabled then begin
@@ -1062,6 +1063,7 @@ begin
     else
       begin
       DoBeforeOpen;
+      FEnableControlsEvent:=deLayoutChange;
       FInternalCalcFields:=False;
       try
         FDefaultFields:=FieldCount=0;
