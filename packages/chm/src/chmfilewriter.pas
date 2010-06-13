@@ -53,11 +53,11 @@ type
     function GetData(const DataName: String; out PathInChm: String; out FileName: String; var Stream: TStream): Boolean;
     procedure LastFileAdded(Sender: TObject);
   public
-    constructor Create;
+    constructor Create; virtual;
     destructor Destroy; override;
-    procedure LoadFromFile(AFileName: String);
-    procedure SaveToFile(AFileName: String);
-    procedure WriteChm(AOutStream: TStream);
+    procedure LoadFromFile(AFileName: String); virtual;
+    procedure SaveToFile(AFileName: String); virtual;
+    procedure WriteChm(AOutStream: TStream); virtual;
     function ProjectDir: String;
     procedure AddFileWithContext(contextid:integer;filename:ansistring;contextname:ansistring='');
     // though stored in the project file, it is only there for the program that uses the unit
