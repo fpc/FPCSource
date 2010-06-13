@@ -22,7 +22,7 @@ unit db;
 
 interface
 
-uses Classes,Sysutils,Variants,FmtBCD;
+uses Classes,Sysutils,Variants,FmtBCD,MaskUtils;
 
 const
 
@@ -271,6 +271,7 @@ type
     FDefaultExpression : String;
     FDisplayLabel : String;
     FDisplayWidth : Longint;
+    FEditMask: TEditMask;
     FFieldKind : TFieldKind;
     FFieldName : String;
     FFieldNo : Longint;
@@ -401,6 +402,8 @@ type
     property DataType: TFieldType read FDataType;
     property DisplayName: String Read GetDisplayName;
     property DisplayText: String read GetDisplayText;
+    property EditMask: TEditMask read FEditMask write FEditMask;
+    property EditMaskPtr: TEditMask read FEditMask;
     property FieldNo: Longint read FFieldNo;
     property IsIndexField: Boolean read FIsIndexField;
     property IsNull: Boolean read GetIsNull;
@@ -472,6 +475,7 @@ type
     property Transliterate: Boolean read FTransliterate write FTransliterate;
     property Value: String read GetAsString write SetAsString;
   published
+    property EditMask;
     property Size default 20;
   end;
 
@@ -700,6 +704,7 @@ type
     property Value: TDateTime read GetAsDateTime write SetAsDateTime;
   published
     property DisplayFormat: string read FDisplayFormat write SetDisplayFormat;
+    property EditMask;
   end;
 
 { TDateField }
