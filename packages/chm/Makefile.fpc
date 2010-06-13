@@ -11,6 +11,8 @@ units=fasthtmlparser htmlutil paslzx paslzxcomp paslznonslide chmbase chmtypes \
       chmspecialfiles chmsitemap chmwriter chmfilewriter chmreader htmlindexer \
       chmfiftimain lzxcompressthread
 programs=chmcmd chmls
+programs_win32=unblockchm
+programs_win64=unblockchm
 examples=
 
 [require]
@@ -32,3 +34,5 @@ sourcedir=src tests
 cdmcmd$(EXEEXT): chmcmd.lpr
 
 chmls$(EXEEXT): chmls.lpr
+
+unblockchm$(EXEEXT): unblockchm.pp

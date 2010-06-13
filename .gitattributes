@@ -979,6 +979,7 @@ packages/chm/src/lzxcompressthread.pas svneol=native#text/plain
 packages/chm/src/paslznonslide.pas svneol=native#text/plain
 packages/chm/src/paslzx.pas svneol=native#text/plain
 packages/chm/src/paslzxcomp.pas svneol=native#text/plain
+packages/chm/src/unblockchm.pp -text svneol=native#test/plain
 packages/dbus/Makefile svneol=native#text/plain
 packages/dbus/Makefile.fpc svneol=native#text/plain
 packages/dbus/examples/Makefile svneol=native#text/plain

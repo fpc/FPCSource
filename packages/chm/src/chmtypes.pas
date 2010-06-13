@@ -356,7 +356,9 @@ var
   end;
 begin
   if FItemCount < 1 then begin
+    {$ifdef chm_debug}
     WriteLn('WHAT ARE YOU DOING!!');
+    {$endif}
     Dec(AIndex);
     Exit;
   end;

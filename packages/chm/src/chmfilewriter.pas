@@ -146,7 +146,8 @@ begin
     end;
     TOCStream.Free;
   end;
-
+  if not assigned(sender) then
+    Writer.Free;
 end;
 
 constructor TChmProject.Create;
@@ -305,6 +306,7 @@ begin
 
   if Assigned(TOCStream) then TOCStream.Free;
   if Assigned(IndexStream) then IndexStream.Free;
+  Writer.Free;
 end;
 
 
