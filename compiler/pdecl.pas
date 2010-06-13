@@ -595,7 +595,10 @@ implementation
                       and mark private fields of external classes as "used" (to avoid
                       bogus notes about them being unused)
                     }
-                    if is_objc_class_or_protocol(hdef) then
+                    { watch out for crashes in case of errors }
+                    if is_objc_class_or_protocol(hdef) and
+                       (not is_objccategory(hdef) or
+                        assigned(tobjectdef(hdef).childof)) then
                       tobjectdef(hdef).finish_objc_data;
 
                     if is_cppclass(hdef) then
