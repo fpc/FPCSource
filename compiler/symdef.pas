@@ -4848,6 +4848,8 @@ implementation
                   if not(vo_is_hidden_para in tparavarsym(pd.paras[i]).varoptions) and
                      not is_array_of_const(tparavarsym(pd.paras[i]).vardef) then
                     dec(paracount);
+                { varargs parameter }
+                dec(paracount,ord(po_varargs in tprocdef(def).procoptions));
                 if (paracount<>0) then
                   MessagePos(pd.fileinfo,sym_e_objc_para_mismatch);
 
