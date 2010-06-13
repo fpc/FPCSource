@@ -163,7 +163,21 @@ implementation
 
 uses dbconst,ctypes,strutils;
 
-{ TConnectionName }
+const
+  Mysql_Option_Names : array[mysql_option] of string = ('MYSQL_OPT_CONNECT_TIMEOUT','MYSQL_OPT_COMPRESS',
+     'MYSQL_OPT_NAMED_PIPE','MYSQL_INIT_COMMAND',
+     'MYSQL_READ_DEFAULT_FILE','MYSQL_READ_DEFAULT_GROUP',
+     'MYSQL_SET_CHARSET_DIR','MYSQL_SET_CHARSET_NAME',
+     'MYSQL_OPT_LOCAL_INFILE','MYSQL_OPT_PROTOCOL',
+     'MYSQL_SHARED_MEMORY_BASE_NAME','MYSQL_OPT_READ_TIMEOUT',
+     'MYSQL_OPT_WRITE_TIMEOUT','MYSQL_OPT_USE_RESULT',
+     'MYSQL_OPT_USE_REMOTE_CONNECTION','MYSQL_OPT_USE_EMBEDDED_CONNECTION',
+     'MYSQL_OPT_GUESS_CONNECTION','MYSQL_SET_CLIENT_IP',
+     'MYSQL_SECURE_AUTH'
+{$IFDEF MYSQL50}
+     ,'MYSQL_REPORT_DATA_TRUNCATION', 'MYSQL_OPT_RECONNECT'
+{$ENDIF}
+     );
 
 Resourcestring
   SErrServerConnectFailed = 'Server connect failed.';
@@ -193,6 +207,21 @@ begin
  else
    DatabaseError(Msg,Comp);
 end;
+
+function MysqlOption(const OptionName: string; out AMysql_Option: mysql_option) : boolean;
+var AMysql_Option_i: mysql_option;
+begin
+  result := false;
+  for AMysql_Option_i:=low(AMysql_Option) to high(AMysql_Option) do
+    if sametext(Mysql_Option_Names[AMysql_Option_i],OptionName) then
+      begin
+      result := true;
+      AMysql_Option:=AMysql_Option_i;
+      break;
+      end;
+end;
+
+{ TConnectionName }
 
 function TConnectionName.StrToStatementType(s : string) : TStatementType;
 
@@ -225,10 +254,31 @@ procedure TConnectionName.ConnectMySQL(var HMySQL : PMySQL;H,U,P : pchar);
 
 Var
   APort : Cardinal;
+  i,e: integer;
+  AMysql_Option: mysql_option;
+  OptStr: string;
+  OptInt: cuint;
+  Opt: pointer;
 
 begin
   HMySQL := mysql_init(HMySQL);
   APort:=Abs(StrToIntDef(Params.Values['Port'],0));
+
+  for i := 0 to Params.Count-1 do
+    begin
+    if MysqlOption(params.Names[i],AMysql_Option) then
+      begin
+      OptStr:=params.ValueFromIndex[i];
+      val(OptStr,OptInt,e);
+      if e=0 then
+        Opt := @OptInt
+      else
+        Opt := pchar(OptStr);
+      if mysql_options(HMySQL,AMysql_Option,Opt) <> 0 then
+          MySQlError(HMySQL,'Error setting parameter',Self);
+      end;
+    end;
+
   HMySQL:=mysql_real_connect(HMySQL,PChar(H),PChar(U),Pchar(P),Nil,APort,Nil,0);
   If (HMySQL=Nil) then
     MySQlError(Nil,SErrServerConnectFailed,Self);
