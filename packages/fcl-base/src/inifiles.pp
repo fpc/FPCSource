@@ -122,7 +122,7 @@ type
     FFileName: string;
     FSectionList: TIniFileSectionList;
     FEscapeLineFeeds: boolean;
-    FCaseSensitive : Boolean; 
+    FCaseSensitive : Boolean;
     FStripQuotes : Boolean;
   public
     constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean = False); virtual;
@@ -332,13 +332,13 @@ begin
     If CaseSensitive then
       begin
       for i := 0 to Count-1 do
-        if Items[i].Ident=AName then 
+        if Items[i].Ident=AName then
           begin
           Result := Items[i];
           Break;
           end;
       end
-    else  
+    else
       for i := 0 to Count-1 do
         if CompareText(Items[i].Ident, AName) = 0 then begin
           Result := Items[i];
@@ -408,7 +408,7 @@ begin
     If CaseSensitive then
       begin
       for i:=0 to Count-1 do
-        if (Items[i].Name=AName) then 
+        if (Items[i].Name=AName) then
           begin
           Result := Items[i];
           Break;
@@ -416,7 +416,7 @@ begin
       end
     else
       for i := 0 to Count-1 do
-        if CompareText(Items[i].Name, AName) = 0 then 
+        if CompareText(Items[i].Name, AName) = 0 then
           begin
           Result := Items[i];
           Break;
@@ -627,12 +627,12 @@ begin
   FStream := nil;
   slLines := TStringList.Create;
   try
-    if FileExists(FFileName) then 
+    if FileExists(FFileName) then
       begin
       // read the ini file values
       slLines.LoadFromFile(FFileName);
       FillSectionList(slLines);
-      end 
+      end
   finally
     slLines.Free;
   end;
@@ -726,7 +726,7 @@ begin
           else
            begin
              sIdent:=Trim(Copy(sLine, 1,  j - 1));
-             sValue:=Trim(Copy(sLine, j + 1, Length(sLine) - j));  
+             sValue:=Trim(Copy(sLine, j + 1, Length(sLine) - j));
            end;
         end;
         oSection.KeyList.Add(TIniFileKey.Create(sIdent, sValue));
@@ -756,7 +756,7 @@ begin
            Result:=Copy(oKey.Value,2,J-2)
         else
            Result:=oKey.Value;
-      end 
+      end
       else Result:=oKey.Value;
     end;
   end;
@@ -877,7 +877,8 @@ begin
           If (J>1) and ((s[1] in ['"','''']) and (s[J]=s[1])) then
              s:=Copy(s,2,J-2);
         end;
-        s:=Items[i].Ident+Separator+s;
+        if Items[i].Ident<>'' then
+          s:=Items[i].Ident+Separator+s;
         Strings.Add(s);
       end;
   finally
@@ -918,10 +919,10 @@ var
  oKey: TIniFileKey;
 begin
   oSection := FSectionList.SectionByName(Section,CaseSensitive);
-  if oSection <> nil then 
+  if oSection <> nil then
     begin
     oKey := oSection.KeyList.KeyByName(Ident,CaseSensitive);
-    if oKey <> nil then 
+    if oKey <> nil then
       begin
       oSection.KeyList.Delete(oSection.KeyList.IndexOf(oKey));
       oKey.Free;
