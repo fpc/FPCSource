@@ -552,7 +552,16 @@ const
   '<b ns1:attrib2="test"/>'#10+
   '</doc>';
 
-  StringTests: array[0..74] of TTestRec = (             // numbers refer to xalan/string/stringXX
+  ns11='<doc-one xmlns="http://xsl.lotus.com/ns2" xmlns:ns1="http://xsl.lotus.com/ns1">'+
+  '  <ns1:a-two attrib1="Goodbye" xmlns="http://xsl.lotus.com/ns2" xmlns:ns1="http://xsl.lotus.com/ns1">Hello</ns1:a-two>'+
+  '  <b-three ns1:attrib2="Ciao">'+
+  '    <c-four/>'+
+  '  </b-three>'+
+  '</doc-one>';
+
+  pidata='<?a-pi data="foo"?><?b-pi data="bar"?><doc/>';
+
+  StringTests: array[0..87] of TTestRec = (             // numbers refer to xalan/string/stringXX
     (expr: 'string(0)';       rt: rtString; s: '0'),
     (expr: 'string(5)';       rt: rtString; s: '5'),    // #38/39
     (expr: 'string(0.5)';     rt: rtString; s: '0.5'),
@@ -633,6 +642,23 @@ const
     (expr: 'translate("--aaa--","abc-","ABC")'; rt: rtString; s: 'AAA'),
     (expr: 'translate("ddaaadddd","abcd","ABCxy")'; rt: rtString; s: 'xxAAAxxxx'),   // #96
 
+    (data: node08; expr: 'name(a/@attr1)';          rt: rtString; s: 'attr1'),  // namespace08 modified
+    (data: node08; expr: 'namespace-uri(a/@attr1)'; rt: rtString; s: ''),
+    (data: node08; expr: 'local-name(a/@attr1)';    rt: rtString; s: 'attr1'),
+
+    (data: pidata; expr: 'name(/processing-instruction())';          rt: rtString; s: 'a-pi'),       // namespace29 modified
+    (data: pidata; expr: 'name(/processing-instruction("b-pi"))';    rt: rtString; s: 'b-pi'),
+    (data: pidata; expr: 'local-name(/processing-instruction())';    rt: rtString; s: 'a-pi'),
+    (data: pidata; expr: 'namespace-uri(/processing-instruction())'; rt: rtString; s: ''),
+
+    (data: node08; expr: 'name(//comment())';          rt: rtString; s: ''),  // namespace30 modified
+    (data: node08; expr: 'local-name(//comment())';    rt: rtString; s: ''),
+    (data: node08; expr: 'namespace-uri(//comment())'; rt: rtString; s: ''),
+
+    (data: node08; expr: 'name(//text())';          rt: rtString; s: ''),  // namespace31 modified
+    (data: node08; expr: 'local-name(//text())';    rt: rtString; s: ''),
+    (data: node08; expr: 'namespace-uri(//text())'; rt: rtString; s: ''),
+
     // tests for number->string conversions at boundary conditions
     (expr: 'string(123456789012345678)';     rt: rtString; s: '123456789012345680'),    // #132.1
     (expr: 'string(-123456789012345678)';    rt: rtString; s: '-123456789012345680'),   // #132.2
@@ -649,7 +675,7 @@ const
 
   res1 = '<foo xmlns:baz1="http://xsl.lotus.com/ns1" xmlns:baz2="http://xsl.lotus.com/ns2"/>';
 
-  nameTests: array[0..9] of TTestRec3 = (
+  nameTests: array[0..16] of TTestRec3 = (
     (data: str30; re: res1; expr: 'namespace-uri(baz1:a/@baz2:attrib1)'; rt: rtString; s: ''), // #30
     (data: str30; re: res1; expr: 'namespace-uri(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'http://xsl.lotus.com/ns1'), // #31
     (data: str30; re: res1; expr: 'name(*)'; rt: rtString; s: 'ns1:a'),       // #32
@@ -660,7 +686,16 @@ const
 
     (data: str30; re: res1; expr: 'local-name(baz2:b)'; rt: rtString; s: 'b'), // namespace07
     (data: str30; re: res1; expr: 'local-name(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'attrib2'), // namespace09
-    (data: str30; re: res1; expr: 'local-name()'; rt: rtString; s: 'doc')      // namespace26
+    (data: str30; re: res1; expr: 'local-name()'; rt: rtString; s: 'doc'),      // namespace26
+    (data: str30; re: res1; expr: 'namespace-uri()'; rt: rtString; s: 'http://xsl.lotus.com/ns2'), // namespace27
+
+    (data: ns11; re: res1; expr: 'namespace-uri(baz1:a-two)'; rt: rtString; s: 'http://xsl.lotus.com/ns1'), // namespace11
+    (data: ns11; re: res1; expr: 'namespace-uri(baz1:a-two/@attrib1)'; rt: rtString; s: ''),
+    (data: ns11; re: res1; expr: 'namespace-uri(baz2:b-three)'; rt: rtString; s: 'http://xsl.lotus.com/ns2'),
+    (data: ns11; re: res1; expr: 'namespace-uri(baz2:b-three/@baz1:attrib2)'; rt: rtString; s: 'http://xsl.lotus.com/ns1'),
+{*} (data: ns11; re: res1; expr: 'namespace-uri(baz2:b-three/c-four)'; rt: rtString; s: ''),
+    (data: ns11; re: res1; expr: 'namespace-uri(bogus)'; rt: rtString; s: '')
+
   );
 
   ax114='<doc>'+
@@ -700,7 +735,7 @@ const
   '</section>'+
   '</chapter>';
 
-  AxesTests: array[0..13] of TTestRec = (
+  AxesTests: array[0..15] of TTestRec = (
     (data: ax117; expr: 'count(//@*)';                        rt: rtNumber; n: 16),
     (data: ax117; expr: 'count(//@title)';                    rt: rtNumber; n: 12),
     (data: ax117; expr: 'count(//section//@*)';               rt: rtNumber; n: 14),
@@ -716,8 +751,11 @@ const
 
     (data: ax114; expr: '//baz/preceding::foo[1]/@att1';    rt: rtNodeStr; s: 'a'),
 //  (data: ax114; expr: '//baz/(preceding::foo)[1]/@att1';  rt: rtNodeStr; s: 'c'),         // won't parse
-    (data: ax115; expr: '//baz/preceding-sibling::foo[1]/@att1';    rt: rtNodeStr; s: 'a')
+    (data: ax115; expr: '//baz/preceding-sibling::foo[1]/@att1';    rt: rtNodeStr; s: 'a'),
 //  (data: ax115; expr: '//baz/(preceding-sibling::foo)[1]/@att1';  rt: rtNodeStr; s: 'c')  // won't parse
+
+    (data: simple; expr: 'local-name(namespace::*[1])';     rt: rtString; s: 'xml'), // namespace28a
+    (data: simple; expr: 'name(namespace::*[1])';           rt: rtString; s: 'xml')  // namespace28b
   );
 {$warnings on}
 

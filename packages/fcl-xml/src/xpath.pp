@@ -2534,10 +2534,18 @@ begin
     if NodeSet.Count > 0 then
       n := TDOMNode(NodeSet[0]);
   end;
+  s := '';
   if Assigned(n) then
-    s := n.localName
-  else
-    s := '';
+  begin
+    case n.NodeType of
+      ELEMENT_NODE,ATTRIBUTE_NODE:
+        with TDOMNode_NS(n) do
+          s := Copy(NSI.QName^.Key, NSI.PrefixLen+1, MaxInt);
+      PROCESSING_INSTRUCTION_NODE:
+        s := TDOMProcessingInstruction(n).Target;
+      // TODO: NAMESPACE_NODE: must return prefix part
+    end;
+  end;
   Result := TXPathStringVariable.Create(s);
 end;
 
@@ -2582,11 +2590,17 @@ begin
     if NodeSet.Count > 0 then
       n := TDOMNode(NodeSet[0]);
   end;
-  // TODO: probably this isn't correct. XPath name() isn't the same as DOM nodeName.
+  s := '';
   if Assigned(n) then
-    s := n.nodeName
-  else
-    s := '';
+  begin
+    case n.NodeType of
+      ELEMENT_NODE,ATTRIBUTE_NODE:
+        s := TDOMNode_NS(n).NSI.QName^.Key;
+      PROCESSING_INSTRUCTION_NODE:
+        s := TDOMProcessingInstruction(n).Target;
+      // TODO: NAMESPACE_NODE: must return prefix part
+    end;
+  end;
   Result := TXPathStringVariable.Create(s);
 end;
 
