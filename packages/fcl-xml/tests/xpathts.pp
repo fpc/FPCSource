@@ -735,7 +735,7 @@ const
   '</section>'+
   '</chapter>';
 
-  AxesTests: array[0..15] of TTestRec = (
+  AxesTests: array[0..16] of TTestRec = (
     (data: ax117; expr: 'count(//@*)';                        rt: rtNumber; n: 16),
     (data: ax117; expr: 'count(//@title)';                    rt: rtNumber; n: 12),
     (data: ax117; expr: 'count(//section//@*)';               rt: rtNumber; n: 14),
@@ -755,7 +755,44 @@ const
 //  (data: ax115; expr: '//baz/(preceding-sibling::foo)[1]/@att1';  rt: rtNodeStr; s: 'c')  // won't parse
 
     (data: simple; expr: 'local-name(namespace::*[1])';     rt: rtString; s: 'xml'), // namespace28a
-    (data: simple; expr: 'name(namespace::*[1])';           rt: rtString; s: 'xml')  // namespace28b
+    (data: simple; expr: 'name(namespace::*[1])';           rt: rtString; s: 'xml'), // namespace28b
+    (data: ax117; expr: 'name(//subsection[@title="A3b"]/@title/parent::*)'; rt: rtString; s: 'subsection')  // axes96 modified
+  );
+
+  pred44 = '<doc>'+
+  '<element1>'+
+    '<child1>Success</child1>'+
+    '<child2>child2</child2>'+
+  '</element1>'+
+  '<element2>'+
+    '<child1>Wrong node selected!!</child1>'+
+  '</element2>'+
+  '<element3>'+
+    '<child1>Wrong node selected!!</child1>'+
+  '</element3>'+
+  '</doc>';
+
+  pred11 = '<doc>'+
+  '<a>1</a>'+
+  '<a>2'+
+  '<achild>target</achild>'+
+  '</a>'+
+  '<a>3</a>'+
+  '<a>target</a>'+
+  '</doc>';
+
+  PredicateTests: array [0..4] of TTestRec = (
+    (data: pred44; expr: '//child1[parent::element1]'; rt: rtNodeStr; s: 'Success'),  // predicate44
+    {should select all but last elements named 'e' }
+    (data: math96; expr: 'sum(e[true()=following-sibling::*])'; rt: rtNumber; n: 20), // predicate03
+    {should select two first elements}
+    (data: math96; expr: 'sum(e[8=following-sibling::*])'; rt: rtNumber; n: 12),      // predicate05
+    (data: pred11; expr: 'a["target"=descendant::*]'; rt: rtNodeStr; s: '2target'),    // predicate06
+    (data: pred11; expr: 'a[following-sibling::*=descendant::*]'; rt: rtNodeStr; s: '2target')  // predicate11
+
+
+
+
   );
 {$warnings on}
 
@@ -915,6 +952,7 @@ begin
   DoSuite(AxesTests);
 
   DoSuite3(nameTests);
+  DoSuite(PredicateTests);
 
   writeln;
   writeln('Total failed tests: ', FailCount);

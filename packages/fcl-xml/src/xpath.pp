@@ -1205,7 +1205,12 @@ begin
       end;
     {axisNamespace: !!!: Not supported yet}
     axisParent:
-      if Assigned(ANode.ParentNode) then
+      if ANode.NodeType=ATTRIBUTE_NODE then
+      begin
+        if Assigned(TDOMAttr(ANode).OwnerElement) then
+          DoNodeTest(TDOMAttr(ANode).OwnerElement);
+      end
+      else if Assigned(ANode.ParentNode) then
         DoNodeTest(ANode.ParentNode);
     axisPreceding:
       begin
