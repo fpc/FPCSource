@@ -792,7 +792,7 @@ implementation
         locsize : tcgsize;
         tmploc : tlocation;
       begin
-           if not(l.size in [OS_32,OS_64,OS_128]) then
+           if not(l.size in [OS_32,OS_S32,OS_64,OS_S64,OS_128,OS_S128]) then
              locsize:=l.size
            else
              locsize:=int_float_cgsize(tcgsize2size[l.size]);
