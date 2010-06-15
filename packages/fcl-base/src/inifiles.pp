@@ -122,7 +122,7 @@ type
     FFileName: string;
     FSectionList: TIniFileSectionList;
     FEscapeLineFeeds: boolean;
-    FCaseSensitive : Boolean; 
+    FCaseSensitive : Boolean;
     FStripQuotes : Boolean;
   public
     constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean = False); virtual;
@@ -332,13 +332,13 @@ begin
     If CaseSensitive then
       begin
       for i := 0 to Count-1 do
-        if Items[i].Ident=AName then 
+        if Items[i].Ident=AName then
           begin
           Result := Items[i];
           Break;
           end;
       end
-    else  
+    else
       for i := 0 to Count-1 do
         if CompareText(Items[i].Ident, AName) = 0 then begin
           Result := Items[i];
@@ -408,7 +408,7 @@ begin
     If CaseSensitive then
       begin
       for i:=0 to Count-1 do
-        if (Items[i].Name=AName) then 
+        if (Items[i].Name=AName) then
           begin
           Result := Items[i];
           Break;
@@ -416,7 +416,7 @@ begin
       end
     else
       for i := 0 to Count-1 do
-        if CompareText(Items[i].Name, AName) = 0 then 
+        if CompareText(Items[i].Name, AName) = 0 then
           begin
           Result := Items[i];
           Break;
@@ -627,12 +627,12 @@ begin
   FStream := nil;
   slLines := TStringList.Create;
   try
-    if FileExists(FFileName) then 
+    if FileExists(FFileName) then
       begin
       // read the ini file values
       slLines.LoadFromFile(FFileName);
       FillSectionList(slLines);
-      end 
+      end
   finally
     slLines.Free;
   end;
@@ -727,15 +727,6 @@ begin
            begin
              sIdent:=Trim(Copy(sLine, 1,  j - 1));
              sValue:=Trim(Copy(sLine, j + 1, Length(sLine) - j));
-             If StripQuotes then
-               begin
-               J:=Length(sValue);
-               // Joost, 2-jan-2007: The check (J>1) is there for the case that
-               // the value consist of a single double-quote character. (see
-               // mantis bug 6555)
-               If (J>1) and ((sValue[1] in ['"','''']) and (sValue[J]=sValue[1])) then
-                 sValue:=Copy(sValue,2,J-2);
-               end;  
            end;
         end;
         oSection.KeyList.Add(TIniFileKey.Create(sIdent, sValue));
@@ -748,15 +739,27 @@ function TIniFile.ReadString(const Section, Ident, Default: string): string;
 var
   oSection: TIniFileSection;
   oKey: TIniFileKey;
+  J: integer;
 begin
   Result := Default;
   oSection := FSectionList.SectionByName(Section,CaseSensitive);
   if oSection <> nil then begin
     oKey := oSection.KeyList.KeyByName(Ident,CaseSensitive);
     if oKey <> nil then
-      Result := oKey.Value;
+      If StripQuotes then
+      begin
+        J:=Length(oKey.Value);
+        // Joost, 2-jan-2007: The check (J>1) is there for the case that
+        // the value consist of a single double-quote character. (see
+        // mantis bug 6555)
+        If (J>1) and ((oKey.Value[1] in ['"','''']) and (oKey.Value[J]=oKey.Value[1])) then
+           Result:=Copy(oKey.Value,2,J-2)
+        else
+           Result:=oKey.Value;
+      end
+      else Result:=oKey.Value;
+    end;
   end;
-end;
 
 procedure TIniFile.SetCacheUpdates(const AValue: Boolean);
 begin
@@ -856,7 +859,7 @@ procedure TIniFile.ReadSectionValues(const Section: string; Strings: TStrings);
 var
   oSection: TIniFileSection;
   s: string;
-  i: integer;
+  i,J: integer;
 begin
   Strings.BeginUpdate;
   try
@@ -864,7 +867,18 @@ begin
     oSection := FSectionList.SectionByName(Section,CaseSensitive);
     if oSection <> nil then with oSection.KeyList do
       for i := 0 to Count-1 do begin
-        s := Items[i].Ident+Separator+Items[i].Value;
+        s := Items[i].Value;
+      If StripQuotes then
+        begin
+          J:=Length(s);
+          // Joost, 2-jan-2007: The check (J>1) is there for the case that
+          // the value consist of a single double-quote character. (see
+          // mantis bug 6555)
+          If (J>1) and ((s[1] in ['"','''']) and (s[J]=s[1])) then
+             s:=Copy(s,2,J-2);
+        end;
+        if Items[i].Ident<>'' then
+          s:=Items[i].Ident+Separator+s;
         Strings.Add(s);
       end;
   finally
@@ -905,10 +919,10 @@ var
  oKey: TIniFileKey;
 begin
   oSection := FSectionList.SectionByName(Section,CaseSensitive);
-  if oSection <> nil then 
+  if oSection <> nil then
     begin
     oKey := oSection.KeyList.KeyByName(Ident,CaseSensitive);
-    if oKey <> nil then 
+    if oKey <> nil then
       begin
       oSection.KeyList.Delete(oSection.KeyList.IndexOf(oKey));
       oKey.Free;
