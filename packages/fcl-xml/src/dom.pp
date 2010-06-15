@@ -293,6 +293,19 @@ type
     procedure InternalAppend(NewChild: TDOMNode);
   end;
 
+  { A common ancestor for Document and Entity nodes. }
+
+  TDOMNode_TopLevel = class(TDOMNode_WithChildren)
+  protected
+    FInputEncoding: DOMString;
+    FXMLEncoding: DOMString;
+    FURI: DOMString;
+    FXMLVersion: TXMLVersion;
+    function GetXMLVersion: DOMString;
+  public
+    property InputEncoding: DOMString read FInputEncoding;
+    property XMLEncoding: DOMString read FXMLEncoding;
+  end;
 
 // -------------------------------------------------------
 //   NodeList
@@ -426,11 +439,10 @@ type
   // TODO: to be replaced by more suitable container
   TNamespaces = array of DOMString;
 
-  TDOMDocument = class(TDOMNode_WithChildren)
+  TDOMDocument = class(TDOMNode_TopLevel)
   protected
     FIDList: THashTable;
     FRevision: Integer;
-    FXML11: Boolean;
     FImplementation: TDOMImplementation;
     FNamespaces: TNamespaces;
     FNames: THashTable;
@@ -438,7 +450,6 @@ type
     FNodeLists: THashTable;
     FMaxPoolSize: Integer;
     FPools: PNodePoolArray;
-    FDocumentURI: DOMString;
     function GetDocumentElement: TDOMElement;
     function GetDocType: TDOMDocumentType;
     function GetNodeType: Integer; override;
@@ -451,6 +462,7 @@ type
     function GetElementList(aNode: TDOMNode; const nsURI, aLocalName: DOMString; UseNS: Boolean): TDOMNodeList;
     procedure NodeListDestroyed(aList: TDOMNodeList);
     function Alloc(AClass: TDOMNodeClass): TDOMNode;
+    procedure SetXMLVersion(const aValue: DOMString); virtual;
   public
     function IndexOfNS(const nsURI: DOMString; AddIfAbsent: Boolean = False): Integer;
     function InsertBefore(NewChild, RefChild: TDOMNode): TDOMNode; override;
@@ -484,7 +496,8 @@ type
     function GetElementsByTagNameNS(const nsURI, alocalName: DOMString): TDOMNodeList;
     function GetElementById(const ElementID: DOMString): TDOMElement;
     // DOM level 3:
-    property documentURI: DOMString read FDocumentURI write FDocumentURI;
+    property documentURI: DOMString read FURI write FURI;
+    property XMLVersion: DOMString read GetXMLVersion write SetXMLVersion;
     // Extensions to DOM interface:
     constructor Create;
     destructor Destroy; override;
@@ -493,18 +506,19 @@ type
   end;
 
   TXMLDocument = class(TDOMDocument)
-  private
-    FXMLVersion: DOMString;
-    procedure SetXMLVersion(const aValue: DOMString);
+  protected
+    procedure SetXMLVersion(const aValue: DOMString); override;
   public
     // These fields are extensions to the DOM interface:
-    Encoding, StylesheetType, StylesheetHRef: DOMString;
+    StylesheetType, StylesheetHRef: DOMString;
 
+    constructor Create;
     function CreateCDATASection(const data: DOMString): TDOMCDATASection; override;
     function CreateProcessingInstruction(const target, data: DOMString):
       TDOMProcessingInstruction; override;
     function CreateEntityReference(const name: DOMString): TDOMEntityReference; override;
-    property XMLVersion: DOMString read FXMLVersion write SetXMLVersion;
+    // non-compliant symbol, superseded by XMLEncoding, to be phased out
+    property Encoding: DOMString read FXMLEncoding write FXMLEncoding; deprecated;
   end;
 
   // This limits number of namespaces per document to 65535,
@@ -701,7 +715,7 @@ type
 //   Entity
 // -------------------------------------------------------
 
-  TDOMEntity = class(TDOMNode_WithChildren)
+  TDOMEntity = class(TDOMNode_TopLevel)
   protected
     FName: DOMString;
     FPublicID, FSystemID, FNotationName: DOMString;
@@ -712,6 +726,7 @@ type
     property PublicID: DOMString read FPublicID;
     property SystemID: DOMString read FSystemID;
     property NotationName: DOMString read FNotationName;
+    property XMLVersion: DOMString read GetXMLVersion;
   end;
 
 
@@ -1246,7 +1261,7 @@ begin
   case NodeType of
   // !! Incomplete !!
     DOCUMENT_NODE:
-      result := TDOMDocument(Self).FDocumentURI;
+      result := TDOMDocument(Self).FURI;
     PROCESSING_INSTRUCTION_NODE:
       if Assigned(ParentNode) then
         result := ParentNode.GetBaseURI
@@ -2004,6 +2019,15 @@ begin
 end;
 
 // -------------------------------------------------------
+//   Top-level node
+// -------------------------------------------------------
+
+function TDOMNode_TopLevel.GetXMLVersion: DOMString;
+begin
+  Result := xmlVersionStr[FXMLVersion];
+end;
+
+// -------------------------------------------------------
 //   DOMImplementation
 // -------------------------------------------------------
 
@@ -2254,7 +2278,7 @@ end;
 
 function TDOMDocument.CreateElement(const tagName: DOMString): TDOMElement;
 begin
-  if not IsXmlName(tagName, FXML11) then
+  if not IsXmlName(tagName, FXMLVersion = xmlVersion11) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'DOMDocument.CreateElement');
   TDOMNode(Result) := Alloc(TDOMElement);
   Result.Create(Self);
@@ -2322,7 +2346,7 @@ end;
 
 function TDOMDocument.CreateAttribute(const name: DOMString): TDOMAttr;
 begin
-  if not IsXmlName(name, FXML11) then
+  if not IsXmlName(name, FXMLVersion = xmlVersion11) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'DOMDocument.CreateAttribute');
   TDOMNode(Result) := Alloc(TDOMAttr);
   Result.Create(Self);
@@ -2429,7 +2453,7 @@ var
   idx, PrefIdx: Integer;
 begin
   idx := IndexOfNS(nsURI, True);
-  PrefIdx := CheckQName(QualifiedName, idx, FXml11);
+  PrefIdx := CheckQName(QualifiedName, idx, FXMLVersion = xmlVersion11);
   if PrefIdx < 0 then
     raise EDOMError.Create(-PrefIdx, 'Document.CreateAttributeNS');
   TDOMNode(Result) := Alloc(TDOMAttr);
@@ -2447,7 +2471,7 @@ var
   idx, PrefIdx: Integer;
 begin
   idx := IndexOfNS(nsURI, True);
-  PrefIdx := CheckQName(QualifiedName, idx, FXml11);
+  PrefIdx := CheckQName(QualifiedName, idx, FXMLVersion = xmlVersion11);
   if PrefIdx < 0 then
     raise EDOMError.Create(-PrefIdx, 'Document.CreateElementNS');
   TDOMNode(Result) := Alloc(TDOMElement);
@@ -2493,6 +2517,16 @@ begin
     Result := -1;
 end;
 
+procedure TDOMDocument.SetXMLVersion(const aValue: DOMString);
+begin
+  raise EDOMNotSupported.Create('DOMDocument.SetXMLVersion');
+end;
+
+constructor TXMLDocument.Create;
+begin
+  inherited Create;
+  FXMLVersion := xmlVersion10;
+end;
 
 function TXMLDocument.CreateCDATASection(const data: DOMString):
   TDOMCDATASection;
@@ -2505,7 +2539,7 @@ end;
 function TXMLDocument.CreateProcessingInstruction(const target,
   data: DOMString): TDOMProcessingInstruction;
 begin
-  if not IsXmlName(target, FXML11) then
+  if not IsXmlName(target, FXMLVersion = xmlVersion11) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'XMLDocument.CreateProcessingInstruction');
   TDOMNode(Result) := Alloc(TDOMProcessingInstruction);
   Result.Create(Self);
@@ -2519,7 +2553,7 @@ var
   dType: TDOMDocumentType;
   ent: TDOMEntity;
 begin
-  if not IsXmlName(name, FXML11) then
+  if not IsXmlName(name, FXMLVersion = xmlVersion11) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'XMLDocument.CreateEntityReference');
   TDOMNode(Result) := Alloc(TDOMEntityReference);
   Result.Create(Self);
@@ -2536,8 +2570,12 @@ end;
 
 procedure TXMLDocument.SetXMLVersion(const aValue: DOMString);
 begin
-  FXMLVersion := aValue;
-  FXML11 := (aValue = '1.1');
+  if aValue = '1.0' then
+    FXMLVersion := xmlVersion10
+  else if aValue = '1.1' then
+    FXMLVersion := xmlVersion11
+  else
+    raise EDOMNotSupported.Create('XMLDocument.SetXMLVersion');
 end;
 
 { TDOMNode_NS }
@@ -2579,7 +2617,7 @@ var
   NewName: DOMString;
 begin
   Changing;
-  if not IsXmlName(Value, FOwnerDocument.FXml11) then
+  if not IsXmlName(Value, FOwnerDocument.FXMLVersion = xmlVersion11) then
     raise EDOMError.Create(INVALID_CHARACTER_ERR, 'Node.SetPrefix');
 
   if (Pos(WideChar(':'), Value) > 0) or not (nfLevel2 in FFlags) or
@@ -2890,7 +2928,7 @@ var
 begin
   Changing;
   idx := FOwnerDocument.IndexOfNS(nsURI, True);
-  prefIdx := CheckQName(qualifiedName, idx, FOwnerDocument.FXml11);
+  prefIdx := CheckQName(qualifiedName, idx, FOwnerDocument.FXMLVersion = xmlVersion11);
   if prefIdx < 0 then
     raise EDOMError.Create(-prefIdx, 'Element.SetAttributeNS');
 

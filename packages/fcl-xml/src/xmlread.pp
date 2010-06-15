@@ -153,6 +153,7 @@ const
 type
   TDOMNotationEx = class(TDOMNotation);
   TDOMDocumentTypeEx = class(TDOMDocumentType);
+  TDOMTopNodeEx = class(TDOMNode_TopLevel);
   TDOMElementDef = class;
 
   TDTDSubsetType = (dsNone, dsInternal, dsExternal);
@@ -172,7 +173,6 @@ type
     FBetweenDecls: Boolean;
     FIsPE: Boolean;
     FReplacementText: DOMString;
-    FURI: DOMString;
     FStartLocation: TLocation;
     FCharCount: Cardinal;
   end;
@@ -2139,17 +2139,22 @@ begin
 end;
 
 const
-  verStr: array[Boolean] of WideString = ('1.0', '1.1');
+  vers: array[Boolean] of TXMLVersion = (xmlVersion10, xmlVersion11);
 
 procedure TXMLReader.ParseXmlOrTextDecl(TextDecl: Boolean);
 var
   TmpStr: WideString;
-  IsXML11: Boolean;
+  Ver: TXMLVersion;
   Delim: WideChar;
   buf: array[0..31] of WideChar;
   I: Integer;
+  node: TDOMNode;
 begin
   SkipS(True);
+  if TextDecl then
+    node := TDOMNode(FSource.FEntity)
+  else
+    node := doc;
   // [24] VersionInfo: optional in TextDecl, required in XmlDecl
   if (not TextDecl) or (FSource.FBuf^ = 'v') then
   begin
@@ -2168,16 +2173,12 @@ begin
       FatalError('Illegal version number', -1);
 
     ExpectChar(Delim);
-    IsXML11 := buf[2] = '1';
+    Ver := vers[buf[2] = '1'];
 
-    if not TextDecl then
-    begin
-      if doc.InheritsFrom(TXMLDocument) then
-        TXMLDocument(doc).XMLVersion := verStr[IsXML11];  // buf[0..2] works with FPC only
-    end
-    else   // parsing external entity
-      if IsXML11 and not FXML11 then
-        FatalError('XML 1.0 document cannot invoke XML 1.1 entities', -1);
+    if TextDecl and (Ver = xmlVersion11) and not FXML11 then
+      FatalError('XML 1.0 document cannot invoke XML 1.1 entities', -1);
+    if Assigned(node) then  { it is nil for external DTD subset }
+      TDOMTopNodeEx(node).FXMLVersion := Ver;
 
     if TextDecl or (FSource.FBuf^ <> '?') then
       SkipS(True);
@@ -2206,8 +2207,8 @@ begin
       FatalError('Encoding ''%s'' is not supported', [TmpStr], i+1);
     // getting here means that specified encoding is supported
     // TODO: maybe assign the 'preferred' encoding name?
-    if not TextDecl and doc.InheritsFrom(TXMLDocument) then
-      TXMLDocument(doc).Encoding := TmpStr;
+    if Assigned(node) then
+      TDOMTopNodeEx(node).FXMLEncoding := TmpStr;
 
     if FSource.FBuf^ <> '?' then
       SkipS(not TextDecl);
@@ -2230,7 +2231,7 @@ begin
   ExpectString('?>');
   { Switch to 1.1 rules only after declaration is parsed completely. This is to
     ensure that NEL and LSEP within declaration are rejected (rmt-056, rmt-057) }
-  if (not TextDecl) and IsXML11 then
+  if (not TextDecl) and (Ver = xmlVersion11) then
     XML11_BuildTables;
 end;
 

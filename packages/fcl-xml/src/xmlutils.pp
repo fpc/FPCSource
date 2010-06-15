@@ -36,6 +36,12 @@ function Hash(InitValue: LongWord; Key: PWideChar; KeyLen: Integer): LongWord;
 { beware, works in ASCII range only }
 function WStrLIComp(S1, S2: PWideChar; Len: Integer): Integer;
 
+type
+  TXMLVersion = (xmlVersionUnknown, xmlVersion10, xmlVersion11);
+
+const
+  xmlVersionStr: array[TXMLVersion] of WideString = ('', '1.0', '1.1');
+  
 { a simple hash table with WideString keys }
 
 type
