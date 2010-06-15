@@ -2060,7 +2060,6 @@ var
   wc: WideChar;
 begin
   Result := False;
-  FValue.Length := 0;
   StoreLocation(FTokenStart);
   repeat
     wc := FSource.SkipUntil(FValue, Delim);
@@ -2083,12 +2082,16 @@ begin
 end;
 
 procedure TXMLReader.ParseComment;    // [15]
+var
+  SaveLength: Integer;
 begin
   ExpectString('--');
+  SaveLength := FValue.Length;
   if SkipUntilSeq([#0, '-'], '-') then
   begin
     ExpectChar('>');
-    DoComment(FValue.Buffer, FValue.Length);
+    DoComment(@FValue.Buffer[SaveLength], FValue.Length-SaveLength);
+    FValue.Length := SaveLength;
   end
   else
     FatalError('Unterminated comment', -1);
@@ -2117,6 +2120,7 @@ begin
   if FSource.FBuf^ <> '?' then
     SkipS(True);
 
+  FValue.Length := 0;
   if SkipUntilSeq(GT_Delim, '?') then
   begin
     SetString(Value, FValue.Buffer, FValue.Length);
@@ -2960,8 +2964,11 @@ begin
         end
         else if FSource.FBuf^ = '-' then
         begin
-          DoText(FValue.Buffer, FValue.Length, not nonWs);
+          if not FIgnoreComments then
+            DoText(FValue.Buffer, FValue.Length, not nonWs);
           ParseComment;
+          if FIgnoreComments then
+            Continue;
         end
         else
         begin
