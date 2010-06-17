@@ -179,6 +179,7 @@ procedure TCustomSQLDBWebDataProvider.Notification(AComponent: TComponent;
   Operation: TOperation);
 
 begin
+  inherited;
   If (Operation=opRemove) then
     begin
     If (AComponent=FQuery) then
