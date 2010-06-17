@@ -63,6 +63,7 @@ Type
     Property IDFieldName;
     Property OnGetNewID;
     property OnGetParameterType;
+    Property Options;
   end;
 
 implementation
