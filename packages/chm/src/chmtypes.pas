@@ -25,7 +25,7 @@ unit chmtypes;
 interface
 
 uses
-  Classes, SysUtils;
+  Classes, SysUtils,xmlcfg;
 
 type
   TSectionName = (snMSCompressed, snUnCompressed);
@@ -90,6 +90,38 @@ type
     destructor Destroy; override;
 
   end;
+
+  TCHMWindow = Class
+                window_type,
+                Title_bar_text,
+                Toc_file,
+                index_file,
+                Default_File,
+                Home_button_file,
+                Jumpbutton_1_File,
+                Jumpbutton_1_Text,
+                Jumpbutton_2_File,
+                Jumpbutton_2_Text : string;
+                nav_style    : integer;  // overlay with bitfields (next 2 also)
+                navpanewidth : integer;
+                buttons      : integer;
+                left,
+                top,
+                right,
+                bottom       : integer;
+                styleflags   ,
+                xtdstyleflags,
+                window_show_state,
+                navpane_initially_closed,
+                navpane_default,
+                navpane_location,
+                wm_notify_id : integer;
+                Constructor create(s:string='');
+                procedure load_from_ini(txt:string);
+                procedure savetoxml(cfg:TXMLConfig;key:string);
+                procedure loadfromxml(cfg:TXMLConfig;key:string);
+                end;
+
 
   TTOCIdxHeader = record
     BlockSize: DWord; // 4096
@@ -392,5 +424,144 @@ begin
   //WriteLn(ChunkLevelCount);
 end;
 
-end.
+function getnext(const s:string;var i: integer;len:integer):string;
+var
+    ind : integer;
 
+begin
+ if i>len then exit('');
+ ind:=i;
+ if s[ind]='"' then
+   begin
+     inc(ind);
+     while (ind<=len) and (s[ind]<>'"') do inc(ind);
+     result:=copy(s,i+1,ind-i-1);
+     inc(ind); // skip "
+   end
+ else
+   begin
+     while (ind<=len) and (s[ind]<>',') do inc(ind);
+     result:=copy(s,i,ind-i);
+   end;
+ i:=ind+1; // skip ,
+end;
+
+function getnextint(const txt:string;var ind: integer;len:integer):integer;
+
+var s : string;
+begin
+  s:=getnext(txt,ind,len);
+  result:=strtointdef(s,0);  // I think this does C style hex, if not fixup here.
+end;
+
+procedure TCHMWindow.load_from_ini(txt:string);
+var ind,len,
+    j,k     : integer;
+    arr     : array[0..3] of integer;
+    s2      : string;
+begin
+  j:=pos('=',txt);
+  if j>0 then
+    txt[j]:=',';
+  ind:=1; len:=length(txt);
+  window_type       :=getnext(txt,ind,len);
+  Title_bar_text    :=getnext(txt,ind,len);
+  index_file        :=getnext(txt,ind,len);
+  Toc_file          :=getnext(txt,ind,len);
+  Default_File      :=getnext(txt,ind,len);
+  Home_button_file  :=getnext(txt,ind,len);
+  Jumpbutton_1_File :=getnext(txt,ind,len);
+  Jumpbutton_1_Text :=getnext(txt,ind,len);
+  Jumpbutton_2_File :=getnext(txt,ind,len);
+  Jumpbutton_2_Text :=getnext(txt,ind,len);
+
+  nav_style         :=getnextint(txt,ind,len);
+  navpanewidth      :=getnextint(txt,ind,len);
+  buttons           :=getnextint(txt,ind,len);
+  k:=0;
+  repeat
+   s2:=getnext(txt,ind,len);
+   if (length(s2)>0) and (s2[1]='[') then delete(s2,1,1);
+   j:=pos(']',s2);
+   if j>0 then delete(s2,j,1);
+   arr[k]:=strtointdef(s2,0);
+   inc(k);
+  until (j<>0) or (ind>len);
+  left  :=arr[0];
+  top   :=arr[1];
+  right :=arr[2];
+  bottom:=arr[3];
+  styleflags               :=getnextint(txt,ind,len);
+  xtdstyleflags            :=getnextint(txt,ind,len);
+  window_show_state        :=getnextint(txt,ind,len);
+  navpane_initially_closed :=getnextint(txt,ind,len);
+  navpane_default          :=getnextint(txt,ind,len);
+  navpane_location         :=getnextint(txt,ind,len);
+  wm_notify_id             :=getnextint(txt,ind,len);
+end;
+
+procedure TCHMWindow.savetoxml(cfg:TXMLConfig;key:string);
+begin
+  cfg.setvalue(key+'window_type',window_type);
+  cfg.setvalue(key+'title_bar_text',title_bar_text);
+  cfg.setvalue(key+'toc_file',   Toc_file  );
+  cfg.setvalue(key+'index_file',   index_file  );
+  cfg.setvalue(key+'default_file',   Default_File    );
+  cfg.setvalue(key+'home_button_file',   Home_button_file);
+  cfg.setvalue(key+'jumpbutton_1_file',   Jumpbutton_1_File     );
+  cfg.setvalue(key+'jumpbutton_1_text',   Jumpbutton_1_Text     );
+  cfg.setvalue(key+'jumpbutton_2_file',   Jumpbutton_2_File   );
+  cfg.setvalue(key+'jumpbutton_2_text',   Jumpbutton_2_Text     );
+  cfg.setvalue(key+'nav_style',   nav_style );
+  cfg.setvalue(key+'navpanewidth',   navpanewidth    );
+  cfg.setvalue(key+'buttons',   buttons   );
+  cfg.setvalue(key+'left',   left);
+  cfg.setvalue(key+'top',   top );
+  cfg.setvalue(key+'right',   right     );
+  cfg.setvalue(key+'bottom',   bottom    );
+  cfg.setvalue(key+'styleflags',   styleflags);
+  cfg.setvalue(key+'xtdstyleflags',   xtdstyleflags   );
+  cfg.setvalue(key+'window_show_state',   window_show_state     );
+  cfg.setvalue(key+'navpane_initially_closed',navpane_initially_closed  );
+  cfg.setvalue(key+'navpane_default',navpane_default);
+  cfg.setvalue(key+'navpane_location',navpane_location    );
+  cfg.setvalue(key+'wm_notify_id',wm_notify_id  );
+end;
+
+procedure TCHMWindow.loadfromxml(cfg:TXMLConfig;key:string);
+
+begin
+  window_type           :=cfg.getvalue(key+'window_type','');
+  Title_bar_text        :=cfg.getvalue(key+'title_bar_text','');
+  Toc_file              :=cfg.getvalue(key+'toc_file','');
+  Index_file              :=cfg.getvalue(key+'index_file','');
+  Default_File          :=cfg.getvalue(key+'default_file','');
+  Home_button_file      :=cfg.getvalue(key+'home_button_file','');
+  Jumpbutton_1_File     :=cfg.getvalue(key+'jumpbutton_1_file','');
+  Jumpbutton_1_Text     :=cfg.getvalue(key+'jumpbutton_1_text','');
+  Jumpbutton_2_File     :=cfg.getvalue(key+'jumpbutton_2_file','');
+  Jumpbutton_2_Text     :=cfg.getvalue(key+'jumpbutton_2_text','');
+  nav_style             :=cfg.getvalue(key+'nav_style',0);
+  navpanewidth          :=cfg.getvalue(key+'navpanewidth',0);
+  buttons               :=cfg.getvalue(key+'buttons',0);
+  left                  :=cfg.getvalue(key+'left',0);
+  top                   :=cfg.getvalue(key+'top',0);
+  right                 :=cfg.getvalue(key+'right',0);
+  bottom                :=cfg.getvalue(key+'bottom',0);
+  styleflags            :=cfg.getvalue(key+'styleflags',0);
+  xtdstyleflags         :=cfg.getvalue(key+'xtdstyleflags',0);
+  window_show_state     :=cfg.getvalue(key+'window_show_state',0);
+  navpane_initially_closed :=cfg.getvalue(key+'navpane_initially_closed',0);
+  navpane_default       :=cfg.getvalue(key+'navpane_default',0);
+  navpane_location      :=cfg.getvalue(key+'navpane_location',0);
+  wm_notify_id          :=cfg.getvalue(key+'wm_notify_id',0);
+end;
+
+Constructor TCHMWindow.create(s:string='');
+
+begin
+ if s<>'' then
+   load_from_ini(s);
+end;
+
+end.
