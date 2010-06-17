@@ -52,6 +52,7 @@ type
   GLcharARB = Char;
   TGLcharARB = GLcharARB;
   PGLcharARB = ^GLcharARB;
+  PPGLchar = ^PGLchar;
 
   GLhandleARB = Cardinal;
   TGLhandleARB = GLhandleARB;
@@ -68,6 +69,15 @@ type
   GLchar = Char;
   TGLchar = GLchar;
   PGLchar = Pchar;
+
+  GLint64 = Int64;
+  TGLint64 = GLint64;
+  PGLint64 = ^GLint64;
+
+  GLuint64 = QWord;
+  TGLuint64 = GLuint64;
+  PGLuint64 = ^GLuint64;
+
 
 //***** GL_version_1_2 *****//
 const
@@ -3891,6 +3901,527 @@ var
 
 function Load_GL_EXT_framebuffer_object: Boolean;
 
+//**** GL_ARB_framebuffer_object *****//
+const
+  GL_INVALID_FRAMEBUFFER_OPERATION = $0506;
+  GL_FRAMEBUFFER_ATTACHMENT_COLOR_ENCODING = $8210;
+  GL_FRAMEBUFFER_ATTACHMENT_COMPONENT_TYPE = $8211;
+  GL_FRAMEBUFFER_ATTACHMENT_RED_SIZE = $8212;
+  GL_FRAMEBUFFER_ATTACHMENT_GREEN_SIZE = $8213;
+  GL_FRAMEBUFFER_ATTACHMENT_BLUE_SIZE = $8214;
+  GL_FRAMEBUFFER_ATTACHMENT_ALPHA_SIZE = $8215;
+  GL_FRAMEBUFFER_ATTACHMENT_DEPTH_SIZE = $8216;
+  GL_FRAMEBUFFER_ATTACHMENT_STENCIL_SIZE = $8217;
+  GL_FRAMEBUFFER_DEFAULT = $8218;
+  GL_FRAMEBUFFER_UNDEFINED = $8219;
+  GL_DEPTH_STENCIL_ATTACHMENT = $821A;
+  GL_MAX_RENDERBUFFER_SIZE = $84E8;
+  GL_DEPTH_STENCIL = $84F9;
+  GL_UNSIGNED_INT_24_8 = $84FA;
+  GL_DEPTH24_STENCIL8 = $88F0;
+  GL_TEXTURE_STENCIL_SIZE = $88F1;
+  GL_TEXTURE_RED_TYPE = $8C10;
+  GL_TEXTURE_GREEN_TYPE = $8C11;
+  GL_TEXTURE_BLUE_TYPE = $8C12;
+  GL_TEXTURE_ALPHA_TYPE = $8C13;
+  GL_TEXTURE_DEPTH_TYPE = $8C16;
+  GL_UNSIGNED_NORMALIZED = $8C17;
+  GL_FRAMEBUFFER_BINDING = $8CA6;
+  GL_DRAW_FRAMEBUFFER_BINDING = GL_FRAMEBUFFER_BINDING;
+  GL_RENDERBUFFER_BINDING = $8CA7;
+  GL_READ_FRAMEBUFFER = $8CA8;
+  GL_DRAW_FRAMEBUFFER = $8CA9;
+  GL_READ_FRAMEBUFFER_BINDING = $8CAA;
+  GL_RENDERBUFFER_SAMPLES = $8CAB;
+  GL_FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE = $8CD0;
+  GL_FRAMEBUFFER_ATTACHMENT_OBJECT_NAME = $8CD1;
+  GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL = $8CD2;
+  GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE = $8CD3;
+  GL_FRAMEBUFFER_ATTACHMENT_TEXTURE_LAYER = $8CD4;
+  GL_FRAMEBUFFER_COMPLETE = $8CD5;
+  GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT = $8CD6;
+  GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT = $8CD7;
+  GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER = $8CDB;
+  GL_FRAMEBUFFER_INCOMPLETE_READ_BUFFER = $8CDC;
+  GL_FRAMEBUFFER_UNSUPPORTED = $8CDD;
+  GL_MAX_COLOR_ATTACHMENTS = $8CDF;
+  GL_COLOR_ATTACHMENT0 = $8CE0;
+  GL_COLOR_ATTACHMENT1 = $8CE1;
+  GL_COLOR_ATTACHMENT2 = $8CE2;
+  GL_COLOR_ATTACHMENT3 = $8CE3;
+  GL_COLOR_ATTACHMENT4 = $8CE4;
+  GL_COLOR_ATTACHMENT5 = $8CE5;
+  GL_COLOR_ATTACHMENT6 = $8CE6;
+  GL_COLOR_ATTACHMENT7 = $8CE7;
+  GL_COLOR_ATTACHMENT8 = $8CE8;
+  GL_COLOR_ATTACHMENT9 = $8CE9;
+  GL_COLOR_ATTACHMENT10 = $8CEA;
+  GL_COLOR_ATTACHMENT11 = $8CEB;
+  GL_COLOR_ATTACHMENT12 = $8CEC;
+  GL_COLOR_ATTACHMENT13 = $8CED;
+  GL_COLOR_ATTACHMENT14 = $8CEE;
+  GL_COLOR_ATTACHMENT15 = $8CEF;
+  GL_DEPTH_ATTACHMENT = $8D00;
+  GL_STENCIL_ATTACHMENT = $8D20;
+  GL_FRAMEBUFFER = $8D40;
+  GL_RENDERBUFFER = $8D41;
+  GL_RENDERBUFFER_WIDTH = $8D42;
+  GL_RENDERBUFFER_HEIGHT = $8D43;
+  GL_RENDERBUFFER_INTERNAL_FORMAT = $8D44;
+  GL_STENCIL_INDEX1 = $8D46;
+  GL_STENCIL_INDEX4 = $8D47;
+  GL_STENCIL_INDEX8 = $8D48;
+  GL_STENCIL_INDEX16 = $8D49;
+  GL_RENDERBUFFER_RED_SIZE = $8D50;
+  GL_RENDERBUFFER_GREEN_SIZE = $8D51;
+  GL_RENDERBUFFER_BLUE_SIZE = $8D52;
+  GL_RENDERBUFFER_ALPHA_SIZE = $8D53;
+  GL_RENDERBUFFER_DEPTH_SIZE = $8D54;
+  GL_RENDERBUFFER_STENCIL_SIZE = $8D55;
+  GL_FRAMEBUFFER_INCOMPLETE_MULTISAMPLE = $8D56;
+  GL_MAX_SAMPLES = $8D57;
+var
+  glIsRenderbuffer: function(renderbuffer: GLuint): GLboolean; extdecl;
+  glBindRenderbuffer: procedure(target: GLenum; renderbuffer: GLuint); extdecl;
+  glDeleteRenderbuffers: procedure(n: GLsizei; const renderbuffers: PGLuint); extdecl;
+  glGenRenderbuffers: procedure(n: GLsizei; renderbuffers: PGLuint); extdecl;
+  glRenderbufferStorage: procedure(target: GLenum; internalformat: GLenum; width: GLsizei; height: GLsizei); extdecl;
+  glGetRenderbufferParameteriv: procedure(target: GLenum; pname: GLenum; params: PGLint); extdecl;
+  glIsFramebuffer: function(framebuffer: GLuint): GLboolean; extdecl;
+  glBindFramebuffer: procedure(target: GLenum; framebuffer: GLuint); extdecl;
+  glDeleteFramebuffers: procedure(n: GLsizei; const framebuffers: PGLuint); extdecl;
+  glGenFramebuffers: procedure(n: GLsizei; framebuffers: PGLuint); extdecl;
+  glCheckFramebufferStatus: function(target: GLenum): GLenum; extdecl;
+  glFramebufferTexture1D: procedure(target: GLenum; attachment: GLenum; textarget: GLenum; texture: GLuint; level: GLint); extdecl;
+  glFramebufferTexture2D: procedure(target: GLenum; attachment: GLenum; textarget: GLenum; texture: GLuint; level: GLint); extdecl;
+  glFramebufferTexture3D: procedure(target: GLenum; attachment: GLenum; textarget: GLenum; texture: GLuint; level: GLint; zoffset: GLint); extdecl;
+  glFramebufferRenderbuffer: procedure(target: GLenum; attachment: GLenum; renderbuffertarget: GLenum; renderbuffer: GLuint); extdecl;
+  glGetFramebufferAttachmentParameteriv: procedure(target: GLenum; attachment: GLenum; pname: GLenum; params: PGLint); extdecl;
+  glGenerateMipmap: procedure(target: GLenum); extdecl;
+  glBlitFramebuffer: procedure(srcX0: GLint; srcY0: GLint; srcX1: GLint; srcY1: GLint; dstX0: GLint; dstY0: GLint; dstX1: GLint; dstY1: GLint; mask: GLbitfield; filter: GLenum); extdecl;
+  glRenderbufferStorageMultisample: procedure(target: GLenum; samples: GLsizei; internalformat: GLenum; width: GLsizei; height: GLsizei); extdecl;
+  glFramebufferTextureLayer: procedure(target: GLenum; attachment: GLenum; texture: GLuint; level: GLint; layer: GLint); extdecl;
+
+function Load_GL_ARB_framebuffer_object(): Boolean;
+
+//**** GL_ARB_framebuffer_object DEPRECATED *****//
+const
+  GL_INDEX = $8222;
+  GL_TEXTURE_LUMINANCE_TYPE = $8C14;
+  GL_TEXTURE_INTENSITY_TYPE = $8C15;
+
+
+//**** GL_ARB_map_buffer_range *****//
+const
+  GL_MAP_READ_BIT = $0001;
+  GL_MAP_WRITE_BIT = $0002;
+  GL_MAP_INVALIDATE_RANGE_BIT = $0004;
+  GL_MAP_INVALIDATE_BUFFER_BIT = $0008;
+  GL_MAP_FLUSH_EXPLICIT_BIT = $0010;
+  GL_MAP_UNSYNCHRONIZED_BIT = $0020;
+var
+  glMapBufferRange: function(target: GLenum; offset: GLintptr; length: GLsizeiptr; access: GLbitfield): PGLvoid; extdecl;
+  glFlushMappedBufferRange: procedure(target: GLenum; offset: GLintptr; length: GLsizeiptr); extdecl;
+
+function Load_GL_ARB_map_buffer_range(): Boolean;
+
+//**** GL_ARB_vertex_array_object *****//
+const
+  GL_VERTEX_ARRAY_BINDING = $85B5;
+var
+  glBindVertexArray: procedure(_array: GLuint); extdecl;
+  glDeleteVertexArrays: procedure(n: GLsizei; const arrays: PGLuint); extdecl;
+  glGenVertexArrays: procedure(n: GLsizei; arrays: PGLuint); extdecl;
+  glIsVertexArray: function(_array: GLuint): GLboolean; extdecl;
+
+function Load_GL_ARB_vertex_array_object(): Boolean;
+
+//**** GL_ARB_copy_buffer *****//
+const
+  GL_COPY_READ_BUFFER = $8F36;
+  GL_COPY_WRITE_BUFFER = $8F37;
+var
+  glCopyBufferSubData: procedure(readTarget: GLenum; writeTarget: GLenum; readOffset: GLintptr; writeOffset: GLintptr; size: GLsizeiptr); extdecl;
+
+function Load_GL_ARB_copy_buffer(): Boolean;
+
+//**** GL_ARB_uniform_buffer_object *****//
+const
+  GL_UNIFORM_BUFFER = $8A11;
+  GL_UNIFORM_BUFFER_BINDING = $8A28;
+  GL_UNIFORM_BUFFER_START = $8A29;
+  GL_UNIFORM_BUFFER_SIZE = $8A2A;
+  GL_MAX_VERTEX_UNIFORM_BLOCKS = $8A2B;
+  GL_MAX_GEOMETRY_UNIFORM_BLOCKS = $8A2C;
+  GL_MAX_FRAGMENT_UNIFORM_BLOCKS = $8A2D;
+  GL_MAX_COMBINED_UNIFORM_BLOCKS = $8A2E;
+  GL_MAX_UNIFORM_BUFFER_BINDINGS = $8A2F;
+  GL_MAX_UNIFORM_BLOCK_SIZE = $8A30;
+  GL_MAX_COMBINED_VERTEX_UNIFORM_COMPONENTS = $8A31;
+  GL_MAX_COMBINED_GEOMETRY_UNIFORM_COMPONENTS = $8A32;
+  GL_MAX_COMBINED_FRAGMENT_UNIFORM_COMPONENTS = $8A33;
+  GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT = $8A34;
+  GL_ACTIVE_UNIFORM_BLOCK_MAX_NAME_LENGTH = $8A35;
+  GL_ACTIVE_UNIFORM_BLOCKS = $8A36;
+  GL_UNIFORM_TYPE = $8A37;
+  GL_UNIFORM_SIZE = $8A38;
+  GL_UNIFORM_NAME_LENGTH = $8A39;
+  GL_UNIFORM_BLOCK_INDEX = $8A3A;
+  GL_UNIFORM_OFFSET = $8A3B;
+  GL_UNIFORM_ARRAY_STRIDE = $8A3C;
+  GL_UNIFORM_MATRIX_STRIDE = $8A3D;
+  GL_UNIFORM_IS_ROW_MAJOR = $8A3E;
+  GL_UNIFORM_BLOCK_BINDING = $8A3F;
+  GL_UNIFORM_BLOCK_DATA_SIZE = $8A40;
+  GL_UNIFORM_BLOCK_NAME_LENGTH = $8A41;
+  GL_UNIFORM_BLOCK_ACTIVE_UNIFORMS = $8A42;
+  GL_UNIFORM_BLOCK_ACTIVE_UNIFORM_INDICES = $8A43;
+  GL_UNIFORM_BLOCK_REFERENCED_BY_VERTEX_SHADER = $8A44;
+  GL_UNIFORM_BLOCK_REFERENCED_BY_GEOMETRY_SHADER = $8A45;
+  GL_UNIFORM_BLOCK_REFERENCED_BY_FRAGMENT_SHADER = $8A46;
+  GL_INVALID_INDEX = DWord($FFFFFFFF);
+var
+  glGetUniformIndices: procedure(_program: GLuint; uniformCount: GLsizei; const uniformNames: PPGLchar; uniformIndices: PGLuint); extdecl;
+  glGetActiveUniformsiv: procedure(_program: GLuint; uniformCount: GLsizei; const uniformIndices: PGLuint; pname: GLenum; params: PGLint); extdecl;
+  glGetActiveUniformName: procedure(_program: GLuint; uniformIndex: GLuint; bufSize: GLsizei; length: PGLsizei; uniformName: PGLchar); extdecl;
+  glGetUniformBlockIndex: function(_program: GLuint; const uniformBlockName: PGLchar): GLuint; extdecl;
+  glGetActiveUniformBlockiv: procedure(_program: GLuint; uniformBlockIndex: GLuint; pname: GLenum; params: PGLint); extdecl;
+  glGetActiveUniformBlockName: procedure(_program: GLuint; uniformBlockIndex: GLuint; bufSize: GLsizei; length: PGLsizei; uniformBlockName: PGLchar); extdecl;
+  glUniformBlockBinding: procedure(_program: GLuint; uniformBlockIndex: GLuint; uniformBlockBinding: GLuint); extdecl;
+
+function Load_GL_ARB_uniform_buffer_object(): Boolean;
+
+//**** GL_ARB_draw_elements_base_vertex *****//
+var
+  glDrawElementsBaseVertex: procedure(mode: GLenum; count: GLsizei; _type: GLenum; const indices: PGLvoid; basevertex: GLint); extdecl;
+  glDrawRangeElementsBaseVertex: procedure(mode: GLenum; start: GLuint; _end: GLuint; count: GLsizei; _type: GLenum; const indices: PGLvoid; basevertex: GLint); extdecl;
+  glDrawElementsInstancedBaseVertex: procedure(mode: GLenum; count: GLsizei; _type: GLenum; const indices: PGLvoid; primcount: GLsizei; basevertex: GLint); extdecl;
+  glMultiDrawElementsBaseVertex: procedure(mode: GLenum; const count: PGLsizei; _type: GLenum; const indices: PPGLvoid; primcount: GLsizei; const basevertex: PGLint); extdecl;
+
+function Load_GL_ARB_draw_elements_base_vertex(): Boolean;
+
+//**** GL_ARB_provoking_vertex *****//
+const
+  GL_QUADS_FOLLOW_PROVOKING_VERTEX_CONVENTION = $8E4C;
+  GL_FIRST_VERTEX_CONVENTION = $8E4D;
+  GL_LAST_VERTEX_CONVENTION = $8E4E;
+  GL_PROVOKING_VERTEX = $8E4F;
+var
+  glProvokingVertex: procedure(mode: GLenum); extdecl;
+
+function Load_GL_ARB_provoking_vertex(): Boolean;
+
+//**** GL_ARB_sync *****//
+type
+  GLsync = Pointer;
+  TGLsync = GLSync;
+  PGLsync = ^GLSync;
+
+const
+  GL_MAX_SERVER_WAIT_TIMEOUT = $9111;
+  GL_OBJECT_TYPE = $9112;
+  GL_SYNC_CONDITION = $9113;
+  GL_SYNC_STATUS = $9114;
+  GL_SYNC_FLAGS = $9115;
+  GL_SYNC_FENCE = $9116;
+  GL_SYNC_GPU_COMMANDS_COMPLETE = $9117;
+  GL_UNSIGNALED = $9118;
+  GL_SIGNALED = $9119;
+  GL_ALREADY_SIGNALED = $911A;
+  GL_TIMEOUT_EXPIRED = $911B;
+  GL_CONDITION_SATISFIED = $911C;
+  GL_WAIT_FAILED = $911D;
+  GL_SYNC_FLUSH_COMMANDS_BIT = $00000001;
+  GL_TIMEOUT_IGNORED = QWord($FFFFFFFFFFFFFFFF);
+var
+  glFenceSync: function(condition: GLenum; flags: GLbitfield): GLsync; extdecl;
+  glIsSync: function(sync: GLsync): GLboolean; extdecl;
+  glDeleteSync: procedure(sync: GLsync); extdecl;
+  glClientWaitSync: function(sync: GLsync; flags: GLbitfield; timeout: GLuint64): GLenum; extdecl;
+  glWaitSync: procedure(sync: GLsync; flags: GLbitfield; timeout: GLuint64); extdecl;
+  glGetInteger64v: procedure(pname: GLenum; params: PGLint64); extdecl;
+  glGetSynciv: procedure(sync: GLsync; pname: GLenum; bufSize: GLsizei; length: PGLsizei; values: PGLint); extdecl;
+
+function Load_GL_ARB_sync(): Boolean;
+
+//**** GL_ARB_texture_multisample *****//
+const
+  GL_SAMPLE_POSITION = $8E50;
+  GL_SAMPLE_MASK = $8E51;
+  GL_SAMPLE_MASK_VALUE = $8E52;
+  GL_MAX_SAMPLE_MASK_WORDS = $8E59;
+  GL_TEXTURE_2D_MULTISAMPLE = $9100;
+  GL_PROXY_TEXTURE_2D_MULTISAMPLE = $9101;
+  GL_TEXTURE_2D_MULTISAMPLE_ARRAY = $9102;
+  GL_PROXY_TEXTURE_2D_MULTISAMPLE_ARRAY = $9103;
+  GL_TEXTURE_BINDING_2D_MULTISAMPLE = $9104;
+  GL_TEXTURE_BINDING_2D_MULTISAMPLE_ARRAY = $9105;
+  GL_TEXTURE_SAMPLES = $9106;
+  GL_TEXTURE_FIXED_SAMPLE_LOCATIONS = $9107;
+  GL_SAMPLER_2D_MULTISAMPLE = $9108;
+  GL_INT_SAMPLER_2D_MULTISAMPLE = $9109;
+  GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE = $910A;
+  GL_SAMPLER_2D_MULTISAMPLE_ARRAY = $910B;
+  GL_INT_SAMPLER_2D_MULTISAMPLE_ARRAY = $910C;
+  GL_UNSIGNED_INT_SAMPLER_2D_MULTISAMPLE_ARRAY = $910D;
+  GL_MAX_COLOR_TEXTURE_SAMPLES = $910E;
+  GL_MAX_DEPTH_TEXTURE_SAMPLES = $910F;
+  GL_MAX_INTEGER_SAMPLES = $9110;
+var
+  glTexImage2DMultisample: procedure(target: GLenum; samples: GLsizei; internalformat: GLint; width: GLsizei; height: GLsizei; fixedsamplelocations: GLboolean); extdecl;
+  glTexImage3DMultisample: procedure(target: GLenum; samples: GLsizei; internalformat: GLint; width: GLsizei; height: GLsizei; depth: GLsizei; fixedsamplelocations: GLboolean); extdecl;
+  glGetMultisamplefv: procedure(pname: GLenum; index: GLuint; val: PGLfloat); extdecl;
+  glSampleMaski: procedure(index: GLuint; mask: GLbitfield); extdecl;
+
+function Load_GL_ARB_texture_multisample(): Boolean;
+
+//**** GL_ARB_blend_func_extended *****//
+const
+  GL_SRC1_COLOR = $88F9;
+// reuse GL_SRC1_ALPHA
+const
+  GL_ONE_MINUS_SRC1_COLOR = $88FA;
+  GL_ONE_MINUS_SRC1_ALPHA = $88FB;
+  GL_MAX_DUAL_SOURCE_DRAW_BUFFERS = $88FC;
+var
+  glBindFragDataLocationIndexed: procedure(_program: GLuint; colorNumber: GLuint; index: GLuint; const name: PGLchar); extdecl;
+  glGetFragDataIndex: function(_program: GLuint; const name: PGLchar): GLint; extdecl;
+
+function Load_GL_ARB_blend_func_extended(): Boolean;
+
+//**** GL_ARB_sampler_objects *****//
+const
+  GL_SAMPLER_BINDING = $8919;
+var
+  glGenSamplers: procedure(count: GLsizei; samplers: PGLuint); extdecl;
+  glDeleteSamplers: procedure(count: GLsizei; const samplers: PGLuint); extdecl;
+  glIsSampler: function(sampler: GLuint): GLboolean; extdecl;
+  glBindSampler: procedure(_unit: GLenum; sampler: GLuint); extdecl;
+  glSamplerParameteri: procedure(sampler: GLuint; pname: GLenum; param: GLint); extdecl;
+  glSamplerParameteriv: procedure(sampler: GLuint; pname: GLenum; const param: PGLint); extdecl;
+  glSamplerParameterf: procedure(sampler: GLuint; pname: GLenum; param: GLfloat); extdecl;
+  glSamplerParameterfv: procedure(sampler: GLuint; pname: GLenum; const param: PGLfloat); extdecl;
+  glSamplerParameterIiv: procedure(sampler: GLuint; pname: GLenum; const param: PGLint); extdecl;
+  glSamplerParameterIuiv: procedure(sampler: GLuint; pname: GLenum; const param: PGLuint); extdecl;
+  glGetSamplerParameteriv: procedure(sampler: GLuint; pname: GLenum; params: PGLint); extdecl;
+  glGetSamplerParameterIiv: procedure(sampler: GLuint; pname: GLenum; params: PGLint); extdecl;
+  glGetSamplerParameterfv: procedure(sampler: GLuint; pname: GLenum; params: PGLfloat); extdecl;
+  glGetSamplerParameterIfv: procedure(sampler: GLuint; pname: GLenum; params: PGLfloat); extdecl;
+
+function Load_GL_ARB_sampler_objects(): Boolean;
+
+//**** GL_ARB_timer_query *****//
+const
+  GL_TIME_ELAPSED = $88BF;
+  GL_TIMESTAMP = $8E28;
+var
+  glQueryCounter: procedure(id: GLuint; target: GLenum); extdecl;
+  glGetQueryObjecti64v: procedure(id: GLuint; pname: GLenum; params: PGLint64); extdecl;
+  glGetQueryObjectui64v: procedure(id: GLuint; pname: GLenum; params: PGLuint64); extdecl;
+
+function Load_GL_ARB_timer_query(): Boolean;
+
+//**** GL_ARB_vertex_type_2_10_10_10_rev *****//
+
+const
+  GL_INT_2_10_10_10_REV = $8D9F;
+var
+  glVertexP2ui: procedure(_type: GLenum; value: GLuint); extdecl;
+  glVertexP2uiv: procedure(_type: GLenum; const value: PGLuint); extdecl;
+  glVertexP3ui: procedure(_type: GLenum; value: GLuint); extdecl;
+  glVertexP3uiv: procedure(_type: GLenum; const value: PGLuint); extdecl;
+  glVertexP4ui: procedure(_type: GLenum; value: GLuint); extdecl;
+  glVertexP4uiv: procedure(_type: GLenum; const value: PGLuint); extdecl;
+  glTexCoordP1ui: procedure(_type: GLenum; coords: GLuint); extdecl;
+  glTexCoordP1uiv: procedure(_type: GLenum; const coords: PGLuint); extdecl;
+  glTexCoordP2ui: procedure(_type: GLenum; coords: GLuint); extdecl;
+  glTexCoordP2uiv: procedure(_type: GLenum; const coords: PGLuint); extdecl;
+  glTexCoordP3ui: procedure(_type: GLenum; coords: GLuint); extdecl;
+  glTexCoordP3uiv: procedure(_type: GLenum; const coords: PGLuint); extdecl;
+  glTexCoordP4ui: procedure(_type: GLenum; coords: GLuint); extdecl;
+  glTexCoordP4uiv: procedure(_type: GLenum; const coords: PGLuint); extdecl;
+  glMultiTexCoordP1ui: procedure(texture: GLenum; _type: GLenum; coords: GLuint); extdecl;
+  glMultiTexCoordP1uiv: procedure(texture: GLenum; _type: GLenum; const coords: PGLuint); extdecl;
+  glMultiTexCoordP2ui: procedure(texture: GLenum; _type: GLenum; coords: GLuint); extdecl;
+  glMultiTexCoordP2uiv: procedure(texture: GLenum; _type: GLenum; const coords: PGLuint); extdecl;
+  glMultiTexCoordP3ui: procedure(texture: GLenum; _type: GLenum; coords: GLuint); extdecl;
+  glMultiTexCoordP3uiv: procedure(texture: GLenum; _type: GLenum; const coords: PGLuint); extdecl;
+  glMultiTexCoordP4ui: procedure(texture: GLenum; _type: GLenum; coords: GLuint); extdecl;
+  glMultiTexCoordP4uiv: procedure(texture: GLenum; _type: GLenum; const coords: PGLuint); extdecl;
+  glNormalP3ui: procedure(_type: GLenum; coords: GLuint); extdecl;
+  glNormalP3uiv: procedure(_type: GLenum; const coords: PGLuint); extdecl;
+  glColorP3ui: procedure(_type: GLenum; color: GLuint); extdecl;
+  glColorP3uiv: procedure(_type: GLenum; const color: PGLuint); extdecl;
+  glColorP4ui: procedure(_type: GLenum; color: GLuint); extdecl;
+  glColorP4uiv: procedure(_type: GLenum; const color: PGLuint); extdecl;
+  glSecondaryColorP3ui: procedure(_type: GLenum; color: GLuint); extdecl;
+  glSecondaryColorP3uiv: procedure(_type: GLenum; const color: PGLuint); extdecl;
+  glVertexAttribP1ui: procedure(index: GLuint; _type: GLenum; normalized: GLboolean; value: GLuint); extdecl;
+  glVertexAttribP1uiv: procedure(index: GLuint; _type: GLenum; normalized: GLboolean; const value: PGLuint); extdecl;
+  glVertexAttribP2ui: procedure(index: GLuint; _type: GLenum; normalized: GLboolean; value: GLuint); extdecl;
+  glVertexAttribP2uiv: procedure(index: GLuint; _type: GLenum; normalized: GLboolean; const value: PGLuint); extdecl;
+  glVertexAttribP3ui: procedure(index: GLuint; _type: GLenum; normalized: GLboolean; value: GLuint); extdecl;
+  glVertexAttribP3uiv: procedure(index: GLuint; _type: GLenum; normalized: GLboolean; const value: PGLuint); extdecl;
+  glVertexAttribP4ui: procedure(index: GLuint; _type: GLenum; normalized: GLboolean; value: GLuint); extdecl;
+  glVertexAttribP4uiv: procedure(index: GLuint; _type: GLenum; normalized: GLboolean; const value: PGLuint); extdecl;
+
+function Load_GL_ARB_vertex_type_2_10_10_10_rev(): Boolean;
+
+//**** GL_ARB_gpu_shader_fp64 *****//
+// reuse GL_DOUBLE
+const
+  GL_DOUBLE_VEC2 = $8FFC;
+  GL_DOUBLE_VEC3 = $8FFD;
+  GL_DOUBLE_VEC4 = $8FFE;
+  GL_DOUBLE_MAT2 = $8F46;
+  GL_DOUBLE_MAT3 = $8F47;
+  GL_DOUBLE_MAT4 = $8F48;
+  GL_DOUBLE_MAT2x3 = $8F49;
+  GL_DOUBLE_MAT2x4 = $8F4A;
+  GL_DOUBLE_MAT3x2 = $8F4B;
+  GL_DOUBLE_MAT3x4 = $8F4C;
+  GL_DOUBLE_MAT4x2 = $8F4D;
+  GL_DOUBLE_MAT4x3 = $8F4E;
+var
+  glUniform1d: procedure(location: GLint; x: GLdouble); extdecl;
+  glUniform2d: procedure(location: GLint; x: GLdouble; y: GLdouble); extdecl;
+  glUniform3d: procedure(location: GLint; x: GLdouble; y: GLdouble; z: GLdouble); extdecl;
+  glUniform4d: procedure(location: GLint; x: GLdouble; y: GLdouble; z: GLdouble; w: GLdouble); extdecl;
+  glUniform1dv: procedure(location: GLint; count: GLsizei; const value: PGLdouble); extdecl;
+  glUniform2dv: procedure(location: GLint; count: GLsizei; const value: PGLdouble); extdecl;
+  glUniform3dv: procedure(location: GLint; count: GLsizei; const value: PGLdouble); extdecl;
+  glUniform4dv: procedure(location: GLint; count: GLsizei; const value: PGLdouble); extdecl;
+  glUniformMatrix2dv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+  glUniformMatrix3dv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+  glUniformMatrix4dv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+  glUniformMatrix2x3dv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+  glUniformMatrix2x4dv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+  glUniformMatrix3x2dv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+  glUniformMatrix3x4dv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+  glUniformMatrix4x2dv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+  glUniformMatrix4x3dv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+  glGetUniformdv: procedure(_program: GLuint; location: GLint; params: PGLdouble); extdecl;
+  glProgramUniform1dEXT: procedure(_program: GLuint; location: GLint; x: GLdouble); extdecl;
+  glProgramUniform2dEXT: procedure(_program: GLuint; location: GLint; x: GLdouble; y: GLdouble); extdecl;
+  glProgramUniform3dEXT: procedure(_program: GLuint; location: GLint; x: GLdouble; y: GLdouble; z: GLdouble); extdecl;
+  glProgramUniform4dEXT: procedure(_program: GLuint; location: GLint; x: GLdouble; y: GLdouble; z: GLdouble; w: GLdouble); extdecl;
+  glProgramUniform1dvEXT: procedure(_program: GLuint; location: GLint; count: GLsizei; const value: PGLdouble); extdecl;
+  glProgramUniform2dvEXT: procedure(_program: GLuint; location: GLint; count: GLsizei; const value: PGLdouble); extdecl;
+  glProgramUniform3dvEXT: procedure(_program: GLuint; location: GLint; count: GLsizei; const value: PGLdouble); extdecl;
+  glProgramUniform4dvEXT: procedure(_program: GLuint; location: GLint; count: GLsizei; const value: PGLdouble); extdecl;
+  glProgramUniformMatrix2dvEXT: procedure(_program: GLuint; location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+  glProgramUniformMatrix3dvEXT: procedure(_program: GLuint; location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+  glProgramUniformMatrix4dvEXT: procedure(_program: GLuint; location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+  glProgramUniformMatrix2x3dvEXT: procedure(_program: GLuint; location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+  glProgramUniformMatrix2x4dvEXT: procedure(_program: GLuint; location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+  glProgramUniformMatrix3x2dvEXT: procedure(_program: GLuint; location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+  glProgramUniformMatrix3x4dvEXT: procedure(_program: GLuint; location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+  glProgramUniformMatrix4x2dvEXT: procedure(_program: GLuint; location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+  glProgramUniformMatrix4x3dvEXT: procedure(_program: GLuint; location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLdouble); extdecl;
+
+function Load_GL_ARB_gpu_shader_fp64(): Boolean;
+
+//**** GL_ARB_shader_subroutine *****//
+const
+  GL_ACTIVE_SUBROUTINES = $8DE5;
+  GL_ACTIVE_SUBROUTINE_UNIFORMS = $8DE6;
+  GL_ACTIVE_SUBROUTINE_UNIFORM_LOCATIONS = $8E47;
+  GL_ACTIVE_SUBROUTINE_MAX_LENGTH = $8E48;
+  GL_ACTIVE_SUBROUTINE_UNIFORM_MAX_LENGTH = $8E49;
+  GL_MAX_SUBROUTINES = $8DE7;
+  GL_MAX_SUBROUTINE_UNIFORM_LOCATIONS = $8DE8;
+  GL_NUM_COMPATIBLE_SUBROUTINES = $8E4A;
+  GL_COMPATIBLE_SUBROUTINES = $8E4B;
+
+var
+  glGetSubroutineUniformLocation: function(_program: GLuint; shadertype: GLenum; const name: PGLchar): GLint; extdecl;
+  glGetSubroutineIndex: function(_program: GLuint; shadertype: GLenum; const name: PGLchar): GLuint; extdecl;
+  glGetActiveSubroutineUniformiv: procedure(_program: GLuint; shadertype: GLenum; index: GLuint; pname: GLenum; values: PGLint); extdecl;
+  glGetActiveSubroutineUniformName: procedure(_program: GLuint; shadertype: GLenum; index: GLuint; bufsize: GLsizei; length: PGLsizei; name: PGLchar); extdecl;
+  glGetActiveSubroutineName: procedure(_program: GLuint; shadertype: GLenum; index: GLuint; bufsize: GLsizei; length: PGLsizei; name: PGLchar); extdecl;
+  glUniformSubroutinesuiv: procedure(shadertype: GLenum; count: GLsizei; const indices: PGLuint); extdecl;
+  glGetUniformSubroutineuiv: procedure(shadertype: GLenum; location: GLint; params: PGLuint); extdecl;
+  glGetProgramStageiv: procedure(_program: GLuint; shadertype: GLenum; pname: GLenum; values: PGLint); extdecl;
+
+function Load_GL_ARB_shader_subroutine(): Boolean;
+
+//**** GL_ARB_tessellation_shader *****//
+const
+  GL_PATCHES = $000E;
+  GL_PATCH_VERTICES = $8E72;
+  GL_PATCH_DEFAULT_INNER_LEVEL = $8E73;
+  GL_PATCH_DEFAULT_OUTER_LEVEL = $8E74;
+  GL_TESS_CONTROL_OUTPUT_VERTICES = $8E75;
+  GL_TESS_GEN_MODE = $8E76;
+  GL_TESS_GEN_SPACING = $8E77;
+  GL_TESS_GEN_VERTEX_ORDER = $8E78;
+  GL_TESS_GEN_POINT_MODE = $8E79;
+// reuse GL_TRIANGLES
+// reuse GL_QUADS
+const
+  GL_ISOLINES = $8E7A;
+// reuse GL_EQUAL
+const
+  GL_FRACTIONAL_ODD = $8E7B;
+  GL_FRACTIONAL_EVEN = $8E7C;
+// reuse GL_CCW
+// reuse GL_CW
+const
+  GL_MAX_PATCH_VERTICES = $8E7D;
+  GL_MAX_TESS_GEN_LEVEL = $8E7E;
+  GL_MAX_TESS_CONTROL_UNIFORM_COMPONENTS = $8E7F;
+  GL_MAX_TESS_EVALUATION_UNIFORM_COMPONENTS = $8E80;
+  GL_MAX_TESS_CONTROL_TEXTURE_IMAGE_UNITS = $8E81;
+  GL_MAX_TESS_EVALUATION_TEXTURE_IMAGE_UNITS = $8E82;
+  GL_MAX_TESS_CONTROL_OUTPUT_COMPONENTS = $8E83;
+  GL_MAX_TESS_PATCH_COMPONENTS = $8E84;
+  GL_MAX_TESS_CONTROL_TOTAL_OUTPUT_COMPONENTS = $8E85;
+  GL_MAX_TESS_EVALUATION_OUTPUT_COMPONENTS = $8E86;
+  GL_MAX_TESS_CONTROL_UNIFORM_BLOCKS = $8E89;
+  GL_MAX_TESS_EVALUATION_UNIFORM_BLOCKS = $8E8A;
+  GL_MAX_TESS_CONTROL_INPUT_COMPONENTS = $886C;
+  GL_MAX_TESS_EVALUATION_INPUT_COMPONENTS = $886D;
+  GL_MAX_COMBINED_TESS_CONTROL_UNIFORM_COMPONENTS = $8E1E;
+  GL_MAX_COMBINED_TESS_EVALUATION_UNIFORM_COMPONENTS = $8E1F;
+  GL_UNIFORM_BLOCK_REFERENCED_BY_TESS_CONTROL_SHADER = $84F0;
+  GL_UNIFORM_BLOCK_REFERENCED_BY_TESS_EVALUATION_SHADER = $84F1;
+  GL_TESS_EVALUATION_SHADER = $8E87;
+  GL_TESS_CONTROL_SHADER = $8E88;
+var
+  glPatchParameteri: procedure(pname: GLenum; value: GLint); extdecl;
+  glPatchParameterfv: procedure(pname: GLenum; const values: PGLfloat); extdecl;
+
+function Load_GL_ARB_tessellation_shader(): Boolean;
+
+//**** GL_ARB_transform_feedback2 *****//
+const
+  GL_TRANSFORM_FEEDBACK = $8E22;
+  GL_TRANSFORM_FEEDBACK_BUFFER_PAUSED = $8E23;
+  GL_TRANSFORM_FEEDBACK_BUFFER_ACTIVE = $8E24;
+  GL_TRANSFORM_FEEDBACK_BINDING = $8E25;
+var
+  glBindTransformFeedback: procedure(target: GLenum; id: GLuint); extdecl;
+  glDeleteTransformFeedbacks: procedure(n: GLsizei; const ids: PGLuint); extdecl;
+  glGenTransformFeedbacks: procedure(n: GLsizei; ids: PGLuint); extdecl;
+  glIsTransformFeedback: function(id: GLuint): GLboolean; extdecl;
+  glPauseTransformFeedback: procedure(); extdecl;
+  glResumeTransformFeedback: procedure(); extdecl;
+  glDrawTransformFeedback: procedure(mode: GLenum; id: GLuint); extdecl;
+
+function Load_GL_ARB_transform_feedback2(): Boolean;
+
+//**** GL_ARB_transform_feedback3 *****//
+const
+  GL_MAX_TRANSFORM_FEEDBACK_BUFFERS = $8E70;
+var
+  glDrawTransformFeedbackStream: procedure(mode: GLenum; id: GLuint; stream: GLuint); extdecl;
+  glBeginQueryIndexed: procedure(target: GLenum; index: GLuint; id: GLuint); extdecl;
+  glEndQueryIndexed: procedure(target: GLenum; index: GLuint); extdecl;
+  glGetQueryIndexediv: procedure(target: GLenum; index: GLuint; pname: GLenum; params: PGLint); extdecl;
+
+function Load_GL_ARB_transform_feedback3(): Boolean;
+
+
 //***** GL_version_1_4 *****//
 const
   GL_BLEND_DST_RGB = $80C8;
@@ -4239,6 +4770,300 @@ var
 
 function Load_GL_version_2_0: Boolean;
 
+//**** GL_VERSION_2_1 *****//
+const
+  GL_PIXEL_PACK_BUFFER = $88EB;
+  GL_PIXEL_UNPACK_BUFFER = $88EC;
+  GL_PIXEL_PACK_BUFFER_BINDING = $88ED;
+  GL_PIXEL_UNPACK_BUFFER_BINDING = $88EF;
+  GL_FLOAT_MAT2x3 = $8B65;
+  GL_FLOAT_MAT2x4 = $8B66;
+  GL_FLOAT_MAT3x2 = $8B67;
+  GL_FLOAT_MAT3x4 = $8B68;
+  GL_FLOAT_MAT4x2 = $8B69;
+  GL_FLOAT_MAT4x3 = $8B6A;
+  GL_SRGB = $8C40;
+  GL_SRGB8 = $8C41;
+  GL_SRGB_ALPHA = $8C42;
+  GL_SRGB8_ALPHA8 = $8C43;
+  GL_COMPRESSED_SRGB = $8C48;
+  GL_COMPRESSED_SRGB_ALPHA = $8C49;
+var
+  glUniformMatrix2x3fv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLfloat); extdecl;
+  glUniformMatrix3x2fv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLfloat); extdecl;
+  glUniformMatrix2x4fv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLfloat); extdecl;
+  glUniformMatrix4x2fv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLfloat); extdecl;
+  glUniformMatrix3x4fv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLfloat); extdecl;
+  glUniformMatrix4x3fv: procedure(location: GLint; count: GLsizei; transpose: GLboolean; const value: PGLfloat); extdecl;
+
+function Load_GL_VERSION_2_1(): Boolean;
+
+//**** GL_VERSION_2_1 DEPRECATED *****//
+const
+  GL_CURRENT_RASTER_SECONDARY_COLOR = $845F;
+  GL_SLUMINANCE_ALPHA = $8C44;
+  GL_SLUMINANCE8_ALPHA8 = $8C45;
+  GL_SLUMINANCE = $8C46;
+  GL_SLUMINANCE8 = $8C47;
+  GL_COMPRESSED_SLUMINANCE = $8C4A;
+  GL_COMPRESSED_SLUMINANCE_ALPHA = $8C4B;
+
+//**** GL_VERSION_3_0 *****//
+
+const
+  GL_COMPARE_REF_TO_TEXTURE = $884E;
+  GL_CLIP_DISTANCE0 = $3000;
+  GL_CLIP_DISTANCE1 = $3001;
+  GL_CLIP_DISTANCE2 = $3002;
+  GL_CLIP_DISTANCE3 = $3003;
+  GL_CLIP_DISTANCE4 = $3004;
+  GL_CLIP_DISTANCE5 = $3005;
+  GL_CLIP_DISTANCE6 = $3006;
+  GL_CLIP_DISTANCE7 = $3007;
+  GL_MAX_CLIP_DISTANCES = $0D32;
+  GL_MAJOR_VERSION = $821B;
+  GL_MINOR_VERSION = $821C;
+  GL_NUM_EXTENSIONS = $821D;
+  GL_CONTEXT_FLAGS = $821E;
+  GL_DEPTH_BUFFER = $8223;
+  GL_STENCIL_BUFFER = $8224;
+  GL_COMPRESSED_RED = $8225;
+  GL_COMPRESSED_RG = $8226;
+  GL_CONTEXT_FLAG_FORWARD_COMPATIBLE_BIT = $0001;
+  GL_RGBA32F = $8814;
+  GL_RGB32F = $8815;
+  GL_RGBA16F = $881A;
+  GL_RGB16F = $881B;
+  GL_VERTEX_ATTRIB_ARRAY_INTEGER = $88FD;
+  GL_MAX_ARRAY_TEXTURE_LAYERS = $88FF;
+  GL_MIN_PROGRAM_TEXEL_OFFSET = $8904;
+  GL_MAX_PROGRAM_TEXEL_OFFSET = $8905;
+  GL_CLAMP_READ_COLOR = $891C;
+  GL_FIXED_ONLY = $891D;
+  GL_MAX_VARYING_COMPONENTS = $8B4B;
+  GL_TEXTURE_1D_ARRAY = $8C18;
+  GL_PROXY_TEXTURE_1D_ARRAY = $8C19;
+  GL_TEXTURE_2D_ARRAY = $8C1A;
+  GL_PROXY_TEXTURE_2D_ARRAY = $8C1B;
+  GL_TEXTURE_BINDING_1D_ARRAY = $8C1C;
+  GL_TEXTURE_BINDING_2D_ARRAY = $8C1D;
+  GL_R11F_G11F_B10F = $8C3A;
+  GL_UNSIGNED_INT_10F_11F_11F_REV = $8C3B;
+  GL_RGB9_E5 = $8C3D;
+  GL_UNSIGNED_INT_5_9_9_9_REV = $8C3E;
+  GL_TEXTURE_SHARED_SIZE = $8C3F;
+  GL_TRANSFORM_FEEDBACK_VARYING_MAX_LENGTH = $8C76;
+  GL_TRANSFORM_FEEDBACK_BUFFER_MODE = $8C7F;
+  GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_COMPONENTS = $8C80;
+  GL_TRANSFORM_FEEDBACK_VARYINGS = $8C83;
+  GL_TRANSFORM_FEEDBACK_BUFFER_START = $8C84;
+  GL_TRANSFORM_FEEDBACK_BUFFER_SIZE = $8C85;
+  GL_PRIMITIVES_GENERATED = $8C87;
+  GL_TRANSFORM_FEEDBACK_PRIMITIVES_WRITTEN = $8C88;
+  GL_RASTERIZER_DISCARD = $8C89;
+  GL_MAX_TRANSFORM_FEEDBACK_INTERLEAVED_COMPONENTS = $8C8A;
+  GL_MAX_TRANSFORM_FEEDBACK_SEPARATE_ATTRIBS = $8C8B;
+  GL_INTERLEAVED_ATTRIBS = $8C8C;
+  GL_SEPARATE_ATTRIBS = $8C8D;
+  GL_TRANSFORM_FEEDBACK_BUFFER = $8C8E;
+  GL_TRANSFORM_FEEDBACK_BUFFER_BINDING = $8C8F;
+  GL_RGBA32UI = $8D70;
+  GL_RGB32UI = $8D71;
+  GL_RGBA16UI = $8D76;
+  GL_RGB16UI = $8D77;
+  GL_RGBA8UI = $8D7C;
+  GL_RGB8UI = $8D7D;
+  GL_RGBA32I = $8D82;
+  GL_RGB32I = $8D83;
+  GL_RGBA16I = $8D88;
+  GL_RGB16I = $8D89;
+  GL_RGBA8I = $8D8E;
+  GL_RGB8I = $8D8F;
+  GL_RED_INTEGER = $8D94;
+  GL_GREEN_INTEGER = $8D95;
+  GL_BLUE_INTEGER = $8D96;
+  GL_RGB_INTEGER = $8D98;
+  GL_RGBA_INTEGER = $8D99;
+  GL_BGR_INTEGER = $8D9A;
+  GL_BGRA_INTEGER = $8D9B;
+  GL_SAMPLER_1D_ARRAY = $8DC0;
+  GL_SAMPLER_2D_ARRAY = $8DC1;
+  GL_SAMPLER_1D_ARRAY_SHADOW = $8DC3;
+  GL_SAMPLER_2D_ARRAY_SHADOW = $8DC4;
+  GL_SAMPLER_CUBE_SHADOW = $8DC5;
+  GL_UNSIGNED_INT_VEC2 = $8DC6;
+  GL_UNSIGNED_INT_VEC3 = $8DC7;
+  GL_UNSIGNED_INT_VEC4 = $8DC8;
+  GL_INT_SAMPLER_1D = $8DC9;
+  GL_INT_SAMPLER_2D = $8DCA;
+  GL_INT_SAMPLER_3D = $8DCB;
+  GL_INT_SAMPLER_CUBE = $8DCC;
+  GL_INT_SAMPLER_1D_ARRAY = $8DCE;
+  GL_INT_SAMPLER_2D_ARRAY = $8DCF;
+  GL_UNSIGNED_INT_SAMPLER_1D = $8DD1;
+  GL_UNSIGNED_INT_SAMPLER_2D = $8DD2;
+  GL_UNSIGNED_INT_SAMPLER_3D = $8DD3;
+  GL_UNSIGNED_INT_SAMPLER_CUBE = $8DD4;
+  GL_UNSIGNED_INT_SAMPLER_1D_ARRAY = $8DD6;
+  GL_UNSIGNED_INT_SAMPLER_2D_ARRAY = $8DD7;
+  GL_QUERY_WAIT = $8E13;
+  GL_QUERY_NO_WAIT = $8E14;
+  GL_QUERY_BY_REGION_WAIT = $8E15;
+  GL_QUERY_BY_REGION_NO_WAIT = $8E16;
+  GL_BUFFER_ACCESS_FLAGS = $911F;
+  GL_BUFFER_MAP_LENGTH = $9120;
+  GL_BUFFER_MAP_OFFSET = $9121;
+
+var
+  glColorMaski: procedure(index: GLuint; r: GLboolean; g: GLboolean; b: GLboolean; a: GLboolean); extdecl;
+  glGetBooleani_v: procedure(target: GLenum; index: GLuint; data: PGLboolean); extdecl;
+  glGetIntegeri_v: procedure(target: GLenum; index: GLuint; data: PGLint); extdecl; (* Also used in GL_ARB_uniform_buffer_object *)
+  glEnablei: procedure(target: GLenum; index: GLuint); extdecl;
+  glDisablei: procedure(target: GLenum; index: GLuint); extdecl;
+  glIsEnabledi: function(target: GLenum; index: GLuint): GLboolean; extdecl;
+  glBeginTransformFeedback: procedure(primitiveMode: GLenum); extdecl;
+  glEndTransformFeedback: procedure(); extdecl;
+  glBindBufferRange: procedure(target: GLenum; index: GLuint; buffer: GLuint; offset: GLintptr; size: GLsizeiptr); extdecl; (* Also used in GL_ARB_uniform_buffer_object *)
+  glBindBufferBase: procedure(target: GLenum; index: GLuint; buffer: GLuint); extdecl; (* Also used in GL_ARB_uniform_buffer_object *)
+  glTransformFeedbackVaryings: procedure(_program: GLuint; count: GLsizei; const varyings: PPGLchar; bufferMode: GLenum); extdecl;
+  glGetTransformFeedbackVarying: procedure(_program: GLuint; index: GLuint; bufSize: GLsizei; length: PGLsizei; size: PGLsizei; _type: PGLenum; name: PGLchar); extdecl;
+  glClampColor: procedure(target: GLenum; clamp: GLenum); extdecl;
+  glBeginConditionalRender: procedure(id: GLuint; mode: GLenum); extdecl;
+  glEndConditionalRender: procedure(); extdecl;
+  glVertexAttribIPointer: procedure(index: GLuint; size: GLint; _type: GLenum; stride: GLsizei; const _pointer: PGLvoid); extdecl;
+  glGetVertexAttribIiv: procedure(index: GLuint; pname: GLenum; params: PGLint); extdecl;
+  glGetVertexAttribIuiv: procedure(index: GLuint; pname: GLenum; params: PGLuint); extdecl;
+  glVertexAttribI1i: procedure(index: GLuint; x: GLint); extdecl;
+  glVertexAttribI2i: procedure(index: GLuint; x: GLint; y: GLint); extdecl;
+  glVertexAttribI3i: procedure(index: GLuint; x: GLint; y: GLint; z: GLint); extdecl;
+  glVertexAttribI4i: procedure(index: GLuint; x: GLint; y: GLint; z: GLint; w: GLint); extdecl;
+  glVertexAttribI1ui: procedure(index: GLuint; x: GLuint); extdecl;
+  glVertexAttribI2ui: procedure(index: GLuint; x: GLuint; y: GLuint); extdecl;
+  glVertexAttribI3ui: procedure(index: GLuint; x: GLuint; y: GLuint; z: GLuint); extdecl;
+  glVertexAttribI4ui: procedure(index: GLuint; x: GLuint; y: GLuint; z: GLuint; w: GLuint); extdecl;
+  glVertexAttribI1iv: procedure(index: GLuint; const v: PGLint); extdecl;
+  glVertexAttribI2iv: procedure(index: GLuint; const v: PGLint); extdecl;
+  glVertexAttribI3iv: procedure(index: GLuint; const v: PGLint); extdecl;
+  glVertexAttribI4iv: procedure(index: GLuint; const v: PGLint); extdecl;
+  glVertexAttribI1uiv: procedure(index: GLuint; const v: PGLuint); extdecl;
+  glVertexAttribI2uiv: procedure(index: GLuint; const v: PGLuint); extdecl;
+  glVertexAttribI3uiv: procedure(index: GLuint; const v: PGLuint); extdecl;
+  glVertexAttribI4uiv: procedure(index: GLuint; const v: PGLuint); extdecl;
+  glVertexAttribI4bv: procedure(index: GLuint; const v: PGLbyte); extdecl;
+  glVertexAttribI4sv: procedure(index: GLuint; const v: PGLshort); extdecl;
+  glVertexAttribI4ubv: procedure(index: GLuint; const v: PGLubyte); extdecl;
+  glVertexAttribI4usv: procedure(index: GLuint; const v: PGLushort); extdecl;
+  glGetUniformuiv: procedure(_program: GLuint; location: GLint; params: PGLuint); extdecl;
+  glBindFragDataLocation: procedure(_program: GLuint; color: GLuint; const name: PGLchar); extdecl;
+  glGetFragDataLocation: function(_program: GLuint; const name: PGLchar): GLint; extdecl;
+  glUniform1ui: procedure(location: GLint; v0: GLuint); extdecl;
+  glUniform2ui: procedure(location: GLint; v0: GLuint; v1: GLuint); extdecl;
+  glUniform3ui: procedure(location: GLint; v0: GLuint; v1: GLuint; v2: GLuint); extdecl;
+  glUniform4ui: procedure(location: GLint; v0: GLuint; v1: GLuint; v2: GLuint; v3: GLuint); extdecl;
+  glUniform1uiv: procedure(location: GLint; count: GLsizei; const value: PGLuint); extdecl;
+  glUniform2uiv: procedure(location: GLint; count: GLsizei; const value: PGLuint); extdecl;
+  glUniform3uiv: procedure(location: GLint; count: GLsizei; const value: PGLuint); extdecl;
+  glUniform4uiv: procedure(location: GLint; count: GLsizei; const value: PGLuint); extdecl;
+  glTexParameterIiv: procedure(target: GLenum; pname: GLenum; const params: PGLint); extdecl;
+  glTexParameterIuiv: procedure(target: GLenum; pname: GLenum; const params: PGLuint); extdecl;
+  glGetTexParameterIiv: procedure(target: GLenum; pname: GLenum; params: PGLint); extdecl;
+  glGetTexParameterIuiv: procedure(target: GLenum; pname: GLenum; params: PGLuint); extdecl;
+  glClearBufferiv: procedure(buffer: GLenum; drawbuffer: GLint; const value: PGLint); extdecl;
+  glClearBufferuiv: procedure(buffer: GLenum; drawbuffer: GLint; const value: PGLuint); extdecl;
+  glClearBufferfv: procedure(buffer: GLenum; drawbuffer: GLint; const value: PGLfloat); extdecl;
+  glClearBufferfi: procedure(buffer: GLenum; drawbuffer: GLint; depth: GLfloat; stencil: GLint); extdecl;
+  glGetStringi: function(name: GLenum; index: GLuint): PGLubyte; extdecl;
+
+function Load_GL_VERSION_3_0(): Boolean;
+
+//**** GL_VERSION_3_0 DEPRECATED *****//
+const
+  GL_CLAMP_VERTEX_COLOR = $891A;
+  GL_CLAMP_FRAGMENT_COLOR = $891B;
+  GL_ALPHA_INTEGER = $8D97;
+
+//**** GL_VERSION_3_1 *****//
+const
+  GL_SAMPLER_2D_RECT = $8B63;
+  GL_SAMPLER_2D_RECT_SHADOW = $8B64;
+  GL_SAMPLER_BUFFER = $8DC2;
+  GL_INT_SAMPLER_2D_RECT = $8DCD;
+  GL_INT_SAMPLER_BUFFER = $8DD0;
+  GL_UNSIGNED_INT_SAMPLER_2D_RECT = $8DD5;
+  GL_UNSIGNED_INT_SAMPLER_BUFFER = $8DD8;
+  GL_TEXTURE_BUFFER = $8C2A;
+  GL_MAX_TEXTURE_BUFFER_SIZE = $8C2B;
+  GL_TEXTURE_BINDING_BUFFER = $8C2C;
+  GL_TEXTURE_BUFFER_DATA_STORE_BINDING = $8C2D;
+  GL_TEXTURE_BUFFER_FORMAT = $8C2E;
+  GL_TEXTURE_RECTANGLE = $84F5;
+  GL_TEXTURE_BINDING_RECTANGLE = $84F6;
+  GL_PROXY_TEXTURE_RECTANGLE = $84F7;
+  GL_MAX_RECTANGLE_TEXTURE_SIZE = $84F8;
+  GL_RED_SNORM = $8F90;
+  GL_RG_SNORM = $8F91;
+  GL_RGB_SNORM = $8F92;
+  GL_RGBA_SNORM = $8F93;
+  GL_R8_SNORM = $8F94;
+  GL_RG8_SNORM = $8F95;
+  GL_RGB8_SNORM = $8F96;
+  GL_RGBA8_SNORM = $8F97;
+  GL_R16_SNORM = $8F98;
+  GL_RG16_SNORM = $8F99;
+  GL_RGB16_SNORM = $8F9A;
+  GL_RGBA16_SNORM = $8F9B;
+  GL_SIGNED_NORMALIZED = $8F9C;
+  GL_PRIMITIVE_RESTART = $8F9D;
+  GL_PRIMITIVE_RESTART_INDEX = $8F9E;
+
+var
+  glDrawArraysInstanced: procedure(mode: GLenum; first: GLint; count: GLsizei; primcount: GLsizei); extdecl;
+  glDrawElementsInstanced: procedure(mode: GLenum; count: GLsizei; _type: GLenum; const indices: PGLvoid; primcount: GLsizei); extdecl;
+  glTexBuffer: procedure(target: GLenum; internalformat: GLenum; buffer: GLuint); extdecl;
+  glPrimitiveRestartIndex: procedure(index: GLuint); extdecl;
+
+function Load_GL_VERSION_3_1(): Boolean;
+
+//**** GL_VERSION_3_2 *****//
+const
+  GL_CONTEXT_CORE_PROFILE_BIT = $00000001;
+  GL_CONTEXT_COMPATIBILITY_PROFILE_BIT = $00000002;
+  GL_LINES_ADJACENCY = $000A;
+  GL_LINE_STRIP_ADJACENCY = $000B;
+  GL_TRIANGLES_ADJACENCY = $000C;
+  GL_TRIANGLE_STRIP_ADJACENCY = $000D;
+  GL_PROGRAM_POINT_SIZE = $8642;
+  GL_MAX_GEOMETRY_TEXTURE_IMAGE_UNITS = $8C29;
+  GL_FRAMEBUFFER_ATTACHMENT_LAYERED = $8DA7;
+  GL_FRAMEBUFFER_INCOMPLETE_LAYER_TARGETS = $8DA8;
+  GL_GEOMETRY_SHADER = $8DD9;
+  GL_GEOMETRY_VERTICES_OUT = $8916;
+  GL_GEOMETRY_INPUT_TYPE = $8917;
+  GL_GEOMETRY_OUTPUT_TYPE = $8918;
+  GL_MAX_GEOMETRY_UNIFORM_COMPONENTS = $8DDF;
+  GL_MAX_GEOMETRY_OUTPUT_VERTICES = $8DE0;
+  GL_MAX_GEOMETRY_TOTAL_OUTPUT_COMPONENTS = $8DE1;
+  GL_MAX_VERTEX_OUTPUT_COMPONENTS = $9122;
+  GL_MAX_GEOMETRY_INPUT_COMPONENTS = $9123;
+  GL_MAX_GEOMETRY_OUTPUT_COMPONENTS = $9124;
+  GL_MAX_FRAGMENT_INPUT_COMPONENTS = $9125;
+  GL_CONTEXT_PROFILE_MASK = $9126;
+
+var
+  glGetInteger64i_v: procedure(target: GLenum; index: GLuint; data: PGLint64); extdecl;
+  glGetBufferParameteri64v: procedure(target: GLenum; pname: GLenum; params: PGLint64); extdecl;
+  glProgramParameteri: procedure(_program: GLuint; pname: GLenum; value: GLint); extdecl;
+  glFramebufferTexture: procedure(target: GLenum; attachment: GLenum; texture: GLuint; level: GLint); extdecl;
+
+function Load_GL_VERSION_3_2(): Boolean;
+
+//**** GL_VERSION_3_3 *****//
+
+function Load_GL_VERSION_3_3(): Boolean;
+
+//**** GL_VERSION_4_0 *****//
+
+function Load_GL_VERSION_4_0(): Boolean;
 
 implementation
 
@@ -8983,6 +9808,573 @@ begin
 
 end;
 
+function Load_GL_ARB_framebuffer_object(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_framebuffer_object', extstring) then
+  begin
+    glIsRenderbuffer := wglGetProcAddress('glIsRenderbuffer');
+    if not Assigned(glIsRenderbuffer) then Exit;
+    glBindRenderbuffer := wglGetProcAddress('glBindRenderbuffer');
+    if not Assigned(glBindRenderbuffer) then Exit;
+    glDeleteRenderbuffers := wglGetProcAddress('glDeleteRenderbuffers');
+    if not Assigned(glDeleteRenderbuffers) then Exit;
+    glGenRenderbuffers := wglGetProcAddress('glGenRenderbuffers');
+    if not Assigned(glGenRenderbuffers) then Exit;
+    glRenderbufferStorage := wglGetProcAddress('glRenderbufferStorage');
+    if not Assigned(glRenderbufferStorage) then Exit;
+    glGetRenderbufferParameteriv := wglGetProcAddress('glGetRenderbufferParameteriv');
+    if not Assigned(glGetRenderbufferParameteriv) then Exit;
+    glIsFramebuffer := wglGetProcAddress('glIsFramebuffer');
+    if not Assigned(glIsFramebuffer) then Exit;
+    glBindFramebuffer := wglGetProcAddress('glBindFramebuffer');
+    if not Assigned(glBindFramebuffer) then Exit;
+    glDeleteFramebuffers := wglGetProcAddress('glDeleteFramebuffers');
+    if not Assigned(glDeleteFramebuffers) then Exit;
+    glGenFramebuffers := wglGetProcAddress('glGenFramebuffers');
+    if not Assigned(glGenFramebuffers) then Exit;
+    glCheckFramebufferStatus := wglGetProcAddress('glCheckFramebufferStatus');
+    if not Assigned(glCheckFramebufferStatus) then Exit;
+    glFramebufferTexture1D := wglGetProcAddress('glFramebufferTexture1D');
+    if not Assigned(glFramebufferTexture1D) then Exit;
+    glFramebufferTexture2D := wglGetProcAddress('glFramebufferTexture2D');
+    if not Assigned(glFramebufferTexture2D) then Exit;
+    glFramebufferTexture3D := wglGetProcAddress('glFramebufferTexture3D');
+    if not Assigned(glFramebufferTexture3D) then Exit;
+    glFramebufferRenderbuffer := wglGetProcAddress('glFramebufferRenderbuffer');
+    if not Assigned(glFramebufferRenderbuffer) then Exit;
+    glGetFramebufferAttachmentParameteriv := wglGetProcAddress('glGetFramebufferAttachmentParameteriv');
+    if not Assigned(glGetFramebufferAttachmentParameteriv) then Exit;
+    glGenerateMipmap := wglGetProcAddress('glGenerateMipmap');
+    if not Assigned(glGenerateMipmap) then Exit;
+    glBlitFramebuffer := wglGetProcAddress('glBlitFramebuffer');
+    if not Assigned(glBlitFramebuffer) then Exit;
+    glRenderbufferStorageMultisample := wglGetProcAddress('glRenderbufferStorageMultisample');
+    if not Assigned(glRenderbufferStorageMultisample) then Exit;
+    glFramebufferTextureLayer := wglGetProcAddress('glFramebufferTextureLayer');
+    if not Assigned(glFramebufferTextureLayer) then Exit;
+    Result := True;
+  end;
+end;
+
+function Load_GL_ARB_map_buffer_range(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_map_buffer_range', extstring) then
+  begin
+    glMapBufferRange := wglGetProcAddress('glMapBufferRange');
+    if not Assigned(glMapBufferRange) then Exit;
+    glFlushMappedBufferRange := wglGetProcAddress('glFlushMappedBufferRange');
+    if not Assigned(glFlushMappedBufferRange) then Exit;
+    Result := True;
+  end;
+end;
+
+function Load_GL_ARB_vertex_array_object(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_vertex_array_object', extstring) then
+  begin
+    glBindVertexArray := wglGetProcAddress('glBindVertexArray');
+    if not Assigned(glBindVertexArray) then Exit;
+    glDeleteVertexArrays := wglGetProcAddress('glDeleteVertexArrays');
+    if not Assigned(glDeleteVertexArrays) then Exit;
+    glGenVertexArrays := wglGetProcAddress('glGenVertexArrays');
+    if not Assigned(glGenVertexArrays) then Exit;
+    glIsVertexArray := wglGetProcAddress('glIsVertexArray');
+    if not Assigned(glIsVertexArray) then Exit;
+    Result := True;
+  end;
+end;
+
+function Load_GL_ARB_copy_buffer(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_copy_buffer', extstring) then
+  begin
+    glCopyBufferSubData := wglGetProcAddress('glCopyBufferSubData');
+    if not Assigned(glCopyBufferSubData) then Exit;
+    Result := True;
+  end;
+end;
+
+function Load_GL_ARB_uniform_buffer_object(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_uniform_buffer_object', extstring) then
+  begin
+    glGetUniformIndices := wglGetProcAddress('glGetUniformIndices');
+    if not Assigned(glGetUniformIndices) then Exit;
+    glGetActiveUniformsiv := wglGetProcAddress('glGetActiveUniformsiv');
+    if not Assigned(glGetActiveUniformsiv) then Exit;
+    glGetActiveUniformName := wglGetProcAddress('glGetActiveUniformName');
+    if not Assigned(glGetActiveUniformName) then Exit;
+    glGetUniformBlockIndex := wglGetProcAddress('glGetUniformBlockIndex');
+    if not Assigned(glGetUniformBlockIndex) then Exit;
+    glGetActiveUniformBlockiv := wglGetProcAddress('glGetActiveUniformBlockiv');
+    if not Assigned(glGetActiveUniformBlockiv) then Exit;
+    glGetActiveUniformBlockName := wglGetProcAddress('glGetActiveUniformBlockName');
+    if not Assigned(glGetActiveUniformBlockName) then Exit;
+    glUniformBlockBinding := wglGetProcAddress('glUniformBlockBinding');
+    if not Assigned(glUniformBlockBinding) then Exit;
+    (* Shared entry points *)
+    glBindBufferRange := wglGetProcAddress('glBindBufferRange');
+    if not Assigned(glBindBufferRange) then Exit;
+    glBindBufferBase := wglGetProcAddress('glBindBufferBase');
+    if not Assigned(glBindBufferBase) then Exit;
+    glGetIntegeri_v := wglGetProcAddress('glGetIntegeri_v');
+    if not Assigned(glGetIntegeri_v) then Exit;
+    Result := True;
+  end;
+end;
+
+function Load_GL_ARB_draw_elements_base_vertex(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_draw_elements_base_vertex', extstring) then
+  begin
+    glDrawElementsBaseVertex := wglGetProcAddress('glDrawElementsBaseVertex');
+    if not Assigned(glDrawElementsBaseVertex) then Exit;
+    glDrawRangeElementsBaseVertex := wglGetProcAddress('glDrawRangeElementsBaseVertex');
+    if not Assigned(glDrawRangeElementsBaseVertex) then Exit;
+    glDrawElementsInstancedBaseVertex := wglGetProcAddress('glDrawElementsInstancedBaseVertex');
+    if not Assigned(glDrawElementsInstancedBaseVertex) then Exit;
+    glMultiDrawElementsBaseVertex := wglGetProcAddress('glMultiDrawElementsBaseVertex');
+    if not Assigned(glMultiDrawElementsBaseVertex) then Exit;
+    Result := True;
+  end;
+end;
+
+function Load_GL_ARB_provoking_vertex(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_provoking_vertex', extstring) then
+  begin
+    glProvokingVertex := wglGetProcAddress('glProvokingVertex');
+    if not Assigned(glProvokingVertex) then Exit;
+    Result := True;
+  end;
+end;
+
+function Load_GL_ARB_sync(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_sync', extstring) then
+  begin
+    glFenceSync := wglGetProcAddress('glFenceSync');
+    if not Assigned(glFenceSync) then Exit;
+    glIsSync := wglGetProcAddress('glIsSync');
+    if not Assigned(glIsSync) then Exit;
+    glDeleteSync := wglGetProcAddress('glDeleteSync');
+    if not Assigned(glDeleteSync) then Exit;
+    glClientWaitSync := wglGetProcAddress('glClientWaitSync');
+    if not Assigned(glClientWaitSync) then Exit;
+    glWaitSync := wglGetProcAddress('glWaitSync');
+    if not Assigned(glWaitSync) then Exit;
+    glGetInteger64v := wglGetProcAddress('glGetInteger64v');
+    if not Assigned(glGetInteger64v) then Exit;
+    glGetSynciv := wglGetProcAddress('glGetSynciv');
+    if not Assigned(glGetSynciv) then Exit;
+    Result := True;
+  end;
+end;
+
+function Load_GL_ARB_texture_multisample(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_texture_multisample', extstring) then
+  begin
+    glTexImage2DMultisample := wglGetProcAddress('glTexImage2DMultisample');
+    if not Assigned(glTexImage2DMultisample) then Exit;
+    glTexImage3DMultisample := wglGetProcAddress('glTexImage3DMultisample');
+    if not Assigned(glTexImage3DMultisample) then Exit;
+    glGetMultisamplefv := wglGetProcAddress('glGetMultisamplefv');
+    if not Assigned(glGetMultisamplefv) then Exit;
+    glSampleMaski := wglGetProcAddress('glSampleMaski');
+    if not Assigned(glSampleMaski) then Exit;
+    Result := True;
+  end;
+end;
+
+function Load_GL_ARB_sampler_objects(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_sampler_objects', extstring) then
+  begin
+    glGenSamplers := wglGetProcAddress('glGenSamplers');
+    if not Assigned(glGenSamplers) then Exit;
+    glDeleteSamplers := wglGetProcAddress('glDeleteSamplers');
+    if not Assigned(glDeleteSamplers) then Exit;
+    glIsSampler := wglGetProcAddress('glIsSampler');
+    if not Assigned(glIsSampler) then Exit;
+    glBindSampler := wglGetProcAddress('glBindSampler');
+    if not Assigned(glBindSampler) then Exit;
+    glSamplerParameteri := wglGetProcAddress('glSamplerParameteri');
+    if not Assigned(glSamplerParameteri) then Exit;
+    glSamplerParameteriv := wglGetProcAddress('glSamplerParameteriv');
+    if not Assigned(glSamplerParameteriv) then Exit;
+    glSamplerParameterf := wglGetProcAddress('glSamplerParameterf');
+    if not Assigned(glSamplerParameterf) then Exit;
+    glSamplerParameterfv := wglGetProcAddress('glSamplerParameterfv');
+    if not Assigned(glSamplerParameterfv) then Exit;
+    glSamplerParameterIiv := wglGetProcAddress('glSamplerParameterIiv');
+    if not Assigned(glSamplerParameterIiv) then Exit;
+    glSamplerParameterIuiv := wglGetProcAddress('glSamplerParameterIuiv');
+    if not Assigned(glSamplerParameterIuiv) then Exit;
+    glGetSamplerParameteriv := wglGetProcAddress('glGetSamplerParameteriv');
+    if not Assigned(glGetSamplerParameteriv) then Exit;
+    glGetSamplerParameterIiv := wglGetProcAddress('glGetSamplerParameterIiv');
+    if not Assigned(glGetSamplerParameterIiv) then Exit;
+    glGetSamplerParameterfv := wglGetProcAddress('glGetSamplerParameterfv');
+    if not Assigned(glGetSamplerParameterfv) then Exit;
+    glGetSamplerParameterIfv := wglGetProcAddress('glGetSamplerParameterIfv');
+    if not Assigned(glGetSamplerParameterIfv) then Exit;
+    Result := True;
+  end;
+end;
+
+function Load_GL_ARB_blend_func_extended(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_blend_func_extended', extstring) then
+  begin
+    glBindFragDataLocationIndexed := wglGetProcAddress('glBindFragDataLocationIndexed');
+    if not Assigned(glBindFragDataLocationIndexed) then Exit;
+    glGetFragDataIndex := wglGetProcAddress('glGetFragDataIndex');
+    if not Assigned(glGetFragDataIndex) then Exit;
+    Result := True;
+  end;
+end;
+
+function Load_GL_ARB_timer_query(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_timer_query', extstring) then
+  begin
+    glQueryCounter := wglGetProcAddress('glQueryCounter');
+    if not Assigned(glQueryCounter) then Exit;
+    glGetQueryObjecti64v := wglGetProcAddress('glGetQueryObjecti64v');
+    if not Assigned(glGetQueryObjecti64v) then Exit;
+    glGetQueryObjectui64v := wglGetProcAddress('glGetQueryObjectui64v');
+    if not Assigned(glGetQueryObjectui64v) then Exit;
+    Result := True;
+  end;
+end;
+
+function Load_GL_ARB_vertex_type_2_10_10_10_rev(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_vertex_type_2_10_10_10_rev', extstring) then
+  begin
+    glVertexP2ui := wglGetProcAddress('glVertexP2ui');
+    if not Assigned(glVertexP2ui) then Exit;
+    glVertexP2uiv := wglGetProcAddress('glVertexP2uiv');
+    if not Assigned(glVertexP2uiv) then Exit;
+    glVertexP3ui := wglGetProcAddress('glVertexP3ui');
+    if not Assigned(glVertexP3ui) then Exit;
+    glVertexP3uiv := wglGetProcAddress('glVertexP3uiv');
+    if not Assigned(glVertexP3uiv) then Exit;
+    glVertexP4ui := wglGetProcAddress('glVertexP4ui');
+    if not Assigned(glVertexP4ui) then Exit;
+    glVertexP4uiv := wglGetProcAddress('glVertexP4uiv');
+    if not Assigned(glVertexP4uiv) then Exit;
+    glTexCoordP1ui := wglGetProcAddress('glTexCoordP1ui');
+    if not Assigned(glTexCoordP1ui) then Exit;
+    glTexCoordP1uiv := wglGetProcAddress('glTexCoordP1uiv');
+    if not Assigned(glTexCoordP1uiv) then Exit;
+    glTexCoordP2ui := wglGetProcAddress('glTexCoordP2ui');
+    if not Assigned(glTexCoordP2ui) then Exit;
+    glTexCoordP2uiv := wglGetProcAddress('glTexCoordP2uiv');
+    if not Assigned(glTexCoordP2uiv) then Exit;
+    glTexCoordP3ui := wglGetProcAddress('glTexCoordP3ui');
+    if not Assigned(glTexCoordP3ui) then Exit;
+    glTexCoordP3uiv := wglGetProcAddress('glTexCoordP3uiv');
+    if not Assigned(glTexCoordP3uiv) then Exit;
+    glTexCoordP4ui := wglGetProcAddress('glTexCoordP4ui');
+    if not Assigned(glTexCoordP4ui) then Exit;
+    glTexCoordP4uiv := wglGetProcAddress('glTexCoordP4uiv');
+    if not Assigned(glTexCoordP4uiv) then Exit;
+    glMultiTexCoordP1ui := wglGetProcAddress('glMultiTexCoordP1ui');
+    if not Assigned(glMultiTexCoordP1ui) then Exit;
+    glMultiTexCoordP1uiv := wglGetProcAddress('glMultiTexCoordP1uiv');
+    if not Assigned(glMultiTexCoordP1uiv) then Exit;
+    glMultiTexCoordP2ui := wglGetProcAddress('glMultiTexCoordP2ui');
+    if not Assigned(glMultiTexCoordP2ui) then Exit;
+    glMultiTexCoordP2uiv := wglGetProcAddress('glMultiTexCoordP2uiv');
+    if not Assigned(glMultiTexCoordP2uiv) then Exit;
+    glMultiTexCoordP3ui := wglGetProcAddress('glMultiTexCoordP3ui');
+    if not Assigned(glMultiTexCoordP3ui) then Exit;
+    glMultiTexCoordP3uiv := wglGetProcAddress('glMultiTexCoordP3uiv');
+    if not Assigned(glMultiTexCoordP3uiv) then Exit;
+    glMultiTexCoordP4ui := wglGetProcAddress('glMultiTexCoordP4ui');
+    if not Assigned(glMultiTexCoordP4ui) then Exit;
+    glMultiTexCoordP4uiv := wglGetProcAddress('glMultiTexCoordP4uiv');
+    if not Assigned(glMultiTexCoordP4uiv) then Exit;
+    glNormalP3ui := wglGetProcAddress('glNormalP3ui');
+    if not Assigned(glNormalP3ui) then Exit;
+    glNormalP3uiv := wglGetProcAddress('glNormalP3uiv');
+    if not Assigned(glNormalP3uiv) then Exit;
+    glColorP3ui := wglGetProcAddress('glColorP3ui');
+    if not Assigned(glColorP3ui) then Exit;
+    glColorP3uiv := wglGetProcAddress('glColorP3uiv');
+    if not Assigned(glColorP3uiv) then Exit;
+    glColorP4ui := wglGetProcAddress('glColorP4ui');
+    if not Assigned(glColorP4ui) then Exit;
+    glColorP4uiv := wglGetProcAddress('glColorP4uiv');
+    if not Assigned(glColorP4uiv) then Exit;
+    glSecondaryColorP3ui := wglGetProcAddress('glSecondaryColorP3ui');
+    if not Assigned(glSecondaryColorP3ui) then Exit;
+    glSecondaryColorP3uiv := wglGetProcAddress('glSecondaryColorP3uiv');
+    if not Assigned(glSecondaryColorP3uiv) then Exit;
+    glVertexAttribP1ui := wglGetProcAddress('glVertexAttribP1ui');
+    if not Assigned(glVertexAttribP1ui) then Exit;
+    glVertexAttribP1uiv := wglGetProcAddress('glVertexAttribP1uiv');
+    if not Assigned(glVertexAttribP1uiv) then Exit;
+    glVertexAttribP2ui := wglGetProcAddress('glVertexAttribP2ui');
+    if not Assigned(glVertexAttribP2ui) then Exit;
+    glVertexAttribP2uiv := wglGetProcAddress('glVertexAttribP2uiv');
+    if not Assigned(glVertexAttribP2uiv) then Exit;
+    glVertexAttribP3ui := wglGetProcAddress('glVertexAttribP3ui');
+    if not Assigned(glVertexAttribP3ui) then Exit;
+    glVertexAttribP3uiv := wglGetProcAddress('glVertexAttribP3uiv');
+    if not Assigned(glVertexAttribP3uiv) then Exit;
+    glVertexAttribP4ui := wglGetProcAddress('glVertexAttribP4ui');
+    if not Assigned(glVertexAttribP4ui) then Exit;
+    glVertexAttribP4uiv := wglGetProcAddress('glVertexAttribP4uiv');
+    if not Assigned(glVertexAttribP4uiv) then Exit;
+    Result := True;
+  end;
+end;
+
+function Load_GL_ARB_gpu_shader_fp64(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_gpu_shader_fp64', extstring) then
+  begin
+    glUniform1d := wglGetProcAddress('glUniform1d');
+    if not Assigned(glUniform1d) then Exit;
+    glUniform2d := wglGetProcAddress('glUniform2d');
+    if not Assigned(glUniform2d) then Exit;
+    glUniform3d := wglGetProcAddress('glUniform3d');
+    if not Assigned(glUniform3d) then Exit;
+    glUniform4d := wglGetProcAddress('glUniform4d');
+    if not Assigned(glUniform4d) then Exit;
+    glUniform1dv := wglGetProcAddress('glUniform1dv');
+    if not Assigned(glUniform1dv) then Exit;
+    glUniform2dv := wglGetProcAddress('glUniform2dv');
+    if not Assigned(glUniform2dv) then Exit;
+    glUniform3dv := wglGetProcAddress('glUniform3dv');
+    if not Assigned(glUniform3dv) then Exit;
+    glUniform4dv := wglGetProcAddress('glUniform4dv');
+    if not Assigned(glUniform4dv) then Exit;
+    glUniformMatrix2dv := wglGetProcAddress('glUniformMatrix2dv');
+    if not Assigned(glUniformMatrix2dv) then Exit;
+    glUniformMatrix3dv := wglGetProcAddress('glUniformMatrix3dv');
+    if not Assigned(glUniformMatrix3dv) then Exit;
+    glUniformMatrix4dv := wglGetProcAddress('glUniformMatrix4dv');
+    if not Assigned(glUniformMatrix4dv) then Exit;
+    glUniformMatrix2x3dv := wglGetProcAddress('glUniformMatrix2x3dv');
+    if not Assigned(glUniformMatrix2x3dv) then Exit;
+    glUniformMatrix2x4dv := wglGetProcAddress('glUniformMatrix2x4dv');
+    if not Assigned(glUniformMatrix2x4dv) then Exit;
+    glUniformMatrix3x2dv := wglGetProcAddress('glUniformMatrix3x2dv');
+    if not Assigned(glUniformMatrix3x2dv) then Exit;
+    glUniformMatrix3x4dv := wglGetProcAddress('glUniformMatrix3x4dv');
+    if not Assigned(glUniformMatrix3x4dv) then Exit;
+    glUniformMatrix4x2dv := wglGetProcAddress('glUniformMatrix4x2dv');
+    if not Assigned(glUniformMatrix4x2dv) then Exit;
+    glUniformMatrix4x3dv := wglGetProcAddress('glUniformMatrix4x3dv');
+    if not Assigned(glUniformMatrix4x3dv) then Exit;
+    glGetUniformdv := wglGetProcAddress('glGetUniformdv');
+    if not Assigned(glGetUniformdv) then Exit;
+    glProgramUniform1dEXT := wglGetProcAddress('glProgramUniform1dEXT');
+    if not Assigned(glProgramUniform1dEXT) then Exit;
+    glProgramUniform2dEXT := wglGetProcAddress('glProgramUniform2dEXT');
+    if not Assigned(glProgramUniform2dEXT) then Exit;
+    glProgramUniform3dEXT := wglGetProcAddress('glProgramUniform3dEXT');
+    if not Assigned(glProgramUniform3dEXT) then Exit;
+    glProgramUniform4dEXT := wglGetProcAddress('glProgramUniform4dEXT');
+    if not Assigned(glProgramUniform4dEXT) then Exit;
+    glProgramUniform1dvEXT := wglGetProcAddress('glProgramUniform1dvEXT');
+    if not Assigned(glProgramUniform1dvEXT) then Exit;
+    glProgramUniform2dvEXT := wglGetProcAddress('glProgramUniform2dvEXT');
+    if not Assigned(glProgramUniform2dvEXT) then Exit;
+    glProgramUniform3dvEXT := wglGetProcAddress('glProgramUniform3dvEXT');
+    if not Assigned(glProgramUniform3dvEXT) then Exit;
+    glProgramUniform4dvEXT := wglGetProcAddress('glProgramUniform4dvEXT');
+    if not Assigned(glProgramUniform4dvEXT) then Exit;
+    glProgramUniformMatrix2dvEXT := wglGetProcAddress('glProgramUniformMatrix2dvEXT');
+    if not Assigned(glProgramUniformMatrix2dvEXT) then Exit;
+    glProgramUniformMatrix3dvEXT := wglGetProcAddress('glProgramUniformMatrix3dvEXT');
+    if not Assigned(glProgramUniformMatrix3dvEXT) then Exit;
+    glProgramUniformMatrix4dvEXT := wglGetProcAddress('glProgramUniformMatrix4dvEXT');
+    if not Assigned(glProgramUniformMatrix4dvEXT) then Exit;
+    glProgramUniformMatrix2x3dvEXT := wglGetProcAddress('glProgramUniformMatrix2x3dvEXT');
+    if not Assigned(glProgramUniformMatrix2x3dvEXT) then Exit;
+    glProgramUniformMatrix2x4dvEXT := wglGetProcAddress('glProgramUniformMatrix2x4dvEXT');
+    if not Assigned(glProgramUniformMatrix2x4dvEXT) then Exit;
+    glProgramUniformMatrix3x2dvEXT := wglGetProcAddress('glProgramUniformMatrix3x2dvEXT');
+    if not Assigned(glProgramUniformMatrix3x2dvEXT) then Exit;
+    glProgramUniformMatrix3x4dvEXT := wglGetProcAddress('glProgramUniformMatrix3x4dvEXT');
+    if not Assigned(glProgramUniformMatrix3x4dvEXT) then Exit;
+    glProgramUniformMatrix4x2dvEXT := wglGetProcAddress('glProgramUniformMatrix4x2dvEXT');
+    if not Assigned(glProgramUniformMatrix4x2dvEXT) then Exit;
+    glProgramUniformMatrix4x3dvEXT := wglGetProcAddress('glProgramUniformMatrix4x3dvEXT');
+    if not Assigned(glProgramUniformMatrix4x3dvEXT) then Exit;
+    Result := True;
+  end;
+end;
+
+function Load_GL_ARB_shader_subroutine(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_shader_subroutine', extstring) then
+  begin
+    glGetSubroutineUniformLocation := wglGetProcAddress('glGetSubroutineUniformLocation');
+    if not Assigned(glGetSubroutineUniformLocation) then Exit;
+    glGetSubroutineIndex := wglGetProcAddress('glGetSubroutineIndex');
+    if not Assigned(glGetSubroutineIndex) then Exit;
+    glGetActiveSubroutineUniformiv := wglGetProcAddress('glGetActiveSubroutineUniformiv');
+    if not Assigned(glGetActiveSubroutineUniformiv) then Exit;
+    glGetActiveSubroutineUniformName := wglGetProcAddress('glGetActiveSubroutineUniformName');
+    if not Assigned(glGetActiveSubroutineUniformName) then Exit;
+    glGetActiveSubroutineName := wglGetProcAddress('glGetActiveSubroutineName');
+    if not Assigned(glGetActiveSubroutineName) then Exit;
+    glUniformSubroutinesuiv := wglGetProcAddress('glUniformSubroutinesuiv');
+    if not Assigned(glUniformSubroutinesuiv) then Exit;
+    glGetUniformSubroutineuiv := wglGetProcAddress('glGetUniformSubroutineuiv');
+    if not Assigned(glGetUniformSubroutineuiv) then Exit;
+    glGetProgramStageiv := wglGetProcAddress('glGetProgramStageiv');
+    if not Assigned(glGetProgramStageiv) then Exit;
+    Result := True;
+  end;
+end;
+
+function Load_GL_ARB_tessellation_shader(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_tessellation_shader', extstring) then
+  begin
+    glPatchParameteri := wglGetProcAddress('glPatchParameteri');
+    if not Assigned(glPatchParameteri) then Exit;
+    glPatchParameterfv := wglGetProcAddress('glPatchParameterfv');
+    if not Assigned(glPatchParameterfv) then Exit;
+    Result := True;
+  end;
+end;
+
+function Load_GL_ARB_transform_feedback2(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_transform_feedback2', extstring) then
+  begin
+    glBindTransformFeedback := wglGetProcAddress('glBindTransformFeedback');
+    if not Assigned(glBindTransformFeedback) then Exit;
+    glDeleteTransformFeedbacks := wglGetProcAddress('glDeleteTransformFeedbacks');
+    if not Assigned(glDeleteTransformFeedbacks) then Exit;
+    glGenTransformFeedbacks := wglGetProcAddress('glGenTransformFeedbacks');
+    if not Assigned(glGenTransformFeedbacks) then Exit;
+    glIsTransformFeedback := wglGetProcAddress('glIsTransformFeedback');
+    if not Assigned(glIsTransformFeedback) then Exit;
+    glPauseTransformFeedback := wglGetProcAddress('glPauseTransformFeedback');
+    if not Assigned(glPauseTransformFeedback) then Exit;
+    glResumeTransformFeedback := wglGetProcAddress('glResumeTransformFeedback');
+    if not Assigned(glResumeTransformFeedback) then Exit;
+    glDrawTransformFeedback := wglGetProcAddress('glDrawTransformFeedback');
+    if not Assigned(glDrawTransformFeedback) then Exit;
+    Result := True;
+  end;
+end;
+
+function Load_GL_ARB_transform_feedback3(): Boolean;
+var
+  extstring: String;
+begin
+  Result := False;
+  extstring := String(PChar(glGetString(GL_EXTENSIONS)));
+
+  if glext_ExtensionSupported('GL_ARB_transform_feedback3', extstring) then
+  begin
+    glDrawTransformFeedbackStream := wglGetProcAddress('glDrawTransformFeedbackStream');
+    if not Assigned(glDrawTransformFeedbackStream) then Exit;
+    glBeginQueryIndexed := wglGetProcAddress('glBeginQueryIndexed');
+    if not Assigned(glBeginQueryIndexed) then Exit;
+    glEndQueryIndexed := wglGetProcAddress('glEndQueryIndexed');
+    if not Assigned(glEndQueryIndexed) then Exit;
+    glGetQueryIndexediv := wglGetProcAddress('glGetQueryIndexediv');
+    if not Assigned(glGetQueryIndexediv) then Exit;
+    Result := True;
+  end;
+end;
+
 function Load_GL_version_1_4: Boolean;
 var
   extstring: String;
@@ -9539,6 +10931,204 @@ begin
   else if ext = 'GL_version_1_5' then Result := Load_GL_version_1_5
   else if ext = 'GL_version_2_0' then Result := Load_GL_version_2_0
 
+end;
+
+function Load_GL_VERSION_2_1(): Boolean;
+begin
+  Result := False;
+  glUniformMatrix2x3fv := wglGetProcAddress('glUniformMatrix2x3fv');
+  if not Assigned(glUniformMatrix2x3fv) then Exit;
+  glUniformMatrix3x2fv := wglGetProcAddress('glUniformMatrix3x2fv');
+  if not Assigned(glUniformMatrix3x2fv) then Exit;
+  glUniformMatrix2x4fv := wglGetProcAddress('glUniformMatrix2x4fv');
+  if not Assigned(glUniformMatrix2x4fv) then Exit;
+  glUniformMatrix4x2fv := wglGetProcAddress('glUniformMatrix4x2fv');
+  if not Assigned(glUniformMatrix4x2fv) then Exit;
+  glUniformMatrix3x4fv := wglGetProcAddress('glUniformMatrix3x4fv');
+  if not Assigned(glUniformMatrix3x4fv) then Exit;
+  glUniformMatrix4x3fv := wglGetProcAddress('glUniformMatrix4x3fv');
+  if not Assigned(glUniformMatrix4x3fv) then Exit;
+  Result := Load_GL_VERSION_2_0();
+end;
+
+function Load_GL_VERSION_3_0(): Boolean;
+begin
+  Result := False;
+  glColorMaski := wglGetProcAddress('glColorMaski');
+  if not Assigned(glColorMaski) then Exit;
+  glGetBooleani_v := wglGetProcAddress('glGetBooleani_v');
+  if not Assigned(glGetBooleani_v) then Exit;
+  glGetIntegeri_v := wglGetProcAddress('glGetIntegeri_v');
+  if not Assigned(glGetIntegeri_v) then Exit;
+  glEnablei := wglGetProcAddress('glEnablei');
+  if not Assigned(glEnablei) then Exit;
+  glDisablei := wglGetProcAddress('glDisablei');
+  if not Assigned(glDisablei) then Exit;
+  glIsEnabledi := wglGetProcAddress('glIsEnabledi');
+  if not Assigned(glIsEnabledi) then Exit;
+  glBeginTransformFeedback := wglGetProcAddress('glBeginTransformFeedback');
+  if not Assigned(glBeginTransformFeedback) then Exit;
+  glEndTransformFeedback := wglGetProcAddress('glEndTransformFeedback');
+  if not Assigned(glEndTransformFeedback) then Exit;
+  glBindBufferRange := wglGetProcAddress('glBindBufferRange');
+  if not Assigned(glBindBufferRange) then Exit;
+  glBindBufferBase := wglGetProcAddress('glBindBufferBase');
+  if not Assigned(glBindBufferBase) then Exit;
+  glTransformFeedbackVaryings := wglGetProcAddress('glTransformFeedbackVaryings');
+  if not Assigned(glTransformFeedbackVaryings) then Exit;
+  glGetTransformFeedbackVarying := wglGetProcAddress('glGetTransformFeedbackVarying');
+  if not Assigned(glGetTransformFeedbackVarying) then Exit;
+  glClampColor := wglGetProcAddress('glClampColor');
+  if not Assigned(glClampColor) then Exit;
+  glBeginConditionalRender := wglGetProcAddress('glBeginConditionalRender');
+  if not Assigned(glBeginConditionalRender) then Exit;
+  glEndConditionalRender := wglGetProcAddress('glEndConditionalRender');
+  if not Assigned(glEndConditionalRender) then Exit;
+  glVertexAttribIPointer := wglGetProcAddress('glVertexAttribIPointer');
+  if not Assigned(glVertexAttribIPointer) then Exit;
+  glGetVertexAttribIiv := wglGetProcAddress('glGetVertexAttribIiv');
+  if not Assigned(glGetVertexAttribIiv) then Exit;
+  glGetVertexAttribIuiv := wglGetProcAddress('glGetVertexAttribIuiv');
+  if not Assigned(glGetVertexAttribIuiv) then Exit;
+  glVertexAttribI1i := wglGetProcAddress('glVertexAttribI1i');
+  if not Assigned(glVertexAttribI1i) then Exit;
+  glVertexAttribI2i := wglGetProcAddress('glVertexAttribI2i');
+  if not Assigned(glVertexAttribI2i) then Exit;
+  glVertexAttribI3i := wglGetProcAddress('glVertexAttribI3i');
+  if not Assigned(glVertexAttribI3i) then Exit;
+  glVertexAttribI4i := wglGetProcAddress('glVertexAttribI4i');
+  if not Assigned(glVertexAttribI4i) then Exit;
+  glVertexAttribI1ui := wglGetProcAddress('glVertexAttribI1ui');
+  if not Assigned(glVertexAttribI1ui) then Exit;
+  glVertexAttribI2ui := wglGetProcAddress('glVertexAttribI2ui');
+  if not Assigned(glVertexAttribI2ui) then Exit;
+  glVertexAttribI3ui := wglGetProcAddress('glVertexAttribI3ui');
+  if not Assigned(glVertexAttribI3ui) then Exit;
+  glVertexAttribI4ui := wglGetProcAddress('glVertexAttribI4ui');
+  if not Assigned(glVertexAttribI4ui) then Exit;
+  glVertexAttribI1iv := wglGetProcAddress('glVertexAttribI1iv');
+  if not Assigned(glVertexAttribI1iv) then Exit;
+  glVertexAttribI2iv := wglGetProcAddress('glVertexAttribI2iv');
+  if not Assigned(glVertexAttribI2iv) then Exit;
+  glVertexAttribI3iv := wglGetProcAddress('glVertexAttribI3iv');
+  if not Assigned(glVertexAttribI3iv) then Exit;
+  glVertexAttribI4iv := wglGetProcAddress('glVertexAttribI4iv');
+  if not Assigned(glVertexAttribI4iv) then Exit;
+  glVertexAttribI1uiv := wglGetProcAddress('glVertexAttribI1uiv');
+  if not Assigned(glVertexAttribI1uiv) then Exit;
+  glVertexAttribI2uiv := wglGetProcAddress('glVertexAttribI2uiv');
+  if not Assigned(glVertexAttribI2uiv) then Exit;
+  glVertexAttribI3uiv := wglGetProcAddress('glVertexAttribI3uiv');
+  if not Assigned(glVertexAttribI3uiv) then Exit;
+  glVertexAttribI4uiv := wglGetProcAddress('glVertexAttribI4uiv');
+  if not Assigned(glVertexAttribI4uiv) then Exit;
+  glVertexAttribI4bv := wglGetProcAddress('glVertexAttribI4bv');
+  if not Assigned(glVertexAttribI4bv) then Exit;
+  glVertexAttribI4sv := wglGetProcAddress('glVertexAttribI4sv');
+  if not Assigned(glVertexAttribI4sv) then Exit;
+  glVertexAttribI4ubv := wglGetProcAddress('glVertexAttribI4ubv');
+  if not Assigned(glVertexAttribI4ubv) then Exit;
+  glVertexAttribI4usv := wglGetProcAddress('glVertexAttribI4usv');
+  if not Assigned(glVertexAttribI4usv) then Exit;
+  glGetUniformuiv := wglGetProcAddress('glGetUniformuiv');
+  if not Assigned(glGetUniformuiv) then Exit;
+  glBindFragDataLocation := wglGetProcAddress('glBindFragDataLocation');
+  if not Assigned(glBindFragDataLocation) then Exit;
+  glGetFragDataLocation := wglGetProcAddress('glGetFragDataLocation');
+  if not Assigned(glGetFragDataLocation) then Exit;
+  glUniform1ui := wglGetProcAddress('glUniform1ui');
+  if not Assigned(glUniform1ui) then Exit;
+  glUniform2ui := wglGetProcAddress('glUniform2ui');
+  if not Assigned(glUniform2ui) then Exit;
+  glUniform3ui := wglGetProcAddress('glUniform3ui');
+  if not Assigned(glUniform3ui) then Exit;
+  glUniform4ui := wglGetProcAddress('glUniform4ui');
+  if not Assigned(glUniform4ui) then Exit;
+  glUniform1uiv := wglGetProcAddress('glUniform1uiv');
+  if not Assigned(glUniform1uiv) then Exit;
+  glUniform2uiv := wglGetProcAddress('glUniform2uiv');
+  if not Assigned(glUniform2uiv) then Exit;
+  glUniform3uiv := wglGetProcAddress('glUniform3uiv');
+  if not Assigned(glUniform3uiv) then Exit;
+  glUniform4uiv := wglGetProcAddress('glUniform4uiv');
+  if not Assigned(glUniform4uiv) then Exit;
+  glTexParameterIiv := wglGetProcAddress('glTexParameterIiv');
+  if not Assigned(glTexParameterIiv) then Exit;
+  glTexParameterIuiv := wglGetProcAddress('glTexParameterIuiv');
+  if not Assigned(glTexParameterIuiv) then Exit;
+  glGetTexParameterIiv := wglGetProcAddress('glGetTexParameterIiv');
+  if not Assigned(glGetTexParameterIiv) then Exit;
+  glGetTexParameterIuiv := wglGetProcAddress('glGetTexParameterIuiv');
+  if not Assigned(glGetTexParameterIuiv) then Exit;
+  glClearBufferiv := wglGetProcAddress('glClearBufferiv');
+  if not Assigned(glClearBufferiv) then Exit;
+  glClearBufferuiv := wglGetProcAddress('glClearBufferuiv');
+  if not Assigned(glClearBufferuiv) then Exit;
+  glClearBufferfv := wglGetProcAddress('glClearBufferfv');
+  if not Assigned(glClearBufferfv) then Exit;
+  glClearBufferfi := wglGetProcAddress('glClearBufferfi');
+  if not Assigned(glClearBufferfi) then Exit;
+  glGetStringi := wglGetProcAddress('glGetStringi');
+  if not Assigned(glGetStringi) then Exit;
+  if not Load_GL_ARB_framebuffer_object() then Exit;
+  if not Load_GL_ARB_map_buffer_range() then Exit;
+  if not Load_GL_ARB_vertex_array_object() then Exit;
+  Result := Load_GL_VERSION_2_1();
+end;
+
+function Load_GL_VERSION_3_1(): Boolean;
+begin
+  Result := False;
+  glDrawArraysInstanced := wglGetProcAddress('glDrawArraysInstanced');
+  if not Assigned(glDrawArraysInstanced) then Exit;
+  glDrawElementsInstanced := wglGetProcAddress('glDrawElementsInstanced');
+  if not Assigned(glDrawElementsInstanced) then Exit;
+  glTexBuffer := wglGetProcAddress('glTexBuffer');
+  if not Assigned(glTexBuffer) then Exit;
+  glPrimitiveRestartIndex := wglGetProcAddress('glPrimitiveRestartIndex');
+  if not Assigned(glPrimitiveRestartIndex) then Exit;
+  if not Load_GL_ARB_copy_buffer() then Exit;
+  if not Load_GL_ARB_uniform_buffer_object() then Exit;
+  Result := Load_GL_VERSION_3_0();
+end;
+
+function Load_GL_VERSION_3_2(): Boolean;
+begin
+  Result := False;
+  glGetInteger64i_v := wglGetProcAddress('glGetInteger64i_v');
+  if not Assigned(glGetInteger64i_v) then Exit;
+  glGetBufferParameteri64v := wglGetProcAddress('glGetBufferParameteri64v');
+  if not Assigned(glGetBufferParameteri64v) then Exit;
+  glProgramParameteri := wglGetProcAddress('glProgramParameteri');
+  if not Assigned(glProgramParameteri) then Exit;
+  glFramebufferTexture := wglGetProcAddress('glFramebufferTexture');
+  if not Assigned(glFramebufferTexture) then Exit;
+  if not Load_GL_ARB_draw_elements_base_vertex() then Exit;
+  if not Load_GL_ARB_provoking_vertex() then Exit;
+  if not Load_GL_ARB_sync() then Exit;
+  if not Load_GL_ARB_texture_multisample() then Exit;
+  Result := Load_GL_VERSION_3_1();
+end;
+
+function Load_GL_VERSION_3_3(): Boolean;
+begin
+  Result := False;
+  if not Load_GL_ARB_blend_func_extended() then Exit;
+  if not Load_GL_ARB_sampler_objects() then Exit;
+  if not Load_GL_ARB_timer_query() then Exit;
+  if not Load_GL_ARB_vertex_type_2_10_10_10_rev() then Exit;
+  Result := Load_GL_VERSION_3_2();
+end;
+
+function Load_GL_VERSION_4_0(): Boolean;
+begin
+  Result := False;
+  if not Load_GL_ARB_gpu_shader_fp64() then Exit;
+  if not Load_GL_ARB_shader_subroutine() then Exit;
+  if not Load_GL_ARB_tessellation_shader() then Exit;
+  if not Load_GL_ARB_transform_feedback2() then Exit;
+  if not Load_GL_ARB_transform_feedback3() then Exit;
+  Result := Load_GL_VERSION_3_3();
 end;
 
 end.
