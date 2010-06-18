@@ -111,7 +111,7 @@ ResourceString
   SEmptyStreamIllegalWriter     = 'Illegal Nil stream for TWriter constructor';
   SErrindexTooLarge             = 'Bit index exceeds array limit: %d';
   SErrInvalidBitIndex           = 'Invalid bit index : %d';
-  SErrNoStreaming               = 'Failed to initialize component: No streaming method available.';
+  SErrNoStreaming               = 'Failed to initialize component class "%s": No streaming method available.';
   SErrNoVariantSupport          = 'No variant support for properties. Please use the variants unit in your project and recompile';
   SErrOutOfMemory               = 'Out of memory';
   SErrPropertyNotFound          = 'Unknown property: "%s"';
