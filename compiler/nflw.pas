@@ -241,426 +241,429 @@ implementation
 
 // for-in loop helpers
 
-function create_type_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
-begin
-  result:=cfornode.create(hloopvar,
-       cinlinenode.create(in_low_x,false,expr.getcopy),
-       cinlinenode.create(in_high_x,false,expr.getcopy),
-       hloopbody,
-       false);
-end;
-
-function create_string_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
-var
-  loopstatement, loopbodystatement: tstatementnode;
-  loopvar, stringvar: ttempcreatenode;
-  stringindex, loopbody, forloopnode: tnode;
-begin
-  { result is a block of statements }
-  result:=internalstatements(loopstatement);
-
-  { create a temp variable for expression }
-  stringvar := ctempcreatenode.create(
-    expr.resultdef,
-    expr.resultdef.size,
-    tt_persistent,true);
-
-  addstatement(loopstatement,stringvar);
-  addstatement(loopstatement,cassignmentnode.create(ctemprefnode.create(stringvar),expr.getcopy));
-
-  { create a loop counter: signed integer with size of string length }
-  loopvar := ctempcreatenode.create(
-    sinttype,
-    sinttype.size,
-    tt_persistent,true);
-
-  addstatement(loopstatement,loopvar);
-
-  stringindex:=ctemprefnode.create(loopvar);
-
-  loopbody:=internalstatements(loopbodystatement);
-  // for-in loop variable := string_expression[index]
-  addstatement(loopbodystatement,
-      cassignmentnode.create(hloopvar, cvecnode.create(ctemprefnode.create(stringvar),stringindex)));
-
-  { add the actual statement to the loop }
-  addstatement(loopbodystatement,hloopbody);
-
-  forloopnode:=cfornode.create(ctemprefnode.create(loopvar),
-     genintconstnode(1),
-     cinlinenode.create(in_length_x,false,ctemprefnode.create(stringvar)),
-     loopbody,
-     false);
-
-  addstatement(loopstatement,forloopnode);
-  { free the loop counter }
-  addstatement(loopstatement,ctempdeletenode.create(loopvar));
-  { free the temp variable for expression }
-  addstatement(loopstatement,ctempdeletenode.create(stringvar));
-end;
-
-function create_array_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
-var
-  loopstatement, loopbodystatement: tstatementnode;
-  loopvar, arrayvar: ttempcreatenode;
-  arrayindex, lowbound, highbound, loopbody, forloopnode, expression: tnode;
-  is_string: boolean;
-  tmpdef, convertdef: tdef;
-  elementcount: aword;
-begin
-  expression := expr;
-
-  { result is a block of statements }
-  result:=internalstatements(loopstatement);
-
-  is_string:=ado_IsConstString in tarraydef(expr.resultdef).arrayoptions;
-
-  // if array element type <> loovar type then create a conversion if possible
-  if compare_defs(tarraydef(expression.resultdef).elementdef,hloopvar.resultdef,nothingn)=te_incompatible then
-  begin
-    tmpdef:=expression.resultdef;
-    elementcount:=1;
-    while assigned(tmpdef) and (tmpdef.typ=arraydef) and
-          (tarraydef(tmpdef).arrayoptions = []) and
-          (compare_defs(tarraydef(tmpdef).elementdef,hloopvar.resultdef,nothingn)=te_incompatible) do
-    begin
-      elementcount:=elementcount*tarraydef(tmpdef).elecount;
-      tmpdef:=tarraydef(tmpdef).elementdef;
-    end;
-    if assigned(tmpdef) and (tmpdef.typ=arraydef) and (tarraydef(tmpdef).arrayoptions = []) then
-    begin
-      elementcount:=elementcount*tarraydef(tmpdef).elecount;
-      convertdef:=tarraydef.create(0,elementcount-1,s32inttype);
-      tarraydef(convertdef).elementdef:=tarraydef(tmpdef).elementdef;
-      expression:=expr.getcopy;
-      expression:=ctypeconvnode.create_internal(expression,convertdef);
-      typecheckpass(expression);
-      addstatement(loopstatement,expression);
-    end;
-  end;
-
-  if (node_complexity(expression) > 1) and not is_open_array(expression.resultdef) then
-  begin
-    { create a temp variable for expression }
-    arrayvar := ctempcreatenode.create(
-      expression.resultdef,
-      expression.resultdef.size,
-      tt_persistent,true);
-
-    if is_string then
-    begin
-      lowbound:=genintconstnode(1);
-      highbound:=cinlinenode.create(in_length_x,false,ctemprefnode.create(arrayvar))
-    end
-    else
-    begin
-      lowbound:=cinlinenode.create(in_low_x,false,ctemprefnode.create(arrayvar));
-      highbound:=cinlinenode.create(in_high_x,false,ctemprefnode.create(arrayvar));
-    end;
-
-    addstatement(loopstatement,arrayvar);
-    addstatement(loopstatement,cassignmentnode.create(ctemprefnode.create(arrayvar),expression.getcopy));
-  end
-  else
-  begin
-    arrayvar:=nil;
-    if is_string then
-    begin
-      lowbound:=genintconstnode(1);
-      highbound:=cinlinenode.create(in_length_x,false,expression.getcopy);
-    end
-    else
-    begin
-      lowbound:=cinlinenode.create(in_low_x,false,expression.getcopy);
-      highbound:=cinlinenode.create(in_high_x,false,expression.getcopy);
-    end;
-  end;
-
-  { create a loop counter }
-  loopvar := ctempcreatenode.create(
-    tarraydef(expression.resultdef).rangedef,
-    tarraydef(expression.resultdef).rangedef.size,
-    tt_persistent,true);
-
-  addstatement(loopstatement,loopvar);
-
-  arrayindex:=ctemprefnode.create(loopvar);
-
-  loopbody:=internalstatements(loopbodystatement);
-  // for-in loop variable := array_expression[index]
-  if assigned(arrayvar) then
-    addstatement(loopbodystatement,
-        cassignmentnode.create(hloopvar,cvecnode.create(ctemprefnode.create(arrayvar),arrayindex)))
-  else
-    addstatement(loopbodystatement,
-        cassignmentnode.create(hloopvar,cvecnode.create(expression.getcopy,arrayindex)));
-
-  { add the actual statement to the loop }
-  addstatement(loopbodystatement,hloopbody);
-
-  forloopnode:=cfornode.create(ctemprefnode.create(loopvar),
-     lowbound,
-     highbound,
-     loopbody,
-     false);
-
-  addstatement(loopstatement,forloopnode);
-  { free the loop counter }
-  addstatement(loopstatement,ctempdeletenode.create(loopvar));
-  { free the temp variable for expression if needed }
-  if arrayvar<>nil then
-    addstatement(loopstatement,ctempdeletenode.create(arrayvar));
-end;
-
-function create_set_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
-var
-  loopstatement, loopbodystatement: tstatementnode;
-  loopvar, setvar: ttempcreatenode;
-  loopbody, forloopnode: tnode;
-begin
-  // first check is set is empty and if it so then skip other processing
-  if not Assigned(tsetdef(expr.resultdef).elementdef) then
-  begin
-    result:=cnothingnode.create;
-    // free unused nodes
-    hloopvar.free;
-    hloopbody.free;
-    exit;
-  end;
-  { result is a block of statements }
-  result:=internalstatements(loopstatement);
-
-  { create a temp variable for expression }
-  setvar := ctempcreatenode.create(
-    expr.resultdef,
-    expr.resultdef.size,
-    tt_persistent,true);
-
-  addstatement(loopstatement,setvar);
-  addstatement(loopstatement,cassignmentnode.create(ctemprefnode.create(setvar),expr.getcopy));
-
-  { create a loop counter }
-  loopvar := ctempcreatenode.create(
-    tsetdef(expr.resultdef).elementdef,
-    tsetdef(expr.resultdef).elementdef.size,
-    tt_persistent,true);
-
-  addstatement(loopstatement,loopvar);
-
-  // if loopvar in set then
-  // begin
-  //   hloopvar := loopvar
-  //   for-in loop body
-  // end
-
-  loopbody:=cifnode.create(
-        cinnode.create(ctemprefnode.create(loopvar),ctemprefnode.create(setvar)),
-        internalstatements(loopbodystatement),
-        nil
-  );
-
-  addstatement(loopbodystatement,cassignmentnode.create(hloopvar,ctemprefnode.create(loopvar)));
-  { add the actual statement to the loop }
-  addstatement(loopbodystatement,hloopbody);
-
-  forloopnode:=cfornode.create(ctemprefnode.create(loopvar),
-     cinlinenode.create(in_low_x,false,ctemprefnode.create(setvar)),
-     cinlinenode.create(in_high_x,false,ctemprefnode.create(setvar)),
-     loopbody,
-     false);
-
-  addstatement(loopstatement,forloopnode);
-  { free the loop counter }
-  addstatement(loopstatement,ctempdeletenode.create(loopvar));
-  { free the temp variable for expression }
-  addstatement(loopstatement,ctempdeletenode.create(setvar));
-end;
-
-function create_enumerator_for_in_loop(hloopvar, hloopbody, expr: tnode;
-   enumerator_get, enumerator_move: tprocdef; enumerator_current: tpropertysym): tnode;
-var
-  loopstatement, loopbodystatement: tstatementnode;
-  enumvar: ttempcreatenode;
-  loopbody, whileloopnode,
-  enum_get, enum_move, enum_current, enum_get_params: tnode;
-  propaccesslist: tpropaccesslist;
-  enumerator_is_class: boolean;
-  enumerator_destructor: tprocdef;
-begin
-  { result is a block of statements }
-  result:=internalstatements(loopstatement);
-
-  enumerator_is_class := is_class(enumerator_get.returndef);
-
-  { create a temp variable for enumerator }
-  enumvar := ctempcreatenode.create(
-    enumerator_get.returndef,
-    enumerator_get.returndef.size,
-    tt_persistent,true);
-
-  addstatement(loopstatement,enumvar);
-
-  if enumerator_get.proctypeoption=potype_operator then
-  begin
-    enum_get_params:=ccallparanode.create(expr.getcopy,nil);
-    enum_get:=ccallnode.create(enum_get_params, tprocsym(enumerator_get.procsym), nil, nil, []);
-    tcallnode(enum_get).procdefinition:=enumerator_get;
-    addsymref(enumerator_get.procsym);
-  end
-  else
-    enum_get:=ccallnode.create(nil, tprocsym(enumerator_get.procsym), enumerator_get.owner, expr.getcopy, []);
-
-  addstatement(loopstatement,
-    cassignmentnode.create(
-      ctemprefnode.create(enumvar),
-      enum_get
-    ));
-
-  loopbody:=internalstatements(loopbodystatement);
-  { for-in loop variable := enumerator.current }
-  if getpropaccesslist(enumerator_current,palt_read,propaccesslist) then
-  begin
-     case propaccesslist.firstsym^.sym.typ of
-       fieldvarsym :
-         begin
-            { generate access code }
-            enum_current:=ctemprefnode.create(enumvar);
-            propaccesslist_to_node(enum_current,enumerator_current.owner,propaccesslist);
-            include(enum_current.flags,nf_isproperty);
-         end;
-       procsym :
-         begin
-            { generate the method call }
-            enum_current:=ccallnode.create(nil,tprocsym(propaccesslist.firstsym^.sym),enumerator_current.owner,ctemprefnode.create(enumvar),[]);
-            include(enum_current.flags,nf_isproperty);
-         end
-       else
-         begin
-            enum_current:=cerrornode.create;
-            Message(type_e_mismatch);
-         end;
-    end;
-  end
-  else
-    enum_current:=cerrornode.create;
-
-  addstatement(loopbodystatement,
-      cassignmentnode.create(hloopvar, enum_current));
-
-  { add the actual statement to the loop }
-  addstatement(loopbodystatement,hloopbody);
-
-  enum_move:=ccallnode.create(nil, tprocsym(enumerator_move.procsym), enumerator_move.owner, ctemprefnode.create(enumvar), []);
-  whileloopnode:=cwhilerepeatnode.create(enum_move,loopbody,true,false);
-
-  if enumerator_is_class then
-  begin
-    { insert a try-finally and call the destructor for the enumerator in the finally section }
-    enumerator_destructor:=tobjectdef(enumerator_get.returndef).find_destructor;
-    if assigned(enumerator_destructor) then
-    begin
-      whileloopnode:=ctryfinallynode.create(
-        whileloopnode, // try node
-        ccallnode.create(nil,tprocsym(enumerator_destructor.procsym), // finally node
-          enumerator_destructor.procsym.owner,ctemprefnode.create(enumvar),[]));
-    end;
-    { if getenumerator <> nil then do the loop }
-    whileloopnode:=cifnode.create(
-      caddnode.create(unequaln, ctemprefnode.create(enumvar), cnilnode.create),
-      whileloopnode,
-      nil
-      );
-  end;
-
-  addstatement(loopstatement, whileloopnode);
-
-  if is_object(enumerator_get.returndef) then
-  begin
-    // call the object destructor too
-    enumerator_destructor:=tobjectdef(enumerator_get.returndef).find_destructor;
-    if assigned(enumerator_destructor) then
-    begin
-      addstatement(loopstatement,
-        ccallnode.create(nil,tprocsym(enumerator_destructor.procsym),
-            enumerator_destructor.procsym.owner,ctemprefnode.create(enumvar),[]));
-    end;
-  end;
-
-  { free the temp variable for enumerator }
-  addstatement(loopstatement,ctempdeletenode.create(enumvar));
-end;
-
-function create_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
-var
-  pd, movenext: tprocdef;
-  current: tpropertysym;
-  storefilepos: tfileposinfo;
-begin
-  storefilepos:=current_filepos;
-  current_filepos:=hloopvar.fileinfo;
-  if expr.nodetype=typen then
-  begin
-    if (expr.resultdef.typ=enumdef) and tenumdef(expr.resultdef).has_jumps then
-    begin
-      result:=cerrornode.create;
-      hloopvar.free;
-      hloopbody.free;
-      MessagePos1(expr.fileinfo,parser_e_for_in_loop_cannot_be_used_for_the_type,expr.resultdef.typename);
-    end
-    else 
-      result:=create_type_for_in_loop(hloopvar, hloopbody, expr);
-  end
-  else
-  begin
-    { loop is made for an expression }
-    // search for operator first
-    pd:=search_enumerator_operator(expr.resultdef);
-    // if there is no operator then search for class/object enumerator method
-    if (pd=nil) and (expr.resultdef.typ=objectdef) then
-      pd:=tobjectdef(expr.resultdef).search_enumerator_get;
-    if pd<>nil then
-    begin
-      // seach movenext and current symbols
-      movenext:=tobjectdef(pd.returndef).search_enumerator_move;
-      if movenext = nil then
+    function create_type_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
       begin
-        result:=cerrornode.create;
-        hloopvar.free;
-        hloopbody.free;
-        MessagePos1(expr.fileinfo,sym_e_no_enumerator_move,pd.returndef.GetTypeName);
-      end
-      else
+        result:=cfornode.create(hloopvar,
+          cinlinenode.create(in_low_x,false,expr.getcopy),
+          cinlinenode.create(in_high_x,false,expr.getcopy),
+          hloopbody,
+          false);
+      end;
+
+
+    function create_string_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
+      var
+        loopstatement, loopbodystatement: tstatementnode;
+        loopvar, stringvar: ttempcreatenode;
+        stringindex, loopbody, forloopnode: tnode;
       begin
-        current:=tpropertysym(tobjectdef(pd.returndef).search_enumerator_current);
-        if current = nil then
-        begin
-          result:=cerrornode.create;
-          hloopvar.free;
-          hloopbody.free;
-          MessagePos1(expr.fileinfo,sym_e_no_enumerator_current,pd.returndef.GetTypeName);
-        end
+        { result is a block of statements }
+        result:=internalstatements(loopstatement);
+
+        { create a temp variable for expression }
+        stringvar := ctempcreatenode.create(
+          expr.resultdef,
+          expr.resultdef.size,
+          tt_persistent,true);
+
+        addstatement(loopstatement,stringvar);
+        addstatement(loopstatement,cassignmentnode.create(ctemprefnode.create(stringvar),expr.getcopy));
+
+        { create a loop counter: signed integer with size of string length }
+        loopvar := ctempcreatenode.create(
+          sinttype,
+          sinttype.size,
+          tt_persistent,true);
+
+        addstatement(loopstatement,loopvar);
+
+        stringindex:=ctemprefnode.create(loopvar);
+
+        loopbody:=internalstatements(loopbodystatement);
+        // for-in loop variable := string_expression[index]
+        addstatement(loopbodystatement,
+          cassignmentnode.create(hloopvar, cvecnode.create(ctemprefnode.create(stringvar),stringindex)));
+
+        { add the actual statement to the loop }
+        addstatement(loopbodystatement,hloopbody);
+
+        forloopnode:=cfornode.create(ctemprefnode.create(loopvar),
+          genintconstnode(1),
+          cinlinenode.create(in_length_x,false,ctemprefnode.create(stringvar)),
+          loopbody,
+          false);
+
+        addstatement(loopstatement,forloopnode);
+        { free the loop counter }
+        addstatement(loopstatement,ctempdeletenode.create(loopvar));
+        { free the temp variable for expression }
+        addstatement(loopstatement,ctempdeletenode.create(stringvar));
+      end;
+
+
+    function create_array_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
+      var
+        loopstatement, loopbodystatement: tstatementnode;
+        loopvar, arrayvar: ttempcreatenode;
+        arrayindex, lowbound, highbound, loopbody, forloopnode, expression: tnode;
+        is_string: boolean;
+        tmpdef, convertdef: tdef;
+        elementcount: aword;
+      begin
+        expression := expr;
+
+        { result is a block of statements }
+        result:=internalstatements(loopstatement);
+
+        is_string:=ado_IsConstString in tarraydef(expr.resultdef).arrayoptions;
+
+        // if array element type <> loovar type then create a conversion if possible
+        if compare_defs(tarraydef(expression.resultdef).elementdef,hloopvar.resultdef,nothingn)=te_incompatible then
+          begin
+            tmpdef:=expression.resultdef;
+            elementcount:=1;
+            while assigned(tmpdef) and (tmpdef.typ=arraydef) and
+                  (tarraydef(tmpdef).arrayoptions = []) and
+                  (compare_defs(tarraydef(tmpdef).elementdef,hloopvar.resultdef,nothingn)=te_incompatible) do
+              begin
+                elementcount:=elementcount*tarraydef(tmpdef).elecount;
+                tmpdef:=tarraydef(tmpdef).elementdef;
+              end;
+            if assigned(tmpdef) and (tmpdef.typ=arraydef) and (tarraydef(tmpdef).arrayoptions = []) then
+              begin
+                elementcount:=elementcount*tarraydef(tmpdef).elecount;
+                convertdef:=tarraydef.create(0,elementcount-1,s32inttype);
+                tarraydef(convertdef).elementdef:=tarraydef(tmpdef).elementdef;
+                expression:=expr.getcopy;
+                expression:=ctypeconvnode.create_internal(expression,convertdef);
+                typecheckpass(expression);
+                addstatement(loopstatement,expression);
+              end;
+          end;
+
+        if (node_complexity(expression) > 1) and not is_open_array(expression.resultdef) then
+          begin
+            { create a temp variable for expression }
+            arrayvar := ctempcreatenode.create(
+              expression.resultdef,
+              expression.resultdef.size,
+              tt_persistent,true);
+
+            if is_string then
+              begin
+                lowbound:=genintconstnode(1);
+                highbound:=cinlinenode.create(in_length_x,false,ctemprefnode.create(arrayvar))
+              end
+            else
+              begin
+                lowbound:=cinlinenode.create(in_low_x,false,ctemprefnode.create(arrayvar));
+                highbound:=cinlinenode.create(in_high_x,false,ctemprefnode.create(arrayvar));
+              end;
+
+            addstatement(loopstatement,arrayvar);
+            addstatement(loopstatement,cassignmentnode.create(ctemprefnode.create(arrayvar),expression.getcopy));
+          end
         else
-          result:=create_enumerator_for_in_loop(hloopvar, hloopbody, expr, pd, movenext, current);
+          begin
+            arrayvar:=nil;
+            if is_string then
+              begin
+                lowbound:=genintconstnode(1);
+                highbound:=cinlinenode.create(in_length_x,false,expression.getcopy);
+              end
+            else
+              begin
+                lowbound:=cinlinenode.create(in_low_x,false,expression.getcopy);
+                highbound:=cinlinenode.create(in_high_x,false,expression.getcopy);
+              end;
+          end;
+
+        { create a loop counter }
+        loopvar := ctempcreatenode.create(
+          tarraydef(expression.resultdef).rangedef,
+          tarraydef(expression.resultdef).rangedef.size,
+          tt_persistent,true);
+
+        addstatement(loopstatement,loopvar);
+
+        arrayindex:=ctemprefnode.create(loopvar);
+
+        loopbody:=internalstatements(loopbodystatement);
+        // for-in loop variable := array_expression[index]
+        if assigned(arrayvar) then
+          addstatement(loopbodystatement,
+            cassignmentnode.create(hloopvar,cvecnode.create(ctemprefnode.create(arrayvar),arrayindex)))
+        else
+          addstatement(loopbodystatement,
+            cassignmentnode.create(hloopvar,cvecnode.create(expression.getcopy,arrayindex)));
+
+        { add the actual statement to the loop }
+        addstatement(loopbodystatement,hloopbody);
+
+        forloopnode:=cfornode.create(ctemprefnode.create(loopvar),
+          lowbound,
+          highbound,
+          loopbody,
+          false);
+
+        addstatement(loopstatement,forloopnode);
+        { free the loop counter }
+        addstatement(loopstatement,ctempdeletenode.create(loopvar));
+        { free the temp variable for expression if needed }
+        if arrayvar<>nil then
+          addstatement(loopstatement,ctempdeletenode.create(arrayvar));
       end;
-    end
-    else
-    begin
-      case expr.resultdef.typ of
-        stringdef: result:=create_string_for_in_loop(hloopvar, hloopbody, expr);
-        arraydef: result:=create_array_for_in_loop(hloopvar, hloopbody, expr);
-        setdef: result:=create_set_for_in_loop(hloopvar, hloopbody, expr);
-      else
-        begin
-          result:=cerrornode.create;
-          hloopvar.free;
-          hloopbody.free;
-          MessagePos1(expr.fileinfo,sym_e_no_enumerator,expr.resultdef.GetTypeName);
-        end;
+
+
+    function create_set_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
+      var
+        loopstatement, loopbodystatement: tstatementnode;
+        loopvar, setvar: ttempcreatenode;
+        loopbody, forloopnode: tnode;
+      begin
+        // first check is set is empty and if it so then skip other processing
+        if not Assigned(tsetdef(expr.resultdef).elementdef) then
+          begin
+            result:=cnothingnode.create;
+            // free unused nodes
+            hloopvar.free;
+            hloopbody.free;
+            exit;
+          end;
+        { result is a block of statements }
+        result:=internalstatements(loopstatement);
+
+        { create a temp variable for expression }
+        setvar := ctempcreatenode.create(
+          expr.resultdef,
+          expr.resultdef.size,
+          tt_persistent,true);
+
+        addstatement(loopstatement,setvar);
+        addstatement(loopstatement,cassignmentnode.create(ctemprefnode.create(setvar),expr.getcopy));
+
+        { create a loop counter }
+        loopvar := ctempcreatenode.create(
+          tsetdef(expr.resultdef).elementdef,
+          tsetdef(expr.resultdef).elementdef.size,
+          tt_persistent,true);
+
+        addstatement(loopstatement,loopvar);
+
+        // if loopvar in set then
+        // begin
+        //   hloopvar := loopvar
+        //   for-in loop body
+        // end
+
+        loopbody:=cifnode.create(
+          cinnode.create(ctemprefnode.create(loopvar),ctemprefnode.create(setvar)),
+          internalstatements(loopbodystatement),
+          nil);
+
+        addstatement(loopbodystatement,cassignmentnode.create(hloopvar,ctemprefnode.create(loopvar)));
+        { add the actual statement to the loop }
+        addstatement(loopbodystatement,hloopbody);
+
+        forloopnode:=cfornode.create(ctemprefnode.create(loopvar),
+          cinlinenode.create(in_low_x,false,ctemprefnode.create(setvar)),
+          cinlinenode.create(in_high_x,false,ctemprefnode.create(setvar)),
+          loopbody,
+          false);
+
+        addstatement(loopstatement,forloopnode);
+        { free the loop counter }
+        addstatement(loopstatement,ctempdeletenode.create(loopvar));
+        { free the temp variable for expression }
+        addstatement(loopstatement,ctempdeletenode.create(setvar));
       end;
-    end;
-  end;
-  current_filepos:=storefilepos;
-end;
+
+
+    function create_enumerator_for_in_loop(hloopvar, hloopbody, expr: tnode;
+       enumerator_get, enumerator_move: tprocdef; enumerator_current: tpropertysym): tnode;
+      var
+        loopstatement, loopbodystatement: tstatementnode;
+        enumvar: ttempcreatenode;
+        loopbody, whileloopnode,
+        enum_get, enum_move, enum_current, enum_get_params: tnode;
+        propaccesslist: tpropaccesslist;
+        enumerator_is_class: boolean;
+        enumerator_destructor: tprocdef;
+      begin
+        { result is a block of statements }
+        result:=internalstatements(loopstatement);
+
+        enumerator_is_class := is_class(enumerator_get.returndef);
+
+        { create a temp variable for enumerator }
+        enumvar := ctempcreatenode.create(
+          enumerator_get.returndef,
+          enumerator_get.returndef.size,
+          tt_persistent,true);
+
+        addstatement(loopstatement,enumvar);
+
+        if enumerator_get.proctypeoption=potype_operator then
+          begin
+            enum_get_params:=ccallparanode.create(expr.getcopy,nil);
+            enum_get:=ccallnode.create(enum_get_params, tprocsym(enumerator_get.procsym), nil, nil, []);
+            tcallnode(enum_get).procdefinition:=enumerator_get;
+            addsymref(enumerator_get.procsym);
+          end
+        else
+          enum_get:=ccallnode.create(nil, tprocsym(enumerator_get.procsym), enumerator_get.owner, expr.getcopy, []);
+
+        addstatement(loopstatement,
+          cassignmentnode.create(
+            ctemprefnode.create(enumvar),
+            enum_get
+          ));
+
+        loopbody:=internalstatements(loopbodystatement);
+        { for-in loop variable := enumerator.current }
+        if getpropaccesslist(enumerator_current,palt_read,propaccesslist) then
+          begin
+             case propaccesslist.firstsym^.sym.typ of
+               fieldvarsym :
+                 begin
+                   { generate access code }
+                   enum_current:=ctemprefnode.create(enumvar);
+                   propaccesslist_to_node(enum_current,enumerator_current.owner,propaccesslist);
+                   include(enum_current.flags,nf_isproperty);
+                 end;
+               procsym :
+                 begin
+                   { generate the method call }
+                   enum_current:=ccallnode.create(nil,tprocsym(propaccesslist.firstsym^.sym),enumerator_current.owner,ctemprefnode.create(enumvar),[]);
+                   include(enum_current.flags,nf_isproperty);
+                 end
+               else
+                 begin
+                   enum_current:=cerrornode.create;
+                   Message(type_e_mismatch);
+                 end;
+            end;
+          end
+        else
+          enum_current:=cerrornode.create;
+
+        addstatement(loopbodystatement,
+          cassignmentnode.create(hloopvar, enum_current));
+
+        { add the actual statement to the loop }
+        addstatement(loopbodystatement,hloopbody);
+
+        enum_move:=ccallnode.create(nil, tprocsym(enumerator_move.procsym), enumerator_move.owner, ctemprefnode.create(enumvar), []);
+        whileloopnode:=cwhilerepeatnode.create(enum_move,loopbody,true,false);
+
+        if enumerator_is_class then
+          begin
+            { insert a try-finally and call the destructor for the enumerator in the finally section }
+            enumerator_destructor:=tobjectdef(enumerator_get.returndef).find_destructor;
+            if assigned(enumerator_destructor) then
+              begin
+                whileloopnode:=ctryfinallynode.create(
+                  whileloopnode, // try node
+                  ccallnode.create(nil,tprocsym(enumerator_destructor.procsym), // finally node
+                    enumerator_destructor.procsym.owner,ctemprefnode.create(enumvar),[]));
+              end;
+            { if getenumerator <> nil then do the loop }
+            whileloopnode:=cifnode.create(
+              caddnode.create(unequaln, ctemprefnode.create(enumvar), cnilnode.create),
+              whileloopnode,
+              nil);
+          end;
+
+        addstatement(loopstatement, whileloopnode);
+
+        if is_object(enumerator_get.returndef) then
+          begin
+            // call the object destructor too
+            enumerator_destructor:=tobjectdef(enumerator_get.returndef).find_destructor;
+            if assigned(enumerator_destructor) then
+              begin
+                addstatement(loopstatement,
+                  ccallnode.create(nil,tprocsym(enumerator_destructor.procsym),
+                    enumerator_destructor.procsym.owner,ctemprefnode.create(enumvar),[]));
+              end;
+          end;
+
+        { free the temp variable for enumerator }
+        addstatement(loopstatement,ctempdeletenode.create(enumvar));
+      end;
+
+
+    function create_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
+      var
+        pd, movenext: tprocdef;
+        current: tpropertysym;
+        storefilepos: tfileposinfo;
+      begin
+        storefilepos:=current_filepos;
+        current_filepos:=hloopvar.fileinfo;
+        if expr.nodetype=typen then
+          begin
+            if (expr.resultdef.typ=enumdef) and tenumdef(expr.resultdef).has_jumps then
+              begin
+                result:=cerrornode.create;
+                hloopvar.free;
+                hloopbody.free;
+                MessagePos1(expr.fileinfo,parser_e_for_in_loop_cannot_be_used_for_the_type,expr.resultdef.typename);
+              end
+            else
+              result:=create_type_for_in_loop(hloopvar, hloopbody, expr);
+          end
+        else
+          begin
+            { loop is made for an expression }
+            // search for operator first
+            pd:=search_enumerator_operator(expr.resultdef);
+            // if there is no operator then search for class/object enumerator method
+            if (pd=nil) and (expr.resultdef.typ=objectdef) then
+              pd:=tobjectdef(expr.resultdef).search_enumerator_get;
+            if pd<>nil then
+              begin
+                // seach movenext and current symbols
+                movenext:=tobjectdef(pd.returndef).search_enumerator_move;
+                if movenext = nil then
+                  begin
+                    result:=cerrornode.create;
+                    hloopvar.free;
+                    hloopbody.free;
+                    MessagePos1(expr.fileinfo,sym_e_no_enumerator_move,pd.returndef.GetTypeName);
+                  end
+                else
+                  begin
+                    current:=tpropertysym(tobjectdef(pd.returndef).search_enumerator_current);
+                    if current = nil then
+                      begin
+                        result:=cerrornode.create;
+                        hloopvar.free;
+                        hloopbody.free;
+                        MessagePos1(expr.fileinfo,sym_e_no_enumerator_current,pd.returndef.GetTypeName);
+                      end
+                    else
+                      result:=create_enumerator_for_in_loop(hloopvar, hloopbody, expr, pd, movenext, current);
+                  end;
+              end
+            else
+              begin
+                case expr.resultdef.typ of
+                  stringdef: result:=create_string_for_in_loop(hloopvar, hloopbody, expr);
+                  arraydef: result:=create_array_for_in_loop(hloopvar, hloopbody, expr);
+                  setdef: result:=create_set_for_in_loop(hloopvar, hloopbody, expr);
+                else
+                  begin
+                    result:=cerrornode.create;
+                    hloopvar.free;
+                    hloopbody.free;
+                    MessagePos1(expr.fileinfo,sym_e_no_enumerator,expr.resultdef.GetTypeName);
+                  end;
+                end;
+              end;
+          end;
+        current_filepos:=storefilepos;
+      end;
 
 {****************************************************************************
                                  TLOOPNODE
