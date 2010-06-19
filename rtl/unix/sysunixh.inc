@@ -28,7 +28,7 @@ const
  LineEnding = #10;
  LFNSupport = true;
  DirectorySeparator = '/';
- DriveSeparator = '/';
+ DriveSeparator = '';
  ExtensionSeparator = '.';
  PathSeparator = ':';
  AllowDirectorySeparators : set of char = ['\','/'];
