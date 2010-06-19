@@ -4367,7 +4367,7 @@ implementation
 
        for i:=0 to prot.ImplementedInterfaces.count-1 do
          begin
-           result:=is_related_protocol(tobjectdef(prot.ImplementedInterfaces[i]),d);
+           result:=is_related_protocol(TImplementedInterface(prot.ImplementedInterfaces[i]).intfdef,d);
            if result then
              exit;
          end;
