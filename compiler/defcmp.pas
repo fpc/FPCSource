@@ -1268,7 +1268,7 @@ implementation
                        eq:=te_convert_l1;
                      end
                    { All Objective-C classes are compatible with ID }
-                   else if is_objcclass(def_to) and
+                   else if is_objc_class_or_protocol(def_to) and
                            (def_from=objc_idtype) then
                       begin
                        doconv:=tc_equal;

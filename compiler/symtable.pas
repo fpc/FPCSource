@@ -1981,6 +1981,7 @@ implementation
       var
         hashedid : THashedIDString;
         orgclass : tobjectdef;
+        i        : longint;
       begin
         orgclass:=classh;
         { The contextclassh is used for visibility. The classh must be equal to
@@ -1991,7 +1992,9 @@ implementation
           internalerror(200811161);
         result:=false;
         hashedid.id:=s;
-        while assigned(classh) do
+        { an Objective-C protocol can inherit from multiple other protocols
+          -> uses ImplementedInterfaces instead }
+        if is_objcprotocol(classh) then
           begin
             srsymtable:=classh.symtable;
             srsym:=tsym(srsymtable.FindWithHash(hashedid));
@@ -2002,7 +2005,30 @@ implementation
                 result:=true;
                 exit;
               end;
-            classh:=classh.childof;
+            for i:=0 to classh.ImplementedInterfaces.count-1 do
+              begin
+                if searchsym_in_class(TImplementedInterface(classh.ImplementedInterfaces[i]).intfdef,contextclassh,s,srsym,srsymtable) then
+                  begin
+                    result:=true;
+                    exit;
+                  end;
+              end;
+          end
+        else
+          begin
+            while assigned(classh) do
+              begin
+                srsymtable:=classh.symtable;
+                srsym:=tsym(srsymtable.FindWithHash(hashedid));
+                if assigned(srsym) and
+                   is_visible_for_object(srsym,contextclassh) then
+                  begin
+                    addsymref(srsym);
+                    result:=true;
+                    exit;
+                  end;
+                classh:=classh.childof;
+              end;
           end;
         if is_objcclass(orgclass) then
           result:=search_class_helper(orgclass,s,srsym,srsymtable)
