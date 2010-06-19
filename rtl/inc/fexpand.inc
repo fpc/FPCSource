@@ -177,7 +177,7 @@ begin
     if PathStart > 1 then
 {$ELSE FPC_FEXPAND_VOLUMES}
     if (Length (Pa) > 1) and (Pa [1] in ['A'..'Z', 'a'..'z']) and
-                                                 (Pa [2] = DriveSeparator) then
+      (Pa [2] = DriveSeparator) and (DriveSeparator <> DirectorySeparator) then
 {$ENDIF FPC_FEXPAND_VOLUMES}
         begin
 
