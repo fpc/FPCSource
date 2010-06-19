@@ -322,174 +322,176 @@ implementation
     function for_statement : tnode;
 
         procedure check_range(hp:tnode);
-        begin
-{$ifndef cpu64bitaddr}
-          if hp.nodetype=ordconstn then
-            begin
-              if (tordconstnode(hp).value<int64(low(longint))) or
-                 (tordconstnode(hp).value>high(longint)) then
-                begin
-                  CGMessage(parser_e_range_check_error);
-                  { recover, prevent more warnings/errors }
-                  tordconstnode(hp).value:=0;
-                end;
-            end;
-{$endif not cpu64bitaddr}
-        end;
+          begin
+  {$ifndef cpu64bitaddr}
+            if hp.nodetype=ordconstn then
+              begin
+                if (tordconstnode(hp).value<int64(low(longint))) or
+                   (tordconstnode(hp).value>high(longint)) then
+                  begin
+                    CGMessage(parser_e_range_check_error);
+                    { recover, prevent more warnings/errors }
+                    tordconstnode(hp).value:=0;
+                  end;
+              end;
+  {$endif not cpu64bitaddr}
+          end;
 
         function for_loop_create(hloopvar: tnode): tnode;
-        var
-           hp,
-           hblock,
-           hto,hfrom : tnode;
-           backward : boolean;
-           loopvarsym : tabstractvarsym;
-        begin
-           { Check loop variable }
-           loopvarsym:=nil;
+          var
+             hp,
+             hblock,
+             hto,hfrom : tnode;
+             backward : boolean;
+             loopvarsym : tabstractvarsym;
+          begin
+             { Check loop variable }
+             loopvarsym:=nil;
 
-           { variable must be an ordinal, int64 is not allowed for 32bit targets }
-           if not(is_ordinal(hloopvar.resultdef))
-  {$ifndef cpu64bitaddr}
-              or is_64bitint(hloopvar.resultdef)
-  {$endif not cpu64bitaddr}
-              then
-             MessagePos(hloopvar.fileinfo,type_e_ordinal_expr_expected);
+             { variable must be an ordinal, int64 is not allowed for 32bit targets }
+             if not(is_ordinal(hloopvar.resultdef))
+    {$ifndef cpu64bitaddr}
+                or is_64bitint(hloopvar.resultdef)
+    {$endif not cpu64bitaddr}
+                then
+               MessagePos(hloopvar.fileinfo,type_e_ordinal_expr_expected);
 
-           hp:=hloopvar;
-           while assigned(hp) and
-                 (
-                  { record/object fields and array elements are allowed }
-                  { in tp7 mode only                                    }
-                  (
-                   (m_tp7 in current_settings.modeswitches) and
+             hp:=hloopvar;
+             while assigned(hp) and
                    (
-                    ((hp.nodetype=subscriptn) and
-                     ((tsubscriptnode(hp).left.resultdef.typ=recorddef) or
-                      is_object(tsubscriptnode(hp).left.resultdef))
-                    ) or
-                    { constant array index }
+                    { record/object fields and array elements are allowed }
+                    { in tp7 mode only                                    }
                     (
-                     (hp.nodetype=vecn) and
-                     is_constintnode(tvecnode(hp).right)
+                     (m_tp7 in current_settings.modeswitches) and
+                     (
+                      ((hp.nodetype=subscriptn) and
+                       ((tsubscriptnode(hp).left.resultdef.typ=recorddef) or
+                        is_object(tsubscriptnode(hp).left.resultdef))
+                      ) or
+                      { constant array index }
+                      (
+                       (hp.nodetype=vecn) and
+                       is_constintnode(tvecnode(hp).right)
+                      )
+                     )
+                    ) or
+                    { equal typeconversions }
+                    (
+                     (hp.nodetype=typeconvn) and
+                     (ttypeconvnode(hp).convtype=tc_equal)
                     )
-                   )
-                  ) or
-                  { equal typeconversions }
-                  (
-                   (hp.nodetype=typeconvn) and
-                   (ttypeconvnode(hp).convtype=tc_equal)
-                  )
-                 ) do
-             begin
-               { Use the recordfield for loopvarsym }
-               if not assigned(loopvarsym) and
-                  (hp.nodetype=subscriptn) then
-                 loopvarsym:=tsubscriptnode(hp).vs;
-               hp:=tunarynode(hp).left;
-             end;
-
-           if assigned(hp) and
-              (hp.nodetype=loadn) then
-             begin
-               case tloadnode(hp).symtableentry.typ of
-                 staticvarsym,
-                 localvarsym,
-                 paravarsym :
-                   begin
-                     { we need a simple loadn:
-                         1. The load must be in a global symtable or
-                             in the same level as the para of the current proc.
-                         2. value variables (no const,out or var)
-                         3. No threadvar, readonly or typedconst
-                     }
-                     if (
-                         (tloadnode(hp).symtable.symtablelevel=main_program_level) or
-                         (tloadnode(hp).symtable.symtablelevel=current_procinfo.procdef.parast.symtablelevel)
-                        ) and
-                        (tabstractvarsym(tloadnode(hp).symtableentry).varspez=vs_value) and
-                        ([vo_is_thread_var,vo_is_typed_const] * tabstractvarsym(tloadnode(hp).symtableentry).varoptions=[]) then
-                       begin
-                         { Assigning for-loop variable is only allowed in tp7 and macpas }
-                         if ([m_tp7,m_mac] * current_settings.modeswitches = []) then
-                           begin
-                             if not assigned(loopvarsym) then
-                               loopvarsym:=tabstractvarsym(tloadnode(hp).symtableentry);
-                             include(loopvarsym.varoptions,vo_is_loop_counter);
-                           end;
-                       end
-                     else
-                       begin
-                         { Typed const is allowed in tp7 }
-                         if not(m_tp7 in current_settings.modeswitches) or
-                            not(vo_is_typed_const in tabstractvarsym(tloadnode(hp).symtableentry).varoptions) then
-                           MessagePos(hp.fileinfo,type_e_illegal_count_var);
-                       end;
-                   end;
-                 else
-                   MessagePos(hp.fileinfo,type_e_illegal_count_var);
+                   ) do
+               begin
+                 { Use the recordfield for loopvarsym }
+                 if not assigned(loopvarsym) and
+                    (hp.nodetype=subscriptn) then
+                   loopvarsym:=tsubscriptnode(hp).vs;
+                 hp:=tunarynode(hp).left;
                end;
-             end
-           else
-             MessagePos(hloopvar.fileinfo,type_e_illegal_count_var);
 
-           hfrom:=comp_expr(true);
+             if assigned(hp) and
+                (hp.nodetype=loadn) then
+               begin
+                 case tloadnode(hp).symtableentry.typ of
+                   staticvarsym,
+                   localvarsym,
+                   paravarsym :
+                     begin
+                       { we need a simple loadn:
+                           1. The load must be in a global symtable or
+                               in the same level as the para of the current proc.
+                           2. value variables (no const,out or var)
+                           3. No threadvar, readonly or typedconst
+                       }
+                       if (
+                           (tloadnode(hp).symtable.symtablelevel=main_program_level) or
+                           (tloadnode(hp).symtable.symtablelevel=current_procinfo.procdef.parast.symtablelevel)
+                          ) and
+                          (tabstractvarsym(tloadnode(hp).symtableentry).varspez=vs_value) and
+                          ([vo_is_thread_var,vo_is_typed_const] * tabstractvarsym(tloadnode(hp).symtableentry).varoptions=[]) then
+                         begin
+                           { Assigning for-loop variable is only allowed in tp7 and macpas }
+                           if ([m_tp7,m_mac] * current_settings.modeswitches = []) then
+                             begin
+                               if not assigned(loopvarsym) then
+                                 loopvarsym:=tabstractvarsym(tloadnode(hp).symtableentry);
+                               include(loopvarsym.varoptions,vo_is_loop_counter);
+                             end;
+                         end
+                       else
+                         begin
+                           { Typed const is allowed in tp7 }
+                           if not(m_tp7 in current_settings.modeswitches) or
+                              not(vo_is_typed_const in tabstractvarsym(tloadnode(hp).symtableentry).varoptions) then
+                             MessagePos(hp.fileinfo,type_e_illegal_count_var);
+                         end;
+                     end;
+                   else
+                     MessagePos(hp.fileinfo,type_e_illegal_count_var);
+                 end;
+               end
+             else
+               MessagePos(hloopvar.fileinfo,type_e_illegal_count_var);
 
-           if try_to_consume(_DOWNTO) then
-             backward:=true
-           else
-             begin
-               consume(_TO);
-               backward:=false;
-             end;
+             hfrom:=comp_expr(true);
 
-           hto:=comp_expr(true);
-           consume(_DO);
+             if try_to_consume(_DOWNTO) then
+               backward:=true
+             else
+               begin
+                 consume(_TO);
+                 backward:=false;
+               end;
 
-           { Check if the constants fit in the range }
-           check_range(hfrom);
-           check_range(hto);
+             hto:=comp_expr(true);
+             consume(_DO);
 
-           { first set the varstate for from and to, so
-             uses of loopvar in those expressions will also
-             trigger a warning when it is not used yet. This
-             needs to be done before the instruction block is
-             parsed to have a valid hloopvar }
-           typecheckpass(hfrom);
-           set_varstate(hfrom,vs_read,[vsf_must_be_valid]);
-           typecheckpass(hto);
-           set_varstate(hto,vs_read,[vsf_must_be_valid]);
-           typecheckpass(hloopvar);
-           { in two steps, because vs_readwritten may turn on vsf_must_be_valid }
-           { for some subnodes                                                  }
-           set_varstate(hloopvar,vs_written,[]);
-           set_varstate(hloopvar,vs_read,[vsf_must_be_valid]);
+             { Check if the constants fit in the range }
+             check_range(hfrom);
+             check_range(hto);
 
-           { ... now the instruction block }
-           hblock:=statement;
+             { first set the varstate for from and to, so
+               uses of loopvar in those expressions will also
+               trigger a warning when it is not used yet. This
+               needs to be done before the instruction block is
+               parsed to have a valid hloopvar }
+             typecheckpass(hfrom);
+             set_varstate(hfrom,vs_read,[vsf_must_be_valid]);
+             typecheckpass(hto);
+             set_varstate(hto,vs_read,[vsf_must_be_valid]);
+             typecheckpass(hloopvar);
+             { in two steps, because vs_readwritten may turn on vsf_must_be_valid }
+             { for some subnodes                                                  }
+             set_varstate(hloopvar,vs_written,[]);
+             set_varstate(hloopvar,vs_read,[vsf_must_be_valid]);
 
-           { variable is not used for loop counter anymore }
-           if assigned(loopvarsym) then
-             exclude(loopvarsym.varoptions,vo_is_loop_counter);
+             { ... now the instruction block }
+             hblock:=statement;
 
-           result:=cfornode.create(hloopvar,hfrom,hto,hblock,backward);
-        end;
+             { variable is not used for loop counter anymore }
+             if assigned(loopvarsym) then
+               exclude(loopvarsym.varoptions,vo_is_loop_counter);
 
-        function for_in_loop_create(hloopvar: tnode): tnode;
-        var
-          expr: tnode;
-        begin
-          expr := comp_expr(true);
+             result:=cfornode.create(hloopvar,hfrom,hto,hblock,backward);
+          end;
 
-          consume(_DO);
 
-          set_varstate(hloopvar,vs_written,[]);
-          set_varstate(hloopvar,vs_read,[vsf_must_be_valid]);
+          function for_in_loop_create(hloopvar: tnode): tnode;
+            var
+              expr: tnode;
+            begin
+              expr:=comp_expr(true);
 
-          result := create_for_in_loop(hloopvar, statement, expr);
+              consume(_DO);
 
-          expr.free;
-        end;
+              set_varstate(hloopvar,vs_written,[]);
+              set_varstate(hloopvar,vs_read,[vsf_must_be_valid]);
+
+              result:=create_for_in_loop(hloopvar,statement,expr);
+
+              expr.free;
+            end;
+
 
       var
          hloopvar: tnode;
