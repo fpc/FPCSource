@@ -502,11 +502,9 @@ implementation
          hloopvar:=factor(false);
          valid_for_loopvar(hloopvar,true);
 
-
          if try_to_consume(_ASSIGNMENT) then
            result:=for_loop_create(hloopvar)
-         else
-         if try_to_consume(_IN) then
+         else if try_to_consume(_IN) then
            result:=for_in_loop_create(hloopvar)
          else
            consume(_ASSIGNMENT); // fail
