@@ -20,6 +20,7 @@ type
   GLsizei = integer;
   GLbitfield = integer;
   objc_protocol = protocol;
+  idpointer = ^id;
 
 { Variable argument list - disabled for Pascal }
 type

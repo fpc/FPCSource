@@ -17,9 +17,9 @@
 type
   NSFastEnumerationState = record
     state: culong;
-    itemsPtr: id;
-    mutationsPtr: culong;
-    extra: culong;
+    itemsPtr: idpointer;
+    mutationsPtr: pculong;
+    extra: array[0..5-1] of culong;
   end;
 
 
@@ -71,7 +71,7 @@ type
   
 { NSFastEnumeration Protocol }
   NSFastEnumerationProtocol = objcprotocol
-    function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePointer; stackbuf: id; len: NSUInteger): NSUInteger; message 'countByEnumeratingWithState:objects:count:';
+    function countByEnumeratingWithState_objects_count(state: NSFastEnumerationStatePointer; stackbuf: idpointer; len: NSUInteger): NSUInteger; message 'countByEnumeratingWithState:objects:count:';
   end; external name 'NSFastEnumeration';
 {$endif}
 {$endif}
