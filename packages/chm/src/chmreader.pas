@@ -126,6 +126,7 @@ type
     property PreferedFont: String read fPreferedFont;
     property LocaleID: dword read fLocaleID;
     property SearchReader: TChmSearchReader read FSearchReader write FSearchReader;
+    property contextlist : tcontextlist read fcontextlist;
   end;
 
   { TChmFileList }
