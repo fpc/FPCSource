@@ -766,18 +766,15 @@ end;
 
 
 function tppufile.getstring:string;
-var
-  s : string;
 begin
-  s[0]:=chr(getbyte);
-  if entryidx+length(s)>entry.size then
+  result[0]:=chr(getbyte);
+  if entryidx+length(result)>entry.size then
    begin
      error:=true;
      exit;
    end;
-  ReadData(s[1],length(s));
-  getstring:=s;
-  inc(entryidx,length(s));
+  ReadData(result[1],length(result));
+  inc(entryidx,length(result));
 end;
 
 
