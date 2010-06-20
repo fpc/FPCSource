@@ -96,6 +96,11 @@ interface
       bitpacked structure }
     function is_bitpacked_access(n: tnode): boolean;
 
+    { creates a load of field 'fieldname' in the record/class/...
+      represented by n; assumes the resultdef of n is set }
+    function genloadfield(n: tnode; const fieldname: string): tnode;
+
+
 implementation
 
     uses
@@ -1092,6 +1097,18 @@ implementation
           else
             result:=false;
         end;
+      end;
+
+
+    function genloadfield(n: tnode; const fieldname: string): tnode;
+      var
+        vs         : tsym;
+      begin
+        vs:=tsym(tabstractrecorddef(n.resultdef).symtable.find(fieldname));
+        if not assigned(vs) or
+           (vs.typ<>fieldvarsym) then
+          internalerror(2010061902);
+        result:=csubscriptnode.create(vs,n);
       end;
 
 

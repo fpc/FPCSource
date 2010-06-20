@@ -1859,7 +1859,7 @@ implementation
         if (cnf_inherited in callnodeflags) then
           begin
              block:=internalstatements(statements);
-             objcsupertype:=search_named_unit_globaltype('OBJC','OBJC_SUPER').typedef;
+             objcsupertype:=search_named_unit_globaltype('OBJC','OBJC_SUPER',true).typedef;
              if (objcsupertype.typ<>recorddef) then
                internalerror(2009032901);
              { temp for the for the objc_super record }

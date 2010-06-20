@@ -689,7 +689,7 @@ implementation
         { Macpas unit? }
         if m_mac in current_settings.modeswitches then
           AddUnit('macpas');
-        { Objective-C 1.0 support unit? }
+        { Objective-C support unit? }
         if (m_objectivec1 in current_settings.modeswitches) then
           begin
             { interface to Objective-C run time }

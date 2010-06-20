@@ -209,7 +209,7 @@ interface
     function  searchsym_in_class_by_msgint(classh:tobjectdef;msgid:longint;out srdef : tdef;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  search_system_type(const s: TIDString): ttypesym;
-    function  search_named_unit_globaltype(const unitname, typename: TIDString): ttypesym;
+    function  search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
     function  search_enumerator_operator(type_def:Tdef):Tprocdef;
@@ -2194,7 +2194,7 @@ implementation
       end;
 
 
-    function search_named_unit_globaltype(const unitname, typename: TIDString): ttypesym;
+    function search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
       var
         srsymtable: tsymtable;
         sym: tsym;
@@ -2207,7 +2207,8 @@ implementation
           end
         else
           begin
-            cgmessage2(cg_f_unknown_type_in_unit,typename,unitname);
+            if throwerror then
+              cgmessage2(cg_f_unknown_type_in_unit,typename,unitname);
             result:=nil;
           end;
       end;

@@ -368,7 +368,7 @@ scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN dire
 #
 # Parser
 #
-# 03293 is the last used one
+# 03295 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1315,6 +1315,16 @@ parser_e_widestring_to_ansi_compile_time=03293_E_Unicodechar/string constants ca
 % constant expressions that have to be converted into an ansistring or shortstring
 % at compile time, for example inside typed constants. The reason is that the
 % compiler cannot know what the actual ansi encoding will be at run time.
+parser_e_objc_enumerator_2_0=03294_E_For-in Objective-Pascal loops require \{\$modeswitch ObjectiveC1\} to be active
+% Objective-C ``fast enumeration'' support was added in Objective-C 2.0, and
+% hence the appropriate modeswitch has to be activated to expose this feature.
+% Note that Objective-C 2.0 programs require Mac OS X 10.5 or later.
+parser_e_objc_missing_enumeration_defs=03295_E_The compiler cannot find the NSFastEnumerationProtocol or NSFastEnumerationState type in the CocoaAll unit
+% Objective-C for-in loops (fast enumeration) require that the compiler can
+% find a unit called CocoaAll that contains definitions for the
+% NSFastEnumerationProtocol and NSFastEnumerationState types. If you get this
+% error, most likely the compiler is finding and loading an alternate CocoaAll
+% unit.
 #
 # Type Checking
 #

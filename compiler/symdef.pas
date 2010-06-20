@@ -700,10 +700,13 @@ interface
        objc_metaclasstype,
        objc_superclasstype,
        objc_idtype,
-       objc_seltype         : tpointerdef;
-       objc_objecttype      : trecorddef;
+       objc_seltype              : tpointerdef;
+       objc_objecttype           : trecorddef;
        { base type of @protocol(protocolname) Objective-C statements }
-       objc_protocoltype    : tobjectdef;
+       objc_protocoltype         : tobjectdef;
+       { helper types for for-in "fast enumeration" support in Objective-C 2.0 }
+       objc_fastenumeration      : tobjectdef;
+       objc_fastenumerationstate : trecorddef;
 
     const
 {$ifdef i386}
@@ -767,6 +770,7 @@ interface
     function is_class_or_object(def: tdef): boolean;
 
     procedure loadobjctypes;
+    procedure maybeloadcocoatypes;
 
     function use_vectorfpu(def : tdef) : boolean;
 
@@ -5387,11 +5391,30 @@ implementation
 
     procedure loadobjctypes;
       begin
-        objc_metaclasstype:=tpointerdef(search_named_unit_globaltype('OBJC','POBJC_CLASS').typedef);
-        objc_superclasstype:=tpointerdef(search_named_unit_globaltype('OBJC','POBJC_SUPER').typedef);
-        objc_idtype:=tpointerdef(search_named_unit_globaltype('OBJC','ID').typedef);
-        objc_seltype:=tpointerdef(search_named_unit_globaltype('OBJC','SEL').typedef);
-        objc_objecttype:=trecorddef(search_named_unit_globaltype('OBJC','OBJC_OBJECT').typedef);
+        objc_metaclasstype:=tpointerdef(search_named_unit_globaltype('OBJC','POBJC_CLASS',true).typedef);
+        objc_superclasstype:=tpointerdef(search_named_unit_globaltype('OBJC','POBJC_SUPER',true).typedef);
+        objc_idtype:=tpointerdef(search_named_unit_globaltype('OBJC','ID',true).typedef);
+        objc_seltype:=tpointerdef(search_named_unit_globaltype('OBJC','SEL',true).typedef);
+        objc_objecttype:=trecorddef(search_named_unit_globaltype('OBJC','OBJC_OBJECT',true).typedef);
+      end;
+
+
+    procedure maybeloadcocoatypes;
+      var
+        tsym: ttypesym;
+      begin
+        if assigned(objc_fastenumeration) then
+          exit;
+        tsym:=search_named_unit_globaltype('COCOAALL','NSFASTENUMERATIONPROTOCOL',false);
+        if assigned(tsym) then
+          objc_fastenumeration:=tobjectdef(tsym.typedef)
+        else
+          objc_fastenumeration:=nil;
+        tsym:=search_named_unit_globaltype('COCOAALL','NSFASTENUMERATIONSTATE',false);
+        if assigned(tsym) then
+          objc_fastenumerationstate:=trecorddef(tsym.typedef)
+        else
+        objc_fastenumerationstate:=nil;
       end;
 
 

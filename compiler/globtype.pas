@@ -270,7 +270,8 @@ interface
          m_property,            { allow properties }
          m_default_inline,      { allow inline proc directive }
          m_except,              { allow exception-related keywords }
-         m_objectivec1          { support interfacing with Objective-C (1.0) }
+         m_objectivec1,         { support interfacing with Objective-C (1.0) }
+         m_objectivec2          { support interfacing with Objective-C (2.0) }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -387,7 +388,8 @@ interface
          'PROPERTIES',
          'ALLOWINLINE',
          'EXCEPTIONS',
-         'OBJECTIVEC1');
+         'OBJECTIVEC1',
+         'OBJECTIVEC2');
 
 
      type

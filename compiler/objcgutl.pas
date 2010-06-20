@@ -308,7 +308,7 @@ procedure tobjcrttiwriter.gen_objc_methods(list: tasmlist; objccls: tobjectdef; 
     else
       begin
         { size of each entry -- always 32 bit value }
-        mtype:=search_named_unit_globaltype('OBJC','OBJC_METHOD').typedef;
+        mtype:=search_named_unit_globaltype('OBJC','OBJC_METHOD',true).typedef;
         list.Concat(tai_const.Create_32bit(mtype.size));
       end;
     { number of objc_method entries in the method_list array -- always 32 bit}
@@ -411,7 +411,7 @@ begin
   if (abi=oa_nonfragile) then
     begin
       { size of each entry -- always 32 bit value }
-      mtype:=search_named_unit_globaltype('OBJC','OBJC_METHOD').typedef;
+      mtype:=search_named_unit_globaltype('OBJC','OBJC_METHOD',true).typedef;
       list.Concat(tai_const.Create_32bit(mtype.size));
     end;
   list.Concat(Tai_const.Create_32bit(items.count));
@@ -1001,7 +1001,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_ivars(list: tasmlist; objccls: tob
     list.Concat(tai_label.Create(ivarslabel));
 
     { size of each entry -- always 32 bit value }
-    ivtype:=search_named_unit_globaltype('OBJC','OBJC_IVAR').typedef;
+    ivtype:=search_named_unit_globaltype('OBJC','OBJC_IVAR',true).typedef;
     list.concat(tai_const.Create_32bit(ivtype.size));
     { number of entries -- always 32 bit value }
     list.Concat(tai_const.Create_32bit(vcnt));
@@ -1129,7 +1129,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol(list: tasmlist; protocol:
     { TODO: properties }
     list.Concat(Tai_const.Create_pint(0));
     { size of this type }
-    prottype:=search_named_unit_globaltype('OBJC','OBJC_PROTOCOL').typedef;
+    prottype:=search_named_unit_globaltype('OBJC','OBJC_PROTOCOL',true).typedef;
     list.concat(tai_const.Create_32bit(prottype.size));
     { flags }
     list.concat(tai_const.Create_32bit(0));
@@ -1330,7 +1330,7 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_class_ro_part(list: tasmlist; objc
         flags:=flags or CLS_META;
         rttitype:=objcmetarortti;
         { metaclass size/start: always size of objc_object }
-        class_type:=search_named_unit_globaltype('OBJC','OBJC_OBJECT').typedef;
+        class_type:=search_named_unit_globaltype('OBJC','OBJC_OBJECT',true).typedef;
         start:=class_type.size;
         size:=start;
       end

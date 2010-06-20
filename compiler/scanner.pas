@@ -467,12 +467,9 @@ implementation
         for i:=m_class to high(tmodeswitch) do
           if s=modeswitchstr[i] then
             begin
-              { Objective-C is currently only supported for 32 bit Darwin targets
-                (and Objective-C 2.0 will be required for 64 bit ones)
-                Not yet tested for ARM either.
-              }
+              { Objective-C is currently only supported for Darwin targets }
               if doinclude and
-                 (i=m_objectivec1) and
+                 (i in [m_objectivec1,m_objectivec2]) and
                  not(target_info.system in systems_objc_supported) then
                 begin
                   Message1(option_unsupported_target_for_feature,'Objective-C');
@@ -485,13 +482,19 @@ implementation
               if doinclude then
                 begin
                   include(current_settings.modeswitches,i);
-                  if (i=m_objectivec1) then
+                  { Objective-C 2.0 support implies 1.0 support }
+                  if (i=m_objectivec2) then
+                    include(current_settings.modeswitches,m_objectivec1);
+                  if (i in [m_objectivec1,m_objectivec2]) then
                     include(current_settings.modeswitches,m_class);
                 end
               else
                 begin
                   exclude(current_settings.modeswitches,i);
-                  if (i=m_objectivec1) and
+                  { Objective-C 2.0 support implies 1.0 support }
+                  if (i=m_objectivec2) then
+                    exclude(current_settings.modeswitches,m_objectivec1);
+                  if (i in [m_objectivec1,m_objectivec2]) and
                      ([m_delphi,m_objfpc]*current_settings.modeswitches=[]) then
                     exclude(current_settings.modeswitches,m_class);
                 end;

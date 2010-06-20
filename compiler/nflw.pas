@@ -251,6 +251,232 @@ implementation
       end;
 
 
+    function create_objc_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
+      var
+        mainstatement, outerloopbodystatement, innerloopbodystatement, tempstatement: tstatementnode;
+        state, mutationcheck, currentamount, innerloopcounter, items, expressiontemp: ttempcreatenode;
+        outerloop, innerloop, hp: tnode;
+        itemsarraydef: tarraydef;
+        sym: tsym;
+      begin
+        { Objective-C enumerators require Objective-C 2.0 }
+        if not(m_objectivec2 in current_settings.modeswitches) then
+          begin
+            result:=cerrornode.create;
+            MessagePos(expr.fileinfo,parser_e_objc_enumerator_2_0);
+            exit;
+          end;
+        { Requires the NSFastEnumeration protocol and NSFastEnumerationState
+          record }
+        maybeloadcocoatypes;
+        if not assigned(objc_fastenumeration) or
+           not assigned(objc_fastenumerationstate) then
+          begin
+            result:=cerrornode.create;
+            MessagePos(expr.fileinfo,parser_e_objc_missing_enumeration_defs);
+            exit;
+          end;
+
+        (* Original code:
+            for hloopvar in expression do
+              <hloopbody>
+
+          Pascal code equivalent into which it has to be transformed
+          (sure would be nice if the compiler had some kind of templates ;) :
+            var
+              state: NSFastEnumerationState;
+              expressiontemp: NSFastEnumerationProtocol;
+              mutationcheck,
+              currentamount,
+              innerloopcounter: culong;
+              { size can be increased/decreased if desired }
+              items: array[1..16] of id;
+            begin
+              fillchar(state,sizeof(state),0);
+              expressiontemp:=expression;
+              repeat
+                currentamount:=expressiontemp.countByEnumeratingWithState_objects_count(@state,@items,length(items));
+                if currentamount=0 then
+                  begin
+                    { "The iterating variable is set to nil when the loop ends by
+                      exhausting the source pool of objects" }
+                    hloopvar:=nil;
+                    break;
+                  end;
+                mutationcheck:=state.mutationsptr^;
+                innerloopcounter:=culong(-1);
+                repeat
+                  { at the start so that "continue" in <loopbody> works correctly }
+                  { don't use for-loop, because then the value of the iteration
+                    counter is undefined on exit and we have to check it in the
+                    outer repeat/until condition }
+                  {$push}
+                  {$r-,q-}
+                  inc(innerloopcounter);
+                  {$pop}
+                  if innerloopcounter=currentamount then
+                    break;
+                  if mutationcheck<>state.mutationsptr^ then
+                    { raises Objective-C exception... }
+                    objc_enumerationMutation(expressiontemp);
+                  hloopvar:=state.itemsPtr[innerloopcounter];
+                  { if continue in loopbody -> jumps to start, increases count and checks }
+                  { if break in loopbody: goes to outer repeat/until and innerloopcount
+                    will be < currentamount -> stops }
+                  <hloopbody>
+                until false;
+              { if the inner loop terminated early, "break" was used and we have
+                to stop }
+              { "If the loop is terminated early, the iterating variable is left
+                pointing to the last iteration item." }
+              until innerloopcounter<currentamount;
+            end;
+         *)
+
+         result:=internalstatements(mainstatement);
+         { the fast enumeration state }
+         state:=ctempcreatenode.create(objc_fastenumerationstate,objc_fastenumerationstate.size,tt_persistent,false);
+         typecheckpass(tnode(state));
+         addstatement(mainstatement,state);
+         { the temporary items array }
+         itemsarraydef:=tarraydef.create(1,16,u32inttype);
+         itemsarraydef.elementdef:=objc_idtype;
+         items:=ctempcreatenode.create(itemsarraydef,itemsarraydef.size,tt_persistent,false);
+         addstatement(mainstatement,items);
+         typecheckpass(tnode(items));
+         { temp for the expression/collection through which we iterate }
+         expressiontemp:=ctempcreatenode.create(objc_fastenumeration,objc_fastenumeration.size,tt_persistent,true);
+         addstatement(mainstatement,expressiontemp);
+         { currentamount temp (not really clean: we use ptruint instead of
+           culong) }
+         currentamount:=ctempcreatenode.create(ptruinttype,ptruinttype.size,tt_persistent,true);
+         typecheckpass(tnode(currentamount));
+         addstatement(mainstatement,currentamount);
+         { mutationcheck temp (idem) }
+         mutationcheck:=ctempcreatenode.create(ptruinttype,ptruinttype.size,tt_persistent,true);
+         typecheckpass(tnode(mutationcheck));
+         addstatement(mainstatement,mutationcheck);
+         { innerloopcounter temp (idem) }
+         innerloopcounter:=ctempcreatenode.create(ptruinttype,ptruinttype.size,tt_persistent,true);
+         typecheckpass(tnode(innerloopcounter));
+         addstatement(mainstatement,innerloopcounter);
+         { initialise the state with 0 }
+         addstatement(mainstatement,ccallnode.createinternfromunit('SYSTEM','FILLCHAR',
+           ccallparanode.create(genintconstnode(0),
+             ccallparanode.create(genintconstnode(objc_fastenumerationstate.size),
+               ccallparanode.create(ctemprefnode.create(state),nil)
+             )
+           )
+         ));
+         { this will also check whether the expression (potentially) conforms
+           to the NSFastEnumeration protocol (use expr.getcopy, because the
+           caller will free expr) }
+         addstatement(mainstatement,cassignmentnode.create(ctemprefnode.create(expressiontemp),expr.getcopy));
+
+         { we add the "repeat..until" afterwards, now just create the body }
+         outerloop:=internalstatements(outerloopbodystatement);
+         { the countByEnumeratingWithState_objects_count call }
+         hp:=ccallparanode.create(cinlinenode.create(in_length_x,false,ctypenode.create(itemsarraydef)),
+               ccallparanode.create(caddrnode.create(ctemprefnode.create(items)),
+                 ccallparanode.create(caddrnode.create(ctemprefnode.create(state)),nil)
+               )
+             );
+         sym:=search_class_member(objc_fastenumeration,'COUNTBYENUMERATINGWITHSTATE_OBJECTS_COUNT');
+         if not assigned(sym) or
+            (sym.typ<>procsym) then
+           internalerror(2010061901);
+         hp:=ccallnode.create(hp,tprocsym(sym),sym.owner,ctemprefnode.create(expressiontemp),[]);
+         addstatement(outerloopbodystatement,cassignmentnode.create(
+           ctemprefnode.create(currentamount),hp));
+         { if currentamount = 0, bail out (use copy of hloopvar, because we
+           have to use it again below) }
+         hp:=internalstatements(tempstatement);
+         addstatement(tempstatement,cassignmentnode.create(
+             hloopvar.getcopy,cnilnode.create));
+         addstatement(tempstatement,cbreaknode.create);
+         addstatement(outerloopbodystatement,cifnode.create(
+           caddnode.create(equaln,ctemprefnode.create(currentamount),genintconstnode(0)),
+           hp,nil));
+        { initial value of mutationcheck }
+        hp:=ctemprefnode.create(state);
+        typecheckpass(hp);
+        hp:=cderefnode.create(genloadfield(hp,'MUTATIONSPTR'));
+        addstatement(outerloopbodystatement,cassignmentnode.create(
+          ctemprefnode.create(mutationcheck),hp));
+        { initialise innerloopcounter }
+        addstatement(outerloopbodystatement,cassignmentnode.create(
+          ctemprefnode.create(innerloopcounter),cordconstnode.create(-1,ptruinttype,false)));
+
+        { and now the inner loop, again adding the repeat/until afterwards }
+        innerloop:=internalstatements(innerloopbodystatement);
+        { inc(innerloopcounter) without range/overflowchecking (because
+          we go from culong(-1) to 0 during the first iteration }
+        hp:=cinlinenode.create(
+          in_inc_x,false,ccallparanode.create(
+            ctemprefnode.create(innerloopcounter),nil));
+        hp.localswitches:=hp.localswitches-[cs_check_range,cs_check_overflow];
+        addstatement(innerloopbodystatement,hp);
+        { if innerloopcounter=currentamount then break to the outer loop }
+        addstatement(innerloopbodystatement,cifnode.create(
+          caddnode.create(equaln,
+            ctemprefnode.create(innerloopcounter),
+            ctemprefnode.create(currentamount)),
+          cbreaknode.create,
+          nil));
+        { verify that the collection didn't change in the mean time }
+        hp:=ctemprefnode.create(state);
+        typecheckpass(hp);
+        addstatement(innerloopbodystatement,cifnode.create(
+          caddnode.create(unequaln,
+            ctemprefnode.create(mutationcheck),
+            cderefnode.create(genloadfield(hp,'MUTATIONSPTR'))
+          ),
+          ccallnode.createinternfromunit('OBJC','OBJC_ENUMERATIONMUTATION',
+            ccallparanode.create(ctemprefnode.create(expressiontemp),nil)),
+          nil));
+        { finally: actually get the next element }
+        hp:=ctemprefnode.create(state);
+        typecheckpass(hp);
+        hp:=genloadfield(hp,'ITEMSPTR');
+        typecheckpass(hp);
+        { don't simply use a vecn, because indexing a pointer won't work in
+          non-FPC modes }
+        if hp.resultdef.typ<>pointerdef then
+          internalerror(2010061904);
+        inserttypeconv(hp,
+          tarraydef.create_from_pointer(tpointerdef(hp.resultdef).pointeddef));
+        hp:=cvecnode.create(hp,ctemprefnode.create(innerloopcounter));
+        addstatement(innerloopbodystatement,
+          cassignmentnode.create(hloopvar,hp));
+        { the actual loop body! }
+        addstatement(innerloopbodystatement,hloopbody);
+
+        { create the inner repeat/until and add it to the body of the outer
+          one }
+        hp:=cwhilerepeatnode.create(
+          { repeat .. until false }
+          cordconstnode.create(0,booltype,false),innerloop,false,true);
+        addstatement(outerloopbodystatement,hp);
+
+        { create the outer repeat/until and add it to the the main body }
+        hp:=cwhilerepeatnode.create(
+          { repeat .. until innerloopcounter<currentamount }
+          caddnode.create(ltn,
+            ctemprefnode.create(innerloopcounter),
+            ctemprefnode.create(currentamount)),
+          outerloop,false,true);
+        addstatement(mainstatement,hp);
+
+        { release the temps }
+        addstatement(mainstatement,ctempdeletenode.create(state));
+        addstatement(mainstatement,ctempdeletenode.create(mutationcheck));
+        addstatement(mainstatement,ctempdeletenode.create(currentamount));
+        addstatement(mainstatement,ctempdeletenode.create(innerloopcounter));
+        addstatement(mainstatement,ctempdeletenode.create(items));
+        addstatement(mainstatement,ctempdeletenode.create(expressiontemp));
+      end;
+
+
     function create_string_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
       var
         loopstatement, loopbodystatement: tstatementnode;
@@ -616,50 +842,64 @@ implementation
         else
           begin
             { loop is made for an expression }
-            // search for operator first
-            pd:=search_enumerator_operator(expr.resultdef);
-            // if there is no operator then search for class/object enumerator method
-            if (pd=nil) and (expr.resultdef.typ=objectdef) then
-              pd:=tobjectdef(expr.resultdef).search_enumerator_get;
-            if pd<>nil then
+            // Objective-C uses different conventions (and it's only supported for Objective-C 2.0)
+            if is_objc_class_or_protocol(hloopvar.resultdef) or
+               is_objc_class_or_protocol(expr.resultdef) then
               begin
-                // seach movenext and current symbols
-                movenext:=tobjectdef(pd.returndef).search_enumerator_move;
-                if movenext = nil then
+                result:=create_objc_for_in_loop(hloopvar,hloopbody,expr);
+                if result.nodetype=errorn then
                   begin
-                    result:=cerrornode.create;
                     hloopvar.free;
                     hloopbody.free;
-                    MessagePos1(expr.fileinfo,sym_e_no_enumerator_move,pd.returndef.GetTypeName);
-                  end
-                else
-                  begin
-                    current:=tpropertysym(tobjectdef(pd.returndef).search_enumerator_current);
-                    if current = nil then
-                      begin
-                        result:=cerrornode.create;
-                        hloopvar.free;
-                        hloopbody.free;
-                        MessagePos1(expr.fileinfo,sym_e_no_enumerator_current,pd.returndef.GetTypeName);
-                      end
-                    else
-                      result:=create_enumerator_for_in_loop(hloopvar, hloopbody, expr, pd, movenext, current);
                   end;
               end
             else
               begin
-                case expr.resultdef.typ of
-                  stringdef: result:=create_string_for_in_loop(hloopvar, hloopbody, expr);
-                  arraydef: result:=create_array_for_in_loop(hloopvar, hloopbody, expr);
-                  setdef: result:=create_set_for_in_loop(hloopvar, hloopbody, expr);
+                // search for operator first
+                pd:=search_enumerator_operator(expr.resultdef);
+                // if there is no operator then search for class/object enumerator method
+                if (pd=nil) and (expr.resultdef.typ=objectdef) then
+                  pd:=tobjectdef(expr.resultdef).search_enumerator_get;
+                if pd<>nil then
+                  begin
+                    // seach movenext and current symbols
+                    movenext:=tobjectdef(pd.returndef).search_enumerator_move;
+                    if movenext = nil then
+                      begin
+                        result:=cerrornode.create;
+                        hloopvar.free;
+                        hloopbody.free;
+                        MessagePos1(expr.fileinfo,sym_e_no_enumerator_move,pd.returndef.GetTypeName);
+                      end
+                    else
+                      begin
+                        current:=tpropertysym(tobjectdef(pd.returndef).search_enumerator_current);
+                        if current = nil then
+                          begin
+                            result:=cerrornode.create;
+                            hloopvar.free;
+                            hloopbody.free;
+                            MessagePos1(expr.fileinfo,sym_e_no_enumerator_current,pd.returndef.GetTypeName);
+                          end
+                        else
+                          result:=create_enumerator_for_in_loop(hloopvar, hloopbody, expr, pd, movenext, current);
+                      end;
+                  end
                 else
                   begin
-                    result:=cerrornode.create;
-                    hloopvar.free;
-                    hloopbody.free;
-                    MessagePos1(expr.fileinfo,sym_e_no_enumerator,expr.resultdef.GetTypeName);
+                    case expr.resultdef.typ of
+                      stringdef: result:=create_string_for_in_loop(hloopvar, hloopbody, expr);
+                      arraydef: result:=create_array_for_in_loop(hloopvar, hloopbody, expr);
+                      setdef: result:=create_set_for_in_loop(hloopvar, hloopbody, expr);
+                    else
+                      begin
+                        result:=cerrornode.create;
+                        hloopvar.free;
+                        hloopbody.free;
+                        MessagePos1(expr.fileinfo,sym_e_no_enumerator,expr.resultdef.GetTypeName);
+                      end;
+                    end;
                   end;
-                end;
               end;
           end;
         current_filepos:=storefilepos;
