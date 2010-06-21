@@ -44,6 +44,8 @@ unit OpenSSL;
 | WARNING: due to reliance on some units, I have removed the ThreadLocks init  |
 |          if need be, it should be re-added, or handled by the                | 
 |           OS threading init somehow                                          |
+|                                                                              |
+| 2010 - Felipe Monteiro de Carvalho - Many improvements                       |
 |==============================================================================|
 | History: see HISTORY.HTM from distribution package                           |
 |          (Found at URL: http://www.ararat.cz/synapse/)                       |
@@ -56,6 +58,7 @@ Special thanks to Gregor Ibic <gregor.ibic@intelicom.si>
 }
 
 {$MODE DELPHI}{$H+}
+{$Packrecords C}
 
 {:@abstract(OpenSSL support)
 
@@ -67,7 +70,7 @@ requested OpenSSL function just return errorcode.
 interface
 
 uses
-  DynLibs, cTypes;
+  DynLibs, cTypes, SysUtils;
 
 var
   {$IFDEF WINDOWS}
@@ -81,10 +84,18 @@ var
   { ADD NEW ONES WHEN THEY APPEAR!
     Always make .so/dylib first, then versions, in descending order!
     Add "." .before the version, first is always just "" }
-  DLLVersions: array[1..10] of string = ('', '.0.9.9'{futureproof :D}, '.0.9.8',
+  DLLVersions: array[1..10] of string = ('', '.1.0.0', '.0.9.8',
                                         '.0.9.7', '.0.9.6', '.0.9.5', '.0.9.4',
                                         '.0.9.3', '.0.9.2', '.0.9.1');
   {$ENDIF}
+
+const
+  // EVP.h Constants
+
+  EVP_MAX_MD_SIZE               = 64; //* longest known is SHA512 */
+  EVP_MAX_KEY_LENGTH    = 32;
+  EVP_MAX_IV_LENGTH     = 16;
+  EVP_MAX_BLOCK_LENGTH  = 32;
 
 type
   SslPtr = Pointer;
@@ -99,6 +110,7 @@ type
   PBIO = SslPtr;
   EVP_PKEY = SslPtr;
   PRSA = SslPtr;
+  PPRSA = ^PRSA;
   PASN1_UTCTIME = SslPtr;
   PASN1_cInt = SslPtr;
   PPasswdCb = SslPtr;
@@ -112,9 +124,124 @@ type
   end;
   des_key_schedule = array[1..16] of des_ks_struct;
 
-const
-  EVP_MAX_MD_SIZE = 16 + 20;
+  // Rand
+  RAND_METHOD = record
+  end;
+  PRAND_METHOD = ^RAND_METHOD;
 
+  // RSA
+  PENGINE = Pointer;
+  PBIGNUM = Pointer;
+  PBN_GENCB = Pointer;
+  PBN_MONT_CTX = Pointer;
+  PBN_CTX = Pointer;
+  PPByte = ^PByte;
+
+  Trsa_pub_enc = function(flen: cint;
+                 const from_, to_: PByte; arsa: PRSA; padding: cint): cint;
+  Trsa_pub_dec = function(flen: cint;
+                 const from_, to_: PByte; arsa: PRSA; padding: cint): cint;
+  Trsa_priv_enc = function(flen: cint;
+                 const from_, to_: PByte; arsa: PRSA; padding: cint): cint;
+  Trsa_priv_dec = function(flen: cint;
+                 const from_, to_: PByte; arsa: PRSA; padding: cint): cint;
+  Trsa_mod_exp = function(r0: PBIGNUM; const l: PBIGNUM; arsa: PRSA; ctx: PBN_CTX): cint;
+  Tbn_mod_exp = function(r: PBIGNUM; const a, p, m: PBIGNUM; arsa: PRSA;
+                 ctx: PBN_CTX; m_ctx: PBN_MONT_CTX): cint;
+  Tinit = function(arsa: PRSA): cint;
+  Tfinish = function(arsa: PRSA): cint;
+  Trsa_sign = function(type_: cint; const m: PByte; m_length: cuint;
+                 sigret: PByte; siglen: pcuint; arsa: PRSA): cint;
+  Trsa_verify = function(dtype: cint;
+                 const m: PByte; m_length: cuint;
+                 const sigbuf: PByte; siglen: cuint; arsa: PRSA): cint;
+  Trsa_keygen = function(arsa: PRSA; bits: cint; e: PBIGNUM; cb: PBN_GENCB): cint;
+
+  RSA_METHOD = record
+    name: PChar;
+    rsa_pub_enc: Trsa_pub_enc;
+    rsa_pub_dec: Trsa_pub_dec;
+    rsa_priv_enc: Trsa_priv_enc;
+    rsa_priv_dec: Trsa_priv_dec;
+    rsa_mod_exp: Trsa_mod_exp; { Can be null }
+    bn_mod_exp: Tbn_mod_exp; { Can be null }
+    init: Tinit; { called at new }
+    finish: Tfinish; { called at free }
+    flags: cint; { RSA_METHOD_FLAG_* things }
+    app_data: PChar; { may be needed! }
+  { New sign and verify functions: some libraries don't allow arbitrary data
+   * to be signed/verified: this allows them to be used. Note: for this to work
+   * the RSA_public_decrypt() and RSA_private_encrypt() should *NOT* be used
+   * RSA_sign(), RSA_verify() should be used instead. Note: for backwards
+   * compatibility this functionality is only enabled if the RSA_FLAG_SIGN_VER
+   * option is set in 'flags'.
+   }
+    rsa_sign: Trsa_sign;
+    rsa_verify: Trsa_verify;
+  { If this callback is NULL, the builtin software RSA key-gen will be used. This
+   * is for behavioural compatibility whilst the code gets rewired, but one day
+   * it would be nice to assume there are no such things as "builtin software"
+   * implementations. }
+    rsa_keygen: Trsa_keygen;
+  end;
+  PRSA_METHOD = ^RSA_METHOD;
+
+  // EVP
+
+  PEVP_MD_CTX = Pointer;
+
+  PEVP_CIPHER_CTX = ^EVP_CIPHER_CTX;
+  PEVP_CIPHER = ^EVP_CIPHER;
+
+  PASN1_TYPE = Pointer;
+
+  EVP_CIPHER_INIT_FUNC = function(ctx: PEVP_CIPHER_CTX; const key, iv: PByte; enc: cint): cint; cdecl;
+  EVP_CIPHER_DO_CIPHER_FUNC = function(ctx: PEVP_CIPHER_CTX; out_data: PByte; const in_data: PByte; inl: csize_t): cint; cdecl;
+  EVP_CIPHER_CLEANUP_FUNC = function(ctx: PEVP_CIPHER_CTX): cint; cdecl;
+  EVP_CIPHER_SET_ASN1_PARAMETERS_FUNC = function(ctx: PEVP_CIPHER_CTX; asn1_type: PASN1_TYPE): cint; cdecl;
+  EVP_CIPHER_GET_ASN1_PARAMETERS_FUNC = function(ctx: PEVP_CIPHER_CTX; asn1_type: PASN1_TYPE): cint; cdecl;
+  EVP_CIPHER_CTRL_FUNC = function(ctx: PEVP_CIPHER_CTX; type_, arg: cint; ptr: Pointer): cint; cdecl;
+
+  EVP_CIPHER = record  // Updated with EVP.h from OpenSSL 1.0.0
+    nid: cint;
+    block_size: cint;
+    key_len: cint;  //* Default value for variable length ciphers */
+    iv_len: cint;
+    flags: culong; //* Various flags */
+    init: EVP_CIPHER_INIT_FUNC;	//* init key */
+    do_cipher: EVP_CIPHER_DO_CIPHER_FUNC;//* encrypt/decrypt data */
+    cleanup: EVP_CIPHER_CLEANUP_FUNC; //* cleanup ctx */
+    ctx_size: cint;		//* how big ctx->cipher_data needs to be */
+    set_asn1_parameters: EVP_CIPHER_SET_ASN1_PARAMETERS_FUNC; //* Populate a ASN1_TYPE with parameters */
+    get_asn1_parameters: EVP_CIPHER_GET_ASN1_PARAMETERS_FUNC; //* Get parameters from a ASN1_TYPE */
+    ctrl: EVP_CIPHER_CTRL_FUNC; //* Miscellaneous operations */
+    app_data: Pointer;	//* Application data */
+  end;
+
+  EVP_CIPHER_CTX = record // Updated with EVP.h from OpenSSL 1.0.0
+
+    cipher: PEVP_CIPHER;
+    engine: PENGINE;  //* functional reference if 'cipher' is ENGINE-provided */
+    encrypt: cint;    //* encrypt or decrypt */
+    buf_len: cint;    //* number we have left */
+
+    oiv: array[0..EVP_MAX_IV_LENGTH-1] of Byte;  //* original iv */
+    iv: array[0..EVP_MAX_IV_LENGTH-1] of Byte; //* working iv */
+    buf: array[0..EVP_MAX_IV_LENGTH-1] of Byte; //* saved partial block */
+    num: cint;        //* used by cfb/ofb mode */
+
+    app_data: Pointer;   //* application stuff */
+    key_len: cint;    //* May change for variable length cipher */
+    flags: culong;	//* Various flags */
+    cipher_data: Pointer; //* per EVP data */
+    final_used: cint;
+    block_mask: cint;
+    final: array[0..EVP_MAX_BLOCK_LENGTH-1] of Byte; //* possible final block */
+    final2: array[0..$1FFF] of Byte; // Extra storage space, otherwise an access violation
+                                     // in the OpenSSL library will occur
+  end;
+
+const
   SSL_ERROR_NONE = 0;
   SSL_ERROR_SSL = 1;
   SSL_ERROR_WANT_READ = 2;
@@ -234,6 +361,12 @@ const
   SSL_FILETYPE_PEM = 1;
   EVP_PKEY_RSA = 6;
 
+  // RSA
+  RSA_PKCS1_PADDING      = 1;
+  RSA_SSLV23_PADDING     = 2;
+  RSA_NO_PADDING         = 3;
+  RSA_PKCS1_OAEP_PADDING = 4;
+
 var
   SSLLibHandle: TLibHandle = 0;
   SSLUtilHandle: TLibHandle = 0;
@@ -318,15 +451,12 @@ var
   function EvpPkeyAssign(pkey: EVP_PKEY; _type: cInt; key: Prsa): cInt;
   function EvpGetDigestByName(Name: String): PEVP_MD;
   procedure EVPcleanup;
-//  function ErrErrorString(e: cInt; buf: PChar): PChar;
   function SSLeayversion(t: cInt): string;
   procedure ErrErrorString(e: cInt; var buf: string; len: cInt);
   function ErrGetError: cInt;
   procedure ErrClearError;
   procedure ErrFreeStrings;
   procedure ErrRemoveState(pid: cInt);
-  procedure OPENSSLaddallalgorithms;
-  procedure CRYPTOcleanupAllExData;
   procedure RandScreen;
   function BioNew(b: PBIO_METHOD): PBIO;
   procedure BioFreeAll(b: PBIO);
@@ -337,10 +467,8 @@ var
   function d2iPKCS12bio(b:PBIO; Pkcs12: SslPtr): SslPtr;
   function PKCS12parse(p12: SslPtr; pass: string; var pkey, cert, ca: SslPtr): cInt;
   procedure PKCS12free(p12: SslPtr);
-  function RsaGenerateKey(bits, e: cInt; callback: PFunction; cb_arg: SslPtr): PRSA;
   function Asn1UtctimeNew: PASN1_UTCTIME;
   procedure Asn1UtctimeFree(a: PASN1_UTCTIME);
-  function Asn1cIntSet(a: PASN1_cInt; v: cInt): cInt;
   function i2dX509bio(b: PBIO; x: PX509): cInt;
   function i2dPrivateKeyBio(b: PBIO; pkey: EVP_PKEY): cInt;
 
@@ -349,9 +477,107 @@ var
   function DESsetkeychecked(key: des_cblock; schedule: des_key_schedule): cInt;
   procedure DESecbencrypt(Input: des_cblock; output: des_cblock; ks: des_key_schedule; enc: cInt);
 
+  // RAND functions
+
+  function RAND_set_rand_method(const meth: PRAND_METHOD): cint;
+  function RAND_get_rand_method: PRAND_METHOD;
+  function RAND_SSLeay: PRAND_METHOD;
+  procedure RAND_cleanup;
+  function RAND_bytes(buf: PByte; num: cint): cint;
+  function RAND_pseudo_bytes(buf: PByte; num: cint): cint;
+  procedure RAND_seed(const buf: Pointer; num: cint);
+  procedure RAND_add(const buf: Pointer; num: cint; entropy: cdouble);
+  function RAND_load_file(const file_name: PChar; max_bytes: clong): cint;
+  function RAND_write_file(const file_name: PChar): cint;
+  function RAND_file_name(file_name: PChar; num: csize_t): PChar;
+  function RAND_status: cint;
+  function RAND_query_egd_bytes(const path: PChar; buf: PByte; bytes: cint): cint;
+  function RAND_egd(const path: PChar): cint;
+  function RAND_egd_bytes(const path: PChar; bytes: cint): cint;
+  procedure ERR_load_RAND_strings;
+  function RAND_poll: cint;
+
+  // RSA Functions
+
+  function RSA_new(): PRSA;
+  function RSA_new_method(method: PENGINE): PRSA;
+  function RSA_size(arsa: PRSA): cint;
+  // Deprecated Function: Don't use!
+  // For compatibility with previous versions of this file
+  function RsaGenerateKey(bits, e: cInt; callback: PFunction; cb_arg: SslPtr): PRSA;
+  // New version of the previous deprecated routine
+  function RSA_generate_key_ex(arsa: PRSA; bits: cInt; e: PBIGNUM; cb: PBN_GENCB): PRSA;
+  //
+  function RSA_check_key(arsa: PRSA): cint;
+  // Next 4 return -1 on error
+  function RSA_public_encrypt(flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint;
+  function RSA_private_encrypt(flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint;
+  function RSA_public_decrypt(flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint;
+  function RSA_private_decrypt(flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint;
+  procedure RSA_free(arsa: PRSA);
+  //
+  // RSA_up_flags
+  function RSA_flags(arsa: PRSA): Integer;
+  //
+  procedure RSA_set_default_method(method: PRSA_METHOD);
+  function RSA_get_default_method: PRSA_METHOD;
+  function RSA_get_method(arsa: PRSA): PRSA_METHOD;
+  function RSA_set_method(arsa: PRSA; method: PRSA_METHOD): PRSA_METHOD;
+  //
+  // RSA_memory_lock
+
+  // X509 Functions
+
+  function d2i_RSAPublicKey(arsa: PPRSA; pp: PPByte; len: cint): PRSA;
+  function i2d_RSAPublicKey(arsa: PRSA; pp: PPByte): cint;
+  function d2i_RSAPrivateKey(arsa: PPRSA; pp: PPByte; len: cint): PRSA;
+  function i2d_RSAPrivateKey(arsa: PRSA; pp: PPByte): cint;
+
+  // ERR Functions
+
+  function Err_Error_String(e: cInt; buf: PChar): PChar;
+
+  // Crypto Functions
+
+  function SSLeay_version(t: cint): PChar;
+
+  // EVP Functions - evp.h
+
+  procedure OpenSSL_add_all_algorithms;
+  procedure OpenSSL_add_all_ciphers;
+  procedure OpenSSL_add_all_digests;
+  //
+  function EVP_DigestInit(ctx: PEVP_MD_CTX; type_: PEVP_MD): cint;
+  function EVP_DigestUpdate(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint;
+  function EVP_DigestFinal(ctx: PEVP_MD_CTX; md: PByte; s: pcuint): cint;
+  //
+  function EVP_get_cipherbyname(const name: PChar): PEVP_CIPHER;
+  function EVP_get_digestbyname(const name: PChar): PEVP_MD;
+  //
+  procedure EVP_CIPHER_CTX_init(a: PEVP_CIPHER_CTX);
+  function EVP_CIPHER_CTX_cleanup(a: PEVP_CIPHER_CTX): cint;
+  function EVP_CIPHER_CTX_set_key_length(x: PEVP_CIPHER_CTX; keylen: cint): cint;
+  function EVP_CIPHER_CTX_ctrl(ctx: PEVP_CIPHER_CTX; type_, arg: cint; ptr: Pointer): cint;
+  //
+  function EVP_EncryptInit(ctx: PEVP_CIPHER_CTX; const chipher_: PEVP_CIPHER;
+           const key, iv: PByte): cint;
+  function EVP_EncryptUpdate(ctx: PEVP_CIPHER_CTX; out_: pcuchar;
+           outlen: pcint; const in_: pcuchar; inlen: cint): cint;
+  function EVP_EncryptFinal(ctx: PEVP_CIPHER_CTX; out_data: PByte; outlen: pcint): cint;
+  //
+  function EVP_DecryptInit(ctx: PEVP_CIPHER_CTX; chiphir_type: PEVP_CIPHER;
+           const key, iv: PByte): cint;
+  function EVP_DecryptUpdate(ctx: PEVP_CIPHER_CTX; out_data: PByte;
+           outl: pcint; const in_: PByte; inl: cint): cint;
+  function EVP_DecryptFinal(ctx: PEVP_CIPHER_CTX; outm: PByte; outlen: pcint): cint;
+
+
 function IsSSLloaded: Boolean;
-function InitSSLInterface: Boolean;
+function InitSSLInterface(AVerboseLoading: Boolean = False): Boolean;
 function DestroySSLInterface: Boolean;
+
+var
+  OpenSSL_unavailable_functions: string;
 
 implementation
 
@@ -428,8 +654,6 @@ type
   TErrClearError = procedure; cdecl;
   TErrFreeStrings = procedure; cdecl;
   TErrRemoveState = procedure(pid: cInt); cdecl;
-  TOPENSSLaddallalgorithms = procedure; cdecl;
-  TCRYPTOcleanupAllExData = procedure; cdecl;
   TRandScreen = procedure; cdecl;
   TBioNew = function(b: PBIO_METHOD): PBIO; cdecl;
   TBioFreeAll = procedure(b: PBIO); cdecl;
@@ -440,10 +664,8 @@ type
   Td2iPKCS12bio = function(b:PBIO; Pkcs12: SslPtr): SslPtr; cdecl;
   TPKCS12parse = function(p12: SslPtr; pass: PChar; var pkey, cert, ca: SslPtr): cInt; cdecl;
   TPKCS12free = procedure(p12: SslPtr); cdecl;
-  TRsaGenerateKey = function(bits, e: cInt; callback: PFunction; cb_arg: SslPtr): PRSA; cdecl;
   TAsn1UtctimeNew = function: PASN1_UTCTIME; cdecl;
   TAsn1UtctimeFree = procedure(a: PASN1_UTCTIME); cdecl;
-  TAsn1cIntSet = function(a: PASN1_cInt; v: cInt): cInt; cdecl;
   Ti2dX509bio = function(b: PBIO; x: PX509): cInt; cdecl;
   Ti2dPrivateKeyBio= function(b: PBIO; pkey: EVP_PKEY): cInt; cdecl;
 
@@ -454,6 +676,88 @@ type
   //thread lock functions
   TCRYPTOnumlocks = function: cInt; cdecl;
   TCRYPTOSetLockingCallback = procedure(cb: Sslptr); cdecl;
+
+  // RAND functions
+  TRAND_set_rand_method = function(const meth: PRAND_METHOD): cint; cdecl;
+  TRAND_get_rand_method = function(): PRAND_METHOD; cdecl;
+  TRAND_SSLeay = function(): PRAND_METHOD; cdecl;
+  TRAND_cleanup = procedure(); cdecl;
+  TRAND_bytes = function(buf: PByte; num: cint): cint; cdecl;
+  TRAND_pseudo_bytes = function(buf: PByte; num: cint): cint; cdecl;
+  TRAND_seed = procedure(const buf: Pointer; num: cint); cdecl;
+  TRAND_add = procedure(const buf: Pointer; num: cint; entropy: cdouble); cdecl;
+  TRAND_load_file = function(const file_name: PChar; max_bytes: clong): cint; cdecl;
+  TRAND_write_file = function(const file_name: PChar): cint; cdecl;
+  TRAND_file_name = function(file_name: PChar; num: csize_t): PChar; cdecl;
+  TRAND_status = function(): cint; cdecl;
+  TRAND_query_egd_bytes = function(const path: PChar; buf: PByte; bytes: cint): cint; cdecl;
+  TRAND_egd = function(const path: PChar): cint; cdecl;
+  TRAND_egd_bytes = function(const path: PChar; bytes: cint): cint; cdecl;
+  TERR_load_RAND_strings = procedure(); cdecl;
+  TRAND_poll = function(): cint; cdecl;
+
+  // RSA Functions
+  TRSA_new = function (): PRSA; cdecl;
+  TRSA_new_method = function (method: PENGINE): PRSA; cdecl;
+  TRSA_size = function (arsa: PRSA): cint; cdecl;
+  TRsaGenerateKey = function(bits, e: cInt; callback: PFunction; cb_arg: SslPtr): PRSA; cdecl;
+  TRSA_generate_key_ex = function (arsa: PRSA; bits: cInt; e: PBIGNUM; cb: PBN_GENCB): PRSA; cdecl;
+  TRSA_check_key = function (arsa: PRSA): cint; cdecl;
+  TRSA_public_encrypt = function (flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint; cdecl;
+  TRSA_private_encrypt = function (flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint; cdecl;
+  TRSA_public_decrypt = function (flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint; cdecl;
+  TRSA_private_decrypt = function (flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint; cdecl;
+  TRSA_free = procedure (arsa: PRSA); cdecl;
+  TRSA_flags = function (arsa: PRSA): Integer; cdecl;
+  TRSA_set_default_method = procedure (method: PRSA_METHOD); cdecl;
+  TRSA_get_default_method = function : PRSA_METHOD; cdecl;
+  TRSA_get_method = function (prsa: PRSA): PRSA_METHOD; cdecl;
+  TRSA_set_method = function (arsa: PRSA; method: PRSA_METHOD): PRSA_METHOD; cdecl;
+
+  // X509 Functions
+
+  Td2i_RSAPublicKey = function (arsa: PPRSA; pp: PPByte; len: cint): PRSA; cdecl;
+  Ti2d_RSAPublicKey = function (arsa: PRSA; pp: PPByte): cint; cdecl;
+  Td2i_RSAPrivateKey = function (arsa: PPRSA; pp: PPByte; len: cint): PRSA; cdecl;
+  Ti2d_RSAPrivateKey = function (arsa: PRSA; pp: PPByte): cint; cdecl;
+
+  // ERR Functions
+
+  TErr_Error_String = function (e: cInt; buf: PChar): PChar; cdecl;
+
+  // Crypto Functions
+
+  TSSLeay_version = function(t: cint): PChar; cdecl;
+
+  // EVP Functions
+
+  TOpenSSL_add_all_algorithms = procedure(); cdecl;
+  TOpenSSL_add_all_ciphers = procedure(); cdecl;
+  TOpenSSL_add_all_digests = procedure(); cdecl;
+  //
+  TEVP_DigestInit = function(ctx: PEVP_MD_CTX; type_: PEVP_MD): cint; cdecl;
+  TEVP_DigestUpdate = function(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint; cdecl;
+  TEVP_DigestFinal = function(ctx: PEVP_MD_CTX; md: PByte; s: pcuint): cint; cdecl;
+  //
+  TEVP_get_cipherbyname = function(const name: PChar): PEVP_CIPHER; cdecl;
+  TEVP_get_digestbyname = function(const name: PChar): PEVP_MD; cdecl;
+  //
+  TEVP_CIPHER_CTX_init = procedure(a: PEVP_CIPHER_CTX); cdecl;
+  TEVP_CIPHER_CTX_cleanup = function(a: PEVP_CIPHER_CTX): cint; cdecl;
+  TEVP_CIPHER_CTX_set_key_length = function(x: PEVP_CIPHER_CTX; keylen: cint): cint; cdecl;
+  TEVP_CIPHER_CTX_ctrl = function(ctx: PEVP_CIPHER_CTX; type_, arg: cint; ptr: Pointer): cint; cdecl;
+  //
+  TEVP_EncryptInit = function(ctx: PEVP_CIPHER_CTX; const chipher_: PEVP_CIPHER;
+           const key, iv: PByte): cint; cdecl;
+  TEVP_EncryptUpdate = function(ctx: PEVP_CIPHER_CTX; out_: pcuchar;
+           outlen: pcint; const in_: pcuchar; inlen: cint): cint; cdecl;
+  TEVP_EncryptFinal = function(ctx: PEVP_CIPHER_CTX; out_data: PByte; outlen: pcint): cint; cdecl;
+  //
+  TEVP_DecryptInit = function(ctx: PEVP_CIPHER_CTX; chiphir_type: PEVP_CIPHER;
+           const key, iv: PByte): cint; cdecl;
+  TEVP_DecryptUpdate = function(ctx: PEVP_CIPHER_CTX; out_data: PByte;
+           outl: pcint; const in_: PByte; inl: cint): cint; cdecl;
+  TEVP_DecryptFinal = function(ctx: PEVP_CIPHER_CTX; outm: PByte; outlen: pcint): cint; cdecl;
 
 var
 // libssl.dll
@@ -527,8 +831,6 @@ var
   _ErrClearError: TErrClearError = nil;
   _ErrFreeStrings: TErrFreeStrings = nil;
   _ErrRemoveState: TErrRemoveState = nil;
-  _OPENSSLaddallalgorithms: TOPENSSLaddallalgorithms = nil;
-  _CRYPTOcleanupAllExData: TCRYPTOcleanupAllExData = nil;
   _RandScreen: TRandScreen = nil;
   _BioNew: TBioNew = nil;
   _BioFreeAll: TBioFreeAll = nil;
@@ -539,10 +841,8 @@ var
   _d2iPKCS12bio: Td2iPKCS12bio = nil;
   _PKCS12parse: TPKCS12parse = nil;
   _PKCS12free: TPKCS12free = nil;
-  _RsaGenerateKey: TRsaGenerateKey = nil;
   _Asn1UtctimeNew: TAsn1UtctimeNew = nil;
   _Asn1UtctimeFree: TAsn1UtctimeFree = nil;
-  _Asn1cIntSet: TAsn1cIntSet = nil;
   _i2dX509bio: Ti2dX509bio = nil;
   _i2dPrivateKeyBio: Ti2dPrivateKeyBio = nil;
 
@@ -553,6 +853,84 @@ var
   //thread lock functions
   _CRYPTOnumlocks: TCRYPTOnumlocks = nil;
   _CRYPTOSetLockingCallback: TCRYPTOSetLockingCallback = nil;
+
+  // RAND functions
+  _RAND_set_rand_method: TRAND_set_rand_method = nil;
+  _RAND_get_rand_method: TRAND_get_rand_method = nil;
+  _RAND_SSLeay: TRAND_SSLeay = nil;
+  _RAND_cleanup: TRAND_cleanup = nil;
+  _RAND_bytes: TRAND_bytes = nil;
+  _RAND_pseudo_bytes: TRAND_pseudo_bytes = nil;
+  _RAND_seed: TRAND_seed = nil;
+  _RAND_add: TRAND_add = nil;
+  _RAND_load_file: TRAND_load_file = nil;
+  _RAND_write_file: TRAND_write_file = nil;
+  _RAND_file_name: TRAND_file_name = nil;
+  _RAND_status: TRAND_status = nil;
+  _RAND_query_egd_bytes: TRAND_query_egd_bytes = nil;
+  _RAND_egd: TRAND_egd = nil;
+  _RAND_egd_bytes: TRAND_egd_bytes = nil;
+  _ERR_load_RAND_strings: TERR_load_RAND_strings = nil;
+  _RAND_poll: TRAND_poll = nil;
+
+  // RSA Functions
+  _RSA_new: TRSA_new = nil;
+  _RSA_new_method: TRSA_new_method = nil;
+  _RSA_size: TRSA_size = nil;
+  _RsaGenerateKey: TRsaGenerateKey = nil;
+  _RSA_generate_key_ex: TRSA_generate_key_ex = nil;
+  _RSA_check_key: TRSA_check_key = nil;
+  _RSA_public_encrypt: TRSA_public_encrypt = nil;
+  _RSA_private_encrypt: TRSA_private_encrypt = nil;
+  _RSA_public_decrypt: TRSA_public_decrypt = nil;
+  _RSA_private_decrypt: TRSA_private_decrypt = nil;
+  _RSA_free: TRSA_free = nil;
+  _RSA_flags: TRSA_flags = nil;
+  _RSA_set_default_method: TRSA_set_default_method = nil;
+  _RSA_get_default_method: TRSA_get_default_method = nil;
+  _RSA_get_method: TRSA_get_method = nil;
+  _RSA_set_method: TRSA_set_method = nil;
+
+  // X509 Functions
+
+  _d2i_RSAPublicKey: Td2i_RSAPublicKey = nil;
+  _i2d_RSAPublicKey: Ti2d_RSAPublicKey = nil;
+  _d2i_RSAPrivateKey: Td2i_RSAPrivateKey = nil;
+  _i2d_RSAPrivateKey: Ti2d_RSAPrivateKey = nil;
+
+  // ERR Functions
+
+  _Err_Error_String: TErr_Error_String = nil;
+
+  // Crypto Functions
+
+  _SSLeay_version: TSSLeay_version = nil;
+
+  // EVP Functions
+
+  _OpenSSL_add_all_algorithms: TOpenSSL_add_all_algorithms = nil;
+  _OpenSSL_add_all_ciphers: TOpenSSL_add_all_ciphers = nil;
+  _OpenSSL_add_all_digests: TOpenSSL_add_all_digests = nil;
+  //
+  _EVP_DigestInit: TEVP_DigestInit = nil;
+  _EVP_DigestUpdate: TEVP_DigestUpdate = nil;
+  _EVP_DigestFinal: TEVP_DigestFinal = nil;
+  //
+  _EVP_get_cipherbyname: TEVP_get_cipherbyname = nil;
+  _EVP_get_digestbyname: TEVP_get_digestbyname = nil;
+  //
+  _EVP_CIPHER_CTX_init: TEVP_CIPHER_CTX_init = nil;
+  _EVP_CIPHER_CTX_cleanup: TEVP_CIPHER_CTX_cleanup = nil;
+  _EVP_CIPHER_CTX_set_key_length: TEVP_CIPHER_CTX_set_key_length = nil;
+  _EVP_CIPHER_CTX_ctrl: TEVP_CIPHER_CTX_ctrl = nil;
+  //
+  _EVP_EncryptInit: TEVP_EncryptInit = nil;
+  _EVP_EncryptUpdate: TEVP_EncryptUpdate = nil;
+  _EVP_EncryptFinal: TEVP_EncryptFinal = nil;
+  //
+  _EVP_DecryptInit: TEVP_DecryptInit = nil;
+  _EVP_DecryptUpdate: TEVP_DecryptUpdate = nil;
+  _EVP_DecryptFinal: TEVP_DecryptFinal = nil;
 
 var
   SSLloaded: boolean = false;
@@ -1001,22 +1379,10 @@ begin
     _ErrRemoveState(pid);
 end;
 
-procedure OPENSSLaddallalgorithms;
-begin
-  if InitSSLInterface and Assigned(_OPENSSLaddallalgorithms) then
-    _OPENSSLaddallalgorithms;
-end;
-
 procedure EVPcleanup;
 begin
   if InitSSLInterface and Assigned(_EVPcleanup) then
     _EVPcleanup;
-end;
-
-procedure CRYPTOcleanupAllExData;
-begin
-  if InitSSLInterface and Assigned(_CRYPTOcleanupAllExData) then
-    _CRYPTOcleanupAllExData;
 end;
 
 procedure RandScreen;
@@ -1100,14 +1466,6 @@ procedure PKCS12free(p12: SslPtr);
 begin
   if InitSSLInterface and Assigned(_PKCS12free) then
     _PKCS12free(p12);
-end;
-
-function RsaGenerateKey(bits, e: cInt; callback: PFunction; cb_arg: SslPtr): PRSA;
-begin
-  if InitSSLInterface and Assigned(_RsaGenerateKey) then
-    Result := _RsaGenerateKey(bits, e, callback, cb_arg)
-  else
-    Result := nil;
 end;
 
 function EvpPkeyAssign(pkey: EVP_PKEY; _type: cInt; key: Prsa): cInt;
@@ -1221,14 +1579,6 @@ begin
     Result := nil;
 end;
 
-function Asn1cIntSet(a: PASN1_cInt; v: cInt): cInt;
-begin
-  if InitSSLInterface and Assigned(_Asn1cIntSet) then
-    Result := _Asn1cIntSet(a, v)
-  else
-    Result := 0;
-end;
-
 function X509GetSerialNumber(x: PX509): PASN1_cInt;
 begin
   if InitSSLInterface and Assigned(_X509GetSerialNumber) then
@@ -1257,6 +1607,456 @@ begin
   if InitSSLInterface and Assigned(_DESecbencrypt) then
     _DESecbencrypt(Input, output, ks, enc);
 end;
+
+// RAND functions
+function RAND_set_rand_method(const meth: PRAND_METHOD): cint;
+begin
+  if InitSSLInterface and Assigned(_RAND_set_rand_method) then
+    Result := _RAND_set_rand_method(meth)
+  else
+    Result := -1;
+end;
+
+function RAND_get_rand_method: PRAND_METHOD;
+begin
+  if InitSSLInterface and Assigned(_RAND_get_rand_method) then
+    Result := _RAND_get_rand_method()
+  else
+    Result := nil;
+end;
+
+function RAND_SSLeay: PRAND_METHOD;
+begin
+  if InitSSLInterface and Assigned(_RAND_SSLeay) then
+    Result := _RAND_SSLeay()
+  else
+    Result := nil;
+end;
+
+procedure RAND_cleanup;
+begin
+  if InitSSLInterface and Assigned(_RAND_cleanup) then
+    _RAND_cleanup();
+end;
+
+function RAND_bytes(buf: PByte; num: cint): cint;
+begin
+  if InitSSLInterface and Assigned(_RAND_bytes) then
+    Result := _RAND_bytes(buf, num)
+  else
+    Result := -1;
+end;
+
+function RAND_pseudo_bytes(buf: PByte; num: cint): cint;
+begin
+  if InitSSLInterface and Assigned(_RAND_pseudo_bytes) then
+    Result := _RAND_pseudo_bytes(buf, num)
+  else
+    Result := -1;
+end;
+
+procedure RAND_seed(const buf: Pointer; num: cint);
+begin
+  if InitSSLInterface and Assigned(_RAND_seed) then
+    _RAND_seed(buf, num);
+end;
+
+procedure RAND_add(const buf: Pointer; num: cint; entropy: cdouble);
+begin
+  if InitSSLInterface and Assigned(_RAND_add) then
+    _RAND_add(buf, num, entropy);
+end;
+
+function RAND_load_file(const file_name: PChar; max_bytes: clong): cint;
+begin
+  if InitSSLInterface and Assigned(_RAND_load_file) then
+    Result := _RAND_load_file(file_name, max_bytes)
+  else
+    Result := -1;
+end;
+
+function RAND_write_file(const file_name: PChar): cint;
+begin
+  if InitSSLInterface and Assigned(_RAND_write_file) then
+    Result := _RAND_write_file(file_name)
+  else
+    Result := -1;
+end;
+
+function RAND_file_name(file_name: PChar; num: csize_t): PChar;
+begin
+  if InitSSLInterface and Assigned(_RAND_file_name) then
+    Result := _RAND_file_name(file_name, num)
+  else
+    Result := -1;
+end;
+
+function RAND_status: cint;
+begin
+  if InitSSLInterface and Assigned(_RAND_status) then
+    Result := _RAND_status()
+  else
+    Result := -1;
+end;
+
+function RAND_query_egd_bytes(const path: PChar; buf: PByte; bytes: cint): cint;
+begin
+  if InitSSLInterface and Assigned(_RAND_query_egd_bytes) then
+    Result := _RAND_query_egd_bytes(path, buf, bytes)
+  else
+    Result := -1;
+end;
+
+function RAND_egd(const path: PChar): cint;
+begin
+  if InitSSLInterface and Assigned(_RAND_egd) then
+    Result := _RAND_egd(path)
+  else
+    Result := -1;
+end;
+
+function RAND_egd_bytes(const path: PChar; bytes: cint): cint;
+begin
+  if InitSSLInterface and Assigned(_RAND_egd_bytes) then
+    Result := _RAND_egd_bytes(path, bytes)
+  else
+    Result := -1;
+end;
+
+procedure ERR_load_RAND_strings;
+begin
+  if InitSSLInterface and Assigned(_ERR_load_RAND_strings) then
+    _ERR_load_RAND_strings();
+end;
+
+function RAND_poll: cint;
+begin
+  if InitSSLInterface and Assigned(_RAND_poll) then
+    Result := _RAND_poll()
+  else
+    Result := -1;
+end;
+
+// RSA Functions
+
+function RSA_new(): PRSA;
+begin
+  if InitSSLInterface and Assigned(_RSA_new) then
+    Result := _RSA_new()
+  else
+    Result := nil;
+end;
+
+function RSA_new_method(method: PENGINE): PRSA;
+begin
+  if InitSSLInterface and Assigned(_RSA_new_method) then
+    Result := _RSA_new_method(method)
+  else
+    Result := nil;
+end;
+
+function RSA_size(arsa: PRSA): cint;
+begin
+  if InitSSLInterface and Assigned(_RSA_size) then
+    Result := _RSA_size(arsa)
+  else
+    Result := -1;
+end;
+
+function RsaGenerateKey(bits, e: cInt; callback: PFunction; cb_arg: SslPtr): PRSA;
+begin
+  if InitSSLInterface and Assigned(_RsaGenerateKey) then
+    Result := _RsaGenerateKey(bits, e, callback, cb_arg)
+  else
+    Result := nil;
+end;
+
+function RSA_generate_key_ex(arsa: PRSA; bits: cInt; e: PBIGNUM; cb: PBN_GENCB): PRSA;
+begin
+  if InitSSLInterface and Assigned(_RSA_generate_key_ex) then
+    Result := _RSA_generate_key_ex(arsa, bits, e, cb)
+  else
+    Result := nil;
+end;
+
+function RSA_check_key(arsa: PRSA): cint;
+begin
+  if InitSSLInterface and Assigned(_RSA_check_key) then
+    Result := _RSA_check_key(arsa)
+  else
+    Result := -1;
+end;
+
+function RSA_public_encrypt(flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint;
+begin
+  if InitSSLInterface and Assigned(_RSA_public_encrypt) then
+    Result := _RSA_public_encrypt(flen, from_buf, to_buf, arsa, padding)
+  else
+    Result := -1;
+end;
+
+function RSA_private_encrypt(flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint;
+begin
+  if InitSSLInterface and Assigned(_RSA_private_encrypt) then
+    Result := _RSA_private_encrypt(flen, from_buf, to_buf, arsa, padding)
+  else
+    Result := -1;
+end;
+
+function RSA_public_decrypt(flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint;
+begin
+  if InitSSLInterface and Assigned(_RSA_public_decrypt) then
+    Result := _RSA_public_decrypt(flen, from_buf, to_buf, arsa, padding)
+  else
+    Result := -1;
+end;
+
+function RSA_private_decrypt(flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint;
+begin
+  if InitSSLInterface and Assigned(_RSA_private_decrypt) then
+    Result := _RSA_private_decrypt(flen, from_buf, to_buf, arsa, padding)
+  else
+    Result := -1;
+end;
+
+procedure RSA_free(arsa: PRSA);
+begin
+  if InitSSLInterface and Assigned(_RSA_free) then
+    _RSA_free(arsa);
+end;
+
+function RSA_flags(arsa: PRSA): Integer;
+begin
+  if InitSSLInterface and Assigned(_RSA_flags) then
+    Result := _RSA_flags(arsa)
+  else
+    Result := -1;
+end;
+
+procedure RSA_set_default_method(method: PRSA_METHOD);
+begin
+  if InitSSLInterface and Assigned(_RSA_set_default_method) then
+    _RSA_set_default_method(method);
+end;
+
+function RSA_get_default_method: PRSA_METHOD;
+begin
+  if InitSSLInterface and Assigned(_RSA_get_default_method) then
+    Result := _RSA_get_default_method()
+  else
+    Result := -1;
+end;
+
+function RSA_get_method(arsa: PRSA): PRSA_METHOD;
+begin
+  if InitSSLInterface and Assigned(_RSA_get_method) then
+    Result := _RSA_get_method(arsa)
+  else
+    Result := -1;
+end;
+
+function RSA_set_method(arsa: PRSA; method: PRSA_METHOD): PRSA_METHOD;
+begin
+  if InitSSLInterface and Assigned(_RSA_set_method) then
+    Result := _RSA_set_method(arsa, method)
+  else
+    Result := -1;
+end;
+
+function d2i_RSAPublicKey(arsa: PPRSA; pp: PPByte; len: cint): PRSA;
+begin
+  if InitSSLInterface and Assigned(_d2i_RSAPublicKey) then
+    Result := _d2i_RSAPublicKey(arsa, pp, len)
+  else
+    Result := -1;
+end;
+
+function i2d_RSAPublicKey(arsa: PRSA; pp: PPByte): cint;
+begin
+  if InitSSLInterface and Assigned(_i2d_RSAPublicKey) then
+    Result := _i2d_RSAPublicKey(arsa, pp)
+  else
+    Result := -1;
+end;
+
+function d2i_RSAPrivateKey(arsa: PPRSA; pp: PPByte; len: cint): PRSA;
+begin
+  if InitSSLInterface and Assigned(_d2i_RSAPrivateKey) then
+    Result := _d2i_RSAPrivateKey(arsa, pp, len)
+  else
+    Result := -1;
+end;
+
+function i2d_RSAPrivateKey(arsa: PRSA; pp: PPByte): cint;
+begin
+  if InitSSLInterface and Assigned(_i2d_RSAPrivateKey) then
+    Result := _i2d_RSAPrivateKey(arsa, pp)
+  else
+    Result := -1;
+end;
+
+// ERR Functions
+
+function Err_Error_String(e: cInt; buf: PChar): PChar;
+begin
+  if InitSSLInterface and Assigned(_Err_Error_String) then
+    Result := _Err_Error_String(e, buf)
+  else
+    Result := -1;
+end;
+
+// Crypto Functions
+
+function SSLeay_version(t: cint): PChar;
+begin
+  if InitSSLInterface and Assigned(_SSLeay_version) then
+    Result := _SSLeay_version(t)
+  else
+    Result := -1;
+end;
+
+// EVP Functions
+
+procedure OpenSSL_add_all_algorithms;
+begin
+  if InitSSLInterface and Assigned(_OpenSSL_add_all_algorithms) then
+    _OpenSSL_add_all_algorithms();
+end;
+
+procedure OpenSSL_add_all_ciphers;
+begin
+  if InitSSLInterface and Assigned(_OpenSSL_add_all_ciphers) then
+    _OpenSSL_add_all_ciphers();
+end;
+
+procedure OpenSSL_add_all_digests;
+begin
+  if InitSSLInterface and Assigned(_OpenSSL_add_all_digests) then
+    _OpenSSL_add_all_digests();
+end;
+//
+function EVP_DigestInit(ctx: PEVP_MD_CTX; type_: PEVP_MD): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_DigestInit) then
+    Result := _EVP_DigestInit(ctx, type_)
+  else
+    Result := -1;
+end;
+
+function EVP_DigestUpdate(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_DigestUpdate) then
+    Result := _EVP_DigestUpdate(ctx, data, cnt)
+  else
+    Result := -1;
+end;
+
+function EVP_DigestFinal(ctx: PEVP_MD_CTX; md: PByte; s: pcuint): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_DigestFinal) then
+    Result := _EVP_DigestFinal(ctx, md, s)
+  else
+    Result := -1;
+end;
+//
+function EVP_get_cipherbyname(const name: PChar): PEVP_CIPHER;
+begin
+  if InitSSLInterface and Assigned(_EVP_get_cipherbyname) then
+    Result := _EVP_get_cipherbyname(name)
+  else
+    Result := -1;
+end;
+
+function EVP_get_digestbyname(const name: PChar): PEVP_MD;
+begin
+  if InitSSLInterface and Assigned(_EVP_get_digestbyname) then
+    Result := _EVP_get_digestbyname(name)
+  else
+    Result := -1;
+end;
+//
+procedure EVP_CIPHER_CTX_init(a: PEVP_CIPHER_CTX);
+begin
+  if InitSSLInterface and Assigned(_EVP_CIPHER_CTX_init) then
+    _EVP_CIPHER_CTX_init(a);
+end;
+
+function EVP_CIPHER_CTX_cleanup(a: PEVP_CIPHER_CTX): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_CIPHER_CTX_cleanup) then
+    Result := _EVP_CIPHER_CTX_cleanup(a)
+  else
+    Result := -1;
+end;
+
+function EVP_CIPHER_CTX_set_key_length(x: PEVP_CIPHER_CTX; keylen: cint): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_CIPHER_CTX_set_key_length) then
+    Result := _EVP_CIPHER_CTX_set_key_length(x, keylen)
+  else
+    Result := -1;
+end;
+
+function EVP_CIPHER_CTX_ctrl(ctx: PEVP_CIPHER_CTX; type_, arg: cint; ptr: Pointer): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_CIPHER_CTX_ctrl) then
+    Result := _EVP_CIPHER_CTX_ctrl(ctx, type_, arg, ptr)
+  else
+    Result := -1;
+end;
+//
+function EVP_EncryptInit(ctx: PEVP_CIPHER_CTX; const chipher_: PEVP_CIPHER;
+         const key, iv: PByte): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_EncryptInit) then
+    Result := _EVP_EncryptInit(ctx, chipher_, key, iv)
+  else
+    Result := -1;
+end;
+
+function EVP_EncryptUpdate(ctx: PEVP_CIPHER_CTX; out_: pcuchar;
+         outlen: pcint; const in_: pcuchar; inlen: cint): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_EncryptUpdate) then
+    Result := _EVP_EncryptUpdate(ctx, out_, outlen, in_, inlen)
+  else
+    Result := -1;
+end;
+
+function EVP_EncryptFinal(ctx: PEVP_CIPHER_CTX; out_data: PByte; outlen: pcint): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_EncryptFinal) then
+    Result := _EVP_EncryptFinal(ctx, out_data, outlen)
+  else
+    Result := -1;
+end;
+//
+function EVP_DecryptInit(ctx: PEVP_CIPHER_CTX; chiphir_type: PEVP_CIPHER;
+         const key, iv: PByte): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_DecryptInit) then
+    Result := _EVP_DecryptInit(ctx, chiphir_type, key, iv)
+  else
+    Result := -1;
+end;
+
+function EVP_DecryptUpdate(ctx: PEVP_CIPHER_CTX; out_data: PByte;
+         outl: pcint; const in_: PByte; inl: cint): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_DecryptUpdate) then
+    Result := _EVP_DecryptUpdate(ctx, out_data, outl, in_, inl)
+  else
+    Result := -1;
+end;
+
+function EVP_DecryptFinal(ctx: PEVP_CIPHER_CTX; outm: PByte; outlen: pcint): cint;
+begin
+  if InitSSLInterface and Assigned(_EVP_DecryptFinal) then
+    Result := _EVP_DecryptFinal(ctx, outm, outlen)
+  else
+    Result := -1;
+end;
+
 
 {$IFNDEF WINDOWS}
 { Try to load all library versions until you find or run out }
@@ -1288,12 +2088,18 @@ begin
   {$ENDIF}
 end;
 
-function GetProcAddr(module: HModule; const ProcName: string): SslPtr;
+function GetProcAddr(module: HModule; const ProcName: string;
+  AVerboseLoading: Boolean): SslPtr;
 begin
   Result := GetProcAddress(module, PChar(ProcName));
+  if AVerboseLoading and (Result = nil) then
+    OpenSSL_unavailable_functions := OpenSSL_unavailable_functions + ProcName + LineEnding;
 end;
 
-function InitSSLInterface: Boolean;
+// The AVerboseLoading parameter can be used to check which particular
+// functions weren't loaded correctly. They will be available in the
+// global variable OpenSSL_unavailable_functions
+function InitSSLInterface(AVerboseLoading: Boolean = False): Boolean;
 begin
     if not IsSSLloaded then
     begin
@@ -1305,111 +2111,184 @@ begin
   {$ENDIF}
       if (SSLLibHandle <> 0) and (SSLUtilHandle <> 0) then
       begin
-        _SslGetError := GetProcAddr(SSLLibHandle, 'SSL_get_error');
-        _SslLibraryInit := GetProcAddr(SSLLibHandle, 'SSL_library_init');
-        _SslLoadErrorStrings := GetProcAddr(SSLLibHandle, 'SSL_load_error_strings');
-        _SslCtxSetCipherList := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_cipher_list');
-        _SslCtxNew := GetProcAddr(SSLLibHandle, 'SSL_CTX_new');
-        _SslCtxFree := GetProcAddr(SSLLibHandle, 'SSL_CTX_free');
-        _SslSetFd := GetProcAddr(SSLLibHandle, 'SSL_set_fd');
-        _SslCtrl := GetProcAddr(SSLLibHandle, 'SSL_ctrl');
-        _SslCTXCtrl := GetProcAddr(SSLLibHandle, 'SSL_CTX_ctrl');
-        _SslMethodV2 := GetProcAddr(SSLLibHandle, 'SSLv2_method');
-        _SslMethodV3 := GetProcAddr(SSLLibHandle, 'SSLv3_method');
-        _SslMethodTLSV1 := GetProcAddr(SSLLibHandle, 'TLSv1_method');
-        _SslMethodV23 := GetProcAddr(SSLLibHandle, 'SSLv23_method');
-        _SslCtxUsePrivateKey := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_PrivateKey');
-        _SslCtxUsePrivateKeyASN1 := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_PrivateKey_ASN1');
+        _SslGetError := GetProcAddr(SSLLibHandle, 'SSL_get_error', AVerboseLoading);
+        _SslLibraryInit := GetProcAddr(SSLLibHandle, 'SSL_library_init', AVerboseLoading);
+        _SslLoadErrorStrings := GetProcAddr(SSLLibHandle, 'SSL_load_error_strings', AVerboseLoading);
+        _SslCtxSetCipherList := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_cipher_list', AVerboseLoading);
+        _SslCtxNew := GetProcAddr(SSLLibHandle, 'SSL_CTX_new', AVerboseLoading);
+        _SslCtxFree := GetProcAddr(SSLLibHandle, 'SSL_CTX_free', AVerboseLoading);
+        _SslSetFd := GetProcAddr(SSLLibHandle, 'SSL_set_fd', AVerboseLoading);
+        _SslCtrl := GetProcAddr(SSLLibHandle, 'SSL_ctrl', AVerboseLoading);
+        _SslCTXCtrl := GetProcAddr(SSLLibHandle, 'SSL_CTX_ctrl', AVerboseLoading);
+        _SslMethodV2 := GetProcAddr(SSLLibHandle, 'SSLv2_method', AVerboseLoading);
+        _SslMethodV3 := GetProcAddr(SSLLibHandle, 'SSLv3_method', AVerboseLoading);
+        _SslMethodTLSV1 := GetProcAddr(SSLLibHandle, 'TLSv1_method', AVerboseLoading);
+        _SslMethodV23 := GetProcAddr(SSLLibHandle, 'SSLv23_method', AVerboseLoading);
+        _SslCtxUsePrivateKey := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_PrivateKey', AVerboseLoading);
+        _SslCtxUsePrivateKeyASN1 := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_PrivateKey_ASN1', AVerboseLoading);
         //use SSL_CTX_use_RSAPrivateKey_file instead SSL_CTX_use_PrivateKey_file,
         //because SSL_CTX_use_PrivateKey_file not support DER format. :-O
-        _SslCtxUsePrivateKeyFile := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_RSAPrivateKey_file');
-        _SslCtxUseCertificate := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_certificate');
-        _SslCtxUseCertificateASN1 := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_certificate_ASN1');
-        _SslCtxUseCertificateFile := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_certificate_file');
-        _SslCtxUseCertificateChainFile := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_certificate_chain_file');
-        _SslCtxCheckPrivateKeyFile := GetProcAddr(SSLLibHandle, 'SSL_CTX_check_private_key');
-        _SslCtxSetDefaultPasswdCb := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_default_passwd_cb');
-        _SslCtxSetDefaultPasswdCbUserdata := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_default_passwd_cb_userdata');
-        _SslCtxLoadVerifyLocations := GetProcAddr(SSLLibHandle, 'SSL_CTX_load_verify_locations');
-        _SslNew := GetProcAddr(SSLLibHandle, 'SSL_new');
-        _SslFree := GetProcAddr(SSLLibHandle, 'SSL_free');
-        _SslAccept := GetProcAddr(SSLLibHandle, 'SSL_accept');
-        _SslConnect := GetProcAddr(SSLLibHandle, 'SSL_connect');
-        _SslShutdown := GetProcAddr(SSLLibHandle, 'SSL_shutdown');
-        _SslRead := GetProcAddr(SSLLibHandle, 'SSL_read');
-        _SslPeek := GetProcAddr(SSLLibHandle, 'SSL_peek');
-        _SslWrite := GetProcAddr(SSLLibHandle, 'SSL_write');
-        _SslPending := GetProcAddr(SSLLibHandle, 'SSL_pending');
-        _SslGetPeerCertificate := GetProcAddr(SSLLibHandle, 'SSL_get_peer_certificate');
-        _SslGetVersion := GetProcAddr(SSLLibHandle, 'SSL_get_version');
-        _SslCtxSetVerify := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_verify');
-        _SslGetCurrentCipher := GetProcAddr(SSLLibHandle, 'SSL_get_current_cipher');
-        _SslCipherGetName := GetProcAddr(SSLLibHandle, 'SSL_CIPHER_get_name');
-        _SslCipherGetBits := GetProcAddr(SSLLibHandle, 'SSL_CIPHER_get_bits');
-        _SslGetVerifyResult := GetProcAddr(SSLLibHandle, 'SSL_get_verify_result');
+        _SslCtxUsePrivateKeyFile := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_RSAPrivateKey_file', AVerboseLoading);
+        _SslCtxUseCertificate := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_certificate', AVerboseLoading);
+        _SslCtxUseCertificateASN1 := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_certificate_ASN1', AVerboseLoading);
+        _SslCtxUseCertificateFile := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_certificate_file', AVerboseLoading);
+        _SslCtxUseCertificateChainFile := GetProcAddr(SSLLibHandle, 'SSL_CTX_use_certificate_chain_file', AVerboseLoading);
+        _SslCtxCheckPrivateKeyFile := GetProcAddr(SSLLibHandle, 'SSL_CTX_check_private_key', AVerboseLoading);
+        _SslCtxSetDefaultPasswdCb := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_default_passwd_cb', AVerboseLoading);
+        _SslCtxSetDefaultPasswdCbUserdata := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_default_passwd_cb_userdata', AVerboseLoading);
+        _SslCtxLoadVerifyLocations := GetProcAddr(SSLLibHandle, 'SSL_CTX_load_verify_locations', AVerboseLoading);
+        _SslNew := GetProcAddr(SSLLibHandle, 'SSL_new', AVerboseLoading);
+        _SslFree := GetProcAddr(SSLLibHandle, 'SSL_free', AVerboseLoading);
+        _SslAccept := GetProcAddr(SSLLibHandle, 'SSL_accept', AVerboseLoading);
+        _SslConnect := GetProcAddr(SSLLibHandle, 'SSL_connect', AVerboseLoading);
+        _SslShutdown := GetProcAddr(SSLLibHandle, 'SSL_shutdown', AVerboseLoading);
+        _SslRead := GetProcAddr(SSLLibHandle, 'SSL_read', AVerboseLoading);
+        _SslPeek := GetProcAddr(SSLLibHandle, 'SSL_peek', AVerboseLoading);
+        _SslWrite := GetProcAddr(SSLLibHandle, 'SSL_write', AVerboseLoading);
+        _SslPending := GetProcAddr(SSLLibHandle, 'SSL_pending', AVerboseLoading);
+        _SslGetPeerCertificate := GetProcAddr(SSLLibHandle, 'SSL_get_peer_certificate', AVerboseLoading);
+        _SslGetVersion := GetProcAddr(SSLLibHandle, 'SSL_get_version', AVerboseLoading);
+        _SslCtxSetVerify := GetProcAddr(SSLLibHandle, 'SSL_CTX_set_verify', AVerboseLoading);
+        _SslGetCurrentCipher := GetProcAddr(SSLLibHandle, 'SSL_get_current_cipher', AVerboseLoading);
+        _SslCipherGetName := GetProcAddr(SSLLibHandle, 'SSL_CIPHER_get_name', AVerboseLoading);
+        _SslCipherGetBits := GetProcAddr(SSLLibHandle, 'SSL_CIPHER_get_bits', AVerboseLoading);
+        _SslGetVerifyResult := GetProcAddr(SSLLibHandle, 'SSL_get_verify_result', AVerboseLoading);
 
-        _X509New := GetProcAddr(SSLUtilHandle, 'X509_new');
-        _X509Free := GetProcAddr(SSLUtilHandle, 'X509_free');
-        _X509NameOneline := GetProcAddr(SSLUtilHandle, 'X509_NAME_oneline');
-        _X509GetSubjectName := GetProcAddr(SSLUtilHandle, 'X509_get_subject_name');
-        _X509GetIssuerName := GetProcAddr(SSLUtilHandle, 'X509_get_issuer_name');
-        _X509NameHash := GetProcAddr(SSLUtilHandle, 'X509_NAME_hash');
-        _X509Digest := GetProcAddr(SSLUtilHandle, 'X509_digest');
-        _X509print := GetProcAddr(SSLUtilHandle, 'X509_print');
-        _X509SetVersion := GetProcAddr(SSLUtilHandle, 'X509_set_version');
-        _X509SetPubkey := GetProcAddr(SSLUtilHandle, 'X509_set_pubkey');
-        _X509SetIssuerName := GetProcAddr(SSLUtilHandle, 'X509_set_issuer_name');
-        _X509NameAddEntryByTxt := GetProcAddr(SSLUtilHandle, 'X509_NAME_add_entry_by_txt');
-        _X509Sign := GetProcAddr(SSLUtilHandle, 'X509_sign');
-        _X509GmtimeAdj := GetProcAddr(SSLUtilHandle, 'X509_gmtime_adj');
-        _X509SetNotBefore := GetProcAddr(SSLUtilHandle, 'X509_set_notBefore');
-        _X509SetNotAfter := GetProcAddr(SSLUtilHandle, 'X509_set_notAfter');
-        _X509GetSerialNumber := GetProcAddr(SSLUtilHandle, 'X509_get_serialNumber');
-        _EvpPkeyNew := GetProcAddr(SSLUtilHandle, 'EVP_PKEY_new');
-        _EvpPkeyFree := GetProcAddr(SSLUtilHandle, 'EVP_PKEY_free');
-        _EvpPkeyAssign := GetProcAddr(SSLUtilHandle, 'EVP_PKEY_assign');
-        _EVPCleanup := GetProcAddr(SSLUtilHandle, 'EVP_cleanup');
-        _EvpGetDigestByName := GetProcAddr(SSLUtilHandle, 'EVP_get_digestbyname');
-        _SSLeayversion := GetProcAddr(SSLUtilHandle, 'SSLeay_version');
-        _ErrErrorString := GetProcAddr(SSLUtilHandle, 'ERR_error_string_n');
-        _ErrGetError := GetProcAddr(SSLUtilHandle, 'ERR_get_error');
-        _ErrClearError := GetProcAddr(SSLUtilHandle, 'ERR_clear_error');
-        _ErrFreeStrings := GetProcAddr(SSLUtilHandle, 'ERR_free_strings');
-        _ErrRemoveState := GetProcAddr(SSLUtilHandle, 'ERR_remove_state');
-        _OPENSSLaddallalgorithms := GetProcAddr(SSLUtilHandle, 'OPENSSL_add_all_algorithms_noconf');
-        _CRYPTOcleanupAllExData := GetProcAddr(SSLUtilHandle, 'CRYPTO_cleanup_all_ex_data');
-        _RandScreen := GetProcAddr(SSLUtilHandle, 'RAND_screen');
-        _BioNew := GetProcAddr(SSLUtilHandle, 'BIO_new');
-        _BioFreeAll := GetProcAddr(SSLUtilHandle, 'BIO_free_all');
-        _BioSMem := GetProcAddr(SSLUtilHandle, 'BIO_s_mem');
-        _BioCtrlPending := GetProcAddr(SSLUtilHandle, 'BIO_ctrl_pending');
-        _BioRead := GetProcAddr(SSLUtilHandle, 'BIO_read');
-        _BioWrite := GetProcAddr(SSLUtilHandle, 'BIO_write');
-        _d2iPKCS12bio := GetProcAddr(SSLUtilHandle, 'd2i_PKCS12_bio');
-        _PKCS12parse := GetProcAddr(SSLUtilHandle, 'PKCS12_parse');
-        _PKCS12free := GetProcAddr(SSLUtilHandle, 'PKCS12_free');
-        _RsaGenerateKey := GetProcAddr(SSLUtilHandle, 'RSA_generate_key');
-        _Asn1UtctimeNew := GetProcAddr(SSLUtilHandle, 'ASN1_UTCTIME_new');
-        _Asn1UtctimeFree := GetProcAddr(SSLUtilHandle, 'ASN1_UTCTIME_free');
-        _Asn1cIntSet := GetProcAddr(SSLUtilHandle, 'ASN1_cInt_set');
-        _i2dX509bio := GetProcAddr(SSLUtilHandle, 'i2d_X509_bio');
-        _i2dPrivateKeyBio := GetProcAddr(SSLUtilHandle, 'i2d_PrivateKey_bio');
+        _X509New := GetProcAddr(SSLUtilHandle, 'X509_new', AVerboseLoading);
+        _X509Free := GetProcAddr(SSLUtilHandle, 'X509_free', AVerboseLoading);
+        _X509NameOneline := GetProcAddr(SSLUtilHandle, 'X509_NAME_oneline', AVerboseLoading);
+        _X509GetSubjectName := GetProcAddr(SSLUtilHandle, 'X509_get_subject_name', AVerboseLoading);
+        _X509GetIssuerName := GetProcAddr(SSLUtilHandle, 'X509_get_issuer_name', AVerboseLoading);
+        _X509NameHash := GetProcAddr(SSLUtilHandle, 'X509_NAME_hash', AVerboseLoading);
+        _X509Digest := GetProcAddr(SSLUtilHandle, 'X509_digest', AVerboseLoading);
+        _X509print := GetProcAddr(SSLUtilHandle, 'X509_print', AVerboseLoading);
+        _X509SetVersion := GetProcAddr(SSLUtilHandle, 'X509_set_version', AVerboseLoading);
+        _X509SetPubkey := GetProcAddr(SSLUtilHandle, 'X509_set_pubkey', AVerboseLoading);
+        _X509SetIssuerName := GetProcAddr(SSLUtilHandle, 'X509_set_issuer_name', AVerboseLoading);
+        _X509NameAddEntryByTxt := GetProcAddr(SSLUtilHandle, 'X509_NAME_add_entry_by_txt', AVerboseLoading);
+        _X509Sign := GetProcAddr(SSLUtilHandle, 'X509_sign', AVerboseLoading);
+        _X509GmtimeAdj := GetProcAddr(SSLUtilHandle, 'X509_gmtime_adj', AVerboseLoading);
+        _X509SetNotBefore := GetProcAddr(SSLUtilHandle, 'X509_set_notBefore', AVerboseLoading);
+        _X509SetNotAfter := GetProcAddr(SSLUtilHandle, 'X509_set_notAfter', AVerboseLoading);
+        _X509GetSerialNumber := GetProcAddr(SSLUtilHandle, 'X509_get_serialNumber', AVerboseLoading);
+        _EvpPkeyNew := GetProcAddr(SSLUtilHandle, 'EVP_PKEY_new', AVerboseLoading);
+        _EvpPkeyFree := GetProcAddr(SSLUtilHandle, 'EVP_PKEY_free', AVerboseLoading);
+        _EvpPkeyAssign := GetProcAddr(SSLUtilHandle, 'EVP_PKEY_assign', AVerboseLoading);
+        _EVPCleanup := GetProcAddr(SSLUtilHandle, 'EVP_cleanup', AVerboseLoading);
+        _EvpGetDigestByName := GetProcAddr(SSLUtilHandle, 'EVP_get_digestbyname', AVerboseLoading);
+        _SSLeayversion := GetProcAddr(SSLUtilHandle, 'SSLeay_version', AVerboseLoading);
+        _ErrErrorString := GetProcAddr(SSLUtilHandle, 'ERR_error_string_n', AVerboseLoading);
+        _ErrGetError := GetProcAddr(SSLUtilHandle, 'ERR_get_error', AVerboseLoading);
+        _ErrClearError := GetProcAddr(SSLUtilHandle, 'ERR_clear_error', AVerboseLoading);
+        _ErrFreeStrings := GetProcAddr(SSLUtilHandle, 'ERR_free_strings', AVerboseLoading);
+        _ErrRemoveState := GetProcAddr(SSLUtilHandle, 'ERR_remove_state', AVerboseLoading);
+        _RandScreen := GetProcAddr(SSLUtilHandle, 'RAND_screen', AVerboseLoading);
+        _BioNew := GetProcAddr(SSLUtilHandle, 'BIO_new', AVerboseLoading);
+        _BioFreeAll := GetProcAddr(SSLUtilHandle, 'BIO_free_all', AVerboseLoading);
+        _BioSMem := GetProcAddr(SSLUtilHandle, 'BIO_s_mem', AVerboseLoading);
+        _BioCtrlPending := GetProcAddr(SSLUtilHandle, 'BIO_ctrl_pending', AVerboseLoading);
+        _BioRead := GetProcAddr(SSLUtilHandle, 'BIO_read', AVerboseLoading);
+        _BioWrite := GetProcAddr(SSLUtilHandle, 'BIO_write', AVerboseLoading);
+        _d2iPKCS12bio := GetProcAddr(SSLUtilHandle, 'd2i_PKCS12_bio', AVerboseLoading);
+        _PKCS12parse := GetProcAddr(SSLUtilHandle, 'PKCS12_parse', AVerboseLoading);
+        _PKCS12free := GetProcAddr(SSLUtilHandle, 'PKCS12_free', AVerboseLoading);
+        _Asn1UtctimeNew := GetProcAddr(SSLUtilHandle, 'ASN1_UTCTIME_new', AVerboseLoading);
+        _Asn1UtctimeFree := GetProcAddr(SSLUtilHandle, 'ASN1_UTCTIME_free', AVerboseLoading);
+        _i2dX509bio := GetProcAddr(SSLUtilHandle, 'i2d_X509_bio', AVerboseLoading);
+        _i2dPrivateKeyBio := GetProcAddr(SSLUtilHandle, 'i2d_PrivateKey_bio', AVerboseLoading);
 
         // 3DES functions
-        _DESsetoddparity := GetProcAddr(SSLUtilHandle, 'DES_set_odd_parity');
-        _DESsetkeychecked := GetProcAddr(SSLUtilHandle, 'DES_set_key_checked');
-        _DESecbencrypt := GetProcAddr(SSLUtilHandle, 'DES_ecb_encrypt');
+        _DESsetoddparity := GetProcAddr(SSLUtilHandle, 'des_set_odd_parity', AVerboseLoading);
+        _DESsetkeychecked := GetProcAddr(SSLUtilHandle, 'des_set_key_checked', AVerboseLoading);
+        _DESecbencrypt := GetProcAddr(SSLUtilHandle, 'des_ecb_encrypt', AVerboseLoading);
         //
-        _CRYPTOnumlocks := GetProcAddr(SSLUtilHandle, 'CRYPTO_num_locks');
-        _CRYPTOsetlockingcallback := GetProcAddr(SSLUtilHandle, 'CRYPTO_set_locking_callback');
+        _CRYPTOnumlocks := GetProcAddr(SSLUtilHandle, 'CRYPTO_num_locks', AVerboseLoading);
+        _CRYPTOsetlockingcallback := GetProcAddr(SSLUtilHandle, 'CRYPTO_set_locking_callback', AVerboseLoading);
+
+        // RAND functions
+        _RAND_set_rand_method := GetProcAddr(SSLUtilHandle, 'RAND_set_rand_method', AVerboseLoading);
+        _RAND_get_rand_method := GetProcAddr(SSLUtilHandle, 'RAND_get_rand_method', AVerboseLoading);
+        _RAND_SSLeay := GetProcAddr(SSLUtilHandle, 'RAND_SSLeay', AVerboseLoading);
+        _RAND_cleanup := GetProcAddr(SSLUtilHandle, 'RAND_cleanup', AVerboseLoading);
+        _RAND_bytes := GetProcAddr(SSLUtilHandle, 'RAND_bytes', AVerboseLoading);
+        _RAND_pseudo_bytes := GetProcAddr(SSLUtilHandle, 'RAND_pseudo_bytes', AVerboseLoading);
+        _RAND_seed := GetProcAddr(SSLUtilHandle, 'RAND_seed', AVerboseLoading);
+        _RAND_add := GetProcAddr(SSLUtilHandle, 'RAND_add', AVerboseLoading);
+        _RAND_load_file := GetProcAddr(SSLUtilHandle, 'RAND_load_file', AVerboseLoading);
+        _RAND_write_file := GetProcAddr(SSLUtilHandle, 'RAND_write_file', AVerboseLoading);
+        _RAND_file_name := GetProcAddr(SSLUtilHandle, 'RAND_file_name', AVerboseLoading);
+        _RAND_status := GetProcAddr(SSLUtilHandle, 'RAND_status', AVerboseLoading);
+        _RAND_query_egd_bytes := GetProcAddr(SSLUtilHandle, 'RAND_query_egd_bytes', AVerboseLoading); // 0.9.7+
+        _RAND_egd := GetProcAddr(SSLUtilHandle, 'RAND_egd', AVerboseLoading);
+        _RAND_egd_bytes := GetProcAddr(SSLUtilHandle, 'RAND_egd_bytes', AVerboseLoading);
+        _ERR_load_RAND_strings := GetProcAddr(SSLUtilHandle, 'ERR_load_RAND_strings', AVerboseLoading);
+        _RAND_poll := GetProcAddr(SSLUtilHandle, 'RAND_poll', AVerboseLoading);
+
+        // RSA Functions
+        _RSA_new := GetProcAddr(SSLUtilHandle, 'RSA_new', AVerboseLoading);
+        _RSA_new_method := GetProcAddr(SSLUtilHandle, 'RSA_new_method', AVerboseLoading);
+        _RSA_size := GetProcAddr(SSLUtilHandle, 'RSA_size', AVerboseLoading);
+        _RsaGenerateKey := GetProcAddr(SSLUtilHandle, 'RSA_generate_key', AVerboseLoading);
+        _RSA_generate_key_ex := GetProcAddr(SSLUtilHandle, 'RSA_generate_key_ex', AVerboseLoading);
+        _RSA_check_key := GetProcAddr(SSLUtilHandle, 'RSA_check_key', AVerboseLoading);
+        _RSA_public_encrypt := GetProcAddr(SSLUtilHandle, 'RSA_public_encrypt', AVerboseLoading);
+        _RSA_private_encrypt := GetProcAddr(SSLUtilHandle, 'RSA_private_encrypt', AVerboseLoading);
+        _RSA_public_decrypt := GetProcAddr(SSLUtilHandle, 'RSA_public_decrypt', AVerboseLoading);
+        _RSA_private_decrypt := GetProcAddr(SSLUtilHandle, 'RSA_private_decrypt', AVerboseLoading);
+        _RSA_free := GetProcAddr(SSLUtilHandle, 'RSA_free', AVerboseLoading);
+        _RSA_flags := GetProcAddr(SSLUtilHandle, 'RSA_flags', AVerboseLoading);
+        _RSA_set_default_method := GetProcAddr(SSLUtilHandle, 'RSA_set_default_method', AVerboseLoading);
+        _RSA_get_default_method := GetProcAddr(SSLUtilHandle, 'RSA_get_default_method', AVerboseLoading);
+        _RSA_get_method := GetProcAddr(SSLUtilHandle, 'RSA_get_method', AVerboseLoading);
+        _RSA_set_method := GetProcAddr(SSLUtilHandle, 'RSA_set_method', AVerboseLoading);
+
+        // X509 Functions
+
+        _d2i_RSAPublicKey := GetProcAddr(SSLUtilHandle, 'd2i_RSAPublicKey', AVerboseLoading);
+        _i2d_RSAPublicKey := GetProcAddr(SSLUtilHandle, 'i2d_RSAPublicKey', AVerboseLoading);
+        _d2i_RSAPrivateKey := GetProcAddr(SSLUtilHandle, 'd2i_RSAPrivateKey', AVerboseLoading);
+        _i2d_RSAPrivateKey := GetProcAddr(SSLUtilHandle, 'i2d_RSAPrivateKey', AVerboseLoading);
+
+        // ERR Functions
+        _ERR_error_string := GetProcAddr(SSLUtilHandle, 'ERR_error_string', AVerboseLoading);
+
+        // Crypto Functions
+
+        _SSLeay_version := GetProcAddr(SSLLibHandle, 'SSLeay_version', AVerboseLoading);
+
+        // EVP Functions
+
+        _OpenSSL_add_all_algorithms := GetProcAddr(SSLUtilHandle, 'OpenSSL_add_all_algorithms', AVerboseLoading);
+        _OpenSSL_add_all_ciphers := GetProcAddr(SSLUtilHandle, 'OpenSSL_add_all_ciphers', AVerboseLoading);
+        _OpenSSL_add_all_digests := GetProcAddr(SSLUtilHandle, 'OpenSSL_add_all_digests', AVerboseLoading);
+        //
+        _EVP_DigestInit := GetProcAddr(SSLUtilHandle, 'EVP_DigestInit', AVerboseLoading);
+        _EVP_DigestUpdate := GetProcAddr(SSLUtilHandle, 'EVP_DigestUpdate', AVerboseLoading);
+        _EVP_DigestFinal := GetProcAddr(SSLUtilHandle, 'EVP_DigestFinal', AVerboseLoading);
+        //
+        _EVP_get_cipherbyname := GetProcAddr(SSLUtilHandle, 'EVP_get_cipherbyname', AVerboseLoading);
+        _EVP_get_digestbyname := GetProcAddr(SSLUtilHandle, 'EVP_get_digestbyname', AVerboseLoading);
+        //
+        _EVP_CIPHER_CTX_init := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_init', AVerboseLoading);
+        _EVP_CIPHER_CTX_cleanup := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_cleanup', AVerboseLoading);
+        _EVP_CIPHER_CTX_set_key_length := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_set_key_length', AVerboseLoading);
+        _EVP_CIPHER_CTX_ctrl := GetProcAddr(SSLUtilHandle, 'EVP_CIPHER_CTX_ctrl', AVerboseLoading);
+        //
+        _EVP_EncryptInit := GetProcAddr(SSLUtilHandle, 'EVP_EncryptInit', AVerboseLoading);
+        _EVP_EncryptUpdate := GetProcAddr(SSLUtilHandle, 'EVP_EncryptUpdate', AVerboseLoading);
+        _EVP_EncryptFinal := GetProcAddr(SSLUtilHandle, 'EVP_EncryptFinal', AVerboseLoading);
+        //
+        _EVP_DecryptInit := GetProcAddr(SSLUtilHandle, 'EVP_DecryptInit', AVerboseLoading);
+        _EVP_DecryptUpdate := GetProcAddr(SSLUtilHandle, 'EVP_DecryptUpdate', AVerboseLoading);
+        _EVP_DecryptFinal := GetProcAddr(SSLUtilHandle, 'EVP_DecryptFinal', AVerboseLoading);
 
         //init library
         if assigned(_SslLibraryInit) then
           _SslLibraryInit;
         if assigned(_SslLoadErrorStrings) then
           _SslLoadErrorStrings;
-        if assigned(_OPENSSLaddallalgorithms) then
-          _OPENSSLaddallalgorithms;
+        if assigned(_OPENSSL_add_all_algorithms) then
+          _OPENSSL_add_all_algorithms;
         if assigned(_RandScreen) then
           _RandScreen;
 
@@ -1443,7 +2322,6 @@ begin
     begin
       //deinit library
       EVPCleanup;
-      CRYPTOcleanupAllExData;
       ErrRemoveState(0);
     end;
     SSLloaded := false;
@@ -1527,8 +2405,6 @@ begin
     _ErrClearError := nil;
     _ErrFreeStrings := nil;
     _ErrRemoveState := nil;
-    _OPENSSLaddallalgorithms := nil;
-    _CRYPTOcleanupAllExData := nil;
     _RandScreen := nil;
     _BioNew := nil;
     _BioFreeAll := nil;
@@ -1539,10 +2415,8 @@ begin
     _d2iPKCS12bio := nil;
     _PKCS12parse := nil;
     _PKCS12free := nil;
-    _RsaGenerateKey := nil;
     _Asn1UtctimeNew := nil;
     _Asn1UtctimeFree := nil;
-    _Asn1cIntSet := nil;
     _i2dX509bio := nil;
     _i2dPrivateKeyBio := nil;
 
@@ -1553,6 +2427,85 @@ begin
     //
     _CRYPTOnumlocks := nil;
     _CRYPTOsetlockingcallback := nil;
+
+    // RAND functions
+    _RAND_set_rand_method := nil;
+    _RAND_get_rand_method := nil;
+    _RAND_SSLeay := nil;
+    _RAND_cleanup := nil;
+    _RAND_bytes := nil;
+    _RAND_pseudo_bytes := nil;
+    _RAND_seed := nil;
+    _RAND_add := nil;
+    _RAND_load_file := nil;
+    _RAND_write_file := nil;
+    _RAND_file_name := nil;
+    _RAND_status := nil;
+    _RAND_query_egd_bytes := nil;
+    _RAND_egd := nil;
+    _RAND_egd_bytes := nil;
+    _ERR_load_RAND_strings := nil;
+    _RAND_poll := nil;
+
+    // RSA Functions
+    _RSA_new := nil;
+    _RSA_new_method := nil;
+    _RSA_size := nil;
+    _RsaGenerateKey := nil;
+    _RSA_generate_key_ex := nil;
+    _RSA_check_key := nil;
+    _RSA_public_encrypt := nil;
+    _RSA_private_encrypt := nil;
+    _RSA_public_decrypt := nil;
+    _RSA_private_decrypt := nil;
+    _RSA_free := nil;
+    _RSA_flags := nil;
+    _RSA_set_default_method := nil;
+    _RSA_get_default_method := nil;
+    _RSA_get_method := nil;
+    _RSA_set_method := nil;
+
+    // X509 Functions
+
+    _d2i_RSAPublicKey := nil;
+    _i2d_RSAPublicKey := nil;
+    _d2i_RSAPrivateKey := nil;
+    _i2d_RSAPrivateKey := nil;
+
+    // ERR Functions
+    _ERR_error_string := nil;
+
+    // Crypto Functions
+
+    _SSLeay_version := nil;
+
+    // EVP Functions
+
+    _OpenSSL_add_all_algorithms := nil;
+    _OpenSSL_add_all_ciphers := nil;
+    _OpenSSL_add_all_digests := nil;
+    //
+    _EVP_DigestInit := nil;
+    _EVP_DigestUpdate := nil;
+    _EVP_DigestFinal := nil;
+    //
+    _EVP_get_cipherbyname := nil;
+    _EVP_get_digestbyname := nil;
+    //
+    _EVP_CIPHER_CTX_init := nil;
+    _EVP_CIPHER_CTX_cleanup := nil;
+    _EVP_CIPHER_CTX_set_key_length := nil;
+    _EVP_CIPHER_CTX_ctrl := nil;
+    //
+    _EVP_EncryptInit := nil;
+    _EVP_EncryptUpdate := nil;
+    _EVP_EncryptFinal := nil;
+    //
+    _EVP_DecryptInit := nil;
+    _EVP_DecryptUpdate := nil;
+    _EVP_DecryptFinal := nil;
+
+
   Result := True;
 end;
 
