@@ -61,6 +61,7 @@ implementation
       classsyms,
       catsyms: tfpobjectlist;
       procedure gen_objc_methods(list: tasmlist; objccls: tobjectdef; out methodslabel: tasmlabel; classmethods, iscategory: Boolean);
+      procedure gen_objc_protocol_elements(list: tasmlist; protocol: tobjectdef; out reqinstsym, optinstsym, reqclssym, optclssym: TAsmLabel);
       procedure gen_objc_protocol_list(list:TAsmList; protolist: TFPObjectList; out protolistsym: TAsmLabel);
       procedure gen_objc_cat_methods(list:TAsmList; items: TFPObjectList; section: tasmsectiontype;const sectname: string; out listsym: TAsmLabel);
 
@@ -79,6 +80,7 @@ implementation
     { Used by by PowerPC/32 and i386 }
     tobjcrttiwriter_fragile = class(tobjcrttiwriter)
      protected
+      function gen_objc_protocol_ext(list: TAsmList; optinstsym, optclssym: TAsmLabel): TAsmLabel;
       procedure gen_objc_ivars(list: TAsmList; objccls: tobjectdef; out ivarslabel: TAsmLabel);
       procedure gen_objc_protocol(list:TAsmList; protocol: tobjectdef; out protocollabel: TAsmSymbol);override;
       procedure gen_objc_category_sections(list:TAsmList; objccat: tobjectdef; out catlabel: TAsmSymbol);override;
@@ -328,6 +330,58 @@ procedure tobjcrttiwriter.gen_objc_methods(list: tasmlist; objccls: tobjectdef; 
   end;
 
 
+{ generate method (and in the future also property) info for protocols }
+procedure tobjcrttiwriter.gen_objc_protocol_elements(list: tasmlist; protocol: tobjectdef; out reqinstsym, optinstsym, reqclssym, optclssym: TAsmLabel);
+  var
+    proc          : tprocdef;
+    reqinstmlist,
+    reqclsmlist,
+    optinstmlist,
+    optclsmlist   : TFPObjectList;
+    i             : ptrint;
+  begin
+    reqinstmlist:=TFPObjectList.Create(false);
+    reqclsmlist:=TFPObjectList.Create(false);
+    optinstmlist:=TFPObjectList.Create(false);
+    optclsmlist:=TFPObjectList.Create(false);
+    for i:=0 to protocol.vmtentries.Count-1 do
+      begin
+        proc:=pvmtentry(protocol.vmtentries[i])^.procdef;
+        if (po_classmethod in proc.procoptions) then
+          if not(po_optional in proc.procoptions) then
+            reqclsmlist.Add(proc)
+          else
+            optclsmlist.Add(proc)
+        else if not(po_optional in proc.procoptions) then
+          reqinstmlist.Add(proc)
+        else
+          optinstmlist.Add(proc);
+      end;
+    if reqinstmlist.Count > 0 then
+      gen_objc_cat_methods(list,reqinstmlist,sec_objc_cat_inst_meth,'_OBJC_CAT_INST_METH',reqinstsym)
+    else
+      reqinstsym:=nil;
+    if optinstmlist.Count > 0 then
+      gen_objc_cat_methods(list,optinstmlist,sec_objc_cat_inst_meth,'_OBJC_CAT_INST_METH',optinstsym)
+    else
+      optinstsym:=nil;
+
+    if reqclsmlist.Count>0 then
+      gen_objc_cat_methods(list,reqclsmlist,sec_objc_cat_cls_meth,'_OBJC_CAT_CLS_METH',reqclssym)
+    else
+      reqclssym:=nil;
+    if optclsmlist.Count>0 then
+      gen_objc_cat_methods(list,optclsmlist,sec_objc_cat_cls_meth,'_OBJC_CAT_CLS_METH',optclssym)
+    else
+      optclssym:=nil;
+
+    reqinstmlist.Free;
+    reqclsmlist.Free;
+    optinstmlist.Free;
+    optclsmlist.Free;
+end;
+
+
 (*
 From CLang:
 
@@ -552,60 +606,70 @@ procedure tobjcrttiwriter_fragile.gen_objc_ivars(list: TAsmList; objccls: tobjec
   end;
 
 
+(* From GCC:
+
+  struct _objc_protocol_extension
+    {
+      uint32_t size;	// sizeof (struct _objc_protocol_extension)
+      struct objc_method_list	*optional_instance_methods;
+      struct objc_method_list   *optional_class_methods;
+      struct objc_prop_list	*instance_properties;
+    }
+*)
+function tobjcrttiwriter_fragile.gen_objc_protocol_ext(list: TAsmList; optinstsym, optclssym: TAsmLabel): TAsmLabel;
+  begin
+    if assigned(optinstsym) or
+       assigned(optclssym) then
+      begin
+        new_section(list, sec_objc_protocol_ext,'_OBJC_PROTOCOLEXT',sizeof(pint));
+        current_asmdata.getlabel(Result,alt_data);
+        list.Concat(tai_label.Create(Result));
+        { size of this structure }
+        list.Concat(Tai_const.Create_32bit(16));
+        { optional instance methods }
+        ConcatSymOrNil(list,optinstsym);
+        { optional class methods }
+        ConcatSymOrNil(list,optclssym);
+        { optional properties (todo) }
+        ConcatSymOrNil(list,nil);
+      end
+    else
+      Result:=nil;
+  end;
+
+
 { Generate rtti for an Objective-C protocol  }
 procedure tobjcrttiwriter_fragile.gen_objc_protocol(list:TAsmList; protocol: tobjectdef; out protocollabel: TAsmSymbol);
   var
     namesym     : TAsmSymbol;
-    i           : Integer;
     protolist   : TAsmLabel;
-    proc        : tprocdef;
-    instmlist,
-    clsmlist    : TFPObjectList;
-    instsym,
-    clssym,
+    reqinstsym,
+    optinstsym,
+    reqclssym,
+    optclssym,
+    protoext,
     lbl          : TAsmLabel;
   begin
-    instmlist:=TFPObjectList.Create(false);
-    clsmlist:=TFPObjectList.Create(false);
-    for i:=0 to protocol.vmtentries.Count-1 do
-      begin
-        proc:=pvmtentry(protocol.vmtentries[i])^.procdef;
-        if (po_classmethod in proc.procoptions) then
-          clsmlist.Add(proc)
-        else
-          instmlist.Add(proc);
-      end;
-      if instmlist.Count > 0 then
-        gen_objc_cat_methods(list,instmlist,sec_objc_cat_inst_meth,'_OBJC_CAT_INST_METH',instsym)
-      else
-        instsym:=nil;
-
-      if clsmlist.Count>0 then
-        gen_objc_cat_methods(list,clsmlist,sec_objc_cat_cls_meth,'_OBJC_CAT_CLS_METH',clssym)
-      else
-        clssym:=nil;
-
-    instmlist.Free;
-    clsmlist.Free;
-
     gen_objc_protocol_list(list,protocol.ImplementedInterfaces,protolist);
+    gen_objc_protocol_elements(list,protocol,reqinstsym,optinstsym,reqclssym,optclssym);
+    protoext:=gen_objc_protocol_ext(list,optinstsym,optclssym);
 
     new_section(list, sec_objc_protocol,'_OBJC_PROTOCOL',sizeof(pint));
     current_asmdata.getlabel(lbl,alt_data);
     list.Concat(tai_label.Create(lbl));
     protocollabel:=lbl;
 
-    { protocol's isa - always nil }
-    list.Concat(Tai_const.Create_pint(0));
+    { protocol's isa - points to information about optional methods/properties }
+    ConcatSymOrNil(list,protoext);
     { name }
     namesym:=objcreatestringpoolentry(protocol.objextname^,sp_objcclassnames,sec_objc_class_names);
     list.Concat(Tai_const.Create_sym(namesym));
     { protocol's list }
     ConcatSymOrNil(list,protolist);
     { instance methods, in __cat_inst_meth }
-    ConcatSymOrNil(list,instsym);
+    ConcatSymOrNil(list,reqinstsym);
     { class methods, in __cat_cls_meth }
-    ConcatSymOrNil(list,clssym);
+    ConcatSymOrNil(list,reqclssym);
   end;
 
 
@@ -1046,59 +1110,14 @@ procedure tobjcrttiwriter_nonfragile.gen_objc_protocol(list: tasmlist; protocol:
     namesym,
     listsym       : TAsmSymbol;
     protolist     : TAsmLabel;
-    proc          : tprocdef;
-    reqinstmlist,
-    reqclsmlist,
-    optinstmlist,
-    optclsmlist   : TFPObjectList;
     reqinstsym,
     reqclssym,
     optinstsym,
     optclssym     : TAsmLabel;
     prottype      : tdef;
-    i             : Integer;
   begin
-    reqinstmlist:=TFPObjectList.Create(false);
-    reqclsmlist:=TFPObjectList.Create(false);
-    optinstmlist:=TFPObjectList.Create(false);
-    optclsmlist:=TFPObjectList.Create(false);
-    for i:=0 to protocol.vmtentries.Count-1 do
-      begin
-        proc:=pvmtentry(protocol.vmtentries[i])^.procdef;
-        if (po_classmethod in proc.procoptions) then
-          if not(po_optional in proc.procoptions) then
-            reqclsmlist.Add(proc)
-          else
-            optclsmlist.Add(proc)
-        else if not(po_optional in proc.procoptions) then
-          reqinstmlist.Add(proc)
-        else
-          optinstmlist.Add(proc);
-      end;
-    if reqinstmlist.Count > 0 then
-      gen_objc_cat_methods(list,reqinstmlist,sec_objc_cat_inst_meth,'_OBJC_CAT_INST_METH',reqinstsym)
-    else
-      reqinstsym:=nil;
-    if optinstmlist.Count > 0 then
-      gen_objc_cat_methods(list,optinstmlist,sec_objc_cat_inst_meth,'_OBJC_CAT_INST_METH',optinstsym)
-    else
-      optinstsym:=nil;
-
-    if reqclsmlist.Count>0 then
-      gen_objc_cat_methods(list,reqclsmlist,sec_objc_cat_cls_meth,'_OBJC_CAT_CLS_METH',reqclssym)
-    else
-      reqclssym:=nil;
-    if optclsmlist.Count>0 then
-      gen_objc_cat_methods(list,optclsmlist,sec_objc_cat_cls_meth,'_OBJC_CAT_CLS_METH',optclssym)
-    else
-      optclssym:=nil;
-
-    reqinstmlist.Free;
-    reqclsmlist.Free;
-    optinstmlist.Free;
-    optclsmlist.Free;
-
     gen_objc_protocol_list(list,protocol.ImplementedInterfaces,protolist);
+    gen_objc_protocol_elements(list,protocol,reqinstsym,optinstsym,reqclssym,optclssym);
 
     new_section(list, sec_data_coalesced,'_OBJC_PROTOCOL',sizeof(pint));
     { label for the protocol needs to be

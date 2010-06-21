@@ -9276,6 +9276,7 @@ tests/test/tobjc20.pp svneol=native#text/plain
 tests/test/tobjc21.pp svneol=native#text/plain
 tests/test/tobjc22.pp svneol=native#text/plain
 tests/test/tobjc22a.pp svneol=native#text/plain
+tests/test/tobjc22b.pp svneol=native#text/plain
 tests/test/tobjc23.pp svneol=native#text/plain
 tests/test/tobjc24.pp svneol=native#text/plain
 tests/test/tobjc25.pp svneol=native#text/plain
