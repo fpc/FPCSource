@@ -1688,7 +1688,7 @@ begin
   if InitSSLInterface and Assigned(_RAND_file_name) then
     Result := _RAND_file_name(file_name, num)
   else
-    Result := -1;
+    Result := nil;
 end;
 
 function RAND_status: cint;
@@ -1844,7 +1844,7 @@ begin
   if InitSSLInterface and Assigned(_RSA_get_default_method) then
     Result := _RSA_get_default_method()
   else
-    Result := -1;
+    Result := nil;
 end;
 
 function RSA_get_method(arsa: PRSA): PRSA_METHOD;
@@ -1852,7 +1852,7 @@ begin
   if InitSSLInterface and Assigned(_RSA_get_method) then
     Result := _RSA_get_method(arsa)
   else
-    Result := -1;
+    Result := nil;
 end;
 
 function RSA_set_method(arsa: PRSA; method: PRSA_METHOD): PRSA_METHOD;
@@ -1860,7 +1860,7 @@ begin
   if InitSSLInterface and Assigned(_RSA_set_method) then
     Result := _RSA_set_method(arsa, method)
   else
-    Result := -1;
+    Result := nil;
 end;
 
 function d2i_RSAPublicKey(arsa: PPRSA; pp: PPByte; len: cint): PRSA;
@@ -1868,7 +1868,7 @@ begin
   if InitSSLInterface and Assigned(_d2i_RSAPublicKey) then
     Result := _d2i_RSAPublicKey(arsa, pp, len)
   else
-    Result := -1;
+    Result := nil;
 end;
 
 function i2d_RSAPublicKey(arsa: PRSA; pp: PPByte): cint;
@@ -1884,7 +1884,7 @@ begin
   if InitSSLInterface and Assigned(_d2i_RSAPrivateKey) then
     Result := _d2i_RSAPrivateKey(arsa, pp, len)
   else
-    Result := -1;
+    Result := nil;
 end;
 
 function i2d_RSAPrivateKey(arsa: PRSA; pp: PPByte): cint;
@@ -1902,7 +1902,7 @@ begin
   if InitSSLInterface and Assigned(_Err_Error_String) then
     Result := _Err_Error_String(e, buf)
   else
-    Result := -1;
+    Result := nil;
 end;
 
 // Crypto Functions
@@ -1912,7 +1912,7 @@ begin
   if InitSSLInterface and Assigned(_SSLeay_version) then
     Result := _SSLeay_version(t)
   else
-    Result := -1;
+    Result := nil;
 end;
 
 // EVP Functions
@@ -1964,7 +1964,7 @@ begin
   if InitSSLInterface and Assigned(_EVP_get_cipherbyname) then
     Result := _EVP_get_cipherbyname(name)
   else
-    Result := -1;
+    Result := nil;
 end;
 
 function EVP_get_digestbyname(const name: PChar): PEVP_MD;
@@ -1972,7 +1972,7 @@ begin
   if InitSSLInterface and Assigned(_EVP_get_digestbyname) then
     Result := _EVP_get_digestbyname(name)
   else
-    Result := -1;
+    Result := nil;
 end;
 //
 procedure EVP_CIPHER_CTX_init(a: PEVP_CIPHER_CTX);
