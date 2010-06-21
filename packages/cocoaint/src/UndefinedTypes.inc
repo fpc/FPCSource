@@ -70,10 +70,6 @@ const
  NX_TABLET_BUTTON_PENLOWERSIDEMASK = $0002;
  NX_TABLET_BUTTON_PENUPPERSIDEMASK = $0004;
   
-{ The CFError API is not in MacOSAll! we need to port this for PasCocoa... } 
-type
-  CFErrorRef = Pointer;
- 
 { Parser hacks - these types should never exist }
 type
   char_ = Pointer;
