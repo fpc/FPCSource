@@ -164,6 +164,8 @@ type
     a: array[0..1000] of shortstring;
   end;
 
+  TEnumerationMutationHandler = procedure(obj: id); cdecl;
+
   ptrdiff_t = ptrint;
 
 { sending messages }
@@ -262,6 +264,10 @@ type
   function ivar_getOffset(v:Ivar):ptrdiff_t; cdecl; external libname;
 
   function sel_isEqual(lhs:SEL; rhs:SEL):BOOL; cdecl; external libname;
+
+  { fast enumeration support (available on Mac OS X 10.5 and later) }
+  procedure objc_enumerationMutation(obj: id); cdecl; external libname;
+  procedure objc_setEnumerationMutationHandler(handler: TEnumerationMutationHandler); cdecl; external libname;
 
 implementation
 
