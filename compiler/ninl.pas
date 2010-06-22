@@ -2661,6 +2661,50 @@ implementation
           in_succ_x:
             begin
               expectloc:=LOC_REGISTER;
+              { in case of range/overflow checking, use a regular addnode
+                because it's too complex to handle correctly otherwise }
+              if ([cs_check_overflow,cs_check_range]*current_settings.localswitches)<>[] then
+                begin
+                  { create constant 1 }
+                  hp:=cordconstnode.create(1,left.resultdef,false);
+                  typecheckpass(hp);
+                  if not is_integer(hp.resultdef) then
+                    inserttypeconv_internal(hp,sinttype);
+
+                  { avoid type errors from the addn/subn }
+                  if not is_integer(left.resultdef) then
+                    inserttypeconv_internal(left,sinttype);
+
+                  { addition/substraction depending on succ/pred }
+                  if inlinenumber=in_succ_x then
+                    hp:=caddnode.create(addn,left,hp)
+                  else
+                    hp:=caddnode.create(subn,left,hp);
+                  { assign result of addition }
+                  if not(is_integer(resultdef)) then
+                    inserttypeconv(hp,torddef.create(
+{$ifdef cpu64bitaddr}
+                      s64bit,
+{$else cpu64bitaddr}
+                      s32bit,
+{$endif cpu64bitaddr}
+                      get_min_value(resultdef),
+                      get_max_value(resultdef)))
+                  else
+                    inserttypeconv(hp,resultdef);
+
+                  { avoid any possible errors/warnings }
+                  inserttypeconv_internal(hp,resultdef);
+
+                  { firstpass it }
+                  firstpass(hp);
+
+                  { left is reused }
+                  left:=nil;
+
+                  { return new node }
+                  result:=hp;
+                end;
             end;
 
           in_setlength_x,

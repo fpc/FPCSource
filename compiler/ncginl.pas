@@ -394,8 +394,6 @@ implementation
         else
 {$endif not cpu64bitalu}
           cg.a_op_const_reg(current_asmdata.CurrAsmList,cgop,location.size,1,location.register);
-
-        cg.g_rangecheck(current_asmdata.CurrAsmList,location,resultdef,resultdef);
       end;
 
 
