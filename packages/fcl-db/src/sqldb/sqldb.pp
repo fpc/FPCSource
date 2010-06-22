@@ -274,6 +274,7 @@ type
     property Prepared : boolean read IsPrepared;
     procedure Notification(AComponent: TComponent; Operation: TOperation); override;
     function RowsAffected: TRowsCount; virtual;
+    function ParamByName(Const AParamName : String) : TParam;
   protected
 
     // redeclared data set properties
@@ -821,6 +822,12 @@ begin
     If Assigned(FMasterLink) then
       FMasterLink.RefreshParamNames;
     end;
+end;
+
+function TCustomSQLQuery.ParamByName(Const AParamName : String) : TParam;
+
+begin
+  Result:=Params.ParamByName(AParamName);
 end;
 
 procedure TCustomSQLQuery.OnChangeModifySQL(Sender : TObject);
