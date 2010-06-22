@@ -559,7 +559,10 @@ cycle:
 # ppc<ARCH> (target native)
 ifndef CROSSINSTALL
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl
+# building a native compiler for embedded targets is not possible
+ifneq ($(OS_TARGET),embedded)
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' cycleclean compiler
+endif
 endif
 
 endif
@@ -586,7 +589,10 @@ override FPC=
 # ppc<ARCH> (target native)
 ifndef CROSSINSTALL
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(OPT) $(CROSSOPT)' rtlclean rtl
+# building a native compiler for embedded targets is not possible
+ifneq ($(OS_TARGET),embedded)
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(OPT) $(CROSSOPT)' cycleclean compiler
+endif
 endif
 
 endif
