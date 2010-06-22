@@ -7,6 +7,7 @@ Created by Jeppe Johansen 2009 - jepjoh2@kom.aau.dk
 unit stm32f103;
 
 {$goto on}
+{$define stm32f103}
 
 interface
 
@@ -22,6 +23,8 @@ const
  APB1Base 			= PeripheralBase;
  APB2Base 			= PeripheralBase+$10000;
  AHBBase 			= PeripheralBase+$20000;
+ 
+ SCS_BASE         = $E000E000;
  
  { FSMC }
  FSMCBank1NOR1		= FSMCBase+$00000000;
@@ -330,6 +333,51 @@ type
   OBR,
   WRPR: DWord;
  end;
+ 
+ TNVICRegisters = packed record
+  ISER: array[0..7] of longword;
+   reserved0: array[0..23] of longword;
+  ICER: array[0..7] of longword;
+   reserved1: array[0..23] of longword;
+  ISPR: array[0..7] of longword;
+   reserved2: array[0..23] of longword;
+  ICPR: array[0..7] of longword;
+   reserved3: array[0..23] of longword;
+  IABR: array[0..7] of longword;
+   reserved4: array[0..55] of longword;
+  IP: array[0..239] of longword;
+   reserved5: array[0..643] of longword;
+  STIR: longword;
+ end;
+ 
+ TSCBRegisters = packed record
+  CPUID,                            {!< CPU ID Base Register                                     }
+  ICSR,                             {!< Interrupt Control State Register                         }
+  VTOR,                             {!< Vector Table Offset Register                             }
+  AIRCR,                            {!< Application Interrupt / Reset Control Register           }
+  SCR,                              {!< System Control Register                                  }
+  CCR: longword;                    {!< Configuration Control Register                           }
+  SHP: array[0..11] of byte;        {!< System Handlers Priority Registers (4-7, 8-11, 12-15)    }
+  SHCSR,                            {!< System Handler Control and State Register                }
+  CFSR,                             {!< Configurable Fault Status Register                       }
+  HFSR,                             {!< Hard Fault Status Register                               }
+  DFSR,                             {!< Debug Fault Status Register                              }
+  MMFAR,                            {!< Mem Manage Address Register                              }
+  BFAR,                             {!< Bus Fault Address Register                               }
+  AFSR: longword;                   {!< Auxiliary Fault Status Register                          }
+  PFR: array[0..1] of longword;     {!< Processor Feature Register                               }
+  DFR,                              {!< Debug Feature Register                                   }
+  ADR: longword;                    {!< Auxiliary Feature Register                               }
+  MMFR: array[0..3] of longword;    {!< Memory Model Feature Register                            }
+  ISAR: array[0..4] of longword;    {!< ISA Feature Register                                     }
+ end;
+ 
+ TSysTickRegisters = packed record
+  Ctrl,
+  Load,
+  Val,
+  Calib: longword;
+ end;
 
 {$ALIGN 2}
 var
@@ -414,6 +462,15 @@ var
  
  { CRC }
  CRC: TCRCRegisters			absolute (AHBBase+$3000);
+ 
+ { SCB }
+ SCB: TSCBRegisters        absolute (SCS_BASE+$0D00);
+ 
+ { SysTick }
+ SysTick: TSysTickRegisters   absolute (SCS_BASE+$0010);
+ 
+ { NVIC }
+ NVIC: TNVICRegisters      absolute (SCS_BASE+$0100);
 
 var
 	NMI_Handler,
@@ -423,9 +480,9 @@ var
 	UsageFault_Handler,
 	SWI_Handler,
 	DebugMonitor_Handler,
-  PendingSV_Handler,
-  Systick_Handler: pointer;
-	
+	PendingSV_Handler,
+	Systick_Handler: pointer;
+
 implementation
 
 var
@@ -448,7 +505,7 @@ procedure _FPC_start; assembler; nostackframe;
 label _start;
 asm
 	.init
-	.align 16
+	.balign 16
 	
 	.long _stack_top	 			// First entry in NVIC table is the new stack pointer
 	.long _start
