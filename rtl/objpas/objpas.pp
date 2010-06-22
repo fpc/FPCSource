@@ -40,9 +40,14 @@ unit objpas;
        PPointerArray = ^PointerArray;
        TBoundArray = array of integer;
 
+{$ifdef FPC_HAS_FEATURE_CLASSES}
 Var
    ExceptionClass: TClass; { Exception base class (must actually be Exception, defined in sysutils ) }
+{$endif FPC_HAS_FEATURE_CLASSES}
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
+Var
    ExceptObjProc: Pointer; { Used to convert OS exceptions to exceptions in Delphi. Unused in FPC}
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
 
 {****************************************************************************
                              Compatibility routines.
@@ -88,6 +93,7 @@ Var
                              Resource strings.
 ****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_RESOURCES}
    type
      TResourceIterator = Function (Name,Value : AnsiString; Hash : Longint; arg:pointer) : AnsiString;
 
@@ -111,6 +117,7 @@ Var
      PResStringRec=^AnsiString;
      TResStringRec=AnsiString;
    Function LoadResString(p:PResStringRec):AnsiString;
+{$endif FPC_HAS_FEATURE_RESOURCES}
 
   implementation
 
@@ -250,6 +257,7 @@ begin
 end;
 {$endif FPC_HAS_FEATURE_FILEIO}
 
+{$ifdef FPC_HAS_FEATURE_RESOURCES}
 { ---------------------------------------------------------------------
     ResourceString support
   ---------------------------------------------------------------------}
@@ -552,10 +560,13 @@ Function LoadResString(p:PResStringRec):AnsiString;
 begin
   Result:=p^;
 end;
+{$endif FPC_HAS_FEATURE_RESOURCES}
 
 
+{$ifdef FPC_HAS_FEATURE_RESOURCES}
 Initialization
 {  ResetResourceTables;}
 finalization
   FinalizeResourceTables;
+{$endif FPC_HAS_FEATURE_RESOURCES}
 end.
