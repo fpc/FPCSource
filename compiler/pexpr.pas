@@ -1635,7 +1635,7 @@ implementation
                     else
                       { regular procedure/function call }
                       do_proc_call(srsym,srsymtable,nil,
-                                   (getaddr and not(token in [_CARET,_POINT])),
+                                   (getaddr and not(token in [_CARET,_POINT,_LECKKLAMMER])),
                                    again,p1,[]);
                   end;
 
