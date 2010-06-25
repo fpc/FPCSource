@@ -4383,12 +4383,38 @@ implementation
      var
         hp : tobjectdef;
      begin
+        if self=d then
+          begin
+            is_related:=true;
+            exit;
+          end;
+
+        if (d.typ<>objectdef) then
+          begin
+            is_related:=false;
+            exit;
+          end;
+
+        { Objective-C protocols can use multiple inheritance }
         if (objecttype=odt_objcprotocol) then
           begin
             is_related:=is_related_protocol(self,d);
             exit
           end;
-        hp:=self;
+
+        { formally declared Objective-C classes match Objective-C classes with
+          the same name }
+        if (objecttype=odt_objcclass) and
+           (tobjectdef(d).objecttype=odt_objcclass) and
+           ((oo_is_formal in objectoptions) or
+            (oo_is_formal in tobjectdef(d).objectoptions)) and
+           (objrealname^=tobjectdef(d).objrealname^) then
+          begin
+            is_related:=true;
+            exit;
+          end;
+
+        hp:=childof;
         while assigned(hp) do
           begin
              if hp=d then

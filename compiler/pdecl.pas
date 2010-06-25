@@ -346,16 +346,27 @@ implementation
             begin
               consume(_EXTERNAL);
               if (token=_ID) and
-                 (idtoken=_NAME) then
+                 (idtoken=_NAME) and
+                 not(oo_is_forward in od.objectoptions) then
                 begin
                   consume(_NAME);
                   od.objextname:=stringdup(get_stringconst);
                 end
               else
+                { the external name doesn't matter for formally declared
+                  classes, and allowing to specify one would mean that we would
+                  have to check it for consistency with the actual definition
+                  later on }
                 od.objextname:=stringdup(od.objrealname^);
               consume(_SEMICOLON);
               od.make_all_methods_external;
               include(od.objectoptions,oo_is_external);
+              if (oo_is_forward in od.objectoptions) then
+                begin
+                  { formal definition: x = objcclass; external; }
+                  exclude(od.objectoptions,oo_is_forward);
+                  include(od.objectoptions,oo_is_formal);
+                end;
             end
           else { or also allow "public name 'x'"? }
             od.objextname:=stringdup(od.objrealname^);

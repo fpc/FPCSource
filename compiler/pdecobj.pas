@@ -477,10 +477,12 @@ implementation
               also prevent circular loops of classes, because we set the forward flag
               at the start of the new definition and will reset it below after the
               parent has been set }
-            if not(oo_is_forward in childof.objectoptions) then
+            if (oo_is_forward in childof.objectoptions) then
+              Message1(parser_e_forward_declaration_must_be_resolved,childof.objrealname^)
+            else if not(oo_is_formal in childof.objectoptions) then
               current_objectdef.set_parent(childof)
             else
-              Message1(parser_e_forward_declaration_must_be_resolved,childof.objrealname^);
+              Message1(sym_e_objc_formal_class_not_resolved,childof.objrealname^);
           end;
 
         { remove forward flag, is resolved }

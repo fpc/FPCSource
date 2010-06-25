@@ -1977,6 +1977,44 @@ implementation
       end;
 
 
+    function find_real_objcclass_definition(pd: tobjectdef): tobjectdef;
+      var
+        hashedid   : THashedIDString;
+        stackitem  : psymtablestackitem;
+        srsymtable : tsymtable;
+        srsym      : tsym;
+      begin
+        hashedid.id:=pd.typesym.name;
+        stackitem:=symtablestack.stack;
+        while assigned(stackitem) do
+          begin
+            srsymtable:=stackitem^.symtable;
+            { ObjC classes can't appear in generics or as nested class
+              definitions }
+            if not(srsymtable.symtabletype in [recordsymtable,ObjectSymtable,parasymtable]) then
+              begin
+                srsym:=tsym(srsymtable.FindWithHash(hashedid));
+                if assigned(srsym) and
+                   (srsym.typ=typesym) and
+                   is_objcclass(ttypesym(srsym).typedef) and
+                   not(oo_is_formal in tobjectdef(ttypesym(srsym).typedef).objectoptions) then
+                  begin
+                    result:=tobjectdef(ttypesym(srsym).typedef);
+                    if assigned(current_procinfo) and
+                       (srsym.owner.symtabletype=staticsymtable) then
+                      include(current_procinfo.flags,pi_uses_static_symtable);
+                    addsymref(srsym);
+                    exit;
+                  end;
+              end;
+            stackitem:=stackitem^.next;
+          end;
+        { nothing found: give an error and return the original (empty) one }
+        Message1(sym_e_objc_formal_class_not_resolved,pd.objrealname^);
+        result:=pd;
+      end;
+
+
     function searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
         hashedid : THashedIDString;
@@ -1984,12 +2022,17 @@ implementation
         i        : longint;
       begin
         orgclass:=classh;
-        { The contextclassh is used for visibility. The classh must be equal to
-          or be a parent of contextclassh. E.g. for inherited searches the classh is the
-          parent. }
-        if assigned(classh) and
-           not contextclassh.is_related(classh) then
-          internalerror(200811161);
+        { in case this is a formal objcclass, first find the real definition }
+        if assigned(classh) then
+          begin
+            if (oo_is_formal in classh.objectoptions) then
+              classh:=find_real_objcclass_definition(classh);
+            { The contextclassh is used for visibility. The classh must be equal to
+              or be a parent of contextclassh. E.g. for inherited searches the classh is the
+              parent. }
+            if not contextclassh.is_related(classh) then
+              internalerror(200811161);
+          end;
         result:=false;
         hashedid.id:=s;
         { an Objective-C protocol can inherit from multiple other protocols
@@ -2045,6 +2088,10 @@ implementation
         def : tdef;
         i   : longint;
       begin
+        { in case this is a formal objcclass, first find the real definition }
+        if assigned(classh) and
+           (oo_is_formal in classh.objectoptions) then
+          classh:=find_real_objcclass_definition(classh);
         result:=false;
         def:=nil;
         while assigned(classh) do
@@ -2079,6 +2126,10 @@ implementation
         def : tdef;
         i   : longint;
       begin
+        { in case this is a formal objcclass, first find the real definition }
+        if assigned(classh) and
+           (oo_is_formal in classh.objectoptions) then
+          classh:=find_real_objcclass_definition(classh);
         result:=false;
         def:=nil;
         while assigned(classh) do
@@ -2329,7 +2380,6 @@ implementation
       end;
 
 
-
     function search_class_member(pd : tobjectdef;const s : string):tsym;
     { searches n in symtable of pd and all anchestors }
       var
@@ -2338,6 +2388,9 @@ implementation
         orgpd      : tobjectdef;
         srsymtable : tsymtable;
       begin
+        { in case this is a formal objcclass, first find the real definition }
+        if (oo_is_formal in pd.objectoptions) then
+          pd:=find_real_objcclass_definition(pd);
         hashedid.id:=s;
         orgpd:=pd;
         while assigned(pd) do
