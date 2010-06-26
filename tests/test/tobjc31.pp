@@ -9,7 +9,7 @@
 
 Program Foo;
 uses
-        ctypes, MacOSAll, CocoaAll;
+        ctypes;
 
 Type MyObjc= objcclass(NSObject)
 Procedure nested; message 'nested';
