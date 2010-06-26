@@ -25,12 +25,10 @@ uses
   ctypes;
 
 type
-{
   NSString = objcclass; external;
   NSInvocation = objcclass; external;
   NSMethodSignature = objcclass; external;
   NSCoder = objcclass; external;
-}
 
   NSZone = record
   end;
@@ -68,7 +66,7 @@ type
     function autorelease: id; message 'autorelease';
     function retainCount: cint; message 'retainCount';
 
-    function description: {NSString} id; message 'description';
+    function description: NSString; message 'description';
   end; external name 'NSObject';
 
 
@@ -106,7 +104,7 @@ type
     function autorelease: id;
     function retainCount: cint;
 
-    function description: {NSString} id;
+    function description: NSString;
 
     { NSObject class }
     { "class" prefix to method name to avoid name collision with NSObjectProtocol }
@@ -149,14 +147,14 @@ type
     class function version: cint; message 'version';
     class procedure setVersion_(aVersion: cint); message 'setVersion:';
     procedure doesNotRecognizeSelector_(aSelector: SEL); message 'doesNotRecognizeSelector:';
-    procedure forwardInvocation_(anInvocation: id {NSInvocation}); message 'forwardInvocation:';
-    function methodSignatureForSelector_(aSelector: SEL): id {NSMethodSignature}; message 'methodSignatureForSelector:';
+    procedure forwardInvocation_(anInvocation: NSInvocation); message 'forwardInvocation:';
+    function methodSignatureForSelector_(aSelector: SEL): NSMethodSignature; message 'methodSignatureForSelector:';
 
-    class function classDescription: id {NSString}; message 'description';
+    class function classDescription: NSString; message 'description';
 
     function classForCoder: pobjc_class; message 'classForCoder';
-    function replacementObjectForCoder_(aCoder: id {NSCoder}): id; message 'replacementObjectForCoder:';
-    function awakeAfterUsingCoder_(aDecoder: id {NSCoder}): id; message 'awakeAfterUsingCoder:';
+    function replacementObjectForCoder_(aCoder: NSCoder): id; message 'replacementObjectForCoder:';
+    function awakeAfterUsingCoder_(aDecoder: NSCoder): id; message 'awakeAfterUsingCoder:';
   end; external;
 
 implementation
