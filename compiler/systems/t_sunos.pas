@@ -94,7 +94,7 @@ implementation
       begin
         inherited setinitname(list,s);
 {$ifdef sparc}
-        list.concat(tai_section.create(sec_init,'',4));
+        new_section(list,sec_init,'',4);
         list.concat(tai_symbol.createname_global('_init',AT_FUNCTION,0));
         list.concat(taicpu.op_reg_const_reg(A_SAVE,NR_STACK_POINTER_REG,-96,NR_STACK_POINTER_REG));
 {$endif sparc}
@@ -105,7 +105,7 @@ implementation
       begin
         inherited setfininame(list,s);
 {$ifdef sparc}
-        list.concat(tai_section.create(sec_fini,'',4));
+        new_section(list,sec_fini,'',4);
         list.concat(tai_symbol.createname_global('_fini',AT_FUNCTION,0));
         list.concat(taicpu.op_reg_const_reg(A_SAVE,NR_STACK_POINTER_REG,-96,NR_STACK_POINTER_REG));
 {$endif sparc}

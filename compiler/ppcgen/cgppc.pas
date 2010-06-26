@@ -267,12 +267,11 @@ unit cgppc;
         if current_asmdata.asmlists[al_imports]=nil then
           current_asmdata.asmlists[al_imports]:=TAsmList.create;
 
-        current_asmdata.asmlists[al_imports].concat(Tai_section.create(sec_stub,'',0));
         if (cs_create_pic in current_settings.moduleswitches) then
           stubalign:=32
         else
           stubalign:=16;
-        current_asmdata.asmlists[al_imports].concat(Tai_align.Create(stubalign));
+        new_section(current_asmdata.asmlists[al_imports],sec_stub,'',stubalign);
         result := current_asmdata.RefAsmSymbol(stubname);
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
         { register as a weak symbol if necessary }
@@ -311,7 +310,7 @@ unit cgppc;
 {$endif cpu64bitaddr}
         current_asmdata.asmlists[al_imports].concat(taicpu.op_reg(A_MTCTR,NR_R12));
         current_asmdata.asmlists[al_imports].concat(taicpu.op_none(A_BCTR));
-        current_asmdata.asmlists[al_imports].concat(tai_section.create(sec_data_lazy,'',sizeof(pint)));
+        new_section(current_asmdata.asmlists[al_imports],sec_data_lazy,'',sizeof(pint));
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(l1,0));
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
         current_asmdata.asmlists[al_imports].concat(tai_const.createname('dyld_stub_binding_helper',0));

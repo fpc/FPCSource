@@ -691,7 +691,7 @@ unit cgx86;
         if current_asmdata.asmlists[al_imports]=nil then
           current_asmdata.asmlists[al_imports]:=TAsmList.create;
 
-        current_asmdata.asmlists[al_imports].concat(Tai_section.create(sec_stub,'',0));
+        new_section(current_asmdata.asmlists[al_imports],sec_stub,'',0);
         result := current_asmdata.RefAsmSymbol(stubname);
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
         { register as a weak symbol if necessary }

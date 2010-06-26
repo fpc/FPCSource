@@ -2533,8 +2533,7 @@ unit cgcpu;
         if current_asmdata.asmlists[al_imports]=nil then
           current_asmdata.asmlists[al_imports]:=TAsmList.create;
 
-        current_asmdata.asmlists[al_imports].concat(Tai_section.create(sec_stub,'',0));
-        current_asmdata.asmlists[al_imports].concat(Tai_align.Create(4));
+        new_section(current_asmdata.asmlists[al_imports],sec_stub,'',4);
         result := current_asmdata.RefAsmSymbol(stubname);
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(result,0));
         { register as a weak symbol if necessary }
@@ -2557,7 +2556,7 @@ unit cgcpu;
         else
           internalerror(2008100401);
 
-        current_asmdata.asmlists[al_imports].concat(tai_section.create(sec_data_lazy,'',sizeof(pint)));
+        new_section(current_asmdata.asmlists[al_imports],sec_data_lazy,'',sizeof(pint));
         current_asmdata.asmlists[al_imports].concat(Tai_symbol.Create(l1,0));
         current_asmdata.asmlists[al_imports].concat(tai_directive.create(asd_indirect_symbol,s));
         current_asmdata.asmlists[al_imports].concat(tai_const.createname('dyld_stub_binding_helper',0));

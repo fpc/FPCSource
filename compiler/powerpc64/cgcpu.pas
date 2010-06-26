@@ -2147,7 +2147,7 @@ begin
   l:=current_asmdata.getasmsymbol(symname);
   if not(assigned(l)) then begin
     l:=current_asmdata.DefineAsmSymbol(symname,AB_GLOBAL, AT_DATA);
-    current_asmdata.asmlists[al_picdata].concat(tai_section.create(sec_toc, '.toc', 8));
+    new_section(current_asmdata.asmlists[al_picdata],sec_toc, '.toc', 8);
     current_asmdata.asmlists[al_picdata].concat(tai_symbol.create_global(l,0));
     current_asmdata.asmlists[al_picdata].concat(tai_directive.create(asd_toc_entry, symname + '[TC], ' + inttostr(a)));
   end;

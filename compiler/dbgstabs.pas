@@ -1678,7 +1678,7 @@ implementation
         { Reference all DEBUGINFO sections from the main .fpc section }
         if (target_info.system in ([system_powerpc_macos]+systems_darwin)) then
           exit;
-        list.concat(Tai_section.create(sec_fpc,'links',0));
+        new_section(list,sec_fpc,'links',0);
         { make sure the debuginfo doesn't get stripped out }
         if (target_info.system in systems_darwin) then
           begin

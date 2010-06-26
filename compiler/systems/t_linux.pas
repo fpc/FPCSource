@@ -99,7 +99,7 @@ implementation
         { the problem with not having a .fini section is that a finalization
           routine in regular code can get "smart" linked away -> reference it
           just like the debug info }
-        list.concat(Tai_section.create(sec_fpc,'links',0));
+        new_section(list,sec_fpc,'links',0);
         list.concat(Tai_const.Createname(s,0));
         inherited setfininame(list,s);
       end;

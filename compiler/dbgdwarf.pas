@@ -2928,7 +2928,7 @@ implementation
         vardatadef:=trecorddef(search_system_type('TVARDATA').typedef);
 
         { write start labels }
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_section.create(sec_debug_info,'',0));
+        new_section(current_asmdata.asmlists[al_dwarf_info],sec_debug_info,'',0);
         current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.createname(target_asm.labelprefix+'debug_info0',AT_DATA,0));
 
         { start abbrev section }
@@ -3051,7 +3051,7 @@ implementation
         { to prevent eliminating them by smartlinking                 }
         if (target_info.system in ([system_powerpc_macos]+systems_darwin)) then
           exit;
-        list.concat(Tai_section.create(sec_fpc,'links',0));
+        new_section(list,sec_fpc,'links',0);
 
         { include reference to all debuginfo sections of used units }
         hp:=tmodule(loaded_units.first);

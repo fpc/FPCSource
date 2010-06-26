@@ -87,16 +87,14 @@ implementation
 
     procedure texportlibdarwin.setinitname(list: TAsmList; const s: string);
       begin
-        list.concat(tai_section.Create(sec_init_func,'',0));
-        list.concat(tai_align.create(sizeof(pint)));
+        new_section(list,sec_init_func,'',sizeof(pint));
         list.concat(Tai_const.Createname(s,0));
       end;
 
 
     procedure texportlibdarwin.setfininame(list: TAsmList; const s: string);
       begin
-        list.concat(tai_section.Create(sec_term_func,'',0));
-        list.concat(tai_align.create(sizeof(pint)));
+        new_section(list,sec_term_func,'',sizeof(pint));
         list.concat(Tai_const.Createname(s,0));
       end;
 

@@ -480,8 +480,7 @@ implementation
       begin
         maybe_new_object_file(current_asmdata.asmlists[al_globals]);
         { Insert Ident of the compiler in the .fpc.version section }
-        current_asmdata.asmlists[al_globals].concat(Tai_section.create(sec_fpc,'version',0));
-        current_asmdata.asmlists[al_globals].concat(Tai_align.Create(const_align(32)));
+        new_section(current_asmdata.asmlists[al_globals],sec_fpc,'version',const_align(32));
         current_asmdata.asmlists[al_globals].concat(Tai_string.Create('FPC '+full_version_string+
           ' ['+date_string+'] for '+target_cpu_string+' - '+target_info.shortname));
         if not(tf_no_generic_stackcheck in target_info.flags) then

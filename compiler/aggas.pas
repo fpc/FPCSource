@@ -705,7 +705,6 @@ implementation
                    AsmWriteln(' sec_none');
 {$endif EXTDEBUG}
                 end;
-               doalign(tai_section(hp).secalign,false,0,last_align);
              end;
 
            ait_datablock :

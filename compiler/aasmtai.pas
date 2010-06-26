@@ -385,10 +385,12 @@ interface
           secalign : byte;
           name     : pshortstring;
           sec      : TObjSection; { used in binary writer }
-          constructor Create(Asectype:TAsmSectiontype;Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
           destructor Destroy;override;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
+         private
+          { sections should be created via new_section() }
+          constructor Create(Asectype:TAsmSectiontype;Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
        end;
 
 
@@ -690,8 +692,7 @@ implementation
                                    Aglobal:boolean;Asectype:TAsmSectiontype;Aalign:byte);
       begin
         maybe_new_object_file(list);
-        list.concat(tai_section.create(Asectype,Aname,Aalign));
-        list.concat(cai_align.create(Aalign));
+        new_section(list,Asectype,Aname,Aalign);
         if Aglobal or
            create_smartlink then
           list.concat(tai_symbol.createname_global(Aname,Asymtyp,0))
