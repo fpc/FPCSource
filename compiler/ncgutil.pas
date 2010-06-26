@@ -2067,6 +2067,23 @@ implementation
         if (tppcprocinfo(current_procinfo).needs_frame_pointer) then
           cg.a_reg_dealloc(list, NR_OLD_STACK_POINTER_REG);
 {$endif powerpc64}
+        if not(po_assembler in current_procinfo.procdef.procoptions) then
+          begin
+            { has to be done here rather than in gen_initialize_code, because
+              the initialisation code is generated a) later and b) with
+              rad_backwards, so the register allocator would generate
+              information as if this code comes before loading the parameters
+              from their original registers to their local location }
+            if (localvartrashing <> -1) then
+              current_procinfo.procdef.localst.SymList.ForEachCall(@trash_variable,list);
+            { initialize refcounted paras, and trash others. Needed here
+              instead of in gen_initialize_code, because when a reference is
+              intialised or trashed while the pointer to that reference is kept
+              in a regvar, we add a register move and that one again has to
+              come after the parameter loading code as far as the register
+              allocator is concerned }
+            current_procinfo.procdef.parast.SymList.ForEachCall(@init_paras,list);
+          end;
       end;
 
 
@@ -2091,20 +2108,11 @@ implementation
                TSymtable(current_module.localsymtable).SymList.ForEachCall(@initialize_regvars,list);
              end;
            else
-             begin
-               if (localvartrashing <> -1) and
-                  not(po_assembler in current_procinfo.procdef.procoptions) then
-                 current_procinfo.procdef.localst.SymList.ForEachCall(@trash_variable,list);
-               current_procinfo.procdef.localst.SymList.ForEachCall(@initialize_data,list);
-             end;
+             current_procinfo.procdef.localst.SymList.ForEachCall(@initialize_data,list);
         end;
 
         { initialisizes temp. ansi/wide string data }
         inittempvariables(list);
-
-        { initialize ansi/widesstring para's }
-        if not(po_assembler in current_procinfo.procdef.procoptions) then
-          current_procinfo.procdef.parast.SymList.ForEachCall(@init_paras,list);
 
 {$ifdef OLDREGVARS}
         load_regvars(list,nil);
