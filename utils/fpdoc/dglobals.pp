@@ -546,6 +546,7 @@ begin
   FRootLinkNode := TLinkNode.Create('', '');
   FRootDocNode := TDocNode.Create('', nil);
   HidePrivate := True;
+  InterfaceOnly:=True;
   FPackages := TList.Create;
 end;
 
