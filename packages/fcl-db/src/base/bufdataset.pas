@@ -536,7 +536,7 @@ type
     property IndexDefs : TIndexDefs read GetIndexDefs;
     property IndexName : String read GetIndexName write SetIndexName;
     property IndexFieldNames : String read GetIndexFieldNames write SetIndexFieldNames;
-    property UniDirectional: boolean read GetBufUniDirectional write SetBufUniDirectional;
+    property UniDirectional: boolean read GetBufUniDirectional write SetBufUniDirectional default False;
   end;
 
   TBufDataset = class(TCustomBufDataset)
