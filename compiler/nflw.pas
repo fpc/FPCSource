@@ -1529,6 +1529,14 @@ implementation
     constructor texitnode.create(l:tnode);
       begin
         inherited create(exitn,l);
+        if assigned(left) then
+          begin
+            { add assignment to funcretsym }
+            left:=ctypeconvnode.create(left,current_procinfo.procdef.returndef);
+            left:=cassignmentnode.create(
+              cloadnode.create(current_procinfo.procdef.funcretsym,current_procinfo.procdef.funcretsym.owner),
+              left);
+          end;
       end;
 
 
@@ -1548,15 +1556,7 @@ implementation
       begin
         result:=nil;
         if assigned(left) then
-          begin
-            { add assignment to funcretsym }
-            inserttypeconv(left,current_procinfo.procdef.returndef);
-            left:=cassignmentnode.create(
-                cloadnode.create(current_procinfo.procdef.funcretsym,current_procinfo.procdef.funcretsym.owner),
-                left);
-            typecheckpass(left);
-            set_varstate(left,vs_read,[vsf_must_be_valid]);
-          end;
+          typecheckpass(left);
         resultdef:=voidtype;
       end;
 
