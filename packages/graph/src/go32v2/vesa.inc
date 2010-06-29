@@ -1503,8 +1503,8 @@ end;
      Port[$3ce] := 8;           { Index 08 : Bitmask register.          }
      Port[$3cf] := $80 shr (x and $7); { Select correct bits to modify }
 
-     dummy := Mem[WinWriteSeg: offs];  { Latch the data into host space.  }
-     Mem[WinWriteSeg: offs] := dummy;  { Write the data into video memory }
+     dummy := Mem[WinWriteSeg: word(offs)];  { Latch the data into host space.  }
+     Mem[WinWriteSeg: word(offs)] := dummy;  { Write the data into video memory }
      PortW[$3ce] := $ff08;         { Enable all bit planes.           }
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
      { }
@@ -1512,7 +1512,8 @@ end;
 
 
  Function GetPixVESA16(X,Y: smallint):word; {$ifndef fpc}far;{$endif fpc}
- Var dummy, offset: Word;
+ Var dummy: Word;
+     offset: longint;
      shift: byte;
   Begin
     X:= X + StartXViewPort;
@@ -1522,13 +1523,13 @@ end;
     Port[$3ce] := 4;
     shift := 7 - (X and 7);
     Port[$3cf] := 0;
-    dummy := (Mem[WinReadSeg:offset] shr shift) and 1;
+    dummy := (Mem[WinReadSeg:word(offset)] shr shift) and 1;
     Port[$3cf] := 1;
-    dummy := dummy or (((Mem[WinReadSeg:offset] shr shift) and 1) shl 1);
+    dummy := dummy or (((Mem[WinReadSeg:word(offset)] shr shift) and 1) shl 1);
     Port[$3cf] := 2;
-    dummy := dummy or (((Mem[WinReadSeg:offset] shr shift) and 1) shl 2);
+    dummy := dummy or (((Mem[WinReadSeg:word(offset)] shr shift) and 1) shl 2);
     Port[$3cf] := 3;
-    dummy := dummy or (((Mem[WinReadSeg:offset] shr shift) and 1) shl 3);
+    dummy := dummy or (((Mem[WinReadSeg:word(offset)] shr shift) and 1) shl 3);
     GetPixVESA16 := dummy;
   end;
 
@@ -1574,8 +1575,8 @@ end;
      Port[$3ce] := 8;           { Index 08 : Bitmask register.          }
      Port[$3cf] := $80 shr (x and $7); { Select correct bits to modify }
 
-     dummy := Mem[WinWriteSeg: offs];  { Latch the data into host space.  }
-     Mem[WinWriteSeg: offs] := dummy;  { Write the data into video memory }
+     dummy := Mem[WinWriteSeg: word(offs)];  { Latch the data into host space.  }
+     Mem[WinWriteSeg: word(offs)] := dummy;  { Write the data into video memory }
      PortW[$3ce] := $ff08;         { Enable all bit planes.           }
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
   end;
