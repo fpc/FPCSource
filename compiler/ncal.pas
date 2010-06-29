@@ -2204,7 +2204,9 @@ implementation
               end
             else
               begin
-                temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,false);
+                temp:=ctempcreatenode.create(resultdef,resultdef.size,tt_persistent,
+                  (cnf_do_inline in callnodeflags) and
+                  not(tabstractvarsym(tprocdef(procdefinition).funcretsym).varregable in [vr_none,vr_addr]));
                 include(temp.flags,nf_is_funcret);
                 add_init_statement(temp);
                 { When the function result is not used in an inlined function
