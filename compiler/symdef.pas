@@ -64,7 +64,6 @@ interface
           constructor create(dt:tdeftyp);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor  destroy;override;
-          procedure reset;virtual;
           function getcopy : tstoreddef;virtual;
           procedure ppuwrite(ppufile:tcompilerppufile);virtual;
           procedure buildderef;override;
@@ -77,6 +76,7 @@ interface
           function  is_publishable : boolean;override;
           function  needs_inittable : boolean;override;
           function  rtti_mangledname(rt:trttitype):string;override;
+          function  in_currentunit: boolean;
           { regvars }
           function is_intregable : boolean;
           function is_fpuregable : boolean;
@@ -172,7 +172,6 @@ interface
           symtable : TSymtable;
           cloneddef      : tabstractrecorddef;
           cloneddefderef : tderef;
-          procedure reset;override;
           function  GetSymtable(t:tGetSymtable):TSymtable;override;
           function is_packed:boolean;
        end;
@@ -303,7 +302,6 @@ interface
           function find_procdef_bytype(pt:tproctypeoption): tprocdef;
           function find_destructor: tprocdef;
           function implements_any_interfaces: boolean;
-          procedure reset; override;
           { dispinterface support }
           function get_next_dispid: longint;
           { enumerator support }
@@ -333,7 +331,6 @@ interface
           function  is_publishable : boolean;override;
           function  rtti_mangledname(rt:trttitype):string;override;
           procedure register_created_object_type;override;
-          procedure reset;override;
        end;
 
        tarraydef = class(tstoreddef)
@@ -517,7 +514,9 @@ interface
 {$ifdef oldregvars}
           regvarinfo: pregvarinfo;
 {$endif oldregvars}
-          { position in aasmoutput list }
+          { First/last assembler symbol/instruction in aasmoutput list.
+            Note: initialised after compiling the code for the procdef, but
+              not saved to/restored from ppu. Used when inserting debug info }
           procstarttai,
           procendtai   : tai;
           import_nr    : word;
@@ -541,7 +540,6 @@ interface
           procedure buildderefimpl;override;
           procedure deref;override;
           procedure derefimpl;override;
-          procedure reset;override;
           function  GetSymtable(t:tGetSymtable):TSymtable;override;
           function  GetTypeName : string;override;
           function  mangledname : string;
@@ -1040,8 +1038,14 @@ implementation
       end;
 
 
-    procedure Tstoreddef.reset;
+    function tstoreddef.in_currentunit: boolean;
+      var
+        st: tsymtable;
       begin
+        st:=owner;
+        while not(st.symtabletype in [globalsymtable,staticsymtable]) do
+          st:=st.defowner.owner;
+        result:=st.iscurrentunit;
       end;
 
 
@@ -2184,13 +2188,6 @@ implementation
       end;
 
 
-    procedure tclassrefdef.reset;
-      begin
-        tobjectdef(pointeddef).classref_created_in_current_module:=false;
-        inherited reset;
-      end;
-
-
     procedure tclassrefdef.register_created_object_type;
       begin
         tobjectdef(pointeddef).register_created_classref_type;
@@ -2588,13 +2585,6 @@ implementation
          GetSymtable:=symtable
         else
          GetSymtable:=nil;
-      end;
-
-
-    procedure tabstractrecorddef.reset;
-      begin
-        inherited reset;
-        tstoredsymtable(symtable).reset_all_defs;
       end;
 
 
@@ -3277,14 +3267,6 @@ implementation
          if (po_has_inlininginfo in procoptions) then
            ppuwritenodetree(ppufile,inlininginfo^.code);
          ppufile.do_crc:=oldintfcrc;
-      end;
-
-
-    procedure tprocdef.reset;
-      begin
-        inherited reset;
-        procstarttai:=nil;
-        procendtai:=nil;
       end;
 
 
@@ -4650,14 +4632,6 @@ implementation
          is_publishable:=objecttype in [odt_class,odt_interfacecom,odt_interfacecorba,odt_dispinterface];
       end;
 
-
-    procedure tobjectdef.reset;
-      begin
-        inherited reset;
-        created_in_current_module:=false;
-        maybe_created_in_current_module:=false;
-        classref_created_in_current_module:=false;
-      end;
 
     function tobjectdef.get_next_dispid: longint;
       begin

@@ -756,58 +756,12 @@ unit optvirt;
       end;
 
 
-    procedure reset_all_impl_defs;
-
-      procedure reset_used_unit_impl_defs(hp:tmodule);
-        var
-          pu : tused_unit;
-        begin
-          pu:=tused_unit(hp.used_units.first);
-          while assigned(pu) do
-            begin
-              if not pu.u.is_reset then
-                begin
-                  { prevent infinte loop for circular dependencies }
-                  pu.u.is_reset:=true;
-                  if assigned(pu.u.localsymtable) then
-                    begin
-                      tstaticsymtable(pu.u.localsymtable).reset_all_defs;
-                      reset_used_unit_impl_defs(pu.u);
-                    end;
-                end;
-              pu:=tused_unit(pu.next);
-            end;
-        end;
-
-      var
-        hp2 : tmodule;
-      begin
-        hp2:=tmodule(loaded_units.first);
-        while assigned(hp2) do
-          begin
-            hp2.is_reset:=false;
-            hp2:=tmodule(hp2.next);
-          end;
-        reset_used_unit_impl_defs(current_module);
-      end;
-
-
     procedure tprogdevirtinfo.constructfromcompilerstate;
       var
         hp: tmodule;
         i: longint;
         inheritancetree: tinheritancetree;
       begin
-         { the compiler already resets all interface defs after every unit
-           compilation, but not the implementation defs (because this is only
-           done for the purpose of writing debug info, and you can never see
-           a type defined in the implementation of one unit in another unit).
-
-           Here, we want to record all classes constructed anywhere in the
-           program, also if those class(ref) types are defined in the
-           implementation of a unit. So reset the state of all defs in
-           implementation sections before starting the collection process. }
-         reset_all_impl_defs;
          { register all instantiated class/object types }
          hp:=tmodule(loaded_units.first);
          while assigned(hp) do

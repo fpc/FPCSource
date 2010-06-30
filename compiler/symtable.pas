@@ -67,7 +67,6 @@ interface
           procedure deref;virtual;
           procedure derefimpl;virtual;
           function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
-          procedure reset_all_defs;virtual;
           procedure allsymbolsused;
           procedure allprivatesused;
           procedure check_forwards;
@@ -693,19 +692,6 @@ implementation
 {***********************************************
            Process all entries
 ***********************************************}
-
-    procedure Tstoredsymtable.reset_all_defs;
-      var
-        i   : longint;
-        def : tstoreddef;
-      begin
-        for i:=0 to DefList.Count-1 do
-          begin
-            def:=tstoreddef(DefList[i]);
-            def.reset;
-          end;
-      end;
-
 
     { checks, if all procsyms and methods are defined }
     procedure tstoredsymtable.check_forwards;

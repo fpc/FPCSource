@@ -113,7 +113,6 @@ interface
         sources_avail,            { if all sources are reachable }
         interface_compiled,       { if the interface section has been parsed/compiled/loaded }
         is_dbginfo_written,
-        is_reset,
         is_unit,
         in_interface,             { processing the implementation part? }
         { allow global settings }
@@ -533,7 +532,6 @@ implementation
         islibrary:=false;
         ispackage:=false;
         is_dbginfo_written:=false;
-        is_reset:=false;
         mode_switch_allowed:= true;
         moduleoptions:=[];
         deprecatedmsg:=nil;
@@ -752,7 +750,6 @@ implementation
         stringdispose(deprecatedmsg);
         moduleoptions:=[];
         is_dbginfo_written:=false;
-        is_reset:=false;
         crc:=0;
         interface_crc:=0;
         indirect_crc:=0;

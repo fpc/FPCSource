@@ -834,38 +834,9 @@ implementation
 
 
      procedure reset_all_defs;
-
-       procedure reset_used_unit_defs(hp:tmodule);
-         var
-           pu : tused_unit;
-         begin
-           pu:=tused_unit(hp.used_units.first);
-           while assigned(pu) do
-             begin
-               if not pu.u.is_reset then
-                 begin
-                   { prevent infinte loop for circular dependencies }
-                   pu.u.is_reset:=true;
-                   if assigned(pu.u.globalsymtable) then
-                     begin
-                       tglobalsymtable(pu.u.globalsymtable).reset_all_defs;
-                       reset_used_unit_defs(pu.u);
-                     end;
-                 end;
-               pu:=tused_unit(pu.next);
-             end;
-         end;
-
-       var
-         hp2 : tmodule;
        begin
-         hp2:=tmodule(loaded_units.first);
-         while assigned(hp2) do
-           begin
-             hp2.is_reset:=false;
-             hp2:=tmodule(hp2.next);
-           end;
-         reset_used_unit_defs(current_module);
+         if assigned(current_module.wpoinfo) then
+           current_module.wpoinfo.resetdefs;
        end;
 
 
@@ -1184,8 +1155,6 @@ implementation
          current_module.globalsymtable:=current_module.localsymtable;
          current_module.localsymtable:=nil;
 
-         reset_all_defs;
-
          { number all units, so we know if a unit is used by this unit or
            needs to be added implicitly }
          current_module.updatemaps;
@@ -1265,9 +1234,6 @@ implementation
          if current_module.state=ms_compiled then
            exit;
 
-         { reset ranges/stabs in exported definitions }
-         reset_all_defs;
-
          { All units are read, now give them a number }
          current_module.updatemaps;
 
@@ -1341,6 +1307,9 @@ implementation
 
          { the last char should always be a point }
          consume(_POINT);
+
+         { reset wpo flags for all defs }
+         reset_all_defs;
 
          if (Errorcount=0) then
            begin
@@ -1870,9 +1839,6 @@ implementation
              consume(_SEMICOLON);
            end;
 
-         { reset ranges/stabs in exported definitions }
-         reset_all_defs;
-
          { All units are read, now give them a number }
          current_module.updatemaps;
 
@@ -2178,9 +2144,6 @@ implementation
          if token=_USES then
            loadunits;
 
-         { reset ranges/stabs in exported definitions }
-         reset_all_defs;
-
          { All units are read, now give them a number }
          current_module.updatemaps;
 
@@ -2280,6 +2243,9 @@ implementation
 
          { consume the last point }
          consume(_POINT);
+
+         { reset wpo flags for all defs }
+         reset_all_defs;
 
          if (Errorcount=0) then
            begin

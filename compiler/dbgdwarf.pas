@@ -1945,22 +1945,19 @@ implementation
         cc             : Tdwarf_calling_convention;
         st             : tsymtable;
         vmtindexnr     : pint;
-        incurrentunit  : boolean;
+        in_currentunit : boolean;
       begin
         { only write debug info for procedures defined in the current module,
           except in case of methods (gcc-compatible)
         }
-        st:=def.owner;
-        while not(st.symtabletype in [globalsymtable,staticsymtable]) do
-          st:=st.defowner.owner;
-        incurrentunit:=st.iscurrentunit;
+        in_currentunit:=def.in_currentunit;
 
-        if not incurrentunit and
+        if not in_currentunit and
           (def.owner.symtabletype<>objectsymtable) then
           exit;
 
         { happens for init procdef of units without init section }
-        if incurrentunit and
+        if in_currentunit and
            not assigned(def.procstarttai) then
           exit;
 
@@ -2047,7 +2044,7 @@ implementation
         { we can only write the start/end if this procedure is implemented in
           this module
         }
-        if incurrentunit then
+        if in_currentunit then
           begin
             { mark end of procedure }
             current_asmdata.getlabel(procendlabel,alt_dbgtype);
@@ -2081,7 +2078,7 @@ implementation
           end;
         { local type defs and vars should not be written
           inside the main proc }
-        if incurrentunit and
+        if in_currentunit and
            assigned(def.localst) and
            (def.localst.symtabletype=localsymtable) then
           write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],def.localst);
@@ -2090,7 +2087,7 @@ implementation
         if assigned(def.parast) then
           write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],def.parast);
         { only try to write the localst if the routine is implemented here }
-        if incurrentunit and
+        if in_currentunit and
            assigned(def.localst) and
            (def.localst.symtabletype=localsymtable) then
           begin

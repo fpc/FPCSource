@@ -1010,7 +1010,9 @@ implementation
         hs : string;
         ss : ansistring;
       begin
-        if not assigned(def.procstarttai) then
+        if not(def.in_currentunit) or
+           { happens for init procdef of units without init section }
+           not assigned(def.procstarttai) then
           exit;
 
         { mark as used so the local type defs also be written }

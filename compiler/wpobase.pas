@@ -171,6 +171,10 @@ type
     procedure addcreatedobjtypeforclassref(def: tdef);
     procedure addmaybecreatedbyclassref(def: tdef);
     procedure addcalledvmtentry(def: tdef; index: longint);
+
+    { resets the "I've been registered with wpo" flags for all defs in the
+      above lists }
+    procedure resetdefs;
   end;
 
   { ************************************************************************* }
@@ -362,6 +366,8 @@ implementation
     var
       i: longint;
     begin
+      { don't call resetdefs here, because the defs may have been freed
+        already }
       fcreatedobjtypes.free;
       fcreatedobjtypes:=nil;
       fcreatedclassrefobjtypes.free;
@@ -384,6 +390,22 @@ implementation
     end;
     
     
+  procedure tunitwpoinfobase.resetdefs;
+    var
+      i: ptrint;
+    begin
+      if assigned(fcreatedobjtypes) then
+        for i:=0 to fcreatedobjtypes.count-1 do
+          tobjectdef(fcreatedobjtypes[i]).created_in_current_module:=false;
+      if assigned(fcreatedclassrefobjtypes) then
+        for i:=0 to fcreatedclassrefobjtypes.count-1 do
+          tobjectdef(fcreatedclassrefobjtypes[i]).classref_created_in_current_module:=false;
+      if assigned(fmaybecreatedbyclassrefdeftypes) then
+        for i:=0 to fmaybecreatedbyclassrefdeftypes.count-1 do
+          tobjectdef(fmaybecreatedbyclassrefdeftypes[i]).maybe_created_in_current_module:=false;
+    end;
+
+
   procedure tunitwpoinfobase.addcreatedobjtype(def: tdef);
     begin
       fcreatedobjtypes.add(def);
