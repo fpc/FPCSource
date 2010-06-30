@@ -147,11 +147,6 @@ begin
     UserName := dbuser;
     Password := dbpassword;
     HostName := dbhostname;
-    if length(dbQuoteChars)>1 then
-      begin
-      FieldNameQuoteChars[0] := dbQuoteChars[1];
-      FieldNameQuoteChars[1] := dbQuoteChars[2];
-      end;
     open;
     end;
 end;
