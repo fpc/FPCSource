@@ -209,9 +209,9 @@ begin
   DoTestArray('[1234567890123456]',1);
   DoTestArray('[1234567890123456, 2234567890123456]',2);
   DoTestArray('[1234567890123456, 2234567890123456, 3234567890123456]',3);
-  Str(1.2,S1);
-  Str(2.3,S2);
-  Str(3.4,S3);
+  Str(Double(1.2),S1);
+  Str(Double(2.3),S2);
+  Str(Double(3.4),S3);
   DoTestArray('['+S1+']',1);
   DoTestArray('['+S1+', '+S2+']',2);
   DoTestArray('['+S1+', '+S2+', '+S3+']',3);

@@ -27,7 +27,7 @@ uses
 type
 
   TJSONtype = (jtUnknown, jtNumber, jtString, jtBoolean, jtNull, jtArray, jtObject);
-  TJSONFloat = Extended;
+  TJSONFloat = Double;
   TJSONStringType = AnsiString;
   TJSONCharType = AnsiChar;
   PJSONCharType = ^TJSONCharType;
@@ -422,7 +422,7 @@ Resourcestring
   SErrPointerNotNil = 'Cannot add non-nil pointer to JSON%s';
   SErrOddNumber = 'TJSONObject must be constructed with name,value pairs';
   SErrNameMustBeString = 'TJSONObject constructor element name at pos %d is not a string';
-  
+  SErrNonexistentElement = 'Unknown object member: "%s"';
   
 Function StringToJSONString(S : TJSONStringType) : TJSONStringType;
 
@@ -1473,6 +1473,8 @@ end;
 function TJSONObject.GetElements(AName: string): TJSONData;
 begin
   Result:=TJSONData(FHash.Find(AName));
+  If (Result=Nil) then
+    Raise EJSON.CreateFmt(SErrNonexistentElement,[AName]);
 end;
 
 function TJSONObject.GetFloats(AName : String): TJSONFloat;
