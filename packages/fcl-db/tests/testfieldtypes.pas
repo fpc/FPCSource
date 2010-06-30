@@ -770,6 +770,10 @@ begin
 
     ShortDateFormat := 'yyyy-mm-dd';
 
+    // There is no Param.AsFixedChar, so the datatype has to be set manually
+    if ADatatype=ftFixedChar then
+      Params.ParamByName('field1').DataType := ftFixedChar;
+
     for i := 0 to testValuesCount -1 do
       begin
       Params.ParamByName('id').AsInteger := i;
@@ -801,13 +805,7 @@ begin
         ftInteger: AssertEquals(testIntValues[i],FieldByName('FIELD1').AsInteger);
         ftFloat  : AssertEquals(testFloatValues[i],FieldByName('FIELD1').AsFloat);
         ftBCD    : AssertEquals(testBCDValues[i],FieldByName('FIELD1').AsCurrency);
-        ftFixedChar :
-                   begin
-                   if FieldByName('FIELD1').isnull then
-                     AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString)
-                   else
-                     AssertEquals(PadRight(testStringValues[i],10),FieldByName('FIELD1').AsString);
-                   end;
+        ftFixedChar : AssertEquals(PadRight(testStringValues[i],10),FieldByName('FIELD1').AsString);
         ftString : AssertEquals(testStringValues[i],FieldByName('FIELD1').AsString);
         ftdate   : AssertEquals(testDateValues[i],FormatDateTime('yyyy/mm/dd',FieldByName('FIELD1').AsDateTime));
       else
@@ -1320,18 +1318,11 @@ procedure TTestFieldTypes.TestNumericNames;
 begin
   with TSQLDBConnector(DBConnector) do
     begin
-    if not (SQLDbType in MySQLdbTypes) then
-      Connection.ExecuteDirect('create table FPDEV2 (         ' +
-                                '  "2ID" INT NOT NULL            , ' +
-                                '  "3TEST" VARCHAR(10),     ' +
-                                '  PRIMARY KEY ("2ID")           ' +
-                                ')                            ')
-    else
-      Connection.ExecuteDirect('create table FPDEV2 (         ' +
-                                '  2ID INT NOT NULL            , ' +
-                                '  3TEST VARCHAR(10),     ' +
-                                '  PRIMARY KEY (2ID)           ' +
-                                ')                            ');
+    Connection.ExecuteDirect('create table FPDEV2 (         ' +
+                              '  '+connection.FieldNameQuoteChars[0]+'2ID'+connection.FieldNameQuoteChars[1]+' INT NOT NULL, ' +
+                              '  '+connection.FieldNameQuoteChars[0]+'3TEST'+connection.FieldNameQuoteChars[1]+' VARCHAR(10), ' +
+                              '  PRIMARY KEY ('+connection.FieldNameQuoteChars[0]+'2ID'+connection.FieldNameQuoteChars[0]+') ' +
+                              ')                            ');
 // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
     TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
     with query do

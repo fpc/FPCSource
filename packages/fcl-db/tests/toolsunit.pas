@@ -162,7 +162,8 @@ var dbtype,
     dbname,
     dbuser,
     dbhostname,
-    dbpassword     : string;
+    dbpassword,
+    dbQuoteChars   : string;
     DataEvents     : string;
     DBConnector    : TDBConnector;
     testValues     : Array [TFieldType,0..testvaluescount -1] of string;
@@ -242,6 +243,7 @@ begin
   dbhostname := IniFile.ReadString(dbtype,'Hostname','');
   dbpassword := IniFile.ReadString(dbtype,'Password','');
   dbconnectorparams := IniFile.ReadString(dbtype,'ConnectorParams','');
+  dbquotechars := IniFile.ReadString(dbtype,'QuoteChars','');
 
   IniFile.Free;
 end;
@@ -253,6 +255,7 @@ begin
   if DBConnectorRefCount>0 then exit;
   testValues[ftString] := testStringValues;
   testValues[ftFixedChar] := testStringValues;
+  testValues[ftDate] := testDateValues;
   for i := 0 to testValuesCount-1 do
     begin
     testValues[ftFloat,i] := FloatToStr(testFloatValues[i]);
@@ -266,7 +269,6 @@ begin
     testValues[ftCurrency,i] := CurrToStr(testCurrencyValues[i]);
     // DecimalSeparator:='.';
     testValues[ftBCD,i] := CurrToStr(testCurrencyValues[i]);
-    testValues[ftDate,i] := DateToStr(StrToDate(testDateValues[i], 'yyyy/mm/dd', '-'));
     end;
 
   if dbconnectorname = '' then raise Exception.Create('There is no db-connector specified');
