@@ -24,8 +24,7 @@ unit cclasses;
 {$i fpcdefs.inc}
 
 {$ifndef VER2_0}
-  { Disabled for now, gives an IE 200311075 when compiling the IDE }
-  { $define CCLASSESINLINE}
+  {$define CCLASSESINLINE}
 {$endif}
 
 interface
@@ -83,9 +82,9 @@ type
     FCount: Integer;
     FCapacity: Integer;
   protected
-    function Get(Index: Integer): Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure Put(Index: Integer; Item: Pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure SetCapacity(NewCapacity: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    function Get(Index: Integer): Pointer;
+    procedure Put(Index: Integer; Item: Pointer);
+    procedure SetCapacity(NewCapacity: Integer);
     procedure SetCount(NewCount: Integer);
     Procedure RaiseIndexError(Index : Integer);
   public
@@ -97,10 +96,10 @@ type
     procedure Exchange(Index1, Index2: Integer);
     function Expand: TFPList;
     function Extract(item: Pointer): Pointer;
-    function First: Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function First: Pointer;
     function IndexOf(Item: Pointer): Integer;
     procedure Insert(Index: Integer; Item: Pointer);
-    function Last: Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function Last: Pointer;
     procedure Move(CurIndex, NewIndex: Integer);
     procedure Assign(Obj:TFPList);
     function Remove(Item: Pointer): Integer;
@@ -127,10 +126,10 @@ type
     FFreeObjects : Boolean;
     FList: TFPList;
     function GetCount: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure SetCount(const AValue: integer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure SetCount(const AValue: integer);
   protected
     function GetItem(Index: Integer): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure SetItem(Index: Integer; AObject: TObject); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure SetItem(Index: Integer; AObject: TObject);
     procedure SetCapacity(NewCapacity: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
     function GetCapacity: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
   public
@@ -139,7 +138,7 @@ type
     destructor Destroy; override;
     procedure Clear;
     function Add(AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure Delete(Index: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure Delete(Index: Integer);
     procedure Exchange(Index1, Index2: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
     function Expand: TFPObjectList;{$ifdef CCLASSESINLINE}inline;{$endif}
     function Extract(Item: TObject): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
@@ -150,7 +149,7 @@ type
     function First: TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     function Last: TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Move(CurIndex, NewIndex: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure Assign(Obj:TFPObjectList); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure Assign(Obj:TFPObjectList);
     procedure Pack; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Sort(Compare: TListSortCompare); {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
@@ -198,8 +197,8 @@ type
     FStrCapacity : Integer;
     function InternalFind(AHash:LongWord;const AName:shortstring;out PrevIndex:Integer):Integer;
   protected
-    function Get(Index: Integer): Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure Put(Index: Integer; Item: Pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    function Get(Index: Integer): Pointer;
+    procedure Put(Index: Integer; Item: Pointer);
     procedure SetCapacity(NewCapacity: Integer);
     procedure SetCount(NewCount: Integer);
     Procedure RaiseIndexError(Index : Integer);
@@ -214,8 +213,8 @@ type
     destructor Destroy; override;
     function Add(const AName:shortstring;Item: Pointer): Integer;
     procedure Clear;
-    function NameOfIndex(Index: Integer): ShortString; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function NameOfIndex(Index: Integer): ShortString;
+    function HashOfIndex(Index: Integer): LongWord;
     function GetNextCollision(Index: Integer): Integer;
     procedure Delete(Index: Integer);
     class procedure Error(const Msg: string; Data: PtrInt);
@@ -259,7 +258,7 @@ type
   public
     constructor CreateNotOwned;
     constructor Create(HashObjectList:TFPHashObjectList;const s:shortstring);
-    procedure ChangeOwner(HashObjectList:TFPHashObjectList); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure ChangeOwner(HashObjectList:TFPHashObjectList);
     procedure ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:shortstring); {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Rename(const ANewName:shortstring);
     property Name:shortstring read GetName;
@@ -271,10 +270,10 @@ type
     FFreeObjects : Boolean;
     FHashList: TFPHashList;
     function GetCount: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure SetCount(const AValue: integer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure SetCount(const AValue: integer);
   protected
     function GetItem(Index: Integer): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure SetItem(Index: Integer; AObject: TObject); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure SetItem(Index: Integer; AObject: TObject);
     procedure SetCapacity(NewCapacity: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
     function GetCapacity: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
   public
@@ -729,10 +728,10 @@ end;
 
 function TFPList.First: Pointer;
 begin
-  If FCount = 0 then
-    Result := Nil
+  If FCount<>0 then
+    Result := Items[0]
   else
-    Result := Items[0];
+    Result := Nil;
 end;
 
 function TFPList.IndexOf(Item: Pointer): Integer;
@@ -766,11 +765,10 @@ end;
 
 function TFPList.Last: Pointer;
 begin
-{ Wouldn't it be better to return nil if the count is zero ?}
-  If FCount = 0 then
-    Result := nil
+  If FCount<>0 then
+    Result := Items[FCount - 1]
   else
-    Result := Items[FCount - 1];
+    Result := nil
 end;
 
 procedure TFPList.Move(CurIndex, NewIndex: Integer);
