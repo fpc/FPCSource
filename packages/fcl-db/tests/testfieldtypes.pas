@@ -1320,18 +1320,11 @@ procedure TTestFieldTypes.TestNumericNames;
 begin
   with TSQLDBConnector(DBConnector) do
     begin
-    if not (SQLDbType in MySQLdbTypes) then
-      Connection.ExecuteDirect('create table FPDEV2 (         ' +
-                                '  "2ID" INT NOT NULL            , ' +
-                                '  "3TEST" VARCHAR(10),     ' +
-                                '  PRIMARY KEY ("2ID")           ' +
-                                ')                            ')
-    else
-      Connection.ExecuteDirect('create table FPDEV2 (         ' +
-                                '  2ID INT NOT NULL            , ' +
-                                '  3TEST VARCHAR(10),     ' +
-                                '  PRIMARY KEY (2ID)           ' +
-                                ')                            ');
+    Connection.ExecuteDirect('create table FPDEV2 (         ' +
+                              '  '+connection.FieldNameQuoteChars[0]+'2ID'+connection.FieldNameQuoteChars[1]+' INT NOT NULL, ' +
+                              '  '+connection.FieldNameQuoteChars[0]+'3TEST'+connection.FieldNameQuoteChars[1]+' VARCHAR(10), ' +
+                              '  PRIMARY KEY ('+connection.FieldNameQuoteChars[0]+'2ID'+connection.FieldNameQuoteChars[0]+') ' +
+                              ')                            ');
 // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
     TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
     with query do
