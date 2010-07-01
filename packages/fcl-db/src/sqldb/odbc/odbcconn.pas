@@ -368,7 +368,7 @@ begin
             ftBlob:
               begin
               CType:=SQL_C_BINARY;
-              SqlType:=SQL_BINARY;
+              SqlType:=SQL_LONGVARBINARY;
               end;
             ftMemo:
               begin
