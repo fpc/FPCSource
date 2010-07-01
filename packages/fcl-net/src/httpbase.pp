@@ -1,4 +1,5 @@
 {
+    WARNING: These units are DEPRECATED in FPC 2.5.x and later
 
     HTTPBase: Common HTTP utility declarations and classes
     Copyright (C) 2000-2003 by Sebastian Guenther (sg@freepascal.org)
@@ -132,7 +133,7 @@ type
 
     HttpVersion: String;
 
-    constructor Create;
+    constructor Create; deprecated;
     destructor Destroy; override;
     procedure SetFieldByName(const AName, AValue: String);
     function  GetFieldByName(const AName: String): String;
@@ -196,7 +197,7 @@ type
   public
     Code: Integer;
     CodeText: String;
-    constructor Create;
+    constructor Create; deprecated;
   end;
 
 

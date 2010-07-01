@@ -1,5 +1,7 @@
 {
 
+    WARNING: These units are DEPRECATED in FPC 2.5.x and later
+
     Basic Servlet Support
     Copyright (c) 2003 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
@@ -10,6 +12,9 @@
     This program is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+
+
+
 }
 {$mode objfpc}{$H+}
 unit Servlets;
@@ -43,7 +48,7 @@ type
     function GetContentType: String; virtual; abstract;
     function GetProtocol: String; virtual; abstract;
   public
-    constructor Create(AInputStream: TStream; const AScheme, APathInfo: String);
+    constructor Create(AInputStream: TStream; const AScheme, APathInfo: String); deprecated;
     property Attributes[const AName: String]: TObject;  // !!!: Implement this  rw
     property CharacterEncoding: String; // !!!: Implement this  rw
     property ContentLength: Integer read GetContentLength;
@@ -69,7 +74,7 @@ type
     procedure SetContentType(const Value: String); virtual; abstract;
     procedure SetContentLength(Value: Int64); virtual; abstract;
   public
-    constructor Create(AOutputStream: TStream);
+    constructor Create(AOutputStream: TStream); deprecated;
     property BufferSize: Integer;       // !!!: How to implement?  rw
     property CharacterEncoding: String; // !!!: Implement this
     property ContentLength: Int64 write SetContentLength;

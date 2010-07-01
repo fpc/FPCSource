@@ -1,5 +1,7 @@
 {
 
+    WARNING: This program is DEPRECATED in FPC 2.5.x and later
+
     Automatic XML-RPC wrapper generator
     Copyright (c) 2003 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
@@ -31,7 +33,7 @@ type
     Modules, UsedModules: TList;
     CurModule: TPasModule;
   public
-    constructor Create;
+    constructor Create; deprecated;
     destructor Destroy; override;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility;
@@ -49,7 +51,7 @@ type
   TRPCList = class
     ServerClasses: TList;
     UsedModules: TStringList;
-    constructor Create;
+    constructor Create; deprecated;
     destructor Destroy; override;
     procedure AddServerClass(const AClassName: String);
   end;

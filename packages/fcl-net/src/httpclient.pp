@@ -1,5 +1,7 @@
 {
 
+    WARNING: These units are DEPRECATED in FPC 2.5.x and later
+
     HTTPClient: HTTP client component
     Copyright (C) 2000-2003 by Sebastian Guenther (sg@freepascal.org)
 
@@ -113,7 +115,7 @@ type
     ReceivedStream: TStream;
     DoDestroy: Boolean;
 
-    constructor Create(AEventLoop: TEventLoop; ASocket: TInetSocket);
+    constructor Create(AEventLoop: TEventLoop; ASocket: TInetSocket); deprecated;
     destructor Destroy; override;
     procedure Receive;
     procedure Send;

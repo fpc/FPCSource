@@ -1,5 +1,7 @@
 {
 
+    WARNING: These units are DEPRECATED in FPC 2.5.x and later
+
     XML-RPC server and client library
     Copyright (c) 2003-2004 by
       Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org
@@ -32,8 +34,8 @@ type
   protected
     function CreateValueEl: TXMLRPCValue;
   public
-    constructor Create;
-    destructor Destroy; override;
+    constructor Create; deprecated;
+    destructor Destroy; override; 
     function MakeStream: TMemoryStream;
 
     procedure WriteMethodCall(const AMethodName: DOMString;
@@ -74,7 +76,7 @@ type
       const AMemberName: String): TDOMElement;
     function GetStructMemberValue(MemberNode: TDOMElement): String;
   public
-    constructor Create(AStream: TStream);
+    constructor Create(AStream: TStream); deprecated;
     destructor Destroy; override;
     function GetPostType: TXMLRPCPostType;
     function GetMethodName: String;
@@ -123,7 +125,7 @@ type
     procedure StreamSent(Sender: TObject);
     procedure DataAvailable(Sender: TObject);
   public
-    constructor Create(AEventLoop: TEventLoop);
+    constructor Create(AEventLoop: TEventLoop); deprecated;
     procedure Call(ACallback: TOnXMLRPCCallCompleted;
       const AProcName: String; AArgs: array of const);
     procedure CallAsync(ACallback: TOnXMLRPCCallCompleted;
