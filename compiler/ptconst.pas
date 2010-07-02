@@ -1005,7 +1005,7 @@ implementation
           if (n.nodetype=loadn) and
              (tloadnode(n).symtableentry.typ=procsym) then
             begin
-              pd:=tprocdef(tprocsym(tloadnode(n).symtableentry).ProcdefList[0]);
+              pd:=tloadnode(n).procdef;
               list.concat(Tai_const.createname(pd.mangledname,0));
             end
           else

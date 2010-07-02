@@ -37,8 +37,8 @@ interface
 
        tloadnode = class(tunarynode)
        protected
-          procdef : tprocdef;
-          procdefderef : tderef;
+          fprocdef : tprocdef;
+          fprocdefderef : tderef;
        public
           symtableentry : tsym;
           symtableentryderef : tderef;
@@ -58,6 +58,7 @@ interface
           function  docompare(p: tnode): boolean; override;
           procedure printnodedata(var t:text);override;
           procedure setprocdef(p : tprocdef);
+          property procdef: tprocdef read fprocdef write setprocdef;
        end;
        tloadnodeclass = class of tloadnode;
 
@@ -167,7 +168,7 @@ implementation
           internalerror(200108121);
          symtableentry:=v;
          symtable:=st;
-         procdef:=nil;
+         fprocdef:=nil;
       end;
 
 
@@ -178,7 +179,7 @@ implementation
           internalerror(200108122);
          symtableentry:=v;
          symtable:=st;
-         procdef:=d;
+         fprocdef:=d;
       end;
 
 
@@ -187,7 +188,7 @@ implementation
         inherited ppuload(t,ppufile);
         ppufile.getderef(symtableentryderef);
         symtable:=nil;
-        ppufile.getderef(procdefderef);
+        ppufile.getderef(fprocdefderef);
       end;
 
 
@@ -195,7 +196,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putderef(symtableentryderef);
-        ppufile.putderef(procdefderef);
+        ppufile.putderef(fprocdefderef);
       end;
 
 
@@ -203,7 +204,7 @@ implementation
       begin
         inherited buildderefimpl;
         symtableentryderef.build(symtableentry);
-        procdefderef.build(procdef);
+        fprocdefderef.build(fprocdef);
       end;
 
 
@@ -212,7 +213,7 @@ implementation
         inherited derefimpl;
         symtableentry:=tsym(symtableentryderef.resolve);
         symtable:=symtableentry.owner;
-        procdef:=tprocdef(procdefderef.resolve);
+        fprocdef:=tprocdef(fprocdefderef.resolve);
       end;
 
 
@@ -233,7 +234,7 @@ implementation
          n:=tloadnode(inherited dogetcopy);
          n.symtable:=symtable;
          n.symtableentry:=symtableentry;
-         n.procdef:=procdef;
+         n.fprocdef:=fprocdef;
          result:=n;
       end;
 
@@ -322,15 +323,15 @@ implementation
                  procdefs the matching procdef will be choosen
                  when the expected procvardef is known, see get_information
                  in htypechk.pas (PFV) }
-               if not assigned(procdef) then
-                 procdef:=tprocdef(tprocsym(symtableentry).ProcdefList[0])
-               else if po_kylixlocal in procdef.procoptions then
+               if not assigned(fprocdef) then
+                 fprocdef:=tprocdef(tprocsym(symtableentry).ProcdefList[0])
+               else if po_kylixlocal in fprocdef.procoptions then
                  CGMessage(type_e_cant_take_address_of_local_subroutine);
 
-               { the result is a procdef, addrn and proc_to_procvar
+               { the result is a fprocdef, addrn and proc_to_procvar
                  typeconvn need this as resultdef so they know
                  that the address needs to be returned }
-               resultdef:=procdef;
+               resultdef:=fprocdef;
 
                { process methodpointer }
                if assigned(left) then
@@ -410,7 +411,7 @@ implementation
         docompare :=
           inherited docompare(p) and
           (symtableentry = tloadnode(p).symtableentry) and
-          (procdef = tloadnode(p).procdef) and
+          (fprocdef = tloadnode(p).fprocdef) and
           (symtable = tloadnode(p).symtable);
       end;
 
@@ -420,14 +421,14 @@ implementation
         inherited printnodedata(t);
         write(t,printnodeindention,'symbol = ',symtableentry.name);
         if symtableentry.typ=procsym then
-          write(t,printnodeindention,'procdef = ',procdef.mangledname);
+          write(t,printnodeindention,'procdef = ',fprocdef.mangledname);
         writeln(t,'');
       end;
 
 
     procedure tloadnode.setprocdef(p : tprocdef);
       begin
-        procdef:=p;
+        fprocdef:=p;
         resultdef:=p;
         if po_local in p.procoptions then
           CGMessage(type_e_cant_take_address_of_local_subroutine);
