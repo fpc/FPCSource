@@ -298,8 +298,11 @@ begin
                   if CheckArg(vtWidestring,false) then
                     hs:=WideString(Args[doarg].VWideString)
                 else
-                  if CheckArg(vtAnsiString,true) then
-                    hs:=ansistring(Args[doarg].VAnsiString);
+                  if CheckArg(vtAnsiString,false) then
+                    hs:=ansistring(Args[doarg].VAnsiString)
+                else
+                  if CheckArg(vtVariant,true) then
+                    hs:=Args[doarg].VVariant^;
                 Index:=Length(hs);
                 If (Prec<>-1) and (Index>Prec) then
                   Index:=Prec;
