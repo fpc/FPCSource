@@ -36,7 +36,7 @@ type
    TSmallPoint = record
       x,y : smallint;
    end;
-   HMODULE = longint;
+   HMODULE = ptrint; // hmodule is handle on windows. Pointer eq.
 {$else}
    TSmallPoint = Windows.TSmallPoint;
    HModule = System.HModule;
