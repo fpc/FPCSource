@@ -63,6 +63,7 @@ interface
 const
    SListIndexError = 'List index exceeds bounds (%d)';
    SListCapacityError = 'The maximum list capacity is reached (%d)';
+   SListCapacityPower2Error = 'The capacity has to be a power of 2, but is set to %d';
    SListCountError = 'List count too large (%d)';
 type
    EListError = class(Exception);
@@ -188,6 +189,7 @@ type
     FHashList     : PHashItemList;
     FCount,
     FCapacity : Integer;
+    FCapacityMask: LongWord;
     { Hash }
     FHashTable    : PHashTable;
     FHashCapacity : Integer;
@@ -1194,8 +1196,13 @@ end;
 
 
 procedure TFPHashList.SetCapacity(NewCapacity: Integer);
+var
+  power: longint;
 begin
-  If (NewCapacity < FCount) or (NewCapacity > MaxHashListSize) then
+  { use a power of two to be able to quickly calculate the hash table index }
+  if NewCapacity <> 0 then
+    NewCapacity := nextpowerof2(NewCapacity div MaxItemsPerHash, power) * MaxItemsPerHash;
+  if (NewCapacity < FCount) or (NewCapacity > MaxHashListSize) then
      Error (SListCapacityError, NewCapacity);
   if NewCapacity = FCapacity then
     exit;
@@ -1216,7 +1223,8 @@ begin
       If NewCount > FCapacity then
         SetCapacity(NewCount);
       If FCount < NewCount then
-        FillChar(FHashList^[FCount], (NewCount-FCount) div Sizeof(THashItem), 0);
+        { FCapacity is NewCount rounded up to the next power of 2 }
+        FillChar(FHashList^[FCount], (FCapacity-FCount) div Sizeof(THashItem), 0);
     end;
   FCount := Newcount;
 end;
@@ -1234,13 +1242,19 @@ end;
 
 
 procedure TFPHashList.SetHashCapacity(NewCapacity: Integer);
+var
+  power: longint;
 begin
   If (NewCapacity < 1) then
     Error (SListCapacityError, NewCapacity);
   if FHashCapacity=NewCapacity then
     exit;
+  if (NewCapacity<>0) and
+     not ispowerof2(NewCapacity,power) then
+    Error(SListCapacityPower2Error, NewCapacity);
   FHashCapacity:=NewCapacity;
   ReallocMem(FHashTable, FHashCapacity*sizeof(Integer));
+  FCapacityMask:=(1 shl power)-1;
   ReHash;
 end;
 
@@ -1291,7 +1305,7 @@ begin
     begin
       if not assigned(Data) then
         exit;
-      HashIndex:=HashValue mod LongWord(FHashCapacity);
+      HashIndex:=HashValue and FCapacityMask;
       NextIndex:=FHashTable^[HashIndex];
       FHashTable^[HashIndex]:=Index;
     end;
@@ -1368,12 +1382,6 @@ begin
   if FCount < FCapacity then
     exit;
   IncSize := sizeof(ptrint)*2;
-  if FCapacity > 127 then
-    Inc(IncSize, FCapacity shr 2)
-  else if FCapacity > sizeof(ptrint)*3 then
-    Inc(IncSize, FCapacity shr 1)
-  else if FCapacity >= sizeof(ptrint) then
-    inc(IncSize,sizeof(ptrint));
   SetCapacity(FCapacity + IncSize);
 end;
 
@@ -1410,13 +1418,9 @@ end;
 function TFPHashList.InternalFind(AHash:LongWord;const AName:shortstring;out PrevIndex:Integer):Integer;
 var
   HashIndex : Integer;
-  Len,
-  LastChar  : Char;
 begin
-  HashIndex:=AHash mod LongWord(FHashCapacity);
-  Result:=FHashTable^[HashIndex];
-  Len:=Char(Length(AName));
-  LastChar:=AName[Byte(Len)];
+  prefetch(AName);
+  Result:=FHashTable^[AHash and FCapacityMask];
   PrevIndex:=-1;
   while Result<>-1 do
     begin
@@ -1424,8 +1428,6 @@ begin
         begin
           if assigned(Data) and
              (HashValue=AHash) and
-             (Len=FStrs[StrIndex]) and
-             (LastChar=FStrs[StrIndex+Byte(Len)]) and
              (AName=PShortString(@FStrs[StrIndex])^) then
             exit;
           PrevIndex:=Result;
@@ -1484,7 +1486,7 @@ begin
   if PrevIndex<>-1 then
     FHashList^[PrevIndex].NextIndex:=FHashList^[Index].NextIndex
   else
-    FHashTable^[OldHash mod LongWord(FHashCapacity)]:=FHashList^[Index].NextIndex;
+    FHashTable^[OldHash and FCapacityMask]:=FHashList^[Index].NextIndex;
   { Set new name and hash }
   with FHashList^[Index] do
     begin
