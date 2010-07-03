@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='zorba';
 {$endif ALLPACKAGES}
-    P.Version:='0.9.9';
+    P.Version:='2.4.2rc1';
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 
