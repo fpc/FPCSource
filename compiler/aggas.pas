@@ -865,7 +865,12 @@ implementation
                                  s:=s+tostr_with_plus(tai_const(hp).value);
                              end
                            else
+{$ifdef cpu64bitaddr}
                              s:=tostr(tai_const(hp).value);
+{$else cpu64bitaddr}
+                             { 64 bit constants are already handled above in this case }
+                             s:=tostr(longint(tai_const(hp).value));
+{$endif cpu64bitaddr}
                            AsmWrite(s);
                            inc(l,length(s));
                            { Values with symbols are written on a single line to improve
