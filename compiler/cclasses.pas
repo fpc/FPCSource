@@ -1201,7 +1201,7 @@ var
 begin
   { use a power of two to be able to quickly calculate the hash table index }
   if NewCapacity <> 0 then
-    NewCapacity := nextpowerof2(NewCapacity div MaxItemsPerHash, power) * MaxItemsPerHash;
+    NewCapacity := nextpowerof2((NewCapacity+(MaxItemsPerHash-1)) div MaxItemsPerHash, power) * MaxItemsPerHash;
   if (NewCapacity < FCount) or (NewCapacity > MaxHashListSize) then
      Error (SListCapacityError, NewCapacity);
   if NewCapacity = FCapacity then
