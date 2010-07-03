@@ -366,20 +366,22 @@ unit rgobj;
                               Afirst_imaginary:Tsuperregister;
                               Apreserved_by_proc:Tcpuregisterset);
        var
-         i : Tsuperregister;
+         i : cardinal;
        begin
          { empty super register sets can cause very strange problems }
          if high(Ausable)=-1 then
            internalerror(200210181);
          live_range_direction:=rad_forward;
          supregset_reset(extended_backwards,false,high(tsuperregister));
-         supregset_reset(backwards_was_first,false,high(tsuperregister));
+         // reset when the direction is set to rad_backwards/rad_backwards_reinit
+         // supregset_reset(backwards_was_first,false,high(tsuperregister));
          first_imaginary:=Afirst_imaginary;
          maxreg:=Afirst_imaginary;
          regtype:=Aregtype;
          defaultsub:=Adefaultsub;
          preserved_by_proc:=Apreserved_by_proc;
-         used_in_proc:=[];
+         // default value set by constructor
+         // used_in_proc:=[];
          live_registers.init;
          { Get reginfo for CPU registers }
          maxreginfo:=first_imaginary;
@@ -392,7 +394,8 @@ unit rgobj;
              reginfo[i].alias:=RS_INVALID;
            end;
          { Usable registers }
-         fillchar(usable_registers,sizeof(usable_registers),0);
+         // default value set by constructor
+         // fillchar(usable_registers,sizeof(usable_registers),0);
          for i:=low(Ausable) to high(Ausable) do
            usable_registers[i]:=Ausable[i];
          usable_registers_cnt:=high(Ausable)+1;
@@ -421,7 +424,7 @@ unit rgobj;
 
     procedure Trgobj.dispose_reginfo;
 
-    var i:Tsuperregister;
+    var i:cardinal;
 
     begin
       if reginfo<>nil then
@@ -508,7 +511,7 @@ unit rgobj;
 
     procedure trgobj.alloccpuregisters(list:TAsmList;const r:Tcpuregisterset);
 
-    var i:Tsuperregister;
+    var i:cardinal;
 
     begin
       for i:=0 to first_imaginary-1 do
@@ -519,7 +522,7 @@ unit rgobj;
 
     procedure trgobj.dealloccpuregisters(list:TAsmList;const r:Tcpuregisterset);
 
-    var i:Tsuperregister;
+    var i:cardinal;
 
     begin
       for i:=0 to first_imaginary-1 do
@@ -608,7 +611,7 @@ unit rgobj;
 
     procedure trgobj.add_edges_used(u:Tsuperregister);
 
-    var i:word;
+    var i:cardinal;
 
     begin
       with live_registers do
@@ -625,7 +628,7 @@ unit rgobj;
 
 
     var f:text;
-        i,j:Tsuperregister;
+        i,j:cardinal;
 
     begin
       assign(f,'igraph'+tostr(loopidx));
@@ -831,7 +834,7 @@ unit rgobj;
 
     procedure trgobj.make_work_list;
 
-    var n:Tsuperregister;
+    var n:cardinal;
 
     begin
       {If we have 7 cpu registers, and the degree of a node is 7, we cannot
@@ -890,7 +893,7 @@ unit rgobj;
 
     var adj : Psuperregisterworklist;
         n : tsuperregister;
-        d,i : word;
+        d,i : cardinal;
 
     begin
       with reginfo[m] do
@@ -928,7 +931,7 @@ unit rgobj;
 
     var adj : Psuperregisterworklist;
         m,n : Tsuperregister;
-        i : word;
+        i : cardinal;
     begin
       {We take the element with the least interferences out of the
        simplifyworklist. Since the simplifyworklist is now sorted, we
@@ -986,7 +989,7 @@ unit rgobj;
       end;
 
     var adj : Psuperregisterworklist;
-        i : word;
+        i : cardinal;
         n : tsuperregister;
 
     begin
@@ -1011,7 +1014,7 @@ unit rgobj;
 
     var adj : Psuperregisterworklist;
         done : Tsuperregisterset; {To prevent that we count nodes twice.}
-        i,k:word;
+        i,k:cardinal;
         n : tsuperregister;
 
     begin
@@ -1157,7 +1160,7 @@ unit rgobj;
     procedure trgobj.coalesce;
 
     var m:Tmoveins;
-        x,y,u,v:Tsuperregister;
+        x,y,u,v:cardinal;
 
     begin
       m:=Tmoveins(worklist_moves.getfirst);
@@ -1301,7 +1304,7 @@ unit rgobj;
     {Assign_colours assigns the actual colours to the registers.}
 
     var adj : Psuperregisterworklist;
-        i,j,k : word;
+        i,j,k : cardinal;
         n,a,c : Tsuperregister;
         colourednodes : Tsuperregisterset;
         adj_colours:set of 0..255;
@@ -1382,7 +1385,7 @@ unit rgobj;
 
     procedure trgobj.epilogue_colouring;
     var
-      i : Tsuperregister;
+      i : cardinal;
     begin
       worklist_moves.clear;
       active_moves.destroy;
@@ -1711,7 +1714,7 @@ unit rgobj;
     function trgobj.spill_registers(list:TAsmList;headertai:tai):boolean;
     { Returns true if any help registers have been used }
       var
-        i : word;
+        i : cardinal;
         t : tsuperregister;
         p,q : Tai;
         regs_to_spill_set:Tsuperregisterset;
