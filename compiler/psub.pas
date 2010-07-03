@@ -991,12 +991,8 @@ implementation
             assign_regvars(code);
 {$endif oldreg}
             current_filepos:=entrypos;
-            { record which registers are allocated here, since all code }
-            { allocating registers comes after it                       }
-            cg.set_regalloc_live_range_direction(rad_backwards);
 
             gen_load_para_value(templist);
-            cg.set_regalloc_live_range_direction(rad_forward);
 
             { caller paraloc info is also necessary in the stackframe_entry
               code of the ppc (and possibly other processors)               }
@@ -1122,7 +1118,9 @@ implementation
 
             aktproccode.insertlistafter(headertai,templist);
 
+            { re-enable if more code at the end is ever generated here
             cg.set_regalloc_live_range_direction(rad_forward);
+            }
 
             { The procedure body is finished, we can now
               allocate the registers }
