@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='unixutil';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.4.3';
     P.OSes:=[Linux];
     P.CPUs:=[i386];
     P.SourcePath.Add('src');
