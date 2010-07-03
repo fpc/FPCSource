@@ -472,7 +472,7 @@ begin
   fURLSTRStream.ReadDWord;
   fURLSTRStream.ReadDWord;
   if fURLSTRStream.Position < fURLSTRStream.Size-1 then
-    Result := '/'+PChar(fURLSTRStream.Memory+fURLSTRStream.Position);
+    Result := PChar(fURLSTRStream.Memory+fURLSTRStream.Position);
 end;
 
 function TChmReader.CheckCommonStreams: Boolean;

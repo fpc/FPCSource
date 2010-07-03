@@ -630,9 +630,9 @@ end;
 
 function GetLocaleChar(LID, LT: Longint; Def: Char): Char;
 var
-  Buf: array[0..1] of Char;
+  Buf: array[0..3] of Char; // sdate allows 4 chars.
 begin
-  if GetLocaleInfo(LID, LT, Buf, 2) > 0 then
+  if GetLocaleInfo(LID, LT, Buf, sizeof(buf)) > 0 then
     Result := Buf[0]
   else
     Result := Def;
