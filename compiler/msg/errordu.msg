@@ -3,10 +3,10 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 14904+1
+#   Based on errore.msg of SVN revision 15476
 #
 #   This file is part of the Free Pascal Compiler
-#   Copyright (c) 1998-2009 by the Free Pascal Development team
+#   Copyright (c) 1998-2010 by the Free Pascal Development team
 #
 #   See the file COPYING.FPC, included in this distribution,
 #   for details about the copyright.
@@ -127,8 +127,11 @@ general_i_number_of_warnings=01021_I_$1 Warnung(en) ausgegeben
 general_i_number_of_hints=01022_I_$1 Hinweis(e) ausgegeben
 % Total number of hints issued during compilation.
 general_i_number_of_notes=01023_I_$1 Anmerkung(en) ausgegeben
-% Total number of notes issued during compilation.%
+% Total number of notes issued during compilation.
+%
 % \end{description}
+# EndOfTeX
+
 #
 # Scanner
 #
@@ -368,11 +371,14 @@ scan_w_multiple_main_name_overrides=02086_W_Der Name der "main" Prozedur wird me
 % name will be used.
 scanner_w_illegal_warn_identifier=02087_W_Ungültige Bezeichner "$1" für die $WARN Direktive
 % Identifier is not known by a \var{\{\$WARN\}} compiler directive.
+%
 % \end{description}
+# EndOfTeX
+
 #
 # Parser
 #
-# 03286 is the last used one
+# 03295 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -520,7 +526,7 @@ parser_e_fail_only_in_constructor=03051_E_FAIL darf nur in Konstruktoren verwend
 parser_e_no_paras_for_destructor=03052_E_Destruktoren können keine Parameter haben
 % You are declaring a destructor with a parameter list. Destructor methods
 % cannot have parameters.
-parser_e_only_class_methods_via_class_ref=03053_E_Nur Klassenmethoden, Klasseneigenschaften und Klassenvariablen können über den Klassennamen angesprochen werden
+parser_e_only_class_members_via_class_ref=03053_E_Nur Klassenmethoden, Klasseneigenschaften und Klassenvariablen können über den Klassennamen angesprochen werden
 % This error occurs in a situation like the following:
 % \begin{verbatim}
 % Type :
@@ -534,7 +540,7 @@ parser_e_only_class_methods_via_class_ref=03053_E_Nur Klassenmethoden, Klassenei
 % \end{verbatim}
 % \var{Free} is not a class method and hence cannot be called with a class
 % reference.
-parser_e_only_class_methods=03054_E_Nur Klassenmethoden, Klasseneigenschaften und Klassenvariablen können in einer Klassenmethode angesprochen werden
+parser_e_only_class_members=03054_E_Nur Klassenmethoden, Klasseneigenschaften und Klassenvariablen können in einer Klassenmethode angesprochen werden
 % This is related to the previous error. You cannot call a method of an object
 % from inside a class method. The following code would produce this error:
 % \begin{verbatim}
@@ -1111,7 +1117,7 @@ parser_e_packed_element_no_loop=03223_E_Bit packed Array-Elemente und Record-Fel
 % (or as \var{packed} in any mode with \var{\{\$bitpacking on\}}), it will
 % be packed at the bit level. For performance reasons, they cannot be
 % used as loop variables.
-parser_e_type_and_var_only_in_generics=03224_E_VAR, TYPE und CONST sind nur innerhalb "generics" und Klassen erlaubt
+parser_e_type_var_const_only_in_generics_and_classes=03224_E_VAR, TYPE und CONST sind nur innerhalb "generics" und Klassen erlaubt
 % The usage of VAR, TYPE and CONST to declare new types inside an object is allowed only inside
 % generics and classes.
 parser_e_cant_create_generics_of_this_type=03225_E_Dieser Typ kann nicht "generic" sein
@@ -1283,7 +1289,7 @@ parser_h_should_use_reintroduce_objc=03280_H_Ersetzte Methoden können in Object
 parser_e_implements_getter_not_default_cc=03281_E_Getter für das Interface implements müssen die voreingestellte calling convention des Ziels benutzen
 % Interface getters are called via a helper in the run time library, and hence
 % have to use the default calling convention for the target (\var{register} on
-% i386 and x86_64, \var{stdcall} on other architectures).
+% i386 and x86\_64, \var{stdcall} on other architectures).
 parser_e_no_refcounted_typed_file=03282_E_Typisierte Dateien können keine reference-counted Typen enthalten
 % The data in a typed file cannot be of a reference counted type (such as
 % \var{ansistring} or a record containing a field that is reference counted).
@@ -1298,11 +1304,45 @@ parser_e_more_array_elements_expected=03285_E_Erwarte ein weiteres Element für 
 parser_e_string_const_too_long=03286_E_Stringkonstante zu lang, so lange ansistrings ausgeschaltet sind
 % Only when a piece of code is compiled with ansistrings enabled (\var{\{\$H+\}}), string constants
 % longer than 255 characters are allowed.
+parser_e_invalid_univ_para=03287_E_Typ kann nicht als "univ" Parameter verwendet werden, weil seine Größe zur Zeit der Übersetzung unbekannt ist: "$1"
+% \var{univ} parameters are compatible with all values of the same size, but this
+% cannot be checked in case a parameter's size is unknown at compile time.
+parser_e_only_one_class_constructor_allowed=03288_E_In der Klasse "$1" darf nur ein Klassenkonstruktor deklariert werden
+% You are trying to declare more than one class constructor but only one class constructor can be declared.
+parser_e_only_one_class_destructor_allowed=03289_E_In der Klasse "$1" darf nur ein Klassendestruktor deklariert werden
+% You are trying to declare more than one class destructor but only one class destructor can be declared.
+parser_e_no_paras_for_class_constructor=03290_E_Ein Klassenkonstruktur darf keine Parameter haben
+% You are declaring a class constructor with a parameter list. Class constructor methods
+% cannot have parameters.
+parser_e_no_paras_for_class_destructor=03291_E_Ein Klassendestruktur darf keine Parameter haben
+% You are declaring a class destructor with a parameter list. Class destructor methods
+% cannot have parameters.
+parser_f_modeswitch_objc_required=03292_F_Dieses Konstrukt erfordert, dass der Modenschalter \{\$modeswitch objectivec1\} aktiv ist
+% Objective-Pascal constructs are not supported when \{\$modeswitch ObjectiveC1\}
+% is not active.
+parser_e_widestring_to_ansi_compile_time=03293_E_Eine Unicodechar/string Konstante zur Zeit der Übersetzung nicht in eine ansi/shortstring Konstante konvertiert werden
+% It is not possible to use unicodechar and unicodestring constants in
+% constant expressions that have to be converted into an ansistring or shortstring
+% at compile time, for example inside typed constants. The reason is that the
+% compiler cannot know what the actual ansi encoding will be at run time.
+parser_e_objc_enumerator_2_0=03294_E_Objective-Pascal For-in Schleifen erfordern, dass der Modenschalter \{\$modeswitch ObjectiveC1\} aktiv ist
+% Objective-C ``fast enumeration'' support was added in Objective-C 2.0, and
+% hence the appropriate modeswitch has to be activated to expose this feature.
+% Note that Objective-C 2.0 programs require Mac OS X 10.5 or later.
+parser_e_objc_missing_enumeration_defs=03295_E_Der Kompiler findet die Typen NSFastEnumerationProtocol oder NSFastEnumerationState nicht in der Unit CocoaAll
+% Objective-C for-in loops (fast enumeration) require that the compiler can
+% find a unit called CocoaAll that contains definitions for the
+% NSFastEnumerationProtocol and NSFastEnumerationState types. If you get this
+% error, most likely the compiler is finding and loading an alternate CocoaAll
+% unit.
+%
 % \end{description}
+# EndOfTeX
+
 #
 # Type Checking
 #
-# 04094 is the last used one
+# 04095 is the last used one
 #
 % \section{Type checking errors}
 % This section lists all errors that can occur when type checking is
@@ -1618,14 +1658,40 @@ type_e_objc_type_unsupported=04092_E_Der Typ "$1" wird nicht für die Verwendung
 type_e_class_or_objcclass_type_expected=04093_E_Klasse oder Objective-C Klasse als Typ erwartet, erhielt aber "$1"
 % It is only possible to create class reference types of \var{class} and \var{objcclass}
 type_e_objcclass_type_expected=04094_E_Objective-C Klasse als Typ erwartet
-% The compiler expected an Objc
-% \var{objcclass} types
+% The compiler expected an \var{objcclass} type
+type_w_procvar_univ_conflicting_para=04095_W_Erzwungener univ Parameter Typ in einer prozeduralen Variablen kann einen Absturz oder SpeicherKorruption verursachen: $1 auf $2
+% \var{univ} parameters are implicitly compatible with all types of the same size,
+% also in procedural variable definitions. That means that the following code is
+% legal, because \var{single} and \var{longint} have the same size:
+% \begin{verbatim}
+% {$mode macpas}
+% Type
+%   TIntProc = procedure (l: univ longint);
+%
+%   procedure test(s: single);
+%     begin
+%       writeln(s);
+%     end;
+%
+%   var
+%     p: TIntProc;
+%   begin
+%     p:=test;
+%     p(4);
+%   end.
+% \end{verbatim}
+% This code may however crash on platforms that pass integers in registers and
+% floating point values on the stack, because then the stack will be unbalanced.
+% Note that this warning will not flagg all potentially dangerous situations.
+% when \var{test} returns.
 %
 % \end{description}
+# EndOfTeX
+
 #
 # Symtable
 #
-# 05079 is the last used one
+# 05080 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1805,7 +1871,7 @@ sym_w_deprecated_symbol_with_msg=05066_W_Symbol "$1" ist veraltet: "$2"
 % declared as \var{deprecated} is used. Deprecated symbols may no longer
 % be available in newer versions of the unit / library. Use of this symbol
 % should be avoided as much as possible.
-sym_e_no_enumerator=05067_E_Kann keine Aufzählung des Typs "$1" finden
+sym_e_no_enumerator=05067_E_Kann keinen Zähler für den Typ "$1" finden
 % This means that compiler cannot find an apropriate enumerator to use in the for-in loop.
 % To create an enumerator you need to defind an operator enumerator or add a public or published
 % GetEnumerator method to the class or object definition.
@@ -1856,11 +1922,20 @@ sym_w_experimental_unit=05079_W_Unit "$1" ist experimentell
 % declared as \var{experimental} is used. Experimental units
 % might disappear or change semantics in future versions. Usage of this unit
 % should be avoided as much as possible.
+sym_e_objc_formal_class_not_resolved=05080_E_Die vollständige Definition der formal deklarierten ObjC-Klasse "$1" fehlt in diesem Geltungsbereich
+% Objecive-C classes can be imported formally, without using the the unit in which it is fully declared.
+% This enables making forward references to such classes and breaking circular dependencies amongst units.
+% However, as soon as you wish to actually do something with an entity of this class type (such as
+% access one of its fields, send a message to it, or use it to inherit from), the compiler requires the full definition
+% of the class to be in scope.
+%
 % \end{description}
+# EndOfTeX
+
 #
 # Codegenerator
 #
-# 06049 is the last used one
+# 06050 is the last used one
 #
 % \section{Code generator messages}
 % This section lists all messages that can be displayed if the code
@@ -1987,6 +2062,12 @@ cg_h_inherited_ignored=06048_H_Geerbter Aufruf einer abstrakten Methode ignorier
 cg_e_goto_label_not_found=06049_E_Goto Label "$1": Das Label ist nicht definiert oder wurde bei der Optimierung entfernt
 % The label used in the goto definition is not defined or optimized away by the
 % unreachable code elemination.
+cg_f_unknown_type_in_unit=06050_F_Kann den Typ "$1" nicht in der Unit "$2" finden. Überprüfe, ob die korrekte Laufzeit-Bibliothek verwendet wird
+% The compiler expects that the runtime library contains certain type definitions. If you see this error
+% and you didn't change the runtime library code, it's very likely that the runtime library
+% you're using doesn't match the compiler in use. If you changed the runtime library this error means
+% that you removed a type which the compiler needs for internal use.
+%
 % \end{description}
 # EndOfTeX
 
@@ -2245,6 +2326,7 @@ asmr_e_mixing_regtypes=07108_E_Alle Register in einem Registerset müssen in T u
 asmr_e_empty_regset=07109_E_Ein Registerset kann nicht leer sein
 % Instructions on the ARM architecture that take a register set as argument require that such a set
 % contains at least one register.
+
 #
 # Assembler/binary writers
 #
@@ -2369,7 +2451,8 @@ exec_e_cant_open_resource_file=09031_E_Kann die Resourcedatei "$1" nicht öffnen
 % An error occurred resource file cannot be opened.
 exec_e_cant_write_resource_file=09032_E_Kann die Resourcedatei "$1" nicht schreiben
 % An error occurred resource file cannot be written.
-%\end{description}
+%
+% \end{description}
 # EndOfTeX
 
 #
@@ -2396,7 +2479,8 @@ execinfo_x_stackreserve=09133_X_Stack Bereich "reserved": $1 Bytes
 % Informational message showing the stack size that the compiler reserved for the executable.
 execinfo_x_stackcommit=09134_X_Stack Bereich "committed": $1 Bytes
 % Informational message showing the stack size that the compiler committed for the executable.
-%\end{description}
+%
+% \end{description}
 # EndOfTeX
 
 #
@@ -2414,7 +2498,8 @@ link_w_32bit_absolute_reloc=09201_W_Object Daei "$1" enthält eine 32-bit absolu
 % Warning when 64-bit object file contains 32-bit absolute relocations.
 % In such case an executable image can be loaded into lower 4Gb of
 % address space only.
-%\end{description}
+%
+% \end{description}
 # EndOfTeX
 
 #
@@ -2571,7 +2656,7 @@ unit_u_implementation_crc_changed=10046_U_Geänderte Implementation CRC für Uni
 unit_u_finished_compiling=10047_U_Übersetzen der Unit $1 beendet
 % When you use the \var{-vu} flag, the compiler warns that it
 % has finished compiling the unit.
-unit_u_add_depend_to=10048_U_Füge Abhängigkeit hinzu: $1 hängt von $2 ab
+unit_u_add_depend_to=10048_U_Abhängigkeit hinzufügen: $1 hängt von $2 ab
 % When you use the \var{-vu} flag, the compiler warns that it
 % has added a dependency between the two units.
 unit_u_no_reload_is_caller=10049_U_Kein erneutes Laden, Unit $1 ist die Aufrufende
@@ -2622,11 +2707,12 @@ unit_u_indirect_crc_changed=10062_U_Die CRC des indirekten Interface (Objekte/Kl
 % indirect CRC calculated for the unit (this is the CRC of all classes/objects/interfaces/$\ldots$
 % in the interfaces of units directly or indirectly used by this unit in the interface) has been changed after the
 % implementation has been parsed.
+%
 % \end{description}
 # EndOfTeX
 
 #
-#  Options
+# Options
 #
 # 11048 is the last used one
 #
@@ -2754,11 +2840,12 @@ option_ignored_target=11047_W_Option "$1" wird für die ausgewählte Zielplattfo
 option_debug_external_unsupported=11048_W_Schalte externe Debuginformation aus, weil es für die gewählte Kombination Ziel/Debugformat nicht unterstützt wird
 % Not all debug formats can be stored in an external file on all platforms. In particular, on
 % Mac OS X only DWARF debug information can be stored externally.
-%\end{description}
+%
+% \end{description}
 # EndOfTeX
 
 #
-#  Whole program optimization
+# Whole program optimization
 #
 # 12019 is the last used one
 #
@@ -2830,9 +2917,9 @@ wpo_symbol_live_info_needs_smart_linking=12018_E_Die Sammlung der "symbol livene
 % actually used or not. So in that case all symbols will be seen as live, which makes this optimization ineffective.
 wpo_cant_create_feedback_file=12019_E_Die angegebene Feedback-Eingabe-Datei "$1" für die Gesamtprogramm-Optimierung kann nicht erzeugt werden
 % The compiler is unable to create the file specified using the -FW parameter to store the whole program optimisation information.
-%\end{description}
+%
+% \end{description}
 # EndOfTeX
-
 
 #
 # Logo (option -l)
