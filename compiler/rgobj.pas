@@ -372,15 +372,15 @@ unit rgobj;
          if high(Ausable)=-1 then
            internalerror(200210181);
          live_range_direction:=rad_forward;
-         supregset_reset(extended_backwards,false,high(tsuperregister));
-         // reset when the direction is set to rad_backwards/rad_backwards_reinit
+         // initialised by newinstance
+         // supregset_reset(extended_backwards,false,high(tsuperregister));
          // supregset_reset(backwards_was_first,false,high(tsuperregister));
          first_imaginary:=Afirst_imaginary;
          maxreg:=Afirst_imaginary;
          regtype:=Aregtype;
          defaultsub:=Adefaultsub;
          preserved_by_proc:=Apreserved_by_proc;
-         // default value set by constructor
+         // default value set by newinstance
          // used_in_proc:=[];
          live_registers.init;
          { Get reginfo for CPU registers }
