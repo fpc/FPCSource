@@ -12,7 +12,7 @@
 
 **********************************************************************}
 
-{$ifndef WIN64}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
 {$define FPC_MATH_HAS_ARCTAN2}
 function arctan2(y,x : float) : float;assembler;
   asm
@@ -21,11 +21,11 @@ function arctan2(y,x : float) : float;assembler;
      fpatan
      fwait
   end;
-{$endif WIN64}
+{$endif FPC_HAS_TYPE_EXTENDED}
 
 function GetRoundMode: TFPURoundingMode;
 begin
-{$ifdef win64}
+{$ifndef FPC_HAS_TYPE_EXTENDED}
   Result:=TFPURoundingMode((GetSSECSR shr 13) and $3);
 {$else win64}
   Result:=TFPURoundingMode((Get8087CW shr 10) and $3);
@@ -58,7 +58,7 @@ end;
 
 function GetExceptionMask: TFPUExceptionMask;
 begin
-{$ifdef win64}
+{$ifndef FPC_HAS_TYPE_EXTENDED}
   Result:=TFPUExceptionMask((GetSSECSR shr 7) and $3f);
 {$else win64}
   Result:=TFPUExceptionMask(dword(Get8087CW and $3F));
