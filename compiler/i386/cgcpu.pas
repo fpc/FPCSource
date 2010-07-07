@@ -71,7 +71,7 @@ unit cgcpu;
     uses
        globals,verbose,systems,cutils,
        paramgr,procinfo,fmodule,
-       rgcpu,rgx86;
+       rgcpu,rgx86,cpuinfo;
 
     function use_push(const cgpara:tcgpara):boolean;
       begin
@@ -101,8 +101,6 @@ unit cgcpu;
           begin
             if getsupreg(current_procinfo.got) < first_int_imreg then
               include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
-            { ebx is currently always used (do to getiepasebx call) }
-            include(rg[R_INTREGISTER].used_in_proc,RS_EBX);
           end;
         inherited do_register_allocation(list,headertai);
       end;
@@ -509,31 +507,42 @@ unit cgcpu;
 
 
     procedure tcg386.g_maybe_got_init(list: TAsmList);
+      var
+        notdarwin: boolean;
       begin
         { allocate PIC register }
         if (cs_create_pic in current_settings.moduleswitches) and
            (tf_pic_uses_got in target_info.flags) and
            (pi_needs_got in current_procinfo.flags) then
           begin
-            if (target_info.system<>system_i386_darwin) then
+            notdarwin:=(target_info.system<>system_i386_darwin);
+            { on darwin, the got register is virtual (and allocated earlier
+              already) }
+            if notdarwin then
+              { ecx could be used in leaf procedures that don't use ecx to pass
+                aparameter }
+              current_procinfo.got:=NR_EBX;
+            if notdarwin { needs testing before it can be enabled for non-darwin platforms
+                and
+               (current_settings.optimizecputype in [cpu_Pentium2,cpu_Pentium3,cpu_Pentium4]) } then
               begin
                 current_module.requires_ebx_pic_helper:=true;
                 cg.a_call_name_static(list,'fpc_geteipasebx');
-                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,NR_PIC_OFFSET_REG));
-                list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
-                { ecx could be used in leaf procedures }
-                current_procinfo.got:=NR_EBX;
               end
             else
               begin
-                { can't use ecx, since that one may overwrite a parameter }
-                current_module.requires_ebx_pic_helper:=true;
-                cg.a_call_name_static(list,'fpc_geteipasebx');
-                list.concat(tai_regalloc.alloc(NR_EBX,nil));
+                { call/pop is faster than call/ret/mov on Core Solo and later
+                  according to Apple's benchmarking -- and all Intel Macs
+                  have at least a Core Solo (furthermore, the i386 - Pentium 1
+                  don't have a return stack buffer) }
+                a_call_name_static(list,current_procinfo.CurrGOTLabel.name);
                 a_label(list,current_procinfo.CurrGotLabel);
-                { got is already set by ti386procinfo.allocate_got_register }
-                list.concat(tai_regalloc.dealloc(NR_EBX,nil));
-                a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_EBX,current_procinfo.got);
+                list.concat(taicpu.op_reg(A_POP,S_L,current_procinfo.got))
+              end;
+            if notdarwin then
+              begin
+                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,NR_PIC_OFFSET_REG));
+                list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
               end;
           end;
       end;
