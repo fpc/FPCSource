@@ -156,7 +156,7 @@ FPC_ABSMASK_DOUBLE:
     end;
     {$endif FPC_SYSTEM_HAS_COS}
 
-{$ifndef WIN64}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
     {$ifndef FPC_SYSTEM_HAS_EXP}
     {$define FPC_SYSTEM_HAS_EXP}
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
@@ -286,4 +286,4 @@ FPC_ABSMASK_DOUBLE:
            power:=exp(ln(bas)*expo);
       end;
     {$endif FPC_SYSTEM_HAS_POWER}
-{$endif WIN64}
+{$endif FPC_HAS_TYPE_EXTENDED}
