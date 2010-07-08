@@ -39,7 +39,11 @@ unit procinfo;
       ;
 
     const
-      inherited_inlining_flags : tprocinfoflags = [pi_do_call];
+      inherited_inlining_flags : tprocinfoflags =
+        [pi_do_call,
+         { the stack frame can't be removed in this case }
+         pi_has_assembler_block,
+         pi_uses_exceptions];
 
 
     type
