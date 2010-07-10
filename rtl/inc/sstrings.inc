@@ -1211,6 +1211,37 @@ end;
 {$endif}
 
 function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code:valsint):longint; [public, alias:'FPC_VAL_ENUM_SHORTSTR']; compilerproc;
+    
+    function string_compare(const s1,s2:shortstring):sizeint;
+    
+    {We cannot use the > and < operators to compare a string here, because we if the string is
+     not found in the enum, we need to return the position of error in "code". Code equals the
+     highest matching character of all string compares, which is only known inside the string
+     comparison.}
+    
+    var i,l:byte;
+        c1,c2:char;
+    
+    begin
+      l:=length(s1);
+      if length(s1)>length(s2) then
+        l:=length(s2);
+      i:=1;
+      while i<=l do
+        begin
+          c1:=s1[i];
+          c2:=s2[i];
+          if c1<>c2 then
+            break;
+          inc(i);
+        end;
+      if i>code then
+        code:=i;
+      if i<=l then
+        string_compare:=byte(c1)-byte(c2)
+      else
+        string_compare:=length(s1)-length(s2);
+    end;
 
 type  Tsorted_array={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
         o:longint;
@@ -1218,6 +1249,7 @@ type  Tsorted_array={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
       end;
 
 var l,h,m:cardinal;
+    c:sizeint;
     sorted_array:^Tsorted_array;
     spaces:byte;
     t:shortstring;
@@ -1228,6 +1260,7 @@ begin
   {Val for numbers accepts spaces at the start, so lets do the same
    for enums. Skip spaces at the start of the string.}
   spaces:=1;
+  code:=1;
   while (spaces<=length(s)) and (s[spaces]=' ')  do
     inc(spaces);
   t:=upcase(copy(s,spaces,255));
@@ -1237,28 +1270,23 @@ begin
   h:=Pcardinal(str2ordindex)^;
   repeat
     m:=(l+h) div 2;
-    if t>upcase(sorted_array[m-1].s^) then
+    c:=string_compare(t,upcase(sorted_array[m-1].s^));
+    if c>0 then
       l:=m+1
-    else if t<upcase(sorted_array[m-1].s^) then
+    else if c<0 then
       h:=m-1
     else
       break;
     if l>h then
-      goto error;
+      begin
+        {Not found...}
+        inc(code,spaces-1); {Add skipped spaces again.}
+        {The result of val in case of error is undefined, don't assign a function result.}
+        exit;
+      end;
   until false;
   code:=0;
   fpc_val_enum_shortstr:=sorted_array[m-1].o;
-  exit;
-error:
-  {Not found. Find first error position. Take care of the string length.}
-  code:=1;
-  while (code<=length(s)) and (s[code]=sorted_array[m].s^[code]) do
-    inc(code);
-  if code>length(s) then
-    code:=length(s)+1;
-  inc(code,spaces-1); {Add skipped spaces again.}
-  {The result of val in case of error is undefined, don't assign a function
-   result.}
 end;
 
 {Redeclare fpc_val_enum_shortstr for internal use in the system unit.}
