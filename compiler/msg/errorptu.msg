@@ -3,7 +3,7 @@
 #   Copyright (c) 1999-2009 by the Free Pascal Development team
 #
 #   Portuguese (UTF-8) language file for Free Pascal Compiler
-#   Contributed by Marcelo B Paula, based on errore.msg SVN Rev.15157
+#   Contributed by Marcelo B Paula, based on errore.msg SVN Rev.15527
 #   Former translator: Ari Ricardo Ody <ary.odi at japinfo.com.br>
 #
 #   See the file COPYING.FPC, included in this distribution,
@@ -370,7 +370,7 @@ scanner_w_illegal_warn_identifier=02087_W_Identificador "$1" ilegal para a diret
 #
 # Parser
 #
-# 03291 is the last used one
+# 03295 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -1309,6 +1309,24 @@ parser_e_no_paras_for_class_destructor=03291_E_Destruidores de classe não podem
 % You are declaring a class destructor with a parameter list. Class destructor methods
 % cannot have parameters.
 % \end{description}
+parser_f_modeswitch_objc_required=03292_F_Esta construção requer que chave de modo \{\$modeswitch objectivec1\} esteja ativa
+% Objective-Pascal constructs are not supported when \{\$modeswitch ObjectiveC1\}
+% is not active.
+parser_e_widestring_to_ansi_compile_time=03293_E_Constantes caracteres/unicode não podem ser convertidas em "ansi/shortstring" em tempo de compilação
+% It is not possible to use unicodechar and unicodestring constants in
+% constant expressions that have to be converted into an ansistring or shortstring
+% at compile time, for example inside typed constants. The reason is that the
+% compiler cannot know what the actual ansi encoding will be at run time.
+parser_e_objc_enumerator_2_0=03294_E_Laços "For-in Objective-Pascal" requerem que a chave \{\$modeswitch ObjectiveC1\} esteja ativa
+% Objective-C ``fast enumeration'' support was added in Objective-C 2.0, and
+% hence the appropriate modeswitch has to be activated to expose this feature.
+% Note that Objective-C 2.0 programs require Mac OS X 10.5 or later.
+parser_e_objc_missing_enumeration_defs=03295_E_O compilador não encontrou os tipos "NSFastEnumerationProtocol" ou "NSFastEnumerationState" na unidade "CocoaAll"
+% Objective-C for-in loops (fast enumeration) require that the compiler can
+% find a unit called CocoaAll that contains definitions for the
+% NSFastEnumerationProtocol and NSFastEnumerationState types. If you get this
+% error, most likely the compiler is finding and loading an alternate CocoaAll
+% unit.
 #
 # Type Checking
 #
@@ -1659,7 +1677,7 @@ type_w_procvar_univ_conflicting_para=04095_W_Tipo parâmetro 'univ' forçado em 
 #
 # Symtable
 #
-# 05079 is the last used one
+# 05080 is the last used one
 #
 % \section{Symbol handling}
 % This section lists all the messages that concern the handling of symbols.
@@ -1890,6 +1908,13 @@ sym_w_experimental_unit=05079_W_Unidade "$1" é experimental
 % declared as \var{experimental} is used. Experimental units
 % might disappear or change semantics in future versions. Usage of this unit
 % should be avoided as much as possible.
+sym_e_objc_formal_class_not_resolved=05080_E_Nenhuma definição completa da classe objeto formalmente declarada "$1" está no escopo
+% Objecive-C classes can be imported formally, without using the the unit in which it is fully declared.
+% This enables making forward references to such classes and breaking circular dependencies amongst units.
+% However, as soon as you wish to actually do something with an entity of this class type (such as
+% access one of its fields, send a message to it, or use it to inherit from), the compiler requires the full definition
+% of the class to be in scope.
+%
 % \end{description}
 #
 # Codegenerator
