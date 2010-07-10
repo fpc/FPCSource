@@ -471,10 +471,14 @@ Type
   TSource = Class(TNamedItem)
   private
     FSourceType : TSourceType;
+    FInstallSourcePath : string;
+    function GetInstallSourcePath: string;
   Public
     Constructor Create(ACollection : TCollection); override;
     Destructor Destroy; override;
+    Procedure GetInstallFiles(List : TStrings); virtual;
     property SourceType : TSourceType read FSourceType;
+    property InstallSourcePath : string read GetInstallSourcePath;
   end;
 
   { TSources }
@@ -485,8 +489,10 @@ Type
     procedure SetSourceItem(Index : Integer; const AValue: TSource);
   public
     Function AddDoc(const AFiles : String) : TSource;
+    Function AddDoc(const AFiles : String; AInstallSourcePath : String) : TSource;
     Function AddSrc(const AFiles : String) : TSource;
     Function AddExample(const AFiles : String) : TSource;
+    Function AddExample(const AFiles : String; AInstallSourcePath : String) : TSource;
     Function AddTest(const AFiles : String) : TSource;
     procedure AddDocFiles(const AFileMask: string; Recursive: boolean = False);
     procedure AddSrcFiles(const AFileMask: string; Recursive: boolean = False);
@@ -557,6 +563,7 @@ Type
     Function  GetBinOutputDir(ACPU:TCPU; AOS : TOS) : String;
     Procedure GetCleanFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
     procedure GetInstallFiles(List: TStrings;Types : TTargetTypes;ACPU:TCPU; AOS : TOS);
+    procedure GetInstallSourceFiles(List: TStrings;Types : TSourceTypes);
     Procedure GetArchiveFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
     Procedure GetManifest(Manifest : TStrings);
     Property Version : String Read GetVersion Write SetVersion;
@@ -754,6 +761,7 @@ Type
     Procedure EnterDir(ADir : String);
     Function GetCompiler : String;
     Function InstallPackageFiles(APAckage : TPackage; tt : TTargetType; Const Dest : String):Boolean;
+    Function InstallPackageSourceFiles(APAckage : TPackage; tt : TSourceType; Const Dest : String):Boolean;
     Function FileNewer(const Src,Dest : String) : Boolean;
     Procedure LogSearchPath(const ASearchPathName:string;Path:TConditionalStrings; ACPU:TCPU;AOS:TOS);
     Function FindFileInPath(Path:TConditionalStrings; AFileName:String; var FoundPath:String;ACPU:TCPU;AOS:TOS):Boolean;
@@ -1848,6 +1856,15 @@ begin
 end;
 
 
+function TSources.AddDoc(const AFiles: String; AInstallSourcePath: String): TSource;
+begin
+  Result:=Add as TSource;
+  Result.Name:=AFiles;
+  Result.FInstallSourcePath:=AInstallSourcePath;
+  Result.FSourceType:=stDoc;
+end;
+
+
 function TSources.AddSrc(const AFiles : String) : TSource;
 begin
   Result:=Add as TSource;
@@ -1860,6 +1877,14 @@ function TSources.AddExample(const AFiles : String) : TSource;
 begin
   Result:=Add as TSource;
   Result.Name:=AFiles;
+  Result.FSourceType:=stExample;
+end;
+
+function TSources.AddExample(const AFiles: String; AInstallSourcePath: String): TSource;
+begin
+  Result:=Add as TSource;
+  Result.Name:=AFiles;
+  Result.FInstallSourcePath:=AInstallSourcePath;
   Result.FSourceType:=stExample;
 end;
 
@@ -2024,6 +2049,20 @@ begin
       T:=FTargets.TargetItems[I];
       if (T.TargetType in Types) and (T.Install) then
         T.GetInstallFiles(List, OU, OB, ACPU, AOS);
+    end;
+end;
+
+
+procedure TPackage.GetInstallSourceFiles(List: TStrings; Types: TSourceTypes);
+Var
+  I : Integer;
+  S : TSource;
+begin
+  For I:=0 to FSources.Count-1 do
+    begin
+      S:=FSources.SourceItems[I];
+      if (S.SourceType in Types) then
+        S.GetInstallFiles(List);
     end;
 end;
 
@@ -2356,7 +2395,7 @@ begin
     Result:=FBinInstallDir
   else
     If UnixPaths then
-      Result:=Prefix+'share'+PathDelim+'doc'
+      Result:=BaseInstallDir+'share'+PathDelim+'doc'
     else
       Result:=BaseInstallDir+'docs';
 end;
@@ -2368,7 +2407,7 @@ begin
     Result:=FExamplesInstallDir
   else
     If UnixPaths then
-      Result:=Prefix+'share'+PathDelim+'docs'+PathDelim+'examples'
+      Result:=BaseInstallDir+'share'+PathDelim+'doc'
     else
       Result:=BaseInstallDir+'examples';
 end;
@@ -2386,10 +2425,7 @@ begin
   If (FUnitInstallDir<>'') then
     Result:=FUnitInstallDir
   else
-    If UnixPaths then
-      Result:=BaseInstallDir+'units'+PathDelim+Target
-    else
-      Result:=BaseInstallDir+'units'+PathDelim+Target;
+    Result:=BaseInstallDir+'units'+PathDelim+Target;
 end;
 
 
@@ -3269,6 +3305,7 @@ procedure TBuildEngine.CmdCopyFiles(List: TStrings; Const DestDir: String);
 Var
   Args : String;
   I : Integer;
+  DestFileName : String;
 
 begin
   CmdCreateDir(DestDir);
@@ -3280,7 +3317,14 @@ begin
     end
   else
     For I:=0 to List.Count-1 do
-      SysCopyFile(List[i],DestDir);
+      if List.Names[i]<>'' then
+        begin
+          DestFileName:=DestDir+list.ValueFromIndex[i];
+          CmdCreateDir(ExtractFilePath(DestFileName));
+          SysCopyFile(List.names[i],DestFileName)
+        end
+      else
+        SysCopyFile(List[i],DestDir);
 end;
 
 
@@ -4192,6 +4236,24 @@ begin
   end;
 end;
 
+function TBuildEngine.InstallPackageSourceFiles(APAckage: TPackage; tt: TSourceType; const Dest: String): Boolean;
+Var
+  List : TStringList;
+begin
+  Result:=False;
+  List:=TStringList.Create;
+  Try
+    APackage.GetInstallSourceFiles(List,[tt]);
+    if (List.Count>0) then
+      begin
+        Result:=True;
+        CmdCopyFiles(List,Dest);
+      end;
+  Finally
+    List.Free;
+  end;
+end;
+
 
 procedure TBuildEngine.DoBeforeInstall(APackage: TPackage);
 begin
@@ -4228,6 +4290,9 @@ begin
       B:=true;
     if InstallPackageFiles(APAckage,ttImplicitUnit,D) then
       B:=true;
+    // By default do not install the examples. Maybe add an option for this later
+    //if InstallPackageFiles(APAckage,ttExampleUnit,D) then
+    //  B:=true;
     // Unit (dependency) configuration if there were units installed
     if B then
       begin
@@ -4238,6 +4303,13 @@ begin
     // Programs
     D:=IncludeTrailingPathDelimiter(Defaults.BinInstallDir);
     InstallPackageFiles(APAckage,ttProgram,D);
+    //InstallPackageFiles(APAckage,ttExampleProgram,D);
+    // Documentation
+    D:=IncludeTrailingPathDelimiter(Defaults.DocInstallDir)+'fpc-'+APackage.FileName+PathDelim;
+    InstallPackageSourceFiles(APackage,stDoc,D);
+    // Examples
+    D:=IncludeTrailingPathDelimiter(Defaults.ExamplesInstallDir)+'fpc-'+APackage.FileName+PathDelim;
+    InstallPackageSourceFiles(APackage,stExample,D);
     // Done.
     APackage.FTargetState:=tsInstalled;
     DoAfterInstall(APackage);
@@ -4740,6 +4812,16 @@ end;
                                  TSource
 ****************************************************************************}
 
+function TSource.GetInstallSourcePath: string;
+begin
+  if FInstallSourcePath<>'' then
+    result := FInstallSourcePath
+  else if SourceType=stExample then
+    result := 'examples'
+  else
+    result := '';
+end;
+
 constructor TSource.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
@@ -4749,6 +4831,14 @@ end;
 destructor TSource.Destroy;
 begin
   inherited Destroy;
+end;
+
+procedure TSource.GetInstallFiles(List: TStrings);
+begin
+  if InstallSourcePath<>'' then
+    list.Values[name] := (IncludeTrailingPathDelimiter(InstallSourcePath)+ExtractFileName(Name))
+  else
+    list.add(Name);
 end;
 
 
