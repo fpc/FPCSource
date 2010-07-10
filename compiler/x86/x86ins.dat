@@ -1468,27 +1468,33 @@ reg_fsgs              \1\x0F\5\335                    386
 
 [POPA,popaX]
 (Ch_All, Ch_None, Ch_None)
-void                  \327\1\x61                      186
+void                  \327\1\x61                      186,NOX86_64
 
 [POPAD,popal]
 (Ch_All, Ch_None, Ch_None)
-void                  \325\1\x61                      386
+void                  \325\1\x61                      386,NOX86_64
 
 [POPAW]
 (Ch_All, Ch_None, Ch_None)
-void                  \324\1\x61                      186
+void                  \324\1\x61                      186,NOX86_64
 
 [POPF]
 (Ch_RWESP, Ch_WFlags, Ch_None)
-void                  \327\1\x9D                      186
+void                  \327\1\x9D                      186,NOX86_64
+void                  \2\x48\x9D                      X86_64
 
 [POPFD,popfl]
 (Ch_RWESP, Ch_WFlags, Ch_None)
-void                  \325\1\x9D                      386
+void                  \325\1\x9D                      386,NOX86_64
 
 [POPFW]
 (Ch_RWESP, Ch_WFLAGS, Ch_None)
-void                  \324\1\x9D                      186
+void                  \324\1\x9D                      186,NOX86_64
+void                  \1\x9D                          X86_64
+
+[POPFQ]
+(Ch_RWESP, Ch_WFlags, Ch_None)
+void                  \2\x48\x9D                      X86_64
 
 [POR]
 (Ch_All, Ch_None, Ch_None)
@@ -1689,15 +1695,15 @@ reg_sreg              \6                              8086,NOX86_64
 
 [PUSHA,pushaX]
 (Ch_All, Ch_None, Ch_None)
-void                  \327\1\x60                      186
+void                  \327\1\x60                      186,NOX86_64
 
 [PUSHAD,pushal]
 (Ch_All, Ch_None, Ch_None)
-void                  \325\1\x60                      386
+void                  \325\1\x60                      386,NOX86_64
 
 [PUSHAW]
 (Ch_All, Ch_None, Ch_None)
-void                  \324\1\x60                      186
+void                  \324\1\x60                      186,NOX86_64
 
 [PUSHF]
 (Ch_RWESP, Ch_RFlags, Ch_None)
@@ -1705,11 +1711,15 @@ void                  \327\1\x9C                      186
 
 [PUSHFD,pushfl]
 (Ch_RWESP, Ch_RFlags, Ch_None)
-void                  \325\1\x9C                      386
+void                  \325\1\x9C                      386,NOX86_64
 
 [PUSHFW]
 (Ch_RWESP, Ch_RFLAGS, Ch_None)
 void                  \324\1\x9C                      186
+
+[PUSHFQ]
+(Ch_RWESP, Ch_RFlags, Ch_None)
+void                  \2\x48\x9C                      X86_64
 
 [PXOR]
 (Ch_Mop2, Ch_Rop1, Ch_None)

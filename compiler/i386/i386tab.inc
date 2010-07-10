@@ -4527,42 +4527,42 @@
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none);
     code    : #215#1#97;
-    flags   : if_186
+    flags   : if_186 or if_nox86_64
   ),
   (
     opcode  : A_POPAD;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none);
     code    : #213#1#97;
-    flags   : if_386
+    flags   : if_386 or if_nox86_64
   ),
   (
     opcode  : A_POPAW;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none);
     code    : #212#1#97;
-    flags   : if_186
+    flags   : if_186 or if_nox86_64
   ),
   (
     opcode  : A_POPF;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none);
     code    : #215#1#157;
-    flags   : if_186
+    flags   : if_186 or if_nox86_64
   ),
   (
     opcode  : A_POPFD;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none);
     code    : #213#1#157;
-    flags   : if_386
+    flags   : if_386 or if_nox86_64
   ),
   (
     opcode  : A_POPFW;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none);
     code    : #212#1#157;
-    flags   : if_186
+    flags   : if_186 or if_nox86_64
   ),
   (
     opcode  : A_POR;
@@ -5381,21 +5381,21 @@
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none);
     code    : #215#1#96;
-    flags   : if_186
+    flags   : if_186 or if_nox86_64
   ),
   (
     opcode  : A_PUSHAD;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none);
     code    : #213#1#96;
-    flags   : if_386
+    flags   : if_386 or if_nox86_64
   ),
   (
     opcode  : A_PUSHAW;
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none);
     code    : #212#1#96;
-    flags   : if_186
+    flags   : if_186 or if_nox86_64
   ),
   (
     opcode  : A_PUSHF;
@@ -5409,7 +5409,7 @@
     ops     : 0;
     optypes : (ot_none,ot_none,ot_none);
     code    : #213#1#156;
-    flags   : if_386
+    flags   : if_386 or if_nox86_64
   ),
   (
     opcode  : A_PUSHFW;

@@ -1929,6 +1929,18 @@ Unit Rax86int;
             if (overrideop<>A_NONE) and (NOT CheckOverride(OverrideOp,ActOpcode)) then
               Message1(asmr_e_invalid_override_and_opcode,actasmpattern);
           end;
+        { pushf/popf/pusha/popa have to default to 16 bit in Intel mode
+          (Intel manual and Delphi-compatbile) -- setting the opsize for
+          these instructions doesn't change anything in the internal assember,
+          so change the opcode }
+        if (instr.opcode=A_POPF) then
+          instr.opcode:=A_POPFW
+        else if (instr.opcode=A_PUSHF) then
+          instr.opcode:=A_PUSHFW
+        else if (instr.opcode=A_PUSHA) then
+          instr.opcode:=A_PUSHAW
+        else if (instr.opcode=A_POPA) then
+          instr.opcode:=A_POPAW;
         { We are reading operands, so opcode will be an AS_ID }
         operandnum:=1;
         is_far_const:=false;
