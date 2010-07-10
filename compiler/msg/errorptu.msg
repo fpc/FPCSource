@@ -1317,7 +1317,7 @@ parser_e_widestring_to_ansi_compile_time=03293_E_Constantes caracteres/unicode n
 % constant expressions that have to be converted into an ansistring or shortstring
 % at compile time, for example inside typed constants. The reason is that the
 % compiler cannot know what the actual ansi encoding will be at run time.
-parser_e_objc_enumerator_2_0=03294_E_Laços "For-in Objective-Pascal" requerem que a chave \{\$modeswitch ObjectiveC1\} esteja ativa
+parser_e_objc_enumerator_2_0=03294_E_Laços "For-in Objective-Pascal" requerem que a chave \{\$modeswitch ObjectiveC2\} esteja ativa
 % Objective-C ``fast enumeration'' support was added in Objective-C 2.0, and
 % hence the appropriate modeswitch has to be activated to expose this feature.
 % Note that Objective-C 2.0 programs require Mac OS X 10.5 or later.

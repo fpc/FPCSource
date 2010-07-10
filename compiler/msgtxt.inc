@@ -458,7 +458,7 @@ const msgtxt : array[0..000236,1..240] of char=(
   '03293_E_Unicodechar/string constants cannot be converted to ansi/short'+
   'string at compile-time'#000+
   '03294_E_For-in Objective-Pascal loops require \{\$modeswitch Objective'+
-  'C1\} to be',' active'#000+
+  'C2\} to be',' active'#000+
   '03295_E_The compiler cannot find the NSFastEnumerationProtocol or NSFa'+
   'stEnumerationState type in the CocoaAll unit'#000+
   '04000_E_Type mismatch'#000+
