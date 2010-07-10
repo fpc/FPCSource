@@ -7,7 +7,7 @@ var
   b: int64;
 begin
   asm
-{$ifdef i386}
+{$ifdef cpui386}
       movd a, %xmm0
       movd %xmm0, b
 {$else}
