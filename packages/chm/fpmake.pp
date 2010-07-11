@@ -93,6 +93,22 @@ begin
         begin
           AddUnit('htmlindexer');
         end;
+   T:=P.Targets.AddUnit('itolitlstypes.pas');
+   T:=P.Targets.AddUnit('itsftransform.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('itolitlstypes');
+          AddUnit('paslzx');
+        end;
+   T:=P.Targets.AddUnit('itolitlsreader.pas');
+      with T.Dependencies do
+        begin  //chmreader, itolitlstypes, Sysutils, chmbase, itsftransform; 
+          AddUnit('chmbase');
+          AddUnit('chmreader');
+          AddUnit('itolitlstypes');
+          AddUnit('itsftransform');
+
+        end;
 
 //    P.ProgramPath.Add('src');
     T:=P.Targets.AddProgram('chmls.lpr');
