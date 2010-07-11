@@ -248,7 +248,7 @@ begin
     ITSFsig := ITSFFileSig;
     Version := NToLE(DWord(3));
     // we fix endian order when this is written to the stream
-    HeaderLength := NToLE(DWord(SizeOf(TITSFHeader) + (SizeOf(TITSFHeaderEntry)*2) + SizeOf(TITSFHeaderSuffix)));
+    HeaderLength := NToLE(DWord(SizeOf(TITSFHeader) + (SizeOf(TGuid)*2)+ (SizeOf(TITSFHeaderEntry)*2) + SizeOf(TITSFHeaderSuffix)));
     Unknown_1 := NToLE(DWord(1));
     TimeStamp:= NToBE(MilliSecondOfTheDay(Now)); //bigendian
     LanguageID := NToLE(DWord($0409)); // English / English_US
