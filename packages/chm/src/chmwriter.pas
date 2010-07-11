@@ -23,10 +23,13 @@ unit chmwriter;
 { $DEFINE LZX_USETHREADS}
 
 interface
-uses Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer, chmsitemap, Avl_Tree{$IFDEF LZX_USETHREADS}, lzxcompressthread{$ENDIF};
+uses Classes, ChmBase, chmtypes, chmspecialfiles, HtmlIndexer, chmsitemap, contnrs, Avl_Tree{$IFDEF LZX_USETHREADS}, lzxcompressthread{$ENDIF};
 
-type
+Const
+   DefaultHHC = 'Default.hhc';
+   DefaultHHK = 'Default.hhk';
 
+Type
   TGetDataFunc = function (const DataName: String; out PathInChm: String; out FileName: String; var Stream: TStream): Boolean of object;
   //  DataName :  A FileName or whatever so that the getter can find and open the file to add
   //  PathInChm:  This is the absolute path in the archive. i.e. /home/user/helpstuff/
@@ -149,6 +152,10 @@ Type
     FAvlURLStr    : TAVLTree;    // dedupe urltbl + binindex must resolve URL to topicid
     SpareString   : TStringIndex;
     SpareUrlStr   : TUrlStrIndex;
+    FWindows      : TObjectList;
+    FDefaultWindow: String;
+    FTocName      : String;
+    FIndexName    : String;
   protected
     procedure FileAdded(AStream: TStream; const AEntry: TFileEntryRec); override;
   private
@@ -163,13 +170,14 @@ Type
     procedure WriteURL_STR_TBL;
     procedure WriteOBJINST;
     procedure WriteFiftiMain;
+    procedure WriteWindows;
 
     function AddString(AString: String): LongWord;
     function AddURL(AURL: String; TopicsIndex: DWord): LongWord;
     procedure CheckFileMakeSearchable(AStream: TStream; AFileEntry: TFileEntryRec);
     function AddTopic(ATitle,AnUrl:AnsiString):integer;
     function NextTopicIndex: Integer;
-
+    procedure Setwindows (AWindowList:TObjectList);
 
   public
     constructor Create(AOutStream: TStream; FreeStreamOnDestroy: Boolean); override;
@@ -190,7 +198,10 @@ Type
     property HasBinaryIndex: Boolean read FHasBinaryIndex write FHasBinaryIndex;
     property DefaultFont: String read FDefaultFont write FDefaultFont;
     property DefaultPage: String read FDefaultPage write FDefaultPage;
-
+    property Windows : TObjectlist read fwindows write setwindows;
+    property TOCName : String read FTocName write FTocName;
+    property IndexName : String read FIndexName write FIndexName;
+    property DefaultWindow : string read fdefaultwindow write fdefaultwindow;
   end;
 
 implementation
@@ -1006,7 +1017,10 @@ begin
 
   // 0 Table of contents filename
   if FHasTOC then begin
-    TmpStr := 'default.hhc';
+    if fTocName ='' then
+      TmpStr := DefaultHHC
+    else
+      TmpStr := fTocName;
     FSection0.WriteWord(0);
     FSection0.WriteWord(NToLE(Word(Length(TmpStr)+1)));
     FSection0.Write(TmpStr[1], Length(TmpStr));
@@ -1015,17 +1029,25 @@ begin
   // 1
   // hhk Index
   if FHasIndex then begin
-    TmpStr := 'default.hhk';
+    if fIndexName='' then
+      TmpStr := DefaultHHK
+    else
+      TmpStr := fIndexName;
     FSection0.WriteWord(NToLE(Word(1)));
     FSection0.WriteWord(NToLE(Word(Length(TmpStr)+1)));
     FSection0.Write(TmpStr[1], Length(TmpStr));
     FSection0.WriteByte(0);
   end;
-  // 5 Default Window.
-  // Not likely needed
-// }
-  Entry.DecompressedSize := FSection0.Position - Entry.DecompressedOffset;
-  FInternalFiles.AddEntry(Entry);
+  // 5 Default Window
+
+  if FDefaultWindow<>'' then
+    begin
+      FSection0.WriteWord(NTOLE(Word(5)));
+      tmpstr:=FDefaultWindow;
+      FSection0.WriteWord(NToLE(Word(Length(TmpStr)+1)));
+      FSection0.Write(TmpStr[1], Length(TmpStr));
+      FSection0.WriteByte(0);
+    end;
 
   // 7 Binary Index
   if FHasBinaryIndex then
@@ -1045,6 +1067,10 @@ begin
     FSection0.WriteWord(NToLE(Word(4)));
     FSection0.WriteDWord(DWord(0)); // what is this number to be?
   end;
+
+
+  Entry.DecompressedSize := FSection0.Position - Entry.DecompressedOffset;
+  FInternalFiles.AddEntry(Entry);
 end;
 
 procedure TChmWriter.WriteITBITS;
@@ -1240,14 +1266,77 @@ begin
   PostAddStreamToArchive('$FIftiMain', '/', FFiftiMainStream);
 end;
 
+procedure TChmWriter.WriteWindows;
+Var WindowStream : TMemoryStream;
+    i,j          : Integer;
+    win          : TChmWindow;
+begin
+  if FWindows.Count>0 then
+    begin
+      WindowStream:=TMemoryStream.Create;
+      WindowStream.WriteDword(NToLE(dword(FWindows.Count)));
+      WindowStream.WriteDword(NToLE(dword(196))); // 1.1 or later. 188 is old style.
+      for i:=0 to FWindows.Count-1 Do
+        begin
+          Win:=TChmWindow(FWindows[i]);
+          WindowStream.WriteDword(NToLE(dword(196 )));                   //  0 size of entry.
+          WindowStream.WriteDword(NToLE(dword(0 )));                     //  4 unknown (bool Unicodestrings?)
+          WindowStream.WriteDword(NToLE(addstring(win.window_type )));   //  8 Arg 0, name of window
+          WindowStream.WriteDword(NToLE(dword(win.flags )));             //  C valid fields
+          WindowStream.WriteDword(NToLE(dword(win.nav_style)));          // 10 arg 10 navigation pane style
+          WindowStream.WriteDword(NToLE(addstring(win.title_bar_text))); // 14 Arg 1,  title bar text
+          WindowStream.WriteDword(NToLE(dword(win.styleflags)));         // 18 Arg 14, style flags
+          WindowStream.WriteDword(NToLE(dword(win.xtdstyleflags)));      // 1C Arg 15, xtd style flags
+          WindowStream.WriteDword(NToLE(dword(win.left)));               // 20 Arg 13, rect.left
+          WindowStream.WriteDword(NToLE(dword(win.top)));                // 24 Arg 13, rect.top
+          WindowStream.WriteDword(NToLE(dword(win.right)));              // 28 Arg 13, rect.right
+          WindowStream.WriteDword(NToLE(dword(win.bottom)));             // 2C Arg 13, rect.bottom
+          WindowStream.WriteDword(NToLE(dword(win.window_show_state)));  // 30 Arg 16, window show state
+          WindowStream.WriteDword(NToLE(dword(0)));                      // 34  -    , HWND hwndhelp                OUT: window handle"
+          WindowStream.WriteDword(NToLE(dword(0)));                      // 38  -    , HWND hwndcaller              OUT: who called this window"
+          WindowStream.WriteDword(NToLE(dword(0)));                      // 3C  -    , HH_INFO_TYPE paINFO_TYPES    IN: Pointer to an array of Information Types"
+          WindowStream.WriteDword(NToLE(dword(0)));                      // 40  -    , HWND hwndtoolbar             OUT: toolbar window in tri-pane window"
+          WindowStream.WriteDword(NToLE(dword(0)));                      // 44  -    , HWND hwndnavigation          OUT: navigation window in tri-pane window"
+          WindowStream.WriteDword(NToLE(dword(0)));                      // 48  -    , HWND hwndhtml                OUT: window displaying HTML in tri-pane window"
+          WindowStream.WriteDword(NToLE(dword(win.navpanewidth)));       // 4C Arg 11, width of nav pane
+          WindowStream.WriteDword(NToLE(dword(0)));                      // 50  -    , rect.left,   OUT:Specifies the coordinates of the Topic pane
+          WindowStream.WriteDword(NToLE(dword(0)));                      // 54  -    , rect.top ,   OUT:Specifies the coordinates of the Topic pane
+          WindowStream.WriteDword(NToLE(dword(0)));                      // 58  -    , rect.right,  OUT:Specifies the coordinates of the Topic pane
+          WindowStream.WriteDword(NToLE(dword(0)));                      // 5C  -    , rect.bottom, OUT:Specifies the coordinates of the Topic pane
+          WindowStream.WriteDword(NToLE(addstring(win.toc_file)));       // 60 Arg 2,  toc file
+          WindowStream.WriteDword(NToLE(addstring(win.index_file)));     // 64 Arg 3,  index file
+          WindowStream.WriteDword(NToLE(addstring(win.default_file)));   // 68 Arg 4,  default file
+          WindowStream.WriteDword(NToLE(addstring(win.home_button_file))); // 6c Arg 5,  home button file.
+          WindowStream.WriteDword(NToLE(dword(win.buttons)));            // 70 arg 12,
+          WindowStream.WriteDword(NToLE(dword(win.navpane_initially_closed))); // 74 arg 17
+          WindowStream.WriteDword(NToLE(dword(win.navpane_default)));    // 78 arg 18,
+          WindowStream.WriteDword(NToLE(dword(win.navpane_location)));   // 7C arg 19,
+          WindowStream.WriteDword(NToLE(dword(win.wm_notify_id)));       // 80 arg 20,
+          for j:=0 to 4 do
+            WindowStream.WriteDword(NToLE(dword(0)));                    // 84  -      byte[20] unknown -  "BYTE tabOrder[HH_MAX_TABS + 1]; // IN/OUT: tab order: Contents, Index, Search, History, Favorites, Reserved 1-5, Custom tabs"
+          WindowStream.WriteDword(NToLE(dword(0)));                      // 94  -      int cHistory; // IN/OUT: number of history items to keep (default is 30)
+          WindowStream.WriteDword(NToLE(addstring(win.Jumpbutton_1_Text)));  // 9C Arg 7,  The text of the Jump 1 button.
+          WindowStream.WriteDword(NToLE(addstring(win.Jumpbutton_2_Text)));  // A0 Arg 9,  The text of the Jump 2 button.
+          WindowStream.WriteDword(NToLE(addstring(win.Jumpbutton_1_File)));  // A4 Arg 6,  The file shown for Jump 1 button.
+          WindowStream.WriteDword(NToLE(addstring(win.Jumpbutton_2_File)));  // A8 Arg 8,  The file shown for Jump 1 button.
+          for j:=0 to 3 do
+            WindowStream.WriteDword(NToLE(dword(0)));                    // AA  -      byte[16] (TRECT) "RECT rcMinSize; // Minimum size for window (ignored in version 1)"
+          //   1.1+ fields
+          WindowStream.WriteDword(NToLE(dword(0)));                      // BC -       int cbInfoTypes; // size of paInfoTypes;
+          WindowStream.WriteDword(NToLE(dword(0)));                      // C0  -      LPCTSTR pszCustomTabs; // multiple zero-terminated strings
+        end;
+      WindowStream.Position := 0;
+      AddStreamToArchive('#WINDOWS', '/', WindowStream, True);
+      WindowStream.Free;
+    end;
+end;
+
 procedure TChmWriter.WriteInternalFilesAfter;
 begin
   // This creates and writes the #ITBITS (empty) file to section0
   WriteITBITS;
   // This creates and writes the #SYSTEM file to section0
   WriteSystem;
-
-
 end;
 
 procedure TChmWriter.WriteFinalCompressedFiles;
@@ -1256,6 +1345,7 @@ begin
   WriteTOPICS;
   WriteURL_STR_TBL;
   WriteSTRINGS;
+  WriteWINDOWS;
   WriteFiftiMain;
 end;
 
@@ -1287,6 +1377,8 @@ begin
   SpareString   := TStringIndex.Create;                 // We need an object to search in avltree
   SpareUrlStr   := TUrlStrIndex.Create;                 //    to avoid create/free circles we keep one in spare
                                                         //    for searching purposes
+  FWindows      := TObjectlist.Create(True);
+  FDefaultWindow:= '';
 end;
 
 destructor TChmWriter.Destroy;
@@ -1304,6 +1396,7 @@ begin
   FAvlUrlStr.Free;
   FAvlStrings.FreeAndClear;
   FAvlStrings.Free;
+  FWindows.Free;
 
   inherited Destroy;
 end;
@@ -1462,9 +1555,15 @@ begin
 end;
 
 procedure TChmWriter.AppendTOC(AStream: TStream);
+
+var tmpstr : string;
 begin
-  FHasTOC := True;
-  PostAddStreamToArchive('default.hhc', '/', AStream, True);
+  fHasTOC := True;
+  if fTocName = '' then
+    tmpstr := defaulthhc
+  else
+    tmpstr := fTocName;
+  PostAddStreamToArchive(tmpstr, '/', AStream, True);
 end;
 
 procedure TChmWriter.AppendBinaryTOCFromSiteMap(ASiteMap: TChmSiteMap);
@@ -2079,9 +2178,14 @@ begin
 end;
 
 procedure TChmWriter.AppendIndex(AStream: TStream);
+var tmpstr : string;
 begin
   FHasIndex := True;
-  PostAddStreamToArchive('default.hhk', '/', AStream, True);
+  if fIndexName = '' then
+    tmpstr:=defaulthhk
+  else
+    tmpstr:=fIndexName;
+  PostAddStreamToArchive(tmpstr, '/', AStream, True);
 end;
 
 procedure TChmWriter.AppendSearchDB(AName: String; AStream: TStream);
@@ -2105,6 +2209,21 @@ begin
   Offset := NToLE(AddString(ATopic));
   FContextStream.WriteDWord(Offset);
 end;
+
+procedure TChmWriter.SetWindows(AWindowList:TObjectList);
+
+var i : integer;
+    x : TCHMWindow;
+begin
+  FWindows.Clear;
+  for i:=0 to AWindowList.count -1 do
+    begin
+      x:=TChmWindow.Create;
+      x.assign(TChmWindow(AWindowList[i]));
+      Fwindows.Add(x);
+    end;
+end;
+
 
 end.
 

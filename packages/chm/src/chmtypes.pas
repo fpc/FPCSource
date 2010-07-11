@@ -91,6 +91,22 @@ type
 
   end;
 
+  TValidWindowFieldsEnum = (valid_Unknown1 {:=1},
+                            valid_Navigation_pane_style {:= 2},
+                            valid_Window_style_flags {:= 4},
+                            valid_Window_extended_style_flags {:= 8},
+                            valid_Initial_window_position    {:= $10},
+                            valid_Navigation_pane_width {:= $20},
+                            valid_Window_show_state {:= $40},
+                            valid_Info_types {:= $80},
+                            valid_Buttons {:= $100},
+                            valid_Navigation_Pane_initially_closed_state {:= $200},
+                            valid_Tab_position {:= $400},
+                            valid_Tab_order {:= $800},
+                            valid_History_count{ := $1000},
+                            valid_Default_Pane {:= $2000});
+
+  TValidWindowFields     = Set Of TValidWindowFieldsEnum;
   TCHMWindow = Class
                 window_type,
                 Title_bar_text,
@@ -116,10 +132,13 @@ type
                 navpane_default,
                 navpane_location,
                 wm_notify_id : integer;
+                flags : TValidWindowFields; // bitset that keeps track of which fields are filled.
+                                            // of certain fields. Needs to be inserted into #windows stream
                 Constructor create(s:string='');
                 procedure load_from_ini(txt:string);
                 procedure savetoxml(cfg:TXMLConfig;key:string);
                 procedure loadfromxml(cfg:TXMLConfig;key:string);
+                procedure assign(obj : TCHMWindow);
                 end;
 
 
@@ -446,11 +465,17 @@ begin
  i:=ind+1; // skip ,
 end;
 
-function getnextint(const txt:string;var ind: integer;len:integer):integer;
+function getnextint(const txt:string;var ind: integer;len:integer;var flags : TValidWindowFields;x:TValidWindowFieldsEnum):integer;
 
 var s : string;
+    i:integer;
 begin
+
+  i:=ind;
   s:=getnext(txt,ind,len);
+  // set a flag if the field was empty (,,)
+  if (ind=(i+1)) and (x<>valid_unknown1) then
+    include(flags,x);
   result:=strtointdef(s,0);  // I think this does C style hex, if not fixup here.
 end;
 
@@ -460,6 +485,7 @@ var ind,len,
     arr     : array[0..3] of integer;
     s2      : string;
 begin
+  flags:=[];
   j:=pos('=',txt);
   if j>0 then
     txt[j]:=',';
@@ -475,15 +501,17 @@ begin
   Jumpbutton_2_File :=getnext(txt,ind,len);
   Jumpbutton_2_Text :=getnext(txt,ind,len);
 
-  nav_style         :=getnextint(txt,ind,len);
-  navpanewidth      :=getnextint(txt,ind,len);
-  buttons           :=getnextint(txt,ind,len);
+  nav_style         :=getnextint(txt,ind,len,flags,valid_navigation_pane_style);
+  navpanewidth      :=getnextint(txt,ind,len,flags,valid_navigation_pane_width);
+  buttons           :=getnextint(txt,ind,len,flags,valid_buttons);
   k:=0;
   repeat
    s2:=getnext(txt,ind,len);
    if (length(s2)>0) and (s2[1]='[') then delete(s2,1,1);
    j:=pos(']',s2);
    if j>0 then delete(s2,j,1);
+   if length(trim(s2))>0 then
+     include(flags,valid_tab_position);
    arr[k]:=strtointdef(s2,0);
    inc(k);
   until (j<>0) or (ind>len);
@@ -491,13 +519,13 @@ begin
   top   :=arr[1];
   right :=arr[2];
   bottom:=arr[3];
-  styleflags               :=getnextint(txt,ind,len);
-  xtdstyleflags            :=getnextint(txt,ind,len);
-  window_show_state        :=getnextint(txt,ind,len);
-  navpane_initially_closed :=getnextint(txt,ind,len);
-  navpane_default          :=getnextint(txt,ind,len);
-  navpane_location         :=getnextint(txt,ind,len);
-  wm_notify_id             :=getnextint(txt,ind,len);
+  styleflags               :=getnextint(txt,ind,len,flags,valid_buttons);
+  xtdstyleflags            :=getnextint(txt,ind,len,flags,valid_window_style_flags);
+  window_show_state        :=getnextint(txt,ind,len,flags,valid_window_extended_style_flags);
+  navpane_initially_closed :=getnextint(txt,ind,len,flags,valid_navigation_pane_initially_closed_state);
+  navpane_default          :=getnextint(txt,ind,len,flags,valid_default_pane);
+  navpane_location         :=getnextint(txt,ind,len,flags,valid_tab_position);
+  wm_notify_id             :=getnextint(txt,ind,len,flags,valid_unknown1);
 end;
 
 procedure TCHMWindow.savetoxml(cfg:TXMLConfig;key:string);
@@ -534,7 +562,7 @@ begin
   window_type           :=cfg.getvalue(key+'window_type','');
   Title_bar_text        :=cfg.getvalue(key+'title_bar_text','');
   Toc_file              :=cfg.getvalue(key+'toc_file','');
-  Index_file              :=cfg.getvalue(key+'index_file','');
+  Index_file            :=cfg.getvalue(key+'index_file','');
   Default_File          :=cfg.getvalue(key+'default_file','');
   Home_button_file      :=cfg.getvalue(key+'home_button_file','');
   Jumpbutton_1_File     :=cfg.getvalue(key+'jumpbutton_1_file','');
@@ -562,6 +590,36 @@ Constructor TCHMWindow.create(s:string='');
 begin
  if s<>'' then
    load_from_ini(s);
+end;
+
+
+procedure TCHMWindow.assign(obj : TCHMWindow);
+
+begin
+  window_type      :=obj.window_type;
+  Title_bar_text   :=obj.Title_bar_text;
+  Toc_file         :=obj.Toc_file;
+  Index_file       :=obj.Index_file;
+  Default_File     :=obj.Default_File;
+  Home_button_file :=obj.Home_button_file;
+  Jumpbutton_1_File:=obj.Jumpbutton_1_File;
+  Jumpbutton_1_Text:=obj.Jumpbutton_1_Text;
+  Jumpbutton_2_File:=obj.Jumpbutton_2_File;
+  Jumpbutton_2_Text:=obj.Jumpbutton_2_Text;
+  nav_style        :=obj.nav_style;
+  navpanewidth     :=obj.navpanewidth;
+  buttons          :=obj.buttons;
+  left             :=obj.left;
+  top              :=obj.top;
+  right            :=obj.right;
+  bottom           :=obj.bottom;
+  styleflags       :=obj.styleflags;
+  xtdstyleflags    :=obj.xtdstyleflags;
+  window_show_state:=obj.window_show_state;
+  navpane_initially_closed :=obj.navpane_initially_closed;
+  navpane_default  :=obj.navpane_default;
+  navpane_location :=obj.navpane_location;
+  wm_notify_id     :=obj.wm_notify_id;
 end;
 
 end.

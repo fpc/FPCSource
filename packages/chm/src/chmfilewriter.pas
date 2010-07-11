@@ -25,12 +25,15 @@ unit chmfilewriter;
 interface
 
 uses
-  Classes, SysUtils, chmwriter, inifiles, contnrs;
+  Classes, SysUtils, chmwriter, inifiles, contnrs,
+  {for html scanning } dom,SAX_HTML,dom_html;
 
 type
   TChmProject = class;
+  TChmProjectErrorKind = (chmerror,chmwarning,chmhint,chmnote);
 
   TChmProgressCB = procedure (Project: TChmProject; CurrentFile: String) of object;
+  TChmErrorCB    = procedure (Project: TChmProject;errorkind:TChmProjectErrorKind;msg:String);
 
   { TChmProject }
 
@@ -46,16 +49,19 @@ type
     FMakeSearchable: Boolean;
     FFileName: String;
     FOnProgress: TChmProgressCB;
+    FOnError   : TChmErrorCB;
     FOutputFileName: String;
     FTableOfContentsFileName: String;
     FTitle: String;
     FWindows : TObjectList;
     FMergeFiles : TStringlist;
     fDefaultWindow : string;
+    fScanHtmlContents  : Boolean;
   protected
     function GetData(const DataName: String; out PathInChm: String; out FileName: String; var Stream: TStream): Boolean;
     procedure LastFileAdded(Sender: TObject);
     procedure readIniOptions(keyvaluepairs:tstringlist);
+    procedure ScanHtml;
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -65,6 +71,7 @@ type
     procedure WriteChm(AOutStream: TStream); virtual;
     function ProjectDir: String;
     procedure AddFileWithContext(contextid:integer;filename:ansistring;contextname:ansistring='');
+    procedure Error(errorkind:TChmProjectErrorKind;msg:String);
     // though stored in the project file, it is only there for the program that uses the unit
     // since we actually write to a stream
     property OutputFileName: String read FOutputFileName write FOutputFileName;
@@ -82,7 +89,9 @@ type
     property Windows :TObjectList read FWindows write FWindows;
     property MergeFiles :TStringlist read FMergeFiles write FMergefiles;
     property OnProgress: TChmProgressCB read FOnProgress write FOnProgress;
+    property OnError   : TChmErrorCB read FOnError write FOnError;
     property DefaultWindow : String read FDefaultWindow write FDefaultWindow;
+    property ScanHtmlContents  : Boolean read fScanHtmlContents write fScanHtmlContents;
   end;
 
   TChmContextNode = Class
@@ -90,6 +99,11 @@ type
                      ContextNumber : Integer;
                      ContextName   : AnsiString;
                     End;
+
+
+
+Const
+  ChmErrorKindText : array[TCHMProjectErrorKind] of string = ('Error','Warning','Hint','Note');
 
 implementation
 
@@ -162,6 +176,7 @@ begin
   FFiles := TStringList.Create;
   FWindows:=TObjectList.Create(True);
   FMergeFiles:=TStringlist.Create;
+  ScanHtmlContents:=False;
 end;
 
 destructor TChmProject.Destroy;
@@ -334,6 +349,8 @@ begin
   OutputFileName := Cfg.GetValue('Settings/OutputFileName/Value', '');
   DefaultFont  := Cfg.GetValue('Settings/DefaultFont/Value', '');
   DefaultWindow:= Cfg.GetValue('Settings/DefaultWindow/Value', '');
+  ScanHtmlContents:=  Cfg.GetValue('Settings/ScanHtmlContents/Value', False);
+
   Cfg.Free;
 end;
 
@@ -538,6 +555,7 @@ begin
   secs.free;
   strs.free;
   fini.free;
+  ScanHtmlContents:=true;
 end;
 
 procedure TChmProject.AddFileWithContext(contextid:integer;filename:ansistring;contextname:ansistring='');
@@ -598,10 +616,10 @@ begin
     Cfg.SetValue('MergeFiles/FileName'+IntToStr(I)+'/value',FMergeFiles[i]);
 
   // delete legacy keys.
-  Cfg.SetValue('Files/IndexFile/Value','');
-  Cfg.SetValue('Files/TOCFile/Value', '');
-  Cfg.SetValue('Files/MakeBinaryTOC/Value','');
-  Cfg.SetValue('Files/MakeBinaryIndex/Value','');
+  Cfg.DeleteValue('Files/IndexFile/Value');
+  Cfg.DeleteValue('Files/TOCFile/Value');
+  Cfg.DeleteValue('Files/MakeBinaryTOC/Value');
+  Cfg.DeleteValue('Files/MakeBinaryIndex/Value');
   Cfg.SetValue('Settings/IndexFile/Value', IndexFileName);
   Cfg.SetValue('Settings/TOCFile/Value', TableOfContentsFileName);
   Cfg.SetValue('Settings/MakeBinaryTOC/Value',MakeBinaryTOC);
@@ -615,6 +633,7 @@ begin
   Cfg.SetValue('Settings/DefaultFont/Value', DefaultFont);
 
   Cfg.SetValue('Settings/DefaultWindow/Value', DefaultWindow);
+  Cfg.SetValue('Settings/ScanHtmlContents/Value', ScanHtmlContents);
 
 
   Cfg.Flush;
@@ -625,6 +644,108 @@ function TChmProject.ProjectDir: String;
 begin
   Result := ExtractFilePath(FileName);
 end;
+
+procedure TChmProject.Error(errorkind:TChmProjectErrorKind;msg:String);
+begin
+  if assigned(OnError) then
+    OnError(self,errorkind,msg);
+end;
+
+procedure TChmProject.ScanHtml;
+
+procedure checkattributes(node:TDomNode;attributename:string;filelist :TStringList);
+var
+    Attributes: TDOMNamedNodeMap;
+    atnode    : TDomNode;
+    fn        : String;
+begin
+  if assigned(node) then
+    begin
+      Attributes:=node.Attributes;
+      if assigned(attributes) then
+         begin
+           atnode :=attributes.GetNamedItem(attributename);
+           if assigned(atnode) then
+             begin
+               fn:=atnode.nodevalue;
+               if (fn<>'') then
+                  filelist.add(fn);
+             end;
+         end;
+    end;
+end;
+
+
+function scantags(prnt:TDomNode;filelist:TStringlist):TDomNode;
+// Seach first matching tag in siblings
+var chld: TDomNode;
+begin
+  result:=nil;
+  if assigned(prnt )  then
+    begin
+      chld:=prnt.firstchild;
+      while assigned(chld) do
+        begin
+          scantags(chld,filelist);  // depth first.
+          if (chld is TDomElement) then
+            begin
+             // writeln(tdomelement(chld).tagname,' ',chld.classname	);
+              if tdomelement(chld).tagname='link'then
+                begin
+                  //printattributes(chld,'');
+                  checkattributes(chld,'href',filelist);
+                end;
+             if tdomelement(chld).tagname='img'then
+               begin
+                  //printattributes(chld,'');
+                  checkattributes(chld,'src',filelist);
+                end;
+
+            end;
+          chld:=chld.nextsibling;
+        end;
+    end;
+end;
+
+var
+  filelist, localfilelist: TStringList;
+  domdoc : THTMLDocument;
+  i,j  : Integer;
+  fn,s  : string;
+begin
+ filelist:= TStringList.create;
+ localfilelist:= TStringList.create;
+
+ for j:=0 to Files.count-1 do
+   begin
+     fn:=files[j];
+     writeln(fn);
+     localfilelist.clear;
+     if fileexists(fn) then
+       begin
+         ReadHtmlFile(domdoc,fn);
+         scantags(domdoc,localfilelist);
+         for i:=0 to localFilelist.count-1 do
+           begin
+             s:=localfilelist[i];
+             if fileexists(s) then  // correct for relative path .html file?
+               begin
+                 filelist.add(s);
+                 Error(ChmNote,'Found file '+s+' while scanning '+fn);
+               end
+             else
+               begin
+                 Error(ChmWarning,'Found file '+s+' while scanning '+fn+', but couldn''t find it on disk');
+               end
+           end;
+         domdoc.free;
+       end;
+   end;
+ files.addstrings(filelist);
+ filelist.free;
+ localfilelist.free;
+end;
+
 
 procedure TChmProject.WriteChm(AOutStream: TStream);
 var
@@ -653,14 +774,22 @@ begin
   Writer.FullTextSearch := MakeSearchable;
   Writer.HasBinaryTOC := MakeBinaryTOC;
   Writer.HasBinaryIndex := MakeBinaryIndex;
+  Writer.IndexName := IndexFileName;
+  Writer.TocName   := TableOfContentsFileName;
 
   for i:=0 to files.count-1 do
     begin
       nd:=TChmContextNode(files.objects[i]);
+      if not fileexists(files[i]) then
+         Error(chmWarning,'File '+Files[i]+' does not exist');
       if assigned(nd) and (nd.contextnumber<>0) then
         Writer.AddContext(nd.ContextNumber,files[i]);
     end;
+  if FWIndows.Count>0 then
+    Writer.Windows:=FWIndows;
 
+  If ScanHtmlContents Then
+    ScanHtml;                 // Since this is slowing we opt to skip this step, and only do this on html load.
   // and write!
   Writer.Execute;
 

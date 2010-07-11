@@ -23,7 +23,7 @@ program chmcmd;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, chmfilewriter;
+  Classes, Sysutils, chmfilewriter;
 
 Procedure Usage;
 
@@ -32,24 +32,40 @@ begin
   Halt(1);
 end;
 
+procedure OnError (Project: TChmProject;errorkind:TChmProjectErrorKind;msg:String);
+begin
+  writeln(ChmErrorKindText[errorkind],': ',msg);
+end;
 
 var
   OutStream: TFileStream;
   Project: TChmProject;
+  name   : string;
+  xmlname: string;
+  ishhp  : boolean;
 
 begin
-  if (Paramcount=1) and (ParamStr(1)<>'-h') and (ParamStr(1)<>'-?') then 
+  if (Paramcount=1) and (ParamStr(1)<>'-h') and (ParamStr(1)<>'-?') then
     begin
-    Project := TChmProject.Create;
-    Project.LoadFromFile(ParamStr(1));
-    OutStream := TFileStream.Create(Project.OutputFileName, fmCreate, fmOpenWrite);
-    Project.WriteChm(OutStream);
-    OutStream.Free;
-    Project.Free;
+      name:=paramstr(1);
+      ishhp:=uppercase(extractfileext(name))='.HHP';
+      Project := TChmProject.Create;
+      if ishhp then
+        begin
+          xmlname:=changefileext(name,'.hhp.xml');
+          Project.LoadFromHHP(name,false) ;          // we need a param for this second param later
+          Project.SaveToFile(xmlname);
+        end
+      else
+        Project.LoadFromFile(name);
+      OutStream := TFileStream.Create(Project.OutputFileName, fmCreate, fmOpenWrite);
+      Project.WriteChm(OutStream);
+      OutStream.Free;
+      Project.Free;
     end
   else
     begin
-    Usage;
-    end; 
+      Usage;
+    end;
 end.
 
