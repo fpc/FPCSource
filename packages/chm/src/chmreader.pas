@@ -54,25 +54,26 @@ type
   protected
     fStream: TStream;
     fFreeStreamOnDestroy: Boolean;
-    fChmHeader: TITSFHeader;
+    fITSFHeader: TITSFHeader;
     fHeaderSuffix: TITSFHeaderSuffix;
     fDirectoryHeader: TITSPHeader;
     fDirectoryHeaderPos: QWord;
     fDirectoryHeaderLength: QWord;
     fDirectoryEntriesStartPos: QWord;
-    fDirectoryEntries: array of TPMGListChunkEntry;
     fCachedEntry: TPMGListChunkEntry; //contains the last entry found by ObjectExists
     fDirectoryEntriesCount: LongWord;
+    procedure ReadHeader; virtual;
+    procedure ReadHeaderEntries; virtual;
+    function  GetChunkType(Stream: TMemoryStream; ChunkIndex: LongInt): TDirChunkType;
+    procedure GetSections(out Sections: TStringList);
   private
-    procedure ReadHeader;
-    function  GetChunkType(Stream: TMemoryStream; ChunkIndex: LongInt): TPMGchunktype;
     function  GetDirectoryChunk(Index: Integer; OutStream: TStream): Integer;
     function  ReadPMGLchunkEntryFromStream(Stream: TMemoryStream; var PMGLEntry: TPMGListChunkEntry): Boolean;
     function  ReadPMGIchunkEntryFromStream(Stream: TMemoryStream; var PMGIEntry: TPMGIIndexChunkEntry): Boolean;
     procedure LookupPMGLchunk(Stream: TMemoryStream; out PMGLChunk: TPMGListChunk);
     procedure LookupPMGIchunk(Stream: TMemoryStream; out PMGIChunk: TPMGIIndexChunk);
 
-    procedure GetSections(out Sections: TStringList);
+
     function  GetBlockFromSection(SectionPrefix: String; StartPos: QWord; BlockLength: QWord): TMemoryStream;
     function  FindBlocksFromUnCompressedAddr(var ResetTableEntry: TPMGListChunkEntry;
        out CompressedSize: QWord; out UnCompressedSize: QWord; out LZXResetTable: TLZXResetTableArr): QWord;  // Returns the blocksize
@@ -82,10 +83,10 @@ type
   public
     ChmLastError: LongInt;
     function IsValidFile: Boolean;
-    procedure GetCompleteFileList(ForEach: TFileEntryForEach);
-    function ObjectExists(Name: String): QWord; // zero if no. otherwise it is the size of the object
+    procedure GetCompleteFileList(ForEach: TFileEntryForEach; AIncludeInternalFiles: Boolean = True); virtual;
+    function ObjectExists(Name: String): QWord; virtual; // zero if no. otherwise it is the size of the object
                                                 // NOTE directories will return zero size even if they exist
-    function GetObject(Name: String): TMemoryStream; // YOU must Free the stream
+    function GetObject(Name: String): TMemoryStream; virtual; // YOU must Free the stream
     property CachedEntry: TPMGListChunkEntry read fCachedEntry;
   end;
   
@@ -181,7 +182,7 @@ begin
   end;
 end;
 
-function ChunkType(Stream: TMemoryStream): TPMGchunktype;
+function ChunkType(Stream: TMemoryStream): TDirChunkType;
 var
   ChunkID: array[0..3] of char;
 begin
@@ -189,39 +190,46 @@ begin
   if Stream.Size< 4 then exit;
   Move(Stream.Memory^, ChunkId[0], 4);
   if ChunkID = 'PMGL' then Result := ctPMGL
-  else if ChunkID = 'PMGI' then Result := ctPMGI;
+  else if ChunkID = 'PMGI' then Result := ctPMGI
+  else if ChunkID = 'AOLL' then Result := ctAOLL
+  else if ChunkID = 'AOLI' then Result := ctAOLI;
 end;
 
 { TITSFReader }
 
 procedure TITSFReader.ReadHeader;
-var
-fHeaderEntries: array [0..1] of TITSFHeaderEntry;
 begin
-  fStream.Position := 0;
-  fStream.Read(fChmHeader,SizeOf(fChmHeader));
+  fStream.Read(fITSFHeader,SizeOf(fITSFHeader));
 
   // Fix endian issues
   {$IFDEF ENDIAN_BIG}
-  fChmHeader.Version := LEtoN(fChmHeader.Version);
-  fChmHeader.HeaderLength := LEtoN(fChmHeader.HeaderLength);
+  fITSFHeader.Version := LEtoN(fITSFHeader.Version);
+  fITSFHeader.HeaderLength := LEtoN(fITSFHeader.HeaderLength);
   //Unknown_1
-  fChmHeader.TimeStamp := BEtoN(fChmHeader.TimeStamp);//bigendian
-  fChmHeader.LanguageID := LEtoN(fChmHeader.LanguageID);
-  //Guid1
-  //Guid2
+  fITSFHeader.TimeStamp := BEtoN(fITSFHeader.TimeStamp);//bigendian
+  fITSFHeader.LanguageID := LEtoN(fITSFHeader.LanguageID);
   {$ENDIF}
+
+  if fITSFHeader.Version < 4 then
+   fStream.Seek(SizeOf(TGuid)*2, soCurrent);
   
   if not IsValidFile then Exit;
   
+  ReadHeaderEntries;
+end;
+
+procedure TITSFReader.ReadHeaderEntries;
+var
+fHeaderEntries: array [0..1] of TITSFHeaderEntry;
+begin
   // Copy EntryData into memory
   fStream.Read(fHeaderEntries[0], SizeOf(fHeaderEntries));
 
-  if fChmHeader.Version > 2 then
+  if fITSFHeader.Version = 3 then
     fStream.Read(fHeaderSuffix.Offset, SizeOf(QWord));
   fHeaderSuffix.Offset := LEtoN(fHeaderSuffix.Offset);
   // otherwise this is set in fill directory entries
-  
+
   fStream.Position := LEtoN(fHeaderEntries[1].PosFromZero);
   fDirectoryHeaderPos := LEtoN(fHeaderEntries[1].PosFromZero);
   fStream.Read(fDirectoryHeader, SizeOf(fDirectoryHeader));
@@ -509,7 +517,7 @@ begin
   inherited Destroy;
 end;
 
-function TITSFReader.GetChunkType(Stream: TMemoryStream; ChunkIndex: LongInt): TPMGchunktype;
+function TITSFReader.GetChunkType(Stream: TMemoryStream; ChunkIndex: LongInt): TDirChunkType;
 var
   Sig: array[0..3] of char;
 begin
@@ -518,7 +526,9 @@ begin
 
   Stream.Read(Sig, 4);
   if Sig = 'PMGL' then Result := ctPMGL
-  else if Sig = 'PMGI' then Result := ctPMGI;
+  else if Sig = 'PMGI' then Result := ctPMGI
+  else if Sig = 'AOLL' then Result := ctAOLL
+  else if Sig = 'AOLI' then Result := ctAOLI;
 end;
 
 function TITSFReader.GetDirectoryChunk(Index: Integer; OutStream: TStream): Integer;
@@ -599,6 +609,7 @@ end;
 constructor TITSFReader.Create(AStream: TStream; FreeStreamOnDestroy: Boolean);
 begin
   fStream := AStream;
+  fStream.Position := 0;
   fFreeStreamOnDestroy := FreeStreamOnDestroy;
   ReadHeader;
   if not IsValidFile then Exit;
@@ -606,7 +617,6 @@ end;
 
 destructor TITSFReader.Destroy;
 begin
-  SetLength(fDirectoryEntries, 0);
   if fFreeStreamOnDestroy then FreeAndNil(fStream);
 
   inherited Destroy;
@@ -615,13 +625,15 @@ end;
 function TITSFReader.IsValidFile: Boolean;
 begin
   if (fStream = nil) then ChmLastError := ERR_STREAM_NOT_ASSIGNED
-  else if (fChmHeader.ITSFsig <> 'ITSF') then ChmLastError := ERR_NOT_VALID_FILE
-  else if (fChmHeader.Version <> 2) and (fChmHeader.Version <> 3) then
+  else if (fITSFHeader.ITSFsig <> 'ITSF') then ChmLastError := ERR_NOT_VALID_FILE
+  //else if (fITSFHeader.Version <> 2) and (fITSFHeader.Version <> 3)
+  else if not (fITSFHeader.Version in [2..4])
+  then
     ChmLastError := ERR_NOT_SUPPORTED_VERSION;
   Result := ChmLastError = ERR_NO_ERR;
 end;
 
-procedure TITSFReader.GetCompleteFileList(ForEach: TFileEntryForEach);
+procedure TITSFReader.GetCompleteFileList(ForEach: TFileEntryForEach; AIncludeInternalFiles: Boolean = True);
 var
   ChunkStream: TMemoryStream;
   I : Integer;
@@ -662,7 +674,12 @@ begin
          Entry.DecompressedLength := GetCompressedInteger(ChunkStream);
          if ChunkStream.Position > CutOffPoint then Break; // we have entered the quickref section
          fCachedEntry := Entry; // if the caller trys to get this data we already know where it is :)
-         ForEach(Entry.Name, Entry.ContentOffset, Entry.DecompressedLength, Entry.ContentSection);
+         if  (Length(Entry.Name) = 1)
+         or (AIncludeInternalFiles
+              or
+             ((Length(Entry.Name) > 1) and (not(Entry.Name[2] in ['#','$',':']))))
+         then
+          ForEach(Entry.Name, Entry.ContentOffset, Entry.DecompressedLength, Entry.ContentSection);
        end;
      end;
     {$IFDEF CHM_DEBUG_CHUNKS}
@@ -841,7 +858,7 @@ begin
   end
   else begin // we have to get it from ::DataSpace/Storage/[MSCompressed,Uncompressed]/ControlData
     GetSections(SectionNames);
-    FmtStr(SectionName, '::DataSpace/Storage/%s/',[SectionNames[Entry.ContentSection-1]]);
+    FmtStr(SectionName, '::DataSpace/Storage/%s/',[SectionNames[Entry.ContentSection]]);
     Result := GetBlockFromSection(SectionName, Entry.ContentOffset, Entry.DecompressedLength);
     SectionNames.Free;
   end;
@@ -1235,8 +1252,6 @@ begin
     {$ENDIF}
     Sections.Add(WString);
   end;
-  // the sections are sorted alphabetically, this way section indexes will jive
-  Sections.Sort;
   Stream.Free;
 end;
 

@@ -249,7 +249,7 @@ begin
     FMasterThread.Resume;
     if WaitForFinish then
       While Running do
-        CheckSynchronize(50);
+        CheckSynchronize(10);
 end;
 
 { TLZXMasterThread }
@@ -263,6 +263,7 @@ function TLZXMasterThread.BlockDone(Worker: TLZXWorkerThread; ABlock: PLZXFinish
 begin
   Lock;
   REsult := True;
+
   FCompressor.BlockIsFinished(ABlock);
   if DataRemains then
     QueueThread(Worker)
@@ -349,7 +350,8 @@ begin
 
   Thread.CompressData(FBlockNumber);
   Inc(FBlockNumber);
-  Thread.Resume;
+  if Thread.Suspended then
+    Thread.Resume;
   UnLockTmpData;
 end;
 
@@ -370,7 +372,7 @@ begin
   //Suspend;
   while Working do
   begin
-      Sleep(50);
+      Sleep(0);
   end;
   FRunning:= False;
 end;
@@ -489,12 +491,16 @@ begin
   while not Terminated do
   begin
     lzx_reset(LZXdata);
+
     lzx_compress_block(LZXdata, WSize, True);
 
     MasterThread.Synchronize(@NotifyMasterDone);
 
     if ShouldSuspend then
+    begin
       Suspend;
+    end;
+
   end;
 end;
 

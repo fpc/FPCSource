@@ -241,8 +241,6 @@ begin
     Unknown_1 := NToLE(DWord(1));
     TimeStamp:= NToBE(MilliSecondOfTheDay(Now)); //bigendian
     LanguageID := NToLE(DWord($0409)); // English / English_US
-    Guid1 := ITSFHeaderGUID;
-    Guid2 := ITSFHeaderGUID;
   end;
 end;
 
@@ -314,6 +312,12 @@ end;
 procedure TITSFWriter.WriteHeader(Stream: TStream);
 begin
   Stream.Write(ITSFHeader, SizeOf(TITSFHeader));
+
+  if ITSFHeader.Version < 4 then
+  begin
+    Stream.Write(ITSFHeaderGUID, SizeOf(TGuid));
+    Stream.Write(ITSFHeaderGUID, SizeOf(TGuid));
+  end;
   Stream.Write(HeaderSection0Table, SizeOf(TITSFHeaderEntry));
   Stream.Write(HeaderSection1Table, SizeOf(TITSFHeaderEntry));
   Stream.Write(HeaderSuffix, SizeOf(TITSFHeaderSuffix));
@@ -897,7 +901,7 @@ begin
 
   lzx_finish(LZXdata, nil);
   {$ELSE}
-  Compressor := TLZXCompressor.Create(10);
+  Compressor := TLZXCompressor.Create(4);
   Compressor.OnChunkDone  :=@LTChunkDone;
   Compressor.OnGetData    :=@LTGetData;
   Compressor.OnIsEndOfFile:=@LTIsEndOfFile;

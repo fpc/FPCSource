@@ -285,9 +285,8 @@ begin
 	  if (leaves[leaves_left].freq <> 1) then begin
             leaves[leaves_left].freq := leaves[leaves_left].freq shr 1;
             codes_too_long := 0;
-            Inc(leaves_left);
           end;
-
+          Inc(leaves_left);
         end;
         if codes_too_long <> 0 then
           raise Exception.Create('!codes_too_long');
@@ -994,7 +993,6 @@ begin
   Fillchar(lzxd^.length_freq_table[0], NUM_SECONDARY_LENGTHS * sizeof(longint), 0);
   Fillchar(lzxd^.main_freq_table[0], lzxd^.main_tree_size * sizeof(longint), 0);
   Fillchar(lzxd^.aligned_freq_table[0], LZX_ALIGNED_SIZE * sizeof(longint), 0);
-
   while ((lzxd^.left_in_block<>0) and ((lz_left_to_process(lzxd^.lzi)<>0) or not(lzxd^.at_eof(lzxd^.in_arg)))) do begin
     lz_compress(lzxd^.lzi, lzxd^.left_in_block);
 
@@ -1002,7 +1000,6 @@ begin
       lzxd^.left_in_frame := LZX_FRAME_SIZE;
     end;
     
-    if lzxd^.at_eof(lzxd^.in_arg) then Sleep(500);
     if ((lzxd^.subdivide<0)
       or (lzxd^.left_in_block = 0)
       or ((lz_left_to_process(lzxd^.lzi) = 0) and lzxd^.at_eof(lzxd^.in_arg))) then begin
@@ -1023,7 +1020,6 @@ begin
 	lzx_write_bits(lzxd, 1, 0);
 	lzxd^.need_1bit_header := 0;
       end;
-
       //* handle extra bits */
       uncomp_bits := 0;
       comp_bits := 0;

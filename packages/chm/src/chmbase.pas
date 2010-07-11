@@ -36,8 +36,6 @@ type
     Unknown_1: LongWord;
     TimeStamp: LongWord; //bigendian
     LanguageID: LongWord;
-    Guid1: TGuid;
-    Guid2: TGuid;
   end;
   TITSFHeaderEntry = record
     PosFromZero: QWord;
@@ -78,7 +76,7 @@ type
     Unknown5: LongInt; // = -1
   end;
   
-  TPMGchunktype = (ctPMGL, ctPMGI, ctUnknown);
+  TDirChunkType = (ctPMGL, ctPMGI, ctAOLL, ctAOLI, ctUnknown);
   
   TPMGListChunk = record
     PMGLsig: array [0..3] of char;
