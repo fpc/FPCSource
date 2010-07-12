@@ -107,7 +107,8 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
 
 
     var
-      TLSKey : pthread_key_t;
+      TLSKey,
+      CleanupKey : pthread_key_t;
 
     procedure CInitThreadvar(var offset : dword;size : dword);
       begin
@@ -160,21 +161,53 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
         pthread_setspecific(tlskey,dataindex);
       end;
 
+
+    procedure CthreadCleanup(p: pointer); cdecl;
+    {$ifdef DEBUG_MT}
+      var
+        s: string[100]; // not an ansistring
+{$endif DEBUG_MT}
+      begin
+{$ifdef DEBUG_MT}
+        s := 'finishing externally started thread'#10;
+        fpwrite(0,s[1],length(s));
+{$endif DEBUG_MT}
+        { clean up }
+        DoneThread;
+        { the pthread routine that calls us is supposed to do this, but doesn't
+          at least on Mac OS X 10.6 }
+        pthread_setspecific(CleanupKey,nil);
+      end;
+
+
+    procedure HookThread;
+      begin
+        { Allocate local thread vars, this must be the first thing,
+          because the exception management and io depends on threadvars }
+        CAllocateThreadVars;
+        { we cannot know the stack size of the current thread, so pretend it
+          is really large to prevent spurious stack overflow errors }
+        InitThread(1000000000);
+        { instruct the pthreads system to clean up this thread when it exits }
+        pthread_setspecific(CleanupKey,pointer(1));
+      end;
+
+
     function CRelocateThreadvar(offset : dword) : pointer;
-
-    var
-      P : Pointer;
-
+      var
+        P : Pointer;
       begin
         P:=pthread_getspecific(tlskey);
+        { a thread which we did not create? }
         if (P=Nil) then
           begin
-          CAllocateThreadvars;
-          // If this also goes wrong: bye bye threadvars...
-          P:=pthread_getspecific(tlskey);
+            HookThread;
+            // If this also goes wrong: bye bye threadvars...
+            P:=pthread_getspecific(tlskey);
           end;
         CRelocateThreadvar:=P+Offset;
       end;
+
 
     procedure CReleaseThreadVars;
       begin
@@ -276,6 +309,16 @@ Type  PINTRTLEvent = ^TINTRTLEvent;
               { We're still running in single thread mode, setup the TLS }
               pthread_key_create(@TLSKey,nil);
               InitThreadVars(@CRelocateThreadvar);
+              { used to clean up threads that we did not create ourselves:
+                 a) the default value for a key (and hence also this one) in
+                    new threads is NULL, and if it's still like that when the
+                    thread terminates, nothing will happen
+                 b) if it's non-NULL, the destructor routine will be called
+                    when the thread terminates
+               -> we will set it to 1 if the threadvar relocation routine is
+                  called from a thread we did not create, so that we can
+                  clean up everything at the end }
+              pthread_key_create(@CleanupKey,@CthreadCleanup);
             end
         end;
       { the only way to pass data to the newly created thread
