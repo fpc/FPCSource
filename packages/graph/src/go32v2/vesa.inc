@@ -1540,7 +1540,6 @@ end;
      dummy : byte;
      Color : word;
   begin
-    y:= Y + YOffset;
     case CurrentWriteMode of
       XORPut:
         begin
@@ -1567,6 +1566,7 @@ end;
       else
         Color := CurrentColor;
     end;
+     Y := Y + YOffset;
      offs := longint(y) * BytesPerLine + (x div 8);
      SetWriteBank(smallint(offs shr 16));
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
