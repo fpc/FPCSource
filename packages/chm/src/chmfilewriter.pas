@@ -30,10 +30,10 @@ uses
 
 type
   TChmProject = class;
-  TChmProjectErrorKind = (chmerror,chmwarning,chmhint,chmnote);
+  TChmProjectErrorKind = (chmerror,chmwarning,chmhint,chmnote,chmnone);
 
   TChmProgressCB = procedure (Project: TChmProject; CurrentFile: String) of object;
-  TChmErrorCB    = procedure (Project: TChmProject;errorkind:TChmProjectErrorKind;msg:String);
+  TChmErrorCB    = procedure (Project: TChmProject;errorkind:TChmProjectErrorKind;msg:String;detaillevel:integer=0);
 
   { TChmProject }
 
@@ -57,6 +57,8 @@ type
     FMergeFiles : TStringlist;
     fDefaultWindow : string;
     fScanHtmlContents  : Boolean;
+    fOtherFiles : TStrings; // Files found in a scan.
+    fAllowedExtensions: TStringList;
   protected
     function GetData(const DataName: String; out PathInChm: String; out FileName: String; var Stream: TStream): Boolean;
     procedure LastFileAdded(Sender: TObject);
@@ -71,12 +73,13 @@ type
     procedure WriteChm(AOutStream: TStream); virtual;
     function ProjectDir: String;
     procedure AddFileWithContext(contextid:integer;filename:ansistring;contextname:ansistring='');
-    procedure Error(errorkind:TChmProjectErrorKind;msg:String);
+    procedure Error(errorkind:TChmProjectErrorKind;msg:String;detaillevel:integer=0);
     // though stored in the project file, it is only there for the program that uses the unit
     // since we actually write to a stream
     property OutputFileName: String read FOutputFileName write FOutputFileName;
     property FileName: String read FFileName write FFileName;
-    property Files: TStrings read FFiles write FFiles;
+    property Files: TStrings read FFiles write FFiles;  // html files
+    property OtherFiles: TStrings read FOtherFiles write FOtherFiles;  // other files (.css, img etc)
     property AutoFollowLinks: Boolean read FAutoFollowLinks write FAutoFollowLinks;
     property TableOfContentsFileName: String read FTableOfContentsFileName write FTableOfContentsFileName;
     property MakeBinaryTOC: Boolean read FMakeBinaryTOC write FMakeBinaryTOC;
@@ -92,6 +95,7 @@ type
     property OnError   : TChmErrorCB read FOnError write FOnError;
     property DefaultWindow : String read FDefaultWindow write FDefaultWindow;
     property ScanHtmlContents  : Boolean read fScanHtmlContents write fScanHtmlContents;
+    property AllowedExtensions : TStringList read FAllowedExtensions;
   end;
 
   TChmContextNode = Class
@@ -103,7 +107,7 @@ type
 
 
 Const
-  ChmErrorKindText : array[TCHMProjectErrorKind] of string = ('Error','Warning','Hint','Note');
+  ChmErrorKindText : array[TCHMProjectErrorKind] of string = ('Error','Warning','Hint','Note','');
 
 implementation
 
@@ -174,6 +178,10 @@ end;
 constructor TChmProject.Create;
 begin
   FFiles := TStringList.Create;
+  FOtherFiles := TStringList.Create;
+  FAllowedExtensions:=TStringList.Create;
+  FAllowedExtensions.add('.HTM');
+  FAllowedExtensions.add('.HTML');
   FWindows:=TObjectList.Create(True);
   FMergeFiles:=TStringlist.Create;
   ScanHtmlContents:=False;
@@ -186,6 +194,7 @@ begin
     ffiles.objects[i].free;
   FMergeFiles.Free;
   FFiles.Free;
+  FOtherFiles.Free;
   FWindows.Free;
   inherited Destroy;
 end;
@@ -303,6 +312,13 @@ begin
       nd.contextnumber:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/ContextNumber',0);
       nd.contextname:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/ContextName','');
       Files.AddObject(nd.urlname,nd);
+    end;
+
+  FileCount := Cfg.GetValue('OtherFiles/Count/Value', 0);
+  for I := 0 to FileCount-1 do
+    begin
+      s:=Cfg.GetValue('OtherFiles/FileName'+IntToStr(I)+'/Value','');
+      OtherFiles.Add(s);
     end;
 
   WinCount:= Cfg.GetValue('Windows/Count/Value', 0);
@@ -607,6 +623,11 @@ begin
       end;
   end;
 
+  Cfg.SetValue('OtherFiles/Count/Value', OtherFiles.Count);
+  for I := 0 to OtherFiles.Count-1 do
+    Cfg.SetValue('OtherFiles/FileName'+IntToStr(I)+'/Value', OtherFiles.Strings[I]);
+
+
   Cfg.SetValue('Windows/Count/Value', FWindows.count);
   for i:=0 To FWindows.Count-1 do
     TCHMWindow(FWindows[i]).savetoxml(cfg,'Windows/item'+inttostr(i)+'/');
@@ -645,10 +666,10 @@ begin
   Result := ExtractFilePath(FileName);
 end;
 
-procedure TChmProject.Error(errorkind:TChmProjectErrorKind;msg:String);
+procedure TChmProject.Error(errorkind:TChmProjectErrorKind;msg:String;detaillevel:integer=0);
 begin
   if assigned(OnError) then
-    OnError(self,errorkind,msg);
+    OnError(self,errorkind,msg,detaillevel);
 end;
 
 procedure TChmProject.ScanHtml;
@@ -712,6 +733,7 @@ var
   domdoc : THTMLDocument;
   i,j  : Integer;
   fn,s  : string;
+  ext : String;
 begin
  filelist:= TStringList.create;
  localfilelist:= TStringList.create;
@@ -719,33 +741,58 @@ begin
  for j:=0 to Files.count-1 do
    begin
      fn:=files[j];
-     writeln(fn);
      localfilelist.clear;
-     if fileexists(fn) then
+     if (FAllowedExtensions.Indexof(uppercase(extractfileext(fn)))<>-1) then
        begin
-         ReadHtmlFile(domdoc,fn);
-         scantags(domdoc,localfilelist);
-         for i:=0 to localFilelist.count-1 do
+         if fileexists(fn) then
            begin
-             s:=localfilelist[i];
-             if fileexists(s) then  // correct for relative path .html file?
-               begin
-                 filelist.add(s);
-                 Error(ChmNote,'Found file '+s+' while scanning '+fn);
-               end
-             else
-               begin
-                 Error(ChmWarning,'Found file '+s+' while scanning '+fn+', but couldn''t find it on disk');
-               end
+             domdoc:=THtmlDocument.Create;
+             try
+               Error(chmnote,'Scanning file '+fn+'.',5);
+               ReadHtmlFile(domdoc,fn);
+
+               scantags(domdoc,localfilelist);
+               for i:=0 to localFilelist.count-1 do
+                 begin
+                   s:=localfilelist[i];
+                   if fileexists(s) then  // correct for relative path .html file?
+                     begin
+                       filelist.add(s);
+                       Error(ChmNote,'Found file '+s+' while scanning '+fn,1);
+                     end
+                   else
+                     begin
+                       Error(ChmWarning,'Found file '+s+' while scanning '+fn+', but couldn''t find it on disk',2);
+                     end
+                 end;
+             except
+               on e:exception do
+                  Error(ChmError,'Html parsing '+fn+', failed. Please submit a bug.');
+               end;
+             domdoc.free;
+           end
+         else
+           begin
+             Error(chmnote,'Can''t find file '+fn+' to scan it.',5);
            end;
-         domdoc.free;
-       end;
+        end
+     else
+       Error(chmnote,'Not scanning file because of unknown extension '+fn,5);
    end;
- files.addstrings(filelist);
+ if filelist.count>0 then
+   for i:=0 to filelist.count-1 do
+     begin
+       if otherfiles.indexof(filelist[i])=-1 then
+         begin
+           otherfiles.add(filelist[i]);
+           Error(chmnote,'Added media file '+filelist[i],5);
+         end
+       else
+         Error(chmnote,'Ignored duplicate found file '+filelist[i],5);
+     end;
  filelist.free;
  localfilelist.free;
 end;
-
 
 procedure TChmProject.WriteChm(AOutStream: TStream);
 var
@@ -755,6 +802,11 @@ var
   nd         : TChmContextNode;
   I          : Integer;
 begin
+  // Scan html for "rest" files.
+
+  If ScanHtmlContents Then
+    ScanHtml;                 // Since this is slowing we opt to skip this step, and only do this on html load.
+
   IndexStream := nil;
   TOCStream := nil;
 
@@ -764,8 +816,12 @@ begin
   Writer.OnGetFileData := @GetData;
   Writer.OnLastFile    := @LastFileAdded;
 
-  // give it the list of files
+  // give it the list of html files
   Writer.FilesToCompress.AddStrings(Files);
+
+  // give it the list of other files
+
+  Writer.FilesToCompress.AddStrings(OtherFiles);
 
   // now some settings in the chm
   Writer.DefaultPage := DefaultPage;
@@ -788,9 +844,10 @@ begin
   if FWIndows.Count>0 then
     Writer.Windows:=FWIndows;
 
-  If ScanHtmlContents Then
-    ScanHtml;                 // Since this is slowing we opt to skip this step, and only do this on html load.
   // and write!
+
+  Error(chmnone,'Writing CHM '+OutputFileName,0);
+
   Writer.Execute;
 
   if Assigned(TOCStream) then TOCStream.Free;
