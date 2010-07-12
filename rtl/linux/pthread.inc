@@ -107,7 +107,7 @@ Type
 *)
 
      __start_routine_t = function (_para1:pointer):pointer;cdecl;
-     __destr_function_t = procedure (_para1:pointer);
+     __destr_function_t = procedure (_para1:pointer);cdecl;
 {     t_pthread_cleanup_push_routine = procedure (_para1:pointer);
      t_pthread_cleanup_push_defer_routine = procedure (_para1:pointer);}
 
