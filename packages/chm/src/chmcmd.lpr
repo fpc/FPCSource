@@ -154,10 +154,6 @@ begin
   repeat
     c:=getlongopts('h',@theopts[1],optionindex);
     case c of
-      '1','2','3','4','5','6','7','8','9' :
-        begin
-        writeln ('Got optind : ',c)
-        end;
       #0 : begin
              case optionindex-1 of
                0 : htmlscan:=scanforce;

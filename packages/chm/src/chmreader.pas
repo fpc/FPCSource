@@ -105,7 +105,7 @@ type
     fURLTBLStream,
     fStringsStream: TMemoryStream;
     fLocaleID: DWord;
-    fWindows      : TObjectList;
+    fWindowsList : TObjectList;
     fDefaultWindow: String;
   private
     FSearchReader: TChmSearchReader;
@@ -132,7 +132,7 @@ type
     property LocaleID: dword read fLocaleID;
     property SearchReader: TChmSearchReader read FSearchReader write FSearchReader;
     property contextlist : tcontextlist read fcontextlist;
-    property Windows : TObjectlist read fwindows;
+    property Windows : TObjectlist read fWindowsList;
     property DefaultWindow : string read fdefaultwindow;
   end;
 
@@ -215,10 +215,10 @@ begin
   fITSFHeader.TimeStamp := BEtoN(fITSFHeader.TimeStamp);//bigendian
   fITSFHeader.LanguageID := LEtoN(fITSFHeader.LanguageID);
   {$ENDIF}
- 
+
   if fITSFHeader.Version < 4 then
    fStream.Seek(SizeOf(TGuid)*2, soCurrent);
-  
+
   if not IsValidFile then Exit;
 
   ReadHeaderEntries;
@@ -518,7 +518,8 @@ var
   version   : integer;
   x         : TChmWindow;
 begin
- fWindows.Clear;
+ if not assigned(fwindowslist) then
+ fWindowsList.Clear;
  mem.Position:=0;
  cnt  := LEtoN(mem.ReadDWord);
  version  := LEtoN(mem.ReadDWord);
@@ -574,26 +575,27 @@ begin
          dec(version,4);
        end;
 
-     fWindows.Add(x);
+     fWindowslist.Add(x);
      dec(cnt);
    end;
 end;
 
 constructor TChmReader.Create(AStream: TStream; FreeStreamOnDestroy: Boolean);
 begin
+  fContextList := TContextList.Create;
+  fWindowslist      := TObjectlist.Create(True);
+  fDefaultWindow:='';
+
   inherited Create(AStream, FreeStreamOnDestroy);
   if not IsValidFile then exit;
 
-  fContextList := TContextList.Create;
   ReadCommonData;
-  fWindows      := TObjectlist.Create(True);
-  fDefaultWindow:='';
 end;
 
 destructor TChmReader.Destroy;
 begin
   FreeAndNil(fContextList);
-  FreeAndNil(FWindows);
+  FreeAndNil(FWindowslist);
   FreeAndNil(FSearchReader);
   FreeAndNil(fTOPICSStream);
   FreeAndNil(fURLSTRStream);

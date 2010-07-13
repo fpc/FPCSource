@@ -27,25 +27,65 @@ program chmls;
 {$mode objfpc}{$H+}
 
 uses
-  Classes, chmreader, chmbase, Sysutils
-  { add your units here };
+  Classes, GetOpts, SysUtils, Types,
+  chmreader, chmbase;
+
 type
 
   { TJunkObject }
 
   TJunkObject = class
+    Section : Integer;
+    count   : integer;
     procedure OnFileEntry(Name: String; Offset, UncompressedSize, ASection: Integer);
   end;
-  
+
+  TCmdEnum = (cmdList,cmdExtract,cmdNone);        // One dummy element at the end avoids rangecheck errors.
+
+Const
+  CmdNames : array [TCmdEnum] of String = ('LIST','EXTRACT','');
 
 var
-  ITS: TITSFReader;
-  Stream: TFileStream;
-  I : Integer;
-  Section: Integer = -1;
-  JunkObject: TJunkObject;
+  theopts : array[1..2] of TOption;
 
-procedure WriteStr(Str: String; CharWidth: Integer);
+
+Procedure Usage;
+
+begin
+  Writeln(StdErr,'Usage: chmls [switches] [command] [command specific parameters]');
+  writeln(stderr);
+  writeln(stderr,'Switches : ');
+  writeln(stderr,' -h, --help  : this screen');
+  writeln(stderr);
+  writeln(stderr,'Where command is one of the following or if omitted, equal to LIST.');
+  writeln(stderr,' list     <filename> [section number] ');
+  writeln(stderr,'            Shows contents of the archive''s directory');
+  writeln(stderr,' extract  <chm filename> <filename to extract> [saveasname]');
+  writeln(stderr,'            Extracts file "filename to get" from archive "filename",');
+  writeln(stderr,'            and, if specified, saves it to [saveasname]');
+  Halt(1);
+end;
+
+procedure InitOptions;
+begin
+  with theopts[1] do
+   begin
+    name:='help';
+    has_arg:=0;
+    flag:=nil;
+    value:=#0;
+  end;
+  with theopts[2] do
+   begin
+    name:='';
+    has_arg:=0;
+    flag:=nil;
+  end;
+end;
+
+procedure WriteStrAdj(Str: String; CharWidth: Integer);
+// Changed to WriteStrADJ (for adjust), since 2.4.0 writestr is a builtin
+// Why doesn't Write() allow left aligned columns?, sigh.
   var
     OutString: String;
     Len: Integer;
@@ -53,8 +93,7 @@ procedure WriteStr(Str: String; CharWidth: Integer);
     Len := Length(Str);
     SetLength(OutString, CharWidth-Len);
     FillChar(OutString[1], CharWidth-Len, ' ');
-
-    Write(OutString + Str); // to sdtout
+    Write(OutString + Str); // to stdout
   end;
 
 { TJunkObject }
@@ -62,50 +101,186 @@ procedure WriteStr(Str: String; CharWidth: Integer);
 procedure TJunkObject.OnFileEntry(Name: String; Offset, UncompressedSize,
   ASection: Integer);
 begin
-  Inc(I);
+  Inc(Count);
   if (Section > -1) and (ASection <> Section) then Exit;
-  if (I = 1) or (I mod 40 = 0) then
+  if (Count = 1) or (Count mod 40 = 0) then
     WriteLn(StdErr, '<Section> <Offset> <UnCompSize>  <Name>');
   Write(' ');
   Write(ASection);
   Write('      ');
-  WriteStr(IntToStr(Offset), 10);
+  WriteStrAdj(IntToStr(Offset), 10);
   Write('  ');
-  WriteStr(IntToStr(UncompressedSize), 11);
+  WriteStrAdj(IntToStr(UncompressedSize), 11);
   Write('  ');
   WriteLn(Name);
 end;
 
-Procedure Usage;
+procedure ListChm(Const Name:string;Section:Integer);
+var
+  ITS: TITSFReader;
+  Stream: TFileStream;
+  JunkObject: TJunkObject;
 
 begin
-  WriteLn('   Usage:  chmls filename.chm [section number]');
-  Halt(1);
+  if not Fileexists(name) then
+    begin
+      writeln(stderr,' Can''t find file ',name);
+      halt(1);
+    end;
+
+  Stream := TFileStream.Create(name, fmOpenRead);
+  JunkObject := TJunkObject.Create;
+  JunkObject.Section:=Section;
+  JunkObject.Count:=0;
+
+  ITS:= TITSFReader.Create(Stream, True);
+  ITS.GetCompleteFileList(@JunkObject.OnFileEntry);
+
+  WriteLn('Total Files in chm: ', JunkObject.Count);
+  ITS.Free;
+  JunkObject.Free;
 end;
+
+procedure ExtractFile(chm,readfrom,saveto:string);
+var
+  fs: TFileStream;
+  m : TMemoryStream;
+  r : TChmReader;
+begin
+  if not Fileexists(chm) then
+    begin
+      writeln(stderr,' Can''t find file ',chm);
+      halt(1);
+    end;
+
+  if (length(readfrom)>1) and (readfrom[1]<>'/') then
+    readfrom:='/'+readfrom;
+
+  fs:=TFileStream.create(chm,fmOpenRead);
+  r:=TChmReader.Create(fs,True);
+  m:=r.getobject(readfrom);
+  if assigned(m) then
+    begin
+      try
+        Writeln('Extracting ms-its:/',chm,'::',readfrom,' to ',saveto);
+        m.savetofile(saveto);
+      except
+        on e : exception do
+          writeln('Can''t write to file ',saveto);
+        end;
+     end
+  else
+    begin
+      writeln(stderr,'Can''t find file ',readfrom,' in ',chm);
+      halt(1);
+    end;
+end;
+
+procedure buildarglist(var params: TStringDynArray;var cmd :TCmdEnum);
+
+var s           : ansistring;
+    j,k         : Integer;
+
+begin
+  s:=uppercase(paramstr(optind));
+  cmd:=Low(TCMDEnum);
+  While (cmd<>high(TCmdEnum)) and (s<>CmdNames[cmd]) do
+    inc(cmd);
+  if cmd=CmdNone then
+    begin
+      writeln(stderr,' Using cmdls without command is deprecated, this may be removed in a future version');
+      writeln(stderr,' Please consider using the "list" command');
+      cmd:=CmdList;      // no cmd found -> list  In the future we can also do a name check here for the default (symlink on unix)
+      k:=optind;
+    end
+  else
+    begin
+      k:=optind+1;
+    end;
+  setlength(params,paramcount-k+1);
+  for j:=k to paramcount do
+    params[j-k]:=paramstr(j);
+end;
+
+Var
+  LocalParams : TStringDynArray;
+  c:   char;
+  i,
+  Params,
+  OptionIndex : Longint;
+  cmd         : TCmdEnum;
+  section     : Integer = -1;
 
 // Start of program
 begin
-  if (Paramcount < 1) or (Paramstr(1)='-h') or (Paramstr(1)='-?') then 
-    begin
-    usage;
-    end;
-  if ParamCount > 1 then 
-    begin
-    Section := StrToIntDef(ParamStr(2),-1);
-    If (Section=-1) then
-      begin
-      Usage;
-      Halt(1);
-      end;
-    end; 
-  Stream := TFileStream.Create(ParamStr(1), fmOpenRead);
-  JunkObject := TJunkObject.Create;
-  ITS:= TITSFReader.Create(Stream, True);
-  I := 0;
-  ITS.GetCompleteFileList(@JunkObject.OnFileEntry);
-  
-  WriteLn('Total Files in chm: ', I);
-  ITS.Free;
-  JunkObject.Free;
+  InitOptions;
+  Writeln(stderr,'chmls, a CHM utility. (c) 2010 Free Pascal core.');
+  Writeln(Stderr);
+  repeat
+    c:=getlongopts('h',@theopts[1],optionindex);
+    case c of
+      #0 : begin
+             case optionindex-1 of
+               0 : begin;
+                     Usage;
+                     Halt;
+                   end;
+                end;
+           end;
+      '?','h' :
+            begin
+              writeln('unknown option',optopt);
+              usage;
+              halt;
+            end;
+   end; { case }
+ until c=endofoptions;
+
+ params:=Paramcount-optind+1;
+
+ if params>0 then
+  begin
+    BuildArgList(localparams,cmd);
+    case cmd of
+      cmdlist : begin
+                  case length(localparams) of
+                    1 : ListChm(localparams[0],Section);
+                    2 : begin
+                          if not TryStrToInt(localparams[1],section) then
+                            begin
+                              writeln(stderr,' Invalid value for section ',localparams[2]);
+                              usage;
+                              halt(1);
+                            end;
+                          ListChm(localparams[0],Section);
+                        end;
+                  else
+                    begin
+                      writeln(stderr,' Wrong number of parameters for LIST ',length(localparams));
+                      usage;
+                      halt(1);
+                    end
+                   end; {case}
+                end; { cmdlist}
+      cmdextract : begin
+                     case length(localparams) of
+                      2: ExtractFile(localparams[0],localparams[1],extractfilename(localparams[1]));
+                      3: ExtractFile(localparams[0],localparams[1],localparams[2]);
+                     else
+                      begin
+                        writeln(stderr,' Wrong number of parameters for LIST ',length(localparams));
+                        usage;
+                        halt(1);
+                      end
+                     end;
+                   end;
+      end; {case cmd of}
+  end
+ else
+   begin
+     Usage;
+     halt;
+   end;
+
 end.
 
