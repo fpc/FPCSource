@@ -42,7 +42,7 @@ type
   end;
 
 implementation
-{ $define wmdebug}
+{$define wmdebug}
 {$ifdef wmdebug}
 uses dbugintf;
 {$endif wmdebug}
@@ -59,6 +59,10 @@ Const
   SDefFieldNameProperty = 'name';
   SDefDirectionProperty = 'direction';
   SDefSortInfoProperty  = 'sortInfo';
+  SIdProperty           = 'idProperty';
+  SSuccessProperty      = 'successProperty';
+  SRootProperty         = 'root';
+  STotalProperty        = 'totalProperty';
   SDefAscDesc : Array[Boolean] of string = ('ASC','DESC');
 
 function TExtJSJSONDataFormatter.GetDataContentType: String;
@@ -86,6 +90,16 @@ begin
       Result:=O.Items[O.Add(AFieldName,F.AsBoolean)];
     ftLargeint:
       Result:=O.Items[O.Add(AFieldName,F.AsLargeInt)];
+    ftDate:
+      Result:=O.Items[O.Add(AFieldName,FormatDateTime('yyyy-mm-dd',F.AsDateTime))];
+    ftDateTime:
+      Result:=O.Items[O.Add(AFieldName,FormatDateTime('yyyy-mm-dd hh":"nn":"ss',F.AsDateTime))];
+    ftTime:
+      Result:=O.Items[O.Add(AFieldName,FormatDateTime('hh":"nn":"ss',F.AsDateTime))];
+    ftMemo,
+    ftFmtMemo,
+    ftWideMemo,
+    ftBlob :O.Items[O.Add(AFieldName,F.AsString)];
   else
     Result:=O.Items[O.Add(AFieldName,F.DisplayText)];
   end;
@@ -109,12 +123,22 @@ end;
 
 Function TExtJSJSONDataFormatter.GetJSONMetaData: TJSONObject;
 
+  Function DefReplace(S : String) : String;
+
+  begin
+    Result:=StringReplace(Result,'/',DateSeparator,[rfReplaceAll]);
+    Result:=StringReplace(Result,':',TimeSeparator,[rfReplaceAll]);
+    Result:=StringReplace(Result,'hh','H',[rfReplaceAll]);
+    Result:=StringReplace(Result,'nn','i',[rfReplaceAll]);
+    Result:=StringReplace(S,'n','i',[rfReplaceAll]);
+  end;
+
 Var
   F : TJSONArray;
   Fi : TField;
   I : Integer;
   O : TJSONObject;
-  SF : String;
+  SF,FT : String;
 
 begin
   If (SortField='') then
@@ -130,12 +154,50 @@ begin
       Fi:=Dataset.Fields[i];
       O:=TJSONObject.Create();
       O.Add(SDefFieldNameProperty,Fi.FieldName);
+      Ft:='';
+      Case Fi.DataType of
+        ftInteger,
+        ftSmallint,
+        ftWord,
+        ftLargeInt : FT:='int';
+        ftCurrency,
+        ftFloat,
+        ftBCD : FT:='float';
+        ftBoolean : ft:='boolean';
+        ftDate,
+        ftDateTime,
+        ftTimeStamp,
+        ftTime : ft:='date';
+        ftString,
+        ftMemo,
+        ftFmtMemo,
+        ftFixedChar,
+        ftWideString,
+        ftWideMemo : ft:='string'
+      end;
+      if (FT<>'') then
+        begin
+        O.Add('type',FT);
+        if (FT='date') then
+          // Needs improving
+          Case Fi.DataType of
+            ftDate : O.Add('dateFormat','Y-m-d');
+            ftTime : O.Add('dateFormat','h:i:s');
+            ftDateTime,
+            ftTimeStamp : O.Add('dateFormat','Y-m-d h:i:s');
+          end;
+        end;
       F.Add(O);
       end;
     O:=TJSONObject.Create();
     O.Add(SDefFieldProperty,SF);
     O.Add(SDefDirectionProperty,SDefAscDesc[SortDescending]);
     Result.Add(SDefSortInfoProperty,O);
+ {$ifdef wmdebug}senddebug('ID property: '+Provider.IDFieldName);{$endif}
+    Result.Add(SIdProperty,Provider.IDFieldName);
+    Result.Add(SSuccessProperty, SuccessProperty);
+    Result.Add(SRootProperty, RowsProperty);
+    Result.Add(STotalProperty, totalProperty)
   except
     Result.free;
     Raise;
