@@ -125,7 +125,10 @@ begin
 {$ifdef cgidebug}SendMethodEnter('GetDefaultSession');{$endif}
   Result:=Nil;
   If (GlobalSessionDir='') then
-    GlobalSessionDir:=IncludeTrailingPathDelimiter(GetTempDir(True));
+    GlobalSessionDir:=IncludeTrailingPathDelimiter(GetTempDir(True))
+  else
+    GlobalSessionDir:=IncludeTrailingPathDelimiter(GlobalSessionDir);
+{$ifdef cgidebug}SendDebug('GetDefaultSession, session dir: '+GlobalSessionDir);{$endif}
   If Assigned(OnGetDefaultSession) then
     OnGetDefaultSession(Result);
   if (Result=Nil) then
@@ -257,8 +260,9 @@ begin
     If Assigned(OnNewSession) then
       OnNewSession(Self);
     GetSessionID;
-{$ifdef cgidebug}SendDebug('Creating new Ini file : '+SessionID);{$endif}
-    FIniFile:=TMemIniFile.Create(IncludeTrailingPathDelimiter(SessionDir)+SessionID);
+    S:=IncludeTrailingPathDelimiter(SessionDir)+SessionID;
+{$ifdef cgidebug}SendDebug('Creating new Ini file : '+S);{$endif}
+    FIniFile:=TMemIniFile.Create(S);
     FIniFile.WriteDateTime(SSession,KeyStart,Now);
     FIniFile.WriteInteger(SSession,KeyTimeOut,Self.TimeOutMinutes);
     FSessionStarted:=True;
@@ -342,8 +346,13 @@ procedure TSessionHTTPModule.CheckSession(ARequest : TRequest);
 
 begin
 {$ifdef cgidebug}SendMethodEnter('SessionHTTPModule('+Name+').CheckSession');{$endif}
-  If CreateSession and Assigned(Session) then
-    Session.InitSession(ARequest,FOnNewSession,FOnSessionExpired);
+  If CreateSession then
+    begin
+    If (FSession=Nil) then
+      FSession:=GetDefaultSession;
+    if Assigned(Session) then
+      Session.InitSession(ARequest,FOnNewSession,FOnSessionExpired);
+    end;
 {$ifdef cgidebug}SendMethodExit('SessionHTTPModule('+Name+').CheckSession');{$endif}
 end;
 
