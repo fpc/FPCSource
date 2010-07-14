@@ -120,9 +120,11 @@ Type
   private
     FModuleClass: TCustomHTTPModuleClass;
     FModuleName: String;
+    FSkipStreaming: Boolean;
   Public
     Property ModuleClass : TCustomHTTPModuleClass Read FModuleClass Write FModuleClass;
     Property ModuleName : String Read FModuleName Write FModuleName;
+    Property SkipStreaming : Boolean Read FSkipStreaming Write FSkipStreaming;
   end;
 
   { TModuleFactory }
@@ -140,8 +142,8 @@ Type
 
   EFPHTTPError = Class(Exception);
 
-Procedure RegisterHTTPModule(ModuleClass : TCustomHTTPModuleClass);
-Procedure RegisterHTTPModule(Const ModuleName : String; ModuleClass : TCustomHTTPModuleClass);
+Procedure RegisterHTTPModule(ModuleClass : TCustomHTTPModuleClass; SkipStreaming : Boolean = False);
+Procedure RegisterHTTPModule(Const ModuleName : String; ModuleClass : TCustomHTTPModuleClass; SkipStreaming : Boolean = False);
 
 Var
   ModuleFactory : TModuleFactory;
@@ -202,13 +204,13 @@ begin
 end;
 
 
-procedure RegisterHTTPModule(ModuleClass: TCustomHTTPModuleClass);
+procedure RegisterHTTPModule(ModuleClass: TCustomHTTPModuleClass; SkipStreaming : Boolean = False);
 begin
   RegisterHTTPModule(ModuleClass.ClassName,ModuleClass);
 end;
 
 procedure RegisterHTTPModule(const ModuleName: String;
-  ModuleClass: TCustomHTTPModuleClass);
+  ModuleClass: TCustomHTTPModuleClass; SkipStreaming : Boolean = False);
   
 Var
   I : Integer;
@@ -224,6 +226,7 @@ begin
   else
     MI:=ModuleFactory[I];
   MI.ModuleClass:=ModuleClass;
+  MI.SkipStreaming:=SkipStreaming;
 end;
 
 { THTTPContentProducer }
