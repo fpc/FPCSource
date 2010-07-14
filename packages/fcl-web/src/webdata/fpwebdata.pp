@@ -479,7 +479,7 @@ Function WebDataProviderManager : TFPCustomWebDataProviderManager;
 
 implementation
 
-{$define wmdebug}
+{ $define wmdebug}
 
 {$ifdef wmdebug}
 uses dbugintf;
