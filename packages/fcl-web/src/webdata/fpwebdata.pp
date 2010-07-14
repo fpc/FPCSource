@@ -468,6 +468,8 @@ type
     Property OnGetInputAdaptor;
     Property OnGetProvider;
     Property OnContent;
+    Property OnNewSession;
+    Property OnSessionExpired;
   end;
 
 Var
@@ -477,7 +479,7 @@ Function WebDataProviderManager : TFPCustomWebDataProviderManager;
 
 implementation
 
-{ $define wmdebug}
+{$define wmdebug}
 
 {$ifdef wmdebug}
 uses dbugintf;
@@ -499,6 +501,11 @@ Resourcestring
   SErrDuplicateHTTPDataProducer = 'Duplicate web data output content producer name: "%s"';
   SErrUnknownInputAdaptor = 'Unknown web data input adaptor name: "%s"';
   SErrUnknownHTTPDataProducer = 'Unknown web data output content producer name: "%s"';
+  SErrActionNotAllowed = 'Options of provider %s do not allow %s.';
+  SEditing   = 'editing';
+  SDeleting  = 'deleting';
+  SInserting = 'inserting';
+
 
 { TCustomWebdataInputAdaptor }
 
@@ -736,6 +743,8 @@ end;
 procedure TFPCustomWebDataProvider.Update;
 begin
   {$ifdef wmdebug}SendDebug('TFPCustomWebDataProvider.Update enter');{$endif}
+  If ((Options * [wdpReadOnly,wdpDisableEdit])<>[]) then
+    Raise EFPHTTPError.CreateFmt(SErrActionNotAllowed,[Name,SEditing]);
   CheckAdaptor;
   DoUpdate;
   {$ifdef wmdebug}SendDebug('TFPCustomWebDataProvider.Update leave');{$endif}
@@ -743,14 +752,22 @@ end;
 
 procedure TFPCustomWebDataProvider.Delete;
 begin
+  {$ifdef wmdebug}SendDebug('TFPCustomWebDataProvider.Delete enter');{$endif}
+  If ((Options * [wdpReadOnly,wdpDisableDelete])<>[]) then
+    Raise EFPHTTPError.CreateFmt(SErrActionNotAllowed,[Name,SDeleting]);
   CheckAdaptor;
   DoDelete;
+  {$ifdef wmdebug}SendDebug('TFPCustomWebDataProvider.Delete leave');{$endif}
 end;
 
 procedure TFPCustomWebDataProvider.Insert;
 begin
+  {$ifdef wmdebug}SendDebug('TFPCustomWebDataProvider.Insert enter');{$endif}
+  If ((Options * [wdpReadOnly,wdpDisableInsert])<>[]) then
+    Raise EFPHTTPError.CreateFmt(SErrActionNotAllowed,[Name,SInserting]);
   CheckAdaptor;
   DoInsert;
+  {$ifdef wmdebug}SendDebug('TFPCustomWebDataProvider.Insert leave');{$endif}
 end;
 
 procedure TFPCustomWebDataProvider.ApplyParams;
@@ -1635,6 +1652,11 @@ begin
   FRequest:=ARequest;
   FResponse:=AResponse;
   try
+    {$ifdef wmdebug}SendDebug('Checking session');{$endif}
+    CheckSession(ARequest);
+    {$ifdef wmdebug}SendDebug('Init session');{$endif}
+    InitSession(AResponse);
+    {$ifdef wmdebug}SendDebug('Getting providername');{$endif}
     ProviderName:=Request.GetNextPathInfo;
     {$ifdef wmdebug}SendDebug('Handlerequest, providername : '+Providername);{$endif}
     AProvider:=GetProvider(ProviderName,AContainer);
@@ -1649,6 +1671,7 @@ begin
         wdaInsert  : InsertWebdata(AProvider);
         wdaDelete  : DeleteWebData(AProvider);
       end;
+      UpdateSession(AResponse);
     finally
       If (AContainer=Nil) then
         begin
