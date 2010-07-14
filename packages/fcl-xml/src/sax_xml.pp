@@ -272,10 +272,12 @@ procedure TSAXXMLReader.EnterNewScannerContext(NewContext: TXMLScannerContext);
     DoIncJ: Boolean;
   begin
     Attr := nil;
-    i := 1;
-    while (i <= Length(s)) and not (s[i] in WhitespaceChars) do
-      Inc(i);
-    if i = Length(s) then
+    i := 0;
+    repeat
+      Inc(i)
+    until (i > Length(s)) or (s[i] in WhitespaceChars);
+
+    if i > Length(s) then
       Result := LowerCase(s)
     else
     begin

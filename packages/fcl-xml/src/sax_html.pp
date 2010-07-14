@@ -325,11 +325,12 @@ var
   DoIncJ: Boolean;
 begin
   Attr := nil;
-  i := 1;
-  while (i <= Length(s)) and not IsXMLWhitespace(s[i]) do
-    Inc(i);
+  i := 0;
+  repeat
+    Inc(i)
+  until (i > Length(s)) or IsXMLWhitespace(s[i]);
 
-  if i = Length(s) then
+  if i > Length(s) then
     Result := s
   else
   begin
