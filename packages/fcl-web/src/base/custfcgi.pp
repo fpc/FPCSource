@@ -26,13 +26,22 @@ uses
 Type
   { TFCGIRequest }
   TCustomFCgiApplication = Class;
+  TFCGIRequest = Class;
+  TFCGIResponse = Class;
+
+  TProtocolOption = (poNoPadding,poStripContentLength, poFailonUnknownRecord );
+  TProtocolOptions = Set of TProtocolOption;
+
+  TUnknownRecordEvent = Procedure (ARequest : TFCGIRequest; AFCGIRecord: PFCGI_Header) Of Object;
 
   TFCGIRequest = Class(TCGIRequest)
   Private
     FHandle: THandle;
     FKeepConnectionAfterRequest: boolean;
+    FPO: TProtoColOptions;
     FRequestID : Word;
     FCGIParams : TSTrings;
+    FUR: TUnknownRecordEvent;
     procedure GetNameValuePairsFromContentRecord(const ARecord : PFCGI_ContentRecord; NameValueList : TStrings);
   Protected
     Function GetFieldValue(Index : Integer) : String; override;
@@ -43,16 +52,22 @@ Type
     property RequestID : word read FRequestID write FRequestID;
     property Handle : THandle read FHandle write FHandle;
     property KeepConnectionAfterRequest : boolean read FKeepConnectionAfterRequest;
+    Property ProtocolOptions : TProtoColOptions read FPO Write FPO;
+    Property OnUnknownRecord : TUnknownRecordEvent Read FUR Write FUR;
   end;
 
   { TFCGIResponse }
 
   TFCGIResponse = Class(TCGIResponse)
   private
+    FNoPadding: Boolean;
+    FPO: TProtoColOptions;
+    FStripCL: Boolean;
     procedure Write_FCGIRecord(ARecord : PFCGI_Header);
   Protected
     Procedure DoSendHeaders(Headers : TStrings); override;
     Procedure DoSendContent; override;
+    Property ProtocolOptions : TProtoColOptions Read FPO Write FPO;
   end;
 
   TReqResp = record
@@ -64,6 +79,8 @@ Type
 
   TCustomFCgiApplication = Class(TCustomWebApplication)
   Private
+    FOnUnknownRecord: TUnknownRecordEvent;
+    FPO: TProtoColOptions;
     FRequestsArray : Array of TReqResp;
     FRequestsAvail : integer;
     FHandle : THandle;
@@ -77,6 +94,8 @@ Type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     property Port: integer read FPort write FPort;
+    Property ProtocolOptions : TProtoColOptions Read FPO Write FPO;
+    Property OnUnknownRecord : TUnknownRecordEvent Read FOnUnknownRecord Write FOnUnknownRecord;
   end;
 
 ResourceString
@@ -146,6 +165,12 @@ begin
                           FContentRead:=True;
                           end;
                         end;
+  else
+    if Assigned(FUR) then
+      FUR(Self,AFCGIRecord)
+    else
+      if poFailonUnknownRecord in FPO then
+        Raise EFPWebError.CreateFmt('Unknown FASTCGI record type: %s',[AFCGIRecord^.reqtype]);
   end;
 end;
 
@@ -193,6 +218,7 @@ begin
     NameValueList.Add(Name+'='+Value);
     end;
 end;
+
 
 Function TFCGIRequest.GetFieldValue(Index : Integer) : String;
 
@@ -270,14 +296,26 @@ var
   pl : byte;
   str : String;
   ARespRecord : PFCGI_ContentRecord;
+  I : Integer;
 
 begin
-  str := Headers.Text;
+  For I:=Headers.Count-1 downto 0 do
+    If (Headers[i]='') then
+      Headers.Delete(I);
+  // IndexOfName Does not work ?
+  If (poStripContentLength in ProtocolOptions) then
+    For I:=Headers.Count-1 downto 0 do
+      If (Pos('Content-Length',Headers[i])<>0)  then
+        Headers.Delete(i);
+  str := Headers.Text+sLineBreak;
   cl := length(str);
-  pl := (cl mod 8);
-
+  if ((cl mod 8)=0) or (poNoPadding in ProtocolOptions) then
+    pl:=0
+  else
+    pl := 8-(cl mod 8);
   ARespRecord:=nil;
   Getmem(ARespRecord,8+cl+pl);
+  FillChar(ARespRecord^,8+cl+pl,0);
   ARespRecord^.header.version:=FCGI_VERSION_1;
   ARespRecord^.header.reqtype:=FCGI_STDOUT;
   ARespRecord^.header.paddingLength:=pl;
@@ -305,10 +343,11 @@ begin
     end
   else
     str := Contents.Text;
-
   cl := length(str);
-  pl := (cl mod 8);
-
+  if ((cl mod 8)=0) or (poNoPadding in ProtocolOptions) then
+    pl:=0
+  else
+    pl := 8-(cl mod 8);
   ARespRecord:=Nil;
   Getmem(ARespRecord,8+cl+pl);
   ARespRecord^.header.version:=FCGI_VERSION_1;
@@ -317,8 +356,10 @@ begin
   ARespRecord^.header.contentLength:=NtoBE(cl);
   ARespRecord^.header.requestId:=NToBE(TFCGIRequest(Request).RequestID);
   move(str[1],ARespRecord^.ContentData,cl);
+
   Write_FCGIRecord(PFCGI_Header(ARespRecord));
   Freemem(ARespRecord);
+  FillChar(EndRequest,SizeOf(FCGI_EndRequestRecord),0);
 
   EndRequest.header.version:=FCGI_VERSION_1;
   EndRequest.header.reqtype:=FCGI_END_REQUEST;
@@ -342,8 +383,11 @@ end;
 destructor TCustomFCgiApplication.Destroy;
 begin
   SetLength(FRequestsArray,0);
-  if port<>0 then
-    fpshutdown(Socket,2);
+  if (Socket<>0) then
+    begin
+    CloseSocket(Socket);
+    Socket:=0;
+    end;
   inherited Destroy;
 end;
 
@@ -353,7 +397,7 @@ begin
     begin
     Assert(ARequest=Request);
     Assert(AResponse=Response);
-    if not TFCGIRequest(ARequest).KeepConnectionAfterRequest then
+    if (not TFCGIRequest(ARequest).KeepConnectionAfterRequest) then
       begin
       fpshutdown(FHandle,SHUT_RDWR);
       CloseSocket(FHandle);
@@ -425,14 +469,22 @@ begin
       begin
       Socket := fpsocket(AF_INET,SOCK_STREAM,0);
       if Socket=-1 then
-        raise Exception.CreateFmt(SNoSocket,[socketerror]);
+        raise EFPWebError.CreateFmt(SNoSocket,[socketerror]);
       Address.sin_family:=AF_INET;
       Address.sin_port:=htons(Port);
       Address.sin_addr.s_addr:=0;
       if fpbind(Socket,@Address,AddressLength)=-1 then
+        begin
+        CloseSocket(socket);
+        Socket:=0;
         raise Exception.CreateFmt(SBindFailed,[port,socketerror]);
+        end;
       if fplisten(Socket,1)=-1 then
+        begin
+        CloseSocket(socket);
+        Socket:=0;
         raise Exception.CreateFmt(SListenFailed,[port,socketerror]);
+        end;
       end
     else
       Socket:=StdInputHandle;
@@ -463,12 +515,15 @@ begin
       ATempRequest:=TFCGIRequest.Create;
       ATempRequest.RequestID:=ARequestID;
       ATempRequest.Handle:=FHandle;
+      ATempRequest.ProtocolOptions:=Self.Protocoloptions;
+      ATempRequest.OnUnknownRecord:=Self.OnUnknownRecord;
       FRequestsArray[ARequestID].Request := ATempRequest;
       end;
     if FRequestsArray[ARequestID].Request.ProcessFCGIRecord(AFCGI_Record) then
       begin
       ARequest:=FRequestsArray[ARequestID].Request;
       FRequestsArray[ARequestID].Response := TFCGIResponse.Create(ARequest);
+      FRequestsArray[ARequestID].Response.ProtocolOptions:=Self.ProtocolOptions;
       AResponse:=FRequestsArray[ARequestID].Response;
       Result := True;
       Break;
