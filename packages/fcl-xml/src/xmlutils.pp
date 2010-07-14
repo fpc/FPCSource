@@ -35,6 +35,7 @@ function IsXmlWhiteSpace(c: WideChar): Boolean;
 function Hash(InitValue: LongWord; Key: PWideChar; KeyLen: Integer): LongWord;
 { beware, works in ASCII range only }
 function WStrLIComp(S1, S2: PWideChar; Len: Integer): Integer;
+procedure WStrLower(var S: WideString);
 
 type
   TXMLVersion = (xmlVersionUnknown, xmlVersion10, xmlVersion11);
@@ -383,6 +384,15 @@ begin
     Inc(counter);
   until counter >= Len;
   result := c1 - c2;
+end;
+
+procedure WStrLower(var S: WideString);
+var
+  i: Integer;
+begin
+  for i := 1 to Length(S) do
+    if (S[i] >= 'A') and (S[i] <= 'Z') then
+      Inc(word(S[i]), 32);
 end;
 
 function Hash(InitValue: LongWord; Key: PWideChar; KeyLen: Integer): LongWord;

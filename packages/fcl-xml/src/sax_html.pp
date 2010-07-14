@@ -31,7 +31,7 @@ unit SAX_HTML;
 
 interface
 
-uses SysUtils, Classes, SAX, DOM, DOM_HTML,htmldefs;
+uses SysUtils, Classes, SAX, DOM, DOM_HTML,htmldefs,xmlutils;
 
 type
 
@@ -54,8 +54,8 @@ type
     FAttrNameRead: Boolean;
     FStack: array of THTMLElementTag;
     FNesting: Integer;
-    procedure AutoClose(const aName: string);
-    procedure NamePush(const aName: string);
+    procedure AutoClose(const aName: SAXString);
+    procedure NamePush(const aName: SAXString);
     procedure NamePop;
   protected
     procedure EnterNewScannerContext(NewContext: THTMLScannerContext);
@@ -271,12 +271,14 @@ begin
   end;
 end;
 
-function LookupTag(const aName: string): THTMLElementTag;
+function LookupTag(const aName: SAXString): THTMLElementTag;
 var
   j: THTMLElementTag;
+  ansiName: string;
 begin
+  ansiName := aName;
   for j := Low(THTMLElementTag) to High(THTMLElementTag) do
-    if SameText(HTMLElementProps[j].Name, aName) then
+    if SameText(HTMLElementProps[j].Name, ansiName) then
     begin
       Result := j;
       Exit;
@@ -284,7 +286,7 @@ begin
   Result := etUnknown;
 end;
 
-procedure THTMLReader.AutoClose(const aName: string);
+procedure THTMLReader.AutoClose(const aName: SAXString);
 var
   newTag: THTMLElementTag;
 begin
@@ -296,7 +298,7 @@ begin
   end;
 end;
 
-procedure THTMLReader.NamePush(const aName: string);
+procedure THTMLReader.NamePush(const aName: SAXString);
 var
   tag: THTMLElementTag;
 begin
@@ -315,27 +317,27 @@ begin
   FStack[FNesting] := etUnknown;
 end;
 
-function SplitTagString(const s: String; var Attr: TSAXAttributes): String;
+function SplitTagString(const s: SAXString; var Attr: TSAXAttributes): SAXString;
 var
   i, j: Integer;
-  AttrName: String;
-  ValueDelimiter: Char;
+  AttrName: SAXString;
+  ValueDelimiter: WideChar;
   DoIncJ: Boolean;
 begin
   Attr := nil;
   i := 1;
-  while (i <= Length(s)) and not (s[i] in WhitespaceChars) do
+  while (i <= Length(s)) and not IsXMLWhitespace(s[i]) do
     Inc(i);
 
   if i = Length(s) then
-    Result := LowerCase(s)
+    Result := s
   else
   begin
-    Result := LowerCase(Copy(s, 1, i - 1));
+    Result := Copy(s, 1, i - 1);
     Attr := TSAXAttributes.Create;
     Inc(i);
 
-    while (i <= Length(s)) and (s[i] in WhitespaceChars) do
+    while (i <= Length(s)) and IsXMLWhitespace(s[i]) do
       Inc(i);
 
     SetLength(AttrName, 0);
@@ -344,7 +346,8 @@ begin
     while j <= Length(s) do
       if s[j] = '=' then
       begin
-        AttrName := LowerCase(Copy(s, i, j - i));
+        AttrName := Copy(s, i, j - i);
+        WStrLower(AttrName);
         Inc(j);
         if (j < Length(s)) and ((s[j] = '''') or (s[j] = '"')) then
         begin
@@ -356,7 +359,7 @@ begin
         DoIncJ := False;
         while j <= Length(s) do
           if ValueDelimiter = #0 then
-            if s[j] in WhitespaceChars then
+            if IsXMLWhitespace(s[j]) then
               break
             else
               Inc(j)
@@ -367,31 +370,34 @@ begin
           end else
             Inc(j);
 
-        Attr.AddAttribute('', AttrName, '', '', Copy(s, i, j - i));
+        if IsXMLName(AttrName) then
+          Attr.AddAttribute('', AttrName, '', '', Copy(s, i, j - i));
 
         if DoIncJ then
           Inc(j);
 
-        while (j <= Length(s)) and (s[j] in WhitespaceChars) do
+        while (j <= Length(s)) and IsXMLWhitespace(s[j]) do
           Inc(j);
         i := j;
       end
-      else if s[j] in WhitespaceChars then
+      else if IsXMLWhitespace(s[j]) then
       begin
-        Attr.AddAttribute('', Copy(s, i, j - i), '', '', '');
+        if IsXMLName(@s[i], j-i) then
+          Attr.AddAttribute('', Copy(s, i, j - i), '', '', '');
         Inc(j);
-        while (j <= Length(s)) and (s[j] in WhitespaceChars) do
+        while (j <= Length(s)) and IsXMLWhitespace(s[j]) do
           Inc(j);
         i := j;
       end else
         Inc(j);
   end;
+  WStrLower(result);
 end;
 
 procedure THTMLReader.EnterNewScannerContext(NewContext: THTMLScannerContext);
 var
   Attr: TSAXAttributes;
-  TagName: String;
+  TagName: SAXString;
   Ent: SAXChar;
   i: Integer;
   elTag: THTMLElementTag;
@@ -502,30 +508,22 @@ end;
 procedure THTMLToDOMConverter.ReaderCharacters(Sender: TObject;
   const ch: PSAXChar; Start, Count: Integer);
 var
-  s: SAXString;
   NodeInfo: THTMLNodeInfo;
 begin
-  SetLength(s, Count);
-  Move(ch^, s[1], Count * SizeOf(SAXChar));
-
   NodeInfo := THTMLNodeInfo.Create;
   NodeInfo.NodeType := ntText;
-  NodeInfo.DOMNode := FDocument.CreateTextNode(s);
+  NodeInfo.DOMNode := FDocument.CreateTextNodeBuf(ch, Count, False);
   FNodeBuffer.Add(NodeInfo);
 end;
 
 procedure THTMLToDOMConverter.ReaderIgnorableWhitespace(Sender: TObject;
   const ch: PSAXChar; Start, Count: Integer);
 var
-  s: SAXString;
   NodeInfo: THTMLNodeInfo;
 begin
-  SetLength(s, Count);
-  Move(ch^, s[1], Count * SizeOf(SAXChar));
-
   NodeInfo := THTMLNodeInfo.Create;
   NodeInfo.NodeType := ntWhitespace;
-  NodeInfo.DOMNode := FDocument.CreateTextNode(s);
+  NodeInfo.DOMNode := FDocument.CreateTextNodeBuf(ch, Count, False);
   FNodeBuffer.Add(NodeInfo);
 end;
 
