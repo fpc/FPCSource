@@ -137,6 +137,7 @@ Type
     FDefaultFont: String;
     FDefaultPage: String;
     FFullTextSearch: Boolean;
+    FFullTextSearchAvailable: Boolean;
     FSearchTitlesOnly: Boolean;
     FStringsStream: TMemoryStream; // the #STRINGS file
     FTopicsStream: TMemoryStream;  // the #TOPICS file
@@ -970,7 +971,7 @@ begin
 
   FSection0.WriteDWord(NToLE(DWord($0409)));
   FSection0.WriteDWord(1);
-  FSection0.WriteDWord(NToLE(DWord(Ord(FFullTextSearch))));
+  FSection0.WriteDWord(NToLE(DWord(Ord(FFullTextSearch and FFullTextSearchAvailable))));
   FSection0.WriteDWord(0);
   FSection0.WriteDWord(0);
 
@@ -1256,6 +1257,14 @@ begin
   if FTopicsStream.Size = 0 then
     Exit;
   SearchWriter := TChmSearchWriter.Create(FFiftiMainStream, FIndexedFiles);
+  // do not add an empty $FIftiMain
+  if not SearchWriter.HasData then
+  begin
+    FFullTextSearchAvailable := False;
+    SearchWriter.Free;
+    Exit;
+  end;
+  FFullTextSearchAvailable := True;
   SearchWriter.WriteToStream;
   SearchWriter.Free;
 

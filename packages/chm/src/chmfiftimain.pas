@@ -86,11 +86,13 @@ type
     FStream: TStream;
     FWordList: TIndexedWordList;
     FActiveLeafNode: TFIftiNode;
+    function GetHasData: Boolean;
     procedure ProcessWords;
     procedure WriteHeader(IsPlaceHolder: Boolean);
     procedure WriteAWord(AWord: TIndexedWord);
   public
     procedure WriteToStream;
+    property  HasData: Boolean read GetHasData;
     constructor Create(AStream: TStream; AWordList: TIndexedWordList);
     destructor Destroy; override;
   end;
@@ -259,6 +261,11 @@ begin
   FWordList.ForEach(@WriteAword);
   if FActiveLeafNode <> nil then
     FActiveLeafNode.Flush(False); // causes the unwritten parts of the tree to be written
+end;
+
+function TChmSearchWriter.GetHasData: Boolean;
+begin
+  Result := FActiveLeafNode <> nil;
 end;
 
 
