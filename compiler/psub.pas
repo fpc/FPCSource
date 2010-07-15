@@ -33,6 +33,7 @@ interface
     type
       tcgprocinfo = class(tprocinfo)
       private
+        procedure maybe_add_constructor_wrapper(var tocode: tnode);
         procedure add_entry_exit_code;
       public
         { code for the subroutine as tree }
@@ -446,9 +447,7 @@ implementation
 
     function generate_except_block:tnode;
       var
-        pd : tprocdef;
         newstatement : tstatementnode;
-        oldlocalswitches: tlocalswitches;
         { safecall handling }
         exceptobjnode,exceptaddrnode: ttempcreatenode;
         sym,exceptsym: tsym;
@@ -457,28 +456,8 @@ implementation
 
         { a constructor needs call destructor (if available) when it
           is not inherited }
-        if assigned(current_objectdef) and
-           (current_procinfo.procdef.proctypeoption=potype_constructor) then
-          begin
-            { Don't test self and the vmt here. See generate_bodyexit_block }
-            { why (JM)                                                      }
-            oldlocalswitches:=current_settings.localswitches;
-            current_settings.localswitches:=oldlocalswitches-[cs_check_object,cs_check_range];
-            pd:=current_objectdef.find_destructor;
-            if assigned(pd) then
-              begin
-                { if vmt<>0 then call destructor }
-                addstatement(newstatement,cifnode.create(
-                    caddnode.create(unequaln,
-                        load_vmt_pointer_node,
-                        cnilnode.create),
-                    { cnf_create_failed -> don't call BeforeDestruction }
-                    ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed]),
-                    nil));
-              end;
-            current_settings.localswitches:=oldlocalswitches;
-          end
-        else
+        if not assigned(current_objectdef) or
+           (current_procinfo.procdef.proctypeoption<>potype_constructor) then
           begin
             { no constructor }
             { must be the return value finalized before reraising the exception? }
@@ -548,47 +527,6 @@ implementation
       end;
 
 
-    procedure maybe_add_afterconstruction(var tocode: tnode);
-      var
-        oldlocalswitches: tlocalswitches;
-        srsym: tsym;
-        newblock: tblocknode;
-        newstatement: tstatementnode;
-      begin
-        { maybe call AfterConstruction for classes }
-        if (current_procinfo.procdef.proctypeoption=potype_constructor) and
-           is_class(current_objectdef) then
-          begin
-            srsym:=search_class_member(current_objectdef,'AFTERCONSTRUCTION');
-            if assigned(srsym) and
-               (srsym.typ=procsym) then
-              begin
-                { Don't test self and the vmt here. See }
-                { generate_bodyexit_block why (JM)      }
-                oldlocalswitches:=current_settings.localswitches;
-                current_settings.localswitches:=oldlocalswitches-[cs_check_object,cs_check_range];
-                newblock:=internalstatements(newstatement);
-                addstatement(newstatement,tocode);
-                { Self can be nil when fail is called }
-                { if self<>nil and vmt<>nil then afterconstruction }
-                addstatement(newstatement,cifnode.create(
-                    caddnode.create(andn,
-                        caddnode.create(unequaln,
-                            load_self_pointer_node,
-                            cnilnode.create),
-                        caddnode.create(unequaln,
-                            load_vmt_pointer_node,
-                            cnilnode.create)),
-                    ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
-                    nil));
-                tocode:=newblock;
-                current_settings.localswitches:=oldlocalswitches;
-              end
-            else
-              internalerror(200305106);
-          end;
-      end;
-
 {****************************************************************************
                                   TCGProcInfo
 ****************************************************************************}
@@ -632,12 +570,89 @@ implementation
       end;
 
 
+    procedure tcgprocinfo.maybe_add_constructor_wrapper(var tocode: tnode);
+      var
+        oldlocalswitches: tlocalswitches;
+        srsym: tsym;
+        afterconstructionblock,
+        exceptblock,
+        newblock: tblocknode;
+        newstatement: tstatementnode;
+        pd: tprocdef;
+      begin
+        if assigned(current_objectdef) and
+           (current_procinfo.procdef.proctypeoption=potype_constructor) then
+          begin
+            exceptblock:=nil;
+            { call AfterConstruction for classes }
+            if is_class(current_objectdef) then
+              begin
+                srsym:=search_class_member(current_objectdef,'AFTERCONSTRUCTION');
+                if assigned(srsym) and
+                   (srsym.typ=procsym) then
+                  begin
+                    current_filepos:=exitpos;
+                    afterconstructionblock:=internalstatements(newstatement);
+                    { first execute all constructor code. If no exception
+                      occurred then we will execute afterconstruction,
+                      otherwise we won't be (the exception will jump over us) }
+                    addstatement(newstatement,tocode);
+                    { if vmt<>nil then afterconstruction }
+                    addstatement(newstatement,cifnode.create(
+                      caddnode.create(unequaln,
+                          load_vmt_pointer_node,
+                          cnilnode.create),
+                        ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
+                        nil));
+                    tocode:=afterconstructionblock;
+                  end
+                else
+                  internalerror(200305106);
+              end;
+
+            { Generate the "fail" code for a constructor (destroy in case an
+              exception happened) }
+            { Don't test self and the vmt here. See generate_bodyexit_block }
+            { why (JM)                                                      }
+            oldlocalswitches:=current_settings.localswitches;
+            current_settings.localswitches:=oldlocalswitches-[cs_check_object,cs_check_range];
+            pd:=current_objectdef.find_destructor;
+            { this will always be the case for classes, since tobject has
+              a destructor }
+            if assigned(pd) then
+              begin
+                current_filepos:=exitpos;
+                exceptblock:=internalstatements(newstatement);
+                { if vmt<>0 then call destructor }
+                addstatement(newstatement,cifnode.create(
+                    caddnode.create(unequaln,
+                        load_vmt_pointer_node,
+                        cnilnode.create),
+                    { cnf_create_failed -> don't call BeforeDestruction }
+                    ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed]),
+                    nil));
+                { re-raise the exception }
+                addstatement(newstatement,craisenode.create(nil,nil,nil));
+                current_filepos:=entrypos;
+                newblock:=internalstatements(newstatement);
+                addstatement(newstatement,ctryexceptnode.create(
+                  tocode,
+                  nil,
+                  exceptblock));
+                tocode:=newblock;
+              end;
+            current_settings.localswitches:=oldlocalswitches;
+          end;
+      end;
+
+
     procedure tcgprocinfo.add_entry_exit_code;
       var
         finalcode,
         bodyentrycode,
         bodyexitcode,
-        exceptcode   : tnode;
+        exceptcode,
+        wrappedbody: tnode;
         newblock     : tblocknode;
         codestatement,
         newstatement : tstatementnode;
@@ -656,7 +671,6 @@ implementation
         exitlabel_asmnode:=casmnode.create_get_position;
         final_asmnode:=casmnode.create_get_position;
         bodyexitcode:=generate_bodyexit_block;
-        maybe_add_afterconstruction(code);
 
         { Generate procedure by combining init+body+final,
           depending on the implicit finally we need to add
@@ -681,10 +695,17 @@ implementation
             addstatement(newstatement,init_asmnode);
             addstatement(newstatement,bodyentrycode);
             current_filepos:=entrypos;
-            addstatement(newstatement,ctryfinallynode.create_implicit(
+            wrappedbody:=ctryfinallynode.create_implicit(
                code,
                finalcode,
-               exceptcode));
+               exceptcode);
+            { afterconstruction must be called after final_asmnode, because it
+               has to execute after the temps have been finalised in case of a
+               refcounted class (afterconstruction decreases the refcount
+               without freeing the instance if the count becomes nil, while
+               the finalising of the temps can free the instance) }
+            maybe_add_constructor_wrapper(wrappedbody);
+            addstatement(newstatement,wrappedbody);
             addstatement(newstatement,exitlabel_asmnode);
             addstatement(newstatement,bodyexitcode);
             { set flag the implicit finally has been generated }
@@ -692,6 +713,7 @@ implementation
           end
         else
           begin
+            maybe_add_constructor_wrapper(code);
             addstatement(newstatement,loadpara_asmnode);
             addstatement(newstatement,stackcheck_asmnode);
             addstatement(newstatement,entry_asmnode);
