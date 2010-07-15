@@ -136,6 +136,22 @@ begin
   inherited Destroy;
 end;
 
+function CheckForName(const Tag: SAXString): Boolean;
+var
+  p, p1: PSAXChar;
+begin
+  p := PSAXChar(Tag);
+  result := False;
+  if p^ <> '!' then
+  begin
+    if p^ = '/' then Inc(p);
+    p1 := p;
+    while (p1^ <> #0) and (p1^ <> '/') and not IsXMLWhitespace(p1^) do
+      Inc(p1);
+    result := IsXMLName(p, p1-p);
+  end;
+end;
+
 procedure THTMLReader.Parse(AInput: TSAXInputSource);
 const
   MaxBufferSize = 1024;
@@ -163,6 +179,7 @@ begin
 
     BufferPos := 0;
     while (BufferPos < BufferSize) and not FStopFlag do
+    begin
       case ScannerContext of
         scUnknown:
           case Buffer[BufferPos] of
@@ -261,13 +278,30 @@ begin
                 if FCurStringValueDelimiter = #0 then
                   EnterNewScannerContext(scUnknown);
               end;
-            else
-            begin
-              FTokenText := FTokenText + Buffer[BufferPos];
-              Inc(BufferPos);
-            end;
+            '<':    // either an unclosed tag or unescaped '<' in text; attempt recovery
+              begin
+                // TODO: this check is hardly complete, probably must also check if
+                // tag name is followed by legal attributes.
+                if CheckForName(FTokenText) then
+                  EnterNewScannerContext(scUnknown)   // assume unclosed tag
+                else if (FTokenText <> '') and (FTokenText[1] <> '!') then
+                begin
+                  Insert('<', FTokenText, 1);         // assume plaintext
+                  FScannerContext := scText;
+                  EnterNewScannerContext(scUnknown);
+                end
+                else
+                begin  // in comment, ignore
+                  FTokenText := FTokenText + Buffer[BufferPos];
+                  Inc(BufferPos);
+                end;
+              end;
+          else
+            FTokenText := FTokenText + Buffer[BufferPos];
+            Inc(BufferPos);
           end;
-      end;
+        end;    // case ScannerContext of
+    end;        // while not endOfBuffer
   end;
 end;
 
