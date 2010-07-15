@@ -4434,7 +4434,7 @@ implementation
         objdef:=self;
         while assigned(objdef) do
           begin
-            result:=find_procdef_bytype(potype_destructor);
+            result:=objdef.find_procdef_bytype(potype_destructor);
             if assigned(result) then
               exit;
             objdef:=objdef.childof;
