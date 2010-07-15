@@ -272,6 +272,7 @@ begin
       OPTERROR_LOG_FILE            : ;
       OPTFLAT                      : ;
       OPTFULL_TEXT_SEARCH_STOP_LIST: ;
+      OPTFULL_TEXT_SEARCH          : MakeSearchable:=optvalupper='YES';
       OPTIGNORE                    : ;
       OPTINDEX_FILE                : Indexfilename:=optval;
       OPTLANGUAGE                  : ;
@@ -390,6 +391,9 @@ var i,j : integer;
     node: TCHMContextNode;
     keyupper : string;
 begin
+ { Defaults other than global }
+   MakeBinaryIndex:=True;
+
  {$ifdef hhp_debug}
    writeln('alias entry:',key,'=',value);
  {$endif}

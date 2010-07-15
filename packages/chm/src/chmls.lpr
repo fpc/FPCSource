@@ -35,8 +35,9 @@ type
   { TJunkObject }
 
   TJunkObject = class
-    Section : Integer;
-    count   : integer;
+    Section  : Integer;
+    count    : integer;
+    donotpage: boolean;
     procedure OnFileEntry(Name: String; Offset, UncompressedSize, ASection: Integer);
   end;
 
@@ -56,6 +57,7 @@ begin
   writeln(stderr);
   writeln(stderr,'Switches : ');
   writeln(stderr,' -h, --help  : this screen');
+  writeln(stderr,' -n          : do not page list output');
   writeln(stderr);
   writeln(stderr,'Where command is one of the following or if omitted, equal to LIST.');
   writeln(stderr,' list     <filename> [section number] ');
@@ -103,7 +105,7 @@ procedure TJunkObject.OnFileEntry(Name: String; Offset, UncompressedSize,
 begin
   Inc(Count);
   if (Section > -1) and (ASection <> Section) then Exit;
-  if (Count = 1) or (Count mod 40 = 0) then
+  if (Count = 1) or ((Count mod 40 = 0) and not donotpage) then
     WriteLn(StdErr, '<Section> <Offset> <UnCompSize>  <Name>');
   Write(' ');
   Write(ASection);
@@ -114,6 +116,8 @@ begin
   Write('  ');
   WriteLn(Name);
 end;
+
+var donotpage:boolean=false;
 
 procedure ListChm(Const Name:string;Section:Integer);
 var
@@ -132,6 +136,7 @@ begin
   JunkObject := TJunkObject.Create;
   JunkObject.Section:=Section;
   JunkObject.Count:=0;
+  JunkObject.DoNotPage:=DoNotPage;
 
   ITS:= TITSFReader.Create(Stream, True);
   ITS.GetCompleteFileList(@JunkObject.OnFileEntry);
@@ -217,7 +222,7 @@ begin
   Writeln(stderr,'chmls, a CHM utility. (c) 2010 Free Pascal core.');
   Writeln(Stderr);
   repeat
-    c:=getlongopts('h',@theopts[1],optionindex);
+    c:=getlongopts('hn',@theopts[1],optionindex);
     case c of
       #0 : begin
              case optionindex-1 of
@@ -227,6 +232,7 @@ begin
                    end;
                 end;
            end;
+      'n'     : donotpage:=true;
       '?','h' :
             begin
               writeln('unknown option',optopt);

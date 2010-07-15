@@ -121,23 +121,40 @@ begin
     begin
       xmlname:=changefileext(name,'.hhp.xml');
       Project.OnError:=@OnError;
-      Project.LoadFromHHP(name,false) ;          // we need a param for this second param later
-      project.ScanHtmlContents:=htmlscan<>scanforcedno;  // .hhp default SCAN
-      if GenerateXMLForHHP then
-       begin
-         Writeln('Generating XML ',xmlname,'.');
-         Project.SaveToFile(xmlname);
+      try
+        Project.LoadFromHHP(name,false) ;          // we need a param for this second param later
+       except
+         on e:exception do
+           begin
+             Writeln('This HHP CHM project seems corrupt, please check it ',name);
+             halt(1);
+           end;
        end;
+      project.ScanHtmlContents:=htmlscan<>scanforcedno;  // .hhp default SCAN
     end
   else
     begin
+     try
       project.ScanHtmlContents:=htmlscan=scanforce;  // .hhp default SCAN
       Project.LoadFromFile(name);
+     except
+       on e:exception do
+         begin
+           Writeln('This XML CHM project seems corrupt, please check it ',name);
+           halt(1);
+         end;
+       end;
     end;
   OutStream := TFileStream.Create(Project.OutputFileName, fmCreate, fmOpenWrite);
   Project.WriteChm(OutStream);
+  if ishhp and GenerateXMLForHHP then
+    begin
+      Writeln('Generating XML ',xmlname,'.');
+      Project.SaveToFile(xmlname);
+    end;
   OutStream.Free;
   Project.Free;
+
 end;
 
 var
