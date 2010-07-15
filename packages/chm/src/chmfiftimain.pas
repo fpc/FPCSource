@@ -265,7 +265,7 @@ end;
 
 function TChmSearchWriter.GetHasData: Boolean;
 begin
-  Result := FActiveLeafNode <> nil;
+  Result := FWordList.IndexedFileCount > 0;
 end;
 
 
