@@ -42,7 +42,7 @@ type
   end;
 
 implementation
-{$define wmdebug}
+{ $define wmdebug}
 {$ifdef wmdebug}
 uses dbugintf;
 {$endif wmdebug}
