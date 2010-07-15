@@ -66,6 +66,7 @@ end;
 
 var
   A: TMyObject;
+  gotexception: boolean;
 begin
   HaltOnNotReleased := true;
   CreatedCount := 0;
@@ -80,6 +81,8 @@ begin
   except
     writeln('created objects = ', CreatedCount);
     writeln('destroyed objects = ', DestroyedCount);
+    gotexception:=true;
     writeln;
   end;
+  if not gotexception then halt(1);
 end.
