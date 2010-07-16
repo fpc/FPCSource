@@ -67,8 +67,8 @@ resourcestring
   SPasTreeDestructorImpl = 'destructor implementation';
 
 type
-  TPasExprKind = (pekIdent, pekNumber, pekString, pekSet,
-     pekPrefix, pekPostfix, pekBinary, pekFuncParams, pekArrayParams);
+  TPasExprKind = (pekIdent, pekNumber, pekString, pekSet, pekRange,
+     pekUnary, pekBinary, pekFuncParams, pekArrayParams);
 
   TExprOpCode = (eopNone,
                  eopAdd,eopSubtract,eopMultiply,eopDivide, eopDiv,eopMod, eopPower,// arithmetic
@@ -79,24 +79,45 @@ type
                  eopIn,eopIs,eopAs, eopSymmetricaldifference, // Specials
                  eopAddress);
   
-  { TPasExprPart }
+  { TPasExpr }
 
-  TPasExprPart = class 
+  TPasExpr = class
     Kind      : TPasExprKind;
-    Left      : TPasExprPart;
-    Right     : TPasExprPart;
     OpCode    : TexprOpcode;
-    Value    : AnsiString;
-    Params    : array of TPasExprPart;
-    constructor Create(AKind: TPasExprKind);
-    constructor CreateWithText(AKind: TPasExprKind; const AValue : Ansistring);
-    constructor CreatePrefix(rightExp: TPasExprPart; const AOpCode: TExprOpCode);
-    constructor CreatePostfix(leftExp: TPasExprPart; const AOpCode: TExprOpCode);
-    constructor CreateBinary(xleft, xright: TPasExprPart; const AOpCode: TExprOpCode);
-    destructor Destroy; override;
-    procedure AddParam(xp: TPasExprPart);
+    constructor Create(AKind: TPasExprKind; AOpCode: TexprOpcode);
   end;
 
+  TUnaryExpr = class(TPasExpr)
+    Operand   : TPasExpr;
+    constructor Create(AOperand: TPasExpr; AOpCode: TExprOpCode);
+    destructor Destroy; override;
+  end;
+
+  { TBinaryExpr }
+
+  TBinaryExpr = class(TPasExpr)
+    left      : TPasExpr;
+    right     : TPasExpr;
+    constructor Create(xleft, xright: TPasExpr; AOpCode: TExprOpCode);
+    constructor CreateRange(xleft, xright: TPasExpr);
+    destructor Destroy; override;
+  end;
+
+  TPrimitiveExpr = class(TPasExpr)
+    Value     : AnsiString;
+    constructor Create(AKind: TPasExprKind; const AValue : Ansistring);
+  end;
+
+  { TParamsExpr }
+
+  TParamsExpr = class(TPasExpr)
+    Value     : TPasExpr;
+    Params    : array of TPasExpr;
+    {pekArray, pekFuncCall, pekSet}
+    constructor Create(AKind: TPasExprKind);
+    destructor Destroy; override;
+    procedure AddParam(xp: TPasExpr);
+  end;
 
   // Visitor pattern.
   TPassTreeVisitor = class;
@@ -467,7 +488,7 @@ type
     Value: string;
     Modifiers : string;
     AbsoluteLocation : String;
-    Expr: TPasExprPart;
+    Expr: TPasExpr;
   end;
 
   { TPasConst }
@@ -2315,52 +2336,61 @@ begin
   Result:=true;
 end;
 
-{ TPasExprPart }
+{ TPasExpr }
 
-constructor TPasExprPart.Create(AKind:TPasExprKind);
+constructor TPasExpr.Create(AKind: TPasExprKind; AOpCode: TexprOpcode);
 begin
   Kind:=AKind;
+  OpCode:=AOpCode;
 end;
 
-constructor TPasExprPart.CreateWithText(AKind:TPasExprKind;const AValue: AnsiString);
+{ TPrimitiveExpr }
+
+constructor TPrimitiveExpr.Create(AKind: TPasExprKind; const AValue : Ansistring);
 begin
-  Create(AKind);
+  inherited Create(AKind, eopNone);
   Value:=AValue;
 end;
 
-constructor TPasExprPart.CreatePrefix(rightExp: TPasExprPart; const AOpCode: TExprOpCode);
+{ TUnaryExpr }
+
+constructor TUnaryExpr.Create(AOperand: TPasExpr; AOpCode: TExprOpCode);
 begin
-  Create(pekPrefix);
-  right:=rightExp;
-  Opcode:=AOpCode;
+  inherited Create(pekUnary, AOpCode);
+  Operand:=AOperand;
 end;
 
-constructor TPasExprPart.CreatePostfix(leftExp: TPasExprPart; const AOpCode: TExprOpCode);
+destructor TUnaryExpr.Destroy;
 begin
-  Create(pekPostfix);
-  left:=leftExp;
-  Opcode:=AOpCode;
+  Operand.Free;
 end;
 
-constructor TPasExprPart.CreateBinary(xleft, xright: TPasExprPart; const AOpCode: TExprOpcode);
+{ TBinaryExpr }
+
+constructor TBinaryExpr.Create(xleft,xright:TPasExpr; AOpCode:TExprOpCode);
 begin
-  Create(pekBinary);
+  inherited Create(pekBinary, AOpCode);
   left:=xleft;
   right:=xright;
-  Opcode:=AOpCode;
 end;
 
-destructor TPasExprPart.Destroy;
-var
-  i : Integer;
+constructor TBinaryExpr.CreateRange(xleft,xright:TPasExpr);
+begin
+  inherited Create(pekRange, eopNone);
+  left:=xleft;
+  right:=xright;
+end;
+
+destructor TBinaryExpr.Destroy;
 begin
   left.Free;
   right.Free;
-  for i:=0 to length(Params)-1 do Params[i].Free;
   inherited Destroy;
 end;
 
-procedure TPasExprPart.AddParam(xp:TPasExprPart);
+{ TParamsExpr }
+
+procedure TParamsExpr.AddParam(xp:TPasExpr);
 var
   i : Integer;
 begin
@@ -2369,6 +2399,17 @@ begin
   Params[i]:=xp;
 end;
 
+constructor TParamsExpr.Create(AKind: TPasExprKind);
+begin
+  inherited Create(AKind, eopNone)
+end;
 
+destructor TParamsExpr.Destroy;
+var
+  i : Integer;
+begin
+  for i:=0 to length(Params)-1 do Params[i].Free;
+  inherited Destroy;
+end;
 
 end.
