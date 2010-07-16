@@ -597,11 +597,16 @@ implementation
                       occurred then we will execute afterconstruction,
                       otherwise we won't be (the exception will jump over us) }
                     addstatement(newstatement,tocode);
-                    { if vmt<>nil then afterconstruction }
+                    { Self can be nil when fail is called }
+                    { if self<>nil and vmt<>nil then afterconstruction }
                     addstatement(newstatement,cifnode.create(
-                      caddnode.create(unequaln,
-                          load_vmt_pointer_node,
+                      caddnode.create(andn,
+                        caddnode.create(unequaln,
+                          load_self_node,
                           cnilnode.create),
+                        caddnode.create(unequaln,
+                          load_vmt_pointer_node,
+                          cnilnode.create)),
                         ccallnode.create(nil,tprocsym(srsym),srsym.owner,load_self_node,[]),
                         nil));
                     tocode:=afterconstructionblock;
