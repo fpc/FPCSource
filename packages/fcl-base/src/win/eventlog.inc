@@ -15,6 +15,9 @@
 
 uses windows;
 
+const
+  SKeyEventLog = 'SYSTEM\CurrentControlSet\Services\EventLog\Application\%s';
+
 Function TEventLog.DefaultFileName : String;
 
 begin
@@ -70,7 +73,6 @@ end;
 Function TEventLog.RegisterMessageFile(AFileName : String) : Boolean;
 
 Const
-  SKeyEventLog = 'SYSTEM\CurrentControlSet\Services\EventLog\Application\%s';
   SKeyCategoryCount       = 'CategoryCount';
   SKeyEventMessageFile    = 'EventMessageFile';
   SKeyCategoryMessageFile = 'CategoryMessageFile';
@@ -85,8 +87,6 @@ Var
 begin
   SecurityAttributes:=nil;
   CheckIdentification;
-  If AFileName='' then
-    AFileName:=ParamStr(0);
   ELKey:=Format(SKeyEventLog,[IDentification]);
   Result:=RegCreateKeyExA(HKEY_LOCAL_MACHINE,
                           PChar(ELKey),0,'',
@@ -96,6 +96,8 @@ begin
                           pdword(@Disposition))=ERROR_SUCCESS;
   If Result then
     begin
+      If AFileName='' then
+        AFileName:=ParamStr(0);
       Value:=4;
       Result:=Result and (RegSetValueExA(Handle,PChar(SKeyCategoryCount),0,REG_DWORD,@Value,sizeof(DWORD))=ERROR_SUCCESS);
       Value:=7;
@@ -103,6 +105,15 @@ begin
       Result:=Result and (RegSetValueExA(Handle,PChar(SKeyCategoryMessageFile),0,REG_SZ,@AFileName[1],Length(AFileName))=ERROR_SUCCESS);
       Result:=Result and (RegSetValueExA(Handle,PChar(SKeyEventMessageFile),0,REG_SZ,@AFileName[1],Length(AFileName))=ERROR_SUCCESS);
     end;
+end;
+
+Function TEventLog.UnRegisterMessageFile : Boolean;
+
+Var
+  ELKey : String;
+begin
+  ELKey:=Format(SKeyEventLog,[IDentification]);
+  Result:=RegDeleteKeyA(HKEY_LOCAL_MACHINE,pchar(ELKey));
 end;
 
 function TEventLog.MapTypeToCategory(EventType: TEventType): Word;

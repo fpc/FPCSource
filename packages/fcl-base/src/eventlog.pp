@@ -70,6 +70,7 @@ Type
     Destructor Destroy; override;
     Function EventTypeToString(E : TEventType) : String;
     Function RegisterMessageFile(AFileName : String) : Boolean; virtual;
+    Function UnRegisterMessageFile : Boolean; virtual;
     Procedure Log (EventType : TEventType; Msg : String); {$ifndef fpc }Overload;{$endif}
     Procedure Log (EventType : TEventType; Fmt : String; Args : Array of const); {$ifndef fpc }Overload;{$endif}
     Procedure Log (Msg : String); {$ifndef fpc }Overload;{$endif}
