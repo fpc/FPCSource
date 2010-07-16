@@ -32,19 +32,27 @@ uses
 
 type
 
-  { TJunkObject }
+  { TListObject }
 
-  TJunkObject = class
+  TListObject = class
     Section  : Integer;
     count    : integer;
     donotpage: boolean;
     procedure OnFileEntry(Name: String; Offset, UncompressedSize, ASection: Integer);
   end;
 
-  TCmdEnum = (cmdList,cmdExtract,cmdNone);        // One dummy element at the end avoids rangecheck errors.
+   TExtractAllObject = class
+    basedir : string;
+    r       : TChmReader;
+    lastone_was_point : boolean;
+    procedure OnFileEntry(Name: String; Offset, UncompressedSize, ASection: Integer);
+  end;
+
+
+  TCmdEnum = (cmdList,cmdExtract,cmdExtractall,cmdNone);        // One dummy element at the end avoids rangecheck errors.
 
 Const
-  CmdNames : array [TCmdEnum] of String = ('LIST','EXTRACT','');
+  CmdNames : array [TCmdEnum] of String = ('LIST','EXTRACT','EXTRACTALL','');
 
 var
   theopts : array[1..2] of TOption;
@@ -65,7 +73,19 @@ begin
   writeln(stderr,' extract  <chm filename> <filename to extract> [saveasname]');
   writeln(stderr,'            Extracts file "filename to get" from archive "filename",');
   writeln(stderr,'            and, if specified, saves it to [saveasname]');
+  writeln(stderr,' extractall <chm filename> [directory]');
+  writeln(stderr,'            Extracts all files from archive "filename" to directory ');
+  writeln(stderr,'            "directory"');
+
   Halt(1);
+end;
+
+procedure WrongNrParam(cmd:string;number:integer);
+
+begin
+  writeln(stderr,' Wrong number of parameters for ',cmd,' ',number);
+  usage;
+  halt(1);
 end;
 
 procedure InitOptions;
@@ -98,9 +118,37 @@ procedure WriteStrAdj(Str: String; CharWidth: Integer);
     Write(OutString + Str); // to stdout
   end;
 
-{ TJunkObject }
+{ TListObject }
 
-procedure TJunkObject.OnFileEntry(Name: String; Offset, UncompressedSize,
+
+function craftpath(pth:string;filename:String):string;
+
+var lenpth,lenfn:integer;
+    pthends,filenameends : Boolean;
+begin
+  lenpth:=length(pth); lenfn :=length(filename);
+
+  if lenpth=0 then
+    exit(filename);
+
+  pthends:=false;  filenameends:=false;
+  if (lenpth>0) and (pth[lenpth] in ['/','\']) then
+    pthends:=true;
+
+  if (lenfn>0) and (filename[1] in ['/','\']) then
+    filenameends:=true;
+
+  if pthends and filenameends then
+      result:=copy(pth,1,lenpth-1)+filename
+  else
+    if pthends or filenameends then
+        result:=pth+filename
+    else
+       result:=pth+pathsep+filename;
+end;
+
+
+procedure TListObject.OnFileEntry(Name: String; Offset, UncompressedSize,
   ASection: Integer);
 begin
   Inc(Count);
@@ -117,13 +165,64 @@ begin
   WriteLn(Name);
 end;
 
+procedure TExtractAllObject.OnFileEntry(Name: String; Offset, UncompressedSize,
+  ASection: Integer);
+var mem : TMemoryStream;
+    s   : String;
+    len : integer;
+procedure wrpoint;
+begin
+      if lastone_was_point then
+        writeln;
+      lastone_was_point:=false;
+end;
+begin
+  len:=Length(Name);
+  if ((Len>0) and (name[len]='/')) then
+    exit; // directory or empty file
+
+  if (UncompressedSize=0) Then
+    begin
+      WrPoint;
+      Writeln(stderr,'Skipping empty file ',Name);
+      exit;
+    end;
+  if ((Len>0) and (name[1]=':')) then
+    begin
+      WrPoint;
+      Writeln(stderr,'Skipping internal file : ',Name);
+      exit;
+    end;
+  mem:=r.getobject(name);
+  if assigned(mem) then
+    begin
+      s:=craftpath(basedir,name);
+      ForceDirectories(extractfiledir(s));
+      try
+         mem.savetofile(s);
+         write('.');
+         lastone_was_point:=true;
+      except
+        on e : exception do
+          begin
+            WrPoint;
+            Writeln(Stderr,'Error saving ',name,' to ',s,'.'            );
+          end;
+       end;
+    end
+  else
+    begin
+      Writeln(Stderr,'Can''t extract ',name);
+    end;
+end;
+
 var donotpage:boolean=false;
 
 procedure ListChm(Const Name:string;Section:Integer);
 var
   ITS: TITSFReader;
   Stream: TFileStream;
-  JunkObject: TJunkObject;
+  JunkObject: TListObject;
 
 begin
   if not Fileexists(name) then
@@ -133,7 +232,7 @@ begin
     end;
 
   Stream := TFileStream.Create(name, fmOpenRead);
-  JunkObject := TJunkObject.Create;
+  JunkObject := TListObject.Create;
   JunkObject.Section:=Section;
   JunkObject.Count:=0;
   JunkObject.DoNotPage:=DoNotPage;
@@ -180,6 +279,50 @@ begin
       halt(1);
     end;
 end;
+
+procedure ExtractFileAll(chm,dirto2:string);
+var
+  fs: TFileStream;
+  m : TMemoryStream;
+  r : TChmReader;
+  fl : boolean;
+  ListAll : TExtractAllObject;
+begin
+  if not Fileexists(chm) then
+    begin
+      writeln(stderr,' Can''t find file ',chm);
+      halt(1);
+    end;
+
+
+  if not directoryexists(dirto2) then
+    begin
+      fl:=false;
+      try
+        mkdir(dirto2);
+        fl:=directoryexists(dirto2);
+      except
+       on e : exception do ;
+       end;
+      if not fl then
+        begin
+          writeln(stderr,'Directory ',dirto2,' doesn''t exist, and trying to create it fails');
+          halt(1);
+        end;
+      end;
+
+
+  fs:=TFileStream.create(chm,fmOpenRead);
+  r:=TCHMReader.create(fs,true);
+  Listall:= TExtractAllObject.Create;
+  ListAll.basedir:=dirto2;
+  ListAll.r:=r;
+  ListAll.lastone_was_point:=false;
+  r.GetCompleteFileList(@ListAll.OnFileEntry);
+
+  r.free;
+end;
+
 
 procedure buildarglist(var params: TStringDynArray;var cmd :TCmdEnum);
 
@@ -261,11 +404,7 @@ begin
                           ListChm(localparams[0],Section);
                         end;
                   else
-                    begin
-                      writeln(stderr,' Wrong number of parameters for LIST ',length(localparams));
-                      usage;
-                      halt(1);
-                    end
+                    WrongNrParam(cmdnames[cmd],length(localparams));
                    end; {case}
                 end; { cmdlist}
       cmdextract : begin
@@ -273,13 +412,15 @@ begin
                       2: ExtractFile(localparams[0],localparams[1],extractfilename(localparams[1]));
                       3: ExtractFile(localparams[0],localparams[1],localparams[2]);
                      else
-                      begin
-                        writeln(stderr,' Wrong number of parameters for LIST ',length(localparams));
-                        usage;
-                        halt(1);
-                      end
+                       WrongNrParam(cmdnames[cmd],length(localparams));
                      end;
                    end;
+      cmdextractall: begin
+                      if length(localparams)=2 then
+                        ExtractFileall(localparams[0],localparams[1])
+                      else
+                        WrongNrParam(cmdnames[cmd],length(localparams));
+                     end;
       end; {case cmd of}
   end
  else
