@@ -329,7 +329,7 @@ Type
   private
     FGUIHandle: THandle;
     FGUIMainLoop: TGuiLoopEvent;
-    FLogger: TEventLog;
+    FEventLog: TEventLog;
     FMapper : TCustomDaemonMapper;
     FOnRun: TNotifyEvent;
     FRunMode: TDaemonRunMode;
@@ -357,20 +357,22 @@ Type
     Procedure CreateServiceMapper(Var AMapper : TCustomDaemonMapper); virtual;
     Procedure CreateDaemonInstance(Var ADaemon : TCustomDaemon; DaemonDef : TDaemonDef); virtual;
     Procedure RemoveController(AController : TDaemonController); virtual;
-    procedure SetupLogger;
-    procedure StopLogger;
+    Function GetEventLog: TEventLog; virtual;
     Procedure DoRun; override;
     Property SysData : TObject Read FSysData Write FSysData;
   Public
+    destructor Destroy; override;
     Procedure ShowException(E : Exception); override;
     Function CreateDaemon(DaemonDef : TDaemonDef) : TCustomDaemon;
     Procedure StopDaemons(Force : Boolean);
     procedure InstallDaemons;
     procedure RunDaemons;
     procedure UnInstallDaemons;
+    procedure ShowHelp;
     procedure CreateForm(InstanceClass: TComponentClass; var Reference); virtual;
+    procedure Log(EventType: TEventType; Msg: String); override;
     Property  OnRun : TNotifyEvent Read FOnRun Write FOnRun;
-    Property Logger : TEventLog Read FLogger;
+    Property EventLog : TEventLog Read GetEventLog;
     Property GUIMainLoop : TGuiLoopEvent Read FGUIMainLoop Write FGuiMainLoop;
     Property GuiHandle : THandle Read FGUIHandle Write FGUIHandle;
     Property RunMode : TDaemonRunMode Read FRunMode;
@@ -392,7 +394,7 @@ Procedure DaemonError(Fmt : String; Args : Array of const);
 Resourcestring
   SErrNoServiceMapper           = 'No daemon mapper class registered.';
   SErrOnlyOneMapperAllowed      = 'Not changing daemon mapper class %s with %s: Only 1 mapper allowed.';
-  SErrNothingToDo               = 'Options do not allow determining what needs to be done.';
+  SErrNothingToDo               = 'No command given, use ''%s -h'' for usage.';
   SErrDuplicateName             = 'Duplicate daemon name: %s';
   SErrUnknownDaemonClass        = 'Unknown daemon class name: %s';
   SErrDaemonStartFailed         = 'Failed to start daemon %s : %s';
@@ -404,7 +406,12 @@ Resourcestring
   SErrNoDaemonDefForStatus      = '%s: No daemon definition for status report';
   SErrWindowClass               = 'Could not register window class';
   SErrApplicationAlreadyCreated = 'An application instance of class %s was already created.';
-  
+  SHelpUsage                    = 'Usage: %s [command]';
+  SHelpCommand                  = 'Where command is one of the following:';
+  SHelpInstall                  = 'To install the program as a service';
+  SHelpUnInstall                = 'To uninstall the service';
+  SHelpRun                      = 'To run the service';
+
 { $define svcdebug}
 
 {$ifdef svcdebug}
@@ -647,12 +654,12 @@ end;
 
 procedure TCustomDaemon.LogMessage(Msg: String);
 begin
-  Application.Logger.Error(Msg);
+  Application.Log(etInfo,Msg);
 end;
 
 function TCustomDaemon.GetLogger: TEventLog;
 begin
-  Result:=Application.Logger;
+  Result:=Application.EventLog;
 end;
 
 procedure TCustomDaemon.SetStatus(const AValue: TCurrentStatus);
@@ -756,6 +763,7 @@ Var
 
 begin
   FrunMode:=drmInstall;
+  EventLog.RegisterMessageFile('');
   SysStartInstallDaemons;
   try
     FMapper.DoOnInstall;
@@ -787,6 +795,7 @@ Var
 
 begin
   FrunMode:=drmUnInstall;
+  EventLog.UnRegisterMessageFile;
   SysStartUnInstallDaemons;
   Try
     FMapper.DoOnUnInstall;
@@ -810,6 +819,15 @@ begin
   end;
 end;
 
+procedure TCustomDaemonApplication.ShowHelp;
+begin
+  writeln(Format(SHelpUsage,[ParamStr(0)]));
+  writeln(SHelpCommand);
+  writeln('  -i --install   '+SHelpInstall);
+  writeln('  -u --uninstall '+SHelpUnInstall);
+  writeln('  -r --run       '+SHelpRun);
+end;
+
 procedure TCustomDaemonApplication.CreateForm(InstanceClass: TComponentClass;
   var Reference);
   
@@ -828,6 +846,11 @@ begin
     TComponent(Reference) := nil;
     Raise;
   end;
+end;
+
+procedure TCustomDaemonApplication.Log(EventType: TEventType; Msg: String);
+begin
+  EventLog.Log(EventType,Msg);
 end;
 
 Procedure TCustomDaemonApplication.RunDaemons;
@@ -855,57 +878,65 @@ begin
   end;
 end;
 
-procedure TCustomDaemonApplication.SetupLogger;
+function TCustomDaemonApplication.GetEventLog: TEventLog;
 
 begin
-  FLogger:=TEventlog.Create(Self);
-  FLogger.RegisterMessageFile('');
+  if not assigned(FEventLog) then
+    begin
+    FEventLog:=TEventlog.Create(Self);
+    FEventLog.RaiseExceptionOnError:=true;
+    FEventLog.RegisterMessageFile('');
+    end;
+  result := FEventLog;
 end;
 
-procedure TCustomDaemonApplication.StopLogger;
+destructor TCustomDaemonApplication.Destroy;
 
 begin
-  Flogger.Active:=False;
-  FreeAndNil(Flogger);
+  if assigned(FEventLog) then
+    FEventLog.Free;
 end;
 
 procedure TCustomDaemonApplication.DoRun;
 
 begin
-  SetupLogger;
-  Try
-    try
-      If Not Assigned(MapperClass) then
-        DaemonError(SErrNoServiceMapper);
-      CreateServiceMapper(FMapper);
-      If InstallRun then
-        InstallDaemons
-      else If UnInstallRun then
-        UnInstallDaemons
-      else if RunDaemonsRun then
-        RunDaemons
-      else if Assigned(OnRun) then
-       OnRun(Self)
+  try
+    If Not Assigned(MapperClass) then
+      DaemonError(SErrNoServiceMapper);
+    CreateServiceMapper(FMapper);
+    if InstallRun then
+      InstallDaemons
+    else If UnInstallRun then
+      UnInstallDaemons
+    else if RunDaemonsRun then
+      RunDaemons
+    else if Assigned(OnRun) then
+     OnRun(Self)
+    else if HasOption('h','help') then
+      begin
+      if IsConsole then
+        ShowHelp;
+      end
+    else
+      begin
+      if IsConsole then
+        ShowHelp
       else
-        DaemonError(SErrNothingToDo);
-      {$ifdef svcdebug}DebugLog('Terminating');{$endif svcdebug}
-      Terminate;
-      {$ifdef svcdebug}DebugLog('Terminated');{$endif svcdebug}
-    except
-      Terminate;
-      Raise
-    end;
-  Finally
-    StopLogger;
+        DaemonError(SErrNothingToDo,[ParamStr(0)]);
+      end;
+    {$ifdef svcdebug}DebugLog('Terminating');{$endif svcdebug}
+    Terminate;
+    {$ifdef svcdebug}DebugLog('Terminated');{$endif svcdebug}
+  except
+    Terminate;
+    Raise
   end;
 end;
 
 procedure TCustomDaemonApplication.ShowException(E: Exception);
 begin
-  If assigned(Flogger) then
-    FLogger.Error(E.Message)
-  else
-   inherited ShowException(E)
+  Log(etError,E.Message);
+  inherited ShowException(E)
 end;
 
 Procedure TCustomDaemonApplication.CreateDaemonInstance(Var ADaemon : TCustomDaemon; DaemonDef : TDaemonDef); 
@@ -1185,7 +1216,6 @@ begin
         S:=SStatus[ACode]
       else
         S:=Format(SCustomCode,[ACode]);
-      Application.Logger.Error(SControlFailed,[S,E.Message]);
       end;
   end;
 end;

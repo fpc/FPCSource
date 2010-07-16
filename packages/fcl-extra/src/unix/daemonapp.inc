@@ -196,7 +196,7 @@ begin
     With FDaemon do
       S:=Format(SDaemonStatus,[Definition.DisplayName,
                                CurrentStatusNames[Status]]);
-  Application.Logger.Info(S);
+  Application.Log(etInfo,S);
 end;
 
 { ---------------------------------------------------------------------

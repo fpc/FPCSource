@@ -37,8 +37,7 @@ begin
   If (Nil<>lpContext) then
     TDaemonController(lpContext).Controller(dwControl,dwEventType,lpEventData)
   else
-    If Assigned(Application.Logger) then
-      Application.Logger.Error(SerrNoControlContext,[dwControl,dwEventType,ptrint(lpEventData)]);
+    Application.Log(etError,Format(SerrNoControlContext,[dwControl,dwEventType,ptrint(lpEventData)]));
 end;
 
 Procedure ServiceMainEntry(Argc : DWord; Args : Pchar); stdcall;
@@ -427,7 +426,7 @@ begin
     {$ifdef svcdebug}DebugLog('SysRun Terminating');{$endif svcdebug}
     Terminate;
     If (RV<>0) then
-      Logger.Error(SErrServiceManagerStartFailed,[SysErrorMessage(RV)]);
+      Log(etError,Format(SErrServiceManagerStartFailed,[SysErrorMessage(RV)]));
   Finally
     FreeMem(P);
   end;
@@ -504,7 +503,7 @@ begin
     FParams.Add(StrPas(Args[I]));
   H:=RegisterServiceCtrlHandlerEx(Args[0],@ServiceControlHandlerEntry,Self);
   if (H=0) then
-    Application.Logger.Error(SErrRegisterHandler,[getlasterror]);
+    Application.Log(etError,Format(SErrRegisterHandler,[getlasterror]));
   FSysData:=TSCMData.Create(H);
   FDaemon.Status:=csStartPending;
   Try
@@ -567,13 +566,13 @@ Const
 begin
   If not Assigned(FDaemon) then
     begin
-    Application.Logger.Error(SErrNoDaemonForStatus,[Name]);
+    Application.Log(etError,Format(SErrNoDaemonForStatus,[Name]));
     Exit;
     end;
   DD:=FDaemon.Definition;
   If not Assigned(DD) then
     begin
-    Application.Logger.Error(SErrNoDaemonDefForStatus,[Name]);
+    Application.Log(etError,Format(SErrNoDaemonDefForStatus,[Name]));
     Exit;
     end;
   DD.LogStatusReport:=True;
@@ -583,7 +582,7 @@ begin
     With FDaemon do
       begin
       S:=Format(SDaemonStatus,[Definition.DisplayName, CurrentStatusNames[Status]]);
-      Application.Logger.Info(S);
+      Application.Log(etInfo,S);
       {$ifdef svcdebug}DebugLog(S);{$endif svcdebug}
       end;
   FillChar(SS,SizeOf(SS),0);
@@ -609,7 +608,7 @@ begin
     else
       dwWin32ExitCode := WB.Win32ErrCode;
     if not SetServiceStatus(TSCMData(FSysData).FHandle, SS) then
-      Application.Logger.Error(SysErrorMessage(GetLastError));
+      Application.Log(etError,SysErrorMessage(GetLastError));
   end;
 end;
 
