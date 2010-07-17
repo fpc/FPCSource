@@ -49,10 +49,10 @@ type
   end;
 
 
-  TCmdEnum = (cmdList,cmdExtract,cmdExtractall,cmdNone);        // One dummy element at the end avoids rangecheck errors.
+  TCmdEnum = (cmdList,cmdExtract,cmdExtractall,cmdUnblock,cmdNone);        // One dummy element at the end avoids rangecheck errors.
 
 Const
-  CmdNames : array [TCmdEnum] of String = ('LIST','EXTRACT','EXTRACTALL','');
+  CmdNames : array [TCmdEnum] of String = ('LIST','EXTRACT','EXTRACTALL','UNBLOCK','');
 
 var
   theopts : array[1..2] of TOption;
@@ -68,15 +68,17 @@ begin
   writeln(stderr,' -n          : do not page list output');
   writeln(stderr);
   writeln(stderr,'Where command is one of the following or if omitted, equal to LIST.');
-  writeln(stderr,' list     <filename> [section number] ');
+  writeln(stderr,' list       <filename> [section number] ');
   writeln(stderr,'            Shows contents of the archive''s directory');
-  writeln(stderr,' extract  <chm filename> <filename to extract> [saveasname]');
+  writeln(stderr,' extract    <chm filename> <filename to extract> [saveasname]');
   writeln(stderr,'            Extracts file "filename to get" from archive "filename",');
   writeln(stderr,'            and, if specified, saves it to [saveasname]');
   writeln(stderr,' extractall <chm filename> [directory]');
   writeln(stderr,'            Extracts all files from archive "filename" to directory ');
   writeln(stderr,'            "directory"');
-
+  writeln(stderr,' unblockchm <filespec1> [filespec2] ..' );
+  writeln(stderr,'            Mass unblocks (XPsp2+) the relevant CHMs. Multiple files');
+  writeln(stderr,'            and wildcards allowed');
   Halt(1);
 end;
 
@@ -117,9 +119,6 @@ procedure WriteStrAdj(Str: String; CharWidth: Integer);
     FillChar(OutString[1], CharWidth-Len, ' ');
     Write(OutString + Str); // to stdout
   end;
-
-{ TListObject }
-
 
 function craftpath(pth:string;filename:String):string;
 
@@ -323,6 +322,50 @@ begin
   r.free;
 end;
 
+procedure unblockchm(s:string);
+var f : file;
+begin
+ writeln('unblocking ',s);
+ assignfile(f,s+':Zone.Identifier');
+ rewrite(f,1);
+ truncate(f);
+ closefile(f);
+end;
+
+procedure populatefiles(files:TStringlist;filespec:string);
+var
+  searchResult : TSearchRec;
+begin
+ if FindFirst(filespec, faAnyFile, searchResult) = 0 then
+  begin
+    repeat
+      files.add(searchresult.name);
+    until FindNext(searchResult) <> 0;
+    // Must free up resources used by these successful finds
+    FindClose(searchResult);
+  end;
+end;
+
+procedure unblockchms(filespec:TStringDynArray);
+
+var files : TStringList;
+    i : Integer;
+
+begin
+ files :=TStringList.create;
+ try
+   for i:=0 to length(filespec)-1 do
+    populatefiles(files,filespec[i]);
+ except
+   writeln(stderr,'Error while scanning directory ',filespec[i]);
+   writeln(stderr,'Exiting....');
+   halt(1);
+  end;
+ if files.count>0 then
+   for i:=0 to files.count-1 do
+     unblockchm(files[i]);
+ Files.Free;
+end;
 
 procedure buildarglist(var params: TStringDynArray;var cmd :TCmdEnum);
 
@@ -421,6 +464,14 @@ begin
                       else
                         WrongNrParam(cmdnames[cmd],length(localparams));
                      end;
+
+      cmdunblock   : begin
+                      if length(localparams)>0 then
+                        Unblockchms(localparams)
+                      else
+                        WrongNrParam(cmdnames[cmd],length(localparams));
+                     end;
+
       end; {case cmd of}
   end
  else

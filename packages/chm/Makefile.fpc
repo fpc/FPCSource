@@ -11,8 +11,6 @@ units=fasthtmlparser htmlutil paslzx paslzxcomp paslznonslide chmbase chmtypes \
       chmspecialfiles chmsitemap chmwriter chmfilewriter chmreader htmlindexer \
       chmfiftimain lzxcompressthread itolitlstypes itsftransform itolitlsreader
 programs=chmcmd chmls
-programs_win32=unblockchm
-programs_win64=unblockchm
 examples=
 
 [require]
@@ -35,4 +33,4 @@ cdmcmd$(EXEEXT): chmcmd.lpr
 
 chmls$(EXEEXT): chmls.lpr
 
-unblockchm$(EXEEXT): unblockchm.pp
+
