@@ -33,7 +33,7 @@ interface
     type
       tcgprocinfo = class(tprocinfo)
       private
-        procedure maybe_add_constructor_wrapper(var tocode: tnode);
+        procedure maybe_add_constructor_wrapper(var tocode: tnode; withexceptblock: boolean);
         procedure add_entry_exit_code;
       public
         { code for the subroutine as tree }
@@ -570,7 +570,7 @@ implementation
       end;
 
 
-    procedure tcgprocinfo.maybe_add_constructor_wrapper(var tocode: tnode);
+    procedure tcgprocinfo.maybe_add_constructor_wrapper(var tocode: tnode; withexceptblock: boolean);
       var
         oldlocalswitches: tlocalswitches;
         srsym: tsym;
@@ -583,7 +583,11 @@ implementation
         if assigned(current_objectdef) and
            (current_procinfo.procdef.proctypeoption=potype_constructor) then
           begin
-            exceptblock:=nil;
+            { Don't test self and the vmt here. See generate_bodyexit_block }
+            { why (JM)                                                      }
+            oldlocalswitches:=current_settings.localswitches;
+            current_settings.localswitches:=oldlocalswitches-[cs_check_object,cs_check_range];
+
             { call AfterConstruction for classes }
             if is_class(current_objectdef) then
               begin
@@ -595,7 +599,7 @@ implementation
                     afterconstructionblock:=internalstatements(newstatement);
                     { first execute all constructor code. If no exception
                       occurred then we will execute afterconstruction,
-                      otherwise we won't be (the exception will jump over us) }
+                      otherwise we won't (the exception will jump over us) }
                     addstatement(newstatement,tocode);
                     { Self can be nil when fail is called }
                     { if self<>nil and vmt<>nil then afterconstruction }
@@ -615,36 +619,42 @@ implementation
                   internalerror(200305106);
               end;
 
-            { Generate the "fail" code for a constructor (destroy in case an
-              exception happened) }
-            { Don't test self and the vmt here. See generate_bodyexit_block }
-            { why (JM)                                                      }
-            oldlocalswitches:=current_settings.localswitches;
-            current_settings.localswitches:=oldlocalswitches-[cs_check_object,cs_check_range];
-            pd:=current_objectdef.find_destructor;
-            { this will always be the case for classes, since tobject has
-              a destructor }
-            if assigned(pd) then
+            if withexceptblock then
               begin
-                current_filepos:=exitpos;
-                exceptblock:=internalstatements(newstatement);
-                { if vmt<>0 then call destructor }
-                addstatement(newstatement,cifnode.create(
-                    caddnode.create(unequaln,
+                { Generate the implicit "fail" code for a constructor (destroy
+                  in case an exception happened) }
+                pd:=current_objectdef.find_destructor;
+                { this will always be the case for classes, since tobject has
+                  a destructor }
+                if assigned(pd) then
+                  begin
+                    current_filepos:=exitpos;
+                    exceptblock:=internalstatements(newstatement);
+                    { first free the instance if non-nil }
+                    { if vmt<>0 then call destructor }
+                    addstatement(newstatement,cifnode.create(
+                      caddnode.create(unequaln,
                         load_vmt_pointer_node,
                         cnilnode.create),
-                    { cnf_create_failed -> don't call BeforeDestruction }
-                    ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed]),
-                    nil));
-                { re-raise the exception }
-                addstatement(newstatement,craisenode.create(nil,nil,nil));
-                current_filepos:=entrypos;
-                newblock:=internalstatements(newstatement);
-                addstatement(newstatement,ctryexceptnode.create(
-                  tocode,
-                  nil,
-                  exceptblock));
-                tocode:=newblock;
+                      { cnf_create_failed -> don't call BeforeDestruction }
+                      ccallnode.create(nil,tprocsym(pd.procsym),pd.procsym.owner,load_self_node,[cnf_create_failed]),
+                      nil));
+                    { then re-raise the exception }
+                    addstatement(newstatement,craisenode.create(nil,nil,nil));
+                    current_filepos:=entrypos;
+                    newblock:=internalstatements(newstatement);
+                    { try
+                        tocode
+                      except
+                        exceptblock
+                      end
+                    }
+                    addstatement(newstatement,ctryexceptnode.create(
+                      tocode,
+                      nil,
+                      exceptblock));
+                    tocode:=newblock;
+                  end;
               end;
             current_settings.localswitches:=oldlocalswitches;
           end;
@@ -709,7 +719,7 @@ implementation
                refcounted class (afterconstruction decreases the refcount
                without freeing the instance if the count becomes nil, while
                the finalising of the temps can free the instance) }
-            maybe_add_constructor_wrapper(wrappedbody);
+            maybe_add_constructor_wrapper(wrappedbody,true);
             addstatement(newstatement,wrappedbody);
             addstatement(newstatement,exitlabel_asmnode);
             addstatement(newstatement,bodyexitcode);
@@ -718,7 +728,7 @@ implementation
           end
         else
           begin
-            maybe_add_constructor_wrapper(code);
+            maybe_add_constructor_wrapper(code,false);
             addstatement(newstatement,loadpara_asmnode);
             addstatement(newstatement,stackcheck_asmnode);
             addstatement(newstatement,entry_asmnode);
