@@ -268,15 +268,18 @@ end;
 
 procedure TChmReader.ReadCommonData;
    // A little helper proc to make reading a null terminated string easier
-   function ReadString(const Stream: TStream): String;
+   function ReadString(const Stream: TStream; StartPos: DWord; FixURL: Boolean): String;
    var
      buf: array[0..49] of char;
    begin
      Result := '';
+     Stream.Position := StartPos;
      repeat
        Stream.Read(buf, 50);
        Result := Result + buf;
      until Pos(#0, buf) > -1;
+     if FixURL then
+       Result := StringReplace(Result, '\', '/', [rfReplaceAll]);
    end;
    procedure ReadFromSystem;
    var
@@ -373,7 +376,6 @@ procedure TChmReader.ReadCommonData;
      EntryCount,
      EntrySize: DWord;
      EntryStart: QWord;
-     StrPosition: DWord;
      X: Integer;
      OffSet: QWord;
    begin
@@ -399,27 +401,19 @@ procedure TChmReader.ReadCommonData;
        EntryStart := OffSet + (X*EntrySize);
        if fTitle = '' then begin
          fWindows.Position := EntryStart + $14;
-         StrPosition := LEtoN(fWindows.ReadDWord);
-         fStrings.Position := StrPosition;
-         fTitle := '/'+ReadString(fStrings);
+         fTitle := '/'+ReadString(fStrings, LEtoN(fWindows.ReadDWord), False);
        end;
        if fTOCFile = '' then begin
          fWindows.Position := EntryStart + $60;
-         StrPosition := LEtoN(fWindows.ReadDWord);
-         fStrings.Position := StrPosition;
-         fTOCFile := '/'+ReadString(fStrings);
+         fTOCFile := '/'+ReadString(fStrings, LEtoN(fWindows.ReadDWord), True);
        end;
        if fIndexFile = '' then begin
          fWindows.Position := EntryStart + $64;
-         StrPosition := LEtoN(fWindows.ReadDWord);
-         fStrings.Position := StrPosition;
-         fIndexFile := '/'+ReadString(fStrings);
+         fIndexFile := '/'+ReadString(fStrings, LEtoN(fWindows.ReadDWord), True);
        end;
        if fDefaultPage = '' then begin
          fWindows.Position := EntryStart + $68;
-         StrPosition := LEtoN(fWindows.ReadDWord);
-         fStrings.Position := StrPosition;
-         fDefaultPage := '/'+ReadString(fStrings);
+         fDefaultPage := '/'+ReadString(fStrings, LEtoN(fWindows.ReadDWord), True);
        end;
      end;
      ReadWindows(FWindows);
@@ -445,8 +439,7 @@ procedure TChmReader.ReadCommonData;
      while fIVB.Position < fIVB.Size do begin
        Value := LEtoN(fIVB.ReadDWord);
        OffSet := LEtoN(fIVB.ReadDWord);
-       fStrings.Position := Offset;
-       Str := '/'+ReadString(fStrings);
+       Str := '/'+ ReadString(fStrings, Offset, True);
        fContextList.AddContext(Value, Str);
      end;
    end;
