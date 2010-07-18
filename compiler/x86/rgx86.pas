@@ -124,7 +124,7 @@ implementation
               1 :
                 begin
                   if (oper[0]^.typ=top_reg) and
-                     (getregtype(oper[n+0]^.reg)=regtype) then
+                     (getregtype(oper[0]^.reg)=regtype) then
                     begin
                       if get_alias(getsupreg(oper[0]^.reg))<>orgreg then
                         internalerror(200410101);
@@ -143,7 +143,10 @@ implementation
                   if ops=3 then
                     n:=1;
                   if (oper[n+0]^.typ=top_reg) and
-                     (oper[n+1]^.typ=top_reg) then
+                     (oper[n+1]^.typ=top_reg) and
+                     ((getregtype(oper[n+0]^.reg)<>regtype) or
+                      (getregtype(oper[n+1]^.reg)<>regtype) or
+                      (get_alias(getsupreg(oper[n+0]^.reg))<>get_alias(getsupreg(oper[n+1]^.reg)))) then
                     begin
                       if (getregtype(oper[n+0]^.reg)=regtype) and
                          (get_alias(getsupreg(oper[n+0]^.reg))=orgreg) then
