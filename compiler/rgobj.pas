@@ -199,7 +199,7 @@ unit rgobj;
         coalesced_moves,
         constrained_moves : Tlinkedlist;
         extended_backwards,
-        backwards_was_first : tsuperregisterset;
+        backwards_was_first : tbitset;
 
 {$ifdef EXTDEBUG}
         procedure writegraph(loopidx:longint);
@@ -372,9 +372,6 @@ unit rgobj;
          if high(Ausable)=-1 then
            internalerror(200210181);
          live_range_direction:=rad_forward;
-         // initialised by newinstance
-         // supregset_reset(extended_backwards,false,high(tsuperregister));
-         // supregset_reset(backwards_was_first,false,high(tsuperregister));
          first_imaginary:=Afirst_imaginary;
          maxreg:=Afirst_imaginary;
          regtype:=Aregtype;
@@ -420,6 +417,8 @@ unit rgobj;
       live_registers.done;
       worklist_moves.free;
       dispose_reginfo;
+      extended_backwards.free;
+      backwards_was_first.free;
     end;
 
     procedure Trgobj.dispose_reginfo;
@@ -689,11 +688,19 @@ unit rgobj;
       begin
         if (dir in [rad_backwards,rad_backwards_reinit]) then
           begin
-            if (dir=rad_backwards_reinit) then
-              supregset_reset(extended_backwards,false,high(tsuperregister));
+            if not assigned(extended_backwards) then
+              begin
+                { create expects a "size", not a "max bit" parameter -> +1 }
+                backwards_was_first:=tbitset.create(maxreg+1);
+                extended_backwards:=tbitset.create(maxreg+1);
+              end
+            else
+              begin
+                if (dir=rad_backwards_reinit) then
+                  extended_backwards.clear;
+                backwards_was_first.clear;
+              end;
             int_live_range_direction:=rad_backwards;
-            { new registers may be allocated }
-            supregset_reset(backwards_was_first,false,high(tsuperregister));
           end
         else
           int_live_range_direction:=rad_forward;
@@ -723,19 +730,19 @@ unit rgobj;
                 end
                else
                  begin
-                   if not supregset_in(extended_backwards,supreg) then
+                   if not extended_backwards.isset(supreg) then
                      begin
-                       supregset_include(extended_backwards,supreg);
+                       extended_backwards.include(supreg);
                        live_start := instr;
                        if not assigned(live_end) then
                          begin
-                           supregset_include(backwards_was_first,supreg);
+                           backwards_was_first.include(supreg);
                            live_end := instr;
                          end;
                      end
                    else
                      begin
-                       if supregset_in(backwards_was_first,supreg) then
+                       if backwards_was_first.isset(supreg) then
                          live_end := instr;
                      end
                  end
