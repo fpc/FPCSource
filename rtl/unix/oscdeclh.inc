@@ -65,8 +65,10 @@ const
     Function  FpGetcwd  (path:pChar; siz:TSize):pChar; cdecl;  external clib name 'getcwd';
     function  FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint;cdecl; external clib name 'sigprocmask';
     function  FPSigProcMask(how:cint;const nset : sigset;var oset : sigset):cint;cdecl; external clib name 'sigprocmask';
+{$ifndef darwin}
     Function  FpSigTimedWait (Const sigset : TSigSet; info : Psiginfo; timeout:Ptimespec): cInt; cdecl; external clib name 'sigtimedwait';
     Function  FpSigTimedWait (Const sigset : TSigSet; info : Psiginfo; var timeout:Ttimespec): cInt; cdecl; external clib name 'sigtimedwait';
+{$endif}
     function  FpTime       (tloc:ptime_t): time_t; cdecl; external clib name 'time';
     Function  FpTime       (var tloc : Time_t): Time_t; cdecl; external clib name 'time';
     function  FpTimes	(var buffer : tms): TClock; cdecl; external clib name 'times';
