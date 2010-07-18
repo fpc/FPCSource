@@ -50,6 +50,19 @@ begin
   fpsigsuspend:= do_syscall(syscall_nr_rt_sigsuspend,TSysParam(@sigmask),TSysParam(8));
 end;
 
+function fpsigtimedwait(const sigset:TSigSet;info:Psiginfo;timeout:Ptimespec):cint;
+
+begin
+  {Sizeof(Tsigset)=16 for Free Pascal, but the Linux kernel has a different idea,
+   it wants a Tsigset of 8 bytes. So we have to hardcode :( }
+  FpSigTimedWait:=do_syscall(syscall_nr_rt_sigtimedwait,
+                             Tsysparam(@sigset),
+                             Tsysparam(info),
+                             Tsysparam(timeout),
+                             Tsysparam(8 {sizeof(Tsigset)}));
+end;
+
+
 Type
   ITimerVal= Record
               It_Interval,

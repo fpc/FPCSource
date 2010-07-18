@@ -186,9 +186,6 @@ type
 {$ifdef cpui386}
   {$define clone_implemented}
 {$endif}
-{$ifdef cpum68k}
-  {$define clone_implemented}
-{$endif}
 
 {$ifdef clone_implemented}
 function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clone'; {$endif}
@@ -221,6 +218,9 @@ type
   TUser_Desc = user_desc;
   PUser_Desc = ^user_desc;
 
+function modify_ldt(func:cint;p:pointer;bytecount:culong):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'modify_ldt'; {$endif}
+
+procedure sched_yield; {$ifdef FPC_USE_LIBC} cdecl; external name 'sched_yield'; {$endif}
 
 type
   EPoll_Data = record
@@ -367,7 +367,7 @@ begin
         { Do the system call }
         pushl   %ebx
         movl    flags,%ebx
-        movl    SysCall_nr_clone,%eax
+        movl    syscall_nr_clone,%eax
         int     $0x80
         popl    %ebx
         test    %eax,%eax
@@ -378,52 +378,29 @@ begin
         call    *%ebx
         { exit process }
         movl    %eax,%ebx
-        movl    $1,%eax
+        movl    syscall_nr_exit,%eax
         int     $0x80
 
 .Lclone_end:
         movl    %eax,__RESULT
   end;
 {$endif cpui386}
-{$ifdef cpum68k}
-  { No yet translated, my m68k assembler is too weak for such things PM }
-(*
-  asm
-        { Insert the argument onto the new stack. }
-        movl    sp,%ecx
-        subl    $8,%ecx
-        movl    args,%eax
-        movl    %eax,4(%ecx)
-
-        { Save the function pointer as the zeroth argument.
-          It will be popped off in the child in the ebx frobbing below. }
-        movl    func,%eax
-        movl    %eax,0(%ecx)
-
-        { Do the system call }
-        pushl   %ebx
-        movl    flags,%ebx
-        movl    SysCall_nr_clone,%eax
-        int     $0x80
-        popl    %ebx
-        test    %eax,%eax
-        jnz     .Lclone_end
-
-        { We're in the new thread }
-        subl    %ebp,%ebp       { terminate the stack frame }
-        call    *%ebx
-        { exit process }
-        movl    %eax,%ebx
-        movl    $1,%eax
-        int     $0x80
-
-.Lclone_end:
-        movl    %eax,__RESULT
-  end;
-  *)
-{$endif cpum68k}
 end;
 {$endif}
+
+function modify_ldt(func:cint;p:pointer;bytecount:culong):cint;
+
+begin
+  modify_ldt:=do_syscall(syscall_nr_modify_ldt,Tsysparam(func),
+                                               Tsysparam(p),
+                                               Tsysparam(bytecount));
+end;
+
+procedure sched_yield;
+
+begin
+  do_syscall(syscall_nr_sched_yield);
+end;
 
 function epoll_create(size: cint): cint;
 begin

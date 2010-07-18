@@ -20,10 +20,11 @@ Type TGrpArr = Array [0..0] of TGid;            { C style array workarounds}
 
 // if you are looking for macro definitions or non C template overloaded versions, they are moved to bunxovlh.inc
 
-    Function  FpSigProcMask(how : cInt; nset : pSigSet; oset : pSigSet): cInt; external name 'FPC_SYSC_SIGPROCMASK';
-    Function  FpSigProcMask(how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; external name 'FPC_SYSC_SIGPROCMASK';
-    Function  FpSigPending (var nset : TSigSet): cInt;
-    Function  FpSigSuspend (Const sigmask : TSigSet): cInt;
+    Function  FpSigProcMask  (how : cInt; nset : pSigSet; oset : pSigSet): cInt; external name 'FPC_SYSC_SIGPROCMASK';
+    Function  FpSigProcMask  (how : cInt; Const nset : TSigSet; var oset : TSigSet): cInt; external name 'FPC_SYSC_SIGPROCMASK';
+    Function  FpSigPending   (var nset : TSigSet): cInt;
+    Function  FpSigSuspend   (Const sigmask : TSigSet): cInt;
+    Function  FpSigTimedWait (Const sigset : TSigSet; info : Psiginfo; timeout:Ptimespec): cInt;
 
     Function  FpUmask      (cmask : TMode): TMode;
     Function  FpLink       (existing : pChar; newone : pChar): cInt;
