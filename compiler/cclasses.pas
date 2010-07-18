@@ -2834,7 +2834,7 @@ end;
         { don't use bitpacked array, not endian-safe }
         dataindex:=index shr 3;
         if (dataindex>=datasize) then
-          grow(dataindex);
+          grow(dataindex+16);
         fdata[dataindex]:=fdata[dataindex] or (1 shl (index and 7));
       end;
 
@@ -2857,7 +2857,7 @@ end;
         dataindex:=index shr 3;
         result:=
           (dataindex<datasize) and
-          (((fdata[index shr 3] shr (index and 7)) and 1)<>0);
+          (((fdata[dataindex] shr (index and 7)) and 1)<>0);
       end;
 
 
