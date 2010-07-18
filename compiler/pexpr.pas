@@ -1508,29 +1508,25 @@ implementation
                            is_object(hdef) then
                          begin
                            consume(_POINT);
+                           { handles calling methods declared in parent objects
+                             using "parentobject.methodname()" }
                            if assigned(current_objectdef) and
-                              not(getaddr) then
-                            begin
-                              if current_objectdef.is_related(tobjectdef(hdef)) then
-                               begin
-                                 p1:=ctypenode.create(hdef);
-                                 { search also in inherited methods }
-                                 searchsym_in_class(tobjectdef(hdef),current_objectdef,pattern,srsym,srsymtable);
-                                 if assigned(srsym) then
-                                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
-                                 consume(_ID);
-                                 do_member_read(tobjectdef(hdef),false,srsym,p1,again,[]);
-                               end
-                              else
-                               begin
-                                 Message(parser_e_no_super_class);
-                                 again:=false;
-                               end;
-                            end
+                              not(getaddr) and
+                              current_objectdef.is_related(tobjectdef(hdef)) then
+                             begin
+                               p1:=ctypenode.create(hdef);
+                               { search also in inherited methods }
+                               searchsym_in_class(tobjectdef(hdef),current_objectdef,pattern,srsym,srsymtable);
+                               if assigned(srsym) then
+                                 check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
+                               consume(_ID);
+                               do_member_read(tobjectdef(hdef),false,srsym,p1,again,[]);
+                             end
                            else
                             begin
-                              { allows @TObject.Load }
-                              { also allows static methods and variables }
+                              { handles:
+                                  * @TObject.Load
+                                  * static methods and variables }
                               p1:=ctypenode.create(hdef);
                               { TP allows also @TMenu.Load if Load is only }
                               { defined in an anchestor class              }
