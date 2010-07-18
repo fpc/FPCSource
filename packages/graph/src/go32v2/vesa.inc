@@ -1495,6 +1495,7 @@ end;
      Y := Y + YOffset; { adjust pixel for correct virtual page }
      { }
      offs := longint(y) * BytesPerLine + (x div 8);
+     SetReadBank(smallint(offs shr 16));
      SetWriteBank(smallint(offs shr 16));
 
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
@@ -1503,7 +1504,7 @@ end;
      Port[$3ce] := 8;           { Index 08 : Bitmask register.          }
      Port[$3cf] := $80 shr (x and $7); { Select correct bits to modify }
 
-     dummy := Mem[WinWriteSeg: word(offs)];  { Latch the data into host space.  }
+     dummy := Mem[WinReadSeg: word(offs)];  { Latch the data into host space.  }
      Mem[WinWriteSeg: word(offs)] := dummy;  { Write the data into video memory }
      PortW[$3ce] := $ff08;         { Enable all bit planes.           }
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
@@ -1568,6 +1569,7 @@ end;
     end;
      Y := Y + YOffset;
      offs := longint(y) * BytesPerLine + (x div 8);
+     SetReadBank(smallint(offs shr 16));
      SetWriteBank(smallint(offs shr 16));
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
      PortW[$3ce] := color shl 8; { Index 00 : Enable correct plane and write color }
@@ -1575,7 +1577,7 @@ end;
      Port[$3ce] := 8;           { Index 08 : Bitmask register.          }
      Port[$3cf] := $80 shr (x and $7); { Select correct bits to modify }
 
-     dummy := Mem[WinWriteSeg: word(offs)];  { Latch the data into host space.  }
+     dummy := Mem[WinReadSeg: word(offs)];  { Latch the data into host space.  }
      Mem[WinWriteSeg: word(offs)] := dummy;  { Write the data into video memory }
      PortW[$3ce] := $ff08;         { Enable all bit planes.           }
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
