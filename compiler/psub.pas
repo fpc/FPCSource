@@ -186,9 +186,8 @@ implementation
          if (
              assigned(current_procinfo.procdef.localst) and
              (current_procinfo.procdef.localst.symtablelevel=main_program_level) and
-             (current_module.is_unit)
-            ) or
-            islibrary then
+             (current_module.is_unit or islibrary)
+            ) then
            begin
              if (token=_END) then
                 begin
