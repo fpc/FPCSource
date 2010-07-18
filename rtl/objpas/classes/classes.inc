@@ -124,7 +124,8 @@ end;
 procedure TThread.AfterConstruction;
 begin
   inherited AfterConstruction;
-//  Resume;
+  if not FInitialSuspended then
+    Resume;
 end;
 
 
