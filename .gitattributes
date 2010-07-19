@@ -4629,6 +4629,7 @@ packages/openal/examples/Makefile svneol=native#text/plain
 packages/openal/examples/Makefile.fpc svneol=native#text/plain
 packages/openal/examples/captureplaybackopenal.pas svneol=native#text/plain
 packages/openal/examples/madopenal.pas svneol=native#text/plain
+packages/openal/examples/wavopenal.pas svneol=native#text/plain
 packages/openal/fpmake.pp svneol=native#text/plain
 packages/openal/src/alch.inc svneol=native#text/plain
 packages/openal/src/alexth.inc svneol=native#text/plain
