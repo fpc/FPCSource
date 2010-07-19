@@ -106,8 +106,9 @@ implementation
 
 {$if defined(i386)}
            { For left to right add it at the end to be delphi compatible }
-           if (target_info.system in systems_all_windows) and
-              (pd.proccalloption in (pushleftright_pocalls+[pocall_safecall])) then
+           if (pd.proccalloption in (pushleftright_pocalls)) or
+              ((target_info.system in systems_all_windows) and
+               (pd.proccalloption=pocall_safecall)) then
              paranr:=paranr_result_leftright
            else
 {$elseif defined(x86) or defined(arm)}
