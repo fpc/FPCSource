@@ -124,8 +124,13 @@ end;
 procedure TThread.AfterConstruction;
 begin
   inherited AfterConstruction;
+// enable for all platforms once http://bugs.freepascal.org/view.php?id=16884
+// is fixed for all platforms (in case the fix for non-unix platforms also
+// requires this field at least)
+{$ifdef unix}
   if not FInitialSuspended then
     Resume;
+{$endif}
 end;
 
 
