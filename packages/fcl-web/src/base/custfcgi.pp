@@ -85,6 +85,7 @@ Type
     FRequestsAvail : integer;
     FHandle : THandle;
     Socket: longint;
+    FAddress: string;
     FPort: integer;
     function Read_FCGIRecord : PFCGI_Header;
   protected
@@ -94,6 +95,7 @@ Type
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     property Port: integer read FPort write FPort;
+    property Address: string read FAddress write FAddress;
     Property ProtocolOptions : TProtoColOptions Read FPO Write FPO;
     Property OnUnknownRecord : TUnknownRecordEvent Read FOnUnknownRecord Write FOnUnknownRecord;
   end;
@@ -453,7 +455,7 @@ end;
 
 function TCustomFCgiApplication.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
 var
-  Address       : TInetSockAddr;
+  IAddress      : TInetSockAddr;
   AddressLength : tsocklen;
   ARequestID    : word;
   AFCGI_Record  : PFCGI_Header;
@@ -461,7 +463,7 @@ var
 
 begin
   Result := False;
-  AddressLength:=Sizeof(Address);
+  AddressLength:=Sizeof(IAddress);
 
   if Socket=0 then
     begin
@@ -470,10 +472,13 @@ begin
       Socket := fpsocket(AF_INET,SOCK_STREAM,0);
       if Socket=-1 then
         raise EFPWebError.CreateFmt(SNoSocket,[socketerror]);
-      Address.sin_family:=AF_INET;
-      Address.sin_port:=htons(Port);
-      Address.sin_addr.s_addr:=0;
-      if fpbind(Socket,@Address,AddressLength)=-1 then
+      IAddress.sin_family:=AF_INET;
+      IAddress.sin_port:=htons(Port);
+      if FAddress<>'' then
+        Iaddress.sin_addr := StrToHostAddr(FAddress)
+      else
+        IAddress.sin_addr.s_addr:=0;
+      if fpbind(Socket,@IAddress,AddressLength)=-1 then
         begin
         CloseSocket(socket);
         Socket:=0;
@@ -492,7 +497,7 @@ begin
 
   if FHandle=-1 then
     begin
-    FHandle:=fpaccept(Socket,psockaddr(@Address),@AddressLength);
+    FHandle:=fpaccept(Socket,psockaddr(@IAddress),@AddressLength);
     if FHandle=-1 then
       raise Exception.CreateFmt(SNoInputHandle,[socketerror]);
     end;
