@@ -14,6 +14,7 @@ uses
   ctypes,
   xml2,
   Math,
+  Classes,
   DateUtils,
   SysUtils;
 
@@ -51,6 +52,7 @@ const
   CONVERT_TO_TIMEZONE_UTC: TTimezone = (Kind:tzUTC;Hour:0;Minute:0;Convert:True);
 
 { Format functions }
+function xsdFormatBase64(Value: TStream): Utf8String;
 function xsdFormatBoolean(Value: Boolean; UseWords: Boolean = False): Utf8String;
 function xsdFormatDate(Year, Month, Day: Longword; BC: Boolean; Timezone: PTimezone = nil): Utf8String;
 function xsdFormatDate(Value: TDateTime; Timezone: PTimezone = nil): Utf8String;
@@ -77,6 +79,7 @@ procedure xsdDateConvertTo(var Year, Month, Day: Longword; const Current, Target
 procedure xsdDateTimeConvertTo(var Year, Month, Day, Hour, Minute, Second, Milliseconds: Longword; const Current, Target: TTimezone);
 
 { Parse functions }
+function xsdTryParseBase64(Chars: xmlCharPtr; Len: Integer; const Value: TStream): Boolean;
 function xsdTryParseString(Chars: xmlCharPtr; Len: Integer; out Value: Utf8String): Boolean;
 function xsdTryParseStringLower(Chars: xmlCharPtr; Len: Integer; out Value: Utf8String): Boolean;
 function xsdTryParseBoolean(Chars: xmlCharPtr; Len: Integer; out Value: Boolean): Boolean;
@@ -128,6 +131,7 @@ function xsdParseUnsignedIntDef(Chars: xmlCharPtr; Len: Integer; Default: Longwo
 function xsdParseUnsignedLongDef(Chars: xmlCharPtr; Len: Integer; Default: QWord): QWord;
 function xsdParseEnumDef(Chars: xmlCharPtr; Len: Integer; enum: array of Utf8String; Default: Integer): Integer;
 
+procedure xsdParseBase64(Chars: xmlCharPtr; Len: Integer; const Value: TStream);
 procedure xsdParseString(Chars: xmlCharPtr; Len: Integer; out Value: Utf8String);
 procedure xsdParseStringLower(Chars: xmlCharPtr; Len: Integer; out Value: Utf8String);
 procedure xsdParseBoolean(Chars: xmlCharPtr; Len: Integer; out Value: Boolean);
@@ -180,6 +184,7 @@ function xsdParseUnsignedLong(Chars: xmlCharPtr; Len: Integer): QWord;
 function xsdParseEnum(Chars: xmlCharPtr; Len: Integer; enum: array of Utf8String): Integer;
 
 { Node creation functions }
+function xsdNewChildBase64(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: TStream): xmlNodePtr;
 function xsdNewChildString(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Utf8String): xmlNodePtr;
 function xsdNewChildBoolean(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Boolean; UseWords: Boolean = False): xmlNodePtr;
 function xsdNewChildDate(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Year, Month, Day: Longword; BC: Boolean = False; Timezone: PTimezone = nil): xmlNodePtr;
@@ -235,6 +240,7 @@ function xsdTestNode(node: xmlNodePtr; name, nameSpace: xmlCharPtr): Boolean;
 function xsdTryGetChild(node: xmlNodePtr; name, nameSpace: xmlCharPtr; Index: Integer = 0): xmlNodePtr;
 function xsdTryGetChild(node: xmlNodePtr; name, nameSpace: xmlCharPtr; out child: xmlNodePtr; Index: Integer = 0): Boolean;
 function xsdTryGetChildChars(node: xmlNodePtr; name, nameSpace: xmlCharPtr; Index: Integer = 0): xmlCharPtr;
+function xsdTryGetChildBase64(node: xmlNodePtr; name, nameSpace: xmlCharPtr; const Value: TStream; Index: Integer = 0): Boolean;
 function xsdTryGetChildString(node: xmlNodePtr; name, nameSpace: xmlCharPtr; out Value: Utf8String; Index: Integer = 0): Boolean;
 function xsdTryGetChildBoolean(node: xmlNodePtr; name, nameSpace: xmlCharPtr; out Value: Boolean; Index: Integer = 0): Boolean;
 function xsdTryGetChildDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; out Year, Month, Day: Longword; Timezone: PTimezone = nil; BC: PBoolean = nil; Index: Integer = 0): Boolean;
@@ -258,6 +264,7 @@ function xsdTryGetChildEnum(node: xmlNodePtr; name, nameSpace: xmlCharPtr; enum:
 
 function xsdGetChild(node: xmlNodePtr; name, nameSpace: xmlCharPtr; Index: Integer = 0): xmlNodePtr;
 function xsdGetChildChars(node: xmlNodePtr; name, nameSpace: xmlCharPtr; Index: Integer = 0): xmlCharPtr;
+procedure xsdGetChildBase64(node: xmlNodePtr; name, nameSpace: xmlCharPtr; const Value: TStream; Index: Integer = 0);
 procedure xsdGetChildString(node: xmlNodePtr; name, nameSpace: xmlCharPtr; out Value: Utf8String; Index: Integer = 0);
 procedure xsdGetChildBoolean(node: xmlNodePtr; name, nameSpace: xmlCharPtr; out Value: Boolean; Index: Integer = 0);
 procedure xsdGetChildDate(node: xmlNodePtr; name, nameSpace: xmlCharPtr; out Year, Month, Day: Longword; Timezone: PTimezone = nil; BC: PBoolean = nil; Index: Integer = 0);
@@ -283,6 +290,7 @@ procedure xsdGetChildEnum(node: xmlNodePtr; name, nameSpace: xmlCharPtr; enum: a
 function xsdTryNext(var node: xmlNodePtr; name, nameSpace: xmlCharPtr): xmlNodePtr;
 function xsdTryNext(var node: xmlNodePtr; name, nameSpace: xmlCharPtr; out last: xmlNodePtr): Boolean;
 function xsdTryNextChars(var node: xmlNodePtr; name, nameSpace: xmlCharPtr): xmlCharPtr;
+function xsdTryNextBase64(var node: xmlNodePtr; name, nameSpace: xmlCharPtr; const Value: TStream): Boolean;
 function xsdTryNextString(var node: xmlNodePtr; name, nameSpace: xmlCharPtr; out Value: Utf8String): Boolean;
 function xsdTryNextBoolean(var node: xmlNodePtr; name, nameSpace: xmlCharPtr; out Value: Boolean): Boolean;
 function xsdTryNextDate(var node: xmlNodePtr; name, nameSpace: xmlCharPtr; out Year, Month, Day: Longword; Timezone: PTimezone = nil; BC: PBoolean = nil): Boolean;
@@ -306,6 +314,7 @@ function xsdTryNextEnum(var node: xmlNodePtr; name, nameSpace: xmlCharPtr; enum:
 
 function xsdNext(var node: xmlNodePtr; name, nameSpace: xmlCharPtr): xmlNodePtr;
 function xsdNextChars(var node: xmlNodePtr; name, nameSpace: xmlCharPtr): xmlCharPtr;
+procedure xsdNextBase64(var node: xmlNodePtr; name, nameSpace: xmlCharPtr; const Value: TStream);
 procedure xsdNextString(var node: xmlNodePtr; name, nameSpace: xmlCharPtr; out Value: Utf8String);
 procedure xsdNextBoolean(var node: xmlNodePtr; name, nameSpace: xmlCharPtr; out Value: Boolean);
 procedure xsdNextDate(var node: xmlNodePtr; name, nameSpace: xmlCharPtr; out Year, Month, Day: Longword; Timezone: PTimezone = nil; BC: PBoolean = nil);
@@ -389,6 +398,72 @@ begin
   if Assigned(nameSpace) then
     S := PChar(nameSpace)+':'+S;
   inherited CreateFmt(Msg, [S]);
+end;
+
+function xsdFormatBase64(Value: TStream): Utf8String;
+const
+  Base64: array[0..63] of char = (
+    'A','B','C','D','E','F','G','H','I','J','K','L','M','N','O','P',
+    'Q','R','S','T','U','V','W','X','Y','Z','a','b','c','d','e','f',
+    'g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v',
+    'w','x','y','z','0','1','2','3','4','5','6','7','8','9','+','/'
+  );
+  BufferSize = 3*512; { buffer size must be a multiple of 3 }
+var
+  Buffer: array[0..BufferSize-1] of Byte;
+  Num, Ofs: Integer;
+  b1, b2, b3: Byte;
+begin
+  Result := '';
+  while True do
+  begin
+    Num := Value.Read(Buffer, BufferSize);
+    if Num = 0 then
+      Exit;
+
+    Ofs := 0;
+    while Num >= 3 do
+    begin
+      b1 := Buffer[Ofs];
+      b2 := Buffer[Ofs+1];
+      b3 := Buffer[Ofs+2];
+
+      Result := Result +
+        Base64[b1 shr 2] +
+        Base64[((b1 and $3) shl 4) or (b2 shr 4)] +
+        Base64[((b2 and $F) shl 2) or (b3 shr 6)] +
+        Base64[b3 and $3F];
+
+      Num := Num - 3;
+      Ofs := Ofs + 3;
+    end;
+
+    case Num of
+      1: begin
+        b1 := Buffer[Ofs];
+
+        Result := Result +
+          Base64[b1 shr 2] +
+          Base64[((b1 and $3) shl 4)] +
+          '==';
+
+        Exit;
+      end;
+
+      2: begin
+        b1 := Buffer[Ofs];
+        b2 := Buffer[Ofs+1];
+
+        Result := Result +
+          Base64[b1 shr 2] +
+          Base64[((b1 and $3) shl 4) or (b2 shr 4)] +
+          Base64[((b2 and $F) shl 2)] +
+          '=';
+
+        Exit;
+      end;
+    end;
+  end;
 end;
 
 function xsdFormatBoolean(Value: Boolean; UseWords: Boolean): Utf8String;
@@ -538,17 +613,17 @@ end;
 
 procedure xsdTimeConvertTo(var Hour, Minute, Second, Milliseconds: Longword; const Current, Target: TTimezone);
 begin
-  {$warning not implemented}
+  {$warning xsdTimeConvertTo: not implemented}
 end;
 
 procedure xsdDateConvertTo(var Year, Month, Day: Longword; const Current, Target: TTimezone);
 begin
-  {$warning not implemented}
+  {$warning xsdDateConvertTo: not implemented}
 end;
 
 procedure xsdDateTimeConvertTo(var Year, Month, Day, Hour, Minute, Second, Milliseconds: Longword; const Current, Target: TTimezone);
 begin
-  {$warning not implemented}
+  {$warning xsdDateTimeConvertTo: not implemented}
 end;
 
 function __parseNonNegativeInteger(var P: PChar; const L: PChar; out Value: QWord): Boolean;
@@ -857,6 +932,181 @@ begin
     Milliseconds := 0;
 
   Result := True;
+end;
+
+function xsdTryParseBase64(Chars: xmlCharPtr; Len: Integer; const Value: TStream): Boolean;
+const
+  BufferSize = 3*512;
+var
+  Buffer: array[0..BufferSize-1] of Byte;
+  Ofs: Integer;
+  P,L: PByte;
+  p1,p2,p3,p4: Shortint;
+begin
+  if Assigned(Chars) then
+  begin
+    Ofs := 0;
+
+    P := PByte(Chars);
+    if Len >= 0 then
+    begin
+      if Len mod 4 <> 0 then
+        Exit(False);
+
+      L := P + Len;
+      while P < L do
+      begin
+        case Chr(P^) of
+          'A'..'Z': p1 := P^ - Ord('A');
+          'a'..'z': p1 := P^ - Ord('a') + 26;
+          '0'..'9': p1 := P^ - Ord('0') + 52;
+          '+' : p1 := 62;
+          '/' : p1 := 63;
+          else Exit(False);
+        end;
+        Inc(P);
+
+        case Chr(P^) of
+          'A'..'Z': p2 := P^ - Ord('A');
+          'a'..'z': p2 := P^ - Ord('a') + 26;
+          '0'..'9': p2 := P^ - Ord('0') + 52;
+          '+' : p2 := 62;
+          '/' : p2 := 63;
+          else Exit(False);
+        end;
+        Inc(P);
+
+        case Chr(P^) of
+          'A'..'Z': p3 := P^ - Ord('A');
+          'a'..'z': p3 := P^ - Ord('a') + 26;
+          '0'..'9': p3 := P^ - Ord('0') + 52;
+          '+' : p3 := 62;
+          '/' : p3 := 63;
+          '=' : p3 := -1;
+          else Exit(False);
+        end;
+        Inc(P);
+
+        if (p3 >= 0) then
+        begin
+          case Chr(P^) of
+            'A'..'Z': p4 := P^ - Ord('A');
+            'a'..'z': p4 := P^ - Ord('a') + 26;
+            '0'..'9': p4 := P^ - Ord('0') + 52;
+            '+' : p4 := 62;
+            '/' : p4 := 63;
+            '=' : p4 := -1;
+            else Exit(False);
+          end;
+        end else begin
+          if P^ <> Ord('=') then
+            Exit(False);
+          p4 := -1;
+        end;
+        Inc(P);
+
+        Buffer[Ofs] := (p1 shl 2) or (p2 shr 4);
+        Ofs := Ofs + 1;
+
+        if p3 >= 0 then
+        begin
+          Buffer[Ofs] := ((p2 and $F) shl 4) or (p3 shr 2);
+          Ofs := Ofs + 1;
+
+          if p4 >= 0 then
+          begin
+            Buffer[Ofs] := ((p3 and $3) shl 6) or p4;
+            Ofs := Ofs + 1;
+          end;
+        end;
+
+        if Ofs >= BufferSize-2 then
+        begin
+          Value.Write(Buffer, Ofs);
+          Ofs := 0;
+        end;
+      end;
+    end else begin
+      while P^ <> 0 do
+      begin
+        case Chr(P^) of
+          'A'..'Z': p1 := P^ - Ord('A');
+          'a'..'z': p1 := P^ - Ord('a') + 26;
+          '0'..'9': p1 := P^ - Ord('0') + 52;
+          '+' : p1 := 62;
+          '/' : p1 := 63;
+          else Exit(False);
+        end;
+        Inc(P);
+
+        case Chr(P^) of
+          'A'..'Z': p2 := P^ - Ord('A');
+          'a'..'z': p2 := P^ - Ord('a') + 26;
+          '0'..'9': p2 := P^ - Ord('0') + 52;
+          '+' : p2 := 62;
+          '/' : p2 := 63;
+          else Exit(False);
+        end;
+        Inc(P);
+
+        case Chr(P^) of
+          'A'..'Z': p3 := P^ - Ord('A');
+          'a'..'z': p3 := P^ - Ord('a') + 26;
+          '0'..'9': p3 := P^ - Ord('0') + 52;
+          '+' : p3 := 62;
+          '/' : p3 := 63;
+          '=' : p3 := -1;
+          else Exit(False);
+        end;
+        Inc(P);
+
+        if (p3 >= 0) then
+        begin
+          case Chr(P^) of
+            'A'..'Z': p4 := P^ - Ord('A');
+            'a'..'z': p4 := P^ - Ord('a') + 26;
+            '0'..'9': p4 := P^ - Ord('0') + 52;
+            '+' : p4 := 62;
+            '/' : p4 := 63;
+            '=' : p4 := -1;
+            else Exit(False);
+          end;
+        end else begin
+          if P^ <> Ord('=') then
+            Exit(False);
+          p4 := -1;
+        end;
+        Inc(P);
+
+        Buffer[Ofs] := (p1 shl 2) or (p2 shr 4);
+        Ofs := Ofs + 1;
+
+        if p3 >= 0 then
+        begin
+          Buffer[Ofs] := ((p2 and $F) shl 4) or (p3 shr 2);
+          Ofs := Ofs + 1;
+
+          if p4 >= 0 then
+          begin
+            Buffer[Ofs] := ((p3 and $3) shl 6) or p4;
+            Ofs := Ofs + 1;
+          end;
+        end;
+
+        if Ofs >= BufferSize-2 then
+        begin
+          Value.Write(Buffer, Ofs);
+          Ofs := 0;
+        end;
+      end;
+    end;
+
+    if Ofs > 0 then // flush
+      Value.Write(Buffer, Ofs);
+
+    Result := True;
+  end else
+    Result := False;
 end;
 
 function xsdTryParseString(Chars: xmlCharPtr; Len: Integer; out Value: Utf8String): Boolean;
@@ -1444,6 +1694,12 @@ begin
     Result := Default;
 end;
 
+procedure xsdParseBase64(Chars: xmlCharPtr; Len: Integer; const Value: TStream);
+begin
+  if not xsdTryParseBase64(Chars, Len, Value) then
+    raise XSDException.CreateFmt(ParserError, [__strpas(Chars,Len), 'xs:base64Binary']);
+end;
+
 procedure xsdParseString(Chars: xmlCharPtr; Len: Integer; out Value: Utf8String);
 begin
   if not xsdTryParseString(Chars, Len, Value) then
@@ -1713,6 +1969,13 @@ end;
 function xsdParseEnum(Chars: xmlCharPtr; Len: Integer; enum: array of Utf8String): Integer;
 begin
   xsdParseEnum(Chars, Len, enum, Result);
+end;
+function xsdNewChildBase64(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: TStream): xmlNodePtr;
+var
+  Tmp: Utf8String;
+begin
+  Tmp := xsdFormatBase64(Value);
+  Result := xmlNewChild(parent, ns, name, PChar(Tmp));
 end;
 
 function xsdNewChildString(parent: xmlNodePtr; ns: xmlNsPtr; name: xmlCharPtr; Value: Utf8String): xmlNodePtr;
@@ -2072,6 +2335,11 @@ begin
   Result := xmlNodeGetContent(xsdTryGetChild(node, name, nameSpace, Index));
 end;
 
+function xsdTryGetChildBase64(node: xmlNodePtr; name, nameSpace: xmlCharPtr; const Value: TStream; Index: Integer): Boolean;
+begin
+  Result := xsdTryParseBase64(xsdTryGetChildChars(node, name, nameSpace, Index), -1, Value);
+end;
+
 function xsdTryGetChildString(node: xmlNodePtr; name, nameSpace: xmlCharPtr; out Value: Utf8String; Index: Integer): Boolean;
 begin
   Result := xsdTryParseString(xsdTryGetChildChars(node, name, nameSpace, Index), -1, Value);
@@ -2182,6 +2450,11 @@ end;
 function xsdGetChildChars(node: xmlNodePtr; name, nameSpace: xmlCharPtr; Index: Integer): xmlCharPtr;
 begin
   Result := xmlNodeGetContent(xsdGetChild(node, name, nameSpace, Index));
+end;
+
+procedure xsdGetChildBase64(node: xmlNodePtr; name, nameSpace: xmlCharPtr; const Value: TStream; Index: Integer);
+begin
+  xsdParseBase64(xsdGetChildChars(node, name, nameSpace, Index), -1, Value);
 end;
 
 procedure xsdGetChildString(node: xmlNodePtr; name, nameSpace: xmlCharPtr; out Value: Utf8String; Index: Integer);
@@ -2308,6 +2581,11 @@ begin
   Result := xmlNodeGetContent(xsdTryNext(node, name, nameSpace));
 end;
 
+function xsdTryNextBase64(var node: xmlNodePtr; name, nameSpace: xmlCharPtr; const Value: TStream): Boolean;
+begin
+  Result := xsdTryParseBase64(xsdTryNextChars(node, name, nameSpace), -1, Value);
+end;
+
 function xsdTryNextString(var node: xmlNodePtr; name, nameSpace: xmlCharPtr; out Value: Utf8String): Boolean;
 begin
   Result := xsdTryParseString(xsdTryNextChars(node, name, nameSpace), -1, Value);
@@ -2418,6 +2696,11 @@ end;
 function xsdNextChars(var node: xmlNodePtr; name, nameSpace: xmlCharPtr): xmlCharPtr;
 begin
   Result := xmlNodeGetContent(xsdNext(node, name, nameSpace));
+end;
+
+procedure xsdNextBase64(var node: xmlNodePtr; name, nameSpace: xmlCharPtr; const Value: TStream);
+begin
+  xsdParseBase64(xsdNextChars(node, name, nameSpace), -1, Value);
 end;
 
 procedure xsdNextString(var node: xmlNodePtr; name, nameSpace: xmlCharPtr; out Value: Utf8String);
