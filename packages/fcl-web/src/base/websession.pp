@@ -136,7 +136,6 @@ begin
     {$ifdef cgidebug}Senddebug('Creating iniwebsession');{$endif}
     W:=TFPWebSession.Create(Nil);
     W.SessionDir:=GlobalSessionDir;
-    W.Cached:=true;
     Result:=W;
     end;
 {$ifdef cgidebug}SendMethodExit('GetDefaultSession');{$endif}

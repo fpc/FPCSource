@@ -397,14 +397,15 @@ end;
 function TCustomWebActions.GetActionName(ARequest: TRequest): String;
 
 begin
-  If (FActionVar<>'') then
-    Result:=ARequest.QueryFields.Values[FActionVar]
-  else
-    Result := '';
   If Assigned(FOnGetAction) then
     FOnGetAction(Self,ARequest,Result);
   If (Result='') then
-    Result:=ARequest.GetNextPathInfo;
+    begin
+    If (FActionVar<>'') then
+      Result:=ARequest.QueryFields.Values[FActionVar];
+    If (Result='') then
+      Result:=ARequest.GetNextPathInfo;
+    end;
 end;
 
 constructor TCustomWebActions.Create(AItemClass: TCollectionItemClass);

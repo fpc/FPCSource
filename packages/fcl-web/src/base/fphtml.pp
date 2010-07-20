@@ -1205,10 +1205,7 @@ end;
 
 function TWebController.GetCurrentJavaScriptStack: TJavaScriptStack;
 begin
-  if FScriptStack.Count=0 then
-    result := nil
-  else
-    result := TJavaScriptStack(FScriptStack.Items[FScriptStack.Count-1]);
+  result := TJavaScriptStack(FScriptStack.Items[FScriptStack.Count-1]);
 end;
 
 procedure TWebController.InitializeAjaxRequest;

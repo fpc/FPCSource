@@ -1141,7 +1141,7 @@ begin
     if FHandleGetOnPost then
       InitGetVars;
     end
-  else if (CompareText(R,'GET')=0) or (CompareText(R,'HEAD')=0) then
+  else if CompareText(R,'GET')=0 then
     InitGetVars
   else
     Raise Exception.CreateFmt(SErrInvalidRequestMethod,[R]);

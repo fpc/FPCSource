@@ -63,6 +63,7 @@ type
     procedure DoHandleAjaxRequest(ARequest: TRequest; AnAjaxResponse: TAjaxResponse; var Handled: boolean); virtual;
     procedure DoBeforeRequest(ARequest: TRequest); virtual;
     procedure DoBeforeShowPage(ARequest: TRequest); virtual;
+    function IsAjaxCall: boolean; virtual;
     property WebModule: TFPWebModule read FWebModule;
     procedure DoCleanupAfterRequest(const AContentProducer: THTMLContentProducer);
     procedure SetRequest(ARequest: TRequest); virtual;
@@ -77,7 +78,6 @@ type
     function ExchangeContentProducers(Child1, Child2: THTMLContentProducer) : boolean;
     function MoveContentProducer(MoveElement, MoveBeforeElement: THTMLContentProducer) : boolean;
     procedure ForeachContentProducer(AForeachChildsProc: TForeachContentProducerProc; Recursive: boolean);
-    function IsAjaxCall: boolean; virtual;
 
     procedure HandlePage(ARequest: TRequest; AResponse: TResponse; AWriter: THTMLwriter; AWebModule: TFPWebModule = nil); virtual;
     procedure DoBeforeGenerateXML; virtual;
