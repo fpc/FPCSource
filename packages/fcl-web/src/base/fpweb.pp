@@ -116,7 +116,7 @@ Type
   Protected
     Procedure DoBeforeRequest(ARequest : TRequest); virtual;
     Procedure DoAfterResponse(AResponse : TResponse); virtual;
-    Procedure GetParam(Const ParamName : String; Out Value : String); virtual; // Called by template
+    Procedure GetParam(Const ParamName : String; Out Value : String); // Called by template
     Procedure GetTemplateContent(ARequest : TRequest; AResponse : TResponse); virtual;
     function GetContent: String;virtual;
   Public
@@ -296,7 +296,7 @@ Type
     FRequest : TRequest;
   Public
     Constructor Create(AOwner :TCustomFPWebModule);
-    Procedure GetParam(Sender : TObject; Const ParamName : String; Out AValue : String);override;
+    Function GetParam(const Key: String; out AValue: String) : boolean; override;
     Property Owner : TCustomFPWebModule Read FOwner;
     Property Request : TRequest Read FRequest Write FRequest;
   end;
@@ -307,10 +307,11 @@ begin
   FOwner:=AOwner;
 end;
 
-procedure TFPWebTemplate.GetParam(Sender: TObject; const ParamName: String;
-  out AValue: String);
+function TFPWebTemplate.GetParam(const Key: String; out AValue: String) : boolean;
 begin
-  FOwner.GetParam(ParamName, AValue);
+  result := Inherited GetParam(Key, AValue);
+  if not result then
+    FOwner.GetParam(Key, AValue);
 end;
 
 { TFPWebModule }

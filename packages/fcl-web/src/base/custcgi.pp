@@ -156,7 +156,22 @@ end;
 
 
 Procedure TCustomCGIApplication.ShowException(E: Exception);
+var
+  LogStr: string;
+  FrameNumber: Integer;
+  Frames: PPointer;
+  FrameCount: integer;
+
 begin
+  logstr := 'Exception occured: ' + e.Message;
+
+  LogStr := LogStr + LineEnding + BackTraceStrFunc(ExceptAddr);
+  FrameCount:=ExceptFrameCount;
+  Frames:=ExceptFrames;
+  for FrameNumber := 0 to FrameCount-1 do
+    LogStr := LogStr + LineEnding + BackTraceStrFunc(Frames[FrameNumber]);
+  Log(etError,LogStr);
+
   if assigned(FResponse) then
     ShowRequestException(FResponse,E)
   else

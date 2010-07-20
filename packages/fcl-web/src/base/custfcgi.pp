@@ -495,10 +495,10 @@ begin
       Socket:=StdInputHandle;
     end;
 
-  if FHandle=-1 then
+  if FHandle=THandle(-1) then
     begin
     FHandle:=fpaccept(Socket,psockaddr(@IAddress),@AddressLength);
-    if FHandle=-1 then
+    if FHandle=THandle(-1) then
       raise Exception.CreateFmt(SNoInputHandle,[socketerror]);
     end;
 
