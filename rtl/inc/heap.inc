@@ -55,8 +55,16 @@ const
   ocrecycleflag  = 1;
   { above flags stored in size field }
   sizemask = not(blocksize-1);
-  fixedoffsetshift = 16;
+  fixedoffsetshift = 12;
   fixedsizemask = sizemask and ((1 shl fixedoffsetshift) - 1);
+  { After how many successive allocations of oschunks for fixed freelist
+    purposes should we double the size of locgrowheapsizesmall for the
+    current thread. Since the allocations of oschunks are added together for
+    all blocksizes, this is only a fuzzy indication of when the size will be
+    doubled rather than a hard and fast boundary. }
+  fixedallocthreshold = (maxblocksize shr blockshift) * 2;
+  { maximum size to which locgrowheapsizesmall can grow }
+  maxgrowheapsizesmall = 256*1024;
 
 {****************************************************************************}
 
@@ -167,9 +175,23 @@ type
 
   tfreelists = record
     oslist : poschunk;      { os chunks free, available for use }
-    oscount : dword;        { number of os chunks on oslist }
-    oslist_all : poschunk;  { all os chunks allocated }
     fixedlists : tfixedfreelists;
+    oscount : dword;        { number of os chunks on oslist }
+    { we gradually grow the size of the blocks used for fixed allocations in
+      case many of them are allocated. However, don't take successive
+      allocate/free cases into account, since that mean the block's size is
+      fine and that the program simply exhibits a cyclic behaviour (in which
+      case increasing the blocksize could even slow things down due to the
+      subdividing overhead) and MaxKeptOSChunks should probably be increased
+      instead. }
+    lastfixedopwasalloc: boolean;
+    { how many oschunks have been successively allocated in this thread since
+      the last time we doubled the locgrowheapsizesmall size }
+    fixedallocated: byte;
+    { the size of oschunks allocated for fixed allocations in this thread;
+      initialised on thread creation with the global growheapsizesmall setting }
+    locgrowheapsizesmall: ptruint;
+    oslist_all : poschunk;  { all os chunks allocated }
     varlist : pmemchunk_var;
     { chunks waiting to be freed from other thread }
     waitfixed : pmemchunk_fixed;
@@ -476,6 +498,7 @@ procedure free_oschunk(loc_freelists: pfreelists; poc: poschunk);
 var
   pocsize: ptruint;
 begin
+  loc_freelists^.lastfixedopwasalloc:=false;
   remove_freed_fixed_chunks(poc);
   if assigned(poc^.prev_any) then
     poc^.prev_any^.next_any := poc^.next_any
@@ -781,9 +804,9 @@ begin
       { allocate smaller blocks for fixed-size chunks }
       if chunkindex<>0 then
         begin
-          poc := SysOSAlloc(GrowHeapSizeSmall);
+          poc := SysOSAlloc(loc_freelists^.LocGrowHeapSizeSmall);
           if poc<>nil then
-            size := GrowHeapSizeSmall;
+            size := loc_freelists^.LocGrowHeapSizeSmall;
         end
     { first try 256K (default) }
       else if size<=GrowHeapSize1 then
@@ -860,6 +883,21 @@ begin
       if pmc_next<>nil then
         pmc_next^.prev_fixed := pmc;
       loc_freelists^.fixedlists[chunkindex] := pmemchunk_fixed(result);
+      { check whether we should increase the size of the fixed freelist blocks }
+      if (loc_freelists^.lastfixedopwasalloc) then
+        begin
+          inc(loc_freelists^.fixedallocated);
+          if (loc_freelists^.fixedallocated > fixedallocthreshold) then
+            begin
+              if (loc_freelists^.locgrowheapsizesmall < maxgrowheapsizesmall) then
+                inc(loc_freelists^.locgrowheapsizesmall,loc_freelists^.locgrowheapsizesmall);
+              { also set to zero in case we did not grow the blocksize to
+                prevent oveflows of this counter in case the rtl is compiled
+                range/overflow checking }
+              loc_freelists^.fixedallocated:=0;
+            end;
+        end;
+      loc_freelists^.lastfixedopwasalloc:=true;
     end
   else
     begin
@@ -1458,6 +1496,9 @@ begin
 {$endif}
   loc_freelists := @freelists;
   fillchar(loc_freelists^,sizeof(tfreelists),0);
+  { initialise the local blocksize for allocating oschunks for fixed
+    freelists with the default starting value }
+  loc_freelists^.locgrowheapsizesmall:=growheapsizesmall;
   fillchar(orphaned_freelists,sizeof(orphaned_freelists),0);
 end;
 
