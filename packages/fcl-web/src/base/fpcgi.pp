@@ -38,13 +38,16 @@ Procedure InitCGI;
 
 begin
   Application:=TCGIApplication.Create(Nil);
-  CustomApplication:=Application;
+  if not assigned(CustomApplication) then
+    CustomApplication := Application;
 end;
 
 Procedure DoneCGI;
 
 begin
   Try
+    if CustomApplication=Application then
+      CustomApplication := nil;
     FreeAndNil(Application);
   except
     if ShowCleanUpErrors then

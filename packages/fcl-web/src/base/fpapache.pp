@@ -164,6 +164,8 @@ Var
 
 Implementation
 
+uses CustApp;
+
 resourcestring
   SErrNoModuleNameForRequest = 'Could not determine HTTP module name for request';
   SErrNoModuleForRequest = 'Could not determine HTTP module for request "%s"';
@@ -180,12 +182,16 @@ Procedure InitApache;
 
 begin
   Application:=TCustomApacheApplication.Create(Nil);
+  if not assigned(CustomApplication) then
+    CustomApplication := Application;
 end;
 
 Procedure DoneApache;
 
 begin
   Try
+    if CustomApplication=Application then
+      CustomApplication := nil;
     FreeAndNil(Application);
   except
     if ShowCleanUpErrors then
