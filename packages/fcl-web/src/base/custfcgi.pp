@@ -75,9 +75,7 @@ Type
              Response : TFCgiResponse;
              end;
 
-  { TCustomFCgiApplication }
-
-  TCustomFCgiApplication = Class(TCustomWebApplication)
+  TFCgiHandler = class(TWebHandler)
   Private
     FOnUnknownRecord: TUnknownRecordEvent;
     FPO: TProtoColOptions;
@@ -98,6 +96,27 @@ Type
     property Address: string read FAddress write FAddress;
     Property ProtocolOptions : TProtoColOptions Read FPO Write FPO;
     Property OnUnknownRecord : TUnknownRecordEvent Read FOnUnknownRecord Write FOnUnknownRecord;
+  end;
+
+  { TCustomFCgiApplication }
+
+  TCustomFCgiApplication = Class(TCustomWebApplication)
+  private
+    function GetAddress: string;
+    function GetFPO: TProtoColOptions;
+    function GetOnUnknownRecord: TUnknownRecordEvent;
+    function GetPort: integer;
+    procedure SetAddress(const AValue: string);
+    procedure SetOnUnknownRecord(const AValue: TUnknownRecordEvent);
+    procedure SetPort(const AValue: integer);
+    procedure SetPO(const AValue: TProtoColOptions);
+  protected
+    function InitializeWebHandler: TWebHandler; override;
+  Public
+    property Port: integer read GetPort write SetPort;
+    property Address: string read GetAddress write SetAddress;
+    Property ProtocolOptions : TProtoColOptions Read GetFPO Write SetPO;
+    Property OnUnknownRecord : TUnknownRecordEvent Read GetOnUnknownRecord Write SetOnUnknownRecord;
   end;
 
 ResourceString
@@ -372,9 +391,9 @@ begin
   Write_FCGIRecord(PFCGI_Header(@EndRequest));
 end;
 
-{ TCustomFCgiApplication }
+{ TFCgiHandler }
 
-constructor TCustomFCgiApplication.Create(AOwner: TComponent);
+constructor TFCgiHandler.Create(AOwner: TComponent);
 begin
   Inherited Create(AOwner);
   FRequestsAvail:=5;
@@ -382,7 +401,7 @@ begin
   FHandle := THandle(-1);
 end;
 
-destructor TCustomFCgiApplication.Destroy;
+destructor TFCgiHandler.Destroy;
 begin
   SetLength(FRequestsArray,0);
   if (Socket<>0) then
@@ -393,7 +412,7 @@ begin
   inherited Destroy;
 end;
 
-procedure TCustomFCgiApplication.EndRequest(ARequest: TRequest; AResponse: TResponse);
+procedure TFCgiHandler.EndRequest(ARequest: TRequest; AResponse: TResponse);
 begin
   with FRequestsArray[TFCGIRequest(ARequest).RequestID] do
     begin
@@ -411,7 +430,7 @@ begin
   Inherited;
 end;
 
-function TCustomFCgiApplication.Read_FCGIRecord : PFCGI_Header;
+function TFCgiHandler.Read_FCGIRecord : PFCGI_Header;
 
 var Header : FCGI_Header;
     BytesRead : integer;
@@ -453,7 +472,7 @@ begin
   Result := ResRecord;
 end;
 
-function TCustomFCgiApplication.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
+function TFCgiHandler.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
 var
   IAddress      : TInetSockAddr;
   AddressLength : tsocklen;
@@ -534,7 +553,54 @@ begin
       Break;
       end;
     end;
-  until Terminated;
+  until (1<>1);
+end;
+
+{ TCustomFCgiApplication }
+
+function TCustomFCgiApplication.GetAddress: string;
+begin
+  result := TFCgiHandler(WebHandler).Address;
+end;
+
+function TCustomFCgiApplication.GetFPO: TProtoColOptions;
+begin
+  result := TFCgiHandler(WebHandler).ProtocolOptions;
+end;
+
+function TCustomFCgiApplication.GetOnUnknownRecord: TUnknownRecordEvent;
+begin
+  result := TFCgiHandler(WebHandler).OnUnknownRecord;
+end;
+
+function TCustomFCgiApplication.GetPort: integer;
+begin
+  result := TFCgiHandler(WebHandler).Port;
+end;
+
+procedure TCustomFCgiApplication.SetAddress(const AValue: string);
+begin
+  TFCgiHandler(WebHandler).Address := AValue;
+end;
+
+procedure TCustomFCgiApplication.SetOnUnknownRecord(const AValue: TUnknownRecordEvent);
+begin
+  TFCgiHandler(WebHandler).OnUnknownRecord := AValue;
+end;
+
+procedure TCustomFCgiApplication.SetPort(const AValue: integer);
+begin
+  TFCgiHandler(WebHandler).Port := AValue;
+end;
+
+procedure TCustomFCgiApplication.SetPO(const AValue: TProtoColOptions);
+begin
+  TFCgiHandler(WebHandler).ProtocolOptions := AValue;
+end;
+
+function TCustomFCgiApplication.InitializeWebHandler: TWebHandler;
+begin
+  Result:=TFCgiHandler.Create(self);
 end;
 
 end.

@@ -71,13 +71,19 @@ Const
     );
 
 Type
+
   { TCustomWebApplication }
+
   TGetModuleEvent = Procedure (Sender : TObject; ARequest : TRequest;
                                Var ModuleClass : TCustomHTTPModuleClass) of object;
   TOnShowRequestException = procedure(AResponse: TResponse; AnException: Exception; var handled: boolean);
 
-  TCustomWebApplication = Class(TCustomApplication)
-  Private
+  { TWebHandler }
+
+  TWebHandler = class(TComponent)
+  private
+    FOnIdle: TNotifyEvent;
+    FTerminated: boolean;
     FAdministrator: String;
     FAllowDefaultModule: Boolean;
     FApplicationURL: String;
@@ -89,28 +95,23 @@ Type
     FHandleGetOnPost : Boolean;
     FRedirectOnError : Boolean;
     FRedirectOnErrorURL : String;
-    FEventLog: TEventLog;
-    function GetEventLog: TEventLog;
+    FTitle: string;
   protected
+    procedure Terminate;
     Function GetModuleName(Arequest : TRequest) : string;
     function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; virtual; abstract;
     procedure EndRequest(ARequest : TRequest;AResponse : TResponse); virtual;
     function FindModule(ModuleClass : TCustomHTTPModuleClass): TCustomHTTPModule;
     Procedure SetBaseURL(AModule : TCustomHTTPModule; Const AModuleName : String; ARequest : TRequest); virtual;
     function GetApplicationURL(ARequest : TRequest): String; virtual;
-    Procedure DoRun; override;
     procedure ShowRequestException(R: TResponse; E: Exception); virtual;
     Function GetEmail : String; virtual;
     Function GetAdministrator : String; virtual;
   Public
     constructor Create(AOwner: TComponent); override;
-    destructor Destroy; override;
-    Procedure CreateForm(AClass : TComponentClass; out Reference);
-    Procedure Initialize; override;
-    Procedure ShowException(E: Exception);override;
+    Procedure Run; virtual;
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse);
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual;
-    Procedure Log(EventType: TEventType; Msg: String); override;
     Property HandleGetOnPost : Boolean Read FHandleGetOnPost Write FHandleGetOnPost;
     Property RedirectOnError : boolean Read FRedirectOnError Write FRedirectOnError;
     Property RedirectOnErrorURL : string Read FRedirectOnErrorURL Write FRedirectOnErrorURL;
@@ -120,8 +121,59 @@ Type
     Property ModuleVariable : String Read FModuleVar Write FModuleVar;
     Property OnGetModule : TGetModuleEvent Read FOnGetModule Write FOnGetModule;
     Property Email : String Read GetEmail Write FEmail;
+    property Title: string read FTitle write FTitle;
     Property Administrator : String Read GetAdministrator Write FAdministrator;
     property OnShowRequestException: TOnShowRequestException read FOnShowRequestException write FOnShowRequestException;
+    property OnIdle: TNotifyEvent read FOnIdle write FOnIdle;
+  end;
+
+  TCustomWebApplication = Class(TCustomApplication)
+  Private
+    FEventLog: TEventLog;
+    FWebHandler: TWebHandler;
+    function GetAdministrator: String;
+    function GetAllowDefaultModule: Boolean;
+    function GetApplicationURL: String;
+    function GetEmail: String;
+    function GetEventLog: TEventLog;
+    function GetHandleGetOnPost: Boolean;
+    function GetModuleVar: String;
+    function GetOnGetModule: TGetModuleEvent;
+    function GetOnShowRequestException: TOnShowRequestException;
+    function GetRedirectOnError: boolean;
+    function GetRedirectOnErrorURL: string;
+    procedure SetAdministrator(const AValue: String);
+    procedure SetAllowDefaultModule(const AValue: Boolean);
+    procedure SetApplicationURL(const AValue: String);
+    procedure SetEmail(const AValue: String);
+    procedure SetHandleGetOnPost(const AValue: Boolean);
+    procedure SetModuleVar(const AValue: String);
+    procedure SetOnGetModule(const AValue: TGetModuleEvent);
+    procedure SetOnShowRequestException(const AValue: TOnShowRequestException);
+    procedure SetRedirectOnError(const AValue: boolean);
+    procedure SetRedirectOnErrorURL(const AValue: string);
+  protected
+    Procedure DoRun; override;
+    function InitializeWebHandler: TWebHandler; virtual; abstract;
+    procedure SetTitle(const AValue: string); override;
+    property WebHandler: TWebHandler read FWebHandler write FWebHandler;
+  Public
+    constructor Create(AOwner: TComponent); override;
+    destructor Destroy; override;
+    Procedure CreateForm(AClass : TComponentClass; out Reference);
+    Procedure Initialize; override;
+    Procedure Log(EventType: TEventType; Msg: String); override;
+
+    Property HandleGetOnPost : Boolean Read GetHandleGetOnPost Write SetHandleGetOnPost;
+    Property RedirectOnError : boolean Read GetRedirectOnError Write SetRedirectOnError;
+    Property RedirectOnErrorURL : string Read GetRedirectOnErrorURL Write SetRedirectOnErrorURL;
+    Property ApplicationURL : String Read GetApplicationURL Write SetApplicationURL;
+    Property AllowDefaultModule : Boolean Read GetAllowDefaultModule Write SetAllowDefaultModule;
+    Property ModuleVariable : String Read GetModuleVar Write SetModuleVar;
+    Property OnGetModule : TGetModuleEvent Read GetOnGetModule Write SetOnGetModule;
+    Property Email : String Read GetEmail Write SetEmail;
+    Property Administrator : String Read GetAdministrator Write SetAdministrator;
+    property OnShowRequestException: TOnShowRequestException read GetOnShowRequestException write SetOnShowRequestException;
     Property EventLog: TEventLog read GetEventLog;
   end;
 
@@ -173,18 +225,20 @@ begin
     end;
 end;
 
-procedure TCustomWebApplication.DoRun;
+procedure TWebHandler.Run;
 var ARequest : TRequest;
     AResponse : TResponse;
 begin
-  while not Terminated do
+  while not FTerminated do
     begin
     if WaitForRequest(ARequest,AResponse) then
       DoHandleRequest(ARequest,AResponse);
+    if assigned(OnIdle) then
+      OnIdle(Self);
     end;
 end;
 
-procedure TCustomWebApplication.ShowRequestException(R: TResponse; E: Exception);
+procedure TWebHandler.ShowRequestException(R: TResponse; E: Exception);
 Var
  S : TStrings;
  handled: boolean;
@@ -221,27 +275,17 @@ begin
     end;
 end;
 
-function TCustomWebApplication.GetEmail: String;
+function TWebHandler.GetEmail: String;
 begin
   Result := FEmail;
 end;
 
-function TCustomWebApplication.GetAdministrator: String;
+function TWebHandler.GetAdministrator: String;
 begin
   Result := FAdministrator;
 end;
 
-procedure TCustomWebApplication.ShowException(E: Exception);
-var Buf:ShortString;
-begin
-{$ifdef CGIDEBUG}
-  SetLength(Buf,ExceptionErrorMessage(ExceptObject,ExceptAddr,@Buf[1],255));
-  senddebug('Exception: ' + Buf);
-{$endif CGIDEBUG}
-  inherited ShowException(E);
-end;
-
-procedure TCustomWebApplication.HandleRequest(ARequest: TRequest; AResponse: TResponse);
+procedure TWebHandler.HandleRequest(ARequest: TRequest; AResponse: TResponse);
 Var
   MC : TCustomHTTPModuleClass;
   M  : TCustomHTTPModule;
@@ -285,33 +329,19 @@ begin
   end;
 end;
 
-procedure TCustomWebApplication.Log(EventType: TEventType; Msg: String);
-begin
-  EventLog.log(EventType,Msg);
-end;
-
-Procedure TCustomWebApplication.Initialize;
-
-begin
-  StopOnException:=True;
-  Inherited;
-end;
-
-function TCustomWebApplication.GetEventLog: TEventLog;
-begin
-  if not assigned(FEventLog) then
-    FEventLog := TEventLog.Create(self);
-  Result := FEventLog;
-end;
-
-function TCustomWebApplication.GetApplicationURL(ARequest: TRequest): String;
+function TWebHandler.GetApplicationURL(ARequest: TRequest): String;
 begin
   Result:=FApplicationURL;
   If (Result='') then
     Result:=ARequest.ScriptName;
 end;
 
-function TCustomWebApplication.GetModuleName(Arequest: TRequest): string;
+procedure TWebHandler.Terminate;
+begin
+  FTerminated := true;
+end;
+
+function TWebHandler.GetModuleName(Arequest: TRequest): string;
 
    Function GetDefaultModuleName : String;
 
@@ -344,13 +374,13 @@ begin
     end;
 end;
 
-procedure TCustomWebApplication.EndRequest(ARequest: TRequest; AResponse: TResponse);
+procedure TWebHandler.EndRequest(ARequest: TRequest; AResponse: TResponse);
 begin
   AResponse.Free;
   ARequest.Free;
 end;
 
-function TCustomWebApplication.FindModule(ModuleClass: TCustomHTTPModuleClass): TCustomHTTPModule;
+function TWebHandler.FindModule(ModuleClass: TCustomHTTPModuleClass): TCustomHTTPModule;
 Var
   I : Integer;
 begin
@@ -363,7 +393,7 @@ begin
     Result:=Nil;
 end;
 
-procedure TCustomWebApplication.SetBaseURL(AModule: TCustomHTTPModule;
+procedure TWebHandler.SetBaseURL(AModule: TCustomHTTPModule;
   Const AModuleName : String; ARequest: TRequest);
 
 Var
@@ -382,7 +412,7 @@ begin
   AModule.BaseURL:=S+P;
 end;
 
-procedure TCustomWebApplication.DoHandleRequest(ARequest: TRequest; AResponse: TResponse);
+procedure TWebHandler.DoHandleRequest(ARequest: TRequest; AResponse: TResponse);
 begin
   HandleRequest(ARequest,AResponse);
   If Not AResponse.ContentSent then
@@ -390,7 +420,7 @@ begin
   EndRequest(ARequest,AResponse);
 end;
 
-constructor TCustomWebApplication.Create(AOwner: TComponent);
+constructor TWebHandler.Create(AOwner:TComponent);
 begin
   inherited Create(AOwner);
   FModuleVar:='Module'; // Do not localize
@@ -400,16 +430,152 @@ begin
   FRedirectOnErrorURL := '';
 end;
 
+{ TCustomWebApplication }
+
+function TCustomWebApplication.GetAdministrator: String;
+begin
+  result := FWebHandler.Administrator;
+end;
+
+function TCustomWebApplication.GetAllowDefaultModule: Boolean;
+begin
+  result := FWebHandler.AllowDefaultModule;
+end;
+
+function TCustomWebApplication.GetApplicationURL: String;
+begin
+  result := FWebHandler.ApplicationURL;
+end;
+
+function TCustomWebApplication.GetEmail: String;
+begin
+  result := FWebHandler.Email;
+end;
+
+function TCustomWebApplication.GetEventLog: TEventLog;
+begin
+  if not assigned(FEventLog) then
+    FEventLog := TEventLog.Create(self);
+  Result := FEventLog;
+end;
+
+function TCustomWebApplication.GetHandleGetOnPost: Boolean;
+begin
+  result := FWebHandler.HandleGetOnPost;
+end;
+
+function TCustomWebApplication.GetModuleVar: String;
+begin
+  result := FWebHandler.ModuleVariable;
+end;
+
+function TCustomWebApplication.GetOnGetModule: TGetModuleEvent;
+begin
+  result := FWebHandler.OnGetModule;
+end;
+
+function TCustomWebApplication.GetOnShowRequestException: TOnShowRequestException;
+begin
+  result := FWebHandler.OnShowRequestException;
+end;
+
+function TCustomWebApplication.GetRedirectOnError: boolean;
+begin
+  result := FWebHandler.RedirectOnError;
+end;
+
+function TCustomWebApplication.GetRedirectOnErrorURL: string;
+begin
+  result := FWebHandler.RedirectOnErrorURL;
+end;
+
+procedure TCustomWebApplication.SetAdministrator(const AValue: String);
+begin
+  FWebHandler.Administrator := AValue;
+end;
+
+procedure TCustomWebApplication.SetAllowDefaultModule(const AValue: Boolean);
+begin
+  FWebHandler.AllowDefaultModule := AValue;
+end;
+
+procedure TCustomWebApplication.SetApplicationURL(const AValue: String);
+begin
+  FWebHandler.ApplicationURL := AValue;
+end;
+
+procedure TCustomWebApplication.SetEmail(const AValue: String);
+begin
+  FWebHandler.Email := AValue;
+end;
+
+procedure TCustomWebApplication.SetHandleGetOnPost(const AValue: Boolean);
+begin
+  FWebHandler.HandleGetOnPost := AValue;
+end;
+
+procedure TCustomWebApplication.SetModuleVar(const AValue: String);
+begin
+  FWebHandler.ModuleVariable := AValue;
+end;
+
+procedure TCustomWebApplication.SetOnGetModule(const AValue: TGetModuleEvent);
+begin
+  FWebHandler.OnGetModule := AValue;
+end;
+
+procedure TCustomWebApplication.SetOnShowRequestException(const AValue: TOnShowRequestException);
+begin
+  FWebHandler.OnShowRequestException := AValue;
+end;
+
+procedure TCustomWebApplication.SetRedirectOnError(const AValue: boolean);
+begin
+  FWebHandler.RedirectOnError := AValue;
+end;
+
+procedure TCustomWebApplication.SetRedirectOnErrorURL(const AValue: string);
+begin
+  FWebHandler.RedirectOnErrorURL :=AValue;
+end;
+
+procedure TCustomWebApplication.DoRun;
+begin
+  FWebHandler.Run;
+end;
+
+procedure TCustomWebApplication.SetTitle(const AValue: string);
+begin
+  inherited SetTitle(AValue);
+  FWebHandler.Title := Title;
+end;
+
+constructor TCustomWebApplication.Create(AOwner: TComponent);
+begin
+  FWebHandler := InitializeWebHandler;
+end;
+
 destructor TCustomWebApplication.Destroy;
 begin
+  FWebHandler.Free;
   if assigned(FEventLog) then
     FEventLog.Free;
-  inherited Destroy;
 end;
 
 procedure TCustomWebApplication.CreateForm(AClass: TComponentClass; out Reference);
 begin
-  TComponent(Reference):=AClass.Create(Self);
+  TComponent(Reference):=AClass.Create(FWebHandler);
+end;
+
+procedure TCustomWebApplication.Initialize;
+begin
+  StopOnException:=True;
+  Inherited;
+end;
+
+procedure TCustomWebApplication.Log(EventType: TEventType; Msg: String);
+begin
+  EventLog.log(EventType,Msg);
 end;
 
 end.

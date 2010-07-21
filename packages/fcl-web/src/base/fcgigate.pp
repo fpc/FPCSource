@@ -54,7 +54,7 @@ uses
 {$IFDEF CGIGDEBUG}
   dbugintf,
 {$endif}
-  Classes, SysUtils,httpDefs,custcgi,fastcgi,ssockets,inifiles;
+  Classes, SysUtils,httpDefs,custcgi,fastcgi,ssockets,inifiles,custweb;
 
 Type
 
@@ -67,7 +67,9 @@ Type
 
   { TFastCGIGatewayApplication }
 
-  TFastCGIGatewayApplication = Class(TCustomCGIApplication)
+  { TFastCGIGatewayHandler }
+
+  TFastCGIGatewayHandler = Class(TCgiHandler)
   private
     FConfigFile: String;
     FFastCGIBinary: String;
@@ -123,13 +125,20 @@ Type
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
     Procedure HandleRequest(ARequest : Trequest; AResponse : TResponse); override;
-    Procedure Initialize; override;
+    Procedure Initialize;
     Property ConfigFileName : String Read FConfigFile Write SetConfigFile;
     Property FastCGIBinary : String Read FFastCGIBinary Write FFastCGIBinary;
     Property HostName : String Read FHostName Write SetHostname;
     Property Port : Integer Read FPort Write FPort;
     // Values in here override CGI environment variables.
     Property Environment : TStrings Read FEnvironment Write SetEnvironment;
+  end;
+
+  TFastCGIGatewayApplication = Class(TCustomCGIApplication)
+  protected
+    function InitializeWebHandler: TWebHandler; override;
+  public
+    Procedure Initialize; override;
   end;
 
 Resourcestring
@@ -157,51 +166,51 @@ implementation
 
 { TCGIGateWayResponse }
 
-procedure TCGIGateWayResponse.DoSendHeaders(Headers: TStrings);
+procedure TCGIGatewayResponse.DoSendHeaders(Headers: TStrings);
 
 begin
   // Do nothing. Headers are in response from FastCGI and are sent as content;
 end;
 
-procedure TFastCGIGatewayApplication.SetConfigFile(const AValue: String);
+procedure TFastCGIGatewayHandler.SetConfigFile(const AValue: String);
 begin
   if FConfigFile=AValue then exit;
   CheckInitDone;
   FConfigFile:=AValue;
 end;
 
-procedure TFastCGIGatewayApplication.SetEnvironment(const AValue: TStrings);
+procedure TFastCGIGatewayHandler.SetEnvironment(const AValue: TStrings);
 begin
   FEnvironment.Assign(AValue);
 end;
 
-procedure TFastCGIGatewayApplication.SetHostname(const AValue: String);
+procedure TFastCGIGatewayHandler.SetHostname(const AValue: String);
 begin
   if FHostName=AValue then exit;
   CheckInitDone;
   FHostName:=AValue;
 end;
 
-procedure TFastCGIGatewayApplication.CheckInitDone;
+procedure TFastCGIGatewayHandler.CheckInitDone;
 begin
   If FInitDone then
     RaiseError(SErrInitDone);
 end;
 
-function TFastCGIGatewayApplication.CreateResponse(AOutput: TStream): TCGIResponse;
+function TFastCGIGatewayHandler.CreateResponse(AOutput: TStream): TCGIResponse;
 begin
 {$IFDEF CGIGDEBUG}SendMethodEnter('CreateResponse');{$ENDIF}
   Result:=TCGIGatewayResponse.CreateCGI(Self,AOutput);
 {$IFDEF CGIGDEBUG}SendMethodExit('CreateResponse');{$ENDIF}
 end;
 
-Procedure TFastCGIGatewayApplication.StartFCGIBinary;
+Procedure TFastCGIGatewayHandler.StartFCGIBinary;
 
 begin
   ExecuteProcess(FastCGIBinary,'',[]);
 end;
 
-Procedure TFastCGIGatewayApplication.ConnectToFCGI;
+Procedure TFastCGIGatewayHandler.ConnectToFCGI;
 
 begin
   try
@@ -237,7 +246,7 @@ begin
       Result:=Result+Format('#%.3d',[Ord(S[i])]);
 end;
 
-Function TFastCGIGatewayApplication.EncodeFastCGIParam(N,V : AnsiString) : String;
+Function TFastCGIGatewayHandler.EncodeFastCGIParam(N,V : AnsiString) : String;
 
   Function CalcJump(ALen : Integer) : Integer;
   begin
@@ -291,19 +300,19 @@ begin
 {$IFDEF CGIGDEBUG}SendMethodExit('EncodeFastCGIParam');{$ENDIF}
 end;
 
-constructor TFastCGIGatewayApplication.Create(AOwner: TComponent);
+constructor TFastCGIGatewayHandler.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FEnvironment:=TStringList.Create;
 end;
 
-destructor TFastCGIGatewayApplication.Destroy;
+destructor TFastCGIGatewayHandler.Destroy;
 begin
   FreeAndNil(FEnvironment);
   inherited Destroy;
 end;
 
-Function TFastCGIGatewayApplication.TransformRequestVars : String;
+Function TFastCGIGatewayHandler.TransformRequestVars : String;
 
 Var
   L : TStringList;
@@ -328,7 +337,7 @@ begin
   end;
 end;
 
-Procedure TFastCGIGatewayApplication.SendFastCGIRecord(P : PFCGI_Header);
+Procedure TFastCGIGatewayHandler.SendFastCGIRecord(P : PFCGI_Header);
 
 Var
   Len : Integer;
@@ -341,7 +350,7 @@ begin
 end;
 
 
-Procedure TFastCGIGatewayApplication.InitFastCGIRecord(P : PFCGI_Header; Const AContentLength, APadLength : Word);
+Procedure TFastCGIGatewayHandler.InitFastCGIRecord(P : PFCGI_Header; Const AContentLength, APadLength : Word);
 
 begin
 {$IFDEF CGIGDEBUG}SendMethodEnter('InitFastCGIRecord');{$ENDIF}
@@ -353,7 +362,7 @@ begin
 {$IFDEF CGIGDEBUG}SendMethodExit('InitFastCGIRecord');{$ENDIF}
 end;
 
-function TFastCGIGatewayApplication.CreateFastCGIRecord(const AContentLength: Word) : PFCGI_Header;
+function TFastCGIGatewayHandler.CreateFastCGIRecord(const AContentLength: Word) : PFCGI_Header;
 
 Var
   L,PL : INteger;
@@ -370,7 +379,7 @@ begin
 {$IFDEF CGIGDEBUG}SendMethodExit('CreateFastCGIRecord');{$ENDIF}
 end;
 
-Procedure TFastCGIGatewayApplication.SendBeginRequest;
+Procedure TFastCGIGatewayHandler.SendBeginRequest;
 
 Var
   Req : FCGI_BeginRequestRecord;
@@ -386,7 +395,7 @@ begin
 end;
 
 
-Procedure TFastCGIGatewayApplication.SendRequestData(Const ARequest : Trequest);
+Procedure TFastCGIGatewayHandler.SendRequestData(Const ARequest : Trequest);
 
   Procedure SendString(S : String; RecType : Byte);
 
@@ -429,7 +438,7 @@ begin
 {$IFDEF CGIGDEBUG}SendMethodExit('SendRequestData');{$ENDIF}
 end;
 
-Function TFastCGIGatewayApplication.ReadFastCGIRecord : PFCGI_Header;
+Function TFastCGIGatewayHandler.ReadFastCGIRecord : PFCGI_Header;
 
 var
   Header : FCGI_Header;
@@ -468,7 +477,7 @@ begin
 {$IFDEF CGIGDEBUG}SendMethodExit('ReadFastCGIRecord');{$ENDIF}
 end;
 
-Procedure TFastCGIGatewayApplication.ProcessUnknownRecord(Const Rec : PFCGI_Header; Const AResponse : TResponse; Var EOR : Boolean);
+Procedure TFastCGIGatewayHandler.ProcessUnknownRecord(Const Rec : PFCGI_Header; Const AResponse : TResponse; Var EOR : Boolean);
 
 begin
 {$IFDEF CGIGDEBUG}SendMethodEnter('ProcessUnknownRecord');{$ENDIF}
@@ -477,7 +486,7 @@ begin
 {$IFDEF CGIGDEBUG}SendMethodEnter('ProcessUnknownRecord');{$ENDIF}
 end;
 
-Procedure TFastCGIGatewayApplication.ReadResponse(AResponse : TResponse);
+Procedure TFastCGIGatewayHandler.ReadResponse(AResponse : TResponse);
 
 Var
   Rec : PFCGI_Header;
@@ -518,7 +527,7 @@ begin
 {$IFDEF CGIGDEBUG}SendMethodExit('ReadResponse');{$ENDIF}
 end;
 
-Procedure TFastCGIGatewayApplication.DisconnectfromFCGI;
+Procedure TFastCGIGatewayHandler.DisconnectfromFCGI;
 
 begin
 {$IFDEF CGIGDEBUG}SendMethodEnter('DisconnectfromFCGI');{$ENDIF}
@@ -526,7 +535,7 @@ begin
 {$IFDEF CGIGDEBUG}SendMethodExit('DisconnectfromFCGI');{$ENDIF}
 end;
 
-Procedure TFastCGIGatewayApplication.HandleRequest(ARequest : Trequest; AResponse : TResponse);
+Procedure TFastCGIGatewayHandler.HandleRequest(ARequest : Trequest; AResponse : TResponse);
 
 begin
 {$IFDEF CGIGDEBUG}SendMethodEnter('Handle request');{$ENDIF}
@@ -541,15 +550,32 @@ begin
 {$IFDEF CGIGDEBUG}SendMethodExit('Handle request');{$ENDIF}
 end;
 
-procedure TFastCGIGatewayApplication.RaiseError(Const Msg : String);
+procedure TFastCGIGatewayHandler.Initialize;
+Var
+  Ini : TIniFile;
+begin
+  If (FConfigFile<>'') and FileExists(FConfigFile) then
+    begin
+    Ini:=TIniFile.Create(FConfigFile);
+    try
+      ReadConfigFile(Ini);
+    finally
+      Ini.Free;
+    end;
+    end;
+  if (Hostname='') or (Port=0) then
+    RaiseError(SErrNoConnectionData);
+  FInitDone:=True;
+end;
+
+procedure TFastCGIGatewayHandler.RaiseError(Const Msg : String);
 
 begin
   Raise HTTPError.Create(Msg);
 end;
 
 
-procedure TFastCGIGatewayApplication.ReadConfigFile(Ini : TIniFile);
-
+procedure TFastCGIGatewayHandler.ReadConfigFile(Ini : TIniFile);
 begin
   With Ini do
     begin
@@ -564,26 +590,16 @@ begin
 end;
 
 procedure TFastCGIGatewayApplication.Initialize;
-
-Var
-  Ini : TIniFile;
-
 begin
 {$IFDEF CGIGDEBUG}SendMethodEnter('Initialize');{$ENDIF}
   inherited Initialize;
-  If (FConfigFile<>'') and FileExists(FConfigFile) then
-    begin
-    Ini:=TIniFile.Create(FConfigFile);
-    try
-      ReadConfigFile(Ini);
-    finally
-      Ini.Free;
-    end;
-    end;
-  if (Hostname='') or (Port=0) then
-    RaiseError(SErrNoConnectionData);
-  FInitDone:=True;
+  TFastCGIGatewayHandler(WebHandler).Initialize;
 {$IFDEF CGIGDEBUG}SendMethodExit('Initialize');{$ENDIF}
+end;
+
+function TFastCGIGatewayApplication.InitializeWebHandler: TWebHandler;
+begin
+  Result:=TFastCGIGatewayHandler.Create(self);
 end;
 
 Procedure InitCGIGateWay; // Initializes Application.
