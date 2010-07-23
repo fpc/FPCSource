@@ -17,8 +17,10 @@
 
 unit ctypes;
 
-{$inline on}
-{$define dummy}
+{$ifdef FPC}
+  {$inline on}
+  {$define dummy}
+{$endif}
 
 interface
 
@@ -30,6 +32,8 @@ uses unixtype;
 type
 {$ifndef FPC}
     qword = int64;  // Keep h2pas "uses ctypes" headers working with delphi.
+    ptruint = cardinal;
+    pptruint = ^ptruint;
 {$endif}
 
   { the following type definitions are compiler dependant }
@@ -71,7 +75,7 @@ type
   clong                  = longint;            pclong                 = ^clong;
   cslong                 = longint;            pcslong                = ^cslong;
   culong                 = cardinal;           pculong                = ^culong;
-{$endif}
+{$ifend}
 
   csize_t                = ptruint;            pcsize_t               = pptruint;
 
@@ -92,7 +96,7 @@ type
 
 {$if defined(linux) and (defined(cpupowerpc) or defined(cpuarm))}
   {$define longdouble_is_double}
-{$endif}
+{$ifend}
 
 {$ifndef FPUNONE}
 {$if defined(longdouble_is_double) or not defined(FPC_HAS_CEXTENDED)}
@@ -103,8 +107,8 @@ type
   {$else}
   {$define longdouble_assignment_overload_real128}
   clongdouble = packed array [0..15] of byte;
-  {$endif}
-{$endif}
+  {$ifend}
+{$ifend}
   Pclongdouble=^clongdouble;
 
 {$ifdef longdouble_assignment_overload_real128}
