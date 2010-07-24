@@ -1306,7 +1306,7 @@ parser_e_no_paras_for_class_constructor=03290_E_Class constructors can't have pa
 parser_e_no_paras_for_class_destructor=03291_E_Class destructors can't have parameters
 % You are declaring a class destructor with a parameter list. Class destructor methods
 % cannot have parameters.
-% \end{description}
+
 parser_f_modeswitch_objc_required=03292_F_This construct requires the \{\$modeswitch objectivec1\} mode switch to be active
 % Objective-Pascal constructs are not supported when \{\$modeswitch ObjectiveC1\}
 % is not active.
@@ -1325,6 +1325,7 @@ parser_e_objc_missing_enumeration_defs=03295_E_The compiler cannot find the NSFa
 % NSFastEnumerationProtocol and NSFastEnumerationState types. If you get this
 % error, most likely the compiler is finding and loading an alternate CocoaAll
 % unit.
+% \end{description}
 #
 # Type Checking
 #
