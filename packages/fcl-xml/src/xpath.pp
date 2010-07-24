@@ -360,7 +360,8 @@ type
     FResolver: TXPathNSResolver;
     procedure Error(const Msg: String);
     procedure ParsePredicates(var Dest: TXPathNodeArray);
-    procedure ParseStep(Dest: TStep);          // [4]
+    function ParseStep: TStep;          // [4]
+    function ParseNodeTest(axis: TAxis): TStep; // [7]
     function ParsePrimaryExpr: TXPathExprNode; // [15]
     function ParseUnionExpr: TXPathExprNode;   // [18]
     function ParsePathExpr: TXPathExprNode;    // [19]
@@ -1851,7 +1852,71 @@ begin
     AddNodes(Dest, Slice(Buffer, I));
 end;
 
-procedure TXPathScanner.ParseStep(Dest: TStep);  // [4]
+function TXPathScanner.ParseStep: TStep;  // [4]
+var
+  Axis: TAxis;
+begin
+  if CurToken = tkDot then          // [12] Abbreviated step, first case
+  begin
+    NextToken;
+    Result := TStep.Create(axisSelf, ntAnyNode);
+  end
+  else if CurToken = tkDotDot then  // [12] Abbreviated step, second case
+  begin
+    NextToken;
+    Result := TStep.Create(axisParent, ntAnyNode);
+  end
+  else		// Parse [5] AxisSpecifier
+  begin
+    if CurToken = tkAt then         // [13] AbbreviatedAxisSpecifier
+    begin
+      Axis := axisAttribute;
+      NextToken;
+    end
+    else if (CurToken = tkIdentifier) and (PeekToken = tkColonColon) then  // [5] AxisName '::'
+    begin
+      // Check for [6] AxisName
+      if CurTokenString = 'ancestor' then
+        Axis := axisAncestor
+      else if CurTokenString = 'ancestor-or-self' then
+        Axis := axisAncestorOrSelf
+      else if CurTokenString = 'attribute' then
+        Axis := axisAttribute
+      else if CurTokenString = 'child' then
+        Axis := axisChild
+      else if CurTokenString = 'descendant' then
+        Axis := axisDescendant
+      else if CurTokenString = 'descendant-or-self' then
+        Axis := axisDescendantOrSelf
+      else if CurTokenString = 'following' then
+        Axis := axisFollowing
+      else if CurTokenString = 'following-sibling' then
+        Axis := axisFollowingSibling
+      else if CurTokenString = 'namespace' then
+        Axis := axisNamespace
+      else if CurTokenString = 'parent' then
+        Axis := axisParent
+      else if CurTokenString = 'preceding' then
+        Axis := axisPreceding
+      else if CurTokenString = 'preceding-sibling' then
+        Axis := axisPrecedingSibling
+      else if CurTokenString = 'self' then
+        Axis := axisSelf
+      else
+        Error(SParserBadAxisName);
+
+      NextToken;  // skip identifier and the '::'
+      NextToken;
+    end
+    else
+      Axis := axisChild;
+
+    Result := ParseNodeTest(Axis);
+    ParsePredicates(Result.Predicates);
+  end;
+end;
+
+function TXPathScanner.ParseNodeTest(Axis: TAxis): TStep; // [7]
 
   procedure NeedBrackets;
   begin
@@ -1861,139 +1926,89 @@ procedure TXPathScanner.ParseStep(Dest: TStep);  // [4]
     NextToken;
   end;
 
+var
+  nodeType: TNodeTestType;
+  nodeName: DOMString;
+  nsURI: DOMString;
 begin
-  if CurToken = tkDot then          // [12] Abbreviated step, first case
+  nodeName := '';
+  nsURI := '';
+  if CurToken = tkAsterisk then   // [37] NameTest, first case
+  begin
+    nodeType := ntAnyPrincipal;
+    NextToken;
+  end
+  else if CurToken = tkNSNameTest then // [37] NameTest, second case
   begin
     NextToken;
-    Dest.Axis := axisSelf;
-    Dest.NodeTestType := ntAnyNode;
+    if Assigned(FResolver) then
+      nsURI := FResolver.lookupNamespaceURI(CurTokenString);
+    if nsURI = '' then
+      // !! localization disrupted by DOM exception specifics
+      raise EDOMNamespace.Create('TXPathScanner.ParseStep');
+    nodeType := ntName;
   end
-  else if CurToken = tkDotDot then  // [12] Abbreviated step, second case
+  else if CurToken = tkIdentifier then
   begin
-    NextToken;
-    Dest.Axis := axisParent;
-    Dest.NodeTestType := ntAnyNode;
-  end
-  else		// Parse [5] AxisSpecifier
-  begin
-    if CurToken = tkAt then         // [13] AbbreviatedAxisSpecifier
+    // Check for case [38] NodeType
+    if PeekToken = tkLeftBracket then
     begin
-      Dest.Axis := axisAttribute;
-      NextToken;
-    end
-    else if (CurToken = tkIdentifier) and (PeekToken = tkColonColon) then  // [5] AxisName '::'
-    begin
-      // Check for [6] AxisName
-      if CurTokenString = 'ancestor' then
-        Dest.Axis := axisAncestor
-      else if CurTokenString = 'ancestor-or-self' then
-        Dest.Axis := axisAncestorOrSelf
-      else if CurTokenString = 'attribute' then
-        Dest.Axis := axisAttribute
-      else if CurTokenString = 'child' then
-        Dest.Axis := axisChild
-      else if CurTokenString = 'descendant' then
-        Dest.Axis := axisDescendant
-      else if CurTokenString = 'descendant-or-self' then
-        Dest.Axis := axisDescendantOrSelf
-      else if CurTokenString = 'following' then
-        Dest.Axis := axisFollowing
-      else if CurTokenString = 'following-sibling' then
-        Dest.Axis := axisFollowingSibling
-      else if CurTokenString = 'namespace' then
-        Dest.Axis := axisNamespace
-      else if CurTokenString = 'parent' then
-        Dest.Axis := axisParent
-      else if CurTokenString = 'preceding' then
-        Dest.Axis := axisPreceding
-      else if CurTokenString = 'preceding-sibling' then
-        Dest.Axis := axisPrecedingSibling
-      else if CurTokenString = 'self' then
-        Dest.Axis := axisSelf
+      if CurTokenString = 'comment' then
+      begin
+        NeedBrackets;
+        nodeType := ntCommentNode;
+      end
+      else if CurTokenString = 'text' then
+      begin
+        NeedBrackets;
+        nodeType := ntTextNode;
+      end
+      else if CurTokenString = 'processing-instruction' then
+      begin
+        NextToken;   { skip '('; we know it's there }
+        if NextToken = tkString then
+        begin
+          nodeName := CurTokenString;
+          NextToken;
+        end;
+        if CurToken <> tkRightBracket then
+          Error(SParserExpectedRightBracket);
+        NextToken;
+        nodeType := ntPINode;
+      end
+      else if CurTokenString = 'node' then
+      begin
+        NeedBrackets;
+        nodeType := ntAnyNode;
+      end
       else
-        Error(SParserBadAxisName);
-
-      NextToken;  // skip identifier and the '::'
+        Error(SParserBadNodeType);
+    end
+    else  // [37] NameTest, third case
+    begin
+      nodeType := ntName;
+      if FPrefixLength > 0 then
+      begin
+        if Assigned(FResolver) then
+          nsURI := FResolver.lookupNamespaceURI(Copy(CurTokenString, 1, FPrefixLength));
+        if nsURI = '' then
+          raise EDOMNamespace.Create('TXPathScanner.ParseStep');
+        nodeName := Copy(CurTokenString, FPrefixLength+2, MaxInt);
+      end
+      else
+        nodeName := CurTokenString;
       NextToken;
     end;
+  end
+  else
+    Error(SParserInvalidNodeTest);
 
-    // Parse [7] NodeTest
-    if CurToken = tkAsterisk then   // [37] NameTest, first case
-    begin
-      Dest.NodeTestType := ntAnyPrincipal;
-      NextToken;
-    end
-    else if CurToken = tkNSNameTest then // [37] NameTest, second case
-    begin
-      NextToken;
-      if Assigned(FResolver) then
-        Dest.NSTestString := FResolver.lookupNamespaceURI(CurTokenString);
-      if Dest.NSTestString = '' then
-        // !! localization disrupted by DOM exception specifics
-        raise EDOMNamespace.Create('TXPathScanner.ParseStep');
-      Dest.NodeTestType := ntName;
-    end
-    else if CurToken = tkIdentifier then
-    begin
-      // Check for case [38] NodeType
-      if PeekToken = tkLeftBracket then
-      begin
-        if CurTokenString = 'comment' then
-        begin
-          NeedBrackets;
-          Dest.NodeTestType := ntCommentNode;
-        end
-        else if CurTokenString = 'text' then
-        begin
-          NeedBrackets;
-          Dest.NodeTestType := ntTextNode;
-        end
-        else if CurTokenString = 'processing-instruction' then
-        begin
-          NextToken;   { skip '('; we know it's there }
-          if NextToken = tkString then
-          begin
-            Dest.NodeTestString := CurTokenString;
-            NextToken;
-          end;
-          if CurToken <> tkRightBracket then
-            Error(SParserExpectedRightBracket);
-          NextToken;
-          Dest.NodeTestType := ntPINode;
-        end
-        else if CurTokenString = 'node' then
-        begin
-          NeedBrackets;
-          Dest.NodeTestType := ntAnyNode;
-        end
-        else
-          Error(SParserBadNodeType);
-      end
-      else  // [37] NameTest, third case
-      begin
-        Dest.NodeTestType := ntName;
-        if FPrefixLength > 0 then
-        begin
-          if Assigned(FResolver) then
-            Dest.NSTestString := FResolver.lookupNamespaceURI(Copy(CurTokenString, 1, FPrefixLength));
-          if Dest.NSTestString = '' then
-            raise EDOMNamespace.Create('TXPathScanner.ParseStep');
-          Dest.NodeTestString := Copy(CurTokenString, FPrefixLength+2, MaxInt);
-        end
-        else
-          Dest.NodeTestString := CurTokenString;
-        NextToken;
-      end;
-    end
-    else
-      Exit;
-    ParsePredicates(Dest.Predicates);
-  end;
+  Result := TStep.Create(Axis, nodeType);
+  Result.NodeTestString := nodeName;
+  Result.NSTestString := nsURI;
 end;
 
 function TXPathScanner.ParsePrimaryExpr: TXPathExprNode;  // [15]
-var
-  IsFirstArg: Boolean;
 begin
   case CurToken of
     tkVariable:         // [36] Variable reference
@@ -2018,17 +2033,17 @@ begin
           Error(SParserExpectedLeftBracket);
         NextToken;
         // Parse argument list
-        IsFirstArg := True;
-        while CurToken <> tkRightBracket do
-        begin
-          if IsFirstArg then
-            IsFirstArg := False
-          else if CurToken <> tkComma then
-            Error(SParserExpectedRightBracket)
-          else
-            NextToken; { skip comma }
+        if CurToken <> tkRightBracket then
+        repeat
           TXPathFunctionNode(Result).FArgs.Add(ParseOrExpr);
-        end;
+          if CurToken <> tkComma then
+          begin
+            if CurToken <> tkRightBracket then
+              Error(SParserExpectedRightBracket);
+            break;
+          end;
+          NextToken; { skip comma }
+        until False;
       end;
   else
     Error(SParserInvalidPrimExpr);
@@ -2077,16 +2092,12 @@ begin
     
   while CurToken in [tkDot, tkDotDot, tkAt, tkAsterisk, tkIdentifier, tkNSNameTest] do
   begin
-    // axisChild is the default. ntAnyPrincipal is dummy.
-    NextStep := TStep.Create(axisChild, ntAnyPrincipal);    
+    NextStep := ParseStep;
     if Assigned(CurStep) then
       CurStep.NextStep := NextStep
     else
       TXPathLocationPathNode(Result).FFirstStep := NextStep;
     CurStep := NextStep;
-
-    // Parse [4] Step
-    ParseStep(CurStep);
 
     // Continue with parsing of [3] RelativeLocationPath
     if CurToken = tkSlashSlash then
