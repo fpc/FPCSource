@@ -235,19 +235,19 @@ type
   TAxis = (axisInvalid, axisAncestor, axisAncestorOrSelf, axisAttribute,
     axisChild, axisDescendant, axisDescendantOrSelf, axisFollowing,
     axisFollowingSibling, axisNamespace, axisParent, axisPreceding,
-    axisPrecedingSibling, axisSelf);
+    axisPrecedingSibling, axisSelf, axisRoot);
 
   TNodeTestType = (ntAnyPrincipal, ntName, ntTextNode,
     ntCommentNode, ntPINode, ntAnyNode);
 
   TNodeSet = TFPList;
 
-  TStep = class
+  TStep = class(TXPathExprNode)
   private
     procedure SelectNodes(ANode: TDOMNode; out ResultNodes: TNodeSet);
     procedure ApplyPredicates(Nodes: TNodeSet; AEnvironment: TXPathEnvironment);
   public
-    NextStep: TStep;
+    FLeft: TXPathExprNode;
     Axis: TAxis;
     NodeTestType: TNodeTestType;
     NodeTestString: DOMString;
@@ -255,16 +255,6 @@ type
     Predicates: TXPathNodeArray;
     constructor Create(aAxis: TAxis; aTest: TNodeTestType);
     destructor Destroy; override;
-  end;
-
-  TXPathLocationPathNode = class(TXPathExprNode)
-  private
-    FLeft: TXPathExprNode;
-    FFirstStep: TStep;
-    FIsAbsolutePath: Boolean;
-  public
-    constructor Create(ALeft: TXPathExprNode; AIsAbsolutePath: Boolean);
-    destructor destroy;override;
     function Evaluate(AContext: TXPathContext;
       AEnvironment: TXPathEnvironment): TXPathVariable; override;
   end;
@@ -1080,6 +1070,7 @@ destructor TStep.Destroy;
 var
   i: Integer;
 begin
+  FLeft.Free;
   for i := 0 to High(Predicates) do
     Predicates[i].Free;
   inherited destroy;
@@ -1254,6 +1245,11 @@ begin
       end;
     axisSelf:
       DoNodeTest(ANode);
+    axisRoot:
+      if ANode.nodeType = DOCUMENT_NODE then
+        ResultNodes.Add(ANode)
+      else
+        ResultNodes.Add(ANode.ownerDocument);
   end;
 end;
 
@@ -1290,44 +1286,27 @@ begin
   end;
 end;
 
-constructor TXPathLocationPathNode.Create(ALeft: TXPathExprNode; AIsAbsolutePath: Boolean);
-begin
-  inherited Create;
-  FLeft := ALeft;
-  FIsAbsolutePath := AIsAbsolutePath;
-end;
-
-function TXPathLocationPathNode.Evaluate(AContext: TXPathContext;
+function TStep.Evaluate(AContext: TXPathContext;
   AEnvironment: TXPathEnvironment): TXPathVariable;
 var
   ResultNodeSet: TNodeSet;
   LeftResult: TXPathVariable;
   i: Integer;
-  Node: TDOMNode;
 
-  procedure EvaluateStep(AStep: TStep; AContextNode: TDOMNode);
+  procedure EvaluateStep(AContextNode: TDOMNode);
   var
     StepNodes: TFPList;
     Node: TDOMNode;
     i: Integer;
   begin
-    AStep.SelectNodes(AContextNode, StepNodes);
+    SelectNodes(AContextNode, StepNodes);
     try
-      AStep.ApplyPredicates(StepNodes, AEnvironment);
-
-      if Assigned(AStep.NextStep) then
+      ApplyPredicates(StepNodes, AEnvironment);
+      for i := 0 to StepNodes.Count - 1 do
       begin
-        for i := 0 to StepNodes.Count - 1 do
-          EvaluateStep(AStep.NextStep, TDOMNode(StepNodes[i]));
-      end else
-      begin
-        // Only add nodes to result if it isn't duplicate
-        for i := 0 to StepNodes.Count - 1 do
-        begin
-          Node := TDOMNode(StepNodes[i]);
-          if ResultNodeSet.IndexOf(Node) < 0 then
-            ResultNodeSet.Add(Node);
-        end;
+        Node := TDOMNode(StepNodes[i]);
+        if ResultNodeSet.IndexOf(Node) < 0 then
+          ResultNodeSet.Add(Node);
       end;
     finally
       StepNodes.Free;
@@ -1343,40 +1322,18 @@ begin
       try
         with LeftResult.AsNodeSet do
           for i := 0 to Count-1 do
-            EvaluateStep(FFirstStep, TDOMNode(Items[i]));
+            EvaluateStep(TDOMNode(Items[i]));
       finally
         LeftResult.Release;
       end;
     end
-    else
-    begin
-      if FIsAbsolutePath and (AContext.ContextNode.NodeType <> DOCUMENT_NODE) then
-        Node := AContext.ContextNode.OwnerDocument
-      else
-        Node := AContext.ContextNode;
-      if Assigned(FFirstStep) then
-        EvaluateStep(FFirstStep, Node)
-      else
-        ResultNodeSet.Add(Node);  // Assert(FIsAbsolutePath)
-    end;
+    else  
+      EvaluateStep(AContext.ContextNode);
   except
     ResultNodeSet.Free;
     raise;
   end;
   Result := TXPathNodeSetVariable.Create(ResultNodeSet);
-end;
-
-destructor TXPathLocationPathNode.destroy;
-var
-  tmp:TStep;
-begin
-  FLeft.Free;
-  while FFirstStep<>nil do
-  begin
-    tmp:=FFirstStep.NextStep;
-    FFirstStep.free;
-    FFirstStep:=tmp;
- end;
 end;
 
 { Exceptions }
@@ -2059,12 +2016,17 @@ begin
     Result := TXPathUnionNode.Create(Result, ParsePathExpr);
 end;
 
+function AddStep(Left: TXPathExprNode; Right: TStep): TXPathExprNode;
+begin
+  Right.FLeft := Left;
+  Result := Right;
+end;
+
 function TXPathScanner.ParsePathExpr: TXPathExprNode;  // [19]
 var
-  CurStep, NextStep: TStep;
+  tok: TXPathToken;
 begin
   Result := nil;
-  CurStep := nil;
   // Try to detect whether a LocationPath [1] or a FilterExpr [20] follows
   if ((CurToken = tkIdentifier) and (PeekToken = tkLeftBracket) and
     (CurTokenString <> 'comment') and
@@ -2075,42 +2037,36 @@ begin
   begin
     // second, third or fourth case of [19]
     Result := ParseFilterExpr;
-    if not (CurToken in [tkSlash, tkSlashSlash]) then
-      Exit;
-  end;
-  Result := TXPathLocationPathNode.Create(Result,
-    (Result = nil) and (CurToken in [tkSlash, tkSlashSlash]));
-
-  if CurToken = tkSlashSlash then
-  begin
-    CurStep := TStep.Create(axisDescendantOrSelf, ntAnyNode);
-    TXPathLocationPathNode(Result).FFirstStep := CurStep;
-    NextToken;
-  end
-  else if CurToken = tkSlash then
-    NextToken;
-    
-  while CurToken in [tkDot, tkDotDot, tkAt, tkAsterisk, tkIdentifier, tkNSNameTest] do
-  begin
-    NextStep := ParseStep;
-    if Assigned(CurStep) then
-      CurStep.NextStep := NextStep
+    if SkipToken(tkSlash) then { do nothing }
+    else if SkipToken(tkSlashSlash) then
+      Result := AddStep(Result, TStep.Create(axisDescendantOrSelf, ntAnyNode))
     else
-      TXPathLocationPathNode(Result).FFirstStep := NextStep;
-    CurStep := NextStep;
+      Exit;
+  end
+  else if CurToken in [tkSlash, tkSlashSlash] then
+  begin
+    tok := CurToken;
+    NextToken;
+    Result := TStep.Create(axisRoot, ntAnyNode);
+    if tok = tkSlashSlash then
+      Result := AddStep(Result, TStep.Create(axisDescendantOrSelf, ntAnyNode))
+    else if not (CurToken in [tkDot, tkDotDot, tkAt, tkAsterisk, tkIdentifier, tkNSNameTest]) then
+      Exit;  // allow '/' alone
+  end;
+
+  repeat
+    Result := AddStep(Result, ParseStep);
 
     // Continue with parsing of [3] RelativeLocationPath
     if CurToken = tkSlashSlash then
     begin
       NextToken;
       // Found abbreviated step ("//" for "descendant-or-self::node()")
-      NextStep := TStep.Create(axisDescendantOrSelf, ntAnyNode);
-      CurStep.NextStep := NextStep;
-      CurStep := NextStep;
+      Result := AddStep(Result, TStep.Create(axisDescendantOrSelf, ntAnyNode));
     end
     else if not SkipToken(tkSlash) then
       break;
-  end;
+  until False;
 end;
 
 function TXPathScanner.ParseFilterExpr: TXPathExprNode;  // [20]
