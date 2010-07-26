@@ -675,7 +675,7 @@ const
 
   res1 = '<foo xmlns:baz1="http://xsl.lotus.com/ns1" xmlns:baz2="http://xsl.lotus.com/ns2"/>';
 
-  nameTests: array[0..16] of TTestRec3 = (
+  nameTests: array[0..17] of TTestRec3 = (
     (data: str30; re: res1; expr: 'namespace-uri(baz1:a/@baz2:attrib1)'; rt: rtString; s: ''), // #30
     (data: str30; re: res1; expr: 'namespace-uri(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'http://xsl.lotus.com/ns1'), // #31
     (data: str30; re: res1; expr: 'name(*)'; rt: rtString; s: 'ns1:a'),       // #32
@@ -694,8 +694,9 @@ const
     (data: ns11; re: res1; expr: 'namespace-uri(baz2:b-three)'; rt: rtString; s: 'http://xsl.lotus.com/ns2'),
     (data: ns11; re: res1; expr: 'namespace-uri(baz2:b-three/@baz1:attrib2)'; rt: rtString; s: 'http://xsl.lotus.com/ns1'),
 {*} (data: ns11; re: res1; expr: 'namespace-uri(baz2:b-three/c-four)'; rt: rtString; s: ''),
-    (data: ns11; re: res1; expr: 'namespace-uri(bogus)'; rt: rtString; s: '')
+    (data: ns11; re: res1; expr: 'namespace-uri(bogus)'; rt: rtString; s: ''),
 
+    (data: str30; re: res1; expr: 'name(baz1:*)'; rt: rtString; s: 'ns1:a')
   );
 
   ax114='<doc>'+
@@ -815,12 +816,18 @@ begin
     begin
       if (r is TXPathNumberVariable) then
       begin
-        if IsNan(t.n) and IsNan(r.AsNumber) then
-          Exit;
-        if IsInfinite(t.n) and (t.n = r.AsNumber) then
-          Exit;
-        if SameValue(r.AsNumber, t.n) then
-          Exit;
+        if IsNan(t.n) then
+        begin
+          if IsNan(r.AsNumber) then
+            Exit;
+        end
+        else
+        begin
+          if IsInfinite(t.n) and (t.n = r.AsNumber) then
+            Exit;
+          if not IsNan(TXPathNumberVariable(r).Value) and SameValue(TXPathNumberVariable(r).Value, t.n) then
+            Exit;
+        end;  
       end;
       writeln;
       writeln('Failed: ', t.expr);

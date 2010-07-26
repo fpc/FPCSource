@@ -1803,7 +1803,7 @@ begin
       if FCurData^ = '*'  then
       begin
         Inc(FCurData);
-        Inc(FTokenLength);
+        Dec(FTokenLength);        // exclude ':'
         Result := tkNSNameTest;
         Exit;
       end
@@ -1901,12 +1901,12 @@ begin
   end
   else if CurToken = tkNSNameTest then // [37] NameTest, second case
   begin
-    NextToken;
     if Assigned(FResolver) then
       nsURI := FResolver.lookupNamespaceURI(CurTokenString);
     if nsURI = '' then
       // !! localization disrupted by DOM exception specifics
       raise EDOMNamespace.Create('TXPathScanner.ParseStep');
+    NextToken;
     nodeType := ntName;
   end
   else if CurToken = tkIdentifier then
