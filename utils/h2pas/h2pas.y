@@ -760,109 +760,111 @@ program h2pas;
               exit;
            end;
          case p^.typ of
-            t_pointerdef : begin
-                              (* procedure variable ? *)
-                              if assigned(p^.p1) and (p^.p1^.typ=t_procdef) then
-                                begin
-                                   is_procvar:=true;
-                                   (* distinguish between procedure and function *)
-                                   if (simple_type^.typ=t_void) and (p^.p1^.p1=nil) then
-                                     begin
-                                        write(outfile,'procedure ');
+            t_pointerdef :
+              begin
+                (* procedure variable ? *)
+                if assigned(p^.p1) and (p^.p1^.typ=t_procdef) then
+                  begin
+                     is_procvar:=true;
+                     (* distinguish between procedure and function *)
+                     if (simple_type^.typ=t_void) and (p^.p1^.p1=nil) then
+                       begin
+                          write(outfile,'procedure ');
 
-                                        shift(10);
-                                        (* write arguments *)
-                                        if assigned(p^.p1^.p2) then
-                                          write_args(outfile,p^.p1^.p2);
-                                        flush(outfile);
-                                        popshift;
-                                     end
-                                   else
-                                     begin
-                                        write(outfile,'function ');
-                                        shift(9);
-                                        (* write arguments *)
-                                        if assigned(p^.p1^.p2) then
-                                          write_args(outfile,p^.p1^.p2);
-                                        write(outfile,':');
-                                        flush(outfile);
-                                        write_p_a_def(outfile,p^.p1^.p1,simple_type);
-                                        popshift;
-                                     end
-                                end
-                              else
-                                begin
-                                   (* generate "pointer" ? *)
-                                   if (simple_type^.typ=t_void) and (p^.p1=nil) then
-                                     begin
-                                       write(outfile,'pointer');
-                                       flush(outfile);
-                                     end
-                                   else
-                                     begin
-                                       pointerwritten:=false;
-                                       if (p^.p1=nil) and UsePPointers then
-                                        begin
-                                          if (simple_type^.typ=t_id) then
-                                           begin
-                                             write(outfile,PointerName(simple_type^.p));
-                                             pointerwritten:=true;
-                                           end
-                                          { structure }
-                                          else if (simple_type^.typ in [t_uniondef,t_structdef]) and
-                                                  (simple_type^.p1=nil) and (simple_type^.p2^.typ=t_id) then
-                                           begin
-                                             write(outfile,PointerName(simple_type^.p2^.p));
-                                             pointerwritten:=true;
-                                           end;
-                                        end;
-                                      if not pointerwritten then
-                                       begin
-                                         if in_args then
-                                         begin
-                                          write(outfile,'P');
-                                          pointerprefix:=true;
-                                         end
-                                         else
-                                          write(outfile,'^');
-                                         write_p_a_def(outfile,p^.p1,simple_type);
-                                         pointerprefix:=false;
-                                       end;
-                                     end;
-                                end;
-                           end;
-            t_arraydef : begin
-                             constant:=false;
-                             if assigned(p^.p2) then
-                              begin
-                                if p^.p2^.typ=t_id then
-                                 begin
-                                   val(p^.p2^.str,i,error);
-                                   if error=0 then
-                                    begin
-                                      dec(i);
-                                      constant:=true;
-                                    end;
-                                 end;
-                                if not constant then
-                                 begin
-                                   write(outfile,'array[0..(');
-                                   write_expr(outfile,p^.p2);
-                                   write(outfile,')-1] of ');
-                                 end
-                                else
-                                 begin
-                                   write(outfile,'array[0..',i,'] of ');
-                                 end;
-                              end
-                             else
-                              begin
-                                (* open array *)
-                                write(outfile,'array of ');
-                              end;
-                             flush(outfile);
-                             write_p_a_def(outfile,p^.p1,simple_type);
+                          shift(10);
+                          (* write arguments *)
+                          if assigned(p^.p1^.p2) then
+                            write_args(outfile,p^.p1^.p2);
+                          flush(outfile);
+                          popshift;
+                       end
+                     else
+                       begin
+                          write(outfile,'function ');
+                          shift(9);
+                          (* write arguments *)
+                          if assigned(p^.p1^.p2) then
+                            write_args(outfile,p^.p1^.p2);
+                          write(outfile,':');
+                          flush(outfile);
+                          write_p_a_def(outfile,p^.p1^.p1,simple_type);
+                          popshift;
+                       end
+                  end
+                else
+                  begin
+                     (* generate "pointer" ? *)
+                     if (simple_type^.typ=t_void) and (p^.p1=nil) then
+                       begin
+                         write(outfile,'pointer');
+                         flush(outfile);
+                       end
+                     else
+                       begin
+                         pointerwritten:=false;
+                         if (p^.p1=nil) and UsePPointers then
+                          begin
+                            if (simple_type^.typ=t_id) then
+                             begin
+                               write(outfile,PointerName(simple_type^.p));
+                               pointerwritten:=true;
+                             end
+                            { structure }
+                            else if (simple_type^.typ in [t_uniondef,t_structdef]) and
+                                    (simple_type^.p1=nil) and (simple_type^.p2^.typ=t_id) then
+                             begin
+                               write(outfile,PointerName(simple_type^.p2^.p));
+                               pointerwritten:=true;
+                             end;
                           end;
+                        if not pointerwritten then
+                         begin
+                           if in_args then
+                           begin
+                            write(outfile,'P');
+                            pointerprefix:=true;
+                           end
+                           else
+                            write(outfile,'^');
+                           write_p_a_def(outfile,p^.p1,simple_type);
+                           pointerprefix:=false;
+                         end;
+                       end;
+                  end;
+              end;
+            t_arraydef :
+              begin
+                constant:=false;
+                if assigned(p^.p2) then
+                 begin
+                   if p^.p2^.typ=t_id then
+                    begin
+                      val(p^.p2^.str,i,error);
+                      if error=0 then
+                       begin
+                         dec(i);
+                         constant:=true;
+                       end;
+                    end;
+                   if not constant then
+                    begin
+                      write(outfile,'array[0..(');
+                      write_expr(outfile,p^.p2);
+                      write(outfile,')-1] of ');
+                    end
+                   else
+                    begin
+                      write(outfile,'array[0..',i,'] of ');
+                    end;
+                 end
+                else
+                 begin
+                   (* open array *)
+                   write(outfile,'array of ');
+                 end;
+                flush(outfile);
+                write_p_a_def(outfile,p^.p1,simple_type);
+              end;
             else internalerror(1);
          end;
       end;
