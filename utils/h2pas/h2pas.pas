@@ -1145,10 +1145,7 @@ program h2pas;
                                      if is_procvar then
                                        begin
                                           if not no_pop then
-                                            begin
-                                               write(outfile,';cdecl');
-                                               no_pop:=true;
-                                            end;
+                                            write(outfile,';cdecl');
                                           is_procvar:=false;
                                        end;
                                      writeln(outfile,';');
