@@ -5934,5 +5934,3 @@ end;
 initialization
   SqliteLibrary := LibraryHandler('sqlite', [sqlite3lib], @sqlite3_symbols, Length(sqlite3_symbols));
 {$ENDIF}
-
-end.
