@@ -150,9 +150,9 @@ type
   TXPathFunctionNode = class(TXPathExprNode)
   private
     FName: DOMString;
-    FArgs: TFPList;
+    FArgs: TXPathNodeArray;
   public
-    constructor Create(const AName: DOMString);
+    constructor Create(const AName: DOMString; const Args: TXPathNodeArray);
     destructor Destroy; override;
     function Evaluate(AContext: TXPathContext;
       AEnvironment: TXPathEnvironment): TXPathVariable; override;
@@ -371,6 +371,7 @@ type
     function ParseStep: TStep;          // [4]
     function ParseNodeTest(axis: TAxis): TStep; // [7]
     function ParsePrimaryExpr: TXPathExprNode; // [15]
+    function ParseFunctionCall: TXPathExprNode; // [16]
     function ParseUnionExpr: TXPathExprNode;   // [18]
     function ParsePathExpr: TXPathExprNode;    // [19]
     function ParseFilterExpr: TXPathExprNode;  // [20]
@@ -625,13 +626,18 @@ begin
   end;
 end;
 
-procedure AddNodes(var Dst: TXPathNodeArray; const Src: array of TXPathExprNode);
+procedure AddNodes(var Dst: TXPathNodeArray; const Src: array of TXPathExprNode;
+  var Count: Integer);
 var
   L: Integer;
 begin
-  L := Length(Dst);
-  SetLength(Dst, L + High(Src)+1);
-  Move(Src[0], Dst[L], (High(Src)+1)*sizeof(TObject));
+  if Count > 0 then
+  begin
+    L := Length(Dst);
+    SetLength(Dst, L + Count);
+    Move(Src[0], Dst[L], Count*sizeof(TObject));
+    Count := 0;
+  end;
 end;
 
 { XPath parse tree classes }
@@ -687,20 +693,19 @@ begin
 end;
 
 
-constructor TXPathFunctionNode.Create(const AName: DOMString);
+constructor TXPathFunctionNode.Create(const AName: DOMString; const Args: TXPathNodeArray);
 begin
   inherited Create;
   FName := AName;
-  FArgs := TFPList.Create;
+  FArgs := Args;
 end;
 
 destructor TXPathFunctionNode.Destroy;
 var
   i: Integer;
 begin
-  for i := 0 to FArgs.Count - 1 do
-    TXPathExprNode(FArgs[i]).Free;
-  FArgs.Free;
+  for i := Low(FArgs) to High(FArgs) do
+    FArgs[i].Free;
   inherited Destroy;
 end;
 
@@ -717,10 +722,10 @@ begin
 
   Args := TXPathVarList.Create;
   try
-    for i := 0 to FArgs.Count - 1 do
-      Args.Add(TXPathExprNode(FArgs[i]).Evaluate(AContext, AEnvironment));
+    for i := Low(FArgs) to High(FArgs) do
+      Args.Add(FArgs[i].Evaluate(AContext, AEnvironment));
     Result := Fn(AContext, Args);
-    for i := 0 to FArgs.Count - 1 do
+    for i := Low(FArgs) to High(FArgs) do
       TXPathVariable(Args[i]).Release;
   finally
     Args.Free;
@@ -1837,15 +1842,11 @@ begin
     Buffer[I] := ParseOrExpr;
     Inc(I);
     if I > High(Buffer) then
-    begin
-      AddNodes(Dest, Buffer);
-      I := 0;
-    end;
+      AddNodes(Dest, Buffer, I);  // will reset I to zero
     if not SkipToken(tkRightSquareBracket) then
       Error(SParserExpectedRightSquareBracket);
   end;
-  if I > 0 then
-    AddNodes(Dest, Slice(Buffer, I));
+  AddNodes(Dest, Buffer, I);
 end;
 
 function TXPathScanner.ParseStep: TStep;  // [4]
@@ -1981,29 +1982,39 @@ begin
       Result := TXPathConstantNode.Create(
         TXPathNumberVariable.Create(StrToNumber(CurTokenString)));
     tkIdentifier:     // [16] Function call
-      begin
-        Result := TXPathFunctionNode.Create(CurTokenString);
-        if NextToken <> tkLeftBracket then
-          Error(SParserExpectedLeftBracket);
-        NextToken;
-        // Parse argument list
-        if CurToken <> tkRightBracket then
-        repeat
-          TXPathFunctionNode(Result).FArgs.Add(ParseOrExpr);
-          if CurToken <> tkComma then
-          begin
-            if CurToken <> tkRightBracket then
-              Error(SParserExpectedRightBracket);
-            break;
-          end;
-          NextToken; { skip comma }
-        until False;
-      end;
+      Result := ParseFunctionCall;
   else
     Error(SParserInvalidPrimExpr);
     Result := nil; // satisfy compiler
   end;
   NextToken;
+end;
+
+function TXPathScanner.ParseFunctionCall: TXPathExprNode;
+var
+  Name: DOMString;
+  Args: TXPathNodeArray;
+  Buffer: array[0..15] of TXPathExprNode;
+  I: Integer;
+begin
+  Name := CurTokenString;
+  I := 0;
+  if NextToken <> tkLeftBracket then
+    Error(SParserExpectedLeftBracket);
+  NextToken;
+  // Parse argument list
+  if CurToken <> tkRightBracket then
+  repeat
+    Buffer[I] := ParseOrExpr;
+    Inc(I);
+    if I > High(Buffer) then
+      AddNodes(Args, Buffer, I);
+  until not SkipToken(tkComma);
+  if CurToken <> tkRightBracket then
+    Error(SParserExpectedRightBracket);
+
+  AddNodes(Args, Buffer, I);
+  Result := TXPathFunctionNode.Create(Name, Args);
 end;
 
 function TXPathScanner.ParseUnionExpr: TXPathExprNode;  // [18]
