@@ -95,6 +95,23 @@ type
     tkPipe                      // "|"
   );
 
+  TXPathKeyword = (
+    // axis names
+    xkNone, xkAncestor,  xkAncestorOrSelf,  xkAttribute,  xkChild,
+    xkDescendant, xkDescendantOrSelf, xkFollowing, xkFollowingSibling,
+    xkNamespace, xkParent, xkPreceding, xkPrecedingSibling, xkSelf,
+    // node tests
+    xkComment, xkText, xkProcessingInstruction, xkNode,
+    // operators
+    xkAnd, xkOr, xkDiv, xkMod,
+    // standard functions
+    xkLast, xkPosition, xkCount, xkId, xkLocalName, xkNamespaceUri,
+    xkName, xkString, xkConcat, xkStartsWith, xkContains,
+    xkSubstringBefore, xkSubstringAfter, xkSubstring,
+    xkStringLength, xkNormalizeSpace, xkTranslate, xkBoolean,
+    xkNot, xkTrue, xkFalse, xkLang, xkNumber, xkSum, xkFloor,
+    xkCeiling, xkRound
+  );
 
 { XPath expression parse tree }
 
@@ -347,6 +364,7 @@ type
     FTokenStart: DOMPChar;
     FTokenLength: Integer;
     FPrefixLength: Integer;
+    FTokenId: TXPathKeyword;
     FResolver: TXPathNSResolver;
     procedure Error(const Msg: String);
     procedure ParsePredicates(var Dest: TXPathNodeArray);
@@ -484,6 +502,23 @@ function EvaluateXPathExpression(const AExpressionString: DOMString;
 implementation
 
 uses Math, xmlutils;
+
+{$i xpathkw.inc}
+
+const
+  AxisNameKeywords = [xkAncestor..xkSelf];
+  AxisNameMap: array[xkAncestor..xkSelf] of TAxis = (
+    axisAncestor, axisAncestorOrSelf, axisAttribute, axisChild,
+    axisDescendant, axisDescendantOrSelf, axisFollowing,
+    axisFollowingSibling, axisNamespace, axisParent, axisPreceding,
+    axisPrecedingSibling, axisSelf
+  );
+  NodeTestKeywords = [xkComment..xkNode];
+  NodeTestMap: array[xkComment..xkNode] of TNodeTestType = (
+    ntCommentNode, ntTextNode, ntPINode, ntAnyNode
+  );
+
+  FunctionKeywords = [xkLast..xkRound];
 
 { Helper functions }
 
@@ -1593,6 +1628,10 @@ begin
   FCurToken := Result;
   if Result in [tkIdentifier, tkNSNameTest, tkNumber, tkString, tkVariable] then
     SetString(FCurTokenString, FTokenStart, FTokenLength);
+  if Result = tkIdentifier then
+    FTokenId := LookupXPathKeyword(FTokenStart, FTokenLength)
+  else
+    FTokenId := xkNone;
 end;
 
 function TXPathScanner.SkipToken(tok: TXPathToken): Boolean; { inline? }
@@ -1832,36 +1871,10 @@ begin
     end
     else if (CurToken = tkIdentifier) and (PeekToken = tkColonColon) then  // [5] AxisName '::'
     begin
-      // Check for [6] AxisName
-      if CurTokenString = 'ancestor' then
-        Axis := axisAncestor
-      else if CurTokenString = 'ancestor-or-self' then
-        Axis := axisAncestorOrSelf
-      else if CurTokenString = 'attribute' then
-        Axis := axisAttribute
-      else if CurTokenString = 'child' then
-        Axis := axisChild
-      else if CurTokenString = 'descendant' then
-        Axis := axisDescendant
-      else if CurTokenString = 'descendant-or-self' then
-        Axis := axisDescendantOrSelf
-      else if CurTokenString = 'following' then
-        Axis := axisFollowing
-      else if CurTokenString = 'following-sibling' then
-        Axis := axisFollowingSibling
-      else if CurTokenString = 'namespace' then
-        Axis := axisNamespace
-      else if CurTokenString = 'parent' then
-        Axis := axisParent
-      else if CurTokenString = 'preceding' then
-        Axis := axisPreceding
-      else if CurTokenString = 'preceding-sibling' then
-        Axis := axisPrecedingSibling
-      else if CurTokenString = 'self' then
-        Axis := axisSelf
+      if FTokenId in AxisNameKeywords then
+        Axis := AxisNameMap[FTokenId]
       else
         Error(SParserBadAxisName);
-
       NextToken;  // skip identifier and the '::'
       NextToken;
     end
@@ -1874,15 +1887,6 @@ begin
 end;
 
 function TXPathScanner.ParseNodeTest(Axis: TAxis): TStep; // [7]
-
-  procedure NeedBrackets;
-  begin
-    NextToken;
-    if NextToken <> tkRightBracket then
-       Error(SParserExpectedRightBracket);
-    NextToken;
-  end;
-
 var
   nodeType: TNodeTestType;
   nodeName: DOMString;
@@ -1910,33 +1914,26 @@ begin
     // Check for case [38] NodeType
     if PeekToken = tkLeftBracket then
     begin
-      if CurTokenString = 'comment' then
+      if FTokenId in NodeTestKeywords then
       begin
-        NeedBrackets;
-        nodeType := ntCommentNode;
-      end
-      else if CurTokenString = 'text' then
-      begin
-        NeedBrackets;
-        nodeType := ntTextNode;
-      end
-      else if CurTokenString = 'processing-instruction' then
-      begin
-        NextToken;   { skip '('; we know it's there }
-        if NextToken = tkString then
+        nodeType := NodeTestMap[FTokenId];
+        if FTokenId = xkProcessingInstruction then
         begin
-          nodeName := CurTokenString;
+          NextToken;
+          if NextToken = tkString then
+          begin
+            nodeName := CurTokenString;
+            NextToken;
+          end;
+        end
+        else
+        begin
+          NextToken;
           NextToken;
         end;
         if CurToken <> tkRightBracket then
           Error(SParserExpectedRightBracket);
         NextToken;
-        nodeType := ntPINode;
-      end
-      else if CurTokenString = 'node' then
-      begin
-        NeedBrackets;
-        nodeType := ntAnyNode;
       end
       else
         Error(SParserBadNodeType);
@@ -2029,10 +2026,7 @@ begin
   Result := nil;
   // Try to detect whether a LocationPath [1] or a FilterExpr [20] follows
   if ((CurToken = tkIdentifier) and (PeekToken = tkLeftBracket) and
-    (CurTokenString <> 'comment') and
-    (CurTokenString <> 'text') and
-    (CurTokenString <> 'processing-instruction') and
-    (CurTokenString <> 'node')) or
+    not (FTokenId in NodeTestKeywords)) or
     (CurToken in [tkVariable, tkLeftBracket, tkString, tkNumber]) then
   begin
     // second, third or fourth case of [19]
@@ -2083,7 +2077,7 @@ end;
 function TXPathScanner.ParseOrExpr: TXPathExprNode;  // [21]
 begin
   Result := ParseAndExpr;
-  while (CurToken = tkIdentifier) and (CurTokenString = 'or') do
+  while FTokenId = xkOr do
   begin
     NextToken;
     Result := TXPathBooleanOpNode.Create(opOr, Result, ParseAndExpr);
@@ -2093,7 +2087,7 @@ end;
 function TXPathScanner.ParseAndExpr: TXPathExprNode;  // [22]
 begin
   Result := ParseEqualityExpr;
-  while (CurToken = tkIdentifier) and (CurTokenString = 'and') do
+  while FTokenId = xkAnd do
   begin
     NextToken;
     Result := TXPathBooleanOpNode.Create(opAnd, Result, ParseEqualityExpr);
@@ -2163,9 +2157,9 @@ begin
       tkAsterisk:
         op := opMultiply;
       tkIdentifier:
-        if CurTokenString = 'div' then
+        if FTokenId = xkDiv then
           op := opDivide
-        else if CurTokenString = 'mod' then
+        else if FTokenId = xkMod then
           op := opMod
         else
           break;
