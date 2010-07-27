@@ -12,8 +12,9 @@ type
   { TSecondGeneric }
 
   generic TSecondGeneric<T> = class(TObject)
-  type public
-    TFirstGenericType = specialize TFirstGeneric<T>;
+  public
+    type
+      TFirstGenericType = specialize TFirstGeneric<T>;
   end;
 
 var

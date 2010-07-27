@@ -6,9 +6,10 @@ interface
 
 type
   generic TGenericType<TParamType> = class
-  var private
-    FDefault: TParamType; static;
-    F: TParamType;
+  private
+    var
+      FDefault: TParamType; static;
+      F: TParamType;
   public
     procedure P;
   end;

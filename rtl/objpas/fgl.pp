@@ -85,7 +85,7 @@ const
 
 type
   generic TFPGListEnumerator<T> = class(TObject)
-  var protected
+  protected
     FList: TFPSList;
     FPosition: Integer;
     function GetCurrent: T;
@@ -96,14 +96,16 @@ type
   end;
 
   generic TFPGList<T> = class(TFPSList)
-  type public
-    TCompareFunc = function(const Item1, Item2: T): Integer;
-    TTypeList = array[0..MaxGListSize] of T;
-    PTypeList = ^TTypeList;
-    PT = ^T;
-    TFPGListEnumeratorSpec = specialize TFPGListEnumerator<T>;
-  var protected
-    FOnCompare: TCompareFunc;
+  public
+    type
+      TCompareFunc = function(const Item1, Item2: T): Integer;
+      TTypeList = array[0..MaxGListSize] of T;
+      PTypeList = ^TTypeList;
+      PT = ^T;
+      TFPGListEnumeratorSpec = specialize TFPGListEnumerator<T>;
+  protected
+    var
+      FOnCompare: TCompareFunc;
     procedure CopyItem(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
     function  Get(Index: Integer): T; {$ifdef CLASSESINLINE} inline; {$endif}
@@ -128,14 +130,16 @@ type
   end;
 
   generic TFPGObjectList<T> = class(TFPSList)
-  type public
-    TCompareFunc = function(const Item1, Item2: T): Integer;
-    TTypeList = array[0..MaxGListSize] of T;
-    PTypeList = ^TTypeList;
-    PT = ^T;
-  var protected
-    FOnCompare: TCompareFunc;
-    FFreeObjects: Boolean;
+  public
+    type
+      TCompareFunc = function(const Item1, Item2: T): Integer;
+      TTypeList = array[0..MaxGListSize] of T;
+      PTypeList = ^TTypeList;
+      PT = ^T;
+  protected
+    var
+      FOnCompare: TCompareFunc;
+      FFreeObjects: Boolean;
     procedure CopyItem(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
     function  Get(Index: Integer): T; {$ifdef CLASSESINLINE} inline; {$endif}
@@ -160,13 +164,15 @@ type
   end;
 
   generic TFPGInterfacedObjectList<T> = class(TFPSList)
-  type public
-    TCompareFunc = function(const Item1, Item2: T): Integer;
-    TTypeList = array[0..MaxGListSize] of T;
-    PTypeList = ^TTypeList;
-    PT = ^T;
-  var protected
-    FOnCompare: TCompareFunc;
+  public
+    type
+      TCompareFunc = function(const Item1, Item2: T): Integer;
+      TTypeList = array[0..MaxGListSize] of T;
+      PTypeList = ^TTypeList;
+      PT = ^T;
+  protected
+    var
+      FOnCompare: TCompareFunc;
     procedure CopyItem(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
     function  Get(Index: Integer): T; {$ifdef CLASSESINLINE} inline; {$endif}
@@ -244,19 +250,21 @@ type
 {$ifndef VER2_0}
 
   generic TFPGMap<TKey, TData> = class(TFPSMap)
-  type public
-    TKeyCompareFunc = function(const Key1, Key2: TKey): Integer;
-    TDataCompareFunc = function(const Data1, Data2: TData): Integer;
-    PKey = ^TKey;
-    PData = ^TData;
-  var protected
-    FOnKeyCompare: TKeyCompareFunc;
-    FOnDataCompare: TDataCompareFunc;
-    procedure CopyItem(Src, Dest: Pointer); override;
-    procedure CopyKey(Src, Dest: Pointer); override;
-    procedure CopyData(Src, Dest: Pointer); override;
-    procedure Deref(Item: Pointer); override;
-    procedure InitOnPtrCompare; override;
+  public
+    type
+      TKeyCompareFunc = function(const Key1, Key2: TKey): Integer;
+      TDataCompareFunc = function(const Data1, Data2: TData): Integer;
+      PKey = ^TKey;
+      PData = ^TData;
+  protected
+    var
+      FOnKeyCompare: TKeyCompareFunc;
+      FOnDataCompare: TDataCompareFunc;
+      procedure CopyItem(Src, Dest: Pointer); override;
+      procedure CopyKey(Src, Dest: Pointer); override;
+      procedure CopyData(Src, Dest: Pointer); override;
+      procedure Deref(Item: Pointer); override;
+      procedure InitOnPtrCompare; override;
     function GetKey(Index: Integer): TKey; {$ifdef CLASSESINLINE} inline; {$endif}
     function GetKeyData(const AKey: TKey): TData; {$ifdef CLASSESINLINE} inline; {$endif}
     function GetData(Index: Integer): TData; {$ifdef CLASSESINLINE} inline; {$endif}

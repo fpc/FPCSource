@@ -648,6 +648,7 @@ implementation
                        current_objectdef.symtable.currentvisibility:=vis_private;
                        include(current_objectdef.objectoptions,oo_has_private);
                        fields_allowed:=true;
+                       object_member_blocktype:=bt_general;
                      end;
                    _PROTECTED :
                      begin
@@ -658,6 +659,7 @@ implementation
                        current_objectdef.symtable.currentvisibility:=vis_protected;
                        include(current_objectdef.objectoptions,oo_has_protected);
                        fields_allowed:=true;
+                       object_member_blocktype:=bt_general;
                      end;
                    _PUBLIC :
                      begin
@@ -667,6 +669,7 @@ implementation
                        consume(_PUBLIC);
                        current_objectdef.symtable.currentvisibility:=vis_public;
                        fields_allowed:=true;
+                       object_member_blocktype:=bt_general;
                      end;
                    _PUBLISHED :
                      begin
@@ -682,6 +685,7 @@ implementation
                        consume(_PUBLISHED);
                        current_objectdef.symtable.currentvisibility:=vis_published;
                        fields_allowed:=true;
+                       object_member_blocktype:=bt_general;
                      end;
                    _STRICT :
                      begin
@@ -711,7 +715,8 @@ implementation
                         else
                           message(parser_e_protected_or_private_expected);
                         fields_allowed:=true;
-                      end;
+                        object_member_blocktype:=bt_general;
+                     end
                     else
                       begin
                         if object_member_blocktype=bt_general then

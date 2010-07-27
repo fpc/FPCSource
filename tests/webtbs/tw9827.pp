@@ -2,8 +2,9 @@
 
 type
   generic GList<_T> = class
-    var private
-      i : integer;
+    private
+      var
+        i : integer;
     function some_func(): integer;
   end;
 
