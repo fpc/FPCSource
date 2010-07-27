@@ -38,6 +38,7 @@ type
     Section  : Integer;
     count    : integer;
     donotpage: boolean;
+    nameonly : boolean;
     procedure OnFileEntry(Name: String; Offset, UncompressedSize, ASection: Integer);
   end;
 
@@ -55,7 +56,7 @@ Const
   CmdNames : array [TCmdEnum] of String = ('LIST','EXTRACT','EXTRACTALL','UNBLOCK','');
 
 var
-  theopts : array[1..2] of TOption;
+  theopts : array[1..4] of TOption;
 
 
 Procedure Usage;
@@ -64,8 +65,9 @@ begin
   Writeln(StdErr,'Usage: chmls [switches] [command] [command specific parameters]');
   writeln(stderr);
   writeln(stderr,'Switches : ');
-  writeln(stderr,' -h, --help  : this screen');
-  writeln(stderr,' -n          : do not page list output');
+  writeln(stderr,' -h, --help     : this screen');
+  writeln(stderr,' -p, --no-page  : do not page list output');
+  writeln(stderr,' -n,--name-only : only show "name" column in list output');
   writeln(stderr);
   writeln(stderr,'Where command is one of the following or if omitted, equal to LIST.');
   writeln(stderr,' list       <filename> [section number] ');
@@ -100,6 +102,18 @@ begin
     value:=#0;
   end;
   with theopts[2] do
+   begin
+    name:='name-only';
+    has_arg:=0;
+    flag:=nil;
+  end;
+  with theopts[3] do
+   begin
+    name:='no-page';
+    has_arg:=0;
+    flag:=nil;
+  end;
+  with theopts[4] do
    begin
     name:='';
     has_arg:=0;
@@ -154,13 +168,16 @@ begin
   if (Section > -1) and (ASection <> Section) then Exit;
   if (Count = 1) or ((Count mod 40 = 0) and not donotpage) then
     WriteLn(StdErr, '<Section> <Offset> <UnCompSize>  <Name>');
-  Write(' ');
-  Write(ASection);
-  Write('      ');
-  WriteStrAdj(IntToStr(Offset), 10);
-  Write('  ');
-  WriteStrAdj(IntToStr(UncompressedSize), 11);
-  Write('  ');
+  if not nameonly then
+    begin
+      Write(' ');
+      Write(ASection);
+      Write('      ');
+      WriteStrAdj(IntToStr(Offset), 10);
+      Write('  ');
+      WriteStrAdj(IntToStr(UncompressedSize), 11);
+      Write('  ');
+    end;
   WriteLn(Name);
 end;
 
@@ -216,6 +233,7 @@ begin
 end;
 
 var donotpage:boolean=false;
+    name_only :boolean=false;
 
 procedure ListChm(Const Name:string;Section:Integer);
 var
@@ -235,6 +253,7 @@ begin
   JunkObject.Section:=Section;
   JunkObject.Count:=0;
   JunkObject.DoNotPage:=DoNotPage;
+  JunkObject.NameOnly:=Name_Only;
 
   ITS:= TITSFReader.Create(Stream, True);
   ITS.GetCompleteFileList(@JunkObject.OnFileEntry);
@@ -408,7 +427,7 @@ begin
   Writeln(stderr,'chmls, a CHM utility. (c) 2010 Free Pascal core.');
   Writeln(Stderr);
   repeat
-    c:=getlongopts('hn',@theopts[1],optionindex);
+    c:=getlongopts('hnp',@theopts[1],optionindex);
     case c of
       #0 : begin
              case optionindex-1 of
@@ -416,9 +435,13 @@ begin
                      Usage;
                      Halt;
                    end;
+               1 : name_only:=true;
+               2 : donotpage:=true;
+
                 end;
            end;
-      'n'     : donotpage:=true;
+      'p'     : donotpage:=true;
+      'n'     : name_only:=true;
       '?','h' :
             begin
               writeln('unknown option',optopt);
