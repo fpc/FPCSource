@@ -233,12 +233,15 @@ type
   end;
 
 
+  TNodeSet = TFPList;
+
   // Filter node (for [20])
 
   TXPathFilterNode = class(TXPathExprNode)
   private
-    FExpr: TXPathExprNode;
+    FLeft: TXPathExprNode;
     FPredicates: TXPathNodeArray;
+    procedure ApplyPredicates(Nodes: TNodeSet; AEnvironment: TXPathEnvironment);
   public
     constructor Create(AExpr: TXPathExprNode);
     destructor Destroy; override;
@@ -257,21 +260,15 @@ type
   TNodeTestType = (ntAnyPrincipal, ntName, ntTextNode,
     ntCommentNode, ntPINode, ntAnyNode);
 
-  TNodeSet = TFPList;
-
-  TStep = class(TXPathExprNode)
+  TStep = class(TXPathFilterNode)
   private
     procedure SelectNodes(ANode: TDOMNode; out ResultNodes: TNodeSet);
-    procedure ApplyPredicates(Nodes: TNodeSet; AEnvironment: TXPathEnvironment);
   public
-    FLeft: TXPathExprNode;
     Axis: TAxis;
     NodeTestType: TNodeTestType;
     NodeTestString: DOMString;
     NSTestString: DOMString;
-    Predicates: TXPathNodeArray;
     constructor Create(aAxis: TAxis; aTest: TNodeTestType);
-    destructor Destroy; override;
     function Evaluate(AContext: TXPathContext;
       AEnvironment: TXPathEnvironment): TXPathVariable; override;
   end;
@@ -1042,14 +1039,14 @@ end;
 constructor TXPathFilterNode.Create(AExpr: TXPathExprNode);
 begin
   inherited Create;
-  FExpr := AExpr;
+  FLeft := AExpr;
 end;
 
 destructor TXPathFilterNode.Destroy;
 var
   i: Integer;
 begin
-  FExpr.Free;
+  FLeft.Free;
   for i := 0 to High(FPredicates) do
     FPredicates[i].Free;
   inherited Destroy;
@@ -1058,63 +1055,18 @@ end;
 function TXPathFilterNode.Evaluate(AContext: TXPathContext;
   AEnvironment: TXPathEnvironment): TXPathVariable;
 var
-  ExprResult: TXPathVariable;
-  NodeSet, NewNodeSet: TNodeSet;
-  i, j: Integer;
-  CurContextNode: TDOMNode;
-  NewContext: TXPathContext;
-  DoAdd: Boolean;
+  NodeSet: TNodeSet;
 begin
-  ExprResult := FExpr.Evaluate(AContext, AEnvironment);
-  NewContext := nil;
-  try
-    NodeSet := ExprResult.AsNodeSet;
-    NewContext := TXPathContext.Create(nil, 0, NodeSet.Count);
-    NewNodeSet := TNodeSet.Create;
-    try
-      for i := 0 to NodeSet.Count - 1 do
-      begin
-        CurContextNode := TDOMNode(NodeSet[i]);
-        NewContext.ContextNode := CurContextNode;
-        Inc(NewContext.ContextPosition);
-        DoAdd := True;
-        for j := 0 to High(FPredicates) do
-        begin
-          DoAdd := FPredicates[j].EvalPredicate(NewContext,
-            AEnvironment);
-          if not DoAdd then
-            Break;
-        end;
-        if DoAdd then
-          NewNodeSet.Add(CurContextNode);
-      end;
-    except
-      NewNodeSet.Free;
-      raise;
-    end;
-    Result := TXPathNodeSetVariable.Create(NewNodeSet);
-  finally
-    NewContext.Free;
-    ExprResult.Release;
-  end;
+  Result := FLeft.Evaluate(AContext, AEnvironment);
+  NodeSet := Result.AsNodeSet;
+  ApplyPredicates(NodeSet, AEnvironment);
 end;
 
 
 constructor TStep.Create(aAxis: TAxis; aTest: TNodeTestType);
 begin
-  inherited Create;
   Axis := aAxis;
   NodeTestType := aTest;
-end;
-
-destructor TStep.Destroy;
-var
-  i: Integer;
-begin
-  FLeft.Free;
-  for i := 0 to High(Predicates) do
-    Predicates[i].Free;
-  inherited destroy;
 end;
 
 procedure TStep.SelectNodes(ANode: TDOMNode; out ResultNodes: TNodeSet);
@@ -1305,12 +1257,12 @@ end;
   by nil. After one filter has been applied, Nodes is packed, and
   the next filter will be processed. }
 
-procedure TStep.ApplyPredicates(Nodes: TNodeSet; AEnvironment: TXPathEnvironment);
+procedure TXPathFilterNode.ApplyPredicates(Nodes: TNodeSet; AEnvironment: TXPathEnvironment);
 var
   i, j: Integer;
   NewContext: TXPathContext;
 begin
-  for i := 0 to High(Predicates) do
+  for i := 0 to High(FPredicates) do
   begin
     NewContext := TXPathContext.Create(nil, 0, Nodes.Count);
     try
@@ -1318,7 +1270,7 @@ begin
       begin
         NewContext.ContextPosition := j+1;
         NewContext.ContextNode := TDOMNode(Nodes[j]);
-        if not Predicates[i].EvalPredicate(NewContext, AEnvironment) then
+        if not FPredicates[i].EvalPredicate(NewContext, AEnvironment) then
           Nodes[j] := nil;
       end;
       Nodes.Pack;
@@ -1893,7 +1845,7 @@ begin
       Axis := axisChild;
 
     Result := ParseNodeTest(Axis);
-    ParsePredicates(Result.Predicates);
+    ParsePredicates(Result.FPredicates);
   end;
 end;
 
