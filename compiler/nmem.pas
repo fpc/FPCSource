@@ -453,9 +453,10 @@ implementation
                   end
                 else
                   begin
-                    { For procvars we need to return the proc field of the
-                      methodpointer }
-                    if isprocvar then
+                    { For procvars and for nested routines we need to return
+                      the proc field of the methodpointer }
+                    if isprocvar or
+                       is_nested_pd(tabstractprocdef(left.resultdef)) then
                       begin
                         { find proc field in methodpointer record }
                         hsym:=tfieldvarsym(trecorddef(methodpointertype).symtable.Find('proc'));

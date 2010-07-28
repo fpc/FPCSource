@@ -97,7 +97,7 @@ interface
     function is_bitpacked_access(n: tnode): boolean;
 
     { creates a load of field 'fieldname' in the record/class/...
-      represented by n; assumes the resultdef of n is set }
+      represented by n }
     function genloadfield(n: tnode; const fieldname: string): tnode;
 
 
@@ -1104,6 +1104,8 @@ implementation
       var
         vs         : tsym;
       begin
+        if not assigned(n.resultdef) then
+          typecheckpass(n);
         vs:=tsym(tabstractrecorddef(n.resultdef).symtable.find(fieldname));
         if not assigned(vs) or
            (vs.typ<>fieldvarsym) then

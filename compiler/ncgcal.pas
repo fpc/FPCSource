@@ -843,8 +843,12 @@ implementation
               dec(pop_size,sizeof(pint));
             { Remove parameters/alignment from the stack }
             pop_parasize(pop_size);
-          end;
-
+          end
+         { frame pointer parameter is popped by the caller when it's passed the
+           Delphi way }
+         else if (po_delphi_nested_cc in procdefinition.procoptions) and
+                 not use_fixed_stack then
+           pop_parasize(sizeof(pint));
          { Release registers, but not the registers that contain the
            function result }
          if (not is_void(resultdef)) then

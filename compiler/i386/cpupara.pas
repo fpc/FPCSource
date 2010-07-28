@@ -214,7 +214,7 @@ unit cpupara;
           stringdef :
             result:= (tstringdef(def).stringtype in [st_shortstring,st_longstring]);
           procvardef :
-            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (po_methodpointer in tprocvardef(def).procoptions);
+            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and not tprocvardef(def).is_addressonly;
           setdef :
             result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (not is_smallset(def));
         end;
@@ -598,13 +598,16 @@ unit cpupara;
 
                       64bit values,floats,arrays and records are always
                       on the stack.
+
+                      In case of po_delphi_nested_cc, the parent frame pointer
+                      is also always passed on the stack.
                     }
                     if (parareg<=high(parasupregs)) and
                        (paralen<=sizeof(aint)) and
-                       (
-                        not(hp.vardef.typ in [floatdef,recorddef,arraydef]) or
-                        pushaddr
-                       ) then
+                       (not(hp.vardef.typ in [floatdef,recorddef,arraydef]) or
+                        pushaddr) and
+                       (not(vo_is_parentfp in hp.varoptions) or
+                        not(po_delphi_nested_cc in p.procoptions)) then
                       begin
                         if pass=1 then
                           begin

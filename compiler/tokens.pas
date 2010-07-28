@@ -164,6 +164,7 @@ type
     _EXPORT,
     _INLINE,
     _LEGACY,
+    _NESTED,
     _OBJECT,
     _PACKED,
     _PASCAL,
@@ -425,6 +426,7 @@ const
       (str:'EXPORT'        ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'INLINE'        ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'LEGACY'        ;special:false;keyword:m_none;op:NOTOKEN),   { Syscall variation on MorphOS }
+      (str:'NESTED'        ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'OBJECT'        ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'PACKED'        ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'PASCAL'        ;special:false;keyword:m_none;op:NOTOKEN),

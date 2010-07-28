@@ -138,7 +138,7 @@ interface
     procedure make_not_regable(p : tnode; how: tregableinfoflags);
 
     { procvar handling }
-    function  is_procvar_load(p:tnode):boolean;
+    function  is_proc2procvar_load(p:tnode;out realprocdef:tprocdef):boolean;
     procedure test_local_to_procvar(from_def:tprocvardef;to_def:tdef);
 
     { sets varsym varstate field correctly }
@@ -774,7 +774,7 @@ implementation
                           Subroutine Handling
 ****************************************************************************}
 
-    function is_procvar_load(p:tnode):boolean;
+    function is_proc2procvar_load(p:tnode;out realprocdef:tprocdef):boolean;
       begin
         result:=false;
         { remove voidpointer typecast for tp procvars }
@@ -785,13 +785,16 @@ implementation
           p:=tunarynode(p).left;
         result:=(p.nodetype=typeconvn) and
                 (ttypeconvnode(p).convtype=tc_proc_2_procvar);
+        if result then
+          realprocdef:=tprocdef(ttypeconvnode(p).left.resultdef);
       end;
 
 
     { local routines can't be assigned to procvars }
     procedure test_local_to_procvar(from_def:tprocvardef;to_def:tdef);
       begin
-         if (from_def.parast.symtablelevel>normal_function_level) and
+         if not(m_nested_procvars in current_settings.modeswitches) and
+            (from_def.parast.symtablelevel>normal_function_level) and
             (to_def.typ=procvardef) then
            CGMessage(type_e_cannot_local_proc_to_procvar);
       end;
@@ -1545,6 +1548,7 @@ implementation
     procedure para_allowed(var eq:tequaltype;p:tcallparanode;def_to:tdef);
       var
         acn: tarrayconstructornode;
+        realprocdef: tprocdef;
         tmpeq: tequaltype;
       begin
         { Note: eq must be already valid, it will only be updated! }
@@ -1586,16 +1590,18 @@ implementation
             end;
           procvardef :
             begin
-              { in tp7 mode proc -> procvar is allowed }
+              tmpeq:=te_incompatible;
+              { in tp/macpas mode proc -> procvar is allowed }
               if ((m_tp_procvar in current_settings.modeswitches) or
                   (m_mac_procvar in current_settings.modeswitches)) and
-                 (p.left.nodetype=calln) and
-                 (proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def_to),false)>=te_equal) then
-                eq:=te_equal
-              else
-                if (m_mac_procvar in current_settings.modeswitches) and
-                   is_procvar_load(p.left) then
-                  eq:=te_convert_l2;
+                 (p.left.nodetype=calln) then
+                tmpeq:=proc_to_procvar_equal(tprocdef(tcallnode(p.left).procdefinition),tprocvardef(def_to),false);
+              if (tmpeq=te_incompatible) and
+                 (m_nested_procvars in current_settings.modeswitches) and
+                 is_proc2procvar_load(p.left,realprocdef) then
+                tmpeq:=proc_to_procvar_equal(realprocdef,tprocvardef(def_to),false);
+              if tmpeq<>te_incompatible then
+                eq:=tmpeq;
             end;
           arraydef :
             begin

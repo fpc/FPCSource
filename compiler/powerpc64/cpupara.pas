@@ -398,7 +398,12 @@ begin
 
     while (paralen > 0) do begin
       paraloc := hp.paraloc[side].add_location;
-      if (loc = LOC_REGISTER) and (nextintreg <= RS_R10) then begin
+      { In case of po_delphi_nested_cc, the parent frame pointer
+        is always passed on the stack. }
+      if (loc = LOC_REGISTER) and
+         (nextintreg <= RS_R10) and
+         (not(vo_is_parentfp in hp.varoptions) or
+          not(po_delphi_nested_cc in p.procoptions)) then begin
         paraloc^.loc := loc;
         paraloc^.shiftval := parashift;
 

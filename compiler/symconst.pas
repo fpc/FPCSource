@@ -109,6 +109,7 @@ const
     and will increase with 10 for each parameter. The high parameters
     will be inserted with n+1 }
   paranr_parentfp = 1;
+  paranr_parentfp_delphi_cc_leftright = 1;
   paranr_self = 2;
   paranr_result = 3;
   paranr_vmt = 4;
@@ -118,11 +119,12 @@ const
   paranr_objc_self = 4;
   paranr_objc_cmd = 5;
   { Required to support variations of syscalls on MorphOS }
-  paranr_syscall_basesysv = 9;
-  paranr_syscall_sysvbase = high(word)-4;
-  paranr_syscall_r12base  = high(word)-3;
-  paranr_syscall_legacy   = high(word)-2;
-  paranr_result_leftright = high(word)-1;
+  paranr_syscall_basesysv    = 9;
+  paranr_syscall_sysvbase    = high(word)-5;
+  paranr_syscall_r12base     = high(word)-4;
+  paranr_syscall_legacy      = high(word)-3;
+  paranr_result_leftright    = high(word)-2;
+  paranr_parentfp_delphi_cc  = high(word)-1;
 
   { prefix for names of class helper procsyms added to regular symtables }
   class_helper_prefix = 'CH$';
@@ -282,7 +284,6 @@ type
     po_syscall_basesysv,
     po_syscall_sysvbase,
     po_syscall_r12base,
-    po_local,
     { Procedure can be inlined }
     po_inline,
     { Procedure is used for internal compiler calls }
@@ -299,7 +300,15 @@ type
     { enumerator support }
     po_enumerator_movenext,
     { optional Objective-C protocol method }
-    po_optional
+    po_optional,
+    { nested procedure that uses Delphi-style calling convention for passing
+      the frame pointer (pushed on the stack, always the last parameter,
+      removed by the caller). Required for nested procvar compatibility,
+      because such procvars can hold both regular and nested procedures
+      (when calling a regular procedure using the above convention, it will
+       simply not see the frame pointer parameter, and since the caller cleans
+       up the stack will also remain balanced) }
+    po_delphi_nested_cc
   );
   tprocoptions=set of tprocoption;
 

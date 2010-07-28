@@ -271,7 +271,8 @@ interface
          m_default_inline,      { allow inline proc directive }
          m_except,              { allow exception-related keywords }
          m_objectivec1,         { support interfacing with Objective-C (1.0) }
-         m_objectivec2          { support interfacing with Objective-C (2.0) }
+         m_objectivec2,         { support interfacing with Objective-C (2.0) }
+         m_nested_procvars      { support nested procedural variables }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -389,7 +390,8 @@ interface
          'ALLOWINLINE',
          'EXCEPTIONS',
          'OBJECTIVEC1',
-         'OBJECTIVEC2');
+         'OBJECTIVEC2',
+         'NESTEDPROCVARS');
 
 
      type

@@ -132,7 +132,7 @@ implementation
           stringdef :
             result:=(tstringdef(def).stringtype in [st_shortstring,st_longstring]);
           procvardef :
-            result:=(po_methodpointer in tprocvardef(def).procoptions);
+            result:=not tprocvardef(def).is_addressonly;
           setdef :
             result:=not is_smallset(def);
         end;
@@ -294,7 +294,11 @@ implementation
                       paraloc^.reference.index:=NR_FRAME_POINTER_REG;
                     paraloc^.reference.offset:=64;
                   end
-                else if (intparareg<=high(tparasupregs)) then
+                { In case of po_delphi_nested_cc, the parent frame pointer
+                  is always passed on the stack. }
+                else if (intparareg<=high(tparasupregs)) and
+                   (not(vo_is_parentfp in hp.varoptions) or
+                    not(po_delphi_nested_cc in p.procoptions)) then
                   begin
                     paraloc^.loc:=LOC_REGISTER;
                     paraloc^.register:=newreg(R_INTREGISTER,hparasupregs^[intparareg],R_SUBWHOLE);

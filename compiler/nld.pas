@@ -333,7 +333,7 @@ implementation
                  that the address needs to be returned }
                resultdef:=fprocdef;
 
-               { process methodpointer }
+               { process methodpointer/framepointer }
                if assigned(left) then
                  typecheckpass(left);
              end;
@@ -391,7 +391,10 @@ implementation
               end;
             procsym :
                 begin
-                   { method pointer ? }
+                   { initialise left for nested procs if necessary }
+                   if (m_nested_procvars in current_settings.modeswitches) then
+                     setprocdef(fprocdef);
+                   { method pointer or nested proc ? }
                    if assigned(left) then
                      begin
                         expectloc:=LOC_CREFERENCE;
@@ -430,8 +433,23 @@ implementation
       begin
         fprocdef:=p;
         resultdef:=p;
-        if po_local in p.procoptions then
-          CGMessage(type_e_cant_take_address_of_local_subroutine);
+        { nested procedure? }
+        if assigned(p) and
+           is_nested_pd(p) then
+          begin
+            if not(m_nested_procvars in current_settings.modeswitches) then
+              CGMessage(type_e_cant_take_address_of_local_subroutine)
+            else
+              begin
+                { parent frame pointer pointer as "self" }
+                left.free;
+                left:=cloadparentfpnode.create(tprocdef(p.owner.defowner));
+              end;
+          end
+        { we should never go from nested to non-nested }
+        else if assigned(left) and
+                (left.nodetype=loadparentfpn) then
+          internalerror(2010072201);
       end;
 
 {*****************************************************************************

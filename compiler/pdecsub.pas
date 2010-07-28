@@ -137,6 +137,7 @@ implementation
       var
         storepos : tfileposinfo;
         vs       : tparavarsym;
+        paranr   : longint;
       begin
         if pd.parast.symtablelevel>normal_function_level then
           begin
@@ -144,10 +145,23 @@ implementation
             if pd.typ=procdef then
              current_tokenpos:=tprocdef(pd).fileinfo;
 
+            { if no support for nested procvars is activated, use the old
+              calling convention to pass the parent frame pointer for backwards
+              compatibility }
+            if not(m_nested_procvars in current_settings.modeswitches) then
+              paranr:=paranr_parentfp
+            { nested procvars require Delphi-style parentfp passing, see
+              po_delphi_nested_cc declaration for more info }
+{$ifdef i386}
+            else if (pd.proccalloption in pushleftright_pocalls) then
+              paranr:=paranr_parentfp_delphi_cc_leftright
+{$endif i386}
+            else
+              paranr:=paranr_parentfp_delphi_cc;
             { Generate result variable accessing function result, it
               can't be put in a register since it must be accessable
               from the framepointer }
-            vs:=tparavarsym.create('$parentfp',paranr_parentfp,vs_value
+            vs:=tparavarsym.create('$parentfp',paranr,vs_value
                   ,voidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
             vs.varregable:=vr_none;
             pd.parast.insert(vs);
@@ -467,14 +481,14 @@ implementation
                 break;
               end
           else
-            if (m_mac in current_settings.modeswitches) and
+            if (m_nested_procvars in current_settings.modeswitches) and
                try_to_consume(_PROCEDURE) then
               begin
                 parseprocvar:=pv_proc;
                 varspez:=vs_const;
               end
           else
-            if (m_mac in current_settings.modeswitches) and
+            if (m_nested_procvars in current_settings.modeswitches) and
                try_to_consume(_FUNCTION) then
               begin
                 parseprocvar:=pv_func;
@@ -500,7 +514,8 @@ implementation
           { macpas anonymous procvar }
           if parseprocvar<>pv_none then
            begin
-             pv:=tprocvardef.create(normal_function_level);
+             { inline procvar definitions are always nested procvars }
+             pv:=tprocvardef.create(normal_function_level+1);
              if token=_LKLAMMER then
                parse_parameter_dec(pv);
              if parseprocvar=pv_func then
