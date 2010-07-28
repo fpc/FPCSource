@@ -1049,6 +1049,7 @@ destructor TXPathFilterNode.Destroy;
 var
   i: Integer;
 begin
+  FExpr.Free;
   for i := 0 to High(FPredicates) do
     FPredicates[i].Free;
   inherited Destroy;
@@ -1121,7 +1122,6 @@ var
   Node, Node2: TDOMNode;
   Attr: TDOMNamedNodeMap;
   i: Integer;
-  TempList: TFPList;
 
   procedure DoNodeTest(Node: TDOMNode);
   begin
@@ -1169,12 +1169,29 @@ var
     end;
   end;
 
+  procedure AddDescendantsReverse(CurNode: TDOMNode);
+  var
+    Child: TDOMNode;
+  begin
+    Child := CurNode.LastChild;
+    while Assigned(Child) do
+    begin
+      AddDescendantsReverse(Child);
+      DoNodeTest(Child);
+      Child := Child.PreviousSibling;
+    end;
+  end;
+
 begin
   ResultNodes := TNodeSet.Create;
   case Axis of
     axisAncestor:
       begin
-        Node := ANode.ParentNode;
+        // TODO: same check needed for XPATH_NAMESPACE_NODE
+        if ANode.nodeType = ATTRIBUTE_NODE then
+          Node := TDOMAttr(ANode).ownerElement
+        else
+          Node := ANode.ParentNode;
         while Assigned(Node) do
         begin
           DoNodeTest(Node);
@@ -1183,11 +1200,17 @@ begin
       end;
     axisAncestorOrSelf:
       begin
-        Node := ANode;
-        repeat
+        DoNodeTest(ANode);
+        // TODO: same check needed for XPATH_NAMESPACE_NODE
+        if ANode.nodeType = ATTRIBUTE_NODE then
+          Node := TDOMAttr(ANode).ownerElement
+        else
+          Node := ANode.ParentNode;
+        while Assigned(Node) do
+        begin
           DoNodeTest(Node);
           Node := Node.ParentNode;
-        until not Assigned(Node);
+        end;
       end;
     axisAttribute:
       begin
@@ -1246,41 +1269,25 @@ begin
         DoNodeTest(ANode.ParentNode);
     axisPreceding:
       begin
-        TempList := TFPList.Create;
-        try
-          Node := ANode;
-          // build list of ancestors
-          while Assigned(Node) do
+        Node := ANode;
+        repeat
+          Node2 := Node.PreviousSibling;
+          while Assigned(Node2) do
           begin
-            TempList.Add(Node);
-            Node := Node.ParentNode;
+            AddDescendantsReverse(Node2);
+            DoNodeTest(Node2);
+            Node2 := Node2.PreviousSibling;
           end;
-          // then process it in reverse order
-          for i := TempList.Count-1 downto 1 do
-          begin
-            Node := TDOMNode(TempList[i]);
-            Node2 := Node.FirstChild;
-            while Assigned(Node2) and (Node2 <> TDOMNode(TempList[i-1])) do
-            begin
-              DoNodeTest(Node2);
-              AddDescendants(Node2);
-              Node2 := Node2.NextSibling;
-            end;
-          end;
-        finally
-          TempList.Free;
-        end;
+          Node := Node.ParentNode;
+        until not Assigned(Node);
       end;
     axisPrecedingSibling:
       begin
-        if Assigned(ANode.ParentNode) then
+        Node := ANode.PreviousSibling;
+        while Assigned(Node) do
         begin
-          Node := ANode.ParentNode.FirstChild;
-          while Assigned(Node) and (Node <> ANode) do
-          begin
-            DoNodeTest(Node);
-            Node := Node.NextSibling;
-          end;
+          DoNodeTest(Node);
+          Node := Node.PreviousSibling;
         end;
       end;
     axisSelf:
@@ -1309,12 +1316,7 @@ begin
     try
       for j := 0 to Nodes.Count - 1 do
       begin
-        // ContextPosition must honor the axis direction
-        if Axis in [axisAncestor, axisAncestorOrSelf,
-          axisPreceding, axisPrecedingSibling] then
-          NewContext.ContextPosition := Nodes.Count - j
-        else
-          NewContext.ContextPosition := j+1;
+        NewContext.ContextPosition := j+1;
         NewContext.ContextNode := TDOMNode(Nodes[j]);
         if not Predicates[i].EvalPredicate(NewContext, AEnvironment) then
           Nodes[j] := nil;
@@ -1342,7 +1344,15 @@ var
     SelectNodes(AContextNode, StepNodes);
     try
       ApplyPredicates(StepNodes, AEnvironment);
-      for i := 0 to StepNodes.Count - 1 do
+      if Axis in [axisAncestor, axisAncestorOrSelf,
+        axisPreceding, axisPrecedingSibling] then
+      for i := StepNodes.Count - 1 downto 0 do
+      begin
+        Node := TDOMNode(StepNodes[i]);
+        if ResultNodeSet.IndexOf(Node) < 0 then
+          ResultNodeSet.Add(Node);
+      end
+      else for i := 0 to StepNodes.Count - 1 do
       begin
         Node := TDOMNode(StepNodes[i]);
         if ResultNodeSet.IndexOf(Node) < 0 then
@@ -2059,10 +2069,9 @@ begin
       Exit;  // allow '/' alone
   end;
 
+  // Continue with parsing of [3] RelativeLocationPath
   repeat
     Result := AddStep(Result, ParseStep);
-
-    // Continue with parsing of [3] RelativeLocationPath
     if CurToken = tkSlashSlash then
     begin
       NextToken;
