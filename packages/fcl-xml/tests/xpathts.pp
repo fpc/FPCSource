@@ -736,7 +736,7 @@ const
   '</section>'+
   '</chapter>';
 
-  AxesTests: array[0..16] of TTestRec = (
+  AxesTests: array[0..15] of TTestRec = (
     (data: ax117; expr: 'count(//@*)';                        rt: rtNumber; n: 16),
     (data: ax117; expr: 'count(//@title)';                    rt: rtNumber; n: 12),
     (data: ax117; expr: 'count(//section//@*)';               rt: rtNumber; n: 14),
@@ -750,14 +750,17 @@ const
     (data: ax117; expr: 'count(/chapter/section[3]//@*)';     rt: rtNumber; n: 5),
     (data: ax117; expr: 'count(/chapter/section[3]//@title)'; rt: rtNumber; n: 4),
 
-    (data: ax114; expr: '//baz/preceding::foo[1]/@att1';    rt: rtNodeStr; s: 'a'),
-//  (data: ax114; expr: '//baz/(preceding::foo)[1]/@att1';  rt: rtNodeStr; s: 'c'),         // won't parse
-    (data: ax115; expr: '//baz/preceding-sibling::foo[1]/@att1';    rt: rtNodeStr; s: 'a'),
-//  (data: ax115; expr: '//baz/(preceding-sibling::foo)[1]/@att1';  rt: rtNodeStr; s: 'c')  // won't parse
-
     (data: simple; expr: 'local-name(namespace::*[1])';     rt: rtString; s: 'xml'), // namespace28a
     (data: simple; expr: 'name(namespace::*[1])';           rt: rtString; s: 'xml'), // namespace28b
-    (data: ax117; expr: 'name(//subsection[@title="A3b"]/@title/parent::*)'; rt: rtString; s: 'subsection')  // axes96 modified
+    (data: ax117; expr: 'name(//subsection[@title="A3b"]/@title/parent::*)'; rt: rtString; s: 'subsection'),   // axes96 modified
+    (data: ax117; expr: 'name(//subsection[@title="A3b"]/@title/ancestor::*[1])'; rt: rtString; s: 'subsection')  // axes97 modified
+  );
+
+  AxesTests2: array[0..3] of TTestRec3 = (
+    (data: ax114; re: '//baz'; expr: 'preceding::foo[1]/@att1';    rt: rtNodeStr; s: 'a'),
+    (data: ax114; re: '//baz'; expr: '(preceding::foo)[1]/@att1';  rt: rtNodeStr; s: 'c'),         // won't parse
+    (data: ax115; re: '//baz'; expr: 'preceding-sibling::foo[1]/@att1';    rt: rtNodeStr; s: 'a'),
+    (data: ax115; re: '//baz'; expr: '(preceding-sibling::foo)[1]/@att1';  rt: rtNodeStr; s: 'c')  // won't parse
   );
 
   pred44 = '<doc>'+
@@ -800,7 +803,7 @@ const
 var
   FailCount: Integer = 0;  
 
-procedure CheckResult(const t: TTestRec; r: TXPathVariable);
+procedure CheckResult(const t: TTestRec; r: TXPathVariable); overload;
 begin
   case t.rt of
     rtBool:
@@ -856,6 +859,18 @@ begin
   Inc(FailCount);
 end;
 
+procedure CheckResult(const t: TTestRec3; r: TXPathVariable); overload;
+var
+  temp: TTestRec;
+begin
+  temp.data := t.data;
+  temp.expr := t.expr;
+  temp.rt := t.rt;
+  temp.n := t.n;
+  CheckResult(temp, r);
+end;
+
+
 function ParseString(const data: string): TXMLDocument;
 var
   parser: TDOMParser;
@@ -908,13 +923,12 @@ begin
   end;
 end;
 
-procedure DoSuite3(const tests: array of TTestRec3);
+procedure DoSuite_WithResolver(const tests: array of TTestRec3);
 var
   i: Integer;
   doc: TXMLDocument;
   rslt: TXPathVariable;
   nsdoc: TXMLDocument;
-  temp: TTestRec;
 begin
   for i := 0 to High(tests) do
   begin
@@ -925,11 +939,7 @@ begin
         try
           rslt := EvaluateXPathExpression(tests[i].expr, doc.DocumentElement, nsdoc.DocumentElement);
           try
-            temp.data := tests[i].data;
-            temp.expr := tests[i].expr;
-            temp.rt := tests[i].rt;
-            temp.n := tests[i].n;
-            CheckResult(temp, rslt);
+            CheckResult(tests[i], rslt);
           finally
             rslt.Free;
           end;
@@ -948,6 +958,45 @@ begin
   end;
 end;
 
+procedure DoSuite_WithContext(const tests: array of TTestRec3);
+var
+  i: Integer;
+  doc: TXMLDocument;
+  rslt: TXPathVariable;
+  context: TXPathVariable;
+  ctxNs: TNodeSet;
+begin
+  for i := 0 to High(tests) do
+  begin
+    doc := ParseString(tests[i].data);
+    try
+      context := EvaluateXPathExpression(tests[i].re, doc.DocumentElement);
+      try
+        try
+          ctxNs := context.AsNodeSet;
+          if ctxNs.Count <> 1 then
+            raise Exception.CreateFmt('Context expression "%s" does not evaluate to a single node', [tests[i].re]);
+          rslt := EvaluateXPathExpression(tests[i].expr, TDOMNode(ctxNs[0]));
+          try
+            CheckResult(tests[i], rslt);
+          finally
+            rslt.Free;
+          end;
+        except
+          writeln;
+          writeln('Failed: ', tests[i].expr);
+          SysUtils.ShowException(ExceptObject, ExceptAddr);
+          Inc(FailCount);
+        end;
+      finally
+        context.Free;
+      end;
+    finally
+      doc.Free;
+    end;
+  end;
+end;
+
 begin
   DoSuite(BaseTests);
   DoSuite(CompareTests);
@@ -957,8 +1006,8 @@ begin
   DoSuite(FunctionTests);
   DoSuite(StringTests);
   DoSuite(AxesTests);
-
-  DoSuite3(nameTests);
+  DoSuite_WithContext(AxesTests2);
+  DoSuite_WithResolver(nameTests);
   DoSuite(PredicateTests);
 
   writeln;
