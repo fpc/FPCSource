@@ -23,6 +23,10 @@ interface
 uses
   types, sysutils;
 
+{$IF defined(VER2_4)}
+  {$DEFINE OldSyntax}
+{$IFEND}
+
 const
   MaxListSize = Maxint div 16;
 
@@ -103,8 +107,7 @@ type
       PTypeList = ^TTypeList;
       PT = ^T;
       TFPGListEnumeratorSpec = specialize TFPGListEnumerator<T>;
-  protected
-    var
+  {$ifndef OldSyntax}protected var{$else}var protected{$endif}
       FOnCompare: TCompareFunc;
     procedure CopyItem(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
@@ -136,8 +139,7 @@ type
       TTypeList = array[0..MaxGListSize] of T;
       PTypeList = ^TTypeList;
       PT = ^T;
-  protected
-    var
+  {$ifndef OldSyntax}protected var{$else}var protected{$endif}
       FOnCompare: TCompareFunc;
       FFreeObjects: Boolean;
     procedure CopyItem(Src, Dest: Pointer); override;
@@ -170,8 +172,7 @@ type
       TTypeList = array[0..MaxGListSize] of T;
       PTypeList = ^TTypeList;
       PT = ^T;
-  protected
-    var
+  {$ifndef OldSyntax}protected var{$else}var protected{$endif}
       FOnCompare: TCompareFunc;
     procedure CopyItem(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
@@ -256,8 +257,7 @@ type
       TDataCompareFunc = function(const Data1, Data2: TData): Integer;
       PKey = ^TKey;
       PData = ^TData;
-  protected
-    var
+  {$ifndef OldSyntax}protected var{$else}var protected{$endif}
       FOnKeyCompare: TKeyCompareFunc;
       FOnDataCompare: TDataCompareFunc;
       procedure CopyItem(Src, Dest: Pointer); override;
