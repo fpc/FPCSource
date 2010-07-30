@@ -133,6 +133,7 @@ Type
     FOnStartBatch: TNotifyEvent;
     FOptions: TJSONRPCDispatchOptions;
   Protected
+
     // Find handler. If none found, nil is returned. Executes OnFindHandler if needed.
     // On return 'DoFree' must be set to indicate that the hand
     Function FindHandler(Const AClassName,AMethodName : TJSONStringType;AContext : TJSONRPCCallContext; Out FreeObject : TComponent) : TCustomJSONRPCHandler; virtual;
@@ -151,6 +152,9 @@ Type
     Function CheckRequests(Requests : TJSONData) : TJSONData; virtual;
     // Format result of a single request. Result is returned to the client, possibly in an array if multiple requests were received in batch.
     Function FormatResult(const AClassName, AMethodName: TJSONStringType;  const Params, ID, Return: TJSONData) : TJSONData; virtual;
+    // Format error of a single request.
+    function CreateJSON2Error(Const AMessage : String; Const ACode : Integer; ID : TJSONData = Nil; idname : TJSONStringType = 'id' ) : TJSONObject; virtual;
+    function CreateJSON2Error(Const AFormat : String; Args : Array of const; Const ACode : Integer; ID : TJSONData = Nil; idname : TJSONStringType = 'id') : TJSONObject;
     // Hooks for user.
     Property OnStartBatch : TNotifyEvent Read FOnStartBatch Write FOnStartBatch;
     Property OnDispatchRequest : TDispatchRequestEvent Read FOnDispatchRequest Write FOnDispatchRequest;
@@ -414,11 +418,18 @@ end;
 { TJSONParamDef }
 
 procedure TJSONParamDef.SetName(const AValue: TJSONStringType);
+
+Var
+  D: TJSONParamDef;
+
 begin
   if FName=AValue then exit;
   If Assigned(Collection) and (Collection is TJSONParamDefs) then
-    if (Collection as TJSONParamDefs).FindParamDef(AValue)<>Nil then
+    begin
+    D:=(Collection as TJSONParamDefs).FindParamDef(AValue);
+    If (D<>Nil) and (D<>Self) then
       JSONRPCError(SErrDuplicateParam,[AValue]);
+    end;
   FName:=AValue;
 end;
 
@@ -646,9 +657,9 @@ begin
   H:=FindHandler(AClassName,AMethodName,AContext,FreeObject);
   If (H=Nil) then
     if (AClassName='') then
-      Exit(CreateJSON2ErrorResponse(SErrInvalidMethodName,[AMethodName],EJSONRPCMethodNotFound,ID.Clone,transactionProperty))
+      Exit(CreateJSON2Error(SErrInvalidMethodName,[AMethodName],EJSONRPCMethodNotFound,ID.Clone,transactionProperty))
     else
-      Exit(CreateJSON2ErrorResponse(SErrInvalidClassMethodName,[AClassName,AMethodName],EJSONRPCMethodNotFound,ID.Clone,transactionProperty));
+      Exit(CreateJSON2Error(SErrInvalidClassMethodName,[AClassName,AMethodName],EJSONRPCMethodNotFound,ID.Clone,transactionProperty));
   try
     If Assigned(FOndispatchRequest) then
       FOndispatchRequest(Self,AClassName,AMethodName,Params);
@@ -666,6 +677,19 @@ begin
   Result:=TJSONObject.Create(['result',Return,'error',TJSonNull.Create,transactionproperty,ID.Clone]);
   if jdoJSONRPC2 in options then
     TJSONObject(Result).Add('jsonrpc','2.0');
+end;
+
+function TCustomJSONRPCDispatcher.CreateJSON2Error(const AMessage: String;
+  const ACode: Integer; ID: TJSONData; idname: TJSONStringType): TJSONObject;
+begin
+  Result:=CreateJSON2ErrorResponse(AMessage,ACode,ID,IDName);
+end;
+
+function TCustomJSONRPCDispatcher.CreateJSON2Error(const AFormat: String;
+  Args: array of const; const ACode: Integer; ID: TJSONData;
+  idname: TJSONStringType): TJSONObject;
+begin
+  Result:=CreateJSON2Error(Format(AFormat,Args),ACode,ID,IDName);
 end;
 
 function TCustomJSONRPCDispatcher.ExecuteRequest(ARequest: TJSONData;AContext : TJSONRPCCallContext): TJSONData;
@@ -687,21 +711,19 @@ begin
         begin
         // No response, and a response was expected.
         if (ID<>Nil) or not (jdoNotifications in Options) then
-          Result:=CreateJSON2ErrorResponse(SErrNoResponse,[M],EJSONRPCInternalError,ID,transactionProperty);
+          Result:=CreateJSON2Error(SErrNoResponse,[M],EJSONRPCInternalError,ID,transactionProperty);
         end
       else
         begin
         // A response was received, and no response was expected.
         if ((ID=Nil) or (ID is TJSONNull))  and (jdoStrictNotifications in Options) then
-          Result:=CreateJSON2ErrorResponse(SErrResponseFromNotification,[M],EJSONRPCInternalError,ID,transactionProperty);
+          Result:=CreateJSON2Error(SErrResponseFromNotification,[M],EJSONRPCInternalError,ID,transactionProperty);
         If (ID=Nil) or (ID is TJSONNull) then // Notification method, discard result.
           FreeAndNil(Result);
         end;
       end;
     If Assigned(Result) and not (Result is TJSONErrorObject) then
-      begin
-      Result:=FormatResult(C,M,P,ID,Result);
-      end;
+        Result:=FormatResult(C,M,P,ID,Result)
   except
     // Something went really wrong if we end up here.
     On E : Exception do
@@ -709,9 +731,9 @@ begin
       If (Result<>Nil) then
         FreeAndNil(Result);
       If Assigned(ID) then
-        Result:=CreateJSON2ErrorResponse(E.Message,EJSONRPCInternalError,ID.Clone,transactionproperty)
+        Result:=CreateJSON2Error(E.Message,EJSONRPCInternalError,ID.Clone,transactionproperty)
       else
-        Result:=CreateJSON2ErrorResponse(E.Message,EJSONRPCInternalError,Nil,transactionproperty)
+        Result:=CreateJSON2Error(E.Message,EJSONRPCInternalError,Nil,transactionproperty);
       end;
   end;
 end;
@@ -757,7 +779,7 @@ begin
   Params:=Nil;
   Result:=Nil;
   If Not (Request is TJSONObject) then
-    Exit(CreateJSON2ErrorResponse(SErrRequestMustBeObject,EJSONRPCInvalidRequest,Nil,transactionproperty));
+    Exit(CreateJSON2Error(SErrRequestMustBeObject,EJSONRPCInvalidRequest,Nil,transactionproperty));
   O:=TJSONObject(Request);
   // Get ID object, if it exists.
   I:=O.IndexOfName(TransactionProperty);
@@ -765,31 +787,31 @@ begin
     ID:=O.Items[i];
   // Check ID
   If (ID=Nil) and not (jdoNotifications in Options) then
-    Exit(CreateJSON2ErrorResponse(SErrNoIDProperty,EJSONRPCInvalidRequest,Nil,transactionproperty));
+    Exit(CreateJSON2Error(SErrNoIDProperty,EJSONRPCInvalidRequest,Nil,transactionproperty));
   OJ2:=(jdoJSONRPC2 in Options) and not (jdoJSONRPC1 in Options);
   If OJ2 then
     begin
     if Assigned(ID) and not (ID.JSONType in [jtNull,jtString,jtNumber]) then
-      Exit(CreateJSON2ErrorResponse(SErrINvalidIDProperty,EJSONRPCInvalidRequest,Nil,transactionproperty));
+      Exit(CreateJSON2Error(SErrINvalidIDProperty,EJSONRPCInvalidRequest,Nil,transactionproperty));
     // Check presence and value of jsonrpc property
     I:=O.IndexOfName('jsonrpc');
     If (I=-1) then
-      Exit(CreateJSON2ErrorResponse(SErrNoJSONRPCProperty,EJSONRPCInvalidRequest,ID,transactionproperty));
+      Exit(CreateJSON2Error(SErrNoJSONRPCProperty,EJSONRPCInvalidRequest,ID,transactionproperty));
     If (O.Items[i].JSONType<>jtString) or (O.Items[i].AsString<>'2.0') then
-      Exit(CreateJSON2ErrorResponse(SErrInvalidJSONRPCProperty,EJSONRPCInvalidRequest,ID,transactionproperty));
+      Exit(CreateJSON2Error(SErrInvalidJSONRPCProperty,EJSONRPCInvalidRequest,ID,transactionproperty));
     end;
   // Get method name, if it exists.
   I:=O.IndexOfName(MethodProperty);
   If (I<>-1) then
     D:=O.Items[i]
   else
-    Exit(CreateJSON2ErrorResponse(SErrNoMethodName,[MethodProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
+    Exit(CreateJSON2Error(SErrNoMethodName,[MethodProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
   // Check if it is a string
   if Not (D is TJSONString) then
-    Exit(CreateJSON2ErrorResponse(SErrInvalidMethodType,[MethodProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
+    Exit(CreateJSON2Error(SErrInvalidMethodType,[MethodProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
   AMethodName:=D.AsString;
   If (AMethodName='') then
-    Exit(CreateJSON2ErrorResponse(SErrNoMethodName,[MethodProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
+    Exit(CreateJSON2Error(SErrNoMethodName,[MethodProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
   // Get class name, if it exists and is required
   If (ClassNameProperty<>'') then
     begin
@@ -797,31 +819,31 @@ begin
     If (I<>-1) then
       D:=O.Items[i]
     else if (jdoRequireClass in options) then
-      Exit(CreateJSON2ErrorResponse(SErrNoClassName,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
+      Exit(CreateJSON2Error(SErrNoClassName,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
     // Check if it is a string
     if Not (D is TJSONString) then
-      Exit(CreateJSON2ErrorResponse(SErrInvalidClassNameType,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
+      Exit(CreateJSON2Error(SErrInvalidClassNameType,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
     AClassName:=D.AsString;
     If (AMethodName='') and (jdoRequireClass in options)  then
-      Exit(CreateJSON2ErrorResponse(SErrNoClassName,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
+      Exit(CreateJSON2Error(SErrNoClassName,[ClassNameProperty],EJSONRPCInvalidRequest,ID,transactionproperty));
     end;
   // Get params, if they exist
   I:=O.IndexOfName(ParamsProperty);
   If (I<>-1) then
     D:=O.Items[i]
   else
-    Exit(CreateJSON2ErrorResponse(SErrNoParams,[ParamsProperty],EJSONRPCInvalidParams,ID,transactionproperty));
+    Exit(CreateJSON2Error(SErrNoParams,[ParamsProperty],EJSONRPCInvalidParams,ID,transactionproperty));
   if OJ2 then
     begin
     // Allow array or object
     If Not (D.JSONType in [jtArray,jtObject]) then
-      Exit(CreateJSON2ErrorResponse(SErrParamsMustBeArrayorObject,EJSONRPCInvalidParams,ID,transactionproperty));
+      Exit(CreateJSON2Error(SErrParamsMustBeArrayorObject,EJSONRPCInvalidParams,ID,transactionproperty));
     end
   else if not (jdoJSONRPC2 in Options) then
     begin
     // Allow only array
     If Not (D.JSONType in [jtArray]) then
-      Exit(CreateJSON2ErrorResponse(SErrParamsMustBeArray,EJSONRPCInvalidParams,ID,transactionproperty));
+      Exit(CreateJSON2Error(SErrParamsMustBeArray,EJSONRPCInvalidParams,ID,transactionproperty));
     end;
   Params:=D;
 end;
