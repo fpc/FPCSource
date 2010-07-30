@@ -469,7 +469,7 @@ type
   TCollection = class(TPersistent)
   private
     FItemClass: TCollectionItemClass;
-    FItems: TList;
+    FItems: TFpList;
     FUpdateCount: Integer;
     FNextID: Integer;
     FPropName: string;
@@ -1131,7 +1131,7 @@ type
     FOwner: TComponent;
     FParent: TComponent;
     FFixups: TObject;
-    FLoaded: TList;
+    FLoaded: TFpList;
     FOnFindMethod: TFindMethodEvent;
     FOnSetMethodProperty: TSetMethodPropertyEvent;
     FOnSetName: TSetNameEvent;
@@ -1575,8 +1575,8 @@ type
     FOwner: TComponent;
     FName: TComponentName;
     FTag: Longint;
-    FComponents: TList;
-    FFreeNotifies: TList;
+    FComponents: TFpList;
+    FFreeNotifies: TFpList;
     FDesignInfo: Longint;
     FVCLComObject: Pointer;
     FComponentState: TComponentState;
@@ -1708,7 +1708,7 @@ type
     FOnExecute: TNotifyEvent;
     FOnUpdate: TNotifyEvent;
   protected
-    FClients: TList;
+    FClients: TFpList;
     procedure Change; virtual;
     procedure SetOnExecute(Value: TNotifyEvent); virtual;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;

@@ -721,15 +721,15 @@ begin
 end;
 
 threadvar
-  GlobalLoaded, GlobalLists: TList;
+  GlobalLoaded, GlobalLists: TFpList;
 
 procedure BeginGlobalLoading;
 
 begin
   if not Assigned(GlobalLists) then
-    GlobalLists := TList.Create;
+    GlobalLists := TFpList.Create;
   GlobalLists.Add(GlobalLoaded);
-  GlobalLoaded := TList.Create;
+  GlobalLoaded := TFpList.Create;
 end;
 
 
@@ -747,7 +747,7 @@ procedure EndGlobalLoading;
 begin
   { Free the memory occupied by BeginGlobalLoading }
   GlobalLoaded.Free;
-  GlobalLoaded := TList(GlobalLists.Last);
+  GlobalLoaded := TFpList(GlobalLists.Last);
   GlobalLists.Delete(GlobalLists.Count - 1);
   if GlobalLists.Count = 0 then
   begin

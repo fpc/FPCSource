@@ -292,7 +292,7 @@ constructor TCollection.Create(AItemClass: TCollectionItemClass);
 begin
   inherited create;
   FItemClass:=AItemClass;
-  FItems:=TList.Create;
+  FItems:=TFpList.Create;
 end;
 
 

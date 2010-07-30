@@ -88,7 +88,7 @@ end;
 constructor TBasicAction.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FClients := TList.Create;
+  FClients := TFpList.Create;
 end;
 
 

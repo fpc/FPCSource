@@ -106,7 +106,7 @@ Procedure TComponent.Insert(AComponent: TComponent);
 
 begin
   If not assigned(FComponents) then
-    FComponents:=TList.Create;
+    FComponents:=TFpList.Create;
   FComponents.Add(AComponent);
   AComponent.FOwner:=Self;
 end;
@@ -561,7 +561,7 @@ begin
   else
     begin
     If not (Assigned(FFreeNotifies)) then
-      FFreeNotifies:=TList.Create;
+      FFreeNotifies:=TFpList.Create;
     If FFreeNotifies.IndexOf(AComponent)=-1 then
       begin
       FFreeNotifies.Add(AComponent);
