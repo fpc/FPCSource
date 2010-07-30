@@ -10,7 +10,7 @@ version=2.5.1
 units=fpjsonrpc  webjsonrpc fpextdirect
 
 [require]
-packages=fcl-base fcl-xml fcl-json
+packages=fcl-base fcl-xml fcl-json fcl-process
 
 [compiler]
 options=-S2h
