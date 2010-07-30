@@ -869,7 +869,9 @@ begin
       WriteSeeAlso(DocNode);
       EndProcedure;
       WriteExample(DocNode);
-      end;
+      end
+     else
+      EndProcedure;
     end;
 end;
 
@@ -970,7 +972,9 @@ begin
       WriteSeeAlso(DocNode);
       EndProperty;
       WriteExample(DocNode);
-      end;
+      end
+     else
+      EndProperty;
     end;
 end;
 
