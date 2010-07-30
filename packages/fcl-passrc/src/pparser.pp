@@ -642,7 +642,7 @@ end;
 
 const
   EndExprToken = [
-    tkEOF, tkBraceClose, tkSquaredBraceClose, tkSemicolon,
+    tkEOF, tkBraceClose, tkSquaredBraceClose, tkSemicolon, tkComma,
     tkdo, tkdownto, tkelse, tkend, tkof, tkthen, tkto
   ];
 
@@ -654,7 +654,6 @@ var
   PClose  : TToken;
 begin
   Result:=nil;
-
   if paramskind in [pekArrayParams, pekSet] then begin
     if CurToken<>tkSquaredBraceOpen then Exit;
     PClose:=tkSquaredBraceClose;
@@ -721,7 +720,7 @@ begin
     tkNot                   : Result:=eopNot;
     tkIn                    : Result:=eopIn;
   else
-    Raise Exception.CreateFmt('Not an operand: (%d : %s)',[AToken,TokenInfos[AToken]]);
+    ParseExc(format('Not an operand: (%d : %s)',[AToken,TokenInfos[AToken]]));
   end;
 end;
  
@@ -735,6 +734,7 @@ begin
   Result:=nil;
   case CurToken of
     tkString:           x:=TPrimitiveExpr.Create(pekString, CurTokenString);
+    tkChar:             x:=TPrimitiveExpr.Create(pekString, CurTokenText);
     tkNumber:           x:=TPrimitiveExpr.Create(pekNumber, CurTokenString);
     tkIdentifier:       x:=TPrimitiveExpr.Create(pekIdent, CurTokenText);
     tkSquaredBraceOpen: x:=ParseParams(pekSet);
