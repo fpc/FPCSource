@@ -63,7 +63,7 @@ Type
     Function CheckOptions(Const ShortOptions : String; Const LongOpts : String) : String;
     Procedure GetEnvironmentList(List : TStrings;NamesOnly : Boolean);
     Procedure GetEnvironmentList(List : TStrings);
-    Procedure Log(EventType : TEventType; Msg : String); virtual;
+    Procedure Log(EventType : TEventType; const Msg : String); virtual;
     // Delphi properties
     property ExeName: string read GetExeName;
     property HelpFile: string read FHelpFile write FHelpFile;
@@ -223,7 +223,7 @@ begin
   // Do nothing. Override in descendent classes.
 end;
 
-Procedure TCustomApplication.Log(EventType : TEventType; Msg : String);
+Procedure TCustomApplication.Log(EventType : TEventType; const Msg : String);
 
 begin
   // Do nothing. Override in descendent classes.
