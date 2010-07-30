@@ -34,6 +34,8 @@ Type
     Class Function ParamsProperty : String; override;
     // Add session support
     Function FindHandler(Const AClassName,AMethodName : TJSONStringType;AContext : TJSONRPCCallContext; Out FreeObject : TComponent) : TCustomJSONRPCHandler; override;
+    // Add type field
+    function CreateJSON2Error(Const AMessage : String; Const ACode : Integer; ID : TJSONData = Nil; idname : TJSONStringType = 'id' ) : TJSONObject; override;
     // Create API
     Function DoAPI : TJSONData; virtual;
     // Namespace for API description. Must be set. Default 'FPWeb'
@@ -92,6 +94,7 @@ Type
   private
     FAPIPath: String;
     FDispatcher: TCustomExtDirectDispatcher;
+    FNameSpace: String;
     FOptions: TJSONRPCDispatchOptions;
     FRequest: TRequest;
     FResponse: TResponse;
@@ -110,6 +113,8 @@ Type
     Property APIPath : String Read FAPIPath Write FAPIPath;
     // Router path/action. Append to baseURL to get router. Default 'router'
     Property RouterPath : String Read FRouterPath Write FRouterPath;
+    // Namespace
+    Property NameSpace : String Read FNameSpace Write FNameSpace;
   Public
     Constructor CreateNew(AOwner : TComponent; CreateMode : Integer); override;
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); override;
@@ -125,6 +130,7 @@ Type
     Property DispatchOptions;
     Property APIPath;
     Property RouterPath;
+    Property NameSpace;
   end;
 
 implementation
@@ -193,6 +199,13 @@ begin
   {$ifdef extdebug}SendDebugFmt('Done with searching for %s %s : %d',[AClassName,AMethodName,Ord(Assigned(Result))]);{$endif}
 end;
 
+function TCustomExtDirectDispatcher.CreateJSON2Error(const AMessage: String;
+  const ACode: Integer; ID: TJSONData; idname: TJSONStringType): TJSONObject;
+begin
+  Result:=inherited CreateJSON2Error(AMessage,ACode,ID,idname);
+  TJSONObject(Result).Add('type','rpc');
+end;
+
 function TCustomExtDirectDispatcher.DoAPI: TJSONData;
 
 Var
@@ -244,7 +257,7 @@ begin
             A.Add(N,R);
             end
           else
-            R:=A.Items[i] as TJSONArray;
+            R:=A.Items[J] as TJSONArray;
           end;
         R.Add(TJSONObject.Create(['name',HD.HandlerMethodName,'len',HD.ArgumentCount]));
         end;
@@ -360,6 +373,7 @@ begin
   E:=TExtDirectDispatcher.Create(Self);
   E.Options:=DispatchOptions;
   E.URL:=IncludeHTTPPathDelimiter(BaseURL)+RouterPath;
+  E.NameSpace:=NameSpace;
   Result:=E
 end;
 
@@ -398,8 +412,14 @@ Var
   R : String;
 
 begin
+  {$ifdef extdebug}SendDebug('Ext.Direct handlerequest: checking session');{$endif}
+  CheckSession(ARequest);
+  {$ifdef extdebug}SendDebug('Ext.Direct handlerequest: init session ');{$endif}
+  InitSession(AResponse);
+  {$ifdef extdebug}SendDebug('Ext.Direct creating dispatcher');{$endif}
   If (Dispatcher=Nil) then
     Dispatcher:=CreateDispatcher;
+  {$ifdef extdebug}SendDebugFmt('Ext.Direct handlerequest: dispatcher class is "%s"',[Dispatcher.Classname]);{$endif}
   Disp:=Dispatcher as TCustomExtDirectDispatcher;
   R:=ARequest.QueryFields.Values['action'];
   If (R='') then
@@ -408,12 +428,14 @@ begin
   If (CompareText(R,APIPath)=0) then
     begin
     CreateAPI(Disp,ARequest,AResponse);
+    UpdateSession(AResponse);
     AResponse.SendResponse;
     end
   else if (CompareText(R,RouterPath)=0) then
     begin
     Res:=DispatchRequest(ARequest,Disp);
     try
+      UpdateSession(AResponse);
       If Assigned(Res) then
         AResponse.Content:=Res.AsJSON;
       AResponse.SendResponse;
