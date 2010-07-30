@@ -3721,7 +3721,7 @@ implementation
       begin
          inherited ppuload(procvardef,ppufile);
          { load para symtable }
-         parast:=tparasymtable.create(self,unknown_level);
+         parast:=tparasymtable.create(self,ppufile.getbyte);
          tparasymtable(parast).ppuload(ppufile);
       end;
 
@@ -3761,6 +3761,10 @@ implementation
     procedure tprocvardef.ppuwrite(ppufile:tcompilerppufile);
       begin
         inherited ppuwrite(ppufile);
+
+        { Save the para symtable level (necessary to distinguish nested
+          procvars) }
+        ppufile.putbyte(parast.symtablelevel);
 
         { Write this entry }
         ppufile.writeentry(ibprocvardef);

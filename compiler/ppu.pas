@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 119;
+  CurrentPPUVersion = 120;
 
 { buffer sizes }
   maxentrysize = 1024;
