@@ -16,7 +16,6 @@ exampledirs=examples
 fpcpackage=y
 
 [compiler]
-includedir=src
 sourcedir=src tests examples
 
 [default]
