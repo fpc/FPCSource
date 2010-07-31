@@ -446,6 +446,11 @@ implementation
                 else
                   begin
                     name := procprefixes[do_read]+'float';
+
+                    { iso pascal needs a different handler due to upper/lower E differences }
+                    if (m_iso in current_settings.modeswitches) and not(do_read) then
+                       name:=name+'_iso';
+
                     readfunctype:=pbestrealtype^;
                   end;
               end;

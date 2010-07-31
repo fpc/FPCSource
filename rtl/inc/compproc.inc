@@ -479,6 +479,7 @@ procedure fpc_write_text_int64(len : longint;var t : text;i : int64); compilerpr
 {$endif CPU64}
 {$ifndef FPUNONE}
 Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); compilerproc;
+Procedure fpc_Write_Text_Float_Iso(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); compilerproc;
 {$endif}
 procedure fpc_write_text_enum(typinfo,ord2strindex:pointer;len:sizeint;var t:text;ordinal:longint); compilerproc;
 {$ifdef FPC_HAS_STR_CURRENCY}

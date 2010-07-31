@@ -454,3 +454,15 @@ begin
     else s:=temp;
 end;
 
+
+Procedure str_real_iso (len,f : longint; d : ValReal; real_type :treal_type; out s : string);
+  var
+   i : Integer;
+  begin
+    str_real(len,f,d,real_type,s);
+    for i:=1 to Length(s) do
+      if s[i]='E' then
+        s[i]:='e';
+  end;
+
+
