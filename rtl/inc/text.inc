@@ -848,6 +848,18 @@ Begin
 End;
 
 
+Procedure fpc_Write_Text_Boolean_Iso(Len : Longint;var t : Text;b : Boolean); iocheck; compilerproc;
+Begin
+  If (InOutRes<>0) then
+   exit;
+{ Can't use array[boolean] because b can be >0 ! }
+  if b then
+    Write_Str(Len,t,'true')
+  else
+    Write_Str(Len,t,'false');
+End;
+
+
 Procedure fpc_Write_Text_Char(Len : Longint;var t : Text;c : Char); iocheck; compilerproc;
 Begin
   If (InOutRes<>0) then

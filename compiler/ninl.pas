@@ -507,6 +507,11 @@ implementation
                     else
                       begin
                         name := procprefixes[do_read]+'boolean';
+
+                        { iso pascal needs a different handler }
+                        if (m_iso in current_settings.modeswitches) and not(do_read) then
+                           name:=name+'_iso';
+
                         readfunctype:=booltype;
                       end
                   else
@@ -778,7 +783,6 @@ implementation
         para,nextpara:Tcallparanode;
         p1:Tnode;
         temp:Ttempcreatenode;
-
     begin
       found_error:=false;
       para:=Tcallparanode(params);

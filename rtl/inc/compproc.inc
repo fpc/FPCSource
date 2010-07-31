@@ -485,6 +485,7 @@ procedure fpc_write_text_enum(typinfo,ord2strindex:pointer;len:sizeint;var t:tex
 Procedure fpc_Write_Text_Currency(fixkomma,Len : Longint;var t : Text;c : Currency); compilerproc;
 {$endif FPC_HAS_STR_CURRENCY}
 Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); compilerproc;
+Procedure fpc_Write_Text_Boolean_Iso(Len : Longint;var t : Text;b : Boolean); compilerproc;
 Procedure fpc_Write_Text_Char(Len : Longint;var t : Text;c : Char); compilerproc;
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); compilerproc;
