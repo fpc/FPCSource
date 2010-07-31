@@ -1452,7 +1452,7 @@ const CrtAddress: word = 0;
     xor ah, ah
     mov @Result, ax
   {$else fpc}
-     push eax  
+     push eax
      push ebx
      push ecx
      push edx
@@ -2565,6 +2565,7 @@ const CrtAddress: word = 0;
              mode.InitMode := {$ifdef fpc}@{$endif}Init800x600x16;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
+             mode.HLine := {$ifdef fpc}@{$endif}HLineVESA16;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2679,6 +2680,7 @@ const CrtAddress: word = 0;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1024x768x16;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
+             mode.HLine := {$ifdef fpc}@{$endif}HLineVESA16;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);
@@ -2793,6 +2795,7 @@ const CrtAddress: word = 0;
              mode.InitMode := {$ifdef fpc}@{$endif}Init1280x1024x16;
              mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisualVESA;
              mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveVESA;
+             mode.HLine := {$ifdef fpc}@{$endif}HLineVESA16;
              mode.XAspect := 10000;
              mode.YAspect := 10000;
              AddMode(mode);

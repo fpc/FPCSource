@@ -1583,6 +1583,149 @@ end;
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
   end;
 
+  
+  procedure HLineVESA16(x,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
+  var
+      xtmp: smallint;
+      ScrOfs, BankRest: longint;
+      HLength : word;
+      LMask,RMask : byte;
+  begin
+
+    { must we swap the values? }
+    if x > x2 then
+      Begin
+        xtmp := x2;
+        x2 := x;
+        x:= xtmp;
+      end;
+    { First convert to global coordinates }
+    X   := X + StartXViewPort;
+    X2  := X2 + StartXViewPort;
+    Y   := Y + StartYViewPort;
+    if ClipPixels then
+      Begin
+         if LineClipped(x,y,x2,y,StartXViewPort,StartYViewPort,
+                StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+            exit;
+      end;
+    Y := Y + YOffset;
+    ScrOfs := longint(y) * BytesPerLine + (x div 8);
+    SetReadBank(smallint(ScrOfs shr 16));
+    SetWriteBank(smallint(ScrOfs shr 16));
+    HLength:=x2 div 8-x div 8;
+    LMask:=$ff shr (x and 7);
+{$ifopt r+}
+{$define rangeOn}
+{$r-}
+{$endif}
+{$ifopt q+}
+{$define overflowOn}
+{$q-}
+{$endif}
+    RMask:=$ff shl (7-(x2 and 7));
+{$ifdef rangeOn}
+{$undef rangeOn}
+{$r+}
+{$endif}
+{$ifdef overflowOn}
+{$undef overflowOn}
+{$q+}
+{$endif}
+    if HLength=0 then
+      LMask:=LMask and RMask;
+    Port[$3ce]:=0;
+    If CurrentWriteMode <> NotPut Then
+      Port[$3cf]:= CurrentColor
+    else Port[$3cf]:= not CurrentColor;
+    Port[$3ce]:=1;
+    Port[$3cf]:=$f;
+    Port[$3ce]:=3;
+    case CurrentWriteMode of
+       XORPut:
+         Port[$3cf]:=3 shl 3;
+       ANDPut:
+         Port[$3cf]:=1 shl 3;
+       ORPut:
+         Port[$3cf]:=2 shl 3;
+       NormalPut, NotPut:
+         Port[$3cf]:=0
+       else
+         Port[$3cf]:=0
+    end;
+
+    Port[$3ce]:=8;
+    Port[$3cf]:=LMask;
+{$ifopt r+}
+{$define rangeOn}
+{$r-}
+{$endif}
+{$ifopt q+}
+{$define overflowOn}
+{$q-}
+{$endif}
+    Mem[WinWriteSeg:word(ScrOfs)]:=Mem[WinReadSeg:word(ScrOfs)]+1;
+{$ifdef rangeOn}
+{$undef rangeOn}
+{$r+}
+{$endif}
+{$ifdef overflowOn}
+{$undef overflowOn}
+{$q+}
+{$endif}
+    Port[$3ce]:=8;
+    if HLength>0 then
+      begin
+         dec(HLength);
+         inc(ScrOfs);
+         while (HLength>0) do
+           begin
+              SetReadBank(smallint(ScrOfs shr 16));
+              SetWriteBank(smallint(ScrOfs shr 16));
+              Port[$3cf]:=$ff;
+              if HLength <= ($10000-(ScrOfs and $ffff)) Then
+                 BankRest := HLength
+              else {the rest won't fit anymore in the current window }
+                BankRest := $10000 - (ScrOfs and $ffff);
+{$ifndef tp}
+              seg_bytemove(dosmemselector,(WinReadSeg shl 4)+word(ScrOfs),dosmemselector,(WinWriteSeg shl 4)+word(ScrOfs),BankRest);
+{$else}
+              move(Ptr(WinReadSeg,word(ScrOfs))^, Ptr(WinWriteSeg,word(ScrOfs))^, BankRest);
+{$endif}
+              ScrOfs := ScrOfs + BankRest;
+              HLength := HLength - BankRest;
+           end;
+         SetReadBank(smallint(ScrOfs shr 16));
+         SetWriteBank(smallint(ScrOfs shr 16));
+         Port[$3cf]:=RMask;
+{$ifopt r+}
+{$define rangeOn}
+{$r-}
+{$endif}
+{$ifopt q+}
+{$define overflowOn}
+{$q-}
+{$endif}
+         Mem[WinWriteSeg:word(ScrOfs)]:=Mem[WinReadSeg:word(ScrOfs)]+1;
+{$ifdef rangeOn}
+{$undef rangeOn}
+{$r+}
+{$endif}
+{$ifdef overflowOn}
+{$undef overflowOn}
+{$q+}
+{$endif}
+      end;
+    { clean up }
+    Port[$3cf]:=0;
+    Port[$3ce]:=8;
+    Port[$3cf]:=$ff;
+    Port[$3ce]:=1;
+    Port[$3cf]:=0;
+    Port[$3ce]:=3;
+    Port[$3cf]:=0;
+   end;
+
 
 
 
