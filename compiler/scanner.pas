@@ -347,6 +347,9 @@ implementation
          if s='MACPAS' then
           current_settings.modeswitches:=macmodeswitches
         else
+         if s='ISO' then
+          current_settings.modeswitches:=isomodeswitches
+        else
          b:=false;
 
         if b and changeInit then
@@ -359,8 +362,8 @@ implementation
 
            HandleModeSwitches(changeinit);
 
-           { turn on bitpacking for mode macpas }
-           if (m_mac in current_settings.modeswitches) then
+           { turn on bitpacking for mode macpas and iso pascal }
+           if ([m_mac,m_iso] * current_settings.modeswitches <> []) then
              begin
                include(current_settings.localswitches,cs_bitpacking);
                if changeinit then
@@ -368,7 +371,7 @@ implementation
              end;
 
            { support goto/label by default in delphi/tp7/mac modes }
-           if ([m_delphi,m_tp7,m_mac] * current_settings.modeswitches <> []) then
+           if ([m_delphi,m_tp7,m_mac,m_iso] * current_settings.modeswitches <> []) then
              begin
                include(current_settings.moduleswitches,cs_support_goto);
                if changeinit then
