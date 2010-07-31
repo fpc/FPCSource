@@ -685,9 +685,14 @@ implementation
         { Objpas unit? }
         if m_objpas in current_settings.modeswitches then
           AddUnit('objpas');
+
         { Macpas unit? }
         if m_mac in current_settings.modeswitches then
           AddUnit('macpas');
+
+        if m_iso in current_settings.modeswitches then
+          AddUnit('iso7185');
+
         { Objective-C support unit? }
         if (m_objectivec1 in current_settings.modeswitches) then
           begin
