@@ -67,8 +67,8 @@ resourcestring
   SPasTreeDestructorImpl = 'destructor implementation';
 
 type
-  TPasExprKind = (pekIdent, pekNumber, pekString, pekSet, pekRange,
-     pekUnary, pekBinary, pekFuncParams, pekArrayParams);
+  TPasExprKind = (pekIdent, pekNumber, pekString, pekSet, pekBoolConst, pekRange,
+     pekUnary, pekBinary, pekFuncParams, pekArrayParams, pekListOfExp);
 
   TExprOpCode = (eopNone,
                  eopAdd,eopSubtract,eopMultiply,eopDivide, eopDiv,eopMod, eopPower,// arithmetic
@@ -77,7 +77,8 @@ type
                  eopEqual, eopNotEqual,  // Logical
                  eopLessThan,eopGreaterThan, eopLessthanEqual,eopGreaterThanEqual, // ordering
                  eopIn,eopIs,eopAs, eopSymmetricaldifference, // Specials
-                 eopAddress);
+                 eopAddress,
+                 eopSubIdent); // SomeRec.A, A is subIdent of SomeRec
   
   { TPasExpr }
 
@@ -107,6 +108,11 @@ type
     Value     : AnsiString;
     constructor Create(AKind: TPasExprKind; const AValue : Ansistring);
   end;
+  
+  TBoolConstExpr = class(TPasExpr)
+    Value     : Boolean;
+    constructor Create(AKind: TPasExprKind; const ABoolValue : Boolean);
+  end;
 
   { TParamsExpr }
 
@@ -118,6 +124,30 @@ type
     destructor Destroy; override;
     procedure AddParam(xp: TPasExpr);
   end;
+
+  { TRecordValues }
+
+  TRecordValuesItem = record
+    Name      : AnsiString;
+    ValueExp  : TPasExpr;
+  end;
+
+  TRecordValues = class(TPasExpr)
+    Fields    : array of TRecordValuesItem;
+    constructor Create;
+    destructor Destroy; override;
+    procedure AddField(const Name: AnsiString; Value: TPasExpr);
+  end;
+
+  { TArrayValues }
+
+  TArrayValues = class(TPasExpr)
+    Values    : array of TPasExpr;
+    constructor Create;
+    destructor Destroy; override;
+    procedure AddValues(AValue: TPasExpr);
+  end;
+
 
   // Visitor pattern.
   TPassTreeVisitor = class;
@@ -2352,6 +2382,15 @@ begin
   Value:=AValue;
 end;
 
+{ TBoolConstExpr }
+
+constructor TBoolConstExpr.Create(AKind: TPasExprKind; const ABoolValue : Boolean);
+begin
+  inherited Create(AKind, eopNone);
+  Value:=ABoolValue;
+end;
+
+
 { TUnaryExpr }
 
 constructor TUnaryExpr.Create(AOperand: TPasExpr; AOpCode: TExprOpCode);
@@ -2410,6 +2449,55 @@ var
 begin
   for i:=0 to length(Params)-1 do Params[i].Free;
   inherited Destroy;
+end;
+
+{ TRecordValues }
+
+constructor TRecordValues.Create;
+begin
+  inherited Create(pekListOfExp, eopNone);
+end;
+
+destructor TRecordValues.Destroy;
+var
+  i : Integer;
+begin
+  for i:=0 to length(Fields)-1 do Fields[i].ValueExp.Free;
+  inherited Destroy;
+end;
+
+procedure TRecordValues.AddField(const Name:AnsiString;Value:TPasExpr);
+var
+  i : Integer;
+begin
+  i:=length(Fields);
+  SetLength(Fields, i+1);
+  Fields[i].Name:=Name;
+  Fields[i].ValueExp:=Value;
+end;
+
+{ TArrayValues }
+
+constructor TArrayValues.Create;
+begin
+  inherited Create(pekListOfExp, eopNone)
+end;
+
+destructor TArrayValues.Destroy;
+var
+  i : Integer;
+begin
+  for i:=0 to length(Values)-1 do Values[i].Free;
+  inherited Destroy;
+end;
+
+procedure TArrayValues.AddValues(AValue:TPasExpr);
+var
+  i : Integer;
+begin
+  i:=length(Values);
+  SetLength(Values, i+1);
+  Values[i]:=AValue;
 end;
 
 end.
