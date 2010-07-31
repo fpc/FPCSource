@@ -338,10 +338,21 @@ implementation
           tfiledef(left.resultdef).typedfiledef.size,s32inttype,true),
           ccallparanode.create(left,nil));
         { create the correct call }
-        if inlinenumber=in_reset_typedfile then
-          result := ccallnode.createintern('fpc_reset_typed',left)
+        if m_iso in current_settings.modeswitches then
+          begin
+            if inlinenumber=in_reset_typedfile then
+              result := ccallnode.createintern('fpc_reset_typed_iso',left)
+            else
+              result := ccallnode.createintern('fpc_rewrite_typed_iso',left);
+          end
         else
-          result := ccallnode.createintern('fpc_rewrite_typed',left);
+          begin
+            if inlinenumber=in_reset_typedfile then
+              result := ccallnode.createintern('fpc_reset_typed',left)
+            else
+              result := ccallnode.createintern('fpc_rewrite_typed',left);
+          end;
+
         { make sure left doesn't get disposed, since we use it in the new call }
         left := nil;
       end;

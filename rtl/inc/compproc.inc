@@ -696,6 +696,8 @@ procedure fpc_assert(Const Msg,FName:Shortstring;LineNo:Longint;ErrorAddr:Pointe
 {$ifdef FPC_HAS_FEATURE_FILEIO}
 Procedure fpc_reset_typed(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_rewrite_typed(var f : TypedFile;Size : Longint); compilerproc;
+Procedure fpc_reset_typed_iso(var f : TypedFile;Size : Longint); compilerproc;
+Procedure fpc_rewrite_typed_iso(var f : TypedFile;Size : Longint); compilerproc;
 Procedure fpc_typed_write(TypeSize : Longint;var f : TypedFile;const Buf); compilerproc;
 Procedure fpc_typed_read(TypeSize : Longint;var f : TypedFile;out Buf); compilerproc;
 {$endif FPC_HAS_FEATURE_FILEIO}
