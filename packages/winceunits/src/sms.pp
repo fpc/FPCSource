@@ -527,7 +527,7 @@ function SmsClose(smshHandle:SMS_HANDLE):HRESULT; external SmsDLL name 'SmsClose
 // Send an SMS message
 function SmsSendMessage(smshHandle:SMS_HANDLE;
                         psmsaSMSCAddress:LPSMS_ADDRESS;
-                        psmsaDestinationAddress:SMS_ADDRESS;
+                        psmsaDestinationAddress:LPSMS_ADDRESS;
                         pstValidityPeriod:LPSYSTEMTIME;  // (Values in this structure are expressed relative to the current time)
                         pbData:LPBYTE;
                         dwDataSize:DWORD;
