@@ -943,6 +943,8 @@ implementation
                   array_dec(bitpacking)
                 else if token=_SET then
                   set_dec
+                else if token=_FILE then
+                  single_type(def,false,true)
                 else
                   begin
                     oldpackrecords:=current_settings.packrecords;
@@ -1086,7 +1088,16 @@ implementation
                   end;
               end;
             else
-              expr_type;
+              if (token=_KLAMMERAFFE) and (m_iso in current_settings.modeswitches) then
+                begin
+                  consume(_KLAMMERAFFE);
+                  single_type(tt2,(block_type=bt_type),false);
+                  def:=tpointerdef.create(tt2);
+                  if tt2.typ=forwarddef then
+                    current_module.checkforwarddefs.add(def);
+                end
+              else
+                expr_type;
          end;
 
          if def=nil then
