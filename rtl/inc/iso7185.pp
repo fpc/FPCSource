@@ -29,6 +29,9 @@ unit iso7185;
     Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
     Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 
+    Function Eof(Var t: Text): Boolean;
+    Function Eof:Boolean;
+
   implementation
 
   {$i textrec.inc}
@@ -52,11 +55,32 @@ unit iso7185;
 
     Procedure Reset(var t : Text);[IOCheck];
       Begin
-        { create file name? }
-        if Textrec(t).mode=0 then
-          DoAssign(t);
+        case Textrec(t).mode of
+          { create file name? }
+          0:
+            DoAssign(t);
+          fmOutput:
+            Write(t,#26);
+        end;
 
         System.Reset(t);
+      End;
+
+
+    Function Eof(Var t: Text): Boolean;[IOCheck];
+      var
+        OldCtrlZMarksEof : Boolean;
+      Begin
+        OldCtrlZMarksEof:=CtrlZMarksEOF;
+        CtrlZMarksEof:=false;
+        Eof:=System.Eof(t);
+        CtrlZMarksEof:=OldCtrlZMarksEOF;
+      end;
+
+
+    Function Eof:Boolean;
+      Begin
+        Eof:=Eof(Input);
       End;
 
 begin

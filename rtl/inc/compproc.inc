@@ -462,7 +462,9 @@ Function fpc_get_output:PText;compilerproc;
 Procedure fpc_Write_End(var f:Text); compilerproc;
 Procedure fpc_Writeln_End(var f:Text); compilerproc;
 Procedure fpc_Write_Text_ShortStr(Len : Longint;var f : Text;const s : String); compilerproc;
+Procedure fpc_Write_Text_ShortStr_Iso(Len : Longint;var f : Text;const s : String); compilerproc;
 Procedure fpc_Write_Text_Pchar_as_Array(Len : Longint;var f : Text;const s : array of char; zerobased: boolean = true); compilerproc;
+Procedure fpc_Write_Text_Pchar_as_Array_Iso(Len : Longint;var f : Text;const s : array of char; zerobased: boolean = true); compilerproc;
 Procedure fpc_Write_Text_PChar_As_Pointer(Len : Longint;var f : Text;p : PChar); compilerproc;
 Procedure fpc_Write_Text_AnsiStr (Len : Longint; Var f : Text; const S : AnsiString); compilerproc;
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
@@ -473,9 +475,13 @@ Procedure fpc_Write_Text_UnicodeStr (Len : Longint; Var f : Text; const S : Wide
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure fpc_Write_Text_SInt(Len : Longint;var t : Text;l : ValSInt); compilerproc;
 Procedure fpc_Write_Text_UInt(Len : Longint;var t : Text;l : ValUInt); compilerproc;
+Procedure fpc_Write_Text_SInt_Iso(Len : Longint;var t : Text;l : ValSInt); compilerproc;
+Procedure fpc_Write_Text_UInt_Iso(Len : Longint;var t : Text;l : ValUInt); compilerproc;
 {$ifndef CPU64}
 procedure fpc_write_text_qword(len : longint;var t : text;q : qword); compilerproc;
 procedure fpc_write_text_int64(len : longint;var t : text;i : int64); compilerproc;
+procedure fpc_write_text_qword_iso(len : longint;var t : text;q : qword); compilerproc;
+procedure fpc_write_text_int64_iso(len : longint;var t : text;i : int64); compilerproc;
 {$endif CPU64}
 {$ifndef FPUNONE}
 Procedure fpc_Write_Text_Float(rt,fixkomma,Len : Longint;var t : Text;r : ValReal); compilerproc;
@@ -488,6 +494,7 @@ Procedure fpc_Write_Text_Currency(fixkomma,Len : Longint;var t : Text;c : Curren
 Procedure fpc_Write_Text_Boolean(Len : Longint;var t : Text;b : Boolean); compilerproc;
 Procedure fpc_Write_Text_Boolean_Iso(Len : Longint;var t : Text;b : Boolean); compilerproc;
 Procedure fpc_Write_Text_Char(Len : Longint;var t : Text;c : Char); compilerproc;
+Procedure fpc_Write_Text_Char_Iso(Len : Longint;var t : Text;c : Char); compilerproc;
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
 Procedure fpc_Write_Text_WideChar(Len : Longint;var t : Text;c : WideChar); compilerproc;
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
@@ -527,6 +534,7 @@ procedure fpc_dispinvoke_variant(dest : pvardata;const source : tvardata;  calld
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
 Procedure fpc_Read_End(var f:Text); compilerproc;
 Procedure fpc_ReadLn_End(var f : Text); compilerproc;
+Procedure fpc_ReadLn_End_Iso(var f : Text); compilerproc;
 Procedure fpc_Read_Text_ShortStr(var f : Text;out s : String); compilerproc;
 Procedure fpc_Read_Text_PChar_As_Pointer(var f : Text; const s : PChar); compilerproc;
 Procedure fpc_Read_Text_PChar_As_Array(var f : Text;out s : array of char; zerobased: boolean = false); compilerproc;
@@ -534,6 +542,7 @@ Procedure fpc_Read_Text_PChar_As_Array(var f : Text;out s : array of char; zerob
 Procedure fpc_Read_Text_AnsiStr(var f : Text;out s : AnsiString); compilerproc;
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure fpc_Read_Text_Char(var f : Text; out c : char); compilerproc;
+Procedure fpc_Read_Text_Char_Iso(var f : Text; out c : char); compilerproc;
 Procedure fpc_Read_Text_SInt(var f : Text; out l :ValSInt); compilerproc;
 Procedure fpc_Read_Text_UInt(var f : Text; out u :ValUInt); compilerproc;
 {$ifndef FPUNONE}

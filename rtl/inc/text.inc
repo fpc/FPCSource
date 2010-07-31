@@ -538,8 +538,37 @@ Begin
   end;
 End;
 
+
+Procedure fpc_Write_Text_ShortStr_Iso(Len : Longint;var f : Text;const s : String); iocheck; [Public,Alias:'FPC_WRITE_TEXT_SHORTSTR_ISO']; compilerproc;
+Begin
+  If (InOutRes<>0) then
+   exit;
+  case TextRec(f).mode of
+    fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
+      begin
+        { default value? }
+        If Len=-1 then
+          Len:=length(s);
+
+        If Len>Length(s) Then
+          begin
+            fpc_WriteBlanks(f,Len-Length(s));
+            fpc_WriteBuffer(f,s[1],Length(s));
+          end
+        else
+          fpc_WriteBuffer(f,s[1],Len);
+      end;
+    fmInput: InOutRes:=105
+    else InOutRes:=103;
+  end;
+End;
+
+
 { provide local access to write_str }
 procedure Write_Str(Len : Longint;var f : Text;const s : String); iocheck; [external name 'FPC_WRITE_TEXT_SHORTSTR'];
+
+{ provide local access to write_str_iso }
+procedure Write_Str_Iso(Len : Longint;var f : Text;const s : String); iocheck; [external name 'FPC_WRITE_TEXT_SHORTSTR_ISO'];
 
 Procedure fpc_Write_Text_Pchar_as_Array(Len : Longint;var f : Text;const s : array of char; zerobased: boolean = true); iocheck; compilerproc;
 var
@@ -552,7 +581,7 @@ Begin
     fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
       begin
         p:=pchar(@s);
-        if (zerobased) then
+        if zerobased then
           begin
             { can't use StrLen, since that one could try to read past the end }
             { of the heap (JM)                                                }
@@ -566,6 +595,47 @@ Begin
         If Len>ArrayLen Then
           fpc_WriteBlanks(f,Len-ArrayLen);
         fpc_WriteBuffer(f,p^,ArrayLen);
+      end;
+    fmInput: InOutRes:=105
+    else InOutRes:=103;
+  end;
+End;
+
+
+Procedure fpc_Write_Text_Pchar_as_Array_Iso(Len : Longint;var f : Text;const s : array of char; zerobased: boolean = true); iocheck; compilerproc;
+var
+  ArrayLen : longint;
+  p : pchar;
+Begin
+  If (InOutRes<>0) then
+   exit;
+  case TextRec(f).mode of
+    fmOutput { fmAppend gets changed to fmOutPut in do_open (JM) }:
+      begin
+        p:=pchar(@s);
+        if zerobased then
+          begin
+            { can't use StrLen, since that one could try to read past the end }
+            { of the heap (JM)                                                }
+            ArrayLen:=IndexByte(p^,high(s)+1,0);
+            { IndexByte returns -1 if not found (JM) }
+            if ArrayLen = -1 then
+              ArrayLen := high(s)+1;
+          end
+        else
+          ArrayLen := high(s)+1;
+
+        { default value? }
+        If Len=-1 then
+          Len:=ArrayLen;
+
+        If Len>ArrayLen Then
+          begin
+            fpc_WriteBlanks(f,Len-ArrayLen);
+            fpc_WriteBuffer(f,p^,ArrayLen);
+          end
+        else
+          fpc_WriteBuffer(f,p^,Len);
       end;
     fmInput: InOutRes:=105
     else InOutRes:=103;
@@ -694,8 +764,38 @@ Begin
 End;
 
 
-{$ifndef CPU64}
+Procedure fpc_Write_Text_SInt_Iso(Len : Longint;var t : Text;l : ValSInt); iocheck; compilerproc;
+var
+  s : String;
+Begin
+  If (InOutRes<>0) then
+   exit;
+  Str(l,s);
+  { default value? }
+  if len=-1 then
+    len:=11
+  else if len<length(s) then
+    len:=length(s);
+  Write_Str_Iso(Len,t,s);
+End;
 
+
+Procedure fpc_Write_Text_UInt_Iso(Len : Longint;var t : Text;l : ValUInt); iocheck; compilerproc;
+var
+  s : String;
+Begin
+  If (InOutRes<>0) then
+   exit;
+  Str(L,s);
+  { default value? }
+  if len=-1 then
+    len:=11
+  else if len<length(s) then
+    len:=length(s);
+  Write_Str_Iso(Len,t,s);
+End;
+
+{$ifndef CPU64}
 procedure fpc_write_text_qword(len : longint;var t : text;q : qword); iocheck; compilerproc;
 var
   s : string;
@@ -706,6 +806,7 @@ begin
   write_str(len,t,s);
 end;
 
+
 procedure fpc_write_text_int64(len : longint;var t : text;i : int64); iocheck; compilerproc;
 var
   s : string;
@@ -714,6 +815,38 @@ begin
    exit;
   str(i,s);
   write_str(len,t,s);
+end;
+
+
+procedure fpc_write_text_qword_iso(len : longint;var t : text;q : qword); iocheck; compilerproc;
+var
+  s : string;
+begin
+  if (InOutRes<>0) then
+    exit;
+  str(q,s);
+  { default value? }
+  if len=-1 then
+    len:=20
+  else if len<length(s) then
+    len:=length(s);
+  write_str_iso(len,t,s);
+end;
+
+
+procedure fpc_write_text_int64_iso(len : longint;var t : text;i : int64); iocheck; compilerproc;
+var
+  s : string;
+begin
+  if (InOutRes<>0) then
+   exit;
+  str(i,s);
+  { default value? }
+  if len=-1 then
+    len:=20
+  else if len<length(s) then
+    len:=length(s);
+  write_str_iso(len,t,s);
 end;
 
 {$endif CPU64}
@@ -863,11 +996,14 @@ Procedure fpc_Write_Text_Boolean_Iso(Len : Longint;var t : Text;b : Boolean); io
 Begin
   If (InOutRes<>0) then
    exit;
-{ Can't use array[boolean] because b can be >0 ! }
+  { Can't use array[boolean] because b can be >0 ! }
+  { default value? }
+  If Len=-1 then
+    Len:=5;
   if b then
-    Write_Str(Len,t,'true')
+    Write_Str_Iso(Len,t,'true')
   else
-    Write_Str(Len,t,'false');
+    Write_Str_Iso(Len,t,'false');
 End;
 
 
@@ -885,6 +1021,32 @@ Begin
    end;
   If Len>1 Then
     fpc_WriteBlanks(t,Len-1);
+  If TextRec(t).BufPos>=TextRec(t).BufSize Then
+    FileFunc(TextRec(t).InOutFunc)(TextRec(t));
+  TextRec(t).Bufptr^[TextRec(t).BufPos]:=c;
+  Inc(TextRec(t).BufPos);
+End;
+
+
+Procedure fpc_Write_Text_Char_Iso(Len : Longint;var t : Text;c : Char); iocheck; compilerproc;
+Begin
+  If (InOutRes<>0) then
+    exit;
+  if (TextRec(t).mode<>fmOutput) Then
+   begin
+     if TextRec(t).mode=fmClosed then
+      InOutRes:=103
+     else
+      InOutRes:=105;
+     exit;
+   end;
+  { default value? }
+  If Len=-1 then
+    Len:=1;
+  If Len>1 Then
+    fpc_WriteBlanks(t,Len-1)
+  else If Len<1 Then
+    exit;
   If TextRec(t).BufPos>=TextRec(t).BufSize Then
     FileFunc(TextRec(t).InOutFunc)(TextRec(t));
   TextRec(t).Bufptr^[TextRec(t).BufPos]:=c;
@@ -1064,6 +1226,64 @@ Begin
 End;
 
 
+Procedure fpc_ReadLn_End_Iso(var f : Text);[Public,Alias:'FPC_READLN_END_ISO']; iocheck; compilerproc;
+var prev: char;
+Begin
+  If not CheckRead(f) then
+    exit;
+  if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
+    { Flush if set }
+    begin
+      if (TextRec(f).FlushFunc<>nil) then
+        FileFunc(TextRec(f).FlushFunc)(TextRec(f));
+      exit;
+    end;
+  if TextRec (F).BufPtr^ [TextRec (F).BufPos] = #26 then
+    begin
+      inc(TextRec(f).BufPos);
+      Exit;
+    end;
+  repeat
+    prev := TextRec(f).BufPtr^[TextRec(f).BufPos];
+    inc(TextRec(f).BufPos);
+{ no system uses #10#13 as line seperator (#10 = *nix, #13 = Mac, }
+{ #13#10 = Dos), so if we've got #10, we can safely exit          }
+    if prev = #10 then
+      exit;
+    {$ifdef MACOS}
+    if prev = #13 then
+      {StdInput on macos never have dos line ending, so this is safe.}
+      if TextRec(f).Handle = StdInputHandle then
+        exit;
+    {$endif MACOS}
+    if TextRec(f).BufPos>=TextRec(f).BufEnd Then
+      begin
+        FileFunc(TextRec(f).InOutFunc)(TextRec(f));
+        if (TextRec(f).BufPos>=TextRec(f).BufEnd) then
+          { Flush if set }
+          begin
+           if (TextRec(f).FlushFunc<>nil) then
+             FileFunc(TextRec(f).FlushFunc)(TextRec(f));
+           exit;
+         end;
+      end;
+   if TextRec (F).BufPtr^ [TextRec (F).BufPos] = #26 then
+     begin
+       inc(TextRec(f).BufPos);
+       Exit;
+     end;
+   if (prev=#13) then
+     { is there also a #10 after it? }
+     begin
+       if (TextRec(f).BufPtr^[TextRec(f).BufPos]=#10) then
+         { yes, skip that one as well }
+         inc(TextRec(f).BufPos);
+       exit;
+     end;
+  until false;
+End;
+
+
 Function ReadPCharLen(var f:Text;s:pchar;maxlen:longint):longint;
 var
   sPos,len : Longint;
@@ -1169,6 +1389,39 @@ Begin
     end;
   c:=TextRec(f).Bufptr^[TextRec(f).BufPos];
   inc(TextRec(f).BufPos);
+end;
+
+
+procedure fpc_Read_Text_Char_Iso(var f : Text; out c: char); iocheck;compilerproc;
+Begin
+  c:=' ';
+  If not CheckRead(f) then
+    exit;
+  If TextRec(f).BufPos>=TextRec(f).BufEnd Then
+    begin
+      c:=' ';
+      exit;
+    end;
+  c:=TextRec(f).Bufptr^[TextRec(f).BufPos];
+  inc(TextRec(f).BufPos);
+  if c=#13 then
+    begin
+      c:=' ';
+      If not CheckRead(f) or
+        (TextRec(f).BufPos>=TextRec(f).BufEnd) then
+        exit;
+      If TextRec(f).Bufptr^[TextRec(f).BufPos]=#10 then
+        inc(TextRec(f).BufPos);
+
+      { ignore #26 following a new line }
+      If not CheckRead(f) or
+        (TextRec(f).BufPos>=TextRec(f).BufEnd) then
+        exit;
+      If TextRec(f).Bufptr^[TextRec(f).BufPos]=#26 then
+        inc(TextRec(f).BufPos);
+    end
+  else if c in [#10,#26] then
+    c:=' ';
 end;
 
 

@@ -390,7 +390,7 @@ implementation
         fracpara:Tcallparanode;
         temp:Ttempcreatenode;
         readfunctype:Tdef;
-        name:string[31];
+        name:string[63];
 
     begin
       para:=Tcallparanode(params);
@@ -446,11 +446,6 @@ implementation
                 else
                   begin
                     name := procprefixes[do_read]+'float';
-
-                    { iso pascal needs a different handler due to upper/lower E differences }
-                    if (m_iso in current_settings.modeswitches) and not(do_read) then
-                       name:=name+'_iso';
-
                     readfunctype:=pbestrealtype^;
                   end;
               end;
@@ -485,6 +480,9 @@ implementation
                   uchar :
                     begin
                       name := procprefixes[do_read]+'char';
+                      { iso pascal needs a different handler }
+                      if (m_iso in current_settings.modeswitches) and do_read then
+                        name:=name+'_iso';
                       readfunctype:=cchartype;
                     end;
                   uwidechar :
@@ -523,11 +521,6 @@ implementation
                     else
                       begin
                         name := procprefixes[do_read]+'boolean';
-
-                        { iso pascal needs a different handler }
-                        if (m_iso in current_settings.modeswitches) and not(do_read) then
-                           name:=name+'_iso';
-
                         readfunctype:=booltype;
                       end
                   else
@@ -559,6 +552,10 @@ implementation
                 error_para := true;
               end;
           end;
+
+          { iso pascal needs a different handler }
+          if (m_iso in current_settings.modeswitches) and not(do_read) then
+            name:=name+'_iso';
 
           { check for length/fractional colon para's }
           fracpara:=nil;
@@ -607,8 +604,14 @@ implementation
                   if not is_real then
                     begin
                       if not assigned(lenpara) then
-                        lenpara := ccallparanode.create(
-                          cordconstnode.create(0,s32inttype,false),nil)
+                        begin
+                          if m_iso in current_settings.modeswitches then
+                            lenpara := ccallparanode.create(
+                              cordconstnode.create(-1,s32inttype,false),nil)
+                          else
+                            lenpara := ccallparanode.create(
+                              cordconstnode.create(0,s32inttype,false),nil);
+                        end
                       else
                         { make sure we don't pass the successive }
                         { parameters too. We also already have a }
@@ -779,7 +782,11 @@ implementation
             in_writestr_x:
               name:='fpc_write_end';
             in_readln_x:
-              name:='fpc_readln_end';
+              begin
+                name:='fpc_readln_end';
+                if m_iso in current_settings.modeswitches then
+                  name:=name+'_iso';
+              end;
             in_writeln_x:
               name:='fpc_writeln_end';
           end;
