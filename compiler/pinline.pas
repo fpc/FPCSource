@@ -312,7 +312,8 @@ implementation
                          ccallnode.createintern('fpc_getmem',para)));
 
                      { create call to fpc_initialize }
-                     if is_managed_type(tpointerdef(p.resultdef).pointeddef) then
+                     if is_managed_type(tpointerdef(p.resultdef).pointeddef) or
+                       ((m_iso in current_settings.modeswitches) and (tpointerdef(p.resultdef).pointeddef.typ=filedef)) then
                        addstatement(newstatement,initialize_data_node(cderefnode.create(ctemprefnode.create(temp))));
 
                      { copy the temp to the destination }

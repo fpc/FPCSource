@@ -1470,7 +1470,9 @@ implementation
            ) and
            not(vo_is_typed_const in tabstractvarsym(p).varoptions) and
            not(vo_is_external in tabstractvarsym(p).varoptions) and
-           is_managed_type(tabstractvarsym(p).vardef) then
+           (is_managed_type(tabstractvarsym(p).vardef) or
+            ((m_iso in current_settings.modeswitches) and (tabstractvarsym(p).vardef.typ=filedef))
+           ) then
          begin
            OldAsmList:=current_asmdata.CurrAsmList;
            current_asmdata.CurrAsmList:=TAsmList(arg);
