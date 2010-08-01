@@ -67,7 +67,7 @@ resourcestring
   SPasTreeDestructorImpl = 'destructor implementation';
 
 type
-  TPasExprKind = (pekIdent, pekNumber, pekString, pekSet, pekBoolConst, pekRange,
+  TPasExprKind = (pekIdent, pekNumber, pekString, pekSet, pekNil, pekBoolConst, pekRange,
      pekUnary, pekBinary, pekFuncParams, pekArrayParams, pekListOfExp);
 
   TExprOpCode = (eopNone,
@@ -77,7 +77,7 @@ type
                  eopEqual, eopNotEqual,  // Logical
                  eopLessThan,eopGreaterThan, eopLessthanEqual,eopGreaterThanEqual, // ordering
                  eopIn,eopIs,eopAs, eopSymmetricaldifference, // Specials
-                 eopAddress,
+                 eopAddress, eopDeref, // Pointers
                  eopSubIdent); // SomeRec.A, A is subIdent of SomeRec
   
   { TPasExpr }
@@ -112,6 +112,13 @@ type
   TBoolConstExpr = class(TPasExpr)
     Value     : Boolean;
     constructor Create(AKind: TPasExprKind; const ABoolValue : Boolean);
+  end;
+
+  { TNilExpr }
+
+  TNilExpr = class(TPasExpr)
+    Value     : Boolean;
+    constructor Create;
   end;
 
   { TParamsExpr }
@@ -2498,6 +2505,13 @@ begin
   i:=length(Values);
   SetLength(Values, i+1);
   Values[i]:=AValue;
+end;
+
+{ TNilExpr }
+
+constructor TNilExpr.Create;
+begin
+  inherited Create(pekNil, eopNone);
 end;
 
 end.

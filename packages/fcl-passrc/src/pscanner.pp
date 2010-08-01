@@ -632,7 +632,7 @@ begin
           Inc(TokenStr);
           repeat
             Inc(TokenStr);
-          until not (TokenStr[0] in ['0'..'9', 'A'..'F', 'a'..'F']);
+          until not (TokenStr[0] in ['0'..'9', 'A'..'F', 'a'..'f']);
         end else
           repeat
             Inc(TokenStr);

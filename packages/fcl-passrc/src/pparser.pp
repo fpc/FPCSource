@@ -143,7 +143,7 @@ type
     function ParseComplexType(Parent : TPasElement = Nil): TPasType;
     procedure ParseArrayType(Element: TPasArrayType);
     procedure ParseFileType(Element: TPasFileType);
-    function DoParseExpression: TPasExpr;
+    function DoParseExpression(InitExpr: TPasExpr=nil): TPasExpr;
     function DoParseConstValueExpression: TPasExpr;
     function ParseExpression: String;
     function ParseCommand: String; // single, not compound command like begin..end
@@ -721,6 +721,7 @@ begin
     tkNot                   : Result:=eopNot;
     tkIn                    : Result:=eopIn;
     tkDot                   : Result:=eopSubIdent;
+    tkCaret                 : Result:=eopDeref;
   else
     ParseExc(format('Not an operand: (%d : %s)',[AToken,TokenInfos[AToken]]));
   end;
@@ -741,6 +742,7 @@ begin
     tkNumber:           x:=TPrimitiveExpr.Create(pekNumber, CurTokenString);
     tkIdentifier:       x:=TPrimitiveExpr.Create(pekIdent, CurTokenText);
     tkfalse, tktrue:    x:=TBoolConstExpr.Create(pekBoolConst, CurToken=tktrue);
+    tknil:              x:=TNilExpr.Create;
     tkSquaredBraceOpen: x:=ParseParams(pekSet);
   else
     ParseExc(SParserExpectedIdentifier);
@@ -809,7 +811,7 @@ begin
   end;
 end;
 
-function TPasParser.DoParseExpression: TPasExpr;
+function TPasParser.DoParseExpression(InitExpr: TPasExpr): TPasExpr;
 var
   expstack  : TList;
   opstack   : TList;
@@ -868,28 +870,50 @@ begin
     repeat
       AllowEnd:=True;
       pcount:=0;
-      while CurToken in PrefixSym do begin
-        PushOper(CurToken);
-        inc(pcount);
-        NextToken;
-      end;
 
-      if CurToken = tkBraceOpen then begin
-        NextToken;
-        x:=DoParseExpression();
-        if CurToken<>tkBraceClose then Exit;
-        NextToken;
-      end else begin
-        x:=ParseExpIdent;
-      end;
+      if not Assigned(InitExpr) then
+      begin
+        // the first part of the expression has been parsed externally.
+        // this is used by Constant Expresion parser (CEP) parsing only,
+        // whenever it makes a false assuming on constant expression type.
+        // i.e: SI_PAD_SIZE = ((128/sizeof(longint)) - 3);
+        //
+        // CEP assumes that it's array or record, because the expression
+        // starts with "(". After the first part is parsed, the CEP meets "-"
+        // that assures, it's not an array expression. The CEP should give the
+        // first partback to the expression parser, to get the correct
+        // token tree according to the operations priority.
+        //
+        // quite ugly. type information is required for CEP to work clean
 
-      if not Assigned(x) then Exit;
-      expstack.Add(x);
-      for i:=1 to pcount do
-        begin
-        tempop:=PopOper;
-        expstack.Add( TUnaryExpr.Create( PopExp, TokenToExprOp(tempop) ));
+        while CurToken in PrefixSym do begin
+          PushOper(CurToken);
+          inc(pcount);
+          NextToken;
         end;
+
+        if CurToken = tkBraceOpen then begin
+          NextToken;
+          x:=DoParseExpression();
+          if CurToken<>tkBraceClose then Exit;
+          NextToken;
+        end else begin
+          x:=ParseExpIdent;
+        end;
+
+        if not Assigned(x) then Exit;
+        expstack.Add(x);
+        for i:=1 to pcount do begin
+          tempop:=PopOper;
+          expstack.Add( TUnaryExpr.Create( PopExp, TokenToExprOp(tempop) ));
+        end;
+
+      end else
+      begin
+        expstack.Add(InitExpr);
+        InitExpr:=nil;
+      end;
+
       if not (CurToken in EndExprToken) then begin
         // Adjusting order of the operations
         AllowEnd:=False;
@@ -1020,7 +1044,8 @@ begin
           Result:=r;
         end;
     else
-      Result:=x;
+      // Binary expression!  ((128 div sizeof(longint)) - 3);       ;
+      Result:=DoParseExpression(x);
     end;
     if CurToken<>tkBraceClose then ParseExc(SParserExpectedCommaRBracket);
     NextToken;
@@ -3130,8 +3155,7 @@ begin
       if (s = 'sealed') or (s = 'abstract') then begin
         TPasClassType(Result).Modifiers.Add(s);
         NextToken;
-      end else
-        ExpectToken(tkSemicolon);
+      end;
     end;
 
     // Parse ancestor list
