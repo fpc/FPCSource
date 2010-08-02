@@ -1204,7 +1204,10 @@ implementation
                         if subeq>te_incompatible then
                          begin
                            doconv:=tc_proc_2_procvar;
-                           eq:=pred(subeq);
+                           if subeq>te_convert_l5 then
+                             eq:=pred(subeq)
+                           else
+                             eq:=subeq;
                          end;
                       end;
                    end;
