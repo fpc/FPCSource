@@ -1027,27 +1027,35 @@ implementation
          case token of
            _GOTO :
              begin
-                if not(cs_support_goto in current_settings.moduleswitches)then
+                if not(cs_support_goto in current_settings.moduleswitches) then
                  Message(sym_e_goto_and_label_not_supported);
                 consume(_GOTO);
                 if (token<>_INTCONST) and (token<>_ID) then
                   begin
-                     Message(sym_e_label_not_found);
-                     code:=cerrornode.create;
+                    Message(sym_e_label_not_found);
+                    code:=cerrornode.create;
                   end
                 else
                   begin
                      if token=_ID then
-                      consume_sym(srsym,srsymtable)
+                       consume_sym(srsym,srsymtable)
                      else
                       begin
+                        if token<>_INTCONST then
+                          internalerror(201008021);
+
+                        { strip leading 0's in iso mode }
+                        if m_iso in current_settings.modeswitches then
+                          while pattern[1]='0' do
+                            delete(pattern,1,1);
+
                         searchsym(pattern,srsym,srsymtable);
                         if srsym=nil then
-                         begin
-                           identifier_not_found(pattern);
-                           srsym:=generrorsym;
-                           srsymtable:=nil;
-                         end;
+                          begin
+                            identifier_not_found(pattern);
+                            srsym:=generrorsym;
+                            srsymtable:=nil;
+                          end;
                         consume(token);
                       end;
 
@@ -1121,8 +1129,13 @@ implementation
              if (p.nodetype=ordconstn) and
                 try_to_consume(_COLON) then
               begin
+                { in iso mode, 0003: is equal to 3: }
+                if m_iso in current_settings.modeswitches then
+                  searchsym(tostr(tordconstnode(p).value),srsym,srsymtable)
+                else
+                  searchsym(s,srsym,srsymtable);
                 p.free;
-                searchsym(s,srsym,srsymtable);
+
                 if assigned(srsym) and
                    (srsym.typ=labelsym) then
                  begin
