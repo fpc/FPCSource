@@ -368,7 +368,7 @@ scanner_w_illegal_warn_identifier=02087_W_Illegal identifier "$1" for $WARN dire
 #
 # Parser
 #
-# 03295 is the last used one
+# 03296 is the last used one
 #
 % \section{Parser messages}
 % This section lists all parser messages. The parser takes care of the
@@ -950,7 +950,7 @@ parser_w_proc_overriding_calling=03182_W_Overriding calling convention "$1" with
 % There are two directives in the procedure declaration that specify a calling
 % convention. Only the last directive will be used.
 parser_e_no_procvarobj_const=03183_E_Typed constants of the type "procedure of object" can only be initialized with NIL
-% You can't assign the address of a method to a typed constant which has a
+% You cannot assign the address of a method to a typed constant which has a
 % 'procedure of object' type, because such a constant requires two addresses:
 % that of the method (which is known at compile time) and that of the object or
 % class instance it operates on (which cannot be known at compile time).
@@ -1325,6 +1325,13 @@ parser_e_objc_missing_enumeration_defs=03295_E_The compiler cannot find the NSFa
 % NSFastEnumerationProtocol and NSFastEnumerationState types. If you get this
 % error, most likely the compiler is finding and loading an alternate CocoaAll
 % unit.
+parser_e_no_procvarnested_const=03296_E_Typed constants of the type 'procedure is nested' can only be initialized with NIL and global procedures/functions
+% A nested procedural variable consists of two components: the address of the
+% procedure/function to call (which is always known at compile time), and also
+% a parent frame pointer (which is never known at compile time) in case the
+% procedural variable contains a reference to a nested procedure/function.
+% Therefore such typed constants can only be initialized with global
+% functions/procedures since these do not require a parent frame pointer.
 % \end{description}
 #
 # Type Checking

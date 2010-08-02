@@ -2343,7 +2343,14 @@ implementation
               inc(parasize,sizeof(pint));
           end
         else
-          parasize:=current_procinfo.para_stack_size;
+          begin
+            parasize:=current_procinfo.para_stack_size;
+            { the parent frame pointer para has to be removed by the caller in
+              case of Delphi-style parent frame pointer passing }
+            if not use_fixed_stack and
+               (po_delphi_nested_cc in current_procinfo.procdef.procoptions) then
+              dec(parasize,sizeof(pint));
+          end;
 
         { generate target specific proc exit code }
         cg.g_proc_exit(list,parasize,(po_nostackframe in current_procinfo.procdef.procoptions));

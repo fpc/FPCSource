@@ -362,6 +362,8 @@ interface
 
 
     procedure tcgtypeconvnode.second_proc_to_procvar;
+      var
+        tmpreg: tregister;
       begin
         if tabstractprocdef(resultdef).is_addressonly then
           begin
@@ -370,7 +372,26 @@ interface
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
           end
         else
-          location_copy(location,left.location);
+          begin
+            if not tabstractprocdef(left.resultdef).is_addressonly then
+              location_copy(location,left.location)
+            else
+              begin
+                { assigning a global function to a nested procvar -> create
+                  tmethodpointer record and set the "frame pointer" to nil }
+                location_reset_ref(location,LOC_REFERENCE,int_cgsize(sizeof(pint)*2),sizeof(pint));
+                tg.gettemp(current_asmdata.CurrAsmList,resultdef.size,sizeof(pint),tt_normal,location.reference);
+                tmpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,tmpreg);
+                cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpreg,location.reference);
+                { setting the frame pointer to nil is not strictly necessary
+                  since the global procedure won't use it, but it can help with
+                  debugging }
+                inc(location.reference.offset,sizeof(pint));
+                cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_ADDR,0,location.reference);
+                dec(location.reference.offset,sizeof(pint));
+              end;
+          end;
       end;
 
     procedure Tcgtypeconvnode.second_nil_to_methodprocvar;

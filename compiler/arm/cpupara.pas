@@ -203,7 +203,7 @@ unit cpupara;
           recorddef:
             result:=def.size>4;
           procvardef:
-            if (po_methodpointer in tprocvardef(def).procoptions) then
+            if not tprocvardef(def).is_addressonly then
               result:=true
             else
               result:=false
@@ -239,7 +239,11 @@ unit cpupara;
 
       procedure assignintreg;
         begin
-           if nextintreg<=RS_R3 then
+          { In case of po_delphi_nested_cc, the parent frame pointer
+            is always passed on the stack. }
+           if (nextintreg<=RS_R3) and
+              (not(vo_is_parentfp in hp.varoptions) or
+               not(po_delphi_nested_cc in p.procoptions)) then
              begin
                paraloc^.loc:=LOC_REGISTER;
                paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);

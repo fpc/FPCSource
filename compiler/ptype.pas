@@ -1065,11 +1065,17 @@ implementation
                    consume(_COLON);
                    single_type(pd.returndef,false,false);
                  end;
-                if token=_OF then
+                if try_to_consume(_OF) then
                   begin
-                    consume(_OF);
                     consume(_OBJECT);
                     include(pd.procoptions,po_methodpointer);
+                  end
+                else if (m_nested_procvars in current_settings.modeswitches) and
+                        try_to_consume(_IS) then
+                  begin
+                    consume(_NESTED);
+                    pd.parast.symtablelevel:=normal_function_level+1;
+                    pd.check_mark_as_nested;
                   end;
                 def:=pd;
                 { possible proc directives }

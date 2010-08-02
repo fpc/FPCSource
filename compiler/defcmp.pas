@@ -42,7 +42,8 @@ interface
           cpo_openequalisexact,
           cpo_ignoreuniv,
           cpo_warn_incompatible_univ,
-          cpo_ignorevarspez           // ignore parameter access type
+          cpo_ignorevarspez,          // ignore parameter access type
+          cpo_ignoreframepointer      // ignore frame pointer parameter (for assignment-compatibility of global procedures to nested procvars)
        );
 
        tcompare_paras_options = set of tcompare_paras_option;
@@ -1100,7 +1101,7 @@ implementation
                  procvardef :
                    begin
                      { procedure variable can be assigned to an void pointer,
-                       this not allowed for methodpointers }
+                       this is not allowed for complex procvars }
                      if (is_void(tpointerdef(def_to).pointeddef) or
                          (m_mac_procvar in current_settings.modeswitches)) and
                         tprocvardef(def_from).is_addressonly then
@@ -1203,7 +1204,10 @@ implementation
                         if subeq>te_incompatible then
                          begin
                            doconv:=tc_proc_2_procvar;
-                           eq:=te_convert_l1;
+                           if subeq>te_convert_l5 then
+                             eq:=pred(subeq)
+                           else
+                             eq:=subeq;
                          end;
                       end;
                    end;
@@ -1605,6 +1609,15 @@ implementation
                    (vo_is_hidden_para in tparavarsym(para2[i2]).varoptions) do
                inc(i2);
            end;
+         if cpo_ignoreframepointer in cpoptions then
+           begin
+             if (i1<para1.count) and
+                (vo_is_parentfp in tparavarsym(para1[i1]).varoptions) then
+               inc(i1);
+             if (i2<para2.count) and
+                (vo_is_parentfp in tparavarsym(para2[i2]).varoptions) then
+               inc(i2);
+           end;
          while (i1<para1.count) and (i2<para2.count) do
            begin
              eq:=te_incompatible;
@@ -1748,6 +1761,15 @@ implementation
                         (vo_is_hidden_para in tparavarsym(para2[i2]).varoptions) do
                     inc(i2);
                 end;
+              if cpo_ignoreframepointer in cpoptions then
+                begin
+                  if (i1<para1.count) and
+                     (vo_is_parentfp in tparavarsym(para1[i1]).varoptions) then
+                    inc(i1);
+                  if (i2<para2.count) and
+                     (vo_is_parentfp in tparavarsym(para2[i2]).varoptions) then
+                    inc(i2);
+                end;
            end;
          { when both lists are empty then the parameters are equal. Also
            when one list is empty and the other has a parameter with default
@@ -1760,7 +1782,7 @@ implementation
       end;
 
 
-    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef; checkincompatibleuniv: boolean):tequaltype;
+    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;checkincompatibleuniv: boolean):tequaltype;
       var
         eq : tequaltype;
         po_comp : tprocoptions;
@@ -1769,11 +1791,31 @@ implementation
          proc_to_procvar_equal:=te_incompatible;
          if not(assigned(def1)) or not(assigned(def2)) then
            exit;
-         { check for method pointer }
-         if (def1.is_methodpointer xor def2.is_methodpointer) or
-            (def1.is_addressonly xor def2.is_addressonly) then
+         { check for method pointer and local procedure pointer:
+             a) if one is a procedure of object, the other also has to be one
+             b) if one is a pure address, the other also has to be one
+                except if def1 is a global proc and def2 is a nested procdef
+                (global procedures can be converted into nested procvars)
+             c) if def1 is a nested procedure, then def2 has to be a nested
+                procvar and def1 has to have the po_delphi_nested_cc option
+             d) if def1 is a procvar, def1 and def2 both have to be nested or
+                non-nested (we don't allow assignments from non-nested to
+                nested procvars to make sure that we can still implement
+                nested procvars using trampolines -- e.g., this would be
+                necessary for LLVM or CIL as long as they do not have support
+                for Delphi-style frame pointer parameter passing) }
+         if (def1.is_methodpointer<>def2.is_methodpointer) or  { a) }
+            ((def1.is_addressonly<>def2.is_addressonly) and    { b) }
+             (is_nested_pd(def1) or
+              not is_nested_pd(def2))) or
+            ((def1.typ=procdef) and                            { c) }
+             is_nested_pd(def1) and
+             (not(po_delphi_nested_cc in def1.procoptions) or
+              not is_nested_pd(def2))) or
+            ((def1.typ=procvardef) and                         { d) }
+             (is_nested_pd(def1)<>is_nested_pd(def2))) then
            exit;
-         pa_comp:=[];
+         pa_comp:=[cpo_ignoreframepointer];
          if checkincompatibleuniv then
            include(pa_comp,cpo_warn_incompatible_univ);
          { check return value and options, methodpointer is already checked }
@@ -1791,6 +1833,12 @@ implementation
             eq:=compare_paras(def1.paras,def2.paras,cp_procvar,pa_comp);
             if eq=te_exact then
              eq:=te_equal;
+            if (eq=te_equal) then
+              begin
+                { prefer non-nested to non-nested over non-nested to nested }
+                if (is_nested_pd(def1)<>is_nested_pd(def2)) then
+                  eq:=te_convert_l1;
+              end;
             proc_to_procvar_equal:=eq;
           end;
       end;

@@ -486,8 +486,12 @@ unit cpupara;
               while (paralen > 0) do
                 begin
                   paraloc:=hp.paraloc[side].add_location;
+                  { In case of po_delphi_nested_cc, the parent frame pointer
+                    is always passed on the stack. }
                   if (loc = LOC_REGISTER) and
-                     (nextintreg <= RS_R10) then
+                     (nextintreg <= RS_R10) and
+                     (not(vo_is_parentfp in hp.varoptions) or
+                      not(po_delphi_nested_cc in p.procoptions)) then
                     begin
                       paraloc^.loc := loc;
                       { make sure we don't lose whether or not the type is signed }

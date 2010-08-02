@@ -423,6 +423,7 @@ interface
           function  is_methodpointer:boolean;virtual;
           function  is_addressonly:boolean;virtual;
           function  no_self_node:boolean;
+          procedure check_mark_as_nested;
        private
           procedure count_para(p:TObject;arg:pointer);
           procedure insert_para(p:TObject;arg:pointer);
@@ -1170,7 +1171,7 @@ implementation
           classrefdef:
             is_intregable:=true;
           procvardef :
-            is_intregable:=not(po_methodpointer in tprocvardef(self).procoptions);
+            is_intregable:=tprocvardef(self).is_addressonly;
           objectdef:
             is_intregable:=(is_class_or_interface_or_dispinterface_or_objc(self)) and not needs_inittable;
           setdef:
@@ -2751,6 +2752,7 @@ implementation
          has_paraloc_info:=false;
          funcretloc[callerside].init;
          funcretloc[calleeside].init;
+         check_mark_as_nested;
       end;
 
 
@@ -3008,6 +3010,16 @@ implementation
       begin
         Result:=([po_staticmethod,po_classmethod]<=procoptions)or
                 (proctypeoption in [potype_class_constructor,potype_class_destructor]);
+      end;
+
+
+    procedure tabstractprocdef.check_mark_as_nested;
+      begin
+         { nested procvars require that nested functions use the Delphi-style
+           nested procedure calling convention }
+         if (parast.symtablelevel>normal_function_level) and
+            (m_nested_procvars in current_settings.modeswitches) then
+           include(procoptions,po_delphi_nested_cc);
       end;
 
 
@@ -3286,8 +3298,6 @@ implementation
               not (proctypeoption in [potype_class_constructor,potype_class_destructor]) then
              s:='class ' + s;
          end;
-        if owner.symtabletype=localsymtable then
-          s:='local ' + s;
         if proctypeoption=potype_operator then
           begin
             for t:=NOTOKEN to last_overloaded do
@@ -3313,6 +3323,8 @@ implementation
               not(is_void(returndef)) then
               s:=s+':'+returndef.GetTypeName;
         end;
+        if owner.symtabletype=localsymtable then
+          s:=s+' is nested';
         s:=s+';';
         { forced calling convention? }
         if (po_hascallingconvention in procoptions) then
@@ -3333,7 +3345,9 @@ implementation
     function tprocdef.is_addressonly:boolean;
       begin
         result:=assigned(owner) and
-                (owner.symtabletype<>ObjectSymtable);
+                (owner.symtabletype<>ObjectSymtable) and
+                (not(m_nested_procvars in current_settings.modeswitches) or
+                 not is_nested_pd(self));
       end;
 
     function tprocdef.GetSymtable(t:tGetSymtable):TSymtable;
@@ -3707,7 +3721,7 @@ implementation
       begin
          inherited ppuload(procvardef,ppufile);
          { load para symtable }
-         parast:=tparasymtable.create(self,unknown_level);
+         parast:=tparasymtable.create(self,ppufile.getbyte);
          tparasymtable(parast).ppuload(ppufile);
       end;
 
@@ -3748,6 +3762,10 @@ implementation
       begin
         inherited ppuwrite(ppufile);
 
+        { Save the para symtable level (necessary to distinguish nested
+          procvars) }
+        ppufile.putbyte(parast.symtablelevel);
+
         { Write this entry }
         ppufile.writeentry(ibprocvardef);
 
@@ -3769,7 +3787,8 @@ implementation
 
     function tprocvardef.size : aint;
       begin
-         if (po_methodpointer in procoptions) and
+         if ((po_methodpointer in procoptions) or
+             is_nested_pd(self)) and
             not(po_addressonly in procoptions) then
            size:=2*sizeof(pint)
          else
@@ -3785,14 +3804,21 @@ implementation
 
     function tprocvardef.is_addressonly:boolean;
       begin
-        result:=not(po_methodpointer in procoptions) or
+        result:=(not(po_methodpointer in procoptions) and
+                 not is_nested_pd(self)) or
                 (po_addressonly in procoptions);
       end;
 
 
     function tprocvardef.getmangledparaname:string;
       begin
-        result:='procvar';
+        if not(po_methodpointer in procoptions) then
+          if not is_nested_pd(self) then
+            result:='procvar'
+          else
+            result:='nestedprovar'
+        else
+          result:='procvarofobj'
       end;
 
 
@@ -3820,8 +3846,6 @@ implementation
              s := s+'address of'
            else
              s := s+'procedure variable type of';
-         if po_local in procoptions then
-           s := s+' local';
          if assigned(returndef) and
             (returndef<>voidtype) then
            s:=s+' function'+typename_paras(showhidden)+':'+returndef.GetTypeName
@@ -3829,6 +3853,8 @@ implementation
            s:=s+' procedure'+typename_paras(showhidden);
          if po_methodpointer in procoptions then
            s := s+' of object';
+         if is_nested_pd(self) then
+           s := s+' is nested';
          GetTypeName := s+';'+ProcCallOptionStr[proccalloption]+'>';
       end;
 

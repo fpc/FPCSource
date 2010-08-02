@@ -1781,7 +1781,7 @@ implementation
         proc : tasmlabel;
 
       begin
-        if def.is_methodpointer then
+        if not def.is_addressonly then
           begin
             { create a structure with two elements }
             if not(tf_dwarf_only_local_labels in target_info.flags) then

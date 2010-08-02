@@ -698,7 +698,7 @@ implementation
           begin
             pd:=tprocdef(ProcdefList[i]);
             eq:=proc_to_procvar_equal(pd,d,false);
-            if eq>=te_equal then
+            if eq>=te_convert_l1 then
               begin
                 { multiple procvars with the same equal level }
                 if assigned(bestpd) and

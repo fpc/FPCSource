@@ -464,7 +464,7 @@ implementation
             end
           else
             if (p.nodetype=addrn) or
-               is_procvar_load(p) then
+               is_proc2procvar_load(p,pd) then
               begin
                 { insert typeconv }
                 inserttypeconv(p,def);
@@ -958,7 +958,7 @@ implementation
           if try_to_consume(_NIL) then
             begin
                list.concat(Tai_const.Create_sym(nil));
-               if (po_methodpointer in def.procoptions) then
+               if not def.is_addressonly then
                  list.concat(Tai_const.Create_sym(nil));
                exit;
             end;
@@ -1007,6 +1007,15 @@ implementation
             begin
               pd:=tloadnode(n).procdef;
               list.concat(Tai_const.createname(pd.mangledname,0));
+              { nested procvar typed consts can only be initialised with nil
+                (checked above) or with a global procedure (checked here),
+                because in other cases we need a valid frame pointer }
+              if is_nested_pd(def) then
+                begin
+                  if is_nested_pd(pd) then
+                    Message(parser_e_no_procvarnested_const);
+                  list.concat(Tai_const.Create_sym(nil));
+                end
             end
           else
             Message(parser_e_illegal_expression);

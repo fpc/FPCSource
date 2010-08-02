@@ -261,6 +261,10 @@ interface
         (basically: it must have a compile-time size) }
     function is_valid_univ_para_type(def: tdef): boolean;
 
+    { # returns whether the procdef/procvardef represents a nested procedure
+        or not }
+    function is_nested_pd(def: tabstractprocdef): boolean;{$ifdef USEINLINE}inline;{$endif}
+
 implementation
 
     uses
@@ -976,8 +980,7 @@ implementation
             result := OS_ADDR;
           procvardef:
             begin
-              if tprocvardef(def).is_methodpointer and
-                 (not tprocvardef(def).is_addressonly) then
+              if not tprocvardef(def).is_addressonly then
                 {$if sizeof(pint) = 4}
                   result:=OS_64
                 {$else} {$if sizeof(pint) = 8}
@@ -1128,5 +1131,12 @@ implementation
           not is_void(def) and
           (def.typ<>formaldef);
       end;
+
+
+    function is_nested_pd(def: tabstractprocdef): boolean;{$ifdef USEINLINE}inline;{$endif}
+      begin
+        result:=def.parast.symtablelevel>normal_function_level;
+      end;
+
 
 end.

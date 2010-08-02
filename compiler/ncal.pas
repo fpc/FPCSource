@@ -61,7 +61,7 @@ interface
           function  is_simple_para_load(p:tnode; may_be_in_reg: boolean):boolean;
           procedure maybe_load_in_temp(var p:tnode);
           function  gen_high_tree(var p:tnode;paradef:tdef):tnode;
-          function  gen_self_tree_methodpointer:tnode;
+          function  gen_procvar_context_tree:tnode;
           function  gen_self_tree:tnode;
           function  gen_vmt_tree:tnode;
           procedure gen_hidden_parameters;
@@ -680,6 +680,7 @@ implementation
                  ttypeconvnode(hp).left:=nil;
                  hp.free;
                end;
+             maybe_global_proc_to_nested(left,parasym.vardef);
 
              { Handle varargs and hidden paras directly, no typeconvs or }
              { pass_typechecking needed                                       }
@@ -1564,18 +1565,12 @@ implementation
       end;
 
 
-    function tcallnode.gen_self_tree_methodpointer:tnode;
-      var
-        hsym : tfieldvarsym;
+    function tcallnode.gen_procvar_context_tree:tnode;
       begin
-        { find self field in methodpointer record }
-        hsym:=tfieldvarsym(trecorddef(methodpointertype).symtable.Find('self'));
-        if not assigned(hsym) then
-          internalerror(200305251);
-        { Load tmehodpointer(right).self }
-        result:=csubscriptnode.create(
-                     hsym,
-                     ctypeconvnode.create_internal(right.getcopy,methodpointertype));
+        { Load tmehodpointer(right).self (either self or parentfp) }
+        result:=genloadfield(ctypeconvnode.create_internal(
+          right.getcopy,methodpointertype),
+          'self');
       end;
 
 
@@ -2252,7 +2247,7 @@ implementation
                  if vo_is_self in para.parasym.varoptions then
                    begin
                      if assigned(right) then
-                       para.left:=gen_self_tree_methodpointer
+                       para.left:=gen_procvar_context_tree
                      else
                        para.left:=gen_self_tree;
                    end
@@ -2272,9 +2267,14 @@ implementation
                 else
                  if vo_is_parentfp in para.parasym.varoptions then
                    begin
-                     if not(assigned(procdefinition.owner.defowner)) then
-                       internalerror(200309287);
-                     para.left:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner));
+                     if not assigned(right) then
+                       begin
+                         if not(assigned(procdefinition.owner.defowner)) then
+                           internalerror(200309287);
+                         para.left:=cloadparentfpnode.create(tprocdef(procdefinition.owner.defowner))
+                       end
+                     else
+                       para.left:=gen_procvar_context_tree;
                    end
                 else
                  if vo_is_range_check in para.parasym.varoptions then
