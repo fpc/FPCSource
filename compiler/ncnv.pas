@@ -686,7 +686,7 @@ implementation
       begin
         result:=false;
         if (m_nested_procvars in current_settings.modeswitches) and
-           ([m_tp_procvar,m_mac_procvar]*current_settings.modeswitches=[]) and
+           not(m_tp_procvar in current_settings.modeswitches) and
            (todef.typ=procvardef) and
            is_nested_pd(tprocvardef(todef)) and
            (fromnode.nodetype=typeconvn) and

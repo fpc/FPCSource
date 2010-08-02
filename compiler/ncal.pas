@@ -679,9 +679,8 @@ implementation
                  left:=ttypeconvnode(left).left;
                  ttypeconvnode(hp).left:=nil;
                  hp.free;
-               end
-             else
-               maybe_global_proc_to_nested(left,parasym.vardef);
+               end;
+             maybe_global_proc_to_nested(left,parasym.vardef);
 
              { Handle varargs and hidden paras directly, no typeconvs or }
              { pass_typechecking needed                                       }
