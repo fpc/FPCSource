@@ -60,6 +60,7 @@ Procedure RaiseLastWin32Error;
 function GetFileVersion(const AFileName: string): Cardinal;
 
 procedure GetFormatSettings;
+procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings); platform;
 
 implementation
 
@@ -651,49 +652,56 @@ Begin
 End;
 
 
-procedure GetFormatSettings;
+procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings); 
 var
   HF  : Shortstring;
-  LID : LCID;
+  LID : Windows.LCID;
   I,Day : longint;
 begin
-  LID := GetThreadLocale;
+  LID := LCID;
+  with FormatSettings do
+    begin
   { Date stuff }
-  for I := 1 to 12 do
-    begin
-    ShortMonthNames[I]:=GetLocaleStr(LID,LOCALE_SABBREVMONTHNAME1+I-1,ShortMonthNames[i]);
-    LongMonthNames[I]:=GetLocaleStr(LID,LOCALE_SMONTHNAME1+I-1,LongMonthNames[i]);
+      for I := 1 to 12 do
+        begin
+        ShortMonthNames[I]:=GetLocaleStr(LID,LOCALE_SABBREVMONTHNAME1+I-1,ShortMonthNames[i]);
+        LongMonthNames[I]:=GetLocaleStr(LID,LOCALE_SMONTHNAME1+I-1,LongMonthNames[i]);
+        end;
+      for I := 1 to 7 do
+        begin
+        Day := (I + 5) mod 7;
+        ShortDayNames[I]:=GetLocaleStr(LID,LOCALE_SABBREVDAYNAME1+Day,ShortDayNames[i]);
+        LongDayNames[I]:=GetLocaleStr(LID,LOCALE_SDAYNAME1+Day,LongDayNames[i]);
+        end;
+      DateSeparator := GetLocaleChar(LID, LOCALE_SDATE, '/');
+      ShortDateFormat := GetLocaleStr(LID, LOCALE_SSHORTDATE, 'm/d/yy');
+      LongDateFormat := GetLocaleStr(LID, LOCALE_SLONGDATE, 'mmmm d, yyyy');
+      { Time stuff }
+      TimeSeparator := GetLocaleChar(LID, LOCALE_STIME, ':');
+      TimeAMString := GetLocaleStr(LID, LOCALE_S1159, 'AM');
+      TimePMString := GetLocaleStr(LID, LOCALE_S2359, 'PM');
+      if StrToIntDef(GetLocaleStr(LID, LOCALE_ITLZERO, '0'), 0) = 0 then
+        HF:='h'
+      else
+        HF:='hh';
+      // No support for 12 hour stuff at the moment...
+      ShortTimeFormat := HF+':nn';
+      LongTimeFormat := HF + ':nn:ss';
+      { Currency stuff }
+      CurrencyString:=GetLocaleStr(LID, LOCALE_SCURRENCY, '');
+      CurrencyFormat:=StrToIntDef(GetLocaleStr(LID, LOCALE_ICURRENCY, '0'), 0);
+      NegCurrFormat:=StrToIntDef(GetLocaleStr(LID, LOCALE_INEGCURR, '0'), 0);
+      { Number stuff }
+      ThousandSeparator:=GetLocaleChar(LID, LOCALE_STHOUSAND, ',');
+      DecimalSeparator:=GetLocaleChar(LID, LOCALE_SDECIMAL, '.');
+      CurrencyDecimals:=StrToIntDef(GetLocaleStr(LID, LOCALE_ICURRDIGITS, '0'), 0);
     end;
-  for I := 1 to 7 do
-    begin
-    Day := (I + 5) mod 7;
-    ShortDayNames[I]:=GetLocaleStr(LID,LOCALE_SABBREVDAYNAME1+Day,ShortDayNames[i]);
-    LongDayNames[I]:=GetLocaleStr(LID,LOCALE_SDAYNAME1+Day,LongDayNames[i]);
-    end;
-  DateSeparator := GetLocaleChar(LID, LOCALE_SDATE, '/');
-  ShortDateFormat := GetLocaleStr(LID, LOCALE_SSHORTDATE, 'm/d/yy');
-  LongDateFormat := GetLocaleStr(LID, LOCALE_SLONGDATE, 'mmmm d, yyyy');
-  { Time stuff }
-  TimeSeparator := GetLocaleChar(LID, LOCALE_STIME, ':');
-  TimeAMString := GetLocaleStr(LID, LOCALE_S1159, 'AM');
-  TimePMString := GetLocaleStr(LID, LOCALE_S2359, 'PM');
-  if StrToIntDef(GetLocaleStr(LID, LOCALE_ITLZERO, '0'), 0) = 0 then
-    HF:='h'
-  else
-    HF:='hh';
-  // No support for 12 hour stuff at the moment...
-  ShortTimeFormat := HF+':nn';
-  LongTimeFormat := HF + ':nn:ss';
-  { Currency stuff }
-  CurrencyString:=GetLocaleStr(LID, LOCALE_SCURRENCY, '');
-  CurrencyFormat:=StrToIntDef(GetLocaleStr(LID, LOCALE_ICURRENCY, '0'), 0);
-  NegCurrFormat:=StrToIntDef(GetLocaleStr(LID, LOCALE_INEGCURR, '0'), 0);
-  { Number stuff }
-  ThousandSeparator:=GetLocaleChar(LID, LOCALE_STHOUSAND, ',');
-  DecimalSeparator:=GetLocaleChar(LID, LOCALE_SDECIMAL, '.');
-  CurrencyDecimals:=StrToIntDef(GetLocaleStr(LID, LOCALE_ICURRDIGITS, '0'), 0);
 end;
 
+procedure GetFormatSettings;
+begin
+  GetlocaleFormatSettings(GetThreadLocale, DefaultFormatSettings);
+end;
 
 Procedure InitInternational;
 var
