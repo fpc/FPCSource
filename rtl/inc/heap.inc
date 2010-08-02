@@ -1467,6 +1467,9 @@ begin
   end;
   loc_freelists := @freelists;
   fillchar(loc_freelists^,sizeof(tfreelists),0);
+  { initialise the local blocksize for allocating oschunks for fixed
+    freelists with the default starting value }
+  loc_freelists^.locgrowheapsizesmall:=growheapsizesmall;
 {$ifdef DUMP_MEM_USAGE}
   fillchar(sizeusage,sizeof(sizeusage),0);
   fillchar(maxsizeusage,sizeof(sizeusage),0);
