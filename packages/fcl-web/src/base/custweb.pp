@@ -96,6 +96,7 @@ Type
     FRedirectOnError : Boolean;
     FRedirectOnErrorURL : String;
     FTitle: string;
+    FOnTerminate : TNotifyEvent;
   protected
     procedure Terminate;
     Function GetModuleName(Arequest : TRequest) : string;
@@ -152,6 +153,7 @@ Type
     procedure SetOnShowRequestException(const AValue: TOnShowRequestException);
     procedure SetRedirectOnError(const AValue: boolean);
     procedure SetRedirectOnErrorURL(const AValue: string);
+    procedure DoOnTerminate(Sender : TObject);
   protected
     Procedure DoRun; override;
     function InitializeWebHandler: TWebHandler; virtual; abstract;
@@ -163,7 +165,7 @@ Type
     Procedure CreateForm(AClass : TComponentClass; out Reference);
     Procedure Initialize; override;
     Procedure Log(EventType: TEventType; const Msg: String); override;
-
+    procedure Terminate; override;
     Property HandleGetOnPost : Boolean Read GetHandleGetOnPost Write SetHandleGetOnPost;
     Property RedirectOnError : boolean Read GetRedirectOnError Write SetRedirectOnError;
     Property RedirectOnErrorURL : string Read GetRedirectOnErrorURL Write SetRedirectOnErrorURL;
@@ -339,6 +341,8 @@ end;
 procedure TWebHandler.Terminate;
 begin
   FTerminated := true;
+  If Assigned(FOnTerminate) then 
+    FOnTerminate(Self);
 end;
 
 function TWebHandler.GetModuleName(Arequest: TRequest): string;
@@ -553,6 +557,13 @@ end;
 constructor TCustomWebApplication.Create(AOwner: TComponent);
 begin
   FWebHandler := InitializeWebHandler;
+  FWebHandler.FOnTerminate:=@DoOnTerminate;
+end;
+
+procedure TCustomWebApplication.DoOnTerminate(Sender : TObject);
+begin
+  If Not Terminated then
+    Terminate;
 end;
 
 destructor TCustomWebApplication.Destroy;
@@ -578,4 +589,14 @@ begin
   EventLog.log(EventType,Msg);
 end;
 
+Procedure TCustomWebApplication.Terminate;
+
+begin
+  Inherited;
+  If Not Webhandler.FTerminated then
+    WebHandler.Terminate;
+end;
+
+
 end.
+
