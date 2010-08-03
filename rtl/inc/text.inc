@@ -1420,7 +1420,17 @@ Begin
       If TextRec(f).Bufptr^[TextRec(f).BufPos]=#26 then
         inc(TextRec(f).BufPos);
     end
-  else if c in [#10,#26] then
+  else if c=#10 then
+    begin
+      c:=' ';
+      { ignore #26 following a new line }
+      If not CheckRead(f) or
+        (TextRec(f).BufPos>=TextRec(f).BufEnd) then
+        exit;
+      If TextRec(f).Bufptr^[TextRec(f).BufPos]=#26 then
+        inc(TextRec(f).BufPos);
+      end
+  else if c=#26 then
     c:=' ';
 end;
 

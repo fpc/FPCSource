@@ -31,6 +31,8 @@ unit iso7185;
 
     Function Eof(Var t: Text): Boolean;
     Function Eof:Boolean;
+    Function Eoln(Var t: Text): Boolean;
+    Function Eoln:Boolean;
 
   implementation
 
@@ -81,6 +83,23 @@ unit iso7185;
     Function Eof:Boolean;
       Begin
         Eof:=Eof(Input);
+      End;
+
+
+    Function Eoln(Var t: Text): Boolean;[IOCheck];
+      var
+        OldCtrlZMarksEof : Boolean;
+      Begin
+        OldCtrlZMarksEof:=CtrlZMarksEOF;
+        CtrlZMarksEof:=true;
+        Eoln:=System.Eoln(t);
+        CtrlZMarksEof:=OldCtrlZMarksEOF;
+      end;
+
+
+    Function Eoln:Boolean;
+      Begin
+        Eoln:=Eoln(Input);
       End;
 
 begin
