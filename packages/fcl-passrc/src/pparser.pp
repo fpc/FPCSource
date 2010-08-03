@@ -231,7 +231,7 @@ end;
 
 procedure TPasParser.ParseExc(const Msg: String);
 begin
-  raise EParserError.Create(Format(SParserErrorAtToken, [Msg, CurTokenName]),
+  raise EParserError.Create(Format(SParserErrorAtToken, [Msg, CurTokenName]) {$ifdef addlocation}+' ('+inttostr(scanner.currow)+' '+inttostr(scanner.curcolumn)+')'{$endif},
     Scanner.CurFilename, Scanner.CurRow, Scanner.CurColumn);
 end;
 
@@ -1182,6 +1182,7 @@ begin
       Module.PackageName := Engine.Package.Name;
       Engine.Package.Modules.Add(Module);
     end;
+    CheckHint(Module,True);
     ExpectToken(tkSemicolon);
     ExpectToken(tkInterface);
     ParseInterface;
