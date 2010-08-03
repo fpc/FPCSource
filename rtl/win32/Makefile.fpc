@@ -20,7 +20,7 @@ implicitunits=sysinitpas sysinitcyg sysinitgprof \
       video mouse keyboard fmtbcd \
       winsysut sharemem exeinfo fpintres
 
-# shared=$(DLLS)
+shared=$(DLLS)
 
 rsts=math varutils typinfo variants classes dateutils sysconst
 

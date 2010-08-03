@@ -1002,7 +1002,7 @@ end;
           end;
       {$else}
         DosError:=0;
-        Exec (Getenv('COMSPEC'),'/C '+FixPath(progname)+' '+Comline)
+        Exec (Getenv('COMSPEC'),'/C '+FixPath(progname)+' '+Comline);
         IOStatus:=DosError;
         ExecuteResult:=DosExitCode;
       {$endif}
@@ -1021,9 +1021,9 @@ end;
             {$else}
               doserror:=0;
               {$ifdef macos}
-                Dos.Exec(''''+ProgName+'''',Comline) {Quotes needed !}
+                Dos.Exec(''''+ProgName+'''',Comline); {Quotes needed !}
               {$else}
-                Dos.Exec(ProgName,Comline)
+                Dos.Exec(ProgName,Comline);
              {$endif}
              IOStatus:=DosError;
              ExecuteResult:=DosExitCode;
