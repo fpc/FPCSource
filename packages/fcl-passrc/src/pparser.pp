@@ -3259,7 +3259,8 @@ begin
         NextToken;
       end;
       // Eat semicolon after class...end
-      ExpectToken(tkSemicolon);
+      CheckHint(result,true);
+//      ExpectToken(tkSemicolon);
     end;
   except
     Result.Free;
