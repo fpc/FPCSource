@@ -218,6 +218,7 @@ Var
   HD : TJSONRPCHandlerDef;
 
 begin
+  {$ifdef extdebug}SendDebugFmt('Creating API entries',[]);{$endif}
   D:=TJSONObject.Create;
   try
     D.Add('url',URL);
@@ -247,12 +248,15 @@ begin
       For I:=M.HandlerCount-1 downto 0 do
         begin
         HD:=M.HandlerDefs[i];
+  {$ifdef extdebug}SendDebugFmt('Creating API entry for %s.%s',[HD.HandlerClassName,HD.HandlerMethodName]);{$endif}
         If (R=Nil) or (CompareText(N,HD.HandlerClassName)<>0) then
           begin
+  {$ifdef extdebug}SendDebugFmt('Seems like new action entry : %s<> %s',[HD.HandlerClassName,N]);{$endif}
           N:=HD.HandlerClassName;
-          J:=A.IndexOf(R);
+          J:=A.IndexOfName(N);
           If (J=-1) then
             begin
+  {$ifdef extdebug}SendDebugFmt('Creating new action entry : %s ',[N]);{$endif}
             R:=TJSONArray.Create;
             A.Add(N,R);
             end
