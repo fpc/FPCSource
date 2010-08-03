@@ -1183,7 +1183,7 @@ begin
       Engine.Package.Modules.Add(Module);
     end;
     CheckHint(Module,True);
-    ExpectToken(tkSemicolon);
+//    ExpectToken(tkSemicolon);
     ExpectToken(tkInterface);
     ParseInterface;
   finally
@@ -2060,6 +2060,15 @@ end;
 // will get the token after the final ";" as next token.
 procedure TPasParser.ParseProcedureOrFunctionHeader(Parent: TPasElement;
   Element: TPasProcedureType; ProcType: TProcType; OfObjectPossible: Boolean);
+
+procedure ConsumeSemi;
+var bl : TPasMemberHint;
+begin
+  NextToken;
+  if (CurToken <> tksemicolon) and ishint(curtokenstring,bl) then
+    ungettoken;
+end;
+
 Var
   Tok : String;
   i: Integer;
@@ -2143,12 +2152,11 @@ begin
     UngetToken;
 
   ExpectToken(tkSemicolon);
-
   while True do
     begin
     // CheckHint(Element,False);
     NextToken;
-    if (CurToken = tkIdentifier) then
+    if (CurToken = tkIdentifier) or (CurToken=tklibrary) then // library is a token and a directive.
       begin
       Tok:=UpperCase(CurTokenString);
       If (Tok='CDECL') then
@@ -2218,17 +2226,17 @@ begin
       else if (tok='DEPRECATED') then
         begin
         element.hints:=element.hints+[hDeprecated];
-        ExpectToken(tkSemicolon);
+        consumesemi;
         end
       else if (tok='PLATFORM') then
         begin
         element.hints:=element.hints+[hPlatform];
-        ExpectToken(tkSemicolon);
+        consumesemi;
         end
       else if (tok='LIBRARY') then
         begin
         element.hints:=element.hints+[hLibrary];
-        ExpectToken(tkSemicolon);
+        consumesemi;
         end
       else if (tok='OVERLOAD') then
         begin
