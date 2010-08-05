@@ -1830,6 +1830,9 @@ implementation
 
         include(current_procinfo.flags,pi_has_label);
 
+        if labsym.nonlocal then
+          include(current_procinfo.flags,pi_has_interproclabel);
+
         if assigned(left) then
           firstpass(left);
         if (m_iso in current_settings.modeswitches) and

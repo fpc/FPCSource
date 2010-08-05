@@ -1058,6 +1058,7 @@ implementation
         result:=(cs_opt_regvar in current_settings.optimizerswitches) and
                 not(pi_has_assembler_block in current_procinfo.flags) and
                 not(pi_uses_exceptions in current_procinfo.flags) and
+                not(pi_has_interproclabel in current_procinfo.flags) and
                 not(vo_has_local_copy in varoptions) and
                 ((refpara and
                   (varregable <> vr_none)) or

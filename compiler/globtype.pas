@@ -426,7 +426,9 @@ interface
          { set if the procedure has at least one register saved on the stack }
          pi_has_saved_regs,
          { dfa was generated for this proc }
-         pi_dfaavailable
+         pi_dfaavailable,
+         { subroutine contains interprocedural used labels }
+         pi_has_interproclabel
        );
        tprocinfoflags=set of tprocinfoflag;
 
