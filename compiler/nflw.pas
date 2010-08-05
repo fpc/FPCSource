@@ -1684,7 +1684,6 @@ implementation
       begin
         result:=nil;
         expectloc:=LOC_VOID;
-        include(current_procinfo.flags,pi_has_goto);
 
         { The labelnode can already be set when
           this node was copied }
@@ -1828,6 +1827,9 @@ implementation
       begin
         result:=nil;
         expectloc:=LOC_VOID;
+
+        include(current_procinfo.flags,pi_has_label);
+
         if assigned(left) then
           firstpass(left);
         if (m_iso in current_settings.modeswitches) and

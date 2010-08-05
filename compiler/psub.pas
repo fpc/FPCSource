@@ -948,7 +948,7 @@ implementation
         if (cs_opt_loopstrength in current_settings.optimizerswitches)
           { our induction variable strength reduction doesn't like
             for loops with more than one entry }
-          and not(pi_has_goto in current_procinfo.flags) then
+          and not(pi_has_label in current_procinfo.flags) then
           begin
             {RedoDFA:=}OptimizeInductionVariables(code);
           end;

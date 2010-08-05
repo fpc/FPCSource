@@ -1775,7 +1775,7 @@ implementation
       begin
         if allocreg then
           gen_alloc_regloc(list,sym.initialloc);
-        if (pi_has_goto in current_procinfo.flags) then
+        if (pi_has_label in current_procinfo.flags) then
           begin
             { Allocate register already, to prevent first allocation to be
               inside a loop }
@@ -2905,7 +2905,7 @@ implementation
                       in the parent procedures }
                     case localloc.loc of
                       LOC_CREGISTER :
-                        if (pi_has_goto in current_procinfo.flags) then
+                        if (pi_has_label in current_procinfo.flags) then
 {$ifndef cpu64bitalu}
                           if def_cgsize(vardef) in [OS_64,OS_S64] then
                             begin
@@ -2917,7 +2917,7 @@ implementation
                             cg.a_reg_sync(list,localloc.register);
                       LOC_CFPUREGISTER,
                       LOC_CMMREGISTER:
-                        if (pi_has_goto in current_procinfo.flags) then
+                        if (pi_has_label in current_procinfo.flags) then
                           cg.a_reg_sync(list,localloc.register);
                       LOC_REFERENCE :
                         begin

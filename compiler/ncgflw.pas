@@ -108,7 +108,7 @@ implementation
     procedure tcgwhilerepeatnode.sync_regvars(checkusedregvars: boolean);
       begin
          if (cs_opt_regvar in current_settings.optimizerswitches) and
-            not(pi_has_goto in current_procinfo.flags) then
+            not(pi_has_label in current_procinfo.flags) then
            begin
              if checkusedregvars then
                begin
@@ -390,7 +390,7 @@ implementation
     procedure tcgfornode.sync_regvars(checkusedregvars: boolean);
       begin
          if (cs_opt_regvar in current_settings.optimizerswitches) and
-            not(pi_has_goto in current_procinfo.flags) then
+            not(pi_has_label in current_procinfo.flags) then
            begin
              if checkusedregvars then
                begin

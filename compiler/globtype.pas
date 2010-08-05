@@ -417,8 +417,8 @@ interface
          pi_uses_static_symtable,
          { set if the procedure has to push parameters onto the stack }
          pi_has_stackparameter,
-         { set if the procedure has at least one got }
-         pi_has_goto,
+         { set if the procedure has at least one label }
+         pi_has_label,
          { calls itself recursive }
          pi_is_recursive,
          { stack frame optimization not possible (only on x86 probably) }
