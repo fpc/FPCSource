@@ -1473,15 +1473,15 @@ implementation
            (is_managed_type(tabstractvarsym(p).vardef) or
             ((m_iso in current_settings.modeswitches) and (tabstractvarsym(p).vardef.typ=filedef))
            ) then
-         begin
-           OldAsmList:=current_asmdata.CurrAsmList;
-           current_asmdata.CurrAsmList:=TAsmList(arg);
-           hp:=initialize_data_node(cloadnode.create(tsym(p),tsym(p).owner));
-           firstpass(hp);
-           secondpass(hp);
-           hp.free;
-           current_asmdata.CurrAsmList:=OldAsmList;
-         end;
+          begin
+            OldAsmList:=current_asmdata.CurrAsmList;
+            current_asmdata.CurrAsmList:=TAsmList(arg);
+            hp:=initialize_data_node(cloadnode.create(tsym(p),tsym(p).owner));
+            firstpass(hp);
+            secondpass(hp);
+            hp.free;
+            current_asmdata.CurrAsmList:=OldAsmList;
+          end;
       end;
 
 

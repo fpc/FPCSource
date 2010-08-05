@@ -1056,7 +1056,7 @@ implementation
           end;
 
         var
-          i       : longint;
+          i : longint;
 
         begin
           { GUID }

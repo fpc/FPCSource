@@ -272,7 +272,7 @@ implementation
             hasequalpara:=(compare_paras(vmtpd.paras,pd.paras,cp_none,[cpo_ignoreuniv])>=te_equal);
 
             { check that we are not trying to override a final method }
-            if (po_finalmethod in vmtpd.procoptions) and 
+            if (po_finalmethod in vmtpd.procoptions) and
                hasequalpara and (po_overridingmethod in pd.procoptions) and is_class(_class) then
               MessagePos1(pd.fileinfo,parser_e_final_can_no_be_overridden,pd.fullprocname(false))
             else
