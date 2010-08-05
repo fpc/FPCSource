@@ -64,6 +64,7 @@ const
   tkProcVar  = 23;
   tkUString  = 24;
   tkUChar    = 25;
+  tkFile     = 26;
 
   otSByte     = 0;
   otUByte     = 1;
