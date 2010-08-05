@@ -268,6 +268,21 @@ implementation
       end;
 
 
+    procedure add_label_init(p:TObject;arg:pointer);
+      begin
+        if tstoredsym(p).typ=labelsym then
+          begin
+            addstatement(tstatementnode(arg^),
+              cifnode.create(caddnode.create(equaln,
+                ccallnode.createintern('fpc_setjmp',
+                  ccallparanode.create(cloadnode.create(tlabelsym(p).jumpbuf,tlabelsym(p).jumpbuf.owner),nil)),
+                cordconstnode.create(1,sinttype,true))
+              ,cgotonode.create(tlabelsym(p)),nil)
+            );
+          end;
+      end;
+
+
     function generate_bodyentry_block:tnode;
       var
         srsym        : tsym;
@@ -365,6 +380,8 @@ implementation
                   internalerror(200305104);
               end;
           end;
+        if m_iso in current_settings.modeswitches then
+          tsymtable(current_procinfo.procdef.localst).SymList.ForEachCall(@add_label_init,@newstatement);
       end;
 
 

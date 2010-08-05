@@ -13,7 +13,7 @@
 
  **********************************************************************}
 
-procedure longjmp(var s : jmp_buf;value:longint);assembler;nostackframe;[Public,alias:'FPC_LONGJMP'];
+procedure fpc_longjmp(var s : jmp_buf;value:longint);assembler;nostackframe;[Public,alias:'FPC_LONGJMP'];compilerproc;
   asm
     lw $31,0($4) #PC
     lw $sp,4($4) #SP
@@ -33,7 +33,7 @@ procedure longjmp(var s : jmp_buf;value:longint);assembler;nostackframe;[Public,
   end;
 
 
-function setjmp(var S:jmp_buf):longint;assembler;nostackframe;[Public,alias:'FPC_SETJMP'];
+function fpc_setjmp(var S:jmp_buf):longint;assembler;nostackframe;[Public,alias:'FPC_SETJMP'];compilerproc;
   asm
     sw $31,0($4) #PC
     sw $sp,4($4) #SP

@@ -245,7 +245,7 @@ implementation
     procedure addstatement(var laststatement:tstatementnode;n:tnode);
       begin
         if assigned(laststatement.right) then
-         internalerror(200204201);
+          internalerror(200204201);
         laststatement.right:=cstatementnode.create(n,nil);
         laststatement:=tstatementnode(laststatement.right);
       end;

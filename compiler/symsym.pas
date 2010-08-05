@@ -58,6 +58,9 @@ interface
             be a tnode }
           code : pointer;
 
+          { points to the jump buffer }
+          jumpbuf : tstoredsym;
+
           { when the label is defined in an asm block, this points to the
             generated asmlabel }
           asmblocklabel : tasmlabel;

@@ -538,6 +538,7 @@ const
   sym_w_non_implemented_unit=05078;
   sym_w_experimental_unit=05079;
   sym_e_objc_formal_class_not_resolved=05080;
+  sym_e_interprocgoto_into_init_final_code_not_allowed=05081;
   cg_e_parasize_too_big=06009;
   cg_e_file_must_call_by_reference=06012;
   cg_e_cant_use_far_pointer_there=06013;
@@ -566,6 +567,8 @@ const
   cg_h_inherited_ignored=06048;
   cg_e_goto_label_not_found=06049;
   cg_f_unknown_type_in_unit=06050;
+  cg_e_interprocedural_goto_only_to_outer_scope_allowed=06051;
+  cg_e_labels_cannot_defined_outside_declaration_scope=06052;
   asmr_d_start_reading=07000;
   asmr_d_finish_reading=07001;
   asmr_e_none_label_contain_at=07002;
@@ -864,9 +867,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 56901;
+  MsgTxtSize = 57117;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,88,297,96,81,51,110,22,202,63,
+    24,88,297,96,82,53,110,22,202,63,
     49,20,1,1,1,1,1,1,1,1
   );

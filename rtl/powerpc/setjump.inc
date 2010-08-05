@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP']; nostackframe;
+function fpc_setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP']; nostackframe; compilerproc;
   asm
      stw     r1,0(r3)
      mflr    r0
@@ -97,7 +97,7 @@ function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJM
      li      r3,0
   end;
 
-procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP']; nostackframe;
+procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP']; nostackframe; compilerproc;
   asm
      lwz     r1,0(r3)
      lwz     r2,4(r3)

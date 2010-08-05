@@ -14,7 +14,7 @@
 
  **********************************************************************}
 
-function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];nostackframe;
+function fpc_setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];nostackframe; compilerproc;
   asm
     {$if defined(FPUVFPV2) or defined(FPUVFPV3)}
     {$if defined(CPUARMV3) or defined(CPUARMV4) or defined(CPUARMV5)}
@@ -39,7 +39,7 @@ function setjmp(var S : jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJM
   end;
 
 
-procedure longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP'];
+procedure fpc_longjmp(var S : jmp_buf;value : longint);assembler;[Public, alias : 'FPC_LONGJMP']; compilerproc;
   asm
     {$if defined(CPUCORTEXM3) or defined(CPUARMV7M)}
     mov     ip, r0

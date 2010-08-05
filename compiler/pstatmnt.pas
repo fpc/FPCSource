@@ -1067,7 +1067,8 @@ implementation
                      else
                        begin
                          { goto is only allowed to labels within the current scope }
-                         if srsym.owner<>current_procinfo.procdef.localst then
+                         if not(m_iso in current_settings.modeswitches) and
+                           (srsym.owner<>current_procinfo.procdef.localst) then
                            CGMessage(parser_e_goto_outside_proc);
                          code:=cgotonode.create(tlabelsym(srsym));
                          tgotonode(code).labelsym:=tlabelsym(srsym);
@@ -1140,7 +1141,16 @@ implementation
                    (srsym.typ=labelsym) then
                  begin
                    if tlabelsym(srsym).defined then
-                    Message(sym_e_label_already_defined);
+                     Message(sym_e_label_already_defined);
+                   if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
+                     begin
+                       tlabelsym(srsym).nonlocal:=true;
+                       exclude(current_procinfo.procdef.procoptions,po_inline);
+                     end;
+                   if tlabelsym(srsym).nonlocal and
+                     (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
+                     Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
+
                    tlabelsym(srsym).defined:=true;
                    p:=clabelnode.create(nil,tlabelsym(srsym));
                    tlabelsym(srsym).code:=p;

@@ -18,7 +18,7 @@
 #define RW_FP [%fp + 0x48]
 }
 
-procedure longjmp(var s : jmp_buf;value:longint);assembler;nostackframe;[Public,alias:'FPC_LONGJMP'];
+procedure fpc_longjmp(var s : jmp_buf;value:longint);assembler;nostackframe;[Public,alias:'FPC_LONGJMP'];compilerproc;
   asm
     // Store our arguments in global registers so we can still
     // use them while unwinding frames and their register windows.
@@ -79,7 +79,7 @@ procedure longjmp(var s : jmp_buf;value:longint);assembler;nostackframe;[Public,
   end;
 
 
-function setjmp(var S:jmp_buf):longint;assembler;nostackframe;[Public,alias:'FPC_SETJMP'];
+function fpc_setjmp(var S:jmp_buf):longint;assembler;nostackframe;[Public,alias:'FPC_SETJMP'];compilerproc;
   asm
     // We don't create a stackframe so we can save PC,SP and FP of the caller
     st      %o7, [%o0+8]

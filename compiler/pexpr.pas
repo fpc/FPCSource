@@ -1674,6 +1674,9 @@ implementation
                             tlabelsym(srsym).nonlocal:=true;
                             exclude(current_procinfo.procdef.procoptions,po_inline);
                           end;
+                        if tlabelsym(srsym).nonlocal and
+                          (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
+                          Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
                         tlabelsym(srsym).defined:=true;
                         p1:=clabelnode.create(nil,tlabelsym(srsym));
                         tlabelsym(srsym).code:=p1;

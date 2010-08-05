@@ -1920,6 +1920,8 @@ sym_e_objc_formal_class_not_resolved=05080_E_No complete definition of the forma
 % However, as soon as you wish to actually do something with an entity of this class type (such as
 % access one of its fields, send a message to it, or use it to inherit from), the compiler requires the full definition
 % of the class to be in scope.
+sym_e_interprocgoto_into_init_final_code_not_allowed=05081_E_Gotos into initialization or finalization blocks of units are not allowed
+% Gotos into initialization or finalization blockse of units are not allowed.
 %
 % \end{description}
 #
@@ -2057,6 +2059,11 @@ cg_f_unknown_type_in_unit=06050_F_Cannot find type "$1" in unit "$2". Check if y
 % and you didn't change the runtime library code, it's very likely that the runtime library
 % you're using doesn't match the compiler in use. If you changed the runtime library this error means
 % that you removed a type which the compiler needs for internal use.
+cg_e_interprocedural_goto_only_to_outer_scope_allowed=06051_E_Interprocedural gotos are allowed only to outer subroutines
+% Gotos between subroutines are only allowed if the goto jumps from an inner to an outer subroutine or
+% from a subroutine to the main program
+cg_e_labels_cannot_defined_outside_declaration_scope=06052_E_Label must be defined in the same scope as it is declared
+% In ISO mode, labels must be defined in the same scope as they are declared.
 % \end{description}
 # EndOfTeX
 

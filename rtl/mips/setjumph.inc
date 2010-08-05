@@ -20,5 +20,5 @@ type
   end;
   Pjmp_buf=^jmp_buf;
 
-function setjmp(var S:jmp_buf):longint;
-procedure longjmp(var S:jmp_buf;value:longint);
+function setjmp(var S:jmp_buf):longint;[external name 'FPC_SETJMP'];
+procedure longjmp(var S:jmp_buf;value:longint);[external name 'FPC_LONGJMP'];

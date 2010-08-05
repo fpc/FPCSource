@@ -268,6 +268,8 @@ implementation
 
 
     procedure label_dec;
+      var
+        labelsym : tlabelsym;
       begin
          consume(_LABEL);
          if not(cs_support_goto in current_settings.moduleswitches) then
@@ -278,9 +280,25 @@ implementation
            else
              begin
                 if token=_ID then
-                 symtablestack.top.insert(tlabelsym.create(orgpattern))
+                  labelsym:=tlabelsym.create(orgpattern)
                 else
-                 symtablestack.top.insert(tlabelsym.create(pattern));
+                  labelsym:=tlabelsym.create(pattern);
+                symtablestack.top.insert(labelsym);
+                if m_iso in current_settings.modeswitches then
+                  begin
+                    if symtablestack.top.symtabletype=localsymtable then
+                      begin
+                        labelsym.jumpbuf:=tlocalvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
+                        symtablestack.top.insert(labelsym.jumpbuf);
+                      end
+                    else
+                      begin
+                        labelsym.jumpbuf:=tstaticvarsym.create('LABEL$_'+labelsym.name,vs_value,rec_jmp_buf,[]);
+                        symtablestack.top.insert(labelsym.jumpbuf);
+                        insertbssdata(tstaticvarsym(labelsym.jumpbuf));
+                      end;
+                    include(labelsym.jumpbuf.symoptions,sp_internal);
+                  end;
                 consume(token);
              end;
            if token<>_SEMICOLON then consume(_COMMA);

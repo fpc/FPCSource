@@ -16,18 +16,10 @@
            Set_Jmp/Long_jmp
  **********************************************************************}
 
-Function SetJmp (Var S : Jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];
-
+Function fpc_SetJmp (Var S : Jmp_buf) : longint;assembler;[Public, alias : 'FPC_SETJMP'];compilerproc;
 asm
 end;
 
-Procedure longJmp (Var S : Jmp_buf; value : longint); assembler;[Public, alias : 'FPC_LONGJMP'];
-
+Procedure fpc_longJmp (Var S : Jmp_buf; value : longint); assembler;[Public, alias : 'FPC_LONGJMP'];compilerproc;
 asm
 end;
-
-{
-  Revision 1.4  2005/02/14 17:13:30  peter
-    * truncate log
-
-}

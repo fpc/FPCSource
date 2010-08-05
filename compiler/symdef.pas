@@ -695,6 +695,9 @@ interface
          of all interfaces         }
        rec_tguid : trecorddef;
 
+       { pointer to jump buffer }
+       rec_jmp_buf : trecorddef;
+
        { Objective-C base types }
        objc_metaclasstype,
        objc_superclasstype,
@@ -2677,6 +2680,7 @@ implementation
            end
          else
            tstoredsymtable(symtable).deref;
+
          { assign TGUID? load only from system unit }
          if not(assigned(rec_tguid)) and
             (upper(typename)='TGUID') and
@@ -2684,6 +2688,14 @@ implementation
             assigned(owner.name) and
             (owner.name^='SYSTEM') then
            rec_tguid:=self;
+
+         { assign JMP_BUF? load only from system unit }
+         if not(assigned(rec_jmp_buf)) and
+            (upper(typename)='JMP_BUF') and
+            assigned(owner) and
+            assigned(owner.name) and
+            (owner.name^='SYSTEM') then
+           rec_jmp_buf:=self;
       end;
 
 
