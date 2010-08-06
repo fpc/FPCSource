@@ -185,6 +185,8 @@ type
 
   TPOptions = (po_delphi);
 
+  { TPascalScanner }
+
   TPascalScanner = class
   private
     FFileResolver: TFileResolver;
@@ -209,6 +211,7 @@ type
   protected
     procedure Error(const Msg: string);overload;
     procedure Error(const Msg: string; Args: array of Const);overload;
+    function DoFetchTextToken: TToken;
     function DoFetchToken: TToken;
   public
     Options : set of TPOptions;
@@ -569,6 +572,68 @@ begin
   raise EScannerError.CreateFmt(Msg, Args);
 end;
 
+function TPascalScanner.DoFetchTextToken:TToken;
+var
+  OldLength     : Integer;
+  TokenStart    : PChar;
+  SectionLength : Integer;
+begin
+  Result:=tkEOF;
+  OldLength:=0;
+  FCurTokenString := '';
+
+  while TokenStr[0] in ['#', ''''] do
+  begin
+    case TokenStr[0] of
+      '#':
+        begin
+          TokenStart := TokenStr;
+          Inc(TokenStr);
+          if TokenStr[0] = '$' then
+          begin
+            Inc(TokenStr);
+            repeat
+              Inc(TokenStr);
+            until not (TokenStr[0] in ['0'..'9', 'A'..'F', 'a'..'f']);
+          end else
+            repeat
+              Inc(TokenStr);
+            until not (TokenStr[0] in ['0'..'9']);
+          if Result=tkEOF then Result := tkChar else Result:=tkString;
+        end;
+      '''':
+        begin
+          TokenStart := TokenStr;
+          Inc(TokenStr);
+
+          while true do
+          begin
+            if TokenStr[0] = '''' then
+              if TokenStr[1] = '''' then
+                Inc(TokenStr)
+              else
+                break;
+
+            if TokenStr[0] = #0 then
+              Error(SErrOpenString);
+
+            Inc(TokenStr);
+          end;
+          Inc(TokenStr);
+          Result := tkString;
+        end;
+    else
+      Break;
+    end;
+    SectionLength := TokenStr - TokenStart;
+    SetLength(FCurTokenString, OldLength + SectionLength);
+    if SectionLength > 0 then
+      Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
+    Inc(OldLength, SectionLength);
+  end;
+
+end;
+
 function TPascalScanner.DoFetchToken: TToken;
 
   function FetchLine: Boolean;
@@ -623,27 +688,8 @@ begin
             end;
         until not (TokenStr[0] in [#9, ' ']);
       end;
-    '#':
-      begin
-        TokenStart := TokenStr;
-        Inc(TokenStr);
-        if TokenStr[0] = '$' then
-        begin
-          Inc(TokenStr);
-          repeat
-            Inc(TokenStr);
-          until not (TokenStr[0] in ['0'..'9', 'A'..'F', 'a'..'f']);
-        end else
-          repeat
-            Inc(TokenStr);
-          until not (TokenStr[0] in ['0'..'9']);
-
-        SectionLength := TokenStr - TokenStart;
-        SetLength(FCurTokenString, SectionLength);
-        if SectionLength > 0 then
-          Move(TokenStart^, FCurTokenString[1], SectionLength);
-        Result := tkChar;
-      end;
+    '#', '''':
+      Result:=DoFetchTextToken;
     '&':
       begin
         TokenStart := TokenStr;
@@ -679,42 +725,6 @@ begin
         if SectionLength > 0 then
           Move(TokenStart^, FCurTokenString[1], SectionLength);
         Result := tkNumber;
-      end;
-    '''':
-      begin
-        Inc(TokenStr);
-        TokenStart := TokenStr;
-        OldLength := 0;
-        FCurTokenString := '';
-
-        while true do
-        begin
-          if TokenStr[0] = '''' then
-            if TokenStr[1] = '''' then
-            begin
-              SectionLength := TokenStr - TokenStart + 1;
-              SetLength(FCurTokenString, OldLength + SectionLength);
-              if SectionLength > 0 then
-                Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
-              Inc(OldLength, SectionLength);
-              Inc(TokenStr);
-              TokenStart := TokenStr+1;
-            end else
-              break;
-
-          if TokenStr[0] = #0 then
-            Error(SErrOpenString);
-
-          Inc(TokenStr);
-        end;
-
-        SectionLength := TokenStr - TokenStart;
-        SetLength(FCurTokenString, OldLength + SectionLength);
-        if SectionLength > 0 then
-          Move(TokenStart^, FCurTokenString[OldLength + 1], SectionLength);
-
-        Inc(TokenStr);
-        Result := tkString;
       end;
     '(':
       begin
