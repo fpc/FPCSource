@@ -490,6 +490,7 @@ begin
     tkFile:
       begin
         Result := TPasFileType(CreateElement(TPasFileType, '', Parent));
+        ParseFileType(TPasFileType(Result));
       end;
     tkArray:
       begin
