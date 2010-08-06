@@ -36,6 +36,7 @@ var
   E: TPasTreeContainer;
   I: Integer;
   Decls: TList;
+  cmdl : string;
 begin
   if Paramcount<1 then
     begin
@@ -44,9 +45,13 @@ begin
       writeln('usage: test_parser <commandline>');
       halt;
     end;
+  cmdl:=paramstr(1);
+  if paramcount>1 then
+    for i:=2 to paramcount do
+      cmdl:=cmdl+' '+paramstr(i);
   E := TSimpleEngine.Create;
   try
-    M := ParseSource(E, ParamStr(1), 'linux', 'i386');
+    M := ParseSource(E, cmdl , 'linux', 'i386');
 
     { Cool, we successfully parsed the unit.
       Now output some info about it. }
