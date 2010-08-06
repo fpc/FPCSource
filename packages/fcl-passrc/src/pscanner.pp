@@ -59,6 +59,7 @@ type
     tkSquaredBraceOpen,      // '['
     tkSquaredBraceClose,     // ']'
     tkCaret,                 // '^'
+    tkBackslash,             // '\'
     // Two-character tokens
     tkDotDot,                // '..'
     tkAssign,                // ':='
@@ -260,6 +261,7 @@ const
     '[',
     ']',
     '^',
+    '\',
     '..',
     ':=',
     '<>',
@@ -915,6 +917,11 @@ begin
       begin
         Inc(TokenStr);
         Result := tkCaret;
+      end;
+    '\':
+      begin
+        Inc(TokenStr);
+        Result := tkBackslash;
       end;
     '{':        // Multi-line comment
       begin

@@ -756,6 +756,15 @@ begin
     tkfalse, tktrue:    x:=TBoolConstExpr.Create(pekBoolConst, CurToken=tktrue);
     tknil:              x:=TNilExpr.Create;
     tkSquaredBraceOpen: x:=ParseParams(pekSet);
+    tkCaret: begin
+      // ^A..^_ characters. See #16341
+      NextToken;
+      if not (length(CurTokenText)=1) or not (CurTokenText[1] in ['A'..'_']) then begin
+        UngetToken;
+        ParseExc(SParserExpectedIdentifier);
+      end;
+      x:=TPrimitiveExpr.Create(pekString, '^'+CurTokenText);
+    end;
   else
     ParseExc(SParserExpectedIdentifier);
   end;
