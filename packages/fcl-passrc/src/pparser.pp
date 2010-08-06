@@ -123,7 +123,7 @@ type
       AParent: TPasElement; AVisibility: TPasMemberVisibility): TPasElement;overload;
     Function IsCurTokenHint(out AHint : TPasMemberHint) : Boolean; overload;
     Function IsCurTokenHint: Boolean; overload;
-    Function CheckHint(Element : TPasElement; ExpectSemiColon : Boolean;SkipSemi : Boolean=False) : TPasMemberHints;
+    Function CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
 
     function ParseParams(paramskind: TPasExprKind): TParamsExpr;
     function ParseExpIdent: TPasExpr;
@@ -373,7 +373,7 @@ begin
 end;
 
 
-Function TPasParser.CheckHint(Element : TPasElement; ExpectSemiColon : Boolean;SkipSemi : Boolean=False) : TPasMemberHints;
+Function TPasParser.CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
 
 Var
   Found : Boolean;
@@ -383,8 +383,6 @@ begin
   Result:=[];
   Repeat
     NextToken;
-    if (curtoken=tksemicolon) and skipsemi  then
-      NextToken; 
     Found:=IsCurTokenHint(h);
     If Found then
       Include(Result,h)
@@ -2545,7 +2543,30 @@ begin
     NextToken;
   end;
 
-  checkhint(Element,False,true);
+  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'DEPRECATED') then begin
+//  nothing to do on DEPRECATED - just to accept
+//    NextToken;
+  end else
+    UngetToken;;
+
+//!!   else
+//  not DEFAULT prop accessor will be recheck for another token
+//!!    UngetToken;
+
+{
+  if CurToken = tkSemicolon then begin
+    // read semicolon
+    NextToken;
+  end;
+  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'DEPRECATED') then begin
+//  nothing to do - just to process
+    NextToken;
+  end;
+  if CurToken = tkSemicolon then begin
+    // read semicolon
+    NextToken;
+  end;
+}
 end;
 
 // Starts after the "begin" token
