@@ -499,7 +499,20 @@ implementation
               end
             else
 {$endif i386}
-              if (nf_internal in flags) or
+            if (hp.nodetype=loadn) and
+               (tloadnode(hp).symtableentry.typ=absolutevarsym) and
+{$ifdef i386}
+               not(tabsolutevarsym(tloadnode(hp).symtableentry).absseg) and
+{$endif i386}
+               (tabsolutevarsym(tloadnode(hp).symtableentry).abstyp=toaddr) then
+               begin
+                 if nf_typedaddr in flags then
+                   result:=cpointerconstnode.create(tabsolutevarsym(tloadnode(hp).symtableentry).addroffset,tpointerdef.create(left.resultdef))
+                 else
+                   result:=cpointerconstnode.create(tabsolutevarsym(tloadnode(hp).symtableentry).addroffset,voidpointertype);
+                 exit;
+               end
+              else if (nf_internal in flags) or
                  valid_for_addr(left,true) then
                 begin
                   if not(nf_typedaddr in flags) then
