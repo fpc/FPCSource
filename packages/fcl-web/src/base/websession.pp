@@ -14,7 +14,7 @@
 unit websession;
 
 {$mode objfpc}{$H+}
-{$define cgidebug}
+{ $define cgidebug}
 interface
 
 uses
