@@ -146,6 +146,20 @@ type
     procedure EndElement;
   end;
 
+{ Buffer builder, used to compose long strings without too much memory allocations }
+
+  PWideCharBuf = ^TWideCharBuf;
+  TWideCharBuf = record
+    Buffer: PWideChar;
+    Length: Integer;
+    MaxLength: Integer;
+  end;
+
+procedure BufAllocate(var ABuffer: TWideCharBuf; ALength: Integer);
+procedure BufAppend(var ABuffer: TWideCharBuf; wc: WideChar);
+procedure BufAppendChunk(var ABuf: TWideCharBuf; pstart, pend: PWideChar);
+function BufEquals(const ABuf: TWideCharBuf; const Arg: WideString): Boolean;
+
 {$i names.inc}
 
 implementation
@@ -844,6 +858,51 @@ begin
   FBindingStack[FNesting] := nil;
   if FNesting > 0 then
     Dec(FNesting);
+end;
+
+{ Buffer builder utils }
+
+procedure BufAllocate(var ABuffer: TWideCharBuf; ALength: Integer);
+begin
+  ABuffer.MaxLength := ALength;
+  ABuffer.Length := 0;
+  ABuffer.Buffer := AllocMem(ABuffer.MaxLength*SizeOf(WideChar));
+end;
+
+procedure BufAppend(var ABuffer: TWideCharBuf; wc: WideChar);
+begin
+  if ABuffer.Length >= ABuffer.MaxLength then
+  begin
+    ReallocMem(ABuffer.Buffer, ABuffer.MaxLength * 2 * SizeOf(WideChar));
+    FillChar(ABuffer.Buffer[ABuffer.MaxLength], ABuffer.MaxLength * SizeOf(WideChar),0);
+    ABuffer.MaxLength := ABuffer.MaxLength * 2;
+  end;
+  ABuffer.Buffer[ABuffer.Length] := wc;
+  Inc(ABuffer.Length);
+end;
+
+procedure BufAppendChunk(var ABuf: TWideCharBuf; pstart, pend: PWideChar);
+var
+  Len: Integer;
+begin
+  Len := PEnd - PStart;
+  if Len <= 0 then
+    Exit;
+  if Len >= ABuf.MaxLength - ABuf.Length then
+  begin
+    ABuf.MaxLength := (Len + ABuf.Length)*2;
+    // note: memory clean isn't necessary here.
+    // To avoid garbage, control Length field.
+    ReallocMem(ABuf.Buffer, ABuf.MaxLength * sizeof(WideChar));
+  end;
+  Move(pstart^, ABuf.Buffer[ABuf.Length], Len * sizeof(WideChar));
+  Inc(ABuf.Length, Len);
+end;
+
+function BufEquals(const ABuf: TWideCharBuf; const Arg: WideString): Boolean;
+begin
+  Result := (ABuf.Length = Length(Arg)) and
+    CompareMem(ABuf.Buffer, Pointer(Arg), ABuf.Length*sizeof(WideChar));
 end;
 
 
