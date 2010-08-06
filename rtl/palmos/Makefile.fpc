@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders= prt0
-units=$(SYSTEMUNIT) ctypes objpas macpas strings \
+units=$(SYSTEMUNIT) ctypes objpas macpas iso7185 strings \
       lnfodwrf lineinfo heaptrc \
       windows messages dynlibs \
       dos objects \
@@ -164,4 +164,4 @@ libinstall: staticlibinstall sharedlibinstall
 
 libsclean : clean
 	-$(DEL) *$(SMARTLIBEXT) *$(SHAREDLIBEXT) *$(PPLEXT)
-
+

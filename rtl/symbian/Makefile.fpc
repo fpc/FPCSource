@@ -6,7 +6,7 @@
 main=rtl
 
 [target]
-units=system objpas macpas buildrtl
+units=system objpas macpas iso7185 buildrtl
 implicitunits=ctypes strings \
       symbian
 

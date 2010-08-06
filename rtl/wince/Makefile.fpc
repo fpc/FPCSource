@@ -6,7 +6,7 @@
 main=rtl
 
 [target]
-units=$(SYSTEMUNIT) fpintres ctypes objpas macpas strings \
+units=$(SYSTEMUNIT) fpintres ctypes objpas macpas iso7185 strings \
       lineinfo heaptrc \
       windows messages dynlibs \
       dos objects \

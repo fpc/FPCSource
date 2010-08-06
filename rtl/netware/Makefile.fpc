@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=nwpre prelude
-units=$(SYSTEMUNIT) objpas macpas strings \
+units=$(SYSTEMUNIT) objpas macpas iso7185 strings \
       lineinfo lnfodwrf winsock heaptrc matrix \
       dos crt objects sysconst \
       initc sysutils types typinfo fgl classes fmtbcd \
