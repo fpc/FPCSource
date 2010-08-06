@@ -176,6 +176,7 @@ begin
                           begin
                           Result := True;
                           InitRequestVars;
+                          ParseCookies;
                           end
                         else
                           begin
