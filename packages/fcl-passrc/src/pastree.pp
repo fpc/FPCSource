@@ -173,7 +173,7 @@ type
   TCallingConvention = (ccDefault,ccRegister,ccPascal,ccCDecl,ccStdCall,ccOldFPCCall,ccSafeCall);
 
   TPasMemberVisibilities = set of TPasMemberVisibility;
-  TPasMemberHint = (hDeprecated,hLibrary,hPlatform);
+  TPasMemberHint = (hDeprecated,hLibrary,hPlatform,hExperimental,hUnimplemented);
   TPasMemberHints = set of TPasMemberHint; 
 
   TPTreeElement = class of TPasElement;

@@ -121,7 +121,8 @@ type
       AParent: TPasElement): TPasElement;overload;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility): TPasElement;overload;
-    Function IsHint(Const S : String; var AHint : TPasMemberHint) : Boolean;
+    Function IsCurTokenHint(out AHint : TPasMemberHint) : Boolean; overload;
+    Function IsCurTokenHint: Boolean; overload;
     Function CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
 
     function ParseParams(paramskind: TPasExprKind): TParamsExpr;
@@ -143,6 +144,7 @@ type
     function ParseComplexType(Parent : TPasElement = Nil): TPasType;
     procedure ParseArrayType(Element: TPasArrayType);
     procedure ParseFileType(Element: TPasFileType);
+    function isEndOfExp: Boolean;
     function DoParseExpression(InitExpr: TPasExpr=nil): TPasExpr;
     function DoParseConstValueExpression: TPasExpr;
     function ParseExpression: String;
@@ -340,29 +342,36 @@ begin
   Result:=ParseType(Parent,'');
 end;
 
-Function TPasParser.IsHint(Const S : String; var AHint : TPasMemberHint) : Boolean;
-
+Function TPasParser.IsCurTokenHint(out AHint : TPasMemberHint) : Boolean;
 Var
   T : string;
-
 begin
-  T:=LowerCase(S);
-  Result:=(T='deprecated');
-  If Result then
-    Ahint:=hDeprecated
-  else
+  if CurToken=tklibrary then
     begin
-    Result:=(T='library');
-    if Result then
-      Ahint:=hLibrary
-    else
-      begin
-      Result:=(T='platform');
-      If result then
-        AHint:=hPlatform;
-      end;
-    end;  
+    AHint:=hLibrary;
+    Result:=True;
+    end
+  else if CurToken=tkIdentifier then
+    begin
+      T:=LowerCase(CurTokenString);
+      Result:=True;
+      if (T='deprecated') then ahint:=hDeprecated
+      else if (T='platform') then ahint:=hPlatform
+      else if (T='experimental') then ahint:=hExperimental
+      else if (T='unimplemented') then ahint:=hUnimplemented
+      else Result:=False;
+    end
+  else
+    Result:=False;
 end;
+
+Function TPasParser.IsCurTokenHint: Boolean;
+var
+  dummy : TPasMemberHint;
+begin
+  Result:=IsCurTokenHint(dummy);
+end;
+
 
 Function TPasParser.CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
 
@@ -374,7 +383,7 @@ begin
   Result:=[];
   Repeat
     NextToken;
-    Found:=IsHint(CurTokenString,h);
+    Found:=IsCurTokenHint(h);
     If Found then
       Include(Result,h)
   Until Not Found;
@@ -577,7 +586,7 @@ begin
         Result := TPasProcedureType(CreateElement(TPasProcedureType, '', Parent));
         ParseProcedureOrFunctionHeader(Result,
           TPasProcedureType(Result), ptProcedure, True);
-        UngetToken;        // Unget semicolon
+        if CurToken = tkSemicolon then UngetToken;        // Unget semicolon
       end;
     tkFunction:
       begin
@@ -641,12 +650,15 @@ begin
     Element.ElType := ParseType(nil);
 end;
 
+function TPasParser.isEndOfExp:Boolean;
 const
   EndExprToken = [
     tkEOF, tkBraceClose, tkSquaredBraceClose, tkSemicolon, tkComma, tkColon,
     tkdo, tkdownto, tkelse, tkend, tkof, tkthen, tkto
   ];
-
+begin
+  Result:=(CurToken in EndExprToken) or IsCurTokenHint;
+end;
 
 function TPasParser.ParseParams(paramskind: TPasExprKind): TParamsExpr;
 var
@@ -666,7 +678,7 @@ begin
   params:=TParamsExpr.Create(paramskind);
   try
     NextToken;
-    if not (CurToken in EndExprToken) then begin
+    if not isEndOfExp then begin
       repeat
         p:=DoParseExpression;
         if not Assigned(p) then Exit; // bad param syntax
@@ -819,10 +831,15 @@ var
   x         : TPasExpr;
   i         : Integer;
   tempop    : TToken;
-  AllowEnd  : Boolean;
+  NotBinary : Boolean;
   
 const
   PrefixSym = [tkPlus, tkMinus, tknot, tkAt]; // + - not @
+  BinaryOP  = [tkMul, tkDivision, tkdiv, tkmod,
+               tkand, tkShl,tkShr, tkas, tkPower,
+               tkPlus, tkMinus, tkor, tkxor, tkSymmetricalDifference,
+               tkEqual, tkNotEqual, tkLessThan, tkLessEqualThan,
+               tkGreaterThan, tkGreaterEqualThan, tkin, tkis];
 
   function PopExp: TPasExpr; inline;
   begin
@@ -868,7 +885,7 @@ begin
   opstack := TList.Create;
   try
     repeat
-      AllowEnd:=True;
+      NotBinary:=True;
       pcount:=0;
 
       if not Assigned(InitExpr) then
@@ -914,9 +931,9 @@ begin
         InitExpr:=nil;
       end;
 
-      if not (CurToken in EndExprToken) then begin
+      if (CurToken in BinaryOP) then begin
         // Adjusting order of the operations
-        AllowEnd:=False;
+        NotBinary:=False;
         tempop:=PeekOper;
         while (opstack.Count>0) and (OpLevel(tempop)>=OpLevel(CurToken)) do begin
           PopAndPushOperator;
@@ -926,7 +943,9 @@ begin
         NextToken;
       end;
 
-    until AllowEnd and (CurToken in EndExprToken);
+    until NotBinary or isEndOfExp;
+
+    if not NotBinary then ParseExc(SParserExpectedIdentifier);
 
     while opstack.Count>0 do PopAndPushOperator;
 
@@ -1583,7 +1602,6 @@ var
   Prefix : String;
   HadPackedModifier : Boolean;           // 12/04/04 - Dave - Added
   IsBitPacked : Boolean;
-  H : TPasMemberHint;
   
 begin
   TypeName := CurTokenString;
@@ -1652,7 +1670,7 @@ begin
           end
         else
           Prefix:='';
-        if (CurToken = tkSemicolon) or IsHint(CurtokenString,h)then
+        if (CurToken = tkSemicolon) or IsCurTokenHint then
         begin
           UngetToken;
           UngetToken;
@@ -2062,10 +2080,9 @@ procedure TPasParser.ParseProcedureOrFunctionHeader(Parent: TPasElement;
   Element: TPasProcedureType; ProcType: TProcType; OfObjectPossible: Boolean);
 
 procedure ConsumeSemi;
-var bl : TPasMemberHint;
 begin
   NextToken;
-  if (CurToken <> tksemicolon) and ishint(curtokenstring,bl) then
+  if (CurToken <> tksemicolon) and IsCurTokenHint then
     ungettoken;
 end;
 
@@ -2073,7 +2090,7 @@ Var
   Tok : String;
   i: Integer;
   Proc: TPasProcedure;
-
+  ahint : TPasMemberHint;
 begin
   NextToken;
   case ProcType of
@@ -2223,19 +2240,9 @@ begin
         TPasProcedure(Parent).AddModifier(pmVarArgs);
         ExpectToken(tkSemicolon);
         end
-      else if (tok='DEPRECATED') then
+      else if IsCurTokenHint(ahint) then  // deprecated,platform,experimental,library, unimplemented etc
         begin
-        element.hints:=element.hints+[hDeprecated];
-        consumesemi;
-        end
-      else if (tok='PLATFORM') then
-        begin
-        element.hints:=element.hints+[hPlatform];
-        consumesemi;
-        end
-      else if (tok='LIBRARY') then
-        begin
-        element.hints:=element.hints+[hLibrary];
+        element.hints:=element.hints+[ahint];
         consumesemi;
         end
       else if (tok='OVERLOAD') then
