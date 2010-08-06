@@ -48,13 +48,13 @@ procedure ReadXMLFile(out ADoc: TXMLDocument; f: TStream; const ABaseURI: String
 
 procedure ReadXMLFragment(AParentNode: TDOMNode; const AFilename: String); overload;
 procedure ReadXMLFragment(AParentNode: TDOMNode; var f: Text); overload;
-procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream); overload;
-procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream; const ABaseURI: String); overload;
+procedure ReadXMLFragment(AParentNode: TDOMNode; f: TStream); overload;
+procedure ReadXMLFragment(AParentNode: TDOMNode; f: TStream; const ABaseURI: String); overload;
 
 procedure ReadDTDFile(out ADoc: TXMLDocument; const AFilename: String);  overload;
 procedure ReadDTDFile(out ADoc: TXMLDocument; var f: Text); overload;
-procedure ReadDTDFile(out ADoc: TXMLDocument; var f: TStream); overload;
-procedure ReadDTDFile(out ADoc: TXMLDocument; var f: TStream; const ABaseURI: String); overload;
+procedure ReadDTDFile(out ADoc: TXMLDocument; f: TStream); overload;
+procedure ReadDTDFile(out ADoc: TXMLDocument; f: TStream; const ABaseURI: String); overload;
 
 type
   TDOMParseOptions = class(TObject)
@@ -3871,7 +3871,7 @@ begin
   end;
 end;
 
-procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream; const ABaseURI: String);
+procedure ReadXMLFragment(AParentNode: TDOMNode; f: TStream; const ABaseURI: String);
 var
   Reader: TXMLReader;
   Src: TXMLCharSource;
@@ -3886,7 +3886,7 @@ begin
   end;
 end;
 
-procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream);
+procedure ReadXMLFragment(AParentNode: TDOMNode; f: TStream);
 begin
   ReadXMLFragment(AParentNode, f, 'stream:');
 end;
@@ -3920,7 +3920,7 @@ begin
   end;
 end;
 
-procedure ReadDTDFile(out ADoc: TXMLDocument; var f: TStream; const ABaseURI: String);
+procedure ReadDTDFile(out ADoc: TXMLDocument; f: TStream; const ABaseURI: String);
 var
   Reader: TXMLReader;
   Src: TXMLCharSource;
@@ -3937,7 +3937,7 @@ begin
   end;
 end;
 
-procedure ReadDTDFile(out ADoc: TXMLDocument; var f: TStream);
+procedure ReadDTDFile(out ADoc: TXMLDocument; f: TStream);
 begin
   ReadDTDFile(ADoc, f, 'stream:');
 end;
