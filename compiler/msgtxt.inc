@@ -1017,7 +1017,7 @@ const msgtxt : array[0..000237,1..240] of char=(
   'le "$1"'#000+
   '11023_Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPC'+
   'CPU'#010+
-  'Copyright (c) ','1993-2009 by Florian Klaempfl'#000+
+  'Copyright (c) ','1993-2010 by Florian Klaempfl'#000+
   '11024_Free Pascal Compiler version $FPCVERSION'#010+
   #010+
   'Compiler Date      : $FPCDATE'#010+

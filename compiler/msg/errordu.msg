@@ -2926,7 +2926,7 @@ wpo_cant_create_feedback_file=12019_E_Die angegebene Feedback-Eingabe-Datei "$1"
 #
 option_logo=11023_[
 Free Pascal Compiler Version $FPCFULLVERSION [$FPCDATE] für $FPCTARGET
-Copyright (c) 1993-2009 Florian Klämpfl
+Copyright (c) 1993-2010 Florian Klämpfl
 ]
 
 #
