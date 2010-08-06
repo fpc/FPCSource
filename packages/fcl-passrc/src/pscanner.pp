@@ -1015,7 +1015,15 @@ begin
                 if FCurSourceFile is TFileLineReader then
                   FCurFilename := TFileLineReader(FCurSourceFile).Filename; // nicer error messages
                 FCurRow := 0;
-              end;
+              end
+             else
+              if Param[1]='%' then
+                begin
+                  fcurtokenstring:='{$i '+param+'}';
+                  fcurtoken:=tkstring;  
+                  result:=fcurtoken;
+                  exit; 
+                end;
             end else if Directive = 'DEFINE' then
             begin
               if not PPIsSkipping then
