@@ -14,7 +14,7 @@
 unit websession;
 
 {$mode objfpc}{$H+}
-{ $define cgidebug}
+{$define cgidebug}
 interface
 
 uses
@@ -283,8 +283,12 @@ begin
   If FSessionStarted then
     begin
 {$ifdef cgidebug}SendDebug('Session started');{$endif}
-    C:=AResponse.Cookies.Add;
-    C.Name:=SessionCookie;
+    C:=AResponse.Cookies.FindCookie(SessionCookie);
+    If (C=Nil) then
+      begin
+      C:=AResponse.Cookies.Add;
+      C.Name:=SessionCookie;
+      end;
     C.Value:=SID;
     C.Path:=FSessionCookiePath;
     end
@@ -350,8 +354,8 @@ begin
     begin
     If (FSession=Nil) then
       FSession:=GetDefaultSession;
-    if Assigned(Session) then
-      Session.InitSession(ARequest,FOnNewSession,FOnSessionExpired);
+    if Assigned(FSession) then
+      FSession.InitSession(ARequest,FOnNewSession,FOnSessionExpired);
     end;
 {$ifdef cgidebug}SendMethodExit('SessionHTTPModule('+Name+').CheckSession');{$endif}
 end;
