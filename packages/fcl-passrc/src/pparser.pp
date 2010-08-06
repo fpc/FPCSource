@@ -1037,6 +1037,21 @@ var
   n : AnsiString;
   r : TRecordValues;
   a : TArrayValues;
+
+function lastfield:boolean;
+
+begin
+  result:= CurToken<>tkSemicolon;
+  if not result then
+   begin
+     nexttoken;
+     if curtoken=tkbraceclose then
+       result:=true
+     else
+       ungettoken;
+   end; 
+end;
+
 begin
   if CurToken <> tkBraceOpen then
     Result:=DoParseExpression
@@ -1064,14 +1079,14 @@ begin
           NextToken;
           x:=DoParseConstValueExpression();
           r.AddField(n, x);
-          if CurToken=tkSemicolon then
+          if not lastfield then
             repeat
               n:=ExpectIdentifier;
               ExpectToken(tkColon);
               NextToken;
               x:=DoParseConstValueExpression();
               r.AddField(n, x)
-            until CurToken<>tkSemicolon;
+            until lastfield; // CurToken<>tkSemicolon;
           Result:=r;
         end;
     else
