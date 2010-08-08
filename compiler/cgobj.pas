@@ -1115,6 +1115,7 @@ implementation
            end;
       end;
 
+
     procedure tcg.a_load_cgparaloc_ref(list : TAsmList;const paraloc : TCGParaLocation;const ref : treference;sizeleft : aint;align : longint);
       var
         href : treference;
