@@ -993,7 +993,7 @@ implementation
             end;
           stringdef :
             begin
-              if is_ansistring(def) or is_widestring(def) then
+              if is_ansistring(def) or is_wide_or_unicode_string(def) then
                 result := OS_ADDR
               else
                 result:=int_cgsize(def.size);
