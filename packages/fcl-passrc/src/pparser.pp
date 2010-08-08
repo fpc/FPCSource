@@ -1552,7 +1552,7 @@ begin
   begin
     AUnitName := ExpectIdentifier;
 
-    Element := Engine.FindModule(AUnitName);
+    Element := Engine.FindModule(AUnitName); // should we resolve module here when "IN" filename is not known yet?
     if Assigned(Element) then
       Element.AddRef
     else
@@ -1566,6 +1566,8 @@ begin
       // todo: store unit's file name somewhere
       NextToken; // skip in
       ExpectToken(tkString); // skip unit's real file name
+      if (Element is TPasModule) and (TPasmodule(Element).filename<>'')  then
+        TPasModule(Element).FileName:=curtokenstring;
     end;
 
     if CurToken = tkSemicolon then

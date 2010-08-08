@@ -255,6 +255,7 @@ type
     InitializationSection: TInitializationSection;
     FinalizationSection: TFinalizationSection;
     PackageName: string;
+    Filename   : String;  // the IN filename, only written when not empty.
   end;
 
   { TPasPackage }
