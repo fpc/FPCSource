@@ -798,7 +798,7 @@ end;
                          setreadbank(offs shr 16);
                          setwritebank(offs shr 16);
                          Mem[WinWriteSeg:word(offs)] :=
-                           Mem[WinReadSeg:word(offs)] And byte(currentColor);
+                           Mem[WinReadSeg:word(offs)] Or byte(currentColor);
                          inc(offs);
                        end;
                      HLength := 0
