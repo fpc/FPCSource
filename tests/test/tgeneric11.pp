@@ -2,8 +2,9 @@
 
 type
    generic TList<_T>=class(TObject)
-   var public
-     data : _T;
+   public
+     var
+       data : _T;
      procedure Add(item: _T);
      procedure Assign(Source: specialize TList<_T>);
    end;

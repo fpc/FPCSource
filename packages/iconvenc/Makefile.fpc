@@ -3,11 +3,11 @@
 #
 
 [package]
-name=iconvenc
-version=2.2.2
+name=iconvenc 
+version=2.5.1
 
 [target]
-units=iconvenc
+units=iconvenc iconvenc_dyn
 exampledirs=examples
 
 [require]

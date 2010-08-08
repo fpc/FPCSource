@@ -1,4 +1,4 @@
-Unit system;
+Unit System;
 
 interface
 
@@ -23,7 +23,7 @@ implementation
 
 procedure debugger(s : PChar); cdecl; external 'root' name 'debugger';
 
-function disable_debugger(state : integer): integer; external 'root' name 'disable_debugger';
+function disable_debugger(state : integer): integer; cdecl; external 'root' name 'disable_debugger';
 //begin
 //end;
 
@@ -298,6 +298,7 @@ function  reenable_signal(sig : longint) : boolean;
 var
   e : TSigSet;
   i,j : byte;
+  olderrno: cint;
 begin
   fillchar(e,sizeof(e),#0);
   { set is 1 based PM }
@@ -305,8 +306,11 @@ begin
   i:=sig mod (sizeof(cuLong) * 8);
   j:=sig div (sizeof(cuLong) * 8);
   e[j]:=1 shl i;
+  { this routine is called from a signal handler, so must not change errno }
+  olderrno:=geterrno;
   fpsigprocmask(SIG_UNBLOCK,@e,nil);
   reenable_signal:=geterrno=0;
+  seterrno(olderrno);
 end;
 
 // signal handler is arch dependant due to processorexception to language
@@ -314,21 +318,72 @@ end;
 
 {$i sighnd.inc}
 
+//void	set_signal_stack(void *ptr, size_t size);
+//int		sigaltstack(const stack_t *ss, stack_t *oss);
+
+procedure set_signal_stack(ptr : pointer; size : size_t); cdecl; external 'root' name 'set_signal_stack';
+function sigaltstack(const ss : pstack_t; oss : pstack_t) : integer; cdecl; external 'root' name 'sigaltstack'; 
+
+type
+  {$PACKRECORDS C}
+  TAlternateSignalStack = packed record
+  	case Integer of
+  	  0 : (buffer : array[0..SIGSTKSZ * 4] of Char);
+  	  1 : (ld : clonglong);
+  	  2 : (l : integer);
+  	  3 : (p : pointer);
+  end;
+
 var
-  act: SigActionRec;
+  alternate_signal_stack : TAlternateSignalStack;
+
+procedure InstallDefaultSignalHandler(signum: longint; out oldact: SigActionRec); public name '_FPC_INSTALLDEFAULTSIGHANDLER';
+var
+  r : integer;
+  st : stack_t;
+  act : SigActionRec;
+begin
+  st.ss_flags := 0;
+  st.ss_sp := @alternate_signal_stack.buffer;
+  st.ss_size := SizeOf(alternate_signal_stack.buffer);
+
+  r := sigaltstack(@st, nil);
+
+  if (r <> 0) then
+  begin
+    debugger('sigaltstack error');
+  end;
+
+  { Initialize the sigaction structure }
+  { all flags and information set to zero }
+  FillChar(act, sizeof(SigActionRec), #0);
+  { initialize handler                    }
+  act.sa_mask[0] := 0;
+  act.sa_handler := SigActionHandler(@SignalToRunError);
+  act.sa_flags := SA_ONSTACK or SA_NODEFER or SA_RESETHAND;
+  FpSigAction(signum,@act,@oldact);
+end;
+
+var
+  oldsigfpe: SigActionRec; public name '_FPC_OLDSIGFPE';
+  oldsigsegv: SigActionRec; public name '_FPC_OLDSIGSEGV';
+  oldsigbus: SigActionRec; public name '_FPC_OLDSIGBUS';
+  oldsigill: SigActionRec; public name '_FPC_OLDSIGILL';
 
 Procedure InstallSignals;
 begin
-  { Initialize the sigaction structure }
-  { all flags and information set to zero }
-  FillChar(act, sizeof(SigActionRec),0);
-  { initialize handler                    }
-  act.sa_handler := SigActionHandler(@SignalToRunError);
-  act.sa_flags:=SA_SIGINFO;
-  FpSigAction(SIGFPE,@act,nil);
-  FpSigAction(SIGSEGV,@act,nil);
-  FpSigAction(SIGBUS,@act,nil);
-  FpSigAction(SIGILL,@act,nil);
+  InstallDefaultSignalHandler(SIGFPE,oldsigfpe);
+  InstallDefaultSignalHandler(SIGSEGV,oldsigsegv);
+  InstallDefaultSignalHandler(SIGBUS,oldsigbus);
+  InstallDefaultSignalHandler(SIGILL,oldsigill);
+end;
+
+Procedure RestoreOldSignalHandlers;
+begin
+  FpSigAction(SIGFPE,@oldsigfpe,nil);
+  FpSigAction(SIGSEGV,@oldsigsegv,nil);
+  FpSigAction(SIGBUS,@oldsigbus,nil);
+  FpSigAction(SIGILL,@oldsigill,nil);
 end;
 
 procedure SysInitStdIO;
@@ -350,10 +405,10 @@ var
   s : string;
 begin
   IsConsole := TRUE;
-  IsLibrary := FALSE;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
-
+  ReturnNilIfGrowHeapFails := False;
+  
   SysResetFPU;
   if not(IsLibrary) then
     SysInitFPU;
@@ -361,13 +416,13 @@ begin
   { Set up signals handlers }
   InstallSignals;
 
-  SysInitStdIO;
-{ Setup heap }
-  myheapsize:=4096*1;// $ 20000;
-  myheaprealsize:=4096*1;// $ 20000;
+  { Setup heap }
+  myheapsize:=4096*100;// $ 20000;
+  myheaprealsize:=4096*100;// $ 20000;
   heapstart:=nil;
   heapstartpointer := nil;
-  heapstartpointer := Sbrk2(4096*1);
+//  heapstartpointer := Sbrk2(4096*1);
+  heapstartpointer := SysOSAlloc(4096*100);
 {$IFDEF FPC_USE_LIBC}  
 //  heap_handle := create_area('fpcheap',heapstart,0,myheaprealsize,0,3);//!!
 {$ELSE}
@@ -422,4 +477,7 @@ begin
   initunicodestringmanager;
 {$endif VER2_2}
   setupexecname;
+  { restore original signal handlers in case this is a library }
+  if IsLibrary then
+    RestoreOldSignalHandlers;
 end.

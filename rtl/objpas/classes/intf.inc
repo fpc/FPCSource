@@ -10,6 +10,29 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{ TInerfaceListEnumerator }
+
+    constructor TInterfaceListEnumerator.Create(AList: TInterfaceList);
+      begin
+        inherited create;
+        FList:=AList;
+        FPosition:=-1;
+      end;
+
+
+    function TInterfaceListEnumerator.GetCurrent: IUnknown;
+      begin
+        Result:=FList[FPosition];
+      end;
+
+
+    function TInterfaceListEnumerator.MoveNext: Boolean;
+      begin
+        Inc(FPosition);
+        Result:=FPosition<FList.Count;
+      end;
+
+{ TInterfaceList }
 
     constructor TInterfaceList.Create;
       begin
@@ -139,6 +162,12 @@
     function TInterfaceList.First : IUnknown;
       begin
         result:=Get(0);
+      end;
+
+
+    function TInterfaceList.GetEnumerator: TInterfaceListEnumerator;
+      begin
+        result:=TInterfaceListEnumerator.Create(Self)
       end;
 
 

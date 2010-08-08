@@ -219,7 +219,7 @@ Begin
 End;
 
 
-Procedure GotoXy(X: Byte; Y: Byte);
+Procedure GotoXy(X: tcrtcoord; Y: tcrtcoord);
 {
   Go to coordinates X,Y in the current window.
 }
@@ -284,7 +284,7 @@ End;
 
 
 
-Function WhereX: Byte;
+Function WhereX: tcrtcoord;
 {
   Return current X-position of cursor.
 }
@@ -297,7 +297,7 @@ End;
 
 
 
-Function WhereY: Byte;
+Function WhereY: tcrtcoord;
 {
   Return current Y-position of cursor.
 }

@@ -34,10 +34,10 @@
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-function xmlModuleOpen(filename: char; options: cint): xmlModulePtr; XMLCALL; XMLPUBFUN;
-function xmlModuleSymbol(module: xmlModulePtr; name: pchar; var result: pointer): cint; XMLCALL; XMLPUBFUN;
-function xmlModuleClose(module: xmlModulePtr): cint; XMLCALL; XMLPUBFUN;
-function xmlModuleFree(module: xmlModulePtr): cint; XMLCALL; XMLPUBFUN;
+function xmlModuleOpen(filename: char; options: cint): xmlModulePtr; EXTDECL; external xml2lib;
+function xmlModuleSymbol(module: xmlModulePtr; name: pchar; var result: pointer): cint; EXTDECL; external xml2lib;
+function xmlModuleClose(module: xmlModulePtr): cint; EXTDECL; external xml2lib;
+function xmlModuleFree(module: xmlModulePtr): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_MODULES_ENABLED *)

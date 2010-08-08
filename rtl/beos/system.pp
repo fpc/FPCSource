@@ -1,4 +1,4 @@
-Unit system;
+Unit System;
 
 interface
 
@@ -298,6 +298,7 @@ function  reenable_signal(sig : longint) : boolean;
 var
   e : TSigSet;
   i,j : byte;
+  olderrno: cint;
 begin
   fillchar(e,sizeof(e),#0);
   { set is 1 based PM }
@@ -305,8 +306,11 @@ begin
   i:=sig mod (sizeof(cuLong) * 8);
   j:=sig div (sizeof(cuLong) * 8);
   e[j]:=1 shl i;
+  { this routine is called from a signal handler, so must not change errno }
+  olderrno:=geterrno;
   fpsigprocmask(SIG_UNBLOCK,@e,nil);
   reenable_signal:=geterrno=0;
+  seterrno(olderrno);
 end;
 
 // signal handler is arch dependant due to processorexception to language
@@ -314,10 +318,9 @@ end;
 
 {$i sighnd.inc}
 
+procedure InstallDefaultSignalHandler(signum: longint; out oldact: SigActionRec); public name '_FPC_INSTALLDEFAULTSIGHANDLER';
 var
   act: SigActionRec;
-
-Procedure InstallSignals;
 begin
   { Initialize the sigaction structure }
   { all flags and information set to zero }
@@ -325,11 +328,31 @@ begin
   { initialize handler                    }
   act.sa_handler := SigActionHandler(@SignalToRunError);
   act.sa_flags:=SA_SIGINFO;
-  FpSigAction(SIGFPE,@act,nil);
-  FpSigAction(SIGSEGV,@act,nil);
-  FpSigAction(SIGBUS,@act,nil);
-  FpSigAction(SIGILL,@act,nil);
+  FpSigAction(signum,@act,@oldact);
 end;
+
+var
+  oldsigfpe: SigActionRec; public name '_FPC_OLDSIGFPE';
+  oldsigsegv: SigActionRec; public name '_FPC_OLDSIGSEGV';
+  oldsigbus: SigActionRec; public name '_FPC_OLDSIGBUS';
+  oldsigill: SigActionRec; public name '_FPC_OLDSIGILL';
+
+Procedure InstallSignals;
+begin
+  InstallDefaultSignalHandler(SIGFPE,oldsigfpe);
+  InstallDefaultSignalHandler(SIGSEGV,oldsigsegv);
+  InstallDefaultSignalHandler(SIGBUS,oldsigbus);
+  InstallDefaultSignalHandler(SIGILL,oldsigill);
+end;
+
+Procedure RestoreOldSignalHandlers;
+begin
+  FpSigAction(SIGFPE,@oldsigfpe,nil);
+  FpSigAction(SIGSEGV,@oldsigsegv,nil);
+  FpSigAction(SIGBUS,@oldsigbus,nil);
+  FpSigAction(SIGILL,@oldsigill,nil);
+end;
+
 
 procedure SysInitStdIO;
 begin
@@ -350,7 +373,6 @@ var
   s : string;
 begin
   IsConsole := TRUE;
-  IsLibrary := FALSE;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
 
@@ -358,11 +380,10 @@ begin
   if not(IsLibrary) then
     SysInitFPU;
 
-  { Set up signals handlers }
+  { Set up signals handlers (may be needed by init code to test cpu features) }
   InstallSignals;
 
-  SysInitStdIO;
-{ Setup heap }
+  { Setup heap }
   myheapsize:=4096*1;// $ 20000;
   myheaprealsize:=4096*1;// $ 20000;
   heapstart:=nil;
@@ -422,4 +443,7 @@ begin
   initunicodestringmanager;
 {$endif VER2_2}
   setupexecname;
+  { restore original signal handlers in case this is a library }
+  if IsLibrary then
+    RestoreOldSignalHandlers;
 end.

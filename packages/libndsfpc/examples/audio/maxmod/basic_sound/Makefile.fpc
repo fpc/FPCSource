@@ -1,0 +1,49 @@
+#
+#   Makefile.fpc for Free Pascal libndsfpc 2.x.y Examples
+#
+
+[target]
+loaders=soundbank.bin $(GFX_FILES)
+programs=basic_sound
+
+[require]
+packages=libndsfpc
+tools=bin2s mmutil grit
+nortl=y
+
+[install]
+fpcpackage=y
+
+[default]
+cpu=arm
+target=nds
+fpcdir=../../../../../..
+
+[compiler]
+options=-g -O2
+
+[clean]
+files=*.elf *.o *.s *.nds *.nef *.h *.bin \
+       $(BUILD)/*
+units=*
+
+[prerules]
+BUILD = build
+AUDIO_FILES = $(foreach dir,$(notdir $(wildcard audio/*.*)),$(CURDIR)/audio/$(dir))
+GFX_FILES = $(foreach dir,gfx,$(notdir $(wildcard $(dir)/*.png)))
+
+[rules]
+.NOTPARALLEL:
+all: direc fpc_all 
+direc:
+ifneq ($(BUILD), $(CURDIR))
+        $(MKDIR) $(BUILD)
+endif
+soundbank.bin.o : $(AUDIO_FILES)
+        @$(MMUTIL) $^ -d -o$(BUILD)/soundbank.bin -h$(BUILD)/soundbank.h
+        $(BIN2S) $(BUILD)/soundbank.bin > $(BUILD)/soundbank.bin.s
+        $(AS) -o $(BUILD)/soundbank.bin.o $(BUILD)/soundbank.bin.s
+
+$(GFX_FILES).o: 
+        $(GRIT) gfx/$(GFX_FILES) -fts -ff gfx/$(basename $(GFX_FILES)).grit -o$(BUILD)/$(GFX_FILES)
+        $(AS) -o $(BUILD)/$(basename $(GFX_FILES)).o $(BUILD)/$(basename $(GFX_FILES)).s

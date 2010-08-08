@@ -19,18 +19,7 @@ uses
     x.h
 }
 
-{ Pointers to basic pascal types, inserted by h2pas conversion program.}
-Type
-  PPLongint = ^PLongint;
-  PPByte    = ^PByte;
-  PPChar    = ^PChar;
-  PPPChar   = ^PPChar;
-  PPWideChar  = ^PWideChar;
-  PPPWideChar = ^PPWideChar;
-
-
 {$PACKRECORDS C}
-
 
 const
    X_PROTOCOL = 11;
@@ -50,8 +39,8 @@ type
    PVisualID = ^TVisualID;
    TVisualID = culong;
 
-   PTime = ^TTime;
    TTime = culong;
+   PTime = ^TTime;
 
    PPWindow = ^PWindow;
    PWindow = ^TWindow;

@@ -42,7 +42,7 @@ interface
     uses
       cclasses,globtype,
       aasmbase,aasmtai,aasmdata,
-      symbase,symtype,symdef,symsym,
+      symbase,symconst,symtype,symdef,symsym,
       finput,
       DbgBase;
 
@@ -137,7 +137,7 @@ interface
 
         { DWARF 3 values.   }
         DW_AT_allocated := $4e,DW_AT_associated := $4f,
-        DW_AT_data_location := $50,DW_AT_stride := $51,
+        DW_AT_data_location := $50,DW_AT_byte_stride := $51,
         DW_AT_entry_pc := $52,DW_AT_use_UTF8 := $53,
         DW_AT_extension := $54,DW_AT_ranges := $55,
         DW_AT_trampoline := $56,DW_AT_call_column := $57,
@@ -176,7 +176,13 @@ interface
 
         { PGI (STMicroelectronics) extensions.   }
         DW_AT_PGI_lbase := $3a00,
-        DW_AT_PGI_soffset := $3a01,DW_AT_PGI_lstride := $3a02
+        DW_AT_PGI_soffset := $3a01,DW_AT_PGI_lstride := $3a02,
+
+        { Apple extensions }
+        DW_AT_APPLE_optimized = $3fe1,
+        DW_AT_APPLE_flags = $3fe2,
+        DW_AT_APPLE_major_runtime_vers = $3fe5,
+        DW_AT_APPLE_runtime_class = $3fe6
       );
 {$notes on}
 
@@ -198,15 +204,33 @@ interface
         Name: PChar;
       end;
 
+      { flags for emitting variables/parameters }
+      tdwarfvarsymflag =
+        { force the sym to be emitted as a local variable regardless of its
+          type; used for "absolute" local variables referring to parameters.
+        }
+        (dvf_force_local_var
+        );
+      tdwarfvarsymflags = set of tdwarfvarsymflag;
+
+      pAbbrevSearchTreeItem = ^tAbbrevSearchTreeItem;
+      tAbbrevSearchTreeItem = record
+        value: QWord;
+        Abbrev: longint;
+        // When this item does not match the abbrev-value, look for it
+        // in the next SearchItem
+        SearchItem: pAbbrevSearchTreeItem;
+        // Next and prior item of the abbrev-section
+        NextItem: pAbbrevSearchTreeItem;
+        PriorItem: pAbbrevSearchTreeItem;
+        bit8: boolean;
+      end;
+
       { TDebugInfoDwarf }
 
       TDebugInfoDwarf = class(TDebugInfo)
       private
         currabbrevnumber : longint;
-
-        { collect all defs in one list so we can reset them easily }
-        defnumberlist,
-        deftowritelist   : TFPObjectList;
 
         { use this defs to create info for variants and file handles }
         { unused (MWE)
@@ -218,6 +242,20 @@ interface
         filesequence: Integer;
         loclist: tdynamicarray;
         asmline: TAsmList;
+
+        // The current entry in dwarf_info with the link to the abbrev-section
+        dwarf_info_abbref_tai: tai_const;
+        // Empty start-item of the abbrev-searchtree
+        AbbrevSearchTree: pAbbrevSearchTreeItem;
+        // The current abbrev-item
+        CurrentSearchTreeItem: pAbbrevSearchTreeItem;
+        // Is true when the abbrev-section is newly created
+        NewAbbrev: boolean;
+        procedure StartAbbrevSearch;
+        procedure AddConstToAbbrev(Value: QWord; bit8:boolean=false);
+        procedure StartAbbrevSectionFromSearchtree;
+        procedure WriteSearchItemToAbbrevSection(SI: pAbbrevSearchTreeItem);
+        function FinishAbbrevSearch: longint;
 
         function def_dwarf_lab(def:tdef) : tasmsymbol;
         function def_dwarf_ref_lab(def:tdef) : tasmsymbol;
@@ -242,8 +280,14 @@ interface
 
         procedure set_def_dwarf_labs(def:tdef);
 
+        { Convenience version of the method below, so the compiler creates the
+          tvarrec for us (must only pass one element in the last parameter).  }
+        procedure append_attribute(attr: tdwarf_attribute; form: tdwarf_form; const values: array of const);
+        procedure append_attribute(attr: tdwarf_attribute; form: tdwarf_form; const value: tvarrec);
         procedure append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const);
+        procedure append_block1(attr: tdwarf_attribute; size: aint);
         procedure append_labelentry(attr : tdwarf_attribute;sym : tasmsymbol);
+        procedure append_labelentry_addr_ref(attr : tdwarf_attribute;sym : tasmsymbol); virtual;
         procedure append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure append_labelentry_dataptr_abs(attr : tdwarf_attribute;sym : tasmsymbol);
         procedure append_labelentry_dataptr_rel(attr : tdwarf_attribute;sym,endsym : tasmsymbol);
@@ -255,13 +299,19 @@ interface
         procedure appenddef_float(list:TAsmList;def:tfloatdef);override;
         procedure appenddef_enum(list:TAsmList;def:tenumdef);override;
         procedure appenddef_array(list:TAsmList;def:tarraydef);override;
+        procedure appenddef_record_named(list:TAsmList;def:trecorddef;const name: shortstring);
         procedure appenddef_record(list:TAsmList;def:trecorddef);override;
         procedure appenddef_pointer(list:TAsmList;def:tpointerdef);override;
         procedure appenddef_string(list:TAsmList;def:tstringdef);override;
         procedure appenddef_procvar(list:TAsmList;def:tprocvardef);override;
         procedure appendprocdef(list:TAsmList;def:tprocdef);override;
 
+        function  get_symlist_sym_offset(symlist: ppropaccesslistitem; out sym: tabstractvarsym; out offset: pint): boolean;
         procedure appendsym_var(list:TAsmList;sym:tabstractnormalvarsym);
+        procedure appendsym_var_with_name_type_offset(list:TAsmList; sym:tabstractnormalvarsym; const name: string; def: tdef; offset: pint; const flags: tdwarfvarsymflags);
+        { used for fields and properties mapped to fields }
+        procedure appendsym_fieldvar_with_name_offset(list:TAsmList;sym: tfieldvarsym;const name: string; def: tdef; offset: pint);
+
         procedure beforeappendsym(list:TAsmList;sym:tsym);override;
         procedure appendsym_staticvar(list:TAsmList;sym:tstaticvarsym);override;
         procedure appendsym_paravar(list:TAsmList;sym:tparavarsym);override;
@@ -274,6 +324,7 @@ interface
         procedure appendsym_property(list:TAsmList;sym:tpropertysym);override;
 
         function symname(sym:tsym): String; virtual;
+        procedure append_visibility(vis: tvisibility);
 
         procedure enum_membersyms_callback(p:TObject;arg:pointer);
 
@@ -295,6 +346,8 @@ interface
       TDebugInfoDwarf2 = class(TDebugInfoDwarf)
       private
       protected
+        procedure appenddef_set_intern(list:TAsmList;def:tsetdef; force_tag_set: boolean);
+
         procedure appenddef_file(list:TAsmList;def:tfiledef); override;
         procedure appenddef_formal(list:TAsmList;def:tformaldef); override;
         procedure appenddef_object(list:TAsmList;def:tobjectdef); override;
@@ -307,13 +360,16 @@ interface
 
       { TDebugInfoDwarf3 }
 
-      TDebugInfoDwarf3 = class(TDebugInfoDwarf)
+      TDebugInfoDwarf3 = class(TDebugInfoDwarf2)
       private
       protected
+        procedure append_labelentry_addr_ref(attr : tdwarf_attribute;sym : tasmsymbol); override;
+        procedure appenddef_array(list:TAsmList;def:tarraydef); override;
+        procedure appenddef_string(list:TAsmList;def:tstringdef);override;
         procedure appenddef_file(list:TAsmList;def:tfiledef); override;
         procedure appenddef_formal(list:TAsmList;def:tformaldef); override;
         procedure appenddef_object(list:TAsmList;def:tobjectdef); override;
-        procedure appenddef_set(list:TAsmList;def:tsetdef); override;
+        procedure appenddef_set(list:TAsmList;def: tsetdef); override;
         procedure appenddef_undefined(list:TAsmList;def:tundefineddef); override;
         procedure appenddef_variant(list:TAsmList;def:tvariantdef); override;
 
@@ -327,9 +383,9 @@ implementation
     uses
       sysutils,cutils,cfileutl,constexp,
       version,globals,verbose,systems,
-      cpubase,cgbase,paramgr,
+      cpubase,cpuinfo,cgbase,paramgr,
       fmodule,
-      defutil,symconst,symtable
+      defutil,symtable,ppu
       ;
 
     const
@@ -361,6 +417,9 @@ implementation
         { DWARF 3.   }
         DW_LANG_C99 := $000c,DW_LANG_Ada95 := $000d,
         DW_LANG_Fortran95 := $000e,
+
+        { Objective-C }
+        DW_LANG_ObjC := $10,
 
         { MIPS.   }
         DW_LANG_Mips_Assembler := $8001,
@@ -427,7 +486,7 @@ implementation
 
       { Calling convention.   }
       Tdwarf_calling_convention = (DW_CC_normal := $1,DW_CC_program := $2,
-        DW_CC_nocall := $3,DW_CC_GNU_renesas_sh := $40
+        DW_CC_nocall := $3,DW_CC_GNU_renesas_sh := $40, DW_CC_GNU_borland_fastcall_i386 := $41
         );
 {$notes off}
       { Location atom names and codes.   }
@@ -582,6 +641,21 @@ implementation
       end;
 
 
+    function AllocateNewAiSearchItem: pAbbrevSearchTreeItem;
+      begin
+        new(result);
+        FillChar(result^,sizeof(result^),#0);
+      end;
+
+    procedure FreeSearchItem(SI: pAbbrevSearchTreeItem);
+      begin
+        if assigned(SI^.NextItem) then
+          FreeSearchItem(SI^.NextItem);
+        if assigned(SI^.SearchItem) then
+          FreeSearchItem(SI^.SearchItem);
+        Dispose(SI);
+      end;
+
 {****************************************************************************
                               TDirIndexItem
 ****************************************************************************}
@@ -617,6 +691,134 @@ implementation
                               TDebugInfoDwarf
 ****************************************************************************}
 
+    procedure TDebugInfoDwarf.StartAbbrevSearch;
+      begin
+        CurrentSearchTreeItem:=AbbrevSearchTree;
+      end;
+
+
+    procedure TDebugInfoDwarf.WriteSearchItemToAbbrevSection(SI: pAbbrevSearchTreeItem);
+      begin
+        if SI^.bit8 then
+          current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.Create_8bit(SI^.value))
+        else
+          current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.Create_uleb128bit(SI^.value));
+      end;
+
+
+    procedure TDebugInfoDwarf.StartAbbrevSectionFromSearchtree;
+
+      procedure AddCurrentAndPriorItemsToAbrev(SI: pAbbrevSearchTreeItem);
+        begin
+          if assigned(SI^.PriorItem) then
+            AddCurrentAndPriorItemsToAbrev(SI^.PriorItem);
+          WriteSearchItemToAbbrevSection(SI);
+        end;
+
+      begin
+        NewAbbrev:=true;
+        inc(currabbrevnumber);
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_comment.Create(strpnew('Abbrev '+tostr(currabbrevnumber))));
+        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(currabbrevnumber));
+
+        if CurrentSearchTreeItem<>AbbrevSearchTree then
+          AddCurrentAndPriorItemsToAbrev(CurrentSearchTreeItem);
+      end;
+
+
+    function TDebugInfoDwarf.FinishAbbrevSearch: longint;
+
+      procedure FinalizeAbbrevSection;
+        begin
+          current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
+          current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
+          CurrentSearchTreeItem^.Abbrev:=currabbrevnumber;
+          NewAbbrev := false;
+        end;
+
+      begin
+        if NewAbbrev then
+          FinalizeAbbrevSection;
+        result := CurrentSearchTreeItem^.Abbrev;
+        if result=0 then
+          begin
+            // In this case the abbrev-section equals an existing longer abbrev section.
+            // So a new abbrev-section has to be made which ends on the current
+            // searchtree item
+            StartAbbrevSectionFromSearchtree;
+            FinalizeAbbrevSection;
+            result := CurrentSearchTreeItem^.Abbrev;
+          end;
+      end;
+
+
+    procedure TDebugInfoDwarf.AddConstToAbbrev(Value: QWord; bit8:boolean);
+
+        procedure AddCurrentItemToAbbrev;
+          begin
+            CurrentSearchTreeItem^.value:=value;
+            CurrentSearchTreeItem^.bit8:=bit8;
+            WriteSearchItemToAbbrevSection(CurrentSearchTreeItem);
+          end;
+
+      var si: pAbbrevSearchTreeItem;
+      begin
+        // Instead of adding this value directly to the ai-tree, search if an
+        // abbrev section with the same values already exist, and use the existing
+        // one or create one.
+        if NewAbbrev then
+          begin
+          // The current abbrev-section is new, so add the value to the abbrev-section
+          // and add it to the search-list.
+          CurrentSearchTreeItem^.NextItem:=AllocateNewAiSearchItem;
+          CurrentSearchTreeItem^.NextItem^.PriorItem:=CurrentSearchTreeItem;
+          CurrentSearchTreeItem := CurrentSearchTreeItem^.NextItem;
+          AddCurrentItemToAbbrev;
+          end
+        else
+          begin
+          // Search for the value which is added in the next sections of the
+          // searchtree for a match
+          si := CurrentSearchTreeItem^.NextItem;
+          while assigned(si) do
+            begin
+              if (SI^.value=Value) and (si^.bit8=bit8) then
+                begin
+                // If a match is found, set the current searchtree item to the next item
+                CurrentSearchTreeItem:=SI;
+                Exit;
+                end
+              else if si^.SearchItem=nil then
+                begin
+                // If no match is found, add a new item to the searchtree and write
+                // a new abbrev-section.
+                StartAbbrevSectionFromSearchtree;
+
+                si^.SearchItem:=AllocateNewAiSearchItem;
+                if currentsearchtreeitem<>AbbrevSearchTree then
+                  si^.SearchItem^.PriorItem:=CurrentSearchTreeItem;
+                CurrentSearchTreeItem := si^.SearchItem;
+
+                AddCurrentItemToAbbrev;
+                Exit;
+                end;
+              Si := SI^.SearchItem;
+            end;
+          // The abbrev section we are looking for is longer than the one
+          // which is already in the search-tree. So expand the searchtree with
+          // the new value and write a new abbrev section
+          StartAbbrevSectionFromSearchtree;
+
+          CurrentSearchTreeItem^.NextItem:=AllocateNewAiSearchItem;
+          if currentsearchtreeitem^.PriorItem<>AbbrevSearchTree then
+            CurrentSearchTreeItem^.NextItem^.PriorItem:=CurrentSearchTreeItem;
+          CurrentSearchTreeItem := CurrentSearchTreeItem^.NextItem;
+
+          AddCurrentItemToAbbrev;
+          end;
+      end;
+
+
     function TDebugInfoDwarf.relative_dwarf_path(const s:tcmdstr):tcmdstr;
       begin
         { Make a clean path for gdb. Remove trailing / and ./ prefixes and
@@ -630,7 +832,7 @@ implementation
          _use_64bit_headers:=state;
          if not(state) then
            begin
-             if (target_info.system in system_windows+system_wince) then
+             if (target_info.system in systems_windows+systems_wince) then
                offsetabstype:=aitconst_secrel32_symbol
              else
                offsetabstype:=aitconst_32bit;
@@ -692,7 +894,7 @@ implementation
                           on when the typecast is changed to 'as' }
                         current_asmdata.getdatalabel(TAsmLabel(pointer(def.dwarf_lab)));
                         current_asmdata.getdatalabel(TAsmLabel(pointer(def.dwarf_ref_lab)));
-                        if is_class_or_interface_or_dispinterface(def) then
+                        if is_class_or_interface_or_dispinterface_or_objc(def) then
                           current_asmdata.getdatalabel(TAsmLabel(pointer(tobjectdef(def).dwarf_struct_lab)));
                       end;
                   end;
@@ -704,7 +906,7 @@ implementation
                 { addrlabel instead of datalabel because it must be a local one }
                 current_asmdata.getaddrlabel(TAsmLabel(pointer(def.dwarf_lab)));
                 current_asmdata.getaddrlabel(TAsmLabel(pointer(def.dwarf_ref_lab)));
-                if is_class_or_interface_or_dispinterface(def) then
+                if is_class_or_interface_or_dispinterface_or_objc(def) then
                   current_asmdata.getaddrlabel(TAsmLabel(pointer(tobjectdef(def).dwarf_struct_lab)));
               end;
             if def.dbg_state=dbg_state_used then
@@ -744,12 +946,16 @@ implementation
         TDirIndexItem.Create(dirlist,'.', 0);
         asmline := TAsmList.create;
         loclist := tdynamicarray.Create(4096);
+
+        AbbrevSearchTree:=AllocateNewAiSearchItem;
       end;
 
 
     destructor TDebugInfoDwarf.Destroy;
       begin
         dirlist.Free;
+        if assigned(AbbrevSearchTree) then
+          FreeSearchItem(AbbrevSearchTree);
         dirlist := nil;
         asmline.free;
         asmline:=nil;
@@ -802,176 +1008,192 @@ implementation
       end;
 
 
+    procedure TDebugInfoDwarf.append_attribute(attr: tdwarf_attribute; form: tdwarf_form; const values: array of const);
+      begin
+        if length(values)<>1 then
+          internalerror(2009040402);
+        append_attribute(attr,form,values[0]);
+      end;
+
+
+    procedure TDebugInfoDwarf.append_attribute(attr: tdwarf_attribute; form: tdwarf_form; const value: tvarrec);
+      begin
+        { attribute }
+        AddConstToAbbrev(cardinal(attr));
+
+        { form }
+        AddConstToAbbrev(cardinal(form));
+
+        { info itself }
+        case form of
+          DW_FORM_string:
+            case value.VType of
+              vtChar:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(value.VChar));
+              vtString:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(value.VString^));
+              vtAnsistring:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(Ansistring(value.VAnsiString)));
+              else
+                internalerror(200601264);
+            end;
+
+          DW_FORM_flag:
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(byte(value.VBoolean)));
+
+          DW_FORM_data1:
+             case value.VType of
+              vtInteger:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(value.VInteger));
+              vtInt64:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(value.VInt64^));
+              vtQWord:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(value.VQWord^));
+              else
+                internalerror(200602143);
+            end;
+
+          DW_FORM_data2:
+             case value.VType of
+              vtInteger:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(value.VInteger));
+              vtInt64:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(value.VInt64^));
+              vtQWord:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(value.VQWord^));
+              else
+                internalerror(200602144);
+            end;
+
+          DW_FORM_data4:
+             case value.VType of
+              vtInteger:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(value.VInteger));
+              vtInt64:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(value.VInt64^));
+              vtQWord:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(value.VQWord^));
+              else
+                internalerror(200602145);
+            end;
+
+          DW_FORM_data8:
+             case value.VType of
+              vtInteger:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(value.VInteger));
+              vtInt64:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(value.VInt64^));
+              vtQWord:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(value.VQWord^));
+              else
+                internalerror(200602146);
+            end;
+
+          DW_FORM_sdata:
+            case value.VType of
+              vtInteger:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(value.VInteger));
+              vtInt64:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(value.VInt64^));
+              vtQWord:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(value.VQWord^));
+              else
+                internalerror(200601285);
+            end;
+
+          DW_FORM_udata:
+            case value.VType of
+              vtInteger:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(value.VInteger));
+              vtInt64:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(value.VInt64^));
+              vtQWord:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(value.VQWord^));
+              else
+                internalerror(200601284);
+            end;
+
+          { block gets only the size, the rest is appended manually by the caller }
+          DW_FORM_block1:
+             case value.VType of
+              vtInteger:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(value.VInteger));
+              vtInt64:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(value.VInt64^));
+              vtQWord:
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(value.VQWord^));
+              else
+                internalerror(200602141);
+            end;
+          else
+            internalerror(200601263);
+        end;
+      end;
+
+
     { writing the data through a few simply procedures allows to create easily extra information
       for debugging of debug info }
     procedure TDebugInfoDwarf.append_entry(tag : tdwarf_tag;has_children : boolean;data : array of const);
       var
         i : longint;
       begin
-        { todo: store defined abbrevs, so you have to define tehm only once (for this unit) (MWE) }
-        inc(currabbrevnumber);
-
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_comment.Create(strpnew('Abbrev '+tostr(currabbrevnumber))));
-
         { abbrev number }
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(currabbrevnumber));
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(currabbrevnumber));
+        // Store the ai with the reference to the abbrev number and start a search
+        // to find the right abbrev-section. (Or create one)
+        dwarf_info_abbref_tai := tai_const.create_uleb128bit(currabbrevnumber);
+        current_asmdata.asmlists[al_dwarf_info].concat(dwarf_info_abbref_tai);
+        StartAbbrevSearch;
+
         { tag }
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(tag)));
+        AddConstToAbbrev(ord(tag));
 
         { children? }
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(ord(has_children)));
+        AddConstToAbbrev(ord(has_children),true);
 
         i:=0;
         while i<=high(data) do
           begin
-            { attribute }
-            if data[i].VType=vtInteger then
-              begin
-                current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(data[i].VInteger));
-              end
-            else
+            if (i+2 > high(data)) then
+              internalerror(2009040401);
+            if data[i].VType<>vtInteger then
               internalerror(200601261);
-            inc(i);
-
-            { form }
-            if data[i].VType=vtInteger then
-              begin
-                current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(data[i].VInteger));
-              end
-            else
-              internalerror(200601262);
-            inc(i);
-
-            { info itself }
-            case tdwarf_form(data[i-1].VInteger) of
-              DW_FORM_string:
-                case data[i].VType of
-                  vtChar:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(data[i].VChar));
-                  vtString:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(data[i].VString^));
-                  vtAnsistring:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(Ansistring(data[i].VAnsiString)));
-                  else
-                    internalerror(200601264);
-                end;
-
-
-              DW_FORM_flag:
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(byte(data[i].VBoolean)));
-
-              DW_FORM_data1:
-                 case data[i].VType of
-                  vtInteger:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInteger));
-                  vtInt64:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInt64^));
-                  vtQWord:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VQWord^));
-                  else
-                    internalerror(200602143);
-                end;
-
-              DW_FORM_data2:
-                 case data[i].VType of
-                  vtInteger:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(data[i].VInteger));
-                  vtInt64:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(data[i].VInt64^));
-                  vtQWord:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(data[i].VQWord^));
-                  else
-                    internalerror(200602144);
-                end;
-
-              DW_FORM_data4:
-                 case data[i].VType of
-                  vtInteger:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(data[i].VInteger));
-                  vtInt64:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(data[i].VInt64^));
-                  vtQWord:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(data[i].VQWord^));
-                  else
-                    internalerror(200602145);
-                end;
-
-              DW_FORM_data8:
-                 case data[i].VType of
-                  vtInteger:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(data[i].VInteger));
-                  vtInt64:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(data[i].VInt64^));
-                  vtQWord:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(data[i].VQWord^));
-                  else
-                    internalerror(200602146);
-                end;
-
-              DW_FORM_sdata:
-                case data[i].VType of
-                  vtInteger:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(data[i].VInteger));
-                  vtInt64:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(data[i].VInt64^));
-                  vtQWord:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(data[i].VQWord^));
-                  else
-                    internalerror(200601285);
-                end;
-
-              DW_FORM_udata:
-                case data[i].VType of
-                  vtInteger:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(data[i].VInteger));
-                  vtInt64:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(data[i].VInt64^));
-                  vtQWord:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(data[i].VQWord^));
-                  else
-                    internalerror(200601284);
-                end;
-
-              { block gets only the size, the rest is appended manually by the caller }
-              DW_FORM_block1:
-                 case data[i].VType of
-                  vtInteger:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInteger));
-                  vtInt64:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VInt64^));
-                  vtQWord:
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(data[i].VQWord^));
-                  else
-                    internalerror(200602141);
-                end;
-              else
-                internalerror(200601263);
-            end;
-            inc(i);
+            if data[i+1].VType<>vtInteger then
+              internalerror(200601261);
+            append_attribute(tdwarf_attribute(data[i].VInteger),tdwarf_form(data[i+1].VInteger),data[i+2]);
+            inc(i,3);
           end;
+      end;
+
+
+    procedure TDebugInfoDwarf.append_block1(attr: tdwarf_attribute; size: aint);
+      begin
+        AddConstToAbbrev(ord(attr));
+        AddConstToAbbrev(ord(DW_FORM_block1));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(size));
       end;
 
 
     procedure TDebugInfoDwarf.append_labelentry(attr : tdwarf_attribute;sym : tasmsymbol);
       begin
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_addr)));
+        AddConstToAbbrev(ord(attr));
+        AddConstToAbbrev(ord(DW_FORM_addr));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sym(sym));
       end;
 
+    procedure TDebugInfoDwarf.append_labelentry_addr_ref(attr : tdwarf_attribute;sym : tasmsymbol);
+      begin
+        AddConstToAbbrev(ord(DW_FORM_ref_addr));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sym(sym))
+      end;
 
     procedure TDebugInfoDwarf.append_labelentry_ref(attr : tdwarf_attribute;sym : tasmsymbol);
       begin
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
+        AddConstToAbbrev(ord(attr));
         if not(tf_dwarf_only_local_labels in target_info.flags) then
-          begin
-            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref_addr)));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sym(sym))
-          end
+          append_labelentry_addr_ref(attr, sym)
         else
           begin
-            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_ref4)));
+            AddConstToAbbrev(ord(DW_FORM_ref4));
             current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_rel_sym(offsetreltype,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_info0'),sym));
           end;
       end;
@@ -979,11 +1201,11 @@ implementation
 
     procedure TDebugInfoDwarf.append_labelentry_dataptr_common(attr : tdwarf_attribute);
       begin
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(attr)));
+        AddConstToAbbrev(ord(attr));
         if use_64bit_headers then
-          current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)))
+          AddConstToAbbrev(ord(DW_FORM_data8))
         else
-          current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
+          AddConstToAbbrev(ord(DW_FORM_data4));
       end;
 
 
@@ -1018,8 +1240,7 @@ implementation
 
     procedure TDebugInfoDwarf.finish_entry;
       begin
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_8bit(0));
+        dwarf_info_abbref_tai.value:=FinishAbbrevSearch;
       end;
 
 
@@ -1108,7 +1329,7 @@ implementation
                       ]);
                   append_labelentry_ref(DW_AT_type,def_dwarf_lab(basedef));
                 end;
-                
+
               finish_entry;
             end;
           uvoid :
@@ -1216,13 +1437,27 @@ implementation
         case def.floattype of
           s32real,
           s64real,
-          s80real:
+          s80real,
+          sc80real:
             if assigned(def.typesym) then
-              append_entry(DW_TAG_base_type,false,[
-                DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
-                DW_AT_encoding,DW_FORM_data1,DW_ATE_float,
-                DW_AT_byte_size,DW_FORM_data1,def.size
-                ])
+              begin
+                append_entry(DW_TAG_base_type,false,[
+                  DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
+                  DW_AT_encoding,DW_FORM_data1,DW_ATE_float,
+                  DW_AT_byte_size,DW_FORM_data1,def.size
+                  ]);
+                if (def.floattype in [s80real,sc80real]) and
+                   (def.size<>10) then
+                  begin
+                    append_attribute(DW_AT_bit_size,DW_FORM_data1,[10*8]);
+                    { "The bit offset attribute describes the offset in bits
+                        of the high order bit of a value of the given type
+                        from the high order bit of the storage unit used to
+                        contain that value." }
+                    if target_info.endian=endian_little then
+                      append_attribute(DW_AT_bit_offset,DW_FORM_data1,[(def.size-10)*8]);
+                  end;
+              end
             else
               append_entry(DW_TAG_base_type,false,[
                 DW_AT_encoding,DW_FORM_data1,DW_ATE_float,
@@ -1263,6 +1498,7 @@ implementation
     procedure TDebugInfoDwarf.appenddef_enum(list:TAsmList;def:tenumdef);
       var
         hp : tenumsym;
+        i  : integer;
       begin
         if assigned(def.typesym) then
           append_entry(DW_TAG_enumeration_type,true,[
@@ -1278,15 +1514,19 @@ implementation
         finish_entry;
 
         { write enum symbols }
-        hp:=tenumsym(def.firstenum);
-        while assigned(hp) do
+        for i := 0 to def.symtable.SymList.Count - 1 do
           begin
+            hp:=tenumsym(def.symtable.SymList[i]);
+            if hp.value<def.minval then
+              continue
+            else
+            if hp.value>def.maxval then
+              break;
             append_entry(DW_TAG_enumerator,false,[
               DW_AT_name,DW_FORM_string,symname(hp)+#0,
               DW_AT_const_value,DW_FORM_data4,hp.value
             ]);
             finish_entry;
-            hp:=tenumsym(hp).nextenum;
           end;
 
         finish_children;
@@ -1297,62 +1537,70 @@ implementation
       var
         size : aint;
         elesize : aint;
+        elestrideattr : tdwarf_attribute;
+        labsym: tasmlabel;
       begin
-        if is_special_array(def) then
-          size:=def.elesize
-        else
-          size:=def.size;
-
-        if not is_packed_array(def) then
-          elesize := def.elesize*8
-        else
-          elesize := def.elepackedbitsize;
-
-        if assigned(def.typesym) then
-          append_entry(DW_TAG_array_type,true,[
-            DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
-            DW_AT_byte_size,DW_FORM_udata,size,
-            DW_AT_stride_size,DW_FORM_udata,elesize
-            ])
-        else
-          append_entry(DW_TAG_array_type,true,[
-            DW_AT_byte_size,DW_FORM_udata,size,
-            DW_AT_stride_size,DW_FORM_udata,elesize
-            ]);
-        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
         if is_dynamic_array(def) then
           begin
-            { !!! FIXME !!! }
-            { gdb's dwarf implementation sucks, so we can't use DW_OP_push_object here (FK)}
-            { insert location attribute manually }
-            {
-            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(DW_AT_data_location));
-            current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(DW_FORM_block1));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(1));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(DW_OP_push_object));
-            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(DW_OP_deref));
-            }
+            { It's a pointer to the actual array }
+            current_asmdata.getaddrlabel(labsym);
+            append_entry(DW_TAG_pointer_type,false,[]);
+            append_labelentry_ref(DW_AT_type,labsym);
+            finish_entry;
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(labsym,0));
+          end;
 
-            finish_entry;
-            { to simplify things, we don't write a multidimensional array here }
-            append_entry(DW_TAG_subrange_type,false,[
-              DW_AT_lower_bound,DW_FORM_udata,0,
-              DW_AT_upper_bound,DW_FORM_udata,0
-              ]);
-            append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangedef));
-            finish_entry;
+        if not is_packed_array(def) then
+          begin
+            elestrideattr := DW_AT_byte_stride;
+            elesize := def.elesize;
           end
         else
           begin
+            elestrideattr := DW_AT_stride_size;
+            elesize := def.elepackedbitsize;
+          end;
+
+        if is_special_array(def) then
+          begin
+            { no known size, no known upper bound }
+            if assigned(def.typesym) then
+              append_entry(DW_TAG_array_type,true,[
+                DW_AT_name,DW_FORM_string,symname(def.typesym)+#0
+                ])
+            else
+              append_entry(DW_TAG_array_type,true,[]);
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
+            finish_entry;
+            { a missing upper bound means "unknown"/default }
+            append_entry(DW_TAG_subrange_type,false,[
+              DW_AT_lower_bound,DW_FORM_sdata,def.lowrange,
+              elestrideattr,DW_FORM_udata,elesize
+              ]);
+          end
+        else
+          begin
+            size:=def.size;
+            if assigned(def.typesym) then
+              append_entry(DW_TAG_array_type,true,[
+                DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
+                DW_AT_byte_size,DW_FORM_udata,size
+                ])
+            else
+              append_entry(DW_TAG_array_type,true,[
+                DW_AT_byte_size,DW_FORM_udata,size
+                ]);
+            append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
             finish_entry;
             { to simplify things, we don't write a multidimensional array here }
             append_entry(DW_TAG_subrange_type,false,[
               DW_AT_lower_bound,DW_FORM_sdata,def.lowrange,
-              DW_AT_upper_bound,DW_FORM_sdata,def.highrange
+              DW_AT_upper_bound,DW_FORM_sdata,def.highrange,
+              elestrideattr,DW_FORM_udata,elesize
               ]);
-            append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangedef));
-            finish_entry;
           end;
+        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangedef));
+        finish_entry;
         finish_children;
       end;
 
@@ -1360,8 +1608,17 @@ implementation
     procedure TDebugInfoDwarf.appenddef_record(list:TAsmList;def:trecorddef);
       begin
         if assigned(def.typesym) then
+          appenddef_record_named(list,def,symname(def.typesym))
+        else
+          appenddef_record_named(list,def,'');
+      end;
+
+
+    procedure TDebugInfoDwarf.appenddef_record_named(list:TAsmList;def:trecorddef;const name: shortstring);
+      begin
+        if (name<>'') then
           append_entry(DW_TAG_structure_type,true,[
-            DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
+            DW_AT_name,DW_FORM_string,name+#0,
             DW_AT_byte_size,DW_FORM_udata,def.size
             ])
         else
@@ -1393,7 +1650,8 @@ implementation
         begin
           { fix length of openshortstring }
           slen:=aword(def.len);
-          if slen=0 then
+          if (slen=0) or
+             (slen>maxlen) then
             slen:=maxlen;
 
           { create a structure with two elements }
@@ -1403,7 +1661,7 @@ implementation
             current_asmdata.getaddrlabel(arr);
           append_entry(DW_TAG_structure_type,true,[
             DW_AT_name,DW_FORM_string,name+#0,
-            DW_AT_byte_size,DW_FORM_data1,2*sizeof(pint)
+            DW_AT_byte_size,DW_FORM_udata,qword(lendef.size)+slen
             ]);
           finish_entry;
 
@@ -1433,13 +1691,13 @@ implementation
           current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(arr,0));
           append_entry(DW_TAG_array_type,true,[
             DW_AT_byte_size,DW_FORM_udata,def.size,
-            DW_AT_stride_size,DW_FORM_udata,1*8
+            DW_AT_byte_stride,DW_FORM_udata,1
             ]);
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(cchartype));
           finish_entry;
           append_entry(DW_TAG_subrange_type,false,[
             DW_AT_lower_bound,DW_FORM_udata,0,
-            DW_AT_upper_bound,DW_FORM_udata,slen
+            DW_AT_upper_bound,DW_FORM_udata,qword(slen)
             ]);
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(lendef));
           finish_entry;
@@ -1454,10 +1712,19 @@ implementation
             end;
           st_longstring:
             begin
+              { a) we don't actually support variables of this type currently
+                b) this type is only used as the type for constant strings
+                   > 255 characters
+                c) in such a case, gdb will allocate and initialise enough
+                   memory to hold the maximum size for such a string
+                -> don't use high(qword)/high(cardinal) as maximum, since that
+                 will cause exhausting the VM space, but some "reasonably high"
+                 number that should be enough for most constant strings
+              }
 {$ifdef cpu64bitaddr}
-              addnormalstringdef('LongString',u64inttype,qword(-1));
+              addnormalstringdef('LongString',u64inttype,qword(1024*1024));
 {$else cpu64bitaddr}
-              addnormalstringdef('LongString',u32inttype,cardinal(-1));
+              addnormalstringdef('LongString',u32inttype,cardinal(1024*1024));
 {$endif cpu64bitaddr}
            end;
          st_ansistring:
@@ -1514,7 +1781,7 @@ implementation
         proc : tasmlabel;
 
       begin
-        if def.is_methodpointer then
+        if not def.is_addressonly then
           begin
             { create a structure with two elements }
             if not(tf_dwarf_only_local_labels in target_info.flags) then
@@ -1568,51 +1835,73 @@ implementation
         else
           current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(labsym,0));
 
-        if (target_info.system in systems_darwin) then
+        { On Darwin, dwarf info is not linked in the final binary,
+          but kept in the individual object files. This allows for
+          faster linking, but means that you have to keep the object
+          files for debugging and also that gdb only loads in the
+          debug info of a particular object file once you step into
+          or over a procedure in it.
+
+          To solve this, there is a tool called dsymutil which can
+          extract all the dwarf info from a program's object files.
+          This utility however performs "smart linking" on the dwarf
+          info and throws away all unreferenced dwarf entries. Since
+          variables' types always point to the dwarfinfo for a tdef
+          and never to that for a typesym, this means all debug
+          entries generated for typesyms are thrown away.
+
+          The problem with that is that we translate typesyms into
+          DW_TAG_typedef, and gdb's dwarf-2 reader only makes types
+          globally visibly if they are defined using a DW_TAG_typedef.
+          So as a result, before running dsymutil types only become
+          available once you stepped into/over a function in the object
+          file where they are declared, and after running dsymutil they
+          are all gone (printing variables still works because the
+          tdef dwarf info is still available, but you cannot typecast
+          anything outside the declaring units because the type names
+          are not known there).
+
+          The solution: if a tdef has an associated typesym, let the
+          debug label for the tdef point to a DW_TAG_typedef instead
+          of directly to the tdef itself. And don't write anything
+          special for the typesym itself.
+
+          Update: we now also do this for other platforms, because
+          otherwise if you compile unit A without debug info and
+          use one of its types in unit B, then no typedef will be
+          generated and hence gdb will not be able to give a definition
+          of the type.
+        }
+
+        if is_objc_class_or_protocol(def) then
           begin
-            { On Darwin, dwarf info is not linked in the final binary,
-              but kept in the individual object files. This allows for
-              faster linking, but means that you have to keep the object
-              files for debugging and also that gdb only loads in the
-              debug info of a particular object file once you step into
-              or over a procedure in it.
+            { for Objective-C classes, the typedef must refer to the
+              struct itself, not to the pointer of the struct; Objective-C
+              classes are not implicit pointers in Objective-C itself, only
+              in FPC. So make the def label point to a pointer to the
+              typedef, which in turn refers to the actual struct (for Delphi-
+              style classes, the def points to the typedef, which refers to
+              a pointer to the actual struct) }
 
-              To solve this, there is a tool called dsymutil which can
-              extract all the dwarf info from a program's object files.
-              This utility however performs "smart linking" on the dwarf
-              info and throws away all unreferenced dwarf entries. Since
-              variables' types always point to the dwarfino for a tdef
-              and never to that for a typesym, this means all debug
-              entries generated for typesyms are thrown away.
-
-              The problem with that is that we translate typesyms into
-              DW_TAG_typedef, and gdb's dwarf-2 reader only makes types
-              globally visibly if they are defined using a DW_TAG_typedef.
-              So as a result, before running dsymutil types only become
-              available once you stepped into/over a function in the object
-              file where they are declared, and after running dsymutil they
-              are all gone (printng variables still works because the
-              tdef dwarf info is still available, but you cannot typecast
-              anything outside the declaring units because the type names
-              are not known there).
-
-              The solution: if a tdef has an associated typesym, let the
-              debug label for the tdef point to a DW_TAG_typedef instead
-              of directly to the tdef itself. And don't write anything
-              special for the typesym itself.
-            }
-          if assigned(def.typesym) and
-             not(df_generic in def.defoptions) then
-            begin
-              current_asmdata.getaddrlabel(TAsmLabel(pointer(labsym)));
-              append_entry(DW_TAG_typedef,false,[
-                DW_AT_name,DW_FORM_string,symname(def.typesym)+#0
-              ]);
-              append_labelentry_ref(DW_AT_type,labsym);
-              finish_entry;
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(labsym,0));
-            end;
+            { implicit pointer }
+            current_asmdata.getaddrlabel(TAsmLabel(pointer(labsym)));
+            append_entry(DW_TAG_pointer_type,false,[]);
+            append_labelentry_ref(DW_AT_type,labsym);
+            finish_entry;
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(labsym,0));
           end;
+
+        if assigned(def.typesym) and
+           not(df_generic in def.defoptions) then
+          begin
+            current_asmdata.getaddrlabel(TAsmLabel(pointer(labsym)));
+            append_entry(DW_TAG_typedef,false,[
+              DW_AT_name,DW_FORM_string,symname(def.typesym)+#0
+            ]);
+            append_labelentry_ref(DW_AT_type,labsym);
+            finish_entry;
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(labsym,0));
+          end
       end;
 
 
@@ -1633,94 +1922,279 @@ implementation
       end;
 
 
-    procedure TDebugInfoDwarf.appendprocdef(list:TAsmList;def:tprocdef);
+    procedure TDebugInfoDwarf.appendprocdef(list:TAsmList; def:tprocdef);
+
+      function dwarf_calling_convention(def: tprocdef): Tdwarf_calling_convention;
+        begin
+          case def.proccalloption of
+            pocall_register:
+              result:=DW_CC_GNU_borland_fastcall_i386;
+            pocall_cdecl,
+            pocall_stdcall,
+            pocall_cppdecl,
+            pocall_mwpascal:
+              result:=DW_CC_normal;
+            else
+              result:=DW_CC_nocall;
+          end
+        end;
+
       var
         procendlabel   : tasmlabel;
-        funcrettype    : tasmsymbol;
         procentry      : string;
-        dreg           : byte;
+        cc             : Tdwarf_calling_convention;
+        st             : tsymtable;
+        vmtindexnr     : pint;
+        in_currentunit : boolean;
       begin
-        if not assigned(def.procstarttai) then
+        { only write debug info for procedures defined in the current module,
+          except in case of methods (gcc-compatible)
+        }
+        in_currentunit:=def.in_currentunit;
+
+        if not in_currentunit and
+          (def.owner.symtabletype<>objectsymtable) then
           exit;
 
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Procdef '+def.fullprocname(true))));
-        append_entry(DW_TAG_subprogram,true,
-          [DW_AT_name,DW_FORM_string,symname(def.procsym)+#0,
-           DW_AT_external,DW_FORM_flag,po_global in def.procoptions
-          { data continues below }
-          { problem: base reg isn't known here
-            DW_AT_frame_base,DW_FORM_block1,1
-          }
-          ]);
-        { append block data }
-        { current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(dwarf_reg(def.))); }
+        { happens for init procdef of units without init section }
+        if in_currentunit and
+           not assigned(def.procstarttai) then
+          exit;
 
+        { Procdefs are not handled by the regular def writing code, so
+          dbg_state is not set/checked for them. Do it here.  }
+        if (def.dbg_state in [dbg_state_writing,dbg_state_written]) then
+          exit;
+        defnumberlist.Add(def);
+
+        { Write methods and only in the scope of their parent objectdefs.  }
+        if (def.owner.symtabletype=objectsymtable) then
+          begin
+            { this code can also work for nested procdefs, but is not yet
+              activated for those because there is no clear advantage yet to
+              limiting the scope of nested procedures to that of their parent,
+              and it makes it impossible to set breakpoints in them by
+              referring to their name.  }
+            st:=def.owner;
+            while assigned(st.defowner) and
+                  (tdef(st.defowner).typ = procdef) do
+              st:=tprocdef(st.defowner).owner;
+            if assigned(st) and
+               (tdef(st.defowner).dbg_state<>dbg_state_writing) then
+              exit;
+         end;
+
+        def.dbg_state:=dbg_state_writing;
+
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_comment.Create(strpnew('Procdef '+def.fullprocname(true))));
+        if not is_objc_class_or_protocol(def._class) then
+          append_entry(DW_TAG_subprogram,true,
+            [DW_AT_name,DW_FORM_string,symname(def.procsym)+#0
+            { data continues below }
+            { problem: base reg isn't known here
+              DW_AT_frame_base,DW_FORM_block1,1
+            }
+            ])
+        else
+          append_entry(DW_TAG_subprogram,true,
+            [DW_AT_name,DW_FORM_string,def.mangledname+#0
+            { data continues below }
+            { problem: base reg isn't known here
+              DW_AT_frame_base,DW_FORM_block1,1
+            }
+            ]);
+
+        { Append optional flags. }
+
+        { All Pascal procedures are prototyped }
+        append_attribute(DW_AT_prototyped,DW_FORM_flag,[true]);
+        { Calling convention.  }
+        cc:=dwarf_calling_convention(def);
+        if (cc<>DW_CC_normal) then
+          append_attribute(DW_AT_calling_convention,DW_FORM_data1,[ord(cc)]);
+        { Externally visible.  }
+        if (po_global in def.procoptions) and
+           (def.parast.symtablelevel<=normal_function_level) then
+          append_attribute(DW_AT_external,DW_FORM_flag,[true]);
+        { Abstract or virtual/overriding method.  }
+        if (([po_abstractmethod, po_virtualmethod, po_overridingmethod] * def.procoptions) <> []) and
+           not is_objc_class_or_protocol(def._class) then
+          begin
+            if not(po_abstractmethod in def.procoptions) then
+              append_attribute(DW_AT_virtuality,DW_FORM_data1,[ord(DW_VIRTUALITY_virtual)])
+            else
+              append_attribute(DW_AT_virtuality,DW_FORM_data1,[ord(DW_VIRTUALITY_pure_virtual)]);
+            { Element number in the vmt (needs to skip stuff coming before the
+              actual method addresses in the vmt, so we use vmtmethodoffset()
+              and then divide by sizeof(pint)).  }
+            vmtindexnr:=tobjectdef(def.owner.defowner).vmtmethodoffset(def.extnumber) div sizeof(pint);
+            append_attribute(DW_AT_vtable_elem_location,DW_FORM_block1,[1+LengthUleb128(vmtindexnr)]);
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_constu)));
+            current_asmdata.asmlists[al_dwarf_info].concat(tai_const.Create_uleb128bit(vmtindexnr));
+          end;
+
+        { accessibility: public/private/protected }
+        if (def.owner.symtabletype=objectsymtable) then
+          append_visibility(def.visibility);
+
+        { Return type.  }
         if not(is_void(tprocdef(def).returndef)) then
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(tprocdef(def).returndef));
 
-        { mark end of procedure }
-        current_asmdata.getlabel(procendlabel,alt_dbgtype);
-        current_asmdata.asmlists[al_procedures].insertbefore(tai_label.create(procendlabel),def.procendtai);
-
-        if (target_info.system = system_powerpc64_linux) then
-          procentry := '.' + def.mangledname
-        else
-          procentry := def.mangledname;
-
-        append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(procentry));
-        append_labelentry(DW_AT_high_pc,procendlabel);
-
-        if assigned(def.funcretsym) and
-           (tabstractnormalvarsym(def.funcretsym).refs>0) then
+        { we can only write the start/end if this procedure is implemented in
+          this module
+        }
+        if in_currentunit then
           begin
-            if tabstractnormalvarsym(def.funcretsym).localloc.loc=LOC_REFERENCE then
-              begin
-                finish_entry;
+            { mark end of procedure }
+            current_asmdata.getlabel(procendlabel,alt_dbgtype);
+            current_asmdata.asmlists[al_procedures].insertbefore(tai_label.create(procendlabel),def.procendtai);
 
-                if paramanager.ret_in_param(def.returndef,def.proccalloption) then
-                  funcrettype:=def_dwarf_ref_lab(def.returndef)
-                else
-                  funcrettype:=def_dwarf_lab(def.returndef);
+            if (target_info.system = system_powerpc64_linux) then
+              procentry := '.' + def.mangledname
+            else
+              procentry := def.mangledname;
 
-                append_entry(DW_TAG_formal_parameter,false,[
-                  DW_AT_name,DW_FORM_string,def.procsym.name+#0,
-                  {
-                  DW_AT_decl_file,DW_FORM_data1,0,
-                  DW_AT_decl_line,DW_FORM_data1,
-                  }
-                  { data continues below }
-                  DW_AT_location,DW_FORM_block1,1+Lengthsleb128(tabstractnormalvarsym(def.funcretsym).localloc.reference.offset)
-                ]);
-
-                { append block data }
-                dreg:=dwarf_reg(tabstractnormalvarsym(def.funcretsym).localloc.reference.base);
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_breg0)+dreg));
-                current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(tabstractnormalvarsym(def.funcretsym).localloc.reference.offset));
-                append_labelentry_ref(DW_AT_type,funcrettype);
-              end;
+            append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(procentry));
+            append_labelentry(DW_AT_high_pc,procendlabel);
           end;
+
+        { Don't write the funcretsym explicitly, it's also in the
+          localsymtable and/or parasymtable.
+        }
         finish_entry;
 
         if assigned(def.parast) then
-          write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],def.parast);
+          begin
+            { First insert self, because gdb uses the fact whether or not the
+              first parameter of a method is artificial to distinguish static
+              from regular methods.  }
+
+            { fortunately, self is the always the first parameter in the
+              paralist, since it has the lowest paranr. Note that this is not
+              true for Objective-C, but those methods are detected in
+              another way (by reading the ObjC run time information)  }
+            write_symtable_parasyms(current_asmdata.asmlists[al_dwarf_info],def.paras);
+          end;
         { local type defs and vars should not be written
           inside the main proc }
-        if assigned(def.localst) and
+        if in_currentunit and
+           assigned(def.localst) and
            (def.localst.symtabletype=localsymtable) then
           write_symtable_syms(current_asmdata.asmlists[al_dwarf_info],def.localst);
 
         { last write the types from this procdef }
         if assigned(def.parast) then
           write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],def.parast);
-        if assigned(def.localst) and
+        { only try to write the localst if the routine is implemented here }
+        if in_currentunit and
+           assigned(def.localst) and
            (def.localst.symtabletype=localsymtable) then
-          write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],def.localst);
+          begin
+            write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],def.localst);
+            { Write nested procedures -- disabled, see scope check at the
+              beginning; currently, these are still written in the global
+              scope.  }
+            // write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],def.localst);
+          end;
 
         finish_children;
       end;
 
 
+    function TDebugInfoDwarf.get_symlist_sym_offset(symlist: ppropaccesslistitem; out sym: tabstractvarsym; out offset: pint): boolean;
+      var
+        elesize : pint;
+        currdef : tdef;
+        indirection: boolean;
+      begin
+        result:=false;
+        if not assigned(symlist) then
+          exit;
+        sym:=nil;
+        offset:=0;
+        currdef:=nil;
+        indirection:=false;
+        repeat
+          case symlist^.sltype of
+            sl_load:
+              begin
+                if assigned(sym) then
+                  internalerror(2009031203);
+                if not(symlist^.sym.typ in [paravarsym,localvarsym,staticvarsym,fieldvarsym]) then
+                  { can't handle... }
+                  exit;
+                sym:=tabstractvarsym(symlist^.sym);
+                currdef:=tabstractvarsym(sym).vardef;
+                if ((sym.typ=paravarsym) and
+                    paramanager.push_addr_param(tparavarsym(sym).varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption)) then
+                  indirection:=true;
+              end;
+            sl_subscript:
+              begin
+                if not assigned(currdef) then
+                  internalerror(2009031301);
+                if (symlist^.sym.typ<>fieldvarsym) then
+                  internalerror(2009031202);
+                { can't handle offsets with indirections yet }
+                if indirection then
+                  exit;
+                if is_packed_record_or_object(currdef) then
+                  begin
+                    { can't calculate the address of a non-byte aligned field }
+                    if (tfieldvarsym(symlist^.sym).fieldoffset mod 8) <> 0 then
+                      exit;
+                    inc(offset,tfieldvarsym(symlist^.sym).fieldoffset div 8)
+                  end
+                else
+                  inc(offset,tfieldvarsym(symlist^.sym).fieldoffset);
+                currdef:=tfieldvarsym(symlist^.sym).vardef;
+              end;
+            sl_absolutetype,
+            sl_typeconv:
+              begin
+                currdef:=tfieldvarsym(symlist^.sym).vardef;
+                { ignore, these don't change the address }
+              end;
+            sl_vec:
+              begin
+                if not assigned(currdef) or
+                   (currdef.typ<>arraydef) then
+                  internalerror(2009031201);
+                { can't handle offsets with indirections yet }
+                if indirection then
+                  exit;
+                if not is_packed_array(currdef) then
+                  elesize:=tarraydef(currdef).elesize
+                else
+                  begin
+                    elesize:=tarraydef(currdef).elepackedbitsize;
+                    { can't calculate the address of a non-byte aligned element }
+                    if (elesize mod 8)<>0 then
+                      exit;
+                    elesize:=elesize div 8;
+                  end;
+                inc(offset,(symlist^.value.svalue-tarraydef(currdef).lowrange)*elesize);
+                currdef:=tarraydef(currdef).elementdef;
+              end;
+            else
+              internalerror(2009031401);
+          end;
+          symlist:=symlist^.next;
+        until not assigned(symlist);
+        if not assigned(sym) then
+          internalerror(2009031205);
+        result:=true;
+      end;
+
+
     procedure TDebugInfoDwarf.appendsym_var(list:TAsmList;sym:tabstractnormalvarsym);
+      begin
+        appendsym_var_with_name_type_offset(list,sym,symname(sym),sym.vardef,0,[]);
+      end;
+
+
+    procedure TDebugInfoDwarf.appendsym_var_with_name_type_offset(list:TAsmList; sym:tabstractnormalvarsym; const name: string; def: tdef; offset: pint; const flags: tdwarfvarsymflags);
       var
         templist : TAsmList;
         blocksize : longint;
@@ -1766,18 +2240,25 @@ implementation
                       end
                     else
                       begin
-                        templist.concat(tai_const.create_8bit(3));
-                        templist.concat(tai_const.createname(sym.mangledname,0));
+                        templist.concat(tai_const.create_8bit(ord(DW_OP_addr)));
+                        templist.concat(tai_const.createname(sym.mangledname,offset));
                         blocksize:=1+sizeof(puint);
                       end;
                   end;
                 paravarsym,
                 localvarsym:
                   begin
-                    dreg:=dwarf_reg(sym.localloc.reference.base);
-                    templist.concat(tai_const.create_8bit(ord(DW_OP_breg0)+dreg));
-                    templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset));
-                    blocksize:=1+Lengthsleb128(sym.localloc.reference.offset);
+                    { Happens when writing debug info for paras of procdefs not
+                      implemented in the current module. Can't add a general check
+                      for LOC_INVALID above, because staticvarsyms may also have it.
+                    }
+                    if sym.localloc.loc<> LOC_INVALID then
+                      begin
+                        dreg:=dwarf_reg(sym.localloc.reference.base);
+                        templist.concat(tai_const.create_8bit(ord(DW_OP_breg0)+dreg));
+                        templist.concat(tai_const.create_sleb128bit(sym.localloc.reference.offset+offset));
+                        blocksize:=1+Lengthsleb128(sym.localloc.reference.offset);
+                      end;
                   end
                 else
                   internalerror(200601288);
@@ -1785,18 +2266,41 @@ implementation
             end;
         end;
 
-        if sym.typ=paravarsym then
+        { function results must not be added to the parameter list,
+          as they are not part of the signature of the function
+          (gdb automatically adds them according to the ABI specifications
+           when calling the function)
+        }
+        if (sym.typ=paravarsym) and
+           not(dvf_force_local_var in flags) and
+           not(vo_is_funcret in sym.varoptions) then
           tag:=DW_TAG_formal_parameter
         else
           tag:=DW_TAG_variable;
 
-        if not(sym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_MMREGISTER,
+        { must be parasym of externally implemented procdef, but
+          the parasymtable can con also contain e.g. absolutevarsyms
+          -> check symtabletype}
+        if (sym.owner.symtabletype=parasymtable) and
+           (sym.localloc.loc=LOC_INVALID) then
+          begin
+            if (sym.owner.symtabletype<>parasymtable) then
+              internalerror(2009101001);
+            append_entry(tag,false,[
+              DW_AT_name,DW_FORM_string,name+#0
+              {
+              DW_AT_decl_file,DW_FORM_data1,0,
+              DW_AT_decl_line,DW_FORM_data1,
+              }
+              ])
+          end
+        else if not(sym.localloc.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_MMREGISTER,
                                  LOC_CMMREGISTER,LOC_FPUREGISTER,LOC_CFPUREGISTER]) and
            ((sym.owner.symtabletype = globalsymtable) or
             (sp_static in sym.symoptions) or
             (vo_is_public in sym.varoptions)) then
           append_entry(tag,false,[
-            DW_AT_name,DW_FORM_string,symname(sym)+#0,
+            DW_AT_name,DW_FORM_string,name+#0,
             {
             DW_AT_decl_file,DW_FORM_data1,0,
             DW_AT_decl_line,DW_FORM_data1,
@@ -1811,7 +2315,7 @@ implementation
             not(vo_has_local_copy in sym.varoptions) and
             not is_open_string(sym.vardef) then
           append_entry(tag,false,[
-            DW_AT_name,DW_FORM_string,symname(sym)+#0,
+            DW_AT_name,DW_FORM_string,name+#0,
             DW_AT_variable_parameter,DW_FORM_flag,true,
             {
             DW_AT_decl_file,DW_FORM_data1,0,
@@ -1823,7 +2327,7 @@ implementation
 {$endif gdb_supports_DW_AT_variable_parameter}
         else
           append_entry(tag,false,[
-            DW_AT_name,DW_FORM_string,symname(sym)+#0,
+            DW_AT_name,DW_FORM_string,name+#0,
             {
             DW_AT_decl_file,DW_FORM_data1,0,
             DW_AT_decl_line,DW_FORM_data1,
@@ -1833,15 +2337,22 @@ implementation
             ]);
         { append block data }
         current_asmdata.asmlists[al_dwarf_info].concatlist(templist);
+        { Mark self as artificial for methods, because gdb uses the fact
+          whether or not the first parameter of a method is artificial to
+          distinguish regular from static methods (since there are no
+          no vo_is_self parameters for static methods, we don't have to check
+          that).  }
+        if (vo_is_self in sym.varoptions) then
+          append_attribute(DW_AT_artificial,DW_FORM_flag,[true]);
 {$ifndef gdb_supports_DW_AT_variable_parameter}
         if (sym.typ=paravarsym) and
             paramanager.push_addr_param(sym.varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption) and
             not(vo_has_local_copy in sym.varoptions) and
             not is_open_string(sym.vardef) then
-          append_labelentry_ref(DW_AT_type,def_dwarf_ref_lab(sym.vardef))
+          append_labelentry_ref(DW_AT_type,def_dwarf_ref_lab(def))
         else
 {$endif not gdb_supports_DW_AT_variable_parameter}
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vardef));
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(def));
 
         templist.free;
 
@@ -1868,6 +2379,12 @@ implementation
 
 
     procedure TDebugInfoDwarf.appendsym_fieldvar(list:TAsmList;sym: tfieldvarsym);
+      begin
+        appendsym_fieldvar_with_name_offset(list,sym,symname(sym),sym.vardef,0);
+      end;
+
+
+    procedure TDebugInfoDwarf.appendsym_fieldvar_with_name_offset(list:TAsmList;sym: tfieldvarsym;const name: string; def: tdef; offset: pint);
       var
         bitoffset,
         fieldoffset,
@@ -1888,8 +2405,9 @@ implementation
               fieldoffset:=sym.fieldoffset
             else
               fieldoffset:=sym.fieldoffset div 8;
+            inc(fieldoffset,offset);
             append_entry(DW_TAG_member,false,[
-              DW_AT_name,DW_FORM_string,symname(sym)+#0,
+              DW_AT_name,DW_FORM_string,name+#0,
               DW_AT_data_member_location,DW_FORM_block1,1+lengthuleb128(fieldoffset)
               ]);
           end
@@ -1904,6 +2422,7 @@ implementation
             { does.                                                  }
             fieldnatsize:=max(sizeof(pint),sym.vardef.size);
             fieldoffset:=(sym.fieldoffset div (fieldnatsize*8)) * fieldnatsize;
+            inc(fieldoffset,offset);
             bitoffset:=sym.fieldoffset mod (fieldnatsize*8);
             if (target_info.endian=endian_little) then
               bitoffset:=(fieldnatsize*8)-bitoffset-sym.vardef.packedbitsize;
@@ -1921,83 +2440,158 @@ implementation
           end;
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus_uconst)));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(fieldoffset));
+        if (sym.owner.symtabletype=objectsymtable) then
+          append_visibility(sym.visibility);
 
-        append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.vardef));
+        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def));
         finish_entry;
       end;
 
 
     procedure TDebugInfoDwarf.appendsym_const(list:TAsmList;sym:tconstsym);
+      var
+        i,
+        size: aint;
+        usedef: tdef;
       begin
-        append_entry(DW_TAG_constant,false,[
+        { These are default values of parameters. These should be encoded
+          via DW_AT_default_value, not as a separate sym. Moreover, their
+          type is not available when writing the debug info for external
+          procedures.
+        }
+        if (sym.owner.symtabletype=parasymtable) then
+          exit;
+
+        append_entry(DW_TAG_variable,false,[
           DW_AT_name,DW_FORM_string,symname(sym)+#0
           ]);
         { for string constants, constdef isn't set because they have no real type }
-        if not(sym.consttyp in [conststring,constresourcestring,constwstring]) then
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.constdef));
-        current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_AT_const_value)));
         case sym.consttyp of
           conststring:
             begin
-              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_string)));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(strpas(pchar(sym.value.valueptr))));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(0));
+              { if DW_FORM_string is used below one day, this usedef should
+                probably become nil }
+              { note: < 255 instead of <= 255 because we have to store the
+                entire length of the string as well, and 256 does not fit in
+                a byte }
+              if (sym.value.len<255) then
+                usedef:=cshortstringtype
+              else
+                usedef:=clongstringtype;
             end;
-          constset,
-          constwstring,
+          constresourcestring,
+          constwstring:
+            usedef:=nil;
+          else
+            usedef:=sym.constdef;
+          end;
+        if assigned(usedef) then
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(usedef));
+        AddConstToAbbrev(ord(DW_AT_const_value));
+        case sym.consttyp of
+          conststring:
+            begin
+              { DW_FORM_string isn't supported yet by the Pascal value printer
+                -> create a string using raw bytes }
+              if (sym.value.len<255) then
+                begin
+                  AddConstToAbbrev(ord(DW_FORM_block1));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sym.value.len+1));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sym.value.len));
+                end
+              else
+                begin
+                  AddConstToAbbrev(ord(DW_FORM_block));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(sym.value.len+sizeof(pint)));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_pint(sym.value.len));
+                end;
+              i:=0;
+              size:=sym.value.len;
+              while(i<size) do
+                begin
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit((pbyte(sym.value.valueptr+i)^)));
+                  inc(i);
+                end;
+            end;
           constguid,
+          constset:
+            begin
+              AddConstToAbbrev(ord(DW_FORM_block1));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(usedef.size));
+              i:=0;
+              size:=sym.constdef.size;
+              while (i<size) do
+                begin
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit((pbyte(sym.value.valueptr+i)^)));
+                  inc(i);
+                end;
+            end;
+          constwstring,
           constresourcestring:
             begin
               { write dummy for now }
-              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_string)));
+              AddConstToAbbrev(ord(DW_FORM_string));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_string.create(''));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(0));
             end;
           constord:
             begin
-              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_sdata)));
-              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(sym.value.valueord.svalue));
+              if (sym.value.valueord<0) then
+                begin
+                  AddConstToAbbrev(ord(DW_FORM_sdata));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_sleb128bit(sym.value.valueord.svalue));
+                end
+              else
+                begin
+                  AddConstToAbbrev(ord(DW_FORM_udata));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(sym.value.valueord.uvalue));
+                end;
             end;
           constnil:
             begin
 {$ifdef cpu64bitaddr}
-              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
+              AddConstToAbbrev(ord(DW_FORM_data8));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(0));
 {$else cpu64bitaddr}
-              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
+              AddConstToAbbrev(ord(DW_FORM_data4));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(0));
 {$endif cpu64bitaddr}
             end;
           constpointer:
             begin
 {$ifdef cpu64bitaddr}
-              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data8)));
+              AddConstToAbbrev(ord(DW_FORM_data8));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(int64(sym.value.valueordptr)));
 {$else cpu64bitaddr}
-              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_data4)));
+              AddConstToAbbrev(ord(DW_FORM_data4));
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_32bit(longint(sym.value.valueordptr)));
 {$endif cpu64bitaddr}
             end;
           constreal:
             begin
-              current_asmdata.asmlists[al_dwarf_abbrev].concat(tai_const.create_uleb128bit(ord(DW_FORM_block1)));
+              AddConstToAbbrev(ord(DW_FORM_block1));
               case tfloatdef(sym.constdef).floattype of
                 s32real:
                   begin
                     current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(4));
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_real_32bit.create(psingle(sym.value.valueptr)^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_real_32bit.create(pbestreal(sym.value.valueptr)^));
                   end;
-                s64comp,
-                s64currency,
                 s64real:
                   begin
                     current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(8));
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_real_64bit.create(pdouble(sym.value.valueptr)^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_real_64bit.create(pbestreal(sym.value.valueptr)^));
                   end;
-                s80real:
+                s64comp,
+                s64currency:
                   begin
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(10));
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_real_80bit.create(pextended(sym.value.valueptr)^));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(8));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_64bit(trunc(pbestreal(sym.value.valueptr)^)));
+                  end;
+                s80real,
+                sc80real:
+                  begin
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(sym.constdef.size));
+                    current_asmdata.asmlists[al_dwarf_info].concat(tai_real_80bit.create(pextended(sym.value.valueptr)^,sym.constdef.size));
                   end;
                 else
                   internalerror(200601291);
@@ -2019,27 +2613,37 @@ implementation
 
 
     procedure TDebugInfoDwarf.appendsym_property(list:TAsmList;sym: tpropertysym);
+      var
+        symlist: ppropaccesslistitem;
+        tosym: tabstractvarsym;
+        offset: pint;
       begin
-        { ignored for now }
+        if assigned(sym.propaccesslist[palt_read]) and
+           not assigned(sym.propaccesslist[palt_read].procdef) then
+          symlist:=sym.propaccesslist[palt_read].firstsym
+        else
+          { can't handle }
+          exit;
+
+        if not get_symlist_sym_offset(symlist,tosym,offset) then
+          exit;
+
+        if (tosym.owner.symtabletype<>objectsymtable) then
+          begin
+            if (tosym.typ=fieldvarsym) then
+              internalerror(2009031404);
+            appendsym_var_with_name_type_offset(list,tabstractnormalvarsym(tosym),symname(sym),sym.propdef,offset,[])
+          end
+        else
+          appendsym_fieldvar_with_name_offset(list,tfieldvarsym(tosym),symname(sym),sym.propdef,offset)
       end;
 
 
     procedure TDebugInfoDwarf.appendsym_type(list:TAsmList;sym: ttypesym);
       begin
-        if not (target_info.system in systems_darwin) then
-          begin
-            if not(df_generic in sym.typedef.defoptions) then
-              begin
-                append_entry(DW_TAG_typedef,false,[
-                  DW_AT_name,DW_FORM_string,symname(sym)+#0
-                ]);
-                append_labelentry_ref(DW_AT_type,def_dwarf_lab(sym.typedef));
-              end;
-            finish_entry;
-          end
-        else
-          { just queue the def if needed }
-          def_dwarf_lab(sym.typedef);
+        { just queue the def if needed, beforeappenddef will
+          emit the typedef if necessary }
+        def_dwarf_lab(sym.typedef);
       end;
 
 
@@ -2048,6 +2652,9 @@ implementation
         templist : TAsmList;
         blocksize : longint;
         symlist : ppropaccesslistitem;
+        tosym: tabstractvarsym;
+        offset: pint;
+        flags: tdwarfvarsymflags;
       begin
         templist:=TAsmList.create;
         case tabsolutevarsym(sym).abstyp of
@@ -2074,11 +2681,15 @@ implementation
           tovar:
             begin
               symlist:=tabsolutevarsym(sym).ref.firstsym;
-              { can we insert the symbol? }
-              if assigned(symlist) and
-                 (symlist^.sltype=sl_load) then
-                appendsym(list,symlist^.sym);
-
+              if get_symlist_sym_offset(symlist,tosym,offset) then
+                begin
+                  if (tosym.typ=fieldvarsym) then
+                    internalerror(2009031402);
+                  flags:=[];
+                  if (sym.owner.symtabletype=localsymtable) then
+                    include(flags,dvf_force_local_var);
+                  appendsym_var_with_name_type_offset(list,tabstractnormalvarsym(tosym),symname(sym),tabstractvarsym(sym).vardef,offset,flags);
+                end;
               templist.free;
               exit;
             end;
@@ -2119,20 +2730,32 @@ implementation
         ditem : TDirIndexItem;
         fitem : TFileIndexItem;
         flist : TFPList;
+        dbgname : String;
       begin
-        { insert .Ltext0 label }
-        templist:=TAsmList.create;
-        new_section(templist,sec_code,'',0);
-        templist.concat(tai_symbol.createname(target_asm.labelprefix+'text0',AT_DATA,0));
-        current_asmdata.asmlists[al_start].insertlist(templist);
-        templist.free;
+        { insert DEBUGSTART and DEBUGEND labels }
+        dbgname:=make_mangledname('DEBUGSTART',current_module.localsymtable,'');
+        { Darwin's linker does not like two global labels both pointing to the
+          end of a section, which can happen in case of units without code ->
+          make them local; we don't need the debugtable stuff there either,
+          so it doesn't matter that they are not global.
+        }
+        if (target_info.system in systems_darwin) then
+          dbgname:='L'+dbgname;
+        new_section(current_asmdata.asmlists[al_start],sec_code,dbgname,0,secorder_begin);
+        if not(target_info.system in systems_darwin) then
+          current_asmdata.asmlists[al_start].concat(tai_symbol.Createname_global(dbgname,AT_DATA,0))
+        else
+          current_asmdata.asmlists[al_start].concat(tai_symbol.Createname(dbgname,AT_DATA,0));
 
-        { insert .Letext0 label }
-        templist:=TAsmList.create;
-        new_section(templist,sec_code,'',0);
-        templist.concat(tai_symbol.createname(target_asm.labelprefix+'etext0',AT_DATA,0));
-        current_asmdata.asmlists[al_end].insertlist(templist);
-        templist.free;
+        dbgname:=make_mangledname('DEBUGEND',current_module.localsymtable,'');
+        { See above. }
+        if (target_info.system in systems_darwin) then
+          dbgname:='L'+dbgname;
+        new_section(current_asmdata.asmlists[al_end],sec_code,dbgname,0,secorder_end);
+        if not(target_info.system in systems_darwin) then
+          current_asmdata.asmlists[al_end].concat(tai_symbol.Createname_global(dbgname,AT_DATA,0))
+        else
+          current_asmdata.asmlists[al_end].concat(tai_symbol.Createname(dbgname,AT_DATA,0));
 
         { insert .Ldebug_abbrev0 label }
         templist:=TAsmList.create;
@@ -2278,48 +2901,15 @@ implementation
 
     procedure TDebugInfoDwarf.inserttypeinfo;
 
-      procedure write_defs_to_write;
-        var
-          n       : integer;
-          looplist,
-          templist: TFPObjectList;
-          def     : tdef;
-        begin
-          templist := TFPObjectList.Create(False);
-          looplist := deftowritelist;
-          while looplist.count > 0 do
-            begin
-              deftowritelist := templist;
-              for n := 0 to looplist.count - 1 do
-                begin
-                  def := tdef(looplist[n]);
-                  case def.dbg_state of
-                    dbg_state_written:
-                      continue;
-                    dbg_state_writing:
-                      internalerror(200610052);
-                    dbg_state_unused:
-                      internalerror(200610053);
-                    dbg_state_used:
-                      appenddef(nil,def)
-                  else
-                    internalerror(200610054);
-                  end;
-                end;
-              looplist.clear;
-              templist := looplist;
-              looplist := deftowritelist;
-            end;
-          templist.free;
-        end;
-
 
       var
         storefilepos  : tfileposinfo;
         lenstartlabel : tasmlabel;
         i : longint;
         def: tdef;
+        dbgname: string;
       begin
+        current_module.flags:=current_module.flags or uf_has_dwarf_debuginfo;
         storefilepos:=current_filepos;
         current_filepos:=current_module.mainfilepos;
 
@@ -2335,7 +2925,7 @@ implementation
         vardatadef:=trecorddef(search_system_type('TVARDATA').typedef);
 
         { write start labels }
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_section.create(sec_debug_info,'',0));
+        new_section(current_asmdata.asmlists[al_dwarf_info],sec_debug_info,'',0);
         current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.createname(target_asm.labelprefix+'debug_info0',AT_DATA,0));
 
         { start abbrev section }
@@ -2379,8 +2969,18 @@ implementation
           append_labelentry_dataptr_rel(DW_AT_stmt_list,
             current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_linesection0'),
             current_asmdata.RefAsmSymbol(target_asm.labelprefix+'debug_line0'));
-        append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'text0'));
-        append_labelentry(DW_AT_high_pc,current_asmdata.RefAsmSymbol(target_asm.labelprefix+'etext0'));
+
+        if (m_objectivec1 in current_settings.modeswitches) then
+          append_attribute(DW_AT_APPLE_major_runtime_vers,DW_FORM_data1,[1]);
+
+        dbgname:=make_mangledname('DEBUGSTART',current_module.localsymtable,'');
+        if (target_info.system in systems_darwin) then
+          dbgname:='L'+dbgname;
+        append_labelentry(DW_AT_low_pc,current_asmdata.RefAsmSymbol(dbgname));
+        dbgname:=make_mangledname('DEBUGEND',current_module.localsymtable,'');
+        if (target_info.system in systems_darwin) then
+          dbgname:='L'+dbgname;
+        append_labelentry(DW_AT_high_pc,current_asmdata.RefAsmSymbol(dbgname));
 
         finish_entry;
 
@@ -2409,13 +3009,12 @@ implementation
           write_symtable_defs(current_asmdata.asmlists[al_dwarf_info],current_module.localsymtable);
 
         { write defs not written yet }
-        write_defs_to_write;
+        write_remaining_defs_to_write(current_asmdata.asmlists[al_dwarf_info]);
 
         { close compilation unit entry }
         finish_children;
 
         { end of debug info table }
-        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(0));
         current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.createname(target_asm.labelprefix+'edebug_info0',AT_DATA,0));
 
         { end of abbrev table }
@@ -2442,7 +3041,26 @@ implementation
 
 
     procedure TDebugInfoDwarf.referencesections(list:TAsmList);
+      var
+        hp : tmodule;
       begin
+        { Reference all DEBUGINFO sections from the main .fpc section }
+        { to prevent eliminating them by smartlinking                 }
+        if (target_info.system in ([system_powerpc_macos]+systems_darwin)) then
+          exit;
+        new_section(list,sec_fpc,'links',0);
+
+        { include reference to all debuginfo sections of used units }
+        hp:=tmodule(loaded_units.first);
+        while assigned(hp) do
+          begin
+            If (hp.flags and uf_has_dwarf_debuginfo)=uf_has_dwarf_debuginfo then
+              begin
+                list.concat(Tai_const.Createname(make_mangledname('DEBUGSTART',hp.localsymtable,''),0));
+                list.concat(Tai_const.Createname(make_mangledname('DEBUGEND',hp.localsymtable,''),0));
+              end;
+            hp:=tmodule(hp.next);
+          end;
       end;
 
 
@@ -2450,9 +3068,40 @@ implementation
       begin
         if (sym.typ=paravarsym) and
            (vo_is_self in tparavarsym(sym).varoptions) then
-          result:='this'
+          { We use 'this' for regular methods because that's what gdb triggers
+            on to automatically search fields. Don't do this for class methods,
+            because search class fields is not supported, and gdb 7.0+ fails
+            in this case because "this" is not a record in that case (it's a
+            pointer to a vmt) }
+          if not is_objc_class_or_protocol(tdef(sym.owner.defowner.owner.defowner)) and
+             not(po_classmethod in tabstractprocdef(sym.owner.defowner).procoptions) then
+            result:='this'
+          else
+            result:='self'
+        else if (sym.typ=typesym) and
+                is_objc_class_or_protocol(ttypesym(sym).typedef) then
+          result:=tobjectdef(ttypesym(sym).typedef).objextname^
+        else if (ds_dwarf_method_class_prefix in current_settings.debugswitches) and
+                (sym.typ=procsym) and
+                (tprocsym(sym).owner.symtabletype=objectsymtable) then
+          result:=tprocsym(sym).owner.name^+'__'+sym.name
         else
-          result := sym.Name;
+          result:=sym.name;
+      end;
+
+
+    procedure tdebuginfodwarf.append_visibility(vis: tvisibility);
+      begin
+        case vis of
+          vis_private,
+          vis_strictprivate:
+            append_attribute(DW_AT_accessibility,DW_FORM_data1,[ord(DW_ACCESS_private)]);
+          vis_protected,
+          vis_strictprotected:
+            append_attribute(DW_AT_accessibility,DW_FORM_data1,[ord(DW_ACCESS_protected)]);
+          vis_public:
+            { default };
+        end;
       end;
 
 
@@ -2468,7 +3117,8 @@ implementation
         diffline,
         prevline,
         prevfileidx,
-        currfileidx: Integer;
+        currfileidx,
+        nolineinfolevel : Integer;
         prevlabel,
         currlabel     : tasmlabel;
       begin
@@ -2482,6 +3132,7 @@ implementation
         prevline := 1;
         prevfileidx := 1;
         prevlabel := nil;
+        nolineinfolevel:=0;
         while assigned(hp) do
           begin
             case hp.typ of
@@ -2492,13 +3143,24 @@ implementation
                   currfuncname:=tai_function_name(hp).funcname;
                   asmline.concat(tai_comment.Create(strpnew('function: '+currfuncname^)));
                 end;
-              ait_force_line : begin
-                lastfileinfo.line:=-1;
-              end;
+              ait_force_line :
+                begin
+                  lastfileinfo.line:=-1;
+                end;
+              ait_marker :
+                begin
+                  case tai_marker(hp).kind of
+                    mark_NoLineInfoStart:
+                      inc(nolineinfolevel);
+                    mark_NoLineInfoEnd:
+                      dec(nolineinfolevel);
+                  end;
+                end;
             end;
 
             if (currsectype=sec_code) and
-               (hp.typ=ait_instruction) then
+               (hp.typ=ait_instruction) and
+               (nolineinfolevel=0) then
               begin
                 currfileinfo:=tailineinfo(hp).fileinfo;
                 { file changed ? (must be before line info) }
@@ -2675,7 +3337,17 @@ implementation
     procedure TDebugInfoDwarf2.appenddef_object(list:TAsmList;def: tobjectdef);
       procedure doappend;
         begin
-          if assigned(def.objname) then
+          { Objective-C class: same as regular class, except for
+              a) Apple-specific tag that identifies it as an Objective-C class
+              b) use extname^ instead of objname
+          }
+          if (def.objecttype=odt_objcclass) then
+            append_entry(DW_TAG_structure_type,true,[
+              DW_AT_name,DW_FORM_string,def.objextname^+#0,
+              DW_AT_byte_size,DW_FORM_udata,tobjectsymtable(def.symtable).datasize,
+              DW_AT_APPLE_runtime_class,DW_FORM_data1,DW_LANG_ObjC
+              ])
+          else if assigned(def.objname) then
             append_entry(DW_TAG_structure_type,true,[
               DW_AT_name,DW_FORM_string,def.objname^+#0,
               DW_AT_byte_size,DW_FORM_udata,tobjectsymtable(def.symtable).datasize
@@ -2695,7 +3367,7 @@ implementation
               current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_uleb128bit(0));
               if (def.childof.dbg_state=dbg_state_unused) then
                 def.childof.dbg_state:=dbg_state_used;
-              if is_class_or_interface_or_dispinterface(def) then
+              if is_class_or_interface_or_dispinterface_or_objc(def) then
                 append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def.childof))
               else
                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.childof));
@@ -2722,7 +3394,15 @@ implementation
             end;
 
           def.symtable.symList.ForEachCall(@enum_membersyms_callback,nil);
-          finish_children;
+          { Write the methods in the scope of the class/object, except for Objective-C.  }
+          if is_objc_class_or_protocol(def) then
+            finish_children;
+          { don't write procdefs of externally defined classes, gcc doesn't
+            either (info is probably gotten from ObjC runtime)  }
+          if not(oo_is_external in def.objectoptions) then
+            write_symtable_procdefs(current_asmdata.asmlists[al_dwarf_info],def.symtable);
+          if not is_objc_class_or_protocol(def) then
+            finish_children;
         end;
 
 
@@ -2734,12 +3414,16 @@ implementation
           odt_interfacecom,
           odt_interfacecorba,
           odt_dispinterface,
-          odt_class:
+          odt_class,
+          odt_objcclass:
             begin
-              { implicit pointer }
-              append_entry(DW_TAG_pointer_type,false,[]);
-              append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def));
-              finish_entry;
+              if (def.objecttype<>odt_objcclass) then
+                begin
+                  { implicit pointer }
+                  append_entry(DW_TAG_pointer_type,false,[]);
+                  append_labelentry_ref(DW_AT_type,def_dwarf_class_struct_lab(def));
+                  finish_entry;
+                end;
 
               if not(tf_dwarf_only_local_labels in target_info.flags) then
                 current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create_global(def_dwarf_class_struct_lab(def),0))
@@ -2747,16 +3431,23 @@ implementation
                 current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(def_dwarf_class_struct_lab(def),0));
               doappend;
             end;
+          odt_objcprotocol:
+            begin
+              append_entry(DW_TAG_pointer_type,false,[]);
+              append_labelentry_ref(DW_AT_type,def_dwarf_lab(voidpointertype));
+              finish_entry;
+            end;
           else
             internalerror(200602041);
         end;
       end;
 
-    procedure TDebugInfoDwarf2.appenddef_set(list:TAsmList;def: tsetdef);
+    procedure TDebugInfoDwarf2.appenddef_set_intern(list:TAsmList;def: tsetdef; force_tag_set: boolean);
       var
         lab: tasmlabel;
       begin
-        if (ds_dwarf_sets in current_settings.debugswitches) then
+        if force_tag_set or
+           (ds_dwarf_sets in current_settings.debugswitches) then
           begin
             { current (20070704 -- patch was committed on 20060513) gdb cvs supports set types }
 
@@ -2771,21 +3462,21 @@ implementation
                 ]);
             if assigned(def.elementdef) then
               begin
-                if (def.elementdef.typ=enumdef) then
-                  begin
-                    { gdb 6.7 - 6.8 is broken for regular enum sets }
-                    if not(tf_dwarf_only_local_labels in target_info.flags) then
-                      current_asmdata.getdatalabel(lab)
-                    else
-                      current_asmdata.getaddrlabel(lab);
-                    append_labelentry_ref(DW_AT_type,lab);
-                    finish_entry;
-                    current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(lab,0));
-                    append_entry(DW_TAG_subrange_type,false,[
-                      DW_AT_lower_bound,DW_FORM_sdata,tenumdef(def.elementdef).minval,
-                      DW_AT_upper_bound,DW_FORM_sdata,tenumdef(def.elementdef).maxval
-                      ]);
-                  end;
+                if not(tf_dwarf_only_local_labels in target_info.flags) then
+                  current_asmdata.getdatalabel(lab)
+                else
+                  current_asmdata.getaddrlabel(lab);
+                append_labelentry_ref(DW_AT_type,lab);
+                finish_entry;
+                current_asmdata.asmlists[al_dwarf_info].concat(tai_symbol.create(lab,0));
+                { Sets of e.g. [1..5] are actually stored as a set of [0..7],
+                  so write the exact boundaries of the set here. Let's hope no
+                  debugger ever rejects this because this "subrange" type can
+                  actually have a larger range than the original one.  }
+                append_entry(DW_TAG_subrange_type,false,[
+                  DW_AT_lower_bound,DW_FORM_sdata,def.setbase,
+                  DW_AT_upper_bound,DW_FORM_sdata,get_max_value(def.elementdef).svalue
+                  ]);
                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef))
               end
           end
@@ -2808,6 +3499,11 @@ implementation
         finish_entry;
       end;
 
+    procedure TDebugInfoDwarf2.appenddef_set(list:TAsmList;def: tsetdef);
+      begin
+        appenddef_set_intern(list,def,false);
+      end;
+
     procedure TDebugInfoDwarf2.appenddef_undefined(list:TAsmList;def: tundefineddef);
       begin
         { gdb 6.4 doesn't support DW_TAG_unspecified_type so we
@@ -2824,7 +3520,7 @@ implementation
     procedure TDebugInfoDwarf2.appenddef_variant(list:TAsmList;def: tvariantdef);
       begin
         { variants aren't known to dwarf2 but writting tvardata should be enough }
-        appenddef_record(list,trecorddef(vardatadef));
+        appenddef_record_named(list,trecorddef(vardatadef),'Variant');
       end;
 
     function TDebugInfoDwarf2.dwarf_version: Word;
@@ -2835,6 +3531,194 @@ implementation
 {****************************************************************************
                               TDebugInfoDwarf3
 ****************************************************************************}
+
+    procedure TDebugInfoDwarf3.append_labelentry_addr_ref(attr : tdwarf_attribute;sym : tasmsymbol);
+      begin
+        AddConstToAbbrev(ord(DW_FORM_ref_addr));
+        { Since Dwarf 3 the length of a DW_FORM_ref_addr entry is not dependent on the pointer size of the
+          target platform, but on the used Dwarf-format (32 bit or 64 bit) for the current compilation section. }
+        if use_64bit_headers then
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.Create_type_sym(aitconst_64bit,sym))
+        else
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.Create_type_sym(aitconst_32bit,sym));
+      end;
+
+    procedure tdebuginfodwarf3.appenddef_array(list: tasmlist; def: tarraydef);
+      begin
+        if not is_dynamic_array(def) then
+          begin
+            inherited appenddef_array(list,def);
+            exit;
+          end;
+
+        if assigned(def.typesym) then
+          append_entry(DW_TAG_array_type,true,[
+            DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
+            DW_AT_data_location,DW_FORM_block1,2
+            ])
+        else
+          append_entry(DW_TAG_array_type,true,[
+            DW_AT_data_location,DW_FORM_block1,2
+            ]);
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+
+        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.elementdef));
+        finish_entry;
+        { to simplify things, we don't write a multidimensional array here }
+        append_entry(DW_TAG_subrange_type,false,[
+          DW_AT_byte_stride,DW_FORM_udata,def.elesize,
+          DW_AT_lower_bound,DW_FORM_udata,0,
+          DW_AT_upper_bound,DW_FORM_block1,14
+          ]);
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_dup)));
+        { pointer = nil? }
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_bra)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(5));
+        { yes -> length = 0 }
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_const1s)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(byte(-1)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_skip)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(3));
+        { no -> load length }
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit0)+sizeof(ptrint)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_minus)));
+        current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+        append_labelentry_ref(DW_AT_type,def_dwarf_lab(def.rangedef));
+        finish_entry;
+
+        finish_children;
+      end;
+
+
+    procedure tdebuginfodwarf3.appenddef_string(list: tasmlist; def: tstringdef);
+
+      procedure addstringdef(const name: shortstring; chardef: tdef; deref: boolean; lensize: aint);
+        var
+          upperopcodes: longint;
+        begin
+          { deref=true -> ansi/unicde/widestring; deref = false -> short/longstring }
+          if assigned(def.typesym) then
+            append_entry(DW_TAG_array_type,true,[
+              DW_AT_name,DW_FORM_string,name+#0,
+              DW_AT_data_location,DW_FORM_block1,2+ord(not(deref))
+              ])
+          else
+            append_entry(DW_TAG_array_type,true,[
+              DW_AT_data_location,DW_FORM_block1,2+ord(not(deref))
+              ]);
+
+          { in all cases we start with the address of the string }
+          current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
+          if deref then
+            begin
+              { ansi/unicode/widestring -> dereference the address of the string, and then
+                we point to address of the string
+              }
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+            end
+          else
+            begin
+              { shortstring characters begin at string[1], so add one to the string's address }
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit0)+lensize));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_plus)))
+            end;
+
+          { reference to the element type of the string }
+          append_labelentry_ref(DW_AT_type,def_dwarf_lab(chardef));
+          finish_entry;
+
+          { now the information about the length of the string }
+          if deref then
+            begin
+              if (chardef.size=1) then
+                upperopcodes:=13
+              else
+                upperopcodes:=15;
+              { lower bound is always 1, upper bound (length) needs to be calculated }
+              append_entry(DW_TAG_subrange_type,false,[
+                DW_AT_lower_bound,DW_FORM_udata,1,
+                DW_AT_upper_bound,DW_FORM_block1,upperopcodes
+                ]);
+
+              { high(string) is stored sizeof(ptrint) bytes before the string data }
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_dup)));
+              { pointer = nil? }
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_bra)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(4));
+              { yes -> length = 0 }
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit0)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_skip)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_16bit(3));
+              { no -> load length }
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit0)+sizeof(ptrint)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_minus)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref)));
+
+              { for widestrings, the length is specified in bytes, so divide by two }
+              if (upperopcodes=15) then
+                begin
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_lit1)));
+                  current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_shr)));
+                end;
+            end
+          else
+            begin
+              append_entry(DW_TAG_subrange_type,false,[
+                DW_AT_lower_bound,DW_FORM_udata,1,
+                DW_AT_upper_bound,DW_FORM_block1,3
+                ]);
+              { for shortstrings, the length is the first byte of the string }
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_push_object_address)));
+              { load 1 byte }
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(ord(DW_OP_deref_size)));
+              current_asmdata.asmlists[al_dwarf_info].concat(tai_const.create_8bit(lensize));
+            end;
+          finish_entry;
+
+          finish_children;
+        end;
+
+      begin
+        case def.stringtype of
+          st_shortstring:
+            begin
+              addstringdef('ShortString',cchartype,false,1);
+            end;
+          st_longstring:
+            begin
+{$ifdef cpu64bitaddr}
+              addstringdef('LongString',cchartype,false,8);
+{$else cpu64bitaddr}
+              addstringdef('LongString',cchartype,false,4);
+{$endif cpu64bitaddr}
+           end;
+         st_ansistring:
+           begin
+             addstringdef('AnsiString',cchartype,true,-1);
+           end;
+         st_unicodestring:
+           begin
+             addstringdef('UnicodeString',cwidechartype,true,-1);
+           end;
+         st_widestring:
+           begin
+             if not(tf_winlikewidestring in target_info.flags) then
+               addstringdef('WideString',cwidechartype,true,-1)
+             else
+               begin
+                 { looks like a pwidechar (no idea about length location) }
+                 append_entry(DW_TAG_pointer_type,false,[]);
+                 append_labelentry_ref(DW_AT_type,def_dwarf_lab(cwidechartype));
+                 finish_entry;
+              end;
+           end;
+        end;
+      end;
 
     procedure TDebugInfoDwarf3.appenddef_file(list:TAsmList;def: tfiledef);
       begin
@@ -2960,18 +3844,7 @@ implementation
 
     procedure TDebugInfoDwarf3.appenddef_set(list:TAsmList;def: tsetdef);
       begin
-        if assigned(def.typesym) then
-          append_entry(DW_TAG_set_type,false,[
-            DW_AT_name,DW_FORM_string,symname(def.typesym)+#0,
-            DW_AT_byte_size,DW_FORM_data2,def.size
-            ])
-        else
-          append_entry(DW_TAG_set_type,false,[
-            DW_AT_byte_size,DW_FORM_data2,def.size
-            ]);
-        if assigned(tsetdef(def).elementdef) then
-          append_labelentry_ref(DW_AT_type,def_dwarf_lab(tsetdef(def).elementdef));
-        finish_entry;
+        appenddef_set_intern(list,def,true);
       end;
 
     procedure TDebugInfoDwarf3.appenddef_undefined(list:TAsmList;def: tundefineddef);

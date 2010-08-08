@@ -67,7 +67,6 @@ interface
           procedure deref;virtual;
           procedure derefimpl;virtual;
           function  checkduplicate(var hashedid:THashedIDString;sym:TSymEntry):boolean;override;
-          procedure reset_all_defs;virtual;
           procedure allsymbolsused;
           procedure allprivatesused;
           procedure check_forwards;
@@ -108,13 +107,13 @@ interface
           procedure addalignmentpadding;
           procedure insertdef(def:TDefEntry);override;
           function is_packed: boolean;
+          function has_single_field(out sym:tfieldvarsym): boolean;
         protected
-          procedure setdatasize(val: aint);
           _datasize       : aint;
           { size in bits of the data in case of bitpacked record. Only important during construction, }
           { no need to save in/restore from ppu file. datasize is always (databitsize+7) div 8.       }
           databitsize    : aint;
-          { bitpacked? -> all fieldvarsym offsets are in bits instead of bytes }
+          procedure setdatasize(val: aint);
         public
           property datasize : aint read _datasize write setdatasize;
        end;
@@ -217,6 +216,14 @@ interface
           constructor create(exported: boolean);
        end;
 
+       { tenumsymtable }
+
+       tenumsymtable = class(tstoredsymtable)
+       public
+          procedure insert(sym: TSymEntry; checkdup: boolean = true); override;
+          constructor create(adefowner:tdef);
+       end;
+
     var
        systemunit     : tglobalsymtable; { pointer to the system unit }
 
@@ -239,12 +246,17 @@ interface
     function  searchsym(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_type(const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_module(pm:pointer;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
+    function  searchsym_in_named_module(const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
     function  searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_class_by_msgint(classh:tobjectdef;msgid:longint;out srdef : tdef;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  searchsym_in_class_by_msgstr(classh:tobjectdef;const s:string;out srsym:tsym;out srsymtable:TSymtable):boolean;
     function  search_system_type(const s: TIDString): ttypesym;
+    function  search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
+    function  search_enumerator_operator(type_def:Tdef):Tprocdef;
+    function  search_class_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
+    function  search_objc_method(const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
     {Looks for macro s (must be given in upper case) in the macrosymbolstack, }
     {and returns it if found. Returns nil otherwise.}
     function  search_macro(const s : string):tsym;
@@ -298,7 +310,7 @@ interface
           'sym_diff','starstar',
           'as','is','in','or',
           'and','div','mod','not','shl','shr','xor',
-          'assign');
+          'assign','enumerator');
 
 
 
@@ -607,70 +619,87 @@ implementation
          if (tsym(sym).typ in [staticvarsym,localvarsym,paravarsym,fieldvarsym]) and
             ((tsym(sym).owner.symtabletype in
              [parasymtable,localsymtable,ObjectSymtable,staticsymtable])) then
-          begin
-           { unused symbol should be reported only if no }
-           { error is reported                     }
-           { if the symbol is in a register it is used   }
-           { also don't count the value parameters which have local copies }
-           { also don't claim for high param of open parameters (PM) }
-           if (Errorcount<>0) or
-              ([vo_is_hidden_para,vo_is_funcret] * tabstractvarsym(sym).varoptions = [vo_is_hidden_para]) then
-             exit;
-           if (tstoredsym(sym).refs=0) then
-             begin
-                if (vo_is_funcret in tabstractvarsym(sym).varoptions) then
-                  begin
-                    { don't warn about the result of constructors }
-                    if ((tsym(sym).owner.symtabletype<>localsymtable) or
-                       (tprocdef(tsym(sym).owner.defowner).proctypeoption<>potype_constructor)) and
-                       not(cs_opt_nodedfa in current_settings.optimizerswitches) then
-                      MessagePos(tsym(sym).fileinfo,sym_w_function_result_not_set)
-                  end
-                else if (tsym(sym).owner.symtabletype=parasymtable) then
-                  MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_not_used,tsym(sym).realname)
-                else if (tsym(sym).owner.symtabletype=ObjectSymtable) then
-                  MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_not_used,tsym(sym).owner.realname^,tsym(sym).realname)
-                else
-                  MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_not_used,tsym(sym).realname);
-             end
-           else if tabstractvarsym(sym).varstate in [vs_written,vs_initialised] then
-             begin
-                if (tsym(sym).owner.symtabletype=parasymtable) then
-                  begin
-                    if not(tabstractvarsym(sym).varspez in [vs_var,vs_out]) and
-                       not(vo_is_funcret in tabstractvarsym(sym).varoptions) then
-                      MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_only_set,tsym(sym).realname)
-                  end
-                else if (tsym(sym).owner.symtabletype=ObjectSymtable) then
-                  MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_only_set,tsym(sym).owner.realname^,tsym(sym).realname)
-                else if tabstractvarsym(sym).varoptions*[vo_is_funcret,vo_is_public,vo_is_external]=[] then
-                  MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_only_set,tsym(sym).realname);
-             end
-           else if (tabstractvarsym(sym).varstate = vs_read_not_warned) and
-                   ([vo_is_public,vo_is_external] * tabstractvarsym(sym).varoptions = []) then
-             MessagePos1(tsym(sym).fileinfo,sym_w_identifier_only_read,tsym(sym).realname)
-         end
-      else if ((tsym(sym).owner.symtabletype in
+           begin
+            { unused symbol should be reported only if no }
+            { error is reported                     }
+            { if the symbol is in a register it is used   }
+            { also don't count the value parameters which have local copies }
+            { also don't claim for high param of open parameters (PM) }
+            if (Errorcount<>0) or
+               ([vo_is_hidden_para,vo_is_funcret] * tabstractvarsym(sym).varoptions = [vo_is_hidden_para]) or
+               (sp_internal in tsym(sym).symoptions) then
+              exit;
+            if (tstoredsym(sym).refs=0) then
+              begin
+                 if (vo_is_funcret in tabstractvarsym(sym).varoptions) then
+                   begin
+                     { don't warn about the result of constructors }
+                     if ((tsym(sym).owner.symtabletype<>localsymtable) or
+                        (tprocdef(tsym(sym).owner.defowner).proctypeoption<>potype_constructor)) and
+                        not(cs_opt_nodedfa in current_settings.optimizerswitches) then
+                       MessagePos(tsym(sym).fileinfo,sym_w_function_result_not_set)
+                   end
+                 else if (tsym(sym).owner.symtabletype=parasymtable) then
+                   MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_not_used,tsym(sym).prettyname)
+                 else if (tsym(sym).owner.symtabletype=ObjectSymtable) then
+                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_not_used,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname)
+                 else
+                   MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_not_used,tsym(sym).prettyname);
+              end
+            else if tabstractvarsym(sym).varstate in [vs_written,vs_initialised] then
+              begin
+                 if (tsym(sym).owner.symtabletype=parasymtable) then
+                   begin
+                     if not(tabstractvarsym(sym).varspez in [vs_var,vs_out]) and
+                        not(vo_is_funcret in tabstractvarsym(sym).varoptions) then
+                       MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_only_set,tsym(sym).prettyname)
+                   end
+                 else if (tsym(sym).owner.symtabletype=ObjectSymtable) then
+                   MessagePos2(tsym(sym).fileinfo,sym_n_private_identifier_only_set,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname)
+                 else if tabstractvarsym(sym).varoptions*[vo_is_funcret,vo_is_public,vo_is_external]=[] then
+                   MessagePos1(tsym(sym).fileinfo,sym_n_local_identifier_only_set,tsym(sym).prettyname);
+              end
+            else if (tabstractvarsym(sym).varstate = vs_read_not_warned) and
+                    ([vo_is_public,vo_is_external] * tabstractvarsym(sym).varoptions = []) then
+              MessagePos1(tsym(sym).fileinfo,sym_w_identifier_only_read,tsym(sym).prettyname)
+          end
+        else if ((tsym(sym).owner.symtabletype in
               [ObjectSymtable,parasymtable,localsymtable,staticsymtable])) then
           begin
            if (Errorcount<>0) or
               (sp_internal in tsym(sym).symoptions) then
              exit;
            { do not claim for inherited private fields !! }
-           if (Tsym(sym).refs=0) and (tsym(sym).owner.symtabletype=ObjectSymtable) then
-             MessagePos2(tsym(sym).fileinfo,sym_n_private_method_not_used,tsym(sym).owner.realname^,tsym(sym).realname)
+           if (tsym(sym).refs=0) and (tsym(sym).owner.symtabletype=ObjectSymtable) then
+             case tsym(sym).typ of
+               typesym:
+                 MessagePos2(tsym(sym).fileinfo,sym_n_private_type_not_used,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
+               constsym:
+                 MessagePos2(tsym(sym).fileinfo,sym_n_private_const_not_used,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
+               propertysym:
+                 MessagePos2(tsym(sym).fileinfo,sym_n_private_property_not_used,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
+             else
+               MessagePos2(tsym(sym).fileinfo,sym_n_private_method_not_used,tobjectdef(tsym(sym).owner.defowner).RttiName,tsym(sym).prettyname);
+             end
            { units references are problematic }
            else
             begin
-              if (Tsym(sym).refs=0) and
+              if (tsym(sym).refs=0) and
                  not(tsym(sym).typ in [enumsym,unitsym]) and
                  not(is_funcret_sym(tsym(sym))) and
+                 { don't complain about compiler generated syms for specializations, see also #13405 }
+                 not((tsym(sym).typ=typesym) and (df_specialization in ttypesym(sym).typedef.defoptions) and
+                    (pos('$',ttypesym(sym).Realname)<>0)) and
                  (
                   (tsym(sym).typ<>procsym) or
                   ((tsym(sym).owner.symtabletype=staticsymtable) and
                    not current_module.is_unit)
-                 ) then
-                MessagePos2(tsym(sym).fileinfo,sym_h_local_symbol_not_used,SymTypeName[tsym(sym).typ],tsym(sym).realname);
+                 ) and
+                 { don't complain about alias for hidden _cmd parameter to
+                   obj-c methods }
+                 not((tsym(sym).typ in [localvarsym,paravarsym,absolutevarsym]) and
+                     (vo_is_msgsel in tabstractvarsym(sym).varoptions)) then
+                MessagePos2(tsym(sym).fileinfo,sym_h_local_symbol_not_used,SymTypeName[tsym(sym).typ],tsym(sym).prettyname);
             end;
           end;
       end;
@@ -678,7 +707,7 @@ implementation
 
     procedure TStoredSymtable.TestPrivate(sym:TObject;arg:pointer);
       begin
-        if tsym(sym).visibility=vis_private then
+        if tsym(sym).visibility in [vis_private,vis_strictprivate] then
           varsymbolused(sym,arg);
       end;
 
@@ -706,19 +735,6 @@ implementation
 {***********************************************
            Process all entries
 ***********************************************}
-
-    procedure Tstoredsymtable.reset_all_defs;
-      var
-        i   : longint;
-        def : tstoreddef;
-      begin
-        for i:=0 to DefList.Count-1 do
-          begin
-            def:=tstoreddef(DefList[i]);
-            def.reset;
-          end;
-      end;
-
 
     { checks, if all procsyms and methods are defined }
     procedure tstoredsymtable.check_forwards;
@@ -755,8 +771,7 @@ implementation
            localvarsym,
            paravarsym :
              begin
-               if not(is_class(tabstractvarsym(sym).vardef)) and
-                  tstoreddef(tabstractvarsym(sym).vardef).needs_inittable then
+               if is_managed_type(tabstractvarsym(sym).vardef) then
                  b_needs_init_final:=true;
              end;
          end;
@@ -789,7 +804,9 @@ implementation
         case usealign of
           C_alignment,
           bit_alignment:
-            fieldalignment:=1
+            fieldalignment:=1;
+          mac68k_alignment:
+            fieldalignment:=2;
           else
             fieldalignment:=usealign;
         end;
@@ -854,10 +871,14 @@ implementation
       var
         varalignrecord: shortint;
       begin
-        if (usefieldalignment=C_alignment) then
-          varalignrecord:=used_align(varalign,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign)
-        else
-          varalignrecord:=field2recordalignment(fieldoffset,varalign);
+        case usefieldalignment of
+          C_alignment:
+            varalignrecord:=used_align(varalign,current_settings.alignment.recordalignmin,current_settings.alignment.maxCrecordalign);
+          mac68k_alignment:
+            varalignrecord:=2;
+          else
+            varalignrecord:=field2recordalignment(fieldoffset,varalign);
+        end;
         recordalignment:=max(recordalignment,varalignrecord);
       end;
 
@@ -881,70 +902,85 @@ implementation
         vardef:=sym.vardef;
         varalign:=vardef.alignment;
 
-        if (usefieldalignment=bit_alignment) then
-          begin
-            { bitpacking only happens for ordinals, the rest is aligned at }
-            { 1 byte (compatible with GPC/GCC)                             }
-            if is_ordinal(vardef) then
-              begin
-                sym.fieldoffset:=databitsize;
-                l:=sym.getpackedbitsize;
-              end
-            else
-              begin
-                databitsize:=_datasize*8;
-                sym.fieldoffset:=databitsize;
-                if (l>high(aint) div 8) then
+        case usefieldalignment of
+          bit_alignment:
+            begin
+              { bitpacking only happens for ordinals, the rest is aligned at }
+              { 1 byte (compatible with GPC/GCC)                             }
+              if is_ordinal(vardef) then
+                begin
+                  sym.fieldoffset:=databitsize;
+                  l:=sym.getpackedbitsize;
+                end
+              else
+                begin
+                  databitsize:=_datasize*8;
+                  sym.fieldoffset:=databitsize;
+                  if (l>high(aint) div 8) then
+                    Message(sym_e_segment_too_large);
+                  l:=l*8;
+                end;
+              if varalign=0 then
+                varalign:=size_2_align(l);
+              recordalignment:=max(recordalignment,field2recordalignment(databitsize mod 8,varalign));
+              { bit packed records are limited to high(aint) bits }
+              { instead of bytes to avoid double precision        }
+              { arithmetic in offset calculations                 }
+              if int64(l)>high(aint)-sym.fieldoffset then
+                begin
                   Message(sym_e_segment_too_large);
-                l:=l*8;
-              end;
-            if varalign=0 then
-              varalign:=size_2_align(l);
-            recordalignment:=max(recordalignment,field2recordalignment(databitsize mod 8,varalign));
-            { bit packed records are limited to high(aint) bits }
-            { instead of bytes to avoid double precision        }
-            { arithmetic in offset calculations                 }
-            if int64(l)>high(aint)-sym.fieldoffset then
-              begin
-                Message(sym_e_segment_too_large);
-                _datasize:=high(aint);
-                databitsize:=high(aint);
-              end
-            else
-              begin
-                databitsize:=sym.fieldoffset+l;
-                _datasize:=(databitsize+7) div 8;
-              end;
-            { rest is not applicable }
-            exit;
-          end;
-        { Calc the alignment size for C style records }
-        if (usefieldalignment=C_alignment) then
-          begin
-            if (varalign>4) and
-              ((varalign mod 4)<>0) and
-              (vardef.typ=arraydef) then
-              Message1(sym_w_wrong_C_pack,vardef.typename);
-            if varalign=0 then
-              varalign:=l;
-            if (fieldalignment<current_settings.alignment.maxCrecordalign) then
-              begin
-                if (varalign>16) and (fieldalignment<32) then
-                  fieldalignment:=32
-                else if (varalign>12) and (fieldalignment<16) then
-                  fieldalignment:=16
-                { 12 is needed for long double }
-                else if (varalign>8) and (fieldalignment<12) then
-                  fieldalignment:=12
-                else if (varalign>4) and (fieldalignment<8) then
-                  fieldalignment:=8
-                else if (varalign>2) and (fieldalignment<4) then
-                  fieldalignment:=4
-                else if (varalign>1) and (fieldalignment<2) then
-                  fieldalignment:=2;
-              end;
-            fieldalignment:=min(fieldalignment,current_settings.alignment.maxCrecordalign);
-          end;
+                  _datasize:=high(aint);
+                  databitsize:=high(aint);
+                end
+              else
+                begin
+                  databitsize:=sym.fieldoffset+l;
+                  _datasize:=(databitsize+7) div 8;
+                end;
+              { rest is not applicable }
+              exit;
+            end;
+          { Calc the alignment size for C style records }
+          C_alignment:
+            begin
+              if (varalign>4) and
+                ((varalign mod 4)<>0) and
+                (vardef.typ=arraydef) then
+                Message1(sym_w_wrong_C_pack,vardef.typename);
+              if varalign=0 then
+                varalign:=l;
+              if (fieldalignment<current_settings.alignment.maxCrecordalign) then
+                begin
+                  if (varalign>16) and (fieldalignment<32) then
+                    fieldalignment:=32
+                  else if (varalign>12) and (fieldalignment<16) then
+                    fieldalignment:=16
+                  { 12 is needed for long double }
+                  else if (varalign>8) and (fieldalignment<12) then
+                    fieldalignment:=12
+                  else if (varalign>4) and (fieldalignment<8) then
+                    fieldalignment:=8
+                  else if (varalign>2) and (fieldalignment<4) then
+                    fieldalignment:=4
+                  else if (varalign>1) and (fieldalignment<2) then
+                    fieldalignment:=2;
+                end;
+              fieldalignment:=min(fieldalignment,current_settings.alignment.maxCrecordalign);
+            end;
+          mac68k_alignment:
+            begin
+              { mac68k alignment (C description):
+                 * char is aligned to 1 byte
+                 * everything else (except vector) is aligned to 2 bytes
+                 * vector is aligned to 16 bytes
+              }
+              if l>1 then
+                fieldalignment:=2
+              else
+                fieldalignment:=1;
+              varalign:=2;
+            end;
+        end;
         if varalign=0 then
           varalign:=size_2_align(l);
         varalignfield:=used_align(varalign,current_settings.alignment.recordalignmin,fieldalignment);
@@ -975,6 +1011,9 @@ implementation
             { bitpacked }
             bit_alignment:
               padalignment:=1;
+            { mac68k: always round to multiple of 2 }
+            mac68k_alignment:
+              padalignment:=2;
             { default/no packrecords specified }
             0:
               padalignment:=recordalignment
@@ -1000,6 +1039,34 @@ implementation
     function tabstractrecordsymtable.is_packed: boolean;
       begin
         result:=usefieldalignment=bit_alignment;
+      end;
+
+
+    function tabstractrecordsymtable.has_single_field(out sym: tfieldvarsym): boolean;
+      var
+        i: longint;
+      begin
+        result:=false;
+        { If a record contains a union, it does not contain a "single
+          non-composite field" in the context of certain ABIs requiring
+          special treatment for such records }
+        if (defowner.typ=recorddef) and
+           trecorddef(defowner).isunion then
+          exit;
+        { a record/object can contain other things than fields }
+        for i:=0 to SymList.Count-1 do
+          begin
+            if tsym(symlist[i]).typ=fieldvarsym then
+              begin
+                if result then
+                  begin
+                    result:=false;
+                    exit;
+                  end;
+                result:=true;
+                sym:=tfieldvarsym(symlist[i])
+              end;
+          end;
       end;
 
 
@@ -1054,6 +1121,9 @@ implementation
             sym:=TSym(unionst.SymList[i]);
             if sym.typ<>fieldvarsym then
               internalerror(200601272);
+            if tfieldvarsym(sym).fieldoffset=0 then
+              include(tfieldvarsym(sym).varoptions,vo_is_first_field);
+
             { add to this record symtable }
 //            unionst.SymList.List.List^[i].Data:=nil;
             sym.ChangeOwner(self);
@@ -1103,11 +1173,13 @@ implementation
                 varalignrecord:=field2recordalignment(tfieldvarsym(sym).fieldoffset,varalign);
               end;
             { update alignment of this record }
-            if (usefieldalignment<>C_alignment) then
+            if (usefieldalignment<>C_alignment) and
+               (usefieldalignment<>mac68k_alignment) then
               recordalignment:=max(recordalignment,varalignrecord);
           end;
         { update alignment for C records }
-        if (usefieldalignment=C_alignment) then
+        if (usefieldalignment=C_alignment) and
+           (usefieldalignment<>mac68k_alignment) then
           recordalignment:=max(recordalignment,unionst.recordalignment);
         { Register defs in the new record symtable }
         for i:=0 to unionst.DefList.Count-1 do
@@ -1117,6 +1189,11 @@ implementation
           end;
         _datasize:=storesize;
         fieldalignment:=storealign;
+        { If a record contains a union, it does not contain a "single
+          non-composite field" in the context of certain ABIs requiring
+          special treatment for such records }
+        if defowner.typ=recorddef then
+          trecorddef(defowner).isunion:=true;
       end;
 
 
@@ -1826,6 +1903,49 @@ implementation
         symtablelevel:=main_program_level;
       end;
 
+{****************************************************************************
+                          TEnumSymtable
+****************************************************************************}
+
+    procedure tenumsymtable.insert(sym: TSymEntry; checkdup: boolean);
+      var
+        value: longint;
+        def: tenumdef;
+      begin
+        // defowner = nil only when we are loading from ppu
+        if defowner<>nil then
+          begin
+            { First entry? Then we need to set the minval }
+            value:=tenumsym(sym).value;
+            def:=tenumdef(defowner);
+            if SymList.count=0 then
+              begin
+                if value>0 then
+                  def.has_jumps:=true;
+                def.setmin(value);
+                def.setmax(value);
+              end
+            else
+              begin
+                { check for jumps }
+                if value>def.max+1 then
+                  def.has_jumps:=true;
+                { update low and high }
+                if def.min>value then
+                  def.setmin(value);
+                if def.max<value then
+                  def.setmax(value);
+              end;
+          end;
+        inherited insert(sym, checkdup);
+      end;
+
+    constructor tenumsymtable.create(adefowner: tdef);
+      begin
+        inherited Create('');
+        symtabletype:=enumsymtable;
+        defowner:=adefowner;
+      end;
 
 {*****************************************************************************
                              Helper Routines
@@ -1835,7 +1955,10 @@ implementation
       var
         s1,s2 : string;
       begin
-        s1:=def.typename;
+        if def.typ=objectdef then
+          s1:=tobjectdef(def).RttiName
+        else
+          s1:=def.typename;
         { When the names are the same try to include the unit name }
         if assigned(otherdef) and
            (def.owner.symtabletype in [globalsymtable,staticsymtable]) then
@@ -1925,8 +2048,24 @@ implementation
             begin
               { private symbols are allowed when we are in the same
                 module as they are defined }
-              result:=(symownerdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
-                      (symownerdef.owner.iscurrentunit);
+              result:=(
+                       (symownerdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
+                       (symownerdef.owner.iscurrentunit)
+                      ) or
+                      ( // the case of specialize inside the generic declaration
+                       (symownerdef.owner.symtabletype = objectsymtable) and
+                       (
+                         assigned(current_objectdef) and
+                         (
+                           (current_objectdef=symownerdef) or
+                           (current_objectdef.owner.moduleid=symownerdef.owner.moduleid)
+                         )
+                       ) or
+                       (
+                         not assigned(current_objectdef) and
+                         (symownerdef.owner.moduleid=current_module.moduleid)
+                       )
+                      );
             end;
           vis_strictprivate :
             begin
@@ -1953,6 +2092,20 @@ implementation
                         (contextobjdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
                         (contextobjdef.owner.iscurrentunit) and
                         contextobjdef.is_related(symownerdef)
+                       ) or
+                       ( // the case of specialize inside the generic declaration
+                        (symownerdef.owner.symtabletype = objectsymtable) and
+                        (
+                          assigned(current_objectdef) and
+                          (
+                            (current_objectdef=symownerdef) or
+                            (current_objectdef.owner.moduleid=symownerdef.owner.moduleid)
+                          )
+                        ) or
+                        (
+                          not assigned(current_objectdef) and
+                          (symownerdef.owner.moduleid=current_module.moduleid)
+                         )
                        )
                       );
             end;
@@ -2033,6 +2186,16 @@ implementation
                     exit;
                   end;
               end;
+            { also search for class helpers }
+            if (srsymtable.symtabletype=objectsymtable) and
+               is_objcclass(tdef(srsymtable.defowner)) then
+              begin
+                if search_class_helper(tobjectdef(srsymtable.defowner),s,srsym,srsymtable) then
+                  begin
+                    result:=true;
+                    exit;
+                  end;
+              end;
             stackitem:=stackitem^.next;
           end;
         srsym:=nil;
@@ -2055,7 +2218,7 @@ implementation
                 records
                 objects
                 parameters
-              Exception are generic definitions and specializations
+              Exception are classes, objects, generic definitions and specializations
               that have the parameterized types inserted in the symtable.
             }
             srsymtable:=stackitem^.symtable;
@@ -2063,7 +2226,8 @@ implementation
                (assigned(srsymtable.defowner) and
                 (
                  (df_generic in tdef(srsymtable.defowner).defoptions) or
-                 (df_specialization in tdef(srsymtable.defowner).defoptions))
+                 (df_specialization in tdef(srsymtable.defowner).defoptions) or
+                 is_class_or_object(tdef(srsymtable.defowner)))
                 ) then
               begin
                 srsym:=tsym(srsymtable.FindWithHash(hashedid));
@@ -2071,7 +2235,8 @@ implementation
                    not(srsym.typ in [fieldvarsym,paravarsym]) and
                    (
                     (srsym.owner.symtabletype<>objectsymtable) or
-                    is_visible_for_object(srsym,current_objectdef)
+                    (is_visible_for_object(srsym,current_objectdef) and
+                     (srsym.typ=typesym))
                    ) then
                   begin
                     { we need to know if a procedure references symbols
@@ -2129,19 +2294,104 @@ implementation
       end;
 
 
+    function searchsym_in_named_module(const unitname, symname: TIDString; out srsym: tsym; out srsymtable: tsymtable): boolean;
+      var
+        stackitem  : psymtablestackitem;
+      begin
+        result:=false;
+        stackitem:=symtablestack.stack;
+        while assigned(stackitem) do
+          begin
+            srsymtable:=stackitem^.symtable;
+            if (srsymtable.symtabletype=globalsymtable) and
+               (srsymtable.name^=unitname) then
+              begin
+                srsym:=tsym(srsymtable.find(symname));
+                if not assigned(srsym) then
+                  break;
+                result:=true;
+                exit;
+              end;
+            stackitem:=stackitem^.next;
+          end;
+
+        { If the module is the current unit we also need
+          to search the local symtable }
+        if (current_module.globalsymtable=srsymtable) and
+           assigned(current_module.localsymtable) then
+          begin
+            srsymtable:=current_module.localsymtable;
+            srsym:=tsym(srsymtable.find(symname));
+            if assigned(srsym) then
+              begin
+                result:=true;
+                exit;
+              end;
+          end;
+      end;
+
+
+    function find_real_objcclass_definition(pd: tobjectdef): tobjectdef;
+      var
+        hashedid   : THashedIDString;
+        stackitem  : psymtablestackitem;
+        srsymtable : tsymtable;
+        srsym      : tsym;
+      begin
+        hashedid.id:=pd.typesym.name;
+        stackitem:=symtablestack.stack;
+        while assigned(stackitem) do
+          begin
+            srsymtable:=stackitem^.symtable;
+            { ObjC classes can't appear in generics or as nested class
+              definitions }
+            if not(srsymtable.symtabletype in [recordsymtable,ObjectSymtable,parasymtable]) then
+              begin
+                srsym:=tsym(srsymtable.FindWithHash(hashedid));
+                if assigned(srsym) and
+                   (srsym.typ=typesym) and
+                   is_objcclass(ttypesym(srsym).typedef) and
+                   not(oo_is_formal in tobjectdef(ttypesym(srsym).typedef).objectoptions) then
+                  begin
+                    result:=tobjectdef(ttypesym(srsym).typedef);
+                    if assigned(current_procinfo) and
+                       (srsym.owner.symtabletype=staticsymtable) then
+                      include(current_procinfo.flags,pi_uses_static_symtable);
+                    addsymref(srsym);
+                    exit;
+                  end;
+              end;
+            stackitem:=stackitem^.next;
+          end;
+        { nothing found: give an error and return the original (empty) one }
+        Message1(sym_e_objc_formal_class_not_resolved,pd.objrealname^);
+        result:=pd;
+      end;
+
+
     function searchsym_in_class(classh,contextclassh:tobjectdef;const s : TIDString;out srsym:tsym;out srsymtable:TSymtable):boolean;
       var
         hashedid : THashedIDString;
+        orgclass : tobjectdef;
+        i        : longint;
       begin
-        { The contextclassh is used for visibility. The classh must be equal to
-          or be a parent of contextclassh. E.g. for inherited searches the classh is the
-          parent. }
-        if assigned(classh) and
-           not contextclassh.is_related(classh) then
-          internalerror(200811161);
+        orgclass:=classh;
+        { in case this is a formal objcclass, first find the real definition }
+        if assigned(classh) then
+          begin
+            if (oo_is_formal in classh.objectoptions) then
+              classh:=find_real_objcclass_definition(classh);
+            { The contextclassh is used for visibility. The classh must be equal to
+              or be a parent of contextclassh. E.g. for inherited searches the classh is the
+              parent. }
+            if not contextclassh.is_related(classh) then
+              internalerror(200811161);
+          end;
         result:=false;
         hashedid.id:=s;
-        while assigned(classh) do
+        { an Objective-C protocol can inherit from multiple other protocols
+          -> uses ImplementedInterfaces instead }
+        if is_objcprotocol(classh) then
           begin
             srsymtable:=classh.symtable;
             srsym:=tsym(srsymtable.FindWithHash(hashedid));
@@ -2152,10 +2402,38 @@ implementation
                 result:=true;
                 exit;
               end;
-            classh:=classh.childof;
+            for i:=0 to classh.ImplementedInterfaces.count-1 do
+              begin
+                if searchsym_in_class(TImplementedInterface(classh.ImplementedInterfaces[i]).intfdef,contextclassh,s,srsym,srsymtable) then
+                  begin
+                    result:=true;
+                    exit;
+                  end;
+              end;
+          end
+        else
+          begin
+            while assigned(classh) do
+              begin
+                srsymtable:=classh.symtable;
+                srsym:=tsym(srsymtable.FindWithHash(hashedid));
+                if assigned(srsym) and
+                   is_visible_for_object(srsym,contextclassh) then
+                  begin
+                    addsymref(srsym);
+                    result:=true;
+                    exit;
+                  end;
+                classh:=classh.childof;
+              end;
           end;
-        srsym:=nil;
-        srsymtable:=nil;
+        if is_objcclass(orgclass) then
+          result:=search_class_helper(orgclass,s,srsym,srsymtable)
+        else
+          begin
+            srsym:=nil;
+            srsymtable:=nil;
+          end;
       end;
 
 
@@ -2164,6 +2442,10 @@ implementation
         def : tdef;
         i   : longint;
       begin
+        { in case this is a formal objcclass, first find the real definition }
+        if assigned(classh) and
+           (oo_is_formal in classh.objectoptions) then
+          classh:=find_real_objcclass_definition(classh);
         result:=false;
         def:=nil;
         while assigned(classh) do
@@ -2198,6 +2480,10 @@ implementation
         def : tdef;
         i   : longint;
       begin
+        { in case this is a formal objcclass, first find the real definition }
+        if assigned(classh) and
+           (oo_is_formal in classh.objectoptions) then
+          classh:=find_real_objcclass_definition(classh);
         result:=false;
         def:=nil;
         while assigned(classh) do
@@ -2263,6 +2549,44 @@ implementation
       end;
 
 
+    function search_enumerator_operator(type_def:Tdef): Tprocdef;
+      var
+        sym : Tprocsym;
+        hashedid : THashedIDString;
+        curreq,
+        besteq : tequaltype;
+        currpd,
+        bestpd : tprocdef;
+        stackitem : psymtablestackitem;
+      begin
+        hashedid.id:='enumerator';
+        besteq:=te_incompatible;
+        bestpd:=nil;
+        stackitem:=symtablestack.stack;
+        while assigned(stackitem) do
+          begin
+            sym:=Tprocsym(stackitem^.symtable.FindWithHash(hashedid));
+            if sym<>nil then
+              begin
+                if sym.typ<>procsym then
+                  internalerror(200910241);
+                { if the source type is an alias then this is only the second choice,
+                  if you mess with this code, check tw4093 }
+                currpd:=sym.find_procdef_enumerator_operator(type_def,curreq);
+                if curreq>besteq then
+                  begin
+                    besteq:=curreq;
+                    bestpd:=currpd;
+                    if (besteq=te_exact) then
+                      break;
+                  end;
+              end;
+            stackitem:=stackitem^.next;
+          end;
+        result:=bestpd;
+    end;
+
+
     function search_system_type(const s: TIDString): ttypesym;
       var
         sym : tsym;
@@ -2275,13 +2599,154 @@ implementation
       end;
 
 
+    function search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
+      var
+        srsymtable: tsymtable;
+        sym: tsym;
+      begin
+        if searchsym_in_named_module(unitname,typename,sym,srsymtable) and
+           (sym.typ=typesym) then
+          begin
+            result:=ttypesym(sym);
+            exit;
+          end
+        else
+          begin
+            if throwerror then
+              cgmessage2(cg_f_unknown_type_in_unit,typename,unitname);
+            result:=nil;
+          end;
+      end;
+
+
+    function search_class_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
+      var
+        hashedid   : THashedIDString;
+        stackitem  : psymtablestackitem;
+        i          : longint;
+        defowner   : tobjectdef;
+      begin
+        hashedid.id:=class_helper_prefix+s;
+        stackitem:=symtablestack.stack;
+        while assigned(stackitem) do
+          begin
+            srsymtable:=stackitem^.symtable;
+            srsym:=tsym(srsymtable.FindWithHash(hashedid));
+            if assigned(srsym) then
+              begin
+                if not(srsymtable.symtabletype in [globalsymtable,staticsymtable]) or
+                   not(srsym.owner.symtabletype in [globalsymtable,staticsymtable]) or
+                   (srsym.typ<>procsym) then
+                  internalerror(2009111505);
+                { check whether this procsym includes a helper for this particular class }
+                for i:=0 to tprocsym(srsym).procdeflist.count-1 do
+                  begin
+                    { does pd inherit from (or is the same as) the class
+                      that this method's category extended?
+
+                      Warning: this list contains both category and objcclass methods
+                       (for id.randommethod), so only check category methods here
+                    }
+                    defowner:=tobjectdef(tprocdef(tprocsym(srsym).procdeflist[i]).owner.defowner);
+                    if (oo_is_classhelper in defowner.objectoptions) and
+                       pd.is_related(defowner.childof) then
+                      begin
+                        { we need to know if a procedure references symbols
+                          in the static symtable, because then it can't be
+                          inlined from outside this unit }
+                        if assigned(current_procinfo) and
+                           (srsym.owner.symtabletype=staticsymtable) then
+                          include(current_procinfo.flags,pi_uses_static_symtable);
+                        { no need to keep looking. There might be other
+                          categories that extend this, a parent or child
+                          class with a method with the same name (either
+                          overriding this one, or overridden by this one),
+                          but that doesn't matter as far as the basic
+                          procsym is concerned.
+                        }
+                        srsym:=tprocdef(tprocsym(srsym).procdeflist[i]).procsym;
+                        srsymtable:=srsym.owner;
+                        addsymref(srsym);
+                        result:=true;
+                        exit;
+                      end;
+                  end;
+              end;
+            stackitem:=stackitem^.next;
+          end;
+        srsym:=nil;
+        srsymtable:=nil;
+        result:=false;
+      end;
+
+
+    function search_objc_method(const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
+      var
+        hashedid   : THashedIDString;
+        stackitem  : psymtablestackitem;
+        i          : longint;
+      begin
+        hashedid.id:=class_helper_prefix+s;
+        stackitem:=symtablestack.stack;
+        while assigned(stackitem) do
+          begin
+            srsymtable:=stackitem^.symtable;
+            srsym:=tsym(srsymtable.FindWithHash(hashedid));
+            if assigned(srsym) then
+              begin
+                if not(srsymtable.symtabletype in [globalsymtable,staticsymtable]) or
+                   not(srsym.owner.symtabletype in [globalsymtable,staticsymtable]) or
+                   (srsym.typ<>procsym) then
+                  internalerror(2009112005);
+                { check whether this procsym includes a helper for this particular class }
+                for i:=0 to tprocsym(srsym).procdeflist.count-1 do
+                  begin
+                    { we need to know if a procedure references symbols
+                      in the static symtable, because then it can't be
+                      inlined from outside this unit }
+                    if assigned(current_procinfo) and
+                       (srsym.owner.symtabletype=staticsymtable) then
+                      include(current_procinfo.flags,pi_uses_static_symtable);
+                    { no need to keep looking. There might be other
+                      methods with the same name, but that doesn't matter
+                      as far as the basic procsym is concerned.
+                    }
+                    srsym:=tprocdef(tprocsym(srsym).procdeflist[i]).procsym;
+                    { We need the symtable in which the classhelper-like sym
+                      is located, not the objectdef. The reason is that the
+                      callnode will climb the symtablestack until it encounters
+                      this symtable to start looking for overloads (and it won't
+                      find the objectsymtable in which this method sym is
+                      located
+
+                    srsymtable:=srsym.owner;
+                    }
+                    addsymref(srsym);
+                    result:=true;
+                    exit;
+                  end;
+              end;
+            stackitem:=stackitem^.next;
+          end;
+        srsym:=nil;
+        srsymtable:=nil;
+        result:=false;
+      end;
+
+
     function search_class_member(pd : tobjectdef;const s : string):tsym;
     { searches n in symtable of pd and all anchestors }
       var
-        hashedid : THashedIDString;
+        hashedid   : THashedIDString;
         srsym      : tsym;
+        orgpd      : tobjectdef;
+        srsymtable : tsymtable;
       begin
+        { in case this is a formal objcclass, first find the real definition }
+        if (oo_is_formal in pd.objectoptions) then
+          pd:=find_real_objcclass_definition(pd);
         hashedid.id:=s;
+        orgpd:=pd;
         while assigned(pd) do
          begin
            srsym:=tsym(pd.symtable.FindWithHash(hashedid));
@@ -2292,7 +2757,12 @@ implementation
             end;
            pd:=pd.childof;
          end;
-        search_class_member:=nil;
+
+        { not found, now look for class helpers }
+        if is_objcclass(pd) then
+          search_class_helper(orgpd,s,result,srsymtable)
+        else
+          result:=nil;
       end;
 
 

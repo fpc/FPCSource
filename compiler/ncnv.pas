@@ -189,13 +189,24 @@ interface
        ttypeconvnodeclass = class of ttypeconvnode;
 
        tasnode = class(tbinarynode)
+          { as nodes cannot be translated directly into call nodes bcause:
+
+            When using -CR, explicit class typecasts are replaced with as-nodes to perform
+            class type checking. The problem is that if a typecasted class instance is
+            passed as a var-parameter, then you cannot replace it with a function call. So the as-node
+            a) call the as helper to perform the type checking
+            b) still pass the original instance as parameter to var-parameters
+            (and in general: to return it as the result of the as-node)
+
+            so the call field is required
+          }
+          call: tnode;
           constructor create(l,r : tnode);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           function dogetcopy: tnode;override;
           function docompare(p: tnode): boolean; override;
           destructor destroy; override;
-          call: tnode;
        end;
        tasnodeclass = class of tasnode;
 
@@ -213,9 +224,12 @@ interface
        cisnode : tisnodeclass;
 
     procedure inserttypeconv(var p:tnode;def:tdef);
+    procedure inserttypeconv_explicit(var p:tnode;def:tdef);
     procedure inserttypeconv_internal(var p:tnode;def:tdef);
     procedure arrayconstructor_to_set(var p : tnode);
     procedure insert_varargstypeconv(var p : tnode; iscvarargs: boolean);
+
+    function maybe_global_proc_to_nested(var fromnode: tnode; todef: tdef): boolean;
 
 
 implementation
@@ -232,8 +246,10 @@ implementation
 {*****************************************************************************
                                    Helpers
 *****************************************************************************}
+    type
+      ttypeconvnodetype = (tct_implicit,tct_explicit,tct_internal);
 
-    procedure inserttypeconv(var p:tnode;def:tdef);
+    procedure do_inserttypeconv(var p: tnode;def: tdef; convtype: ttypeconvnodetype);
 
       begin
         if not assigned(p.resultdef) then
@@ -243,35 +259,45 @@ implementation
             exit;
          end;
 
-        { don't insert obsolete type conversions }
-        if equal_defs(p.resultdef,def) then
+        { don't insert superfluous type conversions, but
+          in case of bitpacked accesses, the original type must
+          remain too so that not too many/few bits are laoded }
+        if equal_defs(p.resultdef,def) and
+           not is_bitpacked_access(p) then
           p.resultdef:=def
         else
          begin
-           p:=ctypeconvnode.create(p,def);
+           case convtype of
+             tct_implicit:
+               p:=ctypeconvnode.create(p,def);
+             tct_explicit:
+               p:=ctypeconvnode.create_explicit(p,def);
+             tct_internal:
+               p:=ctypeconvnode.create_internal(p,def);
+           end;
+           p.fileinfo:=ttypeconvnode(p).left.fileinfo;
            typecheckpass(p);
          end;
       end;
 
 
+    procedure inserttypeconv(var p:tnode;def:tdef);
+
+      begin
+        do_inserttypeconv(p,def,tct_implicit);
+      end;
+
+
+    procedure inserttypeconv_explicit(var p: tnode; def: tdef);
+
+      begin
+        do_inserttypeconv(p,def,tct_explicit);
+      end;
+
     procedure inserttypeconv_internal(var p:tnode;def:tdef);
 
       begin
-        if not assigned(p.resultdef) then
-         begin
-           typecheckpass(p);
-           if codegenerror then
-            exit;
-         end;
-
-        { don't insert obsolete type conversions }
-        if equal_defs(p.resultdef,def) then
-          p.resultdef:=def
-        else
-         begin
-           p:=ctypeconvnode.create_internal(p,def);
-           typecheckpass(p);
-         end;
+        do_inserttypeconv(p,def,tct_internal);
       end;
 
 
@@ -363,6 +389,7 @@ implementation
         l : Longint;
         lr,hr : TConstExprInt;
         hp : tarrayconstructornode;
+        oldfilepos: tfileposinfo;
       begin
         if p.nodetype<>arrayconstructorn then
           internalerror(200205105);
@@ -407,6 +434,7 @@ implementation
                 end;
               if codegenerror then
                break;
+              oldfilepos:=current_filepos;
               current_filepos:=p2.fileinfo;
               case p2.resultdef.typ of
                  enumdef,
@@ -511,9 +539,11 @@ implementation
 
                   stringdef :
                     begin
+                        if (p2.nodetype<>stringconstn) then
+                          Message(parser_e_illegal_expression)
                         { if we've already set elements which are constants }
                         { throw an error                                    }
-                        if ((hdef=nil) and assigned(buildp)) or
+                        else if ((hdef=nil) and assigned(buildp)) or
                           not(is_char(hdef)) then
                           CGMessage(type_e_typeconflict_in_set)
                         else
@@ -535,6 +565,7 @@ implementation
               hp:=tarrayconstructornode(tarrayconstructornode(p2).right);
               tarrayconstructornode(p2).right:=nil;
               p2.free;
+              current_filepos:=oldfilepos;
             end;
            if (hdef=nil) then
             hdef:=u8inttype;
@@ -555,6 +586,10 @@ implementation
 
     procedure insert_varargstypeconv(var p : tnode; iscvarargs: boolean);
       begin
+        { procvars without arguments in variant arrays are always called by
+          Delphi }
+        if not(iscvarargs) then
+          maybe_call_procvar(p,true);
         if not(iscvarargs) and
            (p.nodetype=stringconstn) then
           p:=ctypeconvnode.create_internal(p,cansistringtype)
@@ -576,7 +611,16 @@ implementation
               begin
                 if is_integer(p.resultdef) and
                    not(is_64bitint(p.resultdef)) then
-                  p:=ctypeconvnode.create(p,s32inttype)
+                  if not(m_delphi in current_settings.modeswitches) then
+                    p:=ctypeconvnode.create(p,s32inttype)
+                  else
+                    { delphi doesn't generate a range error when passing a
+                      cardinal >= $80000000, but since these are seen as
+                      longint on the callee side, this causes data loss;
+                      as a result, we require an explicit longint()
+                      typecast in FPC mode on the caller side if range
+                      checking should be disabled, but not in Delphi mode }
+                    p:=ctypeconvnode.create_internal(p,s32inttype)
                 else if is_void(p.resultdef) then
                   CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename)
                 else if iscvarargs and is_currency(p.resultdef)
@@ -607,19 +651,57 @@ implementation
             variantdef:
               if iscvarargs then
                 CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
+            { maybe warn in case it's not using "packrecords c"? }
+            recorddef:
+              if not iscvarargs then
+                CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
             pointerdef:
               ;
             classrefdef:
               if iscvarargs then
                 p:=ctypeconvnode.create(p,voidpointertype);
             objectdef :
-              if iscvarargs or
+              if (iscvarargs and
+                  not is_objc_class_or_protocol(p.resultdef)) or
                  is_object(p.resultdef) then
                 CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
             else
               CGMessagePos1(p.fileinfo,type_e_wrong_type_in_array_constructor,p.resultdef.typename);
           end;
         typecheckpass(p);
+      end;
+
+
+    { in FPC mode, @procname immediately has to be evaluated as a
+      procvar. If procname is global, then this will be a global
+      procvar. Since converting global procvars to local procvars is
+      not allowed (see point d in defcmp.proc_to_procvar_equal()),
+      this results in errors when passing global procedures to local
+      procvar parameters or assigning them to nested procvars. The
+      solution is to remove the (wrong) conversion to a global procvar,
+      and instead insert a conversion to the local procvar type. }
+    function maybe_global_proc_to_nested(var fromnode: tnode; todef: tdef): boolean;
+      var
+        hp: tnode;
+      begin
+        result:=false;
+        if (m_nested_procvars in current_settings.modeswitches) and
+           not(m_tp_procvar in current_settings.modeswitches) and
+           (todef.typ=procvardef) and
+           is_nested_pd(tprocvardef(todef)) and
+           (fromnode.nodetype=typeconvn) and
+           (ttypeconvnode(fromnode).convtype=tc_proc_2_procvar) and
+           not is_nested_pd(tprocvardef(fromnode.resultdef)) and
+           (proc_to_procvar_equal(tprocdef(ttypeconvnode(fromnode).left.resultdef),tprocvardef(todef),false)>=te_convert_l1) then
+          begin
+            hp:=fromnode;
+            fromnode:=ctypeconvnode.create_proc_to_procvar(ttypeconvnode(fromnode).left);
+            ttypeconvnode(fromnode).totypedef:=todef;
+            typecheckpass(fromnode);
+            ttypeconvnode(hp).left:=nil;
+            hp.free;
+            result:=true;
+          end;
       end;
 
 {*****************************************************************************
@@ -776,9 +858,6 @@ implementation
 
     function ttypeconvnode.typecheck_cord_to_pointer : tnode;
 
-      var
-        t : tnode;
-
       begin
         result:=nil;
         if left.nodetype=ordconstn then
@@ -797,8 +876,14 @@ implementation
                 internalerror(2001020801);
               {$endif} {$endif}
             {$endif}
-            t:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef);
-            result:=t;
+
+            if not(nf_explicit in flags) then
+              if (tordconstnode(left).value.svalue=0) then
+                CGMessage(type_w_zero_to_nil)
+              else
+                { in Delphi mode, these aren't caught in compare_defs_ext }
+                IncompatibleTypes(left.resultdef,resultdef);
+            result:=cpointerconstnode.create(TConstPtrUInt(tordconstnode(left).value.uvalue),resultdef);
           end
          else
           internalerror(200104023);
@@ -916,26 +1001,27 @@ implementation
          result:=nil;
          { we can't do widechar to ansichar conversions at compile time, since }
          { this maps all non-ascii chars to '?' -> loses information           }
+
          if (left.nodetype=ordconstn) and
             ((tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) or
              (torddef(left.resultdef).ordtype=uchar) or
-             { >=128 is destroyed }
+             { widechar >=128 is destroyed }
              (tordconstnode(left).value.uvalue<128)) then
            begin
-              if tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring] then
+              if (tstringdef(resultdef).stringtype in [st_widestring,st_unicodestring]) then
                begin
                  initwidestring(ws);
                  if torddef(left.resultdef).ordtype=uwidechar then
                    concatwidestringchar(ws,tcompilerwidechar(tordconstnode(left).value.uvalue))
                  else
-                   concatwidestringchar(ws,tcompilerwidechar(chr(tordconstnode(left).value.uvalue)));
+                   concatwidestringchar(ws,asciichar2unicode(chr(tordconstnode(left).value.uvalue)));
                  hp:=cstringconstnode.createwstr(ws);
                  hp.changestringtype(resultdef);
                  donewidestring(ws);
                end
               else
                 begin
-                  if torddef(left.resultdef).ordtype=uwidechar then
+                  if (torddef(left.resultdef).ordtype=uwidechar) then
                     hp:=cstringconstnode.createstr(unicode2asciichar(tcompilerwidechar(tordconstnode(left).value.uvalue)))
                   else
                     hp:=cstringconstnode.createstr(chr(tordconstnode(left).value.uvalue));
@@ -1496,37 +1582,44 @@ implementation
     function ttypeconvnode.typecheck_proc_to_procvar : tnode;
       var
         pd : tabstractprocdef;
+        nestinglevel : byte;
       begin
         result:=nil;
         pd:=tabstractprocdef(left.resultdef);
 
-        { create procvardef }
-        resultdef:=tprocvardef.create(pd.parast.symtablelevel);
-        tprocvardef(resultdef).proctypeoption:=pd.proctypeoption;
-        tprocvardef(resultdef).proccalloption:=pd.proccalloption;
-        tprocvardef(resultdef).procoptions:=pd.procoptions;
-        tprocvardef(resultdef).returndef:=pd.returndef;
+        { create procvardef (default for create_proc_to_procvar is voiddef,
+          but if later a regular inserttypeconvnode() is used to insert a type
+          conversion to the actual procvardef, totypedef will be set to the
+          real procvartype that we are converting to) }
+        if assigned(totypedef) and
+           (totypedef.typ=procvardef) then
+          resultdef:=totypedef
+        else
+         begin
+           nestinglevel:=pd.parast.symtablelevel;
+           resultdef:=tprocvardef.create(nestinglevel);
+           tprocvardef(resultdef).proctypeoption:=pd.proctypeoption;
+           tprocvardef(resultdef).proccalloption:=pd.proccalloption;
+           tprocvardef(resultdef).procoptions:=pd.procoptions;
+           tprocvardef(resultdef).returndef:=pd.returndef;
+           { method ? then set the methodpointer flag }
+           if (pd.owner.symtabletype=ObjectSymtable) then
+             include(tprocvardef(resultdef).procoptions,po_methodpointer);
+           { only need the address of the method? this is needed
+             for @tobject.create. In this case there will be a loadn without
+             a methodpointer. }
+           if (left.nodetype=loadn) and
+              not assigned(tloadnode(left).left) and
+              (not(m_nested_procvars in current_settings.modeswitches) or
+               not is_nested_pd(tprocvardef(resultdef))) then
+             include(tprocvardef(resultdef).procoptions,po_addressonly);
 
-        { method ? then set the methodpointer flag }
-        if (pd.owner.symtabletype=ObjectSymtable) then
-          include(tprocvardef(resultdef).procoptions,po_methodpointer);
-
-        { was it a local procedure? }
-        if (pd.owner.symtabletype=localsymtable) then
-          include(tprocvardef(resultdef).procoptions,po_local);
-
-        { only need the address of the method? this is needed
-          for @tobject.create. In this case there will be a loadn without
-          a methodpointer. }
-        if (left.nodetype=loadn) and
-           not assigned(tloadnode(left).left) then
-          include(tprocvardef(resultdef).procoptions,po_addressonly);
-
-        { Add parameters use only references, we don't need to keep the
-          parast. We use the parast from the original function to calculate
-          our parameter data and reset it afterwards }
-        pd.parast.SymList.ForEachCall(@copyparasym,tprocvardef(resultdef).parast);
-        tprocvardef(resultdef).calcparas;
+           { Add parameters use only references, we don't need to keep the
+             parast. We use the parast from the original function to calculate
+             our parameter data and reset it afterwards }
+           pd.parast.SymList.ForEachCall(@copyparasym,tprocvardef(resultdef).parast);
+           tprocvardef(resultdef).calcparas;
+         end;
       end;
 
 
@@ -1649,7 +1742,7 @@ implementation
 
         if convtype=tc_none then
           begin
-            cdoptions:=[cdo_check_operator,cdo_allow_variant];
+            cdoptions:=[cdo_check_operator,cdo_allow_variant,cdo_warn_incompatible_univ];
             if nf_explicit in flags then
               include(cdoptions,cdo_explicit);
             if nf_internal in flags then
@@ -1663,10 +1756,21 @@ implementation
                   if assigned(result) then
                     exit;
 
+                  { in case of bitpacked accesses, the original type must
+                    remain so that not too many/few bits are laoded }
+                  if is_bitpacked_access(left) then
+                    convtype:=tc_int_2_int;
                   { Only leave when there is no conversion to do.
                     We can still need to call a conversion routine,
                     like the routine to convert a stringconstnode }
-                  if convtype in [tc_equal,tc_not_possible] then
+                  if (convtype in [tc_equal,tc_not_possible]) and
+                     { some conversions, like dynarray to pointer in Delphi
+                       mode, must not be removed, because then we get memory
+                       leaks due to missing temp finalization }
+                     (not is_managed_type(left.resultdef) or
+                     { different kinds of refcounted types may need calls
+                       to different kinds of refcounting helpers }
+                      (resultdef=left.resultdef)) then
                    begin
                      left.resultdef:=resultdef;
                      if (nf_explicit in flags) and (left.nodetype = addrn) then
@@ -1682,12 +1786,8 @@ implementation
               te_convert_l3,
               te_convert_l4,
               te_convert_l5:
-                begin
-                  result := simplify;
-                  if assigned(result) then
-                    exit;
-                  { nothing to do }
-                end;
+                { nothing to do }
+                ;
 
               te_convert_operator :
                 begin
@@ -1708,7 +1808,7 @@ implementation
                     a procvar. Because isconvertable cannot check for procedures we
                     use an extra check for them.}
                   if (left.nodetype=calln) and
-                     (tcallnode(left).para_count=0) and
+                     (tcallnode(left).required_para_count=0) and
                      (resultdef.typ=procvardef) and
                      (
                       (m_tp_procvar in current_settings.modeswitches) or
@@ -1743,10 +1843,16 @@ implementation
                      { Now check if the procedure we are going to assign to
                        the procvar, is compatible with the procvar's type }
                      if not(nf_explicit in flags) and
-                        (proc_to_procvar_equal(currprocdef,tprocvardef(resultdef))=te_incompatible) then
+                        (proc_to_procvar_equal(currprocdef,tprocvardef(resultdef),false)=te_incompatible) then
                        IncompatibleTypes(left.resultdef,resultdef);
                      exit;
-                   end;
+                   end
+                  else if maybe_global_proc_to_nested(left,resultdef) then
+                    begin
+                      result:=left;
+                      left:=nil;
+                      exit;
+                    end;
 
                   { Handle explicit type conversions }
                   if nf_explicit in flags then
@@ -1785,8 +1891,8 @@ implementation
                        make_not_regable(left,[ra_addr_regable]);
 
                      { class/interface to class/interface, with checkobject support }
-                     if is_class_or_interface(resultdef) and
-                        is_class_or_interface(left.resultdef) then
+                     if is_class_or_interface_or_objc(resultdef) and
+                        is_class_or_interface_or_objc(left.resultdef) then
                        begin
                          { check if the types are related }
                          if not(nf_internal in flags) and
@@ -1807,7 +1913,9 @@ implementation
                            end;
 
                          { Add runtime check? }
-                         if (cs_check_object in current_settings.localswitches) and
+                         if not is_objc_class_or_protocol(resultdef) and
+                            not is_objc_class_or_protocol(left.resultdef) and
+                            (cs_check_object in current_settings.localswitches) and
                             not(nf_internal in flags) then
                            begin
                              { we can translate the typeconvnode to 'as' when
@@ -1858,7 +1966,7 @@ implementation
                                    { however, there are some exceptions }
                                    (not(resultdef.typ in [arraydef,recorddef,setdef,stringdef,
                                                           filedef,variantdef,objectdef]) or
-                                   is_class_or_interface(resultdef) or
+                                   is_class_or_interface_or_objc(resultdef) or
                                    { the softfloat code generates casts <const. float> to record }
                                    (nf_internal in flags)
                                  ))
@@ -1899,24 +2007,29 @@ implementation
               CGMessage(type_w_pointer_to_longint_conv_not_portable);
           end;
 
-        result := simplify;
-        if assigned(result) then
-          exit;
+        { tc_cord_2_pointer still requires a type check, which
+          simplify does not do }
+        if (convtype<>tc_cord_2_pointer) then
+          begin
+            result := simplify;
+            if assigned(result) then
+              exit;
+          end;
 
         { now call the resultdef helper to do constant folding }
         result:=typecheck_call_helper(convtype);
       end;
 
 
-{$ifndef cpu64bitaddr}
+{$ifndef cpu64bitalu}
 
     { checks whether we can safely remove 64 bit typeconversions }
     { in case range and overflow checking are off, and in case   }
     { the result of this node tree is downcasted again to a      }
     { 8/16/32 bit value afterwards                               }
-    function checkremove64bittypeconvs(n: tnode): boolean;
+    function checkremove64bittypeconvs(n: tnode; out gotsint: boolean): boolean;
       var
-        gotmuldivmod, gotsint: boolean;
+        gotmuldivmod: boolean;
 
       { checks whether a node is either an u32bit, or originally }
       { was one but was implicitly converted to s64bit           }
@@ -1995,22 +2108,23 @@ implementation
       end;
 
 
-    procedure doremove64bittypeconvs(var n: tnode; todef: tdef);
+    procedure doremove64bittypeconvs(var n: tnode; todef: tdef; forceunsigned: boolean);
       begin
         case n.nodetype of
           subn,addn,muln,divn,modn,xorn,andn,orn:
             begin
               exclude(n.flags,nf_internal);
-              if is_signed(n.resultdef) then
+              if not forceunsigned and
+                 is_signed(n.resultdef) then
                 begin
-                  doremove64bittypeconvs(tbinarynode(n).left,s32inttype);
-                  doremove64bittypeconvs(tbinarynode(n).right,s32inttype);
+                  doremove64bittypeconvs(tbinarynode(n).left,s32inttype,false);
+                  doremove64bittypeconvs(tbinarynode(n).right,s32inttype,false);
                   n.resultdef:=s32inttype
                 end
               else
                 begin
-                  doremove64bittypeconvs(tbinarynode(n).left,u32inttype);
-                  doremove64bittypeconvs(tbinarynode(n).right,u32inttype);
+                  doremove64bittypeconvs(tbinarynode(n).left,u32inttype,forceunsigned);
+                  doremove64bittypeconvs(tbinarynode(n).right,u32inttype,forceunsigned);
                   n.resultdef:=u32inttype
                 end;
             end;
@@ -2020,12 +2134,15 @@ implementation
             n.resultdef:=todef;
         end;
       end;
-{$endif not cpu64bitaddr}
+{$endif not cpu64bitalu}
 
 
     function ttypeconvnode.simplify: tnode;
       var
         hp: tnode;
+{$ifndef cpu64bitalu}
+        foundsint: boolean;
+{$endif not cpu64bitalu}
       begin
         result := nil;
         { Constant folding and other node transitions to
@@ -2095,7 +2212,7 @@ implementation
                  methodpointer. The typeconv of the methodpointer will then
                  take care of updateing size of niln to OS_64 }
                if not((resultdef.typ=procvardef) and
-                      (po_methodpointer in tprocvardef(resultdef).procoptions)) then
+                      not(tprocvardef(resultdef).is_addressonly)) then
                  begin
                    left.resultdef:=resultdef;
                    if ([nf_explicit,nf_internal] * flags <> []) then
@@ -2185,7 +2302,7 @@ implementation
             end;
         end;
 
-{$ifndef cpu64bitaddr}
+{$ifndef cpu64bitalu}
         { must be done before code below, because we need the
           typeconversions for ordconstn's as well }
         case convtype of
@@ -2196,15 +2313,15 @@ implementation
                  (resultdef.size <= 4) and
                  is_64bitint(left.resultdef) and
                  (left.nodetype in [subn,addn,muln,divn,modn,xorn,andn,orn]) and
-                 checkremove64bittypeconvs(left) then
+                 checkremove64bittypeconvs(left,foundsint) then
                 begin
                   { avoid unnecessary widening of intermediary calculations }
                   { to 64 bit                                               }
-                  doremove64bittypeconvs(left,generrordef);
+                  doremove64bittypeconvs(left,generrordef,not foundsint);
                 end;
             end;
         end;
-{$endif not cpu64bitaddr}
+{$endif not cpu64bitalu}
 
       end;
 
@@ -2230,7 +2347,8 @@ implementation
         if not is_void(left.resultdef) then
           begin
             if (left.expectloc<>LOC_REGISTER) and
-               (resultdef.size>left.resultdef.size) then
+                ((resultdef.size>left.resultdef.size) or
+                 (left.expectloc in [LOC_SUBSETREF,LOC_CSUBSETREF,LOC_SUBSETREG,LOC_CSUBSETREG])) then
               expectloc:=LOC_REGISTER
             else
               if (left.expectloc=LOC_CREGISTER) and
@@ -2290,7 +2408,7 @@ implementation
       var
         fname: string[32];
       begin
-        if target_info.system in system_wince then
+        if target_info.system in systems_wince then
           begin
             { converting a 64bit integer to a float requires a helper }
             if is_64bitint(left.resultdef) or
@@ -2367,7 +2485,7 @@ implementation
 {$ifdef cpufpemu}
         if cs_fp_emulation in current_settings.moduleswitches then
           begin
-            if target_info.system in system_wince then
+            if target_info.system in systems_wince then
               begin
                 case tfloatdef(left.resultdef).floattype of
                   s32real:
@@ -2442,7 +2560,10 @@ implementation
 {$endif cpufpemu}
           begin
             first_real_to_real:=nil;
-            expectloc:=LOC_FPUREGISTER;
+            if not use_vectorfpu(resultdef) then
+              expectloc:=LOC_FPUREGISTER
+            else
+              expectloc:=LOC_MMREGISTER;
           end;
       end;
 
@@ -2542,10 +2663,10 @@ implementation
     function ttypeconvnode.first_proc_to_procvar : tnode;
       begin
          first_proc_to_procvar:=nil;
-         { if we take the address of a nested function, it'll  }
-         { probably be used in a foreach() construct and then  }
-         { the parent needs a stackframe                       }
-         if (tprocdef(left.resultdef).parast.symtablelevel>=normal_function_level) then
+         { if we take the address of a nested function, the current function/
+           procedure needs a stack frame since it's required to construct
+           the nested procvar }
+         if is_nested_pd(tprocvardef(resultdef)) then
            include(current_procinfo.flags,pi_needs_stackframe);
          if tabstractprocdef(resultdef).is_addressonly then
            expectloc:=LOC_REGISTER
@@ -2670,26 +2791,34 @@ implementation
                    etStandard:
                      { handle in pass 2 }
                      ;
-                   etFieldValue:
+                   etFieldValue, etFieldValueClass:
                      if is_interface(tobjectdef(resultdef)) then
                        begin
                          result:=left;
                          propaccesslist_to_node(result,tpropertysym(implintf.implementsgetter).owner,tpropertysym(implintf.implementsgetter).propaccesslist[palt_read]);
+                         { this ensures proper refcounting when field is of class type }
+                         if not is_interface(result.resultdef) then
+                           inserttypeconv(result, resultdef);
                          left:=nil;
                        end
                      else
                        begin
                          internalerror(200802213);
                        end;
-                   etStaticMethodResult,
-                   etVirtualMethodResult:
+                   etStaticMethodResult, etStaticMethodClass,
+                   etVirtualMethodResult, etVirtualMethodClass:
                      if is_interface(tobjectdef(resultdef)) then
                        begin
+                         { TODO: generating a call to TObject.GetInterface instead could yield
+                           smaller code size. OTOH, refcounting gotchas are possible that way. }
                          { constructor create(l:tnode; v : tprocsym;st : TSymtable; mp: tnode; callflags:tcallnodeflags); }
                          result:=ccallnode.create(nil,tprocsym(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym),
                            tprocsym(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym).owner,
                            left,[]);
                          addsymref(tpropertysym(implintf.implementsgetter).propaccesslist[palt_read].firstsym^.sym);
+                         { if it is a class, process it further in a similar way }
+                         if not is_interface(result.resultdef) then
+                           inserttypeconv(result, resultdef);
                          left:=nil;
                        end
                      else if is_class(tobjectdef(resultdef)) then
@@ -2940,6 +3069,7 @@ implementation
                 (
                  (convtype=tc_int_2_int) and
                  (
+                  not is_bitpacked_access(left) and
                   (resultdef.size=left.resultdef.size) or
                   ((m_tp7 in current_settings.modeswitches) and
                    (resultdef.size<left.resultdef.size))
@@ -2973,7 +3103,8 @@ implementation
       begin
         docompare :=
           inherited docompare(p) and
-          (convtype = ttypeconvnode(p).convtype);
+          (convtype = ttypeconvnode(p).convtype) and
+          equal_defs(totypedef,ttypeconvnode(p).totypedef);
       end;
 
 
@@ -3182,21 +3313,28 @@ implementation
 
     function tisnode.pass_typecheck:tnode;
       var
-        paras: tcallparanode;
+        hp : tnode;
       begin
          result:=nil;
-         typecheckpass(left);
          typecheckpass(right);
+         typecheckpass(left);
 
-         set_varstate(left,vs_read,[vsf_must_be_valid]);
          set_varstate(right,vs_read,[vsf_must_be_valid]);
+         set_varstate(left,vs_read,[vsf_must_be_valid]);
 
          if codegenerror then
            exit;
 
          if (right.resultdef.typ=classrefdef) then
           begin
-            { left must be a class }
+            { left maybe an interface reference }
+            if is_interfacecom(left.resultdef) then
+             begin
+               { relation checks are not possible }
+             end
+            else
+
+            { or left must be a class }
             if is_class(left.resultdef) then
              begin
                { the operands must be related }
@@ -3204,64 +3342,93 @@ implementation
                   tobjectdef(tclassrefdef(right.resultdef).pointeddef)))) and
                   (not(tobjectdef(tclassrefdef(right.resultdef).pointeddef).is_related(
                   tobjectdef(left.resultdef)))) then
-                 CGMessage2(type_e_classes_not_related,left.resultdef.typename,
-                            tclassrefdef(right.resultdef).pointeddef.typename);
+                 CGMessage2(type_e_classes_not_related,
+                    FullTypeName(left.resultdef,tclassrefdef(right.resultdef).pointeddef),
+                    FullTypeName(tclassrefdef(right.resultdef).pointeddef,left.resultdef));
              end
             else
-             CGMessage1(type_e_class_type_expected,left.resultdef.typename);
-
-            { call fpc_do_is helper }
-            paras := ccallparanode.create(
-                         left,
-                     ccallparanode.create(
-                         right,nil));
-            result := ccallnode.createintern('fpc_do_is',paras);
-            left := nil;
-            right := nil;
+             CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
+            resultdef:=booltype;
           end
-         else if is_interface(right.resultdef) then
+         else if is_interface(right.resultdef) or is_dispinterface(right.resultdef) then
           begin
             { left is a class }
-            if is_class(left.resultdef) then
+            if not(is_class(left.resultdef) or
+                   is_interfacecom(left.resultdef)) then
+              CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
+
+            resultdef:=booltype;
+
+            { load the GUID of the interface }
+            if (right.nodetype=typen) then
              begin
-               { the class must implement the interface }
-               if tobjectdef(left.resultdef).find_implemented_interface(tobjectdef(right.resultdef))=nil then
-                 CGMessage2(type_e_classes_not_related,
-                    FullTypeName(left.resultdef,right.resultdef),
-                    FullTypeName(right.resultdef,left.resultdef))
-             end
-            { left is an interface }
-            else if is_interface(left.resultdef) then
-             begin
-               { the operands must be related }
-               if (not(tobjectdef(left.resultdef).is_related(tobjectdef(right.resultdef)))) and
-                  (not(tobjectdef(right.resultdef).is_related(tobjectdef(left.resultdef)))) then
-                 CGMessage2(type_e_classes_not_related,
-                    FullTypeName(left.resultdef,right.resultdef),
-                    FullTypeName(right.resultdef,left.resultdef));
-             end
-            else
-             CGMessage1(type_e_class_type_expected,left.resultdef.typename);
-            { call fpc_do_is helper }
-            paras := ccallparanode.create(
-                         left,
-                     ccallparanode.create(
-                         right,nil));
-            result := ccallnode.createintern('fpc_do_is',paras);
-            left := nil;
-            right := nil;
+               if tobjectdef(right.resultdef).objecttype=odt_interfacecorba then
+                 begin
+                   if assigned(tobjectdef(right.resultdef).iidstr) then
+                     begin
+                       hp:=cstringconstnode.createstr(tobjectdef(right.resultdef).iidstr^);
+                       tstringconstnode(hp).changestringtype(cshortstringtype);
+                       right.free;
+                       right:=hp;
+                     end
+                   else
+                     internalerror(201006131);
+                 end
+               else
+                 begin
+                   if assigned(tobjectdef(right.resultdef).iidguid) then
+                     begin
+                       if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
+                         CGMessage1(type_interface_has_no_guid,tobjectdef(right.resultdef).typename);
+                       hp:=cguidconstnode.create(tobjectdef(right.resultdef).iidguid^);
+                       right.free;
+                       right:=hp;
+                     end
+                   else
+                     internalerror(201006132);
+                 end;
+               typecheckpass(right);
+             end;
           end
          else
           CGMessage1(type_e_class_or_interface_type_expected,right.resultdef.typename);
-
-         resultdef:=booltype;
       end;
 
-
     function tisnode.pass_1 : tnode;
+      var
+        procname: string;
       begin
-        internalerror(200204254);
         result:=nil;
+        { Passing a class type to an "is" expression cannot result in a class
+          of that type to be constructed.
+        }
+        include(right.flags,nf_ignore_for_wpo);
+
+        if is_class(left.resultdef) and
+           (right.resultdef.typ=classrefdef) then
+          result := ccallnode.createinternres('fpc_do_is',
+            ccallparanode.create(left,ccallparanode.create(right,nil)),
+            resultdef)
+        else
+          begin
+            if is_class(left.resultdef) then
+              if is_shortstring(right.resultdef) then
+                procname := 'fpc_class_is_corbaintf'
+              else
+                procname := 'fpc_class_is_intf'
+            else
+              if right.resultdef.typ=classrefdef then
+                procname := 'fpc_intf_is_class'
+              else
+                procname := 'fpc_intf_is';
+            result := ctypeconvnode.create_internal(ccallnode.createintern(procname,
+               ccallparanode.create(right,ccallparanode.create(left,nil))),resultdef);
+          end;
+        left := nil;
+        right := nil;
+        //firstpass(call);
+        if codegenerror then
+          exit;
       end;
 
     { dummy pass_2, it will never be called, but we need one since }
@@ -3307,7 +3474,14 @@ implementation
 
          if (right.resultdef.typ=classrefdef) then
           begin
-            { left must be a class }
+            { left maybe an interface reference }
+            if is_interfacecom(left.resultdef) then
+             begin
+               { relation checks are not possible }
+             end
+            else
+
+            { or left must be a class }
             if is_class(left.resultdef) then
              begin
                { the operands must be related }
@@ -3320,10 +3494,10 @@ implementation
                     FullTypeName(tclassrefdef(right.resultdef).pointeddef,left.resultdef));
              end
             else
-             CGMessage1(type_e_class_type_expected,left.resultdef.typename);
+             CGMessage1(type_e_class_or_cominterface_type_expected,left.resultdef.typename);
             resultdef:=tclassrefdef(right.resultdef).pointeddef;
           end
-         else if is_interface(right.resultdef) then
+         else if is_interface(right.resultdef) or is_dispinterface(right.resultdef) then
           begin
             { left is a class }
             if not(is_class(left.resultdef) or
@@ -3335,16 +3509,31 @@ implementation
             { load the GUID of the interface }
             if (right.nodetype=typen) then
              begin
-               if assigned(tobjectdef(right.resultdef).iidguid) then
+               if tobjectdef(right.resultdef).objecttype=odt_interfacecorba then
                  begin
-                   if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
-                     CGMessage1(type_interface_has_no_guid,tobjectdef(right.resultdef).typename);
-                   hp:=cguidconstnode.create(tobjectdef(right.resultdef).iidguid^);
-                   right.free;
-                   right:=hp;
+                   if assigned(tobjectdef(right.resultdef).iidstr) then
+                     begin
+                       hp:=cstringconstnode.createstr(tobjectdef(right.resultdef).iidstr^);
+                       tstringconstnode(hp).changestringtype(cshortstringtype);
+                       right.free;
+                       right:=hp;
+                     end
+                   else
+                     internalerror(200902081);
                  end
                else
-                 internalerror(200206282);
+                 begin
+                   if assigned(tobjectdef(right.resultdef).iidguid) then
+                     begin
+                       if not(oo_has_valid_guid in tobjectdef(right.resultdef).objectoptions) then
+                         CGMessage1(type_interface_has_no_guid,tobjectdef(right.resultdef).typename);
+                       hp:=cguidconstnode.create(tobjectdef(right.resultdef).iidguid^);
+                       right.free;
+                       right:=hp;
+                     end
+                   else
+                     internalerror(200206282);
+                 end;
                typecheckpass(right);
              end;
           end
@@ -3376,6 +3565,10 @@ implementation
         procname: string;
       begin
         result:=nil;
+        { Passing a class type to an "as" expression cannot result in a class
+          of that type to be constructed.
+        }
+        include(right.flags,nf_ignore_for_wpo);
         if not assigned(call) then
           begin
             if is_class(left.resultdef) and
@@ -3386,12 +3579,17 @@ implementation
             else
               begin
                 if is_class(left.resultdef) then
-                  procname := 'fpc_class_as_intf'
+                  if is_shortstring(right.resultdef) then
+                    procname := 'fpc_class_as_corbaintf'
+                  else
+                    procname := 'fpc_class_as_intf'
                 else
-                  procname := 'fpc_intf_as';
-                call := ccallnode.createintern(procname,
-                   ccallparanode.create(right,ccallparanode.create(left,nil)));
-                call := ctypeconvnode.create_internal(call,resultdef);
+                  if right.resultdef.typ=classrefdef then
+                    procname := 'fpc_intf_as_class'
+                  else
+                    procname := 'fpc_intf_as';
+                call := ctypeconvnode.create_internal(ccallnode.createintern(procname,
+                   ccallparanode.create(right,ccallparanode.create(left,nil))),resultdef);
               end;
             left := nil;
             right := nil;

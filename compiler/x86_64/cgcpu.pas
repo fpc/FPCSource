@@ -40,9 +40,11 @@ unit cgcpu;
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
         procedure g_intf_wrapper(list: TAsmList; procdef: tprocdef; const labelname: string; ioffset: longint);override;
 
-        procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
+        procedure a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize;intreg, mmreg: tregister; shuffle: pmmshuffle); override;
+        procedure a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tcgsize;mmreg, intreg: tregister;shuffle : pmmshuffle); override;
       end;
 
+    procedure create_codegen;
 
   implementation
 
@@ -104,52 +106,6 @@ unit cgcpu;
       end;
 
 
-    procedure tcgx86_64.a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);
-      var
-        tmpref, ref: treference;
-        location: pcgparalocation;
-        sizeleft: aint;
-        sourcesize: tcgsize;
-      begin
-        location := paraloc.location;
-        tmpref := r;
-        { make sure we handle passing a 32 bit value in memory to a }
-        { 64 bit register location etc. correctly                   }
-        if (size<>OS_NO) and
-           (tcgsize2size[size]<paraloc.intsize) then
-          begin
-            paraloc.check_simple_location;
-            if not(location^.loc in [LOC_REGISTER,LOC_CREGISTER]) then
-              internalerror(2008031801);
-            sizeleft:=tcgsize2size[size]
-          end
-        else
-          sizeleft:=paraloc.intsize;
-        while assigned(location) do
-          begin
-            case location^.loc of
-              LOC_REGISTER,LOC_CREGISTER:
-                begin
-                  sourcesize:=int_cgsize(sizeleft);
-                  if (sourcesize=OS_NO) then
-                    sourcesize:=location^.size;
-                  a_load_ref_reg(list,sourcesize,location^.size,tmpref,location^.register);
-                end;
-              LOC_REFERENCE:
-                begin
-                  reference_reset_base(ref,location^.reference.index,location^.reference.offset);
-                  g_concatcopy(list,tmpref,ref,sizeleft);
-                end;
-              else
-                internalerror(2002081103);
-            end;
-            inc(tmpref.offset,tcgsize2size[location^.size]);
-            dec(sizeleft,tcgsize2size[location^.size]);
-            location := location^.next;
-          end;
-      end;
-
-
     procedure tcgx86_64.g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);
       var
         stacksize : longint;
@@ -164,7 +120,7 @@ unit cgcpu;
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
                 stacksize:=current_procinfo.calc_stackframe_size;
-                if (target_info.system in [system_x86_64_win64,system_x86_64_linux,system_x86_64_freebsd,system_x86_64_darwin]) and
+                if (target_info.system in systems_need_16_byte_stack_alignment) and
                    ((stacksize <> 0) or
                     (pi_do_call in current_procinfo.flags) or
                     { can't detect if a call in this case -> use nostackframe }
@@ -219,19 +175,19 @@ unit cgcpu;
             { load vmt from first paramter }
             { win64 uses a different abi }
             if target_info.system=system_x86_64_win64 then
-              reference_reset_base(href,NR_RCX,0)
+              reference_reset_base(href,NR_RCX,0,sizeof(pint))
             else
-              reference_reset_base(href,NR_RDI,0);
+              reference_reset_base(href,NR_RDI,0,sizeof(pint));
             cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_RAX);
             { jmp *vmtoffs(%eax) ; method offs }
-            reference_reset_base(href,NR_RAX,procdef._class.vmtmethodoffset(procdef.extnumber));
+            reference_reset_base(href,NR_RAX,procdef._class.vmtmethodoffset(procdef.extnumber),sizeof(pint));
             list.concat(taicpu.op_ref_reg(A_MOV,S_Q,href,NR_RAX));
             list.concat(taicpu.op_reg(A_JMP,S_Q,NR_RAX));
           end
         else
           begin
             sym:=current_asmdata.RefAsmSymbol(procdef.mangledname);
-            reference_reset_symbol(r,sym,0);
+            reference_reset_symbol(r,sym,0,sizeof(pint));
             if (cs_create_pic in current_settings.moduleswitches) and
                { darwin/x86_64's assembler doesn't want @PLT after call symbols }
                (target_info.system<>system_x86_64_darwin) then
@@ -246,6 +202,57 @@ unit cgcpu;
       end;
 
 
-begin
-  cg:=tcgx86_64.create;
+    procedure tcgx86_64.a_loadmm_intreg_reg(list: TAsmList; fromsize, tosize : tcgsize; intreg, mmreg: tregister; shuffle: pmmshuffle);
+      var
+        opc: tasmop;
+      begin
+        { this code can only be used to transfer raw data, not to perform
+          conversions }
+        if (tcgsize2size[fromsize]<>tcgsize2size[tosize]) or
+           not(tosize in [OS_F32,OS_F64,OS_M64]) then
+          internalerror(2009112505);
+        case fromsize of
+          OS_32,OS_S32:
+            opc:=A_MOVD;
+          OS_64,OS_S64:
+            opc:=A_MOVQ;
+          else
+            internalerror(2009112506);
+        end;
+        if assigned(shuffle) and
+           not shufflescalar(shuffle) then
+          internalerror(2009112517);
+        list.concat(taicpu.op_reg_reg(opc,S_NO,intreg,mmreg));
+      end;
+
+
+    procedure tcgx86_64.a_loadmm_reg_intreg(list: TAsmList; fromsize, tosize : tcgsize; mmreg, intreg: tregister;shuffle : pmmshuffle);
+      var
+        opc: tasmop;
+      begin
+        { this code can only be used to transfer raw data, not to perform
+          conversions }
+        if (tcgsize2size[fromsize]<>tcgsize2size[tosize]) or
+           not (fromsize in [OS_F32,OS_F64,OS_M64]) then
+          internalerror(2009112507);
+        case tosize of
+          OS_32,OS_S32:
+            opc:=A_MOVD;
+          OS_64,OS_S64:
+            opc:=A_MOVQ;
+          else
+            internalerror(2009112408);
+        end;
+        if assigned(shuffle) and
+           not shufflescalar(shuffle) then
+          internalerror(2009112515);
+        list.concat(taicpu.op_reg_reg(opc,S_NO,mmreg,intreg));
+      end;
+
+
+    procedure create_codegen;
+      begin
+        cg:=tcgx86_64.create;
+      end;
+
 end.

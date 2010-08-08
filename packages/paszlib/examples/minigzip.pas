@@ -88,7 +88,7 @@ end;
 
 procedure gz_uncompress (infile:gzFile; var outfile:file);
 var
-  len     : integer;
+  len     : longint;
   written : cardinal;
   ioerr   : integer;
   err     : integer;

@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for ggi units example
+#
+
+[target]
+programs=ggi1
+
+[require]
+packages=ggi
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

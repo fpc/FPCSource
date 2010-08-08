@@ -53,7 +53,7 @@ implementation
       cgbase,cgobj,cgutils,
       pass_2,procinfo,
       ncon,
-      cpubase,
+      cpubase,cpuinfo,
       ncgutil,cgcpu;
 
 {*****************************************************************************
@@ -257,14 +257,38 @@ implementation
 *****************************************************************************}
 
     procedure tarmunaryminusnode.second_float;
+      var
+        op: tasmop;
       begin
         secondpass(left);
-        location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
-        location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
-        location:=left.location;
-        current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_const(A_RSF,
-          location.register,left.location.register,0),
-          cgsize2fpuoppostfix[def_cgsize(resultdef)]));
+        case current_settings.fputype of
+          fpu_fpa,
+          fpu_fpa10,
+          fpu_fpa11:
+            begin
+              location_force_fpureg(current_asmdata.CurrAsmList,left.location,false);
+              location:=left.location;
+              current_asmdata.CurrAsmList.concat(setoppostfix(taicpu.op_reg_reg_const(A_RSF,
+                location.register,left.location.register,0),
+                cgsize2fpuoppostfix[def_cgsize(resultdef)]));
+            end;
+          fpu_vfpv2,
+          fpu_vfpv3:
+            begin
+              location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,true);
+              location:=left.location;
+              if (left.location.loc=LOC_CMMREGISTER) then
+                location.register:=cg.getmmregister(current_asmdata.CurrAsmList,location.size);
+              if (location.size=OS_F32) then
+                op:=A_FNEGS
+              else
+                op:=A_FNEGD;
+              current_asmdata.CurrAsmList.concat(taicpu.op_reg_reg(op,
+                location.register,left.location.register));
+            end;
+          else
+            internalerror(2009112602);
+        end;
       end;
 
 

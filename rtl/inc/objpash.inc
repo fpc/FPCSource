@@ -54,6 +54,11 @@
        vmtAfterConstruction    = vmtMethodStart+sizeof(pointer)*5;
        vmtBeforeDestruction    = vmtMethodStart+sizeof(pointer)*6;
        vmtDefaultHandlerStr    = vmtMethodStart+sizeof(pointer)*7;
+       vmtDispatch             = vmtMethodStart+sizeof(pointer)*8;
+       vmtDispatchStr          = vmtMethodStart+sizeof(pointer)*9;
+       vmtEquals               = vmtMethodStart+sizeof(pointer)*10;
+       vmtGetHashCode          = vmtMethodStart+sizeof(pointer)*11;
+       vmtToString             = vmtMethodStart+sizeof(pointer)*12;
 
        { IInterface }
        S_OK          = 0;
@@ -113,6 +118,11 @@
          vAfterConstruction: Pointer;
          vBeforeDestruction: Pointer;
          vDefaultHandlerStr: Pointer;
+         vDispatch: Pointer;
+         vDispatchStr: Pointer;
+         vEquals: Pointer;
+         vGetHashCode: Pointer;
+         vToString: Pointer;
        end;
 
        PGuid = ^TGuid;
@@ -141,7 +151,14 @@
        end;
 
        // This enumerate is found both in the rtl and compiler. Do not change the order of the fields.
-       tinterfaceentrytype = (etStandard, etVirtualMethodResult, etStaticMethodResult, etFieldValue);
+       tinterfaceentrytype = (etStandard,
+         etVirtualMethodResult,
+         etStaticMethodResult,
+         etFieldValue, 
+         etVirtualMethodClass,
+         etStaticMethodClass,
+         etFieldValueClass           
+       );
 
        pinterfaceentry = ^tinterfaceentry;
        tinterfaceentry = record
@@ -178,7 +195,7 @@
           class function newinstance : tobject;virtual;
           procedure FreeInstance;virtual;
           function SafeCallException(exceptobject : tobject;
-            exceptaddr : pointer) : longint;virtual;
+            exceptaddr : pointer) : HResult;virtual;
           procedure DefaultHandler(var message);virtual;
 
           procedure Free;
@@ -192,9 +209,6 @@
           class function InstanceSize : SizeInt;{$ifdef SYSTEMINLINE}inline;{$endif}
           class function InheritsFrom(aclass : tclass) : boolean;
           class function StringMessageTable : pstringmessagetable;
-          { message handling routines }
-          procedure Dispatch(var message);
-          procedure DispatchStr(var message);
 
           class function MethodAddress(const name : shortstring) : pointer;
           class function MethodName(address : pointer) : shortstring;
@@ -207,13 +221,24 @@
           { new for gtk, default handler for text based messages }
           procedure DefaultHandlerStr(var message);virtual;
 
+          { message handling routines }
+          procedure Dispatch(var message);virtual;
+          procedure DispatchStr(var message);virtual;
+
           { interface functions }
           function GetInterface(const iid : tguid; out obj) : boolean;
-          function GetInterface(const iidstr : string;out obj) : boolean;
-          function GetInterfaceByStr(const iidstr : string; out obj) : boolean;
+          function GetInterface(const iidstr : shortstring;out obj) : boolean;
+          function GetInterfaceByStr(const iidstr : shortstring; out obj) : boolean;
+          function GetInterfaceWeak(const iid : tguid; out obj) : boolean; // equal to GetInterface but the interface returned is not referenced
           class function GetInterfaceEntry(const iid : tguid) : pinterfaceentry;
-          class function GetInterfaceEntryByStr(const iidstr : string) : pinterfaceentry;
+          class function GetInterfaceEntryByStr(const iidstr : shortstring) : pinterfaceentry;
           class function GetInterfaceTable : pinterfacetable;
+
+          { new since Delphi 2009 }
+          class function UnitName : ansistring;
+          function Equals(Obj: TObject) : boolean;virtual;
+          function GetHashCode: PtrInt;virtual;
+          function ToString: ansistring;virtual;
        end;
 
        IUnknown = interface
@@ -228,6 +253,18 @@
        IInvokable = interface(IInterface)
        end;
        {$M-}
+
+       { enumerator support }
+       IEnumerator = interface(IInterface)
+         function GetCurrent: TObject;
+         function MoveNext: Boolean;
+         procedure Reset;
+         property Current: TObject read GetCurrent;
+       end;
+
+       IEnumerable = interface(IInterface)
+         function GetEnumerator: IEnumerator;
+       end;
 
        { for native dispinterface support }
        IDispatch = interface(IUnknown)
@@ -386,3 +423,7 @@
 
   var
     DispCallByIDProc : pointer;
+
+  const
+    { for safe as operator support }
+    IObjectInstance: TGuid = '{D91C9AF4-3C93-420F-A303-BF5BA82BFD23}';

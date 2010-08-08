@@ -13,10 +13,6 @@
 
  **********************************************************************}
 
-{$if defined(CPUARM) or defined(CPUX86_64) or defined(CPUSPARC)}
-  {$define RTSIGACTION}
-{$endif}
-
 {$I textrec.inc}
 {$I filerec.inc}
 
@@ -161,13 +157,6 @@ begin
  {restart behaviour needs libc}
       sa.sa_flags :=sa.sa_flags or SA_RESTART;
 }
-{$ifdef RTSIGACTION}
-      sa.sa_flags:=SA_SIGINFO
-{$ifdef cpux86_64}
-         or $4000000
-{$endif cpux86_64}
-      ;
-{$endif RTSIGACTION}
      FPSigaction(signum,@sa,@osa);
      if fpgetErrNo<>0 then
        fpsignal:=NIL

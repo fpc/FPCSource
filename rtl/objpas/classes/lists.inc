@@ -14,6 +14,28 @@
 {$if defined(VER2_0) or not defined(FPC_TESTGENERICS)}
 
 {****************************************************************************}
+{*                           TFPListEnumerator                              *}
+{****************************************************************************}
+
+constructor TFPListEnumerator.Create(AList: TFPList);
+begin
+  inherited Create;
+  FList := AList;
+  FPosition := -1;
+end;
+
+function TFPListEnumerator.GetCurrent: Pointer;
+begin
+  Result := FList[FPosition];
+end;
+
+function TFPListEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FList.Count;
+end;
+
+{****************************************************************************}
 {*                           TFPList                                        *}
 {****************************************************************************}
 
@@ -152,7 +174,7 @@ function TFPList.Expand: TFPList;
 var
   IncSize : Longint;
 begin
-  if FCount < FCapacity then exit;
+  if FCount < FCapacity then exit(self);
   IncSize := 4;
   if FCapacity > 3 then IncSize := IncSize + 4;
   if FCapacity > 8 then IncSize := IncSize+8;
@@ -167,6 +189,11 @@ begin
     Result := Nil
   else
     Result := Items[0];
+end;
+
+function TFPList.GetEnumerator: TFPListEnumerator;
+begin
+  Result := TFPListEnumerator.Create(Self);
 end;
 
 function TFPList.IndexOf(Item: Pointer): Integer;
@@ -480,7 +507,27 @@ end;
 
 {$endif}
 
+{****************************************************************************}
+{*                TListEnumerator                                           *}
+{****************************************************************************}
 
+constructor TListEnumerator.Create(AList: TList);
+begin
+  inherited Create;
+  FList := AList;
+  FPosition := -1;
+end;
+
+function TListEnumerator.GetCurrent: Pointer;
+begin
+  Result := FList[FPosition];
+end;
+
+function TListEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FList.Count;
+end;
 
 {****************************************************************************}
 {*                TList                                                     *}
@@ -490,8 +537,6 @@ end;
   private
     FList: TFPList;
 }
-
-
 
 function TList.Get(Index: Integer): Pointer;
 begin
@@ -573,9 +618,17 @@ begin
 end;
 
 Procedure TList.AddList(AList : TList);
+var
+  I: Integer;
 begin
+  { this only does FList.AddList(AList.FList), avoiding notifications }
   FList.AddList(AList.FList);
-end;
+
+  { make lnAdded notifications }
+  for I := 0 to AList.Count - 1 do
+    if AList[I] <> nil then
+      Notify(AList[I], lnAdded);
+end;            
 
 procedure TList.Clear;
 
@@ -614,6 +667,11 @@ end;
 function TList.First: Pointer;
 begin
   Result := FList.First;
+end;
+
+function TList.GetEnumerator: TListEnumerator;
+begin
+  Result := TListEnumerator.Create(Self);
 end;
 
 function TList.IndexOf(Item: Pointer): Integer;

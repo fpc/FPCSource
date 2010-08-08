@@ -11,9 +11,18 @@ uses
   fpcunit,  testreport, testregistry,
   DigestTestReport,
   toolsunit,
+// List of supported database-connectors
+  sqldbtoolsunit,
+  dbftoolsunit,
+  memdstoolsunit,
+  SdfDSToolsUnit,
 // Units wich contains the tests
-  testbasics, testfieldtypes, TestDatasources, testdbbasics;
-  
+  testbasics,
+  testfieldtypes,
+  TestDatasources,
+  testdbbasics,
+  TestBufDatasetStreams;
+
 var
   FXMLResultsWriter: TXMLResultsWriter;
   FDigestResultsWriter: TDigestResultsWriter;
@@ -38,4 +47,5 @@ begin
     FXMLResultsWriter.Free;
     FDigestResultsWriter.Free;
   end;
+  FreeDBConnector;
 end.

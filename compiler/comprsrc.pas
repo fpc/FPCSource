@@ -238,13 +238,29 @@ var
   preprocessorbin,
   s : TCmdStr;
   arch : ansistring;
+
+  function WindresFileName(filename: TCmdStr): TCmdStr;
+  // to be on the safe side, for files that are passed to the preprocessor,
+  // only give short file names with forward slashes to windres
+  var
+    i: longint;
+  begin
+    Result := GetShortName(filename);
+    for I:=1 to Length(Result) do
+    if Result[I] in AllowDirectorySeparators then
+      Result[i]:='/';
+  end;
+
 begin
   srcfilepath:=ExtractFilePath(current_module.mainsource^);
   if output=roRES then
     begin
       s:=target_res.rccmd;
+      if target_res.rcbin = 'windres' then
+        Replace(s,'$RC',WindresFileName(fname))
+      else
+        Replace(s,'$RC',maybequoted(fname));
       Replace(s,'$RES',maybequoted(OutName));
-      Replace(s,'$RC',maybequoted(fname));
       ObjUsed:=False;
     end
   else
@@ -272,7 +288,7 @@ begin
       if fCollectCount=0 then
         s:=s+' '+maybequoted(fname)
       else
-        s:=s+' @'+fScriptName;
+        s:=s+' '+maybequoted('@'+fScriptName);
     end;
   { windres doesn't like empty include paths }
   if respath='' then
@@ -280,12 +296,12 @@ begin
   Replace(s,'$INC',maybequoted(respath));
   if (output=roRes) and (target_res.rcbin='windres') then
   begin
-    if (srcfilepath<>'') then
-      s:=s+' --include '+maybequoted(srcfilepath);
     { try to find a preprocessor }
     preprocessorbin := respath+'cpp'+source_info.exeext;
     if FileExists(preprocessorbin,true) then
-      s:=s+' --preprocessor='+preprocessorbin;
+      s:='--preprocessor='+preprocessorbin+' '+s;
+    if (srcfilepath<>'') then
+      s:='--include '+WindresFileName(srcfilepath)+' '+s;
   end;
   Result:=s;
 end;
@@ -304,7 +320,7 @@ const
   ResSignature : array [1..32] of byte =
   ($00,$00,$00,$00,$20,$00,$00,$00,$FF,$FF,$00,$00,$FF,$FF,$00,$00,
    $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00);
-  dfmexts : array[1..3] of string[4] = ('.lfm', '.dfm', '.xfm');
+  knownexts : array[1..4] of string[4] = ('.lfm', '.dfm', '.xfm', '.tlb');
 var
   f : file;
   oldfmode : byte;
@@ -315,9 +331,9 @@ begin
   ext:=lower(ExtractFileExt(fn));
   Result:=CompareText(ext, target_info.resext) = 0;
   if not Result then
-    for i:=1 to high(dfmexts) do
+    for i:=1 to high(knownexts) do
     begin
-      Result:=CompareText(ext, dfmexts[i]) = 0;
+      Result:=CompareText(ext, knownexts[i]) = 0;
       if Result then break;
     end;
 
@@ -397,7 +413,7 @@ begin
   if (target_info.res<>res_none) and (target_res.resourcefileclass=nil) then
     exit;
 
-  p:=ExtractFilePath(current_module.mainsource^);
+  p:=ExtractFilePath(ExpandFileName(current_module.mainsource^));
   res:=TCmdStrListItem(current_module.ResourceFiles.First);
   while res<>nil do
     begin
@@ -416,7 +432,7 @@ begin
       if resourcefile.IsCompiled(s) then
         begin
           resourcefile.free;
-          if AnsiCompareText(current_module.outputpath^, p) <> 0 then
+          if AnsiCompareFileName(IncludeTrailingPathDelimiter(ExpandFileName(current_module.outputpath^)), p) <> 0 then
             begin
               { Copy .res file to units output dir. Otherwise .res file will not be found
                 when only compiled units path is available }

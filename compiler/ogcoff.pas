@@ -62,9 +62,9 @@ interface
          bsize : longword;
          entry : longword;
          text_start : longword;
-{$ifndef x86_64}
+{$ifndef cpu64bitaddr}
          data_start : longword;
-{$endif x86_64}
+{$endif cpu64bitaddr}
          ImageBase : aword;
          SectionAlignment : longword;
          FileAlignment : longword;
@@ -84,7 +84,7 @@ interface
          SizeOfStackCommit : aword;
          SizeOfHeapReserve : aword;
          SizeOfHeapCommit : aword;
-         LoaderFlags : longword;
+         LoaderFlags : longword;          { This field is obsolete }
          NumberOfRvaAndSizes : longword;
          DataDirectory : array[0..PE_DATADIR_ENTRIES-1] of tcoffpedatadir;
        end;
@@ -234,13 +234,13 @@ interface
          procedure ExeSectionList_write_header(p:TObject;arg:pointer);
          procedure ExeSectionList_write_data(p:TObject;arg:pointer);
        protected
-         procedure MemPos_Header;override;
-         procedure DataPos_Header;override;
-         procedure DataPos_Symbols;override;
          function writedata:boolean;override;
          procedure Order_ObjSectionList(ObjSectionList : TFPObjectList);override;
        public
          constructor createcoff(awin32:boolean);
+         procedure MemPos_Header;override;
+         procedure DataPos_Header;override;
+         procedure DataPos_Symbols;override;
        end;
 
        TDJCoffexeoutput = class(TCoffexeoutput)
@@ -250,6 +250,7 @@ interface
        TPECoffexeoutput = class(TCoffexeoutput)
        private
          idatalabnr : longword;
+         FRelocsGenerated : boolean;
          procedure GenerateRelocs;
        public
          constructor create;override;
@@ -332,6 +333,7 @@ implementation
        COFF_STYP_DATA   = $0040;
        COFF_STYP_BSS    = $0080;
 
+       PE_SUBSYSTEM_NATIVE         = 1;
        PE_SUBSYSTEM_WINDOWS_GUI    = 2;
        PE_SUBSYSTEM_WINDOWS_CUI    = 3;
        PE_SUBSYSTEM_WINDOWS_CE_GUI = 9;
@@ -478,10 +480,14 @@ implementation
        SymbolMaxGrow = 200*sizeof(coffsymbol);
        StrsMaxGrow   = 8192;
 
-       coffsecnames : array[TAsmSectiontype] of string[17] = ('',
+       coffsecnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
           '.text','.data','.data','.data','.bss','.tls',
-          '.text',
-          '.pdata',
+          '.pdata',{pdata}
+          '.text', {stub}
+          '.data',
+          '.data',
+          '.data',
+          '.data',
           '.stab','.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
@@ -489,7 +495,41 @@ implementation
           '.fpc',
           '',
           '.init',
-          '.fini'
+          '.fini',
+          '.objc_class',
+          '.objc_meta_class',
+          '.objc_cat_cls_meth',
+          '.objc_cat_inst_meth',
+          '.objc_protocol',
+          '.objc_string_object',
+          '.objc_cls_meth',
+          '.objc_inst_meth',
+          '.objc_cls_refs',
+          '.objc_message_refs',
+          '.objc_symbols',
+          '.objc_category',
+          '.objc_class_vars',
+          '.objc_instance_vars',
+          '.objc_module_info',
+          '.objc_class_names',
+          '.objc_meth_var_types',
+          '.objc_meth_var_names',
+          '.objc_selector_strs',
+          '.objc_protocol_ext',
+          '.objc_class_ext',
+          '.objc_property',
+          '.objc_image_info',
+          '.objc_cstring_object',
+          '.objc_sel_fixup',
+          '__DATA,__objc_data',
+          '__DATA,__objc_const',
+          '.objc_superrefs',
+          '__DATA, __datacoal_nt,coalesced',
+          '.objc_classlist',
+          '.objc_nlclasslist',
+          '.objc_catlist',
+          '.obcj_nlcatlist',
+          '.objc_protolist'
         );
 
 const go32v2stub : array[0..2047] of byte=(
@@ -717,7 +757,6 @@ const pemagic : array[0..3] of byte = (
         alignflag : longword;
       begin
         aoptions:=[];
-        aalign:=sizeof(pint);
         if flags and PE_SCN_CNT_CODE<>0 then
           include(aoptions,oso_executable);
         if flags and PE_SCN_MEM_DISCARDABLE<>0 then
@@ -749,7 +788,11 @@ const pemagic : array[0..3] of byte = (
         else if alignflag=PE_SCN_ALIGN_2BYTES then
           aalign:=2
         else if alignflag=PE_SCN_ALIGN_1BYTES then
-          aalign:=1;
+          aalign:=1
+        else if alignflag=0 then
+          aalign:=0
+        else
+          Internalerror(2009050401);
       end;
 
 
@@ -771,11 +814,14 @@ const pemagic : array[0..3] of byte = (
 
     procedure TCoffObjSection.fixuprelocs;
       var
-        i,zero   : longint;
+        i,zero,address_size : longint;
         objreloc : TObjRelocation;
         address,
         relocval : aint;
         relocsec : TObjSection;
+{$ifdef cpu64bitaddr}
+        s        : string;
+{$endif cpu64bitaddr}
       begin
         if (ObjRelocations.Count>0) and
            not assigned(data) then
@@ -783,17 +829,26 @@ const pemagic : array[0..3] of byte = (
         for i:=0 to ObjRelocations.Count-1 do
           begin
             objreloc:=TObjRelocation(ObjRelocations[i]);
-            if objreloc.typ=RELOC_NONE then
-              continue;
-            if objreloc.typ=RELOC_ZERO then
-              begin
-                data.Seek(objreloc.dataoffset);
-                zero:=0;
-                data.Write(zero,4);
+            address_size:=4;
+            case objreloc.typ of
+              RELOC_NONE:
                 continue;
-              end;
+              RELOC_ZERO:
+                begin
+                  data.Seek(objreloc.dataoffset);
+                  zero:=0;
+                  data.Write(zero,4);
+                  continue;
+                end;
+{$ifdef cpu64bitaddr}
+              RELOC_ABSOLUTE:
+                address_size:=8;
+{$endif cpu64bitaddr}
+            end;
+
+            address:=0;
             data.Seek(objreloc.dataoffset);
-            data.Read(address,4);
+            data.Read(address,address_size);
             if assigned(objreloc.symbol) then
               begin
                 relocsec:=objreloc.symbol.objsection;
@@ -807,98 +862,111 @@ const pemagic : array[0..3] of byte = (
                 end
             else
               internalerror(200205183);
-            { Only debug section are allowed to have }
-            if not relocsec.used and
-               not(oso_debug in secoptions) then
+            { Only debug sections are allowed to have relocs pointing to unused sections }
+            if not relocsec.used and not (oso_debug in secoptions) then
               internalerror(200603061);
-            case objreloc.typ of
-              RELOC_RELATIVE  :
-                begin
-                  address:=address-mempos+relocval;
-                  if TCoffObjData(objdata).win32 then
-                    dec(address,objreloc.dataoffset+4);
-                end;
-              RELOC_RVA :
-                begin
-                  { fixup address when the symbol was known in defined object }
-                  if (relocsec.objdata=objdata) then
-                    dec(address,TCoffObjSection(relocsec).orgmempos);
+
+            if relocsec.used then
+              case objreloc.typ of
+                RELOC_RELATIVE  :
+                  begin
+                    address:=address-mempos+relocval;
+                    if TCoffObjData(objdata).win32 then
+                      dec(address,objreloc.dataoffset+4);
+                  end;
+                RELOC_RVA:
+                  begin
+                    { fixup address when the symbol was known in defined object }
+                    if (relocsec.objdata=objdata) then
+                      dec(address,TCoffObjSection(relocsec).orgmempos);
 {$ifdef arm}
-                  if (relocsec.objdata=objdata) and not TCoffObjData(objdata).eVCobj then
-                    inc(address, relocsec.MemPos)
-                  else
+                    if (relocsec.objdata=objdata) and not TCoffObjData(objdata).eVCobj then
+                      inc(address, relocsec.MemPos)
+                    else
 {$endif arm}
+                      inc(address,relocval);
+                  end;
+                RELOC_SECREL32 :
+                  begin
+                    { fixup address when the symbol was known in defined object }
+                    if (relocsec.objdata=objdata) then
+                      dec(address,relocsec.ExeSection.MemPos);
                     inc(address,relocval);
-                end;
-              RELOC_SECREL32 :
-                begin
-                  { fixup address when the symbol was known in defined object }
-                  if (relocsec.objdata=objdata) then
-                    dec(address,TCoffObjSection(relocsec).mempos);
-                  inc(address,relocval);
-                end;
+                  end;
 {$ifdef arm}
-              RELOC_RELATIVE_24:
-                begin
-                  relocval:=longint(relocval - mempos - objreloc.dataoffset) shr 2 - 2;
-                  address:=address or (relocval and $ffffff);
-                  relocval:=relocval shr 24;
-                  if (relocval<>$3f) and (relocval<>0) then
-                    internalerror(200606085);  { offset overflow }
-                end;
+                RELOC_RELATIVE_24:
+                  begin
+                    relocval:=longint(relocval - mempos - objreloc.dataoffset) shr 2 - 2;
+                    address:=address or (relocval and $ffffff);
+                    relocval:=relocval shr 24;
+                    if (relocval<>$3f) and (relocval<>0) then
+                      internalerror(200606085);  { offset overflow }
+                  end;
 {$endif arm}
 {$ifdef x86_64}
-              { 64 bit coff only }
-              RELOC_RELATIVE_1:
-                begin
-                  address:=address-mempos+relocval;
-                  dec(address,objreloc.dataoffset+1);
-                end;
-              RELOC_RELATIVE_2:
-                begin
-                  address:=address-mempos+relocval;
-                  dec(address,objreloc.dataoffset+2);
-                end;
-              RELOC_RELATIVE_3:
-                begin
-                  address:=address-mempos+relocval;
-                  dec(address,objreloc.dataoffset+3);
-                end;
-              RELOC_RELATIVE_4:
-                begin
-                  address:=address-mempos+relocval;
-                  dec(address,objreloc.dataoffset+4);
-                end;
-              RELOC_RELATIVE_5:
-                begin
-                  address:=address-mempos+relocval;
-                  dec(address,objreloc.dataoffset+5);
-                end;
-              RELOC_ABSOLUTE32,
+                { 64 bit coff only }
+                RELOC_RELATIVE_1:
+                  begin
+                    address:=address-mempos+relocval;
+                    dec(address,objreloc.dataoffset+1);
+                  end;
+                RELOC_RELATIVE_2:
+                  begin
+                    address:=address-mempos+relocval;
+                    dec(address,objreloc.dataoffset+2);
+                  end;
+                RELOC_RELATIVE_3:
+                  begin
+                    address:=address-mempos+relocval;
+                    dec(address,objreloc.dataoffset+3);
+                  end;
+                RELOC_RELATIVE_4:
+                  begin
+                    address:=address-mempos+relocval;
+                    dec(address,objreloc.dataoffset+4);
+                  end;
+                RELOC_RELATIVE_5:
+                  begin
+                    address:=address-mempos+relocval;
+                    dec(address,objreloc.dataoffset+5);
+                  end;
+                RELOC_ABSOLUTE32,
 {$endif x86_64}
-              RELOC_ABSOLUTE :
-                begin
-                  if oso_common in relocsec.secoptions then
-                    dec(address,objreloc.orgsize)
-                  else
-                    begin
-                      { fixup address when the symbol was known in defined object }
-                      if (relocsec.objdata=objdata) then
-                        dec(address,TCoffObjSection(relocsec).orgmempos);
-                    end;
+                RELOC_ABSOLUTE :
+                  begin
+                    if oso_common in relocsec.secoptions then
+                      dec(address,objreloc.orgsize)
+                    else
+                      begin
+                        { fixup address when the symbol was known in defined object }
+                        if (relocsec.objdata=objdata) then
+                          dec(address,TCoffObjSection(relocsec).orgmempos);
+                      end;
 {$ifdef arm}
-                  if (relocsec.objdata=objdata) and not TCoffObjData(objdata).eVCobj then
-                    inc(address, relocsec.MemPos)
-                  else
+                    if (relocsec.objdata=objdata) and not TCoffObjData(objdata).eVCobj then
+                      inc(address, relocsec.MemPos)
+                    else
 {$endif arm}
-                    inc(address,relocval);
-                  inc(address,relocsec.objdata.imagebase);
-                end;
-              else
-                internalerror(200604014);
-            end;
+                      inc(address,relocval);
+                    inc(address,relocsec.objdata.imagebase);
+                  end;
+                else
+                  internalerror(200604014);
+              end
+            else
+              address:=0;  { Relocation in debug section points to unused section, which is eliminated by linker }
+
             data.Seek(objreloc.dataoffset);
-            data.Write(address,4);
+            data.Write(address,address_size);
+{$ifdef cpu64bitaddr}
+            if objreloc.typ = RELOC_ABSOLUTE32 then begin
+              if assigned(objreloc.symbol) then
+                s:=objreloc.symbol.Name
+              else
+                s:=objreloc.objsection.Name;
+              Message2(link_w_32bit_absolute_reloc, ObjData.Name, s);
+            end;
+{$endif cpu64bitaddr}
           end;
       end;
 
@@ -1012,13 +1080,13 @@ const pemagic : array[0..3] of byte = (
                       CurrObjSec.addsectionreloc(curraddr,CurrObjSec,RELOC_ABSOLUTE);
                       inc(data,symaddr);
                     end;
-{$ifdef x86_64}
+{$ifdef cpu64bitaddr}
                   RELOC_ABSOLUTE32 :
                     begin
                       CurrObjSec.addsectionreloc(curraddr,CurrObjSec,RELOC_ABSOLUTE32);
                       inc(data,symaddr);
                     end;
-{$endif x86_64}
+{$endif cpu64bitaddr}
                   RELOC_RELATIVE :
                     begin
                       inc(data,symaddr-len-CurrObjSec.Size);
@@ -1236,7 +1304,7 @@ const pemagic : array[0..3] of byte = (
                 rel.reloctype:=IMAGE_REL_AMD64_SECREL;
 {$endif x86_64}
               else
-                internalerror(200603312);
+                internalerror(200905071);
             end;
             FWriter.write(rel,sizeof(rel));
           end;
@@ -1922,7 +1990,7 @@ const pemagic : array[0..3] of byte = (
         if target_info.system in [system_x86_64_win64] then
           MaxMemPos:=$FFFFFFFF
         else
-          if target_info.system in system_wince then
+          if target_info.system in systems_wince then
             MaxMemPos:=$1FFFFFF
           else
             MaxMemPos:=$7FFFFFFF;
@@ -2017,7 +2085,13 @@ const pemagic : array[0..3] of byte = (
             sechdr.nrelocs:=0;
             sechdr.relocpos:=0;
             if win32 then
-              sechdr.flags:=peencodesechdrflags(SecOptions,SecAlign)
+              begin
+                if (target_info.system in systems_nativent) and
+                   (apptype = app_native) then
+                  sechdr.flags:=peencodesechdrflags(SecOptions,SecAlign) or PE_SCN_MEM_NOT_PAGED
+                else
+                  sechdr.flags:=peencodesechdrflags(SecOptions,SecAlign);
+              end
             else
               sechdr.flags:=djencodesechdrflags(SecOptions);
             FWriter.write(sechdr,sizeof(sechdr));
@@ -2128,7 +2202,8 @@ const pemagic : array[0..3] of byte = (
         dataExeSec,
         bssExeSec,
         idataExeSec : TExeSection;
-        hassymbols  : boolean;
+        hassymbols,
+        writeDbgStrings : boolean;
 
         procedure UpdateDataDir(const secname:string;idx:longint);
         var
@@ -2158,6 +2233,7 @@ const pemagic : array[0..3] of byte = (
                      (ExeWriteMode=ewm_exefull) and
                      not(cs_link_strip in current_settings.globalswitches)
                     );
+        writeDbgStrings:=hassymbols or ((ExeWriteMode=ewm_exeonly) and (cs_link_separate_dbg_file in current_settings.globalswitches));
         { Stub }
         if win32 then
           begin
@@ -2170,7 +2246,8 @@ const pemagic : array[0..3] of byte = (
         fillchar(header,sizeof(header),0);
         header.mach:=COFF_MAGIC;
         header.nsects:=nsects;
-        header.sympos:=sympos;
+        if writeDbgStrings then
+          header.sympos:=sympos;
         if hassymbols then
           header.syms:=nsyms;
         if win32 then
@@ -2212,9 +2289,9 @@ const pemagic : array[0..3] of byte = (
             if assigned(BSSExeSec) then
               peoptheader.bsize:=BSSExeSec.Size;
             peoptheader.text_start:=TextExeSec.mempos;
-{$ifndef x86_64}
+{$ifndef cpu64bitaddr}
             peoptheader.data_start:=DataExeSec.mempos;
-{$endif x86_64}
+{$endif cpu64bitaddr}
             peoptheader.entry:=EntrySym.Address;
             peoptheader.ImageBase:=ImageBase;
             peoptheader.SectionAlignment:=SectionMemAlign;
@@ -2223,7 +2300,7 @@ const pemagic : array[0..3] of byte = (
             peoptheader.MinorOperatingSystemVersion:=0;
             peoptheader.MajorImageVersion:=dllmajor;
             peoptheader.MinorImageVersion:=dllminor;
-            if target_info.system in system_wince then
+            if target_info.system in systems_wince then
               peoptheader.MajorSubsystemVersion:=3
             else
               peoptheader.MajorSubsystemVersion:=4;
@@ -2232,16 +2309,25 @@ const pemagic : array[0..3] of byte = (
             peoptheader.SizeOfImage:=Align(CurrMemPos,SectionMemAlign);
             peoptheader.SizeOfHeaders:=textExeSec.DataPos;
             peoptheader.CheckSum:=0;
-            if target_info.system in system_wince then
-              peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CE_GUI
+            if (target_info.system in systems_nativent) and (not IsSharedLibrary or (apptype = app_native)) then
+              { Although I did not really test this, it seems that Subsystem is
+                not checked in DLLs except for maybe drivers}
+              peoptheader.Subsystem:=PE_SUBSYSTEM_NATIVE
             else
-              if apptype=app_gui then
-                peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_GUI
+              if target_info.system in systems_wince then
+                peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CE_GUI
               else
-                peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CUI;
+                if apptype=app_gui then
+                  peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_GUI
+                else
+                  peoptheader.Subsystem:=PE_SUBSYSTEM_WINDOWS_CUI;
             peoptheader.DllCharacteristics:=0;
             peoptheader.SizeOfStackReserve:=stacksize;
             peoptheader.SizeOfStackCommit:=$1000;
+            if MinStackSizeSetExplicity then
+              peoptheader.SizeOfStackCommit:=minstacksize;
+            if MaxStackSizeSetExplicity then
+              peoptheader.SizeOfStackReserve:=maxstacksize;
             peoptheader.SizeOfHeapReserve:=$100000;
             peoptheader.SizeOfHeapCommit:=$1000;
             peoptheader.NumberOfRvaAndSizes:=PE_DATADIR_ENTRIES;
@@ -2265,11 +2351,11 @@ const pemagic : array[0..3] of byte = (
             djoptheader.entry:=EntrySym.offset;
             FWriter.write(djoptheader,sizeof(djoptheader));
           end;
-          
+
         { For some unknown reason WM 6.1 requires .idata section to be read only.
           Otherwise it refuses to load DLLs greater than 64KB.
           Earlier versions of WinCE load DLLs regardless of .idata flags. }
-        if target_info.system in system_wince then
+        if target_info.system in systems_wince then
           begin
             idataExeSec:=FindExeSection('.idata');
             if idataExeSec<>nil then
@@ -2285,10 +2371,13 @@ const pemagic : array[0..3] of byte = (
           internalerror(200602252);
         if hassymbols then
           ExeSymbolList.ForEachCall(@globalsyms_write_symbol,nil);
-        { Strings }
-        i:=FCoffStrs.size+4;
-        FWriter.write(i,4);
-        FWriter.writearray(FCoffStrs);
+        if writeDbgStrings then
+          begin
+            { Strings }
+            i:=FCoffStrs.size+4;
+            FWriter.write(i,4);
+            FWriter.writearray(FCoffStrs);
+          end;
         { Release }
         FCoffStrs.Free;
         FCoffSyms.Free;
@@ -2404,8 +2493,8 @@ const pemagic : array[0..3] of byte = (
         function AddImport(const afuncname,amangledname:string; AOrdNr:longint;isvar:boolean):TObjSymbol;
         const
 {$ifdef x86_64}
-          jmpopcode : array[0..2] of byte = (
-            $ff,$24,$25
+          jmpopcode : array[0..1] of byte = (
+            $ff,$25             // jmp qword [rip + offset32]
           );
 {$else x86_64}
   {$ifdef arm}
@@ -2513,7 +2602,12 @@ const pemagic : array[0..3] of byte = (
               internalobjdata.SetSection(textobjsection);
               result:=internalobjdata.SymbolDefine('_'+amangledname,AB_GLOBAL,AT_FUNCTION);
               internalobjdata.writebytes(jmpopcode,sizeof(jmpopcode));
-              internalobjdata.writereloc(0,sizeof(longint),idata5label,RELOC_ABSOLUTE32);
+{$ifdef x86_64}
+              internalobjdata.writereloc(0,4,idata5label,RELOC_RELATIVE);
+{$else}
+              internalobjdata.writereloc(0,4,idata5label,RELOC_ABSOLUTE32);
+{$endif x86_64}
+
               internalobjdata.writebytes(nopopcodes,align(internalobjdata.CurrObjSec.size,sizeof(nopopcodes))-internalobjdata.CurrObjSec.size);
             end;
         end;
@@ -2580,7 +2674,7 @@ const pemagic : array[0..3] of byte = (
         offset : longword;
         w: word;
       begin
-        if not RelocSection then
+        if not RelocSection or FRelocsGenerated then
           exit;
         exesec:=FindExeSection('.reloc');
         if exesec=nil then
@@ -2601,7 +2695,7 @@ const pemagic : array[0..3] of byte = (
                 for k:=0 to objsec.ObjRelocations.Count-1 do
                   begin
                     objreloc:=TObjRelocation(objsec.ObjRelocations[k]);
-                    if not (objreloc.typ in [{$ifdef x86_64}RELOC_ABSOLUTE32,{$endif x86_64}RELOC_ABSOLUTE]) then
+                    if not (objreloc.typ in [{$ifdef cpu64bitaddr}RELOC_ABSOLUTE32,{$endif cpu64bitaddr}RELOC_ABSOLUTE]) then
                       continue;
                     offset:=objsec.MemPos+objreloc.dataoffset;
                     if (offset<pgaddr) and (pgaddr<>longword(-1)) then
@@ -2615,12 +2709,19 @@ const pemagic : array[0..3] of byte = (
                         { Reserving space for block size. The size will be written later in FinishBlock }
                         internalObjData.writebytes(k,4);
                       end;
-                    w:=(IMAGE_REL_BASED_HIGHLOW shl 12) or (offset-pgaddr);
+{$ifdef cpu64bitaddr}
+                    if objreloc.typ = RELOC_ABSOLUTE then
+                      w:=IMAGE_REL_BASED_DIR64
+                    else
+{$endif cpu64bitaddr}
+                      w:=IMAGE_REL_BASED_HIGHLOW;
+                    w:=(w shl 12) or (offset-pgaddr);
                     internalObjData.writebytes(w,2);
                   end;
               end;
           end;
         FinishBlock;
+        FRelocsGenerated:=true;
       end;
 
 
@@ -2805,7 +2906,7 @@ const pemagic : array[0..3] of byte = (
             idtxt  : 'COFF';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_i386_go32v2;
+            supported_targets : [system_i386_go32v2];
             flags : [af_outputbinary];
             labelprefix : '.L';
             comment : '';
@@ -2817,7 +2918,7 @@ const pemagic : array[0..3] of byte = (
             idtxt  : 'PECOFF';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_i386_win32;
+            supported_targets : [system_i386_win32,system_i386_nativent];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
@@ -2829,7 +2930,7 @@ const pemagic : array[0..3] of byte = (
             idtxt  : 'PEWDOSX';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_i386_wdosx;
+            supported_targets : [system_i386_wdosx];
             flags : [af_outputbinary];
             labelprefix : '.L';
             comment : '';
@@ -2841,7 +2942,7 @@ const pemagic : array[0..3] of byte = (
             idtxt  : 'PECOFFWINCE';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_i386_wince;
+            supported_targets : [system_i386_wince];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
@@ -2855,7 +2956,7 @@ const pemagic : array[0..3] of byte = (
             idtxt  : 'PECOFF';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_x86_64_win64;
+            supported_targets : [system_x86_64_win64];
             flags : [af_outputbinary,af_smartlink_sections];
             labelprefix : '.L';
             comment : '';
@@ -2869,7 +2970,7 @@ const pemagic : array[0..3] of byte = (
             idtxt  : 'PECOFFWINCE';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_arm_wince;
+            supported_targets : [system_arm_wince];
             flags : [af_outputbinary];
             labelprefix : '.L';
             comment : '';

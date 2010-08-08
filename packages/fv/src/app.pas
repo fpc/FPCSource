@@ -806,7 +806,7 @@ BEGIN
   { the orginal code can't be used here because of the limited
     video unit capabilities, the mono modus can't be handled
   }
-{  Drivers.InitVideo;}
+  Drivers.DetectVideo;
   if (ScreenMode.Col div ScreenMode.Row<2) then
     ShadowSize.X := 1
   else

@@ -65,3 +65,26 @@
            end;
       end;
 
+    function stripos(str1,str2 : pchar) : pchar;
+      var
+         p : pchar;
+         lstr2 : SizeInt;
+      begin
+         stripos:=nil;
+         if (str1 = nil) or (str2 = nil) then
+           exit;
+         p:=striscan(str1,str2^);
+         if p=nil then
+           exit;
+         lstr2:=strlen(str2);
+         while p<>nil do
+           begin
+              if strlicomp(p,str2,lstr2)=0 then
+                begin
+                   stripos:=p;
+                   exit;
+                end;
+              inc(p);
+              p:=striscan(p,str2^);
+           end;
+      end;

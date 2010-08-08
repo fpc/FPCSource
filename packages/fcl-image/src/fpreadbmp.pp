@@ -32,7 +32,6 @@ uses FPImage, classes, sysutils, BMPcomn;
 type
   TFPReaderBMP = class (TFPCustomImageReader)
     Private
-      Procedure FreeBufs;       // Free (and nil) buffers.
       DeltaX, DeltaY : integer; // Used for the never-used delta option in RLE
       TopDown : boolean;        // If set, bitmap is stored top down instead of bottom up
       continue : boolean;       // needed for onprogress event
@@ -40,6 +39,7 @@ type
       percentinterval : longword;
       percentacc : longword;
       Rect : TRect;
+      Procedure FreeBufs;       // Free (and nil) buffers.
     protected
       ReadSize : Integer;       // Size (in bytes) of 1 scanline.
       BFI : TBitMapInfoHeader;  // The header as read from the stream.

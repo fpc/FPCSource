@@ -35,8 +35,8 @@ unit i_haiku;
             system       : system_i386_Haiku;
             name         : 'Haiku for i386';
             shortname    : 'Haiku';
-            flags        : [tf_under_development,tf_needs_symbol_size,tf_files_case_sensitive,tf_use_function_relative_addresses,
-                            tf_smartlink_sections, tf_smartlink_library];
+            flags        : [tf_under_development,tf_needs_symbol_size,tf_files_case_sensitive,
+                            tf_smartlink_sections, tf_smartlink_library, tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'HAIKUUNITS';
             extradefines : 'BEOS;UNIX;HASUNIX';
@@ -58,6 +58,8 @@ unit i_haiku;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -66,7 +68,7 @@ unit i_haiku;
             link         : nil;
             linkextern   : nil;
             ar           : ar_gnu_ar;
-            res          : res_none;
+            res          : res_elf;
             dbg          : dbg_stabs;
             script       : script_unix;
             endian       : endian_little;

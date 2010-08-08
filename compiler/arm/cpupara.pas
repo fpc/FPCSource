@@ -29,42 +29,53 @@ unit cpupara;
     uses
        globtype,globals,
        aasmtai,aasmdata,
-       cpuinfo,cpubase,cgbase,
+       cpuinfo,cpubase,cgbase,cgutils,
        symconst,symbase,symtype,symdef,parabase,paramgr;
 
     type
        tarmparamanager = class(tparamanager)
           function get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;override;
           function get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;override;
+          function get_volatile_registers_mm(calloption : tproccalloption):tcpuregisterset;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function ret_in_param(def : tdef;calloption : tproccalloption) : boolean;override;
           procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
+          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;override;
          private
           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
           function create_paraloc_info_intern(p : tabstractprocdef; side: tcallercallee; paras: tparalist;
             var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword):longint;
+          procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
        end;
 
   implementation
 
     uses
-       verbose,systems,
+       verbose,systems,cutils,
        rgobj,
-       defutil,symsym,
-       cgutils;
+       defutil,symsym;
 
 
     function tarmparamanager.get_volatile_registers_int(calloption : tproccalloption):tcpuregisterset;
       begin
-        result:=VOLATILE_INTREGISTERS;
+        if (target_info.system<>system_arm_darwin) then
+          result:=VOLATILE_INTREGISTERS
+        else
+          result:=VOLATILE_INTREGISTERS_DARWIN;
       end;
 
 
     function tarmparamanager.get_volatile_registers_fpu(calloption : tproccalloption):tcpuregisterset;
       begin
         result:=VOLATILE_FPUREGISTERS;
+      end;
+
+
+    function tarmparamanager.get_volatile_registers_mm(calloption: tproccalloption): tcpuregisterset;
+      begin
+        result:=VOLATILE_MMREGISTERS;
       end;
 
 
@@ -108,7 +119,11 @@ unit cpupara;
             orddef:
               getparaloc:=LOC_REGISTER;
             floatdef:
-              if (calloption in [pocall_cdecl,pocall_cppdecl,pocall_softfloat]) or (cs_fp_emulation in current_settings.moduleswitches) then
+              if (calloption in [pocall_cdecl,pocall_cppdecl,pocall_softfloat]) or
+                 (cs_fp_emulation in current_settings.moduleswitches) or
+                 (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3]) then
+                { the ARM eabi also allows passing VFP values via VFP registers,
+                  but at least neither Mac OS X nor Linux seems to do that }
                 getparaloc:=LOC_REGISTER
               else
                 getparaloc:=LOC_FPUREGISTER;
@@ -163,6 +178,8 @@ unit cpupara;
           objectdef:
             result:=is_object(def) and ((varspez=vs_const) or (def.size=0));
           recorddef:
+            { note: should this ever be changed, make sure that const records
+                are always passed by reference for calloption=pocall_mwpascal }
             result:=(varspez=vs_const) or (def.size=0);
           variantdef,
           formaldef:
@@ -184,16 +201,12 @@ unit cpupara;
       begin
         case def.typ of
           recorddef:
-            { this is how gcc 4.0.4 on linux seems to do it, it doesn't look like being
-              ARM ABI standard compliant
-            }
-            result:=not((trecorddef(def).symtable.SymList.count=1) and
-              not(ret_in_param(tabstractvarsym(trecorddef(def).symtable.SymList[0]).vardef,calloption)));
-          {
-          objectdef
-          arraydef:
-            result:=not(def.size in [1,2,4]);
-          }
+            result:=def.size>4;
+          procvardef:
+            if not tprocvardef(def).is_addressonly then
+              result:=true
+            else
+              result:=false
           else
             result:=inherited ret_in_param(def,calloption);
         end;
@@ -222,10 +235,15 @@ unit cpupara;
         paracgsize   : tcgsize;
         paralen : longint;
         i : integer;
+        firstparaloc: boolean;
 
       procedure assignintreg;
         begin
-           if nextintreg<=RS_R3 then
+          { In case of po_delphi_nested_cc, the parent frame pointer
+            is always passed on the stack. }
+           if (nextintreg<=RS_R3) and
+              (not(vo_is_parentfp in hp.varoptions) or
+               not(po_delphi_nested_cc in p.procoptions)) then
              begin
                paraloc^.loc:=LOC_REGISTER;
                paraloc^.register:=newreg(R_INTREGISTER,nextintreg,R_SUBWHOLE);
@@ -304,6 +322,7 @@ unit cpupara;
              hp.paraloc[side].size:=paracgsize;
              hp.paraloc[side].Alignment:=std_param_align;
              hp.paraloc[side].intsize:=paralen;
+             firstparaloc:=true;
 
 {$ifdef EXTDEBUG}
              if paralen=0 then
@@ -331,11 +350,14 @@ unit cpupara;
                       begin
                         { align registers for eabi }
                         if (target_info.abi=abi_eabi) and
-                          (paracgsize in [OS_F64,OS_64,OS_S64]) and
-                          (nextintreg in [RS_R1,RS_R3]) and
-                          { first location? }
-                          (paralen=8) then
-                          inc(nextintreg);
+                           firstparaloc and
+                           (paradef.alignment=8) then
+                          begin
+                            if (nextintreg in [RS_R1,RS_R3]) then
+                              inc(nextintreg)
+                            else if nextintreg>RS_R3 then
+                              stack_offset:=align(stack_offset,8);
+                          end;
                         { this is not abi compliant
                           why? (FK) }
                         if nextintreg<=RS_R3 then
@@ -346,7 +368,7 @@ unit cpupara;
                           end
                         else
                           begin
-                            { LOC_REFERENCE covers always the overleft }
+                            { LOC_REFERENCE always contains everything that's left }
                             paraloc^.loc:=LOC_REFERENCE;
                             paraloc^.size:=int_cgsize(paralen);
                             if (side=callerside) then
@@ -385,25 +407,25 @@ unit cpupara;
                       end;
                     LOC_REFERENCE:
                       begin
-                        { align stack for eabi }
-                        if (target_info.abi=abi_eabi) and
-                          (paracgsize in [OS_F64,OS_64,OS_S64]) and
-                          (stack_offset mod 8<>0) and
-                          { first location? }
-                          (paralen=8) then
-                          inc(stack_offset,8-(stack_offset mod 8));
-
-                        paraloc^.size:=OS_ADDR;
-                        if push_addr_param(hp.varspez,paradef,p.proccalloption) or
-                          is_open_array(paradef) or
-                          is_array_of_const(paradef) then
-                          assignintreg
+                        if push_addr_param(hp.varspez,paradef,p.proccalloption) then
+                          begin
+                            paraloc^.size:=OS_ADDR;
+                            assignintreg
+                          end
                         else
                           begin
+                            { align stack for eabi }
+                            if (target_info.abi=abi_eabi) and
+                               firstparaloc and
+                               (paradef.alignment=8) then
+                              stack_offset:=align(stack_offset,8);
+
+                             paraloc^.size:=paracgsize;
                              paraloc^.loc:=LOC_REFERENCE;
                              paraloc^.reference.index:=NR_STACK_POINTER_REG;
                              paraloc^.reference.offset:=stack_offset;
-                             inc(stack_offset,hp.vardef.size);
+                             inc(stack_offset,align(paralen,4));
+                             paralen:=0
                           end;
                       end;
                     else
@@ -418,6 +440,7 @@ unit cpupara;
                        end;
                    end;
                  dec(paralen,tcgsize2size[paraloc^.size]);
+                 firstparaloc:=false
                end;
           end;
         curintreg:=nextintreg;
@@ -428,59 +451,76 @@ unit cpupara;
       end;
 
 
-    function tarmparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+    procedure tarmparamanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
+      begin
+        p.funcretloc[side]:=get_funcretloc(p,side,p.returndef);
+      end;
+
+
+    function  tarmparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;
       var
-        cur_stack_offset: aword;
-        curintreg, curfloatreg, curmmreg: tsuperregister;
+        paraloc : pcgparalocation;
         retcgsize  : tcgsize;
       begin
-        init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
-
-        result:=create_paraloc_info_intern(p,side,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset);
-
+        result.init;
+        result.alignment:=get_para_align(p.proccalloption);
+        { void has no location }
+        if is_void(def) then
+          begin
+            paraloc:=result.add_location;
+            result.size:=OS_NO;
+            result.intsize:=0;
+            paraloc^.size:=OS_NO;
+            paraloc^.loc:=LOC_VOID;
+            exit;
+          end;
         { Constructors return self instead of a boolean }
         if (p.proctypeoption=potype_constructor) then
-          retcgsize:=OS_ADDR
+          begin
+            retcgsize:=OS_ADDR;
+            result.intsize:=sizeof(pint);
+          end
         else
-          retcgsize:=def_cgsize(p.returndef);
-
-        location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
-        p.funcretloc[side].size:=retcgsize;
-
-        { void has no location }
-        if is_void(p.returndef) then
           begin
-            location_reset(p.funcretloc[side],LOC_VOID,OS_NO);
-            exit;
+            retcgsize:=def_cgsize(def);
+            result.intsize:=def.size;
           end;
+        result.size:=retcgsize;
         { Return is passed as var parameter }
-        if ret_in_param(p.returndef,p.proccalloption) then
+        if ret_in_param(def,p.proccalloption) then
           begin
-            p.funcretloc[side].loc:=LOC_REFERENCE;
-            p.funcretloc[side].size:=retcgsize;
+            paraloc:=result.add_location;
+            paraloc^.loc:=LOC_REFERENCE;
+            paraloc^.size:=retcgsize;
             exit;
           end;
+
+        paraloc:=result.add_location;
         { Return in FPU register? }
-        if p.returndef.typ=floatdef then
+        if def.typ=floatdef then
           begin
-            if (p.proccalloption in [pocall_softfloat]) or (cs_fp_emulation in current_settings.moduleswitches) then
+            if (p.proccalloption in [pocall_softfloat]) or
+               (cs_fp_emulation in current_settings.moduleswitches) or
+               (current_settings.fputype in [fpu_vfpv2,fpu_vfpv3]) then
               begin
                 case retcgsize of
                   OS_64,
                   OS_F64:
                     begin
-                      { low }
-                      p.funcretloc[side].loc:=LOC_REGISTER;
-                      p.funcretloc[side].register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG;
-                      p.funcretloc[side].register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG;
-                      p.funcretloc[side].size:=OS_64;
+                      paraloc^.loc:=LOC_REGISTER;
+                      paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
+                      paraloc^.size:=OS_32;
+                      paraloc:=result.add_location;
+                      paraloc^.loc:=LOC_REGISTER;
+                      paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
+                      paraloc^.size:=OS_32;
                     end;
                   OS_32,
                   OS_F32:
                     begin
-                      p.funcretloc[side].loc:=LOC_REGISTER;
-                      p.funcretloc[side].register:=NR_FUNCTION_RETURN_REG;
-                      p.funcretloc[side].size:=OS_32;
+                      paraloc^.loc:=LOC_REGISTER;
+                      paraloc^.register:=NR_FUNCTION_RETURN_REG;
+                      paraloc^.size:=OS_32;
                     end;
                   else
                     internalerror(2005082603);
@@ -488,8 +528,9 @@ unit cpupara;
               end
             else
               begin
-                p.funcretloc[side].loc:=LOC_FPUREGISTER;
-                p.funcretloc[side].register:=NR_FPU_RESULT_REG;
+                paraloc^.loc:=LOC_FPUREGISTER;
+                paraloc^.register:=NR_FPU_RESULT_REG;
+                paraloc^.size:=retcgsize;
               end;
           end
           { Return in register }
@@ -497,18 +538,37 @@ unit cpupara;
           begin
             if retcgsize in [OS_64,OS_S64] then
               begin
-                { low }
-                p.funcretloc[side].loc:=LOC_REGISTER;
-                p.funcretloc[side].register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG;
-                p.funcretloc[side].register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG;
+                paraloc^.loc:=LOC_REGISTER;
+                paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG;
+                paraloc^.size:=OS_32;
+                paraloc:=result.add_location;
+                paraloc^.loc:=LOC_REGISTER;
+                paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG;
+                paraloc^.size:=OS_32;
               end
             else
               begin
-                p.funcretloc[side].loc:=LOC_REGISTER;
-                p.funcretloc[side].register:=NR_FUNCTION_RETURN_REG;
+                paraloc^.loc:=LOC_REGISTER;
+                paraloc^.register:=NR_FUNCTION_RETURN_REG;
+                if (result.intsize<>3) then
+                  paraloc^.size:=retcgsize
+                else
+                  paraloc^.size:=OS_32;
               end;
-
           end;
+      end;
+
+
+    function tarmparamanager.create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;
+      var
+        cur_stack_offset: aword;
+        curintreg, curfloatreg, curmmreg: tsuperregister;
+      begin
+        init_values(curintreg,curfloatreg,curmmreg,cur_stack_offset);
+
+        result:=create_paraloc_info_intern(p,side,p.paras,curintreg,curfloatreg,curmmreg,cur_stack_offset);
+
+        create_funcretloc_info(p,side);
      end;
 
 

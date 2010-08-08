@@ -30,6 +30,10 @@
   {$endif}
 {$endif}
 
+{$if defined(darwin) and defined(cpuarm)}
+  {$define darwinarm}
+{$endif}
+
 //      CONST SYS_NMLN=65;
 
 // Can't find these two in Posix and in FreeBSD
@@ -60,9 +64,15 @@ TYPE
   { file characteristics services }
    stat    = record { the types are real}
         st_dev        : dev_t;             // inode's device
+{$ifdef darwinarm}
+        st_mode       : mode_t;            // inode protection mode
+        st_nlink      : nlink_t;           // number of hard links
+        st_ino        : ino_t;             // inode's number
+{$else}
         st_ino        : ino_t;             // inode's number
         st_mode       : mode_t;            // inode protection mode
         st_nlink      : nlink_t;           // number of hard links
+{$endif}
         st_uid        : uid_t;             // user ID of the file's owner
         st_gid        : gid_t;             // group ID of the file's group
         st_rdev       : dev_t;             // device type
@@ -72,6 +82,10 @@ TYPE
         st_mtimensec  : clong;             // nsec of last data modification
         st_ctime      : time_t;            // time of last file status change
         st_ctimensec  : clong;             // nsec of last file status change
+{$ifdef darwinarm}
+        st_birthtime  : time_t;            // File creation time
+        st_birthtimensec : clong;          // nsec of file creation time
+{$endif}
 {$ifdef netbsdPowerpc}
         st_padd1              : cint;
 {$endif}
@@ -92,6 +106,7 @@ TYPE
    pStat = ^stat;
 
   { directory services }
+{$ifndef darwinarm}
    dirent  = record
         d_fileno      : cuint32;                        // file number of entry
         d_reclen      : cuint16;                        // length of this record
@@ -99,6 +114,19 @@ TYPE
         d_namlen      : cuint8;                         // length of string in d_name
         d_name        : array[0..(255 + 1)-1] of char;  // name must be no longer than this
    end;
+{$else not darwinarm}
+   {$packrecords 4}
+   { available on Mac OS X 10.6 and later, and used by all iPhoneOS versions }
+   dirent  = record
+        d_fileno      : cuint64;                        // file number of entry
+        d_seekoff     : cuint64;                        // seek offset (optional, used by servers)
+        d_reclen      : cuint16;                        // length of this record
+        d_namlen      : cuint16;                        // length of string in d_name
+        d_type        : cuint8;                         // file type, see below
+        d_name        : array[0..PATH_MAX-1] of char;        // name must be no longer than this
+   end;
+   {$packrecords c}
+{$endif darwinarm}
    TDirent = dirent;
    pDirent = ^dirent;
 
@@ -116,6 +144,10 @@ TYPE
 {$endif}
         dd_rewind : clong;        // magic cookie for rewinding
         dd_flags  : cint;         // flags for readdir
+{$ifdef darwin}
+        __dd_lock : pthread_mutex_t; // for thread locking
+        __dd_td : pointer;        // telldir position recording
+{$endif}
    end;
    TDir    = dir;
    pDir    = ^dir;
@@ -202,6 +234,23 @@ CONST
   F_SetLkW = 7;
   F_SetOwn = 8;
   F_GetOwn = 9;
+{$ifdef darwin}
+  F_CHKCLEAN       = 41;          { Used for regression test }
+  F_PREALLOCATE    = 42;          { Preallocate storage }
+  F_SETSIZE        = 43;          { Truncate a file without zeroing space }     
+  F_RDADVISE       = 44;          { Issue an advisory read async with no copy to user }
+  F_RDAHEAD        = 45;          { turn read ahead off/on }
+  F_READBOOTSTRAP  = 46;          { Read bootstrap from disk }
+  F_WRITEBOOTSTRAP = 47;          { Write bootstrap on disk }
+  F_NOCACHE        = 48;          { turning data caching off/on }
+  F_LOG2PHYS       = 49;          { file offset to device offset }
+  F_GETPATH        = 50;          { return the full path of the fd }
+  F_FULLFSYNC      = 51;          { fsync + ask the drive to flush to the media }
+  F_PATHPKG_CHECK  = 52;          { find which component (if any) is a package }
+  F_FREEZE_FS      = 53;          { "freeze" all fs operations }
+  F_THAW_FS        = 54;          { "thaw" all fs operations }
+  F_GLOBAL_NOCACHE = 55;          { turn data caching off/on (globally) for this file }
+{$endif}
 
 
 type

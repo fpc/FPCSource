@@ -18,6 +18,7 @@ unit sysutils;
 interface
 
 {$MODE objfpc}
+{$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
 
@@ -515,7 +516,7 @@ begin
 end;
 
 
-function FileRead (Handle: THandle; var Buffer; Count: longint): longint;
+function FileRead (Handle: THandle; Out Buffer; Count: longint): longint;
 Var
   T: cardinal;
 begin
@@ -617,7 +618,11 @@ begin
     Rslt.ExcludeAttr := 0;
     TRec (Rslt.Time).T := FStat^.TimeLastWrite;
     TRec (Rslt.Time).D := FStat^.DateLastWrite;
+  end else if (Rslt.Findhandle<>0) then
+  begin
+    FindClose(Rslt); 
   end;
+  
   Dispose (FStat);
 end;
 
@@ -832,11 +837,12 @@ end;
 {****************************************************************************
                               Misc Functions
 ****************************************************************************}
+procedure sysbeep;
 
-procedure Beep;
 begin
-end;
+  // Maybe implement later on ?
 
+end;
 
 {****************************************************************************
                               Locale Functions
@@ -934,7 +940,7 @@ begin
 end;
 
 
-function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString):
+function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString;Flags:TExecuteFlags=[]):
                                                                        integer;
 var
  HQ: THandle;
@@ -1046,7 +1052,7 @@ end;
 
 
 function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString): integer;
+                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
 
 var
   CommandLine: AnsiString;
@@ -1071,6 +1077,7 @@ end;
 Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
+  OnBeep:=@SysBeep;
 Finalization
   DoneExceptions;
 end.

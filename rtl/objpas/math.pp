@@ -102,7 +102,7 @@ interface
 
        tpaymenttime = (ptendofperiod,ptstartofperiod);
 
-       einvalidargument = class(ematherror);
+       EInvalidArgument = class(ematherror);
 
        TValueRelationship = -1..1;
 
@@ -135,43 +135,44 @@ function MinIntValue(const Data: array of Integer): Integer;
 function MaxIntValue(const Data: array of Integer): Integer;
 
 { Extra, not present in Delphi, but used frequently  }
-function Min(a, b: Integer): Integer;inline;
-function Max(a, b: Integer): Integer;inline;
+function Min(a, b: Integer): Integer;inline; overload;
+function Max(a, b: Integer): Integer;inline; overload;
 { this causes more trouble than it solves
-function Min(a, b: Cardinal): Cardinal;
-function Max(a, b: Cardinal): Cardinal;
+function Min(a, b: Cardinal): Cardinal; overload;
+function Max(a, b: Cardinal): Cardinal; overload;
 }
-function Min(a, b: Int64): Int64;inline;
-function Max(a, b: Int64): Int64;inline;
+function Min(a, b: Int64): Int64;inline; overload;
+function Max(a, b: Int64): Int64;inline; overload;
 {$ifdef FPC_HAS_TYPE_SINGLE}
-function Min(a, b: Single): Single;inline;
-function Max(a, b: Single): Single;inline;
+function Min(a, b: Single): Single;inline; overload;
+function Max(a, b: Single): Single;inline; overload;
 {$endif FPC_HAS_TYPE_SINGLE}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function Min(a, b: Double): Double;inline;
-function Max(a, b: Double): Double;inline;
+function Min(a, b: Double): Double;inline; overload;
+function Max(a, b: Double): Double;inline; overload;
 {$endif FPC_HAS_TYPE_DOUBLE}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function Min(a, b: Extended): Extended;inline;
-function Max(a, b: Extended): Extended;inline;
+function Min(a, b: Extended): Extended;inline; overload;
+function Max(a, b: Extended): Extended;inline; overload;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-function InRange(const AValue, AMin, AMax: Integer): Boolean;inline;
-function InRange(const AValue, AMin, AMax: Int64): Boolean;inline;
+function InRange(const AValue, AMin, AMax: Integer): Boolean;inline; overload;
+function InRange(const AValue, AMin, AMax: Int64): Boolean;inline; overload;
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function InRange(const AValue, AMin, AMax: Double): Boolean;inline;
+function InRange(const AValue, AMin, AMax: Double): Boolean;inline;  overload;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
-function EnsureRange(const AValue, AMin, AMax: Integer): Integer;inline;
-function EnsureRange(const AValue, AMin, AMax: Int64): Int64;inline;
+function EnsureRange(const AValue, AMin, AMax: Integer): Integer;inline;  overload;
+function EnsureRange(const AValue, AMin, AMax: Int64): Int64;inline;  overload;
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function EnsureRange(const AValue, AMin, AMax: Double): Double;inline;
+function EnsureRange(const AValue, AMin, AMax: Double): Double;inline;  overload;
 {$endif FPC_HAS_TYPE_DOUBLE}
 
 
 procedure DivMod(Dividend: Integer; Divisor: Word;  var Result, Remainder: Word);
 procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: SmallInt);
-
+procedure DivMod(Dividend: DWord; Divisor: DWord; var Result, Remainder: DWord);
+procedure DivMod(Dividend: Integer; Divisor: Integer; var Result, Remainder: Integer);
 
 // Sign functions
 Type
@@ -182,44 +183,44 @@ const
   ZeroValue = 0;
   PositiveValue = High(TValueSign);
 
-function Sign(const AValue: Integer): TValueSign;inline;
-function Sign(const AValue: Int64): TValueSign;inline;
+function Sign(const AValue: Integer): TValueSign;inline; overload;
+function Sign(const AValue: Int64): TValueSign;inline; overload;
 {$ifdef FPC_HAS_TYPE_SINGLE}
-function Sign(const AValue: Single): TValueSign;inline;
+function Sign(const AValue: Single): TValueSign;inline; overload;
 {$endif}
-function Sign(const AValue: Double): TValueSign;inline;
+function Sign(const AValue: Double): TValueSign;inline; overload;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function Sign(const AValue: Extended): TValueSign;inline;
+function Sign(const AValue: Extended): TValueSign;inline; overload;
 {$endif}
 
-function IsZero(const A: Single; Epsilon: Single): Boolean;
-function IsZero(const A: Single): Boolean;inline;
+function IsZero(const A: Single; Epsilon: Single): Boolean; overload;
+function IsZero(const A: Single): Boolean;inline; overload;
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function IsZero(const A: Double; Epsilon: Double): Boolean;
-function IsZero(const A: Double): Boolean;inline;
+function IsZero(const A: Double; Epsilon: Double): Boolean; overload;
+function IsZero(const A: Double): Boolean;inline; overload;
 {$endif FPC_HAS_TYPE_DOUBLE}
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function IsZero(const A: Extended; Epsilon: Extended): Boolean;
-function IsZero(const A: Extended): Boolean;inline;
+function IsZero(const A: Extended; Epsilon: Extended): Boolean; overload;
+function IsZero(const A: Extended): Boolean;inline; overload;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-function IsNan(const d : Double): Boolean;
+function IsNan(const d : Double): Boolean; overload;
 function IsInfinite(const d : Double): Boolean;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function SameValue(const A, B: Extended): Boolean;inline;
+function SameValue(const A, B: Extended): Boolean;inline; overload;
 {$endif}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function SameValue(const A, B: Double): Boolean;inline;
+function SameValue(const A, B: Double): Boolean;inline; overload;
 {$endif}
-function SameValue(const A, B: Single): Boolean;inline;
+function SameValue(const A, B: Single): Boolean;inline; overload;
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-function SameValue(const A, B: Extended; Epsilon: Extended): Boolean;
+function SameValue(const A, B: Extended; Epsilon: Extended): Boolean; overload;
 {$endif}
 {$ifdef FPC_HAS_TYPE_DOUBLE}
-function SameValue(const A, B: Double; Epsilon: Double): Boolean;
+function SameValue(const A, B: Double; Epsilon: Double): Boolean; overload;
 {$endif}
-function SameValue(const A, B: Single; Epsilon: Single): Boolean;
+function SameValue(const A, B: Single; Epsilon: Single): Boolean; overload;
 
 type
   TRoundToRange = -37..37;
@@ -416,6 +417,8 @@ function maxvalue(const data : PInteger; Const N : Integer) : Integer;
 
 { returns random values with gaussian distribution }
 function randg(mean,stddev : float) : float;
+function RandomRange(const aFrom, aTo: Integer): Integer;
+function RandomRange(const aFrom, aTo: Int64): Int64;
 
 {$ifdef FPC_HAS_TYPE_SINGLE}
 { calculates the standard deviation }
@@ -510,10 +513,9 @@ function norm(const data : array of Extended) : float;
 function norm(const data : PExtended; Const N : Integer) : float;
 {$endif FPC_HAS_TYPE_EXTENDED}
 
-function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer; inline;
-function ifthen(val:boolean;const iftrue:int64  ; const iffalse:int64 = 0)  :int64;   inline;
-function ifthen(val:boolean;const iftrue:double ; const iffalse:double =0.0):double;  inline;
-function ifthen(val:boolean;const iftrue:String ; const iffalse:String ='') :String;  inline;
+function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer; inline; overload;
+function ifthen(val:boolean;const iftrue:int64  ; const iffalse:int64 = 0)  :int64;   inline; overload;
+function ifthen(val:boolean;const iftrue:double ; const iffalse:double =0.0):double;  inline; overload;
 
 function CompareValue ( const A, B  : Integer) : TValueRelationship; inline;
 function CompareValue ( const A, B  : Int64) : TValueRelationship; inline;
@@ -528,6 +530,10 @@ function CompareValue ( const A, B : Double; delta : Double = 0.0) : TValueRelat
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 function CompareValue ( const A, B : Extended; delta : Extended = 0.0 ) : TValueRelationship; inline;
 {$endif}
+
+function RandomFrom(const AValues: array of Double): Double; overload;
+function RandomFrom(const AValues: array of Integer): Integer; overload;
+function RandomFrom(const AValues: array of Int64): Int64; overload;
 
 { include cpu specific stuff }
 {$i mathuh.inc}
@@ -870,10 +876,7 @@ function power(base,exponent : float) : float;
 
   begin
     if Exponent=0.0 then
-      if base <> 0.0 then
-        result:=1.0
-      else
-        InvalidArgument
+      result:=1.0
     else if (base=0.0) and (exponent>0.0) then
       result:=0.0
     else if (abs(exponent)<=maxint) and (frac(exponent)=0.0) then
@@ -891,21 +894,24 @@ function intpower(base : float;const exponent : Integer) : float;
 
   begin
      if (base = 0.0) and (exponent = 0) then
-       InvalidArgument;
-     i:=abs(exponent);
-     intpower:=1.0;
-     while i>0 do
+       result:=1
+     else
        begin
-          while (i and 1)=0 do
-            begin
-               i:=i shr 1;
-               base:=sqr(base);
-            end;
-          i:=i-1;
-          intpower:=intpower*base;
+         i:=abs(exponent);
+         intpower:=1.0;
+         while i>0 do
+           begin
+              while (i and 1)=0 do
+                begin
+                   i:=i shr 1;
+                   base:=sqr(base);
+                end;
+              i:=i-1;
+              intpower:=intpower*base;
+           end;
+         if exponent<0 then
+           intpower:=1.0/intpower;
        end;
-     if exponent<0 then
-       intpower:=1.0/intpower;
   end;
 
 
@@ -1219,6 +1225,19 @@ function randg(mean,stddev : float) : float;
      randg:=Sqrt(-2*ln(S2)/S2)*u1*stddev+Mean;
   end;
 
+
+function RandomRange(const aFrom, aTo: Integer): Integer;
+begin
+  Result:=Random(Abs(aFrom-aTo))+Min(aTo,AFrom);
+end;
+
+
+function RandomRange(const aFrom, aTo: Int64): Int64;
+begin
+  Result:=Random(Abs(aFrom-aTo))+Min(aTo,AFrom);
+end;
+
+
 {$ifdef FPC_HAS_TYPE_SINGLE}
 function stddev(const data : array of Single) : float;
 
@@ -1369,7 +1388,7 @@ begin
   m2 := reciprocalN * m2;
   m3 := reciprocalN * m3;
   m4 := reciprocalN * m4;
-  
+
   skew := m3 / (sqrt(m2)*m2);
   kurtosis := m4 / (m2 * m2);
 end;
@@ -1537,7 +1556,7 @@ begin
   m2 := reciprocalN * m2;
   m3 := reciprocalN * m3;
   m4 := reciprocalN * m4;
-  
+
   skew := m3 / (sqrt(m2)*m2);
   kurtosis := m4 / (m2 * m2);
 end;
@@ -1706,7 +1725,7 @@ begin
   m2 := reciprocalN * m2;
   m3 := reciprocalN * m3;
   m4 := reciprocalN * m4;
-  
+
   skew := m3 / (sqrt(m2)*m2);
   kurtosis := m4 / (m2 * m2);
 end;
@@ -2205,24 +2224,77 @@ begin
 end;
 
 // Some CPUs probably allow a faster way of doing this in a single operation...
-// There weshould define CPUDIVMOD in the header mathuh.inc and implement it using asm.
-{$ifndef CPUDIVMOD}
+// There weshould define  FPC_MATH_HAS_CPUDIVMOD in the header mathuh.inc and implement it using asm.
+{$ifndef FPC_MATH_HAS_DIVMOD}
 procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: Word);
-
 begin
-  Result:=Dividend Div Divisor;
-  Remainder:=Dividend Mod Divisor;
+  if Dividend < 0 then
+    begin
+      { Use DivMod with >=0 dividend }
+	  Dividend:=-Dividend;
+      { The documented behavior of Pascal's div/mod operators and DivMod
+        on negative dividends is to return Result closer to zero and
+        a negative Remainder. Which means that we can just negate both
+        Result and Remainder, and all it's Ok. }
+      Result:=-(Dividend Div Divisor);
+      Remainder:=-(Dividend+(Result*Divisor));
+    end 
+  else
+    begin
+	  Result:=Dividend Div Divisor;
+      Remainder:=Dividend-(Result*Divisor);
+	end;
 end;
-{$endif}
 
 
 procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: SmallInt);
-var
-  UnsignedResult: Word absolute Result;
-  UnsignedRemainder: Word absolute Remainder;
 begin
-  DivMod(Dividend, Divisor, UnsignedResult, UnsignedRemainder);
+  if Dividend < 0 then
+    begin
+      { Use DivMod with >=0 dividend }
+	  Dividend:=-Dividend;
+      { The documented behavior of Pascal's div/mod operators and DivMod
+        on negative dividends is to return Result closer to zero and
+        a negative Remainder. Which means that we can just negate both
+        Result and Remainder, and all it's Ok. }
+      Result:=-(Dividend Div Divisor);
+      Remainder:=-(Dividend+(Result*Divisor));
+    end 
+  else
+    begin
+	  Result:=Dividend Div Divisor;
+      Remainder:=Dividend-(Result*Divisor);
+	end;
 end;
+
+
+procedure DivMod(Dividend: DWord; Divisor: DWord; var Result, Remainder: DWord);
+begin
+  Result:=Dividend Div Divisor;
+  Remainder:=Dividend-(Result*Divisor);
+end;
+
+
+procedure DivMod(Dividend: Integer; Divisor: Integer; var Result, Remainder: Integer);
+begin
+  if Dividend < 0 then
+    begin
+      { Use DivMod with >=0 dividend }
+	  Dividend:=-Dividend;
+      { The documented behavior of Pascal's div/mod operators and DivMod
+        on negative dividends is to return Result closer to zero and
+        a negative Remainder. Which means that we can just negate both
+        Result and Remainder, and all it's Ok. }
+      Result:=-(Dividend Div Divisor);
+      Remainder:=-(Dividend+(Result*Divisor));
+    end 
+  else
+    begin
+	  Result:=Dividend Div Divisor;
+      Remainder:=Dividend-(Result*Divisor);
+	end;
+end;
+{$endif FPC_MATH_HAS_DIVMOD}
 
 
 function ifthen(val:boolean;const iftrue:integer; const iffalse:integer= 0) :integer;
@@ -2236,11 +2308,6 @@ begin
 end;
 
 function ifthen(val:boolean;const iftrue:double ; const iffalse:double =0.0):double;
-begin
-  if val then result:=iftrue else result:=iffalse;
-end;
-
-function ifthen(val:boolean;const iftrue:String ; const iffalse:String ='') :String;  inline;
 begin
   if val then result:=iftrue else result:=iffalse;
 end;
@@ -2359,8 +2426,11 @@ var
   RV : Single;
 
 begin
-  RV:=IntPower(10,Digits);
-  Result:=Trunc((AValue/RV)+0.5)*RV;
+  RV := IntPower(10, -Digits);
+  if AValue < 0 then
+    Result := Trunc((AValue*RV) - 0.5)/RV
+  else
+    Result := Trunc((AValue*RV) + 0.5)/RV;
 end;
 {$endif}
 
@@ -2371,8 +2441,11 @@ var
   RV : Double;
 
 begin
-  RV:=IntPower(10,Digits);
-  Result:=Trunc((AValue/RV)+0.5)*RV;
+  RV := IntPower(10, -Digits);
+  if AValue < 0 then
+    Result := Trunc((AValue*RV) - 0.5)/RV
+  else
+    Result := Trunc((AValue*RV) + 0.5)/RV;
 end;
 {$endif}
 
@@ -2383,10 +2456,29 @@ var
   RV : Extended;
 
 begin
-  RV:=IntPower(10,Digits);
-  Result:=Trunc((AValue/RV)+0.5)*RV;
+  RV := IntPower(10, -Digits);
+  if AValue < 0 then
+    Result := Trunc((AValue*RV) - 0.5)/RV
+  else
+    Result := Trunc((AValue*RV) + 0.5)/RV;
 end;
 {$endif}
+
+function RandomFrom(const AValues: array of Double): Double; overload;
+begin
+  result:=AValues[random(High(AValues)+1)];
+end;
+
+function RandomFrom(const AValues: array of Integer): Integer; overload;
+begin
+  result:=AValues[random(High(AValues)+1)];
+end;
+
+function RandomFrom(const AValues: array of Int64): Int64; overload;
+begin
+  result:=AValues[random(High(AValues)+1)];
+end;
+
 
 {$else}
 implementation

@@ -58,6 +58,9 @@ interface
             be a tnode }
           code : pointer;
 
+          { points to the jump buffer }
+          jumpbuf : tstoredsym;
+
           { when the label is defined in an asm block, this points to the
             generated asmlabel }
           asmblocklabel : tasmlabel;
@@ -79,6 +82,8 @@ interface
           constructor create;
        end;
 
+       { tprocsym }
+
        tprocsym = class(tstoredsym)
        protected
           FProcdefList   : TFPObjectList;
@@ -97,8 +102,10 @@ interface
           procedure deref;override;
           function find_procdef_bytype(pt:Tproctypeoption):Tprocdef;
           function find_procdef_bypara(para:TFPObjectList;retdef:tdef;cpoptions:tcompare_paras_options):Tprocdef;
+          function find_procdef_byoptions(ops:tprocoptions): Tprocdef;
           function find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function find_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
+          function find_procdef_enumerator_operator(typedef:tdef;var besteq:tequaltype):Tprocdef;
           property ProcdefList:TFPObjectList read FProcdefList;
        end;
 
@@ -137,9 +144,10 @@ interface
                                          callback:Tnotification_callback):cardinal;
           procedure unregister_notification(id:cardinal);
         private
-          procedure setvardef(def:tdef);
           _vardef     : tdef;
           vardefderef : tderef;
+
+          procedure setvardef(def:tdef);
         public
           property vardef: tdef read _vardef write setvardef;
       end;
@@ -155,10 +163,12 @@ interface
           { number of the closest field in the llvm definition }
           llvmfieldnr         : longint;
 {$endif support_llvm}
+          objcoffsetmangledname: pshortstring; { mangled name of offset, calculated as needed }
           constructor create(const n : string;vsp:tvarspez;def:tdef;vopts:tvaroptions);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           function mangledname:string;override;
+          destructor destroy;override;
       end;
 
       tabstractnormalvarsym = class(tabstractvarsym)
@@ -182,6 +192,10 @@ interface
       tparavarsym = class(tabstractnormalvarsym)
           paraloc       : array[tcallercallee] of TCGPara;
           paranr        : word; { position of this parameter }
+          { in MacPas mode, "univ" parameters mean that type checking should
+            be disabled, except that the size of the passed parameter must
+            match the size of the formal parameter }
+          univpara      : boolean;
 {$ifdef EXTDEBUG}
           eqval         : tequaltype;
 {$endif EXTDEBUG}
@@ -212,7 +226,7 @@ interface
          absseg  : boolean;
 {$endif i386}
          asmname : pshortstring;
-         addroffset : aint;
+         addroffset : aword;
          ref     : tpropaccesslist;
          constructor create(const n : string;def:tdef);
          constructor create_ref(const n : string;def:tdef;_ref:tpropaccesslist);
@@ -235,8 +249,9 @@ interface
           indexdef      : tdef;
           indexdefderef : tderef;
           index,
-          default        : longint;
-          propaccesslist : array[tpropaccesslisttypes] of tpropaccesslist;
+          default       : longint;
+          dispid        : longint;
+          propaccesslist: array[tpropaccesslisttypes] of tpropaccesslist;
           constructor create(const n : string);
           destructor  destroy;override;
           constructor ppuload(ppufile:tcompilerppufile);
@@ -274,13 +289,11 @@ interface
           value      : longint;
           definition : tenumdef;
           definitionderef : tderef;
-          nextenum   : tenumsym;
           constructor create(const n : string;def : tenumdef;v : longint);
           constructor ppuload(ppufile:tcompilerppufile);
           procedure ppuwrite(ppufile:tcompilerppufile);override;
           procedure buildderef;override;
           procedure deref;override;
-          procedure order;
        end;
 
        tsyssym = class(Tstoredsym)
@@ -368,6 +381,10 @@ implementation
          ppufile.getposinfo(fileinfo);
          visibility:=tvisibility(ppufile.getbyte);
          ppufile.getsmallset(symoptions);
+         if sp_has_deprecated_msg in symoptions then
+           deprecatedmsg:=stringdup(ppufile.getstring)
+         else
+           deprecatedmsg:=nil;
       end;
 
 
@@ -378,6 +395,8 @@ implementation
          ppufile.putposinfo(fileinfo);
          ppufile.putbyte(byte(visibility));
          ppufile.putsmallset(symoptions);
+         if sp_has_deprecated_msg in symoptions then
+           ppufile.putstring(deprecatedmsg^);
       end;
 
 
@@ -657,6 +676,22 @@ implementation
           end;
       end;
 
+    function tprocsym.find_procdef_byoptions(ops: tprocoptions): Tprocdef;
+      var
+        i  : longint;
+        pd : tprocdef;
+      begin
+        result:=nil;
+        for i:=0 to ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(ProcdefList[i]);
+            if ops * pd.procoptions = ops then
+              begin
+                result:=pd;
+                exit;
+              end;
+          end;
+      end;
 
     function Tprocsym.Find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
       var
@@ -674,8 +709,8 @@ implementation
         for i:=0 to ProcdefList.Count-1 do
           begin
             pd:=tprocdef(ProcdefList[i]);
-            eq:=proc_to_procvar_equal(pd,d);
-            if eq>=te_equal then
+            eq:=proc_to_procvar_equal(pd,d,false);
+            if eq>=te_convert_l1 then
               begin
                 { multiple procvars with the same equal level }
                 if assigned(bestpd) and
@@ -694,8 +729,8 @@ implementation
 
     function Tprocsym.Find_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
       var
-        paraidx,
-        i  : longint;
+        paraidx, realparamcount,
+        i, j : longint;
         bestpd,
         hpd,
         pd : tprocdef;
@@ -711,7 +746,11 @@ implementation
         for i:=0 to ProcdefList.Count-1 do
           begin
             pd:=tprocdef(ProcdefList[i]);
-            if equal_defs(todef,pd.returndef) and
+            if (pd.owner.symtabletype=staticsymtable) and not pd.owner.iscurrentunit then
+              continue;
+            if (equal_defs(todef,pd.returndef) or
+                { shortstrings of different lengths are ok as result }
+                (is_shortstring(todef) and is_shortstring(pd.returndef))) and
                { the result type must be always really equal and not an alias,
                  if you mess with this code, check tw4093 }
                ((todef=pd.returndef) or
@@ -727,8 +766,13 @@ implementation
                       assigned(pd.paras[paraidx]) and
                       (vo_is_hidden_para in tparavarsym(pd.paras[paraidx]).varoptions) do
                   inc(paraidx);
+                realparamcount:=0;
+                for j := 0 to pd.paras.Count-1 do
+                  if assigned(pd.paras[j]) and not (vo_is_hidden_para in tparavarsym(pd.paras[j]).varoptions) then
+                    inc(realparamcount);
                 if (paraidx<pd.paras.count) and
-                   assigned(pd.paras[paraidx]) then
+                   assigned(pd.paras[paraidx]) and
+                   (realparamcount = 1) then
                   begin
                     eq:=compare_defs_ext(fromdef,tparavarsym(pd.paras[paraidx]).vardef,nothingn,convtyp,hpd,[]);
 
@@ -751,6 +795,68 @@ implementation
                         bestpd:=pd;
                         besteq:=eq;
                       end;
+                  end;
+              end;
+          end;
+        result:=bestpd;
+      end;
+
+      function Tprocsym.find_procdef_enumerator_operator(typedef:tdef;var besteq:tequaltype):Tprocdef;
+      var
+        paraidx, realparamcount,
+        i, j : longint;
+        bestpd,
+        hpd,
+        pd : tprocdef;
+        convtyp : tconverttype;
+        eq      : tequaltype;
+      begin
+        { This function will return the pprocdef of pprocsym that
+          is the best match for procvardef. When there are multiple
+          matches it returns nil.}
+        result:=nil;
+        bestpd:=nil;
+        besteq:=te_incompatible;
+        for i:=0 to ProcdefList.Count-1 do
+          begin
+            pd:=tprocdef(ProcdefList[i]);
+            if (pd.owner.symtabletype=staticsymtable) and not pd.owner.iscurrentunit then
+              continue;
+            paraidx:=0;
+            { ignore vs_hidden parameters }
+            while (paraidx<pd.paras.count) and
+                  assigned(pd.paras[paraidx]) and
+                  (vo_is_hidden_para in tparavarsym(pd.paras[paraidx]).varoptions) do
+              inc(paraidx);
+            realparamcount:=0;
+            for j := 0 to pd.paras.Count-1 do
+              if assigned(pd.paras[j]) and not (vo_is_hidden_para in tparavarsym(pd.paras[j]).varoptions) then
+                inc(realparamcount);
+            if (paraidx<pd.paras.count) and
+               assigned(pd.paras[paraidx]) and
+               (realparamcount = 1) and
+               is_class_or_interface_or_object(pd.returndef)  then
+              begin
+                eq:=compare_defs_ext(typedef,tparavarsym(pd.paras[paraidx]).vardef,nothingn,convtyp,hpd,[]);
+
+                { alias? if yes, only l1 choice,
+                  if you mess with this code, check tw4093 }
+                if (eq=te_exact) and
+                   (typedef<>tparavarsym(pd.paras[paraidx]).vardef) and
+                   ((df_unique in typedef.defoptions) or
+                   (df_unique in tparavarsym(pd.paras[paraidx]).vardef.defoptions)) then
+                  eq:=te_convert_l1;
+
+                if eq=te_exact then
+                  begin
+                    besteq:=eq;
+                    result:=pd;
+                    exit;
+                  end;
+                if eq>besteq then
+                  begin
+                    bestpd:=pd;
+                    besteq:=eq;
                   end;
               end;
           end;
@@ -961,6 +1067,7 @@ implementation
         result:=(cs_opt_regvar in current_settings.optimizerswitches) and
                 not(pi_has_assembler_block in current_procinfo.flags) and
                 not(pi_uses_exceptions in current_procinfo.flags) and
+                not(pi_has_interproclabel in current_procinfo.flags) and
                 not(vo_has_local_copy in varoptions) and
                 ((refpara and
                   (varregable <> vr_none)) or
@@ -1049,13 +1156,10 @@ implementation
                  ) and }
                  tstoreddef(vardef).is_fpuregable then
                  begin
-{$ifdef x86}
-                   if use_sse(vardef) then
+                   if use_vectorfpu(vardef) then
                      varregable:=vr_mmreg
                    else
-{$else x86}
                      varregable:=vr_fpureg;
-{$endif x86}
                  end;
           end;
       end;
@@ -1104,8 +1208,25 @@ implementation
             else
               internalerror(2007012501);
           end
+        else if is_objcclass(tdef(owner.defowner)) then
+          begin
+            if assigned(objcoffsetmangledname) then
+              result:=objcoffsetmangledname^
+            else
+              begin
+                result:=target_info.cprefix+'OBJC_IVAR_$_'+tobjectdef(owner.defowner).objextname^+'.'+RealName;
+                objcoffsetmangledname:=stringdup(result);
+              end;
+          end
         else
           result:=inherited mangledname;
+      end;
+
+
+    destructor tfieldvarsym.destroy;
+      begin
+        stringdispose(objcoffsetmangledname);
+        inherited destroy;
       end;
 
 
@@ -1295,6 +1416,7 @@ implementation
       begin
          inherited ppuload(paravarsym,ppufile);
          paranr:=ppufile.getword;
+         univpara:=boolean(ppufile.getbyte);
 
          { The var state of parameter symbols is fixed after writing them so
            we write them to the unit file.
@@ -1306,6 +1428,7 @@ implementation
          paraloc[callerside].init;
          if vo_has_explicit_paraloc in varoptions then
            begin
+             paraloc[callerside].alignment:=ppufile.getbyte;
              b:=ppufile.getbyte;
              if b<>sizeof(paraloc[callerside].location^) then
                internalerror(200411154);
@@ -1322,6 +1445,7 @@ implementation
       begin
          inherited ppuwrite(ppufile);
          ppufile.putword(paranr);
+         ppufile.putbyte(byte(univpara));
 
          { The var state of parameter symbols is fixed after writing them so
            we write them to the unit file.
@@ -1335,6 +1459,7 @@ implementation
          if vo_has_explicit_paraloc in varoptions then
            begin
              paraloc[callerside].check_simple_location;
+             ppufile.putbyte(sizeof(paraloc[callerside].alignment));
              ppufile.putbyte(sizeof(paraloc[callerside].location^));
              ppufile.putdata(paraloc[callerside].location^,sizeof(paraloc[callerside].location^));
            end;
@@ -1384,7 +1509,7 @@ implementation
              asmname:=stringdup(ppufile.getstring);
            toaddr :
              begin
-               addroffset:=ppufile.getaint;
+               addroffset:=ppufile.getaword;
 {$ifdef i386}
                absseg:=boolean(ppufile.getbyte);
 {$endif i386}
@@ -1404,7 +1529,7 @@ implementation
              ppufile.putstring(asmname^);
            toaddr :
              begin
-               ppufile.putaint(addroffset);
+               ppufile.putaword(addroffset);
 {$ifdef i386}
                ppufile.putbyte(byte(absseg));
 {$endif i386}
@@ -1506,6 +1631,7 @@ implementation
          ps : pnormalset;
          pc : pchar;
          pw : pcompilerwidestring;
+         i  : longint;
       begin
          inherited ppuload(constsym,ppufile);
          constdef:=nil;
@@ -1526,7 +1652,18 @@ implementation
              begin
                initwidestring(pw);
                setlengthwidestring(pw,ppufile.getlongint);
-               ppufile.getdata(pw^.data,pw^.len*sizeof(tcompilerwidechar));
+               { don't use getdata, because the compilerwidechars may have to
+                 be byteswapped
+               }
+{$if sizeof(tcompilerwidechar) = 2}
+               for i:=0 to pw^.len-1 do
+                 pw^.data[i]:=ppufile.getword;
+{$elseif sizeof(tcompilerwidechar) = 4}
+               for i:=0 to pw^.len-1 do
+                 pw^.data[i]:=cardinal(ppufile.getlongint);
+{$else}
+              {$error Unsupported tcompilerwidechar size}
+{$endif}
                pcompilerwidestring(value.valueptr):=pw;
              end;
            conststring,
@@ -1535,6 +1672,7 @@ implementation
                value.len:=ppufile.getlongint;
                getmem(pc,value.len+1);
                ppufile.getdata(pc^,value.len);
+               pc[value.len]:=#0;
                value.valueptr:=pc;
              end;
            constreal :
@@ -1614,7 +1752,7 @@ implementation
            constwstring :
              begin
                ppufile.putlongint(getlengthwidestring(pcompilerwidestring(value.valueptr)));
-               ppufile.putdata(pcompilerwidestring(value.valueptr)^.data,pcompilerwidestring(value.valueptr)^.len*sizeof(tcompilerwidechar));
+               ppufile.putdata(pcompilerwidestring(value.valueptr)^.data^,pcompilerwidestring(value.valueptr)^.len*sizeof(tcompilerwidechar));
              end;
            conststring,
            constresourcestring :
@@ -1647,26 +1785,6 @@ implementation
          inherited create(enumsym,n);
          definition:=def;
          value:=v;
-         { First entry? Then we need to set the minval }
-         if def.firstenum=nil then
-           begin
-             if v>0 then
-               def.has_jumps:=true;
-             def.setmin(v);
-             def.setmax(v);
-           end
-         else
-           begin
-             { check for jumps }
-             if v>def.max+1 then
-              def.has_jumps:=true;
-             { update low and high }
-             if def.min>v then
-               def.setmin(v);
-             if def.max<v then
-               def.setmax(v);
-           end;
-         order;
       end;
 
 
@@ -1675,7 +1793,6 @@ implementation
          inherited ppuload(enumsym,ppufile);
          ppufile.getderef(definitionderef);
          value:=ppufile.getlongint;
-         nextenum := Nil;
       end;
 
 
@@ -1688,33 +1805,6 @@ implementation
     procedure tenumsym.deref;
       begin
          definition:=tenumdef(definitionderef.resolve);
-         order;
-      end;
-
-   procedure tenumsym.order;
-      var
-         sym : tenumsym;
-      begin
-         sym := tenumsym(definition.firstenum);
-         if sym = nil then
-          begin
-            definition.firstenum := self;
-            nextenum := nil;
-            exit;
-          end;
-         { reorder the symbols in increasing value }
-         if value < sym.value then
-          begin
-            nextenum := sym;
-            definition.firstenum := self;
-          end
-         else
-          begin
-            while (sym.value <= value) and assigned(sym.nextenum) do
-             sym := sym.nextenum;
-            nextenum := sym.nextenum;
-            sym.nextenum := self;
-          end;
       end;
 
     procedure tenumsym.ppuwrite(ppufile:tcompilerppufile);
@@ -1733,8 +1823,8 @@ implementation
     constructor ttypesym.create(const n : string;def:tdef);
 
       begin
-         inherited create(typesym,n);
-         typedef:=def;
+        inherited create(typesym,n);
+        typedef:=def;
         { register the typesym for the definition }
         if assigned(typedef) and
            (typedef.typ<>errordef) and

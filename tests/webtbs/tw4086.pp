@@ -61,9 +61,8 @@ var
  test1: ttestclass1;
  test2: ttestclass2;
 
+procedure test;
 begin
-  test1:= ttestclass1.create;
-  test2:= ttestclass2.create;
   writeln('*** global variable');
   po1:= pointer(itest(test1));
   itest(po1).testproc;
@@ -71,6 +70,12 @@ begin
   test2.intf:= pointer(itest(test1));
   itest(test2.intf).testproc;
 
+end;
+
+begin
+  test1:= ttestclass1.create;
+  test2:= ttestclass2.create;
+  test;
   test1.free;
   test2.free;
 end.

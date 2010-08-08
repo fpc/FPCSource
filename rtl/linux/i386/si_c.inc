@@ -46,6 +46,7 @@ procedure libc_setfpucw; external name '__setfpucw';
 procedure libc_start_main; external name '__libc_start_main';
 
 procedure PASCALMAIN; external name 'PASCALMAIN';
+Procedure fpc_geteipasebx;[external name 'fpc_geteipasebx'];
 
 {******************************************************************************
                           C library start/halt
@@ -53,38 +54,102 @@ procedure PASCALMAIN; external name 'PASCALMAIN';
 {$asmmode ATT}
 
 procedure _FPC_libc_start; assembler; nostackframe; public name '_start';
+var
+  _ebx: LongInt;
+  _ecx: LongInt;
+  _libc_init_proc: LongInt;
 asm
   { First locate the start of the environment variables }
   popl    %ecx                    { Get argc in ecx }
-  movl    %esp,%ebx               { Esp now points to the arguments }
+
+  {$ifdef FPC_PIC}
+        movl    %esp,_ebx               { Points to the arguments }
+        movl    %ecx,_ecx               
+  {$else FPC_PIC}
+        movl    %esp,%ebx               { Points to the arguments }
+  {$endif FPC_PIC}
+
   leal    4(%esp,%ecx,4),%eax     { The start of the environment is: esp+4*eax+8 }
   andl    $0xfffffff8,%esp        { Align stack }
 
-  movl    %eax,operatingsystem_parameter_envp    { Move the environment pointer }
-  movl    %ecx,operatingsystem_parameter_argc    { Move the argument counter    }
-  movl    %ebx,operatingsystem_parameter_argv    { Move the argument pointer    }
+  {$ifdef FPC_PIC}
+        pushl   %ecx
+        call  fpc_geteipasebx
+        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+        movl  operatingsystem_parameter_envp@GOT(%ebx),%ecx
+        movl  %eax,(%ecx)
+        movl  libc_environ@GOT(%ebx),%ecx
+        movl  %eax,(%ecx)
 
-  movl    %eax,libc_environ          { libc environ }
+        pushl %eax
+        movl  operatingsystem_parameter_argc@GOT(%ebx),%ecx
+        movl  _ecx,%eax
+        movl  %eax,(%ecx)
+        movl  operatingsystem_parameter_argv@GOT(%ebx),%ecx
+        movl  _ebx,%eax
+        movl  %eax,(%ecx)
+	popl  %eax
+
+        popl  %ecx
+        movl  _ebx,%ebx
+  {$else FPC_PIC}
+	movl    %eax,operatingsystem_parameter_envp    { Move the environment pointer }
+	movl    %ecx,operatingsystem_parameter_argc    { Move the argument counter    }
+	movl    %ebx,operatingsystem_parameter_argv    { Move the argument pointer    }
+  	movl    %eax,libc_environ          { libc environ }
+  {$endif FPC_PIC}
+
 
   pushl   %eax
   pushl   %ebx
   pushl   %ecx
 
   call    libc_init             { init libc }
-  movzwl  libc_fpu_control,%eax
+
+  {$ifdef FPC_PIC}
+        pushl   %ecx
+  	pushl   %ebx
+        call  fpc_geteipasebx
+        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+        movl  libc_init_proc@GOT(%ebx),%ecx
+	movl  (%ecx),%ecx
+	movl  %ecx,_libc_init_proc
+  	popl    %ebx
+        popl    %ecx
+  {$else FPC_PIC}
+	movzwl  libc_fpu_control,%eax
+  {$endif FPC_PIC}
+
+
   pushl   %eax
   call    libc_setfpucw
   popl    %eax
   pushl   $libc_fini_proc
   call    libc_atexit
   popl    %eax
-  call    libc_init_proc
+
+  {$ifdef FPC_PIC}
+	call    _libc_init_proc
+  {$else FPC_PIC}
+	call    libc_init_proc
+  {$endif FPC_PIC}
 
   popl    %eax
   popl    %eax
 
   { Save initial stackpointer }
-  movl    %esp,initialstkptr
+  {$ifdef FPC_PIC}
+        pushl   %ecx
+  	pushl   %ebx
+        call  fpc_geteipasebx
+        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+        movl  initialstkptr@GOT(%ebx),%ecx
+	movl  %esp,(%ecx)
+  	popl    %ebx
+        popl    %ecx
+  {$else FPC_PIC}
+	movl    %esp,initialstkptr
+  {$endif FPC_PIC}
 
   xorl    %ebp,%ebp
   call    PASCALMAIN              { start the program }
@@ -93,12 +158,26 @@ end;
 procedure _FPC_libc_haltproc; assembler; nostackframe; public name '_haltproc';
 asm
 .Lhaltproc:
-{$if sizeof(ExitCode)=2}
+
+ {$ifdef FPC_PIC}
+  call    fpc_geteipasebx
+  addl    $_GLOBAL_OFFSET_TABLE_,%ebx
+  movl    ExitCode@GOT(%ebx),%ebx
+ {$if sizeof(ExitCode)=2}
+  movzwl  (%ebx),%ebx
+ {$else}
+  mov     (%ebx),%ebx
+ {$endif}
+{$else FPC_PIC}
+ {$if sizeof(ExitCode)=2}
   movzwl  ExitCode,%ebx
-{$else}
+ {$else}
   mov     ExitCode,%ebx
-{$endif}
+ {$endif}
+{$endif FPC_PIC}
+
   pushl   %ebx
+
   call    libc_exit
   xorl    %eax,%eax
   incl    %eax                    { eax=1, exit call }

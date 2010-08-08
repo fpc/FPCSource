@@ -3,8 +3,6 @@
 { e-mail: netsurfer@au.ru }
 Unit tw2274;
 
-{$STATIC ON}
-
 Interface
 
 Type Lfloat=Single;

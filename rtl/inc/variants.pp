@@ -86,6 +86,8 @@ function VarToStr(const V: Variant): string;
 function VarToStrDef(const V: Variant; const ADefault: string): string;
 function VarToWideStr(const V: Variant): WideString;
 function VarToWideStrDef(const V: Variant; const ADefault: WideString): WideString;
+function VarToUnicodeStr(const V: Variant): UnicodeString;
+function VarToUnicodeStrDef(const V: Variant; const ADefault: UnicodeString): UnicodeString;
 
 {$ifndef FPUNONE}
 function VarToDateTime(const V: Variant): TDateTime;
@@ -1125,7 +1127,7 @@ end;
 {$ifndef FPUNONE}
 function DoVarCmpFloat(const Left, Right: Double; const OpCode: TVarOp): ShortInt;
 begin
-  if SameValue(Left, Right) then
+  if Left = Right then
     Result := 0
   else if (OpCode in [opCmpEq, opCmpNe]) or (Left < Right) then
     Result := -1
@@ -2055,8 +2057,18 @@ begin
     try
       { Calculation total number of elements in the array }
       cnt:=1;
+{$ifopt r+}
+{ arr^.bounds[] is an array[0..0] }
+{$define rangeon}
+{$r-}
+{$endif}
       for i:=0 to arr^.dimcount - 1 do
         cnt:=cnt*cardinal(arr^.Bounds[i].ElementCount);
+{$ifdef rangeon}
+{$undef rangeon}
+{$r+}
+{$endif}
+
       { Clearing each element }
       for i:=1 to cnt do begin
         DoVarClear(data^);
@@ -2173,6 +2185,8 @@ begin
       RefAnyProc(Dest);
     end else if vType and varArray <> 0 then
       DoVarCopyArray(Dest, Source, @DoVarCopy)
+    else if (vType and varByRef <> 0) and (vType xor varByRef = varString) then
+      Dest := Source
     else if FindCustomVariantType(vType, Handler) then
       Handler.Copy(Dest, Source, False)
     else
@@ -2500,10 +2514,18 @@ begin
       else
         p:=src.vArray;
 
+{$ifopt r+}
+{$define rangeon}
+{$r-}
+{$endif}
       if highbound<p^.Bounds[p^.dimcount-1].LowBound-1 then
         VarInvalidArgError;
 
       newbounds.LowBound:=p^.Bounds[p^.dimcount-1].LowBound;
+{$ifdef rangon}
+{$undef rangeon}
+{$r+}
+{$endif}
       newbounds.ElementCount:=highbound-newbounds.LowBound+1;
 
       VarResultCheck(SafeArrayRedim(p,newbounds));
@@ -2524,7 +2546,7 @@ begin
 end;
 
 
-function sysvararrayget(const a : Variant;indexcount : SizeInt;indices : psizeint) : Variant;cdecl;
+function sysvararrayget(const a : Variant;indexcount : SizeInt;indices : plongint) : Variant;cdecl;
 var
   src : TVarData;
   p : pvararray;
@@ -2565,7 +2587,7 @@ begin
 end;
 
 
-procedure sysvararrayput(var a : Variant; const value : Variant;indexcount : SizeInt;indices : psizeint);cdecl;
+procedure sysvararrayput(var a : Variant; const value : Variant;indexcount : SizeInt;indices : plongint);cdecl;
 var
   Dest : TVarData;
   p : pvararray;
@@ -2903,6 +2925,23 @@ end;
 
 
 function VarToWideStrDef(const V: Variant; const ADefault: WideString): WideString;
+
+begin
+  If TVarData(V).vType<>varNull then
+    Result:=V
+  else
+    Result:=ADefault;
+end;
+
+
+function VarToUnicodeStr(const V: Variant): UnicodeString;
+
+begin
+  Result:=VarToUnicodeStrDef(V,'');
+end;
+
+
+function VarToUnicodeStrDef(const V: Variant; const ADefault: UnicodeString): UnicodeString;
 
 begin
   If TVarData(V).vType<>varNull then
@@ -3372,7 +3411,7 @@ procedure DynArrayToVariant(var V: Variant; const DynArray: Pointer; TypeInfo: P
               VarClear(temp);
           end;
           dynarriter.next;
-          variantmanager.VarArrayPut(V,temp,Dims,PSizeInt(iter.Coords));
+          variantmanager.VarArrayPut(V,temp,Dims,PLongint(iter.Coords));
         until not(iter.next);
       finally
         iter.done;
@@ -3426,7 +3465,7 @@ procedure DynArrayFromVariant(var DynArray: Pointer; const V: Variant; TypeInfo:
         dynarriter.init(DynArray,TypeInfo,VarArrayDims,dynarraybounds);
         if not iter.AtEnd then
         repeat
-          temp:=variantmanager.VarArrayGet(V,VarArrayDims,PSizeInt(iter.Coords));
+          temp:=variantmanager.VarArrayGet(V,VarArrayDims,PLongint(iter.Coords));
           case dynarrvartype of
             varSmallInt:
               PSmallInt(dynarriter.data)^:=temp;
@@ -3615,14 +3654,14 @@ end;
 procedure TCustomVariantType.VarDataInit(var Dest: TVarData);
 
 begin
-  NotSupported('TCustomVariantType.VarDataInit');
+  FillChar(Dest,SizeOf(Dest),0);
 end;
 
 
 procedure TCustomVariantType.VarDataClear(var Dest: TVarData);
 
 begin
-  NotSupported('TCustomVariantType.VarDataClear');
+  VarClearProc(Dest);
 end;
 
 
@@ -3630,14 +3669,15 @@ end;
 procedure TCustomVariantType.VarDataCopy(var Dest: TVarData; const Source: TVarData);
 
 begin
-  NotSupported('TCustomVariantType.VarDataCopy');
+  DoVarCopy(Dest,Source)
 end;
 
 
 procedure TCustomVariantType.VarDataCopyNoInd(var Dest: TVarData; const Source: TVarData);
 
 begin
-  NotSupported('TCustomVariantType.VarDataCopyNoInd');
+  // This is probably not correct, but there is no DoVarCopyInd
+  DoVarCopy(Dest,Source);
 end;
 
 
@@ -3645,28 +3685,28 @@ end;
 procedure TCustomVariantType.VarDataCast(var Dest: TVarData; const Source: TVarData);
 
 begin
-  NotSupported('TCustomVariantType.VarDataCast');
+  DoVarCast(Dest, Source, VarType);
 end;
 
 
 procedure TCustomVariantType.VarDataCastTo(var Dest: TVarData; const Source: TVarData; const aVarType: TVarType);
 
 begin
-  NotSupported('TCustomVariantType.VarDataCastTo');
+  DoVarCast(Dest, Source, AVarType);
 end;
 
 
 procedure TCustomVariantType.VarDataCastTo(var Dest: TVarData; const aVarType: TVarType);
 
 begin
-  NotSupported('TCustomVariantType.VarDataCastTo');
+  DoVarCast(Dest,Dest,AVarType);
 end;
 
 
 procedure TCustomVariantType.VarDataCastToOleStr(var Dest: TVarData);
 
 begin
-  NotSupported('TCustomVariantType.VarDataCastToOleStr');
+  VarDataCastTo(Dest, Dest, varOleStr);
 end;
 
 
@@ -3674,21 +3714,21 @@ end;
 procedure TCustomVariantType.VarDataFromStr(var V: TVarData; const Value: string);
 
 begin
-  NotSupported('TCustomVariantType.VarDataFromStr');
+  sysvarfromlstr(Variant(V),Value);
 end;
 
 
 procedure TCustomVariantType.VarDataFromOleStr(var V: TVarData; const Value: WideString);
 
 begin
-  NotSupported('TCustomVariantType.VarDataFromOleStr');
+  sysvarfromwstr(variant(V),Value);
 end;
 
 
 function TCustomVariantType.VarDataToStr(const V: TVarData): string;
 
 begin
-  NotSupported('TCustomVariantType.VarDataToStr');
+  sysvartolstr(Result,Variant(V));
 end;
 
 
@@ -3696,21 +3736,21 @@ end;
 function TCustomVariantType.VarDataIsEmptyParam(const V: TVarData): Boolean;
 
 begin
-  NotSupported('TCustomVariantType.VarDataIsEmptyParam');
+  VarIsEmptyParam(Variant(V));
 end;
 
 
 function TCustomVariantType.VarDataIsByRef(const V: TVarData): Boolean;
 
 begin
-  NotSupported('TCustomVariantType.VarDataIsByRef');
+  Result:=(V.vType and varByRef)=varByRef;
 end;
 
 
 function TCustomVariantType.VarDataIsArray(const V: TVarData): Boolean;
 
 begin
-  NotSupported('TCustomVariantType.VarDataIsArray');
+  Result:=(V.vType and varArray)=varArray;
 end;
 
 
@@ -3718,28 +3758,30 @@ end;
 function TCustomVariantType.VarDataIsOrdinal(const V: TVarData): Boolean;
 
 begin
-  NotSupported('TCustomVariantType.VarDataIsOrdinal');
+  Result:=(V.vType and varTypeMask) in OrdinalVarTypes;
 end;
 
 
 function TCustomVariantType.VarDataIsFloat(const V: TVarData): Boolean;
 
 begin
-  NotSupported('TCustomVariantType.VarDataIsFloat');
+  Result:=(V.vType and varTypeMask) in FloatVarTypes;
 end;
 
 
 function TCustomVariantType.VarDataIsNumeric(const V: TVarData): Boolean;
 
 begin
-  NotSupported('TCustomVariantType.VarDataIsNumeric');
+  Result:=(V.vType and varTypeMask) in (OrdinalVarTypes + FloatVarTypes);
 end;
 
 
 function TCustomVariantType.VarDataIsStr(const V: TVarData): Boolean;
 
 begin
-  NotSupported('TCustomVariantType.VarDataIsStr');
+   Result:=
+     ((V.vType and varTypeMask) = varOleStr) or
+     ((V.vType and varTypeMask) = varString);
 end;
 
 
@@ -3760,7 +3802,7 @@ end;
 constructor TCustomVariantType.Create(RequestedVarType: TVarType);
 
 begin
-  NotSupported('TCustomVariantType.Create');
+  FVarType:=RequestedVarType;
 end;
 
 
@@ -3773,7 +3815,6 @@ begin
   finally
     LeaveCriticalSection(customvarianttypelock);
   end;
-
   inherited Destroy;
 end;
 
@@ -3781,22 +3822,27 @@ end;
 
 function TCustomVariantType.IsClear(const V: TVarData): Boolean;
 
+Var
+  VT : TVarType;
+  
 begin
-  NotSupported('TCustomVariantType.IsClear');
+  VT:=V.vType and varTypeMask;
+  Result:=(VT=varEmpty) or (((VT=varDispatch) or (VT=varUnknown))
+                            and (TVarData(V).vDispatch=Nil));
 end;
 
 
 procedure TCustomVariantType.Cast(var Dest: TVarData; const Source: TVarData);
 
 begin
-  NotSupported('TCustomVariantType.Cast');
+  DoVarCast(Dest,Source,VarType);
 end;
 
 
 procedure TCustomVariantType.CastTo(var Dest: TVarData; const Source: TVarData; const aVarType: TVarType);
 
 begin
-  NotSupported('TCustomVariantType.CastTo');
+  DoVarCast(Dest,Source,AVarType);
 end;
 
 
@@ -4244,10 +4290,14 @@ begin
        Result := GetStrProp(Instance, PropInfo);
      tkWString:
        Result := GetWideStrProp(Instance, PropInfo);
+     tkUString:
+       Result := GetUnicodeStrProp(Instance, PropInfo);
      tkVariant:
        Result := GetVariantProp(Instance, PropInfo);
      tkInt64:
        Result := GetInt64Prop(Instance, PropInfo);
+     tkQWord:
+       Result := QWord(GetInt64Prop(Instance, PropInfo));
    else
      raise EPropertyConvertError.CreateFmt('Invalid Property Type: %s',[PropInfo^.PropType^.Name]);
    end;
@@ -4258,10 +4308,12 @@ Procedure SetPropValue(Instance: TObject; const PropName: string;  const Value: 
 
 var
  PropInfo: PPropInfo;
-// TypeData: PTypeData;
- O : Integer;
- S : String;
- B : Boolean;
+ TypeData: PTypeData;
+ O: Integer;
+ I64: Int64;
+ Qw: QWord;
+ S: String;
+ B: Boolean;
 
 begin
    // find the property
@@ -4270,36 +4322,57 @@ begin
      raise EPropertyError.CreateFmt(SErrPropertyNotFound, [PropName])
    else
      begin
-//     TypeData := GetTypeData(PropInfo^.PropType);
+     TypeData := GetTypeData(PropInfo^.PropType);
      // call Right SetxxxProp
      case PropInfo^.PropType^.Kind of
        tkBool:
          begin
          { to support the strings 'true' and 'false' }
-         B:=Value;
-         SetOrdProp(Instance, PropInfo, ord(B));
+         if (VarType(Value)=varOleStr) or
+            (VarType(Value)=varString) or
+            (VarType(Value)=varBoolean) then
+           begin
+             B:=Value;
+             SetOrdProp(Instance, PropInfo, ord(B));
+           end
+         else
+           begin
+             I64:=Value;
+             if (I64<TypeData^.MinValue) or (I64>TypeData^.MaxValue) then
+               raise ERangeError.Create(SRangeError);
+             SetOrdProp(Instance, PropInfo, I64);
+           end;
          end;
        tkInteger, tkChar, tkWChar:
          begin
-         O:=Value;
-         SetOrdProp(Instance, PropInfo, O);
+         I64:=Value;
+         if (TypeData^.OrdType=otULong) then
+           if (I64<LongWord(TypeData^.MinValue)) or (I64>LongWord(TypeData^.MaxValue)) then
+             raise ERangeError.Create(SRangeError)
+           else
+         else
+         if (I64<TypeData^.MinValue) or (I64>TypeData^.MaxValue) then
+           raise ERangeError.Create(SRangeError);
+         SetOrdProp(Instance, PropInfo, I64);
          end;
        tkEnumeration :
          begin
-         if (VarType(Value)=varOleStr) or  (VarType(Value)=varString) then
+         if (VarType(Value)=varOleStr) or (VarType(Value)=varString) then
            begin
            S:=Value;
            SetEnumProp(Instance,PropInfo,S);
            end
          else
            begin
-           O:=Value;
-           SetOrdProp(Instance, PropInfo, O);
+           I64:=Value;
+           if (I64<TypeData^.MinValue) or (I64>TypeData^.MaxValue) then
+             raise ERangeError.Create(SRangeError);
+           SetOrdProp(Instance, PropInfo, I64);
            end;
          end;
        tkSet :
          begin
-         if (VarType(Value)=varOleStr) or  (VarType(Value)=varString) then
+         if (VarType(Value)=varOleStr) or (VarType(Value)=varString) then
            begin
            S:=Value;
            SetSetProp(Instance,PropInfo,S);
@@ -4318,10 +4391,24 @@ begin
          SetStrProp(Instance, PropInfo, VarToStr(Value));
        tkWString:
          SetWideStrProp(Instance, PropInfo, VarToWideStr(Value));
+       tkUString:
+         SetUnicodeStrProp(Instance, PropInfo, VarToUnicodeStr(Value));
        tkVariant:
          SetVariantProp(Instance, PropInfo, Value);
        tkInt64:
-         SetInt64Prop(Instance, PropInfo, Value);
+         begin
+           I64:=Value;
+           if (I64<TypeData^.MinInt64Value) or (I64>TypeData^.MaxInt64Value) then
+             raise ERangeError.Create(SRangeError);
+           SetInt64Prop(Instance, PropInfo, I64);
+         end;
+       tkQWord:
+         begin
+           Qw:=Value;
+           if (Qw<TypeData^.MinQWordValue) or (Qw>TypeData^.MaxQWordValue) then
+             raise ERangeError.Create(SRangeError);
+           SetInt64Prop(Instance, PropInfo,Qw);
+         end
      else
        raise EPropertyConvertError.CreateFmt('SetPropValue: Invalid Property Type %s',
                                       [PropInfo^.PropType^.Name]);

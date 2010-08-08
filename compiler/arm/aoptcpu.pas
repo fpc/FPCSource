@@ -36,6 +36,12 @@ Type
     function PeepHoleOptPass1Cpu(var p: tai): boolean; override;
     procedure PeepHoleOptPass2;override;
   End;
+  
+  
+  TCpuThumb2AsmOptimizer = class(TCpuAsmOptimizer)
+    { uses the same constructor as TAopObj }
+    procedure PeepHoleOptPass2;override;
+  End;
 
 Implementation
 
@@ -74,6 +80,7 @@ Implementation
                      getnextinstruction(p,next1) and
                      (next1.typ = ait_instruction) and
                      (taicpu(next1).opcode = A_MOV) and
+                     (taicpu(p).condition=taicpu(next1).condition) and
                      (taicpu(next1).ops=3) and
                      (taicpu(next1).oper[0]^.typ = top_reg) and
                      (taicpu(p).oper[0]^.reg=taicpu(next1).oper[0]^.reg) and
@@ -105,6 +112,35 @@ Implementation
                       asml.remove(next1);
                       next1.free;
                       result := true;
+                    end;
+                end;
+              A_AND:
+                begin
+                  {
+                    change
+                    and reg2,reg1,const1
+                    and reg2,reg2,const2
+                    to
+                    and reg2,reg1,(const1 and const2)
+                  }
+                  if (taicpu(p).oper[0]^.typ = top_reg) and
+                     (taicpu(p).oper[1]^.typ = top_reg) and
+                     (taicpu(p).oper[2]^.typ = top_const) and
+                     GetNextInstruction(p, hp1) and
+                     (tai(hp1).typ = ait_instruction) and
+                     (taicpu(hp1).opcode = A_AND) and
+                     (taicpu(p).condition=taicpu(hp1).condition) and
+                     (taicpu(p).oppostfix=PF_None) and
+                     (taicpu(hp1).oper[0]^.typ = top_reg) and
+                     (taicpu(hp1).oper[1]^.typ = top_reg) and
+                     (taicpu(hp1).oper[2]^.typ = top_const) and
+                     (taicpu(p).oper[0]^.reg = taicpu(hp1).oper[0]^.reg) and
+                     (taicpu(hp1).oper[0]^.reg = taicpu(hp1).oper[1]^.reg) then
+                    begin
+                      taicpu(p).loadConst(2,taicpu(p).oper[2]^.val and taicpu(hp1).oper[2]^.val);
+                      taicpu(p).oppostfix:=taicpu(hp1).oppostfix;
+                      asml.remove(hp1);
+                      hp1.free;
                     end;
                 end;
             end;
@@ -290,6 +326,12 @@ Implementation
           end;
           p := tai(p.next)
         end;
+    end;
+
+
+  procedure TCpuThumb2AsmOptimizer.PeepHoleOptPass2;
+    begin
+      { TODO: Add optimizer code }
     end;
 
 begin

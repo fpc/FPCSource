@@ -58,6 +58,12 @@ begin
 {$include dts/fpmake.pp}
 end;
 
+procedure add_fastcgi;
+begin
+  with Installer do
+{$include fastcgi/fpmake.pp}
+end;
+
 procedure add_fcl_async;
 begin
   with Installer do
@@ -74,6 +80,12 @@ procedure add_fcl_db;
 begin
   with Installer do
 {$include fcl-db/fpmake.pp}
+end;
+
+procedure add_fcl_extra;
+begin
+  with Installer do
+{$include fcl-extra/fpmake.pp}
 end;
 
 procedure add_fcl_fpcunit;
@@ -154,6 +166,12 @@ begin
 {$include fpmkunit/fpmake.pp}
 end;
 
+procedure add_fpvectorial;
+begin
+  with Installer do
+{$include fpvectorial/fpmake.pp}
+end;
+
 procedure add_fv;
 begin
   with Installer do
@@ -206,12 +224,6 @@ procedure add_hash;
 begin
   with Installer do
 {$include hash/fpmake.pp}
-end;
-
-procedure add_hermes;
-begin
-  with Installer do
-{$include hermes/fpmake.pp}
 end;
 
 procedure add_httpd13;
@@ -298,6 +310,18 @@ begin
 {$include libpng/fpmake.pp}
 end;
 
+procedure add_librsvg;
+begin
+  with Installer do
+{$include librsvg/fpmake.pp}
+end;
+
+procedure add_libsee;
+begin
+  with Installer do
+{$include libsee/fpmake.pp}
+end;
+
 procedure add_libxml;
 begin
   with Installer do
@@ -352,6 +376,18 @@ begin
 {$include numlib/fpmake.pp}
 end;
 
+procedure add_nvapi;
+begin
+  with Installer do
+{$include nvapi/fpmake.pp}
+end;
+
+procedure add_objcrtl;
+begin
+  with Installer do
+{$include objcrtl/fpmake.pp}
+end;
+
 procedure add_odbc;
 begin
   with Installer do
@@ -368,6 +404,12 @@ procedure add_openal;
 begin
   with Installer do
 {$include openal/fpmake.pp}
+end;
+
+procedure add_opencl;
+begin
+  with Installer do
+{$include opencl/fpmake.pp}
 end;
 
 procedure add_opengl;
@@ -424,10 +466,10 @@ begin
 {$include postgres/fpmake.pp}
 end;
 
-procedure add_ptc;
+procedure add_proj4;
 begin
   with Installer do
-{$include ptc/fpmake.pp}
+{$include proj4/fpmake.pp}
 end;
 
 procedure add_pthreads;
@@ -458,12 +500,6 @@ procedure add_sdl;
 begin
   with Installer do
 {$include sdl/fpmake.pp}
-end;
-
-procedure add_sndfile;
-begin
-  with Installer do
-{$include sndfile/fpmake.pp}
 end;
 
 procedure add_sqlite;
@@ -560,5 +596,11 @@ procedure add_zlib;
 begin
   with Installer do
 {$include zlib/fpmake.pp}
+end;
+
+procedure add_zorba;
+begin
+  with Installer do
+{$include zorba/fpmake.pp}
 end;
 

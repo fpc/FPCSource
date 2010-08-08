@@ -206,7 +206,7 @@ type
         yOff : smallint;
      end;
 
-function XRenderQueryExtension(dpy:PDisplay; event_basep:Plongint; error_basep:Plongint):TBool;cdecl;external libX11;
+function XRenderQueryExtension(dpy:PDisplay; event_basep:Plongint; error_basep:Plongint):TBoolResult;cdecl;external libX11;
 function XRenderQueryVersion(dpy:PDisplay; major_versionp:Plongint; minor_versionp:Plongint):TStatus;cdecl;external libX11;
 function XRenderQueryFormats(dpy:PDisplay):TStatus;cdecl;external libX11;
 function XRenderFindVisualFormat(dpy:PDisplay; visual:PVisual):PXRenderPictFormat;cdecl;external libX11;

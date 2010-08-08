@@ -42,9 +42,9 @@ unit cgcpu;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
-        procedure a_param_const(list : TAsmList;size : tcgsize;a : aint;const paraloc : TCGPara);override;
-        procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
-        procedure a_paramaddr_ref(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
+        procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const paraloc : TCGPara);override;
+        procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);override;
+        procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);override;
 
         procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg: tregister);override;
@@ -110,6 +110,8 @@ unit cgcpu;
         procedure a_op64_const_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;value : int64;regsrc,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
         procedure a_op64_reg_reg_reg_checkoverflow(list: TAsmList;op:TOpCG;size : tcgsize;regsrc1,regsrc2,regdst : tregister64;setflags : boolean;var ovloc : tlocation);override;
       end;
+      
+    procedure create_codegen;
 
     const
       OpCmp2AsmCond : Array[topcmp] of TAsmCond = (C_NONE,C_EQ,C_GT,
@@ -144,17 +146,18 @@ unit cgcpu;
       end;
 
 
-    procedure tcgavr.a_param_const(list : TAsmList;size : tcgsize;a : aint;const paraloc : TCGPara);
+    procedure tcgavr.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const paraloc : TCGPara);
       var
         ref: treference;
       begin
         paraloc.check_simple_location;
+        paramanager.allocparaloc(list,paraloc.location);
         case paraloc.location^.loc of
           LOC_REGISTER,LOC_CREGISTER:
             a_load_const_reg(list,size,a,paraloc.location^.register);
           LOC_REFERENCE:
             begin
-               reference_reset(ref);
+               reference_reset(ref,paraloc.alignment);
                ref.base:=paraloc.location^.reference.index;
                ref.offset:=paraloc.location^.reference.offset;
                a_load_const_ref(list,size,a,ref);
@@ -165,7 +168,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcgavr.a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);
+    procedure tcgavr.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const paraloc : TCGPara);
       var
         tmpref, ref: treference;
         location: pcgparalocation;
@@ -176,12 +179,13 @@ unit cgcpu;
         sizeleft := paraloc.intsize;
         while assigned(location) do
           begin
+            paramanager.allocparaloc(list,location);
             case location^.loc of
               LOC_REGISTER,LOC_CREGISTER:
                 a_load_ref_reg(list,location^.size,location^.size,tmpref,location^.register);
               LOC_REFERENCE:
                 begin
-                  reference_reset_base(ref,location^.reference.index,location^.reference.offset);
+                  reference_reset_base(ref,location^.reference.index,location^.reference.offset,paraloc.alignment);
                   { doubles in softemu mode have a strange order of registers and references }
                   if location^.size=OS_32 then
                     g_concatcopy(list,tmpref,ref,4)
@@ -206,18 +210,19 @@ unit cgcpu;
       end;
 
 
-    procedure tcgavr.a_paramaddr_ref(list : TAsmList;const r : treference;const paraloc : TCGPara);
+    procedure tcgavr.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const paraloc : TCGPara);
       var
         ref: treference;
         tmpreg: tregister;
       begin
         paraloc.check_simple_location;
+        paramanager.allocparaloc(list,paraloc.location);
         case paraloc.location^.loc of
           LOC_REGISTER,LOC_CREGISTER:
             a_loadaddr_ref_reg(list,r,paraloc.location^.register);
           LOC_REFERENCE:
             begin
-              reference_reset(ref);
+              reference_reset(ref,paraloc.alignment);
               ref.base := paraloc.location^.reference.index;
               ref.offset := paraloc.location^.reference.offset;
               tmpreg := getintregister(list,OS_ADDR);
@@ -368,8 +373,45 @@ unit cgcpu;
        end;
 
 
-     procedure tcgavr.a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);
+     procedure tcgarm.a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);
+       var
+         oppostfix:toppostfix;
+         usedtmpref: treference;
+         tmpreg,tmpreg2 : tregister;
+         so : tshifterop;
+         dir : integer;
        begin
+         if (TCGSize2Size[FromSize] >= TCGSize2Size[ToSize]) then
+           FromSize := ToSize;
+         case FromSize of
+           { signed integer registers }
+           OS_8:
+             oppostfix:=PF_B;
+           OS_S8:
+             oppostfix:=PF_SB;
+           OS_16:
+             oppostfix:=PF_H;
+           OS_S16:
+             oppostfix:=PF_SH;
+           OS_32,
+           OS_S32:
+             oppostfix:=PF_None;
+           else
+             InternalError(200308297);
+         end;
+         handle_load_store(list,A_LDR,oppostfix,reg,ref);
+
+         if (fromsize=OS_S8) and (tosize = OS_16) then
+           a_load_reg_reg(list,OS_16,OS_32,reg,reg);
+       end;
+
+
+     procedure tcgavr.a_load_ref_reg(list : TAsmList; fromsize, tosize : tcgsize;const Ref : treference;reg : tregister);
+       var
+         href : treference;
+       begin
+         if (ref.base=R_NO) and (ref.index=R_NO) then
+
        end;
 
 
@@ -675,15 +717,12 @@ unit cgcpu;
         paramanager.getintparaloc(pocall_default,1,paraloc1);
         paramanager.getintparaloc(pocall_default,2,paraloc2);
         paramanager.getintparaloc(pocall_default,3,paraloc3);
-        paramanager.allocparaloc(list,paraloc3);
-        a_param_const(list,OS_INT,len,paraloc3);
-        paramanager.allocparaloc(list,paraloc2);
-        a_paramaddr_ref(list,dest,paraloc2);
-        paramanager.allocparaloc(list,paraloc2);
-        a_paramaddr_ref(list,source,paraloc1);
-        paramanager.freeparaloc(list,paraloc3);
-        paramanager.freeparaloc(list,paraloc2);
-        paramanager.freeparaloc(list,paraloc1);
+        a_load_const_cgpara(list,OS_INT,len,paraloc3);
+        a_loadaddr_ref_cgpara(list,dest,paraloc2);
+        a_loadaddr_ref_cgpara(list,source,paraloc1);
+        paramanager.freecgpara(list,paraloc3);
+        paramanager.freecgpara(list,paraloc2);
+        paramanager.freecgpara(list,paraloc1);
         alloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
         a_call_name_static(list,'FPC_MOVE');
         dealloccpuregisters(list,R_INTREGISTER,paramanager.get_volatile_registers_int(pocall_default));
@@ -792,7 +831,10 @@ unit cgcpu;
       end;
 
 
-begin
-  cg:=tcgavr.create;
-  cg64:=tcg64favr.create;
+    procedure create_codegen;
+      begin
+        cg:=tcgavr.create;
+        cg64:=tcg64favr.create;
+      end;
+      
 end.

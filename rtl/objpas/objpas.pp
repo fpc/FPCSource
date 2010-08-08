@@ -40,40 +40,60 @@ unit objpas;
        PPointerArray = ^PointerArray;
        TBoundArray = array of integer;
 
+{$ifdef FPC_HAS_FEATURE_CLASSES}
 Var
    ExceptionClass: TClass; { Exception base class (must actually be Exception, defined in sysutils ) }
+{$endif FPC_HAS_FEATURE_CLASSES}
+{$ifdef FPC_HAS_FEATURE_EXCEPTIONS}
+Var
    ExceptObjProc: Pointer; { Used to convert OS exceptions to exceptions in Delphi. Unused in FPC}
+{$endif FPC_HAS_FEATURE_EXCEPTIONS}
 
 {****************************************************************************
                              Compatibility routines.
 ****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
     { Untyped file support }
 
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:string);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:pchar);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;c:char);
+     Procedure AssignFile(out f:File;const Name:string);
+     Procedure AssignFile(out f:File;p:pchar);
+     Procedure AssignFile(out f:File;c:char);
      Procedure CloseFile(var f:File);
+{$endif FPC_HAS_FEATURE_FILEIO}
 
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
      { Text file support }
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:string);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:pchar);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;c:char);
+     Procedure AssignFile(out t:Text;const s:string);
+     Procedure AssignFile(out t:Text;p:pchar);
+     Procedure AssignFile(out t:Text;c:char);
      Procedure CloseFile(Var t:Text);
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
      { Typed file supoort }
 
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:string);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:pchar);
-     Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;c:char);
+     Procedure AssignFile(out f:TypedFile;const Name:string);
+     Procedure AssignFile(out f:TypedFile;p:pchar);
+     Procedure AssignFile(out f:TypedFile;c:char);
+{$endif FPC_HAS_FEATURE_FILEIO}
 
+{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
      { ParamStr should return also an ansistring }
      Function ParamStr(Param : Integer) : Ansistring;
+{$endif FPC_HAS_FEATURE_COMMANDARGS}
+
+{$ifdef FPC_HAS_FEATURE_FILEIO}
+     Procedure MkDir(const s:ansistring);overload;
+     Procedure RmDir(const s:ansistring);overload;
+     Procedure ChDir(const s:ansistring);overload;
+{$endif FPC_HAS_FEATURE_FILEIO}
 
 {****************************************************************************
                              Resource strings.
 ****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_RESOURCES}
    type
      TResourceIterator = Function (Name,Value : AnsiString; Hash : Longint; arg:pointer) : AnsiString;
 
@@ -97,6 +117,7 @@ Var
      PResStringRec=^AnsiString;
      TResStringRec=AnsiString;
    Function LoadResString(p:PResStringRec):AnsiString;
+{$endif FPC_HAS_FEATURE_RESOURCES}
 
   implementation
 
@@ -104,21 +125,26 @@ Var
                              Compatibility routines.
 ****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
+Procedure MkDirpchar(s: pchar;len:sizeuint);[IOCheck]; external name 'FPC_SYS_MKDIR';
+Procedure ChDirpchar(s: pchar;len:sizeuint);[IOCheck]; external name 'FPC_SYS_CHDIR';
+Procedure RmDirpchar(s: pchar;len:sizeuint);[IOCheck]; external name 'FPC_SYS_RMDIR';
+
 { Untyped file support }
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:string);
+Procedure AssignFile(out f:File;const Name:string);
 
 begin
   System.Assign (F,Name);
 end;
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:pchar);
+Procedure AssignFile(out f:File;p:pchar);
 
 begin
   System.Assign (F,P);
 end;
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;c:char);
+Procedure AssignFile(out f:File;c:char);
 
 begin
   System.Assign (F,C);
@@ -130,22 +156,24 @@ begin
   { Catch Runtime error/Exception }
   System.Close(f);
 end;
+{$endif FPC_HAS_FEATURE_FILEIO}
 
+{$ifdef FPC_HAS_FEATURE_TEXTIO}
 { Text file support }
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:string);
+Procedure AssignFile(out t:Text;const s:string);
 
 begin
   System.Assign (T,S);
 end;
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:pchar);
+Procedure AssignFile(out t:Text;p:pchar);
 
 begin
   System.Assign (T,P);
 end;
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;c:char);
+Procedure AssignFile(out t:Text;c:char);
 
 begin
   System.Assign (T,C);
@@ -157,27 +185,31 @@ begin
   { Catch Runtime error/Exception }
   System.Close(T);
 end;
+{$endif FPC_HAS_FEATURE_TEXTIO}
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 { Typed file support }
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:string);
+Procedure AssignFile(out f:TypedFile;const Name:string);
 
 begin
   system.Assign(F,Name);
 end;
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:pchar);
+Procedure AssignFile(out f:TypedFile;p:pchar);
 
 begin
   system.Assign (F,p);
 end;
 
-Procedure AssignFile({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;c:char);
+Procedure AssignFile(out f:TypedFile;c:char);
 
 begin
   system.Assign (F,C);
 end;
+{$endif FPC_HAS_FEATURE_FILEIO}
 
+{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
 Function ParamStr(Param : Integer) : Ansistring;
 
 Var Len : longint;
@@ -205,9 +237,27 @@ begin
   else
     paramstr:='';
 end;
+{$endif FPC_HAS_FEATURE_COMMANDARGS}
 
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
+Procedure MkDir(const s:ansistring);
+begin
+  mkdirpchar(pchar(s),length(s));
+end;
 
+Procedure RmDir(const s:ansistring);
+begin
+  RmDirpchar(pchar(s),length(s));
+end;
+
+Procedure ChDir(const s:ansistring);
+begin
+  ChDirpchar(pchar(s),length(s));
+end;
+{$endif FPC_HAS_FEATURE_FILEIO}
+
+{$ifdef FPC_HAS_FEATURE_RESOURCES}
 { ---------------------------------------------------------------------
     ResourceString support
   ---------------------------------------------------------------------}
@@ -510,10 +560,13 @@ Function LoadResString(p:PResStringRec):AnsiString;
 begin
   Result:=p^;
 end;
+{$endif FPC_HAS_FEATURE_RESOURCES}
 
 
+{$ifdef FPC_HAS_FEATURE_RESOURCES}
 Initialization
 {  ResetResourceTables;}
 finalization
   FinalizeResourceTables;
+{$endif FPC_HAS_FEATURE_RESOURCES}
 end.

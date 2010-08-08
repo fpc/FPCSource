@@ -18,6 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.Dependencies.Add('pasjpeg');
+    P.Dependencies.Add('hash');
     P.Dependencies.Add('paszlib');
     P.Dependencies.Add('fcl-base');
 
@@ -156,6 +157,23 @@ begin
         begin
           AddUnit('fpimage');
         end;
+    T:=P.Targets.AddUnit('fpreadgif.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+        end;
+    T:=P.Targets.AddUnit('fpreadpsd.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+        end;
+    T:=P.Targets.AddUnit('xwdfile.pp');
+    T:=P.Targets.AddUnit('fpreadxwd.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('fpimage');
+          AddUnit('xwdfile');
+        end;
     T:=P.Targets.AddUnit('fpwritebmp.pp');
       with T.Dependencies do
         begin
@@ -235,6 +253,7 @@ begin
           AddUnit('fpimgcmn');
         end;
     T:=P.Targets.AddUnit('pscanvas.pp');
+      T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddUnit('fpimage');

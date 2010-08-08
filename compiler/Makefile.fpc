@@ -4,7 +4,7 @@
 
 [package]
 name=compiler
-version=2.2.2
+version=2.5.1
 
 [target]
 programs=pp
@@ -32,7 +32,7 @@ fpcdir=..
 unexport FPC_VERSION FPC_COMPILERINFO
 
 # Which platforms are ready for inclusion in the cycle
-CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb
+CYCLETARGETS=i386 powerpc sparc arm x86_64 powerpc64 m68k armeb mipsel mips
 
 # All supported targets used for clean
 ALLTARGETS=$(CYCLETARGETS)
@@ -64,6 +64,12 @@ PPC_TARGET=arm
 endif
 ifdef ARMEB
 PPC_TARGET=armeb
+endif
+ifdef MIPS
+PPC_TARGET=mips
+endif
+ifdef MIPSEL
+PPC_TARGET=mipsel
 endif
 
 # Default is to generate a compiler for the same
@@ -142,6 +148,12 @@ endif
 ifeq ($(CPC_TARGET),arm)
 CPUSUF=arm
 endif
+ifeq ($(CPC_TARGET),mips)
+CPUSUF=mips
+endif
+ifeq ($(CPC_TARGET),mipsel)
+CPUSUF=mipsel
+endif
 
 # Do not define the default -d$(CPU_TARGET) because that
 # will conflict with our -d$(CPC_TARGET)
@@ -150,26 +162,26 @@ NOCPUDEF=1
 # Default message file
 MSGFILE=msg/error$(FPCLANG).msg
 
-# Define Unix also for Linux
-ifeq ($(OS_TARGET),linux)
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-override LOCALOPT+=-dUNIX
-endif
-endif
 
-ifeq ($(OS_TARGET),freebsd)
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-override LOCALOPT+=-dUNIX
-endif
-endif
-
+SVNVERSION:=$(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH)))
+# Check if revision.inc is present
 REVINC:=$(wildcard revision.inc)
 ifneq ($(REVINC),)
+# File revision.inc is present
+#Use it to compile version.pas unit
 override LOCALOPT+=-dREVINC
+# Automatically update revision.inc if
+# svnversion executable is available
 ifeq ($(REVSTR),)
-SVNVERSION:=$(wildcard svnversion$(EXEEXT))
-REVSTR:=$(shell svnversion .)
+ifneq ($(SVNVERSION),)
+REVSTR:=$(shell $(SVNVERSION) -c .)
 export REVSTR
+else
+ifeq ($(REVINC),force)
+REVSTR:=exported
+export REVSTR
+endif
+endif
 endif
 endif
 
@@ -218,6 +230,26 @@ ifeq ($(PPC_TARGET),arm)
 override LOCALOPT+=
 endif
 
+# mipsel specific
+ifeq ($(PPC_TARGET),mipsel)
+override LOCALOPT+=-Fumips
+endif
+
+
+OPTWPOCOLLECT=-OWdevirtcalls,optvmts -FW$(BASEDIR)/pp1.wpo
+OPTWPOPERFORM=-Owdevirtcalls,optvmts -Fw$(BASEDIR)/pp1.wpo
+# symbol liveness WPO requires nm, smart linking and no stripping (the latter
+# is forced by the Makefile when necessary)
+ifneq ($(findstring $(OS_TARGET),darwin linux freebsd solaris),)
+ifdef LINKSMART
+ifdef CREATESMART
+OPTWPOCOLLECT+=-OWsymbolliveness -Xs-
+OPTWPOPERFORM+=-Owsymbolliveness
+endif
+endif
+endif
+
+
 [rules]
 #####################################################################
 # Setup Targets
@@ -231,11 +263,6 @@ endif
 
 # Add Local options
 override COMPILER+=$(LOCALOPT)
-
-# Disable optimizer when compiled with 1.0.x
-ifneq ($(findstring 1.0.,$(FPC_VERSION)),)
-override COMPILER:=$(patsubst -O%,,$(COMPILER))
-endif
 
 
 #####################################################################
@@ -266,6 +293,8 @@ PPCROSSNAME=ppcross$(CPUSUF)$(SRCEXEEXT)
 TEMPNAME1=ppc1$(EXEEXT)
 TEMPNAME2=ppc2$(EXEEXT)
 TEMPNAME3=ppc3$(EXEEXT)
+TEMPWPONAME1=ppcwpo1$(EXEEXT)
+TEMPWPONAME2=ppcwpo2$(EXEEXT)
 MAKEDEP=ppdep$(EXEEXT)
 MSG2INC=./msg2inc$(EXEEXT)
 ifdef CROSSINSTALL
@@ -278,7 +307,7 @@ endif
 # CPU targets
 #####################################################################
 
-PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 alpha vis ia64
+PPC_TARGETS=i386 m68k powerpc sparc arm armeb x86_64 powerpc64 alpha vis ia64 mips mipsel
 
 .PHONY: $(PPC_TARGETS)
 
@@ -326,10 +355,10 @@ ppuclean:
         -$(DEL) $(addsuffix /*$(PPUEXT),$(COMPILERSOURCEDIR))
 
 tempclean:
-        -$(DEL) $(PPCROSSNAME) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC)
+        -$(DEL) $(PPCROSSNAME) $(TEMPNAME) $(TEMPNAME1) $(TEMPNAME2) $(TEMPNAME3) $(MSG2INC) pp1.wpo pp2.wpo
 
 execlean :
-        -$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) $(EXENAME)
+        -$(DEL) ppc386$(EXEEXT) ppcaxp$(EXEEXT) ppc68k$(EXEEXT) ppcx64$(EXEEXT) ppcppc$(EXEEXT) ppcsparc$(EXEEXT) $(EXENAME) $(TEMPWPONAME1) $(TEMPWPONAME2)
 
 $(addsuffix _clean,$(ALLTARGETS)):
         -$(DELTREE) $(addprefix $(subst _clean,,$@),/units)
@@ -361,21 +390,57 @@ msg: msgtxt.inc
 
 insdatx86 : $(COMPILER_UNITTARGETDIR) x86/x86ins.dat
 	$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkx86ins.pp
-        cd x86; ../utils/mkx86ins; mv -f *.inc ../i386
-        cd x86;../utils/mkx86ins x86_64; mv -f *.inc ../x86_64
+        cd x86 && ../utils/mkx86ins$(SRCEXEEXT) && mv -f *.inc ../i386
+        cd x86 && ../utils/mkx86ins$(SRCEXEEXT) x86_64 && mv -f *.inc ../x86_64
 
 insdatarm : arm/armins.dat
-	$(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmins.pp
-        cd arm; ../utils/mkarmins
+	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmins.pp
+        cd arm && ../utils/mkarmins$(SRCEXEEXT)
 
 insdat: insdatx86 insdatarm
 
+regdatarm : arm/armreg.dat
+	    $(COMPILER) -FE$(COMPILERUTILSDIR) $(COMPILERUTILSDIR)/mkarmreg.pp
+        cd arm && ../utils/mkarmreg$(SRCEXEEXT)
+
+# revision.inc rule
+revision.inc :
+ifneq ($(REVSTR),)
+ifdef USEZIPWRAPPER
+ifneq ($(ECHOREDIR),echo)
+        $(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+else
+        $(ECHOREDIR) '$(REVSTR)' > revision.inc
+endif
+else
+        $(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+endif
+else
+	$(MAKE) revision.inc REVINC=force
+endif
+
+.PHONY : revision
+
+revision :
+	$(DEL) revision.inc
+	$(MAKE) revision.inc
+
 # Make only the compiler
+# ECHOREDIR sometimes does not remove double quotes
 $(EXENAME) : $(wildcard *.pas) $(wildcard *.inc) msg \
              $(wildcard systems/*.pas) $(wilcard systems/*.inc) \
              $(wildcard $(CPC_TARGET)/*.pas) $(wildcard $(CPC_TARGET)/*.inc)
 ifneq ($(REVSTR),)
+ifdef USEZIPWRAPPER
+ifneq ($(ECHOREDIR),echo)
         $(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+else
+        $(ECHOREDIR) '$(REVSTR)' > revision.inc
+endif
+else
+        $(ECHOREDIR) "'$(REVSTR)'" > revision.inc
+endif
+        $(COMPILER) version.pas
 endif
         $(COMPILER) pp.pas
         $(EXECPPAS)
@@ -406,6 +471,28 @@ ifeq ($(OS_SOURCE),$(OS_TARGET))
 ##########################
 # Normal cycle
 #
+
+ifndef NOWPOCYCLE
+ifdef RELEASE
+DOWPOCYCLE=1
+# Two WPO cycles in case of RELEASE=1
+wpocycle:
+# don't use cycle_clean, it will delete the compiler utilities again
+        $(RM) $(EXENAME)
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(LOCALOPT) $(OPTWPOCOLLECT)' compiler
+        $(RM) $(EXENAME)
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(RTLOPT) $(OPTWPOPERFORM)' rtlclean rtl
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OPT=$(LOCALOPT) $(OPTWPOPERFORM) $(subst pp1.wpo,pp2.wpo,$(OPTWPOCOLLECT))' $(addsuffix _clean,$(ALLTARGETS)) compiler
+        $(MOVE) $(EXENAME) $(TEMPWPONAME1)
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1)' 'OPT=$(RTLOPT) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM))' rtlclean rtl
+        $(MAKE) 'FPC=$(BASEDIR)/$(TEMPWPONAME1)' 'OPT=$(LOCALOPT) $(subst pp1.wpo,pp2.wpo,$(OPTWPOPERFORM))' $(addsuffix _clean,$(ALLTARGETS)) compiler
+        $(COPY) $(EXENAME) $(TEMPWPONAME2)
+endif
+endif
+
+ifndef DOWPOCYCLE
+wpocycle:
+endif
 
 # Used to avoid unnecessary steps
 ifdef DIFF
@@ -453,6 +540,7 @@ cycle:
         $(MAKE) 'FPC=$(BASEDIR)/$(TEMPNAME3)' 'OLDFPC=$(BASEDIR)/$(TEMPNAME2)' next
         $(DIFF) $(TEMPNAME3) $(EXENAME)
         $(MAKE) $(addsuffix _all,$(TARGET_DIRS)) 'FPC=$(BASEDIR)/$(EXENAME)'
+        $(MAKE) wpocycle
         $(MAKE) echotime
 
 else
@@ -471,7 +559,10 @@ cycle:
 # ppc<ARCH> (target native)
 ifndef CROSSINSTALL
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' rtlclean rtl
+# building a native compiler for embedded targets is not possible
+ifneq ($(OS_TARGET),embedded)
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' cycleclean compiler
+endif
 endif
 
 endif
@@ -498,7 +589,10 @@ override FPC=
 # ppc<ARCH> (target native)
 ifndef CROSSINSTALL
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(OPT) $(CROSSOPT)' rtlclean rtl
+# building a native compiler for embedded targets is not possible
+ifneq ($(OS_TARGET),embedded)
         $(MAKE) 'FPC=$(BASEDIR)/$(PPCROSSNAME)' 'OPT=$(OPT) $(CROSSOPT)' cycleclean compiler
+endif
 endif
 
 endif

@@ -65,8 +65,12 @@ const
     Function  FpGetcwd  (path:pChar; siz:TSize):pChar; cdecl;  external clib name 'getcwd';
     function  FPSigProcMask(how:cint;nset : psigset;oset : psigset):cint;cdecl; external clib name 'sigprocmask';
     function  FPSigProcMask(how:cint;const nset : sigset;var oset : sigset):cint;cdecl; external clib name 'sigprocmask';
+{$if not defined(darwin) and not defined(haiku)}
+    Function  FpSigTimedWait (Const sigset : TSigSet; info : Psiginfo; timeout:Ptimespec): cInt; cdecl; external clib name 'sigtimedwait';
+    Function  FpSigTimedWait (Const sigset : TSigSet; info : Psiginfo; var timeout:Ttimespec): cInt; cdecl; external clib name 'sigtimedwait';
+{$endif}
     function  FpTime       (tloc:ptime_t): time_t; cdecl; external clib name 'time';
-    Function  FpTime       (var tloc : TTime): TTime; cdecl; external clib name 'time';
+    Function  FpTime       (var tloc : Time_t): Time_t; cdecl; external clib name 'time';
     function  FpTimes	(var buffer : tms): TClock; cdecl; external clib name 'times';
     function  FpUname   (var name: utsname): cint; cdecl; external clib name 'uname';
     function  FpUnlink  (path: pchar): cint; cdecl; external clib name 'unlink';
@@ -75,21 +79,16 @@ const
     procedure FpExit    (status : cint); cdecl; external clib name '_exit';
     function  fpmmap    (addr:pointer;len:size_t;prot:cint;flags:cint;fd:cint;ofs:off_t):pointer; cdecl; external clib name 'mmap'+suffix64bit;
     function  fpmunmap  (addr:pointer;len:size_t):cint; cdecl; external clib name 'munmap';
-{$if defined(bsd) or defined(solaris)}
-    { The BSD/Solaris version has "..." as third parameter -> wrap for }
-    { interface compatibility with Linux                               }
-    function  FpIOCtl   (Handle:cint;Ndx: TIOCtlRequest;Data: Pointer):cint;
-                                         {$ifdef FPC_IS_SYSTEM}forward;{$endif}
-{$else bsd or solaris}
-    function  FpIOCtl   (Handle:cint;Ndx: TIOCtlRequest;Data: Pointer):cint; cdecl; external clib name 'ioctl';
-{$endif bsd or solaris}
+    { The libc version has "..." as third parameter -> wrap for }
+    { interface compatibility with syscalls                     }
+    function  FpIOCtl   (Handle:cint;Ndx: TIOCtlRequest;Data: Pointer):cint; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
 {$ifdef beos}
   {$ifdef haiku}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external 'network' name 'select';  
-    Function  FpPoll    (fds: ppollfd; nfds: cuint; timeout: clong): cint; cdecl; external 'network' name 'poll';
+    Function  FpPoll    (fds: ppollfd; nfds: cuint; timeout: clong): cint; cdecl; external clib name 'poll';
   {$else}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external 'net' name 'select';
-    Function  FpPoll    (fds: ppollfd; nfds: cuint; timeout: clong): cint; cdecl; external 'net' name 'poll';
+    Function  FpPoll    (fds: ppollfd; nfds: cuint; timeout: clong): cint; cdecl; external clib name 'poll';
   {$endif}  
 {$else}
     Function  FPSelect  (N:cint;readfds,writefds,exceptfds:pfdSet;TimeOut:PTimeVal):cint; cdecl; external clib name 'select';
@@ -109,9 +108,12 @@ const
     Function  FpGetpgrp : TPid;  cdecl;external clib name 'getpgrp';
     Function  FpSetsid  : TPid; cdecl;external clib name 'setsid';
     Function  FpPipe       (var fildes : tfildes):cInt; cdecl;external clib name 'pipe';
-    Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt; cdecl; external clib name 'fcntl';
-    Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; cdecl; external clib name 'fcntl';
-    Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; cdecl; external clib name 'fcntl';
+    { The libc version has "..." as third parameter -> wrap for }
+    { interface compatibility with syscalls                     }
+    Function  FpFcntl      (fildes : cInt; cmd : cInt): cInt; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
+    Function  FpFcntl      (fildes : cInt; cmd : cInt; arg :cInt): cInt; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
+    Function  FpFcntl      (fildes : cInt; cmd : cInt; var arg : flock): cInt; {$ifdef FPC_IS_SYSTEM}forward;{$endif}
+    Function  FpAlarm      (seconds : cuint) : cuint; cdecl;external clib name 'alarm';
     Function  FpPause   : cInt; cdecl; external clib name 'pause';
     Function  FpMkfifo     (path: pchar; mode: tmode): cint; cdecl; external clib name 'mkfifo';
 {$ifdef solaris}   
@@ -136,10 +138,6 @@ const
 //    function  fpsettimeofday(tp:ptimeval;tzp:ptimezone):cint;
 {$endif}
     function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt; cdecl; external clib name 'getrlimit';
-    {$ifdef HAS_UGETRLIMIT}
-    { there is no ugetrlimit libc call, just map it to the getrlimit call in these cases }
-    function FpUGetRLimit(resource : cInt; rlim : PRLimit) : cInt; cdecl; external clib name 'getrlimit';
-    {$endif}
 
 {$ifdef linux}
 {$ifndef FPC_IS_SYSTEM}
@@ -159,6 +157,3 @@ const
     Function  FpPWrite     (fd : cInt; buf:pChar; nbytes : TSize; offset:Toff): TSSize;  cdecl; external clib name 'pwrite'+suffix64bit;
     function  FpWriteV	   (fd: cint; const iov : piovec; iovcnt : cint):TSSize;  cdecl; external clib name 'writev';
 
-{$ifdef linux}
-    function  FpPrCtl(options : cInt; const args : ptruint) : cint; cdecl; external clib name 'prctl';
-{$endif}

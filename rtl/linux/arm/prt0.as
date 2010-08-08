@@ -78,6 +78,15 @@ _haltproc:
 	swi 0x900001
 	b _haltproc
 
+	.globl  _haltproc_eabi
+        .type   _haltproc_eabi,#function
+_haltproc_eabi:
+        ldr r0,=operatingsystem_result
+        ldrb r0,[r0]
+        mov r7,#248
+	swi 0x0
+	b _haltproc_eabi
+
 	/* Define a symbol for the first piece of initialized data.  */
 	.data
 	.globl __data_start
@@ -110,3 +119,5 @@ __data_start:
 2:      .long 0
         .long 2,0,0
 3:      .align 4
+
+.section .note.GNU-stack,"",%progbits

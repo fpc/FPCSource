@@ -153,7 +153,7 @@ type
     pending_buf : Pbytearray; { output still pending }
     pending_buf_size : longint;    { size of pending_buf }
     pending_out : Pbyte;      { next pending byte to output to the stream }
-    pending : integer;             { nb of bytes in the pending buffer }
+    pending : longint;             { nb of bytes in the pending buffer }
     noheader : integer;            { suppress zlib header and adler32 }
     data_type : Byte;          { UNKNOWN, BINARY or ASCII }
     method : Byte;             { STORED (for zip only) or DEFLATED }

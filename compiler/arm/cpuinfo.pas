@@ -34,9 +34,18 @@ Type
       (cpu_none,
        cpu_armv3,
        cpu_armv4,
-       cpu_armv5
+       cpu_armv5,
+       cpu_armv6,
+       cpu_armv7m,
+       cpu_cortexm3
       );
 
+Const
+   cpu_arm = [cpu_none,cpu_armv3,cpu_armv4,cpu_armv5];
+   cpu_thumb = [];
+   cpu_thumb2 = [cpu_armv7m,cpu_cortexm3];
+
+Type
    tfputype =
      (fpu_none,
       fpu_soft,
@@ -44,7 +53,26 @@ Type
       fpu_fpa,
       fpu_fpa10,
       fpu_fpa11,
-      fpu_vfp
+      fpu_vfpv2,
+      fpu_vfpv3
+     );
+
+   tcontrollertype =
+     (ct_none,
+
+      { Phillips }
+      ct_lpc2114,
+      ct_lpc2124,
+      ct_lpc2194,
+
+      { ATMEL }
+      ct_at91sam7s256,
+      ct_at91sam7se256,
+      ct_at91sam7x256,
+      ct_at91sam7xc256,
+		
+      { STMicroelectronics }
+      ct_stm32f103re
      );
 
 Const
@@ -65,13 +93,19 @@ Const
      { same as stdcall only different name mangling }
      pocall_cppdecl,
      { same as stdcall but floating point numbers are handled like equal sized integers }
-     pocall_softfloat
+     pocall_softfloat,
+     { same as stdcall (requires that all const records are passed by
+       reference, but that's already done for stdcall) }
+     pocall_mwpascal
    ];
 
-   cputypestr : array[tcputype] of string[5] = ('',
+   cputypestr : array[tcputype] of string[8] = ('',
      'ARMV3',
      'ARMV4',
-     'ARMV5'
+     'ARMV5',
+     'ARMV6',
+     'ARMV7M',
+     'CORTEXM3'
    );
 
    fputypestr : array[tfputype] of string[6] = ('',
@@ -80,8 +114,35 @@ Const
      'FPA',
      'FPA10',
      'FPA11',
-     'VFP'
+     'VFPV2',
+     'VFPV3'
    );
+
+   controllertypestr : array[tcontrollertype] of string[20] =
+     ('',
+      'LPC2114',
+      'LPC2124',
+      'LPC2194',
+      'AT91SAM7S256',
+      'AT91SAM7SE256',
+      'AT91SAM7X256',
+      'AT91SAM7XC256',
+      'STM32F103RE'
+     );
+
+   controllerunitstr : array[tcontrollertype] of string[20] =
+     ('',
+      'LPC21x4',
+      'LPC21x4',
+      'LPC21x4',
+      'AT91SAM7x256',
+      'AT91SAM7x256',
+      'AT91SAM7x256',
+      'AT91SAM7x256',
+      'STM32F103'
+     );
+
+   vfp_scalar = [fpu_vfpv2,fpu_vfpv3];
 
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+
@@ -89,10 +150,12 @@ Const
                                  genericlevel3optimizerswitches-
                                  { no need to write info about those }
                                  [cs_opt_level1,cs_opt_level2,cs_opt_level3]+
-                                 [cs_opt_regvar,cs_opt_loopunroll,cs_opt_tailrecursion,cs_opt_stackframe];
+                                 [cs_opt_regvar,cs_opt_loopunroll,cs_opt_tailrecursion,
+								  cs_opt_stackframe,cs_opt_nodecse];
 
    level1optimizerswitches = genericlevel1optimizerswitches;
-   level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches + [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion];
+   level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches + 
+     [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
 
 Implementation

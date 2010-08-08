@@ -103,7 +103,7 @@ implementation
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,OS_INT,hregister,indexreg);
         cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,OP_SUB,OS_ADDR,min_+1,indexreg,indexreg);
         { create reference }
-        reference_reset(href);
+        reference_reset(href,4);
         href.base:=NR_PC;
         href.index:=indexreg;
         href.shiftmode:=SM_LSL;

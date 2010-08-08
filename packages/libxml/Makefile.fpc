@@ -4,10 +4,10 @@
 
 [package]
 name=libxml2
-version=2.2.2
+version=2.5.1
 
 [target]
-units=libxml2 xmlxsd
+units=xml2 xmlxsd
 exampledirs=examples
 
 [require]
@@ -16,7 +16,6 @@ exampledirs=examples
 fpcpackage=y
 
 [compiler]
-includedir=src
 sourcedir=src tests examples
 
 [default]

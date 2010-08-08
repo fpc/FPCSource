@@ -12,6 +12,43 @@
 
  **********************************************************************}
 
+
+{ The RTTI is implemented through a series of constants : }
+
+Const
+   // please update tkManagedTypes below if you add new
+   // values
+   tkUnknown       = 0;
+   tkInteger       = 1;
+   tkChar          = 2;
+   tkEnumeration   = 3;
+   tkFloat         = 4;
+   tkSet           = 5;
+   tkMethod        = 6;
+   tkSString       = 7;
+   tkString        = tkSString;
+   tkLString       = 8;
+   tkAString       = 9;
+   tkWString       = 10;
+   tkVariant       = 11;
+   tkArray         = 12;
+   tkRecord        = 13;
+   tkInterface     = 14;
+   tkClass         = 15;
+   tkObject        = 16;
+   tkWChar         = 17;
+   tkBool          = 18;
+   tkInt64         = 19;
+   tkQWord         = 20;
+   tkDynArray      = 21;
+   tkInterfaceCorba = 22;
+   tkProcVar       = 23;
+   tkUString       = 24;
+
+  // all potentially managed types
+  tkManagedTypes   = [tkAstring,tkWstring,tkUstring,tkArray,
+                     tkObject,tkRecord,tkDynArray,tkInterface,tkVariant];
+
 {****************************************************************************
                                 Local types
 ****************************************************************************}
@@ -172,7 +209,11 @@ function do_isdevice(handle:thandle):boolean;forward;
   {$ifdef SYSPROCDEFINED}
     {$Error Can't determine processor type !}
   {$endif}
-  {$i arm.inc}  { Case dependent, don't change }
+  {$if defined(CPUCORTEXM3) or defined(CPUARMV7M)}
+    {$i thumb2.inc}  { Case dependent, don't change }
+  {$else}
+    {$i arm.inc}  { Case dependent, don't change }
+  {$endif}
   {$define SYSPROCDEFINED}
 {$endif cpuarm}
 
@@ -374,9 +415,9 @@ function aligntoptr(p : pointer) : pointer;inline;
 
 {$ifdef FPC_HAS_FEATURE_RTTI}
 {$i rtti.inc}
-{$endif FPC_HAS_FEATURE_VARIANTS}
+{$endif FPC_HAS_FEATURE_RTTI}
 
-
+{$if defined(FPC_HAS_FEATURE_RANDOM)}
 
 {----------------------------------------------------------------------
    Mersenne Twister: A 623-Dimensionally Equidistributed Uniform
@@ -553,9 +594,11 @@ end;
 {$ifndef FPUNONE}
 function random: extended;
 begin
-  random := cardinal(genrand_MT19937) * (1.0/(int64(1) shl 32));
+  random := cardinal(genrand_MT19937) * (extended(1.0)/(int64(1) shl 32));
 end;
 {$endif}
+{$endif FPC_HAS_FEATURE_RANDOM}
+
 
 {****************************************************************************
                             Memory Management
@@ -582,21 +625,6 @@ Begin
 End;
 
 
-{*****************************************************************************
-                             Directory support.
-*****************************************************************************}
-
-{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
-Procedure getdir(drivenr:byte;Var dir:ansistring);
-{ this is needed to also allow ansistrings, the shortstring version is
-  OS dependent }
-var
-  s : shortstring;
-begin
-  getdir(drivenr,s);
-  dir:=s;
-end;
-{$endif}
 
 {$ifopt R+}
 {$define RangeCheckWasOn}
@@ -708,7 +736,10 @@ begin
   { Avoid recursive calls when called from the exit routines }
   if StackError then
    exit;
-  c := Sptr - (stack_size + STACK_MARGIN);
+  { don't use sack_size, since the stack pointer has already been
+    decreased when this routine is called
+  }
+  c := Sptr - STACK_MARGIN;
   if (c <= StackBottom) then
    begin
      StackError:=true;
@@ -769,6 +800,17 @@ begin
 end;
 
 
+procedure internal_initializeunits; external name 'FPC_INITIALIZEUNITS';
+
+procedure fpc_LibInitializeUnits;[public,alias:'FPC_LIBINITIALIZEUNITS'];
+begin
+  IsLibrary:=true;
+  { must also be set to true for packages when implemented }
+  ModuleIsLib:=true;
+  internal_initializeunits;
+end;
+
+
 procedure FinalizeUnits;[public,alias:'FPC_FINALIZEUNITS'];
 begin
   with {$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}PInitFinalTable(EntryInformation.{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
@@ -802,7 +844,9 @@ Procedure FinalizeHeap;forward;
 Procedure InternalExit;
 var
   current_exit : Procedure;
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   pstdout : ^Text;
+{$endif}
 {$if defined(MSWINDOWS) or defined(OS2)}
   i : longint;
 {$endif}
@@ -879,7 +923,7 @@ begin
 end;
 
 
-Procedure Halt(ErrNum: Byte);
+Procedure Halt(ErrNum: Longint);
 Begin
   ExitCode:=Errnum;
   Do_Exit;
@@ -1272,6 +1316,8 @@ end;
                             File Handling
 *****************************************************************************}
 
+
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 { Allow slash and backslash as separators }
 procedure DoDirSeparators(p:Pchar);
 var
@@ -1290,6 +1336,7 @@ begin
     if p[i] in AllowDirectorySeparators then
       p[i]:=DirectorySeparator;
 end;
+{$endif FPC_HAS_FEATURE_FILEIO}
 
 { OS dependent low level file functions }
 {$ifdef FPC_HAS_FEATURE_FILEIO}
@@ -1314,8 +1361,58 @@ end;
                             Directory Handling
 *****************************************************************************}
 
+{$ifdef FPC_HAS_FEATURE_FILEIO}
 { OS dependent dir functions }
 {$i sysdir.inc}
+{$endif FPC_HAS_FEATURE_FILEIO}
+
+{$if defined(FPC_HAS_FEATURE_FILEIO) and defined(FPC_HAS_FEATURE_ANSISTRINGS)}
+Procedure getdir(drivenr:byte;Var dir:ansistring);
+{ this is needed to also allow ansistrings, the shortstring version is
+  OS dependent }
+var
+  s : shortstring;
+begin
+  getdir(drivenr,s);
+  dir:=s;
+end;
+{$endif}
+
+{$if defined(FPC_HAS_FEATURE_FILEIO)}
+
+Procedure MkDir(Const s: String);
+Var
+  Buffer: Array[0..255] of Char;
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Move(s[1], Buffer, Length(s));
+  Buffer[Length(s)] := #0;
+  MkDir(@buffer[0],length(s));
+End;
+
+Procedure RmDir(Const s: String);
+Var
+  Buffer: Array[0..255] of Char;
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Move(s[1], Buffer, Length(s));
+  Buffer[Length(s)] := #0;
+  RmDir(@buffer[0],length(s));
+End;
+
+Procedure ChDir(Const s: String);
+Var
+  Buffer: Array[0..255] of Char;
+Begin
+  If (s='') or (InOutRes <> 0) then
+   exit;
+  Move(s[1], Buffer, Length(s));
+  Buffer[Length(s)] := #0;
+  ChDir(@buffer[0],length(s));
+End;
+{$endif}
 
 {*****************************************************************************
                             Resources support

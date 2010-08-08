@@ -86,14 +86,14 @@ end;
 procedure TInterfacedPersistent.AfterConstruction;
 begin
   inherited;
-//  if GetOwner<>nil then
-//   GetOwner.GetInterface(IUnknown,FOwnerInterface);
+  if assigned(GetOwner) then
+    GetOwner.GetInterface(IUnknown,FOwnerInterface);
 end;
 
 
 function TInterfacedPersistent._AddRef: Integer;stdcall;
 begin
-  if FOwnerInterface<>nil then
+  if assigned(FOwnerInterface) then
     Result:=FOwnerInterface._AddRef
   else
     Result:=-1;
@@ -102,7 +102,7 @@ end;
 
 function TInterfacedPersistent._Release: Integer;stdcall;
 begin
-  if FOwnerInterface <> nil then
+  if assigned(FOwnerInterface) then
     Result:=FOwnerInterface._Release
   else
     Result:=-1;

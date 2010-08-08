@@ -55,6 +55,7 @@ resourcestring
   SDocDeclaration            = 'Declaration';
   SDocDescription            = 'Description';
   SDocErrors                 = 'Errors';
+  SDocVersion                = 'Version info';
   SDocSeeAlso                = 'See also';
   SDocExample                = 'Example';
   SDocArguments              = 'Arguments';
@@ -154,11 +155,12 @@ resourcestring
   SDone                       = 'Done.';
   SErrCouldNotCreateOutputDir = 'Could not create output directory "%s"';
   SErrCouldNotCreateFile      = 'Could not create file "%s": %s';
+  SSeeURL                     = '(See %s)';      // For lineair text writers.
 
 Const
   SVisibility: array[TPasMemberVisibility] of string =
        ('Default', 'Private', 'Protected', 'Public',
-       'Published', 'Automated');
+       'Published', 'Automated','Strict Private','Strict Protected');
 
 type
 
@@ -207,6 +209,8 @@ type
     members, and so on...
   }
 
+  { TDocNode }
+
   TDocNode = class
   private
     FFirstChild, FNextSibling: TDocNode;
@@ -221,6 +225,7 @@ type
     FLink: String;
     FTopicNode : Boolean;
     FRefCount : Integer;
+    FVersion: TDomElement;
   public
     constructor Create(const AName: String; ANode: TDOMElement);
     destructor Destroy; override;
@@ -238,6 +243,7 @@ type
     property ShortDescr: TDOMElement read FShortDescr;
     property Descr: TDOMElement read FDescr;
     property ErrorsDoc: TDOMElement read FErrorsDoc;
+    Property Version : TDomElement Read FVersion;
     property SeeAlso: TDOMElement read FSeeAlso;
     property FirstExample: TDOMElement read FFirstExample;
     property Link: String read FLink;
@@ -262,6 +268,12 @@ type
     CurModule: TPasModule;
     CurPackageDocNode: TDocNode;
   public
+    Output: String;
+    HasContentFile: Boolean;
+    HidePrivate: Boolean;       // Hide private class members in output?
+    HideProtected: Boolean;     // Hide protected class members in output?
+    WarnNoNode : Boolean;       // Warn if no description node found for element.
+
     constructor Create;
     destructor Destroy; override;
     procedure SetPackageName(const APackageName: String);
@@ -295,12 +307,6 @@ type
     property RootLinkNode: TLinkNode read FRootLinkNode;
     property RootDocNode: TDocNode read FRootDocNode;
     property Package: TPasPackage read FPackage;
-
-    Output: String;
-    HasContentFile: Boolean;
-    HidePrivate: Boolean;       // Hide private class members in output?
-    HideProtected: Boolean;     // Hide protected class members in output?
-    WarnNoNode : Boolean;       // Warn if no description node found for element.
   end;
 
 
@@ -540,6 +546,7 @@ begin
   FRootLinkNode := TLinkNode.Create('', '');
   FRootDocNode := TDocNode.Create('', nil);
   HidePrivate := True;
+  InterfaceOnly:=True;
   FPackages := TList.Create;
 end;
 
@@ -670,7 +677,7 @@ var
       if not Assigned(Module) then
       begin
         Module := TPasModule.Create(s, HPackage);
-        Module.InterfaceSection := TPasSection.Create('', Module);
+        Module.InterfaceSection := TInterfaceSection.Create('', Module);
         HPackage.Modules.Add(Module);
       end;
 
@@ -1043,6 +1050,10 @@ procedure TFPDocEngine.AddDocFile(const AFilename: String);
           Result.FShortDescr := TDOMElement(Subnode)
         else if Subnode.NodeName = 'descr' then
           Result.FDescr := TDOMElement(Subnode)
+        else if Subnode.NodeName = 'version' then
+          begin
+          Result.FVersion := TDOMElement(Subnode)
+          end
         else if Subnode.NodeName = 'errors' then
           Result.FErrorsDoc := TDOMElement(Subnode)
         else if Subnode.NodeName = 'seealso' then

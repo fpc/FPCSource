@@ -14,13 +14,14 @@
  **********************************************************************}
 unit xmlutils;
 
-{$mode objfpc}
+{$ifdef fpc}{$mode objfpc}{$endif}
 {$H+}
+{$ifopt Q+}{$define overflow_check}{$endif}
 
 interface
 
 uses
-  SysUtils;
+  SysUtils, Classes;
 
 function IsXmlName(const Value: WideString; Xml11: Boolean = False): Boolean; overload;
 function IsXmlName(Value: PWideChar; Len: Integer; Xml11: Boolean = False): Boolean; overload;
@@ -30,11 +31,26 @@ function IsXmlNmTokens(const Value: WideString; Xml11: Boolean = False): Boolean
 function IsValidXmlEncoding(const Value: WideString): Boolean;
 function Xml11NamePages: PByteArray;
 procedure NormalizeSpaces(var Value: WideString);
+function IsXmlWhiteSpace(c: WideChar): Boolean;
 function Hash(InitValue: LongWord; Key: PWideChar; KeyLen: Integer): LongWord;
+{ beware, works in ASCII range only }
+function WStrLIComp(S1, S2: PWideChar; Len: Integer): Integer;
+procedure WStrLower(var S: WideString);
 
+type
+  TXMLVersion = (xmlVersionUnknown, xmlVersion10, xmlVersion11);
+
+const
+  xmlVersionStr: array[TXMLVersion] of WideString = ('', '1.0', '1.1');
+  
 { a simple hash table with WideString keys }
 
 type
+{$ifndef fpc}
+  PtrInt = LongInt;
+  TFPList = TList;
+{$endif}  
+
   PPHashItem = ^PHashItem;
   PHashItem = ^THashItem;
   THashItem = record
@@ -43,6 +59,8 @@ type
     Next: PHashItem;
     Data: TObject;
   end;
+  THashItemArray = array[0..MaxInt div sizeof(Pointer)-1] of PHashItem;
+  PHashItemArray = ^THashItemArray;
 
   THashForEach = function(Entry: PHashItem; arg: Pointer): Boolean;
 
@@ -50,9 +68,9 @@ type
   private
     FCount: LongWord;
     FBucketCount: LongWord;
-    FBucket: PPHashItem;
+    FBucket: PHashItemArray;
     FOwnsObjects: Boolean;
-    function Lookup(Key: PWideChar; KeyLength: Integer; var Found: Boolean; CanCreate: Boolean): PHashItem;
+    function Lookup(Key: PWideChar; KeyLength: Integer; out Found: Boolean; CanCreate: Boolean): PHashItem;
     procedure Resize(NewCapacity: LongWord);
   public
     constructor Create(InitSize: Integer; OwnObjects: Boolean);
@@ -63,9 +81,84 @@ type
     function FindOrAdd(Key: PWideChar; KeyLen: Integer): PHashItem; overload;
     function Get(Key: PWideChar; KeyLen: Integer): TObject;
     function Remove(Entry: PHashItem): Boolean;
+    function RemoveData(aData: TObject): Boolean;
     procedure ForEach(proc: THashForEach; arg: Pointer);
     property Count: LongWord read FCount;
   end;
+
+{ another hash, for detecting duplicate namespaced attributes without memory allocations }
+
+  TExpHashEntry = record
+    rev: LongWord;
+    hash: LongWord;
+    uriPtr: PWideString;
+    lname: PWideChar;
+    lnameLen: Integer;
+  end;
+  TExpHashEntryArray = array[0..MaxInt div sizeof(TExpHashEntry)-1] of TExpHashEntry;
+  PExpHashEntryArray = ^TExpHashEntryArray;
+
+  TDblHashArray = class(TObject)
+  private
+    FSizeLog: Integer;
+    FRevision: LongWord;
+    FData: PExpHashEntryArray;
+  public  
+    procedure Init(NumSlots: Integer);
+    function Locate(uri: PWideString; localName: PWideChar; localLength: Integer): Boolean;
+    destructor Destroy; override;
+  end;
+
+  TBinding = class
+  public
+    uri: WideString;
+    next: TBinding;
+    prevPrefixBinding: TObject;
+    Prefix: PHashItem;
+  end;
+
+  TAttributeAction = (
+    aaUnchanged,
+    aaPrefix,         // only override the prefix
+    aaBoth            // override prefix and emit namespace definition
+  );
+
+  TNSSupport = class(TObject)
+  private
+    FNesting: Integer;
+    FPrefixSeqNo: Integer;
+    FFreeBindings: TBinding;
+    FBindings: TFPList;
+    FBindingStack: array of TBinding;
+    FPrefixes: THashTable;
+    FDefaultPrefix: THashItem;
+  public
+    constructor Create;
+    destructor Destroy; override;
+    procedure DefineBinding(const Prefix, nsURI: WideString; out Binding: TBinding);
+    function CheckAttribute(const Prefix, nsURI: WideString;
+      out Binding: TBinding): TAttributeAction;
+    function IsPrefixBound(P: PWideChar; Len: Integer; out Prefix: PHashItem): Boolean;
+    function GetPrefix(P: PWideChar; Len: Integer): PHashItem;
+    function BindPrefix(const nsURI: WideString; aPrefix: PHashItem): TBinding;
+    function DefaultNSBinding: TBinding;
+    procedure StartElement;
+    procedure EndElement;
+  end;
+
+{ Buffer builder, used to compose long strings without too much memory allocations }
+
+  PWideCharBuf = ^TWideCharBuf;
+  TWideCharBuf = record
+    Buffer: PWideChar;
+    Length: Integer;
+    MaxLength: Integer;
+  end;
+
+procedure BufAllocate(var ABuffer: TWideCharBuf; ALength: Integer);
+procedure BufAppend(var ABuffer: TWideCharBuf; wc: WideChar);
+procedure BufAppendChunk(var ABuf: TWideCharBuf; pstart, pend: PWideChar);
+function BufEquals(const ABuf: TWideCharBuf; const Arg: WideString): Boolean;
 
 {$i names.inc}
 
@@ -129,7 +222,7 @@ begin
   Result := IsXmlName(PWideChar(Value), Length(Value), Xml11);
 end;
 
-function IsXmlName(Value: PWideChar; Len: Integer; Xml11: Boolean = False): Boolean; overload;
+function IsXmlName(Value: PWideChar; Len: Integer; Xml11: Boolean = False): Boolean;
 var
   Pages: PByteArray;
   I: Integer;
@@ -275,12 +368,55 @@ begin
   end;
 end;
 
+function IsXmlWhiteSpace(c: WideChar): Boolean;
+begin
+  Result := (c = #32) or (c = #9) or (c = #10) or (c = #13);
+end;
+
+function WStrLIComp(S1, S2: PWideChar; Len: Integer): Integer;
+var
+  counter: Integer;
+  c1, c2: Word;
+begin
+  counter := 0;
+  result := 0;
+  if Len = 0 then
+    exit;
+  repeat
+    c1 := ord(S1[counter]);
+    c2 := ord(S2[counter]);
+    if (c1 = 0) or (c2 = 0) then break;
+    if c1 <> c2 then
+    begin
+      if c1 in [97..122] then
+        Dec(c1, 32);
+      if c2 in [97..122] then
+        Dec(c2, 32);
+      if c1 <> c2 then
+        Break;
+    end;
+    Inc(counter);
+  until counter >= Len;
+  result := c1 - c2;
+end;
+
+procedure WStrLower(var S: WideString);
+var
+  i: Integer;
+begin
+  for i := 1 to Length(S) do
+    if (S[i] >= 'A') and (S[i] <= 'Z') then
+      Inc(word(S[i]), 32);
+end;
+
 function Hash(InitValue: LongWord; Key: PWideChar; KeyLen: Integer): LongWord;
 begin
   Result := InitValue;
   while KeyLen <> 0 do
   begin
+{$ifdef overflow_check}{$q-}{$endif}
     Result := Result * $F4243 xor ord(Key^);
+{$ifdef overflow_check}{$q+}{$endif}
     Inc(Key);
     Dec(KeyLen);
   end;
@@ -288,7 +424,11 @@ end;
 
 function KeyCompare(const Key1: WideString; Key2: Pointer; Key2Len: Integer): Boolean;
 begin
+{$IFDEF FPC}
   Result := (Length(Key1)=Key2Len) and (CompareWord(Pointer(Key1)^, Key2^, Key2Len) = 0);
+{$ELSE}
+  Result := (Length(Key1)=Key2Len) and CompareMem(Pointer(Key1), Key2, Key2Len*2);
+{$ENDIF}
 end;
 
 { THashTable }
@@ -319,7 +459,7 @@ var
 begin
   for I := 0 to FBucketCount-1 do
   begin
-    item := FBucket[I];
+    item := FBucket^[I];
     while Assigned(item) do
     begin
       next := item^.Next;
@@ -328,8 +468,8 @@ begin
       Dispose(item);
       item := next;
     end;
+    FBucket^[I] := nil;
   end;
-  FillChar(FBucket^, FBucketCount * sizeof(PHashItem), 0);
 end;
 
 function THashTable.Find(Key: PWideChar; KeyLen: Integer): PHashItem;
@@ -365,13 +505,13 @@ begin
 end;
 
 function THashTable.Lookup(Key: PWideChar; KeyLength: Integer;
-  var Found: Boolean; CanCreate: Boolean): PHashItem;
+  out Found: Boolean; CanCreate: Boolean): PHashItem;
 var
   Entry: PPHashItem;
   h: LongWord;
 begin
   h := Hash(0, Key, KeyLength);
-  Entry := @FBucket[h mod FBucketCount];
+  Entry := @FBucket^[h mod FBucketCount];
   while Assigned(Entry^) and not ((Entry^^.HashValue = h) and KeyCompare(Entry^^.Key, Key, KeyLength) ) do
     Entry := @Entry^^.Next;
   Found := Assigned(Entry^);
@@ -388,7 +528,9 @@ begin
   else
   begin
     New(Result);
-    SetString(Result^.Key, Key, KeyLength);
+    // SetString for WideStrings trims on zero chars [fixed, #14740]
+    SetLength(Result^.Key, KeyLength);
+    Move(Key^, Pointer(Result^.Key)^, KeyLength*sizeof(WideChar));
     Result^.HashValue := h;
     Result^.Data := nil;
     Result^.Next := nil;
@@ -399,17 +541,18 @@ end;
 
 procedure THashTable.Resize(NewCapacity: LongWord);
 var
-  p, chain: PPHashItem;
+  p: PHashItemArray;
+  chain: PPHashItem;
   i: Integer;
   e, n: PHashItem;
 begin
   p := AllocMem(NewCapacity * sizeof(PHashItem));
   for i := 0 to FBucketCount-1 do
   begin
-    e := FBucket[i];
+    e := FBucket^[i];
     while Assigned(e) do
     begin
-      chain := @p[e^.HashValue mod NewCapacity];
+      chain := @p^[e^.HashValue mod NewCapacity];
       n := e^.Next;
       e^.Next := chain^;
       chain^ := e;
@@ -425,7 +568,7 @@ function THashTable.Remove(Entry: PHashItem): Boolean;
 var
   chain: PPHashItem;
 begin
-  chain := @FBucket[Entry^.HashValue mod FBucketCount];
+  chain := @FBucket^[Entry^.HashValue mod FBucketCount];
   while Assigned(chain^) do
   begin
     if chain^ = Entry then
@@ -443,6 +586,33 @@ begin
   Result := False;
 end;
 
+// this does not free the aData object
+function THashTable.RemoveData(aData: TObject): Boolean;
+var
+  i: Integer;
+  chain: PPHashItem;
+  e: PHashItem;
+begin
+  for i := 0 to FBucketCount-1 do
+  begin
+    chain := @FBucket^[i];
+    while Assigned(chain^) do
+    begin
+      if chain^^.Data = aData then
+      begin
+        e := chain^;
+        chain^ := e^.Next;
+        Dispose(e);
+        Dec(FCount);
+        Result := True;
+        Exit;
+      end;
+      chain := @chain^^.Next;
+    end;
+  end;
+  Result := False;
+end;
+
 procedure THashTable.ForEach(proc: THashForEach; arg: Pointer);
 var
   i: Integer;
@@ -450,7 +620,7 @@ var
 begin
   for i := 0 to FBucketCount-1 do
   begin
-    e := FBucket[i];
+    e := FBucket^[i];
     while Assigned(e) do
     begin
       if not proc(e, arg) then
@@ -459,6 +629,282 @@ begin
     end;
   end;
 end;
+
+{ TDblHashArray }
+
+destructor TDblHashArray.Destroy;
+begin
+  FreeMem(FData);
+  inherited Destroy;
+end;
+
+procedure TDblHashArray.Init(NumSlots: Integer);
+var
+  i: Integer;
+begin
+  if ((NumSlots * 2) shr FSizeLog) <> 0 then   // need at least twice more entries, and no less than 8
+  begin
+    FSizeLog := 3;
+    while (NumSlots shr FSizeLog) <> 0 do
+      Inc(FSizeLog);
+    ReallocMem(FData, (1 shl FSizeLog) * sizeof(TExpHashEntry));
+    FRevision := 0;
+  end;
+  if FRevision = 0 then
+  begin
+    FRevision := $FFFFFFFF;
+    for i := (1 shl FSizeLog)-1 downto 0 do
+      FData^[i].rev := FRevision;
+  end;
+  Dec(FRevision);
+end;
+
+function TDblHashArray.Locate(uri: PWideString; localName: PWideChar; localLength: Integer): Boolean;
+var
+  step: Byte;
+  mask: LongWord;
+  idx: Integer;
+  HashValue: LongWord;
+begin
+  HashValue := Hash(0, PWideChar(uri^), Length(uri^));
+  HashValue := Hash(HashValue, localName, localLength);
+
+  mask := (1 shl FSizeLog) - 1;
+  step := (HashValue and (not mask)) shr (FSizeLog-1) and (mask shr 2) or 1;
+  idx := HashValue and mask;
+  result := True;
+  while FData^[idx].rev = FRevision do
+  begin
+    if (HashValue = FData^[idx].hash) and (FData^[idx].uriPtr^ = uri^) and
+      (FData^[idx].lnameLen = localLength) and
+       CompareMem(FData^[idx].lname, localName, localLength * sizeof(WideChar)) then
+      Exit;
+    if idx < step then
+      Inc(idx, (1 shl FSizeLog) - step)
+    else
+      Dec(idx, step);
+  end;
+  with FData^[idx] do
+  begin
+    rev := FRevision;
+    hash := HashValue;
+    uriPtr := uri;
+    lname := localName;
+    lnameLen := localLength;
+  end;
+  result := False;
+end;
+
+{ TNSSupport }
+
+constructor TNSSupport.Create;
+var
+  b: TBinding;
+begin
+  inherited Create;
+  FPrefixes := THashTable.Create(16, False);
+  FBindings := TFPList.Create;
+  SetLength(FBindingStack, 16);
+
+  { provide implicit binding for the 'xml' prefix }
+  // TODO: move stduri_xml, etc. to this unit, so they are reused.
+  DefineBinding('xml', 'http://www.w3.org/XML/1998/namespace', b);
+end;
+
+destructor TNSSupport.Destroy;
+var
+  I: Integer;
+begin
+  for I := FBindings.Count-1 downto 0 do
+    TObject(FBindings.List^[I]).Free;
+  FBindings.Free;
+  FPrefixes.Free;
+  inherited Destroy;
+end;
+
+function TNSSupport.BindPrefix(const nsURI: WideString; aPrefix: PHashItem): TBinding;
+begin
+  { try to reuse an existing binding }
+  result := FFreeBindings;
+  if Assigned(result) then
+    FFreeBindings := result.Next
+  else { no free bindings, create a new one }
+  begin
+    result := TBinding.Create;
+    FBindings.Add(result);
+  end;
+
+  { link it into chain of bindings at the current element level }
+  result.Next := FBindingStack[FNesting];
+  FBindingStack[FNesting] := result;
+
+  { bind }
+  result.uri := nsURI;
+  result.Prefix := aPrefix;
+  result.PrevPrefixBinding := aPrefix^.Data;
+  aPrefix^.Data := result;
+end;
+
+function TNSSupport.DefaultNSBinding: TBinding;
+begin
+  result := TBinding(FDefaultPrefix.Data);
+end;
+
+procedure TNSSupport.DefineBinding(const Prefix, nsURI: WideString;
+  out Binding: TBinding);
+var
+  Pfx: PHashItem;
+begin
+  Pfx := @FDefaultPrefix;
+  if (nsURI <> '') and (Prefix <> '') then
+    Pfx := FPrefixes.FindOrAdd(PWideChar(Prefix), Length(Prefix));
+  if (Pfx^.Data = nil) or (TBinding(Pfx^.Data).uri <> nsURI) then
+    Binding := BindPrefix(nsURI, Pfx)
+  else
+    Binding := nil;
+end;
+
+function TNSSupport.CheckAttribute(const Prefix, nsURI: WideString;
+  out Binding: TBinding): TAttributeAction;
+var
+  Pfx: PHashItem;
+  I: Integer;
+  b: TBinding;
+  buf: array[0..31] of WideChar;
+  p: PWideChar;
+begin
+  Binding := nil;
+  Pfx := nil;
+  Result := aaUnchanged;
+  if Prefix <> '' then
+    Pfx := FPrefixes.FindOrAdd(PWideChar(Prefix), Length(Prefix))
+  else if nsURI = '' then
+    Exit;
+  { if the prefix is already bound to correct URI, we're done }
+  if Assigned(Pfx) and Assigned(Pfx^.Data) and (TBinding(Pfx^.Data).uri = nsURI) then
+    Exit;
+
+  { see if there's another prefix bound to the target URI }
+  // TODO: should use something faster than linear search
+  for i := FNesting downto 0 do
+  begin
+    b := FBindingStack[i];
+    while Assigned(b) do
+    begin
+      if (b.uri = nsURI) and (b.Prefix <> @FDefaultPrefix) then
+      begin
+        Binding := b;   // found one -> override the attribute's prefix
+        Result := aaPrefix;
+        Exit;
+      end;
+      b := b.Next;
+    end;
+  end;
+  { no prefix, or bound (to wrong URI) -> use generated prefix instead }
+  if (Pfx = nil) or Assigned(Pfx^.Data) then
+  repeat
+    Inc(FPrefixSeqNo);
+    i := FPrefixSeqNo;    // This is just 'NS'+IntToStr(FPrefixSeqNo);
+    p := @Buf[high(Buf)]; // done without using strings
+    while i <> 0 do
+    begin
+      p^ := WideChar(i mod 10+ord('0'));
+      dec(p);
+      i := i div 10;
+    end;
+    p^ := 'S'; dec(p);
+    p^ := 'N';
+    Pfx := FPrefixes.FindOrAdd(p, @Buf[high(Buf)]-p+1);
+  until Pfx^.Data = nil;
+  Binding := BindPrefix(nsURI, Pfx);
+  Result := aaBoth;
+end;
+
+function TNSSupport.IsPrefixBound(P: PWideChar; Len: Integer; out
+  Prefix: PHashItem): Boolean;
+begin
+  Prefix := FPrefixes.FindOrAdd(P, Len);
+  Result := Assigned(Prefix^.Data) and (TBinding(Prefix^.Data).uri <> '');
+end;
+
+function TNSSupport.GetPrefix(P: PWideChar; Len: Integer): PHashItem;
+begin
+  if Assigned(P) and (Len > 0) then
+    Result := FPrefixes.FindOrAdd(P, Len)
+  else
+    Result := @FDefaultPrefix;
+end;
+
+procedure TNSSupport.StartElement;
+begin
+  Inc(FNesting);
+  if FNesting >= Length(FBindingStack) then
+    SetLength(FBindingStack, FNesting * 2);
+end;
+
+procedure TNSSupport.EndElement;
+var
+  b, temp: TBinding;
+begin
+  temp := FBindingStack[FNesting];
+  while Assigned(temp) do
+  begin
+    b := temp;
+    temp := b.next;
+    b.next := FFreeBindings;
+    FFreeBindings := b;
+    b.Prefix^.Data := b.prevPrefixBinding;
+  end;
+  FBindingStack[FNesting] := nil;
+  if FNesting > 0 then
+    Dec(FNesting);
+end;
+
+{ Buffer builder utils }
+
+procedure BufAllocate(var ABuffer: TWideCharBuf; ALength: Integer);
+begin
+  ABuffer.MaxLength := ALength;
+  ABuffer.Length := 0;
+  ABuffer.Buffer := AllocMem(ABuffer.MaxLength*SizeOf(WideChar));
+end;
+
+procedure BufAppend(var ABuffer: TWideCharBuf; wc: WideChar);
+begin
+  if ABuffer.Length >= ABuffer.MaxLength then
+  begin
+    ReallocMem(ABuffer.Buffer, ABuffer.MaxLength * 2 * SizeOf(WideChar));
+    FillChar(ABuffer.Buffer[ABuffer.MaxLength], ABuffer.MaxLength * SizeOf(WideChar),0);
+    ABuffer.MaxLength := ABuffer.MaxLength * 2;
+  end;
+  ABuffer.Buffer[ABuffer.Length] := wc;
+  Inc(ABuffer.Length);
+end;
+
+procedure BufAppendChunk(var ABuf: TWideCharBuf; pstart, pend: PWideChar);
+var
+  Len: Integer;
+begin
+  Len := PEnd - PStart;
+  if Len <= 0 then
+    Exit;
+  if Len >= ABuf.MaxLength - ABuf.Length then
+  begin
+    ABuf.MaxLength := (Len + ABuf.Length)*2;
+    // note: memory clean isn't necessary here.
+    // To avoid garbage, control Length field.
+    ReallocMem(ABuf.Buffer, ABuf.MaxLength * sizeof(WideChar));
+  end;
+  Move(pstart^, ABuf.Buffer[ABuf.Length], Len * sizeof(WideChar));
+  Inc(ABuf.Length, Len);
+end;
+
+function BufEquals(const ABuf: TWideCharBuf; const Arg: WideString): Boolean;
+begin
+  Result := (ABuf.Length = Length(Arg)) and
+    CompareMem(ABuf.Buffer, Pointer(Arg), ABuf.Length*sizeof(WideChar));
+end;
+
 
 initialization
 

@@ -68,7 +68,9 @@ interface
          [m_gpc,m_all,m_tp_procvar];
 {$endif}
        macmodeswitches =
-         [m_mac,m_all,m_result,m_cvar_support,m_mac_procvar];
+         [m_mac,m_all,m_result,m_cvar_support,m_mac_procvar,m_nested_procvars];
+       isomodeswitches =
+         [m_iso,m_all,m_tp_procvar,m_duplicate_names,m_nested_procvars];
 
        { maximum nesting of routines }
        maxnesting = 32;
@@ -104,18 +106,27 @@ interface
     type
        tcodepagestring = string[20];
 
-       tsettings = record
+       { this is written to ppus during token recording for generics so it must be packed }
+       tsettings = packed record
+         alignment       : talignmentinfo;
          globalswitches  : tglobalswitches;
          moduleswitches  : tmoduleswitches;
          localswitches   : tlocalswitches;
          modeswitches    : tmodeswitches;
          optimizerswitches : toptimizerswitches;
+         { generate information necessary to perform these wpo's during a subsequent compilation }
+         genwpoptimizerswitches: twpoptimizerswitches;
+         { perform these wpo's using information generated during a previous compilation }
+         dowpoptimizerswitches: twpoptimizerswitches;
          debugswitches   : tdebugswitches;
          { 0: old behaviour for sets <=256 elements
            >0: round to this size }
          setalloc,
          packenum        : shortint;
-         alignment       : talignmentinfo;
+
+         packrecords     : shortint;
+         maxfpuregisters : shortint;
+
          cputype,
          optimizecputype : tcputype;
          fputype         : tfputype;
@@ -124,10 +135,14 @@ interface
          defproccall     : tproccalloption;
          sourcecodepage  : tcodepagestring;
 
-         packrecords     : shortint;
-         maxfpuregisters : shortint;
-
          minfpconstprec  : tfloattype;
+
+         disabledircache : boolean;
+
+        { CPU targets with microcontroller support can add a controller specific unit }
+{$if defined(ARM) or defined(AVR)}
+        controllertype   : tcontrollertype;
+{$endif defined(ARM) or defined(AVR)}
        end;
 
     const
@@ -162,9 +177,10 @@ interface
       end;
 
       tpendingstate = record
-        nextverbositystr : string;
+        nextverbositystr : shortstring;
         nextlocalswitches : tlocalswitches;
         nextverbosityfullswitch: longint;
+        nextcallingstr : shortstring;
         verbosityfullswitched,
         localswitcheschanged : boolean;
       end;
@@ -181,6 +197,9 @@ interface
        { specified with -FE or -FU }
        outputexedir      : TPathStr;
        outputunitdir     : TPathStr;
+       { specified with -FW and -Fw }
+       wpofeedbackinput,
+       wpofeedbackoutput : TPathStr;
 
        { things specified with parameters }
        paratarget        : tsystem;
@@ -232,7 +251,7 @@ interface
        peflags : longint;
        minstacksize,
        maxstacksize,
-       imagebase : aword;
+       imagebase     : puint;
        UseDeffileForExports    : boolean;
        UseDeffileForExportsSetExplicitly : boolean;
        GenerateImportSection,
@@ -279,7 +298,6 @@ interface
 
     const
        DLLsource : boolean = false;
-       DLLImageBase : pshortstring = nil;
 
        { used to set all registers used for each global function
          this should dramatically decrease the number of
@@ -316,14 +334,6 @@ interface
 
     const
       default_settings : TSettings = (
-        globalswitches : [cs_check_unit_name,cs_link_static];
-        moduleswitches : [cs_extsyntax,cs_implicit_exceptions];
-        localswitches : [cs_check_io,cs_typed_const_writable];
-        modeswitches : fpcmodeswitches;
-        optimizerswitches : [];
-        debugswitches : [];
-        setalloc : 0;
-        packenum : 4;
         alignment : (
           procalign : 0;
           loopalign : 0;
@@ -338,6 +348,21 @@ interface
           recordalignmax : 0;
           maxCrecordalign : 0;
         );
+        globalswitches : [cs_check_unit_name,cs_link_static];
+        moduleswitches : [cs_extsyntax,cs_implicit_exceptions];
+        localswitches : [cs_check_io,cs_typed_const_writable];
+        modeswitches : fpcmodeswitches;
+        optimizerswitches : [];
+        genwpoptimizerswitches : [];
+        dowpoptimizerswitches : [];
+        debugswitches : [];
+
+        setalloc : 0;
+        packenum : 4;
+
+        packrecords     : 0;
+        maxfpuregisters : 0;
+
 {$ifdef i386}
         cputype : cpu_Pentium;
         optimizecputype : cpu_Pentium3;
@@ -378,13 +403,21 @@ interface
         optimizecputype : cpuinfo.cpu_avr;
         fputype : fpu_none;
 {$endif avr}
+{$ifdef mips}
+        cputype : cpu_mips32;
+        optimizecputype : cpu_mips32;
+        fputype : fpu_mips2;
+{$endif mips}
         asmmode : asmmode_standard;
         interfacetype : it_interfacecom;
         defproccall : pocall_default;
         sourcecodepage : '8859-1';
-        packrecords     : 0;
-        maxfpuregisters : 0;
         minfpconstprec : s32real;
+
+        disabledircache : false;
+{$if defined(ARM)}
+        controllertype : ct_none;
+{$endif defined(ARM)}
       );
 
     var
@@ -415,18 +448,24 @@ interface
     function Setabitype(const s:string;var a:tabi):boolean;
     function Setcputype(const s:string;var a:tcputype):boolean;
     function SetFpuType(const s:string;var a:tfputype):boolean;
+{$if defined(arm) or defined(avr)}
+    function SetControllerType(const s:string;var a:tcontrollertype):boolean;
+{$endif defined(arm) or defined(avr)}
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
     function UpdateOptimizerStr(s:string;var a:toptimizerswitches):boolean;
+    function UpdateWpoStr(s: string; var a: twpoptimizerswitches): boolean;
     function UpdateDebugStr(s:string;var a:tdebugswitches):boolean;
     function IncludeFeature(const s : string) : boolean;
     function SetMinFPConstPrec(const s: string; var a: tfloattype) : boolean;
 
     {# Routine to get the required alignment for size of data, which will
        be placed in bss segment, according to the current alignment requirements }
-    function var_align(siz: longint): shortint;
+    function var_align(want_align: longint): shortint;
+    function var_align_size(siz: longint): shortint;
     {# Routine to get the required alignment for size of data, which will
        be placed in data/const segment, according to the current alignment requirements }
-    function const_align(siz: longint): shortint;
+    function const_align(want_align: longint): shortint;
+    function const_align_size(siz: longint): shortint;
 {$ifdef ARM}
     function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
 {$endif ARM}
@@ -989,6 +1028,25 @@ implementation
       end;
 
 
+{$if defined(arm) or defined(avr)}
+    function SetControllerType(const s:string;var a:tcontrollertype):boolean;
+      var
+        t  : tcontrollertype;
+        hs : string;
+      begin
+        result:=false;
+        hs:=Upper(s);
+        for t:=low(tcontrollertype) to high(tcontrollertype) do
+          if controllertypestr[t]=hs then
+            begin
+              a:=t;
+              result:=true;
+              break;
+            end;
+      end;
+{$endif defined(arm) or defined(avr)}
+
+
     function UpdateAlignmentStr(s:string;var a:talignmentinfo):boolean;
       var
         tok  : string;
@@ -1013,19 +1071,35 @@ implementation
           else if tok='LOOP' then
            b.loopalign:=l
           else if tok='CONSTMIN' then
-           b.constalignmin:=l
+           begin
+             b.constalignmin:=l;
+             if l>b.constalignmax then
+               b.constalignmax:=l;
+           end
           else if tok='CONSTMAX' then
            b.constalignmax:=l
           else if tok='VARMIN' then
-           b.varalignmin:=l
+           begin
+             b.varalignmin:=l;
+             if l>b.varalignmax then
+               b.varalignmax:=l;
+           end
           else if tok='VARMAX' then
            b.varalignmax:=l
           else if tok='LOCALMIN' then
-           b.localalignmin:=l
+           begin
+             b.localalignmin:=l;
+             if l>b.localalignmax then
+               b.localalignmax:=l;
+           end
           else if tok='LOCALMAX' then
            b.localalignmax:=l
           else if tok='RECORDMIN' then
-           b.recordalignmin:=l
+           begin
+             b.recordalignmin:=l;
+             if l>b.recordalignmax then
+               b.recordalignmax:=l;
+           end
           else if tok='RECORDMAX' then
            b.recordalignmax:=l
           else { Error }
@@ -1073,6 +1147,59 @@ implementation
             end
           else
             result:=false;
+        until false;
+      end;
+
+
+    function UpdateWpoStr(s: string; var a: twpoptimizerswitches): boolean;
+      var
+        tok   : string;
+        doset,
+        found : boolean;
+        opt   : twpoptimizerswitch;
+      begin
+        result:=true;
+        uppervar(s);
+        repeat
+          tok:=GetToken(s,',');
+          if tok='' then
+           break;
+          if Copy(tok,1,2)='NO' then
+            begin
+              delete(tok,1,2);
+              doset:=false;
+            end
+          else
+            doset:=true;
+          found:=false;
+          if (tok = 'ALL') then
+            begin
+              for opt:=low(twpoptimizerswitch) to high(twpoptimizerswitch) do
+                if doset then
+                  include(a,opt)
+                else
+                  exclude(a,opt);
+            end
+          else
+            begin
+              for opt:=low(twpoptimizerswitch) to high(twpoptimizerswitch) do
+                begin
+                  if WPOptimizerSwitchStr[opt]=tok then
+                    begin
+                      found:=true;
+                      break;
+                    end;
+                end;
+              if found then
+                begin
+                  if doset then
+                    include(a,opt)
+                  else
+                    exclude(a,opt);
+                end
+              else
+                result:=false;
+            end;
         until false;
       end;
 
@@ -1160,18 +1287,31 @@ implementation
       end;
 
 
-    function var_align(siz: longint): shortint;
+    function var_align(want_align: longint): shortint;
       begin
-        siz := size_2_align(siz);
-        var_align := used_align(siz,current_settings.alignment.varalignmin,current_settings.alignment.varalignmax);
+        var_align := used_align(want_align,current_settings.alignment.varalignmin,current_settings.alignment.varalignmax);
       end;
 
 
-    function const_align(siz: longint): shortint;
+    function var_align_size(siz: longint): shortint;
       begin
         siz := size_2_align(siz);
-        const_align := used_align(siz,current_settings.alignment.constalignmin,current_settings.alignment.constalignmax);
+        var_align_size := var_align(siz);
       end;
+
+
+    function const_align(want_align: longint): shortint;
+      begin
+        const_align := used_align(want_align,current_settings.alignment.constalignmin,current_settings.alignment.constalignmax);
+      end;
+
+
+    function const_align_size(siz: longint): shortint;
+      begin
+        siz := size_2_align(siz);
+        const_align_size := const_align(siz);
+      end;
+
 
 {$ifdef ARM}
     function is_double_hilo_swapped: boolean;{$ifdef USEINLINE}inline;{$endif}
@@ -1241,8 +1381,6 @@ implementation
 
    procedure DoneGlobals;
      begin
-       if assigned(DLLImageBase) then
-         StringDispose(DLLImageBase);
        librarysearchpath.Free;
        unitsearchpath.Free;
        objectsearchpath.Free;
@@ -1261,6 +1399,7 @@ implementation
         do_release:=false;
         do_make:=true;
         compile_level:=0;
+        codegenerror:=false;
         DLLsource:=false;
         paratarget:=system_none;
         paratargetasm:=as_none;

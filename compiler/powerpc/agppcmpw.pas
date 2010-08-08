@@ -41,11 +41,12 @@ interface
         procedure WriteExternals;
         procedure WriteAsmFileHeader;
       private
+        cur_CSECT_name: String;
+        cur_CSECT_class: String;
+
         procedure WriteInstruction(hp : tai);
         procedure WriteProcedureHeader(var hp:tai);
         procedure WriteDataHeader(var s:string; isExported, isConst:boolean);
-        cur_CSECT_name: String;
-        cur_CSECT_class: String;
       end;
 
 
@@ -74,8 +75,43 @@ interface
         'csect', {read only data}
         'csect', {read only data - no relocations}
         'csect', {bss} 'csect', '',
-        'csect','csect','csect','csect',
-         '','','','','','','','','','','','','',''
+        'csect','csect','csect','csect','csect',
+        'csect','csect','csect',
+         '','','','','','','','','','','','','','',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        ''
       );
 
     type
@@ -843,8 +879,7 @@ interface
                    aitconst_32bit,
                    aitconst_16bit,
                    aitconst_8bit,
-                   aitconst_rva_symbol,
-                   aitconst_indirect_symbol :
+                   aitconst_rva_symbol :
                      begin
                        AsmWrite(ait_const2str[consttype]);
                        l:=0;
@@ -1101,9 +1136,9 @@ interface
                 end;
               ait_marker :
                  begin
-                   if tai_marker(hp).kind=mark_InlineStart then
+                   if tai_marker(hp).kind=mark_NoLineInfoStart then
                      inc(InlineLevel)
-                   else if tai_marker(hp).kind=mark_InlineEnd then
+                   else if tai_marker(hp).kind=mark_NoLineInfoEnd then
                      dec(InlineLevel);
                  end;
          else
@@ -1259,7 +1294,7 @@ interface
             idtxt  : 'MPW';
             asmbin : 'PPCAsm';
             asmcmd : '-case on $ASM -o $OBJ';
-            supported_target : system_any; { what should I write here ?? }
+            supported_targets : [system_powerpc_macos];
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_labelprefix_only_inside_procedure];
             labelprefix : '@';
             comment : '; ';

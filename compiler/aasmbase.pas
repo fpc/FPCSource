@@ -37,7 +37,10 @@ interface
        ;
 
     type
-       TAsmsymbind=(AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL,AB_WEAK_EXTERNAL);
+       TAsmsymbind=(
+         AB_NONE,AB_EXTERNAL,AB_COMMON,AB_LOCAL,AB_GLOBAL,AB_WEAK_EXTERNAL,
+         { global in the current program/library, but not visible outside it }
+         AB_PRIVATE_EXTERN,AB_LAZY);
 
        TAsmsymtype=(
          AT_NONE,AT_FUNCTION,AT_DATA,AT_SECTION,AT_LABEL,
@@ -70,6 +73,10 @@ interface
          sec_pdata,
          { used for darwin import stubs }
          sec_stub,
+         sec_data_nonlazy,
+         sec_data_lazy,
+         sec_init_func,
+         sec_term_func,
          { stabs }
          sec_stab,sec_stabstr,
          { win32 }
@@ -91,7 +98,43 @@ interface
          { Table of contents section }
          sec_toc,
          sec_init,
-         sec_fini
+         sec_fini,
+         {Objective-C common and fragile ABI }
+         sec_objc_class,
+         sec_objc_meta_class,
+         sec_objc_cat_cls_meth,
+         sec_objc_cat_inst_meth,
+         sec_objc_protocol,
+         sec_objc_string_object,
+         sec_objc_cls_meth,
+         sec_objc_inst_meth,
+         sec_objc_cls_refs,
+         sec_objc_message_refs,
+         sec_objc_symbols,
+         sec_objc_category,
+         sec_objc_class_vars,
+         sec_objc_instance_vars,
+         sec_objc_module_info,
+         sec_objc_class_names,
+         sec_objc_meth_var_types,
+         sec_objc_meth_var_names,
+         sec_objc_selector_strs,
+         sec_objc_protocol_ext,
+         sec_objc_class_ext,
+         sec_objc_property,
+         sec_objc_image_info,
+         sec_objc_cstring_object,
+         sec_objc_sel_fixup,
+         { Objective-C non-fragile ABI }
+         sec_objc_data,
+         sec_objc_const,
+         sec_objc_sup_refs,
+         sec_data_coalesced,
+         sec_objc_classlist,
+         sec_objc_nlclasslist,
+         sec_objc_catlist,
+         sec_objc_nlcatlist,
+         sec_objc_protolist
        );
 
        TAsmSectionOrder = (secorder_begin,secorder_default,secorder_end);
@@ -329,11 +372,18 @@ implementation
 *****************************************************************************}
 
     constructor TAsmLabel.Createlocal(AList:TFPHashObjectList;nr:longint;ltyp:TAsmLabelType);
+      var
+        asmtyp: TAsmsymtype;
       begin
-        if ltyp=alt_addr then
-          inherited Create(AList,target_asm.labelprefix+asmlabeltypeprefix[ltyp]+tostr(nr),AB_LOCAL,AT_ADDR)
-        else
-          inherited Create(AList,target_asm.labelprefix+asmlabeltypeprefix[ltyp]+tostr(nr),AB_LOCAL,AT_LABEL);
+        case ltyp of
+          alt_addr:
+            asmtyp:=AT_ADDR;
+          alt_data:
+            asmtyp:=AT_DATA;
+          else
+            asmtyp:=AT_LABEL;
+        end;
+        inherited Create(AList,target_asm.labelprefix+asmlabeltypeprefix[ltyp]+tostr(nr),AB_LOCAL,asmtyp);
         labelnr:=nr;
         labeltype:=ltyp;
         is_set:=false;
@@ -358,7 +408,8 @@ implementation
         TAsmLabel(result).labeltype:=labeltype;
         TAsmLabel(result).is_set:=false;
         case bind of
-          AB_GLOBAL:
+          AB_GLOBAL,
+          AB_PRIVATE_EXTERN:
             result.increfs;
           AB_LOCAL:
             ;

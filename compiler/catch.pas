@@ -30,13 +30,14 @@ Unit catch;
 
 interface
 uses
-{$ifdef unix}
+{ you cannot safely raise an exception inside a signal handler on any OS,
+  and on darwin this even often crashes
+}
+{$if defined(unix) and not defined(darwin) }
+ {$ifndef darwin}
   {$define has_signal}
-  {$ifdef havelinuxrtl10}
-    Linux,
-  {$else}
-    BaseUnix,Unix,
-  {$endif}
+  BaseUnix,Unix,
+ {$endif}
 {$endif}
 {$ifdef go32v2}
 {$define has_signal}
@@ -53,8 +54,6 @@ Var
   NewSignal,
   OldSigInt : SignalHandler;
 {$endif}
-
-Const in_const_evaluation : boolean = false;
 
 Implementation
 
@@ -82,7 +81,7 @@ begin
 {$ifndef nocatch}
   {$ifdef has_signal}
     NewSignal:=SignalHandler(@CatchSignal);
-    OldSigInt:={$ifdef havelinuxrtl10}Signal{$else}{$ifdef Unix}fpSignal{$else}Signal{$endif}{$endif}  (SIGINT,NewSignal);
+    OldSigInt:={$ifdef Unix}fpSignal{$else}Signal{$endif}(SIGINT,NewSignal);
   {$endif}
 {$endif nocatch}
 end.

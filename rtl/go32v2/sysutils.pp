@@ -20,6 +20,7 @@ unit sysutils;
 interface
 
 {$MODE objfpc}
+{$MODESWITCH out}
 { force ansistrings }
 {$H+}
 
@@ -135,7 +136,7 @@ begin
 end;
 
 
-Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
+Function FileRead (Handle : Longint; Out Buffer; Count : longint) : Longint;
 var
   regs     : registers;
   size,
@@ -635,7 +636,7 @@ end ;
                               Misc Functions
 ****************************************************************************}
 
-procedure Beep;
+procedure sysBeep;
 begin
 end;
 
@@ -769,7 +770,7 @@ begin
 end;
 
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
 var
   e : EOSError;
   CommandLine: AnsiString;
@@ -792,7 +793,7 @@ end;
 
 
 function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString): integer;
+                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
 
 var
   CommandLine: AnsiString;
@@ -844,6 +845,7 @@ end;
 Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
+  OnBeep:=@SysBeep;
 Finalization
   DoneExceptions;
 end.

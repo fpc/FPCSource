@@ -282,6 +282,11 @@ begin
                      fRelocType:=X86_64_RELOC_UNSIGNED;
                      fRelocSize:=3;
                    end;
+    mmtarm      : begin
+                     fEndianess:=MACH_LITTLE_ENDIAN;
+                     fRelocType:=ARM_RELOC_VANILLA;
+                     fRelocSize:=2;
+                   end;
   end;
   fOppositeEndianess:=aOppositeEndianess;
 end;
@@ -487,6 +492,11 @@ begin
                      fHeader.cputype:=CPU_TYPE_X86_64;
                      fHeader.cpusubtype:=CPU_SUBTYPE_X86_64_ALL;
                    end;
+    mmtarm      : begin
+                     fHeader.magic:=MH_MAGIC;
+                     fHeader.cputype:=CPU_TYPE_ARM;
+                     fHeader.cpusubtype:=CPU_SUBTYPE_ARM_ALL;
+                   end;
   end;
   fHeader.filetype:=MH_OBJECT;
   fHeader.ncmds:=3;
@@ -568,6 +578,7 @@ begin
     mmtpowerpc64 : begin fBits:=MACH_64BIT; fEndianess:=MACH_BIG_ENDIAN; end;
     mmti386      : begin fBits:=MACH_32BIT; fEndianess:=MACH_LITTLE_ENDIAN; end;
     mmtx86_64    : begin fBits:=MACH_64BIT; fEndianess:=MACH_LITTLE_ENDIAN; end;
+    mmtarm       : begin fBits:=MACH_32BIT; fEndianess:=MACH_LITTLE_ENDIAN; end;
   end;
   fMachineType:=aMachineType;
   fOppositeEndianess:=fNativeEndianess<>fEndianess;

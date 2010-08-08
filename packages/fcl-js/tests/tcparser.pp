@@ -1,0 +1,2311 @@
+unit tcparser;
+
+{$mode objfpc}{$H+}
+
+interface
+
+uses
+  Classes, SysUtils, fpcunit, testutils, testregistry, jsParser, jstree, jsbase;
+
+type
+
+  { TTestJSParser }
+
+  TTestJSParser= class(TTestCase)
+  Private
+    FSource : TStringStream;
+    FParser : TJSParser;
+    FSE : TJSSourceElements;
+    FToFree: TJSElement;
+  protected
+    procedure SetUp; override; 
+    procedure TearDown; override;
+    Procedure CreateParser(Const ASource : string);
+    Procedure CheckClass(E : TJSElement; C : TJSElementClass);
+    Procedure AssertEquals(Const AMessage : String; Expected, Actual : TJSType); overload;
+    Function  GetSourceElements : TJSSourceElements;
+    Function  GetVars : TJSElementNodes;
+    Function  GetStatements : TJSElementNodes;
+    Function  GetFunctions : TJSElementNodes;
+    Function  GetFirstStatement : TJSElement;
+    Function  GetFirstVar : TJSElement;
+    Function  GetExpressionStatement : TJSExpressionStatement;
+  published
+    procedure TestEmpty;
+    procedure TestSimple;
+    procedure TestSimpleExpressionNumericalLiteral;
+    procedure TestSimpleExpressionStringLiteral;
+    procedure TestSimpleExpressionBooleanLiteralFalse;
+    procedure TestSimpleExpressionBooleanLiteralTrue;
+    procedure TestSimpleExpressionIdentifier;
+    procedure TestSimpleExpressionNull;
+    procedure TestAssignExpressionNumerical;
+    procedure TestAssignExpressionNull;
+    procedure TestAssignExpressionString;
+    procedure TestAssignExpressionBooleanFalse;
+    procedure TestAssignExpressionBooleanTrue;
+    procedure TestAssignExpressionIdent;
+    procedure TestAssignExpressionPlus;
+    procedure TestAssignExpressionMinus;
+    procedure TestAssignExpressionDiv;
+    procedure TestAssignExpressionMul;
+    procedure TestAssignExpressionMod;
+    procedure TestAssignExpressionAnd;
+    procedure TestAssignExpressionOr;
+    procedure TestAssignExpressionXOr;
+    procedure TestAssignExpressionLShift;
+    procedure TestAssignExpressionRShift;
+    procedure TestAssignExpressionURShift;
+    procedure TestExpressionPlus;
+    procedure TestExpressionSub;
+    procedure TestExpressionMul;
+    procedure TestExpressionDiv;
+    procedure TestExpressionMod;
+    procedure TestExpressionLShift;
+    procedure TestExpressionRShift;
+    procedure TestExpressionURShift;
+    procedure TestExpressionPostPlusPlus;
+    procedure TestExpressionPostMinusMinus;
+    procedure TestExpressionPreMinusMinus;
+    procedure TestExpressionPrePlusPlus;
+    procedure TestExpressionPrecedenceMulPlus;
+    procedure TestExpressionPrecedencePlusMul;
+    procedure TestExpressionPrecedenceMulMinus;
+    procedure TestExpressionPrecedenceMinusMul;
+    procedure TestExpressionPrecedenceDivPlus;
+    procedure TestExpressionPrecedencePlusDiv;
+    procedure TestExpressionPrecedenceModPlus;
+    procedure TestExpressionPrecedencePlusMod;
+    procedure TestExpressionPrecedencePlusPostPlusPlus;
+    procedure TestExpressionPrecedencePlusPostMinusMinus;
+    procedure TestExpressionPrecedenceMulPostMinusMinus;
+    procedure TestExpressionPrecedenceMulPostPlusPlus;
+    procedure TestExpressionPrecedenceMulPreMinusMinus;
+    procedure TestExpressionPrecedenceMulPrePlusPlus;
+    procedure TestExpressionPrecedencePlusPreMinusMinus;
+    procedure TestExpressionPrecedencePlusPrePlusPlus;
+    procedure TestExpressionPrecedencePlusInv;
+    procedure TestExpressionPrecedenceMulInv;
+    procedure TestExpressionPrecedenceMulNot;
+    procedure TestExpressionPrecedencePlusNot;
+    procedure TestExpressionPrecedenceBraceMulPlus;
+    procedure TestExpressionPrecedenceBracePlusMul;
+    procedure TestExpressionFunction;
+    procedure TestFunctionCallNoArgs;
+    procedure TestFunctionCallOneArg;
+    procedure TestFunctionCallTwoArgs;
+    procedure TestArrayExpressionNumericalArgs;
+    procedure TestArrayExpressionStringArgs;
+    procedure TestArrayExpressionIdentArgs;
+    Procedure TestVarDeclarationSimple;
+    procedure TestVarDeclarationDouble;
+    procedure TestVarDeclarationSimpleInit;
+    procedure TestVarDeclarationDoubleInit;
+    procedure TestBlockEmpty;
+    procedure TestBlockEmptyStatement;
+    procedure TestBlockSimpleStatement;
+    procedure TestFunctionDeclarationEmpty;
+    procedure TestFunctionDeclarationWithArgs;
+    procedure TestFunctionDeclarationWithBody;
+    procedure TestIfSimple;
+    procedure TestIfElseSimple;
+    procedure TestIfEmptyBlock;
+    procedure TestIfEmptyBlockElse;
+    procedure TestWhileSimple;
+    procedure TestWhileBlock;
+    procedure TestDoWhileSimple;
+    procedure TestDoWhileBlock;
+    procedure TestForEmpty;
+    procedure TestForEmptyBody;
+    procedure TestForSimpleBody;
+    procedure TestTryCatch;
+    procedure TestTryCatchFinally;
+    procedure TestTryFinally;
+    procedure TestThrow;
+    procedure TestReturn;
+  end;
+
+implementation
+
+uses typinfo;
+
+procedure TTestJSParser.AssertEquals(const AMessage: String; Expected,
+  Actual: TJSType);
+
+Var
+  NE,NA : String;
+
+begin
+  NE:=GetEnumName(TypeInfo(TJSType),Ord(Expected));
+  NA:=GetEnumName(TypeInfo(TJSType),Ord(Actual));
+  AssertEquals(AMessage,NE,NA);
+end;
+
+function TTestJSParser.GetFirstStatement: TJSElement;
+
+Var
+  E : TJSElementNodes;
+  N : TJSElement;
+  X : TJSExpressionStatement;
+
+begin
+  E:=GetStatements;
+  AssertNotNull('Have statements',E);
+  AssertEquals('1 statement',1,E.Count);
+  Result:=E.Nodes[0].Node;
+  AssertNotNull('First statement assigned',Result);
+end;
+
+function TTestJSParser.GetFirstVar: TJSElement;
+Var
+  E : TJSElementNodes;
+  N : TJSElement;
+  X : TJSExpressionStatement;
+begin
+  E:=GetVars;
+  AssertNotNull('Have statements',E);
+  Writeln('Count : ',E.Count);
+  If (E.Count=0) then
+    Fail('Zero variables defined');
+  Result:=E.Nodes[0].Node;
+  AssertNotNull('First variable declaration',Result);
+end;
+
+function TTestJSParser.GetExpressionStatement: TJSExpressionStatement;
+
+Var
+  N : TJSElement;
+  X : TJSExpressionStatement;
+
+begin
+  N:=GetFirstStatement;
+  CheckClass(N,TJSExpressionStatement);
+  Result:=TJSExpressionStatement(N);
+end;
+
+
+procedure TTestJSParser.TestSimple;
+
+Var
+  E : TJSElementNodes;
+  N : TJSElement;
+  X : TJSExpressionStatement;
+
+begin
+  CreateParser('1;');
+  E:=GetStatements;
+  AssertNotNull('Have statements',E);
+  AssertEquals('1 statement',1,E.Count);
+  N:=E.Nodes[0].Node;
+  AssertNotNull('First statement assigned',N);
+  AssertNotNull('First statement assigned',N);
+  CheckClass(N,TJSExpressionStatement);
+  X:=TJSExpressionStatement(N);
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSLiteral);
+end;
+
+procedure TTestJSParser.TestSimpleExpressionNumericalLiteral;
+Var
+  X : TJSExpressionStatement;
+
+begin
+  CreateParser('1;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSLiteral);
+  AssertNotNull('Expression value assigned',TJSLiteral(X.A).Value);
+  AssertEquals('Expression value type correct', jstNumber,TJSLiteral(X.A).Value.ValueType);
+  AssertEquals('Expression value correct', 1.0,TJSLiteral(X.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestSimpleExpressionStringLiteral;
+
+Var
+  X : TJSExpressionStatement;
+
+begin
+  CreateParser('"string";');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSLiteral);
+  AssertNotNull('Expression value assigned',TJSLiteral(X.A).Value);
+  AssertEquals('Expression value type correct', jstString,TJSLiteral(X.A).Value.ValueType);
+  AssertEquals('Expression value correct', 'string',TJSLiteral(X.A).Value.AsString);
+end;
+
+procedure TTestJSParser.TestSimpleExpressionBooleanLiteralFalse;
+
+Var
+  X : TJSExpressionStatement;
+
+begin
+  CreateParser('false;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSLiteral);
+  AssertNotNull('Expression value assigned',TJSLiteral(X.A).Value);
+  AssertEquals('Expression value type correct', jstBoolean,TJSLiteral(X.A).Value.ValueType);
+  AssertEquals('Expression value correct', False, TJSLiteral(X.A).Value.AsBoolean);
+end;
+
+procedure TTestJSParser.TestSimpleExpressionIdentifier;
+
+Var
+  X : TJSExpressionStatement;
+
+begin
+  CreateParser('Something;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression value assigned','Something',TJSPrimaryExpressionIdent(X.A).AString);
+end;
+
+procedure TTestJSParser.TestSimpleExpressionNull;
+
+Var
+  X : TJSExpressionStatement;
+begin
+    CreateParser('null;');
+    X:=GetExpressionStatement;
+    AssertNotNull('Expression statement assigned',X.A);
+    CheckClass(X.A,TJSLiteral);
+    AssertNotNull('Expression value assigned',TJSLiteral(X.A).Value);
+    AssertEquals('Expression value type correct', jstNull,TJSLiteral(X.A).Value.ValueType);
+    AssertEquals('Expression value correct', True, TJSLiteral(X.A).Value.IsNull);
+end;
+
+procedure TTestJSParser.TestAssignExpressionNumerical;
+
+Var
+  X : TJSExpressionStatement;
+  SA : TJSSimpleAssignStatement;
+begin
+  CreateParser('a=1;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSSimpleAssignStatement);
+  SA:=TJSSimpleAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).AString);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  CheckClass(SA.EXPR,TJSLiteral);
+  AssertEquals('Expression value type correct', jstNumber,TJSLiteral(SA.Expr).Value.ValueType);
+  AssertEquals('Expression value correct', 1.0, TJSLiteral(SA.Expr).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestAssignExpressionString;
+
+Var
+  X : TJSExpressionStatement;
+  SA : TJSSimpleAssignStatement;
+begin
+  CreateParser('a="string";');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSSimpleAssignStatement);
+  SA:=TJSSimpleAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).AString);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  CheckClass(SA.EXPR,TJSLiteral);
+  AssertEquals('Expression value type correct', jstString,TJSLiteral(SA.Expr).Value.ValueType);
+  AssertEquals('Expression value correct', 'string', TJSLiteral(SA.Expr).Value.AsString);
+end;
+
+procedure TTestJSParser.TestAssignExpressionBooleanFalse;
+
+Var
+  X : TJSExpressionStatement;
+  SA : TJSSimpleAssignStatement;
+begin
+  CreateParser('a=false;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSSimpleAssignStatement);
+  SA:=TJSSimpleAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).AString);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  CheckClass(SA.EXPR,TJSLiteral);
+  AssertEquals('Expression value type correct', jstBoolean,TJSLiteral(SA.Expr).Value.ValueType);
+  AssertEquals('Expression value correct', False, TJSLiteral(SA.Expr).Value.AsBoolean);
+end;
+
+procedure TTestJSParser.TestAssignExpressionBooleanTrue;
+Var
+  X : TJSExpressionStatement;
+  SA : TJSSimpleAssignStatement;
+begin
+  CreateParser('a=true;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSSimpleAssignStatement);
+  SA:=TJSSimpleAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).AString);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  CheckClass(SA.EXPR,TJSLiteral);
+  AssertEquals('Expression value type correct', jstBoolean,TJSLiteral(SA.Expr).Value.ValueType);
+  AssertEquals('Expression value correct', True, TJSLiteral(SA.Expr).Value.AsBoolean);
+end;
+
+procedure TTestJSParser.TestAssignExpressionNull;
+
+Var
+  X : TJSExpressionStatement;
+  SA : TJSSimpleAssignStatement;
+begin
+  CreateParser('a=null;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSSimpleAssignStatement);
+  SA:=TJSSimpleAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).AString);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  CheckClass(SA.EXPR,TJSLiteral);
+  AssertEquals('Expression value type correct', jstNull,TJSLiteral(SA.Expr).Value.ValueType);
+  AssertEquals('Expression value correct', True, TJSLiteral(SA.Expr).Value.IsNull);
+end;
+
+procedure TTestJSParser.TestAssignExpressionIdent;
+Var
+  X : TJSExpressionStatement;
+  SA : TJSSimpleAssignStatement;
+begin
+  CreateParser('a=b;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSSimpleAssignStatement);
+  SA:=TJSSimpleAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).AString);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  CheckClass(SA.EXPR,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression value type correct', 'b',TJSPrimaryExpressionIdent(SA.Expr).AString);
+end;
+
+procedure TTestJSParser.TestAssignExpressionPlus;
+
+Var
+  X : TJSExpressionStatement;
+  SA : TJSAddEqAssignStatement;
+
+begin
+  CreateParser('a+=1;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSAddEqAssignStatement);
+  SA:=TJSAddEqAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).AString);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  CheckClass(SA.EXPR,TJSLiteral);
+  AssertEquals('Expression value type correct', jstNumber,TJSLiteral(SA.Expr).Value.ValueType);
+  AssertEquals('Expression value correct', 1.0, TJSLiteral(SA.Expr).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestAssignExpressionMinus;
+
+Var
+  X : TJSExpressionStatement;
+  SA : TJSSubEqAssignStatement;
+
+begin
+  CreateParser('a-=1;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSSubEqAssignStatement);
+  SA:=TJSSubEqAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).AString);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  CheckClass(SA.EXPR,TJSLiteral);
+  AssertEquals('Expression value type correct', jstNumber,TJSLiteral(SA.Expr).Value.ValueType);
+  AssertEquals('Expression value correct', 1.0, TJSLiteral(SA.Expr).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestAssignExpressionMul;
+
+Var
+  X : TJSExpressionStatement;
+  SA : TJSMulEqAssignStatement;
+
+begin
+  CreateParser('a*=1;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSMulEqAssignStatement);
+  SA:=TJSMulEqAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).AString);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  CheckClass(SA.EXPR,TJSLiteral);
+  AssertEquals('Expression value type correct', jstNumber,TJSLiteral(SA.Expr).Value.ValueType);
+  AssertEquals('Expression value correct', 1.0, TJSLiteral(SA.Expr).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestAssignExpressionDiv;
+
+Var
+  X : TJSExpressionStatement;
+  SA : TJSDivEqAssignStatement;
+
+begin
+  CreateParser('a/=1;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSDivEqAssignStatement);
+  SA:=TJSDivEqAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).AString);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  CheckClass(SA.EXPR,TJSLiteral);
+  AssertEquals('Expression value type correct', jstNumber,TJSLiteral(SA.Expr).Value.ValueType);
+  AssertEquals('Expression value correct', 1.0, TJSLiteral(SA.Expr).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestAssignExpressionMod;
+
+Var
+  X : TJSExpressionStatement;
+  SA : TJSModEqAssignStatement;
+
+begin
+  CreateParser('a%=1;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSModEqAssignStatement);
+  SA:=TJSModEqAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).AString);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  CheckClass(SA.EXPR,TJSLiteral);
+  AssertEquals('Expression value type correct', jstNumber,TJSLiteral(SA.Expr).Value.ValueType);
+  AssertEquals('Expression value correct', 1.0, TJSLiteral(SA.Expr).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestAssignExpressionAnd;
+
+Var
+  X : TJSExpressionStatement;
+  SA : TJSAndEqAssignStatement;
+
+begin
+  CreateParser('a&=1;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSAndEqAssignStatement);
+  SA:=TJSAndEqAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).AString);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  CheckClass(SA.EXPR,TJSLiteral);
+  AssertEquals('Expression value type correct', jstNumber,TJSLiteral(SA.Expr).Value.ValueType);
+  AssertEquals('Expression value correct', 1.0, TJSLiteral(SA.Expr).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestAssignExpressionOr;
+
+Var
+  X : TJSExpressionStatement;
+  SA : TJSOrEqAssignStatement;
+
+begin
+  CreateParser('a|=1;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSOrEqAssignStatement);
+  SA:=TJSOrEqAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).AString);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  CheckClass(SA.EXPR,TJSLiteral);
+  AssertEquals('Expression value type correct', jstNumber,TJSLiteral(SA.Expr).Value.ValueType);
+  AssertEquals('Expression value correct', 1.0, TJSLiteral(SA.Expr).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestAssignExpressionXOr;
+
+Var
+  X : TJSExpressionStatement;
+  SA : TJSXOrEqAssignStatement;
+
+begin
+  CreateParser('a^=1;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSXOrEqAssignStatement);
+  SA:=TJSXOrEqAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).AString);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  CheckClass(SA.EXPR,TJSLiteral);
+  AssertEquals('Expression value type correct', jstNumber,TJSLiteral(SA.Expr).Value.ValueType);
+  AssertEquals('Expression value correct', 1.0, TJSLiteral(SA.Expr).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestAssignExpressionLShift;
+
+Var
+  X : TJSExpressionStatement;
+  SA : TJSLShiftEqAssignStatement;
+
+begin
+  CreateParser('a<<=1;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSLShiftEqAssignStatement);
+  SA:=TJSLShiftEqAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).AString);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  CheckClass(SA.EXPR,TJSLiteral);
+  AssertEquals('Expression value type correct', jstNumber,TJSLiteral(SA.Expr).Value.ValueType);
+  AssertEquals('Expression value correct', 1.0, TJSLiteral(SA.Expr).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestAssignExpressionRShift;
+
+Var
+  X : TJSExpressionStatement;
+  SA : TJSRShiftEqAssignStatement;
+
+begin
+  CreateParser('a>>=1;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSRShiftEqAssignStatement);
+  SA:=TJSRShiftEqAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).AString);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  CheckClass(SA.EXPR,TJSLiteral);
+  AssertEquals('Expression value type correct', jstNumber,TJSLiteral(SA.Expr).Value.ValueType);
+  AssertEquals('Expression value correct', 1.0, TJSLiteral(SA.Expr).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestAssignExpressionURShift;
+
+Var
+  X : TJSExpressionStatement;
+  SA : TJSURShiftEqAssignStatement;
+
+begin
+  CreateParser('a>>>=1;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSURShiftEqAssignStatement);
+  SA:=TJSURShiftEqAssignStatement(X.A);
+  AssertNotNull('Assignment LHS assigned',SA.LHS);
+  CheckClass(SA.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Expression LHS name correct', 'a',TJSPrimaryExpressionIdent(SA.LHS).AString);
+  AssertNotNull('Assignment Expression assigned',SA.Expr);
+  CheckClass(SA.EXPR,TJSLiteral);
+  AssertEquals('Expression value type correct', jstNumber,TJSLiteral(SA.Expr).Value.ValueType);
+  AssertEquals('Expression value correct', 1.0, TJSLiteral(SA.Expr).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPlus;
+
+Var
+  X : TJSExpressionStatement;
+  E : TJSAdditiveExpressionPlus;
+
+begin
+  CreateParser('1+2;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSAdditiveExpressionPlus);
+  E:=TJSAdditiveExpressionPlus(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.A,TJSLiteral);
+  CheckClass(E.B,TJSLiteral);
+  AssertNotNull('Expression left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Expression left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Expression left operand value correct', 1.0, TJSLiteral(E.A).Value.AsNumber);
+  AssertNotNull('Expression right operand value assigned',TJSLiteral(E.B).Value);
+  AssertEquals('Expression left operand type correct', jstNumber, TJSLiteral(E.B).Value.ValueType);
+  AssertEquals('Expression right operand value correct', 2.0,TJSLiteral(E.B).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionSub;
+Var
+  X : TJSExpressionStatement;
+  E : TJSAdditiveExpressionMinus;
+
+begin
+  CreateParser('1 - 2;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSAdditiveExpressionMinus);
+  E:=TJSAdditiveExpressionMinus(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.A,TJSLiteral);
+  CheckClass(E.B,TJSLiteral);
+  AssertNotNull('Expression left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Expression left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Expression left operand value correct', 1.0, TJSLiteral(E.A).Value.AsNumber);
+  AssertNotNull('Expression right operand value assigned',TJSLiteral(E.B).Value);
+  AssertEquals('Expression left operand type correct', jstNumber, TJSLiteral(E.B).Value.ValueType);
+  AssertEquals('Expression right operand value correct', 2.0,TJSLiteral(E.B).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionMul;
+
+Var
+  X : TJSExpressionStatement;
+  E : TJSMultiplicativeExpressionMul;
+
+begin
+  CreateParser('1*2;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSMultiplicativeExpressionMul);
+  E:=TJSMultiplicativeExpressionMul(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.A,TJSLiteral);
+  CheckClass(E.B,TJSLiteral);
+  AssertNotNull('Expression left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Expression left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Expression left operand value correct', 1.0, TJSLiteral(E.A).Value.AsNumber);
+  AssertNotNull('Expression right operand value assigned',TJSLiteral(E.B).Value);
+  AssertEquals('Expression left operand type correct', jstNumber, TJSLiteral(E.B).Value.ValueType);
+  AssertEquals('Expression right operand value correct', 2.0,TJSLiteral(E.B).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionDiv;
+Var
+  X : TJSExpressionStatement;
+  E : TJSMultiplicativeExpressionDiv;
+
+begin
+  CreateParser('1/2;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSMultiplicativeExpressionDiv);
+  E:=TJSMultiplicativeExpressionDiv(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.A,TJSLiteral);
+  CheckClass(E.B,TJSLiteral);
+  AssertNotNull('Expression left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Expression left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Expression left operand value correct', 1.0, TJSLiteral(E.A).Value.AsNumber);
+  AssertNotNull('Expression right operand value assigned',TJSLiteral(E.B).Value);
+  AssertEquals('Expression left operand type correct', jstNumber, TJSLiteral(E.B).Value.ValueType);
+  AssertEquals('Expression right operand value correct', 2.0,TJSLiteral(E.B).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionMod;
+Var
+  X : TJSExpressionStatement;
+  E : TJSMultiplicativeExpressionMod;
+
+begin
+  CreateParser('1%2;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSMultiplicativeExpressionMod);
+  E:=TJSMultiplicativeExpressionMod(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.A,TJSLiteral);
+  CheckClass(E.B,TJSLiteral);
+  AssertNotNull('Expression left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Expression left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Expression left operand value correct', 1.0, TJSLiteral(E.A).Value.AsNumber);
+  AssertNotNull('Expression right operand value assigned',TJSLiteral(E.B).Value);
+  AssertEquals('Expression left operand type correct', jstNumber, TJSLiteral(E.B).Value.ValueType);
+  AssertEquals('Expression right operand value correct', 2.0,TJSLiteral(E.B).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionLShift;
+Var
+  X : TJSExpressionStatement;
+  E : TJSLShiftExpression;
+
+begin
+  CreateParser('1 << 2;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSLShiftExpression);
+  E:=TJSLShiftExpression(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.A,TJSLiteral);
+  CheckClass(E.B,TJSLiteral);
+  AssertNotNull('Expression left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Expression left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Expression left operand value correct', 1.0, TJSLiteral(E.A).Value.AsNumber);
+  AssertNotNull('Expression right operand value assigned',TJSLiteral(E.B).Value);
+  AssertEquals('Expression left operand type correct', jstNumber, TJSLiteral(E.B).Value.ValueType);
+  AssertEquals('Expression right operand value correct', 2.0,TJSLiteral(E.B).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionRShift;
+Var
+  X : TJSExpressionStatement;
+  E : TJSRShiftExpression;
+
+begin
+  CreateParser('1 >> 2;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSRShiftExpression);
+  E:=TJSRShiftExpression(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.A,TJSLiteral);
+  CheckClass(E.B,TJSLiteral);
+  AssertNotNull('Expression left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Expression left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Expression left operand value correct', 1.0, TJSLiteral(E.A).Value.AsNumber);
+  AssertNotNull('Expression right operand value assigned',TJSLiteral(E.B).Value);
+  AssertEquals('Expression left operand type correct', jstNumber, TJSLiteral(E.B).Value.ValueType);
+  AssertEquals('Expression right operand value correct', 2.0,TJSLiteral(E.B).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionURShift;
+Var
+  X : TJSExpressionStatement;
+  E : TJSURShiftExpression;
+
+begin
+  CreateParser('1 >>> 2;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSURShiftExpression);
+  E:=TJSURShiftExpression(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.A,TJSLiteral);
+  CheckClass(E.B,TJSLiteral);
+  AssertNotNull('Expression left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Expression left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Expression left operand value correct', 1.0, TJSLiteral(E.A).Value.AsNumber);
+  AssertNotNull('Expression right operand value assigned',TJSLiteral(E.B).Value);
+  AssertEquals('Expression left operand type correct', jstNumber, TJSLiteral(E.B).Value.ValueType);
+  AssertEquals('Expression right operand value correct', 2.0,TJSLiteral(E.B).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPostPlusPlus;
+Var
+  X : TJSExpressionStatement;
+  E : TJSUnaryPostPlusPlusExpression;
+
+begin
+  CreateParser('1++;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSUnaryPostPlusPlusExpression);
+  E:=TJSUnaryPostPlusPlusExpression(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('Expression  operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Expression operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Expression operand value correct', 1.0, TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPostMinusMinus;
+Var
+  X : TJSExpressionStatement;
+  E : TJSUnaryPostMinusMinusExpression;
+
+begin
+  CreateParser('1--;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSUnaryPostMinusMinusExpression);
+  E:=TJSUnaryPostMinusMinusExpression(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('Expression  operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Expression operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Expression operand value correct', 1.0, TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrePlusPlus;
+
+Var
+  X : TJSExpressionStatement;
+  E : TJSUnaryPrePlusPlusExpression;
+
+begin
+  CreateParser('++1;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSUnaryPrePlusPlusExpression);
+  E:=TJSUnaryPrePlusPlusExpression(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('Expression  operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Expression operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Expression operand value correct', 1.0, TJSLiteral(E.A).Value.AsNumber);
+end;
+
+
+procedure TTestJSParser.TestExpressionPreMinusMinus;
+
+Var
+  X : TJSExpressionStatement;
+  E : TJSUnaryPreMinusMinusExpression;
+
+begin
+  CreateParser('--1;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSUnaryPreMinusMinusExpression);
+  E:=TJSUnaryPreMinusMinusExpression(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('Expression  operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Expression operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Expression operand value correct', 1.0, TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedenceMulPlus;
+
+Var
+  X : TJSExpressionStatement;
+  E : TJSAdditiveExpressionPlus;
+  R : TJSMultiplicativeExpressionMul;
+begin
+  CreateParser('2 * 3 + 4;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSAdditiveExpressionPlus);
+  E:=TJSAdditiveExpressionPlus(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.A,TJSMultiplicativeExpressionMul);
+  R:=TJSMultiplicativeExpressionMul(E.A);
+  CheckClass(E.B,TJSLiteral);
+  AssertNotNull('Multiplication left operand assigned',R.A);
+  AssertNotNull('Multiplication right operand assigned',R.B);
+  CheckClass(R.A,TJSLiteral);
+  CheckClass(R.B,TJSLiteral);
+  AssertEquals('Multiplication left operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('Multiplication left operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertEquals('Multiplication right operand type correct', jstNumber, TJSLiteral(R.B).Value.ValueType);
+  AssertEquals('Multiplication right operand value correct', 3.0, TJSLiteral(R.B).Value.AsNumber);
+  AssertNotNull('Addition right operand value assigned',TJSLiteral(E.B).Value);
+  AssertEquals('Addition left operand type correct', jstNumber, TJSLiteral(E.B).Value.ValueType);
+  AssertEquals('Expression right operand value correct', 4.0,TJSLiteral(E.B).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedenceBraceMulPlus;
+
+Var
+  X : TJSExpressionStatement;
+  E : TJSMultiplicativeExpressionMul;
+  R : TJSAdditiveExpressionPlus;
+
+begin
+  CreateParser('2 * (3 + 4);');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSMultiplicativeExpressionMul);
+  E:=TJSMultiplicativeExpressionMul(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.B,TJSAdditiveExpressionPlus);
+  R:=TJSAdditiveExpressionPlus(E.B);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('Multiplication left operand assigned',R.A);
+  AssertNotNull('Multiplication right operand assigned',R.B);
+  CheckClass(R.A,TJSLiteral);
+  CheckClass(R.B,TJSLiteral);
+  AssertEquals('Multiplication left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Multiplication left operand value correct', 2.0, TJSLiteral(E.A).Value.AsNumber);
+  AssertEquals('Addition left operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('Multiplication right operand value correct', 3.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertNotNull('Addition right operand value assigned',TJSLiteral(R.B).Value);
+  AssertEquals('Addition left operand type correct', jstNumber, TJSLiteral(R.B).Value.ValueType);
+  AssertEquals('Addition right operand value correct', 4.0,TJSLiteral(R.B).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedenceBracePlusMul;
+
+Var
+  X : TJSExpressionStatement;
+  E : TJSMultiplicativeExpressionMul;
+  R : TJSAdditiveExpressionPlus;
+
+begin
+  CreateParser('(3 + 4)*2;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSMultiplicativeExpressionMul);
+  E:=TJSMultiplicativeExpressionMul(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.A,TJSAdditiveExpressionPlus);
+  R:=TJSAdditiveExpressionPlus(E.A);
+  CheckClass(E.B,TJSLiteral);
+  AssertNotNull('Multiplication left operand assigned',R.A);
+  AssertNotNull('Multiplication right operand assigned',R.B);
+  CheckClass(R.A,TJSLiteral);
+  CheckClass(R.B,TJSLiteral);
+  AssertEquals('Multiplication left operand type correct', jstNumber, TJSLiteral(E.B).Value.ValueType);
+  AssertEquals('Multiplication left operand value correct', 2.0, TJSLiteral(E.B).Value.AsNumber);
+  AssertEquals('Addition left operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('Multiplication right operand value correct', 3.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertNotNull('Addition right operand value assigned',TJSLiteral(R.B).Value);
+  AssertEquals('Addition left operand type correct', jstNumber, TJSLiteral(R.B).Value.ValueType);
+  AssertEquals('Addition right operand value correct', 4.0,TJSLiteral(R.B).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionFunction;
+Var
+  X : TJSExpressionStatement;
+  A  : TJSSimpleAssignStatement;
+begin
+  CreateParser('a = function () {};');
+  X:=GetExpressionStatement;
+  CheckClass(X.A,TJSSimpleAssignStatement);
+  A:=TJSSimpleAssignStatement(X.A);
+  AssertNotNull('Have left operand',A.LHS);
+  CheckClass(A.LHS,TJSPrimaryExpressionIdent);
+  AssertEquals('Correct name for assignment LHS ','a',TJSPrimaryExpressionIdent(A.LHS).AString);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedencePlusMul;
+
+Var
+  X : TJSExpressionStatement;
+  E : TJSAdditiveExpressionPlus;
+  R : TJSMultiplicativeExpressionMul;
+begin
+  CreateParser('4 + 2 * 3;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSAdditiveExpressionPlus);
+  E:=TJSAdditiveExpressionPlus(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.B,TJSMultiplicativeExpressionMul);
+  R:=TJSMultiplicativeExpressionMul(E.B);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('Multiplication left operand assigned',R.A);
+  AssertNotNull('Multiplication right operand assigned',R.B);
+  CheckClass(R.A,TJSLiteral);
+  CheckClass(R.B,TJSLiteral);
+  AssertEquals('Multiplication left operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('Multiplication left operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertEquals('Multiplication right operand type correct', jstNumber, TJSLiteral(R.B).Value.ValueType);
+  AssertEquals('Multiplication right operand value correct', 3.0, TJSLiteral(R.B).Value.AsNumber);
+  AssertNotNull('Addition left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Addition left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Addition left operand value correct', 4.0,TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedenceMulMinus;
+
+Var
+  X : TJSExpressionStatement;
+  E : TJSAdditiveExpressionMinus;
+  R : TJSMultiplicativeExpressionMul;
+
+begin
+  CreateParser('2 * 3 - 4;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSAdditiveExpressionMinus);
+  E:=TJSAdditiveExpressionMinus(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.A,TJSMultiplicativeExpressionMul);
+  R:=TJSMultiplicativeExpressionMul(E.A);
+  CheckClass(E.B,TJSLiteral);
+  AssertNotNull('Multiplication left operand assigned',R.A);
+  AssertNotNull('Multiplication right operand assigned',R.B);
+  CheckClass(R.A,TJSLiteral);
+  CheckClass(R.B,TJSLiteral);
+  AssertEquals('Multiplication left operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('Multiplication left operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertEquals('Multiplication right operand type correct', jstNumber, TJSLiteral(R.B).Value.ValueType);
+  AssertEquals('Multiplication right operand value correct', 3.0, TJSLiteral(R.B).Value.AsNumber);
+  AssertNotNull('subtraction right operand value assigned',TJSLiteral(E.B).Value);
+  AssertEquals('subtraction right operand type correct', jstNumber, TJSLiteral(E.B).Value.ValueType);
+  AssertEquals('subtraction right operand value correct', 4.0,TJSLiteral(E.B).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedenceMinusMul;
+
+Var
+  X : TJSExpressionStatement;
+  E : TJSAdditiveExpressionMinus;
+  R : TJSMultiplicativeExpressionMul;
+begin
+  CreateParser('4 - 2 * 3;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSAdditiveExpressionMinus);
+  E:=TJSAdditiveExpressionMinus(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.B,TJSMultiplicativeExpressionMul);
+  R:=TJSMultiplicativeExpressionMul(E.B);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('Multiplication left operand assigned',R.A);
+  AssertNotNull('Multiplication right operand assigned',R.B);
+  CheckClass(R.A,TJSLiteral);
+  CheckClass(R.B,TJSLiteral);
+  AssertEquals('Multiplication left operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('Multiplication left operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertEquals('Multiplication right operand type correct', jstNumber, TJSLiteral(R.B).Value.ValueType);
+  AssertEquals('Multiplication right operand value correct', 3.0, TJSLiteral(R.B).Value.AsNumber);
+  AssertNotNull('Subtraction left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Subtraction left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Subtraction left operand value correct', 4.0,TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedenceDivPlus;
+
+Var
+  X : TJSExpressionStatement;
+  E : TJSAdditiveExpressionPlus;
+  R : TJSMultiplicativeExpressionDiv;
+begin
+  CreateParser('2 / 3 + 4;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSAdditiveExpressionPlus);
+  E:=TJSAdditiveExpressionPlus(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.A,TJSMultiplicativeExpressionDiv);
+  R:=TJSMultiplicativeExpressionDiv(E.A);
+  CheckClass(E.B,TJSLiteral);
+  AssertNotNull('Div left operand assigned',R.A);
+  AssertNotNull('Div right operand assigned',R.B);
+  CheckClass(R.A,TJSLiteral);
+  CheckClass(R.B,TJSLiteral);
+  AssertEquals('Div left operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('Div left operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertEquals('Div right operand type correct', jstNumber, TJSLiteral(R.B).Value.ValueType);
+  AssertEquals('Div right operand value correct', 3.0, TJSLiteral(R.B).Value.AsNumber);
+  AssertNotNull('Addition right operand value assigned',TJSLiteral(E.B).Value);
+  AssertEquals('Addition right operand type correct', jstNumber, TJSLiteral(E.B).Value.ValueType);
+  AssertEquals('Addition right operand value correct', 4.0,TJSLiteral(E.B).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedencePlusDiv;
+
+Var
+  X : TJSExpressionStatement;
+  E : TJSAdditiveExpressionPlus;
+  R : TJSMultiplicativeExpressionDiv;
+
+begin
+  CreateParser('4 + 2 / 3;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSAdditiveExpressionPlus);
+  E:=TJSAdditiveExpressionPlus(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.B,TJSMultiplicativeExpressionDiv);
+  R:=TJSMultiplicativeExpressionDiv(E.B);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('Div left operand assigned',R.A);
+  AssertNotNull('Div right operand assigned',R.B);
+  CheckClass(R.A,TJSLiteral);
+  CheckClass(R.B,TJSLiteral);
+  AssertEquals('Div left operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('Div left operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertEquals('Div right operand type correct', jstNumber, TJSLiteral(R.B).Value.ValueType);
+  AssertEquals('Div right operand value correct', 3.0, TJSLiteral(R.B).Value.AsNumber);
+  AssertNotNull('Addition left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Addition left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Addition left operand value correct', 4.0,TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedenceModPlus;
+
+Var
+  X : TJSExpressionStatement;
+  E : TJSAdditiveExpressionPlus;
+  R : TJSMultiplicativeExpressionMod;
+begin
+  CreateParser('2 % 3 + 4;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSAdditiveExpressionPlus);
+  E:=TJSAdditiveExpressionPlus(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.A,TJSMultiplicativeExpressionMod);
+  R:=TJSMultiplicativeExpressionMod(E.A);
+  CheckClass(E.B,TJSLiteral);
+  AssertNotNull('mod left operand assigned',R.A);
+  AssertNotNull('mod right operand assigned',R.B);
+  CheckClass(R.A,TJSLiteral);
+  CheckClass(R.B,TJSLiteral);
+  AssertEquals('mod left operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('mod left operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertEquals('mod right operand type correct', jstNumber, TJSLiteral(R.B).Value.ValueType);
+  AssertEquals('mod right operand value correct', 3.0, TJSLiteral(R.B).Value.AsNumber);
+  AssertNotNull('Addition right operand value assigned',TJSLiteral(E.B).Value);
+  AssertEquals('Addition right operand type correct', jstNumber, TJSLiteral(E.B).Value.ValueType);
+  AssertEquals('Addition right operand value correct', 4.0,TJSLiteral(E.B).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedencePlusMod;
+
+Var
+  X : TJSExpressionStatement;
+  E : TJSAdditiveExpressionPlus;
+  R : TJSMultiplicativeExpressionMod;
+
+begin
+  CreateParser('4 + 2 % 3;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSAdditiveExpressionPlus);
+  E:=TJSAdditiveExpressionPlus(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.B,TJSMultiplicativeExpressionMod);
+  R:=TJSMultiplicativeExpressionMod(E.B);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('Mod left operand assigned',R.A);
+  AssertNotNull('Mod right operand assigned',R.B);
+  CheckClass(R.A,TJSLiteral);
+  CheckClass(R.B,TJSLiteral);
+  AssertEquals('Mod left operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('Mod left operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertEquals('Mod right operand type correct', jstNumber, TJSLiteral(R.B).Value.ValueType);
+  AssertEquals('Mod right operand value correct', 3.0, TJSLiteral(R.B).Value.AsNumber);
+  AssertNotNull('Addition right operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Addition left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Addition left operand value correct', 4.0,TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedencePlusPostPlusPlus;
+
+Var
+  X : TJSExpressionStatement;
+  R : TJSUnaryPostPlusPlusExpression;
+  E : TJSAdditiveExpressionPlus;
+
+begin
+  CreateParser('4 + 2++;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSAdditiveExpressionPlus);
+  E:=TJSAdditiveExpressionPlus(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.B,TJSUnaryPostPlusPlusExpression);
+  R:=TJSUnaryPostPlusPlusExpression(E.B);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('++ operand assigned',R.A);
+  CheckClass(R.A,TJSLiteral);
+  AssertEquals('++ operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('++ operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertNotNull('Addition left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Addition left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Addition left operand value correct', 4.0,TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedencePlusPostMinusMinus;
+Var
+  X : TJSExpressionStatement;
+  R : TJSUnaryPostMinusMinusExpression;
+  E : TJSAdditiveExpressionPlus;
+
+begin
+  CreateParser('4 + 2--;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSAdditiveExpressionPlus);
+  E:=TJSAdditiveExpressionPlus(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.B,TJSUnaryPostMinusMinusExpression);
+  R:=TJSUnaryPostMinusMinusExpression(E.B);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('-- operand assigned',R.A);
+  CheckClass(R.A,TJSLiteral);
+  AssertEquals('-- operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('-- operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertNotNull('Addition left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Addition left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Addition left operand value correct', 4.0,TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedenceMulPostPlusPlus;
+
+Var
+  X : TJSExpressionStatement;
+  R : TJSUnaryPostPlusPlusExpression;
+  E : TJSMultiplicativeExpressionMul;
+
+begin
+  CreateParser('4 * 2++;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSMultiplicativeExpressionMul);
+  E:=TJSMultiplicativeExpressionMul(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.B,TJSUnaryPostPlusPlusExpression);
+  R:=TJSUnaryPostPlusPlusExpression(E.B);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('++operand assigned',R.A);
+  CheckClass(R.A,TJSLiteral);
+  AssertEquals('++ operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('++ operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertNotNull('Multiplication left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Multiplication left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Multiplication left operand value correct', 4.0,TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedenceMulPostMinusMinus;
+Var
+  X : TJSExpressionStatement;
+  R : TJSUnaryPostMinusMinusExpression;
+  E : TJSMultiplicativeExpressionMul;
+
+begin
+  CreateParser('4 * 2--;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSMultiplicativeExpressionMul);
+  E:=TJSMultiplicativeExpressionMul(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.B,TJSUnaryPostMinusMinusExpression);
+  R:=TJSUnaryPostMinusMinusExpression(E.B);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('-- operand assigned',R.A);
+  CheckClass(R.A,TJSLiteral);
+  AssertEquals('-- operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('-- operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertNotNull('Multiplication left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Multiplication left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Multiplication left operand value correct', 4.0,TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedencePlusPrePlusPlus;
+
+Var
+  X : TJSExpressionStatement;
+  R : TJSUnaryPrePlusPlusExpression;
+  E : TJSAdditiveExpressionPlus;
+
+begin
+  CreateParser('4 + ++2;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSAdditiveExpressionPlus);
+  E:=TJSAdditiveExpressionPlus(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.B,TJSUnaryPrePlusPlusExpression);
+  R:=TJSUnaryPrePlusPlusExpression(E.B);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('Multiplication left operand assigned',R.A);
+  CheckClass(R.A,TJSLiteral);
+  AssertEquals('++ operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('++ operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertNotNull('Addition left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Addition left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Addition left operand value correct', 4.0,TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedencePlusInv;
+
+Var
+  X : TJSExpressionStatement;
+  R : TJSUnaryInvExpression;
+  E : TJSAdditiveExpressionPlus;
+
+begin
+    CreateParser('4 + ~2;');
+    X:=GetExpressionStatement;
+    AssertNotNull('Expression statement assigned',X.A);
+    CheckClass(X.A,TJSAdditiveExpressionPlus);
+    E:=TJSAdditiveExpressionPlus(X.A);
+    AssertNotNull('Expression left operand assigned',E.A);
+    AssertNotNull('Expression right operand assigned',E.B);
+    CheckClass(E.B,TJSUnaryInvExpression);
+    R:=TJSUnaryInvExpression(E.B);
+    CheckClass(E.A,TJSLiteral);
+    AssertNotNull('Multiplication left operand assigned',R.A);
+    CheckClass(R.A,TJSLiteral);
+    AssertEquals('inv operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+    AssertEquals('inv operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+    AssertNotNull('Addition left operand value assigned',TJSLiteral(E.A).Value);
+    AssertEquals('Addition left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+    AssertEquals('Addition left operand value correct', 4.0,TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedenceMulInv;
+
+Var
+  X : TJSExpressionStatement;
+  R : TJSUnaryInvExpression;
+  E : TJSMultiplicativeExpressionMul;
+
+begin
+  CreateParser('4 * ~2;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSMultiplicativeExpressionMul);
+  E:=TJSMultiplicativeExpressionMul(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.B,TJSUnaryInvExpression);
+  R:=TJSUnaryInvExpression(E.B);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('Multiplication left operand assigned',R.A);
+  CheckClass(R.A,TJSLiteral);
+  AssertEquals('Inv operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('Inv operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertNotNull('Multiplication left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Multiplication left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Multiplication left operand value correct', 4.0,TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedencePlusNot;
+
+Var
+  X : TJSExpressionStatement;
+  R : TJSUnaryNotExpression;
+  E : TJSAdditiveExpressionPlus;
+
+begin
+    CreateParser('4 + !2;');
+    X:=GetExpressionStatement;
+    AssertNotNull('Expression statement assigned',X.A);
+    CheckClass(X.A,TJSAdditiveExpressionPlus);
+    E:=TJSAdditiveExpressionPlus(X.A);
+    AssertNotNull('Expression left operand assigned',E.A);
+    AssertNotNull('Expression right operand assigned',E.B);
+    CheckClass(E.B,TJSUnaryNotExpression);
+    R:=TJSUnaryNotExpression(E.B);
+    CheckClass(E.A,TJSLiteral);
+    AssertNotNull('Multiplication left operand assigned',R.A);
+    CheckClass(R.A,TJSLiteral);
+    AssertEquals('Not operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+    AssertEquals('Not operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+    AssertNotNull('Addition left operand value assigned',TJSLiteral(E.A).Value);
+    AssertEquals('Addition left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+    AssertEquals('Addition left operand value correct', 4.0,TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestFunctionCallNoArgs;
+
+Var
+  X : TJSExpressionStatement;
+  C : TJSCallExpression;
+
+begin
+  CreateParser('abc();');
+  X:=GetExpressionStatement;
+  CheckClass(X.A,TJSCallExpression);
+  C:=TJSCallExpression(X.A);
+  AssertEquals('No arguments',0,C.Args.Elements.Count);
+  AssertNotNull('Call function expression',C.Expr);
+  CheckClass(C.Expr,TJSPrimaryExpressionIdent);
+  AssertEquals('Function name correct','abc',TJSPrimaryExpressionIdent(C.Expr).AString);
+end;
+
+procedure TTestJSParser.TestFunctionCallOneArg;
+
+Var
+  X : TJSExpressionStatement;
+  C : TJSCallExpression;
+  E : TJSelement;
+
+begin
+  CreateParser('abc(d);');
+  X:=GetExpressionStatement;
+  CheckClass(X.A,TJSCallExpression);
+  C:=TJSCallExpression(X.A);
+  AssertNotNull('Call function expression',C.Expr);
+  CheckClass(C.Expr,TJSPrimaryExpressionIdent);
+  AssertEquals('Function name correct','abc',TJSPrimaryExpressionIdent(C.Expr).AString);
+  AssertEquals('1 argument',1,C.Args.Elements.Count);
+  E:=C.Args.Elements[0].Expr;
+  AssertNotNull('First argument expression',E);
+  CheckClass(E,TJSPrimaryExpressionIdent);
+  AssertEquals('First argument name correct','d',TJSPrimaryExpressionIdent(E).AString);
+end;
+
+procedure TTestJSParser.TestFunctionCallTwoArgs;
+
+Var
+  X : TJSExpressionStatement;
+  C : TJSCallExpression;
+  E : TJSelement;
+
+begin
+  CreateParser('abc(d,e);');
+  X:=GetExpressionStatement;
+  CheckClass(X.A,TJSCallExpression);
+  C:=TJSCallExpression(X.A);
+  AssertNotNull('Call function expression',C.Expr);
+  CheckClass(C.Expr,TJSPrimaryExpressionIdent);
+  AssertEquals('Function name correct','abc',TJSPrimaryExpressionIdent(C.Expr).AString);
+  AssertEquals('2 arguments',2,C.Args.Elements.Count);
+  E:=C.Args.Elements[0].Expr;
+  AssertNotNull('First argument expression',E);
+  CheckClass(E,TJSPrimaryExpressionIdent);
+  AssertEquals('First argument name correct','d',TJSPrimaryExpressionIdent(E).AString);
+  E:=C.Args.Elements[1].Expr;
+  AssertNotNull('Second argument expression',E);
+  CheckClass(E,TJSPrimaryExpressionIdent);
+  AssertEquals('Second argument name correct','e',TJSPrimaryExpressionIdent(E).AString);
+end;
+
+procedure TTestJSParser.TestArrayExpressionNumericalArgs;
+Var
+  X : TJSExpressionStatement;
+  B : TJSBracketMemberExpression;
+
+begin
+  CreateParser('A[1];');
+  X:=GetExpressionStatement;
+  CheckClass(X.A,TJSBracketMemberExpression);
+  B:=TJSBracketMemberExpression(X.A);
+  CheckClass(B.Name,TJSLiteral);
+  AssertEquals('Member name operand type correct', jstNumber, TJSLiteral(B.Name).Value.ValueType);
+  AssertEquals('Member name operand value correct', 1.0, TJSLiteral(B.Name).Value.AsNumber);
+  CheckClass(B.Mexpr,TJSPrimaryExpressionIdent);
+  AssertEquals('Array name correct','A',TJSPrimaryExpressionIdent(B.Mexpr).AString);
+end;
+
+procedure TTestJSParser.TestArrayExpressionStringArgs;
+Var
+  X : TJSExpressionStatement;
+  B : TJSBracketMemberExpression;
+
+begin
+  CreateParser('A["propname"];');
+  X:=GetExpressionStatement;
+  CheckClass(X.A,TJSBracketMemberExpression);
+  B:=TJSBracketMemberExpression(X.A);
+  CheckClass(B.Name,TJSLiteral);
+  AssertEquals('Member name operand type correct', jstString, TJSLiteral(B.Name).Value.ValueType);
+  AssertEquals('Member name operand value correct', 'propname', TJSLiteral(B.Name).Value.AsString);
+  CheckClass(B.Mexpr,TJSPrimaryExpressionIdent);
+  AssertEquals('Array name correct','A',TJSPrimaryExpressionIdent(B.Mexpr).AString);
+end;
+
+procedure TTestJSParser.TestArrayExpressionIdentArgs;
+
+Var
+  X : TJSExpressionStatement;
+  B : TJSBracketMemberExpression;
+
+begin
+  CreateParser('A[B];');
+  X:=GetExpressionStatement;
+  CheckClass(X.A,TJSBracketMemberExpression);
+  B:=TJSBracketMemberExpression(X.A);
+  CheckClass(B.Name,TJSPrimaryExpressionIdent);
+  AssertEquals('Member name identifier correct', 'B', TJSPrimaryExpressionIdent(B.Name).AString);
+  CheckClass(B.Mexpr,TJSPrimaryExpressionIdent);
+  AssertEquals('Array name correct','A',TJSPrimaryExpressionIdent(B.Mexpr).AString);
+end;
+
+procedure TTestJSParser.TestVarDeclarationSimple;
+
+Var
+  X : TJSELement;
+  V : TJSVarDeclaration;
+begin
+  CreateParser('var a;');
+  X:=GetFirstVar;
+  CheckClass(X,TJSVarDeclaration);
+  V:=TJSVarDeclaration(X);
+//  AssertNotNull('Variable statement assigned',(X));
+  AssertEquals('variable name correct registered', 'a', V.Name);
+  AssertNull('No initialization expression', V.Init);
+end;
+
+procedure TTestJSParser.TestVarDeclarationDouble;
+
+Var
+  X : TJSELement;
+  V : TJSVarDeclaration;
+
+begin
+  CreateParser('var a, b ;');
+  AssertEquals('2 variables declared',2,GetVars.Count);
+  X:=GetFirstVar;
+  CheckClass(X,TJSVarDeclaration);
+  V:=TJSVarDeclaration(X);
+//  AssertNotNull('Variable statement assigned',(X));
+  AssertEquals('variable name correct registered', 'a', V.name);
+  X:=GetVars.Nodes[1].Node;
+  CheckClass(X,TJSVarDeclaration);
+  V:=TJSVarDeclaration(X);
+  AssertEquals('variable name correct registered', 'b', V.Name);
+  AssertNull('No initialization expression', V.Init);
+end;
+
+procedure TTestJSParser.TestVarDeclarationSimpleInit;
+
+Var
+  X : TJSELement;
+  V : TJSVarDeclaration;
+begin
+  CreateParser('var a = b;');
+  X:=GetFirstVar;
+  CheckClass(X,TJSVarDeclaration);
+  V:=TJSVarDeclaration(X);
+//  AssertNotNull('Variable statement assigned',(X));
+  AssertEquals('variable name correct registered', 'a', V.Name);
+  AssertNotNull('Initialization expression present', V.Init);
+  CheckClass(V.Init,TJSPrimaryExpressionIdent);
+  AssertEquals('Member name identifier correct', 'b', TJSPrimaryExpressionIdent(V.init).AString);
+end;
+
+procedure TTestJSParser.TestVarDeclarationDoubleInit;
+
+Var
+  X : TJSELement;
+  V : TJSVarDeclaration;
+begin
+  CreateParser('var a, c = b;');
+  AssertEquals('2 variables declared',2,GetVars.Count);
+  X:=GetFirstVar;
+  CheckClass(X,TJSVarDeclaration);
+  V:=TJSVarDeclaration(X);
+//  AssertNotNull('Variable statement assigned',(X));
+  AssertEquals('variable name correct registered', 'a', V.Name);
+  AssertNull('No initialization expression', V.Init);
+  X:=GetVars.Nodes[1].Node;
+  CheckClass(X,TJSVarDeclaration);
+  V:=TJSVarDeclaration(X);
+  AssertEquals('variable name correct registered', 'c', V.Name);
+  AssertNotNull('No initialization expression', V.Init);
+  CheckClass(V.Init,TJSPrimaryExpressionIdent);
+  AssertEquals('Member name identifier correct', 'b', TJSPrimaryExpressionIdent(V.init).AString);
+end;
+
+procedure TTestJSParser.TestBlockEmpty;
+
+Var
+  E : TJSSourceElements;
+  X : TJSElement;
+
+begin
+  CreateParser('{}');
+  E:=GetSourceElements;
+  AssertEquals('1 statement in block',1,E.Statements.Count);
+  X:=E.Statements.Nodes[0].Node;
+  CheckClass(X,TJSEmptyBlockStatement);
+end;
+
+procedure TTestJSParser.TestBlockEmptyStatement;
+
+Var
+  E : TJSSourceElements;
+  X : TJSElement;
+
+begin
+  CreateParser('{;}');
+  E:=GetSourceElements;
+  AssertEquals('1 statement in block',1,E.Statements.Count);
+  X:=E.Statements.Nodes[0].Node;
+  CheckClass(X,TJSEmptyStatement);
+end;
+
+procedure TTestJSParser.TestBlockSimpleStatement;
+
+Var
+  E : TJSSourceElements;
+  X : TJSElement;
+
+begin
+  CreateParser('{a;}');
+  E:=GetSourceElements;
+  AssertEquals('1 statement in block',1,E.Statements.Count);
+  X:=E.Statements.Nodes[0].Node;
+  CheckClass(X,TJSExpressionStatement);
+  CheckNotNull(TJSExpressionStatement(X).A);
+  CheckClass(TJSExpressionStatement(X).A,TJSPrimaryExpressionIdent);
+  AssertEquals('a',TJSPrimaryExpressionIdent(TJSExpressionStatement(X).A).AString)
+end;
+
+procedure TTestJSParser.TestFunctionDeclarationEmpty;
+
+Var
+  E : TJSSourceElements;
+  N : TJSElement;
+  FD : TJSFunctionDeclarationStatement;
+
+begin
+  CreateParser('function a () {}');
+  E:=GetSourceElements;
+  AssertEquals('1 function defined',1,E.functions.Count);
+  N:=E.Functions.Nodes[0].Node;
+  AssertNotNull('Function element defined ',N);
+  CheckClass(N,TJSFunctionDeclarationStatement);
+  FD:=TJSFunctionDeclarationStatement(N);
+  AssertNotNull('Function definition assigned',FD.AFunction);
+  AssertEquals('Function name OK','a',FD.AFunction.Name);
+  AssertNotNull('Function body assigned', FD.AFunction.Body);
+  AssertEquals('No parameters',0,FD.AFunction.Params.Count);
+  N:=FD.AFunction.Body;
+  CheckClass(N,TJSFunctionBody);
+  AssertNotNull('Function body has element',TJSFunctionBody(N).A);
+  CheckClass(TJSFunctionBody(N).A,  TJSSourceElements);
+  E:=TJSSourceElements(TJSFunctionBody(N).A);
+  AssertEquals('0 statement in functionbody elements',0,E.Statements.Count);
+//  TJSEmptyBlockStatement
+end;
+
+procedure TTestJSParser.TestFunctionDeclarationWithArgs;
+
+Var
+  E : TJSSourceElements;
+  N : TJSElement;
+  FD : TJSFunctionDeclarationStatement;
+
+begin
+  CreateParser('function a (b,c) {}');
+  E:=GetSourceElements;
+  AssertEquals('1 function defined',1,E.functions.Count);
+  N:=E.Functions.Nodes[0].Node;
+  AssertNotNull('Function element defined ',N);
+  CheckClass(N,TJSFunctionDeclarationStatement);
+  FD:=TJSFunctionDeclarationStatement(N);
+  AssertNotNull('Function definition assigned',FD.AFunction);
+  AssertEquals('Function name OK','a',FD.AFunction.Name);
+  AssertNotNull('Function body assigned', FD.AFunction.Body);
+  AssertEquals('2 parameters',2,FD.AFunction.Params.Count);
+  AssertEquals('1st parameter','b',FD.AFunction.Params[0]);
+  AssertEquals('2nd parameter','c',FD.AFunction.Params[1]);
+  N:=FD.AFunction.Body;
+  CheckClass(N,TJSFunctionBody);
+  AssertNotNull('Function body has element',TJSFunctionBody(N).A);
+  CheckClass(TJSFunctionBody(N).A,  TJSSourceElements);
+  E:=TJSSourceElements(TJSFunctionBody(N).A);
+  AssertEquals('0 statement in functionbody elements',0,E.Statements.Count);
+//  TJSEmptyBlockStatement
+end;
+
+procedure TTestJSParser.TestFunctionDeclarationWithBody;
+
+Var
+  E : TJSSourceElements;
+  N : TJSElement;
+  FD : TJSFunctionDeclarationStatement;
+
+begin
+  CreateParser('function a () { b; }');
+  E:=GetSourceElements;
+  AssertEquals('1 function defined',1,E.functions.Count);
+  N:=E.Functions.Nodes[0].Node;
+  AssertNotNull('Function element defined ',N);
+  CheckClass(N,TJSFunctionDeclarationStatement);
+  FD:=TJSFunctionDeclarationStatement(N);
+  AssertNotNull('Function definition assigned',FD.AFunction);
+  AssertEquals('Function name OK','a',FD.AFunction.Name);
+  AssertNotNull('Function body assigned', FD.AFunction.Body);
+  AssertEquals('2 parameters',0,FD.AFunction.Params.Count);
+  N:=FD.AFunction.Body;
+  CheckClass(N,TJSFunctionBody);
+  AssertNotNull('Function body has element',TJSFunctionBody(N).A);
+  CheckClass(TJSFunctionBody(N).A,  TJSSourceElements);
+  E:=TJSSourceElements(TJSFunctionBody(N).A);
+  AssertEquals('1 statement in functionbody elements',1,E.Statements.Count);
+  N:=E.Statements.Nodes[0].Node;
+  CheckClass(N,TJSExpressionStatement);
+  CheckNotNull(TJSExpressionStatement(N).A);
+  CheckClass(TJSExpressionStatement(N).A,TJSPrimaryExpressionIdent);
+  AssertEquals('b',TJSPrimaryExpressionIdent(TJSExpressionStatement(N).A).AString);
+//  TJSEmptyBlockStatement
+end;
+
+procedure TTestJSParser.TestIfSimple;
+
+Var
+  E : TJSElement;
+  I : TJSIfStatement;
+
+begin
+  CreateParser('if (a) b;');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSIfStatement);
+  I:=TJSIfStatement(E);
+  AssertNotNull('Statement condition assigned',I.Cond);
+  CheckClass(I.Cond,TJSPrimaryExpressionIdent);
+  AssertEquals('a',TJSPrimaryExpressionIdent(I.Cond).AString);
+  AssertNull('Statement false branch assigned',I.BFalse);
+  AssertNotNull('Statement true branch assigned',I.Btrue);
+  CheckClass(I.Btrue,TJSExpressionStatement);
+  AssertNotNull('Expression statement expression',TJSExpressionStatement(I.BTrue).A);
+  CheckClass(TJSExpressionStatement(I.BTrue).A,TJSPrimaryExpressionIdent);
+  AssertEquals('b',TJSPrimaryExpressionIdent(TJSExpressionStatement(I.Btrue).A).AString);
+end;
+
+procedure TTestJSParser.TestIfEmptyBlock;
+
+Var
+  E : TJSElement;
+  I : TJSIfStatement;
+
+begin
+  CreateParser('if (a) {}');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSIfStatement);
+  I:=TJSIfStatement(E);
+  AssertNotNull('Statement condition assigned',I.Cond);
+  CheckClass(I.Cond,TJSPrimaryExpressionIdent);
+  AssertEquals('a',TJSPrimaryExpressionIdent(I.Cond).AString);
+  AssertNull('Statement false branch assigned',I.BFalse);
+  AssertNotNull('Statement true branch assigned',I.Btrue);
+  CheckClass(I.Btrue,TJSEmptyBlockStatement);
+end;
+
+procedure TTestJSParser.TestIfEmptyBlockElse;
+
+Var
+  E : TJSElement;
+  I : TJSIfStatement;
+
+begin
+  CreateParser('if (a) {} else b;');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSIfStatement);
+  I:=TJSIfStatement(E);
+  AssertNotNull('Statement condition assigned',I.Cond);
+  CheckClass(I.Cond,TJSPrimaryExpressionIdent);
+  AssertEquals('a',TJSPrimaryExpressionIdent(I.Cond).AString);
+  AssertNotNull('Statement false branch assigned',I.BFalse);
+  AssertNotNull('Statement true branch assigned',I.Btrue);
+  CheckClass(I.Btrue,TJSEmptyBlockStatement);
+end;
+
+procedure TTestJSParser.TestWhileSimple;
+Var
+  E : TJSElement;
+  W : TJSWhileStatement;
+
+begin
+  CreateParser('while (a) b;');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSWhileStatement);
+  W:=TJSWhileStatement(E);
+  AssertNotNull('Statement condition assigned',W.Cond);
+  CheckClass(W.Cond,TJSPrimaryExpressionIdent);
+  AssertEquals('a',TJSPrimaryExpressionIdent(W.Cond).AString);
+  AssertNotNull('Statement condition assigned',W.body);
+  CheckClass(W.Body,TJSExpressionStatement);
+  AssertNotNull('Expression statement expression',TJSExpressionStatement(W.Body).A);
+  CheckClass(TJSExpressionStatement(W.Body).A,TJSPrimaryExpressionIdent);
+  AssertEquals('b',TJSPrimaryExpressionIdent(TJSExpressionStatement(W.Body).A).AString);
+end;
+
+procedure TTestJSParser.TestWhileBlock;
+
+Var
+  E : TJSElement;
+  W : TJSWhileStatement;
+//  B : TJSBlockStatement;
+
+begin
+  CreateParser('while (a) {b;}');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSWhileStatement);
+  W:=TJSWhileStatement(E);
+  AssertNotNull('Statement condition assigned',W.Cond);
+  CheckClass(W.Cond,TJSPrimaryExpressionIdent);
+  AssertEquals('a',TJSPrimaryExpressionIdent(W.Cond).AString);
+  AssertNotNull('Statement condition assigned',W.body);
+  CheckClass(W.Body,TJSExpressionStatement);
+  AssertNotNull('Expression statement expression',TJSExpressionStatement(W.Body).A);
+  CheckClass(TJSExpressionStatement(W.Body).A,TJSPrimaryExpressionIdent);
+  AssertEquals('b',TJSPrimaryExpressionIdent(TJSExpressionStatement(W.Body).A).AString);
+end;
+
+procedure TTestJSParser.TestDoWhileSimple;
+
+Var
+  E : TJSElement;
+  W : TJSWhileStatement;
+//  B : TJSBlockStatement;
+
+begin
+  CreateParser('do b; while (a);');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSWhileStatement);
+  W:=TJSWhileStatement(E);
+  AssertNotNull('Statement condition assigned',W.Cond);
+  CheckClass(W.Cond,TJSPrimaryExpressionIdent);
+  AssertEquals('a',TJSPrimaryExpressionIdent(W.Cond).AString);
+  AssertNotNull('Statement condition assigned',W.body);
+  CheckClass(W.Body,TJSExpressionStatement);
+  AssertNotNull('Expression statement expression',TJSExpressionStatement(W.Body).A);
+  CheckClass(TJSExpressionStatement(W.Body).A,TJSPrimaryExpressionIdent);
+  AssertEquals('b',TJSPrimaryExpressionIdent(TJSExpressionStatement(W.Body).A).AString);
+end;
+
+procedure TTestJSParser.TestDoWhileBlock;
+
+Var
+  E : TJSElement;
+  W : TJSWhileStatement;
+//  B : TJSBlockStatement;
+
+begin
+  CreateParser('do {b;} while (a);');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSWhileStatement);
+  W:=TJSWhileStatement(E);
+  AssertNotNull('Statement condition assigned',W.Cond);
+  CheckClass(W.Cond,TJSPrimaryExpressionIdent);
+  AssertEquals('a',TJSPrimaryExpressionIdent(W.Cond).AString);
+  AssertNotNull('Statement condition assigned',W.body);
+  CheckClass(W.Body,TJSExpressionStatement);
+  AssertNotNull('Expression statement expression',TJSExpressionStatement(W.Body).A);
+  CheckClass(TJSExpressionStatement(W.Body).A,TJSPrimaryExpressionIdent);
+  AssertEquals('b',TJSPrimaryExpressionIdent(TJSExpressionStatement(W.Body).A).AString);
+end;
+
+procedure TTestJSParser.TestForEmpty;
+
+Var
+  E : TJSElement;
+  F : TJSForStatement;
+
+begin
+  CreateParser('for (;;) a;');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSForStatement);
+  F:=TJSForStatement(E);
+  AssertNull('Statement condition not assigned',F.Cond);
+  AssertNull('Statement init not assigned',F.Init);
+  AssertNull('Statement step not assigned',F.Incr);
+  CheckClass(F.Body,TJSExpressionStatement);
+  AssertNotNull('Expression statement expression',TJSExpressionStatement(F.Body).A);
+  CheckClass(TJSExpressionStatement(F.Body).A,TJSPrimaryExpressionIdent);
+  AssertEquals('a',TJSPrimaryExpressionIdent(TJSExpressionStatement(F.Body).A).AString);
+end;
+
+procedure TTestJSParser.TestForEmptyBody;
+
+Var
+  E : TJSElement;
+  F : TJSForStatement;
+
+begin
+  CreateParser('for (;;) {a;}');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSForStatement);
+  F:=TJSForStatement(E);
+  AssertNull('Statement condition not assigned',F.Cond);
+  AssertNull('Statement init not assigned',F.Init);
+  AssertNull('Statement step not assigned',F.Incr);
+  CheckClass(F.Body,TJSExpressionStatement);
+  AssertNotNull('Expression statement expression',TJSExpressionStatement(F.Body).A);
+  CheckClass(TJSExpressionStatement(F.Body).A,TJSPrimaryExpressionIdent);
+  AssertEquals('a',TJSPrimaryExpressionIdent(TJSExpressionStatement(F.Body).A).AString);
+end;
+
+procedure TTestJSParser.TestForSimpleBody;
+
+Var
+  E : TJSElement;
+  F : TJSForStatement;
+
+begin
+  CreateParser('for (a;b;c) {d;}');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSForStatement);
+  F:=TJSForStatement(E);
+  AssertNotNull('Statement condition not assigned',F.Cond);
+  AssertNotNull('Statement init not assigned',F.Init);
+  AssertNotNull('Statement step not assigned',F.Incr);
+  CheckClass(F.Init,TJSPrimaryExpressionIdent);
+  AssertNotNull('Expression statement expression',TJSPrimaryExpressionIdent(F.Init));
+  AssertEquals('a',TJSPrimaryExpressionIdent(F.Init).AString);
+  CheckClass(F.Incr,TJSPrimaryExpressionIdent);
+  AssertNotNull('Expression statement expression',TJSPrimaryExpressionIdent(F.Incr));
+  AssertEquals('c',TJSPrimaryExpressionIdent(F.Incr).AString);
+  CheckClass(F.Cond,TJSPrimaryExpressionIdent);
+  AssertNotNull('Expression statement expression',TJSPrimaryExpressionIdent(F.Cond));
+  AssertEquals('b',TJSPrimaryExpressionIdent(F.cond).AString);
+  CheckClass(F.Body,TJSExpressionStatement);
+  AssertNotNull('Expression statement expression',TJSExpressionStatement(F.Body).A);
+  CheckClass(TJSExpressionStatement(F.Body).A,TJSPrimaryExpressionIdent);
+  AssertEquals('d',TJSPrimaryExpressionIdent(TJSExpressionStatement(F.Body).A).AString);
+end;
+
+procedure TTestJSParser.TestTryCatch;
+
+Var
+  E : TJSElement;
+  T : TJSTryCatchStatement;
+
+begin
+  CreateParser('try {a;} catch (e) {b;}');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSTryCatchStatement);
+  T:=TJSTryCatchStatement(E);
+  CheckClass(T.Block,TJSExpressionStatement);
+  AssertNotNull('Expression statement expression',TJSExpressionStatement(T.Block).A);
+  CheckClass(TJSExpressionStatement(T.Block).A,TJSPrimaryExpressionIdent);
+  AssertEquals('a',TJSPrimaryExpressionIdent(TJSExpressionStatement(T.Block).A).AString);
+  CheckClass(T.BCatch,TJSExpressionStatement);
+  AssertEquals('Except object identifier name','e',T.Ident);
+  AssertNotNull('Expression statement expression',TJSExpressionStatement(T.BCatch).A);
+  CheckClass(TJSExpressionStatement(T.BCatch).A,TJSPrimaryExpressionIdent);
+  AssertEquals('b',TJSPrimaryExpressionIdent(TJSExpressionStatement(T.BCatch).A).AString);
+  AssertNull('No Finally expression',T.BFinally);
+end;
+
+procedure TTestJSParser.TestTryCatchFinally;
+
+Var
+  E : TJSElement;
+  T : TJSTryCatchFinallyStatement;
+
+begin
+  CreateParser('try {a;} catch (e) {b;} finally {c;}');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSTryCatchFinallyStatement);
+  T:=TJSTryCatchFinallyStatement(E);
+  CheckClass(T.Block,TJSExpressionStatement);
+  AssertNotNull('Expression statement expression',TJSExpressionStatement(T.Block).A);
+  CheckClass(TJSExpressionStatement(T.Block).A,TJSPrimaryExpressionIdent);
+  AssertEquals('a',TJSPrimaryExpressionIdent(TJSExpressionStatement(T.Block).A).AString);
+  AssertEquals('Except object identifier name','e',T.Ident);
+  CheckClass(T.BCatch,TJSExpressionStatement);
+  AssertNotNull('Expression statement expression',TJSExpressionStatement(T.BCatch).A);
+  CheckClass(TJSExpressionStatement(T.BCatch).A,TJSPrimaryExpressionIdent);
+  AssertEquals('b',TJSPrimaryExpressionIdent(TJSExpressionStatement(T.BCatch).A).AString);
+  AssertNotNull('Finally expression',T.BFinally);
+  CheckClass(T.BFinally,TJSExpressionStatement);
+  AssertNotNull('Expression statement expression',TJSExpressionStatement(T.BFinally).A);
+  CheckClass(TJSExpressionStatement(T.BFinally).A,TJSPrimaryExpressionIdent);
+  AssertEquals('c',TJSPrimaryExpressionIdent(TJSExpressionStatement(T.BFinally).A).AString);
+end;
+
+procedure TTestJSParser.TestTryFinally;
+
+Var
+  E : TJSElement;
+  T : TJSTryFinallyStatement;
+
+begin
+  CreateParser('try {a;} finally {c;}');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSTryFinallyStatement);
+  T:=TJSTryFinallyStatement(E);
+  CheckClass(T.Block,TJSExpressionStatement);
+  AssertNotNull('Expression statement expression',TJSExpressionStatement(T.Block).A);
+  CheckClass(TJSExpressionStatement(T.Block).A,TJSPrimaryExpressionIdent);
+  AssertEquals('a',TJSPrimaryExpressionIdent(TJSExpressionStatement(T.Block).A).AString);
+  AssertNull('No catch',T.BCatch);
+  AssertNotNull('Finally expression',T.BFinally);
+  AssertNotNull('Finally expression',TJSExpressionStatement(T.BFinally).A);
+  CheckClass(TJSExpressionStatement(T.BFinally).A,TJSPrimaryExpressionIdent);
+  AssertEquals('c',TJSPrimaryExpressionIdent(TJSExpressionStatement(T.BFinally).A).AString);
+end;
+
+procedure TTestJSParser.TestThrow;
+Var
+  E : TJSElement;
+  T : TJSThrowStatement;
+
+begin
+  CreateParser('throw a;');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSThrowStatement);
+  T:=TJSThrowStatement(E);
+  AssertNotNull('Have throw object',T.A);
+  CheckClass(T.A,TJSPrimaryExpressionIdent);
+  AssertEquals('Correct identifier','a',TJSPrimaryExpressionIdent(T.A).AsTring);
+end;
+
+procedure TTestJSParser.TestReturn;
+
+Var
+  E : TJSSourceElements;
+  N : TJSElement;
+  FD : TJSFunctionDeclarationStatement;
+
+begin
+  CreateParser('function a () { return b; }');
+  E:=GetSourceElements;
+  AssertEquals('1 function defined',1,E.functions.Count);
+  N:=E.Functions.Nodes[0].Node;
+  AssertNotNull('Function element defined ',N);
+  CheckClass(N,TJSFunctionDeclarationStatement);
+  FD:=TJSFunctionDeclarationStatement(N);
+  AssertNotNull('Function definition assigned',FD.AFunction);
+  AssertEquals('Function name OK','a',FD.AFunction.Name);
+  AssertNotNull('Function body assigned', FD.AFunction.Body);
+  AssertEquals('No parameters',0,FD.AFunction.Params.Count);
+  N:=FD.AFunction.Body;
+  CheckClass(N,TJSFunctionBody);
+  AssertNotNull('Function body has element',TJSFunctionBody(N).A);
+  CheckClass(TJSFunctionBody(N).A,  TJSSourceElements);
+  E:=TJSSourceElements(TJSFunctionBody(N).A);
+  AssertEquals('1 statement in functionbody elements',1,E.Statements.Count);
+end;
+
+procedure TTestJSParser.TestIfElseSimple;
+
+Var
+  E : TJSElement;
+  I : TJSIfStatement;
+
+begin
+  CreateParser('if (a) b; else c;');
+  E:=GetFirstStatement;
+  CheckClass(E,TJSIfStatement);
+  I:=TJSIfStatement(E);
+  AssertNotNull('Statement condition assigned',I.Cond);
+  CheckClass(I.Cond,TJSPrimaryExpressionIdent);
+  AssertEquals('a',TJSPrimaryExpressionIdent(I.Cond).AString);
+  AssertNotNull('Statement condition assigned',I.Btrue);
+  CheckClass(I.Btrue,TJSExpressionStatement);
+  AssertNotNull('Expression statement expression',TJSExpressionStatement(I.BTrue).A);
+  CheckClass(TJSExpressionStatement(I.BTrue).A,TJSPrimaryExpressionIdent);
+  AssertEquals('b',TJSPrimaryExpressionIdent(TJSExpressionStatement(I.Btrue).A).AString);
+  AssertNotNull('Else Statement condition assigned',I.BFalse);
+  CheckClass(I.BFalse,TJSExpressionStatement);
+  AssertNotNull('Else statement expression',TJSExpressionStatement(I.BFalse).A);
+  CheckClass(TJSExpressionStatement(I.BFalse).A,TJSPrimaryExpressionIdent);
+  AssertEquals('c',TJSPrimaryExpressionIdent(TJSExpressionStatement(I.BFalse).A).AString);
+end;
+
+
+procedure TTestJSParser.TestExpressionPrecedenceMulNot;
+
+Var
+  X : TJSExpressionStatement;
+  R : TJSUnaryNotExpression;
+  E : TJSMultiplicativeExpressionMul;
+
+begin
+  CreateParser('4 * !2;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSMultiplicativeExpressionMul);
+  E:=TJSMultiplicativeExpressionMul(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.B,TJSUnaryNotExpression);
+  R:=TJSUnaryNotExpression(E.B);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('Multiplication left operand assigned',R.A);
+  CheckClass(R.A,TJSLiteral);
+  AssertEquals('Not operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('Not operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertNotNull('Multiplication left operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Multiplication left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Multiplication left operand value correct', 4.0,TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedencePlusPreMinusMinus;
+Var
+  X : TJSExpressionStatement;
+  R : TJSUnaryPreMinusMinusExpression;
+  E : TJSAdditiveExpressionPlus;
+
+begin
+  CreateParser('4 + --2;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSAdditiveExpressionPlus);
+  E:=TJSAdditiveExpressionPlus(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.B,TJSUnaryPreMinusMinusExpression);
+  R:=TJSUnaryPreMinusMinusExpression(E.B);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('Multiplication left operand assigned',R.A);
+  CheckClass(R.A,TJSLiteral);
+  AssertEquals('Multiplication left operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('Multiplication left operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertNotNull('Addition right operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Addition left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Expression right operand value correct', 4.0,TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedenceMulPrePlusPlus;
+
+Var
+  X : TJSExpressionStatement;
+  R : TJSUnaryPrePlusPlusExpression;
+  E : TJSMultiplicativeExpressionMul;
+
+begin
+  CreateParser('4 * ++2;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSMultiplicativeExpressionMul);
+  E:=TJSMultiplicativeExpressionMul(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.B,TJSUnaryPrePlusPlusExpression);
+  R:=TJSUnaryPrePlusPlusExpression(E.B);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('Multiplication left operand assigned',R.A);
+  CheckClass(R.A,TJSLiteral);
+  AssertEquals('Multiplication left operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('Multiplication left operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertNotNull('Addition right operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Addition left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Expression right operand value correct', 4.0,TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestExpressionPrecedenceMulPreMinusMinus;
+Var
+  X : TJSExpressionStatement;
+  R : TJSUnaryPreMinusMinusExpression;
+  E : TJSMultiplicativeExpressionMul;
+
+begin
+  CreateParser('4 * --2;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSMultiplicativeExpressionMul);
+  E:=TJSMultiplicativeExpressionMul(X.A);
+  AssertNotNull('Expression left operand assigned',E.A);
+  AssertNotNull('Expression right operand assigned',E.B);
+  CheckClass(E.B,TJSUnaryPreMinusMinusExpression);
+  R:=TJSUnaryPreMinusMinusExpression(E.B);
+  CheckClass(E.A,TJSLiteral);
+  AssertNotNull('Multiplication left operand assigned',R.A);
+  CheckClass(R.A,TJSLiteral);
+  AssertEquals('Multiplication left operand type correct', jstNumber, TJSLiteral(R.A).Value.ValueType);
+  AssertEquals('Multiplication left operand value correct', 2.0, TJSLiteral(R.A).Value.AsNumber);
+  AssertNotNull('Addition right operand value assigned',TJSLiteral(E.A).Value);
+  AssertEquals('Addition left operand type correct', jstNumber, TJSLiteral(E.A).Value.ValueType);
+  AssertEquals('Expression right operand value correct', 4.0,TJSLiteral(E.A).Value.AsNumber);
+end;
+
+procedure TTestJSParser.TestSimpleExpressionBooleanLiteralTrue;
+
+Var
+  X : TJSExpressionStatement;
+
+begin
+  CreateParser('true;');
+  X:=GetExpressionStatement;
+  AssertNotNull('Expression statement assigned',X.A);
+  CheckClass(X.A,TJSLiteral);
+  AssertNotNull('Expression value assigned',TJSLiteral(X.A).Value);
+  AssertEquals('Expression value type correct', jstBoolean,TJSLiteral(X.A).Value.ValueType);
+  AssertEquals('Expression value correct', True, TJSLiteral(X.A).Value.AsBoolean);
+end;
+
+
+procedure TTestJSParser.TestEmpty;
+
+Var
+  E : TJSElement;
+  FB : TJSFunctionBody;
+  SE : TJSSourceElements;
+
+begin
+  CreateParser('var a;');
+  E:=FParser.Parse;
+  CheckClass(E,TJSFunctionBody);
+  FB:=TJSFunctionBody(E);
+  AssertNotNull(FB.A);
+  CheckClass(FB.A,TJSSourceElements);
+  SE:=TJSSourceElements(FB.A);
+  AssertEquals('1 variable declaration ',1,SE.Vars.Count);
+  CheckClass(FB.A,TJSSourceElements);
+end;
+
+procedure TTestJSParser.SetUp; 
+begin
+  FParser:=Nil;
+  FSource:=Nil;
+end; 
+
+procedure TTestJSParser.TearDown; 
+begin
+//  FreeAndNil(FToFree);
+  FreeAndNil(FParser);
+  FReeAndNil(FSource);
+end;
+
+procedure TTestJSParser.CreateParser(const ASource: string);
+begin
+  FSource:=TStringStream.Create(ASource);
+  FParser:=TJSParser.Create(FSource);
+end;
+
+procedure TTestJSParser.CheckClass(E: TJSElement; C: TJSElementClass);
+begin
+  AssertEquals(C,E.ClassType);
+end;
+
+function TTestJSParser.GetSourceElements: TJSSourceElements;
+
+Var
+  E : TJSElement;
+  FB : TJSFunctionBody;
+
+begin
+  If Not Assigned(FSE) then
+    begin
+    AssertNotNull('Parser assigned',FParser);
+    E:=FParser.Parse;
+    CheckClass(E,TJSFunctionBody);
+    FB:=TJSFunctionBody(E);
+    AssertNotNull(FB.A);
+    CheckClass(FB.A,TJSSourceElements);
+    FSE:=TJSSourceElements(FB.A);
+    end;
+  Result:=FSE;
+  FToFree:=E;
+end;
+
+function TTestJSParser.GetVars: TJSElementNodes;
+begin
+  Result:=GetSourceElements.Vars;
+end;
+
+function TTestJSParser.GetStatements: TJSElementNodes;
+begin
+  Result:=GetSourceElements.Statements;
+end;
+
+function TTestJSParser.GetFunctions: TJSElementNodes;
+begin
+  Result:=GetSourceElements.Functions;
+end;
+
+
+initialization
+
+  RegisterTest(TTestJSParser); 
+end.
+

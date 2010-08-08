@@ -9,7 +9,7 @@
 
 function Expression1: Integer;
 asm
-//  mov eax, 4 * 3 - 2 + (-1) / 2
+  mov eax, 4 * 3 - 2 + (-1) / 2
 end;
 
 function Expression2: Integer;

@@ -36,6 +36,7 @@ unit cpunode;
        }
        ,navradd
        ,navrmat
+       ,navrcnv
        ;
 
 

@@ -174,7 +174,7 @@ Function EndOfADay(const AYear, ADayOfYear: Word): TDateTime; overload;
 
 Function MonthOfTheYear(const AValue: TDateTime): Word;
 Function WeekOfTheYear(const AValue: TDateTime): Word; overload;
-Function WeekOfTheYear(const AValue: TDateTime; var AYear: Word): Word; overload;
+Function WeekOfTheYear(const AValue: TDateTime; out AYear: Word): Word; overload;
 Function DayOfTheYear(const AValue: TDateTime): Word;
 Function HourOfTheYear(const AValue: TDateTime): Word;
 Function MinuteOfTheYear(const AValue: TDateTime): LongWord;
@@ -186,7 +186,7 @@ Function MilliSecondOfTheYear(const AValue: TDateTime): Int64;
   ---------------------------------------------------------------------}
 
 Function WeekOfTheMonth(const AValue: TDateTime): Word; overload;
-Function WeekOfTheMonth(const AValue: TDateTime; var AYear, AMonth: Word): Word; overload;
+Function WeekOfTheMonth(const AValue: TDateTime; out AYear, AMonth: Word): Word; overload;
 Function DayOfTheMonth(const AValue: TDateTime): Word;
 Function HourOfTheMonth(const AValue: TDateTime): Word;
 Function MinuteOfTheMonth(const AValue: TDateTime): Word;
@@ -300,8 +300,8 @@ Function IncMilliSecond(const AValue: TDateTime): TDateTime; // ; const ANumberO
   ---------------------------------------------------------------------}
 
 Function EncodeDateTime(const AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word): TDateTime;
-Procedure DecodeDateTime(const AValue: TDateTime; var AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word);
-Function TryEncodeDateTime(const AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word; var AValue: TDateTime): Boolean;
+Procedure DecodeDateTime(const AValue: TDateTime; out AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word);
+Function TryEncodeDateTime(const AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word; out AValue: TDateTime): Boolean;
 
 { ---------------------------------------------------------------------
     Encode/decode date, specifying week of year and day of week
@@ -309,25 +309,25 @@ Function TryEncodeDateTime(const AYear, AMonth, ADay, AHour, AMinute, ASecond, A
 
 Function EncodeDateWeek(const AYear, AWeekOfYear: Word; const ADayOfWeek: Word): TDateTime;
 Function EncodeDateWeek(const AYear, AWeekOfYear: Word): TDateTime; //; const ADayOfWeek: Word = 1
-Procedure DecodeDateWeek(const AValue: TDateTime; var AYear, AWeekOfYear, ADayOfWeek: Word);
-Function TryEncodeDateWeek(const AYear, AWeekOfYear: Word; var AValue: TDateTime; const ADayOfWeek: Word): Boolean;
-Function TryEncodeDateWeek(const AYear, AWeekOfYear: Word; var AValue: TDateTime): Boolean; //; const ADayOfWeek: Word = 1
+Procedure DecodeDateWeek(const AValue: TDateTime; out AYear, AWeekOfYear, ADayOfWeek: Word);
+Function TryEncodeDateWeek(const AYear, AWeekOfYear: Word; out AValue: TDateTime; const ADayOfWeek: Word): Boolean;
+Function TryEncodeDateWeek(const AYear, AWeekOfYear: Word; out AValue: TDateTime): Boolean; //; const ADayOfWeek: Word = 1
 
 { ---------------------------------------------------------------------
     Encode/decode date, specifying day of year
   ---------------------------------------------------------------------}
 
 Function EncodeDateDay(const AYear, ADayOfYear: Word): TDateTime;
-Procedure DecodeDateDay(const AValue: TDateTime; var AYear, ADayOfYear: Word);
-Function TryEncodeDateDay(const AYear, ADayOfYear: Word; var AValue: TDateTime): Boolean;
+Procedure DecodeDateDay(const AValue: TDateTime; out AYear, ADayOfYear: Word);
+Function TryEncodeDateDay(const AYear, ADayOfYear: Word; out AValue: TDateTime): Boolean;
 
 { ---------------------------------------------------------------------
     Encode/decode date, specifying week of month
   ---------------------------------------------------------------------}
 
 Function EncodeDateMonthWeek(const AYear, AMonth, AWeekOfMonth, ADayOfWeek: Word): TDateTime;
-Procedure DecodeDateMonthWeek(const AValue: TDateTime; var AYear, AMonth, AWeekOfMonth, ADayOfWeek: Word);
-Function TryEncodeDateMonthWeek(const AYear, AMonth, AWeekOfMonth, ADayOfWeek: Word; var AValue: TDateTime): Boolean;
+Procedure DecodeDateMonthWeek(const AValue: TDateTime; out AYear, AMonth, AWeekOfMonth, ADayOfWeek: Word);
+Function TryEncodeDateMonthWeek(const AYear, AMonth, AWeekOfMonth, ADayOfWeek: Word; out AValue: TDateTime): Boolean;
 
 { ---------------------------------------------------------------------
     Replace given element with supplied value.
@@ -343,7 +343,7 @@ Function RecodeMilliSecond(const AValue: TDateTime; const AMilliSecond: Word): T
 Function RecodeDate(const AValue: TDateTime; const AYear, AMonth, ADay: Word): TDateTime;
 Function RecodeTime(const AValue: TDateTime; const AHour, AMinute, ASecond, AMilliSecond: Word): TDateTime;
 Function RecodeDateTime(const AValue: TDateTime; const AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word): TDateTime;
-Function TryRecodeDateTime(const AValue: TDateTime; const AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word; var AResult: TDateTime): Boolean;
+Function TryRecodeDateTime(const AValue: TDateTime; const AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word; out AResult: TDateTime): Boolean;
 
 { ---------------------------------------------------------------------
     Comparision of date/time
@@ -364,10 +364,10 @@ Function SameTime(const A, B: TDateTime): Boolean;
 
 Function NthDayOfWeek(const AValue: TDateTime): Word;
 
-Procedure DecodeDayOfWeekInMonth(const AValue: TDateTime; var AYear, AMonth, ANthDayOfWeek, ADayOfWeek: Word);
+Procedure DecodeDayOfWeekInMonth(const AValue: TDateTime; out AYear, AMonth, ANthDayOfWeek, ADayOfWeek: Word);
 
 Function EncodeDayOfWeekInMonth(const AYear, AMonth, ANthDayOfWeek,  ADayOfWeek: Word): TDateTime;
-Function TryEncodeDayOfWeekInMonth(const AYear, AMonth, ANthDayOfWeek,  ADayOfWeek: Word; var AValue: TDateTime): Boolean;
+Function TryEncodeDayOfWeekInMonth(const AYear, AMonth, ANthDayOfWeek,  ADayOfWeek: Word; out AValue: TDateTime): Boolean;
 
 { ---------------------------------------------------------------------
     Exception throwing routines
@@ -386,11 +386,11 @@ Procedure InvalidDayOfWeekInMonthError(const AYear, AMonth, ANthDayOfWeek,  ADay
 
 Function DateTimeToJulianDate(const AValue: TDateTime): Double;
 Function JulianDateToDateTime(const AValue: Double): TDateTime;
-Function TryJulianDateToDateTime(const AValue: Double; var ADateTime: TDateTime): Boolean;
+Function TryJulianDateToDateTime(const AValue: Double; out ADateTime: TDateTime): Boolean;
 
 Function DateTimeToModifiedJulianDate(const AValue: TDateTime): Double;
 Function ModifiedJulianDateToDateTime(const AValue: Double): TDateTime;
-Function TryModifiedJulianDateToDateTime(const AValue: Double; var ADateTime: TDateTime): Boolean;
+Function TryModifiedJulianDateToDateTime(const AValue: Double; out ADateTime: TDateTime): Boolean;
 
 { ---------------------------------------------------------------------
     Unix timestamp support.
@@ -422,6 +422,9 @@ function ScanDateTime(const Pattern:string;const s:string;startpos:integer=1) : 
 implementation
 
 uses sysconst;
+
+const
+  TDateTimeEpsilon = 2.2204460493e-16;
 
 { ---------------------------------------------------------------------
     Auxiliary routines
@@ -914,7 +917,7 @@ begin
 end;
 
 
-Function WeekOfTheYear(const AValue: TDateTime; var AYear: Word): Word;
+Function WeekOfTheYear(const AValue: TDateTime; out AYear: Word): Word;
 
 Var
   DOW : Word;
@@ -989,7 +992,7 @@ begin
 end;
 
 
-Function WeekOfTheMonth(const AValue: TDateTime; var AYear, AMonth: Word): Word;
+Function WeekOfTheMonth(const AValue: TDateTime; out AYear, AMonth: Word): Word;
 
 Var
   DOW : Word;
@@ -1288,54 +1291,66 @@ end;
 {
   These functions are declared as approximate by Borland.
   A bit strange, since it can be calculated exactly ?
+
+  -- No, because you need rounding or truncating (JM)
 }
+
+
+Function DateTimeDiff(const ANow, AThen: TDateTime): TDateTime;
+begin
+  Result:= ANow - AThen;
+  if (ANow>0) and (AThen<0) then
+    Result:=Result-0.5
+  else if (ANow<-1.0) and (AThen>-1.0) then
+    Result:=Result+0.5;
+end;
 
 
 Function YearsBetween(const ANow, AThen: TDateTime): Integer;
 begin
-  Result:=Trunc(Abs(ANow-AThen)/ApproxDaysPerYear);
+  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)/ApproxDaysPerYear);
 end;
 
 
 Function MonthsBetween(const ANow, AThen: TDateTime): Integer;
 begin
-  Result:=Trunc(Abs(ANow-Athen)/ApproxDaysPerMonth);
+  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)/ApproxDaysPerMonth);
 end;
 
 
 Function WeeksBetween(const ANow, AThen: TDateTime): Integer;
 begin
-  Result:=Trunc(Abs(ANow-AThen)) div 7;
+  Result:=Trunc(Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon) div 7;
 end;
 
 
 Function DaysBetween(const ANow, AThen: TDateTime): Integer;
 begin
-  Result:=Trunc(Abs(ANow-AThen));
+  Result:=Trunc(Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon);
 end;
 
 
 Function HoursBetween(const ANow, AThen: TDateTime): Int64;
 begin
-  Result:=Trunc(Abs(ANow-AThen)*HoursPerDay);
+  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)*HoursPerDay);
 end;
 
 
 Function MinutesBetween(const ANow, AThen: TDateTime): Int64;
 begin
-  Result:=Trunc(Abs(ANow-AThen)*MinsPerDay);
+  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)*MinsPerDay);
 end;
 
 
 Function SecondsBetween(const ANow, AThen: TDateTime): Int64;
 begin
-  Result:=Trunc(Abs(ANow-AThen)*SecsPerDay);
+  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)*SecsPerDay);
 end;
 
 
 Function MilliSecondsBetween(const ANow, AThen: TDateTime): Int64;
 begin
-  Result:=Trunc(Abs(ANow-AThen)*MSecsPerDay);
+  Result:=Trunc((Abs(DateTimeDiff(ANow,AThen))+TDateTimeEpsilon)*MSecsPerDay);
 end;
 
 
@@ -1345,49 +1360,49 @@ end;
 
 Function YearSpan(const ANow, AThen: TDateTime): Double;
 begin
-  Result:=Abs(Anow-Athen)/ApproxDaysPerYear;
+  Result:=Abs(DateTimeDiff(ANow,AThen))/ApproxDaysPerYear;
 end;
 
 
 Function MonthSpan(const ANow, AThen: TDateTime): Double;
 begin
-  Result:=Abs(ANow-AThen)/ApproxDaysPerMonth;
+  Result:=Abs(DateTimeDiff(ANow,AThen))/ApproxDaysPerMonth;
 end;
 
 
 Function WeekSpan(const ANow, AThen: TDateTime): Double;
 begin
-  Result:=Abs(ANow-AThen) / 7
+  Result:=Abs(DateTimeDiff(ANow,AThen)) / 7
 end;
 
 
 Function DaySpan(const ANow, AThen: TDateTime): Double;
 begin
-  Result:=Abs(ANow-AThen);
+  Result:=Abs(DateTimeDiff(ANow,AThen));
 end;
 
 
 Function HourSpan(const ANow, AThen: TDateTime): Double;
 begin
-  Result:=Abs(ANow-AThen)*HoursPerDay;
+  Result:=Abs(DateTimeDiff(ANow,AThen))*HoursPerDay;
 end;
 
 
 Function MinuteSpan(const ANow, AThen: TDateTime): Double;
 begin
-  Result:=Abs(ANow-AThen)*MinsPerDay;
+  Result:=Abs(DateTimeDiff(ANow,AThen))*MinsPerDay;
 end;
 
 
 Function SecondSpan(const ANow, AThen: TDateTime): Double;
 begin
-  Result:=Abs(ANow-AThen)*SecsPerDay;
+  Result:=Abs(DateTimeDiff(ANow,AThen))*SecsPerDay;
 end;
 
 
 Function MilliSecondSpan(const ANow, AThen: TDateTime): Double;
 begin
-  Result:=Abs(ANow-AThen)*MSecsPerDay;
+  Result:=Abs(DateTimeDiff(ANow,AThen))*MSecsPerDay;
 end;
 
 
@@ -1395,13 +1410,19 @@ end;
     Increment/decrement functions.
   ---------------------------------------------------------------------}
 
+Procedure MaybeSkipTimeWarp(OldDate: TDateTime; var NewDate: TDateTime);
+begin
+  if (OldDate>0) and (NewDate<0) then
+    NewDate:=NewDate-0.5
+  else if (OldDate<-1.0) and (NewDate>-1.0) then
+    NewDate:=NewDate+0.5;
+end;
+
 
 Function IncYear(const AValue: TDateTime; const ANumberOfYears: Integer ): TDateTime;
 
 Var
   Y,M,D,H,N,S,MS : Word;
-
-
 begin
   DecodeDateTime(AValue,Y,M,D,H,N,S,MS);
   Y:=Y+ANumberOfYears;
@@ -1420,6 +1441,7 @@ end;
 Function IncWeek(const AValue: TDateTime; const ANumberOfWeeks: Integer): TDateTime;
 begin
   Result:=AValue+ANumberOfWeeks*7;
+  MaybeSkipTimeWarp(AValue,Result);
 end;
 
 
@@ -1432,6 +1454,7 @@ end;
 Function IncDay(const AValue: TDateTime; const ANumberOfDays: Integer): TDateTime;
 begin
   Result:=AValue+ANumberOfDays;
+  MaybeSkipTimeWarp(AValue,Result);
 end;
 
 
@@ -1444,6 +1467,7 @@ end;
 Function IncHour(const AValue: TDateTime; const ANumberOfHours: Int64): TDateTime;
 begin
   Result:=AValue+ANumberOfHours/HoursPerDay;
+  MaybeSkipTimeWarp(AValue,Result);
 end;
 
 
@@ -1456,6 +1480,7 @@ end;
 Function IncMinute(const AValue: TDateTime; const ANumberOfMinutes: Int64): TDateTime;
 begin
   Result:=AValue+ANumberOfMinutes / MinsPerDay;
+  MaybeSkipTimeWarp(AValue,Result);
 end;
 
 
@@ -1468,6 +1493,7 @@ end;
 Function IncSecond(const AValue: TDateTime; const ANumberOfSeconds: Int64): TDateTime;
 begin
   Result:=AValue+ANumberOfSeconds / SecsPerDay;
+  MaybeSkipTimeWarp(AValue,Result);
 end;
 
 
@@ -1480,6 +1506,7 @@ end;
 Function IncMilliSecond(const AValue: TDateTime; const ANumberOfMilliSeconds: Int64): TDateTime;
 begin
   Result:=AValue+ANumberOfMilliSeconds/MSecsPerDay;
+  MaybeSkipTimeWarp(AValue,Result);
 end;
 
 
@@ -1501,14 +1528,14 @@ begin
 end;
 
 
-Procedure DecodeDateTime(const AValue: TDateTime; var AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word);
+Procedure DecodeDateTime(const AValue: TDateTime; out AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word);
 begin
   DecodeDate(AValue,AYear,AMonth,ADay);
   DecodeTime(AValue,AHour,AMinute,ASecond,AMilliSecond);
 end;
 
 
-Function TryEncodeDateTime(const AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word; var AValue: TDateTime): Boolean;
+Function TryEncodeDateTime(const AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word; out AValue: TDateTime): Boolean;
 
 Var
  tmp : TDateTime;
@@ -1517,7 +1544,7 @@ begin
   Result:=TryEncodeDate(AYear,AMonth,ADay,AValue);
   Result:=Result and TryEncodeTime(AHour,AMinute,ASecond,Amillisecond,Tmp);
   If Result then
-    Avalue:=AValue+Tmp;
+    Avalue:=ComposeDateTime(AValue,Tmp);
 end;
 
 { ---------------------------------------------------------------------
@@ -1537,7 +1564,7 @@ begin
 end;
 
 
-Procedure DecodeDateWeek(const AValue: TDateTime; var AYear, AWeekOfYear, ADayOfWeek: Word);
+Procedure DecodeDateWeek(const AValue: TDateTime; out AYear, AWeekOfYear, ADayOfWeek: Word);
 
 var
   DOY : Integer;
@@ -1587,7 +1614,7 @@ end;
 
 
 
-Function TryEncodeDateWeek(const AYear, AWeekOfYear: Word; var AValue: TDateTime; const ADayOfWeek: Word): Boolean;
+Function TryEncodeDateWeek(const AYear, AWeekOfYear: Word; out AValue: TDateTime; const ADayOfWeek: Word): Boolean;
 
 Var
   DOW : Word;
@@ -1607,7 +1634,7 @@ begin
 end;
 
 
-Function TryEncodeDateWeek(const AYear, AWeekOfYear: Word; var AValue: TDateTime): Boolean; //; const ADayOfWeek: Word = 1
+Function TryEncodeDateWeek(const AYear, AWeekOfYear: Word; out AValue: TDateTime): Boolean; //; const ADayOfWeek: Word = 1
 begin
   Result:=TryEncodeDateWeek(AYear,AWeekOfYear,AValue,1);
 end;
@@ -1623,7 +1650,7 @@ begin
 end;
 
 
-Procedure DecodeDateDay(const AValue: TDateTime; var AYear, ADayOfYear: Word);
+Procedure DecodeDateDay(const AValue: TDateTime; out AYear, ADayOfYear: Word);
 
 Var
   M,D : Word;
@@ -1634,7 +1661,7 @@ begin
 end;
 
 
-Function TryEncodeDateDay(const AYear, ADayOfYear: Word; var AValue: TDateTime): Boolean;
+Function TryEncodeDateDay(const AYear, ADayOfYear: Word; out AValue: TDateTime): Boolean;
 begin
   Result:=(ADayOfYear<>0) and (ADayOfYear<=DaysPerYear [IsleapYear(AYear)]);
   If Result then
@@ -1653,7 +1680,7 @@ begin
     InvalidDateMonthWeekError(AYear,AMonth,AWeekOfMonth,ADayOfWeek);
 end;
 
-Procedure DecodeDateMonthWeek(const AValue: TDateTime; var AYear, AMonth, AWeekOfMonth, ADayOfWeek: Word);
+Procedure DecodeDateMonthWeek(const AValue: TDateTime; out AYear, AMonth, AWeekOfMonth, ADayOfWeek: Word);
 
 Var
   D,SDOM,EDOM : Word;
@@ -1688,7 +1715,7 @@ begin
     end;
 end;
 
-Function TryEncodeDateMonthWeek(const AYear, AMonth, AWeekOfMonth, ADayOfWeek: Word; var AValue: TDateTime): Boolean;
+Function TryEncodeDateMonthWeek(const AYear, AMonth, AWeekOfMonth, ADayOfWeek: Word; out AValue: TDateTime): Boolean;
 
 var
   S : Word;
@@ -1786,7 +1813,7 @@ begin
 end;
 
 
-Function TryRecodeDateTime(const AValue: TDateTime; const AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word; var AResult: TDateTime): Boolean;
+Function TryRecodeDateTime(const AValue: TDateTime; const AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word; out AResult: TDateTime): Boolean;
 
   Procedure FV (Var AV : Word; Arg : Word);
 
@@ -1799,7 +1826,7 @@ Var
   Y,M,D,H,N,S,MS : Word;
 
 begin
- DecodeDateTime(AValue,Y,M,D,H,N,S,MS);
+  DecodeDateTime(AValue,Y,M,D,H,N,S,MS);
   FV(Y,AYear);
   FV(M,AMonth);
   FV(D,ADay);
@@ -1881,7 +1908,7 @@ begin
 end;
 
 
-Procedure DecodeDayOfWeekInMonth(const AValue: TDateTime; var AYear, AMonth, ANthDayOfWeek, ADayOfWeek: Word);
+Procedure DecodeDayOfWeekInMonth(const AValue: TDateTime; out AYear, AMonth, ANthDayOfWeek, ADayOfWeek: Word);
 
 var
   D: Word;
@@ -1900,7 +1927,7 @@ begin
 end;
 
 
-Function TryEncodeDayOfWeekInMonth(const AYear, AMonth, ANthDayOfWeek,  ADayOfWeek: Word; var AValue: TDateTime): Boolean;
+Function TryEncodeDayOfWeekInMonth(const AYear, AMonth, ANthDayOfWeek,  ADayOfWeek: Word; out AValue: TDateTime): Boolean;
 
 Var
   SOM,D : Word;
@@ -1995,43 +2022,58 @@ end;
 {$endif opt Q+}
 
 Function DateTimeToJulianDate(const AValue: TDateTime): Double;
+var
+  day,month,year: word;
+  a,y,m: integer;
 begin
-  DateTimeToJulianDate := AValue - JulianEpoch;
+  DecodeDate ( AValue, year, month, day );
+  a := (14-month) div 12;
+  y := year + 4800 - a;
+  m := month + (12*a) - 3;
+  result := day + ((153*m+2) div 5) + (365*y) + (y div 4) - (y div 100) + (y div 400) - 32045;
+  result := result - 0.5;
 end;
 
 
 Function JulianDateToDateTime(const AValue: Double): TDateTime;
 begin
-  JulianDateToDateTime := AValue + JulianEpoch;
-  if(AValue <= 0) or (AValue >= 10000)then
-    JulianDateToDateTime := NaN;
+  if not TryJulianDateToDateTime(AValue, Result) then
+    raise EConvertError.CreateFmt(SInvalidJulianDate, [AValue]);
 end;
 
 
-Function TryJulianDateToDateTime(const AValue: Double; var ADateTime: TDateTime): Boolean;
+Function TryJulianDateToDateTime(const AValue: Double; out ADateTime: TDateTime): Boolean;
+var
+  a,b,c,d,e,m:integer;
+  day,month,year: word;
 begin
-  ADateTime := JulianDateToDateTime(AValue);
-  TryJulianDateToDateTime := ADateTime <> NaN;
+  a := trunc(AValue + 32044.5);
+  b := (4*a + 3) div 146097;
+  c := a - (146097*b div 4);
+  d := (4*c + 3) div 1461;
+  e := c - (1461*d div 4);
+  m := (5*e+2) div 153;
+  day := e - ((153*m + 2) div 5) + 1;
+  month := m + 3 - 12 *  ( m div 10 );
+  year := (100*b) + d - 4800 + ( m div 10 );
+  result := TryEncodeDate ( Year, Month, Day, ADateTime );
 end;
 
 Function DateTimeToModifiedJulianDate(const AValue: TDateTime): Double;
 begin
-  Result:=0;
-  NotYetImplemented('DateTimeToModifiedJulianDate');
+  result := DateTimeToJulianDate(AValue) - 2400000.5;
 end;
 
 
 Function ModifiedJulianDateToDateTime(const AValue: Double): TDateTime;
 begin
-  Result:=0;
-  NotYetImplemented('ModifiedJulianDateToDateTime');
+  result := JulianDateToDateTime(AValue + 2400000.5);
 end;
 
 
-Function TryModifiedJulianDateToDateTime(const AValue: Double; var ADateTime: TDateTime): Boolean;
+Function TryModifiedJulianDateToDateTime(const AValue: Double; out ADateTime: TDateTime): Boolean;
 begin
-  Result:=False;
-  NotYetImplemented('TryModifiedJulianDateToDateTime');
+  Result:=TryJulianDateToDateTime(AValue + 2400000.5, ADateTime);
 end;
 
 {$ifdef RangeCheckWasOn}
@@ -2050,7 +2092,7 @@ end;
 
 Function DateTimeToUnix(const AValue: TDateTime): Int64;
 begin
-  Result:=SecondsBetween(UnixEpoch, AValue);
+  Result:=Round(DateTimeDiff(AValue,UnixEpoch)*SecsPerDay);
 end;
 
 

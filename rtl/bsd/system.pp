@@ -1,5 +1,5 @@
 {
-    This file is part of the Free Pascal run time librar~y.
+    This file is part of the Free Pascal run time library.
     Copyright (c) 2000 by Marco van de Voort
     member of the Free Pascal development team.
 
@@ -45,7 +45,37 @@ var argc:longint;
 
 CONST SIGSTKSZ = 40960;
 
+{$if defined(CPUARM)}
+
+{$define fpc_softfpu_interface}
+{$i softfpu.pp}
+{$undef fpc_softfpu_interface}
+
+{$endif defined(CPUARM)}
+
+
 Implementation
+
+{$if defined(CPUARM) or defined(CPUM68K)}
+
+{$define fpc_softfpu_implementation}
+{$i softfpu.pp}
+{$undef fpc_softfpu_implementation}
+
+{ we get these functions and types from the softfpu code }
+{$define FPC_SYSTEM_HAS_float64}
+{$define FPC_SYSTEM_HAS_float32}
+{$define FPC_SYSTEM_HAS_flag}
+{$define FPC_SYSTEM_HAS_extractFloat64Frac0}
+{$define FPC_SYSTEM_HAS_extractFloat64Frac1}
+{$define FPC_SYSTEM_HAS_extractFloat64Exp}
+{$define FPC_SYSTEM_HAS_extractFloat64Sign}
+{$define FPC_SYSTEM_HAS_ExtractFloat32Frac}
+{$define FPC_SYSTEM_HAS_extractFloat32Exp}
+{$define FPC_SYSTEM_HAS_extractFloat32Sign}
+
+{$endif defined(CPUARM) or defined(CPUM68K)}
+
 
 {$I system.inc}
 
@@ -116,13 +146,14 @@ End;
 
 
 {*****************************************************************************
-                         SystemUnit Initialization
+                         System Unit Initialization
 *****************************************************************************}
 
 function  reenable_signal(sig : longint) : boolean;
 var
   e,oe : TSigSet;
   i,j : byte;
+  olderrno: cint;
 begin
   fillchar(e,sizeof(e),#0);
   fillchar(oe,sizeof(oe),#0);
@@ -131,34 +162,52 @@ begin
   i:=sig mod 32;
   j:=sig div 32;
   e[j]:=1 shl i;
+  { this routine is called from a signal handler, so must not change errno }
+  olderrno:=geterrno;
   fpsigprocmask(SIG_UNBLOCK,@e,@oe);
   reenable_signal:=geterrno=0;
+  seterrno(olderrno);
 end;
 
 {$i sighnd.inc}
 
+procedure InstallDefaultSignalHandler(signum: longint; out oldact: SigActionRec); public name '_FPC_INSTALLDEFAULTSIGHANDLER';
 var
   act: SigActionRec;
-
-Procedure InstallSignals;
-var
-  oldact: SigActionRec;
 begin
   { Initialize the sigaction structure }
   { all flags and information set to zero }
-  FillChar(act, sizeof(SigActionRec),0);
+  FillChar(act,sizeof(SigActionRec),0);
   { initialize handler                    }
-  act.sa_handler :=@SignalToRunError;
-  act.sa_flags:=SA_SIGINFO;
+  act.sa_handler:=@SignalToRunError;
 {$if defined(darwin) and defined(cpu64)}
   act.sa_flags:=SA_SIGINFO or SA_64REGSET;
 {$else}
   act.sa_flags:=SA_SIGINFO;
 {$endif}
-  FpSigAction(SIGFPE,act,oldact);
-  FpSigAction(SIGSEGV,act,oldact);
-  FpSigAction(SIGBUS,act,oldact);
-  FpSigAction(SIGILL,act,oldact);
+  FpSigAction(signum,@act,@oldact);
+end;
+
+var
+  oldsigfpe: SigActionRec; public name '_FPC_OLDSIGFPE';
+  oldsigsegv: SigActionRec; public name '_FPC_OLDSIGSEGV';
+  oldsigbus: SigActionRec; public name '_FPC_OLDSIGBUS';
+  oldsigill: SigActionRec; public name '_FPC_OLDSIGILL';
+
+Procedure InstallSignals;
+begin
+  InstallDefaultSignalHandler(SIGFPE,oldsigfpe);
+  InstallDefaultSignalHandler(SIGSEGV,oldsigsegv);
+  InstallDefaultSignalHandler(SIGBUS,oldsigbus);
+  InstallDefaultSignalHandler(SIGILL,oldsigill);
+end;
+
+Procedure RestoreOldSignalHandlers;
+begin
+  FpSigAction(SIGFPE,@oldsigfpe,nil);
+  FpSigAction(SIGSEGV,@oldsigsegv,nil);
+  FpSigAction(SIGBUS,@oldsigbus,nil);
+  FpSigAction(SIGILL,@oldsigill,nil);
 end;
 
 
@@ -236,18 +285,9 @@ end;
 
 {$ifdef Darwin}
 
-{$ifndef FPC_DARWIN_PASCALMAIN}
-procedure pascalmain;external name 'PASCALMAIN';
-{ Main entry point in C style, needed to capture program parameters. }
-
-procedure main(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
-{$else FPC_DARWIN_PASCALMAIN}
-
-{$ifdef FPC_DARWIN_JMP_MAIN}
 procedure pascalmain;cdecl;external name 'PASCALMAIN';
-{$endif}
+
 procedure FPC_SYSTEMMAIN(argcparam: Longint; argvparam: ppchar; envpparam: ppchar); cdecl; [public];
-{$endif FPC_DARWIN_PASCALMAIN}
 
 begin
   argc:= argcparam;
@@ -256,9 +296,7 @@ begin
 {$ifdef cpui386}
   Set8087CW(Default8087CW);  
 {$endif cpui386}
-{$if not defined(FPC_DARWIN_PASCALMAIN) or defined(FPC_DARWIN_JMP_MAIN)}
   pascalmain;  {run the pascal main program}
-{$endif}
 end;
 {$endif Darwin}
 {$endif FPC_USE_LIBC}
@@ -275,10 +313,9 @@ end;
 
 Begin
   IsConsole := TRUE;
-  IsLibrary := FALSE;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
-  { Set up signals handlers }
+  { Set up signals handlers (may be needed by init code to test cpu features) }
   InstallSignals;
 
   SysResetFPU;
@@ -305,4 +342,7 @@ Begin
 {$else VER2_2}
   initunicodestringmanager;
 {$endif VER2_2}
+  { restore original signal handlers in case this is a library }
+  if IsLibrary then
+    RestoreOldSignalHandlers;
 End.

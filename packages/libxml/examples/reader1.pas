@@ -17,7 +17,7 @@ program reader1;
 
 uses
   ctypes,
-  libxml2,
+  xml2,
   exutils;
 
 (**
@@ -32,7 +32,7 @@ var
 begin
   name := xmlTextReaderConstName(reader);
   if not assigned(name) then
-    name := BAD_CAST('--');
+    name := '--';
 
   value := xmlTextReaderConstValue(reader);
 

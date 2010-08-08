@@ -37,8 +37,8 @@ interface
 
        tloadnode = class(tunarynode)
        protected
-          procdef : tprocdef;
-          procdefderef : tderef;
+          fprocdef : tprocdef;
+          fprocdefderef : tderef;
        public
           symtableentry : tsym;
           symtableentryderef : tderef;
@@ -58,6 +58,7 @@ interface
           function  docompare(p: tnode): boolean; override;
           procedure printnodedata(var t:text);override;
           procedure setprocdef(p : tprocdef);
+          property procdef: tprocdef read fprocdef write setprocdef;
        end;
        tloadnodeclass = class of tloadnode;
 
@@ -167,7 +168,7 @@ implementation
           internalerror(200108121);
          symtableentry:=v;
          symtable:=st;
-         procdef:=nil;
+         fprocdef:=nil;
       end;
 
 
@@ -175,10 +176,10 @@ implementation
       begin
          inherited create(loadn,nil);
          if not assigned(v) then
-          internalerror(200108121);
+          internalerror(200108122);
          symtableentry:=v;
          symtable:=st;
-         procdef:=d;
+         fprocdef:=d;
       end;
 
 
@@ -187,7 +188,7 @@ implementation
         inherited ppuload(t,ppufile);
         ppufile.getderef(symtableentryderef);
         symtable:=nil;
-        ppufile.getderef(procdefderef);
+        ppufile.getderef(fprocdefderef);
       end;
 
 
@@ -195,7 +196,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putderef(symtableentryderef);
-        ppufile.putderef(procdefderef);
+        ppufile.putderef(fprocdefderef);
       end;
 
 
@@ -203,7 +204,7 @@ implementation
       begin
         inherited buildderefimpl;
         symtableentryderef.build(symtableentry);
-        procdefderef.build(procdef);
+        fprocdefderef.build(fprocdef);
       end;
 
 
@@ -212,7 +213,7 @@ implementation
         inherited derefimpl;
         symtableentry:=tsym(symtableentryderef.resolve);
         symtable:=symtableentry.owner;
-        procdef:=tprocdef(procdefderef.resolve);
+        fprocdef:=tprocdef(fprocdefderef.resolve);
       end;
 
 
@@ -233,7 +234,7 @@ implementation
          n:=tloadnode(inherited dogetcopy);
          n.symtable:=symtable;
          n.symtableentry:=symtableentry;
-         n.procdef:=procdef;
+         n.fprocdef:=fprocdef;
          result:=n;
       end;
 
@@ -322,17 +323,17 @@ implementation
                  procdefs the matching procdef will be choosen
                  when the expected procvardef is known, see get_information
                  in htypechk.pas (PFV) }
-               if not assigned(procdef) then
-                 procdef:=tprocdef(tprocsym(symtableentry).ProcdefList[0])
-               else if po_kylixlocal in procdef.procoptions then
+               if not assigned(fprocdef) then
+                 fprocdef:=tprocdef(tprocsym(symtableentry).ProcdefList[0])
+               else if po_kylixlocal in fprocdef.procoptions then
                  CGMessage(type_e_cant_take_address_of_local_subroutine);
 
-               { the result is a procdef, addrn and proc_to_procvar
+               { the result is a fprocdef, addrn and proc_to_procvar
                  typeconvn need this as resultdef so they know
                  that the address needs to be returned }
-               resultdef:=procdef;
+               resultdef:=fprocdef;
 
-               { process methodpointer }
+               { process methodpointer/framepointer }
                if assigned(left) then
                  typecheckpass(left);
              end;
@@ -390,7 +391,10 @@ implementation
               end;
             procsym :
                 begin
-                   { method pointer ? }
+                   { initialise left for nested procs if necessary }
+                   if (m_nested_procvars in current_settings.modeswitches) then
+                     setprocdef(fprocdef);
+                   { method pointer or nested proc ? }
                    if assigned(left) then
                      begin
                         expectloc:=LOC_CREFERENCE;
@@ -410,7 +414,7 @@ implementation
         docompare :=
           inherited docompare(p) and
           (symtableentry = tloadnode(p).symtableentry) and
-          (procdef = tloadnode(p).procdef) and
+          (fprocdef = tloadnode(p).fprocdef) and
           (symtable = tloadnode(p).symtable);
       end;
 
@@ -420,17 +424,32 @@ implementation
         inherited printnodedata(t);
         write(t,printnodeindention,'symbol = ',symtableentry.name);
         if symtableentry.typ=procsym then
-          write(t,printnodeindention,'procdef = ',procdef.mangledname);
+          write(t,printnodeindention,'procdef = ',fprocdef.mangledname);
         writeln(t,'');
       end;
 
 
     procedure tloadnode.setprocdef(p : tprocdef);
       begin
-        procdef:=p;
+        fprocdef:=p;
         resultdef:=p;
-        if po_local in p.procoptions then
-          CGMessage(type_e_cant_take_address_of_local_subroutine);
+        { nested procedure? }
+        if assigned(p) and
+           is_nested_pd(p) then
+          begin
+            if not(m_nested_procvars in current_settings.modeswitches) then
+              CGMessage(type_e_cant_take_address_of_local_subroutine)
+            else
+              begin
+                { parent frame pointer pointer as "self" }
+                left.free;
+                left:=cloadparentfpnode.create(tprocdef(p.owner.defowner));
+              end;
+          end
+        { we should never go from nested to non-nested }
+        else if assigned(left) and
+                (left.nodetype=loadparentfpn) then
+          internalerror(2010072201);
       end;
 
 {*****************************************************************************
@@ -584,7 +603,16 @@ implementation
                 { sse register to an extended value in memory more      }
                 { efficiently than a type conversion node, so don't     }
                 { bother implementing support for that                  }
-                and (use_sse(left.resultdef) or not(use_sse(right.resultdef)))
+                and (use_vectorfpu(left.resultdef) or not(use_vectorfpu(right.resultdef)))
+{$endif}
+
+{$ifdef arm}
+                { the assignment node code can't convert a single in
+                  an interger register to a double in an mmregister or
+                  vice versa }
+                and (use_vectorfpu(left.resultdef) and
+                     use_vectorfpu(right.resultdef) and
+                     (tfloatdef(left.resultdef).floattype=tfloatdef(right.resultdef).floattype))
 {$endif}
         then
           begin
@@ -657,8 +685,7 @@ implementation
            exit;
 
          { assignment to refcounted variable -> inc/decref }
-         if (not is_class(left.resultdef) and
-            left.resultdef.needs_inittable) then
+         if is_managed_type(left.resultdef) then
            include(current_procinfo.flags,pi_do_call);
 
         if (is_shortstring(left.resultdef)) then
@@ -680,7 +707,7 @@ implementation
             end;
            end
         { call helpers for composite types containing automated types }
-        else if (left.resultdef.needs_inittable) and
+        else if is_managed_type(left.resultdef) and
             (left.resultdef.typ in [arraydef,objectdef,recorddef]) and
             not is_interfacecom(left.resultdef) and
             not is_dynamic_array(left.resultdef) then
@@ -837,7 +864,7 @@ implementation
         Do this only if we didn't convert the arrayconstructor yet. This
         is needed for the cases where the resultdef is forced for a second
         run }
-        if (not allow_array_constructor) then
+        if not(allow_array_constructor) then
          begin
            hp:=tarrayconstructornode(getcopy);
            arrayconstructor_to_set(tnode(hp));
@@ -1095,6 +1122,7 @@ implementation
         inherited ppuload(t,ppufile);
         ppufile.getderef(rttidefderef);
         rttitype:=trttitype(ppufile.getbyte);
+        rttidatatype:=trttidatatype(ppufile.getbyte);
       end;
 
 
@@ -1103,6 +1131,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppufile.putderef(rttidefderef);
         ppufile.putbyte(byte(rttitype));
+        ppufile.putbyte(byte(rttidatatype));
       end;
 
 
@@ -1127,6 +1156,7 @@ implementation
          n:=trttinode(inherited dogetcopy);
          n.rttidef:=rttidef;
          n.rttitype:=rttitype;
+         n.rttidatatype:=rttidatatype;
          result:=n;
       end;
 

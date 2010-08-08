@@ -18,7 +18,7 @@
   configuration data
 }
 
-{$MODE objfpc}
+{$ifdef fpc}{$MODE objfpc}{$endif}
 {$H+}
 
 unit XMLCfg;
@@ -51,7 +51,7 @@ type
     FStartEmpty: Boolean;
     FUseEscaping: Boolean;
     FRootName: DOMString;
-    procedure SetFilename(const AFilename: String; ForceReload: Boolean);
+    procedure SetFilenameForce(const AFilename: String; ForceReload: Boolean);
     procedure SetFilename(const AFilename: String);
     procedure SetStartEmpty(AValue: Boolean);
     procedure SetRootName(const AValue: DOMString);
@@ -66,15 +66,15 @@ type
     destructor Destroy; override;
     procedure Clear;
     procedure Flush;    // Writes the XML file
-    function  GetValue(const APath, ADefault: String): String;
-    function  GetValue(const APath: String; ADefault: Integer): Integer;
-    function  GetValue(const APath: String; ADefault: Boolean): Boolean;
-    procedure SetValue(const APath, AValue: String);
-    procedure SetDeleteValue(const APath, AValue, DefValue: String);
-    procedure SetValue(const APath: String; AValue: Integer);
-    procedure SetDeleteValue(const APath: String; AValue, DefValue: Integer);
-    procedure SetValue(const APath: String; AValue: Boolean);
-    procedure SetDeleteValue(const APath: String; AValue, DefValue: Boolean);
+    function  GetValue(const APath, ADefault: String): String; overload;
+    function  GetValue(const APath: String; ADefault: Integer): Integer; overload;
+    function  GetValue(const APath: String; ADefault: Boolean): Boolean; overload;
+    procedure SetValue(const APath, AValue: String); overload;
+    procedure SetDeleteValue(const APath, AValue, DefValue: String); overload;
+    procedure SetValue(const APath: String; AValue: Integer); overload;
+    procedure SetDeleteValue(const APath: String; AValue, DefValue: Integer); overload;
+    procedure SetValue(const APath: String; AValue: Boolean); overload;
+    procedure SetDeleteValue(const APath: String; AValue, DefValue: Boolean); overload;
     procedure DeletePath(const APath: string);
     procedure DeleteValue(const APath: string);
     property Modified: Boolean read FModified;
@@ -300,7 +300,7 @@ procedure TXMLConfig.Loaded;
 begin
   inherited Loaded;
   if Length(Filename) > 0 then
-    SetFilename(Filename, true);              // Load the XML config file
+    SetFilenameForce(Filename, true);              // Load the XML config file
 end;
 
 function TXMLConfig.FindNode(const APath: String;
@@ -370,7 +370,7 @@ begin
     Result := s;
 end;
 
-procedure TXMLConfig.SetFilename(const AFilename: String; ForceReload: Boolean);
+procedure TXMLConfig.SetFilenameForce(const AFilename: String; ForceReload: Boolean);
 begin
   {$IFDEF MEM_CHECK}CheckHeapWrtMemCnt('TXMLConfig.SetFilename A '+AFilename);{$ENDIF}
   if (not ForceReload) and (FFilename = AFilename) then
@@ -400,7 +400,7 @@ end;
 
 procedure TXMLConfig.SetFilename(const AFilename: String);
 begin
-  SetFilename(AFilename, False);
+  SetFilenameForce(AFilename, False);
 end;
 
 procedure TXMLConfig.SetRootName(const AValue: DOMString);
@@ -424,7 +424,7 @@ begin
   begin
     FStartEmpty := AValue;
     if (not AValue) and not Modified then
-      SetFilename(Filename, True);
+      SetFilenameForce(Filename, True);
   end;
 end;
 

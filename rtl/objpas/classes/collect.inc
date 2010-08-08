@@ -42,7 +42,7 @@ end;
 procedure TCollectionItem.Changed(AllItems: Boolean);
 
 begin
- If (FCollection<>Nil) then
+ If (FCollection<>Nil) and (FCollection.UpdateCount=0) then
   begin
   If AllItems then
     FCollection.Update(Nil)
@@ -118,12 +118,35 @@ begin
 end;
 
 {****************************************************************************}
+{*                          TCollectionEnumerator                           *}
+{****************************************************************************}
+
+constructor TCollectionEnumerator.Create(ACollection: TCollection);
+begin
+  inherited Create;
+  FCollection := ACollection;
+  FPosition := -1;
+end;
+
+function TCollectionEnumerator.GetCurrent: TCollectionItem;
+begin
+  Result := FCollection.Items[FPosition];
+end;
+
+function TCollectionEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FCollection.Count;
+end;
+
+
+{****************************************************************************}
 {*                             TCollection                                  *}
 {****************************************************************************}
 
 function TCollection.Owner: TPersistent;
 begin
-        result:=getowner;
+  result:=getowner;
 end;
 
 
@@ -139,19 +162,39 @@ end;
 
 Procedure TCollection.SetPropName;
 
+Var
+  TheOwner : TPersistent;
+  PropList : PPropList;
+  I, PropCount : Integer;
+
 begin
-  //!! Should be replaced by the proper routines.
   FPropName:='';
+  TheOwner:=GetOwner;
+  if (TheOwner=Nil) Or (TheOwner.Classinfo=Nil) Then Exit;
+  // get information from the owner RTTI
+  PropCount:=GetPropList(TheOwner, PropList);
+  Try
+    For I:=0 To PropCount-1 Do
+      If (PropList^[i]^.PropType^.Kind=tkClass) And
+         (GetObjectProp(TheOwner, PropList^[i], ClassType)=Self) Then
+        Begin
+          FPropName:=PropList^[i]^.Name;
+          Exit;
+        End;
+  Finally
+    FreeMem(PropList);
+  End;
 end;
 
 
 function TCollection.GetPropName: string;
 
-Var TheOWner : TPersistent;
+Var
+  TheOwner : TPersistent;
 
 begin
   Result:=FPropNAme;
-  TheOWner:=GetOwner;
+  TheOwner:=GetOwner;
   If (Result<>'') or (TheOwner=Nil) Or (TheOwner.Classinfo=Nil) then exit;
   SetPropName;
   Result:=FPropName;
@@ -195,6 +238,12 @@ end;
 function TCollection.GetItemAttr(Index, ItemIndex: Integer): string;
 begin
   Result:=TCollectionItem(FItems.Items[ItemIndex]).DisplayName;
+end;
+
+
+function TCollection.GetEnumerator: TCollectionEnumerator;
+begin
+  Result := TCollectionEnumerator.Create(Self);
 end;
 
 
@@ -243,7 +292,7 @@ constructor TCollection.Create(AItemClass: TCollectionItemClass);
 begin
   inherited create;
   FItemClass:=AItemClass;
-  FItems:=TList.Create;
+  FItems:=TFpList.Create;
 end;
 
 
@@ -327,6 +376,23 @@ end;
 
 procedure TCollection.Notify(Item: TCollectionItem;Action: TCollectionNotification);
 begin
+end;
+
+procedure TCollection.Sort(Const Compare : TCollectionSortCompare);
+
+begin
+  BeginUpdate;
+  try
+    FItems.Sort(TListSortCompare(Compare));
+  Finally
+    EndUpdate;
+  end;
+end;
+
+procedure TCollection.Exchange(Const Index1, index2: integer);
+
+begin
+  FItems.Exchange(Index1,Index2);
 end;
 
 

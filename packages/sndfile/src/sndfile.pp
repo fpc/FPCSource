@@ -255,6 +255,7 @@ type
   TSF_INFO = record
                frames     : Tsf_count_t; // Used to be called samples.  Changed to avoid confusion.
                samplerate : ctypes.cint;
+               channels   : ctypes.cint;
                format     : ctypes.cint;
                sections   : ctypes.cint;
                seekable   : ctypes.cint;
@@ -409,7 +410,7 @@ type
 ** to sf_perror () or sf_error_str ().
 ** All calls to sf_open() should be matched with a call to sf_close().
 }
-function sf_open (path : ctypes.pcchar; mode : ctypes.cint; sfinfo : PSF_INFO) : PSNDFILE; cdecl;
+function sf_open (path : pChar; mode : ctypes.cint; sfinfo : PSF_INFO) : PSNDFILE; cdecl;
   external sndfilelib  name 'sf_open';
 
 {

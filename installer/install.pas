@@ -85,7 +85,7 @@ program install;
      commands,
      HelpCtx,
 {$ENDIF}
-     unzip,ziptypes,
+     unzip51g,ziptypes,
 {$IFDEF DLL}
      unzipdll,
 {$ENDIF}
@@ -93,12 +93,12 @@ program install;
      WHTMLScn,insthelp;
 
   const
-     installerversion='2.2.0';
-     installercopyright='Copyright (c) 1993-2008 Florian Klaempfl';
+     installerversion='2.5.1';
+     installercopyright='Copyright (c) 1993-2009 Florian Klaempfl';
 
 
      maxpacks=30;
-     maxpackages=28;
+     maxpackages=29;
      maxdefcfgs=1024;
 
      HTMLIndexExt = '.htx';
@@ -1106,14 +1106,22 @@ program install;
                  else
 {$endif MAYBE_LFN}
                    begin
-                      items[j]:=newsitem(package[i].name+diskspacestr(package[i].diskspace),items[j]);
+                      items[j]:=newsitem(package[i].name+diskspacestr(package[i].diskspace)
+{$ifdef DEBUG}
+                                         +' ('+dotstr(i)+')'
+{$endif DEBUG}
+                                         ,items[j]);
                       packmask[j]:=packmask[j] or packagemask(i);
                       enabmask[j]:=enabmask[j] or packagemask(i);
                       firstitem[j]:=i-1;
                    end;
                end
               else
-               items[j]:=newsitem(package[i].name,items[j]);
+               items[j]:=newsitem(package[i].name
+{$ifdef DEBUG}
+                          +' ('+dotstr(i)+')'
+{$endif DEBUG}
+                           ,items[j]);
             end;
          end;
 
@@ -1186,7 +1194,10 @@ program install;
          if (sbr.b.y-sbr.a.y)<cfg.pack[j].packages then
           begin
             sbsbr.assign(sbr.b.x,sbr.a.y,sbr.b.x+1,sbr.b.y);
-            New(sbsb, init(sbsbr));
+            sbsb:=CreateIdScrollBar (sbsbr.a.x, sbsbr.a.y,sbsbr.b.y-sbsbr.a.y,j,false);
+            sbsb^.SetRange(0,cfg.pack[j].packages-(sbsbr.b.y-sbsbr.a.y)-1);
+            sbsb^.SetStep(5,1);
+            //New(sbsb, init(sbsbr));
           end
          else
            sbsb:=nil;
@@ -1814,7 +1825,7 @@ end;
     begin
       GetExtent(R);
       R.A.Y := R.B.Y - 1;
-      R.B.X := R.B.X - 12;
+      //R.B.X := R.B.X - 2;
       New(StatusLine,
         Init(R,
           NewStatusDef(0, $EFFF,nil,nil

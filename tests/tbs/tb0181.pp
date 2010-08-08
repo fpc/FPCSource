@@ -1,5 +1,3 @@
-{ %OPT=-St }
-
 { Old file: tbs0214.pp }
 { bugs for static methods                               OK 0.99.11 (PM) }
 

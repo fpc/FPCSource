@@ -88,3 +88,9 @@ void   gdk_gc_set_dashes          (GdkGC            *gc,
                                    gint              dash_offset,
                                    gint8             dash_list[],
                                    gint              n);
+
+typedef struct FnTable {
+  int (*Fn1)( void );
+  int (*Fn2)( void );
+  int (*Fn3)( void );
+} FnTable;

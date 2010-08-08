@@ -6,8 +6,8 @@ Program Test;
 
 Type
   TFunClass = Class(TObject)
-    Class Procedure FunProc(q : TFunClass);
     data : Integer;
+    Class Procedure FunProc(q : TFunClass);
   End;
 
 Class Procedure TFunClass.FunProc(q : TFunClass);

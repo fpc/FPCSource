@@ -22,8 +22,8 @@
 {$mode objfpc}
 
 { At least 2.0.0 is required }
-{$ifdef VER1}
-  {$fatal You need at least FPC 2.0.0}
+{$if defined(VER1) or defined(VER2_0) or defined(VER2_2_0) }
+  {$fatal You need at least FPC 2.2.2 to build this version of FPC}
 {$endif}
 
 { Using inlining for small system functions/wrappers }
@@ -77,6 +77,7 @@
 {$define FPC_HAS_FEATURE_PROCESSES}
 {$define FPC_HAS_FEATURE_STACKCHECK}
 {$define FPC_HAS_FEATURE_DYNLIBS}
+{$define FPC_HAS_FEATURE_OBJECTIVEC1}
 {$endif FPC_HAS_FEATURE_SUPPORT}
 
 {$ifndef VER2_2}
@@ -122,7 +123,7 @@ Type
 {$endif CPUI386}
 
 {$ifdef CPUX86_64}
-{$ifndef WIN64}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
   { win64 doesn't support the legacy fpu }
   {$define DEFAULT_EXTENDED}
   {$define SUPPORT_EXTENDED}
@@ -130,7 +131,7 @@ Type
   {$ifndef FPUNONE}
     ValReal = Extended;
   {$endif}
-{$else WIN64}
+{$else FPC_HAS_TYPE_EXTENDED}
   {$define DEFAULT_DOUBLE}
   {$ifndef FPUNONE}
     ValReal = Double;
@@ -139,7 +140,7 @@ Type
   { map comp to int64, but this doesn't mean we compile the comp support in! }
   Comp = Int64;
   PComp = ^Comp;
-{$endif WIN64}
+{$endif FPC_HAS_TYPE_EXTENDED}
 
   {$define SUPPORT_SINGLE}
   {$define SUPPORT_DOUBLE}
@@ -274,6 +275,7 @@ Type
 { Zero - terminated strings }
   PChar               = ^Char;
   PPChar              = ^PChar;
+  PPPChar             = ^PPChar;
 
   { AnsiChar is equivalent of Char, so we need
     to use type renamings }
@@ -298,6 +300,8 @@ Type
   HRESULT             = type Longint;
 {$ifndef FPUNONE}
   TDateTime           = type Double;
+  TDate               = type TDateTime;
+  TTime               = type TDateTime;
 {$endif}
   TError               = type Longint;
 
@@ -305,6 +309,8 @@ Type
   PSingle             = ^Single;
   PDouble             = ^Double;
   PExtended           = ^Extended;
+
+  PPDouble            = ^PDouble;
 {$endif}
   PCurrency           = ^Currency;
 {$ifdef SUPPORT_COMP}
@@ -326,6 +332,9 @@ Type
   PPtrUInt            = ^PtrUInt;
   PSizeInt            = ^SizeInt;
 
+  PPByte              = ^PByte;
+  PPLongint           = ^PLongint;
+
   PPointer            = ^Pointer;
   PPPointer           = ^PPointer;
 
@@ -346,6 +355,7 @@ Type
 
   PWideChar           = ^WideChar;
   PPWideChar          = ^PWideChar;
+  PPPWideChar         = ^PPWideChar;
   WChar               = Widechar;
   UCS2Char            = WideChar;
   PUCS2Char           = PWideChar;
@@ -516,10 +526,12 @@ Procedure FillChar(var x;count:SizeInt;Value:Char);
 procedure FillByte(var x;count:SizeInt;value:byte);
 Procedure FillWord(var x;count:SizeInt;Value:Word);
 procedure FillDWord(var x;count:SizeInt;value:DWord);
+procedure FillQWord(var x;count:SizeInt;value:QWord);
 function  IndexChar(const buf;len:SizeInt;b:char):SizeInt;
 function  IndexByte(const buf;len:SizeInt;b:byte):SizeInt;
 function  Indexword(const buf;len:SizeInt;b:word):SizeInt;
 function  IndexDWord(const buf;len:SizeInt;b:DWord):SizeInt;
+function  IndexQWord(const buf;len:SizeInt;b:QWord):SizeInt;
 function  CompareChar(const buf1,buf2;len:SizeInt):SizeInt;
 function  CompareByte(const buf1,buf2;len:SizeInt):SizeInt;
 function  CompareWord(const buf1,buf2;len:SizeInt):SizeInt;
@@ -587,8 +599,8 @@ Function odd(l:Longword):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMIN
 Function odd(l:Int64):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
 Function odd(l:QWord):Boolean;[internconst:fpc_in_const_odd];{$ifdef SYSTEMINLINE}inline;{$endif}
 
-function SwapEndian(const AValue: SmallInt): SmallInt;
-function SwapEndian(const AValue: Word): Word;
+function SwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 function SwapEndian(const AValue: LongInt): LongInt;
 function SwapEndian(const AValue: DWord): DWord;
 function SwapEndian(const AValue: Int64): Int64;
@@ -640,63 +652,110 @@ function NtoLE(const AValue: QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_ROX}
 
 {$ifdef FPC_HAS_INTERNAL_ROX_BYTE}
-function Ror(Const AValue : Byte): Byte;[internproc:fpc_in_ror_x];
-function Ror(Const AValue : Byte;Dist : Byte): Byte;[internproc:fpc_in_ror_x_x];
+function RorByte(Const AValue : Byte): Byte;[internproc:fpc_in_ror_x];
+function RorByte(Const AValue : Byte;Dist : Byte): Byte;[internproc:fpc_in_ror_x_x];
 
-function Rol(Const AValue : Byte): Byte;[internproc:fpc_in_rol_x];
-function Rol(Const AValue : Byte;Dist : Byte): Byte;[internproc:fpc_in_rol_x_x];
+function RolByte(Const AValue : Byte): Byte;[internproc:fpc_in_rol_x];
+function RolByte(Const AValue : Byte;Dist : Byte): Byte;[internproc:fpc_in_rol_x_x];
 {$else FPC_HAS_INTERNAL_ROX_BYTE}
-function Ror(Const AValue : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Ror(Const AValue : Byte;Dist : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RorByte(Const AValue : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RorByte(Const AValue : Byte;Dist : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
 
-function Rol(Const AValue : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Rol(Const AValue : Byte;Dist : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RolByte(Const AValue : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RolByte(Const AValue : Byte;Dist : Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_ROX_BYTE}
 
 
 {$ifdef FPC_HAS_INTERNAL_ROX_WORD}
-function Ror(Const AValue : Word): Word;[internproc:fpc_in_ror_x];
-function Ror(Const AValue : Word;Dist : Byte): Word;[internproc:fpc_in_ror_x_x];
+function RorWord(Const AValue : Word): Word;[internproc:fpc_in_ror_x];
+function RorWord(Const AValue : Word;Dist : Byte): Word;[internproc:fpc_in_ror_x_x];
 
-function Rol(Const AValue : Word): Word;[internproc:fpc_in_rol_x];
-function Rol(Const AValue : Word;Dist : Byte): Word;[internproc:fpc_in_rol_x_x];
+function RolWord(Const AValue : Word): Word;[internproc:fpc_in_rol_x];
+function RolWord(Const AValue : Word;Dist : Byte): Word;[internproc:fpc_in_rol_x_x];
 {$else FPC_HAS_INTERNAL_ROX_WORD}
-function Ror(Const AValue : Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Ror(Const AValue : Word;Dist : Byte): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RorWord(Const AValue : Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RorWord(Const AValue : Word;Dist : Byte): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 
-function Rol(Const AValue : Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Rol(Const AValue : Word;Dist : Byte): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RolWord(Const AValue : Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RolWord(Const AValue : Word;Dist : Byte): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_ROX_WORD}
 
 
 {$ifdef FPC_HAS_INTERNAL_ROX_DWORD}
-function Ror(Const AValue : DWord): DWord;[internproc:fpc_in_ror_x];
-function Ror(Const AValue : DWord;Dist : Byte): DWord;[internproc:fpc_in_ror_x_x];
+function RorDWord(Const AValue : DWord): DWord;[internproc:fpc_in_ror_x];
+function RorDWord(Const AValue : DWord;Dist : Byte): DWord;[internproc:fpc_in_ror_x_x];
 
-function Rol(Const AValue : DWord): DWord;[internproc:fpc_in_rol_x];
-function Rol(Const AValue : DWord;Dist : Byte): DWord;[internproc:fpc_in_rol_x_x];
+function RolDWord(Const AValue : DWord): DWord;[internproc:fpc_in_rol_x];
+function RolDWord(Const AValue : DWord;Dist : Byte): DWord;[internproc:fpc_in_rol_x_x];
 {$else FPC_HAS_INTERNAL_ROX_DWORD}
-function Ror(Const AValue : DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Ror(Const AValue : DWord;Dist : Byte): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RorDWord(Const AValue : DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RorDWord(Const AValue : DWord;Dist : Byte): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 
-function Rol(Const AValue : DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Rol(Const AValue : DWord;Dist : Byte): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RolDWord(Const AValue : DWord): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RolDWord(Const AValue : DWord;Dist : Byte): DWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_ROX_DWORD}
 
 
 {$ifdef FPC_HAS_INTERNAL_ROX_QWORD}
-function Ror(Const AValue : QWord): QWord;[internproc:fpc_in_ror_x];
-function Ror(Const AValue : QWord;Dist : Byte): QWord;[internproc:fpc_in_ror_x_x];
+function RorQWord(Const AValue : QWord): QWord;[internproc:fpc_in_ror_x];
+function RorQWord(Const AValue : QWord;Dist : Byte): QWord;[internproc:fpc_in_ror_x_x];
 
-function Rol(Const AValue : QWord): QWord;[internproc:fpc_in_rol_x];
-function Rol(Const AValue : QWord;Dist : Byte): QWord;[internproc:fpc_in_rol_x_x];
+function RolQWord(Const AValue : QWord): QWord;[internproc:fpc_in_rol_x];
+function RolQWord(Const AValue : QWord;Dist : Byte): QWord;[internproc:fpc_in_rol_x_x];
 {$else FPC_HAS_INTERNAL_ROX_QWORD}
-function Ror(Const AValue : QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Ror(Const AValue : QWord;Dist : Byte): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RorQWord(Const AValue : QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RorQWord(Const AValue : QWord;Dist : Byte): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 
-function Rol(Const AValue : QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
-function Rol(Const AValue : QWord;Dist : Byte): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RolQWord(Const AValue : QWord): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
+function RolQWord(Const AValue : QWord;Dist : Byte): QWord;{$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif FPC_HAS_INTERNAL_ROX_QWORD}
+
+{$ifdef FPC_HAS_INTERNAL_SAR}
+
+{$if defined(cpux86_64) or defined(cpui386)}
+{$define FPC_HAS_INTERNAL_SAR_BYTE}
+{$define FPC_HAS_INTERNAL_SAR_WORD}
+{$endif defined(cpux86_64) or defined(cpui386)}
+
+{ currently, all supported CPUs have an internal 32 bit sar implementation }
+{ $if defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64)}
+{$define FPC_HAS_INTERNAL_SAR_DWORD}
+{ $endif defined(cpux86_64) or defined(cpui386) or defined(arm) or defined(powerpc) or defined(powerpc64)}
+
+{$if defined(cpux86_64) or defined(powerpc64)}
+{$define FPC_HAS_INTERNAL_SAR_QWORD}
+{$endif defined(cpux86_64) or defined(powerpc64)}
+
+{$endif FPC_HAS_INTERNAL_SAR}
+
+{$ifdef FPC_HAS_INTERNAL_SAR_BYTE}
+function SarShortint(Const AValue : Shortint): Shortint;[internproc:fpc_in_sar_x];
+function SarShortint(Const AValue : Shortint;Shift : Byte): Shortint;[internproc:fpc_in_sar_x_y];
+{$else FPC_HAS_INTERNAL_ROX_BYTE}
+function SarShortint(Const AValue : Shortint;Shift : Byte = 1): Shortint;
+{$endif FPC_HAS_INTERNAL_ROX_BYTE}
+
+{$ifdef FPC_HAS_INTERNAL_SAR_WORD}
+function SarSmallint(Const AValue : Smallint): Smallint;[internproc:fpc_in_sar_x];
+function SarSmallint(Const AValue : Smallint;Shift : Byte): Smallint;[internproc:fpc_in_sar_x_y];
+{$else FPC_HAS_INTERNAL_SAR_WORD}
+function SarSmallint(Const AValue : Smallint;Shift : Byte = 1): Smallint;
+{$endif FPC_HAS_INTERNAL_SAR_WORD}
+
+{$ifdef FPC_HAS_INTERNAL_SAR_DWORD}
+function SarLongint(Const AValue : Longint): Longint;[internproc:fpc_in_sar_x];
+function SarLongint(Const AValue : Longint;Shift : Byte): Longint;[internproc:fpc_in_sar_x_y];
+{$else FPC_HAS_INTERNAL_SAR_DWORD}
+function SarLongint(Const AValue : Longint;Shift : Byte = 1): Longint;
+{$endif FPC_HAS_INTERNAL_SAR_DWORD}
+
+{$ifdef FPC_HAS_INTERNAL_SAR_QWORD}
+function SarInt64(Const AValue : Int64): Int64;[internproc:fpc_in_sar_x];
+function SarInt64(Const AValue : Int64;Shift : Byte): Int64;[internproc:fpc_in_sar_x_y];
+{$else FPC_HAS_INTERNAL_SAR_QWORD}
+function SarInt64(Const AValue : Int64;Shift : Byte = 1): Int64;
+{$endif FPC_HAS_INTERNAL_SAR_QWORD}
+
 
 {$ifndef FPUNONE}
 { float math routines }
@@ -791,9 +850,9 @@ function  lowercase(const s : ansistring) : ansistring;
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;const Name:string);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;p:pchar);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:File;c:char);
+Procedure Assign(out f:File;const Name:string);
+Procedure Assign(out f:File;p:pchar);
+Procedure Assign(out f:File;c:char);
 Procedure Rewrite(var f:File;l:Longint);
 Procedure Rewrite(var f:File);
 Procedure Reset(var f:File;l:Longint);
@@ -828,9 +887,9 @@ Procedure Truncate (var F:File);
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:string);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:pchar);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;c:char);
+Procedure Assign(out f:TypedFile;const Name:string);
+Procedure Assign(out f:TypedFile;p:pchar);
+Procedure Assign(out f:TypedFile;c:char);
 Procedure Reset(var f : TypedFile);   [INTERNPROC: fpc_in_Reset_TypedFile];
 Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 {$endif FPC_HAS_FEATURE_FILEIO}
@@ -840,9 +899,9 @@ Procedure Rewrite(var f : TypedFile); [INTERNPROC: fpc_in_Rewrite_TypedFile];
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_TEXTIO}
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;const s:string);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;p:pchar);
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} t:Text;c:char);
+Procedure Assign(out t:Text;const s:string);
+Procedure Assign(out t:Text;p:pchar);
+Procedure Assign(out t:Text;c:char);
 Procedure Close(var t:Text);
 Procedure Rewrite(var t:Text);
 Procedure Reset(var t:Text);
@@ -871,15 +930,16 @@ Procedure SetTextLineEnding(var f:Text; Ending:string);
 
 
 {$ifdef FPC_HAS_FEATURE_FILEIO}
-Procedure chdir(const s:string);
-Procedure mkdir(const s:string);
-Procedure rmdir(const s:string);
+Procedure chdir(const s:string); overload;
+Procedure mkdir(const s:string); overload;
+Procedure rmdir(const s:string); overload;
+// the pchar versions are exported via alias for use in objpas
+
 Procedure getdir(drivenr:byte;var dir:shortstring);
 {$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
 Procedure getdir(drivenr:byte;var dir:ansistring);
 {$endif FPC_HAS_FEATURE_ANSISTRINGS}
 {$endif FPC_HAS_FEATURE_FILEIO}
-
 
 {*****************************************************************************
                              Miscellaneous
@@ -935,6 +995,19 @@ function InterLockedExchange (var Target: Pointer;Source : Pointer) : Pointer; e
 function InterLockedExchangeAdd (var Target: Pointer;Source : Pointer) : Pointer; external name 'FPC_INTERLOCKEDEXCHANGEADD';
 function InterlockedCompareExchange(var Target: Pointer; NewValue: Pointer; Comperand: Pointer): Pointer; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE';
 {$endif cpu64}
+{ unsigned overloads }
+function InterLockedIncrement (var Target: cardinal) : cardinal; external name 'FPC_INTERLOCKEDINCREMENT';
+function InterLockedDecrement (var Target: cardinal) : cardinal; external name 'FPC_INTERLOCKEDDECREMENT';
+function InterLockedExchange (var Target: cardinal;Source : cardinal) : cardinal; external name 'FPC_INTERLOCKEDEXCHANGE';
+function InterLockedExchangeAdd (var Target: cardinal;Source : cardinal) : cardinal; external name 'FPC_INTERLOCKEDEXCHANGEADD';
+function InterlockedCompareExchange(var Target: cardinal; NewValue: cardinal; Comperand: cardinal): cardinal; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE';
+{$ifdef cpu64}
+function InterLockedIncrement64 (var Target: qword) : qword; external name 'FPC_INTERLOCKEDINCREMENT64';
+function InterLockedDecrement64 (var Target: qword) : qword; external name 'FPC_INTERLOCKEDDECREMENT64';
+function InterLockedExchange64 (var Target: qword;Source : qword) : qword; external name 'FPC_INTERLOCKEDEXCHANGE64';
+function InterLockedExchangeAdd64 (var Target: qword;Source : qword) : qword; external name 'FPC_INTERLOCKEDEXCHANGEADD64';
+function InterlockedCompareExchange64(var Target: qword; NewValue: qword; Comperand: qword): int64; external name 'FPC_INTERLOCKEDCOMPAREEXCHANGE64';
+{$endif cpu64}
 
 
 {*****************************************************************************
@@ -977,7 +1050,7 @@ procedure DumpExceptionBackTrace(var f:text);
 
 Procedure RunError(w:Word);
 Procedure RunError;{$ifdef SYSTEMINLINE}inline;{$endif}
-Procedure halt(errnum:byte);
+Procedure halt(errnum:Longint);
 {$ifdef FPC_HAS_FEATURE_HEAP}
 Procedure AddExitProc(Proc:TProcedure);
 {$endif FPC_HAS_FEATURE_HEAP}

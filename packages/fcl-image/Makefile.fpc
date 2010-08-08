@@ -4,7 +4,7 @@
 
 [package]
 name=fcl-image
-version=2.2.2
+version=2.5.1
 
 [target]
 units=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm \
@@ -12,14 +12,16 @@ units=fpimgcmn fpimage pngcomn fpreadpng fpwritepng fpreadxpm fpwritexpm \
       fpreadbmp bmpcomn fpreadpnm fpwritepnm fpreadjpeg fpwritejpeg \
       pcxcomn fpreadpcx fpwritepcx fptiffcmn fpreadtiff fpwritetiff \
       targacmn fpreadtga fpwritetga ellipses fpcolhash fpditherer fpquantizer \ 
-      extinterpolation
+      extinterpolation fpreadgif fpreadpsd xwdfile fpreadxwd
 units_win32=freetypeh freetype ftfont
+units_beos=freetypeh freetype ftfont
+units_haiku=freetypeh freetype ftfont
 units_linux=freetypeh freetype ftfont
 units_freebsd=freetypeh freetype ftfont
 units_darwin=freetypeh freetype ftfont
 units_solaris=freetypeh freetype ftfont
 rsts=pscanvas
-examples=imgconv
+exampledirs=examples
 
 [require]
 packages=pasjpeg paszlib fcl-base

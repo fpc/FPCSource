@@ -338,11 +338,8 @@ begin
    name:=StrAlloc (length(DBFileName)+1);
    strpcopy(name,DBFileName);
    OnData:=@SQLOnData;
-   writeln('Try to open');
    sqlite3_open(name,@fSQLite);
-   writeln('Open success');
    sqlite3_free(fPMsg);
-   writeln('Free memory');
    if fSQLite <> nil then
    begin
       //fVersion := String(SQLite_Version);

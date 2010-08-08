@@ -25,6 +25,14 @@ unit fftw_s;
 {$MACRO on}
 {$INLINE on}
 
+{$IFDEF Unix}
+  const
+    fftwlib = 'fftw3f';
+{$ELSE}
+  const
+    fftwlib = 'libfftw3f';
+{$ENDIF}
+
 type    complex_single=record
           re,im:single;
         end;
@@ -48,64 +56,68 @@ type    complex_single=record
 {Complex to complex transformations.}
 function fftw_plan_dft_1d(n:cardinal;i,o:Pcomplex_single;
                           sign:fftw_sign;flags:fftw_flagset):fftw_plan_single;
-         external 'fftw3f' name 'fftwf_plan_dft_1d';
+         external fftwlib name 'fftwf_plan_dft_1d';
 function fftw_plan_dft_2d(nx,ny:cardinal;i,o:Pcomplex_single;
                           sign:fftw_sign;flags:fftw_flagset):fftw_plan_single;
-         external 'fftw3f' name 'fftwf_plan_dft_2d';
+         external fftwlib name 'fftwf_plan_dft_2d';
 function fftw_plan_dft_3d(nx,ny,nz:cardinal;i,o:Pcomplex_single;
                           sign:fftw_sign;flags:fftw_flagset):fftw_plan_single;
-         external 'fftw3f' name 'fftwf_plan_dft_3d';
+         external fftwlib name 'fftwf_plan_dft_3d';
 
 function fftw_plan_dft(rank:cardinal;n:Pcardinal;i,o:Pcomplex_single;
                        sign:fftw_sign;flags:fftw_flagset):fftw_plan_single;
-         external 'fftw3f' name 'fftwf_plan_dft';
+         external fftwlib name 'fftwf_plan_dft';
 
 {Real to complex transformations.}
 function fftw_plan_dft_1d(n:cardinal;i:Psingle;o:Pcomplex_single;
                           flags:fftw_flagset):fftw_plan_single;
-         external 'fftw3f' name 'fftwf_plan_dft_r2c_1d';
+         external fftwlib name 'fftwf_plan_dft_r2c_1d';
 function fftw_plan_dft_2d(nx,ny:cardinal;i:Psingle;o:Pcomplex_single;
                           flags:fftw_flagset):fftw_plan_single;
-         external 'fftw3f' name 'fftwf_plan_dft_r2c_2d';
+         external fftwlib name 'fftwf_plan_dft_r2c_2d';
 function fftw_plan_dft_3d(nx,ny,nz:cardinal;i:Psingle;o:Pcomplex_single;
                           flags:fftw_flagset):fftw_plan_single;
-         external 'fftw3f' name 'fftwf_plan_dft_r2c_3d';
+         external fftwlib name 'fftwf_plan_dft_r2c_3d';
 function fftw_plan_dft(rank:cardinal;n:Pcardinal;i:Psingle;o:Pcomplex_single;
                        flags:fftw_flagset):fftw_plan_single;
-         external 'fftw3f' name 'fftwf_plan_dft_r2c';
+         external fftwlib name 'fftwf_plan_dft_r2c';
 
 {Complex to real transformations.}
 function fftw_plan_dft_1d(n:cardinal;i:Pcomplex_single;o:Psingle;
                           flags:fftw_flagset):fftw_plan_single;
-         external 'fftw3f' name 'fftwf_plan_dft_c2r_1d';
+         external fftwlib name 'fftwf_plan_dft_c2r_1d';
 function fftw_plan_dft_2d(nx,ny:cardinal;i:Pcomplex_single;o:Psingle;
                           flags:fftw_flagset):fftw_plan_single;
-         external 'fftw3f' name 'fftwf_plan_dft_c2r_2d';
+         external fftwlib name 'fftwf_plan_dft_c2r_2d';
 function fftw_plan_dft_3d(nx,ny,nz:cardinal;i:Pcomplex_single;o:Psingle;
                           flags:fftw_flagset):fftw_plan_single;
-         external 'fftw3f' name 'fftwf_plan_dft_c2r_3d';
+         external fftwlib name 'fftwf_plan_dft_c2r_3d';
 function fftw_plan_dft(rank:cardinal;n:Pcardinal;i:Pcomplex_single;o:Psingle;
                        flags:fftw_flagset):fftw_plan_single;
-         external 'fftw3f' name 'fftwf_plan_dft_c2r';
+         external fftwlib name 'fftwf_plan_dft_c2r';
 
 
 procedure fftw_destroy_plan(plan:fftw_plan_single);
-          external 'fftw3f' name 'fftwf_destroy_plan';
+          external fftwlib name 'fftwf_destroy_plan';
 procedure fftw_execute(plan:fftw_plan_single);
-          external 'fftw3f' name 'fftwf_execute';
+          external fftwlib name 'fftwf_execute';
+
+{$calling register} {Back to normal!}
+procedure fftw_getmem(var p:pointer;size:sizeint);
+procedure fftw_freemem(p:pointer);inline;
 
 {*****************************************************************************}
                                   implementation
 {*****************************************************************************}
 
+{$ifndef Windows}
 {$LINKLIB fftw3f}
+{$endif}
 
 {Required libraries by libfftw3}
-{$LINKLIB gcc}
-{$LINKLIB c}
-{$LINKLIB m}
-
-{$calling register} {Back to normal!}
+{ $LINKLIB gcc}
+{ $LINKLIB c}
+{ $LINKLIB m}
 
 {Better don't use fftw_malloc and fftw_free, but provide Pascal replacements.}
 
@@ -115,11 +127,19 @@ procedure fftw_execute(plan:fftw_plan_single);
 
 procedure fftw_getmem(var p:pointer;size:sizeint);
 
-begin
 {$IFDEF align}
-  getmem(p,size+16-1);
+var
+  originalptr:pointer;
+begin
+  { We allocate additional "align-1" bytes to be able to align.
+    And we allocate additional "SizeOf(Pointer)" to always have space to store
+    the value of the original pointer. }
+  getmem(originalptr,size + align-1 + SizeOf(Pointer));
+  ptruint(p):=(ptruint(originalptr) + SizeOf(Pointer));
   ptruint(p):=(ptruint(p)+align-1) and not (align-1);
+  PPointer(ptruint(p) - SizeOf(Pointer))^:=originalptr;
 {$ELSE}
+begin
   getmem(p,size);
 {$ENDIF}
 end;
@@ -127,7 +147,11 @@ end;
 procedure fftw_freemem(p:pointer);inline;
 
 begin
+{$IFDEF align}
+  freemem(PPointer(ptruint(p) - SizeOf(Pointer))^);
+{$ELSE}
   freemem(p);
+{$ENDIF}
 end;
 
 end.

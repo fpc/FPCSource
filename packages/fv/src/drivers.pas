@@ -483,6 +483,12 @@ be used after a call to this. Read(ln)/write(ln) can be used again.
 
 procedure donekeyboard;
 
+{-DetectVideo---------------------------------------------------------
+Detects the current video mode without initializing or otherwise
+changing the current screen.
+---------------------------------------------------------------------}
+procedure DetectVideo;
+
 {-InitVideo---------------------------------------------------------
 Initializes the video manager, Saves the current screen mode in
 StartupMode, and switches to the mode indicated by ScreenMode.

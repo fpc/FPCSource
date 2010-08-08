@@ -74,7 +74,7 @@ Const
 Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
 Function FileCreate (Const FileName : String) : THandle;
 Function FileCreate (Const FileName : String; Mode : Integer) : THandle;
-Function FileRead (Handle : THandle; Var Buffer; Count : longint) : Longint;
+Function FileRead (Handle : THandle; out Buffer; Count : longint) : Longint;
 Function FileWrite (Handle : THandle; const Buffer; Count : Longint) : Longint;
 Function FileSeek (Handle : THandle; FOffset, Origin: Longint) : Longint;
 Function FileSeek (Handle : THandle; FOffset: Int64; Origin: Longint) : Int64;
@@ -95,7 +95,8 @@ Function FileGetAttr (Const FileName : String) : Longint;
 Function FileSetAttr (Const Filename : String; Attr: longint) : Longint;
 Function DeleteFile (Const FileName : String) : Boolean;
 Function RenameFile (Const OldName, NewName : String) : Boolean;
-Function FileSearch (Const Name, DirList : String) : String;
+Function FileSearch (Const Name, DirList : String; ImplicitCurrentDir : Boolean = True) : String;
+Function ExeSearch  (Const Name, DirList : String) : String;
 Function FileIsReadOnly(const FileName: String): Boolean;
 
 Function GetFileHandle(var f : File):Longint;

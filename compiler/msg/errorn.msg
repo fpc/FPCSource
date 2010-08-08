@@ -2183,7 +2183,7 @@ option_config_is_dir=11040_F_Config bestand $1 is een directorie
 %\end{description}
 option_logo=11023_[
 Free Pascal Compiler versie $FPCFULLVERSION [$FPCDATE] voor $FPCTARGET
-Copyright (c) 1998-2008 door Florian Klaempfl en anderen
+Copyright (c) 1998-2009 door Florian Klaempfl en anderen
 ]
 #
 # Info (option -i)
@@ -2195,6 +2195,8 @@ Compiler doelsysteem: $FPCTARGET
 Dit programma wordt verspreid onder de GNU General Public Licence
 Voor meer informatie, lees COPYING.FPC. Hiervan is helaas geen
 Nederlandse vertaling beschikbaar.
+                http://bugs.freepascal.org
+of
                 bugs@freepascal.org
 ]
 #
@@ -2286,7 +2288,6 @@ option_help_pages=11025_[
 **2So_Probeer TP/BP-7.0-compatibel te zijn
 **2Sp_Probeer GNU-Pascal-compatibel te zijn
 **2Ss_Constructor naam moet init zijn (destructor moet done zijn)
-**2St_Sta het sleutelwoord "static" toe in objecten
 **1s_Roep assembler en linker niet op (slechts met -a)
 **1sh_Genereer een script om op het hostplatform te linken
 **1sr_Voer geen registertoewijzing uit (optimalisaties worden uitgeschakeld)

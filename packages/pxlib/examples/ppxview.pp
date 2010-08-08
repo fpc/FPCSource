@@ -81,8 +81,12 @@ begin
         pxfDate:
            if PX_get_data_long(Doc,fbuf,flen,@longv)>0 then
               begin
+              {$ifdef windows}
+              S:=DateToStr(Longv+1721425-2415019);
+              {$else}
               PX_SdnToGregorian(longv+1721425,@Y,@M,@D);
               S:=DateToStr(EncodeDate(Y,M,D));
+              {$endif}
               end;
         pxfShort:
           if PX_get_data_short(Doc,fbuf, flen, @D)>0 then

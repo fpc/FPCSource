@@ -29,5 +29,7 @@ begin
     deletefile('tw8730a.txt');
   if (fileexists('tw8730b.txt')) then
     deletefile('tw8730b.txt');
+  if error<>0 then
+    writeln('tw8730c did not complete successfully');
   halt(error);
 end.

@@ -1,0 +1,4 @@
+[
+  { "method": "echo", "params": ["Hello JSON-RPC 1"], "id": 1 },
+  { "method": "echo", "params": ["Hello JSON-RPC 2"], "id": 2 }
+]

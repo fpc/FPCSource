@@ -1,4 +1,3 @@
-{ %fail }
 {$mode objfpc}
 
 type

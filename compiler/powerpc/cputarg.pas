@@ -61,6 +61,9 @@ implementation
     {$ifndef NOAGPPPCMPW}
       ,agppcmpw
     {$endif}
+    {$ifndef NOAGPPCVASM}
+      ,agppcvasm
+    {$endif}
 
 {**************************************
         Assembler Readers

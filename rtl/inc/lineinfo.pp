@@ -56,6 +56,7 @@ type
 
 { We use static variable so almost no stack is required, and is thus
   more safe when an error has occured in the program }
+{$WARNING This code is not thread-safe, and needs improvement }  
 var
   e          : TExeFile;
   staberr    : boolean;
@@ -95,7 +96,7 @@ begin
       if not OpenExeFile(e,dbgfn) then
         exit;
     end;
-  e.processaddress:=e.processaddress+dword(baseaddr);
+  e.processaddress:=ptruint(baseaddr)-e.processaddress;
   StabsFunctionRelative := E.FunctionRelative;
   if FindExeSection(e,'.stab',stabofs,stablen) and
      FindExeSection(e,'.stabstr',stabstrofs,stabstrlen) then
@@ -142,7 +143,7 @@ begin
 
   { correct the value to the correct address in the file }
   { processaddress is set in OpenStabs                   }
-  addr := addr - e.processaddress;
+  addr := dword(addr - e.processaddress);
 
 {$ifdef DEBUG_LINEINFO}
   writeln(stderr,'Addr: ',hexstr(addr,sizeof(addr)*2));

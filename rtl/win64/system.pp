@@ -93,19 +93,25 @@ var
   argv : ppchar;
 { Win32 Info }
   startupinfo : tstartupinfo;
+  StartupConsoleMode : dword;
   hprevinst,
   MainInstance : qword;
   cmdshow     : longint;
   DLLreason,DLLparam:longint;
 type
-  TDLL_Process_Entry_Hook = function (dllparam : longint) : longbool;
   TDLL_Entry_Hook = procedure (dllparam : longint);
 
 const
-  Dll_Process_Attach_Hook : TDLL_Process_Entry_Hook = nil;
   Dll_Process_Detach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Attach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;
+
+Const
+  { it can be discussed whether fmShareDenyNone means read and write or read, write and delete, see
+    also http://bugs.freepascal.org/view.php?id=8898, this allows users to configure the used
+	value
+  }
+  fmShareDenyNoneFlags : DWord = 3;
 
 implementation
 
@@ -160,7 +166,6 @@ var
     end;
 
 begin
-  SetupProcVars;
   { create commandline, it starts with the executed filename which is argv[0] }
   { Win32 passes the command NOT via the args, but via getmodulefilename}
   count:=0;
@@ -405,7 +410,11 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      asm
         xorl %rax,%rax
         movw %ss,%ax
+{$ifdef FPC_HAS_RIP_RELATIVE}
+        movl %eax,_SS(%rip)
+{$else}
         movl %eax,_SS
+{$endif}
         xorl %rbp,%rbp
         call PASCALMAIN
         popq %rbp
@@ -415,82 +424,14 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
      system_exit;
   end;
 
+function GetConsoleMode(hConsoleHandle: THandle; var lpMode: DWORD): Boolean; stdcall; external 'kernel32' name 'GetConsoleMode';
 
-Const
-  { DllEntryPoint  }
-     DLL_PROCESS_ATTACH = 1;
-     DLL_THREAD_ATTACH = 2;
-     DLL_PROCESS_DETACH = 0;
-     DLL_THREAD_DETACH = 3;
-Var
-     DLLBuf : Jmp_buf;
-Const
-     DLLExitOK : boolean = true;
-
-function Dll_entry : longbool;
-var
-  res : longbool;
-
-  begin
-     IsLibrary:=true;
-     Dll_entry:=false;
-     case DLLreason of
-       DLL_PROCESS_ATTACH :
-         begin
-           If SetJmp(DLLBuf) = 0 then
-             begin
-               if assigned(Dll_Process_Attach_Hook) then
-                 begin
-                   res:=Dll_Process_Attach_Hook(DllParam);
-                   if not res then
-                     exit(false);
-                 end;
-               PASCALMAIN;
-               Dll_entry:=true;
-             end
-           else
-             Dll_entry:=DLLExitOK;
-         end;
-       DLL_THREAD_ATTACH :
-         begin
-           inclocked(Thread_count);
-{$warning Allocate Threadvars !}
-           if assigned(Dll_Thread_Attach_Hook) then
-             Dll_Thread_Attach_Hook(DllParam);
-           Dll_entry:=true; { return value is ignored }
-         end;
-       DLL_THREAD_DETACH :
-         begin
-           declocked(Thread_count);
-           if assigned(Dll_Thread_Detach_Hook) then
-             Dll_Thread_Detach_Hook(DllParam);
-{$warning Release Threadvars !}
-           Dll_entry:=true; { return value is ignored }
-         end;
-       DLL_PROCESS_DETACH :
-         begin
-           Dll_entry:=true; { return value is ignored }
-           If SetJmp(DLLBuf) = 0 then
-             begin
-               FPC_DO_EXIT;
-             end;
-           if assigned(Dll_Process_Detach_Hook) then
-             Dll_Process_Detach_Hook(DllParam);
-         end;
-     end;
-  end;
-
-Procedure ExitDLL(Exitcode : longint);
-begin
-    DLLExitOK:=ExitCode=0;
-    LongJmp(DLLBuf,1);
-end;
-
-{$ifndef VER2_0}
+function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} : longbool;forward;
 
 procedure _FPC_mainCRTStartup;stdcall;public name '_mainCRTStartup';
 begin
   IsConsole:=true;
+  GetConsoleMode(GetStdHandle((Std_Input_Handle)),StartupConsoleMode);
   Exe_entry;
 end;
 
@@ -520,9 +461,6 @@ begin
   dllparam:=_dllparam;
   DLL_Entry;
 end;
-
-{$endif VER2_0}
-
 
 function GetCurrentProcess : dword;
  stdcall;external 'kernel32' name 'GetCurrentProcess';

@@ -24,6 +24,9 @@ uses
 {$ifdef Unix}
   baseunix,
   termio,
+{$ifdef linux}
+  linuxvcs,
+{$endif}
 {$endif}
   video,Objects;
 
@@ -755,10 +758,17 @@ begin
           Case ThisTTY[9] of
             '0'..'9' :
               begin { running Linux on native console or native-emulation }
+{$ifdef linux}
                 FName:='/dev/vcsa' + ThisTTY[9];
                 TTYFd:=fpOpen(FName, &666, O_RdWr); { open console }
+                if TTYFd = -1 then
+                begin
+                  if try_grab_vcsa then
+                    TTYFd:=fpOpen(FName, &666, O_RdWr); { try again }
+                end;
                 If TTYFd <>-1 Then
                   Console:=ttyLinux;
+{$endif}
               end;
          'v'  :  { check for (Free?)BSD native}
                 If (ThisTTY[10]>='0') and (ThisTTY[10]<='9') Then
@@ -976,7 +986,7 @@ begin
   GetConsoleScreenBufferInfo(StartScreenBufferHandle,
     @ConsoleScreenBufferInfo);
   BigWin.X:=ConsoleScreenBufferInfo.dwSize.X;
-  BigWin.Y:=200;
+  BigWin.Y:=ConsoleScreenBufferInfo.srwindow.bottom-ConsoleScreenBufferInfo.srwindow.top; // mants 15779 was 200
   { Try to allow to store more info }
   res:=SetConsoleScreenBufferSize(NewScreenBufferHandle,BigWin);
   if not res then
@@ -989,8 +999,14 @@ begin
     @ConsoleScreenBufferInfo);
   { make sure that the IDE Screen Handle has the maximum display size
     this removes the scroll bars if it is maximized }
+
+  BigWin.X:=ConsoleScreenBufferInfo.dwSize.X;
+  BigWin.Y:=ConsoleScreenBufferInfo.srwindow.bottom-ConsoleScreenBufferInfo.srwindow.top;
   res:=SetConsoleScreenBufferSize(NewScreenBufferHandle,
-         ConsoleScreenBufferInfo.dwMaximumWindowSize);
+     BigWin);
+// mants 15779 : was
+//  res:=SetConsoleScreenBufferSize(NewScreenBufferHandle,
+//         ConsoleScreenBufferInfo.dwMaximumWindowSize);
   if not res then
     error:=GetLastError;
   IDEScreenBufferHandle:=NewScreenBufferHandle;

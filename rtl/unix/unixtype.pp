@@ -20,6 +20,8 @@ Interface
 
 {$i ptypes.inc}
 
+Type
+  TTime = time_t;
 Implementation
 
 End.

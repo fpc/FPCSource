@@ -267,65 +267,7 @@
       43D ImageList_Copy
       423 ImageList_CopyDitherImage
       43E ImageList_Duplicate
-      44C ImmAssociateContext
-      476 ImmAssociateContextEx
-      44D ImmConfigureIMEW
-      44A ImmCreateContext
-      44E ImmCreateIMCC
-      44B ImmDestroyContext
-      44F ImmDestroyIMCC
-      443 ImmDisableIME
-      444 ImmEnableIME
-      450 ImmEnumRegisterWordW
-      451 ImmEscapeW
-      452 ImmGenerateMessage
-      454 ImmGetCandidateListCountW
-      453 ImmGetCandidateListW
-      455 ImmGetCandidateWindow
-      456 ImmGetCompositionFontW
-      447 ImmGetCompositionStringW
-      457 ImmGetCompositionWindow
-      440 ImmGetContext
-      458 ImmGetConversionListW
-      441 ImmGetConversionStatus
-      459 ImmGetDefaultIMEWnd
-      45A ImmGetDescriptionW
-      45B ImmGetGuideLineW
-      46E ImmGetHotKey
-      45C ImmGetIMCCLockCount
-      45D ImmGetIMCCSize
-      45E ImmGetIMCLockCount
-      477 ImmGetIMEFileNameW
-      479 ImmGetImeMenuItemsW
-      449 ImmGetKeyboardLayout
-      45F ImmGetOpenStatus
-      460 ImmGetProperty
-      461 ImmGetRegisterWordStyleW
-      471 ImmGetStatusWindowPos
-      478 ImmGetVirtualKey
-      448 ImmIsIME
-      462 ImmIsUIMessageW
-      463 ImmLockIMC
-      464 ImmLockIMCC
-      442 ImmNotifyIME
-      465 ImmReSizeIMCC
-      466 ImmRegisterWordW
-      445 ImmReleaseContext
-      480 ImmRequestMessageW
-      467 ImmSIPanelState
-      469 ImmSetCandidateWindow
-      46A ImmSetCompositionFontW
-      46B ImmSetCompositionStringW
-      46C ImmSetCompositionWindow
-      446 ImmSetConversionStatus
-      46D ImmSetHotKey
       47E ImmSetImeWndIMC
-      46F ImmSetOpenStatus
-      470 ImmSetStatusWindowPos
-      472 ImmSimulateHotKey
-      473 ImmUnlockIMC
-      474 ImmUnlockIMCC
-      475 ImmUnregisterWordW
         D InitLocale
       38C InputDebugCharW
       2F8 Int_CreateEventW
@@ -524,7 +466,6 @@
        87 StringCchVPrintfW
       387 StringCompress
       388 StringDecompress
-      49D SystemIdleTimerReset
         5 SystemMemoryLow
         4 SystemStarted
       30D THCreateSnapshot
@@ -2378,6 +2319,7 @@ function GlobalHandle(pMem:LPCVOID):HGLOBAL;
 function GlobalLockPtr(lp:pointer):Pointer;
 function GlobalLock(hMem:HGLOBAL):LPVOID;
 function GlobalReAlloc(hMem:HGLOBAL; dwBytes:DWORD; uFlags:UINT):HGLOBAL;
+function GlobalReAllocPtr(lp:Pointer;cbNew,flags:DWord):Pointer;
 function GlobalSize(hMem:HGLOBAL):DWORD;
 function GlobalUnlock(hMem:HGLOBAL):WINBOOL;
 procedure GlobalMemoryStatus(lpBuffer:LPMEMORYSTATUS); external KernelDLL name 'GlobalMemoryStatus';
@@ -2805,6 +2747,7 @@ function StretchDIBits(_para1:HDC; _para2:longint; _para3:longint; _para4:longin
   external KernelDLL name 'StretchDIBits';
 function SubtractRect(lprcDst:LPRECT; const lprcSrc1:RECT; const lprcSrc2:RECT):WINBOOL; external KernelDLL name 'SubtractRect';
 function SuspendThread(hThread:HANDLE):DWORD; external KernelDLL name 'SuspendThread';
+procedure SystemIdleTimerReset; external KernelDLL name 'SystemIdleTimerReset'; // 49D
 function SystemParametersInfo(uiAction:UINT; uiParam:UINT; pvParam:PVOID; fWinIni:UINT):WINBOOL; external KernelDLL name 'SystemParametersInfoW';
 function SystemParametersInfoW(uiAction:UINT; uiParam:UINT; pvParam:PVOID; fWinIni:UINT):WINBOOL; external KernelDLL name 'SystemParametersInfoW';
 function SystemTimeToFileTime(lpSystemTime:LPSYSTEMTIME; lpFileTime:LPFILETIME):WINBOOL; external KernelDLL name 'SystemTimeToFileTime';
@@ -2895,10 +2838,10 @@ function UpdateWindow(hWnd:HWND):WINBOOL; external KernelDLL name 'UpdateWindow'
 function ValidateRect(hWnd:HWND; const lpRect:RECT):WINBOOL; external KernelDLL name 'ValidateRect';
 function ValidateRect(hWnd:HWND;lpRect:LPRECT):WINBOOL; external KernelDLL name 'ValidateRect';
 function ValidateRgn(hWnd:HWND; hRgn:HRGN):WINBOOL; external KernelDLL name 'ValidateRgn';
-function VerQueryValue(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:LPVOID; puLen:PUINT):WINBOOL; external KernelDLL name 'VerQueryValueW';
-function VerQueryValue(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:LPVOID; var puLen:UINT):WINBOOL; external KernelDLL name 'VerQueryValueW';
-function VerQueryValueW(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:LPVOID; puLen:PUINT):WINBOOL; external KernelDLL name 'VerQueryValueW';
-function VerQueryValueW(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:LPVOID; var uLen:UINT):WINBOOL; external KernelDLL name 'VerQueryValueW';
+function VerQueryValue(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:PPVOID; puLen:PUINT):WINBOOL; external KernelDLL name 'VerQueryValueW';
+function VerQueryValue(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:PPVOID; var puLen:UINT):WINBOOL; external KernelDLL name 'VerQueryValueW';
+function VerQueryValueW(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:PPVOID; puLen:PUINT):WINBOOL; external KernelDLL name 'VerQueryValueW';
+function VerQueryValueW(pBlock:LPVOID; lpSubBlock:LPWSTR; lplpBuffer:PPVOID; var uLen:UINT):WINBOOL; external KernelDLL name 'VerQueryValueW';
 function VirtualAlloc(lpAddress:LPVOID; dwSize:DWORD; flAllocationType:DWORD; flProtect:DWORD):LPVOID; external KernelDLL name 'VirtualAlloc';
 function VirtualFree(lpAddress:LPVOID; dwSize:DWORD; dwFreeType:DWORD):WINBOOL; external KernelDLL name 'VirtualFree';
 function VirtualQuery(lpAddress:LPCVOID; lpBuffer:PMEMORY_BASIC_INFORMATION; dwLength:DWORD):DWORD; external KernelDLL name 'VirtualQuery';

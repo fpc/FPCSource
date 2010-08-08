@@ -7,12 +7,12 @@ main=rtl
 
 [target]
 loaders=prt07 prt09 cprt07 cprt09
-units=$(SYSTEMUNIT) objpas macpas strings \
+units=$(SYSTEMUNIT) objpas macpas iso7185 strings \
 #      dos \
       sysutils \
       classes math typinfo varutils fmtbcd ctypes \
       charset ucomplex getopts matrix \
-      variants types rtlconsts sysconst dateutil fgl lineinfo \
+      variants types rtlconsts sysconst dateutil lineinfo fgl \
 #      exec timer doslib utility hardware inputevent graphics layers \
 # these can be moved to packages later
 #      clipboard datatypes asl ahi tinygl get9 muihelper \

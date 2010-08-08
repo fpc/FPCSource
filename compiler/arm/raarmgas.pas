@@ -645,9 +645,37 @@ Unit raarmgas;
           end;
 
 
+        function is_ConditionCode(hs: string): boolean;
+          var icond: tasmcond;
+          begin
+            is_ConditionCode := false;
+            
+            if actopcode in [A_IT,A_ITE,A_ITT,
+                             A_ITEE,A_ITTE,A_ITET,A_ITTT,
+                             A_ITEEE,A_ITTEE,A_ITETE,A_ITTTE,A_ITEET,A_ITTET,A_ITETT,A_ITTTT] then
+              begin
+                { search for condition, conditions are always 2 chars }
+                if length(hs)>1 then
+                  begin
+                    for icond:=low(tasmcond) to high(tasmcond) do
+                      begin
+                        if copy(hs,1,2)=uppercond2str[icond] then
+                          begin
+                            //actcondition:=icond;
+                            oper.opr.typ := OPR_COND;
+                            oper.opr.cc := icond;
+                            exit(true);
+                          end;
+                      end;
+                  end;
+              end;
+          end;
+
       var
         tempreg : tregister;
         ireg : tsuperregister;
+        regtype: tregistertype;
+        subreg: tsubregister;
         hl : tasmlabel;
         {ofs : longint;}
         registerset : tcpuregisterset;
@@ -687,6 +715,12 @@ Unit raarmgas;
           *)
           AS_ID: { A constant expression, or a Variable ref.  }
             Begin
+              { Condition code? }
+              if is_conditioncode(actasmpattern) then
+              begin
+                consume(AS_ID);
+              end
+              else
               { Local Label ? }
               if is_locallabel(actasmpattern) then
                begin
@@ -790,7 +824,7 @@ Unit raarmgas;
                   oper.opr.typ:=OPR_REGISTER;
                   oper.opr.reg:=tempreg;
                 end
-              else if (actasmtoken=AS_NOT) and (actopcode in [A_LDM,A_STM]) then
+              else if (actasmtoken=AS_NOT) and (actopcode in [A_LDM,A_STM,A_FLDM,A_FSTM]) then
                 begin
                   consume(AS_NOT);
                   oper.opr.typ:=OPR_REFERENCE;
@@ -806,11 +840,24 @@ Unit raarmgas;
             begin
               consume(AS_LSBRACKET);
               registerset:=[];
+              regtype:=R_INVALIDREGISTER;
+              subreg:=R_SUBNONE;
               while true do
                 begin
                   if actasmtoken=AS_REGISTER then
                     begin
                       include(registerset,getsupreg(actasmregister));
+                      if regtype<>R_INVALIDREGISTER then
+                        begin
+                          if (getregtype(actasmregister)<>regtype) or
+                             (getsubreg(actasmregister)<>subreg) then
+                            Message(asmr_e_mixing_regtypes);
+                        end
+                      else
+                        begin
+                          regtype:=getregtype(actasmregister);
+                          subreg:=getsubreg(actasmregister);
+                        end;
                       tempreg:=actasmregister;
                       consume(AS_REGISTER);
                       if actasmtoken=AS_MINUS then
@@ -830,7 +877,11 @@ Unit raarmgas;
                 end;
               consume(AS_RSBRACKET);
               oper.opr.typ:=OPR_REGSET;
+              oper.opr.regtype:=regtype;
+              oper.opr.subreg:=subreg;
               oper.opr.regset:=registerset;
+              if (registerset=[]) then
+                Message(asmr_e_empty_regset);
             end;
           AS_end,
           AS_SEPARATOR,
@@ -915,12 +966,18 @@ Unit raarmgas;
 
       const
         { sorted by length so longer postfixes will match first }
-        postfix2strsorted : array[1..19] of string[2] = (
+        postfix2strsorted : array[1..31] of string[3] = (
+          'IAD','DBD','FDD','EAD',
+          'IAS','DBS','FDS','EAS',
+          'IAX','DBX','FDX','EAX',
           'EP','SB','BT','SH',
           'IA','IB','DA','DB','FD','FA','ED','EA',
           'B','D','E','P','T','H','S');
 
-        postfixsorted : array[1..19] of TOpPostfix = (
+        postfixsorted : array[1..31] of TOpPostfix = (
+          PF_IAD,PF_DBD,PF_FDD,PF_EAD,
+          PF_IAS,PF_DBS,PF_FDS,PF_EAS,
+          PF_IAX,PF_DBX,PF_FDX,PF_EAX,
           PF_EP,PF_SB,PF_BT,PF_SH,
           PF_IA,PF_IB,PF_DA,PF_DB,PF_FD,PF_FA,PF_ED,PF_EA,
           PF_B,PF_D,PF_E,PF_P,PF_T,PF_H,PF_S);
@@ -970,6 +1027,7 @@ Unit raarmgas;
           end;
         if actopcode=A_NONE then
           exit;
+			 
         { search for condition, conditions are always 2 chars }
         if length(hs)>1 then
           begin

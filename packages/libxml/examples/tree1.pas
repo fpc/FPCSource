@@ -16,7 +16,7 @@ program tree1;
 
 uses
   ctypes,
-  libxml2,
+  xml2,
   exutils,
   SysUtils;
 

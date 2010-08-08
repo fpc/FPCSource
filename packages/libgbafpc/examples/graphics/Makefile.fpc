@@ -1,0 +1,18 @@
+#
+#   Makefile.fpc for Free Pascal libgbafpc 2.x.y Examples
+#
+
+[target]
+dirs=ansi_console PCXView SimpleBGScroll
+
+[require]
+packages=libgbafpc
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
+
+[rules]
+.NOTPARALLEL:

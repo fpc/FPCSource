@@ -207,10 +207,10 @@ unit nx86add;
             end;
           end;
         if (right.location.loc<>LOC_CONSTANT) and
-           (tcgsize2unsigned[right.location.size]<>opsize) then
+           (tcgsize2unsigned[right.location.size]<>tcgsize2unsigned[opsize]) then
           location_force_reg(current_asmdata.CurrAsmList,right.location,opsize,true);
         if (left.location.loc<>LOC_CONSTANT) and
-           (tcgsize2unsigned[left.location.size]<>opsize) then
+           (tcgsize2unsigned[left.location.size]<>tcgsize2unsigned[opsize]) then
           location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
        end;
 
@@ -834,7 +834,7 @@ unit nx86add;
       var
         op : TAsmOp;
       begin
-        if use_sse(resultdef) then
+        if use_vectorfpu(resultdef) then
           begin
             second_addfloatsse;
             exit;
@@ -878,7 +878,7 @@ unit nx86add;
       var
         resflags   : tresflags;
       begin
-        if use_sse(left.resultdef) or use_sse(right.resultdef) then
+        if use_vectorfpu(left.resultdef) or use_vectorfpu(right.resultdef) then
           begin
             second_cmpfloatsse;
             exit;

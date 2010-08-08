@@ -5,8 +5,8 @@
 #
 # Warning: no package should contain more than 16 files
 
-title=Free Pascal Compiler 2.2.2
-version=2.2.2
+title=Free Pascal Compiler 2.5.1
+version=2.5.1
 
 #
 # General
@@ -83,6 +83,10 @@ package=uchmdos.zip,Support for .chm files handling
 package=ulibgddos.zip[ulgddos.zip],GD library interface unit
 # Dos 28
 package=usymbolicdos.zip[usymbdos.zip],Symbolic (unit for parsing and evaluating expressions)
+# Dos 29
+package=ufcl-resdos.zip[ufcledos.zip],Free Component Library (FCL)-resources
+# Dos 30
+package=ubzip2dos.zip[ubz2dos.zip],Units for bzip2 decompression
 
 #
 # Win32 packages
@@ -200,6 +204,10 @@ package=units-chm.i386-win32.zip,Support for .chm files handling
 package=units-libgd.i386-win32.zip,GD library interface unit
 # Win32-2 27
 package=units-symbolic.i386-win32.zip,Symbolic (unit for parsing and evaluating expressions)
+# Win32-2 28
+package=units-fcl-res.i386-win32.zip,Free Component Library (FCL)-resources
+# Win32-2 29
+package=units-bzip2.i386-win32.zip,Units for bzip2 decompression
 
 
 #
@@ -304,6 +312,11 @@ package=uchmos2.zip,Support for .chm files handling
 package=ulibgdos2.zip[ulgdos2.zip],GD library interface unit
 # OS/2-2 22
 package=usymbolicos2.zip[usymbos2.zip],Symbolic (unit for parsing and evaluating expressions)
+# OS/2-2 23
+package=ufcl-resos2.zip[ufcleos2.zip],Free Component Library (FCL)-resources
+# OS/2-2 24
+package=ubzip2os2.zip[ubz2os2.zip],Units for bzip2 decompression
+
 
 
 
@@ -409,6 +422,10 @@ package=uchmemx.zip,Support for .chm files handling
 package=ulibgdemx.zip[ulgdemx.zip],GD library interface unit
 # EMX-2 22
 package=usymbolicemx.zip[usymbemx.zip],Symbolic (unit for parsing and evaluating expressions)
+# EMX-2 23
+package=ufcl-resemx.zip[ufcleemx.zip],Free Component Library (FCL)-resources
+# EMX-2 24
+package=ubzip2emx.zip[ubz2emx.zip],Units for bzip2 decompression
 
 
 #
@@ -418,10 +435,12 @@ pack=Commo~n~
 # Common 1
 package=doc-pdf.zip,Documentation (~P~DF)
 # Common 2
-package=doc-html.zip[doc-htm.zip],Documentation (~H~TML)
+package=doc-chm.zip,Documentation (CH~M~)
 # Common 3
-package=doc-txt.zip,Documentation (~T~XT)
+package=doc-html.zip[doc-htm.zip],Documentation (~H~TML)
 # Common 4
+package=doc-txt.zip,Documentation (~T~XT)
+# Common 5
 package=demo.zip,D~e~mos
 
 
@@ -437,7 +456,7 @@ package=compiler.source.zip[compsrc.zip],~C~ompiler sources
 # Source 3
 package=rtl.source.zip[rtlsrc.zip],Run time library sources
 # Source 4
-package=units-graph.source.zip[ugrphsrc.zip],Unit Graph
+package=ide.source.zip[idesrc.zip],IDE sources
 # Source 5
 package=utils.source.zip[utilsrc.zip],~U~tils sources
 # Source 6
@@ -460,6 +479,8 @@ package=units-zlib.source.zip[uzlibsrc.zip],ZLib interface units
 package=units-gdbint.source.zip[ugdbsrc.zip],GDB interface units
 # Source 15
 package=units-postgres.source.zip[upgrsrc.zip],PostGreSQL interface units
+# Source 16
+package=units-graph.source.zip[ugrphsrc.zip],Unit Graph
 
 #
 # Source packages 2nd part
@@ -513,6 +534,10 @@ package=units-chm.source.zip[uchmsrc.zip],Support for .chm files handling
 package=units-libgd.source.zip[ulgdsrc.zip],GD library interface unit
 # Source-2 23
 package=units-symbolic.source.zip[usymbsrc.zip],Symbolic (unit for parsing and evaluating expressions)
+# Source-2 24
+package=units-fcl-res.source.zip[ufclesrc.zip],Free Component Library (FCL)-resources
+# Source-2 25
+package=units-bzip2.source.zip[ubz2src.zip],Units for bzip2 decompression
 
 
 #

@@ -64,7 +64,45 @@ implementation
         '','','','','','',
         '','','','',
         '',
+        '',
+        '',
+        '',
+        '',
         '','','','',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
         '',
         '',
         '',
@@ -76,7 +114,45 @@ implementation
         '','','','',
         'idata$2','idata$4','idata$5','idata$6','idata$7','edata',
         '',
+        '',
+        '',
+        '',
+        '',
         '','','','',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
+        '',
         '',
         '',
         '',
@@ -343,10 +419,10 @@ implementation
     end;
 
     const
-      ait_const2str : array[aitconst_128bit..aitconst_indirect_symbol] of string[20]=(
+      ait_const2str : array[aitconst_128bit..aitconst_secrel32_symbol] of string[20]=(
         #9''#9,#9'DQ'#9,#9'DD'#9,#9'DW'#9,#9'DB'#9,
         #9'FIXMESLEB',#9'FIXEMEULEB',
-        #9'DD RVA'#9,#9'DD SECREL32'#9,#9'FIXMEINDIRECT'#9
+        #9'DD RVA'#9,#9'DD SECREL32'#9
       );
 
     Function PadTabs(const p:string;addch:char):string;
@@ -522,8 +598,7 @@ implementation
                  aitconst_16bit,
                  aitconst_8bit,
                  aitconst_rva_symbol,
-                 aitconst_secrel32_symbol,
-                 aitconst_indirect_symbol :
+                 aitconst_secrel32_symbol :
                    begin
                      AsmWrite(ait_const2str[consttype]);
                      l:=0;
@@ -655,6 +730,8 @@ implementation
              end;
            ait_symbol :
              begin
+               if tai_symbol(hp).has_value then
+                 internalerror(2009090802);
                if tai_symbol(hp).is_global then
                  AsmWriteLn(#9'PUBLIC'#9+tai_symbol(hp).sym.name);
                AsmWrite(tai_symbol(hp).sym.name);
@@ -795,9 +872,9 @@ implementation
                end;
            ait_marker :
              begin
-               if tai_marker(hp).kind=mark_InlineStart then
+               if tai_marker(hp).kind=mark_NoLineInfoStart then
                  inc(InlineLevel)
-               else if tai_marker(hp).kind=mark_InlineEnd then
+               else if tai_marker(hp).kind=mark_NoLineInfoEnd then
                  dec(InlineLevel);
              end;
 
@@ -922,13 +999,14 @@ implementation
 *****************************************************************************}
 
     const
+{$ifdef i386}
        as_i386_tasm_info : tasminfo =
           (
             id           : as_i386_tasm;
             idtxt  : 'TASM';
             asmbin : 'tasm';
             asmcmd : '/m2 /ml $ASM $OBJ';
-            supported_target : system_any; { what should I write here ?? }
+            supported_targets : [system_i386_GO32V2,system_i386_Win32,system_i386_wdosx,system_i386_watcom,system_i386_wince];
             flags : [af_allowdirect,af_needar,af_labelprefix_only_inside_procedure];
             labelprefix : '@@';
             comment : '; ';
@@ -940,7 +1018,7 @@ implementation
             idtxt  : 'MASM';
             asmbin : 'masm';
             asmcmd : '/c /Cp $ASM /Fo$OBJ';
-            supported_target : system_any; { what should I write here ?? }
+            supported_targets : [system_i386_GO32V2,system_i386_Win32,system_i386_wdosx,system_i386_watcom,system_i386_wince];
             flags : [af_allowdirect,af_needar];
             labelprefix : '@@';
             comment : '; ';
@@ -952,12 +1030,12 @@ implementation
             idtxt  : 'WASM';
             asmbin : 'wasm';
             asmcmd : '$ASM -6s -fp6 -ms -zq -Fo=$OBJ';
-            supported_target : system_any; { what should I write here ?? }
+            supported_targets : [system_i386_watcom];
             flags : [af_allowdirect,af_needar];
             labelprefix : '@@';
             comment : '; ';
           );
-
+{$endif i386}
 {$ifdef x86_64}
        as_x86_64_masm_info : tasminfo =
           (
@@ -965,7 +1043,7 @@ implementation
             idtxt  : 'MASM';
             asmbin : 'ml64';
             asmcmd : '/c /Cp $ASM /Fo$OBJ';
-            supported_target : system_any; { what should I write here ?? }
+            supported_targets : [system_x86_64_win64];
             flags : [af_allowdirect,af_needar];
             labelprefix : '@@';
             comment : '; ';

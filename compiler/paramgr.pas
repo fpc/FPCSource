@@ -29,7 +29,7 @@ unit paramgr;
 
     uses
        cclasses,globtype,
-       cpubase,cgbase,
+       cpubase,cgbase,cgutils,
        parabase,
        aasmtai,aasmdata,
        symconst,symtype,symsym,symdef;
@@ -76,25 +76,38 @@ unit paramgr;
 
           procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);virtual;abstract;
 
+          {# allocate an individual pcgparalocation that's part of a tcgpara
+
+            @param(list Current assembler list)
+            @param(loc Parameter location element)
+          }
+          procedure allocparaloc(list: TAsmList; const paraloc: pcgparalocation);
+
           {# allocate a parameter location created with create_paraloc_info
 
             @param(list Current assembler list)
             @param(loc Parameter location)
           }
-          procedure allocparaloc(list: TAsmList; const cgpara: TCGPara); virtual;
+          procedure alloccgpara(list: TAsmList; const cgpara: TCGPara); virtual;
 
           {# free a parameter location allocated with alloccgpara
 
             @param(list Current assembler list)
             @param(loc Parameter location)
           }
-          procedure freeparaloc(list: TAsmList; const cgpara: TCGPara); virtual;
+          procedure freecgpara(list: TAsmList; const cgpara: TCGPara); virtual;
 
           { This is used to populate the location information on all parameters
             for the routine as seen in either the caller or the callee. It returns
             the size allocated on the stack
           }
           function  create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;virtual;abstract;
+
+          { Returns the location of the function result if p had def as
+            function result instead of its actual result. Used if the compiler
+            forces the function result to something different than the real
+            result.  }
+          function  get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;virtual;abstract;
 
           { This is used to populate the location information on all parameters
             for the routine when it is being inlined. It returns
@@ -124,7 +137,7 @@ implementation
 
     uses
        systems,
-       cgobj,tgobj,cgutils,
+       cgobj,tgobj,
        defutil,verbose;
 
     { true if the location in paraloc can be reused as localloc }
@@ -140,7 +153,7 @@ implementation
          ret_in_param:=((def.typ=arraydef) and not(is_dynamic_array(def))) or
            (def.typ=recorddef) or
            (def.typ=stringdef) or
-           ((def.typ=procvardef) and (po_methodpointer in tprocvardef(def).procoptions)) or
+           ((def.typ=procvardef) and not tprocvardef(def).is_addressonly) or
            { interfaces are also passed by reference to be compatible with delphi and COM }
            ((def.typ=objectdef) and (is_object(def) or is_interface(def))) or
            (def.typ=variantdef) or
@@ -217,39 +230,48 @@ implementation
       end;
 
 
-    procedure tparamanager.allocparaloc(list: TAsmList; const cgpara: TCGPara);
+    procedure tparamanager.allocparaloc(list: TAsmList; const paraloc: pcgparalocation);
+      begin
+        case paraloc^.loc of
+          LOC_REGISTER,
+          LOC_CREGISTER:
+            begin
+              if getsupreg(paraloc^.register)<first_int_imreg then
+                cg.getcpuregister(list,paraloc^.register);
+            end;
+{$ifndef x86}
+{ don't allocate ST(x), they're not handled by the register allocator }
+          LOC_FPUREGISTER,
+          LOC_CFPUREGISTER:
+            begin
+              if getsupreg(paraloc^.register)<first_fpu_imreg then
+                cg.getcpuregister(list,paraloc^.register);
+            end;
+{$endif not x86}
+          LOC_MMREGISTER,
+          LOC_CMMREGISTER :
+            begin
+              if getsupreg(paraloc^.register)<first_mm_imreg then
+                cg.getcpuregister(list,paraloc^.register);
+            end;
+        end;
+      end;
+
+
+    procedure tparamanager.alloccgpara(list: TAsmList; const cgpara: TCGPara);
       var
         paraloc : pcgparalocation;
       begin
         paraloc:=cgpara.location;
         while assigned(paraloc) do
           begin
-            case paraloc^.loc of
-              LOC_REGISTER,
-              LOC_CREGISTER:
-                begin
-                  if getsupreg(paraloc^.register)<first_int_imreg then
-                    cg.getcpuregister(list,paraloc^.register);
-                end;
-              LOC_FPUREGISTER,
-              LOC_CFPUREGISTER:
-                begin
-                  if getsupreg(paraloc^.register)<first_fpu_imreg then
-                    cg.getcpuregister(list,paraloc^.register);
-                end;
-              LOC_MMREGISTER,
-              LOC_CMMREGISTER :
-                begin
-                  if getsupreg(paraloc^.register)<first_mm_imreg then
-                    cg.getcpuregister(list,paraloc^.register);
-                end;
-            end;
+            allocparaloc(list,paraloc);
             paraloc:=paraloc^.next;
           end;
       end;
 
 
-    procedure tparamanager.freeparaloc(list: TAsmList; const cgpara: TCGPara);
+    procedure tparamanager.freecgpara(list: TAsmList; const cgpara: TCGPara);
       var
         paraloc : Pcgparalocation;
         href : treference;
@@ -287,7 +309,7 @@ implementation
                       fillchar(href,sizeof(href),0);
                       href.base:=paraloc^.reference.index;
                       href.offset:=paraloc^.reference.offset;
-                      tg.ungettemp(list,href);
+                      tg.ungetiftemp(list,href);
                     end;
                 end;
               else
@@ -327,7 +349,7 @@ implementation
               on arm it reduces executable size of the compiler by 2.1 per cent (FK) }
             { Does it fit a register? }
             if (len<=sizeof(pint)) and
-               (cgpara.size in [OS_8,OS_16,OS_32,OS_64,OS_128,OS_S8,OS_S16,OS_S32,OS_S64,OS_S128]) then
+               (paraloc^.size in [OS_8,OS_16,OS_32,OS_64,OS_128,OS_S8,OS_S16,OS_S32,OS_S64,OS_S128]) then
               newparaloc^.loc:=LOC_REGISTER
             else
               newparaloc^.loc:=paraloc^.loc;

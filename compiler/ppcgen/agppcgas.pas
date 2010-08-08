@@ -71,13 +71,13 @@ unit agppcgas;
 
 {$ifdef cpu64bitaddr}
     const
-      refaddr2str: array[trefaddr] of string[9] = ('', '', '', '@l', '@h', '@higher', '@highest', '@ha', '@highera', '@highesta');
+      refaddr2str: array[trefaddr] of string[9] = ('', '', '', '', '@l', '@h', '@higher', '@highest', '@ha', '@highera', '@highesta');
       verbose_refaddrs = [addr_low, addr_high, addr_higher, addr_highest, addr_higha, addr_highera, addr_highesta];
-      refaddr2str_darwin: array[trefaddr] of string[4] = ('','','','lo16', 'hi16', '@err', '@err', 'ha16', '@err', '@err');
+      refaddr2str_darwin: array[trefaddr] of string[4] = ('','','','','lo16', 'hi16', '@err', '@err', 'ha16', '@err', '@err');
 {$else cpu64bitaddr}
     const
-      refaddr2str: array[trefaddr] of string[3] = ('','','','@l','@h','@ha');
-      refaddr2str_darwin: array[trefaddr] of string[4] = ('','','','lo16','hi16','ha16');
+      refaddr2str: array[trefaddr] of string[3] = ('','','','','@l','@h','@ha');
+      refaddr2str_darwin: array[trefaddr] of string[4] = ('','','','','lo16','hi16','ha16');
       verbose_refaddrs = [addr_low,addr_high,addr_higha];
 {$endif cpu64bitaddr}
 
@@ -429,7 +429,7 @@ unit agppcgas;
 {$else cpu64bitaddr}
          asmcmd: '-o $OBJ $ASM';
 {$endif cpu64bitaddr}
-         supported_target : system_any;
+         supported_targets : [system_powerpc_linux,system_powerpc_netbsd,system_powerpc_openbsd,system_powerpc_MorphOS,system_powerpc_Amiga,system_powerpc64_linux,system_powerpc_embedded,system_powerpc64_embedded];
          flags : [af_allowdirect,af_needar,af_smartlink_sections];
          labelprefix : '.L';
          comment : '# ';
@@ -443,8 +443,8 @@ unit agppcgas;
          idtxt  : 'AS-Darwin';
          asmbin : 'as';
          asmcmd : '-o $OBJ $ASM -arch $ARCH';
-         supported_target : system_any;
-         flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+         supported_targets : [system_powerpc_darwin,system_powerpc64_darwin];
+         flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
          labelprefix : 'L';
          comment : '# ';
        );

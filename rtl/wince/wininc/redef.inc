@@ -288,6 +288,8 @@ function TranslateCharsetInfo(var lpSrc: DWORD; var lpCs: TCharsetInfo; dwFlags:
 function TranslateMessage(const lpMsg: TMsg): BOOL; external KernelDLL name 'TranslateMessage';
 function TryEnterCriticalSection(var CriticalSection : TRTLCriticalSection) : BOOL; external KernelDLL name 'TryEnterCriticalSection';
 function UnionRect(var lprcDst: TRect; const lprcSrc1, lprcSrc2: TRect): BOOL; external KernelDLL name 'UnionRect';
+function VerQueryValue(pBlock: Pointer; lpSubBlock: LPWSTR; var lplpBuffer: Pointer; var uLen: UINT): BOOL; external KernelDLL name 'VerQueryValueW';
+function VerQueryValueW(pBlock: Pointer; lpSubBlock: LPWSTR; var lplpBuffer: Pointer; var uLen: UINT): BOOL; external KernelDLL name 'VerQueryValueW';
 function VirtualProtect(lpAddress:LPVOID; dwSize:DWORD; flNewProtect:DWORD; var lpflOldProtect:DWORD):WINBOOL; external KernelDLL name 'VirtualProtect';
 function VirtualQuery(lpAddress: Pointer; var lpBuffer: TMemoryBasicInformation; dwLength: DWORD): DWORD; external KernelDLL name 'VirtualQuery';
 function WaitCommEvent(hFile: THandle; var lpEvtMask: DWORD; lpOverlapped: POverlapped): BOOL; external KernelDLL name 'WaitCommEvent';

@@ -536,7 +536,6 @@ begin
 end;
 
 procedure SysUpdateScreen(Force: Boolean);
-type TmpRec = Array[0..(1024*32) - 1] of TCharInfo;
 
 type WordRec = record
                   One, Two: Byte;
@@ -546,17 +545,20 @@ var
    BufSize,
    BufCoord    : COORD;
    WriteRegion : SMALL_RECT;
-   LineBuf     : ^TmpRec;
+   LineBuf     : Array[0..(1024*32) - 1] of TCharInfo;
    BufCounter  : Longint;
    LineCounter,
    ColCounter  : Longint;
    smallforce  : boolean;
    x1,y1,x2,y2 : longint;
+   p1,p2,p3    : PCardinal;
+   j           : integer;
 begin
   if force then
    smallforce:=true
   else
    begin
+    {$ifdef cpui386}
      asm
         pushl   %esi
         pushl   %edi
@@ -570,6 +572,36 @@ begin
         popl    %edi
         popl    %esi
      end;
+   {$else}
+    {$ifdef cpux86_64}
+     asm
+        pushq   %rsi
+        pushq   %rdi
+        xorq    %rcx,%rcx  
+        movq    VideoBuf,%rsi
+        movq    OldVideoBuf,%edi
+        movl    VideoBufSize,%ecx
+        shrq    $2,%rcx
+        repe
+        cmpsl
+        setne   smallforce
+        popq    %rdi
+        popq    %rsi
+     end;
+    {$else}
+      {$INFO No optimized version for this CPU, reverting to a pascal version}
+       j:=Videobufsize shr 2;
+       smallforce:=false;
+       p1:=pcardinal(VideoBuf);
+       p2:=pcardinal(OldVideoBuf);
+       p3:=@pcardinal(videobuf)[j];
+       while (p1<p3) and (p1^=p2^) do
+         begin
+           inc(p1); inc(p2);
+         end; 
+       smallforce:=p1<>p3;  
+    {$ENDIF}
+   {$endif}
    end;
   if SmallForce then
    begin
@@ -585,7 +617,6 @@ begin
            Bottom := ScreenHeight-1;
            Right := ScreenWidth-1;
         end;
-      New(LineBuf);
       BufCounter := 0;
       x1:=ScreenWidth+1;
       x2:=-1;
@@ -608,13 +639,13 @@ begin
                       y2:=LineCounter;
                  end;
                if useunicodefunctions then
-                 LineBuf^[BufCounter].UniCodeChar := Widechar(mapcp850[WordRec(VideoBuf^[BufCounter]).One].unicode)
+                 LineBuf[BufCounter].UniCodeChar := Widechar(mapcp850[WordRec(VideoBuf^[BufCounter]).One].unicode)
                else
-                 LineBuf^[BufCounter].UniCodeChar := Widechar(WordRec(VideoBuf^[BufCounter]).One);
+                 LineBuf[BufCounter].UniCodeChar := Widechar(WordRec(VideoBuf^[BufCounter]).One);
                { If (WordRec(VideoBuf^[BufCounter]).Two and $80)<>0 then
                  LineBuf^[BufCounter].Attributes := $100+WordRec(VideoBuf^[BufCounter]).Two
                else }
-               LineBuf^[BufCounter].Attributes := WordRec(VideoBuf^[BufCounter]).Two;
+               LineBuf[BufCounter].Attributes := WordRec(VideoBuf^[BufCounter]).Two;
 
                Inc(BufCounter);
              end; { for }
@@ -650,10 +681,9 @@ begin
       writeln('Y2: ',y2);
       }
       if useunicodefunctions then
-        WriteConsoleOutputW(TextRec(Output).Handle, LineBuf, BufSize, BufCoord, WriteRegion)
+        WriteConsoleOutputW(TextRec(Output).Handle, @LineBuf, BufSize, BufCoord, WriteRegion)
       else
-        WriteConsoleOutput(TextRec(Output).Handle, LineBuf, BufSize, BufCoord, WriteRegion);
-      Dispose(LineBuf);
+        WriteConsoleOutput(TextRec(Output).Handle, @LineBuf, BufSize, BufCoord, WriteRegion);
 
       move(VideoBuf^,OldVideoBuf^,VideoBufSize);
    end;

@@ -66,12 +66,18 @@ implementation
        globals,globtype,verbose,systems,
        fmodule,
        symsym,
-       aasmtai,aasmdata
+       aasmtai,aasmdata,
+       defutil,
+       wpobase
        ;
 
 
     const
-       rttidefstate : array[trttitype] of tdefstate = (ds_rtti_table_written,ds_init_table_written);
+       rttidefstate : array[trttitype] of tdefstate =
+         (ds_rtti_table_written,ds_init_table_written,
+         { Objective-C related, does not pass here }
+         symconst.ds_none,symconst.ds_none,
+         symconst.ds_none,symconst.ds_none);
 
     type
        TPropNameListItem = class(TFPHashObject)
@@ -88,6 +94,13 @@ implementation
       var
          hs : string;
       begin
+         if is_open_array(def) then
+           { open arrays never have a typesym with a name, since you cannot
+             define an "open array type". Kylix prints the type of the
+             elements in the array in this case (so together with the pfArray
+             flag, you can reconstruct the full typename, I assume (JM))
+           }
+           def:=tarraydef(def).elementdef;
          { name }
          if assigned(def.typesym) then
            begin
@@ -263,7 +276,9 @@ implementation
                          end;
                        sl_subscript :
                          begin
-                           if not(assigned(def) and (def.typ=recorddef)) then
+                           if not(assigned(def) and
+                                  ((def.typ=recorddef) or
+                                   is_object(def))) then
                              internalerror(200402171);
                            inc(address,tfieldvarsym(hp^.sym).fieldoffset);
                            def:=tfieldvarsym(hp^.sym).vardef;
@@ -301,6 +316,12 @@ implementation
                      { virtual method, write vmt offset }
                      current_asmdata.asmlists[al_rtti].concat(Tai_const.create(aitconst_ptr,
                        tprocdef(propaccesslist.procdef)._class.vmtmethodoffset(tprocdef(propaccesslist.procdef).extnumber)));
+                     { register for wpo }
+                     tprocdef(propaccesslist.procdef)._class.register_vmt_call(tprocdef(propaccesslist.procdef).extnumber);
+                     {$ifdef vtentry}
+                     { not sure if we can insert those vtentry symbols safely here }
+                     {$error register methods used for published properties}
+                     {$endif vtentry}
                      typvalue:=2;
                   end;
              end;
@@ -395,6 +416,7 @@ implementation
 
         procedure enumdef_rtti(def:tenumdef);
         var
+           i  : integer;
            hp : tenumsym;
         begin
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkEnumeration));
@@ -415,18 +437,25 @@ implementation
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.max));
           if (tf_requires_proper_alignment in target_info.flags) then
             current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUint)));
+          { write base type }
           if assigned(def.basedef) then
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.basedef,rt)))
           else
             current_asmdata.asmlists[al_rtti].concat(Tai_const.create_sym(nil));
-          hp:=tenumsym(def.firstenum);
-          while assigned(hp) do
+          for i := 0 to def.symtable.SymList.Count - 1 do
             begin
+              hp:=tenumsym(def.symtable.SymList[i]);
+              if hp.value<def.minval then
+                continue
+              else
+              if hp.value>def.maxval then
+                break;
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(hp.realname)));
               current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(hp.realname));
-              hp:=hp.nextenum;
             end;
-          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(0));
+          { write unit name }
+          current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(current_module.realmodulename^)));
+          current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(current_module.realmodulename^));
         end;
 
         procedure orddef_rtti(def:torddef);
@@ -510,9 +539,9 @@ implementation
 
         procedure floatdef_rtti(def:tfloatdef);
         const
-          {tfloattype = (s32real,s64real,s80real,s64bit,s128bit);}
+          {tfloattype = (s32real,s64real,s80real,sc80real,s64bit,s128bit);}
           translate : array[tfloattype] of byte =
-             (ftSingle,ftDouble,ftExtended,ftComp,ftCurr,ftFloat128);
+             (ftSingle,ftDouble,ftExtended,ftExtended,ftComp,ftCurr,ftFloat128);
         begin
            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(tkFloat));
            write_rtti_name(def);
@@ -535,6 +564,8 @@ implementation
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otUWord));
              4:
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otULong));
+             else
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otUByte));
            end;
            if (tf_requires_proper_alignment in target_info.flags) then
              current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
@@ -580,8 +611,9 @@ implementation
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.elementdef,rt)))
                else
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_pint(0));
-               { dummy DynUnitName }
-               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(0));
+               { write unit name }
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(length(current_module.realmodulename^)));
+               current_asmdata.asmlists[al_rtti].concat(Tai_string.Create(current_module.realmodulename^));
              end;
         end;
 
@@ -602,6 +634,23 @@ implementation
 
         procedure procvardef_rtti(def:tprocvardef);
 
+           const
+             ProcCallOptionToCallConv: array[tproccalloption] of byte = (
+              { pocall_none       } 0,
+              { pocall_cdecl      } 1,
+              { pocall_cppdecl    } 5,
+              { pocall_far16      } 6,
+              { pocall_oldfpccall } 7,
+              { pocall_internproc } 8,
+              { pocall_syscall    } 9,
+              { pocall_pascal     } 2,
+              { pocall_register   } 0,
+              { pocall_safecall   } 4,
+              { pocall_stdcall    } 3,
+              { pocall_softfloat  } 10,
+              { pocall_mwpascal   } 11
+             );
+
            procedure write_para(parasym:tparavarsym);
            var
              paraspec : byte;
@@ -615,6 +664,21 @@ implementation
                    vs_var  : paraspec := pfVar;
                    vs_out  : paraspec := pfOut;
                  end;
+                 { Kylix also seems to always add both pfArray and pfReference
+                   in this case
+                 }
+                 if is_open_array(parasym.vardef) then
+                   paraspec:=paraspec or pfArray or pfReference;
+                 { and these for classes and interfaces (maybe because they
+                   are themselves addresses?)
+                 }
+                 if is_class_or_interface(parasym.vardef) then
+                   paraspec:=paraspec or pfAddress;
+                 { set bits run from the highest to the lowest bit on
+                   big endian systems
+                 }
+                 if (target_info.endian = endian_big) then
+                   paraspec:=reverse_byte(paraspec);
                  { write flags for current parameter }
                  current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(paraspec));
                  { write name of current parameter }
@@ -637,29 +701,61 @@ implementation
                if (tf_requires_proper_alignment in target_info.flags) then
                  current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
 
-               { write kind of method (can only be function or procedure)}
-               if def.returndef = voidtype then
-                 methodkind := mkProcedure
+               { write kind of method }
+               case def.proctypeoption of
+                 potype_constructor: methodkind:=mkConstructor;
+                 potype_destructor: methodkind:=mkDestructor;
+                 potype_class_constructor: methodkind:=mkClassConstructor;
+                 potype_class_destructor: methodkind:=mkClassDestructor;
+                 potype_procedure: 
+                   if po_classmethod in def.procoptions then 
+                     methodkind:=mkClassProcedure
+                   else
+                     methodkind:=mkProcedure;
+                 potype_function:
+                   if po_classmethod in def.procoptions then 
+                     methodkind:=mkClassFunction
+                   else
+                     methodkind:=mkFunction;
                else
-                 methodkind := mkFunction;
+                 begin                   
+                   if def.returndef = voidtype then
+                     methodkind:=mkProcedure
+                   else
+                     methodkind:=mkFunction;
+                 end;
+               end;
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(methodkind));
 
                { write parameter info. The parameters must be written in reverse order
                  if this method uses right to left parameter pushing! }
                current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(def.maxparacount));
-               if def.proccalloption in pushleftright_pocalls then
-                 begin
-                   for i:=0 to def.paras.count-1 do
-                     write_para(tparavarsym(def.paras[i]));
-                 end
-               else
-                 begin
-                   for i:=def.paras.count-1 downto 0 do
-                     write_para(tparavarsym(def.paras[i]));
-                 end;
 
-               { write name of result type }
-               write_rtti_name(def.returndef);
+               for i:=0 to def.paras.count-1 do
+                 write_para(tparavarsym(def.paras[i]));
+
+               if (methodkind=mkFunction) or (methodkind=mkClassFunction) then
+               begin
+                 { write name of result type }
+                 write_rtti_name(def.returndef);
+
+                 if (tf_requires_proper_alignment in target_info.flags) then
+                   current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUint)));
+
+                 { write result typeinfo }
+                 current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.returndef,fullrtti)))
+               end;
+
+               { write calling convention }
+               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(ProcCallOptionToCallConv[def.proccalloption]));
+
+               if (tf_requires_proper_alignment in target_info.flags) then
+                 current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUint)));
+
+               { write params typeinfo }
+               for i:=0 to def.paras.count-1 do
+                 if not(vo_is_hidden_para in tparavarsym(def.paras[i]).varoptions) then
+                   current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(tparavarsym(def.paras[i]).vardef,fullrtti)));
             end
           else
             begin
@@ -697,8 +793,7 @@ implementation
               current_asmdata.asmlists[al_rtti].concat(Tai_const.create_sym(nil));
 
             { write parent typeinfo }
-            if assigned(def.childof) and
-               (oo_can_have_published in def.childof.objectoptions) then
+            if assigned(def.childof) then
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_sym(ref_rtti(def.childof,fullrtti)))
             else
               current_asmdata.asmlists[al_rtti].concat(Tai_const.create_sym(nil));
@@ -725,6 +820,10 @@ implementation
           var
             i : longint;
             propnamelist : TFPHashObjectList;
+            { if changed to a set, make sure it's still a byte large, and
+              swap appropriately when cross-compiling
+            }
+            IntfFlags: byte;
           begin
             { Collect unique property names with nameindex }
             propnamelist:=TFPHashObjectList.Create;
@@ -737,20 +836,18 @@ implementation
               current_asmdata.asmlists[al_rtti].concat(Tai_const.create_sym(nil));
 
             { interface: write flags, iid and iidstr }
-            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(
-              { ugly, but working }
-{$ifdef USE_PACKSET1}
-              byte([
-{$else USE_PACKSET1}
-              longint([
-{$endif USE_PACKSET1}
-                TCompilerIntfFlag(ord(ifHasGuid)*ord(assigned(def.iidguid))),
-                TCompilerIntfFlag(ord(ifHasStrGUID)*ord(assigned(def.iidstr))),
-                TCompilerIntfFlag(ord(ifDispInterface)*ord(def.objecttype=odt_dispinterface))
-              ])
+            IntfFlags:=0;
+            if assigned(def.iidguid) then
+              IntfFlags:=IntfFlags or (1 shl ord(ifHasGuid));
+            if assigned(def.iidstr) then
+              IntfFlags:=IntfFlags or (1 shl ord(ifHasStrGUID));
+            if (def.objecttype=odt_dispinterface) then
+              IntfFlags:=IntfFlags or (1 shl ord(ifDispInterface));
+            if (target_info.endian=endian_big) then
+              IntfFlags:=reverse_byte(IntfFlags);
               {
               ifDispatch, }
-              ));
+            current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(IntfFlags));
             if (tf_requires_proper_alignment in target_info.flags) then
               current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
             current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(longint(def.iidguid^.D1)));
@@ -878,9 +975,14 @@ implementation
           sym_count:=0;
           sym_alloc:=64;
           st:=0;
-          t:=Tenumsym(def.firstenum);
-          while assigned(t) do
+          for i := 0 to def.symtable.SymList.Count - 1 do
             begin
+              t:=tenumsym(def.symtable.SymList[i]);
+              if t.value<def.minval then
+                continue
+              else
+              if t.value>def.maxval then
+                break;
               if sym_count>=sym_alloc then
                 begin
                   reallocmem(syms,2*sym_alloc*sizeof(Tenumsym));
@@ -891,7 +993,6 @@ implementation
               offsets[sym_count]:=st;
               inc(sym_count);
               st:=st+length(t.realname)+1;
-              t:=t.nextenum;
             end;
           {Sort the syms by enum value}
           if sym_count>=2 then
@@ -1007,9 +1108,14 @@ implementation
           sym_count:=0;
           sym_alloc:=64;
           st:=0;
-          t:=Tenumsym(def.firstenum);
-          while assigned(t) do
+          for i := 0 to def.symtable.SymList.Count - 1 do
             begin
+              t:=tenumsym(def.symtable.SymList[i]);
+              if t.value<def.minval then
+                continue
+              else
+              if t.value>def.maxval then
+                break;
               if sym_count>=sym_alloc then
                 begin
                   reallocmem(syms,2*sym_alloc*sizeof(Tenumsym));
@@ -1020,7 +1126,6 @@ implementation
               offsets[sym_count]:=st;
               inc(sym_count);
               st:=st+length(t.realname)+1;
-              t:=t.nextenum;
             end;
           {Sort the syms by enum name}
           if sym_count>=2 then

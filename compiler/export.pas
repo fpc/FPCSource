@@ -73,6 +73,9 @@ type
 
   procedure exportprocsym(sym: tsym; const s : string; index: longint; options: word);
   procedure exportvarsym(sym: tsym; const s : string; index: longint; options: word);
+  { to export symbols not directly related to a tsym (e.g., the Objective-C
+    rtti) }
+  procedure exportname(const s : string; options: word);
 
   procedure exportallprocdefnames(sym: tprocsym; pd: tprocdef; options: word);
   procedure exportallprocsymnames(ps: tprocsym; options: word);
@@ -119,6 +122,12 @@ procedure exportvarsym(sym: tsym; const s : string; index: longint; options: wor
     hp.options:=options or eo_name;
     hp.index:=index;
     exportlib.exportvar(hp);
+  end;
+
+
+procedure exportname(const s : string; options: word);
+  begin
+    exportvarsym(nil,s,0,options);
   end;
 
 

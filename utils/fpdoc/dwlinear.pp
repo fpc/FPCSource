@@ -15,8 +15,9 @@ Type
     PackageName: String;
     Module: TPasModule;
     ModuleName: String;
+    FLastURL : DomString;
+  private
   Protected
-
     // Writing support.
     procedure Write(const s: String); virtual;
     procedure WriteLn(const s: String); virtual;
@@ -27,13 +28,15 @@ Type
     procedure WriteLabel(El: TPasElement);
     procedure WriteIndex(El: TPasElement);
     // Auxiliary routines
+    procedure DescrBeginURL(const AURL: DOMString); override; // Provides a default implementation
+    procedure DescrEndURL; override;
     procedure SortElementList(List : TList);
     procedure StartListing(Frames: Boolean);
     Function  ShowMember(M : TPasElement) : boolean;
-    procedure StartChapter(ChapterName : String; ChapterLabel : String);
-    procedure StartSection(SectionName : String; SectionLabel : String);
-    procedure StartSubSection(SubSectionName : String; SubSectionLabel : String);
-    procedure StartSubSubSection(SubSubSectionName : String; SubSubSectionLabel : String);
+    procedure StartChapter(ChapterName : String; ChapterLabel : String); virtual;
+    procedure StartSection(SectionName : String; SectionLabel : String); virtual;
+    procedure StartSubSection(SubSectionName : String; SubSectionLabel : String); virtual;
+    procedure StartSubSubSection(SubSubSectionName : String; SubSubSectionLabel : String); virtual;
     Function  GetDescrString(AContext: TPasElement; DescrNode: TDOMElement) : String;
     function  ConstValue(ConstDecl: TPasConst): String; virtual;
     procedure ProcessSection(ASection: TPasSection); virtual;
@@ -52,6 +55,7 @@ Type
     Procedure StartDescription; Virtual;
     Procedure StartAccess; Virtual;
     Procedure StartErrors; Virtual;
+    Procedure StartVersion; Virtual;
     Procedure StartSeealso; Virtual;
     Procedure EndSeealso; Virtual;
     // Procedures which MUST be overridden in descendents;
@@ -75,6 +79,7 @@ Type
     procedure WriteUnitEntry(UnitRef : TPasType);virtual; Abstract;
     procedure EndUnitOverview; virtual; Abstract;
     Class Function FileNameExtension : String;virtual; Abstract;
+    Property LastURL : DomString Read FLastURL Write FLastURL;
   Public
     Constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
     procedure WriteDoc; override;
@@ -196,6 +201,18 @@ begin
   WriteIndex(EL.Name);
 end;
 
+procedure TLinearWriter.DescrBeginURL(const AURL: DOMString);
+begin
+  FLastURL:=AURL;
+end;
+
+procedure TLinearWriter.DescrEndURL;
+begin
+  If (FLastURL<>'') then
+    Writeln(Format(SSeeURL,[EscapeText(FLastURL)]));
+  FLastURL:='';
+end;
+
 procedure TLinearWriter.StartListing(Frames: Boolean);
 begin
   StartListing(Frames,'');
@@ -290,6 +307,13 @@ begin
   Writeln(SDocErrors+':');
 end;
 
+Procedure TLinearWriter.StartVersion;
+
+begin
+  Writeln('');
+  Writeln(SDocVersion+':');
+end;
+
 Procedure TLinearWriter.StartSeealso;
 
 begin
@@ -338,7 +362,12 @@ begin
     (not IsDescrNodeEmpty(DocNode.ShortDescr))) then
   begin
     StartSubSection(SDocDescription);
-    WriteDescr(ClassDecl);
+    WriteDescr(ClassDecl,DocNode);
+    If Assigned(DocNode.Version) then
+      begin
+      StartSubSection(SDocVersion);
+      WriteDescr(ClassDecl,DocNode.Version);
+      end;
   end;
 
   // Write method overview
@@ -442,7 +471,6 @@ procedure TLinearWriter.WriteDoc;
 
 var
   i : Integer;
-  DocNode : TDocNode;
   L : TstringList;
 
 begin
@@ -467,9 +495,7 @@ begin
         WriteCommentLine;
         StartChapter(Format(SDocUnitTitle, [Module.Name]));
         WriteLabel(Module);
-        DocNode:=Engine.FindDocNode(Module);
-        If Assigned(DocNode) then
-          ProcessTopics(DocNode,1);
+        // extra Topics now get processed in ProcessSection()
         ProcessSection(Module.InterfaceSection);
         end;
     Finally
@@ -482,7 +508,8 @@ begin
 end;
 
 procedure TLinearWriter.ProcessSection(ASection: TPasSection);
-
+var
+  DocNode: TDocNode;
 begin
   With ASection do
     begin
@@ -496,6 +523,12 @@ begin
     SortElementList(Variables);
     end;
   WriteUnitOverView(ASection);
+
+  // Now process unit (extra) Topics
+  DocNode:=Engine.FindDocNode(Module);
+  If Assigned(DocNode) then
+    ProcessTopics(DocNode,1);
+
   WriteVarsConstsTypes(ASection);
   WriteFunctionsAndProcedures(ASection);
   WriteClasses(ASection);
@@ -520,6 +553,7 @@ procedure TLinearWriter.WriteResourceStrings(ASection: TPasSection);
 var
   ResStrDecl: TPasResString;
   i: Integer;
+  DocNode : TDocNode;
 begin
   if ASection.ResStrings.Count > 0 then
   begin
@@ -532,7 +566,12 @@ begin
       EndListing;
       WriteLabel(ResStrDecl);
       WriteIndex(ResStrDecl);
-      WriteDescr(ResStrDecl);
+      DocNode:=WriteDescr(ResStrDecl);
+      If Assigned(DocNode) and Assigned(DocNode.Version) then
+        begin
+        Writeln(Format('%s : ',[SDocVersion]));
+        WriteDescr(ResStrDecl, DocNode.Version);
+        end;
     end;
   end;
 end;
@@ -724,8 +763,13 @@ begin
         WriteENumElements(TypeDecl as TPasEnumType);
         end;
       WriteDescr(TypeDecl);
+      If Assigned(DocNode) and Assigned(DocNode.Version) then
+        begin
+        Writeln(Format('%s : ',[SDocVersion]));
+        WriteDescr(TypeDecl, DocNode.Version);
+        end;
       DescrEndParaGraph;
-    end;
+      end;
   end;
 end;
 
@@ -733,6 +777,8 @@ procedure TLinearWriter.WriteVars(ASection: TPasSection);
 var
   VarDecl: TPasVariable;
   i: Integer;
+  DocNode : TDocNode;
+
 begin
   if ASection.Variables.Count > 0 then
   begin
@@ -746,7 +792,12 @@ begin
       EndListing;
       WriteLabel(VarDecl);
       WriteIndex(VarDecl);
-      WriteDescr(VarDecl);
+      DocNode:=WriteDescr(VarDecl);
+      If Assigned(DocNode) and Assigned(DocNode.Version) then
+        begin
+        Writeln(Format('%s : ',[SDocVersion]));
+        WriteDescr(VarDecl, DocNode.Version);
+        end;
       DescrEndParaGraph;
     end;
   end;
@@ -798,19 +849,29 @@ begin
       StartVisibility;
       Writeln(VisibilityNames[Visibility])
       end;
-    if Assigned(DocNode) and Assigned(DocNode.Descr) then
+    if Assigned(DocNode) then
       begin
-      StartDescription;
-      WriteDescr(ProcDecl);
-      end;
-    if Assigned(DocNode) and Assigned(DocNode.ErrorsDoc) then
-      begin
-      StartErrors;
-      WriteDescr(ProcDecl, DocNode.ErrorsDoc);
-      end;
-    WriteSeeAlso(DocNode);
-    EndProcedure;
-    WriteExample(DocNode);
+      If Assigned(DocNode.Descr) then
+        begin
+        StartDescription;
+        WriteDescr(ProcDecl);
+        end;
+      if Assigned(DocNode.ErrorsDoc) then
+        begin
+        StartErrors;
+        WriteDescr(ProcDecl, DocNode.ErrorsDoc);
+        end;
+      if Assigned(DocNode.Version) then
+        begin
+        StartVersion;
+        WriteDescr(ProcDecl, DocNode.Version);
+        end;
+      WriteSeeAlso(DocNode);
+      EndProcedure;
+      WriteExample(DocNode);
+      end
+     else
+      EndProcedure;
     end;
 end;
 
@@ -891,19 +952,29 @@ begin
       S:=S+'Write';
       end;
     Writeln(S);
-    if Assigned(DocNode) and Assigned(DocNode.Descr) then
+    if Assigned(DocNode) then
       begin
-      StartDescription;
-      WriteDescr(PropDecl);
-      end;
-    if Assigned(DocNode) and Assigned(DocNode.ErrorsDoc) then
-      begin
-      StartErrors;
-      WriteDescr(PropDecl, DocNode.ErrorsDoc);
-      end;
-    WriteSeeAlso(DocNode);
-    EndProperty;
-    WriteExample(DocNode);
+      if Assigned(DocNode.Descr) then
+        begin
+        StartDescription;
+        WriteDescr(PropDecl);
+        end;
+      if Assigned(DocNode.ErrorsDoc) then
+        begin
+        StartErrors;
+        WriteDescr(PropDecl, DocNode.ErrorsDoc);
+        end;
+      if Assigned(DocNode.Version) then
+        begin
+        StartVersion;
+        WriteDescr(PropDecl, DocNode.Version);
+        end;
+      WriteSeeAlso(DocNode);
+      EndProperty;
+      WriteExample(DocNode);
+      end
+     else
+      EndProperty;
     end;
 end;
 

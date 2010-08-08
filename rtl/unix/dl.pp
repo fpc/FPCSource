@@ -20,7 +20,11 @@ const
 {$ifdef BSD}   // dlopen is in libc on FreeBSD.
   LibDL = 'c';
 {$else}
-  LibDL = 'dl';
+  {$ifdef HAIKU}
+    LibDL = 'root';
+  {$else}
+    LibDL = 'dl';
+  {$endif}
 {$endif}
 
 {$if defined(linux) and defined(cpuarm)}

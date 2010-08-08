@@ -32,7 +32,8 @@ implementation
     uses
        SysUtils,
        cutils,cfileutl,cclasses,
-       globtype,globals,systems,verbose,script,fmodule,i_embed,link;
+       globtype,globals,systems,verbose,script,fmodule,i_embed,link,
+       cpuinfo;
 
     type
        TlinkerEmbedded=class(texternallinker)
@@ -81,7 +82,11 @@ Var
 begin
   WriteResponseFile:=False;
   linklibc:=(SharedLibFiles.Find('c')<>nil);
+{$ifdef ARM}
+  prtobj:='';
+{$else ARM}
   prtobj:='prt0';
+{$endif ARM}
   cprtobj:='cprt0';
   if linklibc then
     prtobj:=cprtobj;
@@ -112,8 +117,10 @@ begin
   { add objectfiles, start with prt0 always }
   //s:=FindObjectFile('prt0','',false);
   if prtobj<>'' then
-   s:=FindObjectFile(prtobj,'',false);
-  LinkRes.AddFileName(s);
+    begin
+      s:=FindObjectFile(prtobj,'',false);
+      LinkRes.AddFileName(s);
+    end;
   { try to add crti and crtbegin if linking to C }
   if linklibc then
    begin
@@ -207,7 +214,87 @@ begin
       end;
    end;
 
-{ Write and Close response }
+{$ifdef ARM}
+  case current_settings.controllertype of
+    ct_none:
+      ;
+    ct_lpc2114,
+    ct_lpc2124,
+    ct_lpc2194:
+      with linkres do
+        begin
+          Add('ENTRY(_START)');
+          Add('MEMORY');
+          Add('{');
+          Add('    flash : ORIGIN = 0, LENGTH = 256K');
+          Add('    ram : ORIGIN = 0x40000000, LENGTH = 16K');
+          Add('}');
+          Add('_stack_top = 0x40003FFC;');
+        end;
+      ct_at91sam7s256,
+      ct_at91sam7se256,
+      ct_at91sam7x256,
+      ct_at91sam7xc256:
+      with linkres do
+        begin
+          Add('ENTRY(_START)');
+          Add('MEMORY');
+          Add('{');
+          Add('    flash : ORIGIN = 0, LENGTH = 256K');
+          Add('    ram : ORIGIN = 0x200000, LENGTH = 64K');
+          Add('}');
+          Add('_stack_top = 0x20FFFC;');
+        end;
+      ct_stm32f103re:
+      with linkres do
+        begin
+          Add('ENTRY(_START)');
+          Add('MEMORY');
+          Add('{');
+          Add('    flash : ORIGIN = 0x08000000, LENGTH = 512K');
+          Add('    ram : ORIGIN = 0x20000000, LENGTH = 64K');
+          Add('}');
+          Add('_stack_top = 0x2000FFFC;');
+        end;
+
+    else
+      internalerror(200902011);
+  end;
+
+  with linkres do
+    begin
+      Add('SECTIONS');
+      Add('{');
+      Add('     .text :');
+      Add('    {');
+      Add('    *(.init, .init.*)');
+      Add('    *(.text, .text.*)');
+      Add('    *(.strings)');
+      Add('    *(.rodata, .rodata.*)');
+      Add('    *(.comment)');
+      Add('    _etext = .;');
+      Add('    } >flash');
+      Add('    .data :');
+      Add('    {');
+      Add('    _data = .;');
+      Add('    *(.data, .data.*)');
+      Add('    KEEP (*(.fpc .fpc.n_version .fpc.n_links))');
+      Add('    _edata = .;');
+      Add('    } >ram AT >flash');
+      Add('    .bss :');
+      Add('    {');
+      Add('    _bss_start = .;');
+      Add('    *(.bss, .bss.*)');
+      Add('    *(COMMON)');
+      Add('    } >ram');
+      Add('. = ALIGN(4);');
+      Add('_bss_end = . ;');
+      Add('}');
+      Add('_end = .;');
+    end;
+{$endif ARM}
+
+  { Write and Close response }
   linkres.writetodisk;
   linkres.free;
 
@@ -263,17 +350,16 @@ begin
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ReponseFile }
-  if (success) and not(cs_link_nolink in current_settings.globalswitches) then
+  if success and not(cs_link_nolink in current_settings.globalswitches) then
    DeleteFile(outputexedir+Info.ResName);
 
-{ Post process
+{ Post process }
   if success then
     begin
-      success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O binary '+
+      success:=DoExec(FindUtil(utilsprefix+'objcopy'),'-O ihex '+
         ChangeFileExt(current_module.exefilename^,'.elf')+' '+
-        current_module.exefilename^,true,false);
+        ChangeFileExt(current_module.exefilename^,'.hex'),true,false);
     end;
-}
 
   MakeExecutable:=success;   { otherwise a recursive call to link method }
 end;

@@ -1692,27 +1692,31 @@ begin
       numtoread := uint(length)
     else
       numtoread := 0;
-  for i := 0 to numtoread-1 do
+      
+  if numtoread > 0 then
   begin
-  { Read a byte into b[i]. If must suspend, return FALSE. }
-    { make a byte available.
-      Note we do *not* do INPUT_SYNC before calling fill_input_buffer,
-      but we must reload the local copies after a successful fill. }
-    if (bytes_in_buffer = 0) then
+    for i := 0 to numtoread-1 do
     begin
-      if (not datasrc^.fill_input_buffer(cinfo)) then
+      { Read a byte into b[i]. If must suspend, return FALSE. }
+      { make a byte available.
+        Note we do *not* do INPUT_SYNC before calling fill_input_buffer,
+        but we must reload the local copies after a successful fill. }
+      if (bytes_in_buffer = 0) then
       begin
-        get_interesting_appn := FALSE;
-        exit;
+        if (not datasrc^.fill_input_buffer(cinfo)) then
+        begin
+          get_interesting_appn := FALSE;
+          exit;
+        end;
+        { Reload the local copies }
+        next_input_byte := datasrc^.next_input_byte;
+        bytes_in_buffer := datasrc^.bytes_in_buffer;
       end;
-      { Reload the local copies }
-      next_input_byte := datasrc^.next_input_byte;
-      bytes_in_buffer := datasrc^.bytes_in_buffer;
-    end;
-    Dec( bytes_in_buffer );
+      Dec( bytes_in_buffer );
 
-    b[i] := GETJOCTET(next_input_byte^);
-    Inc(next_input_byte);
+      b[i] := GETJOCTET(next_input_byte^);
+      Inc(next_input_byte);
+    end;
   end;
 
   Dec(length, numtoread);

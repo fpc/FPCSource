@@ -4,7 +4,7 @@
     Implements the M68K specific part of call nodes
 
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published bymethodpointer
+    it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
@@ -59,16 +59,16 @@ implementation
                 begin
 		  { save base pointer on syscalls }
 		  { FIXME: probably this will need to be extended to save all regs (KB) }
-                  reference_reset_base(tmpref2, NR_STACK_POINTER_REG, 0);
+                  reference_reset_base(tmpref2, NR_STACK_POINTER_REG, 0, 4);
                   tmpref2.direction := dir_dec;
 		  current_asmdata.CurrAsmList.concat(taicpu.op_reg_ref(A_MOVE,S_L,NR_FRAME_POINTER_REG,tmpref2));
 		  
 		  { the actuall call }
-                  reference_reset_base(tmpref,NR_A6,-tprocdef(procdefinition).extnumber);
+                  reference_reset_base(tmpref,NR_A6,-tprocdef(procdefinition).extnumber,4);
                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_JSR,S_NO,tmpref));
 		  
 		  { restore frame pointer }
-                  reference_reset_base(tmpref2, NR_STACK_POINTER_REG, 0);
+                  reference_reset_base(tmpref2, NR_STACK_POINTER_REG, 0, 4);
                   tmpref2.direction := dir_inc;
 		  current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_MOVE,S_L,tmpref2,NR_FRAME_POINTER_REG));
                 end

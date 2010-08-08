@@ -18,15 +18,15 @@ type
         end;
         
         TDemo = object
-                constructor init;
-                destructor Destroy;
-                procedure doSomething;
-                procedure doSomething2;
-                
                 member1 : byte;
                 member5 : longint;
                 member6 : int64;
                 y : array[0..2] of TDemo1;
+
+                constructor init;
+                destructor Destroy;
+                procedure doSomething;
+                procedure doSomething2;
         end;
 var
         x : array[0..2] of TDemo;

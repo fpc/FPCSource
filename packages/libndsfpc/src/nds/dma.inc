@@ -57,26 +57,15 @@ const
   DMA3_SRC       : pcuint32 = pointer($040000D4);
   DMA3_DEST      : pcuint32 = pointer($040000D8);
   DMA3_CR        : pcuint32 = pointer($040000DC);
-{$endif NDS_INTERFACE}
 
-{$ifdef NDS_IMPLEMENTATION}
 function DMA_SRC(n: cint): pcuint32; inline;
-begin
-  DMA_SRC := pcuint32($040000B0 + (n * 12));
-end;
-
 function DMA_DEST(n: cint): pcuint32; inline;
-begin
-  DMA_DEST := pcuint32($040000B4 + (n * 12));
-end;
-
 function DMA_CR(n: cint): pcuint32; inline;
-begin
-  DMA_CR := pcuint32($040000B8 + (n * 12));
-end;
-{$endif NDS_IMPLEMENTATION}
+{$ifdef ARM9}
+function DMA_FILL(n: cint): pcuint32; inline;
+{$endif ARM9}
 
-{$ifdef NDS_INTERFACE}
+
 // DMA control register contents
 // The defaults are 16-bit, increment source/dest addresses, no irq
 const
@@ -94,9 +83,11 @@ const
 {$ifdef ARM9}
   DMA_START_HBL  = (1 shl 28); //BIT(28);
   DMA_START_VBL  = (1 shl 27); //BIT(27);
-  DMA_START_FIFO  = (7 shl 27);
+//  DMA_START_FIFO  = (7 shl 27);
   DMA_DISP_FIFO   = (4 shl 27);
 {$endif ARM9}
+DMA_START_FIFO  = (7 shl 27);
+
 
   DMA_16_BIT      = 0; 
   DMA_32_BIT      = (1 shl 26); //BIT(26);
@@ -114,13 +105,45 @@ const
 
   DMA_COPY_WORDS      = (DMA_ENABLE or DMA_32_BIT or DMA_START_NOW); 
   DMA_COPY_HALFWORDS  = (DMA_ENABLE or DMA_16_BIT or DMA_START_NOW); 
-{$ifdef ARM9}
+{ $ifdef ARM9}
   DMA_FIFO            = (DMA_ENABLE or DMA_32_BIT or DMA_DST_FIX or DMA_START_FIFO); 
-{$endif ARM9}
+{ $endif ARM9}
+
+procedure dmaCopyWords(channel: cuint8; const src: pointer; dest: pointer; size: cuint32); inline; 
+procedure dmaCopyHalfWords(channel: cuint8; const src: pointer; dest: pointer; size: cuint32); inline;
+procedure dmaCopy(const source: pointer; dest: pointer; size: cuint32); inline;
+procedure dmaCopyWordsAsynch(channel: cuint8; const src: pointer; dest: pointer; size: cuint32); inline; 
+procedure dmaCopyHalfWordsAsynch(channel: cuint8; const src: pointer; dest: pointer; size: cuint32); inline;
+procedure dmaCopyAsynch(const source: pointer; dest: pointer; size: cuint32); inline;
+procedure dmaFillWords(value: cuint32; dest: pointer; size: cuint32); inline;
+procedure dmaFillHalfWords(value: cuint16; dest: pointer; size: cuint32); inline;
+function dmaBusy(channel: cuint8): cint; inline; 
+
 {$endif NDS_INTERFACE}
 
 
 {$ifdef NDS_IMPLEMENTATION}
+function DMA_SRC(n: cint): pcuint32; inline;
+begin
+  DMA_SRC := pcuint32($040000B0 + (n * 12));
+end;
+
+function DMA_DEST(n: cint): pcuint32; inline;
+begin
+  DMA_DEST := pcuint32($040000B4 + (n * 12));
+end;
+
+function DMA_CR(n: cint): pcuint32; inline;
+begin
+  DMA_CR := pcuint32($040000B8 + (n * 12));
+end;
+
+{$ifdef ARM9}
+function DMA_FILL(n: cint): pcuint32; inline;
+begin
+  DMA_FILL := pcuint32($040000E0 + (n * 4));
+end;
+{$endif ARM9}
 
 procedure dmaCopyWords(channel: cuint8; const src: pointer; dest: pointer; size: cuint32); inline; 
 begin
@@ -167,17 +190,31 @@ begin
 	DMA_CR(3)^ := DMA_COPY_HALFWORDS or (size shr 1);
 end;
 
-procedure dmaFillWords(const src: pointer; dest: pointer; size: cuint32); inline;
+procedure dmaFillWords(value: cuint32; dest: pointer; size: cuint32); inline;
 begin
-	DMA_SRC(3)^ := cuint32(src);
+  {$ifdef ARM7}	         
+    pcuint32($027FFE04)^ := value;	         
+    DMA_SRC(3)^ := $027FFE04;	 
+  {$else ARM7}
+    DMA_FILL(3)^ := value;
+//    pcuint32(DMA_SRC(3)^) := pcuint32(DMA_FILL(3));
+    DMA_SRC(3)^ := cuint32(DMA_FILL(3));
+  {$endif ARM7}
 	DMA_DEST(3)^ := cuint32(dest);
 	DMA_CR(3)^ := DMA_SRC_FIX or DMA_COPY_WORDS or (size shr 2);
 	while (DMA_CR(3)^ and DMA_BUSY) <> 0 do;
 end;
 
-procedure dmaFillHalfWords(const src: pointer; dest: pointer; size: cuint32); inline;
+procedure dmaFillHalfWords(value: cuint16; dest: pointer; size: cuint32); inline;
 begin
-	DMA_SRC(3)^ := cuint32(src);
+  {$ifdef ARM7}
+    pcuint32($027FFE04)^ := value;	         
+    DMA_SRC(3)^ := $027FFE04;	 
+  {$else ARM7}
+    DMA_FILL(3)^ := value;
+//    pcuint32(DMA_SRC(3)^) := pcuint32(DMA_FILL(3));
+    DMA_SRC(3)^ := cuint32(DMA_FILL(3));
+  {$endif ARM7}
 	DMA_DEST(3)^ := cuint32(dest);
 	DMA_CR(3)^ := DMA_SRC_FIX or DMA_COPY_HALFWORDS or (size shr 1);
 	while (DMA_CR(3)^ and DMA_BUSY) <> 0 do;
@@ -188,19 +225,3 @@ begin
 	dmaBusy := (DMA_CR(channel)^ and DMA_BUSY) shr 31;
 end;
 {$endif NDS_IMPLEMENTATION}
-
-
-{$ifdef NDS_INTERFACE}
-function DMA_SRC(n: cint): pcuint32; inline;
-function DMA_DEST(n: cint): pcuint32; inline;
-function DMA_CR(n: cint): pcuint32; inline;
-procedure dmaCopyWords(channel: cuint8; const src: pointer; dest: pointer; size: cuint32); inline; 
-procedure dmaCopyHalfWords(channel: cuint8; const src: pointer; dest: pointer; size: cuint32); inline;
-procedure dmaCopy(const source: pointer; dest: pointer; size: cuint32); inline;
-procedure dmaCopyWordsAsynch(channel: cuint8; const src: pointer; dest: pointer; size: cuint32); inline; 
-procedure dmaCopyHalfWordsAsynch(channel: cuint8; const src: pointer; dest: pointer; size: cuint32); inline;
-procedure dmaCopyAsynch(const source: pointer; dest: pointer; size: cuint32); inline;
-procedure dmaFillWords(const src: pointer; dest: pointer; size: cuint32); inline;
-procedure dmaFillHalfWords(const src: pointer; dest: pointer; size: cuint32); inline;
-function dmaBusy(channel: cuint8): cint; inline; 
-{$endif NDS_INTERFACE}

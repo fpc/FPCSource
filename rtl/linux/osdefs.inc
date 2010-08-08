@@ -39,7 +39,21 @@
 {$endif}
 
 {$if (defined(cpuarm) and defined(FPC_ABI_EABI))}
-{$define FPC_USEGETTIMEOFDAY}
+  {$define FPC_USEGETTIMEOFDAY}
+  {$undef usestime}
+
+  {$define NO_SYSCALL_TIME}
+  {$define NO_SYSCALL_UMOUNT}
+  {$define NO_SYSCALL_STIME}
+  {$define NO_SYSCALL_ALARM}
+  {$define NO_SYSCALL_UTIME}
+  {$define NO_SYSCALL_GETRLIMIT}
+  {$define NO_SYSCALL_SELECT}
+  {$define NO_SYSCALL_READDIR}
+  {$define NO_SYSCALL_MMAP}
+  {$define NO_SYSCALL_SOCKETCALL}
+  {$define NO_SYSCALL_SYSCALL}
+  {$define NO_SYSCALL_IPC}
 {$endif}
 
  {$ifdef CPUARM}

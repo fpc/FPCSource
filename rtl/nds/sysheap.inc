@@ -20,6 +20,22 @@
       OS Memory allocation / deallocation
  ****************************************************************************}
 
+function sbrk2(size: longint): pointer; cdecl; external name 'sbrk';
+
+function SysOSAlloc(size: ptruint): pointer;
+begin
+  result := sbrk2(size);
+  if result = pointer(-1) then
+    result := nil
+end;
+
+procedure SysOSFree(p: pointer; size: ptruint);
+begin
+  sbrk2(-size);
+end;
+
+
+(*
 var
   heap_start: longint; external name '_end';
   
@@ -34,3 +50,4 @@ procedure SysOSFree(p: pointer; size: ptruint);
 begin
   
 end;
+*)

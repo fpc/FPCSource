@@ -13,216 +13,6 @@
 
  **********************************************************************}
 
-{$ifndef FPC_NEW_BIGENDIAN_SETS}
-
-{$ifndef FPC_SYSTEM_HAS_FPC_SET_LOAD_SMALL}
-{ Error No pascal version of FPC_SET_LOAD_SMALL}
- { THIS DEPENDS ON THE ENDIAN OF THE ARCHITECTURE!
-   Not anymore PM}
-
-function fpc_set_load_small(l: fpc_small_set): fpc_normal_set; [public,alias:'FPC_SET_LOAD_SMALL']; compilerproc;
- {
-  load a normal set p from a smallset l
- }
- begin
-   FillDWord(fpc_set_load_small,sizeof(fpc_set_load_small) div 4,0);
-   move(l,fpc_set_load_small,sizeof(l));
- end;
-{$endif FPC_SYSTEM_HAS_FPC_SET_LOAD_SMALL}
-
-
-{$ifndef FPC_SYSTEM_HAS_FPC_SET_CREATE_ELEMENT}
-function fpc_set_create_element(b : byte): fpc_normal_set;[public,alias:'FPC_SET_CREATE_ELEMENT']; compilerproc;
- {
-  create a new set in p from an element b
- }
- begin
-   FillDWord(fpc_set_create_element,SizeOf(fpc_set_create_element) div 4,0);
-{$ifndef FPC_NEW_BIGENDIAN_SETS}
-   fpc_set_create_element[b div 32] := 1 shl (b mod 32);
-{$else}
-   fpc_set_create_element[b] := 1;
-{$endif}
- end;
-{$endif FPC_SYSTEM_HAS_FPC_SET_CREATE_ELEMENT}
-
-{$ifndef FPC_SYSTEM_HAS_FPC_SET_SET_BYTE}
-
- function fpc_set_set_byte(const source: fpc_normal_set; b : byte): fpc_normal_set; compilerproc;
- {
-  add the element b to the set "source"
- }
-  var
-   c: longint;
-  begin
-    move(source,fpc_set_set_byte,sizeof(source));
-{$ifndef FPC_NEW_BIGENDIAN_SETS}
-    c := fpc_set_set_byte[b div 32];
-    c := (1 shl (b mod 32)) or c;
-    fpc_set_set_byte[b div 32] := c;
-{$else}
-    fpc_set_set_byte[b] := 1;
-{$endif}
-  end;
-{$endif FPC_SYSTEM_HAS_FPC_SET_SET_BYTE}
-
-
-{$ifndef FPC_SYSTEM_HAS_FPC_SET_UNSET_BYTE}
-
-function fpc_set_unset_byte(const source: fpc_normal_set; b : byte): fpc_normal_set; compilerproc;
- {
-   suppresses the element b to the set pointed by p
-   used for exclude(set,element)
- }
-  var
-   c: longint;
-  begin
-    move(source,fpc_set_unset_byte,sizeof(source));
-{$ifndef FPC_NEW_BIGENDIAN_SETS}
-    c := fpc_set_unset_byte[b div 32];
-    c := c and not (1 shl (b mod 32));
-    fpc_set_unset_byte[b div 32] := c;
-{$else}
-    fpc_set_unset_byte[b] := 0;
-{$endif}
-  end;
-{$endif FPC_SYSTEM_HAS_FPC_SET_UNSET_BYTE}
-
-
-{$ifndef FPC_SYSTEM_HAS_FPC_SET_SET_RANGE}
- function fpc_set_set_range(const orgset: fpc_normal_set; l,h : byte): fpc_normal_set; compilerproc;
- {
-   adds the range [l..h] to the set orgset
- }
-  var
-   i: integer;
-   c: longint;
-  begin
-    move(orgset,fpc_set_set_range,sizeof(orgset));
-    for i:=l to h do
-      begin
-{$ifndef FPC_NEW_BIGENDIAN_SETS}
-        c := fpc_set_set_range[i div 32];
-        c := (1 shl (i mod 32)) or c;
-        fpc_set_set_range[i div 32] := c;
-{$else}
-        fpc_set_set_range[i] := 1;
-{$endif}
-      end;
-  end;
-{$endif ndef FPC_SYSTEM_HAS_FPC_SET_SET_RANGE}
-
-
-{$ifndef FPC_SYSTEM_HAS_FPC_SET_ADD_SETS}
- function fpc_set_add_sets(const set1,set2: fpc_normal_set): fpc_normal_set;[public,alias:'FPC_SET_ADD_SETS']; compilerproc;
- var
-   src1: fpc_normal_set_long absolute set1;
-   src2: fpc_normal_set_long absolute set2;
-   dest: fpc_normal_set_long absolute fpc_set_add_sets;
- {
-   adds set1 and set2 into set dest
- }
-  var
-    i: integer;
-   begin
-     for i:=0 to 7 do
-       dest[i] := src1[i] or src2[i];
-   end;
-{$endif}
-
-
-{$ifndef FPC_SYSTEM_HAS_FPC_SET_MUL_SETS}
- function fpc_set_mul_sets(const set1,set2: fpc_normal_set): fpc_normal_set;[public,alias:'FPC_SET_MUL_SETS']; compilerproc;
- var
-   src1: fpc_normal_set_long absolute set1;
-   src2: fpc_normal_set_long absolute set2;
-   dest: fpc_normal_set_long absolute fpc_set_mul_sets;
- {
-   multiplies (takes common elements of) set1 and set2 result put in dest
- }
-   var
-    i: integer;
-   begin
-     for i:=0 to 7 do
-       dest[i] := src1[i] and src2[i];
-   end;
-{$endif}
-
-
-{$ifndef FPC_SYSTEM_HAS_FPC_SET_SUB_SETS}
- function fpc_set_sub_sets(const set1,set2: fpc_normal_set): fpc_normal_set;[public,alias:'FPC_SET_SUB_SETS']; compilerproc;
- var
-   src1: fpc_normal_set_long absolute set1;
-   src2: fpc_normal_set_long absolute set2;
-   dest: fpc_normal_set_long absolute fpc_set_sub_sets;
- {
-  computes the diff from set1 to set2 result in dest
- }
-   var
-    i: integer;
-   begin
-     for i:=0 to 7 do
-       dest[i] := src1[i] and not src2[i];
-   end;
-{$endif}
-
-
-{$ifndef FPC_SYSTEM_HAS_FPC_SET_SYMDIF_SETS}
- function fpc_set_symdif_sets(const set1,set2: fpc_normal_set): fpc_normal_set;[public,alias:'FPC_SET_SYMDIF_SETS']; compilerproc;
- var
-   src1: fpc_normal_set_long absolute set1;
-   src2: fpc_normal_set_long absolute set2;
-   dest: fpc_normal_set_long absolute fpc_set_symdif_sets;
- {
-   computes the symetric diff from set1 to set2 result in dest
- }
-   var
-    i: integer;
-   begin
-     for i:=0 to 7 do
-       dest[i] := src1[i] xor src2[i];
-   end;
-{$endif}
-
-{$ifndef FPC_SYSTEM_HAS_FPC_SET_COMP_SETS}
- function fpc_set_comp_sets(const set1,set2 : fpc_normal_set):boolean;[public,alias:'FPC_SET_COMP_SETS'];compilerproc;
- {
-  compares set1 and set2 zeroflag is set if they are equal
- }
-   var
-    i: integer;
-    src1: fpc_normal_set_long absolute set1;
-    src2: fpc_normal_set_long absolute set2;
-   begin
-     fpc_set_comp_sets:= false;
-     for i:=0 to 7 do
-       if src1[i] <> src2[i] then
-         exit;
-     fpc_set_comp_sets:= true;
-   end;
-{$endif}
-
-
-
-{$ifndef FPC_SYSTEM_HAS_FPC_SET_CONTAINS_SET}
- function fpc_set_contains_sets(const set1,set2 : fpc_normal_set):boolean;[public,alias:'FPC_SET_CONTAINS_SETS'];compilerproc;
- {
-  on exit, zero flag is set if set1 <= set2 (set2 contains set1)
- }
- var
-  i : integer;
-  src1: fpc_normal_set_long absolute set1;
-  src2: fpc_normal_set_long absolute set2;
- begin
-   fpc_set_contains_sets:= false;
-   for i:=0 to 7 do
-     if (src1[i] and not src2[i]) <> 0 then
-       exit;
-   fpc_set_contains_sets:= true;
- end;
-{$endif}
-
-{$endif ndef FPC_NEW_BIGENDIAN_SETS}
 
 {****************************************************************************
                                  Var sets
@@ -285,18 +75,10 @@ procedure fpc_varset_load(const l;sourcesize : longint;var dest;size : ptrint); 
 }
 procedure fpc_varset_create_element(b,size : ptrint; var data); compilerproc;
   type
-{$ifndef FPC_NEW_BIGENDIAN_SETS}
-    tbytearray = array[0..sizeof(sizeint)-1] of byte;
-{$else}
     tbsetarray = bitpacked array[0..sizeof(sizeint)-1] of 0..1;
-{$endif}
   begin
     FillChar(data,size,0);
-{$ifndef FPC_NEW_BIGENDIAN_SETS}
-    tbytearray(data)[b div 8]:=1 shl (b mod 8);
-{$else}
     tbsetarray(data)[b]:=1;
-{$endif}
   end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_CREATE_ELEMENT}
 
@@ -307,18 +89,10 @@ procedure fpc_varset_create_element(b,size : ptrint; var data); compilerproc;
 }
 procedure fpc_varset_set(const source;var dest; b,size : ptrint); compilerproc;
   type
-{$ifndef FPC_NEW_BIGENDIAN_SETS}
-    tbytearray = array[0..sizeof(sizeint)-1] of byte;
-{$else}
     tbsetarray = bitpacked array[0..sizeof(sizeint)-1] of 0..1;
-{$endif}
   begin
     move(source,dest,size);
-{$ifndef FPC_NEW_BIGENDIAN_SETS}
-    tbytearray(dest)[b div 8]:=tbytearray(dest)[b div 8] or (1 shl (b mod 8));
-{$else}
     tbsetarray(dest)[b]:=1;
-{$endif}
   end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_SET_BYTE}
 
@@ -330,18 +104,10 @@ procedure fpc_varset_set(const source;var dest; b,size : ptrint); compilerproc;
 }
 procedure fpc_varset_unset(const source;var dest; b,size : ptrint); compilerproc;
   type
-{$ifndef FPC_NEW_BIGENDIAN_SETS}
-    tbytearray = array[0..sizeof(sizeint)-1] of byte;
-{$else}
     tbsetarray = bitpacked array[0..sizeof(sizeint)-1] of 0..1;
-{$endif}
   begin
     move(source,dest,size);
-{$ifndef FPC_NEW_BIGENDIAN_SETS}
-    tbytearray(dest)[b div 8]:=tbytearray(dest)[b div 8] and not (1 shl (b mod 8));
-{$else}
     tbsetarray(dest)[b]:=0;
-{$endif}
   end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_UNSET_BYTE}
 
@@ -352,21 +118,13 @@ procedure fpc_varset_unset(const source;var dest; b,size : ptrint); compilerproc
 }
 procedure fpc_varset_set_range(const orgset; var dest;l,h,size : ptrint); compilerproc;
   type
-{$ifndef FPC_NEW_BIGENDIAN_SETS}
-    tbytearray = array[0..sizeof(sizeint)-1] of byte;
-{$else}
     tbsetarray = bitpacked array[0..sizeof(sizeint)-1] of 0..1;
-{$endif}
   var
     i : ptrint;
   begin
     move(orgset,dest,size);
     for i:=l to h do
-{$ifndef FPC_NEW_BIGENDIAN_SETS}
-       tbytearray(dest)[i div 8]:=(1 shl (i mod 8)) or tbytearray(dest)[i div 8];
-{$else}
        tbsetarray(dest)[i]:=1;
-{$endif}
   end;
 {$endif ndef FPC_SYSTEM_HAS_FPC_VARSET_SET_RANGE}
 

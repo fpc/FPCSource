@@ -475,7 +475,7 @@ mem32                 \300\323\1\xDB\203              8086,FPU
 mem16                 \300\324\1\xDF\203              8086,FPU
 mem64                 \300\323\1\xDF\207              8086,FPU
 
-[FISTTP]
+[FISTTP,fisttpR]
 (Ch_Wop1, Ch_None, Ch_None)
 mem32                 \300\323\1\xDB\201              PRESCOTT,FPU
 mem16                 \300\323\1\xDF\201              PRESCOTT,FPU
@@ -1060,10 +1060,8 @@ mem,mmxreg            \300\2\x0F\x7E\101              PENT,MMX,SD
 reg32,mmxreg          \2\x0F\x7E\101                  PENT,MMX
 xmmreg,reg32          \1\x66\323\2\x0F\x6E\110          WILLAMETTE,SSE2
 reg32,xmmreg          \1\x66\323\2\x0F\x7E\101          WILLAMETTE,SSE2
-xmmreg,reg64          \1\x66\326\2\x0F\x6E\110        WILLAMETTE,SSE2
-reg64,xmmreg          \1\x66\326\2\x0F\x7E\101        WILLAMETTE,SSE2
-mem,xmmreg            \1\x66\326\2\x0F\x7E\101        WILLAMETTE,SSE2
-xmmreg,mem            \1\x66\326\2\x0F\x6E\110        WILLAMETTE,SSE2
+mem,xmmreg            \1\x66\325\2\x0F\x7E\101        WILLAMETTE,SSE2
+xmmreg,mem            \1\x66\325\2\x0F\x6E\110        WILLAMETTE,SSE2
 
 [MOVQ,movq]
 (Ch_Rop1, Ch_Wop2, Ch_None)
@@ -1075,6 +1073,8 @@ xmmreg,xmmreg         \333\323\2\x0F\x7E\110              WILLAMETTE,SSE2
 xmmreg,xmmreg         \1\x66\323\2\x0F\xD6\110          WILLAMETTE,SSE2
 mem,xmmreg            \300\1\x66\323\2\x0F\xD6\101          WILLAMETTE,SSE2
 xmmreg,mem            \333\301\2\x0F\x7E\110          WILLAMETTE,SSE2
+xmmreg,reg64          \1\x66\326\2\x0F\x6E\110        WILLAMETTE,SSE2
+reg64,xmmreg          \1\x66\326\2\x0F\x7E\101        WILLAMETTE,SSE2
 
 [MOVSB]
 (Ch_All, Ch_None, Ch_None)
@@ -1468,27 +1468,33 @@ reg_fsgs              \1\x0F\5\335                    386
 
 [POPA,popaX]
 (Ch_All, Ch_None, Ch_None)
-void                  \327\1\x61                      186
+void                  \327\1\x61                      186,NOX86_64
 
 [POPAD,popal]
 (Ch_All, Ch_None, Ch_None)
-void                  \325\1\x61                      386
+void                  \325\1\x61                      386,NOX86_64
 
 [POPAW]
 (Ch_All, Ch_None, Ch_None)
-void                  \324\1\x61                      186
+void                  \324\1\x61                      186,NOX86_64
 
 [POPF]
 (Ch_RWESP, Ch_WFlags, Ch_None)
-void                  \327\1\x9D                      186
+void                  \327\1\x9D                      186,NOX86_64
+void                  \2\x48\x9D                      X86_64
 
 [POPFD,popfl]
 (Ch_RWESP, Ch_WFlags, Ch_None)
-void                  \325\1\x9D                      386
+void                  \325\1\x9D                      386,NOX86_64
 
 [POPFW]
 (Ch_RWESP, Ch_WFLAGS, Ch_None)
-void                  \324\1\x9D                      186
+void                  \324\1\x9D                      186,NOX86_64
+void                  \1\x9D                          X86_64
+
+[POPFQ]
+(Ch_RWESP, Ch_WFlags, Ch_None)
+void                  \2\x48\x9D                      X86_64
 
 [POR]
 (Ch_All, Ch_None, Ch_None)
@@ -1689,15 +1695,15 @@ reg_sreg              \6                              8086,NOX86_64
 
 [PUSHA,pushaX]
 (Ch_All, Ch_None, Ch_None)
-void                  \327\1\x60                      186
+void                  \327\1\x60                      186,NOX86_64
 
 [PUSHAD,pushal]
 (Ch_All, Ch_None, Ch_None)
-void                  \325\1\x60                      386
+void                  \325\1\x60                      386,NOX86_64
 
 [PUSHAW]
 (Ch_All, Ch_None, Ch_None)
-void                  \324\1\x60                      186
+void                  \324\1\x60                      186,NOX86_64
 
 [PUSHF]
 (Ch_RWESP, Ch_RFlags, Ch_None)
@@ -1705,11 +1711,15 @@ void                  \327\1\x9C                      186
 
 [PUSHFD,pushfl]
 (Ch_RWESP, Ch_RFlags, Ch_None)
-void                  \325\1\x9C                      386
+void                  \325\1\x9C                      386,NOX86_64
 
 [PUSHFW]
 (Ch_RWESP, Ch_RFLAGS, Ch_None)
 void                  \324\1\x9C                      186
+
+[PUSHFQ]
+(Ch_RWESP, Ch_RFlags, Ch_None)
+void                  \2\x48\x9C                      X86_64
 
 [PXOR]
 (Ch_Mop2, Ch_Rop1, Ch_None)
@@ -3251,33 +3261,33 @@ mem                   \320\323\2\x0F\xC7\201          X86_64
 ;
 
 
-; note: \333=F3h, \334=F2h, \336=66h, \76=REX, \77=EA, \325=no REX.W=1 for qword, \375=unsigned
+; note: \333=F3h, \334=F2h, \336=66h, \325=no REX.W=1 for qword, \375=unsigned
 
 [MOVNTSS]
 (Ch_All, Ch_None, Ch_None)
-mem,xmmreg              \101\333\300\76\2\x0F\x2B\77                    SSE4,SD
+mem,xmmreg              \333\300\323\2\x0F\x2B\101                   SSE4,SD
 
 [MOVNTSD]
 (Ch_All, Ch_None, Ch_None)
-mem,xmmreg              \101\300\334\325\76\2\x0F\x2B\77                SSE4 ;,SQ
+mem,xmmreg              \300\334\325\323\2\x0F\x2B\\101                SSE4 ;,SQ
 
 [INSERTQ]
 (Ch_All, Ch_None, Ch_None)
-xmmreg,xmmreg           \110\334\76\2\x0F\x79\77                        SSE4
+xmmreg,xmmreg           \334\323\2\x0F\x79\110                        SSE4
 ; four operands are not possible yet
 ; xmmreg,xmmreg,imm,imm   \110\334\76\2\x0F\x78\77\375\22\375\23          SSE4,SB
 
 [EXTRQ]
 (Ch_All, Ch_None, Ch_None)
-xmmreg,imm,imm          \200\336\76\2\x0F\x78\77\375\21\375\22          SSE4,SB
-xmmreg,xmmreg           \110\336\76\2\x0F\x79\77                        SSE4
+xmmreg,imm,imm          \336\323\2\x0F\x78\200\375\21\375\22          SSE4,SB
+xmmreg,xmmreg           \336\323\2\x0F\x79\110                        SSE4
 
 [LZCNT,lzcntX]
 (Ch_All, Ch_None, Ch_None)
-reg16,regmem            \110\320\333\301\76\2\x0F\xBD\77                386,SM,SSE4
-reg32|64,regmem         \110\321\333\301\76\2\x0F\xBD\77                386,SM,SSE4
+reg16,regmem            \320\333\301\323\2\x0F\xBD\110                386,SM,SSE4
+reg32|64,regmem         \321\333\301\323\2\x0F\xBD\110                386,SM,SSE4
 
 [POPCNT,popcntX]
 (Ch_All, Ch_None, Ch_None)
-reg16,regmem            \110\320\333\301\76\2\x0F\xB8\77                386,SM,SSE4
-reg32|64,regmem         \110\321\333\301\76\2\x0F\xB8\77                386,SM,SSE4
+reg16,regmem            \320\333\301\323\2\x0F\xB8\110                386,SM,SSE4
+reg32|64,regmem         \321\333\301\323\2\x0F\xB8\110                386,SM,SSE4

@@ -30,7 +30,7 @@ interface
 uses
   globtype,
   cclasses,aasmbase,aasmtai,aasmdata,aasmcpu,cgbase,cgutils,
-  cpubase,optbase;
+  cpubase;
 
 {******************************* Constants *******************************}
 
@@ -199,7 +199,7 @@ procedure RemoveLastDeallocForFuncRes(asmL: TAsmList; p: tai);
 function regLoadedWithNewValue(supreg: tsuperregister; canDependOnPrevValue: boolean;
            hp: tai): boolean;
 procedure UpdateUsedRegs(var UsedRegs: TRegSet; p: tai);
-procedure AllocRegBetween(asml: TAsmList; reg: tregister; p1, p2: tai; const initialusedregs: tregset);
+procedure AllocRegBetween(asml: TAsmList; reg: tregister; p1, p2: tai; var initialusedregs: tregset);
 function FindRegDealloc(supreg: tsuperregister; p: tai): boolean;
 
 function InstructionsEquivalent(p1, p2: tai; var RegInfo: toptreginfo): Boolean;
@@ -218,13 +218,6 @@ type
     function getlabelwithsym(sym: tasmlabel): tai;
 
    private
-    { Walks through the list to find the lowest and highest label number, inits the }
-    { labeltable and fixes/optimizes some regallocs                                 }
-     procedure initlabeltable;
-
-    function initdfapass2: boolean;
-    procedure dodfapass2;
-
     { asm list we're working on }
     list: TAsmList;
 
@@ -240,6 +233,13 @@ type
     { all labels in the current block: their value mapped to their location }
     lolab, hilab, labdif: longint;
     labeltable: plabeltable;
+
+    { Walks through the list to find the lowest and highest label number, inits the }
+    { labeltable and fixes/optimizes some regallocs                                 }
+     procedure initlabeltable;
+
+    function initdfapass2: boolean;
+    procedure dodfapass2;
   end;
 
 
@@ -1086,7 +1086,7 @@ begin
     oldp := p;
     if (p.typ in SkipInstr) or
        ((p.typ = ait_marker) and
-        (tai_Marker(p).Kind in [mark_AsmBlockEnd,mark_InlineStart,mark_InlineEnd])) then
+        (tai_Marker(p).Kind in [mark_AsmBlockEnd,mark_NoLineInfoStart,mark_NoLineInfoEnd])) then
       GetNextInstruction(p,p)
     else if ((p.Typ = Ait_Marker) and
         (tai_Marker(p).Kind = mark_NoPropInfoStart)) then
@@ -1143,7 +1143,7 @@ begin
            ((p.typ = ait_label) and
             labelCanBeSkipped(tai_label(p))) or
            ((p.typ = ait_marker) and
-            (tai_Marker(p).Kind in [mark_AsmBlockEnd,mark_InlineStart,mark_InlineEnd]))) do
+            (tai_Marker(p).Kind in [mark_AsmBlockEnd,mark_NoLineInfoStart,mark_NoLineInfoEnd]))) do
          p := tai(p.next);
     while assigned(p) and
           (p.typ=ait_RegAlloc) Do
@@ -1166,7 +1166,7 @@ begin
 end;
 
 
-procedure AllocRegBetween(asml: TAsmList; reg: tregister; p1, p2: tai; const initialusedregs: tregset);
+procedure AllocRegBetween(asml: TAsmList; reg: tregister; p1, p2: tai; var initialusedregs: tregset);
 { allocates register reg between (and including) instructions p1 and p2 }
 { the type of p1 and p2 must not be in SkipInstr                        }
 { note that this routine is both called from the peephole optimizer     }
@@ -1208,6 +1208,7 @@ begin
     begin
       hp := tai_regalloc.alloc(reg,nil);
       insertllItem(asmL,p1.previous,p1,hp);
+      include(initialusedregs,supreg);
     end;
   while assigned(p1) and
         (p1 <> p2) do

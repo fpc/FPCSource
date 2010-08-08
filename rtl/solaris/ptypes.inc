@@ -33,7 +33,7 @@ introduction)
 
 Type
 
-    dev_t    = cuint;          { used for device numbers      }
+    dev_t    = culong;          { used for device numbers      }
     TDev     = dev_t;
     pDev     = ^dev_t;
 
@@ -93,7 +93,8 @@ Type
     pSSize    = ^ssize_t;
     TClock    = clock_t;
     pClock    = ^clock_t;
-    TTime     = time_t;
+    // TTime    = time_t;    // Not allowed in system unit, -> unixtype
+
     pTime     = ^time_t;
     ptime_t   = ^time_t;
     clockid_t = cint;
@@ -158,17 +159,30 @@ Type
   ptimespec   = ^timespec;
   TTimeSpec   = timespec;
 
+{$ifdef cpu64}
+  fsblkcnt_t = culonglong;
+{$else}
+  fsblkcnt_t = culong;
+{$endif}
+
+  { actually stavfs, statfs is deprecated on Solaris }
   TStatfs = packed record
-    fstype,            { File system type }
-    bsize   : cint;    { Optimal block trensfer size }
+    bsize,             { fundamental file system block size  }
+    frsize  : culong;  { fragment size }
     blocks,            { Data blocks in system }
     bfree,             { free blocks in system }
     bavail,            { Available free blocks to non-root users }
     files,             { File nodes in system }
-    ffree   : clong;             { Free file nodes in system }
-    fsid    : array[0..1] of cint;          { File system ID }
-    namelen : clong; { Maximum name length in system }
-    spare   : array [0..5] of clong; { For later use }
+    ffree,             { Free file nodes in system }
+    favail  : fsblkcnt_t;   { free nodes avail to non-superuser}
+    fsid    : clong;   { File system ID }
+    basetype: array [0..15] of char; { null-terminated fs type name }
+    flag    : culong;  { bit-mask of flags }
+    namelen : culong; { Maximum name length in system }
+    fstr    : array[0..31] of char; { fs-specific string }
+{$ifndef cpu64}
+    spare   : array[0..15] of clong; { reserved for future use }
+{$endif}
   end;
   PStatFS=^TStatFS;
 

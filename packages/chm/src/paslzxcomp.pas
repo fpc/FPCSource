@@ -285,9 +285,8 @@ begin
 	  if (leaves[leaves_left].freq <> 1) then begin
             leaves[leaves_left].freq := leaves[leaves_left].freq shr 1;
             codes_too_long := 0;
-            Inc(leaves_left);
           end;
-
+          Inc(leaves_left);
         end;
         if codes_too_long <> 0 then
           raise Exception.Create('!codes_too_long');
@@ -710,11 +709,11 @@ begin
     end
     else begin
       mask_bits := (1 shl shift_bits) - 1;
-      lzxd^.bit_buf := lzxd^.bit_buf shl shift_bits;
-      lzxd^.bit_buf := lzxd^.bit_buf or (bits shr rshift_bits) and mask_bits;
+      lzxd^.bit_buf := word(lzxd^.bit_buf shl shift_bits);
+      lzxd^.bit_buf := word(lzxd^.bit_buf or (bits shr rshift_bits) and mask_bits);
     end;
 {$IFDEF ENDIAN_BIG}
-    lzxd^.bit_buf := ((lzxd^.bit_buf and $FF)shl 8) or (lzxd^.bit_buf shr 8);
+    lzxd^.bit_buf := word(((lzxd^.bit_buf and $FF)shl 8) or (lzxd^.bit_buf shr 8));
 {$ENDIF}
     lzxd^.put_bytes(lzxd^.out_arg, sizeof(lzxd^.bit_buf), @lzxd^.bit_buf);
     Inc(lzxd^.len_compressed_output, sizeof(lzxd^.bit_buf));
@@ -726,8 +725,8 @@ begin
   //   otherwise move bits in */
   shift_bits := nbits;
   mask_bits := (1 shl shift_bits) - 1;
-  lzxd^.bit_buf := lzxd^.bit_buf shl shift_bits;
-  lzxd^.bit_buf := lzxd^.bit_buf or bits and mask_bits;
+  lzxd^.bit_buf := word(lzxd^.bit_buf shl shift_bits);
+  lzxd^.bit_buf := word(lzxd^.bit_buf or bits and mask_bits);
   Inc(cur_bits, nbits);
 
   lzxd^.bits_in_buf := cur_bits;
@@ -892,8 +891,8 @@ begin
 	  Inc(freqs[19]);
 	  //* right, MS lies again.  Code is NOT
 	  //   prev_len + len (mod 17), it's prev_len - len (mod 17)*/
-	  codep^ := prevlengths[i-cur_run] - last_len;
-	  if (codep^ > 16) then Inc(codep^, 17);
+	  codep^ := byte(prevlengths[i-cur_run] - last_len);
+	  if (codep^ > 16) then codep^ := byte(codep^ + 17); //Inc(codep^, 17);
 	  Inc(freqs[codep^]);
           Inc(codep);
 	  runp^ := 0; //* not necessary */
@@ -901,8 +900,8 @@ begin
 	  Dec(cur_run, excess+4);
         end;
 	while (cur_run > 0) do begin
-	  codep^ := prevlengths[i-cur_run] - last_len;
-	  if (codep^ > 16) then Inc(codep^, 17);
+	  codep^ := byte(prevlengths[i-cur_run] - last_len);
+	  if (codep^ > 16) then codep^ := byte(codep^ + 17); //Inc(codep^, byte(17));
 	  runp^ := 0; //* not necessary */
           Inc(runp);
 	  Dec(cur_run);
@@ -994,7 +993,6 @@ begin
   Fillchar(lzxd^.length_freq_table[0], NUM_SECONDARY_LENGTHS * sizeof(longint), 0);
   Fillchar(lzxd^.main_freq_table[0], lzxd^.main_tree_size * sizeof(longint), 0);
   Fillchar(lzxd^.aligned_freq_table[0], LZX_ALIGNED_SIZE * sizeof(longint), 0);
-
   while ((lzxd^.left_in_block<>0) and ((lz_left_to_process(lzxd^.lzi)<>0) or not(lzxd^.at_eof(lzxd^.in_arg)))) do begin
     lz_compress(lzxd^.lzi, lzxd^.left_in_block);
 
@@ -1002,7 +1000,6 @@ begin
       lzxd^.left_in_frame := LZX_FRAME_SIZE;
     end;
     
-    if lzxd^.at_eof(lzxd^.in_arg) then Sleep(500);
     if ((lzxd^.subdivide<0)
       or (lzxd^.left_in_block = 0)
       or ((lz_left_to_process(lzxd^.lzi) = 0) and lzxd^.at_eof(lzxd^.in_arg))) then begin
@@ -1023,7 +1020,6 @@ begin
 	lzx_write_bits(lzxd, 1, 0);
 	lzxd^.need_1bit_header := 0;
       end;
-
       //* handle extra bits */
       uncomp_bits := 0;
       comp_bits := 0;
@@ -1151,6 +1147,7 @@ begin
   freemem(lzxd^.prev_main_treelengths);
   freemem(lzxd^.main_tree);
   freemem(lzxd^.main_freq_table);
+  freemem(lzxd^.block_codes);
   dispose(lzxd);
   Exit(0);
 end;

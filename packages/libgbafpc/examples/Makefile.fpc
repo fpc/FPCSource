@@ -3,9 +3,7 @@
 #
 
 [target]
-dirs= devkitPro/audio/PlayBoyScout \
-      devkitPro/graphics/ansi_console devkitPro/graphics/PCXView devkitPro/graphics/SimpleBGScroll \
-      devkitPro/template
+dirs=audio graphics template
 
 [require]
 packages=libgbafpc

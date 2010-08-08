@@ -1,0 +1,6 @@
+For new users,
+
+The install_objp.sh script will download the latest FPC compiler, compile, install headers into /Developer/ObjectivePascal and run the iPhone parser in one step. For the iPhone headers make sure you download the latest (Intel only) SDK from Apple's web site.
+
+1) cd to the directory containing install_objp.sh script.
+2) ./install_objp.sh

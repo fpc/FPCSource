@@ -33,83 +33,166 @@
          argc <--- esp
 }
 
+{$asmmode att}
+
 var
-  libc21_fpc_ret, libc21_fpc_ret_ebx, libc21_fpc_ret_ebp: ptrint; { return address to libc }
+  dlexitproc: pointer; { atexit from loader }
 
-procedure libc_exit; external name '__libc_exit';
-procedure libc_init; external name '__libc_init';
-procedure libc_setfpucw; external name '__setfpucw';
 procedure libc_start_main; external name '__libc_start_main';
-
 procedure PASCALMAIN; external name 'PASCALMAIN';
 
+{ Some helpers }
+
+procedure _init_fini_dummy; compilerproc; nostackframe; assembler;
+asm
+  ret
+end; 
+
 {******************************************************************************
-                         glibc 2.1 library start/halt
+                       glibc 2.1 lib + profiling start/halt
  ******************************************************************************}
-{$asmmode ATT}
 
 procedure _FPC_libc21_start; assembler; nostackframe; public name '_start';
 asm
+  xorl    %ebp,%ebp
   { First locate the start of the environment variables }
 
-  popl    %esi
-  movl    %eax,%edi
+  popl    %ecx                    { Get argc in ecx }
 
-  movl    %esp,%ebx               { Points to the arguments }
-  movl    %esi,%eax
-  incl    %eax
-  shll    $2,%eax
-  addl    %esp,%eax
+  movl    %esp,%ebx               { Esp now points to the arguments }
+  leal    4(%esp,%ecx,4),%eax     { The start of the environment is: esp+4*eax+4 }
   andl    $0xfffffff8,%esp        { Align stack }
 
-  movl    %eax,operatingsystem_parameter_envp    { Move the environment pointer }
-  movl    %esi,operatingsystem_parameter_argc    { Move the argument counter    }
-  movl    %ebx,operatingsystem_parameter_argv    { Move the argument pointer    }
+  {$ifdef FPC_PIC}
+        pushl %edx
+        pushl %ebx
+        pushl %ecx
+	
+	call .Lpiclab
+.Lpiclab:
+        popl  %ebx
+        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
 
-  xorl    %ebp,%ebp
-  pushl   %edi
-  pushl   %esp
-  pushl   %edx
-  pushl   $.Lfini_dummy
-  pushl   $.Linit_dummy
-  pushl   %ebx
-  pushl   %esi
-  pushl   $.Lmain
-  call    libc_start_main
-.Linit_dummy:
-.Lfini_dummy:
-  ret
+	movl  dlexitproc@GOT(%ebx),%ecx
+	movl  %edx,(%ecx)
 
-{ fake main routine which will be run from libc }
-.Lmain:
-  { save return address }
-  popl    %eax
-  movl    %eax,libc21_fpc_ret
-  movl    %ebx,libc21_fpc_ret_ebx
-  movl    %ebp,libc21_fpc_ret_ebp
-  pushl   %eax
+	movl  operatingsystem_parameter_envp@GOT(%ebx),%ecx
+	movl  %eax,(%ecx)
+
+	movl  operatingsystem_parameter_argc@GOT(%ebx),%edx
+	popl  %ecx
+	movl  %ecx,(%edx)
+
+	movl  operatingsystem_parameter_argv@GOT(%ebx),%edx
+	popl  %ebx
+	movl  %ebx,(%edx)
+	popl  %edx
+  {$else FPC_PIC}
+  	movl  %edx, dlexitproc
+  	movl  %eax,operatingsystem_parameter_envp
+  	movl  %ecx,operatingsystem_parameter_argc
+  	movl  %ebx,operatingsystem_parameter_argv
+  {$endif FPC_PIC}
 
   { Save initial stackpointer }
-  movl    %esp,initialstkptr
+  {$ifdef FPC_PIC}
+        pushl %ebx
+        call  .Lpiclab2
+.Lpiclab2:
+        popl  %ebx
+        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+	movl  initialstkptr@GOT(%ebx),%ebx
+  	movl  %esp,(%ebx)
+	popl  %ebx
+  {$else FPC_PIC}
+  	movl    %esp,initialstkptr
+  {$endif FPC_PIC}
 
-  { start the program }
-  xorl    %ebp,%ebp
-  call    PASCALMAIN
-  hlt
+        { int __libc_start_main(
+		int *(main) (int, char * *, char * *), 
+		int argc, 
+		char * * ubp_av, 
+		void (*init) (void), 
+		void (*fini) (void), 
+		void (*rtld_fini) (void), 
+		void (* stack_end)); } 
+
+        pushl %ebp   			{ padding }
+        pushl %esp   			{ stack_end }
+        pushl %edx   			{ function to be registered with
+                      			  atexit(), passed by loader }
+  	pushl $_init_fini_dummy
+  	pushl $_init_fini_dummy
+	pushl %ebx             		{ Push second argument: argv.  }
+	pushl %ecx             		{ Push first argument: argc.  }
+
+	pushl $PASCALMAIN
+
+  	call  libc_start_main
+	hlt
 end;
 
 procedure _FPC_libc21_haltproc; assembler; nostackframe; public name '_haltproc';
 asm
-{$if sizeof(ExitCode)=2}
-  movzwl  ExitCode,%eax
-{$else}
-  mov     ExitCode,%eax
-{$endif}
+.Lhaltproc:
+  {$ifdef FPC_PIC}
+        call  .Lpiclab
+.Lpiclab:
+        popl  %ebx
+        addl  $_GLOBAL_OFFSET_TABLE_,%ebx
+        movl  dlexitproc@GOT(%ebx),%eax
+        movl  (%eax),%eax
+  {$else FPC_PIC}
+        movl    dlexitproc,%eax
+  {$endif FPC_PIC}
+  testl   %eax,%eax
+  je      .Lnodlexitproc
+  call    *%eax
+.Lnodlexitproc:
+  movl    syscall_nr_exit_group,%eax
 
-  movl    libc21_fpc_ret,%edx         { return to libc }
-  movl    libc21_fpc_ret_ebp,%ebp
-  movl    libc21_fpc_ret_ebx,%ebx
-  push    %edx
-  ret
+{$ifdef FPC_PIC}
+  call    .Lpiclab2
+.Lpiclab2:
+  popl    %ebx
+  addl    $_GLOBAL_OFFSET_TABLE_,%ebx
+  movl    ExitCode@GOT(%ebx),%ebx
+ {$if sizeof(ExitCode)=2}
+  movzwl  (%ebx),%ebx
+ {$else}
+  mov     (%ebx),%ebx
+ {$endif}
+{$else FPC_PIC}
+ {$if sizeof(ExitCode)=2}
+  movzwl  ExitCode,%ebx
+ {$else}
+  mov     ExitCode,%ebx
+ {$endif}
+{$endif FPC_PIC}
+
+  int     $0x80
+  movl    syscall_nr_exit,%eax
+
+{$ifdef FPC_PIC}
+  call    .Lpiclab3
+.Lpiclab3:
+  popl    %ebx
+  addl    $_GLOBAL_OFFSET_TABLE_,%ebx
+  movl    ExitCode@GOT(%ebx),%ebx
+ {$if sizeof(ExitCode)=2}
+  movzwl  (%ebx),%ebx
+ {$else}
+  mov     (%ebx),%ebx
+ {$endif}
+{$else FPC_PIC}
+
+ {$if sizeof(ExitCode)=2}
+  movzwl  ExitCode,%ebx
+ {$else}
+  mov     ExitCode,%ebx
+ {$endif}
+{$endif FPC_PIC}
+
+  int     $0x80
+  jmp     .Lhaltproc
 end;
-

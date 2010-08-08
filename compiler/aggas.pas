@@ -38,7 +38,6 @@ interface
 {$endif support_llvm}
       ;
 
-
     type
       TCPUInstrWriter = class;
       {# This is a derived class which is used to write
@@ -92,8 +91,7 @@ interface
        protected
         function sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;override;
         procedure WriteWeakSymbolDef(s: tasmsymbol); override;
-       private
-        debugframecount: aint;
+
        end;
 
 
@@ -226,7 +224,7 @@ implementation
       ait_const2str : array[aitconst_128bit..aitconst_darwin_dwarf_delta32] of string[20]=(
         #9'.fixme128'#9,#9'.quad'#9,#9'.long'#9,#9'.short'#9,#9'.byte'#9,
         #9'.sleb128'#9,#9'.uleb128'#9,
-        #9'.rva'#9,#9'.secrel32'#9,#9'.indirect_symbol'#9,#9'.quad'#9,#9'.long'#9
+        #9'.rva'#9,#9'.secrel32'#9,#9'.quad'#9,#9'.long'#9
       );
 
 {****************************************************************************}
@@ -258,7 +256,7 @@ implementation
 
     function TGNUAssembler.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       const
-        secnames : array[TAsmSectiontype] of string[17] = ('',
+        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
           '.text',
           '.data',
 { why doesn't .rodata work? (FK) }
@@ -282,6 +280,10 @@ implementation
           '.threadvar',
           '.pdata',
           '', { stubs }
+          '__DATA,__nl_symbol_ptr',
+          '__DATA,__la_symbol_ptr',
+          '__DATA,__mod_init_func',
+          '__DATA,__mod_term_func',
           '.stab',
           '.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
@@ -290,9 +292,43 @@ implementation
           '.fpc',
           '.toc',
           '.init',
-          '.fini'
+          '.fini',
+          '.objc_class',
+          '.objc_meta_class',
+          '.objc_cat_cls_meth',
+          '.objc_cat_inst_meth',
+          '.objc_protocol',
+          '.objc_string_object',
+          '.objc_cls_meth',
+          '.objc_inst_meth',
+          '.objc_cls_refs',
+          '.objc_message_refs',
+          '.objc_symbols',
+          '.objc_category',
+          '.objc_class_vars',
+          '.objc_instance_vars',
+          '.objc_module_info',
+          '.objc_class_names',
+          '.objc_meth_var_types',
+          '.objc_meth_var_names',
+          '.objc_selector_strs',
+          '.objc_protocol_ext',
+          '.objc_class_ext',
+          '.objc_property',
+          '.objc_image_info',
+          '.objc_cstring_object',
+          '.objc_sel_fixup',
+          '__DATA,__objc_data',
+          '__DATA,__objc_const',
+          '.objc_superrefs',
+          '__DATA, __datacoal_nt,coalesced',
+          '.objc_classlist',
+          '.objc_nlclasslist',
+          '.objc_catlist',
+          '.obcj_nlcatlist',
+          '.objc_protolist'
         );
-        secnames_pic : array[TAsmSectiontype] of string[17] = ('',
+        secnames_pic : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
           '.text',
           '.data.rel',
           '.data.rel',
@@ -301,6 +337,10 @@ implementation
           '.threadvar',
           '.pdata',
           '', { stubs }
+          '__DATA,__nl_symbol_ptr',
+          '__DATA,__la_symbol_ptr',
+          '__DATA,__mod_init_func',
+          '__DATA,__mod_term_func',
           '.stab',
           '.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
@@ -309,7 +349,41 @@ implementation
           '.fpc',
           '.toc',
           '.init',
-          '.fini'
+          '.fini',
+          '.objc_class',
+          '.objc_meta_class',
+          '.objc_cat_cls_meth',
+          '.objc_cat_inst_meth',
+          '.objc_protocol',
+          '.objc_string_object',
+          '.objc_cls_meth',
+          '.objc_inst_meth',
+          '.objc_cls_refs',
+          '.objc_message_refs',
+          '.objc_symbols',
+          '.objc_category',
+          '.objc_class_vars',
+          '.objc_instance_vars',
+          '.objc_module_info',
+          '.objc_class_names',
+          '.objc_meth_var_types',
+          '.objc_meth_var_names',
+          '.objc_selector_strs',
+          '.objc_protocol_ext',
+          '.objc_class_ext',
+          '.objc_property',
+          '.objc_image_info',
+          '.objc_cstring_object',
+          '.objc_sel_fixup',
+          '__DATA, __objc_data',
+          '__DATA, __objc_const',
+          '.objc_superrefs',
+          '__DATA, __datacoal_nt,coalesced',
+          '.objc_classlist',
+          '.objc_nlclasslist',
+          '.objc_catlist',
+          '.obcj_nlcatlist',
+          '.objc_protolist'
         );
       var
         sep     : string[3];
@@ -336,7 +410,7 @@ implementation
           secname:='.tls';
 
         { go32v2 stub only loads .text and .data sections, and allocates space for .bss.
-          Thus, data which normally goes into .rodata and .rodata_norel sections must 
+          Thus, data which normally goes into .rodata and .rodata_norel sections must
           end up in .data section }
         if (atype in [sec_rodata,sec_rodata_norel]) and
           (target_info.system=system_i386_go32v2) then
@@ -348,8 +422,9 @@ implementation
         if not(target_info.system in systems_darwin) and
            create_smartlink_sections and
            (aname<>'') and
-           (atype <> sec_toc) and
-           (atype<>sec_bss) then
+           (atype<>sec_toc) and
+           { on embedded systems every byte counts, so smartlink bss too }
+           ((atype<>sec_bss) or (target_info.system in systems_embedded)) then
           begin
             case aorder of
               secorder_begin :
@@ -382,7 +457,7 @@ implementation
          system_x86_64_darwin,
          system_arm_darwin:
            begin
-             if (atype = sec_stub) then
+             if (atype in [sec_stub,sec_objc_data,sec_objc_const,sec_data_coalesced]) then
                AsmWrite('.section ');
            end
          else
@@ -476,17 +551,48 @@ implementation
 
     procedure TGNUAssembler.WriteTree(p:TAsmList);
 
-    function needsObject(hp : tai_symbol) : boolean;
-      begin
-        needsObject :=
-            (
-              assigned(hp.next) and
-               (tai(hp.next).typ in [ait_const,ait_datablock,
-                ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit])
-            ) or
-            (hp.sym.typ=AT_DATA);
-
-      end;
+      function needsObject(hp : tai_symbol) : boolean;
+        begin
+          needsObject :=
+              (
+                assigned(hp.next) and
+                 (tai(hp.next).typ in [ait_const,ait_datablock,
+                  ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit])
+              ) or
+              (hp.sym.typ=AT_DATA);
+  
+        end;
+  
+  
+      procedure doalign(alignment: byte; use_op: boolean; fillop: byte; out last_align: longint);
+        var
+          i: longint;
+        begin
+          last_align:=alignment;
+          if alignment>1 then
+            begin
+              if not(target_info.system in systems_darwin) then
+                begin
+                  AsmWrite(#9'.balign '+tostr(alignment));
+                  if use_op then
+                    AsmWrite(','+tostr(fillop))
+{$ifdef x86}
+                  { force NOP as alignment op code }
+                  else if LastSecType=sec_code then
+                    AsmWrite(',0x90');
+{$endif x86}
+                end
+              else
+                begin
+                  { darwin as only supports .align }
+                  if not ispowerof2(alignment,i) then
+                    internalerror(2003010305);
+                  AsmWrite(#9'.align '+tostr(i));
+                  last_align:=i;
+                end;
+              AsmLn;
+            end;
+        end;
 
     var
       ch       : char;
@@ -519,6 +625,7 @@ implementation
       hp:=tai(p.first);
       while assigned(hp) do
        begin
+         prefetch(pointer(hp.next)^);
          if not(hp.typ in SkipLineInfo) then
           begin
             hp1 := hp as tailineinfo;
@@ -614,30 +721,7 @@ implementation
 
            ait_align :
              begin
-               last_align := tai_align_abstract(hp).aligntype;
-               if tai_align_abstract(hp).aligntype>1 then
-                 begin
-                   if not(target_info.system in systems_darwin) then
-                     begin
-                       AsmWrite(#9'.balign '+tostr(tai_align_abstract(hp).aligntype));
-                       if tai_align_abstract(hp).use_op then
-                         AsmWrite(','+tostr(tai_align_abstract(hp).fillop))
-{$ifdef x86}
-                       { force NOP as alignment op code }
-                       else if LastSecType=sec_code then
-                         AsmWrite(',0x90');
-{$endif x86}
-                     end
-                   else
-                     begin
-                       { darwin as only supports .align }
-                       if not ispowerof2(tai_align_abstract(hp).aligntype,i) then
-                         internalerror(2003010305);
-                       AsmWrite(#9'.align '+tostr(i));
-                       last_align := i;
-                     end;
-                   AsmLn;
-                 end;
+               doalign(tai_align_abstract(hp).aligntype,tai_align_abstract(hp).use_op,tai_align_abstract(hp).fillop,last_align);
              end;
 
            ait_section :
@@ -773,7 +857,6 @@ implementation
                  aitconst_8bit,
                  aitconst_rva_symbol,
                  aitconst_secrel32_symbol,
-                 aitconst_indirect_symbol,
                  aitconst_darwin_dwarf_delta32,
                  aitconst_darwin_dwarf_delta64:
                    begin
@@ -812,7 +895,12 @@ implementation
                                  s:=s+tostr_with_plus(tai_const(hp).value);
                              end
                            else
+{$ifdef cpu64bitaddr}
                              s:=tostr(tai_const(hp).value);
+{$else cpu64bitaddr}
+                             { 64 bit constants are already handled above in this case }
+                             s:=tostr(longint(tai_const(hp).value));
+{$endif cpu64bitaddr}
                            AsmWrite(s);
                            inc(l,length(s));
                            { Values with symbols are written on a single line to improve
@@ -859,6 +947,8 @@ implementation
                    AsmWrite(',');
                   AsmWrite(tostr(t80bitarray(e)[i]));
                 end;
+               for i:=11 to tai_real_80bit(hp).savesize do
+                 AsmWrite(',0');
                AsmLn;
              end;
 {$endif cpuextended}
@@ -970,7 +1060,12 @@ implementation
              begin
                if (tai_label(hp).labsym.is_used) then
                 begin
-                  if tai_label(hp).labsym.bind=AB_GLOBAL then
+                  if (tai_label(hp).labsym.bind=AB_PRIVATE_EXTERN) then
+                    begin
+                      AsmWrite(#9'.private_extern ');
+                      AsmWriteln(tai_label(hp).labsym.name);
+                    end;
+                  if tai_label(hp).labsym.bind in [AB_GLOBAL,AB_PRIVATE_EXTERN] then
                    begin
                      AsmWrite('.globl'#9);
                      AsmWriteLn(tai_label(hp).labsym.name);
@@ -982,6 +1077,11 @@ implementation
 
            ait_symbol :
              begin
+               if (tai_symbol(hp).sym.bind=AB_PRIVATE_EXTERN) then
+                 begin
+                   AsmWrite(#9'.private_extern ');
+                   AsmWriteln(tai_symbol(hp).sym.name);
+                 end;
                if (target_info.system = system_powerpc64_linux) and
                  (tai_symbol(hp).sym.typ = AT_FUNCTION) and (cs_profile in current_settings.moduleswitches) then
                  begin
@@ -1022,8 +1122,17 @@ implementation
                          AsmWriteLn(',' + sepChar + 'function');
                      end;
                  end;
-               AsmWriteLn(tai_symbol(hp).sym.name + ':');
+               if not(tai_symbol(hp).has_value) then
+                 AsmWriteLn(tai_symbol(hp).sym.name + ':')
+               else
+                 AsmWriteLn(tai_symbol(hp).sym.name + '=' + tostr(tai_symbol(hp).value));
              end;
+{$ifdef arm}
+           ait_thumb_func:
+             begin
+               AsmWriteLn(#9'.thumb_func');
+             end;
+{$endif arm}
 
            ait_symbol_end :
              begin
@@ -1088,9 +1197,9 @@ implementation
              end;
 
            ait_marker :
-             if tai_marker(hp).kind=mark_InlineStart then
+             if tai_marker(hp).kind=mark_NoLineInfoStart then
                inc(InlineLevel)
-             else if tai_marker(hp).kind=mark_InlineEnd then
+             else if tai_marker(hp).kind=mark_NoLineInfoEnd then
                dec(InlineLevel);
 
            ait_directive :
@@ -1175,6 +1284,13 @@ implementation
          (target_info.system in systems_darwin) then
         AsmWriteLn(#9'.subsections_via_symbols');
 
+      { "no executable stack" marker for Linux }
+      if (target_info.system in systems_linux) and
+         not(cs_executable_stack in current_settings.moduleswitches) then
+        begin
+          AsmWriteLn('.section .note.GNU-stack,"",%progbits');
+        end;
+
       AsmLn;
 {$ifdef EXTDEBUG}
       if assigned(current_module.mainsource) then
@@ -1198,8 +1314,7 @@ implementation
             sec_debug_frame,
             sec_eh_frame:
               begin
-                result := '.section __DWARFA,__debug_frame,coalesced,no_toc+strip_static_syms'#10'EH_frame'+tostr(debugframecount)+':';
-                inc(debugframecount);
+                result := '.section __DWARF,__debug_info,regular,debug';
                 exit;
               end;
             sec_debug_line:
@@ -1242,6 +1357,131 @@ implementation
                     exit;
                   end;
               end;
+            sec_data_nonlazy:
+              begin
+                result:='.section __DATA, __nl_symbol_ptr,non_lazy_symbol_pointers';
+                exit;
+              end;
+            sec_data_lazy:
+              begin
+                result:='.section __DATA, __la_symbol_ptr,lazy_symbol_pointers';
+                exit;
+              end;
+            sec_init_func:
+              begin
+                result:='.section __DATA, __mod_init_func, mod_init_funcs';
+                exit;
+              end;
+            sec_term_func:
+              begin
+                result:='.section __DATA, __mod_term_func, mod_term_funcs';
+                exit;
+              end;
+            sec_objc_protocol_ext:
+              begin
+                result:='.section __OBJC, __protocol_ext, regular, no_dead_strip';
+                exit;
+              end;
+            sec_objc_class_ext:
+              begin
+                result:='.section __OBJC, __class_ext, regular, no_dead_strip';
+                exit;
+              end;
+            sec_objc_property:
+              begin
+                result:='.section __OBJC, __property, regular, no_dead_strip';
+                exit;
+              end;
+            sec_objc_image_info:
+              begin
+                result:='.section __OBJC, __image_info, regular, no_dead_strip';
+                exit;
+              end;
+            sec_objc_cstring_object:
+              begin
+                result:='.section __OBJC, __cstring_object, regular, no_dead_strip';
+                exit;
+              end;
+            sec_objc_sel_fixup:
+              begin
+                result:='.section __OBJC, __sel_fixup, regular, no_dead_strip';
+                exit;
+              end;
+            sec_objc_message_refs:
+              begin
+                if (target_info.system in systems_objc_nfabi) then
+                  begin
+                    result:='.section __DATA, __objc_selrefs, literal_pointers, no_dead_strip';
+                    exit;
+                  end;
+              end;
+            sec_objc_cls_refs:
+              begin
+                if (target_info.system in systems_objc_nfabi) then
+                  begin
+                    result:='.section __DATA, __objc_clsrefs, regular, no_dead_strip';
+                    exit;
+                  end;
+              end;
+            sec_objc_meth_var_names,
+            sec_objc_class_names:
+              begin
+                if (target_info.system in systems_objc_nfabi) then
+                  begin
+                    result:='.cstring';
+                    exit
+                  end;
+              end;
+            sec_objc_inst_meth,
+            sec_objc_cls_meth,
+            sec_objc_cat_inst_meth,
+            sec_objc_cat_cls_meth:
+              begin
+                if (target_info.system in systems_objc_nfabi) then
+                  begin
+                    result:='.section __DATA, __objc_const';
+                    exit;
+                  end;
+              end;
+            sec_objc_meta_class,
+            sec_objc_class:
+              begin
+                if (target_info.system in systems_objc_nfabi) then
+                  begin
+                    result:='.section __DATA, __objc_data';
+                    exit;
+                  end;
+              end;
+            sec_objc_sup_refs:
+              begin
+                result:='.section __DATA, __objc_superrefs, regular, no_dead_strip';
+                exit
+              end;
+            sec_objc_classlist:
+              begin
+                result:='.section __DATA, __objc_classlist, regular, no_dead_strip';
+                exit
+              end;
+            sec_objc_nlclasslist:
+              begin
+                result:='.section __DATA, __objc_nlclasslist, regular, no_dead_strip';
+                exit
+              end;
+            sec_objc_catlist:
+              begin
+                result:='.section __DATA, __objc_catlist, regular, no_dead_strip';
+                exit
+              end;
+            sec_objc_nlcatlist:
+              begin
+                result:='.section __DATA, __objc_nlcatlist, regular, no_dead_strip';
+                exit
+              end;
+            sec_objc_protolist:
+              begin
+                result:='.section __DATA, __objc_protolist, coalesced, no_dead_strip';
+                exit;
+              end;
           end;
         result := inherited sectionname(atype,aname,aorder);
       end;
@@ -1272,6 +1512,10 @@ implementation
          sec_code (* sec_pdata *),
          { used for darwin import stubs }
          sec_code (* sec_stub *),
+         sec_data,(* sec_data_nonlazy *)
+         sec_data,(* sec_data_lazy *)
+         sec_data,(* sec_init_func *)
+         sec_data,(* sec_term_func *)
          { stabs }
          sec_stab,sec_stabstr,
          { win32 }
@@ -1293,7 +1537,41 @@ implementation
          { Table of contents section }
          sec_code (* sec_toc *),
          sec_code (* sec_init *),
-         sec_code (* sec_fini *)
+         sec_code (* sec_fini *),
+         sec_none (* sec_objc_class *),
+         sec_none (* sec_objc_meta_class *),
+         sec_none (* sec_objc_cat_cls_meth *),
+         sec_none (* sec_objc_cat_inst_meth *),
+         sec_none (* sec_objc_protocol *),
+         sec_none (* sec_objc_string_object *),
+         sec_none (* sec_objc_cls_meth *),
+         sec_none (* sec_objc_inst_meth *),
+         sec_none (* sec_objc_cls_refs *),
+         sec_none (* sec_objc_message_refs *),
+         sec_none (* sec_objc_symbols *),
+         sec_none (* sec_objc_category *),
+         sec_none (* sec_objc_class_vars *),
+         sec_none (* sec_objc_instance_vars *),
+         sec_none (* sec_objc_module_info *),
+         sec_none (* sec_objc_class_names *),
+         sec_none (* sec_objc_meth_var_types *),
+         sec_none (* sec_objc_meth_var_names *),
+         sec_none (* sec_objc_selector_strs *),
+         sec_none (* sec_objc_protocol_ext *),
+         sec_none (* sec_objc_class_ext *),
+         sec_none (* sec_objc_property *),
+         sec_none (* sec_objc_image_info *),
+         sec_none (* sec_objc_cstring_object *),
+         sec_none (* sec_objc_sel_fixup *),
+         sec_none (* sec_objc_data *),
+         sec_none (* sec_objc_const *),
+         sec_none (* sec_objc_sup_refs *),
+         sec_none (* sec_data_coalesced *),
+         sec_none (* sec_objc_classlist *),
+         sec_none (* sec_objc_nlclasslist *),
+         sec_none (* sec_objc_catlist *),
+         sec_none (* sec_objc_nlcatlist *),
+         sec_none (* sec_objc_protlist *)
         );
       begin
         Result := inherited SectionName (SecXTable [AType], AName, AOrder);

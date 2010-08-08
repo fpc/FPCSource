@@ -18,7 +18,7 @@ interface
 uses
   { in the interface so the graphh definitions of moveto etc override }
   { the ones in the universal interfaces                              }
-  FPCMacOSAll;
+  MacOSAll;
 
 {$pascalmainname FPCMacOSXGraphMain}
 

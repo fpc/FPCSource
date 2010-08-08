@@ -93,78 +93,53 @@ begin
 end;
 
 
+type
+  tint64rec = record
+    low, high: dword;
+  end;
+
 function do_filepos(handle : thandle) : Int64;
 var
-  l:longint;
+  rslt: tint64rec;
 begin
-{$ifndef wince}
-  if assigned(SetFilePointerEx) then
-    begin
-      if not(SetFilePointerEx(handle,0,@result,FILE_CURRENT)) then
-        begin
-          errno:=GetLastError;
-          Errno2InoutRes;
-        end;
-    end
-  else
-{$endif wince}
-    begin
-      l:=SetFilePointer(handle,0,nil,FILE_CURRENT);
-      if l=-1 then
-       begin
-        l:=0;
-        errno:=GetLastError;
-        Errno2InoutRes;
-       end;
-      do_filepos:=l;
-    end;
+  rslt.high := 0;
+  rslt.low := SetFilePointer(handle, 0, @rslt.high, FILE_CURRENT);
+  if (rslt.low = $FFFFFFFF) and (GetLastError <> 0) then
+  begin
+    errno := GetLastError;
+    Errno2InoutRes;
+  end;
+  do_filepos := int64(rslt);
 end;
 
 
-procedure do_seek(handle:thandle;pos : Int64);
+procedure do_seek(handle: thandle; pos: Int64);
+var
+  posHigh: LongInt;
 begin
-{$ifndef wince}
-  if assigned(SetFilePointerEx) then
-    begin
-      if not(SetFilePointerEx(handle,pos,nil,FILE_BEGIN)) then
-        begin
-          errno:=GetLastError;
-          Errno2InoutRes;
-        end;
-    end
-  else
-{$endif wince}
-    begin
-      if SetFilePointer(handle,pos,nil,FILE_BEGIN)=-1 then
-       Begin
-        errno:=GetLastError;
-        Errno2InoutRes;
-       end;
-    end;
+  posHigh := tint64rec(pos).high;
+  if (SetFilePointer(handle, pos, @posHigh, FILE_BEGIN)=-1) and
+  { return value of -1 is valid unless GetLastError is non-zero }
+    (GetLastError <> 0) then
+  begin
+    errno := GetLastError;
+    Errno2InoutRes;
+  end;
 end;
 
 
 function do_seekend(handle:thandle):Int64;
+var
+  rslt: tint64rec;
 begin
-{$ifndef wince}
-  if assigned(SetFilePointerEx) then
-    begin
-      if not(SetFilePointerEx(handle,0,@result,FILE_END)) then
-        begin
-          errno:=GetLastError;
-          Errno2InoutRes;
-        end;
-    end
-  else
-{$endif wince}
-    begin
-      do_seekend:=SetFilePointer(handle,0,nil,FILE_END);
-      if do_seekend=-1 then
-        begin
-          errno:=GetLastError;
-          Errno2InoutRes;
-        end;
-    end;
+  rslt.high := 0;
+  rslt.low := SetFilePointer(handle, 0, @rslt.high, FILE_END);
+  if (rslt.low = $FFFFFFFF) and (GetLastError <> 0) then
+  begin
+    errno := GetLastError;
+    Errno2InoutRes;
+  end;
+  do_seekend := int64(rslt);
 end;
 
 
@@ -198,8 +173,9 @@ procedure do_open(var f;p:pchar;flags:longint);
   when (flags and $10000) there is no check for close (needed for textfiles)
 }
 Const
-  file_Share_Read  = $00000001;
-  file_Share_Write = $00000002;
+  file_Share_Read   = $00000001;
+  file_Share_Write  = $00000002;
+  file_Share_Delete = $00000004;
 Var
   shflags,
   oflags,cd : longint;
@@ -234,7 +210,13 @@ begin
       shflags := file_Share_Write
   else
     if ((filemode and fmshareDenyNone) = fmshareDenyNone) then
-      shflags := file_Share_Read + file_Share_Write;
+      shflags :=
+{$ifdef WINCE}
+        { WinCE does not know file_share_delete }
+        file_Share_Read or file_Share_Write;
+{$else WINCE}
+        fmShareDenyNoneFlags;
+{$endif WINCE}
   { convert filemode to filerec modes }
   case (flags and 3) of
    0 : begin

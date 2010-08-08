@@ -1,3 +1,4 @@
+{ %fail }
 
 { first simple array of const test }
 

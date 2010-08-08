@@ -71,7 +71,7 @@ implementation
       symconst,symdef,aasmbase,aasmtai,aasmdata,aasmcpu,defutil,
       cpuinfo,cpubase,
       cgbase,cgobj,cgutils,
-      ncgutil, cclasses
+      ncgutil, cclasses,asmutils
       ;
 
 
@@ -85,7 +85,7 @@ implementation
         i : longint;
         b : byte;
       begin
-        location_reset(location,LOC_CREFERENCE,OS_NO);
+        location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(maxalign));
         current_asmdata.getdatalabel(l);
         maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
         new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,l.name,const_align(maxalign));
@@ -108,7 +108,7 @@ implementation
       { constants are actually supported by the target processor? (JM) }
       const
         floattype2ait:array[tfloattype] of taitype=
-          (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_comp_64bit,ait_real_128bit);
+          (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_real_80bit,ait_comp_64bit,ait_comp_64bit,ait_real_128bit);
       var
          hp1 : tai;
          lastlabel : tasmlabel;
@@ -118,7 +118,7 @@ implementation
 {$endif ARM}
 
       begin
-        location_reset(location,LOC_CREFERENCE,def_cgsize(resultdef));
+        location_reset_ref(location,LOC_CREFERENCE,def_cgsize(resultdef),const_align(resultdef.alignment));
         lastlabel:=nil;
         realait:=floattype2ait[tfloatdef(resultdef).floattype];
 {$ifdef ARM}
@@ -145,7 +145,7 @@ implementation
                                  ((tai_real_64bit(hp1).formatoptions=fo_hiloswapped)=hiloswapped) and
 {$endif ARM}
                                  (tai_real_64bit(hp1).value=value_real) and is_number_float(tai_real_64bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_real_64bit(hp1).value))) or
-                               ((realait=ait_real_80bit) and (tai_real_80bit(hp1).value=value_real) and is_number_float(tai_real_80bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_real_80bit(hp1).value))) or
+                               ((realait=ait_real_80bit) and (tai_real_80bit(hp1).value=value_real) and (tai_real_80bit(hp1).savesize=resultdef.size) and is_number_float(tai_real_80bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_real_80bit(hp1).value))) or
 {$ifdef cpufloat128}
                                ((realait=ait_real_128bit) and (tai_real_128bit(hp1).value=value_real) and is_number_float(tai_real_128bit(hp1).value) and (get_real_sign(value_real) = get_real_sign(tai_real_128bit(hp1).value))) or
 {$endif cpufloat128}
@@ -167,7 +167,7 @@ implementation
                   current_asmdata.getdatalabel(lastlabel);
                   lab_real:=lastlabel;
                   maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                  new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(resultdef.size));
+                  new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(resultdef.alignment));
                   current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                   case realait of
                     ait_real_32bit :
@@ -196,7 +196,7 @@ implementation
 
                     ait_real_80bit :
                       begin
-                        current_asmdata.asmlists[al_typedconsts].concat(Tai_real_80bit.Create(value_real));
+                        current_asmdata.asmlists[al_typedconsts].concat(Tai_real_80bit.Create(value_real,resultdef.size));
 
                         { range checking? }
                         if floating_point_range_check_error and
@@ -262,10 +262,9 @@ implementation
 
     procedure tcgstringconstnode.pass_generate_code;
       var
-         l1,
          lastlabel   : tasmlabel;
          pc       : pchar;
-         l,i : longint;
+         l: longint;
          href: treference;
          pooltype: TConstPoolType;
          pool: THashSet;
@@ -306,41 +305,13 @@ implementation
               { :-(, we must generate a new entry }
               if not assigned(entry^.Data) then
                 begin
-                   current_asmdata.getdatalabel(lastlabel);
-                   lab_str:=lastlabel;
-                   entry^.Data := lastlabel;
-                   maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                   if (len=0) or
-                      not(cst_type in [cst_ansistring,cst_widestring,cst_unicodestring]) then
-                     new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(pint)))
-                   else
-                     new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata,lastlabel.name,const_align(sizeof(pint)));
-                   { generate an ansi string ? }
                    case cst_type of
                       cst_ansistring:
                         begin
                            if len=0 then
                              InternalError(2008032301)   { empty string should be handled above }
                            else
-                             begin
-                                current_asmdata.getdatalabel(l1);
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(-1));
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(len));
-
-                                { make sure the string doesn't get dead stripped if the header is referenced }
-                                if (target_info.system in systems_darwin) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,lastlabel.name));
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
-                                { ... and vice versa }
-                                if (target_info.system in systems_darwin) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,l1.name));
-                                { include also terminating zero }
-                                getmem(pc,len+1);
-                                move(value_str^,pc^,len);
-                                pc[len]:=#0;
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create_pchar(pc,len+1));
-                             end;
+                             lastlabel:=emit_ansistring_const(current_asmdata.AsmLists[al_typedconsts],value_str,len);
                         end;
                       cst_unicodestring,
                       cst_widestring:
@@ -348,35 +319,16 @@ implementation
                            if len=0 then
                              InternalError(2008032302)   { empty string should be handled above }
                            else
-                             begin
-                                current_asmdata.getdatalabel(l1);
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
-                                { we use always UTF-16 coding for constants }
-                                { at least for now                          }
-                                { Consts.concat(Tai_const.Create_8bit(2)); }
-                                if (cst_type=cst_widestring) and (tf_winlikewidestring in target_info.flags) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(len*cwidechartype.size))
-                                else
-                                  begin
-                                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(-1));
-                                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_pint(len*cwidechartype.size));
-                                  end;
-
-                                { make sure the string doesn't get dead stripped if the header is referenced }
-                                if (target_info.system in systems_darwin) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,lastlabel.name));
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
-                                { ... and vice versa }
-                                if (target_info.system in systems_darwin) then
-                                  current_asmdata.asmlists[al_typedconsts].concat(tai_directive.create(asd_reference,l1.name));
-                                for i:=0 to len-1 do
-                                  current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(pcompilerwidestring(value_str)^.data[i]));
-                                { terminating zero }
-                                current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_16bit(0));
-                             end;
+                             lastlabel := emit_unicodestring_const(current_asmdata.AsmLists[al_typedconsts],
+                                             value_str,
+                                             (cst_type=cst_widestring) and (tf_winlikewidestring in target_info.flags));
                         end;
                       cst_shortstring:
                         begin
+                          current_asmdata.getdatalabel(lastlabel);
+                          maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
+                          new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(pint)));
+
                           current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                           { truncate strings larger than 255 chars }
                           if len>255 then
@@ -392,6 +344,10 @@ implementation
                         end;
                       cst_conststring:
                         begin
+                          current_asmdata.getdatalabel(lastlabel);
+                          maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
+                          new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(pint)));
+
                           current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                           { include terminating zero }
                           getmem(pc,len+1);
@@ -400,18 +356,20 @@ implementation
                           current_asmdata.asmlists[al_typedconsts].concat(Tai_string.Create_pchar(pc,len+1));
                         end;
                    end;
+                   lab_str:=lastlabel;
+                   entry^.Data:=lastlabel;
                 end;
            end;
          if cst_type in [cst_ansistring, cst_widestring, cst_unicodestring] then
            begin
              location_reset(location, LOC_REGISTER, OS_ADDR);
-             reference_reset_symbol(href, lab_str, 0);
+             reference_reset_symbol(href, lab_str, 0, const_align(sizeof(pint)));
              location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
              cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
            end
          else
            begin
-             location_reset(location, LOC_CREFERENCE, def_cgsize(resultdef));
+             location_reset_ref(location, LOC_CREFERENCE, def_cgsize(resultdef), const_align(sizeof(pint)));
              location.reference.symbol:=lab_str;
            end;
       end;
@@ -432,26 +390,21 @@ implementation
           location_reset(location,LOC_CONSTANT,int_cgsize(resultdef.size));
           if (source_info.endian=target_info.endian) then
             begin
-{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
               { not plongint, because that will "sign extend" the set on 64 bit platforms }
               { if changed to "paword", please also modify "32-resultdef.size*8" and      }
               { cross-endian code below                                                   }
               { Extra aint type cast to avoid range errors                                }
               location.value:=aint(pCardinal(value_set)^)
-{$else}
-              location.value:=reverse_byte(Psetbytes(value_set)^[0]);
-              location.value:=location.value or (reverse_byte(Psetbytes(value_set)^[1]) shl 8);
-              location.value:=location.value or (reverse_byte(Psetbytes(value_set)^[2]) shl 16);
-              location.value:=location.value or (reverse_byte(Psetbytes(value_set)^[3]) shl 24);
-{$endif}
             end
           else
             begin
               location.value:=swapendian(Pcardinal(value_set)^);
-              location.value:= reverse_byte (location.value         and $ff)         or
-                              (reverse_byte((location.value shr  8) and $ff) shl  8) or
-                              (reverse_byte((location.value shr 16) and $ff) shl 16) or
-                              (reverse_byte((location.value shr 24) and $ff) shl 24);
+              location.value:=aint(
+                                 reverse_byte (location.value         and $ff)         or
+                                (reverse_byte((location.value shr  8) and $ff) shl  8) or
+                                (reverse_byte((location.value shr 16) and $ff) shl 16) or
+                                (reverse_byte((location.value shr 24) and $ff) shl 24)
+                              );
             end;
           if (target_info.endian=endian_big) then
             location.value:=location.value shr (32-resultdef.size*8);
@@ -464,7 +417,7 @@ implementation
            i           : longint;
            neededtyp   : taiconst_type;
         begin
-          location_reset(location,LOC_CREFERENCE,OS_NO);
+          location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(8));
           neededtyp:=aitconst_8bit;
           lastlabel:=nil;
           { const already used ? }
@@ -490,11 +443,7 @@ implementation
                                begin
                                  if (source_info.endian=target_info.endian) then
                                    begin
-{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
                                      if tai_const(hp1).value<>Psetbytes(value_set)^[i ] then
-{$else}
-                                     if tai_const(hp1).value<>reverse_byte(Psetbytes(value_set)^[i xor 3]) then
-{$endif}
                                        break
                                    end
                                  else if tai_const(hp1).value<>reverse_byte(Psetbytes(value_set)^[i]) then
@@ -534,16 +483,11 @@ implementation
                    current_asmdata.getdatalabel(lastlabel);
                    lab_set:=lastlabel;
                    maybe_new_object_file(current_asmdata.asmlists[al_typedconsts]);
-                   new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(sizeof(pint)));
+                   new_section(current_asmdata.asmlists[al_typedconsts],sec_rodata_norel,lastlabel.name,const_align(8));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(lastlabel));
                    if (source_info.endian=target_info.endian) then
-{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
                      for i:=0 to 31 do
                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(Psetbytes(value_set)^[i]))
-{$else}
-                     for i:=0 to 31 do
-                       current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i xor 3])))
-{$endif}
                    else
                      for i:=0 to 31 do
                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_8bit(reverse_byte(Psetbytes(value_set)^[i])));
@@ -583,7 +527,7 @@ implementation
         tmplabel : TAsmLabel;
         i : integer;
       begin
-        location_reset(location,LOC_CREFERENCE,OS_NO);
+        location_reset_ref(location,LOC_CREFERENCE,OS_NO,const_align(16));
         { label for GUID }
         current_asmdata.getdatalabel(tmplabel);
         current_asmdata.asmlists[al_typedconsts].concat(tai_align.create(const_align(16)));

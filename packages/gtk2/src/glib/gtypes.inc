@@ -12,7 +12,6 @@
      qword = Int64;
    {$ENDIF}
 
-   PPPchar  = ^PPchar;
    PPPgchar = ^PPgchar;
    PPgchar  = ^Pgchar;
    {$IFNDEF KYLIX}

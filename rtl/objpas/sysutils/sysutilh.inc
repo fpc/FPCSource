@@ -114,6 +114,7 @@ type
    EHeapMemoryError = class(Exception)
      protected
        AllowFree : boolean;
+     public
        procedure FreeInstance;override;
    end;
 
@@ -172,15 +173,22 @@ type
    procedure ShowException(ExceptObject: TObject; ExceptAddr: Pointer);
    procedure Abort;
    procedure OutOfMemoryError;
+
+
+Type
+   TBeepHandler = Procedure;
+
+Var
+   OnBeep : TBeephandler = Nil;
+
    procedure Beep;
    function SysErrorMessage(ErrorCode: Integer): String;
 
 Type
    TCreateGUIDFunc = Function(Out GUID : TGUID) : Integer;
-
+   
 Var
    OnCreateGUID : TCreateGUIDFunc = Nil;
-
    Function CreateGUID(out GUID : TGUID) : Integer;
 
 type
@@ -221,6 +229,11 @@ Type
   { wide string functions }
   {$i syswideh.inc}
 
+{$ifdef FPC_HAS_UNICODESTRING}
+  { unicode string functions }
+  {$i sysunih.inc}
+{$endif FPC_HAS_UNICODESTRING}
+  
   { Read filename handling functions declaration }
   {$i finah.inc}
 

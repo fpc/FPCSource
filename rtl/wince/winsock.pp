@@ -14,18 +14,8 @@
 
  **********************************************************************}
 
-{$PACKRECORDS 1}
 unit winsock;
-{$ifndef VER0_99_14}
-{$ifndef NO_SMART_LINK}
-{$define support_smartlink}
-{$endif}
-{$endif}
 
-
-{$ifdef support_smartlink}
-{$smartlink on}
-{$endif}
 { convention is cdecl for WinCE API}
 {$calling cdecl}
 

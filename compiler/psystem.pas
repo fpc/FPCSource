@@ -99,9 +99,9 @@ implementation
 {$if defined(x86) or defined(arm)}
         systemunit.insert(tsyssym.create('Get_Frame',in_get_frame));
 {$endif defined(x86) or defined(arm)}
-{$ifdef SUPPORT_UNALIGNED}
         systemunit.insert(tsyssym.create('Unaligned',in_unaligned_x));
-{$endif SUPPORT_UNALIGNED}
+        systemunit.insert(tsyssym.create('ObjCSelector',in_objc_selector_x)); { objc only }
+        systemunit.insert(tsyssym.create('ObjCEncode',in_objc_encode_x)); { objc only }
       end;
 
 
@@ -129,10 +129,12 @@ implementation
               s32floattype:=tfloatdef.create(s32real);
               s64floattype:=tfloatdef.create(s64real);
               s80floattype:=tfloatdef.create(s80real);
+              sc80floattype:=tfloatdef.create(sc80real);
             end else begin
               s32floattype:=nil;
               s64floattype:=nil;
               s80floattype:=nil;
+              sc80floattype:=nil;
             end;
         end;
 
@@ -163,7 +165,7 @@ implementation
         { should we give a length to the default long and ansi string definition ?? }
         clongstringtype:=tstringdef.createlong(-1);
         cansistringtype:=tstringdef.createansi;
-        if target_info.system in system_all_windows then
+        if target_info.system in systems_windows then
           cwidestringtype:=tstringdef.createwide
         else
           cwidestringtype:=tstringdef.createunicode;
@@ -206,6 +208,7 @@ implementation
         s32floattype:=tfloatdef.create(s32real);
         s64floattype:=tfloatdef.create(s64real);
         s80floattype:=tfloatdef.create(s80real);
+        sc80floattype:=tfloatdef.create(sc80real);
         s64currencytype:=torddef.create(scurrency,low(int64),high(int64));
 {$endif avr}
 {$ifdef cpu64bitaddr}
@@ -257,6 +260,12 @@ implementation
             addtype('Double',s64floattype);
             { extended size is the best real type for the target }
             addtype('Extended',pbestrealtype^);
+            { CExtended corresponds to the C version of the Extended type
+              (either "long double" or "double") }
+            if tfloatdef(pbestrealtype^).floattype=s80real then
+              addtype('CExtended',sc80floattype)
+            else
+              addtype('CExtended',pbestrealtype^);
           end;
 {$ifdef x86}
         if target_info.system<>system_x86_64_win64 then
@@ -334,6 +343,7 @@ implementation
             addtype('$s32real',s32floattype);
             addtype('$s64real',s64floattype);
             addtype('$s80real',s80floattype);
+            addtype('$sc80real',sc80floattype);
           end;
         addtype('$s64currency',s64currencytype);
         { Add a type for virtual method tables }
@@ -417,6 +427,7 @@ implementation
             loadtype('s32real',s32floattype);
             loadtype('s64real',s64floattype);
             loadtype('s80real',s80floattype);
+            loadtype('sc80real',sc80floattype);
           end;
         loadtype('s64currency',s64currencytype);
         loadtype('boolean',booltype);
@@ -580,6 +591,9 @@ implementation
 {$ifdef SPARC}
 //        aiclass[ait_labeled_instruction]:=tai_labeled_instruction;
 {$endif SPARC}
+{$ifdef arm}
+        aiclass[ait_thumb_func]:=tai_thumb_func;
+{$endif arm}
         aiclass[ait_cutobject]:=tai_cutobject;
         aiclass[ait_regalloc]:=tai_regalloc;
         aiclass[ait_tempalloc]:=tai_tempalloc;

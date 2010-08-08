@@ -9,8 +9,8 @@ uses
 type
   TBug = class
   protected
-    function InlinedMethod : longword; inline;
     fL: longword;
+    function InlinedMethod : longword; inline;
   public
     procedure Method1(var Buf); 
     procedure Method2;

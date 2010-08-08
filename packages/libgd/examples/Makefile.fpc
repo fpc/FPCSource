@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for libgd units example
+#
+
+[target]
+programs=gdtest gdtestcgi
+
+[require]
+packages=libgd
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

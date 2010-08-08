@@ -100,6 +100,8 @@ function pango_get_lib_subdirectory:Pchar; cdecl; external pangolib;
   }
 
 function pango_log2vis_get_embedding_levels(str:Pgunichar; len:longint; pbase_dir:PPangoDirection; embedding_level_list:Pguint8):gboolean; cdecl; external pangolib;
+function pango_unichar_direction(ch : gunichar) : TPangoDirection; cdecl; external pangolib;
+function pango_find_base_dir(text : Pgchar; aLength : gint) : TPangoDirection; cdecl; external pangolib;
 function pango_get_mirror_char(ch:gunichar; mirrored_ch:Pgunichar):gboolean; cdecl; external pangolib;
 function pango_language_get_sample_string(language:PPangoLanguage):Pchar; cdecl; external pangolib;
 

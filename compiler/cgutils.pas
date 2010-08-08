@@ -39,7 +39,9 @@ unit cgutils;
          offset      : aint;
          symbol,
          relsymbol   : tasmsymbol;
+{$if defined(x86) or defined(m68k)}
          segment,
+{$endif defined(x86) or defined(m68k)}
          base,
          index       : tregister;
          refaddr     : trefaddr;
@@ -59,9 +61,7 @@ unit cgutils;
          { (An)+ and -(An)                      }
          direction : tdirection;
 {$endif m68k}
-{$ifdef SUPPORT_UNALIGNED}
          alignment : byte;
-{$endif SUPPORT_UNALIGNED}
       end;
 
       tsubsetregister = record
@@ -80,7 +80,9 @@ unit cgutils;
          loc  : TCGLoc;
          size : TCGSize;
          case TCGLoc of
+{$ifdef cpuflags}
             LOC_FLAGS : (resflags : tresflags);
+{$endif cpuflags}
             LOC_CONSTANT : (
               case longint of
 {$ifdef FPC_BIG_ENDIAN}
@@ -126,12 +128,12 @@ unit cgutils;
     { trerefence handling }
 
     {# Clear to zero a treference }
-    procedure reference_reset(var ref : treference);
+    procedure reference_reset(var ref : treference; alignment: longint);
     {# Clear to zero a treference, and set is base address
        to base register.
     }
-    procedure reference_reset_base(var ref : treference;base : tregister;offset : longint);
-    procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset : longint);
+    procedure reference_reset_base(var ref : treference;base : tregister;offset, alignment : longint);
+    procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset, alignment : longint);
     { This routine verifies if two references are the same, and
        if so, returns TRUE, otherwise returns false.
     }
@@ -139,7 +141,10 @@ unit cgutils;
 
     { tlocation handling }
 
-    procedure location_reset(var l : tlocation;lt:TCGLoc;lsize:TCGSize);
+    { cannot be used for loc_(c)reference, because that one requires an alignment }
+    procedure location_reset(var l : tlocation;lt:TCGNonRefLoc;lsize:TCGSize);
+    { for loc_(c)reference }
+    procedure location_reset_ref(var l : tlocation;lt:TCGRefLoc;lsize:TCGSize; alignment: longint);
     procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
     procedure location_swap(var destloc,sourceloc : tlocation);
 
@@ -154,32 +159,34 @@ unit cgutils;
 implementation
 
 uses
-  systems;
+  systems,
+  verbose;
 
 {****************************************************************************
                                   TReference
 ****************************************************************************}
 
-    procedure reference_reset(var ref : treference);
+    procedure reference_reset(var ref : treference; alignment: longint);
       begin
         FillChar(ref,sizeof(treference),0);
 {$ifdef arm}
         ref.signindex:=1;
 {$endif arm}
+        ref.alignment:=alignment;
       end;
 
 
-    procedure reference_reset_base(var ref : treference;base : tregister;offset : longint);
+    procedure reference_reset_base(var ref : treference;base : tregister;offset, alignment : longint);
       begin
-        reference_reset(ref);
+        reference_reset(ref,alignment);
         ref.base:=base;
         ref.offset:=offset;
       end;
 
 
-    procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset : longint);
+    procedure reference_reset_symbol(var ref : treference;sym : tasmsymbol;offset, alignment : longint);
       begin
-        reference_reset(ref);
+        reference_reset(ref,alignment);
         ref.symbol:=sym;
         ref.offset:=offset;
       end;
@@ -202,16 +209,27 @@ uses
                                   TLocation
 ****************************************************************************}
 
-    procedure location_reset(var l : tlocation;lt:TCGLoc;lsize:TCGSize);
+    procedure location_reset(var l : tlocation;lt:TCGNonRefLoc;lsize:TCGSize);
       begin
         FillChar(l,sizeof(tlocation),0);
         l.loc:=lt;
         l.size:=lsize;
-{$ifdef arm}
         if l.loc in [LOC_REFERENCE,LOC_CREFERENCE] then
-          l.reference.signindex:=1;
-{$endif arm}
+          { call location_reset_ref instead }
+          internalerror(2009020705);
       end;
+
+    procedure location_reset_ref(var l: tlocation; lt: tcgrefloc; lsize: tcgsize;
+      alignment: longint);
+    begin
+      FillChar(l,sizeof(tlocation),0);
+      l.loc:=lt;
+      l.size:=lsize;
+{$ifdef arm}
+      l.reference.signindex:=1;
+{$endif arm}
+      l.reference.alignment:=alignment;
+    end;
 
 
     procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);

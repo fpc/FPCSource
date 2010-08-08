@@ -63,17 +63,17 @@ type
   private
     fRelocInfo :   TElfRelocInfo;
     fRelocTable : _TElfRelocTable_;
-    procedure PrescanResourceTree; override;
     procedure WriteEmptyElfHeader(aStream : TStream);
     procedure WriteResHeader(aStream : TStream; aResources : TResources);
     procedure WriteNodeInfos(aStream : TStream);
-    procedure WriteNodeInfo(aStream : TStream; aNode : TResourceTreeNode); override;
     procedure WriteSectHeaders(aStream : TStream);
     procedure FixElfHeader(aStream : TStream);
     procedure WriteSymbols(aStream : TStream);
     procedure WriteRelocations(aStream : TStream);
   protected
+    procedure PrescanResourceTree; override;
     procedure Write(aResources : TResources; aStream : TStream); override;
+    procedure WriteNodeInfo(aStream : TStream; aNode : TResourceTreeNode); override;
   public
     constructor Create(aParent : TElfResourceWriter; const aMachineType
       : integer; const aOppositeEndianess : boolean); override;

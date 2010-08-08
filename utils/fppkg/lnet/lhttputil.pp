@@ -1,6 +1,6 @@
 { Utility routines for HTTP server component
 
-  Copyright (C) 2006-2007 Micha Nelissen
+  Copyright (C) 2006-2008 by Micha Nelissen
 
   This library is Free software; you can redistribute it and/or modify it
   under the terms of the GNU Library General Public License as published by
@@ -51,7 +51,7 @@ type
   function HTTPEncode(const AStr: string): string;
   function HexToNum(AChar: char): byte;
   
-  procedure DecomposeURL(const URL: string; out Host, URI: string; out Port: Word);
+  function DecomposeURL(const URL: string; out Host, URI: string; out Port: Word): Boolean;
   function ComposeURL(Host, URI: string; const Port: Word): string;
 
 implementation
@@ -232,27 +232,53 @@ begin
   until false;
 end;
 
-procedure DecomposeURL(const URL: string; out Host, URI: string; out Port: Word);
+function DecomposeURL(const URL: string; out Host, URI: string; out Port: Word): Boolean;
 var
-  index: Integer;
+  n: Integer;
+  tmp: string;
 begin
-  index := PosEx('/', URL, 8);
-  Host := Copy(URL, 8, index-8);
-  URI := Copy(URL, index, Length(URL)+1-index);
+  Result := False;
 
-  index := Pos(':', Host);
-  if index > 0 then begin
-    Port := StrToIntDef(Copy(Host, index+1, Length(Host)-index), -1);
+  try
+    tmp := Trim(URL);
+    if Length(tmp) < 1 then // don't do empty
+      Exit;
 
-    SetLength(Host, index-1);
-  end else
     Port := 80;
+    if tmp[Length(tmp)] = '/' then // remove trailing /
+      Delete(tmp, Length(tmp), 1);
+
+    if Pos('https://', tmp) = 1 then begin // check for HTTPS
+      Result := True;
+      Port := 443;
+      Delete(tmp, 1, 8); // delete the https part for parsing reasons
+    end else if Pos('http://', tmp) = 1 then begin
+      Delete(tmp, 1, 7); // delete the http part for parsing reasons
+    end;
+
+    n := Pos(':', tmp); // find if we have a port at the end
+    if n > 0 then begin
+      Port := StrToInt(Copy(tmp, n + 1, Length(tmp)));
+      Delete(tmp, n, Length(tmp));
+    end;
+
+    n := Pos('/', tmp); // find if we have a uri section
+    if n > 0 then begin
+      URI := Copy(tmp, n, Length(tmp));
+      Delete(tmp, n, Length(tmp));
+    end;
+    Host := tmp;
+  except
+    Host := 'error';
+    URI := '';
+    Port := 0;
+  end;
 end;
 
 function ComposeURL(Host, URI: string; const Port: Word): string;
 begin
   Host := Trim(Host);
-  URI := Trim(URI);
+  URI := StringReplace(Trim(URI), '%20', ' ', [rfReplaceAll]);
 
   if (Pos('http://', Host) <> 1)
   and (Pos('https://', Host) <> 1) then

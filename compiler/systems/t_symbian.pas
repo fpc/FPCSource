@@ -97,16 +97,10 @@ implementation
             begin
                 Concat('ENTRYNAME _E32Startup')
             end;
-            ibase:='';
-            if assigned(DLLImageBase) then
-              ibase:=DLLImageBase^
+            if IsSharedLibrary then
+              ibase:='10000000'
             else
-            begin
-                if IsSharedLibrary then
-                  ibase:='10000000'
-                else
-                    ibase:='400000';
-            end;
+                ibase:='400000';
             Concat('IMAGEBASE $' + ibase);
             Concat('HEADER');
             Concat('EXESECTION .text');

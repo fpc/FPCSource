@@ -2421,7 +2421,7 @@ option_confict_asm_debug=11041_W_Output assembler yang dipilih "$1" tidak bisa m
 #
 option_logo=11023_[
 Free Pascal Compiler versi $FPCFULLVERSION [$FPCDATE] untuk $FPCCPU
-Hak Cipta (c) 1993-2008 oleh Florian Klaempfl
+Hak Cipta (c) 1993-2010 oleh Florian Klaempfl
 ]
 
 #
@@ -2449,6 +2449,8 @@ Program ini datang bersama GNU General Public Licence
 Untuk informasi lebih jauh baca COPYING.FPC
 
 Laporkan bugs, saran, dll ke:
+                 http://bugs.freepascal.org
+atau
                  bugs@freepascal.org
 ]
 
@@ -2618,7 +2620,6 @@ S*2Aas_Rangkai menggunakan GNU AS
 **2Sm_Dukung makro seperti C (global)
 **2So_Sama seperti -Mtp
 **2Ss_Nama konstruktor harus init (destruktor harus done)
-**2St_Ijinkan kata kunci static dalam obyek
 **2Sx_Hidupkan kata kunci exception (standar dalam mode Delphi/ObjFPC)
 **1s_Jangan panggil assembler dan linker
 **2sh_Hasilkan naskah untuk me-link pada host

@@ -19,9 +19,9 @@
         .globl  _startlib
         .type   _startlib,@function
 _startlib:
-        .globl  FPC_LIB_START
-        .type   FPC_LIB_START,@function
-FPC_LIB_START:
+        .globl  FPC_SHARED_LIB_START
+        .type   FPC_SHARED_LIB_START,@function
+FPC_SHARED_LIB_START:
 |
 |       The args and envs are not tested yet
 |
@@ -36,6 +36,9 @@ FPC_LIB_START:
         .globl  _haltproc
         .type   _haltproc,@function
 haltproc:
+        .globl  FPC_SHARED_LIB_EXIT
+        .type   FPC_SHARED_LIB_EXIT,@function
+FPC_SHARED_LIB_EXIT:
         moveq.l   #1,%d0
         move.w    U_SYSLINUX_EXITCODE,%d1
         trap      #0

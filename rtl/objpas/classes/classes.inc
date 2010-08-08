@@ -106,6 +106,14 @@ function ThreadProc(ThreadObjPtr: Pointer): PtrInt;
 { system-dependent code }
 {$i tthread.inc}
 
+procedure TThread.Start;
+begin
+  { suspend/resume are now deprecated in Delphi (they also don't work
+    on most platforms in FPC), so a different method was required
+    to start a thread if it's create with fSuspended=true -> that's
+    what this method is for. }
+  Resume;
+end;
 
 function TThread.GetSuspended: Boolean;
 begin
@@ -116,7 +124,13 @@ end;
 procedure TThread.AfterConstruction;
 begin
   inherited AfterConstruction;
-//  Resume;
+// enable for all platforms once http://bugs.freepascal.org/view.php?id=16884
+// is fixed for all platforms (in case the fix for non-unix platforms also
+// requires this field at least)
+{$ifdef unix}
+  if not FInitialSuspended then
+    Resume;
+{$endif}
 end;
 
 
@@ -707,15 +721,15 @@ begin
 end;
 
 threadvar
-  GlobalLoaded, GlobalLists: TList;
+  GlobalLoaded, GlobalLists: TFpList;
 
 procedure BeginGlobalLoading;
 
 begin
   if not Assigned(GlobalLists) then
-    GlobalLists := TList.Create;
+    GlobalLists := TFpList.Create;
   GlobalLists.Add(GlobalLoaded);
-  GlobalLoaded := TList.Create;
+  GlobalLoaded := TFpList.Create;
 end;
 
 
@@ -733,7 +747,7 @@ procedure EndGlobalLoading;
 begin
   { Free the memory occupied by BeginGlobalLoading }
   GlobalLoaded.Free;
-  GlobalLoaded := TList(GlobalLists.Last);
+  GlobalLoaded := TFpList(GlobalLists.Last);
   GlobalLists.Delete(GlobalLists.Count - 1);
   if GlobalLists.Count = 0 then
   begin
@@ -834,7 +848,7 @@ begin
     end;
 end;
 
-procedure ObjectBinaryToText(Input, Output: TStream);
+procedure ObjectBinaryToText(Input, Output: TStream; Encoding: TObjectTextEncoding);
 
   procedure OutStr(s: String);
   begin
@@ -847,7 +861,8 @@ procedure ObjectBinaryToText(Input, Output: TStream);
     OutStr(s + LineEnding);
   end;
 
-  procedure Outchars(P, LastP : Pointer; CharToOrdFunc: CharToOrdFuncty);
+  procedure Outchars(P, LastP : Pointer; CharToOrdFunc: CharToOrdFuncty;
+    UseBytes: boolean = false);
 
   var
     res, NewStr: String;
@@ -871,8 +886,8 @@ procedure ObjectBinaryToText(Input, Output: TStream);
           NewInString := True;
         NewStr := '''''';
         end 
-      else if (Ord(w) >= 32) and (Ord(w) < 127) then 
-        begin //printable ascii
+      else if (Ord(w) >= 32) and ((Ord(w) < 127) or (UseBytes and (Ord(w)<256))) then
+        begin //printable ascii or bytes
         if not InString then
           NewInString := True;
         NewStr := char(w);
@@ -898,7 +913,7 @@ procedure ObjectBinaryToText(Input, Output: TStream);
 
   procedure OutString(s: String);
   begin
-    OutChars(Pointer(S),PChar(S)+Length(S),@CharToOrd);
+    OutChars(Pointer(S),PChar(S)+Length(S),@CharToOrd,Encoding=oteLFM);
   end;
 
   procedure OutWString(W: WideString);
@@ -913,7 +928,10 @@ procedure ObjectBinaryToText(Input, Output: TStream);
 
   procedure OutUtf8Str(s: String);
   begin
-    OutChars(Pointer(S),PChar(S)+Length(S),@Utf8ToOrd);
+    if Encoding=oteLFM then
+      OutChars(Pointer(S),PChar(S)+Length(S),@CharToOrd)
+    else
+      OutChars(Pointer(S),PChar(S)+Length(S),@Utf8ToOrd);
   end;
 
   function ReadWord : word; {$ifdef CLASSESINLINE}inline;{$endif CLASSESINLINE}
@@ -1252,6 +1270,10 @@ begin
   ReadObject('');
 end;
 
+procedure ObjectBinaryToText(Input, Output: TStream);
+begin
+  ObjectBinaryToText(Input,Output,oteDFM);
+end;
 
 procedure ObjectTextToBinary(Input, Output: TStream);
 var

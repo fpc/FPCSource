@@ -28,10 +28,11 @@ uses
   globtype;
 
 const
-  def_alignment = 4;
+  def_alignment     = 4;
 
-  C_alignment   = -1;
-  bit_alignment = -2;
+  C_alignment       = -1;
+  bit_alignment     = -2;
+  mac68k_alignment  = -3;
 
   { if you change one of the following contants, }
   { you have also to change the typinfo unit}
@@ -63,13 +64,16 @@ const
   tkProcVar  = 23;
   tkUString  = 24;
   tkUChar    = 25;
+  tkFile     = 26;
 
-  otSByte    = 0;
-  otUByte    = 1;
-  otSWord    = 2;
-  otUWord    = 3;
-  otSLong    = 4;
-  otULong    = 5;
+  otSByte     = 0;
+  otUByte     = 1;
+  otSWord     = 2;
+  otUWord     = 3;
+  otSLong     = 4;
+  otULong     = 5;
+  otSLongLong = 6;
+  otULongLong = 7;
 
   ftSingle   = 0;
   ftDouble   = 1;
@@ -78,12 +82,18 @@ const
   ftCurr     = 4;
   ftFloat128 = 5;
 
-  mkProcedure= 0;
-  mkFunction = 1;
-  mkConstructor   = 2;
-  mkDestructor    = 3;
-  mkClassProcedure= 4;
-  mkClassFunction = 5;
+  mkProcedure        = 0;
+  mkFunction         = 1;
+  mkConstructor      = 2;
+  mkDestructor       = 3;
+  mkClassProcedure   = 4;
+  mkClassFunction    = 5;
+  mkClassConstructor = 6;
+  mkClassDestructor  = 7;
+// delphi has the next too:
+//mkOperatorOverload = 8;
+//mkSafeProcedure    = 9;
+//mkSafeFunction     = 10;
 
   pfvar      = 1;
   pfConst    = 2;
@@ -100,15 +110,25 @@ const
     and will increase with 10 for each parameter. The high parameters
     will be inserted with n+1 }
   paranr_parentfp = 1;
+  paranr_parentfp_delphi_cc_leftright = 1;
   paranr_self = 2;
   paranr_result = 3;
   paranr_vmt = 4;
+
+  { the implicit parameters for Objective-C methods need to come
+    after the hidden result parameter }
+  paranr_objc_self = 4;
+  paranr_objc_cmd = 5;
   { Required to support variations of syscalls on MorphOS }
-  paranr_syscall_basesysv = 9;
-  paranr_syscall_sysvbase = high(word)-4;
-  paranr_syscall_r12base  = high(word)-3;
-  paranr_syscall_legacy   = high(word)-2;
-  paranr_result_leftright = high(word)-1;
+  paranr_syscall_basesysv    = 9;
+  paranr_syscall_sysvbase    = high(word)-5;
+  paranr_syscall_r12base     = high(word)-4;
+  paranr_syscall_legacy      = high(word)-3;
+  paranr_result_leftright    = high(word)-2;
+  paranr_parentfp_delphi_cc  = high(word)-1;
+
+  { prefix for names of class helper procsyms added to regular symtables }
+  class_helper_prefix = 'CH$';
 
 
 type
@@ -144,7 +164,8 @@ type
     sp_internal,  { internal symbol, not reported as unused }
     sp_implicitrename,
     sp_hint_experimental,
-    sp_generic_para
+    sp_generic_para,
+    sp_has_deprecated_msg
   );
   tsymoptions=set of tsymoption;
 
@@ -215,7 +236,9 @@ type
     potype_destructor,   { Procedure is a destructor }
     potype_operator,     { Procedure defines an operator }
     potype_procedure,
-    potype_function
+    potype_function,
+    potype_class_constructor, { class constructor }
+    potype_class_destructor   { class destructor  }
   );
   tproctypeoptions=set of tproctypeoption;
 
@@ -224,6 +247,7 @@ type
     po_classmethod,       { class method }
     po_virtualmethod,     { Procedure is a virtual method }
     po_abstractmethod,    { Procedure is an abstract method }
+    po_finalmethod,       { Procedure is a final method }
     po_staticmethod,      { static method }
     po_overridingmethod,  { method with override directive }
     po_methodpointer,     { method pointer, only in procvardef, also used for 'with object do' }
@@ -261,7 +285,6 @@ type
     po_syscall_basesysv,
     po_syscall_sysvbase,
     po_syscall_r12base,
-    po_local,
     { Procedure can be inlined }
     po_inline,
     { Procedure is used for internal compiler calls }
@@ -272,7 +295,21 @@ type
     po_kylixlocal,
     po_dispid,
     { weakly linked (i.e., may or may not exist at run time) }
-    po_weakexternal
+    po_weakexternal,
+    { Objective-C method }
+    po_objc,
+    { enumerator support }
+    po_enumerator_movenext,
+    { optional Objective-C protocol method }
+    po_optional,
+    { nested procedure that uses Delphi-style calling convention for passing
+      the frame pointer (pushed on the stack, always the last parameter,
+      removed by the caller). Required for nested procvar compatibility,
+      because such procvars can hold both regular and nested procedures
+      (when calling a regular procedure using the above convention, it will
+       simply not see the frame pointer parameter, and since the caller cleans
+       up the stack will also remain balanced) }
+    po_delphi_nested_cc
   );
   tprocoptions=set of tprocoption;
 
@@ -285,7 +322,10 @@ type
     odt_interfacecom_function,
     odt_interfacecorba,
     odt_cppclass,
-    odt_dispinterface
+    odt_dispinterface,
+    odt_objcclass,
+    odt_objcprotocol,
+    odt_objccategory { note that these are changed into odt_class afterwards }
   );
 
   { Variations in interfaces implementation }
@@ -294,12 +334,17 @@ type
   tinterfaceentrytype = (etStandard,
     etVirtualMethodResult,
     etStaticMethodResult,
-    etFieldValue
+    etFieldValue,
+    etVirtualMethodClass,
+    etStaticMethodClass,
+    etFieldValueClass
   );
 
   { options for objects and classes }
   tobjectoption=(oo_none,
     oo_is_forward,         { the class is only a forward declared yet }
+    oo_is_abstract,        { the class is abstract - only descendants can be used }
+    oo_is_sealed,          { the class is sealed - can't have descendants }
     oo_has_virtual,        { the object/class has virtual methods }
     oo_has_private,
     oo_has_protected,
@@ -312,7 +357,14 @@ type
     oo_has_msgint,
     oo_can_have_published,{ the class has rtti, i.e. you can publish properties }
     oo_has_default_property,
-    oo_has_valid_guid
+    oo_has_valid_guid,
+    oo_has_enumerator_movenext,
+    oo_has_enumerator_current,
+    oo_is_external,       { the class is externally implemented (objcclass, cppclass) }
+    oo_is_formal,         { the class is only formally defined in this module (x = objcclass; external [name 'x'];) }
+    oo_is_classhelper,    { objcclasses that represent categories, and Delpi-style class helpers, are marked like this }
+    oo_has_class_constructor, { the object/class has a class constructor }
+    oo_has_class_destructor   { the object/class has a class destructor  }
   );
   tobjectoptions=set of tobjectoption;
 
@@ -333,7 +385,10 @@ type
     ppo_defaultproperty,
     ppo_stored,
     ppo_hasparameters,
-    ppo_implements
+    ppo_implements,
+    ppo_enumerator_current,
+    ppo_dispid_read,
+    ppo_dispid_write
   );
   tpropertyoptions=set of tpropertyoption;
 
@@ -361,7 +416,10 @@ type
     vo_is_overflow_check,
     vo_is_typinfo_para,
     vo_is_weak_external,
-    vo_is_first_field   { first field of a record or variant part of a record }
+    { Objective-C message selector parameter }
+    vo_is_msgsel,
+    { first field of variant part of a record }
+    vo_is_first_field
   );
   tvaroptions=set of tvaroption;
 
@@ -381,7 +439,8 @@ type
     ObjectSymtable,recordsymtable,
     localsymtable,parasymtable,
     withsymtable,stt_excepTSymtable,
-    exportedmacrosymtable, localmacrosymtable
+    exportedmacrosymtable, localmacrosymtable,
+    enumsymtable
   );
 
 
@@ -436,7 +495,10 @@ type
 
   { RTTI information to store }
   trttitype = (
-    fullrtti,initrtti
+    fullrtti,initrtti,
+    { Objective-C }
+    objcmetartti,objcmetarortti,
+    objcclassrtti,objcclassrortti
   );
 
   { The order is from low priority to high priority,
@@ -490,7 +552,12 @@ const
      pocall_cdecl,pocall_cppdecl,pocall_syscall,pocall_mwpascal
    ];
 
+{$ifdef i386}
+   { we only take this into account on i386, on other platforms we always
+     push in the same order
+   }
    pushleftright_pocalls : tproccalloptions = [pocall_register,pocall_pascal];
+{$endif}
 
      SymTypeName : array[tsymtyp] of string[12] = (
        'abstractsym','globalvar','localvar','paravar','fieldvar',

@@ -459,11 +459,7 @@ begin
   if add_tail then
     begin
       pl:=pointer(pp)+allocsize-pp^.extra_info_size-sizeof(ptruint);
-{$ifdef FPC_SUPPORTS_UNALIGNED}
       unaligned(pl^):=$DEADBEEF;
-{$else FPC_SUPPORTS_UNALIGNED}
-      pl^:=$DEADBEEF;
-{$endif FPC_SUPPORTS_UNALIGNED}
     end;
   { clear the memory }
   fillchar(p^,size,#255);
@@ -840,11 +836,7 @@ begin
   if add_tail then
     begin
       pl:=pointer(pp)+allocsize-pp^.extra_info_size-sizeof(ptruint);
-{$ifdef FPC_SUPPORTS_UNALIGNED}
       unaligned(pl^):=$DEADBEEF;
-{$else FPC_SUPPORTS_UNALIGNED}
-      pl^:=$DEADBEEF;
-{$endif FPC_SUPPORTS_UNALIGNED}
     end;
   { adjust like a freemem and then a getmem, so you get correct
     results in the summary display }
@@ -1283,7 +1275,15 @@ begin
 {$I-}
    append(ownfile);
    if IOResult<>0 then
-     Rewrite(ownfile);
+     begin
+       Rewrite(ownfile);
+       if IOResult<>0 then
+         begin
+           Writeln(stderr,'[heaptrc] Unable to open "',name,'", writing output to stderr instead.');
+           useownfile:=false;
+           exit;
+         end;
+     end;
 {$I+}
    useownfile:=true;
    for i:=0 to Paramcount do
@@ -1333,9 +1333,23 @@ begin
   if outputstr <> '' then
      SetHeapTraceOutput(outputstr);
 {$ifdef EXTRA}
+{$i-}
   Assign(error_file,'heap.err');
   Rewrite(error_file);
+{$i+}
+  if IOResult<>0 then
+    begin
+      writeln('[heaptrc] Unable to create heap.err extra log file, writing output to screen.');
+      Assign(error_file,'');
+      Rewrite(error_file);
+    end;
 {$endif EXTRA}
+  { if multithreading was initialized before heaptrc gets initialized (this is currently
+    the case for windows dlls), then RelocateHeap gets never called and the lock
+    must be initialized already here
+  }
+  if IsMultithread then
+    initcriticalsection(todo_lock);
 end;
 
 procedure TraceExit;

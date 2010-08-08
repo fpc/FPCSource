@@ -23,6 +23,10 @@ interface
 uses
   types, sysutils;
 
+{$IF defined(VER2_4)}
+  {$DEFINE OldSyntax}
+{$IFEND}
+
 const
   MaxListSize = Maxint div 16;
 
@@ -84,14 +88,92 @@ const
   MaxGListSize = MaxInt div 1024;
 
 type
+  generic TFPGListEnumerator<T> = class(TObject)
+  protected
+    FList: TFPSList;
+    FPosition: Integer;
+    function GetCurrent: T;
+  public
+    constructor Create(AList: TFPSList);
+    function MoveNext: Boolean;
+    property Current: T read GetCurrent;
+  end;
+
   generic TFPGList<T> = class(TFPSList)
-  type public
-    TCompareFunc = function(const Item1, Item2: T): Integer;
-    TTypeList = array[0..MaxGListSize] of T;
-    PTypeList = ^TTypeList;
-    PT = ^T;
-  var protected
-    FOnCompare: TCompareFunc;
+  public
+    type
+      TCompareFunc = function(const Item1, Item2: T): Integer;
+      TTypeList = array[0..MaxGListSize] of T;
+      PTypeList = ^TTypeList;
+      PT = ^T;
+      TFPGListEnumeratorSpec = specialize TFPGListEnumerator<T>;
+  {$ifndef OldSyntax}protected var{$else}var protected{$endif}
+      FOnCompare: TCompareFunc;
+    procedure CopyItem(Src, Dest: Pointer); override;
+    procedure Deref(Item: Pointer); override;
+    function  Get(Index: Integer): T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function  GetList: PTypeList; {$ifdef CLASSESINLINE} inline; {$endif}
+    function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
+    procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
+  public
+    constructor Create;
+    function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function First: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function GetEnumerator: TFPGListEnumeratorSpec; {$ifdef CLASSESINLINE} inline; {$endif}
+    function IndexOf(const Item: T): Integer;
+    procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    {$info FIXME: bug #10479: implement TFPGList<T>.Assign(TFPGList) to work somehow}
+    {procedure Assign(Source: TFPGList);}
+    function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure Sort(Compare: TCompareFunc);
+    property Items[Index: Integer]: T read Get write Put; default;
+    property List: PTypeList read GetList;
+  end;
+
+  generic TFPGObjectList<T> = class(TFPSList)
+  public
+    type
+      TCompareFunc = function(const Item1, Item2: T): Integer;
+      TTypeList = array[0..MaxGListSize] of T;
+      PTypeList = ^TTypeList;
+      PT = ^T;
+  {$ifndef OldSyntax}protected var{$else}var protected{$endif}
+      FOnCompare: TCompareFunc;
+      FFreeObjects: Boolean;
+    procedure CopyItem(Src, Dest: Pointer); override;
+    procedure Deref(Item: Pointer); override;
+    function  Get(Index: Integer): T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function  GetList: PTypeList; {$ifdef CLASSESINLINE} inline; {$endif}
+    function  ItemPtrCompare(Item1, Item2: Pointer): Integer;
+    procedure Put(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
+  public
+    constructor Create(FreeObjects: Boolean = True);
+    function Add(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Extract(const Item: T): T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function First: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    function IndexOf(const Item: T): Integer;
+    procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
+    function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
+    {$info FIXME: bug #10479: implement TFPGObjectList<T>.Assign(TFPGList) to work somehow}
+    {procedure Assign(Source: TFPGList);}
+    function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
+    procedure Sort(Compare: TCompareFunc);
+    property Items[Index: Integer]: T read Get write Put; default;
+    property List: PTypeList read GetList;
+    property FreeObjects: Boolean read FFreeObjects write FFreeObjects;
+  end;
+
+  generic TFPGInterfacedObjectList<T> = class(TFPSList)
+  public
+    type
+      TCompareFunc = function(const Item1, Item2: T): Integer;
+      TTypeList = array[0..MaxGListSize] of T;
+      PTypeList = ^TTypeList;
+      PT = ^T;
+  {$ifndef OldSyntax}protected var{$else}var protected{$endif}
+      FOnCompare: TCompareFunc;
     procedure CopyItem(Src, Dest: Pointer); override;
     procedure Deref(Item: Pointer); override;
     function  Get(Index: Integer): T; {$ifdef CLASSESINLINE} inline; {$endif}
@@ -106,7 +188,7 @@ type
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
     function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
-    {$info FIXME: bug #10479: implement TFPGList<T>.Assign(TFPGList) to work somehow}
+    {$info FIXME: bug #10479: implement TFPGInterfacedObjectList<T>.Assign(TFPGList) to work somehow}
     {procedure Assign(Source: TFPGList);}
     function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
@@ -122,16 +204,20 @@ type
     FDataSize: Integer;
     FDuplicates: TDuplicates;
     FSorted: Boolean;
-    FOnPtrCompare: TFPSListCompareFunc;
+    FOnKeyPtrCompare: TFPSListCompareFunc;
+    FOnDataPtrCompare: TFPSListCompareFunc;
     procedure SetSorted(Value: Boolean);
   protected
-    function BinaryCompare(Key1, Key2: Pointer): Integer;
+    function BinaryCompareKey(Key1, Key2: Pointer): Integer;
+    function BinaryCompareData(Data1, Data2: Pointer): Integer;
+    procedure SetOnKeyPtrCompare(Proc: TFPSListCompareFunc);
+    procedure SetOnDataPtrCompare(Proc: TFPSListCompareFunc);
+    procedure InitOnPtrCompare; virtual;
     procedure CopyKey(Src, Dest: Pointer); virtual;
     procedure CopyData(Src, Dest: Pointer); virtual;
     function GetKey(Index: Integer): Pointer;
     function GetKeyData(AKey: Pointer): Pointer;
     function GetData(Index: Integer): Pointer;
-    procedure InitOnPtrCompare; virtual;
     function LinearIndexOf(AKey: Pointer): Integer;
     procedure PutKey(Index: Integer; AKey: Pointer);
     procedure PutKeyData(AKey: Pointer; NewData: Pointer);
@@ -141,11 +227,11 @@ type
       ADataSize: integer = sizeof(Pointer));
     function Add(AKey, AData: Pointer): Integer;
     function Add(AKey: Pointer): Integer;
-    function Find(AKey: Pointer; var Index: Integer): Boolean;
+    function Find(AKey: Pointer; out Index: Integer): Boolean;
     function IndexOf(AKey: Pointer): Integer;
     function IndexOfData(AData: Pointer): Integer;
     function Insert(Index: Integer): Pointer;
-    procedure Insert(Index: Integer; var AKey, AData: Pointer);
+    procedure Insert(Index: Integer; out AKey, AData: Pointer);
     procedure InsertKey(Index: Integer; AKey: Pointer);
     procedure InsertKeyData(Index: Integer; AKey, AData: Pointer);
     function Remove(AKey: Pointer): Integer;
@@ -157,37 +243,45 @@ type
     property Data[Index: Integer]: Pointer read GetData write PutData;
     property KeyData[Key: Pointer]: Pointer read GetKeyData write PutKeyData; default;
     property Sorted: Boolean read FSorted write SetSorted;
-    property OnPtrCompare: TFPSListCompareFunc read FOnPtrCompare write FOnPtrCompare;
+    property OnPtrCompare: TFPSListCompareFunc read FOnKeyPtrCompare write SetOnKeyPtrCompare; //deprecated;
+    property OnKeyPtrCompare: TFPSListCompareFunc read FOnKeyPtrCompare write SetOnKeyPtrCompare;
+    property OnDataPtrCompare: TFPSListCompareFunc read FOnDataPtrCompare write SetOnDataPtrCompare;
   end;
 
 {$ifndef VER2_0}
 
   generic TFPGMap<TKey, TData> = class(TFPSMap)
-  type public
-    TCompareFunc = function(const Key1, Key2: TKey): Integer;
-    PKey = ^TKey;
-    PData = ^TData;
-  var protected
-    FOnCompare: TCompareFunc;
-    procedure CopyItem(Src, Dest: Pointer); override;
-    procedure CopyKey(Src, Dest: Pointer); override;
-    procedure CopyData(Src, Dest: Pointer); override;
-    procedure Deref(Item: Pointer); override;
-    procedure InitOnPtrCompare; override;
+  public
+    type
+      TKeyCompareFunc = function(const Key1, Key2: TKey): Integer;
+      TDataCompareFunc = function(const Data1, Data2: TData): Integer;
+      PKey = ^TKey;
+      PData = ^TData;
+  {$ifndef OldSyntax}protected var{$else}var protected{$endif}
+      FOnKeyCompare: TKeyCompareFunc;
+      FOnDataCompare: TDataCompareFunc;
+      procedure CopyItem(Src, Dest: Pointer); override;
+      procedure CopyKey(Src, Dest: Pointer); override;
+      procedure CopyData(Src, Dest: Pointer); override;
+      procedure Deref(Item: Pointer); override;
+      procedure InitOnPtrCompare; override;
     function GetKey(Index: Integer): TKey; {$ifdef CLASSESINLINE} inline; {$endif}
     function GetKeyData(const AKey: TKey): TData; {$ifdef CLASSESINLINE} inline; {$endif}
     function GetData(Index: Integer): TData; {$ifdef CLASSESINLINE} inline; {$endif}
     function KeyCompare(Key1, Key2: Pointer): Integer;
     function KeyCustomCompare(Key1, Key2: Pointer): Integer;
+    //function DataCompare(Data1, Data2: Pointer): Integer;
+    function DataCustomCompare(Data1, Data2: Pointer): Integer;
     procedure PutKey(Index: Integer; const NewKey: TKey); {$ifdef CLASSESINLINE} inline; {$endif}
     procedure PutKeyData(const AKey: TKey; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
     procedure PutData(Index: Integer; const NewData: TData); {$ifdef CLASSESINLINE} inline; {$endif}
-    procedure SetOnCompare(NewCompare: TCompareFunc);
+    procedure SetOnKeyCompare(NewCompare: TKeyCompareFunc);
+    procedure SetOnDataCompare(NewCompare: TDataCompareFunc);
   public
     constructor Create;
     function Add(const AKey: TKey; const AData: TData): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function Add(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
-    function Find(const AKey: TKey; var Index: Integer): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
+    function Find(const AKey: TKey; out Index: Integer): Boolean; {$ifdef CLASSESINLINE} inline; {$endif}
     function IndexOf(const AKey: TKey): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     function IndexOfData(const AData: TData): Integer;
     procedure InsertKey(Index: Integer; const AKey: TKey);
@@ -196,7 +290,9 @@ type
     property Keys[Index: Integer]: TKey read GetKey write PutKey;
     property Data[Index: Integer]: TData read GetData write PutData;
     property KeyData[const AKey: TKey]: TData read GetKeyData write PutKeyData; default;
-    property OnCompare: TCompareFunc read FOnCompare write SetOnCompare;
+    property OnCompare: TKeyCompareFunc read FOnKeyCompare write SetOnKeyCompare; //deprecated;
+    property OnKeyCompare: TKeyCompareFunc read FOnKeyCompare write SetOnKeyCompare;
+    property OnDataCompare: TDataCompareFunc read FOnDataCompare write SetOnDataCompare;
   end;
 
 {$endif}
@@ -295,15 +391,12 @@ procedure TFPSList.SetCount(NewCount: Integer);
 begin
   if (NewCount < 0) or (NewCount > MaxListSize) then
     Error(SListCountError, NewCount);
+  if NewCount > FCapacity then
+    SetCapacity(NewCount);
   if NewCount > FCount then
-  begin
-    if NewCount > FCapacity then
-      SetCapacity(NewCount);
-    if NewCount > FCount then
-      FillByte(InternalItems[FCount]^, (NewCount-FCount) * FItemSize, 0)
-    else if NewCount < FCount then
-      Deref(NewCount, FCount-1);
-  end;
+    FillByte(InternalItems[FCount]^, (NewCount-FCount) * FItemSize, 0)
+  else if NewCount < FCount then
+    Deref(NewCount, FCount-1);
   FCount := NewCount;
 end;
 
@@ -418,9 +511,13 @@ begin
   if (Index < 0) or (Index > FCount) then
     Error(SListIndexError, Index);
   if FCount = FCapacity then Self.Expand;
-  if Index<FCount then
-    System.Move(InternalItems[Index]^, InternalItems[Index+1]^, (FCount - Index) * FItemSize);
   Result := InternalItems[Index];
+  if Index<FCount then
+  begin
+    System.Move(Result^, (Result+FItemSize)^, (FCount - Index) * FItemSize);
+    { clear for compiler assisted types }
+    System.FillByte(Result^, FItemSize, 0);
+  end;
   Inc(FCount);
 end;
 
@@ -547,11 +644,33 @@ begin
     Add(Obj[i]);
 end;
 
+{$ifndef VER2_0}
+
+{****************************************************************************}
+{*             TFPGListEnumerator                                           *}
+{****************************************************************************}
+
+function TFPGListEnumerator.GetCurrent: T;
+begin
+  Result := T(FList.Items[FPosition]^);
+end;
+
+constructor TFPGListEnumerator.Create(AList: TFPSList);
+begin
+  inherited Create;
+  FList := AList;
+  FPosition := -1;
+end;
+
+function TFPGListEnumerator.MoveNext: Boolean;
+begin
+  inc(FPosition);
+  Result := FPosition < FList.Count;
+end;
+
 {****************************************************************************}
 {*                TFPGList                                                  *}
 {****************************************************************************}
-
-{$ifndef VER2_0}
 
 constructor TFPGList.Create;
 begin
@@ -601,12 +720,17 @@ begin
   if ResPtr <> nil then
     Result := T(ResPtr^)
   else
-    FillByte(Result, 0, sizeof(T));
+    FillByte(Result, sizeof(T), 0);
 end;
 
 function TFPGList.First: T;
 begin
   Result := T(inherited First^);
+end;
+
+function TFPGList.GetEnumerator: TFPGListEnumeratorSpec;
+begin
+  Result := TFPGListEnumeratorSpec.Create(Self);
 end;
 
 function TFPGList.IndexOf(const Item: T): Integer;
@@ -642,6 +766,204 @@ begin
   inherited Sort(@ItemPtrCompare);
 end;
 
+
+{****************************************************************************}
+{*                TFPGObjectList                                            *}
+{****************************************************************************}
+
+constructor TFPGObjectList.Create(FreeObjects: Boolean);
+begin
+  inherited Create;
+  FFreeObjects := FreeObjects;
+end;
+
+procedure TFPGObjectList.CopyItem(Src, Dest: Pointer);
+begin
+  T(Dest^) := T(Src^);
+  {if TObject(Dest^) is TInterfacedObject then
+    T(Dest^)._AddRef;}
+end;
+
+procedure TFPGObjectList.Deref(Item: Pointer);
+begin
+  {if TObject(Item^) is TInterfacedObject then
+    T(Item^)._Release
+  else}
+  if FFreeObjects then
+    T(Item^).Free;
+end;
+
+function TFPGObjectList.Get(Index: Integer): T;
+begin
+  Result := T(inherited Get(Index)^);
+end;
+
+function TFPGObjectList.GetList: PTypeList;
+begin
+  Result := PTypeList(FList);
+end;
+
+function TFPGObjectList.ItemPtrCompare(Item1, Item2: Pointer): Integer;
+begin
+  Result := FOnCompare(T(Item1^), T(Item2^));
+end;
+
+procedure TFPGObjectList.Put(Index: Integer; const Item: T);
+begin
+  inherited Put(Index, @Item);
+end;
+
+function TFPGObjectList.Add(const Item: T): Integer;
+begin
+  Result := inherited Add(@Item);
+end;
+
+function TFPGObjectList.Extract(const Item: T): T;
+var
+  ResPtr: Pointer;
+begin
+  ResPtr := inherited Extract(@Item);
+  if ResPtr <> nil then
+    Result := T(ResPtr^)
+  else
+    FillByte(Result, sizeof(T), 0);
+end;
+
+function TFPGObjectList.First: T;
+begin
+  Result := T(inherited First^);
+end;
+
+function TFPGObjectList.IndexOf(const Item: T): Integer;
+begin
+  Result := 0;
+  {$info TODO: fix inlining to work! InternalItems[Result]^}
+  while (Result < FCount) and (PT(FList)[Result] <> Item) do
+    Inc(Result);
+  if Result = FCount then
+    Result := -1;
+end;
+
+procedure TFPGObjectList.Insert(Index: Integer; const Item: T);
+begin
+  T(inherited Insert(Index)^) := Item;
+end;
+
+function TFPGObjectList.Last: T;
+begin
+  Result := T(inherited Last^);
+end;
+
+function TFPGObjectList.Remove(const Item: T): Integer;
+begin
+  Result := IndexOf(Item);
+  if Result >= 0 then
+    Delete(Result);
+end;
+
+procedure TFPGObjectList.Sort(Compare: TCompareFunc);
+begin
+  FOnCompare := Compare;
+  inherited Sort(@ItemPtrCompare);
+end;
+
+
+{****************************************************************************}
+{*                TFPGInterfacedObjectList                                  *}
+{****************************************************************************}
+
+constructor TFPGInterfacedObjectList.Create;
+begin
+  inherited Create;
+end;
+
+procedure TFPGInterfacedObjectList.CopyItem(Src, Dest: Pointer);
+begin
+  T(Dest^) := T(Src^);
+  if Assigned(Pointer(Dest^)) then
+    T(Dest^)._AddRef;
+end;
+
+procedure TFPGInterfacedObjectList.Deref(Item: Pointer);
+begin
+  if Assigned(Pointer(Item^)) then
+    T(Item^)._Release;
+end;
+
+function TFPGInterfacedObjectList.Get(Index: Integer): T;
+begin
+  Result := T(inherited Get(Index)^);
+end;
+
+function TFPGInterfacedObjectList.GetList: PTypeList;
+begin
+  Result := PTypeList(FList);
+end;
+
+function TFPGInterfacedObjectList.ItemPtrCompare(Item1, Item2: Pointer): Integer;
+begin
+  Result := FOnCompare(T(Item1^), T(Item2^));
+end;
+
+procedure TFPGInterfacedObjectList.Put(Index: Integer; const Item: T);
+begin
+  inherited Put(Index, @Item);
+end;
+
+function TFPGInterfacedObjectList.Add(const Item: T): Integer;
+begin
+  Result := inherited Add(@Item);
+end;
+
+function TFPGInterfacedObjectList.Extract(const Item: T): T;
+var
+  ResPtr: Pointer;
+begin
+  ResPtr := inherited Extract(@Item);
+  if ResPtr <> nil then
+    Result := T(ResPtr^)
+  else
+    FillByte(Result, sizeof(T), 0);
+end;
+
+function TFPGInterfacedObjectList.First: T;
+begin
+  Result := T(inherited First^);
+end;
+
+function TFPGInterfacedObjectList.IndexOf(const Item: T): Integer;
+begin
+  Result := 0;
+  {$info TODO: fix inlining to work! InternalItems[Result]^}
+  while (Result < FCount) and (PT(FList)[Result] <> Item) do
+    Inc(Result);
+  if Result = FCount then
+    Result := -1;
+end;
+
+procedure TFPGInterfacedObjectList.Insert(Index: Integer; const Item: T);
+begin
+  T(inherited Insert(Index)^) := Item;
+end;
+
+function TFPGInterfacedObjectList.Last: T;
+begin
+  Result := T(inherited Last^);
+end;
+
+function TFPGInterfacedObjectList.Remove(const Item: T): Integer;
+begin
+  Result := IndexOf(Item);
+  if Result >= 0 then
+    Delete(Result);
+end;
+
+procedure TFPGInterfacedObjectList.Sort(Compare: TCompareFunc);
+begin
+  FOnCompare := Compare;
+  inherited Sort(@ItemPtrCompare);
+end;
+
 {$endif}
 
 {****************************************************************************
@@ -666,11 +988,6 @@ begin
   System.Move(Src^, Dest^, FDataSize);
 end;
 
-function TFPSMap.BinaryCompare(Key1, Key2: Pointer): Integer;
-begin
-  Result := CompareByte(Key1^, Key2^, FKeySize);
-end;
-
 function TFPSMap.GetKey(Index: Integer): Pointer;
 begin
   Result := Items[Index];
@@ -692,9 +1009,36 @@ begin
     Error(SMapKeyError, PtrUInt(AKey));
 end;
 
+function TFPSMap.BinaryCompareKey(Key1, Key2: Pointer): Integer;
+begin
+  Result := CompareByte(Key1^, Key2^, FKeySize);
+end;
+
+function TFPSMap.BinaryCompareData(Data1, Data2: Pointer): Integer;
+begin
+  Result := CompareByte(Data1^, Data1^, FDataSize);
+end;
+
+procedure TFPSMap.SetOnKeyPtrCompare(Proc: TFPSListCompareFunc);
+begin
+  if Proc <> nil then
+    FOnKeyPtrCompare := Proc
+  else
+    FOnKeyPtrCompare := @BinaryCompareKey;
+end;
+
+procedure TFPSMap.SetOnDataPtrCompare(Proc: TFPSListCompareFunc);
+begin
+  if Proc <> nil then
+    FOnDataPtrCompare := Proc
+  else
+    FOnDataPtrCompare := @BinaryCompareData;
+end;
+
 procedure TFPSMap.InitOnPtrCompare;
 begin
-  FOnPtrCompare := @BinaryCompare;
+  SetOnKeyPtrCompare(nil);
+  SetOnDataPtrCompare(nil);
 end;
 
 procedure TFPSMap.PutKey(Index: Integer; AKey: Pointer);
@@ -747,7 +1091,7 @@ begin
   Data[Result] := AData;
 end;
 
-function TFPSMap.Find(AKey: Pointer; var Index: Integer): Boolean;
+function TFPSMap.Find(AKey: Pointer; out Index: Integer): Boolean;
 { Searches for the first item <= Key, returns True if exact match,
   sets index to the index f the found string. }
 var
@@ -760,7 +1104,7 @@ begin
   while L<=R do
   begin
     I := (L+R) div 2;
-    Dir := FOnPtrCompare(Items[I], AKey);
+    Dir := FOnKeyPtrCompare(Items[I], AKey);
     if Dir < 0 then
       L := I+1
     else begin
@@ -782,7 +1126,7 @@ var
 begin
   Result := 0;
   ListItem := First;
-  while (Result < FCount) and (FOnPtrCompare(ListItem, AKey) <> 0) do
+  while (Result < FCount) and (FOnKeyPtrCompare(ListItem, AKey) <> 0) do
   begin
     Inc(Result);
     ListItem := PByte(ListItem)+FItemSize;
@@ -806,7 +1150,7 @@ var
 begin
   Result := 0;
   ListItem := First+FKeySize;
-  while (Result < FCount) and (CompareByte(ListItem^, AData^, FDataSize) <> 0) do
+  while (Result < FCount) and (FOnDataPtrCompare(ListItem, AData) <> 0) do
   begin
     Inc(Result);
     ListItem := PByte(ListItem)+FItemSize;
@@ -821,7 +1165,7 @@ begin
   Result := inherited Insert(Index);
 end;
 
-procedure TFPSMap.Insert(Index: Integer; var AKey, AData: Pointer);
+procedure TFPSMap.Insert(Index: Integer; out AKey, AData: Pointer);
 begin
   AKey := Insert(Index);
   AData := PByte(AKey) + FKeySize;
@@ -850,7 +1194,7 @@ end;
 
 procedure TFPSMap.Sort;
 begin
-  inherited Sort(FOnPtrCompare);
+  inherited Sort(FOnKeyPtrCompare);
 end;
 
 {****************************************************************************
@@ -901,11 +1245,6 @@ begin
   Result := TData(inherited GetKeyData(@AKey)^);
 end;
 
-procedure TFPGMap.InitOnPtrCompare;
-begin
-  OnPtrCompare := @KeyCompare;
-end;
-
 function TFPGMap.KeyCompare(Key1, Key2: Pointer): Integer;
 begin
   if PKey(Key1)^ < PKey(Key2)^ then
@@ -916,9 +1255,48 @@ begin
     Result := 0;
 end;
 
+{function TFPGMap.DataCompare(Data1, Data2: Pointer): Integer;
+begin
+  if PData(Data1)^ < PData(Data2)^ then
+    Result := -1
+  else if PData(Data1)^ > PData(Data2)^ then
+    Result := 1
+  else
+    Result := 0;
+end;}
+
 function TFPGMap.KeyCustomCompare(Key1, Key2: Pointer): Integer;
 begin
-  Result := FOnCompare(TKey(Key1^), TKey(Key2^));
+  Result := FOnKeyCompare(TKey(Key1^), TKey(Key2^));
+end;
+
+function TFPGMap.DataCustomCompare(Data1, Data2: Pointer): Integer;
+begin
+  Result := FOnDataCompare(TData(Data1^), TData(Data2^));
+end;
+
+procedure TFPGMap.SetOnKeyCompare(NewCompare: TKeyCompareFunc);
+begin
+  FOnKeyCompare := NewCompare;
+  if NewCompare <> nil then
+    OnKeyPtrCompare := @KeyCustomCompare
+  else
+    OnKeyPtrCompare := @KeyCompare;
+end;
+
+procedure TFPGMap.SetOnDataCompare(NewCompare: TDataCompareFunc);
+begin
+  FOnDataCompare := NewCompare;
+  if NewCompare <> nil then
+    OnDataPtrCompare := @DataCustomCompare
+  else
+    OnDataPtrCompare := nil;
+end;
+
+procedure TFPGMap.InitOnPtrCompare;
+begin
+  SetOnKeyCompare(nil);
+  SetOnDataCompare(nil);
 end;
 
 procedure TFPGMap.PutKey(Index: Integer; const NewKey: TKey);
@@ -936,15 +1314,6 @@ begin
   inherited PutKeyData(@AKey, @NewData);
 end;
 
-procedure TFPGMap.SetOnCompare(NewCompare: TCompareFunc);
-begin
-  FOnCompare := NewCompare;
-  if NewCompare <> nil then
-    OnPtrCompare := @KeyCustomCompare
-  else
-    InitOnPtrCompare;
-end;
-
 function TFPGMap.Add(const AKey: TKey): Integer;
 begin
   Result := inherited Add(@AKey);
@@ -955,7 +1324,7 @@ begin
   Result := inherited Add(@AKey, @AData);
 end;
 
-function TFPGMap.Find(const AKey: TKey; var Index: Integer): Boolean;
+function TFPGMap.Find(const AKey: TKey; out Index: Integer): Boolean;
 begin
   Result := inherited Find(@AKey, Index);
 end;

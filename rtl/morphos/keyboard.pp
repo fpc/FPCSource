@@ -14,13 +14,6 @@
  **********************************************************************}
 unit Keyboard;
 interface
-{$ifdef DEBUG}
-//uses
-//  windows;
-
-//var
-//  last_ir : Input_Record;
-{$endif DEBUG}
 
 {$i keybrdh.inc}
 
@@ -32,20 +25,17 @@ implementation
            from Win9x.
 }
 
-//uses
-{ifndef DEBUG}
-//   Windows,
-{endif DEBUG}
-//   Dos,
-//   WinEvent;
+
 uses
-   video,
-   exec,intuition, inputevent;
+   video, exec,intuition, inputevent, mouse;
 
 {$i keyboard.inc}
 
 var
    lastShiftState : byte;               {set by handler for PollShiftStateEvent}
+   oldmousex : longint;
+   oldmousey : longint;
+   oldbuttons: word;
 
 
 {*
@@ -64,7 +54,6 @@ var
    KeyBoardLayout : HKL;
    Inited : Boolean;
    HasAltGr  : Boolean = false;
-
 
 
 procedure incqueueindex(var l : longint);
@@ -279,6 +268,9 @@ procedure SysInitKeyboard;
 begin
 //  writeln('sysinitkeyboard');
   lastShiftState:=0;
+  oldmousex:=-1;
+  oldmousey:=-1;
+  oldbuttons:=0;
 {*
    KeyBoardLayout:=GetKeyboardLayout(0);
    lastShiftState := 0;
@@ -790,6 +782,12 @@ begin
 end;
 *}
 
+function hasMouseEvent(var x: integer; var y: integer; var btn: integer): boolean;
+begin
+//  if 
+end;
+
+
 
 //#define IsMsgPortEmpty(x)  (((x)->mp_MsgList.lh_TailPred) == (struct Node *)(&(x)->mp_MsgList))
 
@@ -808,9 +806,10 @@ type
   end;
 
 const
-  RCTABLE_MAXIDX = 16;
+  RCTABLE_MAXIDX = 17;
   rawCodeTable : array[0..RCTABLE_MAXIDX] of rawCodeEntry = 
-    ((rc: 71; n: $5200; s: $0500; c: $0400; a: $A200; ), // Insert
+    ((rc: 68; n: $1C0D; s: $1C0D; c: $1C0A; a: $1C0D; ), // Enter  // shift, alt?
+     (rc: 71; n: $5200; s: $0500; c: $0400; a: $A200; ), // Insert
      (rc: 72; n: $4900; s: $4900; c: $8400; a: $9900; ), // PgUP   // shift?
      (rc: 73; n: $5100; s: $5100; c: $7600; a: $A100; ), // PgDOWN // shift?
 
@@ -890,23 +889,31 @@ function SysPollKeyEvent: TKeyEvent;
 //var t   : TKeyEventRecord;
 //    k   : TKeyEvent;
 var
+  mouseevent : boolean;
   iMsg : PIntuiMessage;
   KeyCode: longint;
   tmpFCode: word;
   tmpIdx  : longint;
+  mousex  : longint;
+  mousey  : longint;
+  me      : TMouseEvent;
 begin
   KeyCode:=0;
   SysPollKeyEvent:=0;
-  
+  FillChar(me,sizeof(TMouseEvent),0); 
+
   if KeyQueue<>0 then begin
     SysPollKeyEvent:=KeyQueue;
     exit;
   end;
 
-  if videoWindow<>nil then begin
-    if IsMsgPortEmpty(videoWindow^.UserPort) then exit;
-  end;
+  repeat
+    mouseevent:=false;    
 
+    if videoWindow<>nil then begin
+      if IsMsgPortEmpty(videoWindow^.UserPort) then exit;
+    end;
+    
     PMessage(iMsg):=GetMsg(videoWindow^.UserPort);
     if (iMsg<>nil) then begin
       
@@ -920,8 +927,61 @@ begin
         IDCMP_CHANGEWINDOW: begin
             GotResizeWindow;
           end;
+        IDCMP_MOUSEBUTTONS: begin
+            mouseevent:=true;
+            me.x:=(iMsg^.MouseX - videoWindow^.BorderLeft) div 8;
+            me.y:=(iMsg^.MouseY - videoWindow^.BorderTop) div 16;
+            case iMsg^.code of
+              SELECTDOWN: begin
+                  //writeln('left down!');
+                  me.Action:=MouseActionDown;
+                  oldbuttons:=oldbuttons or MouseLeftButton;
+                  me.Buttons:=oldbuttons;
+                  PutMouseEvent(me);
+                end;
+              SELECTUP: begin
+                  //writeln('left up!');
+                  me.Action:=MouseActionUp;
+                  oldbuttons:=oldbuttons and (not MouseLeftButton);
+                  me.Buttons:=oldbuttons;
+                  PutMouseEvent(me);
+                end;
+              MENUDOWN: begin
+                  //writeln('right down!');
+                  me.Action:=MouseActionDown;
+                  oldbuttons:=oldbuttons or MouseRightButton;
+                  me.Buttons:=oldbuttons;
+                  PutMouseEvent(me);
+                end;
+              MENUUP: begin
+                  //writeln('right up!');
+                  me.Action:=MouseActionUp;
+                  oldbuttons:=oldbuttons and (not MouseRightButton);
+                  me.Buttons:=oldbuttons;
+                  PutMouseEvent(me);
+                end;
+            end;
+          end;
+        IDCMP_MOUSEMOVE: begin
+            mouseevent:=true;
+            mousex:=(iMsg^.MouseX - videoWindow^.BorderLeft) div 8;
+            mousey:=(iMsg^.MouseY - videoWindow^.BorderTop) div 16;
+            if (mousex >= 0) and (mousey >= 0) and
+               (mousex < video.ScreenWidth) and (mousey < video.ScreenHeight) and
+               ((mousex <> oldmousex) or (mousey <> oldmousey))
+              then begin
+//              //writeln('mousemove:',mousex,'/',mousey,' oldbutt:',oldbuttons);
+              me.Action:=MouseActionMove;
+              me.Buttons:=oldbuttons;
+              me.X:=mousex;
+              me.Y:=mousey;
+              oldmousex:=mousex;
+              oldmousey:=mousey;
+              PutMouseEvent(me);
+            end;
+          end;
         IDCMP_VANILLAKEY: begin
-            writeln('vanilla keycode: ',iMsg^.code);
+            //writeln('vanilla keycode: ',iMsg^.code);
             KeyCode:=iMsg^.code;
             case (iMsg^.code) of
                09: KeyCode:=$0F09; // Tab
@@ -940,11 +1000,11 @@ begin
             end;
           end;
         IDCMP_RAWKEY: begin
-            writeln('raw keycode: ',iMsg^.code);
+            //writeln('raw keycode: ',iMsg^.code);
             
             case (iMsg^.code) of
                35: KeyCode:=$2100; // Alt-F
-
+                
               112: KeyCode:=$4700; // HOME
               113: KeyCode:=$4F00; // END
 
@@ -959,8 +1019,8 @@ begin
       end;
       ReplyMsg(PMessage(iMsg));
     end;
-//  end;
-
+  until (not mouseevent);
+ 
   // XXX: huh :)
 
   if KeyCode>=0 then begin

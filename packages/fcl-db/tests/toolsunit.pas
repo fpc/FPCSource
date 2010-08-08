@@ -7,7 +7,7 @@ unit ToolsUnit;
 interface
 
 uses
-  Classes, SysUtils, DB;
+  Classes, SysUtils, DB, testdecorator;
   
 Const MaxDataSet = 35;
   
@@ -21,6 +21,8 @@ type
        FUsedDatasets : TFPList;
        FChangedFieldDataset : boolean;
      protected
+       procedure SetTestUniDirectional(const AValue: boolean); virtual;
+       function GetTestUniDirectional: boolean; virtual;
        // These methods should be implemented by any descendents
        // They are called eacht time a test need a TDataset descendent
        Function InternalGetNDataset(n : integer) : TDataset;  virtual; abstract;
@@ -57,14 +59,23 @@ type
 
        procedure StartTest;
        procedure StopTest;
+       property TestUniDirectional: boolean read GetTestUniDirectional write SetTestUniDirectional;
      end;
 
+  { TDBBasicsTestSetup }
+
+  TDBBasicsTestSetup = class(TTestSetup)
+    protected
+      procedure OneTimeSetup; override;
+      procedure OneTimeTearDown; override;
+    end;
 
 { TTestDataLink }
 
   TTestDataLink = class(TDataLink)
      protected
        procedure DataSetScrolled(Distance: Integer); override;
+       procedure DataSetChanged; override;
 {$IFDEF fpc}
        procedure DataEvent(Event: TDataEvent; Info: Ptrint); override;
 {$ELSE}
@@ -151,22 +162,22 @@ var dbtype,
     dbname,
     dbuser,
     dbhostname,
-    dbpassword     : string;
+    dbpassword,
+    dbQuoteChars   : string;
     DataEvents     : string;
     DBConnector    : TDBConnector;
     testValues     : Array [TFieldType,0..testvaluescount -1] of string;
 
 
 procedure InitialiseDBConnector;
+procedure FreeDBConnector;
 
 implementation
 
 uses
-  sqldbtoolsunit,
-  dbftoolsunit,
-  memdstoolsunit,
-  SdfDSToolsUnit,
   inifiles;
+
+var DBConnectorRefCount: integer;
 
 constructor TDBConnector.create;
 begin
@@ -180,6 +191,16 @@ begin
   if assigned(FUsedDatasets) then FUsedDatasets.Destroy;
   DropNDatasets;
   DropFieldDataset;
+end;
+
+function TDBConnector.GetTestUniDirectional: boolean;
+begin
+  result := false;
+end;
+
+procedure TDBConnector.SetTestUniDirectional(const AValue: boolean);
+begin
+  raise exception.create('Connector does not support tests for unidirectional datasets');
 end;
 
 procedure TDBConnector.ResetNDatasets;
@@ -222,6 +243,7 @@ begin
   dbhostname := IniFile.ReadString(dbtype,'Hostname','');
   dbpassword := IniFile.ReadString(dbtype,'Password','');
   dbconnectorparams := IniFile.ReadString(dbtype,'ConnectorParams','');
+  dbquotechars := IniFile.ReadString(dbtype,'QuoteChars','"');
 
   IniFile.Free;
 end;
@@ -230,19 +252,23 @@ procedure InitialiseDBConnector;
 var DBConnectorClass : TPersistentClass;
     i                : integer;
 begin
+  if DBConnectorRefCount>0 then exit;
   testValues[ftString] := testStringValues;
   testValues[ftFixedChar] := testStringValues;
-  testValues[ftDate] := testDateValues;
   for i := 0 to testValuesCount-1 do
     begin
     testValues[ftFloat,i] := FloatToStr(testFloatValues[i]);
     testValues[ftSmallint,i] := IntToStr(testSmallIntValues[i]);
     testValues[ftInteger,i] := IntToStr(testIntValues[i]);
     testValues[ftLargeint,i] := IntToStr(testLargeIntValues[i]);
-    DecimalSeparator:=',';
-    testValues[ftCurrency,i] := CurrToStr(testCurrencyValues[i]);
+    // The decimalseparator was set to a comma for currencies and to a dot for ftBCD values.
+    // But why is not clear to me. For Postgres it works now, with a dot for both types.
+    // DecimalSeparator:=',';
     DecimalSeparator:='.';
+    testValues[ftCurrency,i] := CurrToStr(testCurrencyValues[i]);
+    // DecimalSeparator:='.';
     testValues[ftBCD,i] := CurrToStr(testCurrencyValues[i]);
+    testValues[ftDate,i] := DateToStr(StrToDate(testDateValues[i], 'yyyy/mm/dd', '-'));
     end;
 
   if dbconnectorname = '' then raise Exception.Create('There is no db-connector specified');
@@ -250,6 +276,14 @@ begin
   if assigned(DBConnectorClass) then
     DBConnector := TDBConnectorClass(DBConnectorClass).create
   else Raise Exception.Create('Unknown db-connector specified');
+  inc(DBConnectorRefCount);
+end;
+
+procedure FreeDBConnector;
+begin
+  dec(DBConnectorRefCount);
+  if DBConnectorRefCount=0 then
+    FreeAndNil(DBConnector);
 end;
 
 { TTestDataLink }
@@ -260,6 +294,12 @@ procedure TTestDataLink.DataSetScrolled(Distance: Integer);
 begin
   DataEvents := DataEvents + 'DataSetScrolled' + ':' + inttostr(Distance) + ';';
   inherited DataSetScrolled(Distance);
+end;
+
+procedure TTestDataLink.DataSetChanged;
+begin
+  DataEvents := DataEvents + 'DataSetChanged;';
+  inherited DataSetChanged;
 end;
 
 procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Ptrint);
@@ -325,7 +365,20 @@ begin
     end;
 end;
 
+{ TDBBasicsTestSetup }
+
+procedure TDBBasicsTestSetup.OneTimeSetup;
+begin
+  InitialiseDBConnector;
+end;
+
+procedure TDBBasicsTestSetup.OneTimeTearDown;
+begin
+  FreeDBConnector;
+end;
+
 initialization
   ReadIniFile;
+  DBConnectorRefCount:=0;
 end.
 

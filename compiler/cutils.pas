@@ -44,6 +44,11 @@ interface
     function max(a,b : int64) : int64;{$ifdef USEINLINE}inline;{$endif}
     {# Return value @var(i) aligned on @var(a) boundary }
     function align(i,a:longint):longint;{$ifdef USEINLINE}inline;{$endif}
+    { if you have an address aligned using "oldalignment" and add an
+      offset of (a multiple of) offset to it, this function calculates
+      the new minimally guaranteed alignment
+    }
+    function newalignment(oldalignment: longint; offset: int64): longint;
     {# Return @var(b) with the bit order reversed }
     function reverse_byte(b: byte): byte;
 
@@ -118,8 +123,11 @@ interface
     { the data in p is modified and p is returned     }
     function pchar2pshortstring(p : pchar) : pshortstring;
 
-    { ambivalent to pchar2pshortstring }
+    { inverse of pchar2pshortstring }
     function pshortstring2pchar(p : pshortstring) : pchar;
+
+    { allocate a new pchar with the contents of a}
+    function ansistring2pchar(const a: ansistring) : pchar;
 
     { Ansistring (pchar+length) support }
     procedure ansistringdispose(var p : pchar;length : longint);
@@ -199,6 +207,18 @@ implementation
          else
            max:=b;
       end;
+
+
+    function newalignment(oldalignment: longint; offset: int64): longint;
+      var
+        localoffset: longint;
+      begin
+        localoffset:=longint(offset);
+        while (localoffset mod oldalignment)<>0 do
+          oldalignment:=oldalignment div 2;
+        newalignment:=oldalignment;
+      end;
+
 
     function reverse_byte(b: byte): byte;
       const
@@ -955,6 +975,18 @@ implementation
            p^[i-1]:=p^[i];
          p^[w]:=#0;
          pshortstring2pchar:=pchar(p);
+      end;
+
+
+    function ansistring2pchar(const a: ansistring) : pchar;
+      var
+        len: ptrint;
+      begin
+        len:=length(a);
+        getmem(result,len+1);
+        if (len<>0) then
+          move(a[1],result[0],len);
+        result[len]:=#0;
       end;
 
 

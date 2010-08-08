@@ -87,6 +87,7 @@ implementation
       symconst,symdef,symsym,symtable,paramgr,defutil,
       pass_1,
       ncal,ncon,ncnv,nadd,nld,nbas,nflw,nmem,nmat,nutils,
+      nobjc,objcdef,
       cgbase,procinfo
       ;
 
@@ -337,10 +338,21 @@ implementation
           tfiledef(left.resultdef).typedfiledef.size,s32inttype,true),
           ccallparanode.create(left,nil));
         { create the correct call }
-        if inlinenumber=in_reset_typedfile then
-          result := ccallnode.createintern('fpc_reset_typed',left)
+        if m_iso in current_settings.modeswitches then
+          begin
+            if inlinenumber=in_reset_typedfile then
+              result := ccallnode.createintern('fpc_reset_typed_iso',left)
+            else
+              result := ccallnode.createintern('fpc_rewrite_typed_iso',left);
+          end
         else
-          result := ccallnode.createintern('fpc_rewrite_typed',left);
+          begin
+            if inlinenumber=in_reset_typedfile then
+              result := ccallnode.createintern('fpc_reset_typed',left)
+            else
+              result := ccallnode.createintern('fpc_rewrite_typed',left);
+          end;
+
         { make sure left doesn't get disposed, since we use it in the new call }
         left := nil;
       end;
@@ -378,7 +390,7 @@ implementation
         fracpara:Tcallparanode;
         temp:Ttempcreatenode;
         readfunctype:Tdef;
-        name:string[31];
+        name:string[63];
 
     begin
       para:=Tcallparanode(params);
@@ -395,7 +407,7 @@ implementation
           readfunctype:=nil;
 
           { can't read/write types }
-          if para.left.nodetype=typen then
+          if (para.left.nodetype=typen) and not(ttypenode(para.left).typedef.typ=undefineddef) then
             begin
               CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
               error_para := true;
@@ -468,6 +480,9 @@ implementation
                   uchar :
                     begin
                       name := procprefixes[do_read]+'char';
+                      { iso pascal needs a different handler }
+                      if (m_iso in current_settings.modeswitches) and do_read then
+                        name:=name+'_iso';
                       readfunctype:=cchartype;
                     end;
                   uwidechar :
@@ -509,8 +524,10 @@ implementation
                         readfunctype:=booltype;
                       end
                   else
-                    CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
-                    error_para := true;
+                    begin
+                      CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                      error_para := true;
+                    end;
                 end;
               end;
             variantdef :
@@ -524,11 +541,21 @@ implementation
                     CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
                     error_para := true;
                   end
-              end
+              end;
+            { generic parameter }
+            undefineddef:
+              { don't try to generate any code for a writeln on a generic parameter }
+              error_para:=true;
             else
-              CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
-              error_para := true;
+              begin
+                CGMessagePos(para.fileinfo,type_e_cant_read_write_type);
+                error_para := true;
+              end;
           end;
+
+          { iso pascal needs a different handler }
+          if (m_iso in current_settings.modeswitches) and not(do_read) then
+            name:=name+'_iso';
 
           { check for length/fractional colon para's }
           fracpara:=nil;
@@ -577,8 +604,14 @@ implementation
                   if not is_real then
                     begin
                       if not assigned(lenpara) then
-                        lenpara := ccallparanode.create(
-                          cordconstnode.create(0,s32inttype,false),nil)
+                        begin
+                          if m_iso in current_settings.modeswitches then
+                            lenpara := ccallparanode.create(
+                              cordconstnode.create(-1,s32inttype,false),nil)
+                          else
+                            lenpara := ccallparanode.create(
+                              cordconstnode.create(0,s32inttype,false),nil);
+                        end
                       else
                         { make sure we don't pass the successive }
                         { parameters too. We also already have a }
@@ -749,7 +782,11 @@ implementation
             in_writestr_x:
               name:='fpc_write_end';
             in_readln_x:
-              name:='fpc_readln_end';
+              begin
+                name:='fpc_readln_end';
+                if m_iso in current_settings.modeswitches then
+                  name:=name+'_iso';
+              end;
             in_writeln_x:
               name:='fpc_writeln_end';
           end;
@@ -769,7 +806,6 @@ implementation
         para,nextpara:Tcallparanode;
         p1:Tnode;
         temp:Ttempcreatenode;
-
     begin
       found_error:=false;
       para:=Tcallparanode(params);
@@ -1062,9 +1098,9 @@ implementation
         left := nil;
 
         if is_typed then
-          found_error:=handle_typed_read_write(filepara,Ttertiarynode(params),newstatement)
+          found_error:=handle_typed_read_write(filepara,Ttertiarynode(params),tnode(newstatement))
         else
-          found_error:=handle_text_read_write(filepara,Ttertiarynode(params),newstatement);
+          found_error:=handle_text_read_write(filepara,Ttertiarynode(params),tnode(newstatement));
 
         { if we found an error, simply delete the generated blocknode }
         if found_error then
@@ -1121,7 +1157,7 @@ implementation
         { check if codepara is valid }
         if assigned(codepara) and
            (
-            (codepara.resultdef.typ <> orddef)
+            not is_integer(codepara.resultdef)
 {$ifndef cpu64bitaddr}
             or is_64bitint(codepara.resultdef)
 {$endif not cpu64bitaddr}
@@ -1132,7 +1168,9 @@ implementation
           end;
 
         { check if dest para is valid }
-        if not(destpara.resultdef.typ in [orddef,floatdef,enumdef]) then
+        if not is_integer(destpara.resultdef) and
+           not is_currency(destpara.resultdef) and
+           not(destpara.resultdef.typ in [floatdef,enumdef]) then
           begin
             CGMessagePos(destpara.fileinfo,type_e_integer_or_real_expr_expected);
             exit;
@@ -1319,6 +1357,7 @@ implementation
            v    : tconstexprint;
            enum : tenumsym;
            hp   : tnode;
+           i    : integer;
         begin
            case def.typ of
              orddef:
@@ -1335,11 +1374,17 @@ implementation
              enumdef:
                begin
                   set_varstate(left,vs_read,[]);
-                  enum:=tenumsym(tenumdef(def).firstenum);
-                  v:=tenumdef(def).maxval;
                   if inlinenumber=in_high_x then
-                    while assigned(enum) and (enum.value <> v) do
-                      enum:=enum.nextenum;
+                    v:=tenumdef(def).maxval
+                  else
+                    v:=tenumdef(def).minval;
+                  enum:=nil;
+                  for i := 0 to tenumdef(def).symtable.SymList.Count - 1 do
+                    if tenumsym(tenumdef(def).symtable.SymList[i]).value=v then
+                      begin
+                        enum:=tenumsym(tenumdef(def).symtable.SymList[i]);
+                        break;
+                      end;
                   if not assigned(enum) then
                     internalerror(309993)
                   else
@@ -1406,11 +1451,67 @@ implementation
         end;
 
 
+      function handle_const_sar : tnode;
+        var
+          vl,vl2    : TConstExprInt;
+          bits,shift: integer;
+          mask : qword;
+          def : tdef;
+        begin
+          result:=nil;
+          if (left.nodetype=ordconstn) or ((left.nodetype=callparan) and (tcallparanode(left).left.nodetype=ordconstn)) then
+            begin
+              if (left.nodetype=callparan) and
+                 assigned(tcallparanode(left).right) then
+                begin
+                  if (tcallparanode(tcallparanode(left).right).left.nodetype=ordconstn) then
+                    begin
+                      def:=tcallparanode(tcallparanode(left).right).left.resultdef;
+                      vl:=tordconstnode(tcallparanode(left).left).value;
+                      vl2:=tordconstnode(tcallparanode(tcallparanode(left).right).left).value;
+                    end
+                  else
+                    exit;
+                end
+              else
+                begin
+                  def:=left.resultdef;
+                  vl:=1;
+                  vl2:=tordconstnode(left).value;
+                end;
+
+              bits:=def.size*8;
+              shift:=vl.svalue and (bits-1);
+              case bits of
+                 8:
+                   mask:=$ff;
+                 16:
+                   mask:=$ffff;
+                 32:
+                   mask:=$ffffffff;
+                 64:
+                   mask:=qword($ffffffffffffffff);
+                 else
+                   mask:=qword(1 shl bits)-1;
+              end;
+{$push}
+{$r-,q-}
+              if shift=0 then
+                result:=cordconstnode.create(vl2.svalue,def,false)
+              else if vl2.svalue<0 then
+                result:=cordconstnode.create(((vl2.svalue shr shift) or (mask shl (bits-shift))) and mask,def,false)
+              else
+                result:=cordconstnode.create((vl2.svalue shr shift) and mask,def,false);
+{$pop}
+            end
+          else
+        end;
+
+
       var
         hp        : tnode;
         vl,vl2    : TConstExprInt;
         vr        : bestreal;
-        checkrange: boolean;
 
       begin { simplify }
          result:=nil;
@@ -1632,16 +1733,20 @@ implementation
               in_pred_x,
               in_succ_x:
                 begin
-                  { only perform range checking if the result is an enum }
-                  checkrange:=(resultdef.typ=enumdef);
-
                   if (left.nodetype=ordconstn) then
-                   begin
-                     if (inlinenumber=in_succ_x) then
-                       result:=cordconstnode.create(tordconstnode(left).value+1,left.resultdef,checkrange)
-                     else
-                       result:=cordconstnode.create(tordconstnode(left).value-1,left.resultdef,checkrange);
-                   end;
+                    begin
+                      if (inlinenumber=in_succ_x) then
+                        vl:=tordconstnode(left).value+1
+                      else
+                        vl:=tordconstnode(left).value-1;
+                      if is_integer(left.resultdef) then
+                      { the type of the original integer constant is irrelevant,
+                        it should be automatically adapted to the new value }
+                        result:=genintconstnode(vl)
+                      else
+                        { check the range for enums, chars, booleans }
+                        result:=cordconstnode.create(vl,left.resultdef,true)
+                    end
                 end;
               in_low_x,
               in_high_x:
@@ -1800,6 +1905,11 @@ implementation
                     { we need a valid node, so insert a nothingn }
                     result:=cnothingnode.create;
                 end;
+              in_sar_x,
+              in_sar_x_y :
+                begin
+                  result:=handle_const_sar;
+                end;
             end;
           end;
       end;
@@ -1811,7 +1921,7 @@ implementation
       procedure setfloatresultdef;
         begin
           if (left.resultdef.typ=floatdef) and
-            (tfloatdef(left.resultdef).floattype in [s32real,s64real,s80real,s128real]) then
+            (tfloatdef(left.resultdef).floattype in [s32real,s64real,s80real,sc80real,s128real]) then
             resultdef:=left.resultdef
           else
             begin
@@ -1897,6 +2007,17 @@ implementation
             result:=cnothingnode.create;
         end;
 
+
+      function handle_objc_encode: tnode;
+        var
+          encodedtype: ansistring;
+          errordef: tdef;
+        begin
+          encodedtype:='';
+          if not objctryencodetype(left.resultdef,encodedtype,errordef) then
+            Message1(type_e_objc_type_unsupported,errordef.typename);
+          result:=cstringconstnode.createpchar(ansistring2pchar(encodedtype),length(encodedtype));
+        end;
 
 
       var
@@ -2118,6 +2239,9 @@ implementation
 
               in_typeinfo_x:
                 begin
+                   if (left.resultdef.typ=enumdef) and
+                      (tenumdef(left.resultdef).has_jumps) then
+                     CGMessage(type_e_no_type_info);
                    set_varstate(left,vs_read,[vsf_must_be_valid]);
                    resultdef:=voidpointertype;
                 end;
@@ -2188,7 +2312,14 @@ implementation
                              if is_integer(tcallparanode(left).right.resultdef) then
                                begin
                                  set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
-                                 inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef);
+                                 { when range/overflow checking is on, we
+                                   convert this to a regular add, and for proper
+                                   checking we need the original type }
+                                 if ([cs_check_range,cs_check_overflow]*current_settings.localswitches=[]) then
+                                   if is_integer(tcallparanode(left).left.resultdef) then
+                                     inserttypeconv(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef)
+                                   else
+                                     inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef);
                                  if assigned(tcallparanode(tcallparanode(left).right).right) then
                                    { should be handled in the parser (JM) }
                                    internalerror(2006020901);
@@ -2366,7 +2497,7 @@ implementation
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                   { for direct float rounding, no best real type cast should be necessary }
                   if not((left.resultdef.typ=floatdef) and
-                         (tfloatdef(left.resultdef).floattype in [s32real,s64real,s80real,s128real])) and
+                         (tfloatdef(left.resultdef).floattype in [s32real,s64real,s80real,sc80real,s128real])) and
                      { converting an int64 to double on platforms without }
                      { extended can cause precision loss                  }
                      not(left.nodetype in [ordconstn,realconstn]) then
@@ -2398,12 +2529,10 @@ implementation
                 begin
                 end;
 {$endif SUPPORT_MMX}
-{$ifdef SUPPORT_UNALIGNED}
               in_unaligned_x:
                 begin
                   resultdef:=left.resultdef;
                 end;
-{$endif SUPPORT_UNALIGNED}
               in_assert_x_y :
                 begin
                   resultdef:=voidtype;
@@ -2435,17 +2564,35 @@ implementation
                   resultdef:=voidpointertype;
                 end;
               in_rol_x,
-              in_ror_x:
+              in_ror_x,
+              in_sar_x:
                 begin
                   set_varstate(left,vs_read,[vsf_must_be_valid]);
                   resultdef:=left.resultdef;
                 end;
               in_rol_x_x,
-              in_ror_x_x:
+              in_ror_x_x,
+              in_sar_x_y:
                 begin
                   set_varstate(tcallparanode(left).left,vs_read,[vsf_must_be_valid]);
                   set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
                   resultdef:=tcallparanode(tcallparanode(left).right).left.resultdef;
+                end;
+              in_objc_selector_x:
+                begin
+                  result:=cobjcselectornode.create(left);
+                  { reused }
+                  left:=nil;
+                end;
+              in_objc_protocol_x:
+                begin
+                  result:=cobjcprotocolnode.create(left);
+                  { reused }
+                  left:=nil;
+                end;
+              in_objc_encode_x:
+                begin
+                  result:=handle_objc_encode;
                 end;
               else
                 internalerror(8);
@@ -2541,6 +2688,50 @@ implementation
           in_succ_x:
             begin
               expectloc:=LOC_REGISTER;
+              { in case of range/overflow checking, use a regular addnode
+                because it's too complex to handle correctly otherwise }
+              if ([cs_check_overflow,cs_check_range]*current_settings.localswitches)<>[] then
+                begin
+                  { create constant 1 }
+                  hp:=cordconstnode.create(1,left.resultdef,false);
+                  typecheckpass(hp);
+                  if not is_integer(hp.resultdef) then
+                    inserttypeconv_internal(hp,sinttype);
+
+                  { avoid type errors from the addn/subn }
+                  if not is_integer(left.resultdef) then
+                    inserttypeconv_internal(left,sinttype);
+
+                  { addition/substraction depending on succ/pred }
+                  if inlinenumber=in_succ_x then
+                    hp:=caddnode.create(addn,left,hp)
+                  else
+                    hp:=caddnode.create(subn,left,hp);
+                  { assign result of addition }
+                  if not(is_integer(resultdef)) then
+                    inserttypeconv(hp,torddef.create(
+{$ifdef cpu64bitaddr}
+                      s64bit,
+{$else cpu64bitaddr}
+                      s32bit,
+{$endif cpu64bitaddr}
+                      get_min_value(resultdef),
+                      get_max_value(resultdef)))
+                  else
+                    inserttypeconv(hp,resultdef);
+
+                  { avoid any possible errors/warnings }
+                  inserttypeconv_internal(hp,resultdef);
+
+                  { firstpass it }
+                  firstpass(hp);
+
+                  { left is reused }
+                  left:=nil;
+
+                  { return new node }
+                  result:=hp;
+                end;
             end;
 
           in_setlength_x,
@@ -2583,9 +2774,9 @@ implementation
 
                    if not((hpp.resultdef.typ=orddef) and
 {$ifndef cpu64bitaddr}
-                          (torddef(hpp.resultdef).ordtype<>u32bit)) then
+                          (torddef(hpp.resultdef).ordtype=u32bit)) then
 {$else not cpu64bitaddr}
-                          (torddef(hpp.resultdef).ordtype<>u64bit)) then
+                          (torddef(hpp.resultdef).ordtype=u64bit)) then
 {$endif not cpu64bitaddr}
                      inserttypeconv_internal(hpp,sinttype);
                    { make sure we don't call functions part of the left node twice (and generally }
@@ -2638,7 +2829,7 @@ implementation
                    if assigned(tempnode) then
                      addstatement(newstatement,ctempdeletenode.create(tempnode));
                    { firstpass it }
-                   firstpass(newblock);
+                   firstpass(tnode(newblock));
                    { return new node }
                    result := newblock;
                  end;
@@ -2788,16 +2979,16 @@ implementation
            begin
              expectloc:=LOC_VOID;
            end;
-{$ifdef SUPPORT_UNALIGNED}
          in_unaligned_x:
            begin
              expectloc:=tcallparanode(left).left.expectloc;
            end;
-{$endif SUPPORT_UNALIGNED}
          in_rol_x,
          in_rol_x_x,
          in_ror_x,
-         in_ror_x_x:
+         in_ror_x_x,
+         in_sar_x,
+         in_sar_x_y:
            expectloc:=LOC_REGISTER;
          else
            internalerror(89);
@@ -2924,6 +3115,7 @@ implementation
 
      function tinlinenode.first_abs_long : tnode;
       begin
+        expectloc:=LOC_REGISTER;
         result:=nil;
       end;
 

@@ -24,8 +24,7 @@ unit cclasses;
 {$i fpcdefs.inc}
 
 {$ifndef VER2_0}
-  { Disabled for now, gives an IE 200311075 when compiling the IDE }
-  { $define CCLASSESINLINE}
+  {$define CCLASSESINLINE}
 {$endif}
 
 interface
@@ -64,6 +63,7 @@ interface
 const
    SListIndexError = 'List index exceeds bounds (%d)';
    SListCapacityError = 'The maximum list capacity is reached (%d)';
+   SListCapacityPower2Error = 'The capacity has to be a power of 2, but is set to %d';
    SListCountError = 'List count too large (%d)';
 type
    EListError = class(Exception);
@@ -83,9 +83,9 @@ type
     FCount: Integer;
     FCapacity: Integer;
   protected
-    function Get(Index: Integer): Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure Put(Index: Integer; Item: Pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure SetCapacity(NewCapacity: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    function Get(Index: Integer): Pointer;
+    procedure Put(Index: Integer; Item: Pointer);
+    procedure SetCapacity(NewCapacity: Integer);
     procedure SetCount(NewCount: Integer);
     Procedure RaiseIndexError(Index : Integer);
   public
@@ -97,10 +97,10 @@ type
     procedure Exchange(Index1, Index2: Integer);
     function Expand: TFPList;
     function Extract(item: Pointer): Pointer;
-    function First: Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function First: Pointer;
     function IndexOf(Item: Pointer): Integer;
     procedure Insert(Index: Integer; Item: Pointer);
-    function Last: Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function Last: Pointer;
     procedure Move(CurIndex, NewIndex: Integer);
     procedure Assign(Obj:TFPList);
     function Remove(Item: Pointer): Integer;
@@ -127,10 +127,10 @@ type
     FFreeObjects : Boolean;
     FList: TFPList;
     function GetCount: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure SetCount(const AValue: integer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure SetCount(const AValue: integer);
   protected
     function GetItem(Index: Integer): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure SetItem(Index: Integer; AObject: TObject); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure SetItem(Index: Integer; AObject: TObject);
     procedure SetCapacity(NewCapacity: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
     function GetCapacity: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
   public
@@ -139,7 +139,7 @@ type
     destructor Destroy; override;
     procedure Clear;
     function Add(AObject: TObject): Integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure Delete(Index: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure Delete(Index: Integer);
     procedure Exchange(Index1, Index2: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
     function Expand: TFPObjectList;{$ifdef CCLASSESINLINE}inline;{$endif}
     function Extract(Item: TObject): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
@@ -150,7 +150,7 @@ type
     function First: TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     function Last: TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Move(CurIndex, NewIndex: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure Assign(Obj:TFPObjectList); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure Assign(Obj:TFPObjectList);
     procedure Pack; {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Sort(Compare: TListSortCompare); {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure ForEachCall(proc2call:TObjectListCallback;arg:pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
@@ -189,6 +189,7 @@ type
     FHashList     : PHashItemList;
     FCount,
     FCapacity : Integer;
+    FCapacityMask: LongWord;
     { Hash }
     FHashTable    : PHashTable;
     FHashCapacity : Integer;
@@ -198,8 +199,8 @@ type
     FStrCapacity : Integer;
     function InternalFind(AHash:LongWord;const AName:shortstring;out PrevIndex:Integer):Integer;
   protected
-    function Get(Index: Integer): Pointer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure Put(Index: Integer; Item: Pointer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    function Get(Index: Integer): Pointer;
+    procedure Put(Index: Integer; Item: Pointer);
     procedure SetCapacity(NewCapacity: Integer);
     procedure SetCount(NewCount: Integer);
     Procedure RaiseIndexError(Index : Integer);
@@ -214,8 +215,8 @@ type
     destructor Destroy; override;
     function Add(const AName:shortstring;Item: Pointer): Integer;
     procedure Clear;
-    function NameOfIndex(Index: Integer): ShortString; {$ifdef CCLASSESINLINE}inline;{$endif}
-    function HashOfIndex(Index: Integer): LongWord; {$ifdef CCLASSESINLINE}inline;{$endif}
+    function NameOfIndex(Index: Integer): ShortString;
+    function HashOfIndex(Index: Integer): LongWord;
     function GetNextCollision(Index: Integer): Integer;
     procedure Delete(Index: Integer);
     class procedure Error(const Msg: string; Data: PtrInt);
@@ -259,7 +260,7 @@ type
   public
     constructor CreateNotOwned;
     constructor Create(HashObjectList:TFPHashObjectList;const s:shortstring);
-    procedure ChangeOwner(HashObjectList:TFPHashObjectList); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure ChangeOwner(HashObjectList:TFPHashObjectList);
     procedure ChangeOwnerAndName(HashObjectList:TFPHashObjectList;const s:shortstring); {$ifdef CCLASSESINLINE}inline;{$endif}
     procedure Rename(const ANewName:shortstring);
     property Name:shortstring read GetName;
@@ -271,10 +272,10 @@ type
     FFreeObjects : Boolean;
     FHashList: TFPHashList;
     function GetCount: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure SetCount(const AValue: integer); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure SetCount(const AValue: integer);
   protected
     function GetItem(Index: Integer): TObject; {$ifdef CCLASSESINLINE}inline;{$endif}
-    procedure SetItem(Index: Integer; AObject: TObject); {$ifdef CCLASSESINLINE}inline;{$endif}
+    procedure SetItem(Index: Integer; AObject: TObject);
     procedure SetCapacity(NewCapacity: Integer); {$ifdef CCLASSESINLINE}inline;{$endif}
     function GetCapacity: integer; {$ifdef CCLASSESINLINE}inline;{$endif}
   public
@@ -504,6 +505,35 @@ type
       end;
 
 
+{******************************************************************
+                             tbitset
+*******************************************************************}
+
+       tbitset = class
+       private
+         fdata: pbyte;
+         fdatasize: longint;
+       public
+         constructor create(initsize: longint);
+         constructor create_bytesize(bytesize: longint);
+         destructor destroy; override;
+         procedure clear;
+         procedure grow(nsize: longint);
+         { sets a bit }
+         procedure include(index: longint);
+         { clears a bit }
+         procedure exclude(index: longint);
+         { finds an entry, creates one if not exists }
+         function isset(index: longint): boolean;
+
+         procedure addset(aset: tbitset);
+         procedure subset(aset: tbitset);
+
+         property data: pbyte read fdata;
+         property datasize: longint read fdatasize;
+      end;
+
+
     function FPHash(const s:shortstring):LongWord;
     function FPHash(P: PChar; Len: Integer): LongWord;
 
@@ -700,10 +730,10 @@ end;
 
 function TFPList.First: Pointer;
 begin
-  If FCount = 0 then
-    Result := Nil
+  If FCount<>0 then
+    Result := Items[0]
   else
-    Result := Items[0];
+    Result := Nil;
 end;
 
 function TFPList.IndexOf(Item: Pointer): Integer;
@@ -737,11 +767,10 @@ end;
 
 function TFPList.Last: Pointer;
 begin
-{ Wouldn't it be better to return nil if the count is zero ?}
-  If FCount = 0 then
-    Result := nil
+  If FCount<>0 then
+    Result := Items[FCount - 1]
   else
-    Result := Items[FCount - 1];
+    Result := nil
 end;
 
 procedure TFPList.Move(CurIndex, NewIndex: Integer);
@@ -1167,8 +1196,13 @@ end;
 
 
 procedure TFPHashList.SetCapacity(NewCapacity: Integer);
+var
+  power: longint;
 begin
-  If (NewCapacity < FCount) or (NewCapacity > MaxHashListSize) then
+  { use a power of two to be able to quickly calculate the hash table index }
+  if NewCapacity <> 0 then
+    NewCapacity := nextpowerof2((NewCapacity+(MaxItemsPerHash-1)) div MaxItemsPerHash, power) * MaxItemsPerHash;
+  if (NewCapacity < FCount) or (NewCapacity > MaxHashListSize) then
      Error (SListCapacityError, NewCapacity);
   if NewCapacity = FCapacity then
     exit;
@@ -1189,7 +1223,8 @@ begin
       If NewCount > FCapacity then
         SetCapacity(NewCount);
       If FCount < NewCount then
-        FillChar(FHashList^[FCount], (NewCount-FCount) div Sizeof(THashItem), 0);
+        { FCapacity is NewCount rounded up to the next power of 2 }
+        FillChar(FHashList^[FCount], (FCapacity-FCount) div Sizeof(THashItem), 0);
     end;
   FCount := Newcount;
 end;
@@ -1207,13 +1242,19 @@ end;
 
 
 procedure TFPHashList.SetHashCapacity(NewCapacity: Integer);
+var
+  power: longint;
 begin
   If (NewCapacity < 1) then
     Error (SListCapacityError, NewCapacity);
   if FHashCapacity=NewCapacity then
     exit;
+  if (NewCapacity<>0) and
+     not ispowerof2(NewCapacity,power) then
+    Error(SListCapacityPower2Error, NewCapacity);
   FHashCapacity:=NewCapacity;
   ReallocMem(FHashTable, FHashCapacity*sizeof(Integer));
+  FCapacityMask:=(1 shl power)-1;
   ReHash;
 end;
 
@@ -1264,7 +1305,7 @@ begin
     begin
       if not assigned(Data) then
         exit;
-      HashIndex:=HashValue mod LongWord(FHashCapacity);
+      HashIndex:=HashValue and FCapacityMask;
       NextIndex:=FHashTable^[HashIndex];
       FHashTable^[HashIndex]:=Index;
     end;
@@ -1341,12 +1382,6 @@ begin
   if FCount < FCapacity then
     exit;
   IncSize := sizeof(ptrint)*2;
-  if FCapacity > 127 then
-    Inc(IncSize, FCapacity shr 2)
-  else if FCapacity > sizeof(ptrint)*3 then
-    Inc(IncSize, FCapacity shr 1)
-  else if FCapacity >= sizeof(ptrint) then
-    inc(IncSize,sizeof(ptrint));
   SetCapacity(FCapacity + IncSize);
 end;
 
@@ -1383,13 +1418,9 @@ end;
 function TFPHashList.InternalFind(AHash:LongWord;const AName:shortstring;out PrevIndex:Integer):Integer;
 var
   HashIndex : Integer;
-  Len,
-  LastChar  : Char;
 begin
-  HashIndex:=AHash mod LongWord(FHashCapacity);
-  Result:=FHashTable^[HashIndex];
-  Len:=Char(Length(AName));
-  LastChar:=AName[Byte(Len)];
+  prefetch(AName);
+  Result:=FHashTable^[AHash and FCapacityMask];
   PrevIndex:=-1;
   while Result<>-1 do
     begin
@@ -1397,8 +1428,6 @@ begin
         begin
           if assigned(Data) and
              (HashValue=AHash) and
-             (Len=FStrs[StrIndex]) and
-             (LastChar=FStrs[StrIndex+Byte(Len)]) and
              (AName=PShortString(@FStrs[StrIndex])^) then
             exit;
           PrevIndex:=Result;
@@ -1457,7 +1486,7 @@ begin
   if PrevIndex<>-1 then
     FHashList^[PrevIndex].NextIndex:=FHashList^[Index].NextIndex
   else
-    FHashTable^[OldHash mod LongWord(FHashCapacity)]:=FHashList^[Index].NextIndex;
+    FHashTable^[OldHash and FCapacityMask]:=FHashList^[Index].NextIndex;
   { Set new name and hash }
   with FHashList^[Index] do
     begin
@@ -1985,6 +2014,7 @@ end;
         while assigned(NewNode) do
          begin
            Next:=NewNode.Next;
+           prefetch(next.next);
            NewNode.Free;
            NewNode:=Next;
           end;
@@ -2756,5 +2786,99 @@ end;
           end;
         Result := False;
       end;
+
+
+{****************************************************************************
+                                tbitset
+****************************************************************************}
+
+    constructor tbitset.create(initsize: longint);
+      begin
+        create_bytesize((initsize+7) div 8);
+      end;
+
+
+    constructor tbitset.create_bytesize(bytesize: longint);
+      begin
+        fdatasize:=bytesize;
+        getmem(fdata,fdataSize);
+        clear;
+      end;
+
+
+    destructor tbitset.destroy;
+      begin
+        freemem(fdata,fdatasize);
+        inherited destroy;
+      end;
+
+
+    procedure tbitset.clear;
+      begin
+        fillchar(fdata^,fdatasize,0);
+      end;
+
+
+    procedure tbitset.grow(nsize: longint);
+      begin
+        reallocmem(fdata,nsize);
+        fillchar(fdata[fdatasize],nsize-fdatasize,0);
+        fdatasize:=nsize;
+      end;
+
+
+    procedure tbitset.include(index: longint);
+      var
+        dataindex: longint;
+      begin
+        { don't use bitpacked array, not endian-safe }
+        dataindex:=index shr 3;
+        if (dataindex>=datasize) then
+          grow(dataindex+16);
+        fdata[dataindex]:=fdata[dataindex] or (1 shl (index and 7));
+      end;
+
+
+    procedure tbitset.exclude(index: longint);
+      var
+        dataindex: longint;
+      begin
+        dataindex:=index shr 3;
+        if (dataindex>=datasize) then
+          exit;
+        fdata[dataindex]:=fdata[dataindex] and not(1 shl (index and 7));
+      end;
+
+
+    function tbitset.isset(index: longint): boolean;
+      var
+        dataindex: longint;
+      begin
+        dataindex:=index shr 3;
+        result:=
+          (dataindex<datasize) and
+          (((fdata[dataindex] shr (index and 7)) and 1)<>0);
+      end;
+
+
+    procedure tbitset.addset(aset: tbitset);
+      var
+        i: longint;
+      begin
+        if (aset.datasize>datasize) then
+          grow(aset.datasize);
+        for i:=0 to aset.datasize-1 do
+          fdata[i]:=fdata[i] or aset.data[i];
+      end;
+
+
+    procedure tbitset.subset(aset: tbitset);
+      var
+        i: longint;
+      begin
+        for i:=0 to min(datasize,aset.datasize)-1 do
+          fdata[i]:=fdata[i] and not(aset.data[i]);
+      end;
+
 
 end.

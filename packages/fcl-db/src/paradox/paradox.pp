@@ -14,6 +14,14 @@
 {$H+}
 {
   TParadox : Dataset wich can handle paradox files, based on PXLib.
+  pxlib is an open source C library for handling paradox files. It
+  is available from sourceforge:
+  http://pxlib.sourceforge.net/
+  it must be downloaded and installed separately. The header translations
+  for version 0.6.2 of pxlib are available in the pxlib unit in the Free 
+  Pascal Packages.
+  
+  The TParadox component was implemented by Michael Van Canneyt
 }
 
 unit paradox;
@@ -417,6 +425,7 @@ Var
   pxf : Ppxfield_t;
 
 begin
+  FieldDefs.Clear;
   pxf:=PX_get_fields(FDoc);
   ACount:= PX_get_num_fields(FDoc);
   ReallocMem(FOffsets,ACount*SizeOf(Integer));
@@ -482,7 +491,7 @@ begin
     end;
   If (BFN<>'') then
     begin
-    Writeln('opening blib file',bfn);
+    //Writeln('opening blib file',bfn);
     if PX_set_blob_file(FDoc,PChar(BFN))<>0 then
       RaiseError(SErrInvalidBlobFile,[BFN]);
     FBlobFileName:=BFN;
@@ -549,6 +558,9 @@ end;
 procedure TParadox.InternalClose;
 
 begin
+  BindFields(False);
+  if DefaultFields then
+    DestroyFields;
   FreeAndNil(FParser);
   FreeMem(FOffsets);
   FOffSets:=Nil;
@@ -629,7 +641,7 @@ var
   No,pft,flen : integer;
   pxf          : PPx_field;
   Value        : Pchar;
-  Y,M,D        : cint;
+  D            : clong;
   longv        : Clong;
   R            : Double;
   c            : Char;
@@ -652,7 +664,9 @@ begin
         If result then
           begin
           Move(Value^,Buffer^,flen);
-          doc^.free(doc,value);
+          If (Flen<=Field.DataSize) then
+            Pchar(Buffer)[flen]:=#0;
+          FDoc^.free(FDoc,value);
           end;
         end;
       pxfDate:
@@ -660,8 +674,11 @@ begin
         Result:=PX_get_data_long(FDoc,Buf,flen,@longv)>0;
         If Result then
           begin
-          PX_SdnToGregorian(longv+1721425,@Y,@M,@D);
-          PDateTime(Buffer)^:=EncodeDate(Y,M,D);
+          // 1721425 is the number of the days between the start of the
+          // julian calendar (4714 BC) and jan-00-0000 (Paradox base date)
+          // 2415019 is the number of the days between the start of the
+          // julian calendar (4714 BC) and dec-30-1899 (TDateTime base date)
+          PDateTime(Buffer)^:=Longv+1721425-2415019;
           end;
         end;
       pxfShort:
@@ -688,7 +705,7 @@ begin
         begin
         Result:=(PX_get_data_byte(FDoc,Buf,flen,@C)>0);
         If result then
-          PBoolean(Buffer)^:=(C<>#0);
+          PWordBool(Buffer)^:=(C<>#0);
         end;
       pxfBytes:
         begin
@@ -721,9 +738,9 @@ begin
           begin
           R:=R/1000.0;
           longv:=trunc(R /86400);
-          PX_SdnToGregorian(longv+1721425,@Y,@M,@D);
+          D:=Longv+1721425-2415019;
           longv:=(Trunc(r) mod 86400);
-          PDateTime(Buffer)^:=EncodeDate(Y,M,d)+(Longv/MSecsPerday);
+          PDateTime(Buffer)^:=D+(Longv/MSecsPerday);
           end;
         end;
       pxfBCD:

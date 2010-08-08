@@ -139,8 +139,6 @@ end;
   ---------------------------------------------------------------------}
 
 constructor THTMLWriter.Create;
-var
-  I: Integer;
 begin
   inherited Create;
   // some overhead - always be able to write at least one extra UCS4
@@ -182,8 +180,13 @@ begin
     wc := Cardinal(Src^);  Inc(Src);
     case wc of
       $0A: pb := StrECopy(pb, PChar(FLineBreak));
+      $0D: begin
+        pb := StrECopy(pb, PChar(FLineBreak));
+        if (Src < SrcEnd) and (Src^ = #$0A) then
+          Inc(Src);
+      end;
 
-      0..$09, $0B..$7F:  begin
+      0..$09, $0B, $0C, $0E..$7F:  begin
         pb^ := char(wc); Inc(pb);
       end;
 
@@ -333,21 +336,37 @@ var
   s: string;
   ElFlags: THTMLElementFlags;
   j: THTMLElementTag;
+  meta: Boolean;
 begin
   if not FInsideTextNode then
     wrtIndent;
-    
+
+  meta := False;
   s := LowerCase(node.NodeName);
   ElFlags := [efSubelementContent, efPCDATAContent];    // default flags
   for j := Low(THTMLElementTag) to High(THTMLElementTag) do
     if HTMLElementProps[J].Name = s then
     begin
       ElFlags := HTMLElementProps[j].Flags;
+      if j = etMeta then
+        meta := True;
       break;
     end;
 
   wrtChr('<');
   wrtStr(TDOMElement(node).TagName);
+
+  { Force charset label to utf-8, because it is the encoding we actually write }
+  if meta then
+  begin
+    s := TDOMElement(node).GetAttribute('http-equiv');
+    if SameText(s, 'content-type') then
+    begin
+      wrtStr(' content="text/html; charset=utf-8" http-equiv="Content-Type">');
+      Exit;
+    end;
+  end;
+
   if node.HasAttributes then
     for i := 0 to node.Attributes.Length - 1 do
     begin

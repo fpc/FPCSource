@@ -43,7 +43,7 @@ type
 {$endif Test_Double_checksum}
 
 const
-  CurrentPPUVersion = 94;
+  CurrentPPUVersion = 120;
 
 { buffer sizes }
   maxentrysize = 1024;
@@ -126,34 +126,38 @@ const
   ibnodetree       = 80;
   ibasmsymbols     = 81;
   ibresources      = 82;
+  ibcreatedobjtypes = 83;
+  ibwpofile         = 84;
+  ibmoduleoptions   = 85;
 
   ibmainname       = 90;
   { target-specific things }
   iblinkotherframeworks = 100;
 
 { unit flags }
-  uf_init          = $1;
-  uf_finalize      = $2;
-  uf_big_endian    = $4;
-//  uf_has_browser   = $10;
-  uf_in_library    = $20;     { is the file in another file than <ppufile>.* ? }
-  uf_smart_linked  = $40;     { the ppu can be smartlinked }
-  uf_static_linked = $80;     { the ppu can be linked static }
-  uf_shared_linked = $100;    { the ppu can be linked shared }
-//  uf_local_browser = $200;
-  uf_no_link       = $400;    { unit has no .o generated, but can still have
-                                external linking! }
-  uf_has_resourcestrings = $800;    { unit has resource string section }
-  uf_little_endian = $1000;
-  uf_release       = $2000;   { unit was compiled with -Ur option }
-  uf_threadvars    = $4000;   { unit has threadvars }
-  uf_fpu_emulation = $8000;   { this unit was compiled with fpu emulation on }
-  uf_has_debuginfo = $10000;  { this unit has debuginfo generated }
-  uf_local_symtable = $20000; { this unit has a local symtable stored }
-  uf_uses_variants  = $40000; { this unit uses variants }
-  uf_has_resourcefiles = $80000; { this unit has external resources (using $R directive)}
-  uf_has_exports = $100000;   { this module or a used unit has exports }
-
+  uf_init                = $000001; { unit has initialization section }
+  uf_finalize            = $000002; { unit has finalization section   }
+  uf_big_endian          = $000004;
+//uf_has_browser         = $000010;
+  uf_in_library          = $000020; { is the file in another file than <ppufile>.* ? }
+  uf_smart_linked        = $000040; { the ppu can be smartlinked }
+  uf_static_linked       = $000080; { the ppu can be linked static }
+  uf_shared_linked       = $000100; { the ppu can be linked shared }
+//uf_local_browser       = $000200;
+  uf_no_link             = $000400; { unit has no .o generated, but can still have external linking! }
+  uf_has_resourcestrings = $000800; { unit has resource string section }
+  uf_little_endian       = $001000;
+  uf_release             = $002000; { unit was compiled with -Ur option }
+  uf_threadvars          = $004000; { unit has threadvars }
+  uf_fpu_emulation       = $008000; { this unit was compiled with fpu emulation on }
+  uf_has_stabs_debuginfo = $010000; { this unit has stabs debuginfo generated }
+  uf_local_symtable      = $020000; { this unit has a local symtable stored }
+  uf_uses_variants       = $040000; { this unit uses variants }
+  uf_has_resourcefiles   = $080000; { this unit has external resources (using $R directive)}
+  uf_has_exports         = $100000; { this module or a used unit has exports }
+  uf_has_dwarf_debuginfo = $200000; { this unit has dwarf debuginfo generated }
+  uf_wideinits           = $400000; { this unit has winlike widestring typed constants }
+  uf_classinits          = $800000; { this unit has class constructors/destructors }
 
 type
   { bestreal is defined based on the target architecture }
@@ -173,7 +177,7 @@ type
     interface_checksum : cardinal;
     deflistsize,
     symlistsize : longint;
-    future   : array[0..0] of longint;
+    indirect_checksum: cardinal;
   end;
 
   tppuentry=packed record
@@ -214,11 +218,18 @@ type
     entrytyp : byte;
     header           : tppuheader;
     size             : integer;
+    { crc for the entire unit }
     crc,
-    interface_crc    : cardinal;
+    { crc for the interface definitions in this unit }
+    interface_crc,
+    { crc of all object/class definitions in the interface of this unit, xor'ed
+      by the crc's of all object/class definitions in the interfaces of units
+      used by this unit. Reason: see mantis #13840 }
+    indirect_crc     : cardinal;
     error,
     do_crc,
-    do_interface_crc : boolean;
+    do_interface_crc,
+    do_indirect_crc  : boolean;
     crc_only         : boolean;    { used to calculate interface_crc before implementation }
     constructor Create(const fn:string);
     destructor  Destroy;override;
@@ -240,9 +251,12 @@ type
     procedure getdata(var b;len:integer);
     function  getbyte:byte;
     function  getword:word;
+    function  getdword:dword;
     function  getlongint:longint;
     function getint64:int64;
+    function  getqword:qword;
     function getaint:aint;
+    function getaword:aword;
     function  getreal:ppureal;
     function  getstring:string;
     procedure getnormalset(var b);
@@ -257,9 +271,12 @@ type
     procedure putdata(const b;len:integer);
     procedure putbyte(b:byte);
     procedure putword(w:word);
+    procedure putdword(w:dword);
     procedure putlongint(l:longint);
     procedure putint64(i:int64);
+    procedure putqword(q:qword);
     procedure putaint(i:aint);
+    procedure putaword(i:aword);
     procedure putreal(d:ppureal);
     procedure putstring(const s:string);
     procedure putnormalset(const b);
@@ -422,6 +439,7 @@ begin
   header.size := swapendian(header.size);
   header.checksum := swapendian(header.checksum);
   header.interface_checksum := swapendian(header.interface_checksum);
+  header.indirect_checksum := swapendian(header.indirect_checksum);
   header.deflistsize:=swapendian(header.deflistsize);
   header.symlistsize:=swapendian(header.symlistsize);
 {$ENDIF}
@@ -592,14 +610,12 @@ begin
      result:=0;
      exit;
    end;
-{$ifdef FPC_UNALIGNED_FIXED}
   if bufsize-bufidx>=sizeof(word) then
     begin
       result:=Unaligned(pword(@buf[bufidx])^);
       inc(bufidx,sizeof(word));
     end
   else
-{$endif FPC_UNALIGNED_FIXED}
     readdata(result,sizeof(word));
   if change_endian then
    result:=swapendian(result);
@@ -612,18 +628,37 @@ begin
   if entryidx+4>entry.size then
    begin
      error:=true;
-     getlongint:=0;
+     result:=0;
      exit;
    end;
-{$ifdef FPC_UNALIGNED_FIXED}
   if bufsize-bufidx>=sizeof(longint) then
     begin
       result:=Unaligned(plongint(@buf[bufidx])^);
       inc(bufidx,sizeof(longint));
     end
   else
-{$endif FPC_UNALIGNED_FIXED}
     readdata(result,sizeof(longint));
+  if change_endian then
+   result:=swapendian(result);
+  inc(entryidx,4);
+end;
+
+
+function tppufile.getdword:dword;
+begin
+  if entryidx+4>entry.size then
+   begin
+     error:=true;
+     result:=0;
+     exit;
+   end;
+  if bufsize-bufidx>=sizeof(dword) then
+    begin
+      result:=Unaligned(plongint(@buf[bufidx])^);
+      inc(bufidx,sizeof(longint));
+    end
+  else
+    readdata(result,sizeof(dword));
   if change_endian then
    result:=swapendian(result);
   inc(entryidx,4);
@@ -638,15 +673,34 @@ begin
      result:=0;
      exit;
    end;
-{$ifdef FPC_UNALIGNED_FIXED}
   if bufsize-bufidx>=sizeof(int64) then
     begin
       result:=Unaligned(pint64(@buf[bufidx])^);
       inc(bufidx,sizeof(int64));
     end
   else
-{$endif FPC_UNALIGNED_FIXED}
     readdata(result,sizeof(int64));
+  if change_endian then
+   result:=swapendian(result);
+  inc(entryidx,8);
+end;
+
+
+function tppufile.getqword:qword;
+begin
+  if entryidx+8>entry.size then
+   begin
+     error:=true;
+     result:=0;
+     exit;
+   end;
+  if bufsize-bufidx>=sizeof(qword) then
+    begin
+      result:=Unaligned(pqword(@buf[bufidx])^);
+      inc(bufidx,sizeof(qword));
+    end
+  else
+    readdata(result,sizeof(qword));
   if change_endian then
    result:=swapendian(result);
   inc(entryidx,8);
@@ -659,6 +713,16 @@ begin
   result:=getint64;
 {$else cpu64bitalu}
   result:=getlongint;
+{$endif cpu64bitalu}
+end;
+
+
+function tppufile.getaword:aword;
+begin
+{$ifdef cpu64bitalu}
+  result:=getqword;
+{$else cpu64bitalu}
+  result:=getdword;
 {$endif cpu64bitalu}
 end;
 
@@ -702,18 +766,15 @@ end;
 
 
 function tppufile.getstring:string;
-var
-  s : string;
 begin
-  s[0]:=chr(getbyte);
-  if entryidx+length(s)>entry.size then
+  result[0]:=chr(getbyte);
+  if entryidx+length(result)>entry.size then
    begin
      error:=true;
      exit;
    end;
-  ReadData(s[1],length(s));
-  getstring:=s;
-  inc(entryidx,length(s));
+  ReadData(result[1],length(result));
+  inc(entryidx,length(result));
 end;
 
 
@@ -791,7 +852,9 @@ begin
 {reset}
   crc:=0;
   interface_crc:=0;
+  indirect_crc:=0;
   do_interface_crc:=true;
+  do_indirect_crc:=false;
   Error:=false;
   do_crc:=true;
   size:=0;
@@ -825,6 +888,7 @@ begin
     header.size := swapendian(header.size);
     header.checksum := swapendian(header.checksum);
     header.interface_checksum := swapendian(header.interface_checksum);
+    header.indirect_checksum := swapendian(header.indirect_checksum);
     header.deflistsize:=swapendian(header.deflistsize);
     header.symlistsize:=swapendian(header.symlistsize);
 {$endif not FPC_BIG_ENDIAN}
@@ -975,6 +1039,11 @@ begin
             inc(crcindex);
           end;
 {$endif def Test_Double_checksum}
+         { indirect crc must only be calculated for the interface; changes
+           to a class in the implementation cannot require another unit to
+           be recompiled }
+         if do_indirect_crc then
+           indirect_crc:=UpdateCrc32(indirect_crc,b,len);
        end;
     end;
   if not crc_only then
@@ -995,6 +1064,12 @@ begin
 end;
 
 
+procedure tppufile.putdword(w:dword);
+begin
+  putdata(w,4);
+end;
+
+
 procedure tppufile.putlongint(l:longint);
 begin
   putdata(l,4);
@@ -1007,10 +1082,23 @@ begin
 end;
 
 
+procedure tppufile.putqword(q:qword);
+begin
+  putdata(q,sizeof(qword));
+end;
+
+
 procedure tppufile.putaint(i:aint);
 begin
   putdata(i,sizeof(aint));
 end;
+
+
+procedure tppufile.putaword(i:aword);
+begin
+  putdata(i,sizeof(aword));
+end;
+
 
 procedure tppufile.putreal(d:ppureal);
 var

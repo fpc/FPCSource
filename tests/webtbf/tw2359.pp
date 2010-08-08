@@ -1,5 +1,4 @@
 { %FAIL }
-{ %OPT=-St }
 { Source provided for Free Pascal Bug Report 2359 }
 { Submitted by "Sergey Kosarevsky" on  2003-02-06 }
 { e-mail: netsurfer@au.ru }

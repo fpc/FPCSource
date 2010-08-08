@@ -6,7 +6,7 @@
 main=rtl
 
 [target]
-units=$(SYSTEMUNIT) fpintres ctypes objpas macpas strings \
+units=$(SYSTEMUNIT) fpintres ctypes objpas macpas iso7185 strings \
       lineinfo heaptrc \
       windows messages dynlibs \
       dos objects \
@@ -131,7 +131,7 @@ sockets$(PPUEXT) : sockets.pp windows$(PPUEXT) winsock$(PPUEXT) $(SYSTEMUNIT)$(P
 
 #winmouse$(PPUEXT) : winmouse.pp $(SYSTEMUNIT)$(PPUEXT) windows$(PPUEXT) graph$(PPUEXT)
 
-dynlibs$(PPUEXT) : $(INC)/dynlibs.pas windows$(PPUEXT)
+dynlibs$(PPUEXT) : $(INC)/dynlibs.pas windows$(PPUEXT) rtlconsts$(PPUEXT) sysconst$(PPUEXT) sysutils$(PPUEXT)
 
 #
 # TP7 Compatible RTL Units

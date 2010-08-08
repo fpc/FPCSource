@@ -67,11 +67,9 @@ var
   DLLreason,DLLparam:DWord;
 
 type
-  TDLL_Process_Entry_Hook = function (dllparam : longint) : longbool;
   TDLL_Entry_Hook = procedure (dllparam : longint);
 
 const
-  Dll_Process_Attach_Hook : TDLL_Process_Entry_Hook = nil;
   Dll_Process_Detach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Attach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;
@@ -855,21 +853,12 @@ Const
      DLL_THREAD_DETACH = 3;
 
 function Dll_entry : longbool;[public, alias : '_FPC_DLL_Entry'];
-var
-  res : longbool;
-
 begin
    IsLibrary:=true;
    Dll_entry:=false;
    case DLLreason of
      DLL_PROCESS_ATTACH :
        begin
-         if assigned(Dll_Process_Attach_Hook) then
-           begin
-             res:=Dll_Process_Attach_Hook(DllParam);
-             if not res then
-               exit(false);
-           end;
          PASCALMAIN;
          Dll_entry:=true;
        end;
@@ -1577,6 +1566,28 @@ function WinCEWideLower(const s : WideString) : WideString;
       CharLowerBuff(LPWSTR(result),length(result));
   end;
 
+{ Currently widestrings are ref-counted on wince.
+  Unicode helpers are just wrappers over widestring helpers. }
+
+procedure WinCEUnicode2AnsiMove(source:punicodechar;var dest:ansistring;len:SizeInt);
+begin
+  WinCEWide2AnsiMove(source, dest, len);
+end;
+
+procedure WinCEAnsi2UnicodeMove(source:pchar;var dest:UnicodeString;len:SizeInt);
+begin
+  WinCEAnsi2WideMove(source, PWideString(@dest)^, len);
+end;
+
+function WinCEUnicodeUpper(const s : UnicodeString) : UnicodeString;
+begin
+  Result:=WinCEWideUpper(s);
+end;
+
+function WinCEUnicodeLower(const s : UnicodeString) : UnicodeString;
+begin
+  Result:=WinCEWideLower(s);
+end;
 
 { there is a similiar procedure in sysutils which inits the fields which
   are only relevant for the sysutils units }
@@ -1586,6 +1597,13 @@ procedure InitWinCEWidestrings;
     widestringmanager.Ansi2WideMoveProc:=@WinCEAnsi2WideMove;
     widestringmanager.UpperWideStringProc:=@WinCEWideUpper;
     widestringmanager.LowerWideStringProc:=@WinCEWideLower;
+{$ifndef VER2_2}
+    { Unicode }
+    widestringmanager.Unicode2AnsiMoveProc:=@WinCEUnicode2AnsiMove;
+    widestringmanager.Ansi2UnicodeMoveProc:=@WinCEAnsi2UnicodeMove;
+    widestringmanager.UpperUnicodeStringProc:=@WinCEUnicodeUpper;
+    widestringmanager.LowerUnicodeStringProc:=@WinCEUnicodeLower;
+{$endif VER2_2}
   end;
 
 
@@ -1813,7 +1831,6 @@ initialization
   { Reset internal error variable }
   errno:=0;
   initvariantmanager;
-  initwidestringmanager;
 {$ifndef VER2_2}
   initunicodestringmanager;
 {$endif VER2_2}

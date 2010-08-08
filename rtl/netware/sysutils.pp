@@ -18,6 +18,7 @@ unit sysutils;
 interface
 
 {$MODE objfpc}
+{$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
 
@@ -112,7 +113,7 @@ begin
 end;
 
 
-Function FileRead (Handle : THandle; Var Buffer; Count : longint) : longint;
+Function FileRead (Handle : THandle; Out Buffer; Count : longint) : longint;
 
 begin
   FileRead:=_read (Handle,@Buffer,Count);
@@ -533,7 +534,7 @@ begin
 end;
 
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
 
 var
   e : EOSError;
@@ -557,7 +558,7 @@ end;
 
 
 function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString): integer;
+                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
 
 var
   CommandLine: AnsiString;

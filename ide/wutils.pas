@@ -1198,7 +1198,7 @@ function ExistsDir(const DirName: string): boolean;
 var
   Dir : SearchRec;
 begin
-  Dos.FindFirst(TrimEndSlash(DirName),Directory,Dir);
+  Dos.FindFirst(TrimEndSlash(DirName),anyfile,Dir);
   { if a file is found it is also reported
     at least for some Dos version
     so we need to check the attributes PM }

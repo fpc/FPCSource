@@ -13,15 +13,34 @@
  **********************************************************************}
 unit GdbInt;
 
-{$i gdbver.inc}
+{$mode objfpc}
+
+{$define NotImplemented}
+
+{$define COMPILING_GDBINT_UNIT}
+{$ifdef USE_GDBLIBINC}
+  {$i gdblib.inc}
+{$else not USE_GDBLIBINC}
+  {$i gdbver.inc}
+{$endif not USE_GDBLIBINC}
+
+{ Possible optional conditionals:
+  GDB_DISABLE_INTL              To explicitly not use libintl
+
+  GDB_DISABLE_PYTHON            To explicitly not use libpython,
+  if gdb was configured using --without-python
+
+  GDB_CORE_ADDR_FORCE_64BITS    To force 64 bits for CORE_ADDR
+
+  Verbose                       To test gdbint
+
+  DebugCommand                  To debug Command method
+}
 
 interface
 
 {$smartlink off}
 
-{.$define Verbose}
-{.$define DebugCommand}
-{$define NotImplemented}
 
 { Is create_breakpoint_hook deprecated? }
 { Seem not so for 6.1 }
@@ -69,20 +88,82 @@ interface
   {$info using gdb 6.6.x}
   {$define GDB_V6}
   {$define GDB_HAS_DB_COMMANDS}
+  {$define GDB_USES_BP_LOCATION}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
-{$endif def GDB_V605}
+{$endif def GDB_V606}
 
 { 6.7.x }
 {$ifdef GDB_V607}
   {$info using gdb 6.7.x}
   {$define GDB_V6}
   {$define GDB_HAS_DB_COMMANDS}
+  {$define GDB_USES_BP_LOCATION}
   {$define GDB_NEEDS_NO_ERROR_INIT}
   {$define GDB_USES_EXPAT_LIB}
   {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
-{$endif def GDB_V605}
+{$endif def GDB_V607}
+
+{ 6.8.x }
+{$ifdef GDB_V608}
+  {$info using gdb 6.8.x}
+  {$define GDB_V6}
+  {$define GDB_HAS_DB_COMMANDS}
+  {$define GDB_USES_BP_LOCATION}
+  {$define GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+  {$define GDB_NEEDS_NO_ERROR_INIT}
+  {$define GDB_USES_EXPAT_LIB}
+  {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
+  {$define GDB_USES_LIBDECNUMBER}
+  // {$define GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+  {$define GDB_HAS_BP_NONE}
+{$endif def GDB_V608}
+
+{ 7.2.x }
+{$ifdef GDB_V702}
+  {$info using gdb 7.2.x}
+  {$define GDB_V7}
+{$endif def GDB_V702}
+
+{ 7.1.x }
+{$ifdef GDB_V701}
+  {$info using gdb 7.1.x}
+  {$define GDB_V7}
+{$endif def GDB_V701}
+
+
+
+{ 7.0.x }
+{$ifdef GDB_V700}
+  {$info using gdb 7.0.x}
+  {$define GDB_V7}
+{$endif def GDB_V700}
+
+{$ifdef GDB_V7}
+  {$define GDB_V6}
+  {$define GDB_HAS_DB_COMMANDS}
+  {$define GDB_USES_BP_LOCATION}
+  {$define GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+  {$define GDB_BP_LOCATION_HAS_GDBARCH}
+  {$define GDB_NEEDS_NO_ERROR_INIT}
+  {$define GDB_USES_EXPAT_LIB}
+  {$define GDB_USES_LIBDECNUMBER}
+  {$define GDB_USES_LIBINTL}
+  {$ifndef GDB_DISABLE_PYTHON}
+    {$define GDB_USES_LIBPYTHON}
+  {$endif}
+  {$define GDB_HAS_DEBUG_FILE_DIRECTORY}
+  {$define GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+  {$define GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
+  {$define GDB_HAS_BP_NONE}
+
+  {$ifdef GDB_CVS}
+    {$define GDB_BP_LOCATION_HAS_GDBARCH}
+    {$define GDB_HAS_PROGRAM_SPACE}
+  {$endif GDB_CVS}
+{$endif def GDB_V7}
+
 
 {$ifdef GDB_V6}
   {$define GDB_HAS_SYSROOT}
@@ -91,12 +172,29 @@ interface
   {$define GDB_INIT_HAS_ARGV0}
 {$endif GDB_V6}
 
+
+{$ifdef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+  {$define DO_NOT_USE_CBPH}
+{$endif}
+
 { GDB has a simulator for powerpc CPU
   it is integrated into GDB by default }
 {$ifdef cpupowerpc}
   {$define GDB_HAS_SIM}
 {$endif cpupowerpc}
 
+{$ifdef Solaris}
+  {$ifdef Sparc}
+    { Sparc/i386 solaris gdb also supports 64bit mode, thus
+      CORE_ADDR is 8-byte long }
+    {$define GDB_CORE_ADDR_FORCE_64BITS}
+  {$endif Sparc}
+  {$ifdef i386}
+    {$define GDB_CORE_ADDR_FORCE_64BITS}
+  {$endif i386}
+{$endif Solaris}
+
+{$ifdef NotImplemented}
 {$ifdef go32v2}
   {$undef NotImplemented}
   {$LINKLIB gdb}
@@ -108,7 +206,18 @@ interface
   {$LINKLIB opcodes}
   {$LINKLIB history}
   {$LINKLIB iberty}
-  {$LINKLIB intl}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
+  {$ifndef GDB_DISABLE_INTL}
+    {$LINKLIB intl}
+  {$endif ndef GDB_DISABLE_INTL}
   {$LINKLIB dbg}
   {$LINKLIB c}
 {$endif go32v2}
@@ -124,9 +233,15 @@ interface
   {$LINKLIB libopcodes.a}
   {$LINKLIB libhistory.a}
   {$LINKLIB libiberty.a}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
   {$LINKLIB ncurses}
   {$LINKLIB m}
   {$LINKLIB dl}
@@ -151,11 +266,20 @@ interface
   {$LINKLIB ncurses}
   {$LINKLIB m}
   {$LINKLIB iberty}
-  {$LINKLIB intl}        { does not seem to exist on netbsd LINKLIB dl,
+  {$ifndef GDB_DISABLE_INTL}
+    {$LINKLIB intl}
+  {$endif ndef GDB_DISABLE_INTL}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
+     { does not seem to exist on netbsd LINKLIB dl,
                             but I use GDB CVS snapshots for the *BSDs}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif freebsd}
@@ -175,13 +299,49 @@ interface
   {$LINKLIB m}
   {$LINKLIB iberty}
   {$LINKLIB intl}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
   { does not seem to exist on netbsd LINKLIB dl}
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif netbsd}
+
+{$ifdef solaris}
+  {$undef NotImplemented}
+  {$LINKLIB gdb}
+  {$ifdef GDB_HAS_SIM}
+    {$LINKLIB sim}
+  {$endif GDB_HAS_SIM}
+  {$LINKLIB bfd}
+  {$LINKLIB readline}
+  {$LINKLIB opcodes}
+  {$LINKLIB history}
+  {$LINKLIB iberty}
+  {$LINKLIB curses}
+  {$LINKLIB m}
+  {$LINKLIB iberty}
+  {$LINKLIB intl}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
+  {$LINKLIB dl}
+  {$LINKLIB socket}
+  {$LINKLIB nsl}
+  {$LINKLIB c}
+{$endif solaris}
 
 {$ifdef openbsd}
   {$undef NotImplemented}
@@ -197,10 +357,18 @@ interface
   {$LINKLIB ncurses}
   {$LINKLIB m}
   {$LINKLIB iberty}
-  {$LINKLIB intl}
+  {$ifndef GDB_DISABLE_INTL}
+    {$LINKLIB intl}
+  {$endif ndef GDB_DISABLE_INTL}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
   { does not seem to exist on netbsd LINKLIB dl}
   {$LINKLIB c}
   {$LINKLIB gcc}
@@ -217,7 +385,7 @@ interface
   {$LINKLIB libopcodes.a}
   {$LINKLIB libhistory.a}
   {$LINKLIB libiberty.a}
-  {$LINKLIB libintl.a}
+
   {$ifdef USE_MINGW_GDB}
     {$LINKLIB libm.a}
     {$LINKLIB libmoldname.a}
@@ -226,16 +394,33 @@ interface
     {$LINKLIB libmingwex.a}
     {$LINKLIB libmingw32.a}
     {$LINKLIB libmsvcrt.a}
-  {$else not USE_MINGW_GDB}
-    {$LINKLIB libiconv.a}
-    {$LINKLIB libncurses.a}
+    {$LINKLIB libdecnumber.a}
+    {$ifdef GDB_USES_LIBDECNUMBER}
+      {$LINKLIB decnumber}
+    {$endif GDB_USES_LIBDECNUMBER}
     {$ifdef GDB_USES_EXPAT_LIB}
       {$LINKLIB expat}
     {$endif GDB_USES_EXPAT_LIB}
+    {$ifdef GDB_USES_LIBPYTHON}
+      {$LINKLIB python}
+    {$endif GDB_USES_LIBPYTHON}
+  {$else not USE_MINGW_GDB}
+    {$LINKLIB libiconv.a}
+    {$LINKLIB libncurses.a}
+    {$ifdef GDB_USES_LIBDECNUMBER}
+      {$LINKLIB decnumber}
+    {$endif GDB_USES_LIBDECNUMBER}
+    {$ifdef GDB_USES_EXPAT_LIB}
+      {$LINKLIB expat}
+    {$endif GDB_USES_EXPAT_LIB}
+    {$ifdef GDB_USES_LIBPYTHON}
+      {$LINKLIB python}
+    {$endif GDB_USES_LIBPYTHON}
     {$LINKLIB gcc}
     {$LINKLIB cygwin} { alias of libm.a and libc.a }
+  {$LINKLIB libintl.a}
   {$LINKLIB imagehlp}
-  {$endif not USE_MINGW_GDB}	
+  {$endif not USE_MINGW_GDB}
   {$LINKLIB kernel32}
   {$LINKLIB user32}
 {$endif win32}
@@ -254,15 +439,25 @@ interface
   {$LINKLIB iberty}
   {$LINKLIB ncurses}
   { $ LINKLIB m} // include in libroot under BeOS
-  {$LINKLIB intl}
+  {$ifndef GDB_DISABLE_INTL}
+    {$LINKLIB intl}
+  {$endif ndef GDB_DISABLE_INTL}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
   {$ifdef GDB_USES_EXPAT_LIB}
     {$LINKLIB expat}
   {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
   { does not seem to exist on netbsd LINKLIB dl}
   { $ LINKLIB c} // This is libroot under BeOS, and always linked
   {$LINKLIB debug}
   {$LINKLIB gcc}
 {$endif beos}
+
+{$endif NotImplemented}
 
 {$ifdef go32v2}
   {$define supportexceptions}
@@ -314,6 +509,9 @@ const
 
 type
 {$if defined(CPUSPARC) and defined(LINUX)}
+  {$define GDB_CORE_ADDR_FORCE_64BITS}
+{$endif}
+{$ifdef GDB_CORE_ADDR_FORCE_64BITS}
   CORE_ADDR = qword;
 {$else}
   CORE_ADDR = ptrint; { might be target dependent PM }
@@ -457,6 +655,9 @@ type
     last_breakpoint_line : longint;
     last_breakpoint_file : pchar;
     invalid_breakpoint_line : boolean;
+    user_screen_shown,
+    switch_to_user     : boolean;
+
     { init }
     constructor init;
     destructor  done;
@@ -473,8 +674,6 @@ type
     function  set_current_frame(level : longint) : boolean;
     procedure clear_frames;
     { Highlevel }
-    user_screen_shown,
-    switch_to_user     : boolean;
     procedure GetAddrSyminfo(addr:ptrint;var si:tsyminfo);
     procedure SelectSourceline(fn:pchar;line:longint);
     procedure StartSession;
@@ -482,6 +681,8 @@ type
     procedure EndSession(code:longint);
     procedure DebuggerScreen;
     procedure UserScreen;
+    procedure FlushAll; virtual;
+    function Query(question : pchar; args : pchar) : longint; virtual;
     { Hooks }
     procedure DoSelectSourceline(const fn:string;line:longint);virtual;
     procedure DoStartSession;virtual;
@@ -607,7 +808,11 @@ type
        language_fortran,language_m2,language_asm,
        language_scm,language_pascal,language_objc);
 
-     bptype = (bp_breakpoint,bp_hardware_breakpoint,
+     bptype = (
+{$ifdef GDB_HAS_BP_NONE}
+       bp_none,
+{$endif GDB_HAS_BP_NONE}
+       bp_breakpoint,bp_hardware_breakpoint,
        bp_until,bp_finish,bp_watchpoint,bp_hardware_watchpoint,
        bp_read_watchpoint,bp_access_watchpoint,
        bp_longjmp,bp_longjmp_resume,bp_step_resume,
@@ -618,6 +823,14 @@ type
 
      bpdisp = (del,del_at_next_stop,disable,donttouch);
 
+     pbp_location = ^bp_location;
+
+     bp_loc_type = (bp_loc_software_breakpoint, bp_loc_hardware_breakpoint,
+                    bp_loc_hardware_watchpoint, bp_loc_other);
+
+
+     target_hw_bp_type = (hw_write, hw_read, hw_access, hw_execute);
+
 {$PACKRECORDS 4}
      pbreakpoint = ^breakpoint;
      breakpoint = record
@@ -626,14 +839,20 @@ type
           enable : tenable;
           disposition : bpdisp;
           number : longint;
+{$ifdef GDB_USES_BP_LOCATION}
+          loc : pbp_location;
+{$else not GDB_USES_BP_LOCATION}
           address : CORE_ADDR;
+{$endif not GDB_USES_BP_LOCATION}
           line_number : longint;
           source_file : pchar;
           silent : byte;
           ignore_count : longint;
+{$ifndef GDB_USES_BP_LOCATION}
           shadow_contents : array[0..15] of char;
           inserted : char;
           duplicate : char;
+{$endif not GDB_USES_BP_LOCATION}
           commands : pointer; {^command_line}
           frame : CORE_ADDR;
           cond : pointer; {^expression}
@@ -652,6 +871,49 @@ type
           hit_count : longint;
           section : pointer; {^asection}
        end;
+
+     bp_target_info = record
+          placed_address_space : pointer;{paddress_space;}
+          placed_address : CORE_ADDR;
+          shadow_contents : array[0..15] of char;
+          shadow_len : longint;
+          placed_size : longint;
+       end;
+
+     bp_location = record
+         next : pbp_location;
+{$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+         global_next : pbp_location;
+{$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+         loc_type : bp_loc_type;
+         owner : pbreakpoint;
+{$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+         cond : pointer;{pexpression;}
+         shlib_disabled : byte;
+         enabled : byte;
+{$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+         inserted : byte;
+         duplicate : byte;
+{$ifdef GDB_BP_LOCATION_HAS_GDBARCH}
+         gdbarch : pointer;{pgdbarch;}
+{$endif GDB_BP_LOCATION_HAS_GDBARCH}
+{$ifdef GDB_HAS_PROGRAM_SPACE}
+         pspace : pointer;{pprogram_space;}
+{$endif GDB_HAS_PROGRAM_SPACE}
+         address : CORE_ADDR;
+{$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+         length : longint;
+         watchpoint_type : target_hw_bp_type;
+{$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+         section : pointer;{pobj_section;}
+         requested_address : CORE_ADDR;
+{$ifdef GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+         function_name : ^char;
+{$endif GDB_BP_LOCATION_HAS_GLOBAL_NEXT}
+         target_info : bp_target_info;
+         overlay_target_info : bp_target_info;
+         events_till_retirement : longint;
+      end;
 
      tfreecode=(free_nothing,free_contents,free_linetable);
 
@@ -681,11 +943,19 @@ type
 
      psymtab_and_line = ^symtab_and_line;
      symtab_and_line = record
+         {$ifdef GDB_HAS_PROGRAM_SPACE}
+         pspace : pointer;
+         {$endif GDB_HAS_PROGRAM_SPACE}
           symtab : psymtab;
           section : pointer; {^asection;}
           line : longint;
           pc : CORE_ADDR;
           _end : CORE_ADDR;
+          { Added fields, not used in gdbint,
+            but necessary to allocated enough space to
+            avoid stack memory corruption PM }
+          explicit_pc : longint;
+          explicit_line : longint;
        end;
 
      symtabs_and_lines = record
@@ -1141,11 +1411,15 @@ var
 { external variables }
   error_return : jmp_buf;cvar;public;
   quit_return  : jmp_buf;cvar;public;
-  {$ifdef GDB_HAS_DEPRECATED_CBPH}
-  deprecated_create_breakpoint_hook : pointer;cvar;external;
-  {$else}
-  create_breakpoint_hook : pointer;cvar;external;
-  {$endif}
+  deprecated_query_hook : pointer;cvar;public;
+
+  {$ifndef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+    {$ifdef GDB_HAS_DEPRECATED_CBPH}
+    deprecated_create_breakpoint_hook : pointer;cvar;external;
+    {$else}
+    create_breakpoint_hook : pointer;cvar;external;
+    {$endif}
+  {$endif ndef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
   current_target : target_ops;cvar;external;
   stop_pc      : CORE_ADDR;cvar;external;
   { Only used from GDB 5.01 but doesn't hurst otherwise }
@@ -1191,8 +1465,12 @@ procedure gdb_init(argv0 : pchar);cdecl;external;
 procedure gdb_init;cdecl;external;
 {$endif not GDB_INIT_HAS_ARGV0}
 procedure execute_command(p:pchar;i:longint);cdecl;external;
+{$ifdef GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
 procedure target_kill;cdecl;external;
+procedure target_close(pt : ptarget_ops; i:longint);cdecl;external;
+{$else not GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
 procedure target_close(i:longint);cdecl;external;
+{$endif ndef GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
 
 
 {*****************************************************************************
@@ -1531,6 +1809,20 @@ procedure annotate_ignore_count_change;cdecl;public;
 begin
 {$ifdef Verbose}
   Debug('|annotate_ignore_count_change()|');
+{$endif}
+end;
+
+procedure annotate_new_thread;cdecl;public;
+begin
+{$ifdef Verbose}
+  Debug('|annotate_new_thread()|');
+{$endif}
+end;
+
+procedure annotate_thread_changed;cdecl;public;
+begin
+{$ifdef Verbose}
+  Debug('|annotate_thread_changed()|');
 {$endif}
 end;
 
@@ -2037,6 +2329,21 @@ begin
 end;
 
 
+function QueryHook(question : pchar; arg : pchar) : longint; cdecl;
+begin
+  if not assigned(curr_gdb) then
+    QueryHook:=0
+  else
+    begin
+      if curr_gdb^.reset_command and (pos('Kill',question)>0) then
+        QueryHook:=1
+      else if pos('%s',question)>0 then
+        QueryHook:=curr_gdb^.Query(question, arg)
+      else
+        QueryHook:=curr_gdb^.Query(question, nil);
+    end;
+end;
+
 procedure CreateBreakPointHook(var b:breakpoint);cdecl;
 var
   sym : symtab_and_line;
@@ -2051,7 +2358,12 @@ var
   not restored correctly PM }
   procedure get_pc_line;
     begin
+
+{$ifdef GDB_USES_BP_LOCATION}
+      sym:=find_pc_line(b.loc^.address,0);
+{$else not GDB_USES_BP_LOCATION}
       sym:=find_pc_line(b.address,0);
+{$endif not GDB_USES_BP_LOCATION}
     end;
 begin
   get_pc_line;
@@ -2061,7 +2373,11 @@ begin
      { function breakpoints have zero as file and as line !!
        but they are valid !! }
      invalid_breakpoint_line:=(b.line_number<>sym.line) and (b.line_number<>0);
+{$ifdef GDB_USES_BP_LOCATION}
+     last_breakpoint_address:=b.loc^.address;
+{$else not GDB_USES_BP_LOCATION}
      last_breakpoint_address:=b.address;
+{$endif not GDB_USES_BP_LOCATION}
      last_breakpoint_line:=sym.line;
      if assigned(sym.symtab) then
       last_breakpoint_file:=sym.symtab^.filename
@@ -2070,6 +2386,37 @@ begin
    end;
 end;
 
+{$ifdef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+
+type
+  breakpoint_created_function_type = procedure (bpnum : longint); cdecl;
+  pobserver = pointer;
+var
+  breakpoint_created_observer : pobserver = nil;
+
+function observer_attach_breakpoint_created(create_func : breakpoint_created_function_type) : pobserver;cdecl;external;
+procedure observer_detach_breakpoint_created(pob : pobserver);cdecl;external;
+
+var breakpoint_chain : pbreakpoint ;cvar;external;
+
+
+procedure notify_breakpoint_created(bpnum : longint);cdecl;
+var
+  pb : pbreakpoint;
+begin
+  pb:=breakpoint_chain;
+  while assigned(pb) do
+    begin
+      if pb^.number=bpnum then
+        begin
+          CreateBreakPointHook(pb^);
+          exit;
+        end
+      else
+        pb:=pb^.next;
+    end;
+end;
+{$endif def GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
 
 {*****************************************************************************
                                  tgdbinterface
@@ -2098,6 +2445,9 @@ begin
   gdb_command('set print vtbl on');
   gdb_command('set print object on');
   gdb_command('set print null-stop');
+  {$ifdef USE_MINGW_GDB}  // maybe this also should be done for newer cygwin gdbs.
+  gdb_command('set confirm off');
+  {$endif}
 end;
 
 
@@ -2114,11 +2464,17 @@ procedure tgdbinterface.gdb__init;
 begin
   gdboutputbuf.reset;
   gdberrorbuf.reset;
-  {$ifdef GDB_HAS_DEPRECATED_CBPH}
-  deprecated_create_breakpoint_hook:=@CreateBreakPointHook;
-  {$else}
-  create_breakpoint_hook:=@CreateBreakPointHook;
+  {$ifdef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+    breakpoint_created_observer:=observer_attach_breakpoint_created(@notify_breakpoint_created);
+  {$else not GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+    {$ifdef GDB_HAS_DEPRECATED_CBPH}
+    deprecated_create_breakpoint_hook:=@CreateBreakPointHook;
+    {$else}
+    create_breakpoint_hook:=@CreateBreakPointHook;
+    {$endif}
   {$endif}
+  deprecated_query_hook :=@QueryHook;
+
   signal_string:=nil;
   signal_name:=nil;
 end;
@@ -2129,16 +2485,34 @@ procedure tgdbinterface.gdb_done;
 begin
   if debuggee_started then
     begin
+{$ifdef GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
+      target_kill;
+      target_close(@current_target,1);
+{$else not GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
       current_target.to_kill;
-      current_target.to_close(1);
+      target_close(1);
+{$endif ndef GDB_TARGET_CLOSE_HAS_PTARGET_ARG}
     end;
-  {$ifdef GDB_HAS_DEPRECATED_CBPH}
-  deprecated_create_breakpoint_hook:=nil;
-  {$else}
-  create_breakpoint_hook:=nil;
+  {$ifdef GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+    observer_detach_breakpoint_created(breakpoint_created_observer);
+    breakpoint_created_observer:=nil;
+  {$else not GDB_HAS_OBSERVER_NOTIFY_BREAKPOINT_CREATED}
+    {$ifdef GDB_HAS_DEPRECATED_CBPH}
+    deprecated_create_breakpoint_hook:=nil;
+    {$else}
+    create_breakpoint_hook:=nil;
+    {$endif}
   {$endif}
 end;
 
+procedure tgdbinterface.FlushAll;
+begin
+end;
+
+function tgdbinterface.Query(question : pchar; args : pchar) : longint;
+begin
+  Query:=0;
+end;
 
 function tgdbinterface.error:boolean;
 begin
@@ -2512,6 +2886,12 @@ var
   c_argc : longint;external name '___crt0_argc';
   c_argv : ppchar;external name '___crt0_argv';
 {$endif def go32v2}
+var
+  current_directory : pchar; cvar; external;
+  gdb_dirbuf : array[0..0] of char; cvar; external;
+  CurrentDir : AnsiString;
+const
+  DIRBUF_SIZE = 1024;
 
 procedure InitLibGDB;
 {$ifdef supportexceptions}
@@ -2557,7 +2937,12 @@ begin
 //  gdb_stdtargin := gdb_stdin;
   gdb_stdtargerr := gdb_stderr;
 {$endif}
-
+  GetDir(0, CurrentDir);
+  if length(CurrentDir)<DIRBUF_SIZE then
+    strpcopy(@gdb_dirbuf,CurrentDir)
+  else
+    gdb_dirbuf[0]:=#0;
+  current_directory:=@gdb_dirbuf[0];
   next_exit:=exitproc;
   exitproc:=@DoneLibGDB;
 {$ifdef GDB_V6}
@@ -2597,10 +2982,12 @@ end;
 
 {$ifdef GDB_HAS_SYSROOT}
 var gdb_sysroot  : pchar; cvar;public;
+    gdb_datadir  : pchar; cvar;public;
     gdb_sysrootc : char;
     return_child_result : longbool;cvar;public;
     return_child_result_value : longint;cvar;public;
     batch_silent : longbool;cvar;public;
+    batch_flag : longbool;cvar;public;
 {$endif}
 {$ifdef GDB_HAS_DEBUG_FILE_DIRECTORY}
 var
@@ -2611,6 +2998,7 @@ begin
 {$ifdef GDB_HAS_SYSROOT}
   gdb_sysrootc := #0;
   gdb_sysroot := @gdb_sysrootc;
+  gdb_datadir := @gdb_sysrootc;
 {$endif}
 {$ifdef GDB_HAS_DEBUG_FILE_DIRECTORY}
   debug_file_directory := '/usr/local/lib';

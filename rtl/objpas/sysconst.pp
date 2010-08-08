@@ -41,6 +41,9 @@ resourcestring
   SErrInvalidDayOfWeekInMonth = 'Year %d Month %d NDow %d DOW %d is not a valid date';
   SErrInvalidDayOfYear   = 'Year %d does not have a day number %d';
   SErrInvalidTimeStamp   = 'Invalid date/timestamp : "%s"';
+  SInvalidJulianDate            = '%f Julian cannot be represented as a DateTime';
+  SErrIllegalDateFormatString   = '"%s" is not a valid date format string';
+  SErrInvalidTimeFormat  = '"%s" is not a valid time';
   SExceptionErrorMessage = 'exception at %p';
   SExceptionStack        = 'Exception stack error';
   SExecuteProcessFailed  = 'Failed to execute "%s", error code: %d';
@@ -54,6 +57,7 @@ resourcestring
   SIntOverflow           = 'Arithmetic overflow';
   SIntfCastError         = 'Interface not supported';
   SInvalidArgIndex       = 'Invalid argument index in format "%s"';
+  SInvalidBCD            = '%x is an invalid BCD value';
   SInvalidBoolean        = '"%s" is not a valid boolean.';
   SInvalidCast           = 'Invalid type cast';
   SinvalidCurrency       = 'Invalid currency: "%s"';
@@ -75,7 +79,8 @@ resourcestring
   SInvalidVarOpWithHResultWithPrefix = 'Invalid variant operation (%s%.8x)'+LineEnding+'%s';
   SNoError               = 'No error.';
   SNoThreadSupport       = 'Threads not supported. Recompile program with thread driver.';
-  SMissingWStringManager = 'Widestring manager not available. Recompile program with appropiate manager.';
+  SMissingWStringManager = 'Widestring manager not available. Recompile program with appropriate manager.';
+  SSigQuit               = 'SIGQUIT signal received.';
   SOSError               = 'System error, (OS Code %d):'+LineEnding+'%s';
   SOutOfMemory           = 'Out of memory';
   SOverflow              = 'Floating point overflow';

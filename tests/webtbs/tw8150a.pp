@@ -4,9 +4,9 @@
 
 type
   tc = class
+    a : longint;
     class procedure classmethod;
     procedure method;
-    a : longint;
   end;
 
   ttc = class of tc;

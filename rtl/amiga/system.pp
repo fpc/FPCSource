@@ -365,7 +365,6 @@ end;
 
 begin
   IsConsole := TRUE;
-  IsLibrary := FALSE;
   SysResetFPU;
   if not(IsLibrary) then
     SysInitFPU;

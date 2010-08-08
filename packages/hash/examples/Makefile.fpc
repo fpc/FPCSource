@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for hash units example
+#
+
+[target]
+programs=mdtest crctest sha1test
+
+[require]
+packages=hash
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

@@ -1,0 +1,5 @@
+{ %norun }
+
+begin
+(* ()* *)
+end.

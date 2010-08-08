@@ -1,0 +1,91 @@
+Readme for libgmp.tar.bz2 2009-09-06
+
+= What
+
+  Free Pascal interface for the GNU Multiple Precision Arithmetic Library.
+
+= Why
+
+  Numeric computing outside the built in types range. AFAIK there is no complete
+  binding for Free Pascal available yet.
+
+= Files
+
+  - gmp_accept_test.pas
+    "Go/no go" test of the gmp unit against the GMP library on your system.
+
+  - gmp.pas
+    The interface unit.
+
+  - gmp_testcase.pas
+    Put this unit in your uses clause of a fpcunit project.
+
+  - gmp_test_impl.inc
+  - gmp_test_intf.inc
+    Test classes declarations and implementations. Included by:
+    * gmp_accept_test.pas
+    * gmp_testcase
+
+  - pidigits_example.pas
+    Original source from:
+    shootout.alioth.debian.org/u64/benchmark.php?test=pidigits&lang=fpascal&id=2
+    Adapted for using the gmp unit.
+
+  - pidigits_example2.pas
+    Modified pidigits_example.pas to demonstrate usage of the gmp extensions.
+
+  - printf_example.pas
+    Demo using the GMP printf
+
+  - printf_example2.pas
+    Dtto with gmp extensions.
+
+  - scanf_example.pas
+    Demo using the GMP scanf.
+
+  - scanf_example2.pas
+    Dtto with gmp extensions.
+
+= Status
+  - Tested on 64 and 32 bit Linux and on 32 bit Windows.
+  - Known issues
+    * There is a link error on Windows with the GMP global variables.
+      Probably could be solved with someone's better knowledge of the Windows
+      environment.
+
+= Bindings
+  - Standard
+    * Almost full (see comments in gmp.pas) binding of the types and functions
+      exported from libgmp.
+
+  - Extensions
+    * Based on pseudo value types (in fact interface types) with an automatic
+      memory management in the spirit of Object Pascal strings - compiler takes
+      care of initialization/finalization. Copy on write semantics. Can intermix
+      the standard binding/types with the extended ones. The extended types have
+      access to a same set of numeric functions as in the standard binding.
+
+  - Operators
+    * Overloaded operators for the extensions value types. Can make programs
+      significantly more readable/maintainable. See and compare for yourself
+      in the pidigits examples. BTW, the overhead in this example with
+      the extended types and operators is less than 10%. Unusable for shootout,
+      but is probably acceptable in many other areas.
+
+= Tips
+  - range checks
+    You should probably want to put asserts with *_fits before conversion to
+    FPC ordinal types - applies to the assignment operator too.
+
+= License
+  - FPC developers, you can do anything you see appropriate with the sources.
+    Review, refactor and/or reject :-)
+
+= Windows
+
+I got the examples running under win32 by getting the mingw-dynamic package
+on
+
+http://cs.nyu.edu/exact/core/gmp/
+
+and then renaming it to gmp.dll

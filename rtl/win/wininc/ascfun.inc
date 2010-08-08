@@ -163,10 +163,10 @@ function SetDefaultCommConfigA(lpszName:LPCSTR; lpCC:LPCOMMCONFIG; dwSize:DWORD)
 function GetComputerNameA(lpBuffer:LPSTR; nSize:LPDWORD):WINBOOL; external 'kernel32' name 'GetComputerNameA';
 function SetComputerNameA(lpComputerName:LPCSTR):WINBOOL; external 'kernel32' name 'SetComputerNameA';
 function GetUserNameA(lpBuffer:LPSTR; nSize:LPDWORD):WINBOOL; external 'advapi32' name 'GetUserNameA';
-function wvsprintfA(_para1:LPSTR; _para2:LPCSTR; arglist:va_list):longint; external 'user32' name 'wvsprintfA';
+function wvsprintfA(_para1:LPSTR; _para2:LPCSTR; arglist:va_list):longint; cdecl; external 'user32' name 'wvsprintfA';
 function wsprintfA(_para1:LPSTR; _para2:LPCSTR; const args:array of const):longint; cdecl; external 'user32' name 'wsprintfA';
-function wsprintfA(_para1:LPSTR; _para2:LPCSTR):longint; external 'user32' name 'wsprintfA';
-function wsprintf(_para1:LPSTR; _para2:LPCSTR; const args:array of const):longint; external 'user32' name 'wsprintfA';
+function wsprintfA(_para1:LPSTR; _para2:LPCSTR):longint; cdecl; external 'user32' name 'wsprintfA';
+function wsprintf(_para1:LPSTR; _para2:LPCSTR; const args:array of const):longint; cdecl; external 'user32' name 'wsprintfA';
 function wsprintf(_para1:LPSTR; _para2:LPCSTR):longint; cdecl; external 'user32' name 'wsprintfA';
 function LoadKeyboardLayoutA(pwszKLID:LPCSTR; Flags:UINT):HKL; external 'user32' name 'LoadKeyboardLayoutA';
 function GetKeyboardLayoutNameA(pwszKLID:LPSTR):WINBOOL; external 'user32' name 'GetKeyboardLayoutNameA';
@@ -183,7 +183,7 @@ function GetMessageA(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:U
 function DispatchMessageA(lpMsg:LPMSG):LONG; external 'user32' name 'DispatchMessageA';
 function PeekMessageA(lpMsg:LPMSG; hWnd:HWND; wMsgFilterMin:UINT; wMsgFilterMax:UINT; wRemoveMsg:UINT):WINBOOL; external 'user32' name 'PeekMessageA';
 function SendMessageA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external 'user32' name 'SendMessageA';
-function SendMessageTimeoutA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; fuFlags:UINT;uTimeout:UINT; lpdwResult:LPDWORD):LRESULT; external 'user32' name 'SendMessageTimeoutA';
+function SendMessageTimeoutA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; fuFlags:UINT;uTimeout:UINT; lpdwResult:PDWORD_PTR):LRESULT; external 'user32' name 'SendMessageTimeoutA';
 function SendNotifyMessageA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external 'user32' name 'SendNotifyMessageA';
 function SendMessageCallbackA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM; lpResultCallBack:SENDASYNCPROC;dwData:DWORD):WINBOOL; external 'user32' name 'SendMessageCallbackA';
 function PostMessageA(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):WINBOOL; external 'user32' name 'PostMessageA';
@@ -477,6 +477,9 @@ function CreateProcessAsUserA(_para1:HANDLE; _para2:LPCTSTR; _para3:LPTSTR; _par
   _para10:LPSTARTUPINFO; _para11:LPPROCESS_INFORMATION):WINBOOL; external 'advapi32' name 'CreateProcessAsUserA';
 function CreateWaitableTimerA(lpTimerAttributes :LPSECURITY_ATTRIBUTES; bManualReset:BOOl;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'CreateWaitableTimerA'; 
 function OpenWaitableTimerA(dwDesiredAccess:DWORD;bInheritHandle:BOOL;lpTimerName:LPCTSTR):THandle;external 'kernel32' name 'OpenWaitableTimerA'; 
+function FindFirstFileExA(lpfilename : LPCStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword):Handle; stdcall; external name 'FindFirstFileExA';
+// winver>$0600
+function FindFirstFileTransactedA(lpfilename : LPCStr;fInfoLevelId:FINDEX_INFO_LEVELS ;lpFindFileData:pointer;fSearchOp : FINDEX_SEARCH_OPS;lpSearchFilter:pointer;dwAdditionalFlags:dword;htransaction : HANDLE):Handle; stdcall; external name 'FindFirstFileTransactedA';
 
 {$endif read_interface}
 

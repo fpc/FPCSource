@@ -21,6 +21,7 @@ unit sysutils;
 interface
 
 {$MODE objfpc}
+{$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
 
@@ -156,7 +157,7 @@ begin
 end;
 
 
-function FileRead(Handle: LongInt; var Buffer; Count: LongInt): LongInt;
+function FileRead(Handle: LongInt; Out Buffer; Count: LongInt): LongInt;
 begin
   FileRead:=-1;
   if (Count<=0) or (Handle<=0) then exit;
@@ -583,7 +584,7 @@ begin
   Result:=Dos.EnvStr(Index);
 end;
 
-function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString):
+function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString;Flags:TExecuteFlags=[]):
                                                                        integer;
 var
   CommandLine: AnsiString;
@@ -605,7 +606,7 @@ begin
 end;
 
 function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString): integer;
+                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
 var
   CommandLine: AnsiString;
   I: integer;

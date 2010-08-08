@@ -28,18 +28,18 @@ unit chmreader;
 interface
 
 uses
-  Classes, SysUtils, chmbase, paslzx, chmFIftiMain;
-  
+  Classes, SysUtils, Contnrs, chmbase, paslzx, chmFIftiMain, chmsitemap;
+
 type
 
   TLZXResetTableArr = array of QWord;
-  
+
   PContextItem = ^TContextItem;
   TContextItem = record
     Context: THelpContext;
     Url: String;
   end;
-  
+
   TContextList = class(TList)
   public
     procedure AddContext(Context: THelpContext; Url: String);
@@ -54,25 +54,26 @@ type
   protected
     fStream: TStream;
     fFreeStreamOnDestroy: Boolean;
-    fChmHeader: TITSFHeader;
+    fITSFHeader: TITSFHeader;
     fHeaderSuffix: TITSFHeaderSuffix;
     fDirectoryHeader: TITSPHeader;
     fDirectoryHeaderPos: QWord;
     fDirectoryHeaderLength: QWord;
     fDirectoryEntriesStartPos: QWord;
-    fDirectoryEntries: array of TPMGListChunkEntry;
     fCachedEntry: TPMGListChunkEntry; //contains the last entry found by ObjectExists
     fDirectoryEntriesCount: LongWord;
+    procedure ReadHeader; virtual;
+    procedure ReadHeaderEntries; virtual;
+    function  GetChunkType(Stream: TMemoryStream; ChunkIndex: LongInt): TDirChunkType;
+    procedure GetSections(out Sections: TStringList);
   private
-    procedure ReadHeader;
-    function  GetChunkType(Stream: TMemoryStream; ChunkIndex: LongInt): TPMGchunktype;
     function  GetDirectoryChunk(Index: Integer; OutStream: TStream): Integer;
     function  ReadPMGLchunkEntryFromStream(Stream: TMemoryStream; var PMGLEntry: TPMGListChunkEntry): Boolean;
     function  ReadPMGIchunkEntryFromStream(Stream: TMemoryStream; var PMGIEntry: TPMGIIndexChunkEntry): Boolean;
     procedure LookupPMGLchunk(Stream: TMemoryStream; out PMGLChunk: TPMGListChunk);
     procedure LookupPMGIchunk(Stream: TMemoryStream; out PMGIChunk: TPMGIIndexChunk);
 
-    procedure GetSections(out Sections: TStringList);
+
     function  GetBlockFromSection(SectionPrefix: String; StartPos: QWord; BlockLength: QWord): TMemoryStream;
     function  FindBlocksFromUnCompressedAddr(var ResetTableEntry: TPMGListChunkEntry;
        out CompressedSize: QWord; out UnCompressedSize: QWord; out LZXResetTable: TLZXResetTableArr): QWord;  // Returns the blocksize
@@ -82,13 +83,13 @@ type
   public
     ChmLastError: LongInt;
     function IsValidFile: Boolean;
-    procedure GetCompleteFileList(ForEach: TFileEntryForEach);
-    function ObjectExists(Name: String): QWord; // zero if no. otherwise it is the size of the object
+    procedure GetCompleteFileList(ForEach: TFileEntryForEach; AIncludeInternalFiles: Boolean = True); virtual;
+    function ObjectExists(Name: String): QWord; virtual; // zero if no. otherwise it is the size of the object
                                                 // NOTE directories will return zero size even if they exist
-    function GetObject(Name: String): TMemoryStream; // YOU must Free the stream
+    function GetObject(Name: String): TMemoryStream; virtual; // YOU must Free the stream
     property CachedEntry: TPMGListChunkEntry read fCachedEntry;
   end;
-  
+
   { TChmReader }
 
   TChmReader = class(TITSFReader)
@@ -104,17 +105,24 @@ type
     fURLTBLStream,
     fStringsStream: TMemoryStream;
     fLocaleID: DWord;
+    fWindowsList : TObjectList;
+    fDefaultWindow: String;
   private
     FSearchReader: TChmSearchReader;
     procedure ReadCommonData;
     function  ReadStringsEntry(APosition: DWord): String;
+    function  ReadStringsEntryFromStream ( strm:TStream ) : String;
     function  ReadURLSTR(APosition: DWord): String;
+    function  CheckCommonStreams: Boolean;
+    procedure ReadWindows(mem:TMemoryStream);
   public
     constructor Create(AStream: TStream; FreeStreamOnDestroy: Boolean); override;
     destructor Destroy; override;
   public
     function GetContextUrl(Context: THelpContext): String;
     function LookupTopicByID(ATopicID: Integer; out ATitle: String): String; // returns a url
+    function GetTOCSitemap(ForceXML:boolean=false): TChmSiteMap;
+    function GetIndexSitemap(ForceXML:boolean=false): TChmSiteMap;
     function HasContextList: Boolean;
     property DefaultPage: String read fDefaultPage;
     property IndexFile: String read fIndexFile;
@@ -123,6 +131,9 @@ type
     property PreferedFont: String read fPreferedFont;
     property LocaleID: dword read fLocaleID;
     property SearchReader: TChmSearchReader read FSearchReader write FSearchReader;
+    property contextlist : tcontextlist read fcontextlist;
+    property Windows : TObjectlist read fWindowsList;
+    property DefaultWindow : string read fdefaultwindow;
   end;
 
   { TChmFileList }
@@ -146,13 +157,13 @@ type
     destructor Destroy; override;
     function GetObject(Name: String): TMemoryStream;
     function IsAnOpenFile(AFileName: String): Boolean;
-    function ObjectExists(Name: String; fChm: TChmReader = nil): QWord;
+    function ObjectExists(Name: String; var fChm: TChmReader = nil): QWord;
     //properties
     property Chm[Index: Integer]: TChmReader read GetChm;
     property FileName[Index: Integer]: String read GetFileName;
     property OnOpenNewFile: TChmFileOpenEvent read fOnOpenNewFile write SetOnOpenNewFile;
   end;
-  
+
 //ErrorCodes
 const
   ERR_NO_ERR = 0;
@@ -160,10 +171,11 @@ const
   ERR_NOT_SUPPORTED_VERSION = 2;
   ERR_NOT_VALID_FILE = 3;
   ERR_UNKNOWN_ERROR = 10;
-  
+
   function ChmErrorToStr(Error: Integer): String;
 
 implementation
+uses ChmTypes;
 
 function ChmErrorToStr(Error: Integer): String;
 begin
@@ -176,7 +188,7 @@ begin
   end;
 end;
 
-function ChunkType(Stream: TMemoryStream): TPMGchunktype;
+function ChunkType(Stream: TMemoryStream): TDirChunkType;
 var
   ChunkID: array[0..3] of char;
 begin
@@ -184,39 +196,46 @@ begin
   if Stream.Size< 4 then exit;
   Move(Stream.Memory^, ChunkId[0], 4);
   if ChunkID = 'PMGL' then Result := ctPMGL
-  else if ChunkID = 'PMGI' then Result := ctPMGI;
+  else if ChunkID = 'PMGI' then Result := ctPMGI
+  else if ChunkID = 'AOLL' then Result := ctAOLL
+  else if ChunkID = 'AOLI' then Result := ctAOLI;
 end;
 
 { TITSFReader }
 
 procedure TITSFReader.ReadHeader;
-var
-fHeaderEntries: array [0..1] of TITSFHeaderEntry;
 begin
-  fStream.Position := 0;
-  fStream.Read(fChmHeader,SizeOf(fChmHeader));
+  fStream.Read(fITSFHeader,SizeOf(fITSFHeader));
 
   // Fix endian issues
   {$IFDEF ENDIAN_BIG}
-  fChmHeader.Version := LEtoN(fChmHeader.Version);
-  fChmHeader.HeaderLength := LEtoN(fChmHeader.HeaderLength);
+  fITSFHeader.Version := LEtoN(fITSFHeader.Version);
+  fITSFHeader.HeaderLength := LEtoN(fITSFHeader.HeaderLength);
   //Unknown_1
-  fChmHeader.TimeStamp := BEtoN(fChmHeader.TimeStamp);//bigendian
-  fChmHeader.LanguageID := LEtoN(fChmHeader.LanguageID);
-  //Guid1
-  //Guid2
+  fITSFHeader.TimeStamp := BEtoN(fITSFHeader.TimeStamp);//bigendian
+  fITSFHeader.LanguageID := LEtoN(fITSFHeader.LanguageID);
   {$ENDIF}
-  
+
+  if fITSFHeader.Version < 4 then
+   fStream.Seek(SizeOf(TGuid)*2, soCurrent);
+
   if not IsValidFile then Exit;
-  
+
+  ReadHeaderEntries;
+end;
+
+procedure TITSFReader.ReadHeaderEntries;
+var
+fHeaderEntries: array [0..1] of TITSFHeaderEntry;
+begin
   // Copy EntryData into memory
   fStream.Read(fHeaderEntries[0], SizeOf(fHeaderEntries));
 
-  if fChmHeader.Version > 2 then
+  if fITSFHeader.Version = 3 then
     fStream.Read(fHeaderSuffix.Offset, SizeOf(QWord));
   fHeaderSuffix.Offset := LEtoN(fHeaderSuffix.Offset);
   // otherwise this is set in fill directory entries
-  
+
   fStream.Position := LEtoN(fHeaderEntries[1].PosFromZero);
   fDirectoryHeaderPos := LEtoN(fHeaderEntries[1].PosFromZero);
   fStream.Read(fDirectoryHeader, SizeOf(fDirectoryHeader));
@@ -241,6 +260,7 @@ begin
   {$IFDEF CHM_DEBUG}
   WriteLn('PMGI depth = ', fDirectoryHeader.IndexTreeDepth);
   WriteLn('PMGI Root =  ', fDirectoryHeader.IndexOfRootChunk);
+  Writeln('DirCount  =  ', fDirectoryHeader.DirectoryChunkCount);
   {$ENDIF}
   fDirectoryEntriesStartPos := fStream.Position;
   fDirectoryHeaderLength := LEtoN(fHeaderEntries[1].Length);
@@ -248,15 +268,18 @@ end;
 
 procedure TChmReader.ReadCommonData;
    // A little helper proc to make reading a null terminated string easier
-   function ReadString(const Stream: TStream): String;
+   function ReadString(const Stream: TStream; StartPos: DWord; FixURL: Boolean): String;
    var
      buf: array[0..49] of char;
    begin
      Result := '';
+     Stream.Position := StartPos;
      repeat
        Stream.Read(buf, 50);
        Result := Result + buf;
      until Pos(#0, buf) > -1;
+     if FixURL then
+       Result := StringReplace(Result, '\', '/', [rfReplaceAll]);
    end;
    procedure ReadFromSystem;
    var
@@ -353,7 +376,6 @@ procedure TChmReader.ReadCommonData;
      EntryCount,
      EntrySize: DWord;
      EntryStart: QWord;
-     StrPosition: DWord;
      X: Integer;
      OffSet: QWord;
    begin
@@ -379,29 +401,22 @@ procedure TChmReader.ReadCommonData;
        EntryStart := OffSet + (X*EntrySize);
        if fTitle = '' then begin
          fWindows.Position := EntryStart + $14;
-         StrPosition := LEtoN(fWindows.ReadDWord);
-         fStrings.Position := StrPosition;
-         fTitle := '/'+ReadString(fStrings);
+         fTitle := '/'+ReadString(fStrings, LEtoN(fWindows.ReadDWord), False);
        end;
        if fTOCFile = '' then begin
          fWindows.Position := EntryStart + $60;
-         StrPosition := LEtoN(fWindows.ReadDWord);
-         fStrings.Position := StrPosition;
-         fTOCFile := '/'+ReadString(fStrings);
+         fTOCFile := '/'+ReadString(fStrings, LEtoN(fWindows.ReadDWord), True);
        end;
        if fIndexFile = '' then begin
          fWindows.Position := EntryStart + $64;
-         StrPosition := LEtoN(fWindows.ReadDWord);
-         fStrings.Position := StrPosition;
-         fIndexFile := '/'+ReadString(fStrings);
+         fIndexFile := '/'+ReadString(fStrings, LEtoN(fWindows.ReadDWord), True);
        end;
        if fDefaultPage = '' then begin
          fWindows.Position := EntryStart + $68;
-         StrPosition := LEtoN(fWindows.ReadDWord);
-         fStrings.Position := StrPosition;
-         fDefaultPage := '/'+ReadString(fStrings);
+         fDefaultPage := '/'+ReadString(fStrings, LEtoN(fWindows.ReadDWord), True);
        end;
      end;
+     ReadWindows(FWindows);
    end;
    procedure ReadContextIds;
    var
@@ -412,7 +427,7 @@ procedure TChmReader.ReadCommonData;
      OffSet: DWord;
      //TotalSize: DWord;
    begin
-     fIVB := GetObject('/#IBV');
+     fIVB := GetObject('/#IVB');
      if fIVB = nil then Exit;
      fStrings := GetObject('/#STRINGS');
      if fStrings = nil then begin
@@ -424,8 +439,7 @@ procedure TChmReader.ReadCommonData;
      while fIVB.Position < fIVB.Size do begin
        Value := LEtoN(fIVB.ReadDWord);
        OffSet := LEtoN(fIVB.ReadDWord);
-       fStrings.Position := Offset;
-       Str := '/'+ReadString(fStrings);
+       Str := '/'+ ReadString(fStrings, Offset, True);
        fContextList.AddContext(Value, Str);
      end;
    end;
@@ -433,7 +447,7 @@ begin
    ReadFromSystem;
    ReadFromWindows;
    ReadContextIds;
-   {$IFDEF CHM_DEBUG}   
+   {$IFDEF CHM_DEBUG}
    WriteLn('TOC=',fTocfile);
    WriteLn('DefaultPage=',fDefaultPage);
    {$ENDIF}
@@ -452,40 +466,129 @@ begin
   end;
 end;
 
+function TChmReader.ReadStringsEntryFromStream ( strm:TStream ) : String;
+var APosition : DWord;
+begin
+  APosition:=LEtoN(strm.ReadDWord);
+  result:=ReadStringsEntry(APosition);
+end;
+
 function TChmReader.ReadURLSTR ( APosition: DWord ) : String;
 var
   URLStrURLOffset: DWord;
 begin
+  if not CheckCommonStreams then
+    Exit;
+
+  fURLTBLStream.Position := APosition;
+  fURLTBLStream.ReadDWord; // unknown
+  fURLTBLStream.ReadDWord; // TOPIC index #
+  fURLSTRStream.Position := LEtoN(fURLTBLStream.ReadDWord);
+  fURLSTRStream.ReadDWord;
+  fURLSTRStream.ReadDWord;
+  if fURLSTRStream.Position < fURLSTRStream.Size-1 then
+    Result := PChar(fURLSTRStream.Memory+fURLSTRStream.Position);
+end;
+
+function TChmReader.CheckCommonStreams: Boolean;
+begin
+  if fTOPICSStream = nil then
+    fTOPICSStream := GetObject('/#TOPICS');
   if fURLSTRStream = nil then
     fURLSTRStream := GetObject('/#URLSTR');
   if fURLTBLStream = nil then
     fURLTBLStream := GetObject('/#URLTBL');
-  if (fURLTBLStream <> nil) and (fURLSTRStream <> nil) then
-  begin
 
-    fURLTBLStream.Position := APosition;
-    fURLTBLStream.ReadDWord; // unknown
-    fURLTBLStream.ReadDWord; // TOPIC index #
-    fURLSTRStream.Position := LEtoN(fURLTBLStream.ReadDWord);
-    fURLSTRStream.ReadDWord;
-    fURLSTRStream.ReadDWord;
-    if fURLSTRStream.Position < fURLSTRStream.Size-1 then
-      Result := '/'+PChar(fURLSTRStream.Memory+fURLSTRStream.Position);
-  end;
+  Result :=     (fTOPICSStream <> nil)
+            and (fURLSTRStream <> nil)
+            and (fURLTBLStream <> nil);
+end;
+
+procedure TChmReader.ReadWindows(mem:TMemoryStream);
+
+var
+  i,cnt,
+  version   : integer;
+  x         : TChmWindow;
+begin
+ if not assigned(fwindowslist) then
+ fWindowsList.Clear;
+ mem.Position:=0;
+ cnt  := LEtoN(mem.ReadDWord);
+ version  := LEtoN(mem.ReadDWord);
+ while (cnt>0) do
+   begin
+     x:=TChmWindow.Create;
+     version            := LEtoN(mem.ReadDWord);                        //  0 size of entry.
+     mem.readDWord;                                                     //  4 unknown (bool Unicodestrings?)
+     x.window_type      :=ReadStringsEntryFromStream(mem);              //  8 Arg 0, name of window
+     x.flags            := TValidWindowFields(LEtoN(mem.ReadDWord));    //  C valid fields
+     x.nav_style        := LEtoN(mem.ReadDWord);                        // 10 arg 10 navigation pane style
+     x.title_bar_text   :=ReadStringsEntryFromStream(mem);              // 14 Arg 1,  title bar text
+     x.styleflags       := LEtoN(mem.ReadDWord);                        // 18 Arg 14, style flags
+     x.xtdstyleflags    := LEtoN(mem.ReadDWord);                        // 1C Arg 15, xtd style flags
+     x.left             := LEtoN(mem.ReadDWord);                        // 20 Arg 13, rect.left
+     x.right            := LEtoN(mem.ReadDWord);                        // 24 Arg 13, rect.top
+     x.top              := LEtoN(mem.ReadDWord);                        // 28 Arg 13, rect.right
+     x.bottom           := LEtoN(mem.ReadDWord);                        // 2C Arg 13, rect.bottom
+     x.window_show_state:= LEtoN(mem.ReadDWord);                        // 30 Arg 16, window show state
+     mem.readdword;                                                     // 34  -    , HWND hwndhelp                OUT: window handle"
+     mem.readdword;                                                     // 38  -    , HWND hwndcaller              OUT: who called this window"
+     mem.readdword;                                                     // 3C  -    , HH_INFO_TYPE paINFO_TYPES    IN: Pointer to an array of Information Types"
+     mem.readdword;                                                     // 40  -    , HWND hwndtoolbar             OUT: toolbar window in tri-pane window"
+     mem.readdword;                                                     // 44  -    , HWND hwndnavigation          OUT: navigation window in tri-pane window"
+     mem.readdword;                                                     // 48  -    , HWND hwndhtml                OUT: window displaying HTML in tri-pane window"
+     x.navpanewidth     := LEtoN(mem.ReadDWord);                        // 4C Arg 11, width of nav pane
+     mem.readdword;                                                     // 50  -    , rect.left,   OUT:Specifies the coordinates of the Topic pane
+     mem.readdword;                                                     // 54  -    , rect.top ,   OUT:Specifies the coordinates of the Topic pane
+     mem.readdword;                                                     // 58  -    , rect.right,  OUT:Specifies the coordinates of the Topic pane
+     mem.readdword;                                                     // 5C  -    , rect.bottom, OUT:Specifies the coordinates of the Topic pane
+     x.toc_file         :=ReadStringsEntryFromStream(mem);              // 60 Arg 2,  toc file
+     x.index_file       :=ReadStringsEntryFromStream(mem);              // 64 Arg 3,  index file
+     x.default_file     :=ReadStringsEntryFromStream(mem);              // 68 Arg 4,  default file
+     x.home_button_file :=ReadStringsEntryFromStream(mem);              // 6c Arg 5,  home button file.
+     x.buttons          := LEtoN(mem.ReadDWord);                        // 70 arg 12,
+     x.navpane_initially_closed    := LEtoN(mem.ReadDWord);             // 74 arg 17
+     x.navpane_default  := LEtoN(mem.ReadDWord);                        // 78 arg 18,
+     x.navpane_location := LEtoN(mem.ReadDWord);                        // 7C arg 19,
+     x.wm_notify_id     := LEtoN(mem.ReadDWord);                        // 80 arg 20,
+     for i:=0 to 4 do
+       mem.ReadDWord;                                                   // 84  -      byte[20] unknown -  "BYTE tabOrder[HH_MAX_TABS + 1]; // IN/OUT: tab order: Contents, Index, Search, History, Favorites, Reserved 1-5, Custom tabs"
+     mem.ReadDWord;                                                     // 94  -      int cHistory; // IN/OUT: number of history items to keep (default is 30)
+     x.jumpbutton_1_text:=ReadStringsEntryFromStream(mem);              // 9C Arg 7,  The text of the Jump 1 button.
+     x.jumpbutton_2_text:=ReadStringsEntryFromStream(mem);              // A0 Arg 9,  The text of the Jump 2 button.
+     x.jumpbutton_1_file:=ReadStringsEntryFromStream(mem);              // A4 Arg 6,  The file shown for Jump 1 button.
+     x.jumpbutton_2_file:=ReadStringsEntryFromStream(mem);              // A8 Arg 8,  The file shown for Jump 1 button.
+     for i:=0 to 3 do
+       mem.ReadDWord;
+     dec(version,188);                                              // 1.1 specific onesf
+     while (version>=4) do
+       begin
+         mem.readdword;
+         dec(version,4);
+       end;
+
+     fWindowslist.Add(x);
+     dec(cnt);
+   end;
 end;
 
 constructor TChmReader.Create(AStream: TStream; FreeStreamOnDestroy: Boolean);
 begin
+  fContextList := TContextList.Create;
+  fWindowslist      := TObjectlist.Create(True);
+  fDefaultWindow:='';
+
   inherited Create(AStream, FreeStreamOnDestroy);
   if not IsValidFile then exit;
 
-  fContextList := TContextList.Create;
   ReadCommonData;
 end;
 
 destructor TChmReader.Destroy;
 begin
-  fContextList.Free;
+  FreeAndNil(fContextList);
+  FreeAndNil(FWindowslist);
   FreeAndNil(FSearchReader);
   FreeAndNil(fTOPICSStream);
   FreeAndNil(fURLSTRStream);
@@ -494,7 +597,7 @@ begin
   inherited Destroy;
 end;
 
-function TITSFReader.GetChunkType(Stream: TMemoryStream; ChunkIndex: LongInt): TPMGchunktype;
+function TITSFReader.GetChunkType(Stream: TMemoryStream; ChunkIndex: LongInt): TDirChunkType;
 var
   Sig: array[0..3] of char;
 begin
@@ -503,7 +606,9 @@ begin
 
   Stream.Read(Sig, 4);
   if Sig = 'PMGL' then Result := ctPMGL
-  else if Sig = 'PMGI' then Result := ctPMGI;
+  else if Sig = 'PMGI' then Result := ctPMGI
+  else if Sig = 'AOLL' then Result := ctAOLL
+  else if Sig = 'AOLI' then Result := ctAOLI;
 end;
 
 function TITSFReader.GetDirectoryChunk(Index: Integer; OutStream: TStream): Integer;
@@ -575,7 +680,7 @@ begin
 
   buf[NameLength] := #0;
   PMGIEntry.Name := buf;
-  
+
   PMGIEntry.ListingChunk := GetCompressedInteger(Stream);
   if NameLength = 0 then Exit; // failed GetCompressedInteger sanity check
   Result := True;
@@ -584,6 +689,7 @@ end;
 constructor TITSFReader.Create(AStream: TStream; FreeStreamOnDestroy: Boolean);
 begin
   fStream := AStream;
+  fStream.Position := 0;
   fFreeStreamOnDestroy := FreeStreamOnDestroy;
   ReadHeader;
   if not IsValidFile then Exit;
@@ -591,7 +697,6 @@ end;
 
 destructor TITSFReader.Destroy;
 begin
-  SetLength(fDirectoryEntries, 0);
   if fFreeStreamOnDestroy then FreeAndNil(fStream);
 
   inherited Destroy;
@@ -600,13 +705,15 @@ end;
 function TITSFReader.IsValidFile: Boolean;
 begin
   if (fStream = nil) then ChmLastError := ERR_STREAM_NOT_ASSIGNED
-  else if (fChmHeader.ITSFsig <> 'ITSF') then ChmLastError := ERR_NOT_VALID_FILE
-  else if (fChmHeader.Version <> 2) and (fChmHeader.Version <> 3) then
+  else if (fITSFHeader.ITSFsig <> 'ITSF') then ChmLastError := ERR_NOT_VALID_FILE
+  //else if (fITSFHeader.Version <> 2) and (fITSFHeader.Version <> 3)
+  else if not (fITSFHeader.Version in [2..4])
+  then
     ChmLastError := ERR_NOT_SUPPORTED_VERSION;
   Result := ChmLastError = ERR_NO_ERR;
 end;
 
-procedure TITSFReader.GetCompleteFileList(ForEach: TFileEntryForEach);
+procedure TITSFReader.GetCompleteFileList(ForEach: TFileEntryForEach; AIncludeInternalFiles: Boolean = True);
 var
   ChunkStream: TMemoryStream;
   I : Integer;
@@ -647,7 +754,12 @@ begin
          Entry.DecompressedLength := GetCompressedInteger(ChunkStream);
          if ChunkStream.Position > CutOffPoint then Break; // we have entered the quickref section
          fCachedEntry := Entry; // if the caller trys to get this data we already know where it is :)
-         ForEach(Entry.Name, Entry.ContentOffset, Entry.DecompressedLength, Entry.ContentSection);
+         if  (Length(Entry.Name) = 1)
+         or (AIncludeInternalFiles
+              or
+             ((Length(Entry.Name) > 1) and (not(Entry.Name[2] in ['#','$',':']))))
+         then
+          ForEach(Entry.Name, Entry.ContentOffset, Entry.DecompressedLength, Entry.ContentSection);
        end;
      end;
     {$IFDEF CHM_DEBUG_CHUNKS}
@@ -683,9 +795,9 @@ var
     I: Integer;
   begin
     OldPosn := ChunkStream.Position;
-    Posn := ChunkStream.Size-1-SizeOf(Word);
+    Posn := ChunkStream.Size-SizeOf(Word);
     ChunkStream.Position := Posn;
-    
+
     ItemCount := LEToN(ChunkStream.ReadWord);
     //WriteLn('Max ITems for next block = ', ItemCount-1);
     QuickRefCount := ItemCount  div (1 + (1 shl fDirectoryHeader.Density));
@@ -713,10 +825,10 @@ var
 var
   PMGLChunk: TPMGListChunk;
   PMGIChunk: TPMGIIndexChunk;
-  //ChunkStream: TMemoryStream; declared above  
+  //ChunkStream: TMemoryStream; declared above
   Entry: TPMGListChunkEntry;
   NextIndex: Integer;
-  EntryName: String;  
+  EntryName: String;
   CRes: Integer;
   I: Integer;
 begin
@@ -732,24 +844,26 @@ begin
   ChunkStream := TMemoryStream.Create;
 
   try
-  
+
   NextIndex := fDirectoryHeader.IndexOfRootChunk;
   if NextIndex < 0 then NextIndex := 0; // no PMGI chunks
-  
+
   while NextIndex > -1  do begin
     GetDirectoryChunk(NextIndex, ChunkStream);
     NextIndex := -1;
     ReadQuickRefSection;
-    //WriteLn('In Block ', ChunkIndex);
+    {$IFDEF CHM_DEBUG}
+    WriteLn('In Block ', NextIndex);
+    {$endif}
     case ChunkType(ChunkStream) of
       ctUnknown: // something is wrong
         begin
-          {$IFDEF CHM_DEBUG}WriteLn(ChunkIndex, ' << Unknown BlockType!');{$ENDIF}
+          {$IFDEF CHM_DEBUG}WriteLn(NextIndex, ' << Unknown BlockType!');{$ENDIF}
           Break;
         end;
       ctPMGI: // we must follow the PMGI tree until we reach a PMGL block
         begin
-          LookupPMGIchunk(ChunkStream, PMGIChunk);          
+          LookupPMGIchunk(ChunkStream, PMGIChunk);
 
           //QuickRefIndex[0] := ChunkStream.Position;
 
@@ -760,13 +874,13 @@ begin
             if ChunkStream.Position >= ChunkStream.Size - PMGIChunk.UnusedSpace then break;
             CRes := ChmCompareText(Name, EntryName);
             if CRes = 0 then begin
-              // no more need of this block. onto the next!              
+              // no more need of this block. onto the next!
               NextIndex := GetCompressedInteger(ChunkStream);
               Break;
             end;
             if  CRes < 0 then begin
               if I = 0 then Break; // File doesn't exist
-              // file is in previous entry              
+              // file is in previous entry
               Break;
             end;
             NextIndex := GetCompressedInteger(ChunkStream);
@@ -779,7 +893,7 @@ begin
           QuickRefIndex[0] := ChunkStream.Position;
           I := 0;
           while ChunkStream.Position <= ChunkStream.Size - PMGLChunk.UnusedSpace do begin
-            // we consume the entry by reading it            
+            // we consume the entry by reading it
             Entry.Name := ReadString;
             if Entry.Name = '' then break;
             if ChunkStream.Position >= ChunkStream.Size - PMGLChunk.UnusedSpace then break;
@@ -791,7 +905,7 @@ begin
             CRes := ChmCompareText(Name, Entry.Name);
             if CRes = 0 then begin
               fCachedEntry := Entry;
-              Result := Entry.DecompressedLength;              
+              Result := Entry.DecompressedLength;
               Break;
             end;
             Inc(I);
@@ -824,7 +938,7 @@ begin
   end
   else begin // we have to get it from ::DataSpace/Storage/[MSCompressed,Uncompressed]/ControlData
     GetSections(SectionNames);
-    FmtStr(SectionName, '::DataSpace/Storage/%s/',[SectionNames[Entry.ContentSection-1]]);
+    FmtStr(SectionName, '::DataSpace/Storage/%s/',[SectionNames[Entry.ContentSection]]);
     Result := GetBlockFromSection(SectionName, Entry.ContentOffset, Entry.DecompressedLength);
     SectionNames.Free;
   end;
@@ -845,9 +959,7 @@ begin
   Result := '';
   ATitle := '';
   //WriteLn('Getting topic# ',ATopicID);
-  if fTOPICSStream = nil then;
-    fTOPICSStream := GetObject('/#TOPICS');
-  if fTOPICSStream = nil then
+  if not CheckCommonStreams then
     Exit;
   fTOPICSStream.Position := ATopicID * 16;
   if fTOPICSStream.Position = ATopicID * 16 then
@@ -860,6 +972,327 @@ begin
      //WriteLn('Got a title: ', ATitle);
     Result := ReadURLSTR(TopicURLTBLOffset);
   end;
+end;
+
+const DefBlockSize = 2048;
+
+function LoadBtreeHeader(m:TMemoryStream;var btreehdr:TBtreeHeader):boolean;
+
+begin
+  if m.size<sizeof(TBtreeHeader) Then
+    Exit(False);
+  result:=true;
+  m.read(btreeHdr,sizeof(TBtreeHeader));
+  {$IFDEF ENDIAN_BIG}
+     btreehdr.flags         :=LEToN(btreehdr.flags);
+     btreehdr.blocksize     :=LEToN(btreehdr.blocksize);
+     btreehdr.lastlstblock  :=LEToN(btreehdr.lastlstblock);
+     btreehdr.indexrootblock:=LEToN(btreehdr.indexrootblock);
+     btreehdr.nrblock       :=LEToN(btreehdr.nrblock);
+     btreehdr.treedepth     :=LEToN(btreehdr.treedepth);
+     btreehdr.nrkeywords    :=LEToN(btreehdr.nrkeywords);
+     btreehdr.codepage      :=LEToN(btreehdr.codepage);
+     btreehdr.lcid          :=LEToN(btreehdr.lcid);
+     btreehdr.ischm         :=LEToN(btreehdr.ischm);
+  {$endif}
+end;
+
+function readwcharstring(var head:pbyte;tail:pbyte;var readv : ansistring):boolean;
+
+var pw      : PWord;
+    oldhead : PByte;
+    ws      : WideString;
+    n       : Integer;
+begin
+  oldhead:=head;
+  pw:=pword(head);
+  while (pw<pword(tail)) and (pw^<>word(0)) do
+    inc(pw);
+  inc(pw); // skip #0#0.
+  head:=pbyte(pw);
+  result:=head<tail;
+
+  n:=head-oldhead;
+  setlength(ws,n div sizeof(widechar));
+  move(oldhead^,ws[1],n);
+  for n:=1 to length(ws) do
+    word(ws[n]):=LEToN(word(ws[n]));
+  readv:=ws; // force conversion for now, and hope it doesn't require cwstring
+end;
+
+function TChmReader.GetIndexSitemap(ForceXML:boolean=false): TChmSiteMap;
+var Index   : TMemoryStream;
+    sitemap : TChmSiteMap;
+    Item    : TChmSiteMapItem;
+
+function  AbortAndTryTextual:tchmsitemap;
+
+begin
+     if Assigned(Index) Then Index.Free;
+     // Second Try text Index
+     Index := GetObject(IndexFile);
+     if Index <> nil then
+     begin
+       Result := TChmSiteMap.Create(stIndex);
+       Result.LoadFromStream(Index);
+       Index.Free;
+     end
+    else
+      result:=nil;
+end;
+
+procedure createentry(Name:ansistring;CharIndex:integer;Topic,Title:ansistring);
+var litem : TChmSiteMapItem;
+    shortname : ansistring;
+    longpart  : ansistring;
+begin
+ if charindex=0 then
+   begin
+     item:=sitemap.items.NewItem;
+     item.keyword:=Name;
+     item.local:=topic;
+     item.text:=title;
+   end
+ else
+   begin
+     shortname:=copy(name,1,charindex-2);
+     longpart:=copy(name,charindex,length(name)-charindex+1);
+     if assigned(item) and (shortname=item.text) then
+       begin
+         litem:=item.children.newitem;
+         litem.local:=topic;
+         litem.keyword :=longpart; // recursively split this? No examples.
+         litem.text:=title;
+       end
+      else
+       begin
+         item:=sitemap.items.NewItem;
+         item.keyword:=shortname;
+         item.local:=topic;
+         item.text:=title;
+         litem:=item.children.newitem;
+         litem.keyword:=longpart;
+         litem.local:=topic;
+         litem.text :=Title; // recursively split this? No examples.
+       end;
+   end;
+end;
+
+procedure parselistingblock(p:pbyte);
+var hdr:PBTreeBlockHeader;
+    head,tail : pbyte;
+    isseealso,
+    nrpairs : Integer;
+    i : integer;
+    PE : PBtreeBlockEntry;
+    title : string;
+    CharIndex,
+    ind:integer;
+    seealsostr,
+    topic,
+    Name : AnsiString;
+    item : TChmSiteMapItem;
+begin
+  hdr:=PBTreeBlockHeader(p);
+  hdr^.Length          :=LEToN(hdr^.Length);
+  hdr^.NumberOfEntries :=LEToN(hdr^.NumberOfEntries);
+  hdr^.IndexOfPrevBlock:=LEToN(hdr^.IndexOfPrevBlock);
+  hdr^.IndexOfNextBlock:=LEToN(hdr^.IndexOfNextBlock);
+
+  tail:=p+(2048-hdr^.length);
+  head:=p+sizeof(TBtreeBlockHeader);
+
+  {$ifdef binindex}
+  writeln('previndex  : ',hdr^.IndexOfPrevBlock);
+  writeln('nextindex  : ',hdr^.IndexOfNextBlock);
+  {$endif}
+  while head<tail do
+    begin
+      if not ReadWCharString(Head,Tail,Name) Then
+        Break;
+      {$ifdef binindex}
+         Writeln('name : ',name);
+      {$endif}
+       if (head+sizeof(TBtreeBlockEntry))>=tail then
+         break;
+      PE :=PBtreeBlockEntry(head);
+      NrPairs  :=LEToN(PE^.nrpairs);
+      IsSeealso:=LEToN(PE^.isseealso);
+      CharIndex:=LEToN(PE^.CharIndex);
+      {$ifdef binindex}
+        Writeln('seealso:     ',IsSeeAlso);
+        Writeln('entrydepth:  ',LEToN(PE^.entrydepth));
+        Writeln('charindex :  ',charindex );
+        Writeln('Nrpairs   :  ',NrPairs);
+        writeln('seealso data : ');
+      {$endif}
+
+      inc(head,sizeof(TBtreeBlockEntry));
+      if isseealso>0 then
+        begin
+          if not ReadWCharString(Head,Tail,SeeAlsoStr) Then
+            Break;
+          // have to figure out first what to do with it.
+        end
+      else
+        begin
+         if NrPairs>0 Then
+            for i:=0 to nrpairs-1 do
+              begin
+                if head<tail Then
+                  begin
+                    ind:=LEToN(plongint(head)^);
+                    topic:=lookuptopicbyid(ind,title);
+                    {$ifdef binindex}
+                      writeln(i:3,' topic: ',topic);
+                      writeln('    title: ',title);
+                    {$endif}
+                    inc(head,4);
+                  end;
+              end;
+          end;
+      if nrpairs<>0 Then
+        createentry(Name,CharIndex,Topic,Title);
+      inc(head,4); // always 1
+      {$ifdef binindex}
+        if head<tail then
+        writeln('Zero based index (13 higher than last) :',plongint(head)^);
+      {$endif}
+      inc(head,4); // zero based index (13 higher than last
+    end;
+end;
+
+var TryTextual : boolean;
+    BHdr       : TBTreeHeader;
+    block      : Array[0..2047] of Byte;
+    i          : Integer;
+begin
+   Result := nil;  SiteMap:=Nil;
+   // First Try Binary
+   Index := GetObject('/$WWKeywordLinks/BTree');
+   if (Index = nil) or ForceXML then
+   begin
+     Result:=AbortAndTryTextual;
+     Exit;
+   end;
+   if not CheckCommonStreams then
+   begin
+     Result:=AbortAndTryTextual;
+     Exit;
+   end;
+   SiteMap:=TChmSitemap.Create(StIndex);
+   Item   :=Nil;  // cached last created item, in case we need to make
+                  // a child.
+   TryTextual:=True;
+   BHdr.LastLstBlock:=0;
+   if LoadBtreeHeader(index,BHdr) and (BHdr.LastLstBlock>0) Then
+    begin
+       if BHdr.BlockSize=defblocksize then
+         begin
+           for i:=0 to BHdr.lastlstblock do
+             begin
+               if (index.size-index.position)>=defblocksize then
+                 begin
+                   Index.read(block,defblocksize);
+                   parselistingblock(@block)
+                end;
+             end;
+            trytextual:=false;
+            result:=sitemap;
+          end;
+    end;
+  if trytextual then
+    begin
+      sitemap.free;
+      Result:=AbortAndTryTextual;
+    end;
+end;
+
+function TChmReader.GetTOCSitemap(ForceXML:boolean=false): TChmSiteMap;
+    function AddTOCItem(TOC: TStream; AItemOffset: DWord; SiteMapITems: TChmSiteMapItems): DWord;
+    var
+      Props: DWord;
+      Item: TChmSiteMapItem;
+      NextEntry: DWord;
+      TopicsIndex: DWord;
+      Title: String;
+    begin
+      Toc.Position:= AItemOffset + 4;
+      Item := SiteMapITems.NewItem;
+      Props := LEtoN(TOC.ReadDWord);
+      if (Props and TOC_ENTRY_HAS_LOCAL) = 0 then
+        Item.Text:= ReadStringsEntry(LEtoN(TOC.ReadDWord))
+      else
+      begin
+        TopicsIndex := LEtoN(TOC.ReadDWord);
+        Item.Local := LookupTopicByID(TopicsIndex, Title);
+        Item.Text := Title;
+
+      end;
+      TOC.ReadDWord;
+      Result := LEtoN(TOC.ReadDWord);
+      if Props and TOC_ENTRY_HAS_CHILDREN > 0 then
+      begin
+        NextEntry := LEtoN(TOC.ReadDWord);
+        repeat
+          NextEntry := AddTOCItem(TOC, NextEntry, Item.Children);
+        until NextEntry = 0;
+      end;
+
+    end;
+
+var
+  TOC: TStream;
+  TOPICSOffset: DWord;
+  EntriesOffset: DWord;
+  EntryCount: DWord;
+  EntryInfoOffset: DWord;
+  NextItem: DWord;
+begin
+   Result := nil;
+   // First Try Binary
+   TOC := GetObject('/#TOCIDX');
+   if (TOC = nil) or ForceXML then
+   begin
+     if Assigned(TOC) Then Toc.Free;
+     // Second Try text toc
+     TOC := GetObject(TOCFile);
+     if TOC <> nil then
+     begin
+       Result := TChmSiteMap.Create(stTOC);
+       Result.LoadFromStream(TOC);
+       Toc.Free;
+     end;
+     Exit;
+   end;
+
+   // TOPICS URLSTR URLTBL must all exist to read binary toc
+   // if they don't then try text file
+   if not CheckCommonStreams then
+   begin
+     TOC.Free;
+     TOC := GetObject(TOCFile);
+     if TOC <> nil then
+     begin
+       Result := TChmSiteMap.Create(stTOC);
+       Result.LoadFromStream(TOC);
+       Toc.Free;
+     end;
+     Exit;
+   end;
+
+   // Binary Toc Exists
+   Result := TChmSiteMap.Create(stTOC);
+
+   EntryInfoOffset := NtoLE(TOC.ReadDWord);
+   EntriesOffset   := NtoLE(TOC.ReadDWord);
+   EntryCount      := NtoLE(TOC.ReadDWord);
+   TOPICSOffset    := NtoLE(TOC.ReadDWord);
+
+   NextItem := EntryInfoOffset;
+   repeat
+     NextItem := AddTOCItem(Toc, NextItem, Result.Items);
+   until NextItem = 0;
 end;
 
 function TChmReader.HasContextList: Boolean;
@@ -886,7 +1319,7 @@ begin
     //WriteLn('Failed to get ::DataSpace/NameList!');
     exit;
   end;
-  
+
   Stream.Position := 2;
   EntryCount := LEtoN(Stream.ReadWord);
   for X := 0 to EntryCount -1 do begin
@@ -899,8 +1332,6 @@ begin
     {$ENDIF}
     Sections.Add(WString);
   end;
-  // the sections are sorted alphabetically, this way section indexes will jive
-  Sections.Sort;
   Stream.Free;
 end;
 
@@ -982,7 +1413,7 @@ begin
       Exit;
     end;
     // if FirstBlock is odd (1,3,5,7 etc) we have to read the even block before it first.
-    if (FirstBlock <> 0) and (FirstBlock mod 2 > 0) then begin
+    if FirstBlock and 1 = 1 then begin
       fStream.Position := fHeaderSuffix.Offset + fCachedEntry.ContentOffset + (ResetTable[FirstBLock-1]);
       ReadCount := ResetTable[FirstBlock] - ResetTable[FirstBlock-1];
       BlockWriteLength:=BlockSize;
@@ -1004,7 +1435,7 @@ begin
         ReadCount := ResetTable[X+1] - ResetTable[X];
 
       BlockWriteLength := BlockSize;
-      
+
       if FirstBlock = LastBlock then begin
         WriteCount := BlockLength;
       end
@@ -1030,9 +1461,9 @@ begin
         LZXteardown(LZXState);
         Exit;
       end;
-      
+
       // if the next block is an even numbered block we have to reset the decompressor state
-      if (X < LastBlock) and (X mod 2 > 0) then LZXreset(LZXState);
+      if (X < LastBlock) and (X and 1 = 1) then LZXreset(LZXState);
 
     end;
     FreeMem(OutBuf);
@@ -1118,12 +1549,18 @@ end;
 
 function TChmFileList.GetChm(AIndex: Integer): TChmReader;
 begin
-  Result := TChmReader(Objects[AIndex]);
+  if AIndex = -1 then
+    Result := fLastChm
+  else
+    Result := TChmReader(Objects[AIndex]);
 end;
 
 function TChmFileList.GetFileName(AIndex: Integer): String;
 begin
-  Result := Strings[AIndex];
+  if AIndex = -1 then
+    AIndex := IndexOfObject(fLastChm);
+
+   Result := Strings[AIndex];
 end;
 
 procedure TChmFileList.OpenNewFile(AFileName: String);
@@ -1133,7 +1570,7 @@ AChm: TChmReader;
 AIndex: Integer;
 begin
   if not FileExists(AFileName) then exit;
-  AStream := TFileStream.Create(AFileName, fmOpenRead);
+  AStream := TFileStream.Create(AFileName, fmOpenRead, fmShareDenyWrite);
   AChm := TChmReader.Create(AStream, True);
   AIndex := AddObject(AFileName, AChm);
   fLastChm := AChm;
@@ -1144,7 +1581,7 @@ end;
 function TChmFileList.CheckOpenFile(AFileName: String): Boolean;
 var
   X: Integer;
-  
+
 begin
   Result := False;
   for X := 0 to Count-1 do begin
@@ -1228,7 +1665,7 @@ begin
   fUnNotifiedFiles.Clear;
 end;
 
-function TChmFileList.ObjectExists(Name: String; fChm: TChmReader = nil): QWord;
+function TChmFileList.ObjectExists(Name: String; var fChm: TChmReader = nil): QWord;
 begin
   Result := 0;
   if Count = 0 then exit;
@@ -1241,6 +1678,8 @@ begin
   if Result = 0 then begin
     Result := MetaObjectExists(Name);
   end;
+  if (Result <> 0) and (fChm = nil) then
+    fChm := fLastChm;
 end;
 
 function TChmFileList.GetObject(Name: String): TMemoryStream;

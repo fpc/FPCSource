@@ -66,6 +66,13 @@ begin
           AddUnit('resdatastream');
           AddUnit('resfactory');
         end;
+    T:=P.Targets.AddUnit('tlbreader.pp');
+      with T.Dependencies do
+        begin
+          AddUnit('resource');
+          AddUnit('resdatastream');
+          AddUnit('resfactory');
+        end;
     T:=P.Targets.AddUnit('elfconsts.pp');
     T:=P.Targets.AddUnit('elftypes.pp');
     T:=P.Targets.AddUnit('elfreader.pp');

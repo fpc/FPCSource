@@ -21,7 +21,6 @@
 {  generates the same code for both dynamic and virtual methods  }
 {****************************************************************}
 program tcalcla1;
-{$STATIC ON}
 {$mode objfpc}
 {$R+}
 

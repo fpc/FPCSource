@@ -58,6 +58,7 @@ Type
     Procedure StartDescription; override;
     Procedure StartAccess; override;
     Procedure StartErrors; override;
+    Procedure StartVersion; override;
     Procedure StartSeealso; override;
     Procedure EndSeealso; override;
     procedure StartUnitOverview(AModuleName,AModuleLabel : String);override;
@@ -92,6 +93,8 @@ Type
     procedure DescrWriteVarEl(const AText: DOMString); override;
     procedure DescrBeginLink(const AId: DOMString); override;
     procedure DescrEndLink; override;
+    procedure DescrBeginURL(const AURL: DOMString); override; // Provides a default implementation
+    procedure DescrEndURL; override;
     procedure DescrWriteLinebreak; override;
     procedure DescrBeginParagraph; override;
     procedure DescrBeginCode(HasBorder: Boolean; const AHighlighterName: String); override;
@@ -271,6 +274,18 @@ end;
 procedure TLaTeXWriter.DescrEndLink;
 begin
   WriteF(' (\pageref{%s})',[StripText(Flink)]);
+end;
+
+procedure TLaTeXWriter.DescrBeginURL(const AURL: DOMString);
+begin
+  Inherited; //  Save link
+  Write('\htmladdnormallink{');
+end;
+
+procedure TLaTeXWriter.DescrEndURL;
+begin
+  WriteF('}{%s}',[LastURL]);
+  LastURL:='';
 end;
 
 procedure TLaTeXWriter.DescrWriteLinebreak;
@@ -583,6 +598,11 @@ begin
   Writeln('\Errors');
 end;
 
+procedure TLaTeXWriter.StartVersion;
+begin
+  Writeln('\VersionInfo');
+end;
+
 Procedure TLatexWriter.StartAccess;
 
 begin
@@ -641,13 +661,13 @@ end;
 procedure TLatexWriter.WriteOverviewMember(ALabel,AName,Access,ADescr : String);
 
 begin
-  WriteLnF('\pageref{%s} & %s & %s & %s \\',[ALabel,AName,Access,ADescr]);
+  WriteLnF('\pageref{%s} & %s & %s & %s \\',[ALabel,EscapeText(AName),Access,ADescr]);
 end;
 
 procedure TLatexWriter.WriteOverviewMember(ALabel,AName,ADescr : String);
 
 begin
-  WriteLnF('\pageref{%s} & %s  & %s \\',[ALabel,AName,ADescr]);
+  WriteLnF('\pageref{%s} & %s  & %s \\',[ALabel,EscapeText(AName),ADescr]);
 end;
 
 class function TLaTeXWriter.FileNameExtension: String;
@@ -676,7 +696,7 @@ procedure TLatexWriter.StartUnitOverview(AModuleName,AModuleLabel : String);
 
 begin
   WriteLnF('\begin{FPCltable}{lr}{%s}{%s:0units}',
-    [Format(SDocUsedUnitsByUnitXY, [AModuleName]), AModuleName]);
+    [Format(SDocUsedUnitsByUnitXY, [EscapeText(AModuleName)]), StripText(AModuleName)]);
   WriteLn('Name & Page \\ \hline');
 end;
 
@@ -684,7 +704,7 @@ procedure TLatexWriter.WriteUnitEntry(UnitRef : TPasType);
 
 begin
   WriteLnF('%s\index{unit!%s} & \pageref{%s} \\',
-     [UnitRef.Name, UnitRef.Name, StripText(GetLabel(UnitRef))]);
+     [EscapeText(UnitRef.Name), EscapeText(UnitRef.Name), StripText(GetLabel(UnitRef))]);
 end;
 
 procedure TLatexWriter.EndUnitOverview;

@@ -4,11 +4,11 @@
 
 [package]
 name=uuid
-version=2.2.2
+version=2.5.1
 
 [target]
 units=macuuid libuuid
-examples=testuid testlibuid
+exampledirs=examples
 
 [require]
 package=rtl

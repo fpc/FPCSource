@@ -63,7 +63,7 @@ TYPE
                 Version : Array[0..UTSNAME_LENGTH -1] OF Char;   // Version level.
                 Machine : Array[0..UTSNAME_LENGTH -1] OF Char;   // Hardware type.
                {$ifdef usedomain}
-                Domain  : array[0..UTSNAME_DOMAIN_LENGTH-1] of char;  // Linux addition "Domain"
+                Domain  : array[0..UTSNAME_DOMAIN_LENGTH-1] of char {$ifndef ver2_2} platform; {$endif}  // Linux addition "Domain"
                {$endif}
                end;
   TUtsName   = UtsName;
@@ -137,13 +137,32 @@ type
    TUtimBuf  = UtimBuf;
    pUtimBuf  = ^UtimBuf;
 
+   kernel_off_t = clong;
+   kernel_loff_t = clonglong;
+
    FLock     = Record
                 l_type  : cshort;       { lock type: read/write, etc. }
                 l_whence: cshort;       { type of l_start }
-                l_start : off_t;        { starting offset }
-                l_len   : off_t;        { len = 0 means until end of file }
+                l_start : kernel_off_t; { starting offset }
+                l_len   : kernel_off_t; { len = 0 means until end of file }
                 l_pid   : pid_t;        { lock owner }
+{$ifdef cpusparc}
+                __pad   : cshort;
+{$endif}
                End;
+
+{$ifndef cpu64}
+   FLock64   = Record
+                l_type  : cshort;        { lock type: read/write, etc. }
+                l_whence: cshort;        { type of l_start }
+                l_start : kernel_loff_t; { starting offset }
+                l_len   : kernel_loff_t; { len = 0 means until end of file }
+                l_pid   : pid_t;         { lock owner }
+{$ifdef cpusparc}
+                __pad   : cshort;
+{$endif}
+               End;
+{$endif}
 
    tms       = packed Record
                 tms_utime  : clock_t;   { User CPU time }

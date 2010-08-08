@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for testlog units example
+#
+
+[target]
+programs=testlog
+
+[require]
+packages=syslog
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

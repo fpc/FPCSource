@@ -1027,6 +1027,9 @@
      DSS_UNION = 16;
      DSS_DISABLED = 32;
      DSS_MONO = 128;
+     DSS_HIDEPREFIX = 512;
+     DSS_PREFIXONLY = 1024;
+     DSS_RIGHT = 32768;
   { DrawStatusText  }
      SBT_NOBORDERS = 256;
      SBT_OWNERDRAW = 4096;
@@ -1245,6 +1248,11 @@
      SETXON = 2;
      SETBREAK = 8;
      CLRBREAK = 9;
+  { WM_QUERYENDSESSION/WM_ENDSESSION }
+     ENDSESSION_LOGOFF   = dword($80000000);  // all winver >= 0x400
+     ENDSESSION_CRITICAL = dword($40000000);
+     ENDSESSION_CLOSEAPP = dword($00000001);
+
   { ExitWindowsEx  }
      EWX_FORCE = 4;
      EWX_LOGOFF = 0;
@@ -1252,6 +1260,8 @@
      EWX_REBOOT = 2;
      EWX_SHUTDOWN = 1;
      EWX_FORCEIFHUNG = 16;
+     EWX_QUICKRESOLVE= 32; // win32_winnt>=0x500
+     EWX_RESTARTAPPS = 64; // win32_winnt>=0x600
   { ExtFloodFill  }
      FLOODFILLBORDER = 0;
      FLOODFILLSURFACE = 1;
@@ -1671,9 +1681,9 @@
      SIF_RANGE = 1;
      SIF_DISABLENOSCROLL = 8;
   { GetStdHandle  }
-     STD_INPUT_HANDLE = HANDLE(-10);
-     STD_OUTPUT_HANDLE = HANDLE(-11);
-     STD_ERROR_HANDLE = HANDLE(-12);
+     STD_INPUT_HANDLE = DWORD(-10);
+     STD_OUTPUT_HANDLE = DWORD(-11);
+     STD_ERROR_HANDLE = DWORD(-12);
 
      INVALID_HANDLE_VALUE = HANDLE(-1);
 
@@ -1772,7 +1782,11 @@
      SM_ARRANGE = 56;
      SM_CLEANBOOT = 67;
   { The right value for SM_CEMETRICS for NT 3.5 is 75.  For Windows 95
-     and NT 4.0, it is 76.  The meaning is undocumented, anyhow.   }
+     and NT 4.0, it is 76.  The meaning is undocumented, anyhow.  
+    win2000=83,XP=90, vista/w7=93, but I suspect that is not properly
+    updated for win7 (which should be 96) in platform SDK 7. 
+    It seems to be the highest SM_ constant occupied.
+ }
      SM_CMETRICS = 76;
      SM_CMOUSEBUTTONS = 43;
      SM_CXBORDER = 5;
@@ -1838,13 +1852,32 @@
      SM_MENUDROPALIGNMENT = 40;
      SM_MIDEASTENABLED = 74;
      SM_MOUSEPRESENT = 19;
-     SM_MOUSEWHEELPRESENT = 75;
+     SM_MOUSEWHEELPRESENT = 75;    // w2k+
      SM_NETWORK = 63;
      SM_PENWINDOWS = 41;
      SM_SECURE = 44;
      SM_SHOWSOUNDS = 70;
      SM_SLOWMACHINE = 73;
      SM_SWAPBUTTON = 23;
+     SM_XVIRTUALSCREEN       = 76; // w2k+
+     SM_YVIRTUALSCREEN       = 77; // w2k+
+     SM_CXVIRTUALSCREEN      = 78; // w2k+
+     SM_CYVIRTUALSCREEN      = 79; // w2k+
+     SM_CMONITORS            = 80; // w2k+
+     SM_SAMEDISPLAYFORMAT    = 81; // w2k+
+     SM_IMMENABLED           = 82; // w2k+
+     SM_CXFOCUSBORDER        = 83; // w2k+
+     SM_CYFOCUSBORDER        = 84; // w2k+
+     SM_TABLETPC             = 86; // WinXP+
+     SM_MEDIACENTER          = 87; // WinXP+
+     SM_STARTER              = 88; // WinXP+
+     SM_SERVERR2             = 89; // WiNXP+
+     SM_MOUSEHORIZONTALWHEELPRESENT = 91; // Vista+
+     SM_CXPADDEDBORDER       = 92; // Vista+
+
+     SM_DIGITIZER            = 94; // win7+ 
+     SM_MAXIMUMTOUCHES       = 95; // win7+   
+
      ARW_BOTTOMLEFT = 0;
      ARW_BOTTOMRIGHT = $1;
      ARW_HIDE = $8;
@@ -2820,7 +2853,7 @@ Type
      TPM_VERTICAL    = $40;
      TPM_TOPALIGN    = 0;
      TPM_VCENTERALIGN= $10;
-     TPM_BOOTOMALIGN = $20;
+     TPM_BOTTOMALIGN = $20;
      TPM_NONOTIFY    = $80;
      TPM_RETURNCMD   = $100;
      TPM_RECURSE         = $0001;
@@ -3727,6 +3760,7 @@ Type
      UDS_ARROWKEYS = 32;
      UDS_AUTOBUDDY = 16;
      UDS_HORZ = 64;
+     UDS_HOTTRACK = 256;
      UDS_NOTHOUSANDS = 128;
      UDS_SETBUDDYINT = 2;
      UDS_WRAP = 1;
@@ -5633,6 +5667,51 @@ const
   DMDO_90         = 1;
   DMDO_180        = 2;
   DMDO_270        = 3;
+
+  FIND_FIRST_EX_CASE_SENSITIVE   = $00000001;
+  FIND_FIRST_EX_LARGE_FETCH      = $00000002;
+
+  GPT_ATTRIBUTE_PLATFORM_REQUIRED  = $0000000000000001;
+
+//
+// The following are GPT partition attributes applicable when the
+// PartitionType is PARTITION_BASIC_DATA_GUID.
+//
+
+  GPT_BASIC_DATA_ATTRIBUTE_NO_DRIVE_LETTER    =qword($8000000000000000);
+  GPT_BASIC_DATA_ATTRIBUTE_HIDDEN             =qword($4000000000000000);
+  GPT_BASIC_DATA_ATTRIBUTE_SHADOW_COPY        =qword($2000000000000000);
+  GPT_BASIC_DATA_ATTRIBUTE_READ_ONLY          =qword($1000000000000000);
+
+    IMAGE_FILE_MACHINE_UNKNOWN           = 0;
+    IMAGE_FILE_MACHINE_I386              = $014c;  // Intel 386.
+    IMAGE_FILE_MACHINE_R3000             = $0162;  // MIPS little-endian, = $160 big-endian
+    IMAGE_FILE_MACHINE_R4000             = $0166;  // MIPS little-endian
+    IMAGE_FILE_MACHINE_R10000            = $0168;  // MIPS little-endian
+    IMAGE_FILE_MACHINE_WCEMIPSV2         = $0169;  // MIPS little-endian WCE v2
+    IMAGE_FILE_MACHINE_ALPHA             = $0184;  // Alpha_AXP
+    IMAGE_FILE_MACHINE_SH3               = $01a2;  // SH3 little-endian
+    IMAGE_FILE_MACHINE_SH3DSP            = $01a3;
+    IMAGE_FILE_MACHINE_SH3E              = $01a4;  // SH3E little-endian
+    IMAGE_FILE_MACHINE_SH4               = $01a6;  // SH4 little-endian
+    IMAGE_FILE_MACHINE_SH5               = $01a8;  // SH5
+    IMAGE_FILE_MACHINE_ARM               = $01c0;  // ARM Little-Endian
+    IMAGE_FILE_MACHINE_THUMB             = $01c2;
+    IMAGE_FILE_MACHINE_AM33              = $01d3;
+    IMAGE_FILE_MACHINE_POWERPC           = $01F0;  // IBM PowerPC Little-Endian
+    IMAGE_FILE_MACHINE_POWERPCFP         = $01f1;
+    IMAGE_FILE_MACHINE_IA64              = $0200;  // Intel 64
+    IMAGE_FILE_MACHINE_MIPS16            = $0266;  // MIPS
+    IMAGE_FILE_MACHINE_ALPHA64           = $0284;  // ALPHA64
+    IMAGE_FILE_MACHINE_MIPSFPU           = $0366;  // MIPS
+    IMAGE_FILE_MACHINE_MIPSFPU16         = $0466;  // MIPS
+    IMAGE_FILE_MACHINE_AXP64             = IMAGE_FILE_MACHINE_ALPHA64;
+    IMAGE_FILE_MACHINE_TRICORE           = $0520;  // Infineon
+    IMAGE_FILE_MACHINE_CEF               = $0CEF;
+    IMAGE_FILE_MACHINE_EBC               = $0EBC;  // EFI Byte Code
+    IMAGE_FILE_MACHINE_AMD64             = $8664;  // AMD64 (K8)
+    IMAGE_FILE_MACHINE_M32R              = $9041;  // M32R little-endian
+    IMAGE_FILE_MACHINE_CEE               = $C0EE;
 
 {$endif read_interface}
 

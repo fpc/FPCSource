@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=prt0
-units=$(SYSTEMUNIT) ctypes objpas macpas strings \
+units=$(SYSTEMUNIT) ctypes objpas macpas iso7185 strings \
       ports os2def doscalls moncalls kbdcalls moucalls viocalls \
       pmbitmap pmwin pmgpi pmstddlg pmhelp pmdev pmspl pmshl pmwp pmwsock pmbidi \
       dos crt objects printer matrix \

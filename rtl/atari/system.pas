@@ -777,6 +777,10 @@ begin
   argc:=GetParamCount(args);
   InitVariantManager;
 {$ifdef HASWIDESTRING}
+ {$ifdef VER2_2}
   InitWideStringManager;
+ {$else VER2_2}
+  InitUnicodeStringManager;
+ {$endif VER2_2}
 {$endif HASWIDESTRING}
 end.

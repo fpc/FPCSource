@@ -134,6 +134,7 @@ implementation
       cutils,verbose,globals,
       symconst,symbase,defutil,defcmp,
       nbas,nutils,
+      wpobase,
       htypechk,pass_1,ncal,nld,ncon,ncnv,cgbase,procinfo
       ;
 
@@ -158,7 +159,17 @@ implementation
           classrefdef :
             resultdef:=left.resultdef;
           objectdef :
-            resultdef:=tclassrefdef.create(left.resultdef);
+            { access to the classtype while specializing? }
+            if (df_generic in left.resultdef.defoptions) and
+              assigned(current_objectdef.genericdef) then
+              begin
+                if current_objectdef.genericdef=left.resultdef then
+                  resultdef:=tclassrefdef.create(current_objectdef)
+                else
+                  message(parser_e_cant_create_generics_of_this_type);
+              end
+            else
+              resultdef:=tclassrefdef.create(left.resultdef);
           else
             Message(parser_e_pointer_to_class_expected);
         end;
@@ -166,11 +177,45 @@ implementation
 
 
     function tloadvmtaddrnode.pass_1 : tnode;
+      var
+        vs: tsym;
       begin
          result:=nil;
          expectloc:=LOC_REGISTER;
          if left.nodetype<>typen then
-           firstpass(left);
+           begin
+             { make sure that the isa field is loaded correctly in case
+               of the non-fragile ABI }
+             if is_objcclass(left.resultdef) and
+                (left.nodetype<>typen) then
+               begin
+                 vs:=search_class_member(tobjectdef(left.resultdef),'ISA');
+                 if not assigned(vs) or
+                    (tsym(vs).typ<>fieldvarsym) then
+                   internalerror(2009092502);
+                 result:=csubscriptnode.create(tfieldvarsym(vs),left);
+                 inserttypeconv_internal(result,resultdef);
+                 { reused }
+                 left:=nil;
+               end
+             else
+               firstpass(left)
+           end
+         else if not is_objcclass(left.resultdef) and
+                 not is_objcclassref(left.resultdef) then
+           begin
+             if not(nf_ignore_for_wpo in flags) and
+                (not assigned(current_procinfo) or
+                 (po_inline in current_procinfo.procdef.procoptions) or
+                  wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname)) then
+             begin
+               { keep track of which classes might be instantiated via a classrefdef }
+               if (left.resultdef.typ=classrefdef) then
+                 tobjectdef(tclassrefdef(left.resultdef).pointeddef).register_maybe_created_object_type
+               else if (left.resultdef.typ=objectdef) then
+                 tobjectdef(left.resultdef).register_maybe_created_object_type
+             end
+           end;
       end;
 
 
@@ -372,8 +417,7 @@ implementation
                (left.nodetype in [stringconstn])
               ) then
          begin
-           current_filepos:=left.fileinfo;
-           CGMessage(type_e_no_addr_of_constant);
+           CGMessagePos(left.fileinfo,type_e_no_addr_of_constant);
            exit;
          end;
 
@@ -391,6 +435,7 @@ implementation
             if not isprocvar then
               begin
                 left:=ctypeconvnode.create_proc_to_procvar(left);
+                left.fileinfo:=fileinfo;
                 typecheckpass(left);
               end;
 
@@ -408,9 +453,10 @@ implementation
                   end
                 else
                   begin
-                    { For procvars we need to return the proc field of the
-                      methodpointer }
-                    if isprocvar then
+                    { For procvars and for nested routines we need to return
+                      the proc field of the methodpointer }
+                    if isprocvar or
+                       is_nested_pd(tabstractprocdef(left.resultdef)) then
                       begin
                         { find proc field in methodpointer record }
                         hsym:=tfieldvarsym(trecorddef(methodpointertype).symtable.Find('proc'));
@@ -453,7 +499,20 @@ implementation
               end
             else
 {$endif i386}
-              if (nf_internal in flags) or
+            if (hp.nodetype=loadn) and
+               (tloadnode(hp).symtableentry.typ=absolutevarsym) and
+{$ifdef i386}
+               not(tabsolutevarsym(tloadnode(hp).symtableentry).absseg) and
+{$endif i386}
+               (tabsolutevarsym(tloadnode(hp).symtableentry).abstyp=toaddr) then
+               begin
+                 if nf_typedaddr in flags then
+                   result:=cpointerconstnode.create(tabsolutevarsym(tloadnode(hp).symtableentry).addroffset,tpointerdef.create(left.resultdef))
+                 else
+                   result:=cpointerconstnode.create(tabsolutevarsym(tloadnode(hp).symtableentry).addroffset,voidpointertype);
+                 exit;
+               end
+              else if (nf_internal in flags) or
                  valid_for_addr(left,true) then
                 begin
                   if not(nf_typedaddr in flags) then
@@ -594,9 +653,10 @@ implementation
         maybe_call_procvar(left,true);
         resultdef:=vs.vardef;
 
-        // don't put records from which we load fields which aren't regable in integer registers
-        if (left.resultdef.typ = recorddef) and
-           not(tstoreddef(resultdef).is_intregable) then
+        // don't put records from which we load float fields
+        // in integer registers
+        if (left.resultdef.typ=recorddef) and
+           (resultdef.typ=floatdef) then
           make_not_regable(left,[ra_addr_regable]);
       end;
 
@@ -613,8 +673,8 @@ implementation
          if codegenerror then
           exit;
 
-         { classes must be dereferenced implicit }
-         if is_class_or_interface(left.resultdef) then
+         { classes must be dereferenced implicitly }
+         if is_class_or_interface_or_dispinterface_or_objc(left.resultdef) then
            expectloc:=LOC_REFERENCE
          else
            begin
@@ -698,9 +758,9 @@ implementation
           exit;
 
          { maybe type conversion for the index value, but
-           do not convert enums,booleans,char
+           do not convert enums, char (why not? (JM))
            and do not convert range nodes }
-         if (right.nodetype<>rangen) and (is_integer(right.resultdef) or (left.resultdef.typ<>arraydef)) then
+         if (right.nodetype<>rangen) and (is_integer(right.resultdef) or is_boolean(right.resultdef) or (left.resultdef.typ<>arraydef)) then
            case left.resultdef.typ of
              arraydef:
                if ado_isvariant in Tarraydef(left.resultdef).arrayoptions then
@@ -713,6 +773,9 @@ implementation
                  {Arrays without a high bound (dynamic arrays, open arrays) are zero based,
                   convert indexes into these arrays to aword.}
                  inserttypeconv(right,uinttype)
+               { convert between pasbool and cbool if necessary }
+               else if is_boolean(right.resultdef) then
+                 inserttypeconv(right,tarraydef(left.resultdef).rangedef)
                else
                  {Convert array indexes to low_bound..high_bound.}
                  inserttypeconv(right,Torddef.create(Torddef(sinttype).ordtype,
@@ -858,7 +921,12 @@ implementation
          else if is_widestring(left.resultdef) and (tf_winlikewidestring in target_info.flags) then
            exclude(flags,nf_callunique);
 
-         if (not is_packed_array(left.resultdef)) or
+         { a range node as array index can only appear in function calls, and
+           those convert the range node into something else in
+           tcallnode.gen_high_tree }
+         if (right.nodetype=rangen) then
+           CGMessagePos(right.fileinfo,parser_e_illegal_expression)
+         else if (not is_packed_array(left.resultdef)) or
             ((tarraydef(left.resultdef).elepackedbitsize mod 8) = 0) then
            if left.expectloc=LOC_CREFERENCE then
              expectloc:=LOC_CREFERENCE

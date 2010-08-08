@@ -12,11 +12,11 @@ unit postgres3dyn;
 interface
 
 uses
-  dynlibs, SysUtils, dllistdyn;
+  dynlibs, SysUtils, dllistdyn, ctypes;
 
 {$IFDEF Unix}
   const
-    pqlib = 'libpq.so';
+    pqlib = 'libpq.'+sharedsuffix;
 {$ENDIF}
 {$IFDEF Win32}
   const
@@ -212,6 +212,8 @@ var
 Procedure InitialisePostgres3;
 Procedure ReleasePostgres3;
 
+function PQsetdb(M_PGHOST,M_PGPORT,M_PGOPT,M_PGTTY,M_DBNAME : pchar) : ppgconn;
+
 var Postgres3LibraryHandle : TLibHandle;
 
 implementation
@@ -269,7 +271,7 @@ begin
     pointer(PQexec) := GetProcedureAddress(Postgres3LibraryHandle,'PQexec');
     pointer(PQexecParams) := GetProcedureAddress(Postgres3LibraryHandle,'PQexecParams');
     pointer(PQexecPrepared) := GetProcedureAddress(Postgres3LibraryHandle,'PQexecPrepared');
-    pointer(PQPrepare) := GetProcedureAddress(Postgres3LibraryHandle,'PQPrepare');
+    pointer(PQPrepare) := GetProcedureAddress(Postgres3LibraryHandle,'PQprepare');
     pointer(PQsendQuery) := GetProcedureAddress(Postgres3LibraryHandle,'PQsendQuery');
     pointer(PQsendQueryParams) := GetProcedureAddress(Postgres3LibraryHandle,'PQsendQueryParams');
     pointer(PQsendQueryPrepared) := GetProcedureAddress(Postgres3LibraryHandle,'PQsendQueryPrepared');

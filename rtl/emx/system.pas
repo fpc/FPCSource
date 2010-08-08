@@ -460,7 +460,6 @@ const
  FatalHeap: array [0..33] of char = 'FATAL: Cannot initialize heap!!'#13#10'$';
 
 begin
-    IsLibrary := FALSE;
     {Determine the operating system we are running on.}
 {$ASMMODE INTEL}
     asm
@@ -585,7 +584,11 @@ begin
     InitVariantManager;
 
 {$ifdef HASWIDESTRING}
+ {$ifdef VER2_2}
     InitWideStringManager;
+ {$else VER2_2}
+    InitUnicodeStringManager;
+ {$endif VER2_2}
 {$endif HASWIDESTRING}
 
     if os_Mode in [osDOS,osDPMI] then

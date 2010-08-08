@@ -1174,7 +1174,7 @@ asm
   or     r6,r7,r8
   stwcx. r6,0,r3
   bne .LInterlockedCompareExchangeLoop
-  mr     r3, r6
+  mr     r3, r10
 end;
 
 {$IFDEF MORPHOS}
@@ -1208,7 +1208,7 @@ end;
 
 procedure ReadBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-  sync
+  isync
 end;
 
 procedure ReadDependencyBarrier;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -1218,7 +1218,8 @@ end;
 
 procedure ReadWriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-  sync
+  isync
+  eieio
 end;
 
 procedure WriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}

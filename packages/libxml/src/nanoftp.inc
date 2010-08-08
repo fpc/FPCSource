@@ -29,7 +29,7 @@
  * A callback for the xmlNanoFTPList command.
  * Note that only one of year and day:minute are specified.
  *)
-  ftpListCallback = procedure(userData: pointer; filename, attrib, owner, group: pchar; size: culong; links, year: cint; month: pchar; day, hour, minute: cint); XMLCALL;
+  ftpListCallback = procedure(userData: pointer; filename, attrib, owner, group: pchar; size: culong; links, year: cint; month: pchar; day, hour, minute: cint); EXTDECL;
 
 (**
  * ftpDataCallback: 
@@ -39,51 +39,51 @@
  *
  * A callback for the xmlNanoFTPGet command.
  *)
-  ftpDataCallback = procedure(userData: pointer; data: pchar; len: cint); XMLCALL;
+  ftpDataCallback = procedure(userData: pointer; data: pchar; len: cint); EXTDECL;
 {$ENDIF}
 
 {$IFDEF FUNCTION}
 (*
  * Init
  *)
-procedure xmlNanoFTPInit; XMLCALL; XMLPUBFUN;
-procedure xmlNanoFTPCleanup; XMLCALL; XMLPUBFUN;
+procedure xmlNanoFTPInit; EXTDECL; external xml2lib;
+procedure xmlNanoFTPCleanup; EXTDECL; external xml2lib;
 
 (*
  * Creating/freeing contexts.
  *)
-function xmlNanoFTPNewCtxt(URL: pchar): pointer; XMLCALL; XMLPUBFUN;
-procedure xmlNanoFTPFreeCtxt(ctx: pointer); XMLCALL; XMLPUBFUN;
-function xmlNanoFTPConnectTo(server: pchar; port: cint): pointer; XMLCALL; XMLPUBFUN;
+function xmlNanoFTPNewCtxt(URL: pchar): pointer; EXTDECL; external xml2lib;
+procedure xmlNanoFTPFreeCtxt(ctx: pointer); EXTDECL; external xml2lib;
+function xmlNanoFTPConnectTo(server: pchar; port: cint): pointer; EXTDECL; external xml2lib;
 
 (*
  * Opening/closing session connections.
  *)
-function xmlNanoFTPOpen(URL: pchar): pointer; XMLCALL; XMLPUBFUN;
-function xmlNanoFTPConnect(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
-function xmlNanoFTPClose(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
-function xmlNanoFTPQuit(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
-procedure xmlNanoFTPScanProxy(URL: pchar); XMLCALL; XMLPUBFUN;
-procedure xmlNanoFTPProxy(host: pchar; port: cint; user, passwd: pchar; _type: cint); XMLCALL; XMLPUBFUN;
-function xmlNanoFTPUpdateURL(ctx: pointer; URL: pchar): cint; XMLCALL; XMLPUBFUN;
+function xmlNanoFTPOpen(URL: pchar): pointer; EXTDECL; external xml2lib;
+function xmlNanoFTPConnect(ctx: pointer): cint; EXTDECL; external xml2lib;
+function xmlNanoFTPClose(ctx: pointer): cint; EXTDECL; external xml2lib;
+function xmlNanoFTPQuit(ctx: pointer): cint; EXTDECL; external xml2lib;
+procedure xmlNanoFTPScanProxy(URL: pchar); EXTDECL; external xml2lib;
+procedure xmlNanoFTPProxy(host: pchar; port: cint; user, passwd: pchar; _type: cint); EXTDECL; external xml2lib;
+function xmlNanoFTPUpdateURL(ctx: pointer; URL: pchar): cint; EXTDECL; external xml2lib;
 
 (*
  * Rather internal commands.
  *)
-function xmlNanoFTPGetResponse(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
-function xmlNanoFTPCheckResponse(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
+function xmlNanoFTPGetResponse(ctx: pointer): cint; EXTDECL; external xml2lib;
+function xmlNanoFTPCheckResponse(ctx: pointer): cint; EXTDECL; external xml2lib;
 
 (*
  * CD/DIR/GET handlers.
  *)
-function xmlNanoFTPCwd(ctx: pointer; directory: pchar): cint; XMLCALL; XMLPUBFUN;
-function xmlNanoFTPGetResponse(ctx: pointer; _file: pchar): cint; XMLCALL; XMLPUBFUN;
-function xmlNanoFTPGetConnection(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
-function xmlNanoFTPCloseConnection(ctx: pointer): cint; XMLCALL; XMLPUBFUN;
-function xmlNanoFTPList(ctx: pointer; callback: ftpListCallback; userData: pointer; filename: pchar): cint; XMLCALL; XMLPUBFUN;
-function xmlNanoFTPGetSocket(ctx: pointer; filename: pchar): cint; XMLCALL; XMLPUBFUN;
-function xmlNanoFTPGet(ctx: pointer; callback: ftpDataCallback; userData: pointer; filename: pchar): cint; XMLCALL; XMLPUBFUN;
-function xmlNanoFTPRead(ctx: pointer; dest: pointer; len: cint): cint; XMLCALL; XMLPUBFUN;
+function xmlNanoFTPCwd(ctx: pointer; directory: pchar): cint; EXTDECL; external xml2lib;
+function xmlNanoFTPGetResponse(ctx: pointer; _file: pchar): cint; EXTDECL; external xml2lib;
+function xmlNanoFTPGetConnection(ctx: pointer): cint; EXTDECL; external xml2lib;
+function xmlNanoFTPCloseConnection(ctx: pointer): cint; EXTDECL; external xml2lib;
+function xmlNanoFTPList(ctx: pointer; callback: ftpListCallback; userData: pointer; filename: pchar): cint; EXTDECL; external xml2lib;
+function xmlNanoFTPGetSocket(ctx: pointer; filename: pchar): cint; EXTDECL; external xml2lib;
+function xmlNanoFTPGet(ctx: pointer; callback: ftpDataCallback; userData: pointer; filename: pchar): cint; EXTDECL; external xml2lib;
+function xmlNanoFTPRead(ctx: pointer; dest: pointer; len: cint): cint; EXTDECL; external xml2lib;
 
 {$ENDIF}
 {$ENDIF} (* LIBXML_FTP_ENABLED *)

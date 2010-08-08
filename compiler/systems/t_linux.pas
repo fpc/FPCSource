@@ -99,7 +99,7 @@ implementation
         { the problem with not having a .fini section is that a finalization
           routine in regular code can get "smart" linked away -> reference it
           just like the debug info }
-        list.concat(Tai_section.create(sec_fpc,'links',0));
+        new_section(list,sec_fpc,'links',0);
         list.concat(Tai_const.Createname(s,0));
         inherited setfininame(list,s);
       end;
@@ -130,13 +130,18 @@ procedure TLinkerLinux.SetDefaultInfo;
 }
 
 const
-{$ifdef i386}   platform_select='-b elf32-i386 -m elf_i386';{$endif}
-{$ifdef x86_64} platform_select='-b elf64-x86-64 -m elf_x86_64';{$endif}
-{$ifdef powerpc}platform_select='-b elf32-powerpc -m elf32ppclinux';{$endif}
-{$ifdef POWERPC64}  platform_select='-b elf64-powerpc -m elf64ppc';{$endif}
-{$ifdef sparc}  platform_select='-b elf32-sparc -m elf32_sparc';{$endif}
-{$ifdef arm}    platform_select='';{$endif} {unknown :( }
-{$ifdef m68k}    platform_select='';{$endif} {unknown :( }
+{$ifdef i386}      platform_select='-b elf32-i386 -m elf_i386';{$endif}
+{$ifdef x86_64}    platform_select='-b elf64-x86-64 -m elf_x86_64';{$endif}
+{$ifdef powerpc}   platform_select='-b elf32-powerpc -m elf32ppclinux';{$endif}
+{$ifdef POWERPC64} platform_select='-b elf64-powerpc -m elf64ppc';{$endif}
+{$ifdef sparc}     platform_select='-b elf32-sparc -m elf32_sparc';{$endif}
+{$ifdef arm}       platform_select='';{$endif} {unknown :( }
+{$ifdef m68k}      platform_select='';{$endif} {unknown :( }
+{$ifdef mips}
+  {$ifdef mipsel}  platform_select='-EL';{$else}
+                   platform_select='-EB';{$endif}
+{$endif}
+
 
 var
   defdynlinker: string;
@@ -375,11 +380,15 @@ begin
 
       StartSection('INPUT(');
       { add objectfiles, start with prt0 always }
-      if not (target_info.system in system_internal_sysinit) and (prtobj<>'') then
+      if not (target_info.system in systems_internal_sysinit) and (prtobj<>'') then
        AddFileName(maybequoted(FindObjectFile(prtobj,'',false)));
       { try to add crti and crtbegin if linking to C }
       if linklibc and (libctype<>uclibc) then
        begin
+         { crti.o must come first }
+         if librarysearchpath.FindFile('crti.o',false,s) then
+           AddFileName(s);
+         { then the crtbegin* }
          { x86_64 requires this to use entry/exit code with pic,
            see also issue #8210 regarding a discussion
            no idea about the other non i386 CPUs (FK)
@@ -392,10 +401,11 @@ begin
            end
          else
 {$endif x86_64}
-           if librarysearchpath.FindFile('crtbegin.o',false,s) then
+           if (cs_link_staticflag in current_settings.globalswitches) and
+              librarysearchpath.FindFile('crtbeginT.o',false,s) then
+             AddFileName(s)
+           else if librarysearchpath.FindFile('crtbegin.o',false,s) then
              AddFileName(s);
-         if librarysearchpath.FindFile('crti.o',false,s) then
-           AddFileName(s);
        end;
       { main objectfiles }
       while not ObjectFiles.Empty do
@@ -429,29 +439,46 @@ begin
       if not SharedLibFiles.Empty then
        begin
 
-         Add('INPUT(');
-         While not SharedLibFiles.Empty do
-          begin
-            S:=SharedLibFiles.GetFirst;
-            if (s<>'c') or reorder then
-             begin
-               i:=Pos(target_info.sharedlibext,S);
-               if i>0 then
-                Delete(S,i,255);
-               Add('-l'+s);
-             end
-            else
-             begin
-               linklibc:=true;
-             end;
-          end;
-         { be sure that libc is the last lib }
-         if linklibc and not reorder then
-          Add('-lc');
-         { when we have -static for the linker the we also need libgcc }
-         if (cs_link_staticflag in current_settings.globalswitches) then
-          Add('-lgcc');
-         Add(')');
+         if (SharedLibFiles.Count<>1) or
+            (TCmdStrListItem(SharedLibFiles.First).Str<>'c') or
+            reorder then
+           begin
+             Add('INPUT(');
+             While not SharedLibFiles.Empty do
+              begin
+                S:=SharedLibFiles.GetFirst;
+                if (s<>'c') or reorder then
+                 begin
+                   i:=Pos(target_info.sharedlibext,S);
+                   if i>0 then
+                    Delete(S,i,255);
+                   Add('-l'+s);
+                 end
+                else
+                 begin
+                   linklibc:=true;
+                 end;
+              end;
+             Add(')');
+           end
+         else
+           linklibc:=true;
+         if (cs_link_staticflag in current_settings.globalswitches) or
+            (linklibc and not reorder) then
+           begin
+             Add('GROUP(');
+             { when we have -static for the linker the we also need libgcc }
+             if (cs_link_staticflag in current_settings.globalswitches) then
+               begin
+                 Add('-lgcc');
+                 if librarysearchpath.FindFile('libgcc_eh.a',false,s1) then
+                   Add('-lgcc_eh');
+               end;
+             { be sure that libc is the last lib }
+             if linklibc and not reorder then
+               Add('-lc');
+             Add(')');
+           end;
        end;
 
       { objects which must be at the end }
@@ -628,7 +655,7 @@ begin
           add('SECTIONS');
           add('{');
           add('  /* Read-only sections, merged into text segment: */');
-          add('  PROVIDE (__executable_start = 0x8000); . = 0x8000;');
+          add('  PROVIDE (__executable_start = 0x8000); . = 0x8000 + SIZEOF_HEADERS;');
           add('  .interp         : { *(.interp) }');
           add('  .note.gnu.build-id : { *(.note.gnu.build-id) }');
           add('  .hash           : { *(.hash) }');
@@ -847,7 +874,7 @@ begin
           add('SECTIONS');
           add('{');
           {Read-only sections, merged into text segment:}
-          add('  PROVIDE (__executable_start = 0x010000); . = 0x010000 +0x100;');
+          add('  PROVIDE (__executable_start = 0x010000); . = 0x010000 + SIZEOF_HEADERS;');
           add('  .interp         : { *(.interp) }');
           add('  .hash           : { *(.hash) }');
           add('  .dynsym         : { *(.dynsym) }');
@@ -1052,8 +1079,8 @@ begin
 
  { Create some replacements }
  { note: linux does not use exportlib.initname/fininame due to the custom startup code }
-  InitStr:='-init FPC_LIB_START';
-  FiniStr:='-fini FPC_LIB_EXIT';
+  InitStr:='-init FPC_SHARED_LIB_START';
+  FiniStr:='-fini FPC_SHARED_LIB_EXIT';
   SoNameStr:='-soname '+ExtractFileName(current_module.sharedlibfilename^);
 
 { Call linker }
@@ -1141,5 +1168,18 @@ initialization
   RegisterExport(system_arm_linux,texportliblinux);
   RegisterTarget(system_arm_linux_info);
 {$endif ARM}
+{$ifdef MIPS}
+{$ifdef MIPSEL}
+  RegisterExternalLinker(system_mipsel_linux_info,TLinkerLinux);
+  RegisterImport(system_mipsel_linux,timportliblinux);
+  RegisterExport(system_mipsel_linux,texportliblinux);
+  RegisterTarget(system_mipsel_linux_info);
+{$else MIPS}
+  RegisterExternalLinker(system_mips_linux_info,TLinkerLinux);
+  RegisterImport(system_mips_linux,timportliblinux);
+  RegisterExport(system_mips_linux,texportliblinux);
+  RegisterTarget(system_mips_linux_info);
+{$endif MIPSEL}
+{$endif MIPS}
   RegisterRes(res_elf_info,TWinLikeResourceFile);
 end.

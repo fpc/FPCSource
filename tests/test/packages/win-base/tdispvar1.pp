@@ -12,10 +12,21 @@ uses
 var StarOffice : Variant;
 	Document : Variant;
 
-function TSampleCode_Connect() : boolean;
+function TSampleCode_Connect(OleName : string) : boolean;
 begin
     if  VarIsEmpty(StarOffice) then
-        StarOffice := CreateOleObject('com.sun.star.ServiceManager');
+      begin
+        try
+          Writeln('Trying to connect to ',OleName);
+          StarOffice := CreateOleObject(OleName);
+        except
+          on e : exception do
+            begin
+              StarOffice:=Unassigned;
+              Writeln('Connection to ',OleName,' failed: ',e.message);
+            end;
+          end;
+      end;
 
     Result := not (VarIsEmpty(StarOffice) or VarIsNull(StarOffice));
 end;
@@ -61,7 +72,18 @@ begin
 end;
 
 begin
-	CoInitialize(nil);
-	TSampleCode_Connect();
-        TSampleCode_CreateDocument(false);
+  CoInitialize(nil);
+  if TSampleCode_Connect('com.sun.star.ServiceManager') then
+    begin
+      if TSampleCode_CreateDocument(false) then
+        Document.Close(false);
+
+    end;
+  StarOffice:=Unassigned;
+  if TSampleCode_Connect('com.sun.star.ServiceManager.NonExisting.Variant.Just.To.Test') then
+    begin
+      if TSampleCode_CreateDocument(false) then
+        Document.Close(false);
+    end;
+  CoUnInitialize;
 end.

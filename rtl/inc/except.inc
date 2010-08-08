@@ -184,7 +184,7 @@ begin
 end;
 
 
-Function fpc_Raiseexception (Obj : TObject; AnAddr,AFrame : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION']; compilerproc;
+Function fpc_RaiseException (Obj : TObject; AnAddr,AFrame : Pointer) : TObject;[Public, Alias : 'FPC_RAISEEXCEPTION']; compilerproc;
 var
   _ExceptObjectStack : PExceptObject;
   _ExceptAddrstack : PExceptAddr;
@@ -339,10 +339,20 @@ end;
 
 Procedure fpc_DestroyException(o : TObject);[Public, Alias : 'FPC_DESTROYEXCEPTION']; compilerproc;
 begin
-  { with free we're on the really save side }
+  { with free we're on the really safe side }
   o.Free;
 end;
 
+function fpc_GetExceptionAddr : Pointer;[Public, Alias : 'FPC_GETEXCEPTIONADDR']; compilerproc;
+var
+  _ExceptObjectStack : PExceptObject;
+begin
+  _ExceptObjectStack:=ExceptObjectStack;
+  if _ExceptObjectStack=nil then
+    fpc_GetExceptionAddr:=nil
+  else
+    fpc_GetExceptionAddr:=_ExceptObjectStack^.Addr;
+end;
 
 Procedure SysInitExceptions;
 {

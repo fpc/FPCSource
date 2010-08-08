@@ -65,7 +65,7 @@ type
     procedure SetFloat(CurrBuff: pointer; Dbl: Double; Size: integer);
     procedure CheckError(ProcName : string; Status : PISC_STATUS);
     function getMaxBlobSize(blobHandle : TIsc_Blob_Handle) : longInt;
-    procedure SetParameters(cursor : TSQLCursor;AParams : TParams);
+    procedure SetParameters(cursor : TSQLCursor; aTransation : TSQLTransaction; AParams : TParams);
     procedure FreeSQLDABuffer(var aSQLDA : PXSQLDA);
     function  IsDialectStored: boolean;
   protected
@@ -162,7 +162,8 @@ constructor TIBConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat] + [sqQuoteFieldnames];
+  FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat];
+  FieldNameQuoteChars:=DoubleQuotes;
   FBLobSegmentSize := 80;
   FDialect := -1;
   FDBDialect := -1;
@@ -300,6 +301,8 @@ begin
   pagesize := params.Values['PAGE_SIZE'];
   if pagesize <> '' then
     CreateSQL := CreateSQL + ' PAGE_SIZE '+pagesize;
+  if CharSet <> '' then
+    CreateSQL := CreateSQL + ' DEFAULT CHARACTER SET ' + CharSet;
 
   if isc_dsql_execute_immediate(@FStatus[0],@ASQLDatabaseHandle,@ASQLTransactionHandle,length(CreateSQL),@CreateSQL[1],Dialect,nil) <> 0 then
     CheckError('CreateDB', FStatus);
@@ -445,18 +448,20 @@ begin
       TrType := ftFMTBcd;
     end
   else case (SQLType and not 1) of
-    SQL_VARYING,SQL_TEXT :
+    SQL_VARYING :
       begin
         TrType := ftString;
-        if SQLLen > dsMaxStringSize then
-          TrLen := dsMaxStringSize
-        else
-          TrLen := SQLLen;
+        TrLen := SQLLen;
+      end;
+    SQL_TEXT :
+      begin
+        TrType := ftFixedChar;
+        TrLen := SQLLen;
       end;
     SQL_TYPE_DATE :
-      TrType := ftDate{Time};
+      TrType := ftDate;
     SQL_TYPE_TIME :
-        TrType := ftDateTime;
+        TrType := ftTime;
     SQL_TIMESTAMP :
         TrType := ftDateTime;
     SQL_ARRAY :
@@ -518,7 +523,11 @@ procedure TIBConnection.PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLT
 
 var dh    : pointer;
     tr    : pointer;
-    x     : shortint;
+    x     : Smallint;
+    info_request   : string;
+    resbuf         : array[0..7] of byte;
+    blockSize      : integer;
+    IBStatementType: integer;
 
 begin
   with cursor as TIBcursor do
@@ -547,13 +556,33 @@ begin
           SQLData := AllocMem(in_SQLDA^.SQLVar[x].SQLLen+2)
         else
           SQLData := AllocMem(in_SQLDA^.SQLVar[x].SQLLen);
-        if (sqltype and 1) = 1 then New(SQLInd);
+        // Always force the creation of slqind for parameters. It could be
+        // that a database-trigger takes care of inserting null-values, so
+        // it should always be possible to pass null-parameters. If that fails,
+        // the database-server will generate the appropiate error.
+        sqltype := sqltype or 1;
+        new(sqlind);
         end;
       {$R+}
       end
     else
       AllocSQLDA(in_SQLDA,0);
-    if FStatementType = stselect then
+
+    // Get the statement type from firebird/interbase
+    info_request := chr(isc_info_sql_stmt_type);
+    if isc_dsql_sql_info(@Status[0],@Statement,Length(info_request), @info_request[1],sizeof(resbuf),@resbuf) <> 0 then
+      CheckError('PrepareStatement', Status);
+    assert(resbuf[0]=isc_info_sql_stmt_type);
+    BlockSize:=isc_vax_integer(@resbuf[1],2);
+    IBStatementType:=isc_vax_integer(@resbuf[3],blockSize);
+    assert(resbuf[3+blockSize]=isc_info_end);
+    // If the statementtype is isc_info_sql_stmt_exec_procedure then
+    // override the statement type derrived by parsing the query.
+    // This to recognize statements like 'insert into .. returning' correctly
+    if IBStatementType = isc_info_sql_stmt_exec_procedure then
+      FStatementType := stExecProcedure;
+
+    if FStatementType in [stSelect,stExecProcedure] then
       begin
       if isc_dsql_describe(@Status[0], @Statement, 1, SQLDA) <> 0 then
         CheckError('PrepareSelect', Status);
@@ -592,7 +621,7 @@ end;
 
 procedure TIBConnection.FreeSQLDABuffer(var aSQLDA : PXSQLDA);
 
-var x : shortint;
+var x : Smallint;
 
 begin
 {$R-}
@@ -636,7 +665,7 @@ procedure TIBConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;
 var tr : pointer;
 begin
   tr := aTransaction.Handle;
-  if Assigned(APArams) and (AParams.count > 0) then SetParameters(cursor, AParams);
+  if Assigned(APArams) and (AParams.count > 0) then SetParameters(cursor, atransaction, AParams);
   with cursor as TIBCursor do
     if isc_dsql_execute2(@Status[0], @tr, @Statement, 1, in_SQLDA, nil) <> 0 then
       CheckError('Execute', Status);
@@ -694,7 +723,7 @@ begin
   Result := (retcode <> 100);
 end;
 
-procedure TIBConnection.SetParameters(cursor : TSQLCursor;AParams : TParams);
+procedure TIBConnection.SetParameters(cursor : TSQLCursor; aTransation : TSQLTransaction; AParams : TParams);
 
 var ParNr,SQLVarNr : integer;
     s               : string;
@@ -716,7 +745,7 @@ var ParNr,SQLVarNr : integer;
 {$R-}
     with cursor as TIBCursor do
       begin
-      TransactionHandle := transaction.Handle;
+      TransactionHandle := aTransation.Handle;
       blobhandle := nil;
       if isc_create_blob(@FStatus[0], @FSQLDatabaseHandle, @TransactionHandle, @blobHandle, @blobId) <> 0 then
        CheckError('TIBConnection.CreateBlobStream', FStatus);
@@ -755,13 +784,10 @@ begin
     ParNr := ParamBinding[SQLVarNr];
     VSQLVar := @in_sqlda^.SQLvar[SQLVarNr];
     if AParams[ParNr].IsNull then
-      begin
-      If Assigned(VSQLVar^.SQLInd) then
-        VSQLVar^.SQLInd^ := -1;
-      end
+      VSQLVar^.SQLInd^ := -1
     else
       begin
-      if assigned(VSQLVar^.SQLInd) then VSQLVar^.SQLInd^ := 0;
+      VSQLVar^.SQLInd^ := 0;
 
       case (VSQLVar^.sqltype and not 1) of
         SQL_LONG :
@@ -833,6 +859,9 @@ var
   VarcharLen : word;
   CurrBuff     : pchar;
   c            : currency;
+  smalli       : smallint;
+  longi        : longint;
+  largei       : largeint;
 
 begin
   CreateBlob := False;
@@ -857,8 +886,6 @@ begin
         if ((SQLType and not 1) = SQL_VARYING) then
           begin
           Move(SQLData^, VarcharLen, 2);
-          if VarcharLen > dsMaxStringSize then
-            VarcharLen:=dsMaxStringSize;
           CurrBuff := SQLData + 2;
           end
         else
@@ -871,9 +898,22 @@ begin
       case FieldDef.DataType of
         ftBCD :
           begin
-            c := 0;
-            Move(CurrBuff^, c, SQLDA^.SQLVar[x].SQLLen);
-            c := c*intpower(10,4+SQLDA^.SQLVar[x].SQLScale);
+            case SQLDA^.SQLVar[x].SQLLen of
+              2 : begin
+                  Move(CurrBuff^, smalli, 2);
+                  c := longi*intpower(10,SQLDA^.SQLVar[x].SQLScale);
+                  end;
+              4 : begin
+                  Move(CurrBuff^, longi, 4);
+                  c := longi*intpower(10,SQLDA^.SQLVar[x].SQLScale);
+                  end;
+              8 : begin
+                  Move(CurrBuff^, largei, 8);
+                  c := largei*intpower(10,SQLDA^.SQLVar[x].SQLScale);
+                  end;
+              else
+                Result := False; // Just to be sure, in principle this will never happen
+            end; {case}
             Move(c, buffer^ , sizeof(c));
           end;
         ftInteger :
@@ -893,7 +933,7 @@ begin
           end;
         ftDate, ftTime, ftDateTime:
           GetDateTime(CurrBuff, Buffer, SQLDA^.SQLVar[x].SQLType);
-        ftString  :
+        ftString, ftFixedChar  :
           begin
             Move(CurrBuff^, Buffer^, VarCharLen);
             PChar(Buffer + VarCharLen)^ := #0;

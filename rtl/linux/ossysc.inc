@@ -19,7 +19,7 @@
                      --- Main:The System Call Self ---
 *****************************************************************************}
 
-function Fptime(tloc:pTime): TTime; [public, alias : 'FPC_SYSC_TIME'];
+function Fptime(tloc:pTime_t): Time_t; [public, alias : 'FPC_SYSC_TIME'];
 {$ifdef FPC_USEGETTIMEOFDAY}
 VAR tv     : timeval;
     tz     : timezone;
@@ -244,7 +244,12 @@ end;
 procedure linux_restore; cdecl; nostackframe; assembler;
 {$ifdef cpuarm}
 asm
+{$ifdef FPC_ABI_EABI}
+  mov r7, syscall_nr_sigreturn
+  swi #0x0
+{$else}
   swi syscall_nr_sigreturn
+{$endif}
 end;
 {$endif}
 {$ifdef cpui386}
@@ -268,7 +273,12 @@ end;
 procedure linux_restore_rt; cdecl; nostackframe; assembler;
 {$ifdef cpuarm}
 asm
+{$ifdef FPC_ABI_EABI}
+  mov r7, syscall_nr_rt_sigreturn
+  swi #0x0
+{$else}
   swi syscall_nr_rt_sigreturn
+{$endif}
 end;
 {$endif}
 {$ifdef cpui386}
@@ -571,9 +581,15 @@ end;
 
 function FpGetRLimit(resource : cInt; rlim : PRLimit) : cInt;
 begin
+{$ifndef NO_SYSCALL_GETRLIMIT}
   FpGetRLimit := do_syscall(syscall_nr_getrlimit,
     TSysParam(resource), TSysParam(rlim));
+{$else}
+  FpGetRLimit := do_syscall(syscall_nr_ugetrlimit,
+    TSysParam(resource), TSysParam(rlim));
+{$endif}
 end;
+
 
 {$ifdef HAS_UGETRLIMIT}
 function fpugetrlimit(resource : cInt; rlim : PRLimit) : cInt;
@@ -590,4 +606,9 @@ begin
   fpprctl := do_syscall(syscall_nr_prctl, option, arg);
 end;
 {$endif}
+
+function FpSetRLimit(Resource:cint;rlim:PRLimit):cint; [public, alias : 'FPC_SYSC_SETRLIMIT'];
+begin
+  fpsetrlimit:=do_syscall(syscall_nr_setrlimit,TSysParam(Resource),TSysParam(rlim));
+end;
 

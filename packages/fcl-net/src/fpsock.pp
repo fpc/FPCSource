@@ -215,7 +215,7 @@ end;
 
 function TSocketStream.Read(var Buffer; Count: LongInt): LongInt;
 begin
-  Result := recv(Handle, Buffer, Count, MSG_NOSIGNAL);
+  Result := fprecv(Handle, @Buffer, Count, MSG_NOSIGNAL);
   if Result = -1 then
   begin
     Result := 0;
@@ -226,7 +226,7 @@ end;
 
 function TSocketStream.Write(const Buffer; Count: LongInt): LongInt;
 begin
-  Result := send(Handle, Buffer, Count, MSG_NOSIGNAL);
+  Result := FPsend(Handle, @Buffer, Count, MSG_NOSIGNAL);
   if Result = -1 then
   begin
     Result := 0;
@@ -246,7 +246,7 @@ var
   len: LongInt;
 begin
   len := SizeOf(TSockAddr);
-  if GetSocketName(Handle, Result, len) <> 0 then
+  if fpGetSockName(Handle, @Result, @len) <> 0 then
     FillChar(Result, SizeOf(Result), 0);
 end;
 
@@ -255,7 +255,7 @@ var
   len: LongInt;
 begin
   len := SizeOf(TSockAddr);
-  if GetPeerName(Handle, Result, len) <> 0 then
+  if FpGetPeerName(Handle, @Result, @len) <> 0 then
     FillChar(Result, SizeOf(Result), 0);
 end;
 
@@ -372,8 +372,8 @@ begin
     CanWriteNotifyHandle := nil;
 
     ErrorLen := SizeOf(Error);
-    GetResult := Sockets.GetSocketOptions(Stream.Handle, SOL_SOCKET, SO_ERROR,
-      Error, ErrorLen);
+    GetResult := Sockets.fpGetSockOpt(Stream.Handle, SOL_SOCKET, SO_ERROR,
+      @Error, @ErrorLen);
     if GetResult <> 0 then
       raise ESocketError.CreateFmt(SSocketConnectFailed,
         [GetPeerName, StrError(GetResult)]);
@@ -405,7 +405,7 @@ var
   AddrSize: Integer;
 begin
   AddrSize := SizeOf(Addr);
-  ClientSocket := Accept(Stream.Handle, Addr, AddrSize);
+  ClientSocket := FpAccept(Stream.Handle, @Addr, @AddrSize);
   if ClientSocket = -1 then
     raise ESocketError.CreateFmt(SSocketAcceptError, [StrError(SocketError)]);
 
@@ -499,7 +499,7 @@ var
   Socket: Integer;
 begin
 
-  Socket := Sockets.Socket(AF_INET, SOCK_STREAM, 0);
+  Socket := Sockets.FPSocket(AF_INET, SOCK_STREAM, 0);
   if Socket = -1 then
     raise ESocketError.CreateFmt(SSocketCreationError,
       [StrError(SocketError)]);
@@ -515,10 +515,10 @@ begin
   SockAddr.Family := AF_INET;
   SockAddr.Port := ShortHostToNet(Port);
   SockAddr.Addr := Cardinal(HostAddr);
-  Sockets.Connect(Stream.Handle, SockAddr, SizeOf(SockAddr));
-  if (SocketError <> sys_EINPROGRESS) and (SocketError <> 0) then
-    raise ESocketError.CreateFmt(SSocketConnectFailed,
-      [GetPeerName, StrError(SocketError)]);
+  if Sockets.FpConnect(Stream.Handle, @SockAddr, SizeOf(SockAddr))<>0 Then
+    if (SocketError <> sys_EINPROGRESS) and (SocketError <> 0) then
+      raise ESocketError.CreateFmt(SSocketConnectFailed,
+        [GetPeerName, StrError(SocketError)]);
 end;
 
 function TCustomTCPClient.GetPeerName: String;
@@ -550,21 +550,21 @@ begin
     FActive := False;
     if Value then
     begin
-      Socket := Sockets.Socket(AF_INET, SOCK_STREAM, 0);
+      Socket := Sockets.fpSocket(AF_INET, SOCK_STREAM, 0);
       if Socket = -1 then
         raise ESocketError.CreateFmt(SSocketCreationError,
           [StrError(SocketError)]);
       TrueValue := 1;
-      Sockets.SetSocketOptions(Socket, SOL_SOCKET, SO_REUSEADDR,
-        TrueValue, SizeOf(TrueValue));
+      Sockets.fpSetSockOpt(Socket, SOL_SOCKET, SO_REUSEADDR,
+        @TrueValue, SizeOf(TrueValue));
       FStream := TSocketStream.Create(Socket);
       Addr.Family := AF_INET;
       Addr.Port := ShortHostToNet(Port);
       Addr.Addr := 0;
-      if not Bind(Socket, Addr, SizeOf(Addr)) then
+      if  fpBind(Socket, @Addr, SizeOf(Addr))<>0 then
         raise ESocketError.CreateFmt(SSocketBindingError,
           [Port, StrError(SocketError)]);
-      Listen(Socket, 5);
+      fpListen(Socket, 5);
       if not Assigned(EventLoop) then
         raise ESocketError.Create(SSocketNoEventLoopAssigned);
       DataAvailableNotifyHandle := EventLoop.SetDataAvailableNotify(Socket,

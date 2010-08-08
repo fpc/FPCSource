@@ -1,4 +1,7 @@
 { %cpu=x86_64 }
+{$ifdef windows}
+  {$imagebase $10000}
+{$endif}
 var
   test : dword;
 

@@ -4,7 +4,7 @@
 
 [package]
 name=fcl-process
-version=2.2.2
+version=2.5.1
 
 [target]
 units=pipes process
@@ -39,9 +39,11 @@ includedir_haiku=src/unix src/dummy
 includedir_emx=src/os2 src/dummy
 includedir_win32=src/win src/dummy
 includedir_win64=src/win src/dummy
-includedir_wince=src/win src/dummy
+includedir_wince=src/wince src/dummy
 includedir_go32v2=src/dummy
 includedir_os2=src/os2 src/dummy
+includedir_morphos=src/dummy
+includedir_amiga=src/dummy
 sourcedir=src/$(OS_TARGET) src
 
 [install]

@@ -441,7 +441,7 @@ end;
 
 procedure Exec(const Path: PathStr; const ComLine: ComStr);
 var
-  tmpPath: array[0..255] of char;
+  tmpPath: array[0..515] of char;
   result : longint;
   tmpLock: longint;
 begin

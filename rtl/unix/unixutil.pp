@@ -26,16 +26,16 @@ Type
   NameStr = String[255];
   ExtStr  = String[255];
 
-Function Dirname(Const path:pathstr):pathstr;
+Function Dirname(Const path:pathstr):pathstr; deprecated;
 Function StringToPPChar(S: PChar;ReserveEntries:integer):ppchar;
-Function StringToPPChar(Var S:String;ReserveEntries:integer):ppchar;
+Function StringToPPChar(Var S:String;ReserveEntries:integer):ppchar; deprecated; 
 Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
 function ArrayStringToPPchar(const S:Array of AnsiString;reserveentries:Longint):ppchar; // const ?
-Function Basename(Const path:pathstr;Const suf:pathstr):pathstr;
-Function FNMatch(const Pattern,Name:string):Boolean;
+Function Basename(Const path:pathstr;Const suf:pathstr):pathstr; deprecated;
+Function FNMatch(const Pattern,Name:string):Boolean; deprecated;
 Function GetFS (var T:Text):longint;
 Function GetFS(Var F:File):longint;
-Procedure FSplit(const Path:PathStr;Var Dir:DirStr;Var Name:NameStr;Var Ext:ExtStr);
+Procedure FSplit(const Path:PathStr;Var Dir:DirStr;Var Name:NameStr;Var Ext:ExtStr); deprecated;
 Function LocalToEpoch(year,month,day,hour,minute,second:Word):Longint;
 Procedure EpochToLocal(epoch:longint;var year,month,day,hour,minute,second:Word);
 Procedure JulianToGregorian(JulianDN:LongInt;Var Year,Month,Day:Word);

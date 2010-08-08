@@ -29,7 +29,7 @@ interface
       cutils,cclasses;
 
     const
-       InputFileBufSize=32*1024;
+       InputFileBufSize=32*1024+1;
        linebufincrease=512;
 
     type
@@ -268,6 +268,7 @@ uses
         endoffile:=false;
         closed:=false;
         Getmem(buf,MaxBufsize);
+        buf[0]:=#0;
         bufstart:=0;
         bufsize:=0;
         open:=true;
@@ -640,7 +641,7 @@ uses
          asmfilename:=stringdup(p+n+target_info.asmext);
          objfilename:=stringdup(p+n+target_info.objext);
          ppufilename:=stringdup(p+n+target_info.unitext);
-         importlibfilename:=stringdup(p+target_info.staticClibprefix+'imp'+n+target_info.staticlibext);
+         importlibfilename:=stringdup(p+target_info.importlibprefix+n+target_info.importlibext);
          staticlibfilename:=stringdup(p+target_info.staticlibprefix+n+target_info.staticlibext);
 
          { output dir of exe can be specified separatly }

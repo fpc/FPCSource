@@ -18,6 +18,7 @@ unit sysutils;
 interface
 
 {$MODE objfpc}
+{$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
 
@@ -59,6 +60,7 @@ Procedure RaiseLastWin32Error;
 function GetFileVersion(const AFileName: string): Cardinal;
 
 procedure GetFormatSettings;
+procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings); platform;
 
 implementation
 
@@ -249,7 +251,7 @@ begin
 end;
 
 
-Function FileRead (Handle : THandle; Var Buffer; Count : longint) : Longint;
+Function FileRead (Handle : THandle; out Buffer; Count : longint) : Longint;
 Var
   res : dword;
 begin
@@ -278,14 +280,14 @@ end;
 
 
 Function FileSeek (Handle : THandle; FOffset: Int64; Origin: Longint) : Int64;
+var
+  rslt: Int64Rec;
 begin
-  if assigned(SetFilePointerEx) then
-    begin
-      if not(SetFilePointerEx(Handle, FOffset, @result, Origin)) then
-        Result:=-1;
-    end
-  else
-    Result:=longint(SetFilePointer(Handle, FOffset, nil, Origin));
+  rslt := Int64Rec(FOffset);
+  rslt.lo := SetFilePointer(Handle, rslt.lo, @rslt.hi, Origin);
+  if (rslt.lo = $FFFFFFFF) and (GetLastError <> 0) then
+    rslt.hi := $FFFFFFFF;
+  Result := Int64(rslt);
 end;
 
 
@@ -380,7 +382,7 @@ begin
    end;
   { Convert some attributes back }
   WinToDosTime(F.FindData.ftLastWriteTime,F.Time);
-  f.size:=F.FindData.NFileSizeLow;
+  f.size:=F.FindData.NFileSizeLow+(qword(maxdword)+1)*F.FindData.NFileSizeHigh;
   f.attr:=F.FindData.dwFileAttributes;
   f.Name:=StrPas(@F.FindData.cFileName[0]);
   Result:=0;
@@ -604,7 +606,7 @@ end;
                               Misc Functions
 ****************************************************************************}
 
-procedure Beep;
+procedure sysbeep;
 begin
   MessageBeep(0);
 end;
@@ -629,9 +631,9 @@ end;
 
 function GetLocaleChar(LID, LT: Longint; Def: Char): Char;
 var
-  Buf: array[0..1] of Char;
+  Buf: array[0..3] of Char; // sdate allows 4 chars.
 begin
-  if GetLocaleInfo(LID, LT, Buf, 2) > 0 then
+  if GetLocaleInfo(LID, LT, Buf, sizeof(buf)) > 0 then
     Result := Buf[0]
   else
     Result := Def;
@@ -650,55 +652,64 @@ Begin
 End;
 
 
-procedure GetFormatSettings;
+procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings); 
 var
   HF  : Shortstring;
-  LID : LCID;
+  LID : Windows.LCID;
   I,Day : longint;
 begin
-  LID := GetThreadLocale;
+  LID := LCID;
+  with FormatSettings do
+    begin
   { Date stuff }
-  for I := 1 to 12 do
-    begin
-    ShortMonthNames[I]:=GetLocaleStr(LID,LOCALE_SABBREVMONTHNAME1+I-1,ShortMonthNames[i]);
-    LongMonthNames[I]:=GetLocaleStr(LID,LOCALE_SMONTHNAME1+I-1,LongMonthNames[i]);
+      for I := 1 to 12 do
+        begin
+        ShortMonthNames[I]:=GetLocaleStr(LID,LOCALE_SABBREVMONTHNAME1+I-1,ShortMonthNames[i]);
+        LongMonthNames[I]:=GetLocaleStr(LID,LOCALE_SMONTHNAME1+I-1,LongMonthNames[i]);
+        end;
+      for I := 1 to 7 do
+        begin
+        Day := (I + 5) mod 7;
+        ShortDayNames[I]:=GetLocaleStr(LID,LOCALE_SABBREVDAYNAME1+Day,ShortDayNames[i]);
+        LongDayNames[I]:=GetLocaleStr(LID,LOCALE_SDAYNAME1+Day,LongDayNames[i]);
+        end;
+      DateSeparator := GetLocaleChar(LID, LOCALE_SDATE, '/');
+      ShortDateFormat := GetLocaleStr(LID, LOCALE_SSHORTDATE, 'm/d/yy');
+      LongDateFormat := GetLocaleStr(LID, LOCALE_SLONGDATE, 'mmmm d, yyyy');
+      { Time stuff }
+      TimeSeparator := GetLocaleChar(LID, LOCALE_STIME, ':');
+      TimeAMString := GetLocaleStr(LID, LOCALE_S1159, 'AM');
+      TimePMString := GetLocaleStr(LID, LOCALE_S2359, 'PM');
+      if StrToIntDef(GetLocaleStr(LID, LOCALE_ITLZERO, '0'), 0) = 0 then
+        HF:='h'
+      else
+        HF:='hh';
+      // No support for 12 hour stuff at the moment...
+      ShortTimeFormat := HF+':nn';
+      LongTimeFormat := HF + ':nn:ss';
+      { Currency stuff }
+      CurrencyString:=GetLocaleStr(LID, LOCALE_SCURRENCY, '');
+      CurrencyFormat:=StrToIntDef(GetLocaleStr(LID, LOCALE_ICURRENCY, '0'), 0);
+      NegCurrFormat:=StrToIntDef(GetLocaleStr(LID, LOCALE_INEGCURR, '0'), 0);
+      { Number stuff }
+      ThousandSeparator:=GetLocaleChar(LID, LOCALE_STHOUSAND, ',');
+      DecimalSeparator:=GetLocaleChar(LID, LOCALE_SDECIMAL, '.');
+      CurrencyDecimals:=StrToIntDef(GetLocaleStr(LID, LOCALE_ICURRDIGITS, '0'), 0);
     end;
-  for I := 1 to 7 do
-    begin
-    Day := (I + 5) mod 7;
-    ShortDayNames[I]:=GetLocaleStr(LID,LOCALE_SABBREVDAYNAME1+Day,ShortDayNames[i]);
-    LongDayNames[I]:=GetLocaleStr(LID,LOCALE_SDAYNAME1+Day,LongDayNames[i]);
-    end;
-  DateSeparator := GetLocaleChar(LID, LOCALE_SDATE, '/');
-  ShortDateFormat := GetLocaleStr(LID, LOCALE_SSHORTDATE, 'm/d/yy');
-  LongDateFormat := GetLocaleStr(LID, LOCALE_SLONGDATE, 'mmmm d, yyyy');
-  { Time stuff }
-  TimeSeparator := GetLocaleChar(LID, LOCALE_STIME, ':');
-  TimeAMString := GetLocaleStr(LID, LOCALE_S1159, 'AM');
-  TimePMString := GetLocaleStr(LID, LOCALE_S2359, 'PM');
-  if StrToIntDef(GetLocaleStr(LID, LOCALE_ITLZERO, '0'), 0) = 0 then
-    HF:='h'
-  else
-    HF:='hh';
-  // No support for 12 hour stuff at the moment...
-  ShortTimeFormat := HF+':nn';
-  LongTimeFormat := HF + ':nn:ss';
-  { Currency stuff }
-  CurrencyString:=GetLocaleStr(LID, LOCALE_SCURRENCY, '');
-  CurrencyFormat:=StrToIntDef(GetLocaleStr(LID, LOCALE_ICURRENCY, '0'), 0);
-  NegCurrFormat:=StrToIntDef(GetLocaleStr(LID, LOCALE_INEGCURR, '0'), 0);
-  { Number stuff }
-  ThousandSeparator:=GetLocaleChar(LID, LOCALE_STHOUSAND, ',');
-  DecimalSeparator:=GetLocaleChar(LID, LOCALE_SDECIMAL, '.');
-  CurrencyDecimals:=StrToIntDef(GetLocaleStr(LID, LOCALE_ICURRDIGITS, '0'), 0);
 end;
 
+procedure GetFormatSettings;
+begin
+  GetlocaleFormatSettings(GetThreadLocale, DefaultFormatSettings);
+end;
 
 Procedure InitInternational;
 var
   { A call to GetSystemMetrics changes the value of the 8087 Control Word on
     Pentium4 with WinXP SP2 }
   old8087CW: word;
+  DefaultCustomLocaleID : LCID;   // typedef DWORD LCID;
+  DefaultCustomLanguageID : Word; // typedef WORD LANGID;
 begin
   InitInternationalGeneric;
   old8087CW:=Get8087CW;
@@ -708,6 +719,28 @@ begin
   SysLocale.PriLangID := LANG_ENGLISH;
   SysLocale.SubLangID := SUBLANG_ENGLISH_US;
   // probably needs update with getthreadlocale. post 2.0.2
+
+  DefaultCustomLocaleID := GetThreadLocale;
+  if DefaultCustomLocaleID <> 0 then
+    begin
+      { Locale Identifiers
+        +-------------+---------+-------------------------+
+        |   Reserved  | Sort ID |      Language ID        |
+        +-------------+---------+-------------------------+
+        31         20 19      16 15                       0   bit }
+      DefaultCustomLanguageID := DefaultCustomLocaleID and $FFFF; // 2^16
+      if DefaultCustomLanguageID <> 0 then
+        begin
+          SysLocale.DefaultLCID := DefaultCustomLocaleID;
+          { Language Identifiers
+            +-------------------------+-------------------------+
+            |     SubLanguage ID      |   Primary Language ID   |
+            +-------------------------+-------------------------+
+            15                      10  9                         0   bit  }
+          SysLocale.PriLangID := DefaultCustomLanguageID and $3ff; // 2^10
+          SysLocale.SubLangID := DefaultCustomLanguageID shr 10;
+        end;
+     end;
 
   Set8087CW(old8087CW);
   GetFormatSettings;
@@ -813,7 +846,8 @@ begin
 end;
 
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
+// win specific  function
 var
   SI: TStartupInfo;
   PI: TProcessInformation;
@@ -821,7 +855,7 @@ var
   l    : DWord;
   CommandLine : ansistring;
   e : EOSError;
-
+  ExecInherits : longbool;
 begin
   FillChar(SI, SizeOf(SI), 0);
   SI.cb:=SizeOf(SI);
@@ -840,8 +874,10 @@ begin
   else
     CommandLine := CommandLine + #0;
 
+  ExecInherits:=ExecInheritsHandles in Flags;
+
   if not CreateProcess(nil, pchar(CommandLine),
-    Nil, Nil, False,$20, Nil, Nil, SI, PI) then
+    Nil, Nil, ExecInherits,$20, Nil, Nil, SI, PI) then
     begin
       e:=EOSError.CreateFmt(SExecuteProcessFailed,[CommandLine,GetLastError]);
       e.ErrorCode:=GetLastError;
@@ -865,7 +901,7 @@ begin
     end;
 end;
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString;Flags:TExecuteFlags=[]):integer;
 
 var
   CommandLine: AnsiString;
@@ -878,7 +914,7 @@ begin
     CommandLine := CommandLine + ' ' + '"' + ComLine [I] + '"'
    else
     CommandLine := CommandLine + ' ' + Comline [I];
-  ExecuteProcess := ExecuteProcess (Path, CommandLine);
+  ExecuteProcess := ExecuteProcess (Path, CommandLine,Flags);
 end;
 
 Procedure Sleep(Milliseconds : Cardinal);
@@ -1079,23 +1115,41 @@ end;
                     Target Dependent WideString stuff
 ****************************************************************************}
 
-function Win32CompareWideString(const s1, s2 : WideString) : PtrInt;
+{ This is the case of Win9x. Limited to current locale of course, but it's better
+  than not working at all. }
+function DoCompareStringA(const s1, s2: WideString; Flags: DWORD): PtrInt;
+  var
+    a1, a2: AnsiString;
+  begin
+    a1:=s1;
+    a2:=s2;
+    SetLastError(0);
+    Result:=CompareStringA(LOCALE_USER_DEFAULT,Flags,pchar(a1),
+      length(a1),pchar(a2),length(a2))-2;
+  end;
+
+function DoCompareStringW(const s1, s2: WideString; Flags: DWORD): PtrInt;
   begin
     SetLastError(0);
-    Result:=CompareStringW(LOCALE_USER_DEFAULT,0,pwidechar(s1),
+    Result:=CompareStringW(LOCALE_USER_DEFAULT,Flags,pwidechar(s1),
       length(s1),pwidechar(s2),length(s2))-2;
+    if GetLastError=0 then
+      Exit;
+    if GetLastError=ERROR_CALL_NOT_IMPLEMENTED then  // Win9x case
+      Result:=DoCompareStringA(s1, s2, Flags);
     if GetLastError<>0 then
       RaiseLastOSError;
+  end;
+
+function Win32CompareWideString(const s1, s2 : WideString) : PtrInt;
+  begin
+    Result:=DoCompareStringW(s1, s2, 0);
   end;
 
 
 function Win32CompareTextWideString(const s1, s2 : WideString) : PtrInt;
   begin
-    SetLastError(0);
-    Result:=CompareStringW(LOCALE_USER_DEFAULT,NORM_IGNORECASE,pwidechar(s1),
-      length(s1),pwidechar(s2),length(s2))-2;
-    if GetLastError<>0 then
-      RaiseLastOSError;
+    Result:=DoCompareStringW(s1, s2, NORM_IGNORECASE);
   end;
 
 
@@ -1197,27 +1251,13 @@ procedure InitWin32Widestrings;
   end;
 
 
-procedure SetupProcVars;
-  var
-    hinstLib : THandle;
-  begin
-    SetFilePointerEx:=nil;
-    hinstLib:=LoadLibrary(KernelDLL);
-    if hinstLib<>0 then
-      begin
-        pointer(SetFilePointerEx):=GetProcAddress(hinstLib,'SetFilePointerEx');
-        FreeLibrary(hinstLib);
-      end;
-  end;
-
-
 Initialization
   InitWin32Widestrings;
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;
   InitSysConfigDir;
-  SetupProcVars;
+  OnBeep:=@SysBeep;
 Finalization
   DoneExceptions;
   if kernel32dll<>0 then

@@ -65,11 +65,26 @@ interface
           constructor CreateCond(AList:TFPHashObjectList;const n:string;p:tdirectiveproc);
        end;
 
+       // stack for replay buffers
+       treplaystack = class
+         token    : ttoken;
+         settings : tsettings;
+         tokenbuf : tdynamicarray;
+         next     : treplaystack;
+         constructor Create(atoken: ttoken;asettings:tsettings;atokenbuf:tdynamicarray;anext:treplaystack);
+       end;
+
        tcompile_time_predicate = function(var valuedescr: String) : Boolean;
 
        tspecialgenerictoken = (ST_LOADSETTINGS,ST_LINE,ST_COLUMN,ST_FILEINDEX);
 
        tscannerfile = class
+       private
+         procedure do_gettokenpos(out tokenpos: longint; out filepos: tfileposinfo);
+         procedure cachenexttokenpos;
+         procedure setnexttoken;
+         procedure savetokenpos;
+         procedure restoretokenpos;
        public
           inputfile    : tinputfile;  { current inputfile list }
           inputfilecount : longint;
@@ -81,27 +96,33 @@ interface
           line_no,                    { line }
           lastlinepos  : longint;
 
-          lasttokenpos : longint;     { token }
+          lasttokenpos,
+          nexttokenpos : longint;     { token }
           lasttoken,
           nexttoken    : ttoken;
 
-          replaysavetoken : ttoken;
+          oldlasttokenpos     : longint; { temporary saving/restoring tokenpos }
+          oldcurrent_filepos,
+          oldcurrent_tokenpos : tfileposinfo;
+
+
           replaytokenbuf,
           recordtokenbuf : tdynamicarray;
 
-          { old settings, i.e. settings specialization was started }
-          old_settings,
           { last settings we stored }
           last_settings : tsettings;
 
           { last filepos we stored }
-          last_filepos : tfileposinfo;
+          last_filepos,
+          { if nexttoken<>NOTOKEN, then nexttokenpos holds its filepos }
+          next_filepos   : tfileposinfo;
 
           comment_level,
           yylexcount     : longint;
           lastasmgetchar : char;
           ignoredirectives : TFPHashList; { ignore directives, used to give warnings only once }
           preprocstack   : tpreprocstack;
+          replaystack    : treplaystack;
           in_asm_string  : boolean;
 
           preproc_pattern : string;
@@ -132,6 +153,7 @@ interface
           procedure ifpreprocstack(atyp : preproctyp;compile_time_predicate:tcompile_time_predicate;messid:longint);
           procedure elseifpreprocstack(compile_time_predicate:tcompile_time_predicate);
           procedure elsepreprocstack;
+          procedure popreplaystack;
           procedure handleconditional(p:tdirectiveitem);
           procedure handledirectives;
           procedure linebreak;
@@ -179,6 +201,7 @@ interface
         c              : char;
         orgpattern,
         pattern        : string;
+        cstringpattern : ansistring;
         patternw       : pcompilerwidestring;
 
         { token }
@@ -324,6 +347,9 @@ implementation
          if s='MACPAS' then
           current_settings.modeswitches:=macmodeswitches
         else
+         if s='ISO' then
+          current_settings.modeswitches:=isomodeswitches
+        else
          b:=false;
 
         if b and changeInit then
@@ -336,8 +362,8 @@ implementation
 
            HandleModeSwitches(changeinit);
 
-           { turn on bitpacking for mode macpas }
-           if (m_mac in current_settings.modeswitches) then
+           { turn on bitpacking for mode macpas and iso pascal }
+           if ([m_mac,m_iso] * current_settings.modeswitches <> []) then
              begin
                include(current_settings.localswitches,cs_bitpacking);
                if changeinit then
@@ -345,17 +371,20 @@ implementation
              end;
 
            { support goto/label by default in delphi/tp7/mac modes }
-           if ([m_delphi,m_tp7,m_mac] * current_settings.modeswitches <> []) then
+           if ([m_delphi,m_tp7,m_mac,m_iso] * current_settings.modeswitches <> []) then
              begin
                include(current_settings.moduleswitches,cs_support_goto);
                if changeinit then
                  include(init_settings.moduleswitches,cs_support_goto);
              end;
 
-           { Default enum packing for delphi/tp7 }
+           { Default enum and set packing for delphi/tp7 }
            if (m_tp7 in current_settings.modeswitches) or
               (m_delphi in current_settings.modeswitches) then
-             current_settings.packenum:=1
+             begin
+               current_settings.packenum:=1;
+               current_settings.setalloc:=1;
+             end
            else if (m_mac in current_settings.modeswitches) then
              { compatible with Metrowerks Pascal }
              current_settings.packenum:=2
@@ -376,6 +405,14 @@ implementation
            { compensate for lack of interprocedural goto support)          }
            if (cs_support_exceptions in current_settings.globalswitches) then
              include(current_settings.modeswitches,m_except);
+
+           { Default strict string var checking in TP/Delphi modes }
+           if ([m_delphi,m_tp7] * current_settings.modeswitches <> []) then
+             begin
+               include(current_settings.localswitches,cs_strict_var_strings);
+               if changeinit then
+                 include(init_settings.localswitches,cs_strict_var_strings);
+             end;
 
             { Undefine old symbol }
             if (m_delphi in oldmodeswitches) then
@@ -433,19 +470,44 @@ implementation
         for i:=m_class to high(tmodeswitch) do
           if s=modeswitchstr[i] then
             begin
+              { Objective-C is currently only supported for Darwin targets }
+              if doinclude and
+                 (i in [m_objectivec1,m_objectivec2]) and
+                 not(target_info.system in systems_objc_supported) then
+                begin
+                  Message1(option_unsupported_target_for_feature,'Objective-C');
+                  break;
+                end;
+
               if changeInit then
                 current_settings.modeswitches:=init_settings.modeswitches;
               Result:=true;
               if doinclude then
-                include(current_settings.modeswitches,i)
+                begin
+                  include(current_settings.modeswitches,i);
+                  { Objective-C 2.0 support implies 1.0 support }
+                  if (i=m_objectivec2) then
+                    include(current_settings.modeswitches,m_objectivec1);
+                  if (i in [m_objectivec1,m_objectivec2]) then
+                    include(current_settings.modeswitches,m_class);
+                end
               else
-                exclude(current_settings.modeswitches,i);
+                begin
+                  exclude(current_settings.modeswitches,i);
+                  { Objective-C 2.0 support implies 1.0 support }
+                  if (i=m_objectivec2) then
+                    exclude(current_settings.modeswitches,m_objectivec1);
+                  if (i in [m_objectivec1,m_objectivec2]) and
+                     ([m_delphi,m_objfpc]*current_settings.modeswitches=[]) then
+                    exclude(current_settings.modeswitches,m_class);
+                end;
 
               { set other switches depending on changed mode switch }
               HandleModeSwitches(changeinit);
 
               if changeInit then
                 init_settings.modeswitches:=current_settings.modeswitches;
+
               break;
             end;
       end;
@@ -1577,31 +1639,29 @@ In case not, the value returned can be arbitrary.
           hpath  : TCmdStr;
         begin
           (* look for the include file
-           If path was specified as part of {$I } then
-            1. specified path (expanded with path of inputfile if relative)
+           If path was absolute and specified as part of {$I } then
+            1. specified path
            else
             1. path of current inputfile,current dir
             2. local includepath
-            3. global includepath *)
+            3. global includepath
+
+            -- Check mantis #13461 before changing this *)
            found:=false;
            foundfile:='';
            hpath:='';
-           if path<>'' then
+           if path_absolute(path) then
              begin
-               if not path_absolute(path) then
-                 hpath:=current_scanner.inputfile.path^+path
-               else
-                 hpath:=path;
-               found:=FindFile(name, hpath,true,foundfile);
+               found:=FindFile(name,path,true,foundfile);
              end
            else
              begin
                hpath:=current_scanner.inputfile.path^+';'+CurDirRelPath(source_info);
-               found:=FindFile(name, hpath,true,foundfile);
+               found:=FindFile(path+name, hpath,true,foundfile);
                if not found then
-                 found:=current_module.localincludesearchpath.FindFile(name,true,foundfile);
+                 found:=current_module.localincludesearchpath.FindFile(path+name,true,foundfile);
                if not found  then
-                 found:=includesearchpath.FindFile(name,true,foundfile);
+                 found:=includesearchpath.FindFile(path+name,true,foundfile);
              end;
            result:=found;
         end;
@@ -1671,6 +1731,12 @@ In case not, the value returned can be arbitrary.
            hs:=FixFileName(hs);
            path:=ExtractFilePath(hs);
            name:=ExtractFileName(hs);
+           { Special case for Delphi compatibility: '*' has to be replaced
+             by the file name of the current source file.  }
+           if (length(name)>=1) and
+              (name[1]='*') then
+             name:=ChangeFileExt(current_module.sourcefiles.get_file_name(current_filepos.fileindex),'')+ExtractFileExt(name);
+
            { try to find the file }
            found:=findincludefile(path,name,foundfile);
            if (ExtractFileExt(name)='') then
@@ -1770,6 +1836,16 @@ In case not, the value returned can be arbitrary.
         next:=n;
       end;
 
+{*****************************************************************************
+                              TReplayStack
+*****************************************************************************}
+    constructor treplaystack.Create(atoken:ttoken;asettings:tsettings;atokenbuf:tdynamicarray;anext:treplaystack);
+      begin
+        token:=atoken;
+        settings:=asettings;
+        tokenbuf:=atokenbuf;
+        next:=anext;
+      end;
 
 {*****************************************************************************
                               TDirectiveItem
@@ -1805,12 +1881,14 @@ In case not, the value returned can be arbitrary.
         inputstart:=0;
       { reset scanner }
         preprocstack:=nil;
+        replaystack:=nil;
         comment_level:=0;
         yylexcount:=0;
         block_type:=bt_general;
         line_no:=0;
         lastlinepos:=0;
         lasttokenpos:=0;
+        nexttokenpos:=0;
         lasttoken:=NOTOKEN;
         nexttoken:=NOTOKEN;
         lastasmgetchar:=#0;
@@ -1839,6 +1917,8 @@ In case not, the value returned can be arbitrary.
             while assigned(preprocstack) do
              poppreprocstack;
           end;
+        while assigned(replaystack) do
+          popreplaystack;
         if not inputfile.closed then
           closeinputfile;
         ignoredirectives.free;
@@ -1856,6 +1936,7 @@ In case not, the value returned can be arbitrary.
         line_no:=0;
         lastlinepos:=0;
         lasttokenpos:=0;
+        nexttokenpos:=0;
       end;
 
 
@@ -1870,6 +1951,7 @@ In case not, the value returned can be arbitrary.
         line_no:=0;
         lastlinepos:=0;
         lasttokenpos:=0;
+        nexttokenpos:=0;
       end;
 
 
@@ -1963,6 +2045,7 @@ In case not, the value returned can be arbitrary.
     procedure tscannerfile.recordtoken;
       var
         a : array[0..1] of byte;
+        len : sizeint;
       begin
         if not assigned(recordtokenbuf) then
           internalerror(200511176);
@@ -2013,8 +2096,13 @@ In case not, the value returned can be arbitrary.
               recordtokenbuf.write(patternw^.len,sizeof(sizeint));
               recordtokenbuf.write(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
             end;
+          _CSTRING:
+            begin
+              len:=length(cstringpattern);
+              recordtokenbuf.write(len,sizeof(sizeint));
+              recordtokenbuf.write(cstringpattern[1],length(cstringpattern));
+            end;
           _CCHAR,
-          _CSTRING,
           _INTCONST,
           _REALNUMBER :
             begin
@@ -2043,8 +2131,7 @@ In case not, the value returned can be arbitrary.
         { save current token }
         if token in [_CWCHAR,_CWSTRING,_CCHAR,_CSTRING,_INTCONST,_REALNUMBER,_ID] then
           internalerror(200511178);
-        replaysavetoken:=token;
-        old_settings:=current_settings;
+        replaystack:=treplaystack.create(token,current_settings,replaytokenbuf,replaystack);
         if assigned(inputpointer) then
           dec(inputpointer);
         { install buffer }
@@ -2066,15 +2153,16 @@ In case not, the value returned can be arbitrary.
         { End of replay buffer? Then load the next char from the file again }
         if replaytokenbuf.pos>=replaytokenbuf.size then
           begin
-            replaytokenbuf:=nil;
+            token:=replaystack.token;
+            replaytokenbuf:=replaystack.tokenbuf;
+            { restore compiler settings }
+            current_settings:=replaystack.settings;
+            popreplaystack;
             if assigned(inputpointer) then
               begin
                 c:=inputpointer^;
                 inc(inputpointer);
               end;
-            token:=replaysavetoken;
-            { restore compiler settings }
-            current_settings:=old_settings;
             exit;
           end;
         repeat
@@ -2091,10 +2179,19 @@ In case not, the value returned can be arbitrary.
                 replaytokenbuf.read(wlen,sizeof(SizeInt));
                 setlengthwidestring(patternw,wlen);
                 replaytokenbuf.read(patternw^.data^,patternw^.len*sizeof(tcompilerwidechar));
+                orgpattern:='';
+                pattern:='';
+                cstringpattern:='';
+              end;
+            _CSTRING:
+              begin
+                replaytokenbuf.read(wlen,sizeof(sizeint));
+                setlength(cstringpattern,wlen);
+                replaytokenbuf.read(cstringpattern[1],wlen);
+                orgpattern:='';
                 pattern:='';
               end;
             _CCHAR,
-            _CSTRING,
             _INTCONST,
             _REALNUMBER :
               begin
@@ -2117,16 +2214,34 @@ In case not, the value returned can be arbitrary.
                   ST_LINE:
                     begin
                       replaytokenbuf.read(current_tokenpos.line,sizeof(current_tokenpos.line));
+
+                      { don't generate invalid line info if no sources are available for the current module }
+                      if not(get_module(current_filepos.moduleindex).sources_avail) then
+                        current_tokenpos.line:=0;
+
                       current_filepos:=current_tokenpos;
                     end;
                   ST_COLUMN:
                     begin
                       replaytokenbuf.read(current_tokenpos.column,sizeof(current_tokenpos.column));
+
+                      { don't generate invalid line info if no sources are available for the current module }
+                      if not(get_module(current_filepos.moduleindex).sources_avail) then
+                        current_tokenpos.column:=0;
+
                       current_filepos:=current_tokenpos;
                     end;
                   ST_FILEINDEX:
                     begin
                       replaytokenbuf.read(current_tokenpos.fileindex,sizeof(current_tokenpos.fileindex));
+
+                      { don't generate invalid line info if no sources are available for the current module }
+                      if not(get_module(current_filepos.moduleindex).sources_avail) then
+                        begin
+                          current_tokenpos.column:=0;
+                          current_tokenpos.line:=0;
+                        end;
+
                       current_filepos:=current_tokenpos;
                     end;
                   else
@@ -2195,7 +2310,7 @@ In case not, the value returned can be arbitrary.
 
                    line_no:=1;
                    if cs_asm_source in current_settings.globalswitches then
-                     inputfile.setline(line_no,bufstart);
+                     inputfile.setline(line_no,inputstart+inputpointer-inputbuffer);
                  end;
               end
              else
@@ -2248,27 +2363,65 @@ In case not, the value returned can be arbitrary.
         line_no:=line;
         lastlinepos:=0;
         lasttokenpos:=0;
+        nexttokenpos:=0;
       { load new c }
         c:=inputpointer^;
         inc(inputpointer);
       end;
 
 
+    procedure tscannerfile.do_gettokenpos(out tokenpos: longint; out filepos: tfileposinfo);
+      begin
+        tokenpos:=inputstart+(inputpointer-inputbuffer);
+        filepos.line:=line_no;
+        filepos.column:=tokenpos-lastlinepos;
+        filepos.fileindex:=inputfile.ref_index;
+        filepos.moduleindex:=current_module.unit_index;
+      end;
+
+
     procedure tscannerfile.gettokenpos;
     { load the values of tokenpos and lasttokenpos }
       begin
-        lasttokenpos:=inputstart+(inputpointer-inputbuffer);
-        current_tokenpos.line:=line_no;
-        current_tokenpos.column:=lasttokenpos-lastlinepos;
-        current_tokenpos.fileindex:=inputfile.ref_index;
-        current_tokenpos.moduleindex:=current_module.unit_index;
+        do_gettokenpos(lasttokenpos,current_tokenpos);
         current_filepos:=current_tokenpos;
       end;
 
 
+    procedure tscannerfile.cachenexttokenpos;
+      begin
+        do_gettokenpos(nexttokenpos,next_filepos);
+      end;
+
+
+    procedure tscannerfile.setnexttoken;
+      begin
+        token:=nexttoken;
+        nexttoken:=NOTOKEN;
+        lasttokenpos:=nexttokenpos;
+        current_tokenpos:=next_filepos;
+        current_filepos:=current_tokenpos;
+        nexttokenpos:=0;
+      end;
+
+
+    procedure tscannerfile.savetokenpos;
+      begin
+        oldlasttokenpos:=lasttokenpos;
+        oldcurrent_filepos:=current_filepos;
+        oldcurrent_tokenpos:=current_tokenpos;
+      end;
+
+
+    procedure tscannerfile.restoretokenpos;
+      begin
+        lasttokenpos:=oldlasttokenpos;
+        current_filepos:=oldcurrent_filepos;
+        current_tokenpos:=oldcurrent_tokenpos;
+      end;
+
+
     procedure tscannerfile.inc_comment_level;
-      var
-         oldcurrent_filepos : tfileposinfo;
       begin
          if (m_nested_comment in current_settings.modeswitches) then
            inc(comment_level)
@@ -2276,10 +2429,10 @@ In case not, the value returned can be arbitrary.
            comment_level:=1;
          if (comment_level>1) then
           begin
-             oldcurrent_filepos:=current_filepos;
+             savetokenpos;
              gettokenpos; { update for warning }
              Message1(scan_w_comment_level,tostr(comment_level));
-             current_filepos:=oldcurrent_filepos;
+             restoretokenpos;
           end;
       end;
 
@@ -2296,8 +2449,6 @@ In case not, the value returned can be arbitrary.
     procedure tscannerfile.linebreak;
       var
          cur : char;
-         oldtokenpos,
-         oldcurrent_filepos : tfileposinfo;
       begin
         with inputfile do
          begin
@@ -2317,20 +2468,18 @@ In case not, the value returned can be arbitrary.
            { Always return #10 as line break }
            c:=#10;
            { increase line counters }
-           lastlinepos:=bufstart+(inputpointer-inputbuffer);
+           lastlinepos:=inputstart+(inputpointer-inputbuffer);
            inc(line_no);
            { update linebuffer }
            if cs_asm_source in current_settings.globalswitches then
              inputfile.setline(line_no,lastlinepos);
            { update for status and call the show status routine,
              but don't touch current_filepos ! }
-           oldcurrent_filepos:=current_filepos;
-           oldtokenpos:=current_tokenpos;
+           savetokenpos;
            gettokenpos; { update for v_status }
            inc(status.compiledlines);
            ShowStatus;
-           current_filepos:=oldcurrent_filepos;
-           current_tokenpos:=oldtokenpos;
+           restoretokenpos;
          end;
       end;
 
@@ -2464,11 +2613,21 @@ In case not, the value returned can be arbitrary.
       end;
 
 
-    procedure tscannerfile.handleconditional(p:tdirectiveitem);
+    procedure tscannerfile.popreplaystack;
       var
-        oldcurrent_filepos : tfileposinfo;
+        hp : treplaystack;
       begin
-        oldcurrent_filepos:=current_filepos;
+        if assigned(replaystack) then
+         begin
+           hp:=replaystack.next;
+           replaystack.free;
+           replaystack:=hp;
+         end;
+      end;
+
+    procedure tscannerfile.handleconditional(p:tdirectiveitem);
+      begin
+        savetokenpos;
         repeat
           current_scanner.gettokenpos;
           p.proc();
@@ -2490,7 +2649,7 @@ In case not, the value returned can be arbitrary.
              Message1(scan_d_handling_switch,'$'+p.name);
            end;
         until false;
-        current_filepos:=oldcurrent_filepos;
+        restoretokenpos;
       end;
 
 
@@ -3134,7 +3293,12 @@ In case not, the value returned can be arbitrary.
                    continue;
                  end;
                #10,#13 :
-                 linebreak;
+                 begin
+                   if found=4 then
+                    inc_comment_level;
+                   linebreak;
+                   found:=0;
+                 end;
                '*' :
                  begin
                    if found=3 then
@@ -3151,7 +3315,9 @@ In case not, the value returned can be arbitrary.
                        found:=2
                       else
                        found:=0;
-                    end;
+                    end
+                   else
+                    found:=0;
                  end;
                '(' :
                  begin
@@ -3187,7 +3353,6 @@ In case not, the value returned can be arbitrary.
         m       : longint;
         mac     : tmacro;
         asciinr : string[6];
-        msgwritten,
         iswidestring : boolean;
       label
          exit_label;
@@ -3209,8 +3374,7 @@ In case not, the value returned can be arbitrary.
       { was there already a token read, then return that token }
         if nexttoken<>NOTOKEN then
          begin
-           token:=nexttoken;
-           nexttoken:=NOTOKEN;
+           setnexttoken;
            goto exit_label;
          end;
 
@@ -3335,10 +3499,17 @@ In case not, the value returned can be arbitrary.
 
              '&' :
                begin
-                 if m_fpc in current_settings.modeswitches then
+                 if [m_fpc,m_delphi] * current_settings.modeswitches <> [] then
                   begin
                     readnumber;
-                    token:=_INTCONST;
+                    if length(pattern)=1 then
+                      begin
+                        readstring;
+                        token:=_ID;
+                        idtoken:=_ID;
+                      end
+                    else
+                      token:=_INTCONST;
                     goto exit_label;
                   end
                  else if m_mac in current_settings.modeswitches then
@@ -3359,6 +3530,7 @@ In case not, the value returned can be arbitrary.
                   { first check for a . }
                     if c='.' then
                      begin
+                       cachenexttokenpos;
                        readchar;
                        { is it a .. from a range? }
                        case c of
@@ -3608,8 +3780,7 @@ In case not, the value returned can be arbitrary.
              '''','#','^' :
                begin
                  len:=0;
-                 msgwritten:=false;
-                 pattern:='';
+                 cstringpattern:='';
                  iswidestring:=false;
                  if c='^' then
                   begin
@@ -3625,10 +3796,11 @@ In case not, the value returned can be arbitrary.
                     else
                      begin
                        inc(len);
+                       setlength(cstringpattern,256);
                        if c<#64 then
-                        pattern[len]:=chr(ord(c)+64)
+                         cstringpattern[len]:=chr(ord(c)+64)
                        else
-                        pattern[len]:=chr(ord(c)-64);
+                         cstringpattern[len]:=chr(ord(c)-64);
                        readchar;
                      end;
                   end;
@@ -3687,7 +3859,10 @@ In case not, the value returned can be arbitrary.
                                 begin
                                   if not iswidestring then
                                    begin
-                                     ascii2unicode(@pattern[1],len,patternw);
+                                     if len>0 then
+                                       ascii2unicode(@cstringpattern[1],len,patternw)
+                                     else
+                                       ascii2unicode(nil,len,patternw);
                                      iswidestring:=true;
                                      len:=0;
                                    end;
@@ -3700,19 +3875,10 @@ In case not, the value returned can be arbitrary.
                            concatwidestringchar(patternw,asciichar2unicode(char(m)))
                          else
                            begin
-                             if len<255 then
-                              begin
-                                inc(len);
-                                pattern[len]:=chr(m);
-                              end
-                             else
-                              begin
-                                if not msgwritten then
-                                 begin
-                                   Message(scan_e_string_exceeds_255_chars);
-                                   msgwritten:=true;
-                                 end;
-                              end;
+                             if len>=length(cstringpattern) then
+                               setlength(cstringpattern,length(cstringpattern)+256);
+                              inc(len);
+                              cstringpattern[len]:=chr(m);
                            end;
                        end;
                      '''' :
@@ -3737,7 +3903,10 @@ In case not, the value returned can be arbitrary.
                                { convert existing string to an utf-8 string }
                                if not iswidestring then
                                  begin
-                                   ascii2unicode(@pattern[1],len,patternw);
+                                   if len>0 then
+                                     ascii2unicode(@cstringpattern[1],len,patternw)
+                                   else
+                                     ascii2unicode(nil,len,patternw);
                                    iswidestring:=true;
                                    len:=0;
                                  end;
@@ -3783,19 +3952,10 @@ In case not, the value returned can be arbitrary.
                              end
                            else
                              begin
-                               if len<255 then
-                                begin
-                                  inc(len);
-                                  pattern[len]:=c;
-                                end
-                               else
-                                begin
-                                  if not msgwritten then
-                                   begin
-                                     Message(scan_e_string_exceeds_255_chars);
-                                     msgwritten:=true;
-                                   end;
-                                end;
+                               if len>=length(cstringpattern) then
+                                 setlength(cstringpattern,length(cstringpattern)+256);
+                                inc(len);
+                                cstringpattern[len]:=c;
                              end;
                          until false;
                        end;
@@ -3812,19 +3972,10 @@ In case not, the value returned can be arbitrary.
                            concatwidestringchar(patternw,asciichar2unicode(c))
                          else
                            begin
-                             if len<255 then
-                              begin
-                                inc(len);
-                                pattern[len]:=c;
-                              end
-                             else
-                              begin
-                                if not msgwritten then
-                                 begin
-                                   Message(scan_e_string_exceeds_255_chars);
-                                   msgwritten:=true;
-                                 end;
-                              end;
+                             if len>=length(cstringpattern) then
+                               setlength(cstringpattern,length(cstringpattern)+256);
+                              inc(len);
+                              cstringpattern[len]:=c;
                            end;
 
                          readchar;
@@ -3836,17 +3987,20 @@ In case not, the value returned can be arbitrary.
                  { strings with length 1 become const chars }
                  if iswidestring then
                    begin
-                      if patternw^.len=1 then
+                     if patternw^.len=1 then
                        token:=_CWCHAR
-                      else
+                     else
                        token:=_CWSTRING;
                    end
                  else
                    begin
-                      pattern[0]:=chr(len);
-                      if len=1 then
-                       token:=_CCHAR
-                      else
+                     setlength(cstringpattern,len);
+                     if length(cstringpattern)=1 then
+                       begin
+                         token:=_CCHAR;
+                         pattern:=cstringpattern;
+                       end
+                     else
                        token:=_CSTRING;
                    end;
                  goto exit_label;

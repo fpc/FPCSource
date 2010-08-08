@@ -278,7 +278,8 @@ Implementation
               if actasmtoken=AS_ID then
                 begin
 {$ifdef x86_64}
-                  if actasmpattern='GOTPCREL' then
+                  if (actasmpattern='GOTPCREL') or
+		     (actasmpattern='PLT') then
 {$endif x86_64}
 {$ifdef i386}
                   if actasmpattern='GOT' then

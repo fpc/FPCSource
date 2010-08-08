@@ -142,6 +142,13 @@ type
      GDK_INTERP_HYPER
    );
 
+   TGdkPixbufRotation = (
+	GDK_PIXBUF_ROTATE_NONE             =   0,
+	GDK_PIXBUF_ROTATE_COUNTERCLOCKWISE =  90,
+	GDK_PIXBUF_ROTATE_UPSIDEDOWN       = 180,
+	GDK_PIXBUF_ROTATE_CLOCKWISE        = 270
+   );
+
 function GDK_TYPE_PIXBUF : GType;
 function GDK_PIXBUF(anObject : pointer) : PGdkPixbuf;
 function GDK_IS_PIXBUF(anObject : pointer) : boolean;
@@ -237,6 +244,10 @@ procedure gdk_pixbuf_composite_color(src:PGdkPixbuf; dest:PGdkPixbuf; dest_x:lon
 function gdk_pixbuf_scale_simple(src:PGdkPixbuf; dest_width:longint; dest_height:longint; interp_type:TGdkInterpType):PGdkPixbuf; cdecl; external gdkpixbuflib;
 function gdk_pixbuf_composite_color_simple(src:PGdkPixbuf; dest_width:longint; dest_height:longint; interp_type:TGdkInterpType; overall_alpha:longint;
            check_size:longint; color1:guint32; color2:guint32):PGdkPixbuf; cdecl; external gdkpixbuflib;
+{$IFDEF HasGTK2_6}
+function gdk_pixbuf_rotate_simple(src: PGdkPixbuf; angle: TGdkPixbufRotation): PGdkPixbuf; cdecl; external gdkpixbuflib;
+function gdk_pixbuf_flip(src: PGdkPixbuf; horizontal: gboolean): PGdkPixbuf; cdecl; external gdkpixbuflib;
+{$ENDIF}
 
 { Animation support  }
 function gdk_pixbuf_animation_get_type:GType; cdecl; external gdkpixbuflib;

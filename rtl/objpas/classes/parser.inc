@@ -119,6 +119,25 @@ begin
   fDeltaPos:=-(fPos-1);
 end;
 
+procedure TParser.SkipBOM;
+var
+  i : integer;
+  bom : string[3];
+  backup : integer;
+begin
+  i:=1;
+  bom:='   ';
+  backup:=fPos;
+  while (fBuf[fPos] in [#$BB,#$BF,#$EF]) and (i<=3) do
+  begin
+    bom[i]:=fBuf[fPos];
+    inc(fPos);
+    inc(i);
+  end;
+  if (bom<>(#$EF+#$BB+#$BF)) then
+    fPos:=backup;
+end;
+
 procedure TParser.SkipSpaces;
 begin
   while fBuf[fPos] in [' ',#9] do
@@ -230,41 +249,64 @@ begin
   end;
 end;
 
-function TParser.HandleDecimalString(var ascii : boolean): widestring;
+procedure TParser.HandleDecimalCharacter(var ascii: boolean; out
+  WideChr: widechar; out StringChr: char);
 var i : integer;
 begin
-  Result:='';
   inc(fPos);
   CheckLoadBuffer;
-  while IsNumber do
+  // read a word number
+  i:=0;
+  while IsNumber and (i<high(word)) do
   begin
-    Result:=Result+fBuf[fPos];
+    i:=i*10+ord(fBuf[fPos])-ord('0');
     inc(fPos);
     CheckLoadBuffer;
   end;
-  if not TryStrToInt(Result,i) then
-  i:=0;
+  if i>high(word) then i:=0;
   if i>127 then ascii:=false;
-  setlength(Result,1);
-  Result[1]:=widechar(word(i));
+  WideChr:=widechar(word(i));
+  if i<256 then
+    StringChr:=chr(i)
+  else
+    StringChr:=#0;
 end;
 
 procedure TParser.HandleString;
 var ascii : boolean;
+  s: string;
+  w: WideChar;
+  c: char;
 begin
   fLastTokenWStr:='';
+  fLastTokenStr:='';
   ascii:=true;
   while true do
+  begin
     case fBuf[fPos] of
-      '''' : fLastTokenWStr:=fLastTokenWStr+HandleQuotedString;
-      '#'  : fLastTokenWStr:=fLastTokenWStr+HandleDecimalString(ascii)
+      '''' :
+        begin
+          // avoid conversions,
+          // On some systems conversion from ansistring to widestring and back
+          // to ansistring does not give the original ansistring.
+          // See bug http://bugs.freepascal.org/view.php?id=15841
+          s:=HandleQuotedString;
+          fLastTokenWStr:=fLastTokenWStr+s;
+          fLastTokenStr:=fLastTokenStr+s;
+        end;
+      '#'  :
+        begin
+          HandleDecimalCharacter(ascii,w,c);
+          fLastTokenWStr:=fLastTokenWStr+w;
+          fLastTokenStr:=fLastTokenStr+c;
+        end;
       else break;
     end;
+  end;
   if ascii then
-    fToken:=toString
+    fToken:=Classes.toString
   else
     fToken:=toWString;
-  fLastTokenStr:=fLastTokenWStr;
 end;
 
 procedure TParser.HandleMinus;
@@ -304,6 +346,7 @@ begin
   fFloatType:=#0;
   fToken:=#0;
   LoadBuffer;
+  SkipBom;
   NextToken;
 end;
 

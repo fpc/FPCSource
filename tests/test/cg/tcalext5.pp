@@ -9,7 +9,8 @@
 program calext3;
 {$MODE DELPHI}
 
-{$ifdef UNDER_CE}
+{ requires libgcc for the C functions }
+{$ifdef FPUSOFT}
   {$define NO_FLOAT}
 {$endif}
 

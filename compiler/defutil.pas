@@ -27,7 +27,7 @@ interface
 
     uses
        cclasses,
-       globtype,globals,constexp,
+       globtype,globals,constexp,node,
        symconst,symbase,symtype,symdef,
        cgbase,cpubase;
 
@@ -42,6 +42,9 @@ interface
 
     {# Returns true, if definition defines an ordinal type }
     function is_ordinal(def : tdef) : boolean;
+
+    {# Returns true, if definition defines a string type }
+    function is_string(def : tdef): boolean;
 
     {# Returns the minimal integer value of the type }
     function get_min_value(def : tdef) : TConstExprInt;
@@ -77,6 +80,9 @@ interface
     {# Returns true if definition is a widechar }
     function is_widechar(def : tdef) : boolean;
 
+    {# Returns true if definition is either an AnsiChar or a WideChar }
+    function is_anychar(def : tdef) : boolean;
+
     {# Returns true if definition is a void}
     function is_void(def : tdef) : boolean;
 
@@ -88,9 +94,13 @@ interface
     }
     function is_signed(def : tdef) : boolean;
 
-    {# Returns true whether def_from's range is comprised in def_to's if both are
+    {# Returns whether def_from's range is comprised in def_to's if both are
       orddefs, false otherwise                                              }
     function is_in_limit(def_from,def_to : tdef) : boolean;
+
+    {# Returns whether def is reference counted }
+    function is_managed_type(def: tdef) : boolean;{$ifdef USEINLINE}inline;{$endif}
+
 
 {    function is_in_limit_value(val_from:TConstExprInt;def_from,def_to : tdef) : boolean;}
 
@@ -246,6 +256,19 @@ interface
     { # returns true if the procdef has no parameters and no specified return type }
     function is_bareprocdef(pd : tprocdef): boolean;
 
+    { # returns the smallest base integer type whose range encompasses that of
+        both ld and rd; if keep_sign_if_equal, then if ld and rd have the same
+        signdness, the result will also get that signdness }
+    function get_common_intdef(ld, rd: torddef; keep_sign_if_equal: boolean): torddef;
+
+    { # returns whether the type is potentially a valid type of/for an "univ" parameter
+        (basically: it must have a compile-time size) }
+    function is_valid_univ_para_type(def: tdef): boolean;
+
+    { # returns whether the procdef/procvardef represents a nested procedure
+        or not }
+    function is_nested_pd(def: tabstractprocdef): boolean;{$ifdef USEINLINE}inline;{$endif}
+
 implementation
 
     uses
@@ -293,7 +316,7 @@ implementation
     function is_extended(def : tdef) : boolean;
       begin
         result:=(def.typ=floatdef) and
-          (tfloatdef(def).floattype=s80real);
+          (tfloatdef(def).floattype in [s80real,sc80real]);
       end;
 
 
@@ -372,6 +395,12 @@ implementation
            else
              is_ordinal:=false;
          end;
+      end;
+
+    { true if p is a string }
+    function is_string(def : tdef) : boolean;
+      begin
+        is_string := (assigned(def) and (def.typ = stringdef));
       end;
 
 
@@ -458,6 +487,14 @@ implementation
       end;
 
 
+    { true if p is a char or wchar }
+    function is_anychar(def : tdef) : boolean;
+      begin
+        result:=(def.typ=orddef) and
+                 (torddef(def).ordtype in [uchar,uwidechar])
+      end;
+
+
     { true if p is signed (integer) }
     function is_signed(def : tdef) : boolean;
       begin
@@ -495,6 +532,13 @@ implementation
                           (tsetdef(def_from).setmax<=tsetdef(def_to).setmax);
          end;
       end;
+
+
+    function is_managed_type(def: tdef): boolean;{$ifdef USEINLINE}inline;{$endif}
+      begin
+        result:=def.needs_inittable;
+      end;
+
 
     { true, if p points to an open array def }
     function is_open_string(p : tdef) : boolean;
@@ -940,8 +984,7 @@ implementation
             result := OS_ADDR;
           procvardef:
             begin
-              if tprocvardef(def).is_methodpointer and
-                 (not tprocvardef(def).is_addressonly) then
+              if not tprocvardef(def).is_addressonly then
                 {$if sizeof(pint) = 4}
                   result:=OS_64
                 {$else} {$if sizeof(pint) = 8}
@@ -961,7 +1004,7 @@ implementation
             end;
           objectdef :
             begin
-              if is_class_or_interface(def) then
+              if is_class_or_interface_or_dispinterface_or_objc(def) then
                 result := OS_ADDR
               else
                 result:=int_cgsize(def.size);
@@ -1059,5 +1102,77 @@ implementation
                 (is_void(pd.returndef) or
                  (pd.proctypeoption = potype_constructor));
       end;
+
+
+    function get_common_intdef(ld, rd: torddef; keep_sign_if_equal: boolean): torddef;
+      var
+        llow, lhigh: tconstexprint;
+      begin
+        llow:=rd.low;
+        if llow<ld.low then
+          llow:=ld.low;
+        lhigh:=rd.high;
+        if lhigh<ld.high then
+          lhigh:=ld.high;
+        case range_to_basetype(llow,lhigh) of
+          s8bit:
+            result:=torddef(s8inttype);
+          u8bit:
+            result:=torddef(u8inttype);
+          s16bit:
+            result:=torddef(s16inttype);
+          u16bit:
+            result:=torddef(u16inttype);
+          s32bit:
+            result:=torddef(s32inttype);
+          u32bit:
+            result:=torddef(u32inttype);
+          s64bit:
+            result:=torddef(s64inttype);
+          u64bit:
+            result:=torddef(u64inttype);
+          else
+            begin
+              { avoid warning }
+              result:=nil;
+              internalerror(200802291);
+            end;
+        end;
+        if keep_sign_if_equal and
+           (is_signed(ld)=is_signed(rd)) and
+           (is_signed(result)<>is_signed(ld)) then
+          case result.ordtype of
+            s8bit:
+              result:=torddef(u8inttype);
+            u8bit:
+              result:=torddef(s16inttype);
+            s16bit:
+              result:=torddef(u16inttype);
+            u16bit:
+              result:=torddef(s32inttype);
+            s32bit:
+              result:=torddef(u32inttype);
+            u32bit:
+              result:=torddef(s64inttype);
+            s64bit:
+              result:=torddef(u64inttype);
+          end;
+      end;
+
+
+    function is_valid_univ_para_type(def: tdef): boolean;
+      begin
+        result:=
+          not is_open_array(def) and
+          not is_void(def) and
+          (def.typ<>formaldef);
+      end;
+
+
+    function is_nested_pd(def: tabstractprocdef): boolean;{$ifdef USEINLINE}inline;{$endif}
+      begin
+        result:=def.parast.symtablelevel>normal_function_level;
+      end;
+
 
 end.

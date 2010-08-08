@@ -1,3 +1,4 @@
+{ %skiptarget=darwin}
 { %cpu=i386 }
 var
   w : word;

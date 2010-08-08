@@ -334,7 +334,6 @@ function pthread_attr_getfloatstate(_para1:Ppthread_attr_t; _para2:Pcint):cint;c
 
 { semaphore.h }
 
-
   function sem_init(__sem:Psem_t; __pshared:cint;__value:dword):cint;cdecl; external;
   function sem_destroy(__sem:Psem_t):cint;cdecl;external ;
   function sem_close(__sem:Psem_t):cint;cdecl;external ;
@@ -344,7 +343,6 @@ function pthread_attr_getfloatstate(_para1:Ppthread_attr_t; _para2:Pcint):cint;c
   function sem_post(__sem:Psem_t):cint;cdecl;external ;
   function sem_getvalue(__sem:Psem_t; __sval:Pcint):cint;cdecl;external;
 
-
   function sem_init(var __sem: sem_t; __pshared:cint; __value:dword):cint cdecl;external;
   function sem_destroy(var __sem: sem_t):cint;cdecl;external;
   function sem_close(var __sem: sem_t):cint;cdecl;external;
@@ -353,4 +351,8 @@ function pthread_attr_getfloatstate(_para1:Ppthread_attr_t; _para2:Pcint):cint;c
   function sem_post(var __sem: sem_t):cint;cdecl;external;
   function sem_getvalue(var __sem: sem_t; var __sval:cint):cint;cdecl;external;
 
+  {$Ifndef Darwin}
+   function sem_timedwait(__sem: Psem_t; __abstime: Ptimespec):cint;cdecl; external;
+   function sem_timedwait(var __sem: sem_t; var __abstime: timespec):cint;cdecl; external;
+  {$endif}
 

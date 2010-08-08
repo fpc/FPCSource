@@ -325,9 +325,12 @@ function fpc_dynarray_copy(psrc : pointer;ti : pointer;
      { fill new refcount }
      realpdest^.refcount:=1;
      realpdest^.high:=cnt-1;
-     { increment ref. count of members }
-     for i:= 0 to cnt-1 do
-       int_addref(pointer(pdest+elesize*i),eletype);
+
+     { increment ref. count of members? }
+     if PByte(eletype)^ in tkManagedTypes then
+       for i:= 0 to cnt-1 do
+         int_addref(pointer(pdest+elesize*i),eletype);
+
      result:=pdest;
   end;
 

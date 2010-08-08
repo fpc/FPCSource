@@ -19,20 +19,31 @@
 {*****************************************************************************
                            Directory Handling
 *****************************************************************************}
-procedure mkdir(const s : string);[IOCheck];
+procedure mkdir(s: pchar; len: sizeuint);[IOCheck, public, alias : 'FPC_SYS_MKDIR'];
 begin
+  if not assigned(s) or (len=0) or (InOutRes<>0) then exit;
+  if FileIODevice.DirIO.DoMkdir <> nil then
+    FileIODevice.DirIO.DoMkdir(strpas(s));
 end;
 
-procedure rmdir(const s : string);[IOCheck];
+procedure rmdir(s: pchar; len: sizeuint);[IOCheck, public, alias : 'FPC_SYS_RMDIR'];
 begin
+  if not assigned(s) or (len=0) then exit;
+  if FileIODevice.DirIO.DoRmdir <> nil then
+    FileIODevice.DirIO.DoRmdir(strpas(s));
 end;
 
-procedure chdir(const s : string);[IOCheck];
+procedure chdir(s: pchar; len: sizeuint);[IOCheck, public, alias : 'FPC_SYS_CHDIR'];
 begin
+  if not assigned(s) or (len=0) then exit;
+  if FileIODevice.DirIO.DoChdir <> nil then
+    FileIODevice.DirIO.DoChdir(strpas(s));
 end;
 
-procedure GetDir (DriveNr: byte; var Dir: ShortString);
+procedure GetDir(DriveNr: byte; var Dir: ShortString);
 begin
+  if FileIODevice.DirIO.DoGetdir <> nil then
+    FileIODevice.DirIO.DoGetdir(DriveNr, Dir);
 end;
 
 

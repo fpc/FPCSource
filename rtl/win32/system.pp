@@ -105,14 +105,19 @@ var
   StartupConsoleMode : DWORD;
 
 type
-  TDLL_Process_Entry_Hook = function (dllparam : longint) : longbool;
   TDLL_Entry_Hook = procedure (dllparam : longint);
 
 const
-  Dll_Process_Attach_Hook : TDLL_Process_Entry_Hook = nil;
   Dll_Process_Detach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Attach_Hook : TDLL_Entry_Hook = nil;
   Dll_Thread_Detach_Hook : TDLL_Entry_Hook = nil;
+
+Const
+  { it can be discussed whether fmShareDenyNone means read and write or read, write and delete, see
+    also http://bugs.freepascal.org/view.php?id=8898, this allows users to configure the used
+	value
+  }
+  fmShareDenyNoneFlags : DWord = 3;
 
 implementation
 
@@ -168,7 +173,6 @@ var
     end;
 
 begin
-  SetupProcVars;
   { create commandline, it starts with the executed filename which is argv[0] }
   { Win32 passes the command NOT via the args, but via getmodulefilename}
   count:=0;
@@ -379,80 +383,6 @@ procedure Exe_entry(const info : TEntryInformation);[public,alias:'_FPC_EXE_Entr
      { if we pass here there was no error ! }
      system_exit;
   end;
-
-
-Const
-  { DllEntryPoint  }
-     DLL_PROCESS_ATTACH = 1;
-     DLL_THREAD_ATTACH = 2;
-     DLL_PROCESS_DETACH = 0;
-     DLL_THREAD_DETACH = 3;
-Var
-     DLLBuf : Jmp_buf;
-Const
-     DLLExitOK : boolean = true;
-
-function Dll_entry(const info : TEntryInformation) : longbool; [public,alias:'_FPC_DLL_Entry'];
-  var
-    res : longbool;
-  begin
-     EntryInformation:=info;
-     IsLibrary:=true;
-     Dll_entry:=false;
-     case DLLreason of
-       DLL_PROCESS_ATTACH :
-         begin
-           If SetJmp(DLLBuf) = 0 then
-             begin
-               if assigned(Dll_Process_Attach_Hook) then
-                 begin
-                   res:=Dll_Process_Attach_Hook(DllParam);
-                   if not res then
-                     exit(false);
-                 end;
-{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
-               EntryInformation.PascalMain();
-{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
-               PascalMain;
-{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
-               Dll_entry:=true;
-             end
-           else
-             Dll_entry:=DLLExitOK;
-         end;
-       DLL_THREAD_ATTACH :
-         begin
-           inclocked(Thread_count);
-{ Allocate Threadvars ?!}
-           if assigned(Dll_Thread_Attach_Hook) then
-             Dll_Thread_Attach_Hook(DllParam);
-           Dll_entry:=true; { return value is ignored }
-         end;
-       DLL_THREAD_DETACH :
-         begin
-           declocked(Thread_count);
-           if assigned(Dll_Thread_Detach_Hook) then
-             Dll_Thread_Detach_Hook(DllParam);
-{ Release Threadvars ?!}
-           Dll_entry:=true; { return value is ignored }
-         end;
-       DLL_PROCESS_DETACH :
-         begin
-           Dll_entry:=true; { return value is ignored }
-           If SetJmp(DLLBuf) = 0 then
-             FPC_Do_Exit;
-           if assigned(Dll_Process_Detach_Hook) then
-             Dll_Process_Detach_Hook(DllParam);
-         end;
-     end;
-  end;
-
-Procedure ExitDLL(Exitcode : longint);
-begin
-    DLLExitOK:=ExitCode=0;
-    LongJmp(DLLBuf,1);
-end;
-
 
 function GetCurrentProcess : dword;
  stdcall;external 'kernel32' name 'GetCurrentProcess';
@@ -690,13 +620,13 @@ var
   resetFPU        : array[0..MaxExceptionLevel-1] of Boolean;
 
 {$ifdef SYSTEMEXCEPTIONDEBUG}
-procedure DebugHandleErrorAddrFrame(error, addr, frame : longint);
+procedure DebugHandleErrorAddrFrame(error : longint; addr, frame : pointer);
 begin
   if IsConsole then
     begin
       write(stderr,'HandleErrorAddrFrame(error=',error);
-      write(stderr,',addr=',hexstr(addr,8));
-      writeln(stderr,',frame=',hexstr(frame,8),')');
+      write(stderr,',addr=',hexstr(ptruint(addr),8));
+      writeln(stderr,',frame=',hexstr(ptruint(frame),8),')');
     end;
   HandleErrorAddrFrame(error,addr,frame);
 end;
@@ -847,7 +777,7 @@ function syswin32_i386_exception_handler(excep : PExceptionPointers) : Longint;s
           writeln(stderr,'Exception Continue Exception set at ',
                   hexstr(exceptEip[exceptLevel],8));
           writeln(stderr,'Eip changed to ',
-                  hexstr(longint(@JumpToHandleErrorFrame),8), ' error=', error);
+                  hexstr(longint(@JumpToHandleErrorFrame),8), ' error=', err);
         end;
 {$endif SYSTEMEXCEPTIONDEBUG}
       end;

@@ -2258,7 +2258,7 @@ option_config_is_dir=11040_F_Le fichier de configuration $1 est un répertoire
 # Logo (option -l)
 #
 option_logo=11023_[ Compilateur Free Pascal version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2008, Florian Klaempfl ]
+Copyright (c) 1993-2010, Florian Klaempfl ]
 #
 # Info (option -i)
 #
@@ -2271,7 +2271,10 @@ Jeu d'instructions FPU supportés: $FPUINSTRUCTIONSETS
 Optimisations supportées: $OPTIMIZATIONS
 Ce programme est fourni sous la License Publique Générale GNU (GNU GPL).
 Pour plus d'informations, consultez le fichier COPYING.FPC.
-Rapports de bogues, suggestions, etc. à: bugs@freepascal.org ]
+Rapports de bogues, suggestions, etc. à:
+    http://bugs.freepascal.org
+ou
+    bugs@freepascal.org ]
 #
 # Help pages (option -? and -h)
 #
@@ -2435,7 +2438,6 @@ S*2Aas_assembler avec GNU AS
 **2So_identique à -Mtp
 **2Sp_identique à -Mgpc
 **2Ss_les constructeurs doivent s'appeler init (et les destructeurs done)
-**2St_autorise "static" dans les objects
 **1s_n'appelle pas l'assembleur ni le linker
 **2sh_générer un script à lier sur l'hôte
 **2st_générer un script à lier sur la cible

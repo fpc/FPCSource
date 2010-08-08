@@ -244,6 +244,7 @@ end;
 
 Function TFPMakeRunner.RunFPMake(const Command:string) : Integer;
 Var
+  ManifestPackage,
   P : TFPPackage;
   FPMakeBin,
   OOptions : string;
@@ -259,20 +260,32 @@ begin
   OOptions:='';
   // Does the current package support this CPU-OS?
   if PackageName<>'' then
-    P:=AvailableRepository.PackageByName(PackageName)
+    begin
+      P:=AvailableRepository.PackageByName(PackageName);
+      if (PackageName=CurrentDirPackageName) and (FileExists(ManifestFileName)) then
+        begin
+          ManifestPackage:=LoadManifestFromFile(ManifestFileName);
+          P.OSes:=ManifestPackage.OSes;
+          P.CPUs:=ManifestPackage.CPUs;
+          ManifestPackage.Free;
+        end;
+    end
   else
     P:=nil;
   if assigned(P) then
     begin
-      if not(CompilerOptions.CompilerOS in P.OSes) or
-         not(CompilerOptions.CompilerCPU in P.CPUs) then
+      if (command<>'archive') and (command<>'manifest') and
+         (not(CompilerOptions.CompilerOS in P.OSes) or
+          not(CompilerOptions.CompilerCPU in P.CPUs)) then
         Error(SErrPackageDoesNotSupportTarget,[P.Name,MakeTargetString(CompilerOptions.CompilerCPU,CompilerOptions.CompilerOS)]);
     end;
   { Maybe compile fpmake executable? }
   ExecuteAction(PackageName,'compilefpmake');
   { Create options }
   AddOption('--nofpccfg');
-  if vlInfo in LogLevels then
+  if vlDebug in LogLevels then
+    AddOption('--debug')
+  else if vlInfo in LogLevels then
     AddOption('--verbose');
   AddOption('--compiler='+CompilerOptions.Compiler);
   AddOption('--cpu='+CPUToString(CompilerOptions.CompilerCPU));

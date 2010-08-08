@@ -54,5 +54,7 @@ type
 //  clongdouble            = UnixType.clongdouble; pclongdouble           = UnixType.pclongdouble;
 {$endif}
 
+  csize_t                = UnixType.size_t;      pcsize_t               = UnixType.psize_t;
+
   coff_t                 = UnixType.TOff;
 

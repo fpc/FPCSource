@@ -18,9 +18,11 @@
 Function PClose(Var F:file) : cint;
 var
   pl : ^cint;
-
+  res: cint;
 begin
-  fpclose(filerec(F).Handle);
+  repeat
+    res:=fpclose(filerec(F).Handle);
+  until (res<>-1) or (fpgeterrno<>ESysEINTR);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(filerec(f).userdata[2]);
   pclose := WaitProcess(pl^);
@@ -28,10 +30,12 @@ end;
 
 Function PClose(Var F:text) :cint;
 var
-  pl  : ^longint;
-
+  pl  : ^cint;
+  res : cint;
 begin
-  fpclose(Textrec(F).Handle);
+  repeat
+    res:=fpclose(Textrec(F).Handle);
+  until (res<>-1) or (fpgeterrno<>ESysEINTR);
 { closed our side, Now wait for the other - this appears to be needed ?? }
   pl:=@(textrec(f).userdata[2]);
   pclose:= WaitProcess(pl^);

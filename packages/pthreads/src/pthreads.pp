@@ -35,7 +35,11 @@ uses initc,BaseUnix, unixtype;
   {$else}
    {$ifdef beos}
    uses initc, ctypes, baseunix, unixtype;
-   {$i pthrbeos.inc}
+     {$ifdef haiku}
+       {$i pthrhaiku.inc}
+     {$else}
+       {$i pthrbeos.inc}
+     {$endif}
    {$else}
     {$error operating system not detected}
    {$endif}

@@ -58,10 +58,64 @@ function cotan(x : float) : float;assembler;
   end;
 
 
+{$define FPC_MATH_HAS_DIVMOD}
+procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: Word);assembler;
+asm
+  pushl  %edi
+  movzwl %dx,%edi
+  cltd
+  idiv   %edi
+  movw   %ax,(%ecx)
+  movl   Remainder,%ecx
+  movw   %dx,(%ecx)
+  popl   %edi
+end;
+
+
+procedure DivMod(Dividend: Integer; Divisor: Word; var Result, Remainder: SmallInt);assembler;
+asm
+  pushl  %edi
+  movzwl %dx,%edi
+  cltd
+  idiv   %edi
+  movw   %ax,(%ecx)
+  movl   Remainder,%ecx
+  movw   %dx,(%ecx)
+  popl   %edi
+end;
+
+
+procedure DivMod(Dividend: DWord; Divisor: DWord; var Result, Remainder: DWord);assembler;
+asm
+  pushl %edi
+  movl %edx,%edi
+  xorl %edx,%edx
+  div  %edi
+  movl %eax,(%ecx)
+  movl Remainder,%ecx
+  movl %edx,(%ecx)
+  popl %edi
+end;
+
+
+procedure DivMod(Dividend: Integer; Divisor: Integer; var Result, Remainder: Integer);assembler;
+asm
+  pushl %edi
+  movl %edx,%edi
+  cltd
+  idiv %edi
+  movl %eax,(%ecx)
+  movl Remainder,%ecx
+  movl %edx,(%ecx)
+  popl %edi
+end;
+
+
 function GetRoundMode: TFPURoundingMode;
 begin
   Result := TFPURoundingMode((Get8087CW shr 10) and 3);
 end;
+
 
 function SetRoundMode(const RoundMode: TFPURoundingMode): TFPURoundingMode;
 var

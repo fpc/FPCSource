@@ -125,7 +125,8 @@ constructor TPQConnection.Create(AOwner : TComponent);
 
 begin
   inherited;
-  FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat] + [sqEscapeSlash] + [sqQuoteFieldnames];
+  FConnOptions := FConnOptions + [sqSupportParams] + [sqEscapeRepeat] + [sqEscapeSlash];
+  FieldNameQuoteChars:=DoubleQuotes;
 end;
 
 procedure TPQConnection.CreateDB;
@@ -379,7 +380,7 @@ begin
 end;
 
 function TPQConnection.TranslateFldType(res : PPGresult; Tuple : integer; var Size : integer) : TFieldType;
-
+var li : longint;
 begin
   Size := 0;
   case PQftype(res,Tuple) of
@@ -389,8 +390,11 @@ begin
                              size := PQfsize(Res, Tuple);
                              if (size = -1) then
                                begin
-                               size := pqfmod(res,Tuple)-4;
-                               if size = -5 then size := dsMaxStringSize;
+                               li := PQfmod(res,Tuple);
+                               if li = -1 then
+                                 size := dsMaxStringSize
+                               else
+                                 size := (li-4) and $FFFF;
                                end;
                              if size > dsMaxStringSize then size := dsMaxStringSize;
                              end;
@@ -409,11 +413,14 @@ begin
     Oid_Bool               : Result := ftBoolean;
     Oid_Numeric            : begin
                              Result := ftBCD;
-                             size := PQfmod(res,Tuple);
-                             if size = -1 then
-                               size := 4
+                             li := PQfmod(res,Tuple);
+                             if li = -1 then
+                               size := 4 // No information about the size available, use the maximum value
                              else
-                               size := size -4;
+                             // The precision is the high 16 bits, the scale the
+                             // low 16 bits. Both with an offset of 4.
+                             // In this case we need the scale:
+                               size := (li-4) and $FFFF;
                              end;
     Oid_Money              : Result := ftCurrency;
     Oid_Unknown            : Result := ftUnknown;
@@ -538,6 +545,7 @@ begin
     begin
     if not tr.ErrorOccured then
       begin
+      PQclear(res);
       res := pqexec(tr.PGConn,pchar('deallocate prepst'+nr));
       if (PQresultStatus(res) <> PGRES_COMMAND_OK) then
         begin
@@ -562,6 +570,7 @@ begin
     begin
     if FStatementType in [stInsert,stUpdate,stDelete,stSelect] then
       begin
+      pqclear(res);
       if Assigned(AParams) and (AParams.count > 0) then
         begin
         setlength(ar,Aparams.count);
@@ -609,6 +618,8 @@ begin
       else
         s := Statement;
       res := pqexec(tr.PGConn,pchar(s));
+      if (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
+        pqclear(res);
       end;
     if not (PQresultStatus(res) in [PGRES_COMMAND_OK,PGRES_TUPLES_OK]) then
       begin
@@ -762,7 +773,7 @@ begin
         ftCurrency  :
           begin
           dbl := pointer(buffer);
-          dbl^ := BEtoN(PInteger(CurrBuff)^) / 100;
+          dbl^ := BEtoN(PInt64(CurrBuff)^) / 100;
           end;
         ftBoolean:
           pchar(buffer)[0] := CurrBuff[0]

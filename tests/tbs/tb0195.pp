@@ -1,7 +1,11 @@
 { Old file: tbs0229.pp }
+
 { consts > 255 are truncated (should work in -S2,-Sd)  OK 0.99.11 (PFV) }
+{ this is not true anymore because it can lead silently to bugs,
+  it is allowed now in $H+ mode else it causes an error (FK) }
 
 {$mode objfpc}
+{$H+}
 {$X-}
 
 const

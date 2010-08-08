@@ -51,7 +51,7 @@ var
       inc ecx
       cmp ecx,6
       jne  @LLloop
-    end;
+    end ['esi','edi','ecx','ebx'];
     for i:=0 to 5 do
       if x[i]<>i then
         has_error:=true;

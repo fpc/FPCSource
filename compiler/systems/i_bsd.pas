@@ -1,7 +1,8 @@
 {
     Copyright (c) 1998-2008 by Peter Vreman
 
-    This unit implements support information structures for FreeBSD/NetBSD
+    This unit implements support information structures for FreeBSD/NetBSD,
+    OpenBSD and Darwin (Mac OS X)
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -58,7 +59,7 @@ unit i_bsd;
             system       : system_i386_FreeBSD;
             name         : 'FreeBSD/ELF for i386';
             shortname    : 'FreeBSD';
-            flags        : [tf_pic_uses_got,tf_files_case_sensitive,tf_use_function_relative_addresses,
+            flags        : [tf_pic_uses_got,tf_files_case_sensitive,
 {$ifdef segment_threadvars}
                             tf_section_threadvars,
 {$endif segment_threadvars}
@@ -85,6 +86,8 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -124,7 +127,7 @@ unit i_bsd;
             name         : 'FreeBSD for x86-64';
             shortname    : 'FreeBSD';
             flags        : [tf_needs_symbol_size,tf_needs_dwarf_cfi,tf_library_needs_pic,tf_needs_symbol_type,
-                            tf_files_case_sensitive,tf_use_function_relative_addresses,tf_smartlink_library,
+                            tf_files_case_sensitive,tf_smartlink_library,
                             tf_dwarf_only_local_labels
                             { tf_pic_uses_got,tf_smartlink_sections},tf_has_winlike_resources];
             cpu          : cpu_x86_64;
@@ -148,6 +151,8 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -173,7 +178,7 @@ unit i_bsd;
                 localalignmax   : 16;
                 recordalignmin  : 0;
                 recordalignmax  : 16;
-                maxCrecordalign : 8
+                maxCrecordalign : 16
               );
             first_parm_offset : 16;
             stacksize    : 256*1024;
@@ -186,7 +191,7 @@ unit i_bsd;
             system       : system_i386_NetBSD;
             name         : 'NetBSD for i386';
             shortname    : 'NetBSD';
-            flags        : [tf_under_development,tf_files_case_sensitive,tf_smartlink_library,tf_use_function_relative_addresses,tf_has_winlike_resources];
+            flags        : [tf_under_development,tf_files_case_sensitive,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
@@ -208,6 +213,8 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '_';
             newline      : #10;
             dirsep       : '/';
@@ -245,7 +252,7 @@ unit i_bsd;
             system       : system_i386_OpenBSD;
             name         : 'OpenBSD for i386';
             shortname    : 'OpenBSD';
-            flags        : [tf_under_development,tf_files_case_sensitive,tf_use_function_relative_addresses,tf_smartlink_library,tf_has_winlike_resources];
+            flags        : [tf_under_development,tf_files_case_sensitive,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_i386;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
@@ -267,6 +274,8 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '_';
             newline      : #10;
             dirsep       : '/';
@@ -304,7 +313,7 @@ unit i_bsd;
             system       : system_m68k_NetBSD;
             name         : 'NetBSD for m68k';
             shortname    : 'NetBSD';
-            flags        : [tf_under_development,tf_files_case_sensitive,tf_use_function_relative_addresses,tf_smartlink_library,tf_has_winlike_resources];
+            flags        : [tf_under_development,tf_files_case_sensitive,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_m68k;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX';
@@ -326,6 +335,8 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -363,7 +374,7 @@ unit i_bsd;
             system       : system_powerpc_netbsd;
             name         : 'NetBSD for PowerPC';
             shortname    : 'NetBSD';
-            flags        : [tf_under_development,tf_files_case_sensitive,tf_use_function_relative_addresses,tf_smartlink_library,tf_has_winlike_resources];
+            flags        : [tf_under_development,tf_files_case_sensitive,tf_smartlink_library,tf_has_winlike_resources];
             cpu          : cpu_powerpc;
             unit_env     : '';
             extradefines : 'UNIX;BSD;HASUNIX';
@@ -385,6 +396,8 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -446,6 +459,8 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '_';
             newline      : #10;
             dirsep       : '/';
@@ -507,6 +522,8 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '_';
             newline      : #10;
             dirsep       : '/';
@@ -568,6 +585,8 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '_';
             newline      : #10;
             dirsep       : '/';
@@ -593,7 +612,7 @@ unit i_bsd;
                 localalignmax   : 8;
                 recordalignmin  : 0;
                 recordalignmax  : 8;
-                maxCrecordalign : 8
+                maxCrecordalign : 4
               );
             first_parm_offset : 48;
             stacksize   : 262144;
@@ -629,6 +648,8 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '_';
             newline      : #10;
             dirsep       : '/';
@@ -651,10 +672,10 @@ unit i_bsd;
                 varalignmin     : 0;
                 varalignmax     : 16;
                 localalignmin   : 4;
-                localalignmax   : 8;
+                localalignmax   : 16;
                 recordalignmin  : 0;
-                recordalignmax  : 8;
-                maxCrecordalign : 8
+                recordalignmax  : 16;
+                maxCrecordalign : 16
               );
             first_parm_offset : 16;
             stacksize   : 262144;
@@ -667,7 +688,7 @@ unit i_bsd;
             system       : system_arm_darwin;
             name         : 'Darwin for ARM';
             shortname    : 'Darwin';
-            flags        : [tf_p_ext_support,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,tf_dwarf_only_local_labels,tf_has_winlike_resources];
+            flags        : [tf_p_ext_support,tf_requires_proper_alignment,tf_files_case_sensitive,tf_smartlink_sections,tf_dwarf_relative_addresses,tf_dwarf_only_local_labels,tf_has_winlike_resources];
             cpu          : cpu_arm;
             unit_env     : 'BSDUNITS';
             extradefines : 'UNIX;BSD;HASUNIX;CPUARMEL';
@@ -689,6 +710,8 @@ unit i_bsd;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '_';
             newline      : #10;
             dirsep       : '/';

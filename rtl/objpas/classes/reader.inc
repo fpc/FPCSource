@@ -150,7 +150,7 @@ var
 begin
   { Read filer signature }
   Read(Signature, 4);
-  if Signature <> LongInt({$ifdef FPC_SUPPORTS_UNALIGNED}unaligned{$endif}(FilerSignature)) then
+  if Signature <> LongInt(unaligned(FilerSignature)) then
     raise EReadError.Create(SInvalidImage);
 end;
 
@@ -307,18 +307,20 @@ var
   i: Integer;
 begin
   case StringType of
-    vaString:
+    vaLString, vaUTF8String:
+      i:=ReadDWord;
+    else
+    //vaString:
       begin
         Read(b, 1);
         i := b;
       end;
-    vaLString:
-      i:=ReadDWord;
   end;
   SetLength(Result, i);
   if i > 0 then
     Read(Pointer(@Result[1])^, i);
 end;
+
 
 function TBinaryObjectReader.ReadWideString: WideString;
 var
@@ -585,7 +587,7 @@ end;
 
 procedure TReader.BeginReferences;
 begin
-  FLoaded := TList.Create;
+  FLoaded := TFpList.Create;
 end;
 
 procedure TReader.CheckValue(Value: TValueType);
@@ -1063,6 +1065,17 @@ begin
     Result := ReadInteger;
 end;
 
+function TReader.ReadSet(EnumType: Pointer): Integer; 
+begin
+  if FDriver.NextValue = vaSet then
+    begin
+      FDriver.ReadValue;
+      Result := FDriver.ReadSet(enumtype);
+    end 
+  else
+    Result := ReadInteger;
+end;
+
 procedure TReader.ReadListBegin;
 begin
   CheckValue(vaList);
@@ -1071,6 +1084,78 @@ end;
 procedure TReader.ReadListEnd;
 begin
   CheckValue(vaNull);
+end;
+
+function TReader.ReadVariant: variant;
+var
+  nv: TValueType;
+begin
+  { Ensure that a Variant manager is installed }
+  if not Assigned(VarClearProc) then
+    raise EReadError.Create(SErrNoVariantSupport);
+
+  FillChar(Result,sizeof(Result),0);
+
+  nv:=NextValue;
+  case nv of
+    vaNil:
+      begin
+        Result:=system.unassigned;
+      end;
+    vaNull:
+      begin
+        Result:=system.null;
+      end;
+    { all integer sizes must be split for big endian systems }
+    vaInt8,vaInt16,vaInt32:
+      begin
+        Result:=ReadInteger;
+      end;
+    vaInt64:
+      begin
+        Result:=ReadInt64;
+      end;
+    vaQWord:
+      begin
+        Result:=QWord(ReadInt64);
+      end;
+    vaFalse,vaTrue:
+      begin
+        Result:=(nv<>vaFalse);
+      end;
+    vaCurrency:
+      begin
+        Result:=ReadCurrency;
+      end;
+{$ifndef fpunone}
+    vaSingle:
+      begin
+        Result:=ReadSingle;
+      end;
+    vaExtended:
+      begin
+        Result:=ReadFloat;
+      end;
+    vaDate:
+      begin
+        Result:=ReadDate;
+      end;
+{$endif fpunone}
+    vaWString,vaUTF8String:
+      begin
+        Result:=ReadWideString;
+      end;
+    vaString:
+      begin
+        Result:=ReadString;
+      end;
+    vaUString:
+      begin
+        Result:=ReadUnicodeString;
+      end;
+    else
+      raise EReadError.CreateFmt(SUnsupportedPropertyVariantType, [Ord(nv)]);
+  end;
 end;
 
 procedure TReader.ReadProperty(AInstance: TPersistent);
@@ -1258,7 +1343,10 @@ begin
       SetUnicodeStrProp(Instance,PropInfo,ReadUnicodeString);
     tkWString:
       SetWideStrProp(Instance,PropInfo,ReadWideString);
-    {!!!: tkVariant}
+    tkVariant:
+      begin
+        SetVariantProp(Instance,PropInfo,ReadVariant);
+      end;
     tkClass:
       case FDriver.NextValue of
         vaNil:
@@ -1335,7 +1423,7 @@ begin
       if Assigned(GlobalLoaded) then
         FLoaded := GlobalLoaded
       else
-        FLoaded := TList.Create;
+        FLoaded := TFpList.Create;
 
       try
         if FLoaded.IndexOf(FRoot) < 0 then
@@ -1398,9 +1486,9 @@ begin
   StringType := FDriver.ReadValue;
   if StringType in [vaString, vaLString,vaUTF8String] then
     begin
-    Result := FDriver.ReadString(StringType);
-    if (StringType=vaUTF8String) then
-      Result:=utf8Decode(Result);
+      Result := FDriver.ReadString(StringType);
+      if (StringType=vaUTF8String) then
+        Result:=utf8Decode(Result);
     end
   else if StringType in [vaWString] then
     Result:= FDriver.ReadWidestring
@@ -1415,12 +1503,16 @@ function TReader.ReadWideString: WideString;
 var
  s: String;
  i: Integer;
+ vt:TValueType;
 begin
   if NextValue in [vaWString,vaUString,vaUTF8String] then
-    //vaUTF8String needs conversion? 2008-09-06 mse
+    //vaUTF8String needs conversion? 2008-09-06 mse, YES!! AntonK
     begin
-      ReadValue;
-      Result := FDriver.ReadWideString
+      vt:=ReadValue;
+      if vt=vaUTF8String then
+        Result := utf8decode(fDriver.ReadString(vaLString))
+      else
+        Result := FDriver.ReadWideString
     end
   else
     begin
@@ -1438,12 +1530,16 @@ function TReader.ReadUnicodeString: UnicodeString;
 var
  s: String;
  i: Integer;
+ vt:TValueType;
 begin
-  if NextValue in [vaWString,vaUString,vaUTF8String] then 
-    //vaUTF8String needs conversion? 2008-09-06 mse
+  if NextValue in [vaWString,vaUString,vaUTF8String] then
+    //vaUTF8String needs conversion? 2008-09-06 mse, YES!! AntonK
     begin
-      ReadValue;
-      Result := FDriver.ReadUnicodeString
+      vt:=ReadValue;
+      if vt=vaUTF8String then
+        Result := utf8decode(fDriver.ReadString(vaLString))
+      else
+        Result := FDriver.ReadWideString
     end
   else
     begin

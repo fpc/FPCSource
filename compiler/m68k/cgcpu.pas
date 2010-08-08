@@ -43,12 +43,12 @@ unit cgcpu;
         procedure init_register_allocators;override;
         procedure done_register_allocators;override;
 
-        procedure a_param_reg(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
-        procedure a_param_const(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);override;
-        procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
-        procedure a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
+        procedure a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
+        procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);override;
+        procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
+        procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
 
-        procedure a_call_name(list : TAsmList;const s : string);override;
+        procedure a_call_name(list : TAsmList;const s : string; weak: boolean);override;
         procedure a_call_reg(list : TAsmList;reg : tregister);override;
 
         procedure a_load_const_reg(list : TAsmList;size : tcgsize;a : aint;register : tregister);override;
@@ -67,7 +67,7 @@ unit cgcpu;
         procedure a_loadmm_reg_reg(list: TAsmList;fromsize,tosize : tcgsize; reg1, reg2: tregister;shuffle : pmmshuffle); override;
         procedure a_loadmm_ref_reg(list: TAsmList;fromsize,tosize : tcgsize; const ref: treference; reg: tregister;shuffle : pmmshuffle); override;
         procedure a_loadmm_reg_ref(list: TAsmList;fromsize,tosize : tcgsize; reg: tregister; const ref: treference;shuffle : pmmshuffle); override;
-        procedure a_parammm_reg(list: TAsmList; size: tcgsize; reg: tregister;const locpara : TCGPara;shuffle : pmmshuffle); override;
+        procedure a_loadmm_reg_cgpara(list: TAsmList; size: tcgsize; reg: tregister;const locpara : TCGPara;shuffle : pmmshuffle); override;
 
         procedure a_op_const_reg(list : TAsmList; Op: TOpCG; size: tcgsize; a: aint; reg: TRegister); override;
 //        procedure a_op_const_ref(list : TAsmList; Op: TOpCG; size: TCGSize; a: aint; const ref: TReference); override;
@@ -130,6 +130,7 @@ unit cgcpu;
          S_FS,S_FD,S_FX,S_NO,S_NO,
          S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO,S_NO);
 
+    procedure create_codegen;
 
   implementation
 
@@ -236,13 +237,13 @@ unit cgcpu;
       end;
 
 
-    procedure tcg68k.a_param_reg(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);
+    procedure tcg68k.a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);
       var
         pushsize : tcgsize;
         ref : treference;
       begin
 {$ifdef DEBUG_CHARLIE}
-//        writeln('a_param_reg');
+//        writeln('a_load_reg');_cgpara
 {$endif DEBUG_CHARLIE}
         { it's probably necessary to port this from x86 later, or provide an m68k solution (KB) }
 { TODO: FIX ME! check_register_size()}
@@ -255,22 +256,22 @@ unit cgcpu;
             else
               pushsize:=int_cgsize(cgpara.alignment);
 
-            reference_reset_base(ref, NR_STACK_POINTER_REG, 0);
+            reference_reset_base(ref, NR_STACK_POINTER_REG, 0, cgpara.alignment);
             ref.direction := dir_dec;
             list.concat(taicpu.op_reg_ref(A_MOVE,tcgsize2opsize[pushsize],makeregsize(list,r,pushsize),ref));
           end
         else
-          inherited a_param_reg(list,size,r,cgpara);
+          inherited a_load_reg_cgpara(list,size,r,cgpara);
       end;
 
 
-    procedure tcg68k.a_param_const(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);
+    procedure tcg68k.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);
       var
         pushsize : tcgsize;
         ref : treference;
       begin
 {$ifdef DEBUG_CHARLIE}
-//        writeln('a_param_const');
+//        writeln('a_load_const');_cgpara
 {$endif DEBUG_CHARLIE}
         if use_push(cgpara) then
           begin
@@ -280,16 +281,16 @@ unit cgcpu;
             else
               pushsize:=int_cgsize(cgpara.alignment);
 
-            reference_reset_base(ref, NR_STACK_POINTER_REG, 0);
+            reference_reset_base(ref, NR_STACK_POINTER_REG, 0, cgpara.alignment);
             ref.direction := dir_dec;
             list.concat(taicpu.op_const_ref(A_MOVE,tcgsize2opsize[pushsize],a,ref));
           end
         else
-          inherited a_param_const(list,size,a,cgpara);
+          inherited a_load_const_cgpara(list,size,a,cgpara);
       end;
 
 
-    procedure tcg68k.a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);
+    procedure tcg68k.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);
 
         procedure pushdata(paraloc:pcgparalocation;ofs:aint);
         var
@@ -320,7 +321,7 @@ unit cgcpu;
           else
             pushsize:=int_cgsize(cgpara.alignment);
 
-          reference_reset_base(ref, NR_STACK_POINTER_REG, 0);
+          reference_reset_base(ref, NR_STACK_POINTER_REG, 0, tcgsize2size[paraloc^.size]);
           ref.direction := dir_dec;
 
           if tcgsize2size[paraloc^.size]<cgpara.alignment then
@@ -338,7 +339,7 @@ unit cgcpu;
         href : treference;
       begin
 {$ifdef DEBUG_CHARLIE}
-//        writeln('a_param_ref');
+//        writeln('a_load_ref');_cgpara
 {$endif DEBUG_CHARLIE}
 
         { cgpara.size=OS_NO requires a copy on the stack }
@@ -350,7 +351,7 @@ unit cgcpu;
                 cgpara.check_simple_location;
                 len:=align(cgpara.intsize,cgpara.alignment);
                 g_stackpointer_alloc(list,len);
-                reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                reference_reset_base(href,NR_STACK_POINTER_REG,0,cgpara.alignment);
                 g_concatcopy(list,r,href,len);
               end
             else
@@ -363,17 +364,17 @@ unit cgcpu;
               end
           end
         else
-          inherited a_param_ref(list,size,r,cgpara);
+          inherited a_load_ref_cgpara(list,size,r,cgpara);
       end;
 
 
-    procedure tcg68k.a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : tcgpara);
+    procedure tcg68k.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);
       var
         tmpreg : tregister;
         opsize : topsize;
       begin
 {$ifdef DEBUG_CHARLIE}
-//        writeln('a_paramaddr_ref');
+//        writeln('a_loadaddr_ref');_cgpara
 {$endif DEBUG_CHARLIE}
         with r do
           begin
@@ -405,7 +406,7 @@ unit cgcpu;
                   end;
               end
             else
-              inherited a_paramaddr_ref(list,r,cgpara);
+              inherited a_loadaddr_ref_cgpara(list,r,cgpara);
           end;
       end;
 
@@ -451,9 +452,15 @@ unit cgcpu;
 
 
 
-    procedure tcg68k.a_call_name(list : TAsmList;const s : string);
-
+    procedure tcg68k.a_call_name(list : TAsmList;const s : string; weak: boolean);
+      var
+        sym: tasmsymbol;
       begin
+        if not(weak) then
+          sym:=current_asmdata.RefAsmSymbol(s)
+        else
+          sym:=current_asmdata.WeakRefAsmSymbol(s);
+
         list.concat(taicpu.op_sym(A_JSR,S_NO,current_asmdata.RefAsmSymbol(s)));
       end;
 
@@ -469,13 +476,13 @@ unit cgcpu;
 	if isaddressregister(reg) then
 	  begin
 	    { if we have an address register, we can jump to the address directly }
-            reference_reset_base(tmpref,reg,0);
+            reference_reset_base(tmpref,reg,0,4);
 	  end
 	else
 	  begin
 	    { if we have a data register, we need to move it to an address register first }
 	    tmpreg:=getaddressregister(list);
-            reference_reset_base(tmpref,tmpreg,0);
+            reference_reset_base(tmpref,tmpreg,0,4);
 	    list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg,tmpreg));
 	  end;
 	list.concat(taicpu.op_ref(A_JSR,S_NO,tmpref));
@@ -651,7 +658,7 @@ unit cgcpu;
       end;
 
 
-    procedure tcg68k.a_parammm_reg(list: TAsmList; size: tcgsize; reg: tregister;const locpara : TCGPara;shuffle : pmmshuffle);
+    procedure tcg68k.a_loadmm_reg_cgpara(list: TAsmList; size: tcgsize; reg: tregister;const locpara : TCGPara;shuffle : pmmshuffle);
       begin
         internalerror(20020729);
       end;
@@ -709,7 +716,7 @@ unit cgcpu;
                      cg.getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, r2));
-                     cg.a_call_name(list,'FPC_MUL_LONGINT');
+                     cg.a_call_name(list,'FPC_MUL_LONGINT',false);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,r, reg));
                      cg.ungetcpuregister(list,r);
                      cg.ungetcpuregister(list,r2);
@@ -738,7 +745,7 @@ unit cgcpu;
                      cg.getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_const_reg(A_MOVE,S_L,a, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg, r2));
-                     cg.a_call_name(list,'FPC_MUL_LONGWORD');
+                     cg.a_call_name(list,'FPC_MUL_LONGWORD',false);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,r, reg));
                      cg.ungetcpuregister(list,r);
                      cg.ungetcpuregister(list,r2);
@@ -921,7 +928,7 @@ unit cgcpu;
                      cg.getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2, r2));
-                     cg.a_call_name(list,'FPC_MUL_LONGINT');
+                     cg.a_call_name(list,'FPC_MUL_LONGINT',false);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,r, reg2));
                      cg.ungetcpuregister(list,r);
                      cg.ungetcpuregister(list,r2);
@@ -964,7 +971,7 @@ unit cgcpu;
                      cg.getcpuregister(list,NR_D1);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg1, r));
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,reg2, r2));
-                     cg.a_call_name(list,'FPC_MUL_LONGWORD');
+                     cg.a_call_name(list,'FPC_MUL_LONGWORD',false);
                      list.concat(taicpu.op_reg_reg(A_MOVE,S_L,r, reg2));
                      cg.ungetcpuregister(list,r);
                      cg.ungetcpuregister(list,r2);
@@ -1217,10 +1224,10 @@ unit cgcpu;
               iregister:=getaddressregister(list);
               jregister:=getaddressregister(list);
               { reference for move (An)+,(An)+ }
-              reference_reset(hp1);
+              reference_reset(hp1,source.alignment);
               hp1.base := iregister;   { source register }
               hp1.direction := dir_inc;
-              reference_reset(hp2);
+              reference_reset(hp2,dest.alignment);
               hp2.base := jregister;
               hp2.direction := dir_inc;
               { iregister = source }
@@ -1300,7 +1307,7 @@ unit cgcpu;
 {$ifdef DEBUG_CHARLIE}
 //        writeln('proc entry, localsize:',localsize);
 {$endif DEBUG_CHARLIE}
-	
+
         if not nostackframe then
           begin
 	    if localsize<>0 then
@@ -1308,7 +1315,7 @@ unit cgcpu;
 	        { size can't be negative }
 		if (localsize < 0) then
 		  internalerror(2006122601);
-	
+
                 { Not to complicate the code generator too much, and since some }
                 { of the systems only support this format, the localsize cannot }
                 { exceed 32K in size.                                           }
@@ -1320,17 +1327,17 @@ unit cgcpu;
 	    else
 	      begin
 	        list.concat(taicpu.op_reg_const(A_LINK,S_W,NR_FRAME_POINTER_REG,0));
-(*		
+(*
 		{ FIXME! - Carl's original code uses this method. However,
 		  according to the 68060 users manual, a LINK is faster than
 		  two moves. So, use a link in #0 case too, for now. I'm not
 		  really sure tho', that LINK supports #0 disposition, but i
 		  see no reason why it shouldn't support it. (KB) }
-		
+
 	        { when localsize = 0, use two moves, instead of link }
 		r:=NR_FRAME_POINTER_REG;
 		rsp:=NR_STACK_POINTER_REG;
-		
+
 	        reference_reset_base(ref,NR_STACK_POINTER_REG,0);
 		ref.direction:=dir_dec;
                 list.concat(taicpu.op_reg_ref(A_MOVE,S_L,r,ref));
@@ -1732,8 +1739,12 @@ unit cgcpu;
         end;
     end; { end case }
   end;
+  
+  
+procedure create_codegen;
+  begin
+    cg := tcg68k.create;
+    cg64 :=tcg64f68k.create;
+  end;
 
-begin
-  cg := tcg68k.create;
-  cg64 :=tcg64f68k.create;
 end.

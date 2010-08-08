@@ -34,10 +34,11 @@ begin
 //  pointer(FBuffers^) := nil;
   FBuffers[0] := nil;
   FActiveRecord := 0;
-  FBufferCount := 0;
+  FBufferCount := -1;
   FEOF := True;
   FBOF := True;
   FIsUniDirectional := False;
+  FAutoCalcFields := True;
 end;
 
 
@@ -124,7 +125,7 @@ begin
             end;
           end else FFieldNo := FieldIndex;
         end;
-      end else FFieldNo := 0;;
+      end else FFieldNo := 0;
     end;
 end;
 
@@ -253,6 +254,7 @@ begin
     deFieldChange   : HandleFieldChange(TField(Info));
     deDataSetChange,
     deDataSetScroll : HandleScrollOrChange;
+    deLayoutChange  : FEnableControlsEvent:=deLayoutChange;    
   end;
 
   if not ControlsDisabled then begin
@@ -504,6 +506,31 @@ begin
   Result:=nil;
 end;
 
+function TDataSet.GetRecordSize: Word;
+begin
+  Result := 0;
+end;
+
+procedure TDataSet.InternalAddRecord(Buffer: Pointer; AAppend: Boolean);
+begin
+  // empty stub
+end;
+
+procedure TDataSet.InternalDelete;
+begin
+  // empty stub
+end;
+
+procedure TDataSet.InternalFirst;
+begin
+  // empty stub
+end;
+
+procedure TDataSet.InternalGotoBookmark(ABookmark: Pointer);
+begin
+  // empty stub
+end;
+
 function TDataSet.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 
 begin
@@ -512,10 +539,27 @@ end;
 
 procedure TDataSet.DataConvert(aField: TField; aSource, aDest: Pointer;
   aToNative: Boolean);
-  
+
+ // There seems to be no WStrCopy defined, this is a copy of
+ // the generic StrCopy function, adapted for WideChar.
+ Function WStrCopy(Dest, Source:PWideChar): PWideChar;
+ var
+   counter : SizeInt;
+ Begin
+   counter := 0;
+   while Source[counter] <> #0 do
+   begin
+     Dest[counter] := char(Source[counter]);
+     Inc(counter);
+   end;
+   { terminate the string }
+   Dest[counter] := #0;
+   WStrCopy := Dest;
+ end;
+
 var
   DT : TFieldType;
-  
+
 begin
   DT := aField.DataType;
   if aToNative then
@@ -525,11 +569,10 @@ begin
       ftTimeStamp               : TTimeStamp(aDest^) := TTimeStamp(aSource^);
       ftBCD                     : TBCD(aDest^) := CurrToBCD(Currency(aSource^));
       ftFMTBCD                  : TBcd(aDest^) := TBcd(aSource^);
-  // See notes from mantis bug-report 7204 for more information
+  // See notes from mantis bug-report 8204 for more information
   //    ftBytes                   : ;
   //    ftVarBytes                : ;
-  //    ftWideString              : ;
-
+      ftWideString              : WStrCopy(PWideChar(aDest), PWideChar(aSource));
       end
     end
   else
@@ -541,8 +584,7 @@ begin
       ftFMTBCD                  : TBcd(aDest^) := TBcd(aSource^);
   //    ftBytes                   : ;
   //    ftVarBytes                : ;
-  //    ftWideString              : ;
-
+      ftWideString              : WStrCopy(PWideChar(aDest), PWideChar(aSource));
       end
     end
 end;
@@ -840,21 +882,7 @@ begin
     Insert;
 
   for i := 0 to ValuesSize-1 do with values[i] do
-    case VType of
-      vtInteger   : fields[i].AsInteger    := VInteger;
-      vtBoolean   : fields[i].AsBoolean    := VBoolean;
-      vtChar      : fields[i].AsString     := VChar;
-      vtWideChar  : fields[i].AsString     := VWideChar;
-      vtString    : fields[i].AsString     := AnsiString(VString);
-      vtAnsiString: fields[i].AsString     := AnsiString(VAnsiString);
-      vtCurrency  : fields[i].AsCurrency   := VCurrency^;
-//      vtWideString: fields[i].AsWideString := VWideString;
-      vtInt64     : fields[i].AsLargeInt   := VInt64^;
-      vtQWord     : fields[i].AsLargeInt   := VQWord^;
-      vtVariant   : fields[i].AsVariant    := VVariant^;
-    else
-      DatabaseError(SIncompatibleTVarRec);
-    end; {case}
+    fields[i].AssignValue(values[i]);
   Post;
 
 end;
@@ -973,6 +1001,16 @@ begin
     ShowException(ExceptObject,ExceptAddr);
 end;
 
+procedure TDataSet.InternalInitRecord(Buffer: PChar);
+begin
+  // empty stub
+end;
+
+procedure TDataSet.InternalLast;
+begin
+  // empty stub
+end;
+
 procedure TDataSet.InternalPost;
 
   Procedure Checkrequired;
@@ -990,6 +1028,21 @@ procedure TDataSet.InternalPost;
 
 begin
   Checkrequired;
+end;
+
+procedure TDataSet.InternalSetToRecord(Buffer: PChar);
+begin
+  // empty stub
+end;
+
+procedure TDataSet.SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag);
+begin
+  // empty stub
+end;
+
+procedure TDataSet.SetBookmarkData(Buffer: PChar; Data: Pointer);
+begin
+  // empty stub
 end;
 
 procedure TDataSet.SetUniDirectional(const Value: Boolean);
@@ -1010,6 +1063,7 @@ begin
     else
       begin
       DoBeforeOpen;
+      FEnableControlsEvent:=deLayoutChange;
       FInternalCalcFields:=False;
       try
         FDefaultFields:=FieldCount=0;
@@ -1026,7 +1080,6 @@ begin
     SetState(dsInactive);
     CloseCursor;
     DoAfterClose;
-    FModified:=False;
     FModified:=False;
     end
 end;
@@ -1082,7 +1135,7 @@ begin
   Writeln('Getting next buffers');
 {$endif}
   GetNextRecords;
-  if FRecordCount < FBufferCount then
+  if (FRecordCount < FBufferCount) and not IsUniDirectional then
     begin
     FActiveRecord := FActiveRecord + GetPriorRecords;
     CursorPosChanged;
@@ -1122,7 +1175,7 @@ begin
 {$ifdef dsdebug}
     Writeln ('   Filling memory :',(Value+1-FBufferCount)*SizeOf(PChar));
 {$endif}
-    if FBufferCount > 0 then inc(FBufferCount); // Cause FBuffers[FBufferCount] is already allocated
+    inc(FBufferCount); // Cause FBuffers[FBufferCount] is already allocated
     FillChar(FBuffers[FBufferCount],(Value+1-FBufferCount)*SizeOF(Pchar),#0);
 {$ifdef dsdebug}
     Writeln ('   Filled memory :');
@@ -1172,10 +1225,10 @@ begin
         ReAllocMem(FBuffers,(Value+1)*SizeOf(Pchar));
       end;
     end;
+  FBufferCount:=Value;
   If Value=-1 then
     Value:=0;
   if FRecordcount > Value then FRecordcount := Value;
-  FBufferCount:=Value;
 {$ifdef dsdebug}
   Writeln ('   SetBufListSize: Final FBufferCount=',FBufferCount);
 {$endif}
@@ -1320,6 +1373,26 @@ Procedure TDataset.UpdateIndexDefs;
 
 begin
   // Empty Abstract
+end;
+
+function TDataSet.AllocRecordBuffer: PChar;
+begin
+  Result := nil;
+end;
+
+procedure TDataSet.FreeRecordBuffer(var Buffer: PChar);
+begin
+  // empty stub
+end;
+
+procedure TDataSet.GetBookmarkData(Buffer: PChar; Data: Pointer);
+begin
+  // empty stub
+end;
+
+function TDataSet.GetBookmarkFlag(Buffer: PChar): TBookmarkFlag;
+begin
+  Result := bfCurrent;
 end;
 
 Function TDataset.ControlsDisabled: Boolean;
@@ -1598,10 +1671,10 @@ end;
 Procedure TDataset.Edit;
 
 begin
+  If State in [dsedit,dsinsert] then exit;
   CheckBrowseMode;
   If Not CanModify then
     DatabaseError(SDatasetReadOnly,Self);
-  If State in [dsedit,dsinsert] then exit;
   If FRecordCount = 0 then
     begin
     Append;
@@ -2174,7 +2247,7 @@ begin
   FBuffers[0]:=TempBuf;
 end;
 
-function TDataset.GetFieldValues(Fieldname: string): Variant;
+function TDataset.GetFieldValues(const Fieldname: string): Variant;
 
 var i: Integer;
     FieldList: TList;
@@ -2193,7 +2266,7 @@ begin
   end;
 end;
 
-procedure TDataset.SetFieldValues(Fieldname: string; Value: Variant);
+procedure TDataset.SetFieldValues(const Fieldname: string; Value: Variant);
 
 var
   i : Integer;
@@ -2222,7 +2295,8 @@ end;
 Function TDataset.Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant;
 
 begin
-  Result := False;
+  CheckBiDirectional;
+  Result := Null;
 end;
 
 

@@ -44,7 +44,9 @@ interface
     uses
        cutils,cclasses,cfileutl,
        globtype,finput,ogbase,
-       symbase,symsym,aasmbase,aasmtai,aasmdata;
+       symbase,symsym,
+       wpobase,
+       aasmbase,aasmtai,aasmdata;
 
 
     const
@@ -54,6 +56,17 @@ interface
       trecompile_reason = (rr_unknown,
         rr_noppu,rr_sourcenewer,rr_build,rr_crcchanged
       );
+
+      { unit options }
+      tmoduleoption = (mo_none,
+        mo_hint_deprecated,
+        mo_hint_platform,
+        mo_hint_library,
+        mo_hint_unimplemented,
+        mo_hint_experimental,
+        mo_has_deprecated_msg
+      );
+      tmoduleoptions = set of tmoduleoption;
 
       tlinkcontaineritem=class(tlinkedlistitem)
       public
@@ -89,6 +102,8 @@ interface
       end;
       pderefmap = ^tderefmaprec;
 
+      { tmodule }
+
       tmodule = class(tmodulebase)
       private
         FImportLibraryList : TFPHashObjectList;
@@ -98,7 +113,6 @@ interface
         sources_avail,            { if all sources are reachable }
         interface_compiled,       { if the interface section has been parsed/compiled/loaded }
         is_dbginfo_written,
-        is_reset,
         is_unit,
         in_interface,             { processing the implementation part? }
         { allow global settings }
@@ -113,7 +127,8 @@ interface
         mainfilepos   : tfileposinfo;
         recompile_reason : trecompile_reason;  { the reason why the unit should be recompiled }
         crc,
-        interface_crc : cardinal;
+        interface_crc,
+        indirect_crc  : cardinal;
         flags         : cardinal;  { the PPU flags }
         islibrary     : boolean;  { if it is a library (win32 dll) }
         IsPackage     : boolean;
@@ -128,6 +143,7 @@ interface
         checkforwarddefs,
         deflist,
         symlist       : TFPObjectList;
+        wpoinfo       : tunitwpoinfobase; { whole program optimization-related information that is generated during the current run for this unit }
         globalsymtable,           { pointer to the global symtable of this unit }
         localsymtable : TSymtable;{ pointer to the local symtable of this unit }
         globalmacrosymtable,           { pointer to the global macro symtable of this unit }
@@ -159,6 +175,9 @@ interface
         locallibrarysearchpath,
         localframeworksearchpath : TSearchPathList;
 
+        moduleoptions: tmoduleoptions;
+        deprecatedmsg: pshortstring;
+
         {create creates a new module which name is stored in 's'. LoadedFrom
         points to the module calling it. It is nil for the first compiled
         module. This allow inheritence of all path lists. MUST pay attention
@@ -170,6 +189,7 @@ interface
         procedure flagdependent(callermodule:tmodule);
         function  addusedunit(hp:tmodule;inuses:boolean;usym:tunitsym):tused_unit;
         procedure updatemaps;
+        procedure check_hints;
         function  derefidx_unit(id:longint):longint;
         function  resolve_unit(id:longint):tmodule;
         procedure allunitsused;
@@ -180,7 +200,8 @@ interface
 
        tused_unit = class(tlinkedlistitem)
           checksum,
-          interface_checksum : cardinal;
+          interface_checksum,
+          indirect_checksum: cardinal;
           in_uses,
           in_interface    : boolean;
           u               : tmodule;
@@ -417,11 +438,13 @@ implementation
          begin
            checksum:=u.crc;
            interface_checksum:=u.interface_crc;
+           indirect_checksum:=u.indirect_crc;
          end
         else
          begin
            checksum:=0;
            interface_checksum:=0;
+           indirect_checksum:=0;
          end;
       end;
 
@@ -477,6 +500,7 @@ implementation
         FImportLibraryList:=TFPHashObjectList.Create(true);
         crc:=0;
         interface_crc:=0;
+        indirect_crc:=0;
         flags:=0;
         scanner:=nil;
         unitmap:=nil;
@@ -488,6 +512,7 @@ implementation
         derefdataintflen:=0;
         deflist:=TFPObjectList.Create(false);
         symlist:=TFPObjectList.Create(false);
+        wpoinfo:=nil;
         checkforwarddefs:=TFPObjectList.Create(false);
         globalsymtable:=nil;
         localsymtable:=nil;
@@ -507,8 +532,9 @@ implementation
         islibrary:=false;
         ispackage:=false;
         is_dbginfo_written:=false;
-        is_reset:=false;
         mode_switch_allowed:= true;
+        moduleoptions:=[];
+        deprecatedmsg:=nil;
         _exports:=TLinkedList.Create;
         dllscannerinputlist:=TFPHashList.Create;
         asmdata:=TAsmData.create(realmodulename^);
@@ -587,6 +613,7 @@ implementation
         stringdispose(realmodulename);
         stringdispose(mainsource);
         stringdispose(asmprefix);
+        stringdispose(deprecatedmsg);
         localunitsearchpath.Free;
         localobjectsearchpath.free;
         localincludesearchpath.free;
@@ -598,15 +625,12 @@ implementation
         derefdata.free;
         deflist.free;
         symlist.free;
+        wpoinfo.free;
         checkforwarddefs.free;
-        if assigned(globalsymtable) then
-          globalsymtable.free;
-        if assigned(localsymtable) then
-          localsymtable.free;
-        if assigned(globalmacrosymtable) then
-          globalmacrosymtable.free;
-        if assigned(localmacrosymtable) then
-          localmacrosymtable.free;
+        globalsymtable.free;
+        localsymtable.free;
+        globalmacrosymtable.free;
+        localmacrosymtable.free;
 {$ifdef MEMDEBUG}
         memsymtable.stop;
 {$endif}
@@ -652,30 +676,20 @@ implementation
             asmdata:=nil;
           end;
         DoneDebugInfo(self);
-        if assigned(globalsymtable) then
-          begin
-            globalsymtable.free;
-            globalsymtable:=nil;
-          end;
-        if assigned(localsymtable) then
-          begin
-            localsymtable.free;
-            localsymtable:=nil;
-          end;
-        if assigned(globalmacrosymtable) then
-          begin
-            globalmacrosymtable.free;
-            globalmacrosymtable:=nil;
-          end;
-        if assigned(localmacrosymtable) then
-          begin
-            localmacrosymtable.free;
-            localmacrosymtable:=nil;
-          end;
+        globalsymtable.free;
+        globalsymtable:=nil;
+        localsymtable.free;
+        localsymtable:=nil;
+        globalmacrosymtable.free;
+        globalmacrosymtable:=nil;
+        localmacrosymtable.free;
+        localmacrosymtable:=nil;
         deflist.free;
         deflist:=TFPObjectList.Create(false);
         symlist.free;
         symlist:=TFPObjectList.Create(false);
+        wpoinfo.free;
+        wpoinfo:=nil;
         checkforwarddefs.free;
         checkforwarddefs:=TFPObjectList.Create(false);
         derefdata.free;
@@ -733,10 +747,12 @@ implementation
         in_interface:=true;
         in_global:=true;
         mode_switch_allowed:=true;
+        stringdispose(deprecatedmsg);
+        moduleoptions:=[];
         is_dbginfo_written:=false;
-        is_reset:=false;
         crc:=0;
         interface_crc:=0;
+        indirect_crc:=0;
         flags:=0;
         mainfilepos.line:=0;
         mainfilepos.column:=0;
@@ -840,6 +856,23 @@ implementation
             inc(i);
             hp:=tmodule(hp.next);
           end;
+      end;
+
+    procedure tmodule.check_hints;
+      begin
+        if mo_hint_deprecated in moduleoptions then
+          if (mo_has_deprecated_msg in moduleoptions) and (deprecatedmsg <> nil) then
+            Message2(sym_w_deprecated_unit_with_msg,realmodulename^,deprecatedmsg^)
+          else
+            Message1(sym_w_deprecated_unit,realmodulename^);
+        if mo_hint_experimental in moduleoptions then
+          Message1(sym_w_experimental_unit,realmodulename^);
+        if mo_hint_platform in moduleoptions then
+          Message1(sym_w_non_portable_unit,realmodulename^);
+        if mo_hint_library in moduleoptions then
+          Message1(sym_w_library_unit,realmodulename^);
+        if mo_hint_unimplemented in moduleoptions then
+          Message1(sym_w_non_implemented_unit,realmodulename^);
       end;
 
 

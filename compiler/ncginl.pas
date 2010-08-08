@@ -55,6 +55,7 @@ interface
           procedure second_trunc_real; virtual;
           procedure second_abs_long; virtual;
           procedure second_rox; virtual;
+          procedure second_sar; virtual;
        end;
 
 implementation
@@ -135,7 +136,6 @@ implementation
               second_get_caller_frame;
             in_get_caller_addr:
               second_get_caller_addr;
-{$ifdef SUPPORT_UNALIGNED}
             in_unaligned_x:
               begin
                 secondpass(tcallparanode(left).left);
@@ -143,7 +143,6 @@ implementation
                 if location.loc in [LOC_CREFERENCE,LOC_REFERENCE] then
                   location.reference.alignment:=1;
               end;
-{$endif SUPPORT_UNALIGNED}
 {$ifdef SUPPORT_MMX}
             in_mmx_pcmpeqb..in_mmx_pcmpgtw:
               begin
@@ -167,6 +166,9 @@ implementation
             in_ror_x,
             in_ror_x_x:
               second_rox;
+            in_sar_x,
+            in_sar_x_y:
+              second_sar;
             else internalerror(9);
          end;
       end;
@@ -214,22 +216,18 @@ implementation
        if codegenerror then
           exit;
        { push erroraddr }
-       paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc4);
-       cg.a_param_reg(current_asmdata.CurrAsmList,OS_ADDR,NR_FRAME_POINTER_REG,paraloc4);
+       cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,NR_FRAME_POINTER_REG,paraloc4);
        { push lineno }
-       paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc3);
-       cg.a_param_const(current_asmdata.CurrAsmList,OS_INT,current_filepos.line,paraloc3);
+       cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_INT,current_filepos.line,paraloc3);
        { push filename }
-       paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
-       cg.a_paramaddr_ref(current_asmdata.CurrAsmList,hp2.location.reference,paraloc2);
+       cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,hp2.location.reference,paraloc2);
        { push msg }
-       paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-       cg.a_paramaddr_ref(current_asmdata.CurrAsmList,hp3.location.reference,paraloc1);
+       cg.a_loadaddr_ref_cgpara(current_asmdata.CurrAsmList,hp3.location.reference,paraloc1);
        { call }
-       paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
-       paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
-       paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc3);
-       paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc4);
+       paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+       paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
+       paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc3);
+       paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc4);
        cg.allocallcpuregisters(current_asmdata.CurrAsmList);
        cg.a_call_name(current_asmdata.CurrAsmList,'FPC_ASSERT',false);
        cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
@@ -265,7 +263,7 @@ implementation
         if left.nodetype=typen then
           begin
             hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
-            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tobjectdef(left.resultdef).vmt_mangledname),0);
+            reference_reset_symbol(href,current_asmdata.RefAsmSymbol(tobjectdef(left.resultdef).vmt_mangledname),0,sizeof(pint));
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,hregister);
           end
         else
@@ -284,7 +282,7 @@ implementation
                   else
                    begin
                      { load VMT pointer }
-                     reference_reset_base(hrefvmt,left.location.register,tobjectdef(left.resultdef).vmt_offset);
+                     reference_reset_base(hrefvmt,left.location.register,tobjectdef(left.resultdef).vmt_offset,sizeof(pint));
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hrefvmt,hregister);
                    end
                 end;
@@ -297,14 +295,17 @@ implementation
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,hregister);
                      cg.g_maybe_testself(current_asmdata.CurrAsmList,hregister);
                      { load VMT pointer }
-                     reference_reset_base(hrefvmt,hregister,tobjectdef(left.resultdef).vmt_offset);
+                     reference_reset_base(hrefvmt,hregister,tobjectdef(left.resultdef).vmt_offset,sizeof(pint));
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,hrefvmt,hregister);
                    end
                   else
                    begin
                      { load VMT pointer, but not for classrefdefs }
                      if (left.resultdef.typ=objectdef) then
-                       inc(left.location.reference.offset,tobjectdef(left.resultdef).vmt_offset);
+                       begin
+                         inc(left.location.reference.offset,tobjectdef(left.resultdef).vmt_offset);
+                         left.location.reference.alignment:=newalignment(left.location.reference.alignment,tobjectdef(left.resultdef).vmt_offset);
+                       end;
                      cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,left.location.reference,hregister);
                    end;
                 end;
@@ -315,7 +316,7 @@ implementation
         { in sizeof load size }
         if inlinenumber=in_sizeof_x then
            begin
-             reference_reset_base(href,hregister,0);
+             reference_reset_base(href,hregister,0,sizeof(pint));
              hregister:=cg.getintregister(current_asmdata.CurrAsmList,OS_INT);
              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hregister);
            end;
@@ -348,13 +349,13 @@ implementation
            cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_EQ,0,left.location.register,lengthlab);
            if is_widestring(left.resultdef) and (tf_winlikewidestring in target_info.flags) then
              begin
-               reference_reset_base(href,left.location.register,-sizeof(dword));
+               reference_reset_base(href,left.location.register,-sizeof(dword),sizeof(dword));
                hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_INT,href,hregister);
              end
            else
              begin
-               reference_reset_base(href,left.location.register,-sizeof(pint));
+               reference_reset_base(href,left.location.register,-sizeof(pint),sizeof(pint));
                hregister:=cg.makeregsize(current_asmdata.CurrAsmList,left.location.register,OS_INT);
                cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_INT,OS_INT,href,hregister);
              end;
@@ -393,8 +394,6 @@ implementation
         else
 {$endif not cpu64bitalu}
           cg.a_op_const_reg(current_asmdata.CurrAsmList,cgop,location.size,1,location.register);
-
-        cg.g_rangecheck(current_asmdata.CurrAsmList,location,resultdef,resultdef);
       end;
 
 
@@ -490,11 +489,13 @@ implementation
               { Or someone has to rewrite the above to use a_op_const_reg_reg_ov  }
               { and friends in case of overflow checking, and ask everyone to     }
               { implement these methods since they don't exist for all cpus (JM)  }
-              if (cs_check_overflow in current_settings.localswitches) then
+              { Similarly, range checking also has to be handled separately, }
+              { see mantis #14841 (JM)                                       }
+              if ([cs_check_overflow,cs_check_range] * current_settings.localswitches <> []) then
                 internalerror(2006111010);
-    //          cg.g_overflowcheck(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).resultdef);
-              cg.g_rangecheck(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).left.resultdef,
-                 tcallparanode(left).left.resultdef);
+//              cg.g_overflowcheck(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).resultdef);
+//              cg.g_rangecheck(current_asmdata.CurrAsmList,tcallparanode(left).left.location,tcallparanode(left).left.resultdef,
+//                 tcallparanode(left).left.resultdef);
             end;
         end;
 
@@ -508,7 +509,7 @@ implementation
         begin
           location_reset(location,LOC_REGISTER,OS_ADDR);
           location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-          reference_reset_symbol(href,RTTIWriter.get_rtti_label(left.resultdef,fullrtti),0);
+          reference_reset_symbol(href,RTTIWriter.get_rtti_label(left.resultdef,fullrtti),0,sizeof(pint));
           cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
         end;
 
@@ -609,22 +610,22 @@ implementation
 
     procedure tcginlinenode.second_abs_long;
       var
-	opsize : tcgsize;
-	tempreg1, tempreg2 : tregister;
+        opsize : tcgsize;
+        tempreg1, tempreg2 : tregister;
       begin
         opsize := def_cgsize(left.resultdef);
 
         secondpass(left);
         location_force_reg(current_asmdata.CurrAsmList, left.location, opsize, false);
-	location := left.location;
+        location := left.location;
         location.register := cg.getintregister(current_asmdata.CurrAsmList, opsize);
 
-	tempreg1 := cg.getintregister(current_asmdata.CurrAsmList, opsize);
-	tempreg2 := cg.getintregister(current_asmdata.CurrAsmList, opsize);
+        tempreg1 := cg.getintregister(current_asmdata.CurrAsmList, opsize);
+        tempreg2 := cg.getintregister(current_asmdata.CurrAsmList, opsize);
 	
-	cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, tcgsize2size[opsize]*8-1, left.location.register, tempreg1);
-	cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_XOR, OS_INT, left.location.register, tempreg1, tempreg2);
-	cg.a_op_reg_reg_reg(current_asmdata.CurrAsmlist, OP_SUB, OS_INT, tempreg1, tempreg2, location.register);
+        cg.a_op_const_reg_reg(current_asmdata.CurrAsmList, OP_SAR, OS_INT, tcgsize2size[opsize]*8-1, left.location.register, tempreg1);
+        cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList, OP_XOR, OS_INT, left.location.register, tempreg1, tempreg2);
+        cg.a_op_reg_reg_reg(current_asmdata.CurrAsmlist, OP_SUB, OS_INT, tempreg1, tempreg2, location.register);
       end;
 
 
@@ -691,7 +692,7 @@ implementation
         end
       else
         begin
-          location_reset(location,LOC_REFERENCE,OS_ADDR);
+          location_reset_ref(location,LOC_REFERENCE,OS_ADDR,sizeof(pint));
           location.reference.base:=frame_reg;
         end;
     end;
@@ -704,18 +705,14 @@ implementation
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);
             location.register:=cg.getaddressregister(current_asmdata.currasmlist);
-            reference_reset_base(frame_ref,NR_STACK_POINTER_REG,{current_procinfo.calc_stackframe_size}tg.lasttemp);
+            reference_reset_base(frame_ref,NR_STACK_POINTER_REG,{current_procinfo.calc_stackframe_size}tg.lasttemp,sizeof(pint));
             cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
           end
         else
           begin
             location_reset(location,LOC_REGISTER,OS_ADDR);
             location.register:=cg.getaddressregister(current_asmdata.currasmlist);
-          {$ifdef cpu64bitaddr}
-            reference_reset_base(frame_ref,current_procinfo.framepointer,8);
-          {$else}
-            reference_reset_base(frame_ref,current_procinfo.framepointer,4);
-          {$endif}
+            reference_reset_base(frame_ref,current_procinfo.framepointer,sizeof(pint),sizeof(pint));
             cg.a_load_ref_reg(current_asmdata.currasmlist,OS_ADDR,OS_ADDR,frame_ref,location.register);
           end;
       end;
@@ -728,7 +725,8 @@ implementation
         op1,op2 : tnode;
       begin
         { one or two parameters? }
-        if assigned(tcallparanode(left).right) then
+        if (left.nodetype=callparan) and
+           assigned(tcallparanode(left).right) then
           begin
             op1:=tcallparanode(tcallparanode(left).right).left;
             op2:=tcallparanode(left).left;
@@ -749,7 +747,8 @@ implementation
         end;
         location_force_reg(current_asmdata.CurrAsmList,location,location.size,false);
 
-        if assigned(tcallparanode(left).right) then
+        if (left.nodetype=callparan) and
+           assigned(tcallparanode(left).right) then
           begin
              secondpass(op2);
              { rotating by a constant directly coded: }
@@ -765,6 +764,46 @@ implementation
           end
         else
           cg.a_op_const_reg(current_asmdata.CurrAsmList,op,location.size,1,location.register);
+      end;
+
+
+    procedure tcginlinenode.second_sar;
+      var
+        {hcountreg : tregister;}
+        op1,op2 : tnode;
+      begin
+        if (left.nodetype=callparan) and
+           assigned(tcallparanode(left).right) then
+          begin
+            op1:=tcallparanode(tcallparanode(left).right).left;
+            op2:=tcallparanode(left).left;
+          end
+        else
+          begin
+            op1:=left;
+            op2:=nil;
+          end;
+        secondpass(op1);
+        { load left operator in a register }
+        location_copy(location,op1.location);
+
+        location_force_reg(current_asmdata.CurrAsmList,location,location.size,false);
+
+        if not(assigned(op2)) then
+          cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,location.size,1,location.register)
+        else
+          begin
+            secondpass(op2);
+            { shifting by a constant directly coded: }
+            if op2.nodetype=ordconstn then
+              cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_SAR,location.size,
+                                  tordconstnode(op2).value.uvalue and (resultdef.size*8-1),location.register)
+            else
+              begin
+                location_force_reg(current_asmdata.CurrAsmList,op2.location,location.size,false);
+                cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_SAR,location.size,op2.location.register,location.register);
+             end;
+          end;
       end;
 
 begin

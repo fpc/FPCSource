@@ -28,6 +28,7 @@ interface
     uses
       cclasses,
       systems,
+      parabase,
       symconst,symbase,symdef,symtype,symsym,symtable,
       fmodule,
       aasmtai,aasmdata;
@@ -36,6 +37,9 @@ interface
       TDebugInfo=class
       protected
         { definitions }
+        { collect all defs in one list so we can reset them easily }
+        defnumberlist      : TFPObjectList;
+        deftowritelist     : TFPObjectList;
         procedure appenddef(list:TAsmList;def:tdef);
         procedure beforeappenddef(list:TAsmList;def:tdef);virtual;
         procedure afterappenddef(list:TAsmList;def:tdef);virtual;
@@ -58,6 +62,7 @@ interface
 {$ifdef support_llvm}
         procedure appendprocdef_implicit(list:TAsmList;def:tprocdef);virtual;
 {$endif support_llvm}
+        procedure write_remaining_defs_to_write(list:TAsmList);
         { symbols }
         procedure appendsym(list:TAsmList;sym:tsym);
         procedure beforeappendsym(list:TAsmList;sym:tsym);virtual;
@@ -73,6 +78,7 @@ interface
         procedure appendsym_absolute(list:TAsmList;sym:tabsolutevarsym);virtual;
         procedure appendsym_property(list:TAsmList;sym:tpropertysym);virtual;
         { symtable }
+        procedure write_symtable_parasyms(list:TAsmList;paras: tparalist);
         procedure write_symtable_syms(list:TAsmList;st:TSymtable);
         procedure write_symtable_defs(list:TAsmList;st:TSymtable);
         procedure write_symtable_procdefs(list:TAsmList;st:TSymtable);
@@ -295,6 +301,42 @@ implementation
       end;
 
 
+    procedure TDebugInfo.write_remaining_defs_to_write(list:TAsmList);
+      var
+        n       : integer;
+        looplist,
+        templist: TFPObjectList;
+        def     : tdef;
+      begin
+        templist := TFPObjectList.Create(False);
+        looplist := deftowritelist;
+        while looplist.count > 0 do
+          begin
+            deftowritelist := templist;
+            for n := 0 to looplist.count - 1 do
+              begin
+                def := tdef(looplist[n]);
+                case def.dbg_state of
+                  dbg_state_written:
+                    continue;
+                  dbg_state_writing:
+                    internalerror(200610052);
+                  dbg_state_unused:
+                    internalerror(200610053);
+                  dbg_state_used:
+                    appenddef(list,def);
+                else
+                  internalerror(200610054);
+                end;
+              end;
+            looplist.clear;
+            templist := looplist;
+            looplist := deftowritelist;
+          end;
+        templist.free;
+      end;
+
+
 {**************************************
           Symbols
 **************************************}
@@ -408,6 +450,7 @@ implementation
       var
         def : tdef;
         i   : longint;
+        nonewadded : boolean;
       begin
         case st.symtabletype of
           staticsymtable :
@@ -415,18 +458,44 @@ implementation
           globalsymtable :
             list.concat(tai_comment.Create(strpnew('Defs - Begin unit '+st.name^+' has index '+tostr(st.moduleid))));
         end;
-        for i:=0 to st.DefList.Count-1 do
-          begin
-            def:=tdef(st.DefList[i]);
-            if (def.dbg_state in [dbg_state_used,dbg_state_queued]) then
-              appenddef(list,def);
-          end;
+        repeat
+          nonewadded:=true;
+          for i:=0 to st.DefList.Count-1 do
+            begin
+              def:=tdef(st.DefList[i]);
+              if (def.dbg_state in [dbg_state_used,dbg_state_queued]) then
+                begin
+                  appenddef(list,def);
+                  nonewadded:=false;
+                end;
+            end;
+        until nonewadded;
         case st.symtabletype of
           staticsymtable :
             list.concat(tai_comment.Create(strpnew('Defs - End Staticsymtable')));
           globalsymtable :
             list.concat(tai_comment.Create(strpnew('Defs - End unit '+st.name^+' has index '+tostr(st.moduleid))));
         end;
+      end;
+
+
+    procedure TDebugInfo.write_symtable_parasyms(list:TAsmList;paras: tparalist);
+      var
+        i   : longint;
+        sym : tsym;
+      begin
+        for i:=0 to paras.Count-1 do
+          begin
+            sym:=tsym(paras[i]);
+            if (sym.visibility<>vis_hidden) then
+              begin
+                appendsym(list,sym);
+                { if we ever write this procdef again for some reason (this
+                  can happen with DWARF), then we want to write all the
+                  parasyms again as well. }
+                sym.isdbgwritten:=false;
+              end;
+          end;
       end;
 
 

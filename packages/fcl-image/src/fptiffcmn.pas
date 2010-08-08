@@ -29,14 +29,15 @@ type
 
 const
   TiffRational0: TTiffRational = (Numerator: 0; Denominator: 0);
+  TiffRational72: TTiffRational = (Numerator: 72; Denominator: 1);
 
   // TFPCustomImage.Extra properties used by TFPReaderTiff and TFPWriterTiff
   TiffExtraPrefix = 'Tiff';
   TiffPhotoMetric = TiffExtraPrefix+'PhotoMetricInterpretation';
-  TiffGrayBits = TiffExtraPrefix+'GrayBits';
-  TiffRedBits = TiffExtraPrefix+'RedBits';
-  TiffGreenBits = TiffExtraPrefix+'GreenBits';
-  TiffBlueBits = TiffExtraPrefix+'BlueBits';
+  TiffGrayBits = TiffExtraPrefix+'GrayBits'; // CMYK: key plate
+  TiffRedBits = TiffExtraPrefix+'RedBits'; // CMYK: cyan
+  TiffGreenBits = TiffExtraPrefix+'GreenBits'; // CMYK: magenta
+  TiffBlueBits = TiffExtraPrefix+'BlueBits'; // CMYK: yellow
   TiffAlphaBits = TiffExtraPrefix+'AlphaBits';
   TiffArtist = TiffExtraPrefix+'Artist';
   TiffCopyright = TiffExtraPrefix+'Copyright';
@@ -61,6 +62,7 @@ type
     CellWidth: DWord;
     ColorMap: DWord;// tiff position of entry
     Compression: DWord;
+    Predictor: Word;
     Copyright: string;
     DateAndTime: string;
     DocumentName: string;
@@ -87,7 +89,14 @@ type
     Treshholding: DWord;
     XResolution: TTiffRational;
     YResolution: TTiffRational;
+    // image
     Img: TFPCustomImage;
+    RedBits: word;
+    GreenBits: word;
+    BlueBits: word;
+    GrayBits: word;
+    AlphaBits: word;
+    BytesPerPixel: Word;
     procedure Clear;
     procedure Assign(IDF: TTiffIDF);
   end;
@@ -140,10 +149,13 @@ procedure WriteTiffExtras(Msg: string; Img: TFPCustomImage);
 var
   i: Integer;
 begin
+  {$ifdef FPC_Debug_Image}
   writeln('WriteTiffExtras ',Msg);
+
   for i:=Img.ExtraCount-1 downto 0 do
     //if SysUtils.CompareText(copy(Img.ExtraKey[i],1,4),'Tiff')=0 then
       writeln('  ',i,' ',Img.ExtraKey[i],'=',Img.ExtraValue[i]);
+  {$endif}      
 end;
 
 { TTiffIDF }
@@ -153,6 +165,7 @@ begin
   PhotoMetricInterpretation:=High(PhotoMetricInterpretation);
   PlanarConfiguration:=0;
   Compression:=0;
+  Predictor:=1;
   ImageHeight:=0;
   ImageWidth:=0;
   ImageIsThumbNail:=false;
@@ -180,6 +193,13 @@ begin
   FillOrder:=0;
   Orientation:=0;
   Treshholding:=0;
+
+  RedBits:=0;
+  GreenBits:=0;
+  BlueBits:=0;
+  GrayBits:=0;
+  AlphaBits:=0;
+  BytesPerPixel:=0;
 end;
 
 procedure TTiffIDF.Assign(IDF: TTiffIDF);
@@ -187,6 +207,7 @@ begin
   PhotoMetricInterpretation:=IDF.PhotoMetricInterpretation;
   PlanarConfiguration:=IDF.PlanarConfiguration;
   Compression:=IDF.Compression;
+  Predictor:=IDF.Predictor;
   ImageHeight:=IDF.ImageHeight;
   ImageWidth:=IDF.ImageWidth;
   ImageIsThumbNail:=IDF.ImageIsThumbNail;
@@ -214,6 +235,11 @@ begin
   FillOrder:=IDF.FillOrder;
   Orientation:=IDF.Orientation;
   Treshholding:=IDF.Treshholding;
+  RedBits:=IDF.RedBits;
+  GreenBits:=IDF.GreenBits;
+  BlueBits:=IDF.BlueBits;
+  GrayBits:=IDF.GrayBits;
+  AlphaBits:=IDF.AlphaBits;
   if (Img<>nil) and (IDF.Img<>nil) then
     Img.Assign(IDF.Img);
 end;

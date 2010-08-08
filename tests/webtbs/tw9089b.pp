@@ -15,12 +15,12 @@ const
 {$endif}
 
 var
-  myvar: longint; cvar; external;
+  myvar: longint; cvar; external {$ifdef windows}libname{$endif windows};
 
 function Test: Integer; cdecl; export;
 begin
   Result := 0;
-  
+
   Writeln('Test');
 end;
 

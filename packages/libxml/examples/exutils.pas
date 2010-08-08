@@ -6,7 +6,7 @@ interface
 
 uses
   ctypes,
-  libxml2,
+  xml2,
   SysUtils;
 
 procedure docdump(doc: xmlDocPtr);
@@ -24,7 +24,7 @@ var
 begin
   mem := nil;
   xmlDocDumpMemory(doc, mem, size);
-  writeln(mem);
+  writeln(pchar(mem));
   xmlFree(mem);
 end;
 

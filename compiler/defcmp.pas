@@ -34,10 +34,21 @@ interface
      type
        { if acp is cp_all the var const or nothing are considered equal }
        tcompare_paras_type = ( cp_none, cp_value_equal_const, cp_all,cp_procvar);
-       tcompare_paras_option = (cpo_allowdefaults,cpo_ignorehidden,cpo_allowconvert,cpo_comparedefaultvalue,cpo_openequalisexact);
+       tcompare_paras_option = (
+          cpo_allowdefaults,
+          cpo_ignorehidden,           // ignore hidden parameters
+          cpo_allowconvert,
+          cpo_comparedefaultvalue,
+          cpo_openequalisexact,
+          cpo_ignoreuniv,
+          cpo_warn_incompatible_univ,
+          cpo_ignorevarspez,          // ignore parameter access type
+          cpo_ignoreframepointer      // ignore frame pointer parameter (for assignment-compatibility of global procedures to nested procvars)
+       );
+
        tcompare_paras_options = set of tcompare_paras_option;
 
-       tcompare_defs_option = (cdo_internal,cdo_explicit,cdo_check_operator,cdo_allow_variant,cdo_parameter);
+       tcompare_defs_option = (cdo_internal,cdo_explicit,cdo_check_operator,cdo_allow_variant,cdo_parameter,cdo_warn_incompatible_univ);
        tcompare_defs_options = set of tcompare_defs_option;
 
        tconverttype = (tc_none,
@@ -100,10 +111,13 @@ interface
     function is_subequal(def1, def2: tdef): boolean;
 
      {# true, if two parameter lists are equal
-      if acp is cp_none, all have to match exactly
+      if acp is cp_all, all have to match exactly
       if acp is cp_value_equal_const call by value
       and call by const parameter are assumed as
       equal
+      if acp is cp_procvar then the varspez have to match,
+      and all parameter types must be at least te_equal
+      if acp is cp_none, then we don't check the varspez at all
       allowdefaults indicates if default value parameters
       are allowed (in this case, the search order will first
       search for a routine with default parameters, before
@@ -114,7 +128,7 @@ interface
     { True if a function can be assigned to a procvar }
     { changed first argument type to pabstractprocdef so that it can also be }
     { used to test compatibility between two pprocvardefs (JM)               }
-    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef):tequaltype;
+    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;checkincompatibleuniv: boolean):tequaltype;
 
     { Parentdef is the definition of a method defined in a parent class or interface }
     { Childdef is the definition of a method defined in a child class, interface or  }
@@ -198,16 +212,7 @@ implementation
             (def_to.typ=undefineddef) then
           begin
             doconv:=tc_equal;
-            compare_defs_ext:=te_equal;
-            exit;
-          end;
-
-         { undefined def? then mark it as equal }
-         if (def_from.typ=undefineddef) or
-            (def_to.typ=undefineddef) then
-          begin
-            doconv:=tc_equal;
-            compare_defs_ext:=te_equal;
+            compare_defs_ext:=te_exact;
             exit;
           end;
 
@@ -276,7 +281,9 @@ implementation
                    end;
                  objectdef:
                    begin
-                     if is_class_or_interface_or_dispinterface(def_from) and (cdo_explicit in cdoptions) then
+                     if (m_delphi in current_settings.modeswitches) and
+                        is_class_or_interface_or_dispinterface_or_objc(def_from) and
+                        (cdo_explicit in cdoptions) then
                       begin
                         eq:=te_convert_l1;
                         if (fromtreetype=niln) then
@@ -588,7 +595,7 @@ implementation
                           begin
                             { assignment of an enum symbol to an unique type? }
                             if (fromtreetype=ordconstn) and
-                              (tenumsym(tenumdef(hd1).firstenum)=tenumsym(tenumdef(hd2).firstenum)) then
+                              (tenumsym(tenumdef(hd1).getfirstsym)=tenumsym(tenumdef(hd2).getfirstsym)) then
                               begin
                                 { because of packenum they can have different sizes! (JM) }
                                 eq:=te_convert_l1;
@@ -614,8 +621,18 @@ implementation
                    begin
                      { ugly, but delphi allows it }
                      if (cdo_explicit in cdoptions) and
-                       (m_delphi in current_settings.modeswitches) and
-                       (eq=te_incompatible) then
+                       (m_delphi in current_settings.modeswitches) then
+                       begin
+                         doconv:=tc_int_2_int;
+                         eq:=te_convert_l1;
+                       end;
+                   end;
+                 objectdef:
+                   begin
+                     { ugly, but delphi allows it }
+                     if (m_delphi in current_settings.modeswitches) and
+                        is_class_or_interface_or_dispinterface(def_from) and
+                        (cdo_explicit in cdoptions) then
                        begin
                          doconv:=tc_int_2_int;
                          eq:=te_convert_l1;
@@ -962,8 +979,7 @@ implementation
                      { allow explicit typecasts from enums to pointer.
                        Support for delphi compatibility
                      }
-                     if (eq=te_incompatible) and
-                        (((cdo_explicit in cdoptions) and
+                     if (((cdo_explicit in cdoptions) and
                           (m_delphi in current_settings.modeswitches)
                           ) or
                          (cdo_internal in cdoptions)
@@ -1004,7 +1020,8 @@ implementation
                      else
                        { dynamic array to pointer, delphi only }
                        if (m_delphi in current_settings.modeswitches) and
-                          is_dynamic_array(def_from) then
+                          is_dynamic_array(def_from) and
+                          is_voidpointer(def_to) then
                         begin
                           eq:=te_equal;
                         end;
@@ -1069,12 +1086,22 @@ implementation
                            eq:=te_convert_l2
                          else
                            eq:=te_convert_l1;
+                       end
+                     { id = generic class instance. metaclasses are also
+                       class instances themselves.  }
+                     else if ((def_from=objc_idtype) and
+                              (def_to=objc_metaclasstype)) or
+                             ((def_to=objc_idtype) and
+                              (def_from=objc_metaclasstype)) then
+                       begin
+                         doconv:=tc_equal;
+                         eq:=te_convert_l2;
                        end;
                    end;
                  procvardef :
                    begin
                      { procedure variable can be assigned to an void pointer,
-                       this not allowed for methodpointers }
+                       this is not allowed for complex procvars }
                      if (is_void(tpointerdef(def_to).pointeddef) or
                          (m_mac_procvar in current_settings.modeswitches)) and
                         tprocvardef(def_from).is_addressonly then
@@ -1101,11 +1128,23 @@ implementation
                        can be assigned to void pointers, but it is less
                        preferred than assigning to a related objectdef }
                      if (
-                         is_class_or_interface_or_dispinterface(def_from) or
+                         is_class_or_interface_or_dispinterface_or_objc(def_from) or
                          (def_from.typ=classrefdef)
                         ) and
                         (tpointerdef(def_to).pointeddef.typ=orddef) and
                         (torddef(tpointerdef(def_to).pointeddef).ordtype=uvoid) then
+                       begin
+                         doconv:=tc_equal;
+                         eq:=te_convert_l2;
+                       end
+                     else if (is_objc_class_or_protocol(def_from) and
+                              (def_to=objc_idtype)) or
+                             { classrefs are also instances in Objective-C,
+                               hence they're also assignment-cpmpatible with
+                               id }
+                             (is_objcclassref(def_from) and
+                              ((def_to=objc_metaclasstype) or
+                               (def_to=objc_idtype))) then
                        begin
                          doconv:=tc_equal;
                          eq:=te_convert_l2;
@@ -1161,18 +1200,21 @@ implementation
                      if (m_tp_procvar in current_settings.modeswitches) or
                         (m_mac_procvar in current_settings.modeswitches) then
                       begin
-                        subeq:=proc_to_procvar_equal(tprocdef(def_from),tprocvardef(def_to));
+                        subeq:=proc_to_procvar_equal(tprocdef(def_from),tprocvardef(def_to),cdo_warn_incompatible_univ in cdoptions);
                         if subeq>te_incompatible then
                          begin
                            doconv:=tc_proc_2_procvar;
-                           eq:=te_convert_l1;
+                           if subeq>te_convert_l5 then
+                             eq:=pred(subeq)
+                           else
+                             eq:=subeq;
                          end;
                       end;
                    end;
                  procvardef :
                    begin
                      { procvar -> procvar }
-                     eq:=proc_to_procvar_equal(tprocvardef(def_from),tprocvardef(def_to));
+                     eq:=proc_to_procvar_equal(tprocvardef(def_from),tprocvardef(def_to),cdo_warn_incompatible_univ in cdoptions);
                    end;
                  pointerdef :
                    begin
@@ -1212,7 +1254,7 @@ implementation
                 end
                else
                { Class/interface specific }
-                if is_class_or_interface_or_dispinterface(def_to) then
+                if is_class_or_interface_or_dispinterface_or_objc(def_to) then
                  begin
                    { void pointer also for delphi mode }
                    if (m_delphi in current_settings.modeswitches) and
@@ -1229,9 +1271,19 @@ implementation
                        doconv:=tc_equal;
                        eq:=te_convert_l1;
                      end
-                   { classes can be assigned to interfaces }
-                   else if is_interface(def_to) and
-                           is_class(def_from) and
+                   { All Objective-C classes are compatible with ID }
+                   else if is_objc_class_or_protocol(def_to) and
+                           (def_from=objc_idtype) then
+                      begin
+                       doconv:=tc_equal;
+                       eq:=te_convert_l2;
+                     end
+                   { classes can be assigned to interfaces
+                     (same with objcclass and objcprotocol) }
+                   else if ((is_interface(def_to) and
+                             is_class(def_from)) or
+                            (is_objcprotocol(def_to) and
+                             is_objcclass(def_from))) and
                            assigned(tobjectdef(def_from).ImplementedInterfaces) then
                      begin
                         { we've to search in parent classes as well }
@@ -1240,7 +1292,11 @@ implementation
                           begin
                              if hobjdef.find_implemented_interface(tobjectdef(def_to))<>nil then
                                begin
-                                  doconv:=tc_class_2_intf;
+                                  if is_interface(def_to) then
+                                    doconv:=tc_class_2_intf
+                                  else
+                                    { for Objective-C, we don't have to do anything special }
+                                    doconv:=tc_equal;
                                   { don't prefer this over objectdef->objectdef }
                                   eq:=te_convert_l2;
                                   break;
@@ -1263,8 +1319,7 @@ implementation
                        eq:=te_convert_l2;
                      end
                    { ugly, but delphi allows it }
-                   else if (eq=te_incompatible) and
-                     (def_from.typ in [orddef,enumdef]) and
+                   else if (def_from.typ in [orddef,enumdef]) and
                      (m_delphi in current_settings.modeswitches) and
                      (cdo_explicit in cdoptions) then
                      begin
@@ -1314,7 +1369,14 @@ implementation
                  begin
                    doconv:=tc_equal;
                    eq:=te_convert_l1;
-                 end;
+                 end
+               else
+                 { id is compatible with all classref types }
+                 if (def_from=objc_idtype) then
+                   begin
+                     doconv:=tc_equal;
+                     eq:=te_convert_l1;
+                   end;
              end;
 
            filedef :
@@ -1488,6 +1550,39 @@ implementation
       end;
 
 
+    function potentially_incompatible_univ_paras(def1, def2: tdef): boolean;
+      begin
+        result :=
+          { not entirely safe: different records can be passed differently
+            depending on the types of their fields, but they're hard to compare
+            (variant records, bitpacked vs non-bitpacked) }
+          ((def1.typ in [floatdef,recorddef,arraydef,filedef,variantdef]) and
+           (def1.typ<>def2.typ)) or
+          { pointers, ordinals and small sets are all passed the same}
+          (((def1.typ in [orddef,enumdef,pointerdef,procvardef,classrefdef]) or
+            (is_class_or_interface_or_objc(def1)) or
+            is_dynamic_array(def1) or
+            is_smallset(def1) or
+            is_ansistring(def1) or
+            is_unicodestring(def1)) <>
+           (def2.typ in [orddef,enumdef,pointerdef,procvardef,classrefdef]) or
+            (is_class_or_interface_or_objc(def2)) or
+            is_dynamic_array(def2) or
+             is_smallset(def2) or
+            is_ansistring(def2) or
+            is_unicodestring(def2)) or
+           { shortstrings }
+           (is_shortstring(def1)<>
+            is_shortstring(def2)) or
+           { winlike widestrings }
+           (is_widestring(def1)<>
+            is_widestring(def2)) or
+           { TP-style objects }
+           (is_object(def1) <>
+            is_object(def2));
+      end;
+
+
     function compare_paras(para1,para2 : TFPObjectList; acp : tcompare_paras_type; cpoptions: tcompare_paras_options):tequaltype;
       var
         currpara1,
@@ -1514,6 +1609,15 @@ implementation
                    (vo_is_hidden_para in tparavarsym(para2[i2]).varoptions) do
                inc(i2);
            end;
+         if cpo_ignoreframepointer in cpoptions then
+           begin
+             if (i1<para1.count) and
+                (vo_is_parentfp in tparavarsym(para1[i1]).varoptions) then
+               inc(i1);
+             if (i2<para2.count) and
+                (vo_is_parentfp in tparavarsym(para2[i2]).varoptions) then
+               inc(i2);
+           end;
          while (i1<para1.count) and (i2<para2.count) do
            begin
              eq:=te_incompatible;
@@ -1538,7 +1642,8 @@ implementation
                 if not(vo_is_self in currpara1.varoptions) and
                    not(vo_is_self in currpara2.varoptions) then
                  begin
-                   if (currpara1.varspez<>currpara2.varspez) then
+                   if not(cpo_ignorevarspez in cpoptions) and
+                      (currpara1.varspez<>currpara2.varspez) then
                     exit;
                    eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
                                         convtype,hpd,cdoptions);
@@ -1549,7 +1654,12 @@ implementation
                 case acp of
                   cp_value_equal_const :
                     begin
+                       { this one is used for matching parameters from a call
+                         statement to a procdef -> univ state can't be equal
+                         in any case since the call statement does not contain
+                         any information about that }
                        if (
+                           not(cpo_ignorevarspez in cpoptions) and
                            (currpara1.varspez<>currpara2.varspez) and
                            ((currpara1.varspez in [vs_var,vs_out]) or
                             (currpara2.varspez in [vs_var,vs_out]))
@@ -1560,15 +1670,24 @@ implementation
                     end;
                   cp_all :
                     begin
-                       if (currpara1.varspez<>currpara2.varspez) then
+                       { used to resolve forward definitions -> headers must
+                         match exactly, including the "univ" specifier }
+                       if (not(cpo_ignorevarspez in cpoptions) and
+                           (currpara1.varspez<>currpara2.varspez)) or
+                          (currpara1.univpara<>currpara2.univpara) then
                          exit;
                        eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
                                             convtype,hpd,cdoptions);
                     end;
                   cp_procvar :
                     begin
-                       if (currpara1.varspez<>currpara2.varspez) then
+                       if not(cpo_ignorevarspez in cpoptions) and
+                          (currpara1.varspez<>currpara2.varspez) then
                          exit;
+                       { "univ" state doesn't matter here: from univ to non-univ
+                          matches if the types are compatible (i.e., as usual),
+                          from from non-univ to univ also matches if the types
+                          have the same size (checked below) }
                        eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,
                                             convtype,hpd,cdoptions);
                        { Parameters must be at least equal otherwise the are incompatible }
@@ -1582,7 +1701,30 @@ implementation
                end;
               { check type }
               if eq=te_incompatible then
-                exit;
+                begin
+                  { special case: "univ" parameters match if their size is equal }
+                  if not(cpo_ignoreuniv in cpoptions) and
+                     currpara2.univpara and
+                     is_valid_univ_para_type(currpara1.vardef) and
+                     (currpara1.vardef.size=currpara2.vardef.size) then
+                    begin
+                      { only pick as last choice }
+                      eq:=te_convert_l5;
+                      if (acp=cp_procvar) and
+                         (cpo_warn_incompatible_univ in cpoptions) then
+                        begin
+                          { if the types may be passed in different ways by the
+                            calling convention then this can lead to crashes
+                            (note: not an exhaustive check, and failing this
+                             this check does not mean things will crash on all
+                             platforms) }
+                          if potentially_incompatible_univ_paras(currpara1.vardef,currpara2.vardef) then
+                            Message2(type_w_procvar_univ_conflicting_para,currpara1.vardef.typename,currpara2.vardef.typename)
+                        end;
+                    end
+                  else
+                    exit;
+                end;
               { open strings can never match exactly, since you cannot define }
               { a separate "open string" type -> we have to be able to        }
               { consider those as exact when resolving forward definitions.   }
@@ -1619,6 +1761,15 @@ implementation
                         (vo_is_hidden_para in tparavarsym(para2[i2]).varoptions) do
                     inc(i2);
                 end;
+              if cpo_ignoreframepointer in cpoptions then
+                begin
+                  if (i1<para1.count) and
+                     (vo_is_parentfp in tparavarsym(para1[i1]).varoptions) then
+                    inc(i1);
+                  if (i2<para2.count) and
+                     (vo_is_parentfp in tparavarsym(para2[i2]).varoptions) then
+                    inc(i2);
+                end;
            end;
          { when both lists are empty then the parameters are equal. Also
            when one list is empty and the other has a parameter with default
@@ -1631,18 +1782,42 @@ implementation
       end;
 
 
-    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef):tequaltype;
+    function proc_to_procvar_equal(def1:tabstractprocdef;def2:tprocvardef;checkincompatibleuniv: boolean):tequaltype;
       var
         eq : tequaltype;
         po_comp : tprocoptions;
+        pa_comp: tcompare_paras_options;
       begin
          proc_to_procvar_equal:=te_incompatible;
          if not(assigned(def1)) or not(assigned(def2)) then
            exit;
-         { check for method pointer }
-         if (def1.is_methodpointer xor def2.is_methodpointer) or
-            (def1.is_addressonly xor def2.is_addressonly) then
+         { check for method pointer and local procedure pointer:
+             a) if one is a procedure of object, the other also has to be one
+             b) if one is a pure address, the other also has to be one
+                except if def1 is a global proc and def2 is a nested procdef
+                (global procedures can be converted into nested procvars)
+             c) if def1 is a nested procedure, then def2 has to be a nested
+                procvar and def1 has to have the po_delphi_nested_cc option
+             d) if def1 is a procvar, def1 and def2 both have to be nested or
+                non-nested (we don't allow assignments from non-nested to
+                nested procvars to make sure that we can still implement
+                nested procvars using trampolines -- e.g., this would be
+                necessary for LLVM or CIL as long as they do not have support
+                for Delphi-style frame pointer parameter passing) }
+         if (def1.is_methodpointer<>def2.is_methodpointer) or  { a) }
+            ((def1.is_addressonly<>def2.is_addressonly) and    { b) }
+             (is_nested_pd(def1) or
+              not is_nested_pd(def2))) or
+            ((def1.typ=procdef) and                            { c) }
+             is_nested_pd(def1) and
+             (not(po_delphi_nested_cc in def1.procoptions) or
+              not is_nested_pd(def2))) or
+            ((def1.typ=procvardef) and                         { d) }
+             (is_nested_pd(def1)<>is_nested_pd(def2))) then
            exit;
+         pa_comp:=[cpo_ignoreframepointer];
+         if checkincompatibleuniv then
+           include(pa_comp,cpo_warn_incompatible_univ);
          { check return value and options, methodpointer is already checked }
          po_comp:=[po_staticmethod,po_interrupt,
                    po_iocheck,po_varargs];
@@ -1655,9 +1830,15 @@ implementation
             { return equal type based on the parameters, but a proc->procvar
               is never exact, so map an exact match of the parameters to
               te_equal }
-            eq:=compare_paras(def1.paras,def2.paras,cp_procvar,[]);
+            eq:=compare_paras(def1.paras,def2.paras,cp_procvar,pa_comp);
             if eq=te_exact then
              eq:=te_equal;
+            if (eq=te_equal) then
+              begin
+                { prefer non-nested to non-nested over non-nested to nested }
+                if (is_nested_pd(def1)<>is_nested_pd(def2)) then
+                  eq:=te_convert_l1;
+              end;
             proc_to_procvar_equal:=eq;
           end;
       end;
@@ -1669,8 +1850,8 @@ implementation
           (equal_defs(parentretdef,childretdef)) or
           ((parentretdef.typ=objectdef) and
            (childretdef.typ=objectdef) and
-           is_class_or_interface(parentretdef) and
-           is_class_or_interface(childretdef) and
+           is_class_or_interface_or_objc(parentretdef) and
+           is_class_or_interface_or_objc(childretdef) and
            (tobjectdef(childretdef).is_related(tobjectdef(parentretdef))))
       end;
 

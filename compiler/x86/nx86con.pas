@@ -50,7 +50,7 @@ implementation
     function tx86realconstnode.pass_1 : tnode;
       begin
          result:=nil;
-         if is_number_float(value_real) and not(use_sse(resultdef)) and (value_real=1.0) or (value_real=0.0) then
+         if is_number_float(value_real) and not(use_vectorfpu(resultdef)) and (value_real=1.0) or (value_real=0.0) then
            expectloc:=LOC_FPUREGISTER
          else
            expectloc:=LOC_CREFERENCE;
@@ -61,14 +61,14 @@ implementation
       begin
          if is_number_float(value_real) then
            begin
-             if (value_real=1.0) and not(use_sse(resultdef)) then
+             if (value_real=1.0) and not(use_vectorfpu(resultdef)) then
                begin
                   emit_none(A_FLD1,S_NO);
                   location_reset(location,LOC_FPUREGISTER,def_cgsize(resultdef));
                   location.register:=NR_ST;
                   tcgx86(cg).inc_fpu_stack;
                end
-             else if (value_real=0.0) and not(use_sse(resultdef)) then
+             else if (value_real=0.0) and not(use_vectorfpu(resultdef)) then
                begin
                   emit_none(A_FLDZ,S_NO);
                   if (get_real_sign(value_real) < 0) then

@@ -13,7 +13,7 @@
 
  **********************************************************************}
 
-Function SetJmp (Var S : Jmp_buf) : longint;assembler;nostackframe;[Public, alias : 'FPC_SETJMP'];
+Function fpc_SetJmp (Var S : Jmp_buf) : longint;assembler;nostackframe;[Public, alias : 'FPC_SETJMP']; compilerproc;
 asm
 {$ifndef REGCALL}
   movl 4(%esp),%eax
@@ -35,7 +35,7 @@ asm
 end;
 
 
-Procedure longJmp (Var S : Jmp_buf; value : longint); assembler;nostackframe;[Public, alias : 'FPC_LONGJMP'];
+Procedure fpc_longJmp (Var S : Jmp_buf; value : longint); assembler;nostackframe;[Public, alias : 'FPC_LONGJMP']; compilerproc;
 asm
 {$ifdef REGCALL}
   xchgl %edx,%eax

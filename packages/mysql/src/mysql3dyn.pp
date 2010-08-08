@@ -52,6 +52,7 @@ var
   mysql_init : function(mysql: PMYSQL) : PMYSQL;extdecl;
   mysql_connect : function(mysql : PMYSQL; host,user,passwd: pchar) : PMYSQL;extdecl;
   mysql_real_connect : function(mysql : PMYSQL; const host,user,passwd : pchar;
+		                   {$ifndef use_mysql_321} const db : Pchar; {$endif}  // strictly speaking 3.22+ not 3.21+	      		
                                    port : cardinal;
                                    unix_socket : pchar;
                                    clientflag : cardinal) : PMYSQL;extdecl;

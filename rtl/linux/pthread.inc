@@ -107,7 +107,7 @@ Type
 *)
 
      __start_routine_t = function (_para1:pointer):pointer;cdecl;
-     __destr_function_t = procedure (_para1:pointer);
+     __destr_function_t = procedure (_para1:pointer);cdecl;
 {     t_pthread_cleanup_push_routine = procedure (_para1:pointer);
      t_pthread_cleanup_push_defer_routine = procedure (_para1:pointer);}
 
@@ -174,7 +174,7 @@ Type
     function sem_close (__sem:Psem_t):longint;cdecl;external;
     function sem_unlink (__name:Pchar):longint;cdecl;external;
     function sem_wait (__sem:Psem_t):longint;cdecl;external;
-    function sem_timedwait (__sem:Psem_t; __abs_timeout:ptimespec):longint;cdecl;
+    function sem_timedwait (__sem:Psem_t; __abs_timeout:ptimespec):longint;cdecl;external;
     function sem_trywait  (__sem:Psem_t):longint;cdecl;external;
     function sem_post     (__sem:Psem_t):longint;cdecl;external;
     function sem_getvalue (__sem:Psem_t; __sval:Plongint):longint;cdecl;external;
@@ -203,6 +203,7 @@ Var
     pthread_attr_getscope : Function(__attr:ppthread_attr_t; __scope:plongint):longint;cdecl;
     pthread_setschedparam : Function(__target_thread:pthread_t; __policy:longint; __param:psched_param):longint;cdecl;
     pthread_getschedparam : Function(__target_thread:pthread_t; __policy:plongint; __param:psched_param):longint;cdecl;
+    pthread_attr_setstacksize : Function(p: ppthread_attr_t;s:size_t):cint;cdecl;
     pthread_mutex_init : Function(__mutex:ppthread_mutex_t; __mutex_attr:ppthread_mutexattr_t):longint;cdecl;
     pthread_mutex_destroy : Function(__mutex:ppthread_mutex_t):longint;cdecl;
     pthread_mutex_trylock : Function(__mutex:ppthread_mutex_t):longint;cdecl;
@@ -279,6 +280,7 @@ begin
   Pointer(pthread_attr_getinheritsched) := dlsym(PthreadDLL,'pthread_attr_getinheritsched');
   Pointer(pthread_attr_setscope) := dlsym(PthreadDLL,'pthread_attr_setscope');
   Pointer(pthread_attr_getscope) := dlsym(PthreadDLL,'pthread_attr_getscope');
+  Pointer(pthread_attr_setstacksize) := dlsym(PthreadDLL,'pthread_attr_setstacksize');
   Pointer(pthread_setschedparam) := dlsym(PthreadDLL,'pthread_setschedparam');
   Pointer(pthread_getschedparam) := dlsym(PthreadDLL,'pthread_getschedparam');
   Pointer(pthread_mutex_init) := dlsym(PthreadDLL,'pthread_mutex_init');

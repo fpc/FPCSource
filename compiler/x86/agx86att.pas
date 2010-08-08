@@ -117,7 +117,14 @@ interface
              owner.AsmWrite('-'+relsymbol.name);
            if ref.refaddr=addr_pic then
 {$ifdef x86_64}
-             owner.AsmWrite('@GOTPCREL');
+             begin
+               { local symbols don't have to (and in case of Mac OS X: cannot)
+                 be accessed via the GOT
+               }
+               if not assigned(ref.symbol) or
+                  (ref.symbol.bind<>AB_LOCAL) then
+                 owner.AsmWrite('@GOTPCREL');
+             end;
 {$else x86_64}
              owner.AsmWrite('@GOT');
 {$endif x86_64}
@@ -162,7 +169,7 @@ interface
           top_reg :
             owner.AsmWrite(gas_regname(o.reg));
           top_ref :
-            if o.ref^.refaddr in [addr_no,addr_pic] then
+            if o.ref^.refaddr in [addr_no,addr_pic,addr_pic_no_got] then
               WriteReference(o.ref^)
             else
               begin
@@ -291,11 +298,24 @@ interface
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '--64 -o $OBJ $ASM';
-            supported_target : system_any;
+            supported_targets : [system_x86_64_linux,system_x86_64_freebsd,system_x86_64_win64,system_x86_64_embedded];
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
           );
+
+       as_x86_64_gas_info : tasminfo =
+          (
+            id     : as_ggas;
+            idtxt  : 'GAS';
+            asmbin : 'gas';
+            asmcmd : '--64 -o $OBJ $ASM';
+            supported_targets : [system_x86_64_solaris];
+            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            labelprefix : '.L';
+            comment : '# ';
+          );
+
 
 
        as_x86_64_gas_darwin_info : tasminfo =
@@ -304,7 +324,7 @@ interface
             idtxt  : 'AS-Darwin';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM -arch x86_64';
-            supported_target : system_any;
+            supported_targets : [system_x86_64_darwin];
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : 'L';
             comment : '# ';
@@ -317,7 +337,10 @@ interface
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '--32 -o $OBJ $ASM';
-            supported_target : system_any;
+            supported_targets : [system_i386_GO32V2,system_i386_linux,system_i386_Win32,system_i386_freebsd,system_i386_solaris,system_i386_beos,
+                                system_i386_netbsd,system_i386_Netware,system_i386_qnx,system_i386_wdosx,system_i386_openbsd,
+                                system_i386_netwlibc,system_i386_wince,system_i386_embedded,system_i386_symbian,system_i386_haiku,system_x86_6432_linux,
+                                system_i386_nativent];
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
@@ -330,8 +353,8 @@ interface
             idtxt  : 'AS_AOUT';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
-            supported_target : system_any;
-            flags : [af_allowdirect,af_needar];
+            supported_targets : [system_i386_linux,system_i386_OS2,system_i386_freebsd,system_i386_netbsd,system_i386_openbsd,system_i386_EMX,system_i386_embedded];
+            flags : [af_allowdirect,af_needar,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
             comment : '# ';
           );
@@ -343,8 +366,8 @@ interface
             idtxt  : 'AS-Darwin';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM -arch i386';
-            supported_target : system_any;
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            supported_targets : [system_i386_darwin];
+            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
             comment : '# ';
           );
@@ -355,7 +378,9 @@ interface
             idtxt  : 'GAS';
             asmbin : 'gas';
             asmcmd : '--32 -o $OBJ $ASM';
-            supported_target : system_any;
+            supported_targets : [system_i386_GO32V2,system_i386_linux,system_i386_Win32,system_i386_freebsd,system_i386_solaris,system_i386_beos,
+                                system_i386_netbsd,system_i386_Netware,system_i386_qnx,system_i386_wdosx,system_i386_openbsd,
+                                system_i386_netwlibc,system_i386_wince,system_i386_embedded,system_i386_symbian,system_i386_haiku,system_x86_6432_linux];
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '# ';
@@ -365,6 +390,7 @@ interface
 initialization
 {$ifdef x86_64}
   RegisterAssembler(as_x86_64_as_info,Tx86ATTAssembler);
+  RegisterAssembler(as_x86_64_gas_info,Tx86ATTAssembler);
   RegisterAssembler(as_x86_64_gas_darwin_info,Tx86AppleGNUAssembler);
 {$else x86_64}
   RegisterAssembler(as_i386_as_info,Tx86ATTAssembler);

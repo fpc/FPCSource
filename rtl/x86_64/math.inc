@@ -45,9 +45,9 @@ FPC_ABSMASK_DOUBLE:
         fnclex
         fldcw (%rdx)
 {$else FPC_PIC}
-        movw %ax,default8087cw
+        movw %ax,default8087cw{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
         fnclex
-        fldcw default8087cw
+        fldcw default8087cw{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
 {$endif FPC_PIC}
       end;
 
@@ -156,7 +156,7 @@ FPC_ABSMASK_DOUBLE:
     end;
     {$endif FPC_SYSTEM_HAS_COS}
 
-{$ifndef WIN64}
+{$ifdef FPC_HAS_TYPE_EXTENDED}
     {$ifndef FPC_SYSTEM_HAS_EXP}
     {$define FPC_SYSTEM_HAS_EXP}
     function fpc_exp_real(d : ValReal) : ValReal;assembler;compilerproc;
@@ -286,4 +286,4 @@ FPC_ABSMASK_DOUBLE:
            power:=exp(ln(bas)*expo);
       end;
     {$endif FPC_SYSTEM_HAS_POWER}
-{$endif WIN64}
+{$endif FPC_HAS_TYPE_EXTENDED}

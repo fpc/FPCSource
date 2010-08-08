@@ -300,6 +300,25 @@ begin
   end;
 end;
 
+function TDataLink.ExecuteAction(Action: TBasicAction): Boolean;
+begin
+ if Action.HandlesTarget(DataSource) then
+ begin
+   Action.ExecuteTarget(DataSource);
+   Result := True;
+ end
+ else Result := False;
+end;
+
+function TDataLink.UpdateAction(Action: TBasicAction): Boolean;
+begin
+ if Action.HandlesTarget(DataSource) then
+ begin
+   Action.UpdateTarget(DataSource);
+   Result := True;
+ end
+ else Result := False;
+end;
 
 
 { ---------------------------------------------------------------------
@@ -453,7 +472,7 @@ begin
       begin
       If Assigned(DS) then
         F:=DS.FindField(FParams[i].Name);
-      If (Not Assigned(DS)) or (F<>Nil) then
+      If (Not Assigned(DS)) or (not DS.Active) or (F<>Nil) then
         begin
         If (FN<>'') then
           FN:=FN+';';

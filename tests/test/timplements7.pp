@@ -37,6 +37,8 @@ begin
   o1.fi:=nil;
 
   o1.free;
+  i1 := nil;
+  i2 := nil;
 
   writeln('ok');
 end.

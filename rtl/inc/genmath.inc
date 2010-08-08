@@ -1403,6 +1403,13 @@ function fpc_int64_to_double(i : int64): double; compilerproc;
          exponent : word;
 
       begin
+         { check for zero }
+         if r[0]=0 then
+           begin
+             real2double:=0.0;
+             exit;
+           end;
+
          { copy mantissa }
          res[0]:=0;
          res[1]:=r[1] shl 5;

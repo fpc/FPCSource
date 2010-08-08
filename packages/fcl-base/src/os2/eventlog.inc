@@ -164,7 +164,7 @@ begin
 end;
 
 
-procedure TEventLog.WriteSystemLog (EventType: TEventType; Msg: string);
+procedure TEventLog.WriteSystemLog (EventType: TEventType; const Msg: string);
 
 const
   WinET: array [TEventType] of Str3 = ('USR', 'INF', 'WRN', 'ERR', 'DBG');
@@ -223,6 +223,12 @@ begin
 end;
 
 Function TEventLog.RegisterMessageFile(AFileName : String) : Boolean;
+
+begin
+  Result:=True;
+end;
+
+Function TEventLog.UnRegisterMessageFile : Boolean;
 
 begin
   Result:=True;

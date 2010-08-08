@@ -38,15 +38,16 @@ unit agarmgas;
       TARMGNUAssembler=class(TGNUassembler)
         constructor create(smart: boolean); override;
         function MakeCmdLine: TCmdStr; override;
+        procedure WriteExtraHeader; override;
       end;
 
-     TArmInstrWriter=class(TCPUInstrWriter)
+      TArmInstrWriter=class(TCPUInstrWriter)
         procedure WriteInstruction(hp : tai);override;
-     end;
+      end;
 
-    TArmAppleGNUAssembler=class(TAppleGNUassembler)
-      constructor create(smart: boolean); override;
-    end;
+      TArmAppleGNUAssembler=class(TAppleGNUassembler)
+        constructor create(smart: boolean); override;
+      end;
 
 
     const
@@ -79,10 +80,22 @@ unit agarmgas;
         result:=inherited MakeCmdLine;
         if (current_settings.fputype = fpu_soft) then
           result:='-mfpu=softvfp '+result;
+
+        if current_settings.cputype = cpu_cortexm3 then
+          result:='-mcpu=cortex-m3 -mthumb -mthumb-interwork '+result;
+        if current_settings.cputype = cpu_armv7m then
+          result:='-march=armv7m -mthumb -mthumb-interwork '+result;
+      end;
+
+    procedure TArmGNUAssembler.WriteExtraHeader;
+      begin
+        inherited WriteExtraHeader;
+        if current_settings.cputype in cpu_thumb2 then
+          AsmWriteLn(#9'.syntax unified');
       end;
 
 {****************************************************************************}
-{                      GNU/Apple PPC Assembler writer                        }
+{                      GNU/Apple ARM Assembler writer                        }
 {****************************************************************************}
 
     constructor TArmAppleGNUAssembler.create(smart: boolean);
@@ -184,11 +197,13 @@ unit agarmgas;
                   begin
                     if not(first) then
                       getopstr:=getopstr+',';
-                    getopstr:=getopstr+gas_regname(newreg(R_INTREGISTER,r,R_SUBWHOLE));
+                    getopstr:=getopstr+gas_regname(newreg(o.regtyp,r,o.subreg));
                     first:=false;
                   end;
               getopstr:=getopstr+'}';
             end;
+          top_conditioncode:
+            getopstr:=cond2str[o.cc];
           top_ref:
             if o.ref^.refaddr=addr_full then
               begin
@@ -215,7 +230,15 @@ unit agarmgas;
         sep: string[3];
     begin
       op:=taicpu(hp).opcode;
-      s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix];
+      if current_settings.cputype in cpu_thumb2 then
+        begin
+          if taicpu(hp).ops = 0 then
+            s:=#9+gas_op2str[op]+' '+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix]
+          else
+            s:=#9+gas_op2str[op]+oppostfix2str[taicpu(hp).oppostfix]+cond2str[taicpu(hp).condition]; // Conditional infixes are deprecated in unified syntax
+        end
+      else
+        s:=#9+gas_op2str[op]+cond2str[taicpu(hp).condition]+oppostfix2str[taicpu(hp).oppostfix];
       if taicpu(hp).ops<>0 then
         begin
           sep:=#9;
@@ -226,7 +249,7 @@ unit agarmgas;
                // writeln(taicpu(hp).fileinfo.line);
 
                { LDM and STM use references as first operand but they are written like a register }
-               if (i=0) and (op in [A_LDM,A_STM]) then
+               if (i=0) and (op in [A_LDM,A_STM,A_FSTM,A_FLDM]) then
                  begin
                    case taicpu(hp).oper[0]^.typ of
                      top_ref:
@@ -269,7 +292,7 @@ unit agarmgas;
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
-            supported_target : system_any;
+            supported_targets : [system_arm_linux,system_arm_wince,system_arm_gba,system_arm_palmos,system_arm_nds,system_arm_embedded,system_arm_symbian];
             flags : [af_allowdirect,af_needar,af_smartlink_sections];
             labelprefix : '.L';
             comment : '# ';
@@ -280,9 +303,9 @@ unit agarmgas;
             id     : as_darwin;
             idtxt  : 'AS-Darwin';
             asmbin : 'as';
-            asmcmd : '-o $OBJ $ASM -arch arm';
-            supported_target : system_any;
-            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf];
+            asmcmd : '-o $OBJ $ASM -arch $ARCH';
+            supported_targets : [system_arm_darwin];
+            flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
             comment : '# ';
           );

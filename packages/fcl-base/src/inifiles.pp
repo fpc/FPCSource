@@ -80,7 +80,7 @@ type
     FIdent: string;
     FValue: string;
   public
-    constructor Create(AIdent, AValue: string);
+    constructor Create(const AIdent, AValue: string);
     property Ident: string read FIdent write FIdent;
     property Value: string read FValue write FValue;
   end;
@@ -88,7 +88,7 @@ type
   TIniFileKeyList = class(TList)
   private
     function GetItem(Index: integer): TIniFileKey;
-    function KeyByName(AName: string; CaseSensitive : Boolean): TIniFileKey;
+    function KeyByName(const AName: string; CaseSensitive : Boolean): TIniFileKey;
   public
     destructor Destroy; override;
     procedure Clear; override;
@@ -101,7 +101,7 @@ type
     FKeyList: TIniFileKeyList;
   public
     Function Empty : Boolean;
-    constructor Create(AName: string);
+    constructor Create(const AName: string);
     destructor Destroy; override;
     property Name: string read FName;
     property KeyList: TIniFileKeyList read FKeyList;
@@ -110,7 +110,7 @@ type
   TIniFileSectionList = class(TList)
   private
     function GetItem(Index: integer): TIniFileSection;
-    function SectionByName(AName: string; CaseSensitive : Boolean): TIniFileSection;
+    function SectionByName(const AName: string; CaseSensitive : Boolean): TIniFileSection;
   public
     destructor Destroy; override;
     procedure Clear;override;
@@ -122,7 +122,7 @@ type
     FFileName: string;
     FSectionList: TIniFileSectionList;
     FEscapeLineFeeds: boolean;
-    FCaseSensitive : Boolean; 
+    FCaseSensitive : Boolean;
     FStripQuotes : Boolean;
   public
     constructor Create(const AFileName: string; AEscapeLineFeeds : Boolean = False); virtual;
@@ -167,6 +167,7 @@ type
     procedure FillSectionList(AStrings: TStrings);
     Procedure DeleteSection(ASection : TIniFileSection);
     Procedure MaybeDeleteSection(ASection : TIniFileSection);
+    procedure SetCacheUpdates(const AValue: Boolean);
   protected
     procedure MaybeUpdateFile;
     property Dirty : Boolean Read FDirty;
@@ -184,7 +185,7 @@ type
     procedure DeleteKey(const Section, Ident: String); override;
     procedure UpdateFile; override;
     property Stream: TStream read FStream;
-    property CacheUpdates : Boolean Read FCacheUpdates Write FCacheUpdates;
+    property CacheUpdates : Boolean read FCacheUpdates write SetCacheUpdates;
   end;
 
   TMemIniFile = class(TIniFile)
@@ -217,7 +218,7 @@ begin
     Result := '0';
 end;
 
-function IsComment(AString: string): boolean;
+function IsComment(const AString: string): boolean;
 begin
   Result := False;
   if AString > '' then
@@ -307,7 +308,7 @@ end;
 
 { TIniFileKey }
 
-constructor TIniFileKey.Create(AIdent, AValue: string);
+constructor TIniFileKey.Create(const AIdent, AValue: string);
 begin
   FIdent := AIdent;
   FValue := AValue;
@@ -322,7 +323,7 @@ begin
     Result := TIniFileKey(inherited Items[Index]);
 end;
 
-function TIniFileKeyList.KeyByName(AName: string; CaseSensitive : Boolean): TIniFileKey;
+function TIniFileKeyList.KeyByName(const AName: string; CaseSensitive : Boolean): TIniFileKey;
 var
   i: integer;
 begin
@@ -331,13 +332,13 @@ begin
     If CaseSensitive then
       begin
       for i := 0 to Count-1 do
-        if Items[i].Ident=AName then 
+        if Items[i].Ident=AName then
           begin
           Result := Items[i];
           Break;
           end;
       end
-    else  
+    else
       for i := 0 to Count-1 do
         if CompareText(Items[i].Ident, AName) = 0 then begin
           Result := Items[i];
@@ -378,7 +379,7 @@ end;
 
 { TIniFileSection }
 
-constructor TIniFileSection.Create(AName: string);
+constructor TIniFileSection.Create(const AName: string);
 begin
   FName := AName;
   FKeyList := TIniFileKeyList.Create;
@@ -398,7 +399,7 @@ begin
     Result := TIniFileSection(inherited Items[Index]);
 end;
 
-function TIniFileSectionList.SectionByName(AName: string; CaseSensitive : Boolean): TIniFileSection;
+function TIniFileSectionList.SectionByName(const AName: string; CaseSensitive : Boolean): TIniFileSection;
 var
   i: integer;
 begin
@@ -407,7 +408,7 @@ begin
     If CaseSensitive then
       begin
       for i:=0 to Count-1 do
-        if (Items[i].Name=AName) then 
+        if (Items[i].Name=AName) then
           begin
           Result := Items[i];
           Break;
@@ -415,7 +416,7 @@ begin
       end
     else
       for i := 0 to Count-1 do
-        if CompareText(Items[i].Name, AName) = 0 then 
+        if CompareText(Items[i].Name, AName) = 0 then
           begin
           Result := Items[i];
           Break;
@@ -626,12 +627,12 @@ begin
   FStream := nil;
   slLines := TStringList.Create;
   try
-    if FileExists(FFileName) then 
+    if FileExists(FFileName) then
       begin
       // read the ini file values
       slLines.LoadFromFile(FFileName);
       FillSectionList(slLines);
-      end 
+      end
   finally
     slLines.Free;
   end;
@@ -726,15 +727,6 @@ begin
            begin
              sIdent:=Trim(Copy(sLine, 1,  j - 1));
              sValue:=Trim(Copy(sLine, j + 1, Length(sLine) - j));
-             If StripQuotes then
-               begin
-               J:=Length(sValue);
-               // Joost, 2-jan-2007: The check (J>1) is there for the case that
-               // the value consist of a single double-quote character. (see
-               // mantis bug 6555)
-               If (J>1) and ((sValue[1] in ['"','''']) and (sValue[J]=sValue[1])) then
-                 sValue:=Copy(sValue,2,J-2);
-               end;  
            end;
         end;
         oSection.KeyList.Add(TIniFileKey.Create(sIdent, sValue));
@@ -747,14 +739,33 @@ function TIniFile.ReadString(const Section, Ident, Default: string): string;
 var
   oSection: TIniFileSection;
   oKey: TIniFileKey;
+  J: integer;
 begin
   Result := Default;
   oSection := FSectionList.SectionByName(Section,CaseSensitive);
   if oSection <> nil then begin
     oKey := oSection.KeyList.KeyByName(Ident,CaseSensitive);
     if oKey <> nil then
-      Result := oKey.Value;
+      If StripQuotes then
+      begin
+        J:=Length(oKey.Value);
+        // Joost, 2-jan-2007: The check (J>1) is there for the case that
+        // the value consist of a single double-quote character. (see
+        // mantis bug 6555)
+        If (J>1) and ((oKey.Value[1] in ['"','''']) and (oKey.Value[J]=oKey.Value[1])) then
+           Result:=Copy(oKey.Value,2,J-2)
+        else
+           Result:=oKey.Value;
+      end
+      else Result:=oKey.Value;
+    end;
   end;
+
+procedure TIniFile.SetCacheUpdates(const AValue: Boolean);
+begin
+  if FCacheUpdates and not AValue and FDirty then
+    UpdateFile;
+  FCacheUpdates := AValue;
 end;
 
 procedure TIniFile.WriteString(const Section, Ident, Value: String);
@@ -848,7 +859,7 @@ procedure TIniFile.ReadSectionValues(const Section: string; Strings: TStrings);
 var
   oSection: TIniFileSection;
   s: string;
-  i: integer;
+  i,J: integer;
 begin
   Strings.BeginUpdate;
   try
@@ -856,7 +867,18 @@ begin
     oSection := FSectionList.SectionByName(Section,CaseSensitive);
     if oSection <> nil then with oSection.KeyList do
       for i := 0 to Count-1 do begin
-        s := Items[i].Ident+Separator+Items[i].Value;
+        s := Items[i].Value;
+      If StripQuotes then
+        begin
+          J:=Length(s);
+          // Joost, 2-jan-2007: The check (J>1) is there for the case that
+          // the value consist of a single double-quote character. (see
+          // mantis bug 6555)
+          If (J>1) and ((s[1] in ['"','''']) and (s[J]=s[1])) then
+             s:=Copy(s,2,J-2);
+        end;
+        if Items[i].Ident<>'' then
+          s:=Items[i].Ident+Separator+s;
         Strings.Add(s);
       end;
   finally
@@ -897,10 +919,10 @@ var
  oKey: TIniFileKey;
 begin
   oSection := FSectionList.SectionByName(Section,CaseSensitive);
-  if oSection <> nil then 
+  if oSection <> nil then
     begin
     oKey := oSection.KeyList.KeyByName(Ident,CaseSensitive);
-    if oKey <> nil then 
+    if oKey <> nil then
       begin
       oSection.KeyList.Delete(oSection.KeyList.IndexOf(oKey));
       oKey.Free;
@@ -940,6 +962,7 @@ begin
     else if FStream <> nil then
       slLines.SaveToStream(FStream);
     FillSectionList(slLines);
+    FDirty := false;
   finally
     slLines.Free;
   end;

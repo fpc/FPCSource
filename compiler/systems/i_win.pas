@@ -34,10 +34,11 @@ unit i_win;
             system       : system_i386_WIN32;
             name         : 'Win32 for i386';
             shortname    : 'Win32';
-            flags        : [tf_files_case_aware,tf_has_dllscanner,tf_use_function_relative_addresses,tf_smartlink_library
+            flags        : [tf_files_case_aware,tf_has_dllscanner,tf_smartlink_library
                             ,tf_smartlink_sections{,tf_section_threadvars}{,tf_needs_dwarf_cfi},
                             tf_winlikewidestring,tf_no_pic_supported,
-                            tf_no_generic_stackcheck,tf_has_winlike_resources];
+                            tf_no_generic_stackcheck,tf_has_winlike_resources,
+                            tf_dwarf_only_local_labels];
             cpu          : cpu_i386;
             unit_env     : 'WIN32UNITS';
             extradefines : 'MSWINDOWS;WINDOWS';
@@ -59,6 +60,8 @@ unit i_win;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : '';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';
@@ -96,7 +99,7 @@ unit i_win;
             system       : system_x86_64_win64;
             name         : 'Win64 for x64';
             shortname    : 'Win64';
-            flags        : [tf_files_case_aware,tf_has_dllscanner,tf_use_function_relative_addresses,
+            flags        : [tf_files_case_aware,tf_has_dllscanner,
                             tf_smartlink_sections,tf_smartlink_library,tf_winlikewidestring,tf_no_pic_supported,
                             tf_no_generic_stackcheck,tf_has_winlike_resources];
             cpu          : cpu_x86_64;
@@ -120,6 +123,8 @@ unit i_win;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : '';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '';
             newline      : #13#10;
             dirsep       : '\';
@@ -157,7 +162,7 @@ unit i_win;
             system       : system_arm_wince;
             name         : 'WinCE for ARM';
             shortname    : 'WinCE';
-            flags        : [tf_files_case_aware,tf_use_function_relative_addresses{,tf_winlikewidestring},
+            flags        : [tf_files_case_aware{,tf_winlikewidestring},
                             tf_smartlink_sections,tf_requires_proper_alignment,tf_no_pic_supported,
                             tf_has_winlike_resources];
             cpu          : cpu_arm;
@@ -181,6 +186,8 @@ unit i_win;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : '';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '';
             newline      : #13#10;
             dirsep       : '\';
@@ -218,7 +225,7 @@ unit i_win;
             system       : system_i386_wince;
             name         : 'WinCE for i386';
             shortname    : 'WinCE';
-            flags        : [tf_files_case_aware,tf_use_function_relative_addresses
+            flags        : [tf_files_case_aware
                             {,tf_winlikewidestring},tf_smartlink_sections,tf_no_pic_supported,
                             tf_has_winlike_resources];
             cpu          : cpu_i386;
@@ -242,6 +249,8 @@ unit i_win;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : '';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '_';
             newline      : #13#10;
             dirsep       : '\';

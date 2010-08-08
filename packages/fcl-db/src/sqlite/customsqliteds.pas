@@ -1,4 +1,4 @@
-unit customsqliteds;
+unit CustomSqliteDS;
 
 {
   This is TCustomSqliteDataset, a TDataset descendant class for use with fpc compiler
@@ -39,46 +39,61 @@ unit customsqliteds;
 interface
 
 uses
-  Classes, SysUtils, Db;
+  Classes, SysUtils, db;
+
+const
+  DefaultStringSize = 255;
 
 type
+  TCustomSqliteDataset = class;
+
   PDataRecord = ^DataRecord;
   PPDataRecord = ^PDataRecord;
   DataRecord = record
-    Row: PPchar;
+    Row: PPChar;
     BookmarkFlag: TBookmarkFlag;
     Next: PDataRecord;
     Previous: PDataRecord;
   end;
   
+  { TDSStream }
+  //todo: refactor into two or three classes
   TDSStream = class(TStream)
   private
-    FActiveItem:PDataRecord;
-    FFieldRow:PChar;  
-    FFieldIndex:Integer;
+    FEditItem: PDataRecord;
+    FDataset: TCustomSqliteDataset;
+    FFieldRow: PChar;
+    FField: TField;
+    FFieldOffset: Integer;
     FRowSize: Integer;
-    FPosition: Longint;
+    FPosition: LongInt;
+    FWriteMode: Boolean;
   public
-    constructor Create(const ActiveItem: PDataRecord; FieldIndex:Integer);
-    function Write(const Buffer; Count: Longint): Longint; override;
-    function Read(var Buffer; Count: Longint): Longint; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
+    constructor Create(Dataset: TCustomSqliteDataset; Field: TField;
+      FieldOffset: Integer; EditItem: PDataRecord; WriteMode: Boolean);
+    destructor Destroy; override;
+    function Write(const Buffer; Count: LongInt): LongInt; override;
+    function Read(var Buffer; Count: LongInt): LongInt; override;
+    function Seek(Offset: LongInt; Origin: Word): LongInt; override;
   end;
 
   //callback types
-  TSqliteCdeclCallback = function (UserData:Pointer; Count:LongInt; Values:PPChar; Names:PPChar):LongInt;cdecl;
-  TSqliteCallback = function (UserData:Pointer; Count:LongInt; Values:PPChar; Names:PPChar):LongInt of Object;
+  TSqliteCdeclCallback = function(UserData: Pointer; Count: LongInt; Values: PPChar; Names: PPChar): LongInt; cdecl;
+  TSqliteCallback = function(UserData: Pointer; Count: LongInt; Values: PPChar; Names: PPChar): LongInt of object;
   TCallbackInfo = record
     Proc: TSqliteCallback;
     Data: Pointer;
   end;
   PCallbackInfo = ^TCallbackInfo;
   
-  TRecordState = (rsAdded,rsDeleted,rsUpdated);
+  TRecordState = (rsAdded, rsDeleted, rsUpdated);
   TRecordStateSet = set of TRecordState;
-  TQueryUpdatesCallback = procedure (UserData: Pointer; Values: PPChar; ABookmark: TBookmark; RecordState: TRecordState) of Object;
+  TQueryUpdatesCallback = procedure(UserData: Pointer; Values: PPChar; ABookmark: TBookmark; RecordState: TRecordState) of object;
 
-  TGetSqlStrFunction = function (APChar: PChar): String;
+  TGetSqlStrFunction = function(APChar: PChar): String;
+
+  TSqliteOption = (soWildcardKey);
+  TSqliteOptions = set of TSqliteOption;
 
   { TCustomSqliteDataset }
 
@@ -95,24 +110,33 @@ type
     FMasterLink: TMasterDataLink;
     FIndexFieldNames: String;
     FIndexFieldList: TList;
-    FSqlList:TStrings;
+    FOnGetHandle: TDataSetNotifyEvent;
+    FOptions: TSqliteOptions;
+    FSQLList: TStrings;
+    FStoreDefs: Boolean;
     procedure CopyCacheToItem(AItem: PDataRecord);
     function GetIndexFields(Value: Integer): TField;
+    function GetSQLList: TStrings;
     procedure SetMasterIndexValue;
-    procedure UpdateIndexFields;
-    function FindRecordItem(StartItem: PDataRecord; const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions; DoResync:Boolean):PDataRecord;
+    procedure SetOptions(const AValue: TSqliteOptions);
+    procedure UpdateCalcFieldList;
+    procedure UpdateIndexFieldList;
+    function FindRecordItem(StartItem: PDataRecord; const KeyFields: string; const KeyValues: Variant; LocateOptions: TLocateOptions; DoResync: Boolean): PDataRecord;
+    procedure UpdateMasterDetailProperties;
   protected
     FPrimaryKey: String;
     FPrimaryKeyNo: Integer;
     FFileName: String;
-    FSql: String;
+    FSQL: String;
+    FEffectiveSQL: String;
     FTableName: String;
-    FSelectSqlStr: String;
+    FSqlFilterTemplate: String;
     FAutoIncFieldNo: Integer;
-    FNextAutoInc:Integer;
+    FNextAutoInc: Integer;
     FUpdatedItems: TFPList;
     FAddedItems: TFPList;
     FDeletedItems: TFPList;
+    FCalcFieldList: TFPList;
     FReturnCode: Integer;
     FSqliteHandle: Pointer;
     FRowBufferSize: Integer;
@@ -126,26 +150,27 @@ type
     FSaveOnRefetch: Boolean;
     FAutoIncrementKey: Boolean;
     FDataAllocated: Boolean;
-    function SqliteExec(Sql:PChar; ACallback: TSqliteCdeclCallback; Data: Pointer):Integer;virtual; abstract;
-    procedure InternalCloseHandle;virtual;abstract;
+    function SqliteExec(Sql: PChar; ACallback: TSqliteCdeclCallback; Data: Pointer): Integer; virtual; abstract;
+    procedure InternalCloseHandle; virtual; abstract;
     function InternalGetHandle: Pointer; virtual; abstract;
+    function FieldDefsStored: Boolean;
+    function GetLastInsertRowId: Int64; virtual; abstract;
     procedure GetSqliteHandle;
-    function GetSqliteVersion: String; virtual; abstract;
     procedure BuildLinkedList; virtual; abstract;
     procedure FreeItem(AItem: PDataRecord);
     procedure DisposeLinkedList;
     procedure SetDetailFilter;
     procedure MasterChanged(Sender: TObject);
-    procedure MasterDisabled(Sender: TObject);
-    procedure SetMasterFields(const Value:String);
-    function GetMasterFields:String;
+    procedure SetMasterFields(const Value: String);
+    function GetMasterFields: String;
     procedure SetMasterSource(Value: TDataSource);
-    function GetMasterSource:TDataSource;
+    function GetMasterSource: TDataSource;
     procedure SetFileName(const Value: String);
-    function GetRowsAffected:Integer; virtual;abstract;
+    function GetRowsAffected: Integer; virtual; abstract;
+    procedure RetrieveFieldDefs; virtual; abstract;
     //TDataSet overrides
     function AllocRecordBuffer: PChar; override;
-    function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
+    procedure ClearCalcFields(Buffer: PChar); override;
     procedure DoBeforeClose; override;
     procedure DoAfterInsert; override;
     procedure DoBeforeInsert; override;
@@ -163,6 +188,7 @@ type
     procedure InternalEdit; override;
     procedure InternalFirst; override;
     procedure InternalGotoBookmark(ABookmark: Pointer); override;
+    procedure InternalInitFieldDefs; override;
     procedure InternalInitRecord(Buffer: PChar); override;
     procedure InternalLast; override;
     procedure InternalOpen; override;
@@ -171,68 +197,76 @@ type
     function IsCursorOpen: Boolean; override;
     procedure SetBookmarkData(Buffer: PChar; Data: Pointer); override;
     procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); override;
-    procedure SetExpectedAppends(AValue:Integer);
-    procedure SetExpectedUpdates(AValue:Integer);
-    procedure SetExpectedDeletes(AValue:Integer);
-    procedure SetFieldData(Field: TField; Buffer: Pointer); override;
-    procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); override;
+    procedure SetExpectedAppends(AValue: Integer);
+    procedure SetExpectedUpdates(AValue: Integer);
+    procedure SetExpectedDeletes(AValue: Integer);
     procedure SetRecNo(Value: Integer); override;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     function BookmarkValid(ABookmark: TBookmark): Boolean; override;
     function CompareBookmarks(Bookmark1, Bookmark2: TBookmark): Longint; override;
+    function CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream; override;
     function GetFieldData(Field: TField; Buffer: Pointer): Boolean; override;
     function GetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean): Boolean; override;
-    function Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : Boolean; override;
-    function LocateNext(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : Boolean;
-    function Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant;override;
+    function Locate(const KeyFields: String; const KeyValues: Variant; LocateOptions: TLocateOptions) : Boolean; override;
+    function LocateNext(const KeyFields: String; const KeyValues: Variant; LocateOptions: TLocateOptions) : Boolean;
+    function Lookup(const KeyFields: String; const KeyValues: Variant; const ResultFields: String): Variant; override;
+    procedure SetFieldData(Field: TField; Buffer: Pointer); override;
+    procedure SetFieldData(Field: TField; Buffer: Pointer; NativeFormat: Boolean); override;
     // Additional procedures
     function ApplyUpdates: Boolean;
+    procedure ClearUpdates(RecordStates: TRecordStateSet = [rsAdded, rsDeleted, rsUpdated]);
     function CreateTable: Boolean;
     function CreateTable(const ATableName: String): Boolean;
     procedure ExecCallback(const ASql: String; UserData: Pointer = nil);
     procedure ExecSQL;
-    procedure ExecSQL(const ASql:String);
+    procedure ExecSQL(const ASql: String);
+    procedure ExecSQL(ASqlList: TStrings);
     procedure ExecSQLList;
-    procedure ExecuteDirect(const ASql: String);virtual;abstract;
-    procedure QueryUpdates(RecordStates: TRecordStateSet; Callback: TQueryUpdatesCallback; UserData: Pointer=nil);
-    function QuickQuery(const ASql:String):String;overload;
-    function QuickQuery(const ASql:String;const AStrList: TStrings):String;overload;
-    function QuickQuery(const ASql:String;const AStrList: TStrings;FillObjects:Boolean):String;virtual;abstract;overload;
+    procedure ExecuteDirect(const ASql: String); virtual; abstract;
+    function GetSQLValue(Values: PPChar; FieldIndex: Integer): String;
+    procedure QueryUpdates(RecordStates: TRecordStateSet; Callback: TQueryUpdatesCallback; UserData: Pointer = nil);
+    function QuickQuery(const ASql: String):String;overload;
+    function QuickQuery(const ASql: String; const AStrList: TStrings): String; overload;
+    function QuickQuery(const ASql: String; const AStrList: TStrings; FillObjects: Boolean):String; virtual; abstract; overload;
     procedure RefetchData;
-    function ReturnString: String; virtual;abstract;
+    function ReturnString: String; virtual; abstract;
+    class function SqliteVersion: String; virtual; abstract;
     function TableExists: Boolean;
-    function TableExists(const ATableName:String):Boolean;
+    function TableExists(const ATableName: String): Boolean;
     function UpdatesPending: Boolean;
     {$ifdef DEBUGACTIVEBUFFER}
-    procedure SetCurrentItem(Value:PDataRecord);
+    procedure SetCurrentItem(Value: PDataRecord);
     property FCurrentItem: PDataRecord read FFCurrentItem write SetCurrentItem;
     {$endif}
     property ExpectedAppends: Integer write SetExpectedAppends;
     property ExpectedUpdates: Integer write SetExpectedUpdates;
     property ExpectedDeletes: Integer write SetExpectedDeletes;
     property IndexFields[Value: Integer]: TField read GetIndexFields;
+    property LastInsertRowId: Int64 read GetLastInsertRowId;
     property RowsAffected: Integer read GetRowsAffected;
     property ReturnCode: Integer read FReturnCode;
     property SqliteHandle: Pointer read FSqliteHandle;
-    property SqliteVersion: String read GetSqliteVersion;
-    property SQLList:TStrings read FSqlList;
+    property SQLList: TStrings read GetSQLList;
    published
-    property AutoIncrementKey: Boolean read FAutoIncrementKey write FAutoIncrementKey;
+    property AutoIncrementKey: Boolean read FAutoIncrementKey write FAutoIncrementKey default False;
     property IndexFieldNames: string read FIndexFieldNames write FIndexFieldNames;
     property FileName: String read FFileName write SetFileName;
     property OnCallback: TSqliteCallback read FOnCallback write FOnCallback;
+    property OnGetHandle: TDataSetNotifyEvent read FOnGetHandle write FOnGetHandle;
+    property Options: TSqliteOptions read FOptions write SetOptions default [];
     property PrimaryKey: String read FPrimaryKey write FPrimaryKey;
-    property SaveOnClose: Boolean read FSaveOnClose write FSaveOnClose; 
-    property SaveOnRefetch: Boolean read FSaveOnRefetch write FSaveOnRefetch;
-    property SQL: String read FSql write FSql;
+    property SaveOnClose: Boolean read FSaveOnClose write FSaveOnClose default False;
+    property SaveOnRefetch: Boolean read FSaveOnRefetch write FSaveOnRefetch default False;
+    property SQL: String read FSQL write FSQL;
+    property StoreDefs: Boolean read FStoreDefs write FStoreDefs default False;
     property TableName: String read FTableName write FTableName;   
     property MasterSource: TDataSource read GetMasterSource write SetMasterSource;
-    property MasterFields: string read GetMasterFields write SetMasterFields;
+    property MasterFields: String read GetMasterFields write SetMasterFields;
     
     property Active;
-       
+    property FieldDefs stored FieldDefsStored;
     //Events
     property BeforeOpen;
     property AfterOpen;
@@ -252,14 +286,15 @@ type
     property AfterScroll;
     property BeforeRefresh;
     property AfterRefresh;
+    property OnCalcFields;
     property OnDeleteError;
     property OnEditError;
     property OnNewRecord;
     property OnPostError;
   end;
   
-  function Num2SqlStr(APChar: PChar): String;
-  function Char2SqlStr(APChar: PChar): String;
+  function Num2SQLStr(APChar: PChar): String;
+  function Char2SQLStr(APChar: PChar): String;
 
 
 implementation
@@ -275,13 +310,13 @@ const
   NullString = 'NULL';
   
 
-function CallbackDispatcher(UserData:Pointer; Count:LongInt; Values:PPchar; Names:PPchar):LongInt;cdecl;
+function CallbackDispatcher(UserData: Pointer; Count: LongInt; Values: PPchar; Names: PPchar): LongInt; cdecl;
 begin
   with PCallbackInfo(UserData)^ do
-    Result:= Proc(Data,Count,Values,Names);
+    Result:= Proc(Data, Count, Values, Names);
 end;
   
-function Num2SqlStr(APChar: PChar): String;
+function Num2SQLStr(APChar: PChar): String;
 begin
   if APChar = nil then
   begin
@@ -291,7 +326,7 @@ begin
   Result := String(APChar);
 end;
 
-function Char2SqlStr(APChar: PChar): String;
+function Char2SQLStr(APChar: PChar): String;
 begin
   if APChar = nil then
   begin
@@ -307,75 +342,87 @@ end;
 
 // TDSStream
 
-constructor TDSStream.Create(const ActiveItem: PDataRecord; FieldIndex:Integer);
+constructor TDSStream.Create(Dataset: TCustomSqliteDataset; Field: TField;
+  FieldOffset: Integer; EditItem: PDataRecord; WriteMode: Boolean);
 begin
   inherited Create;
   //FPosition := 0;
-  FActiveItem := ActiveItem;
-  FFieldIndex := FieldIndex;
-  FFieldRow := ActiveItem^.Row[FieldIndex];
+  FDataset := Dataset;
+  FField := Field;
+  FFieldOffset := FieldOffset;
+  FWriteMode := WriteMode;
+  FEditItem := EditItem;
+  FFieldRow := FEditItem^.Row[FFieldOffset];
   if FFieldRow <> nil then
     FRowSize := StrLen(FFieldRow);
   //else
   //  FRowSize := 0;  
-end;  
-
-function TDSStream.Seek(Offset: Longint; Origin: Word): Longint;
-begin
-  Case Origin of
-    soFromBeginning : FPosition:=Offset;
-    soFromEnd       : FPosition:=FRowSize+Offset;
-    soFromCurrent   : FPosition:=FPosition+Offset;
-  end;
-  Result:=FPosition;
 end;
 
-function TDSStream.Write(const Buffer; Count: Longint): Longint; 
-var
-  NewRow:PChar;
+destructor TDSStream.Destroy;
 begin
-  Result:=Count;
-  if Count = 0 then
-    Exit;
-  //FRowSize is always 0 when FPosition = 0,
-  //so there's no need to check FPosition
-  NewRow:=StrAlloc(FRowSize+Count+1);
-  (NewRow+Count+FRowSize)^:=#0;
-  if FRowSize > 0 then
-    Move(FFieldRow^,NewRow^,FRowSize);
-  Move(Buffer,(NewRow+FRowSize)^,Count);
-  FActiveItem^.Row[FFieldIndex]:=NewRow;    
-  StrDispose(FFieldRow);
-  {$ifdef DEBUG_SQLITEDS}
-  WriteLn('##TDSStream.Write##');
-  WriteLn('  FPosition(Before): ',FPosition);
-  WriteLn('  FRowSize(Before): ',FRowSize);
-  WriteLn('  FPosition(After): ',FPosition+Count);
-  WriteLn('  FRowSize(After): ',StrLen(NewRow));
-  //WriteLn('  Stream Value: ',NewRow);
-  {$endif}
-  FFieldRow:=NewRow;
-  FRowSize:=StrLen(NewRow);
-  Inc(FPosition,Count);
+  if FWriteMode and not (FDataset.State in [dsCalcFields, dsFilter, dsNewValue]) then
+    FDataset.DataEvent(deFieldChange, PtrInt(FField));
+  inherited Destroy;
+end;
+
+function TDSStream.Seek(Offset: LongInt; Origin: Word): LongInt;
+begin
+  Case Origin of
+    soFromBeginning : FPosition := Offset;
+    soFromEnd       : FPosition := FRowSize + Offset;
+    soFromCurrent   : FPosition := FPosition + Offset;
+  end;
+  Result := FPosition;
+end;
+
+function TDSStream.Write(const Buffer; Count: LongInt): LongInt;
+var
+  NewRow: PChar;
+begin
+  Result := Count;
+  if Count > 0 then
+  begin
+    //FRowSize is always 0 when FPosition = 0,
+    //so there's no need to check FPosition
+    NewRow := StrAlloc(FRowSize + Count + 1);
+    (NewRow + Count + FRowSize)^ := #0;
+    if FRowSize > 0 then
+      Move(FFieldRow^, NewRow^, FRowSize);
+    Move(Buffer, (NewRow + FRowSize)^, Count);
+    FEditItem^.Row[FFieldOffset] := NewRow;
+    StrDispose(FFieldRow);
+    {$ifdef DEBUG_SQLITEDS}
+    WriteLn('##TDSStream.Write##');
+    WriteLn('  FPosition(Before): ', FPosition);
+    WriteLn('  FRowSize(Before): ', FRowSize);
+    WriteLn('  FPosition(After): ', FPosition+Count);
+    WriteLn('  FRowSize(After): ', StrLen(NewRow));
+    //WriteLn('  Stream Value: ',NewRow);
+    {$endif}
+    FFieldRow := NewRow;
+    FRowSize := StrLen(NewRow);
+    Inc(FPosition, Count);
+  end;
 end; 
  
-function TDSStream.Read(var Buffer; Count: Longint): Longint; 
+function TDSStream.Read(var Buffer; Count: Longint): LongInt;
 var
-  BytesToMove:Integer;
+  BytesToMove: Integer;
 begin
   if (FRowSize - FPosition) >= Count then
-    BytesToMove:=Count
+    BytesToMove := Count
   else
-    BytesToMove:=FRowSize - FPosition;   
-  Move((FFieldRow+FPosition)^,Buffer,BytesToMove);
-  Inc(FPosition,BytesToMove);
-  Result:=BytesToMove;  
+    BytesToMove := FRowSize - FPosition;
+  Move((FFieldRow + FPosition)^, Buffer, BytesToMove);
+  Inc(FPosition, BytesToMove);
+  Result := BytesToMove;
   {$ifdef DEBUG_SQLITEDS}
   WriteLn('##TDSStream.Read##');
-  WriteLn('  Bytes requested: ',Count);
-  WriteLn('  Bytes moved: ',BytesToMove);
-  WriteLn('  Stream.Size: ',FRowSize);
-  //WriteLn('  Stream Value: ',FFieldRow);
+  WriteLn('  Bytes requested: ', Count);
+  WriteLn('  Bytes moved: ', BytesToMove);
+  WriteLn('  Stream.Size: ', FRowSize);
+  //WriteLn('  Stream Value: ', FFieldRow);
   {$endif}
 end; 
  
@@ -384,7 +431,22 @@ end;
 function TCustomSqliteDataset.AllocRecordBuffer: PChar;
 begin
   Result := AllocMem(SizeOf(PPDataRecord));
-  PDataRecord(Pointer(Result)^):=FBeginItem;
+  PDataRecord(Pointer(Result)^) := FBeginItem;
+end;
+
+procedure TCustomSqliteDataset.ClearCalcFields(Buffer: PChar);
+var
+  i: Integer;
+  RecordItem: PDataRecord;
+begin
+  if FCalcFieldList = nil then
+    Exit;
+  RecordItem := PPDataRecord(Buffer)^;
+  for i := FieldDefs.Count to FieldDefs.Count + FCalcFieldList.Count - 1 do
+  begin
+    StrDispose(RecordItem^.Row[i]);
+    RecordItem^.Row[i] := nil;
+  end;
 end;
 
 constructor TCustomSqliteDataset.Create(AOwner: TComponent);
@@ -397,34 +459,45 @@ begin
   FBeginItem^.Previous := nil;
   FEndItem^.Next := nil;
   
-  FBeginItem^.BookMarkFlag := bfBOF;
-  FEndItem^.BookMarkFlag := bfEOF;
+  FBeginItem^.BookmarkFlag := bfBOF;
+  FEndItem^.BookmarkFlag := bfEOF;
   
   FMasterLink := TMasterDataLink.Create(Self);
   FMasterLink.OnMasterChange := @MasterChanged;
-  FMasterLink.OnMasterDisable := @MasterDisabled;
-  FIndexFieldList := TList.Create;
+  FMasterLink.OnMasterDisable := @MasterChanged;
   BookmarkSize := SizeOf(Pointer);
   FUpdatedItems := TFPList.Create;
   FAddedItems := TFPList.Create;
   FDeletedItems := TFPList.Create;
-  FSqlList := TStringList.Create;
   inherited Create(AOwner);
 end;
 
 function TCustomSqliteDataset.CreateBlobStream(Field: TField; Mode: TBlobStreamMode): TStream;
+var
+  FieldOffset: Integer;
+  EditItem: PDataRecord;
 begin
+  if Field.FieldNo >= 0 then
+  begin
+    if Mode = bmWrite then
+      EditItem := FCacheItem
+    else
+      EditItem := PPDataRecord(ActiveBuffer)^;
+    FieldOffset := Field.FieldNo - 1;
+  end
+  else
+  begin
+    EditItem := PPDataRecord(CalcBuffer)^;
+    FieldOffset := FieldDefs.Count + FCalcFieldList.IndexOf(Field);
+  end;
   if Mode = bmWrite then
   begin
-    if not (State in [dsEdit, dsInsert]) then
-    begin
-      DatabaseErrorFmt(SNotEditing,[Name],Self);
-      Exit;
-    end;
-    StrDispose(FCacheItem^.Row[Field.FieldNo - 1]);
-    FCacheItem^.Row[Field.FieldNo - 1]:=nil;
+    if not (State in [dsEdit, dsInsert, dsCalcFields]) then
+      DatabaseErrorFmt(SNotEditing, [Name], Self);
+    StrDispose(EditItem^.Row[FieldOffset]);
+    EditItem^.Row[FieldOffset] := nil;
   end;
-  Result:= TDSStream.Create(PPDataRecord(ActiveBuffer)^,Field.FieldNo - 1);
+  Result := TDSStream.Create(Self, Field, FieldOffset, EditItem, Mode = bmWrite);
 end;
 
 procedure TCustomSqliteDataset.DoBeforeClose;
@@ -438,15 +511,15 @@ procedure TCustomSqliteDataset.DoAfterInsert;
 begin
   //an append or an insert in an empty dataset
   if EOF then
-    FInsertBookmark:=FEndItem
+    FInsertBookmark := FEndItem
   else
-    FInsertBookmark:=FInternalActiveBuffer;
+    FInsertBookmark := FInternalActiveBuffer;
   inherited DoAfterInsert;
 end;
 
 procedure TCustomSqliteDataset.DoBeforeInsert;
 begin
-  FInternalActiveBuffer:=PPDataRecord(ActiveBuffer)^;
+  FInternalActiveBuffer := PPDataRecord(ActiveBuffer)^;
   inherited DoBeforeInsert;
 end;
 
@@ -459,8 +532,10 @@ begin
   FAddedItems.Destroy;
   FDeletedItems.Destroy;
   FMasterLink.Destroy;
-  FIndexFieldList.Destroy;
-  FSqlList.Destroy;
+  //lists created on demand
+  FSQLList.Free;
+  FIndexFieldList.Free;
+  FCalcFieldList.Free;
   // dispose special items
   Dispose(FBeginItem);
   Dispose(FCacheItem);
@@ -471,55 +546,55 @@ function TCustomSqliteDataset.BookmarkValid(ABookmark: TBookmark): Boolean;
 var
   TempItem: PDataRecord;
 begin
-  Result:=False;
-  TempItem:=FBeginItem^.Next;
+  Result := False;
+  TempItem := FBeginItem^.Next;
   while TempItem <> FEndItem do
   begin
     if TempItem = PPDataRecord(ABookmark)^ then
     begin
-      Result:=True;
+      Result := True;
       Exit;
     end;
-    TempItem:=TempItem^.Next;
+    TempItem := TempItem^.Next;
   end;
 end;
 
 function TCustomSqliteDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark
-  ): Longint;
+  ): LongInt;
 var
   TempItem: PDataRecord;
 begin
-  if PPDataRecord(Bookmark1)^ = PPDataRecord(Bookmark2)^  then
+  if PPDataRecord(Bookmark1)^ = PPDataRecord(Bookmark2)^ then
   begin
-    Result:=0;
+    Result := 0;
     Exit;
   end;
-  //assume  Bookmark1 < Bookmark2
-  Result:=-1;
-  TempItem:=PPDataRecord(Bookmark1)^^.Previous;
+  //assume Bookmark1 < Bookmark2
+  Result := -1;
+  TempItem := PPDataRecord(Bookmark1)^^.Previous;
   while TempItem <> FBeginItem do
   begin
     if TempItem = PPDataRecord(Bookmark2)^ then
     begin
       //Bookmark1 is greater than Bookmark2
-      Result:=1;
+      Result := 1;
       Exit;
     end;
-    TempItem:=TempItem^.Previous;
+    TempItem := TempItem^.Previous;
   end;
 end;
 
 procedure TCustomSqliteDataset.CopyCacheToItem(AItem: PDataRecord);
 var
-  i:Integer;
+  i: Integer;
 begin
   for i := 0 to FRowCount - 1 do
   begin
     StrDispose(AItem^.Row[i]);
-    AItem^.Row[i]:=FCacheItem^.Row[i];
-    FCacheItem^.Row[i]:=nil;
+    AItem^.Row[i] := FCacheItem^.Row[i];
+    FCacheItem^.Row[i] := nil;
   end;
-  AItem^.BookmarkFlag:=FCacheItem^.BookmarkFlag;
+  AItem^.BookmarkFlag := FCacheItem^.BookmarkFlag;
 end;
 
 function TCustomSqliteDataset.GetIndexFields(Value: Integer): TField;
@@ -527,41 +602,70 @@ begin
   Result := TField(FIndexFieldList[Value]);
 end;
 
+function TCustomSqliteDataset.GetSQLList: TStrings;
+begin
+  if FSQLList = nil then
+    FSQLList := TStringList.Create;
+  Result := FSQLList;
+end;
+
 procedure TCustomSqliteDataset.SetMasterIndexValue;
 var
   i: Integer;
 begin
   for i := 0 to FIndexFieldList.Count - 1 do
-    TField(FIndexFieldList[i]).AsString := TField(FMasterLink.Fields[i]).AsString;
+    TField(FIndexFieldList[i]).Value := TField(FMasterLink.Fields[i]).Value;
+end;
+
+procedure TCustomSqliteDataset.SetOptions(const AValue: TSqliteOptions);
+begin
+  FOptions := AValue;
+end;
+
+procedure TCustomSqliteDataset.UpdateCalcFieldList;
+var
+  i: Integer;
+  AField: TField;
+begin
+  if FCalcFieldList = nil then
+    FCalcFieldList := TFPList.Create
+  else
+    FCalcFieldList.Clear;
+  for i := 0 to Fields.Count - 1 do
+  begin
+    AField := Fields[i];
+    if AField.FieldKind in [fkCalculated, fkLookup] then
+      FCalcFieldList.Add(AField);
+  end;
 end;
 
 procedure TCustomSqliteDataset.DisposeLinkedList;
 var
-  TempItem:PDataRecord;
-  i:Integer;
+  TempItem: PDataRecord;
+  i: Integer;
 begin
   //Todo: insert debug info
   //Todo: see if FDataAllocated is still necessary
-  FDataAllocated:=False;
-  TempItem:=FBeginItem^.Next;
+  FDataAllocated := False;
+  TempItem := FBeginItem^.Next;
   while TempItem^.Next <> nil do
   begin
-    TempItem:=TempItem^.Next;
+    TempItem := TempItem^.Next;
     FreeItem(TempItem^.Previous);
   end; 
 
   //Dispose Deleted Items
   //Directly access list pointer since the index check is already done in the loop
-  for i:= 0 to FDeletedItems.Count - 1 do
+  for i := 0 to FDeletedItems.Count - 1 do
     FreeItem(PDataRecord(FDeletedItems.List^[i]));
 
   //Dispose FBeginItem.Row
-  FreeMem(FBeginItem^.Row,FRowBufferSize);
+  FreeMem(FBeginItem^.Row, FRowBufferSize);
     
   //Dispose cache item row
   for i:= 0 to FRowCount - 1 do
     StrDispose(FCacheItem^.Row[i]);
-  FreeMem(FCacheItem^.Row,FRowBufferSize);
+  FreeMem(FCacheItem^.Row, FRowBufferSize);
 end;
 
 procedure TCustomSqliteDataset.FreeRecordBuffer(var Buffer: PChar);
@@ -584,8 +688,18 @@ function TCustomSqliteDataset.GetFieldData(Field: TField; Buffer: Pointer;
 var
   ValError: Word;
   FieldRow: PChar;
+  FieldOffset: Integer;
 begin
-  FieldRow := PPDataRecord(ActiveBuffer)^^.Row[Field.FieldNo - 1];
+  if Field.FieldNo >= 0 then
+    FieldOffset := Field.FieldNo - 1
+  else
+    FieldOffset := FieldDefs.Count + FCalcFieldList.IndexOf(Field);
+
+  if not (State in [dsCalcFields, dsInternalCalc]) then
+    FieldRow := PPDataRecord(ActiveBuffer)^^.Row[FieldOffset]
+  else
+    FieldRow := PPDataRecord(CalcBuffer)^^.Row[FieldOffset];
+
   Result := FieldRow <> nil;  
   if Result and (Buffer <> nil) then //supports GetIsNull
   begin
@@ -612,7 +726,7 @@ begin
     ftLargeInt:
       begin
         Val(String(FieldRow), Int64(Buffer^), ValError);
-        Result:= ValError = 0;
+        Result := ValError = 0;
       end;        
     end;
   end;        
@@ -620,7 +734,7 @@ end;
 
 function TCustomSqliteDataset.GetFieldData(Field: TField; Buffer: Pointer): Boolean;
 begin
-  Result:=GetFieldData(Field, Buffer, False);
+  Result := GetFieldData(Field, Buffer, False);
 end;
 
 function TCustomSqliteDataset.GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult;
@@ -642,15 +756,16 @@ begin
       if (FCurrentItem = FEndItem) or (FCurrentItem^.Next = FEndItem) then
         Result := grEOF
       else
-        FCurrentItem:=FCurrentItem^.Next;
+        FCurrentItem := FCurrentItem^.Next;
   end; //case
   if Result = grOk then
   begin
-    PDataRecord(Pointer(Buffer)^):=FCurrentItem;
+    PDataRecord(Pointer(Buffer)^) := FCurrentItem;
     FCurrentItem^.BookmarkFlag := bfCurrent;
+    GetCalcFields(Buffer);
   end
     else if (Result = grError) and DoCheck then
-      DatabaseError('No records found',Self);
+      DatabaseError('No records found', Self);
 end;
 
 function TCustomSqliteDataset.GetRecordCount: Integer;
@@ -660,31 +775,29 @@ end;
 
 function TCustomSqliteDataset.GetRecNo: Integer;
 var
-  TempItem,TempActive:PDataRecord;
+  TempItem, TempActive: PDataRecord;
 begin
-  Result:= -1;
+  Result := -1;
   if (FRecordCount = 0) or (State = dsInsert) then
     Exit;  
-  TempItem:=FBeginItem;
-  TempActive:=PPDataRecord(ActiveBuffer)^;
+  TempItem := FBeginItem;
+  TempActive := PPDataRecord(ActiveBuffer)^;
   if TempActive = FCacheItem then // Record is being edited
-  begin
-    TempActive:=FInternalActiveBuffer;
-  end;
+    TempActive := FInternalActiveBuffer;
   //RecNo is 1 based
-  inc(Result);
+  Inc(Result);
   while TempActive <> TempItem do
   begin
     if TempItem^.Next <> nil then
     begin
-      inc(Result);
-      TempItem:=TempItem^.Next;
+      Inc(Result);
+      TempItem := TempItem^.Next;
     end  
     else
     begin
-      Result:=-1;
-      DatabaseError('GetRecNo - ActiveItem Not Found',Self);
-      break;    
+      Result := -1;
+      DatabaseError('GetRecNo - ActiveItem Not Found', Self);
+      break;
     end;      
   end;  
 end;
@@ -700,25 +813,25 @@ var
 begin
   {$ifdef DEBUG_SQLITEDS}
   if PPDataRecord(ActiveBuffer)^ <> FCacheItem then
-    DatabaseError('PPDataRecord(ActiveBuffer) <> FCacheItem - Problem',Self);
+    DatabaseError('PPDataRecord(ActiveBuffer) <> FCacheItem - Problem', Self);
   {$endif}
   New(NewItem);
-  GetMem(NewItem^.Row,FRowBufferSize);
+  GetMem(NewItem^.Row, FRowBufferSize);
   //if is a detail dataset then set the index value
   if FMasterLink.Active then
     SetMasterIndexValue;
   //necessary to nullify the Row before copy the cache
-  FillChar(NewItem^.Row^,FRowBufferSize,#0);
+  FillChar(NewItem^.Row^, FRowBufferSize, #0);
   CopyCacheToItem(NewItem);
 
   //insert in the linked list
-  FInsertBookmark^.Previous^.Next:=NewItem;
-  NewItem^.Next:=FInsertBookmark;
-  NewItem^.Previous:=FInsertBookmark^.Previous;
-  FInsertBookmark^.Previous:=NewItem;
+  FInsertBookmark^.Previous^.Next := NewItem;
+  NewItem^.Next := FInsertBookmark;
+  NewItem^.Previous := FInsertBookmark^.Previous;
+  FInsertBookmark^.Previous := NewItem;
   
   //update the cursor
-  FCurrentItem:=NewItem;
+  FCurrentItem := NewItem;
   
   Inc(FRecordCount);
   if FAutoIncFieldNo <> - 1 then
@@ -736,19 +849,19 @@ begin
   FAddedItems.Clear;
   FUpdatedItems.Clear;
   FDeletedItems.Clear;
-  FRecordCount:=0;
+  FRecordCount := 0;
 end;
 
 procedure TCustomSqliteDataset.InternalCancel;
 var
   i: Integer;
 begin
-  PPDataRecord(ActiveBuffer)^:=FInternalActiveBuffer;
+  PPDataRecord(ActiveBuffer)^ := FInternalActiveBuffer;
   //free the cache
   for i:= 0 to FRowCount - 1 do
   begin
     StrDispose(FCacheItem^.Row[i]);
-    FCacheItem^.Row[i]:=nil;
+    FCacheItem^.Row[i] := nil;
   end;
 end;
 
@@ -787,13 +900,13 @@ procedure TCustomSqliteDataset.InternalEdit;
 var
   i: Integer;
 begin
-  FInternalActiveBuffer:=PPDataRecord(ActiveBuffer)^;
+  FInternalActiveBuffer := PPDataRecord(ActiveBuffer)^;
   //copy active item to cache
   for i:= 0 to FRowCount - 1 do
-    FCacheItem^.Row[i]:=StrNew(FInternalActiveBuffer^.Row[i]);
-  FCacheItem^.BookmarkFlag:=FInternalActiveBuffer^.BookmarkFlag;
+    FCacheItem^.Row[i] := StrNew(FInternalActiveBuffer^.Row[i]);
+  FCacheItem^.BookmarkFlag := FInternalActiveBuffer^.BookmarkFlag;
   //now active buffer is the cache item
-  PPDataRecord(ActiveBuffer)^:=FCacheItem;
+  PPDataRecord(ActiveBuffer)^ := FCacheItem;
 end;
 
 procedure TCustomSqliteDataset.InternalFirst;
@@ -806,18 +919,35 @@ begin
   FCurrentItem := PDataRecord(ABookmark^);
 end;
 
+procedure TCustomSqliteDataset.InternalInitFieldDefs;
+begin
+  if FSQL = '' then
+  begin
+    if FTablename = '' then
+      DatabaseError('Tablename not set', Self);
+    FEffectiveSQL := 'Select * from ' + FTableName + ';';
+  end
+  else
+    FEffectiveSQL := FSQL;
+
+  if FSqliteHandle = nil then
+    GetSqliteHandle;
+
+  RetrieveFieldDefs;
+end;
+
 procedure TCustomSqliteDataset.InternalInitRecord(Buffer: PChar);
 var
-  TempStr:String;  
+  TempStr: String;
 begin
   if FAutoIncFieldNo <> - 1 then
   begin
-    Str(FNextAutoInc,TempStr);
-    FCacheItem^.Row[FAutoIncFieldNo]:=StrAlloc(Length(TempStr)+1);
-    StrPCopy(FCacheItem^.Row[FAutoIncFieldNo],TempStr);
+    Str(FNextAutoInc, TempStr);
+    FCacheItem^.Row[FAutoIncFieldNo] := StrAlloc(Length(TempStr) + 1);
+    StrPCopy(FCacheItem^.Row[FAutoIncFieldNo], TempStr);
   end;  
-  PPDataRecord(Buffer)^:=FCacheItem;    
-  FCacheItem^.BookmarkFlag:=bfInserted;
+  PPDataRecord(Buffer)^ := FCacheItem;
+  FCacheItem^.BookmarkFlag := bfInserted;
 end;
 
 procedure TCustomSqliteDataset.InternalLast;
@@ -826,54 +956,30 @@ begin
 end;
 
 procedure TCustomSqliteDataset.InternalOpen;
-var
-  i:Integer;
 begin
-  if FMasterLink.DataSource <> nil then
-  begin
-    //todo: retrieve only necessary fields
-    FSql := 'Select * from '+FTableName+';'; // forced to obtain all fields
-  end;
-
-  if FSql = '' then
-  begin
-    if FTablename = '' then
-      DatabaseError('Tablename not set',Self);
-    FSql := 'Select * from '+FTableName+';';
-  end;
-
-  if FSqliteHandle = nil then
-    GetSqliteHandle;
-    
   InternalInitFieldDefs;
-  //todo: move this to InitFieldDefs
-  FSelectSqlStr:='SELECT ';
-  for i:= 0 to FieldDefs.Count - 2 do
-    FSelectSqlStr:=FSelectSqlStr+FieldDefs[i].Name+',';
-  FSelectSqlStr:=FSelectSqlStr+FieldDefs[FieldDefs.Count - 1].Name+
-    ' FROM '+FTableName;
 
   if DefaultFields then 
     CreateFields;
   BindFields(True);
 
-  UpdateIndexFields;
-  if FMasterLink.Active then
-  begin
-    if FIndexFieldList.Count <> FMasterLink.Fields.Count then
-      DatabaseError('MasterFields count doesn''t match IndexFields count',Self);
-    //Set FSql considering MasterSource active record
-    SetDetailFilter;
-  end;
+  if CalcFieldsSize > 0 then
+    UpdateCalcFieldList;
+
+  if FIndexFieldNames <> '' then
+    UpdateIndexFieldList;
+
+  if FMasterLink.DataSource <> nil then
+    UpdateMasterDetailProperties;
 
   // Get PrimaryKeyNo if available
-  if Fields.FindField(FPrimaryKey) <> nil then
-    FPrimaryKeyNo:=Fields.FindField(FPrimaryKey).FieldNo - 1  
+  if TDefCollection(FieldDefs).Find(FPrimaryKey) <> nil then
+    FPrimaryKeyNo := FieldDefs.Find(FPrimaryKey).FieldNo - 1
   else
-    FPrimaryKeyNo:=FAutoIncFieldNo; // -1 if there's no AutoIncField 
+    FPrimaryKeyNo := FAutoIncFieldNo; // -1 if there's no AutoIncField
 
   BuildLinkedList;               
-  FCurrentItem:=FBeginItem;
+  FCurrentItem := FBeginItem;
 end;
 
 procedure TCustomSqliteDataset.InternalPost;
@@ -883,7 +989,7 @@ begin
   else
   begin
     CopyCacheToItem(FInternalActiveBuffer);
-    PPDataRecord(ActiveBuffer)^:=FInternalActiveBuffer;
+    PPDataRecord(ActiveBuffer)^ := FInternalActiveBuffer;
     if (FUpdatedItems.IndexOf(FInternalActiveBuffer) = -1) and
       (FAddedItems.IndexOf(FInternalActiveBuffer) = -1) then
       FUpdatedItems.Add(FInternalActiveBuffer);
@@ -892,7 +998,7 @@ end;
 
 procedure TCustomSqliteDataset.InternalSetToRecord(Buffer: PChar);
 begin
-  FCurrentItem:=PPDataRecord(Buffer)^;
+  FCurrentItem := PPDataRecord(Buffer)^;
 end;
 
 function TCustomSqliteDataset.IsCursorOpen: Boolean;
@@ -901,7 +1007,7 @@ begin
 end;
 
 type
-  TLocateCompareFunction = function (Value, Key: PChar): Boolean;
+  TLocateCompareFunction = function (Value: PChar; const Key: String): Boolean;
   
   TLocateFieldInfo = record
     Index: Integer;
@@ -909,39 +1015,72 @@ type
     CompFunction: TLocateCompareFunction;
   end;
 
-function CompInsensitivePartial(Value, Key: PChar): Boolean;
+function CompInsensitivePartial(UTF8Value: PChar; const AnsiKey: String): Boolean;
+var
+  AnsiValue: AnsiString;
 begin
-  if Value <> nil then
-    Result := StrLIComp(Value, Key, StrLen(Key)) = 0
+  //see comments of CompInsensitive and CompInsensitiveWild functions
+  if UTF8Value <> nil then
+  begin
+    AnsiValue := UTF8Decode(UTF8Value);
+    Result := AnsiStrLIComp(PChar(AnsiValue), PChar(AnsiKey), Length(AnsiKey)) = 0;
+  end
   else
     Result := False;
 end;
 
-function CompSensitivePartial(Value, Key: PChar): Boolean;
+function CompSensitivePartial(UTF8Value: PChar; const UTF8Key: String): Boolean;
 begin
-  if Value <> nil then
-    Result := StrLComp(Value, Key, StrLen(Key)) = 0
+  if UTF8Value <> nil then
+    Result := StrLComp(UTF8Value, PChar(UTF8Key), Length(UTF8Key)) = 0
   else
     Result := False;
 end;
 
-function CompInsensitive(Value, Key: PChar): Boolean;
+function CompInsensitive(UTF8Value: PChar; const AnsiKey: String): Boolean;
 begin
-  if Value <> nil then
-    Result := StrIComp(Value, Key) = 0
+  //fpc does not provide a function to compare UTF8 directly, so convert the
+  //UTF8Value string to ansi through a temporary widestring and compare with the
+  //AnsiKey (already encoded in the system ansi encoding).
+  //In unix systems where UTF8 is the system ansi encoding this would not be
+  //necessary but there's no direct way to check that
+  //todo: change this code when fpc has better support for unicode
+  if UTF8Value <> nil then
+    Result := AnsiCompareText(UTF8Decode(UTF8Value), AnsiKey) = 0
   else
     Result := False;
 end;
 
-function CompSensitive(Value, Key: PChar): Boolean;
+function CompSensitive(UTF8Value: PChar; const UTF8Key: String): Boolean;
 begin
-  if Value <> nil then
-    Result := StrComp(Value, Key) = 0
+  if UTF8Value <> nil then
+    Result := StrComp(UTF8Value, PChar(UTF8Key)) = 0
   else
     Result := False;
 end;
 
-function TCustomSqliteDataset.FindRecordItem(StartItem: PDataRecord; const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions; DoResync:Boolean):PDataRecord;
+function CompSensitiveWild(UTF8Value: PChar; const UTF8Key: String): Boolean;
+begin
+  if UTF8Value <> nil then
+    Result := IsWild(String(UTF8Value), UTF8Key, False)
+  else
+    Result := False;
+end;
+
+function CompInsensitiveWild(UTF8Value: PChar; const AnsiKey: String): Boolean;
+begin
+  //IsWild does not work with UTF8 encoded strings for case insensitive searches,
+  //so convert UTF8Value to the system ansi encoding before passing to IsWild.
+  //AnsiKey is already encoded in ansi
+  //todo: change this code when fpc has better support for unicode
+  if UTF8Value <> nil then
+    Result := IsWild(UTF8Decode(UTF8Value), AnsiKey, True)
+  else
+    Result := False;
+end;
+
+
+function TCustomSqliteDataset.FindRecordItem(StartItem: PDataRecord; const KeyFields: string; const KeyValues: Variant; LocateOptions: TLocateOptions; DoResync:Boolean): PDataRecord;
 var
   LocateFields: array of TLocateFieldInfo;
   AFieldList: TList;
@@ -960,11 +1099,11 @@ begin
     begin
       if VarIsArray(KeyValues) then
       begin
-        if Succ(VarArrayHighBound(KeyValues,1)) <> AFieldCount then
-          DatabaseError('Number of fields does not correspond to number of values',Self);
+        if Succ(VarArrayHighBound(KeyValues, 1)) <> AFieldCount then
+          DatabaseError('Number of fields does not correspond to number of values', Self);
       end
       else
-        DatabaseError('Wrong number of values specified: expected an array of variants got a variant',Self);
+        DatabaseError('Wrong number of values specified: expected an array of variants got a variant', Self);
     end;
     
     //set the array of the fields info
@@ -973,21 +1112,29 @@ begin
     for i := 0 to AFieldCount - 1 do
       with TField(AFieldList[i]) do
       begin
-        if not (DataType in [ftFloat,ftDateTime,ftTime,ftDate]) then
+        if not (DataType in [ftFloat, ftDateTime, ftTime, ftDate]) then
         begin
           //the loPartialKey and loCaseInsensitive is ignored in numeric fields
           if DataType in [ftString, ftMemo] then
           begin
-            if loPartialKey in Options then
+            if loPartialKey in LocateOptions then
             begin
-              if loCaseInsensitive in Options then
+              if loCaseInsensitive in LocateOptions then
                 LocateFields[i].CompFunction := @CompInsensitivePartial
               else
                 LocateFields[i].CompFunction := @CompSensitivePartial;
             end
             else
+            if soWildcardKey in FOptions then
             begin
-              if loCaseInsensitive in Options then
+              if loCaseInsensitive in LocateOptions then
+                LocateFields[i].CompFunction := @CompInsensitiveWild
+              else
+                LocateFields[i].CompFunction := @CompSensitiveWild;
+            end
+            else
+            begin
+              if loCaseInsensitive in LocateOptions then
                 LocateFields[i].CompFunction := @CompInsensitive
               else
                 LocateFields[i].CompFunction := @CompSensitive;
@@ -997,9 +1144,12 @@ begin
             LocateFields[i].CompFunction := @CompSensitive;
             
           if VarIsArray(KeyValues) then
-            LocateFields[i].Key := KeyValues[i]
+            LocateFields[i].Key := VarToStr(KeyValues[i])
           else
-            LocateFields[i].Key := KeyValues;
+            LocateFields[i].Key := VarToStr(KeyValues);
+          //store Key encoded as the system ansi encoding
+          if loCaseInsensitive in LocateOptions then
+            LocateFields[i].Key := UTF8Decode(LocateFields[i].Key);
         end
         else
         begin
@@ -1017,13 +1167,13 @@ begin
     AFieldList.Destroy;
   end;
   {$ifdef DEBUG_SQLITEDS}
-  writeln('##TCustomSqliteDataset.FindRecordItem##');
-  writeln('  KeyFields: ', KeyFields);
+  WriteLn('##TCustomSqliteDataset.FindRecordItem##');
+  WriteLn('  KeyFields: ', KeyFields);
   for i := 0 to AFieldCount - 1 do
   begin
-    writeln('LocateFields[',i,']');
-    writeln('  Key: ', LocateFields[i].Key);
-    writeln('  Index: ', LocateFields[i].Index);
+    WriteLn('LocateFields[', i, ']');
+    WriteLn('  Key: ', LocateFields[i].Key);
+    WriteLn('  Index: ', LocateFields[i].Index);
   end;
   {$endif}        
   //Search the list
@@ -1034,10 +1184,10 @@ begin
     for i:= 0 to AFieldCount - 1 do
     begin
       with LocateFields[i] do
-      if not CompFunction(TempItem^.Row[Index], PChar(Key)) then
+      if not CompFunction(TempItem^.Row[Index], Key) then
       begin
         MatchRecord := False;
-        Break;//for
+        break; //for
       end;
     end;
     if MatchRecord then
@@ -1050,17 +1200,43 @@ begin
         Resync([]);
         DoAfterScroll;
       end;
-      Break;//while
+      break; //while
     end;
     TempItem := TempItem^.Next;
   end;      
 end;
 
+procedure TCustomSqliteDataset.UpdateMasterDetailProperties;
+var
+  i: Integer;
+begin
+  if FMasterLink.Active and (FIndexFieldList.Count <> FMasterLink.Fields.Count) then
+    DatabaseError('MasterFields count doesn''t match IndexFields count', Self);
+  if FieldDefs.Count > 0 then
+  begin
+    //build the sql template used to filter the dataset
+    FSqlFilterTemplate := 'SELECT ';
+    for i := 0 to FieldDefs.Count - 2 do
+      FSqlFilterTemplate := FSqlFilterTemplate + FieldDefs[i].Name + ',';
+    FSqlFilterTemplate := FSqlFilterTemplate + FieldDefs[FieldDefs.Count - 1].Name +
+      ' FROM ' + FTableName;
+  end;
+  //set FEffectiveSQL considering MasterSource active record
+  SetDetailFilter;
+end;
+
+function TCustomSqliteDataset.FieldDefsStored: Boolean;
+begin
+  Result := FStoreDefs and (FieldDefs.Count > 0);
+end;
+
 procedure TCustomSqliteDataset.GetSqliteHandle;
 begin
   if FFileName = '' then
-    DatabaseError('Filename not set',Self);
+    DatabaseError('Filename not set', Self);
   FSqliteHandle := InternalGetHandle;
+  if Assigned(FOnGetHandle) then
+    FOnGetHandle(Self);
 end;
 
 procedure TCustomSqliteDataset.FreeItem(AItem: PDataRecord);
@@ -1069,32 +1245,41 @@ var
 begin
   for i:= 0 to FRowCount - 1 do
     StrDispose(AItem^.Row[i]);
-  FreeMem(AItem^.Row,FRowBufferSize);
+  FreeMem(AItem^.Row, FRowBufferSize);
   Dispose(AItem);
 end;
 
-function TCustomSqliteDataset.Locate(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : Boolean;
+function TCustomSqliteDataset.Locate(const KeyFields: String; const KeyValues: Variant; LocateOptions: TLocateOptions): Boolean;
 begin
   CheckBrowseMode;
-  Result := FindRecordItem(FBeginItem^.Next, KeyFields, KeyValues, Options, True) <> nil;
+  Result := FindRecordItem(FBeginItem^.Next, KeyFields, KeyValues, LocateOptions, True) <> nil;
 end;
   
-function TCustomSqliteDataset.LocateNext(const KeyFields: string; const KeyValues: Variant; Options: TLocateOptions) : Boolean;
+function TCustomSqliteDataset.LocateNext(const KeyFields: String; const KeyValues: Variant; LocateOptions: TLocateOptions): Boolean;
 begin
   CheckBrowseMode;
-  Result := FindRecordItem(PPDataRecord(ActiveBuffer)^^.Next, KeyFields, KeyValues, Options, True) <> nil;
+  Result := FindRecordItem(PPDataRecord(ActiveBuffer)^^.Next, KeyFields, KeyValues, LocateOptions, True) <> nil;
 end;
   
-function TCustomSqliteDataset.Lookup(const KeyFields: string; const KeyValues: Variant; const ResultFields: string): Variant;
+function TCustomSqliteDataset.Lookup(const KeyFields: String; const KeyValues: Variant; const ResultFields: String): Variant;
 var
   TempItem: PDataRecord;
+  SaveState: TDataSetState;
 begin
   CheckBrowseMode;
   TempItem := FindRecordItem(FBeginItem^.Next, KeyFields, KeyValues, [], False);
   if TempItem <> nil then
-    Result := TempItem^.Row[FieldByName(ResultFields).FieldNo - 1]
+  begin
+    SaveState := SetTempState(dsInternalCalc);
+    try
+      CalculateFields(PChar(@TempItem));
+      Result := FieldByName(ResultFields).Value;
+    finally
+      RestoreState(SaveState);
+    end;
+  end
   else
-    Result := False;
+    Result := Null;
 end;  
 
 procedure TCustomSqliteDataset.SetBookmarkData(Buffer: PChar; Data: Pointer);
@@ -1107,67 +1292,97 @@ begin
   PPDataRecord(Buffer)^^.BookmarkFlag := Value;
 end;
 
-procedure TCustomSqliteDataset.SetExpectedAppends(AValue:Integer);
+procedure TCustomSqliteDataset.SetExpectedAppends(AValue: Integer);
 begin
-  FAddedItems.Capacity:=AValue;
+  FAddedItems.Capacity := AValue;
 end;  
 
-procedure TCustomSqliteDataset.SetExpectedUpdates(AValue:Integer);
+procedure TCustomSqliteDataset.SetExpectedUpdates(AValue: Integer);
 begin
-  FUpdatedItems.Capacity:=AValue;
+  FUpdatedItems.Capacity := AValue;
 end;  
 
-procedure TCustomSqliteDataset.SetExpectedDeletes(AValue:Integer);
+procedure TCustomSqliteDataset.SetExpectedDeletes(AValue: Integer);
 begin
-  FDeletedItems.Capacity:=AValue;
+  FDeletedItems.Capacity := AValue;
 end;  
 
 procedure TCustomSqliteDataset.SetFieldData(Field: TField; Buffer: Pointer;
   NativeFormat: Boolean);
 var
-  TempStr:String;
+  TempStr: String;
+  FloatStr: PChar;
+  FloatLen, FieldOffset: Integer;
+  EditItem: PDataRecord;
 begin
-  if not (State in [dsEdit, dsInsert]) then
-    DatabaseErrorFmt(SNotEditing,[Name],Self);
+  if not (State in [dsEdit, dsInsert, dsCalcFields]) then
+    DatabaseErrorFmt(SNotEditing, [Name], Self);
 
-  StrDispose(FCacheItem^.Row[Pred(Field.FieldNo)]);
+  if Field.FieldNo >= 0 then
+  begin
+    FieldOffset := Field.FieldNo - 1;
+    EditItem := FCacheItem;
+  end
+  else
+  begin
+    FieldOffset := FieldDefs.Count + FCalcFieldList.IndexOf(Field);
+    EditItem := PPDataRecord(CalcBuffer)^;
+  end;
+
+  StrDispose(EditItem^.Row[FieldOffset]);
   if Buffer <> nil then
   begin
     case Field.Datatype of
     ftString:
       begin            
-        FCacheItem^.Row[Pred(Field.FieldNo)]:=StrNew(PChar(Buffer));
+        EditItem^.Row[FieldOffset] := StrNew(PChar(Buffer));
       end;
     ftInteger:
       begin          
-        Str(LongInt(Buffer^),TempStr);  
-        FCacheItem^.Row[Pred(Field.FieldNo)]:=StrAlloc(Length(TempStr)+1);
-        Move(PChar(TempStr)^,(FCacheItem^.Row[Pred(Field.FieldNo)])^,Length(TempStr)+1);
+        Str(LongInt(Buffer^), TempStr);
+        EditItem^.Row[FieldOffset] := StrAlloc(Length(TempStr) + 1);
+        Move(PChar(TempStr)^, (EditItem^.Row[FieldOffset])^, Length(TempStr) + 1);
       end;
-    ftBoolean,ftWord:
+    ftBoolean, ftWord:
       begin
-        Str(Word(Buffer^),TempStr);  
-        FCacheItem^.Row[Pred(Field.FieldNo)]:=StrAlloc(Length(TempStr)+1);
-        Move(PChar(TempStr)^,(FCacheItem^.Row[Pred(Field.FieldNo)])^,Length(TempStr)+1);
+        //ensure that boolean True value is stored as 1
+        if Field.DataType = ftBoolean then
+          TempStr := IfThen(Boolean(Buffer^), '1', '0')
+        else
+          Str(Word(Buffer^), TempStr);
+        EditItem^.Row[FieldOffset] := StrAlloc(Length(TempStr) + 1);
+        Move(PChar(TempStr)^, (EditItem^.Row[FieldOffset])^, Length(TempStr) + 1);
       end;  
-    ftFloat,ftDateTime,ftDate,ftTime,ftCurrency:
+    ftFloat, ftDateTime, ftDate, ftTime, ftCurrency:
       begin
-        Str(Double(Buffer^),TempStr);  
-        FCacheItem^.Row[Pred(Field.FieldNo)]:=StrAlloc(Length(TempStr));
-        //Skips the first space that str returns
-        //todo: make a custom Str?
-        Move((PChar(TempStr)+1)^,(FCacheItem^.Row[Pred(Field.FieldNo)])^,Length(TempStr));
+        Str(Double(Buffer^), TempStr);
+        //Str returns an space as the first character for positive values
+        //and the - sign for negative values. It's necessary to remove the extra
+        //space while keeping the - sign
+        if TempStr[1] = ' ' then
+        begin
+          FloatStr := PChar(TempStr) + 1;
+          FloatLen := Length(TempStr);
+        end
+        else
+        begin
+          FloatStr := PChar(TempStr);
+          FloatLen := Length(TempStr) + 1;
+        end;
+        EditItem^.Row[FieldOffset] := StrAlloc(FloatLen);
+        Move(FloatStr^, (EditItem^.Row[FieldOffset])^, FloatLen);
       end;
     ftLargeInt:
       begin
-        Str(Int64(Buffer^),TempStr);  
-        FCacheItem^.Row[Pred(Field.FieldNo)]:=StrAlloc(Length(TempStr)+1);
-        Move(PChar(TempStr)^,(FCacheItem^.Row[Pred(Field.FieldNo)])^,Length(TempStr)+1);
+        Str(Int64(Buffer^), TempStr);
+        EditItem^.Row[FieldOffset] := StrAlloc(Length(TempStr) + 1);
+        Move(PChar(TempStr)^, (EditItem^.Row[FieldOffset])^, Length(TempStr) + 1);
       end;        
     end;// case
   end//if
   else
-    FCacheItem^.Row[Pred(Field.FieldNo)]:=nil;
+    EditItem^.Row[FieldOffset] := nil;
+
   if not (State in [dsCalcFields, dsFilter, dsNewValue]) then
     DataEvent(deFieldChange, Ptrint(Field));  
 end;
@@ -1200,37 +1415,40 @@ end;
 // Specific functions 
 
 procedure TCustomSqliteDataset.SetDetailFilter;
-  function FieldToSqlStr(AField:TField):String;
+  function FieldToSqlStr(AField: TField): String;
   begin
     if not AField.IsNull then
     begin
       case AField.DataType of
-        ftString,ftMemo: Result:='"'+AField.AsString+'"';//todo: handle " caracter properly
-        ftDateTime,ftDate,ftTime:Str(AField.AsDateTime,Result);
+        //todo: handle " caracter properly
+        ftString, ftMemo:
+          Result := '"' + AField.AsString + '"';
+        ftDateTime, ftDate, ftTime:
+          Str(AField.AsDateTime, Result);
       else
-        Result:=AField.AsString;
-      end;//case
+        Result := AField.AsString;
+      end; //case
     end
     else
       Result:=NullString;
-  end;//function
+  end; //function
 
 var
-  AFilter:String;
-  i:Integer;
+  AFilter: String;
+  i: Integer;
 begin
-  if FMasterLink.Dataset.RecordCount = 0 then //Retrieve all data
-    FSql:='Select * from '+FTableName
+  if (FMasterLink.Dataset.RecordCount = 0) or not FMasterLink.Active then //Retrieve all data
+    FEffectiveSQL := FSqlFilterTemplate
   else
   begin
-    AFilter:=' where ';
-    for i:= 0 to FMasterLink.Fields.Count - 1 do
+    AFilter := ' where ';
+    for i := 0 to FMasterLink.Fields.Count - 1 do
     begin
-      AFilter:=AFilter + IndexFields[i].FieldName +' = '+ FieldToSqlStr(TField(FMasterLink.Fields[i]));
+      AFilter := AFilter + IndexFields[i].FieldName + ' = ' + FieldToSqlStr(TField(FMasterLink.Fields[i]));
       if i <> FMasterLink.Fields.Count - 1 then
-        AFilter:= AFilter + ' and ';
+        AFilter := AFilter + ' and ';
     end;
-    FSql:='Select * from '+FTableName+AFilter;
+    FEffectiveSQL := FSqlFilterTemplate + AFilter;
   end;
 end;
 
@@ -1238,45 +1456,43 @@ procedure TCustomSqliteDataset.MasterChanged(Sender: TObject);
 begin
   SetDetailFilter;
   {$ifdef DEBUG_SQLITEDS}
-  writeln('##TCustomSqliteDataset.MasterChanged##');
-  writeln('  SQL used to filter detail dataset:');
-  writeln('  ',FSql);
+  WriteLn('##TCustomSqliteDataset.MasterChanged##');
+  WriteLn('  SQL used to filter detail dataset:');
+  WriteLn('  ', FEffectiveSQL);
   {$endif}
-  RefetchData;
-end;
-
-procedure TCustomSqliteDataset.MasterDisabled(Sender: TObject);
-begin
-  FSql:='Select * from '+FTableName+';'; 
   RefetchData;
 end;
 
 procedure TCustomSqliteDataset.SetMasterFields(const Value: String);
 begin
-  FMasterLink.FieldNames:=Value;
+  FMasterLink.FieldNames := Value;
   if Active and FMasterLink.Active then
   begin
-    UpdateIndexFields;
+    UpdateIndexFieldList;
     if (FIndexFieldList.Count <> FMasterLink.Fields.Count) then
-      DatabaseError('MasterFields count doesn''t match IndexFields count',Self);
+      DatabaseError('MasterFields count doesn''t match IndexFields count', Self);
   end;
 end;
 
 function TCustomSqliteDataset.GetMasterFields: String;
 begin
-  Result:=FMasterLink.FieldNames;
+  Result := FMasterLink.FieldNames;
 end;
 
-procedure TCustomSqliteDataset.UpdateIndexFields;
+procedure TCustomSqliteDataset.UpdateIndexFieldList;
 begin
-  FIndexFieldList.Clear;
-  if FIndexFieldNames <> '' then
-  begin
-    try
-      GetFieldList(FIndexFieldList, FIndexFieldNames);
-    except
+  if FIndexFieldList = nil then
+    FIndexFieldList := TList.Create
+  else
+    FIndexFieldList.Clear;
+
+  try
+    GetFieldList(FIndexFieldList, FIndexFieldNames);
+  except
+    on E: Exception do
+    begin
       FIndexFieldList.Clear;
-      raise;
+      DatabaseError('Error retrieving index fields: ' + E.Message);
     end;
   end;
 end;
@@ -1291,10 +1507,10 @@ begin
   if Value <> FFileName then
   begin
     if Active then
-      DatabaseError('It''s not allowed to change Filename in an open dataset',Self);
+      DatabaseError('It''s not allowed to change Filename in an open dataset', Self);
     if FSqliteHandle <> nil then
       InternalCloseHandle;
-    FFileName:=Value;
+    FFileName := Value;
   end;
 end;
 
@@ -1303,161 +1519,202 @@ begin
   FMasterLink.DataSource := Value;
 end;
 
-procedure TCustomSqliteDataset.ExecSQL(const ASql:String);
+procedure TCustomSqliteDataset.ExecSQL(const ASQL: String);
 begin
   if FSqliteHandle = nil then
     GetSqliteHandle;
-  ExecuteDirect(ASql);
+  ExecuteDirect(ASQL);
+end;
+
+procedure TCustomSqliteDataset.ExecSQL(ASqlList: TStrings);
+begin
+  if FSqliteHandle = nil then
+    GetSqliteHandle;
+  FReturnCode := SqliteExec(PChar(ASQLList.Text), nil, nil);
+  if FReturnCode <> SQLITE_OK then
+    DatabaseError(ReturnString, Self);
 end;
 
 procedure TCustomSqliteDataset.ExecSQLList;
 begin
-  if FSqliteHandle = nil then
-    GetSqliteHandle;
-  SqliteExec(PChar(FSqlList.Text),nil,nil);
+  ExecSQL(SQLList);
+end;
+
+function TCustomSqliteDataset.GetSQLValue(Values: PPChar; FieldIndex: Integer): String;
+begin
+  if (State = dsInactive) or (FieldIndex < 0) or (FieldIndex >= FieldDefs.Count) then
+    DatabaseError('Error retrieving SQL value: dataset inactive or field out of range', Self);
+  Result := FGetSqlStr[FieldIndex](Values[FieldIndex]);
 end;
 
 procedure TCustomSqliteDataset.ExecSQL;
 begin
-  ExecSQL(FSql);
+  ExecSQL(FSQL);
 end;
 
-function TCustomSqliteDataset.ApplyUpdates:Boolean;
+function TCustomSqliteDataset.ApplyUpdates: Boolean;
 var
-  iFields, iItems, StatementsCounter, TempReturnCode:Integer;
-  SqlTemp,WhereKeyNameEqual,ASqlLine,TemplateStr:String;
+  iFields, iItems, StatementsCounter: Integer;
+  SQLTemp, WhereKeyNameEqual, SQLLine, TemplateStr: String;
   TempItem: PDataRecord;
 begin
+  Result := False;
   CheckBrowseMode;
   if not UpdatesPending then
   begin
-    Result:=True;
+    Result := True;
     Exit;
   end;
-  Result:=False;
+  //A PrimaryKey is only necessary to update or delete records
   if FPrimaryKeyNo <> -1 then
   begin
-    FReturnCode := SQLITE_OK;
-    StatementsCounter:=0;
-    WhereKeyNameEqual:=' WHERE '+Fields[FPrimaryKeyNo].FieldName+' = ';
-    {$ifdef DEBUG_SQLITEDS}
-    WriteLn('##TCustomSqliteDataset.ApplyUpdates##');
-    if FPrimaryKeyNo = FAutoIncFieldNo then
-      WriteLn('  Using an AutoInc field as primary key');
-    WriteLn('  PrimaryKey: ',WhereKeyNameEqual);
-    WriteLn('  PrimaryKeyNo: ',FPrimaryKeyNo);
-    {$endif}
-    SqlTemp:='BEGIN;';
-    // Delete Records
-    if FDeletedItems.Count > 0 then
-      TemplateStr:='DELETE FROM '+FTableName+WhereKeyNameEqual;
-    for iItems:= 0 to FDeletedItems.Count - 1 do
-    begin
-      TempItem:=PDataRecord(FDeletedItems.List^[iItems]);
-      SqlTemp:=SqlTemp+(TemplateStr+
-        String(TempItem^.Row[FPrimaryKeyNo])+';');
-      FreeItem(TempItem);
-      inc(StatementsCounter);
-      //ApplyUpdates each 400 statements
-      if StatementsCounter = 400 then
-      begin
-        SqlTemp:=SqlTemp+'COMMIT;';
-        TempReturnCode := SqliteExec(PChar(SqlTemp),nil,nil);
-        if TempReturnCode <> SQLITE_OK then
-          FReturnCode := TempReturnCode;  
-        StatementsCounter:=0;
-        SqlTemp:='BEGIN;';
-      end;    
-    end;
-    // Update changed records
-    if FUpdatedItems.Count > 0 then
-      TemplateStr:='UPDATE '+FTableName+' SET ';
-    for iItems:= 0 to FUpdatedItems.Count - 1 do
-    begin
-      ASqlLine:=TemplateStr;
-      for iFields:= 0 to Fields.Count - 2 do
-      begin
-        ASqlLine:=ASqlLine + (Fields[iFields].FieldName +' = '+
-          FGetSqlStr[iFields](PDataRecord(FUpdatedItems[iItems])^.Row[iFields])+',');
-      end;
-      iFields:=Fields.Count - 1;
-      ASqlLine:=ASqlLine + (Fields[iFields].FieldName +' = '+
-        FGetSqlStr[iFields](PDataRecord(FUpdatedItems[iItems])^.Row[iFields])+
-        WhereKeyNameEqual+String(PDataRecord(FUpdatedItems[iItems])^.Row[FPrimaryKeyNo])+';');
-      SqlTemp:=SqlTemp + ASqlLine;
-      inc(StatementsCounter);
-      //ApplyUpdates each 400 statements
-      if StatementsCounter = 400 then
-      begin
-        SqlTemp:=SqlTemp+'COMMIT;';
-        TempReturnCode := SqliteExec(PChar(SqlTemp),nil,nil);
-        if TempReturnCode <> SQLITE_OK then
-          FReturnCode := TempReturnCode;
-        StatementsCounter:=0;
-        SqlTemp:='BEGIN;';
-      end;  
-    end;
-    // Add new records
-    // Build TemplateStr
-    if FAddedItems.Count > 0 then
-    begin
-      TemplateStr:='INSERT INTO '+FTableName+ ' (';
-      for iFields:= 0 to Fields.Count - 2 do
-        TemplateStr:=TemplateStr + Fields[iFields].FieldName+',';
-      TemplateStr:= TemplateStr+Fields[Fields.Count - 1].FieldName+') VALUES (';
-    end;  
-    for iItems:= 0 to FAddedItems.Count - 1 do
-    begin
-      ASqlLine:=TemplateStr;
-      for iFields:= 0 to Fields.Count - 2 do
-      begin
-        ASqlLine:=ASqlLine + (FGetSqlStr[iFields](PDataRecord(FAddedItems[iItems])^.Row[iFields])+',');
-      end;
-      //todo: see if i can assume iFields = Fields.Count-2 safely
-      iFields:=Fields.Count - 1;
-      ASqlLine:=ASqlLine + (FGetSqlStr[iFields](PDataRecord(FAddedItems[iItems])^.Row[iFields])+');');
-      SqlTemp:=SqlTemp + ASqlLine;    
-      inc(StatementsCounter);
-      //ApplyUpdates each 400 statements
-      if StatementsCounter = 400 then
-      begin
-        SqlTemp:=SqlTemp+'COMMIT;';
-        TempReturnCode := SqliteExec(PChar(SqlTemp),nil,nil);
-        if TempReturnCode <> SQLITE_OK then
-          FReturnCode := TempReturnCode;
-        StatementsCounter:=0;
-        SqlTemp:='BEGIN;';
-      end;  
-    end;  
-    SqlTemp:=SqlTemp+'COMMIT;';
-    {$ifdef DEBUG_SQLITEDS}
-    writeln('  SQL: ',SqlTemp);
-    {$endif}  
-   FAddedItems.Clear;
-   FUpdatedItems.Clear;
-   FDeletedItems.Clear;   
-   TempReturnCode := SqliteExec(PChar(SqlTemp),nil,nil);
-   if TempReturnCode <> SQLITE_OK then
-     FReturnCode := TempReturnCode;
-   Result:= FReturnCode = SQLITE_OK;
-  end;  
+    WhereKeyNameEqual := ' WHERE ' + FieldDefs[FPrimaryKeyNo].Name + ' = ';
+    Result := True;
+  end else if (FUpdatedItems.Count + FDeletedItems.Count) = 0 then
+    Result := True;
+  if not Result then
+    Exit;
+
+  FReturnCode := SQLITE_OK;
+  StatementsCounter := 0;
+  SQLTemp := 'BEGIN;';
   {$ifdef DEBUG_SQLITEDS}
-    writeln('  Result: ',Result);
+  WriteLn('##TCustomSqliteDataset.ApplyUpdates##');
+  if FPrimaryKeyNo = FAutoIncFieldNo then
+    WriteLn('  Using an AutoInc field as primary key');
+  WriteLn('  PrimaryKey: ', WhereKeyNameEqual);
+  WriteLn('  PrimaryKeyNo: ', FPrimaryKeyNo);
+  {$endif}
+  // Delete Records
+  if FDeletedItems.Count > 0 then
+  begin
+    TemplateStr := 'DELETE FROM ' + FTableName + WhereKeyNameEqual;
+    for iItems := 0 to FDeletedItems.Count - 1 do
+    begin
+      TempItem := PDataRecord(FDeletedItems.List^[iItems]);
+      SQLTemp := SQLTemp + (TemplateStr +
+        FGetSqlStr[FPrimaryKeyNo](TempItem^.Row[FPrimaryKeyNo]) + ';');
+      FreeItem(TempItem);
+      Inc(StatementsCounter);
+      //ApplyUpdates each 400 statements
+      if StatementsCounter = 400 then
+      begin
+        SQLTemp := SQLTemp + 'COMMIT;';
+        FReturnCode := SqliteExec(PChar(SQLTemp), nil, nil);
+        StatementsCounter := 0;
+        SQLTemp := 'BEGIN;';
+        if FReturnCode <> SQLITE_OK then
+        begin
+          SqliteExec('ROLLBACK;', nil, nil);
+          Break;
+        end;
+      end;
+    end;
+  end;
+  // Update changed records
+  if (FUpdatedItems.Count > 0) and (FReturnCode = SQLITE_OK) then
+  begin
+    TemplateStr := 'UPDATE ' + FTableName + ' SET ';
+    for iItems := 0 to FUpdatedItems.Count - 1 do
+    begin
+      SQLLine := TemplateStr;
+      for iFields := 0 to FieldDefs.Count - 2 do
+      begin
+        SQLLine := SQLLine + (FieldDefs[iFields].Name + ' = ' +
+          FGetSqlStr[iFields](PDataRecord(FUpdatedItems[iItems])^.Row[iFields]) + ',');
+      end;
+      iFields := FieldDefs.Count - 1;
+      SQLLine := SQLLine + (FieldDefs[iFields].Name + ' = ' +
+        FGetSqlStr[iFields](PDataRecord(FUpdatedItems[iItems])^.Row[iFields]) +
+        WhereKeyNameEqual +
+        FGetSqlStr[FPrimaryKeyNo](PDataRecord(FUpdatedItems[iItems])^.Row[FPrimaryKeyNo]) + ';');
+      SQLTemp := SQLTemp + SQLLine;
+      Inc(StatementsCounter);
+      //ApplyUpdates each 400 statements
+      if StatementsCounter = 400 then
+      begin
+        SQLTemp := SQLTemp + 'COMMIT;';
+        FReturnCode := SqliteExec(PChar(SQLTemp), nil, nil);
+        StatementsCounter := 0;
+        SQLTemp := 'BEGIN;';
+        if FReturnCode <> SQLITE_OK then
+        begin
+          SqliteExec('ROLLBACK;', nil, nil);
+          Break;
+        end;
+      end;
+    end;
+  end;
+  // Add new records
+  if (FAddedItems.Count > 0) and (FReturnCode = SQLITE_OK) then
+  begin
+    // Build TemplateStr
+    TemplateStr := 'INSERT INTO ' + FTableName + ' (';
+    for iFields := 0 to FieldDefs.Count - 2 do
+      TemplateStr := TemplateStr + FieldDefs[iFields].Name + ',';
+    TemplateStr := TemplateStr + FieldDefs[FieldDefs.Count - 1].Name + ') VALUES (';
+    for iItems := 0 to FAddedItems.Count - 1 do
+    begin
+      SQLLine := TemplateStr;
+      for iFields := 0 to FieldDefs.Count - 2 do
+        SQLLine := SQLLine + (FGetSqlStr[iFields](PDataRecord(FAddedItems[iItems])^.Row[iFields]) + ',');
+      iFields := FieldDefs.Count - 1;
+      SQLLine := SQLLine + (FGetSqlStr[iFields](PDataRecord(FAddedItems[iItems])^.Row[iFields]) + ');' );
+      SQLTemp := SQLTemp + SQLLine;
+      Inc(StatementsCounter);
+      //ApplyUpdates each 400 statements
+      if StatementsCounter = 400 then
+      begin
+        SQLTemp := SQLTemp + 'COMMIT;';
+        FReturnCode := SqliteExec(PChar(SQLTemp), nil, nil);
+        StatementsCounter := 0;
+        SQLTemp := 'BEGIN;';
+        if FReturnCode <> SQLITE_OK then
+        begin
+          SqliteExec('ROLLBACK;', nil, nil);
+          Break;
+        end;
+      end;
+    end;
+  end;
+  FAddedItems.Clear;
+  FUpdatedItems.Clear;
+  FDeletedItems.Clear;
+  if FReturnCode = SQLITE_OK then
+  begin
+    SQLTemp := SQLTemp + 'COMMIT;';
+    FReturnCode := SqliteExec(PChar(SQLTemp), nil, nil);
+    if FReturnCode <> SQLITE_OK then
+      SqliteExec('ROLLBACK;', nil, nil);
+  end;
+  Result := FReturnCode = SQLITE_OK;
+  {$ifdef DEBUG_SQLITEDS}
+  WriteLn('  Result: ', Result);
   {$endif}   
-end;    
+end;
+
+procedure TCustomSqliteDataset.ClearUpdates(RecordStates: TRecordStateSet);
+begin
+  if rsUpdated in RecordStates then
+    FUpdatedItems.Clear;
+  if rsDeleted in RecordStates then
+    FDeletedItems.Clear;
+  if rsAdded in RecordStates then
+    FAddedItems.Clear;
+end;
 
 function TCustomSqliteDataset.CreateTable: Boolean;
 begin
-  Result:=CreateTable(FTableName);
+  Result := CreateTable(FTableName);
 end;
 
 function TCustomSqliteDataset.CreateTable(const ATableName: String): Boolean;
 var
-  SqlTemp:String;
-  i:Integer;
+  SQLTemp: String;
+  i, StrSize: Integer;
 begin
   {$ifdef DEBUG_SQLITEDS}
-  writeln('##TCustomSqliteDataset.CreateTable##');
+  WriteLn('##TCustomSqliteDataset.CreateTable##');
   if ATableName = '' then
     WriteLn('  TableName Not Set');
   if FieldDefs.Count = 0 then
@@ -1465,66 +1722,72 @@ begin
   {$endif}
   if (ATableName <> '') and (FieldDefs.Count > 0) then
   begin
-    SqlTemp:='CREATE TABLE '+ATableName+' (';
-    for i := 0 to FieldDefs.Count-1 do
+    SQLTemp := 'CREATE TABLE ' + ATableName + ' (';
+    for i := 0 to FieldDefs.Count - 1 do
     begin
       //todo: add index to autoinc field
-      SqlTemp:=SqlTemp + FieldDefs[i].Name;
+      SQLTemp := SQLTemp + FieldDefs[i].Name;
       case FieldDefs[i].DataType of
         ftInteger:
-          SqlTemp:=SqlTemp + ' INTEGER';
+          SQLTemp := SQLTemp + ' INTEGER';
         ftString:
-          SqlTemp:=SqlTemp + ' VARCHAR';
+        begin
+          StrSize := FieldDefs[i].Size;
+          if StrSize = 0 then
+            StrSize := DefaultStringSize;
+          SQLTemp := SQLTemp + ' VARCHAR(' + IntToStr(StrSize) + ')';
+        end;
         ftBoolean:
-          SqlTemp:=SqlTemp + ' BOOL_INT';
+          SQLTemp := SQLTemp + ' BOOL_INT';
         ftFloat:
-          SqlTemp:=SqlTemp + ' FLOAT';
+          SQLTemp := SQLTemp + ' FLOAT';
         ftWord:
-          SqlTemp:=SqlTemp + ' WORD';
+          SQLTemp := SQLTemp + ' WORD';
         ftDateTime:
-          SqlTemp:=SqlTemp + ' DATETIME';
+          SQLTemp := SQLTemp + ' DATETIME';
         ftDate:
-          SqlTemp:=SqlTemp + ' DATE';
+          SQLTemp := SQLTemp + ' DATE';
         ftTime:
-          SqlTemp:=SqlTemp + ' TIME';
+          SQLTemp := SQLTemp + ' TIME';
         ftLargeInt:
-          SqlTemp:=SqlTemp + ' LARGEINT';
+          SQLTemp := SQLTemp + ' LARGEINT';
         ftCurrency:
-          SqlTemp:=SqlTemp + ' CURRENCY';
+          SQLTemp := SQLTemp + ' CURRENCY';
         ftAutoInc:
-          SqlTemp:=SqlTemp + ' AUTOINC_INT';
+          SQLTemp := SQLTemp + ' AUTOINC_INT';
         ftMemo:
-          SqlTemp:=SqlTemp + ' TEXT';
+          SQLTemp := SQLTemp + ' TEXT';
       else
-        DatabaseError('Field type "'+FieldTypeNames[FieldDefs[i].DataType]+'" not supported',Self);
+        DatabaseError('Field type "' + FieldTypeNames[FieldDefs[i].DataType] +
+          '" not supported', Self);
       end;
       if UpperCase(FieldDefs[i].Name) = UpperCase(FPrimaryKey) then
-        SqlTemp:=SqlTemp + ' PRIMARY KEY';
+        SQLTemp := SQLTemp + ' PRIMARY KEY';
       if i <> FieldDefs.Count - 1 then
-        SqlTemp:=SqlTemp+ ' , ';
+        SQLTemp := SQLTemp + ' , ';
     end;
-    SqlTemp:=SqlTemp+');';
+    SQLTemp := SQLTemp + ');';
     {$ifdef DEBUG_SQLITEDS}
-    writeln('  SQL: ',SqlTemp);
+    WriteLn('  SQL: ',SqlTemp);
     {$endif}
-    ExecSQL(SqlTemp);
-    Result:= FReturnCode = SQLITE_OK;
+    ExecSQL(SQLTemp);
+    Result := FReturnCode = SQLITE_OK;
   end
   else
-    Result:=False;
+    Result := False;
 end;
 
-procedure TCustomSqliteDataset.ExecCallback(const ASql: String; UserData: Pointer = nil);
+procedure TCustomSqliteDataset.ExecCallback(const ASQL: String; UserData: Pointer = nil);
 var
   CallbackInfo: TCallbackInfo;
 begin
   if not Assigned(FOnCallback) then
-    DatabaseError('OnCallback property not set',Self);
+    DatabaseError('OnCallback property not set', Self);
   if FSqliteHandle = nil then
     GetSqliteHandle;
-  CallbackInfo.Data:=UserData;
-  CallbackInfo.Proc:=FOnCallback;
-  SqliteExec(PChar(ASql),@CallbackDispatcher,@CallbackInfo);
+  CallbackInfo.Data := UserData;
+  CallbackInfo.Proc := FOnCallback;
+  SqliteExec(PChar(ASQL), @CallbackDispatcher, @CallbackInfo);
 end;
 
 
@@ -1535,32 +1798,32 @@ var
   TempItem: PDataRecord;
 begin
   if not Assigned(Callback) then
-    DatabaseError('Callback parameter not set',Self);
+    DatabaseError('Callback parameter not set', Self);
   CheckBrowseMode;
   if rsDeleted in RecordStates then
     with FDeletedItems do
-    for i:= 0 to Count - 1 do
-      Callback(UserData,PDataRecord(Items[i])^.Row,nil,rsDeleted);
+    for i := 0 to Count - 1 do
+      Callback(UserData,PDataRecord(Items[i])^.Row, nil, rsDeleted);
   if rsUpdated in RecordStates then
     with FUpdatedItems do
-    for i:= 0 to Count - 1 do
+    for i := 0 to Count - 1 do
     begin
-      TempItem:=PDataRecord(Items[i]);
-      Callback(UserData,TempItem^.Row,TBookmark(@TempItem),rsUpdated);
+      TempItem := PDataRecord(Items[i]);
+      Callback(UserData, TempItem^.Row, TBookmark(@TempItem), rsUpdated);
     end;
   if rsAdded in RecordStates then
     with FAddedItems do
-    for i:= 0 to Count - 1 do
+    for i := 0 to Count - 1 do
     begin
-      TempItem:=PDataRecord(Items[i]);
-      Callback(UserData,TempItem^.Row,TBookmark(@TempItem),rsAdded);
+      TempItem := PDataRecord(Items[i]);
+      Callback(UserData, TempItem^.Row, TBookmark(@TempItem), rsAdded);
     end;
 end;
 
 
 procedure TCustomSqliteDataset.RefetchData;
 var
-  i:Integer;
+  i: Integer;
 begin
   //Close
   if FSaveOnRefetch then
@@ -1572,9 +1835,9 @@ begin
   FDeletedItems.Clear;
   //Reopen
   BuildLinkedList;               
-  FCurrentItem:=FBeginItem;
+  FCurrentItem := FBeginItem;
   for i := 0 to BufferCount - 1 do
-    PPDataRecord(Buffers[i])^:=FBeginItem;
+    PPDataRecord(Buffers[i])^ := FBeginItem;
   Resync([]);
   DoAfterScroll;
 end;
@@ -1586,24 +1849,24 @@ end;
 
 function TCustomSqliteDataset.TableExists(const ATableName: String): Boolean;
 begin
-  ExecSql('SELECT name FROM SQLITE_MASTER WHERE type = ''table'' AND name LIKE '''+ ATableName+ ''';');
+  ExecSql('SELECT name FROM SQLITE_MASTER WHERE type = ''table'' AND name LIKE ''' + ATableName + ''';');
   Result := FReturnCode = SQLITE_ROW;
 end;
 
 function TCustomSqliteDataset.UpdatesPending: Boolean;
 begin
-  Result:= (FUpdatedItems.Count > 0) or
+  Result := (FUpdatedItems.Count > 0) or
     (FAddedItems.Count > 0) or (FDeletedItems.Count > 0);
 end;
 
-function TCustomSqliteDataset.QuickQuery(const ASql:String):String;
+function TCustomSqliteDataset.QuickQuery(const ASQL: String): String;
 begin
-  Result:=QuickQuery(ASql,nil,False); 
+  Result := QuickQuery(ASQL, nil, False);
 end;
 
-function TCustomSqliteDataset.QuickQuery(const ASql:String;const AStrList: TStrings):String;
+function TCustomSqliteDataset.QuickQuery(const ASQL: String; const AStrList: TStrings): String;
 begin
-  Result:=QuickQuery(ASql,AStrList,False)
+  Result := QuickQuery(ASQL, AStrList, False)
 end;  
 
 

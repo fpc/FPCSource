@@ -32,14 +32,14 @@ begin
   FEpollReadFD := epoll_create(BASE_SIZE);
   FEpollMasterFD := epoll_create(2);
   if (FEPollFD < 0) or (FEpollReadFD < 0) or (FEpollMasterFD < 0) then
-    raise Exception.Create('Unable to create epoll');
+    raise Exception.Create('Unable to create epoll: ' + StrError(fpgeterrno));
   lEvent.events := EPOLLIN or EPOLLOUT or EPOLLPRI or EPOLLERR or EPOLLHUP or EPOLLET;
   lEvent.data.fd := FEpollFD;
   if epoll_ctl(FEpollMasterFD, EPOLL_CTL_ADD, FEpollFD, @lEvent) < 0 then
-    raise Exception.Create('Unable to add FDs to master epoll FD');
+    raise Exception.Create('Unable to add FDs to master epoll FD: ' + StrError(fpGetErrno));
   lEvent.data.fd := FEpollReadFD;
   if epoll_ctl(FEpollMasterFD, EPOLL_CTL_ADD, FEpollReadFD, @lEvent) < 0 then
-    raise Exception.Create('Unable to add FDs to master epoll FD');
+    raise Exception.Create('Unable to add FDs to master epoll FD: ' + StrError(fpGetErrno));
 end;
 
 destructor TLEpollEventer.Destroy;

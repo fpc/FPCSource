@@ -36,25 +36,25 @@
 (*
  * Building API
  *)
-function xmlNewAutomata: xmlAutomataPtr; XMLCALL; XMLPUBFUN;
-procedure xmlFreeAutomata(am: xmlAutomataPtr); XMLCALL; XMLPUBFUN;
-function xmlAutomataGetInitState(am: xmlAutomataPtr): xmlAutomataStatePtr; XMLCALL; XMLPUBFUN;
-function xmlAutomataSetFinalState(am: xmlAutomataPtr; state: xmlAutomataStatePtr): cint; XMLCALL; XMLPUBFUN;
-function xmlAutomataNewState(am: xmlAutomataPtr): xmlAutomataStatePtr; XMLCALL; XMLPUBFUN;
-function xmlAutomataNewTransition(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token: xmlCharPtr; data: pointer): xmlAutomataStatePtr; XMLCALL; XMLPUBFUN;
-function xmlAutomataNewTransition2(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token, token2: xmlCharPtr; data: pointer): xmlAutomataStatePtr; XMLCALL; XMLPUBFUN;
-function xmlAutomataNewNegTrans(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token, token2: xmlCharPtr; data: pointer): xmlAutomataStatePtr; XMLCALL; XMLPUBFUN;
-function xmlAutomataNewCountTrans(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token: xmlCharPtr; min, max: cint; data: pointer): xmlAutomataStatePtr; XMLCALL; XMLPUBFUN;
-function xmlAutomataNewCountTrans2(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token, token2: xmlCharPtr; min, max: cint; data: pointer): xmlAutomataStatePtr; XMLCALL; XMLPUBFUN;
-function xmlAutomataNewOnceTrans(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token: xmlCharPtr; min, max: cint; data: pointer): xmlAutomataStatePtr; XMLCALL; XMLPUBFUN;
-function xmlAutomataNewOnceTrans2(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token, token2: xmlCharPtr; min, max: cint; data: pointer): xmlAutomataStatePtr; XMLCALL; XMLPUBFUN;
-function xmlAutomataNewAllTrans(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; lax: cint): xmlAutomataStatePtr; XMLCALL; XMLPUBFUN;
-function xmlAutomataNewEpsilon(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr): xmlAutomataStatePtr; XMLCALL; XMLPUBFUN;
-function xmlAutomataNewCountedTrans(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; counter: cint): xmlAutomataStatePtr; XMLCALL; XMLPUBFUN;
-function xmlAutomataNewCounterTrans(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; counter: cint): xmlAutomataStatePtr; XMLCALL; XMLPUBFUN;
-function xmlAutomataNewCounter(am: xmlAutomataPtr; min, max: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlAutomataCompile(am: xmlAutomataPtr): xmlRegexpPtr; XMLCALL; XMLPUBFUN;
-function xmlAutomataIsDeterminist(am: xmlAutomataPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlNewAutomata: xmlAutomataPtr; EXTDECL; external xml2lib;
+procedure xmlFreeAutomata(am: xmlAutomataPtr); EXTDECL; external xml2lib;
+function xmlAutomataGetInitState(am: xmlAutomataPtr): xmlAutomataStatePtr; EXTDECL; external xml2lib;
+function xmlAutomataSetFinalState(am: xmlAutomataPtr; state: xmlAutomataStatePtr): cint; EXTDECL; external xml2lib;
+function xmlAutomataNewState(am: xmlAutomataPtr): xmlAutomataStatePtr; EXTDECL; external xml2lib;
+function xmlAutomataNewTransition(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token: xmlCharPtr; data: pointer): xmlAutomataStatePtr; EXTDECL; external xml2lib;
+function xmlAutomataNewTransition2(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token, token2: xmlCharPtr; data: pointer): xmlAutomataStatePtr; EXTDECL; external xml2lib;
+function xmlAutomataNewNegTrans(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token, token2: xmlCharPtr; data: pointer): xmlAutomataStatePtr; EXTDECL; external xml2lib;
+function xmlAutomataNewCountTrans(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token: xmlCharPtr; min, max: cint; data: pointer): xmlAutomataStatePtr; EXTDECL; external xml2lib;
+function xmlAutomataNewCountTrans2(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token, token2: xmlCharPtr; min, max: cint; data: pointer): xmlAutomataStatePtr; EXTDECL; external xml2lib;
+function xmlAutomataNewOnceTrans(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token: xmlCharPtr; min, max: cint; data: pointer): xmlAutomataStatePtr; EXTDECL; external xml2lib;
+function xmlAutomataNewOnceTrans2(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; token, token2: xmlCharPtr; min, max: cint; data: pointer): xmlAutomataStatePtr; EXTDECL; external xml2lib;
+function xmlAutomataNewAllTrans(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; lax: cint): xmlAutomataStatePtr; EXTDECL; external xml2lib;
+function xmlAutomataNewEpsilon(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr): xmlAutomataStatePtr; EXTDECL; external xml2lib;
+function xmlAutomataNewCountedTrans(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; counter: cint): xmlAutomataStatePtr; EXTDECL; external xml2lib;
+function xmlAutomataNewCounterTrans(am: xmlAutomataPtr; from, _to: xmlAutomataStatePtr; counter: cint): xmlAutomataStatePtr; EXTDECL; external xml2lib;
+function xmlAutomataNewCounter(am: xmlAutomataPtr; min, max: cint): cint; EXTDECL; external xml2lib;
+function xmlAutomataCompile(am: xmlAutomataPtr): xmlRegexpPtr; EXTDECL; external xml2lib;
+function xmlAutomataIsDeterminist(am: xmlAutomataPtr): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_AUTOMATA_ENABLED *)

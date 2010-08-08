@@ -4,7 +4,7 @@
 
 [package]
 name=rtl
-version=2.2.2
+version=2.5.1
 
 [target]
 dirs_linux=linux
@@ -30,6 +30,8 @@ dirs_solaris=solaris
 dirs_gba=gba
 dirs_nds=nds
 dirs_symbian=symbian
+dirs_embedded=embedded
+dirs_nativent=nativent
 
 [install]
 fpcpackage=y

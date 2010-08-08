@@ -56,7 +56,7 @@ begin
         end;
     T:=P.Targets.AddUnit('chmtypes.pas');
       with T.Dependencies do
-        begin
+       begin
           AddUnit('chmbase');
         end;
     T:=P.Targets.AddUnit('htmlindexer.pas');
@@ -74,6 +74,11 @@ begin
           AddUnit('paslzxcomp');
           AddUnit('chmfiftimain');
         end;
+    T:=P.Targets.AddUnit('lzxcompressthread.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('paslzxcomp');
+        end;
     T:=P.Targets.AddUnit('fasthtmlparser.pas');
     T:=P.Targets.AddUnit('htmlutil.pas');
     T:=P.Targets.AddUnit('paslznonslide.pas');
@@ -87,6 +92,22 @@ begin
       with T.Dependencies do
         begin
           AddUnit('htmlindexer');
+        end;
+   T:=P.Targets.AddUnit('itolitlstypes.pas');
+   T:=P.Targets.AddUnit('itsftransform.pas');
+      with T.Dependencies do
+        begin
+          AddUnit('itolitlstypes');
+          AddUnit('paslzx');
+        end;
+   T:=P.Targets.AddUnit('itolitlsreader.pas');
+      with T.Dependencies do
+        begin  //chmreader, itolitlstypes, Sysutils, chmbase, itsftransform; 
+          AddUnit('chmbase');
+          AddUnit('chmreader');
+          AddUnit('itolitlstypes');
+          AddUnit('itsftransform');
+
         end;
 
 //    P.ProgramPath.Add('src');

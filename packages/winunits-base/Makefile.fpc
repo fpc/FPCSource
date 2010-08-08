@@ -4,12 +4,15 @@
 
 [package]
 name=winunits-base
-version=2.2.2
+version=2.5.1
+
+[require]
+packages=fcl-registry fcl-base
 
 [target]
 units=buildwinutilsbase
 implicitunits=flatsb winver mmsystem comobj comconst commdlg commctrl ole2 activex shellapi shlobj oleserver \
-               shfolder richedit imagehlp wininet
+	shfolder richedit imagehlp wininet uxtheme dwmapi multimon htmlhelp winutils comserv
 
 examples=examples
 
@@ -28,3 +31,5 @@ sourcedir=src
 
 [rules]
 .NOTPARALLEL:
+
+uxtheme$(PPUEXT) : src/uxtheme.pp src/tmschame.inc

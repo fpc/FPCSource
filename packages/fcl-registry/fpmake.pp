@@ -17,6 +17,8 @@ begin
     P.Directory:='fcl-registry';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
+    P.Dependencies.Add('fcl-base');
+    P.Dependencies.Add('fcl-xml');
 
     P.Author := 'FPC development team';
     P.License := 'LGPL with modification, ';
@@ -33,16 +35,9 @@ begin
           AddInclude('regdef.inc');
           AddInclude('xregreg.inc');
           AddInclude('regini.inc');
-          AddUnit('inifiles');
           AddUnit('xmlreg');
         end;
     T:=P.Targets.AddUnit('xmlreg.pp');
-      with T.Dependencies do
-        begin
-          AddUnit('dom');
-          AddUnit('xmlread');
-          AddUnit('xmlwrite');
-        end;
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('tests/testbasics.pp');

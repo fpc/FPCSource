@@ -459,7 +459,7 @@ Var
 
   {Opmerking: bestaande fielddefs die niet meer in de tabel zitten worden niet verwijderd !? }
 
-  function ImportFieldDef : boolean;
+  function ImportFieldDef(APosition : Integer) : boolean;
   var FD : TDDFieldDef;
       n, s : string;
   begin
@@ -497,7 +497,7 @@ Var
         FD.Required:=false
     else
       FD.Required:=false;
-    FD.index := FPosition.AsInteger;
+    FD.index := APosition;
     s := trim(FDomainName.asstring);
     if copy(s, 1, 4) <> 'RDB$' then
       FD.DomainName := s
@@ -513,7 +513,7 @@ Var
     BindFields;
     while not Q.eof do
       begin
-      if ImportFieldDef then
+      if ImportFieldDef(Result) then
         inc (result);
       Q.Next;
       end;

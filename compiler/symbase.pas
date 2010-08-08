@@ -96,6 +96,7 @@ interface
           moduleid  : longint;
           refcount  : smallint;
           currentvisibility : tvisibility;
+          currentlyoptional : boolean;
           { level of symtable, used for nested procedures }
           symtablelevel : byte;
           symtabletype  : TSymtabletype;
@@ -222,6 +223,7 @@ implementation
          SymList:=TFPHashObjectList.Create(true);
          refcount:=1;
          currentvisibility:=vis_public;
+         currentlyoptional:=false;
       end;
 
 

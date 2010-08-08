@@ -19,7 +19,6 @@
 {$define USE_PASCAL_OBJECT}
 
 {$MODE OBJFPC}
-{$STATIC ON}
 {$R+}
 { Compile ptest.o }
 uses

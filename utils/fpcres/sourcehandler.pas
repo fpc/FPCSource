@@ -46,7 +46,7 @@ type
   
 implementation
 
-uses msghandler;
+uses msghandler, closablefilestream;
 
 { TSourceFiles }
 
@@ -67,7 +67,7 @@ end;
 
 procedure TSourceFiles.Load(aResources: TResources);
 var aReader : TAbstractResourceReader;
-    aStream : TFileStream;
+    aStream : TClosableFileStream;
     i : integer;
     tmpres : TResources;
 begin
@@ -77,7 +77,7 @@ begin
     begin
       Messages.DoVerbose(Format('Trying to open file %s...',[fFileList[i]]));
       try
-        aStream:=TFileStream.Create(fFileList[i],fmOpenRead or fmShareDenyWrite);
+        aStream:=TClosableFileStream.Create(fFileList[i],fmOpenRead or fmShareDenyWrite);
       except
         raise ECantOpenFileException.Create(fFileList[i]);
       end;

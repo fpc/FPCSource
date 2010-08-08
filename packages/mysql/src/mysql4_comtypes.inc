@@ -7,9 +7,8 @@ type
     PVIO = Pointer;
     My_socket = longint;
     my_bool = byte;
-    pppchar = ^PPChar;
     gptr = Pointer;
-
+    pppchar = ^ppchar;
   {
      Common definition between mysql server & client
    }

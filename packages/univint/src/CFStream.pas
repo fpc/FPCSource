@@ -1,14 +1,19 @@
 {	CFStream.h
-	Copyright (c) 2000-2005, Apple, Inc. All rights reserved.
+	Copyright (c) 2000-2009, Apple Inc. All rights reserved.
 }
 {	  Pascal Translation:  Peter N Lewis, <peter@stairways.com.au>, 2004 }
 {	  Pascal Translation Updated:  Peter N Lewis, <peter@stairways.com.au>, November 2005 }
+{     Pascal Translation Updated:  Gale R Paeper, <gpaeper@empirenet.com>, 2008 }
+{   Pascal Translation Updated:  Gorazd Krosl, <gorazd_1957@yahoo.ca>, October 2009 }
+{	  Pascal Translation Updated:  Jonas Maebe, <jonas@freepascal.org>, October 2009 }
+
 {
     Modified for use with Free Pascal
-    Version 210
+    Version 308
     Please report any bugs to <gpc@microbizz.nl>
 }
 
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 {$mode macpas}
 {$packenum 1}
 {$macro on}
@@ -17,8 +22,8 @@
 
 unit CFStream;
 interface
-{$setc UNIVERSAL_INTERFACES_VERSION := $0342}
-{$setc GAP_INTERFACES_VERSION := $0210}
+{$setc UNIVERSAL_INTERFACES_VERSION := $0400}
+{$setc GAP_INTERFACES_VERSION := $0308}
 
 {$ifc not defined USE_CFSTR_CONSTANT_MACROS}
     {$setc USE_CFSTR_CONSTANT_MACROS := TRUE}
@@ -31,16 +36,38 @@ interface
 	{$error Conflicting initial definitions for FPC_BIG_ENDIAN and FPC_LITTLE_ENDIAN}
 {$endc}
 
-{$ifc not defined __ppc__ and defined CPUPOWERPC}
+{$ifc not defined __ppc__ and defined CPUPOWERPC32}
 	{$setc __ppc__ := 1}
 {$elsec}
 	{$setc __ppc__ := 0}
+{$endc}
+{$ifc not defined __ppc64__ and defined CPUPOWERPC64}
+	{$setc __ppc64__ := 1}
+{$elsec}
+	{$setc __ppc64__ := 0}
 {$endc}
 {$ifc not defined __i386__ and defined CPUI386}
 	{$setc __i386__ := 1}
 {$elsec}
 	{$setc __i386__ := 0}
 {$endc}
+{$ifc not defined __x86_64__ and defined CPUX86_64}
+	{$setc __x86_64__ := 1}
+{$elsec}
+	{$setc __x86_64__ := 0}
+{$endc}
+{$ifc not defined __arm__ and defined CPUARM}
+	{$setc __arm__ := 1}
+{$elsec}
+	{$setc __arm__ := 0}
+{$endc}
+
+{$ifc defined cpu64}
+  {$setc __LP64__ := 1}
+{$elsec}
+  {$setc __LP64__ := 0}
+{$endc}
+
 
 {$ifc defined __ppc__ and __ppc__ and defined __i386__ and __i386__}
 	{$error Conflicting definitions for __ppc__ and __i386__}
@@ -48,14 +75,65 @@ interface
 
 {$ifc defined __ppc__ and __ppc__}
 	{$setc TARGET_CPU_PPC := TRUE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __ppc64__ and __ppc64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := TRUE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$elifc defined __i386__ and __i386__}
 	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
 	{$setc TARGET_CPU_X86 := TRUE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := FALSE}
+{$ifc defined(iphonesim)}
+ 	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := TRUE}
 {$elsec}
-	{$error Neither __ppc__ nor __i386__ is defined.}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
 {$endc}
-{$setc TARGET_CPU_PPC_64 := FALSE}
+{$elifc defined __x86_64__ and __x86_64__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := TRUE}
+	{$setc TARGET_CPU_ARM := FALSE}
+	{$setc TARGET_OS_MAC := TRUE}
+	{$setc TARGET_OS_IPHONE := FALSE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elifc defined __arm__ and __arm__}
+	{$setc TARGET_CPU_PPC := FALSE}
+	{$setc TARGET_CPU_PPC64 := FALSE}
+	{$setc TARGET_CPU_X86 := FALSE}
+	{$setc TARGET_CPU_X86_64 := FALSE}
+	{$setc TARGET_CPU_ARM := TRUE}
+	{ will require compiler define when/if other Apple devices with ARM cpus ship }
+	{$setc TARGET_OS_MAC := FALSE}
+	{$setc TARGET_OS_IPHONE := TRUE}
+	{$setc TARGET_IPHONE_SIMULATOR := FALSE}
+{$elsec}
+	{$error __ppc__ nor __ppc64__ nor __i386__ nor __x86_64__ nor __arm__ is defined.}
+{$endc}
+
+{$ifc defined __LP64__ and __LP64__ }
+  {$setc TARGET_CPU_64 := TRUE}
+{$elsec}
+  {$setc TARGET_CPU_64 := FALSE}
+{$endc}
 
 {$ifc defined FPC_BIG_ENDIAN}
 	{$setc TARGET_RT_BIG_ENDIAN := TRUE}
@@ -81,7 +159,6 @@ interface
 {$setc TARGET_CPU_68K := FALSE}
 {$setc TARGET_CPU_MIPS := FALSE}
 {$setc TARGET_CPU_SPARC := FALSE}
-{$setc TARGET_OS_MAC := TRUE}
 {$setc TARGET_OS_UNIX := FALSE}
 {$setc TARGET_OS_WIN32 := FALSE}
 {$setc TARGET_RT_MAC_68881 := FALSE}
@@ -91,45 +168,33 @@ interface
 {$setc TYPE_BOOL := FALSE}
 {$setc TYPE_EXTENDED := FALSE}
 {$setc TYPE_LONGLONG := TRUE}
-uses MacTypes,CFBase,CFString,CFDictionary,CFURL,CFRunLoop,CFSocket;
+uses MacTypes,CFBase,CFString,CFDictionary,CFURL,CFRunLoop,CFSocket,CFError;
+{$endc} {not MACOSALLINCLUDE}
+
 {$ALIGN POWER}
 
 
-type
-	CFStreamStatus = SInt32;
 const
-    kCFStreamStatusNotOpen = 0;
-    kCFStreamStatusOpening = 1;  { open is in-progress }
-    kCFStreamStatusOpen = 2;
-    kCFStreamStatusReading = 3;
-    kCFStreamStatusWriting = 4;
-    kCFStreamStatusAtEnd = 5;    { no further bytes can be read/written }
-    kCFStreamStatusClosed = 6;
-    kCFStreamStatusError = 7;
-
+	kCFStreamStatusNotOpen = 0;
+	kCFStreamStatusOpening = 1;  { open is in-progress }
+	kCFStreamStatusOpen = 2;
+	kCFStreamStatusReading = 3;
+	kCFStreamStatusWriting = 4;
+	kCFStreamStatusAtEnd = 5;    { no further bytes can be read/written }
+	kCFStreamStatusClosed = 6;
+	kCFStreamStatusError = 7;
 type
-	CFStreamErrorDomain = SInt32;
+	CFStreamStatus = CFIndex;
+
 const
-    kCFStreamErrorDomainCustom = -1;      { custom to the kind of stream in question }
-    kCFStreamErrorDomainPOSIX = 1;        { POSIX errno; interpret using <sys/errno.h> }
-    kCFStreamErrorDomainMacOSStatus = 2;      { OSStatus type from Carbon APIs; interpret using <MacTypes.h> }
-
+	kCFStreamEventNone = 0;
+	kCFStreamEventOpenCompleted = 1;
+	kCFStreamEventHasBytesAvailable = 2;
+	kCFStreamEventCanAcceptBytes = 4;
+	kCFStreamEventErrorOccurred = 8;
+	kCFStreamEventEndEncountered = 16;
 type
-	CFStreamError = record
-		domain: CFStreamErrorDomain;
-		error: SInt32;
-	end;
-	CFStreamErrorPtr = ^CFStreamError;
-
-type
-	CFStreamEventType = SInt32;
-const
-    kCFStreamEventNone = 0;
-    kCFStreamEventOpenCompleted = 1;
-    kCFStreamEventHasBytesAvailable = 2;
-    kCFStreamEventCanAcceptBytes = 4; 
-    kCFStreamEventErrorOccurred = 8;
-    kCFStreamEventEndEncountered = 16;
+	CFStreamEventType = CFOptionFlags;
 
 type
 	CFStreamClientContext = record
@@ -141,9 +206,9 @@ type
 	end;
 
 type
-	CFReadStreamRef = ^SInt32; { an opaque 32-bit type }
+	CFReadStreamRef = ^SInt32; { an opaque type }
 	CFReadStreamRefPtr = ^CFReadStreamRef;
-	CFWriteStreamRef = ^SInt32; { an opaque 32-bit type }
+	CFWriteStreamRef = ^SInt32; { an opaque type }
 	CFWriteStreamRefPtr = ^CFWriteStreamRef;
 
 type
@@ -170,12 +235,14 @@ function CFWriteStreamCreateWithAllocatedBuffers( alloc: CFAllocatorRef; bufferA
 { File streams }
 function CFReadStreamCreateWithFile( alloc: CFAllocatorRef; fileURL: CFURLRef ): CFReadStreamRef; external name '_CFReadStreamCreateWithFile';
 function CFWriteStreamCreateWithFile( alloc: CFAllocatorRef; fileURL: CFURLRef ): CFWriteStreamRef; external name '_CFWriteStreamCreateWithFile';
+procedure CFStreamCreateBoundPair( alloc: CFAllocatorRef; var readStream: CFReadStreamRef; var writeStream: CFWriteStreamRef; transferBufferSize: CFIndex ); external name '_CFStreamCreateBoundPair';
 
 {#if MAC_OS_X_VERSION_10_2 <= MAC_OS_X_VERSION_MAX_ALLOWED}
 { Property for file write streams; value should be a CFBoolean.  Set to TRUE to append to a file, rather than to replace its contents }
 var kCFStreamPropertyAppendToFile: CFStringRef; external name '_kCFStreamPropertyAppendToFile'; (* attribute const *)
 {#endif}
 
+// Value is a CFNumber
 var kCFStreamPropertyFileCurrentOffset: CFStringRef; external name '_kCFStreamPropertyFileCurrentOffset'; (* attribute const *)
 (* AVAILABLE_MAC_OS_X_VERSION_10_3_AND_LATER *)
 
@@ -202,11 +269,11 @@ procedure CFStreamCreatePairWithPeerSocketSignature( alloc: CFAllocatorRef; cons
 function CFReadStreamGetStatus( stream: CFReadStreamRef ): CFStreamStatus; external name '_CFReadStreamGetStatus';
 function CFWriteStreamGetStatus( stream: CFWriteStreamRef ): CFStreamStatus; external name '_CFWriteStreamGetStatus';
 
-{ 0 is returned if no error has occurred.  errorDomain specifies the domain
-   in which the error code should be interpretted; pass NULL if you are not 
-   interested. }
-function CFReadStreamGetError( stream: CFReadStreamRef ): CFStreamError; external name '_CFReadStreamGetError';
-function CFWriteStreamGetError( stream: CFWriteStreamRef ): CFStreamError; external name '_CFWriteStreamGetError';
+{ Returns NULL if no error has occurred; otherwise returns the error. }
+function CFReadStreamCopyError( stream: CFReadStreamRef ): CFErrorRef; external name '_CFReadStreamCopyError';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
+function CFWriteStreamCopyError( stream: CFWriteStreamRef ): CFErrorRef; external name '_CFWriteStreamCopyError';
+(* AVAILABLE_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
 { Returns success/failure.  Opening a stream causes it to reserve all the system
    resources it requires.  If the stream can open non-blocking, this will always 
@@ -285,9 +352,11 @@ function CFWriteStreamSetProperty( stream: CFWriteStreamRef; propertyName: CFStr
    run loops; It is the caller's responsibility to ensure that at least one of the 
    scheduled run loops is being run.
 
-   NOTE: not all streams provide these notifications.  If a stream does not support
-   asynchronous notification, CFStreamSetClient() will return NO; typically, such
-   streams will never block for device I/O (e.g. a stream on memory)
+   NOTE: Unlike other CoreFoundation APIs, pasing a NULL clientContext here will remove
+   the client.  If you do not care about the client context (i.e. your only concern
+   is that your callback be called), you should pass in a valid context where every
+   entry is 0 or NULL.
+
 }
 
 function CFReadStreamSetClient( stream: CFReadStreamRef; streamEvents: CFOptionFlags; clientCB: CFReadStreamClientCallBack; var clientContext: CFStreamClientContext ): Boolean; external name '_CFReadStreamSetClient';
@@ -300,4 +369,27 @@ procedure CFReadStreamUnscheduleFromRunLoop( stream: CFReadStreamRef; runLoop: C
 procedure CFWriteStreamUnscheduleFromRunLoop( stream: CFWriteStreamRef; runLoop: CFRunLoopRef; runLoopMode: CFStringRef ); external name '_CFWriteStreamUnscheduleFromRunLoop';
 
 
+{ The following API is deprecated starting in 10.5; please use CFRead/WriteStreamCopyError(), above, instead }
+const
+	kCFStreamErrorDomainCustom = -1;      { custom to the kind of stream in question }
+	kCFStreamErrorDomainPOSIX = 1;        { POSIX errno; interpret using <sys/errno.h> }
+	kCFStreamErrorDomainMacOSStatus = 2;      { OSStatus type from Carbon APIs; interpret using <MacTypes.h> }
+type
+	CFStreamErrorDomain = CFIndex;
+
+type
+	CFStreamError = record
+		domain: CFIndex; 
+		error: SInt32;
+	end;
+	CFStreamErrorPtr = ^CFStreamError;
+
+{ 0 is returned if no error has occurred.  errorDomain specifies the domain
+   in which the error code should be interpretted; pass NULL if you are not 
+   interested. }
+function CFReadStreamGetError( stream: CFReadStreamRef ): CFStreamError; external name '_CFReadStreamGetError';
+function CFWriteStreamGetError( stream: CFWriteStreamRef ): CFStreamError; external name '_CFWriteStreamGetError';
+{$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
+
 end.
+{$endc} {not MACOSALLINCLUDE}

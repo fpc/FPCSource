@@ -12,7 +12,11 @@
 
  **********************************************************************}
 program testgdb;
-uses gdbcon;
+uses
+{$ifdef USE_MINGW_GDB}
+  mingw,
+{$endif}
+  gdbcon;
 var
   last,s,parafile : string;
   gdb : tgdbcontroller;

@@ -65,6 +65,7 @@ TConfigOpt = (
   soHost,
   coUserName,
   coPassword,
+  coPort,
   coLogFile,
   coOS,
   coCPU,
@@ -79,6 +80,17 @@ TConfigOpt = (
   coVerbose
  );
 
+{ Additional options only for dbdigest.cfg file }
+
+TConfigAddOpt = (
+  coCompilerDate,
+  coCompilerFullVersion,
+  coSvnCompilerRevision,
+  coSvnTestsRevision,
+  coSvnRTLRevision,
+  coSvnPackagesRevision
+ );
+
 Const
 
 ConfigStrings : Array [TConfigOpt] of string = (
@@ -86,6 +98,7 @@ ConfigStrings : Array [TConfigOpt] of string = (
   'host',
   'username',
   'password',
+  'port',
   'logfile',
   'os',
   'cpu',
@@ -100,8 +113,26 @@ ConfigStrings : Array [TConfigOpt] of string = (
   'verbose'
 );
 
+ConfigAddStrings : Array [TConfigAddOpt] of string = (
+  'compilerdate',
+  'compilerfullversion',
+  'svncompilerrevision',
+  'svntestsrevision',
+  'svnrtlrevision',
+  'svnpackagesrevision'
+ );
+
+ConfigAddCols : Array [TConfigAddOpt] of string = (
+  'TU_COMPILERDATE',
+  'TU_COMPILERFULLVERSION',
+  'TU_SVNCOMPILERREVISION',
+  'TU_SVNTESTSREVISION',
+  'TU_SVNRTLREVISION',
+  'TU_SVNPACKAGESREVISION'
+ );
+
 ConfigOpts : Array[TConfigOpt] of char
-           = ('d','h','u','p','l','o','c','a','v','t','s','m','C','S','r','V');
+           = ('d','h','u','p','P','l','o','c','a','v','t','s','m','C','S','r','V');
 
 Var
   TestOS,
@@ -112,11 +143,36 @@ Var
   HostName,
   UserName,
   Password,
+  Port,
   LogFileName,
   Submitter,
   Machine,
   Comment : String;
   TestDate : TDateTime;
+  TestCompilerDate,
+  TestCompilerFullVersion,
+  TestSvnCompilerRevision,
+  TestSvnTestsRevision,
+  TestSvnRTLRevision,
+  TestSvnPackagesRevision : String;
+
+Procedure SetAddOpt (O : TConfigAddOpt; Value : string);
+begin
+  Case O of
+    coCompilerDate:
+      TestCompilerDate:=Value;
+    coCompilerFullVersion:
+      TestCompilerFullVersion:=Value;
+    coSvnCompilerRevision:
+      TestSvnCompilerRevision:=Value;
+    coSvnTestsRevision:
+      TestSvnTestsRevision:=Value;
+    coSvnRTLRevision:
+      TestSvnRTLRevision:=Value;
+    coSvnPackagesRevision:
+      TestSvnPackagesRevision:=Value;
+  end;
+end;
 
 Procedure SetOpt (O : TConfigOpt; Value : string);
 var
@@ -127,12 +183,13 @@ begin
     soHost         : HostName:=Value;
     coUserName     : UserName:=Value;
     coPassword     : Password:=Value;
+    coPort         : Port:=Value;
     coLogFile      : LogFileName:=Value;
     coOS           : TestOS:=Value;
     coCPU          : TestCPU:=Value;
     coCategory     : TestCategory:=Value;
     coVersion      : TestVersion:=Value;
-    coDate         : 
+    coDate         :
       begin
         { Formated like YYYYMMDDhhmm }
 	if Length(value)=12 then
@@ -145,7 +202,7 @@ begin
 	    TestDate:=EncodeDate(year,month,day)+EncodeTime(hour,min,0,0);
 	  end
 	else
-	  Verbose(V_Error,'Error in date format, use YYYYMMDDhhmm');  
+	  Verbose(V_Error,'Error in date format, use YYYYMMDDhhmm');
       end;
     coSubmitter    : Submitter:=Value;
     coMachine      : Machine:=Value;
@@ -174,6 +231,7 @@ Var
   N : String;
   I : Integer;
   co : TConfigOpt;
+  coa : TConfigAddOpt;
 
 begin
   Verbose(V_DEBUG,'Processing option: '+S);
@@ -187,13 +245,22 @@ begin
       begin
       Result:=CompareText(ConfigStrings[co],N)=0;
       If Result then
-        Break;
+        begin
+          SetOpt(co,S);
+          Exit;
+        end;
+      end;
+    For coa:=low(TConfigAddOpt) to high(TConfigAddOpt) do
+      begin
+      Result:=CompareText(ConfigAddStrings[coa],N)=0;
+      If Result then
+        begin
+          SetAddOpt(coa,S);
+          Exit;
+        end;
       end;
     end;
- If Result then
-   SetOpt(co,S)
- else
-   Verbose(V_ERROR,'Unknown option : '+n+S);
+  Verbose(V_ERROR,'Unknown option : '+n+S);
 end;
 
 Procedure ProcessConfigfile(FN : String);
@@ -333,13 +400,17 @@ Procedure Processfile (FN: String);
 
 var
   logfile : text;
-  line : string;
-  TS : TTestStatus;
-  ID : integer;
+  line,prevLine : string;
+  TS,PrevTS : TTestStatus;
+  ID,PrevID : integer;
   Testlog : string;
-
+  is_new : boolean;
 begin
   Assign(logfile,FN);
+  PrevId:=-1;
+  PrevLine:='';
+  is_new:=false;
+  PrevTS:=low(TTestStatus);
 {$i-}
   reset(logfile);
   if ioresult<>0 then
@@ -351,10 +422,19 @@ begin
     If analyse(line,TS) then
       begin
       Verbose(V_NORMAL,'Analysing result for test '+Line);
-      Inc(StatusCount[TS]);
       If Not ExpectRun[TS] then
         begin
         ID:=RequireTestID(Line);
+        if (PrevID<>-1) and (PrevID<>ID) then
+          begin
+            { This can only happen if a Successfully compiled message
+              is not followed by any other line about the same test }
+            TestLog:='';
+            AddTestResult(PrevID,TestRunId,ord(PrevTS),
+              TestOK[PrevTS],TestSkipped[PrevTS],TestLog,is_new);
+            Verbose(V_Warning,'Orphaned test: "'+prevline+'"');
+          end;
+        PrevID:=-1;
         If (ID<>-1) then
           begin
           If Not (TestOK[TS] or TestSkipped[TS]) then
@@ -362,15 +442,40 @@ begin
               TestLog:=GetExecuteLog(Line);
               if pos(failed_to_compile,TestLog)=1 then
                 TestLog:=GetLog(Line);
-            end  
+            end
           else
             TestLog:='';
-          AddTestResult(ID,TestRunID,Ord(TS),TestOK[TS],TestSkipped[TS],TestLog);
+          { AddTestResult can fail for test that contain %recompile 
+            as the same }
+          if AddTestResult(ID,TestRunID,Ord(TS),TestOK[TS],
+               TestSkipped[TS],TestLog,is_new) <> -1 then
+            begin
+              if is_new then
+                Inc(StatusCount[TS])
+              else
+                Verbose(V_Debug,'Test: "'+line+'" was updated');
+            end
+          else
+            begin
+              Verbose(V_Warning,'Test: "'+line+'" already registered');
+            end;
+              
           end;
         end
+      else  
+        begin
+          Inc(StatusCount[TS]);
+          PrevTS:=TS;
+          PrevID:=RequireTestID(line);
+          PrevLine:=line;
+        end;
+ 
       end
     else
-      Inc(UnknownLines);
+      begin
+        Inc(UnknownLines);
+        Verbose(V_Warning,'Unknown line: "'+line+'"');
+      end;
     end;
   close(logfile);
 end;
@@ -386,6 +491,19 @@ procedure UpdateTestRun;
     qry:='UPDATE TESTRUN SET ';
     for i:=low(TTestStatus) to high(TTestStatus) do
       qry:=qry+format('%s=%d, ',[SQLField[i],StatusCount[i]]);
+    if TestCompilerDate<>'' then
+      qry:=qry+format('%s="%s", ',[ConfigAddCols[coCompilerDate],EscapeSQL(TestCompilerDate)]);
+    if TestCompilerFullVersion<>'' then
+      qry:=qry+format('%s="%s", ',[ConfigAddCols[coCompilerFullVersion],EscapeSQL(TestCompilerFullVersion)]);
+    if TestSvnCompilerRevision<>'' then
+      qry:=qry+format('%s="%s", ',[ConfigAddCols[coSvnCompilerRevision],EscapeSQL(TestSvnCompilerRevision)]);
+    if TestSvnTestsRevision<>'' then
+      qry:=qry+format('%s="%s", ',[ConfigAddCols[coSvnTestsRevision],EscapeSQL(TestSvnTestsRevision)]);
+    if TestSvnRTLRevision<>'' then
+      qry:=qry+format('%s="%s", ',[ConfigAddCols[coSvnRTLRevision],EscapeSQL(TestSvnRTLRevision)]);
+    if TestSvnPackagesRevision<>'' then
+      qry:=qry+format('%s="%s", ',[ConfigAddCols[coSvnPackagesRevision],EscapeSQL(TestSvnPackagesRevision)]);
+
     qry:=qry+format('TU_SUBMITTER="%s", TU_MACHINE="%s", TU_COMMENT="%s", TU_DATE="%s"',[Submitter,Machine,Comment,SqlDate(TestDate)]);
     qry:=qry+' WHERE TU_ID='+format('%d',[TestRunID]);
     RunQuery(Qry,res)
@@ -397,7 +515,7 @@ begin
   ProcessCommandLine;
   If LogFileName<>'' then
     begin
-    ConnectToDatabase(DatabaseName,HostName,UserName,Password);
+    ConnectToDatabase(DatabaseName,HostName,UserName,Password,Port);
     GetIDs;
     ProcessFile(LogFileName);
     UpdateTestRun;

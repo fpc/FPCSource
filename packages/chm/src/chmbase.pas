@@ -36,8 +36,6 @@ type
     Unknown_1: LongWord;
     TimeStamp: LongWord; //bigendian
     LanguageID: LongWord;
-    Guid1: TGuid;
-    Guid2: TGuid;
   end;
   TITSFHeaderEntry = record
     PosFromZero: QWord;
@@ -78,7 +76,7 @@ type
     Unknown5: LongInt; // = -1
   end;
   
-  TPMGchunktype = (ctPMGL, ctPMGI, ctUnknown);
+  TDirChunkType = (ctPMGL, ctPMGI, ctAOLL, ctAOLI, ctUnknown);
   
   TPMGListChunk = record
     PMGLsig: array [0..3] of char;
@@ -173,12 +171,16 @@ var
 begin
   bit := 28; //((sizeof(dWord)*8)div 7)*7; // = 28
   buf := @Value;
+  {$undef rangeon}
+  {$ifopt R+}
+     {$define rangeon}
+  {$endif}
+  {$R-}
   while True do begin
     mask := $7f shl bit;
     if (bit = 0) or ((ANumber and mask)<>0) then break;
     Dec(bit, 7);
   end;
-
   while True do begin
     buf^ := Byte(((ANumber shr bit)and $7f));
     if(bit = 0) then break;
@@ -187,11 +189,17 @@ begin
     Dec(bit, 7);
     Inc(TheEnd);
   end;
+
+  {$ifdef rangeon}
+    {$R+}
+  {$endif}
   
   buf := @Value;
   Result := TheEnd+1;
   Move(Value, Buffer^, Result);
+  {$ifdef chm_debug}
   if Result > 8 then WriteLn(' ', ANumber,' WRITE_COMPRESSED_INTEGER too big!: ', Result, ' ');
+  {$endif}
 end;
 
 function ChmCompareText(S1, S2: String): Integer; inline;

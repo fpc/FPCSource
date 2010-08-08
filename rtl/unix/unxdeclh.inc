@@ -23,19 +23,19 @@ Function fpFlock (fd,mode : longint) : cint; cdecl; external clib name 'flock';
 {$endif beos}
 {$endif solaris}
 
-{$ifdef beos}
+{$if defined(beos) or defined(solaris) }
 Function fpfStatFS(Fd:Longint; Info:pstatfs):cint; cdecl; external clib name 'fstatvfs';
-{$else beos}
+{$else beos or solaris }
 Function fpfStatFS(Fd:Longint; Info:pstatfs):cint; cdecl; external clib name 'fstatfs';
-{$endif beos}
+{$endif beos or solaris }
 
 Function fpfsync (fd : cint) : cint; cdecl; external clib name 'fsync';
 
-{$ifdef beos}
+{$if defined(beos) or defined(solaris) }
 Function fpStatFS  (Path:pchar; Info:pstatfs):cint; cdecl; external clib name 'statvfs';
-{$else beos}
+{$else beos or solaris }
 Function fpStatFS  (Path:pchar; Info:pstatfs):cint; cdecl; external clib name 'statfs';
-{$endif beos}
+{$endif beos or solaris }
 
 function pipe (var fildes: filedesarray):cint;  cdecl; external clib name 'pipe';
 function fpgettimeofday(tp: ptimeval;tzp:ptimezone):cint;   cdecl; external clib name 'gettimeofday';

@@ -30,6 +30,7 @@ interface
 
     procedure typecheckpass(var p : tnode);
     function  do_typecheckpass(var p : tnode) : boolean;
+    function  do_typecheckpass_changed(var p : tnode; out nodechanged: boolean) : boolean;
 
     procedure firstpass(var p : tnode);
     function  do_firstpass(var p : tnode) : boolean;
@@ -57,7 +58,7 @@ implementation
                             Global procedures
 *****************************************************************************}
 
-    procedure typecheckpass(var p : tnode);
+    procedure typecheckpass_internal(var p : tnode; out node_changed: boolean);
       var
          oldcodegenerror  : boolean;
          oldlocalswitches : tlocalswitches;
@@ -65,6 +66,7 @@ implementation
          oldpos    : tfileposinfo;
          hp        : tnode;
       begin
+        node_changed:=false;
         if (p.resultdef=nil) then
          begin
            oldcodegenerror:=codegenerror;
@@ -79,11 +81,12 @@ implementation
            { should the node be replaced? }
            if assigned(hp) then
             begin
+               node_changed:=true;
                p.free;
-               { run typecheckpass }
-               typecheckpass(hp);
                { switch to new node }
                p:=hp;
+               { run typecheckpass }
+               typecheckpass(p);
             end;
            current_settings.localswitches:=oldlocalswitches;
            current_filepos:=oldpos;
@@ -106,11 +109,27 @@ implementation
       end;
 
 
-    function do_typecheckpass(var p : tnode) : boolean;
+    procedure typecheckpass(var p : tnode);
+      var
+        node_changed: boolean;
+      begin
+        typecheckpass_internal(p,node_changed);
+      end;
+
+
+    function do_typecheckpass_changed(var p : tnode; out nodechanged: boolean) : boolean;
       begin
          codegenerror:=false;
-         typecheckpass(p);
-         do_typecheckpass:=codegenerror;
+         typecheckpass_internal(p,nodechanged);
+         do_typecheckpass_changed:=codegenerror;
+      end;
+
+
+    function do_typecheckpass(var p : tnode) : boolean;
+      var
+        nodechanged: boolean;
+      begin
+         result:=do_typecheckpass_changed(p,nodechanged);
       end;
 
 
@@ -145,10 +164,10 @@ implementation
                  if assigned(hp) then
                   begin
                      p.free;
-                     { run typecheckpass }
-                     typecheckpass(hp);
                      { switch to new node }
                      p:=hp;
+                     { run typecheckpass }
+                     typecheckpass(p);
                   end;
                  if codegenerror then
                   begin
@@ -167,10 +186,10 @@ implementation
                  if assigned(hp) then
                   begin
                     p.free;
-                    { run firstpass }
-                    firstpass(hp);
                     { switch to new node }
-                    p:=hp;
+                    p := hp;
+                    { run firstpass }
+                    firstpass(p);
                   end
                  else
                    begin
@@ -180,8 +199,8 @@ implementation
                      if assigned(hp) then
                        begin
                          p.free;
-                         firstpass(hp);
-                         p:=hp;
+                         p := hp;
+                         firstpass(p);
                        end;
                    end;
                  if codegenerror then

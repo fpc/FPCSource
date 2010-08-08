@@ -110,6 +110,7 @@ interface
          cs_mmx,cs_mmx_saturation,
          { parser }
          cs_typed_addresses,cs_strict_var_strings,cs_ansistrings,cs_bitpacking,
+         cs_varpropsetter,cs_scopedenums,
          { macpas specific}
          cs_external_var, cs_externally_visible
        );
@@ -121,14 +122,16 @@ interface
          cs_fp_emulation,cs_extsyntax,cs_openstring,
          { support }
          cs_support_goto,cs_support_macro,
-         cs_support_c_operators,cs_static_keyword,
+         cs_support_c_operators,
          { generation }
          cs_profile,cs_debuginfo,cs_compilesystem,
          cs_lineinfo,cs_implicit_exceptions,
          { linking }
          cs_create_smart,cs_create_dynamic,cs_create_pic,
          { browser switches are back }
-         cs_browser,cs_local_browser
+         cs_browser,cs_local_browser,
+         { target specific }
+         cs_executable_stack
        );
        tmoduleswitches = set of tmoduleswitch;
 
@@ -137,6 +140,7 @@ interface
        tglobalswitch = (cs_globalnone,
          { parameter switches }
          cs_check_unit_name,cs_constructor_name,cs_support_exceptions,
+         cs_support_c_objectivepas,
          { units }
          cs_load_objpas_unit,
          cs_load_gpc_unit,
@@ -152,7 +156,8 @@ interface
          cs_link_nolink,cs_link_static,cs_link_smart,cs_link_shared,cs_link_deffile,
          cs_link_strip,cs_link_staticflag,cs_link_on_target,cs_link_extern,cs_link_opt_vtable,
          cs_link_opt_used_sections,cs_link_separate_dbg_file,
-         cs_link_map,cs_link_pthread,cs_link_no_default_lib_order
+         cs_link_map,cs_link_pthread,cs_link_no_default_lib_order,
+	 cs_link_native
        );
        tglobalswitches = set of tglobalswitch;
 
@@ -161,7 +166,18 @@ interface
           { enable set support in dwarf debug info, breaks gdb versions }
           { without support for that tag (they refuse to parse the rest }
           { of the debug information)                                   }
-          ds_dwarf_sets
+          ds_dwarf_sets,
+          { use absolute paths for include files in stabs. Pro: gdb     }
+          { always knows full path to file. Con: doesn't work anymore   }
+          { if the include file is moved (otherwise, things still work  }
+          { if your source hierarchy is the same, but has a different   }
+          { base path)                                                  }
+          ds_stabs_abs_include_files,
+          { prefix method names by "classname__" in DWARF (like is done }
+          { for Stabs); not enabled by default, because otherwise once  }
+          { support for calling methods has been added to gdb, you'd    }
+          { always have to type classinstance.classname__methodname()   }
+          ds_dwarf_method_class_prefix
        );
        tdebugswitches = set of tdebugswitch;
 
@@ -173,7 +189,7 @@ interface
          f_heap,f_init_final,f_rtti,f_classes,f_exceptions,f_exitcode,
          f_ansistrings,f_widestrings,f_textio,f_consoleio,f_fileio,
          f_random,f_variants,f_objects,f_dynarrays,f_threading,f_commandargs,
-         f_processes,f_stackcheck,f_dynlibs
+         f_processes,f_stackcheck,f_dynlibs,f_softfpu,f_objectivec1,f_resources
        );
        tfeatures = set of tfeature;
 
@@ -187,33 +203,49 @@ interface
        );
        toptimizerswitches = set of toptimizerswitch;
 
+       { whole program optimizer }
+       twpoptimizerswitch = (
+         cs_wpo_devirtualize_calls,cs_wpo_optimize_vmts,
+         cs_wpo_symbol_liveness
+       );
+       twpoptimizerswitches = set of twpoptimizerswitch;
+
+
     const
        OptimizerSwitchStr : array[toptimizerswitch] of string[10] = ('',
          'LEVEL1','LEVEL2','LEVEL3',
          'REGVAR','UNCERTAIN','SIZE','STACKFRAME',
          'PEEPHOLE','ASMCSE','LOOPUNROLL','TAILREC','CSE','DFA','STRENGTH'
        );
+       WPOptimizerSwitchStr : array [twpoptimizerswitch] of string[14] = (
+         'DEVIRTCALLS','OPTVMTS','SYMBOLLIVENESS'
+       );
 
-       DebugSwitchStr : array[tdebugswitch] of string[9] = ('',
-         'DWARFSETS');
+       DebugSwitchStr : array[tdebugswitch] of string[22] = ('',
+         'DWARFSETS','STABSABSINCLUDES','DWARFMETHODCLASSPREFIX');
 
        { switches being applied to all CPUs at the given level }
        genericlevel1optimizerswitches = [cs_opt_level1];
        genericlevel2optimizerswitches = [cs_opt_level2];
        genericlevel3optimizerswitches = [cs_opt_level3];
 
+       { whole program optimizations whose information generation requires
+         information from all loaded units
+       }
+       WPOptimizationsNeedingAllUnitInfo = [cs_wpo_devirtualize_calls];
+
        featurestr : array[tfeature] of string[12] = (
          'HEAP','INITFINAL','RTTI','CLASSES','EXCEPTIONS','EXITCODE',
          'ANSISTRINGS','WIDESTRINGS','TEXTIO','CONSOLEIO','FILEIO',
          'RANDOM','VARIANTS','OBJECTS','DYNARRAYS','THREADING','COMMANDARGS',
-         'PROCESSES','STACKCHECK','DYNLIBS'
+         'PROCESSES','STACKCHECK','DYNLIBS','SOFTFPU','OBJECTIVEC1','RESOURCES'
        );
 
     type
        { Switches which can be changed by a mode (fpc,tp7,delphi) }
        tmodeswitch = (m_none,m_all, { needed for keyword }
          { generic }
-         m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,
+         m_fpc,m_objfpc,m_delphi,m_tp7,m_mac,m_iso,
          {$ifdef fpc_mode}m_gpc,{$endif}
          { more specific }
          m_class,               { delphi class model }
@@ -237,7 +269,10 @@ interface
          m_duplicate_names,     { allow locals/paras to have duplicate names of globals }
          m_property,            { allow properties }
          m_default_inline,      { allow inline proc directive }
-         m_except               { allow exception-related keywords }
+         m_except,              { allow exception-related keywords }
+         m_objectivec1,         { support interfacing with Objective-C (1.0) }
+         m_objectivec2,         { support interfacing with Objective-C (2.0) }
+         m_nested_procvars      { support nested procedural variables }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -330,7 +365,7 @@ interface
 {$endif}
 
        modeswitchstr : array[tmodeswitch] of string[18] = ('','',
-         '','','','','',
+         '','','','','','',
          {$ifdef fpc_mode}'',{$endif}
          { more specific }
          'CLASS',
@@ -353,7 +388,10 @@ interface
          'DUPLICATELOCALS',
          'PROPERTIES',
          'ALLOWINLINE',
-         'EXCEPTIONS');
+         'EXCEPTIONS',
+         'OBJECTIVEC1',
+         'OBJECTIVEC2',
+         'NESTEDPROCVARS');
 
 
      type
@@ -379,8 +417,8 @@ interface
          pi_uses_static_symtable,
          { set if the procedure has to push parameters onto the stack }
          pi_has_stackparameter,
-         { set if the procedure has at least one got }
-         pi_has_goto,
+         { set if the procedure has at least one label }
+         pi_has_label,
          { calls itself recursive }
          pi_is_recursive,
          { stack frame optimization not possible (only on x86 probably) }
@@ -388,14 +426,17 @@ interface
          { set if the procedure has at least one register saved on the stack }
          pi_has_saved_regs,
          { dfa was generated for this proc }
-         pi_dfaavailable
+         pi_dfaavailable,
+         { subroutine contains interprocedural used labels }
+         pi_has_interproclabel
        );
        tprocinfoflags=set of tprocinfoflag;
 
     type
-      { float types }
+      { float types -- warning, this enum/order is used internally by the RTL
+        as well in rtl/inc/real2str.inc }
       tfloattype = (
-        s32real,s64real,s80real,
+        s32real,s64real,s80real,sc80real { the C "long double" type on x86 },
         s64comp,s64currency,s128real
       );
 
@@ -443,6 +484,14 @@ interface
        link_static  = $2;
        link_smart   = $4;
        link_shared  = $8;
+
+    type
+      { a message state }
+      tmsgstate = (
+        ms_on,    // turn on output
+        ms_off,   // turn off output
+        ms_error  // cast to error
+      );
 
 implementation
 

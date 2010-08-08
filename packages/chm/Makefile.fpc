@@ -4,12 +4,12 @@
 
 [package]
 name=chm
-version=2.2.2
+version=2.5.1
 
 [target]
 units=fasthtmlparser htmlutil paslzx paslzxcomp paslznonslide chmbase chmtypes \
       chmspecialfiles chmsitemap chmwriter chmfilewriter chmreader htmlindexer \
-      chmfiftimain
+      chmfiftimain lzxcompressthread itolitlstypes itsftransform itolitlsreader
 programs=chmcmd chmls
 examples=
 
@@ -32,3 +32,5 @@ sourcedir=src tests
 cdmcmd$(EXEEXT): chmcmd.lpr
 
 chmls$(EXEEXT): chmls.lpr
+
+

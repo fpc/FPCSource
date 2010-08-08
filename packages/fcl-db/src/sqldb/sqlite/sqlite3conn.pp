@@ -82,7 +82,6 @@ type
     // New methods
     procedure execsql(const asql: string);
     procedure UpdateIndexDefs(IndexDefs : TIndexDefs;TableName : string); override; // Differs from SQLDB.
-    function getprimarykeyfield(const atablename: string; const acursor: tsqlcursor): string;
     function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
     function GetSchemaInfoSQL(SchemaType : TSchemaType; SchemaObjectName, SchemaPattern : string) : string; override;
     function StrToStatementType(s : string) : TStatementType; override;
@@ -170,10 +169,7 @@ begin
         ftsmallint: checkerror(sqlite3_bind_int(fstatement,I,p.asinteger));
         ftword:     checkerror(sqlite3_bind_int(fstatement,I,P.asword));
         ftlargeint: checkerror(sqlite3_bind_int64(fstatement,I,P.aslargeint));
-        ftbcd: begin
-               cu1:= P.ascurrency;
-               checkerror(sqlite3_bind_int64(fstatement,I,pint64(@cu1)^));
-               end;
+        ftbcd,
         ftfloat,
         ftcurrency,
         ftdatetime,
@@ -283,7 +279,6 @@ Var
 
 begin
   Res:= TSQLite3Cursor.create;
-  Res.fhandle:=self.fhandle;
   Result:=Res;
 end;
 
@@ -295,6 +290,7 @@ end;
 procedure TSQLite3Connection.PrepareStatement(cursor: TSQLCursor;
                ATransaction: TSQLTransaction; buf: string; AParams: TParams);
 begin
+  TSQLite3Cursor(cursor).fhandle:=self.fhandle;
   TSQLite3Cursor(cursor).Prepare(Buf,AParams);
 end;
 
@@ -302,6 +298,7 @@ procedure TSQLite3Connection.UnPrepareStatement(cursor: TSQLCursor);
 
 begin
   TSQLite3Cursor(cursor).UnPrepare;
+  TSQLite3Cursor(cursor).fhandle:=nil;
 end;
 
 
@@ -391,7 +388,7 @@ begin
                 end;
       ftUnknown : DatabaseError('Unknown record type: '+FN);
     end; // Case
-    tfielddef.create(fielddefs,FN,ft1,size1,false,i+1);
+    tfielddef.create(fielddefs,FieldDefs.MakeNameUnique(FN),ft1,size1,false,i+1);
     end;
 end;
 
@@ -482,7 +479,7 @@ var
  str1: string;
  ar1,ar2: TStringArray;
  st    : psqlite3_stmt;
- 
+
 begin
   st:=TSQLite3Cursor(cursor).fstatement;
   fnum:= FieldDef.fieldno - 1;
@@ -496,8 +493,8 @@ begin
     ftSmallInt : psmallint(buffer)^ := sqlite3_column_int(st,fnum);
     ftWord     : pword(buffer)^     := sqlite3_column_int(st,fnum);
     ftBoolean  : pwordbool(buffer)^ := sqlite3_column_int(st,fnum)<>0;
-    ftLargeInt,
-    ftBCD      : PInt64(buffer)^:= sqlite3_column_int64(st,fnum);
+    ftLargeInt : PInt64(buffer)^:= sqlite3_column_int64(st,fnum);
+    ftBCD      : PCurrency(buffer)^:= FloattoCurr(sqlite3_column_double(st,fnum));
     ftFloat,
     ftCurrency : pdouble(buffer)^:= sqlite3_column_double(st,fnum);
     ftDateTime,
@@ -666,29 +663,6 @@ begin
   checkerror(sqlite3_exec(fhandle,pchar(asql),@execscallback,@result,nil));
 end;
 
-function TSQLite3Connection.getprimarykeyfield(const atablename: string;
-                                const acursor: tsqlcursor): string;
-var
-  int1,int2: integer;
-  ar1: TArrayStringArray;
-  str1: string;
-  
-begin
-  result:= '';
-  if atablename <> '' then 
-    begin
-    ar1:= stringsquery('PRAGMA table_info('+atablename+');');
-    for int1:= 0 to high(ar1) do 
-      begin
-      if (high(ar1[int1]) >= 5) and (ar1[int1][5] <> '0') then 
-        begin
-        result:= ar1[int1][1];
-        break;
-        end;
-      end;
-    end;
-end;
-
 function TSQLite3Connection.RowsAffected(cursor: TSQLCursor): TRowsCount;
 begin
   if assigned(cursor) then
@@ -719,37 +693,64 @@ end;
 constructor TSQLite3Connection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash] + [sqQuoteFieldnames];
+  FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash];
+  FieldNameQuoteChars:=DoubleQuotes;
 end;
 
 procedure TSQLite3Connection.UpdateIndexDefs(IndexDefs: TIndexDefs; TableName: string);
 var
-  str1: string;
-  
-begin
-  str1:= getprimarykeyfield(tablename,nil);
-  if str1 <> '' then 
-    begin
-    indexdefs.add('$PRIMARY_KEY$',str1,[ixPrimary,ixUnique]);
-    end;
-end;
-{
-procedure TSQLite3Connection.UpdateIndexDefs(var IndexDefs: TIndexDefs;
-                              const TableName: string);
-var
- int1,int2: integer;
- ar1: TArrayStringArray;
- str1: string;
-begin
- ar1:= stringsquery('PRAGMA table_info('+tablename+');');
- for int1:= 0 to high(ar1) do begin
-  if (high(ar1[int1]) >= 5) and (ar1[int1][5] <> '0') then begin
-   indexdefs.add('$PRIMARY_KEY$',ar1[int1][1],[ixPrimary,ixUnique]);
-   break;
+  artableinfo, arindexlist, arindexinfo: TArrayStringArray;
+  il,ii: integer;
+  IndexName: string;
+  IndexOptions: TIndexOptions;
+  PKFields, IXFields: TStrings;
+  l: boolean;
+
+  function CheckPKFields:boolean;
+  var i: integer;
+  begin
+    Result:=false;
+    if IXFields.Count<>PKFields.Count then Exit;
+    for i:=0 to IXFields.Count-1 do
+      if PKFields.IndexOf(IXFields[i])<0 then Exit;
+    Result:=true;
+    PKFields.Clear;
   end;
- end;
+
+begin
+  PKFields:=TStringList.Create;
+  IXFields:=TStringList.Create;
+  IXFields.Delimiter:=';';
+
+  //primary key fields
+  artableinfo := stringsquery('PRAGMA table_info('+TableName+');');
+  for ii:=low(artableinfo) to high(artableinfo) do
+    if (high(artableinfo[ii]) >= 5) and (artableinfo[ii][5] = '1') then
+      PKFields.Add(artableinfo[ii][1]);
+
+  //list of all table indexes
+  arindexlist:=stringsquery('PRAGMA index_list('+TableName+');');
+  for il:=low(arindexlist) to high(arindexlist) do
+    begin
+    IndexName:=arindexlist[il][1];
+    if arindexlist[il][2]='1' then
+      IndexOptions:=[ixUnique]
+    else
+      IndexOptions:=[];
+    //list of columns in given index
+    arindexinfo:=stringsquery('PRAGMA index_info('+IndexName+');');
+    IXFields.Clear;
+    for ii:=low(arindexinfo) to high(arindexinfo) do
+      IXFields.Add(arindexinfo[ii][2]);
+
+    if CheckPKFields then IndexOptions:=IndexOptions+[ixPrimary];
+
+    IndexDefs.Add(IndexName, IXFields.DelimitedText, IndexOptions);
+    end;
+
+  PKFields.Free;
+  IXFields.Free;
 end;
-}
 
 function TSQLite3Connection.getinsertid: int64;
 begin

@@ -23,6 +23,7 @@ type
     progname,
     progdir,
     progargs   : pchar;
+    start_break_number,
     in_command,
     init_count : longint;
     constructor Init;
@@ -130,9 +131,11 @@ begin
 {$endif win32}
       s[i]:='/';
 {$ifdef win32}
+{$ifndef USE_MINGW_GDB}
 { for win32 we should convert e:\ into //e/ PM }
   if (length(s)>2) and (s[2]=':') and (s[3]='/') then
     s:=CygDrivePrefix+'/'+s[1]+copy(s,3,length(s));
+{$endif USE_MINGW_GDB}
 {$endif win32}
 end;
 
@@ -243,6 +246,7 @@ end;
 procedure TGDBController.StartTrace;
 begin
   Command('tbreak PASCALMAIN');
+  start_break_number:=last_breakpoint_number;
   Run;
 end;
 

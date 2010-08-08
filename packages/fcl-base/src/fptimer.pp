@@ -69,6 +69,7 @@ type
   end;  
 
   TFPTimerDriver = Class(TObject)
+  Protected
     FTimer : TFPCustomTimer;
   Public
     Constructor Create(ATimer : TFPCustomTimer); virtual;

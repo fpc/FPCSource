@@ -37,28 +37,28 @@
 (*
  * Callback function when doing a transition in the automata
  *)
-  xmlRegExecCallbacks = procedure(exec: xmlRegExecCtxtPtr; token: xmlCharPtr; transdata, inputdata: pointer); XMLCALL;
+  xmlRegExecCallbacks = procedure(exec: xmlRegExecCtxtPtr; token: xmlCharPtr; transdata, inputdata: pointer); EXTDECL;
 {$ENDIF}
 
 {$IFDEF FUNCTION}
 (*
  * The POSIX like API
  *)
-function xmlRegexpCompile(regexp: xmlCharPtr): xmlRegexpPtr; XMLCALL; XMLPUBFUN;
-procedure xmlRegFreeRegexp(regexp: xmlRegexpPtr); XMLCALL; XMLPUBFUN;
-function xmlRegexpExec(comp: xmlRegexpPtr; value: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-procedure xmlRegexpPrint(output: PFILE; regexp: xmlRegexpPtr); XMLCALL; XMLPUBFUN;
-function xmlRegexpIsDeterminist(comp: xmlRegexpPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlRegexpCompile(regexp: xmlCharPtr): xmlRegexpPtr; EXTDECL; external xml2lib;
+procedure xmlRegFreeRegexp(regexp: xmlRegexpPtr); EXTDECL; external xml2lib;
+function xmlRegexpExec(comp: xmlRegexpPtr; value: xmlCharPtr): cint; EXTDECL; external xml2lib;
+procedure xmlRegexpPrint(output: PFILE; regexp: xmlRegexpPtr); EXTDECL; external xml2lib;
+function xmlRegexpIsDeterminist(comp: xmlRegexpPtr): cint; EXTDECL; external xml2lib;
 
 (*
  * The progressive API
  *)
-function xmlRegNewExecCtxt(comp: xmlRegexpPtr; callback: xmlRegExecCallbacks; data: pointer): xmlRegExecCtxtPtr; XMLCALL; XMLPUBFUN;
-procedure xmlRegFreeExecCtxt(exec: xmlRegExecCtxtPtr); XMLCALL; XMLPUBFUN;
-function xmlRegExecPushString(exec: xmlRegExecCtxtPtr; value: xmlCharPtr; data: pointer): cint; XMLCALL; XMLPUBFUN;
-function xmlRegExecPushString2(exec: xmlRegExecCtxtPtr; value, value2: xmlCharPtr; data: pointer): cint; XMLCALL; XMLPUBFUN;
-function xmlRegExecNextValues(exec: xmlRegExecCtxtPtr; nbval, nbneg: pcint; values: xmlCharPtrPtr; terminal: pcint): cint; XMLCALL; XMLPUBFUN;
-function xmlRegExecErrInfo(exec: xmlRegExecCtxtPtr; _string: xmlCharPtrPtr; nbval, nbneg: pcint; values: xmlCharPtrPtr; terminal: pcint): cint; XMLCALL; XMLPUBFUN;
+function xmlRegNewExecCtxt(comp: xmlRegexpPtr; callback: xmlRegExecCallbacks; data: pointer): xmlRegExecCtxtPtr; EXTDECL; external xml2lib;
+procedure xmlRegFreeExecCtxt(exec: xmlRegExecCtxtPtr); EXTDECL; external xml2lib;
+function xmlRegExecPushString(exec: xmlRegExecCtxtPtr; value: xmlCharPtr; data: pointer): cint; EXTDECL; external xml2lib;
+function xmlRegExecPushString2(exec: xmlRegExecCtxtPtr; value, value2: xmlCharPtr; data: pointer): cint; EXTDECL; external xml2lib;
+function xmlRegExecNextValues(exec: xmlRegExecCtxtPtr; nbval, nbneg: pcint; values: xmlCharPtrPtr; terminal: pcint): cint; EXTDECL; external xml2lib;
+function xmlRegExecErrInfo(exec: xmlRegExecCtxtPtr; _string: xmlCharPtrPtr; nbval, nbneg: pcint; values: xmlCharPtrPtr; terminal: pcint): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$IFDEF LIBXML_EXPR_ENABLED}
@@ -85,10 +85,10 @@ function xmlRegExecErrInfo(exec: xmlRegExecCtxtPtr; _string: xmlCharPtrPtr; nbva
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-procedure xmlRegFreeExecCtxt(ctxt: xmlExpCtxtPtr); XMLCALL; XMLPUBFUN;
-function xmlExpNewCtxt(maxNodes: cint; dict: xmlDictPtr): xmlExpCtxtPtr; XMLCALL; XMLPUBFUN;
-function xmlExpCtxtNbNodes(ctxt: xmlExpCtxtPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlExpCtxtNbCons(ctxt: xmlExpCtxtPtr): cint; XMLCALL; XMLPUBFUN;
+procedure xmlRegFreeExecCtxt(ctxt: xmlExpCtxtPtr); EXTDECL; external xml2lib;
+function xmlExpNewCtxt(maxNodes: cint; dict: xmlDictPtr): xmlExpCtxtPtr; EXTDECL; external xml2lib;
+function xmlExpCtxtNbNodes(ctxt: xmlExpCtxtPtr): cint; EXTDECL; external xml2lib;
+function xmlExpCtxtNbCons(ctxt: xmlExpCtxtPtr): cint; EXTDECL; external xml2lib;
 
 (*
  * 2 core expressions shared by all for the empty language set
@@ -96,36 +96,36 @@ function xmlExpCtxtNbCons(ctxt: xmlExpCtxtPtr): cint; XMLCALL; XMLPUBFUN;
  *)
 {$IFNDEF NO_EXTERNAL_VARS}
 var
-  forbiddenExp: xmlExpNodePtr; XMLPUBVAR;
-  emptyExp: xmlExpNodePtr; XMLPUBVAR;
+  forbiddenExp: xmlExpNodePtr; cvar; external;
+  emptyExp: xmlExpNodePtr; cvar; external;
 {$ENDIF}
 
 (*
  * Expressions are reference counted internally
  *)
-procedure xmlExpFree(ctxt: xmlExpCtxtPtr; expr: xmlExpNodePtr); XMLCALL; XMLPUBFUN;
-procedure xmlExpRef(expr: xmlExpNodePtr); XMLCALL; XMLPUBFUN;
+procedure xmlExpFree(ctxt: xmlExpCtxtPtr; expr: xmlExpNodePtr); EXTDECL; external xml2lib;
+procedure xmlExpRef(expr: xmlExpNodePtr); EXTDECL; external xml2lib;
 
 (*
  * constructors can be either manual or from a string
  *)
-function xmlExpParse(ctxt: xmlExpCtxtPtr; expr: pchar): xmlExpNodePtr; XMLCALL; XMLPUBFUN;
-function xmlExpNewAtom(ctxt: xmlExpCtxtPtr; name: xmlCharPtr; len: cint): xmlExpNodePtr; XMLCALL; XMLPUBFUN;
-function xmlExpNewOr(ctxt: xmlExpCtxtPtr; left, right: xmlExpNodePtr): xmlExpNodePtr; XMLCALL; XMLPUBFUN;
-function xmlExpNewSeq(ctxt: xmlExpCtxtPtr; left, right: xmlExpNodePtr): xmlExpNodePtr; XMLCALL; XMLPUBFUN;
-function xmlExpNewRange(ctxt: xmlExpCtxtPtr; subset: xmlExpNodePtr; min, max: cint): xmlExpNodePtr; XMLCALL; XMLPUBFUN;
+function xmlExpParse(ctxt: xmlExpCtxtPtr; expr: pchar): xmlExpNodePtr; EXTDECL; external xml2lib;
+function xmlExpNewAtom(ctxt: xmlExpCtxtPtr; name: xmlCharPtr; len: cint): xmlExpNodePtr; EXTDECL; external xml2lib;
+function xmlExpNewOr(ctxt: xmlExpCtxtPtr; left, right: xmlExpNodePtr): xmlExpNodePtr; EXTDECL; external xml2lib;
+function xmlExpNewSeq(ctxt: xmlExpCtxtPtr; left, right: xmlExpNodePtr): xmlExpNodePtr; EXTDECL; external xml2lib;
+function xmlExpNewRange(ctxt: xmlExpCtxtPtr; subset: xmlExpNodePtr; min, max: cint): xmlExpNodePtr; EXTDECL; external xml2lib;
 
 (*
  * The really interesting APIs
  *)
-function xmlExpIsNillable(expr: xmlExpNodePtr): cint; XMLCALL; XMLPUBFUN;
-function xmlExpMaxToken(expr: xmlExpNodePtr): cint; XMLCALL; XMLPUBFUN;
-function xmlExpGetLanguage(ctxt: xmlExpCtxtPtr; expr: xmlExpNodePtr; langList: xmlCharPtrPtr; len: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlExpGetStart(ctxt: xmlExpCtxtPtr; expr: xmlExpNodePtr; tokList: xmlCharPtrPtr; len: cint): cint; XMLCALL; XMLPUBFUN;
-function xmlExpStringDerive(ctxt: xmlExpCtxtPtr; expr: xmlExpNodePtr; str: xmlCharPtr; len: cint): xmlExpNodePtr; XMLCALL; XMLPUBFUN;
-function xmlExpExpDerive(ctxt: xmlExpCtxtPtr; expr, sub: xmlExpNodePtr): xmlExpNodePtr; XMLCALL; XMLPUBFUN;
-function xmlExpSubsume(ctxt: xmlExpCtxtPtr; expr, sub: xmlExpNodePtr): cint; XMLCALL; XMLPUBFUN;
-procedure xmlExpDump(buf: xmlBufferPtr; expr: xmlExpNodePtr); XMLCALL; XMLPUBFUN;
+function xmlExpIsNillable(expr: xmlExpNodePtr): cint; EXTDECL; external xml2lib;
+function xmlExpMaxToken(expr: xmlExpNodePtr): cint; EXTDECL; external xml2lib;
+function xmlExpGetLanguage(ctxt: xmlExpCtxtPtr; expr: xmlExpNodePtr; langList: xmlCharPtrPtr; len: cint): cint; EXTDECL; external xml2lib;
+function xmlExpGetStart(ctxt: xmlExpCtxtPtr; expr: xmlExpNodePtr; tokList: xmlCharPtrPtr; len: cint): cint; EXTDECL; external xml2lib;
+function xmlExpStringDerive(ctxt: xmlExpCtxtPtr; expr: xmlExpNodePtr; str: xmlCharPtr; len: cint): xmlExpNodePtr; EXTDECL; external xml2lib;
+function xmlExpExpDerive(ctxt: xmlExpCtxtPtr; expr, sub: xmlExpNodePtr): xmlExpNodePtr; EXTDECL; external xml2lib;
+function xmlExpSubsume(ctxt: xmlExpCtxtPtr; expr, sub: xmlExpNodePtr): cint; EXTDECL; external xml2lib;
+procedure xmlExpDump(buf: xmlBufferPtr; expr: xmlExpNodePtr); EXTDECL; external xml2lib;
 {$ENDIF}
 {$ENDIF} (* LIBXML_EXPR_ENABLED *)
 {$ENDIF} (* LIBXML_REGEXP_ENABLED *)

@@ -169,13 +169,20 @@ Var AddrLen : Longint;
 
 begin
   AddrLEn:=SizeOf(Addr);
-  DoAccept:=fpaccept(Sock,@Addr,@AddrLen);
+  repeat
+    DoAccept:=fpaccept(Sock,@Addr,@AddrLen);
+  until (DoAccept<>-1) or (SocketError <> EsockEINTR);
 end;
 
 Function DoConnect(Sock:longint;const addr: TInetSockAddr): Boolean;
 
+var
+  res: longint;
 begin
-  DoConnect:=fpconnect(Sock,@Addr,SizeOF(TInetSockAddr)) = 0;
+  repeat
+    res:=fpconnect(Sock,@Addr,SizeOF(TInetSockAddr));
+  until (res<>-1) or (SocketError <> EsockEINTR);
+  DoConnect:= res = 0;
 end;
 
 {$warnings off}

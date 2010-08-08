@@ -42,10 +42,6 @@ interface
       { TLLVMDefInfo }
     type
       TLLVMDefInfo = class(TDebugInfo)
-        { collect all defs in one list so we can reset them easily }
-        defnumberlist,
-        deftowritelist   : TFPObjectList;
-
         function def_llvm_name(def:tdef) : tasmsymbol;
         function def_llvm_pointer_name(def: tdef): tasmsymbol;
         function def_llvm_class_struct_name(def:tobjectdef) : tasmsymbol;
@@ -903,6 +899,15 @@ implementation
               begin
                 def.dwarf_lab:=nil;
                 def.dbg_state:=dbg_state_unused;
+{$ifdef support_llvm}
+                def.fllvm_name_sym:=nil;
+                def.fllvm_pointer_name_sym:=nil;
+                if def.typ=objectdef then
+                  begin
+                    tobjectdef(def).fllvm_class_struct_name_sym:=nil;
+                    tobjectdef(def).fllvm_vmt_name_sym:=nil;
+                  end;
+{$endif support_llvm}
               end;
           end;
 

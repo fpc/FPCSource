@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for utmp units example
+#
+
+[target]
+programs=testutmp
+
+[require]
+packages=utmp
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

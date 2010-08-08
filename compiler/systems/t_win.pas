@@ -68,6 +68,7 @@ interface
         constructor create;override;
         procedure DefaultLinkScript;override;
         procedure InitSysInitUnitName;override;
+        procedure ConcatEntryName; virtual;
       end;
 
       TExternalLinkerWin=class(texternallinker)
@@ -100,6 +101,7 @@ implementation
 
 
   const
+{$ifndef x86_64}
     res_gnu_windres_info : tresinfo =
         (
           id     : res_gnu_windres;
@@ -110,7 +112,7 @@ implementation
           resourcefileclass : nil;
           resflags : [];
         );
-{$ifdef x86_64}
+{$else x86_64}
     res_win64_gorc_info : tresinfo =
         (
           id     : res_win64_gorc;
@@ -508,15 +510,15 @@ implementation
                       current_asmdata.asmlists[al_imports].concat(Tai_symbol.Createname_global(ExtractFileName(ImportLibrary.Name)+'_index_'+tostr(ImportSymbol.ordnr),AT_FUNCTION,0));
                     current_asmdata.asmlists[al_imports].concat(tai_function_name.create(''));
                   {$ifdef ARM}
-                    reference_reset_symbol(href,l5,0);
+                    reference_reset_symbol(href,l5,0,sizeof(pint));
                     current_asmdata.asmlists[al_imports].concat(Taicpu.op_reg_ref(A_LDR,NR_R12,href));
-                    reference_reset_base(href,NR_R12,0);
+                    reference_reset_base(href,NR_R12,0,sizeof(pint));
                     current_asmdata.asmlists[al_imports].concat(Taicpu.op_reg_ref(A_LDR,NR_R15,href));
                     current_asmdata.asmlists[al_imports].concat(Tai_label.Create(l5));
-                    reference_reset_symbol(href,l4,0);
+                    reference_reset_symbol(href,l4,0,sizeof(pint));
                     current_asmdata.asmlists[al_imports].concat(tai_const.create_sym_offset(href.symbol,href.offset));
                   {$else ARM}
-                    reference_reset_symbol(href,l4,0);
+                    reference_reset_symbol(href,l4,0,sizeof(pint));
                     current_asmdata.asmlists[al_imports].concat(Taicpu.Op_ref(A_JMP,S_NO,href));
                     current_asmdata.asmlists[al_imports].concat(Tai_align.Create_op(4,$90));
                   {$endif ARM}
@@ -930,8 +932,7 @@ implementation
 
     procedure TInternalLinkerWin.DefaultLinkScript;
       var
-        s,s2,
-        ibase : TCmdStr;
+        s,s2 : TCmdStr;
         secname,
         secnames : string;
       begin
@@ -958,34 +959,19 @@ implementation
                   Comment(V_Error,'Import library not found for '+S);
               end;
             if IsSharedLibrary then
-              begin
-                Concat('ISSHAREDLIBRARY');
-                if apptype=app_gui then
-                  Concat('ENTRYNAME _DLLWinMainCRTStartup')
-                else
-                  Concat('ENTRYNAME _DLLMainCRTStartup');
-              end
-            else
-              begin
-                if apptype=app_gui then
-                  Concat('ENTRYNAME _WinMainCRTStartup')
-                else
-                  Concat('ENTRYNAME _mainCRTStartup');
-              end;
-            ibase:='';
-            if assigned(DLLImageBase) then
-              ibase:=DLLImageBase^
-            else
+              Concat('ISSHAREDLIBRARY');
+            ConcatEntryName;
+            if not ImageBaseSetExplicity then
               begin
                 if IsSharedLibrary then
-                  ibase:='10000000'
+                  imagebase:={$ifdef cpu64bitaddr} $110000000 {$else} $10000000 {$endif}
                 else
-                  if target_info.system in [system_arm_wince] then
-                    ibase:='10000'
+                  if target_info.system in systems_wince then
+                    imagebase:=$10000
                   else
-                    ibase:='400000';
+                    imagebase:={$ifdef cpu64bitaddr} $100000000 {$else} $400000 {$endif};
               end;
-            Concat('IMAGEBASE $' + ibase);
+            Concat('IMAGEBASE $' + hexStr(imagebase, SizeOf(imagebase)*2));
             Concat('HEADER');
             Concat('EXESECTION .text');
             Concat('  SYMBOL __text_start__');
@@ -1065,6 +1051,28 @@ implementation
           GlobalInitSysInitUnitName(self);
       end;
 
+    procedure TInternalLinkerWin.ConcatEntryName;
+      begin
+        with LinkScript do
+          begin
+            if IsSharedLibrary then
+              begin
+                Concat('ISSHAREDLIBRARY');
+                if apptype=app_gui then
+                  Concat('ENTRYNAME _DLLWinMainCRTStartup')
+                else
+                  Concat('ENTRYNAME _DLLMainCRTStartup');
+              end
+            else
+              begin
+                if apptype=app_gui then
+                  Concat('ENTRYNAME _WinMainCRTStartup')
+                else
+                  Concat('ENTRYNAME _mainCRTStartup');
+              end;
+          end;
+      end;
+
 
 {****************************************************************************
                               TExternalLinkerWin
@@ -1086,7 +1094,7 @@ implementation
         with Info do
          begin
            if target_info.system=system_arm_wince then
-             targetopts:='-m armpe'
+             targetopts:='-m arm_wince_pe'
            else
              targetopts:='-b pe-i386 -m i386pe';
            ExeCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
@@ -1338,7 +1346,7 @@ implementation
           RelocStr:='--base-file base.$$$';
         if create_smartlink_sections then
           GCSectionsStr:='--gc-sections';
-        if target_info.system in system_wince then
+        if target_info.system in systems_wince then
           AppTypeStr:='--subsystem wince'
         else
           begin
@@ -1349,8 +1357,8 @@ implementation
           EntryStr:='--entry=_WinMainCRTStartup'
         else
           EntryStr:='--entry=_mainCRTStartup';
-        if assigned(DLLImageBase) then
-          ImageBaseStr:='--image-base=0x'+DLLImageBase^;
+        if ImageBaseSetExplicity then
+          ImageBaseStr:='--image-base=0x'+hexStr(imagebase, SizeOf(imagebase)*2);
         if (cs_link_strip in current_settings.globalswitches) then
           StripStr:='-s';
         if (cs_link_map in current_settings.globalswitches) then
@@ -1451,8 +1459,8 @@ implementation
           end
         else
           EntryStr:='--entry _DLLMainCRTStartup';
-        if assigned(DLLImageBase) then
-          ImageBaseStr:='--image-base=0x'+DLLImageBase^;
+        if ImageBaseSetExplicity then
+          ImageBaseStr:='--image-base=0x'+hexStr(imagebase, SizeOf(imagebase)*2);
         if (cs_link_strip in current_settings.globalswitches) then
           StripStr:='-s';
         if (cs_link_map in current_settings.globalswitches) then
@@ -1607,7 +1615,7 @@ implementation
         { gui=2 }
         { cui=3 }
         { wincegui=9 }
-        if target_info.system in system_wince then
+        if target_info.system in systems_wince then
           peoptheader.Subsystem:=9
         else
           case apptype of

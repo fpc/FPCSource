@@ -26,8 +26,13 @@ implementation
 
 {$linklib c}
 
-{$if not defined(linux) and not defined(solaris) and not defined(haiku)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
- {$linklib iconv}
+{$if not defined(linux) and not defined(solaris)}  // Linux (and maybe glibc platforms in general), have iconv in glibc.
+ {$if defined(haiku)}
+   {$linklib textencoding}
+   {$linklib locale}
+ {$else}
+   {$linklib iconv}
+ {$endif}
  {$define useiconv}
 {$endif linux}
 
@@ -42,7 +47,11 @@ Const
 {$ifndef useiconv}
     libiconvname='c';  // is in libc under Linux.
 {$else}
+  {$ifdef haiku}
+    libiconvname='textencoding';  // is in libtextencoding under Haiku
+  {$else}
     libiconvname='iconv';
+  {$endif}
 {$endif}
 
 { helper functions from libc }
@@ -89,7 +98,11 @@ const
 {$ifdef beos}
   {$warning check correct value for BeOS}
   CODESET=49;
-  LC_ALL = 6; // Checked for BeOS, but 0 under Haiku...
+  {$ifdef haiku}
+  LC_ALL = 0; // Checked for Haiku
+  {$else}
+  LC_ALL = 6; // Checked for BeOS
+  {$endif}
   ESysEILSEQ = EILSEQ;
 {$else}
 {$error lookup the value of CODESET in /usr/include/langinfo.h, and the value of LC_ALL in /usr/include/locale.h for your OS }
@@ -120,11 +133,16 @@ type
   piconv_t = ^iconv_t;
   iconv_t = pointer;
   nl_item = cint;
-{$ifndef beos}
-function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
+
+{$ifdef haiku}
+  function nl_langinfo(__item:nl_item):pchar;cdecl;external 'locale' name 'nl_langinfo';
+{$else}
+  {$ifndef beos}
+  function nl_langinfo(__item:nl_item):pchar;cdecl;external libiconvname name 'nl_langinfo';
+  {$endif}
 {$endif}
 
-{$if (not defined(bsd) and not defined(beos)) or defined(darwin) or defined(haiku)}
+{$if (not defined(bsd) and not defined(beos)) or (defined(darwin) and not defined(cpupowerpc32))}
 function iconv_open(__tocode:pchar; __fromcode:pchar):iconv_t;cdecl;external libiconvname name 'iconv_open';
 function iconv(__cd:iconv_t; __inbuf:ppchar; __inbytesleft:psize_t; __outbuf:ppchar; __outbytesleft:psize_t):size_t;cdecl;external libiconvname name 'iconv';
 function iconv_close(__cd:iconv_t):cint;cdecl;external libiconvname name 'iconv_close';
@@ -141,7 +159,7 @@ threadvar
   iconv_ansi2wide,
   iconv_wide2ansi : iconv_t;
 
-{$ifdef beos}
+{$if defined(beos) and not defined(haiku)}
 function nl_langinfo(__item:nl_item):pchar;
 begin
   {$warning TODO BeOS nl_langinfo or more uptodate port of iconv...}
@@ -169,6 +187,13 @@ procedure Wide2AnsiMove(source:pwidechar;var dest:ansistring;len:SizeInt);
     my0 : size_t;
     err: cint;
   begin
+{$ifndef VER2_2}
+    if PtrInt(iconv_wide2ansi)=-1 then
+      begin
+        DefaultUnicode2AnsiMove(source,dest,len);
+        exit;
+      end;
+{$endif VER2_2}
     mynil:=nil;
     my0:=0;
     { rought estimation }
@@ -228,6 +253,13 @@ procedure Ansi2WideMove(source:pchar;var dest:widestring;len:SizeInt);
     my0 : size_t;
     err: cint;
   begin
+{$ifndef VER2_2}
+    if PtrInt(iconv_ansi2wide)=-1 then
+      begin
+        DefaultAnsi2UnicodeMove(source,dest,len);
+        exit;
+      end;
+{$endif VER2_2}
     mynil:=nil;
     my0:=0;
     // extra space
@@ -689,8 +721,14 @@ end;
 
 procedure InitThread;
 begin
+{$if not(defined(darwin) and defined(arm))}
   iconv_wide2ansi:=iconv_open(nl_langinfo(CODESET),unicode_encoding2);
   iconv_ansi2wide:=iconv_open(unicode_encoding2,nl_langinfo(CODESET));
+{$else}
+  { Unix locale settings are ignored on iPhoneOS }
+  iconv_wide2ansi:=iconv_open('UTF-8',unicode_encoding2);
+  iconv_ansi2wide:=iconv_open(unicode_encoding2,'UTF-8');
+{$endif}
 end;
 
 
@@ -759,4 +797,3 @@ finalization
   { fini conversion tables for main program }
   FiniThread;
 end.
-

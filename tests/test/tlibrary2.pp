@@ -25,6 +25,10 @@ const
 procedure test;external libname name 'TestName';
 
 begin
+  if islibrary then
+    halt(3);
+  if moduleislib then
+    halt(4);
   test;
 end.
 {$else not supported}

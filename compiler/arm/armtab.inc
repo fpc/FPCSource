@@ -400,6 +400,34 @@
     flags   : if_arm7
   ),
   (
+    opcode  : A_MRS;
+    ops     : 2;
+    optypes : (ot_reg32,ot_reg32,ot_none,ot_none);
+    code    : #16#1#15;
+    flags   : if_arm7
+  ),
+  (
+    opcode  : A_MSR;
+    ops     : 2;
+    optypes : (ot_reg32,ot_reg32,ot_none,ot_none);
+    code    : #17#1#41#240;
+    flags   : if_arm7
+  ),
+  (
+    opcode  : A_MSR;
+    ops     : 2;
+    optypes : (ot_regf,ot_reg32,ot_none,ot_none);
+    code    : #18#1#40#240;
+    flags   : if_arm7
+  ),
+  (
+    opcode  : A_MSR;
+    ops     : 2;
+    optypes : (ot_regf,ot_immediate,ot_none,ot_none);
+    code    : #19#3#40#240;
+    flags   : if_arm7
+  ),
+  (
     opcode  : A_MUL;
     ops     : 3;
     optypes : (ot_reg32,ot_reg32,ot_reg32,ot_none);

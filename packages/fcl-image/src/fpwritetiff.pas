@@ -19,7 +19,7 @@
     Orientation,
 
   ToDo:
-    Compression: packbits, deflate, jpeg, ...
+    Compression: LZW, packbits, deflate, jpeg, ...
     thumbnail
     Planar
     ColorMap
@@ -39,7 +39,7 @@ unit FPWriteTiff;
 interface
 
 uses
-  Math, Classes, SysUtils, FPimage, FPTiffCmn, FPWriteTGA;
+  Math, Classes, SysUtils, FPimage, FPTiffCmn;
 
 type
 
@@ -77,6 +77,7 @@ type
 
   TFPWriterTiff = class(TFPCustomImageWriter)
   private
+    FSaveCMYKAsRGB: boolean;
     fStartPos: Int64;
     FEntries: TFPList; // list of TFPList of TTiffWriteEntry
     fStream: TStream;
@@ -108,6 +109,7 @@ type
     procedure Clear;
     procedure AddImage(Img: TFPCustomImage);
     procedure SaveToStream(Stream: TStream);
+    property SaveCMYKAsRGB: boolean read FSaveCMYKAsRGB write FSaveCMYKAsRGB;
   end;
 
 function CompareTiffWriteEntries(Entry1, Entry2: Pointer): integer;
@@ -315,9 +317,15 @@ begin
     CurEntries:=TFPList.Create;
     FEntries.Add(CurEntries);
 
-    IDF.PhotoMetricInterpretation:=StrToInt64Def(Img.Extra[TiffPhotoMetric],High(IDF.PhotoMetricInterpretation));
+    if Img.Extra[TiffPhotoMetric]='' then
+      IDF.PhotoMetricInterpretation:=2
+    else begin
+      IDF.PhotoMetricInterpretation:=StrToInt64Def(Img.Extra[TiffPhotoMetric],High(IDF.PhotoMetricInterpretation));
+      if SaveCMYKAsRGB and (IDF.PhotoMetricInterpretation=5) then
+        IDF.PhotoMetricInterpretation:=2;
+    end;
     if not (IDF.PhotoMetricInterpretation in [0,1,2]) then
-      TiffError('PhotoMetricInterpretation='+IntToStr(IDF.PhotometricInterpretation)+' not supported');
+      TiffError('PhotoMetricInterpretation="'+Img.Extra[TiffPhotoMetric]+'" not supported');
     IDF.Artist:=Img.Extra[TiffArtist];
     IDF.Copyright:=Img.Extra[TiffCopyright];
     IDF.DocumentName:=Img.Extra[TiffDocumentName];
@@ -329,14 +337,14 @@ begin
     IDF.ResolutionUnit:=StrToIntDef(Img.Extra[TiffResolutionUnit],2);
     if not (IDF.ResolutionUnit in [1..3]) then
       IDF.ResolutionUnit:=2;
-    IDF.XResolution:=StrToTiffRationalDef(Img.Extra[TiffXResolution],TiffRational0);
-    IDF.YResolution:=StrToTiffRationalDef(Img.Extra[TiffYResolution],TiffRational0);
+    IDF.XResolution:=StrToTiffRationalDef(Img.Extra[TiffXResolution],TiffRational72);
+    IDF.YResolution:=StrToTiffRationalDef(Img.Extra[TiffYResolution],TiffRational72);
 
-    GrayBits:=StrToIntDef(Img.Extra[TiffGrayBits],0);
-    RedBits:=StrToIntDef(Img.Extra[TiffRedBits],0);
-    GreenBits:=StrToIntDef(Img.Extra[TiffGreenBits],0);
-    BlueBits:=StrToIntDef(Img.Extra[TiffBlueBits],0);
-    AlphaBits:=StrToIntDef(Img.Extra[TiffAlphaBits],0);
+    GrayBits:=StrToIntDef(Img.Extra[TiffGrayBits],8);
+    RedBits:=StrToIntDef(Img.Extra[TiffRedBits],8);
+    GreenBits:=StrToIntDef(Img.Extra[TiffGreenBits],8);
+    BlueBits:=StrToIntDef(Img.Extra[TiffBlueBits],8);
+    AlphaBits:=StrToIntDef(Img.Extra[TiffAlphaBits],8);
     ImgWidth:=Img.Width;
     ImgHeight:=Img.Height;
     Compression:=1;
@@ -612,6 +620,7 @@ constructor TFPWriterTiff.Create;
 begin
   inherited Create;
   FEntries:=TFPList.Create;
+  FSaveCMYKAsRGB:=true;
 end;
 
 destructor TFPWriterTiff.Destroy;

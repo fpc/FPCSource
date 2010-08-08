@@ -76,7 +76,7 @@ begin
   CloseLog;
 end;
 
-procedure TEventLog.WriteSystemLog(EventType : TEventType; Msg : String);
+procedure TEventLog.WriteSystemLog(EventType : TEventType; const Msg : String);
 
 Var
   P,PT : PChar;
@@ -90,6 +90,12 @@ begin
 end;
 
 Function TEventLog.RegisterMessageFile(AFileName : String) : Boolean;
+
+begin
+  Result:=True;
+end;
+
+Function TEventLog.UnRegisterMessageFile : Boolean;
 
 begin
   Result:=True;

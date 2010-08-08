@@ -45,7 +45,7 @@ Type
 
    tfputype =
      (fpu_none,
-      fpu_soft,  { generic }
+//      fpu_soft,  { generic }
       fpu_sse64,
       fpu_sse3
      );
@@ -67,7 +67,8 @@ Const
      pocall_safecall,
      pocall_stdcall,
      pocall_cdecl,
-     pocall_cppdecl
+     pocall_cppdecl,
+     pocall_mwpascal
    ];
 
    cputypestr : array[tcputype] of string[10] = ('',
@@ -75,13 +76,13 @@ Const
    );
 
    fputypestr : array[tfputype] of string[6] = ('',
-     'SOFT',
+//     'SOFT',
      'SSE64',
      'SSE3'
    );
 
-   sse_singlescalar : set of tfputype = [fpu_sse64];
-   sse_doublescalar : set of tfputype = [fpu_sse64];
+   sse_singlescalar : set of tfputype = [fpu_sse64,fpu_sse3];
+   sse_doublescalar : set of tfputype = [fpu_sse64,fpu_sse3];
 
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+
@@ -89,10 +90,12 @@ Const
                                  genericlevel3optimizerswitches-
                                  { no need to write info about those }
                                  [cs_opt_level1,cs_opt_level2,cs_opt_level3]+
-                                 [cs_opt_regvar,cs_opt_loopunroll,cs_opt_stackframe,cs_opt_tailrecursion];
+                                 [cs_opt_regvar,cs_opt_loopunroll,cs_opt_stackframe,
+								  cs_opt_tailrecursion,cs_opt_nodecse];
 
    level1optimizerswitches = genericlevel1optimizerswitches;
-   level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches + [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion];
+   level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches + 
+     [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion,cs_opt_nodecse];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
 
 Implementation

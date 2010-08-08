@@ -163,7 +163,21 @@ implementation
 
 uses dbconst,ctypes,strutils;
 
-{ TConnectionName }
+const
+  Mysql_Option_Names : array[mysql_option] of string = ('MYSQL_OPT_CONNECT_TIMEOUT','MYSQL_OPT_COMPRESS',
+     'MYSQL_OPT_NAMED_PIPE','MYSQL_INIT_COMMAND',
+     'MYSQL_READ_DEFAULT_FILE','MYSQL_READ_DEFAULT_GROUP',
+     'MYSQL_SET_CHARSET_DIR','MYSQL_SET_CHARSET_NAME',
+     'MYSQL_OPT_LOCAL_INFILE','MYSQL_OPT_PROTOCOL',
+     'MYSQL_SHARED_MEMORY_BASE_NAME','MYSQL_OPT_READ_TIMEOUT',
+     'MYSQL_OPT_WRITE_TIMEOUT','MYSQL_OPT_USE_RESULT',
+     'MYSQL_OPT_USE_REMOTE_CONNECTION','MYSQL_OPT_USE_EMBEDDED_CONNECTION',
+     'MYSQL_OPT_GUESS_CONNECTION','MYSQL_SET_CLIENT_IP',
+     'MYSQL_SECURE_AUTH'
+{$IFDEF MYSQL50}
+     ,'MYSQL_REPORT_DATA_TRUNCATION', 'MYSQL_OPT_RECONNECT'
+{$ENDIF}
+     );
 
 Resourcestring
   SErrServerConnectFailed = 'Server connect failed.';
@@ -178,6 +192,7 @@ Resourcestring
   SErrNotversion50 = 'TMySQL50Connection can not work with the installed MySQL client version (%s).';
   SErrNotversion41 = 'TMySQL41Connection can not work with the installed MySQL client version (%s).';
   SErrNotversion40 = 'TMySQL40Connection can not work with the installed MySQL client version (%s).';
+  SErrSettingParameter = 'Error setting parameter "%s"';
 
 Procedure MySQlError(R : PMySQL;Msg: String;Comp : TComponent);
 
@@ -193,6 +208,21 @@ begin
  else
    DatabaseError(Msg,Comp);
 end;
+
+function MysqlOption(const OptionName: string; out AMysql_Option: mysql_option) : boolean;
+var AMysql_Option_i: mysql_option;
+begin
+  result := false;
+  for AMysql_Option_i:=low(AMysql_Option) to high(AMysql_Option) do
+    if sametext(Mysql_Option_Names[AMysql_Option_i],OptionName) then
+      begin
+      result := true;
+      AMysql_Option:=AMysql_Option_i;
+      break;
+      end;
+end;
+
+{ TConnectionName }
 
 function TConnectionName.StrToStatementType(s : string) : TStatementType;
 
@@ -225,13 +255,44 @@ procedure TConnectionName.ConnectMySQL(var HMySQL : PMySQL;H,U,P : pchar);
 
 Var
   APort : Cardinal;
+  i,e: integer;
+  AMysql_Option: mysql_option;
+  OptStr: string;
+  OptInt: cuint;
+  Opt: pointer;
 
 begin
   HMySQL := mysql_init(HMySQL);
   APort:=Abs(StrToIntDef(Params.Values['Port'],0));
+
+  for i := 0 to Params.Count-1 do
+    begin
+    if MysqlOption(params.Names[i],AMysql_Option) then
+      begin
+      OptStr:=params.ValueFromIndex[i];
+      val(OptStr,OptInt,e);
+      if e=0 then
+        Opt := @OptInt
+      else
+        Opt := pchar(OptStr);
+      if mysql_options(HMySQL,AMysql_Option,Opt) <> 0 then
+          MySQlError(HMySQL,Format(SErrSettingParameter,[params.Names[i]]),Self);
+      end;
+    end;
+
   HMySQL:=mysql_real_connect(HMySQL,PChar(H),PChar(U),Pchar(P),Nil,APort,Nil,0);
   If (HMySQL=Nil) then
     MySQlError(Nil,SErrServerConnectFailed,Self);
+
+  // MySQL _Server_ version 4.1 and later
+  // major_version*10000 + minor_version *100 + sub_version
+  if (trim(CharSet) <> '')  and (4*10000 + 1*100 <= mysql_get_server_version(HMySQL)) then
+    begin
+    // Only available for mysql 5.0.7 and later...
+    // if (mysql_set_character_set(HMySQL, PChar(CharSet)) <> 0) then
+    if mysql_query(FMySQL,PChar('SET CHARACTER SET ''' + EscapeString(CharSet) +''''))<>0 then
+      MySQLError(HMySQL,Format(SErrExecuting,[StrPas(mysql_error(HMySQL))]),Self);
+    end;
 end;
 
 function TConnectionName.GetAsSQLText(Field : TField) : string;
@@ -300,18 +361,21 @@ begin
 
   InitialiseMysql;
 
-  H:=HostName;
-  U:=UserName;
-  P:=Password;
-  AMySQL := nil;
-  ConnectMySQL(AMySQL,pchar(H),pchar(U),pchar(P));
-
-  if mysql_query(AMySQL,pchar(query))<>0 then
-    MySQLError(AMySQL,Format(SErrExecuting,[StrPas(mysql_error(AMySQL))]),Self);
-
-  mysql_close(AMySQL);
-
-  ReleaseMysql;
+  try
+    H:=HostName;
+    U:=UserName;
+    P:=Password;
+    AMySQL := nil;
+    ConnectMySQL(AMySQL,pchar(H),pchar(U),pchar(P));
+    try
+      if mysql_query(AMySQL,pchar(query))<>0 then
+        MySQLError(AMySQL,Format(SErrExecuting,[StrPas(mysql_error(AMySQL))]),Self);
+    finally
+      mysql_close(AMySQL);
+    end;
+  finally
+    ReleaseMysql;
+  end;
 end;
 
 function TConnectionName.EscapeString(const Str: string): string;
@@ -325,17 +389,19 @@ begin
 end;
 
 procedure TConnectionName.DoInternalConnect;
+var ClientVerStr: string;
 begin
   InitialiseMysql;
+  ClientVerStr := copy(strpas(mysql_get_client_info()),1,3);
 {$IFDEF mysql50}
-  if copy(strpas(mysql_get_client_info()),1,3)<>'5.0' then
+  if (ClientVerStr<>'5.0') and (ClientVerStr<>'5.1') then
     Raise EInOutError.CreateFmt(SErrNotversion50,[strpas(mysql_get_client_info())]);
 {$ELSE}
   {$IFDEF mysql41}
-  if copy(strpas(mysql_get_client_info()),1,3)<>'4.1' then
+  if ClientVerStr<>'4.1' then
     Raise EInOutError.CreateFmt(SErrNotversion41,[strpas(mysql_get_client_info())]);
   {$ELSE}
-  if copy(strpas(mysql_get_client_info()),1,3)<>'4.0' then
+  if ClientVerStr<>'4.0' then
     Raise EInOutError.CreateFmt(SErrNotversion40,[strpas(mysql_get_client_info())]);
   {$ENDIF}
 {$ENDIF}
@@ -912,9 +978,11 @@ begin
 end;
 
 constructor TConnectionName.Create(AOwner: TComponent);
+const SingleBackQoutes: TQuoteChars = ('`','`');
 begin
   inherited Create(AOwner);
   FConnOptions := FConnOptions + [sqEscapeRepeat] + [sqEscapeSlash];
+  FieldNameQuoteChars:=SingleBackQoutes;
   FMySQL := Nil;
 end;
 

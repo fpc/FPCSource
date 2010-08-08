@@ -182,8 +182,6 @@ function Pascal_E32Main: Integer; cdecl; [public, alias: '_Pascal_E32Main'];
 var
   ST : pointer;
 begin
-  IsLibrary := false;
-
   PascalMain;
 
   { if we pass here there was no error }

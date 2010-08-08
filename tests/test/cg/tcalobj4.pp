@@ -15,12 +15,11 @@
 {            FPC     = Target is FreePascal compiler             }
 {****************************************************************}
 { REMARKS: This tests secondcalln(), genentrycode() and          }
-{ genexitcode() for standard object with the oldfpccall            }
+{ genexitcode() for standard object with the oldfpccall          }
 { calling convention.                                            }
 {                                                                }
 {****************************************************************}
 program tcalobj4;
-{$STATIC ON}
 {$R+}
 
  const

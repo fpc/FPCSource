@@ -50,6 +50,7 @@ ResourceString
   SEntering = '> Entering ';
   SExiting  = '< Exiting ';
   SSeparator = '>-=-=-=-=-=-=-=-=-=-=-=-=-=-=-<';
+  SServerStartFailed = 'Failed to start debugserver. (%s)';
 
 implementation
 
@@ -211,11 +212,14 @@ begin
   With TProcess.Create(Nil) do
     begin
     Try
-      CommandLine:='debugserver';
+      CommandLine:='dbugsrv';
       Execute;
       Result:=ProcessID;
-    Except
+    Except On E: Exception do
+      begin
+      SendError := Format(SServerStartFailed,[E.Message]);
       Result := 0;
+      end;
     end;
     Free;
     end;
@@ -258,6 +262,7 @@ begin
     if ServerID = 0 then
       begin
       DebugDisabled := True;
+      FreeAndNil(DebugClient);
       Exit;
       end
     else
@@ -269,7 +274,13 @@ begin
       Sleep(100);
       end;
     end;
-  DebugClient.Connect;
+  try
+    DebugClient.Connect;
+  except
+    FreeAndNil(DebugClient);
+    DebugDisabled:=True;
+    Raise;
+  end;
   MsgBuffer:=TMemoryStream.Create;
   Msg.MsgType:=lctIdentify;
   Msg.MsgTimeStamp:=Now;

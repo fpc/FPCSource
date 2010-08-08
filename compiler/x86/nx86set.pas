@@ -73,7 +73,11 @@ implementation
 
     function tx86casenode.has_jumptable : boolean;
       begin
-        has_jumptable:=target_info.system<>system_x86_64_darwin;
+{$ifdef i386}
+        has_jumptable:=true;
+{$else}
+        has_jumptable:=false;
+{$endif}
       end;
 
 
@@ -125,7 +129,7 @@ implementation
         indexreg:=cg.makeregsize(current_asmdata.CurrAsmList,hregister,OS_INT);
         cg.a_load_reg_reg(current_asmdata.CurrAsmList,opsize,OS_INT,hregister,indexreg);
         { create reference }
-        reference_reset_symbol(href,table,0);
+        reference_reset_symbol(href,table,0,sizeof(pint));
         href.offset:=(-aint(min_))*sizeof(aint);
         href.index:=indexreg;
         href.scalefactor:=sizeof(aint);
@@ -442,22 +446,22 @@ implementation
                           cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,right.location.value,hreg2);
                           emit_reg_reg(A_BT,S_L,hreg,hreg2);
                        end;
-                  else
-                    begin
-                       emit_const_ref(A_CMP,TCGSize2OpSize[orgopsize],31,left.location.reference);
-                       cg.a_jmp_flags(current_asmdata.CurrAsmList,F_BE,l);
-                       { reset carry flag }
-                       current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
-                       cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
-                       cg.a_label(current_asmdata.CurrAsmList,l);
-                       hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                       cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hreg);
-                       { We have to load the value into a register because
-                         btl does not accept values only refs or regs (PFV) }
-                       hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
-                       cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,right.location.value,hreg2);
-                       emit_reg_reg(A_BT,S_L,hreg,hreg2);
-                    end;
+                     else
+                       begin
+                          emit_const_ref(A_CMP,TCGSize2OpSize[orgopsize],31,left.location.reference);
+                          cg.a_jmp_flags(current_asmdata.CurrAsmList,F_BE,l);
+                          { reset carry flag }
+                          current_asmdata.CurrAsmList.concat(taicpu.op_none(A_CLC,S_NO));
+                          cg.a_jmp_always(current_asmdata.CurrAsmList,l2);
+                          cg.a_label(current_asmdata.CurrAsmList,l);
+                          hreg:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                          cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_32,OS_32,left.location.reference,hreg);
+                          { We have to load the value into a register because
+                            btl does not accept values only refs or regs (PFV) }
+                          hreg2:=cg.getintregister(current_asmdata.CurrAsmList,OS_32);
+                          cg.a_load_const_reg(current_asmdata.CurrAsmList,OS_32,right.location.value,hreg2);
+                          emit_reg_reg(A_BT,S_L,hreg,hreg2);
+                       end;
                   end;
                   cg.a_label(current_asmdata.CurrAsmList,l2);
                 end { of right.location.loc=LOC_CONSTANT }
@@ -487,7 +491,9 @@ implementation
                else
                 begin
                   location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
-                    register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
+                  register_maybe_adjust_setbase(current_asmdata.CurrAsmList,left.location,setbase);
+                  if (right.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+                    location_force_reg(current_asmdata.CurrAsmList,right.location,opsize,true);
                   pleftreg:=left.location.register;
 
                   if (opsize >= OS_S8) or { = if signed }

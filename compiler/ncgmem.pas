@@ -79,13 +79,13 @@ implementation
 
     uses
       systems,
-      cutils,verbose,globals,constexp,
+      cutils,cclasses,verbose,globals,constexp,
       symconst,symdef,symsym,symtable,defutil,paramgr,
       aasmbase,aasmtai,aasmdata,
       procinfo,pass_2,parabase,
       pass_1,nld,ncon,nadd,nutils,
       cgutils,cgobj,
-      tgobj,ncgutil
+      tgobj,ncgutil,objcgutl
       ;
 
 
@@ -95,16 +95,41 @@ implementation
 
     procedure tcgloadvmtaddrnode.pass_generate_code;
       var
-       href : treference;
+        href    : treference;
+        pool    : THashSet;
+        entry   : PHashSetItem;
 
       begin
          location_reset(location,LOC_REGISTER,OS_ADDR);
          if (left.nodetype=typen) then
            begin
-             reference_reset_symbol(href,
-               current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname),0);
              location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
-             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
+             if not is_objcclass(left.resultdef) then
+               begin
+                 reference_reset_symbol(href,
+                   current_asmdata.RefAsmSymbol(tobjectdef(tclassrefdef(resultdef).pointeddef).vmt_mangledname),0,
+                   sizeof(pint));
+                 cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,href,location.register);
+               end
+             else
+               begin
+                 if current_asmdata.ConstPools[sp_objcclassnamerefs]=nil then
+                   current_asmdata.ConstPools[sp_objcclassnamerefs]:=THashSet.Create(64, True, False);
+                 pool:=current_asmdata.ConstPools[sp_objcclassnamerefs];
+                 entry:=pool.FindOrAdd(@tobjectdef(left.resultdef).objextname^[1],length(tobjectdef(left.resultdef).objextname^));
+                 if (target_info.system in systems_objc_nfabi) then
+                   begin
+                     { find/add necessary classref/classname pool entries }
+                     objcfinishclassrefnfpoolentry(entry,tobjectdef(left.resultdef));
+                   end
+                 else
+                   begin
+                     { find/add necessary classref/classname pool entries }
+                     objcfinishstringrefpoolentry(entry,sp_objcclassnames,sec_objc_cls_refs,sec_objc_class_names);
+                   end;
+                 reference_reset_symbol(href,tasmlabel(entry^.Data),0,sizeof(pint));
+                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,location.register);
+               end;
            end
          else
            begin
@@ -153,7 +178,7 @@ implementation
                 if hsym.localloc.loc<>LOC_REFERENCE then
                   internalerror(200309283);
 
-                reference_reset_base(href,location.register,hsym.localloc.reference.offset);
+                reference_reset_base(href,location.register,hsym.localloc.reference.offset,sizeof(pint));
                 cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,location.register);
               end;
           end;
@@ -171,7 +196,15 @@ implementation
          location_reset(location,LOC_REGISTER,OS_ADDR);
          location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
          if not(left.location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
-           internalerror(2006111510);
+           { on x86_64-win64, array of chars can be returned in registers, however,
+             when passing these arrays to other functions, the compiler wants to take
+             the address of the array so when the addrnode has been created internally,
+             we have to force the data into memory, see also tw14388.pp
+           }
+           if nf_internal in flags then
+             location_force_mem(current_asmdata.CurrAsmList,left.location)
+           else
+             internalerror(2006111510);
          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
       end;
 
@@ -185,7 +218,14 @@ implementation
         paraloc1 : tcgpara;
       begin
          secondpass(left);
-         location_reset(location,LOC_REFERENCE,def_cgsize(resultdef));
+         { assume natural alignment, except for packed records }
+         if not(resultdef.typ in [recorddef,objectdef]) or
+            (tabstractrecordsymtable(tabstractrecorddef(resultdef).symtable).usefieldalignment<>1) then
+           location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),resultdef.alignment)
+         else
+           location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),1);
+         if not(left.location.loc in [LOC_CREGISTER,LOC_REGISTER,LOC_CREFERENCE,LOC_REFERENCE,LOC_CONSTANT]) then
+           location_force_reg(current_asmdata.CurrAsmList,left.location,OS_ADDR,true);
          case left.location.loc of
             LOC_CREGISTER,
             LOC_REGISTER:
@@ -219,13 +259,14 @@ implementation
             (cs_checkpointer in current_settings.localswitches) and
             not(cs_compilesystem in current_settings.moduleswitches) and
             not(tpointerdef(left.resultdef).is_far) and
-            not(nf_no_checkpointer in flags) then
+            not(nf_no_checkpointer in flags) and
+            { can be NR_NO in case of LOC_CONSTANT }
+            (location.reference.base<>NR_NO) then
           begin
             paraloc1.init;
             paramanager.getintparaloc(pocall_default,1,paraloc1);
-            paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-            cg.a_param_reg(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
-            paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
+            cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
+            paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
             paraloc1.done;
             cg.allocallcpuregisters(current_asmdata.CurrAsmList);
             cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
@@ -240,17 +281,21 @@ implementation
 
     procedure tcgsubscriptnode.pass_generate_code;
       var
+        sym: tasmsymbol;
         paraloc1 : tcgpara;
+        hreg  : tregister;
+        tmpref: treference;
         sref: tsubsetreference;
       begin
          secondpass(left);
          if codegenerror then
            exit;
          paraloc1.init;
-         { classes and interfaces must be dereferenced implicit }
-         if is_class_or_interface(left.resultdef) then
+         { classes and interfaces must be dereferenced implicitly }
+         if is_class_or_interface_or_dispinterface_or_objc(left.resultdef) then
            begin
-             location_reset(location,LOC_REFERENCE,def_cgsize(resultdef));
+             { the contents of a class are aligned to a sizeof(pointer) }
+             location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),sizeof(pint));
              case left.location.loc of
                 LOC_CREGISTER,
                 LOC_REGISTER:
@@ -272,6 +317,13 @@ implementation
                      location.reference.base:=cg.getaddressregister(current_asmdata.CurrAsmList);
                      cg.a_load_loc_reg(current_asmdata.CurrAsmList,OS_ADDR,left.location,location.reference.base);
                   end;
+                LOC_CONSTANT:
+                  begin
+                    { can happen with @classtype(pointerconst).field }
+                    location.reference.offset:=left.location.value;
+                  end;
+                else
+                  internalerror(2009092401);
              end;
              { implicit deferencing }
              if (cs_use_heaptrc in current_settings.globalswitches) and
@@ -279,9 +331,8 @@ implementation
                 not(cs_compilesystem in current_settings.moduleswitches) then
               begin
                 paramanager.getintparaloc(pocall_default,1,paraloc1);
-                paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-                cg.a_param_reg(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
-                paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
+                cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
+                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                 cg.allocallcpuregisters(current_asmdata.CurrAsmList);
                 cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
                 cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
@@ -289,7 +340,7 @@ implementation
            end
          else if is_interfacecom(left.resultdef) then
            begin
-             location_reset(location,LOC_REFERENCE,def_cgsize(resultdef));
+             location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),sizeof(pint));
              tg.GetTempTyped(current_asmdata.CurrAsmList,left.resultdef,tt_normal,location.reference);
              cg.a_load_loc_ref(current_asmdata.CurrAsmList,OS_ADDR,left.location,location.reference);
              { implicit deferencing also for interfaces }
@@ -298,9 +349,8 @@ implementation
                 not(cs_compilesystem in current_settings.moduleswitches) then
               begin
                 paramanager.getintparaloc(pocall_default,1,paraloc1);
-                paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-                cg.a_param_reg(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
-                paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
+                cg.a_load_reg_cgpara(current_asmdata.CurrAsmList, OS_ADDR,location.reference.base,paraloc1);
+                paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                 cg.allocallcpuregisters(current_asmdata.CurrAsmList);
                 cg.a_call_name(current_asmdata.CurrAsmList,'FPC_CHECKPOINTER',false);
                 cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
@@ -316,9 +366,18 @@ implementation
                LOC_CREFERENCE:
                  ;
                LOC_REGISTER,
-               LOC_CREGISTER:
+               LOC_CREGISTER,
+               LOC_MMREGISTER,
+               LOC_FPUREGISTER:
                  begin
-                   if (left.resultdef.size > sizeof(pint)) then
+                   // in case the result is not something that can be put
+                   // into an integer register (e.g.
+                   // function_returning_record().non_regable_field, or
+                   // a function returning a value > sizeof(intreg))
+                   // -> force to memory
+                   if not tstoreddef(left.resultdef).is_intregable or
+                      not tstoreddef(resultdef).is_intregable or
+                      (location.loc in [LOC_MMREGISTER,LOC_FPUREGISTER]) then
                      location_force_mem(current_asmdata.CurrAsmList,location)
                    else
                      begin
@@ -373,18 +432,43 @@ implementation
              end;
            end;
 
-         if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
+         if is_objc_class_or_protocol(left.resultdef) and
+            (target_info.system in systems_objc_nfabi) then
+           begin
+             if (location.loc<>LOC_REFERENCE) or
+                (location.reference.index<>NR_NO) then
+               internalerror(2009092402);
+             { the actual field offset is stored in memory (to solve the
+               "fragile base class" problem: this way the layout of base
+               classes can be changed without breaking programs compiled against
+               earlier versions)
+             }
+             hreg:=cg.g_indirect_sym_load(current_asmdata.CurrAsmList,vs.mangledname,false);
+             { TODO: clean up. g_indirect_sym_load cannot perform
+                 a plain load for targets that don't need an indirect load
+                 because it's also used in ncgld, but this is not very nice...
+             }
+             if (hreg=NR_NO) then
+               begin
+                 sym:=current_asmdata.RefAsmSymbol(vs.mangledname);
+                 reference_reset_symbol(tmpref,sym,0,sizeof(pint));
+                 location.reference.index:=cg.getaddressregister(current_asmdata.CurrAsmList);
+               end
+             else
+               begin
+                 reference_reset_base(tmpref,hreg,0,sizeof(pint));
+                 location.reference.index:=hreg;
+               end;
+             cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpref,location.reference.index);
+             { always packrecords C -> natural alignment }
+             location.reference.alignment:=vs.vardef.alignment;
+           end
+         else if (location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
            begin
              if not is_packed_record_or_object(left.resultdef) then
                begin
                  inc(location.reference.offset,vs.fieldoffset);
-{$ifdef SUPPORT_UNALIGNED}
-                 { packed? }
-                 if (vs.owner.defowner.typ in [recorddef,objectdef]) and
-                   (tabstractrecordsymtable(vs.owner).usefieldalignment=1) then
-                   location.reference.alignment:=1;
-{$endif SUPPORT_UNALIGNED}
-
+                 location.reference.alignment:=newalignment(location.reference.alignment,vs.fieldoffset);
                end
              else if (vs.fieldoffset mod 8 = 0) and
                      (resultdef.packedbitsize mod 8 = 0) and
@@ -393,10 +477,7 @@ implementation
                      (resultdef.size*8 = resultdef.packedbitsize) then
                begin
                  inc(location.reference.offset,vs.fieldoffset div 8);
-                 if (resultdef.size*8 <> resultdef.packedbitsize) then
-                   internalerror(2006082013);
-                 { packed records always have an alignment of 1 }
-                 location.reference.alignment:=1;
+                 location.reference.alignment:=newalignment(location.reference.alignment,vs.fieldoffset div 8);
                end
              else
                begin
@@ -479,10 +560,14 @@ implementation
           begin
             hreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,location.reference,hreg);
-            reference_reset_base(location.reference,hreg,0);
+            reference_reset_base(location.reference,hreg,0,location.reference.alignment);
             { insert new index register }
             location.reference.index:=maybe_const_reg;
           end;
+          { update alignment }
+          if (location.reference.alignment=0) then
+            internalerror(2009020704);
+          location.reference.alignment:=newalignment(location.reference.alignment,l);
        end;
 
 
@@ -499,7 +584,11 @@ implementation
          { everything can be handled using the the regular array code.        }
          if ((l mod 8) = 0) and
             (ispowerof2(l div 8,temp) or
-             not is_ordinal(resultdef)) then
+             not is_ordinal(resultdef)
+{$ifndef cpu64bitalu}
+             or is_64bitint(resultdef)
+{$endif not cpu64bitalu}
+             ) then
            begin
              update_reference_reg_mul(maybe_const_reg,l div 8);
              exit;
@@ -596,18 +685,17 @@ implementation
             begin
                paramanager.getintparaloc(pocall_default,1,paraloc1);
                paramanager.getintparaloc(pocall_default,2,paraloc2);
-               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
-               cg.a_param_loc(current_asmdata.CurrAsmList,right.location,paraloc2);
-               paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-               cg.a_param_loc(current_asmdata.CurrAsmList,left.location,paraloc1);
-               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
-               paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
+               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,right.location,paraloc2);
+               cg.a_load_loc_cgpara(current_asmdata.CurrAsmList,left.location,paraloc1);
+               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+               paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
                cg.allocallcpuregisters(current_asmdata.CurrAsmList);
                cg.a_call_name(current_asmdata.CurrAsmList,'FPC_DYNARRAY_RANGECHECK',false);
                cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
-            end
-         else
-           cg.g_rangecheck(current_asmdata.CurrAsmList,right.location,right.resultdef,left.resultdef);
+            end;
+{ for regular arrays, we don't have to do anything because the index has been
+  type converted to the index type, which already inserted a range check if
+  necessary }
          paraloc1.done;
          paraloc2.done;
        end;
@@ -642,9 +730,9 @@ implementation
          newsize:=def_cgsize(resultdef);
          secondpass(left);
          if left.location.loc=LOC_CREFERENCE then
-           location_reset(location,LOC_CREFERENCE,newsize)
+           location_reset_ref(location,LOC_CREFERENCE,newsize,left.location.reference.alignment)
          else
-           location_reset(location,LOC_REFERENCE,newsize);
+           location_reset_ref(location,LOC_REFERENCE,newsize,left.location.reference.alignment);
 
          { an ansistring needs to be dereferenced }
          if is_ansistring(left.resultdef) or
@@ -681,9 +769,8 @@ implementation
               if (cs_check_range in current_settings.localswitches) then
                 begin
                    paramanager.getintparaloc(pocall_default,1,paraloc1);
-                   paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-                   cg.a_param_reg(current_asmdata.CurrAsmList,OS_ADDR,location.reference.base,paraloc1);
-                   paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
+                   cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_ADDR,location.reference.base,paraloc1);
+                   paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                    cg.allocallcpuregisters(current_asmdata.CurrAsmList);
                    cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_CHECKZERO',false);
                    cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
@@ -694,6 +781,7 @@ implementation
                 offsetdec:=1
               else
                 offsetdec:=2;
+              location.reference.alignment:=offsetdec;
               dec(location.reference.offset,offsetdec);
            end
          else if is_dynamic_array(left.resultdef) then
@@ -712,9 +800,22 @@ implementation
                 else
                   internalerror(2002032219);
               end;
+              { a dynarray points to the start of a memory block, which
+                we assume to be always aligned to a multiple of the
+                pointer size
+              }
+              location.reference.alignment:=sizeof(pint);
            end
          else
-           location_copy(location,left.location);
+           begin
+              { may happen in case of function results }
+              case left.location.loc of
+                LOC_REGISTER,
+                LOC_MMREGISTER:
+                  location_force_mem(current_asmdata.CurrAsmList,left.location);
+              end;
+             location_copy(location,left.location);
+           end;
 
          { location must be memory }
          if not(location.loc in [LOC_REFERENCE,LOC_CREFERENCE]) then
@@ -727,7 +828,11 @@ implementation
              ((mulsize mod 8 = 0) and
               ispowerof2(mulsize div 8,temp)) or
               { only orddefs are bitpacked }
-              not is_ordinal(resultdef)) then
+              not is_ordinal(resultdef)
+{$ifndef cpu64bitalu}
+              or is_64bitint(resultdef)
+{$endif not cpu64bitalu}
+              ) then
            dec(location.reference.offset,bytemulsize*tarraydef(left.resultdef).lowrange);
 
          if right.nodetype=ordconstn then
@@ -776,24 +881,22 @@ implementation
                            begin
                               paramanager.getintparaloc(pocall_default,1,paraloc1);
                               paramanager.getintparaloc(pocall_default,2,paraloc2);
-                              paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
-                              cg.a_param_const(current_asmdata.CurrAsmList,OS_INT,tordconstnode(right).value.svalue,paraloc2);
+                              cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_INT,tordconstnode(right).value.svalue,paraloc2);
                               href:=location.reference;
-                              paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                               if not(tf_winlikewidestring in target_info.flags) or
                                  (tstringdef(left.resultdef).stringtype<>st_widestring) then
                                 begin
                                   dec(href.offset,sizeof(pint)-offsetdec);
-                                  cg.a_param_ref(current_asmdata.CurrAsmList,OS_ADDR,href,paraloc1);
+                                  cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_ADDR,href,paraloc1);
                                 end
                               else
                                 begin
                                   { winlike widestrings have a 4 byte length }
                                   dec(href.offset,4-offsetdec);
-                                  cg.a_param_ref(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
+                                  cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
                                 end;
-                              paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
-                              paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
+                              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+                              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
                               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
                               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_RANGECHECK',false);
                               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);
@@ -819,8 +922,10 @@ implementation
                    { only orddefs are bitpacked }
                    not is_ordinal(resultdef))) then
                 begin
-                  inc(location.reference.offset,
-                    bytemulsize*tordconstnode(right).value.svalue);
+                  extraoffset:=bytemulsize*tordconstnode(right).value.svalue;
+                  inc(location.reference.offset,extraoffset);
+                  { adjust alignment after to this change }
+                  location.reference.alignment:=newalignment(location.reference.alignment,extraoffset);
                   { don't do this for floats etc.; needed to properly set the }
                   { size for bitpacked arrays (e.g. a bitpacked array of      }
                   { enums who are size 2 but fit in one byte -> in the array  }
@@ -916,19 +1021,15 @@ implementation
               else if (right.location.loc = LOC_JUMP) then
                 internalerror(2006010801);
 
-              { only range check now, we can't range check loc_flags/loc_jump }
-              if cs_check_range in current_settings.localswitches then
-               begin
-                 if left.resultdef.typ=arraydef then
-                   rangecheck_array;
-               end;
-
             { produce possible range check code: }
               if cs_check_range in current_settings.localswitches then
                begin
                  if left.resultdef.typ=arraydef then
                    begin
-                     { done defore (PM) }
+		     { do not do any range checking when this is an array access to a pointer which has been
+		       typecasted from an array }
+		     if (not (ado_isconvertedpointer in tarraydef(left.resultdef).arrayoptions)) then
+                       rangecheck_array
                    end
                  else if (left.resultdef.typ=stringdef) then
                    begin
@@ -940,28 +1041,26 @@ implementation
                            begin
                               paramanager.getintparaloc(pocall_default,1,paraloc1);
                               paramanager.getintparaloc(pocall_default,2,paraloc2);
-                              paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc2);
-                              cg.a_param_reg(current_asmdata.CurrAsmList,OS_INT,right.location.register,paraloc2);
+                              cg.a_load_reg_cgpara(current_asmdata.CurrAsmList,OS_INT,right.location.register,paraloc2);
                               href:=location.reference;
                               dec(href.offset,sizeof(pint)-offsetdec);
 
                               href:=location.reference;
-                              paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
                               if not(tf_winlikewidestring in target_info.flags) or
                                  (tstringdef(left.resultdef).stringtype<>st_widestring) then
                                 begin
                                   dec(href.offset,sizeof(pint)-offsetdec);
-                                  cg.a_param_ref(current_asmdata.CurrAsmList,OS_ADDR,href,paraloc1);
+                                  cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_ADDR,href,paraloc1);
                                 end
                               else
                                 begin
                                   { winlike widestrings have a 4 byte length }
                                   dec(href.offset,4-offsetdec);
-                                  cg.a_param_ref(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
+                                  cg.a_load_ref_cgpara(current_asmdata.CurrAsmList,OS_32,href,paraloc1);
                                 end;
 
-                              paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
-                              paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc2);
+                              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
+                              paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc2);
                               cg.allocallcpuregisters(current_asmdata.CurrAsmList);
                               cg.a_call_name(current_asmdata.CurrAsmList,'FPC_'+upper(tstringdef(left.resultdef).stringtypname)+'_RANGECHECK',false);
                               cg.deallocallcpuregisters(current_asmdata.CurrAsmList);

@@ -75,13 +75,13 @@ Procedure fpc_write_text_variant(Len : Longint;var f : Text;const v : variant); 
   end;
 
 
-procedure fpc_vararray_get(var d : variant;const s : variant;indices : psizeint;len : sizeint);compilerproc;
+procedure fpc_vararray_get(var d : variant;const s : variant;indices : plongint;len : sizeint);compilerproc;
   begin
     d:=variantmanager.vararrayget(s,len,indices);
   end;
 
 
-procedure fpc_vararray_put(var d : variant;const s : variant;indices : psizeint;len : sizeint);compilerproc;
+procedure fpc_vararray_put(var d : variant;const s : variant;indices : plongint;len : sizeint);compilerproc;
   begin
     variantmanager.vararrayput(d,s,len,indices);
   end;
@@ -194,14 +194,12 @@ end;
 
 
 operator :=(const source : wordbool) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
-
 begin
   Variantmanager.varfromBool(Dest,Boolean(Source));
 end;
 
 
 operator :=(const source : longbool) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
-
 begin
   Variantmanager.varfromBool(Dest,Boolean(Source));
 end;
@@ -210,14 +208,12 @@ end;
 { Chars }
 
 operator :=(const source : char) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
-
 begin
   VariantManager.VarFromPStr(Dest,Source);
 end;
 
 
 operator :=(const source : widechar) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
-
 begin
   Variantmanager.varfromInt(Dest,word(Source),2);
 end;
@@ -239,6 +235,18 @@ end;
 operator :=(const source : widestring) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
 begin
   VariantManager.VarFromWStr(Dest,Source);
+end;
+
+
+operator :=(const source : UTF8String) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  VariantManager.VarFromWStr(Dest,UTF8Decode(Source));
+end;
+
+
+operator :=(const source : UCS4String) dest : variant;{$ifdef SYSTEMINLINE}inline;{$endif}
+begin
+  VariantManager.VarFromWStr(Dest,UCS4StringToWideString(Source));
 end;
 
 
@@ -357,14 +365,12 @@ operator :=(const source : variant) dest : longint;{$ifdef SYSTEMINLINE}inline;{
 
 
 operator :=(const source : variant) dest : qword;{$ifdef SYSTEMINLINE}inline;{$endif}
-
 begin
   dest:=variantmanager.vartoword64(source);
 end;
 
 
 operator :=(const source : variant) dest : int64;{$ifdef SYSTEMINLINE}inline;{$endif}
-
 begin
   dest:=variantmanager.vartoint64(source);
 end;
@@ -380,14 +386,12 @@ end;
 
 
 operator :=(const source : variant) dest : wordbool;{$ifdef SYSTEMINLINE}inline;{$endif}
-
 begin
   dest:=variantmanager.vartobool(source);
 end;
 
 
 operator :=(const source : variant) dest : longbool;{$ifdef SYSTEMINLINE}inline;{$endif}
-
 begin
    dest:=variantmanager.vartobool(source);
 end;
@@ -396,10 +400,8 @@ end;
 { Chars }
 
 operator :=(const source : variant) dest : char;{$ifdef SYSTEMINLINE}inline;{$endif}
-
 Var
   S : String;
-
 begin
   VariantManager.VarToPStr(S,Source);
   If Length(S)>0 then
@@ -408,7 +410,6 @@ end;
 
 
 operator :=(const source : variant) dest : widechar;{$ifdef SYSTEMINLINE}inline;{$endif}
-
 begin
   dest:=widechar(variantmanager.vartoint(source));
 end;
@@ -433,6 +434,25 @@ begin
   variantmanager.vartowstr(dest,source);
 end;
 
+
+operator :=(const source : variant) dest : UTF8String;{$ifdef SYSTEMINLINE}inline;{$endif}
+var
+  temp : Widestring;
+begin
+  VariantManager.VarToWStr(temp,Source);
+  dest:=UTF8Encode(temp);
+end;
+
+
+{$ifdef dummy}
+operator :=(const source : variant) dest : UCS4String;{$ifdef SYSTEMINLINE}inline;{$endif}
+var
+  temp : Widestring;
+begin
+  VariantManager.VarToWStr(temp,Source);
+  dest:=WideStringToUCS4String(temp);
+end;
+{$endif dummy}
 
 {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
 operator :=(const source : variant) dest : UnicodeString;{$ifdef SYSTEMINLINE}inline;{$endif}
@@ -637,7 +657,7 @@ procedure VarArrayRedim(var A: Variant; HighBound: SizeInt);
     variantmanager.vararrayredim(a,highbound);
   end;
 
-procedure VarArrayPut(var A: Variant; const Value: Variant; const Indices: array of SizeInt);
+procedure VarArrayPut(var A: Variant; const Value: Variant; const Indices: array of Longint);
   begin
     if Length(Indices)>0 then
       variantmanager.vararrayput(A, Value, Length(Indices), @Indices[0])
@@ -646,7 +666,7 @@ procedure VarArrayPut(var A: Variant; const Value: Variant; const Indices: array
   end;
 
 
-function VarArrayGet(const A: Variant; const Indices: array of SizeInt): Variant;
+function VarArrayGet(const A: Variant; const Indices: array of Longint): Variant;
   begin
     if Length(Indices)>0 then
       Result:=variantmanager.vararrayget(A, Length(Indices), @Indices[0])

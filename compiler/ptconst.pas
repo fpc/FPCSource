@@ -27,7 +27,7 @@ interface
 
    uses symtype,symsym,aasmdata;
 
-    procedure read_typed_const(list:tasmlist;sym:tstaticvarsym);
+    procedure read_typed_const(list:tasmlist;sym:tstaticvarsym;in_class:boolean);
 
 
 implementation
@@ -44,7 +44,8 @@ implementation
        { parser specific stuff }
        pbase,pexpr,pdecvar,
        { codegen }
-       cpuinfo,cgbase,dbgbase
+       cpuinfo,cgbase,dbgbase,
+       wpobase,asmutils
        ;
 
 {$maxfpuregisters 0}
@@ -165,9 +166,16 @@ implementation
                              read typed const
 *****************************************************************************}
 
+    type
+      { context used for parsing complex types (arrays/records/objects) }
+      threc = record
+        list   : tasmlist;
+        origsym: tstaticvarsym;
+        offset:  aint;
+      end;
 
     { this procedure reads typed constants }
-    procedure read_typed_const_data(list:tasmlist;def:tdef);
+    procedure read_typed_const_data(var hr:threc;def:tdef); forward;
 
       procedure parse_orddef(list:tasmlist;def:torddef);
         var
@@ -288,8 +296,10 @@ implementation
             value:=trealconstnode(n).value_real
           else if is_constintnode(n) then
             value:=tordconstnode(n).value
+          else if is_constnode(n) then
+            IncompatibleTypes(n.resultdef, def)
           else
-            IncompatibleTypes(n.resultdef, def);
+            Message(parser_e_illegal_expression);
 
           case def.floattype of
              s32real :
@@ -302,7 +312,9 @@ implementation
 {$endif ARM}
                  list.concat(Tai_real_64bit.Create(ts64real(value)));
              s80real :
-               list.concat(Tai_real_80bit.Create(value));
+               list.concat(Tai_real_80bit.Create(value,s80floattype.size));
+             sc80real :
+               list.concat(Tai_real_80bit.Create(value,sc80floattype.size));
              s64comp :
                { the round is necessary for native compilers where comp isn't a float }
                list.concat(Tai_comp_64bit.Create(round(value)));
@@ -327,11 +339,18 @@ implementation
                 if not Tobjectdef(tclassrefdef(n.resultdef).pointeddef).is_related(tobjectdef(def.pointeddef)) then
                   IncompatibleTypes(n.resultdef, def);
                 list.concat(Tai_const.Create_sym(current_asmdata.RefAsmSymbol(Tobjectdef(tclassrefdef(n.resultdef).pointeddef).vmt_mangledname)));
+                { update wpo info }
+                if not assigned(current_procinfo) or
+                   (po_inline in current_procinfo.procdef.procoptions) or
+                   wpoinfomanager.symbol_live(current_procinfo.procdef.mangledname) then
+                  tobjectdef(tclassrefdef(n.resultdef).pointeddef).register_maybe_created_object_type;
               end;
              niln:
                list.concat(Tai_const.Create_sym(nil));
+             else if is_constnode(n) then
+               IncompatibleTypes(n.resultdef, def)
              else
-               IncompatibleTypes(n.resultdef, def);
+               Message(parser_e_illegal_expression);
           end;
           n.free;
         end;
@@ -398,7 +417,7 @@ implementation
                 else
                  varalign:=0;
                 varalign:=const_align(varalign);
-                current_asmdata.asmlists[al_const].concat(Tai_align.Create(varalign));
+                new_section(current_asmdata.asmlists[al_const], sec_rodata, ll.name, varalign);
                 current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll));
                 if p.nodetype=stringconstn then
                   begin
@@ -445,7 +464,7 @@ implementation
             end
           else
             if (p.nodetype=addrn) or
-               is_procvar_load(p) then
+               is_proc2procvar_load(p,pd) then
               begin
                 { insert typeconv }
                 inserttypeconv(p,def);
@@ -575,23 +594,17 @@ implementation
                 it can generate smallset data instead of normalset (PFV) }
               inserttypeconv(p,def);
               { we only allow const sets }
-              if assigned(tsetconstnode(p).left) then
+              if (p.nodetype<>setconstn) or
+                 assigned(tsetconstnode(p).left) then
                 Message(parser_e_illegal_expression)
               else
                 begin
                   tsetconstnode(p).adjustforsetbase;
-                  { this writing is endian independant   }
-                  { untrue - because they are considered }
-                  { arrays of 32-bit values CEC          }
+                  { this writing is endian-dependant   }
                   if source_info.endian = target_info.endian then
                     begin
-{$if defined(FPC_NEW_BIGENDIAN_SETS) or defined(FPC_LITTLE_ENDIAN)}
                       for i:=0 to p.resultdef.size-1 do
                         list.concat(tai_const.create_8bit(Psetbytes(tsetconstnode(p).value_set)^[i]));
-{$else}
-                      for i:=0 to p.resultdef.size-1 do
-                        list.concat(tai_const.create_8bit(reverse_byte(Psetbytes(tsetconstnode(p).value_set)^[i xor 3])));
-{$endif}
                     end
                   else
                     begin
@@ -629,31 +642,40 @@ implementation
           p.free;
         end;
 
-        procedure parse_stringdef(list:tasmlist;def:tstringdef);
+
+        procedure parse_stringdef(const hr:threc;def:tstringdef);
         var
           n : tnode;
-          i : longint;
           strlength : aint;
           strval    : pchar;
           strch     : char;
-          ll,ll2    : tasmlabel;
+          ll        : tasmlabel;
           ca        : pchar;
+          winlike   : boolean;
         begin
           n:=comp_expr(true);
           { load strval and strlength of the constant tree }
-          if (n.nodetype=stringconstn) or is_wide_or_unicode_string(def) or is_constwidecharnode(n) then
+          if (n.nodetype=stringconstn) or is_wide_or_unicode_string(def) or is_constwidecharnode(n) or
+            ((n.nodetype=typen) and is_interfacecorba(ttypenode(n).typedef)) then
             begin
               { convert to the expected string type so that
                 for widestrings strval is a pcompilerwidestring }
               inserttypeconv(n,def);
-              if not codegenerror then
+              if (not codegenerror) and
+                 (n.nodetype=stringconstn) then
                 begin
                   strlength:=tstringconstnode(n).len;
                   strval:=tstringconstnode(n).value_str;
                 end
               else
-                { an error occurred trying to convert the result to a string }
-                strlength:=-1;
+                begin
+                  { an error occurred trying to convert the result to a string }
+                  strlength:=-1;
+                  { it's possible that the type conversion could not be
+                    evaluated at compile-time }
+                  if not codegenerror then
+                    CGMessage(parser_e_widestring_to_ansi_compile_time);
+                end;
             end
           else if is_constcharnode(n) then
             begin
@@ -683,12 +705,12 @@ implementation
                        message2(parser_w_string_too_long,strpas(strval),tostr(def.size-1));
                        strlength:=def.size-1;
                      end;
-                    list.concat(Tai_const.Create_8bit(strlength));
+                    hr.list.concat(Tai_const.Create_8bit(strlength));
                     { this can also handle longer strings }
                     getmem(ca,strlength+1);
                     move(strval^,ca^,strlength);
                     ca[strlength]:=#0;
-                    list.concat(Tai_string.Create_pchar(ca,strlength));
+                    hr.list.concat(Tai_string.Create_pchar(ca,strlength));
                     { fillup with spaces if size is shorter }
                     if def.size>strlength then
                      begin
@@ -698,69 +720,41 @@ implementation
                        fillchar(ca[0],def.size-strlength-1,' ');
                        ca[def.size-strlength-1]:=#0;
                        { this can also handle longer strings }
-                       list.concat(Tai_string.Create_pchar(ca,def.size-strlength-1));
+                       hr.list.concat(Tai_string.Create_pchar(ca,def.size-strlength-1));
                      end;
                   end;
                 st_ansistring:
                   begin
                      { an empty ansi string is nil! }
                      if (strlength=0) then
-                       list.concat(Tai_const.Create_sym(nil))
+                       ll := nil
                      else
-                       begin
-                         current_asmdata.getdatalabel(ll);
-                         list.concat(Tai_const.Create_sym(ll));
-                         current_asmdata.getdatalabel(ll2);
-                         current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(pint))));
-                         current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll2));
-                         current_asmdata.asmlists[al_const].concat(Tai_const.Create_pint(-1));
-                         current_asmdata.asmlists[al_const].concat(Tai_const.Create_pint(strlength));
-                         { make sure the string doesn't get dead stripped if the header is referenced }
-                         if (target_info.system in systems_darwin) then
-                           current_asmdata.asmlists[al_const].concat(tai_directive.create(asd_reference,ll.name));
-                         current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll));
-                         { ... and vice versa }
-                         if (target_info.system in systems_darwin) then
-                           current_asmdata.asmlists[al_const].concat(tai_directive.create(asd_reference,ll2.name));
-                         getmem(ca,strlength+1);
-                         move(strval^,ca^,strlength);
-                         { The terminating #0 to be stored in the .data section (JM) }
-                         ca[strlength]:=#0;
-                         current_asmdata.asmlists[al_const].concat(Tai_string.Create_pchar(ca,strlength+1));
-                       end;
+                       ll := emit_ansistring_const(current_asmdata.asmlists[al_const],strval,strlength);
+                     hr.list.concat(Tai_const.Create_sym(ll));
                   end;
                 st_unicodestring,
                 st_widestring:
                   begin
-                     { an empty ansi string is nil! }
+                     { an empty wide/unicode string is nil! }
                      if (strlength=0) then
-                       list.concat(Tai_const.Create_sym(nil))
+                       ll := nil
                      else
+                     begin
+                       winlike := (def.stringtype=st_widestring) and (tf_winlikewidestring in target_info.flags);
+                       ll := emit_unicodestring_const(current_asmdata.asmlists[al_const],
+                              strval,
+                              winlike);
+
+                       { collect global Windows widestrings }
+                       if winlike and (hr.origsym.owner.symtablelevel <= main_program_level) then
                        begin
-                         current_asmdata.getdatalabel(ll);
-                         list.concat(Tai_const.Create_sym(ll));
-                         current_asmdata.getdatalabel(ll2);
-                         current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(pint))));
-                         current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll2));
-                         if (def.stringtype=st_widestring) and (tf_winlikewidestring in target_info.flags) then
-                           current_asmdata.asmlists[al_const].concat(Tai_const.Create_32bit(strlength*cwidechartype.size))
-                         else
-                           begin
-                             current_asmdata.asmlists[al_const].concat(Tai_const.Create_pint(-1));
-                             current_asmdata.asmlists[al_const].concat(Tai_const.Create_pint(strlength*cwidechartype.size));
-                           end;
-                         { make sure the string doesn't get dead stripped if the header is referenced }
-                         if (target_info.system in systems_darwin) then
-                           current_asmdata.asmlists[al_const].concat(tai_directive.create(asd_reference,ll.name));
-                         current_asmdata.asmlists[al_const].concat(Tai_label.Create(ll));
-                         { ... and vice versa }
-                         if (target_info.system in systems_darwin) then
-                           current_asmdata.asmlists[al_const].concat(tai_directive.create(asd_reference,ll2.name));
-                         for i:=0 to strlength-1 do
-                           current_asmdata.asmlists[al_const].concat(Tai_const.Create_16bit(pcompilerwidestring(strval)^.data[i]));
-                         { ending #0 }
-                         current_asmdata.asmlists[al_const].concat(Tai_const.Create_16bit(0))
+                         current_asmdata.WideInits.Concat(
+                            TTCInitItem.Create(hr.origsym, hr.offset, ll)
+                         );
+                         ll := nil;
                        end;
+                     end;
+                     hr.list.concat(Tai_const.Create_sym(ll));
                   end;
                 else
                   internalerror(200107081);
@@ -780,8 +774,8 @@ implementation
             result:=true;
             n:=comp_expr(true);
             if (n.nodetype <> ordconstn) or
-               not equal_defs(n.resultdef,def) and
-               not is_subequal(n.resultdef,def) then
+               (not equal_defs(n.resultdef,def) and
+                not is_subequal(n.resultdef,def)) then
               begin
                 n.free;
                 incompatibletypes(n.resultdef,def);
@@ -831,55 +825,91 @@ implementation
           end;
 
 
-        procedure parse_arraydef(list:tasmlist;def:tarraydef);
+        procedure parse_arraydef(hr:threc;def:tarraydef);
         var
           n : tnode;
           i : longint;
           len : aint;
-          ch  : char;
-          ca  : pchar;
+          ch  : array[0..1] of char;
+          ca  : pbyte;
+          int_const: tai_const;
+          char_size: integer;
         begin
           { dynamic array nil }
           if is_dynamic_array(def) then
             begin
               { Only allow nil initialization }
               consume(_NIL);
-              list.concat(Tai_const.Create_sym(nil));
+              hr.list.concat(Tai_const.Create_sym(nil));
             end
           { packed array constant }
           else if is_packed_array(def) and
-                  (def.elepackedbitsize mod 8 <> 0)  then
+                  ((def.elepackedbitsize mod 8 <> 0) or
+                   not ispowerof2(def.elepackedbitsize div 8,i)) then
             begin
-              parse_packed_array_def(list,def);
+              parse_packed_array_def(hr.list,def);
             end
           { normal array const between brackets }
           else if try_to_consume(_LKLAMMER) then
             begin
+              hr.offset:=0;
               for i:=def.lowrange to def.highrange-1 do
                 begin
-                  read_typed_const_data(list,def.elementdef);
-                  consume(_COMMA);
+                  read_typed_const_data(hr,def.elementdef);
+                  Inc(hr.offset,def.elementdef.size);
+                  if token=_RKLAMMER then
+                    begin
+                      Message1(parser_e_more_array_elements_expected,tostr(def.highrange-i));
+                      consume(_RKLAMMER);
+                      exit;
+                    end
+                  else
+                    consume(_COMMA);
                 end;
-              read_typed_const_data(list,def.elementdef);
+              read_typed_const_data(hr,def.elementdef);
               consume(_RKLAMMER);
             end
           { if array of char then we allow also a string }
-          else if is_char(def.elementdef) then
+          else if is_anychar(def.elementdef) then
             begin
+               char_size:=def.elementdef.size;
                n:=comp_expr(true);
                if n.nodetype=stringconstn then
                  begin
                    len:=tstringconstnode(n).len;
+                    case char_size of
+                      1:
+                        ca:=pointer(tstringconstnode(n).value_str);
+                      2:
+                        begin
+                          inserttypeconv(n,cwidestringtype);
+                          if n.nodetype<>stringconstn then
+                            internalerror(2010033003);
+                          ca:=pointer(pcompilerwidestring(tstringconstnode(n).value_str)^.data)
+                        end;
+                      else
+                        internalerror(2010033005);
+                    end;
                    { For tp7 the maximum lentgh can be 255 }
                    if (m_tp7 in current_settings.modeswitches) and
                       (len>255) then
                     len:=255;
-                   ca:=tstringconstnode(n).value_str;
                  end
-               else
-                 if is_constcharnode(n) then
+               else if is_constcharnode(n) then
                   begin
-                    ch:=chr(tordconstnode(n).value.uvalue and $ff);
+                    case char_size of
+                      1:
+                        ch[0]:=chr(tordconstnode(n).value.uvalue and $ff);
+                      2:
+                        begin
+                          inserttypeconv(n,cwidechartype);
+                          if not is_constwidecharnode(n) then
+                            internalerror(2010033001);
+                          widechar(ch):=widechar(tordconstnode(n).value.uvalue and $ffff);
+                        end;
+                      else
+                        internalerror(2010033002);
+                    end;
                     ca:=@ch;
                     len:=1;
                   end
@@ -890,16 +920,24 @@ implementation
                  end;
                if len>(def.highrange-def.lowrange+1) then
                  Message(parser_e_string_larger_array);
-               for i:=def.lowrange to def.highrange do
+               for i:=0 to def.highrange-def.lowrange do
                  begin
-                    if i+1-def.lowrange<=len then
-                      begin
-                         list.concat(Tai_const.Create_8bit(byte(ca^)));
-                         inc(ca);
-                      end
-                    else
-                      {Fill the remaining positions with #0.}
-                      list.concat(Tai_const.Create_8bit(0));
+                   if i<len then
+                     begin
+                       case char_size of
+                         1:
+                          int_const:=Tai_const.Create_char(char_size,pbyte(ca)^);
+                         2:
+                          int_const:=Tai_const.Create_char(char_size,pword(ca)^);
+                         else
+                           internalerror(2010033004);
+                       end;
+                       inc(ca, char_size);
+                     end
+                   else
+                     {Fill the remaining positions with #0.}
+                     int_const:=Tai_const.Create_char(char_size,0);
+                   hr.list.concat(int_const)
                  end;
                n.free;
             end
@@ -920,7 +958,7 @@ implementation
           if try_to_consume(_NIL) then
             begin
                list.concat(Tai_const.Create_sym(nil));
-               if (po_methodpointer in def.procoptions) then
+               if not def.is_addressonly then
                  list.concat(Tai_const.Create_sym(nil));
                exit;
             end;
@@ -967,18 +1005,26 @@ implementation
           if (n.nodetype=loadn) and
              (tloadnode(n).symtableentry.typ=procsym) then
             begin
-              pd:=tprocdef(tprocsym(tloadnode(n).symtableentry).ProcdefList[0]);
+              pd:=tloadnode(n).procdef;
               list.concat(Tai_const.createname(pd.mangledname,0));
+              { nested procvar typed consts can only be initialised with nil
+                (checked above) or with a global procedure (checked here),
+                because in other cases we need a valid frame pointer }
+              if is_nested_pd(def) then
+                begin
+                  if is_nested_pd(pd) then
+                    Message(parser_e_no_procvarnested_const);
+                  list.concat(Tai_const.Create_sym(nil));
+                end
             end
           else
             Message(parser_e_illegal_expression);
           n.free;
         end;
 
-        procedure parse_recorddef(list:tasmlist;def:trecorddef);
+      procedure parse_recorddef(hr:threc;def:trecorddef);
         var
           n       : tnode;
-          i,
           symidx  : longint;
           recsym,
           srsym   : tsym;
@@ -990,27 +1036,59 @@ implementation
           bp   : tbitpackedval;
           error,
           is_packed: boolean;
+          startoffset: aint;
+
+        procedure handle_stringconstn;
+          var
+            i       : longint;
+          begin
+            hs:=strpas(tstringconstnode(n).value_str);
+            if string2guid(hs,tmpguid) then
+              begin
+                hr.list.concat(Tai_const.Create_32bit(longint(tmpguid.D1)));
+                hr.list.concat(Tai_const.Create_16bit(tmpguid.D2));
+                hr.list.concat(Tai_const.Create_16bit(tmpguid.D3));
+                for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
+                  hr.list.concat(Tai_const.Create_8bit(tmpguid.D4[i]));
+              end
+            else
+              Message(parser_e_improper_guid_syntax);
+          end;
+
+        var
+          i : longint;
+
         begin
           { GUID }
-          if (def=rec_tguid) and
-             ((token=_CSTRING) or (token=_CCHAR) or (token=_ID)) then
+          if (def=rec_tguid) and (token=_ID) then
+            begin
+              n:=comp_expr(true);
+              if n.nodetype=stringconstn then
+                handle_stringconstn
+              else
+                begin
+                  inserttypeconv(n,rec_tguid);
+                  if n.nodetype=guidconstn then
+                    begin
+                      tmpguid:=tguidconstnode(n).value;
+                      hr.list.concat(Tai_const.Create_32bit(longint(tmpguid.D1)));
+                      hr.list.concat(Tai_const.Create_16bit(tmpguid.D2));
+                      hr.list.concat(Tai_const.Create_16bit(tmpguid.D3));
+                      for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
+                        hr.list.concat(Tai_const.Create_8bit(tmpguid.D4[i]));
+                    end
+                  else
+                    Message(parser_e_illegal_expression);
+                end;
+              n.free;
+              exit;
+            end;
+          if (def=rec_tguid) and ((token=_CSTRING) or (token=_CCHAR)) then
             begin
               n:=comp_expr(true);
               inserttypeconv(n,cshortstringtype);
               if n.nodetype=stringconstn then
-                begin
-                  hs:=strpas(tstringconstnode(n).value_str);
-                  if string2guid(hs,tmpguid) then
-                    begin
-                      list.concat(Tai_const.Create_32bit(longint(tmpguid.D1)));
-                      list.concat(Tai_const.Create_16bit(tmpguid.D2));
-                      list.concat(Tai_const.Create_16bit(tmpguid.D3));
-                      for i:=Low(tmpguid.D4) to High(tmpguid.D4) do
-                        list.concat(Tai_const.Create_8bit(tmpguid.D4[i]));
-                    end
-                  else
-                    Message(parser_e_improper_guid_syntax);
-                end
+                handle_stringconstn
               else
                 Message(parser_e_illegal_expression);
               n.free;
@@ -1033,6 +1111,7 @@ implementation
           sorg:='';
           srsym:=tsym(def.symtable.SymList[symidx]);
           recsym := nil;
+          startoffset:=hr.offset;
           while token<>_RKLAMMER do
             begin
               s:=pattern;
@@ -1098,14 +1177,14 @@ implementation
                         fillbytes:=tfieldvarsym(srsym).fieldoffset-curroffset
                       else
                         begin
-                          flush_packed_value(list,bp);
+                          flush_packed_value(hr.list,bp);
                           { curoffset is now aligned to the next byte }
                           curroffset:=align(curroffset,8);
                           { offsets are in bits in this case }
                           fillbytes:=(tfieldvarsym(srsym).fieldoffset-curroffset) div 8;
                         end;
                       for i:=1 to fillbytes do
-                        list.concat(Tai_const.Create_8bit(0))
+                        hr.list.concat(Tai_const.Create_8bit(0))
                     end;
 
                   { new position }
@@ -1122,15 +1201,16 @@ implementation
                     begin
                       if is_packed then
                         begin
-                          flush_packed_value(list,bp);
+                          flush_packed_value(hr.list,bp);
                           curroffset:=align(curroffset,8);
                         end;
-                      read_typed_const_data(list,tfieldvarsym(srsym).vardef);
+                      hr.offset:=startoffset+tfieldvarsym(srsym).fieldoffset;
+                      read_typed_const_data(hr,tfieldvarsym(srsym).vardef);
                     end
                   else
                     begin
                       bp.packedbitsize:=tfieldvarsym(srsym).vardef.packedbitsize;
-                      parse_single_packed_const(list,tfieldvarsym(srsym).vardef,bp);
+                      parse_single_packed_const(hr.list,tfieldvarsym(srsym).vardef,bp);
                     end;
 
                   { keep previous field for checking whether whole }
@@ -1145,6 +1225,8 @@ implementation
 
                   if token=_SEMICOLON then
                     consume(_SEMICOLON)
+                  else if (token=_COMMA) and (m_mac in current_settings.modeswitches) then
+                    consume(_COMMA)
                   else
                     break;
                 end;
@@ -1163,18 +1245,18 @@ implementation
             fillbytes:=def.size-curroffset
           else
             begin
-              flush_packed_value(list,bp);
+              flush_packed_value(hr.list,bp);
               curroffset:=align(curroffset,8);
               fillbytes:=def.size-(curroffset div 8);
             end;
           for i:=1 to fillbytes do
-            list.concat(Tai_const.Create_8bit(0));
+            hr.list.concat(Tai_const.Create_8bit(0));
 
           consume(_RKLAMMER);
         end;
 
-
-        procedure parse_objectdef(list:tasmlist;def:tobjectdef);
+        { note: hr is passed by value }
+        procedure parse_objectdef(hr:threc;def:tobjectdef);
         var
           n      : tnode;
           i      : longint;
@@ -1184,6 +1266,7 @@ implementation
           curroffset : aint;
           s,sorg : TIDString;
           vmtwritten : boolean;
+          startoffset:aint;
         begin
           { no support for packed object }
           if is_packed_record_or_object(def) then
@@ -1193,7 +1276,7 @@ implementation
             end;
 
           { only allow nil for class and interface }
-          if is_class_or_interface(def) then
+          if is_class_or_interface_or_dispinterface_or_objc(def) then
             begin
               n:=comp_expr(true);
               if n.nodetype<>niln then
@@ -1202,7 +1285,7 @@ implementation
                   consume_all_until(_SEMICOLON);
                 end
               else
-                list.concat(Tai_const.Create_sym(nil));
+                hr.list.concat(Tai_const.Create_sym(nil));
               n.free;
               exit;
             end;
@@ -1216,6 +1299,7 @@ implementation
             end;
 
           consume(_LKLAMMER);
+          startoffset:=hr.offset;
           curroffset:=0;
           vmtwritten:=false;
           while token<>_RKLAMMER do
@@ -1238,10 +1322,15 @@ implementation
                     st:=nil;
                 end;
 
-              if srsym=nil then
+              if (srsym=nil) or
+                 (srsym.typ<>fieldvarsym) then
                 begin
-                  Message1(sym_e_id_not_found,sorg);
-                  consume_all_until(_SEMICOLON);
+                  if (srsym=nil) then
+                    Message1(sym_e_id_not_found,sorg)
+                  else
+                    Message1(sym_e_illegal_field,sorg);
+                  consume_all_until(_RKLAMMER);
+                  break;
                 end
               else
                 with tfieldvarsym(srsym) do
@@ -1257,8 +1346,8 @@ implementation
                        (def.vmt_offset<fieldoffset) then
                       begin
                         for i:=1 to def.vmt_offset-curroffset do
-                          list.concat(tai_const.create_8bit(0));
-                        list.concat(tai_const.createname(def.vmt_mangledname,0));
+                          hr.list.concat(tai_const.create_8bit(0));
+                        hr.list.concat(tai_const.createname(def.vmt_mangledname,0));
                         { this is more general }
                         curroffset:=def.vmt_offset + sizeof(pint);
                         vmtwritten:=true;
@@ -1267,13 +1356,14 @@ implementation
                     { if needed fill }
                     if fieldoffset>curroffset then
                       for i:=1 to fieldoffset-curroffset do
-                        list.concat(Tai_const.Create_8bit(0));
+                        hr.list.concat(Tai_const.Create_8bit(0));
 
                     { new position }
                     curroffset:=fieldoffset+vardef.size;
 
                     { read the data }
-                    read_typed_const_data(list,vardef);
+                    hr.offset:=startoffset+fieldoffset;
+                    read_typed_const_data(hr,vardef);
 
                     if not try_to_consume(_SEMICOLON) then
                       break;
@@ -1284,16 +1374,17 @@ implementation
              (def.vmt_offset>=curroffset) then
             begin
               for i:=1 to def.vmt_offset-curroffset do
-                list.concat(tai_const.create_8bit(0));
-              list.concat(tai_const.createname(def.vmt_mangledname,0));
+                hr.list.concat(tai_const.create_8bit(0));
+              hr.list.concat(tai_const.createname(def.vmt_mangledname,0));
               { this is more general }
               curroffset:=def.vmt_offset + sizeof(pint);
             end;
           for i:=1 to def.size-curroffset do
-            list.concat(Tai_const.Create_8bit(0));
+            hr.list.concat(Tai_const.Create_8bit(0));
           consume(_RKLAMMER);
         end;
 
+    procedure read_typed_const_data(var hr:threc;def:tdef);
       var
         old_block_type : tblock_type;
       begin
@@ -1301,27 +1392,27 @@ implementation
         block_type:=bt_const;
         case def.typ of
           orddef :
-            parse_orddef(list,torddef(def));
+            parse_orddef(hr.list,torddef(def));
           floatdef :
-            parse_floatdef(list,tfloatdef(def));
+            parse_floatdef(hr.list,tfloatdef(def));
           classrefdef :
-            parse_classrefdef(list,tclassrefdef(def));
+            parse_classrefdef(hr.list,tclassrefdef(def));
           pointerdef :
-            parse_pointerdef(list,tpointerdef(def));
+            parse_pointerdef(hr.list,tpointerdef(def));
           setdef :
-            parse_setdef(list,tsetdef(def));
+            parse_setdef(hr.list,tsetdef(def));
           enumdef :
-            parse_enumdef(list,tenumdef(def));
+            parse_enumdef(hr.list,tenumdef(def));
           stringdef :
-            parse_stringdef(list,tstringdef(def));
+            parse_stringdef(hr,tstringdef(def));
           arraydef :
-            parse_arraydef(list,tarraydef(def));
+            parse_arraydef(hr,tarraydef(def));
           procvardef:
-            parse_procvardef(list,tprocvardef(def));
+            parse_procvardef(hr.list,tprocvardef(def));
           recorddef:
-            parse_recorddef(list,trecorddef(def));
+            parse_recorddef(hr,trecorddef(def));
           objectdef:
-            parse_objectdef(list,tobjectdef(def));
+            parse_objectdef(hr,tobjectdef(def));
           errordef:
             begin
                { try to consume something useful }
@@ -1338,11 +1429,11 @@ implementation
 
 {$maxfpuregisters default}
 
-    procedure read_typed_const(list:tasmlist;sym:tstaticvarsym);
+    procedure read_typed_const(list:tasmlist;sym:tstaticvarsym;in_class:boolean);
       var
         storefilepos : tfileposinfo;
         cursectype   : TAsmSectionType;
-        valuelist    : tasmlist;
+        hrec         : threc;
       begin
         { mark the staticvarsym as typedconst }
         include(sym.varoptions,vo_is_typed_const);
@@ -1359,16 +1450,19 @@ implementation
         else
           cursectype:=sec_data;
         maybe_new_object_file(list);
-        valuelist:=tasmlist.create;
-        read_typed_const_data(valuelist,sym.vardef);
+        hrec.list:=tasmlist.create;
+        hrec.origsym:=sym;
+        hrec.offset:=0;
+        read_typed_const_data(hrec,sym.vardef);
 
         { Parse hints }
-        try_consume_hintdirective(sym.symoptions);
+        try_consume_hintdirective(sym.symoptions,sym.deprecatedmsg);
 
         consume(_SEMICOLON);
 
         { parse public/external/export/... }
-        if (
+        if not in_class and
+           (
             (
              (token = _ID) and
              (idtoken in [_EXPORT,_EXTERNAL,_WEAKEXTERNAL,_PUBLIC,_CVAR]) and
@@ -1397,8 +1491,8 @@ implementation
           list.concat(Tai_symbol.Createname(sym.mangledname,AT_DATA,0));
 
         { add the parsed value }
-        list.concatlist(valuelist);
-        valuelist.free;
+        list.concatlist(hrec.list);
+        hrec.list.free;
         list.concat(tai_symbol_end.Createname(sym.mangledname));
         current_filepos:=storefilepos;
       end;

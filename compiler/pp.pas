@@ -40,8 +40,9 @@ program pp;
   EXTERN_MSG          Don't compile the msgfiles in the compiler, always
                       use external messagefiles, default for TP
   FPC_ARMEL           create an arm eabi compiler
+  FPC_ARMEB           create an arm big endian compiler
   FPC_OARM            create an arm oabi compiler, only needed when the host
-                      compiler is ARMEL
+                      compiler is ARMEL or ARMEB
   -----------------------------------------------------------------
   cpuflags            The target processor has status flags (on by default)
   cpufpemu            The target compiler will also support emitting software
@@ -142,6 +143,21 @@ program pp;
     {$fatal I386 switch must be on for MMX support}
   {$endif i386}
 {$endif support_mmx}
+
+{$ifdef win32}
+  { 256 MB stack }
+  { under windows the stack can't grow }
+  {$MAXSTACKSIZE 256000000}
+{$else win32}
+  {$ifdef win64}
+    { 512 MB stack }
+    { under windows the stack can't grow }
+    {$MAXSTACKSIZE 512000000}
+  {$else win64}
+    { 1 MB stack }
+    {$MINSTACKSIZE 1000000}
+  {$endif win64}
+{$endif win32}
 
 uses
 {$ifdef cmem}

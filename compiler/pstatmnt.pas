@@ -57,7 +57,9 @@ implementation
        { codegen }
        procinfo,cgbase,
        { assembler reader }
-       rabase
+       rabase,
+       { wide- and unicodestrings}
+       widestr
        ;
 
 
@@ -118,7 +120,8 @@ implementation
          caseexpr,p : tnode;
          blockid : longint;
          hl1,hl2 : TConstExprInt;
-         casedeferror : boolean;
+         sl1,sl2 : tstringconstnode;
+         casedeferror, caseofstring : boolean;
          casenode : tcasenode;
       begin
          consume(_CASE);
@@ -134,10 +137,16 @@ implementation
          set_varstate(caseexpr,vs_read,[vsf_must_be_valid]);
          casedeferror:=false;
          casedef:=caseexpr.resultdef;
+         { case of string must be rejected in delphi-, }
+         { tp7/bp7-, mac-compatibility modes.          }
+         caseofstring :=
+           ([m_delphi, m_mac, m_tp7] * current_settings.modeswitches = []) and
+           is_string(casedef);
+
          if (not assigned(casedef)) or
-            not(is_ordinal(casedef)) then
+            ( not(is_ordinal(casedef)) and (not caseofstring) ) then
           begin
-            CGMessage(type_e_ordinal_expr_expected);
+            CGMessage(type_e_ordinal_or_string_expr_expected);
             { create a correct tree }
             caseexpr.free;
             caseexpr:=cordconstnode.create(0,u32inttype,false);
@@ -152,7 +161,7 @@ implementation
          repeat
            { maybe an instruction has more case labels }
            repeat
-             p:=expr;
+             p:=expr(true);
              if is_widechar(casedef) then
                begin
                   if (p.nodetype=rangen) then
@@ -168,40 +177,71 @@ implementation
                        do_typecheckpass(p);
                     end;
                end;
-
              hl1:=0;
              hl2:=0;
+             sl1:=nil;
+             sl2:=nil;
              if (p.nodetype=rangen) then
                begin
-                  { type checking for case statements }
-                  if is_subequal(casedef, trangenode(p).left.resultdef) and
-                     is_subequal(casedef, trangenode(p).right.resultdef) then
-                    begin
-                      hl1:=get_ordinal_value(trangenode(p).left);
-                      hl2:=get_ordinal_value(trangenode(p).right);
-                      if hl1>hl2 then
-                        CGMessage(parser_e_case_lower_less_than_upper_bound);
-                      if not casedeferror then
+                 { type check for string case statements }
+                 if caseofstring and
+                   is_conststring_or_constcharnode(trangenode(p).left) and
+                   is_conststring_or_constcharnode(trangenode(p).right) then
+                 begin
+                   { we need stringconstnodes, even if expression contains single chars }
+                   sl1 := get_string_value(trangenode(p).left, tstringdef(casedef));
+                   sl2 := get_string_value(trangenode(p).right, tstringdef(casedef));
+                   if sl1.fullcompare(sl2) > 0 then
+                     CGMessage(parser_e_case_lower_less_than_upper_bound);
+                 end
+                 { type checking for ordinal case statements }
+                 else if (not caseofstring) and
+                   is_subequal(casedef, trangenode(p).left.resultdef) and
+                   is_subequal(casedef, trangenode(p).right.resultdef) then
+                   begin
+                     hl1:=get_ordinal_value(trangenode(p).left);
+                     hl2:=get_ordinal_value(trangenode(p).right);
+                     if hl1>hl2 then
+                       CGMessage(parser_e_case_lower_less_than_upper_bound);
+                     if not casedeferror then
                        begin
                          testrange(casedef,hl1,false);
                          testrange(casedef,hl2,false);
                        end;
-                    end
-                  else
-                    CGMessage(parser_e_case_mismatch);
-                  casenode.addlabel(blockid,hl1,hl2);
+                   end
+                 else
+                   CGMessage(parser_e_case_mismatch);
+
+                 if caseofstring then
+                   casenode.addlabel(blockid,sl1,sl2)
+                 else
+                   casenode.addlabel(blockid,hl1,hl2);
                end
              else
                begin
-                  { type checking for case statements }
-                  if not is_subequal(casedef, p.resultdef) then
-                    CGMessage(parser_e_case_mismatch);
-                  hl1:=get_ordinal_value(p);
-                  if not casedeferror then
-                    testrange(casedef,hl1,false);
-                  casenode.addlabel(blockid,hl1,hl1);
+                 { type check for string case statements }
+                 if (caseofstring and (not is_conststring_or_constcharnode(p))) or
+                 { type checking for ordinal case statements }
+                   ((not caseofstring) and (not is_subequal(casedef, p.resultdef))) then
+                   CGMessage(parser_e_case_mismatch);
+
+                 if caseofstring then
+                   begin
+                     sl1:=get_string_value(p, tstringdef(casedef));
+                     casenode.addlabel(blockid,sl1,sl1);
+                   end
+                 else
+                   begin
+                     hl1:=get_ordinal_value(p);
+                     if not casedeferror then
+                       testrange(casedef,hl1,false);
+                     casenode.addlabel(blockid,hl1,hl1);
+                   end;
                end;
              p.free;
+             sl1.free;
+             sl2.free;
+
              if token=_COMMA then
                consume(_COMMA)
              else
@@ -282,28 +322,179 @@ implementation
     function for_statement : tnode;
 
         procedure check_range(hp:tnode);
-        begin
-{$ifndef cpu64bitaddr}
-          if hp.nodetype=ordconstn then
+          begin
+  {$ifndef cpu64bitaddr}
+            if hp.nodetype=ordconstn then
+              begin
+                if (tordconstnode(hp).value<int64(low(longint))) or
+                   (tordconstnode(hp).value>high(longint)) then
+                  begin
+                    CGMessage(parser_e_range_check_error);
+                    { recover, prevent more warnings/errors }
+                    tordconstnode(hp).value:=0;
+                  end;
+              end;
+  {$endif not cpu64bitaddr}
+          end;
+
+        function for_loop_create(hloopvar: tnode): tnode;
+          var
+             hp,
+             hblock,
+             hto,hfrom : tnode;
+             backward : boolean;
+             loopvarsym : tabstractvarsym;
+          begin
+             { Check loop variable }
+             loopvarsym:=nil;
+
+             { variable must be an ordinal, int64 is not allowed for 32bit targets }
+             if not(is_ordinal(hloopvar.resultdef))
+    {$ifndef cpu64bitaddr}
+                or is_64bitint(hloopvar.resultdef)
+    {$endif not cpu64bitaddr}
+                then
+               MessagePos(hloopvar.fileinfo,type_e_ordinal_expr_expected);
+
+             hp:=hloopvar;
+             while assigned(hp) and
+                   (
+                    { record/object fields and array elements are allowed }
+                    { in tp7 mode only                                    }
+                    (
+                     (m_tp7 in current_settings.modeswitches) and
+                     (
+                      ((hp.nodetype=subscriptn) and
+                       ((tsubscriptnode(hp).left.resultdef.typ=recorddef) or
+                        is_object(tsubscriptnode(hp).left.resultdef))
+                      ) or
+                      { constant array index }
+                      (
+                       (hp.nodetype=vecn) and
+                       is_constintnode(tvecnode(hp).right)
+                      )
+                     )
+                    ) or
+                    { equal typeconversions }
+                    (
+                     (hp.nodetype=typeconvn) and
+                     (ttypeconvnode(hp).convtype=tc_equal)
+                    )
+                   ) do
+               begin
+                 { Use the recordfield for loopvarsym }
+                 if not assigned(loopvarsym) and
+                    (hp.nodetype=subscriptn) then
+                   loopvarsym:=tsubscriptnode(hp).vs;
+                 hp:=tunarynode(hp).left;
+               end;
+
+             if assigned(hp) and
+                (hp.nodetype=loadn) then
+               begin
+                 case tloadnode(hp).symtableentry.typ of
+                   staticvarsym,
+                   localvarsym,
+                   paravarsym :
+                     begin
+                       { we need a simple loadn:
+                           1. The load must be in a global symtable or
+                               in the same level as the para of the current proc.
+                           2. value variables (no const,out or var)
+                           3. No threadvar, readonly or typedconst
+                       }
+                       if (
+                           (tloadnode(hp).symtable.symtablelevel=main_program_level) or
+                           (tloadnode(hp).symtable.symtablelevel=current_procinfo.procdef.parast.symtablelevel)
+                          ) and
+                          (tabstractvarsym(tloadnode(hp).symtableentry).varspez=vs_value) and
+                          ([vo_is_thread_var,vo_is_typed_const] * tabstractvarsym(tloadnode(hp).symtableentry).varoptions=[]) then
+                         begin
+                           { Assigning for-loop variable is only allowed in tp7 and macpas }
+                           if ([m_tp7,m_mac] * current_settings.modeswitches = []) then
+                             begin
+                               if not assigned(loopvarsym) then
+                                 loopvarsym:=tabstractvarsym(tloadnode(hp).symtableentry);
+                               include(loopvarsym.varoptions,vo_is_loop_counter);
+                             end;
+                         end
+                       else
+                         begin
+                           { Typed const is allowed in tp7 }
+                           if not(m_tp7 in current_settings.modeswitches) or
+                              not(vo_is_typed_const in tabstractvarsym(tloadnode(hp).symtableentry).varoptions) then
+                             MessagePos(hp.fileinfo,type_e_illegal_count_var);
+                         end;
+                     end;
+                   else
+                     MessagePos(hp.fileinfo,type_e_illegal_count_var);
+                 end;
+               end
+             else
+               MessagePos(hloopvar.fileinfo,type_e_illegal_count_var);
+
+             hfrom:=comp_expr(true);
+
+             if try_to_consume(_DOWNTO) then
+               backward:=true
+             else
+               begin
+                 consume(_TO);
+                 backward:=false;
+               end;
+
+             hto:=comp_expr(true);
+             consume(_DO);
+
+             { Check if the constants fit in the range }
+             check_range(hfrom);
+             check_range(hto);
+
+             { first set the varstate for from and to, so
+               uses of loopvar in those expressions will also
+               trigger a warning when it is not used yet. This
+               needs to be done before the instruction block is
+               parsed to have a valid hloopvar }
+             typecheckpass(hfrom);
+             set_varstate(hfrom,vs_read,[vsf_must_be_valid]);
+             typecheckpass(hto);
+             set_varstate(hto,vs_read,[vsf_must_be_valid]);
+             typecheckpass(hloopvar);
+             { in two steps, because vs_readwritten may turn on vsf_must_be_valid }
+             { for some subnodes                                                  }
+             set_varstate(hloopvar,vs_written,[]);
+             set_varstate(hloopvar,vs_read,[vsf_must_be_valid]);
+
+             { ... now the instruction block }
+             hblock:=statement;
+
+             { variable is not used for loop counter anymore }
+             if assigned(loopvarsym) then
+               exclude(loopvarsym.varoptions,vo_is_loop_counter);
+
+             result:=cfornode.create(hloopvar,hfrom,hto,hblock,backward);
+          end;
+
+
+          function for_in_loop_create(hloopvar: tnode): tnode;
+            var
+              expr: tnode;
             begin
-              if (tordconstnode(hp).value<int64(low(longint))) or
-                 (tordconstnode(hp).value>high(longint)) then
-                begin
-                  CGMessage(parser_e_range_check_error);
-                  { recover, prevent more warnings/errors }
-                  tordconstnode(hp).value:=0;
-                end;
+              expr:=comp_expr(true);
+
+              consume(_DO);
+
+              set_varstate(hloopvar,vs_written,[]);
+              set_varstate(hloopvar,vs_read,[vsf_must_be_valid]);
+
+              result:=create_for_in_loop(hloopvar,statement,expr);
+
+              expr.free;
             end;
-{$endif not cpu64bitaddr}
-        end;
+
 
       var
-         hp,
-         hloopvar,
-         hblock,
-         hto,hfrom : tnode;
-         backward : boolean;
-         loopvarsym : tabstractvarsym;
+         hloopvar: tnode;
       begin
          { parse loop header }
          consume(_FOR);
@@ -311,136 +502,12 @@ implementation
          hloopvar:=factor(false);
          valid_for_loopvar(hloopvar,true);
 
-         { Check loop variable }
-         loopvarsym:=nil;
-
-         { variable must be an ordinal, int64 is not allowed for 32bit targets }
-         if not(is_ordinal(hloopvar.resultdef))
-{$ifndef cpu64bitaddr}
-            or is_64bitint(hloopvar.resultdef)
-{$endif not cpu64bitaddr}
-            then
-           MessagePos(hloopvar.fileinfo,type_e_ordinal_expr_expected);
-
-         hp:=hloopvar;
-         while assigned(hp) and
-               (
-                { record/object fields and array elements are allowed }
-                { in tp7 mode only                                    }
-                (
-                 (m_tp7 in current_settings.modeswitches) and
-                 (
-                  ((hp.nodetype=subscriptn) and
-                   ((tsubscriptnode(hp).left.resultdef.typ=recorddef) or
-                    is_object(tsubscriptnode(hp).left.resultdef))
-                  ) or
-                  { constant array index }
-                  (
-                   (hp.nodetype=vecn) and
-                   is_constintnode(tvecnode(hp).right)
-                  )
-                 )
-                ) or
-                { equal typeconversions }
-                (
-                 (hp.nodetype=typeconvn) and
-                 (ttypeconvnode(hp).convtype=tc_equal)
-                )
-               ) do
-           begin
-             { Use the recordfield for loopvarsym }
-             if not assigned(loopvarsym) and
-                (hp.nodetype=subscriptn) then
-               loopvarsym:=tsubscriptnode(hp).vs;
-             hp:=tunarynode(hp).left;
-           end;
-
-         if assigned(hp) and
-            (hp.nodetype=loadn) then
-           begin
-             case tloadnode(hp).symtableentry.typ of
-               staticvarsym,
-               localvarsym,
-               paravarsym :
-                 begin
-                   { we need a simple loadn:
-                       1. The load must be in a global symtable or
-                           in the same level as the para of the current proc.
-                       2. value variables (no const,out or var)
-                       3. No threadvar, readonly or typedconst
-                   }
-                   if (
-                       (tloadnode(hp).symtable.symtablelevel=main_program_level) or
-                       (tloadnode(hp).symtable.symtablelevel=current_procinfo.procdef.parast.symtablelevel)
-                      ) and
-                      (tabstractvarsym(tloadnode(hp).symtableentry).varspez=vs_value) and
-                      ([vo_is_thread_var,vo_is_typed_const] * tabstractvarsym(tloadnode(hp).symtableentry).varoptions=[]) then
-                     begin
-                       { Assigning for-loop variable is only allowed in tp7 and macpas }
-                       if ([m_tp7,m_mac] * current_settings.modeswitches = []) then
-                         begin
-                           if not assigned(loopvarsym) then
-                             loopvarsym:=tabstractvarsym(tloadnode(hp).symtableentry);
-                           include(loopvarsym.varoptions,vo_is_loop_counter);
-                         end;
-                     end
-                   else
-                     begin
-                       { Typed const is allowed in tp7 }
-                       if not(m_tp7 in current_settings.modeswitches) or
-                          not(vo_is_typed_const in tabstractvarsym(tloadnode(hp).symtableentry).varoptions) then
-                         MessagePos(hp.fileinfo,type_e_illegal_count_var);
-                     end;
-                 end;
-               else
-                 MessagePos(hp.fileinfo,type_e_illegal_count_var);
-             end;
-           end
+         if try_to_consume(_ASSIGNMENT) then
+           result:=for_loop_create(hloopvar)
+         else if try_to_consume(_IN) then
+           result:=for_in_loop_create(hloopvar)
          else
-           MessagePos(hloopvar.fileinfo,type_e_illegal_count_var);
-
-         consume(_ASSIGNMENT);
-
-         hfrom:=comp_expr(true);
-
-         if try_to_consume(_DOWNTO) then
-           backward:=true
-         else
-           begin
-             consume(_TO);
-             backward:=false;
-           end;
-
-         hto:=comp_expr(true);
-         consume(_DO);
-
-         { Check if the constants fit in the range }
-         check_range(hfrom);
-         check_range(hto);
-
-         { first set the varstate for from and to, so
-           uses of loopvar in those expressions will also
-           trigger a warning when it is not used yet. This
-           needs to be done before the instruction block is
-           parsed to have a valid hloopvar }
-         typecheckpass(hfrom);
-         set_varstate(hfrom,vs_read,[vsf_must_be_valid]);
-         typecheckpass(hto);
-         set_varstate(hto,vs_read,[vsf_must_be_valid]);
-         typecheckpass(hloopvar);
-         { in two steps, because vs_readwritten may turn on vsf_must_be_valid }
-         { for some subnodes                                                  }
-         set_varstate(hloopvar,vs_written,[]);
-         set_varstate(hloopvar,vs_read,[vsf_must_be_valid]);
-
-         { ... now the instruction block }
-         hblock:=statement;
-
-         { variable is not used for loop counter anymore }
-         if assigned(loopvarsym) then
-           exclude(loopvarsym.varoptions,vo_is_loop_counter);
-
-         result:=cfornode.create(hloopvar,hfrom,hto,hblock,backward);
+           consume(_ASSIGNMENT); // fail
       end;
 
 
@@ -482,6 +549,10 @@ implementation
             (nf_memseg in p.flags) then
            CGMessage(parser_e_no_with_for_variable_in_other_segments);
 
+         { "with procvar" can never mean anything, so always try
+           to call it in case it returns a record/object/... }
+         maybe_call_procvar(p,false);
+
          if (p.resultdef.typ in [objectdef,recorddef,classrefdef]) then
           begin
             newblock:=nil;
@@ -506,7 +577,14 @@ implementation
                 (tloadnode(hp).symtable=current_procinfo.procdef.localst) or
                 (tloadnode(hp).symtable=current_procinfo.procdef.parast) or
                 (tloadnode(hp).symtable.symtabletype in [staticsymtable,globalsymtable])
-               ) then
+               ) and
+               { MacPas objects are mapped to classes, and the MacPas compilers
+                 interpret with-statements with MacPas objects the same way
+                 as records (the object referenced by the with-statement
+                 must remain constant)
+               }
+               not(is_class(hp.resultdef) and
+                   (m_mac in current_settings.modeswitches)) then
               begin
                 { simple load, we can reference direct }
                 refnode:=p;
@@ -529,7 +607,7 @@ implementation
                     typecheckpass(p);
                   end;
                 { classes and interfaces have implicit dereferencing }
-                hasimplicitderef:=is_class_or_interface(p.resultdef) or
+                hasimplicitderef:=is_class_or_interface_or_dispinterface_or_objc(p.resultdef) or
                                   (p.resultdef.typ = classrefdef);
                 if hasimplicitderef then
                   hdef:=p.resultdef
@@ -537,7 +615,7 @@ implementation
                   hdef:=tpointerdef.create(p.resultdef);
                 { load address of the value in a temp }
                 tempnode:=ctempcreatenode.create_withnode(hdef,sizeof(pint),tt_persistent,true,p);
-                typecheckpass(tempnode);
+                typecheckpass(tnode(tempnode));
                 valuenode:=p;
                 refnode:=ctemprefnode.create(tempnode);
                 fillchar(refnode.fileinfo,sizeof(tfileposinfo),0);
@@ -594,7 +672,7 @@ implementation
                 if token<>_SEMICOLON then
                   p:=statement
                 else
-                  p:=cerrornode.create;
+                  p:=cnothingnode.create;
               end;
 
             { remove symtables in reverse order from the stack }
@@ -901,7 +979,7 @@ implementation
                   Message(parser_w_register_list_ignored);
                 repeat
                   { it's possible to specify the modified registers }
-                  reg:=std_regnum_search(lower(pattern));
+                  reg:=std_regnum_search(lower(cstringpattern));
                   if reg<>NR_NO then
                     begin
                       if (getregtype(reg)=R_INTREGISTER) and not(po_assembler in current_procinfo.procdef.procoptions) then
@@ -949,27 +1027,35 @@ implementation
          case token of
            _GOTO :
              begin
-                if not(cs_support_goto in current_settings.moduleswitches)then
+                if not(cs_support_goto in current_settings.moduleswitches) then
                  Message(sym_e_goto_and_label_not_supported);
                 consume(_GOTO);
                 if (token<>_INTCONST) and (token<>_ID) then
                   begin
-                     Message(sym_e_label_not_found);
-                     code:=cerrornode.create;
+                    Message(sym_e_label_not_found);
+                    code:=cerrornode.create;
                   end
                 else
                   begin
                      if token=_ID then
-                      consume_sym(srsym,srsymtable)
+                       consume_sym(srsym,srsymtable)
                      else
                       begin
+                        if token<>_INTCONST then
+                          internalerror(201008021);
+
+                        { strip leading 0's in iso mode }
+                        if m_iso in current_settings.modeswitches then
+                          while pattern[1]='0' do
+                            delete(pattern,1,1);
+
                         searchsym(pattern,srsym,srsymtable);
                         if srsym=nil then
-                         begin
-                           identifier_not_found(pattern);
-                           srsym:=generrorsym;
-                           srsymtable:=nil;
-                         end;
+                          begin
+                            identifier_not_found(pattern);
+                            srsym:=generrorsym;
+                            srsymtable:=nil;
+                          end;
                         consume(token);
                       end;
 
@@ -981,7 +1067,8 @@ implementation
                      else
                        begin
                          { goto is only allowed to labels within the current scope }
-                         if srsym.owner<>current_procinfo.procdef.localst then
+                         if not(m_iso in current_settings.modeswitches) and
+                           (srsym.owner<>current_procinfo.procdef.localst) then
                            CGMessage(parser_e_goto_outside_proc);
                          code:=cgotonode.create(tlabelsym(srsym));
                          tgotonode(code).labelsym:=tlabelsym(srsym);
@@ -1027,7 +1114,10 @@ implementation
              Message(scan_f_end_of_file);
          else
            begin
-             p:=expr;
+             { don't typecheck yet, because that will also simplify, which may
+               result in not detecting certain kinds of syntax errors --
+               see mantis #15594 }
+             p:=expr(false);
              { save the pattern here for latter usage, the label could be "000",
                even if we read an expression, the pattern is still valid if it's really
                a label (FK)
@@ -1040,13 +1130,27 @@ implementation
              if (p.nodetype=ordconstn) and
                 try_to_consume(_COLON) then
               begin
+                { in iso mode, 0003: is equal to 3: }
+                if m_iso in current_settings.modeswitches then
+                  searchsym(tostr(tordconstnode(p).value),srsym,srsymtable)
+                else
+                  searchsym(s,srsym,srsymtable);
                 p.free;
-                searchsym(s,srsym,srsymtable);
+
                 if assigned(srsym) and
                    (srsym.typ=labelsym) then
                  begin
                    if tlabelsym(srsym).defined then
-                    Message(sym_e_label_already_defined);
+                     Message(sym_e_label_already_defined);
+                   if symtablestack.top.symtablelevel<>srsymtable.symtablelevel then
+                     begin
+                       tlabelsym(srsym).nonlocal:=true;
+                       exclude(current_procinfo.procdef.procoptions,po_inline);
+                     end;
+                   if tlabelsym(srsym).nonlocal and
+                     (current_procinfo.procdef.proctypeoption in [potype_unitinit,potype_unitfinalize]) then
+                     Message(sym_e_interprocgoto_into_init_final_code_not_allowed);
+
                    tlabelsym(srsym).defined:=true;
                    p:=clabelnode.create(nil,tlabelsym(srsym));
                    tlabelsym(srsym).code:=p;
@@ -1082,16 +1186,32 @@ implementation
              if not(p.nodetype in [nothingn,errorn,calln,ifn,assignn,breakn,inlinen,
                                    continuen,labeln,blockn,exitn]) or
                 ((p.nodetype=inlinen) and
-                 not is_void(p.resultdef)) then
+                 not is_void(p.resultdef)) or
+                ((p.nodetype=calln) and
+                 (assigned(tcallnode(p).procdefinition)) and
+                 (tcallnode(p).procdefinition.proctypeoption=potype_operator)) then
                Message(parser_e_illegal_expression);
+
+             if not assigned(p.resultdef) then
+               do_typecheckpass(p);
 
              { Specify that we don't use the value returned by the call.
                This is used for :
                 - dispose of temp stack space
-                - dispose on FPU stack }
+                - dispose on FPU stack
+                - extended syntax checking }
              if (p.nodetype=calln) then
-               exclude(tcallnode(p).callnodeflags,cnf_return_value_used);
+               begin
+                 exclude(tcallnode(p).callnodeflags,cnf_return_value_used);
 
+                 { in $x- state, the function result must not be ignored }
+                 if not(cs_extsyntax in current_settings.moduleswitches) and
+                    not(is_void(p.resultdef)) and
+                    not((tcallnode(p).procdefinition.proctypeoption=potype_constructor) and
+                        assigned(tprocdef(tcallnode(p).procdefinition)._class) and
+                        is_object(tprocdef(tcallnode(p).procdefinition)._class)) then
+                   Message(parser_e_illegal_expression);
+               end;
              code:=p;
            end;
          end;

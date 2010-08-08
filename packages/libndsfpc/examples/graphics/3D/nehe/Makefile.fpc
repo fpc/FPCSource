@@ -1,0 +1,18 @@
+#
+#   Makefile.fpc for Free Pascal libndsfpc 2.x.y Examples
+#
+
+[target]
+dirs=lesson01 lesson02 lesson03 lesson04 lesson05 lesson06 lesson07 lesson08 lesson09 lesson10 lesson10b lesson11
+
+[require]
+packages=libndsfpc
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../../../..
+
+[rules]
+.NOTPARALLEL:

@@ -30,6 +30,7 @@ interface
 implementation
 
     uses
+       aasmbase,
        SysUtils,
        cutils,cfileutl,cclasses,
        globtype,globals,systems,verbose,script,fmodule,i_gba,link;
@@ -414,7 +415,7 @@ begin
       add('		*(.data)');
       add('		*(.data.*)');
       add('		*(.gnu.linkonce.d*)');
-      add('		*(.fpc*)');      
+      add('		*(.fpc*)');
       add('		CONSTRUCTORS');
       add('		. = ALIGN(4);');
       add('	} >iwram = 0xff');
@@ -428,13 +429,21 @@ begin
       add('	__init_lma = __preinit_lma + SIZEOF(.preinit_array);');
       add('');
       add('	PROVIDE (__init_array_start = .);');
-      add('	.init_array     : AT (__init_lma) { KEEP (*(.init_array)) } >iwram');
+      add('	.init_array     : AT (__init_lma)');
+      add('	{');
+      add('		KEEP (*(SORT(.init_array.*)))');
+      add('		KEEP (*(.init_array))');
+      add('	} >iwram');
       add('	PROVIDE (__init_array_end = .);');
       add('	PROVIDE (__fini_array_start = .);');
       add('');
       add('	__fini_lma = __init_lma + SIZEOF(.init_array);');
       add('');
-      add('	.fini_array     : AT (__fini_lma) { KEEP (*(.fini_array)) } >iwram');
+      add('	.fini_array     : AT (__fini_lma)');
+      add('	{');
+      add('		KEEP (*(SORT(.fini_array.*)))');
+      add('		KEEP (*(.fini_array))');
+      add('	} >iwram');
       add('  	PROVIDE (__fini_array_end = .);');
       add('');
       add('	__jcr_lma = __fini_lma + SIZEOF(.fini_array);');
@@ -554,14 +563,22 @@ var
   StaticStr,
   GCSectionsStr,
   DynLinkStr,
+  MapStr,
   StripStr: string;
 begin
   { for future use }
   StaticStr:='';
   StripStr:='';
   DynLinkStr:='';
+  MapStr:='';
 
-  GCSectionsStr:='--gc-sections';
+  if (cs_link_strip in current_settings.globalswitches) and
+     not(cs_link_separate_dbg_file in current_settings.globalswitches) then
+   StripStr:='-s';
+  if (cs_link_map in current_settings.globalswitches) then
+   StripStr:='-Map '+maybequoted(ChangeFileExt(current_module.exefilename^,'.map'));
+  if create_smartlink_sections then
+   GCSectionsStr:='--gc-sections';
   //if not(cs_link_extern in current_settings.globalswitches) then
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.exefilename^);
@@ -572,24 +589,15 @@ begin
 { Call linker }
   SplitBinCmd(Info.ExeCmd[1],binstr,cmdstr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  if not(cs_link_on_target in current_settings.globalswitches) then
-   begin
-    Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,'.elf')))));
-    Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
-    Replace(cmdstr,'$STATIC',StaticStr);
-    Replace(cmdstr,'$STRIP',StripStr);
-    Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
-    Replace(cmdstr,'$DYNLINK',DynLinkStr);
-   end
-  else
-   begin
-    Replace(cmdstr,'$EXE',maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,'.elf'))));
-    Replace(cmdstr,'$RES',maybequoted(ScriptFixFileName(outputexedir+Info.ResName)));
-    Replace(cmdstr,'$STATIC',StaticStr);
-    Replace(cmdstr,'$STRIP',StripStr);
-    Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
-    Replace(cmdstr,'$DYNLINK',DynLinkStr);
-   end;
+
+  Replace(cmdstr,'$EXE',(maybequoted(ScriptFixFileName(ChangeFileExt(current_module.exefilename^,'.elf')))));
+  Replace(cmdstr,'$RES',(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+  Replace(cmdstr,'$STATIC',StaticStr);
+  Replace(cmdstr,'$STRIP',StripStr);
+  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
+  Replace(cmdstr,'$MAP',MapStr);
+  Replace(cmdstr,'$DYNLINK',DynLinkStr);
+
   success:=DoExec(FindUtil(utilsprefix+BinStr),cmdstr,true,false);
 
 { Remove ReponseFile }

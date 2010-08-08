@@ -8,9 +8,11 @@
   add_chm;
   add_dbus;
   add_dts;
+  add_fastcgi;
   add_fcl_async;
   add_fcl_base;
   add_fcl_db;
+  add_fcl_extra;
   add_fcl_fpcunit;
   add_fcl_image;
   add_fcl_json;
@@ -24,6 +26,7 @@
   add_fftw;
   add_fpgtk;
   add_fpmkunit;
+  add_fpvectorial;
   add_fv;
   add_gdbint;
   add_gdbm;
@@ -33,7 +36,6 @@
   add_gtk1;
   add_gtk2;
   add_hash;
-  add_hermes;
   add_httpd13;
   add_httpd20;
   add_httpd22;
@@ -48,6 +50,8 @@
   add_libgd;
   add_libndsfpc;
   add_libpng;
+  add_librsvg;
+  add_libsee;
   add_libxml;
   add_lua;
   add_mad;
@@ -57,9 +61,12 @@
   add_ncurses;
   add_newt;
   add_numlib;
+  add_nvapi;
+  add_objcrtl;
   add_odbc;
   add_oggvorbis;
   add_openal;
+  add_opencl;
   add_opengl;
   add_openssl;
   add_oracle;
@@ -69,13 +76,12 @@
   add_paszlib;
   add_pcap;
   add_postgres;
-  add_ptc;
+  add_proj4;
   add_pthreads;
   add_pxlib;
   add_regexpr;
   add_rexx;
   add_sdl;
-  add_sndfile;
   add_sqlite;
   add_svgalib;
   add_symbolic;
@@ -92,3 +98,4 @@
   add_x11;
   add_xforms;
   add_zlib;
+  add_zorba;

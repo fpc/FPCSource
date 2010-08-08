@@ -40,6 +40,16 @@ Type
       fp_libgcc
      );
 
+   tcontrollertype =
+     (ct_none,
+
+      ct_atmega16,
+      ct_atmega32,
+      ct_atmega48,
+      ct_atmega64,
+      ct_atmega128
+     );
+
 Const
    {# Size of native extended floating point type }
    extended_size = 12;
@@ -71,16 +81,35 @@ Const
      'LIBGCC'
    );
 
+   controllertypestr : array[tcontrollertype] of string[20] =
+     ('',
+      'ATMEGA16',
+      'ATMEGA32',
+      'ATMEGA48',
+      'ATMEGA64',
+      'ATMEGA128'
+     );
+
+   controllerunitstr : array[tcontrollertype] of string[20] =
+     ('',
+      'ATMEGA16',
+      'ATMEGA32',
+      'ATMEGA48',
+      'ATMEGA64',
+      'ATMEGA128'
+     );
    { Supported optimizations, only used for information }
    supported_optimizerswitches = genericlevel1optimizerswitches+
                                  genericlevel2optimizerswitches+
                                  genericlevel3optimizerswitches-
                                  { no need to write info about those }
                                  [cs_opt_level1,cs_opt_level2,cs_opt_level3]+
-                                 [cs_opt_regvar,cs_opt_loopunroll,cs_opt_tailrecursion,cs_opt_stackframe];
+                                 [cs_opt_regvar,cs_opt_loopunroll,cs_opt_tailrecursion,
+								  cs_opt_stackframe,cs_opt_nodecse];
 
    level1optimizerswitches = genericlevel1optimizerswitches;
-   level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches + [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion];
+   level2optimizerswitches = genericlevel2optimizerswitches + level1optimizerswitches + 
+     [cs_opt_regvar,cs_opt_stackframe,cs_opt_tailrecursion];
    level3optimizerswitches = genericlevel3optimizerswitches + level2optimizerswitches + [{,cs_opt_loopunroll}];
 
 Implementation

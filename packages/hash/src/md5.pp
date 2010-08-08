@@ -51,8 +51,10 @@ type
   TMD5Digest = TMDDigest;
 
   PMDContext = ^TMDContext;
+  TMDHashFunc = procedure(Context: PMDContext; Buffer: Pointer);
   TMDContext = record
     Version : TMDVersion;
+    Hash    : TMDHashFunc;
     Align   : PtrUInt;
     State   : array[0..3] of Cardinal;
     BufCnt  : QWord;
@@ -104,16 +106,16 @@ function MDMatch(const Digest1, Digest2: TMDDigest): Boolean;
  ******************************************************************************)
 
 procedure MD2Init(var Context: TMD2Context); inline;
-procedure MD2Update(var Context: TMD2Context; var Buf; const BufLen: PtrUInt); inline;
-procedure MD2Final(var Context: TMD2Context; var Digest: TMD2Digest); inline;
+procedure MD2Update(var Context: TMD2Context; var Buf; const BufLen: PtrUInt); external name 'MD_UPDATE';
+procedure MD2Final(var Context: TMD2Context; var Digest: TMD2Digest); external name 'MD_FINAL';
 
 procedure MD4Init(var Context: TMD4Context); inline;
-procedure MD4Update(var Context: TMD4Context; var Buf; const BufLen: PtrUInt); inline;
-procedure MD4Final(var Context: TMD4Context; var Digest: TMD4Digest); inline;
+procedure MD4Update(var Context: TMD4Context; var Buf; const BufLen: PtrUInt); external name 'MD_UPDATE';
+procedure MD4Final(var Context: TMD4Context; var Digest: TMD4Digest); external name 'MD_FINAL';
 
 procedure MD5Init(var Context: TMD5Context); inline;
-procedure MD5Update(var Context: TMD5Context; var Buf; const BufLen: PtrUInt); inline;
-procedure MD5Final(var Context: TMD5Context; var Digest: TMD5Digest); inline;
+procedure MD5Update(var Context: TMD5Context; var Buf; const BufLen: PtrUInt); external name 'MD_UPDATE';
+procedure MD5Final(var Context: TMD5Context; var Digest: TMD5Digest); external name 'MD_FINAL';
 
 
 (******************************************************************************
@@ -121,15 +123,15 @@ procedure MD5Final(var Context: TMD5Context; var Digest: TMD5Digest); inline;
  ******************************************************************************)
 
 function MD2String(const S: String): TMD2Digest; inline;
-function MD2Buffer(var Buf; const BufLen: PtrUInt): TMD2Digest; inline;
+function MD2Buffer(var Buf; const BufLen: PtrUInt): TMD2Digest;
 function MD2File(const Filename: String; const Bufsize: PtrUInt = MDDefBufSize): TMD2Digest; inline;
 
 function MD4String(const S: String): TMD4Digest; inline;
-function MD4Buffer(var Buf; const BufLen: PtrUInt): TMD4Digest; inline;
+function MD4Buffer(var Buf; const BufLen: PtrUInt): TMD4Digest;
 function MD4File(const Filename: String; const Bufsize: PtrUInt = MDDefBufSize): TMD4Digest; inline;
 
 function MD5String(const S: String): TMD5Digest; inline;
-function MD5Buffer(var Buf; const BufLen: PtrUInt): TMD5Digest; inline;
+function MD5Buffer(var Buf; const BufLen: PtrUInt): TMD5Digest;
 function MD5File(const Filename: String; const Bufsize: PtrUInt = MDDefBufSize): TMD5Digest; inline;
 
 
@@ -231,23 +233,28 @@ end;
 
 procedure MD4Transform(var Context: TMDContext; Buffer: Pointer);
 
+{$push}
+{$r-,q-}
+
   procedure R1(var a: Cardinal; b,c,d,x: Cardinal; s: Byte);
   // F(x,y,z) = (x and y) or ((not x) and z)
   begin
-    a := rol(dword(a + {F(b,c,d)}((b and c) or ((not b) and d)) + x), s);
+    a := roldword(dword(a + {F(b,c,d)}((b and c) or ((not b) and d)) + x), s);
   end;
 
   procedure R2(var a: Cardinal; b,c,d,x: Cardinal; s: Byte);
   // G(x,y,z) = (x and y) or (x and z) or (y and z);
   begin
-    a := rol(dword(a + {G(b,c,d)}((b and c) or (b and d) or (c and d)) + x + $5A827999), s);
+    a := roldword(dword(a + {G(b,c,d)}((b and c) or (b and d) or (c and d)) + x + $5A827999), s);
   end;
 
   procedure R3(var a: Cardinal; b,c,d,x: Cardinal; s: Byte);
   // H(x,y,z) = x xor y xor z
   begin
-    a := rol(dword(a + {H(b,c,d)}(b xor c xor d) + x + $6ED9EBA1), s);
+    a := roldword(dword(a + {H(b,c,d)}(b xor c xor d) + x + $6ED9EBA1), s);
   end;
+
+{$pop}
 
 var
   a, b, c, d: Cardinal;
@@ -277,39 +284,47 @@ begin
   R3(a,b,c,d,Block[1],  3); R3(d,a,b,c,Block[9],  9); R3(c,d,a,b,Block[5], 11); R3(b,c,d,a,Block[13],15);
   R3(a,b,c,d,Block[3],  3); R3(d,a,b,c,Block[11], 9); R3(c,d,a,b,Block[7], 11); R3(b,c,d,a,Block[15],15);
 
+{$push}
+{$r-,q-}
   inc(Context.State[0], a);
   inc(Context.State[1], b);
   inc(Context.State[2], c);
   inc(Context.State[3], d);
+{$pop}
   inc(Context.Length,64);
 end;
 
 
 procedure MD5Transform(var Context: TMDContext; Buffer: Pointer);
 
+{$push}
+{$r-,q-}
+
   procedure R1(var a: Cardinal; b,c,d,x: Cardinal; s: Byte; ac: Cardinal);
   // F(x,y,z) = (x and y) or ((not x) and z)
   begin
-    a := b + rol(dword(a + {F(b,c,d)}((b and c) or ((not b) and d)) + x + ac), s);
+    a := b + roldword(dword(a + {F(b,c,d)}((b and c) or ((not b) and d)) + x + ac), s);
   end;
 
   procedure R2(var a: Cardinal; b,c,d,x: Cardinal; s: Byte; ac: Cardinal);
   // G(x,y,z) = (x and z) or (y and (not z))
   begin
-    a := b + rol(dword(a + {G(b,c,d)}((b and d) or (c and (not d))) + x + ac), s);
+    a := b + roldword(dword(a + {G(b,c,d)}((b and d) or (c and (not d))) + x + ac), s);
   end;
 
   procedure R3(var a: Cardinal; b,c,d,x: Cardinal; s: Byte; ac: Cardinal);
   // H(x,y,z) = x xor y xor z;
   begin
-    a := b + rol(dword(a + {H(b,c,d)}(b xor c xor d) + x + ac), s);
+    a := b + roldword(dword(a + {H(b,c,d)}(b xor c xor d) + x + ac), s);
   end;
 
   procedure R4(var a: Cardinal; b,c,d,x: Cardinal; s: Byte; ac: Cardinal);
   // I(x,y,z) = y xor (x or (not z));
   begin
-    a := b + rol(dword(a + {I(b,c,d)}(c xor (b or (not d))) + x + ac), s);
+    a := b + roldword(dword(a + {I(b,c,d)}(c xor (b or (not d))) + x + ac), s);
   end;
+
+{$pop}
 
 var
   a, b, c, d: Cardinal;
@@ -345,10 +360,13 @@ begin
   R4(a,b,c,d,Block[8] , 6,$6fa87e4f); R4(d,a,b,c,Block[15],10,$fe2ce6e0); R4(c,d,a,b,Block[6] ,15,$a3014314); R4(b,c,d,a,Block[13],21,$4e0811a1);
   R4(a,b,c,d,Block[4] , 6,$f7537e82); R4(d,a,b,c,Block[11],10,$bd3af235); R4(c,d,a,b,Block[2] ,15,$2ad7d2bb); R4(b,c,d,a,Block[9] ,21,$eb86d391);
 
+{$push}
+{$r-,q-}
   inc(Context.State[0],a);
   inc(Context.State[1],b);
   inc(Context.State[2],c);
   inc(Context.State[3],d);
+{$pop}
   inc(Context.Length,64);
 end;
 
@@ -362,6 +380,10 @@ begin
 
     MD_VERSION_4, MD_VERSION_5:
       begin
+        if Version = MD_VERSION_4 then
+          Context.Hash := TMDHashFunc(@MD4Transform)
+        else
+          Context.Hash := TMDHashFunc(@MD5Transform);
         Context.Align := 64;
         Context.State[0] := $67452301;
         Context.State[1] := $efcdab89;
@@ -374,13 +396,14 @@ begin
     MD_VERSION_2:
       begin
         Context.Align := 16;
+        Context.Hash := TMDHashFunc(@MD2Transform)
       end;
 
   end;
 end;
 
 
-procedure MDUpdate(var Context: TMDContext; var Buf; const BufLen: PtrUInt);
+procedure MDUpdate(var Context: TMDContext; var Buf; const BufLen: PtrUInt); [public,alias:'MD_UPDATE'];
 var
   Align: PtrUInt;
   Src: Pointer;
@@ -408,11 +431,7 @@ begin
     // 1.2 If buffer contains "Align" bytes, transform it
     if Context.BufCnt = Align then
     begin
-      case Context.Version of
-        MD_VERSION_2: MD2Transform(Context, @Context.Buffer);
-        MD_VERSION_4: MD4Transform(Context, @Context.Buffer);
-        MD_VERSION_5: MD5Transform(Context, @Context.Buffer);
-      end;
+      Context.Hash(@Context, @Context.Buffer);
       Context.BufCnt := 0;
     end;
   end;
@@ -421,11 +440,7 @@ begin
   Num := BufLen - Num;
   while Num >= Align do
   begin
-    case Context.Version of
-      MD_VERSION_2: MD2Transform(Context, Src);
-      MD_VERSION_4: MD4Transform(Context, Src);
-      MD_VERSION_5: MD5Transform(Context, Src);
-    end;
+    Context.Hash(@Context, Src);
     Src := Pointer(PtrUInt(Src) + Align);
     Num := Num - Align;
   end;
@@ -439,7 +454,7 @@ begin
 end;
 
 
-procedure MDFinal(var Context: TMDContext; var Digest: TMDDigest);
+procedure MDFinal(var Context: TMDContext; var Digest: TMDDigest); [public,alias:'MD_FINAL'];
 const
 {$ifdef FPC_BIG_ENDIAN}
   PADDING_MD45: array[0..15] of Cardinal = ($80000000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
@@ -564,44 +579,14 @@ begin
   MDInit(Context, MD_VERSION_2);
 end;
 
-procedure MD2Update(var Context: TMD2Context; var Buf; const BufLen: PtrUInt);
-begin
-  MDUpdate(Context, Buf, BufLen);
-end;
-
-procedure MD2Final(var Context: TMD2Context; var Digest: TMD2Digest);
-begin
-  MDFinal(Context, Digest);
-end;
-
 procedure MD4Init(var Context: TMD4Context);
 begin
   MDInit(Context, MD_VERSION_4);
 end;
 
-procedure MD4Update(var Context: TMD4Context; var Buf; const BufLen: PtrUInt);
-begin
-  MDUpdate(Context, Buf, BufLen);
-end;
-
-procedure MD4Final(var Context: TMD4Context; var Digest: TMD4Digest);
-begin
-  MDFinal(Context, Digest);
-end;
-
 procedure MD5Init(var Context: TMD5Context);
 begin
   MDInit(Context, MD_VERSION_5);
-end;
-
-procedure MD5Update(var Context: TMD5Context; var Buf; const BufLen: PtrUInt);
-begin
-  MDUpdate(Context, Buf, BufLen);
-end;
-
-procedure MD5Final(var Context: TMD5Context; var Digest: TMD5Digest);
-begin
-  MDFinal(Context, Digest);
 end;
 
 function MD2String(const S: String): TMD2Digest;

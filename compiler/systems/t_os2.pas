@@ -353,22 +353,19 @@ end;
       const
         ar_magic:array[1..8] of char='!<arch>'#10;
       var
-          libname : string;
           i,j  : longint;
           ImportLibrary : TImportLibrary;
           ImportSymbol  : TImportSymbol;
       begin
-        LibName:=FixFileName(Current_Module.RealModuleName^ + Target_Info.StaticLibExt);
         seq_no:=1;
-        current_module.linkotherstaticlibs.add(libname,link_always);
-        assign(out_file,current_module.outputpath^+libname);
+        current_module.linkotherstaticlibs.add(Current_Module.ImportLibFilename^,link_always);
+        assign(out_file,Current_Module.ImportLibFilename^);
         rewrite(out_file,1);
         blockwrite(out_file,ar_magic,sizeof(ar_magic));
 
         for i:=0 to current_module.ImportLibraryList.Count-1 do
           begin
             ImportLibrary:=TImportLibrary(current_module.ImportLibraryList[i]);
-{            LibName:=FixFileName(ImportLibrary.Name + Target_Info.StaticCLibExt);}
             for j:=0 to ImportLibrary.ImportSymbolList.Count-1 do
               begin
                 ImportSymbol:=TImportSymbol(ImportLibrary.ImportSymbolList[j]);

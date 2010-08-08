@@ -21,6 +21,7 @@ type
     procedure TestParseSQL;
     procedure TestInitFielddefsFromFields;
     procedure TestDoubleFieldDef;
+    procedure TestFieldDefWithoutDS;
   end;
 
 implementation
@@ -37,6 +38,7 @@ var Params  : TParams;
     pb      : TParamBinding;
 begin
   Params := TParams.Create;
+
   AssertEquals(     'select * from table where id = $1',
     params.ParseSQL('select * from table where id = :id',true,True,True,psPostgreSQL));
 
@@ -94,6 +96,14 @@ begin
 
   AssertEquals(     'select * from table where "id  = :id\',
     params.ParseSQL('select * from table where "id  = :id\',true,True,True,psInterbase));
+
+// Test strange-field names
+  AssertEquals(     'select * from table where "field-name" = ?',
+    params.ParseSQL('select * from table where "field-name" = :"field-name"',true,True,True,psInterbase));
+  AssertEquals('field-name',Params.Items[0].Name);
+
+  AssertEquals(     'select * from table where "field-name" = ?',
+    params.ParseSQL('select * from table where "field-name" = :"field-name',true,True,True,psInterbase));
 
   Params.Free;
 end;
@@ -159,6 +169,14 @@ begin
     on E: EDatabaseError do PassException := True;
   end;
   AssertTrue(PassException);
+end;
+
+procedure TTestBasics.TestFieldDefWithoutDS;
+var FieldDefs : TFieldDefs;
+begin
+  FieldDefs := TFieldDefs.Create(nil);
+  FieldDefs.Add('test',ftString);
+  FieldDefs.Free;
 end;
 
 initialization

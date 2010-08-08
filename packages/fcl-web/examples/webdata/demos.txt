@@ -1,0 +1,40 @@
+
+The demo directories demonstrate the use of the TFPWebDataProvider
+components, using ExtJS. It demonstrates the use of JSON and XML
+communitation between a ExtJS Datastore and the webdataprovider.
+
+ExtJS must be installed, it can be downloaded for free from
+http://www.extjs.com/
+
+The examples assume that it is reachable through /ext/
+
+Demo1 shows how to use the component with a plain webdatamodule,
+using actions, and creating all components on the fly.
+
+Demo2 shows how to use the components by dropping them on a plain
+webdatamodule, and handling all in the OnRequest handler of the
+webdatamodule.
+
+Demo3 shows how to use the components in combination with a
+WebProviderDatamodule.
+
+Demo4 shows how webdataprovider components can be dropped
+on plain datamodules, and how these modules can be made
+available to the webdatamodule.
+
+Demo5 shows how to register your own TWebdataProvider instances, which
+are created on the fly to perform their action.
+
+Demo6 demonstrates the use of the TSQLDBWebDataProvider component.
+
+All demos except Demo6 use CGI and a TDBF component to feed data to 
+the webpage, which means they are not very suitable for real life 
+situations due to file locking etc.
+
+
+To try a demo, compile one of the appropriate CGI apps, and open 
+the extgrid-json.html or extgrid-xml.html page in your browser 
+through the webserver, something like:
+
+http://localhost/~myuser/extjs/demo2/extgrid-json.html
+

@@ -96,7 +96,7 @@ procedure tppctypeconvnode.second_int_to_real;
 const
   convconst : double = $100000000;
 var
-  tempconst : trealconstnode;
+  tempconst : tnode;
   disp, disp2: treference;
   // temp registers for converting signed ints
   valuereg, leftreg,

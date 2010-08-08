@@ -76,7 +76,7 @@ implementation
             (tfloatdef(left.resultdef).floattype<>s64comp) and
             not (nf_explicit in flags) then
            CGMessage(type_w_convert_real_2_comp);
-         if use_sse(resultdef) then
+         if use_vectorfpu(resultdef) then
            expectloc:=LOC_MMREGISTER
          else
            expectloc:=LOC_FPUREGISTER;
@@ -87,9 +87,7 @@ implementation
       var
 {$ifndef cpu64bitalu}
         hreg2,
-{$endif not cpu64bitalu}
         hregister : tregister;
-{$ifndef cpu64bitalu}
         href      : treference;
 {$endif not cpu64bitalu}
         resflags  : tresflags;
@@ -226,7 +224,7 @@ implementation
             firstpass(left)
           end;
 
-        if use_sse(resultdef) and
+        if use_vectorfpu(resultdef) and
            (torddef(left.resultdef).ordtype = s32bit) then
           expectloc:=LOC_MMREGISTER
         else
@@ -245,7 +243,7 @@ implementation
       begin
         if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER,LOC_REFERENCE,LOC_CREFERENCE]) then
           location_force_reg(current_asmdata.CurrAsmList,left.location,left.location.size,false);
-        if use_sse(resultdef) and
+        if use_vectorfpu(resultdef) and
 {$ifdef cpu64bitalu}
            (torddef(left.resultdef).ordtype in [s32bit,s64bit]) then
 {$else cpu64bitalu}
@@ -262,10 +260,13 @@ implementation
               else
                 internalerror(2007120902);
             end;
-            case left.location.size of
-              OS_S32:
+            { don't use left.location.size, because that one may be OS_32/OS_64
+              if the lower bound of the orddef >= 0
+            }
+            case torddef(left.resultdef).ordtype of
+              s32bit:
                 opsize:=S_L;
-              OS_S64:
+              s64bit:
                 opsize:=S_Q;
               else
                 internalerror(2007120903);
@@ -347,7 +348,7 @@ implementation
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(longint ($80000000)));
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($0000403f));
-                   reference_reset_symbol(href,l1,0);
+                   reference_reset_symbol(href,l1,0,4);
                    tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
                    current_asmdata.CurrAsmList.concat(Taicpu.Op_ref(A_FLD,S_FX,href));
                    current_asmdata.CurrAsmList.concat(Taicpu.Op_reg_reg(A_FADDP,S_NO,NR_ST,NR_ST1));

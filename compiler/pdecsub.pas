@@ -39,7 +39,9 @@ interface
         pd_notobjintf,   { directive can not be used interface declaration }
         pd_notprocvar,   { directive can not be used procvar declaration }
         pd_dispinterface,{ directive can be used with dispinterface methods }
-        pd_cppobject     { directive can be used with cppclass }
+        pd_cppobject,    { directive can be used with cppclass }
+        pd_objcclass,    { directive can be used with objcclass }
+        pd_objcprot      { directive can be used with objcprotocol }
       );
       tpdflags=set of tpdflag;
 
@@ -58,7 +60,7 @@ interface
     procedure parse_var_proc_directives(sym:tsym);
     procedure parse_object_proc_directives(pd:tabstractprocdef);
     function  parse_proc_head(aclass:tobjectdef;potype:tproctypeoption;var pd:tprocdef):boolean;
-    function  parse_proc_dec(aclass:tobjectdef):tprocdef;
+    function  parse_proc_dec(isclassmethod:boolean; aclass:tobjectdef):tprocdef;
 
 implementation
 
@@ -75,6 +77,7 @@ implementation
        { pass 1 }
        fmodule,node,htypechk,
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
+       objcutil,
        { parser }
        scanner,
        pbase,pexpr,ptype,pdecl
@@ -101,10 +104,22 @@ implementation
            if pd.typ=procdef then
             current_tokenpos:=tprocdef(pd).fileinfo;
 
+{$if defined(i386)}
            { For left to right add it at the end to be delphi compatible }
-           if pd.proccalloption in (pushleftright_pocalls+[pocall_safecall])  then
+           if (pd.proccalloption in (pushleftright_pocalls)) or
+              ((target_info.system in systems_all_windows) and
+               (pd.proccalloption=pocall_safecall)) then
              paranr:=paranr_result_leftright
            else
+{$elseif defined(x86) or defined(arm)}
+           { other platforms don't have a "safecall" convention,
+             and never reverse the parameter pushing order
+           }
+           if (target_info.system in systems_all_windows) and
+              (pd.proccalloption = pocall_safecall)  then
+             paranr:=paranr_result_leftright
+           else
+{$endif}
              paranr:=paranr_result;
            { Generate result variable accessing function result }
            vs:=tparavarsym.create('$result',paranr,vs_var,pd.returndef,[vo_is_funcret,vo_is_hidden_para]);
@@ -122,6 +137,7 @@ implementation
       var
         storepos : tfileposinfo;
         vs       : tparavarsym;
+        paranr   : longint;
       begin
         if pd.parast.symtablelevel>normal_function_level then
           begin
@@ -129,10 +145,23 @@ implementation
             if pd.typ=procdef then
              current_tokenpos:=tprocdef(pd).fileinfo;
 
+            { if no support for nested procvars is activated, use the old
+              calling convention to pass the parent frame pointer for backwards
+              compatibility }
+            if not(m_nested_procvars in current_settings.modeswitches) then
+              paranr:=paranr_parentfp
+            { nested procvars require Delphi-style parentfp passing, see
+              po_delphi_nested_cc declaration for more info }
+{$ifdef i386}
+            else if (pd.proccalloption in pushleftright_pocalls) then
+              paranr:=paranr_parentfp_delphi_cc_leftright
+{$endif i386}
+            else
+              paranr:=paranr_parentfp_delphi_cc;
             { Generate result variable accessing function result, it
               can't be put in a register since it must be accessable
               from the framepointer }
-            vs:=tparavarsym.create('$parentfp',paranr_parentfp,vs_value
+            vs:=tparavarsym.create('$parentfp',paranr,vs_value
                   ,voidpointertype,[vo_is_parentfp,vo_is_hidden_para]);
             vs.varregable:=vr_none;
             pd.parast.insert(vs);
@@ -148,8 +177,33 @@ implementation
         vs       : tparavarsym;
         hdef     : tdef;
         vsp      : tvarspez;
+        aliasvs  : tabsolutevarsym;
+        sl       : tpropaccesslist;
       begin
-        if (pd.typ=procvardef) and
+        if (pd.typ=procdef) and
+           is_objc_class_or_protocol(tprocdef(pd)._class) and
+           (pd.parast.symtablelevel=normal_function_level) then
+          begin
+            { insert Objective-C self and selector parameters }
+            vs:=tparavarsym.create('$_cmd',paranr_objc_cmd,vs_value,objc_seltype,[vo_is_msgsel,vo_is_hidden_para]);
+            pd.parast.insert(vs);
+            { make accessible to code }
+            sl:=tpropaccesslist.create;
+            sl.addsym(sl_load,vs);
+            aliasvs:=tabsolutevarsym.create_ref('_CMD',objc_seltype,sl);
+            include(aliasvs.varoptions,vo_is_msgsel);
+            tlocalsymtable(tprocdef(pd).localst).insert(aliasvs);
+
+            if (po_classmethod in pd.procoptions) then
+              { compatible with what gcc does }
+              hdef:=objc_idtype
+            else
+              hdef:=tprocdef(pd)._class;
+
+            vs:=tparavarsym.create('$self',paranr_objc_self,vs_value,hdef,[vo_is_self,vo_is_hidden_para]);
+            pd.parast.insert(vs);
+          end
+        else if (pd.typ=procvardef) and
            pd.is_methodpointer then
           begin
             { Generate self variable }
@@ -163,8 +217,7 @@ implementation
                 (pd.parast.symtablelevel=normal_function_level) then
               begin
                 { static class methods have no hidden self/vmt pointer }
-                if (po_staticmethod in pd.procoptions) and
-                   (po_classmethod in pd.procoptions) then
+                if pd.no_self_node then
                    exit;
 
                 storepos:=current_tokenpos;
@@ -288,9 +341,14 @@ implementation
                  paramanager.push_high_param(varspez,vardef,pocall_default) then
                begin
                  if is_open_string(vardef) then
-                    Message(parser_w_cdecl_no_openstring);
-                 if not (po_external in pd.procoptions) then
-                   Message(parser_w_cdecl_has_no_high);
+                    MessagePos(fileinfo,parser_w_cdecl_no_openstring);
+                 if not(po_external in pd.procoptions) and
+                    (pd.typ<>procvardef) and
+                    not is_objc_class_or_protocol(tprocdef(pd)._class) then
+                   if is_array_of_const(vardef) then
+                     MessagePos(fileinfo,parser_e_varargs_need_cdecl_and_external)
+                   else
+                     MessagePos(fileinfo,parser_w_cdecl_has_no_high);
                end;
               if (vardef.typ=formaldef) and (Tformaldef(vardef).typed) then
                 begin
@@ -319,12 +377,12 @@ implementation
                 if not is_variant_array(tparavarsym(sym).vardef) and
                    not is_array_of_const(tparavarsym(sym).vardef) and
                    (tparavarsym(sym).varspez<>vs_var) then
-                  Message(parser_h_c_arrays_are_references);
+                  MessagePos(tparavarsym(sym).fileinfo,parser_h_c_arrays_are_references);
                 if is_array_of_const(tparavarsym(sym).vardef) and
                    (i<lastparaidx) and
                    (tsym(pd.parast.SymList[i+1]).typ=paravarsym) and
                    not(vo_is_high_para in tparavarsym(pd.parast.SymList[i+1]).varoptions) then
-                  Message(parser_e_C_array_of_const_must_be_last);
+                  MessagePos(tparavarsym(sym).fileinfo,parser_e_C_array_of_const_must_be_last);
               end;
           end;
       end;
@@ -342,7 +400,7 @@ implementation
             { First parameter must be var }
             if (paranr=10) and
                (varspez<>vs_var) then
-              Message(parser_e_ill_msg_param);
+              MessagePos(fileinfo,parser_e_ill_msg_param);
           end;
       end;
 
@@ -353,7 +411,7 @@ implementation
          exit;
         with tparavarsym(p) do
          begin
-           if not vardef.needs_inittable and
+           if not is_managed_type(vardef) and
               paramanager.push_addr_param(varspez,vardef,tprocdef(arg).proccalloption) then
              varregable:=vr_intreg;
          end;
@@ -380,10 +438,12 @@ implementation
         old_block_type : tblock_type;
         currparast : tparasymtable;
         parseprocvar : tppv;
-        explicit_paraloc : boolean;
         locationstr : string;
         paranr : integer;
         dummytype : ttypesym;
+        explicit_paraloc,
+        need_array,
+        is_univ: boolean;
       begin
         old_block_type:=block_type;
         explicit_paraloc:=false;
@@ -401,6 +461,7 @@ implementation
         paranr:=0;
         inc(testcurobject);
         block_type:=bt_var;
+        is_univ:=false;
         repeat
           parseprocvar:=pv_none;
           if try_to_consume(_VAR) then
@@ -420,14 +481,14 @@ implementation
                 break;
               end
           else
-            if (m_mac in current_settings.modeswitches) and
+            if (m_nested_procvars in current_settings.modeswitches) and
                try_to_consume(_PROCEDURE) then
               begin
                 parseprocvar:=pv_proc;
                 varspez:=vs_const;
               end
           else
-            if (m_mac in current_settings.modeswitches) and
+            if (m_nested_procvars in current_settings.modeswitches) and
                try_to_consume(_FUNCTION) then
               begin
                 parseprocvar:=pv_func;
@@ -453,14 +514,15 @@ implementation
           { macpas anonymous procvar }
           if parseprocvar<>pv_none then
            begin
-             pv:=tprocvardef.create(normal_function_level);
+             { inline procvar definitions are always nested procvars }
+             pv:=tprocvardef.create(normal_function_level+1);
              if token=_LKLAMMER then
                parse_parameter_dec(pv);
              if parseprocvar=pv_func then
               begin
                 block_type:=bt_var_type;
                 consume(_COLON);
-                single_type(pv.returndef,false);
+                single_type(pv.returndef,false,false);
                 block_type:=bt_var;
               end;
              hdef:=pv;
@@ -477,12 +539,21 @@ implementation
              handle_calling_convention(pv);
            end
           else
-          { read type declaration, force reading for value and const paras }
+          { read type declaration, force reading for value paras }
            if (token=_COLON) or (varspez=vs_value) then
            begin
              consume(_COLON);
              { check for an open array }
-             if token=_ARRAY then
+             need_array:=false;
+             { bitpacked open array are not yet supported }
+             if (token=_PACKED) and
+                not(cs_bitpacking in current_settings.localswitches) then
+               begin
+                 consume(_PACKED);
+                 need_array:=true;
+               end;
+             if (token=_ARRAY) or
+                need_array then
               begin
                 consume(_ARRAY);
                 consume(_OF);
@@ -499,35 +570,54 @@ implementation
                 else
                  begin
                    { define field type }
-                   single_type(arrayelementdef,false);
+                   single_type(arrayelementdef,false,false);
                    tarraydef(hdef).elementdef:=arrayelementdef;
                  end;
               end
              else
               begin
                 if (m_mac in current_settings.modeswitches) then
-                  try_to_consume(_UNIV); {currently does nothing}
+                  is_univ:=try_to_consume(_UNIV);
+
                 if try_to_consume(_TYPE) then
                   hdef:=ctypedformaltype
                 else
                   begin
                     block_type:=bt_var_type;
-                    single_type(hdef,false);
+                    single_type(hdef,false,false);
                     block_type:=bt_var;
                   end;
 
                 { open string ? }
-                if (varspez in [vs_out,vs_var]) and
-                   (cs_openstring in current_settings.moduleswitches) and
-                   is_shortstring(hdef) then
-                  hdef:=openshortstringtype;
-
+                if is_shortstring(hdef) then
+                  begin
+                    case varspez of
+                      vs_var,vs_out:
+                        begin
+                          { not 100% Delphi-compatible: type xstr=string[255] cannot
+                            become an openstring there, while here it can }
+                          if (cs_openstring in current_settings.moduleswitches) and
+                             (tstringdef(hdef).len=255) then
+                            hdef:=openshortstringtype
+                        end;
+                      vs_value:
+                       begin
+                         { value "openstring" parameters don't make sense (the
+                            original string can never be modified, so there's no
+                            use in passing its original length), so change these
+                            into regular shortstring parameters (seems to be what
+                            Delphi also does) }
+                        if is_open_string(hdef) then
+                          hdef:=cshortstringtype;
+                       end;
+                    end;
+                  end;
                 if (target_info.system in [system_powerpc_morphos,system_m68k_amiga]) then
                   begin
                     if (idtoken=_LOCATION) then
                       begin
                         consume(_LOCATION);
-                        locationstr:=pattern;
+                        locationstr:=cstringpattern;
                         consume(_CSTRING);
                       end
                     else
@@ -573,9 +663,16 @@ implementation
              not(varspez in [vs_out,vs_var]) then
             CGMessage(cg_e_file_must_call_by_reference);
 
+          { univ cannot be used with types whose size is not known at compile
+            time }
+          if is_univ and
+             not is_valid_univ_para_type(hdef) then
+            Message1(parser_e_invalid_univ_para,hdef.typename);
+
           for i:=0 to sc.count-1 do
             begin
               vs:=tparavarsym(sc[i]);
+              vs.univpara:=is_univ;
               { update varsym }
               vs.vardef:=hdef;
               vs.defaultconstsym:=defaultvalue;
@@ -630,6 +727,7 @@ implementation
         popclass : boolean;
         ImplIntf : TImplementedInterface;
         old_parse_generic : boolean;
+        old_current_objectdef: tobjectdef;
       begin
         { Save the position where this procedure really starts }
         procstartfilepos:=current_tokenpos;
@@ -639,7 +737,7 @@ implementation
         pd:=nil;
         aprocsym:=nil;
 
-        if (potype=potype_operator) then
+        if potype=potype_operator then
           begin
             sp:=overloaded_names[optoken];
             orgsp:=sp;
@@ -692,58 +790,74 @@ implementation
            (symtablestack.top.symtablelevel=main_program_level) and
            try_to_consume(_POINT) then
          begin
-           { search for object name }
-           storepos:=current_tokenpos;
-           current_tokenpos:=procstartfilepos;
-           searchsym(sp,srsym,srsymtable);
-           if not assigned(srsym) then
-            begin
-              identifier_not_found(orgsp);
-              srsym:=generrorsym;
-            end;
-           current_tokenpos:=storepos;
-           { consume proc name }
-           sp:=pattern;
-           orgsp:=orgpattern;
-           procstartfilepos:=current_tokenpos;
-           consume(_ID);
-           { qualifier is class name ? }
-           if (srsym.typ=typesym) and
-              (ttypesym(srsym).typedef.typ=objectdef) then
-            begin
-              aclass:=tobjectdef(ttypesym(srsym).typedef);
-              srsym:=tsym(aclass.symtable.Find(sp));
-              if assigned(srsym) then
+           repeat
+             searchagain:=false;
+             if not assigned(aclass) then
                begin
-                 if srsym.typ=procsym then
-                   aprocsym:=tprocsym(srsym)
-                 else
-                   begin
-                     {  we use a different error message for tp7 so it looks more compatible }
-                     if (m_fpc in current_settings.modeswitches) then
-                       Message1(parser_e_overloaded_no_procedure,srsym.realname)
-                     else
-                       Message(parser_e_methode_id_expected);
-                     { rename the name to an unique name to avoid an
-                       error when inserting the symbol in the symtable }
-                     orgsp:=orgsp+'$'+tostr(current_filepos.line);
-                   end;
-               end
-              else
-               begin
-                 Message(parser_e_methode_id_expected);
-                 { recover by making it a normal procedure instead of method }
-                 aclass:=nil;
+                 { search for object name }
+                 storepos:=current_tokenpos;
+                 current_tokenpos:=procstartfilepos;
+                 searchsym(sp,srsym,srsymtable);
+                 if not assigned(srsym) then
+                  begin
+                    identifier_not_found(orgsp);
+                    srsym:=generrorsym;
+                  end;
+                 current_tokenpos:=storepos;
                end;
-            end
-           else
-            Message(parser_e_class_id_expected);
+             { consume proc name }
+             sp:=pattern;
+             orgsp:=orgpattern;
+             procstartfilepos:=current_tokenpos;
+             consume(_ID);
+             { qualifier is class name ? }
+             if (srsym.typ=typesym) and
+                (ttypesym(srsym).typedef.typ=objectdef) then
+              begin
+                aclass:=tobjectdef(ttypesym(srsym).typedef);
+                if (token<>_POINT) and (potype in [potype_class_constructor,potype_class_destructor]) then
+                  sp := lower(sp);
+                srsym:=tsym(aclass.symtable.Find(sp));
+                if assigned(srsym) then
+                 begin
+                   if srsym.typ=procsym then
+                     aprocsym:=tprocsym(srsym)
+                   else
+                   if (srsym.typ=typesym) and
+                      (ttypesym(srsym).typedef.typ=objectdef) then
+                     begin
+                       searchagain:=true;
+                       consume(_POINT);
+                     end
+                   else
+                     begin
+                       {  we use a different error message for tp7 so it looks more compatible }
+                       if (m_fpc in current_settings.modeswitches) then
+                         Message1(parser_e_overloaded_no_procedure,srsym.realname)
+                       else
+                         Message(parser_e_methode_id_expected);
+                       { rename the name to an unique name to avoid an
+                         error when inserting the symbol in the symtable }
+                       orgsp:=orgsp+'$'+tostr(current_filepos.line);
+                     end;
+                 end
+                else
+                 begin
+                   Message(parser_e_methode_id_expected);
+                   { recover by making it a normal procedure instead of method }
+                   aclass:=nil;
+                 end;
+              end
+             else
+              Message(parser_e_class_id_expected);
+           until not searchagain;
          end
         else
          begin
            { check for constructor/destructor which is not allowed here }
            if (not parse_only) and
-              (potype in [potype_constructor,potype_destructor]) then
+              (potype in [potype_constructor,potype_destructor,
+                          potype_class_constructor,potype_class_destructor]) then
              Message(parser_e_constructors_always_objects);
 
            repeat
@@ -794,21 +908,24 @@ implementation
 
         { test again if assigned, it can be reset to recover }
         if not assigned(aprocsym) then
-         begin
-           { create a new procsym and set the real filepos }
-           current_tokenpos:=procstartfilepos;
-           { for operator we have only one procsym for each overloaded
-             operation }
-           if (potype=potype_operator) then
-             begin
-               Aprocsym:=Tprocsym(symtablestack.top.Find(sp));
-               if Aprocsym=nil then
-                 Aprocsym:=tprocsym.create('$'+sp);
-             end
+          begin
+            { create a new procsym and set the real filepos }
+            current_tokenpos:=procstartfilepos;
+            { for operator we have only one procsym for each overloaded
+              operation }
+            if (potype=potype_operator) then
+              begin
+                aprocsym:=Tprocsym(symtablestack.top.Find(sp));
+                if aprocsym=nil then
+                  aprocsym:=tprocsym.create('$'+sp);
+              end
             else
-             aprocsym:=tprocsym.create(orgsp);
+            if (potype in [potype_class_constructor,potype_class_destructor]) then
+              aprocsym:=tprocsym.create('$'+lower(sp))
+            else
+              aprocsym:=tprocsym.create(orgsp);
             symtablestack.top.insert(aprocsym);
-         end;
+          end;
 
         { to get the correct symtablelevel we must ignore ObjectSymtables }
         st:=nil;
@@ -864,6 +981,8 @@ implementation
         { symbol options that need to be kept per procdef }
         pd.fileinfo:=procstartfilepos;
         pd.visibility:=symtablestack.top.currentvisibility;
+        if symtablestack.top.currentlyoptional then
+          include(pd.procoptions,po_optional);
 
         { parse parameters }
         if token=_LKLAMMER then
@@ -875,6 +994,8 @@ implementation
                (symtablestack.top.symtabletype<>ObjectSymtable) then
               begin
                 symtablestack.push(pd._class.symtable);
+                old_current_objectdef:=current_objectdef;
+                current_objectdef:=pd._class;
                 popclass:=true;
               end;
             { Add parameter symtable }
@@ -884,7 +1005,10 @@ implementation
             if pd.parast.symtabletype<>staticsymtable then
               symtablestack.pop(pd.parast);
             if popclass then
+            begin
+              current_objectdef:=old_current_objectdef;
               symtablestack.pop(pd._class.symtable);
+            end;
           end;
 
         parse_generic:=old_parse_generic;
@@ -892,29 +1016,16 @@ implementation
       end;
 
 
-    function parse_proc_dec(aclass:tobjectdef):tprocdef;
+    function parse_proc_dec(isclassmethod:boolean; aclass:tobjectdef):tprocdef;
       var
         pd : tprocdef;
-        isclassmethod : boolean;
         locationstr: string;
         old_parse_generic,
-        popclass : boolean;
+        popclass: boolean;
+        old_current_objectdef: tobjectdef;
       begin
         locationstr:='';
         pd:=nil;
-        isclassmethod:=false;
-        { read class method }
-        if try_to_consume(_CLASS) then
-         begin
-           { class method only allowed for procedures and functions }
-           if not(token in [_FUNCTION,_PROCEDURE]) then
-             Message(parser_e_procedure_or_function_expected);
-
-           if is_interface(aclass) then
-             Message(parser_e_no_static_method_in_interfaces)
-           else
-             isclassmethod:=true;
-         end;
         case token of
           _FUNCTION :
             begin
@@ -937,10 +1048,15 @@ implementation
                              symtablestack.push(pd._class.symtable);
                              popclass:=true;
                              parse_generic:=(df_generic in pd._class.defoptions);
+                             old_current_objectdef:=current_objectdef;
+                             current_objectdef:=pd._class;
                            end;
-                         single_type(pd.returndef,false);
+                         single_type(pd.returndef,false,false);
                          if popclass then
-                           symtablestack.pop(pd._class.symtable);
+                           begin
+                             current_objectdef:=old_current_objectdef;
+                             symtablestack.pop(pd._class.symtable);
+                           end;
                          dec(testcurobject);
                          parse_generic:=old_parse_generic;
 
@@ -951,7 +1067,7 @@ implementation
                              if po_explicitparaloc in pd.procoptions then
                               begin
                                consume(_LOCATION);
-                               locationstr:=pattern;
+                               locationstr:=cstringpattern;
                                consume(_CSTRING);
                               end
                              else
@@ -997,7 +1113,7 @@ implementation
               consume(_PROCEDURE);
               if parse_proc_head(aclass,potype_procedure,pd) then
                 begin
-                  { pd=nil when it is a interface mapping }
+                  { pd=nil when it is an interface mapping }
                   if assigned(pd) then
                     begin
                       pd.returndef:=voidtype;
@@ -1010,8 +1126,12 @@ implementation
           _CONSTRUCTOR :
             begin
               consume(_CONSTRUCTOR);
-              parse_proc_head(aclass,potype_constructor,pd);
-              if assigned(pd) and
+              if isclassmethod then
+                parse_proc_head(aclass,potype_class_constructor,pd)
+              else
+                parse_proc_head(aclass,potype_constructor,pd);
+              if not isclassmethod and
+                 assigned(pd) and
                  assigned(pd._class) then
                 begin
                   { Set return type, class constructors return the
@@ -1024,13 +1144,18 @@ implementation
 {$else CPU64bitaddr}
                     pd.returndef:=bool32type;
 {$endif CPU64bitaddr}
-                end;
+                end
+              else
+                pd.returndef:=voidtype;
             end;
 
           _DESTRUCTOR :
             begin
               consume(_DESTRUCTOR);
-              parse_proc_head(aclass,potype_destructor,pd);
+              if isclassmethod then
+                parse_proc_head(aclass,potype_class_destructor,pd)
+              else
+                parse_proc_head(aclass,potype_destructor,pd);
               if assigned(pd) then
                 pd.returndef:=voidtype;
             end;
@@ -1044,17 +1169,22 @@ implementation
                end
               else
                begin
+                 { Use the dummy NOTOKEN that is also declared
+                   for the overloaded_operator[] }
+                 optoken:=NOTOKEN;
                  case token of
                    _CARET:
                      Message1(parser_e_overload_operator_failed,'**');
+                   _ID:
+                     if idtoken = _ENUMERATOR then
+                       optoken := _OP_ENUMERATOR
+                     else
+                       Message1(parser_e_overload_operator_failed,'');
                    _UNEQUAL:
                      Message1(parser_e_overload_operator_failed,'=');
                    else
                      Message1(parser_e_overload_operator_failed,'');
                  end;
-                 { Use the dummy NOTOKEN that is also declared
-                   for the overloaded_operator[] }
-                 optoken:=NOTOKEN;
                end;
               consume(token);
               parse_proc_head(aclass,potype_operator,pd);
@@ -1082,7 +1212,7 @@ implementation
                     end
                   else
                    begin
-                     single_type(pd.returndef,false);
+                     single_type(pd.returndef,false,false);
                      if (optoken in [_EQUAL,_GT,_LT,_GTE,_LTE]) and
                         ((pd.returndef.typ<>orddef) or
                          (torddef(pd.returndef).ordtype<>pasbool)) then
@@ -1109,7 +1239,14 @@ implementation
           message(parser_e_illegal_function_result);
         { support procedure proc stdcall export; }
         if not(check_proc_directive(false)) then
-          consume(_SEMICOLON);
+          begin
+            if (token=_COLON) then
+              begin
+                message(parser_e_field_not_allowed_here);
+                consume_all_until(_SEMICOLON);
+              end;
+            consume(_SEMICOLON);
+          end;
         result:=pd;
 
         if locationstr<>'' then
@@ -1179,11 +1316,16 @@ procedure pd_asmname(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200304267);
-  tprocdef(pd).aliasnames.insert(target_info.Cprefix+pattern);
   if token=_CCHAR then
-    consume(_CCHAR)
+    begin
+      tprocdef(pd).aliasnames.insert(target_info.Cprefix+pattern);
+      consume(_CCHAR)
+    end
   else
-    consume(_CSTRING);
+    begin
+      tprocdef(pd).aliasnames.insert(target_info.Cprefix+cstringpattern);
+      consume(_CSTRING);
+    end;
   { we don't need anything else }
   tprocdef(pd).forwarddef:=false;
 end;
@@ -1232,12 +1374,53 @@ procedure pd_abstract(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200304269);
+  if oo_is_sealed in tprocdef(pd)._class.objectoptions then
+    Message(parser_e_sealed_class_cannot_have_abstract_methods)
+  else
   if (po_virtualmethod in pd.procoptions) then
     include(pd.procoptions,po_abstractmethod)
   else
     Message(parser_e_only_virtual_methods_abstract);
   { the method is defined }
   tprocdef(pd).forwarddef:=false;
+end;
+
+procedure pd_final(pd:tabstractprocdef);
+begin
+  if pd.typ<>procdef then
+    internalerror(200910170);
+  if (po_virtualmethod in pd.procoptions) then
+    include(pd.procoptions,po_finalmethod)
+  else
+    Message(parser_e_only_virtual_methods_final);
+end;
+
+procedure pd_enumerator(pd:tabstractprocdef);
+begin
+  if pd.typ<>procdef then
+    internalerror(200910250);
+  if (token = _ID) then
+  begin
+    if pattern='MOVENEXT' then
+    begin
+      if oo_has_enumerator_movenext in tprocdef(pd)._class.objectoptions then
+        message(parser_e_only_one_enumerator_movenext);
+      pd.calcparas;
+      if (pd.proctypeoption = potype_function) and is_boolean(pd.returndef) and
+         (pd.minparacount = 0) then
+      begin
+        include(tprocdef(pd)._class.objectoptions, oo_has_enumerator_movenext);
+        include(pd.procoptions,po_enumerator_movenext);
+      end
+      else
+        Message(parser_e_enumerator_movenext_is_not_valid)
+    end
+    else
+      Message1(parser_e_invalid_enumerator_identifier, pattern);
+    consume(token);
+  end
+  else
+    Message(parser_e_enumerator_identifier_required);
 end;
 
 procedure pd_virtual(pd:tabstractprocdef);
@@ -1291,20 +1474,19 @@ end;
 
 procedure pd_static(pd:tabstractprocdef);
 begin
-  if (cs_static_keyword in current_settings.moduleswitches) then
-    begin
-      if pd.typ=procdef then
-        include(tprocdef(pd).procsym.symoptions,sp_static);
-      include(pd.procoptions,po_staticmethod);
-    end;
+  if pd.typ=procdef then
+    include(tprocdef(pd).procsym.symoptions,sp_static);
+  include(pd.procoptions,po_staticmethod);
 end;
 
 procedure pd_override(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(2003042611);
-  if not(is_class_or_interface(tprocdef(pd)._class)) then
-    Message(parser_e_no_object_override);
+  if not(is_class_or_interface_or_objc(tprocdef(pd)._class)) then
+    Message(parser_e_no_object_override)
+  else if is_objccategory(tprocdef(pd)._class) then
+    Message(parser_e_no_category_override);
 end;
 
 procedure pd_overload(pd:tabstractprocdef);
@@ -1321,21 +1503,36 @@ var
 begin
   if pd.typ<>procdef then
     internalerror(2003042613);
-  if not is_class(tprocdef(pd)._class) then
+  if not is_class(tprocdef(pd)._class) and
+     not is_objc_class_or_protocol(tprocdef(pd)._class) then
     Message(parser_e_msg_only_for_classes);
+  if ([po_msgstr,po_msgint]*pd.procoptions)<>[] then
+    Message(parser_e_multiple_messages);
   { check parameter type }
-  paracnt:=0;
-  pd.parast.SymList.ForEachCall(@check_msg_para,@paracnt);
-  if paracnt<>1 then
-    Message(parser_e_ill_msg_param);
+  if not is_objc_class_or_protocol(tprocdef(pd)._class) then
+    begin
+      paracnt:=0;
+      pd.parast.SymList.ForEachCall(@check_msg_para,@paracnt);
+      if paracnt<>1 then
+        Message(parser_e_ill_msg_param);
+    end;
   pt:=comp_expr(true);
-  if pt.nodetype=stringconstn then
+  { message is 1-character long }
+  if is_constcharnode(pt) then
     begin
       include(pd.procoptions,po_msgstr);
+      tprocdef(pd).messageinf.str:=stringdup(chr(byte(tordconstnode(pt).value.uvalue and $FF)));
+    end
+  else if pt.nodetype=stringconstn then
+    begin
+      include(pd.procoptions,po_msgstr);
+      if (tstringconstnode(pt).len>255) then
+        Message(parser_e_message_string_too_long);
       tprocdef(pd).messageinf.str:=stringdup(tstringconstnode(pt).value_str);
     end
   else
-   if is_constintnode(pt) then
+   if is_constintnode(pt) and
+      is_class(tprocdef(pd)._class) then
     begin
       include(pd.procoptions,po_msgint);
       if (Tordconstnode(pt).value<int64(low(Tprocdef(pd).messageinf.i))) or
@@ -1346,6 +1543,11 @@ begin
     end
   else
     Message(parser_e_ill_msg_expr);
+  { check whether the selector name is valid in case of Objective-C }
+  if (po_msgstr in pd.procoptions) and
+     is_objc_class_or_protocol(tprocdef(pd)._class) and
+     not objcvalidselectorname(@tprocdef(pd).messageinf.str^[1],length(tprocdef(pd).messageinf.str^)) then
+    Message1(type_e_invalid_objc_selector_name,tprocdef(pd).messageinf.str^);
   pt.free;
 end;
 
@@ -1354,7 +1556,8 @@ procedure pd_reintroduce(pd:tabstractprocdef);
 begin
   if pd.typ<>procdef then
     internalerror(200401211);
-  if not(is_class_or_interface(tprocdef(pd)._class)) then
+  if not(is_class_or_interface_or_object(tprocdef(pd)._class)) and
+     not(is_objccategory(tprocdef(pd)._class)) then
     Message(parser_e_no_object_reintroduce);
 end;
 
@@ -1609,7 +1812,7 @@ end;
 
 procedure pd_weakexternal(pd:tabstractprocdef);
 begin
-  if not(target_info.system in system_weak_linking) then
+  if not(target_info.system in systems_weak_linking) then
     message(parser_e_weak_external_not_supported)
   else
     pd_external(pd);
@@ -1630,7 +1833,7 @@ type
    end;
 const
   {Should contain the number of procedure directives we support.}
-  num_proc_directives=40;
+  num_proc_directives=42;
   proc_direcdata:array[1..num_proc_directives] of proc_dir_rec=
    (
     (
@@ -1676,7 +1879,7 @@ const
       pocall   : pocall_cdecl;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_assembler,po_external]
     ),(
       idtok:_CDECL;
@@ -1685,7 +1888,7 @@ const
       pocall   : pocall_cdecl;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_assembler,po_external]
     ),(
       idtok:_DISPID;
@@ -1694,7 +1897,7 @@ const
       pocall   : pocall_none;
       pooption : [po_dispid];
       mutexclpocall : [pocall_internproc];
-      mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_operator,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_interrupt,po_external,po_inline]
     ),(
       idtok:_DYNAMIC;
@@ -1703,7 +1906,7 @@ const
       pocall   : pocall_none;
       pooption : [po_virtualmethod];
       mutexclpocall : [pocall_internproc];
-      mutexclpotype : [];
+      mutexclpotype : [potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_exports,po_interrupt,po_external,po_overridingmethod,po_inline]
     ),(
       idtok:_EXPORT;
@@ -1712,7 +1915,7 @@ const
       pocall   : pocall_none;
       pooption : [po_exports,po_global];
       mutexclpocall : [pocall_internproc];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external,po_interrupt,po_inline]
     ),(
       idtok:_EXTERNAL;
@@ -1722,7 +1925,7 @@ const
       pooption : [po_external];
       mutexclpocall : [pocall_internproc,pocall_syscall];
       { allowed for external cpp classes }
-      mutexclpotype : [{potype_constructor,potype_destructor}];
+      mutexclpotype : [{potype_constructor,potype_destructor}potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
     ),(
       idtok:_FAR;
@@ -1742,6 +1945,15 @@ const
       mutexclpocall : [];
       mutexclpotype : [];
       mutexclpo     : [po_external]
+    ),(
+      idtok:_FINAL;
+      pd_flags : [pd_interface,pd_object,pd_notobjintf];
+      handler  : @pd_final;
+      pocall   : pocall_none;
+      pooption : [po_finalmethod];
+      mutexclpocall : [pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : [po_exports,po_interrupt,po_external,po_inline]
     ),(
       idtok:_FORWARD;
       pd_flags : [pd_implemen,pd_notobject,pd_notobjintf];
@@ -1767,7 +1979,7 @@ const
       pocall   : pocall_none;
       pooption : [po_inline];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_exports,po_external,po_interrupt,po_virtualmethod]
     ),(
       idtok:_INTERNCONST;
@@ -1785,7 +1997,7 @@ const
       pocall   : pocall_internproc;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_operator,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_exports,po_external,po_interrupt,po_assembler,po_iocheck,po_virtualmethod]
     ),(
       idtok:_INTERRUPT;
@@ -1795,7 +2007,7 @@ const
       pooption : [po_interrupt];
       mutexclpocall : [pocall_internproc,pocall_cdecl,pocall_cppdecl,pocall_stdcall,
                        pocall_pascal,pocall_far16,pocall_oldfpccall];
-      mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_operator,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external,po_inline]
     ),(
       idtok:_IOCHECK;
@@ -1817,12 +2029,12 @@ const
       mutexclpo     : [po_external,po_exports]
     ),(
       idtok:_MESSAGE;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass, pd_objcprot];
       handler  : @pd_message;
       pocall   : pocall_none;
       pooption : []; { can be po_msgstr or po_msgint }
       mutexclpocall : [pocall_internproc];
-      mutexclpotype : [potype_constructor,potype_destructor,potype_operator];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_operator,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_interrupt,po_external,po_inline]
     ),(
       idtok:_MWPASCAL;
@@ -1862,7 +2074,7 @@ const
       mutexclpo     : []
     ),(
       idtok:_OVERRIDE;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass];
       handler  : @pd_override;
       pocall   : pocall_none;
       pooption : [po_overridingmethod,po_virtualmethod];
@@ -1876,7 +2088,7 @@ const
       pocall   : pocall_pascal;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external]
     ),(
       idtok:_PUBLIC;
@@ -1894,11 +2106,11 @@ const
       pocall   : pocall_register;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external]
     ),(
       idtok:_REINTRODUCE;
-      pd_flags : [pd_interface,pd_object,pd_notobjintf];
+      pd_flags : [pd_interface,pd_object,pd_notobjintf,pd_objcclass];
       handler  : @pd_reintroduce;
       pocall   : pocall_none;
       pooption : [po_reintroduce];
@@ -1912,7 +2124,7 @@ const
       pocall   : pocall_safecall;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external]
     ),(
       idtok:_SOFTFLOAT;
@@ -1921,7 +2133,7 @@ const
       pocall   : pocall_softfloat;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       { it's available with po_external because the libgcc floating point routines on the arm
         uses this calling convention }
       mutexclpo     : []
@@ -1932,8 +2144,8 @@ const
       pocall   : pocall_none;
       pooption : [po_staticmethod];
       mutexclpocall : [pocall_internproc];
-      mutexclpotype : [potype_constructor,potype_destructor];
-      mutexclpo     : [po_external,po_interrupt,po_exports,po_inline]
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
+      mutexclpo     : [po_external,po_interrupt,po_exports]
     ),(
       idtok:_STDCALL;
       pd_flags : [pd_interface,pd_implemen,pd_body,pd_procvar];
@@ -1941,7 +2153,7 @@ const
       pocall   : pocall_stdcall;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external]
     ),(
       idtok:_SYSCALL;
@@ -1953,7 +2165,7 @@ const
       pocall   : pocall_syscall;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external,po_assembler,po_interrupt,po_exports]
     ),(
       idtok:_VIRTUAL;
@@ -1962,7 +2174,7 @@ const
       pocall   : pocall_none;
       pooption : [po_virtualmethod];
       mutexclpocall : [pocall_internproc];
-      mutexclpotype : [];
+      mutexclpotype : [potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_external,po_interrupt,po_exports,po_overridingmethod,po_inline]
     ),(
       idtok:_CPPDECL;
@@ -1971,11 +2183,11 @@ const
       pocall   : pocall_cppdecl;
       pooption : [];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_assembler,po_external,po_virtualmethod]
     ),(
       idtok:_VARARGS;
-      pd_flags : [pd_interface,pd_implemen,pd_procvar];
+      pd_flags : [pd_interface,pd_implemen,pd_procvar,pd_objcclass, pd_objcprot];
       handler  : nil;
       pocall   : pocall_none;
       pooption : [po_varargs];
@@ -1990,7 +2202,7 @@ const
       pocall   : pocall_none;
       pooption : [po_compilerproc];
       mutexclpocall : [];
-      mutexclpotype : [potype_constructor,potype_destructor];
+      mutexclpotype : [potype_constructor,potype_destructor,potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_interrupt]
     ),(
       idtok:_WEAKEXTERNAL;
@@ -2003,8 +2215,17 @@ const
       pooption : [po_external,po_weakexternal];
       mutexclpocall : [pocall_internproc,pocall_syscall];
       { allowed for external cpp classes }
-      mutexclpotype : [{potype_constructor,potype_destructor}];
+      mutexclpotype : [{potype_constructor,potype_destructor}potype_class_constructor,potype_class_destructor];
       mutexclpo     : [po_public,po_exports,po_interrupt,po_assembler,po_inline]
+    ),(
+      idtok:_ENUMERATOR;
+      pd_flags : [pd_interface,pd_object];
+      handler  : @pd_enumerator;
+      pocall   : pocall_none;
+      pooption : [];
+      mutexclpocall : [pocall_internproc];
+      mutexclpotype : [];
+      mutexclpo     : [po_exports,po_interrupt,po_external,po_inline]
     )
    );
 
@@ -2053,7 +2274,7 @@ const
            end;
          end;
 
-        { C directive is MAC only, because it breaks too much existing code
+        { C directive is MacPas only, because it breaks too much existing code
           on other platforms (PFV) }
         if (idtoken=_C) and
            not(m_mac in current_settings.modeswitches) then
@@ -2072,15 +2293,11 @@ const
          begin
             { parsing a procvar type the name can be any
               next variable !! }
-            if ((pdflags * [pd_procvar,pd_object])=[]) and
+            if ((pdflags * [pd_procvar,pd_object,pd_objcclass,pd_objcprot])=[]) and
                not(idtoken=_PROPERTY) then
               Message1(parser_w_unknown_proc_directive_ignored,name);
             exit;
          end;
-
-        { static needs a special treatment }
-        if (idtoken=_STATIC) and not (cs_static_keyword in current_settings.moduleswitches) then
-          exit;
 
         { check if method and directive not for object, like public.
           This needs to be checked also for procvars }
@@ -2130,10 +2347,22 @@ const
            if (pd_notobjintf in proc_direcdata[p].pd_flags) and
               is_interface(tprocdef(pd)._class) then
             exit;
+
            { check if method and directive not for interface }
            if is_dispinterface(tprocdef(pd)._class) and
              not(pd_dispinterface in proc_direcdata[p].pd_flags) then
             exit;
+
+           { check if method and directive not for objcclass }
+           if is_objcclass(tprocdef(pd)._class) and
+             not(pd_objcclass in proc_direcdata[p].pd_flags) then
+            exit;
+
+           { check if method and directive not for objcprotocol }
+           if is_objcprotocol(tprocdef(pd)._class) and
+             not(pd_objcprot in proc_direcdata[p].pd_flags) then
+            exit;
+
          end;
 
         { consume directive, and turn flag on }
@@ -2210,7 +2439,7 @@ const
 *)
                 if assigned(pd.import_name) then
                   begin
-                    if target_info.system in (system_all_windows +
+                    if target_info.system in (systems_all_windows + systems_nativent +
                                        [system_i386_emx, system_i386_os2]) then
                    { cprefix is not used in DLL imports under Windows or OS/2 }
                       result:=pd.import_name^
@@ -2266,13 +2495,16 @@ const
                     s:=proc_get_importname(pd);
                     if s<>'' then
                       begin
-                        { Replace ? and @ in import name }
-                        { these replaces broke existing code on i386-win32 at least, while fixed
-                          bug 8391 on arm-wince so limit this to arm-wince (KB) }
-                        if target_info.system in [system_arm_wince] then
+                        { Replace ? and @ in import name, since GNU AS does not allow these characters in symbol names. }
+                        { This allows to import VC++ mangled names from DLLs. }
+                        { Do not perform replacement, if external symbol is not imported from DLL. }
+                        if (target_info.system in systems_all_windows) and (pd.import_dll<>nil) then
                           begin
                             Replace(s,'?','__q$$');
+{$ifdef arm}
+                            { @ symbol is not allowed in ARM assembler only }
                             Replace(s,'@','__a$$');
+{$endif arm}
                           end;
                         pd.setmangledname(s);
                       end;
@@ -2298,7 +2530,14 @@ const
                   if assigned(pd._class) then
                    pd.aliasnames.insert(target_info.Cprefix+pd._class.objrealname^+'_'+pd.procsym.realname)
                   else
-                   pd.aliasnames.insert(target_info.Cprefix+pd.procsym.realname);
+                    begin
+                      { Export names are not mangled on Windows and OS/2, see also pexports.pas }
+                      if (target_info.system in (systems_all_windows+[system_i386_emx, system_i386_os2])) and
+                        (po_exports in pd.procoptions) then
+                        pd.aliasnames.insert(pd.procsym.realname)
+                      else
+                        pd.aliasnames.insert(target_info.Cprefix+pd.procsym.realname);
+                    end;
                 end;
               pocall_cppdecl :
                 begin
@@ -2314,7 +2553,19 @@ const
     procedure handle_calling_convention(pd:tabstractprocdef);
       begin
         { set the default calling convention if none provided }
-        if not(po_hascallingconvention in pd.procoptions) then
+        if (pd.typ=procdef) and
+           (is_objc_class_or_protocol(tprocdef(pd)._class) or
+            is_cppclass(tprocdef(pd)._class)) then
+          begin
+            { none of the explicit calling conventions should be allowed }
+            if (po_hascallingconvention in pd.procoptions) then
+              internalerror(2009032501);
+            if is_cppclass(tprocdef(pd)._class) then
+              pd.proccalloption:=pocall_cppdecl
+            else
+              pd.proccalloption:=pocall_cdecl;
+          end
+        else if not(po_hascallingconvention in pd.procoptions) then
           pd.proccalloption:=current_settings.defproccall
         else
           begin
@@ -2361,7 +2612,10 @@ const
               { if external is available, then cdecl must also be available,
                 procvars don't need external }
               if not((po_external in pd.procoptions) or
-                     (pd.typ=procvardef)) and
+                     (pd.typ=procvardef) or
+                     { for objcclasses this is checked later, because the entire
+                       class may be external.  }
+                     is_objc_class_or_protocol(tprocdef(pd)._class)) and
                  not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_mwpascal]) then
                 Message(parser_e_varargs_need_cdecl_and_external);
             end
@@ -2415,6 +2669,17 @@ const
             include(pd.procoptions,po_global);
           end;
 
+        { Class constructors and destructor are static class methods in real. }
+        { There are many places in the compiler where either class or static  }
+        { method flag changes the behavior. It is simplier to add them to     }
+        { the class constructors/destructors options than to fix all the      }
+        { occurencies. (Paul)                                                 }
+        if pd.proctypeoption in [potype_class_constructor,potype_class_destructor] then
+          begin
+            include(pd.procoptions,po_classmethod);
+            include(pd.procoptions,po_staticmethod);
+          end;
+
         while token in [_ID,_LECKKLAMMER] do
          begin
            if try_to_consume(_LECKKLAMMER) then
@@ -2447,7 +2712,14 @@ const
                      (token in [_END,_RKLAMMER,_EQUAL]) then
                     break
                   else
-                    consume(_SEMICOLON);
+                    begin
+                      if (token=_COLON) then
+                        begin
+                          Message(parser_e_field_not_allowed_here);
+                          consume_all_until(_SEMICOLON);
+                        end;
+                      consume(_SEMICOLON)
+                    end;
                 end;
             end
            else
@@ -2507,6 +2779,7 @@ const
         po_comp : tprocoptions;
         paracompopt: tcompare_paras_options;
         forwardfound : boolean;
+        symentry: TSymEntry;
       begin
         forwardfound:=false;
 
@@ -2532,7 +2805,7 @@ const
               { check arguments, we need to check only the user visible parameters. The hidden parameters
                 can be in a different location because of the calling convention, eg. L-R vs. R-L order (PFV) }
               (
-               (compare_paras(currpd.paras,fwpd.paras,cp_none,[cpo_comparedefaultvalue,cpo_ignorehidden,cpo_openequalisexact])=te_exact) and
+               (compare_paras(currpd.paras,fwpd.paras,cp_none,[cpo_comparedefaultvalue,cpo_ignorehidden,cpo_openequalisexact,cpo_ignoreuniv])=te_exact) and
                (fwpd.returndef=currpd.returndef)
               ) then
              begin
@@ -2545,9 +2818,9 @@ const
 
                    if not(m_repeat_forward in current_settings.modeswitches) and
                       (fwpd.proccalloption<>currpd.proccalloption) then
-                     paracompopt:=[cpo_ignorehidden,cpo_comparedefaultvalue,cpo_openequalisexact]
+                     paracompopt:=[cpo_ignorehidden,cpo_comparedefaultvalue,cpo_openequalisexact,cpo_ignoreuniv]
                    else
-                     paracompopt:=[cpo_comparedefaultvalue,cpo_openequalisexact];
+                     paracompopt:=[cpo_comparedefaultvalue,cpo_openequalisexact,cpo_ignoreuniv];
 
                    { Check calling convention }
                    if (fwpd.proccalloption<>currpd.proccalloption) then
@@ -2578,6 +2851,25 @@ const
                           { restore interface settings }
                           currpd.proccalloption:=fwpd.proccalloption;
                         end;
+                    end;
+
+                   { Check static }
+                   if (po_staticmethod in fwpd.procoptions) then
+                    begin
+                      if not (po_staticmethod in currpd.procoptions) then
+                       begin
+                         include(currpd.procoptions, po_staticmethod);
+                         if (po_classmethod in currpd.procoptions) then
+                          begin
+                           { remove self from the hidden paras }
+                           symentry:=currpd.parast.Find('self');
+                           if symentry<>nil then
+                            begin
+                              currpd.parast.Delete(symentry);
+                              currpd.calcparas;
+                            end;
+                          end;
+                       end;
                     end;
 
                    { Check if the procedure type and return type are correct,
@@ -2687,6 +2979,11 @@ const
                    fwpd.fileinfo:=currpd.fileinfo;
                    if assigned(fwpd.funcretsym) then
                      fwpd.funcretsym.fileinfo:=currpd.fileinfo;
+                   if assigned(currpd.deprecatedmsg) then
+                     begin
+                       stringdispose(fwpd.deprecatedmsg);
+                       fwpd.deprecatedmsg:=stringdup(currpd.deprecatedmsg^);
+                     end;
                    { import names }
                    if assigned(currpd.import_dll) then
                      begin
@@ -2756,7 +3053,10 @@ const
                begin
                  if not(fwpd.forwarddef) then
                   begin
-                    MessagePos(currpd.fileinfo,parser_e_procedure_overloading_is_off);
+                    if (m_tp7 in current_settings.modeswitches) then
+                      MessagePos(currpd.fileinfo,parser_e_procedure_overloading_is_off)
+                    else
+                      MessagePos1(currpd.fileinfo,parser_e_no_overload_for_all_procs,currpd.procsym.realname);
                     break;
                   end;
                end;

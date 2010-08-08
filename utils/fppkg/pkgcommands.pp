@@ -128,7 +128,7 @@ begin
   // Download and load mirrors.xml
   // This can be skipped when a custom RemoteRepository is configured
   if (GlobalOptions.RemoteMirrorsURL<>'') and
-     (GlobalOptions.RemoteRepository<>'auto') then
+     (GlobalOptions.RemoteRepository='auto') then
     begin
       Log(vlCommands,SLogDownloading,[GlobalOptions.RemoteMirrorsURL,GlobalOptions.LocalMirrorsFile]);
       DownloadFile(GlobalOptions.RemoteMirrorsURL,GlobalOptions.LocalMirrorsFile);
@@ -147,7 +147,7 @@ end;
 
 procedure TCommandListPackages.Execute;
 begin
-  ListPackages;
+  ListPackages(GlobalOptions.ShowLocation);
 end;
 
 
@@ -275,7 +275,7 @@ begin
       P:=InstalledRepository.FindPackage(S);
       if not assigned(P) then
         P:=InstalledRepository.AddPackage(S);
-      if GlobalOptions.InstallGlobal then
+      if IsSuperUser or GlobalOptions.InstallGlobal then
         UFN:=CompilerOptions.GlobalUnitDir
       else
         UFN:=CompilerOptions.LocalUnitDir;

@@ -2,17 +2,17 @@
 <CONFIG>
   <ProjectOptions>
     <PathDelim Value="\"/>
-    <Version Value="6"/>
+    <Version Value="7"/>
     <General>
       <Flags>
         <MainUnitHasUsesSectionForAllUnits Value="False"/>
         <MainUnitHasCreateFormStatements Value="False"/>
         <MainUnitHasTitleStatement Value="False"/>
         <Runnable Value="False"/>
+        <LRSInOutputDirectory Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <IconPath Value="./"/>
       <TargetFileExt Value=".exe"/>
       <Title Value="buildrtl"/>
     </General>
@@ -40,7 +40,7 @@
     </Units>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="5"/>
+    <Version Value="8"/>
     <PathDelim Value="\"/>
     <SearchPaths>
       <IncludeFiles Value="..\inc\;..\i386\;..\win\;..\win\wininc\;..\objpas\classes\;..\objpas\sysutils\;..\objpas\"/>
@@ -49,13 +49,7 @@
     </SearchPaths>
     <Parsing>
       <Style Value="2"/>
-      <SyntaxOptions>
-        <D2Extensions Value="False"/>
-      </SyntaxOptions>
     </Parsing>
-    <CodeGeneration>
-      <Generate Value="Faster"/>
-    </CodeGeneration>
     <Other>
       <Verbosity>
         <ShowNotes Value="False"/>

@@ -90,6 +90,7 @@ type
     procedure RollbackRetaining(trans:TSQLHandle); override;
     // - Statement execution
     procedure Execute(cursor:TSQLCursor; ATransaction:TSQLTransaction; AParams:TParams); override;
+    function RowsAffected(cursor: TSQLCursor): TRowsCount; override;
     // - Result retrieving
     procedure AddFieldDefs(cursor:TSQLCursor; FieldDefs:TFieldDefs); override;
     function Fetch(cursor:TSQLCursor):boolean; override;
@@ -130,7 +131,7 @@ type
     property OnLogin;
   end;
 
-  EODBCException = class(Exception)
+  EODBCException = class(EDatabaseError)
     // currently empty; perhaps we can add fields here later that describe the error instead of one simple message string
   end;
 
@@ -147,7 +148,7 @@ type
 implementation
 
 uses
-  Math, DBConst;
+  Math, DBConst, ctypes;
 
 const
   DefaultEnvironment:TODBCEnvironment = nil;
@@ -300,12 +301,18 @@ end;
 
 procedure TODBCConnection.SetParameters(ODBCCursor: TODBCCursor; AParams: TParams);
 var
-  ParamIndex:integer;
-  Buf:pointer;
-  I:integer;
-  IntVal:longint;
-  StrVal:string;
-  StrLen:SQLINTEGER;
+  ParamIndex: integer;
+  PVal, Buf, PStrLenOrInd: pointer;
+  I, Size: integer;
+  IntVal: clong;
+  LargeVal: clonglong;
+  StrVal: string;
+  FloatVal: cdouble;
+  DateVal: SQL_DATE_STRUCT;
+  TimeStampVal: SQL_TIMESTAMP_STRUCT;
+  BoolVal: byte;
+  ColumnSize, BufferLength, StrLenOrInd: SQLINTEGER;
+  CType, SqlType, DecimalDigits:SQLSMALLINT;
 begin
   // Note: it is assumed that AParams is the same as the one passed to PrepareStatement, in the sense that
   //       the parameters have the same order and names
@@ -320,52 +327,128 @@ begin
     ParamIndex:=ODBCCursor.FParamIndex[i];
     if (ParamIndex<0) or (ParamIndex>=AParams.Count) then
       raise EODBCException.CreateFmt('Parameter %d in query does not have a matching parameter set',[i]);
+
+    DecimalDigits:=0;
+    BufferLength:=0;
+    StrLenOrInd:=0;
+
     case AParams[ParamIndex].DataType of
-      ftInteger:
+      ftInteger, ftSmallInt, ftWord, ftAutoInc:
         begin
-          Buf:=GetMem(4);
           IntVal:=AParams[ParamIndex].AsInteger;
-          Move(IntVal,Buf^,4);
-          ODBCCursor.FParamBuf[i]:=Buf;
-          ODBCCheckResult(
-            SQLBindParameter(ODBCCursor.FSTMTHandle, // StatementHandle
-                             i+1,                    // ParameterNumber
-                             SQL_PARAM_INPUT,        // InputOutputType
-                             SQL_C_LONG,             // ValueType
-                             SQL_INTEGER,            // ParameterType
-                             10,                     // ColumnSize
-                             0,                      // DecimalDigits
-                             Buf,                    // ParameterValuePtr
-                             0,                      // BufferLength
-                             nil),                   // StrLen_or_IndPtr
-            SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not bind (integer) parameter %d.', [i]
-          );
+          PVal:=@IntVal;
+          Size:=SizeOf(IntVal);
+          CType:=SQL_C_LONG;
+          SqlType:=SQL_INTEGER;
+          ColumnSize:=10;
         end;
-      ftString:
+      ftLargeInt:
+        begin
+          LargeVal:=AParams[ParamIndex].AsLargeInt;
+          PVal:=@LargeVal;
+          Size:=SizeOf(LargeVal);
+          CType:=SQL_C_SBIGINT;
+          SqlType:=SQL_BIGINT;
+          ColumnSize:=19;
+        end;
+      ftString, ftFixedChar, ftBlob, ftMemo:
         begin
           StrVal:=AParams[ParamIndex].AsString;
-          StrLen:=Length(StrVal);
-          Buf:=GetMem(SizeOf(SQLINTEGER)+StrLen);
-          Move(StrLen,    buf^,                    SizeOf(SQLINTEGER));
-          Move(StrVal[1],(buf+SizeOf(SQLINTEGER))^,StrLen);
-          ODBCCursor.FParamBuf[i]:=Buf;
-          ODBCCheckResult(
-            SQLBindParameter(ODBCCursor.FSTMTHandle, // StatementHandle
-                             i+1,                    // ParameterNumber
-                             SQL_PARAM_INPUT,        // InputOutputType
-                             SQL_C_CHAR,             // ValueType
-                             SQL_CHAR,               // ParameterType
-                             StrLen,                 // ColumnSize
-                             0,                      // DecimalDigits
-                             buf+SizeOf(SQLINTEGER), // ParameterValuePtr
-                             StrLen,                 // BufferLength
-                             Buf),                   // StrLen_or_IndPtr
-            SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not bind (string) parameter %d.', [i]
-          );
+          StrLenOrInd:=Length(StrVal);
+          if StrVal='' then //HY104
+             begin
+             StrVal:=#0;
+             StrLenOrInd:=SQL_NTS;
+             end;
+          PVal:=@StrVal[1];
+          Size:=Length(StrVal);
+          ColumnSize:=Size;
+          BufferLength:=Size;
+          case AParams[ParamIndex].DataType of
+            ftBlob:
+              begin
+              CType:=SQL_C_BINARY;
+              SqlType:=SQL_LONGVARBINARY;
+              end;
+            ftMemo:
+              begin
+              CType:=SQL_C_CHAR;
+              SqlType:=SQL_LONGVARCHAR;
+              end
+            else // ftString, ftFixedChar
+              begin
+              CType:=SQL_C_CHAR;
+              SqlType:=SQL_VARCHAR;
+              end;
+          end;
         end;
-    else
-      raise EDataBaseError.CreateFmt('Parameter %d is of type %s, which not supported yet',[ParamIndex, Fieldtypenames[AParams[ParamIndex].DataType]]);
+      ftFloat:
+        begin
+          FloatVal:=AParams[ParamIndex].AsFloat;
+          PVal:=@FloatVal;
+          Size:=SizeOf(FloatVal);
+          CType:=SQL_C_DOUBLE;
+          SqlType:=SQL_DOUBLE;
+          ColumnSize:=15;
+        end;
+      ftDate:
+        begin
+          DateVal:=DateTimeToDateStruct(AParams[ParamIndex].AsDate);
+          PVal:=@DateVal;
+          Size:=SizeOf(DateVal);
+          CType:=SQL_C_TYPE_DATE;
+          SqlType:=SQL_TYPE_DATE;
+          ColumnSize:=Size;
+        end;
+      ftDateTime:
+        begin
+          DateTime2TimeStampStruct(TimeStampVal, AParams[ParamIndex].AsDateTime);
+          PVal:=@TimeStampVal;
+          Size:=SizeOf(TimeStampVal);
+          CType:=SQL_C_TYPE_TIMESTAMP;
+          SqlType:=SQL_TYPE_TIMESTAMP;
+          ColumnSize:=Size;
+        end;
+      ftBoolean:
+        begin
+          BoolVal:=ord(AParams[ParamIndex].AsBoolean);
+          PVal:=@BoolVal;
+          Size:=SizeOf(BoolVal);
+          CType:=SQL_C_BIT;
+          SqlType:=SQL_BIT;
+          ColumnSize:=Size;
+        end
+      else
+        raise EDataBaseError.CreateFmt('Parameter %d is of type %s, which not supported yet',[ParamIndex, Fieldtypenames[AParams[ParamIndex].DataType]]);
     end;
+
+    if AParams[ParamIndex].IsNull then
+       StrLenOrInd:=SQL_NULL_DATA;
+
+    Buf:=GetMem(Size+SizeOf(SQLINTEGER));
+    Move(PVal^, Buf^, Size);
+    if StrLenOrInd<>0 then
+       begin
+       PStrLenOrInd:=Buf + Size;
+       Move(StrLenOrInd, PStrLenOrInd^, SizeOf(SQLINTEGER));
+       end
+    else
+       PStrLenOrInd:=nil;
+    ODBCCursor.FParamBuf[i]:=Buf;
+
+    ODBCCheckResult(
+         SQLBindParameter(ODBCCursor.FSTMTHandle, // StatementHandle
+                          i+1,                    // ParameterNumber
+                          SQL_PARAM_INPUT,        // InputOutputType
+                          CType,                  // ValueType
+                          SqlType,                // ParameterType
+                          ColumnSize,             // ColumnSize
+                          DecimalDigits,          // DecimalDigits
+                          Buf,                    // ParameterValuePtr
+                          BufferLength,           // BufferLength
+                          PStrLenOrInd),          // StrLen_or_IndPtr
+         SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not bind parameter %d.', [i]
+       );
   end;
 end;
 
@@ -433,7 +516,7 @@ begin
         SQLFreeHandle(SQL_HANDLE_DBC,FDBCHandle),
         SQL_HANDLE_DBC,FDBCHandle,'Could not free ODBC Connection handle.'
       );
-      raise; // re-raise exceptoin
+      raise; // re-raise exception
     end;
   end;
 
@@ -469,10 +552,6 @@ end;
 
 procedure TODBCConnection.DeAllocateCursorHandle(var cursor: TSQLCursor);
 begin
-  // make sure we don't deallocate the cursor if the connection was lost already
-  if not Connected then
-    (cursor as TODBCCursor).FSTMTHandle:=SQL_NULL_HSTMT;
-
   FreeAndNil(cursor); // the destructor of TODBCCursor frees the ODBC Statement handle
 end;
 
@@ -487,6 +566,13 @@ var
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
+  // allocate statement handle
+  ODBCCheckResult(
+    SQLAllocHandle(SQL_HANDLE_STMT, FDBCHandle, ODBCCursor.FSTMTHandle),
+    SQL_HANDLE_DBC, FDBCHandle, 'Could not allocate ODBC Statement handle.'
+  );
+  ODBCCursor.FPrepared:=True;
+
   // Parameter handling
   // Note: We can only pass ? parameters to ODBC, so we should convert named parameters like :MyID
   //       ODBCCursor.FParamIndex will map th i-th ? token in the (modified) query to an index for AParams
@@ -500,17 +586,33 @@ begin
 {$ENDIF}
 
   // prepare statement
-  ODBCCheckResult(
-    SQLPrepare(ODBCCursor.FSTMTHandle, PChar(buf), Length(buf)),
-    SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not prepare statement.'
-  );
-
   ODBCCursor.FQuery:=Buf;
+  if ODBCCursor.FSchemaType=stNoSchema then
+    begin
+      ODBCCheckResult(
+        SQLPrepare(ODBCCursor.FSTMTHandle, PChar(buf), Length(buf)),
+        SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not prepare statement.'
+      );
+    end
+  else
+    ODBCCursor.FStatementType:=stSelect;
 end;
 
 procedure TODBCConnection.UnPrepareStatement(cursor: TSQLCursor);
+var Res:SQLRETURN;
 begin
-  // not necessary in ODBC
+  with TODBCCursor(cursor) do
+  begin
+    if FSTMTHandle<>SQL_NULL_HSTMT then
+    begin
+      // deallocate statement handle
+      Res:=SQLFreeHandle(SQL_HANDLE_STMT, FSTMTHandle);
+      if Res=SQL_ERROR then
+        ODBCCheckResult(Res,SQL_HANDLE_STMT, FSTMTHandle, 'Could not free ODBC Statement handle.');
+      FSTMTHandle:=SQL_NULL_HSTMT;
+      FPrepared := False;
+    end;
+  end;
 end;
 
 function TODBCConnection.GetTransactionHandle(trans: TSQLHandle): pointer;
@@ -544,8 +646,12 @@ begin
 end;
 
 procedure TODBCConnection.Execute(cursor: TSQLCursor; ATransaction: TSQLTransaction; AParams: TParams);
+const
+  TABLE_TYPE_USER='TABLE,VIEW,GLOBAL TEMPORARY,LOCAL TEMPORARY'; //no spaces before/after comma
+  TABLE_TYPE_SYSTEM='SYSTEM TABLE';
 var
   ODBCCursor:TODBCCursor;
+  Res:SQLRETURN;
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
@@ -553,13 +659,32 @@ begin
     if Assigned(APArams) and (AParams.count > 0) then SetParameters(ODBCCursor, AParams);
 
   // execute the statement
-  ODBCCheckResult(
-    SQLExecute(ODBCCursor.FSTMTHandle),
-    SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.'
-  );
+  case ODBCCursor.FSchemaType of
+    stNoSchema  : Res:=SQLExecute(ODBCCursor.FSTMTHandle); //SQL_NO_DATA returns searched update or delete statement that does not affect any rows
+    stTables    : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_USER, length(TABLE_TYPE_USER) );
+    stSysTables : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_SYSTEM, length(TABLE_TYPE_SYSTEM) );
+    stColumns   : Res:=SQLColumns(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, @ODBCCursor.FQuery[1], length(ODBCCursor.FQuery), nil, 0 );
+    stProcedures: Res:=SQLProcedures(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0 );
+    else          Res:=SQL_NO_DATA;
+  end; {case}
+
+  if (Res<>SQL_NO_DATA) then ODBCCheckResult( Res, SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not execute statement.' );
 
   // free parameter buffers
   FreeParamBuffers(ODBCCursor);
+end;
+
+function TODBCConnection.RowsAffected(cursor: TSQLCursor): TRowsCount;
+var
+  RowCount: SQLINTEGER;
+begin
+  if assigned(cursor) then
+    if ODBCSucces( SQLRowCount((cursor as TODBCCursor).FSTMTHandle, RowCount) ) then
+       Result:=RowCount
+    else
+       Result:=-1
+  else
+    Result:=-1;
 end;
 
 function TODBCConnection.Fetch(cursor: TSQLCursor): boolean;
@@ -609,14 +734,13 @@ begin
   // Note: optionally we can implement the use of SQLBindCol later for even more speed
   // TODO: finish this
   case FieldDef.DataType of
-{$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
-    ftGuid,ftWideString,ftFixedWideChar,
-{$ENDIF}
-    ftFixedChar,ftString: // are mapped to a TStringField (including TGuidField, TWideStringField)
+    ftWideString,ftFixedWideChar: // mapped to TWideStringField
+      Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_WCHAR, buffer, FieldDef.Size, @StrLenOrInd);
+    ftGuid, ftFixedChar,ftString: // are mapped to a TStringField (including TGuidField)
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_CHAR, buffer, FieldDef.Size, @StrLenOrInd);
     ftSmallint:           // mapped to TSmallintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SSHORT, buffer, SizeOf(Smallint), @StrLenOrInd);
-    ftInteger,ftWord:     // mapped to TLongintField
+    ftInteger,ftWord,ftAutoInc:     // mapped to TLongintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SLONG, buffer, SizeOf(Longint), @StrLenOrInd);
     ftLargeint:           // mapped to TLargeintField
       Res:=SQLGetData(ODBCCursor.FSTMTHandle, FieldDef.Index+1, SQL_C_SBIGINT, buffer, SizeOf(Largeint), @StrLenOrInd);
@@ -849,6 +973,7 @@ var
   ColName,TypeName:string;
   FieldType:TFieldType;
   FieldSize:word;
+  AutoIncAttr: SQLINTEGER;
 begin
   ODBCCursor:=cursor as TODBCCursor;
 
@@ -858,6 +983,7 @@ begin
     SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not determine number of columns in result set.'
   );
 
+  AutoIncAttr:=SQL_FALSE;
   for i:=1 to ColumnCount do
   begin
     SetLength(ColName,ColNameDefaultLength); // also garantuees uniqueness
@@ -901,8 +1027,8 @@ begin
       SQL_VARCHAR:       begin FieldType:=ftString;     FieldSize:=ColumnSize+1; end;
       SQL_LONGVARCHAR:   begin FieldType:=ftMemo;       FieldSize:=BLOB_BUF_SIZE; end; // is a blob
 {$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}
-      SQL_WCHAR:         begin FieldType:=ftWideString; FieldSize:=ColumnSize+1; end; // NB if TFieldDef.Size should be nr. of characters, then we should change this
-      SQL_WVARCHAR:      begin FieldType:=ftWideString; FieldSize:=ColumnSize+1; end;
+      SQL_WCHAR:         begin FieldType:=ftFixedWideChar; FieldSize:=(ColumnSize+1)*sizeof(Widechar); end;
+      SQL_WVARCHAR:      begin FieldType:=ftWideString; FieldSize:=(ColumnSize+1)*sizeof(Widechar); end;
       SQL_WLONGVARCHAR:  begin FieldType:=ftWideMemo;   FieldSize:=BLOB_BUF_SIZE; end; // is a blob
 {$ENDIF}
       SQL_DECIMAL:       begin FieldType:=ftFloat;      FieldSize:=0; end;
@@ -947,6 +1073,24 @@ begin
        (FieldSize >= dsMaxStringSize) then
     begin
       FieldSize:=dsMaxStringSize-1;
+    end
+    else
+    if (FieldType in [ftInteger]) and (AutoIncAttr=SQL_FALSE) then //if the column is an autoincrementing column
+                                                                   //any exact numeric type with scale 0 can have identity attr.
+                                                                   //only one column per table can have identity attr.
+    begin
+      ODBCCheckResult(
+        SQLColAttribute(ODBCCursor.FSTMTHandle, // statement handle
+                        i,                      // column number
+                        SQL_DESC_AUTO_UNIQUE_VALUE, // FieldIdentifier
+                        nil,                        // buffer
+                        0,                          // buffer size
+                        nil,                        // actual length
+                        @AutoIncAttr),              // NumericAttribute
+        SQL_HANDLE_STMT, ODBCCursor.FSTMTHandle, 'Could not get autoincrement attribute for column %d.',[i]
+      );
+      if AutoIncAttr=SQL_TRUE then
+        FieldType:=ftAutoInc;
     end;
 
     if FieldType=ftUnknown then // if unknown field type encountered, try finding more specific information about the ODBC SQL DataType
@@ -986,7 +1130,7 @@ begin
     end;
 
     // add FieldDef
-    TFieldDef.Create(FieldDefs, ColName, FieldType, FieldSize, False, i);
+    TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, False, i);
   end;
 end;
 
@@ -995,7 +1139,7 @@ var
   StmtHandle:SQLHSTMT;
   Res:SQLRETURN;
   IndexDef: TIndexDef;
-  KeyFields, KeyName: String;
+  KeyName: String;
   // variables for binding
   NonUnique :SQLSMALLINT; NonUniqueIndOrLen :SQLINTEGER;
   IndexName :string;      IndexNameIndOrLen :SQLINTEGER;
@@ -1041,7 +1185,6 @@ begin
 
     // init key name & fields; we will set the IndexDefs.Option ixPrimary below when there is a match by IndexName=KeyName
     KeyName:='';
-    KeyFields:='';
     try
       // bind result columns; the column numbers are documented in the reference for SQLStatistics
       ODBCCheckResult(SQLBindCol(StmtHandle,  4, SQL_C_CHAR  , @ColName[1], Length(ColName)+1, @ColNameIndOrLen), SQL_HANDLE_STMT, StmtHandle, 'Could not bind primary key metadata column COLUMN_NAME.');
@@ -1058,10 +1201,15 @@ begin
         // handle data
         if ODBCSucces(Res) then begin
           if OrdinalPos=1 then begin
-            KeyName:=PChar(@PKName[1]);
-            KeyFields:=    PChar(@ColName[1]);
+            // create new IndexDef if OrdinalPos=1
+            IndexDef:=IndexDefs.AddIndexDef;
+            IndexDef.Name:=PChar(@PKName[1]);
+            IndexDef.Fields:=PChar(@ColName[1]);
+            IndexDef.Options:=IndexDef.Options+[ixUnique]+[ixPrimary]; // Primary key is always unique
+            KeyName:=IndexDef.Name;
           end else begin
-            KeyFields:=KeyFields+';'+PChar(@ColName[1]);
+            assert(Assigned(IndexDef));
+            IndexDef.Fields:=IndexDef.Fields+';'+PChar(@ColName[1]); // NB ; is the separator to be used for IndexDef.Fields
           end;
         end else begin
           ODBCCheckResult(Res, SQL_HANDLE_STMT, StmtHandle, 'Could not fetch primary key metadata row.');
@@ -1111,7 +1259,14 @@ begin
         if ODBCSucces(Res) then begin
           // note: SQLStatistics not only returns index info, but also statistics; we skip the latter
           if _Type<>SQL_TABLE_STAT then begin
-            if (OrdinalPos=1) or not Assigned(IndexDef) then begin
+            if PChar(@IndexName[1])=KeyName then begin
+              // The indexdef is already made as the primary key
+              // Only if the index is descending is not known yet.
+              if (AscOrDescIndOrLen<>SQL_NULL_DATA) and (AscOrDesc='D') then begin
+                IndexDef:=IndexDefs.Find(KeyName);
+                IndexDef.Options:=IndexDef.Options+[ixDescending];
+              end;
+            end else if (OrdinalPos=1) or not Assigned(IndexDef) then begin
               // create new IndexDef iff OrdinalPos=1 or not Assigned(IndexDef) (the latter should not occur though)
               IndexDef:=IndexDefs.AddIndexDef;
               IndexDef.Name:=PChar(@IndexName[1]); // treat ansistring as zero terminated string
@@ -1120,8 +1275,6 @@ begin
                 IndexDef.Options:=IndexDef.Options+[ixUnique];
               if (AscOrDescIndOrLen<>SQL_NULL_DATA) and (AscOrDesc='D') then
                 IndexDef.Options:=IndexDef.Options+[ixDescending];
-              if IndexDef.Name=KeyName then
-                IndexDef.Options:=IndexDef.Options+[ixPrimary];
               // TODO: figure out how we can tell whether COLUMN_NAME is an expression or not
               //       if it is an expression, we should include ixExpression in Options and set Expression to ColName
             end else // NB we re-use the last IndexDef
@@ -1149,8 +1302,12 @@ end;
 
 function TODBCConnection.GetSchemaInfoSQL(SchemaType: TSchemaType; SchemaObjectName, SchemaObjectPattern: string): string;
 begin
-  Result:=inherited GetSchemaInfoSQL(SchemaType, SchemaObjectName, SchemaObjectPattern);
-  // TODO: implement this
+  if SchemaObjectName<>'' then
+    Result := SchemaObjectName
+  else
+    Result := ' ';
+  if not (SchemaType in [stNoSchema, stTables, stSysTables, stColumns, stProcedures]) then
+    DatabaseError(SMetadataUnavailable);
 end;
 
 { TODBCEnvironment }
@@ -1177,25 +1334,25 @@ var
   Res:SQLRETURN;
 begin
   // free environment handle
-  Res:=SQLFreeHandle(SQL_HANDLE_ENV, FENVHandle);
-  if Res=SQL_ERROR then
-    ODBCCheckResult(Res,SQL_HANDLE_ENV, FENVHandle, 'Could not free ODBC Environment handle.');
+  if assigned(FENVHandle) then
+    begin
+    Res:=SQLFreeHandle(SQL_HANDLE_ENV, FENVHandle);
+    if Res=SQL_ERROR then
+      ODBCCheckResult(Res,SQL_HANDLE_ENV, FENVHandle, 'Could not free ODBC Environment handle.');
+    end;
 
   // free odbc if not used by any TODBCEnvironment object anymore
-  Dec(ODBCLoadCount);
-  if ODBCLoadCount=0 then ReleaseOdbc;
+  if ODBCLoadCount>0 then
+    begin
+    Dec(ODBCLoadCount);
+    if ODBCLoadCount=0 then ReleaseOdbc;
+    end;
 end;
 
 { TODBCCursor }
 
 constructor TODBCCursor.Create(Connection:TODBCConnection);
 begin
-  // allocate statement handle
-  ODBCCheckResult(
-    SQLAllocHandle(SQL_HANDLE_STMT, Connection.FDBCHandle, FSTMTHandle),
-    SQL_HANDLE_DBC, Connection.FDBCHandle, 'Could not allocate ODBC Statement handle.'
-  );
-
 {$IF NOT((FPC_VERSION>=2) AND (FPC_RELEASE>=1))}
   // allocate FBlobStreams
   FBlobStreams:=TList.Create;
@@ -1206,19 +1363,10 @@ destructor TODBCCursor.Destroy;
 var
   Res:SQLRETURN;
 begin
-  inherited Destroy;
-
 {$IF NOT((FPC_VERSION>=2) AND (FPC_RELEASE>=1))}
   FBlobStreams.Free;
 {$ENDIF}
-
-  if FSTMTHandle<>SQL_NULL_HSTMT then
-  begin
-    // deallocate statement handle
-    Res:=SQLFreeHandle(SQL_HANDLE_STMT, FSTMTHandle);
-    if Res=SQL_ERROR then
-      ODBCCheckResult(Res,SQL_HANDLE_STMT, FSTMTHandle, 'Could not free ODBC Statement handle.');
-  end;
+  inherited Destroy;
 end;
 
 {$IF (FPC_VERSION>=2) AND (FPC_RELEASE>=1)}

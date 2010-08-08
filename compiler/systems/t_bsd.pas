@@ -87,16 +87,14 @@ implementation
 
     procedure texportlibdarwin.setinitname(list: TAsmList; const s: string);
       begin
-        list.concat(tai_directive.create(asd_mod_init_func,''));
-        list.concat(tai_align.create(sizeof(pint)));
+        new_section(list,sec_init_func,'',sizeof(pint));
         list.concat(Tai_const.Createname(s,0));
       end;
 
 
     procedure texportlibdarwin.setfininame(list: TAsmList; const s: string);
       begin
-        list.concat(tai_directive.create(asd_mod_term_func,''));
-        list.concat(tai_align.create(sizeof(pint)));
+        new_section(list,sec_term_func,'',sizeof(pint));
         list.concat(Tai_const.Createname(s,0));
       end;
 
@@ -152,11 +150,23 @@ begin
            end
          else
            begin
+{$ifndef cpu64bitaddr}
+             { Set the size of the page at address zero to 64kb, so nothing
+               is loaded below that address. This avoids problems with the
+               strange Windows-compatible resource handling that assumes
+               that addresses below 64kb do not exist.
+               
+               On 64bit systems, page zero is 4GB by default, so no problems
+               there.
+             }
+             ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -pagezero_size 0x10000 -multiply_defined suppress -L. -o $EXE `cat $RES`';
+{$else ndef cpu64bitaddr}
              ExeCmd[1]:='ld $PRTOBJ $OPT $DYNLINK $STATIC $GCSECTIONS $STRIP -multiply_defined suppress -L. -o $EXE `cat $RES`';
+{$endif ndef cpu64bitaddr}
              if (apptype<>app_bundle) then
-               DllCmd[1]:='libtool $PRTOBJ $OPT -dynamic -multiply_defined suppress -L. -o $EXE `cat $RES`'
+               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -dylib -multiply_defined suppress -L. -o $EXE `cat $RES`'
              else
-               DllCmd[1]:='ld $PRTOBJ $OPT -dynamic -bundle -multiply_defined suppress -L. -o $EXE `cat $RES`'
+               DllCmd[1]:='ld $PRTOBJ $OPT $GCSECTIONS -dynamic -bundle -multiply_defined suppress -L. -o $EXE `cat $RES`'
            end
        end
      else
@@ -220,7 +230,10 @@ begin
             result:='/usr/lib/bundle1.o'
         end
       else
-        result:=''
+        begin
+          if not librarysearchpath.FindFile('dylib1.o',false,result) then
+            result:='/usr/lib/dylib1.o'
+        end;
     end;
 end;    
 
@@ -318,6 +331,8 @@ begin
             system_x86_64_darwin:
               LinkRes.Add('x86_64');
             system_arm_darwin:
+              { don't specify architecture subtype, because then CPU_SUBTYPE_ALL
+                files, such as compiled resources, are rejected }
               LinkRes.Add('arm');
           end;
       end;
@@ -485,7 +500,7 @@ var
   DynLinkStr : string[60];
   GCSectionsStr,
   StaticStr,
-  StripStr   : string[40];
+  StripStr   : string[63];
   success : boolean;
 begin
   if not(cs_link_nolink in current_settings.globalswitches) then
@@ -516,7 +531,7 @@ begin
     if not(target_info.system in systems_darwin) then
       GCSectionsStr:='--gc-sections'
     else
-      GCSectionsStr:='-dead_strip';
+      GCSectionsStr:='-dead_strip -no_dead_strip_inits_and_terms';
 
    if(not(target_info.system in systems_darwin) and
       (cs_profile in current_settings.moduleswitches)) or
@@ -603,15 +618,25 @@ var
   cmdstr,
   extdbgbinstr,
   extdbgcmdstr  : TCmdStr;
+  GCSectionsStr : string[63];
   exportedsyms: text;
   success : boolean;
 begin
   MakeSharedLibrary:=false;
+  GCSectionsStr:='';
   if not(cs_link_nolink in current_settings.globalswitches) then
    Message1(exec_i_linking,current_module.sharedlibfilename^);
 
 { Write used files and libraries }
   WriteResponseFile(true);
+
+  if (cs_link_smart in current_settings.globalswitches) and
+     (tf_smartlink_sections in target_info.flags) then
+    if not(target_info.system in systems_darwin) then
+     { disabled because not tested
+      GCSectionsStr:='--gc-sections' }
+    else
+      GCSectionsStr:='-dead_strip -no_dead_strip_inits_and_terms';
 
   InitStr:='-init FPC_LIB_START';
   FiniStr:='-fini FPC_LIB_EXIT';
@@ -628,6 +653,7 @@ begin
   Replace(cmdstr,'$RES',maybequoted(outputexedir+Info.ResName));
   Replace(cmdstr,'$INIT',InitStr);
   Replace(cmdstr,'$FINI',FiniStr);
+  Replace(cmdstr,'$GCSECTIONS',GCSectionsStr);
   Replace(cmdstr,'$SONAME',SoNameStr);
   if (target_info.system in systems_darwin) then
     Replace(cmdstr,'$PRTOBJ',GetDarwinPrtobjName(true));

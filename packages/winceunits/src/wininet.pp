@@ -1022,7 +1022,7 @@ function InternetReadFile(_hFile:HINTERNET;
                                 lpBuffer:LPVOID;
                                 dwNumberOfBytesToRead:DWORD;
                                 lpdwNumberOfBytesRead:LPDWORD
-                               ):BOOL; external WinInetDLL name 'InternetREadFile';
+                               ):BOOL; external WinInetDLL name 'InternetReadFile';
 
 function InternetReadFileExA(_hFile:HINTERNET;
                                       lpBuffersOut:LPINTERNET_BUFFERSA;
@@ -3213,7 +3213,7 @@ const
                                         COOKIE_CACHE_ENTRY or
                                         URLHISTORY_CACHE_ENTRY or
                                         TRACK_OFFLINE_CACHE_ENTRY or
-                                        TRACK_ONLINE_CACHE_ENTRY or       
+                                        TRACK_ONLINE_CACHE_ENTRY or
                                         STICKY_CACHE_ENTRY;
 
 
@@ -4142,7 +4142,7 @@ const
       INTERNET_CONNECTION_MODEM           = $01;
       INTERNET_CONNECTION_LAN             = $02;
       INTERNET_CONNECTION_PROXY           = $04;
-      INTERNET_CONNECTION_MODEM_BUSY      = $08;  // no longer used 
+      INTERNET_CONNECTION_MODEM_BUSY      = $08;  // no longer used
       INTERNET_RAS_INSTALLED              = $10;
       INTERNET_CONNECTION_OFFLINE         = $20;
       INTERNET_CONNECTION_CONFIGURED      = $40;

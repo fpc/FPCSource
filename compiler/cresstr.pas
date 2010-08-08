@@ -37,7 +37,7 @@ uses
    symconst,symtype,symdef,symsym,
    verbose,fmodule,ppu,
    aasmbase,aasmtai,aasmdata,
-   aasmcpu;
+   aasmcpu,asmutils;
 
     Type
       { These are used to form a singly-linked list, ordered by hash value }
@@ -127,48 +127,26 @@ uses
 
 
     procedure Tresourcestrings.CreateResourceStringData;
-
-        function WriteValueString(p:pchar;len:longint):TasmLabel;
-        var
-          s : pchar;
-          referencelab: TAsmLabel;
-        begin
-          if (target_info.system in systems_darwin) then
-            begin
-              current_asmdata.getdatalabel(referencelab);
-              current_asmdata.asmlists[al_const].concat(tai_label.create(referencelab));
-            end;
-          current_asmdata.getdatalabel(result);
-          current_asmdata.asmlists[al_const].concat(tai_align.create(const_align(sizeof(pint))));
-          current_asmdata.asmlists[al_const].concat(tai_const.create_pint(-1));
-          current_asmdata.asmlists[al_const].concat(tai_const.create_pint(len));
-          current_asmdata.asmlists[al_const].concat(tai_label.create(result));
-          if (target_info.system in systems_darwin) then
-             current_asmdata.asmlists[al_const].concat(tai_directive.create(asd_reference,referencelab.name));
-          getmem(s,len+1);
-          move(p^,s^,len);
-          s[len]:=#0;
-          current_asmdata.asmlists[al_const].concat(tai_string.create_pchar(s,len));
-          current_asmdata.asmlists[al_const].concat(tai_const.create_8bit(0));
-        end;
-
       Var
         namelab,
         valuelab : tasmlabel;
         resstrlab : tasmsymbol;
+        endsymlab : tasmsymbol;
         R : TResourceStringItem;
       begin
         { Put resourcestrings in a new objectfile. Putting it in multiple files
 	  makes the linking too dependent on the linker script requiring a SORT(*) for
 	  the data sections }
         maybe_new_object_file(current_asmdata.asmlists[al_const]);
+        new_section(current_asmdata.asmlists[al_const],sec_data,make_mangledname('RESSTRTABLE',current_module.localsymtable,''),sizeof(pint));
+
         maybe_new_object_file(current_asmdata.asmlists[al_resourcestrings]);
         new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'1_START'),sizeof(pint));
         current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.createname_global(
           make_mangledname('RESSTR',current_module.localsymtable,'START'),AT_DATA,0));
 
         { Write unitname entry }
-        namelab:=WriteValueString(@current_module.localsymtable.name^[1],length(current_module.localsymtable.name^));
+        namelab:=emit_ansistring_const(current_asmdata.asmlists[al_const],@current_module.localsymtable.name^[1],length(current_module.localsymtable.name^),False);
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(namelab));
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(nil));
         current_asmdata.asmlists[al_resourcestrings].concat(tai_const.create_sym(nil));
@@ -184,11 +162,12 @@ uses
             new_section(current_asmdata.asmlists[al_const],sec_rodata,make_mangledname('RESSTR',current_module.localsymtable,'d_'+r.name),sizeof(pint));
             { Write default value }
             if assigned(R.value) and (R.len<>0) then
-              valuelab:=WriteValueString(R.Value,R.Len)
+              valuelab:=emit_ansistring_const(current_asmdata.asmlists[al_const],R.Value,R.Len,False)
             else
               valuelab:=nil;
             { Append the name as a ansistring. }
-            namelab:=WriteValueString(@R.Name[1],length(R.name));
+            current_asmdata.asmlists[al_const].concat(cai_align.Create(const_align(sizeof(pint))));
+            namelab:=emit_ansistring_const(current_asmdata.asmlists[al_const],@R.Name[1],length(R.name),False);
 
             {
               Resourcestring index:
@@ -213,16 +192,19 @@ uses
             R:=TResourceStringItem(R.Next);
           end;
         new_section(current_asmdata.asmlists[al_resourcestrings],sec_data,make_mangledname('RESSTR',current_module.localsymtable,'3_END'),sizeof(pint));
-        current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.createname_global(
-          make_mangledname('RESSTR',current_module.localsymtable,'END'),AT_DATA,0));
+        endsymlab:=current_asmdata.DefineAsmSymbol(make_mangledname('RESSTR',current_module.localsymtable,'END'),AB_GLOBAL,AT_DATA);
+        current_asmdata.AsmLists[al_resourcestrings].concat(tai_symbol.create_global(endsymlab,0));
         { The darwin/ppc64 assembler or linker seems to have trouble       }
         { if a section ends with a global label without any data after it. }
         { So for safety, just put a dummy value here.                      }
         { Further, the regular linker also kills this symbol when turning  }
         { on smart linking in case no value appears after it, so put the   }
         { dummy byte there always                                          }
+        { Update: the Mac OS X 10.6 linker orders data that needs to be    }
+        { relocated before all other data, so make this data relocatable,  }
+        { otherwise the end label won't be moved with the rest             }
         if (target_info.system in systems_darwin) then   
-          current_asmdata.asmlists[al_resourcestrings].concat(Tai_const.create_8bit(0));
+          current_asmdata.asmlists[al_resourcestrings].concat(Tai_const.create_sym(endsymlab));
       end;
 
 

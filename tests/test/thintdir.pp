@@ -1,6 +1,11 @@
 { %version=1.1 }
 
+program thintdir;
+
 {$mode delphi}
+
+uses
+  uhintdir;
 
 type
   t1 = record

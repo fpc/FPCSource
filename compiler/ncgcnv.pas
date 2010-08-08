@@ -60,7 +60,7 @@ interface
     uses
       cutils,verbose,globtype,globals,
       aasmbase,aasmtai,aasmdata,aasmcpu,symconst,symdef,paramgr,
-      ncon,ncal,
+      nutils,ncon,ncal,
       cpubase,systems,
       procinfo,pass_2,
       cgbase,
@@ -88,7 +88,8 @@ interface
           nothing that we can load in a register }
         ressize := resultdef.size;
         leftsize := left.resultdef.size;
-        if (ressize<>leftsize) and
+        if ((ressize<>leftsize) or
+            is_bitpacked_access(left)) and
            not is_void(left.resultdef) then
           begin
             location_copy(location,left.location);
@@ -99,7 +100,10 @@ interface
               begin
                 location.size:=newsize;
                 if (target_info.endian = ENDIAN_BIG) then
-                  inc(location.reference.offset,leftsize-ressize);
+                  begin
+                    inc(location.reference.offset,leftsize-ressize);
+                    location.reference.alignment:=newalignment(location.reference.alignment,leftsize-ressize);
+                  end;
               end
             else
               location_force_reg(current_asmdata.CurrAsmList,location,newsize,false);
@@ -145,6 +149,7 @@ interface
            cst_shortstring :
              begin
                inc(left.location.reference.offset);
+               location.reference.alignment:=1;
                location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
                cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
              end;
@@ -154,7 +159,8 @@ interface
              begin
                if tstringconstnode(left).len=0 then
                 begin
-                  reference_reset(hr);
+                  { FPC_EMPTYCHAR is a widechar -> 2 bytes }
+                  reference_reset(hr,2);
                   hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
                   location.register:=cg.getaddressregister(current_asmdata.CurrAsmList);
                   cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hr,location.register);
@@ -207,7 +213,8 @@ interface
     procedure tcgtypeconvnode.second_pointer_to_array;
 
       begin
-        location_reset(location,LOC_REFERENCE,OS_NO);
+        { assume natural alignment }
+        location_reset_ref(location,LOC_REFERENCE,OS_NO,resultdef.alignment);
         case left.location.loc of
           LOC_CREGISTER,
           LOC_REGISTER :
@@ -239,11 +246,11 @@ interface
 
     procedure tcgtypeconvnode.second_char_to_string;
       begin
-         location_reset(location,LOC_REFERENCE,OS_NO);
+         location_reset_ref(location,LOC_REFERENCE,OS_NO,2);
          case tstringdef(resultdef).stringtype of
            st_shortstring :
              begin
-               tg.GetTemp(current_asmdata.CurrAsmList,256,1,tt_normal,location.reference);
+               tg.GetTemp(current_asmdata.CurrAsmList,256,2,tt_normal,location.reference);
                cg.a_load_loc_ref(current_asmdata.CurrAsmList,left.location.size,left.location,
                  location.reference);
                location_freetemp(current_asmdata.CurrAsmList,left.location);
@@ -274,10 +281,13 @@ interface
              { round them down to the proper precision }
              tg.gettemp(current_asmdata.currasmlist,resultdef.size,resultdef.alignment,tt_normal,tr);
              cg.a_loadfpu_reg_ref(current_asmdata.CurrAsmList,left.location.size,location.size,left.location.register,tr);
-             location_reset(left.location,LOC_REFERENCE,location.size);
+             location_reset_ref(left.location,LOC_REFERENCE,location.size,tr.alignment);
              left.location.reference:=tr;
            end;
 {$endif x86}
+         { ARM VFP values are in integer registers when they are function results }
+         if (left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
+           location_force_mmregscalar(current_asmdata.CurrAsmList,left.location,false);
          case left.location.loc of
             LOC_FPUREGISTER,
             LOC_CFPUREGISTER:
@@ -352,6 +362,8 @@ interface
 
 
     procedure tcgtypeconvnode.second_proc_to_procvar;
+      var
+        tmpreg: tregister;
       begin
         if tabstractprocdef(resultdef).is_addressonly then
           begin
@@ -360,7 +372,26 @@ interface
             cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,location.register);
           end
         else
-          location_copy(location,left.location);
+          begin
+            if not tabstractprocdef(left.resultdef).is_addressonly then
+              location_copy(location,left.location)
+            else
+              begin
+                { assigning a global function to a nested procvar -> create
+                  tmethodpointer record and set the "frame pointer" to nil }
+                location_reset_ref(location,LOC_REFERENCE,int_cgsize(sizeof(pint)*2),sizeof(pint));
+                tg.gettemp(current_asmdata.CurrAsmList,resultdef.size,sizeof(pint),tt_normal,location.reference);
+                tmpreg:=cg.getaddressregister(current_asmdata.CurrAsmList);
+                cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,left.location.reference,tmpreg);
+                cg.a_load_reg_ref(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,tmpreg,location.reference);
+                { setting the frame pointer to nil is not strictly necessary
+                  since the global procedure won't use it, but it can help with
+                  debugging }
+                inc(location.reference.offset,sizeof(pint));
+                cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_ADDR,0,location.reference);
+                dec(location.reference.offset,sizeof(pint));
+              end;
+          end;
       end;
 
     procedure Tcgtypeconvnode.second_nil_to_methodprocvar;
@@ -369,7 +400,7 @@ interface
 
     begin
       tg.gettemp(current_asmdata.currasmlist,2*sizeof(puint),sizeof(puint),tt_normal,r);
-      location_reset(location,LOC_REFERENCE,OS_NO);
+      location_reset_ref(location,LOC_REFERENCE,def_cgsize(resultdef),0);
       location.reference:=r;
       cg.a_load_const_ref(current_asmdata.currasmlist,OS_ADDR,0,r);
       inc(r.offset,sizeof(puint));
@@ -472,7 +503,8 @@ interface
               internalerror(2002032214);
          end;
          cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_ADDR,OC_NE,0,location.register,l1);
-         reference_reset(hr);
+         { FPC_EMPTYCHAR is a widechar -> 2 bytes }
+         reference_reset(hr,2);
          hr.symbol:=current_asmdata.RefAsmSymbol('FPC_EMPTYCHAR');
          cg.a_loadaddr_ref_reg(current_asmdata.CurrAsmList,hr,location.register);
          cg.a_label(current_asmdata.CurrAsmList,l1);

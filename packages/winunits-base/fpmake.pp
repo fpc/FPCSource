@@ -26,6 +26,7 @@ begin
     P.NeedLibC:= true;
 
     P.SourcePath.Add('src');
+    P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('buildwinutilsbase.pp');
       T.Install:=False;
@@ -46,6 +47,11 @@ begin
           AddUnit('shfolder');
           AddUnit('richedit');
 	  AddUnit('wininet');
+          AddUnit('uxtheme');  
+          AddInclude('tmschema.inc');
+          AddUnit('dwmapi');
+          AddUnit('multimon');
+          AddUnit('htmlhelp');
         end;
     T:=P.Targets.AddImplicitUnit('activex.pp');
     T:=P.Targets.AddImplicitUnit('comconst.pp');
@@ -65,6 +71,11 @@ begin
     T:=P.Targets.AddImplicitUnit('imagehlp.pp');
     T:=P.Targets.AddImplicitUnit('commdlg.pp');
     T:=P.Targets.AddImplicitUnit('wininet.pp');
+    T:=P.Targets.AddImplicitUnit('uxtheme.pp');
+    T:=P.Targets.AddImplicitUnit('multimon.pp');
+    T:=P.Targets.AddImplicitUnit('dwmapi.pp');
+    T:=P.Targets.AddImplicitUnit('htmlhelp.pp');
+    T.Dependencies.AddInclude('tmschema.inc');
     P.ExamplePath.Add('tests/');
     P.Targets.AddExampleProgram('testcom1.pp');
     P.Targets.AddExampleProgram('OOTest.pp');

@@ -1,0 +1,18 @@
+#
+#   Makefile.fpc for Free Pascal libndsfpc 2.x.y Examples
+#
+
+[target]
+dirs=ansi_console console_windows custom_font print_both_screens rotscale_text
+
+[require]
+packages=libndsfpc
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../../..
+
+[rules]
+.NOTPARALLEL:

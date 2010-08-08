@@ -17,13 +17,18 @@ Interface
 Uses baseunix,UnixType;
 {$endif}
 
-{$ifdef FreeBSD}
+{$i osdefs.inc}       { Compile time defines }
+
+{$if 
+     defined(FreeBSD) or 
+     defined(Darwin) or 
+     defined(Haiku)
+}
 {$DEFINE SOCK_HAS_SINLEN}               // BSD definition of socketaddr
 {$endif}
 
-{$ifdef Darwin}
-{$DEFINE SOCK_HAS_SINLEN}               // BSD definition of socketaddr
-{$endif}
+Type 
+ TSockLen = BaseUnix.TSocklen;
 
 {$i unxsockh.inc}
 {$i socketsh.inc}

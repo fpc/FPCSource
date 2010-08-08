@@ -103,6 +103,7 @@ function  reenable_signal(sig : longint) : boolean;
 var
   e,oe : TSigSet;
   i,j : byte;
+  olderrno: cint;
 begin
   fillchar(e,sizeof(e),#0);
   fillchar(oe,sizeof(oe),#0);
@@ -111,18 +112,18 @@ begin
   i:=sig mod 32;
   j:=sig div 32;
   e[j]:=1 shl i;
+  { this routine is called from a signal handler, so must not change errno }
+  olderrno:=geterrno;
   fpsigprocmask(SIG_UNBLOCK,@e,@oe);
   reenable_signal:=geterrno=0;
+  seterrno(olderrno);
 end;
 
 {$i sighnd.inc}
 
+procedure InstallDefaultSignalHandler(signum: longint; out oldact: SigActionRec); public name '_FPC_INSTALLDEFAULTSIGHANDLER';
 var
   act: SigActionRec;
-
-Procedure InstallSignals;
-var
-  oldact: SigActionRec;
 begin
   { Initialize the sigaction structure }
   { all flags and information set to zero }
@@ -130,10 +131,29 @@ begin
   { initialize handler                    }
   act.sa_handler :=@SignalToRunError;
   act.sa_flags:=SA_SIGINFO;
-  FpSigAction(SIGFPE,act,oldact);
-  FpSigAction(SIGSEGV,act,oldact);
-  FpSigAction(SIGBUS,act,oldact);
-  FpSigAction(SIGILL,act,oldact);
+  FpSigAction(signum,act,oldact);
+end;
+
+var
+  oldsigfpe: SigActionRec; public name '_FPC_OLDSIGFPE';
+  oldsigsegv: SigActionRec; public name '_FPC_OLDSIGSEGV';
+  oldsigbus: SigActionRec; public name '_FPC_OLDSIGBUS';
+  oldsigill: SigActionRec; public name '_FPC_OLDSIGILL';
+
+Procedure InstallSignals;
+begin
+  InstallDefaultSignalHandler(SIGFPE,oldsigfpe);
+  InstallDefaultSignalHandler(SIGSEGV,oldsigsegv);
+  InstallDefaultSignalHandler(SIGBUS,oldsigbus);
+  InstallDefaultSignalHandler(SIGILL,oldsigill);
+end;
+
+Procedure RestoreOldSignalHandlers;
+begin
+  FpSigAction(SIGFPE,@oldsigfpe,nil);
+  FpSigAction(SIGSEGV,@oldsigsegv,nil);
+  FpSigAction(SIGBUS,@oldsigbus,nil);
+  FpSigAction(SIGILL,@oldsigill,nil);
 end;
 
 
@@ -218,14 +238,18 @@ end;
 
 Begin
   IsConsole := TRUE;
-  IsLibrary := FALSE;
   StackLength := CheckInitialStkLen(InitialStkLen);
   StackBottom := Sptr - StackLength;
-{ Set up signals handlers }
+  { Set up signals handlers (may be needed by init code to test cpu features) }
   InstallSignals;
 { Setup heap }
   InitHeap;
   SysInitExceptions;
+{$if defined(cpui386) or defined(cpuarm)}
+  fpc_cpucodeinit;
+{$endif cpui386}
+
+
 { Setup stdin, stdout and stderr }
   SysInitStdIO;
 { Reset IO Error }
@@ -239,4 +263,7 @@ Begin
 {$else VER2_2}
   initunicodestringmanager;
 {$endif VER2_2}
+  { restore original signal handlers in case this is a library }
+  if IsLibrary then
+    RestoreOldSignalHandlers;
 End.

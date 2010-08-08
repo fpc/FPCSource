@@ -52,7 +52,8 @@ interface
              cpu_mips,                     { 9 }
              cpu_arm,                      { 10 }
              cpu_powerpc64,                { 11 }
-             cpu_avr                       { 12 }
+             cpu_avr,                      { 12 }
+             cpu_mipsel                    { 13 }
        );
 
        tasmmode= (asmmode_none
@@ -144,8 +145,12 @@ interface
              system_arm_symbian,        { 60 }
              system_x86_64_darwin,      { 61 }
              system_avr_embedded,       { 62 }
-             system_i386_haiku,         { 63 }    
-             system_arm_darwin          { 64 }
+             system_i386_haiku,         { 63 }
+             system_arm_darwin,         { 64 }
+             system_x86_64_solaris,     { 65 }
+             system_mips_linux,         { 66 }
+             system_mipsel_linux,       { 67 }
+             system_i386_nativent       { 68 }
        );
 
      type
@@ -168,6 +173,7 @@ interface
              ,as_m68k_mit
              ,as_powerpc_mpw
              ,as_darwin
+             ,as_i386_macho
              ,as_x86_64_masm
              ,as_x86_64_pecoff
              ,as_i386_pecoffwince
@@ -176,6 +182,7 @@ interface
              ,as_sparc_elf32
              ,as_ggas                  { gnu assembler called "gas" instead of "as" }
              ,as_i386_nasmhaiku
+             ,as_powerpc_vasm
        );
 
        tar = (ar_none
@@ -191,7 +198,7 @@ interface
             ,res_powerpc_mpw,res_elf
             ,res_win64_gorc, res_macho, res_ext
        );
-       
+
        tresinfoflags = (res_external_file,res_arch_in_file_name
             ,res_single_file);
 
@@ -235,7 +242,8 @@ interface
 
 
        palignmentinfo = ^talignmentinfo;
-       talignmentinfo = record
+       { this is written to ppus during token recording for generics so it must be packed }
+       talignmentinfo = packed record
          procalign,
          loopalign,
          jumpalign,
@@ -255,7 +263,8 @@ interface
          af_needar,af_smartlink_sections,
          af_labelprefix_only_inside_procedure,
          af_supports_dwarf,
-         af_no_debug
+         af_no_debug,
+         af_stabs_use_function_absolute_addresses
        );
 
        pasminfo = ^tasminfo;
@@ -264,7 +273,7 @@ interface
           idtxt       : string[12];
           asmbin      : string[8];
           asmcmd      : string[50];
-          supported_target : tsystem;
+          supported_targets : set of tsystem;
           flags        : set of tasmflags;
           labelprefix : string[3];
           comment     : string[3];
@@ -356,6 +365,8 @@ interface
           staticClibext,
           staticClibprefix : string[4];
           sharedClibprefix : string[4];
+          importlibprefix : string[10];
+          importlibext : string[4];
           Cprefix      : string[2];
           newline      : string[2];
           dirsep       : char;
@@ -384,14 +395,15 @@ interface
        { alias for supported_target field in tasminfo }
        system_any = system_none;
 
-       system_wince = [system_arm_wince,system_i386_wince];
-       system_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,
+       systems_wince = [system_arm_wince,system_i386_wince];
+       systems_linux = [system_i386_linux,system_x86_64_linux,system_powerpc_linux,system_powerpc64_linux,
                        system_arm_linux,system_sparc_linux,system_alpha_linux,system_m68k_linux,
-                       system_x86_6432_linux];
+                       system_x86_6432_linux,system_mips_linux,system_mipsel_linux];
+
        { all real windows systems, no cripple ones like wince, wdosx et. al. }
-       system_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64];
+       systems_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64];
        { all windows systems }
-       system_all_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64,
+       systems_all_windows = [system_i386_win32,system_x86_64_win64,system_ia64_win64,
                              system_arm_wince,system_i386_wince];
 
        { all darwin systems }
@@ -399,31 +411,57 @@ interface
                          system_powerpc64_darwin,system_x86_64_darwin,
                          system_arm_darwin];
 
+       {all solaris systems }
+       systems_solaris = [system_sparc_solaris, system_i386_solaris,
+			  system_x86_64_solaris];
+
+       { systems supporting Objective-C }
+       systems_objc_supported = systems_darwin;
+
+       { systems using the non-fragile Objective-C ABI }
+       systems_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_darwin];
+
+       { all embedded systems }
+       systems_embedded = [system_i386_embedded,system_m68k_embedded,
+                           system_alpha_embedded,system_powerpc_embedded,
+                           system_sparc_embedded,system_vm_embedded,
+                           system_iA64_embedded,system_x86_64_embedded,
+                           system_mips_embedded,system_arm_embedded,
+                           system_powerpc64_embedded];
+
        { all systems supporting exports from programs or units }
-       system_unit_program_exports = [system_i386_win32,
+       systems_unit_program_exports = [system_i386_win32,
                                          system_i386_wdosx,
                                          system_i386_Netware,
                                          system_i386_netwlibc,
                                          system_arm_wince,
                                          system_x86_64_win64,
-                                         system_ia64_win64]+system_linux;
+                                         system_ia64_win64]+systems_linux;
 
        { all systems for which weak linking has been tested/is supported }
-       system_weak_linking = systems_darwin;
+       systems_weak_linking = systems_darwin + systems_solaris;
 
-       system_internal_sysinit = [system_i386_linux,system_i386_win32];
-
-       system_embedded = [system_i386_embedded,system_m68k_embedded,system_alpha_embedded,
-             system_powerpc_embedded,system_sparc_embedded,system_vm_embedded,
-             system_iA64_embedded,system_x86_64_embedded,system_mips_embedded,
-             system_arm_embedded,system_powerpc64_embedded];
+       systems_internal_sysinit = [system_i386_linux,system_i386_win32];
 
        { all symbian systems }
        systems_symbian = [system_i386_symbian,system_arm_symbian];
 
+       { all native nt systems }
+       systems_nativent = [system_i386_nativent];
+
+       { all systems for which istack must be at a 16 byte boundary
+         when calling a function }
+       systems_need_16_byte_stack_alignment = [
+      	system_i386_darwin,
+        system_x86_64_darwin,
+        system_x86_64_win64,
+        system_x86_64_linux,
+        system_x86_64_freebsd,
+        system_x86_64_solaris];
+
        cpu2str : array[TSystemCpu] of string[10] =
             ('','i386','m68k','alpha','powerpc','sparc','vm','ia64','x86_64',
-             'mips','arm', 'powerpc64', 'avr');
+             'mips','arm', 'powerpc64', 'avr', 'mipsel');
 
        abi2str : array[tabi] of string[10] =
          ('DEFAULT','SYSV','AIX','EABI','ARMEB');
@@ -551,8 +589,8 @@ function set_target_asm(t:tasm):boolean;
 begin
   set_target_asm:=false;
   if assigned(asminfos[t]) and
-    ((asminfos[t]^.supported_target=target_info.system) or
-     (asminfos[t]^.supported_target=system_any)) then
+    ((target_info.system in asminfos[t]^.supported_targets) or
+     (system_any in asminfos[t]^.supported_targets)) then
    begin
      target_asm:=asminfos[t]^;
      set_target_asm:=true;
@@ -851,6 +889,10 @@ begin
     default_target(system_x86_64_freebsd);
     {$define default_target_set}
    {$endif}
+   {$ifdef solaris}
+    default_target(system_x86_64_solaris);
+    {$define default_target_set}
+   {$endif}
    {$ifdef darwin}
     default_target(system_x86_64_darwin);
     {$define default_target_set}
@@ -951,6 +993,14 @@ begin
 {$ifdef avr}
   default_target(system_avr_embedded);
 {$endif avr}
+
+{$ifdef mips}
+{$ifdef mipsel}
+  default_target(system_mipsel_linux);
+{$else mipsel}
+  default_target(system_mips_linux);
+{$endif mipsel}
+{$endif mips}
 end;
 
 

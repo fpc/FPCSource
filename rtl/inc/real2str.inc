@@ -15,7 +15,7 @@
 type
   { See symconst.pas tfloattype }
   treal_type = (
-    rt_s32real,rt_s64real,rt_s80real,
+    rt_s32real,rt_s64real,rt_s80real,rt_sc80real,
     rt_c64bit,rt_currency,rt_s128real
   );
   { corresponding to single   double   extended   fixed      comp for i386 }
@@ -173,7 +173,7 @@ const
         { the fractional part is not used for rounding later                }
         currprec := -1;
         { instead, round based on the next whole digit }
-        if (int(intPartStack[stackPtr]-corrVal+roundcorr) >= 5.0) then
+        if (int(intPartStack[stackPtr]-corrVal) >= 5.0) then
            roundStr(temp,spos);
         end;
 {$ifdef DEBUG_NASM}
@@ -199,7 +199,8 @@ begin
          minlen:=9;
          explen:=5;
       end;
-    rt_s80real :
+    rt_s80real,
+    rt_sc80real:
       begin
          { Different in TP help, but this way the output is the same (JM) }
          maxlen:=25;
@@ -367,23 +368,18 @@ begin
           for fracCount := 1 to currPrec do
             factor := factor * 10.0;
           corrval := corrval / factor;
-          if (d<>0.0) then
-            d:=d+roundCorr;
+          { for single, we may write more significant digits than are available,
+            so the rounding correction itself can show up -> don't round in that
+            case
+          }
+          if real_type<>rt_s32real then
+            d:=d+d*roundCorr;
           if d >= corrVal then
             d := d + corrVal;
           if int(d) = 1 then
             begin
               roundStr(temp,spos);
               d := frac(d);
-              if (f < 0) then
-                begin
-                  dec(currprec);
-                  if (currprec=0) then
-                    begin
-                      inc(spos);
-                      temp[spos]:='0';
-                    end;
-                end;
             end;
           { calculate the necessary fractional digits }
           for fracCount := 1 to currPrec do
@@ -457,4 +453,16 @@ begin
       s:=space(len-length(temp))+temp
     else s:=temp;
 end;
+
+
+Procedure str_real_iso (len,f : longint; d : ValReal; real_type :treal_type; out s : string);
+  var
+   i : Integer;
+  begin
+    str_real(len,f,d,real_type,s);
+    for i:=1 to Length(s) do
+      if s[i]='E' then
+        s[i]:='e';
+  end;
+
 

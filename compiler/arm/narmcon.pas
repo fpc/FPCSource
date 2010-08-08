@@ -55,14 +55,14 @@ interface
       { constants are actually supported by the target processor? (JM) }
       const
         floattype2ait:array[tfloattype] of taitype=
-          (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_comp_64bit,ait_comp_64bit,ait_real_128bit);
+          (ait_real_32bit,ait_real_64bit,ait_real_80bit,ait_real_80bit,ait_comp_64bit,ait_comp_64bit,ait_real_128bit);
       var
          lastlabel : tasmlabel;
          realait : taitype;
          hiloswapped : boolean;
 
       begin
-        location_reset(location,LOC_CREFERENCE,def_cgsize(resultdef));
+        location_reset_ref(location,LOC_CREFERENCE,def_cgsize(resultdef),4);
         lastlabel:=nil;
         realait:=floattype2ait[tfloatdef(resultdef).floattype];
         hiloswapped:=is_double_hilo_swapped;
@@ -80,7 +80,7 @@ interface
                   { range checking? }
                   if ((cs_check_range in current_settings.localswitches) or
                     (cs_check_overflow in current_settings.localswitches)) and
-                    (tai_real_32bit(current_asmdata.asmlists[al_typedconsts].last).value=MathInf.Value) then
+                    (tai_real_32bit(current_procinfo.aktlocaldata.last).value=MathInf.Value) then
                     Message(parser_e_range_check_error);
                 end;
 
@@ -94,18 +94,18 @@ interface
                   { range checking? }
                   if ((cs_check_range in current_settings.localswitches) or
                     (cs_check_overflow in current_settings.localswitches)) and
-                    (tai_real_64bit(current_asmdata.asmlists[al_typedconsts].last).value=MathInf.Value) then
+                    (tai_real_64bit(current_procinfo.aktlocaldata.last).value=MathInf.Value) then
                     Message(parser_e_range_check_error);
                end;
 
               ait_real_80bit :
                 begin
-                  current_procinfo.aktlocaldata.concat(Tai_real_80bit.Create(value_real));
+                  current_procinfo.aktlocaldata.concat(Tai_real_80bit.Create(value_real,tfloatdef(resultdef).size));
 
                   { range checking? }
                   if ((cs_check_range in current_settings.localswitches) or
                     (cs_check_overflow in current_settings.localswitches)) and
-                    (tai_real_80bit(current_asmdata.asmlists[al_typedconsts].last).value=MathInf.Value) then
+                    (tai_real_80bit(current_procinfo.aktlocaldata.last).value=MathInf.Value) then
                     Message(parser_e_range_check_error);
                 end;
 {$ifdef cpufloat128}
@@ -116,7 +116,7 @@ interface
                   { range checking? }
                   if ((cs_check_range in current_settings.localswitches) or
                     (cs_check_overflow in current_settings.localswitches)) and
-                    (tai_real_128bit(current_asmdata.asmlists[al_typedconsts].last).value=MathInf.Value) then
+                    (tai_real_128bit(current_procinfo.aktlocaldata.last).value=MathInf.Value) then
                     Message(parser_e_range_check_error);
                 end;
 {$endif cpufloat128}

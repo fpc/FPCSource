@@ -13,7 +13,7 @@
    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 }
 
-procedure SignalToRunerror(Sig: cint; info : PSigInfo; SigContext:PSigContext); cdecl;
+procedure SignalToRunerror(Sig: cint; info : PSigInfo; SigContext:PSigContext); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
 
 var
   res : word;
@@ -33,13 +33,18 @@ begin
           Else
             Res:=207; {coprocessor error}
         end;
-        SigContext^.uc_mcontext^.fs.__fpscr := SigContext^.uc_mcontext^.fs.__fpscr and not($1fff);
+        { clear "exception happened" flags }
+        SigContext^.uc_mcontext^.__fs.__fpscr := SigContext^.uc_mcontext^.__fs.__fpscr and not($df);
       end;
     SIGBUS:
         res:=214;
     SIGILL,
     SIGSEGV :
         res:=216;
+    SIGINT:
+        res:=217;
+    SIGQUIT:
+        res:=233;
   end;
   {$ifdef FPC_USE_SIGPROCMASK}
    reenable_signal(sig);
@@ -48,10 +53,10 @@ begin
   { return to trampoline }
   if res <> 0 then
     begin
-      SigContext^.uc_mcontext^.ss.__r[0] := res;
-      SigContext^.uc_mcontext^.ss.__r[1] := SigContext^.uc_mcontext^.ss.__pc;
-      SigContext^.uc_mcontext^.ss.__r[2] := SigContext^.uc_mcontext^.ss.__sp;
-      pointer(SigContext^.uc_mcontext^.ss.__pc) := @HandleErrorAddrFrame;
+      SigContext^.uc_mcontext^.__ss.__r[0] := res;
+      SigContext^.uc_mcontext^.__ss.__r[1] := SigContext^.uc_mcontext^.__ss.__pc;
+      SigContext^.uc_mcontext^.__ss.__r[2] := SigContext^.uc_mcontext^.__ss.__sp;
+      pointer(SigContext^.uc_mcontext^.__ss.__pc) := @HandleErrorAddrFrame;
     end;
 end;
 

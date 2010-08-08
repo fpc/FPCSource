@@ -1812,13 +1812,13 @@ exec_e_unit_not_shared_or_static_linkable=09027_E_Moduˆ $1 nie mo¾e by† linkowan
 #
 # Executable information
 #
-execinfo_f_cant_process_executable=09028_F_Nie mo¾na przetwarza† pliku $1
-execinfo_f_cant_open_executable=09029_F_Nie mo¾na otworzy† pliku wykonywalnego $1
-execinfo_x_codesize=09030_X_Rozmiar kodu: $1 bajt¢w
-execinfo_x_initdatasize=09031_X_Rozmiar zainicjowanych danych: $1 bajt¢w
-execinfo_x_uninitdatasize=09032_X_Rozmiar niezainicjowanych danych: $1 bajt¢w
-execinfo_x_stackreserve=09033_X_Zarezerwowany rozmiar stosu: $1 bajt¢w
-execinfo_x_stackcommit=09034_X_Aktywny rozmiar stosu: $1 bajt¢w
+execinfo_f_cant_process_executable=09128_F_Nie mo¾na przetwarza† pliku $1
+execinfo_f_cant_open_executable=09129_F_Nie mo¾na otworzy† pliku wykonywalnego $1
+execinfo_x_codesize=09130_X_Rozmiar kodu: $1 bajt¢w
+execinfo_x_initdatasize=09131_X_Rozmiar zainicjowanych danych: $1 bajt¢w
+execinfo_x_uninitdatasize=09132_X_Rozmiar niezainicjowanych danych: $1 bajt¢w
+execinfo_x_stackreserve=09133_X_Zarezerwowany rozmiar stosu: $1 bajt¢w
+execinfo_x_stackcommit=09134_X_Aktywny rozmiar stosu: $1 bajt¢w
 
 #
 # Unit loading
@@ -2116,7 +2116,7 @@ option_code_page_not_available=11039_E_Nieznana strona kodowa
 #
 option_logo=11023_[
 Free Pascal Compiler wersja $FPCFULLVERSION [$FPCDATE] dla $FPCCPU
-Copyright (c) 1993-2008 by Florian Klaempfl
+Copyright (c) 1993-2010 by Florian Klaempfl
 ]
 
 #
@@ -2141,6 +2141,8 @@ Ten program jest oparty na GNU General Public Licence
 Przeczytaj COPYING.FPC aby dowiedzie† si© wi©cej
 
 Zgˆaszanie bˆ©d¢w, sugestii itp.
+                 http://bugs.freepascal.org
+lub
                  bugs@freepascal.org
 ]
 
@@ -2305,7 +2307,6 @@ S*2Aas_asemblacja przy u¾yciu GNU AS
 **2So_to samo co -Mtp
 **2Sp_to samo co -Mgpc
 **2Ss_konstruktory musz¥ mie† nazw© init (destruktory - done)
-**2St_zezwalanie na sˆowo kluczowe static w obiektach
 **1s_pomini©cie wywoˆania asemblera i linkera
 **2sh_generacja skryptu do linkowania na ho˜cie
 **2st_generacja skryptu do linkowania na celu

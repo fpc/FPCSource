@@ -30,10 +30,10 @@ interface
       symsym,symdef;
 
     type
-      tvar_dec_option=(vd_record,vd_object,vd_threadvar);
+      tvar_dec_option=(vd_record,vd_object,vd_threadvar,vd_class);
       tvar_dec_options=set of tvar_dec_option;
 
-    function  read_property_dec(aclass:tobjectdef):tpropertysym;
+    function  read_property_dec(is_classproperty:boolean; aclass:tobjectdef):tpropertysym;
 
     procedure read_var_decls(options:Tvar_dec_options);
 
@@ -66,7 +66,7 @@ implementation
        ;
 
 
-    function read_property_dec(aclass:tobjectdef):tpropertysym;
+    function read_property_dec(is_classproperty:boolean; aclass:tobjectdef):tpropertysym;
 
         { convert a node tree to symlist and return the last
           symbol }
@@ -88,6 +88,9 @@ implementation
                  searchsym(pattern,sym,srsymtable);
                if assigned(sym) then
                 begin
+                  if assigned(aclass) and
+                     not is_visible_for_object(sym,aclass) then
+                    Message(parser_e_cant_access_private_member);
                   case sym.typ of
                     fieldvarsym :
                       begin
@@ -238,8 +241,63 @@ implementation
                (ppo_hasparameters in p.propoptions);
           end;
 
+          procedure parse_dispinterface(p : tpropertysym);
+            var
+              {procsym: tprocsym;
+              procdef: tprocdef;
+              valuepara: tparavarsym;}
+              hasread, haswrite: boolean;
+              pt: tnode;
+            begin
+              p.propaccesslist[palt_read].clear;
+              p.propaccesslist[palt_write].clear;
+
+              hasread:=true;
+              haswrite:=true;
+
+              if try_to_consume(_READONLY) then
+                haswrite:=false
+              else if try_to_consume(_WRITEONLY) then
+                hasread:=false;
+
+              if hasread then
+                include(p.propoptions, ppo_dispid_read);
+
+              if haswrite then
+                include(p.propoptions, ppo_dispid_write);
+
+              if try_to_consume(_DISPID) then
+                begin
+                  pt:=comp_expr(true);
+                  if is_constintnode(pt) then
+                    if (Tordconstnode(pt).value<int64(low(longint))) or (Tordconstnode(pt).value>int64(high(longint))) then
+                      message(parser_e_range_check_error)
+                    else
+                      p.dispid:=Tordconstnode(pt).value.svalue
+                  else
+                    Message(parser_e_dispid_must_be_ord_const);
+                  pt.free;
+                end
+              else
+                p.dispid:=aclass.get_next_dispid;
+            end;
+
+          procedure add_index_parameter(var paranr: word; p: tpropertysym; readprocdef, writeprocdef, storedprocdef: tprocvardef);
+            var
+              hparavs: tparavarsym;
+            begin
+              inc(paranr);
+              hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
+              readprocdef.parast.insert(hparavs);
+              hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
+              writeprocdef.parast.insert(hparavs);
+              hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
+              storedprocdef.parast.insert(hparavs);
+            end;
+
       var
          sym : tsym;
+         srsymtable: tsymtable;
          p : tpropertysym;
          overriden : tsym;
          varspez : tvarspez;
@@ -265,8 +323,8 @@ implementation
          writeprocdef:=tprocvardef.create(normal_function_level);
          storedprocdef:=tprocvardef.create(normal_function_level);
 
-         { make it method pointers }
-         if assigned(aclass) then
+         { make them method pointers }
+         if assigned(aclass) and not is_classproperty then
            begin
              include(readprocdef.procoptions,po_methodpointer);
              include(writeprocdef.procoptions,po_methodpointer);
@@ -286,6 +344,8 @@ implementation
          p:=tpropertysym.create(orgpattern);
          p.visibility:=symtablestack.top.currentvisibility;
          p.default:=longint($80000000);
+         if is_classproperty then
+           include(p.symoptions, sp_static);
          symtablestack.top.insert(p);
          consume(_ID);
          { property parameters ? }
@@ -323,11 +383,11 @@ implementation
                         { define range and type of range }
                         hdef:=tarraydef.create(0,-1,s32inttype);
                         { define field type }
-                        single_type(arraytype,false);
+                        single_type(arraytype,false,false);
                         tarraydef(hdef).elementdef:=arraytype;
                       end
                     else
-                      single_type(hdef,false);
+                      single_type(hdef,false,false);
                   end
                 else
                   hdef:=cformaltype;
@@ -357,7 +417,7 @@ implementation
          if (token=_COLON) or (paranr>0) or (aclass=nil) then
            begin
               consume(_COLON);
-              single_type(p.propdef,false);
+              single_type(p.propdef,false,false);
               if (idtoken=_INDEX) then
                 begin
                    consume(_INDEX);
@@ -384,13 +444,7 @@ implementation
                    p.indexdef:=pt.resultdef;
                    include(p.propoptions,ppo_indexed);
                    { concat a longint to the para templates }
-                   inc(paranr);
-                   hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
-                   readprocdef.parast.insert(hparavs);
-                   hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
-                   writeprocdef.parast.insert(hparavs);
-                   hparavs:=tparavarsym.create('$index',10*paranr,vs_value,p.indexdef,[]);
-                   storedprocdef.parast.insert(hparavs);
+                   add_index_parameter(paranr,p,readprocdef,writeprocdef,storedprocdef);
                    pt.free;
                 end;
            end
@@ -409,6 +463,8 @@ implementation
                   p.index:=tpropertysym(overriden).index;
                   p.default:=tpropertysym(overriden).default;
                   p.propoptions:=tpropertysym(overriden).propoptions;
+                  if ppo_indexed in p.propoptions then
+                    add_index_parameter(paranr,p,readprocdef,writeprocdef,storedprocdef);
                 end
               else
                 begin
@@ -417,7 +473,7 @@ implementation
                 end;
            end;
          if ((p.visibility=vis_published) or is_dispinterface(aclass)) and
-            not(p.propdef.is_publishable) then
+            (not(p.propdef.is_publishable) or (sp_static in p.symoptions)) then
            begin
              Message(parser_e_cant_publish_that_property);
              p.visibility:=vis_public;
@@ -443,7 +499,9 @@ implementation
                             non default calling conventions which might change the hidden stuff;
                             see tw3216.pp (FK) }
                           p.propaccesslist[palt_read].procdef:=Tprocsym(sym).Find_procdef_bypara(readprocdef.paras,p.propdef,[cpo_allowdefaults,cpo_ignorehidden]);
-                          if not assigned(p.propaccesslist[palt_read].procdef) then
+                          if not assigned(p.propaccesslist[palt_read].procdef) or
+                            { because of cpo_ignorehidden we need to compare if it is a static class method and we have a class property }
+                            ((sp_static in p.symoptions) <> tprocdef(p.propaccesslist[palt_read].procdef).no_self_node) then
                             Message(parser_e_ill_property_access_sym);
                         end;
                       fieldvarsym :
@@ -457,8 +515,9 @@ implementation
                                the parameter.
                                Note: In the help of Kylix it is written
                                that it isn't allowed, but the compiler accepts it (PFV) }
-                             if (ppo_hasparameters in p.propoptions) then
-                              Message(parser_e_ill_property_access_sym);
+                             if (ppo_hasparameters in p.propoptions) or
+                                ((sp_static in p.symoptions) <> (sp_static in sym.symoptions)) then
+                               Message(parser_e_ill_property_access_sym);
                            end
                           else
                            IncompatibleTypes(def,p.propdef);
@@ -486,7 +545,10 @@ implementation
                           { Insert hidden parameters }
                           handle_calling_convention(writeprocdef);
                           { search procdefs matching writeprocdef }
-                          p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults]);
+                          if cs_varpropsetter in current_settings.localswitches then
+                            p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults,cpo_ignorevarspez])
+                          else
+                            p.propaccesslist[palt_write].procdef:=Tprocsym(sym).Find_procdef_bypara(writeprocdef.paras,writeprocdef.returndef,[cpo_allowdefaults]);
                           if not assigned(p.propaccesslist[palt_write].procdef) then
                             Message(parser_e_ill_property_access_sym);
                         end;
@@ -501,7 +563,8 @@ implementation
                                the parameter.
                                Note: In the help of Kylix it is written
                                that it isn't allowed, but the compiler accepts it (PFV) }
-                             if (ppo_hasparameters in p.propoptions) then
+                             if (ppo_hasparameters in p.propoptions) or
+                                ((sp_static in p.symoptions) <> (sp_static in sym.symoptions)) then
                               Message(parser_e_ill_property_access_sym);
                            end
                           else
@@ -514,25 +577,9 @@ implementation
                end;
            end
          else
-           begin
-             if try_to_consume(_READONLY) then
-               begin
-               end
-             else if try_to_consume(_WRITEONLY) then
-               begin
-               end;
-             if try_to_consume(_DISPID) then
-               begin
-                 pt:=comp_expr(true);
-                 if is_constintnode(pt) then
-                   // tprocdef(pd).extnumber:=tordconstnode(pt).value
-                 else
-                   Message(parser_e_dispid_must_be_ord_const);
-                 pt.free;
-               end;
-           end;
+           parse_dispinterface(p);
 
-         if assigned(aclass) and not(is_dispinterface(aclass)) then
+         if assigned(aclass) and not(is_dispinterface(aclass)) and not is_classproperty then
            begin
              { ppo_stored is default on for not overriden properties }
              if not assigned(p.overridenpropsym) then
@@ -550,7 +597,37 @@ implementation
                       { as stored true                    }
                       if idtoken<>_DEFAULT then
                        begin
-                         if parse_symlist(p.propaccesslist[palt_stored],def) then
+                         { parse_symlist cannot deal with constsyms, and
+                           we also don't want to put constsyms in symlists
+                           since they have to be evaluated immediately rather
+                           than each time the property is accessed
+
+                           The proper fix would be to always create a parse tree
+                           and then convert that one, if appropriate, to a symlist.
+                           Currently, we e.g. don't support any constant expressions
+                           yet either here, while Delphi does.
+
+                         }
+                         { make sure we don't let constants mask class fields/
+                           methods
+                         }
+                         if (not assigned(aclass) or
+                             (search_class_member(aclass,pattern)=nil)) and
+                            searchsym(pattern,sym,srsymtable) and
+                            (sym.typ = constsym) then
+                           begin
+                              addsymref(sym);
+                              if not is_boolean(tconstsym(sym).constdef) then
+                                Message(parser_e_stored_property_must_be_boolean)
+                              else if (tconstsym(sym).value.valueord=0) then
+                                { same as for _FALSE }
+                                exclude(p.propoptions,ppo_stored)
+                              else
+                                { same as for _TRUE }
+                                p.default:=longint($80000000);
+                              consume(_ID);
+                            end
+                         else if parse_symlist(p.propaccesslist[palt_stored],def) then
                           begin
                             sym:=p.propaccesslist[palt_stored].firstsym^.sym;
                             case sym.typ of
@@ -643,7 +720,7 @@ implementation
          { Parse possible "implements" keyword }
          if try_to_consume(_IMPLEMENTS) then
            begin
-             single_type(def,false);
+             single_type(def,false,false);
 
              if not(is_interface(def)) then
                message(parser_e_class_implements_must_be_interface);
@@ -685,6 +762,9 @@ implementation
                  message(parser_e_implements_must_read_specifier);
                  exit;
                end;
+             if assigned(p.propaccesslist[palt_read].procdef) and
+                (tprocdef(p.propaccesslist[palt_read].procdef).proccalloption<>pocall_default) then
+               message(parser_e_implements_getter_not_default_cc);
              if assigned(p.propaccesslist[palt_write].firstsym) then
                begin
                  message(parser_e_implements_must_not_have_write_specifier);
@@ -709,6 +789,7 @@ implementation
              if found then
                begin
                  ImplIntf.ImplementsGetter:=p;
+                 ImplIntf.VtblImplIntf:=ImplIntf;
                  case p.propaccesslist[palt_read].firstsym^.sym.typ of
                    procsym :
                      begin
@@ -718,10 +799,22 @@ implementation
                          ImplIntf.IType:=etStaticMethodResult;
                      end;
                    fieldvarsym :
-                     ImplIntf.IType:=etFieldValue;
+                     begin
+                       ImplIntf.IType:=etFieldValue;
+                       { this must be done more sophisticated, here is also probably the wrong place }
+                       ImplIntf.IOffset:=tfieldvarsym(p.propaccesslist[palt_read].firstsym^.sym).fieldoffset;
+                     end
                    else
                      internalerror(200802161);
                  end;
+                 if not is_interface(p.propdef) then
+                   case ImplIntf.IType of
+                     etVirtualMethodResult: ImplIntf.IType := etVirtualMethodClass;
+                     etStaticMethodResult:  ImplIntf.IType := etStaticMethodClass;
+                     etFieldValue:          ImplIntf.IType := etFieldValueClass;
+                   else
+                     internalerror(200912101);
+                   end;
                end
              else
                message1(parser_e_implements_uses_non_implemented_interface,def.GetTypeName);
@@ -823,18 +916,15 @@ implementation
          try_to_consume(_EXTERNAL) then
         begin
           is_external_var:=true;
-          if not is_cdecl then
+          if (idtoken<>_NAME) and (token<>_SEMICOLON) then
             begin
-              if idtoken<>_NAME then
-                begin
-                  is_dll:=true;
-                  dll_name:=get_stringconst;
-                  if ExtractFileExt(dll_name)='' then
-                    dll_name:=ChangeFileExt(dll_name,target_info.sharedlibext);
-                end;
-              if try_to_consume(_NAME) then
-                C_name:=get_stringconst;
+              is_dll:=true;
+              dll_name:=get_stringconst;
+              if ExtractFileExt(dll_name)='' then
+                dll_name:=ChangeFileExt(dll_name,target_info.sharedlibext);
             end;
+          if not(is_cdecl) and try_to_consume(_NAME) then
+            C_name:=get_stringconst;
           consume(_SEMICOLON);
         end;
 
@@ -853,7 +943,7 @@ implementation
 
       { Windows uses an indirect reference using import tables }
       if is_dll and
-         (target_info.system in system_all_windows) then
+         (target_info.system in systems_all_windows) then
         include(vs.varoptions,vo_is_dll_var);
 
       { Add C _ prefix }
@@ -881,7 +971,7 @@ implementation
           include(vs.varoptions,vo_is_external);
           if (is_weak_external) then
             begin
-              if not(target_info.system in system_weak_linking) then
+              if not(target_info.system in systems_weak_linking) then
                 message(parser_e_weak_external_not_supported);
               include(vs.varoptions,vo_is_weak_external);
             end;
@@ -918,11 +1008,11 @@ implementation
                 include(tcsym.symoptions,sp_internal);
                 vs.defaultconstsym:=tcsym;
                 symtablestack.top.insert(tcsym);
-                read_typed_const(current_asmdata.asmlists[al_typedconsts],tcsym);
+                read_typed_const(current_asmdata.asmlists[al_typedconsts],tcsym,false);
               end;
             staticvarsym :
               begin
-                read_typed_const(current_asmdata.asmlists[al_typedconsts],tstaticvarsym(vs));
+                read_typed_const(current_asmdata.asmlists[al_typedconsts],tstaticvarsym(vs),false);
               end;
             else
               internalerror(200611051);
@@ -957,6 +1047,9 @@ implementation
           abssym : tabsolutevarsym;
           pt,hp  : tnode;
           st     : tsymtable;
+          {$ifdef i386}
+          tmpaddr : int64;
+          {$endif}
         begin
           abssym:=nil;
           { only allowed for one var }
@@ -966,7 +1059,7 @@ implementation
           if vo_is_typed_const in vs.varoptions then
             Message(parser_e_initialized_not_for_external);
           { parse the rest }
-          pt:=expr;
+          pt:=expr(true);
           { check allowed absolute types }
           if (pt.nodetype=stringconstn) or
             (is_constcharnode(pt)) then
@@ -986,10 +1079,16 @@ implementation
               abssym:=tabsolutevarsym.create(vs.realname,vs.vardef);
               abssym.fileinfo:=vs.fileinfo;
               abssym.abstyp:=toaddr;
+{$ifndef cpu64bitaddr}
+              { on 64 bit systems, abssym.addroffset is a qword and hence this
+                test is useless (value is a 64 bit entity) and will always fail
+                for positive values (since int64(high(abssym.addroffset))=-1
+              }
               if (Tordconstnode(pt).value<int64(low(abssym.addroffset))) or
                  (Tordconstnode(pt).value>int64(high(abssym.addroffset))) then
                 message(parser_e_range_check_error)
               else
+{$endif}
                 abssym.addroffset:=Tordconstnode(pt).value.svalue;
 {$ifdef i386}
               abssym.absseg:=false;
@@ -997,14 +1096,15 @@ implementation
                   try_to_consume(_COLON) then
                 begin
                   pt.free;
-                  pt:=expr;
+                  pt:=expr(true);
                   if is_constintnode(pt) then
                     begin
-                      if (Tordconstnode(pt).value<int64(low(abssym.addroffset))) or
-                         (Tordconstnode(pt).value>int64(high(abssym.addroffset))) then
+                      tmpaddr:=abssym.addroffset shl 4+tordconstnode(pt).value.svalue;
+                      if (tmpaddr<int64(low(abssym.addroffset))) or
+                         (tmpaddr>int64(high(abssym.addroffset))) then
                         message(parser_e_range_check_error)
                       else
-                        abssym.addroffset:=abssym.addroffset shl 4+tordconstnode(pt).value.svalue;
+                        abssym.addroffset:=tmpaddr;
                       abssym.absseg:=true;
                     end
                   else
@@ -1015,10 +1115,44 @@ implementation
           { variable }
           else
             begin
+              { we have to be able to take the address of the absolute
+                expression
+              }
+              valid_for_addr(pt,true);
               { remove subscriptn before checking for loadn }
               hp:=pt;
               while (hp.nodetype in [subscriptn,typeconvn,vecn]) do
-                hp:=tunarynode(hp).left;
+                begin
+                  { check for implicit dereferencing and reject it }
+                  if (hp.nodetype in [subscriptn,vecn]) then
+                    begin
+                      if (tunarynode(hp).left.resultdef.typ in [pointerdef,classrefdef]) then
+                        break;
+                      { catch, e.g., 'var b: char absolute pchar_var[5];"
+                        (pchar_var[5] is a pchar_2_string typeconv ->
+                         the vecn only sees an array of char)
+                        I don't know if all of these type conversions are
+                        possible, but they're definitely all bad.
+                      }
+                      if (tunarynode(hp).left.nodetype=typeconvn) and
+                         (ttypeconvnode(tunarynode(hp).left).convtype in
+                           [tc_pchar_2_string,tc_pointer_2_array,
+                            tc_intf_2_string,tc_intf_2_guid,
+                            tc_dynarray_2_variant,tc_interface_2_variant,
+                            tc_array_2_dynarray]) then
+                        break;
+
+                      if (tunarynode(hp).left.resultdef.typ=stringdef) and
+                         not(tstringdef(tunarynode(hp).left.resultdef).stringtype in [st_shortstring,st_longstring]) then
+                        break;
+                      if (tunarynode(hp).left.resultdef.typ=objectdef) and
+                         (tobjectdef(tunarynode(hp).left.resultdef).objecttype<>odt_object) then
+                        break;
+                      if is_dynamic_array(tunarynode(hp).left.resultdef) then
+                        break;
+                    end;
+                  hp:=tunarynode(hp).left;
+                end;
               if (hp.nodetype=loadn) then
                 begin
                   { we should check the result type of loadn }
@@ -1064,6 +1198,7 @@ implementation
          allowdefaultvalue,
          hasdefaultvalue : boolean;
          hintsymoptions  : tsymoptions;
+         deprecatedmsg   : pshortstring;
          old_block_type  : tblock_type;
       begin
          old_block_type:=block_type;
@@ -1141,12 +1276,16 @@ implementation
 
              { try to parse the hint directives }
              hintsymoptions:=[];
-             try_consume_hintdirective(hintsymoptions);
+             deprecatedmsg:=nil;
+             try_consume_hintdirective(hintsymoptions,deprecatedmsg);
              for i:=0 to sc.count-1 do
                begin
                  vs:=tabstractvarsym(sc[i]);
                  vs.symoptions := vs.symoptions + hintsymoptions;
+                 if deprecatedmsg<>nil then
+                   vs.deprecatedmsg:=stringdup(deprecatedmsg^);
                end;
+             stringdispose(deprecatedmsg);
 
              { Handling of Delphi typed const = initialized vars }
              if allowdefaultvalue and
@@ -1238,23 +1377,20 @@ implementation
          srsymtable : TSymtable;
          visibility : tvisibility;
          recst : tabstractrecordsymtable;
+         recstlist : tfpobjectlist;
          unionsymtable : trecordsymtable;
          offset : longint;
          uniondef : trecorddef;
          hintsymoptions : tsymoptions;
+         deprecatedmsg : pshortstring;
          semicoloneaten: boolean;
-{$ifdef support_llvm}
-         is_first_field: boolean;
-{$endif support_llvm}
 {$if defined(powerpc) or defined(powerpc64)}
          tempdef: tdef;
          is_first_type: boolean;
 {$endif powerpc or powerpc64}
+         sl       : tpropaccesslist;
       begin
          recst:=tabstractrecordsymtable(symtablestack.top);
-{$ifdef support_llvm}
-         is_first_field:=true;
-{$endif support_llvm}
 {$if defined(powerpc) or defined(powerpc64)}
          is_first_type:=true;
 {$endif powerpc or powerpc64}
@@ -1263,6 +1399,7 @@ implementation
           consume(_ID);
          { read vars }
          sc:=TFPObjectList.create(false);
+         recstlist:=TFPObjectList.create(false);;
          while (token=_ID) and
             not((vd_object in options) and
                 (idtoken in [_PUBLIC,_PRIVATE,_PUBLISHED,_PROTECTED,_STRICT])) do
@@ -1282,12 +1419,28 @@ implementation
              until not try_to_consume(_COMMA);
              consume(_COLON);
 
-             { Don't search in the recordsymtable for types }
-             if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) then
-               symtablestack.pop(recst);
+             { Don't search in the recordsymtable for types (can be nested!) }
+             recstlist.count:=0;
+             if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) and
+                 not is_class_or_object(tdef(recst.defowner)) then
+               begin
+                 recstlist.add(recst);
+                 symtablestack.pop(recst);
+                 while (symtablestack.top.symtabletype=recordsymtable) and
+                       ([df_generic,df_specialization]*tdef(symtablestack.top.defowner).defoptions=[]) do
+                   begin
+                     recst:=tabstractrecordsymtable(symtablestack.top);
+                     recstlist.add(recst);
+                     symtablestack.pop(recst);
+                   end;
+               end;
              read_anon_type(hdef,false);
-             if ([df_generic,df_specialization]*tdef(recst.defowner).defoptions=[]) then
-               symtablestack.push(recst);
+             { restore stack }
+             for i:=recstlist.count-1 downto 0 do
+               begin
+                 recst:=tabstractrecordsymtable(recstlist[i]);
+                 symtablestack.push(recst);
+               end;
 
              { Process procvar directives }
              if maybe_parse_proc_directives(hdef) then
@@ -1327,21 +1480,13 @@ implementation
              { types that use init/final are not allowed in variant parts, but
                classes are allowed }
              if (variantrecordlevel>0) and
-                (hdef.needs_inittable and not is_class(hdef)) then
+                is_managed_type(hdef) then
                Message(parser_e_cant_use_inittable_here);
 
              { try to parse the hint directives }
              hintsymoptions:=[];
-             try_consume_hintdirective(hintsymoptions);
-
-{$ifdef support_llvm}
-             { mark first field }
-             if (is_first_field) then
-               begin
-                 include(tfieldvarsym(sc[0]).varoptions,vo_is_first_field);
-                 is_first_field:=false;
-               end;
-{$endif support_llvm}
+             deprecatedmsg:=nil;
+             try_consume_hintdirective(hintsymoptions,deprecatedmsg);
 
              { update variable type and hints }
              for i:=0 to sc.count-1 do
@@ -1350,7 +1495,10 @@ implementation
                  fieldvs.vardef:=hdef;
                  { insert any additional hint directives }
                  fieldvs.symoptions := fieldvs.symoptions + hintsymoptions;
+                 if deprecatedmsg<>nil then
+                   fieldvs.deprecatedmsg:=stringdup(deprecatedmsg^);
                end;
+               stringdispose(deprecatedmsg);
 
              { Records and objects can't have default values }
              { for a record there doesn't need to be a ; before the END or )    }
@@ -1366,23 +1514,34 @@ implementation
                 (hdef.typesym=nil) then
                handle_calling_convention(tprocvardef(hdef));
 
-             { Check for STATIC directive }
-             if (vd_object in options) and
-                (cs_static_keyword in current_settings.moduleswitches) and
-                (try_to_consume(_STATIC)) then
+             { check if it is a class field }
+             if (vd_object in options) then
                begin
-                 { add static flag and staticvarsyms }
-                 for i:=0 to sc.count-1 do
+                 { if it is not a class var section and token=STATIC then it is a class field too }
+                 if not (vd_class in options) and try_to_consume(_STATIC) then
                    begin
-                     fieldvs:=tfieldvarsym(sc[i]);
-                     include(fieldvs.symoptions,sp_static);
-                     hstaticvs:=tstaticvarsym.create('$'+lower(symtablestack.top.name^)+'_'+fieldvs.name,vs_value,hdef,[]);
-                     recst.defowner.owner.insert(hstaticvs);
-                     insertbssdata(hstaticvs);
+                     consume(_SEMICOLON);
+                     include(options, vd_class);
                    end;
-                 consume(_SEMICOLON);
+                 if vd_class in options then
+                 begin
+                   { add static flag and staticvarsyms }
+                   for i:=0 to sc.count-1 do
+                     begin
+                       fieldvs:=tfieldvarsym(sc[i]);
+                       include(fieldvs.symoptions,sp_static);
+                       { generate the symbol which reserves the space }
+                       hstaticvs:=tstaticvarsym.create('$_static_'+lower(symtablestack.top.name^)+'_'+fieldvs.name,vs_value,hdef,[]);
+                       include(hstaticvs.symoptions,sp_internal);
+                       recst.defowner.owner.insert(hstaticvs);
+                       insertbssdata(hstaticvs);
+                       { generate the symbol for the access }
+                       sl:=tpropaccesslist.create;
+                       sl.addsym(sl_load,hstaticvs);
+                       recst.insert(tabsolutevarsym.create_ref('$'+lower(symtablestack.top.name^)+'_'+fieldvs.name,hdef,sl));
+                     end;
+                 end;
                end;
-
              if (visibility=vis_published) and
                 not(is_class(hdef)) then
                begin
@@ -1407,6 +1566,7 @@ implementation
                    recst.addfield(fieldvs,visibility);
                end;
            end;
+          recstlist.free;
 
          { Check for Case }
          if (vd_record in options) and
@@ -1430,14 +1590,6 @@ implementation
               read_anon_type(casetype,true);
               if assigned(fieldvs) then
                 begin
-{$ifdef support_llvm}
-                 { mark first field if not yet marked }
-                 if (is_first_field) then
-                   begin
-                     include(fieldvs.varoptions,vo_is_first_field);
-                     is_first_field:=false;
-                   end;
-{$endif support_llvm}
                   fieldvs.vardef:=casetype;
                   recst.addfield(fieldvs,recst.currentvisibility);
                 end;
@@ -1515,6 +1667,8 @@ implementation
                 { 1 byte alignment if we are bitpacked }
                 bit_alignment:
                   usedalign:=1;
+                mac68k_alignment:
+                  usedalign:=2;
                 { otherwise alignment at the packrecords alignment of the }
                 { current record                                          }
                 else

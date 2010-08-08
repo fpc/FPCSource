@@ -62,8 +62,6 @@ begin
       with T.Dependencies do
         begin
           AddInclude('jedi-sdl.inc');
-          AddUnit('pthreads');
-          AddUnit('xlib');
         end;
     T:=P.Targets.AddUnit('sdl_ttf.pas');
       with T.Dependencies do
@@ -71,11 +69,10 @@ begin
           AddInclude('jedi-sdl.inc');
           AddUnit('sdl');
         end;
-    T:=P.Targets.AddUnit('sdlutils.pas');
+    T:=P.Targets.AddUnit('sdlutils.pas',[i386,powerpc],[linux,freebsd,win32,darwin]);
       with T.Dependencies do
         begin
           AddInclude('jedi-sdl.inc');
-          AddUnit('xlib');
           AddUnit('sdl');
         end;
     T:=P.Targets.AddUnit('smpeg.pas');
@@ -87,7 +84,7 @@ begin
     P.Sources.AddSrc('LGPL');
     P.Sources.AddSrc('LGPL.addon');
     P.Sources.AddSrc('MPL-1.1');
-    P.Sources.AddSrc('README');
+    P.Sources.AddSrc('README.txt');
 
 {$ifndef ALLPACKAGES}
     Run;

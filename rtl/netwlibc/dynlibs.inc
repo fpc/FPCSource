@@ -24,6 +24,8 @@ Type
 
 Const
   NilHandle = Nil;
+// these are for easier crossplatform construction of dll names in dynloading libs.
+  SharedSuffix = 'so';
 
 {$else}
 

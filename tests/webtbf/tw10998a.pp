@@ -2,7 +2,7 @@
 
 program statictest;
 
-{$mode delphi}{$STATIC ON}
+{$mode delphi}
 
 type
   TMyClass = class

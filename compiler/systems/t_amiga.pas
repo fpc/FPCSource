@@ -53,15 +53,6 @@ implementation
        cutils,cfileutl,cclasses,
        globtype,globals,systems,verbose,script,fmodule,i_amiga;
 
-{$IF DEFINED(MORPHOS) OR DEFINED(AMIGA)}
-{ * PathConv is implemented in the system unit! * }
-function PathConv(path: string): string; external name 'PATHCONV';
-{$ELSE}
-function PathConv(path: string): string;
-begin
-  PathConv:=path;
-end;
-{$ENDIF}
 
 
 {****************************************************************************
@@ -127,7 +118,7 @@ begin
    begin
     s:=HPath.Str;
     if s<>'' then
-     LinkRes.Add('SEARCH_DIR('+PathConv(maybequoted(s))+')');
+     LinkRes.Add('SEARCH_DIR('+Unix2AmigaPath(maybequoted(s))+')');
     HPath:=TCmdStrListItem(HPath.Next);
    end;
 
@@ -140,7 +131,7 @@ begin
     s:=ObjectFiles.GetFirst;
     if s<>'' then
      begin
-      LinkRes.AddFileName(PathConv(maybequoted(s)));
+      LinkRes.AddFileName(Unix2AmigaPath(maybequoted(s)));
      end;
    end;
 
@@ -152,7 +143,7 @@ begin
     while not StaticLibFiles.Empty do
      begin
       S:=StaticLibFiles.GetFirst;
-      LinkRes.AddFileName(PathConv(maybequoted(s)));
+      LinkRes.AddFileName(Unix2AmigaPath(maybequoted(s)));
      end;
    end;
 
@@ -216,8 +207,8 @@ begin
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$EXE',PathConv(maybequoted(ScriptFixFileName(current_module.exefilename^))));
-  Replace(cmdstr,'$RES',PathConv(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+  Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename^))));
+  Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
   Replace(cmdstr,'$STRIP',StripStr);
   MakeAmiga68kExe:=DoExec(FindUtil(BinStr),CmdStr,true,false);
 end;
@@ -235,8 +226,8 @@ begin
   { Call linker }
   SplitBinCmd(Info.ExeCmd[1],BinStr,CmdStr);
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
-  Replace(cmdstr,'$EXE',PathConv(maybequoted(ScriptFixFileName(current_module.exefilename^))));
-  Replace(cmdstr,'$RES',PathConv(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+  Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename^))));
+  Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
   Replace(cmdstr,'$STRIP',StripStr);
   MakeAmigaPPCExe:=DoExec(FindUtil(BinStr),CmdStr,true,false);
 end;

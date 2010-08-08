@@ -45,6 +45,9 @@ implementation
     {$ifndef NOTARGETWIN}
       ,t_win
     {$endif}
+    {$ifndef NOTARGETSUNOS}
+      ,t_sunos
+    {$endif}
 
 {**************************************
              Assemblers

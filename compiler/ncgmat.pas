@@ -239,7 +239,7 @@ implementation
         location_copy(location,left.location);
         location_force_reg(current_asmdata.CurrAsmList,location,OS_SINT,false);
         cg.a_op_reg_reg(current_asmdata.CurrAsmList,OP_NEG,OS_SINT,location.register,location.register);
-        
+
         if (cs_check_overflow in current_settings.localswitches) then
           begin
             current_asmdata.getjumplabel(hl);
@@ -368,9 +368,8 @@ implementation
                   cg.a_cmp_const_reg_label(current_asmdata.CurrAsmList,OS_INT,OC_NE,0,hdenom,hl);
                   paraloc1.init;
                   paramanager.getintparaloc(pocall_default,1,paraloc1);
-                  paramanager.allocparaloc(current_asmdata.CurrAsmList,paraloc1);
-                  cg.a_param_const(current_asmdata.CurrAsmList,OS_S32,200,paraloc1);
-                  paramanager.freeparaloc(current_asmdata.CurrAsmList,paraloc1);
+                  cg.a_load_const_cgpara(current_asmdata.CurrAsmList,OS_S32,200,paraloc1);
+                  paramanager.freecgpara(current_asmdata.CurrAsmList,paraloc1);
                   cg.a_call_name(current_asmdata.CurrAsmList,'FPC_HANDLEERROR',false);
                   paraloc1.done;
                   cg.a_label(current_asmdata.CurrAsmList,hl);
@@ -412,12 +411,13 @@ implementation
            shrn: op:=OP_SHR;
          end;
          { load left operators in a register }
-         location_copy(location,left.location);
          if is_signed(left.resultdef) then
            opsize:=OS_SINT
          else
            opsize:=OS_INT;
-         location_force_reg(current_asmdata.CurrAsmList,location,opsize,false);
+         location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+         location_reset(location,LOC_REGISTER,opsize);
+         location.register:=cg.getintregister(current_asmdata.CurrAsmList,opsize);
 
          { shifting by a constant directly coded: }
          if (right.nodetype=ordconstn) then
@@ -425,8 +425,8 @@ implementation
               { l shl 32 should 0 imho, but neither TP nor Delphi do it in this way (FK)
               if right.value<=31 then
               }
-              cg.a_op_const_reg(current_asmdata.CurrAsmList,op,location.size,
-                tordconstnode(right).value.uvalue and 31,location.register);
+              cg.a_op_const_reg_reg(current_asmdata.CurrAsmList,op,location.size,
+                tordconstnode(right).value.uvalue and 31,left.location.register,location.register);
               {
               else
                 emit_reg_reg(A_XOR,S_L,hregister1,
@@ -446,7 +446,7 @@ implementation
                 end
               else
                 hcountreg:=right.location.register;
-              cg.a_op_reg_reg(current_asmdata.CurrAsmList,op,opsize,hcountreg,location.register);
+              cg.a_op_reg_reg_reg(current_asmdata.CurrAsmList,op,opsize,hcountreg,left.location.register,location.register);
            end;
       end;
 

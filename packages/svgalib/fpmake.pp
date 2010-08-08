@@ -22,7 +22,7 @@ begin
     T:=P.Targets.AddUnit('svgalib.pp');
     T:=P.Targets.AddUnit('vgamouse.pp');
 
-    P.Sources.AddSrc('README');
+    P.Sources.AddSrc('README.txt');
  
     P.ExamplePath.Add('tests/');
     P.Targets.AddExampleProgram('testvga.pp');

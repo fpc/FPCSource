@@ -33,17 +33,17 @@
 {$ENDIF}
 
 {$IFDEF FUNCTION}
-function xmlSaveToFd(fd: cint; encoding: pchar; options: cint): xmlSaveCtxtPtr; XMLCALL; XMLPUBFUN;
-function xmlSaveToFilename(filename: pchar; encoding: pchar; options: cint): xmlSaveCtxtPtr; XMLCALL; XMLPUBFUN;
-function xmlSaveToBuffer(buffer: xmlBufferPtr; encoding: pchar; options: cint): xmlSaveCtxtPtr; XMLCALL; XMLPUBFUN;
-function xmlSaveToIO(iowrite: xmlOutputWriteCallback; ioclose: xmlOutputCloseCallback; ioctx: pointer; encoding: pchar; options: cint): xmlSaveCtxtPtr; XMLCALL; XMLPUBFUN;
+function xmlSaveToFd(fd: cint; encoding: pchar; options: cint): xmlSaveCtxtPtr; EXTDECL; external xml2lib;
+function xmlSaveToFilename(filename: pchar; encoding: pchar; options: cint): xmlSaveCtxtPtr; EXTDECL; external xml2lib;
+function xmlSaveToBuffer(buffer: xmlBufferPtr; encoding: pchar; options: cint): xmlSaveCtxtPtr; EXTDECL; external xml2lib;
+function xmlSaveToIO(iowrite: xmlOutputWriteCallback; ioclose: xmlOutputCloseCallback; ioctx: pointer; encoding: pchar; options: cint): xmlSaveCtxtPtr; EXTDECL; external xml2lib;
 
-function xmlSaveDoc(ctxt: xmlSaveCtxtPtr; doc: xmlDocPtr): clong; XMLCALL; XMLPUBFUN;
-function xmlSaveTree(ctxt: xmlSaveCtxtPtr; node: xmlNodePtr): clong; XMLCALL; XMLPUBFUN;
-function xmlSaveFlush(ctxt: xmlSaveCtxtPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlSaveClose(ctxt: xmlSaveCtxtPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlSaveSetEscape(ctxt: xmlSaveCtxtPtr; escape: xmlCharEncodingOutputFunc): cint; XMLCALL; XMLPUBFUN;
-function xmlSaveSetAttrEscape(ctxt: xmlSaveCtxtPtr; escape: xmlCharEncodingOutputFunc): cint; XMLCALL; XMLPUBFUN;
+function xmlSaveDoc(ctxt: xmlSaveCtxtPtr; doc: xmlDocPtr): clong; EXTDECL; external xml2lib;
+function xmlSaveTree(ctxt: xmlSaveCtxtPtr; node: xmlNodePtr): clong; EXTDECL; external xml2lib;
+function xmlSaveFlush(ctxt: xmlSaveCtxtPtr): cint; EXTDECL; external xml2lib;
+function xmlSaveClose(ctxt: xmlSaveCtxtPtr): cint; EXTDECL; external xml2lib;
+function xmlSaveSetEscape(ctxt: xmlSaveCtxtPtr; escape: xmlCharEncodingOutputFunc): cint; EXTDECL; external xml2lib;
+function xmlSaveSetAttrEscape(ctxt: xmlSaveCtxtPtr; escape: xmlCharEncodingOutputFunc): cint; EXTDECL; external xml2lib;
 {$ENDIF}
 {$ENDIF} (* LIBXML_OUTPUT_ENABLED *)
 

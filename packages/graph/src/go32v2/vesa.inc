@@ -337,34 +337,17 @@ end;
        SearchVESAModes := ModeSupported;
     end;
 
-
-
-  procedure SetBankIndex(win: byte; BankNr: smallint); assembler;
-   asm
-{$IFDEF REGCALL}
-     mov  bl, al
-{$ELSE REGCALL}
-     mov  bl,[Win]
-{$ENDIF REGCALL}
-     mov  ax,4f05h
-     mov  bh,00h
-{$IFNDEF REGCALL}
-     mov  dx,[BankNr]
-{$ENDIF REGCALL}
-{$ifdef fpc}
-     push ebp
-     push esi
-     push edi
-     push ebx
-{$endif fpc}
-     int  10h
-{$ifdef fpc}
-     pop ebx
-     pop edi
-     pop esi
-     pop ebp
-{$endif fpc}
-   end ['EDX','EBX','EAX'];
+procedure SetBankIndex(win: byte; BankNr: smallint);
+{I don't know why but the previous assembler version changed by some mechanism
+ unknown to me some places in memory what lead to changing some variables not
+ belonging to this procedure (Laaca)}
+var r:TDPMIregisters;
+begin
+  r.ax:=$4f05;
+  r.bx:=win;
+  r.dx:=BankNr;
+  RealIntr($10,r);
+end;
 
   {********************************************************}
   { There are two routines for setting banks. This may in  }
@@ -1318,6 +1301,9 @@ end;
   procedure PutPixVESA32kOr64k(x, y : smallint; color : word); {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
+     place: word;
+     bank : shortint;
+
   begin
 {$ifdef logging}
      logln('putpixvesa32kor64k('+strf(x)+','+strf(y)+')');
@@ -1334,11 +1320,14 @@ end;
      end;
      Y := Y + YOffset; { adjust pixel for correct virtual page }
      offs := longint(y) * BytesPerLine + 2*x;
-     SetWriteBank(smallint(offs shr 16));
+     bank := offs div 65536;
+     place:= offs mod 65536;
+     SetWriteBank(bank);
+
 {$ifdef logging}
      logln('putpixvesa32kor64k offset: '+strf(word(offs)));
 {$endif logging}
-     memW[WinWriteSeg : word(offs)] := color;
+     memW[WinWriteSeg : place] := color;
   end;
 
   function GetPixVESA32kOr64k(x, y : smallint): word; {$ifndef fpc}far;{$endif fpc}
@@ -1355,29 +1344,34 @@ end;
   procedure DirectPutPixVESA32kOr64k(x, y : smallint); {$ifndef fpc}far;{$endif fpc}
   var
      offs : longint;
-     col : word;
+     bank : smallint;
+     place,col : word;
   begin
 {$ifdef logging}
      logln('directputpixvesa32kor64k('+strf(x)+','+strf(y)+')');
 {$endif logging}
      y:= Y + YOffset;
+
      offs := longint(y) * BytesPerLine + 2*x;
-     SetWriteBank(smallint((offs shr 16) and $ff));
+     bank:=offs div 65536;
+     place:=offs mod 65536;
+
+     SetWriteBank(bank and $FF); // unknown why this and $FF is here.
      Case CurrentWriteMode of
        XorPut:
          Begin
-           SetReadBank(smallint(offs shr 16));
-           memW[WinWriteSeg : word(offs)] := memW[WinReadSeg : word(offs)] xor currentcolor;
+           SetReadBank(bank);
+           memW[WinWriteSeg : place] := memW[WinReadSeg : place] xor currentcolor;
          End;
        AndPut:
          Begin
-           SetReadBank(smallint(offs shr 16));
-           memW[WinWriteSeg : word(offs)] := memW[WinReadSeg : word(offs)] And currentcolor;
+           SetReadBank(bank);
+           memW[WinWriteSeg : place] := memW[WinReadSeg : place] And currentcolor;
          End;
        OrPut:
          Begin
-           SetReadBank(smallint(offs shr 16));
-           memW[WinWriteSeg : word(offs)] := memW[WinReadSeg : word(offs)] or currentcolor;
+           SetReadBank(bank);
+           memW[WinWriteSeg : place] := memW[WinReadSeg : place] or currentcolor;
          End
        else
          Begin
@@ -1387,7 +1381,7 @@ end;
 {$ifdef logging}
            logln('directputpixvesa32kor64k offset: '+strf(word(offs)));
 {$endif logging}
-           memW[WinWriteSeg : word(offs)] := Col;
+           memW[WinWriteSeg : place] := Col;
          End
      End;
   end;
@@ -1501,6 +1495,7 @@ end;
      Y := Y + YOffset; { adjust pixel for correct virtual page }
      { }
      offs := longint(y) * BytesPerLine + (x div 8);
+     SetReadBank(smallint(offs shr 16));
      SetWriteBank(smallint(offs shr 16));
 
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
@@ -1509,8 +1504,8 @@ end;
      Port[$3ce] := 8;           { Index 08 : Bitmask register.          }
      Port[$3cf] := $80 shr (x and $7); { Select correct bits to modify }
 
-     dummy := Mem[WinWriteSeg: offs];  { Latch the data into host space.  }
-     Mem[WinWriteSeg: offs] := dummy;  { Write the data into video memory }
+     dummy := Mem[WinReadSeg: word(offs)];  { Latch the data into host space.  }
+     Mem[WinWriteSeg: word(offs)] := dummy;  { Write the data into video memory }
      PortW[$3ce] := $ff08;         { Enable all bit planes.           }
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
      { }
@@ -1518,7 +1513,8 @@ end;
 
 
  Function GetPixVESA16(X,Y: smallint):word; {$ifndef fpc}far;{$endif fpc}
- Var dummy, offset: Word;
+ Var dummy: Word;
+     offset: longint;
      shift: byte;
   Begin
     X:= X + StartXViewPort;
@@ -1528,13 +1524,13 @@ end;
     Port[$3ce] := 4;
     shift := 7 - (X and 7);
     Port[$3cf] := 0;
-    dummy := (Mem[WinReadSeg:offset] shr shift) and 1;
+    dummy := (Mem[WinReadSeg:word(offset)] shr shift) and 1;
     Port[$3cf] := 1;
-    dummy := dummy or (((Mem[WinReadSeg:offset] shr shift) and 1) shl 1);
+    dummy := dummy or (((Mem[WinReadSeg:word(offset)] shr shift) and 1) shl 1);
     Port[$3cf] := 2;
-    dummy := dummy or (((Mem[WinReadSeg:offset] shr shift) and 1) shl 2);
+    dummy := dummy or (((Mem[WinReadSeg:word(offset)] shr shift) and 1) shl 2);
     Port[$3cf] := 3;
-    dummy := dummy or (((Mem[WinReadSeg:offset] shr shift) and 1) shl 3);
+    dummy := dummy or (((Mem[WinReadSeg:word(offset)] shr shift) and 1) shl 3);
     GetPixVESA16 := dummy;
   end;
 
@@ -1545,7 +1541,6 @@ end;
      dummy : byte;
      Color : word;
   begin
-    y:= Y + YOffset;
     case CurrentWriteMode of
       XORPut:
         begin
@@ -1572,7 +1567,9 @@ end;
       else
         Color := CurrentColor;
     end;
+     Y := Y + YOffset;
      offs := longint(y) * BytesPerLine + (x div 8);
+     SetReadBank(smallint(offs shr 16));
      SetWriteBank(smallint(offs shr 16));
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
      PortW[$3ce] := color shl 8; { Index 00 : Enable correct plane and write color }
@@ -1580,11 +1577,154 @@ end;
      Port[$3ce] := 8;           { Index 08 : Bitmask register.          }
      Port[$3cf] := $80 shr (x and $7); { Select correct bits to modify }
 
-     dummy := Mem[WinWriteSeg: offs];  { Latch the data into host space.  }
-     Mem[WinWriteSeg: offs] := dummy;  { Write the data into video memory }
+     dummy := Mem[WinReadSeg: word(offs)];  { Latch the data into host space.  }
+     Mem[WinWriteSeg: word(offs)] := dummy;  { Write the data into video memory }
      PortW[$3ce] := $ff08;         { Enable all bit planes.           }
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
   end;
+
+  
+  procedure HLineVESA16(x,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
+  var
+      xtmp: smallint;
+      ScrOfs, BankRest: longint;
+      HLength : word;
+      LMask,RMask : byte;
+  begin
+
+    { must we swap the values? }
+    if x > x2 then
+      Begin
+        xtmp := x2;
+        x2 := x;
+        x:= xtmp;
+      end;
+    { First convert to global coordinates }
+    X   := X + StartXViewPort;
+    X2  := X2 + StartXViewPort;
+    Y   := Y + StartYViewPort;
+    if ClipPixels then
+      Begin
+         if LineClipped(x,y,x2,y,StartXViewPort,StartYViewPort,
+                StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+            exit;
+      end;
+    Y := Y + YOffset;
+    ScrOfs := longint(y) * BytesPerLine + (x div 8);
+    SetReadBank(smallint(ScrOfs shr 16));
+    SetWriteBank(smallint(ScrOfs shr 16));
+    HLength:=x2 div 8-x div 8;
+    LMask:=$ff shr (x and 7);
+{$ifopt r+}
+{$define rangeOn}
+{$r-}
+{$endif}
+{$ifopt q+}
+{$define overflowOn}
+{$q-}
+{$endif}
+    RMask:=$ff shl (7-(x2 and 7));
+{$ifdef rangeOn}
+{$undef rangeOn}
+{$r+}
+{$endif}
+{$ifdef overflowOn}
+{$undef overflowOn}
+{$q+}
+{$endif}
+    if HLength=0 then
+      LMask:=LMask and RMask;
+    Port[$3ce]:=0;
+    If CurrentWriteMode <> NotPut Then
+      Port[$3cf]:= CurrentColor
+    else Port[$3cf]:= not CurrentColor;
+    Port[$3ce]:=1;
+    Port[$3cf]:=$f;
+    Port[$3ce]:=3;
+    case CurrentWriteMode of
+       XORPut:
+         Port[$3cf]:=3 shl 3;
+       ANDPut:
+         Port[$3cf]:=1 shl 3;
+       ORPut:
+         Port[$3cf]:=2 shl 3;
+       NormalPut, NotPut:
+         Port[$3cf]:=0
+       else
+         Port[$3cf]:=0
+    end;
+
+    Port[$3ce]:=8;
+    Port[$3cf]:=LMask;
+{$ifopt r+}
+{$define rangeOn}
+{$r-}
+{$endif}
+{$ifopt q+}
+{$define overflowOn}
+{$q-}
+{$endif}
+    Mem[WinWriteSeg:word(ScrOfs)]:=Mem[WinReadSeg:word(ScrOfs)]+1;
+{$ifdef rangeOn}
+{$undef rangeOn}
+{$r+}
+{$endif}
+{$ifdef overflowOn}
+{$undef overflowOn}
+{$q+}
+{$endif}
+    Port[$3ce]:=8;
+    if HLength>0 then
+      begin
+         dec(HLength);
+         inc(ScrOfs);
+         while (HLength>0) do
+           begin
+              SetReadBank(smallint(ScrOfs shr 16));
+              SetWriteBank(smallint(ScrOfs shr 16));
+              Port[$3cf]:=$ff;
+              if HLength <= ($10000-(ScrOfs and $ffff)) Then
+                 BankRest := HLength
+              else {the rest won't fit anymore in the current window }
+                BankRest := $10000 - (ScrOfs and $ffff);
+{$ifndef tp}
+              seg_bytemove(dosmemselector,(WinReadSeg shl 4)+word(ScrOfs),dosmemselector,(WinWriteSeg shl 4)+word(ScrOfs),BankRest);
+{$else}
+              move(Ptr(WinReadSeg,word(ScrOfs))^, Ptr(WinWriteSeg,word(ScrOfs))^, BankRest);
+{$endif}
+              ScrOfs := ScrOfs + BankRest;
+              HLength := HLength - BankRest;
+           end;
+         SetReadBank(smallint(ScrOfs shr 16));
+         SetWriteBank(smallint(ScrOfs shr 16));
+         Port[$3cf]:=RMask;
+{$ifopt r+}
+{$define rangeOn}
+{$r-}
+{$endif}
+{$ifopt q+}
+{$define overflowOn}
+{$q-}
+{$endif}
+         Mem[WinWriteSeg:word(ScrOfs)]:=Mem[WinReadSeg:word(ScrOfs)]+1;
+{$ifdef rangeOn}
+{$undef rangeOn}
+{$r+}
+{$endif}
+{$ifdef overflowOn}
+{$undef overflowOn}
+{$q+}
+{$endif}
+      end;
+    { clean up }
+    Port[$3cf]:=0;
+    Port[$3ce]:=8;
+    Port[$3cf]:=$ff;
+    Port[$3ce]:=1;
+    Port[$3cf]:=0;
+    Port[$3ce]:=3;
+    Port[$3cf]:=0;
+   end;
 
 
 

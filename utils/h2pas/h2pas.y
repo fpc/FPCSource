@@ -315,7 +315,7 @@ program h2pas;
          flag_index:=0;
          writeln(outfile);
          writeln(outfile,aktspace,'const');
-         shift(3);
+         shift(2);
          while not eof(tempfile) do
            begin
               readln(tempfile,line);
@@ -358,7 +358,7 @@ program h2pas;
                         write_p_a_def(implemfile,hp3^.p1^.p1,hp2^.p1);
                         writeln(implemfile,';');
                         writeln(implemfile,aktspace,'begin');
-                        shift(3);
+                        shift(2);
                         write(implemfile,aktspace,name,':=(a.flag',flag_index);
                         writeln(implemfile,' and bm_',ph,'_',name,') shr bp_',ph,'_',name,';');
                         popshift;
@@ -381,7 +381,7 @@ program h2pas;
                         write_p_a_def(implemfile,hp3^.p1^.p1,hp2^.p1);
                         writeln(implemfile,');');
                         writeln(implemfile,aktspace,'begin');
-                        shift(3);
+                        shift(2);
                         write(implemfile,aktspace,'a.flag',flag_index,':=');
                         write(implemfile,'a.flag',flag_index,' or ');
                         writeln(implemfile,'((__',name,' shl bp_',ph,'_',name,') and bm_',ph,'_',name,');');
@@ -559,8 +559,6 @@ program h2pas;
                end;
              t_funcname :
                begin
-                  if not compactmode then
-                   shift(2);
                   if if_nb>0 then
                     begin
                        writeln(outfile,aktspace,'var');
@@ -577,7 +575,7 @@ program h2pas;
                        if_nb:=0;
                     end;
                   writeln(outfile,aktspace,'begin');
-                  shift(3);
+                  shift(2);
                   write(outfile,aktspace);
                   write_all_ifexpr(outfile,p^.p2);
                   write_expr(outfile,p^.p1);
@@ -762,109 +760,111 @@ program h2pas;
               exit;
            end;
          case p^.typ of
-            t_pointerdef : begin
-                              (* procedure variable ? *)
-                              if assigned(p^.p1) and (p^.p1^.typ=t_procdef) then
-                                begin
-                                   is_procvar:=true;
-                                   (* distinguish between procedure and function *)
-                                   if (simple_type^.typ=t_void) and (p^.p1^.p1=nil) then
-                                     begin
-                                        write(outfile,'procedure ');
+            t_pointerdef :
+              begin
+                (* procedure variable ? *)
+                if assigned(p^.p1) and (p^.p1^.typ=t_procdef) then
+                  begin
+                     is_procvar:=true;
+                     (* distinguish between procedure and function *)
+                     if (simple_type^.typ=t_void) and (p^.p1^.p1=nil) then
+                       begin
+                          write(outfile,'procedure ');
 
-                                        shift(10);
-                                        (* write arguments *)
-                                        if assigned(p^.p1^.p2) then
-                                          write_args(outfile,p^.p1^.p2);
-                                        flush(outfile);
-                                        popshift;
-                                     end
-                                   else
-                                     begin
-                                        write(outfile,'function ');
-                                        shift(9);
-                                        (* write arguments *)
-                                        if assigned(p^.p1^.p2) then
-                                          write_args(outfile,p^.p1^.p2);
-                                        write(outfile,':');
-                                        flush(outfile);
-                                        write_p_a_def(outfile,p^.p1^.p1,simple_type);
-                                        popshift;
-                                     end
-                                end
-                              else
-                                begin
-                                   (* generate "pointer" ? *)
-                                   if (simple_type^.typ=t_void) and (p^.p1=nil) then
-                                     begin
-                                       write(outfile,'pointer');
-                                       flush(outfile);
-                                     end
-                                   else
-                                     begin
-                                       pointerwritten:=false;
-                                       if (p^.p1=nil) and UsePPointers then
-                                        begin
-                                          if (simple_type^.typ=t_id) then
-                                           begin
-                                             write(outfile,PointerName(simple_type^.p));
-                                             pointerwritten:=true;
-                                           end
-                                          { structure }
-                                          else if (simple_type^.typ in [t_uniondef,t_structdef]) and
-                                                  (simple_type^.p1=nil) and (simple_type^.p2^.typ=t_id) then
-                                           begin
-                                             write(outfile,PointerName(simple_type^.p2^.p));
-                                             pointerwritten:=true;
-                                           end;
-                                        end;
-                                      if not pointerwritten then
-                                       begin
-                                         if in_args then
-                                         begin
-                                          write(outfile,'P');
-                                          pointerprefix:=true;
-                                         end
-                                         else
-                                          write(outfile,'^');
-                                         write_p_a_def(outfile,p^.p1,simple_type);
-                                         pointerprefix:=false;
-                                       end;
-                                     end;
-                                end;
-                           end;
-            t_arraydef : begin
-                             constant:=false;
-                             if assigned(p^.p2) then
-                              begin
-                                if p^.p2^.typ=t_id then
-                                 begin
-                                   val(p^.p2^.str,i,error);
-                                   if error=0 then
-                                    begin
-                                      dec(i);
-                                      constant:=true;
-                                    end;
-                                 end;
-                                if not constant then
-                                 begin
-                                   write(outfile,'array[0..(');
-                                   write_expr(outfile,p^.p2);
-                                   write(outfile,')-1] of ');
-                                 end
-                                else
-                                 begin
-                                   write(outfile,'array[0..',i,'] of ');
-                                 end;
-                              end
-                             else
-                              begin
-                                (* open array *)
-                                write(outfile,'array of ');
-                              end;
-                             flush(outfile);
-                             write_p_a_def(outfile,p^.p1,simple_type);
+                          shift(10);
+                          (* write arguments *)
+                          if assigned(p^.p1^.p2) then
+                            write_args(outfile,p^.p1^.p2);
+                          flush(outfile);
+                          popshift;
+                       end
+                     else
+                       begin
+                          write(outfile,'function ');
+                          shift(9);
+                          (* write arguments *)
+                          if assigned(p^.p1^.p2) then
+                            write_args(outfile,p^.p1^.p2);
+                          write(outfile,':');
+                          flush(outfile);
+                          write_p_a_def(outfile,p^.p1^.p1,simple_type);
+                          popshift;
+                       end
+                  end
+                else
+                  begin
+                     (* generate "pointer" ? *)
+                     if (simple_type^.typ=t_void) and (p^.p1=nil) then
+                       begin
+                         write(outfile,'pointer');
+                         flush(outfile);
+                       end
+                     else
+                       begin
+                         pointerwritten:=false;
+                         if (p^.p1=nil) and UsePPointers then
+                          begin
+                            if (simple_type^.typ=t_id) then
+                             begin
+                               write(outfile,PointerName(simple_type^.p));
+                               pointerwritten:=true;
+                             end
+                            { structure }
+                            else if (simple_type^.typ in [t_uniondef,t_structdef]) and
+                                    (simple_type^.p1=nil) and (simple_type^.p2^.typ=t_id) then
+                             begin
+                               write(outfile,PointerName(simple_type^.p2^.p));
+                               pointerwritten:=true;
+                             end;
                           end;
+                        if not pointerwritten then
+                         begin
+                           if in_args then
+                           begin
+                            write(outfile,'P');
+                            pointerprefix:=true;
+                           end
+                           else
+                            write(outfile,'^');
+                           write_p_a_def(outfile,p^.p1,simple_type);
+                           pointerprefix:=false;
+                         end;
+                       end;
+                  end;
+              end;
+            t_arraydef :
+              begin
+                constant:=false;
+                if assigned(p^.p2) then
+                 begin
+                   if p^.p2^.typ=t_id then
+                    begin
+                      val(p^.p2^.str,i,error);
+                      if error=0 then
+                       begin
+                         dec(i);
+                         constant:=true;
+                       end;
+                    end;
+                   if not constant then
+                    begin
+                      write(outfile,'array[0..(');
+                      write_expr(outfile,p^.p2);
+                      write(outfile,')-1] of ');
+                    end
+                   else
+                    begin
+                      write(outfile,'array[0..',i,'] of ');
+                    end;
+                 end
+                else
+                 begin
+                   (* open array *)
+                   write(outfile,'array of ');
+                 end;
+                flush(outfile);
+                write_p_a_def(outfile,p^.p1,simple_type);
+              end;
             else internalerror(1);
          end;
       end;
@@ -1055,7 +1055,7 @@ program h2pas;
                         writeln(outfile,'packed record')
                       else
                         writeln(outfile,'record');
-                      shift(3);
+                      shift(2);
                       hp1:=p^.p1;
 
                       (* walk through all members *)
@@ -1143,10 +1143,7 @@ program h2pas;
                                      if is_procvar then
                                        begin
                                           if not no_pop then
-                                            begin
-                                               write(outfile,';cdecl');
-                                               no_pop:=true;
-                                            end;
+                                            write(outfile,';cdecl');
                                           is_procvar:=false;
                                        end;
                                      writeln(outfile,';');
@@ -1188,7 +1185,7 @@ program h2pas;
                         writeln(outfile,'record');
                       shift(2);
                       writeln(outfile,aktspace,'case longint of');
-                      shift(3);
+                      shift(2);
                       l:=0;
                       hp1:=p^.p1;
 
@@ -1545,7 +1542,7 @@ declaration :
                end;
              block_type:=bt_var;
 
-             shift(3);
+             shift(2);
 
              IsExtern:=assigned($1)and($1^.str='extern');
              (* walk through all declarations *)
@@ -1728,7 +1725,7 @@ declaration :
                end;
              block_type:=bt_var;
 
-             shift(3);
+             shift(2);
 
              IsExtern:=assigned($1)and($1^.str='extern');
              (* walk through all declarations *)
@@ -1769,45 +1766,45 @@ declaration :
             writeln(outfile,aktspace,'type');
             block_type:=bt_type;
          end;
-       shift(3);
+       shift(2);
        if ( yyv[yysp-1]^.p2  <> nil ) then
          begin
-         (* write new type name *)
-         TN:=TypeName($1^.p2^.p);
-         PN:=PointerName($1^.p2^.p);
-         (* define a Pointer type also for structs *)
-         if UsePPointers and (Uppercase(tn)<>Uppercase(pn)) and
-            assigned($1) and ($1^.typ in [t_uniondef,t_structdef]) then
-          writeln(outfile,aktspace,PN,' = ^',TN,';');
-         write(outfile,aktspace,TN,' = ');
-         shift(2);
-         hp:=$1;
-         write_type_specifier(outfile,hp);
-         popshift;
-         (* enum_to_const can make a switch to const *)
-         if block_type=bt_type then
-          writeln(outfile,';');
-         writeln(outfile);
-         flush(outfile);
-         popshift;
-         if must_write_packed_field then
-           write_packed_fields_info(outfile,hp,TN);
-         if assigned(hp) then
-           dispose(hp,done)
+           (* write new type name *)
+           TN:=TypeName($1^.p2^.p);
+           PN:=PointerName($1^.p2^.p);
+           (* define a Pointer type also for structs *)
+           if UsePPointers and (Uppercase(tn)<>Uppercase(pn)) and
+              assigned($1) and ($1^.typ in [t_uniondef,t_structdef]) then
+            writeln(outfile,aktspace,PN,' = ^',TN,';');
+           write(outfile,aktspace,TN,' = ');
+           shift(2);
+           hp:=$1;
+           write_type_specifier(outfile,hp);
+           popshift;
+           (* enum_to_const can make a switch to const *)
+           if block_type=bt_type then
+            writeln(outfile,';');
+           writeln(outfile);
+           flush(outfile);
+           popshift;
+           if must_write_packed_field then
+             write_packed_fields_info(outfile,hp,TN);
+           if assigned(hp) then
+             dispose(hp,done)
          end
        else
          begin
-         TN:=TypeName(yyv[yysp-1]^.str);
-         PN:=PointerName(yyv[yysp-1]^.str);
-         if UsePPointers then writeln(outfile,aktspace,PN,' = ^',TN,';');
-         if PackRecords then
-            writeln(outfile, aktspace, TN, ' = packed record')
-         else
-            writeln(outfile, aktspace, TN, ' = record');
-         writeln(outfile, aktspace, '    {undefined structure}');
-         writeln(outfile, aktspace, '  end;');
-         writeln(outfile);
-         popshift;
+           TN:=TypeName(yyv[yysp-1]^.str);
+           PN:=PointerName(yyv[yysp-1]^.str);
+           if UsePPointers then writeln(outfile,aktspace,PN,' = ^',TN,';');
+           if PackRecords then
+              writeln(outfile, aktspace, TN, ' = packed record')
+           else
+              writeln(outfile, aktspace, TN, ' = record');
+           writeln(outfile, aktspace, '    {undefined structure}');
+           writeln(outfile, aktspace, '  end;');
+           writeln(outfile);
+           popshift;
          end;
      } |
      TYPEDEF STRUCT dname dname SEMICOLON
@@ -1824,7 +1821,7 @@ declaration :
        TN:=TypeName($4^.p);
        if Uppercase(tn)<>Uppercase(pn) then
         begin
-          shift(3);
+          shift(2);
           writeln(outfile,aktspace,PN,' = ',TN,';');
           popshift;
         end;
@@ -1844,7 +1841,7 @@ declaration :
             block_type:=bt_type;
          end;
        no_pop:=assigned($4) and ($4^.str='no_pop');
-       shift(3);
+       shift(2);
        (* walk through all declarations *)
        hp:=$5;
        if assigned(hp) then
@@ -1887,9 +1884,11 @@ declaration :
               writeln(outfile);
             writeln(outfile,aktspace,'type');
             block_type:=bt_type;
-         end;
+         end
+       else
+         writeln(outfile);
        no_pop:=assigned($3) and ($3^.str='no_pop');
-       shift(3);
+       shift(2);
        (* Get the name to write the type definition for, try
           to use the tag name first *)
        if assigned($2^.p2) then
@@ -1904,7 +1903,6 @@ declaration :
         end;
        (* write type definition *)
        is_procvar:=false;
-       writeln(outfile);
        TN:=TypeName(ph^.p);
        PN:=PointerName(ph^.p);
        if UsePPointers and (Uppercase(tn)<>Uppercase(pn)) and
@@ -1913,7 +1911,7 @@ declaration :
        (* write new type name *)
        write(outfile,aktspace,TN,' = ');
        shift(2);
-       write_type_specifier(outfile,$2);
+       write_p_a_def(outfile,$4^.p1^.p1,$2);
        popshift;
        (* if no_pop it is normal fpc calling convention *)
        if is_procvar and
@@ -1963,10 +1961,11 @@ declaration :
               writeln(outfile);
             writeln(outfile,aktspace,'type');
             block_type:=bt_type;
-         end;
-       shift(3);
+         end
+       else
+         writeln(outfile);
+       shift(2);
        (* write as pointer *)
-       writeln(outfile);
        writeln(outfile,'(* generic typedef  *)');
        writeln(outfile,aktspace,$2^.p,' = pointer;');
        flush(outfile);
@@ -2005,6 +2004,9 @@ define_dec :
              writeln(implemfile,aktspace,'{ return type might be wrong }   ');
            end;
         end;
+       if block_type<>bt_func then
+         writeln(outfile);
+
        block_type:=bt_func;
        write(outfile,aktspace,'function ',$2^.p);
        write(implemfile,aktspace,'function ',$2^.p);
@@ -2070,11 +2072,12 @@ define_dec :
          begin
             if block_type<>bt_const then
               begin
-                 writeln(outfile);
-                 writeln(outfile,aktspace,'const');
+                if block_type<>bt_func then
+                  writeln(outfile);
+                writeln(outfile,aktspace,'const');
               end;
             block_type:=bt_const;
-            shift(3);
+            shift(2);
             write(outfile,aktspace,$2^.p);
             write(outfile,' = ');
             flush(outfile);
@@ -2088,6 +2091,8 @@ define_dec :
          end
        else
          begin
+            if block_type<>bt_func then
+              writeln(outfile);
             if not stripinfo then
              begin
                writeln (outfile,aktspace,'{ was #define dname def_expr }');
@@ -2099,11 +2104,9 @@ define_dec :
             shift(2);
             if not assigned($4^.p3) then
               begin
-                 writeln(outfile,' : longint;');
-                 writeln(outfile,aktspace,'  { return type might be wrong }');
+                 writeln(outfile,' : longint; { return type might be wrong }');
                  flush(outfile);
-                 writeln(implemfile,' : longint;');
-                 writeln(implemfile,aktspace,'  { return type might be wrong }');
+                 writeln(implemfile,' : longint; { return type might be wrong }');
               end
             else
               begin
@@ -2805,6 +2808,10 @@ unary_expr:
      MINUS unary_expr
      {
      $$:=new(presobject,init_preop('-',$2));
+     }|
+     _PLUS unary_expr
+     {
+     $$:=new(presobject,init_preop('+',$2));
      }|
      _AND unary_expr %prec R_AND
      {

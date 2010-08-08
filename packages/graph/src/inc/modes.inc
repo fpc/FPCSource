@@ -549,6 +549,7 @@ end;
           _GraphResult := grInvalidMode;
           exit;
         end;
+      _GraphResult := grOk;
       modeinfo^.InitMode;
       if _GraphResult <> grOk then
         begin

@@ -74,7 +74,9 @@ interface
          { No relocation is needed. It is used in ARM object files.
            Also internal linker use this reloc to make virtual (not real)
            links to some sections }
-         RELOC_NONE
+         RELOC_NONE,
+         { Darwin relocation, using PAIR }
+         RELOC_PIC_PAIR
       );
 
 {$ifndef x86_64}
@@ -143,6 +145,10 @@ interface
        size       : aword;
        { Used for external and common solving during linking }
        exesymbol  : TExeSymbol;
+
+       { Darwin asm is using indirect symbols resolving }
+       indsymbol  : TObjSymbol;
+
        constructor create(AList:TFPHashObjectList;const AName:string);
        function  address:aword;
        procedure SetAddress(apass:byte;aobjsec:TObjSection;abind:TAsmsymbind;atyp:Tasmsymtype);
@@ -536,7 +542,7 @@ implementation
           internalerror(200603016);
         if not assigned(aobjsec) then
           internalerror(200603017);
-        if (bind=AB_EXTERNAL) then
+        if (bind in [AB_EXTERNAL,AB_LAZY]) then
           begin
             bind:=abind;
             typ:=atyp;
@@ -811,7 +817,7 @@ implementation
 
     function TObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       const
-        secnames : array[TAsmSectiontype] of string[16] = ('',
+        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
           'code',
           'Data',
           'Data',
@@ -820,6 +826,10 @@ implementation
           'threadvar',
           'pdata',
           'stub',
+          'data_nonlazy',
+          'data_lazy',
+          'init_func',
+          'term_func',
           'stab','stabstr',
           'iData2','iData4','iData5','iData6','iData7','eData',
           'eh_frame',
@@ -827,7 +837,41 @@ implementation
           'fpc',
           'toc',
           'init',
-          'fini'
+          'fini',
+          'objc_class',
+          'objc_meta_class',
+          'objc_cat_cls_meth',
+          'objc_cat_inst_meth',
+          'objc_protocol',
+          'objc_string_object',
+          'objc_cls_meth',
+          'objc_inst_meth',
+          'objc_cls_refs',
+          'objc_message_refs',
+          'objc_symbols',
+          'objc_category',
+          'objc_class_vars',
+          'objc_instance_vars',
+          'objc_module_info',
+          'objc_class_names',
+          'objc_meth_var_types',
+          'objc_meth_var_names',
+          'objc_selector_strs',
+          'objc_protocol_ext',
+          'objc_class_ext',
+          'objc_property',
+          'objc_image_info',
+          'objc_cstring_object',
+          'objc_sel_fixup',
+          '__DATA,__objc_data',
+          '__DATA,__objc_const',
+          '.objc_superrefs',
+          '__DATA, __datacoal_nt,coalesced',
+          '.objc_classlist',
+          '.objc_nlclasslist',
+          '.objc_catlist',
+          '.obcj_nlcatlist',
+          '.objc_protolist'
         );
       var
         sep : string[3];
@@ -862,6 +906,10 @@ implementation
           {threadvar} [oso_load,oso_write],
           {pdata} [oso_load,oso_readonly,oso_keep],
           {stub} [oso_Data,oso_load,oso_readonly,oso_executable],
+          {data_nonlazy}  [oso_Data,oso_load,oso_write],
+          {data_lazy} [oso_Data,oso_load,oso_write],
+          {init_func} [oso_Data,oso_load],
+          {term_func} [oso_Data,oso_load],
           {stab} [oso_Data,oso_noload,oso_debug],
           {stabstr} [oso_Data,oso_noload,oso_strings,oso_debug],
           {iData2} [oso_Data,oso_load,oso_write],
@@ -878,7 +926,41 @@ implementation
           {fpc} [oso_Data,oso_load,oso_write,oso_keep],
           {toc} [oso_Data,oso_load,oso_readonly],
           {init} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
-          {fini} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep]
+          {fini} [oso_Data,oso_load,oso_readonly,oso_executable,oso_keep],
+          {objc_class} [oso_data,oso_load],
+          {objc_meta_class} [oso_data,oso_load],
+          {objc_cat_cls_meth} [oso_data,oso_load],
+          {objc_cat_inst_meth} [oso_data,oso_load],
+          {objc_protocol} [oso_data,oso_load],
+          {objc_string_object} [oso_data,oso_load],
+          {objc_cls_meth} [oso_data,oso_load],
+          {objc_inst_meth} [oso_data,oso_load],
+          {objc_cls_refs} [oso_data,oso_load],
+          {objc_message_refs} [oso_data,oso_load],
+          {objc_symbols} [oso_data,oso_load],
+          {objc_category} [oso_data,oso_load],
+          {objc_class_vars} [oso_data,oso_load],
+          {objc_instance_vars} [oso_data,oso_load],
+          {objc_module_info} [oso_data,oso_load],
+          {objc_class_names} [oso_data,oso_load],
+          {objc_meth_var_types} [oso_data,oso_load],
+          {objc_meth_var_names} [oso_data,oso_load],
+          {objc_selector_strs} [oso_data,oso_load],
+          {objc_protocol_ext} [oso_data,oso_load],
+          {objc_class_ext} [oso_data,oso_load],
+          {objc_property} [oso_data,oso_load],
+          {objc_image_info} [oso_data,oso_load],
+          {objc_cstring_object} [oso_data,oso_load],
+          {objc_sel_fixup} [oso_data,oso_load],
+          {sec_objc_data} [oso_data,oso_load],
+          {sec_objc_const} [oso_data,oso_load],
+          {sec_objc_sup_refs} [oso_data,oso_load],
+          {sec_data_coalesced} [oso_data,oso_load],
+          {sec_objc_classlist} [oso_data,oso_load],
+          {sec_objc_nlclasslist} [oso_data,oso_load],
+          {sec_objc_catlist} [oso_data,oso_load],
+          {sec_objc_nlcatlist} [oso_data,oso_load],
+          {sec_objc_protolist'} [oso_data,oso_load]
         );
       begin
         result:=secoptions[atype];
@@ -1383,13 +1465,15 @@ implementation
         FOrdNr:=AOrdNr;
         FIsVar:=AIsVar;
         FMangledName:=AName;
-        { Replace ? and @ in import name }
-        { these replaces broke existing code on i386-win32 at least, while fixed 
-          bug 8391 on arm-wince so limit this to arm-wince (KB) }
-        if (target_info.system in [system_arm_wince]) then
+        { Replace ? and @ in import name, since GNU AS does not allow these characters in symbol names. }
+        { This allows to import VC++ mangled names from DLLs. }
+        if target_info.system in systems_all_windows then
           begin
             Replace(FMangledName,'?','__q$$');
+{$ifdef arm}
+            { @ symbol is not allowed in ARM assembler only }
             Replace(FMangledName,'@','__a$$');
+{$endif arm}
           end;
       end;
 
@@ -2586,14 +2670,8 @@ implementation
 
 
     procedure TExeOutput.SetCurrMemPos(const AValue: qword);
-      var
-        m: qword;
       begin
-        if not IsSharedLibrary then
-          m:=AValue+FImageBase
-        else
-          m:=AValue;
-        if m>MaxMemPos then
+        if AValue>MaxMemPos then
           Message1(link_f_executable_too_big, target_os_string);
         FCurrMemPos:=AValue;
       end;

@@ -100,8 +100,7 @@ begin
       FieldByName('FINTEGER').AsInteger := testIntValues[i];
       FieldByName('FBOOLEAN').AsBoolean := testBooleanValues[i];
       FieldByName('FFLOAT').AsFloat := testFloatValues[i];
-      ShortDateFormat := 'yyyy-mm-dd';
-      FieldByName('FDATE').AsDateTime := StrToDate(testDateValues[i]);
+      FieldByName('FDATE').AsDateTime := StrToDate(testDateValues[i], 'yyyy/mm/dd', '-');
       FieldByName('FLARGEINT').AsLargeInt := testLargeIntValues[i];
       Post;
       end;
@@ -113,12 +112,12 @@ procedure TDBFDBConnector.DropNDatasets;
 var n : integer;
 begin
   for n := 0 to MaxDataSet do
-    DeleteFile(ExtractFilePath(dbname)+PathDelim+'fpdev_'+inttostr(n)+'.db');
+    DeleteFile(ExtractFilePath(dbname)+'fpdev_'+inttostr(n)+'.db');
 end;
 
 procedure TDBFDBConnector.DropFieldDataset;
 begin
-  DeleteFile(ExtractFilePath(dbname)+PathDelim+'fpdev_field.db');
+  DeleteFile(ExtractFilePath(dbname)+'fpdev_field.db');
 end;
 
 function TDBFDBConnector.InternalGetNDataset(n: integer): TDataset;

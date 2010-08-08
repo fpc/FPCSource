@@ -1,0 +1,19 @@
+#
+#   Makefile.fpc for Free Pascal libndsfpc 2.x.y Examples
+#
+
+[target]
+dirs=3D_Both_Screens BoxTest Display_List Display_List_2 Env_Mapping Mixed_Text_3D Ortho \
+     Paletted_Cube Picking Simple_Quad Simple_Tri Textured_Cube Textured_Quad Toon_Shading nehe
+
+[require]
+packages=libndsfpc
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../../..
+
+[rules]
+.NOTPARALLEL:

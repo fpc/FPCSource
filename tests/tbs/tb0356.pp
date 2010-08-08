@@ -1,8 +1,8 @@
 {$mode objfpc}
 type
   tc = class
-    function test(var c: tc): boolean;
     left,right: tc;
+    function test(var c: tc): boolean;
   end;
 
   testfunc = function(var c: tc):boolean of object;

@@ -1,0 +1,18 @@
+#
+#   Makefile.fpc for Free Pascal libndsfpc 2.x.y Examples
+#
+
+[target]
+dirs=allocation_test animate_simple bitmap_sprites fire_and_sprites simple sprite_extended_palettes sprite_rotate
+
+[require]
+packages=libndsfpc
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../../..
+
+[rules]
+.NOTPARALLEL:

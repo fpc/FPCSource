@@ -19,9 +19,9 @@
         .globl  _startlib
         .type   _startlib,@function
 _startlib:
-        .globl  FPC_LIB_START
-        .type   FPC_LIB_START,@function
-FPC_LIB_START:
+        .globl  FPC_SHARED_LIB_START
+        .type   FPC_SHARED_LIB_START,@function
+FPC_SHARED_LIB_START:
         pushl   %ebp
         movl    %esp,%ebp
 
@@ -47,6 +47,10 @@ FPC_LIB_START:
         .type   _haltproc,@function
 _haltproc:
 _haltproc2:             # GAS <= 2.15 bug: generates larger jump if a label is exported
+        .globl  FPC_SHARED_LIB_EXIT
+        .type   FPC_SHARED_LIB_EXIT,@function
+FPC_SHARED_LIB_EXIT:
+	call	lib_exit
         xorl    %eax,%eax
         incl    %eax                    /* eax=1, exit call */
         movzwl  operatingsystem_result,%ebx
@@ -72,3 +76,4 @@ operatingsystem_parameters:
         .set operatingsystem_parameter_argc,operatingsystem_parameters+4
         .set operatingsystem_parameter_argv,operatingsystem_parameters+8
 
+.section .note.GNU-stack,"",%progbits

@@ -21,10 +21,12 @@
   ---------------------------------------------------------------------}
 
 Type
-  TLibHandle = Longint;
+  TLibHandle = System.THandle;
 
 Const
   NilHandle = 0;
+// these are for easier crossplatform construction of dll names in dynloading libs.
+  SharedSuffix = 'dll';
 
 {$else}
 

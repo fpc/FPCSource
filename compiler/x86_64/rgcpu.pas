@@ -32,7 +32,7 @@ unit rgcpu;
 
      type
        trgcpu = class(trgx86)
-         procedure add_constraints(reg:Tregister);
+         procedure add_constraints(reg:Tregister); override;
        end;
 
   implementation

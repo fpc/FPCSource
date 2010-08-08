@@ -55,12 +55,12 @@ type
   // Phony element for pas pages.
 
   TTopicElement = Class(TPaselement)
-    Constructor Create(const AName: String; AParent: TPasElement); override;
-    Destructor Destroy; override;
     TopicNode : TDocNode;
     Previous,
     Next : TPasElement;
     Subtopics : TList;
+    Constructor Create(const AName: String; AParent: TPasElement); override;
+    Destructor Destroy; override;
   end;
 
   { TFPDocWriter }
@@ -71,6 +71,7 @@ type
     FPackage : TPasPackage;
     FTopics  : TList;
     FImgExt : String;
+    procedure ConvertURL(AContext: TPasElement; El: TDOMElement);
     
   protected
     procedure Warning(AContext: TPasElement; const AMsg: String);
@@ -111,6 +112,8 @@ type
     procedure DescrWriteVarEl(const AText: DOMString); virtual; abstract;
     procedure DescrBeginLink(const AId: DOMString); virtual; abstract;
     procedure DescrEndLink; virtual; abstract;
+    procedure DescrBeginURL(const AURL: DOMString); virtual; abstract;
+    procedure DescrEndURL; virtual; abstract;
     procedure DescrWriteLinebreak; virtual; abstract;
     procedure DescrBeginParagraph; virtual; abstract;
     procedure DescrEndParagraph; virtual; abstract;
@@ -155,7 +158,7 @@ type
     Function InterpretOption(Const Cmd,Arg : String) : Boolean; Virtual;
     Class Procedure Usage(List : TStrings); virtual;
     procedure WriteDoc; virtual; Abstract;
-    procedure WriteDescr(Element: TPasElement);
+    Function WriteDescr(Element: TPasElement) : TDocNode;
     procedure WriteDescr(Element: TPasElement; DocNode: TDocNode);
     procedure WriteDescr(AContext: TPasElement; DescrNode: TDOMElement); virtual;
     Procedure FPDocError(Msg : String);
@@ -428,6 +431,7 @@ begin
     if Node.NodeType = ELEMENT_NODE then
       if (Node.NodeName <> 'br') and
          (Node.NodeName <> 'link') and
+         (Node.NodeName <> 'url') and
          (Node.NodeName <> 'b') and
          (Node.NodeName <> 'file') and
          (Node.NodeName <> 'i') and
@@ -457,6 +461,8 @@ begin
   begin
     if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'link') then
       ConvertLink(AContext, TDOMElement(Node))
+    else if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'url') then
+      ConvertURL(AContext, TDOMElement(Node))
     else
       if not ConvertBaseShort(AContext, Node) then
         exit;
@@ -596,6 +602,16 @@ begin
   DescrEndLink;
 end;
 
+procedure TFPDocWriter.ConvertURL(AContext: TPasElement; El: TDOMElement);
+begin
+  DescrBeginURL(El['href']);
+  if not IsDescrNodeEmpty(El) then
+    ConvertBaseShortList(AContext, El, True)
+  else
+    DescrWriteText(El['href']);
+  DescrEndURL;
+end;
+
 function TFPDocWriter.ConvertExtShort(AContext: TPasElement;
   Node: TDOMNode): Boolean;
 begin
@@ -605,6 +621,8 @@ begin
   begin
     if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'link') then
       ConvertLink(AContext, TDOMElement(Node))
+    else if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'url') then
+      ConvertURL(AContext, TDOMElement(Node))
     else if (Node.NodeType = ELEMENT_NODE) and (Node.NodeName = 'br') then
       DescrWriteLinebreak
     else
@@ -1020,10 +1038,11 @@ begin
   Inherited;
 end;
 
-procedure TFPDocWriter.WriteDescr(Element: TPasElement);
+Function TFPDocWriter.WriteDescr(Element: TPasElement) : TDocNode;
 
 begin
-  WriteDescr(ELement,Engine.FindDocNode(Element));
+  Result:=Engine.FindDocNode(Element);
+  WriteDescr(ELement,Result);
 end;
 
 procedure TFPDocWriter.WriteDescr(Element: TPasElement; DocNode: TDocNode);

@@ -34,9 +34,12 @@ function IncludeTrailingPathDelimiter(Const Path : String) : String;
 function IncludeTrailingBackslash(Const Path : String) : String;
 function ExcludeTrailingBackslash(Const Path: string): string;
 function ExcludeTrailingPathDelimiter(Const Path: string): string;
+function IncludeLeadingPathDelimiter(Const Path : String) : String;
+function ExcludeLeadingPathDelimiter(Const Path: string): string;
 function IsPathDelimiter(Const Path: string; Index: Integer): Boolean;
 Procedure DoDirSeparators (Var FileName : String);
 Function SetDirSeparators (Const FileName : String) : String;
 Function GetDirs (Var DirName : String; Var Dirs : Array of pchar) : Longint;
 Function SameFileName(const S1, S2: string): Boolean;
+function ConcatPaths(const Paths: array of String): String;
 

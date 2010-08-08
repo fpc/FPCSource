@@ -85,8 +85,9 @@ type
       OPR_COND      : (cond : tasmcond);
 {$endif POWERPC64}
 {$ifdef arm}
-      OPR_REGSET    : (regset : tcpuregisterset);
+      OPR_REGSET    : (regset : tcpuregisterset; regtype: tregistertype; subreg: tsubregister);
       OPR_SHIFTEROP : (shifterop : tshifterop);
+      OPR_COND      : (cc : tasmcond);
 {$endif arm}
   end;
 
@@ -377,12 +378,14 @@ begin
   Case _Operator OF
     '(' :
       Priority:=0;
-    '+', '-' :
-      Priority:=1;
-    '*', '/','%','<','>' :
-      Priority:=2;
-    '|','&','^','~' :
+    '|','^','~' :             // the lowest priority: OR, XOR, NOT
       Priority:=0;
+    '&' :                     // bigger priority: AND
+      Priority:=1;
+    '+', '-' :                // bigger priority: +, -
+      Priority:=2;
+    '*', '/','%','<','>' :   // the highest priority: *, /, MOD, SHL, SHR
+      Priority:=3;
     else
       Message(asmr_e_expr_illegal);
   end;
@@ -439,7 +442,7 @@ begin
                    end;
                   { if start of expression then surely a prefix }
                   { or if previous char was also an operator    }
-                  if (I = 1) or (not (Expr[I-1] in ['0'..'9','(',')'])) then
+                  if (I = 1) or (not (Expr[I-1] in ['0'..'9',')'])) then
                     OpPush(Expr[I],true)
                   else
                     Begin
@@ -789,7 +792,12 @@ Begin
   case sym.typ of
     fieldvarsym :
       begin
-        setconst(tfieldvarsym(sym).fieldoffset);
+        if not tabstractrecordsymtable(sym.owner).is_packed then
+          setconst(tfieldvarsym(sym).fieldoffset)
+        else if tfieldvarsym(sym).fieldoffset mod 8 = 0 then
+          setconst(tfieldvarsym(sym).fieldoffset div 8)
+        else
+          Message(asmr_e_packed_element);
         hasvar:=true;
         SetupVar:=true;
       end;
@@ -863,7 +871,7 @@ Begin
                else
                  begin
                    if (harrdef.elepackedbitsize mod 8) = 0 then
-                     SetSize(harrdef.elepackedbitsize div 8,false);
+                     SetSize(harrdef.elepackedbitsize div 8,false)
                  end;
             end;
         end;
@@ -1054,10 +1062,15 @@ end;
                 ai.loadref(i-1,ref);
 {$ifdef ARM}
               OPR_REGSET:
-                ai.loadregset(i-1,regset);
+                ai.loadregset(i-1,regtype,subreg,regset);
               OPR_SHIFTEROP:
                 ai.loadshifterop(i-1,shifterop);
+              OPR_COND:
+                ai.loadconditioncode(i-1,cc);
 {$endif ARM}
+              { ignore wrong operand }
+              OPR_NONE:
+                ;
               else
                 internalerror(200501051);
             end;
@@ -1335,7 +1348,12 @@ Begin
        fieldvarsym :
          with Tfieldvarsym(sym) do
            begin
-             inc(Offset,fieldoffset);
+             if not tabstractrecordsymtable(sym.owner).is_packed then
+               inc(Offset,fieldoffset)
+             else if tfieldvarsym(sym).fieldoffset mod 8 = 0 then
+               inc(Offset,fieldoffset div 8)
+             else
+               Message(asmr_e_packed_element);
              size:=getsize;
              case vardef.typ of
                arraydef :
@@ -1547,7 +1565,8 @@ end;
            else
 {$endif ARM}
              p.concat(Tai_real_64bit.Create(value));
-          s80real : p.concat(Tai_real_80bit.Create(value));
+          s80real : p.concat(Tai_real_80bit.Create(value,s80floattype.size));
+          sc80real : p.concat(Tai_real_80bit.Create(value,sc80floattype.size));
           s64comp : p.concat(Tai_comp_64bit.Create(trunc(value)));
        end;
     end;

@@ -18,18 +18,18 @@
   { variant error codes }
   {$i varerror.inc}
 
-    Function FileSearch (Const Name, DirList : String) : String;
+    Function FileSearch (Const Name, DirList : String; ImplicitCurrentDir : Boolean = True) : String;
     Var
       I : longint;
       Temp : String;
 
     begin
-      // Start with checking the file in the current directory
       Result:=Name;
       temp:=SetDirSeparators(DirList);
+      // Start with checking the file in the current directory
+      If ImplicitCurrentDir and (Result <> '') and FileExists(Result) Then
+        exit;
       while True do begin
-        If (Result <> '') and FileExists(Result) Then
-          exit;
         If Temp = '' then
           Break; // No more directories to search - fail
         I:=pos(PathSeparator,Temp);
@@ -45,8 +45,20 @@
           end;
         If Result<>'' then
           Result:=IncludeTrailingPathDelimiter(Result)+name;
+        If (Result <> '') and FileExists(Result) Then
+          exit;
       end;
       result:='';
+    end;
+
+    Function ExeSearch (Const Name, DirList : String) : String;
+
+    begin
+    {$ifdef unix}
+      Result := FileSearch(Name, DirList, False);
+    {$else unix}
+      Result := FileSearch(Name, DirList, True);
+    {$endif unix}
     end;
 
   {$ifndef OS_FILEISREADONLY}
@@ -96,6 +108,11 @@
   { wide string functions }
   {$i syswide.inc}
 
+{$ifdef FPC_HAS_UNICODESTRING}
+  { unicode string functions }
+  {$i sysuni.inc}
+{$endif FPC_HAS_UNICODESTRING}
+  
   { threading stuff }
   {$i sysuthrd.inc}
 
@@ -319,7 +336,8 @@ begin
   229 : E:=ESafecallException.Create(SSafecallException);
   231 : E:=EConvertError.Create(SiconvError);
   232 : E:=ENoThreadSupport.Create(SNoThreadSupport);
-  233 : E:=ENoWideStringSupport.Create(SMissingWStringManager);
+  233 : E:=ENoWideStringSupport.Create(SSigQuit);
+  234 : E:=ENoWideStringSupport.Create(SMissingWStringManager);
   else
    E:=Exception.CreateFmt (SUnKnownRunTimeError,[Errno]);
   end;
@@ -610,6 +628,8 @@ begin
     Result:=SysCreateGUID(GUID);
     {$ELSE}
     GetRandomBytes(GUID,SizeOf(Guid));
+    guid.clock_seq_hi_and_reserved:=(guid.clock_seq_hi_and_reserved and $3F) + 64;
+    guid.time_hi_and_version      :=(guid.time_hi_and_version and $0FFF)+ $4000;
     Result:=0;
     {$ENDIF}
     end;
@@ -664,4 +684,12 @@ begin
 {$ELSE}
   Result:='';
 {$ENDIF}
+end;
+
+{ Beep support }
+
+procedure Beep;
+begin
+  If Assigned(OnBeep) then
+    OnBeep;
 end;

@@ -398,7 +398,7 @@ function flags_to_cond(const f: TResFlags): TAsmCond;
 procedure create_cond_imm(BO, BI: byte; var r: TAsmCond);
 procedure create_cond_norm(cond: TAsmCondFlag; cr: byte; var r: TasmCond);
 
-function cgsize2subreg(s: Tcgsize): Tsubregister;
+function cgsize2subreg(regtype: tregistertype; s: Tcgsize): Tsubregister;
 { Returns the tcgsize corresponding with the size of reg.}
 function reg_cgsize(const reg: tregister): tcgsize;
 
@@ -533,7 +533,7 @@ begin
   end;
 end;
 
-function cgsize2subreg(s: Tcgsize): Tsubregister;
+function cgsize2subreg(regtype: tregistertype; s: Tcgsize): Tsubregister;
 begin
   cgsize2subreg := R_SUBWHOLE;
 end;

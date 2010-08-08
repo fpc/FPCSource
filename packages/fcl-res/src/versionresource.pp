@@ -310,11 +310,12 @@ begin
   w:=0;
   repeat
     RawData.ReadBuffer(w,2);
+    if w = 0 then break;
     {$IFDEF ENDIAN_BIG}
     w:=SwapEndian(w);
     {$ENDIF}
     ws:=ws+widechar(w);
-  until w=0;
+  until false;
   Result:=ws;
 end;
 

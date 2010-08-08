@@ -4,7 +4,7 @@
     Generates the argument location information for i386
 
     This program is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published bymethodpointer
+    it under the terms of the GNU General Public License as published by
     the Free Software Foundation; either version 2 of the License, or
     (at your option) any later version.
 
@@ -27,7 +27,7 @@ unit cpupara;
 
     uses
        globtype,
-       aasmtai,aasmdata,cpubase,cgbase,
+       aasmtai,aasmdata,cpubase,cgbase,cgutils,
        symconst,symtype,symsym,symdef,
        parabase,paramgr;
 
@@ -49,6 +49,7 @@ unit cpupara;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);override;
+          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): TCGPara;override;
        private
           procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
           procedure create_stdcall_paraloc_info(p : tabstractprocdef; side: tcallercallee;paras:tparalist;var parasize:longint);
@@ -61,8 +62,8 @@ unit cpupara;
     uses
        cutils,
        systems,verbose,
-       defutil,
-       cgutils;
+       symtable,
+       defutil;
 
       const
         parasupregs : array[0..2] of tsuperregister = (RS_EAX,RS_EDX,RS_ECX);
@@ -213,7 +214,7 @@ unit cpupara;
           stringdef :
             result:= (tstringdef(def).stringtype in [st_shortstring,st_longstring]);
           procvardef :
-            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (po_methodpointer in tprocvardef(def).procoptions);
+            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and not tprocvardef(def).is_addressonly;
           setdef :
             result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (not is_smallset(def));
         end;
@@ -307,62 +308,96 @@ unit cpupara;
 
 
     procedure ti386paramanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
+      begin
+        p.funcretloc[side]:=get_funcretloc(p,side,p.returndef);
+      end;
+
+
+    function  ti386paramanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): TCGPara;
       var
         retcgsize  : tcgsize;
+        paraloc : pcgparalocation;
+        sym: tfieldvarsym;
       begin
-        { Constructors return self instead of a boolean }
-        if (p.proctypeoption=potype_constructor) then
-          retcgsize:=OS_ADDR
-        else
-          retcgsize:=def_cgsize(p.returndef);
-
-        location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
+        result.init;
+        result.alignment:=get_para_align(p.proccalloption);
         { void has no location }
-        if is_void(p.returndef) then
+        if is_void(def) then
           begin
-            location_reset(p.funcretloc[side],LOC_VOID,OS_NO);
+            paraloc:=result.add_location;
+            result.size:=OS_NO;
+            result.intsize:=0;
+            paraloc^.size:=OS_NO;
+            paraloc^.loc:=LOC_VOID;
             exit;
           end;
-        { Return is passed as var parameter }
-        if ret_in_param(p.returndef,p.proccalloption) then
+        { on darwin/i386, if a record has only one field and that field is a
+          single or double, it has to be returned like a single/double }
+        if (target_info.system=system_i386_darwin) and
+           ((def.typ=recorddef) or
+            is_object(def)) and
+           tabstractrecordsymtable(tabstractrecorddef(def).symtable).has_single_field(sym) and
+           (sym.vardef.typ=floatdef) and
+           (tfloatdef(sym.vardef).floattype in [s32real,s64real]) then
+          def:=sym.vardef;
+        { Constructors return self instead of a boolean }
+        if (p.proctypeoption=potype_constructor) then
           begin
-            p.funcretloc[side].loc:=LOC_REFERENCE;
-            p.funcretloc[side].size:=retcgsize;
+            retcgsize:=OS_ADDR;
+            result.intsize:=sizeof(pint);
+          end
+        else
+          begin
+            retcgsize:=def_cgsize(def);
+            result.intsize:=def.size;
+          end;
+        result.size:=retcgsize;
+        { Return is passed as var parameter }
+        if ret_in_param(def,p.proccalloption) then
+          begin
+            paraloc:=result.add_location;
+            paraloc^.loc:=LOC_REFERENCE;
+            paraloc^.size:=retcgsize;
             exit;
           end;
         { Return in FPU register? }
-        if p.returndef.typ=floatdef then
+        if def.typ=floatdef then
           begin
-            p.funcretloc[side].loc:=LOC_FPUREGISTER;
-            p.funcretloc[side].register:=NR_FPU_RESULT_REG;
-            p.funcretloc[side].size:=retcgsize;
+            paraloc:=result.add_location;
+            paraloc^.loc:=LOC_FPUREGISTER;
+            paraloc^.register:=NR_FPU_RESULT_REG;
+            paraloc^.size:=retcgsize;
           end
         else
          { Return in register }
           begin
+            paraloc:=result.add_location;
+            paraloc^.loc:=LOC_REGISTER;
             if retcgsize in [OS_64,OS_S64] then
              begin
                { low 32bits }
-               p.funcretloc[side].loc:=LOC_REGISTER;
-               p.funcretloc[side].size:=OS_64;
                if side=callerside then
-                 p.funcretloc[side].register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG
+                 paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG
                else
-                 p.funcretloc[side].register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
+                 paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
+               paraloc^.size:=OS_32;
+
                { high 32bits }
+               paraloc:=result.add_location;
+               paraloc^.loc:=LOC_REGISTER;
                if side=callerside then
-                 p.funcretloc[side].register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG
+                 paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG
                else
-                 p.funcretloc[side].register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
+                 paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
+               paraloc^.size:=OS_32;
              end
             else
              begin
-               p.funcretloc[side].loc:=LOC_REGISTER;
-               p.funcretloc[side].size:=retcgsize;
+               paraloc^.size:=retcgsize;
                if side=callerside then
-                 p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(retcgsize))
+                 paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
                else
-                 p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(retcgsize));
+                 paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
              end;
           end;
       end;
@@ -563,20 +598,23 @@ unit cpupara;
 
                       64bit values,floats,arrays and records are always
                       on the stack.
+
+                      In case of po_delphi_nested_cc, the parent frame pointer
+                      is also always passed on the stack.
                     }
                     if (parareg<=high(parasupregs)) and
                        (paralen<=sizeof(aint)) and
-                       (
-                        not(hp.vardef.typ in [floatdef,recorddef,arraydef]) or
-                        pushaddr
-                       ) then
+                       (not(hp.vardef.typ in [floatdef,recorddef,arraydef]) or
+                        pushaddr) and
+                       (not(vo_is_parentfp in hp.varoptions) or
+                        not(po_delphi_nested_cc in p.procoptions)) then
                       begin
                         if pass=1 then
                           begin
                             paraloc:=hp.paraloc[side].add_location;
                             paraloc^.size:=paracgsize;
                             paraloc^.loc:=LOC_REGISTER;
-                            paraloc^.register:=newreg(R_INTREGISTER,parasupregs[parareg],cgsize2subreg(paracgsize));
+                            paraloc^.register:=newreg(R_INTREGISTER,parasupregs[parareg],cgsize2subreg(R_INTREGISTER,paracgsize));
                             inc(parareg);
                           end;
                       end

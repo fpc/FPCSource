@@ -52,7 +52,9 @@ implementation
 procedure JPEGError(CurInfo: j_common_ptr);
 begin
   if CurInfo=nil then exit;
+  {$ifdef FPC_Debug_Image}
   writeln('JPEGError ',CurInfo^.err^.msg_code,' ');
+  {$endif}
   raise Exception.CreateFmt('JPEG error',[CurInfo^.err^.msg_code]);
 end;
 
@@ -70,7 +72,9 @@ end;
 procedure FormatMessage(CurInfo: j_common_ptr; var buffer: string);
 begin
   if CurInfo=nil then exit;
+  {$ifdef FPC_Debug_Image}
   writeln('FormatMessage ',buffer);
+  {$endif}
 end;
 
 procedure ResetErrorMgr(CurInfo: j_common_ptr);

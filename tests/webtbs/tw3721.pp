@@ -5,7 +5,7 @@ uses sysutils;
 var ps : pstring;
 
 begin
-  HaltOnNotReleased := true;  
+  HaltOnNotReleased := true;
   ps:=newstr('TEST');
   writeln(ps^);
   disposestr(ps);

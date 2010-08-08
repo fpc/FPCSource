@@ -29,7 +29,7 @@ unit cpupara;
        aasmtai,aasmdata,
        cpubase,
        symconst,symtype,symdef,symsym,
-       paramgr,parabase,cgbase;
+       paramgr,parabase,cgbase,cgutils;
 
     type
        tppcparamanager = class(tparamanager)
@@ -40,6 +40,7 @@ unit cpupara;
           procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
+          function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;override;
           procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
          private
           procedure init_values(var curintreg, curfloatreg, curmmreg: tsuperregister; var cur_stack_offset: aword);
@@ -52,8 +53,7 @@ unit cpupara;
 
     uses
        verbose,systems,
-       defutil,
-       cgutils,
+       defutil,symtable,
        procinfo,cpupi;
 
 
@@ -130,7 +130,12 @@ unit cpupara;
               result:=LOC_REGISTER;
             classrefdef:
               result:=LOC_REGISTER;
-            procvardef,
+            procvardef:
+              if (target_info.abi = abi_powerpc_aix) or
+                 (p.size = sizeof(pint)) then
+                result:=LOC_REGISTER
+              else
+                result:=LOC_REFERENCE;
             recorddef:
               if (target_info.abi<>abi_powerpc_aix) or
                  ((p.size >= 3) and
@@ -181,8 +186,24 @@ unit cpupara;
           variantdef,
           formaldef :
             result:=true;
-          recorddef,
+          { regular procvars must be passed by value, because you cannot pass
+            the address of a local stack location when calling e.g.
+            pthread_create with the address of a function (first of all it
+            expects the address of the function to execute and not the address
+            of a memory location containing that address, and secondly if you
+            first store the address on the stack and then pass the address of
+            this stack location, then this stack location may no longer be
+            valid when the newly started thread accesses it.
+
+            However, for "procedure of object" we must use the same calling
+            convention as for "8 byte record" due to the need for
+            interchangeability with the TMethod record type.
+          }
           procvardef :
+            result:=
+              (target_info.abi <> abi_powerpc_aix) and
+              (def.size <> sizeof(pint));
+          recorddef :
             result :=
               (target_info.abi<>abi_powerpc_aix) or
               ((varspez = vs_const) and
@@ -224,64 +245,86 @@ unit cpupara;
 
 
     procedure tppcparamanager.create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
+      begin
+        p.funcretloc[side]:=get_funcretloc(p,side,p.returndef);
+      end;
+
+
+    function tppcparamanager.get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;
       var
+        paraloc : pcgparalocation;
         retcgsize  : tcgsize;
       begin
+        result.init;
+        result.alignment:=get_para_align(p.proccalloption);
+        { void has no location }
+        if is_void(def) then
+          begin
+            paraloc:=result.add_location;
+            result.size:=OS_NO;
+            result.intsize:=0;
+            paraloc^.size:=OS_NO;
+            paraloc^.loc:=LOC_VOID;
+            exit;
+          end;
         { Constructors return self instead of a boolean }
         if (p.proctypeoption=potype_constructor) then
-          retcgsize:=OS_ADDR
+          begin
+            retcgsize:=OS_ADDR;
+            result.intsize:=sizeof(pint);
+          end
         else
-          retcgsize:=def_cgsize(p.returndef);
-
-        location_reset(p.funcretloc[side],LOC_INVALID,OS_NO);
-        p.funcretloc[side].size:=retcgsize;
-        { void has no location }
-        if is_void(p.returndef) then
           begin
-            p.funcretloc[side].loc:=LOC_VOID;
-            exit;
+            retcgsize:=def_cgsize(def);
+            result.intsize:=def.size;
           end;
+        result.size:=retcgsize;
         { Return is passed as var parameter }
-        if ret_in_param(p.returndef,p.proccalloption) then
+        if ret_in_param(def,p.proccalloption) then
           begin
-            p.funcretloc[side].loc:=LOC_REFERENCE;
-            p.funcretloc[side].size:=retcgsize;
+            paraloc:=result.add_location;
+            paraloc^.loc:=LOC_REFERENCE;
+            paraloc^.size:=retcgsize;
             exit;
           end;
+
+        paraloc:=result.add_location;
         { Return in FPU register? }
-        if p.returndef.typ=floatdef then
+        if def.typ=floatdef then
           begin
-            p.funcretloc[side].loc:=LOC_FPUREGISTER;
-            p.funcretloc[side].register:=NR_FPU_RESULT_REG;
-            p.funcretloc[side].size:=retcgsize;
+            paraloc^.loc:=LOC_FPUREGISTER;
+            paraloc^.register:=NR_FPU_RESULT_REG;
+            paraloc^.size:=retcgsize;
           end
         else
          { Return in register }
           begin
-{$ifndef cpu64bitaddr}
             if retcgsize in [OS_64,OS_S64] then
              begin
                { low 32bits }
-               p.funcretloc[side].loc:=LOC_REGISTER;
+               paraloc^.loc:=LOC_REGISTER;
                if side=callerside then
-                 p.funcretloc[side].register64.reghi:=NR_FUNCTION_RESULT64_HIGH_REG
+                 paraloc^.register:=NR_FUNCTION_RESULT64_HIGH_REG
                else
-                 p.funcretloc[side].register64.reghi:=NR_FUNCTION_RETURN64_HIGH_REG;
+                 paraloc^.register:=NR_FUNCTION_RETURN64_HIGH_REG;
+               paraloc^.size:=OS_32;
                { high 32bits }
+               paraloc:=result.add_location;
+               paraloc^.loc:=LOC_REGISTER;
                if side=callerside then
-                 p.funcretloc[side].register64.reglo:=NR_FUNCTION_RESULT64_LOW_REG
+                 paraloc^.register:=NR_FUNCTION_RESULT64_LOW_REG
                else
-                 p.funcretloc[side].register64.reglo:=NR_FUNCTION_RETURN64_LOW_REG;
+                 paraloc^.register:=NR_FUNCTION_RETURN64_LOW_REG;
+               paraloc^.size:=OS_32;
              end
             else
-{$endif cpu64bitaddr}
              begin
-               p.funcretloc[side].loc:=LOC_REGISTER;
-               p.funcretloc[side].size:=retcgsize;
+               paraloc^.loc:=LOC_REGISTER;
                if side=callerside then
-                 p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(retcgsize))
+                 paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
                else
-                 p.funcretloc[side].register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(retcgsize));
+                 paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
+               paraloc^.size:=retcgsize;
              end;
           end;
       end;
@@ -314,6 +357,7 @@ unit cpupara;
          hp : tparavarsym;
          loc : tcgloc;
          paracgsize: tcgsize;
+         sym: tfieldvarsym;
 
       begin
 {$ifdef extdebug}
@@ -374,7 +418,6 @@ unit cpupara;
                     paralen := paradef.size
                   else
                     paralen := tcgsize2size[def_cgsize(paradef)];
-                  loc := getparaloc(paradef);
                   if (target_info.abi = abi_powerpc_aix) and
                      (paradef.typ = recorddef) and
                      (hp.varspez in [vs_value,vs_const]) then
@@ -382,14 +425,12 @@ unit cpupara;
                       { if a record has only one field and that field is }
                       { non-composite (not array or record), it must be  }
                       { passed according to the rules of that type.       }
-                      if (trecorddef(hp.vardef).symtable.SymList.count = 1) and
-                         (not trecorddef(hp.vardef).isunion) and
-                         ((tabstractvarsym(trecorddef(hp.vardef).symtable.SymList[0]).vardef.typ = floatdef) or
-                          ((target_info.system = system_powerpc_darwin) and
-                           (tabstractvarsym(trecorddef(hp.vardef).symtable.SymList[0]).vardef.typ in [orddef,enumdef]))) then
+                      if tabstractrecordsymtable(tabstractrecorddef(paradef).symtable).has_single_field(sym) and
+                         ((sym.vardef.typ=floatdef) or
+                          ((target_info.system=system_powerpc_darwin) and
+                           (sym.vardef.typ in [orddef,enumdef]))) then
                         begin
-                          paradef :=
-                           tabstractvarsym(trecorddef(hp.vardef).symtable.SymList[0]).vardef;
+                          paradef:=sym.vardef;
                           paracgsize:=def_cgsize(paradef);
                         end
                       else
@@ -409,6 +450,7 @@ unit cpupara;
                     end
                 end;
 
+              loc := getparaloc(paradef);
               if varargsparas and
                  (target_info.abi = abi_powerpc_aix) and
                  (paradef.typ = floatdef) then
@@ -444,8 +486,12 @@ unit cpupara;
               while (paralen > 0) do
                 begin
                   paraloc:=hp.paraloc[side].add_location;
+                  { In case of po_delphi_nested_cc, the parent frame pointer
+                    is always passed on the stack. }
                   if (loc = LOC_REGISTER) and
-                     (nextintreg <= RS_R10) then
+                     (nextintreg <= RS_R10) and
+                     (not(vo_is_parentfp in hp.varoptions) or
+                      not(po_delphi_nested_cc in p.procoptions)) then
                     begin
                       paraloc^.loc := loc;
                       { make sure we don't lose whether or not the type is signed }

@@ -156,7 +156,7 @@ type
 const TopicCacheSize    : sw_integer = 10;
       HelpStreamBufSize : sw_integer = 4096;
       HelpFacility      : PHelpFacility = nil;
-      MaxHelpTopicSize  : sw_word = 3*65520;
+      MaxHelpTopicSize  : sw_word = 1024*1024;
 
 function  NewTopic(FileID: byte; HelpCtx: THelpCtx; Pos: longint; Param: string;
           ExtData: pointer; ExtDataSize: longint): PTopic;

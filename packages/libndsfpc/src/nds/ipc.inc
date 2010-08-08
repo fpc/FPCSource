@@ -53,55 +53,13 @@ type
   TTransferSoundData = TransferSoundData;
   PTransferSoundData = ^sTransferSoundData; 
 
-  sTransferSound = record
-    data: array [0..15] of TransferSoundData;
-    count: cuint8;
-    PADDING: array [0..2] of cuint8;
-  end; 
-  TransferSound = sTransferSound;
-  TTransferSound = TransferSound;
-  PTransferSound = ^sTransferSound;
-    
   sTransferRegion = record
-  	touchX,   touchY: cint16;   // TSC X, Y
-  	touchXpx, touchYpx: cint16; // TSC X, Y pixel values
-  	touchZ1,  touchZ2: cint16;  // TSC x-panel measurements
-  	tdiode1,  tdiode2: cuint16;  // TSC temperature diodes
-  	temperature: cuint32;        // TSC computed temperature
+  	touchX,   touchY: cint16;
+  	touchXpx, touchYpx: cint16;
+  	touchZ1,  touchZ2: cint16;
  
-  	buttons: cuint16;            // X, Y, /PENIRQ buttons
+  	buttons: cuint16;
 
-    time: record
-      case integer of 
-        0: (curtime: array [0..7] of cuint8);        // current time response from RTC
-        1: (rtc: record
-              command: cuint8;
-              year: cuint8;           //add 2000 to get 4 digit year
-              month: cuint8;          //1 to 12
-              day: cuint8;            //1 to (days in month)  
-             
-              incr: cuint8;
-              hours: cuint8;          //0 to 11 for AM, 52 to 63 for PM
-              minutes: cuint8;        //0 to 59
-              seconds: cuint8;        //0 to 59
-            end;
-           ); 
-    end;
-//    unixTime: cint32; // Moved!
-    
-  	battery: cuint16;            // battery life ??  hopefully.  :)
-  	aux: cuint16;                // i have no idea...
-
-  
-    // Don't rely on these below, will change or be removed in the future
-  	soundData: PTransferSound;
-    mailAddr: cuint32;
-    mailData: cuint32;
-    mailRead: cuint8;
-    mailBusy: cuint8;
-    mailSize: cuint32;
-
-    // unixTime here, because in the old position it breaked nds sound system O_o
     unixTime: cint32;
   end;
   TransferRegion = sTransferRegion; 
@@ -111,11 +69,6 @@ type
 
 const
   //IPC : pTransferRegion = pointer($027FF000);
-
-  IPC_PEN_DOWN = (1 shl 6);
-  IPC_X = (1 shl 0);
-  IPC_Y = (1 shl 1);
-  IPC_LID_CLOSED = (1 shl 7);
 
 //---------------------------------------------------------------------------------
 // Synchronization register
@@ -127,8 +80,32 @@ type
 const
   IPC_SYNC_IRQ_ENABLE: IPC_SYNC_BITS =	(1 shl 14);
   IPC_SYNC_IRQ_REQUEST: IPC_SYNC_BITS	=	(1 shl 13);
-{$endif NDS_INTERFACE}  
+  
+  
+function getIPC(): PTransferRegion; inline;
+function IPC(): PTransferRegion; inline;
+procedure IPC_SendSync(sync: cuint); inline; 
+function IPC_GetSync(): cint; inline;
 
+const
+  REG_IPC_FIFO_TX		: pcuint32 = pointer($04000188);
+  REG_IPC_FIFO_RX		: pcuint32 = pointer($04100000);
+  REG_IPC_FIFO_CR		: pcuint16 = pointer($04000184);
+
+type
+  IPC_CONTROL_BITS = cint;
+
+const
+	IPC_FIFO_SEND_EMPTY  : IPC_CONTROL_BITS = (1 shl 0);
+	IPC_FIFO_SEND_FULL   : IPC_CONTROL_BITS = (1 shl 1);
+	IPC_FIFO_SEND_IRQ    : IPC_CONTROL_BITS = (1 shl 2);
+	IPC_FIFO_SEND_CLEAR  : IPC_CONTROL_BITS = (1 shl 3);
+	IPC_FIFO_RECV_EMPTY  : IPC_CONTROL_BITS	=	(1 shl 8);
+	IPC_FIFO_RECV_FULL   : IPC_CONTROL_BITS = (1 shl 9);
+	IPC_FIFO_RECV_IRQ    : IPC_CONTROL_BITS = (1 shl 10);
+	IPC_FIFO_ERROR       : IPC_CONTROL_BITS = (1 shl 14);
+	IPC_FIFO_ENABLE      : IPC_CONTROL_BITS = (1 shl 15);
+{$endif NDS_INTERFACE}
 
 {$ifdef NDS_IMPLEMENTATION}
 function getIPC(): PTransferRegion; inline;
@@ -151,32 +128,3 @@ begin
 	IPC_GetSync := REG_IPC_SYNC^ and $0f;
 end;
 {$endif NDS_IMPLEMENTATION}
-
-
-{$ifdef NDS_INTERFACE}
-const
-  REG_IPC_FIFO_TX		: pcuint32 = pointer($04000188);
-  REG_IPC_FIFO_RX		: pcuint32 = pointer($04100000);
-  REG_IPC_FIFO_CR		: pcuint16 = pointer($04000184);
-
-type
-  IPC_CONTROL_BITS = cint;
-
-const
-	IPC_FIFO_SEND_EMPTY  : IPC_CONTROL_BITS = (1 shl 0);
-	IPC_FIFO_SEND_FULL   : IPC_CONTROL_BITS = (1 shl 1);
-	IPC_FIFO_SEND_IRQ    : IPC_CONTROL_BITS = (1 shl 2);
-	IPC_FIFO_SEND_CLEAR  : IPC_CONTROL_BITS = (1 shl 3);
-	IPC_FIFO_RECV_EMPTY  : IPC_CONTROL_BITS	=	(1 shl 8);
-	IPC_FIFO_RECV_FULL   : IPC_CONTROL_BITS = (1 shl 9);
-	IPC_FIFO_RECV_IRQ    : IPC_CONTROL_BITS = (1 shl 10);
-	IPC_FIFO_ERROR       : IPC_CONTROL_BITS = (1 shl 14);
-	IPC_FIFO_ENABLE      : IPC_CONTROL_BITS = (1 shl 15);
-{$endif NDS_INTERFACE}
-
-{$ifdef NDS_INTERFACE}
-function getIPC(): PTransferRegion; inline;
-function IPC(): PTransferRegion; inline;
-procedure IPC_SendSync(sync: cuint); inline; 
-function IPC_GetSync(): cint; inline;
-{$endif NDS_INTERFACE}

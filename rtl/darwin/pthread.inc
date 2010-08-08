@@ -47,12 +47,15 @@ function  pthread_attr_init           (p : ppthread_attr_t):cint; cdecl; externa
 function  pthread_attr_setinheritsched(p : ppthread_attr_t;i:cint):cint; cdecl; external 'c';
 function  pthread_attr_setscope      (p : ppthread_attr_t;i:cint):cint;cdecl;external 'c';
 function  pthread_attr_setdetachstate (p : ppthread_attr_t;i:cint):cint;cdecl;external 'c';
+function  pthread_attr_setstacksize(p: ppthread_attr_t; stacksize: size_t):cint;cdecl;external 'c';
+
 function  pthread_create ( p: ppthread_t;attr : ppthread_attr_t;f:__startroutine_t;arg:pointer):cint;cdecl;external 'c';
 procedure pthread_exit  ( p: pointer); cdecl;external 'c';
 function  pthread_self:pthread_t; cdecl;external 'c';
 function  pthread_mutex_init (p:ppthread_mutex_t;o:ppthread_mutexattr_t):cint; cdecl;external 'c';
 function  pthread_mutex_destroy (p:ppthread_mutex_t):cint; cdecl;external 'c';
 function  pthread_mutex_lock    (p:ppthread_mutex_t):cint; cdecl;external 'c';
+function  pthread_mutex_trylock (p:ppthread_mutex_t):cint; cdecl;external 'c';
 function  pthread_mutex_unlock  (p:ppthread_mutex_t):cint; cdecl;external 'c';
 function  pthread_cancel(_para1:pthread_t):cint;cdecl;external 'c';
 function  pthread_detach(_para1:pthread_t):cint;cdecl;external 'c';
@@ -60,6 +63,7 @@ function  pthread_join(_para1:pthread_t; _para2:Ppointer):cint;cdecl;external 'c
 function  pthread_cond_destroy(_para1:Ppthread_cond_t):cint;cdecl;external 'c' name 'pthread_cond_destroy';
 function  pthread_cond_init(_para1:Ppthread_cond_t;_para2:Ppthread_condattr_t):cint;cdecl;external  'c' name 'pthread_cond_init';
 function  pthread_cond_signal(_para1:Ppthread_cond_t):cint;cdecl;external 'c' name 'pthread_cond_signal';
+function  pthread_cond_broadcast(_para1:Ppthread_cond_t):cint;cdecl;external 'c' name 'pthread_cond_broadcast';
 function  pthread_cond_wait(_para1:Ppthread_cond_t;_para2:Ppthread_mutex_t):cint;cdecl;external 'c' name 'pthread_cond_wait';
 function pthread_kill(__thread:pthread_t; __signo:cint):cint;cdecl;external 'c';
 function pthread_sigmask(how: cint; nset: psigset; oset: psigset): cint; cdecl; external 'c';

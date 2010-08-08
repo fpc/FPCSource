@@ -32,6 +32,10 @@ unit typinfo;
     type
 
 {$MINENUMSIZE 1   this saves a lot of memory }
+{$ifdef FPC_RTTI_PACKSET1}
+{ for Delphi compatibility }
+{$packset 1}
+{$endif}
        // if you change one of the following enumeration types
        // you have also to change the compiler in an appropriate way !
        TTypeKind = (tkUnknown,tkInteger,tkChar,tkEnumeration,tkFloat,
@@ -46,12 +50,20 @@ unit typinfo;
        TFloatType = (ftSingle,ftDouble,ftExtended,ftComp,ftCurr);
 {$endif}
        TMethodKind = (mkProcedure,mkFunction,mkConstructor,mkDestructor,
-                      mkClassProcedure, mkClassFunction);
+                      mkClassProcedure, mkClassFunction, mkClassConstructor, 
+                      mkClassDestructor);
        TParamFlag     = (pfVar,pfConst,pfArray,pfAddress,pfReference,pfOut);
        TParamFlags    = set of TParamFlag;
        TIntfFlag      = (ifHasGuid,ifDispInterface,ifDispatch,ifHasStrGUID);
        TIntfFlags     = set of TIntfFlag;
        TIntfFlagsBase = set of TIntfFlag;
+
+       // don't rely on integer values of TCallConv since it includes all conventions
+       // which both delphi and fpc support. In the future delphi can support more and
+       // fpc own conventions will be shifted/reordered accordinly
+       TCallConv = (ccReg, ccCdecl, ccPascal, ccStdCall, ccSafeCall,
+                    ccCppdecl, ccFar16, ccOldFPCCall, ccInternProc,
+                    ccSysCall, ccSoftFloat, ccMWPascal);
 
 {$MINENUMSIZE DEFAULT}
 
@@ -66,6 +78,30 @@ unit typinfo;
    type
       TTypeKinds = set of TTypeKind;
       ShortStringBase = string[255];
+
+      PVmtFieldEntry = ^TVmtFieldEntry;
+      TVmtFieldEntry =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        FieldOffset: PtrUInt;
+        TypeIndex: Word;
+        Name: ShortString;
+      end;
+
+      PVmtFieldTable = ^TVmtFieldTable;
+      TVmtFieldTable =
+{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
+      packed
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
+      record
+        Count: Word;
+        ClassTab: Pointer;
+        { should be array[Word] of TFieldInfo;  but
+          Elements have variant size! force at least proper alignment }
+        Fields: array[0..0] of TVmtFieldEntry
+      end;
 
 {$PACKRECORDS 1}
       TTypeInfo = record
@@ -96,7 +132,8 @@ unit typinfo;
                       tkEnumeration:
                         (
                         BaseType : PTypeInfo;
-                        NameList : ShortString)
+                        NameList : ShortString;
+                        {EnumUnitName: ShortString;})
                     );
                   tkSet:
                     (CompType : PTypeInfo)
@@ -125,7 +162,10 @@ unit typinfo;
                     TypeName : ShortString;
                   end;
               followed by
-                  ResultType : ShortString}
+                  ResultType : ShortString     // for mkFunction, mkClassFunction only
+                  ResultTypeRef : PPTypeInfo;  // for mkFunction, mkClassFunction only
+                  CC : TCallConv;
+                  ParamTypeRefs : array[1..ParamCount] of PPTypeInfo;}
               );
             tkInt64:
               (MinInt64Value, MaxInt64Value: Int64);
@@ -359,7 +399,7 @@ Function GetEnumName(TypeInfo : PTypeInfo;Value : Integer) : string;
 
 begin
   PT:=GetTypeData(TypeInfo);
-  if TypeInfo^.Kind=tkBool then 
+  if TypeInfo^.Kind=tkBool then
     begin
       case Value of
         0,1:
@@ -371,6 +411,7 @@ begin
  else
    begin
      PS:=@PT^.NameList;
+     dec(Value,PT^.MinValue);
      While Value>0 Do
        begin
          PS:=PShortString(pointer(PS)+PByte(PS)^+1);
@@ -395,8 +436,8 @@ begin
   PT:=GetTypeData(TypeInfo);
   Count:=0;
   Result:=-1;
-  
-  if TypeInfo^.Kind=tkBool then 
+
+  if TypeInfo^.Kind=tkBool then
     begin
     If CompareText(BooleanIdents[false],Name)=0 then
       result:=0
@@ -405,12 +446,11 @@ begin
     end
  else
    begin
-  
      PS:=@PT^.NameList;
      While (Result=-1) and (PByte(PS)^<>0) do
        begin
          If ShortCompareText(PS^, sName) = 0 then
-           Result:=Count;
+           Result:=Count+PT^.MinValue;
          PS:=PShortString(pointer(PS)+PByte(PS)^+1);
          Inc(Count);
        end;
@@ -425,21 +465,21 @@ var
   Count: SizeInt;
 begin
   PT:=GetTypeData(enum1);
-  if enum1^.Kind=tkBool then 
+  if enum1^.Kind=tkBool then
     Result:=2
   else
     begin
       Count:=0;
       Result:=0;
-    
+
       PS:=@PT^.NameList;
       While (PByte(PS)^<>0) do
         begin
           PS:=PShortString(pointer(PS)+PByte(PS)^+1);
           Inc(Count);
         end;
-    
-      Result := Count;
+      { the last string is the unit name }
+      Result := Count - 1;
     end;
 end;
 
@@ -452,16 +492,16 @@ end;
 
 Function SetToString(TypeInfo: PTypeInfo; Value: Integer; Brackets: Boolean) : String;
 
-{$ifdef FPC_NEW_BIGENDIAN_SETS}
 type
   tsetarr = bitpacked array[0..31] of 0..1;
-{$endif}
 Var
   I : Integer;
   PTI : PTypeInfo;
 
 begin
-{$if defined(FPC_NEW_BIGENDIAN_SETS) and defined(FPC_BIG_ENDIAN)}
+{$if defined(FPC_BIG_ENDIAN)}
+  { On big endian systems, set element 0 is in the most significant bit,
+    and the same goes for the elements of bitpacked arrays there.  }
   case GetTypeData(TypeInfo)^.OrdType of
     otSByte,otUByte: Value:=Value shl 24;
     otSWord,otUWord: Value:=Value shl 16;
@@ -472,20 +512,13 @@ begin
   Result:='';
   For I:=0 to SizeOf(Integer)*8-1 do
     begin
-{$ifdef FPC_NEW_BIGENDIAN_SETS}
       if (tsetarr(Value)[i]<>0) then
-{$else}
-      if ((Value and 1)<>0) then
-{$endif}
         begin
           If Result='' then
             Result:=GetEnumName(PTI,i)
           else
             Result:=Result+','+GetEnumName(PTI,I);
         end;
-{$ifndef FPC_NEW_BIGENDIAN_SETS}
-      Value:=Value shr 1;
-{$endif FPC_NEW_BIGENDIAN_SETS}
     end;
   if Brackets then
     Result:='['+Result+']';
@@ -798,7 +831,7 @@ begin
       GetPropInfos(TypeInfo,PropList);
     end
   else
-    PropList:=Nil;  
+    PropList:=Nil;
 end;
 
 function GetPropList(AClass: TClass; out PropList: PPropList): Integer;
@@ -1308,7 +1341,7 @@ begin
           ptstatic,
           ptvirtual :
             begin
-              if (PropInfo^.PropProcs and 3)=ptStatic then
+              if ((PropInfo^.PropProcs shr 2) and 3)=ptStatic then
                 AMethod.Code:=PropInfo^.SetProc
               else
                 AMethod.Code:=PPointer(Pointer(Instance.ClassType)+PtrUInt(PropInfo^.SetProc))^;
@@ -1464,7 +1497,7 @@ begin
     tkSString,tkAString:
       Result:=GetStrProp(Instance,PropInfo);
     tkWString:
-      Result:=GetWideStrProp(Instance,PropInfo);      
+      Result:=GetWideStrProp(Instance,PropInfo);
     tkUString:
       begin
         case (PropInfo^.PropProcs) and 3 of

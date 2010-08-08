@@ -35,7 +35,11 @@ type
     pGid     = ^gid_t;
     TIOCtlRequest = cuLong;
 
+{$ifndef cpuarm}
     ino_t    = cuint32;         { used for file serial numbers }
+{$else}
+    ino_t    = cuint64;
+{$endif}
     TIno     = ino_t;
     pIno     = ^ino_t;
 
@@ -73,7 +77,8 @@ type
     pClock   = ^clock_t;
 
     time_t   = clong;           { used for returning the time  }
-    TTime    = time_t;
+    // TTime    = time_t;    // Not allowed in system unit, -> unixtype
+
     pTime    = ^time_t;
     ptime_t  = ^time_t;
 
@@ -139,6 +144,27 @@ type
           val: array[0..1] of cint32;
      end;
 
+{$ifdef cpuarm}
+     { structure used on iPhoneOS and available on Mac OS X 10.6 and later }
+     tstatfs = record
+          bsize : cuint32;
+          iosize : cint32;
+          blocks : cuint64;
+          bfree : cuint64;
+          bavail : cuint64;
+          files : cuint64;
+          ffree : cuint64;
+          fsid : fsid_t;
+          owner : uid_t;
+          ftype : cuint32;
+          fflags : cuint32;
+          fssubtype : cuint32;
+          fstypename : array[0..(MFSNAMELEN)-1] of char;
+          mountpoint : array[0..(PATH_MAX)-1] of char;
+          mntfromname : array[0..(PATH_MAX)-1] of char;
+          reserved: array[0..7] of cuint32;
+     end;
+{$else}
      tstatfs = record
           otype : cint16;
           oflags : cint16;
@@ -161,6 +187,7 @@ type
           f_reserved3: char;
           reserved4: array[0..3] of clong;
        end;
+{$endif}
     pstatfs = ^tstatfs;
 
     mbstate_t = record

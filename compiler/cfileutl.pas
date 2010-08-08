@@ -46,16 +46,11 @@ interface
       CUtils,CClasses,
       Systems;
 
-    const
-      { On case sensitive file systems, you have 9 lookups per used unit, }
-      { including the system unit, in the current directory               }
-      MinSearchesBeforeCache = 20;
-
     type
       TCachedDirectory = class(TFPHashObject)
       private
         FDirectoryEntries : TFPHashList;
-        FSearchCount: longint;
+        FCached : Boolean;
         procedure FreeDirectoryEntries;
         function GetItemAttr(const AName: TCmdStr): byte;
         function TryUseCache: boolean;
@@ -131,6 +126,19 @@ interface
     procedure DoneFileUtils;
 
 
+{ * Since native Amiga commands can't handle Unix-style relative paths used by the compiler,
+    and some GNU tools, Unix2AmigaPath is needed to handle such situations (KB) * }
+
+{$IF DEFINED(MORPHOS) OR DEFINED(AMIGA)}
+{ * PATHCONV is implemented in the Amiga/MorphOS system unit * }
+{$WARNING TODO Amiga: implement PathConv() in System unit, which works with AnsiString}
+function Unix2AmigaPath(path: ShortString): ShortString; external name 'PATHCONV';
+{$ELSE}
+function Unix2AmigaPath(path: String): String;{$IFDEF USEINLINE}inline;{$ENDIF}
+{$ENDIF}
+
+
+
 implementation
 
     uses
@@ -164,6 +172,17 @@ implementation
       DirCache : TDirectoryCache;
 
 
+{$IF NOT (DEFINED(MORPHOS) OR DEFINED(AMIGA))}
+{ Stub function for Unix2Amiga Path conversion functionality, only available in
+  Amiga/MorphOS RTL. I'm open for better solutions. (KB) }
+function Unix2AmigaPath(path: String): String;{$IFDEF USEINLINE}inline;{$ENDIF}
+begin
+  Unix2AmigaPath:=path;
+end;
+{$ENDIF}
+
+
+
 {****************************************************************************
                            TCachedDirectory
 ****************************************************************************}
@@ -172,6 +191,7 @@ implementation
       begin
         inherited create(AList,AName);
         FDirectoryEntries:=TFPHashList.Create;
+        FCached:=False;
       end;
 
 
@@ -185,25 +205,21 @@ implementation
 
     function TCachedDirectory.TryUseCache:boolean;
       begin
-        Result:=true;
-        if (FSearchCount > MinSearchesBeforeCache) then
+        Result:=True;
+        if FCached then
           exit;
-        if (FSearchCount = MinSearchesBeforeCache) then
-          begin
-            inc(FSearchCount);
-            Reload;
-            exit;
-          end;
-        inc(FSearchCount);
-        Result:=false;
+        if not current_settings.disabledircache then
+          ForceUseCache
+        else
+          Result:=False;
       end;
 
 
     procedure TCachedDirectory.ForceUseCache;
       begin
-        if (FSearchCount<=MinSearchesBeforeCache) then
+        if not FCached then
           begin
-            FSearchCount:=MinSearchesBeforeCache+1;
+            FCached:=True;
             Reload;
           end;
       end;
@@ -504,16 +520,36 @@ implementation
      begin
         result:=false;
 {$if defined(unix)}
-        if (length(s)>0) and (s[1]='/') then
+        if (length(s)>0) and (s[1] in AllowDirectorySeparators) then
           result:=true;
 {$elseif defined(amiga) or defined(morphos)}
-        if ((length(s)>0) and ((s[1]='\') or (s[1]='/'))) or (Pos(':',s) = length(s)) then
+        (* An Amiga path is absolute, if it has a volume/device name in it (contains ":"), 
+           otherwise it's always a relative path, no matter if it starts with a directory 
+           separator or not. (KB) *)
+        if (length(s)>0) and (Pos(':',s) <> 0) then
           result:=true;
 {$elseif defined(macos)}
         if IsMacFullPath(s) then
           result:=true;
-        if ((length(s)>0) and ((s[1]='\') or (s[1]='/'))) or
-           ((length(s)>2) and (s[2]=':') and ((s[3]='\') or (s[3]='/'))) then
+{$elseif defined(netware)}
+        if (Pos (DriveSeparator, S) <> 0) or
+                ((Length (S) > 0) and (S [1] in AllowDirectorySeparators)) then
+          result:=true;
+{$elseif defined(win32) or defined(win64) or defined(go32v2) or defined(os2) or defined(watcom)}
+        if ((length(s)>0) and (s[1] in AllowDirectorySeparators)) or
+(* The following check for non-empty AllowDriveSeparators assumes that all
+   other platforms supporting drives and not handled as exceptions above
+   should work with DOS-like paths, i.e. use absolute paths with one letter
+   for drive followed by path separator *)
+           ((length(s)>2) and (s[2] in AllowDriveSeparators) and (s[3] in AllowDirectorySeparators)) then
+          result:=true;
+{$else}
+        if ((length(s)>0) and (s[1] in AllowDirectorySeparators)) or
+(* The following check for non-empty AllowDriveSeparators assumes that all
+   other platforms supporting drives and not handled as exceptions above
+   should work with DOS-like paths, i.e. use absolute paths with one letter
+   for drive followed by path separator *)
+           ((AllowDriveSeparators <> []) and (length(s)>2) and (s[2] in AllowDriveSeparators) and (s[3] in AllowDirectorySeparators)) then
           result:=true;
 {$endif unix}
      end;
@@ -1008,7 +1044,7 @@ implementation
           begin
             j:=Pos(';',s);
             if j=0 then
-             j:=255;
+             j:=length(s)+1;
             currPath:= TrimSpace(Copy(s,1,j-1));
             System.Delete(s,1,j);
           end;
@@ -1024,9 +1060,9 @@ implementation
             if (CurrentDir<>'') and (Copy(currPath,1,length(CurrentDir))=CurrentDir) then
              begin
 {$if defined(amiga) and defined(morphos)}
-               currPath:= CurrentDir+Copy(currPath,length(CurrentDir)+1,255);
+               currPath:= CurrentDir+Copy(currPath,length(CurrentDir)+1,length(currPath));
 {$else}
-               currPath:= CurDirRelPath(source_info)+Copy(currPath,length(CurrentDir)+1,255);
+               currPath:= CurDirRelPath(source_info)+Copy(currPath,length(CurrentDir)+1,length(currPath));
 {$endif}
              end;
           end;

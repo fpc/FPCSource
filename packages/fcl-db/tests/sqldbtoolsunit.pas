@@ -63,20 +63,24 @@ const MySQLdbTypes = [mysql40,mysql41,mysql50];
 type
 { TSQLDBConnector }
   TSQLDBConnector = class(TDBConnector)
-    FConnection   : TSQLConnection;
-    FTransaction  : TSQLTransaction;
-    FQuery        : TSQLQuery;
   private
+    FConnection    : TSQLConnection;
+    FTransaction   : TSQLTransaction;
+    FQuery         : TSQLQuery;
+    FUniDirectional: boolean;
     procedure CreateFConnection;
     procedure CreateFTransaction;
     Function CreateQuery : TSQLQuery;
   protected
+    procedure SetTestUniDirectional(const AValue: boolean); override;
+    function GetTestUniDirectional: boolean; override;
     procedure CreateNDatasets; override;
     procedure CreateFieldDataset; override;
     procedure DropNDatasets; override;
     procedure DropFieldDataset; override;
     Function InternalGetNDataset(n : integer) : TDataset; override;
     Function InternalGetFieldDataset : TDataSet; override;
+    procedure TryDropIfExist(ATableName : String);
   public
     destructor Destroy; override;
     constructor Create; override;
@@ -143,6 +147,11 @@ begin
     UserName := dbuser;
     Password := dbpassword;
     HostName := dbhostname;
+    if length(dbQuoteChars)>1 then
+      begin
+      FieldNameQuoteChars[0] := dbQuoteChars[1];
+      FieldNameQuoteChars[1] := dbQuoteChars[2];
+      end;
     open;
     end;
 end;
@@ -166,11 +175,23 @@ begin
     end;
 end;
 
+procedure TSQLDBConnector.SetTestUniDirectional(const AValue: boolean);
+begin
+  FUniDirectional:=avalue;
+  FQuery.UniDirectional:=AValue;
+end;
+
+function TSQLDBConnector.GetTestUniDirectional: boolean;
+begin
+  result := FUniDirectional;
+end;
+
 procedure TSQLDBConnector.CreateNDatasets;
 var CountID : Integer;
 begin
   try
     Ftransaction.StartTransaction;
+    TryDropIfExist('FPDEV');
     Fconnection.ExecuteDirect('create table FPDEV (       ' +
                               '  ID INT NOT NULL,           ' +
                               '  NAME VARCHAR(50),          ' +
@@ -196,6 +217,7 @@ var CountID : Integer;
 begin
   try
     Ftransaction.StartTransaction;
+    TryDropIfExist('FPDEV_FIELD');
 
     Sql := 'create table FPDEV_FIELD (ID INT NOT NULL,';
     for FType := low(TFieldType)to high(TFieldType) do
@@ -270,6 +292,7 @@ begin
     begin
     sql.clear;
     sql.add('SELECT * FROM FPDEV WHERE ID < '+inttostr(n+1));
+    UniDirectional:=TestUniDirectional;
     end;
 end;
 
@@ -280,7 +303,26 @@ begin
     begin
     sql.clear;
     sql.add('SELECT * FROM FPDEV_FIELD');
+    tsqlquery(Result).UniDirectional:=TestUniDirectional;
     end;
+end;
+
+procedure TSQLDBConnector.TryDropIfExist(ATableName: String);
+begin
+  // This makes live soo much easier, since it avoids the exception if the table already
+  // exists. And while this exeption is in a try..except statement, the debugger
+  // always shows the exception. Which is pretty annoying
+  // It only works with Firebird 2, though.
+  try
+    if SQLDbType = INTERBASE then
+      begin
+      FConnection.ExecuteDirect('execute block as begin if (exists (select 1 from rdb$relations where rdb$relation_name=''' + ATableName + ''')) '+
+             'then execute statement ''drop table ' + ATAbleName + ';'';end');
+      FTransaction.CommitRetaining;
+      end;
+  except
+    FTransaction.RollbackRetaining;
+  end;
 end;
 
 destructor TSQLDBConnector.Destroy;

@@ -52,10 +52,29 @@ unit Cairo;
 
 interface
 
-Uses CTypes;
+Uses
+  CTypes;
 
 const
-  LIB_CAIRO = 'cairo';
+{$ifdef win32}
+  LIB_CAIRO = 'libcairo-2.dll';
+  {$IFDEF FPC}
+    {$ifndef NO_SMART_LINK}
+      {$smartlink on}
+    {$endif}
+  {$ENDIF}
+{$else}
+  {$ifdef darwin}
+    LIB_CAIRO = 'cairo';
+    {$linklib cairo}
+  {$else}
+    {$ifdef UseCustomLibs}
+    LIB_CAIRO = '';
+    {$else}
+    LIB_CAIRO = 'libcairo.so.2';
+    {$endif}
+  {$endif}
+{$endif}
 
 {$IFDEF FPC}
   {$PACKRECORDS C}

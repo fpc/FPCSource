@@ -79,7 +79,10 @@ implementation
         p:=comp_expr(true);
         { calc return type }
         if is_new then
-          set_varstate(p,vs_written,[])
+          begin
+            set_varstate(p,vs_written,[]);
+            valid_for_var(p,true);
+          end
         else
           set_varstate(p,vs_readwritten,[vsf_must_be_valid]);
         if (m_mac in current_settings.modeswitches) and
@@ -309,7 +312,8 @@ implementation
                          ccallnode.createintern('fpc_getmem',para)));
 
                      { create call to fpc_initialize }
-                     if tpointerdef(p.resultdef).pointeddef.needs_inittable then
+                     if is_managed_type(tpointerdef(p.resultdef).pointeddef) or
+                       ((m_iso in current_settings.modeswitches) and (tpointerdef(p.resultdef).pointeddef.typ=filedef)) then
                        addstatement(newstatement,initialize_data_node(cderefnode.create(ctemprefnode.create(temp))));
 
                      { copy the temp to the destination }
@@ -323,7 +327,7 @@ implementation
                   else
                    begin
                      { create call to fpc_finalize }
-                     if tpointerdef(p.resultdef).pointeddef.needs_inittable then
+                     if is_managed_type(tpointerdef(p.resultdef).pointeddef) then
                        addstatement(newstatement,finalize_data_node(cderefnode.create(p.getcopy)));
 
                      { create call to fpc_freemem }
@@ -391,7 +395,7 @@ implementation
                 ccallnode.createintern('fpc_getmem',para)));
 
             { create call to fpc_initialize }
-            if tpointerdef(p1.resultdef).pointeddef.needs_inittable then
+            if is_managed_type(tpointerdef(p1.resultdef).pointeddef) then
              begin
                para := ccallparanode.create(caddrnode.create_internal(crttinode.create
                           (tstoreddef(tpointerdef(p1.resultdef).pointeddef),initrtti,rdt_normal)),
@@ -716,12 +720,12 @@ implementation
             is_pchar(paradef)) then
           copynode:=ccallnode.createintern('fpc_ansistr_copy',paras)
         else
-         if is_widestring(paradef) or
-            is_widechararray(paradef) or
-            is_pwidechar(paradef) then
+         if is_widestring(paradef) then
            copynode:=ccallnode.createintern('fpc_widestr_copy',paras)
         else
-         if is_unicodestring(paradef) then
+         if is_unicodestring(paradef) or
+            is_widechararray(paradef) or
+            is_pwidechar(paradef) then
            copynode:=ccallnode.createintern('fpc_unicodestr_copy',paras)
         else
          if is_char(paradef) then
@@ -766,7 +770,13 @@ implementation
          begin
            { generic fallback that will give an error if a wrong
              type is passed }
-           copynode:=ccallnode.createintern('fpc_shortstr_copy',paras)
+           if (counter=3) then
+             copynode:=ccallnode.createintern('fpc_shortstr_copy',paras)
+           else
+             begin
+               CGMessagePos(ppn.left.fileinfo,type_e_mismatch);
+               copynode:=cerrornode.create;
+             end
          end;
 
         result.free;

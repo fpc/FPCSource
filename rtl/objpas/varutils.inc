@@ -391,27 +391,27 @@ Const
      ARR_OLESTR,ARR_DISPATCH,ARR_NONE,ARR_NONE,ARR_VARIANT,ARR_UNKNOWN,
      ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE,ARR_NONE);
   psaElementSizes : Array [varEmpty..varQWord] of Byte =
-    (0,0,
-     SizeOf(SmallInt),
-     SizeOf(Integer),
-     SizeOf(Single),
-     SizeOf(Double),
-     0, // unused
-     SizeOf(TDateTime),
-     SizeOf(Currency),
-     SizeOf(PWideString),
-     SizeOf(IInterface),
-     SizeOf(TError),
-     SizeOf(Boolean),
-     SizeOf(TVarData),
-     SizeOf(IUnknown),
-     0, // Decimal
-     SizeOf(ShortInt),
-     SizeOf(Byte),
-     SizeOf(Word),
-     SizeOf(LongWord),
-     SizeOf(Int64),
-     SizeOf(QWord));
+    (0,0,                  // varempty, varnull
+     SizeOf(SmallInt),     // varsmallint
+     SizeOf(Integer),      // varinteger
+     SizeOf(Single),       // varsingle
+     SizeOf(Double),       // vardouble
+     SizeOf(Currency),     // varcurrency
+     SizeOf(TDateTime),    // vardate
+     SizeOf(PWideString),  // varolestr
+     SizeOf(IInterface),   // vardispatch
+     SizeOf(TError),       // varerror
+     SizeOf(Boolean),      // varboolean
+     SizeOf(TVarData),     // varvariant
+     SizeOf(IUnknown),     // varunknown
+     0, // Decimal         // vardecimal
+     0, // Unused
+     SizeOf(ShortInt),     // varshortint
+     SizeOf(Byte),         // varbyte
+     SizeOf(Word),         // varword
+     SizeOf(LongWord),     // varlongword
+     SizeOf(Int64),        // varint64
+     SizeOf(QWord));       // varqword
 
 Function SafeArrayCreate(VarType, Dim: DWord; const Bounds: TVarArrayBoundArray): PVarArray;stdcall;
   var

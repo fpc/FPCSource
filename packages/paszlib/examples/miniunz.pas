@@ -27,6 +27,8 @@ uses
    zlib,ctypes,
   {$endif}
   ziputils,
+  paszlib,
+  ctypes,
   unzip;
 
 const
@@ -64,7 +66,7 @@ begin
                       0,NIL,OPEN_EXISTING,0,0);
   GetFileTime(hFile, @ftCreate, @ftLastAcc, @ftLastWrite);
   DosDateTimeToFileTime(WORD((dosdate shl 16)), WORD(dosdate), @ftLocal);
-  LocalFileTimeToFileTime(ftLocal, @ftm);
+  LocalFileTimeToFileTime(ftLocal, ftm);
   SetFileTime(hFile,ftm, ftLastAcc, ftm);
   CloseHandle(hFile);
 end;

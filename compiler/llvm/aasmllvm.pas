@@ -34,6 +34,7 @@ uses
 
     type
       taillvm = class(tai_cpu_abstract)
+        llvmopcode: tllvmop;
         // switch_end (= ']'), unreachable
         constructor create_llvm(op: tllvmop);
         constructor op_none(op : tllvmop);
@@ -44,8 +45,6 @@ uses
 
         constructor op_ressym_string(op: tllvmop; restyp: tasmsymbol; const str: ansistring);
         procedure loadstring(opidx:longint;_str: pchar);
-        
-        llvmopcode: tllvmop;
       end;
 (*
     procedure InitLlvmAsm;

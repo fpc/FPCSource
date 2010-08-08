@@ -29,7 +29,7 @@ uses
   aasmtai,aasmdata,
   cpubase,
   symconst, symtype, symdef, symsym,
-  paramgr, parabase, cgbase;
+  paramgr, parabase, cgbase, cgutils;
 
 type
   tppcparamanager = class(tparamanager)
@@ -45,6 +45,7 @@ type
     function create_paraloc_info(p: tabstractprocdef; side: tcallercallee): longint; override;
     function create_varargs_paraloc_info(p: tabstractprocdef; varargspara:
       tvarargsparalist): longint; override;
+    function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;override;
     procedure create_funcretloc_info(p: tabstractprocdef; side: tcallercallee);
 
   private
@@ -62,7 +63,6 @@ implementation
 uses
   verbose, systems,
   defutil,
-  cgutils,
   procinfo, cpupi;
 
 function tppcparamanager.get_volatile_registers_int(calloption:
@@ -173,10 +173,11 @@ begin
     recorddef:
       result :=
         ((varspez = vs_const) and
-        (
-         (not (calloption in [pocall_cdecl, pocall_cppdecl]) and
-         (def.size > 8))
-        )
+         (
+          (not (calloption in [pocall_cdecl, pocall_cppdecl]) and
+          (def.size > 8))
+         ) or
+         (calloption = pocall_mwpascal)
         );
     arraydef:
       result := (tarraydef(def).highrange >= tarraydef(def).lowrange) or
@@ -204,46 +205,67 @@ end;
 
 procedure tppcparamanager.create_funcretloc_info(p: tabstractprocdef; side:
   tcallercallee);
-var
-  retcgsize: tcgsize;
 begin
-  { Constructors return self instead of a boolean }
-  if (p.proctypeoption = potype_constructor) then
-    retcgsize := OS_ADDR
-  else
-    retcgsize := def_cgsize(p.returndef);
+  p.funcretloc[side]:=get_funcretloc(p,side,p.returndef);
+end;
 
-  location_reset(p.funcretloc[side], LOC_INVALID, OS_NO);
-  p.funcretloc[side].size := retcgsize;
+function tppcparamanager.get_funcretloc(p : tabstractprocdef; side:
+  tcallercallee; def: tdef): tcgpara;
+var
+  paraloc : pcgparalocation;
+  retcgsize  : tcgsize;
+begin
+  result.init;
+  result.alignment:=get_para_align(p.proccalloption);
   { void has no location }
-  if is_void(p.returndef) then begin
-    p.funcretloc[side].loc := LOC_VOID;
-    exit;
-  end;
-  { Return is passed as var parameter }
-  if ret_in_param(p.returndef, p.proccalloption) then
+  if is_void(def) then
     begin
-      p.funcretloc[side].loc := LOC_REFERENCE;
-      p.funcretloc[side].size := retcgsize;
+      paraloc:=result.add_location;
+      result.size:=OS_NO;
+      result.intsize:=0;
+      paraloc^.size:=OS_NO;
+      paraloc^.loc:=LOC_VOID;
       exit;
     end;
-  { Return in FPU register? }
-  if p.returndef.typ = floatdef then begin
-    p.funcretloc[side].loc := LOC_FPUREGISTER;
-    p.funcretloc[side].register := NR_FPU_RESULT_REG;
-    p.funcretloc[side].size := retcgsize;
-  end else
-    { Return in register }
+  { Constructors return self instead of a boolean }
+  if (p.proctypeoption=potype_constructor) then
     begin
-      p.funcretloc[side].loc := LOC_REGISTER;
-      p.funcretloc[side].size := retcgsize;
-      if side = callerside then
-        p.funcretloc[side].register := newreg(R_INTREGISTER,
-          RS_FUNCTION_RESULT_REG, cgsize2subreg(retcgsize))
-      else
-        p.funcretloc[side].register := newreg(R_INTREGISTER,
-          RS_FUNCTION_RETURN_REG, cgsize2subreg(retcgsize));
+      retcgsize:=OS_ADDR;
+      result.intsize:=sizeof(pint);
+    end
+  else
+    begin
+      retcgsize:=def_cgsize(def);
+      result.intsize:=def.size;
     end;
+  result.size:=retcgsize;
+  { Return is passed as var parameter }
+  if ret_in_param(def,p.proccalloption) then
+    begin
+      paraloc:=result.add_location;
+      paraloc^.loc:=LOC_REFERENCE;
+      paraloc^.size:=retcgsize;
+      exit;
+    end;
+
+  paraloc:=result.add_location;
+  { Return in FPU register? }
+  if def.typ=floatdef then
+    begin
+      paraloc^.loc:=LOC_FPUREGISTER;
+      paraloc^.register:=NR_FPU_RESULT_REG;
+      paraloc^.size:=retcgsize;
+    end
+  else
+   { Return in register }
+    begin
+       paraloc^.loc:=LOC_REGISTER;
+       if side=callerside then
+         paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RESULT_REG,cgsize2subreg(R_INTREGISTER,retcgsize))
+       else
+         paraloc^.register:=newreg(R_INTREGISTER,RS_FUNCTION_RETURN_REG,cgsize2subreg(R_INTREGISTER,retcgsize));
+       paraloc^.size:=retcgsize;
+     end;
 end;
 
 function tppcparamanager.create_paraloc_info(p: tabstractprocdef; side:
@@ -376,7 +398,12 @@ begin
 
     while (paralen > 0) do begin
       paraloc := hp.paraloc[side].add_location;
-      if (loc = LOC_REGISTER) and (nextintreg <= RS_R10) then begin
+      { In case of po_delphi_nested_cc, the parent frame pointer
+        is always passed on the stack. }
+      if (loc = LOC_REGISTER) and
+         (nextintreg <= RS_R10) and
+         (not(vo_is_parentfp in hp.varoptions) or
+          not(po_delphi_nested_cc in p.procoptions)) then begin
         paraloc^.loc := loc;
         paraloc^.shiftval := parashift;
 

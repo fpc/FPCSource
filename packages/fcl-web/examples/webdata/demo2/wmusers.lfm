@@ -1,0 +1,46 @@
+object FPWebModule1: TFPWebModule1
+  OnCreate = DataModuleCreate
+  OldCreateOrder = False
+  Actions = <>
+  OnRequest = DataModuleRequest
+  CreateSession = False
+  Height = 300
+  HorizontalOffset = 477
+  VerticalOffset = 302
+  Width = 400
+  object Dbf1: TDbf
+    FilePath = '/home/michael/public_html/extjs/demo2/'
+    IndexDefs = <>
+    TableName = 'users.dbf'
+    TableLevel = 4
+    FilterOptions = []
+    left = 51
+    top = 64
+  end
+  object ExtJSJSonWebdataInputAdaptor1: TExtJSJSonWebdataInputAdaptor
+    left = 146
+    top = 63
+  end
+  object ExtJSJSONDataFormatter1: TExtJSJSONDataFormatter
+    left = 207
+    top = 61
+  end
+  object ExtJSXMLWebdataInputAdaptor1: TExtJSXMLWebdataInputAdaptor
+    left = 151
+    top = 101
+  end
+  object ExtJSXMLDataFormatter1: TExtJSXMLDataFormatter
+    left = 211
+    top = 100
+  end
+  object FPWebDataProvider1: TFPWebDataProvider
+    DataSource = Datasource1
+    left = 105
+    top = 89
+  end
+  object Datasource1: TDatasource
+    DataSet = Dbf1
+    left = 48
+    top = 104
+  end
+end

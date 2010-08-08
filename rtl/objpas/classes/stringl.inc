@@ -10,6 +10,29 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{****************************************************************************}
+{*                        TStringsEnumerator                                *}
+{****************************************************************************}
+
+constructor TStringsEnumerator.Create(AStrings: TStrings);
+begin
+  inherited Create;
+  FStrings := AStrings;
+  FPosition := -1;
+end;
+
+function TStringsEnumerator.GetCurrent: String;
+begin
+  Result := FStrings[FPosition];
+end;
+
+function TStringsEnumerator.MoveNext: Boolean;
+begin
+  Inc(FPosition);
+  Result := FPosition < FStrings.Count;
+end;
+
 {****************************************************************************}
 {*                             TStrings                                     *}
 {****************************************************************************}
@@ -630,6 +653,17 @@ end;
 
 
 
+Function TStrings.Equals(Obj: TObject): Boolean;
+
+begin
+  if Obj is TStrings then
+    Result := Equals(TStrings(Obj))
+  else
+    Result := inherited Equals(Obj);
+end;
+
+
+
 Function TStrings.Equals(TheStrings: TStrings): Boolean;
 
 Var Runner,Nr : Longint;
@@ -665,6 +699,11 @@ begin
   end;
 end;
 
+
+function TStrings.GetEnumerator: TStringsEnumerator;
+begin
+  Result:=TStringsEnumerator.Create(Self);
+end;
 
 
 Function TStrings.GetText: PChar;
@@ -728,9 +767,12 @@ Procedure TStrings.LoadFromFile(const FileName: string);
 Var
         TheStream : TFileStream;
 begin
-  TheStream:=TFileStream.Create(FileName,fmOpenRead);
-  LoadFromStream(TheStream);
-  TheStream.Free;
+  TheStream:=TFileStream.Create(FileName,fmOpenRead or fmShareDenyWrite);
+  try
+    LoadFromStream(TheStream);
+  finally
+    TheStream.Free;
+  end;
 end;
 
 
@@ -795,8 +837,11 @@ Var TheStream : TFileStream;
 
 begin
   TheStream:=TFileStream.Create(FileName,fmCreate);
-  SaveToStream(TheStream);
-  TheStream.Free;
+  try
+    SaveToStream(TheStream);
+  finally
+    TheStream.Free;
+  end;
 end;
 
 
@@ -1274,6 +1319,7 @@ begin
   FMap := TFPStrObjMap.Create;
   FMap.OnPtrCompare := @MapPtrCompare;
   FOnCompareText := @DefaultCompareText;
+  CheckSpecialChars;
 end;
 
 destructor TStringList.Destroy;

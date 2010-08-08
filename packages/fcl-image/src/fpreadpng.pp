@@ -519,15 +519,15 @@ end;
 function TFPReaderPNG.ColorGrayAlpha8 (CD:TColorData) : TFPColor;
 var c : word;
 begin
-  c := CD and $FF00;
-  c := c + (c shr 8);
+  c := CD and $00FF;
+  c := c + (c shl 8);
   with result do
     begin
     red := c;
     green := c;
     blue := c;
-    c := CD and $FF;
-    alpha := c + (c shl 8);
+    c := CD and $FF00;
+    alpha := c + (c shr 8);
     end;
 end;
 
@@ -791,8 +791,10 @@ end;
 
 procedure TFPReaderPNG.InternalRead (Str:TStream; Img:TFPCustomImage);
 begin
+  {$ifdef FPC_Debug_Image}
   if Str<>TheStream then
-    writeln('WARNING: TFPReaderPNG.InternalRead Str<>TheStream');
+    writeln('WARNING: TFPReaderPNG.InternalRead Str<>TheStream');  
+  {$endif}
   with Header do
     Img.SetSize (Width, Height);
   ZData := TMemoryStream.Create;

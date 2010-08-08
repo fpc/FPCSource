@@ -569,7 +569,7 @@ implementation
 
     function TElfObjData.sectionname(atype:TAsmSectiontype;const aname:string;aorder:TAsmSectionOrder):string;
       const
-        secnames : array[TAsmSectiontype] of string[13] = ('',
+        secnames : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
 {$ifdef userodata}
           '.text','.data','.data','.rodata','.bss','.threadvar',
 {$else userodata}
@@ -577,6 +577,10 @@ implementation
 {$endif userodata}
           '.pdata',
           '.text', { darwin stubs }
+          '__DATA,__nl_symbol_ptr',
+          '__DATA,__la_symbol_ptr',
+          '__DATA,__mod_init_func',
+          '__DATA,__mod_term_func',
           '.stab','.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
           '.eh_frame',
@@ -584,9 +588,43 @@ implementation
           '.fpc',
           '.toc',
           '.init',
-          '.fini'
+          '.fini',
+          '.objc_class',
+          '.objc_meta_class',
+          '.objc_cat_cls_meth',
+          '.objc_cat_inst_meth',
+          '.objc_protocol',
+          '.objc_string_object',
+          '.objc_cls_meth',
+          '.objc_inst_meth',
+          '.objc_cls_refs',
+          '.objc_message_refs',
+          '.objc_symbols',
+          '.objc_category',
+          '.objc_class_vars',
+          '.objc_instance_vars',
+          '.objc_module_info',
+          '.objc_class_names',
+          '.objc_meth_var_types',
+          '.objc_meth_var_names',
+          '.objc_selector_strs',
+          '.objc_protocol_ext',
+          '.objc_class_ext',
+          '.objc_property',
+          '.objc_image_info',
+          '.objc_cstring_object',
+          '.objc_sel_fixup',
+          '__DATA,__objc_data',
+          '__DATA,__objc_const',
+          '.objc_superrefs',
+          '__DATA, __datacoal_nt,coalesced',
+          '.objc_classlist',
+          '.objc_nlclasslist',
+          '.objc_catlist',
+          '.obcj_nlcatlist',
+          '.objc_protolist'
         );
-        secnames_pic : array[TAsmSectiontype] of string[17] = ('',
+        secnames_pic : array[TAsmSectiontype] of string[length('__DATA, __datacoal_nt,coalesced')] = ('',
           '.text',
           '.data.rel',
           '.data.rel',
@@ -595,6 +633,10 @@ implementation
           '.threadvar',
           '.pdata',
           '', { stubs }
+          '__DATA,__nl_symbol_ptr',
+          '__DATA,__la_symbol_ptr',
+          '__DATA,__mod_init_func',
+          '__DATA,__mod_term_func',
           '.stab',
           '.stabstr',
           '.idata$2','.idata$4','.idata$5','.idata$6','.idata$7','.edata',
@@ -603,7 +645,41 @@ implementation
           '.fpc',
           '.toc',
           '.init',
-          '.fini'
+          '.fini',
+          '.objc_class',
+          '.objc_meta_class',
+          '.objc_cat_cls_meth',
+          '.objc_cat_inst_meth',
+          '.objc_protocol',
+          '.objc_string_object',
+          '.objc_cls_meth',
+          '.objc_inst_meth',
+          '.objc_cls_refs',
+          '.objc_message_refs',
+          '.objc_symbols',
+          '.objc_category',
+          '.objc_class_vars',
+          '.objc_instance_vars',
+          '.objc_module_info',
+          '.objc_class_names',
+          '.objc_meth_var_types',
+          '.objc_meth_var_names',
+          '.objc_selector_strs',
+          '.objc_protocol_ext',
+          '.objc_class_ext',
+          '.objc_property',
+          '.objc_image_info',
+          '.objc_cstring_object',
+          '.objc_sel_fixup',
+          '__DATA,__objc_data',
+          '__DATA,__objc_const',
+          '.objc_superrefs',
+          '__DATA, __datacoal_nt,coalesced',
+          '.objc_classlist',
+          '.objc_nlclasslist',
+          '.objc_catlist',
+          '.obcj_nlcatlist',
+          '.objc_protolist'
         );
       var
         sep : string[3];
@@ -857,6 +933,8 @@ implementation
                   end;
                 AB_EXTERNAL :
                   elfsym.st_info:=STB_GLOBAL shl 4;
+                AB_WEAK_EXTERNAL :
+                  elfsym.st_info:=STB_WEAK shl 4;
                 AB_GLOBAL :
                   begin
                     elfsym.st_value:=objsym.address;
@@ -1021,6 +1099,10 @@ implementation
            symtabsect:=TElfObjSection.create_ext(ObjSectionList,'.symtab',SHT_SYMTAB,0,0,0,4,sizeof(telfsymbol));
            strtabsect:=TElfObjSection.create_ext(ObjSectionList,'.strtab',SHT_STRTAB,0,0,0,1,0);
            shstrtabsect:=TElfObjSection.create_ext(ObjSectionList,'.shstrtab',SHT_STRTAB,0,0,0,1,0);
+           { "no executable stack" marker for Linux }
+           if (target_info.system in systems_linux) and
+              not(cs_executable_stack in current_settings.moduleswitches) then
+             TElfObjSection.create_ext(ObjSectionList,'.note.GNU-stack',SHT_PROGBITS,0,0,0,1,0);
            { insert the empty and filename as first in strtab }
            strtabsect.writestr(#0);
            strtabsect.writestr(ExtractFileName(current_module.mainsource^)+#0);
@@ -1123,7 +1205,8 @@ implementation
             idtxt  : 'ELF';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_any;  //target_i386_linux;
+            supported_targets : [system_i386_linux,system_i386_beos,system_i386_freebsd,system_i386_haiku,system_i386_Netware,system_i386_netwlibc,
+	    system_i386_solaris];
             flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '';
@@ -1137,7 +1220,7 @@ implementation
             idtxt  : 'ELF';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_any;  //target_i386_linux;
+            supported_targets : [system_x86_64_linux];
             flags : [af_outputbinary,af_smartlink_sections,af_supports_dwarf];
             labelprefix : '.L';
             comment : '';
@@ -1151,7 +1234,7 @@ implementation
             idtxt  : 'ELF';
             asmbin : '';
             asmcmd : '';
-            supported_target : system_any;  //target_i386_linux;
+            supported_targets : [];
 //            flags : [af_outputbinary,af_smartlink_sections];
             flags : [af_outputbinary,af_supports_dwarf];
             labelprefix : '.L';

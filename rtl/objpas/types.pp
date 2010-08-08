@@ -134,7 +134,6 @@ type
 const
   GUID_NULL: TGUID  = '{00000000-0000-0000-0000-000000000000}';
 
-{$ifndef Windows}
   STGTY_STORAGE   = 1;
   STGTY_STREAM    = 2;
   STGTY_LOCKBYTES = 3;
@@ -148,7 +147,16 @@ const
   LOCK_EXCLUSIVE = 2;
   LOCK_ONLYONCE  = 4;
 
-  E_FAIL = HRESULT($80004005);
+  STATFLAG_DEFAULT   	      = 0;
+  STATFLAG_NONAME    	      = 1;
+  STATFLAG_NOOPEN    	      = 2; 
+
+{$ifndef Wince}
+  // in Wince these are in unit windows. Under 32/64 in ActiveX.
+  // for now duplicate them. Not that bad for untyped constants.
+
+  E_FAIL 		      = HRESULT($80004005);
+  E_INVALIDARG                = HRESULT($80070057);
 
   STG_E_INVALIDFUNCTION       = HRESULT($80030001);
   STG_E_FILENOTFOUND          = HRESULT($80030002);
@@ -192,7 +200,9 @@ const
   STG_S_BLOCK                 = $00030201;
   STG_S_RETRYNOW              = $00030202;
   STG_S_MONITORING            = $00030203;
+{$endif}
 
+{$ifndef Windows}
 type
   PCLSID = PGUID;
   TCLSID = TGUID;
@@ -227,11 +237,7 @@ type
 {$endif Windows}
 
 type
-  tagSTATSTG =
-{$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}
-  packed
-{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
-  record
+  tagSTATSTG = record
      pwcsName      : POleStr;
      dwType        : DWord;
      cbSize        : Large_uint;
@@ -406,13 +412,20 @@ begin
     OffsetRect:=false;
 end;
 
-function CenterPoint(const Rect: TRect): TPoint;
-
+function Avg(a, b: Longint): Longint;
 begin
-  With Rect do
+  if a < b then
+    Result := a + ((b - a) shr 1)
+  else
+    Result := b + ((a - b) shr 1);
+end;
+
+function CenterPoint(const Rect: TRect): TPoint;
+begin
+  with Rect do
     begin
-    Result.X:=(Left+Right) div 2;
-    Result.Y:=(Top+Bottom) div 2;
+      Result.X := Avg(Left, Right);
+      Result.Y := Avg(Top, Bottom);
     end;
 end;
 

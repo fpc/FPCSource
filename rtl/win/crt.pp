@@ -143,7 +143,7 @@ Begin
   TextBackGround(0);
 End;
 
-Procedure GotoXY(X: Byte; Y: Byte);
+Procedure GotoXY(X: tcrtcoord; Y: tcrtcoord);
 
 begin
   GotoXY32(X,Y);
@@ -227,7 +227,7 @@ begin
     Coord, @Temp);
 end;
 
-Function WhereX: Byte;
+Function WhereX: tcrtcoord;
 
 
 begin
@@ -245,7 +245,7 @@ Begin
   WhereX32:= x - WindMinX +1;
 End;
 
-Function WhereY: Byte;
+Function WhereY: tcrtcoord;
 
 begin
   WhereY:=WhereY32 mod 256;
@@ -336,17 +336,35 @@ begin
     $35:      Scancode := $95;   // \
     $37:      Scancode := $96;   // *
     $47..$53: Scancode := CtrlKeypadKeys[Scancode];
+    //Enter on Numpad
+    $1C:
+    begin
+      Scancode := $0A;
+      SpecialKey := False;
+    end;
     end
   else if ShiftKey then
     case Scancode of
     // Function keys
     $3B..$44: inc(Scancode, $19);
     $57..$58: inc(Scancode, $30);
+    //Enter on Numpad
+    $1C:
+    begin
+      Scancode := $0D;
+      SpecialKey := False;
+    end;
     end
   else
     case Scancode of
-    // Function keys
-    $57..$58: inc(Scancode, $2E); // F11 and F12
+      // Function keys
+      $57..$58: inc(Scancode, $2E); // F11 and F12
+      //Enter on NumPad
+      $1C:
+        begin
+          Scancode := $0D;
+          SpecialKey := False;
+        end;
   end;
   RemapScanCode := ScanCode;
 end;

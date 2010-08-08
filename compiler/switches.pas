@@ -32,9 +32,11 @@ procedure HandleSwitch(switch,state:char);
 function CheckSwitch(switch,state:char):boolean;
 
 procedure recordpendingverbosityswitch(sw: char; state: char);
+procedure recordpendingmessagestate(msg: longint; state: tmsgstate);
 procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
 procedure recordpendinglocalfullswitch(const switches: tlocalswitches);
 procedure recordpendingverbosityfullswitch(verbosity: longint);
+procedure recordpendingcallingswitch(const str: shortstring);
 procedure flushpendingswitchesstate;
 
 implementation
@@ -262,6 +264,10 @@ procedure recordpendingverbosityswitch(sw: char; state: char);
     pendingstate.nextverbositystr:=pendingstate.nextverbositystr+sw+state;
   end;
 
+procedure recordpendingmessagestate(msg: longint; state: tmsgstate);
+  begin
+    { todo }
+  end;
 
 procedure recordpendinglocalswitch(sw: tlocalswitch; state: char);
   begin
@@ -296,14 +302,23 @@ procedure recordpendingverbosityfullswitch(verbosity: longint);
     pendingstate.verbosityfullswitched:=true;
   end;
 
+procedure recordpendingcallingswitch(const str: shortstring);
+  begin
+    pendingstate.nextcallingstr:=str;
+  end;
+
 
 procedure flushpendingswitchesstate;
+  var
+    tmpproccal: tproccalloption;
   begin
+    { process pending localswitches (range checking, etc) }
     if pendingstate.localswitcheschanged then
       begin
         current_settings.localswitches:=pendingstate.nextlocalswitches;
         pendingstate.localswitcheschanged:=false;
       end;
+    { process pending verbosity changes (warnings on, etc) }
     if pendingstate.verbosityfullswitched then
       begin
         status.verbosity:=pendingstate.nextverbosityfullswitch;
@@ -313,6 +328,17 @@ procedure flushpendingswitchesstate;
       begin
         setverbosity(pendingstate.nextverbositystr);
         pendingstate.nextverbositystr:='';
+      end;
+    { process pending calling convention changes (calling x) }
+    if pendingstate.nextcallingstr<>'' then
+      begin
+        if not SetAktProcCall(pendingstate.nextcallingstr,tmpproccal) then
+          Message1(parser_w_unknown_proc_directive_ignored,pendingstate.nextcallingstr)
+        else if not(tmpproccal in supported_calling_conventions) then
+          Message1(parser_e_illegal_calling_convention,pendingstate.nextcallingstr)
+        else
+          current_settings.defproccall:=tmpproccal;
+        pendingstate.nextcallingstr:='';
       end;
   end;
 

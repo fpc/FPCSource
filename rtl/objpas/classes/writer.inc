@@ -252,6 +252,36 @@ begin
   end;
 end;
 
+procedure TBinaryObjectWriter.WriteUInt64(Value: QWord);
+var
+  s: ShortInt;
+  i: SmallInt;
+  l: Longint;
+begin
+  { Use the smallest possible integer type for the given value: }
+  if (Value <= 127) then
+  begin
+    WriteValue(vaInt8);
+    s := Value;
+    Write(s, 1);
+  end else if (Value <= 32767) then
+  begin
+    WriteValue(vaInt16);
+    i := Value;
+    WriteWord(word(i));
+  end else if (Value <= $7fffffff) then
+  begin
+    WriteValue(vaInt32);
+    l := Value;
+    WriteDWord(longword(l));
+  end else
+  begin
+    WriteValue(vaQWord);
+    WriteQWord(Value);
+  end;
+end;
+
+
 procedure TBinaryObjectWriter.WriteMethodName(const Name: String);
 begin
   if Length(Name) > 0 then
@@ -342,6 +372,60 @@ begin
     {$ENDIF}
   end;
 end;
+
+procedure TBinaryObjectWriter.WriteVariant(const VarValue: variant);
+begin
+  { The variant manager will handle varbyref and vararray transparently for us
+  }
+  case (tvardata(VarValue).vtype and varTypeMask) of
+    varEmpty:
+      begin
+        WriteValue(vaNil);
+      end;
+    varNull:
+      begin
+        WriteValue(vaNull);
+      end;
+    { all integer sizes must be split for big endian systems }
+    varShortInt,varSmallInt,varInteger,varInt64:
+      begin
+        WriteInteger(VarValue);
+      end;
+    varQWord:
+      begin
+        WriteUInt64(VarValue);
+      end;
+    varBoolean:
+      begin
+        WriteBoolean(VarValue);
+      end;
+    varCurrency:
+      begin
+        WriteCurrency(VarValue);
+      end;
+{$ifndef fpunone}
+    varSingle:
+      begin
+        WriteSingle(VarValue);
+      end;
+    varDouble:
+      begin
+        WriteFloat(VarValue);
+      end;
+    varDate:
+      begin
+        WriteDate(VarValue);
+      end;
+{$endif fpunone}
+    varOleStr,varString:
+      begin
+        WriteWideString(VarValue);
+      end;
+    else
+      raise EWriteError.CreateFmt(SUnsupportedPropertyVariantType, [Ord(tvardata(VarValue).vtype)]);
+  end;
+end;
+
 
 procedure TBinaryObjectWriter.FlushBuffer;
 begin
@@ -577,11 +661,11 @@ procedure TWriter.WriteComponent(Component: TComponent);
 
 var
   SA : TPersistent;
-  SR : TComponent;
-  
+  SR, SRA : TComponent;
 begin
   SR:=FRoot;
   SA:=FAncestor;
+  SRA:=FRootAncestor;
   Try
     Component.FComponentState:=Component.FComponentState+[csWriting];
     Try
@@ -597,6 +681,7 @@ begin
   Finally
     FAncestor:=SA;
     FRoot:=SR;
+    FRootAncestor:=SRA;
   end;
 end;
 
@@ -720,6 +805,17 @@ begin
   Driver.WriteInteger(Value);
 end;
 
+procedure TWriter.WriteSet(Value: LongInt; SetType: Pointer); 
+
+begin
+  Driver.WriteSet(Value,SetType);
+end;
+
+procedure TWriter.WriteVariant(const VarValue: Variant);
+begin
+  Driver.WriteVariant(VarValue);
+end;
+
 procedure TWriter.WriteListBegin;
 begin
   Driver.BeginList;
@@ -746,6 +842,7 @@ begin
   Instance.DefineProperties(Self);
 end;
 
+
 procedure TWriter.WriteProperty(Instance: TPersistent; PropInfo: Pointer);
 var
   HasAncestor: Boolean;
@@ -767,6 +864,7 @@ var
   SavedAncestor: TPersistent;
   SavedPropPath, Name: String;
   Int64Value, DefInt64Value: Int64;
+  VarValue, DefVarValue : tvardata;
   BoolValue, DefBoolValue: boolean;
   Handled: Boolean;
 
@@ -788,6 +886,7 @@ begin
   { Check if the ancestor can be used }
   HasAncestor := Assigned(Ancestor) and ((Instance = Root) or
     (Instance.ClassType = Ancestor.ClassType));
+  //writeln('TWriter.WriteProperty Name=',PropType^.Name,' Kind=',GetEnumName(TypeInfo(TTypeKind),ord(PropType^.Kind)),' HasAncestor=',HasAncestor);
 
   case PropType^.Kind of
     tkInteger, tkChar, tkEnumeration, tkSet, tkWChar:
@@ -861,7 +960,7 @@ begin
         if (not Handled) and
           (MethodValue.Code <> DefMethodValue.Code) and
           ((not Assigned(MethodValue.Code)) or
-          ((Length(FLookupRoot.MethodName(MethodValue.Code)) >= 0))) then
+          ((Length(FLookupRoot.MethodName(MethodValue.Code)) > 0))) then
         begin
           Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
           if Assigned(MethodValue.Code) then
@@ -918,21 +1017,46 @@ begin
           Driver.EndProperty;
         end;
       end;
-  {!!!: tkVariant:}
+    tkVariant:
+      begin
+        { Ensure that a Variant manager is installed }
+        if not assigned(VarClearProc) then
+          raise EWriteError.Create(SErrNoVariantSupport);
+
+        VarValue := tvardata(GetVariantProp(Instance, PropInfo));
+        if HasAncestor then
+          DefVarValue := tvardata(GetVariantProp(Ancestor, PropInfo))
+        else
+          FillChar(DefVarValue,sizeof(DefVarValue),0);
+
+        if (CompareByte(VarValue,DefVarValue,sizeof(VarValue)) <> 0) then
+          begin
+            Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
+            { can't use variant() typecast, pulls in variants unit }
+            WriteVariant(pvariant(@VarValue)^);
+            Driver.EndProperty;
+          end;
+      end;
     tkClass:
       begin
         ObjValue := TObject(GetObjectProp(Instance, PropInfo));
         if HasAncestor then
         begin
           AncestorObj := TObject(GetObjectProp(Ancestor, PropInfo));
-          if Assigned(AncestorObj) then
-            if Assigned(ObjValue) and
-              (TComponent(AncestorObj).Owner = FRootAncestor) and
-              (TComponent(ObjValue).Owner = Root) and
-              (UpperCase(TComponent(AncestorObj).Name) = UpperCase(TComponent(ObjValue).Name)) then
-              AncestorObj := ObjValue
-//            else
-//              AncestorObj := nil;
+          if (AncestorObj is TComponent) and
+             (ObjValue is TComponent) then
+          begin
+            //writeln('TWriter.WriteProperty AncestorObj=',TComponent(AncestorObj).Name,' OwnerFit=',TComponent(AncestorObj).Owner = FRootAncestor,' ',TComponent(ObjValue).Name,' OwnerFit=',TComponent(ObjValue).Owner = Root);
+            if (AncestorObj<> ObjValue) and
+             (TComponent(AncestorObj).Owner = FRootAncestor) and
+             (TComponent(ObjValue).Owner = Root) and
+             (UpperCase(TComponent(AncestorObj).Name) = UpperCase(TComponent(ObjValue).Name)) then
+            begin
+              // different components, but with the same name
+              // treat it like an override
+              AncestorObj := ObjValue;
+            end;
+          end;
         end else
           AncestorObj := nil;
 

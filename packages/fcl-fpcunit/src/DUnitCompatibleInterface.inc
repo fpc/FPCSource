@@ -16,11 +16,17 @@
     class procedure CheckNull(obj: IUnknown; msg: string = ''); overload;
     class procedure CheckNull(obj: TObject; msg: string = ''); overload;
     class procedure CheckNotNull(obj: TObject; msg: string = ''); overload;
+    class procedure CheckNotNull(obj: IUnknown; msg: string = ''); overload; virtual;
     class procedure CheckIs(obj :TObject; pClass: TClass; msg: string = ''); overload;
     class procedure CheckSame(expected, actual: TObject; msg: string = ''); overload;
     class procedure FailNotEquals(expected, actual: string; msg: string = ''; errorAddr: Pointer = nil); virtual;
+    class procedure CheckTrue(condition: Boolean; msg: string);
+    class procedure CheckFalse(condition: Boolean; msg: string);
+    class function  EqualsErrorMessage(const expected, actual: string; const ErrorMsg: string): string;
+    class function  NotEqualsErrorMessage(const expected, actual: string; const ErrorMsg: string): string;
 
     class function Suite: TTest;
+
 
     {
     *** TODO  ***
@@ -115,6 +121,11 @@ begin
   AssertNotNull(msg, obj);
 end;
 
+class procedure TAssert.CheckNotNull(obj: IUnknown; msg: string);
+begin
+  AssertNotNullIntf(msg, obj);
+end;
+
 class procedure TAssert.CheckIs(obj: TObject; pClass: TClass; msg: string);
 begin
   Assert(pClass <> nil);
@@ -133,6 +144,36 @@ class procedure TAssert.FailNotEquals(expected, actual: string; msg: string;
   errorAddr: Pointer);
 begin
   Fail(msg + ComparisonMsg(Expected, Actual));
+end;
+
+class procedure TAssert.CheckTrue(condition: Boolean; msg: string);
+begin
+  if (not condition) then
+      FailNotEquals(BoolToStr(true, true), BoolToStr(false, true), msg, nil);
+end;
+
+class procedure TAssert.CheckFalse(condition: Boolean; msg: string);
+begin
+  if (condition) then
+      FailNotEquals(BoolToStr(false, true), BoolToStr(true, true), msg, nil);
+end;
+
+class function TAssert.EqualsErrorMessage(const expected, actual: string;
+    const ErrorMsg: string): string;
+begin
+  if (ErrorMsg <> '') then
+    Result := Format(sMsgActualEqualsExpFmt, [ErrorMsg + ', ', expected, actual])
+  else
+    Result := Format(sActualEqualsExpFmt, [expected, actual])
+end;
+
+class function TAssert.NotEqualsErrorMessage(const expected, actual: string;
+    const ErrorMsg: string): string;
+begin
+  if (ErrorMsg <> '') then
+    Result := Format(sExpectedButWasAndMessageFmt, [ErrorMsg, expected, actual])
+  else
+    Result := Format(sExpectedButWasFmt, [expected, actual]);
 end;
 
 class function TAssert.Suite: TTest;

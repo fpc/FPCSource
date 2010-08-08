@@ -1807,13 +1807,13 @@ exec_e_unit_not_shared_or_static_linkable=09027_E_La unidad $1 no admite enlazad
 #
 # Executable information
 #
-execinfo_f_cant_process_executable=09028_F_No se puede post-procesar el ejecutable $1
-execinfo_f_cant_open_executable=09029_F_No se puede abrir el ejecutable $1
-execinfo_x_codesize=09030_X_Tamaño de Código: $1 bytes
-execinfo_x_initdatasize=09031_X_Tamaño de datos inicializados: $1 bytes
-execinfo_x_uninitdatasize=09032_X_Tamaño de datos sin inicializar: $1 bytes
-execinfo_x_stackreserve=09033_X_Espacio reservado para la pila: $1 bytes
-execinfo_x_stackcommit=09034_X_Stack space commited: $1 bytes
+execinfo_f_cant_process_executable=09128_F_No se puede post-procesar el ejecutable $1
+execinfo_f_cant_open_executable=09129_F_No se puede abrir el ejecutable $1
+execinfo_x_codesize=09130_X_Tamaño de Código: $1 bytes
+execinfo_x_initdatasize=09131_X_Tamaño de datos inicializados: $1 bytes
+execinfo_x_uninitdatasize=09132_X_Tamaño de datos sin inicializar: $1 bytes
+execinfo_x_stackreserve=09133_X_Espacio reservado para la pila: $1 bytes
+execinfo_x_stackcommit=09134_X_Stack space commited: $1 bytes
 
 #
 # Unit loading
@@ -2111,7 +2111,7 @@ option_code_page_not_available=11039_E_Código de página desconocido
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2008 by Florian Klaempfl
+Copyright (c) 1993-2010 by Florian Klaempfl
 ]
 
 #
@@ -2136,6 +2136,8 @@ Este programa esta bajo la licencia GNU General Public Licence
 Para mas informació lea COPYING.FPC
 
 Para informar de errores, sugerencias, etc:
+                 http://bugs.freepascal.org
+o
                  bugs@freepascal.org
 ]
 
@@ -2298,7 +2300,6 @@ S*2Aas_ensamblar usando GNU AS
 **2So_igual que -Mtp
 **2Sp_igual que -Mgpc
 **2Ss_el nombre del constructor debe ser init (el destructor debe ser done)
-**2St_permitir la palabra reservada static en objetos
 **1s_no llamar al ensamblador ni enlazador
 **2sh_Generar script para enlazar en host
 **2st_Generar script para enlazar en destino

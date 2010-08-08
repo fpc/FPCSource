@@ -35,6 +35,7 @@ type
     procedure WriteAttributes (const aStream : TStream);
     procedure WriteSubNodes (const aStream : TStream);
   protected
+    function  GetNodeName: DOMString; override;
     procedure StringToStream (const aStream : TStream; s : string);
     procedure StringToStream (const aStream : TStream; Fmt : string; Args : array of const);
     function EscapeString (s : string) : string;
@@ -50,7 +51,6 @@ type
 
     property ElementTag : THTMLElementTag read FElementTag write FElementTag;
     property TagName : DOMString read GetTagName;
-    property NodeName : DOMstring read GetTagName;
     property AttributeNames [index:integer] : DOMString read GetAttributeName;
     property AttributeValues [index:integer] : DOMString read GetAttributeValue;
   end;
@@ -180,6 +180,11 @@ begin
       THtmlCustomElement(d).writetostream (aStream);
     d := d.NextSibling;
     end;
+end;
+
+function THtmlCustomElement.GetNodeName: DOMString;
+begin
+  Result:=GetTagName;
 end;
 
 procedure THtmlCustomElement.StringToStream(const aStream: TStream; s: string);

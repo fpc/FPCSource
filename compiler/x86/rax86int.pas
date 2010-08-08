@@ -62,7 +62,7 @@ Unit Rax86int;
          function consume(t : tasmtoken):boolean;
          procedure RecoverConsume(allowcomma:boolean);
          procedure BuildRecordOffsetSize(const expr: string;var offset:aint;var size:aint; var mangledname: string; needvmtofs: boolean);
-         procedure BuildConstSymbolExpression(needofs,isref:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
+         procedure BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
          function BuildConstExpression:aint;
          function BuildRefConstExpression:aint;
          procedure BuildReference(oper : tx86operand);
@@ -225,9 +225,22 @@ Unit Rax86int;
 
 
     function tx86intreader.is_register(const s:string):boolean;
+      var
+        entry: TSymEntry;
       begin
         is_register:=false;
         actasmregister:=masm_regnum_search(lower(s));
+        if (actasmregister=NR_NO) and
+           (current_procinfo.procdef.proccalloption=pocall_register) and
+           (po_assembler in current_procinfo.procdef.procoptions) then
+          begin
+            entry:=current_procinfo.procdef.parast.Find(s);
+            if assigned(entry) and
+               (entry.typ=paravarsym) and
+               assigned(tparavarsym(entry).paraloc[calleeside].Location) and
+               (tparavarsym(entry).paraloc[calleeside].Location^.Loc=LOC_REGISTER) then
+              actasmregister:=tparavarsym(entry).paraloc[calleeside].Location^.register;
+          end;
         if actasmregister<>NR_NO then
           begin
             is_register:=true;
@@ -733,7 +746,7 @@ Unit Rax86int;
       end;
 
 
-    Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
+    Procedure tx86intreader.BuildConstSymbolExpression(needofs,isref,startingminus:boolean;var value:aint;var asmsym:string;var asmsymtyp:TAsmsymtype);
       var
         tempstr,expr,hs,mangledname : string;
         parenlevel : longint;
@@ -755,6 +768,8 @@ Unit Rax86int;
         errorflag:=FALSE;
         tempstr:='';
         expr:='';
+        if startingminus then
+          expr:='-';
         inexpression:=TRUE;
         parenlevel:=0;
         sym:=nil;
@@ -1103,7 +1118,7 @@ Unit Rax86int;
         hs : string;
         hssymtyp : TAsmsymtype;
       begin
-        BuildConstSymbolExpression(false,false,l,hs,hssymtyp);
+        BuildConstSymbolExpression(false,false,false,l,hs,hssymtyp);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildConstExpression:=l;
@@ -1116,7 +1131,7 @@ Unit Rax86int;
         hs : string;
         hssymtyp : TAsmsymtype;
       begin
-        BuildConstSymbolExpression(false,true,l,hs,hssymtyp);
+        BuildConstSymbolExpression(false,true,false,l,hs,hssymtyp);
         if hs<>'' then
          Message(asmr_e_relocatable_symbol_not_allowed);
         BuildRefConstExpression:=l;
@@ -1416,7 +1431,11 @@ Unit Rax86int;
               begin
                 if not GotPlus and not GotStar then
                   Message(asmr_e_invalid_reference_syntax);
-                BuildConstSymbolExpression(true,true,l,tempstr,tempsymtyp);
+                BuildConstSymbolExpression(true,true,GotPlus and negative,l,tempstr,tempsymtyp);
+                { already handled by BuildConstSymbolExpression(); must be
+                  handled there to avoid [reg-1+1] being interpreted as
+                  [reg-(1+1)] }
+                negative:=false;
 
                 if tempstr<>'' then
                  begin
@@ -1440,12 +1459,7 @@ Unit Rax86int;
                            scale:=l;
                        end
                       else
-                       begin
-                         if negative then
-                           Dec(oper.opr.ref.offset,l)
-                         else
-                           Inc(oper.opr.ref.offset,l);
-                       end;
+                       Inc(oper.opr.ref.offset,l);
                     end;
                   OPR_LOCAL :
                     begin
@@ -1459,12 +1473,7 @@ Unit Rax86int;
                            scale:=l;
                        end
                       else
-                       begin
-                         if negative then
-                           Dec(oper.opr.localsymofs,l)
-                         else
-                           Inc(oper.opr.localsymofs,l);
-                       end;
+                        Inc(oper.opr.localsymofs,l);
                     end;
                 end;
                 GotPlus:=(prevasmtoken=AS_PLUS) or
@@ -1501,7 +1510,7 @@ Unit Rax86int;
       begin
         if not (oper.opr.typ in [OPR_NONE,OPR_CONSTANT]) then
           Message(asmr_e_invalid_operand_type);
-        BuildConstSymbolExpression(true,false,l,tempstr,tempsymtyp);
+        BuildConstSymbolExpression(true,false,false,l,tempstr,tempsymtyp);
         if tempstr<>'' then
           begin
             oper.opr.typ:=OPR_SYMBOL;
@@ -1587,6 +1596,8 @@ Unit Rax86int;
                             oper.opr.val:=toffset;
                           end;
                       end;
+                    OPR_REGISTER :
+                      Message(asmr_e_invalid_reference_syntax);
                     OPR_SYMBOL:
                       Message(asmr_e_invalid_symbol_ref);
                     else
@@ -1642,7 +1653,11 @@ Unit Rax86int;
                   end;
                 Consume(AS_PTR);
                 oper.InitRef;
+                { if the operand subscripts a record, the typesize will be
+                  rest -> save it here and restore it afterwards }
+                l:=oper.typesize;
                 BuildOperand(oper,false);
+                oper.setsize(l,true);
               end;
 
             AS_ID : { A constant expression, or a Variable ref. }
@@ -1718,6 +1733,11 @@ Unit Rax86int;
                                 { Support Type([Reference]) }
                                 Consume(AS_LPAREN);
                                 BuildOperand(oper,true);
+                                { Delphi also supports Type(Register) and
+                                  interprets it the same as Type([Register]).  }
+                                if (oper.opr.typ = OPR_REGISTER) then
+                                  { This also sets base to the register.  }
+                                  oper.InitRef;
                                 Consume(AS_RPAREN);
                               end;
                             AS_LBRACKET :
@@ -1796,14 +1816,20 @@ Unit Rax86int;
                   AS_QWORD : oper.typesize:=8;
                   AS_DQWORD : oper.typesize:=16;
                   AS_TBYTE : oper.typesize:=10;
+                  else
+                    internalerror(2010061101);
                 end;
                 Consume(actasmtoken);
                 if (actasmtoken=AS_LPAREN) then
                   begin
-                    { Support Type([Reference]) }
+                    { Support "xxx ptr [Reference]" }
+                    { in case the expression subscripts a record, the typesize
+                      is reset, so save the explicit size we set above }
+                    l:=oper.typesize;
                     Consume(AS_LPAREN);
                     BuildOperand(oper,true);
                     Consume(AS_RPAREN);
+                    oper.setsize(l,true);
                   end;
               end;
 
@@ -1903,6 +1929,18 @@ Unit Rax86int;
             if (overrideop<>A_NONE) and (NOT CheckOverride(OverrideOp,ActOpcode)) then
               Message1(asmr_e_invalid_override_and_opcode,actasmpattern);
           end;
+        { pushf/popf/pusha/popa have to default to 16 bit in Intel mode
+          (Intel manual and Delphi-compatbile) -- setting the opsize for
+          these instructions doesn't change anything in the internal assember,
+          so change the opcode }
+        if (instr.opcode=A_POPF) then
+          instr.opcode:=A_POPFW
+        else if (instr.opcode=A_PUSHF) then
+          instr.opcode:=A_PUSHFW
+        else if (instr.opcode=A_PUSHA) then
+          instr.opcode:=A_PUSHAW
+        else if (instr.opcode=A_POPA) then
+          instr.opcode:=A_POPAW;
         { We are reading operands, so opcode will be an AS_ID }
         operandnum:=1;
         is_far_const:=false;
@@ -2022,7 +2060,7 @@ Unit Rax86int;
             AS_INTNUM,
             AS_ID :
               Begin
-                BuildConstSymbolExpression(false,false,value,asmsym,asmsymtyp);
+                BuildConstSymbolExpression(false,false,false,value,asmsym,asmsymtyp);
                 if asmsym<>'' then
                  begin
                    if constsize<>sizeof(pint) then
@@ -2074,6 +2112,8 @@ Unit Rax86int;
       curlist:=TAsmList.Create;
       { setup label linked list }
       LocalLabelList:=TLocalLabelList.Create;
+      { we might need to know which parameters are passed in registers }
+      current_procinfo.generate_parameter_info;
       { start tokenizer }
       c:=current_scanner.asmgetcharstart;
       gettoken;

@@ -6,7 +6,7 @@
 
 [package]
 name=ide
-version=2.2.2
+version=2.5.1
 
 [target]
 dirs=compiler
@@ -68,7 +68,7 @@ SYSLIBDIR=/lib /usr/lib /usr/local/lib
 # Detect if libgdb.a is available
 override LIBGDBFILE=$(firstword $(wildcard $(addsuffix /libgdb.a,$(SYSLIBDIR))))
 ifneq (${LIBGDBFILE},)
-$(warning Using system sefault libgdb file located in ${LIBGDBFILE})
+$(warning Using system default libgdb file located in ${LIBGDBFILE})
 GDBLIBDIR=$(dir ${LIBGDBFILE})
 endif
 endif
@@ -78,6 +78,15 @@ ifeq ($(LIBGDBFILE),)
 GDB=
 else
 GDB=1
+# Detect if gdblib.inc is available
+override LIBGDBINC:=$(firstword $(wildcard $(addsuffix /gdblib.inc,$(GDBLIBDIR))))
+ifeq ($(LIBGDBINC),)
+GDBLIBINCFOUND=0
+GDBLIBINCCOND=
+else
+GDBLIBINCFOUND=1
+GDBLIBINCCOND=-dUSE_GDBLIBINC -I$(GDBLIBDIR)
+endif
 endif
 
 ifdef GDB
@@ -157,6 +166,7 @@ compilerclean :
 # to use.
 #
 fp$(EXEEXT): $(wildcard *.pas) $(wildcard *.inc)
+        $(COMPILER) $(GDBLIBINCCOND) fp.pas
 
 buildfp:
         $(MAKE) compilerunits

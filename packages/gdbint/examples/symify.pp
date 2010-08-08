@@ -12,7 +12,11 @@
 
  **********************************************************************}
 program symify;
-uses GDBInt;
+uses
+{$ifdef USE_MINGW_GDB}
+  mingw,
+{$endif}
+  GDBInt;
 
 var
   gdb : tgdbinterface;

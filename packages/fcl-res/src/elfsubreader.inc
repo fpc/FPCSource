@@ -55,13 +55,13 @@ type
     procedure ReadElfHeader(aStream : TStream);
     procedure ReadSectionHeaders(aStream : TStream);
     procedure ReadStringTable(aStream : TStream);
-    function FindSection(const aName : string) : integer; override;
     procedure ReadRelocations(aStream : TStream);
     procedure ReadResHeader(aStream : TStream);
+  protected
+    function FindSection(const aName : string) : integer; override;
+    procedure Load(aResources : TResources; aStream : TStream); override;
     procedure ReadNode(aStream : TStream; aParent : TResourceTreeNode;
       aResources : TResources; named : boolean); override;
-  protected
-    procedure Load(aResources : TResources; aStream : TStream); override;
   public
   end;
 

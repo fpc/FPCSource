@@ -40,7 +40,7 @@ ResourceString
   SBoldItalicFont               = 'Bold Italic';
   SBucketListLocked             = 'List is locked during an active ForEach.';
   SCancelButton                 = 'Cancel';
-  SCannotCreateDir              = 'Das Verzeichnis kann nicht erstellt werden';
+  SCannotCreateDir              = 'Cannot create directory';
   SCannotCreateName             = 'Cannot use standard name for and unknown component';
   SCannotCreateSocket           = 'Unable to create new socket';
   SCannotDragForm               = 'Forms cannot be dragged';
@@ -50,7 +50,10 @@ ResourceString
   SCannotShowModal              = 'A visible Window can not be made modal';
   SCantChangeWhileActive        = 'Changing value on an active socket is not allowed';
   SCantWriteResourceStreamError = 'Can not write to read-only ResourceStream';
-  SCardDLLNotLoaded             = 'CARDS library could not be loaded';
+  SCardDLLNotLoaded             = 'CARDS library could not be loaded' deprecated; { use SLibraryNotLoaded }
+  SLibraryAlreadyLoaded         = 'Interface %s already initialized from library "%s"';
+  SLibraryNotLoaded             = 'Can not initialize interface %s from library "%s"';
+  SLibraryUnknownSym            = 'Can not resolve symbol "%s" of interface %s from library "%s"';
   SChangeIconSize               = 'Can not change icon size';
   SCharExpected                 = '"%s" expected';
   SCheckSynchronizeError        = 'CheckSynchronize called from non-main thread "$%x"';
@@ -108,7 +111,7 @@ ResourceString
   SEmptyStreamIllegalWriter     = 'Illegal Nil stream for TWriter constructor';
   SErrindexTooLarge             = 'Bit index exceeds array limit: %d';
   SErrInvalidBitIndex           = 'Invalid bit index : %d';
-  SErrNoStreaming               = 'Failed to initialize component: No streaming method available.';
+  SErrNoStreaming               = 'Failed to initialize component class "%s": No streaming method available.';
   SErrNoVariantSupport          = 'No variant support for properties. Please use the variants unit in your project and recompile';
   SErrOutOfMemory               = 'Out of memory';
   SErrPropertyNotFound          = 'Unknown property: "%s"';
@@ -149,12 +152,12 @@ ResourceString
   SInvalidDateMonthWeek         = '(%d, %d, %d, %d) is not a valid DateMonthWeek quad';
   SInvalidDateWeek              = '(%d, %d, %d) is not a valid DateWeek triplet';
   SInvalidDayOfWeekInMonth      = '(%d, %d, %d, %d) is not a valid DayOfWeekInMonth quad';
+  SErrIllegalDateFormatString   = '"%s" is not a valid date format string';
   SInvalidFileName              = '"%s" is not a valid file name.';
   SInvalidIcon                  = 'Invalid Icon';
   SInvalidImage                 = 'Invalid stream format';
   SInvalidImageList             = 'Invalid ImageList';
   SInvalidImageSize             = 'Invalid image size';
-  SInvalidJulianDate            = '%f Julian cannot be represented as a DateTime';
   SInvalidMask                  = '"%s" is not a valid mask at (%d)';
   SInvalidMemoSize              = 'Text larger than memo capacity';
   SInvalidMetafile              = 'Invalid Metafile';
@@ -272,6 +275,7 @@ ResourceString
   SUnknownGroup                 = '%s not in a class registration group';
   SUnknownProperty              = 'Unknown property: "%s"';
   SUnknownPropertyType          = 'Unknown property type %d';
+  SUnsupportedPropertyVariantType = 'Unsupported property variant type %d';
   SUntitled                     = '(Untitled)';
   SVBitmaps                     = 'Bitmaps';
   SVEnhMetafiles                = 'Enhanced MetaFiles';

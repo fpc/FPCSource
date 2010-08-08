@@ -5,9 +5,9 @@ PROGRAM Procall;
 TYPE
         anObject        =
                 OBJECT
+                        n       : byte;
                         PROCEDURE A( w : word );
                         PROCEDURE A( c : cardinal );
-                        n       : byte;
                 END
                 ;
 PROCEDURE anObject.A( w : word );

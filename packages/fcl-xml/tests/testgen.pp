@@ -26,6 +26,7 @@ var
   forced: Boolean = False;
   TestCount: Integer = 0;
   FailCount: Integer = 0;
+  IgnoreCount: Integer = 0;
 
 function PascalType(const s: WideString): string;
 begin
@@ -39,7 +40,8 @@ begin
     result := '_collection'
   else if s = 'List' then
     result := '_list'
-  else if (Pos(WideString('DOM'), s) = 1) or (Pos(WideString('XPath'), s) = 1) then
+  else if (Pos(WideString('DOM'), s) = 1) or (Pos(WideString('XPath'), s) = 1) or
+          (Pos(WideString('HTML'), s) = 1) then
     result := 'T' + s
   else
     result := 'TDOM'+s;
@@ -69,7 +71,7 @@ begin
   if n.HasAttribute(attName) then
     s := s + ReplaceQuotes(n[attName])
   else
-    s := s + '''''';
+    s := s + 'nil';
   s := s + ', ';
 end;
 
@@ -195,7 +197,7 @@ var
   child, subchild: TDOMNode;
   n: DOMString;
   SuccessVarFlag: Boolean;
-  FailFlag: Boolean;
+  FailFlag, IgnoreFlag: Boolean;
   Inits, VarTypes: TStringList;
 
 function TypeOfVar(const varname: string): string;
@@ -232,23 +234,61 @@ begin
   end;
 end;
 
+function fixname(e: TDOMElement): string;
+begin
+  if e.HasAttribute('_fixup_') then
+    result := e['_fixup_']
+  else  
+    result := e.TagName;
+end;
+
+function argstring(e: TDOMElement; args: TDOMNodeList): string;
+var
+  I: Integer;
+  argnode: TDOMElement;
+begin
+  Result := '';
+  for I := 0 to args.Length-1 do
+  begin
+    argnode := args[I] as TDOMElement;
+    Result := Result + ReplaceQuotes(e[argnode.TextContent]);
+    if argnode.HasAttribute('type') then
+      Result := Result + ' as ' + PascalType(argnode['type']);
+    if I <> args.Length-1 then
+      Result := Result + ', ';
+  end;
+end;
+
 function prop_call(e: TDOMElement): string;
 begin
   if e.HasAttribute('var') then
-    Result := e['var'] + ' := ' + getobj(e) + '.' + e.TagName + ';'
+    Result := e['var'] + ' := ' + getobj(e) + '.' + fixname(e) + ';'
   else
-    Result := getobj(e) + '.' + e.TagName + ' := ' + ReplaceQuotes(e['value']) + ';';
+    Result := getobj(e) + '.' + fixname(e) + ' := ' + ReplaceQuotes(e['value']) + ';';
 end;
 
-function func_call(e: TDOMElement; const args: array of DOMString; const rsltType: string=''): string;
-var
-  I: Integer;
+function func_call(e: TDOMElement; args: TDOMNodeList; const rsltType: string=''; IsDefProp: Boolean=False): string;
 begin
   if (rsltType <> '') and (TypeOfVar(e['var']) <> rsltType) then
     Result := rsltType + '(' + e['var'] + ')'
   else
     Result := e['var'];
-  Result := Result + ' := ' + getobj(e) + '.' + e.TagName;
+  if IsDefProp then
+    Result := Result + ' := ' + getobj(e) + '[' + argstring(e, args) + ']'
+  else
+  begin
+    Result := Result + ' := ' + getobj(e) + '.' + fixname(e);
+    if args.Length > 0 then
+      Result := Result + '(' + argstring(e, args) + ')';
+  end;
+  Result := Result + ';';
+end;
+
+function func_call(e: TDOMElement; const args: array of DOMString): string;
+var
+  I: Integer;
+begin
+  Result := e['var'] + ' := ' + getobj(e) + '.' + e.TagName;
   if Length(args) > 0 then
   begin
     Result := Result + '(';
@@ -264,21 +304,10 @@ begin
 end;
 
 function method_call(e: TDOMElement; args: TDOMNodeList): string;
-var
-  I: Integer;
 begin
-  Result := getobj(e) + '.' + e.TagName;
+  Result := getobj(e) + '.' + fixname(e);
   if args.Length > 0 then
-  begin
-    Result := Result + '(';
-    for I := 0 to args.Length-1 do
-    begin
-      Result := Result + ReplaceQuotes(e[args[I].TextContent]);
-      if I <> args.Length-1 then
-        Result := Result + ', ';
-    end;
-    Result := Result + ')';
-  end;
+    Result := Result + '(' + argstring(e, args) + ')';
   Result := Result + ';';
 end;
 
@@ -301,8 +330,6 @@ var
   cond: string;
   apinode: TDOMElement;
   arglist: TDOMNodeList;
-  args: array of DOMString;
-  I: Integer;
 begin
   FixKeywords(node, 'var');
   FixKeywords(node, 'obj');
@@ -316,16 +343,19 @@ begin
   if assigned(apinode) then
   begin
     // handle most of DOM API in consistent way
+    
+    if apinode.HasAttribute('rename') then   // handles reserved words, e.g 'type' -> 'htmlType'
+      node['_fixup_'] := apinode['rename'];  // use this trick because DOM node cannot be renamed (yet)
+    
     arglist := apinode.GetElementsByTagName('arg');
-    SetLength(args, arglist.Length);
-    for I := 0 to arglist.Length-1 do
-      args[I] := arglist[I].TextContent;
+
+    if apinode.HasAttribute('objtype') then
+      CastTo(node, apinode['objtype']);
+      
     if apinode['type'] = 'prop' then
       rslt.Add(indent + prop_call(node))
     else if apinode['type'] = 'method' then
     begin
-      if apinode.HasAttribute('objtype') then
-        CastTo(node, apinode['objtype']);
       rslt.Add(indent + method_call(node, arglist));
     end
     else
@@ -334,9 +364,7 @@ begin
         cond := PascalType(apinode['result'])
       else
         cond := '';
-      if apinode.HasAttribute('objtype') then
-        CastTo(node, apinode['objtype']);
-      rslt.Add(indent + func_call(node, args, cond));
+      rslt.Add(indent + func_call(node, arglist, cond, apinode['type']='defprop'));
       if apinode['gc'] = 'yes' then
         rslt.Add(indent + 'GC(' + node['var'] + ');');
     end;
@@ -344,11 +372,7 @@ begin
   end;
 
   // now, various hacks and workarounds
-
-  // TODO: modify DOM to expose item() as function
-  if s = 'item' then
-    rslt.Add(indent + 'TDOMNode('+node['var'] + ') := ' + node['obj'] + '['+node['index']+'];')
-  else if s = 'length' then
+  if s = 'length' then
   begin
     if node['interface'] = 'DOMString' then
       rslt.Add(indent + node['var'] + ' := system.length(' + node['obj'] + ');')
@@ -403,6 +427,8 @@ begin
       rslt.Add(indent + 'AssertEqualsCollection(''' + node['id'] + ''', ' + ReplaceQuotes(node['expected']) + ', ' + node['actual'] + ');')
     else if cond = '_list' then
       rslt.Add(indent + 'AssertEqualsList(''' + node['id'] + ''', ' + ReplaceQuotes(node['expected']) + ', ' + node['actual'] + ');')
+    else if node['ignoreCase'] = 'true' then
+      rslt.Add(indent + 'AssertEqualsNoCase(''' + node['id'] + ''', ' + ReplaceQuotes(node['expected']) + ', ' + node['actual'] + ');')
     else
       rslt.Add(indent + s + '(''' + node['id'] + ''', ' + ReplaceQuotes(node['expected']) + ', ' + node['actual'] + ');');
   end
@@ -447,7 +473,11 @@ begin
   else if n = 'load' then
     rslt.Add(indent + 'Load('+node['var']+', '''+ node['href']+''');')
   else if s = 'implementationAttribute' then
+  begin
+    if (node['name']='signed') and (node['value']='true') then
+      IgnoreFlag := True;
     rslt.Add(indent + s + '[''' + node['name'] + '''] := ' + node['value'] + ';')
+  end
   else if s = 'createXPathEvaluator' then
     rslt.Add(indent + node['var'] + ' := CreateXPathEvaluator(' + node['document'] + ');')
   else if s = 'comment' then
@@ -599,7 +629,7 @@ begin
       // having loop var name globally unique isn't a must.
       cond := 'loop'+IntToStr(cntr);
       Inc(cntr);
-      rslt.Insert(2, '  ' + cond + ': Integer;');
+      rslt.Insert(rslt.IndexOf('var')+1, '  ' + cond + ': Integer;');
       IsColl := IsCollection(element);
       if IsColl then
         rslt.Add(indent+'for '+cond+' := 0 to ' + 'High(' + element['collection'] + ') do')
@@ -722,6 +752,7 @@ end;
 begin
   SuccessVarFlag := False;
   FailFlag := False;
+  IgnoreFlag := False;
   VarTypes := TStringList.Create;
   Inits := TStringList.Create;
   ConvertVars;
@@ -739,6 +770,11 @@ begin
       rslt.Clear;
     Inc(FailCount);
   end;
+  if IgnoreFlag then
+  begin
+    rslt.Clear;
+    Inc(IgnoreCount);
+  end;
 end;
 
 // Intercepting validation errors while loading API
@@ -753,6 +789,19 @@ begin
   raise E;
 end;
 
+function IsBlacklisted(const s: string; const list: array of string): Boolean;
+var
+  I: Integer;
+begin
+  Result := True;
+  for I := Low(list) to High(list) do
+  begin
+    if s = list[I] then
+      Exit;
+  end;
+  Result := False;
+end;
+
 const
   UnitHeader =
 
@@ -760,18 +809,18 @@ const
 '  This Pascal source file was generated by testgen program'#10 +
 '  and is a derived work from the source document.'#10 +
 '  The source document contained the following notice:'#10+
-'%s}'#10+
-'unit %s;'#10 +
+'%0:s}'#10+
+'unit %1:s;'#10 +
 '{$mode objfpc}{$h+}'#10 +
 '{$notes off}'#10 +
 '{$codepage utf8}'#10 +
 'interface'#10 +
 #10 +
 'uses'#10 +
-'  SysUtils, Classes, DOM, xmlread, fpcunit, contnrs, domunit, testregistry;'#10 +
+'  SysUtils, Classes, DOM, xmlread, fpcunit, contnrs, domunit, testregistry%3:s;'#10 +
 #10 +
 'type'#10 +
-'  %s = class(TDOMTestBase)'#10 +
+'  %2:s = class(TDOMTestBase)'#10 +
 '  protected'#10 +
 '    function GetTestFilesURI: string; override;'#10 +
 '  published'#10;
@@ -786,8 +835,9 @@ var
   sl, all, impl: TStringList;
   Pars: TDOMParser;
   eh: TErrHandler;
-  class_name, unit_name, notice: string;
+  class_name, unit_name, notice, casename, add_units: string;
   comment: TDOMNode;
+  blacklist: array of string;
 begin
   Pars := TDOMParser.Create;
   eh := TErrHandler.Create;
@@ -795,6 +845,16 @@ begin
   Pars.OnError := @eh.HandleError;
   // API database must be loaded in validating mode
   Pars.ParseURI('file:api.xml', api);
+
+  // Prepare the array of blacklisted test names
+  testlist := api.GetElementsByTagName('blacklist');
+  try
+    SetLength(blacklist, testlist.length);
+    for I := 0 to testlist.length-1 do
+      blacklist[I] := testlist[I].TextContent;
+  finally
+    testlist.Free;
+  end;
 
   sl := TStringList.Create;
   all := TStringList.Create;
@@ -817,10 +877,24 @@ begin
     comment := comment.nextSibling;
   end;
 
+  // Check if we need the additional units to use
+  add_units := '';
+  testlist := api.GetElementsByTagName('uses');
+  try
+    for I := 0 to testlist.Length-1 do
+    begin
+      root := TDOMElement(testlist[I]);
+      if Pos(root['pattern'], BaseURI) <> 0 then
+        add_units := add_units + ', ' + root['unit'];
+    end;
+  finally
+    testlist.Free;
+  end;
+
   unit_name := ChangeFileExt(ExtractFileName(UnitFileName), '');
   class_name := 'TTest' + UpperCase(unit_name[1]) + copy(unit_name, 2, MaxInt);
   // provide unit header
-  all.Text := Format(UnitHeader, [notice, unit_name, class_name]);
+  all.Text := Format(UnitHeader, [notice, unit_name, class_name, add_units]);
   // emit the 'GetPathToModuleFiles' function body
   impl.Add('implementation');
   impl.Add('');
@@ -837,25 +911,31 @@ begin
   for I := 0 to testcount-1 do
   begin
     href := TDOMElement(testlist[I])['href'];
-    // simple concatenation should suffice, but be paranoid
     ResolveRelativeURI(BaseURI, href, testuri);
+
     Pars.ParseURI(testuri, testdoc);
     try
       sl.Clear;
       root := testdoc.DocumentElement;
       // fix clash with local vars having the same name
-      if root['name'] = 'attrname' then
-        root['name'] := 'attr_name';
-      sl.Add('procedure ' + class_name + '.' + root['name'] + ';');
+      casename := root['name'];
+      if casename = 'attrname' then
+        casename := 'attr_name';
+      if IsBlacklisted(casename, blacklist) then
+      begin
+        writeln('Test case "', casename, '" is blacklisted, skipping');
+        Continue;
+      end;
+      sl.Add('procedure ' + class_name + '.' + casename + ';');
       try
-      ConvertTest(root, sl);
+        ConvertTest(root, sl);
       except
-        Writeln('An exception occured while converting '+root['name']);
+        Writeln('An exception occured while converting ', casename);
         raise;
       end;
       if sl.Count > 0 then
       begin
-        all.add('    procedure '+root['name']+';');
+        all.add('    procedure '+casename+';');
         impl.AddStrings(sl)
       end;
     finally
@@ -889,7 +969,7 @@ var
   I: Integer;
 
 begin
-  writeln('testgen - w3.org DOM test suite to Pascal converter');
+  writeln('testgen - w3.org DOM test suite to Object Pascal converter');
   writeln('Copyright (c) 2008 by Sergei Gorelkin');
   
   if ParamCount < 2 then
@@ -918,7 +998,7 @@ begin
 
   ConvertSuite(FilenameToURI(SuiteName), OutputUnit);
 
-  writeln(testcount - FailCount, ' tests converted successfully');
+  writeln(testcount - FailCount - IgnoreCount, ' tests converted successfully');
   if FailCount > 0 then
   begin
     writeln(FailCount, ' tests contain tags that are not supported yet');
@@ -929,6 +1009,11 @@ begin
     end
     else
       writeln('These tests were skipped');
+  end;
+  if IgnoreCount > 0 then
+  begin
+    writeln(IgnoreCount, ' tests were skipped because they are not');
+    writeln('   applicable to our DOM implementation.');
   end;
 end.
 

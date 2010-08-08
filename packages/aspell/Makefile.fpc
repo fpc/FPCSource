@@ -4,10 +4,10 @@
 
 [package]
 name=aspell
-version=2.2.2
+version=2.5.1
 
 [target]
-units=aspell spellcheck
+units=aspell aspelldyn spellcheck
 
 [install]
 fpcpackage=y

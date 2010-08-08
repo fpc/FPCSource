@@ -21,7 +21,7 @@ unit dw_XML;
 
 interface
 
-uses DOM, PasTree, dwriter;
+uses DOM, PasTree, dwriter, xmlWrite, SysUtils;
 
 Type
 
@@ -104,8 +104,19 @@ end;
 { TXMLWriter }
 
 procedure TXMLWriter.WriteDoc;
+var
+  doc: TXMLDocument;
+  i: Integer;
 begin
+  if Engine.Output <> '' then
+    Engine.Output := IncludeTrailingBackSlash(Engine.Output);
 
+  for i := 0 to Package.Modules.Count - 1 do
+  begin
+    doc := ModuleToXMLStruct(TPasModule(Package.Modules[i]));
+    WriteXMLFile(doc, Engine.Output + TPasModule(Package.Modules[i]).Name + '.xml' );
+    doc.Free;
+  end;
 end;
 
 initialization

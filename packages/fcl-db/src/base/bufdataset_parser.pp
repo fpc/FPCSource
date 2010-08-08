@@ -373,7 +373,7 @@ begin
 
   // define field in parser
   case FieldInfo.DataType of
-    ftString:
+    ftString, ftFixedChar:
       begin
       TempFieldVar := TStringFieldVar.Create(FieldInfo);
       TempFieldVar.FExprWord := DefineStringVariable(VarName, TempFieldVar.FieldVal);
@@ -405,7 +405,7 @@ begin
         TempFieldVar.FExprWord := DefineDateTimeVariable(VarName, TempFieldVar.FieldVal);
       end;
   else
-    raise EDatabaseError.CreateFmt(SErrIndexBasedOnInvField, [VarName]);
+    raise EDatabaseError.CreateFmt(SErrIndexBasedOnInvField, [VarName,Fieldtypenames[FieldInfo.DataType]]);
   end;
 
   // add to our own list

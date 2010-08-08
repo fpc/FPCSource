@@ -14,6 +14,94 @@
 
  **********************************************************************}
 
+
+Const
+   DLL_PROCESS_ATTACH = 1;
+   DLL_THREAD_ATTACH = 2;
+   DLL_PROCESS_DETACH = 0;
+   DLL_THREAD_DETACH = 3;
+   DLLExitOK : boolean = true;
+Var
+  DLLBuf : Jmp_buf;
+
+function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntryInformation){$endif FPC_HAS_INDIRECT_MAIN_INFORMATION} : longbool; [public,alias:'_FPC_DLL_Entry'];
+  begin
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+     EntryInformation:=info;
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+     IsLibrary:=true;
+     Dll_entry:=false;
+     case DLLreason of
+       DLL_PROCESS_ATTACH :
+         begin
+           WinInitCriticalSection(AttachingThread);
+           MainThreadIdWin32 := Win32GetCurrentThreadId;
+
+           If SetJmp(DLLBuf) = 0 then
+             begin
+{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}
+               EntryInformation.PascalMain();
+{$else FPC_HAS_INDIRECT_MAIN_INFORMATION}
+               PascalMain;
+{$endif FPC_HAS_INDIRECT_MAIN_INFORMATION}
+               Dll_entry:=true;
+             end
+           else
+             Dll_entry:=DLLExitOK;
+         end;
+       DLL_THREAD_ATTACH :
+         begin
+           inclocked(Thread_count);
+
+           WinEnterCriticalSection(AttachingThread);
+           if Win32GetCurrentThreadId <> MainThreadIdWin32 then
+           begin
+             { Allocate Threadvars  }
+             SysAllocateThreadVars;
+
+             { NS : no idea what is correct to pass here - pass dummy value for now }
+             { passing a dummy is ok, the correct value is read from the coff header of SysInstance (FK) }
+             InitThread($1000000); { Assume everything is idempotent there, as the thread could have been created with BeginThread... }
+           end;
+
+           if assigned(Dll_Thread_Attach_Hook) then
+             Dll_Thread_Attach_Hook(DllParam);
+           Dll_entry:=true; { return value is ignored }
+           WinLeaveCriticalSection(AttachingThread);
+        end;
+       DLL_THREAD_DETACH :
+         begin
+           declocked(Thread_count);
+           if assigned(Dll_Thread_Detach_Hook) then
+             Dll_Thread_Detach_Hook(DllParam);
+           { Release Threadvars }
+           if Win32GetCurrentThreadId<>MainThreadIdWin32 then
+             DoneThread; { Assume everything is idempotent there }
+           Dll_entry:=true; { return value is ignored }
+         end;
+       DLL_PROCESS_DETACH :
+         begin
+           Dll_entry:=true; { return value is ignored }
+           If SetJmp(DLLBuf) = 0 then
+             FPC_Do_Exit;
+           if assigned(Dll_Process_Detach_Hook) then
+             Dll_Process_Detach_Hook(DllParam);
+
+           DoneThread;
+           { Free TLS resources used by ThreadVars }
+           SysFiniMultiThreading;
+           WinDoneCriticalSection(AttachingThread);
+         end;
+     end;
+  end;
+
+
+Procedure ExitDLL(Exitcode : longint);
+  begin
+    DLLExitOK:=ExitCode=0;
+    LongJmp(DLLBuf,1);
+  end;
+
 {****************************************************************************
                     Error Message writing using messageboxes
 ****************************************************************************}
@@ -120,7 +208,7 @@ function GetProcessID: SizeUInt;
   begin
     GetProcessID := ProcessID;
   end;
-  
+
 
 {******************************************************************************
                               Unicode
@@ -168,11 +256,44 @@ function Win32UnicodeLower(const s : UnicodeString) : UnicodeString;
       CharLowerBuff(LPWSTR(result),length(result));
   end;
 
-  
+type
+  PWStrInitEntry = ^TWStrInitEntry;
+  TWStrInitEntry = record
+    addr: PPointer;
+    data: Pointer;
+  end;
+
+  PWStrInitTablesTable = ^TWStrInitTablesTable;
+  TWStrInitTablesTable = packed record
+    count  : longint;
+    tables : packed array [1..32767] of PWStrInitEntry;
+  end;
+
+{$if not(defined(VER2_2) or defined(VER2_4))}
+var
+  WStrInitTablesTable: TWStrInitTablesTable; external name 'FPC_WIDEINITTABLES';
+{$endif}
+
 { there is a similiar procedure in sysutils which inits the fields which
   are only relevant for the sysutils units }
 procedure InitWin32Widestrings;
+  var
+    i: longint;
+    ptable: PWStrInitEntry;
   begin
+{$if not(defined(VER2_2) or defined(VER2_4))}
+    { assign initial values to global Widestring typed consts }
+    for i:=1 to WStrInitTablesTable.count do
+      begin
+        ptable:=WStrInitTablesTable.tables[i];
+        while Assigned(ptable^.addr) do
+          begin
+            fpc_widestr_assign(ptable^.addr^, ptable^.data);
+            Inc(ptable);
+          end;
+      end;
+{$endif}
+
     { Widestring }
     widestringmanager.Wide2AnsiMoveProc:=@Win32Wide2AnsiMove;
     widestringmanager.Ansi2WideMoveProc:=@Win32Ansi2WideMove;
@@ -186,3 +307,4 @@ procedure InitWin32Widestrings;
     widestringmanager.LowerUnicodeStringProc:=@Win32UnicodeLower;
 {$endif VER2_2}
   end;
+

@@ -81,7 +81,15 @@ const calculated_cmdline:Pchar=nil;
                        Misc. System Dependent Functions
 *****************************************************************************}
 
+{$if defined(CPUARM) and defined(FPC_ABI_EABI)}
+procedure haltproc(e:longint);cdecl;external name '_haltproc_eabi';
+{$else}
 procedure haltproc(e:longint);cdecl;external name '_haltproc';
+{$endif}
+
+{$ifdef FPC_USE_LIBC}
+function  FpPrCtl(options : cInt; const args : ptruint) : cint; cdecl; external clib name 'prctl';
+{$endif}
 
 procedure System_exit;
 begin
@@ -212,6 +220,7 @@ function  reenable_signal(sig : longint) : boolean;
 var
   e : TSigSet;
   i,j : byte;
+  olderrno: cint;
 begin
   fillchar(e,sizeof(e),#0);
   { set is 1 based PM }
@@ -219,8 +228,11 @@ begin
   i:=sig mod (sizeof(cuLong) * 8);
   j:=sig div (sizeof(cuLong) * 8);
   e[j]:=1 shl i;
+  { this routine is called from a signal handler, so must not change errno }
+  olderrno:=geterrno;
   fpsigprocmask(SIG_UNBLOCK,@e,nil);
   reenable_signal:=geterrno=0;
+  seterrno(olderrno);
 end;
 
 // signal handler is arch dependant due to processorexception to language
@@ -228,10 +240,9 @@ end;
 
 {$i sighnd.inc}
 
+procedure InstallDefaultSignalHandler(signum: longint; out oldact: SigActionRec); public name '_FPC_INSTALLDEFAULTSIGHANDLER';
 var
   act: SigActionRec;
-
-Procedure InstallSignals;
 begin
   { Initialize the sigaction structure }
   { all flags and information set to zero }
@@ -239,10 +250,21 @@ begin
   { initialize handler                    }
   act.sa_handler := SigActionHandler(@SignalToRunError);
   act.sa_flags:=SA_SIGINFO;
-  FpSigAction(SIGFPE,@act,nil);
-  FpSigAction(SIGSEGV,@act,nil);
-  FpSigAction(SIGBUS,@act,nil);
-  FpSigAction(SIGILL,@act,nil);
+  FpSigAction(signum,@act,@oldact);
+end;
+
+var
+  oldsigfpe: SigActionRec; public name '_FPC_OLDSIGFPE';
+  oldsigsegv: SigActionRec; public name '_FPC_OLDSIGSEGV';
+  oldsigbus: SigActionRec; public name '_FPC_OLDSIGBUS';
+  oldsigill: SigActionRec; public name '_FPC_OLDSIGILL';
+
+Procedure InstallSignals;
+begin
+  InstallDefaultSignalHandler(SIGFPE,oldsigfpe);
+  InstallDefaultSignalHandler(SIGSEGV,oldsigsegv);
+  InstallDefaultSignalHandler(SIGBUS,oldsigbus);
+  InstallDefaultSignalHandler(SIGILL,oldsigill);
 end;
 
 procedure SysInitStdIO;
@@ -252,6 +274,14 @@ begin
   OpenStdIO(ErrOutput,fmOutput,StdErrorHandle);
   OpenStdIO(StdOut,fmOutput,StdOutputHandle);
   OpenStdIO(StdErr,fmOutput,StdErrorHandle);
+end;
+
+Procedure RestoreOldSignalHandlers;
+begin
+  FpSigAction(SIGFPE,@oldsigfpe,nil);
+  FpSigAction(SIGSEGV,@oldsigsegv,nil);
+  FpSigAction(SIGBUS,@oldsigbus,nil);
+  FpSigAction(SIGILL,@oldsigill,nil);
 end;
 
 
@@ -272,6 +302,13 @@ begin
  GetProcessID := SizeUInt (fpGetPID);
 end;
 
+{$ifdef FPC_USE_LIBC}
+{$ifdef HAS_UGETRLIMIT}
+    { there is no ugetrlimit libc call, just map it to the getrlimit call in these cases }
+function FpUGetRLimit(resource : cInt; rlim : PRLimit) : cInt; cdecl; external clib name 'getrlimit';
+{$endif}
+{$endif}
+
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
 var
   limits : TRLimit;
@@ -282,8 +319,10 @@ begin
   {$ifdef has_ugetrlimit}
   success := fpugetrlimit(RLIMIT_STACK, @limits)=0;
   {$endif}
+  {$ifndef NO_SYSCALL_GETRLIMIT}
   if (not success) then
     success := fpgetrlimit(RLIMIT_STACK, @limits)=0;
+  {$endif}
   if (success) and (limits.rlim_cur < stklen) then
     result := limits.rlim_cur
   else
@@ -310,7 +349,7 @@ begin
   IsConsole := TRUE;
   StackLength := CheckInitialStkLen(initialStkLen);
   StackBottom := initialstkptr - StackLength;
-  { Set up signals handlers }
+  { Set up signals handlers (may be needed by init code to test cpu features) }
   InstallSignals;
 
 {$if defined(cpui386) or defined(cpuarm)}
@@ -334,4 +373,7 @@ begin
 {$else VER2_2}
   initunicodestringmanager;
 {$endif VER2_2}
+  { restore original signal handlers in case this is a library }
+  if IsLibrary then
+    RestoreOldSignalHandlers;
 end.

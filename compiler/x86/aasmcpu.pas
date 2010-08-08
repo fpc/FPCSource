@@ -189,7 +189,7 @@ interface
          reg       : tregister;
          constructor create(b:byte);override;
          constructor create_op(b: byte; _op: byte);override;
-         function calculatefillbuf(var buf : tfillbuffer):pchar;override;
+         function calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;override;
       end;
 
       taicpu = class(tai_cpu_abstract_sym)
@@ -451,7 +451,7 @@ implementation
       end;
 
 
-    function tai_align.calculatefillbuf(var buf : tfillbuffer):pchar;
+    function tai_align.calculatefillbuf(var buf : tfillbuffer;executable : boolean):pchar;
       const
 {$ifdef x86_64}
         alignarray:array[0..3] of string[4]=(
@@ -474,8 +474,8 @@ implementation
         j : longint;
         localsize: byte;
       begin
-        inherited calculatefillbuf(buf);
-        if not use_op then
+        inherited calculatefillbuf(buf,executable);
+        if not(use_op) and executable then
          begin
            bufptr:=pchar(@buf);
            { fillsize may still be used afterwards, so don't modify }
@@ -931,7 +931,7 @@ implementation
                   if (ref^.refaddr=addr_no)
 {$ifdef x86_64}
                      or (
-                         (ref^.refaddr=addr_pic) and
+                         (ref^.refaddr in [addr_pic,addr_pic_no_got]) and
                          (ref^.base<>NR_NO)
                         )
 {$endif x86_64}
@@ -1298,6 +1298,9 @@ implementation
       begin
         result:=(oper[opidx]^.typ=top_ref) and
                 (oper[opidx]^.ref^.refaddr=addr_no) and
+    {$ifdef x86_64}
+                (oper[opidx]^.ref^.base<>NR_RIP) and
+    {$endif x86_64}
                 (
                  (
                   (oper[opidx]^.ref^.index<>NR_NO) and
@@ -1966,6 +1969,7 @@ implementation
         rfield,
         data,s,opidx : longint;
         ea_data : ea;
+        relsym : TObjSymbol;
       begin
         { safety check }
         if objdata.currobjsec.size<>longword(insoffset) then
@@ -2279,13 +2283,36 @@ implementation
                      2,4 :
                        begin
                          currsym:=objdata.symbolref(oper[opidx]^.ref^.symbol);
+                         currval:=oper[opidx]^.ref^.offset;
 {$ifdef x86_64}
                          if oper[opidx]^.ref^.refaddr=addr_pic then
                            currabsreloc:=RELOC_GOTPCREL
                          else
+                           if oper[opidx]^.ref^.base=NR_RIP then
+                             begin
+                               currabsreloc:=RELOC_RELATIVE;
+                               { Adjust reloc value depending of immediate operand size }
+                               case Ord(codes^) of
+                                 12,13,14,16,17,18,20,21,22:
+                                   Dec(currval, 1);
+                                 24,25,26:
+                                   Dec(currval, 2);
+                                 32,33,34:
+                                   Dec(currval, 4);
+                               end;
+                             end
+                           else
 {$endif x86_64}
-                           currabsreloc:=RELOC_ABSOLUTE32;
-                         objdata.writereloc(oper[opidx]^.ref^.offset,ea_data.bytes,currsym,currabsreloc);
+                             currabsreloc:=RELOC_ABSOLUTE32;
+
+                           if (currabsreloc=RELOC_ABSOLUTE32) and
+                            (Assigned(oper[opidx]^.ref^.relsymbol)) then
+                           begin
+                             relsym:=objdata.symbolref(oper[opidx]^.ref^.relsymbol);
+                             currabsreloc:=RELOC_PIC_PAIR;
+                             currval:=relsym.offset;
+                           end;
+                         objdata.writereloc(currval,ea_data.bytes,currsym,currabsreloc);
                          inc(s,ea_data.bytes);
                        end;
                    end;
@@ -2384,6 +2411,8 @@ implementation
       begin
         case getregtype(r) of
           R_INTREGISTER :
+            { we don't need special code here for 32 bit loads on x86_64, since
+              those will automatically zero-extend the upper 32 bits. }
             result:=taicpu.op_ref_reg(A_MOV,reg2opsize(r),ref,r);
           R_MMREGISTER :
             case getsubreg(r) of
@@ -2403,10 +2432,24 @@ implementation
 
 
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
+      var
+        size: topsize;
       begin
         case getregtype(r) of
           R_INTREGISTER :
-            result:=taicpu.op_reg_ref(A_MOV,reg2opsize(r),r,ref);
+            begin
+              size:=reg2opsize(r);
+{$ifdef x86_64}
+              { even if it's a 32 bit reg, we still have to spill 64 bits
+                because we often perform 64 bit operations on them }
+              if (size=S_L) then
+                begin
+                  size:=S_Q;
+                  r:=newreg(getregtype(r),getsupreg(r),R_SUBWHOLE);
+                end;
+{$endif x86_64}
+              result:=taicpu.op_reg_ref(A_MOV,size,r,ref);
+            end;
           R_MMREGISTER :
             case getsubreg(r) of
               R_SUBMMD:

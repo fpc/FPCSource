@@ -119,6 +119,12 @@ begin
       TDBTransaction(FTransactions[i]).Database:=Nil;
 end;
 
+procedure TDatabase.SetParams(AValue: TStrings);
+begin
+  if AValue<>nil then
+    FParams.Assign(AValue);
+end;
+
 Function TDatabase.GetDataSetCount : Longint;
 
 begin
@@ -434,7 +440,6 @@ end;
 
 procedure TCustomConnection.SetAfterConnect(const AValue: TNotifyEvent);
 begin
-  if FAfterConnect=AValue then exit;
   FAfterConnect:=AValue;
 end;
 
@@ -458,13 +463,11 @@ end;
 
 procedure TCustomConnection.SetAfterDisconnect(const AValue: TNotifyEvent);
 begin
-  if FAfterDisconnect=AValue then exit;
   FAfterDisconnect:=AValue;
 end;
 
 procedure TCustomConnection.SetBeforeConnect(const AValue: TNotifyEvent);
 begin
-  if FBeforeConnect=AValue then exit;
   FBeforeConnect:=AValue;
 end;
 
@@ -503,7 +506,6 @@ end;
 
 procedure TCustomConnection.SetBeforeDisconnect(const AValue: TNotifyEvent);
 begin
-  if FBeforeDisconnect=AValue then exit;
   FBeforeDisconnect:=AValue;
 end;
 

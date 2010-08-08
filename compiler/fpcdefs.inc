@@ -3,21 +3,7 @@
 {$H-}
 {$goto on}
 {$inline on}
-
-{$ifdef win32}
-  { 256 MB stack }
-  { under windows the stack can't grow }
-  {$MEMORY 256000000}
-{$else win32}
-  {$ifdef win64}
-    { 512 MB stack }
-    { under windows the stack can't grow }
-    {$MEMORY 512000000}
-  {$else win64}
-    { 1 MB stack }
-    {$MEMORY 1000000}
-  {$endif win64}
-{$endif win32}
+{$interfaces corba}
 
 { This reduces the memory requirements a lot }
 {$PACKENUM 1}
@@ -108,8 +94,12 @@
   {$define cpuneedsdiv32helper}
   {$define cputargethasfixedstack}
   { inherit FPC_ARMEL? }
-  {$if defined(CPUARMEL) and not(defined(FPC_OARM))}
+  {$if defined(CPUARMEL) and not(defined(FPC_OARM)) and not(defined(FPC_ARMEB))}
     {$define FPC_ARMEL}
+  {$endif}
+  { inherit FPC_ARMEB? }
+  {$if defined(CPUARMEB) and not(defined(FPC_OARM)) and not(defined(FPC_ARMEL))}
+    {$define FPC_ARMEB}
   {$endif}
 {$endif arm}
 
@@ -130,12 +120,23 @@
   {$define cpunodefaultint}
 {$endif avr}
 
+{$ifdef mipsel}
+  {$define mips}
+{$endif mipsel}
+
+{$ifdef mips}
+  {$define cpu32bitalu}
+  {$define cpu32bitaddr}
+  { $define cpuflags}
+  {$define cputargethasfixedstack}
+  {$define cpurequiresproperalignment}
+  {$define cpumm}
+{$endif mips}
+
 {$IFDEF MACOS}
 {$DEFINE USE_FAKE_SYSUTILS}
 {$ENDIF MACOS}
 
-{$define SUPPORT_UNALIGNED}
-
-{$if not defined(cpui386) and defined(i386)}
-{$error Cross-compiling from non-i386 to i386 is not yet supported at this time }
+{$if not defined(FPC_HAS_TYPE_EXTENDED) and defined(i386)}
+{$error Cross-compiling from systems without support for an 80 bit extended floating point type to i386 is not yet supported at this time }
 {$endif}

@@ -120,7 +120,7 @@ implementation
          dummy2: int64 = $4330000000000000;
 
       var
-        tempconst: trealconstnode;
+        tempconst: tnode;
         ref: treference;
         valuereg, tempreg, leftreg, tmpfpureg: tregister;
         size: tcgsize;

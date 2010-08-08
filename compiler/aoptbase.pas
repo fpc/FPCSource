@@ -141,6 +141,11 @@ unit aoptbase;
   {$endif RefsHaveIndexReg}
   End;
 
+  function labelCanBeSkipped(p: tai_label): boolean;
+  begin
+    labelCanBeSkipped := not(p.labsym.is_used) or (p.labsym.labeltype<>alt_jump);
+  end;
+
   Function TAOptBase.GetNextInstruction(Current: tai; Var Next: tai): Boolean;
   Begin
     Repeat
@@ -153,7 +158,7 @@ unit aoptbase;
              ) or
 {$endif SPARC}
              ((Current.typ = ait_label) And
-              Not(Tai_Label(Current).labsym.is_used))) Do
+              labelCanBeSkipped(Tai_Label(Current)))) Do
         Current := tai(Current.Next);
       If Assigned(Current) And
          (Current.typ = ait_Marker) And
@@ -171,7 +176,7 @@ unit aoptbase;
     If Assigned(Current) And
        Not((Current.typ In SkipInstr) or
            ((Current.typ = ait_label) And
-            Not(Tai_Label(Current).labsym.is_used)))
+            labelCanBeSkipped(Tai_Label(Current))))
       Then GetNextInstruction := True
       Else
         Begin
@@ -189,7 +194,7 @@ unit aoptbase;
               Not(Tai_Marker(Current).Kind in [mark_AsmBlockEnd,mark_NoPropInfoEnd])) or
              (Current.typ In SkipInstr) or
              ((Current.typ = ait_label) And
-               Not(Tai_Label(Current).labsym.is_used))) Do
+              labelCanBeSkipped(Tai_Label(Current)))) Do
         Current := Tai(Current.previous);
       If Assigned(Current) And
          (Current.typ = ait_Marker) And
@@ -206,7 +211,7 @@ unit aoptbase;
     If Not(Assigned(Current)) or
        (Current.typ In SkipInstr) or
        ((Current.typ = ait_label) And
-        Not(Tai_Label(Current).labsym.is_used)) or
+        labelCanBeSkipped(Tai_Label(Current))) or
        ((Current.typ = ait_Marker) And
         (Tai_Marker(Current).Kind = mark_AsmBlockEnd))
       Then

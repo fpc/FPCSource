@@ -39,10 +39,10 @@ unit cgcpu;
         procedure do_register_allocation(list:TAsmList;headertai:tai);override;
 
         { passing parameter using push instead of mov }
-        procedure a_param_reg(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
-        procedure a_param_const(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);override;
-        procedure a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
-        procedure a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
+        procedure a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);override;
+        procedure a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);override;
+        procedure a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);override;
+        procedure a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);override;
 
         procedure g_proc_exit(list : TAsmList;parasize:longint;nostackframe:boolean);override;
         procedure g_copyvaluepara_openarray(list : TAsmList;const ref:treference;const lenloc:tlocation;elesize:aint;destreg:tregister);override;
@@ -63,13 +63,15 @@ unit cgcpu;
       private
         procedure get_64bit_ops(op:TOpCG;var op1,op2:TAsmOp);
       end;
+      
+    procedure create_codegen;
 
   implementation
 
     uses
        globals,verbose,systems,cutils,
        paramgr,procinfo,fmodule,
-       rgcpu,rgx86;
+       rgcpu,rgx86,cpuinfo;
 
     function use_push(const cgpara:tcgpara):boolean;
       begin
@@ -99,14 +101,12 @@ unit cgcpu;
           begin
             if getsupreg(current_procinfo.got) < first_int_imreg then
               include(rg[R_INTREGISTER].used_in_proc,getsupreg(current_procinfo.got));
-            { ebx is currently always used (do to getiepasebx call) }
-            include(rg[R_INTREGISTER].used_in_proc,RS_EBX);
           end;
         inherited do_register_allocation(list,headertai);
       end;
 
 
-    procedure tcg386.a_param_reg(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);
+    procedure tcg386.a_load_reg_cgpara(list : TAsmList;size : tcgsize;r : tregister;const cgpara : tcgpara);
       var
         pushsize : tcgsize;
       begin
@@ -121,11 +121,11 @@ unit cgcpu;
             list.concat(taicpu.op_reg(A_PUSH,tcgsize2opsize[pushsize],makeregsize(list,r,pushsize)));
           end
         else
-          inherited a_param_reg(list,size,r,cgpara);
+          inherited a_load_reg_cgpara(list,size,r,cgpara);
       end;
 
 
-    procedure tcg386.a_param_const(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);
+    procedure tcg386.a_load_const_cgpara(list : TAsmList;size : tcgsize;a : aint;const cgpara : tcgpara);
       var
         pushsize : tcgsize;
       begin
@@ -139,11 +139,11 @@ unit cgcpu;
             list.concat(taicpu.op_const(A_PUSH,tcgsize2opsize[pushsize],a));
           end
         else
-          inherited a_param_const(list,size,a,cgpara);
+          inherited a_load_const_cgpara(list,size,a,cgpara);
       end;
 
 
-    procedure tcg386.a_param_ref(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);
+    procedure tcg386.a_load_ref_cgpara(list : TAsmList;size : tcgsize;const r : treference;const cgpara : tcgpara);
 
         procedure pushdata(paraloc:pcgparalocation;ofs:aint);
         var
@@ -177,7 +177,10 @@ unit cgcpu;
               list.concat(taicpu.op_reg(A_PUSH,TCgsize2opsize[pushsize],tmpreg));
             end
           else
-            list.concat(taicpu.op_ref(A_PUSH,TCgsize2opsize[pushsize],href));
+            begin
+              make_simple_ref(list,href);
+              list.concat(taicpu.op_ref(A_PUSH,TCgsize2opsize[pushsize],href));
+            end;
         end;
 
       var
@@ -193,7 +196,7 @@ unit cgcpu;
                 cgpara.check_simple_location;
                 len:=align(cgpara.intsize,cgpara.alignment);
                 g_stackpointer_alloc(list,len);
-                reference_reset_base(href,NR_STACK_POINTER_REG,0);
+                reference_reset_base(href,NR_STACK_POINTER_REG,0,4);
                 g_concatcopy(list,r,href,len);
               end
             else
@@ -206,11 +209,11 @@ unit cgcpu;
               end
           end
         else
-          inherited a_param_ref(list,size,r,cgpara);
+          inherited a_load_ref_cgpara(list,size,r,cgpara);
       end;
 
 
-    procedure tcg386.a_paramaddr_ref(list : TAsmList;const r : treference;const cgpara : tcgpara);
+    procedure tcg386.a_loadaddr_ref_cgpara(list : TAsmList;const r : treference;const cgpara : tcgpara);
       var
         tmpreg : tregister;
         opsize : topsize;
@@ -244,7 +247,7 @@ unit cgcpu;
                   end;
               end
             else
-              inherited a_paramaddr_ref(list,r,cgpara);
+              inherited a_loadaddr_ref_cgpara(list,r,cgpara);
           end;
       end;
 
@@ -284,17 +287,29 @@ unit cgcpu;
            { this messes up stack alignment }
            (target_info.system <> system_i386_darwin) then
           begin
-            if (current_procinfo.procdef.funcretloc[calleeside].loc<>LOC_VOID) and
-               (current_procinfo.procdef.funcretloc[calleeside].loc=LOC_REGISTER) then
-              list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
+            if assigned(current_procinfo.procdef.funcretloc[calleeside].location) and
+               (current_procinfo.procdef.funcretloc[calleeside].location^.loc=LOC_REGISTER) then
+              begin
+                if (getsupreg(current_procinfo.procdef.funcretloc[calleeside].location^.register)=RS_EAX) then
+                  list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
+                else
+                  internalerror(2010053001);
+              end
             else
               list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EAX));
             list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EBX));
             list.concat(Taicpu.Op_reg(A_POP,S_L,NR_ECX));
 
-            if (current_procinfo.procdef.funcretloc[calleeside].loc=LOC_REGISTER) and
-               (current_procinfo.procdef.funcretloc[calleeside].size in [OS_64,OS_S64]) then
-              list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
+            if (current_procinfo.procdef.funcretloc[calleeside].size in [OS_64,OS_S64]) and
+               assigned(current_procinfo.procdef.funcretloc[calleeside].location) and
+               assigned(current_procinfo.procdef.funcretloc[calleeside].location^.next) and
+               (current_procinfo.procdef.funcretloc[calleeside].location^.next^.loc=LOC_REGISTER) then
+              begin
+                if (getsupreg(current_procinfo.procdef.funcretloc[calleeside].location^.next^.register)=RS_EDX) then
+                  list.concat(Taicpu.Op_const_reg(A_ADD,S_L,4,NR_ESP))
+                else
+                  internalerror(2010053002);
+              end
             else
               list.concat(Taicpu.Op_reg(A_POP,S_L,NR_EDX));
 
@@ -482,38 +497,52 @@ unit cgcpu;
     procedure tcg386.g_exception_reason_load(list : TAsmList; const href : treference);
       begin
         if not use_fixed_stack then
-          list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))
+          begin
+            cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
+            list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))
+          end
         else
           inherited g_exception_reason_load(list,href);
       end;
 
 
     procedure tcg386.g_maybe_got_init(list: TAsmList);
+      var
+        notdarwin: boolean;
       begin
         { allocate PIC register }
         if (cs_create_pic in current_settings.moduleswitches) and
            (tf_pic_uses_got in target_info.flags) and
            (pi_needs_got in current_procinfo.flags) then
           begin
-            if (target_info.system<>system_i386_darwin) then
+            notdarwin:=(target_info.system<>system_i386_darwin);
+            { on darwin, the got register is virtual (and allocated earlier
+              already) }
+            if notdarwin then
+              { ecx could be used in leaf procedures that don't use ecx to pass
+                aparameter }
+              current_procinfo.got:=NR_EBX;
+            if notdarwin { needs testing before it can be enabled for non-darwin platforms
+                and
+               (current_settings.optimizecputype in [cpu_Pentium2,cpu_Pentium3,cpu_Pentium4]) } then
               begin
                 current_module.requires_ebx_pic_helper:=true;
                 cg.a_call_name_static(list,'fpc_geteipasebx');
-                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,NR_PIC_OFFSET_REG));
-                list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
-                { ecx could be used in leaf procedures }
-                current_procinfo.got:=NR_EBX;
               end
             else
               begin
-                { can't use ecx, since that one may overwrite a parameter }
-                current_module.requires_ebx_pic_helper:=true;
-                cg.a_call_name_static(list,'fpc_geteipasebx');
-                list.concat(tai_regalloc.alloc(NR_EBX,nil));
+                { call/pop is faster than call/ret/mov on Core Solo and later
+                  according to Apple's benchmarking -- and all Intel Macs
+                  have at least a Core Solo (furthermore, the i386 - Pentium 1
+                  don't have a return stack buffer) }
+                a_call_name_static(list,current_procinfo.CurrGOTLabel.name);
                 a_label(list,current_procinfo.CurrGotLabel);
-                { got is already set by ti386procinfo.allocate_got_register }
-                list.concat(tai_regalloc.dealloc(NR_EBX,nil));
-                a_load_reg_reg(list,OS_ADDR,OS_ADDR,NR_EBX,current_procinfo.got);
+                list.concat(taicpu.op_reg(A_POP,S_L,current_procinfo.got))
+              end;
+            if notdarwin then
+              begin
+                list.concat(taicpu.op_sym_ofs_reg(A_ADD,S_L,current_asmdata.RefAsmSymbol('_GLOBAL_OFFSET_TABLE_'),0,NR_PIC_OFFSET_REG));
+                list.concat(tai_regalloc.alloc(NR_PIC_OFFSET_REG,nil));
               end;
           end;
       end;
@@ -534,6 +563,11 @@ unit cgcpu;
            set self parameter to correct value
            call mangledname
            set self parameter to interface value
+           ret
+
+           This is different to case (0) because in theory, the caller
+           could reuse the data pushed on the stack so we've to return
+           it unmodified because self is const.
 
       (2): The wrapper code use %eax to reach the virtual method address
            set self to correct value
@@ -563,7 +597,7 @@ unit cgcpu;
 
       }
 
-        procedure getselftoeax(offs: longint);
+      procedure getselftoeax(offs: longint);
         var
           href : treference;
           selfoffsetfromsp : longint;
@@ -576,41 +610,43 @@ unit cgcpu;
                 selfoffsetfromsp:=2*sizeof(aint)
               else
                 selfoffsetfromsp:=sizeof(aint);
-              reference_reset_base(href,NR_ESP,selfoffsetfromsp+offs);
+              reference_reset_base(href,NR_ESP,selfoffsetfromsp+offs,4);
               cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
             end;
         end;
 
-        procedure loadvmttoeax;
+      procedure loadvmttoeax;
         var
           href : treference;
         begin
           { mov  0(%eax),%eax ; load vmt}
-          reference_reset_base(href,NR_EAX,0);
+          reference_reset_base(href,NR_EAX,0,4);
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
         end;
 
-        procedure op_oneaxmethodaddr(op: TAsmOp);
+      procedure op_oneaxmethodaddr(op: TAsmOp);
         var
           href : treference;
         begin
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
           { call/jmp  vmtoffs(%eax) ; method offs }
-          reference_reset_base(href,NR_EAX,procdef._class.vmtmethodoffset(procdef.extnumber));
+          reference_reset_base(href,NR_EAX,procdef._class.vmtmethodoffset(procdef.extnumber),4);
           list.concat(taicpu.op_ref(op,S_L,href));
         end;
 
-        procedure loadmethodoffstoeax;
+
+      procedure loadmethodoffstoeax;
         var
           href : treference;
         begin
           if (procdef.extnumber=$ffff) then
             Internalerror(200006139);
           { mov vmtoffs(%eax),%eax ; method offs }
-          reference_reset_base(href,NR_EAX,procdef._class.vmtmethodoffset(procdef.extnumber));
+          reference_reset_base(href,NR_EAX,procdef._class.vmtmethodoffset(procdef.extnumber),4);
           cg.a_load_ref_reg(list,OS_ADDR,OS_ADDR,href,NR_EAX);
         end;
+
 
       var
         lab : tasmsymbol;
@@ -633,9 +669,9 @@ unit cgcpu;
           make_global:=true;
 
         if make_global then
-         List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
+          List.concat(Tai_symbol.Createname_global(labelname,AT_FUNCTION,0))
         else
-        List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
+          List.concat(Tai_symbol.Createname(labelname,AT_FUNCTION,0));
 
         { set param1 interface to self  }
         g_adjust_self_value(list,procdef,ioffset);
@@ -657,6 +693,7 @@ unit cgcpu;
               end;
             { restore param1 value self to interface }
             g_adjust_self_value(list,procdef,-ioffset);
+            list.concat(taicpu.op_none(A_RET,S_L));
           end
         else if po_virtualmethod in procdef.procoptions then
           begin
@@ -669,7 +706,7 @@ unit cgcpu;
                 loadvmttoeax;
                 loadmethodoffstoeax;
                 { mov %eax,4(%esp) }
-                reference_reset_base(href,NR_ESP,4);
+                reference_reset_base(href,NR_ESP,4,4);
                 list.concat(taicpu.op_reg_ref(A_MOV,S_L,NR_EAX,href));
                 { pop  %eax }
                 list.concat(taicpu.op_reg(A_POP,S_L,NR_EAX));
@@ -837,7 +874,10 @@ unit cgcpu;
         end;
       end;
 
-begin
-  cg := tcg386.create;
-  cg64 := tcg64f386.create;
+    procedure create_codegen;
+      begin
+        cg := tcg386.create;
+        cg64 := tcg64f386.create;
+      end;
+      
 end.

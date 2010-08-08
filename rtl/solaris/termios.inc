@@ -67,13 +67,13 @@
 
   function tcgetattr(_para1:cint; var _para2:termios):cint;cdecl;external;
 
-(* Const before type ignored *)
-  function tcsetattr(_para1:cint; _para2:cint; const _para3:termios):cint;cdecl;external;
-
   function tcgetattr(_para1:cint; _para2:Ptermios):cint;cdecl;external;
 
 (* Const before type ignored *)
   function tcsetattr(_para1:cint; _para2:cint; _para3:Ptermios):cint;cdecl;external;
+(* Const before type ignored *)
+  function tcsetattr(_para1:cint; _para2:cint; const _para3:termios):cint;cdecl;
+
 
 //  function tcsendbreak(_para1:cint; _para2:cint):cint;cdecl;
 

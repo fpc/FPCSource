@@ -59,6 +59,7 @@ uses
   aasmdata,aasmtai,aasmcpu,
   fmodule,
   cgbase,cgutils,cpubase,cgobj,
+  cgcpu,
   ncgutil,
   verbose;
 
@@ -135,6 +136,7 @@ var
   r : treference;
 {$endif x86}
 begin
+  create_codegen;
   new_section(current_asmdata.asmlists[al_procedures],sec_code,'',0);
   hp2:=texported_item(current_module._exports.first);
   while assigned(hp2) do
@@ -152,11 +154,11 @@ begin
            current_asmdata.asmlists[al_procedures].concat(Tai_symbol.Createname_global(hp2.name^,AT_FUNCTION,0));
            if (cs_create_pic in current_settings.moduleswitches) and
              { other targets need to be checked how it works }
-             (target_info.system in [system_i386_freebsd,system_x86_64_freebsd,system_x86_64_linux,system_i386_linux]) then
+             (target_info.system in [system_i386_freebsd,system_x86_64_freebsd,system_x86_64_linux,system_i386_linux,system_x86_64_solaris,system_i386_solaris]) then
              begin
 {$ifdef x86}
                sym:=current_asmdata.RefAsmSymbol(pd.mangledname);
-               reference_reset_symbol(r,sym,0);
+               reference_reset_symbol(r,sym,0,sizeof(pint));
                if cs_create_pic in current_settings.moduleswitches then
                  r.refaddr:=addr_pic
                else
@@ -172,13 +174,15 @@ begin
       end
      else
        begin
-         if (hp2.name^<>hp2.sym.mangledname) then
+         if assigned(hp2.sym) and
+            (hp2.name^<>hp2.sym.mangledname) then
            Message2(parser_e_cant_export_var_different_name,hp2.sym.realname,hp2.sym.mangledname)
          else
            exportedsymnames.insert(hp2.name^);
        end;
      hp2:=texported_item(hp2.next);
    end;
+   destroy_codegen;
 end;
 
 

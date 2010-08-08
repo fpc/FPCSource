@@ -39,6 +39,7 @@ begin
           AddUnit('testutils');
         end;
     T:=P.Targets.AddUnit('fpcunit.pp');
+      T.ResourceStrings:=true;
       with T.Dependencies do
         begin
           AddInclude('DUnitCompatibleInterface.inc');

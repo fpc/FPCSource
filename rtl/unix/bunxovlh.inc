@@ -71,7 +71,7 @@ Function FpGetEnv   (name : String): pChar;
 
 Function fpFD_SET   (fdno:cint;var nset : TFDSet): cint;
 Function fpFD_CLR   (fdno:cint;var nset : TFDSet): cint;
-Function fpFD_ZERO  (var nset : TFDSet):cint;
+Function fpFD_ZERO  (out nset : TFDSet):cint;
 Function fpFD_ISSET (fdno:cint;const nset : TFDSet): cint;
 Function fpfdfillset(var nset : TFDSet):cint;
 

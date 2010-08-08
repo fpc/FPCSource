@@ -31,16 +31,16 @@ function cpuid_support : boolean;assembler;
   }
   asm
     push   ebx
-    pushf
-    pushf
+    pushfd
+    pushfd
     pop     eax
     mov     ebx,eax
     xor     eax,200000h
     push    eax
-    popf
-    pushf
+    popfd
+    pushfd
     pop     eax
-    popf
+    popfd
     and     eax,200000h
     and     ebx,200000h
     cmp     eax,ebx
@@ -94,10 +94,12 @@ function mmx_support : boolean;
        mmx_support:=false;
   end;
 
+{$ifndef FPC_PIC}
 {$if not defined(FPC_SYSTEM_HAS_MOVE) and defined(REGCALL) }
 {$define USE_FASTMOVE}
 {$i fastmove.inc}
 {$endif FPC_SYSTEM_HAS_MOVE}
+{$endif FPC_PIC}
 
 procedure fpc_cpuinit;
   begin
@@ -1037,12 +1039,15 @@ asm
 {$endif}
         movl    $0xffffffff,%ecx
         xorl    %eax,%eax
+	test    %edi,%edi
+	jz      .LStrLenDone
         cld
         repne
         scasb
         movl    $0xfffffffe,%eax
         subl    %ecx,%eax
         movl    saveedi,%edi
+.LStrLenDone:
 end;
 {$endif FPC_SYSTEM_HAS_FPC_PCHAR_LENGTH}
 
@@ -1449,6 +1454,8 @@ procedure fpc_cpucodeinit;
 {$if not defined(darwin) and defined(regcall) }
 { darwin requires that the stack is aligned to 16 bytes when calling another function }
 
+{$ifdef FPC_HAS_FEATURE_ANSISTRINGS}
+
 {$define FPC_SYSTEM_HAS_ANSISTR_DECR_REF}
 function fpc_freemem_x(p:pointer):ptrint; [external name 'FPC_FREEMEM_X'];
 
@@ -1471,7 +1478,17 @@ asm
         jl      .Lj3596
 .Lj3603:
 // [104] If declocked(l^) then
+  {$ifdef FPC_PIC}
+	pushl	%ebx
+        call	fpc_geteipasebx
+        addl	$_GLOBAL_OFFSET_TABLE_,%ebx
+        movl	ismultithread@GOT(%ebx),%ebx
+        movl	(%ebx),%ebx
+        cmp	$0, %ebx
+	popl    %ebx
+  {$else FPC_PIC}
         cmpl    $0,ismultithread
+  {$endif FPC_PIC}
         jne     .Lj3610
         decl    (%edx)
         je      .Lj3620
@@ -1521,6 +1538,8 @@ asm
 .Lj4031:
 // [442] end;
 end;
+
+{$endif FPC_HAS_FEATURE_ANSISTRINGS}
 
 {$endif ndef darwin and defined(regcall) }
 

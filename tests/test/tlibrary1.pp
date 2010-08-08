@@ -36,6 +36,10 @@ const
 procedure Test;export;
 
  begin
+   if not islibrary then
+     halt(1);
+   if not moduleislib then
+     halt(2);
    writeln('Hoi');
  end;
 

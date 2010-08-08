@@ -19,7 +19,7 @@ var
   ScanCode: byte;
   SpecialKey: boolean;
 
-procedure GotoXY (X: byte; Y: byte);
+procedure GotoXY (X: tcrtcoord; Y: tcrtcoord);
 begin
  GotoXY32 (X, Y);
 end;
@@ -29,7 +29,7 @@ begin
  Window32 (X1, Y1, X2, Y2);
 end;
 
-function WhereX: byte;
+function WhereX: tcrtcoord;
 var
  X1: dword;
 begin
@@ -40,7 +40,7 @@ begin
   WhereX := X1;
 end;
 
-function WhereY: byte;
+function WhereY: tcrtcoord;
 var
  Y1: dword;
 begin

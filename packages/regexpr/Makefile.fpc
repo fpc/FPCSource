@@ -4,11 +4,11 @@
 
 [package]
 name=regexpr
-version=2.2.2
+version=2.5.1
 
 [target]
 units=regex regexpr
-examples=testreg1
+exampledirs=examples
 
 [compiler]
 options=-S2

@@ -1,0 +1,15 @@
+#
+#  Makefile.fpc for libcurl units example
+#
+
+[target]
+programs=testcurl teststream
+
+[require]
+packages=libcurl
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..

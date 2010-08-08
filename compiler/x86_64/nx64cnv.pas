@@ -72,7 +72,7 @@ implementation
     function tx8664typeconvnode.first_int_to_real : tnode;
       begin
         result:=nil;
-        if use_sse(resultdef) and
+        if use_vectorfpu(resultdef) and
            (torddef(left.resultdef).ordtype=u32bit) then
           begin
             inserttypeconv(left,s64inttype);
@@ -80,7 +80,7 @@ implementation
           end
         else
           result:=inherited first_int_to_real;
-       if use_sse(resultdef) then
+       if use_vectorfpu(resultdef) then
          expectloc:=LOC_MMREGISTER;
       end;
 
@@ -91,7 +91,7 @@ implementation
          l1,l2 : tasmlabel;
          op : tasmop;
       begin
-        if use_sse(resultdef) then
+        if use_vectorfpu(resultdef) then
           begin
             if is_double(resultdef) then
               op:=A_CVTSI2SD
@@ -135,7 +135,7 @@ implementation
 
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2);
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
-                   reference_reset_symbol(href,l1,0);
+                   reference_reset_symbol(href,l1,0,4);
 
                    { I got these constant from a test program (FK) }
                    if is_double(resultdef) then

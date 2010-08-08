@@ -39,7 +39,9 @@ Const
   syscall_nr_unlink                     =  syscall_nr_base+10;
   syscall_nr_execve                     =  syscall_nr_base+11;
   syscall_nr_chdir                      =  syscall_nr_base+12;
+{$ifndef FPC_ABI_EABI}
   syscall_nr_time                       =  syscall_nr_base+13;
+{$endif}
   syscall_nr_mknod                      =  syscall_nr_base+14;
   syscall_nr_chmod                      =  syscall_nr_base+15;
   syscall_nr_lchown                     =  syscall_nr_base+16;
@@ -48,15 +50,23 @@ Const
   syscall_nr_lseek                      =  syscall_nr_base+19;
   syscall_nr_getpid                     =  syscall_nr_base+20;
   syscall_nr_mount                      =  syscall_nr_base+21;
+{$ifndef FPC_ABI_EABI}
   syscall_nr_umount                     =  syscall_nr_base+22;
+{$endif}
   syscall_nr_setuid                     =  syscall_nr_base+23;
   syscall_nr_getuid                     =  syscall_nr_base+24;
+{$ifndef FPC_ABI_EABI}
   syscall_nr_stime                      =  syscall_nr_base+25;
+{$endif}
   syscall_nr_ptrace                     =  syscall_nr_base+26;
+{$ifndef FPC_ABI_EABI}
   syscall_nr_alarm                      =  syscall_nr_base+27;
+{$endif}
 
   syscall_nr_pause                      =  syscall_nr_base+29;
+{$ifndef FPC_ABI_EABI}
   syscall_nr_utime                      =  syscall_nr_base+30;
+{$endif}
   syscall_nr_stty                       =  syscall_nr_base+31;
   syscall_nr_gtty                       =  syscall_nr_base+32;
   syscall_nr_access                     =  syscall_nr_base+33;
@@ -102,21 +112,27 @@ Const
   syscall_nr_sigpending                 =  syscall_nr_base+73;
   syscall_nr_sethostname                =  syscall_nr_base+74;
   syscall_nr_setrlimit                  =  syscall_nr_base+75;
+{$ifndef FPC_ABI_EABI}
   syscall_nr_getrlimit                  =  syscall_nr_base+76;
+{$endif}
   syscall_nr_getrusage                  =  syscall_nr_base+77;
   syscall_nr_gettimeofday               =  syscall_nr_base+78;
   syscall_nr_settimeofday               =  syscall_nr_base+79;
   syscall_nr_getgroups                  =  syscall_nr_base+80;
   syscall_nr_setgroups                  =  syscall_nr_base+81;
+{$ifndef FPC_ABI_EABI}
   syscall_nr_select                     =  syscall_nr_base+82;
+{$endif}
   syscall_nr_symlink                    =  syscall_nr_base+83;
 
   syscall_nr_readlink                   =  syscall_nr_base+85;
   syscall_nr_uselib                     =  syscall_nr_base+86;
   syscall_nr_swapon                     =  syscall_nr_base+87;
   syscall_nr_reboot                     =  syscall_nr_base+88;
+{$ifndef FPC_ABI_EABI}
   syscall_nr_readdir                    =  syscall_nr_base+89;
   syscall_nr_mmap                       =  syscall_nr_base+90;
+{$endif}
   syscall_nr_munmap                     =  syscall_nr_base+91;
   syscall_nr_truncate                   =  syscall_nr_base+92;
   syscall_nr_ftruncate                  =  syscall_nr_base+93;
@@ -128,7 +144,9 @@ Const
   syscall_nr_statfs                     =  syscall_nr_base+99;
   syscall_nr_fstatfs                    = syscall_nr_base+100;
   syscall_nr_ioperm                     = syscall_nr_base+101;
+{$ifndef FPC_ABI_EABI}
   syscall_nr_socketcall                 = syscall_nr_base+102;
+{$endif}
   syscall_nr_syslog                     = syscall_nr_base+103;
   syscall_nr_setitimer                  = syscall_nr_base+104;
   syscall_nr_getitimer                  = syscall_nr_base+105;
@@ -137,11 +155,15 @@ Const
   syscall_nr_fstat                      = syscall_nr_base+108;
   syscall_nr_vhangup                    = syscall_nr_base+111;
   syscall_nr_idle                       = syscall_nr_base+112;
+{$ifndef FPC_ABI_EABI}
   syscall_nr_syscall                    = syscall_nr_base+113;
+{$endif}
   syscall_nr_wait4                      = syscall_nr_base+114;
   syscall_nr_swapoff                    = syscall_nr_base+115;
   syscall_nr_sysinfo                    = syscall_nr_base+116;
+{$ifndef FPC_ABI_EABI}
   syscall_nr_ipc                        = syscall_nr_base+117;
+{$endif}
   syscall_nr_fsync                      = syscall_nr_base+118;
   syscall_nr_sigreturn                  = syscall_nr_base+119;
   syscall_nr_clone                      = syscall_nr_base+120;
@@ -393,7 +415,4 @@ Const
   __ARM_NR_usr26			= __ARM_NR_BASE+3;
   __ARM_NR_usr32			= __ARM_NR_BASE+4;
   __ARM_NR_set_tls		        = __ARM_NR_BASE+5;
-
-
-
 

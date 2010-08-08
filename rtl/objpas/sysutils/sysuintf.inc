@@ -20,20 +20,38 @@
     System Utilities For Free Pascal
 }
 
+function Supports(const Instance: IInterface; const AClass: TClass; out Obj): Boolean;
+begin
+  Result := (Instance<>nil) and (Instance.QueryInterface(IObjectInstance,Obj)=S_OK) and (TObject(Obj).InheritsFrom(AClass));
+end;
+
 function Supports(const Instance: IInterface; const IID: TGUID; out Intf): Boolean;
 begin
-  Result:=(Instance<>nil) and
-          (Instance.QueryInterface(IID,Intf)=0);
+  Result:=(Instance<>nil) and (Instance.QueryInterface(IID,Intf)=S_OK);
 end;
 
 function Supports(const Instance: TObject; const IID: TGUID; out Intf): Boolean;
 var
-  LUnknown: IUnknown;
+  Temp: Pointer; // weak
 begin
-  Result:=(Instance<>nil) and
-          ((Instance.GetInterface(IUnknown,LUnknown) and
-            Supports(LUnknown,IID,Intf)) or
-           Instance.GetInterface(IID,Intf));
+  Result:=(Instance<>nil) and ((Instance.GetInterfaceWeak(IInterface,Temp) and (IInterface(Temp).QueryInterface(IID,Intf)=S_OK))
+    or Instance.GetInterface(IID,Intf));
+  { Some applications expect that the QueryInterface method is invoked as first priority
+    to query for an interface and GetInterface as 2nd priority }
+end;
+
+function Supports(const Instance: TObject; const IID: Shortstring; out Intf): Boolean;
+begin
+  Result:=(Instance<>nil) and Instance.GetInterface(IID,Intf);
+end;
+
+
+
+function Supports(const Instance: IInterface; const AClass: TClass): Boolean;
+var
+  Temp: TObject;
+begin
+  Result:=Supports(Instance,AClass,Temp);
 end;
 
 function Supports(const Instance: IInterface; const IID: TGUID): Boolean;
@@ -50,80 +68,77 @@ begin
   Result:=Supports(Instance,IID,Temp);
 end;
 
+function Supports(const Instance: TObject; const IID: Shortstring): Boolean;
+begin
+  Result:=(Instance<>nil) and (Instance.GetInterfaceEntryByStr(IID)<>nil);
+end;
+
+
+
 function Supports(const AClass: TClass; const IID: TGUID): Boolean;
 begin
-  Result:=AClass.GetInterfaceEntry(IID)<>nil;
+  Result:=(AClass<>nil) and (AClass.GetInterfaceEntry(IID)<>nil);
 end;
+
+function Supports(const AClass: TClass; const IID: Shortstring): Boolean;
+begin
+  Result:=(AClass<>nil) and (AClass.GetInterfaceEntryByStr(IID)<>nil);
+end;
+
 
 
 function StringToGUID(const S: string): TGUID;
-
-  function HexChar(c: Char): Byte;
-  begin
-    case c of
-      '0'..'9':
-        Result:=Byte(c) - Byte('0');
-      'a'..'f':
-        Result:=(Byte(c) - Byte('a')) + 10;
-      'A'..'F':
-        Result:=(Byte(c) - Byte('A')) + 10;
-      else
-        raise EConvertError.CreateFmt(SInvalidGUID, [s]);
-        Result:=0;
-    end;
-  end;
-
-  function HexByte(p: PChar): Byte;
-  begin
-    Result:=(HexChar(p[0]) shl 4) + HexChar(p[1]);
-  end;
-
-var
-  i: integer;
-  src: PChar;
-  dest: PByte;
 begin
-  if ((Length(S)<>38) or
-      (s[1]<>'{')) then
-    raise EConvertError.CreateFmt(SInvalidGUID, [s]);
-  dest:=PByte(@Result);
-  src:=PChar(s);
-  inc(src);
-  for i:=0 to 3 do
-    dest[i]:=HexByte(src+(3-i)*2);
-  inc(src, 8);
-  inc(dest, 4);
-  if src[0]<>'-' then
-    raise EConvertError.CreateFmt(SInvalidGUID, [s]);
-  inc(src);
-  for i:=0 to 1 do
-   begin
-     dest^:=HexByte(src+2);
-     inc(dest);
-     dest^:=HexByte(src);
-     inc(dest);
-     inc(src, 4);
-     if src[0]<>'-' then
-       raise EConvertError.CreateFmt(SInvalidGUID, [s]);
-     inc(src);
-   end;
-  dest^:=HexByte(src);
-  inc(dest);
-  inc(src, 2);
-  dest^:=HexByte(src);
-  inc(dest);
-  inc(src, 2);
-  if src[0]<>'-' then
-    raise EConvertError.CreateFmt(SInvalidGUID, [s]);
-  inc(src);
-  for i:=0 to 5 do
-   begin
-     dest^:=HexByte(src);
-     inc(dest);
-     inc(src, 2);
-   end;
+  if not TryStringToGUID(S, Result) then
+    raise EConvertError.CreateFmt(SInvalidGUID, [S]);
 end;
 
+function TryStringToGUID(const S: string; out Guid: TGUID): Boolean;
+var
+  e: Boolean;
+  p: PChar;
+
+  function rb: Byte;
+  begin
+    case p^ of
+      '0'..'9': Result := Byte(p^) - Byte('0');
+      'a'..'f': Result := Byte(p^) - Byte('a') + 10;
+      'A'..'F': Result := Byte(p^) - Byte('A') + 10;
+      else e := False;
+    end;
+    Inc(p);
+  end;
+
+  procedure nextChar(c: Char); inline;
+  begin
+    if p^ <> c then
+      e := False;
+    Inc(p);
+  end;
+
+begin
+  if Length(S)<>38 then Exit(False);
+  e := True;
+  p := PChar(S);
+  nextChar('{');
+  Guid.D1 := rb shl 28 or rb shl 24 or rb shl 20 or rb shl 16 or rb shl 12 or rb shl 8 or rb shl 4 or rb;
+  nextChar('-');
+  Guid.D2 := rb shl 12 or rb shl 8 or rb shl 4 or rb;
+  nextChar('-');
+  Guid.D3 := rb shl 12 or rb shl 8 or rb shl 4 or rb;
+  nextChar('-');
+  Guid.D4[0] := rb shl 4 or rb;
+  Guid.D4[1] := rb shl 4 or rb;
+  nextChar('-');
+  Guid.D4[2] := rb shl 4 or rb;
+  Guid.D4[3] := rb shl 4 or rb;
+  Guid.D4[4] := rb shl 4 or rb;
+  Guid.D4[5] := rb shl 4 or rb;
+  Guid.D4[6] := rb shl 4 or rb;
+  Guid.D4[7] := rb shl 4 or rb;
+  nextChar('}');
+  Result := e;
+end;
 
 function IsEqualGUID(const guid1, guid2: TGUID): Boolean;
 var
@@ -137,6 +152,13 @@ begin
           (a1^[3]=a2^[3]);
 end;
 
+function GuidCase(const GUID: TGUID; const List: array of TGuid): Integer;
+begin
+  for Result := High(List) downto 0 do
+    if IsEqualGUID(GUID, List[Result]) then
+      Exit;
+  Result := -1;
+end;
 
 function GUIDToString(const GUID: TGUID): string;
 begin

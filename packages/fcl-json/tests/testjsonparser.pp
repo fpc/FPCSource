@@ -41,6 +41,7 @@ type
     procedure TestFalse;
     procedure TestFloat;
     procedure TestInteger;
+    procedure TestInt64;
     procedure TestString;
     procedure TestArray;
     procedure TestObject;
@@ -88,6 +89,26 @@ begin
   end;
 end;
 
+procedure TTestParser.TestInt64;
+
+Var
+  P : TJSONParser;
+  J : TJSONData;
+
+begin
+  P:=TJSONParser.Create('123456789012345');
+  Try
+    J:=P.Parse;
+    If (J=Nil) then
+      Fail('Parse of 123456789012345 fails');
+    TestJSONType(J,jtNumber);
+    TestAsInt64(J,123456789012345);
+  Finally
+    FreeAndNil(J);
+    FreeAndNil(P);
+  end;
+end;
+
 procedure TTestParser.TestNull;
 
 Var
@@ -95,11 +116,11 @@ Var
   J : TJSONData;
 
 begin
-  P:=TJSONParser.Create('Null');
+  P:=TJSONParser.Create('null');
   Try
     J:=P.Parse;
     If (J=Nil) then
-      Fail('Parse of Null fails');
+      Fail('Parse of null fails');
     TestJSONType(J,jtNull);
   Finally
     FreeAndNil(J);
@@ -179,24 +200,27 @@ Var
 
 begin
   DoTestArray('[]',0);
-  DoTestArray('[Null]',1);
-  DoTestArray('[True]',1);
-  DoTestArray('[False]',1);
+  DoTestArray('[null]',1);
+  DoTestArray('[true]',1);
+  DoTestArray('[false]',1);
   DoTestArray('[1]',1);
   DoTestArray('[1, 2]',2);
   DoTestArray('[1, 2, 3]',3);
-  Str(1.2,S1);
-  Str(2.3,S2);
-  Str(3.4,S3);
+  DoTestArray('[1234567890123456]',1);
+  DoTestArray('[1234567890123456, 2234567890123456]',2);
+  DoTestArray('[1234567890123456, 2234567890123456, 3234567890123456]',3);
+  Str(Double(1.2),S1);
+  Str(Double(2.3),S2);
+  Str(Double(3.4),S3);
   DoTestArray('['+S1+']',1);
   DoTestArray('['+S1+', '+S2+']',2);
   DoTestArray('['+S1+', '+S2+', '+S3+']',3);
   DoTestArray('["A string"]',1);
   DoTestArray('["A string", "Another string"]',2);
   DoTestArray('["A string", "Another string", "Yet another string"]',3);
-  DoTestArray('[Null, False]',2);
-  DoTestArray('[True, False]',2);
-  DoTestArray('[Null, 1]',2);
+  DoTestArray('[null, false]',2);
+  DoTestArray('[true, false]',2);
+  DoTestArray('[null, 1]',2);
   DoTestArray('[1, "A string"]',2);
   DoTestArray('[1, []]',2);
   DoTestArray('[1, [1, 2]]',2);

@@ -520,14 +520,15 @@ begin
       Result:=1;
       Exit;
       end
-    else if (CmdRes<>210) then
+    else if not (CmdRes in [210,211]) then
       Raise ECDDBParser.CreateFmt(SerrCDDBResponse,[L]);
     end;
-  For I:=Ord(WithHeader) to Response.Count-1 do
-    begin
-    SplitQueryResponse(Response[i],C,D,T,P);
-    Matches.AddMatch(D,C,T,P);
-    end;
+  For I:=Ord(WithHeader or (CMDRes=211)) to Response.Count-1 do
+    If (Response[i]<>'.') then
+      begin
+      SplitQueryResponse(Response[i],C,D,T,P);
+      Matches.AddMatch(D,C,T,P);
+      end;
   Result:=Matches.Count;
 end;
 

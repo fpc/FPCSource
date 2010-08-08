@@ -565,6 +565,17 @@ resourcestring  menu_local_gotosource = '~G~oto source';
                 label_debugger_redirection = 'Debuggee ~R~edirection';
                 label_debugger_useanothertty = '~U~se Another tty for Debuggee';
 
+                { Remote options dialog }
+                dialog_remote = 'Remote setup';
+                label_remote_machine = 'Remote machine ~n~ame';
+                label_remote_port = 'Remote ~p~ort number';
+                label_remote_dir = 'Remote ~d~irectory';
+                label_remote_config = 'Remote config ~o~ptions';
+                label_remote_ident = 'Remote ~i~dent';
+                label_remote_command = 'Remote ~c~ommand';
+                label_remote_scp = 'Scp executable';
+                label_remote_ssh = 'Ssh executable';
+
                 {Directories dialog.}
                 dialog_directories = 'Directories';
 
@@ -1008,6 +1019,7 @@ begin
       NewItem(menu_help_about,'',kbNoKey, cmAbout, hcAbout,
       nil))))))))),
     nil)))))))))))));
+   SetCmdState(ToClipCmds+FromClipCmds+NulClipCmds+UndoCmd+RedoCmd,false);
 end;
 
 procedure TIDEApp.InitMenuBar;
@@ -1456,6 +1468,7 @@ begin
 
   if Assigned(UserScreen) then
     UserScreen^.SwitchBackToIDEScreen;
+  Video.SetCursorType(crHidden);
 {$ifdef Windows}
   { This message was sent when the VideoBuffer was smaller
     than was the IdeApp thought => writes to random memory and random crashes... PM }
@@ -1464,7 +1477,7 @@ begin
 {$ifdef Unix}
   SetKnownKeys;
 {$endif Unix}
-{$ifndef Windows}
+ {$ifndef Windows}
 {$ifndef go32v2}
   UpdateScreen(true);
 {$endif go32v2}

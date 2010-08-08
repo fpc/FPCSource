@@ -42,7 +42,7 @@ type
 
 type
   TypeInfo = record
-    face: Cardinal;
+    face: culong;
 
     path,
     name,
@@ -53,7 +53,7 @@ type
 
     stretch: StretchType;
 
-    weight: Cardinal;
+    weight: culong;
 
     encoding,
     foundry,
@@ -68,7 +68,7 @@ type
     *previous,
     *next;  /* deprecated, use GetTypeInfoList() */}
 
-    signature: Cardinal;
+    signature: culong;
   end;
 
 {function GetTypeList(const char *,unsigned long *,ExceptionInfo *): PPChar; external MagickExport;

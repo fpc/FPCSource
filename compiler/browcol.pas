@@ -280,71 +280,81 @@ const
      ObjType: 3001;
      VmtLink: Ofs(TypeOf(TModuleNameCollection)^);
      Load:    @TModuleNameCollection.Load;
-     Store:   @TModuleNameCollection.Store
+     Store:   @TModuleNameCollection.Store;
+     Next: nil
   );
   RTypeNameCollection: TStreamRec = (
      ObjType: 3002;
      VmtLink: Ofs(TypeOf(TTypeNameCollection)^);
      Load:    @TTypeNameCollection.Load;
-     Store:   @TTypeNameCollection.Store
+     Store:   @TTypeNameCollection.Store;
+     Next: nil
   );
   RReference: TStreamRec = (
      ObjType: 3003;
      VmtLink: Ofs(TypeOf(TReference)^);
      Load:    @TReference.Load;
-     Store:   @TReference.Store
+     Store:   @TReference.Store;
+     Next: nil
   );
   RSymbol: TStreamRec = (
      ObjType: 3004;
      VmtLink: Ofs(TypeOf(TSymbol)^);
      Load:    @TSymbol.Load;
-     Store:   @TSymbol.Store
+     Store:   @TSymbol.Store;
+     Next: nil
   );
   RObjectSymbol: TStreamRec = (
      ObjType: 3005;
      VmtLink: Ofs(TypeOf(TObjectSymbol)^);
      Load:    @TObjectSymbol.Load;
-     Store:   @TObjectSymbol.Store
+     Store:   @TObjectSymbol.Store;
+     Next: nil
   );
   RSymbolCollection: TStreamRec = (
      ObjType: 3006;
      VmtLink: Ofs(TypeOf(TSymbolCollection)^);
      Load:    @TSymbolCollection.Load;
-     Store:   @TSymbolCollection.Store
+     Store:   @TSymbolCollection.Store;
+     Next: nil
   );
   RSortedSymbolCollection: TStreamRec = (
      ObjType: 3007;
      VmtLink: Ofs(TypeOf(TSortedSymbolCollection)^);
      Load:    @TSortedSymbolCollection.Load;
-     Store:   @TSortedSymbolCollection.Store
+     Store:   @TSortedSymbolCollection.Store;
+     Next: nil
   );
   RIDSortedSymbolCollection: TStreamRec = (
      ObjType: 3008;
      VmtLink: Ofs(TypeOf(TIDSortedSymbolCollection)^);
      Load:    @TIDSortedSymbolCollection.Load;
-     Store:   @TIDSortedSymbolCollection.Store
+     Store:   @TIDSortedSymbolCollection.Store;
+     Next: nil
   );
   RObjectSymbolCollection: TStreamRec = (
      ObjType: 3009;
      VmtLink: Ofs(TypeOf(TObjectSymbolCollection)^);
      Load:    @TObjectSymbolCollection.Load;
-     Store:   @TObjectSymbolCollection.Store
+     Store:   @TObjectSymbolCollection.Store;
+     Next: nil
   );
   RReferenceCollection: TStreamRec = (
      ObjType: 3010;
      VmtLink: Ofs(TypeOf(TReferenceCollection)^);
      Load:    @TReferenceCollection.Load;
-     Store:   @TReferenceCollection.Store
+     Store:   @TReferenceCollection.Store;
+     Next: nil
   );
   RModuleSymbol: TStreamRec = (
      ObjType: 3011;
      VmtLink: Ofs(TypeOf(TModuleSymbol)^);
      Load:    @TModuleSymbol.Load;
-     Store:   @TModuleSymbol.Store
+     Store:   @TModuleSymbol.Store;
+     Next: nil
   );
 
   SymbolCount : longint = 0;
-  Current_moduleIndex : longint = 0;
 
 {****************************************************************************
                                    Helpers
@@ -609,8 +619,8 @@ begin
   if S1<S2 then R:=-1 else
   if S1>S2 then R:=1 else
   { make sure that we distinguish between different objects with the same name }
-  if Ptrint(K1^.Symbol)<Ptrint(K2^.Symbol) then R:=-1 else
-  if Ptrint(K1^.Symbol)>Ptrint(K2^.Symbol) then R:= 1 else
+  if PtrUInt(K1^.Symbol)<PtrUInt(K2^.Symbol) then R:=-1 else
+  if PtrUInt(K1^.Symbol)>PtrUInt(K2^.Symbol) then R:= 1 else
   R:=0;
   Compare:=R;
 end;
@@ -1231,7 +1241,7 @@ end;
 
 
   procedure ProcessSymTable(OwnerSym: PSymbol; var Owner: PSymbolCollection; Table: TSymTable);
-  var I,J: longint;
+  var I: longint;
       Sym: TSym;
       pd : TProcDef;
       Symbol: PSymbol;
@@ -1249,19 +1259,17 @@ end;
   end;
   function GetDefinitionStr(def: tdef): string; forward;
   function GetEnumDefStr(def: tenumdef): string;
-  var Name: string;
-      esym: tenumsym;
-      Count: integer;
+  var
+    Name: string;
+    esym: tenumsym;
+    i: integer;
   begin
     Name:='(';
-    esym:=tenumsym(def.Firstenum); Count:=0;
-    while (esym<>nil) do
+    for i := 0 to def.symtable.SymList.Count - 1 do
       begin
-        if Count>0 then
+        if i>0 then
           Name:=Name+', ';
-        Name:=Name+esym.name;
-        esym:=esym.nextenum;
-        Inc(Count);
+        Name:=Name+tenumsym(def.symtable.SymList[i]).name;
       end;
     Name:=Name+')';
     GetEnumDefStr:=Name;
@@ -1757,7 +1765,6 @@ begin
   if (cs_browser in current_settings.moduleswitches) then
    while assigned(hp) do
     begin
-       current_moduleindex:=hp.unit_index;
        if hp.is_unit then
          t:=tsymtable(hp.globalsymtable)
        else
@@ -2108,8 +2115,8 @@ var K1: PPointerXRef absolute Key1;
     K2: PPointerXRef absolute Key2;
     R: integer;
 begin
-  if Ptrint(K1^.PtrValue)<Ptrint(K2^.PtrValue) then R:=-1 else
-  if Ptrint(K1^.PtrValue)>Ptrint(K2^.PtrValue) then R:= 1 else
+  if PtrUInt(K1^.PtrValue)<PtrUInt(K2^.PtrValue) then R:=-1 else
+  if PtrUInt(K1^.PtrValue)>PtrUInt(K2^.PtrValue) then R:= 1 else
   R:=0;
   Compare:=R;
 end;

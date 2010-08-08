@@ -45,15 +45,6 @@ implementation
           function  MakeExecutable:boolean; override;
        end;
 
-{$IFDEF MORPHOS}
-{ * PathConv is implemented in the system unit! * }
-function PathConv(path: string): string; external name 'PATHCONV';
-{$ELSE}
-function PathConv(path: string): string;
-begin
-  PathConv:=path;
-end;
-{$ENDIF}
 
 {****************************************************************************
                                TLinkerMorphOS
@@ -113,7 +104,7 @@ begin
    begin
     s:=HPath.Str;
     if s<>'' then
-     LinkRes.Add('SEARCH_DIR('+PathConv(maybequoted(s))+')');
+     LinkRes.Add('SEARCH_DIR('+Unix2AmigaPath(maybequoted(s))+')');
     HPath:=TCmdStrListItem(HPath.Next);
    end;
 
@@ -129,7 +120,7 @@ begin
       { vlink doesn't use SEARCH_DIR for object files }
       if not(cs_link_on_target in current_settings.globalswitches) then
        s:=FindObjectFile(s,'',false);
-      LinkRes.AddFileName(PathConv(maybequoted(s)));
+      LinkRes.AddFileName(Unix2AmigaPath(maybequoted(s)));
      end;
    end;
 
@@ -145,7 +136,7 @@ begin
     while not StaticLibFiles.Empty do
      begin
       S:=StaticLibFiles.GetFirst;
-      LinkRes.AddFileName(PathConv(maybequoted(s)));
+      LinkRes.AddFileName(Unix2AmigaPath(maybequoted(s)));
      end;
    end;
 
@@ -225,8 +216,8 @@ begin
   Replace(cmdstr,'$OPT',Info.ExtraOptions);
   if not(cs_link_on_target in current_settings.globalswitches) then
    begin
-    Replace(cmdstr,'$EXE',PathConv(maybequoted(ScriptFixFileName(current_module.exefilename^))));
-    Replace(cmdstr,'$RES',PathConv(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
+    Replace(cmdstr,'$EXE',Unix2AmigaPath(maybequoted(ScriptFixFileName(current_module.exefilename^))));
+    Replace(cmdstr,'$RES',Unix2AmigaPath(maybequoted(ScriptFixFileName(outputexedir+Info.ResName))));
     Replace(cmdstr,'$STRIP',StripStr);
    end
   else

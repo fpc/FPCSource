@@ -272,6 +272,7 @@ Const
                                                 // compliant though
 {$ENDIF}
 
+{$ifndef FPC_HAS_GETTIMEZONEFILE}
 
 function GetTimezoneFile:shortstring;
 var
@@ -305,6 +306,7 @@ begin
 {$ENDIF}
 end;
 
+{$endif ndef FPC_HAS_GETTIMEZONEFILE}
 
 procedure InitLocalTime;
 begin

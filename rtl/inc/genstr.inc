@@ -84,7 +84,6 @@
    Var
      count: SizeInt;
   Begin
-
    count := 0;
    { As in Borland Pascal , if looking for NULL return null }
    if C = #0 then
@@ -107,6 +106,35 @@
  end;
 {$endif FPC_UNIT_HAS_STRSCAN}
 
+
+{$ifndef FPC_UNIT_HAS_STRISCAN}
+ function StrIScan(P: PChar; C: Char): PChar;
+   Var
+     count: SizeInt;
+     UC: Char;
+  Begin
+   UC := upcase(C);
+   count := 0;
+   { As in Borland Pascal , if looking for NULL return null }
+   if UC = #0 then
+   begin
+     StrIScan := @(P[StrLen(P)]);
+     exit;
+   end;
+   { Find first matching character of Ch in Str }
+   while P[count] <> #0 do
+   begin
+     if UC = upcase(P[count]) then
+      begin
+          StrIScan := @(P[count]);
+          exit;
+      end;
+     Inc(count);
+   end;
+   { nothing found. }
+   StrIScan := nil;
+ end;
+{$endif FPC_UNIT_HAS_STRSCAN}
 
 
 {$ifndef FPC_UNIT_HAS_STRRSCAN}
@@ -133,6 +161,36 @@
    end;
    { nothing found. }
    StrRScan := nil;
+ end;
+{$endif FPC_UNIT_HAS_STRRSCAN}
+
+
+{$ifndef FPC_UNIT_HAS_STRRISCAN}
+ function StrRIScan(P: PChar; C: Char): PChar;
+ Var
+  count: SizeInt;
+  index: SizeInt;
+  UC: Char;
+ Begin
+   UC := upcase(C);
+   count := Strlen(P);
+   { As in Borland Pascal , if looking for NULL return null }
+   if UC = #0 then
+   begin
+     StrRIScan := @(P[count]);
+     exit;
+   end;
+   Dec(count);
+   for index := count downto 0 do
+   begin
+     if UC = upcase(P[index]) then
+      begin
+          StrRIScan := @(P[index]);
+          exit;
+      end;
+   end;
+   { nothing found. }
+   StrRIScan := nil;
  end;
 {$endif FPC_UNIT_HAS_STRRSCAN}
 

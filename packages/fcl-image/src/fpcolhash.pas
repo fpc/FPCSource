@@ -71,8 +71,8 @@ type
   private
     Root : PColHashMainNode;
     AllIntegers : boolean;
-    procedure FreeAllData;
     FCount : longword;
+    procedure FreeAllData;
     function AllocateMainNode : PColHashMainNode;
     function AllocateSubNode : PColHashSubNode;
     procedure DeallocateLinkedList(node : PColHashSubNode);

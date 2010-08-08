@@ -61,7 +61,7 @@
  * This is the prototype for the link detection routine.
  * It calls the default link detection callbacks upon link detection.
  *)
-  xlinkNodeDetectFunc = procedure(ctx: pointer; node: xmlNodePtr); XMLCALL;
+  xlinkNodeDetectFunc = procedure(ctx: pointer; node: xmlNodePtr); EXTDECL;
 
 (*
  * The link detection module interact with the upper layers using
@@ -78,7 +78,7 @@
  *
  * This is the prototype for a simple link detection callback.
  *)
-  xlinkSimpleLinkFunk = procedure(ctx: pointer; node: xmlNodePtr; href: xlinkHRef; role: xlinkRole; title: xlinkTitle); XMLCALL;
+  xlinkSimpleLinkFunk = procedure(ctx: pointer; node: xmlNodePtr; href: xlinkHRef; role: xlinkRole; title: xlinkTitle); EXTDECL;
 
 (**
  * xlinkExtendedLinkFunk:
@@ -99,7 +99,7 @@
  * This is the prototype for a extended link detection callback.
  *)
   xlinkExtendedLinkFunk = procedure(ctx: pointer; node: xmlNodePtr; nbLocators: cint; hrefs: xlinkHRefPtr; roles: xlinkRolePtr;
-    nbArcs: cint; from, _to: xlinkRolePtr; show: xlinkShowPtr; actuate: xlinkActuatePtr; nbTitles: cint; titles: xlinkTitlePtr; langs: xmlCharPtrPtr); XMLCALL;
+    nbArcs: cint; from, _to: xlinkRolePtr; show: xlinkShowPtr; actuate: xlinkActuatePtr; nbTitles: cint; titles: xlinkTitlePtr; langs: xmlCharPtrPtr); EXTDECL;
 
 (**
  * xlinkExtendedLinkSetFunk:
@@ -115,7 +115,7 @@
  * This is the prototype for a extended link set detection callback.
  *)
   xlinkExtendedLinkSetFunk = procedure(ctx: pointer; node: xmlNodePtr; nbLocators: cint; hrefs: xlinkHRefPtr; roles: xlinkRolePtr;
-    nbTitles: cint; titles: xlinkTitlePtr; langs: xmlCharPtrPtr); XMLCALL;
+    nbTitles: cint; titles: xlinkTitlePtr; langs: xmlCharPtrPtr); EXTDECL;
 
 (**
  * This is the structure containing a set of Links detection callbacks.
@@ -135,19 +135,19 @@
  * The default detection routine, can be overridden, they call the default
  * detection callbacks. 
  *)
-function xlinkGetDefaultDetect: xlinkNodeDetectFunc; XMLCALL; XMLPUBFUN;
-procedure xlinkSetDefaultDetect(func: xlinkNodeDetectFunc); XMLCALL; XMLPUBFUN;
+function xlinkGetDefaultDetect: xlinkNodeDetectFunc; EXTDECL; external xml2lib;
+procedure xlinkSetDefaultDetect(func: xlinkNodeDetectFunc); EXTDECL; external xml2lib;
 
 (*
  * Routines to set/get the default handlers.
  *)
-function xlinkGetDefaultHandler: xlinkHandlerPtr; XMLCALL; XMLPUBFUN;
-procedure xlinkSetDefaultHandler(handler: xlinkHandlerPtr); XMLCALL; XMLPUBFUN;
+function xlinkGetDefaultHandler: xlinkHandlerPtr; EXTDECL; external xml2lib;
+procedure xlinkSetDefaultHandler(handler: xlinkHandlerPtr); EXTDECL; external xml2lib;
 
 (*
  * Link detection module itself.
  *)
-function xlinkIsLink(doc: xmlDocPtr; node: xmlNodePtr): xlinkType; XMLCALL; XMLPUBFUN;
+function xlinkIsLink(doc: xmlDocPtr; node: xmlNodePtr): xlinkType; EXTDECL; external xml2lib;
 {$ENDIF}
 
 {$ENDIF} (* LIBXML_XPTR_ENABLED *)

@@ -17,6 +17,7 @@ unit sysutils;
 interface
 
 {$MODE objfpc}
+{$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
 
@@ -114,7 +115,7 @@ begin
 end;
 
 
-Function FileRead (Handle : THandle; Var Buffer; Count : longint) : Longint;
+Function FileRead (Handle : THandle; Out Buffer; Count : longint) : Longint;
 begin
   FileRead:=libc.fpread (Handle,@Buffer,Count);
 end;
@@ -593,7 +594,7 @@ begin
 end;
 
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
 var
   params:array of AnsiString;
   count,i: longint;
@@ -646,7 +647,7 @@ end;
 
 const maxargs=256;
 function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString): integer;
+                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
 var c : comstr;
     i : integer;
     args : array[0..maxargs+1] of pchar;

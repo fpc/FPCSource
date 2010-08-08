@@ -172,8 +172,8 @@ function Is_Prefetch (P: pointer): boolean;
     Is_Prefetch := false;
 
     MemSize := SizeOf (A);
-    DosQueryMem (P, MemSize, MemAttrs);
-    if (MemAttrs and (mfPag_Free or mfPag_Commit) <> 0)
+    if (DosQueryMem (P, MemSize, MemAttrs) = 0) and
+            (MemAttrs and (mfPag_Free or mfPag_Commit) <> 0)
                                                and (MemSize >= SizeOf (A)) then
      Move (P^, A [0], SizeOf (A))
     else
@@ -396,7 +396,10 @@ begin
      end;
    end;
 
-   if (Err <> 0) and (ExceptLevel < MaxExceptionLevel) then
+   if (Err <> 0) and (ExceptLevel < MaxExceptionLevel) 
+(* TH: The following line is necessary to avoid an endless loop *)
+                 and (Report^.Exception_Num < Xcpt_Process_Terminate)
+                                                                    then
     begin
      ExceptEIP [ExceptLevel] := Context^.Reg_EIP;
      ExceptError [ExceptLevel] := Err;
@@ -1086,8 +1089,6 @@ const
 {* ST: pointer;}
 {*}
 begin
-    IsLibrary := FALSE;
-
 {$IFDEF OS2EXCEPTIONS}
 (*    asm
       { allocate space for exception registration record }
@@ -1197,7 +1198,11 @@ begin
     InitVariantManager;
 
 {$ifdef HASWIDESTRING}
+ {$ifdef VER2_2}
     InitWideStringManager;
+ {$else VER2_2}
+    InitUnicodeStringManager;
+ {$endif VER2_2}
 {$endif HASWIDESTRING}
 
 {$IFDEF EXTDUMPGROW}

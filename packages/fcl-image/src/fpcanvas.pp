@@ -17,7 +17,7 @@ unit FPCanvas;
 
 interface
 
-uses sysutils, classes, FPImage;
+uses Math, sysutils, classes, FPImage;
 
 const
   PatternBitCount = sizeof(longword) * 8;
@@ -171,15 +171,12 @@ type
 
   TFPBaseInterpolation = class (TFPCustomInterpolation)
   private
-    xfactor, yfactor : double;
-    xsupport,ysupport : double;
-    tempimage : TFPCustomImage;
-    procedure Horizontal (width : integer);
-    procedure vertical (dx,dy,width,height: integer);
+    procedure CreatePixelWeights (OldSize, NewSize: integer;
+      out Entries: Pointer; out EntrySize: integer; out Support: integer);
   protected
-    procedure Execute (x,y,w,h:integer); override;
-    function Filter (x : double) : double; virtual; abstract;
-    function MaxSupport : double; virtual; abstract;
+    procedure Execute (x,y,w,h : integer); override;
+    function Filter (x : double): double; virtual;
+    function MaxSupport : double; virtual;
   end;
 
   { TMitchelInterpolation }
@@ -236,6 +233,8 @@ type
     function  GetWidth : integer; virtual; abstract;
     function  GetClipRect: TRect; virtual;
     procedure SetClipRect(const AValue: TRect); virtual;
+    function  GetClipping: boolean; virtual;
+    procedure SetClipping(const AValue: boolean); virtual;
     procedure SetPenPos(const AValue: TPoint); virtual;
     procedure DoLockCanvas; virtual;
     procedure DoUnlockCanvas; virtual;
@@ -300,13 +299,14 @@ type
     procedure StretchDraw (x,y,w,h:integer; source:TFPCustomImage);
     procedure Erase;virtual;
     // properties
+    property LockCount: Integer read FLocks;
     property Font : TFPCustomFont read GetFont write SetFont;
     property Pen : TFPCustomPen read GetPen write SetPen;
     property Brush : TFPCustomBrush read GetBrush write SetBrush;
     property Interpolation : TFPCustomInterpolation read FInterpolation write FInterpolation;
     property Colors [x,y:integer] : TFPColor read GetColor write SetColor;
     property ClipRect : TRect read GetClipRect write SetClipRect;
-    property Clipping : boolean read FClipping write FClipping;
+    property Clipping : boolean read GetClipping write SetClipping;
     property PenPos : TPoint read FPenPos write SetPenPos;
     property Height : integer read GetHeight write SetHeight;
     property Width : integer read GetWidth write SetWidth;

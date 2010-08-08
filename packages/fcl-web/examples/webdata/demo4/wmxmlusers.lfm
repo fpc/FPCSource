@@ -1,0 +1,18 @@
+object FPWebProviderDataModule2: TFPWebProviderDataModule2
+  OldCreateOrder = False
+  InputAdaptor = ExtJSXMLWebdataInputAdaptor1
+  ContentProducer = ExtJSXMLDataFormatter1
+  Height = 300
+  HorizontalOffset = 545
+  VerticalOffset = 399
+  Width = 400
+  object ExtJSXMLWebdataInputAdaptor1: TExtJSXMLWebdataInputAdaptor
+    left = 244
+    top = 124
+  end
+  object ExtJSXMLDataFormatter1: TExtJSXMLDataFormatter
+    AllowPageSize = False
+    left = 244
+    top = 164
+  end
+end

@@ -18,6 +18,7 @@ unit sysutils;
 interface
 
 {$MODE objfpc}
+{$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
 
@@ -170,7 +171,7 @@ begin
 end;
 
 
-Function FileRead (Handle : THandle; Var Buffer; Count : longint) : Longint;
+Function FileRead (Handle : THandle; Out Buffer; Count : longint) : Longint;
 Var
   res : dword;
 begin
@@ -475,7 +476,7 @@ end;
                               Misc Functions
 ****************************************************************************}
 
-procedure Beep;
+procedure SysBeep;
 begin
   MessageBeep(0);
 end;
@@ -604,19 +605,25 @@ var
   MsgBuffer: PWideChar;
   len: longint;
 begin
+  MsgBuffer:=nil;
   len:=FormatMessage(
          FORMAT_MESSAGE_ALLOCATE_BUFFER or FORMAT_MESSAGE_FROM_SYSTEM or FORMAT_MESSAGE_IGNORE_INSERTS,
          nil,
          ErrorCode,
          0,
-         PWideChar(@MsgBuffer),    { This function allocs the memory (in this case you pass a PPwidechar)}
+         @MsgBuffer,    { This function allocs the memory (in this case you pass a PPwidechar)}
          0,
          nil);
-  while (len > 0) and (MsgBuffer[len - 1] <= #32) do
-    Dec(len);
-  MsgBuffer[len]:=#0;
-  PWideCharToString(PWideChar(MsgBuffer), Result);
-  LocalFree(HLOCAL(MsgBuffer));
+         
+  if MsgBuffer <> nil then begin
+    while (len > 0) and (MsgBuffer[len - 1] <= #32) do
+      Dec(len);
+    MsgBuffer[len]:=#0;
+    PWideCharToString(MsgBuffer, Result);
+    LocalFree(HLOCAL(MsgBuffer));
+  end
+  else
+    Result:='';
 end;
 
 {****************************************************************************
@@ -641,7 +648,7 @@ begin
 end;
 
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
 var
   PI: TProcessInformation;
   Proc : THandle;
@@ -674,7 +681,7 @@ begin
     end;
 end;
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array of AnsiString;Flags:TExecuteFlags=[]):integer;
 
 var
   CommandLine: AnsiString;
@@ -955,6 +962,7 @@ Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
   LoadVersionInfo;
+  OnBeep:=@SysBeep;
   SysConfigDir:='\Windows';
 
 Finalization

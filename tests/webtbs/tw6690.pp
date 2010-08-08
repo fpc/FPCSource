@@ -53,9 +53,9 @@ begin
   tkinterface: if (po^.name<>'iinterface2') and
                   (po^.name<>'iinterface4') and
                   (po^.name<>'iinterface6') then
-                  halt(1);
+                  halt(2);
   else
-    halt(1);
+    halt(3);
  end;
 end;
 

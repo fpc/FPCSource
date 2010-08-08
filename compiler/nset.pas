@@ -28,25 +28,39 @@ interface
     uses
        cclasses,constexp,
        node,globtype,globals,
-       aasmbase,aasmtai,aasmdata,symtype;
+       aasmbase,aasmtai,aasmdata,ncon,nflw,symtype;
 
     type
+       TLabelType = (ltOrdinal, ltConstString);
+
        pcaselabel = ^tcaselabel;
        tcaselabel = record
-          { range }
-          _low,
-          _high   : TConstExprInt;
           { unique blockid }
           blockid : longint;
           { left and right tree node }
           less,
           greater : pcaselabel;
+
+          { range type }
+          case label_type : TLabelType of
+            ltOrdinal:
+            (
+              _low,
+              _high       : TConstExprInt;
+            );
+            ltConstString:
+            (
+              _low_str,
+              _high_str   : tstringconstnode;
+            );
        end;
 
        pcaseblock = ^tcaseblock;
        tcaseblock = record
           { label (only used in pass_generate_code) }
           blocklabel : tasmlabel;
+
+          statementlabel : tlabelnode;
           { instructions }
           statement  : tnode;
        end;
@@ -88,7 +102,8 @@ interface
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
           function docompare(p: tnode): boolean; override;
-          procedure addlabel(blockid:longint;l,h : TConstExprInt);
+          procedure addlabel(blockid:longint;l,h : TConstExprInt); overload;
+          procedure addlabel(blockid:longint;l,h : tstringconstnode); overload;
           procedure addblock(blockid:longint;instr:tnode);
           procedure addelseblock(instr:tnode);
        end;
@@ -115,7 +130,8 @@ implementation
       verbose,
       symconst,symdef,symsym,symtable,defutil,defcmp,
       htypechk,pass_1,
-      nbas,ncnv,ncon,nld,nflw,cgobj,cgbase;
+      nadd,nbas,ncnv,nld,cgobj,cgbase,
+      widestr;
 
 
 {*****************************************************************************
@@ -176,18 +192,15 @@ implementation
         function createsetconst(psd : tsetdef) : pconstset;
         var
           pcs : pconstset;
-          pes : tenumsym;
           i : longint;
         begin
           new(pcs);
           case psd.elementdef.typ of
             enumdef :
               begin
-                pes:=tenumsym(tenumdef(psd.elementdef).firstenum);
-                while assigned(pes) do
+                for i := 0 to tenumdef(psd.elementdef).symtable.SymList.Count - 1 do
                   begin
-                    include(pcs^,pes.value);
-                    pes:=pes.nextenum;
+                    include(pcs^,tenumsym(tenumdef(psd.elementdef).symtable.SymList[i]).value);
                   end;
               end;
             orddef :
@@ -353,8 +366,19 @@ implementation
 *****************************************************************************}
 
     constructor trangenode.create(l,r : tnode);
+      var
+        value: string;
 
       begin
+         { if right is char and left is string then }
+         { right should be treated as one-symbol string }
+         if is_conststringnode(l) and is_constcharnode(r) then
+           begin
+             value := char(tordconstnode(r).value.uvalue) + ''#0;
+             r.free;
+             r := cstringconstnode.createstr(value);
+             do_typecheckpass(r);
+           end;
          inherited create(rangen,l,r);
       end;
 
@@ -446,6 +470,11 @@ implementation
            deletecaselabels(p^.greater);
          if assigned(p^.less) then
            deletecaselabels(p^.less);
+         if (p^.label_type = ltConstString) then
+           begin
+             p^._low_str.Free;
+             p^._high_str.Free;
+           end;
          dispose(p);
       end;
 
@@ -457,6 +486,11 @@ implementation
       begin
          new(n);
          n^:=p^;
+         if (p^.label_type = ltConstString) then
+           begin
+             n^._low_str := tstringconstnode(p^._low_str.getcopy);
+             n^._high_str := tstringconstnode(p^._high_str.getcopy);
+           end;
          if assigned(p^.greater) then
            n^.greater:=copycaselabel(p^.greater);
          if assigned(p^.less) then
@@ -469,14 +503,20 @@ implementation
       var
         b : byte;
       begin
-        ppufile.putexprint(p^._low);
-        ppufile.putexprint(p^._high);
+        ppufile.putbyte(byte(p^.label_type = ltConstString));
+        if (p^.label_type = ltConstString) then
+          begin
+            p^._low_str.ppuwrite(ppufile);
+            p^._high_str.ppuwrite(ppufile);
+          end
+        else
+          begin
+            ppufile.putexprint(p^._low);
+            ppufile.putexprint(p^._high);
+          end;
+
         ppufile.putlongint(p^.blockid);
-        b:=0;
-        if assigned(p^.greater) then
-         b:=b or 1;
-        if assigned(p^.less) then
-         b:=b or 2;
+        b:=ord(assigned(p^.greater)) or (ord(assigned(p^.less)) shl 1);
         ppufile.putbyte(b);
         if assigned(p^.greater) then
           ppuwritecaselabel(ppufile,p^.greater);
@@ -491,8 +531,20 @@ implementation
         p : pcaselabel;
       begin
         new(p);
-        p^._low:=ppufile.getexprint;
-        p^._high:=ppufile.getexprint;
+        if boolean(ppufile.getbyte) then
+          begin
+            p^.label_type := ltConstString;
+            p^._low_str := cstringconstnode.ppuload(stringconstn,ppufile);
+            p^._high_str := cstringconstnode.ppuload(stringconstn,ppufile);
+          end
+        else
+          begin
+            p^.label_type := ltOrdinal;
+
+            p^._low:=ppufile.getexprint;
+            p^._high:=ppufile.getexprint;
+          end;
+
         p^.blockid:=ppufile.getlongint;
         b:=ppufile.getbyte;
         if (b and 1)=1 then
@@ -599,15 +651,72 @@ implementation
     function tcasenode.pass_1 : tnode;
       var
          i  : integer;
-         node_thenblock,node_elseblock : tnode;
+         node_thenblock,node_elseblock,if_node : tnode;
+         tempcaseexpr : ttempcreatenode;
+         if_block, init_block,stmt_block : tblocknode;
+         stmt : tstatementnode;
+         endlabel : tlabelnode;
+
+      function makeifblock(const labtree : pcaselabel; prevconditblock : tnode): tnode;
+        var
+          condit : tnode;
+        begin
+          if assigned(labtree^.less) then
+            result := makeifblock(labtree^.less, prevconditblock)
+          else
+            result := prevconditblock;
+
+          condit := caddnode.create(equaln, left.getcopy, labtree^._low_str.getcopy);
+
+          if (labtree^._low_str.fullcompare(labtree^._high_str)<>0) then
+            begin
+              condit.nodetype := gten;
+              condit := caddnode.create(
+                andn, condit, caddnode.create(
+                  lten, left.getcopy, labtree^._high_str.getcopy));
+            end;
+
+          result :=
+            cifnode.create(
+              condit, cgotonode.create(pcaseblock(blocks[labtree^.blockid])^.statementlabel.labsym), result);
+
+          if assigned(labtree^.greater) then
+            result := makeifblock(labtree^.greater, result);
+
+          typecheckpass(result);
+        end;
+
       begin
          result:=nil;
+         init_block:=nil;
          expectloc:=LOC_VOID;
+
          { evalutes the case expression }
          firstpass(left);
          set_varstate(left,vs_read,[vsf_must_be_valid]);
          if codegenerror then
            exit;
+
+         { Load caseexpr into temp var if complex. }
+         { No need to do this for ordinal, because }
+         { in that case caseexpr is generated once }
+         if (labels^.label_type = ltConstString) and (not valid_for_addr(left, false)) and
+           (blocks.count > 0) then
+           begin
+             init_block := internalstatements(stmt);
+             tempcaseexpr :=
+               ctempcreatenode.create(
+                 left.resultdef, left.resultdef.size, tt_persistent, true);
+             typecheckpass(tnode(tempcaseexpr));
+
+             addstatement(stmt, tempcaseexpr);
+             addstatement(
+               stmt, cassignmentnode.create(
+                 ctemprefnode.create(tempcaseexpr), left));
+
+             left := ctemprefnode.create(tempcaseexpr);
+             typecheckpass(left);
+           end;
 
          { first case }
          for i:=0 to blocks.count-1 do
@@ -632,6 +741,40 @@ implementation
                result:=cnothingnode.create;
                exit;
              end;
+
+         if (labels^.label_type = ltConstString) then
+           begin
+             endlabel:=clabelnode.create(cnothingnode.create,tlabelsym.create('$casestrofend'));
+             stmt_block:=internalstatements(stmt);
+             for i:=0 to blocks.count-1 do
+               begin
+                 pcaseblock(blocks[i])^.statementlabel:=clabelnode.create(cnothingnode.create,tlabelsym.create('$casestrof'));
+                 addstatement(stmt,pcaseblock(blocks[i])^.statementlabel);
+                 addstatement(stmt,pcaseblock(blocks[i])^.statement);
+                 pcaseblock(blocks[i])^.statement:=nil;
+                 addstatement(stmt,cgotonode.create(endlabel.labsym));
+               end;
+
+             firstpass(tnode(stmt_block));
+
+             if_node := makeifblock(labels, elseblock);
+
+             if assigned(init_block) then
+               firstpass(tnode(init_block));
+
+             if_block := internalstatements(stmt);
+
+             if assigned(init_block) then
+               addstatement(stmt, init_block);
+
+             addstatement(stmt, if_node);
+             addstatement(stmt,cgotonode.create(endlabel.labsym));
+             addstatement(stmt, stmt_block);
+             addstatement(stmt, endlabel);
+             result := if_block;
+             elseblock := nil;
+             exit;
+           end;
 
          if is_boolean(left.resultdef) then
            begin
@@ -712,7 +855,7 @@ implementation
                end;
            end
          else
-           n.labels:=nil;
+           n.blocks:=nil;
          dogetcopy:=n;
       end;
 
@@ -819,15 +962,58 @@ implementation
                       result:=insertlabel(p^.greater);
                  end
              else
-               Message(parser_e_double_caselabel);
+               begin
+                 dispose(hcaselabel);
+                 Message(parser_e_double_caselabel);
+               end
           end;
 
       begin
         new(hcaselabel);
         fillchar(hcaselabel^,sizeof(tcaselabel),0);
         hcaselabel^.blockid:=blockid;
+        hcaselabel^.label_type:=ltOrdinal;
         hcaselabel^._low:=l;
         hcaselabel^._high:=h;
+        insertlabel(labels);
+      end;
+
+    procedure tcasenode.addlabel(blockid: longint; l, h: tstringconstnode);
+
+      var
+        hcaselabel : pcaselabel;
+
+      function insertlabel(var p : pcaselabel) : pcaselabel;
+        begin
+          if not assigned(p) then
+            begin
+              p := hcaselabel;
+              result := p;
+            end
+          else
+            if (p^._low_str.fullcompare(hcaselabel^._high_str) > 0) then
+              result := insertlabel(p^.less)
+          else
+            if (p^._high_str.fullcompare(hcaselabel^._low_str) < 0) then
+              result := insertlabel(p^.greater)
+          else
+            begin
+              hcaselabel^._low_str.free;
+              hcaselabel^._high_str.free;
+              dispose(hcaselabel);
+              Message(parser_e_double_caselabel);
+            end;
+        end;
+
+      begin
+        new(hcaselabel);
+        fillchar(hcaselabel^, sizeof(tcaselabel), 0);
+        hcaselabel^.blockid := blockid;
+        hcaselabel^.label_type := ltConstString;
+
+        hcaselabel^._low_str := tstringconstnode(l.getcopy);
+        hcaselabel^._high_str := tstringconstnode(h.getcopy);
+
         insertlabel(labels);
       end;
 

@@ -8,177 +8,225 @@ end;
 
 { TFPBaseInterpolation }
 
-type
+procedure TFPBaseInterpolation.CreatePixelWeights(OldSize, NewSize: integer;
+  out Entries: Pointer; out EntrySize: integer; out Support: integer);
+// create an array of #NewSize entries. Each entry starts with an integer
+// for the StartIndex, followed by #Support singles for the pixel weights.
+// The sum of weights for each entry is 1.
+var
+  Entry: Pointer;
 
-  TInterpolationContribution = record
-    weight : double;
-    place : integer;
+  procedure SetSupport(NewSupport: integer);
+  begin
+    Support:=NewSupport;
+    EntrySize:=SizeOf(integer)+SizeOf(Single)*Support;
+    Getmem(Entries,EntrySize*NewSize);
+    Entry:=Entries;
   end;
 
-function ColorRound (c : double) : word;
+var
+  i: Integer;
+  Factor: double;
+  StartPos: Double;
+  StartIndex: Integer;
+  j: Integer;
+  FirstValue: Double;
+  //Sum: double;
 begin
-  if c > $FFFF then
-    result := $FFFF
-  else if c < 0.0 then
-    result := 0
-  else
-    result := round(c);
-end;
-
-procedure TFPBaseInterpolation.Horizontal (width : integer);
-var x,y,r : integer;
-  start, stop, maxcontribs : integer;
-  center, re,gr,bl, density : double;
-  contributions : array[0..10] of TInterpolationContribution;
-  dif, w, gamma, a : double;
-  c : TFPColor;
-begin
-  for x := 0 to width-1 do
+  if NewSize=OldSize then
+  begin
+    SetSupport(1);
+    for i:=0 to NewSize-1 do
     begin
-    center := x * xfactor;
-    start := round (center-xsupport);
-    if start < 0 then
-      start := 0;
-    stop := round(center+xsupport);
-    if stop >= image.Width then
-      stop := image.Width-1;
-    density := 0.0;
-    maxcontribs := -1;
-    for r := start to stop do
+      // 1:1
+      PInteger(Entry)^:=i;
+      inc(Entry,SizeOf(Integer));
+      PSingle(Entry)^:=1.0;
+      inc(Entry,SizeOf(Single));
+    end;
+  end else if NewSize<OldSize then
+  begin
+    // shrink
+    SetSupport(Max(2,(OldSize+NewSize-1) div NewSize));
+    Factor:=double(OldSize)/double(NewSize);
+    for i:=0 to NewSize-1 do
+    begin
+      StartPos:=Factor*i;
+      StartIndex:=Floor(StartPos);
+      PInteger(Entry)^:=StartIndex;
+      inc(Entry,SizeOf(Integer));
+      // first pixel
+      FirstValue:=(1.0-(StartPos-double(StartIndex)));
+      PSingle(Entry)^:=FirstValue/Factor;
+      inc(Entry,SizeOf(Single));
+      // middle pixel
+      for j:=1 to Support-2 do
       begin
-      dif := r - center;
-      w := Filter (dif);
-      if w > 0.0 then
-        begin
-        inc (maxcontribs);
-        with contributions[maxcontribs] do
-          begin
-          weight := w;
-          density := density + w;
-          place := r;
-          end;
-        end;
+        PSingle(Entry)^:=1.0/Factor;
+        inc(Entry,SizeOf(Single));
       end;
-    if (density <> 0.0) and (density <> 1.0) then
+      // last pixel
+      PSingle(Entry)^:=(Factor-FirstValue-(Support-2))/Factor;
+      inc(Entry,SizeOf(Single));
+    end;
+  end else
+  begin
+    // enlarge
+    if OldSize=1 then
+    begin
+      SetSupport(1);
+      for i:=0 to NewSize-1 do
       begin
-      density := 1.0 / density;
-      for r := 0 to maxcontribs do
-        contributions[r].weight := contributions[r].weight * density;
+        // nothing to interpolate
+        PInteger(Entry)^:=0;
+        inc(Entry,SizeOf(Integer));
+        PSingle(Entry)^:=1.0;
+        inc(Entry,SizeOf(Single));
       end;
-    for y := 0 to image.height-1 do
+    end else
+    begin
+      SetSupport(2);
+      Factor:=double(OldSize-1)/double(NewSize);
+      for i:=0 to NewSize-1 do
       begin
-      gamma := 0.0;
-      re := 0.0;
-      gr := 0.0;
-      bl := 0.0;
-      for r := 0 to maxcontribs do
-        with contributions[r] do
-          with image.colors[place,y] do
-            begin
-            a := weight * alpha / $FFFF;
-            re := re + a * image.colors[place,y].red;
-            gr := gr + a * image.colors[place,y].green;
-            bl := bl + a * image.colors[place,y].blue;
-            gamma := gamma + a;
-            end;
-      with c do
-        begin
-        red := ColorRound (re);
-        green := ColorRound (gr);
-        blue := ColorRound (bl);
-        alpha := ColorRound (gamma * $FFFF) ;
-        end;
-      tempimage.colors[x,y] := c;
+        StartPos:=Factor*i+Factor/2;
+        StartIndex:=Floor(StartPos);
+        PInteger(Entry)^:=StartIndex;
+        inc(Entry,SizeOf(Integer));
+        // first pixel
+        FirstValue:=(1.0-(StartPos-double(StartIndex)));
+        // convert linear distribution
+        FirstValue:=Min(1.0,Max(0.0,Filter(FirstValue/MaxSupport)));
+        PSingle(Entry)^:=FirstValue;
+        inc(Entry,SizeOf(Single));
+        // last pixel
+        PSingle(Entry)^:=1.0-FirstValue;
+        inc(Entry,SizeOf(Single));
       end;
     end;
-end;
-
-procedure TFPBaseInterpolation.vertical(dx,dy,width,height: integer);
-var x,y,r : integer;
-  start, stop, maxcontribs : integer;
-  center, re,gr,bl, density : double;
-  contributions : array[0..10] of TInterpolationContribution;
-  dif, w, gamma, a : double;
-  c : TFPColor;
-begin
-  for y := 0 to height-1 do
-    begin
-    center := y * yfactor;
-    start := round (center-ysupport);
-    if start < 0 then
-      start := 0;
-    stop := round(center+ysupport);
-    if stop >= tempimage.height then
-      stop := tempimage.height-1;
-    density := 0.0;
-    maxcontribs := -1;
-    for r := start to stop do
-      begin
-      dif := r - center;
-      w := Filter (dif);
-      if w > 0.0 then
-        begin
-        inc (maxcontribs);
-        with contributions[maxcontribs] do
-          begin
-          weight := w;
-          density := density + w;
-          place := r;
-          end;
-        end;
-      end;
-    if (density <> 0.0) and (density <> 1.0) then
-      begin
-      density := 1.0 / density;
-      for r := 0 to maxcontribs do
-        contributions[r].weight := contributions[r].weight * density;
-      end;
-    for x := 0 to width-1 do
-      begin
-      gamma := 0.0;
-      re := 0.0;
-      gr := 0.0;
-      bl := 0.0;
-      for r := 0 to maxcontribs do
-        with contributions[r] do
-          with tempimage.colors[x,place] do
-            begin
-            a := weight * alpha / $FFFF;
-            re := re + a * red;
-            gr := gr + a * green;
-            bl := bl + a * blue;
-            gamma := gamma + a;
-            end;
-      with c do
-        begin
-        red := ColorRound (re);
-        green := ColorRound (gr);
-        blue := ColorRound (bl);
-        alpha := ColorRound (gamma * $FFFF);
-        end;
-      canvas.colors[x+dx,y+dy] := c;
-      end;
-    end;
+  end;
+  if Entry<>Entries+EntrySize*NewSize then
+    raise Exception.Create('TFPBase2Interpolation.Execute inconsistency');
 end;
 
 procedure TFPBaseInterpolation.Execute(x, y, w, h: integer);
-var maxy : integer;
-    rx,ry : integer;
+// paint Image on Canvas at x,y,w*h
+var
+  dy: Integer;
+  dx: Integer;
+  HorzResized: PFPColor;
+  xEntries: Pointer;
+  xEntrySize: integer;
+  xSupport: integer;// how many horizontal pixel are needed to create one pixel
+  yEntries: Pointer;
+  yEntrySize: integer;
+  ySupport: integer;// how many vertizontal pixel are needed to create one pixel
+  NewSupportLines: LongInt;
+  yEntry: Pointer;
+  SrcStartY: LongInt;
+  LastSrcStartY: LongInt;
+  LastyEntry: Pointer;
+  sy: Integer;
+  xEntry: Pointer;
+  sx: LongInt;
+  cx: Integer;
+  f: Single;
+  NewCol: TFPColor;
+  Col: TFPColor;
+  CurEntry: Pointer;
 begin
-  tempimage := TFPMemoryImage.Create (w,image.height);
-  tempimage.UsePalette := false;
-  xfactor := image.Width / w;
-  yfactor := image.Height / h;
-  if xfactor > 1.0 then
-    xsupport := MaxSupport
-  else
-    xsupport := xfactor * MaxSupport;
-  if yfactor > 1.0 then
-    ysupport := MaxSupport
-  else
-    ysupport := yfactor * MaxSupport;
-  Horizontal (w);
-  Vertical (x,y,w,h);
+  if (w<=0) or (h<=0) or (image.Width=0) or (image.Height=0) then
+    exit;
+
+  xEntries:=nil;
+  yEntries:=nil;
+  HorzResized:=nil;
+  try
+    CreatePixelWeights(image.Width,w,xEntries,xEntrySize,xSupport);
+    CreatePixelWeights(image.Height,h,yEntries,yEntrySize,ySupport);
+    // create temporary buffer for the horizontally resized pixel for the
+    // current y line
+    GetMem(HorzResized,w*ySupport*SizeOf(TFPColor));
+
+    LastyEntry:=nil;
+    SrcStartY:=0;
+    for dy:=0 to h-1 do
+    begin
+      if dy=0 then
+      begin
+        yEntry:=yEntries;
+        SrcStartY:=PInteger(yEntry)^;
+        NewSupportLines:=ySupport;
+      end else
+      begin
+        LastyEntry:=yEntry;
+        LastSrcStartY:=SrcStartY;
+        inc(yEntry,yEntrySize);
+        SrcStartY:=PInteger(yEntry)^;
+        NewSupportLines:=SrcStartY-LastSrcStartY;
+        // move lines up
+        if (NewSupportLines>0) and (ySupport>NewSupportLines) then
+          System.Move(HorzResized[NewSupportLines*w],
+                      HorzResized[0],
+                      (ySupport-NewSupportLines)*w*SizeOf(TFPColor));
+      end;
+
+      // compute new horizontally resized line(s)
+      for sy:=ySupport-NewSupportLines to ySupport-1 do
+      begin
+        xEntry:=xEntries;
+        for dx:=0 to w-1 do
+        begin
+          sx:=PInteger(xEntry)^;
+          inc(xEntry,SizeOf(integer));
+          NewCol:=colBlack;
+          for cx:=0 to xSupport-1 do
+          begin
+            f:=PSingle(xEntry)^;
+            inc(xEntry,SizeOf(Single));
+            Col:=image.Colors[sx+cx,SrcStartY+sy];
+            NewCol.red:=Min(NewCol.red+round(Col.red*f),$ffff);
+            NewCol.green:=Min(NewCol.green+round(Col.green*f),$ffff);
+            NewCol.blue:=Min(NewCol.blue+round(Col.blue*f),$ffff);
+            NewCol.alpha:=Min(NewCol.alpha+round(Col.alpha*f),$ffff);
+          end;
+          HorzResized[dx+sy*w]:=NewCol;
+        end;
+      end;
+
+      // compute new vertically resized line
+      for dx:=0 to w-1 do
+      begin
+        CurEntry:=yEntry+SizeOf(integer);
+        NewCol:=colBlack;
+        for sy:=0 to ySupport-1 do
+        begin
+          f:=PSingle(CurEntry)^;
+          inc(CurEntry,SizeOf(Single));
+          Col:=HorzResized[dx+sy*w];
+          NewCol.red:=Min(NewCol.red+round(Col.red*f),$ffff);
+          NewCol.green:=Min(NewCol.green+round(Col.green*f),$ffff);
+          NewCol.blue:=Min(NewCol.blue+round(Col.blue*f),$ffff);
+          NewCol.alpha:=Min(NewCol.alpha+round(Col.alpha*f),$ffff);
+        end;
+        Canvas.Colors[x+dx,y+dy]:=NewCol;
+      end;
+    end;
+  finally
+    if xEntries<>nil then FreeMem(xEntries);
+    if yEntries<>nil then FreeMem(yEntries);
+    if HorzResized<>nil then FreeMem(HorzResized);
+  end;
+end;
+
+function TFPBaseInterpolation.Filter(x: double): double;
+begin
+  Result:=x;
+end;
+
+function TFPBaseInterpolation.MaxSupport: double;
+begin
+  Result:=1.0;
 end;
 
 { TMitchelInterpolation }

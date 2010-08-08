@@ -12,12 +12,11 @@
 { DEFINES:                                                       }
 {****************************************************************}
 { REMARKS: This tests a subset of the secondcalln() , it         }
-{          verifies procedural variables for cdecl              }
+{          verifies procedural variables for cdecl               }
 {          calling conventions.                                  }
 {****************************************************************}
 program tcalpvr3;
 {$MODE OBJFPC}
-{$STATIC ON}
 {$R+}
 
 const

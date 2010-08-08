@@ -170,7 +170,7 @@ CEW0Skip:
 	mov	r0, #0				@ int argc
 	mov	r1, #0				@ char	*argv[]
 	ldr     r3,=main
-	bx      r3
+	bl      _blx_r3_stub
 	nop								@ This nop is here to allow unmapped memory to be used as
                     @ as a delay of almost 1 sec with a 1 cycle resolution.
                     @ Read this for technical info:
@@ -200,6 +200,11 @@ ClrLoop:
 ClearMX:
 @---------------------------------------------------------------------------------
 	bx	lr
+
+@---------------------------------------------------------------------------------
+_blx_r3_stub:
+@---------------------------------------------------------------------------------
+	bx	r3
 
 @---------------------------------------------------------------------------------
 @ Copy memory if length	!= 0

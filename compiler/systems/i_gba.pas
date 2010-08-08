@@ -34,8 +34,8 @@ unit i_gba;
             system       : system_arm_gba;
             name         : 'GameBoy Advance';
             shortname    : 'gba';
-            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,tf_use_function_relative_addresses
-	                          ,tf_smartlink_sections,tf_requires_proper_alignment];
+            flags        : [tf_needs_symbol_size,tf_files_case_sensitive,
+                            tf_requires_proper_alignment,tf_smartlink_sections];
             cpu          : cpu_arm;
             unit_env     : '';
             extradefines : '';
@@ -57,6 +57,8 @@ unit i_gba;
             staticClibext : '.a';
             staticClibprefix : 'lib';
             sharedClibprefix : 'lib';
+            importlibprefix : 'libimp';
+            importlibext : '.a';
             Cprefix      : '';
             newline      : #10;
             dirsep       : '/';
@@ -75,18 +77,18 @@ unit i_gba;
                 loopalign       : 4;
                 jumpalign       : 0;
                 constalignmin   : 0;
-                constalignmax   : 4;
+                constalignmax   : 8;
                 varalignmin     : 0;
-                varalignmax     : 4;
+                varalignmax     : 8;
                 localalignmin   : 4;
                 localalignmax   : 8;
                 recordalignmin  : 0;
-                recordalignmax  : 4;
-                maxCrecordalign : 4
+                recordalignmax  : 8;
+                maxCrecordalign : 8
               );
             first_parm_offset : 8;
             stacksize    : 16384;
-            abi : abi_default
+            abi : abi_eabi
           );
 
   implementation

@@ -15,7 +15,7 @@
                     subroutines for typed file handling
 ****************************************************************************}
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;const Name:string);
+Procedure Assign(out f:TypedFile;const Name:string);
 {
   Assign Name to file f so it can be used with the file routines
 }
@@ -27,7 +27,7 @@ Begin
 End;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;p:pchar);
+Procedure Assign(out f:TypedFile;p:pchar);
 {
   Assign Name to file f so it can be used with the file routines
 }
@@ -36,7 +36,7 @@ begin
 end;
 
 
-Procedure Assign({$ifdef PARAOUTFILE}out{$else}var{$endif} f:TypedFile;c:char);
+Procedure Assign(out f:TypedFile;c:char);
 {
   Assign Name to file f so it can be used with the file routines
 }
@@ -57,6 +57,38 @@ Procedure fpc_rewrite_typed(var f : TypedFile;Size : Longint);[Public,IOCheck, A
 Begin
   If InOutRes <> 0 then
    exit;
+  Rewrite(UnTypedFile(f),Size);
+End;
+
+{ this code is duplicated in the iso7185 unit }
+Procedure DoAssign(var t : TypedFile);
+Begin
+  Assign(t,'fpc_'+HexStr(random(1000000000),8)+'.tmp');
+End;
+
+
+Procedure fpc_reset_typed_iso(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_RESET_TYPED_ISO']; compilerproc;
+Begin
+  If InOutRes <> 0 then
+   exit;
+
+  { create file name? }
+  if FileRec(f).mode=0 then
+    DoAssign(f);
+
+  Reset(UnTypedFile(f),Size);
+End;
+
+
+Procedure fpc_rewrite_typed_iso(var f : TypedFile;Size : Longint);[Public,IOCheck, Alias:'FPC_REWRITE_TYPED_ISO']; compilerproc;
+Begin
+  If InOutRes <> 0 then
+   exit;
+
+  { create file name? }
+  if FileRec(f).mode=0 then
+    DoAssign(f);
+
   Rewrite(UnTypedFile(f),Size);
 End;
 

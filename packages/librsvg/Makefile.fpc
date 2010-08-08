@@ -1,0 +1,27 @@
+#
+#   Makefile.fpc for librsvg bindings
+#
+
+[package]
+name=rsvg
+version=2.5.1
+
+[target]
+units=rsvg
+
+[require]
+libc=n
+packages=gtk2
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../..
+
+[compiler]
+includedir=src
+sourcedir=src
+
+[rules]
+.NOTPARALLEL:

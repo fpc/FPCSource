@@ -1,3 +1,4 @@
+{ %NEEDEDAFTER }
 program go32v2_crash;
 
 const

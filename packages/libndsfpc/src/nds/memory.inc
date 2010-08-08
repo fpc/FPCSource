@@ -39,7 +39,7 @@
 *)
 
 {$ifdef NDS_INTERFACE}
-// WAIT_CR: Wait State Control Register
+
 const
 {$ifdef ARM9}
   REG_EXMEMCNT : pcuint16 = pointer($04000204);
@@ -70,38 +70,6 @@ const
   GBAROM        : pcuint16 = pointer($08000000);
 
   SRAM          : pcuint8  = pointer($0A000000);
-
-
-{$ifdef ARM9}
-  PALETTE             : pcuint16 = pointer($05000000);
-  PALETTE_SUB         : pcuint16 = pointer($05000400);
-
-  BG_PALETTE          : pcuint16 = pointer($05000000);
-  BG_PALETTE_SUB      : pcuint16 = pointer($05000400);
-
-  SPRITE_PALETTE      : pcuint16 = pointer($05000200);
-  SPRITE_PALETTE_SUB  : pcuint16 = pointer($05000600);
-
-  BG_GFX			         : pcuint16 = pointer($06000000);
-  BG_GFX_SUB		       : pcuint16 = pointer($06200000);
-  SPRITE_GFX			     : pcuint16 = pointer($06400000);
-  SPRITE_GFX_SUB		   : pcuint16 = pointer($06600000);
-
-  VRAM_0        : pcuint16 = pointer($06000000);
-  VRAM          : pcuint16 = pointer($06800000);
-  VRAM_A        : pcuint16 = pointer($06800000);
-  VRAM_B        : pcuint16 = pointer($06820000);
-  VRAM_C        : pcuint16 = pointer($06840000);
-  VRAM_D        : pcuint16 = pointer($06860000);
-  VRAM_E        : pcuint16 = pointer($06880000);
-  VRAM_F        : pcuint16 = pointer($06890000);
-  VRAM_G        : pcuint16 = pointer($06894000);
-  VRAM_H        : pcuint16 = pointer($06898000);
-  VRAM_I        : pcuint16 = pointer($068A0000);
-
-  OAM           : pcuint16 = pointer($07000000);
-  OAM_SUB       : pcuint16 = pointer($07000400);
-{$endif ARM9}
 
 {$ifdef ARM7}
   VRAM          : pcuint16 = pointer($06000000);
@@ -192,7 +160,7 @@ type
   pNDSHeader = ^tNDSHeader;
   
 const
-  NDSHeader : pNDSHeader = pointer($027FFE00);
+  __NDSHeader : pNDSHeader = pointer($02FFFE00);
 
 
 type
@@ -214,6 +182,10 @@ type
 const
   BUS_OWNER_ARM9 = true;
   BUS_OWNER_ARM7 = false;
+  
+procedure sysSetCartOwner(arm9: cbool); inline; 
+procedure sysSetCardOwner(arm9: cbool); inline;
+procedure sysSetBusOwners(arm9rom, arm9card: cbool); inline;
 {$endif NDS_INTERFACE}
 
 {$ifdef NDS_IMPLEMENTATION}
@@ -244,29 +216,19 @@ end;
 // Changes all bus ownerships
 procedure sysSetBusOwners(arm9rom, arm9card: cbool); inline;
 var
-  pattern: cuint16;
-  a9r, a9c: cint;
+  val1, val2: cuint;
 begin
-  pattern := REG_EXMEMCNT^ and not (ARM7_OWNS_CARD or ARM7_OWNS_ROM);
-  if arm9card then
-    a9c := 0 
-  else
-    a9c := ARM7_OWNS_CARD;
-  if arm9rom then
-    a9r := 0 
-  else
-    a9r := ARM7_OWNS_ROM;
-
-  pattern := pattern or (a9c) or (a9r);
-  REG_EXMEMCNT^ := pattern;
+  val1 := 0;
+  val2 := 0;
+  if not arm9card then
+    val1 := ARM7_OWNS_CARD; 
+  
+  if not arm9rom then
+    val2 := ARM7_OWNS_ROM ;
+    
+  REG_EXMEMCNT^ := (REG_EXMEMCNT^ and not(ARM7_OWNS_CARD or ARM7_OWNS_ROM)) or val1 or val2;
 end;
+
+
 {$endif NDS_IMPLEMENTATION}
 {$endif ARM9}
-
-{$ifdef NDS_INTERFACE}
-{$ifdef ARM9}
-procedure sysSetCartOwner(arm9: cbool); inline; 
-procedure sysSetCardOwner(arm9: cbool); inline;
-procedure sysSetBusOwners(arm9rom, arm9card: cbool); inline;
-{$endif ARM9}
-{$endif NDS_INTERFACE}

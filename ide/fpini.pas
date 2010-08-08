@@ -31,7 +31,7 @@ procedure SetPrinterDevice(const Device: string);
 
 implementation
 
-uses
+uses 
   Dos,Objects,Drivers,
   FVConsts,
   Version,
@@ -152,7 +152,13 @@ begin
 {$ifndef unix}
   IDEDir:=CompleteDir(DirOf(system.Paramstr(0)));
 {$else}
-  SystemIDEDir:='/usr/lib/fpc/'+version_string+'/ide/text';
+  SystemIDEDir:=FExpand(DirOf(system.paramstr(0))+'../lib/fpc/'+version_string+'/ide/text');
+  If Not ExistsDir(SystemIDEdir) Then
+    begin
+    SystemIDEDir:=FExpand(DirOf(system.paramstr(0))+'../lib64/fpc/'+version_string+'/ide/text');
+    If Not ExistsDir(SystemIDEdir) Then
+      SystemIDEDir:='/usr/lib/fpc/'+version_string+'/ide/text';
+    end;
   IDEdir:=CompleteDir(FExpand('~/.fp'));
   If Not ExistsDir(IDEdir) Then
     begin
@@ -362,6 +368,7 @@ var INIFile: PINIFile;
     OK: boolean;
     ts : TSwitchMode;
     W: word;
+    crcv:cardinal;
 begin
   OK:=ExistsFile(IniFileName);
   if OK then
@@ -432,10 +439,12 @@ begin
   CtrlMouseAction:=INIFile^.GetIntEntry(secMouse,ieCtrlClickAction,CtrlMouseAction);
   {Keyboard}
   S:=upcase(INIFile^.GetEntry(secKeyboard,ieEditKeys,''));
-  case UpdateCrc32(0,s[1],Length(s)) of
-    $86a4c898: {crc32 for 'MICROSOFT'}
+  crcv := UpdateCrc32(0,s[1],Length(s)) ;
+  case crcv of
+    $795B3767  : {crc32 for 'MICROSOFT'}
       EditKeys:=ekm_microsoft;
-    $b20b87b3: {crc32 for 'BORLAND'}
+    $4DF4784C
+       : {crc32 for 'BORLAND'}
       EditKeys:=ekm_borland;
     else
       EditKeys:=ekm_default;

@@ -86,14 +86,20 @@ var
   CurIOCallback: PIOCallbackData;
 begin
   if Handle^.Data.HighestHandle < 0 then
-    // No I/O checks to do, so just wait...
-    AsyncResult := fpselect(0, nil, nil, nil, TimeOut)
+    begin
+      // No I/O checks to do, so just wait...
+      repeat
+        AsyncResult := fpselect(0, nil, nil, nil, TimeOut)
+      until (AsyncResult<>-1) or (fpgeterrno<>ESysEINTR);
+    end
   else
   begin
     CurReadFDSet := PFDSet(Handle^.Data.FDData)[0];
     CurWriteFDSet := PFDSet(Handle^.Data.FDData)[1];
-    AsyncResult := fpselect(Handle^.Data.HighestHandle + 1,
-      @CurReadFDSet, @CurWriteFDSet, nil, TimeOut);
+    repeat
+      AsyncResult := fpselect(Handle^.Data.HighestHandle + 1,
+        @CurReadFDSet, @CurWriteFDSet, nil, TimeOut);
+    until (AsyncResult<>-1) or (fpgeterrno<>ESysEINTR);
 
     if AsyncResult > 0 then
     begin

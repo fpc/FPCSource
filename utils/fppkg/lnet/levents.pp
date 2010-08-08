@@ -1,6 +1,6 @@
 { lNet Events abstration
 
-  CopyRight (C) 2006-2007 Ales Katona
+  CopyRight (C) 2006-2008 Ales Katona
 
   This library is Free software; you can rediStribute it and/or modify it
   under the terms of the GNU Library General Public License as published by
@@ -32,11 +32,11 @@ interface
 uses
   {$ifdef Linux}
     {$undef nochoice} // undefine for all "Optimized" targets
-    Linux, Contnrs,
+    Linux, Contnrs, Errors,
   {$endif}
   {$ifdef BSD}
     {$undef nochoice}
-    BSD,
+    BSD, Errors,
   {$endif}
   {$i sys/osunits.inc}
 
@@ -66,6 +66,7 @@ type
     FNext: TLHandle;
     FFreeNext: TLHandle;
     FInternalData: Pointer;
+    
     procedure SetIgnoreError(const aValue: Boolean);
     procedure SetIgnoreWrite(const aValue: Boolean);
     procedure SetIgnoreRead(const aValue: Boolean);
@@ -140,6 +141,7 @@ type
     FFreeRoot: TLHandle; // the root of "free" list if any
     FFreeIter: TLHandle; // the last of "free" list if any
     FInLoop: Boolean;
+    function GetCount: Integer; virtual;
     function GetTimeout: Integer; virtual;
     procedure SetTimeout(const Value: Integer); virtual;
     function Bail(const msg: string; const Ernum: Integer): Boolean;
@@ -151,13 +153,14 @@ type
     function GetInternalData(aHandle: TLHandle): Pointer;
     procedure SetInternalData(aHandle: TLHandle; const aData: Pointer);
     procedure SetHandleEventer(aHandle: TLHandle);
+    procedure InternalUnplugHandle(aHandle: TLHandle); virtual;
    public
     constructor Create; virtual;
     destructor Destroy; override;
     function AddHandle(aHandle: TLHandle): Boolean; virtual;
     function CallAction: Boolean; virtual;
     procedure RemoveHandle(aHandle: TLHandle); virtual;
-    procedure UnplugHandle(aHandle: TLHandle); virtual;
+    procedure UnplugHandle(aHandle: TLHandle);
     procedure UnregisterHandle(aHandle: TLHandle); virtual;
     procedure LoadFromEventer(aEventer: TLEventer); virtual;
     procedure Clear;
@@ -165,7 +168,7 @@ type
     procedure DeleteRef;
     property Timeout: Integer read GetTimeout write SetTimeout;
     property OnError: TLEventerErrorEvent read FOnError write FOnError;
-    property Count: Integer read FCount;
+    property Count: Integer read GetCount;
   end;
   TLEventerClass = class of TLEventer;
   
@@ -189,11 +192,15 @@ type
 {$i sys/lepolleventerh.inc}
 
   function BestEventerClass: TLEventerClass;
-
+  
 implementation
 
 uses
+  syncobjs,
   lCommon;
+  
+var
+  CS: TCriticalSection;
   
 { TLHandle }
 
@@ -244,15 +251,19 @@ end;
 destructor TLHandle.Destroy;
 begin
   if Assigned(FEventer) then
-    FEventer.UnplugHandle(Self);
+    FEventer.InternalUnplugHandle(Self);
 end;
 
 procedure TLHandle.Free;
 begin
+  CS.Enter;
+
   if Assigned(FEventer) and FEventer.FInLoop then
     FEventer.AddForFree(Self)
   else
     inherited Free;
+
+  CS.Leave;
 end;
 
 { TLTimer }
@@ -300,6 +311,11 @@ end;
 destructor TLEventer.Destroy;
 begin
   Clear;
+end;
+
+function TLEventer.GetCount: Integer;
+begin
+  Result := FCount;
 end;
 
 function TLEventer.GetTimeout: Integer;
@@ -376,6 +392,29 @@ begin
   aHandle.FEventer := Self;
 end;
 
+procedure TLEventer.InternalUnplugHandle(aHandle: TLHandle);
+begin
+  if aHandle.FEventer = Self then begin
+    if aHandle.FEventer.FInLoop then begin
+      aHandle.FEventer.AddForFree(aHandle);
+      Exit;
+    end;
+
+    aHandle.FEventer := nil; // avoid recursive AV
+    if Assigned(aHandle.FPrev) then begin
+      aHandle.FPrev.FNext := aHandle.FNext;
+      if Assigned(aHandle.FNext) then
+        aHandle.FNext.FPrev := aHandle.FPrev;
+    end else if Assigned(aHandle.FNext) then begin
+      aHandle.FNext.FPrev := aHandle.FPrev;
+      if aHandle = FRoot then
+        FRoot := aHandle.FNext;
+    end else FRoot := nil;
+    if FCount > 0 then
+      Dec(FCount);
+  end;
+end;
+
 function TLEventer.AddHandle(aHandle: TLHandle): Boolean;
 begin
   Result := False;
@@ -409,20 +448,11 @@ end;
 
 procedure TLEventer.UnplugHandle(aHandle: TLHandle);
 begin
-  if aHandle.FEventer = Self then begin
-    aHandle.FEventer := nil; // avoid recursive AV
-    if Assigned(aHandle.FPrev) then begin
-      aHandle.FPrev.FNext := aHandle.FNext;
-      if Assigned(aHandle.FNext) then
-        aHandle.FNext.FPrev := aHandle.FPrev;
-    end else if Assigned(aHandle.FNext) then begin
-      aHandle.FNext.FPrev := aHandle.FPrev;
-      if aHandle = FRoot then
-        FRoot := aHandle.FNext;
-    end else FRoot := nil;
-    if FCount > 0 then
-      Dec(FCount);
-  end;
+  CS.Enter;
+
+  InternalUnplugHandle(aHandle);
+
+  CS.Leave;
 end;
 
 procedure TLEventer.UnregisterHandle(aHandle: TLHandle);
@@ -502,7 +532,8 @@ end;
 function TLSelectEventer.CallAction: Boolean;
 var
   Temp, Temp2: TLHandle;
-  MaxHandle, n: Integer;
+  n: Integer;
+  MaxHandle: THandle;
   TempTime: TTimeVal;
 begin
   if FInLoop then
@@ -582,5 +613,11 @@ begin
 end;
 
 {$endif}
+
+initialization
+  CS := TCriticalSection.Create;
+
+finalization
+  CS.Free;
 
 end.

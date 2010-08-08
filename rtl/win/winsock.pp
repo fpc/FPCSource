@@ -288,7 +288,7 @@ unit winsock;
 {$endif win64}
        end;
        TWSAData = WSADATA;
-       PWSAData = TWSAData;
+       PWSAData = ^TWSAData;
 
     const
        IP_OPTIONS = 1;

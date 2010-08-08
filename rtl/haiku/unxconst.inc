@@ -47,9 +47,9 @@ CONST
     OPEN_NONBLOCK  =     4;        { Non-blocking I/O.                 }
 
     { mode_t possible values                                 }
-  { Constants to check stat.mode -  checked all STAT constants with BeOS}
-  STAT_IFMT   = $f000; {00170000 }
-//  STAT_IFSOCK = $c000; {0140000 } // unavailable under BeOS
+  { Constants to check stat.mode -  checked all STAT constants with Haiku}
+  STAT_IFMT   = $f000; {0170000 }
+  STAT_IFSOCK = $c000; {0140000 }
   STAT_IFLNK  = $a000; {0120000 }
   STAT_IFREG  = $8000; {0100000 }
   STAT_IFBLK  = $6000; {0060000 }
@@ -62,12 +62,15 @@ CONST
   STAT_ISVTX  = $0200; {0001000}
     
     
+    STAT_IRWXU =  %0111000000;     { Read, Write, Exec permission for owner   }
     STAT_IRUSR =  %0100000000;     { Read permission for owner   }
     STAT_IWUSR =  %0010000000;     { Write permission for owner  }
     STAT_IXUSR =  %0001000000;     { Exec  permission for owner  }
+    STAT_IRWXG =  %0000111000;     { Read, Write, Exec permission for group   }
     STAT_IRGRP =  %0000100000;     { Read permission for group   }
     STAT_IWGRP =  %0000010000;     { Write permission for group  }
     STAT_IXGRP =  %0000001000;     { Exec permission for group   }
+    STAT_IRWXO =  %0000000111;     { Read, Write, Exec permission for world   }
     STAT_IROTH =  %0000000100;     { Read permission for world   }
     STAT_IWOTH =  %0000000010;     { Write permission for world  }
     STAT_IXOTH =  %0000000001;     { Exec permission for world   }

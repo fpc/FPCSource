@@ -19,7 +19,7 @@ function getfpustate(const Sigcontext:sigcontextRec):longint; {inline;}
 begin
   getfpustate:=0;
 end;
-procedure SignalToRunerror(Sig: longint;code:longint; var SigContext: SigContextRec); cdecl;
+procedure SignalToRunerror(Sig: longint;code:longint; var SigContext: SigContextRec); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
 
 var
   res,fpustate : word;
@@ -65,6 +65,10 @@ begin
     SIGBUS,
     SIGSEGV :
         res:=216;
+    SIGINT:
+        res:=217;
+    SIGQUIT:
+        res:=233;
   end;
   reenable_signal(sig);
 { give runtime error at the position where the signal was raised }

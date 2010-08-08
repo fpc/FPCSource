@@ -35,15 +35,17 @@ endif
 
 # Retrieve Test compiler info
 ifndef TEST_FPC_VERSION
-TEST_FPC_COMPILERINFO:=$(shell $(TEST_FPC) -iVSPTPSOTO)
+TEST_FPC_COMPILERINFO:=$(shell $(TEST_FPC) -iVSPTPSOTODW)
 TEST_FPC_VERSION:=$(word 1,$(TEST_FPC_COMPILERINFO))
 endif
 export TEST_FPC TEST_FPC_VERSION TEST_FPC_COMPILERINFO
-ifneq ($(words $(TEST_FPC_COMPILERINFO)),5)
+ifneq ($(words $(TEST_FPC_COMPILERINFO)),7)
 TEST_FPC_COMPILERINFO+=$(shell $(TEST_FPC) -iSP)
 TEST_FPC_COMPILERINFO+=$(shell $(TEST_FPC) -iTP)
 TEST_FPC_COMPILERINFO+=$(shell $(TEST_FPC) -iSO)
 TEST_FPC_COMPILERINFO+=$(shell $(TEST_FPC) -iTO)
+TEST_FPC_COMPILERINFO+=$(shell $(TEST_FPC) -iD)
+TEST_FPC_COMPILERINFO+=$(shell $(TEST_FPC) -iW)
 endif
 ifndef TEST_CPU_SOURCE
 TEST_CPU_SOURCE:=$(word 2,$(TEST_FPC_COMPILERINFO))
@@ -56,6 +58,12 @@ TEST_OS_SOURCE:=$(word 4,$(TEST_FPC_COMPILERINFO))
 endif
 ifndef TEST_OS_TARGET
 TEST_OS_TARGET:=$(word 5,$(TEST_FPC_COMPILERINFO))
+endif
+ifndef TEST_FPC_DATE
+TEST_FPC_DATE:=$(word 6,$(TEST_FPC_COMPILERINFO))
+endif
+ifndef TEST_FPC_FULLVERSION
+TEST_FPC_FULLVERSION:=$(word 7,$(TEST_FPC_COMPILERINFO))
 endif
 TEST_FULL_TARGET=$(TEST_CPU_TARGET)-$(TEST_OS_TARGET)
 ifneq ($(findstring $(OS_SOURCE),$(LIMIT83fs)),)
@@ -79,7 +87,9 @@ endif
 TEST_OUTPUTDIR=output/$(TEST_TARGETSUFFIX)
 
 # Date and time the testsuite was run
+ifneq ($(DATE),__missing_command_DATE)
 TEST_DATETIME:=$(shell $(DATE) +%Y%m%d%H%M)
+endif
 
 ifndef TEST_USER
 TEST_USER=$(USER)
@@ -99,6 +109,7 @@ endif
 ifeq ($(OS_SOURCE),go32v2)
 inWinDOS=1
 inDOS=1
+SINGLEDOTESTRUNS=1
 endif
 
 ################################
@@ -119,13 +130,13 @@ endif
 
 
 # Subdirs available in the test subdir
-TESTSUBDIRS=cg cg/variants cg/cdecl opt units/system units/dos units/crt units/objects units/strings units/sysutils units/math units/sharemem
-TESTPACKAGESUBDIRS=cg packages/win-base packages/webtbs packages/hash packages/fcl-registry packages/fcl-process packages/zlib
+TESTSUBDIRS=cg cg/variants cg/cdecl opt units/system units/dos units/crt units/objects units/strings units/sysutils units/math units/sharemem units/strutils
+TESTPACKAGESUBDIRS=packages/win-base packages/webtbs packages/hash packages/fcl-registry packages/fcl-process packages/zlib packages/fcl-db packages/fcl-base packages/fcl-xml packages/cocoaint
 
 ifdef QUICKTEST
 export QUICKTEST
 else
-override TESTSUBDIRS+=TESTSUBDIRS $(TESTPACKAGESUBDIRS)
+override TESTSUBDIRS+=$(TESTPACKAGESUBDIRS) alglib
 endif
 
 # All full dirnames in the test/ dir including the subdir self
@@ -169,15 +180,21 @@ units:
 
 copyfiles: $(TEST_OUTPUTDIR)
 ifneq ($(TEST_ABI),)
-        $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/ctest.o test/cg
-        $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/tcext3.o test/cg
-        $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/tcext4.o test/cg
-        $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/tcext5.o test/cg
+        -$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/ctest.o test/cg
+        -$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/tcext3.o test/cg
+        -$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/tcext4.o test/cg
+        -$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/tcext5.o test/cg
+        -$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/tcext6.o test/cg
+        -$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/cpptcl1.o test/cg
+        -$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)-$(TEST_ABI)/cpptcl2.o test/cg
 else
-        $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/ctest.o test/cg
-        $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext3.o test/cg
-        $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext4.o test/cg
-        $(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext5.o test/cg
+        -$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/ctest.o test/cg
+        -$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext3.o test/cg
+        -$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext4.o test/cg
+        -$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext5.o test/cg
+        -$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/tcext6.o test/cg
+        -$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/cpptcl1.o test/cg
+        -$(COPY) test/cg/obj/$(TEST_OS_TARGET)/$(TEST_CPU_TARGET)/cpptcl2.o test/cg
 endif
         -$(MKDIRTREE) $(TEST_OUTPUTDIR)/test/units/system
         $(COPY) test/units/system/test*.txt $(TEST_OUTPUTDIR)/test/units/system
@@ -244,7 +261,7 @@ Q=@
 QECHO=@echo $(1)
 endif
 ifdef TEST_REMOTEOPT
-override DOTESTOPT+="-U$(TEST_REMOTEOPT)"
+override DOTESTOPT+=-U$(TEST_REMOTEOPT)
 endif
 ifdef TEST_PUTTY
 override DOTESTOPT+=-R$(TEST_PUTTY) -W
@@ -293,8 +310,9 @@ vpath %.elg $(TEST_OUTPUTDIR)
 
 %.elg : %.pp
 	$(call QECHO,"  EXECUTE $<")
+ifdef SINGLEDOTESTRUNS
 	$(Q)$(DOTEST) $(DOTESTOPT) -e $<
-
+endif
 
 ################################
 # Compile tests
@@ -309,6 +327,9 @@ allwebtbs : testprep $(patsubst %.pp,%.log,$(wildcard webtbs/t*.pp))
 allwebtbf : testprep $(patsubst %.pp,%.log,$(wildcard webtbf/t*.pp))
 
 alltest : testprep $(patsubst %.pp,%.log,$(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
+ifndef SINGLEDOTESTRUNS
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard $(addsuffix /t*.pp,$(TESTDIRS)))
+endif
 
 alltests: alltest alltbs alltbf allwebtbs allwebtbf
 
@@ -319,12 +340,29 @@ alltests: alltest alltbs alltbf allwebtbs allwebtbf
 .PHONY: allexectbs allexectbf allexecwebtbs allexecwebtbf allexectest allexectests
 
 allexectbs : testprep $(patsubst %.pp,%.elg,$(wildcard tbs/t*.pp))
+ifndef SINGLEDOTESTRUNS
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard tbs/t*.pp)
+endif
+
 allexectbf : testprep $(patsubst %.pp,%.elg,$(wildcard tbf/t*.pp))
+ifndef SINGLEDOTESTRUNS
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard tbf/t*.pp)
+endif
 
 allexecwebtbs : testprep $(patsubst %.pp,%.elg,$(wildcard webtbs/t*.pp))
+ifndef SINGLEDOTESTRUNS
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard webtbs/t*.pp)
+endif
+
 allexecwebtbf : testprep $(patsubst %.pp,%.elg,$(wildcard webtbf/t*.pp))
+ifndef SINGLEDOTESTRUNS
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard webtbf/t*.pp)
+endif
 
 allexectest : testprep $(patsubst %.pp,%.elg,$(wildcard $(addsuffix /t*.pp,$(TESTDIRS))))
+ifndef SINGLEDOTESTRUNS
+	$(Q)$(DOTEST) $(DOTESTOPT) -e $(wildcard $(addsuffix /t*.pp,$(TESTDIRS)))
+endif
 
 allexectests: allexectest allexectbs allexectbf allexecwebtbs allexecwebtbf
 
@@ -360,6 +398,15 @@ distclean: clean fpc_distclean
 digest : utils
         -$(DIGEST) $(LOG)
 
+
+SVNVERSION:=$(firstword $(wildcard $(addsuffix /svnversion$(SRCEXEEXT),$(SEARCHPATH))))
+ifneq ($(SVNVERSION),)
+SVN_TESTS_REV_STR=$(shell $(SVNVERSION) -c .)
+SVN_COMPILER_REV_STR=$(shell $(SVNVERSION) -c ../compiler)
+SVN_RTL_REV_STR=$(shell $(SVNVERSION) -c ../rtl)
+SVN_PACKAGES_REV_STR=$(shell $(SVNVERSION) -c ../packages)
+endif
+
 $(TEST_OUTPUTDIR)/dbdigest.cfg:
         $(ECHOREDIR) OS=$(TEST_OS_TARGET) > $(TEST_OUTPUTDIR)/dbdigest.cfg
         $(ECHOREDIR) CPU=$(TEST_CPU_TARGET) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
@@ -367,7 +414,23 @@ $(TEST_OUTPUTDIR)/dbdigest.cfg:
         $(ECHOREDIR) LogFile=log >> $(TEST_OUTPUTDIR)/dbdigest.cfg
         $(ECHOREDIR) Submitter=$(TEST_USER) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
         $(ECHOREDIR) Machine=$(TEST_HOSTNAME) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
-        $(ECHOREDIR) Comment=$(TEST_OPT) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+	$(ECHOREDIR) Comment=$(TEST_OPT) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+ifneq ($(TEST_DATETIME),)
+        $(ECHOREDIR) Date=$(TEST_DATETIME) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+endif
+ifneq ($(TEST_FPC_DATE),)
+        $(ECHOREDIR) CompilerDate=$(TEST_FPC_DATE) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+endif
+ifneq ($(TEST_FPC_FULLVERSION),)
+        $(ECHOREDIR) CompilerFullVersion=$(TEST_FPC_FULLVERSION) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+endif
+ifneq ($(SVNVERSION),)
+        $(ECHOREDIR) svntestsrevision=$(SVN_TESTS_REV_STR) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+        $(ECHOREDIR) svncompilerrevision=$(SVN_COMPILER_REV_STR) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+        $(ECHOREDIR) svnrtlrevision=$(SVN_RTL_REV_STR) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+        $(ECHOREDIR) svnpackagesrevision=$(SVN_PACKAGES_REV_STR) >> $(TEST_OUTPUTDIR)/dbdigest.cfg
+endif
+
 
 ifndef inWinDOS
 $(TEST_OUTPUTDIR)/tar.lst:
@@ -379,7 +442,7 @@ $(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/tar.lst $(TEST_OUTPUTDIR)/dbdig
 ifdef inCygWin
         dos2unix $(TEST_OUTPUTDIR)/tar.lst
 endif
-        cd $(TEST_OUTPUTDIR) && $(TARPROG) cfz $(DB_TARGZ) --files-from=tar.lst
+        cd $(TEST_OUTPUTDIR) && $(TARPROG) czf $(DB_TARGZ) --files-from=tar.lst
 
 else
 $(TEST_OUTPUTDIR)/$(DB_TARGZ): $(TEST_OUTPUTDIR)/dbdigest.cfg
@@ -395,13 +458,22 @@ else
 endif
 endif
 
-uploadrun: $(TEST_OUTPUTDIR)/$(DB_TARGZ)
+
+# Use Putty, unless we set DB_USE_SSH to force ssh usage
+# Useful for cygwin
+ifndef DB_USE_SSH
 ifdef inWinDOS
+UsePutty=1
+endif
+endif
+
+uploadrun: $(TEST_OUTPUTDIR)/$(DB_TARGZ)
+ifdef UsePutty
         pscp -load "fpc@www.freepascal.org" $(TEST_OUTPUTDIR)/$(DB_TARGZ) $(DB_HOST):$(DB_UPLOADDIR)/$(DB_TARGZ).part $(SSH_EXTRA)
         plink -load "fpc@www.freepascal.org" "mv $(DB_UPLOADDIR)/$(DB_TARGZ).part $(DB_UPLOADDIR)/$(DB_TARGZ)"
 else
-        scp $(TEST_OUTPUTDIR)/$(DB_TARGZ) $(DB_HOST):$(DB_UPLOADDIR)/$(DB_TARGZ).part
-        ssh $(DB_HOST) "mv $(DB_UPLOADDIR)/$(DB_TARGZ).part $(DB_UPLOADDIR)/$(DB_TARGZ)"
+        scp $(DB_SSH_EXTRA) $(TEST_OUTPUTDIR)/$(DB_TARGZ) $(DB_HOST):$(DB_UPLOADDIR)/$(DB_TARGZ).part
+        ssh $(DB_SSH_EXTRA) $(DB_HOST) "mv $(DB_UPLOADDIR)/$(DB_TARGZ).part $(DB_UPLOADDIR)/$(DB_TARGZ)"
 endif
 
 all : allexectests

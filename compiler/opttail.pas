@@ -35,7 +35,7 @@ unit opttail;
     uses
       globtype,
       symconst,symsym,
-      defcmp,
+      defcmp,defutil,
       nutils,nbas,nflw,ncal,nld,ncnv,
       pass_1,
       paramgr;
@@ -192,7 +192,7 @@ unit opttail;
                  and slow down things anyways so a tail recursion call
                  makes no sense
                }
-               vardef.needs_inittable) then
+               is_managed_type(vardef)) then
                exit;
 
         labelsym:=tlabelsym.create('$opttail');

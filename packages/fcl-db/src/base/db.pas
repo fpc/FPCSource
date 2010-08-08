@@ -22,7 +22,7 @@ unit db;
 
 interface
 
-uses Classes,Sysutils,Variants,FmtBCD;
+uses Classes,Sysutils,Variants,FmtBCD,MaskUtils;
 
 const
 
@@ -173,18 +173,18 @@ type
     FInternalCalcField : Boolean;
     FPrecision : Longint;
     FRequired : Boolean;
-    FSize : Word;
+    FSize : Integer;
     FAttributes : TFieldAttributes;
     Function GetFieldClass : TFieldClass;
     procedure SetAttributes(AValue: TFieldAttributes);
     procedure SetDataType(AValue: TFieldType);
     procedure SetPrecision(const AValue: Longint);
-    procedure SetSize(const AValue: Word);
+    procedure SetSize(const AValue: Integer);
     procedure SetRequired(const AValue: Boolean);
   public
-    constructor create(ACollection : TCollection); overload;
+    constructor create(ACollection : TCollection); override;
     constructor Create(AOwner: TFieldDefs; const AName: string;
-      ADataType: TFieldType; ASize: Word; ARequired: Boolean; AFieldNo: Longint); overload;
+      ADataType: TFieldType; ASize: Integer; ARequired: Boolean; AFieldNo: Longint); overload;
     destructor Destroy; override;
     procedure Assign(APersistent: TPersistent); override;
     function CreateField(AOwner: TComponent): TField;
@@ -196,7 +196,7 @@ type
     property Attributes: TFieldAttributes read FAttributes write SetAttributes default [];
     property DataType: TFieldType read FDataType write SetDataType;
     property Precision: Longint read FPrecision write SetPrecision;
-    property Size: Word read FSize write SetSize;
+    property Size: Integer read FSize write SetSize;
   end;
 
 { TFieldDefs }
@@ -245,13 +245,15 @@ type
 
   TLookupList = class(TObject)
   private
-    FList: TList;
+    FList: TFPList;
   public
     constructor Create;
     destructor Destroy; override;
     procedure Add(const AKey, AValue: Variant);
     procedure Clear;
+    function FirstKeyByValue(const AValue: Variant): Variant;
     function ValueOfKey(const AKey: Variant): Variant;
+    procedure ValuesToStrings(AStrings: TStrings);
   end;
 
   { TField }
@@ -269,6 +271,7 @@ type
     FDefaultExpression : String;
     FDisplayLabel : String;
     FDisplayWidth : Longint;
+    FEditMask: TEditMask;
     FFieldKind : TFieldKind;
     FFieldName : String;
     FFieldNo : Longint;
@@ -290,7 +293,7 @@ type
     FOrigin : String;
     FReadOnly : Boolean;
     FRequired : Boolean;
-    FSize : Word;
+    FSize : integer;
     FValidChars : TFieldChars;
     FValueBuffer : Pointer;
     FValidating : Boolean;
@@ -333,7 +336,7 @@ type
     function GetAsWideString: WideString; virtual;
     function GetCanModify: Boolean; virtual;
     function GetClassDesc: String; virtual;
-    function GetDataSize: Word; virtual;
+    function GetDataSize: Integer; virtual;
     function GetDefaultWidth: Longint; virtual;
     function GetDisplayName : String;
     function GetCurValue: Variant; virtual;
@@ -359,7 +362,7 @@ type
     procedure SetDataset(AValue : TDataset); virtual;
     procedure SetDataType(AValue: TFieldType);
     procedure SetNewValue(const AValue: Variant);
-    procedure SetSize(AValue: Word); virtual;
+    procedure SetSize(AValue: Integer); virtual;
     procedure SetParentComponent(AParent: TComponent); override;
     procedure SetText(const AValue: string); virtual;
     procedure SetVarValue(const AValue: Variant); virtual;
@@ -395,16 +398,19 @@ type
     property CanModify: Boolean read GetCanModify;
     property CurValue: Variant read GetCurValue;
     property DataSet: TDataSet read FDataSet write SetDataSet;
-    property DataSize: Word read GetDataSize;
+    property DataSize: Integer read GetDataSize;
     property DataType: TFieldType read FDataType;
     property DisplayName: String Read GetDisplayName;
     property DisplayText: String read GetDisplayText;
+    property EditMask: TEditMask read FEditMask write FEditMask;
+    property EditMaskPtr: TEditMask read FEditMask;
     property FieldNo: Longint read FFieldNo;
     property IsIndexField: Boolean read FIsIndexField;
     property IsNull: Boolean read GetIsNull;
+    property Lookup: Boolean read GetLookup write SetLookup;
     property NewValue: Variant read GetNewValue write SetNewValue;
     property Offset: word read FOffset;
-    property Size: Word read FSize write SetSize;
+    property Size: Integer read FSize write SetSize;
     property Text: string read GetEditText write SetEditText;
     property ValidChars : TFieldChars Read FValidChars;
     property Value: variant read GetAsVariant write SetAsVariant;
@@ -423,7 +429,6 @@ type
     property Index: Longint read GetIndex write SetIndex;
     property ImportedConstraint: string read FImportedConstraint write FImportedConstraint;
     property KeyFields: string read FKeyFields write FKeyFields;
-    property Lookup: Boolean read GetLookup write SetLookup;
     property LookupCache: Boolean read FLookupCache write FLookupCache;
     property LookupDataSet: TDataSet read FLookupDataSet write FLookupDataSet;
     property LookupKeyFields: string read FLookupKeyFields write FLookupKeyFields;
@@ -453,7 +458,7 @@ type
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
     function GetDefaultWidth: Longint; override;
     procedure GetText(var AText: string; ADisplayText: Boolean); override;
     function GetValue(var AValue: string): Boolean;
@@ -465,10 +470,12 @@ type
     procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
+    procedure SetFieldType(AValue: TFieldType); override;
     property FixedChar : Boolean read FFixedChar write FFixedChar;
     property Transliterate: Boolean read FTransliterate write FTransliterate;
     property Value: String read GetAsString write SetAsString;
   published
+    property EditMask;
     property Size default 20;
   end;
 
@@ -489,7 +496,7 @@ type
     function GetAsWideString: WideString; override;
     procedure SetAsWideString(const aValue: WideString); override;
 
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
   public
     constructor Create(aOwner: TComponent); override;
     property Value: WideString read GetAsWideString write SetAsWideString;
@@ -530,7 +537,7 @@ type
     function GetAsLongint: Longint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
     procedure GetText(var AText: string; ADisplayText: Boolean); override;
     function GetValue(var AValue: Longint): Boolean;
     procedure SetAsFloat(AValue: Double); override;
@@ -563,7 +570,7 @@ type
     function GetAsLargeint: Largeint; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
     procedure GetText(var AText: string; ADisplayText: Boolean); override;
     function GetValue(var AValue: Largeint): Boolean;
     procedure SetAsFloat(AValue: Double); override;
@@ -584,7 +591,7 @@ type
 
   TSmallintField = class(TLongintField)
   protected
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -593,7 +600,7 @@ type
 
   TWordField = class(TLongintField)
   protected
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -616,12 +623,13 @@ type
     FMinValue : Double;
     FPrecision : Longint;
     procedure SetCurrency(const AValue: Boolean);
+    procedure SetPrecision(const AValue: Longint);
   protected
     function GetAsFloat: Double; override;
     function GetAsLongint: Longint; override;
     function GetAsVariant: variant; override;
     function GetAsString: string; override;
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
     procedure GetText(var theText: string; ADisplayText: Boolean); override;
     procedure SetAsFloat(AValue: Double); override;
     procedure SetAsLongint(AValue: Longint); override;
@@ -636,7 +644,7 @@ type
     property Currency: Boolean read FCurrency write SetCurrency default False;
     property MaxValue: Double read FMaxValue write FMaxValue;
     property MinValue: Double read FMinValue write FMinValue;
-    property Precision: Longint read FPrecision write FPrecision default 15;
+    property Precision: Longint read FPrecision write SetPrecision default 15; // min 2 instellen, delphi compat
   end;
 
 { TCurrencyField }
@@ -655,15 +663,17 @@ type
     FDisplayValues : String;
     // First byte indicates uppercase or not.
     FDisplays : Array[Boolean,Boolean] of string;
-    Procedure SetDisplayValues(AValue : String);
+    Procedure SetDisplayValues(const AValue : String);
   protected
     function GetAsBoolean: Boolean; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
-    function GetDataSize: Word; override;
+    function GetAsInteger: Longint; override;
+    function GetDataSize: Integer; override;
     function GetDefaultWidth: Longint; override;
     procedure SetAsBoolean(AValue: Boolean); override;
     procedure SetAsString(const AValue: string); override;
+    procedure SetAsInteger(AValue: Integer); override;
     procedure SetVarValue(const AValue: Variant); override;
   public
     constructor Create(AOwner: TComponent); override;
@@ -683,7 +693,7 @@ type
     function GetAsFloat: Double; override;
     function GetAsString: string; override;
     function GetAsVariant: variant; override;
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
     procedure GetText(var theText: string; ADisplayText: Boolean); override;
     procedure SetAsDateTime(AValue: TDateTime); override;
     procedure SetAsFloat(AValue: Double); override;
@@ -694,6 +704,7 @@ type
     property Value: TDateTime read GetAsDateTime write SetAsDateTime;
   published
     property DisplayFormat: string read FDisplayFormat write SetDisplayFormat;
+    property EditMask;
   end;
 
 { TDateField }
@@ -732,7 +743,7 @@ type
 
   TBytesField = class(TBinaryField)
   protected
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -741,7 +752,7 @@ type
 
   TVarBytesField = class(TBytesField)
   protected
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
   public
     constructor Create(AOwner: TComponent); override;
   end;
@@ -762,7 +773,7 @@ type
     function GetAsString: string; override;
     function GetValue(var AValue: Currency): Boolean;
     function GetAsVariant: variant; override;
-    function GetDataSize: Word; override;
+    function GetDataSize: Integer; override;
     function GetDefaultWidth: Longint; override;
     procedure GetText(var TheText: string; ADisplayText: Boolean); override;
     procedure SetAsFloat(AValue: Double); override;
@@ -788,13 +799,11 @@ type
 
   TBlobField = class(TField)
   private
-    FBlobSize : Longint;
     FBlobType : TBlobType;
     FModified : Boolean;
     FTransliterate : Boolean;
     Function GetBlobStream (Mode : TBlobStreamMode) : TStream;
   protected
-    procedure AssignTo(Dest: TPersistent); override;
     procedure FreeBuffers; override;
     function GetAsString: string; override;
     function GetAsVariant: Variant; override;
@@ -808,7 +817,6 @@ type
     procedure SetAsWideString(const aValue: WideString); override;
   public
     constructor Create(AOwner: TComponent); override;
-    procedure Assign(Source: TPersistent); override;
     procedure Clear; override;
     class function IsBlob: Boolean; override;
     procedure LoadFromFile(const FileName: string);
@@ -816,7 +824,7 @@ type
     procedure SaveToFile(const FileName: string);
     procedure SaveToStream(Stream: TStream);
     procedure SetFieldType(AValue: TFieldType); override;
-    property BlobSize: Longint read FBlobSize;
+    property BlobSize: Longint read GetBlobSize;
     property Modified: Boolean read FModified write FModified;
     property Value: string read GetAsString write SetAsString;
     property Transliterate: Boolean read FTransliterate write FTransliterate;
@@ -991,6 +999,19 @@ type
     property Items[Index: Longint]: TCheckConstraint read GetItem write SetItem; default;
   end;
 
+  { TFieldsEnumerator }
+
+  TFieldsEnumerator = class
+  private
+    FPosition: Integer;
+    FFields: TFields;
+    function GetCurrent: TField;
+  public
+    constructor Create(AFields: TFields);
+    function MoveNext: Boolean;
+    property Current: TField read GetCurrent;
+  end;
+
 { TFields }
 
   Tfields = Class(TObject)
@@ -1018,6 +1039,7 @@ type
       Function FindField (Const Value : String) : TField;
       Function FieldByName (Const Value : String) : TField;
       Function FieldByNumber(FieldNo : Integer) : TField;
+      Function GetEnumerator: TFieldsEnumerator;
       Procedure GetFieldNames (Values : TStrings);
       Function IndexOf(Field : TField) : Longint;
       procedure Remove(Value : TField);
@@ -1186,7 +1208,7 @@ type
     procedure GetChildren(Proc: TGetChildProc; Root: TComponent); override;
     function  GetFieldClass(FieldType: TFieldType): TFieldClass; virtual;
     Function  GetfieldCount : Integer;
-    function  GetFieldValues(fieldname : string) : Variant; virtual;
+    function  GetFieldValues(const fieldname : string) : Variant; virtual;
     function  GetIsIndexField(Field: TField): Boolean; virtual;
     function  GetIndexDefs(IndexDefs : TIndexDefs; IndexTypes : TIndexOptions) : TIndexDefs;
     function  GetNextRecords: Longint; virtual;
@@ -1216,7 +1238,7 @@ type
     procedure SetFilterOptions(Value: TFilterOptions); virtual;
     procedure SetFilterText(const Value: string); virtual;
     procedure SetFound(const Value: Boolean);
-    procedure SetFieldValues(fieldname: string; Value: Variant); virtual;
+    procedure SetFieldValues(const fieldname: string; Value: Variant); virtual;
     procedure SetModified(Value: Boolean);
     procedure SetName(const Value: TComponentName); override;
     procedure SetOnFilterRecord(const Value: TFilterRecordEvent); virtual;
@@ -1235,30 +1257,30 @@ type
     property CalcFieldsSize: Longint read FCalcFieldsSize;
     property InternalCalcFields: Boolean read FInternalCalcFields;
     property Constraints: TCheckConstraints read FConstraints write FConstraints;
-  protected { abstract methods }
-    function AllocRecordBuffer: PChar; virtual; abstract;
-    procedure FreeRecordBuffer(var Buffer: PChar); virtual; abstract;
-    procedure GetBookmarkData(Buffer: PChar; Data: Pointer); virtual; abstract;
-    function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; virtual; abstract;
+    function AllocRecordBuffer: PChar; virtual;
+    procedure FreeRecordBuffer(var Buffer: PChar); virtual;
+    procedure GetBookmarkData(Buffer: PChar; Data: Pointer); virtual;
+    function GetBookmarkFlag(Buffer: PChar): TBookmarkFlag; virtual;
     function GetDataSource: TDataSource; virtual;
-    function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
-    function GetRecordSize: Word; virtual; abstract;
-    procedure InternalAddRecord(Buffer: Pointer; AAppend: Boolean); virtual; abstract;
-    procedure InternalClose; virtual; abstract;
-    procedure InternalDelete; virtual; abstract;
-    procedure InternalFirst; virtual; abstract;
-    procedure InternalGotoBookmark(ABookmark: Pointer); virtual; abstract;
+    function GetRecordSize: Word; virtual;
+    procedure InternalAddRecord(Buffer: Pointer; AAppend: Boolean); virtual;
+    procedure InternalDelete; virtual;
+    procedure InternalFirst; virtual;
+    procedure InternalGotoBookmark(ABookmark: Pointer); virtual;
     procedure InternalHandleException; virtual;
-    procedure InternalInitFieldDefs; virtual; abstract;
-    procedure InternalInitRecord(Buffer: PChar); virtual; abstract;
-    procedure InternalLast; virtual; abstract;
-    procedure InternalOpen; virtual; abstract;
+    procedure InternalInitRecord(Buffer: PChar); virtual;
+    procedure InternalLast; virtual;
     procedure InternalPost; virtual;
-    procedure InternalSetToRecord(Buffer: PChar); virtual; abstract;
-    function IsCursorOpen: Boolean; virtual; abstract;
-    procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); virtual; abstract;
-    procedure SetBookmarkData(Buffer: PChar; Data: Pointer); virtual; abstract;
+    procedure InternalSetToRecord(Buffer: PChar); virtual;
+    procedure SetBookmarkFlag(Buffer: PChar; Value: TBookmarkFlag); virtual;
+    procedure SetBookmarkData(Buffer: PChar; Data: Pointer); virtual;
     procedure SetUniDirectional(const Value: Boolean);
+  protected { abstract methods }
+    function GetRecord(Buffer: PChar; GetMode: TGetMode; DoCheck: Boolean): TGetResult; virtual; abstract;
+    procedure InternalClose; virtual; abstract;
+    procedure InternalOpen; virtual; abstract;
+    procedure InternalInitFieldDefs; virtual; abstract;
+    function IsCursorOpen: Boolean; virtual; abstract;
   public
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
@@ -1338,7 +1360,7 @@ type
     property Filtered: Boolean read FFiltered write SetFiltered default False;
     property FilterOptions: TFilterOptions read FFilterOptions write SetFilterOptions;
     property Active: Boolean read GetActive write SetActive default False;
-    property AutoCalcFields: Boolean read FAutoCalcFields write FAutoCalcFields;
+    property AutoCalcFields: Boolean read FAutoCalcFields write FAutoCalcFields default true;
     property BeforeOpen: TDataSetNotifyEvent read FBeforeOpen write FBeforeOpen;
     property AfterOpen: TDataSetNotifyEvent read FAfterOpen write FAfterOpen;
     property BeforeClose: TDataSetNotifyEvent read FBeforeClose write FBeforeClose;
@@ -1409,6 +1431,8 @@ type
     destructor Destroy; override;
     function  Edit: Boolean;
     procedure UpdateRecord;
+    function ExecuteAction(Action: TBasicAction): Boolean; virtual;
+    function UpdateAction(Action: TBasicAction): Boolean; virtual;
     property Active: Boolean read FActive;
     property ActiveRecord: Integer read GetActiveRecord write SetActiveRecord;
     property BOF: Boolean read GetBOF;
@@ -1618,6 +1642,7 @@ type
     procedure UnRegisterTransaction(TA : TDBTransaction);
     procedure RemoveDataSets;
     procedure RemoveTransactions;
+    procedure SetParams(AValue: TStrings);
   protected
     Procedure CheckConnected;
     Procedure CheckDisConnected;
@@ -1644,7 +1669,7 @@ type
     property Connected: Boolean read FConnected write SetConnected;
     property DatabaseName: string read FDatabaseName write FDatabaseName;
     property KeepConnection: Boolean read FKeepConnection write FKeepConnection;
-    property Params : TStrings read FParams Write FParams;
+    property Params : TStrings read FParams Write SetParams;
   end;
 
 
@@ -2040,7 +2065,12 @@ procedure TDefCollection.SetItemName(AItem: TCollectionItem);
 begin
   with AItem as TNamedItem do
     if Name = '' then
-      Name := Dataset.Name + Copy(ClassName, 2, 5) + IntToStr(ID+1)
+      begin
+      if assigned(Dataset) then
+        Name := Dataset.Name + Copy(ClassName, 2, 5) + IntToStr(ID+1)
+      else
+        Name := Copy(ClassName, 2, 5) + IntToStr(ID+1);
+      end
   else inherited SetItemName(AItem);
 end;
 
@@ -2288,14 +2318,14 @@ end;
 constructor TLookupList.Create;
 
 begin
-  FList := TList.Create;
+  FList := TFPList.Create;
 end;
 
 destructor TLookupList.Destroy;
 
 begin
-  if FList <> nil then Clear;
-  FList.Free;
+  Clear;
+  FList.Destroy;
   inherited Destroy;
 end;
 
@@ -2314,6 +2344,20 @@ var i: integer;
 begin
   for i := 0 to FList.Count - 1 do Dispose(PLookupListRec(FList[i]));
   FList.Clear;
+end;
+
+function TLookupList.FirstKeyByValue(const AValue: Variant): Variant;
+var
+  i: Integer;
+begin
+  for i := 0 to FList.Count - 1 do
+    with PLookupListRec(FList[i])^ do
+      if Value = AValue then
+        begin
+        Result := Key;
+        exit;
+        end;
+  Result := Null;
 end;
 
 function TLookupList.ValueOfKey(const AKey: Variant): Variant;
@@ -2342,10 +2386,23 @@ begin
   if VarIsNull(AKey) then Exit;
   i := FList.Count - 1;
   if VarIsArray(AKey) then
-    while (i > 0) And not VarArraySameValues(PLookupListRec(FList.Items[I])^.Key,AKey) do Dec(i)
+    while (i >= 0) And not VarArraySameValues(PLookupListRec(FList.Items[I])^.Key,AKey) do Dec(i)
   else
-    while (i > 0) And (PLookupListRec(FList.Items[I])^.Key <> AKey) do Dec(i);
+    while (i >= 0) And (PLookupListRec(FList.Items[I])^.Key <> AKey) do Dec(i);
   if i >= 0 then Result := PLookupListRec(FList.Items[I])^.Value;
+end;
+
+procedure TLookupList.ValuesToStrings(AStrings: TStrings);
+var
+  i: Integer;
+  p: PLookupListRec;
+begin
+  AStrings.Clear;
+  for i := 0 to FList.Count - 1 do
+    begin
+    p := PLookupListRec(FList[i]);
+    AStrings.AddObject(p^.Value, TObject(p));
+    end;
 end;
 
 procedure DisposeMem(var Buffer; Size: Integer);

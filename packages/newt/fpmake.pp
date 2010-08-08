@@ -18,6 +18,7 @@ begin
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
     P.SourcePath.Add('src');
+    P.OSes:=[Linux];
 
     T:=P.Targets.AddUnit('newt.pp');
 

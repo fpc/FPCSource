@@ -376,3 +376,4 @@ data_start:
     .comm operatingsystem_parameter_argv, 8
     .comm operatingsystem_parameter_envp, 8
 
+.section .note.GNU-stack,"",%progbits

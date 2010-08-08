@@ -4,13 +4,13 @@
 
 [package]
 name=cdrom
-version=2.2.2
+version=2.5.1
 
 [target]
-units=cdrom discid
+units=cdrom discid fpcddb
 implicitunits_win32=scsidefs wnaspi32 cdromioctl wincd
 implicitunits_linux=major lincd
-examples=showcds getdiscid
+exampledirs=examples
 
 [install]
 fpcpackage=y

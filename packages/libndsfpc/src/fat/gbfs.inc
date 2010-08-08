@@ -45,7 +45,7 @@
 {$define GBFS_SPACE(filename, kbytes) := filename: array [(kbytes)*1024 - 1] of char = 'PinEightGBFSSpace-' + filename + '-' + kbytes}
 
 type
-  GBFS_FILE = packed record
+  GBFS_FILE = record
     magic: array [0..15] of char;   // "PinEightGBFS\r\n\032\n" 
     total_len: cuint32;              // total length of archive
     dir_off: cuint16;               // offset in bytes to directory 
@@ -54,7 +54,7 @@ type
   end;
   PGBFS_FILE = ^GBFS_FILE;
 
-  GBFS_ENTRY = packed record
+  GBFS_ENTRY = record
     name: array [0..23] of char;      // filename, nul-padded
     len: cuint32;                     // length of object in bytes 
     data_offset: cuint32;             // in bytes from beginning of file

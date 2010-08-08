@@ -23,22 +23,22 @@
 (*
  * Constructor and destructor.
  *)
-function xmlDictCreate: xmlDictPtr; XMLCALL; XMLPUBFUN;
-function xmlDictCreateSub(sub: xmlDictPtr): xmlDictPtr; XMLCALL; XMLPUBFUN;
-function xmlDictReference(dict: xmlDictPtr): cint; XMLCALL; XMLPUBFUN;
-procedure xmlDictFree(dict: xmlDictPtr); XMLCALL; XMLPUBFUN;
+function xmlDictCreate: xmlDictPtr; EXTDECL; external xml2lib;
+function xmlDictCreateSub(sub: xmlDictPtr): xmlDictPtr; EXTDECL; external xml2lib;
+function xmlDictReference(dict: xmlDictPtr): cint; EXTDECL; external xml2lib;
+procedure xmlDictFree(dict: xmlDictPtr); EXTDECL; external xml2lib;
 
 (*
  * Lookup of entry in the dictionnary.
  *)
-function xmlDictLookup(dict: xmlDictPtr; name: xmlCharPtr; len: cint): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlDictExists(dict: xmlDictPtr; name: xmlCharPtr; len: cint): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlDictQLookup(dict: xmlDictPtr; prefix, name: xmlCharPtr): xmlCharPtr; XMLCALL; XMLPUBFUN;
-function xmlDictOwns(dict: xmlDictPtr; str: xmlCharPtr): cint; XMLCALL; XMLPUBFUN;
-function xmlDictOwns(dict: xmlDictPtr): cint; XMLCALL; XMLPUBFUN;
+function xmlDictLookup(dict: xmlDictPtr; name: xmlCharPtr; len: cint): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlDictExists(dict: xmlDictPtr; name: xmlCharPtr; len: cint): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlDictQLookup(dict: xmlDictPtr; prefix, name: xmlCharPtr): xmlCharPtr; EXTDECL; external xml2lib;
+function xmlDictOwns(dict: xmlDictPtr; str: xmlCharPtr): cint; EXTDECL; external xml2lib;
+function xmlDictOwns(dict: xmlDictPtr): cint; EXTDECL; external xml2lib;
 
 (*
  * Cleanup function
  *)
-procedure xmlDictCleanup; XMLCALL; XMLPUBFUN;
+procedure xmlDictCleanup; EXTDECL; external xml2lib;
 {$ENDIF}

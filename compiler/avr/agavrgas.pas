@@ -168,7 +168,7 @@ unit agavrgas;
             idtxt  : 'AS';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM';
-            supported_target : system_any;
+            supported_targets : [system_avr_embedded];
             flags : [af_allowdirect,af_needar,af_smartlink_sections];
             labelprefix : '.L';
             comment : '# ';

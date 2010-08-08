@@ -14,12 +14,15 @@
  **********************************************************************}
 program FP;
 
-{$ifdef IncRes}
 {$ifdef Windows}
+{ some windows versions, namely at least XP x64 don't like if the IDE stack
+  is too big }
+{$maxstacksize 3000000}
+{$ifdef IncRes}
 {$R fpw32t.rc}
 {$R fpw32ico.rc}
-{$endif Windows}
 {$endif IncRes}
+{$endif Windows}
 
 {$I globdir.inc}
 (**********************************************************************)
@@ -34,7 +37,11 @@ uses
 {$endif Windows}
 {$ifndef NODEBUG}
 {$ifdef Windows}
-  fpcygwin,
+  {$ifdef USE_MINGW_GDB}
+    fpmingw,
+  {$else}
+    fpcygwin, 
+  {$endif}
 {$endif Windows}
 {$endif NODEBUG}
 {$ifdef IDEHeapTrc}
@@ -351,8 +358,10 @@ BEGIN
 {$ifndef NODEBUG}
   writeln(bullet+' GDB Version '+GDBVersion);
  {$ifdef Windows}
+  {$ifndef USE_MINGW_GDB}
    writeln(bullet+' Cygwin "',GetCygwinFullName,'" version ',GetCygwinVersionString);
    CheckCygwinVersion;
+  {$endif}
  {$endif Windows}
 {$endif NODEBUG}
 

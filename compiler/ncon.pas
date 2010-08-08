@@ -135,6 +135,7 @@ interface
           function getpcharcopy : pchar;
           function docompare(p: tnode) : boolean; override;
           procedure changestringtype(def:tdef);
+          function fullcompare(p: tstringconstnode): longint;
        end;
        tstringconstnodeclass = class of tstringconstnode;
 
@@ -191,6 +192,7 @@ interface
 
     { some helper routines }
     function get_ordinal_value(p : tnode) : TConstExprInt;
+    function get_string_value(p : tnode; def: tstringdef) : tstringconstnode;
     function is_constresourcestringnode(p : tnode) : boolean;
     function is_emptyset(p : tnode):boolean;
     function genconstsymtree(p : tconstsym) : tnode;
@@ -199,7 +201,7 @@ implementation
 
     uses
       cutils,
-      verbose,systems,
+      verbose,systems,sysutils,
       defutil,
       cpubase,cgbase,
       nld;
@@ -236,6 +238,34 @@ implementation
           Message(type_e_constant_expr_expected);
       end;
 
+    function get_string_value(p: tnode; def: tstringdef): tstringconstnode;
+      var
+        stringVal: string;
+        pWideStringVal: pcompilerwidestring;
+      begin
+        if is_constcharnode(p) then
+          begin
+            SetLength(stringVal,1);
+            stringVal[1]:=char(tordconstnode(p).value.uvalue);
+            result:=cstringconstnode.createstr(stringVal);
+          end
+        else if is_constwidecharnode(p) then
+          begin
+            initwidestring(pWideStringVal);
+            concatwidestringchar(pWideStringVal, tcompilerwidechar(tordconstnode(p).value.uvalue));
+            result:=cstringconstnode.createwstr(pWideStringVal);
+          end
+        else if is_conststringnode(p) then
+          result:=tstringconstnode(p.getcopy)
+        else
+          begin
+            Message(type_e_string_expr_expected);
+            stringVal:='';
+            result:=cstringconstnode.createstr(stringVal);
+          end;
+        result.changestringtype(def);
+      end;
+
 
     function is_constresourcestringnode(p : tnode) : boolean;
       begin
@@ -261,15 +291,26 @@ implementation
         p1:=nil;
         case p.consttyp of
           constord :
-            p1:=cordconstnode.create(p.value.valueord,p.constdef,true);
+            begin
+              if p.constdef=nil then
+                internalerror(200403232);
+              p1:=cordconstnode.create(p.value.valueord,p.constdef,true);
+            end;
           conststring :
             begin
               len:=p.value.len;
+              if not(cs_ansistrings in current_settings.localswitches) and (len>255) then
+                begin
+                  message(parser_e_string_const_too_long);
+                  len:=255;
+                end;
               getmem(pc,len+1);
               move(pchar(p.value.valueptr)^,pc^,len);
               pc[len]:=#0;
               p1:=cstringconstnode.createpchar(pc,len);
             end;
+          constwstring :
+            p1:=cstringconstnode.createwstr(pcompilerwidestring(p.value.valueptr));
           constreal :
             p1:=crealconstnode.create(pbestreal(p.value.valueptr)^,pbestrealtype^);
           constset :
@@ -278,6 +319,8 @@ implementation
             p1:=cpointerconstnode.create(p.value.valueordptr,p.constdef);
           constnil :
             p1:=cnilnode.create;
+          constguid :
+            p1:=cguidconstnode.create(pguid(p.value.valueptr)^);
           else
             internalerror(200205103);
         end;
@@ -779,6 +822,7 @@ implementation
     constructor tstringconstnode.ppuload(t:tnodetype;ppufile:tcompilerppufile);
       var
         pw : pcompilerwidestring;
+        i : longint;
       begin
         inherited ppuload(t,ppufile);
         cst_type:=tconststringtype(ppufile.getbyte);
@@ -787,7 +831,18 @@ implementation
           begin
             initwidestring(pw);
             setlengthwidestring(pw,len);
-            ppufile.getdata(pw^.data,pw^.len*sizeof(tcompilerwidechar));
+            { don't use getdata, because the compilerwidechars may have to
+              be byteswapped
+            }
+{$if sizeof(tcompilerwidechar) = 2}
+            for i:=0 to pw^.len-1 do
+              pw^.data[i]:=ppufile.getword;
+{$elseif sizeof(tcompilerwidechar) = 4}
+            for i:=0 to pw^.len-1 do
+              pw^.data[i]:=cardinal(ppufile.getlongint);
+{$else}
+           {$error Unsupported tcompilerwidechar size}
+{$endif}
             pcompilerwidestring(value_str):=pw
           end
         else
@@ -806,7 +861,7 @@ implementation
         ppufile.putbyte(byte(cst_type));
         ppufile.putlongint(len);
         if cst_type in [cst_widestring,cst_unicodestring] then
-          ppufile.putdata(pcompilerwidestring(value_str)^.data,len*sizeof(tcompilerwidechar))
+          ppufile.putdata(pcompilerwidestring(value_str)^.data^,len*sizeof(tcompilerwidechar))
         else
           ppufile.putdata(value_str^,len);
         ppufile.putasmsymbol(lab_str);
@@ -948,6 +1003,15 @@ implementation
         resultdef:=def;
       end;
 
+    function tstringconstnode.fullcompare(p: tstringconstnode): longint;
+      begin
+        if cst_type<>p.cst_type then
+          InternalError(2009121701);
+        if cst_type in [cst_widestring,cst_unicodestring] then
+          result:=comparewidestrings(pcompilerwidestring(value_str),pcompilerwidestring(p.value_str))
+        else
+          result:=compareansistrings(value_str,p.value_str,len,p.len);
+      end;
 
 {*****************************************************************************
                              TSETCONSTNODE

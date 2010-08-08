@@ -87,6 +87,7 @@ uses
       OT_REG32     = $00201004;
       OT_REG64     = $00201008;
       OT_VREG      = $00201010;  { vector register }
+      OT_REGF      = $00201020;  { coproc register }
       OT_MEMORY    = $00204000;  { register number in 'basereg'  }
       OT_MEM8      = $00204001;
       OT_MEM16     = $00204002;
@@ -102,6 +103,8 @@ uses
       { co proc. ld/st operations }
       OT_AM5       = $00080000;
       OT_AMMASK    = $000f0000;
+      { IT instruction }
+      OT_CONDITION = $00100000;
 
       OT_MEMORYAM2 = OT_MEMORY or OT_AM2;
       OT_MEMORYAM3 = OT_MEMORY or OT_AM3;
@@ -157,7 +160,8 @@ uses
          oppostfix : TOpPostfix;
          roundingmode : troundingmode;
          procedure loadshifterop(opidx:longint;const so:tshifterop);
-         procedure loadregset(opidx:longint;const s:tcpuregisterset);
+         procedure loadregset(opidx:longint; regsetregtype: tregistertype; regsetsubregtype: tsubregister; const s:tcpuregisterset);
+         procedure loadconditioncode(opidx:longint;const cond:tasmcond);
          constructor op_none(op : tasmop);
 
          constructor op_reg(op : tasmop;_op1 : tregister);
@@ -168,7 +172,7 @@ uses
          constructor op_reg_ref(op : tasmop;_op1 : tregister;const _op2 : treference);
          constructor op_reg_const(op:tasmop; _op1: tregister; _op2: aint);
 
-         constructor op_ref_regset(op:tasmop; _op1: treference; _op2: tcpuregisterset);
+         constructor op_ref_regset(op:tasmop; _op1: treference; regtype: tregistertype; subreg: tsubregister; _op2: tcpuregisterset);
 
          constructor op_reg_reg_reg(op : tasmop;_op1,_op2,_op3 : tregister);
          constructor op_reg_reg_const(op : tasmop;_op1,_op2 : tregister; _op3: aint);
@@ -178,6 +182,9 @@ uses
          constructor op_reg_reg_reg_shifterop(op : tasmop;_op1,_op2,_op3 : tregister;_op4 : tshifterop);
          { SFM/LFM }
          constructor op_reg_const_ref(op : tasmop;_op1 : tregister;_op2 : aint;_op3 : treference);
+
+         { ITxxx }
+         constructor op_cond(op: tasmop; cond: tasmcond);
 
          { *M*LL }
          constructor op_reg_reg_reg_reg(op : tasmop;_op1,_op2,_op3,_op4 : tregister);
@@ -228,6 +235,10 @@ uses
         { nothing to add }
       end;
 
+      tai_thumb_func = class(tai)
+        constructor create;
+      end;
+
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
 
@@ -268,7 +279,7 @@ implementation
       end;
 
 
-    procedure taicpu.loadregset(opidx:longint;const s:tcpuregisterset);
+    procedure taicpu.loadregset(opidx:longint; regsetregtype: tregistertype; regsetsubregtype: tsubregister; const s:tcpuregisterset);
       var
         i : byte;
       begin
@@ -276,15 +287,42 @@ implementation
         with oper[opidx]^ do
          begin
            if typ<>top_regset then
-             clearop(opidx);
-           new(regset);
-           regset^:=s;
-           typ:=top_regset;
-           for i:=RS_R0 to RS_R15 do
              begin
-               if assigned(add_reg_instruction_hook) and (i in regset^) then
-                 add_reg_instruction_hook(self,newreg(R_INTREGISTER,i,R_SUBWHOLE));
+               clearop(opidx);
+               new(regset);
              end;
+           regset^:=s;
+           regtyp:=regsetregtype;
+           subreg:=regsetsubregtype;
+           typ:=top_regset;
+           case regsetregtype of
+             R_INTREGISTER:
+               for i:=RS_R0 to RS_R15 do
+                 begin
+                   if assigned(add_reg_instruction_hook) and (i in regset^) then
+                     add_reg_instruction_hook(self,newreg(R_INTREGISTER,i,regsetsubregtype));
+                 end;
+             R_MMREGISTER:
+               { both RS_S0 and RS_D0 range from 0 to 31 }
+               for i:=RS_D0 to RS_D31 do
+                 begin
+                   if assigned(add_reg_instruction_hook) and (i in regset^) then
+                     add_reg_instruction_hook(self,newreg(R_MMREGISTER,i,regsetsubregtype));
+                 end;
+           end;
+         end;
+      end;
+
+
+    procedure taicpu.loadconditioncode(opidx:longint;const cond:tasmcond);
+      begin
+        allocate_oper(opidx+1);
+        with oper[opidx]^ do
+         begin
+           if typ<>top_conditioncode then
+             clearop(opidx);
+           cc:=cond;
+           typ:=top_conditioncode;
          end;
       end;
 
@@ -342,12 +380,12 @@ implementation
       end;
 
 
-    constructor taicpu.op_ref_regset(op:tasmop; _op1: treference; _op2: tcpuregisterset);
+    constructor taicpu.op_ref_regset(op:tasmop; _op1: treference; regtype: tregistertype; subreg: tsubregister; _op2: tcpuregisterset);
       begin
          inherited create(op);
          ops:=2;
          loadref(0,_op1);
-         loadregset(1,_op2);
+         loadregset(1,regtype,subreg,_op2);
       end;
 
 
@@ -398,6 +436,14 @@ implementation
          loadreg(0,_op1);
          loadconst(1,_op2);
          loadref(2,_op3);
+      end;
+
+
+    constructor taicpu.op_cond(op: tasmop; cond: tasmcond);
+      begin
+        inherited create(op);
+        ops:=0;
+        condition := cond;
       end;
 
 
@@ -489,7 +535,8 @@ implementation
       begin
         { allow the register allocator to remove unnecessary moves }
         result:=(((opcode=A_MOV) and (regtype = R_INTREGISTER)) or
-                 ((opcode=A_MVF) and (regtype = R_FPUREGISTER) and (oppostfix in [PF_None,PF_D]))
+                 ((opcode=A_MVF) and (regtype = R_FPUREGISTER) and (oppostfix in [PF_None,PF_D])) or
+                 (((opcode=A_FCPYS) or (opcode=A_FCPYD)) and (regtype = R_MMREGISTER))
                 ) and
                 (condition=C_None) and
                 (ops=2) and
@@ -500,6 +547,8 @@ implementation
 
 
     function spilling_create_load(const ref:treference;r:tregister):Taicpu;
+      var
+        op: tasmop;
       begin
         case getregtype(r) of
           R_INTREGISTER :
@@ -509,6 +558,18 @@ implementation
               and avoid exceptions
             }
             result:=taicpu.op_reg_const_ref(A_LFM,r,1,ref);
+          R_MMREGISTER :
+            begin
+              case getsubreg(r) of
+                R_SUBFD:
+                  op:=A_FLDD;
+                R_SUBFS:
+                  op:=A_FLDS;
+                else
+                  internalerror(2009112905);
+              end;
+              result:=taicpu.op_reg_ref(op,r,ref);
+            end;
           else
             internalerror(200401041);
         end;
@@ -516,6 +577,8 @@ implementation
 
 
     function spilling_create_store(r:tregister; const ref:treference):Taicpu;
+      var
+        op: tasmop;
       begin
         case getregtype(r) of
           R_INTREGISTER :
@@ -525,6 +588,18 @@ implementation
               and avoid exceptions
             }
             result:=taicpu.op_reg_const_ref(A_SFM,r,1,ref);
+          R_MMREGISTER :
+            begin
+              case getsubreg(r) of
+                R_SUBFD:
+                  op:=A_FSTD;
+                R_SUBFS:
+                  op:=A_FSTS;
+                else
+                  internalerror(2009112904);
+              end;
+              result:=taicpu.op_reg_ref(op,r,ref);
+            end;
           else
             internalerror(200401041);
         end;
@@ -546,33 +621,63 @@ implementation
           A_RFS,A_RFC,A_RDF,
           A_RMF,A_RPW,A_RSF,A_SUF,A_ABS,A_ACS,A_ASN,A_ATN,A_COS,
           A_EXP,A_LOG,A_LGN,A_MVF,A_MNF,A_FRD,A_MUF,A_POL,A_RND,A_SIN,A_SQT,A_TAN,
-          A_LFM:
+          A_LFM,
+          A_FLDS,A_FLDD,
+          A_FMRX,A_FMXR,A_FMSTAT,
+          A_FMSR,A_FMRS,A_FMDRR,
+          A_FCPYS,A_FCPYD,A_FCVTSD,A_FCVTDS,
+          A_FABSS,A_FABSD,A_FSQRTS,A_FSQRTD,A_FMULS,A_FMULD,
+          A_FADDS,A_FADDD,A_FSUBS,A_FSUBD,A_FDIVS,A_FDIVD,
+          A_FMACS,A_FMACD,A_FMSCS,A_FMSCD,A_FNMACS,A_FNMACD,
+          A_FNMSCS,A_FNMSCD,A_FNMULS,A_FNMULD,
+          A_FMDHR,A_FMRDH,A_FMDLR,A_FMRDL,
+          A_FNEGS,A_FNEGD,
+          A_FSITOS,A_FSITOD,A_FTOSIS,A_FTOSID,
+          A_FTOUIS,A_FTOUID,A_FUITOS,A_FUITOD:
             if opnr=0 then
               result:=operand_write
             else
               result:=operand_read;
           A_BIC,A_BKPT,A_B,A_BL,A_BLX,A_BX,
           A_CMN,A_CMP,A_TEQ,A_TST,
-          A_CMF,A_CMFE,A_WFS,A_CNF:
+          A_CMF,A_CMFE,A_WFS,A_CNF,
+          A_FCMPS,A_FCMPD,A_FCMPES,A_FCMPED,A_FCMPEZS,A_FCMPEZD,
+          A_FCMPZS,A_FCMPZD:
             result:=operand_read;
           A_SMLAL,A_UMLAL:
             if opnr in [0,1] then
               result:=operand_readwrite
             else
               result:=operand_read;
-           A_SMULL,A_UMULL:
+           A_SMULL,A_UMULL,
+           A_FMRRD:
             if opnr in [0,1] then
               result:=operand_write
             else
               result:=operand_read;
           A_STR,A_STRB,A_STRBT,
-          A_STRH,A_STRT,A_STF,A_SFM:
+          A_STRH,A_STRT,A_STF,A_SFM,
+          A_FSTS,A_FSTD:
             { important is what happens with the involved registers }
             if opnr=0 then
               result := operand_read
             else
               { check for pre/post indexed }
               result := operand_read;
+          //Thumb2
+          A_LSL, A_LSR, A_ROR, A_ASR, A_SDIV, A_UDIV,A_MOVT:
+            if opnr in [0] then
+              result:=operand_write
+            else
+              result:=operand_read;
+          A_LDREX:
+            if opnr in [0] then
+              result:=operand_write
+            else
+              result:=operand_read;
+          A_STREX:
+            if opnr in [0,1,2] then
+              result:=operand_write;
           else
             internalerror(200403151);
         end;
@@ -633,11 +738,51 @@ implementation
       end;
 
 
+    Function SimpleGetNextInstruction(Current: tai; Var Next: tai): Boolean;
+      Begin
+        Current:=tai(Current.Next);
+        While Assigned(Current) And (Current.typ In SkipInstr) Do
+          Current:=tai(Current.Next);
+        Next:=Current;
+        If Assigned(Next) And Not(Next.typ In SkipInstr) Then
+           Result:=True
+          Else
+            Begin
+              Next:=Nil;
+              Result:=False;
+            End;
+      End;
+
+
+(*
+    function armconstequal(hp1,hp2: tai): boolean;
+      begin
+        result:=false;
+        if hp1.typ<>hp2.typ then
+          exit;
+        case hp1.typ of
+          tai_const:
+            result:=
+              (tai_const(hp2).sym=tai_const(hp).sym) and
+              (tai_const(hp2).value=tai_const(hp).value) and
+              (tai(hp2.previous).typ=ait_label);
+            tai_const:
+              result:=
+                (tai_const(hp2).sym=tai_const(hp).sym) and
+                (tai_const(hp2).value=tai_const(hp).value) and
+                (tai(hp2.previous).typ=ait_label);
+        end;
+      end;
+*)
+
     procedure insertpcrelativedata(list,listtoinsert : TAsmList);
       var
-        curpos,
+        curinspos,
         penalty,
-        lastpos : longint;
+        lastinspos,
+        { increased for every data element > 4 bytes inserted }
+        extradataoffset,
+        limit: longint;
         curop : longint;
         curtai : tai;
         curdatatai,hp,hp2 : tai;
@@ -647,81 +792,120 @@ implementation
         removeref : boolean;
       begin
         curdata:=TAsmList.create;
-        lastpos:=-1;
-        curpos:=0;
+        lastinspos:=-1;
+        curinspos:=0;
+        extradataoffset:=0;
+        limit:=1016;
         curtai:=tai(list.first);
         doinsert:=false;
         while assigned(curtai) do
           begin
             { instruction? }
-            if curtai.typ=ait_instruction then
-              begin
-                { walk through all operand of the instruction }
-                for curop:=0 to taicpu(curtai).ops-1 do
-                  begin
-                    { reference? }
-                    if (taicpu(curtai).oper[curop]^.typ=top_ref) then
-                      begin
-                        { pc relative symbol? }
-                        curdatatai:=tai(taicpu(curtai).oper[curop]^.ref^.symboldata);
-                        if assigned(curdatatai) and
-                          { move only if we're at the first reference of a label }
-                          (taicpu(curtai).oper[curop]^.ref^.offset=0) then
-                          begin
-                            { check if symbol already used. }
-                            { if yes, reuse the symbol }
-                            hp:=tai(curdatatai.next);
-                            removeref:=false;
-                            if assigned(hp) and (hp.typ=ait_const) then
-                              begin
-                                hp2:=tai(curdata.first);
-                                while assigned(hp2) do
-                                  begin
-                                    if (hp2.typ=ait_const) and (tai_const(hp2).sym=tai_const(hp).sym)
-                                      and (tai_const(hp2).value=tai_const(hp).value) and (tai(hp2.previous).typ=ait_label)
-                                    then
-                                      begin
-                                        with taicpu(curtai).oper[curop]^.ref^ do
-                                          begin
-                                            symboldata:=hp2.previous;
-                                            symbol:=tai_label(hp2.previous).labsym;
-                                          end;
-                                        removeref:=true;
-                                        break;
-                                      end;
-                                    hp2:=tai(hp2.next);
-                                  end;
-                              end;
-                            { move or remove symbol reference }
-                            repeat
+            case curtai.typ of
+              ait_instruction:
+                begin
+                  { walk through all operand of the instruction }
+                  for curop:=0 to taicpu(curtai).ops-1 do
+                    begin
+                      { reference? }
+                      if (taicpu(curtai).oper[curop]^.typ=top_ref) then
+                        begin
+                          { pc relative symbol? }
+                          curdatatai:=tai(taicpu(curtai).oper[curop]^.ref^.symboldata);
+                          if assigned(curdatatai) and
+                            { move only if we're at the first reference of a label }
+                            (taicpu(curtai).oper[curop]^.ref^.offset=0) then
+                            begin
+                              { check if symbol already used. }
+                              { if yes, reuse the symbol }
                               hp:=tai(curdatatai.next);
-                              listtoinsert.remove(curdatatai);
-                              if removeref then
-                                curdatatai.free
-                              else
-                                curdata.concat(curdatatai);
-                              curdatatai:=hp;
-                            until (curdatatai=nil) or (curdatatai.typ=ait_label);
-                            if lastpos=-1 then
-                              lastpos:=curpos;
-                          end;
-                      end;
-                  end;
-                inc(curpos);
-              end
-            else
-              if curtai.typ=ait_const then
-                inc(curpos);
-
+                              removeref:=false;
+                              if assigned(hp) then
+                                begin
+                                  case hp.typ of
+                                    ait_const:
+                                      begin
+                                        if (tai_const(hp).consttype=aitconst_64bit) then
+                                          inc(extradataoffset);
+                                      end;
+                                    ait_comp_64bit,
+                                    ait_real_64bit:
+                                      begin
+                                        inc(extradataoffset);
+                                      end;
+                                    ait_real_80bit:
+                                      begin
+                                        inc(extradataoffset,2);
+                                      end;
+                                  end;
+                                  if (hp.typ=ait_const) then
+                                    begin
+                                      hp2:=tai(curdata.first);
+                                      while assigned(hp2) do
+                                        begin
+    {                                      if armconstequal(hp2,hp) then }
+                                          if (hp2.typ=ait_const) and (tai_const(hp2).sym=tai_const(hp).sym)
+                                            and (tai_const(hp2).value=tai_const(hp).value) and (tai(hp2.previous).typ=ait_label)
+                                          then
+                                            begin
+                                              with taicpu(curtai).oper[curop]^.ref^ do
+                                                begin
+                                                  symboldata:=hp2.previous;
+                                                  symbol:=tai_label(hp2.previous).labsym;
+                                                end;
+                                              removeref:=true;
+                                              break;
+                                            end;
+                                          hp2:=tai(hp2.next);
+                                        end;
+                                    end;
+                                end;
+                              { move or remove symbol reference }
+                              repeat
+                                hp:=tai(curdatatai.next);
+                                listtoinsert.remove(curdatatai);
+                                if removeref then
+                                  curdatatai.free
+                                else
+                                  curdata.concat(curdatatai);
+                                curdatatai:=hp;
+                              until (curdatatai=nil) or (curdatatai.typ=ait_label);
+                              if lastinspos=-1 then
+                                lastinspos:=curinspos;
+                            end;
+                        end;
+                    end;
+                  inc(curinspos);
+                end;
+              ait_const:
+                begin
+                  inc(curinspos);
+                  if (tai_const(curtai).consttype=aitconst_64bit) then
+                    inc(curinspos);
+                end;
+              ait_real_32bit:
+                begin
+                  inc(curinspos);
+                end;
+              ait_comp_64bit,
+              ait_real_64bit:
+                begin
+                  inc(curinspos,2);
+                end;
+              ait_real_80bit:
+                begin
+                  inc(curinspos,3);
+                end;
+            end;
             { special case for case jump tables }
-            if assigned(curtai.next) and
-              (taicpu(curtai.next).typ=ait_instruction) and
-              (taicpu(curtai.next).opcode=A_LDR) and
-              (taicpu(curtai.next).oper[0]^.typ=top_reg) and
-              (taicpu(curtai.next).oper[0]^.reg=NR_PC) then
+            if SimpleGetNextInstruction(curtai,hp) and
+              (tai(hp).typ=ait_instruction) and
+              (taicpu(hp).opcode=A_LDR) and
+              (taicpu(hp).oper[0]^.typ=top_reg) and
+              (taicpu(hp).oper[0]^.reg=NR_PC) then
               begin
                 penalty:=1;
-                hp:=tai(curtai.next.next);
+                hp:=tai(hp.next);
                 while assigned(hp) and (hp.typ=ait_const) do
                   begin
                     inc(penalty);
@@ -731,8 +915,16 @@ implementation
             else
               penalty:=0;
 
+            { FLD/FST VFP instructions have a limit of +/- 1024, not 4096 }
+            if SimpleGetNextInstruction(curtai,hp) and
+               (tai(hp).typ=ait_instruction) and
+               ((taicpu(hp).opcode=A_FLDS) or
+                (taicpu(hp).opcode=A_FLDD)) then
+              limit:=254;
+
             { don't miss an insert }
-            doinsert:=doinsert or (curpos-lastpos+penalty>1016);
+            doinsert:=doinsert or
+              (curinspos-lastinspos+penalty+extradataoffset>limit);
 
             { split only at real instructions else the test below fails }
             if doinsert and (curtai.typ=ait_instruction) and
@@ -747,7 +939,9 @@ implementation
                    )
               ) then
               begin
-                lastpos:=curpos;
+                lastinspos:=curinspos;
+                extradataoffset:=0;
+                limit:=1016;
                 doinsert:=false;
                 hp:=tai(curtai.next);
                 current_asmdata.getjumplabel(l);
@@ -2498,6 +2692,12 @@ static char *CC[] =
 
 *)
 {$endif dummy}
+
+  constructor tai_thumb_func.create;
+    begin
+      inherited create;
+      typ:=ait_thumb_func;
+    end;
 
 begin
   cai_align:=tai_align;

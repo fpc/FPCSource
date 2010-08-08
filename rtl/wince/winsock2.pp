@@ -726,7 +726,7 @@ Const
         SG_UNCONSTRAINED_GROUP = $01;
         SG_CONSTRAINED_GROUP = $02;
 Type
-        GROUP = Word;
+        GROUP = u_int;
 
 {       WinSock 2 extension -- data type for WSAEnumNetworkEvents() }
         TWSANetworkEvents = record

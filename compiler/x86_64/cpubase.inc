@@ -104,14 +104,21 @@ const
       { Results are returned in this register (both 32 and 64 bits }
       NR_FUNCTION_RETURN_REG = NR_RAX;
       RS_FUNCTION_RETURN_REG = RS_RAX;
+      NR_FUNCTION_RETURN_REG_HIGH = NR_RDX;
+      RS_FUNCTION_RETURN_REG_HIGH = RS_RDX;
       { The value returned from a function is available in this register }
       NR_FUNCTION_RESULT_REG = NR_FUNCTION_RETURN_REG;
       RS_FUNCTION_RESULT_REG = RS_FUNCTION_RETURN_REG;
+      NR_FUNCTION_RESULT_REG_HIGH = NR_FUNCTION_RETURN_REG_HIGH;
+      RS_FUNCTION_RESULT_REG_HIGH = RS_FUNCTION_RETURN_REG_HIGH;
 
       { WARNING: don't change to R_ST0!! See comments above implementation of }
       { a_loadfpu* methods in rgcpu (JM)                                      }
       NR_FPU_RESULT_REG = NR_ST;
       NR_MM_RESULT_REG = NR_XMM0;
+      RS_MM_RESULT_REG = RS_XMM0;
+      NR_MM_RESULT_REG_HIGH = NR_XMM1;
+      RS_MM_RESULT_REG_HIGH = RS_XMM1;
 
       { Offset where the parent framepointer is pushed }
       PARENT_FRAMEPOINTER_OFFSET = 16;

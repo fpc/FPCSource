@@ -47,10 +47,11 @@ unit cpupi;
          private
           first_save_int_reg, first_save_fpu_reg: tsuperregister;
          public
+          needs_frame_pointer: boolean;
+
           property get_first_save_int_reg: tsuperregister read first_save_int_reg;
           property get_first_save_fpu_reg: tsuperregister read first_save_fpu_reg;
 
-          needs_frame_pointer: boolean;
        end;
 
 

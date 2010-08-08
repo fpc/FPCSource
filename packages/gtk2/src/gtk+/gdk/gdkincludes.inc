@@ -28,4 +28,5 @@
 {$include gdktypes.inc}
 {$include gdkvisual.inc}
 {$include gdkwindow.inc}
+{$include gdkcairo.inc}
 

@@ -21,12 +21,12 @@ uses
 {$linklib sysbase}
 
 {$define NDS_INTERFACE}
-{$include dswifi9.inc}
+{$include inc/dswifi9.inc}
 {$undef NDS_INTERFACE}
 
 implementation
 {$define NDS_IMPLEMENTATION}
-{$include dswifi9.inc}
+{$include inc/dswifi9.inc}
 {$undef NDS_IMPLEMENTATION}
 
 end.

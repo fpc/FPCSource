@@ -17,6 +17,7 @@ unit sysutils;
 interface
 
 {$MODE objfpc}
+{$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
 
@@ -66,23 +67,185 @@ implementation
 Uses
   {$ifdef FPC_USE_LIBC}initc{$ELSE}Syscall{$ENDIF}, Baseunix, unixutil;
 
-function InquireSignal(RtlSigNum: Integer): TSignalState;
+type
+  tsiginfo = record
+    oldsiginfo: sigactionrec;
+    hooked: boolean;
+  end;
+
+const
+  rtlsig2ossig: array[RTL_SIGINT..RTL_SIGLAST] of byte =
+    (SIGINT,SIGFPE,SIGSEGV,SIGILL,SIGBUS,SIGQUIT);
+  { to avoid linking in all this stuff in every program,
+    as it's unlikely to be used by anything but libraries
+  }
+  signalinfoinited: boolean = false;
+
+var
+  siginfo: array[RTL_SIGINT..RTL_SIGLAST] of tsiginfo;
+  oldsigfpe: SigActionRec; external name '_FPC_OLDSIGFPE';
+  oldsigsegv: SigActionRec; external name '_FPC_OLDSIGSEGV';
+  oldsigbus: SigActionRec; external name '_FPC_OLDSIGBUS';
+  oldsigill: SigActionRec; external name '_FPC_OLDSIGILL';
+
+
+procedure defaultsighandler; external name '_FPC_DEFAULTSIGHANDLER';
+procedure installdefaultsignalhandler(signum: Integer; out oldact: SigActionRec); external name '_FPC_INSTALLDEFAULTSIGHANDLER';
+
+
+function InternalInquireSignal(RtlSigNum: Integer; out act: SigActionRec; frominit: boolean): TSignalState;
   begin
+    result:=ssNotHooked;
+    if (RtlSigNum<>RTL_SIGDEFAULT) and
+       (RtlSigNum<RTL_SIGLAST) then
+      begin
+        if (frominit or
+            siginfo[RtlSigNum].hooked) and
+           (fpsigaction(rtlsig2ossig[RtlSigNum],nil,@act)=0) then
+          begin
+            if not frominit then
+              begin
+                { check whether the installed signal handler is still ours }
+                if (pointer(act.sa_handler)=pointer(@defaultsighandler)) then
+                  result:=ssHooked
+                else
+                  result:=ssOverridden;
+              end
+            else if IsLibrary then
+              begin
+                { library -> signals have not been hooked by system init code }
+                exit
+              end
+            else
+              begin
+                { program -> signals have been hooked by system init code }
+                if (byte(RtlSigNum) in [RTL_SIGFPE,RTL_SIGSEGV,RTL_SIGILL,RTL_SIGBUS]) then
+                  begin
+                    if (pointer(act.sa_handler)=pointer(@defaultsighandler)) then
+                      result:=ssHooked
+                    else
+                      result:=ssOverridden;
+                    { return the original handlers as saved by the system unit
+                      (the current call to sigaction simply returned our
+                       system unit's installed handlers)
+                    }
+                    case RtlSigNum of
+                      RTL_SIGFPE:
+                        act:=oldsigfpe;
+                      RTL_SIGSEGV:
+                        act:=oldsigsegv;
+                      RTL_SIGILL:
+                        act:=oldsigill;
+                      RTL_SIGBUS:
+                        act:=oldsigbus;
+                    end;
+                  end
+                else
+                  begin
+                    { these are not hooked in the startup code }
+                    result:=ssNotHooked;
+                  end
+              end
+          end
+      end;
+  end;
+
+
+procedure initsignalinfo;
+  var
+    i: Integer;
+  begin
+    for i:=RTL_SIGINT to RTL_SIGLAST do
+      siginfo[i].hooked:=(InternalInquireSignal(i,siginfo[i].oldsiginfo,true)=ssHooked);
+    signalinfoinited:=true;
+  end;
+
+
+function InquireSignal(RtlSigNum: Integer): TSignalState;
+  var
+    act: SigActionRec;
+  begin
+    if not signalinfoinited then
+      initsignalinfo;
+    result:=InternalInquireSignal(RtlSigNum,act,false);
   end;
 
 
 procedure AbandonSignalHandler(RtlSigNum: Integer);
   begin
+    if not signalinfoinited then
+      initsignalinfo;
+    if (RtlSigNum<>RTL_SIGDEFAULT) and
+       (RtlSigNum<RTL_SIGLAST) then
+      siginfo[RtlSigNum].hooked:=false;
   end;
 
 
 procedure HookSignal(RtlSigNum: Integer);
+  var
+    lowsig, highsig, i: Integer;
   begin
+    if not signalinfoinited then
+      initsignalinfo;
+    if (RtlSigNum<>RTL_SIGDEFAULT) then
+      begin
+        lowsig:=RtlSigNum;
+        highsig:=RtlSigNum;
+      end
+    else
+      begin
+        { we don't hook SIGINT and SIGQUIT by default }
+        lowsig:=RTL_SIGFPE;
+        highsig:=RTL_SIGBUS;
+      end;
+    { install the default rtl signal handler for the selected signal(s) }
+    for i:=lowsig to highsig do
+      begin
+        installdefaultsignalhandler(rtlsig2ossig[i],siginfo[i].oldsiginfo);
+        siginfo[i].hooked:=true;
+      end;
   end;
 
 
 procedure UnhookSignal(RtlSigNum: Integer; OnlyIfHooked: Boolean = True);
+  var
+    act: SigActionRec;
+    lowsig, highsig, i: Integer;
+    state: TSignalState;
   begin
+    if not signalinfoinited then
+      initsignalinfo;
+    if (RtlSigNum<>RTL_SIGDEFAULT) then
+      begin
+        lowsig:=RtlSigNum;
+        highsig:=RtlSigNum;
+      end
+    else
+      begin
+        { we don't hook SIGINT and SIGQUIT by default }
+        lowsig:=RTL_SIGFPE;
+        highsig:=RTL_SIGBUS;
+      end;
+    for i:=lowsig to highsig do
+      begin
+        if not OnlyIfHooked or
+           (InquireSignal(i)=ssHooked) then
+          begin
+            { restore the handler that was present when we hooked the signal,
+              if we hooked it at one time or another. If the user doesn't
+              want this, they have to call AbandonSignalHandler() first
+            }
+            if siginfo[i].hooked then
+              act:=siginfo[i].oldsiginfo
+            else
+              begin
+                fillchar(act,sizeof(act),0);
+                pointer(act.sa_handler):=pointer(SIG_DFL);
+              end;
+            if (fpsigaction(rtlsig2ossig[RtlSigNum],@act,nil)=0) then
+              siginfo[i].hooked:=false;
+          end;
+      end;
   end;
 
 {$Define OS_FILEISREADONLY} // Specific implementation for Unix.
@@ -176,47 +339,133 @@ Begin
 End;
 
 
+Function DoFileLocking(Handle: Longint; Mode: Integer) : Longint;
+var
+  lockop: cint;
+  lockres: cint;
+  closeres: cint;
+  lockerr: cint;
+begin
+  DoFileLocking:=Handle;
+{$ifdef beos}
+{$else}
+  if (Handle>=0) then
+    begin
+{$ifdef solaris}
+      { Solaris' flock is based on top of fcntl, which does not allow
+        exclusive locks for files only opened for reading nor shared
+        locks for files opened only for writing.
+        
+        If no locking is specified, we normally need an exclusive lock.
+        So create an exclusive lock for fmOpenWrite and fmOpenReadWrite,
+        but only a shared lock for fmOpenRead (since an exclusive lock
+        is not possible in that case)
+      }
+      if ((mode and (fmShareCompat or fmShareExclusive or fmShareDenyWrite or fmShareDenyRead or fmShareDenyNone)) = 0) then
+        begin
+          if ((mode and (fmOpenRead or fmOpenWrite or fmOpenReadWrite)) = fmOpenRead) then
+            mode := mode or fmShareDenyWrite
+          else
+            mode := mode or fmShareExclusive;
+        end;
+{$endif solaris}
+      case (mode and (fmShareCompat or fmShareExclusive or fmShareDenyWrite or fmShareDenyRead or fmShareDenyNone)) of
+        fmShareCompat,
+        fmShareExclusive:
+          lockop:=LOCK_EX or LOCK_NB;
+        fmShareDenyWrite:
+          lockop:=LOCK_SH or LOCK_NB;
+        fmShareDenyNone:
+          exit;
+        else
+          begin
+            { fmShareDenyRead does not exit under *nix, only shared access
+              (similar to fmShareDenyWrite) and exclusive access (same as
+              fmShareExclusive)
+            }
+            repeat
+              closeres:=FpClose(Handle);
+            until (closeres<>-1) or (fpgeterrno<>ESysEINTR);
+            DoFileLocking:=-1;
+            exit;
+          end;
+      end;
+      repeat
+        lockres:=fpflock(Handle,lockop);
+      until (lockres=0) or
+            (fpgeterrno<>ESysEIntr);
+      lockerr:=fpgeterrno;
+      { Only return an error if locks are working and the file was already
+        locked. Not if locks are simply unsupported (e.g., on Angstrom Linux
+        you always get ESysNOLCK in the default configuration) }
+      if (lockres<>0) and
+         ((lockerr=ESysEAGAIN) or
+          (lockerr=EsysEDEADLK)) then
+        begin
+          repeat
+            closeres:=FpClose(Handle);
+          until (closeres<>-1) or (fpgeterrno<>ESysEINTR);
+          DoFileLocking:=-1;
+          exit;
+        end;
+    end;
+{$endif not beos}
+end;
+
+
 Function FileOpen (Const FileName : string; Mode : Integer) : Longint;
 
-Var LinuxFlags : longint;
-
-BEGIN
+Var
+  LinuxFlags : longint;
+begin
   LinuxFlags:=0;
-  Case (Mode and 3) of
-    0 : LinuxFlags:=LinuxFlags or O_RdOnly;
-    1 : LinuxFlags:=LinuxFlags or O_WrOnly;
-    2 : LinuxFlags:=LinuxFlags or O_RdWr;
+  case (Mode and (fmOpenRead or fmOpenWrite or fmOpenReadWrite)) of
+    fmOpenRead : LinuxFlags:=LinuxFlags or O_RdOnly;
+    fmOpenWrite : LinuxFlags:=LinuxFlags or O_WrOnly;
+    fmOpenReadWrite : LinuxFlags:=LinuxFlags or O_RdWr;
   end;
-  FileOpen:=fpOpen (pointer(FileName),LinuxFlags);
-  //!! We need to set locking based on Mode !!
+
+  repeat
+    FileOpen:=fpOpen (pointer(FileName),LinuxFlags);
+  until (FileOpen<>-1) or (fpgeterrno<>ESysEINTR);
+
+  FileOpen:=DoFileLocking(FileOpen, Mode);
 end;
 
 
 Function FileCreate (Const FileName : String) : Longint;
 
 begin
-  FileCreate:=fpOpen(pointer(FileName),O_RdWr or O_Creat or O_Trunc);
+  repeat
+    FileCreate:=fpOpen(pointer(FileName),O_RdWr or O_Creat or O_Trunc);
+  until (FileCreate<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
 
 Function FileCreate (Const FileName : String;Mode : Longint) : Longint;
 
-BEGIN
-  FileCreate:=fpOpen(pointer(FileName),O_RdWr or O_Creat or O_Trunc,Mode);
+begin
+  repeat
+    FileCreate:=fpOpen(pointer(FileName),O_RdWr or O_Creat or O_Trunc,Mode);
+  until (FileCreate<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
 
-Function FileRead (Handle : Longint; Var Buffer; Count : longint) : Longint;
+Function FileRead (Handle : Longint; out Buffer; Count : longint) : Longint;
 
 begin
-  FileRead:=fpRead (Handle,Buffer,Count);
+  repeat
+    FileRead:=fpRead (Handle,Buffer,Count);
+  until (FileRead<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
 
 Function FileWrite (Handle : Longint; const Buffer; Count : Longint) : Longint;
 
 begin
-  FileWrite:=fpWrite (Handle,Buffer,Count);
+  repeat
+    FileWrite:=fpWrite (Handle,Buffer,Count);
+  until (FileWrite<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
 
@@ -234,19 +483,28 @@ end;
 
 
 Procedure FileClose (Handle : Longint);
-
+var
+  res: cint;
 begin
-  fpclose(Handle);
+  repeat
+    res:=fpclose(Handle);
+  until (res<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
 Function FileTruncate (Handle: THandle; Size: Int64) : boolean;
-
+var
+  res: cint;
 begin
   if (SizeOf (TOff) < 8)   (* fpFTruncate only supporting signed 32-bit size *)
-                         and (Size > high (longint)) then
+     and (Size > high (longint)) then
     FileTruncate := false
   else
-    FileTruncate:=fpftruncate(Handle,Size)>=0;
+    begin
+      repeat
+        res:=fpftruncate(Handle,Size);
+      until (res<>-1) or (fpgeterrno<>ESysEINTR);
+      FileTruncate:=res>=0;
+    end;
 end;
 
 {$ifndef FPUNONE}
@@ -292,17 +550,18 @@ begin
 end;
 
 
-Function LinuxToWinAttr (FN : Pchar; Const Info : Stat) : Longint;
+Function LinuxToWinAttr (const FN : Ansistring; Const Info : Stat) : Longint;
 
 Var
-  FNL : String;
   LinkInfo : Stat;
 
 begin
   Result:=faArchive;
   If fpS_ISDIR(Info.st_mode) then
     Result:=Result or faDirectory;
-  If (FN[0]='.') and (not (FN[1] in [#0,'.']))  then
+  If (Length(FN)>=2) and
+     (FN[1]='.') and
+     (FN[2]<>'.')  then
     Result:=Result or faHidden;
   If (Info.st_Mode and S_IWUSR)=0 Then
      Result:=Result or faReadOnly;
@@ -312,8 +571,7 @@ begin
     begin
     Result:=Result or faSymLink;
     // Windows reports if the link points to a directory.
-    FNL:=StrPas(FN);
-    if (fpstat(FNL,LinkInfo)>=0) and fpS_ISDIR(LinkInfo.st_mode) then
+    if (fpstat(FN,LinkInfo)>=0) and fpS_ISDIR(LinkInfo.st_mode) then
       Result := Result or faDirectory;
     end;
 end;
@@ -410,16 +668,14 @@ Type
     SearchAttr : Byte;        {attribute we are searching for}
   End;
   PUnixFindData = ^TUnixFindData;
-Var
-  CurrSearchNum : LongInt;
 
 Procedure FindClose(Var f: TSearchRec);
 var
   UnixFindData : PUnixFindData;
 Begin
   UnixFindData:=PUnixFindData(f.FindHandle);
-  if UnixFindData=nil then
-    exit;
+  If (UnixFindData=Nil) then
+    Exit;
   if UnixFindData^.SearchType=0 then
     begin
       if UnixFindData^.dirptr<>nil then
@@ -432,19 +688,19 @@ End;
 
 Function FindGetFileInfo(const s:string;var f:TSearchRec):boolean;
 var
-  st      : baseunix.stat;
-  WinAttr : longint;
-  
+  st           : baseunix.stat;
+  WinAttr      : longint;
+
 begin
   FindGetFileInfo:=false;
   If Assigned(F.FindHandle) and ((((PUnixFindData(f.FindHandle)^.searchattr)) and faSymlink) > 0) then
-    FindGetFileInfo:=(fplstat(pointer(s),st)=0)    
+    FindGetFileInfo:=(fplstat(pointer(s),st)=0)
   else
     FindGetFileInfo:=(fpstat(pointer(s),st)=0);
-  If not FindGetFileInfo then 
-    exit;  
-  WinAttr:=LinuxToWinAttr(PChar(pointer(s)),st);
-  If (f.FindHandle = nil) or ((WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0) Then
+  If not FindGetFileInfo then
+    exit;
+  WinAttr:=LinuxToWinAttr(ExtractFileName(s),st);
+  If ((WinAttr and Not(PUnixFindData(f.FindHandle)^.searchattr))=0) Then
    Begin
      f.Name:=ExtractFileName(s);
      f.Attr:=WinAttr;
@@ -453,8 +709,10 @@ begin
 {$ifndef FPUNONE}
      f.Time:=UnixToWinAge(st.st_mtime);
 {$endif}
-     result:=true;
-   End;
+     FindGetFileInfo:=true;
+   End
+  else
+    FindGetFileInfo:=false;
 end;
 
 
@@ -473,7 +731,12 @@ Var
 Begin
   Result:=-1;
   UnixFindData:=PUnixFindData(Rslt.FindHandle);
-  if UnixFindData=nil then
+  { SearchSpec='' means that there were no wild cards, so only one file to
+    find.
+  }
+  If (UnixFindData=Nil) then 
+    exit;
+  if UnixFindData^.SearchSpec='' then
     exit;
   if (UnixFindData^.SearchType=0) and
      (UnixFindData^.Dirptr=nil) then
@@ -523,27 +786,29 @@ Begin
   fillchar(Rslt,sizeof(Rslt),0);
   if Path='' then
     exit;
+  { Allocate UnixFindData (we always need it, for the search attributes) }
+  New(UnixFindData);
+  FillChar(UnixFindData^,sizeof(UnixFindData^),0);
+  Rslt.FindHandle:=UnixFindData;
+   {We always also search for readonly and archive, regardless of Attr:}
+  UnixFindData^.SearchAttr := Attr or faarchive or fareadonly;
   {Wildcards?}
   if (Pos('?',Path)=0)  and (Pos('*',Path)=0) then
-   begin
-     if FindGetFileInfo(Path,Rslt) then
-       Result:=0;
-   end
+    begin
+    if FindGetFileInfo(Path,Rslt) then
+      Result:=0;
+    end
   else
-   begin
-     { Allocate UnixFindData }
-     New(UnixFindData);
-     FillChar(UnixFindData^,sizeof(UnixFindData^),0);
-     Rslt.FindHandle:=UnixFindData;
-     {Create Info}
-     UnixFindData^.SearchSpec := Path;
-     {We always also search for readonly and archive, regardless of Attr:}
-     UnixFindData^.SearchAttr := Attr or faarchive or fareadonly;
-     UnixFindData^.NamePos := Length(UnixFindData^.SearchSpec);
-     while (UnixFindData^.NamePos>0) and (UnixFindData^.SearchSpec[UnixFindData^.NamePos]<>'/') do
-       dec(UnixFindData^.NamePos);
-     Result:=FindNext(Rslt);
-   end;
+    begin
+    {Create Info}
+    UnixFindData^.SearchSpec := Path;
+    UnixFindData^.NamePos := Length(UnixFindData^.SearchSpec);
+    while (UnixFindData^.NamePos>0) and (UnixFindData^.SearchSpec[UnixFindData^.NamePos]<>'/') do
+      dec(UnixFindData^.NamePos);
+    Result:=FindNext(Rslt);
+    end;
+  If (Result<>0) then
+    FindClose(Rslt); 
 End;
 
 
@@ -642,19 +907,19 @@ Const
     '/.'
     );
 var
-  Drives   : byte;
+  Drives   : byte = 4;
   DriveStr : array[4..26] of pchar;
 
 Function AddDisk(const path:string) : Byte;
 begin
   if not (DriveStr[Drives]=nil) then
-   FreeMem(DriveStr[Drives],StrLen(DriveStr[Drives])+1);
+   FreeMem(DriveStr[Drives]);
   GetMem(DriveStr[Drives],length(Path)+1);
   StrPCopy(DriveStr[Drives],path);
+  Result:=Drives;
   inc(Drives);
   if Drives>26 then
    Drives:=4;
-  Result:=Drives;
 end;
 
 
@@ -681,6 +946,20 @@ Begin
   else
    DiskSize:=-1;
 End;
+
+
+Procedure FreeDriveStr;
+var
+  i: longint;
+begin
+  for i:=low(drivestr) to high(drivestr) do
+    if assigned(drivestr[i]) then
+      begin
+        freemem(drivestr[i]);
+        drivestr[i]:=nil;
+      end;
+end;
+
 
 
 Function GetCurrentDir : String;
@@ -720,9 +999,6 @@ end;
                               Misc Functions
 ****************************************************************************}
 
-procedure Beep;
-begin
-end;
 
 
 {****************************************************************************
@@ -866,8 +1142,7 @@ begin
 end;
 
 
-{$define FPC_USE_FPEXEC}  // leave the old code under IFDEF for a while.
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: AnsiString;Flags:TExecuteFlags=[]):integer;
 var
   pid    : longint;
   e      : EOSError;
@@ -879,7 +1154,8 @@ Begin
     so that long filenames will always be accepted. But don't
     do it if there are already double quotes!
   }
-  {$ifdef FPC_USE_FPEXEC}       // Only place we still parse
+
+   // Only place we still parse
    cmdline2:=nil;
    if Comline<>'' Then
      begin
@@ -896,14 +1172,7 @@ Begin
        cmdline2^:=pchar(Path);
        cmdline2[1]:=nil;
      end;
-  {$else}
-  if Pos ('"', Path) = 0 then
-    CommandLine := '"' + Path + '"'
-  else
-    CommandLine := Path;
-  if ComLine <> '' then
-    CommandLine := Commandline + ' ' + ComLine;
-  {$endif}
+
   {$ifdef USE_VFORK}
   pid:=fpvFork;
   {$else USE_VFORK}
@@ -912,11 +1181,7 @@ Begin
   if pid=0 then
    begin
    {The child does the actual exec, and then exits}
-    {$ifdef FPC_USE_FPEXEC}
       fpexecv(pchar(pointer(Path)),Cmdline2);
-    {$else}
-      Execl(CommandLine);
-    {$endif}
      { If the execve fails, we return an exitvalue of 127, to let it be known}
      fpExit(127);
    end
@@ -931,10 +1196,8 @@ Begin
   { We're in the parent, let's wait. }
   result:=WaitProcess(pid); // WaitPid and result-convert
 
-  {$ifdef FPC_USE_FPEXEC}
   if Comline<>'' Then
     freemem(cmdline2);
-  {$endif}
 
   if (result<0) or (result=127) then
     begin
@@ -944,7 +1207,7 @@ Begin
     end;
 End;
 
-function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array Of AnsiString):integer;
+function ExecuteProcess(Const Path: AnsiString; Const ComLine: Array Of AnsiString;Flags:TExecuteFlags=[]):integer;
 
 var
   pid    : longint;
@@ -983,11 +1246,14 @@ procedure Sleep(milliseconds: Cardinal);
 
 Var
   timeout,timeoutresult : TTimespec;
-
+  res: cint;
 begin
   timeout.tv_sec:=milliseconds div 1000;
   timeout.tv_nsec:=1000*1000*(milliseconds mod 1000);
-  fpnanosleep(@timeout,@timeoutresult);
+  repeat
+    res:=fpnanosleep(@timeout,@timeoutresult);
+    timeout:=timeoutresult;
+  until (res<>-1) or (fpgeterrno<>ESysEINTR);
 end;
 
 Function GetLastOSError : Integer;
@@ -1095,6 +1361,12 @@ begin
   Result:=TheUserDir;    
 end;
 
+Procedure SysBeep;
+
+begin
+  Write(#7);
+  Flush(Output);
+end;
 
 {****************************************************************************
                               Initialization code
@@ -1104,6 +1376,9 @@ Initialization
   InitExceptions;       { Initialize exceptions. OS independent }
   InitInternational;    { Initialize internationalization settings }
   SysConfigDir:='/etc'; { Initialize system config dir }
+  OnBeep:=@SysBeep;
+  
 Finalization
+  FreeDriveStr;
   DoneExceptions;
 end.

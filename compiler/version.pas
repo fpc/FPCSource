@@ -28,7 +28,7 @@ interface
     const
        { version string }
        version_nr = '2';
-       release_nr = '3';
+       release_nr = '5';
        patch_nr   = '1';
        minorpatch = '';
 

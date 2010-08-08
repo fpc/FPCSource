@@ -58,8 +58,7 @@ const
   TSC_MEASURE_TEMP2    = $F4;
 
 
-
-function touchReadXY(): touchPosition; cdecl; external;
+procedure touchReadXY(var touchPos: touchPosition); cdecl; external;
 
 function touchRead(command: cuint32): cuint16; cdecl; external;
 function touchReadTemperature(t1: pcint; t2: pcint): cuint32;  cdecl; external;

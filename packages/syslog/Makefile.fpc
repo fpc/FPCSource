@@ -4,11 +4,11 @@
 
 [package]
 name=syslog
-version=2.2.2
+version=2.5.1
 
 [target]
 units=systemlog
-examples=testlog
+exampledirs=examples
 
 [require]
 libc=y
@@ -21,7 +21,7 @@ fpcdir=../..
 
 [compiler]
 includedir=src
-sourcedir=src tests
+sourcedir=src
 
 [rules]
 .NOTPARALLEL:

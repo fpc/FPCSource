@@ -19,14 +19,14 @@ interface
 uses Objects;
 
 const
+  dirsep = System.DirectorySeparator;
+  
 {$ifdef Unix}
-  dirsep = '/';
   listsep = [';',':'];
   exeext = '';
   pasext = '.pas';
   ppext  = '.pp';
 {$else}
-  dirsep = '\';
   listsep = [';'];
   exeext = '.exe';
   pasext = '.pas';

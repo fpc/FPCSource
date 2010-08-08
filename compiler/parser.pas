@@ -49,7 +49,7 @@ implementation
       script,gendef,
       comphook,
       scanner,scandir,
-      pbase,ptype,psystem,pmodules,psub,ncgrtti,
+      pbase,ptype,psystem,pmodules,psub,ncgrtti,htypechk,
       cresstr,cpuinfo,procinfo;
 
 
@@ -85,7 +85,9 @@ implementation
          c:=#0;
          pattern:='';
          orgpattern:='';
+         cstringpattern:='';
          current_scanner:=nil;
+         switchesstatestackpos:=0;
 
          { register all nodes and tais }
          registernodes;
@@ -210,16 +212,16 @@ implementation
              _CSTRING :
                begin
                  i:=0;
-                 while (i<length(pattern)) do
+                 while (i<length(cstringpattern)) do
                   begin
                     inc(i);
-                    if pattern[i]='''' then
+                    if cstringpattern[i]='''' then
                      begin
-                       insert('''',pattern,i);
+                       insert('''',cstringpattern,i);
                        inc(i);
                      end;
                   end;
-                 preprocfile^.Add(''''+pattern+'''');
+                 preprocfile^.Add(''''+cstringpattern+'''');
                end;
              _CCHAR :
                begin
@@ -280,6 +282,8 @@ implementation
           oldcurrent_procinfo : tprocinfo;
           old_settings : tsettings;
           oldsourcecodepage : tcodepagestring;
+          old_switchesstatestack : tswitchesstatestack;
+          old_switchesstatestackpos : Integer;
         end;
 
       var
@@ -300,11 +304,13 @@ implementation
          with olddata^ do
           begin
             old_current_module:=current_module;
-          { save symtable state }
+
+            { save symtable state }
             oldsymtablestack:=symtablestack;
             oldmacrosymtablestack:=macrosymtablestack;
             oldcurrent_procinfo:=current_procinfo;
-          { save scanner state }
+
+            { save scanner state }
             oldc:=c;
             oldpattern:=pattern;
             oldorgpattern:=orgpattern;
@@ -312,14 +318,19 @@ implementation
             oldidtoken:=idtoken;
             old_block_type:=block_type;
             oldtokenpos:=current_tokenpos;
-          { save cg }
+            old_switchesstatestack:=switchesstatestack;
+            old_switchesstatestackpos:=switchesstatestackpos;
+
+            { save cg }
             oldparse_only:=parse_only;
-          { save akt... state }
-          { handle the postponed case first }
+
+            { save akt... state }
+            { handle the postponed case first }
             flushpendingswitchesstate;
             oldcurrent_filepos:=current_filepos;
             old_settings:=current_settings;
           end;
+
        { reset parser, a previous fatal error could have left these variables in an unreliable state, this is
          important for the IDE }
          afterassignment:=false;
@@ -327,6 +338,7 @@ implementation
          named_args_allowed:=false;
          got_addrn:=false;
          getprocvardef:=nil;
+         allow_array_constructor:=false;
 
        { show info }
          Message1(parser_i_compiling,filename);
@@ -457,8 +469,12 @@ implementation
                 idtoken:=oldidtoken;
                 current_tokenpos:=oldtokenpos;
                 block_type:=old_block_type;
+                switchesstatestack:=old_switchesstatestack;
+                switchesstatestackpos:=old_switchesstatestackpos;
+
                 { restore cg }
                 parse_only:=oldparse_only;
+
                 { restore symtable state }
                 symtablestack:=oldsymtablestack;
                 macrosymtablestack:=oldmacrosymtablestack;

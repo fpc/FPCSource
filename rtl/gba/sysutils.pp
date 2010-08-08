@@ -25,6 +25,7 @@ unit sysutils;
 interface
 
 {$MODE objfpc}
+{$MODESWITCH OUT}
 { force ansistrings }
 {$H+}
 
@@ -74,7 +75,7 @@ begin
 end;
 
 
-function FileRead(Handle: LongInt; var Buffer; Count: LongInt): LongInt;
+function FileRead(Handle: LongInt; Out Buffer; Count: LongInt): LongInt;
 begin
   result := -1;
 end;
@@ -261,13 +262,13 @@ begin
   result := '';
 end;
 
-function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString): integer;
+function ExecuteProcess (const Path: AnsiString; const ComLine: AnsiString;Flags:TExecuteFlags=[]): integer;
 begin
   result := -1;
 end;
 
 function ExecuteProcess (const Path: AnsiString;
-                                  const ComLine: array of AnsiString): integer;
+                                  const ComLine: array of AnsiString;Flags:TExecuteFlags=[]): integer;
 begin
   result := -1;
 end;

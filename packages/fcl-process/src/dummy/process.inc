@@ -2,10 +2,13 @@
   Dummy process.inc
 }
 
-{$if defined(VER2_2) or defined(VER2_3_1)}
+{
+  prevent compilation error for the versions mentioned below
+} 
+{$if defined(VER2_4) or defined(VER2_5_1)}
 {$warning Temporary workaround - unit does nothing}
 {$else}
-{$fatal Proper implementation of TProcess needed}
+{$fatal Proper implementation of TProcess for version of this target needed}
 {$endif}
 
 procedure TProcess.CloseProcessHandles;

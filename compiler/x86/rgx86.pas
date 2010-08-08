@@ -123,7 +123,8 @@ implementation
             case ops of
               1 :
                 begin
-                  if (oper[0]^.typ=top_reg) then
+                  if (oper[0]^.typ=top_reg) and
+                     (getregtype(oper[0]^.reg)=regtype) then
                     begin
                       if get_alias(getsupreg(oper[0]^.reg))<>orgreg then
                         internalerror(200410101);
@@ -143,20 +144,18 @@ implementation
                     n:=1;
                   if (oper[n+0]^.typ=top_reg) and
                      (oper[n+1]^.typ=top_reg) and
-                     (get_alias(getsupreg(oper[n+0]^.reg))<>get_alias(getsupreg(oper[n+1]^.reg))) then
+                     ((getregtype(oper[n+0]^.reg)<>regtype) or
+                      (getregtype(oper[n+1]^.reg)<>regtype) or
+                      (get_alias(getsupreg(oper[n+0]^.reg))<>get_alias(getsupreg(oper[n+1]^.reg)))) then
                     begin
-                      { One of the arguments shall be able to be replaced }
                       if (getregtype(oper[n+0]^.reg)=regtype) and
                          (get_alias(getsupreg(oper[n+0]^.reg))=orgreg) then
                         replaceoper:=0+n
-                      else
-                        if (getregtype(oper[n+1]^.reg)=regtype) and
-                           (get_alias(getsupreg(oper[n+1]^.reg))=orgreg) then
-                          replaceoper:=1+n
-                      else
-                        internalerror(200704281);
-                    end;
-                  if (oper[n+0]^.typ=top_reg) and
+                      else if (getregtype(oper[n+1]^.reg)=regtype) and
+                         (get_alias(getsupreg(oper[n+1]^.reg))=orgreg) then
+                        replaceoper:=1+n;
+                    end
+                  else if (oper[n+0]^.typ=top_reg) and
                      (oper[n+1]^.typ=top_const) then
                     begin
                       if (getregtype(oper[0+n]^.reg)=regtype) and
@@ -164,8 +163,8 @@ implementation
                         replaceoper:=0+n
                       else
                         internalerror(200704282);
-                    end;
-                  if (oper[n+0]^.typ=top_const) and
+                    end
+                  else if (oper[n+0]^.typ=top_const) and
                      (oper[n+1]^.typ=top_reg) then
                     begin
                       if (getregtype(oper[1+n]^.reg)=regtype) and
@@ -234,11 +233,29 @@ implementation
                           A_ANDPD,
                           A_ANDPS:
                             replaceoper:=-1;
+{$ifdef x86_64}
+                          A_MOV:
+                             { 64 bit constants can only be moved into registers }
+                             if (oper[0]^.typ=top_const) and
+                                (oper[1]^.typ=top_reg) and
+                                ((oper[0]^.val<low(longint)) or
+                                 (oper[0]^.val>high(longint))) then
+                               replaceoper:=-1;
+{$endif x86_64}
                         end;
                       end;
                     end;
                 end;
-            end;
+             end;
+
+            {$ifdef x86_64}
+            { 32 bit operations on 32 bit registers on x86_64 can result in
+              zeroing the upper 32 bits of the register. This does not happen
+              with memory operations, so we have to perform these calculations
+              in registers.  }
+            if (instr.opsize=S_L) then
+              replaceoper:=-1;
+            {$endif x86_64}
 
             { Replace register with spill reference }
             if replaceoper<>-1 then

@@ -24,7 +24,7 @@ library tw8730b;
 uses uw8730b;
 
 exports
-{$if defined(darwin) or defined(win32) or defined(wince)}
+{$if defined(darwin)}
 Lib2Func name '_Lib2Func';
 {$else}
 Lib2Func;

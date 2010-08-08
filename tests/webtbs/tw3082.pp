@@ -3,6 +3,9 @@
 { %skiptarget = go32v2,macos }
 { execute this test only on reasonable fast cpus }
 
+{ we do not cut off too long strings silently anymore }
+{$H+}
+
 {$ifdef darwin}
 {$PIC+}
 {$endif darwin}

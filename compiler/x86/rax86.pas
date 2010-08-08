@@ -734,11 +734,16 @@ begin
                    OS_64,OS_S64:
                      begin
                        { Only FPU operations know about 64bit values, for all
-                         integer operations it is seen as 32bit }
+                         integer operations it is seen as 32bit
+
+                         this applies only to i386, see tw16622}
                        if gas_needsuffix[opcode] in [attsufFPU,attsufFPUint] then
                          asize:=OT_BITS64
+{$ifdef i386}
                        else
-                         asize:=OT_BITS32;
+                         asize:=OT_BITS32
+{$endif i386}
+                         ;
                      end;
                    OS_F64,OS_C64 :
                      asize:=OT_BITS64;
@@ -754,7 +759,7 @@ begin
  { Condition ? }
   if condition<>C_None then
    ai.SetCondition(condition);
-  
+
   { Set is_jmp, it enables asmwriter to emit short jumps if appropriate }
   if (opcode=A_JMP) or (opcode=A_JCC) then
     ai.is_jmp := True;

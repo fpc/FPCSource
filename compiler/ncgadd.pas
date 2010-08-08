@@ -85,8 +85,10 @@ interface
     procedure tcgaddnode.pass_left_right;
       var
         tmpreg     : tregister;
-        isjump,
-        pushedfpu  : boolean;
+{$ifdef x86}
+        pushedfpu,
+{$endif x86}
+        isjump     : boolean;
         otl,ofl    : tasmlabel;
       begin
         { calculate the operator which is more difficult }
@@ -113,16 +115,16 @@ interface
             current_procinfo.CurrFalseLabel:=ofl;
           end;
 
+{$ifdef x86}
         { are too few registers free? }
         pushedfpu:=false;
-{$ifdef i386}
         if (left.location.loc=LOC_FPUREGISTER) and
            (node_resources_fpu(right)>=maxfpuregs) then
           begin
             location_force_mem(current_asmdata.CurrAsmList,left.location);
             pushedfpu:=true;
           end;
-{$endif i386}
+{$endif x86}
 
         isjump:=(right.expectloc=LOC_JUMP);
         if isjump then
@@ -140,32 +142,30 @@ interface
             current_procinfo.CurrTrueLabel:=otl;
             current_procinfo.CurrFalseLabel:=ofl;
           end;
+{$ifdef x86}
         if pushedfpu then
           begin
-{$ifdef x86}
-            if use_sse(left.resultdef) then
+            if use_vectorfpu(left.resultdef) then
               begin
                 tmpreg := cg.getmmregister(current_asmdata.CurrAsmList,left.location.size);
                 cg.a_loadmm_loc_reg(current_asmdata.CurrAsmList,left.location.size,left.location,tmpreg,mms_movescalar);
                 location_freetemp(current_asmdata.CurrAsmList,left.location);
                 location_reset(left.location,LOC_MMREGISTER,left.location.size);
-                left.location.register := tmpreg;
+                left.location.register:=tmpreg;
               end
             else
-{$endif x86}
               begin
                 tmpreg := cg.getfpuregister(current_asmdata.CurrAsmList,left.location.size);
                 cg.a_loadfpu_loc_reg(current_asmdata.CurrAsmList,left.location.size,left.location,tmpreg);
                 location_freetemp(current_asmdata.CurrAsmList,left.location);
                 location_reset(left.location,LOC_FPUREGISTER,left.location.size);
                 left.location.register := tmpreg;
-{$ifdef x86}
                 { left operand is now on top of the stack, instead of the right one! }
                 if (right.location.loc=LOC_FPUREGISTER) then
                   toggleflag(nf_swapped);
-{$endif x86}
               end;
           end;
+{$endif x86}
       end;
 
 

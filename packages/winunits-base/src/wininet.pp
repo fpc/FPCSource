@@ -20,6 +20,12 @@ interface
 
 Uses Windows;
 
+{$ifdef win64}
+  {$packrecords 8}
+{$else}
+  {$packrecords 4}
+{$endif}
+
 //
 // Internet APIs
 //
@@ -1389,7 +1395,7 @@ Const
 	
 Type	
 	
-     INTERNET_ASYNC_RESULT = packed record
+     INTERNET_ASYNC_RESULT = record
           dwResult : DWORD_PTR;
           dwError : DWORD;
        end;
@@ -1401,7 +1407,7 @@ Type
      PINTERNETASYNCRESULT = PINTERNET_ASYNC_RESULT;	
 
   { INTERNET_DIAGNOSTIC_SOCKET_INFO - info about the socket in use }
-     INTERNET_DIAGNOSTIC_SOCKET_INFO =packed  record
+     INTERNET_DIAGNOSTIC_SOCKET_INFO = record
           Socket : DWORD_PTR;
           SourcePort : DWORD;
           DestPort : DWORD;
@@ -1411,7 +1417,7 @@ Type
      LPINTERNET_DIAGNOSTIC_SOCKET_INFO = ^INTERNET_DIAGNOSTIC_SOCKET_INFO;
      PINTERNET_DIAGNOSTIC_SOCKET_INFO = LPINTERNET_DIAGNOSTIC_SOCKET_INFO;	
 
-    INTERNET_PREFETCH_STATUS = packed record
+    INTERNET_PREFETCH_STATUS = record
     			dwStatus,
 			dwSize : DWord;
                         end;
@@ -1422,7 +1428,7 @@ Type
     PINTERNETPREFETCHSTATUS= PINTERNET_PREFETCH_STATUS; 
     LPINTERNETPREFETCHSTATUS= PINTERNET_PREFETCH_STATUS; 
 
-     INTERNET_PROXY_INFO = packed record
+     INTERNET_PROXY_INFO =  record
           dwAccessType : DWORD;
           lpszProxy : LPCTSTR;
           lpszProxyBypass : LPCTSTR;
@@ -1904,7 +1910,7 @@ Type
      PFN_AUTH_NOTIFY = function (dwContext:DWORD_PTR; dwReturn:DWORD; lpreserved:LPVOID):DWORD;stdcall;
 	 InternetAuthNotifyCallback = PFN_AUTH_NOTIFY;
 
-     _INTERNET_CACHE_ENTRY_INFOA = packed record
+     _INTERNET_CACHE_ENTRY_INFOA = record
           dwStructSize : DWORD;
           lpszSourceUrlName : LPSTR;
           lpszLocalFileName : LPSTR;
@@ -1930,7 +1936,7 @@ Type
      LPINTERNET_CACHE_ENTRY_INFOA = PINTERNET_CACHE_ENTRY_INFOA;
      PLPINTERNET_CACHE_ENTRY_INFOA = ^LPINTERNET_CACHE_ENTRY_INFOA;
 
-     _INTERNET_CACHE_ENTRY_INFOW = packed record
+     _INTERNET_CACHE_ENTRY_INFOW = record
           dwStructSize : DWORD;
           lpszSourceUrlName : LPWSTR;
           lpszLocalFileName : LPWSTR;
@@ -2047,7 +2053,7 @@ Type
 
 
   PAutoProxyHelperVtbl = ^AutoProxyHelperVtbl;
-  AutoProxyHelperVtbl = packed record
+  AutoProxyHelperVtbl =  record
           IsResolvable                : TIsResolvable;
           GetIPAddress                : TGetIPAddress;
           ResolveHostName             : TResolveHostName;

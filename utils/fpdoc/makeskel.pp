@@ -551,7 +551,7 @@ begin
     TranslateDocStrings(DocLang);
     end;
   // Action is to create the XML skeleton
-  if Length(PackageName) = 0 then
+  if (Length(PackageName) = 0) and (CmdLineAction<>ActionHelp) then
     begin
     WriteLn(SNoPackageNameProvided);
     Result:=2;

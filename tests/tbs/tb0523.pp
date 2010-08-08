@@ -1,4 +1,5 @@
-{ %target=i386 }
+{ %CPU=i386 }
+{ %OPT=-Cg- }
 {$asmmode intel}
 
 var

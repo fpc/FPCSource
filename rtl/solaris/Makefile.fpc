@@ -7,7 +7,7 @@ main=rtl
 
 [target]
 loaders=
-units=$(SYSTEMUNIT) unixtype ctypes strings objpas macpas \
+units=$(SYSTEMUNIT) unixtype ctypes strings objpas iso7185 macpas \
       heaptrc lineinfo lnfodwrf \
       baseunix unixutil \
       termio unix initc cmem \
@@ -20,12 +20,13 @@ units=$(SYSTEMUNIT) unixtype ctypes strings objpas macpas \
       video mouse \
       keyboard variants types dateutils sysconst \
       strutils fmtbcd rtlconsts cthreads \
+      convutils stdconvs \
       dos objects \
-      cwstring fpintres
+      cwstring fpintres $(CPU_UNITS)
 
 implicitunits=exeinfo
 
-rsts=math varutils typinfo classes variants dateutils sysconst rtlconst
+rsts=math varutils typinfo classes variants dateutils sysconst rtlconst stdconvs
 
 [require]
 nortl=y
@@ -49,7 +50,7 @@ libunits=$(SYSTEMUNIT) objpas strings \
       unix  \
       dos crt objects printer \
       sysutils typinfo math \
-      cpu mmx getopts heaptrc \
+      $(CPU_UNITS) getopts heaptrc \
       errors sockets ipc
 
 [prerules]
@@ -60,8 +61,15 @@ PROCINC=$(RTL)/$(CPU_TARGET)
 OSPROCINC=$(RTL)/solaris/$(CPU_TARGET)
 UNIXINC=$(RTL)/unix
 UNITPREFIX=rtl
+CPU_UNITS=
 
 SYSTEMUNIT=system
+
+
+ifeq ($(ARCH),i386)
+CPU_UNITS=cpu mmx
+endif
+
 
 # Use new feature from 1.0.5 version
 # that generates release PPU files
@@ -207,6 +215,15 @@ rtlconsts$(PPUEXT) : $(OBJPASDIR)/rtlconsts.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PP
 strutils$(PPUEXT) : $(OBJPASDIR)/strutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
                     sysutils$(PPUEXT)
         $(COMPILER) $(OBJPASDIR)/strutils.pp
+
+convutils$(PPUEXT) : $(OBJPASDIR)/convutils.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/convutils.pp
+
+stdconvs$(PPUEXT) : $(OBJPASDIR)/stdconvs.pp objpas$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT) \
+                    sysutils$(PPUEXT)
+        $(COMPILER) $(OBJPASDIR)/stdconvs.pp
+
 
 #
 # Mac Pascal Model

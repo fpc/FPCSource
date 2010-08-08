@@ -407,7 +407,7 @@ begin
 end;
 {$endif}
 
-procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);[public,alias:'FPC_SHORTSTR_ENUM'];compilerproc;
+function fpc_shortstr_enum_intern(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring): longint;
 
 type
   Ptypeinfo=^Ttypeinfo;
@@ -435,23 +435,21 @@ var
   sorted_array:^Tsorted_array;
   i,spaces:byte;
 
-label
-  error;
-
 begin
+  fpc_shortstr_enum_intern:=107;
   if Pcardinal(ord2strindex)^=0 then
     begin
       {The compiler did generate a lookup table.}
       with Penuminfo(Pbyte(typinfo)+2+length(Ptypeinfo(typinfo)^.name))^ do
         begin
           if (ordinal<minvalue) or (ordinal>maxvalue) then
-            goto error;  {Invalid ordinal value for this enum.}
+            exit;  {Invalid ordinal value for this enum.}
           dec(ordinal,minvalue);
         end;
       {Get the address of the string.}
       p:=Pshortstring((PPpointer(ord2strindex)+1+ordinal)^);
       if p=nil then
-        goto error;      {Invalid ordinal value for this enum.}
+        exit;      {Invalid ordinal value for this enum.}
       s:=p^;
     end
   else
@@ -470,7 +468,7 @@ begin
         else
           break;
         if l>h then
-          goto error; {Ordinal value not found? Kaboom.}
+          exit; {Ordinal value not found? Kaboom.}
       until false;
       s:=sorted_array[m].s^;
     end;
@@ -482,24 +480,32 @@ begin
         s[length(s)+i]:=' ';
       inc(byte(s[0]),spaces);
     end;
-  exit;
-error:
-  {Call runtime error in a central place, this saves space.}
-  runerror(107);
+  fpc_shortstr_enum_intern:=0;
+end;
+
+
+procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);[public,alias:'FPC_SHORTSTR_ENUM'];compilerproc;
+var
+  res: longint;
+begin
+  res:=fpc_shortstr_enum_intern(ordinal,len,typinfo,ord2strindex,s);
+  if (res<>0) then
+    runerror(107);
 end;
 
 { also define alias for internal use in the system unit }
 procedure fpc_shortstr_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring);external name 'FPC_SHORTSTR_ENUM';
 
+
 procedure fpc_shortstr_currency(c : currency; len,f : SizeInt; out s : shortstring);[public,alias:'FPC_SHORTSTR_CURRENCY']; compilerproc;
 const
   MinLen = 8; { Minimal string length in scientific format }
-
 var
   buf : array[1..19] of char;
   i,j,k,reslen,tlen,sign,r,point : longint;
   ic : qword;
 begin
+  fillchar(buf,length(buf),'0');
   { default value for length is -32767 }
   if len=-32767 then
     len:=25;
@@ -588,7 +594,26 @@ begin
             break;
         end;
       If (k=1) and (buf[i-1]='0') then
-        buf[i]:=chr(Ord(buf[i])+1);
+	    begin
+		  { 1.9996 rounded to two decimal digits after the decimal separator must result in
+		    2.00, i.e. the rounding is propagated
+		  }
+          while buf[i]='9' do
+		    begin
+			  buf[i]:='0';
+     		  inc(i);
+		    end;
+		  buf[i]:=chr(Ord(buf[i])+1);
+		  { did we add another digit? This happens when rounding
+		    e.g. 99.9996 to two decimal digits after the decimal separator which should result in
+			100.00
+		  }
+		  if i>reslen then
+		    begin
+			  inc(reslen);
+			  inc(tlen);
+			end;
+		end;		  
     end;
   { preparing result string }
   if reslen<len then
@@ -741,6 +766,21 @@ begin
   move(ss[1],pchar(@a)^,maxlen);
 end;
 {$endif}
+
+
+procedure fpc_chararray_enum(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out a : array of char);compilerproc;
+var
+  ss : shortstring;
+  maxlen : SizeInt;
+begin
+  fpc_shortstr_enum(ordinal,len,typinfo,ord2strindex,ss);
+  if length(ss)<high(a)+1 then
+    maxlen:=length(ss)
+  else
+    maxlen:=high(a)+1;
+  move(ss[1],pchar(@a)^,maxlen);
+end;
+
 
 {$ifdef FPC_HAS_STR_CURRENCY}
 procedure fpc_chararray_Currency(c : Currency;len,fr : SizeInt;out a : array of char);compilerproc;
@@ -1047,12 +1087,14 @@ Function fpc_Val_Real_ShortStr(const s : shortstring; out Code : ValSInt): ValRe
 var
   hd,
   esign,sign : valreal;
-  exponent,i : SizeInt;
+  exponent,
+  decpoint,i : SizeInt;
   flags      : byte;
 begin
   fpc_Val_Real_ShortStr:=0.0;
   code:=1;
   exponent:=0;
+  decpoint:=0;
   esign:=1;
   flags:=0;
   sign:=1;
@@ -1076,17 +1118,15 @@ begin
 { Decimal ? }
   if (length(s)>=code) and (s[code]='.') then
     begin
-      hd:=1.0;
       inc(code);
       while (length(s)>=code) and (s[code] in ['0'..'9']) do
         begin
            { Read fractional part. }
           flags:=flags or 2;
           fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*10+(ord(s[code])-ord('0'));
-          hd:=hd*10.0;
+          inc(decpoint);
           inc(code);
         end;
-      fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr/hd;
    end;
  { Again, read integer and fractional part}
   if flags=0 then
@@ -1095,7 +1135,7 @@ begin
       exit;
     end;
  { Exponent ? }
-  if (length(s)>=code) and (upcase(s[code])='E') then
+  if (length(s)>=code) and (s[code] in ['e','E']) then
     begin
       inc(code);
       if Length(s) >= code then
@@ -1119,6 +1159,18 @@ begin
           inc(code);
         end;
     end;
+{ adjust exponent based on decimal point }
+  if esign>0 then
+    begin
+      dec(exponent,decpoint);
+      if (exponent<0) then
+        begin
+          esign:=-1;
+          exponent:=-exponent;
+        end
+    end
+  else
+    inc(exponent,decpoint);
 { evaluate sign }
 { (before exponent, because the exponent may turn it into a denormal) }
   fpc_Val_Real_ShortStr:=fpc_Val_Real_ShortStr*sign;
@@ -1159,6 +1211,37 @@ end;
 {$endif}
 
 function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code:valsint):longint; [public, alias:'FPC_VAL_ENUM_SHORTSTR']; compilerproc;
+    
+    function string_compare(const s1,s2:shortstring):sizeint;
+    
+    {We cannot use the > and < operators to compare a string here, because we if the string is
+     not found in the enum, we need to return the position of error in "code". Code equals the
+     highest matching character of all string compares, which is only known inside the string
+     comparison.}
+    
+    var i,l:byte;
+        c1,c2:char;
+    
+    begin
+      l:=length(s1);
+      if length(s1)>length(s2) then
+        l:=length(s2);
+      i:=1;
+      while i<=l do
+        begin
+          c1:=s1[i];
+          c2:=s2[i];
+          if c1<>c2 then
+            break;
+          inc(i);
+        end;
+      if i>code then
+        code:=i;
+      if i<=l then
+        string_compare:=byte(c1)-byte(c2)
+      else
+        string_compare:=length(s1)-length(s2);
+    end;
 
 type  Tsorted_array={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
         o:longint;
@@ -1166,6 +1249,7 @@ type  Tsorted_array={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
       end;
 
 var l,h,m:cardinal;
+    c:sizeint;
     sorted_array:^Tsorted_array;
     spaces:byte;
     t:shortstring;
@@ -1176,6 +1260,7 @@ begin
   {Val for numbers accepts spaces at the start, so lets do the same
    for enums. Skip spaces at the start of the string.}
   spaces:=1;
+  code:=1;
   while (spaces<=length(s)) and (s[spaces]=' ')  do
     inc(spaces);
   t:=upcase(copy(s,spaces,255));
@@ -1185,28 +1270,23 @@ begin
   h:=Pcardinal(str2ordindex)^;
   repeat
     m:=(l+h) div 2;
-    if t>upcase(sorted_array[m-1].s^) then
+    c:=string_compare(t,upcase(sorted_array[m-1].s^));
+    if c>0 then
       l:=m+1
-    else if t<upcase(sorted_array[m-1].s^) then
+    else if c<0 then
       h:=m-1
     else
       break;
     if l>h then
-      goto error;
+      begin
+        {Not found...}
+        inc(code,spaces-1); {Add skipped spaces again.}
+        {The result of val in case of error is undefined, don't assign a function result.}
+        exit;
+      end;
   until false;
   code:=0;
   fpc_val_enum_shortstr:=sorted_array[m-1].o;
-  exit;
-error:
-  {Not found. Find first error position. Take care of the string length.}
-  code:=1;
-  while (code<=length(s)) and (s[code]=sorted_array[m].s^[code]) do
-    inc(code);
-  if code>length(s) then
-    code:=length(s)+1;
-  inc(code,spaces-1); {Add skipped spaces again.}
-  {The result of val in case of error is undefined, don't assign a function
-   result.}
 end;
 
 {Redeclare fpc_val_enum_shortstr for internal use in the system unit.}

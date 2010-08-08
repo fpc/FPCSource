@@ -17,7 +17,10 @@
 
 unit ctypes;
 
-{$inline on}
+{$ifdef FPC}
+  {$inline on}
+  {$define dummy}
+{$endif}
 
 interface
 
@@ -29,6 +32,8 @@ uses unixtype;
 type
 {$ifndef FPC}
     qword = int64;  // Keep h2pas "uses ctypes" headers working with delphi.
+    ptruint = cardinal;
+    pptruint = ^ptruint;
 {$endif}
 
   { the following type definitions are compiler dependant }
@@ -70,15 +75,14 @@ type
   clong                  = longint;            pclong                 = ^clong;
   cslong                 = longint;            pcslong                = ^cslong;
   culong                 = cardinal;           pculong                = ^culong;
-{$endif}
+{$ifend}
+
+  csize_t                = ptruint;            pcsize_t               = pptruint;
 
 // Kylix compat types
   u_long  = culong;
   u_short = cushort;
-
-
   coff_t = clong;
-
 
 {$ifndef FPUNONE}
   cfloat                 = single;             pcfloat                = ^cfloat;
@@ -92,51 +96,20 @@ type
 
 {$if defined(linux) and (defined(cpupowerpc) or defined(cpuarm))}
   {$define longdouble_is_double}
-{$endif}
+{$ifend}
 
 {$ifndef FPUNONE}
-{$ifdef longdouble_is_double}
+{$if defined(longdouble_is_double) or not defined(FPC_HAS_CEXTENDED)}
   clongdouble=double;
 {$else}
-  {$if defined(cpui386) or defined(cpux86_64)}
-  {$define longdouble_assignment_overload_real80}
-  clongdouble = packed record
-    value:extended;
-  {$ifdef defined(cpu64) or defined(darwin)}
-    padding:array[0..5] of byte;
-  {$else}
-    padding:array[0..1] of byte;
-  {$endif}
-  end;
+  {$if defined(cpui386) or defined(cpux86_64) or defined(cpuavr)}
+  clongdouble = cextended;
   {$else}
   {$define longdouble_assignment_overload_real128}
   clongdouble = packed array [0..15] of byte;
-  {$endif}
-{$endif}
+  {$ifend}
+{$ifend}
   Pclongdouble=^clongdouble;
-
-{$ifdef longdouble_assignment_overload_real80}
-operator := (const v:clongdouble) r:extended;inline;
-operator := (const v:extended) r:clongdouble;inline;
-operator +(const e:Extended;const c:clongdouble) r:extended;inline;
-operator +(const c:clongdouble;const e:Extended) r:extended;inline;
-operator -(const e:Extended;const c:clongdouble) r:extended;inline;
-operator -(const c:clongdouble;const e:Extended) r:extended;inline;
-operator *(const e:Extended;const c:clongdouble) r:extended;inline;
-operator *(const c:clongdouble;const e:Extended) r:extended;inline;
-operator /(const e:Extended;const c:clongdouble) r:extended;inline;
-operator /(const c:clongdouble;const e:Extended) r:extended;inline;
-operator =(const e:Extended;const c:clongdouble) r:boolean;inline;
-operator =(const c:clongdouble;const e:Extended) r:boolean;inline;
-operator <(const e:Extended;const c:clongdouble) r:boolean;inline;
-operator <(const c:clongdouble;const e:Extended) r:boolean;inline;
-operator >(const e:Extended;const c:clongdouble) r:boolean;inline;
-operator >(const c:clongdouble;const e:Extended) r:boolean;inline;
-operator >=(const e:Extended;const c:clongdouble) r:boolean;inline;
-operator >=(const c:clongdouble;const e:Extended) r:boolean;inline;
-operator <=(const e:Extended;const c:clongdouble) r:boolean;inline;
-operator <=(const c:clongdouble;const e:Extended) r:boolean;inline;
-{$endif}
 
 {$ifdef longdouble_assignment_overload_real128}
 {Non-x86 typically doesn't have extended. To be fixed once this changes.}
@@ -168,109 +141,6 @@ operator <=(const c:clongdouble;const e:Double) r:boolean;inline;
 implementation
 
 {$ifndef FPUNONE}
-{$ifdef longdouble_assignment_overload_real80}
-operator := (const v:clongdouble) r:extended;
-
-begin
-  r:=v.value;
-end;
-
-operator := (const v:extended) r:clongdouble;
-
-begin
-  r.value:=v;
-end;
-
-operator +(const e:Extended;const c:clongdouble) r:extended;inline;
-begin
-  r:=e+c.value;
-end;
-
-operator +(const c:clongdouble;const e:Extended) r:extended;inline;
-begin
-  r:=c.value+e;
-end;
-
-operator -(const e:Extended;const c:clongdouble) r:extended;inline;
-begin
-  r:=e-c.value;
-end;
-
-operator -(const c:clongdouble;const e:Extended) r:extended;inline;
-begin
-  r:=c.value-e;
-end;
-
-operator *(const e:Extended;const c:clongdouble) r:extended;inline;
-begin
-  r:=e*c.value;
-end;
-
-operator *(const c:clongdouble;const e:Extended) r:extended;inline;
-begin
-  r:=c.value*e;
-end;
-
-operator /(const e:Extended;const c:clongdouble) r:extended;inline;
-begin
-  r:=e/c.value;
-end;
-
-operator /(const c:clongdouble;const e:Extended) r:extended;inline;
-begin
-  r:=c.value/e;
-end;
-
-operator =(const e:Extended;const c:clongdouble) r:boolean;inline;
-begin
-  r:=e=c.value;
-end;
-
-operator =(const c:clongdouble;const e:Extended) r:boolean;inline;
-begin
-  r:=c.value=e;
-end;
-
-operator <(const e:Extended;const c:clongdouble) r:boolean;inline;
-begin
-  r:=e<c.value;
-end;
-
-operator <(const c:clongdouble;const e:Extended) r:boolean;inline;
-begin
-  r:=c.value<e;
-end;
-
-operator >(const e:Extended;const c:clongdouble) r:boolean;inline;
-begin
-  r:=e>c.value;
-end;
-
-operator >(const c:clongdouble;const e:Extended) r:boolean;inline;
-begin
-  r:=c.value>e;
-end;
-
-operator >=(const e:Extended;const c:clongdouble) r:boolean;inline;
-begin
-  r:=e>=c.value;
-end;
-
-operator >=(const c:clongdouble;const e:Extended) r:boolean;inline;
-begin
-  r:=c.value>=e;
-end;
-
-operator <=(const e:Extended;const c:clongdouble) r:boolean;inline;
-begin
-  r:=e<=c.value;
-end;
-
-operator <=(const c:clongdouble;const e:Extended) r:boolean;inline;
-begin
-  r:=c.value<=e;
-end;
-{$endif}
 
 {$ifdef longdouble_assignment_overload_real128}
 
@@ -280,21 +150,48 @@ const r128_mantissa_ofs=0;
 {$else}
 const r128_mantissa_ofs=2;
       r128_exponent_ofs=0;
+{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
+  {$define USE_UNALIGNED}
+{$endif FPC_REQUIRES_PROPER_ALIGNMENT}
 {$endif}
 
 operator := (const v:clongdouble) r:double;
-
+var
+  exp : word;
+  mant : qword;
+  is_neg : boolean;
 begin
-  qword(r):=(qword(Pword(@v[r128_exponent_ofs])^) shl 52) or
-            (Pqword(@v[r128_mantissa_ofs])^ shr 12);
+  is_neg:=(pword(@v[r128_exponent_ofs])^and $8000)<>0;
+  exp:=((Pword(@v[r128_exponent_ofs])^and $7fff)-$4000)+$400;
+  if is_neg then
+    exp:=exp+$800;
+{$ifdef USE_UNALIGNED}
+  mant:=unaligned(Pqword(@v[r128_mantissa_ofs])^);
+{$else not USE_UNALIGNED}
+  mant:=Pqword(@v[r128_mantissa_ofs])^;
+{$endif not USE_UNALIGNED}
+  qword(r):=(qword(exp) shl 52) or
+            (mant shr 12);
 end;
 
 operator := (const v:double) r:clongdouble;
-
+var
+  is_neg : boolean;
+   exp : word;
 begin
-  Pword(@r[r128_exponent_ofs])^:=qword(v) shr 52;
+  is_neg:=(qword(v) shr 63) <> 0;
+  exp:=$4000 + ((qword(v) shr 52) and $7ff) -$400;
+  if is_neg then
+    exp:=exp+$8000;
+  Pword(@r[r128_exponent_ofs])^:=exp;
+{$ifdef USE_UNALIGNED}
+  unaligned(Pqword(@r[r128_mantissa_ofs])^):=qword(v) shl 12;
+  Pword(@r[r128_mantissa_ofs+8])^:=0;
+  Pword(@r[r128_mantissa_ofs+10])^:=0;
+{$else not USE_UNALIGNED}
   Pqword(@r[r128_mantissa_ofs])^:=qword(v) shl 12;
   Pcardinal(@r[r128_mantissa_ofs+8])^:=0;
+{$endif not USE_UNALIGNED}
   Pword(@r[r128_mantissa_ofs+12])^:=0;
 end;
 
@@ -304,92 +201,92 @@ end;
 
 operator +(const e:Double;const c:clongdouble) r:Double;inline;
 begin
-  r:=e+c.value;
+  r:=e+double(c);
 end;
 
 operator +(const c:clongdouble;const e:Double) r:Double;inline;
 begin
-  r:=c.value+e;
+  r:=double(c)+e;
 end;
 
 operator -(const e:Double;const c:clongdouble) r:Double;inline;
 begin
-  r:=e-c.value;
+  r:=e-double(c);
 end;
 
 operator -(const c:clongdouble;const e:Double) r:Double;inline;
 begin
-  r:=c.value-e;
+  r:=double(c)-e;
 end;
 
 operator *(const e:Double;const c:clongdouble) r:Double;inline;
 begin
-  r:=e*c.value;
+  r:=e*double(c);
 end;
 
 operator *(const c:clongdouble;const e:Double) r:Double;inline;
 begin
-  r:=c.value*e;
+  r:=double(c)*e;
 end;
 
 operator /(const e:Double;const c:clongdouble) r:Double;inline;
 begin
-  r:=e/c.value;
+  r:=e/double(c);
 end;
 
 operator /(const c:clongdouble;const e:Double) r:Double;inline;
 begin
-  r:=c.value/e;
+  r:=double(c)/e;
 end;
 
 operator =(const e:Double;const c:clongdouble) r:boolean;inline;
 begin
-  r:=e=c.value;
+  r:=e=double(c);
 end;
 
 operator =(const c:clongdouble;const e:Double) r:boolean;inline;
 begin
-  r:=c.value=e;
+  r:=double(c)=e;
 end;
 
 operator <(const e:Double;const c:clongdouble) r:boolean;inline;
 begin
-  r:=e<c.value;
+  r:=e<double(c);
 end;
 
 operator <(const c:clongdouble;const e:Double) r:boolean;inline;
 begin
-  r:=c.value<e;
+  r:=double(c)<e;
 end;
 
 operator >(const e:Double;const c:clongdouble) r:boolean;inline;
 begin
-  r:=e>c.value;
+  r:=e>double(c);
 end;
 
 operator >(const c:clongdouble;const e:Double) r:boolean;inline;
 begin
-  r:=c.value>e;
+  r:=double(c)>e;
 end;
 
 operator >=(const e:Double;const c:clongdouble) r:boolean;inline;
 begin
-  r:=e>=c.value;
+  r:=e>=double(c);
 end;
 
 operator >=(const c:clongdouble;const e:Double) r:boolean;inline;
 begin
-  r:=c.value>=e;
+  r:=double(c)>=e;
 end;
 
 operator <=(const e:Double;const c:clongdouble) r:boolean;inline;
 begin
-  r:=e<=c.value;
+  r:=e<=double(c);
 end;
 
 operator <=(const c:clongdouble;const e:Double) r:boolean;inline;
 begin
-  r:=c.value<=e;
+  r:=double(c)<=e;
 end;
 {$endif}
 {$endif}

@@ -16,7 +16,7 @@ unit pkgoptions;
 
 interface
 
-uses Classes, Sysutils, Inifiles, fprepos;
+uses Classes, Sysutils, Inifiles, fprepos, fpTemplate;
 
 Const
   UnitConfigFileName   = 'fpunits.conf';
@@ -24,7 +24,7 @@ Const
   MirrorsFileName      = 'mirrors.xml';
   PackagesFileName     = 'packages.xml';
   VersionsFileName     = 'versions-%s.dat';
-  CurrentConfigVersion = 3;
+  CurrentConfigVersion = 4;
 
 Type
 
@@ -48,10 +48,14 @@ Type
     FAllowBroken,
     FInstallGlobal,
     FRecoveryMode   : Boolean;
+    FOptionParser: TTemplateParser;
+    FShowLocation: Boolean;
     function  GetOptString(Index: integer): String;
     procedure SetOptString(Index: integer; const AValue: String);
+    procedure UpdateLocalRepositoryOption;
   Public
     Constructor Create;
+    destructor Destroy; override;
     Procedure InitGlobalDefaults;
     Procedure LoadGlobalFromFile(const AFileName : String);
     Procedure SaveGlobalToFile(const AFileName : String);
@@ -77,6 +81,7 @@ Type
     Property InstallGlobal : Boolean Read FInstallGlobal Write FInstallGlobal;
     Property RecoveryMode : Boolean Read FRecoveryMode Write FRecoveryMode;
     Property AllowBroken : Boolean Read FAllowBroken Write FAllowBroken;
+    Property ShowLocation : Boolean Read FShowLocation Write FShowLocation;
   end;
 
 
@@ -92,20 +97,23 @@ Type
     FGlobalInstallDir : String;
     FCompilerCPU: TCPU;
     FCompilerOS: TOS;
+    FOptionParser: TTemplateParser;
     function GetOptString(Index: integer): String;
     procedure SetOptString(Index: integer; const AValue: String);
     procedure SetCompilerCPU(const AValue: TCPU);
     procedure SetCompilerOS(const AValue: TOS);
   Public
     Constructor Create;
+    Destructor Destroy; override;
     Procedure InitCompilerDefaults;
     Procedure LoadCompilerFromFile(const AFileName : String);
     Procedure SaveCompilerToFile(const AFileName : String);
     procedure LogValues(const ACfgName:string);
-    Property Dirty : Boolean Read FDirty;
-    Property ConfigVersion : Integer read FConfigVersion;
+    procedure UpdateLocalRepositoryOption;
     Function LocalUnitDir:string;
     Function GlobalUnitDir:string;
+    Property Dirty : Boolean Read FDirty;
+    Property ConfigVersion : Integer read FConfigVersion;
   Published
     Property Compiler : String Index 1 Read GetOptString Write SetOptString;
     Property CompilerTarget : String Index 2 Read GetOptString Write SetOptString;
@@ -168,7 +176,16 @@ Const
 
 constructor TGlobalOptions.Create;
 begin
+  FOptionParser := TTemplateParser.Create;
+  FOptionParser.Values['AppConfigDir'] := GetAppConfigDir(false);
+  FOptionParser.Values['UserDir'] := GetUserDir;
   InitGlobalDefaults;
+end;
+
+destructor TGlobalOptions.Destroy;
+begin
+  FOptionParser.Free;
+  inherited Destroy;
 end;
 
 
@@ -177,10 +194,10 @@ begin
   Case Index of
     0 : Result:=FRemoteMirrorsURL;
     2 : Result:=FRemoteRepository;
-    3 : Result:=FLocalRepository;
-    4 : Result:=FBuildDir;
-    5 : Result:=FArchivesDir;
-    6 : Result:=FCompilerConfigDir;
+    3 : Result:=FOptionParser.ParseString(FLocalRepository);
+    4 : Result:=FOptionParser.ParseString(FBuildDir);
+    5 : Result:=FOptionParser.ParseString(FArchivesDir);
+    6 : Result:=FOptionParser.ParseString(FCompilerConfigDir);
     8 : Result:=FDefaultCompilerConfig;
     9 : Result:=FFPMakeCompilerConfig;
    10 : Result:=FDownloader;
@@ -196,7 +213,10 @@ begin
   Case Index of
     1 : FRemoteMirrorsURL:=AValue;
     2 : FRemoteRepository:=AValue;
-    3 : FLocalRepository:=AValue;
+    3 : begin
+          FLocalRepository:=AValue;
+          UpdateLocalRepositoryOption;
+        end;
     4 : FBuildDir:=FixPath(AValue);
     5 : FArchivesDir:=FixPath(AValue);
     6 : FCompilerConfigDir:=FixPath(AValue);
@@ -210,21 +230,27 @@ begin
 end;
 
 
+procedure TGlobalOptions.UpdateLocalRepositoryOption;
+begin
+  FOptionParser.Values['LocalRepository'] := LocalRepository;
+end;
+
+
 function TGlobalOptions.LocalPackagesFile:string;
 begin
-  Result:=FLocalRepository+PackagesFileName;
+  Result:=LocalRepository+PackagesFileName;
 end;
 
 
 function TGlobalOptions.LocalMirrorsFile:string;
 begin
-  Result:=FLocalRepository+MirrorsFileName;
+  Result:=LocalRepository+MirrorsFileName;
 end;
 
 
 function TGlobalOptions.LocalVersionsFile(const ACompilerConfig:String):string;
 begin
-  Result:=FLocalRepository+Format(VersionsFileName,[ACompilerConfig]);
+  Result:=LocalRepository+Format(VersionsFileName,[ACompilerConfig]);
 end;
 
 
@@ -241,14 +267,15 @@ begin
         FLocalRepository:='/usr/lib/fpc/fppkg/';
     end
   else
-    FLocalRepository:=IncludeTrailingPathDelimiter(GetEnvironmentVariable('HOME'))+'.fppkg/';
+    FLocalRepository:='{UserDir}.fppkg/';
 {$else}
   FLocalRepository:=IncludeTrailingPathDelimiter(GetAppConfigDir(IsSuperUser));
 {$endif}
+  UpdateLocalRepositoryOption;
   // Directories
-  FBuildDir:=FLocalRepository+'build'+PathDelim;
-  FArchivesDir:=FLocalRepository+'archives'+PathDelim;
-  FCompilerConfigDir:=FLocalRepository+'config'+PathDelim;
+  FBuildDir:='{LocalRepository}build'+PathDelim;
+  FArchivesDir:='{LocalRepository}archives'+PathDelim;
+  FCompilerConfigDir:='{LocalRepository}config'+PathDelim;
   // Remote
   FRemoteMirrorsURL:=DefaultMirrorsURL;
   FRemoteRepository:=DefaultRemoteRepository;
@@ -299,6 +326,7 @@ begin
         FRemoteMirrorsURL:=ReadString(SDefaults,KeyRemoteMirrorsURL,FRemoteMirrorsURL);
         FRemoteRepository:=ReadString(SDefaults,KeyRemoteRepository,FRemoteRepository);
         FLocalRepository:=ReadString(SDefaults,KeyLocalRepository,FLocalRepository);
+        UpdateLocalRepositoryOption;
         FBuildDir:=FixPath(ReadString(SDefaults,KeyBuildDir,FBuildDir));
         FArchivesDir:=FixPath(ReadString(SDefaults,KeyArchivesDir,FArchivesDir));
         FCompilerConfigDir:=FixPath(ReadString(SDefaults,KeyCompilerConfigDir,FCompilerConfigDir));
@@ -323,10 +351,10 @@ begin
     With Ini do
       begin
         WriteInteger(SDefaults,KeyConfigVersion,CurrentConfigVersion);
+        WriteString(SDefaults,KeyLocalRepository,FLocalRepository);
         WriteString(SDefaults,KeyBuildDir,FBuildDir);
         WriteString(SDefaults,KeyArchivesDir,FArchivesDir);
         WriteString(SDefaults,KeyCompilerConfigDir,FCompilerConfigDir);
-        WriteString(SDefaults,KeyLocalRepository,FLocalRepository);
         WriteString(SDefaults,KeyRemoteMirrorsURL,FRemoteMirrorsURL);
         WriteString(SDefaults,KeyRemoteRepository,FRemoteRepository);
         WriteString(SDefaults,KeyCompilerConfig,FDefaultCompilerConfig);
@@ -346,10 +374,10 @@ begin
   Log(vlDebug,SLogGlobalCfgHeader);
   Log(vlDebug,SLogGlobalCfgRemoteMirrorsURL,[FRemoteMirrorsURL]);
   Log(vlDebug,SLogGlobalCfgRemoteRepository,[FRemoteRepository]);
-  Log(vlDebug,SLogGlobalCfgLocalRepository,[FLocalRepository]);
-  Log(vlDebug,SLogGlobalCfgBuildDir,[FBuildDir]);
-  Log(vlDebug,SLogGlobalCfgArchivesDir,[FArchivesDir]);
-  Log(vlDebug,SLogGlobalCfgCompilerConfigDir,[FCompilerConfigDir]);
+  Log(vlDebug,SLogGlobalCfgLocalRepository,[LocalRepository]);
+  Log(vlDebug,SLogGlobalCfgBuildDir,[BuildDir]);
+  Log(vlDebug,SLogGlobalCfgArchivesDir,[ArchivesDir]);
+  Log(vlDebug,SLogGlobalCfgCompilerConfigDir,[CompilerConfigDir]);
   Log(vlDebug,SLogGlobalCfgDefaultCompilerConfig,[FDefaultCompilerConfig]);
   Log(vlDebug,SLogGlobalCfgFPMakeCompilerConfig,[FFPMakeCompilerConfig]);
   Log(vlDebug,SLogGlobalCfgDownloader,[FDownloader]);
@@ -362,6 +390,15 @@ end;
 
 constructor TCompilerOptions.Create;
 begin
+  FOptionParser := TTemplateParser.Create;
+  FOptionParser.Values['AppConfigDir'] := GetAppConfigDir(false);
+  FOptionParser.Values['UserDir'] := GetUserDir;
+end;
+
+destructor TCompilerOptions.Destroy;
+begin
+  FOptionParser.Free;
+  inherited Destroy;
 end;
 
 
@@ -371,8 +408,8 @@ begin
     1 : Result:=FCompiler;
     2 : Result:=MakeTargetString(CompilerCPU,CompilerOS);
     3 : Result:=FCompilerVersion;
-    4 : Result:=FGlobalInstallDir;
-    5 : Result:=FLocalInstallDir;
+    4 : Result:=FOptionParser.ParseString(FGlobalInstallDir);
+    5 : Result:=FOptionParser.ParseString(FLocalInstallDir);
     else
       Error('Unknown option');
   end;
@@ -404,6 +441,12 @@ begin
 end;
 
 
+procedure TCompilerOptions.UpdateLocalRepositoryOption;
+begin
+  FOptionParser.Values['LocalRepository'] := GlobalOptions.LocalRepository;
+end;
+
+
 procedure TCompilerOptions.SetCompilerOS(const AValue: TOS);
 begin
   if FCompilerOS=AValue then
@@ -415,8 +458,8 @@ end;
 
 function TCompilerOptions.LocalUnitDir:string;
 begin
-  if FLocalInstallDir<>'' then
-    result:=FLocalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
+  if LocalInstallDir<>'' then
+    result:=LocalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
   else
     result:='';
 end;
@@ -424,19 +467,20 @@ end;
 
 function TCompilerOptions.GlobalUnitDir:string;
 begin
-  if FGlobalInstallDir<>'' then
-    result:=FGlobalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
+  if GlobalInstallDir<>'' then
+    result:=GlobalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
   else
     result:='';
 end;
 
 
 procedure TCompilerOptions.InitCompilerDefaults;
+
 var
   infoSL : TStringList;
 begin
   FConfigVersion:=CurrentConfigVersion;
-  FCompiler:=FileSearch('fpc'+ExeExt,GetEnvironmentVariable('PATH'));
+  FCompiler:=ExeSearch('fpc'+ExeExt,GetEnvironmentVariable('PATH'));
   if FCompiler='' then
     Raise EPackagerError.Create(SErrMissingFPC);
   // Detect compiler version/target from -i option
@@ -478,7 +522,7 @@ begin
   // User writable install directory
   if not IsSuperUser then
     begin
-      FLocalInstallDir:=GlobalOptions.LocalRepository+'lib'+PathDelim+FCompilerVersion+PathDelim;
+      FLocalInstallDir:= '{LocalRepository}lib'+ PathDelim + FCompilerVersion+PathDelim;
       Log(vlDebug,SLogDetectedFPCDIR,['local',FLocalInstallDir]);
     end;
 end;
@@ -545,8 +589,8 @@ begin
   Log(vlDebug,SLogCompilerCfgCompiler,[FCompiler]);
   Log(vlDebug,SLogCompilerCfgTarget,[MakeTargetString(CompilerCPU,CompilerOS)]);
   Log(vlDebug,SLogCompilerCfgVersion,[FCompilerVersion]);
-  Log(vlDebug,SLogCompilerCfgGlobalInstallDir,[FGlobalInstallDir]);
-  Log(vlDebug,SLogCompilerCfgLocalInstallDir,[FLocalInstallDir]);
+  Log(vlDebug,SLogCompilerCfgGlobalInstallDir,[GlobalInstallDir]);
+  Log(vlDebug,SLogCompilerCfgLocalInstallDir,[LocalInstallDir]);
 end;
 
 

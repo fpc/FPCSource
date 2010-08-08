@@ -38,16 +38,16 @@ unit cpu;
       }
       asm
          push    ebx
-         pushf
-         pushf
+         pushfd
+         pushfd
          pop     eax
          mov     ebx,eax
          xor     eax,200000h
          push    eax
-         popf
-         pushf
+         popfd
+         pushfd
          pop     eax
-         popf
+         popfd
          and     eax,200000h
          and     ebx,200000h
          cmp     eax,ebx

@@ -60,6 +60,8 @@ const
   {$WARNINGS OFF}
 {$ENDIF}
 
+{ $define HasPango1_20}
+
 
 {$DEFINE read_forward_definitions}
 type

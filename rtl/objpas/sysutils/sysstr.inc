@@ -35,18 +35,21 @@ begin
    end;
 end;
 
+{$ifdef dummy}
+{ declaring this breaks delphi compatibility and e.g. tw3721.pp }
 FUNCTION NewStr (Const S: ShortString): PShortString;
 VAR P: PShortString;
 BEGIN
-   If (S = '') Then 
-     P := Nil 
-    Else 
+   If (S = '') Then
+     P := Nil
+    Else
      Begin               { Return nil }
      GetMem(P, Length(S) + 1);                        { Allocate memory }
      If (P<>Nil) Then P^ := S;                        { Hold string }
      End;
    NewStr := P;                                       { Return result }
 END;
+{$endif dummy}
 
 {   DisposeStr frees the memory occupied by S   }
 
@@ -156,37 +159,14 @@ end;
     P1 > P2    > 0
     P1 = P2    = 0    }
 
-function CompareMemRange(P1, P2: Pointer; Length: cardinal): integer;
-
-var
-  i: cardinal;
-
+function CompareMemRange(P1, P2: Pointer; Length: PtrUInt): integer;{$ifdef SYSUTILSINLINE}inline;{$endif}
 begin
-  i := 0;
-  result := 0;
-  while (result=0) and (I<length) do
-    begin
-    result:=byte(P1^)-byte(P2^);
-    P1:=pchar(P1)+1;            // VP compat.
-    P2:=pchar(P2)+1;
-    i := i + 1;
-   end ;
-end ;
+  Result:=CompareByte(P1^,P2^,Length);
+end;
 
-function CompareMem(P1, P2: Pointer; Length: cardinal): Boolean;
-var
-  i: cardinal;
+function CompareMem(P1, P2: Pointer; Length: PtrUInt): Boolean;{$ifdef SYSUTILSINLINE}inline;{$endif}
 begin
-  Result:=True;
-  I:=0;
-  If (P1)<>(P2) then
-    While Result and (i<Length) do
-      begin
-      Result:=PByte(P1)^=PByte(P2)^;
-      Inc(I);
-      Inc(pchar(P1));
-      Inc(pchar(P2));
-      end;
+  Result:=CompareByte(P1^,P2^,Length)=0;
 end;
 
 
@@ -210,24 +190,27 @@ begin
     Count := Count2
   else
     Count := Count1;
-  P1 := @S1[1];
-  P2 := @S2[1];
   i := 0;
-  while i < Count do
-  begin
-    Chr1 := byte(p1^);
-    Chr2 := byte(p2^);
-    if Chr1 <> Chr2 then
+  if count>0 then
     begin
-      if Chr1 in [97..122] then
-        dec(Chr1,32);
-      if Chr2 in [97..122] then
-        dec(Chr2,32);
-      if Chr1 <> Chr2 then
-        Break;
+      P1 := @S1[1];
+      P2 := @S2[1];
+      while i < Count do
+        begin
+          Chr1 := byte(p1^);
+          Chr2 := byte(p2^);
+          if Chr1 <> Chr2 then
+            begin
+              if Chr1 in [97..122] then
+                dec(Chr1,32);
+              if Chr2 in [97..122] then
+                dec(Chr2,32);
+              if Chr1 <> Chr2 then
+                Break;
+            end;
+          Inc(P1); Inc(P2); Inc(I);
+        end;
     end;
-    Inc(P1); Inc(P2); Inc(I);
-  end;
   if i < Count then
     result := Chr1-Chr2
   else
@@ -248,7 +231,7 @@ end;
 
 type
   TCaseTranslationTable = array[0..255] of char;
-  
+
 var
   { Tables with upper and lowercase forms of character sets.
     MUST be initialized with the correct code-pages }
@@ -330,7 +313,7 @@ begin
     Result:=Ord(S1^)-Ord(S2^); //!! Must be replaced by ansi characters !!
     Inc(S1);
     Inc(S2);
-  end;  
+  end;
   if (Result=0) and (S1^<>S2^) then // loop ended because exactly one has #0
     if S1^=#0 then // shorter string is smaller
       result:=-1
@@ -1035,7 +1018,7 @@ begin
      Result:=Default;
 end;
 
-Function TextToFloat(Buffer: PChar; Var Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
+Function TextToFloat(Buffer: PChar; Out Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
 
 Var
   E,P : Integer;
@@ -1043,36 +1026,40 @@ Var
 
 Begin
   S:=StrPas(Buffer);
-  if (FormatSettings.DecimalSeparator<>'.') then
+  //ThousandSeparator not allowed as by Delphi specs
+  if (FormatSettings.ThousandSeparator <> FormatSettings.DecimalSeparator) and
+     (Pos(FormatSettings.ThousandSeparator, S) <> 0) then
     begin
-      { only decimalseparator may appear in the string }
-      P:=Pos('.',S);
-      if (P<>0) then
-        begin
-          result:=false;
-          exit;
-        end;
-      P:=Pos(FormatSettings.DecimalSeparator,S);
-      If (P<>0) Then
-        S[P] := '.';
+      Result := False;
+      Exit;
     end;
+  if (FormatSettings.DecimalSeparator <> '.') and
+     (Pos('.', S) <>0) then
+    begin
+      Result := False;
+      Exit;
+    end;
+  P:=Pos(FormatSettings.DecimalSeparator,S);
+  If (P<>0) Then
+    S[P] := '.';
   Val(trim(S),Value,E);
   Result:=(E=0);
 End;
 
-Function TextToFloat(Buffer: PChar; Var Value: Extended): Boolean;
+
+Function TextToFloat(Buffer: PChar; Out Value: Extended): Boolean;
 
 begin
   Result:=TextToFloat(Buffer,Value,DefaultFormatSettings);
 end;
 
-Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue): Boolean;
+Function TextToFloat(Buffer: PChar; Out Value; ValueType: TFloatValue): Boolean;
 
 begin
   Result:=TextToFloat(Buffer,Value,ValueType,DefaultFormatSettings);
 end;
 
-Function TextToFloat(Buffer: PChar; Var Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
+Function TextToFloat(Buffer: PChar; Out Value; ValueType: TFloatValue; Const FormatSettings: TFormatSettings): Boolean;
 
 Var
   E,P : Integer;
@@ -1083,12 +1070,20 @@ Var
 
 Begin
   S:=StrPas(Buffer);
-  P:=Pos(FormatSettings.ThousandSeparator,S);
-  While (P<>0) do
+  //ThousandSeparator not allowed as by Delphi specs
+  if (FormatSettings.ThousandSeparator <> FormatSettings.DecimalSeparator) and
+     (Pos(FormatSettings.ThousandSeparator, S) <> 0) then
     begin
-    Delete(S,P,1);
-    P:=Pos(FormatSettings.ThousandSeparator,S);
+      Result := False;
+      Exit;
     end;
+  if (FormatSettings.DecimalSeparator <> '.') and
+     (Pos('.', S) <>0) then
+    begin
+      Result := False;
+      Exit;
+    end;
+
   P:=Pos(FormatSettings.DecimalSeparator,S);
   If (P<>0) Then
     S[P] := '.';
@@ -1117,36 +1112,37 @@ Begin
   Result:=(E=0);
 End;
 
-Function TryStrToFloat(Const S : String; Var Value: Single): Boolean;
+
+Function TryStrToFloat(Const S : String; Out Value: Single): Boolean;
 
 begin
   Result:=TryStrToFloat(S,Value,DefaultFormatSettings);
 end;
 
-Function TryStrToFloat(Const S : String; Var Value: Single; Const FormatSettings: TFormatSettings): Boolean;
+Function TryStrToFloat(Const S : String; Out Value: Single; Const FormatSettings: TFormatSettings): Boolean;
 Begin
   Result := TextToFloat(PChar(pointer(S)), Value, fvSingle,FormatSettings);
 End;
 
-Function TryStrToFloat(Const S : String; Var Value: Double): Boolean;
+Function TryStrToFloat(Const S : String; Out Value: Double): Boolean;
 
 begin
   Result:=TryStrToFloat(S,Value,DefaultFormatSettings);
 end;
 
-Function TryStrToFloat(Const S : String; Var Value: Double; Const FormatSettings: TFormatSettings): Boolean;
+Function TryStrToFloat(Const S : String; Out Value: Double; Const FormatSettings: TFormatSettings): Boolean;
 Begin
   Result := TextToFloat(PChar(pointer(S)), Value, fvDouble,FormatSettings);
 End;
 
 {$ifdef FPC_HAS_TYPE_EXTENDED}
-Function TryStrToFloat(Const S : String; Var Value: Extended): Boolean;
+Function TryStrToFloat(Const S : String; Out Value: Extended): Boolean;
 
 begin
   Result:=TryStrToFloat(S,Value,DefaultFormatSettings);
 end;
 
-Function TryStrToFloat(Const S : String; Var Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
+Function TryStrToFloat(Const S : String; Out Value: Extended; Const FormatSettings: TFormatSettings): Boolean;
 Begin
   Result := TextToFloat(PChar(pointer(S)), Value,FormatSettings);
 End;
@@ -1201,10 +1197,11 @@ Begin
             else
               Str(Extended(Value):0:precision, Result);
           end;
+          Negative := Result[1] = '-';
           P := Pos('.', Result);
           if P<>0 then
             Result[P] := DS;
-          TooLarge :=(P > Precision + 1) or (Pos('E', Result)<>0);
+          TooLarge :=(P > Precision + ord(Negative) + 1) or (Pos('E', Result)<>0);
         End;
 
         If TooSmall Or TooLarge Then
@@ -1235,14 +1232,14 @@ Begin
             { significant digits" rather than "number of digits after the }
             { decimal point" (as it does in the system unit) -> adjust    }
             { (precision+1 to count the decimal point character)          }
-            if Result[1] = '-' then
-              Inc(Precision);
-            if (Length(Result) > Precision + 1) and
-               (Precision + 1 > P) then
-              begin
-                P := Precision + 1;
-                SetLength(Result,P);
-              end;
+            { don't just cut off the string, as rounding must be taken    }
+            { into account based on the final digit                       }
+            
+            if (Length(Result) > Precision + ord(Negative) + 1) and
+               (Precision + ord(Negative) + 1 >= P) then
+              Result := FloatToStrFIntl(Value, ffFixed,
+                0, Precision - (P - Ord(Negative) - 1),
+                ValueType, FormatSettings);
             P := Length(Result);
             While (P>0) and (Result[P] = '0') Do
               Dec(P);
@@ -1353,7 +1350,8 @@ Begin
         Dec(P, 3);
         While (P > 1) Do
         Begin
-          If Result[P - 1] <> '-' Then Insert(FormatSettings.ThousandSeparator, Result, P);
+          If (Result[P - 1] <> '-') And (FormatSettings.ThousandSeparator <> #0) Then
+            Insert(FormatSettings.ThousandSeparator, Result, P);
           Dec(P, 3);
         End;
       End;
@@ -1385,7 +1383,8 @@ Begin
         Dec(P, 3);
         While (P > 1) Do
         Begin
-          Insert(FormatSettings.ThousandSeparator, Result, P);
+          If FormatSettings.ThousandSeparator<>#0 Then
+            Insert(FormatSettings.ThousandSeparator, Result, P);
           Dec(P, 3);
         End;
 
@@ -1670,6 +1669,13 @@ begin
   Result:=FloatToStrF(Value,ffGeneral,-1,0);
 end;
 
+
+Function CurrToStr(Value: Currency; Const FormatSettings: TFormatSettings): string;
+begin
+  Result:=FloatToStrF(Value,ffGeneral,-1,0,FormatSettings);
+end;  
+
+
 function StrToCurr(const S: string): Currency;
 begin
   if not TextToFloat(PChar(pointer(S)), Result, fvCurrency) then
@@ -1677,10 +1683,23 @@ begin
 end;
 
 
-Function TryStrToCurr(Const S : String; Var Value: Currency): Boolean;
+function StrToCurr(const S: string; Const FormatSettings: TFormatSettings): Currency; 
+begin
+  if not TextToFloat(PChar(pointer(S)), Result, fvCurrency,FormatSettings) then
+    Raise EConvertError.createfmt(SInValidFLoat,[S]);
+end;
+
+
+Function TryStrToCurr(Const S : String; Out Value: Currency): Boolean;
 Begin
   Result := TextToFloat(PChar(pointer(S)), Value, fvCurrency);
 End;
+
+
+function TryStrToCurr(const S: string;Out Value : Currency; Const FormatSettings: TFormatSettings): Boolean;       
+Begin
+  Result := TextToFloat(PChar(pointer(S)), Value, fvCurrency,FormatSettings);
+End;  
 
 
 function StrToCurrDef(const S: string; Default : Currency): Currency;
@@ -1689,6 +1708,11 @@ begin
     Result:=Default;
 end;
 
+function StrToCurrDef(const S: string; Default : Currency; Const FormatSettings: TFormatSettings): Currency;  
+begin
+  if not TextToFloat(PChar(pointer(S)), Result, fvCurrency,FormatSettings) then
+    Result:=Default;
+end; 
 {$endif FPUNONE}
 
 function AnsiDequotedStr(const S: string; AQuote: Char): string;
@@ -1741,7 +1765,7 @@ begin
 end;
 
 // from textmode IDE util funcs.
-function BoolToStr(B: boolean; const TrueS, FalseS: string): string; 
+function BoolToStr(B: boolean; const TrueS, FalseS: string): string;
 begin
   if B then Result:=TrueS else BoolToStr:=FalseS;
 end;
@@ -1938,7 +1962,7 @@ Var
               End;
             ',':
               Begin
-              thousand := True;
+              thousand := DefaultFormatSettings.ThousandSeparator<>#0;
               Inc(Fmt);
               End;
             'e', 'E':
@@ -1999,8 +2023,10 @@ Var
       Width:=Placehold[1]+Placehold[2]+Decimals;
       If (Decimals=0) Then
         Str(Value:Width:0,Digits)
-      Else
-        Str(Value:Width+1:Decimals,Digits);
+      Else if Value>=0 then
+        Str(Value:Width+1:Decimals,Digits)
+      else
+        Str(Value:Width+2:Decimals,Digits);
       len:=Length(Digits);
       { Find the decimal point }
       If (Decimals=0) Then
@@ -2016,7 +2042,6 @@ Var
         Else
           Digits[DecimalPoint-1]:=' ';
         End;
-
       { Convert optional zeroes to spaces. }
       I:=len;
       J:=DecimalPoint+Placehold[3];
@@ -2029,19 +2054,19 @@ Var
         places, remove decimal point. }
       If (DecimalPoint < len) And (Digits[DecimalPoint + 1] = ' ') Then
           Digits[DecimalPoint] := ' ';
-      { Convert spaces left from obligatory decimal point to zeroes. }
+      { Convert spaces left from obligatory decimal point to zeroes.
+        MVC : If - sign is encountered, replace it too, and put at position 1}
       I:=DecimalPoint-Placehold[2];
-      If (Value<0) and (I<DecimalPoint) and (Digits[1]<>'-') then
-        begin
-        Insert('-',Digits,I);
-        Inc(DecimalPoint);
-        Inc(I);
-        end;
+      J:=0;
       While (I<DecimalPoint) And (Digits[I] in [' ','-']) Do
         Begin
+        If Digits[i]='-' then
+          J:=I;
         Digits[I] := '0';
         Inc(I);
         End;
+      If (J<>0) then
+        Digits[1]:='-';
       Exp := 0;
       End
     Else
@@ -2066,7 +2091,7 @@ Var
 
       { Find and cut out exponent. Always the
         last 6 characters in the string.
-        -> 0000E+0000                         
+        -> 0000E+0000
         *** No, not always the last 6 characters, this depends on
             the maximally supported precision (JM)}
       I:=Pos('E',Digits);
@@ -2179,8 +2204,11 @@ Var
                 { Everything unexpected is written before the first digit }
                 For N := 1 To UnexpectedDigits Do
                   Begin
-                  Buf[0] := Digits[N];
-                  Inc(Buf);
+                    if (Digits[N]<>' ') Then
+                    begin
+                      Buf[0] := Digits[N];
+                      Inc(Buf);
+                    end;
                   If thousand And (Digits[N]<>'-') Then
                     Begin
                     If (DigitExponent Mod 3 = 0) And (DigitExponent>0) Then
@@ -2200,7 +2228,7 @@ Var
                 Else
                   Buf[0] := Digits[Dig];
                 Inc(Buf);
-                If thousand And (DigitExponent Mod 3 = 0) And (DigitExponent > 0) Then
+                If thousand And (DigitExponent Mod 3 = 0) And (DigitExponent > 0) and (Digits[Dig]<>'-') Then
                   Begin
                   Buf[0] := FormatSettings.ThousandSeparator;
                   Inc(Buf);
@@ -2287,6 +2315,7 @@ End;
 Procedure FloatToDecimal(Out Result: TFloatRec; const Value; ValueType: TFloatValue; Precision, Decimals : integer);
 var
   Buffer: String[254];  //Though str func returns only 25 chars, this might change in the future
+  InfNan: string[3];
   Error, N, L, Start, C: Integer;
   GotNonZeroBeforeDot, BeforeDot : boolean;
 begin
@@ -2310,7 +2339,26 @@ begin
     Inc(N);
   Result.Negative := (Buffer[N] = '-');
   if Result.Negative then
-    Inc(N);
+    Inc(N)
+  else if (Buffer[N] = '+') then
+    inc(N);
+  { special cases for Inf and Nan }
+  if (L>=N+2) then
+    begin
+      InfNan:=copy(Buffer,N,3);
+      if (InfNan='Inf') then
+        begin
+          Result.Digits[0]:=#0;
+          Result.Exponent:=32767;
+          exit
+        end;
+      if (InfNan='Nan') then
+        begin
+          Result.Digits[0]:=#0;
+          Result.Exponent:=-32768;
+          exit
+        end;
+    end;
   Start := N;  //Start of digits
   Result.Exponent := 0; BeforeDot := true;
   GotNonZeroBeforeDot := false;
@@ -2457,13 +2505,27 @@ end;
 {    BCDToInt converts the BCD value Value to an integer   }
 
 function BCDToInt(Value: integer): integer;
-var i, j: integer;
+var i, j, digit: integer;
 begin
 result := 0;
 j := 1;
-for i := 0 to SizeOf(Value) shr 1 - 1 do begin
-   result := result + j * (Value and 15);
-   j := j * 10;
+
+for i := 0 to SizeOf(Value) shl 1 - 1 do begin
+   digit := Value and 15;
+
+   if digit > $9 then
+   begin
+       if i = 0 then
+       begin
+           if digit in [$B, $D] then j := -1
+       end
+       else raise EConvertError.createfmt(SInvalidBCD,[Value]);
+   end
+   else
+   begin
+      result := result + j * digit;
+      j := j * 10;
+      end ;
    Value := Value shr 4;
    end ;
 end ;
@@ -2787,7 +2849,7 @@ function sscanf(const s: string; const fmt : string;const Pointers : array of Po
       while (Length(s) > n) and (s[n] = ' ')  do
         inc(n);
       while (Length(s) >= n) and
-            (s[n] in ['0'..'9', '+', '-', '.', 'e', 'E']) do
+            (s[n] in ['0'..'9', '+', '-', DecimalSeparator, 'e', 'E']) do
         begin
           s1 := s1+s[n];
           inc(n);

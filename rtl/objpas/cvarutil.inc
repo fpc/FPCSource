@@ -15,14 +15,7 @@
 
 Resourcestring
 
-  SNoWidestrings = 'No widestrings supported';
   SNoInterfaces  = 'No interfaces supported';
-
-Procedure NoWidestrings;
-
-begin
-  Raise Exception.Create(SNoWideStrings);
-end;
 
 Procedure NoInterfaces;
 
@@ -106,7 +99,7 @@ begin
       else
         VariantTypeMismatch(vType, varSmallInt);
       end;
-      varByRef: if Assigned(vPointer) then case vType of
+      varByRef: if Assigned(vPointer) then case vType and varTypeMask of
         varSmallInt : Result := PSmallInt(vPointer)^;
         varShortInt : Result := PShortInt(vPointer)^;
         varInteger  : Result := smallint(PInteger(vPointer)^);
@@ -177,7 +170,7 @@ begin
         varDate     : Result := shortint(Round(vDate));
 {$endif}
         varCurrency : Result := shortint(Round(vCurrency));
-        varBoolean  : Result := SmallInt(vBoolean);
+        varBoolean  : Result := shortint(vBoolean);
         varVariant  : Result := VariantToShortInt(PVarData(vPointer)^);
         varByte     : Result := shortint(vByte);
         varWord     : Result := shortint(vWord);
@@ -189,7 +182,7 @@ begin
       else
         VariantTypeMismatch(vType, varShortInt);
       end;
-      varByRef: if Assigned(vPointer) then case vType of
+      varByRef: if Assigned(vPointer) then case vType and varTypeMask of
         varSmallInt : Result := shortint(PSmallInt(vPointer)^);
         varShortInt : Result := PShortInt(vPointer)^;
         varInteger  : Result := shortint(PInteger(vPointer)^);
@@ -272,7 +265,7 @@ begin
       else
         VariantTypeMismatch(vType, varInteger);
       end;
-      varByRef: if Assigned(vPointer) then case vType of
+      varByRef: if Assigned(vPointer) then case vType and varTypeMask of
         varSmallInt : Result := PSmallInt(vPointer)^;
         varShortInt : Result := PShortInt(vPointer)^;
         varInteger  : Result := PInteger(vPointer)^;
@@ -343,7 +336,7 @@ begin
         varDate     : Result := cardinal(Round(vDate));
 {$endif}
         varCurrency : Result := cardinal(Round(vCurrency));
-        varBoolean  : Result := SmallInt(vBoolean);
+        varBoolean  : Result := cardinal(SmallInt(vBoolean));
         varVariant  : Result := VariantToCardinal(PVarData(vPointer)^);
         varByte     : Result := vByte;
         varWord     : Result := vWord;
@@ -355,7 +348,7 @@ begin
       else
         VariantTypeMismatch(vType, varLongWord);
       end;
-      varByRef: if Assigned(vPointer) then case vType of
+      varByRef: if Assigned(vPointer) then case vType and varTypeMask of
         varSmallInt : Result := cardinal(PSmallInt(vPointer)^);
         varShortInt : Result := cardinal(PShortInt(vPointer)^);
         varInteger  : Result := cardinal(PInteger(vPointer)^);
@@ -365,7 +358,7 @@ begin
         varDate     : Result := cardinal(Round(PDate(vPointer)^));
 {$endif}
         varCurrency : Result := cardinal(Round(PCurrency(vPointer)^));
-        varBoolean  : Result := SmallInt(PWordBool(vPointer)^);
+        varBoolean  : Result := cardinal(SmallInt(PWordBool(vPointer)^));
         varVariant  : Result := VariantToCardinal(PVarData(vPointer)^);
         varByte     : Result := PByte(vPointer)^;
         varWord     : Result := PWord(vPointer)^;
@@ -468,7 +461,7 @@ begin
       else
         VariantTypeMismatch(vType, varSingle);
       end;
-      varByRef: if Assigned(vPointer) then case vType of
+      varByRef: if Assigned(vPointer) then case vType and varTypeMask of
         varSmallInt : Result := PSmallInt(vPointer)^;
         varShortInt : Result := PShortInt(vPointer)^;
         varInteger  : Result := PInteger(vPointer)^;
@@ -561,7 +554,7 @@ begin
       else
         VariantTypeMismatch(vType, varDouble);
       end;
-      varByRef: if Assigned(vPointer) then case vType of
+      varByRef: if Assigned(vPointer) then case vType and varTypeMask of
         varSmallInt : Result := PSmallInt(vPointer)^;
         varShortInt : Result := PShortInt(vPointer)^;
         varInteger  : Result := PInteger(vPointer)^;
@@ -688,7 +681,7 @@ begin
       else
         VariantTypeMismatch(vType, varCurrency);
       end;
-      varByRef: if Assigned(vPointer) then case vType of
+      varByRef: if Assigned(vPointer) then case vType and varTypeMask of
         varSmallInt : Result := PSmallInt(vPointer)^;
         varShortInt : Result := PShortInt(vPointer)^;
         varInteger  : Result := PInteger(vPointer)^;
@@ -785,7 +778,7 @@ begin
       else
         VariantTypeMismatch(vType, varDate);
       end;
-      varByRef: if Assigned(vPointer) then case vType of
+      varByRef: if Assigned(vPointer) then case vType and varTypeMask of
         varSmallInt : Result := PSmallInt(vPointer)^;
         varShortInt : Result := PShortInt(vPointer)^;
         varInteger  : Result := PInteger(vPointer)^;
@@ -864,7 +857,7 @@ begin
       else
         VariantTypeMismatch(vType, varBoolean);
       end;
-      varByRef: if Assigned(vPointer) then case vType of
+      varByRef: if Assigned(vPointer) then case vType and varTypeMask of
         varSmallInt : Result := PSmallInt(vPointer)^ <> 0;
         varShortInt : Result := PShortInt(vPointer)^ <> 0;
         varInteger  : Result := PInteger(vPointer)^ <> 0;
@@ -935,7 +928,7 @@ begin
         varCurrency : Result := byte(Round(vCurrency));
         varDate     : Result := byte(Round(vDate));
 {$endif}
-        varBoolean  : Result := SmallInt(vBoolean);
+        varBoolean  : Result := byte(SmallInt(vBoolean));
         varVariant  : Result := VariantToByte(PVarData(vPointer)^);
         varByte     : Result := vByte;
         varWord     : Result := byte(vWord);
@@ -947,7 +940,7 @@ begin
       else
         VariantTypeMismatch(vType, varByte);
       end;
-      varByRef: if Assigned(vPointer) then case vType of
+      varByRef: if Assigned(vPointer) then case vType and varTypeMask of
         varSmallInt : Result := byte(PSmallInt(vPointer)^);
         varShortInt : Result := byte(PShortInt(vPointer)^);
         varInteger  : Result := byte(PInteger(vPointer)^);
@@ -1030,7 +1023,7 @@ begin
       else
         VariantTypeMismatch(vType, varInt64);
       end;
-      varByRef: if Assigned(vPointer) then case vType of
+      varByRef: if Assigned(vPointer) then case vType and varTypeMask of
         varSmallInt : Result := PSmallInt(vPointer)^;
         varShortInt : Result := PShortInt(vPointer)^;
         varInteger  : Result := PInteger(vPointer)^;
@@ -1101,7 +1094,7 @@ begin
         varCurrency : Result := qword(Round(vCurrency));
         varDate     : Result := qword(Round(vDate));
 {$endif}
-        varBoolean  : Result := SmallInt(vBoolean);
+        varBoolean  : Result := qword(SmallInt(vBoolean));
         varVariant  : Result := VariantToQWord(PVarData(vPointer)^);
         varByte     : Result := vByte;
         varWord     : Result := vWord;
@@ -1113,7 +1106,7 @@ begin
       else
         VariantTypeMismatch(vType, varQWord);
       end;
-      varByRef: if Assigned(vPointer) then case vType of
+      varByRef: if Assigned(vPointer) then case vType and varTypeMask of
         varSmallInt : Result := qword(PSmallInt(vPointer)^);
         varShortInt : Result := qword(PShortInt(vPointer)^);
         varInteger  : Result := qword(PInteger(vPointer)^);
@@ -1123,7 +1116,7 @@ begin
         varCurrency : Result := qword(Round(PCurrency(vPointer)^));
         varDate     : Result := qword(Round(PDate(vPointer)^));
 {$endif}
-        varBoolean  : Result := SmallInt(PWordBool(vPointer)^);
+        varBoolean  : Result := qword(SmallInt(PWordBool(vPointer)^));
         varVariant  : Result := VariantToQWord(PVarData(vPointer)^);
         varByte     : Result := PByte(vPointer)^;
         varWord     : Result := PWord(vPointer)^;
@@ -1178,7 +1171,7 @@ begin
       else
         VariantTypeMismatch(vType, varOleStr);
       end;
-      varByRef: if Assigned(vPointer) then case vType of
+      varByRef: if Assigned(vPointer) then case vType and varTypeMask of
         varSmallInt : Result := IntToStr(PSmallInt(vPointer)^);
         varShortInt : Result := IntToStr(PShortInt(vPointer)^);
         varInteger  : Result := IntToStr(PInteger(vPointer)^);
@@ -1243,7 +1236,7 @@ begin
       else
         VariantTypeMismatch(vType, varString);
       end;
-      varByRef: if Assigned(vPointer) then case vType of
+      varByRef: if Assigned(vPointer) then case vType and varTypeMask of
         varSmallInt : Result := IntToStr(PSmallInt(vPointer)^);
         varShortInt : Result := IntToStr(PShortInt(vPointer)^);
         varInteger  : Result := IntToStr(PInteger(vPointer)^);

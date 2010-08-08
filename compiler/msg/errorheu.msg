@@ -1,4 +1,4 @@
-﻿#
+#
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1999-2008 by the Free Pascal Development team
 #
@@ -2404,7 +2404,7 @@ option_confict_asm_debug=11041_W_סוג הפלט של המאסף שנבחר "$1"
 #
 option_logo=11023_[
 Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCCPU
-Copyright (c) 1993-2008 by Florian Klaempfl
+Copyright (c) 1993-2010 by Florian Klaempfl
 ]
 
 #
@@ -2432,6 +2432,8 @@ Free Pascal Compiler version $FPCVERSION
 למידע נוסף יש לקרוא את COPYING.FPC
 
 דיווח על תקלות (באגים), הצעות וכו':
+                 http://bugs.freepascal.org
+
                  bugs@freepascal.org
 ]
 
@@ -2602,7 +2604,6 @@ S*2Aas_אסוף עם GNU AS
 **2Sm_תמוך במקרו דומים לC (גלובליים)
 **2So_זהה ל -Mtp
 **2Ss_שם יוצר חייב להיות init (שם הורס חייב להיות done)
-**2St_אפשר מילות מפתח באובייקטים
 **2Sx_אפשר מילות מפתח לexception (ברירת מחדל במצבי Delphi/ObjFPC)
 **1s_אל תקרא למאסף והמקשר
 **2sh_צור תסריט לקישור במארח

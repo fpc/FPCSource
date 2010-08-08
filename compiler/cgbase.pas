@@ -38,8 +38,6 @@ interface
          LOC_CONSTANT,     { constant value }
          LOC_JUMP,         { boolean results only, jump to false or true label }
          LOC_FLAGS,        { boolean results only, flags are set }
-         LOC_CREFERENCE,   { in memory constant value reference (cannot change) }
-         LOC_REFERENCE,    { in memory value }
          LOC_REGISTER,     { in a processor register }
          LOC_CREGISTER,    { Constant register which shouldn't be modified }
          LOC_FPUREGISTER,  { FPU stack }
@@ -56,16 +54,23 @@ interface
          LOC_CSUBSETREG,
          { contiguous subset of bits in memory }
          LOC_SUBSETREF,
-         LOC_CSUBSETREF
+         LOC_CSUBSETREF,
+         { keep these last for range checking purposes }
+         LOC_CREFERENCE,   { in memory constant value reference (cannot change) }
+         LOC_REFERENCE     { in memory value }
        );
+
+       TCGNonRefLoc=low(TCGLoc)..pred(LOC_CREFERENCE);
+       TCGRefLoc=LOC_CREFERENCE..LOC_REFERENCE;
 
        { since we have only 16bit offsets, we need to be able to specify the high
          and lower 16 bits of the address of a symbol of up to 64 bit }
        trefaddr = (
          addr_no,
          addr_full,
-         addr_pic
-         {$IF defined(POWERPC) or defined(POWERPC64) or defined(SPARC)}
+         addr_pic,
+         addr_pic_no_got
+         {$IF defined(POWERPC) or defined(POWERPC64) or defined(SPARC) or defined(MIPS)}
          ,
          addr_low,         // bits 48-63
          addr_high,        // bits 32-47
@@ -263,7 +268,7 @@ interface
          1,2,4,8,16,1,2,4,8,16);
 
        tfloat2tcgsize: array[tfloattype] of tcgsize =
-         (OS_F32,OS_F64,OS_F80,OS_C64,OS_C64,OS_F128);
+         (OS_F32,OS_F64,OS_F80,OS_F80,OS_C64,OS_C64,OS_F128);
 
        tcgsize2tfloat: array[OS_F32..OS_C64] of tfloattype =
          (s32real,s64real,s80real,s64comp);
@@ -285,8 +290,6 @@ interface
             'LOC_CONST',
             'LOC_JUMP',
             'LOC_FLAGS',
-            'LOC_CREF',
-            'LOC_REF',
             'LOC_REG',
             'LOC_CREG',
             'LOC_FPUREG',
@@ -298,7 +301,10 @@ interface
             'LOC_SSETREG',
             'LOC_CSSETREG',
             'LOC_SSETREF',
-            'LOC_CSSETREF');
+            'LOC_CSSETREF',
+            'LOC_CREF',
+            'LOC_REF'
+            );
 
     var
        mms_movescalar : pmmshuffle;

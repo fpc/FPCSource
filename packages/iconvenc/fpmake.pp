@@ -28,6 +28,9 @@ begin
     P.IncludePath.Add('src');
 
     T:=P.Targets.AddUnit('iconvenc.pas');
+    T.Dependencies.AddInclude('iconvert.inc');
+    T:=P.Targets.AddUnit('iconvenc_dyn.pas');
+    T.Dependencies.AddInclude('iconvert.inc');
 
     P.ExamplePath.Add('examples');
     P.Targets.AddExampleProgram('iconvtest.pp');

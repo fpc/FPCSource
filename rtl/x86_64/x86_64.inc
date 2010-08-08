@@ -266,7 +266,7 @@ function declocked(var l : longint) : boolean;assembler;
      }
      { this check should be done because a lock takes a lot }
      { of time!                                             }
-     cmpb       $0,IsMultithread
+     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
      jz         .Ldeclockednolock
      lock
      decl       (%rcx)
@@ -285,7 +285,7 @@ function declocked(var l : longint) : boolean;assembler;
      movq       IsMultithread@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread
+     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
 {$endif FPC_PIC}
      jz         .Ldeclockednolock
      lock
@@ -308,7 +308,7 @@ function declocked(var l : int64) : boolean;assembler;
      }
      { this check should be done because a lock takes a lot }
      { of time!                                             }
-     cmpb       $0,IsMultithread
+     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
      jz         .Ldeclockednolock
      lock
      decq       (%rcx)
@@ -327,7 +327,7 @@ function declocked(var l : int64) : boolean;assembler;
      movq       IsMultithread@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread
+     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
 {$endif FPC_PIC}
      jz         .Ldeclockednolock
      lock
@@ -351,7 +351,7 @@ procedure inclocked(var l : longint);assembler;
      }
      { this check should be done because a lock takes a lot }
      { of time!                                             }
-     cmpb       $0,IsMultithread
+     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
      jz         .Linclockednolock
      lock
      incl       (%rcx)
@@ -369,7 +369,7 @@ procedure inclocked(var l : longint);assembler;
      movq       IsMultithread@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread
+     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
 {$endif FPC_PIC}
      jz         .Linclockednolock
      lock
@@ -392,7 +392,7 @@ procedure inclocked(var l : int64);assembler;
      }
      { this check should be done because a lock takes a lot }
      { of time!                                             }
-     cmpb       $0,IsMultithread
+     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
      jz         .Linclockednolock
      lock
      incq       (%rcx)
@@ -410,7 +410,7 @@ procedure inclocked(var l : int64);assembler;
      movq       IsMultithread@GOTPCREL(%rip),%rax
      cmpb       $0,(%rax)
 {$else FPC_PIC}
-     cmpb       $0,IsMultithread
+     cmpb       $0,IsMultithread{$ifdef FPC_HAS_RIP_RELATIVE}(%rip){$endif}
 {$endif FPC_PIC}
      jz         .Linclockednolock
      lock
@@ -595,19 +595,18 @@ const
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 Procedure SysInitFPU;
+  var
+    { these locals are so we don't have to hack pic code in the assembler }
+    localmxcsr: dword;
+    localfpucw: word;
+ 
 begin
+  localmxcsr:=mxcsr;
+  localfpucw:=fpucw;
   asm
-{$ifdef FPC_PIC}
-    movq fpucw@GOTPCREL(%rip),%rax
-    fldcw (%rax)
+    fldcw localfpucw
     { set sse exceptions }
-    movq mxcsr@GOTPCREL(%rip),%rax
-    ldmxcsr (%rax)
-{$else FPC_PIC}
-    fldcw fpucw
-    { set sse exceptions }
-    ldmxcsr mxcsr
-{$endif FPC_PIC}
+    ldmxcsr localmxcsr
   end ['RAX'];
   { x86-64 might use softfloat code }
   softfloat_exception_mask:=float_flag_underflow or float_flag_inexact or float_flag_denormal;
@@ -654,7 +653,73 @@ end;
 
 procedure WriteBarrier;assembler;nostackframe;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
-  { no write reordering on intel CPUs (yet) }
+  sfence
 end;
 
 {$endif}
+
+{****************************************************************************
+                          Math Routines
+****************************************************************************}
+
+{$define FPC_SYSTEM_HAS_SWAPENDIAN}
+
+{ SwapEndian(<16 Bit>) being inlined is faster than using assembler }
+function SwapEndian(const AValue: SmallInt): SmallInt;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    { the extra Word type cast is necessary because the "AValue shr 8" }
+    { is turned into "longint(AValue) shr 8", so if AValue < 0 then    }
+    { the sign bits from the upper 16 bits are shifted in rather than  }
+    { zeroes.                                                          }
+    Result := SmallInt((Word(AValue) shr 8) or (Word(AValue) shl 8));
+  end;
+
+
+function SwapEndian(const AValue: Word): Word;{$ifdef SYSTEMINLINE}inline;{$endif}
+  begin
+    Result := Word((AValue shr 8) or (AValue shl 8));
+  end;
+
+
+function SwapEndian(const AValue: LongInt): LongInt; assembler;
+asm
+{$ifdef win64}
+  movl %ecx, %eax
+{$else win64}
+  movl %edi, %eax
+{$endif win64}
+  bswap %eax
+end;
+
+
+function SwapEndian(const AValue: DWord): DWord; assembler;
+asm
+{$ifdef win64}
+  movl %ecx, %eax
+{$else win64}
+  movl %edi, %eax
+{$endif win64}
+  bswap %eax
+end;
+
+
+function SwapEndian(const AValue: Int64): Int64; assembler;
+asm
+{$ifdef win64}
+  movq %rcx, %rax
+{$else win64}
+  movq %rdi, %rax
+{$endif win64}
+  bswap %rax
+end;
+
+
+function SwapEndian(const AValue: QWord): QWord; assembler;
+asm
+{$ifdef win64}
+  movq %rcx, %rax
+{$else win64}
+  movq %rdi, %rax
+{$endif win64}
+  bswap %rax
+end;

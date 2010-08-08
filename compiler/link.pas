@@ -100,12 +100,12 @@ interface
          procedure PrintLinkerScript;
          function  RunLinkScript(const outputname:TCmdStr):boolean;
       protected
+         linkscript : TCmdStrList;
          property CObjInput:TObjInputClass read FCObjInput write FCObjInput;
          property CExeOutput:TExeOutputClass read FCExeOutput write FCExeOutput;
          property StaticLibraryList:TFPHashObjectList read FStaticLibraryList;
          property ImportLibraryList:TFPHashObjectList read FImportLibraryList;
          procedure DefaultLinkScript;virtual;abstract;
-         linkscript : TCmdStrList;
       public
          IsSharedLibrary : boolean;
          Constructor Create;override;
@@ -1076,7 +1076,7 @@ Implementation
             { create executable with link to just created debuginfo file }
             exeoutput.ExeWriteMode:=ewm_exeonly;
             exeoutput.RemoveDebugInfo;
-            exeoutput.GenerateDebugLink(dbgname,GetFileCRC(dbgname));
+            exeoutput.GenerateDebugLink(ExtractFileName(dbgname),GetFileCRC(dbgname));
             ParseScript_MemPos;
             ParseScript_DataPos;
             exeoutput.WriteExeFile(outputname);

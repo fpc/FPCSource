@@ -896,7 +896,7 @@ function TSwitches.ReadItemsCfg(const s:string):boolean;
     { empty items are not equivalent to others !! }
     { but -dGDB didn't work because of this PM }
     CheckItem:=((P^.Param='') and ((S='') or (P^.typ in [ot_Boolean,ot_String]))) or
-               ((Length(P^.Param)>0) and (P^.Param=S) and
+               ((Length(P^.Param)>0) and (upcase(P^.Param)=upcase(S)) and
                 not (P^.typ in [ot_Boolean,ot_String])) or
                ((Length(P^.Param)>0) and (P^.typ<>ot_Select) and
                 (P^.Param=Copy(s,1,length(P^.Param))));
@@ -1106,8 +1106,8 @@ begin
      AddDefaultSelect(opt_usedefaultas);
      for ta:=low(tasm) to high(tasm) do
        if assigned(asminfos[ta]) and
-         ((asminfos[ta]^.supported_target=target_info.system) or
-         (asminfos[ta]^.supported_target=system_any)) then
+         ((target_info.system in asminfos[ta]^.supported_targets) or
+         (system_any in asminfos[ta]^.supported_targets)) then
          begin
            st:='Asm '+asminfos[ta]^.idtxt;
            if asminfos[ta]^.idtxt='AS' then

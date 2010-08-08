@@ -14,7 +14,10 @@
   limitations under the License.
 
   ImageMagick MagickWand API.
-  
+}
+{
+  Based on ImageMagick 6.2
+
   Converted from c by: Felipe Monteiro de Carvalho Dez/2005
 
 	Bug-fixed by Ángel Eduardo García Hernández
@@ -28,30 +31,26 @@ unit magick_wand;
 	{$PACKRECORDS C}
 {$ENDIF}
 
-{$MINENUMSIZE 1}
+{$PACKENUM 4}
 
 interface
 
-uses ImageMagick;
+uses ImageMagick, ctypes;
 
 { Various types }
 type
   MagickWand = record
-    id: Cardinal;
+    id: culong;
     name: array[1..MaxTextExtent] of Char;
     exception: ExceptionInfo;
     image_info: PImageInfo;
     quantize_info: PQuantizeInfo;
     images: PImage;
     active, pend, debug: MagickBooleanType;
-    signature: Cardinal;
+    signature: culong;
   end;
 
   PMagickWand = ^MagickWand;
-
-  size_t = Integer;
-  
-  Psize_t = ^size_t;
 
 {$include pixel_wand.inc}
 {$include drawing_wand.inc}

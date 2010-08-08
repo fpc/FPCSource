@@ -107,6 +107,11 @@ uses htmldefs; // for entities...
 
 const
   WhitespaceChars = [#9, #10, #13, ' '];
+  char_lt: SAXChar = '<';
+  char_gt: SAXChar = '>';
+  char_quot: SAXChar = '"';
+  char_apos: SAXChar = '''';
+  char_amp: SAXChar = '&';
 
 
 constructor TSAXXMLReader.Create;
@@ -136,7 +141,8 @@ begin
   end;
 
   FEndOfStream := False;
-  while True do
+  FStopFlag := False;
+  while not FStopFlag do
   begin
     // Read data into the input buffer
     BufferSize := AInput.Stream.Read(Buffer, MaxBufferSize);
@@ -147,7 +153,7 @@ begin
     end;
 
     BufferPos := 0;
-    while BufferPos < BufferSize do
+    while (BufferPos < BufferSize) and not FStopFlag do
       case ScannerContext of
         scUnknown:
           case Buffer[BufferPos] of
@@ -184,12 +190,10 @@ begin
                 EnterNewScannerContext(scTag);
               end;
             else
-              EnterNewScannerContext(scText);
+              FScannerContext := scText
           end;
         scText:
           case Buffer[BufferPos] of
-            #9, #10, #13, ' ':
-              EnterNewScannerContext(scWhitespace);
             '&':
               begin
                 Inc(BufferPos);
@@ -268,8 +272,12 @@ procedure TSAXXMLReader.EnterNewScannerContext(NewContext: TXMLScannerContext);
     DoIncJ: Boolean;
   begin
     Attr := nil;
-    i := Pos(' ', s);
-    if i <= 0 then
+    i := 0;
+    repeat
+      Inc(i)
+    until (i > Length(s)) or (s[i] in WhitespaceChars);
+
+    if i > Length(s) then
       Result := LowerCase(s)
     else
     begin
@@ -333,10 +341,8 @@ procedure TSAXXMLReader.EnterNewScannerContext(NewContext: TXMLScannerContext);
 
 var
   Attr: TSAXAttributes;
-  EntString, TagName: String;
-  Found: Boolean;
-  Ent: Char;
-  i: Integer;
+  TagName: String;
+  Ent: SAXChar;
 begin
   case ScannerContext of
     scWhitespace:
@@ -345,37 +351,42 @@ begin
       DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
     scEntityReference:
       begin
-        if ResolveHTMLEntityReference(TokenText, Ent) then
-        begin
-          EntString := Ent;
-          DoCharacters(PSAXChar(EntString), 0, 1);
-        end else
-        begin
-          { Is this a predefined Unicode character entity? We must check this,
-            as undefined entities must be handled as text, for compatiblity
-            to popular browsers... }
-          Found := False;
-          for i := Low(UnicodeHTMLEntities) to High(UnicodeHTMLEntities) do
-            if UnicodeHTMLEntities[i] = TokenText then
-            begin
-              Found := True;
-              break;
-            end;
-          if Found then
-            DoSkippedEntity(TokenText)
-          else
-            DoCharacters(PSAXChar('&' + TokenText), 0, Length(TokenText) + 1);
-        end;
+        if (Length(TokenText) >= 2) and (TokenText[1] = '#') and
+          (((TokenText[2] >= '0') and (TokenText[2] <= '9')) or (TokenText[2]='x')) and
+          // here actually using it to resolve character references
+          ResolveHTMLEntityReference(TokenText, Ent) then
+            DoCharacters(@Ent, 0, 1)
+        else if TokenText = 'lt' then
+          DoCharacters(@char_lt, 0, 1)
+        else if TokenText = 'gt' then
+          DoCharacters(@char_gt, 0, 1)
+        else if TokenText = 'amp' then
+          DoCharacters(@char_amp, 0, 1)
+        else if TokenText = 'quot' then
+          DoCharacters(@char_quot, 0, 1)
+        else if TokenText = 'apos' then
+          DoCharacters(@char_apos, 0, 1)
+        else
+          DoSkippedEntity(TokenText);
       end;
     scTag:
       if Length(TokenText) > 0 then
       begin
         Attr := nil;
-        if TokenText[1] = '/' then
+        if TokenText[Length(fTokenText)]='/' then  // handle empty tag
+        begin
+          setlength(fTokenText,length(fTokenText)-1);
+          // Do NOT combine to a single line, as Attr is an output value!
+          TagName := SplitTagString(TokenText, Attr);
+          DoStartElement('', TagName, '', Attr);
+          DoEndElement('', TagName, '');
+        end
+        else if TokenText[1] = '/' then
         begin
           DoEndElement('',
             SplitTagString(Copy(TokenText, 2, Length(TokenText)), Attr), '');
-        end else if TokenText[1] <> '!' then
+        end
+        else if TokenText[1] <> '!' then
         begin
           // Do NOT combine to a single line, as Attr is an output value!
           TagName := SplitTagString(TokenText, Attr);
