@@ -651,7 +651,9 @@ procedure TPasParser.ParseFileType(Element: TPasFileType);
 begin
   NextToken;
   If CurToken=tkOf then
-    Element.ElType := ParseType(nil);
+    Element.ElType := ParseType(nil)
+  else 
+   ungettoken;
 end;
 
 function TPasParser.isEndOfExp:Boolean;
