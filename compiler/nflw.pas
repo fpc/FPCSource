@@ -1830,7 +1830,7 @@ implementation
 
         include(current_procinfo.flags,pi_has_label);
 
-        if labsym.nonlocal then
+        if assigned(labsym) and labsym.nonlocal then        
           include(current_procinfo.flags,pi_has_interproclabel);
 
         if assigned(left) then
