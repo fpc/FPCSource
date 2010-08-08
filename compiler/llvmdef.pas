@@ -209,6 +209,7 @@ implementation
             list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'float'));
           s64real:
             list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'double'));
+          sc80real,
           s80real:
             list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'x86_fp80'));
           s64currency,
