@@ -925,10 +925,10 @@ end;
                  {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
                  {$endif logging}
-                 If (VLength-1)*bytesperline <= ($10000-(Offs and $ffff)) Then
+                 If (VLength-1)*bytesperline <= ($ffff-(Offs and $ffff)) Then
                    bankrest := VLength
                  else {the rest won't fit anymore in the current window }
-                   bankrest := (($10000 - (Offs and $ffff)) div bytesperline)+1;
+                   bankrest := (($ffff - (Offs and $ffff)) div bytesperline)+1;
                  {$ifdef logging2}
                  LogLn('Rest to be drawn in this window: '+strf(bankrest));
                  {$endif logging}
@@ -953,10 +953,10 @@ end;
                  {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
                  {$endif logging}
-                 If (VLength-1)*bytesperline <= ($10000-(Offs and $ffff)) Then
+                 If (VLength-1)*bytesperline <= ($ffff-(Offs and $ffff)) Then
                    bankrest := VLength
                  else {the rest won't fit anymore in the current window }
-                   bankrest := (($10000 - (Offs and $ffff)) div bytesperline)+1;
+                   bankrest := (($ffff - (Offs and $ffff)) div bytesperline)+1;
                  {$ifdef logging2}
                  LogLn('Rest to be drawn in this window: '+strf(bankrest));
                  {$endif logging}
@@ -981,10 +981,10 @@ end;
                  {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
                  {$endif logging}
-                 If (VLength-1)*bytesperline <= ($10000-(Offs and $ffff)) Then
+                 If (VLength-1)*bytesperline <= ($ffff-(Offs and $ffff)) Then
                    bankrest := VLength
                  else {the rest won't fit anymore in the current window }
-                   bankrest := (($10000 - (Offs and $ffff)) div bytesperline)+1;
+                   bankrest := (($ffff - (Offs and $ffff)) div bytesperline)+1;
                  {$ifdef logging2}
                  LogLn('Rest to be drawn in this window: '+strf(bankrest));
                  {$endif logging}
@@ -1010,10 +1010,10 @@ end;
                  {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
                  {$endif logging}
-                 If (VLength-1)*bytesperline <= ($10000-(Offs and $ffff)) Then
+                 If (VLength-1)*bytesperline <= ($ffff-(Offs and $ffff)) Then
                    bankrest := VLength
                  else {the rest won't fit anymore in the current window }
-                   bankrest := (($10000 - (Offs and $ffff)) div bytesperline)+1;
+                   bankrest := (($ffff - (Offs and $ffff)) div bytesperline)+1;
                  {$ifdef logging2}
                  LogLn('Rest to be drawn in this window: '+strf(bankrest));
                  {$endif logging}
