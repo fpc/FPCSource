@@ -321,7 +321,6 @@ type
     FRecognizePE: Boolean;
     FHavePERefs: Boolean;
     FInsideDecl: Boolean;
-    FDocNotValid: Boolean;
     FValue: TWideCharBuf;
     FEntityValue: TWideCharBuf;
     FName: TWideCharBuf;
@@ -1212,7 +1211,6 @@ end;
 
 procedure TXMLReader.ValidationError(const Msg: string; const Args: array of const; LineOffs: Integer);
 begin
-  FDocNotValid := True;
   if FValidate then
     DoError(esError, Format(Msg, Args), LineOffs);
 end;
@@ -3099,7 +3097,6 @@ end;
 
 procedure TXMLReader.ParseEndTag;     // [42]
 var
-  ErrOffset: Integer;
   ElName: PHashItem;
 begin
   ElName := FValidator[FNesting].FElement.NSI.QName;
@@ -3109,18 +3106,17 @@ begin
     FatalError('Unmatching element end tag (expected "</%s>")', [ElName^.Key], FName.Length);
   if FSource.FBuf^ = '>' then    // this handles majority of cases
   begin
-    ErrOffset := FName.Length+1;
     FSource.NextChar;
+    DoEndElement(FName.Length+1);
   end
   else    // but if closing '>' is preceded by whitespace,
   begin   // skipping it is likely to lose position info.
     StoreLocation(FTokenStart);
     Dec(FTokenStart.LinePos, FName.Length);
-    ErrOffset := -1;
     SkipS;
     ExpectChar('>');
+    DoEndElement(-1);
   end;
-  DoEndElement(ErrOffset);
 end;
 
 procedure TXMLReader.ParseAttribute(Elem: TDOMElement; ElDef: TDOMElementDef);
