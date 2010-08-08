@@ -99,6 +99,9 @@ type
   TProcType = (ptProcedure, ptFunction, ptOperator, ptConstructor, ptDestructor,
                ptClassProcedure, ptClassFunction);
 
+               
+  TExprKind = (ek_Normal, ek_PropertyIndex);               
+               
   { TPasParser }
 
   TPasParser = class
@@ -147,7 +150,7 @@ type
     function isEndOfExp: Boolean;
     function DoParseExpression(InitExpr: TPasExpr=nil): TPasExpr;
     function DoParseConstValueExpression: TPasExpr;
-    function ParseExpression: String;
+    function ParseExpression(Kind: TExprKind=ek_Normal): String;
     function ParseCommand: String; // single, not compound command like begin..end
     procedure AddProcOrFunction(Declarations: TPasDeclarations; AProc: TPasProcedure);
     function CheckIfOverloaded(AOwner: TPasClassType;
@@ -973,10 +976,11 @@ begin
   end;
 end;
 
-function TPasParser.ParseExpression: String;
+function TPasParser.ParseExpression(Kind: TExprKind): String;
 var
   BracketLevel: Integer;
   LastTokenWasWord: Boolean;
+  ls: String;
 begin
   SetLength(Result, 0);
   BracketLevel := 0;
@@ -993,11 +997,21 @@ begin
       if BracketLevel = 0 then
         break;
       Dec(BracketLevel);
-    end else if (BracketLevel = 0) and (CurToken in [tkComma, tkSemicolon,
-      tkColon, tkDotDot, tkthen, tkend, tkelse, tkuntil, tkfinally, tkexcept,
-      tkof, tkbegin, tkdo, tkto, tkdownto, tkinitialization, tkfinalization])
-    then
-      break;
+    end else if (BracketLevel = 0) then 
+    begin
+      if (CurToken in [tkComma, tkSemicolon,
+        tkColon, tkDotDot, tkthen, tkend, tkelse, tkuntil, tkfinally, tkexcept,
+        tkof, tkbegin, tkdo, tkto, tkdownto, tkinitialization, tkfinalization])
+      then
+        break;
+        
+      if (Kind=ek_PropertyIndex) and (CurToken=tkIdentifier) then begin
+        ls:=LowerCase(CurTokenText);
+        if (ls='read') or (ls ='write') or (ls='default') or (ls='nodefault') or (ls='implements') then
+          Break;
+      end;
+        
+    end;
 
     if (CurTokenString<>'') and IsIdentStart[CurTokenString[1]] then
       begin
@@ -2378,6 +2392,9 @@ end;
 
 procedure TPasParser.ParseProperty(Element:TPasElement);
 
+var
+  isArray : Boolean;
+
   procedure MaybeReadFullyQualifiedIdentifier(Var r : String);
 
   begin
@@ -2413,11 +2430,16 @@ procedure TPasParser.ParseProperty(Element:TPasElement);
     //writeln(Result);
   end;
 
+var
+  us  : String; 
+  h   : TPasMemberHint;
 begin
-
+  isArray:=False;
   NextToken;
 // if array prop then parse [ arg1:type1;... ]
+
   if CurToken = tkSquaredBraceOpen then begin
+    isArray:=True;
   // !!!: Parse array properties correctly
     ParseArgList(Element, TPasProperty(Element).Args, tkSquaredBraceClose);
     NextToken;
@@ -2432,10 +2454,10 @@ begin
 
   if CurToken <> tkSemicolon then begin
 //  if indexed prop then read the index value
-    if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'INDEX') then
+    if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'INDEX') then begin
 //    read 'index' access modifier
-      TPasProperty(Element).IndexValue := ParseExpression
-    else
+      TPasProperty(Element).IndexValue := ParseExpression(ek_PropertyIndex);
+    end else
 //    not indexed prop will be recheck for another token
       UngetToken;
 
@@ -2490,24 +2512,19 @@ begin
   end;
 
 // if the specifiers list is not finished
-  if CurToken <> tkSemicolon then begin
-    if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'DEFAULT') then
+  if (CurToken <> tkSemicolon) and (CurToken = tkIdentifier) then begin
+    us:=UpperCase(CurTokenText);
+    if (us = 'DEFAULT') then begin
+      if isArray then ParseExc('Array properties cannot have default value');
 //    read 'default' value modifier -> ParseExpression(DEFAULT <value>)
-      TPasProperty(Element).DefaultValue := ParseExpression
-    else
-//    not "default <value>" prop will be recheck for another token
-      UngetToken;
-
-    NextToken;
-  end;
-
-// if the specifiers list is not finished
-  if CurToken <> tkSemicolon then begin
-    if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'NODEFAULT') then begin
+      TPasProperty(Element).DefaultValue := ParseExpression;
+      NextToken;
+    end else if (us = 'NODEFAULT') then begin
 //    read 'nodefault' modifier
       TPasProperty(Element).IsNodefault:=true;
-    end;
-//  stop recheck for specifiers - start from next token
+    end else
+//    not "default <value>" prop will be recheck for another token
+      UngetToken;
     NextToken;
   end;
 
@@ -2518,55 +2535,28 @@ begin
   end;
 
   if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'DEFAULT') then begin
+    if not isArray then ParseExc('The default property must be an array property');
 //  what is after DEFAULT token at the end
     NextToken;
     if CurToken = tkSemicolon then begin
 //    ";" then DEFAULT=prop
       TPasProperty(Element).IsDefault := True;
-      UngetToken;
-    end else begin
-//    "!;" then a step back to get phrase "DEFAULT <value>"
-      UngetToken;
-//    DefaultValue  -> ParseExpression(DEFAULT <value>)  and stay on the <value>
-      TPasProperty(Element).DefaultValue := ParseExpression;
-    end;
-
-//!!  there may be DEPRECATED token
-    CheckHint(Element,False);
-    NextToken;
-
+      NextToken;
+    end
   end;
-
-// after DEFAULT may be a ";"
-  if CurToken = tkSemicolon then begin
-    // read semicolon
+  
+  while IsCurTokenHint(h) do begin
+    Element.Hints:=Element.Hints+[h];
     NextToken;
-  end;
+    // there can be multiple hints, separated by the, i.e.:
+    // property Prop: integer read FMyProp write FMyProp; platform; library deprecated;
+    if CurToken=tkSemicolon then 
+      NextToken;
+  end;    
 
-  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'DEPRECATED') then begin
-//  nothing to do on DEPRECATED - just to accept
-//    NextToken;
-  end else
-    UngetToken;;
-
-//!!   else
-//  not DEFAULT prop accessor will be recheck for another token
-//!!    UngetToken;
-
-{
-  if CurToken = tkSemicolon then begin
-    // read semicolon
-    NextToken;
-  end;
-  if (CurToken = tkIdentifier) and (UpperCase(CurTokenText) = 'DEPRECATED') then begin
-//  nothing to do - just to process
-    NextToken;
-  end;
-  if CurToken = tkSemicolon then begin
-    // read semicolon
-    NextToken;
-  end;
-}
+  // property parsing must finish at the LAST Semicolon of the property
+  // since we're parsing "one-step" ahead of the semicolon. we must return one-step
+  UngetToken; 
 end;
 
 // Starts after the "begin" token
