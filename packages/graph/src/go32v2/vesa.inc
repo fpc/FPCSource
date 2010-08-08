@@ -515,7 +515,7 @@ end;
           {$endif logging}
           For l := 0 to (Bankrest div 4)-1 Do
             begin
-              pixels := MemL[WinWriteSeg:word(offs)+l*4];
+              pixels := MemL[WinReadSeg:word(offs)+l*4];
               WordArray(Data)[index+l*4] := pixels and $ff;
               pixels := pixels shr 8;
               WordArray(Data)[index+l*4+1] := pixels and $ff;
