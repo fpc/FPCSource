@@ -4169,6 +4169,7 @@ implementation
       var
         l: tasmsymbol;
         ref: treference;
+        nlsymname: string;
       begin
         result := NR_NO;
         case target_info.system of
@@ -4177,10 +4178,12 @@ implementation
           system_powerpc64_darwin,
           system_arm_darwin:
             begin
-              l:=current_asmdata.getasmsymbol('L'+symname+'$non_lazy_ptr');
+              nlsymname:='L'+symname+'$non_lazy_ptr';
+              l:=current_asmdata.getasmsymbol(nlsymname);
               if not(assigned(l)) then
                 begin
-                  l:=current_asmdata.DefineAsmSymbol('L'+symname+'$non_lazy_ptr',AB_LOCAL,AT_DATA);
+                  new_section(current_asmdata.asmlists[al_picdata],sec_data_nonlazy,'',sizeof(pint));
+                  l:=current_asmdata.DefineAsmSymbol(nlsymname,AB_LOCAL,AT_DATA);
                   current_asmdata.asmlists[al_picdata].concat(tai_symbol.create(l,0));
                   if not(weak) then
                     current_asmdata.asmlists[al_picdata].concat(tai_directive.Create(asd_indirect_symbol,current_asmdata.RefAsmSymbol(symname).Name))
