@@ -40,6 +40,7 @@ type
     FEndOfStream: Boolean;
     FScannerContext: TXMLScannerContext;
     FTokenText: SAXString;
+    FRawTokenText: string;
     FCurStringValueDelimiter: Char;
     FAttrNameRead: Boolean;
   protected
@@ -103,7 +104,9 @@ procedure ReadXMLFragment(AParentNode: TDOMNode; var f: TStream);
 
 implementation
 
-uses htmldefs; // for entities...
+uses
+  xmlutils,
+  htmldefs; // for entities...
 
 const
   WhitespaceChars = [#9, #10, #13, ' '];
@@ -154,6 +157,7 @@ begin
 
     BufferPos := 0;
     while (BufferPos < BufferSize) and not FStopFlag do
+    begin
       case ScannerContext of
         scUnknown:
           case Buffer[BufferPos] of
@@ -176,7 +180,7 @@ begin
           case Buffer[BufferPos] of
             #9, #10, #13, ' ':
               begin
-                FTokenText := FTokenText + Buffer[BufferPos];
+                FRawTokenText := FRawTokenText + Buffer[BufferPos];
                 Inc(BufferPos);
               end;
             '&':
@@ -190,7 +194,7 @@ begin
                 EnterNewScannerContext(scTag);
               end;
             else
-              FScannerContext := scText
+              FScannerContext := scText;
           end;
         scText:
           case Buffer[BufferPos] of
@@ -206,7 +210,7 @@ begin
               end;
             else
             begin
-              FTokenText := FTokenText + Buffer[BufferPos];
+              FRawTokenText := FRawTokenText + Buffer[BufferPos];
               Inc(BufferPos);
             end;
           end;
@@ -220,7 +224,7 @@ begin
             EnterNewScannerContext(scUnknown)
           else
           begin
-            FTokenText := FTokenText + Buffer[BufferPos];
+            FRawTokenText := FRawTokenText + Buffer[BufferPos];
             Inc(BufferPos);
           end;
         scTag:
@@ -237,13 +241,13 @@ begin
                     FAttrNameRead := False;
                   end;
                 end;
-                FTokenText := FTokenText + Buffer[BufferPos];
+                FRawTokenText := FRawTokenText + Buffer[BufferPos];
                 Inc(BufferPos);
               end;
             '=':
               begin
                 FAttrNameRead := True;
-                FTokenText := FTokenText + Buffer[BufferPos];
+                FRawTokenText := FRawTokenText + Buffer[BufferPos];
                 Inc(BufferPos);
               end;
             '>':
@@ -254,99 +258,101 @@ begin
               end;
             else
             begin
-              FTokenText := FTokenText + Buffer[BufferPos];
+              FRawTokenText := FRawTokenText + Buffer[BufferPos];
               Inc(BufferPos);
             end;
           end;
-      end;
+        end;    // case ScannerContext of
+    end;        // while not endOfBuffer
+  end;
+end;
+
+function SplitTagString(const s: SAXString; var Attr: TSAXAttributes): SAXString;
+var
+  i, j: Integer;
+  AttrName: SAXString;
+  ValueDelimiter: WideChar;
+  DoIncJ: Boolean;
+begin
+  Attr := nil;
+  i := 0;
+  repeat
+    Inc(i)
+  until (i > Length(s)) or IsXMLWhitespace(s[i]);
+
+  if i > Length(s) then
+    Result := s
+  else
+  begin
+    Result := Copy(s, 1, i - 1);
+    Attr := TSAXAttributes.Create;
+    Inc(i);
+
+    while (i <= Length(s)) and IsXMLWhitespace(s[i]) do
+      Inc(i);
+
+    SetLength(AttrName, 0);
+    j := i;
+
+    while j <= Length(s) do
+      if s[j] = '=' then
+      begin
+        AttrName := Copy(s, i, j - i);
+        Inc(j);
+        if (j < Length(s)) and ((s[j] = '''') or (s[j] = '"')) then
+        begin
+          ValueDelimiter := s[j];
+          Inc(j);
+        end else
+          ValueDelimiter := #0;
+        i := j;
+        DoIncJ := False;
+        while j <= Length(s) do
+          if ValueDelimiter = #0 then
+            if IsXMLWhitespace(s[j]) then
+              break
+            else
+              Inc(j)
+          else if s[j] = ValueDelimiter then
+          begin
+            DoIncJ := True;
+            break
+          end else
+            Inc(j);
+
+        if IsXMLName(AttrName) then
+          Attr.AddAttribute('', AttrName, '', '', Copy(s, i, j - i));
+
+        if DoIncJ then
+          Inc(j);
+
+        while (j <= Length(s)) and IsXMLWhitespace(s[j]) do
+          Inc(j);
+        i := j;
+      end
+      else if IsXMLWhitespace(s[j]) then
+      begin
+        if IsXMLName(@s[i], j-i) then
+          Attr.AddAttribute('', Copy(s, i, j - i), '', '', '');
+        Inc(j);
+        while (j <= Length(s)) and IsXMLWhitespace(s[j]) do
+          Inc(j);
+        i := j;
+      end else
+        Inc(j);
   end;
 end;
 
 procedure TSAXXMLReader.EnterNewScannerContext(NewContext: TXMLScannerContext);
-
-  function SplitTagString(const s: String; var Attr: TSAXAttributes): String;
-  var
-    i, j: Integer;
-    AttrName: String;
-    ValueDelimiter: Char;
-    DoIncJ: Boolean;
-  begin
-    Attr := nil;
-    i := 0;
-    repeat
-      Inc(i)
-    until (i > Length(s)) or (s[i] in WhitespaceChars);
-
-    if i > Length(s) then
-      Result := LowerCase(s)
-    else
-    begin
-      Result := LowerCase(Copy(s, 1, i - 1));
-      Attr := TSAXAttributes.Create;
-
-      Inc(i);
-
-      while (i <= Length(s)) and (s[i] in WhitespaceChars) do
-        Inc(i);
-
-      SetLength(AttrName, 0);
-      j := i;
-
-      while j <= Length(s) do
-        if s[j] = '=' then
-        begin
-          AttrName := LowerCase(Copy(s, i, j - i));
-          Inc(j);
-          if (j < Length(s)) and ((s[j] = '''') or (s[j] = '"')) then
-          begin
-            ValueDelimiter := s[j];
-            Inc(j);
-          end else
-            ValueDelimiter := #0;
-          i := j;
-          DoIncJ := False;
-          while j <= Length(s) do
-            if ValueDelimiter = #0 then
-              if s[j] in WhitespaceChars then
-                break
-              else
-                Inc(j)
-            else if s[j] = ValueDelimiter then
-            begin
-              DoIncJ := True;
-              break
-            end else
-              Inc(j);
-
-          Attr.AddAttribute('', AttrName, '', '', Copy(s, i, j - i));
-
-          if DoIncJ then
-            Inc(j);
-
-          while (j <= Length(s)) and (s[j] in WhitespaceChars) do
-            Inc(j);
-          i := j;
-        end
-        else if s[j] in WhitespaceChars then
-        begin
-          Attr.AddAttribute('', Copy(s, i, j - i), '', '', '');
-          Inc(j);
-          while (j <= Length(s)) and (s[j] in WhitespaceChars) do
-            Inc(j);
-          i := j;
-        end else
-          Inc(j);
-    end;
-  end;
-
 var
   Attr: TSAXAttributes;
-  TagName: String;
+  TagName: SAXString;
   Ent: SAXChar;
 begin
+  FTokenText := FRawTokenText;  // this is where conversion takes place
   case ScannerContext of
     scWhitespace:
-      DoIgnorableWhitespace(PSAXChar(TokenText), 1, Length(TokenText));
+      DoIgnorableWhitespace(PSAXChar(TokenText), 0, Length(TokenText));
     scText:
       DoCharacters(PSAXChar(TokenText), 0, Length(TokenText));
     scEntityReference:
@@ -397,7 +403,8 @@ begin
       end;
   end;
   FScannerContext := NewContext;
-  SetLength(FTokenText, 0);
+  FTokenText := '';
+  FRawTokenText := '';
   FCurStringValueDelimiter := #0;
   FAttrNameRead := False;
 end;

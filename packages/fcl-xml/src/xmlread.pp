@@ -321,7 +321,6 @@ type
     FRecognizePE: Boolean;
     FHavePERefs: Boolean;
     FInsideDecl: Boolean;
-    FDocNotValid: Boolean;
     FValue: TWideCharBuf;
     FEntityValue: TWideCharBuf;
     FName: TWideCharBuf;
@@ -497,137 +496,6 @@ begin
     end;
 end;
 
-function Decode_UCS2(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
-var
-  cnt: Cardinal;
-begin
-  cnt := OutCnt;         // num of widechars
-  if cnt > InCnt div sizeof(WideChar) then
-    cnt := InCnt div sizeof(WideChar);
-  Move(InBuf^, OutBuf^, cnt * sizeof(WideChar));
-  Dec(InCnt, cnt*sizeof(WideChar));
-  Dec(OutCnt, cnt);
-  Result := cnt;
-end;
-
-function Decode_UCS2_Swapped(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
-var
-  I: Integer;
-  cnt: Cardinal;
-  InPtr: PChar;
-begin
-  cnt := OutCnt;         // num of widechars
-  if cnt > InCnt div sizeof(WideChar) then
-    cnt := InCnt div sizeof(WideChar);
-  InPtr := InBuf;
-  for I := 0 to cnt-1 do
-  begin
-    OutBuf[I] := WideChar((ord(InPtr^) shl 8) or ord(InPtr[1]));
-    Inc(InPtr, 2);
-  end;
-  Dec(InCnt, cnt*sizeof(WideChar));
-  Dec(OutCnt, cnt);
-  Result := cnt;
-end;
-
-function Decode_88591(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
-var
-  I: Integer;
-  cnt: Cardinal;
-begin
-  cnt := OutCnt;         // num of widechars
-  if cnt > InCnt then
-    cnt := InCnt;
-  for I := 0 to cnt-1 do
-    OutBuf[I] := WideChar(ord(InBuf[I]));
-  Dec(InCnt, cnt);
-  Dec(OutCnt, cnt);
-  Result := cnt;
-end;
-
-function Decode_UTF8(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
-const
-  MaxCode: array[1..4] of Cardinal = ($7F, $7FF, $FFFF, $1FFFFF);
-var
-  i, j, bc: Cardinal;
-  Value: Cardinal;
-begin
-  result := 0;
-  i := OutCnt;
-  while (i > 0) and (InCnt > 0) do
-  begin
-    bc := 1;
-    Value := ord(InBuf^);
-    if Value < $80 then
-      OutBuf^ := WideChar(Value)
-    else
-    begin
-      if Value < $C2 then
-      begin
-        Result := -1;
-        Break;
-      end;
-      Inc(bc);
-      if Value > $DF then
-      begin
-        Inc(bc);
-        if Value > $EF then
-        begin
-          Inc(bc);
-          if Value > $F7 then  // never encountered in the tests.
-          begin
-            Result := -1;
-            Break;
-          end;
-        end;
-      end;
-      if InCnt < bc then
-        Break;
-      j := 1;
-      while j < bc do
-      begin
-        if InBuf[j] in [#$80..#$BF] then
-          Value := (Value shl 6) or (Cardinal(InBuf[j]) and $3F)
-        else
-        begin
-          Result := -1;
-          Break;
-        end;
-        Inc(j);
-      end;
-      Value := Value and MaxCode[bc];
-      // RFC2279 check
-      if Value <= MaxCode[bc-1] then
-      begin
-        Result := -1;
-        Break;
-      end;
-      case Value of
-        0..$D7FF, $E000..$FFFF: OutBuf^ := WideChar(Value);
-        $10000..$10FFFF:
-        begin
-          if i < 2 then Break;
-          OutBuf^ := WideChar($D7C0 + (Value shr 10));
-          OutBuf[1] := WideChar($DC00 xor (Value and $3FF));
-          Inc(OutBuf); // once here
-          Dec(i);
-        end
-        else
-        begin
-          Result := -1;
-          Break;
-        end;
-      end;
-    end;
-    Inc(OutBuf);
-    Inc(InBuf, bc);
-    Dec(InCnt, bc);
-    Dec(i);
-  end;
-  if Result >= 0 then
-    Result := OutCnt-i;
-  OutCnt := i;
-end;
 
 function Is_8859_1(const AEncoding: string): Boolean;
 begin
@@ -1003,7 +871,7 @@ begin
 // see rmt-e2e-61, it now fails but for a completely different reason.
   FillChar(NewDecoder, sizeof(TDecoder), 0);
   if Is_8859_1(AEncoding) then
-    FDecoder.Decode := @Decode_88591
+    FDecoder.Decode := @Decode_8859_1
   else if FindDecoder(AEncoding, NewDecoder) then
     FDecoder := NewDecoder
   else
@@ -1212,7 +1080,6 @@ end;
 
 procedure TXMLReader.ValidationError(const Msg: string; const Args: array of const; LineOffs: Integer);
 begin
-  FDocNotValid := True;
   if FValidate then
     DoError(esError, Format(Msg, Args), LineOffs);
 end;
@@ -3099,7 +2966,6 @@ end;
 
 procedure TXMLReader.ParseEndTag;     // [42]
 var
-  ErrOffset: Integer;
   ElName: PHashItem;
 begin
   ElName := FValidator[FNesting].FElement.NSI.QName;
@@ -3109,18 +2975,17 @@ begin
     FatalError('Unmatching element end tag (expected "</%s>")', [ElName^.Key], FName.Length);
   if FSource.FBuf^ = '>' then    // this handles majority of cases
   begin
-    ErrOffset := FName.Length+1;
     FSource.NextChar;
+    DoEndElement(FName.Length+1);
   end
   else    // but if closing '>' is preceded by whitespace,
   begin   // skipping it is likely to lose position info.
     StoreLocation(FTokenStart);
     Dec(FTokenStart.LinePos, FName.Length);
-    ErrOffset := -1;
     SkipS;
     ExpectChar('>');
+    DoEndElement(-1);
   end;
-  DoEndElement(ErrOffset);
 end;
 
 procedure TXMLReader.ParseAttribute(Elem: TDOMElement; ElDef: TDOMElementDef);

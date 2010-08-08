@@ -552,38 +552,20 @@ unit cgcpu;
       {
       possible calling conventions:
                     default stdcall cdecl pascal register
-      default(0):      OK     OK    OK(1)  OK       OK
-      virtual(2):      OK     OK    OK(3)  OK       OK
+      default(0):      OK     OK    OK     OK       OK
+      virtual(1):      OK     OK    OK     OK       OK(2)
 
       (0):
           set self parameter to correct value
           jmp mangledname
 
-      (1): The code is the following
-           set self parameter to correct value
-           call mangledname
-           set self parameter to interface value
-           ret
-
-           This is different to case (0) because in theory, the caller
-           could reuse the data pushed on the stack so we've to return
-           it unmodified because self is const.
-
-      (2): The wrapper code use %eax to reach the virtual method address
+      (1): The wrapper code use %eax to reach the virtual method address
            set self to correct value
            move self,%eax
            mov  0(%eax),%eax ; load vmt
            jmp  vmtoffs(%eax) ; method offs
 
-      (3): The wrapper code use %eax to reach the virtual method address
-           set self to correct value
-           move self,%eax
-           mov  0(%eax),%eax ; load vmt
-           jmp  vmtoffs(%eax) ; method offs
-           set self parameter to interface value
-
-
-      (4): Virtual use values pushed on stack to reach the method address
+      (2): Virtual use values pushed on stack to reach the method address
            so the following code be generated:
            set self to correct value
            push %ebx ; allocate space for function address
@@ -676,30 +658,11 @@ unit cgcpu;
         { set param1 interface to self  }
         g_adjust_self_value(list,procdef,ioffset);
 
-        { case 1 or 2 }
-        if (procdef.proccalloption in clearstack_pocalls) then
-          begin
-            if po_virtualmethod in procdef.procoptions then
-              begin
-                { case 2 }
-                getselftoeax(0);
-                loadvmttoeax;
-                op_oneaxmethodaddr(A_CALL);
-              end
-            else
-              begin
-                { case 1 }
-                cg.a_call_name(list,procdef.mangledname,false);
-              end;
-            { restore param1 value self to interface }
-            g_adjust_self_value(list,procdef,-ioffset);
-            list.concat(taicpu.op_none(A_RET,S_L));
-          end
-        else if po_virtualmethod in procdef.procoptions then
+        if po_virtualmethod in procdef.procoptions then
           begin
             if (procdef.proccalloption=pocall_register) then
               begin
-                { case 4 }
+                { case 2 }
                 list.concat(taicpu.op_reg(A_PUSH,S_L,NR_EBX)); { allocate space for address}
                 list.concat(taicpu.op_reg(A_PUSH,S_L,NR_EAX));
                 getselftoeax(8);
@@ -715,7 +678,7 @@ unit cgcpu;
               end
             else
               begin
-                { case 3 }
+                { case 1 }
                 getselftoeax(0);
                 loadvmttoeax;
                 op_oneaxmethodaddr(A_JMP);

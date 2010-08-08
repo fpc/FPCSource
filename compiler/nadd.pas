@@ -889,7 +889,14 @@ implementation
         { is one a real float, then both need to be floats, this
           need to be done before the constant folding so constant
           operation on a float and int are also handled }
-        resultrealdef:=pbestrealtype^;
+{$ifdef x86}
+        { use extended as default real type only when the x87 fpu is used }
+        if not(current_settings.fputype=fpu_x87) then
+          resultrealdef:=s64floattype
+        else
+{$endif x86}
+          resultrealdef:=pbestrealtype^;
+
         if (right.resultdef.typ=floatdef) or (left.resultdef.typ=floatdef) then
          begin
            { when both floattypes are already equal then use that
