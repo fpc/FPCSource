@@ -52,6 +52,7 @@ type
 
   TXMLWriter = class(TObject)
   private
+    FStream: TStream;
     FInsideTextNode: Boolean;
     FCanonical: Boolean;
     FIndent: WideString;
@@ -76,7 +77,6 @@ type
     procedure WriteNSDef(B: TBinding);
     procedure NamespaceFixup(Element: TDOMElement);
   protected
-    procedure Write(const Buffer; Count: Longint); virtual; abstract;
     procedure WriteNode(Node: TDOMNode);
     procedure VisitDocument(Node: TDOMNode);
     procedure VisitDocument_Canonical(Node: TDOMNode);
@@ -90,40 +90,30 @@ type
     procedure VisitDocumentType(Node: TDOMNode);
     procedure VisitPI(Node: TDOMNode);
   public
-    constructor Create;
+    constructor Create(AStream: TStream);
     destructor Destroy; override;
   end;
 
-  TTextXMLWriter = Class(TXMLWriter)
+  TTextStream = class(TStream)
   Private
     F : ^Text;
-  Protected
-    Procedure Write(Const Buffer; Count : Longint);override;
   Public
     constructor Create(var AFile: Text);
-  end;
-
-  TStreamXMLWriter = Class(TXMLWriter)
-  Private
-    F : TStream;
-  Protected
-    Procedure Write(Const Buffer; Count : Longint);override;
-  Public
-    constructor Create(AStream: TStream);
+    function Write(Const Buffer; Count: Longint): Longint; override;
   end;
 
 { ---------------------------------------------------------------------
-    TTextXMLWriter
+    TTextStream
   ---------------------------------------------------------------------}
 
 
-constructor TTextXMLWriter.Create(var AFile: Text);
+constructor TTextStream.Create(var AFile: Text);
 begin
   inherited Create;
   f := @AFile;
 end;
 
-procedure TTextXMLWriter.Write(const Buffer; Count: Longint);
+function TTextStream.Write(const Buffer; Count: Longint): Longint;
 var
   s: string;
 begin
@@ -132,25 +122,8 @@ begin
     SetString(s, PChar(@Buffer), Count);
     system.Write(f^, s);
   end;
+  Result := Count;
 end;
-
-{ ---------------------------------------------------------------------
-    TStreamXMLWriter
-  ---------------------------------------------------------------------}
-
-constructor TStreamXMLWriter.Create(AStream: TStream);
-begin
-  inherited Create;
-  F := AStream;
-end;
-
-
-procedure TStreamXMLWriter.Write(const Buffer; Count: Longint);
-begin
-  if Count > 0 then
-    F.Write(Buffer, Count);
-end;
-
 
 { ---------------------------------------------------------------------
     TXMLWriter
@@ -166,11 +139,12 @@ const
   ltStr = '&lt;';
   gtStr = '&gt;';
 
-constructor TXMLWriter.Create;
+constructor TXMLWriter.Create(AStream: TStream);
 var
   I: Integer;
 begin
   inherited Create;
+  FStream := AStream;
   // some overhead - always be able to write at least one extra UCS4
   FBuffer := AllocMem(512+32);
   FBufPos := FBuffer;
@@ -208,7 +182,7 @@ begin
   FScratch.Free;
   FNSHelper.Free;
   if FBufPos > FBuffer then
-    write(FBuffer^, FBufPos-FBuffer);
+    FStream.write(FBuffer^, FBufPos-FBuffer);
 
   FreeMem(FBuffer);
   inherited Destroy;
@@ -226,7 +200,7 @@ begin
   begin
     if pb >= @FBuffer[FCapacity] then
     begin
-      write(FBuffer^, FCapacity);
+      FStream.write(FBuffer^, FCapacity);
       Dec(pb, FCapacity);
       if pb > FBuffer then
         Move(FBuffer[FCapacity], FBuffer^, pb - FBuffer);
@@ -612,6 +586,8 @@ begin
     wrtChars('/>', 2)
   else
   begin
+    // TODO: presence of zero-length textnodes triggers the indenting logic,
+    // while they should be ignored altogeter.
     SavedInsideTextNode := FInsideTextNode;
     wrtChr('>');
     FInsideTextNode := FCanonical or (Child.NodeType in [TEXT_NODE, CDATA_SECTION_NODE]);
@@ -837,18 +813,25 @@ begin
 end;
 
 procedure WriteXMLFile(doc: TXMLDocument; var AFile: Text);
+var
+  s: TStream;
 begin
-  with TTextXMLWriter.Create(AFile) do
+  s := TTextStream.Create(AFile);
   try
-    WriteNode(doc);
+    with TXMLWriter.Create(s) do
+    try
+      WriteNode(doc);
+    finally
+      Free;
+    end;
   finally
-    Free;
+    s.Free;
   end;
 end;
 
 procedure WriteXMLFile(doc: TXMLDocument; AStream: TStream);
 begin
-  with TStreamXMLWriter.Create(AStream) do
+  with TXMLWriter.Create(AStream) do
   try
     WriteNode(doc);
   finally
