@@ -497,7 +497,7 @@ const
       (str:'SOFTFLOAT'     ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'THREADVAR'     ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'WRITEONLY'     ;special:false;keyword:m_none;op:NOTOKEN),
-      (str:'DEPRECATED'    ;special:false;keyword:m_all;op:NOTOKEN),
+      (str:'DEPRECATED'    ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'DESTRUCTOR'    ;special:false;keyword:m_all;op:NOTOKEN),
       (str:'ENUMERATOR'    ;special:false;keyword:m_none;op:_OP_ENUMERATOR),
       (str:'IMPLEMENTS'    ;special:false;keyword:m_none;op:NOTOKEN),
@@ -510,14 +510,14 @@ const
       (str:'REINTRODUCE'   ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'SHORTSTRING'   ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'COMPILERPROC'  ;special:false;keyword:m_none;op:NOTOKEN),
-      (str:'EXPERIMENTAL'  ;special:false;keyword:m_all;op:NOTOKEN),
+      (str:'EXPERIMENTAL'  ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'FINALIZATION'  ;special:false;keyword:m_initfinal;op:NOTOKEN),
       (str:'NOSTACKFRAME'  ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'OBJCCATEGORY'  ;special:false;keyword:m_objectivec1;op:NOTOKEN), { Objective-C category }
       (str:'OBJCPROTOCOL'  ;special:false;keyword:m_objectivec1;op:NOTOKEN), { Objective-C protocol }
       (str:'WEAKEXTERNAL'  ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'DISPINTERFACE' ;special:false;keyword:m_class;op:NOTOKEN),
-      (str:'UNIMPLEMENTED' ;special:false;keyword:m_all;op:NOTOKEN),
+      (str:'UNIMPLEMENTED' ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'IMPLEMENTATION';special:false;keyword:m_all;op:NOTOKEN),
       (str:'INITIALIZATION';special:false;keyword:m_initfinal;op:NOTOKEN),
       (str:'RESOURCESTRING';special:false;keyword:m_all;op:NOTOKEN)
