@@ -596,6 +596,11 @@ begin
                while j<=length(more) do
                 begin
                   case more[j] of
+                    '3' :
+                      If UnsetBool(More, j) then
+                        exclude(init_settings.localswitches,cs_ieee_errors)
+                      Else
+                        include(init_settings.localswitches,cs_ieee_errors);
                     'a' :
                       begin
                         s:=upper(copy(more,j+1,length(more)-j));

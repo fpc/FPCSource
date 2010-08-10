@@ -105,7 +105,7 @@ interface
          cs_checkpointer,cs_check_ordinal_size,
          cs_generate_stackframes,cs_do_assertion,cs_generate_rtti,
          cs_full_boolean_eval,cs_typed_const_writable,cs_allow_enum_calc,
-         cs_do_inline,cs_fpu_fwait,
+         cs_do_inline,cs_fpu_fwait,cs_ieee_errors,
          { mmx }
          cs_mmx,cs_mmx_saturation,
          { parser }

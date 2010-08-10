@@ -1328,9 +1328,7 @@ implementation
 
     function floating_point_range_check_error : boolean;
       begin
-        result:=((([cs_check_range,cs_check_overflow]*current_settings.localswitches)<>[]) and not
-                   (m_delphi in current_settings.modeswitches)
-                ); // or (cs_ieee_errors in current_settings.localswitches);
+        result:=cs_ieee_errors in current_settings.localswitches;
       end;
 
 {****************************************************************************

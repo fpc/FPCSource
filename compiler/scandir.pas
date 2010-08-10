@@ -297,10 +297,17 @@ unit scandir;
       end;
 
 
+    procedure dir_ieeeerrors;
+      begin
+        do_localswitch(cs_ieee_errors);
+      end;
+
+
     procedure dir_assertions;
       begin
         do_delphiswitch('C');
       end;
+
 
     procedure dir_booleval;
       begin
@@ -1401,6 +1408,7 @@ unit scandir;
         AddDirective('HINT',directive_all, @dir_hint);
         AddDirective('HINTS',directive_all, @dir_hints);
         AddDirective('HPPEMIT',directive_all, @dir_hppemit);
+        AddDirective('IEEEERRORS',directive_all,@dir_ieeeerrors);
         AddDirective('IOCHECKS',directive_all, @dir_iochecks);
         AddDirective('IMAGEBASE',directive_all, @dir_imagebase);
         AddDirective('IMPLICITEXCEPTIONS',directive_all, @dir_implicitexceptions);
