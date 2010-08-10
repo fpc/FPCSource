@@ -1093,10 +1093,14 @@ implementation
       begin
         with Info do
          begin
+{$ifdef x86_64}
+           targetopts:='-b pe-x86_64';
+{$else x86_64}
            if target_info.system=system_arm_wince then
              targetopts:='-m arm_wince_pe'
            else
              targetopts:='-b pe-i386 -m i386pe';
+{$endif not x86_64}
            ExeCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
            DllCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP --dll $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
            { ExeCmd[2]:='dlltool --as $ASBIN --dllname $EXE --output-exp exp.$$$ $RELOC $DEF';
@@ -1195,7 +1199,11 @@ implementation
              end;
 
             Add('SEARCH_DIR("/usr/i686-pc-cygwin/lib"); SEARCH_DIR("/usr/lib"); SEARCH_DIR("/usr/lib/w32api");');
+{$ifdef x86_64}
+            Add('OUTPUT_FORMAT(pei-x86-64)');
+{$else not 86_64}
             Add('OUTPUT_FORMAT(pei-i386)');
+{$endif not x86_64}
             Add('ENTRY(_mainCRTStartup)');
             Add('SECTIONS');
             Add('{');
@@ -1206,6 +1214,9 @@ implementation
             Add('    *(.init)');
             add('    *(.text .stub .text.* .gnu.linkonce.t.*)');
             Add('    *(SORT(.text$*))');
+            Add('    *(.glue_7t)');
+            Add('    *(.glue_7)');
+            Add('    . = ALIGN(8);');
             Add('     ___CTOR_LIST__ = .; __CTOR_LIST__ = . ;');
             Add('			LONG (-1);*(.ctors); *(.ctor); *(SORT(.ctors.*));  LONG (0);');
             Add('     ___DTOR_LIST__ = .; __DTOR_LIST__ = . ;');
@@ -1220,6 +1231,7 @@ implementation
             add('    *(.data .data.* .gnu.linkonce.d.* .fpc*)');
             Add('    *(.data2)');
             Add('    *(SORT(.data$*))');
+            Add('    *(.jcr)');
             Add('    __data_end__ = . ;');
             Add('    *(.data_cygwin_nocopy)');
             Add('  }');
@@ -1773,6 +1785,7 @@ initialization
   RegisterTarget(system_i386_wince_info);
 {$endif i386}
 {$ifdef x86_64}
+  RegisterExternalLinker(system_x64_win64_info,TExternalLinkerWin);
   RegisterInternalLinker(system_x64_win64_info,TInternalLinkerWin);
   RegisterImport(system_x86_64_win64,TImportLibWin);
   RegisterExport(system_x86_64_win64,TExportLibWin);

@@ -1225,6 +1225,8 @@ implementation
              { avoid unnecessary warnings }
              gotvarsym.varstate:=vs_read;
              gotvarsym.refs:=1;
+             { _GLOBAL_OFFSET_TABLE_ is in libc }
+             current_module.linkOtherSharedLibs.add('c',link_always);
            end;
 {$endif i386}
 

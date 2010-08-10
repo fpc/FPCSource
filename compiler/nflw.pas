@@ -1314,6 +1314,7 @@ implementation
       begin
         result:=nil;
         { optimize constant expressions }
+        firstpass(left);
         if (left.nodetype=ordconstn) then
           begin
              if tordconstnode(left).value.uvalue=1 then
@@ -1830,7 +1831,7 @@ implementation
 
         include(current_procinfo.flags,pi_has_label);
 
-        if assigned(labsym) and labsym.nonlocal then        
+        if assigned(labsym) and labsym.nonlocal then
           include(current_procinfo.flags,pi_has_interproclabel);
 
         if assigned(left) then
