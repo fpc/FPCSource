@@ -46,7 +46,7 @@ interface
       fen_norecurse_true
     );
 
-    tforeachprocmethod = (pm_preprocess,pm_postprocess,pm_simplify);
+    tforeachprocmethod = (pm_preprocess,pm_postprocess);
 
     foreachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult of object;
     staticforeachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult;
@@ -167,7 +167,7 @@ implementation
       result := false;
       if not assigned(n) then
         exit;
-      if (procmethod=pm_preprocess) then
+      if procmethod=pm_preprocess then
         result:=process_children(result);
       case f(n,arg) of
         fen_norecurse_false:
@@ -250,11 +250,7 @@ implementation
       result := false;
       if not assigned(n) then
         exit;
-      // simplify needs an extra previous call to
-      // allow for cutting some branches of loop type nodes
-      if procmethod=pm_simplify then
-        f(n,pointer(puint(pm_simplify)));
-      if (procmethod=pm_preprocess) or (procmethod=pm_simplify) then
+      if procmethod=pm_preprocess then
         result:=process_children(result);
       case f(n,arg) of
         fen_norecurse_false:
@@ -945,15 +941,6 @@ implementation
         hn : tnode;
       begin
         result:=fen_false;
-        if arg = pointer(puint(pm_simplify)) then
-          begin
-            if n.inheritsfrom (tloopnode) then
-              begin
-                dosimplify (tloopnode(n).left);
-                callsimplify (n, nil);
-              end;
-            exit;
-          end;
 
 //        do_typecheckpass(n);
 
@@ -971,11 +958,9 @@ implementation
     { tries to simplify the given node calling the simplify method recursively }
     procedure dosimplify(var n : tnode);
       begin
-        // Optimize if code first
-
         repeat
           treechanged:=false;
-          foreachnodestatic(pm_simplify,n,@callsimplify,nil);
+          foreachnodestatic(pm_preprocess,n,@callsimplify,nil);
         until not(treechanged);
       end;
 

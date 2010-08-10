@@ -209,8 +209,7 @@ interface
         { force the sym to be emitted as a local variable regardless of its
           type; used for "absolute" local variables referring to parameters.
         }
-        (dvf_force_local_var,
-         dvf_use_variable_parameter
+        (dvf_force_local_var
         );
       tdwarfvarsymflags = set of tdwarfvarsymflag;
 
@@ -308,7 +307,7 @@ interface
         procedure appendprocdef(list:TAsmList;def:tprocdef);override;
 
         function  get_symlist_sym_offset(symlist: ppropaccesslistitem; out sym: tabstractvarsym; out offset: pint): boolean;
-        procedure appendsym_var(list:TAsmList;sym:tabstractnormalvarsym); virtual;
+        procedure appendsym_var(list:TAsmList;sym:tabstractnormalvarsym);
         procedure appendsym_var_with_name_type_offset(list:TAsmList; sym:tabstractnormalvarsym; const name: string; def: tdef; offset: pint; const flags: tdwarfvarsymflags);
         { used for fields and properties mapped to fields }
         procedure appendsym_fieldvar_with_name_offset(list:TAsmList;sym: tfieldvarsym;const name: string; def: tdef; offset: pint);
@@ -373,7 +372,6 @@ interface
         procedure appenddef_set(list:TAsmList;def: tsetdef); override;
         procedure appenddef_undefined(list:TAsmList;def:tundefineddef); override;
         procedure appenddef_variant(list:TAsmList;def:tvariantdef); override;
-        procedure appendsym_var(list:TAsmList;sym:tabstractnormalvarsym); override;
 
         function symname(sym:tsym): String; override;
       public
@@ -2311,11 +2309,11 @@ implementation
             { data continues below }
             DW_AT_location,DW_FORM_block1,blocksize
             ])
+{$ifdef gdb_supports_DW_AT_variable_parameter}
         else if (sym.typ=paravarsym) and
             paramanager.push_addr_param(sym.varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption) and
             not(vo_has_local_copy in sym.varoptions) and
-            not is_open_string(sym.vardef) and
-            (dvf_use_variable_parameter in flags) then
+            not is_open_string(sym.vardef) then
           append_entry(tag,false,[
             DW_AT_name,DW_FORM_string,name+#0,
             DW_AT_variable_parameter,DW_FORM_flag,true,
@@ -2326,6 +2324,7 @@ implementation
             { data continues below }
             DW_AT_location,DW_FORM_block1,blocksize
             ])
+{$endif gdb_supports_DW_AT_variable_parameter}
         else
           append_entry(tag,false,[
             DW_AT_name,DW_FORM_string,name+#0,
@@ -2345,13 +2344,14 @@ implementation
           that).  }
         if (vo_is_self in sym.varoptions) then
           append_attribute(DW_AT_artificial,DW_FORM_flag,[true]);
-        if  not (dvf_use_variable_parameter in flags) and
-            (sym.typ=paravarsym) and
+{$ifndef gdb_supports_DW_AT_variable_parameter}
+        if (sym.typ=paravarsym) and
             paramanager.push_addr_param(sym.varspez,sym.vardef,tprocdef(sym.owner.defowner).proccalloption) and
             not(vo_has_local_copy in sym.varoptions) and
             not is_open_string(sym.vardef) then
           append_labelentry_ref(DW_AT_type,def_dwarf_ref_lab(def))
         else
+{$endif not gdb_supports_DW_AT_variable_parameter}
           append_labelentry_ref(DW_AT_type,def_dwarf_lab(def));
 
         templist.free;
@@ -3943,13 +3943,6 @@ implementation
 
         finish_children; { struct }
       end;
-
-    procedure TDebugInfoDwarf3.appendsym_var(list:TAsmList;sym:tabstractnormalvarsym);
-      begin
-        appendsym_var_with_name_type_offset(list,sym,symname(sym),
-          sym.vardef,0,[dvf_use_variable_parameter]);
-      end;
-
 
     function TDebugInfoDwarf3.dwarf_version: Word;
       begin
