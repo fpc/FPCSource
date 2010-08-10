@@ -1732,9 +1732,7 @@ begin
     Raise EConvertError.CreateFmt(SInvalidBoolean,[S]);
 end;
 
-function BoolToStr(B: Boolean;UseBoolStrs:Boolean=False): string;
-
-procedure CheckStrs;
+procedure CheckBoolStrs;
 begin
     If Length(TrueBoolStrs)=0 then
       begin
@@ -1748,10 +1746,12 @@ begin
       end;
 end;
 
+
+function BoolToStr(B: Boolean;UseBoolStrs:Boolean=False): string;
 begin
  if UseBoolStrs Then
   begin
-    CheckStrs;
+    CheckBoolStrs;
     if B then
       Result:=TrueBoolStrs[0]
     else
@@ -1779,6 +1779,7 @@ end;
 function TryStrToBool(const S: string; out Value: Boolean): Boolean;
 Var
   Temp : String;
+  I    : Longint;
 {$ifdef FPUNONE}
   D : Longint;
 {$else}
@@ -1795,12 +1796,23 @@ begin
 {$else}
     Value:=(D<>0.0)
 {$endif}
-  else If Temp='TRUE' then
-    Value:=true
-  else if Temp='FALSE' then
-    Value:=false
   else
-    Result:=false;
+    begin
+      CheckBoolStrs;
+      for I:=low(TrueBoolStrs) to High(TrueBoolStrs) do
+        if Temp=upcase(TrueBoolStrs[I]) then
+          begin
+            Value:=true;
+            exit;
+          end;
+      for I:=low(FalseBoolStrs) to High(FalseBoolStrs) do
+        if Temp=upcase(FalseBoolStrs[I]) then
+          begin
+            Value:=false;
+            exit;
+          end;
+      Result:=false;
+    end;
 end;
 
 {$ifndef FPUNONE}
