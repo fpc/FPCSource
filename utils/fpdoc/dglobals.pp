@@ -984,6 +984,10 @@ begin
     Result := FindAbsoluteLink(ALinkDest)
   else
   begin
+    Result := ResolveLink(AModule, amodule.packagename + '.' + ALinkDest);
+    if Length(Result) > 0 then
+      exit;
+
     Result := ResolveLink(AModule, AModule.PathName + '.' + ALinkDest);
     if Length(Result) > 0 then
       exit;
