@@ -1583,7 +1583,7 @@ end;
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
   end;
 
-  
+
   procedure HLineVESA16(x,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
   var
       xtmp: smallint;
@@ -2122,6 +2122,12 @@ Const
   function SetupLinear(var ModeInfo: TVESAModeInfo;mode : word) : boolean;
    begin
      SetUpLinear:=false;
+
+     if VESAInfo.Version >= $0300 then
+       BytesPerLine := VESAModeInfo.LinBytesPerScanLine
+     else
+       BytesPerLine := VESAModeInfo.BytesPerScanLine;
+
 {$ifdef FPC}
      case mode of
        m320x200x32k,
@@ -2219,6 +2225,9 @@ Const
   procedure SetupWindows(var ModeInfo: TVESAModeInfo);
    begin
      InLinear:=false;
+
+     BytesPerLine := VESAModeInfo.BytesPerScanLine;
+
      { now we check the windowing scheme ...}
      if (ModeInfo.WinAAttr and WinSupported) <> 0 then
        { is this window supported ... }
@@ -2368,7 +2377,8 @@ Const
         Inc(BankShift);
      CurrentWriteBank := -1;
      CurrentReadBank := -1;
-     BytesPerLine := VESAModeInfo.BytesPerScanLine;
+{    nickysn: setting BytesPerLine moved to SetupLinear and SetupWindowed
+     BytesPerLine := VESAModeInfo.BytesPerScanLine;}
 
      { These are the window adresses ... }
      WinWriteSeg := 0;  { This is the segment to use for writes }
