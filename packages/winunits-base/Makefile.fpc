@@ -12,7 +12,7 @@ packages=fcl-registry fcl-base
 [target]
 units=buildwinutilsbase
 implicitunits=flatsb winver mmsystem comobj comconst commdlg commctrl ole2 activex shellapi shlobj oleserver \
-	shfolder richedit imagehlp wininet uxtheme dwmapi multimon htmlhelp winutils comserv
+	shfolder richedit imagehlp wininet uxtheme dwmapi multimon htmlhelp winutils comserv winspool
 
 examples=examples
 
