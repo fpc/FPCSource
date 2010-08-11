@@ -813,6 +813,44 @@ var
   ResultLen: integer;
   ResultBuffer: array[0..255] of char;
   ResultCurrent: pchar;
+  {$IFDEF Windows}
+   isEnable_E_Format : Boolean;
+   isEnable_G_Format : Boolean;
+   eastasiainited : boolean;
+  {$ENDIF}
+  
+{$IFDEF Windows}
+  procedure InitEastAsia;
+  var     ALCID : LCID;
+         PriLangID , SubLangID : Word;
+
+  begin
+    ALCID := GetThreadLocale;
+    PriLangID := ALCID and $3FF;
+    if (PriLangID>0) then
+       SubLangID := (ALCID and $FFFF) shr 10
+      else
+        begin
+          PriLangID := SysLocale.PriLangID;
+          SubLangID := SysLocale.SubLangID;
+        end;
+    isEnable_E_Format := (PriLangID = LANG_JAPANESE)
+                  or
+                  (PriLangID = LANG_KOREAN)
+                  or
+                  ((PriLangID = LANG_CHINESE)
+                   and
+                   (SubLangID = SUBLANG_CHINESE_TRADITIONAL)
+                  );
+    isEnable_G_Format := (PriLangID = LANG_JAPANESE)
+                  or
+                  ((PriLangID = LANG_CHINESE)
+                   and
+                   (SubLangID = SUBLANG_CHINESE_TRADITIONAL)
+                  );
+    eastasiainited :=true;
+  end;
+  {$ENDIF}
 
   procedure StoreStr(Str: PChar; Len: Integer);
   begin
@@ -855,6 +893,7 @@ var
 var
   Year, Month, Day, DayOfWeek, Hour, Minute, Second, MilliSecond: word;
 
+
   procedure StoreFormat(const FormatStr: string; Nesting: Integer; TimeFlag: Boolean);
   var
     Token, lastformattoken: char;
@@ -868,6 +907,7 @@ var
   begin
     if Nesting > 1 then  // 0 is original string, 1 is included FormatString
       Exit;
+
     FormatCurrent := PChar(FormatStr);
     FormatEnd := FormatCurrent + Length(FormatStr);
     Clock12 := false;
@@ -1019,8 +1059,36 @@ var
                      begin
                       StoreString(' ');
                       StoreFormat(FormatSettings.LongTimeFormat, Nesting+1, True);
+                     end;
                  end;
-            end;
+{$IFDEF Windows}
+            'E':
+               begin
+                 if not Eastasiainited then InitEastAsia;
+                 if Not(isEnable_E_Format) then StoreStr(@FormatCurrent^, 1)
+                  else
+                   begin
+                     while (P < FormatEnd) and (UpCase(P^) = Token) do
+                     P := P + 1;
+                     Count := P - FormatCurrent;
+                     StoreString(ConvertEraYearString(Count,Year,Month,Day));
+                   end;
+                 lastformattoken:=token;
+               end;
+             'G':
+               begin
+                 if not Eastasiainited then InitEastAsia;
+                 if Not(isEnable_G_Format) then StoreStr(@FormatCurrent^, 1)
+                  else
+                   begin
+                     while (P < FormatEnd) and (UpCase(P^) = Token) do
+                     P := P + 1;
+                     Count := P - FormatCurrent;
+                     StoreString(ConvertEraString(Count,Year,Month,Day));
+                   end;
+                 lastformattoken:=token;
+               end;
+ {$ENDIF}			 
           end;
           lastformattoken := token;
         end;
@@ -1032,6 +1100,9 @@ var
   end;
 
 begin
+  {$ifdef windows}
+   eastasiainited:=false;
+  {$endif}
   DecodeDateFully(DateTime, Year, Month, Day, DayOfWeek);
   DecodeTime(DateTime, Hour, Minute, Second, MilliSecond);
   ResultLen := 0;

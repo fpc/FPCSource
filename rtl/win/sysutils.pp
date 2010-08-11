@@ -150,6 +150,9 @@ function GetFileVersion(const AFileName:string):Cardinal;
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
 
+
+function ConvertEraYearString(Count ,Year,Month,Day : integer) : string; forward;
+function ConvertEraString(Count ,Year,Month,Day : integer) : string; forward;
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -644,6 +647,72 @@ begin
     Result := Buf[0]
   else
     Result := Def;
+end;
+
+function ConvertEraString(Count ,Year,Month,Day : integer) : string;
+  var
+    ASystemTime: TSystemTime;
+    buf: array[0..100] of char;
+    ALCID : LCID;
+    PriLangID : Word;
+    SubLangID : Word;
+begin
+  Result := ''; if (Count<=0) then exit;
+  DateTimeToSystemTime(EncodeDate(Year,Month,Day),ASystemTime);
+
+  ALCID := GetThreadLocale;
+//  ALCID := SysLocale.DefaultLCID;
+  if GetDateFormat(ALCID , DATE_USE_ALT_CALENDAR
+      , @ASystemTime, PChar('gg')
+      , @buf, SizeOf(buf)) > 0 then
+  begin
+    Result := buf;
+    if Count = 1 then
+    begin
+      PriLangID := ALCID and $3FF;
+      SubLangID := (ALCID and $FFFF) shr 10;
+      case PriLangID of
+        LANG_JAPANESE:
+          begin
+            Result := Copy(WideString(Result),1,1);
+          end;
+        LANG_CHINESE:
+          if (SubLangID = SUBLANG_CHINESE_TRADITIONAL) then
+          begin
+            Result := Copy(WideString(Result),1,1);
+          end;
+      end;
+    end;
+  end;
+// if Result = '' then Result := StringOfChar('G',Count);
+end;
+
+function ConvertEraYearString(Count ,Year,Month,Day : integer) : string;
+  var
+    ALCID : LCID;
+    ASystemTime : TSystemTime;
+    AFormatText : string;
+    buf : array[0..100] of Char;
+begin
+  Result := '';
+  DateTimeToSystemTime(EncodeDate(Year,Month,Day),ASystemTime);
+
+  if Count <= 2 then
+    AFormatText := 'yy'
+  else
+    AFormatText := 'yyyy';
+
+  ALCID := GetThreadLocale;
+//  ALCID := SysLocale.DefaultLCID;
+
+  if GetDateFormat(ALCID, DATE_USE_ALT_CALENDAR
+      , @ASystemTime, PChar(AFormatText)
+      , @buf, SizeOf(buf)) > 0 then
+  begin
+    Result := buf;
+    if (Count = 1) and (Result[1] = '0') then
+      Result := Copy(Result, 2, Length(Result)-1);
+  end;
 end;
 
 
