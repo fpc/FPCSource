@@ -68,7 +68,6 @@ resourcestring
 
 type
 
-
   // Visitor pattern.
   TPassTreeVisitor = class;
 
@@ -99,6 +98,8 @@ type
     FName: string;
     FParent: TPasElement;
     FHints : TPasMemberHints;
+  protected
+    procedure ProcessHints(const ASemiColonPrefix: boolean; var AResult: string); virtual;
   public
     SourceFilename: string;
     SourceLinenumber: Integer;
@@ -131,7 +132,7 @@ type
                  eopIn,eopIs,eopAs, eopSymmetricaldifference, // Specials
                  eopAddress, eopDeref, // Pointers
                  eopSubIdent); // SomeRec.A, A is subIdent of SomeRec
-  
+
   { TPasExpr }
 
   TPasExpr = class(TPasElement)
@@ -962,6 +963,9 @@ const
         '@','^',
         '.');
 
+  cPasMemberHint : array[TPasMemberHint] of string =
+      ( 'deprecated', 'library', 'platform', 'experimental', 'unimplemented' );
+
 implementation
 
 uses SysUtils;
@@ -1023,6 +1027,21 @@ end;
 
 { All other stuff: }
 
+procedure TPasElement.ProcessHints(const ASemiColonPrefix: boolean; var AResult: string);
+var
+  h: TPasMemberHint;
+begin
+  if Hints <> [] then
+  begin
+    if ASemiColonPrefix then
+      AResult := AResult + ';';
+    for h := Low(TPasMemberHint) to High(TPasMemberHint) do
+    begin
+      if h in Hints then
+        AResult := AResult + ' ' + cPasMemberHint[h] + ';'
+    end;
+  end;
+end;
 
 constructor TPasElement.Create(const AName: string; AParent: TPasElement);
 begin
@@ -1812,7 +1831,7 @@ Var
 
 begin
   S:=TStringList.Create;
-  T:=TstringList.Create;
+  T:=TStringList.Create;
   Try
     Temp:='record';
     If IsPacked then
@@ -1840,6 +1859,7 @@ begin
       end;
     S.Add('end');
     Result:=S.Text;
+    ProcessHints(False, Result);
   finally
     S.free;
     T.free;
@@ -1981,7 +2001,8 @@ begin
        Result:=Result+' implements '+ImplementsName;
     end;   
   If IsDefault then
-    Result:=Result+'; default'
+    Result:=Result+'; default';
+  ProcessHints(True, Result);
 end;
 
 Procedure TPasProcedure.GetModifiers(List : TStrings);
@@ -2534,7 +2555,6 @@ Function TRecordValues.GetDeclaration(Full : Boolean):AnsiString;
 
 Var
   I : Integer;
-
 begin
   For I:=0 to Length(Fields) do
     begin
@@ -2542,7 +2562,7 @@ begin
       Result:=Result+'; ';
     Result:=Result+Fields[I].Name+': '+Fields[i].ValueExp.getDeclaration(Full);
     end;
-  Result:='('+Result+')'  
+  Result:='('+Result+')';
 end;
 
 constructor TRecordValues.Create(AParent : TPasElement);
