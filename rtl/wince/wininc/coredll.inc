@@ -415,7 +415,6 @@
       1C4 ShowStartupWindow
       176 SignalStarted
       361 SleepTillTick
-      156 StopDeviceNotifications
       648 StringCbCatA
       64A StringCbCatExA
        82 StringCbCatExW
@@ -2742,6 +2741,7 @@ procedure Sleep(dwMilliseconds:DWORD); external KernelDLL name 'Sleep';
 function StartDoc(_para1:HDC; _para2:PDOCINFOW):longint; external KernelDLL name 'StartDocW';
 function StartDocW(_para1:HDC; _para2:PDOCINFOW):longint; external KernelDLL name 'StartDocW';
 function StartPage(_para1:HDC):longint; external KernelDLL name 'StartPage';
+function StopDeviceNotifications(h: HANDLE):BOOL; external KernelDLL name 'StopDeviceNotifications';
 function StretchBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:HDC; _para7:longint; _para8:longint; _para9:longint; _para10:longint;_para11:DWORD):WINBOOL; external KernelDLL name 'StretchBlt';
 function StretchDIBits(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:longint; _para7:longint; _para8:longint; _para9:longint; _para10:pointer;var _para11:BITMAPINFO; _para12:UINT; _para13:DWORD):longint;
   external KernelDLL name 'StretchDIBits';
