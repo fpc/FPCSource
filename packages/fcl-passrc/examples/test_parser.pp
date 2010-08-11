@@ -51,8 +51,15 @@ begin
       cmdl:=cmdl+' '+paramstr(i);
   E := TSimpleEngine.Create;
   try
-    M := ParseSource(E, cmdl , 'linux', 'i386');
-
+    try
+      M := ParseSource(E, cmdl , 'linux', 'i386');
+    except
+      on excep:EParserError do
+        begin
+          writeln(excep.message,' line:',excep.row,' column:',excep.column,' file:',excep.filename); 
+          raise;
+       end;  
+      end;      
     { Cool, we successfully parsed the unit.
       Now output some info about it. }
     Decls := M.InterfaceSection.Declarations;
