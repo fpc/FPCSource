@@ -388,7 +388,9 @@ interface
           destructor Destroy;override;
           constructor ppuload(t:taitype;ppufile:tcompilerppufile);override;
           procedure ppuwrite(ppufile:tcompilerppufile);override;
-          { sections should be created via new_section() }
+         private
+          { this constructor is made private on purpose }
+          { because sections should be created via new_section() }
           constructor Create(Asectype:TAsmSectiontype;Aname:string;Aalign:byte;Asecorder:TasmSectionorder=secorder_default);
        end;
 
