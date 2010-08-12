@@ -82,6 +82,8 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
        DLL_PROCESS_DETACH :
          begin
            Dll_entry:=true; { return value is ignored }
+		   if MainThreadIDWin32=0 then // already been here.
+		     exit;
            If SetJmp(DLLBuf) = 0 then
              FPC_Do_Exit;
            if assigned(Dll_Process_Detach_Hook) then
@@ -91,6 +93,7 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
            { Free TLS resources used by ThreadVars }
            SysFiniMultiThreading;
            WinDoneCriticalSection(AttachingThread);
+		   MainThreadIDWin32:=0;
          end;
      end;
   end;
