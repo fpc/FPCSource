@@ -995,422 +995,422 @@ interface
      PPROVIDOR_INFO_2W = ^_PROVIDOR_INFO_2W;
      LPROVIDOR_INFO_2W = ^_PROVIDOR_INFO_2W;
 
-  function AbortPrinter(_para1:HANDLE):BOOL;external External_library name 'AbortPrinter';
+  function AbortPrinter(_para1:HANDLE):BOOL;stdcall; external External_library name 'AbortPrinter';
 
-  function AddForm(_para1:HANDLE; _para2:DWORD; _para3:PBYTE):BOOL;external External_library name 'AddFormA';
+  function AddForm(_para1:HANDLE; _para2:DWORD; _para3:PBYTE):BOOL;stdcall; external External_library name 'AddFormA';
 
-  function AddFormA(_para1:HANDLE; _para2:DWORD; _para3:PBYTE):BOOL;external External_library name 'AddFormA';
+  function AddFormA(_para1:HANDLE; _para2:DWORD; _para3:PBYTE):BOOL;stdcall; external External_library name 'AddFormA';
 
-  function AddFormW(_para1:HANDLE; _para2:DWORD; _para3:PBYTE):BOOL;external External_library name 'AddFormW';
+  function AddFormW(_para1:HANDLE; _para2:DWORD; _para3:PBYTE):BOOL;stdcall; external External_library name 'AddFormW';
 
-  function AddJob(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD):BOOL;external External_library name 'AddJobA';
+  function AddJob(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD):BOOL;stdcall; external External_library name 'AddJobA';
 
-  function AddJobA(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD):BOOL;external External_library name 'AddJobA';
+  function AddJobA(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD):BOOL;stdcall; external External_library name 'AddJobA';
 
-  function AddJobW(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD):BOOL;external External_library name 'AddJobW';
+  function AddJobW(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD):BOOL;stdcall; external External_library name 'AddJobW';
 
-  function AddMonitor(_para1:LPSTR; _para2:DWORD; _para3:PBYTE):BOOL;external External_library name 'AddMonitorA';
+  function AddMonitor(_para1:LPSTR; _para2:DWORD; _para3:PBYTE):BOOL;stdcall; external External_library name 'AddMonitorA';
 
-  function AddMonitorA(_para1:LPSTR; _para2:DWORD; _para3:PBYTE):BOOL;external External_library name 'AddMonitorA';
+  function AddMonitorA(_para1:LPSTR; _para2:DWORD; _para3:PBYTE):BOOL;stdcall; external External_library name 'AddMonitorA';
 
-  function AddMonitorW(_para1:LPWSTR; _para2:DWORD; _para3:PBYTE):BOOL;external External_library name 'AddMonitorW';
+  function AddMonitorW(_para1:LPWSTR; _para2:DWORD; _para3:PBYTE):BOOL;stdcall; external External_library name 'AddMonitorW';
 
-  function AddPort(_para1:LPSTR; _para2:HWND; _para3:LPSTR):BOOL;external External_library name 'AddPortA';
+  function AddPort(_para1:LPSTR; _para2:HWND; _para3:LPSTR):BOOL;stdcall; external External_library name 'AddPortA';
 
-  function AddPortA(_para1:LPSTR; _para2:HWND; _para3:LPSTR):BOOL;external External_library name 'AddPortA';
+  function AddPortA(_para1:LPSTR; _para2:HWND; _para3:LPSTR):BOOL;stdcall; external External_library name 'AddPortA';
 
-  function AddPortW(_para1:LPWSTR; _para2:HWND; _para3:LPWSTR):BOOL;external External_library name 'AddPortW';
+  function AddPortW(_para1:LPWSTR; _para2:HWND; _para3:LPWSTR):BOOL;stdcall; external External_library name 'AddPortW';
 
-  function AddPrinter(_para1:LPSTR; _para2:DWORD; _para3:PBYTE):HANDLE;external External_library name 'AddPrinterA';
+  function AddPrinter(_para1:LPSTR; _para2:DWORD; _para3:PBYTE):HANDLE;stdcall; external External_library name 'AddPrinterA';
 
-  function AddPrinterA(_para1:LPSTR; _para2:DWORD; _para3:PBYTE):HANDLE;external External_library name 'AddPrinterA';
+  function AddPrinterA(_para1:LPSTR; _para2:DWORD; _para3:PBYTE):HANDLE;stdcall; external External_library name 'AddPrinterA';
 
-  function AddPrinterW(_para1:LPWSTR; _para2:DWORD; _para3:PBYTE):HANDLE;external External_library name 'AddPrinterW';
+  function AddPrinterW(_para1:LPWSTR; _para2:DWORD; _para3:PBYTE):HANDLE;stdcall; external External_library name 'AddPrinterW';
 
-  function AddPrinterConnection(_para1:LPSTR):BOOL;external External_library name 'AddPrinterConnectionA';
+  function AddPrinterConnection(_para1:LPSTR):BOOL;stdcall; external External_library name 'AddPrinterConnectionA';
 
-  function AddPrinterConnectionA(_para1:LPSTR):BOOL;external External_library name 'AddPrinterConnectionA';
+  function AddPrinterConnectionA(_para1:LPSTR):BOOL;stdcall; external External_library name 'AddPrinterConnectionA';
 
-  function AddPrinterConnectionW(_para1:LPWSTR):BOOL;external External_library name 'AddPrinterConnectionW';
+  function AddPrinterConnectionW(_para1:LPWSTR):BOOL;stdcall; external External_library name 'AddPrinterConnectionW';
 
-  function AddPrinterDriver(_para1:LPSTR; _para2:DWORD; _para3:PBYTE):BOOL;external External_library name 'AddPrinterDriverA';
+  function AddPrinterDriver(_para1:LPSTR; _para2:DWORD; _para3:PBYTE):BOOL;stdcall; external External_library name 'AddPrinterDriverA';
 
-  function AddPrinterDriverA(_para1:LPSTR; _para2:DWORD; _para3:PBYTE):BOOL;external External_library name 'AddPrinterDriverA';
+  function AddPrinterDriverA(_para1:LPSTR; _para2:DWORD; _para3:PBYTE):BOOL;stdcall; external External_library name 'AddPrinterDriverA';
 
-  function AddPrinterDriverW(_para1:LPWSTR; _para2:DWORD; _para3:PBYTE):BOOL;external External_library name 'AddPrinterDriverW';
+  function AddPrinterDriverW(_para1:LPWSTR; _para2:DWORD; _para3:PBYTE):BOOL;stdcall; external External_library name 'AddPrinterDriverW';
 
-  function AddPrintProcessor(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR; _para4:LPSTR):BOOL;external External_library name 'AddPrintProcessorA';
+  function AddPrintProcessor(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR; _para4:LPSTR):BOOL;stdcall; external External_library name 'AddPrintProcessorA';
 
-  function AddPrintProcessorA(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR; _para4:LPSTR):BOOL;external External_library name 'AddPrintProcessorA';
+  function AddPrintProcessorA(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR; _para4:LPSTR):BOOL;stdcall; external External_library name 'AddPrintProcessorA';
 
-  function AddPrintProcessorW(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR; _para4:LPWSTR):BOOL;external External_library name 'AddPrintProcessorW';
+  function AddPrintProcessorW(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR; _para4:LPWSTR):BOOL;stdcall; external External_library name 'AddPrintProcessorW';
 
-  function AddPrintProvidor(_para1:LPSTR; _para2:DWORD; _para3:PBYTE):BOOL;external External_library name 'AddPrintProvidorA';
+  function AddPrintProvidor(_para1:LPSTR; _para2:DWORD; _para3:PBYTE):BOOL;stdcall; external External_library name 'AddPrintProvidorA';
 
-  function AddPrintProvidorA(_para1:LPSTR; _para2:DWORD; _para3:PBYTE):BOOL;external External_library name 'AddPrintProvidorA';
+  function AddPrintProvidorA(_para1:LPSTR; _para2:DWORD; _para3:PBYTE):BOOL;stdcall; external External_library name 'AddPrintProvidorA';
 
-  function AddPrintProvidorW(_para1:LPWSTR; _para2:DWORD; _para3:PBYTE):BOOL;external External_library name 'AddPrintProvidorW';
+  function AddPrintProvidorW(_para1:LPWSTR; _para2:DWORD; _para3:PBYTE):BOOL;stdcall; external External_library name 'AddPrintProvidorW';
 
-  function AdvancedDocumentProperties(_para1:HWND; _para2:HANDLE; _para3:LPSTR; _para4:PDEVMODE; _para5:PDEVMODE):LONG;external External_library name 'AdvancedDocumentPropertiesA';
+  function AdvancedDocumentProperties(_para1:HWND; _para2:HANDLE; _para3:LPSTR; _para4:PDEVMODE; _para5:PDEVMODE):LONG;stdcall; external External_library name 'AdvancedDocumentPropertiesA';
 
-  function AdvancedDocumentPropertiesA(_para1:HWND; _para2:HANDLE; _para3:LPSTR; _para4:PDEVMODE; _para5:PDEVMODE):LONG;external External_library name 'AdvancedDocumentPropertiesA';
+  function AdvancedDocumentPropertiesA(_para1:HWND; _para2:HANDLE; _para3:LPSTR; _para4:PDEVMODE; _para5:PDEVMODE):LONG;stdcall; external External_library name 'AdvancedDocumentPropertiesA';
 
-  function AdvancedDocumentProperties(_para1:HWND; _para2:HANDLE; _para3:LPWSTR; _para4:PDEVMODE; _para5:PDEVMODEW):LONG;external External_library name 'AdvancedDocumentPropertiesW';
+  function AdvancedDocumentProperties(_para1:HWND; _para2:HANDLE; _para3:LPWSTR; _para4:PDEVMODE; _para5:PDEVMODEW):LONG;stdcall; external External_library name 'AdvancedDocumentPropertiesW';
 
-  function AdvancedDocumentPropertiesW(_para1:HWND; _para2:HANDLE; _para3:LPWSTR; _para4:PDEVMODE; _para5:PDEVMODEW):LONG;external External_library name 'AdvancedDocumentPropertiesW';
+  function AdvancedDocumentPropertiesW(_para1:HWND; _para2:HANDLE; _para3:LPWSTR; _para4:PDEVMODE; _para5:PDEVMODEW):LONG;stdcall; external External_library name 'AdvancedDocumentPropertiesW';
 
-  function ClosePrinter(_para1:HANDLE):BOOL;external External_library name 'ClosePrinter';
+  function ClosePrinter(_para1:HANDLE):BOOL;stdcall; external External_library name 'ClosePrinter';
 
-  function ConfigurePort(_para1:LPSTR; _para2:HWND; _para3:LPSTR):BOOL;external External_library name 'ConfigurePortA';
+  function ConfigurePort(_para1:LPSTR; _para2:HWND; _para3:LPSTR):BOOL;stdcall; external External_library name 'ConfigurePortA';
 
-  function ConfigurePort(_para1:LPWSTR; _para2:HWND; _para3:LPWSTR):BOOL;external External_library name 'ConfigurePortW';
+  function ConfigurePort(_para1:LPWSTR; _para2:HWND; _para3:LPWSTR):BOOL;stdcall; external External_library name 'ConfigurePortW';
 
-  function ConfigurePortA(_para1:LPSTR; _para2:HWND; _para3:LPSTR):BOOL;external External_library name 'ConfigurePortA';
+  function ConfigurePortA(_para1:LPSTR; _para2:HWND; _para3:LPSTR):BOOL;stdcall; external External_library name 'ConfigurePortA';
 
-  function ConfigurePortW(_para1:LPWSTR; _para2:HWND; _para3:LPWSTR):BOOL;external External_library name 'ConfigurePortW';
+  function ConfigurePortW(_para1:LPWSTR; _para2:HWND; _para3:LPWSTR):BOOL;stdcall; external External_library name 'ConfigurePortW';
 
-  function ConnectToPrinterDlg(_para1:HWND; _para2:DWORD):HANDLE;external External_library name 'ConnectToPrinterDlg';
+  function ConnectToPrinterDlg(_para1:HWND; _para2:DWORD):HANDLE;stdcall; external External_library name 'ConnectToPrinterDlg';
 
-  function DeleteForm(_para1:HANDLE; _para2:LPSTR):BOOL;external External_library name 'DeleteFormA';
+  function DeleteForm(_para1:HANDLE; _para2:LPSTR):BOOL;stdcall; external External_library name 'DeleteFormA';
 
-  function DeleteForm(_para1:HANDLE; _para2:LPWSTR):BOOL;external External_library name 'DeleteFormW';
+  function DeleteForm(_para1:HANDLE; _para2:LPWSTR):BOOL;stdcall; external External_library name 'DeleteFormW';
 
-  function DeleteFormA(_para1:HANDLE; _para2:LPSTR):BOOL;external External_library name 'DeleteFormA';
+  function DeleteFormA(_para1:HANDLE; _para2:LPSTR):BOOL;stdcall; external External_library name 'DeleteFormA';
 
-  function DeleteFormW(_para1:HANDLE; _para2:LPWSTR):BOOL;external External_library name 'DeleteFormW';
+  function DeleteFormW(_para1:HANDLE; _para2:LPWSTR):BOOL;stdcall; external External_library name 'DeleteFormW';
 
-  function DeleteMonitor(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR):BOOL;external External_library name 'DeleteMonitorA';
+  function DeleteMonitor(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR):BOOL;stdcall; external External_library name 'DeleteMonitorA';
 
-  function DeleteMonitor(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR):BOOL;external External_library name 'DeleteMonitorW';
+  function DeleteMonitor(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR):BOOL;stdcall; external External_library name 'DeleteMonitorW';
 
-  function DeleteMonitorA(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR):BOOL;external External_library name 'DeleteMonitorA';
+  function DeleteMonitorA(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR):BOOL;stdcall; external External_library name 'DeleteMonitorA';
 
-  function DeleteMonitorW(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR):BOOL;external External_library name 'DeleteMonitorW';
+  function DeleteMonitorW(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR):BOOL;stdcall; external External_library name 'DeleteMonitorW';
 
-  function DeletePort(_para1:LPSTR; _para2:HWND; _para3:LPSTR):BOOL;external External_library name 'DeletePortA';
+  function DeletePort(_para1:LPSTR; _para2:HWND; _para3:LPSTR):BOOL;stdcall; external External_library name 'DeletePortA';
 
-  function DeletePort(_para1:LPWSTR; _para2:HWND; _para3:LPWSTR):BOOL;external External_library name 'DeletePortW';
+  function DeletePort(_para1:LPWSTR; _para2:HWND; _para3:LPWSTR):BOOL;stdcall; external External_library name 'DeletePortW';
 
-  function DeletePortA(_para1:LPSTR; _para2:HWND; _para3:LPSTR):BOOL;external External_library name 'DeletePortA';
+  function DeletePortA(_para1:LPSTR; _para2:HWND; _para3:LPSTR):BOOL;stdcall; external External_library name 'DeletePortA';
 
-  function DeletePortW(_para1:LPWSTR; _para2:HWND; _para3:LPWSTR):BOOL;external External_library name 'DeletePortW';
+  function DeletePortW(_para1:LPWSTR; _para2:HWND; _para3:LPWSTR):BOOL;stdcall; external External_library name 'DeletePortW';
 
-  function DeletePrinter(_para1:HANDLE):BOOL;external External_library name 'DeletePrinter';
+  function DeletePrinter(_para1:HANDLE):BOOL;stdcall; external External_library name 'DeletePrinter';
 
-  function DeletePrinterConnection(_para1:LPSTR):BOOL;external External_library name 'DeletePrinterConnectionA';
+  function DeletePrinterConnection(_para1:LPSTR):BOOL;stdcall; external External_library name 'DeletePrinterConnectionA';
 
-  function DeletePrinterConnection(_para1:LPWSTR):BOOL;external External_library name 'DeletePrinterConnectionW';
+  function DeletePrinterConnection(_para1:LPWSTR):BOOL;stdcall; external External_library name 'DeletePrinterConnectionW';
 
-  function DeletePrinterConnectionA(_para1:LPSTR):BOOL;external External_library name 'DeletePrinterConnectionA';
+  function DeletePrinterConnectionA(_para1:LPSTR):BOOL;stdcall; external External_library name 'DeletePrinterConnectionA';
 
-  function DeletePrinterConnectionW(_para1:LPWSTR):BOOL;external External_library name 'DeletePrinterConnectionW';
+  function DeletePrinterConnectionW(_para1:LPWSTR):BOOL;stdcall; external External_library name 'DeletePrinterConnectionW';
 
-  function DeletePrinterData(_para1:HANDLE; _para2:LPSTR):DWORD;external External_library name 'DeletePrinterDataA';
+  function DeletePrinterData(_para1:HANDLE; _para2:LPSTR):DWORD;stdcall; external External_library name 'DeletePrinterDataA';
 
-  function DeletePrinterData(_para1:HANDLE; _para2:LPWSTR):DWORD;external External_library name 'DeletePrinterDataW';
+  function DeletePrinterData(_para1:HANDLE; _para2:LPWSTR):DWORD;stdcall; external External_library name 'DeletePrinterDataW';
 
-  function DeletePrinterDataA(_para1:HANDLE; _para2:LPSTR):DWORD;external External_library name 'DeletePrinterDataA';
+  function DeletePrinterDataA(_para1:HANDLE; _para2:LPSTR):DWORD;stdcall; external External_library name 'DeletePrinterDataA';
 
-  function DeletePrinterDataW(_para1:HANDLE; _para2:LPWSTR):DWORD;external External_library name 'DeletePrinterDataW';
+  function DeletePrinterDataW(_para1:HANDLE; _para2:LPWSTR):DWORD;stdcall; external External_library name 'DeletePrinterDataW';
 
-  function DeletePrinterDriver(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR):BOOL;external External_library name 'DeletePrinterDriverA';
+  function DeletePrinterDriver(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR):BOOL;stdcall; external External_library name 'DeletePrinterDriverA';
 
-  function DeletePrinterDriver(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR):BOOL;external External_library name 'DeletePrinterDriverW';
+  function DeletePrinterDriver(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR):BOOL;stdcall; external External_library name 'DeletePrinterDriverW';
 
-  function DeletePrinterDriverA(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR):BOOL;external External_library name 'DeletePrinterDriverA';
+  function DeletePrinterDriverA(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR):BOOL;stdcall; external External_library name 'DeletePrinterDriverA';
 
-  function DeletePrinterDriverW(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR):BOOL;external External_library name 'DeletePrinterDriverW';
+  function DeletePrinterDriverW(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR):BOOL;stdcall; external External_library name 'DeletePrinterDriverW';
 
-  function DeletePrintProcessor(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR):BOOL;external External_library name 'DeletePrintProcessorA';
+  function DeletePrintProcessor(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR):BOOL;stdcall; external External_library name 'DeletePrintProcessorA';
 
-  function DeletePrintProcessor(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR):BOOL;external External_library name 'DeletePrintProcessorW';
+  function DeletePrintProcessor(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR):BOOL;stdcall; external External_library name 'DeletePrintProcessorW';
 
-  function DeletePrintProcessorA(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR):BOOL;external External_library name 'DeletePrintProcessorA';
+  function DeletePrintProcessorA(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR):BOOL;stdcall; external External_library name 'DeletePrintProcessorA';
 
-  function DeletePrintProcessorW(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR):BOOL;external External_library name 'DeletePrintProcessorW';
+  function DeletePrintProcessorW(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR):BOOL;stdcall; external External_library name 'DeletePrintProcessorW';
 
-  function DeletePrintProvidor(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR):BOOL;external External_library name 'DeletePrintProvidorA';
+  function DeletePrintProvidor(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR):BOOL;stdcall; external External_library name 'DeletePrintProvidorA';
 
-  function DeletePrintProvidor(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR):BOOL;external External_library name 'DeletePrintProvidorW';
+  function DeletePrintProvidor(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR):BOOL;stdcall; external External_library name 'DeletePrintProvidorW';
 
-  function DeletePrintProvidorA(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR):BOOL;external External_library name 'DeletePrintProvidorA';
+  function DeletePrintProvidorA(_para1:LPSTR; _para2:LPSTR; _para3:LPSTR):BOOL;stdcall; external External_library name 'DeletePrintProvidorA';
 
-  function DeletePrintProvidorW(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR):BOOL;external External_library name 'DeletePrintProvidorW';
+  function DeletePrintProvidorW(_para1:LPWSTR; _para2:LPWSTR; _para3:LPWSTR):BOOL;stdcall; external External_library name 'DeletePrintProvidorW';
 
   function DocumentProperties(_para1:HWND; _para2:HANDLE; _para3:LPSTR; _para4:PDEVMODE; _para5:PDEVMODE;
-             _para6:DWORD):LONG;external External_library name 'DocumentPropertiesA';
+             _para6:DWORD):LONG;stdcall; external External_library name 'DocumentPropertiesA';
 
   function DocumentProperties(_para1:HWND; _para2:HANDLE; _para3:LPWSTR; _para4:PDEVMODEW; _para5:PDEVMODEW;
-             _para6:DWORD):LONG;external External_library name 'DocumentPropertiesW';
+             _para6:DWORD):LONG;stdcall; external External_library name 'DocumentPropertiesW';
 
   function DocumentPropertiesA(_para1:HWND; _para2:HANDLE; _para3:LPSTR; _para4:PDEVMODE; _para5:PDEVMODE;
-             _para6:DWORD):LONG;external External_library name 'DocumentPropertiesA';
+             _para6:DWORD):LONG;stdcall; external External_library name 'DocumentPropertiesA';
 
   function DocumentPropertiesW(_para1:HWND; _para2:HANDLE; _para3:LPWSTR; _para4:PDEVMODEW; _para5:PDEVMODEW;
-             _para6:DWORD):LONG;external External_library name 'DocumentPropertiesW';
+             _para6:DWORD):LONG;stdcall; external External_library name 'DocumentPropertiesW';
 
-  function EndDocPrinter(_para1:HANDLE):BOOL;external External_library name 'EndDocPrinter';
+  function EndDocPrinter(_para1:HANDLE):BOOL;stdcall; external External_library name 'EndDocPrinter';
 
-  function EndPagePrinter(_para1:HANDLE):BOOL;external External_library name 'EndPagePrinter';
+  function EndPagePrinter(_para1:HANDLE):BOOL;stdcall; external External_library name 'EndPagePrinter';
 
   function EnumForms(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD;
-             _para6:PDWORD):BOOL;external External_library name 'EnumFormsA';
+             _para6:PDWORD):BOOL;stdcall; external External_library name 'EnumFormsA';
 
   function EnumFormsA(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD;
-             _para6:PDWORD):BOOL;external External_library name 'EnumFormsA';
+             _para6:PDWORD):BOOL;stdcall; external External_library name 'EnumFormsA';
 
   function EnumFormsW(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD;
-             _para6:PDWORD):BOOL;external External_library name 'EnumFormsW';
+             _para6:PDWORD):BOOL;stdcall; external External_library name 'EnumFormsW';
 
   function EnumJobs(_para1:HANDLE; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:PBYTE;
-             _para6:DWORD; _para7:PDWORD; _para8:PDWORD):BOOL;external External_library name 'EnumJobsA';
+             _para6:DWORD; _para7:PDWORD; _para8:PDWORD):BOOL;stdcall; external External_library name 'EnumJobsA';
 
   function EnumJobsA(_para1:HANDLE; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:PBYTE;
-             _para6:DWORD; _para7:PDWORD; _para8:PDWORD):BOOL;external External_library name 'EnumJobsA';
+             _para6:DWORD; _para7:PDWORD; _para8:PDWORD):BOOL;stdcall; external External_library name 'EnumJobsA';
 
   function EnumJobsW(_para1:HANDLE; _para2:DWORD; _para3:DWORD; _para4:DWORD; _para5:PBYTE;
-             _para6:DWORD; _para7:PDWORD; _para8:PDWORD):BOOL;external External_library name 'EnumJobsW';
+             _para6:DWORD; _para7:PDWORD; _para8:PDWORD):BOOL;stdcall; external External_library name 'EnumJobsW';
 
   function EnumMonitors(_para1:LPSTR; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD;
-             _para6:PDWORD):BOOL;external External_library name 'EnumMonitorsA';
+             _para6:PDWORD):BOOL;stdcall; external External_library name 'EnumMonitorsA';
 
   function EnumMonitors(_para1:LPWSTR; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD;
-             _para6:PDWORD):BOOL;external External_library name 'EnumMonitorsW';
+             _para6:PDWORD):BOOL;stdcall; external External_library name 'EnumMonitorsW';
 
   function EnumMonitorsA(_para1:LPSTR; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD;
-             _para6:PDWORD):BOOL;external External_library name 'EnumMonitorsA';
+             _para6:PDWORD):BOOL;stdcall; external External_library name 'EnumMonitorsA';
 
   function EnumMonitorsW(_para1:LPWSTR; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD;
-             _para6:PDWORD):BOOL;external External_library name 'EnumMonitorsW';
+             _para6:PDWORD):BOOL;stdcall; external External_library name 'EnumMonitorsW';
 
   function EnumPorts(_para1:LPSTR; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD;
-             _para6:PDWORD):BOOL;external External_library name 'EnumPortsA';
+             _para6:PDWORD):BOOL;stdcall; external External_library name 'EnumPortsA';
 
   function EnumPortsA(_para1:LPSTR; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD;
-             _para6:PDWORD):BOOL;external External_library name 'EnumPortsA';
+             _para6:PDWORD):BOOL;stdcall; external External_library name 'EnumPortsA';
 
   function EnumPortsW(_para1:LPWSTR; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD;
-             _para6:PDWORD):BOOL;external External_library name 'EnumPortsW';
+             _para6:PDWORD):BOOL;stdcall; external External_library name 'EnumPortsW';
 
   function EnumPrinterData(_para1:HANDLE; _para2:DWORD; _para3:LPSTR; _para4:DWORD; _para5:PDWORD;
-             _para6:PDWORD; _para7:PBYTE; _para8:DWORD; _para9:PDWORD):DWORD;external External_library name 'EnumPrinterDataA';
+             _para6:PDWORD; _para7:PBYTE; _para8:DWORD; _para9:PDWORD):DWORD;stdcall; external External_library name 'EnumPrinterDataA';
 
   function EnumPrinterDataA(_para1:HANDLE; _para2:DWORD; _para3:LPSTR; _para4:DWORD; _para5:PDWORD;
-             _para6:PDWORD; _para7:PBYTE; _para8:DWORD; _para9:PDWORD):DWORD;external External_library name 'EnumPrinterDataA';
+             _para6:PDWORD; _para7:PBYTE; _para8:DWORD; _para9:PDWORD):DWORD;stdcall; external External_library name 'EnumPrinterDataA';
 
   function EnumPrinterDataW(_para1:HANDLE; _para2:DWORD; _para3:LPWSTR; _para4:DWORD; _para5:PDWORD;
-             _para6:PDWORD; _para7:PBYTE; _para8:DWORD; _para9:PDWORD):DWORD;external External_library name 'EnumPrinterDataW';
+             _para6:PDWORD; _para7:PBYTE; _para8:DWORD; _para9:PDWORD):DWORD;stdcall; external External_library name 'EnumPrinterDataW';
 
   function EnumPrinterDrivers(_para1:LPSTR; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD; _para7:PDWORD):BOOL;external External_library name 'EnumPrinterDriversA';
+             _para6:PDWORD; _para7:PDWORD):BOOL;stdcall; external External_library name 'EnumPrinterDriversA';
 
   function EnumPrinterDrivers(_para1:LPWSTR; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD; _para7:PDWORD):BOOL;external External_library name 'EnumPrinterDriversW';
+             _para6:PDWORD; _para7:PDWORD):BOOL;stdcall; external External_library name 'EnumPrinterDriversW';
 
   function EnumPrinterDriversA(_para1:LPSTR; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD; _para7:PDWORD):BOOL;external External_library name 'EnumPrinterDriversA';
+             _para6:PDWORD; _para7:PDWORD):BOOL;stdcall; external External_library name 'EnumPrinterDriversA';
 
   function EnumPrinterDriversW(_para1:LPWSTR; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD; _para7:PDWORD):BOOL;external External_library name 'EnumPrinterDriversW';
+             _para6:PDWORD; _para7:PDWORD):BOOL;stdcall; external External_library name 'EnumPrinterDriversW';
 
   function EnumPrinters(_para1:DWORD; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD; _para7:PDWORD):BOOL;external External_library name 'EnumPrintersA';
+             _para6:PDWORD; _para7:PDWORD):BOOL;stdcall; external External_library name 'EnumPrintersA';
 
   function EnumPrinters(_para1:DWORD; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD; _para7:PDWORD):BOOL;external External_library name 'EnumPrintersW';
+             _para6:PDWORD; _para7:PDWORD):BOOL;stdcall; external External_library name 'EnumPrintersW';
 
   function EnumPrintersA(_para1:DWORD; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD; _para7:PDWORD):BOOL;external External_library name 'EnumPrintersA';
+             _para6:PDWORD; _para7:PDWORD):BOOL;stdcall; external External_library name 'EnumPrintersA';
 
   function EnumPrintersW(_para1:DWORD; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD; _para7:PDWORD):BOOL;external External_library name 'EnumPrintersW';
+             _para6:PDWORD; _para7:PDWORD):BOOL;stdcall; external External_library name 'EnumPrintersW';
 
   function EnumPrintProcessorDatatypes(_para1:LPSTR; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD; _para7:PDWORD):BOOL;external External_library name 'EnumPrintProcessorDatatypesA';
+             _para6:PDWORD; _para7:PDWORD):BOOL;stdcall; external External_library name 'EnumPrintProcessorDatatypesA';
 
   function EnumPrintProcessorDatatypes(_para1:LPWSTR; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD; _para7:PDWORD):BOOL;external External_library name 'EnumPrintProcessorDatatypesW';
+             _para6:PDWORD; _para7:PDWORD):BOOL;stdcall; external External_library name 'EnumPrintProcessorDatatypesW';
 
   function EnumPrintProcessorDatatypesA(_para1:LPSTR; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD; _para7:PDWORD):BOOL;external External_library name 'EnumPrintProcessorDatatypesA';
+             _para6:PDWORD; _para7:PDWORD):BOOL;stdcall; external External_library name 'EnumPrintProcessorDatatypesA';
 
   function EnumPrintProcessorDatatypesW(_para1:LPWSTR; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD; _para7:PDWORD):BOOL;external External_library name 'EnumPrintProcessorDatatypesW';
+             _para6:PDWORD; _para7:PDWORD):BOOL;stdcall; external External_library name 'EnumPrintProcessorDatatypesW';
 
   function EnumPrintProcessorsA(_para1:LPSTR; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD; _para7:PDWORD):BOOL;external External_library name 'EnumPrintProcessorsA';
+             _para6:PDWORD; _para7:PDWORD):BOOL;stdcall; external External_library name 'EnumPrintProcessorsA';
 
   function EnumPrintProcessorsW(_para1:LPWSTR; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD; _para7:PDWORD):BOOL;external External_library name 'EnumPrintProcessorsW';
+             _para6:PDWORD; _para7:PDWORD):BOOL;stdcall; external External_library name 'EnumPrintProcessorsW';
 
   function EnumPrintProcessors(_para1:LPSTR; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD; _para7:PDWORD):BOOL;external External_library name 'EnumPrintProcessorsA';
+             _para6:PDWORD; _para7:PDWORD):BOOL;stdcall; external External_library name 'EnumPrintProcessorsA';
 
   function EnumPrintProcessors(_para1:LPWSTR; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD; _para7:PDWORD):BOOL;external External_library name 'EnumPrintProcessorsW';
+             _para6:PDWORD; _para7:PDWORD):BOOL;stdcall; external External_library name 'EnumPrintProcessorsW';
 
-  function FindClosePrinterChangeNotification(_para1:HANDLE):BOOL;external External_library name 'FindClosePrinterChangeNotification';
+  function FindClosePrinterChangeNotification(_para1:HANDLE):BOOL;stdcall; external External_library name 'FindClosePrinterChangeNotification';
 
-  function FindFirstPrinterChangeNotification(_para1:HANDLE; _para2:DWORD; _para3:DWORD; _para4:PVOID):HANDLE;external External_library name 'FindFirstPrinterChangeNotification';
+  function FindFirstPrinterChangeNotification(_para1:HANDLE; _para2:DWORD; _para3:DWORD; _para4:PVOID):HANDLE;stdcall; external External_library name 'FindFirstPrinterChangeNotification';
 
-  function FindNextPrinterChangeNotification(_para1:HANDLE; _para2:PDWORD; _para3:PVOID; _para4:PPVOID):HANDLE;external External_library name 'FindNextPrinterChangeNotification';
+  function FindNextPrinterChangeNotification(_para1:HANDLE; _para2:PDWORD; _para3:PVOID; _para4:PPVOID):HANDLE;stdcall; external External_library name 'FindNextPrinterChangeNotification';
 
-  function FreePrinterNotifyInfo(_para1:PPRINTER_NOTIFY_INFO):BOOL;external External_library name 'FreePrinterNotifyInfo';
+  function FreePrinterNotifyInfo(_para1:PPRINTER_NOTIFY_INFO):BOOL;stdcall; external External_library name 'FreePrinterNotifyInfo';
 
-  function GetDefaultPrinter(_para1:LPSTR; _para2:LPDWORD):BOOL;external External_library name 'GetDefaultPrinterA';
+  function GetDefaultPrinter(_para1:LPSTR; _para2:LPDWORD):BOOL;stdcall; external External_library name 'GetDefaultPrinterA';
 
-  function GetDefaultPrinter(_para1:LPWSTR; _para2:LPDWORD):BOOL;external External_library name 'GetDefaultPrinterW';
+  function GetDefaultPrinter(_para1:LPWSTR; _para2:LPDWORD):BOOL;stdcall; external External_library name 'GetDefaultPrinterW';
 
-  function GetDefaultPrinterA(_para1:LPSTR; _para2:LPDWORD):BOOL;external External_library name 'GetDefaultPrinterA';
+  function GetDefaultPrinterA(_para1:LPSTR; _para2:LPDWORD):BOOL;stdcall; external External_library name 'GetDefaultPrinterA';
 
-  function GetDefaultPrinterW(_para1:LPWSTR; _para2:LPDWORD):BOOL;external External_library name 'GetDefaultPrinterW';
+  function GetDefaultPrinterW(_para1:LPWSTR; _para2:LPDWORD):BOOL;stdcall; external External_library name 'GetDefaultPrinterW';
 
   function GetForm(_para1:HANDLE; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):BOOL;external External_library name 'GetFormA';
+             _para6:PDWORD):BOOL;stdcall; external External_library name 'GetFormA';
 
   function GetForm(_para1:HANDLE; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):BOOL;external External_library name 'GetFormW';
+             _para6:PDWORD):BOOL;stdcall; external External_library name 'GetFormW';
 
   function GetFormA(_para1:HANDLE; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):BOOL;external External_library name 'GetFormA';
+             _para6:PDWORD):BOOL;stdcall; external External_library name 'GetFormA';
 
   function GetFormW(_para1:HANDLE; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):BOOL;external External_library name 'GetFormW';
+             _para6:PDWORD):BOOL;stdcall; external External_library name 'GetFormW';
 
   function GetJob(_para1:HANDLE; _para2:DWORD; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):BOOL;external External_library name 'GetJobA';
+             _para6:PDWORD):BOOL;stdcall; external External_library name 'GetJobA';
 
   function GetJobA(_para1:HANDLE; _para2:DWORD; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):BOOL;external External_library name 'GetJobA';
+             _para6:PDWORD):BOOL;stdcall; external External_library name 'GetJobA';
 
   function GetJobW(_para1:HANDLE; _para2:DWORD; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):BOOL;external External_library name 'GetJobW';
+             _para6:PDWORD):BOOL;stdcall; external External_library name 'GetJobW';
 
-  function GetPrinter(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD):BOOL;external External_library name 'GetPrinterA';
+  function GetPrinter(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD):BOOL;stdcall; external External_library name 'GetPrinterA';
 
-  function GetPrinterA(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD):BOOL;external External_library name 'GetPrinterA';
+  function GetPrinterA(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD):BOOL;stdcall; external External_library name 'GetPrinterA';
 
-  function GetPrinterW(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD):BOOL;external External_library name 'GetPrinterW';
+  function GetPrinterW(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD; _para5:PDWORD):BOOL;stdcall; external External_library name 'GetPrinterW';
 
   function GetPrinterData(_para1:HANDLE; _para2:LPSTR; _para3:PDWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):DWORD;external External_library name 'GetPrinterDataA';
+             _para6:PDWORD):DWORD;stdcall; external External_library name 'GetPrinterDataA';
 
   function GetPrinterData(_para1:HANDLE; _para2:LPWSTR; _para3:PDWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):DWORD;external External_library name 'GetPrinterDataW';
+             _para6:PDWORD):DWORD;stdcall; external External_library name 'GetPrinterDataW';
 
   function GetPrinterDataA(_para1:HANDLE; _para2:LPSTR; _para3:PDWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):DWORD;external External_library name 'GetPrinterDataA';
+             _para6:PDWORD):DWORD;stdcall; external External_library name 'GetPrinterDataA';
 
   function GetPrinterDataW(_para1:HANDLE; _para2:LPWSTR; _para3:PDWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):DWORD;external External_library name 'GetPrinterDataW';
+             _para6:PDWORD):DWORD;stdcall; external External_library name 'GetPrinterDataW';
 
   function GetPrinterDriver(_para1:HANDLE; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):DWORD;external External_library name 'GetPrinterDriverA';
+             _para6:PDWORD):DWORD;stdcall; external External_library name 'GetPrinterDriverA';
 
   function GetPrinterDriver(_para1:HANDLE; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):DWORD;external External_library name 'GetPrinterDriverW';
+             _para6:PDWORD):DWORD;stdcall; external External_library name 'GetPrinterDriverW';
 
   function GetPrinterDriverA(_para1:HANDLE; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):DWORD;external External_library name 'GetPrinterDriverA';
+             _para6:PDWORD):DWORD;stdcall; external External_library name 'GetPrinterDriverA';
 
   function GetPrinterDriverW(_para1:HANDLE; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):DWORD;external External_library name 'GetPrinterDriverW';
+             _para6:PDWORD):DWORD;stdcall; external External_library name 'GetPrinterDriverW';
 
   function GetPrinterDriverDirectory(_para1:LPSTR; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):DWORD;external External_library name 'GetPrinterDriverDirectoryA';
+             _para6:PDWORD):DWORD;stdcall; external External_library name 'GetPrinterDriverDirectoryA';
 
   function GetPrinterDriverDirectory(_para1:LPWSTR; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):DWORD;external External_library name 'GetPrinterDriverDirectoryW';
+             _para6:PDWORD):DWORD;stdcall; external External_library name 'GetPrinterDriverDirectoryW';
 
   function GetPrinterDriverDirectoryA(_para1:LPSTR; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):DWORD;external External_library name 'GetPrinterDriverDirectoryA';
+             _para6:PDWORD):DWORD;stdcall; external External_library name 'GetPrinterDriverDirectoryA';
 
   function GetPrinterDriverDirectoryW(_para1:LPWSTR; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):DWORD;external External_library name 'GetPrinterDriverDirectoryW';
+             _para6:PDWORD):DWORD;stdcall; external External_library name 'GetPrinterDriverDirectoryW';
 
   function GetPrintProcessorDirectory(_para1:LPSTR; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):DWORD;external External_library name 'GetPrintProcessorDirectoryA';
+             _para6:PDWORD):DWORD;stdcall; external External_library name 'GetPrintProcessorDirectoryA';
 
   function GetPrintProcessorDirectory(_para1:LPWSTR; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):DWORD;external External_library name 'GetPrintProcessorDirectoryW';
+             _para6:PDWORD):DWORD;stdcall; external External_library name 'GetPrintProcessorDirectoryW';
 
   function GetPrintProcessorDirectoryA(_para1:LPSTR; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):DWORD;external External_library name 'GetPrintProcessorDirectoryA';
+             _para6:PDWORD):DWORD;stdcall; external External_library name 'GetPrintProcessorDirectoryA';
 
   function GetPrintProcessorDirectoryW(_para1:LPWSTR; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD;
-             _para6:PDWORD):DWORD;external External_library name 'GetPrintProcessorDirectoryW';
+             _para6:PDWORD):DWORD;stdcall; external External_library name 'GetPrintProcessorDirectoryW';
 
-  function OpenPrinter(_para1:LPSTR; _para2:PHANDLE; _para3:LPPRINTER_DEFAULTSA):BOOL;external External_library name 'OpenPrinterA';
+  function OpenPrinter(_para1:LPSTR; _para2:PHANDLE; _para3:LPPRINTER_DEFAULTSA):BOOL;stdcall; external External_library name 'OpenPrinterA';
 
-  function OpenPrinter(_para1:LPWSTR; _para2:PHANDLE; _para3:LPPRINTER_DEFAULTSW):BOOL;external External_library name 'OpenPrinterW';
+  function OpenPrinter(_para1:LPWSTR; _para2:PHANDLE; _para3:LPPRINTER_DEFAULTSW):BOOL;stdcall; external External_library name 'OpenPrinterW';
 
-  function OpenPrinterA(_para1:LPSTR; _para2:PHANDLE; _para3:LPPRINTER_DEFAULTSA):BOOL;external External_library name 'OpenPrinterA';
+  function OpenPrinterA(_para1:LPSTR; _para2:PHANDLE; _para3:LPPRINTER_DEFAULTSA):BOOL;stdcall; external External_library name 'OpenPrinterA';
 
-  function OpenPrinterW(_para1:LPWSTR; _para2:PHANDLE; _para3:LPPRINTER_DEFAULTSW):BOOL;external External_library name 'OpenPrinterW';
+  function OpenPrinterW(_para1:LPWSTR; _para2:PHANDLE; _para3:LPPRINTER_DEFAULTSW):BOOL;stdcall; external External_library name 'OpenPrinterW';
 
   function PrinterMessageBox(_para1:HANDLE; _para2:DWORD; _para3:HWND; _para4:LPSTR; _para5:LPSTR;
-             _para6:DWORD):DWORD;external External_library name 'PrinterMessageBoxA';
+             _para6:DWORD):DWORD;stdcall; external External_library name 'PrinterMessageBoxA';
 
   function PrinterMessageBox(_para1:HANDLE; _para2:DWORD; _para3:HWND; _para4:LPWSTR; _para5:LPWSTR;
-             _para6:DWORD):DWORD;external External_library name 'PrinterMessageBoxW';
+             _para6:DWORD):DWORD;stdcall; external External_library name 'PrinterMessageBoxW';
 
   function PrinterMessageBoxA(_para1:HANDLE; _para2:DWORD; _para3:HWND; _para4:LPSTR; _para5:LPSTR;
-             _para6:DWORD):DWORD;external External_library name 'PrinterMessageBoxA';
+             _para6:DWORD):DWORD;stdcall; external External_library name 'PrinterMessageBoxA';
 
   function PrinterMessageBoxW(_para1:HANDLE; _para2:DWORD; _para3:HWND; _para4:LPWSTR; _para5:LPWSTR;
-             _para6:DWORD):DWORD;external External_library name 'PrinterMessageBoxW';
+             _para6:DWORD):DWORD;stdcall; external External_library name 'PrinterMessageBoxW';
 
-  function PrinterProperties(_para1:HWND; _para2:HANDLE):BOOL;external External_library name 'PrinterProperties';
+  function PrinterProperties(_para1:HWND; _para2:HANDLE):BOOL;stdcall; external External_library name 'PrinterProperties';
 
-  function ReadPrinter(_para1:HANDLE; _para2:PVOID; _para3:DWORD; _para4:PDWORD):BOOL;external External_library name 'ReadPrinter';
+  function ReadPrinter(_para1:HANDLE; _para2:PVOID; _para3:DWORD; _para4:PDWORD):BOOL;stdcall; external External_library name 'ReadPrinter';
 
-  function ResetPrinter(_para1:HANDLE; _para2:LPPRINTER_DEFAULTSA):BOOL;external External_library name 'ResetPrinterA';
+  function ResetPrinter(_para1:HANDLE; _para2:LPPRINTER_DEFAULTSA):BOOL;stdcall; external External_library name 'ResetPrinterA';
 
-  function ResetPrinter(_para1:HANDLE; _para2:LPPRINTER_DEFAULTSW):BOOL;external External_library name 'ResetPrinterW';
+  function ResetPrinter(_para1:HANDLE; _para2:LPPRINTER_DEFAULTSW):BOOL;stdcall; external External_library name 'ResetPrinterW';
 
-  function ResetPrinterA(_para1:HANDLE; _para2:LPPRINTER_DEFAULTSA):BOOL;external External_library name 'ResetPrinterA';
+  function ResetPrinterA(_para1:HANDLE; _para2:LPPRINTER_DEFAULTSA):BOOL;stdcall; external External_library name 'ResetPrinterA';
 
-  function ResetPrinterW(_para1:HANDLE; _para2:LPPRINTER_DEFAULTSW):BOOL;external External_library name 'ResetPrinterW';
+  function ResetPrinterW(_para1:HANDLE; _para2:LPPRINTER_DEFAULTSW):BOOL;stdcall; external External_library name 'ResetPrinterW';
 
-  function ScheduleJob(_para1:HANDLE; _para2:DWORD):BOOL;external External_library name 'ScheduleJob';
+  function ScheduleJob(_para1:HANDLE; _para2:DWORD):BOOL;stdcall; external External_library name 'ScheduleJob';
 
-  function SetForm(_para1:HANDLE; _para2:LPSTR; _para3:DWORD; _para4:PBYTE):BOOL;external External_library name 'SetFormA';
+  function SetForm(_para1:HANDLE; _para2:LPSTR; _para3:DWORD; _para4:PBYTE):BOOL;stdcall; external External_library name 'SetFormA';
 
-  function SetForm(_para1:HANDLE; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE):BOOL;external External_library name 'SetFormW';
+  function SetForm(_para1:HANDLE; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE):BOOL;stdcall; external External_library name 'SetFormW';
 
-  function SetFormA(_para1:HANDLE; _para2:LPSTR; _para3:DWORD; _para4:PBYTE):BOOL;external External_library name 'SetFormA';
+  function SetFormA(_para1:HANDLE; _para2:LPSTR; _para3:DWORD; _para4:PBYTE):BOOL;stdcall; external External_library name 'SetFormA';
 
-  function SetFormW(_para1:HANDLE; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE):BOOL;external External_library name 'SetFormW';
+  function SetFormW(_para1:HANDLE; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE):BOOL;stdcall; external External_library name 'SetFormW';
 
-  function SetJob(_para1:HANDLE; _para2:DWORD; _para3:DWORD; _para4:PBYTE; _para5:DWORD):BOOL;external External_library name 'SetJobA';
+  function SetJob(_para1:HANDLE; _para2:DWORD; _para3:DWORD; _para4:PBYTE; _para5:DWORD):BOOL;stdcall; external External_library name 'SetJobA';
 
-  function SetJobA(_para1:HANDLE; _para2:DWORD; _para3:DWORD; _para4:PBYTE; _para5:DWORD):BOOL;external External_library name 'SetJobA';
+  function SetJobA(_para1:HANDLE; _para2:DWORD; _para3:DWORD; _para4:PBYTE; _para5:DWORD):BOOL;stdcall; external External_library name 'SetJobA';
 
-  function SetJobW(_para1:HANDLE; _para2:DWORD; _para3:DWORD; _para4:PBYTE; _para5:DWORD):BOOL;external External_library name 'SetJobW';
+  function SetJobW(_para1:HANDLE; _para2:DWORD; _para3:DWORD; _para4:PBYTE; _para5:DWORD):BOOL;stdcall; external External_library name 'SetJobW';
 
-  function SetPrinter(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD):BOOL;external External_library name 'SetPrinterA';
+  function SetPrinter(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD):BOOL;stdcall; external External_library name 'SetPrinterA';
 
-  function SetPrinterA(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD):BOOL;external External_library name 'SetPrinterA';
+  function SetPrinterA(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD):BOOL;stdcall; external External_library name 'SetPrinterA';
 
-  function SetPrinterW(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD):BOOL;external External_library name 'SetPrinterW';
+  function SetPrinterW(_para1:HANDLE; _para2:DWORD; _para3:PBYTE; _para4:DWORD):BOOL;stdcall; external External_library name 'SetPrinterW';
 
-  function SetPrinterData(_para1:HANDLE; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD):BOOL;external External_library name 'SetPrinterDataA';
+  function SetPrinterData(_para1:HANDLE; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD):BOOL;stdcall; external External_library name 'SetPrinterDataA';
 
-  function SetPrinterDataA(_para1:HANDLE; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD):BOOL;external External_library name 'SetPrinterDataA';
+  function SetPrinterDataA(_para1:HANDLE; _para2:LPSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD):BOOL;stdcall; external External_library name 'SetPrinterDataA';
 
-  function SetPrinterDataW(_para1:HANDLE; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD):BOOL;external External_library name 'SetPrinterDataW';
+  function SetPrinterDataW(_para1:HANDLE; _para2:LPWSTR; _para3:DWORD; _para4:PBYTE; _para5:DWORD):BOOL;stdcall; external External_library name 'SetPrinterDataW';
 
-  function StartDocPrinter(_para1:HANDLE; _para2:DWORD; _para3:PBYTE):DWORD;external External_library name 'StartDocPrinterA';
+  function StartDocPrinter(_para1:HANDLE; _para2:DWORD; _para3:PBYTE):DWORD;stdcall; external External_library name 'StartDocPrinterA';
 
-  function StartDocPrinterA(_para1:HANDLE; _para2:DWORD; _para3:PBYTE):DWORD;external External_library name 'StartDocPrinterA';
+  function StartDocPrinterA(_para1:HANDLE; _para2:DWORD; _para3:PBYTE):DWORD;stdcall; external External_library name 'StartDocPrinterA';
 
-  function StartDocPrinterW(_para1:HANDLE; _para2:DWORD; _para3:PBYTE):DWORD;external External_library name 'StartDocPrinterW';
+  function StartDocPrinterW(_para1:HANDLE; _para2:DWORD; _para3:PBYTE):DWORD;stdcall; external External_library name 'StartDocPrinterW';
 
-  function StartPagePrinter(_para1:HANDLE):BOOL;external External_library name 'StartPagePrinter';
+  function StartPagePrinter(_para1:HANDLE):BOOL;stdcall; external External_library name 'StartPagePrinter';
 
-  function WaitForPrinterChange(_para1:HANDLE; _para2:DWORD):DWORD;external External_library name 'WaitForPrinterChange';
+  function WaitForPrinterChange(_para1:HANDLE; _para2:DWORD):DWORD;stdcall; external External_library name 'WaitForPrinterChange';
 
-  function WritePrinter(_para1:HANDLE; _para2:PVOID; _para3:DWORD; _para4:PDWORD):BOOL;external External_library name 'WritePrinter';
+  function WritePrinter(_para1:HANDLE; _para2:PVOID; _para3:DWORD; _para4:PDWORD):BOOL;stdcall; external External_library name 'WritePrinter';
 
 
   type
