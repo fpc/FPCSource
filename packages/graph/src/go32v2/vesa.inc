@@ -239,6 +239,13 @@ end;
 {$endif fpc}
     { get the segment value }
     RealSeg := word(Ptr shr 16);
+    { we have to init everything to zero, since VBE < 1.1  }
+    { may not setup fields correctly.                      }
+{$ifndef fpc}
+    FillChar(VESAPtr^, sizeof(ModeInfo), #0);
+{$else fpc}
+    DosMemFillChar(RealSeg, 0, sizeof(ModeInfo), #0);
+{$endif fpc}
     { setup interrupt registers }
     FillChar(regs, sizeof(regs), #0);
     { call VESA mode information...}
@@ -327,7 +334,10 @@ end;
         begin
           { we have to init everything to zero, since VBE < 1.1  }
           { may not setup fields correctly.                      }
+          { bugfix: for DPMI this is now done in GetVESAModeInfo }
+{$IFNDEF DPMI}
           FillChar(VESAModeInfo, sizeof(VESAModeInfo), #0);
+{$ENDIF}
           If GetVESAModeInfo(VESAModeInfo, Mode) And
              ((VESAModeInfo.attr and modeAvail) <> 0) then
             ModeSupported := TRUE
