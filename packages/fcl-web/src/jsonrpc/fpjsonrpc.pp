@@ -356,7 +356,7 @@ implementation
 function CreateJSONErrorObject(Const AMessage : String; Const ACode : Integer) : TJSONObject;
 
 begin
-  Result:=TJSONObject.Create(['code',ACode,'message',AMessage])
+  Result:=TJSONErrorObject.Create(['code',ACode,'message',AMessage])
 end;
 
 function CreateJSON2ErrorResponse(Const AMessage : String; Const ACode : Integer; ID : TJSONData = Nil; idname : TJSONStringType = 'id' ) : TJSONObject;
@@ -583,6 +583,7 @@ end;
 
 function TJSONRPCHandler.DoExecute(const Params: TJSONData;AContext : TJSONRPCCallContext): TJSONData;
 begin
+  Result:=Nil;
   If Assigned(FOnExecute) then
     FOnExecute(Self,Params,Result);
 end;
