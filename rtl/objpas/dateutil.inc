@@ -1530,8 +1530,14 @@ end;
 
 Procedure DecodeDateTime(const AValue: TDateTime; out AYear, AMonth, ADay, AHour, AMinute, ASecond, AMilliSecond: Word);
 begin
-  DecodeDate(AValue,AYear,AMonth,ADay);
   DecodeTime(AValue,AHour,AMinute,ASecond,AMilliSecond);
+  if AHour=24 then // can happen due rounding issues mantis 17123
+    begin
+      AHour:=0; // rest is already zero
+      DecodeDate(round(AValue),AYear,AMonth,ADay);
+    end
+  else
+    DecodeDate(AValue,AYear,AMonth,ADay);
 end;
 
 
