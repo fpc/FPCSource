@@ -36,8 +36,8 @@ implementation
 
 procedure TvSVGVectorialWriter.WriteDocumentSize(AStrings: TStrings; AData: TvVectorialDocument);
 begin
-  AStrings.Add('  width="744.09448819"');
-  AStrings.Add('  height="1052.3622047"');
+  AStrings.Add('  width="' + FloatToStr(AData.Width, FPointSeparator) + 'mm"');
+  AStrings.Add('  height="' + FloatToStr(AData.Height, FPointSeparator) + 'mm"');
 end;
 
 procedure TvSVGVectorialWriter.WriteDocumentName(AStrings: TStrings; AData: TvVectorialDocument);
@@ -46,9 +46,11 @@ begin
 end;
 
 {@@
-  SVG Coordinate system measures things in millimiters.
+  SVG Coordinate system measures things in whatever unit we pass to it, so we
+  choose to pass in millimiters (mm), like FPVectorial uses.
+
   The initial point is in the bottom-left corner of the document and it grows
-  to the top and to the right.
+  to the top and to the right, just like in FPVectorial.
 
   SVG uses commas "," to separate the X,Y coordinates, so it always uses points
   "." as decimal separators and uses no thousand separators
@@ -70,9 +72,8 @@ begin
 
       PtX := lPath.Points[j].X;
       PtY := lPath.Points[j].Y;
-      PtY := AData.Height - PtY;
-      PathStr := PathStr + FloatToStr(PtX, FPointSeparator) + ','
-        + FloatToStr(PtY, FPointSeparator) + ' ';
+      PathStr := PathStr + FloatToStr(PtX, FPointSeparator) + 'mm,'
+        + FloatToStr(PtY, FPointSeparator) + 'mm ';
     end;
 
     AStrings.Add('  <path');

@@ -14,6 +14,20 @@ procedure DrawFPVectorialToCanvas(ASource: TvVectorialDocument; ADest: TFPCustom
 
 implementation
 
+{@@
+  This function draws a FPVectorial vectorial image to a TFPCustomCanvas
+  descendent, such as TCanvas from the LCL.
+
+  Be careful that by default this routine does not execute coordinate transformations,
+  and that FPVectorial works with a start point in the bottom-left corner, with
+  the X growing to the right and the Y growing to the top. This will result in
+  an image in TFPCustomCanvas mirrored in the Y axis in relation with the document
+  as seen in a PDF viewer, for example. This can be easily changed with the
+  provided parameters. To have the standard view of an image viewer one could
+  use this function like this:
+
+  DrawFPVectorialToCanvas(ASource, ADest, 0, ASource.Height, 1.0, -1.0);
+}
 procedure DrawFPVectorialToCanvas(ASource: TvVectorialDocument; ADest: TFPCustomCanvas;
   ADestX: Integer = 0; ADestY: Integer = 0; AMulX: Double = 1.0; AMulY: Double = 1.0);
 var

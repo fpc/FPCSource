@@ -38,10 +38,10 @@ type
     st2DLine, st2DBezier,
     st3DLine, st3DBezier);
 
-  {@
+  {@@
     The coordinates in fpvectorial are given in millimiters and
-    the starting point is in the top-left corner of the document
-    and it grows to the bottom and to the right.
+    the starting point is in the bottom-left corner of the document.
+    The X grows to the right and the Y grows to the top.
   }
   TPathSegment = record
     SegmentType: TSegmentType;
