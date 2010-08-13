@@ -3204,7 +3204,10 @@ begin
           break;
         UngetToken;
         ExpectToken(tkComma);
-        ExpectIdentifier;
+        //ExpectIdentifier;
+        Element:=ParseType(Nil); // search interface.
+        if assigned(element) then
+          TPasClassType(Result).Interfaces.add(element);
         // !!!: Store interface name
       end;
       NextToken;

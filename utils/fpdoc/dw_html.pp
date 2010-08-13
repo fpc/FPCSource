@@ -2847,6 +2847,14 @@ var
     begin
       AppendSym(CodeEl, '(');
       AppendHyperlink(CodeEl, AClass.AncestorType);
+      if AClass.Interfaces.count>0 Then
+        begin
+          for i:=0 to AClass.interfaces.count-1 do
+           begin
+             AppendSym(CodeEl, ',');
+             AppendText(CodeEl,TPasClassType(AClass.Interfaces[i]).Name);
+           end; 
+        end;
       AppendSym(CodeEl, ')');
     end;
 

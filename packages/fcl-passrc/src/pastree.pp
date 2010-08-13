@@ -452,6 +452,7 @@ type
 
     ClassVars: TList;   // class vars
     Modifiers: TStringList;
+    Interfaces : TList;
   end;
 
   TArgumentAccess = (argDefault, argConst, argVar, argOut);
@@ -1303,6 +1304,7 @@ begin
   Members := TList.Create;
   Modifiers := TStringList.Create;
   ClassVars := TList.Create;
+  Interfaces:= TList.Create;
 end;
 
 destructor TPasClassType.Destroy;
@@ -1316,6 +1318,7 @@ begin
     AncestorType.Release;
   Modifiers.Free;
   ClassVars.Free;
+  Interfaces.Free;
   inherited Destroy;
 end;
 
