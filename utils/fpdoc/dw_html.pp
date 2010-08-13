@@ -1526,6 +1526,8 @@ begin
                 break;
               ThisPackage := ThisPackage.NextSibling;
             end;
+            if length(s)=0 then
+              s := ResolveLinkID('#rtl.System.' + Element.Name);
             if Length(s) > 0 then
               break;
           end;
