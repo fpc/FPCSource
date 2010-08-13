@@ -62,7 +62,7 @@ begin
     Vec.ReadFromFile(editInput.FileName, vfPDF);
     imagePreview.Canvas.Brush.Color := clWhite;
     imagePreview.Canvas.FillRect(0, 0, imagePreview.Width, imagePreview.Height);
-    DrawFPVectorialToCanvas(Vec, imagePreview.Canvas, 0, 0, 0.25, 0.25);
+    DrawFPVectorialToCanvas(Vec, imagePreview.Canvas);
   finally
     Vec.Free;
   end;
