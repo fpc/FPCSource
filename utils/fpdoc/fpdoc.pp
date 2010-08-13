@@ -71,6 +71,7 @@ begin
   Writeln(SUsageOption160);
   Writeln(SUsageOption170);
   Writeln(SUsageOption180);
+  Writeln(SUsageOption190);
   L:=TStringList.Create;
   Try
     If (Backend='') then
@@ -208,6 +209,8 @@ begin
       CPUTarget := Arg
     else if Cmd = '--mo-dir' then
       modir := Arg
+    else if Cmd = '--parse-impl' then
+      Engine.InterfaceOnly:=false
     else
       begin
       BackendOptions.Add(Cmd);

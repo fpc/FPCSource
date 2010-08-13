@@ -28,7 +28,7 @@ uses Classes, DOM, PasTree, PParser;
 Var
   LEOL : Integer;
   modir : string;
-  
+
 resourcestring
   // Output strings
   SDocPackageTitle           = 'Reference for package ''%s''';
@@ -142,7 +142,7 @@ resourcestring
   SUsageOption160  = '--show-private    Show private methods.';
   SUsageOption170  = '--warn-no-node    Warn if no documentation node was found.';
   SUsageOption180  = '--mo-dir=dir      Set directory where language files reside to dir';
-  
+  SUsageOption190  = '--parse-impl      (Experimental) try to parse implementation too';
   SUsageFormats        = 'The following output formats are supported by this fpdoc:';
   SUsageBackendHelp    = 'Specify an output format, combined with --help to get more help for this backend.';
   SUsageFormatSpecific = 'Output format "%s" supports the following options:';
