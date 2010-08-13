@@ -10,12 +10,12 @@ uses
   fpvectorial;
 
 procedure DrawFPVectorialToCanvas(ASource: TvVectorialDocument; ADest: TFPCustomCanvas;
-  ADestX: Integer = 0; ADestY: Integer = 0; AMulX: Integer = 1; AMulY: Integer = 1);
+  ADestX: Integer = 0; ADestY: Integer = 0; AMulX: Double = 1.0; AMulY: Double = 1.0);
 
 implementation
 
 procedure DrawFPVectorialToCanvas(ASource: TvVectorialDocument; ADest: TFPCustomCanvas;
-  ADestX: Integer = 0; ADestY: Integer = 0; AMulX: Integer = 1; AMulY: Integer = 1);
+  ADestX: Integer = 0; ADestY: Integer = 0; AMulX: Double = 1.0; AMulY: Double = 1.0);
 var
   i, j, k: Integer;
   PosX, PosY: Integer; // Not modified by ADestX, etc
@@ -47,8 +47,8 @@ begin
         PosX := Round(CurSegment.X);
         PosY := Round(CurSegment.Y);
         ADest.LineTo(
-          ADestX + AMulX * PosX,
-          ADestY + AMulY * PosY
+          Round(ADestX + AMulX * PosX),
+          Round(ADestY + AMulY * PosY)
           );
       end;
       { To draw a bezier we need to divide the interval in parts and make
@@ -66,8 +66,8 @@ begin
           CurX := Round(sqr(1 - t) * (1 - t) * PosX + 3 * t * sqr(1 - t) * CurSegment.X2 + 3 * t * t * (1 - t) * CurSegment.X3 + t * t * t * CurSegment.X);
           CurY := Round(sqr(1 - t) * (1 - t) * PosY + 3 * t * sqr(1 - t) * CurSegment.Y2 + 3 * t * t * (1 - t) * CurSegment.Y3 + t * t * t * CurSegment.Y);
           ADest.LineTo(
-            ADestX + AMulX * CurX,
-            ADestY + AMulY * CurY);
+            Round(ADestX + AMulX * CurX),
+            Round(ADestY + AMulY * CurY));
         end;
         PosX := Round(CurSegment.X);
         PosY := Round(CurSegment.Y);

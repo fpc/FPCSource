@@ -1,10 +1,11 @@
-object Form1: TForm1
+object formCDR2SVG: TformCDR2SVG
   Left = 216
-  Height = 240
+  Height = 439
   Top = 192
   Width = 240
+  BorderStyle = bsSingle
   Caption = 'cdr2svg'
-  ClientHeight = 240
+  ClientHeight = 439
   ClientWidth = 240
   LCLVersion = '0.9.29'
   object Label1: TLabel
@@ -60,21 +61,36 @@ object Form1: TForm1
     TabOrder = 1
   end
   object buttonConvert: TButton
-    Left = 32
+    Left = 87
     Height = 25
     Top = 200
-    Width = 75
+    Width = 67
     Caption = 'Convert'
     OnClick = buttonConvertClick
     TabOrder = 2
   end
   object buttonQuit: TButton
-    Left = 136
+    Left = 176
     Height = 25
     Top = 200
-    Width = 75
+    Width = 59
     Caption = 'Quit'
     OnClick = buttonQuitClick
     TabOrder = 3
+  end
+  object imagePreview: TImage
+    Left = 8
+    Height = 202
+    Top = 232
+    Width = 224
+  end
+  object buttonVisualize: TButton
+    Left = 8
+    Height = 25
+    Top = 200
+    Width = 59
+    Caption = 'Visualize'
+    OnClick = buttonVisualizeClick
+    TabOrder = 4
   end
 end

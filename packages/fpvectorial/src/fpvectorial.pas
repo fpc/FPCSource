@@ -38,6 +38,11 @@ type
     st2DLine, st2DBezier,
     st3DLine, st3DBezier);
 
+  {@
+    The coordinates in fpvectorial are given in millimiters and
+    the starting point is in the top-left corner of the document
+    and it grows to the bottom and to the right.
+  }
   TPathSegment = record
     SegmentType: TSegmentType;
     X, Y, Z: Double; // Z is ignored in 2D segments
@@ -617,10 +622,21 @@ begin
   end;
 end;
 
+{@@
+  The default stream writer just uses WriteToStrings
+}
 procedure TvCustomVectorialWriter.WriteToStream(AStream: TStream;
   AData: TvVectorialDocument);
+var
+  lStringList: TStringList;
 begin
-
+  lStringList := TStringList.Create;
+  try
+    WriteToStrings(lStringList, AData);
+    lStringList.SaveToStream(AStream);
+  finally
+    lStringList.Free;
+  end;
 end;
 
 procedure TvCustomVectorialWriter.WriteToStrings(AStrings: TStrings;

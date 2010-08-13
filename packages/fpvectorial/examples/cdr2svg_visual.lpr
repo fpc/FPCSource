@@ -14,7 +14,7 @@ uses
 
 begin
   Application.Initialize;
-  Application.CreateForm(TForm1, Form1);
+  Application.CreateForm(TformCDR2SVG, formCDR2SVG);
   Application.Run;
 end.
 
