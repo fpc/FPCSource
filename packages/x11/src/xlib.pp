@@ -1252,9 +1252,10 @@ type
      _Xdebug : cint;cvar;external;
 {$endif}
 type
-  funcdisp = function(display:PDisplay):cint;cdecl;
+  funcdisp    = function(display:PDisplay):cint;cdecl;
   funcifevent = function(display:PDisplay; event:PXEvent; p : TXPointer):TBoolResult;cdecl;
-  chararr32 = array[0..31] of char;
+  chararr32   = array[0..31] of char;
+  pchararr32  = chararr32;
 
 const
   AllPlanes : culong = culong(not 0);
@@ -1571,7 +1572,7 @@ function XQueryColor(para1:PDisplay; para2:TColormap; para3:PXColor):cint;cdecl;
 function XQueryColors(para1:PDisplay; para2:TColormap; para3:PXColor; para4:cint):cint;cdecl;external libX11;
 function XQueryExtension(para1:PDisplay; para2:Pchar; para3:Pcint; para4:Pcint; para5:Pcint):TBoolResult;cdecl;external libX11;
 {?}
-function XQueryKeymap(para1:PDisplay; para2:chararr32):cint;cdecl;external libX11;
+function XQueryKeymap(para1:PDisplay; para2:pchararr32):cint;cdecl;external libX11;
 function XQueryPointer(para1:PDisplay; para2:TWindow; para3:PWindow; para4:PWindow; para5:Pcint;
            para6:Pcint; para7:Pcint; para8:Pcint; para9:Pcuint):TBoolResult;cdecl;external libX11;
 function XQueryTextExtents(para1:PDisplay; para2:TXID; para3:Pchar; para4:cint; para5:Pcint;
