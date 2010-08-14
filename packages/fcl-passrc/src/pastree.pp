@@ -248,6 +248,9 @@ type
   TImplementationSection = class(TPasSection)
   end;
 
+  TProgramSection = class(TPasSection)
+  end;
+
   TInitializationSection = class;
   TFinalizationSection = class;
 

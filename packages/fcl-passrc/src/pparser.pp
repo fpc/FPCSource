@@ -1544,21 +1544,28 @@ end;
 
 // Starts after the "uses" token
 procedure TPasParser.ParseUsesList(ASection: TPasSection);
+
+function CheckUnit(AUnitName : string):TPasElement;
+begin
+    result := Engine.FindModule(AUnitName);  // should we resolve module here when "IN" filename is not known yet?
+    if Assigned(result) then
+      result.AddRef
+    else
+      Result := TPasType(CreateElement(TPasUnresolvedTypeRef, AUnitName,
+        ASection));
+    ASection.UsesList.Add(Result);
+end;
+
 var
   AUnitName: String;
   Element: TPasElement;
 begin
+  If not (Asection is TImplementationSection) Then // interface,program,library,package
+    Element:=CheckUnit('System'); // system always implicitely first.    
   while True do
   begin
-    AUnitName := ExpectIdentifier;
-
-    Element := Engine.FindModule(AUnitName); // should we resolve module here when "IN" filename is not known yet?
-    if Assigned(Element) then
-      Element.AddRef
-    else
-      Element := TPasType(CreateElement(TPasUnresolvedTypeRef, AUnitName,
-        ASection));
-    ASection.UsesList.Add(Element);
+    AUnitName := ExpectIdentifier; 
+    Element :=CheckUnit(AUnitName);
 
     NextToken;
 
