@@ -4784,10 +4784,11 @@ implementation
       begin
         inherited set_llvm_name_syms;
         if not assigned(fllvm_class_struct_name_sym) and
-           is_class_or_interface_or_dispinterface(self) then
+           is_class_or_interface_or_dispinterface_or_objc(self) then
           begin
             fllvm_class_struct_name_sym:=current_asmdata.DefineAsmSymbol(llvm_mangledname+'$$$struct',AB_LOCAL,AT_DATA);
-            fllvm_vmt_name_sym:=current_asmdata.DefineAsmSymbol(llvm_mangledname+'$$$vmt',AB_LOCAL,AT_DATA);
+            if not is_objc_class_or_protocol(self) then
+              fllvm_vmt_name_sym:=current_asmdata.DefineAsmSymbol(llvm_mangledname+'$$$vmt',AB_LOCAL,AT_DATA);
           end;
       end;
 
