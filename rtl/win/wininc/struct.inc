@@ -7514,6 +7514,37 @@ type
 const
   SECURITY_DESCRIPTOR_MIN_LENGTH = SIZEOF(SECURITY_DESCRIPTOR);
 
+
+// #if(WINVER >= 0x0500)
+type
+     tagMENUGETOBJECTINFO = packed record
+       dwFlags:DWORD;
+       uPos:UINT;
+       _hmenu:HMENU;
+       riid:PVOID;
+       pvObj:PVOID;
+     end;
+     MENUGETOBJECTINFO = tagMENUGETOBJECTINFO;
+     PMENUGETOBJECTINFO = ^tagMENUGETOBJECTINFO;
+     LPMENUGETOBJECTINFO = ^tagMENUGETOBJECTINFO;
+//#endif /* WINVER >= 0x0500 */
+
+
+// Menubar information 
+type
+     tagMENUBARINFO = packed record
+       cbSize:DWORD;
+       rcBar:Windows.RECT; // rect of bar, popup, item 
+       _hmenu:HMENU;       // real menu handle of bar, popup 
+       hwndMenu:HWND;      // hwnd of item submenu if one 
+//    fBarFocused:1:BOOL;  // bar, popup has the focus 
+//    fFocused:1:BOOL;     // item has the focus 
+      FocusedBits:DWORD;
+    end;
+    MENUBARINFO = tagMENUBARINFO;
+    PMENUBARINFO = ^tagMENUBARINFO;
+    LPMENUBARINFO = ^tagMENUBARINFO;
+
 {$endif read_interface}
 
 

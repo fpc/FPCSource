@@ -1132,6 +1132,55 @@
      WM_XBUTTONUP     = 524;
      WM_XBUTTONDBLCLK = 525;
 
+// winuserm.h
+// Mobile extensions to winuser.h
+
+// Edit control extensions for Mobile
+const
+     // If lParam is FALSE, gets default input mode.
+     // If lParam is TRUE, gets actual input mode if control has focus, else
+     // gets default input mode. Returns EIM_*|EIMMF_*
+      EM_GETINPUTMODE       = $00DD;
+
+     // Sets default input mode when control gets focus. lParam should be be EIM_*|EIMMF_*.
+      EM_SETINPUTMODE       = $00DE;
+
+     // Sets symbols that are displayed when the user presses the 1 key in
+     // Multipress mode. lParam is a null-teminated string containing the symbols
+     // or NULL to revert to standard symbols.
+      EM_SETSYMBOLS         = $00DF;
+
+     // Sets extended styles. wParam = Mask. lParam = Extended styles. Returns old styles.
+      EM_SETEXTENDEDSTYLE   = $00E0;
+
+     // Gets extended styles.
+      EM_GETEXTENDEDSTYLE   = $00E1;
+
+
+// Listbox control extensions for Mobile. Supported only for single selection listboxes.
+const
+     // If lParam is FALSE, gets default input mode.
+     // If lParam is TRUE, gets actual input mode if control has focus, else
+     // gets default input mode. Returns LIM_*
+      LB_GETINPUTMODE       = $01C0;
+
+     // Sets default input mode when control gets focus. lParam should be be LIM_*.
+      LB_SETINPUTMODE       = $01C1;
+
+// Dialog message extensions
+//
+// Reset scroll info. To be sent by a dialog if it does a relayout of child
+// controls after WM_INITDIALOG. Supported only if the dialog returns DLGC_SCROLL
+// on WM_GETDLGCODE.
+// wParam: TRUE to scroll back to top if user scrolled dialog. FALSE to leave
+// dialog in position that user scrolled to.
+// lParam: TRUE to recompute scroll information. FALSE to use previously computed
+// scroll information.
+const
+      DM_RESETSCROLL          = WM_USER + 2;
+
+// End-of-winuserm.h
+
 Type
 {$ifdef MESSAGESUNIT}
 

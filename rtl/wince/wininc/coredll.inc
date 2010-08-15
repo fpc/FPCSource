@@ -85,7 +85,6 @@
       378 CacheSync
       1EA CeChangeDatabaseLCID
       1EF CeClearReplChangeBitsEx
-      2DB CeClearUserNotification
       1D1 CeCreateDatabase
       1D2 CeCreateDatabaseEx
       1DC CeCreateDatabaseEx2
@@ -111,10 +110,6 @@
       1F0 CeGetReplOtherBitsEx
       313 CeGetThreadPriority
       315 CeGetThreadQuantum
-      2E2 CeGetUserNotification
-      2E1 CeGetUserNotificationHandles
-      2DF CeGetUserNotificationPreferences
-      2DE CeHandleAppNotifications
        96 CeLogData
        98 CeLogGetZones
        99 CeLogReSync
@@ -134,8 +129,6 @@
       1F2 CeRegisterReplNotification
       4E4 CeRemoveFontResource
       15D CeResyncFilesys
-      2DD CeRunAppAtEvent
-      2DC CeRunAppAtTime
       1D9 CeSeekDatabase
       1E0 CeSeekDatabaseEx
       1D3 CeSetDatabaseInfo
@@ -149,8 +142,6 @@
       1F1 CeSetReplOtherBitsEx
       312 CeSetThreadPriority
       314 CeSetThreadQuantum
-      2DA CeSetUserNotification
-      2E0 CeSetUserNotificationEx
       1E6 CeUnmountDBVol
       1E5 CeWriteRecordProps
        2F CeZeroPointer
@@ -206,7 +197,6 @@
        C2 DDKReg_GetWindowInfo
       3BF DebugNotify
       38B DecompressBinaryBlock
-       FF DeleteAndRenameFile
       37B DeleteTrackedItem
       179 DeregisterAFS
       17B DeregisterAFSName
@@ -215,8 +205,6 @@
       30C DumpKCallProfile
       3DB EnableCaretSystemWide
       553 EnableEUDC
-      50E EnumDisplayDevices
-      666 EnumDisplayMonitors
       14D EnumUILanguagesW
       374 ExtractResource
       17F FileSystemPowerFunction
@@ -247,7 +235,6 @@
       405 GetKeyboardTarget
       4B7 GetMessageWNoWait
       30B GetModuleInformation
-      665 GetMonitorInfo
       397 GetOwnerProcess
       110 GetPasswordStatus
       1B6 GetPrivateCallbacks
@@ -259,7 +246,6 @@
       371 GetRealTime
       377 GetRomFileBytes
       376 GetRomFileInfo
-      102 GetStoreInformation
       2D0 GetUserDirectory
       1B7 GetWindowTextWDirect
       37E GiveKPhys
@@ -277,7 +263,6 @@
        4D Int_HeapFree
        49 Int_HeapReAlloc
        4B Int_HeapSize
-       15 InterlockedCompareExchange
       3B1 InterruptDisable
       3B0 InterruptDone
       3AE InterruptInitialize
@@ -298,8 +283,6 @@
       396 KillAllOtherThreads
       38E LeaveCritSec
       3AA LoadDriver
-      151 LoadFSD
-      152 LoadFSDEx
       3AB LoadIntChainHandler
       3AD LoadKernelLibrary
        3E LocalAllocInProcess
@@ -350,7 +333,6 @@
       484 QASetWindowsJournalHook
       485 QAUnhookWindowsJournalHook
       2F2 QueryAPISetID
-       91 Random
       181 ReadFileWithSeek
       3C0 ReadRegistryFromOEM
       1BE RectangleAnimation
@@ -362,7 +344,6 @@
       17A RegisterAFSName
       3B8 RegisterAPISet
       33D RegisterDbgZones
-      4DB RegisterDesktop
       1BD RegisterSIPanel
       380 RegisterTrackedItem
         E ReinitLocale
@@ -374,14 +355,10 @@
        3D RemoteLocalFree
        3B RemoteLocalReAlloc
        3C RemoteLocalSize
-      15A ResourceCreateList
-      15C ResourceRelease
-      15B ResourceRequest
       2E6 SHCreateExplorerInstance
       2E8 SHCreateShortcut
       2EA SHCreateShortcutEx
       2E9 SHGetShortcutTarget
-      2EC SHLoadDIBitmap
       2EB SHShowOutOfMemory
       11B SetACP
       1C0 SetAssociatedMenu
@@ -413,7 +390,6 @@
       3B5 SetWDevicePowerHandler
       406 ShellModalEnd
       1C4 ShowStartupWindow
-      176 SignalStarted
       361 SleepTillTick
       648 StringCbCatA
       64A StringCbCatExA
@@ -2010,6 +1986,7 @@ function DefDlgProcW(hDlg:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT;
 function DeferWindowPos(hWinPosInfo:HDWP; hWnd:HWND; hWndInsertAfter:HWND; x:longint; y:longint;cx:longint; cy:longint; uFlags:UINT):HDWP; external KernelDLL name 'DeferWindowPos';
 function DefWindowProc(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external KernelDLL name 'DefWindowProcW';
 function DefWindowProcW(hWnd:HWND; Msg:UINT; wParam:WPARAM; lParam:LPARAM):LRESULT; external KernelDLL name 'DefWindowProcW';
+function DeleteAndRenameFile(lpszDestFile:LPCWSTR; lpszSourceFile:LPCWSTR):BOOL; external KernelDLL name 'DeleteAndRenameFile'; // index FF
 procedure DeleteCriticalSection(lpCriticalSection:LPCRITICAL_SECTION); external KernelDLL name 'DeleteCriticalSection';
 function DeleteDC(_para1:HDC):WINBOOL; external KernelDLL name 'DeleteDC';
 function DeleteEnhMetaFile(_para1:HENHMETAFILE):WINBOOL; external KernelDLL name 'DeleteEnhMetaFile';
@@ -2052,6 +2029,8 @@ function EnumCalendarInfo(lpCalInfoEnumProc:CALINFO_ENUMPROC; Locale:LCID; Calen
 function EnumCalendarInfoW(lpCalInfoEnumProc:CALINFO_ENUMPROC; Locale:LCID; Calendar:CALID; CalType:CALTYPE):WINBOOL; external KernelDLL name 'EnumCalendarInfoW';
 function EnumDateFormats(lpDateFmtEnumProc:DATEFMT_ENUMPROC; Locale:LCID; dwFlags:DWORD):WINBOOL; external KernelDLL name 'EnumDateFormatsW';
 function EnumDateFormatsW(lpDateFmtEnumProc:DATEFMT_ENUMPROC; Locale:LCID; dwFlags:DWORD):WINBOOL; external KernelDLL name 'EnumDateFormatsW';
+function EnumDisplayDevices(lpDevice:LPCTSTR; iDevNum:DWORD; lpDisplayDevice:PDISPLAY_DEVICE; dwFlags:DWORD):BOOL; external KernelDLL name 'EnumDisplayDevices'; // index 50E
+function EnumDisplayMonitors(_hdc:HDC; lprcClip:LPRECT; lpfnEnum:MONITORENUMPROC; dwData:LPARAM):BOOL; external KernelDLL name 'EnumDisplayMonitors'; // index 666
 function EnumDisplaySettings(lpszDeviceName:LPCWSTR; iModeNum:DWORD; lpDevMode:LPDEVMODEW):WINBOOL; external KernelDLL name 'EnumDisplaySettings';
 function EnumFonts(_para1:HDC; _para2:LPCWSTR; _para3:ENUMFONTSPROC; _para4:LPARAM):longint; external KernelDLL name 'EnumFontsW';
 function EnumFontsW(_para1:HDC; _para2:LPCWSTR; _para3:ENUMFONTSPROC; _para4:LPARAM):longint; external KernelDLL name 'EnumFontsW';
@@ -2212,6 +2191,7 @@ function GetModuleFileName(hModule:HMODULE; lpFilename:LPWSTR; nSize:DWORD):DWOR
 function GetModuleFileNameW(hModule:HMODULE; lpFilename:LPWSTR; nSize:DWORD):DWORD; external KernelDLL name 'GetModuleFileNameW';
 function GetModuleHandle(lpModuleName:LPCWSTR):HMODULE; external KernelDLL name 'GetModuleHandleW';
 function GetModuleHandleW(lpModuleName:LPCWSTR):HMODULE; external KernelDLL name 'GetModuleHandleW';
+function GetMonitorInfo(_hMonitor:HMONITOR; lpmi:LPMONITORINFO):BOOL; external KernelDLL name 'GetMonitorInfo'; // index 665
 function GetMouseMovePoints(pptBuf:PPOINT; nBufPoints:UINT; pnPointsRetrieved:PUINT):BOOL; external KernelDLL name 'GetMouseMovePoints'; // index 481
 function GetNearestColor(_para1:HDC; _para2:COLORREF):COLORREF; external KernelDLL name 'GetNearestColor';
 function GetNearestPaletteIndex(_para1:HPALETTE; _para2:COLORREF):UINT; external KernelDLL name 'GetNearestPaletteIndex';
@@ -2314,9 +2294,21 @@ function GlobalFindAtom(lpString:LPCWSTR):ATOM; external KernelDLL name 'GlobalF
 function GlobalFindAtomW(lpString:LPCWSTR):ATOM; external KernelDLL name 'GlobalFindAtomW';
 function GlobalFree(hMem:HGLOBAL):HGLOBAL;
 function GlobalFreePtr(lp:Pointer):Pointer;
+
+type
+     GlobalHandle = HGLOBAL;
+{
 function GlobalHandle(pMem:LPCVOID):HGLOBAL;
+}
+
 function GlobalLockPtr(lp:pointer):Pointer;
+
+type
+     GlobalLock = LPVOID;
+{
 function GlobalLock(hMem:HGLOBAL):LPVOID;
+}
+
 function GlobalReAlloc(hMem:HGLOBAL; dwBytes:DWORD; uFlags:UINT):HGLOBAL;
 function GlobalReAllocPtr(lp:Pointer;cbNew,flags:DWord):Pointer;
 function GlobalSize(hMem:HGLOBAL):DWORD;
@@ -2472,6 +2464,16 @@ function LoadBitmap(hInstance:HINST; lpBitmapName:LPCWSTR):HBITMAP; external Ker
 function LoadBitmapW(hInstance:HINST; lpBitmapName:LPCWSTR):HBITMAP; external KernelDLL name 'LoadBitmapW';
 function LoadCursor(hInstance:HINST; lpCursorName:LPCWSTR):HCURSOR; external KernelDLL name 'LoadCursorW';
 function LoadCursorW(hInstance:HINST; lpCursorName:LPCWSTR):HCURSOR; external KernelDLL name 'LoadCursorW';
+
+// This function is called by a device driver to load its associated FSD.
+// This function is obsolete in Windows CE .NET 4.0 and later.
+// Instead, place a storage class identifier in the device driver registry setting
+// to notify the Storage Manager of the block driver being loaded.
+// The Storage Manager will then parse the partitions and load the appropriate
+// file system.
+function LoadFSD(hDevice:HANDLE; lpFSDName:LPCWSTR):BOOL; external KernelDLL name 'LoadFSD'; // index 151
+function LoadFSDEx(hDevice:HANDLE; lpFSDName:LPCWSTR; dwFlag:DWORD):BOOL; external KernelDLL name 'LoadFSDEx'; // index 152
+
 function LoadIcon(hInstance:HINST; lpIconName:LPCWSTR):HICON; external KernelDLL name 'LoadIconW';
 function LoadIconW(hInstance:HINST; lpIconName:LPCWSTR):HICON; external KernelDLL name 'LoadIconW';
 function LoadImage(_para1:HINST; _para2:LPCWSTR; _para3:UINT; _para4:longint; _para5:longint;_para6:UINT):HANDLE; external KernelDLL name 'LoadImageW';
@@ -2491,7 +2493,13 @@ function LocalAlloc(uFlags:UINT; uBytes:UINT):HLOCAL; external KernelDLL name 'L
 function LocalDiscard(hlocMem:HLOCAL):HLOCAL;
 function LocalFileTimeToFileTime(lpLocalFileTime:LPFILETIME; lpFileTime:LPFILETIME):WINBOOL; external KernelDLL name 'LocalFileTimeToFileTime';
 function LocalFree(hMem:HLOCAL):HLOCAL; external KernelDLL name 'LocalFree';
+
+type
+     LocalHandle = HLOCAL;
+{
 function LocalHandle(pMem:LPCVOID):HLOCAL;
+}
+
 function LocalLock(hMem:HLOCAL):LPVOID;
 function LocalReAlloc(hMem:HLOCAL; uBytes:UINT; uFlags:UINT):HLOCAL; external KernelDLL name 'LocalReAlloc';
 function LocalSize(hMem:HLOCAL):UINT; external KernelDLL name 'LocalSize';
@@ -2581,6 +2589,8 @@ function QueryInstructionSet(dwInstructionSet:DWORD; lpdwCurrentInstructionSet:L
 function QueryPerformanceCounter(lpPerformanceCount:PLARGE_INTEGER):WINBOOL; external Kerneldll name 'QueryPerformanceCounter';
 function QueryPerformanceFrequency(lpFrequency:PLARGE_INTEGER):WINBOOL; external Kerneldll name 'QueryPerformanceFrequency';
 procedure RaiseException(dwExceptionCode:DWORD; dwExceptionFlags:DWORD; nNumberOfArguments:DWORD; lpArguments:LPDWORD); external KernelDLL name 'RaiseException';
+// This function generates a random number.
+function WINCE_Random:DWORD; external KernelDLL name 'Random'; // index 91
 function ReadFile(hFile:HANDLE; lpBuffer:LPVOID; nNumberOfBytesToRead:DWORD; lpNumberOfBytesRead:LPDWORD; lpOverlapped:LPOVERLAPPED):BOOL; external KernelDLL name 'ReadFile'; // index F4
 function ReadProcessMemory(hProcess:HANDLE; lpBaseAddress:LPCVOID; lpBuffer:LPVOID; nSize:DWORD; lpNumberOfBytesRead:LPDWORD):WINBOOL; external KernelDLL name 'ReadProcessMemory';
 function RealizePalette(_para1:HDC):UINT; external KernelDLL name 'RealizePalette'; // index 52F
@@ -2609,6 +2619,7 @@ function RegisterClass(lpWndClass:LPWNDCLASS):ATOM; external KernelDLL name 'Reg
 function RegisterClassW(lpWndClass:LPWNDCLASS):ATOM; external KernelDLL name 'RegisterClassW';
 function RegisterClipboardFormat(lpszFormat:LPCWSTR):UINT; external KernelDLL name 'RegisterClipboardFormatW';
 function RegisterClipboardFormatW(lpszFormat:LPCWSTR):UINT; external KernelDLL name 'RegisterClipboardFormatW';
+function RegisterDesktop(_hwndDesktop:HWND):BOOL; external KernelDLL name 'RegisterDesktop'; // index 4DB
 function RegisterDevice(lpszType:LPCWSTR; dwIndex:DWORD; lpszLib:LPCWSTR; dwInfo:DWORD):HANDLE; external KernelDLL name 'RegisterDevice'; // index 14F
 function RegisterTaskBar(hwndTaskbar:HWND):BOOL; external KernelDLL name 'RegisterTaskBar'; // index 4D9
 function RegisterTaskBarEx(hwndTaskbar:HWND; bTaskBarOnTop:BOOL):BOOL; external KernelDLL name 'RegisterTaskBarEx'; // index 4DA
@@ -2638,6 +2649,12 @@ function RemoveMenu(hMenu:HMENU; uPosition:UINT; uFlags:UINT):WINBOOL; external 
 function RemoveProp(hWnd:HWND; lpString:LPCWSTR):HANDLE; external KernelDLL name 'RemoveProp';
 function RequestDeviceNotifications(devclass:LPGUID; hMsgQ:HANDLE; fAll:BOOL):HANDLE; external KernelDLL name 'RequestDeviceNotifications'; // index 155
 function ResetEvent(hEvent:HANDLE):WINBOOL;
+function ResourceCreateList(dwResId:DWORD; dwMinimum:DWORD; dwCount:DWORD):BOOL; external KernelDLL name 'ResourceCreateList'; // index 15A
+function ResourceRelease(dwResId:DWORD; dwId:DWORD; dwLen:DWORD):BOOL; external KernelDLL name 'ResourceRelease'; // index 15C
+function ResourceRequest(dwResId:DWORD; dwId:DWORD; dwLen:DWORD):BOOL; external KernelDLL name 'ResourceRequest'; // index 15B
+function ResourceDestroyList(dwResId:DWORD):BOOL; external KernelDLL name 'ResourceDestroyList';
+function ResourceRequestEx(dwResId:DWORD; dwId:DWORD; dwLen:DWORD; dwFlags:DWORD):BOOL; external KernelDLL name 'ResourceRequestEx';
+function ResourceMarkAsShareable(dwResId:DWORD; dwId:DWORD; dwLen:DWORD; fShareable:BOOL):BOOL; external KernelDLL name 'ResourceMarkAsShareable';
 function RestoreDC(_para1:HDC; _para2:longint):WINBOOL; external KernelDLL name 'RestoreDC';
 function ResumeThread(hThread:HANDLE):DWORD; external KernelDLL name 'ResumeThread';
 function RoundRect(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:longint; _para7:longint):WINBOOL; external KernelDLL name 'RoundRect';
@@ -2733,15 +2750,17 @@ function Shell_NotifyIcon(dwMessage: DWORD; lpData: PNotifyIconDataA): WINBOOL; 
 function ShellExecuteEx(lpExecInfo:LPSHELLEXECUTEINFO):WINBOOL; external KernelDLL name 'ShellExecuteEx';
 function SHGetFileInfo(_para1:LPCTSTR; _para2:DWORD; var _para3:SHFILEINFO; _para4:UINT; _para5:UINT):DWORD; external KernelDLL name 'SHGetFileInfo';
 function SHGetFileInfoW(_para1:LPCTSTR; _para2:DWORD; var _para3:SHFILEINFO; _para4:UINT; _para5:UINT):DWORD; external KernelDLL name 'SHGetFileInfo';
+function SHLoadDIBitmap(szFileName:LPCTSTR):HBITMAP; external KernelDLL name 'SHLoadDIBitmap'; // index 2EC
 function ShowCaret(hWnd:HWND):WINBOOL; external KernelDLL name 'ShowCaret';
 function ShowCursor(bShow:WINBOOL):longint; external KernelDLL name 'ShowCursor';
 function ShowWindow(hWnd:HWND; nCmdShow:longint):WINBOOL; external KernelDLL name 'ShowWindow';
+procedure SignalStarted(dw:DWORD); external KernelDLL name 'SignalStarted'; // index 176
 function SizeofResource(hModule:HINST; hResInfo:HRSRC):DWORD; external KernelDLL name 'SizeofResource';
 procedure Sleep(dwMilliseconds:DWORD); external KernelDLL name 'Sleep';
 function StartDoc(_para1:HDC; _para2:PDOCINFOW):longint; external KernelDLL name 'StartDocW';
 function StartDocW(_para1:HDC; _para2:PDOCINFOW):longint; external KernelDLL name 'StartDocW';
 function StartPage(_para1:HDC):longint; external KernelDLL name 'StartPage';
-function StopDeviceNotifications(h: HANDLE):BOOL; external KernelDLL name 'StopDeviceNotifications';
+function StopDeviceNotifications(h:HANDLE):BOOL; external KernelDLL name 'StopDeviceNotifications'; // index 156
 function StretchBlt(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:HDC; _para7:longint; _para8:longint; _para9:longint; _para10:longint;_para11:DWORD):WINBOOL; external KernelDLL name 'StretchBlt';
 function StretchDIBits(_para1:HDC; _para2:longint; _para3:longint; _para4:longint; _para5:longint;_para6:longint; _para7:longint; _para8:longint; _para9:longint; _para10:pointer;var _para11:BITMAPINFO; _para12:UINT; _para13:DWORD):longint;
   external KernelDLL name 'StretchDIBits';
@@ -3065,11 +3084,13 @@ begin
   GlobalFree:=LocalFree(hMem);
 end;
 
+{
 function GlobalHandle(pMem:LPCVOID):HGLOBAL;
 begin
   //GlobalHandle:=LocalHandle(pMem);
   GlobalHandle:=HLOCAL(pMem); //see localhandle
 end;
+}
 
 function GlobalReAlloc(hMem:HGLOBAL; dwBytes:DWORD; uFlags:UINT):HGLOBAL;
 begin
@@ -3081,11 +3102,13 @@ begin
   GlobalSize:=LocalSize(hMem);
 end;
 
+{
 function GlobalLock(hMem:HGLOBAL):LPVOID;
 begin
   //GlobalLock:=LocalLock(hMem);
   GlobalLock:=LPVOID(hMem);  //see locallock
 end;
+}
 
 function GlobalUnlock(hMem:HGLOBAL):WINBOOL;
 begin
@@ -3462,11 +3485,12 @@ begin
   ListView_Update:=SendMessage(hwndLV,LVM_UPDATE,WPARAM(i),0);
 end;
 
-
+{
 function LocalHandle(pMem:LPCVOID):HLOCAL;
 begin
   LocalHandle:=HLOCAL(pMem);
 end;
+}
 
 function LocalDiscard(hlocMem:HLOCAL):HLOCAL;
 begin
@@ -3571,7 +3595,7 @@ begin
 end;
 
 
-function PropSheet_SetCurSelByID(hPropSheetDlg : HWND; id : longint) : LRESULT;
+function PropSheet_SetCurSelByID(hPropSheetDlg : HWND; id : longint) : LRESULT; inline;
 begin
   PropSheet_SetCurSelByID:=SendMessage(hPropSheetDlg,PSM_SETCURSELID,0,LPARAM(id));
 end;

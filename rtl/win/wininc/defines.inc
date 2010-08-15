@@ -1681,9 +1681,12 @@
      SIF_RANGE = 1;
      SIF_DISABLENOSCROLL = 8;
   { GetStdHandle  }
-     STD_INPUT_HANDLE = DWORD(-10);
-     STD_OUTPUT_HANDLE = DWORD(-11);
-     STD_ERROR_HANDLE = DWORD(-12);
+     STD_INPUT_HANDLE = HANDLE(-10);
+     STD_OUTPUT_HANDLE = HANDLE(-11);
+     STD_ERROR_HANDLE = HANDLE(-12);
+
+
+
 
      INVALID_HANDLE_VALUE = HANDLE(-1);
 
@@ -4005,6 +4008,7 @@ Type
      ACS_AUTOPLAY = 4;
      ACS_CENTER = 1;
      ACS_TRANSPARENT = 2;
+     ACS_TIMER       = 8;  // don't use threads... use timers
   { MODEMDEVCAPS structure  }
      DIALOPTION_BILLING = 64;
      DIALOPTION_QUIET = 128;
@@ -5712,6 +5716,36 @@ const
     IMAGE_FILE_MACHINE_AMD64             = $8664;  // AMD64 (K8)
     IMAGE_FILE_MACHINE_M32R              = $9041;  // M32R little-endian
     IMAGE_FILE_MACHINE_CEE               = $C0EE;
+
+// #if(WINVER >= 0x0500)
+{/*
+ * WM_MENUDRAG return values.
+ */}
+const
+      MND_CONTINUE       = 0;
+      MND_ENDMENU        = 1;
+
+{/*
+ * MENUGETOBJECTINFO dwFlags values
+ */}
+const
+      MNGOF_TOPGAP         = $00000001;
+      MNGOF_BOTTOMGAP      = $00000002;
+
+{/*
+ * WM_MENUGETOBJECT return values
+ */}
+const
+      MNGO_NOINTERFACE     = $00000000;
+      MNGO_NOERROR         = $00000001;
+//#endif /* WINVER >= 0x0500 */
+
+
+// Menubar information 
+const
+// Constants for the tagMENUBARINFO.FocusedBits bit mask
+      MBIFB_BAR_FOCUSED = $00000001;
+      MBIFB_FOCUSED     = $00000002;
 
 {$endif read_interface}
 

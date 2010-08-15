@@ -1253,6 +1253,16 @@ function SignalObjectAndWait( hObjectToSignal:THANDLE;  hObjectToWaitOn:THANDLE 
 function CancelWaitableTimer(hTimer:THandle):BOOL; external 'kernel32' name 'CancelWaitableTimer';
 function GetComboBoxInfo(hwndCombo:HWND;pcbi:PCOMBOBOXINFO):BOOL; external 'user32' name 'GetComboBoxInfo';
 function GetAncestor(HWnd: HWND; Flag: UINT): HWND; StdCall; External 'user32';
+
+// #if(WINVER >= 0x0500)
+function GetMenuInfo(_hmenu:HMENU; lpcmi:LPMENUINFO):BOOL; external 'user32' name 'GetMenuInfo';
+function SetMenuInfo(_hmenu:HMENU; lpcmi:LPCMENUINFO):BOOL; external 'user32' name 'SetMenuInfo';
+function EndMenu:BOOL; external 'user32' name 'EndMenu';
+//#endif /* WINVER >= 0x0500 */
+
+
+function GetMenuBarInfo(_hwnd:HWND; idObject:longint; idItem:longint; pmbi:LPMENUBARINFO):BOOL; external 'user32' name 'GetMenuBarInfo';
+
 {$endif read_interface}
 
 

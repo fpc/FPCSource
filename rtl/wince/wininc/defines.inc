@@ -2228,6 +2228,7 @@
      MOD_CONTROL = 2;
      MOD_SHIFT = 4;
      MOD_WIN = 8;
+     MOD_KEYUP = $1000;
      IDHOT_SNAPDESKTOP = -(2);
      IDHOT_SNAPWINDOW = -(1);
   { RegNotifyChangeKeyValue  }
@@ -2657,6 +2658,9 @@
      TPM_HORIZONTAL = 0;
      TPM_BOTTOMALIGN = $20;
      TPM_VERTICAL = $40;
+     TPM_NONOTIFY        = $0080;     //* Don't send any notification msgs */
+     TPM_RETURNCMD       = $0100;
+
   { TranslateCharsetInfo  }
      TCI_SRCCHARSET = 1;
      TCI_SRCCODEPAGE = 2;
@@ -3866,6 +3870,7 @@
      ACS_AUTOPLAY = 4;
      ACS_CENTER = 1;
      ACS_TRANSPARENT = 2;
+     ACS_TIMER       = 8;  // don't use threads... use timers
   { MODEMDEVCAPS structure  }
      DIALOPTION_BILLING = 64;
      DIALOPTION_QUIET = 128;
@@ -5799,6 +5804,254 @@ const
       MSGSRC_SOFTWARE_POST        = 1;
       MSGSRC_HARDWARE_KEYBOARD    = 2;
 
+// define dwFlag values for LoadFSDEx function...
+const
+      LOADFSD_ASYNCH        = $0000;
+      LOADFSD_SYNCH        = $0001;
+
+// flag values for ResourceRequestEx()
+const
+      RREXF_REQUEST_EXCLUSIVE         = $0001;
+
+
+{* File:    ResMgr.h
+ *
+ * Purpose: Resource manager definitions
+ * The resource manager itself is part of the device manager (device.exe)
+ * and its affliated entry points are declared in winbase.h.
+ *
+ *}
+// Resource ids less than BASE_OEM are reserved by Microsoft;
+// Resource ids between these limits are for OEM use.
+const
+      RESMGR_BASE_OEM     = $00080000;
+      RESMGR_MAX_OEM      = $000FFFFF;
+// Resource ids greater than MAX_OEM are reserved for future use by Microsoft.
+
+// --- FIVE hex digits (not four) in these constants!
+const
+      RESMGR_IRQ          = $00001;
+      RESMGR_IOSPACE      = $00002;
+// End-of-file ResMgr.h
+
+const
+      MONITOR_DEFAULTTONULL    = $00000000;
+      MONITOR_DEFAULTTOPRIMARY = $00000001;
+      MONITOR_DEFAULTTONEAREST = $00000002;
+
+const
+      MONITORINFOF_PRIMARY        = $00000001;
+
+const
+      ENUM_CURRENT_SETTINGS  = DWORD(-1);
+      ENUM_REGISTRY_SETTINGS = DWORD(-2);
+
+// For EnumDisplayDevices
+const
+      DISPLAY_DEVICE_ATTACHED_TO_DESKTOP = $00000001;
+      DISPLAY_DEVICE_MULTI_DRIVER        = $00000002;
+      DISPLAY_DEVICE_PRIMARY_DEVICE      = $00000004;
+      DISPLAY_DEVICE_MIRRORING_DRIVER    = $00000008;
+      DISPLAY_DEVICE_VGA_COMPATIBLE      = $00000010;
+      DISPLAY_DEVICE_REMOVABLE           = $00000020;
+      DISPLAY_DEVICE_MODESPRUNED         = $08000000;
+      DISPLAY_DEVICE_REMOTE              = $04000000;
+      DISPLAY_DEVICE_DISCONNECT          = $02000000;
+
+// Child device state
+const
+      DISPLAY_DEVICE_ACTIVE              = $00000001;
+      DISPLAY_DEVICE_ATTACHED            = $00000002;
+
+// winuserm.h
+// Mobile extensions to winuser.h
+
+//***  VK_T* Virtual keycodes for telephone keyboard
+{
+// the phone keypad maps to VK_* as shown below.
+// some keys might not be present, e.g. VK_TFLIP
+    sofkey1     softkey2    VK_TSOFT1, VK_TSOFT2
+            ^               VK_TUP
+        <   +   >           VK_TLEFT, VK_TACTION, VK_TRIGHT
+            v               VK_TDOWN
+    home        back        VK_THOME, VK_TBACK
+    talk        end         VK_TTALK, VK_TEND
+    1       2       3       VK_T0..VK_T9
+    4       5       6       ...
+    7       8       9       ...
+    *       0       #       VK_TSTAR, VK_TPOUND
+// other buttons include
+    VK_TRECORD
+    VK_TPOWER, VK_TVOLUMEUP, VK_TVOLUMEDOWN
+    VK_TFLIP
+}
+const
+      VK_TSOFT1               = VK_F1;               // Softkey 1
+      VK_TSOFT2               = VK_F2;               // Softkey 2
+      VK_TTALK                = VK_F3;               // Talk
+      VK_TEND                 = VK_F4;               // End
+      VK_THOME                = VK_LWIN;             // Home
+      VK_TBACK                = VK_ESCAPE;           // Back
+
+      VK_TACTION              = VK_RETURN;       // Action
+      VK_TRECORD              = VK_F10;          // Record
+      VK_TFLIP                = VK_F17;          // Flip
+      VK_TPOWER               = VK_F18;          // Power
+      VK_TVOLUMEUP            = VK_F6;           // Volume Up
+      VK_TVOLUMEDOWN          = VK_F7;           // Volume Down
+
+      VK_TSPEAKERPHONE_TOGGLE = VK_F16;
+      VK_END_ALL_DATA_CALLS   = VK_F15;
+
+
+      VK_TUP                  = VK_UP;               // Up
+      VK_TDOWN                = VK_DOWN;             // Down
+      VK_TLEFT                = VK_LEFT;             // Left
+      VK_TRIGHT               = VK_RIGHT;            // Right
+
+      VK_T0                   = longint(WideChar('0'));                // 0 .. 9 keys
+      VK_T1                   = longint(WideChar('1'));
+      VK_T2                   = longint(WideChar('2'));
+      VK_T3                   = longint(WideChar('3'));
+      VK_T4                   = longint(WideChar('4'));
+      VK_T5                   = longint(WideChar('5'));
+      VK_T6                   = longint(WideChar('6'));
+      VK_T7                   = longint(WideChar('7'));
+      VK_T8                   = longint(WideChar('8'));
+      VK_T9                   = longint(WideChar('9'));
+      VK_TSTAR                = VK_F8;               // *
+      VK_TPOUND               = VK_F9;               // #
+
+      VK_SYMBOL               = VK_F11;              // Symbol (SYM) key
+
+      VK_REDKEY               = VK_F19;              // Sent by a keypad that has a special red function key
+      VK_ROCKER               = VK_F20;              // Arrow keys came from a Rocker
+      VK_DPAD                 = VK_F21;              // Arrow keys came from a DPAD
+      VK_ACTION               = VK_F23;              // Sent with VK_RETURN when doing Action on PPC rockers
+
+      VK_VOICEDIAL            = VK_F24;            // Key used to kick off voice dial recognition
+      VK_KEYLOCK              = VK_F22;            // Key used to lock the device
+
+// Chorded keys.  DONE is VK_RWIN + VK_F6 and MOJI is VK_RWIN + VK_F7
+const
+      VK_DONE     = VK_F6;                 // <OK/Close> hotkey code
+      MOD_DONE    = MOD_WIN or MOD_KEYUP; // <OK/Close> hotkey modifiers
+
+      VK_MOJI     = VK_F7;                 // Key used to switch between FE language layouts
+      MOD_MOJI    = MOD_WIN or MOD_KEYUP;  //Modifiers so MOJI goes to the shell
+
+
+// App keys
+const
+      VK_APP_FIRST    = $C1;
+      VK_APP1         = $C1;
+      VK_APP2         = $C2;
+      VK_APP3         = $C3;
+      VK_APP4         = $C4;
+      VK_APP5         = $C5;
+      VK_APP6         = $C6;
+      VK_APP_LAST     = $C6;
+
+// Specifies keys whose autorepeats should be silent. (Used by the keyboard driver.)
+// All keys except the nav keys should have silent autorepeats.
+// #define SILENT_REPEAT(uVKey) (uVKey < VK_LEFT || uVKey > VK_DOWN)
+function SILENT_REPEAT(uVKey:longint):BOOL; inline;
+
+// #define Edit_GetInputMode(hwndCtl, fActual)     ((int)(DWORD)SNDMSG((hwndCtl), EM_GETINPUTMODE, 0L, (LPARAM)(BOOL)(fActual)))
+function Edit_GetInputMode(hwndCtl:HWND; fActual:BOOL):longint;
+// #define Edit_SetInputMode(hwndCtl, nInputMode)  ((BOOL)(DWORD)SNDMSG((hwndCtl), EM_SETINPUTMODE, 0L, (LPARAM)(int)(nInputMode)))
+function Edit_SetInputMode(hwndCtl:HWND; nInputMode:longint):Bool;
+
+// #define Edit_SetSymbols(hwndCtl, pszSymbols)    ((BOOL)(DWORD)SNDMSG((hwndCtl), EM_SETSYMBOLS, 0L, (LPARAM)(LPCTSTR)(pszSymbols)))
+function Edit_SetSymbols(hwndCtl:HWND; pszSymbols:LPCTSTR):BOOL;
+
+// #define Edit_SetExtendedStyle(hwndCtl, dwMask, dwExStyle)    ((DWORD)SNDMSG((hwndCtl), EM_SETEXTENDEDSTYLE, (WPARAM)(DWORD)(dwMask), (LPARAM)(DWORD)(dwExStyle)))
+function Edit_SetExtendedStyle(hwndCtl:HWND; dwMask:DWORD; dwExStyle:DWORD):DWORD;
+
+// #define Edit_GetExtendedStyle(hwndCtl)                       ((DWORD)SNDMSG((hwndCtl), EM_GETEXTENDEDSTYLE, 0L, 0L))
+function Edit_GetExtendedStyle(hwndCtl:HWND):DWORD;
+
+// Edit control extended styles
+const
+      ES_EX_CLEARONBACKPRESSHOLD      = $00000001;  // Clear all contents when user does Press&Hold of Back key.
+      ES_EX_FOCUSBORDERDISABLED       = $00000002;  // Prevent control from drawing a border when it gains focus.
+
+// IME Input Modes
+const
+      IM_SPELL           = 0;
+      IM_AMBIG           = 1;
+      IM_NUMBERS         = 2;
+      IM_LAST            = IM_NUMBERS;
+      IM_MASK            = $0000FFFF;       // Mask to access mode.
+
+// IME Input Mode Modifier Flags
+      IMMF_SETCLR_SHIFT       = $00010000;  // In. Used to set/clear Shift.
+      IMMF_SETCLR_CAPSLOCK    = $00020000;  // In. Used to set/clear Capslock.
+      IMMF_SHIFT              = $01000000;  // In/Out. Shift state.
+      IMMF_CAPSLOCK           = $02000000;  // In/Out. CapsLock state.
+      IMMF_MASK               = $FFFF0000;  // Mask to access modifier flags.
+
+// Input modes for EM_SETINPUTMODE/EM_GETINPUTMODE
+      EIM_SPELL                   = IM_SPELL;       // Spell input mode
+      EIM_AMBIG                   = IM_AMBIG;       // Ambiguous mode if input engine supports this mode. Else defaults to Spell mode.
+      EIM_NUMBERS                 = IM_NUMBERS;     // Numbers mode.
+      EIM_TEXT                    = IM_LAST + 1;    // User's preferred mode. This is the user's last Spell or Ambig mode selection
+                                                    // in an EIM_TEXT edit control.
+      EIM_MASK                    = IM_MASK;        // Mask to access mode.
+
+// Macro to access mode
+// #define EIM_MODE(x)                 (x & EIM_MASK)
+function EIM_MODE(x:DWORD):DWORD;
+
+// Input mode modifier flags
+const
+      EIMMF_SETCLR_SHIFT          = IMMF_SETCLR_SHIFT;       // In. Used to set/clear Shift.
+      EIMMF_SETCLR_CAPSLOCK       = IMMF_SETCLR_CAPSLOCK;    // In. Used to set/clear Capslock.
+      EIMMF_SHIFT                 = IMMF_SHIFT;              // In/Out. Shift state.
+      EIMMF_CAPSLOCK              = IMMF_CAPSLOCK;           // In/Out. CapsLock state.
+      EIMMF_MASK                  = IMMF_MASK;               // Mask to access modifier flags.
+
+// Macro to access modifier flags
+// #define EIM_MODIFIERS(x)            (x & EIMMF_MASK)
+function EIM_MODIFIERS(x:DWORD):DWORD;
+
+
+// #define ListBox_GetInputMode(hwndCtl, fActual)              ((int)(DWORD)SNDMSG((hwndCtl), LB_GETINPUTMODE, 0L, (WPARAM)(BOOL)(fActual)))
+function ListBox_GetInputMode(hwndCtl:HWND; fActual:BOOL):longint;
+
+// #define ListBox_SetInputMode(hwndCtl, nInputMode)           ((BOOL)(DWORD)SNDMSG((hwndCtl), LB_SETINPUTMODE, 0L, (LPARAM)(int)(nInputMode)))
+function ListBox_SetInputMode(hwndCtl:HWND; nInputMode:longint):BOOL;
+
+// Input modes for LB_SETINPUTMODE/LB_GETINPUTMODE
+const
+      LIM_SPELL                   = IM_SPELL;                // Spell input mode
+      LIM_NUMBERS                 = IM_NUMBERS;              // Numbers mode.
+
+// wParam of  WM_IME_REQUEST. Extension for Mobile.
+const
+      IMR_ISIMEAWARE           = $1000;  // Is window IME aware?
+
+// Return values of IMR_ISIMEAWARE
+const
+      IMEAF_AWARE         = $00000001; // Window is IME aware
+      IMEAF_SMART_CAPS    = $00000002; // Window uses smart caps.
+
+// Extension of WM_HOTKEY MOD_* values for Mobile
+const
+      MOD_HOLD                = $8000; // Was WM_HOTKEY caused by Press&Hold
+
+const
+      MIIM_FULLSTR            = $10000000;
+
+const
+      SS_REALSIZEIMAGE    = $00000800;
+      
+// End-of-winuserm.h
+
+const
+      MAXINTATOM = ATOM($C000);
+      INVALID_ATOM = ATOM(0);
+
 {$endif read_interface}
 
 
@@ -5984,6 +6237,66 @@ const
        //GetFirstChild:=GetTopWindow(h);
        GetFirstChild:=GetWindow(h,GW_CHILD);
     end;
+
+// winuserm.h
+// Mobile extensions to winuser.h
+
+// Specifies keys whose autorepeats should be silent. (Used by the keyboard driver.)
+// All keys except the nav keys should have silent autorepeats.
+// #define SILENT_REPEAT(uVKey) (uVKey < VK_LEFT || uVKey > VK_DOWN)
+function SILENT_REPEAT(uVKey:longint):BOOL; inline;
+begin
+  SILENT_REPEAT:=(uVKey<VK_LEFT) or (uVKey>VK_DOWN);
+end;
+
+
+function Edit_GetInputMode(hwndCtl:HWND; fActual:BOOL):longint; inline;
+begin
+  Edit_GetInputMode:=longint(SendMessage(hwndCtl,EM_GETINPUTMODE,WPARAM(0),LPARAM(fActual)));
+end;
+
+function Edit_SetInputMode(hwndCtl:HWND; nInputMode:longint):Bool; inline;
+begin
+  Edit_SetInputMode:=BOOL(DWORD(SendMessage(hwndCtl,EM_SETINPUTMODE,WPARAM(0),LPARAM(nInputMode))));
+end;
+
+function Edit_SetSymbols(hwndCtl:HWND; pszSymbols:LPCTSTR):BOOL; inline;
+begin
+  Edit_SetSymbols:=BOOL(SendMessage(hwndCtl,EM_SETSYMBOLS,WPARAM(0),LPARAM(pszSymbols)));
+end;
+
+function Edit_SetExtendedStyle(hwndCtl:HWND; dwMask:DWORD; dwExStyle:DWORD):DWORD; inline;
+begin
+  Edit_SetExtendedStyle:=DWORD(SendMessage(hwndCtl,EM_SETEXTENDEDSTYLE,WPARAM(dwMask),LPARAM(dwExStyle)));
+end;
+
+function Edit_GetExtendedStyle(hwndCtl:HWND):DWORD; inline;
+begin
+  Edit_GetExtendedStyle:=DWORD(SendMessage(hwndCtl,EM_GETEXTENDEDSTYLE,WPARAM(0),LPARAM(0)));
+end;
+
+
+function EIM_MODE(x:DWORD):DWORD; inline;
+begin
+  EIM_MODE:=x and EIM_MASK;
+end;
+
+function EIM_MODIFIERS(x:DWORD):DWORD; inline;
+begin
+  EIM_MODIFIERS:=x and EIMMF_MASK;
+end;
+
+function ListBox_GetInputMode(hwndCtl:HWND; fActual:BOOL):longint; inline;
+begin
+  ListBox_GetInputMode:=longint(SendMessage(hwndCtl,LB_GETINPUTMODE,WPARAM(0),LPARAM(fActual)));
+end;
+
+function ListBox_SetInputMode(hwndCtl:HWND; nInputMode:longint):BOOL; inline;
+begin
+  ListBox_SetInputMode:=BOOL(SendMessage(hwndCtl,LB_SETINPUTMODE,WPARAM(0),LPARAM(nInputMode)));
+end;
+
+// End-of-winuserm.h
 
 {$ifdef WINCE}
 {$endif WINCE}

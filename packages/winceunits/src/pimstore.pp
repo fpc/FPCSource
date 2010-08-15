@@ -799,7 +799,7 @@ function ChooseContact(lpcc:LPCHOOSECONTACT):HRESULT; cdecl; external PIMStoreDL
 
 
 // Returns a Contact object of the first closest match
-function FindMatchingContact(pPOOM:IPOutlookApp; pszFind:LPCWSTR; dwFlags:DWORD; out ppContact:IItem; ppropid:CEPROPID):HRESULT; cdecl; external PIMStoreDLL name 'FindMatchingContact';
+function FindMatchingContact(pPOOM:IPOutlookApp; pszFind:LPCWSTR; dwFlags:DWORD; out ppContact:IItem; ppropid:PCEPROPID):HRESULT; cdecl; external PIMStoreDLL name 'FindMatchingContact';
 
 // Flags for FindMatchingContact
 const
