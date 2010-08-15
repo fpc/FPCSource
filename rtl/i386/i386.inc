@@ -634,6 +634,15 @@ end;
 function fpc_shortstr_to_shortstr(len:longint; const sstr: shortstring): shortstring; [public,alias: 'FPC_SHORTSTR_TO_SHORTSTR']; compilerproc;
 begin
   asm
+  {$ifdef FPC_PROFILE}
+        push  %eax
+        push  %edx
+        push  %ecx
+        call  mcount
+        pop   %ecx
+        pop   %edx
+        pop   %eax
+  {$endif FPC_PROFILE}
         cld
         movl    __RESULT,%edi
         movl    sstr,%esi
@@ -671,6 +680,15 @@ procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring)
   var
    saveesi,saveedi : longint;
   asm
+  {$ifdef FPC_PROFILE}
+        push  %eax
+        push  %edx
+        push  %ecx
+        call  mcount
+        pop   %ecx
+        pop   %edx
+        pop   %eax
+  {$endif FPC_PROFILE}
         movl    %edi,saveedi
         movl    %esi,saveesi
         cld
@@ -714,6 +732,15 @@ procedure fpc_shortstr_to_shortstr(out res:shortstring; const sstr: shortstring)
 procedure fpc_shortstr_assign(len:longint;sstr,dstr:pointer);[public,alias:'FPC_SHORTSTR_ASSIGN'];
 begin
   asm
+  {$ifdef FPC_PROFILE}
+        push  %eax
+        push  %edx
+        push  %ecx
+        call  mcount
+        pop   %ecx
+        pop   %edx
+        pop   %eax
+  {$endif FPC_PROFILE}
         pushl   %eax
         pushl   %ecx
         cld
@@ -759,6 +786,15 @@ end;
 function fpc_shortstr_concat(const s1,s2:shortstring):shortstring;compilerproc;
 begin
   asm
+  {$ifdef FPC_PROFILE}
+        push  %eax
+        push  %edx
+        push  %ecx
+        call  mcount
+        pop   %ecx
+        pop   %edx
+        pop   %eax
+  {$endif FPC_PROFILE}
         movl    __RESULT,%edi
         movl    %edi,%ebx
         movl    s1,%esi         { first string }
@@ -821,6 +857,15 @@ procedure fpc_shortstr_append_shortstr(var s1:shortstring;const s2:shortstring);
     [public,alias:'FPC_SHORTSTR_APPEND_SHORTSTR'];
 begin
   asm
+  {$ifdef FPC_PROFILE}
+        push  %eax
+        push  %edx
+        push  %ecx
+        call  mcount
+        pop   %ecx
+        pop   %edx
+        pop   %eax
+  {$endif FPC_PROFILE}
         movl    s1,%edi
         movl    s2,%esi
         movl    %edi,%ebx
@@ -866,6 +911,15 @@ function fpc_shortstr_compare(const left,right:shortstring): longint;assembler; 
 var
   saveesi,saveedi,saveebx : longint;
 asm
+{$ifdef FPC_PROFILE}
+        push  %eax
+        push  %edx
+        push  %ecx
+        call  mcount
+        pop   %ecx
+        pop   %edx
+        pop   %eax
+{$endif FPC_PROFILE}
         movl    %edi,saveedi
         movl    %esi,saveesi
         movl    %ebx,saveebx
@@ -930,6 +984,15 @@ procedure fpc_pchar_to_shortstr(out res : shortstring;p:pchar);assembler;[public
 var
   saveres,saveebx,saveesi,saveedi : longint;
 asm
+{$ifdef FPC_PROFILE}
+        push  %eax
+        push  %edx
+        push  %ecx
+        call  mcount
+        pop   %ecx
+        pop   %edx
+        pop   %eax
+{$endif FPC_PROFILE}
         movl    %ebx,saveebx
         movl    %esi,saveesi
         movl    %edi,saveedi
@@ -1031,6 +1094,15 @@ function fpc_pchar_length(p:pchar):longint;assembler;[public,alias:'FPC_PCHAR_LE
 var
   saveedi : longint;
 asm
+{$ifdef FPC_PROFILE}
+        push  %eax
+        push  %edx
+        push  %ecx
+        call  mcount
+        pop   %ecx
+        pop   %edx
+        pop   %eax
+{$endif FPC_PROFILE}
         movl    %edi,saveedi
 {$ifdef REGCALL}
         movl    %eax,%edi
@@ -1123,6 +1195,15 @@ const digits:array[0..9] of cardinal=(0,10,100,1000,10000,
                                       100000000,1000000000);
 
 asm
+{$ifdef FPC_PROFILE}
+  push  %eax
+  push  %edx
+  push  %ecx
+  call  mcount
+  pop   %ecx
+  pop   %edx
+  pop   %eax
+{$endif FPC_PROFILE}
   push %esi
   push %edi
   push %ebx
