@@ -142,14 +142,16 @@ interface
 
       { Register types }
       TRegisterType = (
-        R_INVALIDREGISTER, { = 0 }
-        R_INTREGISTER,     { = 1 }
-        R_FPUREGISTER,     { = 2 }
+        R_INVALIDREGISTER,  { = 0 }
+        R_INTREGISTER,      { = 1 }
+        R_FPUREGISTER,      { = 2 }
         { used by Intel only }
-        R_MMXREGISTER,     { = 3 }
-        R_MMREGISTER,      { = 4 }
-        R_SPECIALREGISTER, { = 5 }
-        R_ADDRESSREGISTER  { = 6 }
+        R_MMXREGISTER,      { = 3 }
+        R_MMREGISTER,       { = 4 }
+        R_SPECIALREGISTER,  { = 5 }
+        R_ADDRESSREGISTER,  { = 6 }
+        R_FLAGSREGISTER,    { = 7 }
+        R_AGGREGATEREGISTER { = 8 }
       );
 
       { Sub registers }
