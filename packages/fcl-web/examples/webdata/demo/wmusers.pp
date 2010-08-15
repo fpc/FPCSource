@@ -31,6 +31,9 @@ type
 var
   FPWebModule1: TFPWebModule1; 
 
+Var
+  ResponseFileName : String; // Set to non empty to write request responses to a file.
+
 implementation
 {$define wmdebug}
 
@@ -39,6 +42,18 @@ uses dbugintf;
 {$endif}
 
 { TFPWebModule1 }
+
+Procedure SaveResponse(M : TStream);
+
+begin
+  if (ResponseFileName<>'') then
+    With TFileStream.Create(ResponseFileName,fmCreate) do
+      try
+        CopyFrom(M,0);
+      finally
+        Free;
+      end;
+end;
 
 procedure TFPWebModule1.TFPWebActions0Request(Sender: TObject;
   ARequest: TRequest; AResponse: TResponse; var Handled: Boolean);
@@ -87,12 +102,7 @@ begin
             Response.ContentStream:=M;
             Response.SendResponse;
             Response.ContentStream:=Nil;
-            With TFileStream.Create('/tmp/data.xml',fmCreate) do
-              try
-                CopyFrom(M,0);
-              finally
-                Free;
-              end;
+            SaveResponse(M);
           finally
             M.Free;
           end;
@@ -159,12 +169,7 @@ begin
             Response.ContentStream:=M;
             Response.SendResponse;
             Response.ContentStream:=Nil;
-            With TFileStream.Create('/tmp/data.xml',fmCreate) do
-              try
-                CopyFrom(M,0);
-              finally
-                Free;
-              end;
+            SaveResponse(M);
           finally
             M.Free;
           end;
@@ -233,12 +238,7 @@ begin
             Response.ContentStream:=M;
             Response.SendResponse;
             Response.ContentStream:=Nil;
-            With TFileStream.Create('/tmp/data.xml',fmCreate) do
-              try
-                CopyFrom(M,0);
-              finally
-                Free;
-              end;
+            SaveResponse(M);
           finally
             M.Free;
           end;
@@ -306,12 +306,7 @@ begin
             Response.ContentStream:=M;
             Response.SendResponse;
             Response.ContentStream:=Nil;
-            With TFileStream.Create('/tmp/data.xml',fmCreate) do
-              try
-                CopyFrom(M,0);
-              finally
-                Free;
-              end;
+            SaveResponse(M);
           finally
             M.Free;
           end;
