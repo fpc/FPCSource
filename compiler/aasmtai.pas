@@ -200,6 +200,7 @@ interface
 {$endif m68k}
 {$ifdef support_llvm}
        ,top_string
+       ,top_def
 {$endif support_llvm}
        { i386 only});
 
@@ -238,6 +239,7 @@ interface
       {$endif m68k}
       {$ifdef support_llvm}
           top_string : (str: pchar);
+          top_def    : (def: tdef);
       {$endif support_llvm}
       end;
       poper=^toper;
