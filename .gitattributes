@@ -204,6 +204,7 @@ compiler/import.pas svneol=native#text/plain
 compiler/link.pas svneol=native#text/plain
 compiler/llvm/aasmllvm.pas svneol=native#text/plain
 compiler/llvm/llvmbase.pas svneol=native#text/plain
+compiler/llvm/tgllvm.pas svneol=native#text/plain
 compiler/llvmdef.pas svneol=native#text/plain
 compiler/m68k/aasmcpu.pas svneol=native#text/plain
 compiler/m68k/ag68kgas.pas svneol=native#text/plain
