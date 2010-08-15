@@ -48,7 +48,9 @@ interface
            the address of this code label is taken somewhere in the code
            so it must be taken care of it when creating pic
          }
-         AT_ADDR
+         AT_ADDR,
+         { used for llvm local temps }
+         AT_TEMP
          );
 
        { is the label only there for getting an DataOffset (e.g. for i/o
