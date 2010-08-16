@@ -1,4 +1,4 @@
-unit cdr2svg_mainform;
+unit fpvc_mainform;
 
 {$mode objfpc}{$H+}
 
@@ -10,9 +10,9 @@ uses
 
 type
 
-  { TformCDR2SVG }
+  { TformVectorialConverter }
 
-  TformCDR2SVG = class(TForm)
+  TformVectorialConverter = class(TForm)
     buttonVisualize: TButton;
     buttonConvert: TButton;
     buttonQuit: TButton;
@@ -33,7 +33,7 @@ type
   end; 
 
 var
-  formCDR2SVG: TformCDR2SVG;
+  formVectorialConverter: TformVectorialConverter;
 
 implementation
 
@@ -43,14 +43,14 @@ uses
 
 {$R *.lfm}
 
-{ TformCDR2SVG }
+{ TformVectorialConverter }
 
-procedure TformCDR2SVG.buttonQuitClick(Sender: TObject);
+procedure TformVectorialConverter.buttonQuitClick(Sender: TObject);
 begin
   Close;
 end;
 
-procedure TformCDR2SVG.buttonVisualizeClick(Sender: TObject);
+procedure TformVectorialConverter.buttonVisualizeClick(Sender: TObject);
 var
   Vec: TvVectorialDocument;
 begin
@@ -68,14 +68,15 @@ begin
   end;
 end;
 
-function TformCDR2SVG.CheckInput(): Boolean;
+function TformVectorialConverter.CheckInput(): Boolean;
 begin
   // todo...
 end;
 
-procedure TformCDR2SVG.buttonConvertClick(Sender: TObject);
+procedure TformVectorialConverter.buttonConvertClick(Sender: TObject);
 var
   Vec: TvVectorialDocument;
+  lFormat: TvVectorialFormat;
 begin
   // First check the in input
   if not CheckInput() then Exit;
@@ -83,8 +84,10 @@ begin
   // Now convert
   Vec := TvVectorialDocument.Create;
   try
-    Vec.ReadFromFile(editInput.FileName, vfPDF);
-    Vec.WriteToFile(editOutPut.FileName, vfSVG);
+    lFormat := TvVectorialDocument.GetFormatFromExtension(editInput.FileName);
+    Vec.ReadFromFile(editInput.FileName, lFormat);
+    lFormat := TvVectorialDocument.GetFormatFromExtension(editOutPut.FileName);
+    Vec.WriteToFile(editOutPut.FileName, lFormat);
   finally
     Vec.Free;
   end;

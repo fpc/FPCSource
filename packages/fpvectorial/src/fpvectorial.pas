@@ -31,7 +31,12 @@ type
 
 const
   { Default extensions }
+  { Multi-purpose document formats }
   STR_PDF_EXTENSION = '.pdf';
+  STR_POSTSCRIPT_EXTENSION = '.ps';
+  STR_SVG_EXTENSION = '.svg';
+  STR_CORELDRAW_EXTENSION = '.cdr';
+  STR_WINMETAFILE_EXTENSION = '.wmf';
 
 type
   TSegmentType = (
@@ -84,6 +89,7 @@ type
     procedure ReadFromFile(AFileName: string; AFormat: TvVectorialFormat);
     procedure ReadFromStream(AStream: TStream; AFormat: TvVectorialFormat);
     procedure ReadFromStrings(AStrings: TStrings; AFormat: TvVectorialFormat);
+    class function GetFormatFromExtension(AFileName: string): TvVectorialFormat;
     { Data reading methods }
     function  GetPath(ANum: Cardinal): TPath;
     function  GetPathCount: Integer;
@@ -525,6 +531,21 @@ begin
   finally
     AReader.Free;
   end;
+end;
+
+class function TvVectorialDocument.GetFormatFromExtension(AFileName: string
+  ): TvVectorialFormat;
+var
+  lExt: string;
+begin
+  lExt := ExtractFileExt(AFileName);
+  if AnsiCompareText(lExt, STR_PDF_EXTENSION) = 0 then Result := vfPDF
+  else if AnsiCompareText(lExt, STR_POSTSCRIPT_EXTENSION) = 0 then Result := vfPostScript
+  else if AnsiCompareText(lExt, STR_SVG_EXTENSION) = 0 then Result := vfSVG
+  else if AnsiCompareText(lExt, STR_CORELDRAW_EXTENSION) = 0 then Result := vfCorelDrawCDR
+  else if AnsiCompareText(lExt, STR_WINMETAFILE_EXTENSION) = 0 then Result := vfWindowsMetafileWMF
+  else
+    raise Exception.Create('TvVectorialDocument.GetFormatFromExtension: The extension (' + lExt + ') doesn''t match any supported formats.');
 end;
 
 function TvVectorialDocument.GetPath(ANum: Cardinal): TPath;

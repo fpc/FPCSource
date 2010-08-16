@@ -1,35 +1,35 @@
-object formCDR2SVG: TformCDR2SVG
+object formVectorialConverter: TformVectorialConverter
   Left = 216
   Height = 439
   Top = 192
   Width = 240
   BorderStyle = bsSingle
-  Caption = 'cdr2svg'
+  Caption = 'FP Vectorial Converter'
   ClientHeight = 439
   ClientWidth = 240
   LCLVersion = '0.9.29'
   object Label1: TLabel
     Left = 8
     Height = 14
-    Top = 80
-    Width = 215
-    Caption = 'Location of the Input Corel Draw (*.cdr) file:'
+    Top = 104
+    Width = 123
+    Caption = 'Location of the Input file:'
     ParentColor = False
   end
   object Label2: TLabel
     Left = 8
-    Height = 59
+    Height = 96
     Top = 8
     Width = 224
     AutoSize = False
-    Caption = 'This example project uses fpvectorial to convert a Corel Draw file (*.cdr) to an SVG (*.svg) vectorial graphics file.'
+    Caption = 'This converter application use the fpvectorial library to convert between various different vectorial graphics formats. The type is detected from the extension and the supported types are: PDF (*.pdf), SVG (*.svg) and Corel Draw file (*.cdr).'
     ParentColor = False
     WordWrap = True
   end
   object editInput: TFileNameEdit
     Left = 8
     Height = 21
-    Top = 104
+    Top = 120
     Width = 192
     DialogOptions = []
     FilterIndex = 0
@@ -42,9 +42,9 @@ object formCDR2SVG: TformCDR2SVG
   object Label3: TLabel
     Left = 8
     Height = 14
-    Top = 138
-    Width = 154
-    Caption = 'Full path of the Output SVG file:'
+    Top = 144
+    Width = 132
+    Caption = 'Full path of the Output file:'
     ParentColor = False
   end
   object editOutput: TFileNameEdit
@@ -63,7 +63,7 @@ object formCDR2SVG: TformCDR2SVG
   object buttonConvert: TButton
     Left = 87
     Height = 25
-    Top = 200
+    Top = 192
     Width = 67
     Caption = 'Convert'
     OnClick = buttonConvertClick
@@ -72,7 +72,7 @@ object formCDR2SVG: TformCDR2SVG
   object buttonQuit: TButton
     Left = 176
     Height = 25
-    Top = 200
+    Top = 192
     Width = 59
     Caption = 'Quit'
     OnClick = buttonQuitClick
@@ -80,14 +80,14 @@ object formCDR2SVG: TformCDR2SVG
   end
   object imagePreview: TImage
     Left = 8
-    Height = 202
-    Top = 232
+    Height = 210
+    Top = 224
     Width = 224
   end
   object buttonVisualize: TButton
     Left = 8
     Height = 25
-    Top = 200
+    Top = 192
     Width = 59
     Caption = 'Visualize'
     OnClick = buttonVisualizeClick

@@ -8,7 +8,7 @@
         <AlwaysBuild Value="False"/>
       </Flags>
       <SessionStorage Value="InProjectDir"/>
-      <Title Value="cdr2svg_visual"/>
+      <Title Value="fpvectorialconverter"/>
       <UseXPManifest Value="True"/>
       <Icon Value="0"/>
     </General>
@@ -35,16 +35,16 @@
     </RequiredPackages>
     <Units Count="2">
       <Unit0>
-        <Filename Value="cdr2svg_visual.lpr"/>
+        <Filename Value="fpvectorialconverter.lpr"/>
         <IsPartOfProject Value="True"/>
-        <UnitName Value="cdr2svg_visual"/>
+        <UnitName Value="fpvectorialconverter"/>
       </Unit0>
       <Unit1>
-        <Filename Value="cdr2svg_mainform.pas"/>
+        <Filename Value="fpvc_mainform.pas"/>
         <IsPartOfProject Value="True"/>
-        <ComponentName Value="formCDR2SVG"/>
+        <ComponentName Value="formVectorialConverter"/>
         <ResourceBaseClass Value="Form"/>
-        <UnitName Value="cdr2svg_mainform"/>
+        <UnitName Value="fpvc_mainform"/>
       </Unit1>
     </Units>
   </ProjectOptions>
@@ -52,7 +52,7 @@
     <Version Value="9"/>
     <PathDelim Value="\"/>
     <Target>
-      <Filename Value="cdr2svg_visual"/>
+      <Filename Value="fpvectorialconverter"/>
     </Target>
     <SearchPaths>
       <IncludeFiles Value="$(ProjOutDir)\"/>

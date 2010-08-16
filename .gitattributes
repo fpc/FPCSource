@@ -2373,11 +2373,11 @@ packages/fpmkunit/fpmake.pp svneol=native#text/plain
 packages/fpmkunit/src/fpmkunit.pp svneol=native#text/plain
 packages/fpvectorial/Makefile svneol=native#text/plain
 packages/fpvectorial/Makefile.fpc svneol=native#text/plain
-packages/fpvectorial/examples/cdr2svg_mainform.lfm svneol=native#text/plain
-packages/fpvectorial/examples/cdr2svg_mainform.pas svneol=native#text/plain
-packages/fpvectorial/examples/cdr2svg_visual.ico -text
-packages/fpvectorial/examples/cdr2svg_visual.lpi svneol=native#text/plain
-packages/fpvectorial/examples/cdr2svg_visual.lpr svneol=native#text/plain
+packages/fpvectorial/examples/fpvc_mainform.lfm svneol=native#text/plain
+packages/fpvectorial/examples/fpvc_mainform.pas svneol=native#text/plain
+packages/fpvectorial/examples/fpvectorialconverter.ico -text
+packages/fpvectorial/examples/fpvectorialconverter.lpi svneol=native#text/plain
+packages/fpvectorial/examples/fpvectorialconverter.lpr svneol=native#text/plain
 packages/fpvectorial/fpmake.pp svneol=native#text/plain
 packages/fpvectorial/src/avisocncgcodereader.pas svneol=native#text/plain
 packages/fpvectorial/src/avisocncgcodewriter.pas svneol=native#text/plain
