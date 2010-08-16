@@ -924,7 +924,8 @@ implementation
 
             { don't miss an insert }
             doinsert:=doinsert or
-              (curinspos-lastinspos+penalty+extradataoffset>limit);
+              (not(curdata.empty) and
+               (curinspos-lastinspos+penalty+extradataoffset>limit));
 
             { split only at real instructions else the test below fails }
             if doinsert and (curtai.typ=ait_instruction) and
@@ -939,7 +940,7 @@ implementation
                    )
               ) then
               begin
-                lastinspos:=curinspos;
+                lastinspos:=-1;
                 extradataoffset:=0;
                 limit:=1016;
                 doinsert:=false;
