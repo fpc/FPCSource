@@ -15,17 +15,38 @@
 {$mode objfpc}
 unit freetypeh;
 
-{ These are not all the availlable calls from the dll, but only those
-  I needed for the TStringBitMaps }
+{ Note that these are not all the availlable calls from the dll yet.
+  This unit is used by TStringBitMaps and FTFont }
 
 interface
 
 const
-{$ifdef win32}
+
+{$packrecords c}
+
+// Windows
+{$ifdef windows}
   freetypedll = 'freetype-6.dll';   // version 2.1.4
-  {$packrecords c}
-{$else}
-  // I don't know what it will be ??
+  {$define ft_found_platform}
+{$endif}
+// Mac OS X
+{$ifdef darwin}
+  freetypedll = 'libfreetype'; // Doesn't seam to matter much.
+  {$linklib freetype}          // This one is the important part,
+                               // but you also need to pass to fpc
+                               // the following command:
+                               // -k-L/usr/X11/lib
+                               // or another place where it can find
+                               // libfreetype.dylib
+  {$define ft_found_platform}
+{$endif}
+// LINUX
+{$if defined(UNIX) and not defined(darwin)}
+  freetypedll = 'freetype';
+  {$define ft_found_platform}
+{$endif}
+// Other platforms
+{$ifndef ft_found_platform}
   freetypedll = 'freetype';
 {$endif}
 

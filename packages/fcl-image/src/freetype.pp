@@ -162,7 +162,14 @@ const
   sErrDestroying : string = 'finalizing FreeType';
 
   DefaultFontExtention : string = '.ttf';
+
+  // Standard location for fonts in the Operating System
+  {$ifdef Darwin}
+  DefaultSearchPath : string = '/Library/Fonts/';
+  {$else}
   DefaultSearchPath : string = '';
+  {$endif}
+
   {$IFDEF MAC}
   DefaultResolution : integer = 72;
   {$ELSE}
@@ -729,7 +736,10 @@ begin
         end;
       end;
     // place position for next glyph
-    pos.x := pos.x + (gl^.advance.x shr 10);
+    // The previous code in this place used shr 10, which
+    // produces wrongly spaced text and looks very ugly
+    // for more information see: http://bugs.freepascal.org/view.php?id=17156
+    pos.x := pos.x + (gl^.advance.x shr 11);
     // pos.y := pos.y + (gl^.advance.y shr 6); // for angled texts also
     if prevx > pos.x then
       pos.x := prevx;
