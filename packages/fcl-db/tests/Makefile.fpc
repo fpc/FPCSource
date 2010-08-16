@@ -6,7 +6,7 @@
 main=fcl
 
 [target]
-examples=dbtestframework
+examples=dbtestframework testsqlfiles 
 units=toolsunit dbftoolsunit memdstoolsunit sqldbtoolsunit sdfdstoolsunit
 
 [install]

@@ -7,7 +7,7 @@ name=fcl-db
 version=2.5.1
 
 [target]
-dirs=src/sdf src/memds src/sqldb src/base 
+dirs=src/sdf src/memds src/sqldb src/base src/sql
 dirs_beos=src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 dirs_haiku=src/dbase src/sqlite src/paradox src/export src/datadict src/codegen
 dirs_linux=src/dbase src/sqlite src/paradox src/export src/datadict src/codegen 
@@ -56,3 +56,4 @@ src/dbase_debug: src/base_debug
 src/dbase_smart: src/base_smart
 src/dbase_release: src/base_release
 src/dbase_shared: src/base_shared
+
