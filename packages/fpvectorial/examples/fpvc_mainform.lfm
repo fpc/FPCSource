@@ -17,7 +17,7 @@ object formVectorialConverter: TformVectorialConverter
     ParentColor = False
   end
   object Label2: TLabel
-    Left = 8
+    Left = 11
     Height = 96
     Top = 8
     Width = 224

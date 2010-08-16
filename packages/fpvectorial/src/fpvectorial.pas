@@ -90,6 +90,7 @@ type
     procedure ReadFromStream(AStream: TStream; AFormat: TvVectorialFormat);
     procedure ReadFromStrings(AStrings: TStrings; AFormat: TvVectorialFormat);
     class function GetFormatFromExtension(AFileName: string): TvVectorialFormat;
+    function  GetDetailedFileFormat(): string;
     { Data reading methods }
     function  GetPath(ANum: Cardinal): TPath;
     function  GetPathCount: Integer;
@@ -546,6 +547,11 @@ begin
   else if AnsiCompareText(lExt, STR_WINMETAFILE_EXTENSION) = 0 then Result := vfWindowsMetafileWMF
   else
     raise Exception.Create('TvVectorialDocument.GetFormatFromExtension: The extension (' + lExt + ') doesn''t match any supported formats.');
+end;
+
+function  TvVectorialDocument.GetDetailedFileFormat(): string;
+begin
+
 end;
 
 function TvVectorialDocument.GetPath(ANum: Cardinal): TPath;

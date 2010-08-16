@@ -2373,6 +2373,11 @@ packages/fpmkunit/fpmake.pp svneol=native#text/plain
 packages/fpmkunit/src/fpmkunit.pp svneol=native#text/plain
 packages/fpvectorial/Makefile svneol=native#text/plain
 packages/fpvectorial/Makefile.fpc svneol=native#text/plain
+packages/fpvectorial/examples/fpce_mainform.lfm svneol=native#text/plain
+packages/fpvectorial/examples/fpce_mainform.pas svneol=native#text/plain
+packages/fpvectorial/examples/fpcorelexplorer.ico -text
+packages/fpvectorial/examples/fpcorelexplorer.lpi svneol=native#text/plain
+packages/fpvectorial/examples/fpcorelexplorer.lpr svneol=native#text/plain
 packages/fpvectorial/examples/fpvc_mainform.lfm svneol=native#text/plain
 packages/fpvectorial/examples/fpvc_mainform.pas svneol=native#text/plain
 packages/fpvectorial/examples/fpvectorialconverter.ico -text
