@@ -1633,7 +1633,8 @@
      ANSI_FIXED_FONT = 11;
      ANSI_VAR_FONT = 12;
      DEVICE_DEFAULT_FONT = 14;
-     DEFAULT_GUI_FONT = 17;
+//     DEFAULT_GUI_FONT = 17;  Returns zero in the emulator and
+                            // isn't listed in MSDN, see bug 15062
      OEM_FIXED_FONT = 10;
      SYSTEM_FONT = 13;
      SYSTEM_FIXED_FONT = 16;
