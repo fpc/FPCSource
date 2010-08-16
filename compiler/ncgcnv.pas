@@ -452,24 +452,25 @@ interface
           the bits that define the true status can be outside the limits
           of the new size and truncating the register can result in a 0
           value }
-        if (left.expectloc in [LOC_FLAGS,LOC_JUMP]) then
+        if (left.expectloc in [LOC_FLAGS,LOC_JUMP]) and
+           { a cbool must be converted to -1/0 }
+           not is_cbool(resultdef) then
           begin
             secondpass(left);
             if (left.location.loc <> left.expectloc) then
-              internalerror(20060409);
+              internalerror(2010081601);
             location_copy(location,left.location);
           end
-         else if (resultdef.size=left.resultdef.size) and
-                 not(is_cbool(resultdef) xor
-                     is_cbool(left.resultdef)) then
-           second_bool_to_int
-         else
-           begin
-             if (resultdef.size<>left.resultdef.size) then
-               { remove nf_explicit to perform full conversion if boolean sizes are different }
-               exclude(flags, nf_explicit);
-             second_int_to_bool;
-           end;
+        else if (resultdef.size=left.resultdef.size) and
+           (is_cbool(resultdef)=is_cbool(left.resultdef)) then
+          second_bool_to_int
+        else
+          begin
+            if (resultdef.size<>left.resultdef.size) then
+              { remove nf_explicit to perform full conversion if boolean sizes are different }
+              exclude(flags, nf_explicit);
+            second_int_to_bool;
+          end;
       end;
 
 
