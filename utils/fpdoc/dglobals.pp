@@ -23,7 +23,7 @@ unit dGlobals;
 
 interface
 
-uses Classes, DOM, PasTree, PParser;
+uses Classes, DOM, PasTree, PParser, StrUtils;
 
 Var
   LEOL : Integer;
@@ -637,12 +637,13 @@ var
 
   procedure ReadClasses;
 
-    function CreateClass(const AName: String): TPasClassType;
+    function CreateClass(const AName: String;InheritanceStr:String): TPasClassType;
     var
-      DotPos, DotPos2, i: Integer;
+      DotPos, DotPos2, i,j: Integer;
       s: String;
       HPackage: TPasPackage;
       Module: TPasModule;
+
     begin
       // Find or create package
       DotPos := Pos('.', AName);
@@ -681,12 +682,13 @@ var
         HPackage.Modules.Add(Module);
       end;
 
+      s:=Copy(AName, DotPos2 + 1, length(AName)-dotpos2);
       // Create node for class
-      Result := TPasClassType.Create(Copy(AName, DotPos2 + 1, Length(AName)),
-        Module.InterfaceSection);
+      Result := TPasClassType.Create(s, Module.InterfaceSection);
       Result.ObjKind := okClass;
       Module.InterfaceSection.Declarations.Add(Result);
       Module.InterfaceSection.Classes.Add(Result);
+      // process inheritancestr here.
     end;
 
   var
@@ -705,7 +707,7 @@ var
       begin
         // New class
         i := Pos(' ', s);
-        CurClass := CreateClass(Copy(s, 1, i - 1));
+        CurClass := CreateClass(Copy(s, 1, i - 1), copy(s,i+1,length(s)));
       end else
       begin
         i := Pos(' ', s);
@@ -820,9 +822,15 @@ begin
         ClassDecl := TPasClassType(Module.InterfaceSection.Classes[j]);
         Write(ContentFile, ClassDecl.PathName, ' ');
         if Assigned(ClassDecl.AncestorType) then
-          WriteLn(ContentFile, ClassDecl.AncestorType.PathName)
+          Write(ContentFile, ClassDecl.AncestorType.PathName)
         else if ClassDecl.ObjKind = okClass then
-          WriteLn(ContentFile, '.TObject');
+          Write(ContentFile, '.TObject');
+        if ClassDecl.Interfaces.Count>0 then
+          begin
+            for k:=0 to ClassDecl.Interfaces.count-1 do
+              write(contentfile,',',TPasClassType(ClassDecl.Interfaces[k]).PathName);
+          end;
+        writeln(contentfile);
         for k := 0 to ClassDecl.Members.Count - 1 do
         begin
           Member := TPasElement(ClassDecl.Members[k]);
