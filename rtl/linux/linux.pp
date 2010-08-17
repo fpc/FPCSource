@@ -204,6 +204,7 @@ type
 function clone(func:TCloneFunc;sp:pointer;flags:longint;args:pointer):longint; {$ifdef FPC_USE_LIBC} cdecl; external name 'clone'; {$endif}
 {$endif}
 
+{$if defined(cpui386) or defined(cpux86_64)}
 const
   MODIFY_LDT_CONTENTS_DATA       = 0;
   MODIFY_LDT_CONTENTS_STACK      = 1;
@@ -231,7 +232,8 @@ type
   TUser_Desc = user_desc;
   PUser_Desc = ^user_desc;
 
-function modify_ldt(func:cint;p:pointer;bytecount:culong):cint; {$ifdef FPC_USE_LIBC} cdecl; external name 'modify_ldt'; {$endif}
+function modify_ldt(func:cint;p:pointer;bytecount:culong):cint;
+{$endif cpui386 or cpux86_64}
 
 procedure sched_yield; {$ifdef FPC_USE_LIBC} cdecl; external name 'sched_yield'; {$endif}
 
@@ -349,9 +351,12 @@ function fdatasync (fd: cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external name 
 implementation
 
 
-{$ifndef FPC_USE_LIBC}
+{$if not defined(FPC_USE_LIBC) or defined(cpui386) or defined(cpux86_64)}
+{ needed for modify_ldt on x86 }
 Uses Syscall;
+{$endif not defined(FPC_USE_LIBC) or defined(cpui386) or defined(cpux86_64)}
 
+{$ifndef FPC_USE_LIBC}
 function Sysinfo(Info: PSysinfo): cInt;
 begin
   Sysinfo := do_SysCall(SysCall_nr_Sysinfo, TSysParam(info));
@@ -400,14 +405,6 @@ begin
 {$endif cpui386}
 end;
 {$endif}
-
-function modify_ldt(func:cint;p:pointer;bytecount:culong):cint;
-
-begin
-  modify_ldt:=do_syscall(syscall_nr_modify_ldt,Tsysparam(func),
-                                               Tsysparam(p),
-                                               Tsysparam(bytecount));
-end;
 
 procedure sched_yield;
 
@@ -555,6 +552,17 @@ begin
 end;
 
 {$endif} // non-libc
+
+{$if defined(cpui386) or defined(cpux86_64)}
+{ does not exist as a wrapper in glibc, and exists only for x86 }
+function modify_ldt(func:cint;p:pointer;bytecount:culong):cint;
+
+begin
+  modify_ldt:=do_syscall(syscall_nr_modify_ldt,Tsysparam(func),
+                                               Tsysparam(p),
+                                               Tsysparam(bytecount));
+end;
+{$endif}
 
 { FUTEX_OP is a macro, doesn't exist in libC as function}
 function FUTEX_OP(op, oparg, cmp, cmparg: cint): cint; {$ifdef SYSTEMINLINE}inline;{$endif}
