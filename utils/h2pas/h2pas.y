@@ -244,7 +244,6 @@ program h2pas;
       end;
 
 
-
     function TypeName(const s:string):string;
       var
         i : longint;
@@ -620,6 +619,7 @@ program h2pas;
        (* if in args *dname is replaced by pdname *)
        in_args : boolean = false;
        typedef_level : longint = 0;
+       old_in_args : boolean = false;
 
     (* writes an argument list, where p is t_arglist *)
 
@@ -752,7 +752,7 @@ program h2pas;
          error : integer;
          pointerwritten,
          constant : boolean;
-
+         old_in_args : boolean;
       begin
          if not(assigned(p)) then
            begin
@@ -787,7 +787,12 @@ program h2pas;
                             write_args(outfile,p^.p1^.p2);
                           write(outfile,':');
                           flush(outfile);
+
+                          old_in_args:=in_args;
+                          (* write pointers as P.... instead of ^.... *)
+                          in_args:=true;
                           write_p_a_def(outfile,p^.p1^.p1,simple_type);
+                          in_args:=old_in_args;
                           popshift;
                        end
                   end
@@ -931,10 +936,10 @@ program h2pas;
                   begin
                     if in_args then
                     begin
-                      if UseCTypesUnit and (IsACType(p^.p1^.p)=False) then
-                        write(outfile,'P')
+                      if UseCTypesUnit and IsACType(p^.p1^.p) then
+                        write(outfile,'p')
                       else
-                        write(outfile,'p');
+                        write(outfile,'P');
                       pointerprefix:=true;
                     end
                     else
@@ -1278,6 +1283,7 @@ program h2pas;
         writeln(outfile,aktspace,'end;');
       end;
 
+
 %}
 
 %token _WHILE _FOR _DO _GOTO _CONTINUE _BREAK
@@ -1480,7 +1486,11 @@ declaration :
                   if assigned($4^.p1^.p1^.p2) then
                     write_args(outfile,$4^.p1^.p1^.p2);
                   write(outfile,':');
+                  old_in_args:=in_args;
+                  (* write pointers as P.... instead of ^.... *)
+                  in_args:=true;
                   write_p_a_def(outfile,$4^.p1^.p1^.p1,$2);
+                  in_args:=old_in_args;
                   if createdynlib then
                     begin
                       loaddynlibproc.add('pointer('+$4^.p1^.p2^.p+'):=GetProcAddress(hlib,'''+$4^.p1^.p2^.p+''');');
@@ -1490,9 +1500,14 @@ declaration :
                    begin
                      write(implemfile,'function ',$4^.p1^.p2^.p);
                      if assigned($4^.p1^.p1^.p2) then
-                      write_args(implemfile,$4^.p1^.p1^.p2);
+                       write_args(implemfile,$4^.p1^.p1^.p2);
                      write(implemfile,':');
+
+                     old_in_args:=in_args;
+                     (* write pointers as P.... instead of ^.... *)
+                     in_args:=true;
                      write_p_a_def(implemfile,$4^.p1^.p1^.p1,$2);
+                     in_args:=old_in_args;
                    end;
                end;
              (* No CDECL in interface for Uselib *)
@@ -1674,7 +1689,12 @@ declaration :
                      if assigned($4^.p1^.p1^.p2) then
                       write_args(implemfile,$4^.p1^.p1^.p2);
                      write(implemfile,':');
+
+                     old_in_args:=in_args;
+                     (* write pointers as P.... instead of ^.... *)
+                     in_args:=true;
                      write_p_a_def(implemfile,$4^.p1^.p1^.p1,$2);
+                     in_args:=old_in_args;
                    end;
                end;
              if assigned($5) then
