@@ -2571,15 +2571,13 @@ const
     (pvar:@isc_vtof; name:'isc_vtof'; weak:false),
     (pvar:@isc_vtov; name:'isc_vtov'; weak:false),
     (pvar:@isc_version; name:'isc_version'; weak:false),
-{$IFDEF Unix}
-    (pvar:@isc_reset_fpe; name:'isc_reset_fpe'; weak:false),
-{$ENDIF}
     (pvar:@isc_service_attach; name:'isc_service_attach'; weak:false),
     (pvar:@isc_service_detach; name:'isc_service_detach'; weak:false),
     (pvar:@isc_service_query; name:'isc_service_query'; weak:false),
     (pvar:@isc_service_start; name:'isc_service_start'; weak:false)
 {$IFDEF Unix} { weak functions, be careful! }
-   ,(pvar:@isc_compile_map; name:'isc_compile_map'; weak:true),
+    ,(pvar:@isc_reset_fpe; name:'isc_reset_fpe'; weak:true),
+    (pvar:@isc_compile_map; name:'isc_compile_map'; weak:true),
     (pvar:@isc_compile_menu; name:'isc_compile_menu'; weak:true),
     (pvar:@isc_compile_sub_map; name:'isc_compile_sub_map'; weak:true),
     (pvar:@isc_create_window; name:'isc_create_window'; weak:true),
