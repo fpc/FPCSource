@@ -15,6 +15,10 @@
     mysqlclient
     mysql_com.h / mysql.h
 
+
+  NOTE: MySQL 5.1 support is not finished. I just added some parts so that my code is working. I
+    guess there are many things missing. This mysql.inc file is also getting a littlebit messy...
+    -Ivo Steinmann (isteinmann@bluewin.ch)
 }
 {$MODE objfpc}
 {$MACRO on}
