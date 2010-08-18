@@ -28,7 +28,9 @@ uses
   {$DEFINE extdecl:=cdecl}
   const
     mysqllib = 'libmysqlclient.'+sharedsuffix;
-  {$IF DEFINED(mysql50)}
+  {$IF DEFINED(mysql51)}
+    mysqlvlib = mysqllib+'.16';
+  {$ELSEIF DEFINED(mysql50)}
     mysqlvlib = mysqllib+'.15';
   {$ELSEIF DEFINED(mysql41)}
     mysqlvlib = mysqllib+'.14';
@@ -42,6 +44,10 @@ uses
     mysqllib = 'libmysql.dll';
     mysqlvlib = mysqllib;
 {$ENDIF}
+
+{$IFDEF mysql51}
+  {$DEFINE mysql50}
+{$ENDIF mysql51}
 
 {$IFDEF mysql50}
   {$DEFINE mysql41}
@@ -111,6 +117,7 @@ uses
 {$IFDEF mysql50}
        COM_STMT_PREPARE, COM_STMT_EXECUTE, COM_STMT_SEND_LONG_DATA, COM_STMT_CLOSE,
        COM_STMT_RESET, COM_SET_OPTION, COM_STMT_FETCH,
+       {$IFDEF mysql51}COM_DAEMON,{$ENDIF}
 {$ELSE}
   {$IFDEF mysql41}
        COM_PREPARE,COM_EXECUTE,COM_LONG_DATA,COM_CLOSE_STMT,
@@ -152,6 +159,9 @@ uses
        SET_FLAG = 2048;            // field is a set
 {$IFDEF mysql50}
        NO_DEFAULT_VALUE_FLAG=4096; // Field doesn't have default value
+{$ENDIF}
+{$IFDEF mysql51}
+       ON_UPDATE_NOW_FLAG=8192;    // Field is set to NOW on UPDATE
 {$ENDIF}
        NUM_FLAG = 32768;           // Field is num (for clients)
        PART_KEY_FLAG = 16384;      // Intern; Part of some key
@@ -216,6 +226,14 @@ uses
        SERVER_STATUS_DB_DROPPED = 256;     // A database was dropped
 {$IFDEF mysql50}
        SERVER_STATUS_NO_BACKSLASH_ESCAPES = 512;
+{$ENDIF}
+{$IFDEF mysql51}
+    {
+      Sent to the client if after a prepared statement reprepare
+      we discovered that the new statement returns a different
+      number of result set columns.
+    }
+       SERVER_STATUS_METADATA_CHANGED = 1024;
 {$ENDIF}
 
 {$IFDEF mysql41}
@@ -608,6 +626,9 @@ uses
             charsetnr : cuint;        // Character set
 {$ENDIF}
             ftype : enum_field_types; // Type of field. See mysql_com.h for types
+{$IFDEF mysql51}
+            extension: pointer;
+{$ENDIF}
          end;
        MYSQL_FIELD = st_mysql_field;
        PMYSQL_FIELD = ^MYSQL_FIELD;
@@ -1083,6 +1104,30 @@ uses
       Please note that MYSQL_BIND also has internals members.
     }
        Pst_mysql_bind = ^st_mysql_bind;
+
+{$IFDEF mysql51}
+       st_mysql_bind = record
+            length : pculong;               // output length pointer
+            is_null : Pmy_bool;             // Pointer to null indicator
+            buffer : pointer;               // buffer to get/put data
+            error: pmy_bool;                // set this if you want to track data truncations happened during fetch
+            row_ptr : PByte;                // for the current data position
+            store_param_func : procedure (net:PNET; param:Pst_mysql_bind);cdecl;
+            fetch_result : procedure (_para1:Pst_mysql_bind; _para2:PMYSQL_FIELD; row:PPbyte);
+            skip_result : procedure (_para1:Pst_mysql_bind; _para2:PMYSQL_FIELD; row:PPbyte);
+            buffer_length : culong;         // output buffer length, must be set when fetching str/binary
+            offset : culong;                // offset position for char/binary fetch
+            length_value : culong;          //  Used if length is 0
+            param_number : cuint;           // For null count and error messages
+            pack_length : cuint;            // Internal length for packed data
+            buffer_type : enum_field_types; // buffer type
+            error_value : my_bool;          // used if error is 0
+            is_unsigned : my_bool;          // set if integer type is unsigned
+            long_data_used : my_bool;       // If used with mysql_send_long_data
+            is_null_value : my_bool;        // Used if is_null is 0
+            extension : Pointer;
+       end;
+{$ELSE}
        st_mysql_bind = record
             length : pculong;               // output length pointer
             is_null : Pmy_bool;             // Pointer to null indicator
@@ -1120,6 +1165,7 @@ uses
             fetch_result : procedure (_para1:Pst_mysql_bind; _para2:PMYSQL_FIELD; row:PPbyte);
             skip_result : procedure (_para1:Pst_mysql_bind; _para2:PMYSQL_FIELD; row:PPbyte);
          end;
+{$ENDIF}
        MYSQL_BIND = st_mysql_bind;
        PMYSQL_BIND = ^MYSQL_BIND;
 
@@ -1548,7 +1594,7 @@ end;
 
 function IS_NUM(t : enum_field_types) : boolean;
 begin
-{$IFDEF mysql50}
+{$IF DEFINED(mysql50) or DEFINED(mysql51)}
   IS_NUM := (t <= FIELD_TYPE_INT24) or (t=FIELD_TYPE_YEAR) or (t=FIELD_TYPE_NEWDECIMAL);
 {$ELSE}
   IS_NUM := (t <= FIELD_TYPE_INT24) or (t=FIELD_TYPE_YEAR);
