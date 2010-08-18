@@ -46,7 +46,8 @@ interface
       fen_norecurse_true
     );
 
-    tforeachprocmethod = (pm_preprocess,pm_postprocess);
+    tforeachprocmethod = (pm_preprocess,pm_postprocess,
+                          pm_postandagain);
 
     foreachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult of object;
     staticforeachnodefunction = function(var n: tnode; arg: pointer): foreachnoderesult;
@@ -183,8 +184,22 @@ implementation
         fen_false:
           result := false; }
       end;
-      if procmethod=pm_postprocess then
+      if (procmethod=pm_postprocess) or (procmethod=pm_postandagain) then
         result:=process_children(result);
+      if procmethod=pm_postandagain then
+        begin
+          case f(n,arg) of
+            fen_norecurse_false:
+              exit;
+            fen_norecurse_true:
+              begin
+                result := true;
+                exit;
+              end;
+            fen_true:
+              result := true;
+          end;
+        end;
     end;
 
 
@@ -266,8 +281,22 @@ implementation
         fen_false:
           result := false; }
       end;
-      if procmethod=pm_postprocess then
+      if (procmethod=pm_postprocess) or (procmethod=pm_postandagain) then
         result:=process_children(result);
+      if procmethod=pm_postandagain then
+        begin
+          case f(n,arg) of
+            fen_norecurse_false:
+              exit;
+            fen_norecurse_true:
+              begin
+                result := true;
+                exit;
+              end;
+            fen_true:
+              result := true;
+          end;
+        end;
     end;
 
 
@@ -929,38 +958,54 @@ implementation
         foreachnodestatic(n,@setnodefilepos,@filepos);
       end;
 
-{$ifdef FPCMT}
-    threadvar
-{$else FPCMT}
-    var
-{$endif FPCMT}
-      treechanged : boolean;
 
     function callsimplify(var n: tnode; arg: pointer): foreachnoderesult;
       var
         hn : tnode;
+        treechanged : ^boolean;
       begin
         result:=fen_false;
-
-//        do_typecheckpass(n);
-
-        hn:=n.simplify;
-        if assigned(hn) then
+        if n.inheritsfrom(tloopnode) and
+           not (lnf_simplify_processing in tloopnode(n).loopflags) then
           begin
-            treechanged:=true;
-            n.free;
-            n:=hn;
-            typecheckpass(n);
+            // Try to simplify condition
+            dosimplify(tloopnode(n).left);
+            // call directly second part below,
+            // which might change the loopnode into
+            // something else if the conditino is a constant node
+            include(tloopnode(n).loopflags,lnf_simplify_processing);
+            callsimplify(n,arg);
+            // Be careful, n might have change node type
+            if n.inheritsfrom(tloopnode) then
+              exclude(tloopnode(n).loopflags,lnf_simplify_processing);
+          end
+        else
+          begin
+            hn:=n.simplify;
+            if assigned(hn) then
+              begin
+                treechanged := arg;
+                if assigned(treechanged) then
+                  treechanged^:=true
+                else
+                  internalerror (201008181);
+                n.free;
+                n:=hn;
+                typecheckpass(n);
+              end;
           end;
       end;
 
 
     { tries to simplify the given node calling the simplify method recursively }
     procedure dosimplify(var n : tnode);
+      var
+        treechanged : boolean;
       begin
+        // Optimize if code first
         repeat
           treechanged:=false;
-          foreachnodestatic(pm_preprocess,n,@callsimplify,nil);
+          foreachnodestatic(pm_postandagain,n,@callsimplify,@treechanged);
         until not(treechanged);
       end;
 

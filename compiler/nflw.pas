@@ -45,7 +45,9 @@ interface
          { Negate the loop test? }
          lnf_checknegate,
          { Should the value of the loop variable on exit be correct. }
-         lnf_dont_mind_loopvar_on_exit);
+         lnf_dont_mind_loopvar_on_exit,
+         { Loop simplify flag }
+         lnf_simplify_processing);
        tloopflags = set of tloopflag;
 
     const
@@ -1830,7 +1832,7 @@ implementation
 
         include(current_procinfo.flags,pi_has_label);
 
-        if assigned(labsym) and labsym.nonlocal then        
+        if assigned(labsym) and labsym.nonlocal then
           include(current_procinfo.flags,pi_has_interproclabel);
 
         if assigned(left) then
