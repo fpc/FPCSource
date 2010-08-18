@@ -2625,7 +2625,7 @@ unit_u_check_time=10037_U_PPU Check file $1 time $2
 unit_w_cant_compile_unit_with_changed_incfile=10040_W_Can't recompile unit $1, but found modifed include files
 % A unit was found to have modified include files, but
 % some source files were not found, so recompilation is impossible.
-unit_u_source_modified=10041_U_File $1 is newer than PPU file $2
+unit_u_source_modified=10041_U_File $1 is newer than the one used for creating PPU file $2
 % A modified source file for a compiler unit was found.
 unit_u_ppu_invalid_fpumode=10042_U_Trying to use a unit which was compiled with a different FPU mode
 % Trying to compile code while using units which were not compiled with
