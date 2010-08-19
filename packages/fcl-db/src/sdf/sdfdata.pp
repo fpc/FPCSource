@@ -163,6 +163,7 @@ type
     FBookmarkOfs        :Integer;
     FSaveChanges        :Boolean;
     FDefaultRecordLength:Cardinal;
+    FDataOffset         : Integer;
   protected
     function AllocRecordBuffer: PChar; override;
     procedure FreeRecordBuffer(var Buffer: PChar); override;
@@ -465,7 +466,7 @@ end;
 function TFixedFormatDataSet.GetRecord(Buffer: PChar; GetMode: TGetMode;
   DoCheck: Boolean): TGetResult;
 begin
-  if (FData.Count < 1) then
+  if (FData.Count < (1+FDataOffset)) then
     Result := grEOF
   else
     Result := TxtGetRecord(Buffer, GetMode);
@@ -542,12 +543,12 @@ begin
         else
           Inc(FCurRec);
       gmPrior:
-        if FCurRec <= 0 then
+        if FCurRec <= FDataOffset then
           Result := grBOF
         else
           Dec(FCurRec);
       gmCurrent:
-        if (FCurRec < 0) or (FCurRec >= RecordCount) then
+        if (FCurRec < FDataOffset) or (FCurRec >= RecordCount) then
           Result := grError;
     end;
     if (Result = grOk) then
@@ -851,7 +852,10 @@ begin
   if not IsCursorOpen then
     exit;
   if (FData.Count = 0) or (Trim(FData[0]) = '') then
-    FirstLineAsSchema := FALSE
+    begin
+    FirstLineAsSchema := FALSE;
+    FDataOffset:=0;
+    end
   else if (Schema.Count = 0) or (FirstLineAsSchema) then
   begin
     Schema.Clear;
@@ -902,13 +906,18 @@ begin
   if FirstLineAsSchema then
   begin
     if (FData.Count < 2) then
-      Result := grEOF
+      begin
+      if GetMode=gmPrior then
+       Result := grBOF
+      else
+       Result := grEOF
+      end
     else
-    begin
+      begin
+      If (FCurrec=-1) and (GetMode=gmNext) then
+        inc(FCurrec);
       Result := inherited GetRecord(Buffer, GetMode, DoCheck);
-      if (Result = grOk) and (FCurRec = 0) then
-        Result := inherited GetRecord(Buffer, GetMode, DoCheck);
-    end;
+      end;
   end
   else
     Result := inherited GetRecord(Buffer, GetMode, DoCheck);
@@ -1008,6 +1017,7 @@ procedure TSdfDataSet.SetFirstLineAsSchema(Value : Boolean);
 begin
   CheckInactive;
   FFirstLineAsSchema := Value;
+  FDataOffset:=Ord(FFirstLineAsSchema);
 end;
 
 //-----------------------------------------------------------------------------
