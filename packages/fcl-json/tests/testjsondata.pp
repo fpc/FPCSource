@@ -399,7 +399,7 @@ begin
     TestAsBoolean(J,True);
     TestAsInteger(J,1);
     TestAsInt64(J,1);
-    TestAsString(J,BoolToStr(True));
+    TestAsString(J,BoolToStr(True,True));
     TestAsFloat(J,1.0);
   finally
     FreeAndNil(J);
@@ -421,7 +421,7 @@ begin
     TestAsBoolean(J,False);
     TestAsInteger(J,0);
     TestAsInt64(J,0);
-    TestAsString(J,BoolToStr(False));
+    TestAsString(J,BoolToStr(False,True));
     TestAsFloat(J,0.0);
   finally
     FreeAndNil(J);

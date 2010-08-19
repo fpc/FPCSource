@@ -724,7 +724,7 @@ end;
 
 function TJSONboolean.GetAsString: TJSONStringType;
 begin
-  Result:=BoolToStr(FValue);
+  Result:=BoolToStr(FValue, True);
 end;
 
 procedure TJSONboolean.SetAsString(const AValue: TJSONStringType);
