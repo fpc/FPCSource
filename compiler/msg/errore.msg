@@ -1678,6 +1678,8 @@ type_w_procvar_univ_conflicting_para=04095_W_Coerced univ parameter type in proc
 % floating point values on the stack, because then the stack will be unbalanced.
 % Note that this warning will not flagg all potentially dangerous situations.
 % when \var{test} returns.
+type_e_generics_cannot_reference_itself=04096_E_Type parameters of specializations of generics cannot reference the currently specialized type
+% Recursive specializations of generics like \var{Type MyType = specialize MyGeneric<MyType>;} are not possible.
 %
 % \end{description}
 #

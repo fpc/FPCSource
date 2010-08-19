@@ -234,8 +234,9 @@ implementation
                     generictype:=ttypesym.create(sym.realname,pt2.resultdef);
                     generictypelist.add(generictype);
                     if not assigned(pt2.resultdef.typesym) then
-                      internalerror(200710172);
-                    specializename:=specializename+'$'+pt2.resultdef.typesym.realname;
+                      message(type_e_generics_cannot_reference_itself)
+                    else
+                      specializename:=specializename+'$'+pt2.resultdef.typesym.realname;
                   end
                 else
                   begin
