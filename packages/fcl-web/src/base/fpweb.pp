@@ -29,9 +29,7 @@ Type
     FOnrequest: TWebActionEvent;
     FContents : TStrings;
     FTemplate : TFPTemplate;
-    function  GetStringContent: String;
     function  GetContents: TStrings;
-    procedure SetContent(const AValue: String);
     procedure SetContents(const AValue: TStrings);
     Procedure SetTemplate(const AValue : TFPTemplate);
   Protected  
@@ -43,7 +41,6 @@ Type
     Destructor destroy; override;
     Procedure Assign(Source : TPersistent); override;
   published
-    Property Content : String Read GetStringContent Write SetContent;
     Property Contents : TStrings Read GetContents Write SetContents;
     Property OnRequest: TWebActionEvent Read FOnrequest Write FOnrequest;
     Property Template : TFPTemplate Read FTemplate Write SetTemplate;
@@ -174,7 +171,7 @@ uses dbugintf;
 procedure TFPWebAction.GetContent(ARequest: TRequest; Content: TStream; Var Handled : Boolean);
 
 begin
-
+  DoGetContent(ARequest, Content, Handled);
 end;
 
 procedure TFPWebAction.Assign(Source: TPersistent);
@@ -185,12 +182,12 @@ Var
 begin
   If (Source is TFPWebAction) then
     begin
-    A:=Source as TFPWebAction;
+    A:=TFPWebAction(Source);
     Name:=A.Name;
-    Content:=A.Content;
     AfterResponse:=A.AfterResponse;
     BeforeRequest:=A.BeforeRequest;
     Default:=A.default;
+    Contents:=A.FContents;
     ContentProducer:=A.ContentProducer;
     OnRequest:=A.OnRequest;
     FTemplate.Assign(A.Template);
@@ -211,11 +208,6 @@ begin
   inherited destroy;
 end;
 
-function TFPWebAction.GetStringContent: String;
-begin
-  Result:=Contents.Text;
-end;
-
 function TFPWebAction.GetContents: TStrings;
 begin
   If Not Assigned(FContents) then
@@ -223,23 +215,17 @@ begin
   Result:=FContents;
 end;
 
-procedure TFPWebAction.SetContent(const AValue: String);
-begin
-  If (AValue='') then
-    FreeAndNil(FContents)
-  else
-    Contents.Text:=AValue;
-end;
-
 procedure TFPWebAction.SetContents(const AValue: TStrings);
 begin
-  Contents.Assign(AValue);
+  if AValue = nil then
+    FreeAndNil(FContents)
+  else
+    Contents.Assign(AValue);
 end;
 
 procedure TFPWebAction.SetTemplate(const AValue: TFPTemplate);
 begin
-  If Assigned(AValue) then
-    FTemplate.Assign(AValue);
+  FTemplate.Assign(AValue);
 end;
 
 
@@ -268,8 +254,9 @@ begin
     Inherited DoHandleRequest(ARequest,AResponse,Handled);
     If not Handled then
       begin
-      AResponse.Contents.AddStrings(Self.Contents);
-      Handled:=(AResponse.Content<>'');
+      Handled := (FContents <> nil) and (FContents.Count > 0);
+      if Handled then
+        AResponse.Contents.AddStrings(FContents);
       end;
     end;
 {$ifdef cgidebug}
@@ -279,12 +266,24 @@ end;
 
 procedure TFPWebAction.DoGetContent(ARequest: TRequest; Content: TStream; Var Handled : Boolean);
 
+  //isolate string references in a subprocedure to avoid implicit exceptions in main procedure
+  procedure CopyContent;
+  var
+    ContentStr: String;
+  begin
+    if FContents <> nil then
+    begin
+      ContentStr := FContents.Text;
+      If ContentStr<>'' then
+        Content.Write(ContentStr[1],Length(ContentStr));
+    end;
+  end;
+
 begin
   If Assigned(ContentProducer) then
     ContentProducer.GetContent(ARequest,Content,Handled)
   else
-    If (Self.Content<>'') then
-      Content.Write(Self.Content[1],Length(Self.Content));
+    CopyContent;
 end;
 
 
