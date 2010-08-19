@@ -579,7 +579,7 @@ begin
         pushq   %rdi
         xorq    %rcx,%rcx  
         movq    VideoBuf,%rsi
-        movq    OldVideoBuf,%edi
+        movq    OldVideoBuf,%rdi
         movl    VideoBufSize,%ecx
         shrq    $2,%rcx
         repe
