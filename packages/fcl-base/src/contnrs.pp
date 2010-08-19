@@ -363,8 +363,8 @@ type
     function GetLoadFactor: double;
     function GetAVGChainLen: double;
     function GetMaxChainLength: Longword;
-    function Chain(const index: Longword):TFPObjectList;
   protected
+    function Chain(const index: Longword):TFPObjectList;
     Function CreateNewNode(const aKey : string) : THTCustomNode; virtual; abstract;
     Procedure AddNode(ANode : THTCustomNode); virtual; abstract;
     function ChainLength(const ChainIndex: Longword): Longword; virtual;
