@@ -63,6 +63,7 @@ resourcestring
   SDocRemark                 = 'Remark:   ';
   SDocMethodOverview         = 'Method overview';
   SDocPropertyOverview       = 'Property overview';
+  SDocInterfacesOverview     = 'Interfaces overview';
   SDocPage                   = 'Page';
   SDocMethod                 = 'Method';
   SDocProperty               = 'Property';
@@ -119,6 +120,10 @@ resourcestring
   SCHMUsageAutoIDX = 'Automatically generate an Index. Ignores --index-file';
   SCHMUsageMakeSearch = 'Automatically generate a Search Index from filenames that match *.htm*';
 
+  // Linear usage
+  SLinearUsageDupLinkedDocsP1 = 'Duplicate linked element documentation in';
+  SLinearUsageDupLinkedDocsP2 = 'descendant classes.';
+
   STitle           = 'FPDoc - Free Pascal Documentation Tool';
   SVersion         = 'Version %s [%s]';
   SCopyright       = '(c) 2000 - 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org';
@@ -155,7 +160,7 @@ resourcestring
   SDone                       = 'Done.';
   SErrCouldNotCreateOutputDir = 'Could not create output directory "%s"';
   SErrCouldNotCreateFile      = 'Could not create file "%s": %s';
-  SSeeURL                     = '(See %s)';      // For lineair text writers.
+  SSeeURL                     = '(See %s)';      // For linear text writers.
 
 Const
   SVisibility: array[TPasMemberVisibility] of string =

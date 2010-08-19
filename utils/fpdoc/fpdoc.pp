@@ -24,9 +24,9 @@ uses
   dw_XML,    // XML writer
   dw_dxml,   // Delphi XML doc.
   dw_HTML,   // HTML writer
-  dw_ipf,    // IPF writer
+  dw_ipflin, // IPF writer (new linear output)
   dw_man,    // Man page writer
-  dw_linrtf, // lineair RTF writer
+  dw_linrtf, // linear RTF writer
   dw_txt;    // TXT writer
 
 const
