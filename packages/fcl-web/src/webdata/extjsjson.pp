@@ -5,7 +5,7 @@ unit extjsjson;
 interface
 
 uses
-  Classes, SysUtils, httpdefs, fphttp,fpwebdata, fpextjs, fpjson, db, jsonparser;
+  Classes, SysUtils, httpdefs, fphttp, fpwebdata, fpextjs, fpjson, db, jsonparser;
 
 type
 
@@ -23,10 +23,16 @@ type
     Function TryFieldValue(Const AFieldName : String; out AValue : String) : Boolean; override;
     Destructor destroy; override;
   end;
-  { TExtJSJSONDataFormatter }
 
+  { TExtJSJSONDataFormatter }
+  TJSONObjectEvent = Procedure(Sender : TObject; AObject : TJSONObject) of Object;
   TExtJSJSONDataFormatter = Class(TExtJSDataFormatter)
   private
+    FAfterDataToJSON: TJSONObjectEvent;
+    FAfterRowToJSON: TJSONObjectEvent;
+    FBeforeDataToJSON: TJSONObjectEvent;
+    FBeforeRowToJSON: TJSONObjectEvent;
+    FOnMetaDataToJSON: TJSONObjectEvent;
     procedure SendSuccess(ResponseContent: TStream; AddIDValue : Boolean = False);
   protected
     Function CreateAdaptor(ARequest : TRequest) : TCustomWebdataInputAdaptor; override;
@@ -34,11 +40,27 @@ type
     function GetDataContentType: String; override;
     Function GetJSONMetaData: TJSONObject;
     function RowToJSON: TJSONObject;
+    Procedure DoBeforeRow(ARow : TJSONObject); virtual;
+    Procedure DoAfterRow(ARow : TJSONObject); virtual;
+    Procedure DoBeforeData(AResponse : TJSONObject); virtual;
+    Procedure DoAfterData(AResponse : TJSONObject); virtual;
+    Procedure DoOnMetaData(AMetadata : TJSONObject); virtual;
     procedure DatasetToStream(Stream: TStream); override;
     Procedure DoExceptionToStream(E : Exception; ResponseContent : TStream); override;
     Procedure DoInsertRecord(ResponseContent : TStream); override;
     Procedure DoUpdateRecord(ResponseContent : TStream); override;
     Procedure DoDeleteRecord(ResponseContent : TStream); override;
+  Published
+    // Called before any fields are added to row object (passed to handler).
+    Property AfterRowToJSON : TJSONObjectEvent Read FAfterRowToJSON Write FAfterRowToJSON;
+    // Called After all fields are added to row object (passed to handler).
+    Property BeforeRowToJSON : TJSONObjectEvent Read FBeforeRowToJSON Write FBeforeRowToJSON;
+    // Called when metadata object has been created (passed to handler).
+    Property OnMetaDataToJSON : TJSONObjectEvent Read FOnMetaDataToJSON Write FOnMetaDataToJSON;
+    // Called when response object has been created, and has Rows property (response passed to handler).
+    Property AfterDataToJSON : TJSONObjectEvent Read FAfterDataToJSON Write FAfterDataToJSON;
+    // Called just before response object will be streamed (response passed to handler).
+    Property BeforeDataToJSON : TJSONObjectEvent Read FBeforeDataToJSON Write FBeforeDataToJSON;
   end;
 
 implementation
@@ -117,11 +139,48 @@ Var
 
 begin
   Result:=TJSONObject.Create();
-  For I:=0 to Dataset.Fields.Count-1 do
-    begin
-    F:=Dataset.Fields[I];
-    AddFieldToJSON(Result,F.FieldName,F);
-    end;
+  try
+    DobeforeRow(Result);
+    For I:=0 to Dataset.Fields.Count-1 do
+      begin
+      F:=Dataset.Fields[I];
+      AddFieldToJSON(Result,F.FieldName,F);
+      end;
+    DoAfterRow(Result);
+  except
+    Result.Free;
+    Raise;
+  end;
+end;
+
+procedure TExtJSJSONDataFormatter.DoBeforeRow(ARow: TJSONObject);
+begin
+  If Assigned(FBeforeRowToJSON) then
+    FBeforeRowToJSON(Self,ARow);
+end;
+
+procedure TExtJSJSONDataFormatter.DoAfterRow(ARow: TJSONObject);
+begin
+  If Assigned(FAfterRowToJSON) then
+    FAfterRowToJSON(Self,ARow);
+end;
+
+procedure TExtJSJSONDataFormatter.DoBeforeData(AResponse: TJSONObject);
+begin
+  If Assigned(FBeforeDataToJSON) then
+    FBeforeDataToJSON(Self,AResponse);
+end;
+
+procedure TExtJSJSONDataFormatter.DoAfterData(AResponse: TJSONObject);
+begin
+  If Assigned(FAfterDataToJSON) then
+    FAfterDataToJSON(Self,AResponse);
+end;
+
+procedure TExtJSJSONDataFormatter.DoOnMetaData(AMetadata: TJSONObject);
+begin
+  If Assigned(FOnMetaDataToJSON) then
+    FOnMetaDataToJSON(Self,AMetaData);
 end;
 
 Function TExtJSJSONDataFormatter.GetJSONMetaData: TJSONObject;
@@ -200,7 +259,8 @@ begin
     Result.Add(SIdProperty,Provider.IDFieldName);
     Result.Add(SSuccessProperty, SuccessProperty);
     Result.Add(SRootProperty, RowsProperty);
-    Result.Add(STotalProperty, totalProperty)
+    Result.Add(STotalProperty, totalProperty);
+    DoOnMetaData(Result);
   except
     Result.free;
     Raise;
@@ -221,6 +281,8 @@ begin
   Resp:=TJSONObject.Create;
   try
     Rows:=TJSONArray.Create();
+    Resp.Add(RowsProperty,Rows);
+    DoBeforeData(Resp);
     DS:=Dataset;
     DS.First;
     RCount:=0;
@@ -251,10 +313,10 @@ begin
         Inc(RCount);
         DS.Next;
         end;
-    Resp.Add(RowsProperty,Rows);
     Resp.Add(SuccessProperty,True);
     If (PageSize>0) then
        Resp.Add(TotalProperty,RCount);
+    DoAfterData(Resp);
     L:=Resp.AsJSON;
     Stream.WriteBuffer(L[1],Length(L));
   finally
@@ -280,6 +342,7 @@ begin
     L:=Resp.AsJSON;
     If Length(L)>0 then
       ResponseContent.WriteBuffer(L[1],Length(L));
+    Resp.Add(RowsProperty,TJSONArray.Create());
   finally
     Resp.Free;
   end;
