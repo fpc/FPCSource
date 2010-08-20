@@ -26,12 +26,15 @@ type
 
   { TExtJSJSONDataFormatter }
   TJSONObjectEvent = Procedure(Sender : TObject; AObject : TJSONObject) of Object;
+  TJSONExceptionObjectEvent = Procedure(Sender : TObject; E : Exception; AResponse : TJSONObject) of Object;
+
   TExtJSJSONDataFormatter = Class(TExtJSDataFormatter)
   private
     FAfterDataToJSON: TJSONObjectEvent;
     FAfterRowToJSON: TJSONObjectEvent;
     FBeforeDataToJSON: TJSONObjectEvent;
     FBeforeRowToJSON: TJSONObjectEvent;
+    FOnErrorResponse: TJSONExceptionObjectEvent;
     FOnMetaDataToJSON: TJSONObjectEvent;
     procedure SendSuccess(ResponseContent: TStream; AddIDValue : Boolean = False);
   protected
@@ -61,6 +64,8 @@ type
     Property AfterDataToJSON : TJSONObjectEvent Read FAfterDataToJSON Write FAfterDataToJSON;
     // Called just before response object will be streamed (response passed to handler).
     Property BeforeDataToJSON : TJSONObjectEvent Read FBeforeDataToJSON Write FBeforeDataToJSON;
+    // Called when an exception is caught and formatted.
+    Property OnErrorResponse : TJSONExceptionObjectEvent Read FOnErrorResponse Write FOnErrorResponse;
   end;
 
 implementation
@@ -343,6 +348,8 @@ begin
     If Length(L)>0 then
       ResponseContent.WriteBuffer(L[1],Length(L));
     Resp.Add(RowsProperty,TJSONArray.Create());
+    If Assigned(FOnErrorResponse) then
+      FOnErrorResponse(Self,E,Resp);
   finally
     Resp.Free;
   end;

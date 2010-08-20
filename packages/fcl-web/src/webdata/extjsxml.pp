@@ -38,6 +38,8 @@ Type
 
   { TExtJSXMLDataFormatter }
   TXMLElementEvent = Procedure (Sender : TObject; AElement : TDOMElement) of object;
+  TXMLExceptionObjectEvent = Procedure(Sender : TObject; E : Exception; AResponse : TDOMElement) of Object;
+
   TExtJSXMLDataFormatter = Class(TExtJSDataFormatter)
   private
     FAfterDataToXML: TXMLElementEvent;
@@ -45,6 +47,7 @@ Type
     FBeforeDataToXML: TXMLElementEvent;
     FBeforeRowToXML: TXMLElementEvent;
     FDP: String;
+    FOnErrorResponse: TXmlExceptionObjectEvent;
     FReP: String;
     FRP: String;
     function IsDocumentStored: boolean;
@@ -74,6 +77,8 @@ Type
     Property BeforeDataToXML : TXMLElementEvent Read FBeforeDataToXML Write FBeforeDataToXML;
     // Called after all rows are appended to root element (passed to handler).
     Property AfterDataToXML : TXMLElementEvent Read FAfterDataToXML Write FAfterDataToXML;
+    // Called when an exception is caught and formatted.
+    Property OnErrorResponse : TXmlExceptionObjectEvent Read FOnErrorResponse Write FOnErrorResponse;
   end;
 
 implementation
@@ -148,6 +153,8 @@ begin
       C.AppendChild(XML.CreateTextNode(E.Message))
     else
       C.AppendChild(XML.CreateTextNode(SerrNoExceptionMessage));
+    If Assigned(FOnErrorResponse) then
+      FOnErrorResponse(Self,E,El);
     WriteXMLFile(XML,ResponseContent);
   Finally
     XML.Free;
