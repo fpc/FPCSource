@@ -2658,7 +2658,7 @@ declarator :
        $$:=hp;
        while assigned(hp^.p1) do
          hp:=hp^.p1;
-       hp^.p1:=new(presobject,init_two(t_arraydef,nil,nil));
+       hp^.p1:=new(presobject,init_one(t_pointerdef,nil));
      } |
      LKLAMMER declarator RKLAMMER
      {
@@ -2726,7 +2726,7 @@ abstract_declarator :
        $$:=hp;
        while assigned(hp^.p1) do
          hp:=hp^.p1;
-       hp^.p1:=new(presobject,init_two(t_arraydef,nil,nil));
+       hp^.p1:=new(presobject,init_one(t_pointerdef,nil));
      } |
      LKLAMMER abstract_declarator RKLAMMER
      {

@@ -94,3 +94,6 @@ typedef struct FnTable {
   int (*Fn2)( void );
   int (*Fn3)( void );
 } FnTable;
+
+
+void f(int a, char* p[]);

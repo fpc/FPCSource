@@ -2781,7 +2781,7 @@ begin
          yyval:=hp;
          while assigned(hp^.p1) do
          hp:=hp^.p1;
-         hp^.p1:=new(presobject,init_two(t_arraydef,nil,nil));
+         hp^.p1:=new(presobject,init_one(t_pointerdef,nil));
          
        end;
  109 : begin
@@ -2857,7 +2857,7 @@ begin
          yyval:=hp;
          while assigned(hp^.p1) do
          hp:=hp^.p1;
-         hp^.p1:=new(presobject,init_two(t_arraydef,nil,nil));
+         hp^.p1:=new(presobject,init_one(t_pointerdef,nil));
          
        end;
  119 : begin
