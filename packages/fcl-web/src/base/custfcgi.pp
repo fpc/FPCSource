@@ -525,34 +525,36 @@ begin
   repeat
   AFCGI_Record:=Read_FCGIRecord;
   if assigned(AFCGI_Record) then
-    begin
-    ARequestID:=BEtoN(AFCGI_Record^.requestID);
-    if AFCGI_Record^.reqtype = FCGI_BEGIN_REQUEST then
-      begin
-      if ARequestID>FRequestsAvail then
+    try
+      ARequestID:=BEtoN(AFCGI_Record^.requestID);
+      if AFCGI_Record^.reqtype = FCGI_BEGIN_REQUEST then
         begin
-        inc(FRequestsAvail,10);
-        SetLength(FRequestsArray,FRequestsAvail);
-        end;
-      assert(not assigned(FRequestsArray[ARequestID].Request));
-      assert(not assigned(FRequestsArray[ARequestID].Response));
+        if ARequestID>FRequestsAvail then
+          begin
+          inc(FRequestsAvail,10);
+          SetLength(FRequestsArray,FRequestsAvail);
+          end;
+        assert(not assigned(FRequestsArray[ARequestID].Request));
+        assert(not assigned(FRequestsArray[ARequestID].Response));
 
-      ATempRequest:=TFCGIRequest.Create;
-      ATempRequest.RequestID:=ARequestID;
-      ATempRequest.Handle:=FHandle;
-      ATempRequest.ProtocolOptions:=Self.Protocoloptions;
-      ATempRequest.OnUnknownRecord:=Self.OnUnknownRecord;
-      FRequestsArray[ARequestID].Request := ATempRequest;
-      end;
-    if FRequestsArray[ARequestID].Request.ProcessFCGIRecord(AFCGI_Record) then
-      begin
-      ARequest:=FRequestsArray[ARequestID].Request;
-      FRequestsArray[ARequestID].Response := TFCGIResponse.Create(ARequest);
-      FRequestsArray[ARequestID].Response.ProtocolOptions:=Self.ProtocolOptions;
-      AResponse:=FRequestsArray[ARequestID].Response;
-      Result := True;
-      Break;
-      end;
+        ATempRequest:=TFCGIRequest.Create;
+        ATempRequest.RequestID:=ARequestID;
+        ATempRequest.Handle:=FHandle;
+        ATempRequest.ProtocolOptions:=Self.Protocoloptions;
+        ATempRequest.OnUnknownRecord:=Self.OnUnknownRecord;
+        FRequestsArray[ARequestID].Request := ATempRequest;
+        end;
+      if FRequestsArray[ARequestID].Request.ProcessFCGIRecord(AFCGI_Record) then
+        begin
+        ARequest:=FRequestsArray[ARequestID].Request;
+        FRequestsArray[ARequestID].Response := TFCGIResponse.Create(ARequest);
+        FRequestsArray[ARequestID].Response.ProtocolOptions:=Self.ProtocolOptions;
+        AResponse:=FRequestsArray[ARequestID].Response;
+        Result := True;
+        Break;
+        end;
+    Finally
+      FreeMem(AFCGI_Record);
     end;
   until (1<>1);
 end;
