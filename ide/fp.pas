@@ -235,25 +235,6 @@ begin
   end;
 end;
 
-{$ifdef linux}
-procedure detect_debian;
-
-var attr:word;
-    f:text;
-
-begin
-  assign(f,'/etc/debian_version');
-  getfattr(f,attr);
-  if doserror=0 then
-    errorbox('Debian system detected!'#13#13+
-             'Debian systems use an incompatible gpm'#13+
-             'daemon, therefore your system might'#13+
-             'suffer from Debian bug 412927. Please'#13+
-             'see http://bugs.debian.org/cgi-bin/'#13+
-             'bugreport.cgi?bug=412927 for details.',nil);
-end;
-{$endif}
-
 procedure DelTempFiles;
 begin
   DeleteFile(FPOutFileName);
@@ -435,10 +416,6 @@ BEGIN
 
   if ShowReadme then
   begin
-  {$ifdef linux}
-    {Regrettably we do not have a proper solution.}
-    detect_debian;
-  {$endif}
     PutCommand(Application,evCommand,cmShowReadme,nil);
     ShowReadme:=false; { do not show next time }
   end;
