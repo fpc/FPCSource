@@ -754,7 +754,7 @@ var
 
            for j:= 0 to inhclass.count-1 do
              begin
-               writeln('processing',inhclass[j]);
+               // writeln('processing',inhclass[j]);
                cls2:=TPasClassType(ResolveClassType(inhclass[j])); 
                if assigned(cls2) and not (cls=cls2) then  // save from tobject=implicit tobject
                  begin

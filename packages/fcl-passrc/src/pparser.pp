@@ -3204,6 +3204,13 @@ begin
     if CurToken = tkBraceOpen then
     begin
       TPasClassType(Result).AncestorType := ParseType(nil);
+      {$ifdef Inheritancewarnings}
+        s:=TPasClassType(Result).AncestorType.pathname;
+        if pos('#',s)=0 then
+          begin
+            writeln('Note: ', TPasClassType(Result).pathname,'''s ancestor ',s, ' at ',sourcefilename,':',sourcelinenumber,' cannot be resolved fully');
+          end;
+      {$endif}
       while True do
       begin
         NextToken;
