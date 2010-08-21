@@ -1213,7 +1213,6 @@ End;
   {$else fpc}
   assembler;
   asm
-    push eax
     push ebx
     push ecx
     push edx
@@ -1232,12 +1231,11 @@ End;
  {   add    edi, [VideoOfs]       no multiple pages in 320*200*256 }
     shl    ebx, 6
     add    edi, ebx
-    movzx  ax, byte ptr fs:[edi+ebx*4+$a0000]
+    movzx  eax, byte ptr fs:[edi+ebx*4+$a0000]
     pop edi
     pop edx
     pop ecx
     pop ebx
-    pop eax
  {$endif fpc}
   end;
 
