@@ -583,6 +583,7 @@ end;
 procedure TFPDocEngine.ReadContentFile(const AFilename, ALinkPrefix: String);
 var
   f: Text;
+  inheritanceinfo : TStringlist;
 
   procedure ReadLinkTree;
   var
@@ -640,16 +641,15 @@ var
     end;
   end;
 
-  procedure ReadClasses;
-
-    function CreateClass(const AName: String;InheritanceStr:String): TPasClassType;
+  function ResolvePackageModule(AName:String;var pkg:TPasPackage;var module:TPasModule;createnew:boolean):String;
     var
       DotPos, DotPos2, i,j: Integer;
       s: String;
       HPackage: TPasPackage;
-      Module: TPasModule;
 
     begin
+      pkg:=nil; module:=nil; result:='';
+
       // Find or create package
       DotPos := Pos('.', AName);
       s := Copy(AName, 1, DotPos - 1);
@@ -662,6 +662,8 @@ var
         end;
       if not Assigned(HPackage) then
       begin
+        if not CreateNew then
+          exit;
         HPackage := TPasPackage(inherited CreateElement(TPasPackage, s, nil,
           '', 0));
         FPackages.Add(HPackage);
@@ -682,19 +684,97 @@ var
         end;
       if not Assigned(Module) then
       begin
+        if not CreateNew then
+          exit;
         Module := TPasModule.Create(s, HPackage);
         Module.InterfaceSection := TInterfaceSection.Create('', Module);
         HPackage.Modules.Add(Module);
       end;
+     pkg:=hpackage;
+     result:=Copy(AName, DotPos2 + 1, length(AName)-dotpos2);
+  end;
 
-      s:=Copy(AName, DotPos2 + 1, length(AName)-dotpos2);
+  function ResolveClassType(AName:String):TPasClassType;
+  var 
+     pkg     : TPasPackage;
+     module  : TPasModule;
+     s       : string; 
+     clslist : TList;  
+     ClassEl : TPasClassType;
+     i       : Integer;
+  begin
+    Result:=nil;
+    s:=ResolvePackageModule(AName,pkg,module,False);
+    if not assigned(module) then
+      exit;
+    clslist:=module.InterfaceSection.Classes;
+    for i:=0 to clslist.count-1 do
+      begin
+        ClassEl := TPasClassType(clslist[i]);
+        if CompareText(ClassEl.Name,s) =0 then
+          exit(Classel); 
+      end;
+  end;
+
+  procedure ReadClasses;
+
+    function CreateClass(const AName: String;InheritanceStr:String): TPasClassType;
+    var
+      DotPos, DotPos2, i,j: Integer;
+      s: String;
+      HPackage: TPasPackage;
+      Module: TPasModule;
+
+    begin
+      s:= ResolvePackageModule(AName,HPackage,Module,True);
       // Create node for class
       Result := TPasClassType.Create(s, Module.InterfaceSection);
       Result.ObjKind := okClass;
       Module.InterfaceSection.Declarations.Add(Result);
       Module.InterfaceSection.Classes.Add(Result);
-      // process inheritancestr here.
+      // defer processing inheritancestr till all classes are loaded.
+      if inheritancestr<>'' then
+        InheritanceInfo.AddObject(Inheritancestr,result);
     end;
+
+   procedure ProcessInheritanceStrings(inhInfo:TStringList);
+   var i,j : integer;
+       cls : TPasClassType;  
+       cls2: TPasClassType;
+       inhclass   : TStringList;
+   begin
+     inhclass:=TStringList.Create;
+     inhclass.delimiter:=',';
+     if InhInfo.Count>0 then
+       for i:=0 to InhInfo.Count-1 do
+         begin
+           cls:=TPasClassType(InhInfo.Objects[i]);
+           inhclass.clear; 
+           inhclass.delimitedtext:=InhInfo[i];
+
+           for j:= 0 to inhclass.count-1 do
+             begin
+               writeln('processing',inhclass[j]);
+               cls2:=TPasClassType(ResolveClassType(inhclass[j])); 
+               if assigned(cls2) and not (cls=cls2) then  // save from tobject=implicit tobject
+                 begin
+                   cls2.addref;
+                   if j=0 then
+                     cls.ancestortype:=cls2
+                   else
+                     cls.interfaces.add(cls2);
+{                   if j=0 then
+                     writeln(cls.name, ' has as ancestor ',cls2.pathname)
+                   else
+                     writeln(cls.name, ' implements ',cls2.pathname)
+}
+                 end
+               else
+                if cls<>cls2 then
+                  writeln(cls.name,'''s dependancy '  ,inhclass[j],' ',j,' could not be resolved');
+             end;
+         end;
+end;
 
   var
     s, Name: String;
@@ -702,53 +782,59 @@ var
     i: Integer;
     Member: TPasElement;
   begin
-    CurClass := nil;
-    while True do
-    begin
-      ReadLn(f, s);
-      if Length(s) = 0 then
-        break;
-      if s[1] = '#' then
+    inheritanceinfo :=TStringlist.Create;
+    Try
+      CurClass := nil;
+      while True do
       begin
-        // New class
-        i := Pos(' ', s);
-        CurClass := CreateClass(Copy(s, 1, i - 1), copy(s,i+1,length(s)));
-      end else
-      begin
-        i := Pos(' ', s);
-        if i = 0 then
-          Name := Copy(s, 3, Length(s))
-        else
-          Name := Copy(s, 3, i - 3);
-
-        case s[2] of
-          'M':
-            Member := TPasProcedure.Create(Name, CurClass);
-          'P':
-            begin
-              Member := TPasProperty.Create(Name, CurClass);
-              if i > 0 then
-                while i <= Length(s) do
-                begin
-                  case s[i] of
-                    'r':
-                      TPasProperty(Member).ReadAccessorName := '<dummy>';
-                    'w':
-                      TPasProperty(Member).WriteAccessorName := '<dummy>';
-                    's':
-                      TPasProperty(Member).StoredAccessorName := '<dummy>';
-                  end;
-                  Inc(i);
-                end;
-            end;
-          'V':
-            Member := TPasVariable.Create(Name, CurClass);
+        ReadLn(f, s);
+        if Length(s) = 0 then
+          break;
+        if s[1] = '#' then
+        begin
+          // New class
+          i := Pos(' ', s);
+          CurClass := CreateClass(Copy(s, 1, i - 1), copy(s,i+1,length(s)));
+        end else
+        begin
+          i := Pos(' ', s);
+          if i = 0 then
+            Name := Copy(s, 3, Length(s))
           else
-            raise Exception.Create('Invalid member type: ' + s[2]);
+            Name := Copy(s, 3, i - 3);
+
+          case s[2] of
+            'M':
+              Member := TPasProcedure.Create(Name, CurClass);
+            'P':
+              begin
+                Member := TPasProperty.Create(Name, CurClass);
+                if i > 0 then
+                  while i <= Length(s) do
+                  begin
+                    case s[i] of
+                      'r':
+                        TPasProperty(Member).ReadAccessorName := '<dummy>';
+                      'w':
+                        TPasProperty(Member).WriteAccessorName := '<dummy>';
+                      's':
+                        TPasProperty(Member).StoredAccessorName := '<dummy>';
+                    end;
+                    Inc(i);
+                  end;
+              end;
+            'V':
+              Member := TPasVariable.Create(Name, CurClass);
+            else
+              raise Exception.Create('Invalid member type: ' + s[2]);
+          end;
+          CurClass.Members.Add(Member);
         end;
-        CurClass.Members.Add(Member);
       end;
-    end;
+     ProcessInheritanceStrings(Inheritanceinfo);
+    finally
+     inheritanceinfo.Free;
+     end;
   end;
 
 var
@@ -865,8 +951,6 @@ begin
       end;
     end;
   end;
-
-
   finally
     Close(ContentFile);
   end;
