@@ -57,6 +57,8 @@ var
 
   ptable : ^pointtype;
 
+  LastPolygonStart : Longint;
+  Closing, PrevClosing : Boolean;
 
 begin
 { /********************************************************************
@@ -74,12 +76,34 @@ begin
  { check for getmem success }
 
   nEdges := 0;
+  LastPolygonStart := 0;
+  Closing := false;
   for i := 0 to (numpoints-1) do begin
     p0 := ptable[i];
     if (i+1) >= numpoints then p1 := ptable[0]
     else p1 := ptable[i+1];
+    { save the 'closing' flag for the previous edge }
+    PrevClosing := Closing;
+    { check if the current edge is 'closing'. This means that it 'closes'
+      the polygon by going back to the first point of the polygon.
+      Also, 0-length edges are never considered 'closing'. }
+    if ((p1.x <> ptable[i].x) or
+        (p1.y <> ptable[i].y)) and
+        (LastPolygonStart < i) and
+       ((p1.x = ptable[LastPolygonStart].x) and
+        (p1.y = ptable[LastPolygonStart].y)) then
+    begin
+      Closing := true;
+      LastPolygonStart := i + 2;
+    end
+    else
+      Closing := false;
+    { skip current edge if the previous edge was 'closing'. This is TP7 compatible }
+    if PrevClosing then
+      continue;
    { draw the edges }
-    Line(p0.x,p0.y,p1.x,p1.y);
+{    nickysn: moved after drawing the filled area
+    Line(p0.x,p0.y,p1.x,p1.y);}
    { ignore if this is a horizontal edge}
     if (p0.y = p1.y) then continue;
    { swap ptable if necessary to ensure p0 contains yMin}
@@ -167,7 +191,7 @@ begin
     { Fill in desired pixels values on scan line y by using pairs of x
     coordinates from the AET }
     i := 0;
-    while (i < nActive) do begin
+    while (i < (nActive - 1)) do begin
       x0 := AET^[i]^.x;
       x1 := AET^[i+1]^.x;
       {Left edge adjustment for positive fraction.  0 is interior. }
@@ -209,6 +233,37 @@ begin
     inc(y);
     if (y >= ViewHeight) then break;
   end;
+
+  { finally, draw the edges }
+  LastPolygonStart := 0;
+  Closing := false;
+  for i := 0 to (numpoints-1) do begin
+    p0 := ptable[i];
+    if (i+1) >= numpoints then p1 := ptable[0]
+    else p1 := ptable[i+1];
+    { save the 'closing' flag for the previous edge }
+    PrevClosing := Closing;
+    { check if the current edge is 'closing'. This means that it 'closes'
+      the polygon by going back to the first point of the polygon.
+      Also, 0-length edges are never considered 'closing'. }
+    if ((p1.x <> p0.x) or
+        (p1.y <> p0.y)) and
+        (LastPolygonStart < i) and
+       ((p1.x = ptable[LastPolygonStart].x) and
+        (p1.y = ptable[LastPolygonStart].y)) then
+    begin
+      Closing := true;
+      LastPolygonStart := i + 2;
+    end
+    else
+      Closing := false;
+    { skip edge if the previous edge was 'closing'. This is TP7 compatible }
+    if PrevClosing then
+      continue;
+   { draw the edges }
+    Line(p0.x,p0.y,p1.x,p1.y);
+  end;
+
   System.freemem(et, sizeof(tedge) * numpoints);
   System.freemem(get, sizeof(pedge) * numpoints);
   System.freemem(aet, sizeof(pedge) * numpoints);

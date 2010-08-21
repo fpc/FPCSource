@@ -1871,18 +1871,41 @@ end;
       ppointtype = ^pointtype;
       pt = array[0..16000] of pointtype;
     var
-      i : longint;
+      i, j, LastPolygonStart: longint;
+      Closing: boolean;
     begin
       if numpoints < 2 then
         begin
-          _GraphResult := grError;
+          { nickysn: TP7 doesn't return error here }
+          {_GraphResult := grError;}
           exit;
         end;
+      Closing := false;
+      LastPolygonStart := 0;
       for i:=0 to numpoints-2 do
-        line(pt(polypoints)[i].x,
-             pt(polypoints)[i].y,
-             pt(polypoints)[i+1].x,
-             pt(polypoints)[i+1].y);
+      begin
+        { skip an edge after each 'closing' edge }
+        if not Closing then
+          line(pt(polypoints)[i].x,
+               pt(polypoints)[i].y,
+               pt(polypoints)[i+1].x,
+               pt(polypoints)[i+1].y);
+
+        { check if the current edge is 'closing'. This means that it 'closes'
+          the polygon by going back to the first point of the polygon.
+          Also, 0-length edges are never considered 'closing'. }
+        if ((pt(polypoints)[i+1].x <> pt(polypoints)[i].x) or
+            (pt(polypoints)[i+1].y <> pt(polypoints)[i].y)) and
+            (LastPolygonStart < i) and
+           ((pt(polypoints)[i+1].x = pt(polypoints)[LastPolygonStart].x) and
+            (pt(polypoints)[i+1].y = pt(polypoints)[LastPolygonStart].y)) then
+        begin
+          Closing := true;
+          LastPolygonStart := i + 2;
+        end
+        else
+          Closing := false;
+      end;
     end;
 
 
