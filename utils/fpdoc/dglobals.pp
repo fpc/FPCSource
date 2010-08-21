@@ -829,7 +829,9 @@ begin
         if Assigned(ClassDecl.AncestorType) then
           Write(ContentFile, ClassDecl.AncestorType.PathName)
         else if ClassDecl.ObjKind = okClass then
-          Write(ContentFile, '.TObject');
+          Write(ContentFile, '#rtl.System.TObject')
+        else if ClassDecl.ObjKind = okInterface then
+          Write(ContentFile, '#rtl.System.IUnknown');
         if ClassDecl.Interfaces.Count>0 then
           begin
             for k:=0 to ClassDecl.Interfaces.count-1 do
