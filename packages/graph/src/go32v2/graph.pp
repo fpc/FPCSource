@@ -1498,7 +1498,7 @@ const CrtAddress: word = 0;
      push cx
      push dx
 {$IFDEF REGCALL}
-     mov cx, ax
+     mov cx, dx
 {$ENDIF REGCALL}
       { Wait if we are currently in a Vertical Retrace        }
      MOV     DX, INPUT_1         { Input Status #1 Register       }
