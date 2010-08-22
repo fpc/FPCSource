@@ -96,10 +96,10 @@ begin
  {$ifdef CPU64}
   Fpmmap:=pointer(ptruint(do_syscall(TSysParam(syscall_nr_mmap),TSysParam(Start),TSysParam(Len),TSysParam(Prot),TSysParam(Flags),TSysParam(fd),0,TSysParam(offst))));
 {$else}
-  Fpmmap:=pointer(ptruint(do_syscall(syscall_nr_mmap,TSysParam(Start),Len,Prot,Flags,fd,
-        {$ifdef FPC_BIG_ENDIAN}    hi(offst),lo(offst){$endif}
-        {$ifdef FPC_LITTLE_ENDIAN} lo(offst),hi(offst){$endif},0
-        )));
+ Fpmmap:=pointer(ptruint(do_syscall(syscall_nr_mmap,TSysParam(Start),Len,Prot,Flags,fd,0,
+         {$ifdef FPC_BIG_ENDIAN}    hi(offst),lo(offst){$endif}
+         {$ifdef FPC_LITTLE_ENDIAN} lo(offst),hi(offst){$endif}
+         )));
 {$endif}
 end;
 
