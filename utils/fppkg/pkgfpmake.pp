@@ -290,6 +290,8 @@ begin
   AddOption('--compiler='+CompilerOptions.Compiler);
   AddOption('--cpu='+CPUToString(CompilerOptions.CompilerCPU));
   AddOption('--os='+OSToString(CompilerOptions.CompilerOS));
+  if CompilerOptions.HasOptions then
+    AddOption('--options='+CompilerOptions.Options.DelimitedText);
   if IsSuperUser or GlobalOptions.InstallGlobal then
     AddOption('--baseinstalldir='+CompilerOptions.GlobalInstallDir)
   else

@@ -98,6 +98,8 @@ Type
     FCompilerCPU: TCPU;
     FCompilerOS: TOS;
     FOptionParser: TTemplateParser;
+    FOptions: TStrings;
+    function GetOptions: TStrings;
     function GetOptString(Index: integer): String;
     procedure SetOptString(Index: integer; const AValue: String);
     procedure SetCompilerCPU(const AValue: TCPU);
@@ -112,6 +114,7 @@ Type
     procedure UpdateLocalRepositoryOption;
     Function LocalUnitDir:string;
     Function GlobalUnitDir:string;
+    Function HasOptions: boolean;
     Property Dirty : Boolean Read FDirty;
     Property ConfigVersion : Integer read FConfigVersion;
   Published
@@ -120,6 +123,7 @@ Type
     Property CompilerVersion : String Index 3 Read GetOptString Write SetOptString;
     Property GlobalInstallDir : String Index 4 Read GetOptString Write SetOptString;
     Property LocalInstallDir : String Index 5 Read GetOptString Write SetOptString;
+    Property Options : TStrings read GetOptions;
     Property CompilerOS : TOS Read FCompilerOS Write SetCompilerOS;
     Property CompilerCPU : TCPU Read FCompilerCPU Write SetCompilerCPU;
   end;
@@ -398,6 +402,8 @@ end;
 destructor TCompilerOptions.Destroy;
 begin
   FOptionParser.Free;
+  if assigned(FOptions) then
+    FreeAndNil(FOptions);
   inherited Destroy;
 end;
 
@@ -414,6 +420,17 @@ begin
       Error('Unknown option');
   end;
 end;
+
+function TCompilerOptions.GetOptions: TStrings;
+begin
+  if not assigned(FOptions) then
+    begin
+      FOptions := TStringList.Create;
+      FOptions.Delimiter:=' ';
+    end;
+  Result := FOptions;
+end;
+
 
 procedure TCompilerOptions.SetOptString(Index: integer; const AValue: String);
 begin
@@ -471,6 +488,12 @@ begin
     result:=GlobalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
   else
     result:='';
+end;
+
+
+function TCompilerOptions.HasOptions: boolean;
+begin
+  result := assigned(FOptions);
 end;
 
 

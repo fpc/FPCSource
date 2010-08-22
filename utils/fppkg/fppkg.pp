@@ -168,15 +168,16 @@ procedure TMakeTool.ShowUsage;
 begin
   Writeln('Usage: ',Paramstr(0),' [options] <action> <package>');
   Writeln('Options:');
-  Writeln('  -c --config       Set compiler configuration to use');
-  Writeln('  -h --help         This help');
-  Writeln('  -v --verbose      Show more information');
-  Writeln('  -d --debug        Show debugging information');
-  Writeln('  -g --global       Force installation to global (system-wide) directory');
-  Writeln('  -f --force        Force installation also if the package is already installed');
-  Writeln('  -r --recovery     Recovery mode, use always internal fpmkunit');
-  Writeln('  -b --broken       Do not stop on broken packages');
-  Writeln('  -l --showlocation Show if the packages are installed globally or locally');
+  Writeln('  -c --config        Set compiler configuration to use');
+  Writeln('  -h --help          This help');
+  Writeln('  -v --verbose       Show more information');
+  Writeln('  -d --debug         Show debugging information');
+  Writeln('  -g --global        Force installation to global (system-wide) directory');
+  Writeln('  -f --force         Force installation also if the package is already installed');
+  Writeln('  -r --recovery      Recovery mode, use always internal fpmkunit');
+  Writeln('  -b --broken        Do not stop on broken packages');
+  Writeln('  -l --showlocation  Show if the packages are installed globally or locally');
+  Writeln('  -o --options=value Pass extra options to the compiler');
   Writeln('Actions:');
   Writeln('  update            Update packages list');
   Writeln('  list              List available and installed packages');
@@ -243,9 +244,26 @@ procedure TMakeTool.ProcessCommandLine;
       end;
   end;
 
+  function SplitSpaces(var SplitString: string) : string;
+  var i : integer;
+  begin
+    i := pos(' ',SplitString);
+    if i > 0 then
+      begin
+        result := copy(SplitString,1,i-1);
+        delete(SplitString,1,i);
+      end
+    else
+      begin
+        result := SplitString;
+        SplitString:='';
+      end;
+  end;
+
 Var
   I : Integer;
   HasAction : Boolean;
+  OptString : String;
 begin
   I:=0;
   HasAction:=false;
@@ -269,6 +287,12 @@ begin
         GlobalOptions.AllowBroken:=true
       else if CheckOption(I,'l','showlocation') then
         GlobalOptions.ShowLocation:=true
+      else if CheckOption(I,'o','options') then
+        begin
+          OptString := OptionArg(I);
+          while OptString <> '' do
+            CompilerOptions.Options.Add(SplitSpaces(OptString));
+        end
       else if CheckOption(I,'h','help') then
         begin
           ShowUsage;
