@@ -896,8 +896,21 @@ var
 
 
   procedure Rectangle(x1,y1,x2,y2:smallint);
-
+   var
+     tmp: smallint;
    begin
+     if x1 > x2 then
+     begin
+       tmp := x1;
+       x1 := x2;
+       x2 := tmp;
+     end;
+     if y1 > y2 then
+     begin
+       tmp := y1;
+       y1 := y2;
+       y2 := tmp;
+     end;
      { Do not draw the end points }
      Line(x1,y1,x2-1,y1);
      Line(x1,y1+1,x1,y2);
@@ -1561,6 +1574,12 @@ end;
           y1:=y2;
           y2:=y;
        end;
+     if x1>x2 then
+       begin
+          y:=x1;
+          x1:=x2;
+          x2:=y;
+       end;
 
      { Always copy mode for Bars }
      origwritemode := CurrentWriteMode;
@@ -1603,6 +1622,19 @@ var
  origwritemode : smallint;
  OldX, OldY : smallint;
 begin
+  if x1 > x2 then
+  begin
+    OldX := x1;
+    x1 := x2;
+    x2 := OldX;
+  end;
+  if y1 > y2 then
+  begin
+    OldY := y1;
+    y1 := y2;
+    y2 := OldY;
+  end;
+
   origwritemode := CurrentWriteMode;
   CurrentWriteMode := CopyPut;
   Bar(x1,y1,x2,y2);
