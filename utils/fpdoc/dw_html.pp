@@ -2233,7 +2233,7 @@ begin
   end;
 end;
 
-procedure THTMLWriter.CreateIndexPage(L : TStringList);
+	procedure THTMLWriter.CreateIndexPage(L : TStringList);
 
 Var
   Lists  : Array['A'..'Z'] of TStringList;
@@ -2819,6 +2819,7 @@ var
     CurVisibility: TPasMemberVisibility;
     i: Integer;
     s: String;
+    ThisInterface,
     ThisClass: TPasClassType;
     HaveSeenTObject: Boolean;
   begin
@@ -2853,7 +2854,7 @@ var
         begin
           for i:=0 to AClass.interfaces.count-1 do
            begin
-             AppendSym(CodeEl, ',');
+             AppendSym(CodeEl, ', ');
              AppendHyperlink(CodeEl,TPasClassType(AClass.Interfaces[i]));
            end; 
         end;
@@ -2962,6 +2963,15 @@ var
       TDEl['align'] := 'center';
       CodeEl := CreateCode(CreatePara(TDEl));
       AppendHyperlink(CodeEl, ThisClass);
+      if ThisClass.Interfaces.count>0 then
+        begin
+          for i:=0 to ThisClass.interfaces.count-1 do
+            begin
+              ThisInterface:=TPasClassType(ThisClass.Interfaces[i]);
+              AppendText(CodeEl,',');
+              AppendHyperlink(CodeEl, ThisInterface);
+            end;
+        end;
       AppendShortDescrCell(TREl, ThisClass);
       if HaveSeenTObject or (CompareText(ThisClass.Name, 'TObject') = 0) then
         HaveSeenTObject := True
