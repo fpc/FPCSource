@@ -1712,6 +1712,7 @@ implementation
            p1,p2 : tnode;
            lastp,
            buildp : tarrayconstructornode;
+           old_allow_array_constructor : boolean;
          begin
            buildp:=nil;
          { be sure that a least one arrayconstructn is used, also for an
@@ -1720,6 +1721,9 @@ implementation
              buildp:=carrayconstructornode.create(nil,buildp)
            else
             repeat
+              { nested array constructors are not allowed, see also tests/webtbs/tw17213.pp }
+              old_allow_array_constructor:=allow_array_constructor;
+              allow_array_constructor:=false;
               p1:=comp_expr(true);
               if try_to_consume(_POINTPOINT) then
                 begin
@@ -1737,6 +1741,7 @@ implementation
                  lastp.right:=carrayconstructornode.create(p1,nil);
                  lastp:=tarrayconstructornode(lastp.right);
                end;
+             allow_array_constructor:=old_allow_array_constructor;
            { there could be more elements }
            until not try_to_consume(_COMMA);
            factor_read_set:=buildp;
