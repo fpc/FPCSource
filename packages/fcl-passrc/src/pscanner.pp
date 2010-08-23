@@ -138,7 +138,10 @@ type
     tkvar,
     tkwhile,
     tkwith,
-    tkxor);
+    tkxor,
+    tkLineEnding,
+    tkTab
+    );
 
   TLineReader = class
   public
@@ -339,7 +342,9 @@ const
     'var',
     'while',
     'with',
-    'xor'
+    'xor',
+    'LineEnding',
+    'Tab'
   );
 
 function FilenameIsAbsolute(const TheFilename: string):boolean;
@@ -675,9 +680,9 @@ begin
     #0:         // Empty line
       begin
         FetchLine;
-        Result := tkWhitespace;
+        Result := tkLineEnding;
       end;
-    #9, ' ':
+    ' ':
       begin
         Result := tkWhitespace;
         repeat
@@ -688,7 +693,20 @@ begin
               FCurToken := Result;
               exit;
             end;
-        until not (TokenStr[0] in [#9, ' ']);
+        until not (TokenStr[0] in [' ']);
+      end;
+    #9:
+      begin
+        Result := tkTab;
+        repeat
+          Inc(TokenStr);
+          if TokenStr[0] = #0 then
+            if not FetchLine then
+            begin
+              FCurToken := Result;
+              exit;
+            end;
+        until not (TokenStr[0] in [#9]);
       end;
     '#', '''':
       Result:=DoFetchTextToken;

@@ -92,16 +92,18 @@ uses Classes;
 var
   IsIdentStart: array[char] of boolean;
 
-type
+const
+  WhitespaceTokensToIgnore = [tkWhitespace, tkComment, tkLineEnding, tkTab];
 
+type
   TDeclType = (declNone, declConst, declResourcestring, declType, declVar, declThreadvar, declProperty);
 
   TProcType = (ptProcedure, ptFunction, ptOperator, ptConstructor, ptDestructor,
                ptClassProcedure, ptClassFunction);
 
                
-  TExprKind = (ek_Normal, ek_PropertyIndex);               
-               
+  TExprKind = (ek_Normal, ek_PropertyIndex);
+
   { TPasParser }
 
   TPasParser = class
@@ -291,7 +293,7 @@ begin
     try
       repeat
         FCurToken := Scanner.FetchToken;
-      until not (FCurToken in [tkWhitespace, tkComment]);
+      until not (FCurToken in WhitespaceTokensToIgnore);
     except
       on e: EScannerError do
         raise EParserError.Create(e.Message,
