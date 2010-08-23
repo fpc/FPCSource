@@ -45,7 +45,7 @@ unit OpenSSL;
 |          if need be, it should be re-added, or handled by the                | 
 |           OS threading init somehow                                          |
 |                                                                              |
-| 2010 - Felipe Monteiro de Carvalho - Many improvements                       |
+| 2010 - Felipe Monteiro de Carvalho - Added RAND functios                     |
 |==============================================================================|
 | History: see HISTORY.HTM from distribution package                           |
 |          (Found at URL: http://www.ararat.cz/synapse/)                       |
@@ -108,7 +108,8 @@ type
   PEVP_MD	= SslPtr;
   PBIO_METHOD = SslPtr;
   PBIO = SslPtr;
-  EVP_PKEY = SslPtr;
+  PEVP_PKEY = SslPtr;
+  PPEVP_PKEY = PEVP_PKEY;
   PRSA = SslPtr;
   PPRSA = ^PRSA;
   PASN1_UTCTIME = SslPtr;
@@ -240,6 +241,10 @@ type
     final2: array[0..$1FFF] of Byte; // Extra storage space, otherwise an access violation
                                      // in the OpenSSL library will occur
   end;
+
+  // PEM
+
+  Ppem_password_cb = Pointer;
 
 const
   SSL_ERROR_NONE = 0;
@@ -437,18 +442,18 @@ var
   function X509Digest(data: PX509; _type: PEVP_MD; md: String; var len: cInt):cInt;
   function X509print(b: PBIO; a: PX509): cInt;
   function X509SetVersion(x: PX509; version: cInt): cInt;
-  function X509SetPubkey(x: PX509; pkey: EVP_PKEY): cInt;
+  function X509SetPubkey(x: PX509; pkey: PEVP_PKEY): cInt;
   function X509SetIssuerName(x: PX509; name: PX509_NAME): cInt;
   function X509NameAddEntryByTxt(name: PX509_NAME; field: string; _type: cInt;
     bytes: string; len, loc, _set: cInt): cInt;
-  function X509Sign(x: PX509; pkey: EVP_PKEY; const md: PEVP_MD): cInt;
+  function X509Sign(x: PX509; pkey: PEVP_PKEY; const md: PEVP_MD): cInt;
   function X509GmtimeAdj(s: PASN1_UTCTIME; adj: cInt): PASN1_UTCTIME;
   function X509SetNotBefore(x: PX509; tm: PASN1_UTCTIME): cInt;
   function X509SetNotAfter(x: PX509; tm: PASN1_UTCTIME): cInt;
   function X509GetSerialNumber(x: PX509): PASN1_cInt;
-  function EvpPkeyNew: EVP_PKEY;
-  procedure EvpPkeyFree(pk: EVP_PKEY);
-  function EvpPkeyAssign(pkey: EVP_PKEY; _type: cInt; key: Prsa): cInt;
+  function EvpPkeyNew: PEVP_PKEY;
+  procedure EvpPkeyFree(pk: PEVP_PKEY);
+  function EvpPkeyAssign(pkey: PEVP_PKEY; _type: cInt; key: Prsa): cInt;
   function EvpGetDigestByName(Name: String): PEVP_MD;
   procedure EVPcleanup;
   function SSLeayversion(t: cInt): string;
@@ -470,7 +475,7 @@ var
   function Asn1UtctimeNew: PASN1_UTCTIME;
   procedure Asn1UtctimeFree(a: PASN1_UTCTIME);
   function i2dX509bio(b: PBIO; x: PX509): cInt;
-  function i2dPrivateKeyBio(b: PBIO; pkey: EVP_PKEY): cInt;
+  function i2dPrivateKeyBio(b: PBIO; pkey: PEVP_PKEY): cInt;
 
   // 3DES functions
   procedure DESsetoddparity(Key: des_cblock);
@@ -570,6 +575,11 @@ var
   function EVP_DecryptUpdate(ctx: PEVP_CIPHER_CTX; out_data: PByte;
            outl: pcint; const in_: PByte; inl: cint): cint;
   function EVP_DecryptFinal(ctx: PEVP_CIPHER_CTX; outm: PByte; outlen: pcint): cint;
+  //
+  // PEM Functions - pem.h
+  //
+  function PEM_read_bio_PrivateKey(bp: PBIO; X: PPEVP_PKEY;
+           cb: Ppem_password_cb; u: Pointer): PEVP_PKEY;
 
 
 function IsSSLloaded: Boolean;
@@ -634,18 +644,18 @@ type
   TX509Digest = function(data: PX509; _type: PEVP_MD; md: PChar; len: PcInt):cInt; cdecl;
   TX509print = function(b: PBIO; a: PX509): cInt; cdecl;
   TX509SetVersion = function(x: PX509; version: cInt): cInt; cdecl;
-  TX509SetPubkey = function(x: PX509; pkey: EVP_PKEY): cInt; cdecl;
+  TX509SetPubkey = function(x: PX509; pkey: PEVP_PKEY): cInt; cdecl;
   TX509SetIssuerName = function(x: PX509; name: PX509_NAME): cInt; cdecl;
   TX509NameAddEntryByTxt = function(name: PX509_NAME; field: PChar; _type: cInt;
     bytes: PChar; len, loc, _set: cInt): cInt; cdecl;
-  TX509Sign = function(x: PX509; pkey: EVP_PKEY; const md: PEVP_MD): cInt; cdecl;
+  TX509Sign = function(x: PX509; pkey: PEVP_PKEY; const md: PEVP_MD): cInt; cdecl;
   TX509GmtimeAdj = function(s: PASN1_UTCTIME; adj: cInt): PASN1_UTCTIME; cdecl;
   TX509SetNotBefore = function(x: PX509; tm: PASN1_UTCTIME): cInt; cdecl;
   TX509SetNotAfter = function(x: PX509; tm: PASN1_UTCTIME): cInt; cdecl;
   TX509GetSerialNumber = function(x: PX509): PASN1_cInt; cdecl;
-  TEvpPkeyNew = function: EVP_PKEY; cdecl;
-  TEvpPkeyFree = procedure(pk: EVP_PKEY); cdecl;
-  TEvpPkeyAssign = function(pkey: EVP_PKEY; _type: cInt; key: Prsa): cInt; cdecl;
+  TEvpPkeyNew = function: PEVP_PKEY; cdecl;
+  TEvpPkeyFree = procedure(pk: PEVP_PKEY); cdecl;
+  TEvpPkeyAssign = function(pkey: PEVP_PKEY; _type: cInt; key: Prsa): cInt; cdecl;
   TEvpGetDigestByName = function(Name: PChar): PEVP_MD; cdecl;
   TEVPcleanup = procedure; cdecl;
   TSSLeayversion = function(t: cInt): PChar; cdecl;
@@ -667,7 +677,7 @@ type
   TAsn1UtctimeNew = function: PASN1_UTCTIME; cdecl;
   TAsn1UtctimeFree = procedure(a: PASN1_UTCTIME); cdecl;
   Ti2dX509bio = function(b: PBIO; x: PX509): cInt; cdecl;
-  Ti2dPrivateKeyBio= function(b: PBIO; pkey: EVP_PKEY): cInt; cdecl;
+  Ti2dPrivateKeyBio= function(b: PBIO; pkey: PEVP_PKEY): cInt; cdecl;
 
   // 3DES functions
   TDESsetoddparity = procedure(Key: des_cblock); cdecl;
@@ -758,6 +768,11 @@ type
   TEVP_DecryptUpdate = function(ctx: PEVP_CIPHER_CTX; out_data: PByte;
            outl: pcint; const in_: PByte; inl: cint): cint; cdecl;
   TEVP_DecryptFinal = function(ctx: PEVP_CIPHER_CTX; outm: PByte; outlen: pcint): cint; cdecl;
+
+  // PEM functions
+
+  TPEM_read_bio_PrivateKey = function(bp: PBIO; X: PPEVP_PKEY;
+           cb: Ppem_password_cb; u: Pointer): PEVP_PKEY; cdecl;
 
 var
 // libssl.dll
@@ -931,6 +946,9 @@ var
   _EVP_DecryptInit: TEVP_DecryptInit = nil;
   _EVP_DecryptUpdate: TEVP_DecryptUpdate = nil;
   _EVP_DecryptFinal: TEVP_DecryptFinal = nil;
+
+  // PEM
+  _PEM_read_bio_PrivateKey: TPEM_read_bio_PrivateKey = nil;
 
 var
   SSLloaded: boolean = false;
@@ -1324,7 +1342,7 @@ begin
     Result := 0;
 end;
 
-function EvpPkeyNew: EVP_PKEY;
+function EvpPkeyNew: PEVP_PKEY;
 begin
   if InitSSLInterface and Assigned(_EvpPkeyNew) then
     Result := _EvpPkeyNew
@@ -1332,7 +1350,7 @@ begin
     Result := nil;
 end;
 
-procedure EvpPkeyFree(pk: EVP_PKEY);
+procedure EvpPkeyFree(pk: PEVP_PKEY);
 begin
   if InitSSLInterface and Assigned(_EvpPkeyFree) then
     _EvpPkeyFree(pk);
@@ -1468,7 +1486,7 @@ begin
     _PKCS12free(p12);
 end;
 
-function EvpPkeyAssign(pkey: EVP_PKEY; _type: cInt; key: Prsa): cInt;
+function EvpPkeyAssign(pkey: PEVP_PKEY; _type: cInt; key: Prsa): cInt;
 begin
   if InitSSLInterface and Assigned(_EvpPkeyAssign) then
     Result := _EvpPkeyAssign(pkey, _type, key)
@@ -1484,7 +1502,7 @@ begin
     Result := 0;
 end;
 
-function X509SetPubkey(x: PX509; pkey: EVP_PKEY): cInt;
+function X509SetPubkey(x: PX509; pkey: PEVP_PKEY): cInt;
 begin
   if InitSSLInterface and Assigned(_X509SetPubkey) then
     Result := _X509SetPubkey(x, pkey)
@@ -1509,7 +1527,7 @@ begin
     Result := 0;
 end;
 
-function X509Sign(x: PX509; pkey: EVP_PKEY; const md: PEVP_MD): cInt;
+function X509Sign(x: PX509; pkey: PEVP_PKEY; const md: PEVP_MD): cInt;
 begin
   if InitSSLInterface and Assigned(_X509Sign) then
     Result := _X509Sign(x, pkey, md)
@@ -1563,7 +1581,7 @@ begin
     Result := 0;
 end;
 
-function i2dPrivateKeyBio(b: PBIO; pkey: EVP_PKEY): cInt;
+function i2dPrivateKeyBio(b: PBIO; pkey: PEVP_PKEY): cInt;
 begin
   if InitSSLInterface and Assigned(_i2dPrivateKeyBio) then
     Result := _i2dPrivateKeyBio(b, pkey)
@@ -2057,6 +2075,16 @@ begin
     Result := -1;
 end;
 
+{ PEM }
+
+function PEM_read_bio_PrivateKey(bp: PBIO; X: PPEVP_PKEY;
+         cb: Ppem_password_cb; u: Pointer): PEVP_PKEY;
+begin
+  if InitSSLInterface and Assigned(_PEM_read_bio_PrivateKey) then
+    Result := _PEM_read_bio_PrivateKey(bp, x, cb, u)
+  else
+    Result := -1;
+end;
 
 {$IFNDEF WINDOWS}
 { Try to load all library versions until you find or run out }
@@ -2282,6 +2310,10 @@ begin
         _EVP_DecryptUpdate := GetProcAddr(SSLUtilHandle, 'EVP_DecryptUpdate', AVerboseLoading);
         _EVP_DecryptFinal := GetProcAddr(SSLUtilHandle, 'EVP_DecryptFinal', AVerboseLoading);
 
+        // PEM
+
+        _PEM_read_bio_PrivateKey := GetProcAddr(SSLUtilHandle, 'PEM_read_bio_PrivateKey', AVerboseLoading);
+
         //init library
         if assigned(_SslLibraryInit) then
           _SslLibraryInit;
@@ -2505,6 +2537,9 @@ begin
     _EVP_DecryptUpdate := nil;
     _EVP_DecryptFinal := nil;
 
+    // PEM
+
+    _PEM_read_bio_PrivateKey := nil;
 
   Result := True;
 end;
