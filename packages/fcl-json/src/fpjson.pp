@@ -1300,7 +1300,7 @@ begin
   Flist:=TFPObjectList.Create(True);
 end;
 
-Function VarRecToJSON(Const Element : TVarRec; SourceType : String) : TJSONData;
+Function VarRecToJSON(Const Element : TVarRec; const SourceType : String) : TJSONData;
 
 begin
   Result:=Nil;
@@ -1322,7 +1322,7 @@ begin
       vtObject     : if (VObject is TJSONData) then
                        Result:=TJSONData(VObject)
                      else
-                       Raise EJSON.CreateFmt(SErrNotJSONData,[SourceType,VObject.ClassName]);
+                       Raise EJSON.CreateFmt(SErrNotJSONData,[VObject.ClassName,SourceType]);
       //vtVariant    :
     else
       Raise EJSON.CreateFmt(SErrUnknownTypeInConstructor,[SourceType,VType])
