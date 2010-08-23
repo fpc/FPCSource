@@ -109,7 +109,7 @@ type
   PBIO_METHOD = SslPtr;
   PBIO = SslPtr;
   PEVP_PKEY = SslPtr;
-  PPEVP_PKEY = PEVP_PKEY;
+  PPEVP_PKEY = ^PEVP_PKEY;
   PRSA = SslPtr;
   PPRSA = ^PRSA;
   PASN1_UTCTIME = SslPtr;
