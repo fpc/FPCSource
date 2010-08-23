@@ -63,7 +63,7 @@ type
     function DoFetchToken: TJSONToken;
   public
     constructor Create(Source : TStream); overload;
-    constructor Create(Source : String); overload;
+    constructor Create(const Source : String); overload;
     destructor Destroy; override;
     function FetchToken: TJSONToken;
 
@@ -104,7 +104,7 @@ begin
   FSource.LoadFromStream(Source);
 end;
 
-constructor TJSONScanner.Create(Source : String);
+constructor TJSONScanner.Create(const Source : String);
 begin
   FSource:=TStringList.Create;
   FSource.Text:=Source;
