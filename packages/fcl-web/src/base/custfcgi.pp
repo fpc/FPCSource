@@ -207,9 +207,9 @@ var
       Result:=ARecord^.ContentData[i]
     else
       begin
-      Result:=BEtoN(PWord(@(ARecord^.ContentData[i]))^);
-      // ((ARecord^.ContentData[i] and $7f) shl 24) + (ARecord^.ContentData[i+1] shl 16)
-      //             + (ARecord^.ContentData[i+2] shl 8) + (ARecord^.ContentData[i+3]);
+//      Result:=BEtoN(PLongint(@(ARecord^.ContentData[i]))^);
+      Result:=((ARecord^.ContentData[i] and $7f) shl 24) + (ARecord^.ContentData[i+1] shl 16)
+                   + (ARecord^.ContentData[i+2] shl 8) + (ARecord^.ContentData[i+3]);
       inc(i,3);
       end;
     inc(i);
@@ -555,6 +555,7 @@ begin
         end;
     Finally
       FreeMem(AFCGI_Record);
+      AFCGI_Record:=Nil;
     end;
   until (1<>1);
 end;
