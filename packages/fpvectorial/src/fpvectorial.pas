@@ -63,6 +63,18 @@ type
 
   PPath = ^TPath;
 
+  {@@
+    TvText represents a text in memory.
+
+    At the moment fonts are unsupported, only simple texts
+    up to 255 chars are supported.
+  }
+  TvText = record
+    Value: array[0..255] of Char;
+  end;
+
+  PText = ^TvText;
+
 type
 
   TvCustomVectorialWriter = class;
@@ -73,6 +85,7 @@ type
   TvVectorialDocument = class
   private
     FPaths: TFPList;
+    FTexts: TFPList;
     FTmpPath: TPath;
     procedure RemoveCallback(data, arg: pointer);
     function CreateVectorialWriter(AFormat: TvVectorialFormat): TvCustomVectorialWriter;
@@ -94,9 +107,12 @@ type
     { Data reading methods }
     function  GetPath(ANum: Cardinal): TPath;
     function  GetPathCount: Integer;
+    function  GetText(ANum: Cardinal): TvText;
+    function  GetTextCount: Integer;
     { Data removing methods }
     procedure Clear;
     procedure RemoveAllPaths;
+    procedure RemoveAllTexts;
     { Data writing methods }
     procedure AddPath(APath: TPath);
     procedure StartPath(AX, AY: Double);
@@ -105,6 +121,8 @@ type
     procedure AddBezierToPath(AX1, AY1, AX2, AY2, AX3, AY3: Double); overload;
     procedure AddBezierToPath(AX1, AY1, AZ1, AX2, AY2, AZ2, AX3, AY3, AZ3: Double); overload;
     procedure EndPath();
+    procedure AddText(AText: TvText); overload;
+    procedure AddText(AStr: utf8string); overload;
     { properties }
     property PathCount: Integer read GetPathCount;
     property Paths[Index: Cardinal]: TPath read GetPath;
@@ -264,6 +282,7 @@ begin
   inherited Create;
 
   FPaths := TFPList.Create;
+  FTexts := TFPList.Create;
 end;
 
 {@@
@@ -274,6 +293,7 @@ begin
   Clear;
 
   FPaths.Free;
+  FTexts.Free;
 
   inherited Destroy;
 end;
@@ -285,6 +305,12 @@ procedure TvVectorialDocument.RemoveAllPaths;
 begin
   FPaths.ForEachCall(RemoveCallback, nil);
   FPaths.Clear;
+end;
+
+procedure TvVectorialDocument.RemoveAllTexts;
+begin
+  FTexts.ForEachCall(RemoveCallback, nil);
+  FTexts.Clear;
 end;
 
 procedure TvVectorialDocument.AddPath(APath: TPath);
@@ -387,6 +413,25 @@ begin
   if FTmPPath.Len = 0 then Exit;
   AddPath(FTmPPath);
   FTmPPath.Len := 0;
+end;
+
+procedure TvVectorialDocument.AddText(AText: TvText);
+var
+  lText: PText;
+  Len: Integer;
+begin
+  Len := SizeOf(TvText);
+  lText := GetMem(Len);
+  Move(AText, lText^, Len);
+  FTexts.Add(lText);
+end;
+
+procedure TvVectorialDocument.AddText(AStr: utf8string);
+var
+  lText: TvText;
+begin
+  lText.Value := AStr;
+  AddText(lText);
 end;
 
 {@@
@@ -568,12 +613,27 @@ begin
   Result := FPaths.Count;
 end;
 
+function TvVectorialDocument.GetText(ANum: Cardinal): TvText;
+begin
+  if ANum >= FTexts.Count then raise Exception.Create('TvVectorialDocument.GetText: Text number out of bounds');
+
+  if FTexts.Items[ANum] = nil then raise Exception.Create('TvVectorialDocument.GetText: Invalid Text number');
+
+  Result := PText(FTexts.Items[ANum])^;
+end;
+
+function TvVectorialDocument.GetTextCount: Integer;
+begin
+  Result := FTexts.Count;
+end;
+
 {@@
   Clears all data in the document
 }
 procedure TvVectorialDocument.Clear;
 begin
   RemoveAllPaths();
+  RemoveAllTexts();
 end;
 
 { TvCustomVectorialReader }
