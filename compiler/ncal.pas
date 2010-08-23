@@ -48,7 +48,8 @@ interface
          cnf_uses_varargs,       { varargs are used in the declaration }
          cnf_create_failed,      { exception thrown in constructor -> don't call beforedestruction }
          cnf_objc_processed,     { the procedure name has been set to the appropriate objc_msgSend* variant -> don't process again }
-         cnf_objc_id_call        { the procedure is a member call via id -> any ObjC method of any ObjC type in scope is fair game }
+         cnf_objc_id_call,       { the procedure is a member call via id -> any ObjC method of any ObjC type in scope is fair game }
+         cnf_unit_specified      { the unit in which the procedure has to be searched has been specified }
        );
        tcallnodeflags = set of tcallnodeflag;
 
@@ -2650,7 +2651,7 @@ implementation
                   { ignore possible private for properties or in delphi mode for anon. inherited (FK) }
                   ignorevisibility:=(nf_isproperty in flags) or
                                     ((m_delphi in current_settings.modeswitches) and (cnf_anon_inherited in callnodeflags));
-                  candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,ignorevisibility,not(nf_isproperty in flags),cnf_objc_id_call in callnodeflags);
+                  candidates:=tcallcandidates.create(symtableprocentry,symtableproc,left,ignorevisibility,not(nf_isproperty in flags),cnf_objc_id_call in callnodeflags,cnf_unit_specified in callnodeflags);
 
                    { no procedures found? then there is something wrong
                      with the parameter size or the procedures are

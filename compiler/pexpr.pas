@@ -1351,12 +1351,13 @@ implementation
        procedure factor_read_id(out p1:tnode;var again:boolean);
          var
            srsym : tsym;
-           unit_found : boolean;
            srsymtable : TSymtable;
            hdef  : tdef;
            orgstoredpattern,
            storedpattern : string;
+           callflags: tcallnodeflags;
            t : ttoken;
+           unit_found : boolean;
          begin
            { allow post fix operators }
            again:=true;
@@ -1622,10 +1623,16 @@ implementation
                           internalerror(2007012006);
                       end
                     else
-                      { regular procedure/function call }
-                      do_proc_call(srsym,srsymtable,nil,
-                                   (getaddr and not(token in [_CARET,_POINT,_LECKKLAMMER])),
-                                   again,p1,[]);
+                      begin
+                        { regular procedure/function call }
+                        if not unit_found then
+                          callflags:=[]
+                        else
+                          callflags:=[cnf_unit_specified];
+                        do_proc_call(srsym,srsymtable,nil,
+                                     (getaddr and not(token in [_CARET,_POINT,_LECKKLAMMER])),
+                                     again,p1,callflags);
+                      end;
                   end;
 
                 propertysym :

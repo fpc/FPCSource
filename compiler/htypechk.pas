@@ -67,11 +67,11 @@ interface
         FParaLength : smallint;
         FAllowVariant : boolean;
         procedure collect_overloads_in_class(ProcdefOverloadList:TFPObjectList);
-        procedure collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall: boolean);
-        procedure create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall:boolean);
+        procedure collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall,explicitunit: boolean);
+        procedure create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit:boolean);
         function  proc_add(ps:tprocsym;pd:tprocdef;objcidcall: boolean):pcandidate;
       public
-        constructor create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall:boolean);
+        constructor create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit:boolean);
         constructor create_operator(op:ttoken;ppn:tnode);
         destructor destroy;override;
         procedure list(all:boolean);
@@ -1647,7 +1647,7 @@ implementation
                            TCallCandidates
 ****************************************************************************}
 
-    constructor tcallcandidates.create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall:boolean);
+    constructor tcallcandidates.create(sym:tprocsym;st:TSymtable;ppn:tnode;ignorevisibility,allowdefaultparas,objcidcall,explicitunit:boolean);
       begin
         if not assigned(sym) then
           internalerror(200411015);
@@ -1655,7 +1655,7 @@ implementation
         FProcsym:=sym;
         FProcsymtable:=st;
         FParanode:=ppn;
-        create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall);
+        create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit);
       end;
 
 
@@ -1665,7 +1665,7 @@ implementation
         FProcsym:=nil;
         FProcsymtable:=nil;
         FParanode:=ppn;
-        create_candidate_list(false,false,false);
+        create_candidate_list(false,false,false,false);
       end;
 
 
@@ -1722,7 +1722,7 @@ implementation
       end;
 
 
-    procedure tcallcandidates.collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall: boolean);
+    procedure tcallcandidates.collect_overloads_in_units(ProcdefOverloadList:TFPObjectList; objcidcall,explicitunit: boolean);
       var
         j          : integer;
         pd         : tprocdef;
@@ -1755,6 +1755,14 @@ implementation
         while assigned(checkstack) do
           begin
             srsymtable:=checkstack^.symtable;
+            { if the unit in which the routine has to be searched has been
+              specified explicitly, stop searching after its symtable(s) have
+              been checked (can be both the static and the global symtable
+              in case it's the current unit itself) }
+            if explicitunit and
+               (FProcsymtable.symtabletype in [globalsymtable,staticsymtable]) and
+               (srsymtable.moduleid<>FProcsymtable.moduleid) then
+              break;
             if srsymtable.symtabletype in [localsymtable,staticsymtable,globalsymtable] then
               begin
                 srsym:=tprocsym(srsymtable.FindWithHash(hashedid));
@@ -1780,12 +1788,12 @@ implementation
                       break;
                   end;
               end;
-            checkstack:=checkstack^.next;
+            checkstack:=checkstack^.next
           end;
       end;
 
 
-    procedure tcallcandidates.create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall:boolean);
+    procedure tcallcandidates.create_candidate_list(ignorevisibility,allowdefaultparas,objcidcall,explicitunit:boolean);
       var
         j     : integer;
         pd    : tprocdef;
@@ -1804,7 +1812,7 @@ implementation
            (FProcsym.owner.symtabletype=objectsymtable) then
           collect_overloads_in_class(ProcdefOverloadList)
         else
-          collect_overloads_in_units(ProcdefOverloadList,objcidcall);
+          collect_overloads_in_units(ProcdefOverloadList,objcidcall,explicitunit);
 
         { determine length of parameter list.
           for operators also enable the variant-operators if
