@@ -62,11 +62,37 @@ begin
     Vec.AddLineToPath(40, 40);
     Vec.EndPath();
     Vec.WriteToFile('polyline_2' + cExtension, cFormat);
+
     // bezier_1         One path starting in (0, 0) lining to (10, 10) then bezier to (20, 10) and then line to (30, 0)
+    Vec.Clear;
+    Vec.StartPath(0, 0);
+    Vec.AddLineToPath(10, 10);
+    Vec.AddBezierToPath(10, 20, 20, 20, 20, 10);
+    Vec.AddLineToPath(30, 0);
+    Vec.EndPath();
+    Vec.WriteToFile('bezier_1' + cExtension, cFormat);
+
     // bezier_2         One curve from (10, 10) to (20, 20)
+    Vec.Clear;
+    Vec.StartPath(10, 10);
+    Vec.AddBezierToPath(10, 15, 15, 20, 20, 10);
+    Vec.EndPath();
+    Vec.WriteToFile('bezier_2' + cExtension, cFormat);
+
     // text_ascii       One text written at (10, 10)
+    Vec.Clear;
+    Vec.AddText('Some text in english.');
+    Vec.WriteToFile('text_ascii' + cExtension, cFormat);
+
     // text_europen     One text testing european languages at (20, 20)
+    Vec.Clear;
+    Vec.AddText('Mówić, cześć, Włosku, Parabéns, Assunção, Correções.');
+    Vec.WriteToFile('text_europen' + cExtension, cFormat);
+
     // text_asian       One text testing asian languages at (30, 30)
+    Vec.Clear;
+    Vec.AddText('森林，是一个高密度树木的区域');
+    Vec.WriteToFile('text_asian' + cExtension, cFormat);
   finally
     Vec.Free;
   end;
