@@ -695,6 +695,9 @@ implementation
               if (right.nodetype<>stringconstn) or
                  (tstringconstnode(right).len<>0) then
                begin
+                 { remove property flag to avoid errors, see comments for }
+                 { tf_winlikewidestring assignments below                 }
+                 exclude(left.flags, nf_isproperty);
                  hp:=ccallparanode.create
                        (right,
                   ccallparanode.create(left,nil));

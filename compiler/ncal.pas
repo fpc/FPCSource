@@ -1360,6 +1360,17 @@ implementation
           end;
       end;
 
+    function look_for_call(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        case n.nodetype of
+          calln:
+            result := fen_norecurse_true;
+          typen,loadvmtaddrn,loadn,temprefn,arrayconstructorn:
+            result := fen_norecurse_false;
+        else
+          result := fen_false;
+        end;
+      end;
 
     procedure tcallnode.maybe_load_in_temp(var p:tnode);
       var
@@ -1372,7 +1383,7 @@ implementation
         { Load all complex loads into a temp to prevent
           double calls to a function. We can't simply check for a hp.nodetype=calln }
         if assigned(p) and
-           not is_simple_para_load(p,true) then
+           foreachnodestatic(p,@look_for_call,nil) then
           begin
             { temp create }
             usederef:=(p.resultdef.typ in [arraydef,recorddef]) or
