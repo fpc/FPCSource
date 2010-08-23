@@ -372,6 +372,76 @@ const
   RSA_NO_PADDING         = 3;
   RSA_PKCS1_OAEP_PADDING = 4;
 
+  // BIO
+
+  BIO_NOCLOSE	        = $00;
+  BIO_CLOSE 	        = $01;
+
+  //* modifiers */
+  BIO_FP_READ		= $02;
+  BIO_FP_WRITE		= $04;
+  BIO_FP_APPEND		= $08;
+  BIO_FP_TEXT		= $10;
+
+  BIO_C_SET_CONNECT                 = 100;
+  BIO_C_DO_STATE_MACHINE            = 101;
+  BIO_C_SET_NBIO	            = 102;
+  BIO_C_SET_PROXY_PARAM	            = 103;
+  BIO_C_SET_FD	                    = 104;
+  BIO_C_GET_FD		            = 105;
+  BIO_C_SET_FILE_PTR	            = 106;
+  BIO_C_GET_FILE_PTR	            = 107;
+  BIO_C_SET_FILENAME	            = 108;
+  BIO_C_SET_SSL		            = 109;
+  BIO_C_GET_SSL		            = 110;
+  BIO_C_SET_MD		            = 111;
+  BIO_C_GET_MD	                    = 112;
+  BIO_C_GET_CIPHER_STATUS           = 113;
+  BIO_C_SET_BUF_MEM 	            = 114;
+  BIO_C_GET_BUF_MEM_PTR  	    = 115;
+  BIO_C_GET_BUFF_NUM_LINES          = 116;
+  BIO_C_SET_BUFF_SIZE	            = 117;
+  BIO_C_SET_ACCEPT 	            = 118;
+  BIO_C_SSL_MODE 	            = 119;
+  BIO_C_GET_MD_CTX	            = 120;
+  BIO_C_GET_PROXY_PARAM	            = 121;
+  BIO_C_SET_BUFF_READ_DATA 	    = 122; // data to read first */
+  BIO_C_GET_CONNECT	 	    = 123;
+  BIO_C_GET_ACCEPT		    = 124;
+  BIO_C_SET_SSL_RENEGOTIATE_BYTES   = 125;
+  BIO_C_GET_SSL_NUM_RENEGOTIATES    = 126;
+  BIO_C_SET_SSL_RENEGOTIATE_TIMEOUT = 127;
+  BIO_C_FILE_SEEK		    = 128;
+  BIO_C_GET_CIPHER_CTX		    = 129;
+  BIO_C_SET_BUF_MEM_EOF_RETURN	= 130;//*return end of input value*/
+  BIO_C_SET_BIND_MODE		= 131;
+  BIO_C_GET_BIND_MODE		= 132;
+  BIO_C_FILE_TELL		= 133;
+  BIO_C_GET_SOCKS		= 134;
+  BIO_C_SET_SOCKS		= 135;
+
+  BIO_C_SET_WRITE_BUF_SIZE	= 136;//* for BIO_s_bio */
+  BIO_C_GET_WRITE_BUF_SIZE	= 137;
+  BIO_C_MAKE_BIO_PAIR		= 138;
+  BIO_C_DESTROY_BIO_PAIR	= 139;
+  BIO_C_GET_WRITE_GUARANTEE	= 140;
+  BIO_C_GET_READ_REQUEST	= 141;
+  BIO_C_SHUTDOWN_WR		= 142;
+  BIO_C_NREAD0		        = 143;
+  BIO_C_NREAD			= 144;
+  BIO_C_NWRITE0			= 145;
+  BIO_C_NWRITE			= 146;
+  BIO_C_RESET_READ_REQUEST	= 147;
+  BIO_C_SET_MD_CTX		= 148;
+
+  BIO_C_SET_PREFIX		= 149;
+  BIO_C_GET_PREFIX		= 150;
+  BIO_C_SET_SUFFIX		= 151;
+  BIO_C_GET_SUFFIX		= 152;
+
+  BIO_C_SET_EX_ARG		= 153;
+  BIO_C_GET_EX_ARG		= 154;
+
 var
   SSLLibHandle: TLibHandle = 0;
   SSLUtilHandle: TLibHandle = 0;
@@ -581,6 +651,11 @@ var
   function PEM_read_bio_PrivateKey(bp: PBIO; X: PPEVP_PKEY;
            cb: Ppem_password_cb; u: Pointer): PEVP_PKEY;
 
+  // BIO Functions - bio.h
+
+  function BIO_ctrl(bp: PBIO; cmd: cint; larg: clong; parg: Pointer): clong;
+  function BIO_read_filename(b: PBIO; const name: PChar): cint;
+
 
 function IsSSLloaded: Boolean;
 function InitSSLInterface(AVerboseLoading: Boolean = False): Boolean;
@@ -774,6 +849,10 @@ type
   TPEM_read_bio_PrivateKey = function(bp: PBIO; X: PPEVP_PKEY;
            cb: Ppem_password_cb; u: Pointer): PEVP_PKEY; cdecl;
 
+  // BIO Functions
+
+  TBIO_ctrl = function(bp: PBIO; cmd: cint; larg: clong; parg: Pointer): clong; cdecl;
+
 var
 // libssl.dll
   _SslGetError: TSslGetError = nil;
@@ -949,6 +1028,10 @@ var
 
   // PEM
   _PEM_read_bio_PrivateKey: TPEM_read_bio_PrivateKey = nil;
+
+  // BIO Functions
+
+  _BIO_ctrl: TBIO_ctrl = nil;
 
 var
   SSLloaded: boolean = false;
@@ -2083,8 +2166,24 @@ begin
   if InitSSLInterface and Assigned(_PEM_read_bio_PrivateKey) then
     Result := _PEM_read_bio_PrivateKey(bp, x, cb, u)
   else
+    Result := nil;
+end;
+
+// BIO Functions
+
+function BIO_ctrl(bp: PBIO; cmd: cint; larg: clong; parg: Pointer): clong;
+begin
+  if InitSSLInterface and Assigned(_BIO_ctrl) then
+    Result := _BIO_ctrl(bp, cmd, larg, parg)
+  else
     Result := -1;
 end;
+
+function BIO_read_filename(b: PBIO; const name: PChar): cint;
+begin
+  Result := BIO_ctrl(b, BIO_C_SET_FILENAME, BIO_CLOSE or BIO_FP_READ, Pointer(name));
+end;
+
 
 {$IFNDEF WINDOWS}
 { Try to load all library versions until you find or run out }
@@ -2314,6 +2413,10 @@ begin
 
         _PEM_read_bio_PrivateKey := GetProcAddr(SSLUtilHandle, 'PEM_read_bio_PrivateKey', AVerboseLoading);
 
+        // BIO
+
+        _BIO_ctrl := GetProcAddr(SSLUtilHandle, 'BIO_ctrl', AVerboseLoading);
+
         //init library
         if assigned(_SslLibraryInit) then
           _SslLibraryInit;
@@ -2540,6 +2643,10 @@ begin
     // PEM
 
     _PEM_read_bio_PrivateKey := nil;
+
+    // BIO
+
+    _BIO_ctrl := nil;
 
   Result := True;
 end;
