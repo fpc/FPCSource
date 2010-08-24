@@ -3350,7 +3350,9 @@ implementation
 
     function tprocdef.is_methodpointer:boolean;
       begin
-        result:=assigned(_class);
+        { don't check assigned(_class), that's also the case for nested
+          procedures inside methods }
+        result:=owner.symtabletype=ObjectSymtable;
       end;
 
 

@@ -9309,6 +9309,7 @@ tests/test/tmaclocalprocparam4d.pp svneol=native#text/plain
 tests/test/tmaclocalprocparam4e.pp svneol=native#text/plain
 tests/test/tmaclocalprocparam4f.pp svneol=native#text/plain
 tests/test/tmaclocalprocparam4g.pp svneol=native#text/plain
+tests/test/tmaclocalprocparam4h.pp svneol=native#text/plain
 tests/test/tmacnonlocalexit.pp svneol=native#text/plain
 tests/test/tmacnonlocalgoto.pp svneol=native#text/plain
 tests/test/tmacpas1.pp svneol=native#text/plain
