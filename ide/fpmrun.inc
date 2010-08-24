@@ -399,7 +399,7 @@ begin
         begin
           FileName:=PSourceWindow(W)^.Editor^.FileName;
           LineNr:=PSourceWindow(W)^.Editor^.CurPos.Y+1;
-          Debugger^.Command('tbreak '+GDBFileName(NameAndExtOf(FileName))+':'+IntToStr(LineNr));
+          Debugger^.SetTbreak(GDBFileName(NameAndExtOf(FileName))+':'+IntToStr(LineNr));
           Debugger^.Continue;
         end
       else
@@ -413,7 +413,7 @@ begin
             begin
               if PDL^.Address<>0 then
                 begin
-                  Debugger^.Command('tbreak *0x'+HexStr(PDL^.Address,sizeof(pointer)*2));
+                  Debugger^.SetTBreak('*0x'+HexStr(PDL^.Address,sizeof(pointer)*2));
                 end
               else
                 begin
@@ -424,7 +424,7 @@ begin
                   p:=pos(' ',S);
                   S:=Copy(S,1,p-1);
                   LineNr:=StrToInt(S);
-                  Debugger^.Command('tbreak '+GDBFileName(NameAndExtOf(FileName))+':'+IntToStr(LineNr));
+                  Debugger^.SetTBreak(GDBFileName(NameAndExtOf(FileName))+':'+IntToStr(LineNr));
                 end;
               Debugger^.Continue;
             end;
