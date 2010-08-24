@@ -122,12 +122,15 @@ type
   // Handle request for read/create/update/delete and return a result.
 
   { TCustomHTTPDataContentProducer }
+  // Support for transcoding from/to UTF-8. If outbound is true, the value is going from server to browser.
+  TOnTranscodeEvent = Procedure (Sender : TObject; F : TField; Var S : String; Outbound : Boolean) of object;
 
   TCustomHTTPDataContentProducer = Class(THTTPContentProducer)
   Private
     FAllowPageSize: Boolean;
     FDataProvider: TFPCustomWebDataProvider;
     FMetadata: Boolean;
+    FOnTranscode: TOnTranscodeEvent;
     FPageSize: Integer;
     FPageStart: Integer;
     FSD: Boolean;
@@ -161,6 +164,7 @@ type
     Property SortField : String Read FSortField Write FSortField;
     Property SortDescending : Boolean Read FSD Write FSD default False;
     Property AllowPageSize : Boolean Read FAllowPageSize Write FAllowPageSize default True;
+    Property OnTransCode : TOnTranscodeEvent Read FOnTranscode Write FOnTranscode;
   end;
   TCustomHTTPDataContentProducerClass = Class of TCustomHTTPDataContentProducer;
 

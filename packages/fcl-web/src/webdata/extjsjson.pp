@@ -106,6 +106,10 @@ end;
 
 function TExtJSJSONDataFormatter.AddFieldToJSON(O : TJSONObject; AFieldName : String; F : TField): TJSONData;
 
+Var
+  S : String;
+
+
 begin
  if F.IsNull then
    Result:=O.Items[O.Add(AFieldName)]
@@ -129,9 +133,18 @@ begin
     ftMemo,
     ftFmtMemo,
     ftWideMemo,
-    ftBlob :O.Items[O.Add(AFieldName,F.AsString)];
+    ftBlob :
+      begin
+      S:=F.AsString;
+      If (OnTranscode<>Nil) then
+        OnTranscode(Self,F,S,True);
+      Result:=O.Items[O.Add(AFieldName,S)];
+      end;
   else
-    Result:=O.Items[O.Add(AFieldName,F.DisplayText)];
+    S:=F.DisplayText;
+    If (OnTranscode<>Nil) then
+      OnTranscode(Self,F,S,True);
+    Result:=O.Items[O.Add(AFieldName,S)];
   end;
 end;
 

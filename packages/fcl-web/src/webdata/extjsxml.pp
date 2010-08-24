@@ -172,6 +172,7 @@ Var
   E : TDOMElement;
   F : TField;
   I : Integer;
+  S : String;
 begin
   Result:=Doc.CreateElement(RecordProperty);
   try
@@ -180,7 +181,13 @@ begin
       begin
       F:=Dataset.Fields[i];
       E:=Doc.CreateElement(F.FieldName);
-      E.AppendChild(Doc.CreateTextNode(F.DisplayText));
+      If F.DataType in [ftMemo, ftFmtMemo, ftWideMemo, ftBlob ] then
+        S:=F.AsString
+      else
+        S:=F.DisplayText;
+      If (OnTranscode<>Nil) then
+        OnTranscode(Self,F,S,True);
+      E.AppendChild(Doc.CreateTextNode(S));
       Result.AppendChild(E);
       end;
     DoAfterRow(Result);
