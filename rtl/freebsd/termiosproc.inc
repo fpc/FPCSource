@@ -29,9 +29,12 @@ var
   nr:cint;
 begin
   case OptAct of
-   TCSANOW   : nr:=TIOCSETA;
-   TCSADRAIN : nr:=TIOCSETAW;
-   TCSAFLUSH : nr:=TIOCSETAF;
+  {the three constants TIOCSETA, TIOCSETAW and TIOCSETAF are
+   unsigned values above $80000000, so that they give range check errors
+   on 32-bit systems }
+   TCSANOW   : nr:=cint(TIOCSETA);
+   TCSADRAIN : nr:=cint(TIOCSETAW);
+   TCSAFLUSH : nr:=cint(TIOCSETAF);
   else
    begin
      fpsetErrNo(ESysEINVAL);
