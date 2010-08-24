@@ -165,7 +165,7 @@ unit optcse;
                 if tnode(plists(arg)^.nodelist[i]).isequal(n) and DFASetIn(plists(arg)^.avail,i) then
                   begin
                     { use always the first occurence }
-                    if ptrint(plists(arg)^.equalto[i])<>-1 then
+                    if plists(arg)^.equalto[i]<>pointer(-1) then
                       plists(arg)^.equalto[plists(arg)^.nodelist.count-1]:=plists(arg)^.equalto[i]
                     else
                       plists(arg)^.equalto[plists(arg)^.nodelist.count-1]:=pointer(i);
@@ -231,7 +231,7 @@ unit optcse;
                 for i:=0 to lists.nodelist.count-1 do
                   begin
                     { current node used more than once? }
-                    if ptrint(lists.refs[i])<>0 then
+                    if assigned(lists.refs[i]) then
                       begin
                         if not(assigned(statements)) then
                           begin
@@ -263,7 +263,7 @@ unit optcse;
 {$endif csedebug}
                       end
                     { current node reference to another node? }
-                    else if ptrint(lists.equalto[i])<>-1 then
+                    else if lists.equalto[i]<>pointer(-1) then
                       begin
 {$if defined(csedebug) or defined(csestats)}
                         printnode(output,tnode(lists.nodelist[i]));
@@ -281,7 +281,7 @@ unit optcse;
                   end;
                 { clean up unused trees }
                 for i:=0 to lists.nodelist.count-1 do
-                  if ptrint(lists.equalto[i])<>-1 then
+                  if lists.equalto[i]<>pointer(-1) then
                     tnode(lists.nodelist[i]).free;
 {$ifdef csedebug}
                 writeln('nodes: ',lists.nodelist.count);
