@@ -135,6 +135,7 @@ type
     destructor Destroy; override;
     procedure LoadFromFile(AFileName: String);
     procedure LoadFromStream(AStream: TStream);
+    procedure SaveToFile(AFileName:String);
     procedure SaveToStream(AStream: TStream);
     property Items: TChmSiteMapItems read FItems write SetItems;
     property SiteMapType: TSiteMapType read FSiteMapType;
@@ -334,6 +335,18 @@ begin
   end;
 end;
 
+procedure TChmSiteMap.SaveToFile(AFileName:String);
+var
+  fs : TFileStream;
+begin
+  fs:=TFileStream.Create(AFileName,fmcreate);
+  try
+    SaveToStream(fs);
+  finally
+    fs.free;
+    end;
+end;
+                    
 procedure TChmSiteMap.SaveToStream(AStream: TStream);
 var
   Indent: Integer;
