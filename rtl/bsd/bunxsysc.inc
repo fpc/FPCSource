@@ -94,7 +94,7 @@ Begin
  it.it_value.tv_sec:=seconds;
  it.it_value.tv_usec:=0;
  If SetITimer(ITIMER_REAL,it,oitv)<0 Then
-   Exit(-1);
+   Exit(cuint(-1));
 
  if oitv.it_value.tv_usec<>0 Then
    Inc(oitv.it_value.tv_sec);
