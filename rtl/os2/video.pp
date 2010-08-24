@@ -116,11 +116,11 @@ begin
     CursorX := NewCursorX;
     CursorY := NewCursorY;
     end
-  else
-   {Do not set an error code; people should fix invalid NewCursorX
+{  else
+   Do not set an error code; people should fix invalid NewCursorX
     or NewCursorY values when designing, there is no need for detecting
-    these errors at runtime.}
-    RunError (225);
+    these errors at runtime.
+    RunError (225);}
 end;
 
 
