@@ -2912,13 +2912,41 @@ begin
       end;
     else
       UngetToken;
-      Command:=ParseCommand;
-      //WriteLn(i,'COMMAND="',Command,'" Token=',CurTokenString);
+
+      Command:='';
+
+      NextToken;
+      // testing for label mark
+      if CurToken=tkIdentifier then
+      begin
+        Command:=CurTokenText;
+        NextToken;
+        // testing for the goto mark
+        if CurToken=tkColon then
+        begin
+          CurBlock.AddLabelMark(Command);
+        end
+        else
+        begin
+          Command:='';
+          UngetToken;
+          UngetToken;
+        end;
+      end else
+        UngetToken;
+
+
       if Command='' then
-        ParseExc(SParserSyntaxError);
-      CmdElem:=CurBlock.AddCommand(Command);
-      if NewImplElement=nil then NewImplElement:=CmdElem;
-      if CloseStatement(false) then break;
+      begin
+        // parsing the assignment statement or call expression
+        Command:=ParseCommand;
+        //WriteLn(i,'COMMAND="',Command,'" Token=',CurTokenString);
+        if Command='' then
+          ParseExc(SParserSyntaxError);
+        CmdElem:=CurBlock.AddCommand(Command);
+        if NewImplElement=nil then NewImplElement:=CmdElem;
+        if CloseStatement(false) then break;
+      end;
     end;
   end;
 end;

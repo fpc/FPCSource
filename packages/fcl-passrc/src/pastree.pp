@@ -759,6 +759,7 @@ type
   TPasImplTry = class;
   TPasImplExceptOn = class;
   TPasImplRaise = class;
+  TPasImplLabelMark = class;
 
   { TPasImplBlock }
 
@@ -782,6 +783,7 @@ type
     function AddTry: TPasImplTry;
     function AddExceptOn(const VarName, TypeName: string): TPasImplExceptOn;
     function AddRaise: TPasImplRaise;
+    function AddLabelMark(const Id: string): TPasImplLabelMark;
     function CloseOnSemicolon: boolean; virtual;
   public
     Elements: TList;    // TPasImplElement objects
@@ -956,6 +958,11 @@ type
 
   TPassTreeVisitor = class
     procedure Visit(obj: TPasElement); virtual;
+  end;
+
+  TPasImplLabelMark = class(TPasImplElement)
+  public
+    LabelId:  AnsiString;
   end;
 
 const
@@ -1678,6 +1685,13 @@ end;
 function TPasImplBlock.AddRaise: TPasImplRaise;
 begin
   Result:=TPasImplRaise.Create('',Self);
+  AddElement(Result);
+end;
+
+function TPasImplBlock.AddLabelMark(const Id: string): TPasImplLabelMark;
+begin
+  Result:=TPasIMplLabelMark.Create('', Self);
+  Result.LabelId:=Id;
   AddElement(Result);
 end;
 
