@@ -38,18 +38,22 @@
 	.globl _start
 	.type _start,@function
 _start:
-#       movq %rdx,%r9                 /* Address of the shared library termination
+#       movq    %rdx,%r9                 /* Address of the shared library termination
 #               	                 function.  */
-	popq     %rsi		      /* Pop the argument count.  */
-        movq     %rsi,operatingsystem_parameter_argc
-	movq     %rsp,operatingsystem_parameter_argv   /* argv starts just at the current stack top.  */
-        leaq     8(,%rsi,8),%rax
-        addq     %rsp,%rax
-        movq     %rax,operatingsystem_parameter_envp
-        andq     $~15,%rsp            /* Align the stack to a 16 byte boundary to follow the ABI.  */
+	popq    %rsi		      /* Pop the argument count.  */
+        movq 	operatingsystem_parameter_argc@GOTPCREL(%rip),%rax
+        movq    %rsi,(%rax)
+        movq 	operatingsystem_parameter_argv@GOTPCREL(%rip),%rax
+	movq    %rsp,(%rax)   /* argv starts just at the current stack top.  */
+        leaq    8(,%rsi,8),%rax
+        addq    %rsp,%rax
+        movq 	operatingsystem_parameter_envp@GOTPCREL(%rip),%rcx
+        movq    %rax,(%rcx)
+        andq    $~15,%rsp            /* Align the stack to a 16 byte boundary to follow the ABI.  */
 
         /* Save initial stackpointer */
-        movq    %rsp,__stkptr
+        movq 	__stkptr@GOTPCREL(%rip),%rax
+        movq    %rsp,(%rax)
 
         xorq    %rbp, %rbp
         call    PASCALMAIN
@@ -58,8 +62,9 @@ _start:
         .globl  _haltproc
         .type   _haltproc,@function
 _haltproc:
+        movq 	operatingsystem_result@GOTPCREL(%rip),%rax
+        movzwl  (%rax),%edi
         movl    $231,%eax                 /* exit_group call */
-        movzwl    operatingsystem_result,%edi
         syscall
         jmp     _haltproc
 
