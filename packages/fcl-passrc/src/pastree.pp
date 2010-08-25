@@ -138,12 +138,12 @@ type
   TPasExpr = class(TPasElement)
     Kind      : TPasExprKind;
     OpCode    : TexprOpcode;
-    constructor Create(AParent : TPasElement; AKind: TPasExprKind; AOpCode: TexprOpcode);
+    constructor Create(AParent : TPasElement; AKind: TPasExprKind; AOpCode: TexprOpcode); virtual; overload;
   end;
 
   TUnaryExpr = class(TPasExpr)
     Operand   : TPasExpr;
-    constructor Create(AParent : TPasElement; AOperand: TPasExpr; AOpCode: TExprOpCode);
+    constructor Create(AParent : TPasElement; AOperand: TPasExpr; AOpCode: TExprOpCode); overload;
     function GetDeclaration(full : Boolean) : string; override;
     destructor Destroy; override;
   end;
@@ -153,28 +153,28 @@ type
   TBinaryExpr = class(TPasExpr)
     left      : TPasExpr;
     right     : TPasExpr;
-    constructor Create(AParent : TPasElement; xleft, xright: TPasExpr; AOpCode: TExprOpCode);
-    constructor CreateRange(AParent : TPasElement; xleft, xright: TPasExpr);
+    constructor Create(AParent : TPasElement; xleft, xright: TPasExpr; AOpCode: TExprOpCode); overload;
+    constructor CreateRange(AParent : TPasElement; xleft, xright: TPasExpr); overload;
     function GetDeclaration(full : Boolean) : string; override;
     destructor Destroy; override;
   end;
 
   TPrimitiveExpr = class(TPasExpr)
     Value     : AnsiString;
-    constructor Create(AParent : TPasElement; AKind: TPasExprKind; const AValue : Ansistring);
+    constructor Create(AParent : TPasElement; AKind: TPasExprKind; const AValue : Ansistring); overload;
     function GetDeclaration(full : Boolean) : string; override;
   end;
   
   TBoolConstExpr = class(TPasExpr)
     Value     : Boolean;
-    constructor Create(AParent : TPasElement; AKind: TPasExprKind; const ABoolValue : Boolean);
+    constructor Create(AParent : TPasElement; AKind: TPasExprKind; const ABoolValue : Boolean); overload;
     function GetDeclaration(full : Boolean) : string; override;
   end;
 
   { TNilExpr }
 
   TNilExpr = class(TPasExpr)
-    constructor Create(AParent : TPasElement);
+    constructor Create(AParent : TPasElement); overload;
     function GetDeclaration(full : Boolean) : string; override;
   end;
 
@@ -184,7 +184,7 @@ type
     Value     : TPasExpr;
     Params    : array of TPasExpr;
     {pekArray, pekFuncCall, pekSet}
-    constructor Create(AParent : TPasElement; AKind: TPasExprKind);
+    constructor Create(AParent : TPasElement; AKind: TPasExprKind); overload;
     function GetDeclaration(full : Boolean) : string; override;
     destructor Destroy; override;
     procedure AddParam(xp: TPasExpr);
@@ -199,7 +199,7 @@ type
 
   TRecordValues = class(TPasExpr)
     Fields    : array of TRecordValuesItem;
-    constructor Create(AParent : TPasElement);
+    constructor Create(AParent : TPasElement); overload;
     destructor Destroy; override;
     procedure AddField(const AName: AnsiString; Value: TPasExpr);
     function GetDeclaration(full : Boolean) : string; override;
@@ -209,7 +209,7 @@ type
 
   TArrayValues = class(TPasExpr)
     Values    : array of TPasExpr;
-    constructor Create(AParent : TPasElement);
+    constructor Create(AParent : TPasElement); overload;
     destructor Destroy; override;
     procedure AddValues(AValue: TPasExpr);
     function GetDeclaration(full : Boolean) : string; override;
@@ -269,6 +269,10 @@ type
     PackageName: string;
     Filename   : String;  // the IN filename, only written when not empty.
   end;
+
+  { TPasProgram }
+
+  TPasProgram = class(TPasModule);
 
   { TPasPackage }
 
@@ -734,6 +738,15 @@ type
     destructor Destroy; override;
   public
     Commands: TStrings;
+  end;
+
+  { TPasLabels }
+
+  TPasLabels = class(TPasImplElement)
+  public
+    Labels  : TStrings;
+    constructor Create(const AName: string; AParent: TPasElement); override;
+    destructor Destroy; override;
   end;
 
   TPasImplBeginBlock = class;
@@ -2422,6 +2435,7 @@ end;
 
 constructor TPasExpr.Create(AParent : TPasElement; AKind: TPasExprKind; AOpCode: TexprOpcode);
 begin
+  Create(ClassName, AParent);
   Kind:=AKind;
   OpCode:=AOpCode;
 end;
@@ -2643,6 +2657,20 @@ end;
 constructor TNilExpr.Create(AParent : TPasElement);
 begin
   inherited Create(AParent,pekNil, eopNone);
+end;
+
+{ TPasLabels }
+
+constructor TPasLabels.Create(const AName:string;AParent:TPasElement);
+begin
+  inherited Create(AName,AParent);
+  Labels := TStringList.Create;
+end;
+
+destructor TPasLabels.Destroy;
+begin
+  Labels.Free;
+  inherited Destroy;
 end;
 
 end.

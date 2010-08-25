@@ -160,6 +160,7 @@ type
 
     procedure ParseMain(var Module: TPasModule);
     procedure ParseUnit(var Module: TPasModule);
+    procedure ParseProgram(var Module: TPasModule);
     procedure ParseInterface;
     procedure ParseImplementation;
     procedure ParseInitialization;
@@ -186,6 +187,7 @@ type
     procedure ParseProcBeginBlock(Parent: TProcedureBody);
     procedure ParseStatement(Parent: TPasImplBlock;
                              out NewImplElement: TPasImplElement);
+    procedure ParseLabels(AParent: TPasElement);
 
     property FileResolver: TFileResolver read FFileResolver;
     property Scanner: TPascalScanner read FScanner;
@@ -1226,6 +1228,7 @@ begin
   NextToken;
   case CurToken of
     tkUnit: ParseUnit(Module);
+    tkProgram: ParseProgram(Module);
     else
       ParseExc(Format(SParserExpectTokenError, ['unit']));
   end;
@@ -1248,6 +1251,26 @@ begin
 //    ExpectToken(tkSemicolon);
     ExpectToken(tkInterface);
     ParseInterface;
+  finally
+    CurModule:=nil;
+  end;
+end;
+
+// Starts after the "program" token
+procedure TPasParser.ParseProgram(var Module: TPasModule);
+begin
+  Module := nil;
+  Module := TPasModule(CreateElement(TPasProgram, ExpectIdentifier,
+    Engine.Package));
+  CurModule:=Module;
+  try
+    if Assigned(Engine.Package) then
+    begin
+      Module.PackageName := Engine.Package.Name;
+      Engine.Package.Modules.Add(Module);
+    end;
+    NextToken;
+    ParseImplementation;
   finally
     CurModule:=nil;
   end;
@@ -1537,7 +1560,12 @@ begin
           end
         else
           ParseExc(SParserSyntaxError);
-        end
+        end;
+      tklabel:
+        begin
+          if not (Declarations is TInterfaceSection) then
+            ParseLabels(Declarations);
+        end;
     else
       ParseExc(SParserSyntaxError);
     end;
@@ -2895,6 +2923,18 @@ begin
   end;
 end;
 
+procedure TPasParser.ParseLabels(AParent: TPasElement);
+var
+  Labels: TPasLabels;
+begin
+  Labels:=TPasLabels(CreateElement(TPasLabels, '', AParent));
+  repeat
+    Labels.Labels.Add(ExpectIdentifier);
+    NextToken;
+    if not (CurToken in [tkSemicolon, tkComma]) then
+      ParseExc(Format(SParserExpectTokenError, [TokenInfos[tkSemicolon]]));
+  until CurToken=tkSemicolon;
+end;
 
 // Starts after the "procedure" or "function" token
 function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement;
