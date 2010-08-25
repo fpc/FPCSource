@@ -1834,8 +1834,8 @@ option_help_press_enter=11029__*** нажмите enter ***
 # Лого (опция -l)
 #
 option_logo=11023_[
-Free Pascal Compiler version $FPCFULLVERSION [$FPCDATE] for $FPCTARGET [Russian Edition]
-Copyright (c) 1993-2006 by Florian Klaempfl
+Компилятор Free Pascal версии $FPCFULLVERSION [$FPCDATE] для $FPCCPU
+Copyright (c) 1993-2010 by Florian Klaempfl
 ]
 
 #
