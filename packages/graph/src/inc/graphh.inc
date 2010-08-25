@@ -321,7 +321,9 @@ type
        { graphic drivers }
        CurrentDriver = -128;
        Detect        = 0;
-       LowRes        = 1;
+       CGA           = 1;
+       MCGA          = 2;
+       LowRes        = 6; { nickysn: used to be 1, but moved to 6, because I added CGA }
        HercMono      = 7;
        VGA           = 9;
        VESA          = 10;
@@ -345,6 +347,21 @@ type
 
        { graph modes }
        Default = 0;
+
+       { CGA Driver modes }
+       CGAC0 = 0;
+       CGAC1 = 1;
+       CGAC2 = 2;
+       CGAC3 = 3;
+       CGAHi = 4;
+
+       { MCGA Driver modes }
+       MCGAC0 = 0;
+       MCGAC1 = 1;
+       MCGAC2 = 2;
+       MCGAC3 = 3;
+       MCGAMed = 4;
+       MCGAHi = 5;
 
        { VGA Driver modes }
        VGALo   = 0;

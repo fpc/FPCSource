@@ -185,6 +185,954 @@ const
 {$endif fpc}
    end ['EAX'];
 
+{************************************************************************}
+{*                     320x200x4 CGA mode routines                      *}
+{************************************************************************}
+
+procedure SetCGAPalette(CGAPaletteID: Byte); assembler;
+asm
+{$IFNDEF REGCALL}
+  mov ax,val_ax
+{$ENDIF REGCALL}
+{$ifdef fpc}
+  push ebp
+  push esi
+  push edi
+  push ebx
+{$endif fpc}
+  mov bl, al
+  mov bh, 1
+  mov ah, 0Bh
+  int 10h
+{$ifdef fpc}
+  pop ebx
+  pop edi
+  pop esi
+  pop ebp
+{$endif fpc}
+end;
+
+procedure SetCGABorder(CGAPaletteID: Byte); assembler;
+asm
+{$IFNDEF REGCALL}
+  mov ax,val_ax
+{$ENDIF REGCALL}
+{$ifdef fpc}
+  push ebp
+  push esi
+  push edi
+  push ebx
+{$endif fpc}
+  mov bl, al
+  mov bh, 0
+  mov ah, 0Bh
+  int 10h
+{$ifdef fpc}
+  pop ebx
+  pop edi
+  pop esi
+  pop ebp
+{$endif fpc}
+end;
+
+procedure InitCGA320C0;
+begin
+  if DontClearGraphMemory then
+    CallInt10($84)
+  else
+    CallInt10($04);
+  SetCGAPalette(0);
+  SetCGABorder(16);
+end;
+
+procedure InitCGA320C1;
+begin
+  if DontClearGraphMemory then
+    CallInt10($84)
+  else
+    CallInt10($04);
+  SetCGAPalette(1);
+  SetCGABorder(16);
+end;
+
+procedure InitCGA320C2;
+begin
+  if DontClearGraphMemory then
+    CallInt10($84)
+  else
+    CallInt10($04);
+  SetCGAPalette(2);
+  SetCGABorder(0);
+end;
+
+procedure InitCGA320C3;
+begin
+  if DontClearGraphMemory then
+    CallInt10($84)
+  else
+    CallInt10($04);
+  SetCGAPalette(3);
+  SetCGABorder(0);
+end;
+
+procedure PutPixelCGA320(X, Y: SmallInt; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
+var
+  Offset: Word;
+  B, Mask, Shift: Byte;
+begin
+  X:= X + StartXViewPort;
+  Y:= Y + StartYViewPort;
+  { convert to absolute coordinates and then verify clipping...}
+  if ClipPixels then
+  begin
+    if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+      exit;
+    if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+      exit;
+  end;
+  Offset := (Y shr 1) * 80 + (X shr 2);
+  if (Y and 1) <> 0 then
+    Inc(Offset, 8192);
+  Shift := 6 - ((X and 3) shl 1);
+  Mask := $03 shl Shift;
+  B := Mem[SegB800:Offset];
+  B := B and (not Mask) or (Pixel shl Shift);
+  Mem[SegB800:Offset] := B;
+end;
+
+function GetPixelCGA320(X, Y: SmallInt): Word; {$ifndef fpc}far;{$endif fpc}
+var
+  Offset: Word;
+  B, Shift: Byte;
+begin
+  X:= X + StartXViewPort;
+  Y:= Y + StartYViewPort;
+  Offset := (Y shr 1) * 80 + (X shr 2);
+  if (Y and 1) <> 0 then
+    Inc(Offset, 8192);
+  Shift := 6 - ((X and 3) shl 1);
+  B := Mem[SegB800:Offset];
+  GetPixelCGA320 := (B shr Shift) and $03;
+end;
+
+procedure DirectPutPixelCGA320(X, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+ { x,y -> must be in global coordinates. No clipping. }
+var
+  Offset: Word;
+  B, Mask, Shift: Byte;
+begin
+  Offset := (Y shr 1) * 80 + (X shr 2);
+  if (Y and 1) <> 0 then
+    Inc(Offset, 8192);
+  Shift := 6 - ((X and 3) shl 1);
+  case CurrentWriteMode of
+    XORPut:
+      begin
+        { optimization }
+        if CurrentColor = 0 then
+          exit;
+        Mem[SegB800:Offset] := Mem[SegB800:Offset] xor (CurrentColor shl Shift);
+      end;
+    OrPut:
+      begin
+        { optimization }
+        if CurrentColor = 0 then
+          exit;
+        Mem[SegB800:Offset] := Mem[SegB800:Offset] or (CurrentColor shl Shift);
+      end;
+    AndPut:
+      begin
+        { optimization }
+        if CurrentColor = 3 then
+          exit;
+        Mask := $03 shl Shift;
+        Mem[SegB800:Offset] := Mem[SegB800:Offset] and ((CurrentColor shl Shift) or (not Mask));
+      end;
+    NotPut:
+      begin
+        Mask := $03 shl Shift;
+        B := Mem[SegB800:Offset];
+        B := B and (not Mask) or ((CurrentColor xor $03) shl Shift);
+        Mem[SegB800:Offset] := B;
+      end
+    else
+      begin
+        Mask := $03 shl Shift;
+        B := Mem[SegB800:Offset];
+        B := B and (not Mask) or (CurrentColor shl Shift);
+        Mem[SegB800:Offset] := B;
+      end;
+  end;
+end;
+
+procedure HLineCGA320(X, X2, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+var
+  Color: Word;
+  YOffset, LOffset, ROffset, CurrentOffset, MiddleAreaLength: Word;
+  B, ForeMask, LForeMask, LBackMask, RForeMask, RBackMask: Byte;
+  xtmp: SmallInt;
+begin
+  { must we swap the values? }
+  if x > x2 then
+  begin
+    xtmp := x2;
+    x2 := x;
+    x:= xtmp;
+  end;
+  { First convert to global coordinates }
+  X   := X + StartXViewPort;
+  X2  := X2 + StartXViewPort;
+  Y   := Y + StartYViewPort;
+  if ClipPixels then
+  begin
+    if LineClipped(x,y,x2,y,StartXViewPort,StartYViewPort,
+           StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+      exit;
+  end;
+  YOffset := (Y shr 1) * 80;
+  if (Y and 1) <> 0 then
+    Inc(YOffset, 8192);
+  LOffset := YOffset + (X shr 2);
+  ROffset := YOffset + (X2 shr 2);
+
+  if CurrentWriteMode = NotPut then
+    Color := CurrentColor xor $03
+  else
+    Color := CurrentColor;
+  case Color of
+    0: ForeMask := $00;
+    1: ForeMask := $55;
+    2: ForeMask := $AA;
+    3: ForeMask := $FF;
+  end;
+
+  LBackMask := Byte($FF00 shr ((X and $03) shl 1));
+  LForeMask := (not LBackMask) and ForeMask;
+
+  RBackMask := Byte(not ($FF shl (6 - ((X2 and $03) shl 1))));
+  RForeMask := (not RBackMask) and ForeMask;
+
+  if LOffset = ROffset then
+  begin
+    LBackMask := LBackMask or RBackMask;
+    LForeMask := LForeMask and RForeMask;
+  end;
+
+  CurrentOffset := LOffset;
+
+  { check if the first byte is only partially full
+    (otherwise, it's completely full and is handled as a part of the middle area) }
+  if LBackMask <> 0 then
+  begin
+    { draw the first byte }
+    case CurrentWriteMode of
+      XORPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] xor LForeMask;
+        end;
+      OrPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] or LForeMask;
+        end;
+      AndPut:
+        begin
+          { optimization }
+          if CurrentColor = 1 then
+            exit;
+          Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] and (LBackMask or LForeMask);
+        end;
+      else
+        begin
+          { note: NotPut is also handled here }
+          B := Mem[SegB800:CurrentOffset];
+          B := B and LBackMask or LForeMask;
+          Mem[SegB800:CurrentOffset] := B;
+        end;
+    end;
+    Inc(CurrentOffset);
+  end;
+
+  if CurrentOffset > ROffset then
+    exit;
+
+  MiddleAreaLength := ROffset + 1 - CurrentOffset;
+  if RBackMask <> 0 then
+    Dec(MiddleAreaLength);
+
+  { draw the middle area }
+  if MiddleAreaLength > 0 then
+  begin
+    case CurrentWriteMode of
+      XORPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          while MiddleAreaLength > 0 do
+          begin
+            Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] xor ForeMask;
+            Inc(CurrentOffset);
+            Dec(MiddleAreaLength);
+          end;
+        end;
+      OrPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          while MiddleAreaLength > 0 do
+          begin
+            Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] or ForeMask;
+            Inc(CurrentOffset);
+            Dec(MiddleAreaLength);
+          end;
+        end;
+      AndPut:
+        begin
+          { optimization }
+          if CurrentColor = 1 then
+            exit;
+          { therefore, CurrentColor must be 0 }
+          while MiddleAreaLength > 0 do
+          begin
+            Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] and ForeMask;
+            Inc(CurrentOffset);
+            Dec(MiddleAreaLength);
+          end;
+        end;
+      else
+        begin
+          { note: NotPut is also handled here }
+          while MiddleAreaLength > 0 do
+          begin
+            Mem[SegB800:CurrentOffset] := ForeMask;
+            Inc(CurrentOffset);
+            Dec(MiddleAreaLength);
+          end;
+        end;
+    end;
+  end;
+
+  { draw the final right byte, if less than 100% full }
+  if RBackMask <> 0 then
+  begin
+    { draw the last byte }
+    case CurrentWriteMode of
+      XORPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] xor RForeMask;
+        end;
+      OrPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] or RForeMask;
+        end;
+      AndPut:
+        begin
+          { optimization }
+          if CurrentColor = 1 then
+            exit;
+          Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] and (RBackMask or RForeMask);
+        end;
+      else
+        begin
+          { note: NotPut is also handled here }
+          B := Mem[SegB800:CurrentOffset];
+          B := B and RBackMask or RForeMask;
+          Mem[SegB800:CurrentOffset] := B;
+        end;
+    end;
+  end;
+end;
+
+{************************************************************************}
+{*                     640x200x2 CGA mode routines                      *}
+{************************************************************************}
+
+procedure InitCGA640;
+begin
+  if DontClearGraphMemory then
+    CallInt10($86)
+  else
+    CallInt10($06);
+end;
+
+procedure PutPixelCGA640(X, Y: SmallInt; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
+var
+  Offset: Word;
+  B, Mask, Shift: Byte;
+begin
+  X:= X + StartXViewPort;
+  Y:= Y + StartYViewPort;
+  { convert to absolute coordinates and then verify clipping...}
+  if ClipPixels then
+  begin
+    if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+      exit;
+    if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+      exit;
+  end;
+  Offset := (Y shr 1) * 80 + (X shr 3);
+  if (Y and 1) <> 0 then
+    Inc(Offset, 8192);
+  Shift := 7 - (X and 7);
+  Mask := 1 shl Shift;
+  B := Mem[SegB800:Offset];
+  B := B and (not Mask) or (Pixel shl Shift);
+  Mem[SegB800:Offset] := B;
+end;
+
+function GetPixelCGA640(X, Y: SmallInt): Word; {$ifndef fpc}far;{$endif fpc}
+var
+  Offset: Word;
+  B, Shift: Byte;
+begin
+  X:= X + StartXViewPort;
+  Y:= Y + StartYViewPort;
+  Offset := (Y shr 1) * 80 + (X shr 3);
+  if (Y and 1) <> 0 then
+    Inc(Offset, 8192);
+  Shift := 7 - (X and 7);
+  B := Mem[SegB800:Offset];
+  GetPixelCGA640 := (B shr Shift) and 1;
+end;
+
+procedure DirectPutPixelCGA640(X, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+ { x,y -> must be in global coordinates. No clipping. }
+var
+  Offset: Word;
+  B, Mask, Shift: Byte;
+begin
+  Offset := (Y shr 1) * 80 + (X shr 3);
+  if (Y and 1) <> 0 then
+    Inc(Offset, 8192);
+  Shift := 7 - (X and 7);
+  case CurrentWriteMode of
+    XORPut:
+      begin
+        { optimization }
+        if CurrentColor = 0 then
+          exit;
+        Mem[SegB800:Offset] := Mem[SegB800:Offset] xor (CurrentColor shl Shift);
+      end;
+    OrPut:
+      begin
+        { optimization }
+        if CurrentColor = 0 then
+          exit;
+        Mem[SegB800:Offset] := Mem[SegB800:Offset] or (CurrentColor shl Shift);
+      end;
+    AndPut:
+      begin
+        { optimization }
+        if CurrentColor = 1 then
+          exit;
+        { therefore, CurrentColor must be 0 }
+        Mem[SegB800:Offset] := Mem[SegB800:Offset] and (not (1 shl Shift));
+      end;
+    NotPut:
+      begin
+        Mask := 1 shl Shift;
+        B := Mem[SegB800:Offset];
+        B := B and (not Mask) or ((CurrentColor xor $01) shl Shift);
+        Mem[SegB800:Offset] := B;
+      end
+    else
+      begin
+        Mask := 1 shl Shift;
+        B := Mem[SegB800:Offset];
+        B := B and (not Mask) or (CurrentColor shl Shift);
+        Mem[SegB800:Offset] := B;
+      end;
+  end;
+end;
+
+procedure HLineCGA640(X, X2, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+var
+  Color: Word;
+  YOffset, LOffset, ROffset, CurrentOffset, MiddleAreaLength: Word;
+  B, ForeMask, LForeMask, LBackMask, RForeMask, RBackMask: Byte;
+  xtmp: SmallInt;
+begin
+  { must we swap the values? }
+  if x > x2 then
+  begin
+    xtmp := x2;
+    x2 := x;
+    x:= xtmp;
+  end;
+  { First convert to global coordinates }
+  X   := X + StartXViewPort;
+  X2  := X2 + StartXViewPort;
+  Y   := Y + StartYViewPort;
+  if ClipPixels then
+  begin
+    if LineClipped(x,y,x2,y,StartXViewPort,StartYViewPort,
+           StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+      exit;
+  end;
+  YOffset := (Y shr 1) * 80;
+  if (Y and 1) <> 0 then
+    Inc(YOffset, 8192);
+  LOffset := YOffset + (X shr 3);
+  ROffset := YOffset + (X2 shr 3);
+
+  if CurrentWriteMode = NotPut then
+    Color := CurrentColor xor $01
+  else
+    Color := CurrentColor;
+  if Color = 1 then
+    ForeMask := $FF
+  else
+    ForeMask := $00;
+
+  LBackMask := Byte($FF00 shr (X and $07));
+  LForeMask := (not LBackMask) and ForeMask;
+
+  RBackMask := Byte(not ($FF shl (7 - (X2 and $07))));
+  RForeMask := (not RBackMask) and ForeMask;
+
+  if LOffset = ROffset then
+  begin
+    LBackMask := LBackMask or RBackMask;
+    LForeMask := LForeMask and RForeMask;
+  end;
+
+  CurrentOffset := LOffset;
+
+  { check if the first byte is only partially full
+    (otherwise, it's completely full and is handled as a part of the middle area) }
+  if LBackMask <> 0 then
+  begin
+    { draw the first byte }
+    case CurrentWriteMode of
+      XORPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] xor LForeMask;
+        end;
+      OrPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] or LForeMask;
+        end;
+      AndPut:
+        begin
+          { optimization }
+          if CurrentColor = 1 then
+            exit;
+          { therefore, CurrentColor must be 0 }
+          Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] and LBackMask;
+        end;
+      else
+        begin
+          { note: NotPut is also handled here }
+          B := Mem[SegB800:CurrentOffset];
+          B := B and LBackMask or LForeMask;
+          Mem[SegB800:CurrentOffset] := B;
+        end;
+    end;
+    Inc(CurrentOffset);
+  end;
+
+  if CurrentOffset > ROffset then
+    exit;
+
+  MiddleAreaLength := ROffset + 1 - CurrentOffset;
+  if RBackMask <> 0 then
+    Dec(MiddleAreaLength);
+
+  { draw the middle area }
+  if MiddleAreaLength > 0 then
+  begin
+    case CurrentWriteMode of
+      XORPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          while MiddleAreaLength > 0 do
+          begin
+            Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] xor $FF;
+            Inc(CurrentOffset);
+            Dec(MiddleAreaLength);
+          end;
+        end;
+      OrPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          while MiddleAreaLength > 0 do
+          begin
+            Mem[SegB800:CurrentOffset] := $FF;
+            Inc(CurrentOffset);
+            Dec(MiddleAreaLength);
+          end;
+        end;
+      AndPut:
+        begin
+          { optimization }
+          if CurrentColor = 1 then
+            exit;
+          { therefore, CurrentColor must be 0 }
+          while MiddleAreaLength > 0 do
+          begin
+            Mem[SegB800:CurrentOffset] := 0;
+            Inc(CurrentOffset);
+            Dec(MiddleAreaLength);
+          end;
+        end;
+      else
+        begin
+          { note: NotPut is also handled here }
+          while MiddleAreaLength > 0 do
+          begin
+            Mem[SegB800:CurrentOffset] := ForeMask;
+            Inc(CurrentOffset);
+            Dec(MiddleAreaLength);
+          end;
+        end;
+    end;
+  end;
+
+  { draw the final right byte, if less than 100% full }
+  if RBackMask <> 0 then
+  begin
+    { draw the last byte }
+    case CurrentWriteMode of
+      XORPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] xor RForeMask;
+        end;
+      OrPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] or RForeMask;
+        end;
+      AndPut:
+        begin
+          { optimization }
+          if CurrentColor = 1 then
+            exit;
+          { therefore, CurrentColor must be 0 }
+          Mem[SegB800:CurrentOffset] := Mem[SegB800:CurrentOffset] and RBackMask;
+        end;
+      else
+        begin
+          { note: NotPut is also handled here }
+          B := Mem[SegB800:CurrentOffset];
+          B := B and RBackMask or RForeMask;
+          Mem[SegB800:CurrentOffset] := B;
+        end;
+    end;
+  end;
+end;
+
+{************************************************************************}
+{*                    640x480x2 MCGA mode routines                      *}
+{************************************************************************}
+
+procedure InitMCGA640;
+begin
+  if DontClearGraphMemory then
+    CallInt10($91)
+  else
+    CallInt10($11);
+end;
+
+procedure PutPixelMCGA640(X, Y: SmallInt; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
+var
+  Offset: Word;
+  B, Mask, Shift: Byte;
+begin
+  X:= X + StartXViewPort;
+  Y:= Y + StartYViewPort;
+  { convert to absolute coordinates and then verify clipping...}
+  if ClipPixels then
+  begin
+    if (X < StartXViewPort) or (X > (StartXViewPort + ViewWidth)) then
+      exit;
+    if (Y < StartYViewPort) or (Y > (StartYViewPort + ViewHeight)) then
+      exit;
+  end;
+  Offset := Y * 80 + (X shr 3);
+  Shift := 7 - (X and 7);
+  Mask := 1 shl Shift;
+  B := Mem[SegA000:Offset];
+  B := B and (not Mask) or (Pixel shl Shift);
+  Mem[SegA000:Offset] := B;
+end;
+
+function GetPixelMCGA640(X, Y: SmallInt): Word; {$ifndef fpc}far;{$endif fpc}
+var
+  Offset: Word;
+  B, Shift: Byte;
+begin
+  X:= X + StartXViewPort;
+  Y:= Y + StartYViewPort;
+  Offset := Y * 80 + (X shr 3);
+  Shift := 7 - (X and 7);
+  B := Mem[SegA000:Offset];
+  GetPixelMCGA640 := (B shr Shift) and 1;
+end;
+
+procedure DirectPutPixelMCGA640(X, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+ { x,y -> must be in global coordinates. No clipping. }
+var
+  Offset: Word;
+  B, Mask, Shift: Byte;
+begin
+  Offset := Y * 80 + (X shr 3);
+  Shift := 7 - (X and 7);
+  case CurrentWriteMode of
+    XORPut:
+      begin
+        { optimization }
+        if CurrentColor = 0 then
+          exit;
+        Mem[SegA000:Offset] := Mem[SegA000:Offset] xor (CurrentColor shl Shift);
+      end;
+    OrPut:
+      begin
+        { optimization }
+        if CurrentColor = 0 then
+          exit;
+        Mem[SegA000:Offset] := Mem[SegA000:Offset] or (CurrentColor shl Shift);
+      end;
+    AndPut:
+      begin
+        { optimization }
+        if CurrentColor = 1 then
+          exit;
+        { therefore, CurrentColor must be 0 }
+        Mem[SegA000:Offset] := Mem[SegA000:Offset] and (not (1 shl Shift));
+      end;
+    NotPut:
+      begin
+        Mask := 1 shl Shift;
+        B := Mem[SegA000:Offset];
+        B := B and (not Mask) or ((CurrentColor xor $01) shl Shift);
+        Mem[SegA000:Offset] := B;
+      end
+    else
+      begin
+        Mask := 1 shl Shift;
+        B := Mem[SegA000:Offset];
+        B := B and (not Mask) or (CurrentColor shl Shift);
+        Mem[SegA000:Offset] := B;
+      end;
+  end;
+end;
+
+procedure HLineMCGA640(X, X2, Y: SmallInt); {$ifndef fpc}far;{$endif fpc}
+var
+  Color: Word;
+  YOffset, LOffset, ROffset, CurrentOffset, MiddleAreaLength: Word;
+  B, ForeMask, LForeMask, LBackMask, RForeMask, RBackMask: Byte;
+  xtmp: SmallInt;
+begin
+  { must we swap the values? }
+  if x > x2 then
+  begin
+    xtmp := x2;
+    x2 := x;
+    x:= xtmp;
+  end;
+  { First convert to global coordinates }
+  X   := X + StartXViewPort;
+  X2  := X2 + StartXViewPort;
+  Y   := Y + StartYViewPort;
+  if ClipPixels then
+  begin
+    if LineClipped(x,y,x2,y,StartXViewPort,StartYViewPort,
+           StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+      exit;
+  end;
+  YOffset := Y * 80;
+  LOffset := YOffset + (X shr 3);
+  ROffset := YOffset + (X2 shr 3);
+
+  if CurrentWriteMode = NotPut then
+    Color := CurrentColor xor $01
+  else
+    Color := CurrentColor;
+  if Color = 1 then
+    ForeMask := $FF
+  else
+    ForeMask := $00;
+
+  LBackMask := Byte($FF00 shr (X and $07));
+  LForeMask := (not LBackMask) and ForeMask;
+
+  RBackMask := Byte(not ($FF shl (7 - (X2 and $07))));
+  RForeMask := (not RBackMask) and ForeMask;
+
+  if LOffset = ROffset then
+  begin
+    LBackMask := LBackMask or RBackMask;
+    LForeMask := LForeMask and RForeMask;
+  end;
+
+  CurrentOffset := LOffset;
+
+  { check if the first byte is only partially full
+    (otherwise, it's completely full and is handled as a part of the middle area) }
+  if LBackMask <> 0 then
+  begin
+    { draw the first byte }
+    case CurrentWriteMode of
+      XORPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          Mem[SegA000:CurrentOffset] := Mem[SegA000:CurrentOffset] xor LForeMask;
+        end;
+      OrPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          Mem[SegA000:CurrentOffset] := Mem[SegA000:CurrentOffset] or LForeMask;
+        end;
+      AndPut:
+        begin
+          { optimization }
+          if CurrentColor = 1 then
+            exit;
+          { therefore, CurrentColor must be 0 }
+          Mem[SegA000:CurrentOffset] := Mem[SegA000:CurrentOffset] and LBackMask;
+        end;
+      else
+        begin
+          { note: NotPut is also handled here }
+          B := Mem[SegA000:CurrentOffset];
+          B := B and LBackMask or LForeMask;
+          Mem[SegA000:CurrentOffset] := B;
+        end;
+    end;
+    Inc(CurrentOffset);
+  end;
+
+  if CurrentOffset > ROffset then
+    exit;
+
+  MiddleAreaLength := ROffset + 1 - CurrentOffset;
+  if RBackMask <> 0 then
+    Dec(MiddleAreaLength);
+
+  { draw the middle area }
+  if MiddleAreaLength > 0 then
+  begin
+    case CurrentWriteMode of
+      XORPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          while MiddleAreaLength > 0 do
+          begin
+            Mem[SegA000:CurrentOffset] := Mem[SegA000:CurrentOffset] xor $FF;
+            Inc(CurrentOffset);
+            Dec(MiddleAreaLength);
+          end;
+        end;
+      OrPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          while MiddleAreaLength > 0 do
+          begin
+            Mem[SegA000:CurrentOffset] := $FF;
+            Inc(CurrentOffset);
+            Dec(MiddleAreaLength);
+          end;
+        end;
+      AndPut:
+        begin
+          { optimization }
+          if CurrentColor = 1 then
+            exit;
+          { therefore, CurrentColor must be 0 }
+          while MiddleAreaLength > 0 do
+          begin
+            Mem[SegA000:CurrentOffset] := 0;
+            Inc(CurrentOffset);
+            Dec(MiddleAreaLength);
+          end;
+        end;
+      else
+        begin
+          { note: NotPut is also handled here }
+          while MiddleAreaLength > 0 do
+          begin
+            Mem[SegA000:CurrentOffset] := ForeMask;
+            Inc(CurrentOffset);
+            Dec(MiddleAreaLength);
+          end;
+        end;
+    end;
+  end;
+
+  if RBackMask <> 0 then
+  begin
+    { draw the last byte }
+    case CurrentWriteMode of
+      XORPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          Mem[SegA000:CurrentOffset] := Mem[SegA000:CurrentOffset] xor RForeMask;
+        end;
+      OrPut:
+        begin
+          { optimization }
+          if CurrentColor = 0 then
+            exit;
+          Mem[SegA000:CurrentOffset] := Mem[SegA000:CurrentOffset] or RForeMask;
+        end;
+      AndPut:
+        begin
+          { optimization }
+          if CurrentColor = 1 then
+            exit;
+          { therefore, CurrentColor must be 0 }
+          Mem[SegA000:CurrentOffset] := Mem[SegA000:CurrentOffset] and RBackMask;
+        end;
+      else
+        begin
+          { note: NotPut is also handled here }
+          B := Mem[SegA000:CurrentOffset];
+          B := B and RBackMask or RForeMask;
+          Mem[SegA000:CurrentOffset] := B;
+        end;
+    end;
+  end;
+end;
+
  {************************************************************************}
  {*                     4-bit planar VGA mode routines                   *}
  {************************************************************************}
@@ -2217,6 +3165,275 @@ const CrtAddress: word = 0;
 {$ifdef logging}
          LogLn('Setting VGA RestoreVideoState to '+strf(longint(RestoreVideoState)));
 {$endif logging}
+
+         { now add all standard CGA modes...       }
+         InitMode(mode);
+         mode.DriverNumber := CGA;
+         mode.HardwarePages := 0;
+         mode.ModeNumber := CGAC0;
+         mode.ModeName:='320 x 200 CGA C0';
+         mode.MaxColor := 4;
+         mode.PaletteSize := 16;
+         mode.DirectColor := FALSE;
+         mode.MaxX := 319;
+         mode.MaxY := 199;
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixelCGA320;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixelCGA320;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelCGA320;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
+         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C0;
+         mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
+         mode.XAspect := 8333;
+         mode.YAspect := 10000;
+         AddMode(mode);
+
+         InitMode(mode);
+         mode.DriverNumber := CGA;
+         mode.HardwarePages := 0;
+         mode.ModeNumber := CGAC1;
+         mode.ModeName:='320 x 200 CGA C1';
+         mode.MaxColor := 4;
+         mode.PaletteSize := 16;
+         mode.DirectColor := FALSE;
+         mode.MaxX := 319;
+         mode.MaxY := 199;
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixelCGA320;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixelCGA320;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelCGA320;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
+         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C1;
+         mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
+         mode.XAspect := 8333;
+         mode.YAspect := 10000;
+         AddMode(mode);
+
+         InitMode(mode);
+         mode.DriverNumber := CGA;
+         mode.HardwarePages := 0;
+         mode.ModeNumber := CGAC2;
+         mode.ModeName:='320 x 200 CGA C2';
+         mode.MaxColor := 4;
+         mode.PaletteSize := 16;
+         mode.DirectColor := FALSE;
+         mode.MaxX := 319;
+         mode.MaxY := 199;
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixelCGA320;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixelCGA320;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelCGA320;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
+         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C2;
+         mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
+         mode.XAspect := 8333;
+         mode.YAspect := 10000;
+         AddMode(mode);
+
+         InitMode(mode);
+         mode.DriverNumber := CGA;
+         mode.HardwarePages := 0;
+         mode.ModeNumber := CGAC3;
+         mode.ModeName:='320 x 200 CGA C3';
+         mode.MaxColor := 4;
+         mode.PaletteSize := 16;
+         mode.DirectColor := FALSE;
+         mode.MaxX := 319;
+         mode.MaxY := 199;
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixelCGA320;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixelCGA320;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelCGA320;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
+         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C3;
+         mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
+         mode.XAspect := 8333;
+         mode.YAspect := 10000;
+         AddMode(mode);
+
+         InitMode(mode);
+         mode.DriverNumber := CGA;
+         mode.HardwarePages := 0;
+         mode.ModeNumber := CGAHi;
+         mode.ModeName:='640 x 200 CGA';
+         mode.MaxColor := 2;
+         mode.PaletteSize := 16;
+         mode.DirectColor := FALSE;
+         mode.MaxX := 639;
+         mode.MaxY := 199;
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixelCGA640;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixelCGA640;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelCGA640;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
+         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA640;
+         mode.HLine := {$ifdef fpc}@{$endif}HLineCGA640;
+         mode.XAspect := 4167;
+         mode.YAspect := 10000;
+         AddMode(mode);
+
+         { now add all standard MCGA modes...       }
+         { yes, most of these are the same as the CGA modes; this is TP7
+           compatible }
+         InitMode(mode);
+         mode.DriverNumber := MCGA;
+         mode.HardwarePages := 0;
+         mode.ModeNumber := MCGAC0;
+         mode.ModeName:='320 x 200 CGA C0'; { yes, it says 'CGA' even for the MCGA driver; this is TP7 compatible }
+         mode.MaxColor := 4;
+         mode.PaletteSize := 16;
+         mode.DirectColor := FALSE;
+         mode.MaxX := 319;
+         mode.MaxY := 199;
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixelCGA320;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixelCGA320;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelCGA320;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
+         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C0;
+         mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
+         mode.XAspect := 8333;
+         mode.YAspect := 10000;
+         AddMode(mode);
+
+         InitMode(mode);
+         mode.DriverNumber := MCGA;
+         mode.HardwarePages := 0;
+         mode.ModeNumber := MCGAC1;
+         mode.ModeName:='320 x 200 CGA C1'; { yes, it says 'CGA' even for the MCGA driver; this is TP7 compatible }
+         mode.MaxColor := 4;
+         mode.PaletteSize := 16;
+         mode.DirectColor := FALSE;
+         mode.MaxX := 319;
+         mode.MaxY := 199;
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixelCGA320;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixelCGA320;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelCGA320;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
+         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C1;
+         mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
+         mode.XAspect := 8333;
+         mode.YAspect := 10000;
+         AddMode(mode);
+
+         InitMode(mode);
+         mode.DriverNumber := MCGA;
+         mode.HardwarePages := 0;
+         mode.ModeNumber := MCGAC2;
+         mode.ModeName:='320 x 200 CGA C2'; { yes, it says 'CGA' even for the MCGA driver; this is TP7 compatible }
+         mode.MaxColor := 4;
+         mode.PaletteSize := 16;
+         mode.DirectColor := FALSE;
+         mode.MaxX := 319;
+         mode.MaxY := 199;
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixelCGA320;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixelCGA320;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelCGA320;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
+         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C2;
+         mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
+         mode.XAspect := 8333;
+         mode.YAspect := 10000;
+         AddMode(mode);
+
+         InitMode(mode);
+         mode.DriverNumber := MCGA;
+         mode.HardwarePages := 0;
+         mode.ModeNumber := MCGAC3;
+         mode.ModeName:='320 x 200 CGA C3'; { yes, it says 'CGA' even for the MCGA driver; this is TP7 compatible }
+         mode.MaxColor := 4;
+         mode.PaletteSize := 16;
+         mode.DirectColor := FALSE;
+         mode.MaxX := 319;
+         mode.MaxY := 199;
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixelCGA320;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixelCGA320;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelCGA320;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
+         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C3;
+         mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
+         mode.XAspect := 8333;
+         mode.YAspect := 10000;
+         AddMode(mode);
+
+         InitMode(mode);
+         mode.DriverNumber := MCGA;
+         mode.HardwarePages := 0;
+         mode.ModeNumber := MCGAMed;
+         mode.ModeName:='640 x 200 CGA'; { yes, it says 'CGA' even for the MCGA driver; this is TP7 compatible }
+         mode.MaxColor := 2;
+         mode.PaletteSize := 16;
+         mode.DirectColor := FALSE;
+         mode.MaxX := 639;
+         mode.MaxY := 199;
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixelCGA640;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixelCGA640;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelCGA640;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
+         mode.InitMode := {$ifdef fpc}@{$endif}InitCGA640;
+         mode.HLine := {$ifdef fpc}@{$endif}HLineCGA640;
+         mode.XAspect := 4167;
+         mode.YAspect := 10000;
+         AddMode(mode);
+
+         InitMode(mode);
+         mode.DriverNumber := MCGA;
+         mode.HardwarePages := 0;
+         mode.ModeNumber := MCGAHi;
+         mode.ModeName:='640 x 480 MCGA';
+         mode.MaxColor := 2;
+         mode.PaletteSize := 16;
+         mode.DirectColor := FALSE;
+         mode.MaxX := 639;
+         mode.MaxY := 479;
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixelMCGA640;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixelMCGA640;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixelMCGA640;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
+         mode.InitMode := {$ifdef fpc}@{$endif}InitMCGA640;
+         mode.HLine := {$ifdef fpc}@{$endif}HLineMCGA640;
+         mode.XAspect := 10000;
+         mode.YAspect := 10000;
+         AddMode(mode);
+
 
          InitMode(mode);
          { now add all standard VGA modes...       }

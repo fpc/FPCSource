@@ -64,8 +64,8 @@ It's highly recommended to use Detect (0 constant) for grDriver and grmode: init
 }
 
  //Detect      =0;     is in the graphh.inc
- CGA           =1;
- MCGA	       =2;
+ //CGA           =1;   is in graphh.inc
+ //MCGA	       =2;   is in graphh.inc
  EGA           =3;
  EGA64         =4;
  EGAMono       =5;
@@ -76,18 +76,18 @@ It's highly recommended to use Detect (0 constant) for grDriver and grmode: init
  PC3270        =10;
 
 {Graphics Modes for Each Driver}
- CGAC0         =0;
- CGAC          =1;
- CGAC2         =2;
- CGAC3         =3;
- CGAHi         =4;
+ //CGAC0         =0;   is in graphh.inc
+ //CGAC          =1;   is in graphh.inc
+ //CGAC2         =2;   is in graphh.inc
+ //CGAC3         =3;   is in graphh.inc
+ //CGAHi         =4;   is in graphh.inc
  
- MCGAC0        =0;
- MCGAC         =1;
- MCGAC2        =2;
- MCGAC3        =3;
- MCGAMed       =4;
- MCGAHi        =5;
+ //MCGAC0        =0;   is in graphh.inc
+ //MCGAC         =1;   is in graphh.inc
+ //MCGAC2        =2;   is in graphh.inc
+ //MCGAC3        =3;   is in graphh.inc
+ //MCGAMed       =4;   is in graphh.inc
+ //MCGAHi        =5;   is in graphh.inc
  
  EGAMonoHi     =3;
  //HercMonoHi    =0;      is in the graphh.inc
