@@ -309,27 +309,31 @@ implementation
           tabstractrecordsymtable(def.symtable).llvmst:=tllvmshadowsymtable.create(tabstractrecordsymtable(def.symtable));
         symdeflist:=tabstractrecordsymtable(def.symtable).llvmst.symdeflist;
 
-        i:=0;
-        if (def.typ=objectdef) and
-           assigned(tobjectdef(def).childof) and
-           is_class_or_interface_or_dispinterface(tllvmshadowsymtableentry(symdeflist[0]).def) then
+        if symdeflist.count>0 then
           begin
-            { insert the struct for the class rather than a pointer to the struct }
-            if (tllvmshadowsymtableentry(symdeflist[0]).def.typ<>objectdef) then
-              internalerror(2008070601);
-            defstr:=defstr+def_llvm_class_struct_name(tobjectdef(tllvmshadowsymtableentry(symdeflist[0]).def)).name+', ';
-            inc(i);
+            i:=0;
+            if (def.typ=objectdef) and
+               assigned(tobjectdef(def).childof) and
+               is_class_or_interface_or_dispinterface(tllvmshadowsymtableentry(symdeflist[0]).def) then
+              begin
+                writeln(def.typename,' in ',def.owner.name^);
+                { insert the struct for the class rather than a pointer to the struct }
+                if (tllvmshadowsymtableentry(symdeflist[0]).def.typ<>objectdef) then
+                  internalerror(2008070601);
+                defstr:=defstr+def_llvm_class_struct_name(tobjectdef(tllvmshadowsymtableentry(symdeflist[0]).def)).name+', ';
+                inc(i);
+              end;
+            while i<symdeflist.count do
+              begin
+                defstr:=defstr+def_llvm_name(tllvmshadowsymtableentry(symdeflist[i]).def).name+', ';
+                inc(i);
+              end;
+            { remove last ', ' }
+            setlength(defstr,length(defstr)-2);
           end;
-        while i< symdeflist.count do
-          begin
-            defstr:=defstr+def_llvm_name(tllvmshadowsymtableentry(symdeflist[i]).def).name+', ';
-            inc(i);
-          end;
-        { remove last ', ' }
-        setlength(defstr,length(defstr)-2);
         defstr:=defstr+endstr;
-        if (def.typ <> objectdef) or
-           not(tobjectdef(def).objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_class]) then
+        if (def.typ<>objectdef) or
+           not(tobjectdef(def).objecttype in [odt_interfacecom,odt_interfacecorba,odt_dispinterface,odt_class,odt_objcclass,odt_objccategory]) then
           list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),defstr))
         else
           list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_class_struct_name(tobjectdef(def)),defstr))
@@ -394,7 +398,10 @@ implementation
 
     procedure TLLVMDefInfo.appenddef_procvar(list:TAsmList;def:tprocvardef);
       begin
-        list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),getabstractprocdefstr(def)+'*'));
+        if def.is_addressonly then
+          list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),getabstractprocdefstr(def)+'*'))
+        else
+          list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),'{ '+getabstractprocdefstr(def)+'*, i8* }'))
       end;
 
 
@@ -989,12 +996,15 @@ implementation
           odt_interfacecom,
           odt_interfacecorba,
           odt_dispinterface,
-          odt_class:
+          odt_class,
+          odt_objcclass,
+          odt_objcprotocol:
             begin
               { implicit pointer }
               list.concat(taillvm.op_ressym_string(LA_TYPE,def_llvm_name(def),def_llvm_class_struct_name(def).name+'*'));
               doappend;
-              doappend_classvmt;
+              if not (def.objecttype in [odt_objcclass,odt_objcprotocol]) then
+                doappend_classvmt;
             end;
           else
             internalerror(200602041);
