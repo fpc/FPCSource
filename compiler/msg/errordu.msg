@@ -3,7 +3,7 @@
 #   Latest updates contributed by Karl-Michael Schindler aka mischi
 #   <karl-michael.schindler at web.de>
 #
-#   Based on errore.msg of SVN revision 15476
+#   Based on errore.msg of SVN revision 15850
 #
 #   This file is part of the Free Pascal Compiler
 #   Copyright (c) 1998-2010 by the Free Pascal Development team
@@ -961,7 +961,7 @@ parser_w_proc_overriding_calling=03182_W_Überschreibe die Calling Convention "$
 % There are two directives in the procedure declaration that specify a calling
 % convention. Only the last directive will be used.
 parser_e_no_procvarobj_const=03183_E_Die Konstante des Typs "procedure of object" kann nur mit NIL initialisiert werden
-% You can't assign the address of a method to a typed constant which has a
+% You cannot assign the address of a method to a typed constant which has a
 % 'procedure of object' type, because such a constant requires two addresses:
 % that of the method (which is known at compile time) and that of the object or
 % class instance it operates on (which cannot be known at compile time).
@@ -1335,6 +1335,13 @@ parser_e_objc_missing_enumeration_defs=03295_E_Der Kompiler findet die Typen NSF
 % NSFastEnumerationProtocol and NSFastEnumerationState types. If you get this
 % error, most likely the compiler is finding and loading an alternate CocoaAll
 % unit.
+parser_e_no_procvarnested_const=03296_E_Typisierte Konstanten des Typs 'procedure is nested' können nur mit NIL und globalen Prozeduren/Funktionen initialisiert werden
+% A nested procedural variable consists of two components: the address of the
+% procedure/function to call (which is always known at compile time), and also
+% a parent frame pointer (which is never known at compile time) in case the
+% procedural variable contains a reference to a nested procedure/function.
+% Therefore such typed constants can only be initialized with global
+% functions/procedures since these do not require a parent frame pointer.
 %
 % \end{description}
 # EndOfTeX
@@ -1684,6 +1691,8 @@ type_w_procvar_univ_conflicting_para=04095_W_Erzwungener univ Parameter Typ in e
 % floating point values on the stack, because then the stack will be unbalanced.
 % Note that this warning will not flagg all potentially dangerous situations.
 % when \var{test} returns.
+type_e_generics_cannot_reference_itself=04096_E_Typ-Parameter bei der Spezialisation von Generics können den aktuel spezialisierten Typ nicht referenzieren
+% Recursive specializations of generics like \var{Type MyType = specialize MyGeneric<MyType>;} are not possible.
 %
 % \end{description}
 # EndOfTeX
@@ -1928,6 +1937,8 @@ sym_e_objc_formal_class_not_resolved=05080_E_Die vollständige Definition der fo
 % However, as soon as you wish to actually do something with an entity of this class type (such as
 % access one of its fields, send a message to it, or use it to inherit from), the compiler requires the full definition
 % of the class to be in scope.
+sym_e_interprocgoto_into_init_final_code_not_allowed=05081_E_Gotos in die 'initialization'- oder 'finalization'-Blöcke einer Unit sind nicht erlaubt
+% Gotos into initialization or finalization blockse of units are not allowed.
 %
 % \end{description}
 # EndOfTeX
@@ -2067,6 +2078,11 @@ cg_f_unknown_type_in_unit=06050_F_Kann den Typ "$1" nicht in der Unit "$2" finde
 % and you didn't change the runtime library code, it's very likely that the runtime library
 % you're using doesn't match the compiler in use. If you changed the runtime library this error means
 % that you removed a type which the compiler needs for internal use.
+cg_e_interprocedural_goto_only_to_outer_scope_allowed=06051_E_Interprozedurale gotos sind nur in äußere Subroutines erlaubt
+% Gotos between subroutines are only allowed if the goto jumps from an inner to an outer subroutine or
+% from a subroutine to the main program
+cg_e_labels_cannot_defined_outside_declaration_scope=06052_E_ Label müssen im selben Bereich definiert werden, in dem sie deklariert werden
+% In ISO mode, labels must be defined in the same scope as they are declared.
 %
 % \end{description}
 # EndOfTeX
@@ -2633,7 +2649,7 @@ unit_u_check_time=10037_U_PPU prüfe Datei $1 Zeit $2
 unit_w_cant_compile_unit_with_changed_incfile=10040_W_Kann Unit $1 nicht erneut übersetzen, aber geänderte Include-Datei gefunden
 % A unit was found to have modified include files, but
 % some source files were not found, so recompilation is impossible.
-unit_u_source_modified=10041_U_Datei $1 ist neuer als die PPU Datei $2
+unit_u_source_modified=10041_U_Datei $1 ist neuer als die, aus der die PPU Datei $2 erzeugt wird
 % A modified source file for a compiler unit was found.
 unit_u_ppu_invalid_fpumode=10042_U_Versuch eine Unit zu verwenden, die in einem anderen FPU Mode übersetzt wurde
 % Trying to compile code while using units which were not compiled with
@@ -3026,6 +3042,7 @@ S*2Aas_Assembliere mit Hilfe von GNU AS
 **2bl_Erzeuge Info zu lokalen Symbolen
 **1B_Erzeuge alle Module (Build)
 **1C<x>_Optionen für Code-Erzeugung:
+**2C3<x>_Schalte ieee-Prüfung von Konstanten ein
 **2Ca<x>_Wähle ABI aus; fpc -i gibt die möglichen Werte aus
 **2Cb_Erzeuge "big-endian" Code
 **2Cc<x>_Setze "default calling convention" zu <x>
