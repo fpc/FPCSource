@@ -2072,7 +2072,7 @@ cg_e_labels_cannot_defined_outside_declaration_scope=06052_E_Label must be defin
 #
 # Assembler reader
 #
-# 07109 is the last used one
+# 07110 is the last used one
 #
 asmr_d_start_reading=07000_DL_Starting $1 styled assembler parsing
 % This informs you that an assembler block is being parsed
@@ -2324,6 +2324,10 @@ asmr_e_mixing_regtypes=07108_E_All registers in a register set must be of the sa
 asmr_e_empty_regset=07109_E_A register set cannot be empty
 % Instructions on the ARM architecture that take a register set as argument require that such a set
 % contains at least one register.
+
+asmr_w_useless_got_for_local=07110_W_@GOTPCREL is useless and potentially dangereous for local symbols
+% The use of @GOTPCREL supposes an extra indirection that is
+% not present if the symbol is local, which might lead to wrong asembler code
 #
 # Assembler/binary writers
 #
