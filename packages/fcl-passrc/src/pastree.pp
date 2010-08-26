@@ -759,6 +759,8 @@ type
   TPasImplTry = class;
   TPasImplExceptOn = class;
   TPasImplRaise = class;
+  TPasImplAssign = class;
+  TPasImplSimple = class;
   TPasImplLabelMark = class;
 
   { TPasImplBlock }
@@ -784,6 +786,8 @@ type
     function AddExceptOn(const VarName, TypeName: string): TPasImplExceptOn;
     function AddRaise: TPasImplRaise;
     function AddLabelMark(const Id: string): TPasImplLabelMark;
+    function AddAssign(left, right: TPasExpr): TPasImplAssign;
+    function AddSimple(exp: TPasExpr): TPasImplSimple;
     function CloseOnSemicolon: boolean; virtual;
   public
     Elements: TList;    // TPasImplElement objects
@@ -900,6 +904,21 @@ type
     VariableName, StartValue, EndValue: string;
     Down: boolean; // downto
     Body: TPasImplElement;
+  end;
+
+  { TPasImplAssign }
+
+  TPasImplAssign = class (TPasImplStatement)
+  public
+    left  : TPasExpr;
+    right : TPasExpr;
+  end;
+
+  { TPasImplSimple }
+
+  TPasImplSimple = class (TPasImplStatement)
+  public
+    expr  : TPasExpr;
   end;
 
   TPasImplTryHandler = class;
@@ -1690,9 +1709,22 @@ end;
 
 function TPasImplBlock.AddLabelMark(const Id: string): TPasImplLabelMark;
 begin
-  Result:=TPasIMplLabelMark.Create('', Self);
+  Result:=TPasImplLabelMark.Create('', Self);
   Result.LabelId:=Id;
   AddElement(Result);
+end;
+
+function TPasImplBlock.AddAssign(left,right:TPasExpr):TPasImplAssign;
+begin
+  Result:=TPasImplAssign.Create('', Self);
+  Result.left:=left;
+  Result.right:=right;
+end;
+
+function TPasImplBlock.AddSimple(exp:TPasExpr):TPasImplSimple;
+begin
+  Result:=TPasImplSimple.Create('', Self);
+  Result.expr:=exp;
 end;
 
 function TPasImplBlock.CloseOnSemicolon: boolean;

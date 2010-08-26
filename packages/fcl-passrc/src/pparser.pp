@@ -933,6 +933,13 @@ begin
           x:=DoParseExpression(AParent);
           if CurToken<>tkBraceClose then Exit;
           NextToken;
+
+          // for the expression like  (TObject(m)).Free;
+          if CurToken = tkDot then begin
+            NextToken;
+            x:=TBinaryExpr.Create(AParent,x, ParseExpIdent(AParent), TokenToExprOp(tkDot));
+          end;
+
         end else begin
           x:=ParseExpIdent(AParent);
         end;
@@ -2669,15 +2676,16 @@ var
 
 var
   Condition: String;
-  Command: String;
   StartValue: String;
   VarName: String;
   EndValue: String;
   Expr: String;
   SubBlock: TPasImplElement;
-  CmdElem: TPasImplCommand;
+  CmdElem: TPasImplElement;
   TypeName: String;
   ForDownTo: Boolean;
+  left: TPasExpr;
+  right: TPasExpr;
 begin
   NewImplElement:=nil;
   CurBlock := Parent;
@@ -2911,42 +2919,32 @@ begin
           ParseExc(SParserSyntaxError);
       end;
     else
-      UngetToken;
-
-      Command:='';
-
-      NextToken;
-      // testing for label mark
-      if CurToken=tkIdentifier then
-      begin
-        Command:=CurTokenText;
-        NextToken;
-        // testing for the goto mark
-        if CurToken=tkColon then
+      left:=DoParseExpression(nil);
+      case CurToken of
+        tkAssign:
         begin
-          CurBlock.AddLabelMark(Command);
-        end
-        else
-        begin
-          Command:='';
-          UngetToken;
+          // assign statement
+          NextToken;
+          right:=ParseExpIdent(Parent);
+          CmdElem:=CurBlock.AddAssign(left, right);
           UngetToken;
         end;
-      end else
+        tkColon:
+        begin
+          if not (left is TPrimitiveExpr) then
+            ParseExc(Format(SParserExpectTokenError, [TokenInfos[tkSemicolon]]));
+          // label mark. todo: check mark identifier in the list of labels
+          CmdElem:=CurBlock.AddLabelMark(TPrimitiveExpr(left).Value);
+          left.Free;
+        end
+      else
+        // simple statement (function call)
+        CmdElem:=CurBlock.AddSimple(left);
         UngetToken;
-
-
-      if Command='' then
-      begin
-        // parsing the assignment statement or call expression
-        Command:=ParseCommand;
-        //WriteLn(i,'COMMAND="',Command,'" Token=',CurTokenString);
-        if Command='' then
-          ParseExc(SParserSyntaxError);
-        CmdElem:=CurBlock.AddCommand(Command);
-        if NewImplElement=nil then NewImplElement:=CmdElem;
-        if CloseStatement(false) then break;
       end;
+
+      if not (CmdElem is TPasImplLabelMark) then
+        if NewImplElement=nil then NewImplElement:=CmdElem;
     end;
   end;
 end;
