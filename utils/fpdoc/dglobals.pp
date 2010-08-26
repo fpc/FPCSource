@@ -1071,8 +1071,17 @@ var
   i: Integer;
   ThisPackage: TLinkNode;
   UnitList: TList;
+
+  function CanWeExit(AResult: string): boolean;
+  var
+    s: string;
+  begin
+    s := StringReplace(Lowercase(ALinkDest), '.', '_', [rfReplaceAll]);
+    Result := pos(s, AResult) > 0;
+  end;
+
 begin
-//WriteLn('ResolveLink(', ALinkDest, ')... ');
+//system.WriteLn('ResolveLink(', AModule.Name, ' - ', ALinkDest, ')... ');
   if Length(ALinkDest) = 0 then
   begin
     SetLength(Result, 0);
@@ -1083,13 +1092,18 @@ begin
     Result := FindAbsoluteLink(ALinkDest)
   else
   begin
-    Result := ResolveLink(AModule, amodule.packagename + '.' + ALinkDest);
-    if Length(Result) > 0 then
-      exit;
-
-    Result := ResolveLink(AModule, AModule.PathName + '.' + ALinkDest);
-    if Length(Result) > 0 then
-      exit;
+    if Pos(AModule.Name, ALinkDest) = 1 then
+    begin
+      Result := ResolveLink(AModule, amodule.packagename + '.' + ALinkDest);
+      if CanWeExit(Result) then
+        Exit;
+    end
+    else
+    begin
+      Result := ResolveLink(AModule, AModule.PathName + '.' + ALinkDest);
+      if CanWeExit(Result) then
+        Exit;
+    end;
 
     { Try all packages }
     SetLength(Result, 0);
@@ -1097,12 +1111,12 @@ begin
     while Assigned(ThisPackage) do
     begin
       Result := ResolveLink(AModule, ThisPackage.Name + '.' + ALinkDest);
-      if Length(Result) > 0 then
-        exit;
+      if CanWeExit(Result) then
+        Exit;
       ThisPackage := ThisPackage.NextSibling;
     end;
 
-    if Length(Result) = 0 then
+    if not CanWeExit(Result) then
     begin
       { Okay, then we have to try all imported units of the current module }
       UnitList := AModule.InterfaceSection.UsesList;
@@ -1114,8 +1128,8 @@ begin
         begin
           Result := ResolveLink(AModule, ThisPackage.Name + '.' +
             TPasType(UnitList[i]).Name + '.' + ALinkDest);
-          if Length(Result) > 0 then
-            exit;
+            if CanWeExit(Result) then
+              Exit;
           ThisPackage := ThisPackage.NextSibling;
         end;
       end;

@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <CONFIG>
   <ProjectOptions>
-    <Version Value="7"/>
+    <Version Value="9"/>
     <General>
       <Flags>
         <SaveClosedFiles Value="False"/>
@@ -13,10 +13,9 @@
       </Flags>
       <SessionStorage Value="InProjectDir"/>
       <MainUnit Value="0"/>
-      <TargetFileExt Value=""/>
     </General>
     <VersionInfo>
-      <ProjectVersion Value=""/>
+      <StringTable ProductVersion=""/>
     </VersionInfo>
     <PublishOptions>
       <Version Value="2"/>
@@ -62,34 +61,35 @@
         <UnitName Value="dw_HTML"/>
       </Unit5>
       <Unit6>
-        <Filename Value="dw_ipf.pp"/>
-        <IsPartOfProject Value="True"/>
-        <UnitName Value="dw_IPF"/>
-      </Unit6>
-      <Unit7>
         <Filename Value="dw_man.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="dw_man"/>
-      </Unit7>
-      <Unit8>
+      </Unit6>
+      <Unit7>
         <Filename Value="dw_linrtf.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="dw_LinRTF"/>
-      </Unit8>
-      <Unit9>
+      </Unit7>
+      <Unit8>
         <Filename Value="dw_txt.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="dw_txt"/>
-      </Unit9>
-      <Unit10>
+      </Unit8>
+      <Unit9>
         <Filename Value="dglobals.pp"/>
         <IsPartOfProject Value="True"/>
         <UnitName Value="dGlobals"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="dw_ipflin.pas"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="dw_ipflin"/>
       </Unit10>
     </Units>
   </ProjectOptions>
   <CompilerOptions>
-    <Version Value="8"/>
+    <Version Value="9"/>
+    </Parsing>
     <Other>
       <CompilerPath Value="$(CompPath)"/>
     </Other>
