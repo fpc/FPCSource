@@ -97,29 +97,29 @@ unit cpupara;
       var
         size: longint;
       begin
+        if (tf_safecall_exceptions in target_info.flags) and
+           (calloption=pocall_safecall) then
+          begin
+            result:=true;
+            exit;
+          end;
         case target_info.system of
           system_i386_win32 :
             begin
-              if calloption=pocall_safecall then
-                begin
-                  result:=true;
-                  exit;
-                end
-              else
-                case def.typ of
-                  recorddef :
-                    begin
-                      { Win32 GCC returns small records in the FUNCTION_RETURN_REG.
-                        For stdcall we follow delphi instead of GCC }
-                      if (calloption in [pocall_cdecl,pocall_cppdecl]) and
-                         (def.size>0) and
-                         (def.size<=8) then
-                       begin
-                         result:=false;
-                         exit;
-                       end;
-                    end;
-                end;
+              case def.typ of
+                recorddef :
+                  begin
+                    { Win32 GCC returns small records in the FUNCTION_RETURN_REG.
+                      For stdcall we follow delphi instead of GCC }
+                    if (calloption in [pocall_cdecl,pocall_cppdecl]) and
+                       (def.size>0) and
+                       (def.size<=8) then
+                     begin
+                       result:=false;
+                       exit;
+                     end;
+                  end;
+              end;
             end;
           system_i386_darwin :
             begin
@@ -186,7 +186,7 @@ unit cpupara;
                 result:=false
               else
                 result:=
-                  (not(calloption in [pocall_cdecl,pocall_cppdecl,pocall_mwpascal]) and
+                  (not(calloption in (cdecl_pocalls+[pocall_mwpascal])) and
                    (def.size>sizeof(aint))) or
                   (((calloption = pocall_mwpascal) or (target_info.system=system_i386_wince)) and
                    (varspez=vs_const));
@@ -195,7 +195,7 @@ unit cpupara;
             begin
               { array of const values are pushed on the stack as
                 well as dyn. arrays }
-              if (calloption in [pocall_cdecl,pocall_cppdecl]) then
+              if (calloption in cdecl_pocalls) then
                 result:=not(is_array_of_const(def) or
                         is_dynamic_array(def))
               else
@@ -214,9 +214,9 @@ unit cpupara;
           stringdef :
             result:= (tstringdef(def).stringtype in [st_shortstring,st_longstring]);
           procvardef :
-            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and not tprocvardef(def).is_addressonly;
+            result:=not(calloption in cdecl_pocalls) and not tprocvardef(def).is_addressonly;
           setdef :
-            result:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and (not is_smallset(def));
+            result:=not(calloption in cdecl_pocalls) and (not is_smallset(def));
         end;
       end;
 

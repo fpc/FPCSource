@@ -30,6 +30,11 @@ program tcalvar6;
   {$define tp}
 {$endif}
 
+{ On linux/i386 safecall is the same as cdecl, so it does not       }
+{ support all parameter types.                                      }
+{$if (defined(linux) and defined(cpui386))}
+  {$define safecall_is_cdecl}
+{$endif}
 
  { REAL should map to single or double }
  { so it is not checked, since single  }
@@ -277,7 +282,7 @@ var
    end;
 
 
-  procedure proc_var_openstring(var s: OpenString);safecall;
+  procedure proc_var_openstring(var s: OpenString);{$ifndef safecall_is_cdecl} safecall; {$endif}
    begin
     global_u8bit := high(s);
     s:=RESULT_SMALLSTRING;
@@ -289,13 +294,13 @@ var
     arr[1] := RESULT_U8BIT;
   end;
 
-  procedure proc_var_smallarray_open(var arr : array of byte);safecall;
+  procedure proc_var_smallarray_open(var arr : array of byte);{$ifndef safecall_is_cdecl} safecall; {$endif}
   begin
     arr[high(arr)] := RESULT_U8BIT;
     arr[low(arr)] := RESULT_U8BIT;
   end;
 
-  procedure proc_var_smallarray_const_1(var arr : array of const);safecall;
+  procedure proc_var_smallarray_const_1(var arr : array of const);{$ifndef safecall_is_cdecl} safecall; {$endif}
   var
    i: integer;
   begin
@@ -311,7 +316,7 @@ var
   end;
 
 
-  procedure proc_var_smallarray_const_2(var arr : array of const);safecall;
+  procedure proc_var_smallarray_const_2(var arr : array of const);{$ifndef safecall_is_cdecl} safecall; {$endif}
   var
    i: integer;
   begin
@@ -408,7 +413,7 @@ procedure proc_var_formaldef_string(var buf);safecall;
    end;
 
 
-  procedure proc_var_openstring_mixed(b1 : byte; var s: OpenString; b2: byte);safecall;
+  procedure proc_var_openstring_mixed(b1 : byte; var s: OpenString; b2: byte);{$ifndef safecall_is_cdecl} safecall; {$endif}
    begin
     global_u8bit := high(s);
     s:=RESULT_SMALLSTRING;
@@ -422,14 +427,14 @@ procedure proc_var_formaldef_string(var buf);safecall;
     value_u8bit := RESULT_U8BIT;
   end;
 
-  procedure proc_var_smallarray_open_mixed(b1 : byte; var arr : array of byte; b2: byte);safecall;
+  procedure proc_var_smallarray_open_mixed(b1 : byte; var arr : array of byte; b2: byte);{$ifndef safecall_is_cdecl} safecall; {$endif}
   begin
     arr[high(arr)] := RESULT_U8BIT;
     arr[low(arr)] := RESULT_U8BIT;
     value_u8bit := RESULT_U8BIT;
   end;
 
-  procedure proc_var_smallarray_const_1_mixed(b1 : byte; var arr : array of const; b2: byte);safecall;
+  procedure proc_var_smallarray_const_1_mixed(b1 : byte; var arr : array of const; b2: byte);{$ifndef safecall_is_cdecl} safecall; {$endif}
   var
    i: integer;
   begin
@@ -446,7 +451,7 @@ procedure proc_var_formaldef_string(var buf);safecall;
  end;
 
 
-  procedure proc_var_smallarray_const_2_mixed(b1 : byte; var arr : array of const; b2: byte);safecall;
+  procedure proc_var_smallarray_const_2_mixed(b1 : byte; var arr : array of const; b2: byte);{$ifndef safecall_is_cdecl} safecall; {$endif}
   var
    i: integer;
   begin

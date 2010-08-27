@@ -2936,7 +2936,7 @@ implementation
          { Change loading of array of const to varargs }
          if assigned(left) and
             is_array_of_const(tparavarsym(procdefinition.paras[procdefinition.paras.count-1]).vardef) and
-            (procdefinition.proccalloption in [pocall_cppdecl,pocall_cdecl]) then
+            (procdefinition.proccalloption in cdecl_pocalls) then
            convert_carg_array_of_const;
 
          { bind parasyms to the callparanodes and insert hidden parameters }

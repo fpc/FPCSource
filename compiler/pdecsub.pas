@@ -337,7 +337,7 @@ implementation
             begin
               { Give a warning that cdecl routines does not include high()
                 support }
-              if (pd.proccalloption in [pocall_cdecl,pocall_cppdecl]) and
+              if (pd.proccalloption in cdecl_pocalls) and
                  paramanager.push_high_param(varspez,vardef,pocall_default) then
                begin
                  if is_open_string(vardef) then
@@ -2616,7 +2616,7 @@ const
                      { for objcclasses this is checked later, because the entire
                        class may be external.  }
                      is_objc_class_or_protocol(tprocdef(pd)._class)) and
-                 not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_mwpascal]) then
+                 not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal])) then
                 Message(parser_e_varargs_need_cdecl_and_external);
             end
            else
@@ -2624,7 +2624,7 @@ const
               { both must be defined now }
               if not((po_external in pd.procoptions) or
                      (pd.typ=procvardef)) or
-                 not(pd.proccalloption in [pocall_cdecl,pocall_cppdecl,pocall_mwpascal]) then
+                 not(pd.proccalloption in (cdecl_pocalls + [pocall_mwpascal])) then
                 Message(parser_e_varargs_need_cdecl_and_external);
             end;
          end;

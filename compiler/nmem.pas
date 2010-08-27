@@ -823,7 +823,7 @@ implementation
                    is_array_of_const(left.resultdef)) and
                   { cdecl functions don't have high() so we can not check the range }
                   { (can't use current_procdef, since it may be a nested procedure) }
-                  not(tprocdef(tparasymtable(tparavarsym(tloadnode(left).symtableentry).owner).defowner).proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+                  not(tprocdef(tparasymtable(tparavarsym(tloadnode(left).symtableentry).owner).defowner).proccalloption in cdecl_pocalls) then
                    begin
                      { load_high_value_node already typechecks }
                      hightree:=load_high_value_node(tparavarsym(tloadnode(left).symtableentry));

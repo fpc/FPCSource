@@ -484,7 +484,7 @@ implementation
               addstatement(newstatement,finalize_data_node(load_result_node));
 {$if defined(x86) or defined(arm)}
             { safecall handling }
-            if (target_info.system in systems_all_windows) and
+            if (tf_safecall_exceptions in target_info.flags) and
                (current_procinfo.procdef.proccalloption=pocall_safecall) then
               begin
                 { create a local hidden variable "safe_result"    }
@@ -884,7 +884,7 @@ implementation
 
 {$if defined(x86) or defined(arm)}
         { set implicit_finally flag for if procedure is safecall }
-        if (target_info.system in systems_all_windows) and
+        if (tf_safecall_exceptions in target_info.flags) and
            (procdef.proccalloption=pocall_safecall) then
           include(flags, pi_needs_implicit_finally);
 {$endif}
@@ -1215,7 +1215,7 @@ implementation
 {$if defined(x86) or defined(arm)}
             { Set return value of safecall procedure if implicit try/finally blocks are disabled }
             if not (cs_implicit_exceptions in current_settings.moduleswitches) and
-               (target_info.system in systems_all_windows) and
+               (tf_safecall_exceptions in target_info.flags) and
                (procdef.proccalloption=pocall_safecall) then
               cg.a_load_const_reg(aktproccode,OS_ADDR,0,NR_FUNCTION_RETURN_REG);
 {$endif}

@@ -1246,7 +1246,7 @@ implementation
               begin
                 { cdecl functions don't have a high pointer so it is not possible to generate
                   a local copy }
-                if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+                if not(current_procinfo.procdef.proccalloption in cdecl_pocalls) then
                   begin
                     hsym:=tparavarsym(tsym(p).owner.Find('high'+tsym(p).name));
                     if not assigned(hsym) then
@@ -1658,7 +1658,7 @@ implementation
           begin
             { cdecl functions don't have a high pointer so it is not possible to generate
               a local copy }
-            if not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+            if not(current_procinfo.procdef.proccalloption in cdecl_pocalls) then
               cg.g_releasevaluepara_openarray(list,tparavarsym(p).localloc);
           end;
       end;
@@ -2658,7 +2658,7 @@ implementation
             if (cs_check_range in current_settings.localswitches) and
                (is_open_array(tvecnode(n).left.resultdef) or
                 is_array_of_const(tvecnode(n).left.resultdef)) and
-               not(current_procinfo.procdef.proccalloption in [pocall_cdecl,pocall_cppdecl]) then
+               not(current_procinfo.procdef.proccalloption in cdecl_pocalls) then
               add_regvars(rv^,tabstractnormalvarsym(get_high_value_sym(tparavarsym(tloadnode(tvecnode(n).left).symtableentry))).localloc)
 
         end;

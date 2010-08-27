@@ -875,7 +875,7 @@ implementation
 
 {$if defined(x86) or defined(arm)}
          if (procdefinition.proccalloption=pocall_safecall) and
-            (target_info.system in systems_all_windows) then
+            (tf_safecall_exceptions in target_info.flags) then
            begin
 {$ifdef x86_64}
              cgpara.init;

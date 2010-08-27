@@ -28,6 +28,12 @@ program tcalcst6;
   {$define tp}
 {$endif}
 
+{ On linux/i386 safecall is the same as cdecl, so it does not       }
+{ support all parameter types.                                      }
+{$if (defined(linux) and defined(cpui386))}
+  {$define safecall_is_cdecl}
+{$endif}
+
 
  { REAL should map to single or double }
  { so it is not checked, since single  }
@@ -237,7 +243,7 @@ var
      proc_const_s64bit := 0;
    end;
 
-  function proc_const_smallarray_const_1(const arr : array of const): longint; safecall;
+  function proc_const_smallarray_const_1(const arr : array of const): longint; {$ifndef safecall_is_cdecl} safecall; {$endif}
   var
    i: integer;
   begin
@@ -263,7 +269,7 @@ var
   end;
 
 
-  function proc_const_smallarray_const_2(const arr : array of const): longint; safecall;
+  function proc_const_smallarray_const_2(const arr : array of const): longint; {$ifndef safecall_is_cdecl} safecall; {$endif}
   var
    i: integer;
   begin
@@ -369,7 +375,7 @@ var
      proc_const_s64bit_mixed := 0;
    end;
 
-  function proc_const_smallarray_const_1_mixed(b1 : byte; const arr : array of const; b2: byte): longint;safecall;
+  function proc_const_smallarray_const_1_mixed(b1 : byte; const arr : array of const; b2: byte): longint;{$ifndef safecall_is_cdecl} safecall; {$endif}
   var
    i: integer;
   begin
@@ -396,7 +402,7 @@ var
   end;
 
 
-  function proc_const_smallarray_const_2_mixed(b1: byte; const arr : array of const; b2: byte): longint;safecall;
+  function proc_const_smallarray_const_2_mixed(b1: byte; const arr : array of const; b2: byte): longint;{$ifndef safecall_is_cdecl} safecall; {$endif}
   var
    i: integer;
   begin
@@ -469,7 +475,7 @@ var
      proc_const_smallarray_mixed := 0;
   end;
 
-  function proc_const_smallarray_open_mixed(b1: byte; const arr : array of byte; b2: byte): longint; safecall;
+  function proc_const_smallarray_open_mixed(b1: byte; const arr : array of byte; b2: byte): longint; {$ifndef safecall_is_cdecl} safecall; {$endif}
   begin
     { form 0 to N-1 indexes in open arrays }
     if arr[high(arr)] = RESULT_U8BIT then

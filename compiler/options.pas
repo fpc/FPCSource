@@ -85,6 +85,7 @@ uses
   comphook,
   symtable,scanner,rabase,
   wpobase,
+  symconst,
   i_bsd;
 
 const
@@ -2825,6 +2826,14 @@ if (target_info.system=system_arm_darwin) then
       def_system_macro('FPC_HAS_FEATURE_'+featurestr[i]);
   option.free;
   Option:=nil;
+
+  clearstack_pocalls := [pocall_cdecl,pocall_cppdecl,pocall_syscall,pocall_mwpascal];
+  cdecl_pocalls := [pocall_cdecl, pocall_cppdecl];
+  if (tf_safecall_clearstack in target_info.flags) then
+    begin
+      include (cdecl_pocalls, pocall_safecall);
+      include (clearstack_pocalls, pocall_safecall)
+    end;
 end;
 
 

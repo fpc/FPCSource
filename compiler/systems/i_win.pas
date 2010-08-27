@@ -38,7 +38,8 @@ unit i_win;
                             ,tf_smartlink_sections{,tf_section_threadvars}{,tf_needs_dwarf_cfi},
                             tf_winlikewidestring,tf_no_pic_supported,
                             tf_no_generic_stackcheck,tf_has_winlike_resources,
-                            tf_dwarf_only_local_labels];
+                            tf_dwarf_only_local_labels,
+                            tf_safecall_exceptions];
             cpu          : cpu_i386;
             unit_env     : 'WIN32UNITS';
             extradefines : 'MSWINDOWS;WINDOWS';

@@ -163,7 +163,7 @@ implementation
 
     function tparamanager.push_high_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
-         push_high_param:=not(calloption in [pocall_cdecl,pocall_cppdecl]) and
+         push_high_param:=not(calloption in cdecl_pocalls) and
                           (
                            is_open_array(def) or
                            is_open_string(def) or

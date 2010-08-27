@@ -329,7 +329,11 @@ unit cgcpu;
          begin
            { complex return values are removed from stack in C code PM }
            { but not on win32 }
+           { and not for safecall with hidden exceptions, because the result }
+           { wich contains the exception is passed in EAX }
            if (target_info.system <> system_i386_win32) and
+              not ((current_procinfo.procdef.proccalloption = pocall_safecall) and
+               (tf_safecall_exceptions in target_info.flags)) and
               paramanager.ret_in_param(current_procinfo.procdef.returndef,
                                        current_procinfo.procdef.proccalloption) then
              list.concat(Taicpu.Op_const(A_RET,S_W,sizeof(aint)))

@@ -543,14 +543,14 @@ type
     dbg_state_queued
   );
 
+var
+  clearstack_pocalls : tproccalloptions;
+  cdecl_pocalls      : tproccalloptions;
 
 const
    inherited_objectoptions : tobjectoptions = [oo_has_virtual,oo_has_private,oo_has_protected,
                 oo_has_strictprotected,oo_has_strictprivate,oo_has_constructor,oo_has_destructor,
                 oo_can_have_published];
-   clearstack_pocalls = [
-     pocall_cdecl,pocall_cppdecl,pocall_syscall,pocall_mwpascal
-   ];
 
 {$ifdef i386}
    { we only take this into account on i386, on other platforms we always

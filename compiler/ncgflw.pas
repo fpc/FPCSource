@@ -1592,7 +1592,7 @@ implementation
              if codegenerror then
                exit;
 {$if defined(x86) or defined(arm)}
-             if (target_info.system in systems_all_windows) and
+             if (tf_safecall_exceptions in target_info.flags) and
                 (current_procinfo.procdef.proccalloption=pocall_safecall) then
                begin
                  { find safe_result variable we created in the generate_except_block }
