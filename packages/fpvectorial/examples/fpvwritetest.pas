@@ -29,23 +29,43 @@ const
   cExtension = '.svg';
 var
   Vec: TvVectorialDocument;
+
+{$R *.res}
+
 begin
   Vec := TvVectorialDocument.Create;
   try
+    // All documents are 10cm x 10cm
+    Vec.Width := 100;
+    Vec.Height := 100;
+
     // single_line_1    One line from (0, 20) to (30, 30)
     Vec.StartPath(0, 20);
     Vec.AddLineToPath(30, 30);
     Vec.EndPath();
     Vec.WriteToFile('single_line_1' + cExtension, cFormat);
 
-    //    single_line_2    One line from (20, 30) to (30, 20)
+    // single_line_2    One line from (20, 30) to (30, 20)
     Vec.Clear;
     Vec.StartPath(20, 30);
     Vec.AddLineToPath(30, 20);
     Vec.EndPath();
     Vec.WriteToFile('single_line_2' + cExtension, cFormat);
 
-    //    polyline_1       One line from (0, 0) to (10, 10) to (20, 30) to (30, 20)
+    // single_line_3    One line from (0, 20) to (30, 30) + frame
+    Vec.Clear;
+    Vec.StartPath(0, 20);
+    Vec.AddLineToPath(30, 30);
+    Vec.EndPath();
+    Vec.StartPath(0, 0);
+    Vec.AddLineToPath(100, 0);
+    Vec.AddLineToPath(100, 100);
+    Vec.AddLineToPath(0, 100);
+    Vec.AddLineToPath(0, 0);
+    Vec.EndPath();
+    Vec.WriteToFile('single_line_3' + cExtension, cFormat);
+
+    // polyline_1       One line from (0, 0) to (10, 10) to (20, 30) to (30, 20)
     Vec.Clear;
     Vec.StartPath(0, 0);
     Vec.AddLineToPath(10, 10);
