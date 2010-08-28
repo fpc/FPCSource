@@ -97,7 +97,7 @@ begin
   if not GeneratedConfig then
     begin
       GlobalOptions.LoadGlobalFromFile(cfgfile);
-      if GlobalOptions.Dirty and (not UseGlobalConfig or IsSuperUser) then
+      if GlobalOptions.SaveInifileChanges and (not UseGlobalConfig or IsSuperUser) then
         GlobalOptions.SaveGlobalToFile(cfgfile);
     end;
   GlobalOptions.CompilerConfig:=GlobalOptions.DefaultCompilerConfig;
@@ -139,7 +139,7 @@ begin
           pkgglobals.Log(vlDebug,SLogGeneratingCompilerConfig,[S]);
           CompilerOptions.InitCompilerDefaults;
           CompilerOptions.SaveCompilerToFile(S);
-          if CompilerOptions.Dirty then
+          if CompilerOptions.SaveInifileChanges then
             CompilerOptions.SaveCompilerToFile(S);
         end
       else
@@ -154,7 +154,7 @@ begin
     begin
       pkgglobals.Log(vlDebug,SLogLoadingFPMakeCompilerConfig,[S]);
       FPMakeCompilerOptions.LoadCompilerFromFile(S);
-      if FPMakeCompilerOptions.Dirty then
+      if FPMakeCompilerOptions.SaveInifileChanges then
         FPMakeCompilerOptions.SaveCompilerToFile(S);
     end
   else

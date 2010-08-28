@@ -32,7 +32,7 @@ Type
 
   TGlobalOptions = Class(TPersistent)
   private
-    FDirty : Boolean;
+    FSaveInifileChanges : Boolean;
     FConfigVersion : Integer;
     FRemoteMirrorsURL,
     FRemoteRepository,
@@ -60,7 +60,8 @@ Type
     Procedure LoadGlobalFromFile(const AFileName : String);
     Procedure SaveGlobalToFile(const AFileName : String);
     procedure LogValues;
-    Property Dirty : Boolean Read FDirty;
+    // Is set when the inifile has an old version number (which is also the case when a new file is generated)
+    Property SaveInifileChanges : Boolean Read FSaveInifileChanges;
     Property ConfigVersion : Integer read FConfigVersion;
     function LocalPackagesFile:string;
     function LocalMirrorsFile:string;
@@ -89,7 +90,7 @@ Type
 
   TCompilerOptions = Class(TPersistent)
   private
-    FDirty: Boolean;
+    FSaveInifileChanges: Boolean;
     FConfigVersion : Integer;
     FCompiler,
     FCompilerVersion,
@@ -115,7 +116,8 @@ Type
     Function LocalUnitDir:string;
     Function GlobalUnitDir:string;
     Function HasOptions: boolean;
-    Property Dirty : Boolean Read FDirty;
+    // Is set when the inifile has an old version number (which is also the case when a new file is generated)
+    Property SaveInifileChanges : Boolean Read FSaveInifileChanges;
     Property ConfigVersion : Integer read FConfigVersion;
   Published
     Property Compiler : String Index 1 Read GetOptString Write SetOptString;
@@ -230,7 +232,6 @@ begin
     else
       Error('Unknown option');
   end;
-  FDirty:=True;
 end;
 
 
@@ -312,7 +313,7 @@ begin
         if (FConfigVersion<>CurrentConfigVersion) then
           begin
             Log(vlDebug,SLogUpgradingConfig,[AFileName]);
-            FDirty:=true;
+            FSaveInifileChanges:=true;
             if FConfigVersion<1 then
               begin
                 FRemoteRepository:='auto';
@@ -364,7 +365,7 @@ begin
         WriteString(SDefaults,KeyCompilerConfig,FDefaultCompilerConfig);
         WriteString(SDefaults,KeyFPMakeCompilerConfig,FFPMakeCompilerConfig);
         WriteString(SDefaults,KeyDownloader,FDownloader);
-        FDirty:=False;
+        FSaveInifileChanges:=False;
       end;
     Ini.UpdateFile;
   finally
@@ -445,7 +446,6 @@ begin
     else
       Error('Unknown option');
   end;
-  FDirty:=True;
 end;
 
 
@@ -454,7 +454,6 @@ begin
   if FCompilerCPU=AValue then
     exit;
   FCompilerCPU:=AValue;
-  FDirty:=True;
 end;
 
 
@@ -469,7 +468,6 @@ begin
   if FCompilerOS=AValue then
     exit;
   FCompilerOS:=AValue;
-  FDirty:=True;
 end;
 
 
@@ -563,7 +561,7 @@ begin
         if (FConfigVersion<>CurrentConfigVersion) then
           begin
             Log(vlDebug,SLogUpgradingConfig,[AFileName]);
-            FDirty:=true;
+            FSaveInifileChanges:=true;
             if (FConfigVersion>CurrentConfigVersion) then
               Error(SErrUnsupportedConfigVersion,[AFileName]);
           end;
@@ -597,7 +595,7 @@ begin
         WriteString(SDefaults,KeyCompilerOS,OSToString(CompilerOS));
         WriteString(SDefaults,KeyCompilerCPU,CPUtoString(CompilerCPU));
         WriteString(SDefaults,KeyCompilerVersion,FCompilerVersion);
-        FDirty:=False;
+        FSaveInifileChanges:=False;
       end;
     Ini.UpdateFile;
   finally
