@@ -447,7 +447,7 @@ begin
           dec(ordinal,minvalue);
         end;
       {Get the address of the string.}
-      p:=Pshortstring((PPpointer(ord2strindex)+1+ordinal)^);
+      p:=Pshortstring((PPpointer(ord2strindex+sizeof(longint))+ordinal)^);
       if p=nil then
         exit;      {Invalid ordinal value for this enum.}
       s:=p^;
