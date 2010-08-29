@@ -717,15 +717,22 @@ implementation
               end;
             vecn:
               begin
-                { arrays are currently never regable and pointers indexed like }
-                { arrays do not have be made unregable, but we do need to      }
-                { propagate the ra_addr_taken info                             }
-                update_regable:=false;
-                p:=tvecnode(p).left;
+                { if there's an implicit dereference, we can stop (just like
+                  when there is an actual derefn) }
+                if ((tvecnode(p).left.resultdef.typ=arraydef) and
+                    not is_special_array(tvecnode(p).left.resultdef)) or
+                   ((tvecnode(p).left.resultdef.typ=stringdef) and
+                    (tstringdef(tvecnode(p).left.resultdef).stringtype in [st_shortstring,st_longstring])) then
+                  p:=tvecnode(p).left
+                else
+                  break;
               end;
             typeconvn :
                begin
-                 if (ttypeconvnode(p).resultdef.typ = recorddef) then
+                 { implicit dereference -> stop }
+                 if (ttypeconvnode(p).convtype=tc_pointer_2_array) then
+                   break;
+                 if (ttypeconvnode(p).resultdef.typ=recorddef) then
                    records_only:=false;
                  p:=ttypeconvnode(p).left;
                end;
