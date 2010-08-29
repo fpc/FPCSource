@@ -2362,7 +2362,7 @@ begin
     Result:=FBaseInstallDir
   else
     if UnixPaths then
-      Result:=Prefix +'lib' + PathDelim + 'fpc' + PathDelim
+      Result:=Prefix +'lib' + PathDelim + 'fpc' + PathDelim + FCompilerVersion + PathDelim
     else
       Result:=Prefix;
 end;

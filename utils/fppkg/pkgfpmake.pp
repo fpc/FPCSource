@@ -256,6 +256,12 @@ Var
     OOptions:=OOptions+maybequoted(s);
   end;
 
+  procedure CondAddOption(const Name,Value:string);
+  begin
+    if Value<>'' then
+      AddOption(Name+'='+Value);
+  end;
+
 begin
   OOptions:='';
   // Does the current package support this CPU-OS?
@@ -293,12 +299,17 @@ begin
   if CompilerOptions.HasOptions then
     AddOption('--options='+CompilerOptions.Options.DelimitedText);
   if IsSuperUser or GlobalOptions.InstallGlobal then
-    AddOption('--baseinstalldir='+CompilerOptions.GlobalInstallDir)
+    begin
+      CondAddOption('--prefix',CompilerOptions.GlobalPrefix);
+      CondAddOption('--baseinstalldir',CompilerOptions.GlobalInstallDir);
+    end
   else
-    AddOption('--baseinstalldir='+CompilerOptions.LocalInstallDir);
-  if CompilerOptions.LocalInstallDir<>'' then
-    AddOption('--localunitdir='+CompilerOptions.LocalUnitDir);
-  AddOption('--globalunitdir='+CompilerOptions.GlobalUnitDir);
+    begin
+      CondAddOption('--prefix',CompilerOptions.LocalPrefix);
+      CondAddOption('--baseinstalldir',CompilerOptions.LocalInstallDir);
+    end;
+  CondAddOption('--localunitdir',CompilerOptions.LocalUnitDir);
+  CondAddOption('--globalunitdir',CompilerOptions.GlobalUnitDir);
   { Run FPMake }
   FPMakeBin:='fpmake'+ExeExt;
   SetCurrentDir(PackageBuildPath(P));

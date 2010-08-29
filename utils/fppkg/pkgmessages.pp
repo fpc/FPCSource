@@ -65,7 +65,8 @@ Resourcestring
   SLogLoadingFPMakeCompilerConfig = 'Loading compiler configuration for fpmake building from "%s"';
   SLogGeneratingGlobalConfig = 'Generating default global configuration in "%s"';
   SLogDetectedCompiler       = 'Detected compiler "%s" (version %s for %s)';
-  SLogDetectedFPCDIR         = 'Detected %s FPCDIR "%s"';
+  SLogDetectedPrefix         = 'Detected %s prefix "%s"';
+  SLogFPCDirEnv              = 'FPCDIR from environment setting "%s"';
   SLogGeneratingCompilerConfig  = 'Generating default compiler configuration in "%s"';
   SLogLoadingPackagesFile    = 'Loading available packages from "%s"';
   SLogLoadingMirrorsFile     = 'Loading available mirrors from "%s"';
@@ -95,6 +96,8 @@ Resourcestring
   SLogCompilerCfgVersion     = ' Version: "%s"';
   SLogCompilerCfgGlobalInstallDir = ' GlobalInstallDir: "%s"';
   SLogCompilerCfgLocalInstallDir = ' LocalInstallDir: "%s"';
+  SLogCompilerCfgGlobalPrefix = ' GlobalPrefix: "%s"';
+  SLogCompilerCfgLocalPrefix = ' LocalPrefix: "%s"';
 
   SDbgFound                  = 'Found';
   SDbgNotFound               = 'Not Found';

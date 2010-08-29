@@ -95,7 +95,9 @@ Type
     FCompiler,
     FCompilerVersion,
     FLocalInstallDir,
-    FGlobalInstallDir : String;
+    FGlobalInstallDir,
+    FLocalPrefix,
+    FGlobalPrefix: String;
     FCompilerCPU: TCPU;
     FCompilerOS: TOS;
     FOptionParser: TTemplateParser;
@@ -125,6 +127,8 @@ Type
     Property CompilerVersion : String Index 3 Read GetOptString Write SetOptString;
     Property GlobalInstallDir : String Index 4 Read GetOptString Write SetOptString;
     Property LocalInstallDir : String Index 5 Read GetOptString Write SetOptString;
+    Property GlobalPrefix : String Index 6 Read GetOptString Write SetOptString;
+    Property LocalPrefix : String Index 7 Read GetOptString Write SetOptString;
     Property Options : TStrings read GetOptions;
     Property CompilerOS : TOS Read FCompilerOS Write SetCompilerOS;
     Property CompilerCPU : TCPU Read FCompilerCPU Write SetCompilerCPU;
@@ -168,6 +172,8 @@ Const
   KeyDownloader            = 'Downloader';
 
   // Compiler dependent config
+  KeyGlobalPrefix          = 'GlobalPrefix';
+  KeyLocalPrefix           = 'LocalPrefix';
   KeyGlobalInstallDir      = 'GlobalInstallDir';
   KeyLocalInstallDir       = 'LocalInstallDir';
   KeyCompiler              = 'Compiler' ;
@@ -417,6 +423,8 @@ begin
     3 : Result:=FCompilerVersion;
     4 : Result:=FOptionParser.ParseString(FGlobalInstallDir);
     5 : Result:=FOptionParser.ParseString(FLocalInstallDir);
+    6 : Result:=FixPath(FOptionParser.ParseString(FGlobalPrefix));
+    7 : Result:=FixPath(FOptionParser.ParseString(FLocalPrefix));
     else
       Error('Unknown option');
   end;
@@ -443,6 +451,14 @@ begin
     3 : FCompilerVersion:=AValue;
     4 : FGlobalInstallDir:=FixPath(AValue);
     5 : FLocalInstallDir:=FixPath(AValue);
+    6 : begin
+          FGlobalPrefix:=AValue;
+          FOptionParser.Values['GlobalPrefix'] := GlobalPrefix;
+        end;
+    7 : begin
+          FLocalPrefix:=AValue;
+          FOptionParser.Values['LocalPrefix'] := LocalPrefix;
+        end
     else
       Error('Unknown option');
   end;
@@ -472,18 +488,38 @@ end;
 
 
 function TCompilerOptions.LocalUnitDir:string;
+var ALocalInstallDir: string;
 begin
   if LocalInstallDir<>'' then
-    result:=LocalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
+    ALocalInstallDir:=LocalInstallDir
+  else if LocalPrefix<>'' then
+{$ifdef unix}
+    ALocalInstallDir:=LocalPrefix+'lib'+PathDelim+'fpc'+PathDelim+FCompilerVersion+PathDelim;
+{$else unix}
+    ALocalInstallDir:=LocalPrefix;
+{$endif}
+
+  if ALocalInstallDir<>'' then
+    result:=ALocalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
   else
     result:='';
 end;
 
 
 function TCompilerOptions.GlobalUnitDir:string;
+var AGlobalInstallDir: string;
 begin
   if GlobalInstallDir<>'' then
-    result:=GlobalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
+    AGlobalInstallDir:=GlobalInstallDir
+  else if GlobalPrefix<>'' then
+{$ifdef unix}
+    AGlobalInstallDir:=GlobalPrefix+'lib'+PathDelim+'fpc'+PathDelim+FCompilerVersion+PathDelim;
+{$else unix}
+    AGlobalInstallDir:=GlobalPrefix;
+{$endif}
+
+  if AGlobalInstallDir<>'' then
+    result:=AGlobalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
   else
     result:='';
 end;
@@ -518,34 +554,37 @@ begin
   if FCompilerVersion='2.2.0' then
     FCompiler:=GetCompilerInfo(FCompiler,'-PB');
   Log(vlDebug,SLogDetectedCompiler,[FCompiler,FCompilerVersion,MakeTargetString(FCompilerCPU,FCompilerOS)]);
+
   // Use the same algorithm as the compiler, see options.pas
+  // Except that the prefix is extracted and GlobalInstallDir is set using
+  // that prefix
 {$ifdef Unix}
-  FGlobalInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
-  if FGlobalInstallDir='' then
-    begin
-      FGlobalInstallDir:='/usr/local/lib/fpc/'+FCompilerVersion+'/';
-      if not DirectoryExists(FGlobalInstallDir) and
-         DirectoryExists('/usr/lib/fpc/'+FCompilerVersion) then
-        FGlobalInstallDir:='/usr/lib/fpc/'+FCompilerVersion+'/';
-    end;
+  FGlobalPrefix:='/usr/local/';
+  if not DirectoryExists(FGlobalPrefix+'lib/fpc/'+FCompilerVersion+'/') and
+     DirectoryExists('/usr/lib/fpc/'+FCompilerVersion+'/') then
+    FGlobalPrefix:='/usr/';
 {$else unix}
-  FGlobalInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
-  if FGlobalInstallDir='' then
-    begin
-      FGlobalInstallDir:=ExtractFilePath(FCompiler)+'../';
-      if not(DirectoryExists(FGlobalInstallDir+'/units')) and
-         not(DirectoryExists(FGlobalInstallDir+'/rtl')) then
-        FGlobalInstallDir:=FGlobalInstallDir+'../';
-    end;
-  FGlobalInstallDir:=ExpandFileName(FGlobalInstallDir);
+  FGlobalPrefix:=ExtractFilePath(FCompiler)+'..'+PathDelim;
+  if not(DirectoryExists(FGlobalPrefix+PathDelim+'units')) and
+     not(DirectoryExists(FGlobalPrefix+PathDelim+'rtl')) then
+    FGlobalPrefix:=FGlobalPrefix+'..'+PathDelim;
+  FGlobalPrefix:=ExpandFileName(FGlobalInstallDir);
 {$endif unix}
-  Log(vlDebug,SLogDetectedFPCDIR,['global',FGlobalInstallDir]);
+
+  Log(vlDebug,SLogDetectedPrefix,['global',FGlobalPrefix]);
   // User writable install directory
   if not IsSuperUser then
     begin
-      FLocalInstallDir:= '{LocalRepository}lib'+ PathDelim + FCompilerVersion+PathDelim;
-      Log(vlDebug,SLogDetectedFPCDIR,['local',FLocalInstallDir]);
+      FLocalPrefix:= '{LocalRepository}';
+      Log(vlDebug,SLogDetectedPrefix,['local',FLocalPrefix]);
     end;
+
+  FGlobalInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
+{$ifndef Unix}
+  FGlobalInstallDir:=ExpandFileName(FGlobalInstallDir);
+{$endif unix}
+  if FGlobalInstallDir<>'' then
+    Log(vlDebug,SLogFPCDirEnv,[FGlobalInstallDir]);
 end;
 
 
@@ -565,6 +604,8 @@ begin
             if (FConfigVersion>CurrentConfigVersion) then
               Error(SErrUnsupportedConfigVersion,[AFileName]);
           end;
+        GlobalPrefix:=ReadString(SDefaults,KeyGlobalPrefix,FGlobalPrefix);
+        LocalPrefix:=ReadString(SDefaults,KeyLocalPrefix,FLocalPrefix);
         FGlobalInstallDir:=FixPath(ReadString(SDefaults,KeyGlobalInstallDir,FGlobalInstallDir));
         FLocalInstallDir:=FixPath(ReadString(SDefaults,KeyLocalInstallDir,FLocalInstallDir));
         FCompiler:=ReadString(SDefaults,KeyCompiler,FCompiler);
@@ -589,6 +630,8 @@ begin
     With Ini do
       begin
         WriteInteger(SDefaults,KeyConfigVersion,CurrentConfigVersion);
+        WriteString(SDefaults,KeyGlobalPrefix,FGlobalPrefix);
+        WriteString(SDefaults,KeyLocalPrefix,FLocalPrefix);
         WriteString(SDefaults,KeyGlobalInstallDir,FGlobalInstallDir);
         WriteString(SDefaults,KeyLocalInstallDir,FLocalInstallDir);
         WriteString(SDefaults,KeyCompiler,FCompiler);
@@ -612,6 +655,8 @@ begin
   Log(vlDebug,SLogCompilerCfgVersion,[FCompilerVersion]);
   Log(vlDebug,SLogCompilerCfgGlobalInstallDir,[GlobalInstallDir]);
   Log(vlDebug,SLogCompilerCfgLocalInstallDir,[LocalInstallDir]);
+  Log(vlDebug,SLogCompilerCfgGlobalPrefix,[GlobalPrefix]);
+  Log(vlDebug,SLogCompilerCfgLocalPrefix,[LocalPrefix]);
 end;
 
 
