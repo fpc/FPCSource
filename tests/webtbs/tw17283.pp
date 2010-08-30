@@ -8,7 +8,7 @@
       1: (words: array [0..1] of word);
       2: (low,high: word);
       end;
-
+(*
   procedure f_ref(var l,h:word);
   begin
     l:=1;
@@ -35,7 +35,7 @@
     f_ref(tr_32(q).words[0],tr_32(q).words[1]);
     result:=q;
     end;
-
+*)
   function f_test4:longint;
   var
     q: longint;
@@ -50,6 +50,7 @@
     l,q: longint;
     
   begin
+(*
     l:=f_test1;
     if (tr_32(l).low<>1) or
        (tr_32(l).high<>2) then
@@ -76,8 +77,8 @@
     if (tr_32(l).low<>1) or
        (tr_32(l).high<>2) then
       halt(5);
-
-    l:=f_test3;
+*)
+    l:=f_test4;
     if (tr_32(l).low<>1) or
        (tr_32(l).high<>2) then
       halt(6);

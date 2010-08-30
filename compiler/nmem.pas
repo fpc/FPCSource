@@ -796,6 +796,16 @@ implementation
                inserttypeconv(right,sinttype);
            end;
 
+         { although we never put regular arrays or shortstrings in registers,
+           it's possible that another type was typecasted to a small record
+           that has a field of one of these types -> in that case the record
+           can't be a regvar either }
+         if ((left.resultdef.typ=arraydef) and
+             not is_special_array(left.resultdef)) or
+            ((left.resultdef.typ=stringdef) and
+             (tstringdef(left.resultdef).stringtype in [st_shortstring,st_longstring])) then
+           make_not_regable(left,[ra_addr_regable]);
+
          case left.resultdef.typ of
            arraydef :
              begin
