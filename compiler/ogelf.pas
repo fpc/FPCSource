@@ -724,7 +724,7 @@ implementation
 
     procedure TElfObjData.writereloc(data:aint;len:aword;p:TObjSymbol;reltype:TObjRelocationType);
       var
-        symaddr : longint;
+        symaddr : aint;
       begin
         if CurrObjSec=nil then
           internalerror(200403292);
