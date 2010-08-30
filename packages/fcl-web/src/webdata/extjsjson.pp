@@ -31,12 +31,15 @@ type
   TExtJSJSONDataFormatter = Class(TExtJSDataFormatter)
   private
     FAfterDataToJSON: TJSONObjectEvent;
+    FAfterDelete: TJSONObjectEvent;
+    FAfterInsert: TJSONObjectEvent;
     FAfterRowToJSON: TJSONObjectEvent;
+    FAfterUpdate: TJSONObjectEvent;
     FBeforeDataToJSON: TJSONObjectEvent;
     FBeforeRowToJSON: TJSONObjectEvent;
     FOnErrorResponse: TJSONExceptionObjectEvent;
     FOnMetaDataToJSON: TJSONObjectEvent;
-    procedure SendSuccess(ResponseContent: TStream; AddIDValue : Boolean = False);
+    procedure SendSuccess(ResponseContent: TStream; AddIDValue : Boolean = False; CallBack : TJSONObjectEvent = Nil);
   protected
     Function CreateAdaptor(ARequest : TRequest) : TCustomWebdataInputAdaptor; override;
     Function AddFieldToJSON(O: TJSONObject; AFieldName: String; F: TField): TJSONData;
@@ -66,6 +69,12 @@ type
     Property BeforeDataToJSON : TJSONObjectEvent Read FBeforeDataToJSON Write FBeforeDataToJSON;
     // Called when an exception is caught and formatted.
     Property OnErrorResponse : TJSONExceptionObjectEvent Read FOnErrorResponse Write FOnErrorResponse;
+    // After a record was succesfully updated
+    Property AfterUpdate : TJSONObjectEvent Read FAfterUpdate Write FAfterUpdate;
+    // After a record was succesfully inserted.
+    Property AfterInsert : TJSONObjectEvent Read FAfterInsert Write FAfterInsert;
+    // After a record was succesfully inserted.
+    Property AfterDelete : TJSONObjectEvent Read FAfterDelete Write FAfterDelete;
   end;
 
 implementation
@@ -368,7 +377,7 @@ begin
   end;
 end;
 
-procedure TExtJSJSONDataFormatter.SendSuccess(ResponseContent: TStream; AddIDValue : Boolean = False);
+procedure TExtJSJSONDataFormatter.SendSuccess(ResponseContent: TStream; AddIDValue : Boolean = False; CallBack : TJSONObjectEvent = Nil);
 
 Var
    Resp : TJSonObject;
@@ -379,6 +388,8 @@ begin
     Resp:=TJsonObject.Create;
     Resp.Add(SuccessProperty,True);
     Resp.Add(Provider.IDFieldName,Provider.IDFieldValue);
+    If Assigned(CallBack) then
+      CallBack(Self,Resp);
     L:=Resp.AsJSON;
     ResponseContent.WriteBuffer(L[1],Length(L));
   finally
@@ -390,19 +401,19 @@ procedure TExtJSJSONDataFormatter.DoInsertRecord(ResponseContent: TStream);
 
 begin
   Inherited;
-  SendSuccess(ResponseContent,True);
+  SendSuccess(ResponseContent,True,FAfterInsert);
 end;
 
 procedure TExtJSJSONDataFormatter.DoUpdateRecord(ResponseContent: TStream);
 begin
   inherited DoUpdateRecord(ResponseContent);
-  SendSuccess(ResponseContent,False);
+  SendSuccess(ResponseContent,False,FAfterUpdate);
 end;
 
 procedure TExtJSJSONDataFormatter.DoDeleteRecord(ResponseContent: TStream);
 begin
   inherited DoDeleteRecord(ResponseContent);
-  SendSuccess(ResponseContent,False);
+  SendSuccess(ResponseContent,False,FAfterDelete);
 end;
 
 { TExtJSJSonWebdataInputAdaptor }
