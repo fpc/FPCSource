@@ -1771,7 +1771,7 @@ End;
                 StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
             exit;
       end;
-    ScrOfs:=y*ScrWidth+x div 8;
+    ScrOfs:=y*ScrWidth+x div 8 + VideoOfs;
     HLength:=x2 div 8-x div 8;
     LMask:=$ff shr (x and 7);
 {$ifopt r+}
@@ -1901,7 +1901,7 @@ End;
                 StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
             exit;
       end;
-    ScrOfs:=y*ScrWidth+x div 8;
+    ScrOfs:=y*ScrWidth+x div 8 + VideoOfs;
     BitMask:=$80 shr (x and 7);
     Port[$3ce]:=0;
     If CurrentWriteMode <> NotPut Then
