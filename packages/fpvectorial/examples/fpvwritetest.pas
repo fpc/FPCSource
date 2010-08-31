@@ -101,17 +101,17 @@ begin
 
     // text_ascii       One text written at (10, 10)
     Vec.Clear;
-    Vec.AddText('Some text in english.');
+    Vec.AddText(10, 10, 0, 'Some text in english.');
     Vec.WriteToFile('text_ascii' + cExtension, cFormat);
 
     // text_europen     One text testing european languages at (20, 20)
     Vec.Clear;
-    Vec.AddText('Mówić, cześć, Włosku, Parabéns, Assunção, Correções.');
+    Vec.AddText(20, 20, 0, 'Mówić, cześć, Włosku, Parabéns, Assunção, Correções.');
     Vec.WriteToFile('text_europen' + cExtension, cFormat);
 
     // text_asian       One text testing asian languages at (30, 30)
     Vec.Clear;
-    Vec.AddText('森林，是一个高密度树木的区域');
+    Vec.AddText(30, 30, 0, '森林，是一个高密度树木的区域');
     Vec.WriteToFile('text_asian' + cExtension, cFormat);
   finally
     Vec.Free;
