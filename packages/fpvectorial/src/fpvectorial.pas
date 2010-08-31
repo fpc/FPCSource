@@ -41,7 +41,7 @@ const
 type
   TSegmentType = (
     st2DLine, st2DBezier,
-    st3DLine, st3DBezier);
+    st3DLine, st3DBezier, stMoveTo);
 
   {@@
     The coordinates in fpvectorial are given in millimiters and
@@ -69,8 +69,12 @@ type
     At the moment fonts are unsupported, only simple texts
     up to 255 chars are supported.
   }
+
   TvText = record
-    Value: array[0..255] of Char;
+    X, Y, Z: Double; // Z is ignored in 2D formats
+    FontSize: integer;
+    FontName: utf8string;
+    Value: utf8string;
   end;
 
   PText = ^TvText;
@@ -87,6 +91,7 @@ type
     FPaths: TFPList;
     FTexts: TFPList;
     FTmpPath: TPath;
+    FTmpText: TvText;
     procedure RemoveCallback(data, arg: pointer);
     function CreateVectorialWriter(AFormat: TvVectorialFormat): TvCustomVectorialWriter;
     function CreateVectorialReader(AFormat: TvVectorialFormat): TvCustomVectorialReader;
@@ -121,8 +126,8 @@ type
     procedure AddBezierToPath(AX1, AY1, AX2, AY2, AX3, AY3: Double); overload;
     procedure AddBezierToPath(AX1, AY1, AZ1, AX2, AY2, AZ2, AX3, AY3, AZ3: Double); overload;
     procedure EndPath();
-    procedure AddText(AText: TvText); overload;
-    procedure AddText(AStr: utf8string); overload;
+    procedure AddText(AX, AY, AZ: Double; FontName: string; FontSize: integer; AText: utf8string); overload;
+    procedure AddText(AX, AY, AZ: Double; AStr: utf8string); overload;
     { properties }
     property PathCount: Integer read GetPathCount;
     property Paths[Index: Cardinal]: TPath read GetPath;
@@ -338,7 +343,7 @@ end;
 procedure TvVectorialDocument.StartPath(AX, AY: Double);
 begin
   FTmpPath.Len := 1;
-  FTmpPath.Points[0].SegmentType := st2DLine;
+  FTmpPath.Points[0].SegmentType := stMoveTo;
   FTmpPath.Points[0].X := AX;
   FTmpPath.Points[0].Y := AY;
 end;
@@ -394,8 +399,21 @@ end;
 
 procedure TvVectorialDocument.AddBezierToPath(AX1, AY1, AZ1, AX2, AY2, AZ2,
   AX3, AY3, AZ3: Double);
+var
+  L: Integer;
 begin
-
+  L := FTmPPath.Len;
+  Inc(FTmPPath.Len);
+  FTmPPath.Points[L].SegmentType := st3DBezier;
+  FTmPPath.Points[L].X := AX3;
+  FTmPPath.Points[L].Y := AY3;
+  FTmPPath.Points[L].Z := AZ3;
+  FTmPPath.Points[L].X2 := AX1;
+  FTmPPath.Points[L].Y2 := AY1;
+  FTmPPath.Points[L].Z2 := AZ1;
+  FTmPPath.Points[L].X3 := AX2;
+  FTmPPath.Points[L].Y3 := AY2;
+  FTmPPath.Points[L].Z3 := AZ2;
 end;
 
 {@@
@@ -415,23 +433,26 @@ begin
   FTmPPath.Len := 0;
 end;
 
-procedure TvVectorialDocument.AddText(AText: TvText);
+procedure TvVectorialDocument.AddText(AX, AY, AZ: Double; FontName: string; FontSize: integer; AText: utf8string);
 var
   lText: PText;
-  Len: Integer;
 begin
-  Len := SizeOf(TvText);
-  lText := GetMem(Len);
-  Move(AText, lText^, Len);
+  lText := GetMem(SizeOf(TvText));
+  SetLength(lText.Value, Length(AText));
+  Move(AText[1], lText.Value[1], Length(AText));
+  lText.X:=AX;
+  lText.Y:=AY;
+  lText.Z:=AZ;
+  //lText.FontName:=FontName;
+  SetLength(lText.FontName, Length(FontName));
+  Move(FontName[1], lText.FontName[1], Length(FontName));
+  lText.FontSize:=FontSize;
   FTexts.Add(lText);
 end;
 
-procedure TvVectorialDocument.AddText(AStr: utf8string);
-var
-  lText: TvText;
+procedure TvVectorialDocument.AddText(AX, AY, AZ: Double; AStr: utf8string);
 begin
-  lText.Value := AStr;
-  AddText(lText);
+  AddText(AX, AY, AZ, 'Arial', 10, AStr);
 end;
 
 {@@
