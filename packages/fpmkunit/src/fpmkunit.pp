@@ -2374,7 +2374,7 @@ begin
     Result:=FBinInstallDir
   else
     If UnixPaths then
-      Result:=BaseInstallDir+'bin'
+      Result:=Prefix+'bin'
     else
       Result:=BaseInstallDir+'bin';
 end;
@@ -2391,11 +2391,11 @@ end;
 
 function TCustomDefaults.GetDocInstallDir: String;
 begin
-  If (FBinInstallDir<>'') then
-    Result:=FBinInstallDir
+  If (FDocInstallDir<>'') then
+    Result:=FDocInstallDir
   else
     If UnixPaths then
-      Result:=BaseInstallDir+'share'+PathDelim+'doc'
+      Result:=Prefix+'share'+PathDelim+'doc'
     else
       Result:=BaseInstallDir+'docs';
 end;
@@ -2407,7 +2407,7 @@ begin
     Result:=FExamplesInstallDir
   else
     If UnixPaths then
-      Result:=BaseInstallDir+'share'+PathDelim+'doc'
+      Result:=Prefix+'share'+PathDelim+'doc'
     else
       Result:=BaseInstallDir+'examples';
 end;
