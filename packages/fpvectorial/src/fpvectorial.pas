@@ -438,21 +438,19 @@ var
   lText: PText;
 begin
   lText := GetMem(SizeOf(TvText));
-  SetLength(lText.Value, Length(AText));
-  Move(AText[1], lText.Value[1], Length(AText));
-  lText.X:=AX;
-  lText.Y:=AY;
-  lText.Z:=AZ;
-  //lText.FontName:=FontName;
-  SetLength(lText.FontName, Length(FontName));
-  Move(FontName[1], lText.FontName[1], Length(FontName));
-  lText.FontSize:=FontSize;
+  FillChar(lText^, SizeOf(TvText), 0);
+  lText.Value := AText;
+  lText.X := AX;
+  lText.Y := AY;
+  lText.Z := AZ;
+  lText.FontName := FontName;
+  lText.FontSize := FontSize;
   FTexts.Add(lText);
 end;
 
 procedure TvVectorialDocument.AddText(AX, AY, AZ: Double; AStr: utf8string);
 begin
-  AddText(AX, AY, AZ, 'Arial', 10, AStr);
+  AddText(AX, AY, AZ, '', 10, AStr);
 end;
 
 {@@

@@ -37,7 +37,14 @@ type
 implementation
 
 const
-  FLOAT_MILIMETERS_PER_PIXEL = 0.3528;
+  // SVG requires hardcoding a DPI value
+
+  // The Opera Browser and Inkscape use 90 DPI, so we follow that
+
+  // 1 Inch = 25.4 milimiters
+  // 90 inches per pixel = (1 / 90) * 25.4 = 0.2822
+  // FLOAT_MILIMETERS_PER_PIXEL = 0.3528; // DPI 72 = 1 / 72 inches per pixel
+  FLOAT_MILIMETERS_PER_PIXEL = 0.2822; // DPI 90 = 1 / 90 inches per pixel
 
 { TvSVGVectorialWriter }
 
@@ -85,10 +92,7 @@ begin
       if (lPath.Points[j].SegmentType <> st2DLine)
         and (lPath.Points[j].SegmentType <> stMoveTo)
         then Break; // unsupported line type
-//      PtX := lPath.Points[j].X;
-//      PtY := lPath.Points[j].Y;
-//      PathStr := PathStr + FloatToStr(PtX, FPointSeparator) + ','  // + 'mm,'
-//        + FloatToStr(PtY, FPointSeparator) + ' '; // + 'mm ';
+
       // Coordinate conversion from fpvectorial to SVG
       ConvertFPVCoordinatesToSVGCoordinates(
         AData, lPath.Points[j].X, lPath.Points[j].Y, PtX, PtY);
@@ -159,29 +163,28 @@ end;
 procedure TvSVGVectorialWriter.WriteTexts(AStrings: TStrings; AData: TvVectorialDocument);
 var
   i, j, FontSize: Integer;
-  TextStr, FontName: string;
-  ltest: TvText;
+  TextStr, FontName, SVGFontFamily: string;
+  lText: TvText;
   PtX, PtY: double;
 begin
   for i := 0 to AData.GetTextCount() - 1 do
   begin
     TextStr := '';
-    ltest := AData.GetText(i);
-    //PtX := ltest.X;
-    //PtY := ltest.Y;
+    lText := AData.GetText(i);
+
     ConvertFPVCoordinatesToSVGCoordinates(
-        AData, ltest.X, ltest.Y, PtX, PtY);
-    TextStr := ltest.Value;
-    FontSize:= ceil(ltest.FontSize / FLOAT_MILIMETERS_PER_PIXEL);
-    FontName:=ltest.FontName;
-    AStrings.Add('  <text');
-    AStrings.Add('    style="font-size:'
-    +IntToStr(FontSize)+'px;font-style:normal;font-weight:normal;line-height:125%;'
-    +'letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;'
-    +'font-family:'+FontName+'"><tspan');
-    AStrings.Add('     x="' + FloatToStr(PtX, FPointSeparator) + '"');
-    AStrings.Add('     y="' + FloatToStr(PtY, FPointSeparator) + '"');
-    AStrings.Add('     id="tspan3071">' + TextStr + '</tspan></text>');
+        AData, lText.X, lText.Y, PtX, PtY);
+
+    TextStr := lText.Value;
+    FontSize:= ceil(lText.FontSize / FLOAT_MILIMETERS_PER_PIXEL);
+    SVGFontFamily := 'Arial, sans-serif';//lText.FontName;
+
+    AStrings.Add('  <text ');
+    AStrings.Add('    x="' + FloatToStr(PtX, FPointSeparator) + '"');
+    AStrings.Add('    y="' + FloatToStr(PtY, FPointSeparator) + '"');
+    AStrings.Add('    font-size="' + IntToStr(FontSize) + '"');
+    AStrings.Add('    font-family="' + SVGFontFamily + '">');
+    AStrings.Add(TextStr + '</text>');
   end;
 end;
 
@@ -209,58 +212,53 @@ begin
     begin
       BezierType := lPath.Points[j].SegmentType;
       if j>0 then
-      if (BezierType <> st2DBezier) and (BezierType <> st3DBezier)
-        and (BezierType<> st2DLine)
+      if (BezierType <> st2DBezier) and (BezierType <> stMoveTo)
+        and (BezierType <> st2DLine)
       then Break; // unsupported Bezier type
-
-      //ConvertFPVCoordinatesToSVGCoordinates(
-      //  AData, lPath.Points[j].X, lPath.Points[j].Y, PtX, PtY);
 
       if (BezierType = st2DBezier) or (BezierType = stMoveTo) then
       begin
-      PtX  := lPath.Points[j].X / FLOAT_MILIMETERS_PER_PIXEL;
-      PtY  := (AData.Height - lPath.Points[j].Y) / FLOAT_MILIMETERS_PER_PIXEL;
-      PtX2 := lPath.Points[j].X2 / FLOAT_MILIMETERS_PER_PIXEL;
-      PtY2 := (AData.Height - lPath.Points[j].Y2) / FLOAT_MILIMETERS_PER_PIXEL;
-      PtX3 := lPath.Points[j].X3 / FLOAT_MILIMETERS_PER_PIXEL;
-      PtY3 := (AData.Height - lPath.Points[j].Y3) / FLOAT_MILIMETERS_PER_PIXEL;
+        ConvertFPVCoordinatesToSVGCoordinates(
+         AData, lPath.Points[j].X, lPath.Points[j].Y, PtX, PtY);
+        ConvertFPVCoordinatesToSVGCoordinates(
+         AData, lPath.Points[j].X2, lPath.Points[j].Y2, PtX2, PtY2);
+        ConvertFPVCoordinatesToSVGCoordinates(
+         AData, lPath.Points[j].X3, lPath.Points[j].Y3, PtX3, PtY3);
 
-      PtX  := PtX - OldPtX;
-      PtY  := PtY - OldPtY;
-      PtX2 := PtX2 - OldPtX2;
-      PtY2 := PtY2 - OldPtY2;
-      PtX3 := PtX3 - OldPtX3;
-      PtY3 := PtY3 - OldPtY3;
+        PtX  := PtX - OldPtX;
+        PtY  := PtY - OldPtY;
+        PtX2 := PtX2 - OldPtX2;
+        PtY2 := PtY2 - OldPtY2;
+        PtX3 := PtX3 - OldPtX3;
+        PtY3 := PtY3 - OldPtY3;
 
-      if j = 0 then
-        PathStr := PathStr + FloatToStr(PtX, FPointSeparator) + ','
-          + FloatToStr(PtY, FPointSeparator) + ' ';
+        if j = 0 then
+          PathStr := PathStr + FloatToStr(PtX, FPointSeparator) + ','
+            + FloatToStr(PtY, FPointSeparator) + ' ';
 
-      if j = 0 then
-      begin
- //       if BezierType = st2DBezier then
+        if j = 0 then
+        begin
           PathStr := PathStr + 'q';
-        if BezierType = st3DBezier then
-          PathStr := PathStr + 'c';
+//          if BezierType = st3DBezier then
+//            PathStr := PathStr + 'c';
+        end;
+
+        if j > 0 then
+          PathStr := PathStr + FloatToStr(PtX, FPointSeparator) + ','
+            + FloatToStr(PtY, FPointSeparator) + ' '
+            + FloatToStr(PtX2, FPointSeparator) + ','
+            + FloatToStr(PtY2, FPointSeparator) + ' '
+            + FloatToStr(PtX3, FPointSeparator) + ','
+            + FloatToStr(PtY3, FPointSeparator) + ' ';
+
+        // Store the current position for future points
+        OldPtX  := OldPtX + PtX;
+        OldPtY  := OldPtY + PtY;
+        OldPtX2 := OldPtX2 + PtX2;
+        OldPtY2 := OldPtY2 + PtY2;
+        OldPtX3 := OldPtX3 + PtX3;
+        OldPtY3 := OldPtY3 + PtY3;
       end;
-
-      if j > 0 then
-        PathStr := PathStr + FloatToStr(PtX, FPointSeparator) + ','
-          + FloatToStr(PtY, FPointSeparator) + ' '
-          + FloatToStr(PtX2, FPointSeparator) + ','
-          + FloatToStr(PtY2, FPointSeparator) + ' '
-          + FloatToStr(PtX3, FPointSeparator) + ','
-          + FloatToStr(PtY3, FPointSeparator) + ' ';
-
-      // Store the current position for future points
-      OldPtX  := OldPtX + PtX;
-      OldPtY  := OldPtY + PtY;
-      OldPtX2 := OldPtX2 + PtX2;
-      OldPtY2 := OldPtY2 + PtY2;
-      OldPtX3 := OldPtX3 + PtX3;
-      OldPtY3 := OldPtY3 + PtY3;
-    end;
-
     end;
 
     AStrings.Add('  <path');
