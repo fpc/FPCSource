@@ -25,7 +25,6 @@ type
     procedure WriteDocumentName(AStrings: TStrings; AData: TvVectorialDocument);
     procedure WritePaths(AStrings: TStrings; AData: TvVectorialDocument);
     procedure WriteTexts(AStrings: TStrings; AData: TvVectorialDocument);
-    procedure WriteBeziers(AStrings: TStrings; AData: TvVectorialDocument);
     procedure ConvertFPVCoordinatesToSVGCoordinates(
       const AData: TvVectorialDocument;
       const ASrcX, ASrcY: Double; var ADestX, ADestY: double);
@@ -44,7 +43,9 @@ const
   // 1 Inch = 25.4 milimiters
   // 90 inches per pixel = (1 / 90) * 25.4 = 0.2822
   // FLOAT_MILIMETERS_PER_PIXEL = 0.3528; // DPI 72 = 1 / 72 inches per pixel
+
   FLOAT_MILIMETERS_PER_PIXEL = 0.2822; // DPI 90 = 1 / 90 inches per pixel
+  FLOAT_PIXELS_PER_MILIMETER = 3.5433; // DPI 90 = 1 / 90 inches per pixel
 
 { TvSVGVectorialWriter }
 
@@ -79,18 +80,20 @@ var
   PathStr: string;
   lPath: TPath;
   PtX, PtY, OldPtX, OldPtY: double;
+  BezierCP1X, BezierCP1Y, BezierCP2X, BezierCP2Y: double;
 begin
   for i := 0 to AData.GetPathCount() - 1 do
   begin
     OldPtX := 0;
     OldPtY := 0;
 
-    PathStr := 'm ';
+    PathStr := '';
     lPath := AData.GetPath(i);
     for j := 0 to lPath.Len - 1 do
     begin
       if (lPath.Points[j].SegmentType <> st2DLine)
         and (lPath.Points[j].SegmentType <> stMoveTo)
+        and (lPath.Points[j].SegmentType <> st2DBezier)
         then Break; // unsupported line type
 
       // Coordinate conversion from fpvectorial to SVG
@@ -99,8 +102,44 @@ begin
       PtX := PtX - OldPtX;
       PtY := PtY - OldPtY;
 
-      PathStr := PathStr + FloatToStr(PtX, FPointSeparator) + ','
-        + FloatToStr(PtY, FPointSeparator) + ' ';
+      if (lPath.Points[j].SegmentType = stMoveTo) then
+      begin
+        PathStr := PathStr + 'm '
+          + FloatToStr(PtX, FPointSeparator) + ','
+          + FloatToStr(PtY, FPointSeparator) + ' ';
+      end
+      else if (lPath.Points[j].SegmentType = st2DLine) then
+      begin
+        PathStr := PathStr + 'l '
+          + FloatToStr(PtX, FPointSeparator) + ','
+          + FloatToStr(PtY, FPointSeparator) + ' ';
+      end
+      else if (lPath.Points[j].SegmentType = st2DBezier) then
+      begin
+        // Converts all coordinates to absolute values
+        ConvertFPVCoordinatesToSVGCoordinates(
+          AData, lPath.Points[j].X2, lPath.Points[j].Y2, BezierCP1X, BezierCP1X);
+        ConvertFPVCoordinatesToSVGCoordinates(
+          AData, lPath.Points[j].X3, lPath.Points[j].Y3, BezierCP2X, BezierCP2Y);
+
+        // Transforms them into values relative to the initial point
+        BezierCP1X := BezierCP1X - OldPtX;
+        BezierCP1Y := BezierCP1Y - OldPtY;
+        BezierCP2X := BezierCP2X - OldPtX;
+        BezierCP2Y := BezierCP2Y - OldPtY;
+
+        // PtX and PtY already contains the destination point
+
+        // Now render our 2D cubic bezier
+        PathStr := PathStr + 'c '
+          + FloatToStr(BezierCP1X, FPointSeparator) + ','
+          + FloatToStr(BezierCP1Y, FPointSeparator) + ' '
+          + FloatToStr(BezierCP2X, FPointSeparator) + ','
+          + FloatToStr(BezierCP2Y, FPointSeparator) + ' '
+          + FloatToStr(PtX, FPointSeparator) + ','
+          + FloatToStr(PtY, FPointSeparator) + ' '
+          ;
+      end;
 
       // Store the current position for future points
       OldPtX := OldPtX + PtX;
@@ -153,7 +192,6 @@ begin
   AStrings.Add('  <g id="layer1">');
   WritePaths(AStrings, AData);
   WriteTexts(AStrings, AData);
-  WriteBeziers(AStrings, AData);
   AStrings.Add('  </g>');
 
   // finalization
@@ -189,86 +227,6 @@ begin
 //    AStrings.Add('      id="tspan2828" ');
     AStrings.Add('    >');
     AStrings.Add(TextStr + '</tspan></text>');
-  end;
-end;
-
-procedure TvSVGVectorialWriter.WriteBeziers(AStrings: TStrings; AData: TvVectorialDocument);
-var
-  i, j: Integer;
-  PathStr: string;
-  lPath: TPath;
-  PtX, PtY, OldPtX, OldPtY, PtX2, PtY2, OldPtX2, OldPtY2,
-    PtX3, PtY3, OldPtX3, OldPtY3: double;
-  BezierType: TSegmentType;
-begin
-  for i := 0 to AData.GetPathCount() - 1 do
-  begin
-    OldPtX  := 0;
-    OldPtY  := 0;
-    OldPtX2 := 0;
-    OldPtY2 := 0;
-    OldPtX3 := 0;
-    OldPtY3 := 0;
-
-    PathStr := 'm ';
-    lPath   := AData.GetPath(i);
-    for j := 0 to lPath.Len - 1 do
-    begin
-      BezierType := lPath.Points[j].SegmentType;
-      if j>0 then
-      if (BezierType <> st2DBezier) and (BezierType <> stMoveTo)
-        and (BezierType <> st2DLine)
-      then Break; // unsupported Bezier type
-
-      if (BezierType = st2DBezier) or (BezierType = stMoveTo) then
-      begin
-        ConvertFPVCoordinatesToSVGCoordinates(
-         AData, lPath.Points[j].X, lPath.Points[j].Y, PtX, PtY);
-        ConvertFPVCoordinatesToSVGCoordinates(
-         AData, lPath.Points[j].X2, lPath.Points[j].Y2, PtX2, PtY2);
-        ConvertFPVCoordinatesToSVGCoordinates(
-         AData, lPath.Points[j].X3, lPath.Points[j].Y3, PtX3, PtY3);
-
-        PtX  := PtX - OldPtX;
-        PtY  := PtY - OldPtY;
-        PtX2 := PtX2 - OldPtX2;
-        PtY2 := PtY2 - OldPtY2;
-        PtX3 := PtX3 - OldPtX3;
-        PtY3 := PtY3 - OldPtY3;
-
-        if j = 0 then
-          PathStr := PathStr + FloatToStr(PtX, FPointSeparator) + ','
-            + FloatToStr(PtY, FPointSeparator) + ' ';
-
-        if j = 0 then
-        begin
-          PathStr := PathStr + 'q';
-//          if BezierType = st3DBezier then
-//            PathStr := PathStr + 'c';
-        end;
-
-        if j > 0 then
-          PathStr := PathStr + FloatToStr(PtX, FPointSeparator) + ','
-            + FloatToStr(PtY, FPointSeparator) + ' '
-            + FloatToStr(PtX2, FPointSeparator) + ','
-            + FloatToStr(PtY2, FPointSeparator) + ' '
-            + FloatToStr(PtX3, FPointSeparator) + ','
-            + FloatToStr(PtY3, FPointSeparator) + ' ';
-
-        // Store the current position for future points
-        OldPtX  := OldPtX + PtX;
-        OldPtY  := OldPtY + PtY;
-        OldPtX2 := OldPtX2 + PtX2;
-        OldPtY2 := OldPtY2 + PtY2;
-        OldPtX3 := OldPtX3 + PtX3;
-        OldPtY3 := OldPtY3 + PtY3;
-      end;
-    end;
-
-    AStrings.Add('  <path');
-    AStrings.Add('    style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"');
-    AStrings.Add('    d="' + PathStr + '"');
-    AStrings.Add('  id="Bezier' + IntToStr(i) + '" />');
   end;
 end;
 
