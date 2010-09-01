@@ -182,9 +182,13 @@ begin
     AStrings.Add('  <text ');
     AStrings.Add('    x="' + FloatToStr(PtX, FPointSeparator) + '"');
     AStrings.Add('    y="' + FloatToStr(PtY, FPointSeparator) + '"');
-    AStrings.Add('    font-size="' + IntToStr(FontSize) + '"');
+//    AStrings.Add('    font-size="' + IntToStr(FontSize) + '"'); Doesn't seam to work, we need to use the tspan
     AStrings.Add('    font-family="' + SVGFontFamily + '">');
-    AStrings.Add(TextStr + '</text>');
+    AStrings.Add('    <tspan ');
+    AStrings.Add('      style="font-size:' + IntToStr(FontSize) + '" ');
+//    AStrings.Add('      id="tspan2828" ');
+    AStrings.Add('    >');
+    AStrings.Add(TextStr + '</tspan></text>');
   end;
 end;
 

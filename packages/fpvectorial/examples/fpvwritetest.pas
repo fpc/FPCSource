@@ -101,18 +101,39 @@ begin
 
     // text_ascii       One text written at (10, 10)
     Vec.Clear;
-    Vec.AddText(10, 10, 0, 'Some text in english.');
+    Vec.AddText(10, 10, 0, '10,10 Some text in english.');
     Vec.WriteToFile('text_ascii' + cExtension, cFormat);
 
     // text_europen     One text testing european languages at (20, 20)
     Vec.Clear;
-    Vec.AddText(20, 20, 0, 'Mówić, cześć, Włosku, Parabéns, Assunção, Correções.');
+    Vec.AddText(20, 20, 0, '20, 20 Mówić, cześć, Włosku, Parabéns, Assunção, Correções.');
     Vec.WriteToFile('text_europen' + cExtension, cFormat);
 
     // text_asian       One text testing asian languages at (30, 30)
     Vec.Clear;
-    Vec.AddText(30, 30, 0, '森林，是一个高密度树木的区域');
+    Vec.AddText(30, 30, 0, '30, 30 森林，是一个高密度树木的区域');
     Vec.WriteToFile('text_asian' + cExtension, cFormat);
+
+    // multi_test_1     Combines various elements
+    Vec.Clear;
+    Vec.StartPath(0, 20);
+    Vec.AddLineToPath(30, 30);
+    Vec.EndPath();
+    Vec.StartPath(0, 0);
+    Vec.AddLineToPath(100, 0);
+    Vec.AddLineToPath(100, 100);
+    Vec.AddLineToPath(0, 100);
+    Vec.AddLineToPath(0, 0);
+    Vec.EndPath();
+    Vec.StartPath(0, 0);
+    Vec.AddLineToPath(10, 10);
+    Vec.AddBezierToPath(10, 20, 20, 20, 20, 10);
+    Vec.AddLineToPath(30, 0);
+    Vec.EndPath();
+    Vec.AddText(10, 10, 0, '10,10 Some text in english.');
+    Vec.AddText(20, 20, 0, '20, 20 Mówić, cześć, Włosku, Parabéns, Assunção, Correções.');
+    Vec.AddText(30, 30, 0, '30, 30 森林，是一个高密度树木的区域');
+    Vec.WriteToFile('multi_test_1' + cExtension, cFormat);
   finally
     Vec.Free;
   end;
