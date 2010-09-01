@@ -118,7 +118,7 @@ begin
       begin
         // Converts all coordinates to absolute values
         ConvertFPVCoordinatesToSVGCoordinates(
-          AData, lPath.Points[j].X2, lPath.Points[j].Y2, BezierCP1X, BezierCP1X);
+          AData, lPath.Points[j].X2, lPath.Points[j].Y2, BezierCP1X, BezierCP1Y);
         ConvertFPVCoordinatesToSVGCoordinates(
           AData, lPath.Points[j].X3, lPath.Points[j].Y3, BezierCP2X, BezierCP2Y);
 
