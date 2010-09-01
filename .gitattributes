@@ -2395,6 +2395,7 @@ packages/fpvectorial/examples/fpvc_mainform.pas svneol=native#text/plain
 packages/fpvectorial/examples/fpvectorialconverter.ico -text
 packages/fpvectorial/examples/fpvectorialconverter.lpi svneol=native#text/plain
 packages/fpvectorial/examples/fpvectorialconverter.lpr svneol=native#text/plain
+packages/fpvectorial/examples/fpvwritetest.lpi svneol=native#text/plain
 packages/fpvectorial/examples/fpvwritetest.pas svneol=native#text/plain
 packages/fpvectorial/fpmake.pp svneol=native#text/plain
 packages/fpvectorial/src/avisocncgcodereader.pas svneol=native#text/plain
