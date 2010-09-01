@@ -256,6 +256,13 @@ endif
 #####################################################################
 
 ifeq ($(OS_TARGET),win32)
+USE_CMP_FOR_DIFF=1
+endif
+ifeq ($(OS_TARGET),win64)
+USE_CMP_FOR_DIFF=1
+endif
+
+ifdef USE_CMP_FOR_DIFF
 ifdef CMP
 override DIFF:=$(CMP) -i218
 endif
