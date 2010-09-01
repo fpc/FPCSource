@@ -131,8 +131,8 @@ begin
     Vec.AddLineToPath(30, 0);
     Vec.EndPath();
     Vec.AddText(10, 10, 0, '10,10 Some text in english.');
-    Vec.AddText(20, 20, 0, '20, 20 Mówić, cześć, Włosku, Parabéns, Assunção, Correções.');
-    Vec.AddText(30, 30, 0, '30, 30 森林，是一个高密度树木的区域');
+    Vec.AddText(20, 20, 0, '20, 20 Mówić, cześć, Włosku, Parabéns.');
+    Vec.AddText(30, 30, 0, '30, 30 森林，是一个高密');
     Vec.WriteToFile('multi_test_1' + cExtension, cFormat);
   finally
     Vec.Free;
