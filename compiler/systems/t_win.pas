@@ -1094,12 +1094,12 @@ implementation
         with Info do
          begin
 {$ifdef x86_64}
-           targetopts:='-b pe-x86_64';
+           targetopts:='-b pei-x86-64';
 {$else x86_64}
            if target_info.system=system_arm_wince then
              targetopts:='-m arm_wince_pe'
            else
-             targetopts:='-b pe-i386 -m i386pe';
+             targetopts:='-b pei-i386 -m i386pe';
 {$endif not x86_64}
            ExeCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
            DllCmd[1]:='ld '+targetopts+' $OPT $GCSECTIONS $MAP $STRIP --dll $APPTYPE $ENTRY  $IMAGEBASE $RELOC -o $EXE $RES';
