@@ -60,6 +60,7 @@ interface
   implementation
 
     uses
+      globtype,
       cutils,systems,
       verbose,
       itcpugas,
@@ -228,14 +229,40 @@ interface
     procedure Tx86InstrWriter.WriteInstruction(hp: tai);
       var
        op       : tasmop;
+       val      : aint;
        calljmp  : boolean;
+       need_second_mov : boolean;
        i        : integer;
+       comment  : tai_comment;
       begin
         if hp.typ <> ait_instruction then
           exit;
         taicpu(hp).SetOperandOrder(op_att);
         op:=taicpu(hp).opcode;
         calljmp:=is_calljmp(op);
+        { constant values in the 32 bit range are sign-extended to
+          64 bits, but this is not what we want.  PM 2010-09-02
+          the fix consists of simply setting only the 4-byte register
+          as the upper 4-bytes will be zeroed at the same time. }
+        need_second_mov:=false;
+        if (op=A_MOV) and (taicpu(hp).opsize=S_Q) and
+           (taicpu(hp).oper[0]^.typ = top_const) then
+           begin
+             val := taicpu(hp).oper[0]^.val;
+	     if (val > int64($7fffffff)) and (val < int64($100000000)) then
+               begin
+                 owner.AsmWrite(target_asm.comment);
+                 owner.AsmWritePChar('Fix for Win64-GAS bug');
+                 owner.AsmLn;
+                 taicpu(hp).opsize:=S_L;
+                 if taicpu(hp).oper[1]^.typ = top_reg then
+                   setsubreg(taicpu(hp).oper[1]^.reg,R_SUBD)
+                 else if taicpu(hp).oper[1]^.typ = top_ref then
+                   need_second_mov:=true
+                 else
+                   internalerror(20100902011);
+               end;
+           end;
         owner.AsmWrite(#9);
         { movsd should not be translated to movsl when there
           are (xmm) arguments }
@@ -284,6 +311,12 @@ interface
              end;
           end;
         owner.AsmLn;
+        if need_second_mov then
+          begin
+            taicpu(hp).oper[0]^.val:=0;
+            inc(taicpu(hp).oper[1]^.ref^.offset,4);
+            WriteInstruction(hp);
+          end;
       end;
 
 {*****************************************************************************
