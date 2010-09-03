@@ -120,10 +120,12 @@ Type
   end;
 
 ResourceString
-  SNoInputHandle = 'Failed to open input-handle passed from server. Socket Error: %d';
-  SNoSocket      = 'Failed to open socket. Socket Error: %d';
-  SBindFailed    = 'Failed to bind to port %d. Socket Error: %d';
-  SListenFailed  = 'Failed to listen to port %d. Socket Error: %d';
+  SNoInputHandle    = 'Failed to open input-handle passed from server. Socket Error: %d';
+  SNoSocket         = 'Failed to open socket. Socket Error: %d';
+  SBindFailed       = 'Failed to bind to port %d. Socket Error: %d';
+  SListenFailed     = 'Failed to listen to port %d. Socket Error: %d';
+  SErrReadingSocket = 'Failed to read data from socket. Error: %d';
+  SErrReadingHeader = 'Failed to read FastCGI header. Read only %d bytes';
 
 Implementation
 
@@ -433,44 +435,69 @@ end;
 
 function TFCgiHandler.Read_FCGIRecord : PFCGI_Header;
 
+  function ReadBytes(ReadBuf: Pointer; ByteAmount : Word) : Integer;
+
+  Var
+    P : PByte;
+    Count : Integer;
+
+  begin
+    Result := 0;
+    P:=ReadBuf;
+    if (ByteAmount=0) then exit;
+    Repeat
+      Count:=sockets.fpRecv(FHandle, P, ByteAmount, NoSignalAttr);
+      If (Count>0) then
+        begin
+        Dec(ByteAmount,Count);
+        P:=P+Count;
+        Inc(Result,Count);
+        end
+      else if (Count<0) then
+        Raise HTTPError.CreateFmt(SErrReadingSocket,[Count]);
+    until (ByteAmount=0) or (Count=0);
+  end;
+
 var Header : FCGI_Header;
-    BytesRead : integer;
+    {I,}BytesRead : integer;
     ContentLength : word;
     PaddingLength : byte;
     ResRecord : pointer;
     ReadBuf : pointer;
+    s : string;
 
-  function ReadBytes(ByteAmount : Word) : boolean;
-  begin
-   result := False;
-    if ByteAmount>0 then
-      begin
-      BytesRead := sockets.fpRecv(FHandle, ReadBuf, ByteAmount, NoSignalAttr);
-      if BytesRead<>ByteAmount then
-        begin
-//        SendDebug('FCGIRecord incomplete');
-//        SendDebug('BytesRead: '+inttostr(BytesRead)+', expected: '+inttostr(ByteAmount));
-        exit;
-        end
-      else
-        Result := True;
-      end;
-  end;
 
 begin
   Result := Nil;
   ResRecord:=Nil;
   ReadBuf:=@Header;
-  if not ReadBytes(Sizeof(Header)) then exit;
+  BytesRead:=ReadBytes(ReadBuf,Sizeof(Header));
+  If (BytesRead<>Sizeof(Header)) then
+    Raise HTTPError.CreateFmt(SErrReadingHeader,[BytesRead]);
   ContentLength:=BetoN(Header.contentLength);
   PaddingLength:=Header.paddingLength;
   Getmem(ResRecord,BytesRead+ContentLength+PaddingLength);
   PFCGI_Header(ResRecord)^:=Header;
   ReadBuf:=ResRecord+BytesRead;
-  ReadBytes(ContentLength);
+  BytesRead:=ReadBytes(ReadBuf,ContentLength);
   ReadBuf:=ReadBuf+BytesRead;
-  ReadBytes(PaddingLength);
+  BytesRead:=ReadBytes(ReadBuf,PaddingLength);
   Result := ResRecord;
+{
+  Writeln('Dumping record ', Sizeof(Header),',',Contentlength,',',PaddingLength);
+  For I:=0 to Sizeof(Header)+ContentLength+PaddingLength-1 do
+    begin
+    Write(Format('%:3d ',[PByte(ResRecord)[i]]));
+    If PByte(ResRecord)[i]>30 then
+      S:=S+char(PByte(ResRecord)[i]);
+    if (I mod 16) = 0 then
+       begin
+       writeln('  ',S);
+       S:='';
+       end;
+    end;
+  Writeln('  ',S)
+}
 end;
 
 function TFCgiHandler.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
