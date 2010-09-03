@@ -2804,7 +2804,10 @@ begin
   I:=Low(AVarTypes);
   Result:=False;
   While Not Result and (I<=High(AVarTypes)) do
-    Result:=((TVarData(V).vType and varTypeMask)=AVarTypes[I]);
+    begin
+      Result:=((TVarData(V).vType and varTypeMask)=AVarTypes[I]);
+      inc(i);
+    end;
 end;
 
 
