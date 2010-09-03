@@ -175,6 +175,7 @@ type
     Procedure TestReturningValues;
     Procedure TestReturns;
     Procedure TestRetain;
+    Procedure TestRevoke;
     Procedure TestRight;
     Procedure TestRole;
     Procedure TestRollback;
@@ -867,6 +868,11 @@ end;
 procedure TTestSQLScanner.TestRetain;
 begin
   Checktoken(tsqlRetain,'retain');
+end;
+
+procedure TTestSQLScanner.TestRevoke;
+begin
+  Checktoken(tsqlRevoke,'revoke');
 end;
 
 procedure TTestSQLScanner.TestRight;

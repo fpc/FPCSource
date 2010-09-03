@@ -761,6 +761,76 @@ type
     procedure TestTwoArgumentsFunction;
   end;
 
+  { TTestGrantParser }
+
+  TTestGrantParser = Class(TTestSQLParser)
+  Private
+    FStatement : TSQLGrantStatement;
+    Function TestGrant(Const ASource : String) : TSQLGrantStatement;
+    Procedure TestGrantError(Const ASource : String);
+    Property Statement : TSQLGrantStatement Read FStatement;
+  Published
+    Procedure TestSimple;
+    Procedure Test2Operations;
+    Procedure TestDeletePrivilege;
+    Procedure TestUpdatePrivilege;
+    Procedure TestInsertPrivilege;
+    Procedure TestReferencePrivilege;
+    Procedure TestAllPrivileges;
+    Procedure TestAllPrivileges2;
+    Procedure TestUpdateColPrivilege;
+    Procedure TestUpdate2ColsPrivilege;
+    Procedure TestReferenceColPrivilege;
+    Procedure TestReference2ColsPrivilege;
+    Procedure TestUserPrivilege;
+    Procedure TestUserPrivilegeWithGrant;
+    procedure TestGroupPrivilege;
+    procedure TestProcedurePrivilege;
+    procedure TestViewPrivilege;
+    procedure TestTriggerPrivilege;
+    procedure TestPublicPrivilege;
+    Procedure TestExecuteToUser;
+    procedure TestExecuteToProcedure;
+    procedure TestRoleToUser;
+    procedure TestRoleToUserWithAdmin;
+    procedure TestRoleToPublic;
+    procedure Test2RolesToUser;
+  end;
+  { TTestGrantParser }
+
+  TTestRevokeParser = Class(TTestSQLParser)
+  Private
+    FStatement : TSQLRevokeStatement;
+    Function TestRevoke(Const ASource : String) : TSQLRevokeStatement;
+    Procedure TestRevokeError(Const ASource : String);
+    Property Statement : TSQLRevokeStatement Read FStatement;
+  Published
+    Procedure TestSimple;
+    Procedure Test2Operations;
+    Procedure TestDeletePrivilege;
+    Procedure TestUpdatePrivilege;
+    Procedure TestInsertPrivilege;
+    Procedure TestReferencePrivilege;
+    Procedure TestAllPrivileges;
+    Procedure TestAllPrivileges2;
+    Procedure TestUpdateColPrivilege;
+    Procedure TestUpdate2ColsPrivilege;
+    Procedure TestReferenceColPrivilege;
+    Procedure TestReference2ColsPrivilege;
+    Procedure TestUserPrivilege;
+    Procedure TestUserPrivilegeWithRevoke;
+    procedure TestGroupPrivilege;
+    procedure TestProcedurePrivilege;
+    procedure TestViewPrivilege;
+    procedure TestTriggerPrivilege;
+    procedure TestPublicPrivilege;
+    Procedure TestExecuteToUser;
+    procedure TestExecuteToProcedure;
+    procedure TestRoleToUser;
+    procedure TestRoleToPublic;
+    procedure Test2RolesToUser;
+  end;
+
 implementation
 
 uses typinfo;
@@ -6995,6 +7065,905 @@ begin
   AssertEquals('Correct return type',sdtInteger,Statement.ReturnType.DataType);
 end;
 
+{ TTestGrantParser }
+
+function TTestGrantParser.TestGrant(const ASource: String): TSQLGrantStatement;
+begin
+  CreateParser(ASource);
+  FToFree:=Parser.Parse;
+  If not (FToFree is  TSQLGrantStatement) then
+    Fail(Format('Wrong parse result class. Expected TSQLGrantStatement, got %s',[FTofree.ClassName]));
+  Result:=TSQLGrantStatement(Ftofree);
+  FSTatement:=Result;
+  AssertEquals('End of stream reached',tsqlEOF,Parser.CurrentToken);
+end;
+
+procedure TTestGrantParser.TestGrantError(const ASource: String);
+begin
+  FErrSource:=ASource;
+  AssertException(ESQLParser,@TestParseError);
+end;
+
+procedure TTestGrantParser.TestSimple;
+
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLUSerGrantee;
+
+begin
+  TestGrant('GRANT SELECT ON A TO B');
+  T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+  AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.Test2Operations;
+
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLUSerGrantee;
+
+begin
+  TestGrant('GRANT SELECT,INSERT ON A TO B');
+  T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('Two permissions',2,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+  CheckClass(T.Privileges[1],TSQLINSERTPrivilege);
+  AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestDeletePrivilege;
+
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLUSerGrantee;
+
+begin
+  TestGrant('GRANT DELETE ON A TO B');
+  T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLDeletePrivilege);
+  AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestUpdatePrivilege;
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLUSerGrantee;
+
+begin
+  TestGrant('GRANT UPDATE ON A TO B');
+  T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLUPDATEPrivilege);
+  AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestInsertPrivilege;
+
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLUSerGrantee;
+
+begin
+  TestGrant('GRANT INSERT ON A TO B');
+  T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLInsertPrivilege);
+  AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestReferencePrivilege;
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLUSerGrantee;
+
+begin
+  TestGrant('GRANT REFERENCES ON A TO B');
+  T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLReferencePrivilege);
+  AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestAllPrivileges;
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLUSerGrantee;
+
+begin
+  TestGrant('GRANT ALL ON A TO B');
+  T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLAllPrivilege);
+  AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestAllPrivileges2;
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLUSerGrantee;
+
+begin
+  TestGrant('GRANT ALL PRIVILEGES ON A TO B');
+  T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLAllPrivilege);
+  AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestUpdateColPrivilege;
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLUSerGrantee;
+  U : TSQLUPDATEPrivilege;
+
+begin
+  TestGrant('GRANT UPDATE (C) ON A TO B');
+  T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  U:=TSQLUPDATEPrivilege(CheckClass(T.Privileges[0],TSQLUPDATEPrivilege));
+  AssertEquals('1 column',1,U.Columns.Count);
+  AssertIdentifierName('Column C','C',U.Columns[0]);
+  AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestUpdate2ColsPrivilege;
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLUSerGrantee;
+  U : TSQLUPDATEPrivilege;
+
+begin
+  TestGrant('GRANT UPDATE (C,D) ON A TO B');
+  T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  U:=TSQLUPDATEPrivilege(CheckClass(T.Privileges[0],TSQLUPDATEPrivilege));
+  AssertEquals('2 column',2,U.Columns.Count);
+  AssertIdentifierName('Column C','C',U.Columns[0]);
+  AssertIdentifierName('Column D','D',U.Columns[1]);
+  AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestReferenceColPrivilege;
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLUSerGrantee;
+  U : TSQLReferencePrivilege;
+
+begin
+  TestGrant('GRANT REFERENCES (C) ON A TO B');
+  T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  U:=TSQLReferencePrivilege(CheckClass(T.Privileges[0],TSQLReferencePrivilege));
+  AssertEquals('1 column',1,U.Columns.Count);
+  AssertIdentifierName('Column C','C',U.Columns[0]);
+  AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestReference2ColsPrivilege;
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLUSerGrantee;
+  U : TSQLReferencePrivilege;
+
+begin
+  TestGrant('GRANT REFERENCES (C,D) ON A TO B');
+  T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  U:=TSQLReferencePrivilege(CheckClass(T.Privileges[0],TSQLReferencePrivilege));
+  AssertEquals('2 column',2,U.Columns.Count);
+  AssertIdentifierName('Column C','C',U.Columns[0]);
+  AssertIdentifierName('Column D','D',U.Columns[1]);
+  AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestUserPrivilege;
+
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLUSerGrantee;
+
+begin
+    TestGrant('GRANT SELECT ON A TO USER B');
+    T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+    AssertIdentifierName('Table name','A',T.TableName);
+    AssertEquals('One grantee', 1,T.Grantees.Count);
+    G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+    AssertEquals('Grantee B','B',G.Name);
+    AssertEquals('One permission',1,T.Privileges.Count);
+    CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+    AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestUserPrivilegeWithGrant;
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLUSerGrantee;
+
+begin
+    TestGrant('GRANT SELECT ON A TO USER B WITH GRANT OPTION');
+    T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+    AssertIdentifierName('Table name','A',T.TableName);
+    AssertEquals('One grantee', 1,T.Grantees.Count);
+    G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+    AssertEquals('Grantee B','B',G.Name);
+    AssertEquals('One permission',1,T.Privileges.Count);
+    CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+    AssertEquals('With grant option',True,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestGroupPrivilege;
+
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLGroupGrantee;
+
+begin
+    TestGrant('GRANT SELECT ON A TO GROUP B');
+    T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+    AssertIdentifierName('Table name','A',T.TableName);
+    AssertEquals('One grantee', 1,T.Grantees.Count);
+    G:=TSQLGroupGrantee(CheckClass(T.Grantees[0],TSQLGroupGrantee));
+    AssertEquals('Grantee B','B',G.Name);
+    AssertEquals('One permission',1,T.Privileges.Count);
+    CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+    AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestProcedurePrivilege;
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLProcedureGrantee;
+
+begin
+  TestGrant('GRANT SELECT ON A TO PROCEDURE B');
+  T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One grantee', 1,T.Grantees.Count);
+  G:=TSQLProcedureGrantee(CheckClass(T.Grantees[0],TSQLProcedureGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+  AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestViewPrivilege;
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLViewGrantee;
+
+begin
+  TestGrant('GRANT SELECT ON A TO VIEW B');
+  T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One grantee', 1,T.Grantees.Count);
+  G:=TSQLViewGrantee(CheckClass(T.Grantees[0],TSQLViewGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+  AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestTriggerPrivilege;
+
+Var
+  t : TSQLTableGrantStatement;
+  G : TSQLTriggerGrantee;
+
+begin
+  TestGrant('GRANT SELECT ON A TO TRIGGER B');
+  T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One grantee', 1,T.Grantees.Count);
+  G:=TSQLTriggerGrantee(CheckClass(T.Grantees[0],TSQLTriggerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+  AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestPublicPrivilege;
+Var
+  t : TSQLTableGrantStatement;
+  P : TSQLPublicGrantee;
+
+begin
+  TestGrant('GRANT SELECT ON A TO PUBLIC');
+  T:=TSQLTableGrantStatement(CheckClass(Statement,TSQLTableGrantStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One grantee', 1,T.Grantees.Count);
+  (CheckClass(T.Grantees[0],TSQLPublicGrantee));
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+  AssertEquals('No grant option',False,T.GrantOption);
+end;
+
+procedure TTestGrantParser.TestExecuteToUser;
+Var
+  P : TSQLProcedureGrantStatement;
+  U : TSQLUserGrantee;
+
+begin
+  TestGrant('GRANT EXECUTE ON PROCEDURE A TO B');
+  P:=TSQLProcedureGrantStatement(CheckClass(Statement,TSQLProcedureGrantStatement));
+  AssertIdentifierName('Procedure name','A',P.ProcedureName);
+  AssertEquals('One grantee', 1,P.Grantees.Count);
+  U:=TSQLUserGrantee(CheckClass(P.Grantees[0],TSQLUserGrantee));
+  AssertEquals('User name','B',U.Name);
+  AssertEquals('No grant option',False,P.GrantOption);
+end;
+
+procedure TTestGrantParser.TestExecuteToProcedure;
+Var
+  P : TSQLProcedureGrantStatement;
+  U : TSQLProcedureGrantee;
+
+begin
+  TestGrant('GRANT EXECUTE ON PROCEDURE A TO PROCEDURE B');
+  P:=TSQLProcedureGrantStatement(CheckClass(Statement,TSQLProcedureGrantStatement));
+  AssertIdentifierName('Procedure name','A',P.ProcedureName);
+  AssertEquals('One grantee', 1,P.Grantees.Count);
+  U:=TSQLProcedureGrantee(CheckClass(P.Grantees[0],TSQLProcedureGrantee));
+  AssertEquals('Procedure grantee name','B',U.Name);
+  AssertEquals('No grant option',False,P.GrantOption);
+end;
+
+procedure TTestGrantParser.TestRoleToUser;
+Var
+  R : TSQLRoleGrantStatement;
+  U : TSQLUserGrantee;
+
+begin
+  TestGrant('GRANT A TO B');
+  R:=TSQLRoleGrantStatement(CheckClass(Statement,TSQLRoleGrantStatement));
+  AssertEquals('One role', 1,R.Roles.Count);
+  AssertIdentifierName('Role name','A',R.Roles[0]);
+  AssertEquals('One grantee', 1,R.Grantees.Count);
+  U:=TSQLUserGrantee(CheckClass(R.Grantees[0],TSQLUserGrantee));
+  AssertEquals('Procedure grantee name','B',U.Name);
+  AssertEquals('No admin option',False,R.AdminOption);
+end;
+
+procedure TTestGrantParser.TestRoleToUserWithAdmin;
+Var
+  R : TSQLRoleGrantStatement;
+  U : TSQLUserGrantee;
+
+begin
+  TestGrant('GRANT A TO B WITH ADMIN OPTION');
+  R:=TSQLRoleGrantStatement(CheckClass(Statement,TSQLRoleGrantStatement));
+  AssertEquals('One role', 1,R.Roles.Count);
+  AssertIdentifierName('Role name','A',R.Roles[0]);
+  AssertEquals('One grantee', 1,R.Grantees.Count);
+  U:=TSQLUserGrantee(CheckClass(R.Grantees[0],TSQLUserGrantee));
+  AssertEquals('Procedure grantee name','B',U.Name);
+  AssertEquals('Admin option',True,R.AdminOption);
+end;
+
+procedure TTestGrantParser.TestRoleToPublic;
+Var
+  R : TSQLRoleGrantStatement;
+
+begin
+  TestGrant('GRANT A TO PUBLIC');
+  R:=TSQLRoleGrantStatement(CheckClass(Statement,TSQLRoleGrantStatement));
+  AssertEquals('One role', 1,R.Roles.Count);
+  AssertIdentifierName('Role name','A',R.Roles[0]);
+  AssertEquals('One grantee', 1,R.Grantees.Count);
+  CheckClass(R.Grantees[0],TSQLPublicGrantee);
+  AssertEquals('No admin option',False,R.AdminOption);
+end;
+
+procedure TTestGrantParser.Test2RolesToUser;
+
+Var
+  R : TSQLRoleGrantStatement;
+  U : TSQLUserGrantee;
+
+begin
+  TestGrant('GRANT A,C TO B');
+  R:=TSQLRoleGrantStatement(CheckClass(Statement,TSQLRoleGrantStatement));
+  AssertEquals('2 roles', 2,R.Roles.Count);
+  AssertIdentifierName('Role name','A',R.Roles[0]);
+  AssertIdentifierName('Role name','C',R.Roles[1]);
+  AssertEquals('One grantee', 1,R.Grantees.Count);
+  U:=TSQLUserGrantee(CheckClass(R.Grantees[0],TSQLUserGrantee));
+  AssertEquals('Procedure grantee name','B',U.Name);
+  AssertEquals('No admin option',False,R.AdminOption);
+end;
+
+{ TTestRevokeParser }
+
+function TTestRevokeParser.TestRevoke(const ASource: String): TSQLRevokeStatement;
+begin
+  CreateParser(ASource);
+  FToFree:=Parser.Parse;
+  If not (FToFree is  TSQLRevokeStatement) then
+    Fail(Format('Wrong parse result class. Expected TSQLRevokeStatement, got %s',[FTofree.ClassName]));
+  Result:=TSQLRevokeStatement(Ftofree);
+  FSTatement:=Result;
+  AssertEquals('End of stream reached',tsqlEOF,Parser.CurrentToken);
+end;
+
+procedure TTestRevokeParser.TestRevokeError(const ASource: String);
+begin
+  FErrSource:=ASource;
+  AssertException(ESQLParser,@TestParseError);
+end;
+
+procedure TTestRevokeParser.TestSimple;
+
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLUSerGrantee;
+
+begin
+  TestRevoke('Revoke SELECT ON A FROM B');
+  T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One Grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+  AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.Test2Operations;
+
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLUSerGrantee;
+
+begin
+  TestRevoke('Revoke SELECT,INSERT ON A FROM B');
+  T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One Grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('Two permissions',2,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+  CheckClass(T.Privileges[1],TSQLINSERTPrivilege);
+  AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestDeletePrivilege;
+
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLUSerGrantee;
+
+begin
+  TestRevoke('Revoke DELETE ON A FROM B');
+  T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One Grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLDeletePrivilege);
+  AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestUpdatePrivilege;
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLUSerGrantee;
+
+begin
+  TestRevoke('Revoke UPDATE ON A FROM B');
+  T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One Grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLUPDATEPrivilege);
+  AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestInsertPrivilege;
+
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLUSerGrantee;
+
+begin
+  TestRevoke('Revoke INSERT ON A FROM B');
+  T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One Grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLInsertPrivilege);
+  AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestReferencePrivilege;
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLUSerGrantee;
+
+begin
+  TestRevoke('Revoke REFERENCES ON A FROM B');
+  T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One Grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLReferencePrivilege);
+  AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestAllPrivileges;
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLUSerGrantee;
+
+begin
+  TestRevoke('Revoke ALL ON A FROM B');
+  T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One Grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLAllPrivilege);
+  AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestAllPrivileges2;
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLUSerGrantee;
+
+begin
+  TestRevoke('Revoke ALL PRIVILEGES ON A FROM B');
+  T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One Grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLAllPrivilege);
+  AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestUpdateColPrivilege;
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLUSerGrantee;
+  U : TSQLUPDATEPrivilege;
+
+begin
+  TestRevoke('Revoke UPDATE (C) ON A FROM B');
+  T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One Grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  U:=TSQLUPDATEPrivilege(CheckClass(T.Privileges[0],TSQLUPDATEPrivilege));
+  AssertEquals('1 column',1,U.Columns.Count);
+  AssertIdentifierName('Column C','C',U.Columns[0]);
+  AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestUpdate2ColsPrivilege;
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLUSerGrantee;
+  U : TSQLUPDATEPrivilege;
+
+begin
+  TestRevoke('Revoke UPDATE (C,D) ON A FROM B');
+  T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One Grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  U:=TSQLUPDATEPrivilege(CheckClass(T.Privileges[0],TSQLUPDATEPrivilege));
+  AssertEquals('2 column',2,U.Columns.Count);
+  AssertIdentifierName('Column C','C',U.Columns[0]);
+  AssertIdentifierName('Column D','D',U.Columns[1]);
+  AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestReferenceColPrivilege;
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLUSerGrantee;
+  U : TSQLReferencePrivilege;
+
+begin
+  TestRevoke('Revoke REFERENCES (C) ON A FROM B');
+  T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One Grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  U:=TSQLReferencePrivilege(CheckClass(T.Privileges[0],TSQLReferencePrivilege));
+  AssertEquals('1 column',1,U.Columns.Count);
+  AssertIdentifierName('Column C','C',U.Columns[0]);
+  AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestReference2ColsPrivilege;
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLUSerGrantee;
+  U : TSQLReferencePrivilege;
+
+begin
+  TestRevoke('Revoke REFERENCES (C,D) ON A FROM B');
+  T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One Grantee', 1,T.Grantees.Count);
+  G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  U:=TSQLReferencePrivilege(CheckClass(T.Privileges[0],TSQLReferencePrivilege));
+  AssertEquals('2 column',2,U.Columns.Count);
+  AssertIdentifierName('Column C','C',U.Columns[0]);
+  AssertIdentifierName('Column D','D',U.Columns[1]);
+  AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestUserPrivilege;
+
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLUSerGrantee;
+
+begin
+    TestRevoke('Revoke SELECT ON A FROM USER B');
+    T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+    AssertIdentifierName('Table name','A',T.TableName);
+    AssertEquals('One Grantee', 1,T.Grantees.Count);
+    G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+    AssertEquals('Grantee B','B',G.Name);
+    AssertEquals('One permission',1,T.Privileges.Count);
+    CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+    AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestUserPrivilegeWithRevoke;
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLUSerGrantee;
+
+begin
+    TestRevoke('Revoke GRANT OPTION FOR SELECT ON A FROM USER B');
+    T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+    AssertIdentifierName('Table name','A',T.TableName);
+    AssertEquals('One Grantee', 1,T.Grantees.Count);
+    G:=TSQLUSerGrantee(CheckClass(T.Grantees[0],TSQLUSerGrantee));
+    AssertEquals('Grantee B','B',G.Name);
+    AssertEquals('One permission',1,T.Privileges.Count);
+    CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+    AssertEquals('With Revoke option',True,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestGroupPrivilege;
+
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLGroupGrantee;
+
+begin
+    TestRevoke('Revoke SELECT ON A FROM GROUP B');
+    T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+    AssertIdentifierName('Table name','A',T.TableName);
+    AssertEquals('One Grantee', 1,T.Grantees.Count);
+    G:=TSQLGroupGrantee(CheckClass(T.Grantees[0],TSQLGroupGrantee));
+    AssertEquals('Grantee B','B',G.Name);
+    AssertEquals('One permission',1,T.Privileges.Count);
+    CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+    AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestProcedurePrivilege;
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLProcedureGrantee;
+
+begin
+  TestRevoke('Revoke SELECT ON A FROM PROCEDURE B');
+  T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One Grantee', 1,T.Grantees.Count);
+  G:=TSQLProcedureGrantee(CheckClass(T.Grantees[0],TSQLProcedureGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+  AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestViewPrivilege;
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLViewGrantee;
+
+begin
+  TestRevoke('Revoke SELECT ON A FROM VIEW B');
+  T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One Grantee', 1,T.Grantees.Count);
+  G:=TSQLViewGrantee(CheckClass(T.Grantees[0],TSQLViewGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+  AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestTriggerPrivilege;
+
+Var
+  t : TSQLTableRevokeStatement;
+  G : TSQLTriggerGrantee;
+
+begin
+  TestRevoke('Revoke SELECT ON A FROM TRIGGER B');
+  T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One Grantee', 1,T.Grantees.Count);
+  G:=TSQLTriggerGrantee(CheckClass(T.Grantees[0],TSQLTriggerGrantee));
+  AssertEquals('Grantee B','B',G.Name);
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+  AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestPublicPrivilege;
+Var
+  t : TSQLTableRevokeStatement;
+  P : TSQLPublicGrantee;
+
+begin
+  TestRevoke('Revoke SELECT ON A FROM PUBLIC');
+  T:=TSQLTableRevokeStatement(CheckClass(Statement,TSQLTableRevokeStatement));
+  AssertIdentifierName('Table name','A',T.TableName);
+  AssertEquals('One Grantee', 1,T.Grantees.Count);
+  (CheckClass(T.Grantees[0],TSQLPublicGrantee));
+  AssertEquals('One permission',1,T.Privileges.Count);
+  CheckClass(T.Privileges[0],TSQLSelectPrivilege);
+  AssertEquals('No Revoke option',False,T.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestExecuteToUser;
+Var
+  P : TSQLProcedureRevokeStatement;
+  U : TSQLUserGrantee;
+
+begin
+  TestRevoke('Revoke EXECUTE ON PROCEDURE A FROM B');
+  P:=TSQLProcedureRevokeStatement(CheckClass(Statement,TSQLProcedureRevokeStatement));
+  AssertIdentifierName('Procedure name','A',P.ProcedureName);
+  AssertEquals('One Grantee', 1,P.Grantees.Count);
+  U:=TSQLUserGrantee(CheckClass(P.Grantees[0],TSQLUserGrantee));
+  AssertEquals('User name','B',U.Name);
+  AssertEquals('No Revoke option',False,P.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestExecuteToProcedure;
+Var
+  P : TSQLProcedureRevokeStatement;
+  U : TSQLProcedureGrantee;
+
+begin
+  TestRevoke('Revoke EXECUTE ON PROCEDURE A FROM PROCEDURE B');
+  P:=TSQLProcedureRevokeStatement(CheckClass(Statement,TSQLProcedureRevokeStatement));
+  AssertIdentifierName('Procedure name','A',P.ProcedureName);
+  AssertEquals('One Grantee', 1,P.Grantees.Count);
+  U:=TSQLProcedureGrantee(CheckClass(P.Grantees[0],TSQLProcedureGrantee));
+  AssertEquals('Procedure Grantee name','B',U.Name);
+  AssertEquals('No Revoke option',False,P.GrantOption);
+end;
+
+procedure TTestRevokeParser.TestRoleToUser;
+Var
+  R : TSQLRoleRevokeStatement;
+  U : TSQLUserGrantee;
+
+begin
+  TestRevoke('Revoke A FROM B');
+  R:=TSQLRoleRevokeStatement(CheckClass(Statement,TSQLRoleRevokeStatement));
+  AssertEquals('One role', 1,R.Roles.Count);
+  AssertIdentifierName('Role name','A',R.Roles[0]);
+  AssertEquals('One Grantee', 1,R.Grantees.Count);
+  U:=TSQLUserGrantee(CheckClass(R.Grantees[0],TSQLUserGrantee));
+  AssertEquals('Procedure Grantee name','B',U.Name);
+  AssertEquals('No admin option',False,R.AdminOption);
+end;
+
+procedure TTestRevokeParser.TestRoleToPublic;
+Var
+  R : TSQLRoleRevokeStatement;
+
+begin
+  TestRevoke('Revoke A FROM PUBLIC');
+  R:=TSQLRoleRevokeStatement(CheckClass(Statement,TSQLRoleRevokeStatement));
+  AssertEquals('One role', 1,R.Roles.Count);
+  AssertIdentifierName('Role name','A',R.Roles[0]);
+  AssertEquals('One Grantee', 1,R.Grantees.Count);
+  CheckClass(R.Grantees[0],TSQLPublicGrantee);
+  AssertEquals('No admin option',False,R.AdminOption);
+end;
+
+procedure TTestRevokeParser.Test2RolesToUser;
+
+Var
+  R : TSQLRoleRevokeStatement;
+  U : TSQLUserGrantee;
+
+begin
+  TestRevoke('Revoke A,C FROM B');
+  R:=TSQLRoleRevokeStatement(CheckClass(Statement,TSQLRoleRevokeStatement));
+  AssertEquals('2 roles', 2,R.Roles.Count);
+  AssertIdentifierName('Role name','A',R.Roles[0]);
+  AssertIdentifierName('Role name','C',R.Roles[1]);
+  AssertEquals('One Grantee', 1,R.Grantees.Count);
+  U:=TSQLUserGrantee(CheckClass(R.Grantees[0],TSQLUserGrantee));
+  AssertEquals('Procedure Grantee name','B',U.Name);
+  AssertEquals('No admin option',False,R.AdminOption);
+end;
+
+
 initialization
   RegisterTests([TTestDropParser,
                  TTestGeneratorParser,
@@ -7020,6 +7989,8 @@ initialization
                  TTestProcedureStatement,
                  TTestCreateProcedureParser,
                  TTestCreateTriggerParser,
-                 TTestDeclareExternalFunctionParser]);
+                 TTestDeclareExternalFunctionParser,
+                 TTestGrantParser,
+                 TTestRevokeParser]);
 end.
 

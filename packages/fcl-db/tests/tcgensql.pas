@@ -23,6 +23,7 @@ uses
 
 type
   TSQLDropStatementClass = Class of TSQLDropStatement;
+  TSQLGranteeClass = Class of TSQLGrantee;
 
   { TTestGenerateSQL }
 
@@ -36,6 +37,7 @@ type
     procedure DoTestAlterCreateProcedure(S: TSQLAlterCreateProcedureStatement; PHEAD: String);
     procedure DoTestAlterCreateTrigger(S: TSQLAlterCreateTriggerStatement; PHEAD: String);
     Function CreateIdentifier(Const AName : TSQLStringType) : TSQLIdentifierName;
+    Function CreateGrantee(Const AName : TSQLStringType; AClass : TSQLGranteeClass = Nil) : TSQLGrantee;
     Function CreateLiteral(Const AValue : Integer) : TSQLIntegerLiteral;
     Function CreateLiteral(Const AValue : TSQLStringType) : TSQLStringLiteral;
     Function CreateLiteral(Const AValue : Double) : TSQLFloatLiteral;
@@ -152,6 +154,12 @@ type
     procedure TestConnect;
     procedure TestExtract;
     procedure TestParamExpression;
+    Procedure TestGrantTable;
+    Procedure TestGrantProcedure;
+    Procedure TestGrantRole;
+    Procedure TestRevokeTable;
+    Procedure TestRevokeProcedure;
+    Procedure TestRevokeRole;
   end;
 
 implementation
@@ -170,6 +178,16 @@ function TTestGenerateSQL.CreateIdentifier(const AName: TSQLStringType
   ): TSQLIdentifierName;
 begin
   Result:=TSQLIdentifierName.Create(Nil);
+  Result.Name:=AName;
+  FToFree:=Result;
+end;
+
+function TTestGenerateSQL.CreateGrantee(const AName: TSQLStringType;
+  AClass: TSQLGranteeClass = Nil): TSQLGrantee;
+begin
+  If AClass=Nil then
+    AClass:=TSQLGrantee;
+  Result:=AClass.Create(Nil);
   Result.Name:=AName;
   FToFree:=Result;
 end;
@@ -2252,6 +2270,277 @@ begin
   P.Identifier:=CreateIdentifier('P');
   FTofree:=P;
   AssertSQL(P,':P');
+end;
+
+procedure TTestGenerateSQL.TestGrantTable;
+
+Var
+  G : TSQLTableGrantStatement;
+  U : TSQLUserGrantee;
+  PU : TSQLColumnPrivilege;
+  PG : TSQLProcedureGrantee;
+
+begin
+  G:=TSQLTableGrantStatement.Create(Nil);
+  G.TableName:=CreateIdentifier('A');
+  FtoFree:=G;
+  G.Privileges.Add(TSQLSelectPrivilege.Create(Nil));
+  G.Grantees.add(CreateGrantee('B'));
+  FtoFree:=G;
+  AssertSQl(G,'GRANT SELECT ON A TO B');
+  G.Grantees.add(CreateGrantee('C'));
+  FtoFree:=G;
+  AssertSQl(G,'GRANT SELECT ON A TO B , C');
+  G.Privileges.Clear;
+  G.Privileges.Add(TSQLUPdatePrivilege.Create(Nil));
+  FtoFree:=G;
+  AssertSQl(G,'GRANT UPDATE ON A TO B , C');
+  G.Privileges.Clear;
+  G.Privileges.Add(TSQLDeletePrivilege.Create(Nil));
+  FtoFree:=G;
+  AssertSQl(G,'GRANT DELETE ON A TO B , C');
+  G.Privileges.Clear;
+  G.Privileges.Add(TSQLINSERTPrivilege.Create(Nil));
+  FtoFree:=G;
+  AssertSQl(G,'GRANT INSERT ON A TO B , C');
+  G.Privileges.Clear;
+  G.Privileges.Add(TSQLReferencePrivilege.Create(Nil));
+  FtoFree:=G;
+  AssertSQl(G,'GRANT REFERENCES ON A TO B , C');
+  G.Privileges.Clear;
+  G.Privileges.Add(TSQLAllPrivilege.Create(Nil));
+  FtoFree:=G;
+  AssertSQl(G,'GRANT ALL PRIVILEGES ON A TO B , C');
+  G.GrantOption:=True;
+  AssertSQl(G,'GRANT ALL PRIVILEGES ON A TO B , C WITH GRANT OPTION');
+  G.GrantOption:=False;
+  G.Privileges.Clear;
+  G.Privileges.Add(TSQLSelectPrivilege.Create(Nil));
+  G.Grantees.Clear;
+  G.Grantees.Add(TSQLPublicGrantee.Create(Nil));
+  FtoFree:=G;
+  AssertSQl(G,'GRANT SELECT ON A TO PUBLIC');
+  G.Grantees.Clear;
+  G.Grantees.Add(CreateGrantee('B',TSQLProcedureGrantee));
+  AssertSQl(G,'GRANT SELECT ON A TO PROCEDURE B');
+  G.Grantees.Clear;
+  G.Grantees.Add(CreateGrantee('B',TSQLViewGrantee));
+  AssertSQl(G,'GRANT SELECT ON A TO VIEW B');
+  G.Grantees.Clear;
+  G.Grantees.Add(CreateGrantee('B',TSQLTriggerGrantee));
+  AssertSQl(G,'GRANT SELECT ON A TO TRIGGER B');
+  FtoFree:=G;
+  G.Privileges.Clear;
+  Pu:=TSQLUPdatePrivilege.Create(Nil);
+  PU.Columns:=TSQLElementList.Create(True);
+  PU.Columns.Add(CreateIdentifier('C'));
+  G.Privileges.Add(PU);
+  FtoFree:=G;
+  AssertSQl(G,'GRANT UPDATE (C) ON A TO TRIGGER B');
+  PU.Columns.Add(CreateIdentifier('D'));
+  FtoFree:=G;
+  AssertSQl(G,'GRANT UPDATE (C , D) ON A TO TRIGGER B');
+  G.Privileges.Clear;
+  Pu:=TSQLReferencePrivilege.Create(Nil);
+  PU.Columns:=TSQLElementList.Create(True);
+  PU.Columns.Add(CreateIdentifier('C'));
+  G.Privileges.Add(PU);
+  FtoFree:=G;
+  AssertSQl(G,'GRANT REFERENCES (C) ON A TO TRIGGER B');
+  PU.Columns.Add(CreateIdentifier('D'));
+  FtoFree:=G;
+  AssertSQl(G,'GRANT REFERENCES (C , D) ON A TO TRIGGER B');
+end;
+
+procedure TTestGenerateSQL.TestGrantProcedure;
+
+Var
+  G : TSQLProcedureGrantStatement;
+  U : TSQLUserGrantee;
+  PU : TSQLColumnPrivilege;
+  PG : TSQLProcedureGrantee;
+
+begin
+  G:=TSQLProcedureGrantStatement.Create(Nil);
+  G.ProcedureName:=CreateIdentifier('A');
+  FtoFree:=G;
+  G.Grantees.add(CreateGrantee('B'));
+  FtoFree:=G;
+  AssertSQL(G,'GRANT EXECUTE ON PROCEDURE A TO B');
+  G.Grantees.add(CreateGrantee('C'));
+  FtoFree:=G;
+  AssertSQL(G,'GRANT EXECUTE ON PROCEDURE A TO B , C');
+  G.Grantees.Clear;
+  G.Grantees.Add(CreateGrantee('B',TSQLTriggerGrantee));
+  FtoFree:=G;
+  AssertSQL(G,'GRANT EXECUTE ON PROCEDURE A TO TRIGGER B');
+  G.Grantees.Clear;
+  G.Grantees.Add(CreateGrantee('B',TSQLProcedureGrantee));
+  FtoFree:=G;
+  AssertSQL(G,'GRANT EXECUTE ON PROCEDURE A TO PROCEDURE B');
+  G.Grantees.Clear;
+  G.Grantees.Add(CreateGrantee('B',TSQLViewGrantee));
+  FtoFree:=G;
+  AssertSQL(G,'GRANT EXECUTE ON PROCEDURE A TO VIEW B');
+  G.Grantees.Clear;
+  G.Grantees.Add(CreateGrantee('B',TSQLPublicGrantee));
+  FtoFree:=G;
+  AssertSQL(G,'GRANT EXECUTE ON PROCEDURE A TO PUBLIC');
+end;
+
+procedure TTestGenerateSQL.TestGrantRole;
+Var
+  G : TSQLRoleGrantStatement;
+  U : TSQLUserGrantee;
+
+begin
+  G:=TSQLRoleGrantStatement.Create(Nil);
+  G.Roles.Add(CreateIdentifier('A'));
+  FtoFree:=G;
+  G.Grantees.add(CreateGrantee('B'));
+  FtoFree:=G;
+  AssertSQL(G,'GRANT A TO B');
+  G.Roles.Add(CreateIdentifier('C'));
+  FtoFree:=G;
+  AssertSQL(G,'GRANT A , C TO B');
+  G.Grantees.add(CreateGrantee('D'));
+  FtoFree:=G;
+  AssertSQL(G,'GRANT A , C TO B , D');
+  G.AdminOption:=True;
+  AssertSQL(G,'GRANT A , C TO B , D WITH ADMIN OPTION');
+end;
+
+procedure TTestGenerateSQL.TestRevokeTable;
+Var
+  G : TSQLTableRevokeStatement;
+  U : TSQLUserGrantee;
+  PU : TSQLColumnPrivilege;
+  PG : TSQLProcedureGrantee;
+
+begin
+  G:=TSQLTableRevokeStatement.Create(Nil);
+  G.TableName:=CreateIdentifier('A');
+  FtoFree:=G;
+  G.Privileges.Add(TSQLSelectPrivilege.Create(Nil));
+  G.Grantees.add(CreateGrantee('B'));
+  FtoFree:=G;
+  AssertSQl(G,'REVOKE SELECT ON A FROM B');
+  G.Grantees.add(CreateGrantee('C'));
+  FtoFree:=G;
+  AssertSQl(G,'REVOKE SELECT ON A FROM B , C');
+  G.Privileges.Clear;
+  G.Privileges.Add(TSQLUPdatePrivilege.Create(Nil));
+  FtoFree:=G;
+  AssertSQl(G,'REVOKE UPDATE ON A FROM B , C');
+  G.Privileges.Clear;
+  G.Privileges.Add(TSQLDeletePrivilege.Create(Nil));
+  FtoFree:=G;
+  AssertSQl(G,'REVOKE DELETE ON A FROM B , C');
+  G.Privileges.Clear;
+  G.Privileges.Add(TSQLINSERTPrivilege.Create(Nil));
+  FtoFree:=G;
+  AssertSQl(G,'REVOKE INSERT ON A FROM B , C');
+  G.Privileges.Clear;
+  G.Privileges.Add(TSQLReferencePrivilege.Create(Nil));
+  FtoFree:=G;
+  AssertSQl(G,'REVOKE REFERENCES ON A FROM B , C');
+  G.Privileges.Clear;
+  G.Privileges.Add(TSQLAllPrivilege.Create(Nil));
+  FtoFree:=G;
+  AssertSQl(G,'REVOKE ALL PRIVILEGES ON A FROM B , C');
+  G.GrantOption:=True;
+  AssertSQl(G,'REVOKE GRANT OPTION FOR ALL PRIVILEGES ON A FROM B , C');
+  G.GrantOption:=False;
+  G.Privileges.Clear;
+  G.Privileges.Add(TSQLSelectPrivilege.Create(Nil));
+  G.Grantees.Clear;
+  G.Grantees.Add(TSQLPublicGrantee.Create(Nil));
+  FtoFree:=G;
+  AssertSQl(G,'REVOKE SELECT ON A FROM PUBLIC');
+  G.Grantees.Clear;
+  G.Grantees.Add(CreateGrantee('B',TSQLProcedureGrantee));
+  AssertSQl(G,'REVOKE SELECT ON A FROM PROCEDURE B');
+  G.Grantees.Clear;
+  G.Grantees.Add(CreateGrantee('B',TSQLViewGrantee));
+  AssertSQl(G,'REVOKE SELECT ON A FROM VIEW B');
+  G.Grantees.Clear;
+  G.Grantees.Add(CreateGrantee('B',TSQLTriggerGrantee));
+  AssertSQl(G,'REVOKE SELECT ON A FROM TRIGGER B');
+  FtoFree:=G;
+  G.Privileges.Clear;
+  Pu:=TSQLUPdatePrivilege.Create(Nil);
+  PU.Columns:=TSQLElementList.Create(True);
+  PU.Columns.Add(CreateIdentifier('C'));
+  G.Privileges.Add(PU);
+  FtoFree:=G;
+  AssertSQl(G,'REVOKE UPDATE (C) ON A FROM TRIGGER B');
+  PU.Columns.Add(CreateIdentifier('D'));
+  FtoFree:=G;
+  AssertSQl(G,'REVOKE UPDATE (C , D) ON A FROM TRIGGER B');
+  G.Privileges.Clear;
+  Pu:=TSQLReferencePrivilege.Create(Nil);
+  PU.Columns:=TSQLElementList.Create(True);
+  PU.Columns.Add(CreateIdentifier('C'));
+  G.Privileges.Add(PU);
+  FtoFree:=G;
+  AssertSQl(G,'REVOKE REFERENCES (C) ON A FROM TRIGGER B');
+  PU.Columns.Add(CreateIdentifier('D'));
+  FtoFree:=G;
+  AssertSQl(G,'REVOKE REFERENCES (C , D) ON A FROM TRIGGER B');
+end;
+
+procedure TTestGenerateSQL.TestRevokeProcedure;
+Var
+  G : TSQLProcedureRevokeStatement;
+  PG : TSQLProcedureGrantee;
+
+begin
+  G:=TSQLProcedureRevokeStatement.Create(Nil);
+  G.ProcedureName:=CreateIdentifier('A');
+  FtoFree:=G;
+  G.Grantees.add(CreateGrantee('B'));
+  FtoFree:=G;
+  AssertSQL(G,'REVOKE EXECUTE ON PROCEDURE A FROM B');
+  G.Grantees.add(CreateGrantee('C'));
+  FtoFree:=G;
+  AssertSQL(G,'REVOKE EXECUTE ON PROCEDURE A FROM B , C');
+  G.Grantees.Clear;
+  G.Grantees.Add(CreateGrantee('B',TSQLTriggerGrantee));
+  FtoFree:=G;
+  AssertSQL(G,'REVOKE EXECUTE ON PROCEDURE A FROM TRIGGER B');
+  G.Grantees.Clear;
+  G.Grantees.Add(CreateGrantee('B',TSQLProcedureGrantee));
+  FtoFree:=G;
+  AssertSQL(G,'REVOKE EXECUTE ON PROCEDURE A FROM PROCEDURE B');
+  G.Grantees.Clear;
+  G.Grantees.Add(CreateGrantee('B',TSQLViewGrantee));
+  FtoFree:=G;
+  AssertSQL(G,'REVOKE EXECUTE ON PROCEDURE A FROM VIEW B');
+  G.Grantees.Clear;
+  G.Grantees.Add(CreateGrantee('B',TSQLPublicGrantee));
+  FtoFree:=G;
+  AssertSQL(G,'REVOKE EXECUTE ON PROCEDURE A FROM PUBLIC');
+end;
+
+procedure TTestGenerateSQL.TestRevokeRole;
+Var
+  G : TSQLRoleRevokeStatement;
+
+begin
+  G:=TSQLRoleRevokeStatement.Create(Nil);
+  G.Roles.Add(CreateIdentifier('A'));
+  FtoFree:=G;
+  G.Grantees.add(CreateGrantee('B'));
+  FtoFree:=G;
+  AssertSQL(G,'REVOKE A FROM B');
+  G.Roles.Add(CreateIdentifier('C'));
+  FtoFree:=G;
+  AssertSQL(G,'REVOKE A , C FROM B');
+  G.Grantees.add(CreateGrantee('D'));
+  FtoFree:=G;
+  AssertSQL(G,'REVOKE A , C FROM B , D');
+  G.AdminOption:=True;
+  AssertSQL(G,'REVOKE A , C FROM B , D');
 end;
 
 

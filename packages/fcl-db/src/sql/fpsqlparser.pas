@@ -48,8 +48,6 @@ Type
     FPeekToken: TSQLToken;
     FPeekTokenString: String;
     Procedure CheckEOF;
-    procedure ParseGranteeList(AParent: TSQLElement; List: TSQLElementList;
-      AllowObject, AllowGroup: Boolean);
   protected
     Procedure UnexpectedToken; overload;
     Procedure UnexpectedToken(AExpected : TSQLTokens); overload;
@@ -105,10 +103,14 @@ Type
     function ParseDeclareFunctionStatement(AParent: TSQLElement): TSQLDeclareExternalFunctionStatement;
     function ParseDeclareStatement(AParent: TSQLElement): TSQLStatement;
     // GRANT parsing
-    function ParseGrantStatement(AParent: TSQLElement): TSQLGrantStatement;
+    procedure ParseGranteeList(AParent: TSQLElement; List: TSQLElementList; AllowObject, AllowGroup,AllowPublic : Boolean; IsRevoke: Boolean = False);
     function ParseGrantExecuteStatement(AParent: TSQLElement): TSQLProcedureGrantStatement;
     function ParseGrantRoleStatement(AParent: TSQLElement): TSQLRoleGrantStatement;
     function ParseGrantTableStatement(AParent: TSQLElement): TSQLTableGrantStatement;
+    // REVOKE parsing
+    function ParseRevokeExecuteStatement(AParent: TSQLElement): TSQLProcedureRevokeStatement;
+    function ParseRevokeRoleStatement(AParent: TSQLElement): TSQLRoleRevokeStatement;
+    function ParseRevokeTableStatement(AParent: TSQLElement): TSQLTableRevokeStatement;
     // SELECT parsing
     function ParseExprAggregate(AParent: TSQLElement; EO: TExpressionOptions): TSQLAggregateFunctionExpression;
     procedure ParseFromClause(AParent: TSQLSelectStatement; AList: TSQLElementList);
@@ -147,6 +149,8 @@ Type
     Function ParseCommitStatement(AParent : TSQLElement) : TSQLCommitStatement;
     Function ParseSetStatement(AParent : TSQLElement) : TSQLStatement;
     Function ParseConnectStatement(AParent : TSQLElement) : TSQLConnectStatement;
+    Function ParseGrantStatement(AParent: TSQLElement): TSQLGrantStatement;
+    Function ParseRevokeStatement(AParent: TSQLElement): TSQLGrantStatement;
     Function Parse : TSQLElement;
     Function ParseScript(AllowPartial : Boolean = False) : TSQLElementList;
     // Auxiliary stuff
@@ -3386,7 +3390,8 @@ begin
 
 end;
 
-Procedure TSQLParser.ParseGranteeList(AParent : TSQLElement; List : TSQLElementList; AllowObject,AllowGroup : Boolean);
+procedure TSQLParser.ParseGranteeList(AParent: TSQLElement;
+  List: TSQLElementList; AllowObject, AllowGroup, AllowPublic: Boolean; IsRevoke: Boolean = False);
 
 Type
   TSQLGranteeClass = Class of TSQLGrantee;
@@ -3407,10 +3412,15 @@ Var
   E : TSQLTokens;
 
 begin
-  Consume(tsqlTo);
-  E:=[tsqlIdentifier];
+  if IsRevoke then
+    Consume(tsqlFrom)
+  else
+    Consume(tsqlTo);
+  E:=[tsqlIdentifier,tsqlUser];
   If AllowObject then
-    E:=E+[tsqlProcedure,tsqlView,tsqlTrigger,tsqlPublic];
+    E:=E+[tsqlProcedure,tsqlView,tsqlTrigger,tsqlPublic]
+  else If AllowPublic then
+    E:=E+[tsqlPublic];
   If AllowGroup then
     E:=E+[tsqlGROUP];
   Expect(E);
@@ -3429,9 +3439,9 @@ begin
         end;
       TsqlPublic :
         begin
-        If Not AllowGroup then
+        If Not (AllowPublic or AllowObject)  then
           UnexpectedToken;
-        CreateGrantee(true,TSQLPublicGrantee);
+        CreateGrantee(False,TSQLPublicGrantee);
         end;
       TsqlTrigger:
         begin
@@ -3493,6 +3503,7 @@ begin
             GetNextToken;
             If (CurrentToken=tsqlBraceOpen) then
               begin
+              GetNextToken;
               C.Columns:=TSQLElementList.Create(True);
               ParseIdentifierList(C,C.Columns);
               end;
@@ -3508,7 +3519,7 @@ begin
     Expect(tsqlidentifier);
     Result.TableName:=CreateIdentifier(Result,CurrentTokenString);
     GetNextToken;
-    ParseGranteeList(Result,Result.Grantees,True,True);
+    ParseGranteeList(Result,Result.Grantees,True,True,True);
     If (CurrentToken=tsqlWith) then
       begin
       Consume(tsqlWith);
@@ -3516,6 +3527,121 @@ begin
       Consume(tsqlOption);
       Result.GrantOption:=True;
       end;
+  except
+    FreeAndNil(Result);
+    Raise;
+  end;
+end;
+
+function TSQLParser.ParseRevokeExecuteStatement(AParent: TSQLElement
+  ): TSQLProcedureRevokeStatement;
+BEGIN
+  // On entry, we're on the EXECUTE token
+  Consume(tsqlExecute);
+  Consume(tsqlOn);
+  Consume(tsqlProcedure);
+  Expect(tsqlIdentifier);
+  Result:=TSQLProcedureRevokeStatement(CreateElement(TSQLProcedureRevokeStatement,AParent));
+  try
+    Result.ProcedureName:=CreateIdentifier(Result,CurrentTokenString);
+    GetNextToken;
+    ParseGranteeList(Result,Result.Grantees,True,False,True,True);
+    If (CurrentToken=tsqlWith) then
+      begin
+      Consume(tsqlWith);
+      Consume(tsqlGrant);
+      Consume(tsqlOption);
+      Result.GrantOption:=True;
+      end;
+  except
+    FreeAndNil(Result);
+    Raise;
+  end;
+end;
+
+function TSQLParser.ParseRevokeRoleStatement(AParent: TSQLElement
+  ): TSQLRoleRevokeStatement;
+begin
+  Result:=Nil;
+  // On entry, we're on the identifier token
+  expect(tsqlIdentifier);
+  Result:=TSQLRoleRevokeStatement(CreateElement(TSQLRoleRevokeStatement,AParent));
+  try
+    Repeat
+      if CurrentToken=tsqlComma then
+        GetNextToken;
+      expect(tsqlIdentifier);
+      Result.Roles.Add(CreateIDentifier(Aparent,CurrentTokenString));
+    Until (GetNextToken<>tsqlComma);
+    Expect(tsqlFrom);
+    ParseGranteeList(Result,Result.Grantees,False,False,True,True);
+  except
+    FreeAndNil(Result);
+    Raise;
+  end;
+end;
+
+function TSQLParser.ParseRevokeTableStatement(AParent: TSQLElement
+  ): TSQLTableRevokeStatement;
+Var
+  C : TSQLColumnPrivilege;
+  P : TSQLPrivilege;
+
+begin
+  Result:=TSQLTableRevokeStatement(CreateElement(TSQLTableRevokeStatement,APArent));
+  try
+    // On entry, we're on the first GRANT,ALL/SELECT/UPDATE/INSERT/DELETE/REFERENCE etc. token.
+    If (CurrentToken=tsqlGrant) then
+      begin
+      Consume(tsqlGrant);
+      Consume(tsqlOption);
+      Consume(tsqlFor);
+      Result.GrantOption:=True;
+      end;
+    if CurrentToken=tsqlAll then
+      begin
+      Result.Privileges.Add(CreateElement(TSQLAllPrivilege,Result));
+      If GetNextToken=tsqlPrivileges then
+        GetNextToken;
+      end
+    else
+      Repeat
+        P:=Nil;
+        C:=Nil;
+        if CurrentToken=tsqlComma then
+          GetNextToken;
+        Case CurrentToken of
+          tsqlSelect : P:=TSQLSelectPrivilege(CreateElement(TSQLSelectPrivilege,Result));
+          tsqlInsert : P:=TSQLInsertPrivilege(CreateElement(TSQLInsertPrivilege,Result));
+          tsqlDelete : P:=TSQLDeletePrivilege(CreateElement(TSQLDeletePrivilege,Result));
+          tsqlUpdate,
+          tsqlReferences :
+            begin
+            if CurrentToken=tsqlUpdate then
+              C:=TSQLUpdatePrivilege(CreateElement(TSQLUpdatePrivilege,AParent))
+            else
+              C:=TSQLReferencePrivilege(CreateElement(TSQLReferencePrivilege,AParent));
+            P:=C;
+            GetNextToken;
+            If (CurrentToken=tsqlBraceOpen) then
+              begin
+              GetNextToken;
+              C.Columns:=TSQLElementList.Create(True);
+              ParseIdentifierList(C,C.Columns);
+              end;
+            end;
+        else
+          UnexpectedToken([tsqlselect,tsqlInsert,tsqlDelete,tsqlUpdate,tsqlReferences]);
+        end;
+        Result.Privileges.Add(P);
+        If C=Nil then
+          GetNextToken;
+      Until (CurrentToken<>tsqlComma);
+    Consume(tsqlOn);
+    Expect(tsqlidentifier);
+    Result.TableName:=CreateIdentifier(Result,CurrentTokenString);
+    GetNextToken;
+    ParseGranteeList(Result,Result.Grantees,True,True,True,True);
   except
     FreeAndNil(Result);
     Raise;
@@ -3534,7 +3660,7 @@ begin
   try
     Result.ProcedureName:=CreateIdentifier(Result,CurrentTokenString);
     GetNextToken;
-    ParseGranteeList(Result,Result.Grantees,True,False);
+    ParseGranteeList(Result,Result.Grantees,True,False,True);
     If (CurrentToken=tsqlWith) then
       begin
       Consume(tsqlWith);
@@ -3562,8 +3688,8 @@ begin
       expect(tsqlIdentifier);
       Result.Roles.Add(CreateIDentifier(Aparent,CurrentTokenString));
     Until (GetNextToken<>tsqlComma);
-    Consume(tsqlTo);
-    ParseGranteeList(Result,Result.Grantees,False,False);
+    Expect(tsqlTo);
+    ParseGranteeList(Result,Result.Grantees,False,False,True);
     If (CurrentToken=tsqlWith) then
       begin
       Consume(tsqlWith);
@@ -3586,6 +3712,7 @@ begin
     Consume(tsqlGrant);
     Case CurrentToken of
       tsqlExecute: Result:=ParseGrantExecutestatement(AParent);
+      tsqlAll,
       tsqlUpdate,
       tsqlReferences,
       tsqlInsert,
@@ -3593,7 +3720,34 @@ begin
       tsqlSelect : Result:=ParseGrantTablestatement(AParent);
       tsqlIdentifier : Result:=ParseGrantRolestatement(AParent);
     else
-      UnExpectedToken([tsqlIdentifier, tsqlExecute,
+      UnExpectedToken([tsqlIdentifier, tsqlExecute, tsqlall,
+                       tsqlUpdate, tsqldelete, tsqlReferences, tsqlInsert, tsqlSelect]);
+    end;
+  except
+    FreeAndNil(Result);
+    Raise;
+  end;
+end;
+
+function TSQLParser.ParseRevokeStatement(AParent: TSQLElement
+  ): TSQLGrantStatement;
+begin
+  // On entry, we're on the GRANT token
+  Result:=Nil;
+  try
+    Consume(tsqlRevoke);
+    Case CurrentToken of
+      tsqlExecute: Result:=ParseRevokeExecutestatement(AParent);
+      tsqlGrant,
+      tsqlAll,
+      tsqlUpdate,
+      tsqlReferences,
+      tsqlInsert,
+      tsqldelete,
+      tsqlSelect : Result:=ParseRevokeTablestatement(AParent);
+      tsqlIdentifier : Result:=ParseRevokeRolestatement(AParent);
+    else
+      UnExpectedToken([tsqlIdentifier, tsqlExecute,tsqlgrant,tsqlall,
                        tsqlUpdate, tsqldelete, tsqlReferences, tsqlInsert, tsqlSelect]);
     end;
   except
@@ -3620,6 +3774,7 @@ begin
     tsqlConnect : Result:=ParseConnectStatement(Nil);
     tsqlDeclare : Result:=ParseDeclareStatement(Nil);
     tsqlGrant : Result:=ParseGrantStatement(Nil);
+    tsqlRevoke : Result:=ParseRevokeStatement(Nil);
   else
     UnexpectedToken;
   end;

@@ -1723,12 +1723,12 @@ Type
   private
     FGrantees: TSQLElementList;
   Public
-    Function GranteesAsSQL(Options : TSQLFormatOptions; AIndent : Integer) : TSQLStringType;
+    Function GranteesAsSQL(Options : TSQLFormatOptions; AIndent : Integer; IsRevoke : Boolean = False) : TSQLStringType;
     Constructor Create(AParent : TSQLElement); override;
     Destructor Destroy; override;
     Property Grantees : TSQLElementList Read FGrantees;
   end;
-
+  TSQLRevokeStatement = TSQLGrantStatement;
   { TSQLTableGrantStatement }
 
   TSQLTableGrantStatement = Class(TSQLGrantStatement)
@@ -1745,6 +1745,11 @@ Type
     Property GrantOption : Boolean Read FGrantOption Write FGrantOption;
   end;
 
+  { TSQLTableRevokeStatement }
+
+  TSQLTableRevokeStatement = Class(TSQLTableGrantStatement)
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
+  end;
   { TSQLProcedureGrantStatement }
 
   TSQLProcedureGrantStatement = Class(TSQLGrantStatement)
@@ -1753,8 +1758,15 @@ Type
     FProcedureName: TSQLIdentifierName;
   Public
     Destructor Destroy; override;
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
     Property ProcedureName : TSQLIdentifierName Read FProcedureName Write FProcedureName;
     Property GrantOption : Boolean Read FGrantOption Write FGrantOption;
+  end;
+
+  { TSQLProcedureRevokeStatement }
+
+  TSQLProcedureRevokeStatement = Class(TSQLProcedureGrantStatement)
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
   end;
 
   { TSQLRoleGrantStatement }
@@ -1766,8 +1778,15 @@ Type
   Public
     Constructor Create(AParent : TSQLElement); override;
     Destructor Destroy; override;
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
     Property Roles : TSQLElementList Read FRoles;
     Property AdminOption : Boolean Read FAdminOption Write FAdminOption;
+  end;
+
+  { TSQLRoleRevokeStatement }
+
+  TSQLRoleRevokeStatement = Class(TSQLRoleGrantStatement)
+    Function GetAsSQL(Options : TSQLFormatOptions; AIndent : Integer = 0): TSQLStringType; override;
   end;
 
 Const
@@ -4510,7 +4529,7 @@ end;
 
 { TSQLGrantStatement }
 
-function TSQLGrantStatement.GranteesAsSQL(Options: TSQLFormatOptions; AIndent : Integer): TSQLStringType;
+function TSQLGrantStatement.GranteesAsSQL(Options: TSQLFormatOptions; AIndent : Integer; IsRevoke : Boolean = False): TSQLStringType;
 
 Var
   Sep : TSQLStringType;
@@ -4524,7 +4543,10 @@ begin
       Result:=Result+Sep;
     Result:=Result+Grantees[i].GetAsSQl(Options,AIndent);
     end;
-  Result:=SQLKeyWord(' TO ',Options)+Result;
+  If IsRevoke then
+    Result:=SQLKeyWord(' FROM ',Options)+Result
+  else
+    Result:=SQLKeyWord(' TO ',Options)+Result;
 end;
 
 constructor TSQLGrantStatement.Create(AParent: TSQLElement);
@@ -4585,6 +4607,15 @@ begin
   inherited Destroy;
 end;
 
+function TSQLProcedureGrantStatement.GetAsSQL(Options: TSQLFormatOptions;
+  AIndent: Integer): TSQLStringType;
+begin
+  Result:=SQLKeyWord('GRANT EXECUTE ON PROCEDURE ',OPtions);
+  If Assigned(FProcedureName) then
+    Result:=Result+FProcedureName.GetAsSQl(Options,AIndent);
+  Result:=Result+GranteesAsSQL(Options,AIndent);
+end;
+
 { TSQLRoleGrantStatement }
 
 constructor TSQLRoleGrantStatement.Create(AParent: TSQLElement);
@@ -4597,6 +4628,26 @@ destructor TSQLRoleGrantStatement.Destroy;
 begin
   FreeAndNil(FRoles);
   inherited Destroy;
+end;
+
+function TSQLRoleGrantStatement.GetAsSQL(Options: TSQLFormatOptions;
+  AIndent: Integer): TSQLStringType;
+
+Var
+  Sep : TSQLStringType;
+  I : Integer;
+begin
+   Sep:=SQLListSeparator(Options);
+   For I:=0 to Roles.Count-1 do
+      begin
+      If (Result<>'') then
+        Result:=Result+Sep;
+      Result:=Result+Roles[i].GetAsSQl(Options,AIndent);
+      end;
+  Result:=SQLKeyWord('GRANT ',Options)+Result;
+  Result:=Result+GranteesAsSQL(Options,AIndent);
+  If AdminOption then
+    Result:=Result+SQLKeyWord(' WITH ADMIN OPTION',OPtions);
 end;
 
 { TSQLInsertPrivilege }
@@ -4691,6 +4742,64 @@ function TSQLPublicGrantee.GetAsSQL(Options: TSQLFormatOptions; AIndent: Integer
   ): TSQLStringType;
 begin
   Result:=SQLKeyWord('PUBLIC',Options);
+end;
+
+{ TSQLTableRevokeStatement }
+
+function TSQLTableRevokeStatement.GetAsSQL(Options: TSQLFormatOptions;
+  AIndent: Integer): TSQLStringType;
+
+Var
+  S,Sep : TSQLStringType;
+  I : Integer;
+
+begin
+  Sep:=SQLListSeparator(Options);
+  S:='';
+  For I:=0 to Privileges.Count-1 do
+    begin
+    If (S<>'') then
+      S:=S+Sep;
+    S:=S+Privileges[i].GetAsSQL(Options,AIndent);
+    end;
+  Result:=SQLKeyWord('REVOKE ',Options);
+  If GrantOption then
+    Result:=Result+SQLKeyWord('GRANT OPTION FOR ',Options);
+  Result:=Result+S+SQLKeyWord(' ON ',Options);
+  If Assigned(FTableName) then
+    Result:=Result+FTableName.GetAsSQl(Options,AIndent);
+  Result:=Result+Self.GranteesAsSQL(Options,AIndent,True);
+end;
+
+{ TSQLProcedureRevokeStatement }
+
+function TSQLProcedureRevokeStatement.GetAsSQL(Options: TSQLFormatOptions;
+  AIndent: Integer): TSQLStringType;
+begin
+  Result:=SQLKeyWord('REVOKE EXECUTE ON PROCEDURE ',OPtions);
+  If Assigned(FProcedureName) then
+    Result:=Result+FProcedureName.GetAsSQl(Options,AIndent);
+  Result:=Result+GranteesAsSQL(Options,AIndent,True);
+end;
+
+{ TSQLRoleRevokeStatement }
+
+function TSQLRoleRevokeStatement.GetAsSQL(Options: TSQLFormatOptions;
+  AIndent: Integer): TSQLStringType;
+
+Var
+  Sep : TSQLStringType;
+  I : Integer;
+begin
+  Sep:=SQLListSeparator(Options);
+  For I:=0 to Roles.Count-1 do
+    begin
+    If (Result<>'') then
+      Result:=Result+Sep;
+    Result:=Result+Roles[i].GetAsSQl(Options,AIndent);
+    end;
+  Result:=SQLKeyWord('REVOKE ',Options)+Result;
+  Result:=Result+GranteesAsSQL(Options,AIndent,True);
 end;
 
 end.
