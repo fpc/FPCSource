@@ -1162,6 +1162,32 @@ Var
   Negative, TooSmall, TooLarge: Boolean;
   DS: Char;
 
+  function RemoveLeadingNegativeSign(var AValue: String): Boolean;
+  // removes negative sign in case when result is zero eg. -0.00
+  var
+    i: PtrInt;
+    S: String;
+    TS: Char;
+    B: Boolean;
+    StartPos: PtrInt;
+  begin
+    Result := False;
+    if Format = ffCurrency then
+      StartPos := 1
+    else
+      StartPos := 2;
+    TS := FormatSettings.ThousandSeparator;
+    S := '';
+    for i := StartPos to length(AValue) do
+    begin
+      Result := (AValue[i] in ['0', DS, 'E', '+', TS]);
+      if not Result then
+        break;
+    end;
+    if (Result) and (Format <> ffCurrency) then
+      Delete(AValue, 1, 1);
+  end;
+
 Begin
   DS:=FormatSettings.DecimalSeparator;
   Case format Of
@@ -1388,6 +1414,9 @@ Begin
           Dec(P, 3);
         End;
 
+        if (length(Result) > 1) and Negative then
+          Negative := not RemoveLeadingNegativeSign(Result);
+
         If Not Negative Then
         Begin
           Case FormatSettings.CurrencyFormat Of
@@ -1415,6 +1444,8 @@ Begin
         End;
       End;
   End;
+  if not (format in [ffCurrency]) and (length(Result) > 1) and (Result[1] = '-') then
+    RemoveLeadingNegativeSign(Result);
 End;
 
 
