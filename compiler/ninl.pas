@@ -2316,7 +2316,18 @@ implementation
                                    convert this to a regular add, and for proper
                                    checking we need the original type }
                                  if ([cs_check_range,cs_check_overflow]*current_settings.localswitches=[]) then
-                                   if is_integer(tcallparanode(left).left.resultdef) then
+                                   if (tcallparanode(left).left.resultdef.typ=pointerdef) then
+                                     begin
+                                       { don't convert values added to pointers into the pointer types themselves,
+                                         because that will turn signed values into unsigned ones, which then
+                                         goes wrong when they have to be multiplied with the size of the elements
+                                         to which the pointer points in ncginl (mantis #17342) }
+                                       if is_signed(tcallparanode(tcallparanode(left).right).left.resultdef) then
+                                         inserttypeconv(tcallparanode(tcallparanode(left).right).left,ptrsinttype)
+                                       else
+                                         inserttypeconv(tcallparanode(tcallparanode(left).right).left,ptruinttype)
+                                     end
+                                   else if is_integer(tcallparanode(left).left.resultdef) then
                                      inserttypeconv(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef)
                                    else
                                      inserttypeconv_internal(tcallparanode(tcallparanode(left).right).left,tcallparanode(left).left.resultdef);
