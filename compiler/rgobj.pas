@@ -105,7 +105,11 @@ unit rgobj;
       Preginfo=^TReginfo;
 
       tspillreginfo = record
-        spillreg : tregister;
+        { a single register may appear more than once in an instruction,
+          but with different subregister types -> store all subregister types
+          that occur, so we can add the necessary constraints for the inline
+          register that will have to replace it }
+        spillregconstraints : set of TSubRegister;
         orgreg : tsuperregister;
         tempreg : tregister;
         regread,regwritten, mustbespilled: boolean;
@@ -164,7 +168,7 @@ unit rgobj;
         procedure add_cpu_interferences(p : tai);virtual;
         procedure add_constraints(reg:Tregister);virtual;
         function  get_alias(n:Tsuperregister):Tsuperregister;
-        function  getregisterinline(list:TAsmList;subreg:Tsubregister):Tregister;
+        function  getregisterinline(list:TAsmList;const subregconstraints:Tsubregisterset):Tregister;
         procedure ungetregisterinline(list:TAsmList;r:Tregister);
         function  get_spill_subreg(r : tregister) : tsubregister;virtual;
         function  do_spill_replace(list:TAsmList;instr:taicpu;orgreg:tsuperregister;const spilltemp:treference):boolean;virtual;
@@ -1451,15 +1455,24 @@ unit rgobj;
     end;
 
 
-    function trgobj.getregisterinline(list:TAsmList;subreg:Tsubregister):Tregister;
+    function trgobj.getregisterinline(list:TAsmList;const subregconstraints:Tsubregisterset):Tregister;
       var
         p : Tsuperregister;
+        subreg: tsubregister;
       begin
+        for subreg:=high(tsubregister) downto low(tsubregister) do
+          if subreg in subregconstraints then
+            break;
         p:=getnewreg(subreg);
         live_registers.add(p);
         result:=newreg(regtype,p,subreg);
         add_edges_used(p);
         add_constraints(result);
+        { also add constraints for other sizes used for this register }
+        if subreg<>low(tsubregister) then
+          for subreg:=pred(subreg) downto low(tsubregister) do
+            if subreg in subregconstraints then
+              add_constraints(newreg(regtype,getsupreg(result),subreg));
       end;
 
 
@@ -1872,7 +1885,7 @@ unit rgobj;
           if tmpindex > high(regs) then
             internalerror(2003120301);
           regs[tmpindex].orgreg := supreg;
-          regs[tmpindex].spillreg:=reg;
+          include(regs[tmpindex].spillregconstraints,get_spill_subreg(reg));
           if supregset_in(r,supreg) then
             begin
               { add/update info on this register }
@@ -1909,6 +1922,7 @@ unit rgobj;
                 break;
               end;
         end;
+
 
       var
         loadpos,
@@ -2036,7 +2050,7 @@ unit rgobj;
             begin
               if mustbespilled and regread then
                 begin
-                  tempreg:=getregisterinline(list,get_spill_subreg(regs[counter].spillreg));
+                  tempreg:=getregisterinline(list,regs[counter].spillregconstraints);
                   do_spill_read(list,tai(loadpos.previous),spilltemplist[orgreg],tempreg);
                 end;
             end;
@@ -2063,7 +2077,7 @@ unit rgobj;
                 begin
                   { When the register is also loaded there is already a register assigned }
                   if (not regread) then
-                    tempreg:=getregisterinline(list,get_spill_subreg(regs[counter].spillreg));
+                    tempreg:=getregisterinline(list,regs[counter].spillregconstraints);
                   { The original instruction will be the next that uses this register, this
                     also needs to be done for read-write registers }
                   add_reg_instruction(instr,tempreg,1);
