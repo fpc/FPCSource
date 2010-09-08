@@ -12,6 +12,8 @@
 
 **********************************************************************}
 
+{$ASMMODE GAS}
+
 {$ifdef FPC_HAS_TYPE_EXTENDED}
 {$define FPC_MATH_HAS_ARCTAN2}
 function arctan2(y,x : float) : float;assembler;
