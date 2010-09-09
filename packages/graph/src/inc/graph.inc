@@ -1861,7 +1861,8 @@ end;
      CurrentTextInfo.horiz:=LeftText;
      CurrentTextInfo.vert:=TopText;
 
-     XAspect:=10000; YAspect:=10000;
+     {fix by nickysn: TP7 doesn't reset aspect ratio in GraphDefaults }
+     {XAspect:=10000; YAspect:=10000;}
    end;
 
 
