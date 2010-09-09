@@ -168,6 +168,7 @@ interface
         R_SUBMMD,  { = 10; double scalar in multi media register }
         R_SUBMMWHOLE  { = 11; complete MM register, size depends on CPU }
       );
+      TSubRegisterSet = set of TSubRegister;
 
       TSuperRegister = type word;
 

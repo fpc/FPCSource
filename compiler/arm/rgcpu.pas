@@ -92,7 +92,7 @@ unit rgcpu;
 
             { load consts entry }
             if getregtype(tempreg)=R_INTREGISTER then
-              hreg:=getregisterinline(helplist,R_SUBWHOLE)
+              hreg:=getregisterinline(helplist,[R_SUBWHOLE])
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
 
@@ -138,7 +138,7 @@ unit rgcpu;
 
             { load consts entry }
             if getregtype(tempreg)=R_INTREGISTER then
-              hreg:=getregisterinline(helplist,R_SUBWHOLE)
+              hreg:=getregisterinline(helplist,[R_SUBWHOLE])
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
             tmpref.symbol:=l;
@@ -224,7 +224,7 @@ unit rgcpu;
 
             { load consts entry }
             if getregtype(tempreg)=R_INTREGISTER then
-              hreg:=getregisterinline(helplist,R_SUBWHOLE)
+              hreg:=getregisterinline(helplist,[R_SUBWHOLE])
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
 
@@ -270,7 +270,7 @@ unit rgcpu;
 
             { load consts entry }
             if getregtype(tempreg)=R_INTREGISTER then
-              hreg:=getregisterinline(helplist,R_SUBWHOLE)
+              hreg:=getregisterinline(helplist,[R_SUBWHOLE])
             else
               hreg:=cg.getintregister(helplist,OS_ADDR);
             tmpref.symbol:=l;

@@ -70,7 +70,7 @@ unit rgcpu;
 
             if getregtype(tempreg)=R_INTREGISTER then
               begin
-                hreg:=getregisterinline(helplist,R_SUBWHOLE);
+                hreg:=getregisterinline(helplist,[R_SUBWHOLE]);
                 {Done by add_cpu_interferences now.
                 add_edge(getsupreg(hreg),RS_R0);}
               end
@@ -121,7 +121,7 @@ unit rgcpu;
 
             if getregtype(tempreg)=R_INTREGISTER then
               begin
-                hreg:=getregisterinline(helplist,R_SUBWHOLE);
+                hreg:=getregisterinline(helplist,[R_SUBWHOLE]);
                 {Done by add_cpu_interferences now.
                 add_edge(getsupreg(hreg),RS_R0);}
               end
