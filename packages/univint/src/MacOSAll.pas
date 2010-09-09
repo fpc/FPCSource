@@ -478,6 +478,8 @@ interface
 {$i CFNumberFormatter.pas}
 {unit CFString}
 {$i CFString.pas}
+{unit CFStringTokenizer}
+{$i CFStringTokenizer.pas}
 {unit CFTimeZone}
 {$i CFTimeZone.pas}
 {unit CFUUID}

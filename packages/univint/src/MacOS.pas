@@ -107,6 +107,7 @@ uses
   CFStream,
   CFString,
   CFStringEncodingExt,
+  CFStringTokenizer,
   CFTimeZone,
   CFTree,
   CFURL,

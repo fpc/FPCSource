@@ -27,7 +27,8 @@ implicitunits=  ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs AEDa
   CFNetServices CFNetworkErrorss CFNotificationCenter CFNumber \
   CFNumberFormatter CFPlugIn CFPlugInCOM CFPreferences CFPropertyList \
   CFProxySupport CFRunLoop CFSet CFSocket CFSocketStream CFStream CFString \
-  CFStringEncodingExt CFTimeZone CFTree CFURL CFURLAccess CFUUID \
+  CFStringEncodingExt CFStringTokenizer CFTimeZone CFTree CFURL CFURLAccess \
+  CFUUID \
   CFUserNotification CFXMLNode CFXMLParser CGAffineTransforms CGBase \
   CGBitmapContext CGColor CGColorSpace CGContext CGDataConsumer \
   CGDataProvider CGDirectDisplay CGDirectPalette CGDisplayConfiguration \

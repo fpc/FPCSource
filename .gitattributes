@@ -5426,6 +5426,7 @@ packages/univint/src/CFSocketStream.pas svneol=native#text/plain
 packages/univint/src/CFStream.pas svneol=native#text/plain
 packages/univint/src/CFString.pas svneol=native#text/plain
 packages/univint/src/CFStringEncodingExt.pas svneol=native#text/plain
+packages/univint/src/CFStringTokenizer.pas svneol=native#text/plain
 packages/univint/src/CFTimeZone.pas svneol=native#text/plain
 packages/univint/src/CFTree.pas svneol=native#text/plain
 packages/univint/src/CFURL.pas svneol=native#text/plain
