@@ -858,7 +858,7 @@ implementation
             else
               begin
                 // search for operator first
-                pd:=search_enumerator_operator(expr.resultdef);
+                pd:=search_enumerator_operator(expr.resultdef, hloopvar.resultdef);
                 // if there is no operator then search for class/object enumerator method
                 if (pd=nil) and (expr.resultdef.typ=objectdef) then
                   pd:=tobjectdef(expr.resultdef).search_enumerator_get;

@@ -211,7 +211,7 @@ interface
     function  search_named_unit_globaltype(const unitname, typename: TIDString; throwerror: boolean): ttypesym;
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
-    function  search_enumerator_operator(type_def:Tdef):Tprocdef;
+    function  search_enumerator_operator(from_def,to_def:Tdef):Tprocdef;
     function  search_class_helper(pd : tobjectdef;const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
     function  search_objc_method(const s : string; out srsym: tsym; out srsymtable: tsymtable):boolean;
     {Looks for macro s (must be given in upper case) in the macrosymbolstack, }
@@ -2181,7 +2181,7 @@ implementation
       end;
 
 
-    function search_enumerator_operator(type_def:Tdef): Tprocdef;
+    function search_enumerator_operator(from_def,to_def:Tdef): Tprocdef;
       var
         sym : Tprocsym;
         hashedid : THashedIDString;
@@ -2204,7 +2204,7 @@ implementation
                   internalerror(200910241);
                 { if the source type is an alias then this is only the second choice,
                   if you mess with this code, check tw4093 }
-                currpd:=sym.find_procdef_enumerator_operator(type_def,curreq);
+                currpd:=sym.find_procdef_enumerator_operator(from_def,to_def,curreq);
                 if curreq>besteq then
                   begin
                     besteq:=curreq;

@@ -105,7 +105,7 @@ interface
           function find_procdef_byoptions(ops:tprocoptions): Tprocdef;
           function find_procdef_byprocvardef(d:Tprocvardef):Tprocdef;
           function find_procdef_assignment_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
-          function find_procdef_enumerator_operator(typedef:tdef;var besteq:tequaltype):Tprocdef;
+          function find_procdef_enumerator_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
           property ProcdefList:TFPObjectList read FProcdefList;
        end;
 
@@ -729,8 +729,7 @@ implementation
         eq      : tequaltype;
       begin
         { This function will return the pprocdef of pprocsym that
-          is the best match for procvardef. When there are multiple
-          matches it returns nil.}
+          is the best match for fromdef and todef. }
         result:=nil;
         bestpd:=nil;
         besteq:=te_incompatible;
@@ -792,19 +791,19 @@ implementation
         result:=bestpd;
       end;
 
-      function Tprocsym.find_procdef_enumerator_operator(typedef:tdef;var besteq:tequaltype):Tprocdef;
+      function Tprocsym.find_procdef_enumerator_operator(fromdef,todef:tdef;var besteq:tequaltype):Tprocdef;
       var
         paraidx, realparamcount,
         i, j : longint;
         bestpd,
         hpd,
         pd : tprocdef;
+        current : tpropertysym;
         convtyp : tconverttype;
         eq      : tequaltype;
       begin
         { This function will return the pprocdef of pprocsym that
-          is the best match for procvardef. When there are multiple
-          matches it returns nil.}
+          is the best match for fromdef and todef. }
         result:=nil;
         bestpd:=nil;
         besteq:=te_incompatible;
@@ -813,41 +812,59 @@ implementation
             pd:=tprocdef(ProcdefList[i]);
             if (pd.owner.symtabletype=staticsymtable) and not pd.owner.iscurrentunit then
               continue;
-            paraidx:=0;
-            { ignore vs_hidden parameters }
-            while (paraidx<pd.paras.count) and
-                  assigned(pd.paras[paraidx]) and
-                  (vo_is_hidden_para in tparavarsym(pd.paras[paraidx]).varoptions) do
-              inc(paraidx);
-            realparamcount:=0;
-            for j := 0 to pd.paras.Count-1 do
-              if assigned(pd.paras[j]) and not (vo_is_hidden_para in tparavarsym(pd.paras[j]).varoptions) then
-                inc(realparamcount);
-            if (paraidx<pd.paras.count) and
-               assigned(pd.paras[paraidx]) and
-               (realparamcount = 1) and
-               is_class_or_interface_or_object(pd.returndef)  then
+            if not is_class_or_interface_or_object(pd.returndef) then
+              continue;
+            current := tpropertysym(tobjectdef(pd.returndef).search_enumerator_current);
+            if (current = nil) then
+              continue;
+            // compare current result def with the todef
+            if (equal_defs(todef, current.propdef) or
+                { shortstrings of different lengths are ok as result }
+                (is_shortstring(todef) and is_shortstring(current.propdef))) and
+               { the result type must be always really equal and not an alias,
+                 if you mess with this code, check tw4093 }
+               ((todef=current.propdef) or
+                (
+                  not(df_unique in todef.defoptions) and
+                  not(df_unique in current.propdef.defoptions)
+                )
+               ) then
               begin
-                eq:=compare_defs_ext(typedef,tparavarsym(pd.paras[paraidx]).vardef,nothingn,convtyp,hpd,[]);
-
-                { alias? if yes, only l1 choice,
-                  if you mess with this code, check tw4093 }
-                if (eq=te_exact) and
-                   (typedef<>tparavarsym(pd.paras[paraidx]).vardef) and
-                   ((df_unique in typedef.defoptions) or
-                   (df_unique in tparavarsym(pd.paras[paraidx]).vardef.defoptions)) then
-                  eq:=te_convert_l1;
-
-                if eq=te_exact then
+                paraidx:=0;
+                { ignore vs_hidden parameters }
+                while (paraidx<pd.paras.count) and
+                      assigned(pd.paras[paraidx]) and
+                      (vo_is_hidden_para in tparavarsym(pd.paras[paraidx]).varoptions) do
+                  inc(paraidx);
+                realparamcount:=0;
+                for j := 0 to pd.paras.Count-1 do
+                  if assigned(pd.paras[j]) and not (vo_is_hidden_para in tparavarsym(pd.paras[j]).varoptions) then
+                    inc(realparamcount);
+                if (paraidx<pd.paras.count) and
+                   assigned(pd.paras[paraidx]) and
+                   (realparamcount = 1) then
                   begin
-                    besteq:=eq;
-                    result:=pd;
-                    exit;
-                  end;
-                if eq>besteq then
-                  begin
-                    bestpd:=pd;
-                    besteq:=eq;
+                    eq:=compare_defs_ext(fromdef,tparavarsym(pd.paras[paraidx]).vardef,nothingn,convtyp,hpd,[]);
+
+                    { alias? if yes, only l1 choice,
+                      if you mess with this code, check tw4093 }
+                    if (eq=te_exact) and
+                       (fromdef<>tparavarsym(pd.paras[paraidx]).vardef) and
+                       ((df_unique in fromdef.defoptions) or
+                       (df_unique in tparavarsym(pd.paras[paraidx]).vardef.defoptions)) then
+                      eq:=te_convert_l1;
+
+                    if eq=te_exact then
+                      begin
+                        besteq:=eq;
+                        result:=pd;
+                        exit;
+                      end;
+                    if eq>besteq then
+                      begin
+                        bestpd:=pd;
+                        besteq:=eq;
+                      end;
                   end;
               end;
           end;
