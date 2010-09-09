@@ -1356,7 +1356,7 @@ end;
 {     OldWriteMode := CurrentWriteMode;
      if (LineInfo.Thickness = NormWidth) then
        CurrentWriteMode := NormalPut;}
-     InternalEllipse(X,Y,Radius,Radius,StAngle,Endangle,{$ifdef fpc}@{$endif}DummyPatternLine);
+     InternalEllipse(X,Y,Radius,(longint(Radius)*XAspect) div YAspect,StAngle,Endangle,{$ifdef fpc}@{$endif}DummyPatternLine);
 {     CurrentWriteMode := OldWriteMode;}
    end;
 
@@ -1944,7 +1944,7 @@ end;
 
   procedure PieSlice(X,Y,stangle,endAngle:smallint;Radius: Word);
   begin
-    Sector(x,y,stangle,endangle,radius,radius);
+    Sector(x,y,stangle,endangle,radius,(longint(Radius)*XAspect) div YAspect);
   end;
 
 {$i fills.inc}
