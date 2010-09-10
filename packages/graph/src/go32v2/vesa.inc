@@ -1550,32 +1550,24 @@ end;
      dummy : byte;
      Color : word;
   begin
-    case CurrentWriteMode of
-      XORPut:
-        begin
-      { getpixel wants local/relative coordinates }
-          Color := GetPixVESA16(x-StartXViewPort,y-StartYViewPort);
-          Color := CurrentColor Xor Color;
-        end;
-      OrPut:
-        begin
-      { getpixel wants local/relative coordinates }
-          Color := GetPixVESA16(x-StartXViewPort,y-StartYViewPort);
-          Color := CurrentColor Or Color;
-        end;
-      AndPut:
-        begin
-      { getpixel wants local/relative coordinates }
-          Color := GetPixVESA16(x-StartXViewPort,y-StartYViewPort);
-          Color := CurrentColor And Color;
-        end;
-      NotPut:
-        begin
-          Color := Not Color;
-        end
-      else
-        Color := CurrentColor;
-    end;
+     If CurrentWriteMode <> NotPut Then
+       Color := CurrentColor
+     else Color := not CurrentColor;
+
+     case CurrentWriteMode of
+        XORPut:
+          PortW[$3ce]:=((3 shl 3) shl 8) or 3;
+        ANDPut:
+          PortW[$3ce]:=((1 shl 3) shl 8) or 3;
+        ORPut:
+          PortW[$3ce]:=((2 shl 3) shl 8) or 3;
+        {not needed, this is the default state (e.g. PutPixel16 requires it)}
+        {NormalPut, NotPut:
+          PortW[$3ce]:=$0003
+        else
+          PortW[$3ce]:=$0003}
+     end;
+
      Y := Y + YOffset;
      offs := longint(y) * BytesPerLine + (x div 8);
      SetReadBank(smallint(offs shr 16));
@@ -1590,6 +1582,10 @@ end;
      Mem[WinWriteSeg: word(offs)] := dummy;  { Write the data into video memory }
      PortW[$3ce] := $ff08;         { Enable all bit planes.           }
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
+     if (CurrentWriteMode = XORPut) or
+        (CurrentWriteMode = ANDPut) or
+        (CurrentWriteMode = ORPut) then
+       PortW[$3ce] := $0003;
   end;
 
 

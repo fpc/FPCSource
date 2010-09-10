@@ -1944,31 +1944,22 @@ End;
   dummy: byte;
 {$endif asmgraph}
  begin
+    If CurrentWriteMode <> NotPut Then
+      Color := CurrentColor
+    else Color := not CurrentColor;
+
     case CurrentWriteMode of
-      XORPut:
-        begin
-      { getpixel wants local/relative coordinates }
-          Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
-          Color := CurrentColor Xor Color;
-        end;
-      OrPut:
-        begin
-      { getpixel wants local/relative coordinates }
-          Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
-          Color := CurrentColor Or Color;
-        end;
-      AndPut:
-        begin
-      { getpixel wants local/relative coordinates }
-          Color := GetPixel(x-StartXViewPort,y-StartYViewPort);
-          Color := CurrentColor And Color;
-        end;
-      NotPut:
-        begin
-          Color := (Not CurrentColor) and 15;
-        end
-      else
-        Color := CurrentColor;
+       XORPut:
+         PortW[$3ce]:=((3 shl 3) shl 8) or 3;
+       ANDPut:
+         PortW[$3ce]:=((1 shl 3) shl 8) or 3;
+       ORPut:
+         PortW[$3ce]:=((2 shl 3) shl 8) or 3;
+       {not needed, this is the default state (e.g. PutPixel16 requires it)}
+       {NormalPut, NotPut:
+         PortW[$3ce]:=$0003
+       else
+         PortW[$3ce]:=$0003}
     end;
 {$ifndef asmgraph}
     offset := Y * 80 + (X shr 3) + VideoOfs;
@@ -1979,6 +1970,10 @@ End;
     Mem[Sega000: offset] := dummy;
     PortW[$3ce] := $ff08;
     PortW[$3ce] := $0001;
+    if (CurrentWriteMode = XORPut) or
+       (CurrentWriteMode = ANDPut) or
+       (CurrentWriteMode = ORPut) then
+      PortW[$3ce] := $0003;
 {$else asmgraph}
 { note: still needs xor/or/and/notput support !!!!! (JM) }
     asm
