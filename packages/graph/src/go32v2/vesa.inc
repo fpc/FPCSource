@@ -1511,8 +1511,8 @@ end;
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
      PortW[$3ce] := color shl 8; { Index 00 : Enable correct plane and write color }
 
-     Port[$3ce] := 8;           { Index 08 : Bitmask register.          }
-     Port[$3cf] := $80 shr (x and $7); { Select correct bits to modify }
+     { Index 08 : Bitmask register.          }
+     PortW[$3ce] := ($8000 shr (x and $7)) or 8; { Select correct bits to modify }
 
      dummy := Mem[WinReadSeg: word(offs)];  { Latch the data into host space.  }
      Mem[WinWriteSeg: word(offs)] := dummy;  { Write the data into video memory }
@@ -1531,9 +1531,8 @@ end;
     Y:= Y + StartYViewPort + YOffset;
     offset := longint(Y) * BytesPerLine + (x div 8);
     SetReadBank(smallint(offset shr 16));
-    Port[$3ce] := 4;
+    PortW[$3ce] := $0004;
     shift := 7 - (X and 7);
-    Port[$3cf] := 0;
     dummy := (Mem[WinReadSeg:word(offset)] shr shift) and 1;
     Port[$3cf] := 1;
     dummy := dummy or (((Mem[WinReadSeg:word(offset)] shr shift) and 1) shl 1);
@@ -1584,8 +1583,8 @@ end;
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
      PortW[$3ce] := color shl 8; { Index 00 : Enable correct plane and write color }
 
-     Port[$3ce] := 8;           { Index 08 : Bitmask register.          }
-     Port[$3cf] := $80 shr (x and $7); { Select correct bits to modify }
+     { Index 08 : Bitmask register.          }
+     PortW[$3ce] := ($8000 shr (x and $7)) or 8; { Select correct bits to modify }
 
      dummy := Mem[WinReadSeg: word(offs)];  { Latch the data into host space.  }
      Mem[WinWriteSeg: word(offs)] := dummy;  { Write the data into video memory }
@@ -1644,28 +1643,24 @@ end;
 {$endif}
     if HLength=0 then
       LMask:=LMask and RMask;
-    Port[$3ce]:=0;
     If CurrentWriteMode <> NotPut Then
-      Port[$3cf]:= CurrentColor
-    else Port[$3cf]:= not CurrentColor;
-    Port[$3ce]:=1;
-    Port[$3cf]:=$f;
-    Port[$3ce]:=3;
+      PortW[$3ce]:= CurrentColor shl 8
+    else PortW[$3ce]:= (not CurrentColor) shl 8;
+    PortW[$3ce]:=$0f01;
     case CurrentWriteMode of
        XORPut:
-         Port[$3cf]:=3 shl 3;
+         PortW[$3ce]:=((3 shl 3) shl 8) or 3;
        ANDPut:
-         Port[$3cf]:=1 shl 3;
+         PortW[$3ce]:=((1 shl 3) shl 8) or 3;
        ORPut:
-         Port[$3cf]:=2 shl 3;
+         PortW[$3ce]:=((2 shl 3) shl 8) or 3;
        NormalPut, NotPut:
-         Port[$3cf]:=0
+         PortW[$3ce]:=$0003
        else
-         Port[$3cf]:=0
+         PortW[$3ce]:=$0003
     end;
 
-    Port[$3ce]:=8;
-    Port[$3cf]:=LMask;
+    PortW[$3ce]:=(LMask shl 8) or 8;
 {$ifopt r+}
 {$define rangeOn}
 {$r-}
@@ -1683,7 +1678,7 @@ end;
 {$undef overflowOn}
 {$q+}
 {$endif}
-    Port[$3ce]:=8;
+    {Port[$3ce]:=8;}{not needed, the register is already selected}
     if HLength>0 then
       begin
          dec(HLength);
@@ -1727,13 +1722,10 @@ end;
 {$endif}
       end;
     { clean up }
-    Port[$3cf]:=0;
-    Port[$3ce]:=8;
-    Port[$3cf]:=$ff;
-    Port[$3ce]:=1;
-    Port[$3cf]:=0;
-    Port[$3ce]:=3;
-    Port[$3cf]:=0;
+    {Port[$3cf]:=0;}{not needed, the register is reset by the next operation:}
+    PortW[$3ce]:=$ff08;
+    PortW[$3ce]:=$0001;
+    PortW[$3ce]:=$0003;
    end;
 
 

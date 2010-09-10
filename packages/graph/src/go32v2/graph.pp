@@ -1532,8 +1532,7 @@ end;
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
      PortW[$3ce] := (Pixel and $ff) shl 8; { Index 00 : Enable correct plane and write color }
 
-     Port[$3ce] := 8;
-     Port[$3cf] := $80 shr (x and $7); { Select correct bits to modify }
+     PortW[$3ce] := ($8000 shr (x and $7)) or 8; { Select correct bits to modify }
      dummy := Mem[SegA000: offset];  { Latch the data into host space.  }
      Mem[Sega000: offset] := dummy;  { Write the data into video memory }
      PortW[$3ce] := $ff08;         { Enable all bit planes.           }
@@ -1653,9 +1652,8 @@ end;
     Y:= Y + StartYViewPort;
 {$ifndef asmgraph}
     offset := Y * 80 + (x shr 3) + VideoOfs;
-    Port[$3ce] := 4;
+    PortW[$3ce] := $0004;
     shift := 7 - (X and 7);
-    Port[$3cf] := 0;
     dummy := (Mem[Sega000:offset] shr shift) and 1;
     Port[$3cf] := 1;
     dummy := dummy or (((Mem[Sega000:offset] shr shift) and 1) shl 1);
@@ -1851,9 +1849,8 @@ Begin
   LogLn('amount left: ' + strf(amount));
 {$Endif logging}
   If amount = 0 Then Exit;
-  Port[$3ce] := 4;
   { first get everything from plane 3 (4th plane) }
-  Port[$3cf] := 3;
+  PortW[$3ce] := $0304;
   Count := 0;
   For Count := 1 to (amount shr 5) Do
     Begin
@@ -1977,8 +1974,7 @@ End;
     offset := Y * 80 + (X shr 3) + VideoOfs;
     PortW[$3ce] := $f01;
     PortW[$3ce] := Color shl 8;
-    Port[$3ce] := 8;
-    Port[$3cf] := $80 shr (X and 7);
+    PortW[$3ce] := ($8000 shr (X and 7)) or 8;
     dummy := Mem[SegA000: offset];
     Mem[Sega000: offset] := dummy;
     PortW[$3ce] := $ff08;
@@ -2137,28 +2133,24 @@ End;
 {$endif}
     if HLength=0 then
       LMask:=LMask and RMask;
-    Port[$3ce]:=0;
     If CurrentWriteMode <> NotPut Then
-      Port[$3cf]:= CurrentColor
-    else Port[$3cf]:= not CurrentColor;
-    Port[$3ce]:=1;
-    Port[$3cf]:=$f;
-    Port[$3ce]:=3;
+      PortW[$3ce]:= CurrentColor shl 8
+    else PortW[$3ce]:= (not CurrentColor) shl 8;
+    PortW[$3ce]:=$0f01;
     case CurrentWriteMode of
        XORPut:
-         Port[$3cf]:=3 shl 3;
+         PortW[$3ce]:=((3 shl 3) shl 8) or 3;
        ANDPut:
-         Port[$3cf]:=1 shl 3;
+         PortW[$3ce]:=((1 shl 3) shl 8) or 3;
        ORPut:
-         Port[$3cf]:=2 shl 3;
+         PortW[$3ce]:=((2 shl 3) shl 8) or 3;
        NormalPut, NotPut:
-         Port[$3cf]:=0
+         PortW[$3ce]:=$0003
        else
-         Port[$3cf]:=0
+         PortW[$3ce]:=$0003
     end;
 
-    Port[$3ce]:=8;
-    Port[$3cf]:=LMask;
+    PortW[$3ce]:=(LMask shl 8) or 8;
 {$ifopt r+}
 {$define rangeOn}
 {$r-}
@@ -2176,7 +2168,7 @@ End;
 {$undef overflowOn}
 {$q+}
 {$endif}
-    Port[$3ce]:=8;
+    {Port[$3ce]:=8;}{not needed, the register is already selected}
     if HLength>0 then
       begin
          dec(HLength);
@@ -2211,13 +2203,10 @@ End;
 {$endif}
       end;
     { clean up }
-    Port[$3cf]:=0;
-    Port[$3ce]:=8;
-    Port[$3cf]:=$ff;
-    Port[$3ce]:=1;
-    Port[$3cf]:=0;
-    Port[$3ce]:=3;
-    Port[$3cf]:=0;
+    {Port[$3cf]:=0;}{not needed, the register is reset by the next operation:}
+    PortW[$3ce]:=$ff08;
+    PortW[$3ce]:=$0001;
+    PortW[$3ce]:=$0003;
    end;
 
   procedure VLine16(x,y,y2: smallint); {$ifndef fpc}far;{$endif fpc}
@@ -2247,26 +2236,22 @@ End;
       end;
     ScrOfs:=y*ScrWidth+x div 8 + VideoOfs;
     BitMask:=$80 shr (x and 7);
-    Port[$3ce]:=0;
     If CurrentWriteMode <> NotPut Then
-      Port[$3cf]:= CurrentColor
-    else Port[$3cf]:= not CurrentColor;
-    Port[$3ce]:=1;
-    Port[$3cf]:=$f;
-    Port[$3ce]:=8;
-    Port[$3cf]:=BitMask;
-    Port[$3ce]:=3;
+      PortW[$3ce]:= (CurrentColor shl 8)
+    else PortW[$3ce]:= (not CurrentColor) shl 8;
+    PortW[$3ce]:=$0f01;
+    PortW[$3ce]:=(BitMask shl 8) or 8;
     case CurrentWriteMode of
        XORPut:
-         Port[$3cf]:=3 shl 3;
+         PortW[$3ce]:=((3 shl 3) shl 8) or 3;
        ANDPut:
-         Port[$3cf]:=1 shl 3;
+         PortW[$3ce]:=((1 shl 3) shl 8) or 3;
        ORPut:
-         Port[$3cf]:=2 shl 3;
+         PortW[$3ce]:=((2 shl 3) shl 8) or 3;
        NormalPut, NotPut:
-         Port[$3cf]:=0
+         PortW[$3ce]:=$0003
        else
-         Port[$3cf]:=0
+         PortW[$3ce]:=$0003
     end;
     for i:=y to y2 do
       begin
@@ -2290,13 +2275,10 @@ End;
          ScrOfs:=ScrOfs+ScrWidth;
       end;
     { clean up }
-    Port[$3cf]:=0;
-    Port[$3ce]:=8;
-    Port[$3cf]:=$ff;
-    Port[$3ce]:=1;
-    Port[$3cf]:=0;
-    Port[$3ce]:=3;
-    Port[$3cf]:=0;
+    {Port[$3cf]:=0;}{not needed, the register is reset by the next operation}
+    PortW[$3ce]:=$ff08;
+    PortW[$3ce]:=$0001;
+    PortW[$3ce]:=$0003;
   End;
 
 
