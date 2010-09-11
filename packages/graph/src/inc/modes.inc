@@ -316,7 +316,10 @@ end;
       mode:=nil;
       GetModeName:='';
       { only search in the current driver modes ... }
-      mode:=SearchMode(IntCurrentNewDriver,ModeNumber);
+      if (ModeNumber >= lowNewMode) and (ModeNumber <= highNewMode) then
+          mode:=SearchMode(IntCurrentNewDriver,ModeNumber)
+      else
+          mode:=SearchMode(IntCurrentDriver,ModeNumber);
       if assigned(mode) then
           GetModeName:=Mode^.ModeName
       else
