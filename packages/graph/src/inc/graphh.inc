@@ -323,6 +323,9 @@ type
        Detect        = 0;
        CGA           = 1;
        MCGA          = 2;
+       EGA           = 3;
+       EGA64         = 4;
+       EGAMono       = 5;
        LowRes        = 6; { nickysn: used to be 1, but moved to 6, because I added CGA }
        HercMono      = 7;
        VGA           = 9;
@@ -362,6 +365,17 @@ type
        MCGAC3 = 3;
        MCGAMed = 4;
        MCGAHi = 5;
+
+       { EGA Driver modes }
+       EGALo      = 0;  { 640x200 16 color 4 page }
+       EGAHi      = 1;  { 640x350 16 color 2 page }
+
+       { EGA64 Driver modes }
+       EGA64Lo    = 0;  { 640x200 16 color 1 page }
+       EGA64Hi    = 1;  { 640x350 4 color  1 page }
+
+       { EGAMono Driver modes }
+       EGAMonoHi  = 3;  { 640x350 64K on card, 1 page; 256K on card, 2 page }
 
        { VGA Driver modes }
        VGALo   = 0;

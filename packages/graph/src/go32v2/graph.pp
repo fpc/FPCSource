@@ -3682,6 +3682,69 @@ const CrtAddress: word = 0;
          AddMode(mode);
        end;
 
+     if EGADetected then
+       begin
+         { HACK:
+           until we create Save/RestoreStateEGA, we use Save/RestoreStateVGA
+           with the inWindows flag enabled (so we only save the mode number
+           and nothing else) }
+         inWindows := true;
+         SaveVideoState := @SaveStateVGA;
+         RestoreVideoState := @RestoreStateVGA;
+
+         InitMode(mode);
+         mode.ModeNumber:=EGALo;
+         mode.DriverNumber := EGA;
+         mode.ModeName:='640 x 200 EGA';
+         mode.MaxColor := 16;
+         mode.HardwarePages := 2;
+         mode.DirectColor := FALSE;
+         mode.PaletteSize := mode.MaxColor;
+         mode.MaxX := 639;
+         mode.MaxY := 199;
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual200;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive200;
+         mode.InitMode := {$ifdef fpc}@{$endif}Init640x200x16;
+         mode.HLine := {$ifdef fpc}@{$endif}HLine16;
+         mode.VLine := {$ifdef fpc}@{$endif}VLine16;
+         mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLine16;
+         mode.XAspect := 4500;
+         mode.YAspect := 10000;
+         AddMode(mode);
+
+         InitMode(mode);
+         mode.ModeNumber:=EGAHi;
+         mode.DriverNumber := EGA;
+         mode.ModeName:='640 x 350 EGA';
+         mode.HardwarePages := 1;
+         mode.MaxColor := 16;
+         mode.DirectColor := FALSE;
+         mode.PaletteSize := mode.MaxColor;
+         mode.MaxX := 639;
+         mode.MaxY := 349;
+         mode.DirectPutPixel:={$ifdef fpc}@{$endif}DirectPutPixel16;
+         mode.PutPixel:={$ifdef fpc}@{$endif}PutPixel16;
+         mode.GetPixel:={$ifdef fpc}@{$endif}GetPixel16;
+         mode.InitMode := {$ifdef fpc}@{$endif}Init640x350x16;
+         mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
+         mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
+         mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
+         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual350;
+         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive350;
+         mode.HLine := {$ifdef fpc}@{$endif}HLine16;
+         mode.VLine := {$ifdef fpc}@{$endif}VLine16;
+         mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLine16;
+         mode.XAspect := 7750;
+         mode.YAspect := 10000;
+         AddMode(mode);
+       end;
+
      if VGADetected then
        begin
          SaveVideoState := @SaveStateVGA;
@@ -3892,7 +3955,7 @@ const CrtAddress: word = 0;
          InitMode(mode);
          mode.ModeNumber:=VGALo;
          mode.DriverNumber := VGA;
-         mode.ModeName:='640 x 200 VGA';
+         mode.ModeName:='640 x 200 EGA'; { yes, it says 'EGA' even for the VGA driver; this is TP7 compatible }
          mode.MaxColor := 16;
          mode.HardwarePages := 2;
          mode.DirectColor := FALSE;
@@ -3918,7 +3981,7 @@ const CrtAddress: word = 0;
          InitMode(mode);
          mode.ModeNumber:=VGAMed;
          mode.DriverNumber := VGA;
-         mode.ModeName:='640 x 350 VGA';
+         mode.ModeName:='640 x 350 EGA'; { yes, it says 'EGA' even for the VGA driver; this is TP7 compatible }
          mode.HardwarePages := 1;
          mode.MaxColor := 16;
          mode.DirectColor := FALSE;

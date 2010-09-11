@@ -66,9 +66,9 @@ It's highly recommended to use Detect (0 constant) for grDriver and grmode: init
  //Detect      =0;     is in the graphh.inc
  //CGA           =1;   is in graphh.inc
  //MCGA	       =2;   is in graphh.inc
- EGA           =3;
- EGA64         =4;
- EGAMono       =5;
+ //EGA           =3;   is in graphh.inc
+ //EGA64         =4;   is in graphh.inc
+ //EGAMono       =5;   is in graphh.inc
  IBM8514       =6;
  //HercMono      =7;   is in the graphh.inc
  ATT400        =8;
@@ -89,16 +89,16 @@ It's highly recommended to use Detect (0 constant) for grDriver and grmode: init
  //MCGAMed       =4;   is in graphh.inc
  //MCGAHi        =5;   is in graphh.inc
  
- EGAMonoHi     =3;
+ //EGAMonoHi     =3;   is in graphh.inc
  //HercMonoHi    =0;      is in the graphh.inc
  //VGALo         =0;      is in the graphh.inc
  //VGAMed        =1;      is in the graphh.inc
  //VGAHi         =2;      is in the graphh.inc
  
- EGALo         =0;
- EGAHi         =1;
- EGA64Lo       =0;
- EGA64Hi       =1;
+ //EGALo         =0;   is in graphh.inc
+ //EGAHi         =1;   is in graphh.inc
+ //EGA64Lo       =0;   is in graphh.inc
+ //EGA64Hi       =1;   is in graphh.inc
  
  ATT400C0      =0;
  ATT400C1      =1;
