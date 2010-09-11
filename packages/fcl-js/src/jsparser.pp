@@ -55,6 +55,7 @@ Type
     FIsLHS: Boolean;
     FNoIn: Boolean;
     FScanner : TJSScanner;
+    FPrevious,
     FCurrent : TJSToken;
     FCurrentString : String;
     FNextNewLine : Boolean;
@@ -66,9 +67,10 @@ Type
     FLabelSets,
     FCurrentLabelSet:TJSLabelSet;
     FLabels : TJSLabel;
+    function CheckSemiColonInsert(aToken: TJSToken; Consume: Boolean): Boolean;
     function EnterLabel(ALabelName: String): TJSLabel;
     procedure Expect(aToken: TJSToken);
-    procedure Consume(aToken: TJSToken);
+    procedure Consume(aToken: TJSToken; AllowSemicolonInsert : Boolean = False);
     procedure FreeCurrentLabelSet;
     procedure LeaveLabel;
     function LookupLabel(ALabelName: String; Kind: TJSToken): TJSLabel;
@@ -193,6 +195,7 @@ end;
 
 function TJSParser.GetNextToken: TJSToken;
 begin
+  FPrevious:=FCurrent;
   If (FPeekToken<>tjsunknown) then
      begin
      FCurrent:=FPeekToken;
@@ -205,7 +208,7 @@ begin
     FCurrent:=FScanner.FetchToken;
     FCurrentString:=FScanner.CurTokenString;
     end;
-  {$ifdef debugparser}Writeln('GetNextToken : ',GetEnumName(TypeInfo(TJSToken),Ord(FCurrent)), ' As string: ',FCurrentString);{$endif debugparser}
+  {$ifdef debugparser}Writeln('GetNextToken (',FScanner.CurLine,',',FScanner.CurColumn,'): ',GetEnumName(TypeInfo(TJSToken),Ord(FCurrent)), ' As string: ',FCurrentString);{$endif debugparser}
 end;
 
 function TJSParser.PeekNextToken: TJSToken;
@@ -386,14 +389,29 @@ Procedure TJSParser.Expect(aToken : TJSToken);
 
 begin
   {$ifdef debugparser}  Writeln('Expecting : ',GetEnumName(TypeInfo(TJSToken),Ord(AToken)), ' As string: ',TokenInfos[AToken]);{$endif debugparser}
-  If (CurrentToken<>aToken) then
-    Error(SerrTokenMismatch,[CurrenttokenString,TokenInfos[aToken]]);
+  If Not CheckSemiColonInsert(AToken,False) then
+    if (CurrentToken<>aToken) then
+      Error(SerrTokenMismatch,[CurrenttokenString,TokenInfos[aToken]]);
 end;
 
-procedure TJSParser.Consume(aToken: TJSToken);
+function TJSParser.CheckSemiColonInsert(aToken : TJSToken; Consume : Boolean) : Boolean;
+
 begin
+  Result:=(AToken=tjsSemiColon);
+  If Result then
+    begin
+    Result:=(CurrentToken=tjsCurlyBraceClose) or (FScanner.WasEndOfLine) or (CurrentToken=tjsEOF);
+    If Result and Consume then
+      FPrevious:=tjsSemiColon;
+    end;
+end;
+
+procedure TJSParser.Consume(aToken: TJSToken; AllowSemiColonInsert : Boolean = False);
+begin
+  {$ifdef debugparser}  Writeln('Consuming : ',GetEnumName(TypeInfo(TJSToken),Ord(AToken)), ' As string: ',TokenInfos[AToken]);{$endif debugparser}
   Expect(aToken);
-  GetNextToken;
+  If not (AllowSemiColonInsert and CheckSemiColonInsert(aToken,True)) then
+    GetNextToken;
 end;
 
 function TJSParser.ParseIdentifier : String;
@@ -495,7 +513,7 @@ begin
       SL:=TJSSTatementList(CreateElement(TJSStatementList));
       try
         SL.A:=E;
-        SL.B:=ParseStatementlist;
+        SL.B:=ParseStatementlist();
         Result:=SL;
       except
         FreeAndNil(SL);
@@ -545,7 +563,7 @@ begin
       else
          begin
          E:=N.Elements.AddElement;
-         E.Index:=I;
+         E.ElementIndex:=I;
          Inc(I);
          E.Expr:=ParseAssignmentExpression;
          If Not (CurrentToken in [tjsComma,tjsSquaredBraceClose]) then
@@ -573,6 +591,8 @@ begin
   try
     While (CurrentToken<>tjsCurlyBraceClose) do
       begin
+      While CurrentToken=tjsComma do
+         GetNextToken;
       If (CurrentToken in [tjsIdentifier,jsscanner.tjsString,tjsnumber]) then
          begin
          E:=N.Elements.AddElement;
@@ -583,8 +603,10 @@ begin
          Error(SErrObjectElement,[CurrentTokenString]);
       Consume(tjsColon);
       E.Expr:=ParseAssignmentExpression;
-      If Not (CurrentToken in [tjsComma,tjsCurlyBraceClose]) then
-        Error(SErrObjectEnd,[CurrentTokenString])
+      While CurrentToken=tjsComma do
+         GetNextToken;
+{      If Not (CurrentToken in [tjsComma,tjsCurlyBraceClose]) then
+        Error(SErrObjectEnd,[CurrentTokenString])}
       end;
     Consume(tjsCurlyBraceClose);
   except
@@ -708,6 +730,7 @@ Var
   R : TJSPrimaryExpressionIdent;
 
 begin
+  {$ifdef debugparser}  Writeln('ParsePrimaryExpression');{$endif debugparser}
   Result:=Nil;
   try
     Case CurrentToken of
@@ -731,6 +754,7 @@ begin
         Consume(tjsBraceOpen);
         Result:=ParseExpression;
         Consume(tjsBraceClose);
+        Writeln('Closed brace !!');
         end;
     else
       Result:=ParseLiteral;
@@ -739,6 +763,7 @@ begin
     FreeAndNil(Result);
     Raise;
   end;
+  {$ifdef debugparser}  Writeln('Exit ParsePrimaryExpression');{$endif debugparser}
 end;
 
 
@@ -751,11 +776,15 @@ Var
   Done : Boolean;
 
 begin
+  {$ifdef debugparser}  Writeln('ParseMemberExpression');{$endif debugparser}
   Case CurrentToken of
-    tjsFunction : Result:=ParseFunctionExpression;
-    tjsNew      : Result:=ParseMemberExpression;
+    tjsFunction : Result:=ParseFunctionExpression();
+    tjsNew      : begin
+                  GetNextToken;
+                  Result:=ParseMemberExpression();
+                  end;
   else
-    Result:=ParsePrimaryExpression
+    Result:=ParsePrimaryExpression()
   end;
   try
     Done:=False;
@@ -777,7 +806,7 @@ begin
          B.MExpr:=Result;
          Result:=B;
          GetNextToken;
-         B.Name:=ParseExpression;
+         B.Name:=ParseExpression();
          Consume(tjsSquaredBraceClose);
          end;
       else
@@ -789,6 +818,7 @@ begin
     FreeAndNil(Result);
     Raise;
   end;
+  {$ifdef debugparser}  Writeln('Exit ParseMemberExpression');{$endif debugparser}
 end;
 
 Function TJSParser.ParseArguments : TJSarguments;
@@ -826,6 +856,7 @@ Var
   Done : Boolean;
 
 begin
+  {$ifdef debugparser}  Writeln('ParseLeftHandSideExpression');{$endif debugparser}
   Case CurrentToken of
     tjsFunction : Result:=ParseFunctionExpression;
     tjsNew      : Result:=ParseMemberExpression;
@@ -873,6 +904,7 @@ begin
     FreeAndNil(Result);
     Raise;
   end;
+  {$ifdef debugparser}  Writeln('Exit ParseLeftHandSideExpression');{$endif debugparser}
 end;
 
 Function TJSParser.ParsePostFixExpression : TJSElement;
@@ -898,6 +930,7 @@ begin
     freeAndNil(Result);
     Raise;
   end;
+  {$ifdef debugparser}  Writeln('Exit ParsePostfixExpression');{$endif debugparser}
 end;
 
 Function TJSParser.ParseUnaryExpression : TJSElement;
@@ -930,13 +963,14 @@ begin
       R:=TJSUnaryExpression(CreateElement(C));
       Result:=R;
       GetNextToken;
-      R.A:=Self.ParseUnaryExpression;
+      R.A:=ParseUnaryExpression();
       isLHS:=False;
       end;
   except
     FreeAndNil(Result);
     Raise;
   end;
+  {$ifdef debugparser} Writeln('Exit ParseUnaryExpression');{$endif debugparser}
 end;
 
 Function TJSParser.ParseMultiplicativeExpression : TJSElement;
@@ -968,6 +1002,7 @@ begin
     FreeAndNil(Result);
     Raise;
   end;
+  {$ifdef debugparser}  Writeln('Exit ParseMultiplicativeExpression');{$endif debugparser}
 end;
 
 Function TJSParser.ParseAdditiveExpression : TJSElement;
@@ -997,6 +1032,7 @@ begin
     FreeAndNil(Result);
     Raise;
   end;
+  {$ifdef debugparser}  Writeln('Exit ParseAdditiveExpression');{$endif debugparser}
 end;
 
 Function TJSParser.ParseShiftExpression : TJSElement;
@@ -1027,6 +1063,7 @@ begin
     FreeAndNil(Result);
     Raise;
   end;
+  {$ifdef debugparser}  Writeln('Exit ParseShiftExpression');{$endif debugparser}
 end;
 
 Function TJSParser.ParseRelationalExpression: TJSElement;
@@ -1037,6 +1074,7 @@ Var
   R : TJSRelationalExpression;
 
 begin
+  {$ifdef debugparser}  Writeln('ParseRelationalExpression');{$endif debugparser}
   Result:=ParseShiftExpression;
   try
     S:=[tjsLT,tjsGT,tjsLE,tjsGE,tjsInstanceOf];
@@ -1056,13 +1094,14 @@ begin
       R.A:=Result;
       Result:=R;
       GetNextToken;
-      R.B:=ParseRelationalExpression;
+      R.B:=ParseRelationalExpression();
       IsLHS:=False;
       end;
   except
     FreeAndNil(Result);
     Raise;
   end;
+  {$ifdef debugparser}  Writeln('Exit ParseRelationalExpression');{$endif debugparser}
 end;
 
 Function TJSParser.ParseEqualityExpression: TJSElement;
@@ -1072,6 +1111,7 @@ Var
   E : TJSEqualityExpression;
 
 begin
+  {$ifdef debugparser}  Writeln('ParseEqualityExpression');{$endif debugparser}
   Result:=ParseRelationalExpression;
   try
      While (CurrentToken in [tjsEq,tjsNE,tjsSEQ,tjsSNE]) do
@@ -1086,7 +1126,7 @@ begin
        E:=TJSEqualityExpression(CreateElement(C));
        Result:=E;
        E.A:=Result;
-       E.B:=ParseEqualityExpression;
+       E.B:=ParseEqualityExpression();
        E:=Nil;
        IsLHS:=False;
        end;
@@ -1094,6 +1134,7 @@ begin
     FreeAndNil(Result);
     Raise;
   end;
+  {$ifdef debugparser}  Writeln('Exit ParseEqualityExpression');{$endif debugparser}
 end;
 
 Function TJSParser.ParseBitwiseAndExpression : TJSElement;
@@ -1102,6 +1143,7 @@ Var
   L : TJSBitwiseAndExpression;
 
 begin
+  {$ifdef debugparser}  Writeln('ParseBitwiseAndExpression');{$endif debugparser}
   Result:=ParseEqualityExpression;
   try
     If (CurrentToken<>tjsAnd) then
@@ -1110,12 +1152,13 @@ begin
     L:=TJSBitwiseAndExpression(CreateElement(TJSBitwiseAndExpression));
     L.A:=Result;
     Result:=L;
-    L.B:=ParseBitwiseAndExpression;
+    L.B:=ParseBitwiseAndExpression();
     IsLHS:=False;
   except
     FreeAndNil(Result);
     Raise;
   end;
+  {$ifdef debugparser}  Writeln('Exit ParseBitwiseAndExpression');{$endif debugparser}
 end;
 
 Function TJSParser.ParseBitwiseXORExpression : TJSElement;
@@ -1124,6 +1167,7 @@ Var
   L : TJSBitwiseXOrExpression;
 
 begin
+  {$ifdef debugparser}  Writeln('ParseBitwiseXorExpression');{$endif debugparser}
   Result:=ParseBitwiseAndExpression;
   try
     If (CurrentToken<>tjsXOr) then
@@ -1132,12 +1176,13 @@ begin
     L:=TJSBitwiseXOrExpression(CreateElement(TJSBitwiseXOrExpression));
     L.A:=Result;
     Result:=L;
-    L.B:=ParseBitwiseXORExpression;
+    L.B:=ParseBitwiseXORExpression();
     IsLHS:=False;
   except
     FreeAndNil(Result);
     Raise;
   end;
+  {$ifdef debugparser}  Writeln('Exit ParseBitwiseXorExpression');{$endif debugparser}
 end;
 
 Function TJSParser.ParseBitwiseORExpression : TJSElement;
@@ -1155,12 +1200,13 @@ begin
       L:=TJSBitwiseOrExpression(CreateElement(TJSBitwiseOrExpression));
       L.A:=Result;
       Result:=L;
-      L.B:=ParseBitwiseORExpression;
+      L.B:=ParseBitwiseORExpression();
       IsLHS:=False;
     except
       FreeAndNil(Result);
       Raise;
     end;
+    {$ifdef debugparser}  Writeln('Exit ParseBitWiseOrExpression');{$endif debugparser}
 end;
 
 Function TJSParser.ParseLogicalAndExpression : TJSElement;
@@ -1178,12 +1224,13 @@ begin
     L:=TJSLogicalAndExpression(CreateElement(TJSLogicalAndExpression));
     L.A:=Result;
     Result:=L;
-    L.B:=ParseLogicalAndExpression;
+    L.B:=ParseLogicalAndExpression();
     IsLHS:=False;
   except
     FreeAndNil(Result);
     Raise;
   end;
+  {$ifdef debugparser}  Writeln('Exit ParseLogicalAndExpression');{$endif debugparser}
 end;
 
 Function TJSParser.ParseLogicalORExpression : TJSElement;
@@ -1198,15 +1245,19 @@ begin
     If (CurrentToken<>tjsOROR) then
       exit;
     GetNextToken;
+    Writeln('a');
     L:=TJSLogicalOrExpression(CreateElement(TJSLogicalOrExpression));
     L.A:=Result;
+    Writeln('B');
     Result:=L;
-    L.B:=ParseLogicalOrExpression;
+    L.B:=ParseLogicalOrExpression();
+    Writeln('C');
     IsLHS:=False;
   except
     FreeAndNil(Result);
     Raise;
   end;
+  {$ifdef debugparser}  Writeln('Exit ParseLogicalOrExpression');{$endif debugparser}
 end;
 
 Function TJSParser.ParseConditionalExpression : TJSElement;
@@ -1221,6 +1272,7 @@ begin
   try
     If (CurrentToken=tjsConditional) then
       begin
+      {$ifdef debugparser}  Writeln('ParseConditionalExpression : Detected conditional ');{$endif debugparser}
       GetNextToken;
       L:=Result;
       N:=TJSConditionalExpression(CreateElement(TJSConditionalExpression));
@@ -1235,6 +1287,7 @@ begin
   except
     FreeandNil(Result);
   end;
+  {$ifdef debugparser}  Writeln('Exit ParseConditionalExpression');{$endif debugparser}
 end;
 
 Function TJSParser.ParseAssignmentExpression : TJSElement;
@@ -1269,19 +1322,25 @@ begin
       Result:=N
     end;
   If Result<>Nil then
+    begin
+    {$ifdef debugparser}  Writeln('Exit ParseAssignmentExpression - no assignment');{$endif debugparser}
     Exit;
+    end;
   A:=TJSAssignStatement(CreateElement(C));
   try
     Result:=A;
     A.Lhs:=N;
     GetNextToken;
-    N:=Self.ParseAssignmentExpression;
+    {$ifdef debugparser}  Writeln('ParseAssignmentExpression - level 2');{$endif debugparser}
+    N:=ParseAssignmentExpression();
+    {$ifdef debugparser}  Writeln('Exit ParseAssignmentExpression - level 2');{$endif debugparser}
     A.Expr:=N;
     IsLhs:=False;
   except
     FreeAndNil(Result);
     Raise;
   end;
+  {$ifdef debugparser}  Writeln('Exit ParseAssignmentExpression');{$endif debugparser}
 end;
 
 Function TJSParser.ParseVariableDeclaration : TJSElement;
@@ -1290,6 +1349,7 @@ Var
   V : TJSVarDeclaration;
 
 begin
+  {$ifdef debugparser}  Writeln('ParseVariableDeclaration');{$endif debugparser}
   V:=TJSVarDeclaration(CreateElement(TJSVarDeclaration));;
   try
     V.Name:=CurrenttokenString;
@@ -1307,6 +1367,7 @@ begin
     FreeAndNil(V);
     Raise;
   end;
+  {$ifdef debugparser}  Writeln('Exit ParseVariableDeclaration');{$endif debugparser}
 end;
 
 Function TJSParser.ParseVariableDeclarationList : TJSElement;
@@ -1326,7 +1387,7 @@ begin
     Result:=L;
     try
       Consume(tjsComma);
-      N:=Self.ParseVariableDeclarationList;
+      N:=ParseVariableDeclarationList();
       L.A:=E;
       L.B:=N;
     except
@@ -1349,7 +1410,7 @@ begin
   Consume(tjsVar);
   Result:=ParseVariableDeclarationList;
   try
-    Consume(tjsSemicolon);
+    Consume(tjsSemicolon,true);
     V:=TJSVariableStatement(CreateElement(TJSVariableStatement));
     V.A:=Result;
     Result:=V;
@@ -1363,7 +1424,7 @@ end;
 function TJSParser.ParseEmptyStatement : TJSElement;
 
 begin
-  Consume(tjsSemiColon);
+  Consume(tjsSemiColon,true);
   Result:=CreateElement(TJSEmptyStatement);
 end;
 
@@ -1427,7 +1488,7 @@ begin
         Consume(tjsBraceOpen);
         W.Cond:=ParseExpression;
         Consume(tjsBraceClose);
-        Consume(tjsSemicolon);
+        Consume(tjsSemicolon,True);
         end;
       tjsWhile :
         begin
@@ -1540,7 +1601,7 @@ begin
         L:=LookupLabel(CurrentTokenString,tjsContinue);
       Consume(tjsIdentifier);
       end;
-    Consume(tjsSemicolon);
+    Consume(tjsSemicolon,True);
     C.Target:=L.Labelset.Target;
   except
     FreeAndNil(C);
@@ -1567,7 +1628,7 @@ begin
         L:=LookupLabel(CurrentTokenString,tjsBreak);
       Consume(tjsIdentifier);
       end;
-    Consume(tjsSemicolon);
+    Consume(tjsSemicolon,True);
     B.Target:=L.Labelset.Target;
   except
     FreeAndNil(B);
@@ -1587,9 +1648,9 @@ begin
     Consume(tjsReturn);
     If (FunctionDepth=0) then
       Error(SErrReturnNotInFunction);
-    If Not (CurrentToken=tjsSemicolon) then
+    If Not (CurrentToken in [tjsSemicolon,tjsCurlyBraceClose]) then
       R.Expr:=ParseExpression;
-    Consume(tjsSemicolon);
+    Consume(tjsSemicolon,True);
   except
     FreeAndNil(R);
     Raise;
@@ -1680,7 +1741,7 @@ begin
     If IsEndOfLine then
       Error(SErrNewlineAfterThrow);
     TS.A:=ParseExpression;
-    Consume(tjsSemicolon);
+    Consume(tjsSemicolon,true);
   except
     FreeAndNil(TS);
     Raise;
@@ -1891,11 +1952,13 @@ Var
   E : TJSElement;
   R : TJSExpressionStatement;
 begin
+  {$ifdef debugparser}  Writeln('ParseExpressionStatement');{$endif debugparser}
   E:=ParseExpression;
-  Consume(tjsSemicolon);
+  Consume(tjsSemicolon,True);
   R:=TJSExpressionStatement(CreateElement(TJSExpressionStatement));
   R.A:=E;
   Result:=R;
+  {$ifdef debugparser}  Writeln('Exit ParseExpressionStatement');{$endif debugparser}
 end;
 
 function TJSParser.ParseExpression : TJSElement;
@@ -1904,6 +1967,7 @@ Var
   C : TJSCommaExpression;
 
 begin
+  {$ifdef debugparser}  Writeln('ParseExpression');{$endif debugparser}
   Result:=ParseAssignmentExpression;
   try
     If (CurrentToken=tjsComma) then
@@ -1912,13 +1976,13 @@ begin
       C.A:=Result;
       Result:=C;
       GetNextToken;
-      C.B:=ParseExpression;
+      C.B:=ParseExpression();
       end;
   except
     FreeAndNil(Result);
     Raise;
   end;
-
+  {$ifdef debugparser}  Writeln('Exit ParseExpression');{$endif debugparser}
 end;
 
 function TJSParser.ParseStatement : TJSElement;
@@ -1965,7 +2029,7 @@ begin
   else
     Result:=ParseExpressionStatement;
   end;
-  {$ifdef debugparser} Writeln('<<< Parsestatement ',Result.ClassName);{$endif}
+  {$ifdef debugparser} If Assigned(Result) then Writeln('<<< Parsestatement ',Result.ClassName) else Writeln('<<< Parsestatement (null');{$endif}
 end;
 
 function TJSParser.ParseSourceElements : TJSSourceElements;

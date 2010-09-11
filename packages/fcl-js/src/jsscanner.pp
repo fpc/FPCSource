@@ -148,6 +148,7 @@ Type
     FCurLine: string;
     FDefines: TStrings;
     TokenStr: PChar;
+    FWasEndOfLine : Boolean;
     FSourceStream : TStream;
     FOwnSourceFile : Boolean;
     function CommentDiv: TJSToken;
@@ -170,6 +171,7 @@ Type
     procedure OpenFile(const AFilename: string);
     Function FetchToken: TJSToken;
     Function IsEndOfLine : Boolean;
+    Property WasEndOfLine : Boolean Read FWasEndOfLine;
     Property ReturnComments : Boolean Read FReturnComments Write FReturnComments;
     Property ReturnWhiteSpace : Boolean Read FReturnWhiteSpace Write FReturnWhiteSpace;
     property SourceFile: TLineReader read FSourceFile;
@@ -260,6 +262,7 @@ begin
     TokenStr := PChar(CurLine);
     Result := true;
     Inc(FCurRow);
+    FWasEndofLine:=True;
   end;
 end;
 
@@ -406,6 +409,7 @@ begin
       // Read escaped token
       Case TokenStr[0] of
         '"' : S:='"';
+        '''' : S:='''';
         't' : S:=#9;
         'b' : S:=#8;
         'n' : S:=#10;
@@ -538,15 +542,18 @@ var
   OldLength, SectionLength, NestingLevel, Index: Integer;
 
 begin
-
+  if not (FCurtoken in [tjsWhiteSpace,tjsComment]) then
+    FWasEndOfLine:=False;
   Repeat
     if TokenStr = nil then
+      begin
       if not FetchLine then
         begin
         Result := tjsEOF;
         FCurToken := Result;
         exit;
         end;
+      end;
     CurPos:=TokenStr;
     FCurTokenString := '';
     case TokenStr[0] of
@@ -684,12 +691,24 @@ begin
     '.':
       begin
       Inc(TokenStr);
-      Result := tjsDot;
+      if (TokenStr[0] in ['0'..'9']) then
+        begin
+        Result:=DoNumericLiteral;
+        If (Result=tjsNumber) then
+          FCurTokenString:='0.'+FCurTokenString;
+         end
+      else
+        Result := tjsDot;
       end;
     ':':
       begin
       Inc(TokenStr);
       Result := tjsColon;
+      end;
+    '?':
+      begin
+      Inc(TokenStr);
+      Result := tjsConditional;
       end;
     ';':
       begin
@@ -816,8 +835,6 @@ begin
   Until (Not (Result in [tjsComment,tjsWhitespace])) or
         ((Result=tjsComment) and ReturnComments) or
         ((Result=tjsWhiteSpace) and ReturnWhiteSpace);
-  FCurToken:=Result;
-
 end;
 
 function TJSScanner.IsEndOfLine: Boolean;
@@ -880,9 +897,10 @@ begin
         begin
         Olen:=Length(Result);
         SetLength(Result,OLen+Len);
-        Move(Buffer[FPos],Result[OLen+1],Len)
+        Move(Buffer[FPos],Result[OLen+1],Len);
         end;
       FillBuffer;
+      FPos:=FBufPos;
       end;
   until (FBufPos=FBufLen) or (PRun^ in [10,13]);
   Len:=FBufPos-FPos;
