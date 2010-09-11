@@ -3419,6 +3419,7 @@ const CrtAddress: word = 0;
 
    var
     HGCDetected : Boolean;
+    CGADetected : Boolean; { TRUE means real CGA, *not* EGA or VGA }
     EGADetected : Boolean; { TRUE means EGA or higher (VGA) }
     VGADetected : Boolean;
     mode: TModeInfo;
@@ -3432,6 +3433,7 @@ const CrtAddress: word = 0;
 
 
      HGCDetected := FALSE;
+     CGADetected := FALSE;
      EGADetected := FALSE;
      VGADetected := FALSE;
      { check if EGA adapter supPorted...       }
@@ -3512,6 +3514,8 @@ const CrtAddress: word = 0;
        begin
          { check if Hercules adapter supPorted ... }
          HGCDetected := Test6845($3B4);
+         { check if CGA adapter supPorted ... }
+         CGADetected := Test6845($3D4);
        end;
      if HGCDetected then
        begin
@@ -3546,16 +3550,15 @@ const CrtAddress: word = 0;
          mode.YAspect := 10000;
          AddMode(mode);
        end;
-     if VGADetected then
+     if CGADetected or EGADetected then
        begin
+         { HACK:
+           until we create Save/RestoreStateCGA, we use Save/RestoreStateVGA
+           with the inWindows flag enabled (so we only save the mode number
+           and nothing else) }
+         inWindows := true;
          SaveVideoState := @SaveStateVGA;
-{$ifdef logging}
-         LogLn('Setting VGA SaveVideoState to '+strf(longint(SaveVideoState)));
-{$endif logging}
          RestoreVideoState := @RestoreStateVGA;
-{$ifdef logging}
-         LogLn('Setting VGA RestoreVideoState to '+strf(longint(RestoreVideoState)));
-{$endif logging}
 
          { now add all standard CGA modes...       }
          InitMode(mode);
@@ -3677,6 +3680,18 @@ const CrtAddress: word = 0;
          mode.XAspect := 4167;
          mode.YAspect := 10000;
          AddMode(mode);
+       end;
+
+     if VGADetected then
+       begin
+         SaveVideoState := @SaveStateVGA;
+{$ifdef logging}
+         LogLn('Setting VGA SaveVideoState to '+strf(longint(SaveVideoState)));
+{$endif logging}
+         RestoreVideoState := @RestoreStateVGA;
+{$ifdef logging}
+         LogLn('Setting VGA RestoreVideoState to '+strf(longint(RestoreVideoState)));
+{$endif logging}
 
          { now add all standard MCGA modes...       }
          { yes, most of these are the same as the CGA modes; this is TP7
