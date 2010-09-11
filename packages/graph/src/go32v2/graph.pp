@@ -3523,7 +3523,8 @@ const CrtAddress: word = 0;
            until we create Save/RestoreStateHGC, we use Save/RestoreStateVGA
            with the inWindows flag enabled (so we only save the mode number
            and nothing else) }
-         inWindows := true;
+         if not VGADetected then
+           inWindows := true;
          SaveVideoState := @SaveStateVGA;
          RestoreVideoState := @RestoreStateVGA;
 
@@ -3556,7 +3557,8 @@ const CrtAddress: word = 0;
            until we create Save/RestoreStateCGA, we use Save/RestoreStateVGA
            with the inWindows flag enabled (so we only save the mode number
            and nothing else) }
-         inWindows := true;
+         if not VGADetected then
+           inWindows := true;
          SaveVideoState := @SaveStateVGA;
          RestoreVideoState := @RestoreStateVGA;
 
@@ -3688,7 +3690,8 @@ const CrtAddress: word = 0;
            until we create Save/RestoreStateEGA, we use Save/RestoreStateVGA
            with the inWindows flag enabled (so we only save the mode number
            and nothing else) }
-         inWindows := true;
+         if not VGADetected then
+           inWindows := true;
          SaveVideoState := @SaveStateVGA;
          RestoreVideoState := @RestoreStateVGA;
 
