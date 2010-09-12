@@ -395,6 +395,7 @@ end;
     var
      modeinfo: PModeInfo;
      usedDriver: Integer;
+     dummyNewModeNr: Integer;
     begin
       { check if the mode exists... }
       { Depending on the modenumber, we search using the old or new }
@@ -525,7 +526,11 @@ end;
          OutTextXY:=modeInfo^.OutTextXY;
 
       IntCurrentMode := modeinfo^.ModeNumber;
-      IntCurrentDriver := usedDriver;
+      { fix by nickysn: always set *both* IntCurrentDriver and IntCurrentNewDriver to the
+        *correct* old & new style driver numbers. Solves a lot of bugs, e.g. when using InitGraph
+	with a new style driver/mode and then later using SetGraphMode(GetGraphMode) }
+      IntCurrentDriver := modeinfo^.DriverNumber;
+      res2Mode(modeinfo^.maxx+1, modeinfo^.maxy+1, modeinfo^.maxColor, IntCurrentNewDriver, dummyNewModeNr);
 {$ifdef logging}
        logln('Entering mode '+strf(intCurrentMode)+' of driver '+strf(intCurrentDriver));
 {$endif logging}
