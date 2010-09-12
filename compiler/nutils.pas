@@ -357,7 +357,7 @@ implementation
         result:=false;
         if (p1.resultdef.typ<>procvardef) or
            (tponly and
-            not(m_tp_procvar in current_settings.modeswitches)) then
+            ([m_tp_procvar,m_mac_procvar] * current_settings.modeswitches = [])) then
           exit;
         { ignore vecn,subscriptn }
         hp:=p1;
@@ -515,7 +515,6 @@ implementation
                       (tloadnode(p).symtableentry.typ=paravarsym) and
                       (vo_is_self in tparavarsym(tloadnode(p).symtableentry).varoptions);
       end;
-
 
 
     function call_fail_node:tnode;

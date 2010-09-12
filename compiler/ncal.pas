@@ -650,6 +650,7 @@ implementation
         block : tblocknode;
         statements : tstatementnode;
         temp : ttempcreatenode;
+        owningprocdef: tprocdef;
       begin
          { Be sure to have the resultdef }
          if not assigned(left.resultdef) then
@@ -657,6 +658,22 @@ implementation
 
          if (left.nodetype<>nothingn) then
            begin
+             { convert loads of the function result variable into procvars
+               representing the current function in case the formal parameter is
+               a procvar (CodeWarrior Pascal contains the same kind of
+               automatic disambiguation; you can use the function name in both
+               meanings, so we cannot statically pick either the function result
+               or the function definition in pexpr) }
+             if (m_mac in current_settings.modeswitches) and
+                (parasym.vardef.typ=procvardef) and
+                is_ambiguous_funcret_load(left,owningprocdef) then
+               begin
+                 hp:=cloadnode.create_procvar(owningprocdef.procsym,owningprocdef,owningprocdef.procsym.owner);
+                 typecheckpass(hp);
+                 left.free;
+                 left:=hp;
+               end;
+
              { Convert tp procvars, this is needs to be done
                here to make the change permanent. in the overload
                choosing the changes are only made temporarily }
@@ -664,7 +681,7 @@ implementation
                 not(parasym.vardef.typ in [procvardef,formaldef]) then
                begin
                  if maybe_call_procvar(left,true) then
-                   resultdef:=left.resultdef;
+                   resultdef:=left.resultdef
                end;
 
              { Remove implicitly inserted typecast to pointer for

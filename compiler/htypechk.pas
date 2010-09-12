@@ -139,6 +139,11 @@ interface
 
     { procvar handling }
     function  is_proc2procvar_load(p:tnode;out realprocdef:tprocdef):boolean;
+    { returns whether a node represents a load of the function result node via
+      the function name (so it could also be a recursive call to the function
+      in case there or no parameters, or the function could be passed as
+      procvar }
+    function  is_ambiguous_funcret_load(p: tnode; out owningprocdef: tprocdef): boolean;
     procedure test_local_to_procvar(from_def:tprocvardef;to_def:tdef);
 
     { sets varsym varstate field correctly }
@@ -794,6 +799,25 @@ implementation
                 (ttypeconvnode(p).convtype=tc_proc_2_procvar);
         if result then
           realprocdef:=tprocdef(ttypeconvnode(p).left.resultdef);
+      end;
+
+
+    function is_ambiguous_funcret_load(p: tnode; out owningprocdef: tprocdef): boolean;
+      begin
+        result:=false;
+        { the funcret is an absolutevarsym, which gets converted into a type
+          conversion node of the loadnode of the actual function result. Its
+          resulttype is obviously the same as that of the real function result }
+        if (p.nodetype=typeconvn) and
+              (p.resultdef=ttypeconvnode(p).left.resultdef) then
+          p:=ttypeconvnode(p).left;
+        if (p.nodetype=loadn) and
+           (tloadnode(p).symtableentry.typ in [absolutevarsym,localvarsym,paravarsym]) and
+           ([vo_is_funcret,vo_is_result] * tabstractvarsym(tloadnode(p).symtableentry).varoptions = [vo_is_funcret]) then
+         begin
+           owningprocdef:=tprocdef(tloadnode(p).symtableentry.owner.defowner);
+           result:=true;
+         end;
       end;
 
 
@@ -1606,6 +1630,10 @@ implementation
               if (tmpeq=te_incompatible) and
                  (m_nested_procvars in current_settings.modeswitches) and
                  is_proc2procvar_load(p.left,realprocdef) then
+                tmpeq:=proc_to_procvar_equal(realprocdef,tprocvardef(def_to),false);
+              if (tmpeq=te_incompatible) and
+                 (m_mac in current_settings.modeswitches) and
+                 is_ambiguous_funcret_load(p.left,realprocdef) then
                 tmpeq:=proc_to_procvar_equal(realprocdef,tprocvardef(def_to),false);
               if tmpeq<>te_incompatible then
                 eq:=tmpeq;
