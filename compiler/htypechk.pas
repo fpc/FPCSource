@@ -709,10 +709,7 @@ implementation
 
     { marks an lvalue as "unregable" }
     procedure make_not_regable_intern(p : tnode; how: tregableinfoflags; records_only: boolean);
-      var
-        update_regable: boolean;
       begin
-        update_regable:=true;
         repeat
           case p.nodetype of
             subscriptn:
@@ -747,8 +744,7 @@ implementation
                   begin
                     if (ra_addr_taken in how) then
                       tabstractvarsym(tloadnode(p).symtableentry).addr_taken:=true;
-                    if update_regable and
-                       (tabstractvarsym(tloadnode(p).symtableentry).varregable <> vr_none) and
+                    if (tabstractvarsym(tloadnode(p).symtableentry).varregable <> vr_none) and
                        ((not records_only) or
                         (tabstractvarsym(tloadnode(p).symtableentry).vardef.typ = recorddef)) then
                       if (tloadnode(p).symtableentry.typ = paravarsym) and
@@ -763,8 +759,7 @@ implementation
               begin
                 if (ra_addr_taken in how) then
                   include(ttemprefnode(p).tempinfo^.flags,ti_addr_taken);
-                if update_regable and
-                   (ti_may_be_in_reg in ttemprefnode(p).tempinfo^.flags) and
+                if (ti_may_be_in_reg in ttemprefnode(p).tempinfo^.flags) and
                    ((not records_only) or
                     (ttemprefnode(p).tempinfo^.typedef.typ = recorddef)) then
                   exclude(ttemprefnode(p).tempinfo^.flags,ti_may_be_in_reg);
