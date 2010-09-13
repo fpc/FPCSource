@@ -2014,6 +2014,7 @@ packages/fcl-json/examples/parsedemo.pp svneol=native#text/plain
 packages/fcl-json/examples/simpledemo.lpi svneol=native#text/plain
 packages/fcl-json/examples/simpledemo.pp svneol=native#text/plain
 packages/fcl-json/fpmake.pp svneol=native#text/plain
+packages/fcl-json/src/README.txt svneol=native#text/plain
 packages/fcl-json/src/fpjson.pp svneol=native#text/plain
 packages/fcl-json/src/jsonconf.pp svneol=native#text/plain
 packages/fcl-json/src/jsonparser.pp svneol=native#text/plain
