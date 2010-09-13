@@ -357,7 +357,7 @@ implementation
         result:=false;
         if (p1.resultdef.typ<>procvardef) or
            (tponly and
-            ([m_tp_procvar,m_mac_procvar] * current_settings.modeswitches = [])) then
+            not(m_tp_procvar in current_settings.modeswitches)) then
           exit;
         { ignore vecn,subscriptn }
         hp:=p1;
