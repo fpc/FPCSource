@@ -362,7 +362,7 @@ type
     function ContextPush(AEntity: TDOMEntityEx): Boolean;
     function ContextPop(Forced: Boolean = False): Boolean;
     procedure XML11_BuildTables;
-    procedure ParseQuantity(CP: TContentParticle);
+    function ParseQuantity: TCPQuant;
     procedure StoreLocation(out Loc: TLocation);
     function ValidateAttrSyntax(AttrDef: TDOMAttrDef; const aValue: WideString): Boolean;
     procedure ValidateAttrValue(Attr: TDOMAttr; const aValue: WideString);
@@ -405,7 +405,7 @@ type
     procedure ExpectEq;
     procedure ParseDoctypeDecl;                                         // [28]
     procedure ParseMarkupDecl;                                          // [29]
-    procedure ParseElement;                                             // [39]
+    procedure ParseStartTag;                                            // [39]
     procedure ParseEndTag;                                              // [42]
     procedure DoEndElement(ErrOffset: Integer);
     procedure ParseAttribute(Elem: TDOMElement; ElDef: TDOMElementDef);
@@ -881,31 +881,25 @@ end;
 procedure TXMLDecodingSource.NewLine;
 begin
   case FBuf^ of
-    #10: begin
-      Inc(FLineNo);
-      LFPos := FBuf;
-    end;
+    #10: ;
     #13: begin
-      Inc(FLineNo);
-      LFPos := FBuf;
       // Reload trashes the buffer, it should be consumed beforehand
       if (FBufEnd >= FBuf+2) or Reload then
       begin
         if (FBuf[1] = #10) or (FXML11Rules and (FBuf[1] = #$85)) then
-        begin
           Inc(FBuf);
-          Inc(LFPos);
-        end;
       end;
       FBuf^ := #10;
     end;
     #$85, #$2028: if FXML11Rules then
-    begin
-      FBuf^ := #10;
-      Inc(FLineNo);
-      LFPos := FBuf;
-    end;
+      FBuf^ := #10
+    else
+      Exit;
+  else
+    Exit;
   end;
+  Inc(FLineNo);
+  LFPos := FBuf;
 end;
 
 { TXMLStreamInputSource }
@@ -2166,13 +2160,14 @@ begin
   ValidationError('Standalone constriant violation', [], LineOffs);
 end;
 
-procedure TXMLReader.ParseQuantity(CP: TContentParticle);
+function TXMLReader.ParseQuantity: TCPQuant;
 begin
   case FSource.FBuf^ of
-    '?': CP.CPQuant := cqZeroOrOnce;
-    '*': CP.CPQuant := cqZeroOrMore;
-    '+': CP.CPQuant := cqOnceOrMore;
+    '?': Result := cqZeroOrOnce;
+    '*': Result := cqZeroOrMore;
+    '+': Result := cqOnceOrMore;
   else
+    Result := cqOnce;
     Exit;
   end;
   FSource.NextChar;
@@ -2214,7 +2209,7 @@ begin
     else
       CurrentCP.Def := FindOrCreateElDef;
 
-    ParseQuantity(CurrentCP);
+    CurrentCP.CPQuant := ParseQuantity;
     SkipWhitespace;
     if FSource.FBuf^ = ')' then
       Break;
@@ -2296,7 +2291,7 @@ begin
         if CurrentEntity <> FSource.FEntity then
           BadPENesting;
         FSource.NextChar;
-        ParseQuantity(CP);
+        CP.CPQuant := ParseQuantity;
       end;
     except
       CP.Free;
@@ -2735,12 +2730,16 @@ const
     [#0, '>']
   );
 
+type
+  TXMLToken = (xtNone, xtText, xtElement, xtEndElement, xtCDSect, xtComment, xtPI, xtDoctype, xtEntity, xtEntityEnd);
+
 procedure TXMLReader.ParseContent;
 var
   nonWs: Boolean;
   wc: WideChar;
   ent: TDOMEntityEx;
   InCDATA: Boolean;
+  tok: TXMLToken;
 begin
   InCDATA := False;
   StoreLocation(FTokenStart);
@@ -2754,18 +2753,9 @@ begin
       if FSource.FBufEnd < FSource.FBuf + 2 then
         FSource.Reload;
       if FSource.FBuf^ = '/' then
-      begin
-        DoText(FValue.Buffer, FValue.Length, not nonWs);
-        if FNesting <= FSource.FStartNesting then
-          FatalError('End-tag is not allowed here');
-        Inc(FSource.FBuf);
-        ParseEndTag;
-      end
+        tok := xtEndElement
       else if CheckName([cnOptional]) then
-      begin
-        DoText(FValue.Buffer, FValue.Length, not nonWs);
-        ParseElement;
-      end
+        tok := xtElement
       else if FSource.FBuf^ = '!' then
       begin
         Inc(FSource.FBuf);
@@ -2776,30 +2766,24 @@ begin
             FatalError('Illegal at document level');
           StoreLocation(FTokenStart);
           InCDATA := True;
-          if not FCDSectionsAsText then
-            DoText(FValue.Buffer, FValue.Length, not nonWs)
-          else
+          if FCDSectionsAsText then
             Continue;
+          tok := xtCDSect;
         end
         else if FSource.FBuf^ = '-' then
         begin
-          if not FIgnoreComments then
-            DoText(FValue.Buffer, FValue.Length, not nonWs);
-          ParseComment;
           if FIgnoreComments then
+          begin
+            ParseComment;
             Continue;
+          end;
+          tok := xtComment;
         end
         else
-        begin
-          DoText(FValue.Buffer, FValue.Length, not nonWs);
-          ParseDoctypeDecl;
-        end;
+          tok := xtDoctype;
       end
       else if FSource.FBuf^ = '?' then
-      begin
-        DoText(FValue.Buffer, FValue.Length, not nonWs);
-        ParsePI;
-      end
+        tok := xtPI
       else
         RaiseNameNotFound;
     end
@@ -2826,7 +2810,7 @@ begin
         InCDATA := False;
         if FCDSectionsAsText then
           Continue;
-        DoCDSect(FValue.Buffer, FValue.Length);
+        tok := xtText;
       end
       else
         FatalError('Literal '']]>'' is not allowed in text', 3);
@@ -2847,17 +2831,26 @@ begin
       else
       begin
         ent := EntityCheck;
-        if (ent = nil) or (not FExpandEntities) then
-        begin
-          DoText(FValue.Buffer, FValue.Length, not nonWs);
-          AppendReference(ent);
-        end
-        else
+        if Assigned(ent) and FExpandEntities then
         begin
           ContextPush(ent);
           Continue;
         end;
+        tok := xtEntity;
       end;
+    end;
+    // flush text accumulated this far
+    if tok = xtText then
+      DoCDSect(FValue.Buffer, FValue.Length)
+    else
+      DoText(FValue.Buffer, FValue.Length, not nonWs);
+    case tok of
+      xtEntity:     AppendReference(ent);
+      xtElement:    ParseStartTag;
+      xtEndElement: ParseEndTag;
+      xtPI:         ParsePI;
+      xtDoctype:    ParseDoctypeDecl;
+      xtComment:    ParseComment;
     end;
     StoreLocation(FTokenStart);
     FValue.Length := 0;
@@ -2882,7 +2875,7 @@ begin
 end;
 
 // Element name already in FNameBuffer
-procedure TXMLReader.ParseElement;    // [39] [40] [44]
+procedure TXMLReader.ParseStartTag;    // [39] [40] [44]
 var
   NewElem: TDOMElement;
   ElDef: TDOMElementDef;
@@ -2968,6 +2961,10 @@ procedure TXMLReader.ParseEndTag;     // [42]
 var
   ElName: PHashItem;
 begin
+  if FNesting <= FSource.FStartNesting then
+    FatalError('End-tag is not allowed here');
+  Inc(FSource.FBuf);
+
   ElName := FValidator[FNesting].FElement.NSI.QName;
 
   CheckName;
@@ -3382,19 +3379,13 @@ procedure TXMLReader.DoCDSect(ch: PWideChar; Count: Integer);
 var
   s: WideString;
 begin
+  Assert(not FCDSectionsAsText, 'Should not be called when CDSectionsAsText=True');
+
   if FCurrContentType = ctChildren then
     ValidationError('CDATA sections are not allowed in element-only content',[]);
 
-  if not FCDSectionsAsText then
-  begin
-    SetString(s, ch, Count);
-    // SAX: LexicalHandler.StartCDATA;
-    // SAX: ContentHandler.Characters(...);
-    FCursor.AppendChild(doc.CreateCDATASection(s));
-    // SAX: LexicalHandler.EndCDATA;
-  end
-  else
-    FCursor.AppendChild(doc.CreateTextNodeBuf(ch, Count, False));
+  SetString(s, ch, Count);
+  FCursor.AppendChild(doc.CreateCDATASection(s));
 end;
 
 procedure TXMLReader.DoNotationDecl(const aName, aPubID, aSysID: WideString);
