@@ -896,8 +896,8 @@ begin
           Inc(FBuf);
           Inc(LFPos);
         end;
-        FBuf^ := #10;
       end;
+      FBuf^ := #10;
     end;
     #$85, #$2028: if FXML11Rules then
     begin
