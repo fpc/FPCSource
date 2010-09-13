@@ -28,7 +28,9 @@ Type
   TJSONParser = Class(TObject)
   Private
     FScanner : TJSONScanner;
+    FStrict: Boolean;
     function ParseNumber: TJSONNumber;
+    procedure SetStrict(const AValue: Boolean);
   Protected
     procedure DoError(const Msg: String);
     function DoParse(AtCurrent,AllowEOF: Boolean): TJSONData;
@@ -42,6 +44,8 @@ Type
     Constructor Create(Source : TStream); overload;
     Constructor Create(Source : TJSONStringType); overload;
     destructor Destroy();override;
+    // Use strict JSON: " for strings, object members are strings, not identifiers
+    Property Strict : Boolean Read FStrict Write SetStrict;
   end;
   
   EJSONScanner = Class(Exception);
@@ -82,7 +86,7 @@ end;
 Function TJSONParser.CurrentTokenString : String;
 
 begin
-  If CurrentToken in [tkString,tkNumber] then
+  If CurrentToken in [tkString,tkIdentifier,tkNumber] then
     Result:=FScanner.CurTokenString
   else
     Result:=TokenInfos[CurrentToken];
@@ -147,6 +151,15 @@ begin
     end;
 end;
 
+procedure TJSONParser.SetStrict(const AValue: Boolean);
+begin
+  if (FStrict=AValue) then
+     exit;
+  FStrict:=AValue;
+  If Assigned(FScanner) then
+    FScanner.Strict:=Fstrict;
+end;
+
 // Current token is {, on exit current token is }
 Function TJSONParser.ParseObject : TJSONObject;
 
@@ -161,7 +174,7 @@ begin
     T:=GetNextToken;
     While T<>tkCurlyBraceClose do
       begin
-      If T<>tkString then
+      If (T<>tkString) and (T<>tkIdentifier) then
         DoError(SErrExpectedElementName);
       N:=CurrentTokenString;
       T:=GetNextToken;
