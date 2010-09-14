@@ -318,7 +318,6 @@ type
     FCtrl: TDOMParser;
     FXML11: Boolean;
     FState: TXMLReadState;
-    FRecognizePE: Boolean;
     FHavePERefs: Boolean;
     FInsideDecl: Boolean;
     FValue: TWideCharBuf;
@@ -1160,7 +1159,7 @@ begin
     end
     else if FSource.FBuf^ = '%' then
     begin
-      if not FRecognizePE then
+      if (FState <> rsDTD) or ((FSource.DTDSubsetType = dsInternal) and FInsideDecl) then
         Break;
 // This is the only case where look-ahead is needed
       if FSource.FBuf > FSource.FBufEnd-2 then
@@ -2558,9 +2557,7 @@ begin
   IncludeLevel := 0;
   IgnoreLevel := 0;
   repeat
-    FRecognizePE := True;      // PERef between declarations should always be recognized
     SkipWhitespace;
-    FRecognizePE := False;
 
     if (FSource.FBuf^ = ']') and (IncludeLevel > 0) then
     begin
@@ -2586,7 +2583,6 @@ begin
         if FSource.DTDSubsetType = dsInternal then
           FatalError('Conditional sections are not allowed in internal subset', 1);
 
-        FRecognizePE := True;
         SkipWhitespace;
 
         CondType := ctUnknown;  // satisfy compiler
@@ -2627,7 +2623,6 @@ begin
       end
       else
       begin
-        FRecognizePE := FSource.DTDSubsetType <> dsInternal;
         FInsideDecl := True;
         if FSource.Matches('ELEMENT') then
           ParseElementDecl
@@ -2641,7 +2636,6 @@ begin
           FatalError('Illegal markup declaration');
 
         SkipWhitespace;
-        FRecognizePE := False;
 
         if CurrentEntity <> FSource.FEntity then
           BadPENesting;
@@ -2650,7 +2644,6 @@ begin
       end;
     end;
   until False;
-  FRecognizePE := False;
   if IncludeLevel > 0 then
     DoErrorPos(esFatal, 'INCLUDE section is not closed', IncludeLoc);
   if (FSource.DTDSubsetType = dsInternal) and (FSource.FBuf^ = ']') then
