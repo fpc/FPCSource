@@ -2434,6 +2434,7 @@ var
   Body: TProcedureBody;
 begin
   Body := TProcedureBody(CreateElement(TProcedureBody, '', Parent));
+  TPasProcedure(Parent).Body:=Body;
   ParseDeclarations(Body);
 end;
 

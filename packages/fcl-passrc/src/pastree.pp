@@ -595,6 +595,8 @@ type
   TProcedureModifiers = Set of TProcedureModifier;
   TProcedureMessageType = (pmtInteger,pmtString);
                         
+  TProcedureBody = class;
+
   TPasProcedure = class(TPasProcedureBase)
   Private
     FCallingConvention : TCallingConvention;
@@ -609,6 +611,7 @@ type
     procedure GetModifiers(List: TStrings);
   public
     ProcType : TPasProcedureType;
+    Body : TProcedureBody;
     Procedure AddModifier(AModifier : TProcedureModifier);
     Function IsVirtual : Boolean;
     Function IsDynamic : Boolean;
@@ -1487,6 +1490,8 @@ destructor TPasProcedure.Destroy;
 begin
   if Assigned(ProcType) then
     ProcType.Release;
+  if Assigned(Body) then
+    Body.Release;
   inherited Destroy;
 end;
 
