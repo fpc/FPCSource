@@ -532,6 +532,8 @@ end;
 {************************************************************************}
 {*                     320x200x4 CGA mode routines                      *}
 {************************************************************************}
+var
+  CurrentCGABorder: Word;
 
 procedure SetCGAPalette(CGAPaletteID: Byte); assembler;
 asm
@@ -556,7 +558,7 @@ asm
 {$endif fpc}
 end;
 
-procedure SetCGABorder(CGAPaletteID: Byte); assembler;
+procedure SetCGABorder(CGABorder: Byte); assembler;
 asm
 {$IFNDEF REGCALL}
   mov ax,val_ax
@@ -579,6 +581,19 @@ asm
 {$endif fpc}
 end;
 
+procedure SetBkColorCGA320(ColorNum: Word);
+begin
+  if ColorNum > 15 then
+    exit;
+  CurrentCGABorder := (CurrentCGABorder and 16) or ColorNum;
+  SetCGABorder(CurrentCGABorder);
+end;
+
+function GetBkColorCGA320: Word;
+begin
+  GetBkColorCGA320 := CurrentCGABorder and 15;
+end;
+
 procedure InitCGA320C0;
 begin
   if DontClearGraphMemory then
@@ -587,6 +602,7 @@ begin
     CallInt10($04);
   SetCGAPalette(0);
   SetCGABorder(16);
+  CurrentCGABorder := 16;
 end;
 
 procedure InitCGA320C1;
@@ -597,6 +613,7 @@ begin
     CallInt10($04);
   SetCGAPalette(1);
   SetCGABorder(16);
+  CurrentCGABorder := 16;
 end;
 
 procedure InitCGA320C2;
@@ -607,6 +624,7 @@ begin
     CallInt10($04);
   SetCGAPalette(2);
   SetCGABorder(0);
+  CurrentCGABorder := 0;
 end;
 
 procedure InitCGA320C3;
@@ -617,6 +635,7 @@ begin
     CallInt10($04);
   SetCGAPalette(3);
   SetCGABorder(0);
+  CurrentCGABorder := 0;
 end;
 
 procedure PutPixelCGA320(X, Y: SmallInt; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
@@ -910,6 +929,23 @@ begin
     CallInt10($86)
   else
     CallInt10($06);
+  CurrentCGABorder := 0; {yes, TP7 CGA.BGI behaves *exactly* like that}
+end;
+
+{yes, TP7 CGA.BGI behaves *exactly* like that}
+procedure SetBkColorCGA640(ColorNum: Word);
+begin
+  if ColorNum > 15 then
+    exit;
+  CurrentCGABorder := ColorNum;
+  if ColorNum = 0 then
+    exit;
+  SetCGABorder(CurrentCGABorder);
+end;
+
+function GetBkColorCGA640: Word;
+begin
+  GetBkColorCGA640 := CurrentCGABorder and 15;
 end;
 
 procedure PutPixelCGA640(X, Y: SmallInt; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
@@ -3583,6 +3619,8 @@ const CrtAddress: word = 0;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C0;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
+         mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA320;
+         mode.GetBkColor := {$ifdef fpc}@{$endif}GetBkColorCGA320;
          mode.XAspect := 8333;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3607,6 +3645,8 @@ const CrtAddress: word = 0;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C1;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
+         mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA320;
+         mode.GetBkColor := {$ifdef fpc}@{$endif}GetBkColorCGA320;
          mode.XAspect := 8333;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3631,6 +3671,8 @@ const CrtAddress: word = 0;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C2;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
+         mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA320;
+         mode.GetBkColor := {$ifdef fpc}@{$endif}GetBkColorCGA320;
          mode.XAspect := 8333;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3655,6 +3697,8 @@ const CrtAddress: word = 0;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C3;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
+         mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA320;
+         mode.GetBkColor := {$ifdef fpc}@{$endif}GetBkColorCGA320;
          mode.XAspect := 8333;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3679,6 +3723,8 @@ const CrtAddress: word = 0;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA640;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA640;
+         mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA640;
+         mode.GetBkColor := {$ifdef fpc}@{$endif}GetBkColorCGA640;
          mode.XAspect := 4167;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3782,6 +3828,8 @@ const CrtAddress: word = 0;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C0;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
+         mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA320;
+         mode.GetBkColor := {$ifdef fpc}@{$endif}GetBkColorCGA320;
          mode.XAspect := 8333;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3806,6 +3854,8 @@ const CrtAddress: word = 0;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C1;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
+         mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA320;
+         mode.GetBkColor := {$ifdef fpc}@{$endif}GetBkColorCGA320;
          mode.XAspect := 8333;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3830,6 +3880,8 @@ const CrtAddress: word = 0;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C2;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
+         mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA320;
+         mode.GetBkColor := {$ifdef fpc}@{$endif}GetBkColorCGA320;
          mode.XAspect := 8333;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3854,6 +3906,8 @@ const CrtAddress: word = 0;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C3;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
+         mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA320;
+         mode.GetBkColor := {$ifdef fpc}@{$endif}GetBkColorCGA320;
          mode.XAspect := 8333;
          mode.YAspect := 10000;
          AddMode(mode);
@@ -3878,6 +3932,8 @@ const CrtAddress: word = 0;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA640;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA640;
+         mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA640;
+         mode.GetBkColor := {$ifdef fpc}@{$endif}GetBkColorCGA640;
          mode.XAspect := 4167;
          mode.YAspect := 10000;
          AddMode(mode);
