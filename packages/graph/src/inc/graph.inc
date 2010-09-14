@@ -1254,6 +1254,8 @@ end;
 
   procedure OutTextXYDefault(x,y : smallint;const TextString : string);forward;
   procedure CircleDefault(X, Y: smallint; Radius:Word);forward;
+  procedure SetBkColorDefault(ColorNum: Word);forward;
+  function GetBkColorDefault: Word;forward;
 
 {$i palette.inc}
 
@@ -1292,6 +1294,8 @@ end;
     VLine := {$ifdef fpc}@{$endif}VLineDefault;
     OuttextXY := {$ifdef fpc}@{$endif}OuttextXYDefault;
     Circle := {$ifdef fpc}@{$endif}CircleDefault;
+    SetBkColor := {$ifdef fpc}@{$endif}SetBkColorDefault;
+    GetBkColor := {$ifdef fpc}@{$endif}GetBkColorDefault;
   end;
 
   Procedure InitVars;
@@ -1686,14 +1690,14 @@ end;
      GetColor := CurrentColor;
    end;
 
-  function GetBkColor: Word;
+  function GetBkColorDefault: Word;
 
    Begin
-     GetBkColor := CurrentBkColor;
+     GetBkColorDefault := CurrentBkColor;
    end;
 
 
-  procedure SetBkColor(ColorNum: Word);
+  procedure SetBkColorDefault(ColorNum: Word);
   { Background color means background screen color in this case, and it is  }
   { INDEPENDANT of the viewport settings, so we must clear the whole screen }
   { with the color.                                                         }

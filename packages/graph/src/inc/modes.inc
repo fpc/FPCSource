@@ -524,6 +524,10 @@ end;
          SetActivePage := modeInfo^.SetActivePage;
       if assigned(modeInfo^.OutTextXY) then
          OutTextXY:=modeInfo^.OutTextXY;
+      if assigned(modeInfo^.SetBkColor) then
+         SetBkColor:=modeInfo^.SetBkColor;
+      if assigned(modeInfo^.GetBkColor) then
+         GetBkColor:=modeInfo^.GetBkColor;
 
       IntCurrentMode := modeinfo^.ModeNumber;
       { fix by nickysn: always set *both* IntCurrentDriver and IntCurrentNewDriver to the

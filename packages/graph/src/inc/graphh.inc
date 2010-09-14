@@ -589,6 +589,9 @@ TYPE
 
        CircleProc = procedure(X, Y: smallint; Radius:Word);
 
+       SetBkColorProc = procedure(ColorNum: Word);
+       GetBkColorProc = function: Word;
+
 
 TYPE
     {-----------------------------------}
@@ -639,6 +642,8 @@ TYPE
       Circle         : CircleProc;
       InitMode       : InitModeProc;
       OutTextXY : OutTextXYProc;
+      SetBKColor     : SetBkColorProc;
+      GetBKColor     : GetBkColorProc;
       next: PModeInfo;
     end;
 
@@ -665,6 +670,8 @@ VAR
   GetRGBPalette  : GetRGBPaletteProc;
   SetAllPalette  : SetAllPaletteProc;
   OutTextXY      : OutTextXYProc;
+  SetBkColor     : SetBkColorProc;
+  GetBkColor     : GetBkColorProc;
 
   GraphFreeMemPtr: graphfreememprc;
   GraphGetMemPtr : graphgetmemprc;
@@ -769,9 +776,7 @@ Function GetDriverName: string;
  function GetDirectVideo: boolean;
 
  { -------------------- Color/Palette ------------------------------- }
- procedure SetBkColor(ColorNum: Word);
  function  GetColor: Word;
- function  GetBkColor: Word;
  procedure SetColor(Color: Word);
  function  GetMaxColor: word;
 
