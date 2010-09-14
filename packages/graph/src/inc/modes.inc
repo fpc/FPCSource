@@ -395,7 +395,7 @@ end;
     var
      modeinfo: PModeInfo;
      usedDriver: Integer;
-     dummyNewModeNr: Integer;
+     dummyNewModeNr: smallint;
     begin
       { check if the mode exists... }
       { Depending on the modenumber, we search using the old or new }
