@@ -1,0 +1,11 @@
+{
+  Contains the TMysqlConnection for MySQL 5.1
+}
+
+unit mysql51conn;
+
+{$DEFINE MYSQL51}
+
+{$i mysqlconn.inc}
+
+end.
