@@ -1439,7 +1439,12 @@ Begin
             7: Result := Result + FormatSettings.CurrencyString + '-';
             8: Result := '-' + Result + ' ' + FormatSettings.CurrencyString;
             9: Result := '-' + FormatSettings.CurrencyString + ' ' + Result;
-            10: Result := FormatSettings.CurrencyString + ' ' + Result + '-';
+            10: Result := Result + ' ' + FormatSettings.CurrencyString + '-';
+            11: Result := FormatSettings.CurrencyString + ' ' + Result + '-';
+            12: Result := FormatSettings.CurrencyString + ' ' + '-' + Result;
+            13: Result := Result + '-' + ' ' + FormatSettings.CurrencyString;
+            14: Result := '(' + FormatSettings.CurrencyString + ' ' + Result + ')';
+            15: Result := '(' + Result + ' ' + FormatSettings.CurrencyString + ')';
           End;
         End;
       End;
