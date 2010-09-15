@@ -96,7 +96,9 @@ implementation
                  { stored in memory... }
                  (tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.loc in [LOC_REFERENCE]) and
                  { ... at the place we are looking for }
-                 references_equal(tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.reference,rr^.old^) then
+                 references_equal(tabstractnormalvarsym(tloadnode(n).symtableentry).localloc.reference,rr^.old^) and
+                 { its address cannot have escaped the current routine }
+                 not(tabstractvarsym(tloadnode(n).symtableentry).addr_taken) then
                 begin
                   { relocate variable }
                   tcgloadnode(n).changereflocation(rr^.new^);
@@ -109,7 +111,9 @@ implementation
                  { memory temp... }
                  (ttemprefnode(n).tempinfo^.location.loc in [LOC_REFERENCE]) and
                  { ... at the place we are looking for }
-                 references_equal(ttemprefnode(n).tempinfo^.location.reference,rr^.old^) then
+                 references_equal(ttemprefnode(n).tempinfo^.location.reference,rr^.old^) and
+                 { its address cannot have escaped the current routine }
+                 not(ti_addr_taken in ttemprefnode(n).tempinfo^.flags) then
                 begin
                   { relocate the temp }
                   tcgtemprefnode(n).changelocation(rr^.new^);
