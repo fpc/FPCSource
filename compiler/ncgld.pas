@@ -123,11 +123,18 @@ implementation
           { Subscriptn must be rejected, otherwise we may replace an
             an entire record with a temp for its first field, mantis #13948)
             Exception: the field's size is the same as the entire record
+
+            The same goes for array indexing
           }
-          subscriptn:
-            if not(tsubscriptnode(n).left.resultdef.typ in [recorddef,objectdef]) or
-               (tsubscriptnode(n).left.resultdef.size <> tsubscriptnode(n).resultdef.size) then
+          subscriptn,
+          vecn:
+            if not(tunarynode(n).left.resultdef.typ in [recorddef,objectdef,arraydef,stringdef]) or
+               { make sure we don't try to call resultdef.size for types that
+                 don't have a compile-time size such as open arrays }
+               is_special_array(tunarynode(n).left.resultdef) or
+               (tsubscriptnode(n).left.resultdef.size <> tunarynode(n).resultdef.size) then
               result := fen_norecurse_false;
+
           { optimize the searching a bit }
           derefn,addrn,
           calln,inlinen,casen,
