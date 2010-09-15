@@ -838,8 +838,13 @@ implementation
           begin
             pop_size:=pushedparasize;
             { for Cdecl functions we don't need to pop the funcret when it
-              was pushed by para }
-            if paramanager.ret_in_param(procdefinition.returndef,procdefinition.proccalloption) then
+              was pushed by para. Except for safecall functions with
+              safecall-exceptions enabled. In that case the funcret is always
+              returned as a para which is considered a normal para on the
+              c-side, so the funcret has to be pop'ed normally. }
+            if not ((procdefinition.proccalloption=pocall_safecall) and
+                    (tf_safecall_exceptions in target_info.flags)) and
+               paramanager.ret_in_param(procdefinition.returndef,procdefinition.proccalloption) then
               dec(pop_size,sizeof(pint));
             { Remove parameters/alignment from the stack }
             pop_parasize(pop_size);

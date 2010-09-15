@@ -91,12 +91,6 @@ implementation
             paramanager.ret_in_param(procdefinition.returndef,procdefinition.proccalloption) then
           inc(pop_size,sizeof(aint));
 
-        { Safecall generates a hidden return value, which is always passed }
-        { in eax. So there is nothing to remove from the stack.            }
-        if (tf_safecall_exceptions in target_info.flags) and
-           (procdefinition.proccalloption=pocall_safecall) then
-          inc(pop_size,sizeof(aint));
-
         { better than an add on all processors }
         if pop_size=4 then
           begin
