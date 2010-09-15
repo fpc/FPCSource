@@ -202,6 +202,7 @@ begin
     PortW[$3B4] := I or (RegValues[I] shl 8);
   Port[$3B8] := 10; { display page 0, graphic mode, display on }
   DosMemFillChar($B000, 0, 65536, #0);
+  VideoOfs := 0;
 end;
 
 procedure SetHGCRGBPalette(ColorNum, RedValue, GreenValue,
@@ -600,6 +601,7 @@ begin
     CallInt10($84)
   else
     CallInt10($04);
+  VideoOfs := 0;
   SetCGAPalette(0);
   SetCGABorder(16);
   CurrentCGABorder := 16;
@@ -611,6 +613,7 @@ begin
     CallInt10($84)
   else
     CallInt10($04);
+  VideoOfs := 0;
   SetCGAPalette(1);
   SetCGABorder(16);
   CurrentCGABorder := 16;
@@ -622,6 +625,7 @@ begin
     CallInt10($84)
   else
     CallInt10($04);
+  VideoOfs := 0;
   SetCGAPalette(2);
   SetCGABorder(0);
   CurrentCGABorder := 0;
@@ -633,6 +637,7 @@ begin
     CallInt10($84)
   else
     CallInt10($04);
+  VideoOfs := 0;
   SetCGAPalette(3);
   SetCGABorder(0);
   CurrentCGABorder := 0;
@@ -929,6 +934,7 @@ begin
     CallInt10($86)
   else
     CallInt10($06);
+  VideoOfs := 0;
   CurrentCGABorder := 0; {yes, TP7 CGA.BGI behaves *exactly* like that}
 end;
 
@@ -1239,6 +1245,7 @@ begin
     CallInt10($91)
   else
     CallInt10($11);
+  VideoOfs := 0;
 end;
 
 procedure PutPixelMCGA640(X, Y: SmallInt; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
@@ -1523,6 +1530,7 @@ end;
         CallInt10($8e)
       else
         CallInt10($e);
+      VideoOfs := 0;
     end;
 
 
@@ -1532,6 +1540,7 @@ end;
         CallInt10($90)
       else
         CallInt10($10);
+      VideoOfs := 0;
     end;
 
 
@@ -1542,6 +1551,7 @@ end;
         CallInt10($92)
       else
         CallInt10($12);
+      VideoOfs := 0;
     end;
 
 
@@ -2313,19 +2323,6 @@ End;
   End;
 
 
- procedure SetVisual480(page: word); {$ifndef fpc}far;{$endif fpc}
- { no page flipping supPort in 640x480 mode }
-  begin
-    VideoOfs := 0;
-  end;
-
- procedure SetActive480(page: word); {$ifndef fpc}far;{$endif fpc}
- { no page flipping supPort in 640x480 mode }
-  begin
-    VideoOfs := 0;
-  end;
-
-
  procedure SetVisual200(page: word); {$ifndef fpc}far;{$endif fpc}
   { two page supPort... }
   begin
@@ -2421,6 +2418,7 @@ End;
         CallInt10($93)
       else
         CallInt10($13);
+      VideoOfs := 0;
     end;
 
 
@@ -3615,8 +3613,6 @@ const CrtAddress: word = 0;
          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
          mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C0;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
          mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA320;
@@ -3641,8 +3637,6 @@ const CrtAddress: word = 0;
          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
          mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C1;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
          mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA320;
@@ -3667,8 +3661,6 @@ const CrtAddress: word = 0;
          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
          mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C2;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
          mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA320;
@@ -3693,8 +3685,6 @@ const CrtAddress: word = 0;
          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
          mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C3;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
          mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA320;
@@ -3719,8 +3709,6 @@ const CrtAddress: word = 0;
          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
          mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA640;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA640;
          mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA640;
@@ -3824,8 +3812,6 @@ const CrtAddress: word = 0;
          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
          mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C0;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
          mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA320;
@@ -3850,8 +3836,6 @@ const CrtAddress: word = 0;
          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
          mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C1;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
          mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA320;
@@ -3876,8 +3860,6 @@ const CrtAddress: word = 0;
          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
          mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C2;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
          mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA320;
@@ -3902,8 +3884,6 @@ const CrtAddress: word = 0;
          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
          mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA320C3;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA320;
          mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA320;
@@ -3928,8 +3908,6 @@ const CrtAddress: word = 0;
          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
          mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitCGA640;
          mode.HLine := {$ifdef fpc}@{$endif}HLineCGA640;
          mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorCGA640;
@@ -3954,8 +3932,6 @@ const CrtAddress: word = 0;
          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
          mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}InitMCGA640;
          mode.HLine := {$ifdef fpc}@{$endif}HLineMCGA640;
          mode.XAspect := 10000;
@@ -3980,8 +3956,6 @@ const CrtAddress: word = 0;
          mode.SetRGBPalette := {$ifdef fpc}@{$endif}SetVGARGBPalette;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
          mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual320;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive320;
          mode.InitMode := {$ifdef fpc}@{$endif}Init320;
          mode.XAspect := 8333;
          mode.YAspect := 10000;
@@ -4080,8 +4054,6 @@ const CrtAddress: word = 0;
          mode.GetRGBPalette := {$ifdef fpc}@{$endif}GetVGARGBPalette;
          mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
          mode.InitMode := {$ifdef fpc}@{$endif}Init640x480x16;
-         mode.SetVisualPage := {$ifdef fpc}@{$endif}SetVisual480;
-         mode.SetActivePage := {$ifdef fpc}@{$endif}SetActive480;
          mode.HLine := {$ifdef fpc}@{$endif}HLine16;
          mode.VLine := {$ifdef fpc}@{$endif}VLine16;
          mode.GetScanLine := {$ifdef fpc}@{$endif}GetScanLine16;
