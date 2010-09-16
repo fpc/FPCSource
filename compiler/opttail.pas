@@ -52,7 +52,7 @@ unit opttail;
 
         function is_recursivecall(n : tnode) : boolean;
           begin
-            result:=(n.nodetype=calln) and (tcallnode(n).procdefinition=p);
+            result:=(n.nodetype=calln) and (tcallnode(n).procdefinition=p) and not(assigned(tcallnode(n).methodpointer));
             if result then
               usedcallnode:=tcallnode(n)
             else
