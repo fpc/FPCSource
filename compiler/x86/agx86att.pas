@@ -55,7 +55,7 @@ interface
         procedure WriteInstruction(hp: tai);override;
      end;
 
-      
+
 
   implementation
 
@@ -260,7 +260,7 @@ interface
                  else if taicpu(hp).oper[1]^.typ = top_ref then
                    need_second_mov:=true
                  else
-                   internalerror(20100902011);
+                   internalerror(2010090211);
                end;
            end;
         owner.AsmWrite(#9);
