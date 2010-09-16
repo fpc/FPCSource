@@ -921,7 +921,11 @@ begin
   seek(e.f,e.sechdrofs);
   for i:= 1 to e.nsects do
     begin
+      {$I-}
       blockread (e.f, block, sizeof(block));
+      {$I+}
+      if IOResult <> 0 then
+        Exit;
       if block.cmd = $2   then
       begin
           blockread (e.f, symbolsSeg, sizeof(symbolsSeg));
