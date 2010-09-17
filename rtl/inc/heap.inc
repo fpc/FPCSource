@@ -970,6 +970,13 @@ var
   iter : cardinal;
 begin
   result:=nil;
+  { check for maximum possible allocation (everything is rounded up to the
+    next multiple of 64k) }
+  if (size>high(ptruint)-$ffff) then
+    if ReturnNilIfGrowHeapFails then
+      exit
+    else
+      HandleError(204);
   { free pending items }
   loc_freelists := @freelists;
   try_finish_waitvarlist(loc_freelists);
