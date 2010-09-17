@@ -1,4 +1,4 @@
-{ %opt=-O2 -Cs1000000 }
+{ %opt=-Ootailrec -Cs1000000 }
 
 {$mode objfpc}
 { check if tail recursion optimization works, at least on 32 bit OSes }
