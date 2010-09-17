@@ -8,7 +8,7 @@ version=2.5.1
 
 [target]
 units=MacOSAll MacOS
-implicitunits=  ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs AEDataModel \
+implicitunits=ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs AEDataModel \
   AEHelpers AEInteraction AEMach AEObjects AEPackObject AERegistry \
   AEUserTermTypes AIFF ASDebugging ASRegistry ATSFont ATSLayoutTypes \
   ATSTypes ATSUnicodeDirectAccess ATSUnicodeDrawing ATSUnicodeFlattening \
@@ -54,6 +54,7 @@ implicitunits=  ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs AEDa
   DigitalHubRegistry Displays Drag DrawSprocket DriverServices \
   DriverSynchronization Endian Events FSEvents FileTypesAndCreators Files \
   Finder FinderRegistry FixMath Folders FontPanel FontSync Fonts GestaltEqu \
+  GPCStrings \
   HFSVolumes HIAccessibility HIArchive HIButtonViews HIClockView HIComboBox \
   HIContainerViews HIDataBrowser HIDisclosureViews HIGeometry HIImageViews \
   HILittleArrows HIMenuView HIMovieView HIObject HIPopupButton \
@@ -85,15 +86,17 @@ implicitunits=  ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs AEDa
   SCDynamicStoreKey SCNetwork SCNetworkConfiguration SCNetworkConnection \
   SCNetworkReachability SCPreferences SCPreferencesPath \
   SCPreferencesSetSpecific SCSI SCSchemaDefinitions SFNTLayoutTypes \
-  SFNTTypes ScalerStreamTypes Scrap Script SecBase Sound SpeechRecognition \
+  SFNTTypes ScalerStreamTypes Scrap Script SecBase SecTrust Sound \
+  SpeechRecognition \
   SpeechSynthesis StringCompare SystemConfiguration SystemSound TSMTE \
   TextCommon TextEdit TextEncodingConverter TextEncodingPlugin \
   TextInputSources TextServices TextUtils Threads Timer ToolUtils \
   Translation TranslationExtensions TranslationServices TypeSelect \
   URLAccess UTCUtils UTCoreTypes UTType UnicodeConverter UnicodeUtilities \
   UniversalAccess Video WSMethodInvocation WSProtocolHandler WSTypes cblas \
+  certextensions cssmapple cssmconfig cssmerr cssmkrapi cssmtype \
   fenv fp gliContexts gliDispatch gluContext macgl macglext macglu vBLAS \
-  vDSP xattr   
+  vDSP x509defs xattr 
 exampledirs=examples
 
 [libs]

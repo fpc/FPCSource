@@ -399,6 +399,7 @@ uses
   Scrap,
   Script,
   SecBase,
+  SecTrust,
   Sound,
   SpeechRecognition,
   SpeechSynthesis,
@@ -432,6 +433,12 @@ uses
   WSProtocolHandler,
   WSTypes,
   cblas,
+  certextensions,
+  cssmapple,
+  cssmconfig,
+  cssmerr,
+  cssmkrapi,
+  cssmtype,
   fenv,
   fp,
   gliContexts,
@@ -442,6 +449,7 @@ uses
   macglu,
   vBLAS,
   vDSP,
+  x509defs,
   xattr,
   GPCStrings;
 

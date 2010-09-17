@@ -214,6 +214,7 @@ type
     SIGNEDBYTE = SInt8;
     UNSIGNEDWORD = UInt16;
     SIGNEDWORD = SInt16;
+    UInt32_fix = UInt32;
 
 type
 {$ifc TARGET_CPU_64}
@@ -223,7 +224,8 @@ type
     UNSIGNEDLONG = UInt32;
     SIGNEDLONG = SInt32;
 {$endc}
-
+    MacPtrUInt = UNSIGNEDLONG;
+    MacPtrSInt = SIGNEDLONG;
 
 
 {$ifc TARGET_RT_BIG_ENDIAN}

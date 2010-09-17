@@ -250,10 +250,10 @@ const
 	}	
     { Latin Transcription. Used with kCFStringTokenizerUnitWord or
         kCFStringTokenizerUnitWordBoundary }
-	kCFStringTokenizerAttributeLatinTranscription = 1 << 16;
+	kCFStringTokenizerAttributeLatinTranscription = 1 shl 16;
     { Language in BCP 47 string. Used with kCFStringTokenizerUnitSentence
 	   or kCFStringTokenizerUnitParagraph. }
-	kCFStringTokenizerAttributeLanguage = 1 << 17;
+	kCFStringTokenizerAttributeLanguage = 1 shl 17;
 
 {!
 	Token type
@@ -265,23 +265,23 @@ const
 	kCFStringTokenizerTokenNone = 0;
     
 	{ Normal token }
-	kCFStringTokenizerTokenNormal = 1 << 0;
+	kCFStringTokenizerTokenNormal = 1 shl 0;
     
 	{!
     Compound token which may contain subtokens but with no derived subtokens.
     Its subtokens can be obtained by calling CFStringTokenizerGetCurrentSubTokens.
     }
-	kCFStringTokenizerTokenHasSubTokensMask = 1 << 1;
+	kCFStringTokenizerTokenHasSubTokensMask = 1 shl 1;
     
 	{!
     Compound token which may contain derived subtokens. 
     Its subtokens and derived subtokens can be obtained by calling
     CFStringTokenizerGetCurrentSubTokens.
     }
-	kCFStringTokenizerTokenHasDerivedSubTokensMask = 1 << 2;
-	kCFStringTokenizerTokenHasHasNumbersMask = 1 << 3;
-	kCFStringTokenizerTokenHasNonLettersMask = 1 << 4;
-	kCFStringTokenizerTokenIsCJWordMask = 1 << 5;
+	kCFStringTokenizerTokenHasDerivedSubTokensMask = 1 shl 2;
+	kCFStringTokenizerTokenHasHasNumbersMask = 1 shl 3;
+	kCFStringTokenizerTokenHasNonLettersMask = 1 shl 4;
+	kCFStringTokenizerTokenIsCJWordMask = 1 shl 5;
 type
 	CFStringTokenizerTokenType = CFOptionFlags;
 
