@@ -1246,6 +1246,20 @@ begin
   else
     CallInt10($11);
   VideoOfs := 0;
+  CurrentCGABorder := 0; {yes, TP7 CGA.BGI behaves *exactly* like that}
+end;
+
+procedure SetBkColorMCGA640(ColorNum: Word);
+begin
+  if ColorNum > 15 then
+    exit;
+  CurrentCGABorder := (CurrentCGABorder and 16) or ColorNum;
+  SetCGABorder(CurrentCGABorder);
+end;
+
+function GetBkColorMCGA640: Word;
+begin
+  GetBkColorMCGA640 := CurrentCGABorder and 15;
 end;
 
 procedure PutPixelMCGA640(X, Y: SmallInt; Pixel: Word); {$ifndef fpc}far;{$endif fpc}
@@ -3934,6 +3948,8 @@ const CrtAddress: word = 0;
          mode.SetAllPalette := {$ifdef fpc}@{$endif}SetVGARGBAllPalette;
          mode.InitMode := {$ifdef fpc}@{$endif}InitMCGA640;
          mode.HLine := {$ifdef fpc}@{$endif}HLineMCGA640;
+         mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorMCGA640;
+         mode.GetBkColor := {$ifdef fpc}@{$endif}GetBkColorMCGA640;
          mode.XAspect := 10000;
          mode.YAspect := 10000;
          AddMode(mode);
