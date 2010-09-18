@@ -49,6 +49,14 @@ begin
   end;
 end;
 
+procedure FreePixArray;
+var
+  Y: Integer;
+begin
+  for Y := 0 to YRes - 1 do
+    FreeMem(PixArray[Y], XRes * SizeOf(TPixelColor));
+end;
+
 procedure TestFinalResult;
 var
   X, Y: Integer;
@@ -161,6 +169,8 @@ begin
   TestDraw(TestParams);
 
   TestFinalResult;
+
+  FreePixArray;
 
   CloseGraph;
   Writeln('Ok');
