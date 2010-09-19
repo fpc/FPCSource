@@ -230,12 +230,16 @@ interface
 {$i fp.pas}
 {unit gliContexts}
 {$i gliContexts.pas}
+{unit kern_return}
+{$i kern_return.pas}
 {unit macgl}
 {$i macgl.pas}
 {unit macglext}
 {$i macglext.pas}
 {unit macglu}
 {$i macglu.pas}
+{unit mach_error}
+{$i mach_error.pas}
 {unit vBLAS}
 {$i vBLAS.pas}
 {unit vDSP}
@@ -384,6 +388,8 @@ interface
 {$i HostTime.pas}
 {unit ICACamera}
 {$i ICACamera.pas}
+{unit IOKitReturn}
+{$i IOKitReturn.pas}
 {unit IconStorage}
 {$i IconStorage.pas}
 {unit IntlResources}
@@ -530,6 +536,8 @@ interface
 {$i Events.pas}
 {unit HITextLengthFilter}
 {$i HITextLengthFilter.pas}
+{unit IOSurfaceAPI}
+{$i IOSurfaceAPI.pas}
 {unit MDItem}
 {$i MDItem.pas}
 {unit MDQuery}
@@ -1093,6 +1101,46 @@ begin
 end;
 
 {$endc} {TARGET_OS_MAC}
+
+{implementation of unit mach_error}
+
+
+{$push}
+{$R-,Q-}
+
+function err_system(x: mach_error_t): mach_error_t; inline;
+begin
+  err_system:=(((x) and $3f) shl 26)
+end;
+
+function err_sub(x: mach_error_t): mach_error_t; inline;
+begin
+  err_sub:=(((x) shr 14) and $fff)
+end;
+
+
+function err_get_system(err: mach_error_t): mach_error_t; inline;
+begin
+  err_get_system:=(((err) shr 26) and $3f)
+end;
+
+function err_get_sub(err: mach_error_t): mach_error_t; inline;
+begin
+  err_get_sub:=(((err) shr 14) and $fff)
+end;
+
+function err_get_code(err: mach_error_t): mach_error_t; inline;
+begin
+  err_get_code:=((err) and $3fff)
+end;
+
+
+function unix_err(errno: SInt32): mach_error_t; inline;
+begin
+  unix_err:=err_kern or (((3) and $fff) shl 14) or errno;
+end;
+
+{$pop}
 
 {implementation of unit CFByteOrders}
 
@@ -1713,6 +1761,29 @@ begin
 end;
 
 
+
+{implementation of unit IOKitReturn}
+
+
+{$push}
+{$R-,Q-}
+
+function iokit_common_err(ret: IOReturn): IOReturn; inline;
+begin
+  iokit_common_err:=(sys_iokit or sub_iokit_common or (ret))
+end;
+
+function iokit_family_err(sub, ret: IOReturn): IOReturn; inline;
+begin
+  iokit_family_err:=(sys_iokit or (sub) or (ret))
+end;
+
+function iokit_vendor_specific_err(ret: IOReturn): IOReturn; inline;
+begin
+  iokit_vendor_specific_err:=(sys_iokit or sub_iokit_vendor_specific or (ret))
+end;
+
+{$pop}
 
 {implementation of unit MIDIServices}
 {$ifc TARGET_OS_MAC}

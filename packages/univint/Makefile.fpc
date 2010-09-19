@@ -63,7 +63,8 @@ implicitunits=ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs AEData
   HITextViews HITheme HIToolbar HIToolbox HIToolboxDebugging HIView \
   HIWindowViews HTMLRendering HostTime IBCarbonRuntime ICAApplication \
   ICACamera ICADevice IconStorage Icons IconsCore ImageCodec \
-  ImageCompression InternetConfig IntlResources KeyEvents Keyboards \
+  ImageCompression InternetConfig IntlResources \
+  IOKitReturn IOSurfaceAPI KeyEvents Keyboards \
   KeychainCore KeychainHI LSInfo LSOpen LSQuarantine LSSharedFileList \
   LanguageAnalysis Lists LowMem MDExternalDatastore MDImporter MDItem \
   MDLineage MDQuery MDSchema MIDIDriver MIDIServices MIDISetup \
@@ -95,8 +96,8 @@ implicitunits=ABActions ABAddressBook ABGlobals ABPeoplePicker ABTypedefs AEData
   URLAccess UTCUtils UTCoreTypes UTType UnicodeConverter UnicodeUtilities \
   UniversalAccess Video WSMethodInvocation WSProtocolHandler WSTypes cblas \
   certextensions cssmapple cssmconfig cssmerr cssmkrapi cssmtype \
-  fenv fp gliContexts gliDispatch gluContext macgl macglext macglu vBLAS \
-  vDSP x509defs xattr 
+  fenv fp gliContexts gliDispatch gluContext kern_return macgl macglext \
+  macglu mach_error vBLAS vDSP x509defs xattr 
 exampledirs=examples
 
 [libs]
