@@ -203,6 +203,7 @@ type
 
     function  GetNodeName: DOMString; virtual; abstract;
     function  GetNodeValue: DOMString; virtual;
+    function  GetParentNode: TDOMNode; virtual;
     procedure SetNodeValue(const AValue: DOMString); virtual;
     function  GetFirstChild: TDOMNode; virtual;
     function  GetLastChild: TDOMNode; virtual;
@@ -229,7 +230,7 @@ type
     property NodeName: DOMString read GetNodeName;
     property NodeValue: DOMString read GetNodeValue write SetNodeValue;
     property NodeType: Integer read GetNodeType;
-    property ParentNode: TDOMNode read FParentNode;
+    property ParentNode: TDOMNode read GetParentNode;
     property FirstChild: TDOMNode read GetFirstChild;
     property LastChild: TDOMNode read GetLastChild;
     property ChildNodes: TDOMNodeList read GetChildNodes;
@@ -563,12 +564,13 @@ type
 
   TDOMAttr = class(TDOMNode_NS)
   protected
-    FOwnerElement: TDOMElement;
     FDataType: TAttrDataType;
     function  GetNodeValue: DOMString; override;
     function GetNodeType: Integer; override;
+    function GetParentNode: TDOMNode; override;
     function GetSpecified: Boolean;
     function GetIsID: Boolean;
+    function GetOwnerElement: TDOMElement;
     procedure SetNodeValue(const AValue: DOMString); override;
   public
     destructor Destroy; override;
@@ -576,7 +578,7 @@ type
     property Name: DOMString read GetNodeName;
     property Specified: Boolean read GetSpecified;
     property Value: DOMString read GetNodeValue write SetNodeValue;
-    property OwnerElement: TDOMElement read FOwnerElement;
+    property OwnerElement: TDOMElement read GetOwnerElement;
     property IsID: Boolean read GetIsID;
     // extensions
     // TODO: this is to be replaced with DOM 3 TypeInfo
@@ -935,6 +937,11 @@ end;
 function TDOMNode.GetNodeValue: DOMString;
 begin
   Result := '';
+end;
+
+function TDOMNode.GetParentNode: TDOMNode;
+begin
+  Result := FParentNode;
 end;
 
 procedure TDOMNode.SetNodeValue(const AValue: DOMString);
@@ -1737,7 +1744,7 @@ begin
     Result := HIERARCHY_REQUEST_ERR
   else if (FNodeType = ATTRIBUTE_NODE) then
   begin
-    AttrOwner := TDOMAttr(arg).ownerElement;
+    AttrOwner := arg.FParentNode;
     if Assigned(AttrOwner) and (AttrOwner <> FOwner) then
       Result := INUSE_ATTRIBUTE_ERR;
   end;
@@ -1755,7 +1762,7 @@ begin
 
   if FNodeType = ATTRIBUTE_NODE then
   begin
-    TDOMAttr(arg).FOwnerElement := TDOMElement(FOwner);
+    arg.FParentNode := FOwner;
     Exists := Find(TDOMAttr(arg).Name, i); // optimization
   end
   else
@@ -1765,7 +1772,7 @@ begin
   begin
     Result := TDOMNode(FList.List^[i]);
     if (Result <> arg) and (FNodeType = ATTRIBUTE_NODE) then
-      TDOMAttr(Result).FOwnerElement := nil;
+      Result.FParentNode := nil;
     FList.List^[i] := arg;
     exit;
   end;
@@ -1788,7 +1795,7 @@ begin
   Result := TDOMNode(FList.List^[index]);
   FList.Delete(index);
   if FNodeType = ATTRIBUTE_NODE then
-    TDOMAttr(Result).FOwnerElement := nil;
+    TDOMAttr(Result).FParentNode := nil;
 end;
 
 procedure TDOMNamedNodeMap.RestoreDefault(const name: DOMString);
@@ -1927,8 +1934,8 @@ begin
       FList.Insert(i, arg);
   end;
   if Assigned(Result) then
-    TDOMAttr(Result).FOwnerElement := nil;
-  TDOMAttr(arg).FOwnerElement := TDOMElement(FOwner);
+    Result.FParentNode := nil;
+  arg.FParentNode := FOwner;
 end;
 
 function TAttributeMap.removeNamedItemNS(const namespaceURI,
@@ -2192,9 +2199,9 @@ begin
 
   ID := Attr.Value;
   p := FIDList.FindOrAdd(DOMPChar(ID), Length(ID), Exists);
+  if not Exists then
+    p^.Data := Attr.FParentNode;
   Result := not Exists;
-  if Result then
-    p^.Data := Attr.OwnerElement;
 end;
 
 // This shouldn't be called if document has no IDs,
@@ -2657,11 +2664,17 @@ begin
   Result := ATTRIBUTE_NODE;
 end;
 
+function TDOMAttr.GetParentNode: TDOMNode;
+begin
+  Result := nil;
+end;
+
 destructor TDOMAttr.Destroy;
 begin
-  if Assigned(FOwnerElement) and not (nfDestroying in FOwnerElement.FFlags) then
+  if Assigned(FParentNode) and not (nfDestroying in FParentNode.FFlags) then
   // TODO: This may raise NOT_FOUND_ERR in case something's really wrong
-    FOwnerElement.RemoveAttributeNode(Self);
+    TDOMElement(FParentNode).RemoveAttributeNode(Self);
+  FParentNode := nil;
   inherited Destroy;
 end;
 
@@ -2697,6 +2710,11 @@ end;
 function TDOMAttr.GetIsID: Boolean;
 begin
   Result := FDataType = dtID;
+end;
+
+function TDOMAttr.GetOwnerElement: TDOMElement;
+begin
+  Result := TDOMElement(FParentNode);
 end;
 
 // -------------------------------------------------------
@@ -2904,7 +2922,7 @@ begin
   else
   begin
     Attr := FOwnerDocument.CreateAttribute(name);
-    Attr.FOwnerElement := Self;
+    Attr.FParentNode := Self;
     FAttributes.FList.Insert(I, Attr);
   end;
   attr.NodeValue := value;
@@ -2949,7 +2967,7 @@ begin
   begin
     TDOMNode(Attr) := FOwnerDocument.Alloc(TDOMAttr);
     Attr.Create(FOwnerDocument);
-    Attr.FOwnerElement := Self;
+    Attr.FParentNode := Self;
     Attr.FNSI.NSIndex := Word(idx);
     Include(Attr.FFlags, nfLevel2);
   end;
@@ -2997,7 +3015,7 @@ begin
   begin
     if Assigned(OldAttr.FNSI.QName) then  // safeguard
       FAttributes.RestoreDefault(OldAttr.FNSI.QName^.Key);
-    Result.FOwnerElement := nil;
+    Result.FParentNode := nil;
   end
   else
     raise EDOMNotFound.Create('Element.RemoveAttributeNode');
