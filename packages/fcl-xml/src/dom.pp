@@ -1403,7 +1403,7 @@ function TDOMNode_WithChildren.ReplaceChild(NewChild, OldChild: TDOMNode):
   TDOMNode;
 begin
   InsertBefore(NewChild, OldChild);
-  if Assigned(OldChild) then
+  if Assigned(OldChild) and (OldChild <> NewChild) then
     RemoveChild(OldChild);
   Result := OldChild;
 end;
@@ -1665,7 +1665,7 @@ var
   I: Integer;
 begin
   for I := FList.Count-1 downto 0 do
-    TDOMNode(FList[I]).Free;
+    TDOMNode(FList.List^[I]).Free;
   FList.Free;
   inherited Destroy;
 end;
@@ -2131,7 +2131,7 @@ constructor TDOMDocument.Create;
 begin
   inherited Create(nil);
   FOwnerDocument := Self;
-  FMaxPoolSize := (TDOMAttr.InstanceSize + sizeof(Pointer)-1) and not (sizeof(Pointer)-1) + sizeof(Pointer);
+  FMaxPoolSize := (TDOMEntity.InstanceSize + sizeof(Pointer)-1) and not (sizeof(Pointer)-1) + sizeof(Pointer);
   FPools := AllocMem(FMaxPoolSize);
   FNames := THashTable.Create(256, True);
   SetLength(FNamespaces, 3);
@@ -2163,6 +2163,8 @@ var
   pp: TNodePool;
   size: Integer;
 begin
+  if nfDestroying in FFlags then
+    raise EDOMError.Create(INVALID_ACCESS_ERR, 'Attempt to allocate node memory while destroying');
   size := (AClass.InstanceSize + sizeof(Pointer)-1) and not (sizeof(Pointer)-1);
   if size > FMaxPoolSize then
   begin
@@ -2250,7 +2252,9 @@ begin
      ((nType = DOCUMENT_TYPE_NODE) and (OldChild = DocType)) then   // and so can be DTD
   begin
     inherited InsertBefore(NewChild, OldChild);
-    Result := RemoveChild(OldChild);
+    Result := OldChild;
+    if OldChild <> NewChild then
+      RemoveChild(OldChild);
   end
   else
     Result := inherited ReplaceChild(NewChild, OldChild);
@@ -2709,7 +2713,8 @@ begin
   Include(FFlags, nfDestroying);
   if Assigned(FOwnerDocument.FIDList) then
     FOwnerDocument.RemoveID(Self);
-  FreeAndNil(FAttributes);
+  FAttributes.Free;
+  FAttributes := nil;
   inherited Destroy;
 end;
 
@@ -2816,6 +2821,8 @@ var
   ColonPos: Integer;
   AttrName, nsuri: DOMString;
 begin
+  if nfDestroying in FOwnerDocument.FFlags then
+    Exit;
   Attr := TDOMAttr(AttrDef.CloneNode(True));
   AttrName := Attr.Name;
   ColonPos := Pos(WideChar(':'), AttrName);
