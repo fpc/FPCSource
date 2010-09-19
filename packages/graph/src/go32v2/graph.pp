@@ -189,6 +189,9 @@ const
 {*                   720x348x2 Hercules mode routines                   *}
 {************************************************************************}
 
+var
+  DummyHGCBkColor: Word;
+
 procedure InitHGC720;
 const
   RegValues: array [0..11] of byte =
@@ -203,6 +206,21 @@ begin
   Port[$3B8] := 10; { display page 0, graphic mode, display on }
   DosMemFillChar($B000, 0, 65536, #0);
   VideoOfs := 0;
+  DummyHGCBkColor := 0;
+end;
+
+{ compatible with TP7's HERC.BGI }
+procedure SetBkColorHGC720(ColorNum: Word);
+begin
+  if ColorNum > 15 then
+    exit;
+  DummyHGCBkColor := ColorNum;
+end;
+
+{ compatible with TP7's HERC.BGI }
+function GetBkColorHGC720: Word;
+begin
+  GetBkColorHGC720 := DummyHGCBkColor;
 end;
 
 procedure SetHGCRGBPalette(ColorNum, RedValue, GreenValue,
@@ -3595,6 +3613,8 @@ const CrtAddress: word = 0;
          mode.SetActivePage := {$ifdef fpc}@{$endif}SetActiveHGC720;
          mode.InitMode := {$ifdef fpc}@{$endif}InitHGC720;
          mode.HLine := {$ifdef fpc}@{$endif}HLineHGC720;
+         mode.SetBkColor := {$ifdef fpc}@{$endif}SetBkColorHGC720;
+         mode.GetBkColor := {$ifdef fpc}@{$endif}GetBkColorHGC720;
          mode.XAspect := 7500;
          mode.YAspect := 10000;
          AddMode(mode);
