@@ -7,7 +7,7 @@ name=ptc
 version=2.5.1
 
 [target]
-units=ptc ptcwrapper
+units=ptc ptcwrapper ptceventqueue
 exampledirs=examples
 
 [compiler]
