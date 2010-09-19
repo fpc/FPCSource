@@ -2,9 +2,9 @@
 # x86 format converters for HERMES
 # Some routines Copyright (c) 1998 Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 # This source code is licensed under the GNU LGPL
-# 
+#
 # Please refer to the file COPYING.LIB contained in the distribution for
-# licensing conditions          
+# licensing conditions
 #
 
 
@@ -36,7 +36,7 @@ cpu_flags: .long 0
 .equ s_pitch, 40
 .equ d_pitch, 44
 
-## _ConvertX86:  
+## _ConvertX86:
 ## [ESP+8] ConverterInfo*
 ## --------------------------------------------------------------------------
 ##
@@ -45,7 +45,7 @@ cpu_flags: .long 0
 ##      - s_add for the x increment
 ## because they're unused anyway and this is thread safe.. (it's a per
 ## converter handle structure)
-_ConvertX86Stretch: 
+_ConvertX86Stretch:
         pushl %ebp
         movl %esp,%ebp
 
@@ -73,7 +73,7 @@ _ConvertX86Stretch:
         jmp *conv_func(%ebp)
 
 .align 8
-_x86return_S: 
+_x86return_S:
 
         decl d_height(%ebp)
         jz endconvert_S
@@ -98,14 +98,14 @@ _x86return_S:
 
         jmp *conv_func(%ebp)
 
-endconvert_S: 
+endconvert_S:
 
         popl %ebp
         ret
 
 
 
-_ConvertX86: 
+_ConvertX86:
         pushl %ebp
         movl %esp,%ebp
 
@@ -118,7 +118,7 @@ _ConvertX86:
         jmp *32(%ebp)
 
 .align 8
-_x86return: 
+_x86return:
         decl s_height(%ebp)
         jz endconvert
 
@@ -129,7 +129,7 @@ _x86return:
         jmp *32(%ebp)
 
 
-endconvert: 
+endconvert:
         popl %ebp
         ret
 
@@ -137,7 +137,7 @@ endconvert:
 
 ## Hermes_X86_CPU returns the CPUID flags in eax
 
-_Hermes_X86_CPU: 
+_Hermes_X86_CPU:
         pushfl
         popl %eax
 
@@ -178,5 +178,5 @@ _Hermes_X86_CPU:
 
         movl cpu_flags,%eax
 
-_Hermes_X86_CPU.L1: 
+_Hermes_X86_CPU.L1:
         ret

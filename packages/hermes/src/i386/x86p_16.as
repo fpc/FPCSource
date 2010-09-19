@@ -2,13 +2,13 @@
 # x86 format converters for HERMES
 # Copyright (c) 1998 Glenn Fielder (gaffer@gaffer.org)
 # This source code is licensed under the GNU LGPL
-# 
+#
 # Please refer to the file COPYING.LIB contained in the distribution for
-# licensing conditions          
-# 
+# licensing conditions
+#
 # Routines adjusted for Hermes by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 # Used with permission.
-# 
+#
 
 
 #BITS 32
@@ -32,13 +32,13 @@
 .globl _ConvertX86p16_32RGBA888_LUT_X86
 .globl _ConvertX86p16_32BGRA888_LUT_X86
 
-.include "src/i386/x8616lut.as"
+.include "hermes/i386/x8616lut.as"
 
 .text
 
 
 
-_ConvertX86p16_32RGB888: 
+_ConvertX86p16_32RGB888:
 
     # check short
     cmpl $32,%ecx
@@ -57,7 +57,7 @@ _ConvertX86p16_32RGB888.L1: movb (%esi),%bl             # ebx = lower byte pixel
     addl $4,%edi
     decl %ecx
     jnz _ConvertX86p16_32RGB888.L1
-_ConvertX86p16_32RGB888.L2: 
+_ConvertX86p16_32RGB888.L2:
     jmp _x86return
 
 
@@ -75,7 +75,7 @@ _ConvertX86p16_32RGB888.L3:  # save ebp
     leal (%esi,%ebp,4),%esi
     leal (%edi,%ebp,8),%edi
 
-    # negative counter 
+    # negative counter
     negl %ebp
 
     # clear
@@ -129,7 +129,7 @@ _ConvertX86p16_32RGB888.L6: popl %ebp
 
 
 
-_ConvertX86p16_32BGR888: 
+_ConvertX86p16_32BGR888:
 
     # check short
     cmpl $32,%ecx
@@ -148,7 +148,7 @@ _ConvertX86p16_32BGR888.L1: movb (%esi),%bl             # ebx = lower byte pixel
     addl $4,%edi
     decl %ecx
     jnz _ConvertX86p16_32BGR888.L1
-_ConvertX86p16_32BGR888.L2: 
+_ConvertX86p16_32BGR888.L2:
     jmp _x86return
 
 _ConvertX86p16_32BGR888.L3:  # save ebp
@@ -165,7 +165,7 @@ _ConvertX86p16_32BGR888.L3:  # save ebp
     leal (%esi,%ebp,4),%esi
     leal (%edi,%ebp,8),%edi
 
-    # negative counter 
+    # negative counter
     negl %ebp
 
     # clear
@@ -219,7 +219,7 @@ _ConvertX86p16_32BGR888.L6: popl %ebp
 
 
 
-_ConvertX86p16_32RGBA888: 
+_ConvertX86p16_32RGBA888:
 
     # check short
     cmpl $32,%ecx
@@ -238,7 +238,7 @@ _ConvertX86p16_32RGBA888.L1: movb (%esi),%bl             # ebx = lower byte pixe
     addl $4,%edi
     decl %ecx
     jnz _ConvertX86p16_32RGBA888.L1
-_ConvertX86p16_32RGBA888.L2: 
+_ConvertX86p16_32RGBA888.L2:
     jmp _x86return
 
 _ConvertX86p16_32RGBA888.L3:  # save ebp
@@ -255,7 +255,7 @@ _ConvertX86p16_32RGBA888.L3:  # save ebp
     leal (%esi,%ebp,4),%esi
     leal (%edi,%ebp,8),%edi
 
-    # negative counter 
+    # negative counter
     negl %ebp
 
     # clear
@@ -309,7 +309,7 @@ _ConvertX86p16_32RGBA888.L6: popl %ebp
 
 
 
-_ConvertX86p16_32BGRA888: 
+_ConvertX86p16_32BGRA888:
 
     # check short
     cmpl $32,%ecx
@@ -327,7 +327,7 @@ _ConvertX86p16_32BGRA888.L1: movb (%esi),%bl             # ebx = lower byte pixe
     addl $4,%edi
     decl %ecx
     jnz _ConvertX86p16_32BGRA888.L1
-_ConvertX86p16_32BGRA888.L2: 
+_ConvertX86p16_32BGRA888.L2:
     jmp _x86return
 
 _ConvertX86p16_32BGRA888.L3:  # save ebp
@@ -344,7 +344,7 @@ _ConvertX86p16_32BGRA888.L3:  # save ebp
     leal (%esi,%ebp,4),%esi
     leal (%edi,%ebp,8),%edi
 
-    # negative counter 
+    # negative counter
     negl %ebp
 
     # clear
@@ -398,7 +398,7 @@ _ConvertX86p16_32BGRA888.L6: popl %ebp
 
 
 
-_ConvertX86p16_24RGB888: 
+_ConvertX86p16_24RGB888:
 
     # check short
     cmpl $32,%ecx
@@ -544,7 +544,7 @@ _ConvertX86p16_24RGB888.L9: popl %ebp
 
 
 
-_ConvertX86p16_24BGR888: 
+_ConvertX86p16_24BGR888:
 
     # check short
     cmpl $32,%ecx
@@ -566,7 +566,7 @@ _ConvertX86p16_24BGR888.L1: movb (%esi),%dl
     addl $3,%edi
     decl %ecx
     jnz _ConvertX86p16_24BGR888.L1
-_ConvertX86p16_24BGR888.L2: 
+_ConvertX86p16_24BGR888.L2:
     jmp _x86return
 
 
@@ -690,7 +690,7 @@ _ConvertX86p16_24BGR888.L9: popl %ebp
 
 
 
-_ConvertX86p16_16BGR565: 
+_ConvertX86p16_16BGR565:
 
     # check short
     cmpl $16,%ecx
@@ -714,7 +714,7 @@ _ConvertX86p16_16BGR565.L1:  # short loop
     addl $2,%edi
     decl %ecx
     jnz _ConvertX86p16_16BGR565.L1
-_ConvertX86p16_16BGR565.L2: 
+_ConvertX86p16_16BGR565.L2:
     jmp _x86return
 
 _ConvertX86p16_16BGR565.L3:  # head
@@ -747,7 +747,7 @@ _ConvertX86p16_16BGR565.L4:  # save count
     leal (%esi,%ecx,4),%esi
     leal (%edi,%ecx,4),%edi
 
-    # negative counter 
+    # negative counter
     negl %ecx
     jmp _ConvertX86p16_16BGR565.L6
 
@@ -792,7 +792,7 @@ _ConvertX86p16_16BGR565.L6: movl (%esi,%ecx,4),%eax
     addl $2,%esi
     addl $2,%edi
 
-_ConvertX86p16_16BGR565.L7: 
+_ConvertX86p16_16BGR565.L7:
     jmp _x86return
 
 
@@ -800,7 +800,7 @@ _ConvertX86p16_16BGR565.L7:
 
 
 
-_ConvertX86p16_16RGB555: 
+_ConvertX86p16_16RGB555:
 
     # check short
     cmpl $32,%ecx
@@ -821,7 +821,7 @@ _ConvertX86p16_16RGB555.L1:  # short loop
     addl $2,%edi
     decl %ecx
     jnz _ConvertX86p16_16RGB555.L1
-_ConvertX86p16_16RGB555.L2: 
+_ConvertX86p16_16RGB555.L2:
     jmp _x86return
 
 _ConvertX86p16_16RGB555.L3:  # head
@@ -854,7 +854,7 @@ _ConvertX86p16_16RGB555.L4:  # save ebp
     leal (%esi,%ecx,8),%esi
     leal (%edi,%ecx,8),%edi
 
-    # negative counter 
+    # negative counter
     xorl %ebp,%ebp
     subl %ecx,%ebp
 
@@ -908,7 +908,7 @@ _ConvertX86p16_16RGB555.L7: popl %ebp
 
 
 
-_ConvertX86p16_16BGR555: 
+_ConvertX86p16_16BGR555:
 
     # check short
     cmpl $16,%ecx
@@ -934,7 +934,7 @@ _ConvertX86p16_16BGR555.L1:  # short loop
     addl $2,%edi
     decl %ecx
     jnz _ConvertX86p16_16BGR555.L1
-_ConvertX86p16_16BGR555.L2: 
+_ConvertX86p16_16BGR555.L2:
     jmp _x86return
 
 _ConvertX86p16_16BGR555.L3:  # head
@@ -969,7 +969,7 @@ _ConvertX86p16_16BGR555.L4:  # save count
     leal (%esi,%ecx,4),%esi
     leal (%edi,%ecx,4),%edi
 
-    # negative counter 
+    # negative counter
     negl %ecx
     jmp _ConvertX86p16_16BGR555.L6
 
@@ -1018,7 +1018,7 @@ _ConvertX86p16_16BGR555.L6: movl (%esi,%ecx,4),%eax
     addl $2,%esi
     addl $2,%edi
 
-_ConvertX86p16_16BGR555.L7: 
+_ConvertX86p16_16BGR555.L7:
     jmp _x86return
 
 
@@ -1026,7 +1026,7 @@ _ConvertX86p16_16BGR555.L7:
 
 
 
-_ConvertX86p16_8RGB332: 
+_ConvertX86p16_8RGB332:
 
     # check short
     cmpl $16,%ecx
@@ -1051,7 +1051,7 @@ _ConvertX86p16_8RGB332.L1:  # short loop
     incl %edi
     decl %ecx
     jnz _ConvertX86p16_8RGB332.L1
-_ConvertX86p16_8RGB332.L2: 
+_ConvertX86p16_8RGB332.L2:
     jmp _x86return
 
 _ConvertX86p16_8RGB332.L3: movl %edi,%eax

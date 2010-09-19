@@ -2,7 +2,7 @@
 # x86 surface clear routines for HERMES
 # Copyright (c) 1998 Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 # This source code is licensed under the GNU LGPL
-# 
+#
 # Please refer to the file COPYING.LIB contained in the distribution for
 # licensing conditions
 #
@@ -18,7 +18,7 @@
 
 .text
 
-##   
+##
 ## --------------------------------------------------------------------------
 ## HermesClearInterface (ebp+..)
 ##   0: char8 *dest
@@ -28,18 +28,18 @@
 ##  16: int add
 
 .align 8
-_ClearX86_32: 
+_ClearX86_32:
         pushl %ebp
         movl %esp,%ebp
 
         movl 8(%ebp),%ebp
 
         movl (%ebp),%edi        # destination
-        movl 4(%ebp),%eax       # pixel value   
+        movl 4(%ebp),%eax       # pixel value
 
         movl 12(%ebp),%edx      # height
 .align 4
-_ClearX86_32.L_y: 
+_ClearX86_32.L_y:
         movl 8(%ebp),%ecx
         rep
  stosl
@@ -54,20 +54,20 @@ _ClearX86_32.L_y:
 
 
 
-_ClearX86_24: 
+_ClearX86_24:
         ret
 
 
 
 .align 8
-_ClearX86_16: 
+_ClearX86_16:
         pushl %ebp
         movl %esp,%ebp
 
         movl 8(%ebp),%ebp
 
         movl (%ebp),%edi        # destination
-        movl 4(%ebp),%eax       # pixel value   
+        movl 4(%ebp),%eax       # pixel value
 
         movl 12(%ebp),%edx      # height
         movl %eax,%ebx
@@ -76,7 +76,7 @@ _ClearX86_16:
         andl $0x0ffff,%ebx
 
         orl %ebx,%eax
-_ClearX86_16.L_y: 
+_ClearX86_16.L_y:
         movl 8(%ebp),%ecx
 
         testl $3,%edi           # Check if destination is aligned mod 4
@@ -88,7 +88,7 @@ _ClearX86_16.L_y:
         decl %ecx
         jz _ClearX86_16.L_endline
 
-_ClearX86_16.L_aligned: 
+_ClearX86_16.L_aligned:
         shrl %ecx
 
 rep
@@ -99,7 +99,7 @@ rep
         movw %ax,(%edi)
         addl $2,%edi
 
-_ClearX86_16.L_endline: 
+_ClearX86_16.L_endline:
         addl 16(%ebp),%edi
 
         decl %edx
@@ -111,13 +111,13 @@ _ClearX86_16.L_endline:
 
 
 .align 8
-_ClearX86_8: 
+_ClearX86_8:
         pushl %ebp
         movl %esp,%ebp
 
         movl 8(%ebp),%ebp
 
-        movl 4(%ebp),%eax       # pixel value           
+        movl 4(%ebp),%eax       # pixel value
         movl 12(%ebp),%edx      # height
 
         movb %al,%ah
@@ -135,7 +135,7 @@ _ClearX86_8:
         jbe _ClearX86_8.L_short_y
 
 .align 4
-_ClearX86_8.L_y: 
+_ClearX86_8.L_y:
         testl $3,%edi
         jz _ClearX86_8.L_aligned
 
@@ -148,7 +148,7 @@ _ClearX86_8.L_y:
         rep
  stosb
 
-_ClearX86_8.L_aligned: 
+_ClearX86_8.L_aligned:
         movl %ebx,%ecx
 
         shrl $2,%ecx
@@ -172,7 +172,7 @@ _ClearX86_8.L_aligned:
 
 ## Short loop
 .align 4
-_ClearX86_8.L_short_y: 
+_ClearX86_8.L_short_y:
         movl %ebx,%ecx
 
         rep
@@ -185,19 +185,19 @@ _ClearX86_8.L_short_y:
         popl %ebp
         ret
 
-## ClearX86_8 version 2,  
-## Im not sure wheather this is faster or not... 
+## ClearX86_8 version 2,
+## Im not sure wheather this is faster or not...
 ## too many jumps could confuse the CPU branch quessing
 
 
 .align 8
-_ClearX86_8_2: 
+_ClearX86_8_2:
         pushl %ebp
         movl %esp,%ebp
 
         movl 8(%ebp),%ebp
 
-        movl 4(%ebp),%eax       # pixel value           
+        movl 4(%ebp),%eax       # pixel value
         movl 12(%ebp),%edx      # height
 
         movb %al,%ah
@@ -216,7 +216,7 @@ _ClearX86_8_2:
 
 
 .align 4
-_ClearX86_8_2.L_y: 
+_ClearX86_8_2.L_y:
         testl $3,%edi
         jz _ClearX86_8_2.L_aligned
 
@@ -240,7 +240,7 @@ _ClearX86_8_2.L_y:
         movb %al,(%edi)
         incl %edi
 
-_ClearX86_8_2.L_aligned: 
+_ClearX86_8_2.L_aligned:
         movl %ebx,%ecx
 
         shrl $2,%ecx
@@ -271,7 +271,7 @@ _ClearX86_8_2.L_aligned:
         movb %al,(%edi)
         incl %edi
 
-_ClearX86_8_2.L_endline: 
+_ClearX86_8_2.L_endline:
         addl 16(%ebp),%edi
 
         decl %edx
@@ -283,7 +283,7 @@ _ClearX86_8_2.L_endline:
 
 ## Short loop
 .align 4
-_ClearX86_8_2.L_short_y: 
+_ClearX86_8_2.L_short_y:
         movl %ebx,%ecx
 
         rep

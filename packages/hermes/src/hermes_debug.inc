@@ -30,47 +30,39 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{
-   C converter main loops for the HERMES library
-   Copyright (c) 1998 Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
-   This source code is licensed under the GNU LGPL
-
-   Please refer to the file COPYING.LIB contained in the distribution for
-   licensing conditions
-}
-
-procedure ConvertP(iface: PHermesConverterInterface); cdecl;
+function C2Str(Q: Integer): string;
+var
+  S: string;
 begin
-  { Simply loop through all scanlines }
-  repeat
-    iface^.func(iface^.s_pixels, iface^.d_pixels, iface^.d_width, 1);
-
-    Inc(iface^.s_pixels, iface^.s_pitch);
-    Inc(iface^.d_pixels, iface^.d_pitch);
-    Dec(iface^.d_height);
-  until iface^.d_height = 0;
+  Str(Q, S);
+  Result := S;
 end;
 
-procedure ConvertPStretch(iface: PHermesConverterInterface); cdecl;
-var
-  dx, dy: DWord;
-  y: DWord;
+procedure DebugInit;
+{var
+  F: TextFile;}
 begin
-  y := 0;
-  dy := (iface^.s_height shl 16) div iface^.d_height;
-  dx := (iface^.s_width shl 16) div iface^.d_width;
+{  AssignFile(F, 'debug.txt');
+  Rewrite(F);
+  CloseFile(F);}
+end;
 
-  { We have the increment of y and x on the source surface now let's start }
-  repeat
-    iface^.func(iface^.s_pixels, iface^.d_pixels, iface^.d_width, dx);
-
-    Inc(iface^.d_pixels, iface^.d_pitch);
-
-    Inc(y, dy);
-
-    { Check how many lines we need to step forward }
-    Inc(iface^.s_pixels, (y shr 16)*DWord(iface^.s_pitch));
-    y := y and $ffff;
-    Dec(iface^.d_height);
-  until iface^.d_height = 0;
+procedure DebugMSG(S: string);
+var
+  F: TextFile;
+begin
+  AssignFile(F, 'debug.txt');
+  {$I-}
+  Append(F);
+  {$I+}
+  if IOResult <> 0 then
+  begin
+    {$I-}
+    Rewrite(F);
+    {$I+}
+    if IOResult <> 0 then
+      exit;
+  end;
+  Writeln(F, S);
+  CloseFile(F);
 end;

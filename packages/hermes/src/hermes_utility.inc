@@ -30,47 +30,90 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-{
-   C converter main loops for the HERMES library
-   Copyright (c) 1998 Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
-   This source code is licensed under the GNU LGPL
+{procedure Hermes_Calculate_Generic_Info(s_r, s_g, s_b, s_a,
+                                        d_r, d_g, d_b, d_a: Uint32;
+                                        info: PHermesGenericInfo);
+function Hermes_Topbit(mask: Uint32): Integer;}
 
-   Please refer to the file COPYING.LIB contained in the distribution for
-   licensing conditions
-}
-
-procedure ConvertP(iface: PHermesConverterInterface); cdecl;
+procedure Hermes_Calculate_Generic_Info(s_r, s_g, s_b, s_a,
+                                        d_r, d_g, d_b, d_a: Integer;
+                                        info: PHermesGenericInfo);
+var
+  r_right, g_right, b_right, a_right: Integer;
 begin
-  { Simply loop through all scanlines }
-  repeat
-    iface^.func(iface^.s_pixels, iface^.d_pixels, iface^.d_width, 1);
+  {Calculate right shift amount for red. if it's <0, then set it to 0
+   and calculate left shift amount}
+  r_right := s_r - d_r;
+  if r_right < 0 then
+  begin
+    info^.r_left := -r_right;
+    info^.r_right := 0;
+  end
+  else
+  begin
+    info^.r_left := 0;
+    info^.r_right := r_right;
+  end;
 
-    Inc(iface^.s_pixels, iface^.s_pitch);
-    Inc(iface^.d_pixels, iface^.d_pitch);
-    Dec(iface^.d_height);
-  until iface^.d_height = 0;
+  {Same for green}
+  g_right := s_g - d_g;
+  if g_right < 0 then
+  begin
+    info^.g_left := -g_right;
+    info^.g_right := 0;
+  end
+  else
+  begin
+    info^.g_left := 0;
+    info^.g_right := g_right;
+  end;
+
+  {Same for blue}
+  b_right := s_b - d_b;
+  if b_right < 0 then
+  begin
+    info^.b_left := -b_right;
+    info^.b_right := 0;
+  end
+  else
+  begin
+    info^.b_left := 0;
+    info^.b_right := b_right;
+  end;
+
+  {Alpha}
+  a_right := s_a - d_a;
+  if a_right < 0 then
+  begin
+    info^.a_left := -a_right;
+    info^.a_right := 0;
+  end
+  else
+  begin
+    info^.a_left := 0;
+    info^.a_right := a_right;
+  end;
 end;
 
-procedure ConvertPStretch(iface: PHermesConverterInterface); cdecl;
+function Hermes_Topbit(mask: Uint32): Integer;
 var
-  dx, dy: DWord;
-  y: DWord;
+  i: Integer;
 begin
-  y := 0;
-  dy := (iface^.s_height shl 16) div iface^.d_height;
-  dx := (iface^.s_width shl 16) div iface^.d_width;
-
-  { We have the increment of y and x on the source surface now let's start }
-  repeat
-    iface^.func(iface^.s_pixels, iface^.d_pixels, iface^.d_width, dx);
-
-    Inc(iface^.d_pixels, iface^.d_pitch);
-
-    Inc(y, dy);
-
-    { Check how many lines we need to step forward }
-    Inc(iface^.s_pixels, (y shr 16)*DWord(iface^.s_pitch));
-    y := y and $ffff;
-    Dec(iface^.d_height);
-  until iface^.d_height = 0;
+  if mask = 0 then
+  begin
+    Result := 0;
+    exit;
+  end;
+  i := 0;
+  while (mask and 1) = 0 do
+  begin
+    mask := mask shr 1;
+    Inc(i);
+  end;
+  while (mask and 1) = 1 do
+  begin
+    mask := mask shr 1;
+    Inc(i);
+  end;
+  Result := i;
 end;

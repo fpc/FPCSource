@@ -2,16 +2,16 @@
 # MMX format converters for HERMES
 # Copyright (c) 1998 Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 # This source code is licensed under the GNU LGPL
-# 
+#
 # Please refer to the file COPYING.LIB contained in the distribution for
-# licensing conditions          
+# licensing conditions
 #
 # COPYRIGHT NOTICE
-# 
+#
 # This file partly contains code that is (c) Intel Corporation, specifically
 # the mode detection routine, and the converter to 15 bit (8 pixel
 # conversion routine from the mmx programming tutorial pages).
-# 
+#
 
 #BITS 32
 
@@ -24,7 +24,7 @@
 
 .align 8
 
-mmx32_rgb555_rb: .long 0x00f800f8,0x00f800f8 # Constants for conversion routines 
+mmx32_rgb555_rb: .long 0x00f800f8,0x00f800f8 # Constants for conversion routines
 mmx32_rgb555_add: .long 0x20000008,0x20000008
 mmx32_rgb555_g: .long 0x0000f800,0x0000f800
 
@@ -34,26 +34,26 @@ mmx32_rgb555_g: .long 0x0000f800,0x0000f800
 
 
 
-## Gone for now, it didnt draw correctly AND was slower than the x86 routine 
-_ConvertMMXp32_16RGB565: 
+## Gone for now, it didnt draw correctly AND was slower than the x86 routine
+_ConvertMMXp32_16RGB565:
 
         jmp _mmxreturn
 
 
 
 
-_ConvertMMXp32_16RGB555: 
+_ConvertMMXp32_16RGB555:
 
         movq mmx32_rgb555_add,%mm7
         movq mmx32_rgb555_g,%mm6
 
-        movl %ecx,%edx                     # Save ecx 
+        movl %ecx,%edx                     # Save ecx
 
         andl $0x0fffffff8,%ecx             # clear lower three bits
         jnz _ConvertMMXp32_16RGB555.L_OK
         jmp _ConvertMMXp32_16RGB555.L2
 
-_ConvertMMXp32_16RGB555.L_OK: 
+_ConvertMMXp32_16RGB555.L_OK:
 
         movq 8(%esi),%mm2
 
@@ -69,7 +69,7 @@ _ConvertMMXp32_16RGB555.L_OK:
         pmaddwd %mm7,%mm1
         pand %mm6,%mm2
 
-_ConvertMMXp32_16RGB555.L1: 
+_ConvertMMXp32_16RGB555.L1:
         movq 24(%esi),%mm4
         pand %mm6,%mm0
 
@@ -126,13 +126,13 @@ _ConvertMMXp32_16RGB555.L1:
         jmp _ConvertMMXp32_16RGB555.L1
 
 
-_ConvertMMXp32_16RGB555.L2: 
+_ConvertMMXp32_16RGB555.L2:
         movl %edx,%ecx
 
         andl $7,%ecx
         jz _ConvertMMXp32_16RGB555.L4
 
-_ConvertMMXp32_16RGB555.L3: 
+_ConvertMMXp32_16RGB555.L3:
         movl (%esi),%ebx
         addl $4,%esi
 
@@ -159,5 +159,5 @@ _ConvertMMXp32_16RGB555.L3:
         decl %ecx
         jnz _ConvertMMXp32_16RGB555.L3
 
-_ConvertMMXp32_16RGB555.L4: 
+_ConvertMMXp32_16RGB555.L4:
         jmp _mmxreturn

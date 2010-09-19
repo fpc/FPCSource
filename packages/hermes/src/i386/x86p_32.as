@@ -2,12 +2,12 @@
 # x86 format converters for HERMES
 # Some routines Copyright (c) 1998 Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 # This source code is licensed under the GNU LGPL
-# 
+#
 # Please refer to the file COPYING.LIB contained in the distribution for
-# licensing conditions          
+# licensing conditions
 #
 # Most routines are (c) Glenn Fiedler (ptc@gaffer.org), used with permission
-# 
+#
 
 
 
@@ -28,15 +28,15 @@
 
 
 ## _Convert_*
-## Paramters:   
-##   ESI = source 
+## Paramters:
+##   ESI = source
 ##   EDI = dest
 ##   ECX = amount (NOT 0!!! (the _ConvertX86 routine checks for that though))
 ## Destroys:
 ##   EAX, EBX, EDX
 
 
-_ConvertX86p32_32BGR888: 
+_ConvertX86p32_32BGR888:
 
     # check short
     cmpl $32,%ecx
@@ -51,7 +51,7 @@ _ConvertX86p32_32BGR888.L1:  # short loop
     addl $4,%edi
     decl %ecx
     jnz _ConvertX86p32_32BGR888.L1
-_ConvertX86p32_32BGR888.L2: 
+_ConvertX86p32_32BGR888.L2:
     jmp _x86return
 
 _ConvertX86p32_32BGR888.L3:  # save ebp
@@ -117,7 +117,7 @@ _ConvertX86p32_32BGR888.L6: popl %ebp
 
 
 
-_ConvertX86p32_32RGBA888: 
+_ConvertX86p32_32RGBA888:
 
     # check short
     cmpl $32,%ecx
@@ -131,7 +131,7 @@ _ConvertX86p32_32RGBA888.L1:  # short loop
     addl $4,%edi
     decl %ecx
     jnz _ConvertX86p32_32RGBA888.L1
-_ConvertX86p32_32RGBA888.L2: 
+_ConvertX86p32_32RGBA888.L2:
     jmp _x86return
 
 _ConvertX86p32_32RGBA888.L3:  # save ebp
@@ -188,7 +188,7 @@ _ConvertX86p32_32RGBA888.L6: popl %ebp
 
 
 
-_ConvertX86p32_32BGRA888: 
+_ConvertX86p32_32BGRA888:
 
     # check short
     cmpl $32,%ecx
@@ -202,7 +202,7 @@ _ConvertX86p32_32BGRA888.L1:  # short loop
     addl $4,%edi
     decl %ecx
     jnz _ConvertX86p32_32BGRA888.L1
-_ConvertX86p32_32BGRA888.L2: 
+_ConvertX86p32_32BGRA888.L2:
     jmp _x86return
 
 _ConvertX86p32_32BGRA888.L3:  # save ebp
@@ -263,7 +263,7 @@ _ConvertX86p32_32BGRA888.L6: popl %ebp
 
 ## 32 bit RGB 888 to 24 BIT RGB 888
 
-_ConvertX86p32_24RGB888: 
+_ConvertX86p32_24RGB888:
 
         # check short
         cmpl $32,%ecx
@@ -280,7 +280,7 @@ _ConvertX86p32_24RGB888.L1:  # short loop
         addl $3,%edi
         decl %ecx
         jnz _ConvertX86p32_24RGB888.L1
-_ConvertX86p32_24RGB888.L2: 
+_ConvertX86p32_24RGB888.L2:
         jmp _x86return
 
 _ConvertX86p32_24RGB888.L3:  #        head
@@ -360,7 +360,7 @@ _ConvertX86p32_24RGB888.L7: popl %ebp
 
 ## 32 bit RGB 888 to 24 bit BGR 888
 
-_ConvertX86p32_24BGR888: 
+_ConvertX86p32_24BGR888:
 
         # check short
         cmpl $32,%ecx
@@ -378,7 +378,7 @@ _ConvertX86p32_24BGR888.L1:  # short loop
         addl $3,%edi
         decl %ecx
         jnz _ConvertX86p32_24BGR888.L1
-_ConvertX86p32_24BGR888.L2: 
+_ConvertX86p32_24BGR888.L2:
         jmp _x86return
 
 _ConvertX86p32_24BGR888.L3:  # head
@@ -404,7 +404,7 @@ _ConvertX86p32_24BGR888.L4:  # unroll 4 times
         # save count
         pushl %ecx
 
-_ConvertX86p32_24BGR888.L5: 
+_ConvertX86p32_24BGR888.L5:
         movl (%esi),%eax                # first dword            eax = [A][R][G][B]
         movl 4(%esi),%ebx               # second dword           ebx = [a][r][g][b]
 
@@ -412,7 +412,7 @@ _ConvertX86p32_24BGR888.L5:
 
         bswapl %ebx                     #                        ebx = [b][g][r][a]
 
-        movb 4+2(%esi),%al              #                        eax = [B][G][R][r] 
+        movb 4+2(%esi),%al              #                        eax = [B][G][R][r]
         movb 4+4+1(%esi),%bh            #                        ebx = [b][g][G][a]
 
         rorl $8,%eax                    #                        eax = [r][B][G][R] (done)
@@ -452,16 +452,16 @@ _ConvertX86p32_24BGR888.L6:  # tail loop
         decl %ecx
         jnz _ConvertX86p32_24BGR888.L6
 
-_ConvertX86p32_24BGR888.L7: 
+_ConvertX86p32_24BGR888.L7:
         popl %ebp
         jmp _x86return
 
 
 
 
-## 32 bit RGB 888 to 16 BIT RGB 565 
+## 32 bit RGB 888 to 16 BIT RGB 565
 .align 8
-_ConvertX86p32_16RGB565: 
+_ConvertX86p32_16RGB565:
         # check short
         cmpl $16,%ecx
         ja _ConvertX86p32_16RGB565.L3
@@ -505,7 +505,7 @@ _ConvertX86p32_16RGB565.L3:  # head
         addl $2,%edi
         decl %ecx
 
-_ConvertX86p32_16RGB565.L4: 
+_ConvertX86p32_16RGB565.L4:
     # save count
         pushl %ecx
 
@@ -516,14 +516,14 @@ _ConvertX86p32_16RGB565.L4:
         leal (%esi,%ecx,8),%esi
         leal (%edi,%ecx,4),%edi
 
-    # negative counter 
+    # negative counter
         negl %ecx
         jmp _ConvertX86p32_16RGB565.L6
 
-_ConvertX86p32_16RGB565.L5: 
+_ConvertX86p32_16RGB565.L5:
         movl %eax,-4(%edi,%ecx,4)
 .align 8
-_ConvertX86p32_16RGB565.L6: 
+_ConvertX86p32_16RGB565.L6:
         movl (%esi,%ecx,8),%eax
 
         shrb $2,%ah
@@ -569,15 +569,15 @@ _ConvertX86p32_16RGB565.L6:
         addl $4,%esi
         addl $2,%edi
 
-_ConvertX86p32_16RGB565.L7: 
+_ConvertX86p32_16RGB565.L7:
         jmp _x86return
 
 
 
 
-## 32 bit RGB 888 to 16 BIT BGR 565 
+## 32 bit RGB 888 to 16 BIT BGR 565
 
-_ConvertX86p32_16BGR565: 
+_ConvertX86p32_16BGR565:
 
         # check short
         cmpl $16,%ecx
@@ -598,7 +598,7 @@ _ConvertX86p32_16BGR565.L1:  # short loop
         addl $2,%edi
         decl %ecx
         jnz _ConvertX86p32_16BGR565.L1
-_ConvertX86p32_16BGR565.L2: 
+_ConvertX86p32_16BGR565.L2:
         jmp _x86return
 
 _ConvertX86p32_16BGR565.L3:  # head
@@ -633,9 +633,9 @@ _ConvertX86p32_16BGR565.L4:  # save count
         negl %ecx
         jmp _ConvertX86p32_16BGR565.L6
 
-_ConvertX86p32_16BGR565.L5: 
+_ConvertX86p32_16BGR565.L5:
         movl %eax,-4(%edi,%ecx,4)
-_ConvertX86p32_16BGR565.L6: 
+_ConvertX86p32_16BGR565.L6:
         movl 4(%esi,%ecx,8),%edx
 
         movb 4(%esi,%ecx,8),%bh
@@ -683,7 +683,7 @@ _ConvertX86p32_16BGR565.L6:
         addl $4,%esi
         addl $2,%edi
 
-_ConvertX86p32_16BGR565.L7: 
+_ConvertX86p32_16BGR565.L7:
         jmp _x86return
 
 
@@ -691,7 +691,7 @@ _ConvertX86p32_16BGR565.L7:
 
 ## 32 BIT RGB TO 16 BIT RGB 555
 
-_ConvertX86p32_16RGB555: 
+_ConvertX86p32_16RGB555:
 
         # check short
         cmpl $16,%ecx
@@ -712,7 +712,7 @@ _ConvertX86p32_16RGB555.L1:  # short loop
         addl $2,%edi
         decl %ecx
         jnz _ConvertX86p32_16RGB555.L1
-_ConvertX86p32_16RGB555.L2: 
+_ConvertX86p32_16RGB555.L2:
         jmp _x86return
 
 _ConvertX86p32_16RGB555.L3:  # head
@@ -743,13 +743,13 @@ _ConvertX86p32_16RGB555.L4:  # save count
         leal (%esi,%ecx,8),%esi
         leal (%edi,%ecx,4),%edi
 
-        # negative counter 
+        # negative counter
         negl %ecx
         jmp _ConvertX86p32_16RGB555.L6
 
-_ConvertX86p32_16RGB555.L5: 
+_ConvertX86p32_16RGB555.L5:
         movl %eax,-4(%edi,%ecx,4)
-_ConvertX86p32_16RGB555.L6: 
+_ConvertX86p32_16RGB555.L6:
         movl (%esi,%ecx,8),%eax
 
         shrb $3,%ah
@@ -794,7 +794,7 @@ _ConvertX86p32_16RGB555.L6:
         addl $4,%esi
         addl $2,%edi
 
-_ConvertX86p32_16RGB555.L7: 
+_ConvertX86p32_16RGB555.L7:
         jmp _x86return
 
 
@@ -802,7 +802,7 @@ _ConvertX86p32_16RGB555.L7:
 
 ## 32 BIT RGB TO 16 BIT BGR 555
 
-_ConvertX86p32_16BGR555: 
+_ConvertX86p32_16BGR555:
 
         # check short
         cmpl $16,%ecx
@@ -824,7 +824,7 @@ _ConvertX86p32_16BGR555.L1:  # short loop
         addl $2,%edi
         decl %ecx
         jnz _ConvertX86p32_16BGR555.L1
-_ConvertX86p32_16BGR555.L2: 
+_ConvertX86p32_16BGR555.L2:
         jmp _x86return
 
 _ConvertX86p32_16BGR555.L3:  # head
@@ -855,13 +855,13 @@ _ConvertX86p32_16BGR555.L4:  # save count
         leal (%esi,%ecx,8),%esi
         leal (%edi,%ecx,4),%edi
 
-        # negative counter 
+        # negative counter
         negl %ecx
         jmp _ConvertX86p32_16BGR555.L6
 
-_ConvertX86p32_16BGR555.L5: 
+_ConvertX86p32_16BGR555.L5:
         movl %eax,-4(%edi,%ecx,4)
-_ConvertX86p32_16BGR555.L6: 
+_ConvertX86p32_16BGR555.L6:
         movl 4(%esi,%ecx,8),%edx
 
         movb 4(%esi,%ecx,8),%bh
@@ -909,7 +909,7 @@ _ConvertX86p32_16BGR555.L6:
         addl $4,%esi
         addl $2,%edi
 
-_ConvertX86p32_16BGR555.L7: 
+_ConvertX86p32_16BGR555.L7:
         jmp _x86return
 
 
@@ -919,10 +919,10 @@ _ConvertX86p32_16BGR555.L7:
 ## FROM 32 BIT RGB to 8 BIT RGB (rrrgggbbb)
 ## This routine writes FOUR pixels at once (dword) and then, if they exist
 ## the trailing three pixels
-_ConvertX86p32_8RGB332: 
+_ConvertX86p32_8RGB332:
 
 
-_ConvertX86p32_8RGB332.L_ALIGNED: 
+_ConvertX86p32_8RGB332.L_ALIGNED:
         pushl %ecx
 
         shrl $2,%ecx            # We will draw 4 pixels at once
@@ -930,7 +930,7 @@ _ConvertX86p32_8RGB332.L_ALIGNED:
 
         jmp _ConvertX86p32_8RGB332.L2 # short jump out of range :(
 
-_ConvertX86p32_8RGB332.L1: 
+_ConvertX86p32_8RGB332.L1:
         movl (%esi),%eax        # first pair of pixels
         movl 4(%esi),%edx
 
@@ -1008,14 +1008,14 @@ _ConvertX86p32_8RGB332.L1:
         jz _ConvertX86p32_8RGB332.L2 # L1 out of range for short jump :(
 
         jmp _ConvertX86p32_8RGB332.L1
-_ConvertX86p32_8RGB332.L2: 
+_ConvertX86p32_8RGB332.L2:
 
         popl %ecx
         andl $3,%ecx            # mask out number of pixels to draw
 
         jz _ConvertX86p32_8RGB332.L4 # Nothing to do anymore
 
-_ConvertX86p32_8RGB332.L3: 
+_ConvertX86p32_8RGB332.L3:
         movl (%esi),%eax        # single pixel conversion for trailing pixels
 
         movl %eax,%ebx
@@ -1039,5 +1039,5 @@ _ConvertX86p32_8RGB332.L3:
         decl %ecx
         jnz _ConvertX86p32_8RGB332.L3
 
-_ConvertX86p32_8RGB332.L4: 
+_ConvertX86p32_8RGB332.L4:
         jmp _x86return
