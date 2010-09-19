@@ -223,6 +223,7 @@ interface
 
 {*** Object Helpers ***}
     function search_default_property(pd : tobjectdef) : tpropertysym;
+    function find_real_objcclass_definition(pd: tobjectdef; erroronfailure: boolean): tobjectdef;
 
 {*** Macro Helpers ***}
     {If called initially, the following procedures manipulate macros in }
@@ -1963,13 +1964,19 @@ implementation
       end;
 
 
-    function find_real_objcclass_definition(pd: tobjectdef): tobjectdef;
+    function find_real_objcclass_definition(pd: tobjectdef; erroronfailure: boolean): tobjectdef;
       var
         hashedid   : THashedIDString;
         stackitem  : psymtablestackitem;
         srsymtable : tsymtable;
         srsym      : tsym;
       begin
+        { not a formal definition -> return it }
+        if not(oo_is_formal in pd.objectoptions) then
+          begin
+            result:=pd;
+            exit;
+          end;
         hashedid.id:=pd.typesym.name;
         stackitem:=symtablestack.stack;
         while assigned(stackitem) do
@@ -1995,8 +2002,10 @@ implementation
               end;
             stackitem:=stackitem^.next;
           end;
-        { nothing found: give an error and return the original (empty) one }
-        Message1(sym_e_objc_formal_class_not_resolved,pd.objrealname^);
+        { nothing found: optionally give an error and return the original
+          (empty) one }
+        if erroronfailure then
+          Message1(sym_e_objc_formal_class_not_resolved,pd.objrealname^);
         result:=pd;
       end;
 
@@ -2012,7 +2021,7 @@ implementation
         if assigned(classh) then
           begin
             if (oo_is_formal in classh.objectoptions) then
-              classh:=find_real_objcclass_definition(classh);
+              classh:=find_real_objcclass_definition(classh,true);
             { The contextclassh is used for visibility. The classh must be equal to
               or be a parent of contextclassh. E.g. for inherited searches the classh is the
               parent. }
@@ -2077,7 +2086,7 @@ implementation
         { in case this is a formal objcclass, first find the real definition }
         if assigned(classh) and
            (oo_is_formal in classh.objectoptions) then
-          classh:=find_real_objcclass_definition(classh);
+          classh:=find_real_objcclass_definition(classh,true);
         result:=false;
         def:=nil;
         while assigned(classh) do
@@ -2115,7 +2124,7 @@ implementation
         { in case this is a formal objcclass, first find the real definition }
         if assigned(classh) and
            (oo_is_formal in classh.objectoptions) then
-          classh:=find_real_objcclass_definition(classh);
+          classh:=find_real_objcclass_definition(classh,true);
         result:=false;
         def:=nil;
         while assigned(classh) do
@@ -2376,7 +2385,7 @@ implementation
       begin
         { in case this is a formal objcclass, first find the real definition }
         if (oo_is_formal in pd.objectoptions) then
-          pd:=find_real_objcclass_definition(pd);
+          pd:=find_real_objcclass_definition(pd,true);
         hashedid.id:=s;
         orgpd:=pd;
         while assigned(pd) do

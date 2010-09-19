@@ -1245,8 +1245,16 @@ implementation
 
            objectdef :
              begin
-               { object pascal objects }
+               { Objective-C classes (handle anonymous externals) }
                if (def_from.typ=objectdef) and
+                  (find_real_objcclass_definition(tobjectdef(def_from),false) =
+                   find_real_objcclass_definition(tobjectdef(def_to),false)) then
+                 begin
+                   doconv:=tc_equal;
+                   eq:=te_equal;
+                 end
+               { object pascal objects }
+               else if (def_from.typ=objectdef) and
                   (tobjectdef(def_from).is_related(tobjectdef(def_to))) then
                 begin
                   doconv:=tc_equal;

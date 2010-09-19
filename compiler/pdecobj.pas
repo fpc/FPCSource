@@ -427,7 +427,9 @@ implementation
                            end
                          else
                            Message(parser_e_mix_of_classes_and_objects);
-                       end;
+                       end
+                     else
+                       childof:=find_real_objcclass_definition(childof,true);
                    odt_objcprotocol:
                      begin
                        if not(is_objcprotocol(childof)) then
