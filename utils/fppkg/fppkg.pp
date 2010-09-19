@@ -39,7 +39,7 @@ Type
     Destructor Destroy;override;
     Procedure LoadGlobalDefaults;
     Procedure LoadCompilerDefaults;
-    Procedure ProcessCommandLine;
+    Procedure ProcessCommandLine(FirstPass: boolean);
     Procedure DoRun; Override;
   end;
 
@@ -178,6 +178,9 @@ begin
   Writeln('  -b --broken        Do not stop on broken packages');
   Writeln('  -l --showlocation  Show if the packages are installed globally or locally');
   Writeln('  -o --options=value Pass extra options to the compiler');
+  Writeln('  -n                 Do not read the default configuration files');
+  Writeln('  -p --prefix=value  Specify the prefix');
+  Writeln('  -c --compiler=val. Specify the compiler-executable');
   Writeln('Actions:');
   Writeln('  update            Update packages list');
   Writeln('  list              List available and installed packages');
@@ -207,7 +210,7 @@ begin
 end;
 
 
-procedure TMakeTool.ProcessCommandLine;
+procedure TMakeTool.ProcessCommandLine(FirstPass: boolean);
 
   Function CheckOption(Index : Integer;Short,Long : String): Boolean;
   var
@@ -283,15 +286,29 @@ begin
         GlobalOptions.InstallGlobal:=true
       else if CheckOption(I,'r','recovery') then
         GlobalOptions.RecoveryMode:=true
+      else if CheckOption(I,'n','') then
+        GlobalOptions.SkipConfigurationFiles:=true
       else if CheckOption(I,'b','broken') then
         GlobalOptions.AllowBroken:=true
       else if CheckOption(I,'l','showlocation') then
         GlobalOptions.ShowLocation:=true
-      else if CheckOption(I,'o','options') then
+      else if CheckOption(I,'o','options') and FirstPass then
         begin
           OptString := OptionArg(I);
           while OptString <> '' do
             CompilerOptions.Options.Add(SplitSpaces(OptString));
+        end
+      else if CheckOption(I,'p','prefix') then
+        begin
+          CompilerOptions.GlobalPrefix := OptionArg(I);
+          CompilerOptions.LocalPrefix := OptionArg(I);
+          FPMakeCompilerOptions.GlobalPrefix := OptionArg(I);
+          FPMakeCompilerOptions.LocalPrefix := OptionArg(I);
+        end
+      else if CheckOption(I,'c','compiler') then
+        begin
+          CompilerOptions.Compiler := OptionArg(I);
+          FPMakeCompilerOptions.Compiler := OptionArg(I);
         end
       else if CheckOption(I,'h','help') then
         begin
@@ -327,7 +344,7 @@ begin
   OldCurrDir:=GetCurrentDir;
   Try
     LoadGlobalDefaults;
-    ProcessCommandLine;
+    ProcessCommandLine(true);
 
     // Scan is special, it doesn't need a valid local setup
     if (ParaAction='scan') then
@@ -339,7 +356,23 @@ begin
       end;
 
     MaybeCreateLocalDirs;
-    LoadCompilerDefaults;
+    if not GlobalOptions.SkipConfigurationFiles then
+      LoadCompilerDefaults
+    else
+      begin
+        FPMakeCompilerOptions.InitCompilerDefaults;
+        CompilerOptions.InitCompilerDefaults;
+      end;
+
+    // The command-line is parsed for the second time, to make it possible
+    // to override the values in the compiler-configuration file. (like prefix)
+    ProcessCommandLine(false);
+
+    // If CompilerVersion, CompilerOS or CompilerCPU is still empty, use the
+    // compiler-executable to get them
+    FPMakeCompilerOptions.CheckCompilerValues;
+    CompilerOptions.CheckCompilerValues;
+
     LoadLocalAvailableMirrors;
 
     // Load local repository, update first if this is a new installation

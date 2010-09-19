@@ -50,6 +50,7 @@ Type
     FRecoveryMode   : Boolean;
     FOptionParser: TTemplateParser;
     FShowLocation: Boolean;
+    FSkipConfigurationFiles: boolean;
     function  GetOptString(Index: integer): String;
     procedure SetOptString(Index: integer; const AValue: String);
     procedure UpdateLocalRepositoryOption;
@@ -83,6 +84,7 @@ Type
     Property RecoveryMode : Boolean Read FRecoveryMode Write FRecoveryMode;
     Property AllowBroken : Boolean Read FAllowBroken Write FAllowBroken;
     Property ShowLocation : Boolean Read FShowLocation Write FShowLocation;
+    Property SkipConfigurationFiles: boolean read FSkipConfigurationFiles write FSkipConfigurationFiles;
   end;
 
 
@@ -115,6 +117,7 @@ Type
     Procedure SaveCompilerToFile(const AFileName : String);
     procedure LogValues(const ACfgName:string);
     procedure UpdateLocalRepositoryOption;
+    procedure CheckCompilerValues;
     Function LocalUnitDir:string;
     Function GlobalUnitDir:string;
     Function HasOptions: boolean;
@@ -478,6 +481,28 @@ begin
   FOptionParser.Values['LocalRepository'] := GlobalOptions.LocalRepository;
 end;
 
+procedure TCompilerOptions.CheckCompilerValues;
+var
+  AVersion : string;
+  ACpu     : TCpu;
+  AOs      : TOS;
+begin
+  if Compiler='' then
+    Exit;
+  if (CompilerCPU=cpuNone) or
+   (CompilerOS=osNone) or
+   (CompilerVersion='') then
+  begin
+    GetCompilerInfo(Compiler,'-iVTPTO',AVersion,ACpu,AOs);
+    if CompilerCPU=cpuNone then
+      CompilerCPU := ACpu;
+    if CompilerOS=osNone then
+      CompilerOS:=AOs;
+    if CompilerVersion='' then
+      CompilerVersion:=AVersion;
+  end;
+end;
+
 
 procedure TCompilerOptions.SetCompilerOS(const AValue: TOS);
 begin
@@ -533,22 +558,14 @@ end;
 
 procedure TCompilerOptions.InitCompilerDefaults;
 
-var
-  infoSL : TStringList;
 begin
   FConfigVersion:=CurrentConfigVersion;
-  FCompiler:=ExeSearch('fpc'+ExeExt,GetEnvironmentVariable('PATH'));
+  if fcompiler = '' then
+    FCompiler:=ExeSearch('fpc'+ExeExt,GetEnvironmentVariable('PATH'));
   if FCompiler='' then
     Raise EPackagerError.Create(SErrMissingFPC);
   // Detect compiler version/target from -i option
-  infosl:=TStringList.Create;
-  infosl.Delimiter:=' ';
-  infosl.DelimitedText:=GetCompilerInfo(FCompiler,'-iVTPTO');
-  if infosl.Count<>3 then
-    Raise EPackagerError.Create(SErrInvalidFPCInfo);
-  FCompilerVersion:=infosl[0];
-  FCompilerCPU:=StringToCPU(infosl[1]);
-  FCompilerOS:=StringToOS(infosl[2]);
+  GetCompilerInfo(FCompiler,'-iVTPTO',FCompilerVersion,FCompilerCPU,FCompilerOS);
   // Temporary hack to workaround bug in fpc.exe that doesn't support spaces
   // We retrieve the real binary
   if FCompilerVersion='2.2.0' then
