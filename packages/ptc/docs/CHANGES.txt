@@ -1,0 +1,107 @@
+0.99.11
+ - added ptcgraph - an implementation of FPC's BGI-compatible graph unit on top
+   of PTCPas. It should work on all platforms, supported by PTCPas,  except for
+   DOS (because it doesn't have threads)
+ - VBE console improvements:
+    - support for double buffering with video page flipping
+    - console update synchronized with the vertical retrace
+    - automatic fallback to windowed mode, if initializing LFB fails. This
+      results in better compatibility with NTVDM and other environments that
+      would otherwise require adding the 'disable lfb' option to ptcpas.cfg.
+    - support VBE 3+ separate LFB and Windowed color masks for direct color
+      modes. This might fix some wrong color bugs in LFB mode on some modern
+      VBE 3+ video cards.
+ - fixed a bug in the X11 event handling that caused unnecessary high CPU use
+   while waiting for an event
+
+0.99.10
+ - fpc 2.4.0 support
+ - Win64 DirectX support
+ - X11 DGA 2.0 support
+ - VBE 2+ LFB support. Enabled by default. Offers a great performance
+   improvement, but may fail on buggy VGA BIOSes or buggy DOS virtual
+   machines. If it causes problems, it can be disabled by adding
+   'disable lfb' to ptcpas.cfg.
+ - API changes:
+    - in the hermes unit, THermesHandle was replaced with
+      THermesConverterHandle, THermesClearerHandle and THermesPaletteHandle,
+      which should be treated as opaque pointers, not integers. This only
+      matters if you use unit hermes directly, and not ptc.
+ - various bugfixes and code cleanup.
+
+0.99.9
+ - big endian support.
+ - Win64 support (GDI only. DirectX not supported yet).
+
+0.99.8
+ - added support for Windows CE. Still in alpha stage. Tested on a Motorola
+   MPx220 smartphone.
+ - added support for fullscreen X11 using the Xrandr extension (previously
+   only the XF86VidMode extension was supported). Also fullscreen X11 now works
+   even when there aren't any mode switching X11 extensions available. A single
+   fullscreen mode, which has the size of the entire desktop is offered in this
+   case.
+ - added a new simple windowed win32 GDI console, which is able to run even
+   without any version of DirectX installed.
+ - the X11 console now returns a mode list.
+ - fixed a bug which caused win32 fixed-size windows to be non-minimizable.
+ - imported the OpenPTC 1.0.1 DOS VGA fakemode assembly routines - should give
+   a nice speed boost on ancient 386/486/Pentium machines.
+
+0.99.7
+ - A new event system + mouse support. Yes, I know I should have done this
+   earlier :) Fullscreen X11 with mouse still does not work well, I'm planning
+   to fix this in the next version.
+ - API changes:
+    - TPTCKey class renamed to TPTCKeyEvent
+    - Removed int32, short16 and char8 types.
+      Replaced with: Uint64, Uint32, Uint16, Uint8,
+                     Sint64, Sint32, Sint16, Sint8.
+ - fixed fullscreen palette modes under DirectX (was buggy on modern NVIDIA and
+   ATI video cards).
+ - a new example program, demonstrating the mouse support.
+   Use it as a reference for now, until I update the documentation with the new
+   event handling stuff (hopefully this will happen in the next release).
+ - X11 window is not resizable anymore. Maybe some day I'll implement (optional)
+   stretching as in win32 windowed mode.
+ - code cleanup. Hid some implementation details from the interface part.
+
+0.99.6
+ - Now distributed under the terms of the modified LGPL (used by the FPC RTL).
+   See the file modified_lgpl.txt distributed with the library for details.
+   Thanks to Glenn Fiedler (the author of the original OpenPTC C++ code, that
+   this library is based on) and Christian Nentwich (the author of the original
+   C code of the Hermes library and the X11 version of OpenPTC) for giving
+   permission to distribute the code under this license.
+ - The Free Pascal Development Team intends to distribute this library with the
+   Free Pascal Compiler and to base the graph unit on it, which is very cool! :)
+ - fullscreen support in xshm/ximage mode.
+ - dga support is now disabled by default.
+ - added workaround for the 'shmat' bug in fpc 2.0.0's rtl on amd64 linux.
+ - fixed some compilation-related problems with the example programs.
+ - fpc 2.0.2 - go32v2 compilation fixed. fpc 1.0.10 support dropped completely.
+ - some other DOS code fixes and cleanups.
+ - config file name changed to ptcpas.cfg (~/.ptcpas.conf on *NIX)
+
+0.99.5
+ - support for fpc 2.0.0. fpc 1.0.10 support dropped, except for DOS.
+ - support for amd64 (the code is now 64-bit safe, but still little endian-only)
+ - fix the (sometimes) missing titlebar when using the metacity window manager
+
+0.99.4
+ - some X11 fixes (missing cdecl's, wrong alignments, etc.)
+ - FreeBSD and NetBSD now compile and work (dga and XShm still not tested...)
+ - improved exception handling in demos and examples
+
+0.99.3
+ - support for fpc 1.9.2+ (adapted to use the new unix rtl)
+ - the dos console uses rdtsc if available for more accurate timing
+ - some vesa fixes
+
+0.99.2
+ - alt, shift, ctrl modifier keys support for X11
+ - key release support for win32 and X11
+ - new example (keybrd2) demonstrating the use of key release events
+
+0.99.1
+ - first release to sourceforge

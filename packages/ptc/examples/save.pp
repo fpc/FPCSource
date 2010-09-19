@@ -3,92 +3,93 @@ Ported to FPC by Nikolay Nikolov (nickysn@users.sourceforge.net)
 }
 
 {
- Save example for OpenPTC 1.0 C++ Implementation
+ Save example for OpenPTC 1.0 C++ implementation
  Copyright (c) Glenn Fiedler (ptc@gaffer.org)
  This source code is in the public domain
 }
 
-Program SaveExample;
+program SaveExample;
 
 {$MODE objfpc}
 
-Uses
+uses
   ptc, Math;
 
-Procedure save(surface : TPTCSurface; filename : String);
-
-Const
+procedure save(surface: TPTCSurface; filename: string);
+var
+  F: File;
+  width, height: Integer;
+  size: Integer;
+  y: Integer;
+  pixels: PUint8 = nil;
+  format: TPTCFormat = nil;
+  palette: TPTCPalette = nil;
   { generate the header for a true color targa image }
-  header : Array[0..17] Of char8 =
+  header: array [0..17] of Uint8 =
     (0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
-
-Var
-  F : File;
-  width, height : Integer;
-  size : Integer;
-  y : Integer;
-  pixels : Pchar8;
-  format : TPTCFormat;
-  palette : TPTCPalette;
-
-Begin
+begin
   { open image file for writing }
-  ASSign(F, filename);
+  AssignFile(F, filename);
   Rewrite(F, 1);
 
-  { get surface dimensions }
-  width := surface.width;
-  height := surface.height;
+  try
+    { get surface dimensions }
+    width := surface.width;
+    height := surface.height;
 
-  { set targa image width }
-  header[12] := width And $FF;
-  header[13] := width Shr 8;
+    { set targa image width }
+    header[12] := width and $FF;
+    header[13] := width shr 8;
 
-  { set targa image height }
-  header[14] := height And $FF;
-  header[15] := height Shr 8;
+    { set targa image height }
+    header[14] := height and $FF;
+    header[15] := height shr 8;
 
-  { set bits per pixel }
-  header[16] := 24;
+    { set bits per pixel }
+    header[16] := 24;
 
-  { write tga header }
-  BlockWrite(F, header, 18);
+    { write tga header }
+    BlockWrite(F, header, 18);
 
-  { calculate size of image pixels }
-  size := width * height * 3;
+    { calculate size of image pixels }
+    size := width * height * 3;
 
-  { allocate image pixels }
-  pixels := GetMem(size);
+    { allocate image pixels }
+    pixels := GetMem(size);
 
-  format := TPTCFormat.Create(24, $00FF0000, $0000FF00, $000000FF);
-  palette := TPTCPalette.Create;
+    {$IFDEF FPC_LITTLE_ENDIAN}
+    format := TPTCFormat.Create(24, $00FF0000, $0000FF00, $000000FF);
+    {$ELSE FPC_LITTLE_ENDIAN}
+    format := TPTCFormat.Create(24, $000000FF, $0000FF00, $00FF0000);
+    {$ENDIF FPC_LITTLE_ENDIAN}
+    palette := TPTCPalette.Create;
 
-  { save surface to image pixels }
-  surface.save(pixels, width, height, width * 3, format, palette);
+    { save surface to image pixels }
+    surface.save(pixels, width, height, width * 3, format, palette);
 
-  palette.Free;
-  format.Free;
+    { write image pixels one line at a time }
+    for y := height - 1 DownTo 0 do
+      BlockWrite(F, pixels[width * y * 3], width * 3);
 
-  { write image pixels one line at a time }
-  For y := height - 1 DownTo 0 Do
-    BlockWrite(F, pixels[width * y * 3], width * 3);
+  finally
+    { free image pixels }
+    FreeMem(pixels);
 
-  { free image pixels }
-  FreeMem(pixels);
+    palette.Free;
+    format.Free;
 
-  Close(F);
-End;
+    CloseFile(F);
+  end;
+end;
 
-Function calculate(real, imaginary : Single; maximum : Integer) : Integer;
-
-Var
-  c_r, c_i : Single;
-  z_r, z_i : Single;
-  z_r_squared, z_i_squared : Single;
-  z_squared_magnitude : Single;
-  count : Integer;
-
-Begin
+function calculate(real, imaginary: Single; maximum: Integer): Integer;
+var
+  c_r, c_i: Single;
+  z_r, z_i: Single;
+  z_r_squared, z_i_squared: Single;
+  z_squared_magnitude: Single;
+  count: Integer;
+begin
   { complex number 'c' }
   c_r := real;
   c_i := imaginary;
@@ -102,8 +103,8 @@ Begin
   z_i_squared := 0;
 
   { mandelbrot function iteration loop }
-  For count := 0 To maximum - 1 Do
-  Begin
+  for count := 0 to maximum - 1 do
+  begin
     { square 'z' and add 'c' }
     z_i := 2 * z_r * z_i + c_i;
     z_r := z_r_squared - z_i_squared + c_r;
@@ -116,46 +117,43 @@ Begin
     z_squared_magnitude := z_r_squared + z_i_squared;
 
     { stop iterating if the magnitude of 'z' is greater than two }
-    If z_squared_magnitude > 4 Then
-    Begin
+    if z_squared_magnitude > 4 then
+    begin
       calculate := Count;
-      Exit;
-    End;
-  End;
+      exit;
+    end;
+  end;
 
   { maximum }
   calculate := 0;
-End;
+end;
 
-Procedure mandelbrot(console : TPTCConsole; surface : TPTCSurface;
-		     x1, y1, x2, y2 : Single);
-
-Const
+procedure mandelbrot(console: TPTCConsole; surface: TPTCSurface;
+                     x1, y1, x2, y2: Single);
+const
   { constant values }
   entries = 1024;
   maximum = 1024;
-
-Var
+var
   { fractal color table }
-  table : Array[0..entries - 1] Of int32;
-  i : Integer;
-  f_index : Single;
-  time : Single;
-  intensity : Single;
-  pixels, pixel : Pint32;
-  width, height : Integer;
-  dx, dy : Single;
-  real, imaginary : Single;
-  x, y : Integer;
-  count : Integer;
-  index : Integer;
-  color : int32;
-  area : TPTCArea;
-
-Begin
+  table: array [0..entries - 1] of Uint32;
+  i: Integer;
+  f_index: Single;
+  time: Single;
+  intensity: Single;
+  pixels, pixel: PUint32;
+  width, height: Integer;
+  dx, dy: Single;
+  real, imaginary: Single;
+  x, y: Integer;
+  count: Integer;
+  index: Integer;
+  color: Uint32;
+  area: TPTCArea;
+begin
   { generate fractal color table }
-  For i := 0 To entries - 1 Do
-  Begin
+  for i := 0 to entries - 1 do
+  begin
     { calculate normalized index }
     f_index := i / entries;
 
@@ -170,11 +168,11 @@ Begin
 
     { store intensity as a shade of blue }
     table[i] := Trunc(255 * intensity);
-  End;
+  end;
 
   { lock surface pixels }
   pixels := surface.lock;
-  Try
+  try
     { get surface dimensions }
     width := surface.width;
     height := surface.height;
@@ -190,19 +188,19 @@ Begin
     imaginary := y1;
 
     { iterate down surface y }
-    For y := 0 To height - 1 Do
-    Begin
+    for y := 0 to height - 1 do
+    begin
       { real axis }
       real := x1;
 
-      { iterate across surface x }    
-      For x := 0 To width - 1 Do
-      Begin
+      { iterate across surface x }
+      for x := 0 to width - 1 do
+      begin
         { calculate the mandelbrot interation count }
         count := calculate(real, imaginary, maximum);
 
         { calculate color table index }
-        index := count Mod entries;
+        index := count mod entries;
 
         { lookup color from iteration }
         color := table[index];
@@ -215,41 +213,37 @@ Begin
 
         { update real }
         real := real + dx;
-      End;
+      end;
 
       { update imaginary }
       imaginary := imaginary + dy;
 
       { setup line area }
       area := TPTCArea.Create(0, y, width, y + 1);
-      Try
+      try
         { copy surface area to console }
         surface.copy(console, area, area);
-      Finally
+      finally
         area.Free;
-      End;
+      end;
 
       { update console area }
       console.update;
-    End;
-  Finally
+    end;
+  finally
     { unlock surface }
     surface.unlock;
-  End;
-End;
+  end;
+end;
 
-Var
-  console : TPTCConsole;
-  surface : TPTCSurface;
-  format : TPTCFormat;
-  x1, y1, x2, y2 : Single;
-
-Begin
-  format := Nil;
-  surface := Nil;
-  console := Nil;
-  Try
-    Try
+var
+  console: TPTCConsole = nil;
+  surface: TPTCSurface = nil;
+  format: TPTCFormat = nil;
+  x1, y1, x2, y2: Single;
+begin
+  try
+    try
       { create console }
       console := TPTCConsole.Create;
 
@@ -276,15 +270,15 @@ Begin
 
       { read key }
       console.ReadKey;
-    Finally
+    finally
       console.close;
       console.Free;
       surface.Free;
       format.Free;
-    End;
-  Except
-    On error : TPTCError Do
+    end;
+  except
+    on error: TPTCError do
       { report error }
       error.report;
-  End;
-End.
+  end;
+end.

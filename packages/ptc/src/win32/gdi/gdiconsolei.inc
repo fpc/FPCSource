@@ -1,7 +1,42 @@
-Constructor TGDIConsole.Create;
+{
+    This file is part of the PTCPas framebuffer library
+    Copyright (C) 2001-2010 Nikolay Nikolov (nickysn@users.sourceforge.net)
 
-Begin
-  Inherited Create;
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version
+    with the following modification:
+
+    As a special exception, the copyright holders of this library give you
+    permission to link this library with independent modules to produce an
+    executable, regardless of the license terms of these independent modules,and
+    to copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the terms
+    and conditions of the license of that module. An independent module is a
+    module which is not derived from or based on this library. If you modify
+    this library, you may extend this exception to your version of the library,
+    but you are not obligated to do so. If you do not wish to do so, delete this
+    exception statement from your version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
+constructor TGDIConsole.Create;
+begin
+  inherited Create;
+
+  FCursorMode := CURSOR_DEFAULT;
+
+  FDisplayWidth := GetSystemMetrics(SM_CXSCREEN);
+  FDisplayHeight := GetSystemMetrics(SM_CYSCREEN);
 
   FDefaultWidth := 320;
   FDefaultHeight := 200;
@@ -15,13 +50,17 @@ Begin
 
   FOpen := False;
 
+  FModes[0] := TPTCMode.Create(FDisplayWidth, FDisplayHeight, FDefaultFormat);
+  FModes[1] := TPTCMode.Create;
+
   { configure console }
   Configure('ptcpas.cfg');
-End;
+end;
 
-Destructor TGDIConsole.Destroy;
-
-Begin
+destructor TGDIConsole.Destroy;
+var
+  I: Integer;
+begin
   Close;
 
   {...}
@@ -36,43 +75,41 @@ Begin
   FClip.Free;
   FDefaultFormat.Free;
 
-  Inherited Destroy;
-End;
+  for I := Low(FModes) to High(FModes) do
+    FModes[I].Free;
 
-Procedure TGDIConsole.Open(Const ATitle : String; APages : Integer = 0);
+  inherited Destroy;
+end;
 
-Begin
+procedure TGDIConsole.Open(const ATitle: string; APages: Integer = 0);
+begin
   Open(ATitle, FDefaultFormat, APages);
-End;
+end;
 
-Procedure TGDIConsole.Open(Const ATitle : String; Const AFormat : TPTCFormat;
-               APages : Integer = 0);
-
-Begin
+procedure TGDIConsole.Open(const ATitle: string; const AFormat: TPTCFormat;
+               APages: Integer = 0);
+begin
   Open(ATitle, FDefaultWidth, FDefaultHeight, AFormat, APages);
-End;
+end;
 
-Procedure TGDIConsole.Open(Const ATitle : String; Const AMode : TPTCMode;
-                           APages : Integer = 0);
-
-Begin
+procedure TGDIConsole.Open(const ATitle: string; const AMode: TPTCMode;
+                           APages: Integer = 0);
+begin
   Open(ATitle, AMode.Width, AMode.Height, AMode.Format, APages);
-End;
+end;
 
-Procedure TGDIConsole.Open(Const ATitle : String; AWidth, AHeight : Integer;
-               Const AFormat : TPTCFormat; APages : Integer = 0);
-
-Var
-  tmp : TPTCArea;
-
-Begin
-  If FOpen Then
+procedure TGDIConsole.Open(const ATitle: string; AWidth, AHeight: Integer;
+               const AFormat: TPTCFormat; APages: Integer = 0);
+var
+  tmp: TPTCArea;
+begin
+  if FOpen then
     Close;
 
 (*  FWindow := TWin32Window.Create('PTC_GDI_FULLSCREEN',
                                  ATitle,
                                  WS_EX_TOPMOST,
-                                 DWord(WS_POPUP Or WS_SYSMENU Or WS_VISIBLE), // fpc windows RTL bug - WS_POPUP should be a DWord!!!
+                                 DWord(WS_POPUP or WS_SYSMENU or WS_VISIBLE), // fpc windows RTL bug - WS_POPUP should be a DWord!!!
                                  SW_NORMAL,
                                  0, 0,
                                  GetSystemMetrics(SM_CXSCREEN),
@@ -82,7 +119,7 @@ Begin
   FWindow := TWin32Window.Create('PTC_GDI_WINDOWED_FIXED',
                                  ATitle,
                                  0,
-                                 WS_VISIBLE Or WS_SYSMENU Or WS_CAPTION Or WS_MINIMIZEBOX,
+                                 WS_VISIBLE or WS_SYSMENU or WS_CAPTION or WS_MINIMIZEBOX,
                                  SW_NORMAL,
                                  CW_USEDEFAULT, CW_USEDEFAULT,
                                  AWidth, AHeight,
@@ -92,7 +129,7 @@ Begin
 (*  FWindow := TWin32Window.Create('PTC_GDI_WINDOWED_RESIZABLE',
                                  ATitle,
                                  0,
-                                 WS_OVERLAPPEDWINDOW Or WS_VISIBLE,
+                                 WS_OVERLAPPEDWINDOW or WS_VISIBLE,
                                  SW_NORMAL,
                                  CW_USEDEFAULT, CW_USEDEFAULT,
                                  AWidth, AHeight,
@@ -109,25 +146,24 @@ Begin
   FMouse := TWin32Mouse.Create(FWindow.Handle, FWindow.Thread, False, FEventQueue, {FFullScreen}False, AWidth, AHeight);
 
   tmp := TPTCArea.Create(0, 0, AWidth, AHeight);
-  Try
+  try
     FArea.Assign(tmp);
     FClip.Assign(tmp);
-  Finally
+  finally
     tmp.Free;
-  End;
+  end;
 
   FWindow.Update;
 
   FTitle := ATitle;
 
   FOpen := True;
-End;
+end;
 
-Procedure TGDIConsole.Close;
-
-Begin
-  If Not FOpen Then
-    Exit;
+procedure TGDIConsole.Close;
+begin
+  if not FOpen then
+    exit;
 
   {...}
 
@@ -142,264 +178,293 @@ Begin
   FTitle := '';
 
   FOpen := False;
-End;
+end;
 
-Procedure TGDIConsole.Copy(Var ASurface : TPTCBaseSurface);
-
-Begin
+procedure TGDIConsole.Copy(ASurface: TPTCBaseSurface);
+begin
   // todo...
-End;
+end;
 
-Procedure TGDIConsole.Copy(Var ASurface : TPTCBaseSurface;
-                           Const ASource, ADestination : TPTCArea);
-
-Begin
+procedure TGDIConsole.Copy(ASurface: TPTCBaseSurface;
+                           const ASource, ADestination: TPTCArea);
+begin
   // todo...
-End;
+end;
 
-Procedure TGDIConsole.Load(Const APixels : Pointer;
-                           AWidth, AHeight, APitch : Integer;
-                           Const AFormat : TPTCFormat;
-                           Const APalette : TPTCPalette);
-Var
-  Area_ : TPTCArea;
-  console_pixels : Pointer;
-
-Begin
+procedure TGDIConsole.Load(const APixels: Pointer;
+                           AWidth, AHeight, APitch: Integer;
+                           const AFormat: TPTCFormat;
+                           const APalette: TPTCPalette);
+var
+  Area_: TPTCArea;
+  console_pixels: Pointer;
+begin
   CheckOpen(    'TGDIConsole.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette)');
   CheckUnlocked('TGDIConsole.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette)');
-  If Clip.Equals(Area) Then
-  Begin
-    Try
+  if Clip.Equals(Area) then
+  begin
+    try
       console_pixels := Lock;
-      Try
+      try
         FCopy.Request(AFormat, Format);
         FCopy.Palette(APalette, Palette);
         FCopy.Copy(APixels, 0, 0, AWidth, AHeight, APitch, console_pixels, 0, 0,
                     Width, Height, Pitch);
-      Finally
+      finally
         Unlock;
-      End;
-    Except
-      On error : TPTCError Do
-        Raise TPTCError.Create('failed to load pixels to console', error);
-    End;
-  End
-  Else
-  Begin
+      end;
+    except
+      on error: TPTCError do
+        raise TPTCError.Create('failed to load pixels to console', error);
+    end;
+  end
+  else
+  begin
     Area_ := TPTCArea.Create(0, 0, width, height);
-    Try
+    try
       Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, Area_, Area);
-    Finally
+    finally
       Area_.Free;
-    End;
-  End;
-End;
+    end;
+  end;
+end;
 
-Procedure TGDIConsole.Load(Const APixels : Pointer;
-                           AWidth, AHeight, APitch : Integer;
-                           Const AFormat : TPTCFormat;
-                           Const APalette : TPTCPalette;
-                           Const ASource, ADestination : TPTCArea);
-Var
-  console_pixels : Pointer;
-  clipped_source, clipped_destination : TPTCArea;
-  tmp : TPTCArea;
-
-Begin
+procedure TGDIConsole.Load(const APixels: Pointer;
+                           AWidth, AHeight, APitch: Integer;
+                           const AFormat: TPTCFormat;
+                           const APalette: TPTCPalette;
+                           const ASource, ADestination: TPTCArea);
+var
+  console_pixels: Pointer;
+  clipped_source, clipped_destination: TPTCArea;
+  tmp: TPTCArea;
+begin
   CheckOpen(    'TGDIConsole.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, ASource, ADestination)');
   CheckUnlocked('TGDIConsole.Load(APixels, AWidth, AHeight, APitch, AFormat, APalette, ASource, ADestination)');
-  clipped_source := Nil;
-  clipped_destination := Nil;
-  Try
+  clipped_source := nil;
+  clipped_destination := nil;
+  try
     console_pixels := Lock;
-    Try
+    try
       clipped_source := TPTCArea.Create;
       clipped_destination := TPTCArea.Create;
       tmp := TPTCArea.Create(0, 0, AWidth, AHeight);
-      Try
+      try
         TPTCClipper.Clip(ASource, tmp, clipped_source, ADestination, Clip, clipped_destination);
-      Finally
+      finally
         tmp.Free;
-      End;
+      end;
       FCopy.request(AFormat, Format);
       FCopy.palette(APalette, Palette);
       FCopy.copy(APixels, clipped_source.left, clipped_source.top, clipped_source.width, clipped_source.height, APitch,
                  console_pixels, clipped_destination.left, clipped_destination.top, clipped_destination.width, clipped_destination.height, Pitch);
-    Finally
+    finally
       Unlock;
       clipped_source.Free;
       clipped_destination.Free;
-    End;
-  Except
-    On error : TPTCError Do
-      Raise TPTCError.Create('failed to load pixels to console area', error);
-  End;
-End;
+    end;
+  except
+    on error: TPTCError do
+      raise TPTCError.Create('failed to load pixels to console area', error);
+  end;
+end;
 
-Procedure TGDIConsole.Save(APixels : Pointer;
-                           AWidth, AHeight, APitch : Integer;
-                           Const AFormat : TPTCFormat;
-                           Const APalette : TPTCPalette);
-
-Begin
+procedure TGDIConsole.Save(APixels: Pointer;
+                           AWidth, AHeight, APitch: Integer;
+                           const AFormat: TPTCFormat;
+                           const APalette: TPTCPalette);
+begin
   // todo...
-End;
+end;
 
-Procedure TGDIConsole.Save(APixels : Pointer;
-                           AWidth, AHeight, APitch : Integer;
-                           Const AFormat : TPTCFormat;
-                           Const APalette : TPTCPalette;
-                           Const ASource, ADestination : TPTCArea);
-
-Begin
+procedure TGDIConsole.Save(APixels: Pointer;
+                           AWidth, AHeight, APitch: Integer;
+                           const AFormat: TPTCFormat;
+                           const APalette: TPTCPalette;
+                           const ASource, ADestination: TPTCArea);
+begin
   // todo...
-End;
+end;
 
-Function TGDIConsole.Lock : Pointer;
-
-Begin
+function TGDIConsole.Lock: Pointer;
+begin
   Result := FWin32DIB.Pixels; // todo...
   FLocked := True;
-End;
+end;
 
-Procedure TGDIConsole.Unlock;
-
-Begin
+procedure TGDIConsole.Unlock;
+begin
   FLocked := False;
-End;
+end;
 
-Procedure TGDIConsole.Clear;
+procedure TGDIConsole.UpdateCursor;
+begin
+  if not FOpen then
+    exit;
 
-Begin
+  case FCursorMode of
+    CURSOR_DEFAULT:
+      FCursor := {Not FFullScreen}True;
+    CURSOR_SHOW:
+      FCursor := True;
+    CURSOR_HIDE:
+      FCursor := False;
+  end;
+
+  { update window cursor }
+  FWindow.Cursor(FCursor);
+
+  { hide/show cursor globally if running fullscreen }
+{  if FFullscreen then
+    if FCursor then
+      Win32Cursor_resurrect
+    else
+      Win32Cursor_kill;}
+end;
+
+procedure TGDIConsole.Clear;
+begin
   // todo...
-End;
+end;
 
-Procedure TGDIConsole.Clear(Const AColor : TPTCColor);
-
-Begin
+procedure TGDIConsole.Clear(const AColor: TPTCColor);
+begin
   // todo...
-End;
+end;
 
-Procedure TGDIConsole.Clear(Const AColor : TPTCColor;
-                            Const AArea : TPTCArea);
-
-Begin
+procedure TGDIConsole.Clear(const AColor: TPTCColor;
+                            const AArea: TPTCArea);
+begin
   // todo...
-End;
+end;
 
-Procedure TGDIConsole.Configure(Const AFileName : String);
-
-Var
-  F : Text;
-  S : String;
-
-Begin
+procedure TGDIConsole.Configure(const AFileName: String);
+var
+  F: TextFile;
+  S: string;
+begin
   AssignFile(F, AFileName);
   {$I-}
   Reset(F);
   {$I+}
-  If IOResult <> 0 Then
-    Exit;
-  While Not EoF(F) Do
-  Begin
+  if IOResult <> 0 then
+    exit;
+  while not EoF(F) do
+  begin
     {$I-}
     Readln(F, S);
     {$I+}
-    If IOResult <> 0 Then
+    if IOResult <> 0 then
       Break;
     Option(S);
-  End;
+  end;
   CloseFile(F);
-End;
+end;
 
-Function TGDIConsole.Option(Const AOption : String) : Boolean;
-
-Begin
-  // todo...
+function TGDIConsole.Option(const AOption: String): Boolean;
+begin
+  LOG('console option', AOption);
+  Result := True;
+  if AOption = 'default cursor' then
+  begin
+    FCursorMode := CURSOR_DEFAULT;
+    UpdateCursor;
+    exit;
+  end;
+  if AOption = 'show cursor' then
+  begin
+    FCursorMode := CURSOR_SHOW;
+    UpdateCursor;
+    exit;
+  end;
+  if AOption = 'hide cursor' then
+  begin
+    FCursorMode := CURSOR_HIDE;
+    UpdateCursor;
+    exit;
+  end;
+  if AOption = 'grab mouse' then
+  begin
+    FWindow.ConfineCursor(true);
+    exit;
+  end;
+  if AOption = 'ungrab mouse' then
+  begin
+    FWindow.ConfineCursor(false);
+    exit;
+  end;
 
   Result := FCopy.Option(AOption);
-End;
+end;
 
-Procedure TGDIConsole.Palette(Const APalette : TPTCPalette);
-
-Begin
+procedure TGDIConsole.Palette(const APalette: TPTCPalette);
+begin
   // todo...
-End;
+end;
 
-Procedure TGDIConsole.Clip(Const AArea : TPTCArea);
-
-Var
-  tmp : TPTCArea;
-
-Begin
+procedure TGDIConsole.Clip(const AArea: TPTCArea);
+var
+  tmp: TPTCArea;
+begin
   CheckOpen('TGDIConsole.Clip(AArea)');
 
   tmp := TPTCClipper.Clip(AArea, FArea);
-  Try
+  try
     FClip.Assign(tmp);
-  Finally
+  finally
     tmp.Free;
-  End;
-End;
+  end;
+end;
 
-Function TGDIConsole.Clip : TPTCArea;
-
-Begin
+function TGDIConsole.Clip: TPTCArea;
+begin
   CheckOpen('TGDIConsole.Clip');
   Result := FClip;
-End;
+end;
 
-Function TGDIConsole.Palette : TPTCPalette;
-
-Begin
+function TGDIConsole.Palette: TPTCPalette;
+begin
   CheckOpen('TGDIConsole.Palette');
   Result := FPalette;
-End;
+end;
 
-Function TGDIConsole.Modes : PPTCMode;
+function TGDIConsole.Modes: PPTCMode;
+begin
+  Result := @FModes[0];
+end;
 
-Begin
-  // todo...
-  Result := Nil;
-End;
-
-Procedure TGDIConsole.Flush;
-
-Begin
+procedure TGDIConsole.Flush;
+begin
   CheckOpen(    'TGDIConsole.Flush');
   CheckUnlocked('TGDIConsole.Flush');
 
   // todo...
-End;
+end;
 
-Procedure TGDIConsole.Finish;
-
-Begin
+procedure TGDIConsole.Finish;
+begin
   CheckOpen(    'TGDIConsole.Finish');
   CheckUnlocked('TGDIConsole.Finish');
 
   // todo...
-End;
+end;
 
-Procedure TGDIConsole.Update;
-
-Var
-  ClientRect : RECT;
-  DeviceContext : HDC;
-
-Begin
+procedure TGDIConsole.Update;
+var
+  ClientRect: RECT;
+  DeviceContext: HDC;
+begin
   CheckOpen(    'TGDIConsole.Update');
   CheckUnlocked('TGDIConsole.Update');
 
   FWindow.Update;
 
-  DeviceContext := GetDC(FWindow.m_window);
+  DeviceContext := GetDC(FWindow.Handle);
 
-  If DeviceContext <> 0 Then
-  Begin
-    If GetClientRect(FWindow.m_window, @ClientRect) Then
-    Begin
+  if DeviceContext <> 0 then
+  begin
+    if GetClientRect(FWindow.Handle, @ClientRect) then
+    begin
       StretchDIBits(DeviceContext,
                     0, 0, ClientRect.right, ClientRect.bottom,
                     0, 0, FWin32DIB.Width, FWin32DIB.Height,
@@ -407,132 +472,118 @@ Begin
                     FWin32DIB.BMI^,
                     DIB_RGB_COLORS,
                     SRCCOPY);
-    End;
+    end;
 
-    ReleaseDC(FWindow.m_window, DeviceContext);
-  End;
-End;
+    ReleaseDC(FWindow.Handle, DeviceContext);
+  end;
+end;
 
-Procedure TGDIConsole.Update(Const AArea : TPTCArea);
-
-Begin
+procedure TGDIConsole.Update(const AArea: TPTCArea);
+begin
   Update;
-End;
+end;
 
-Function TGDIConsole.NextEvent(Var AEvent : TPTCEvent; AWait : Boolean; Const AEventMask : TPTCEventMask) : Boolean;
-
-Begin
+function TGDIConsole.NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
+begin
   CheckOpen('TGDIConsole.NextEvent');
 //  CheckUnlocked('TGDIConsole.NextEvent');
 
   FreeAndNil(AEvent);
-  Repeat
+  repeat
     { update window }
     FWindow.Update;
 
     { try to find an event that matches the EventMask }
     AEvent := FEventQueue.NextEvent(AEventMask);
-  Until (Not AWait) Or (AEvent <> Nil);
-  Result := AEvent <> Nil;
-End;
+  until (not AWait) or (AEvent <> Nil);
+  Result := AEvent <> nil;
+end;
 
-Function TGDIConsole.PeekEvent(AWait : Boolean; Const AEventMask : TPTCEventMask) : TPTCEvent;
-
-Begin
+function TGDIConsole.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent;
+begin
   CheckOpen('TGDIConsole.PeekEvent');
 //  CheckUnlocked('TGDIConsole.PeekEvent');
 
-  Repeat
+  repeat
     { update window }
     FWindow.Update;
 
     { try to find an event that matches the EventMask }
     Result := FEventQueue.PeekEvent(AEventMask);
-  Until (Not AWait) Or (Result <> Nil);
-End;
+  until (not AWait) or (Result <> Nil);
+end;
 
-Function TGDIConsole.GetWidth : Integer;
-
-Begin
+function TGDIConsole.GetWidth: Integer;
+begin
   CheckOpen('TGDIConsole.GetWidth');
   Result := FWin32DIB.Width;
-End;
+end;
 
-Function TGDIConsole.GetHeight : Integer;
-
-Begin
+function TGDIConsole.GetHeight: Integer;
+begin
   CheckOpen('TGDIConsole.GetHeight');
   Result := FWin32DIB.Height;
-End;
+end;
 
-Function TGDIConsole.GetPitch : Integer;
-
-Begin
+function TGDIConsole.GetPitch: Integer;
+begin
   CheckOpen('TGDIConsole.GetPitch');
   Result := FWin32DIB.Pitch;
-End;
+end;
 
-Function TGDIConsole.GetArea : TPTCArea;
-
-Begin
+function TGDIConsole.GetArea: TPTCArea;
+begin
   CheckOpen('TGDIConsole.GetArea');
   Result := FArea;
-End;
+end;
 
-Function TGDIConsole.GetFormat : TPTCFormat;
-
-Begin
+function TGDIConsole.GetFormat: TPTCFormat;
+begin
   CheckOpen('TGDIConsole.GetFormat');
   Result := FWin32DIB.Format;
-End;
+end;
 
-Function TGDIConsole.GetPages : Integer;
-
-Begin
+function TGDIConsole.GetPages: Integer;
+begin
   CheckOpen('TGDIConsole.GetPages');
   Result := 2;
-End;
+end;
 
-Function TGDIConsole.GetName : String;
-
-Begin
+function TGDIConsole.GetName: string;
+begin
   Result := 'GDI';
-End;
+end;
 
-Function TGDIConsole.GetTitle : String;
-
-Begin
+function TGDIConsole.GetTitle: string;
+begin
   CheckOpen('TGDIConsole.GetTitle');
   Result := FTitle;
-End;
+end;
 
-Function TGDIConsole.GetInformation : String;
-
-Begin
+function TGDIConsole.GetInformation: string;
+begin
   CheckOpen('TGDIConsole.GetInformation');
   Result := ''; // todo...
-End;
+end;
 
-Procedure TGDIConsole.CheckOpen(AMessage : String);
+procedure TGDIConsole.CheckOpen(const AMessage: String);
+begin
+  if not FOpen then
+  try
+    raise TPTCError.Create('console is not open');
+  except
+    on error: TPTCError do
+      raise TPTCError.Create(AMessage, error);
+  end;
+end;
 
-Begin
-  If Not FOpen Then
-  Try
-    Raise TPTCError.Create('console is not open');
-  Except
-    On error : TPTCError Do
-      Raise TPTCError.Create(AMessage, error);
-  End;
-End;
-
-Procedure TGDIConsole.CheckUnlocked(AMessage : String);
-
-Begin
-  If FLocked Then
-  Try
-    Raise TPTCError.Create('console is locked');
-  Except
-    On error : TPTCError Do
-      Raise TPTCError.Create(AMessage, error);
-  End;
-End;
+procedure TGDIConsole.CheckUnlocked(const AMessage: String);
+begin
+  if FLocked then
+  try
+    raise TPTCError.Create('console is locked');
+  except
+    on error: TPTCError do
+      raise TPTCError.Create(AMessage, error);
+  end;
+end;

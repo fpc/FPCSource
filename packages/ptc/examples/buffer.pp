@@ -3,34 +3,29 @@ Ported to FPC by Nikolay Nikolov (nickysn@users.sourceforge.net)
 }
 
 {
- Buffer example for OpenPTC 1.0 C++ Implementation
+ Buffer example for OpenPTC 1.0 C++ implementation
  Copyright (c) Glenn Fiedler (ptc@gaffer.org)
  This source code is in the public domain
 }
 
-Program BufferExample;
+program BufferExample;
 
 {$MODE objfpc}
 
-Uses
+uses
   ptc;
 
-Var
-  console : TPTCConsole;
-  format : TPTCFormat;
-  palette : TPTCPalette;
-  width, height : Integer;
-  pixels : Pint32;
-  x, y, r, g, b : Integer;
-  i : Integer;
-
-Begin
-  pixels := Nil;
-  format := Nil;
-  palette := Nil;
-  console := Nil;
-  Try
-    Try
+var
+  console: TPTCConsole = nil;
+  format: TPTCFormat = nil;
+  palette: TPTCPalette = nil;
+  width, height: Integer;
+  pixels: PUint32 = nil;
+  x, y, r, g, b: Integer;
+  i: Integer;
+begin
+  try
+    try
       { create console }
       console := TPTCConsole.Create;
 
@@ -45,46 +40,46 @@ Begin
       height := console.height;
 
       { allocate a buffer of pixels }
-      pixels := GetMem(width * height * SizeOf(int32));
+      pixels := GetMem(width * height * SizeOf(Uint32));
+      FillChar(pixels^, width * height * SizeOf(Uint32), 0);
       palette := TPTCPalette.Create;
 
       { loop until a key is pressed }
-      While Not console.KeyPressed Do
-      Begin
+      while not console.KeyPressed do
+      begin
         { draw random pixels }
-        For i := 1 To 100 Do
-        Begin
+        for i := 1 to 100 do
+        begin
           { get random position }
-	  x := Random(width);
-	  y := Random(height);
+          x := Random(width);
+          y := Random(height);
 
-          { get random color }	
-	  r := Random(256);
-	  g := Random(256);
-	  b := Random(256);
+          { get random color }
+          r := Random(256);
+          g := Random(256);
+          b := Random(256);
 
           { draw color [r,g,b] at position [x,y] }
-	  pixels[x + y * width] := (r Shl 16) Or (g Shl 8) Or b;
-        End;
+          pixels[x + y * width] := (r shl 16) or (g shl 8) or b;
+        end;
 
         { load pixels to console }
         console.load(pixels, width, height, width * 4, format, palette);
 
         { update console }
         console.update;
-      End;
-    Finally
+      end;
+    finally
       { free pixels buffer }
-      If Assigned(pixels) Then
-        FreeMem(pixels);
+      FreeMem(pixels);
       console.close;
       palette.Free;
       format.Free;
       console.Free;
-    End;
-  Except
-    On error : TPTCError Do
+    end;
+  except
+    on error: TPTCError do
       { report error }
       error.report;
-  End;
-End.
+  end;
+end.

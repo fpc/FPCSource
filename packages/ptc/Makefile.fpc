@@ -7,24 +7,27 @@ name=ptc
 version=2.5.1
 
 [target]
-units=ptc
-loaders=$(CPU_LOADERS)
-exampledirs=demos examples
+units=ptc ptcwrapper
+exampledirs=examples
 
 [compiler]
-unitdir=src/x11 src/dos/cga src/dos/fakemode src/dos/textfx2 src/dos/timeunit src/dos/vesa \
-        src/win32/directx src
-includedir=src
-targetdir=.
+#unitdir=src/ptcwrapper src/x11
+unitdir_go32v2=src/dos/base src/dos/cga src/dos/vga src/dos/textfx2 src/dos/timeunit src/dos/vesa
+unitdir_win32=src/win32/directx
+unitdir_win64=src/win32/directx
+unitdir_wince=src/wince/gapi
+sourcedir=src src/ptcwrapper
 
 [require]
-packages=hermes
+packages=hermes fcl-base
 packages_linux=x11
 packages_freebsd=x11
 
 [default]
 fpcdir=../..
 
+[install]
+fpcpackage=y
 
 [rules]
 .NOTPARALLEL:

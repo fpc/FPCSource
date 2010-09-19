@@ -3,45 +3,43 @@ Ported to FPC by Nikolay Nikolov (nickysn@users.sourceforge.net)
 }
 
 {
- Modes example for OpenPTC 1.0 C++ Implementation
+ Modes example for OpenPTC 1.0 C++ implementation
  Copyright (c) Glenn Fiedler (ptc@gaffer.org)
  This source code is in the public domain
 }
 
-Program ModesExample;
+program ModesExample;
 
 {$MODE objfpc}
 
-Uses
+uses
   ptc;
 
-Procedure print(Const format : TPTCFormat);
-
-Begin
+procedure print(const format: TPTCFormat);
+begin
   { check format type }
-  If format.direct Then
+  if format.direct then
     { check alpha }
-    If format.a = 0 Then
+    if format.a = 0 then
       { direct color format without alpha }
       Write('Format(', format.bits:2, ',$', HexStr(format.r, 8), ',$', HexStr(format.g, 8), ',$', HexStr(format.b, 8), ')')
-    Else
+    else
       { direct color format with alpha }
       Write('Format(', format.bits:2, ',$', HexStr(format.r, 8), ',$', HexStr(format.g, 8), ',$', HexStr(format.b, 8), ',$', HexStr(format.a, 8), ')')
-  Else
+  else
     { indexed color format }
     Write('Format(', format.bits:2, ')');
-End;
+end;
 
-Procedure print(Const mode : TPTCMode);
-
-Begin
+procedure print(const mode: TPTCMode);
+begin
   { print mode width and height }
   Write(' ', mode.width:4, ' x ', mode.height);
-  If mode.height < 1000 Then
+  if mode.height < 1000 then
     Write(' ');
-  If mode.height < 100 Then
+  if mode.height < 100 then
     Write(' ');
-  If mode.height < 10 Then
+  if mode.height < 10 then
     Write(' ');
   Write(' x ');
 
@@ -50,17 +48,15 @@ Begin
 
   { newline }
   Writeln;
-End;
+end;
 
-Var
-  console : TPTCConsole;
-  modes : PPTCMode;
-  index : Integer;
-
-Begin
-  console := Nil;
-  Try
-    Try
+var
+  console: TPTCConsole = nil;
+  modes: PPTCMode;
+  index: Integer;
+begin
+  try
+    try
       { create console }
       console := TPTCConsole.Create;
 
@@ -68,11 +64,11 @@ Begin
       modes := console.modes;
 
       { check for empty list }
-      If Not modes[0].valid Then
+      if not modes[0].valid then
         { the console mode list was empty }
         Writeln('[console mode list is not available]')
-      Else
-      Begin
+      else
+      begin
         { print mode list header }
         Writeln('[console modes]');
 
@@ -80,21 +76,21 @@ Begin
         index := 0;
 
         { iterate through all modes }
-        While modes[index].valid Do
-        Begin
+        while modes[index].valid do
+        begin
           { print mode }
           print(modes[index]);
 
           { next mode }
           Inc(index);
-        End;
-      End;
-    Finally
+        end;
+      end;
+    finally
       console.Free;
-    End;
-  Except
-    On error : TPTCError Do
+    end;
+  except
+    on error: TPTCError do
       { report error }
       error.report;
-  End;
-End.
+  end;
+end.

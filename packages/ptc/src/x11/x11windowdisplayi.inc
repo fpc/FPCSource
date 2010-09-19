@@ -1,37 +1,67 @@
-Constructor TX11WindowDisplay.Create(ADisplay : PDisplay; AScreen : Integer; Const AFlags : TX11Flags);
+{
+    This file is part of the PTCPas framebuffer library
+    Copyright (C) 2001-2010 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
-Begin
-  Inherited;
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version
+    with the following modification:
+
+    As a special exception, the copyright holders of this library give you
+    permission to link this library with independent modules to produce an
+    executable, regardless of the license terms of these independent modules,and
+    to copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the terms
+    and conditions of the license of that module. An independent module is a
+    module which is not derived from or based on this library. If you modify
+    this library, you may extend this exception to your version of the library,
+    but you are not obligated to do so. If you do not wish to do so, delete this
+    exception statement from your version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
+constructor TX11WindowDisplay.Create(ADisplay: PDisplay; AScreen: Integer; const AFlags: TX11Flags);
+begin
+  inherited;
   FFocus := True;
   FX11InvisibleCursor := None;
   FCursorVisible := True;
-End;
+  FGrabMouse := False;
+  FMouseGrabbed := False;
+end;
 
-Destructor TX11WindowDisplay.Destroy;
-
-Begin
+destructor TX11WindowDisplay.Destroy;
+begin
   Close;
-  Inherited Destroy;
-End;
+  inherited Destroy;
+end;
 
-Procedure TX11WindowDisplay.Open(ATitle : AnsiString; AWidth, AHeight : Integer; Const AFormat : TPTCFormat);
-
-Var
-  tmpFormat : TPTCFormat;
-  xgcv : TXGCValues;
-  textprop : TXTextProperty;
-  e : TXEvent;
-  found : Boolean;
-  attr : TXSetWindowAttributes;
-  size_hints : PXSizeHints;
-  tmpArea : TPTCArea;
-  tmppchar : PChar;
-  tmpArrayOfCLong : Array[1..1] Of clong;
-  tmpPixmap : TPixmap;
-  BlackColor : TXColor;
-  BlankCursorData : Array[1..8] Of Byte = (0, 0, 0, 0, 0, 0, 0, 0);
-
-Begin
+procedure TX11WindowDisplay.Open(ATitle: AnsiString; AWidth, AHeight: Integer; const AFormat: TPTCFormat);
+var
+  tmpFormat: TPTCFormat;
+  xgcv: TXGCValues;
+  textprop: TXTextProperty;
+  e: TXEvent;
+  found: Boolean;
+  attr: TXSetWindowAttributes;
+  size_hints: PXSizeHints;
+  tmpArea: TPTCArea;
+  tmppchar: PChar;
+  tmpArrayOfCLong: array [1..1] of clong;
+  tmpPixmap: TPixmap;
+  BlackColor: TXColor;
+  BlankCursorData: array [1..8] of Byte = (0, 0, 0, 0, 0, 0, 0, 0);
+begin
   FHeight := AHeight;
   FWidth := AWidth;
   FDestX := 0;
@@ -49,28 +79,28 @@ Begin
   BlackColor.blue := 0;
 
   { Create the mode switcher object }
-  If (FModeSwitcher = Nil) And FFullScreen Then
+  if (FModeSwitcher = Nil) and FFullScreen then
     FModeSwitcher := CreateModeSwitcher;
 
   { Create the invisible cursor }
   tmpPixmap := XCreateBitmapFromData(FDisplay, RootWindow(FDisplay, FScreen), @BlankCursorData, 8, 8);
-  Try
+  try
     FX11InvisibleCursor := XCreatePixmapCursor(FDisplay, tmpPixmap, tmpPixmap, @BlackColor, @BlackColor, 0, 0);
-  Finally
-    If tmpPixmap <> None Then
+  finally
+    if tmpPixmap <> None then
       XFreePixmap(FDisplay, tmpPixmap);
-  End;
+  end;
 
   { Check if we have that colour depth available.. Easy as there is no
     format conversion yet }
-  tmpFormat := Nil;
-  Try
+  tmpFormat := nil;
+  try
     tmpFormat := GetX11Format(AFormat);
     FFormat.Assign(tmpFormat);
-  Finally
+  finally
     tmpFormat.Free;
-  End;
-  tmpFormat := Nil;
+  end;
+  tmpFormat := nil;
 
   { Create a window }
   FWindow := XCreateSimpleWindow(FDisplay, RootWindow(FDisplay, FScreen), 0, 0,
@@ -80,659 +110,675 @@ Begin
   FAtomClose := XInternAtom(FDisplay, 'WM_DELETE_WINDOW', False);
   X11Check(XSetWMProtocols(FDisplay, FWindow, @FAtomClose, 1), 'XSetWMProtocols');
   { Get graphics context }
-  xgcv.graphics_exposures := False;
+  xgcv.graphics_exposures := Ord(False);
   FGC := XCreateGC(FDisplay, FWindow, GCGraphicsExposures, @xgcv);
-  If FGC = Nil Then
-    Raise TPTCError.Create('can''t create graphics context');
+  if FGC = nil then
+    raise TPTCError.Create('can''t create graphics context');
   { Set window title }
   tmppchar := PChar(ATitle);
   X11Check(XStringListToTextProperty(@tmppchar, 1, @textprop), 'XStringListToTextProperty');
-  Try
+  try
     XSetWMName(FDisplay, FWindow, @textprop);
     XFlush(FDisplay);
-  Finally
+  finally
     XFree(textprop.value);
-  End;
+  end;
 
   { Set normal hints }
   size_hints := XAllocSizeHints;
-  Try
-    size_hints^.flags := PMinSize Or PBaseSize;
+  try
+    size_hints^.flags := PMinSize or PBaseSize;
     size_hints^.min_width := AWidth;
     size_hints^.min_height := AHeight;
     size_hints^.base_width := AWidth;
     size_hints^.base_height := AHeight;
-    If FFullScreen Then
-    Begin
-      size_hints^.flags := size_hints^.flags Or PWinGravity;
+    if FFullScreen then
+    begin
+      size_hints^.flags := size_hints^.flags or PWinGravity;
       size_hints^.win_gravity := StaticGravity;
-    End
-    Else
-    Begin
+    end
+    else
+    begin
       { not fullscreen - add maxsize limit=minsize, i.e. make window not resizable }
-      size_hints^.flags := size_hints^.flags Or PMaxSize;
+      size_hints^.flags := size_hints^.flags or PMaxSize;
       size_hints^.max_width := AWidth;
       size_hints^.max_height := AHeight;
-    End;
+    end;
     XSetWMNormalHints(FDisplay, FWindow, size_hints);
     XFlush(FDisplay);
-  Finally
+  finally
     XFree(size_hints);
-  End;
+  end;
 
   { Set the _NET_WM_STATE property }
-  If FFullScreen Then
-  Begin
+  if FFullScreen then
+  begin
     tmpArrayOfCLong[1] := XInternAtom(FDisplay, '_NET_WM_STATE_FULLSCREEN', False);
 
     XChangeProperty(FDisplay, FWindow,
                     XInternAtom(FDisplay, '_NET_WM_STATE', False),
                     XA_ATOM,
                     32, PropModeReplace, @tmpArrayOfCLong, 1);
-  End;
+  end;
 
   { Map the window and wait for success }
   XSelectInput(FDisplay, FWindow, StructureNotifyMask);
   XMapRaised(FDisplay, FWindow);
-  Repeat
+  repeat
     XNextEvent(FDisplay, @e);
-    If e._type = MapNotify Then
+    if e._type = MapNotify then
       Break;
-  Until False;
+  until False;
   { Get keyboard input and sync }
-  XSelectInput(FDisplay, FWindow, KeyPressMask Or KeyReleaseMask Or
-                                  StructureNotifyMask Or FocusChangeMask Or
-                                  ButtonPressMask Or ButtonReleaseMask Or
-                                  PointerMotionMask);
+  XSelectInput(FDisplay, FWindow, KeyPressMask or KeyReleaseMask or
+                                  StructureNotifyMask or FocusChangeMask or
+                                  ButtonPressMask or ButtonReleaseMask or
+                                  PointerMotionMask or ExposureMask);
   XSync(FDisplay, False);
   { Create XImage using factory method }
   FPrimary := CreateImage(FDisplay, FScreen, FWidth, FHeight, FFormat);
 
   found := False;
-  Repeat
+  repeat
     { Stupid loop. The key }
     { events were causing }
     { problems.. }
-    found := XCheckMaskEvent(FDisplay, KeyPressMask Or KeyReleaseMask, @e);
-  Until Not found;
+    found := XCheckMaskEvent(FDisplay, KeyPressMask or KeyReleaseMask, @e);
+  until not found;
 
   attr.backing_store := Always;
   XChangeWindowAttributes(FDisplay, FWindow, CWBackingStore, @attr);
 
   { Set clipping area }
   tmpArea := TPTCArea.Create(0, 0, FWidth, FHeight);
-  Try
+  try
     FClip.Assign(tmpArea);
-  Finally
+  finally
     tmpArea.Free;
-  End;
+  end;
 
   { Installs the right colour map for 8 bit modes }
   CreateColormap;
 
-  If FFullScreen Then
+  if FFullScreen then
     EnterFullScreen;
-End;
+end;
 
-Procedure TX11WindowDisplay.Open(AWindow : TWindow; Const AFormat : TPTCFormat);
+procedure TX11WindowDisplay.Open(AWindow: TWindow; const AFormat: TPTCFormat);
+begin
+end;
 
-Begin
-End;
+procedure TX11WindowDisplay.Open(AWindow: TWindow; const AFormat: TPTCFormat; AX, AY, AWidth, AHeight: Integer);
+begin
+end;
 
-Procedure TX11WindowDisplay.Open(AWindow : TWindow; Const AFormat : TPTCFormat; AX, AY, AWidth, AHeight : Integer);
-
-Begin
-End;
-
-Procedure TX11WindowDisplay.Close;
-
-Begin
+procedure TX11WindowDisplay.Close;
+begin
   FreeAndNil(FModeSwitcher);
 
   {pthreads?!}
-  If FCMap <> 0 Then
-  Begin
+  if FCMap <> 0 then
+  begin
     XFreeColormap(FDisplay, FCMap);
     FCMap := 0;
-  End;
+  end;
 
   { Destroy XImage and buffer }
   FreeAndNil(FPrimary);
   FreeMemAndNil(FColours);
 
   { Hide and destroy window }
-  If (FWindow <> 0) And (Not (PTC_X11_LEAVE_WINDOW In FFlags)) Then
-  Begin
+  if (FWindow <> 0) and (not (PTC_X11_LEAVE_WINDOW In FFlags)) then
+  begin
     XUnmapWindow(FDisplay, FWindow);
     XSync(FDisplay, False);
 
     XDestroyWindow(FDisplay, FWindow);
-  End;
+  end;
 
   { Free the invisible cursor }
-  If FX11InvisibleCursor <> None Then
-  Begin
+  if FX11InvisibleCursor <> None then
+  begin
     XFreeCursor(FDisplay, FX11InvisibleCursor);
     FX11InvisibleCursor := None;
-  End;
-End;
+  end;
+end;
 
-Procedure TX11WindowDisplay.internal_ShowCursor(AVisible : Boolean);
-
-Var
-  attr : TXSetWindowAttributes;
-
-Begin
-  If AVisible Then
+procedure TX11WindowDisplay.internal_ShowCursor(AVisible: Boolean);
+var
+  attr: TXSetWindowAttributes;
+begin
+  if AVisible then
     attr.cursor := None { Use the normal cursor }
-  Else
+  else
     attr.cursor := FX11InvisibleCursor; { Set the invisible cursor }
 
   XChangeWindowAttributes(FDisplay, FWindow, CWCursor, @attr);
-End;
+end;
 
-Procedure TX11WindowDisplay.SetCursor(AVisible : Boolean);
+procedure TX11WindowDisplay.internal_GrabMouse(AGrabMouse: Boolean);
+var
+  GrabResult: cint;
+begin
+  if AGrabMouse then
+  begin
+    if not FMouseGrabbed then
+    begin
+      //Writeln('XGrabPointer...');
+      GrabResult :=XGrabPointer(FDisplay, FWindow, True,
+                                PointerMotionMask or ButtonPressMask or ButtonReleaseMask,
+                                GrabModeAsync, GrabModeAsync,
+                                FWindow, None, CurrentTime);
+      if GrabResult <> GrabSuccess then
+      begin
+        LOG('XGrabPointer failed, result=' + IntToStr(GrabResult));
+        //Writeln(GrabResult);
+      end;
 
-Begin
+      { XGrabPointer may fail if someone else is already holding a mouse grab.
+        It happens e.g. sometimes when alt+tabbing away and back to the application
+        in GNOME. That's why we check the result and try again on the next call.
+        And that's why this method is called everytime HandleEvents is called. }
+      FMouseGrabbed := GrabResult = GrabSuccess;
+    end;
+  end
+  else
+  begin
+    if FMouseGrabbed then
+    begin
+      //Writeln('XUngrabPointer');
+      XUngrabPointer(FDisplay, CurrentTime);
+      FMouseGrabbed := False;
+    end;
+  end;
+end;
+
+procedure TX11WindowDisplay.SetCursor(AVisible: Boolean);
+begin
   FCursorVisible := AVisible;
 
-  If FFocus Then
+  if FFocus then
     internal_ShowCursor(FCursorVisible);
-End;
+end;
 
-Procedure TX11WindowDisplay.EnterFullScreen;
+procedure TX11WindowDisplay.SetMouseGrab(AGrabMouse: Boolean);
+begin
+  FGrabMouse := AGrabMouse;
 
-Begin
-  { Try to switch mode }
-  If Assigned(FModeSwitcher) Then
+  if FFocus then
+    internal_GrabMouse(FGrabMouse);
+end;
+
+procedure TX11WindowDisplay.EnterFullScreen;
+begin
+  { try to switch mode }
+  if Assigned(FModeSwitcher) then
     FModeSwitcher.SetBestMode(FWidth, FHeight);
 
   XSync(FDisplay, False);
 
   { Center the image }
-  FDestX := FModeSwitcher.Width Div 2 - FWidth Div 2;
-  FDestY := FModeSwitcher.Height Div 2 - FHeight Div 2;
-End;
+  FDestX := FModeSwitcher.Width div 2 - FWidth div 2;
+  FDestY := FModeSwitcher.Height div 2 - FHeight div 2;
+end;
 
-Procedure TX11WindowDisplay.LeaveFullScreen;
-
-Begin
+procedure TX11WindowDisplay.LeaveFullScreen;
+begin
   { Restore previous mode }
-  If Assigned(FModeSwitcher) Then
+  if Assigned(FModeSwitcher) then
     FModeSwitcher.RestorePreviousMode;
 
   XSync(FDisplay, False);
-End;
+end;
 
-Procedure TX11WindowDisplay.HandleChangeFocus(ANewFocus : Boolean);
-
-Begin
+procedure TX11WindowDisplay.HandleChangeFocus(ANewFocus: Boolean);
+begin
   { No change? }
-  If ANewFocus = FFocus Then
-    Exit;
+  if ANewFocus = FFocus then
+    exit;
 
   FFocus := ANewFocus;
-  If FFocus Then
-  Begin
+  if FFocus then
+  begin
     { focus in }
-    If FFullScreen Then
+    if FFullScreen then
       EnterFullScreen;
 
     internal_ShowCursor(FCursorVisible);
-  End
-  Else
-  Begin
+//    internal_GrabMouse(FGrabMouse);
+  end
+  else
+  begin
     { focus out }
-    If FFullScreen Then
+
+    internal_GrabMouse(False);
+
+    if FFullScreen then
       LeaveFullScreen;
 
     internal_ShowCursor(True);
-  End;
+  end;
 
   XSync(FDisplay, False);
-End;
+end;
 
-Procedure TX11WindowDisplay.HandleEvents;
+function TX11WindowDisplay_MatchAnyEvent(display: PDisplay; event: PXEvent; arg: TXPointer): LongBool; cdecl;
+begin
+  Result := LongBool(1);
+end;
 
-Var
-  e : TXEvent;
-  NewFocus : Boolean;
-  NewFocusSpecified : Boolean;
+procedure TX11WindowDisplay.HandleEvents;
+var
+  e: TXEvent;
+  NewFocus: Boolean;
+  NewFocusSpecified: Boolean;
 
-  Function UsefulEventsPending : Boolean;
-
-  Var
-    tmpEvent : TXEvent;
-
-  Begin
-    If XCheckTypedEvent(FDisplay, ClientMessage, @tmpEvent) Then
-    Begin
+  function UsefulEventsPending: Boolean;
+  var
+    tmpEvent: TXEvent;
+  begin
+    if XCheckIfEvent(FDisplay, @tmpEvent, @TX11WindowDisplay_MatchAnyEvent, nil) then
+    begin
       Result := True;
       XPutBackEvent(FDisplay, @tmpEvent);
-      Exit;
-    End;
-
-    If XCheckMaskEvent(FDisplay, FocusChangeMask Or
-                       KeyPressMask Or KeyReleaseMask Or
-                       ButtonPressMask Or ButtonReleaseMask Or
-                       PointerMotionMask Or ExposureMask, @tmpEvent) Then
-    Begin
-      Result := True;
-      XPutBackEvent(FDisplay, @tmpEvent);
-      Exit;
-    End;
+      exit;
+    end;
 
     Result := False;
-  End;
+  end;
 
-  Procedure HandleKeyEvent;
-
-  Var
-    sym : TKeySym;
-    sym_modded : TKeySym; { modifiers like shift are taken into account here }
-    press : Boolean;
-    alt, shift, ctrl : Boolean;
-    uni : Integer;
-    key : TPTCKeyEvent;
-    buf : Array[1..16] Of Char;
-
-  Begin
+  procedure HandleKeyEvent;
+  var
+    sym: TKeySym;
+    sym_modded: TKeySym; { modifiers like shift are taken into account here }
+    press: Boolean;
+    alt, shift, ctrl: Boolean;
+    uni: Integer;
+    key: TPTCKeyEvent;
+    buf: array [1..16] of Char;
+  begin
     sym := XLookupKeySym(@e.xkey, 0);
-    XLookupString(@e.xkey, @buf, SizeOf(buf), @sym_modded, Nil);
+    XLookupString(@e.xkey, @buf, SizeOf(buf), @sym_modded, nil);
     uni := X11ConvertKeySymToUnicode(sym_modded);
-    alt := (e.xkey.state And Mod1Mask) <> 0;
-    shift := (e.xkey.state And ShiftMask) <> 0;
-    ctrl := (e.xkey.state And ControlMask) <> 0;
-    If e._type = KeyPress Then
+    alt := (e.xkey.state and Mod1Mask) <> 0;
+    shift := (e.xkey.state and ShiftMask) <> 0;
+    ctrl := (e.xkey.state and ControlMask) <> 0;
+    if e._type = KeyPress then
       press := True
-    Else
+    else
       press := False;
 
-    key := Nil;
-    Case sym Shr 8 Of
-      0 : key := TPTCKeyEvent.Create(FNormalKeys[sym And $FF], uni, alt, shift, ctrl, press);
-      $FF : key := TPTCKeyEvent.Create(FFunctionKeys[sym And $FF], uni, alt, shift, ctrl, press);
-      Else
+    key := nil;
+    case sym shr 8 of
+      0: key := TPTCKeyEvent.Create(FNormalKeys[sym and $FF], uni, alt, shift, ctrl, press);
+      $FF: key := TPTCKeyEvent.Create(FFunctionKeys[sym and $FF], uni, alt, shift, ctrl, press);
+      else
         key := TPTCKeyEvent.Create;
-    End;
+    end;
     FEventQueue.AddEvent(key);
-  End;
+  end;
 
-  Procedure HandleMouseEvent;
+  procedure HandleMouseEvent;
+  var
+    x, y: cint;
+    state: cuint;
+    PTCMouseButtonState: TPTCMouseButtonState;
 
-  Var
-    x, y : cint;
-    state : cuint;
-    PTCMouseButtonState : TPTCMouseButtonState;
-
-    button : TPTCMouseButton;
-    before, after : Boolean;
-    cstate : TPTCMouseButtonState;
-
-  Begin
-    Case e._type Of
-      MotionNotify : Begin
+    button: TPTCMouseButton;
+    before, after: Boolean;
+    cstate: TPTCMouseButtonState;
+  begin
+    case e._type of
+      MotionNotify: begin
         x := e.xmotion.x;
         y := e.xmotion.y;
         state := e.xmotion.state;
-      End;
-      ButtonPress, ButtonRelease : Begin
+      end;
+      ButtonPress, ButtonRelease: begin
         x := e.xbutton.x;
         y := e.xbutton.y;
         state := e.xbutton.state;
-        If e._type = ButtonPress Then
-        Begin
-          Case e.xbutton.button Of
-            Button1 : state := state Or Button1Mask;
-            Button2 : state := state Or Button2Mask;
-            Button3 : state := state Or Button3Mask;
-            Button4 : state := state Or Button4Mask;
-            Button5 : state := state Or Button5Mask;
-          End;
-        End
-        Else
-        Begin
-          Case e.xbutton.button Of
-            Button1 : state := state And (Not Button1Mask);
-            Button2 : state := state And (Not Button2Mask);
-            Button3 : state := state And (Not Button3Mask);
-            Button4 : state := state And (Not Button4Mask);
-            Button5 : state := state And (Not Button5Mask);
-          End;
-        End;
-      End;
-      Else
-        Raise TPTCError.Create('Internal Error');
-    End;
+        if e._type = ButtonPress then
+        begin
+          case e.xbutton.button of
+            Button1: state := state or Button1Mask;
+            Button2: state := state or Button2Mask;
+            Button3: state := state or Button3Mask;
+            Button4: state := state or Button4Mask;
+            Button5: state := state or Button5Mask;
+          end;
+        end
+        else
+        begin
+          case e.xbutton.button of
+            Button1: state := state and (not Button1Mask);
+            Button2: state := state and (not Button2Mask);
+            Button3: state := state and (not Button3Mask);
+            Button4: state := state and (not Button4Mask);
+            Button5: state := state and (not Button5Mask);
+          end;
+        end;
+      end;
+      else
+        raise TPTCError.Create('Internal Error');
+    end;
 
-    If (state And Button1Mask) = 0 Then
+    if (state and Button1Mask) = 0 then
       PTCMouseButtonState := []
-    Else
+    else
       PTCMouseButtonState := [PTCMouseButton1];
-    If (state And Button2Mask) <> 0 Then
+    if (state and Button2Mask) <> 0 then
       PTCMouseButtonState := PTCMouseButtonState + [PTCMouseButton2];
-    If (state And Button3Mask) <> 0 Then
+    if (state and Button3Mask) <> 0 then
       PTCMouseButtonState := PTCMouseButtonState + [PTCMouseButton3];
-    If (state And Button4Mask) <> 0 Then
+    if (state and Button4Mask) <> 0 then
       PTCMouseButtonState := PTCMouseButtonState + [PTCMouseButton4];
-    If (state And Button5Mask) <> 0 Then
+    if (state and Button5Mask) <> 0 then
       PTCMouseButtonState := PTCMouseButtonState + [PTCMouseButton5];
 
-    If (x >= 0) And (x < FWidth) And (y >= 0) And (y < FHeight) Then
-    Begin
-      If Not FPreviousMousePositionSaved Then
-      Begin
+    if (x >= 0) and (x < FWidth) and (y >= 0) and (y < FHeight) then
+    begin
+      if not FPreviousMousePositionSaved then
+      begin
         FPreviousMouseX := x; { first DeltaX will be 0 }
         FPreviousMouseY := y; { first DeltaY will be 0 }
         FPreviousMouseButtonState := [];
-      End;
+      end;
 
       { movement? }
-      If (x <> FPreviousMouseX) Or (y <> FPreviousMouseY) Then
+      if (x <> FPreviousMouseX) or (y <> FPreviousMouseY) then
         FEventQueue.AddEvent(TPTCMouseEvent.Create(x, y, x - FPreviousMouseX, y - FPreviousMouseY, FPreviousMouseButtonState));
 
       { button presses/releases? }
       cstate := FPreviousMouseButtonState;
-      For button := Low(button) To High(button) Do
-      Begin
+      for button := Low(button) to High(button) do
+      begin
         before := button In FPreviousMouseButtonState;
         after := button In PTCMouseButtonState;
-        If after And (Not before) Then
-        Begin
+        if after and (not before) then
+        begin
           { button was pressed }
           cstate := cstate + [button];
           FEventQueue.AddEvent(TPTCMouseButtonEvent.Create(x, y, 0, 0, cstate, True, button));
-        End
-        Else
-          If before And (Not after) Then
-          Begin
+        end
+        else
+          if before and (not after) then
+          begin
             { button was released }
             cstate := cstate - [button];
             FEventQueue.AddEvent(TPTCMouseButtonEvent.Create(x, y, 0, 0, cstate, False, button));
-          End;
-      End;
+          end;
+      end;
 
       FPreviousMouseX := x;
       FPreviousMouseY := y;
       FPreviousMouseButtonState := PTCMouseButtonState;
       FPreviousMousePositionSaved := True;
-    End;
-  End;
+    end;
+  end;
 
-Begin
+begin
   NewFocusSpecified := False;
-  While UsefulEventsPending Do
-  Begin
+  while UsefulEventsPending do
+  begin
     XNextEvent(FDisplay, @e);
-    Case e._type Of
-      FocusIn : Begin
+    case e._type of
+      FocusIn: begin
         NewFocus := True;
         NewFocusSpecified := True;
-      End;
-      FocusOut : Begin
+      end;
+      FocusOut: begin
         NewFocus := False;
         NewFocusSpecified := True;
-      End;
-      ClientMessage : Begin
-        If (e.xclient.format = 32) And (TAtom(e.xclient.data.l[0]) = FAtomClose) Then
+      end;
+      ClientMessage: begin
+        if (e.xclient.format = 32) and (TAtom(e.xclient.data.l[0]) = FAtomClose) then
           Halt(0);
-      End;
-      Expose : Begin
-        {...}
-      End;
-      KeyPress, KeyRelease : HandleKeyEvent;
-      ButtonPress, ButtonRelease, MotionNotify : HandleMouseEvent;
-    End;
-  End;
-  If NewFocusSpecified Then
+      end;
+      Expose: begin
+        if e.xexpose.count = 0 then
+          Draw;
+      end;
+      KeyPress, KeyRelease: HandleKeyEvent;
+      ButtonPress, ButtonRelease, MotionNotify: HandleMouseEvent;
+    end;
+  end;
+  if NewFocusSpecified then
     HandleChangeFocus(NewFocus);
-End;
 
-Procedure TX11WindowDisplay.Update;
+  if FFocus then
+    internal_GrabMouse(FGrabMouse);
+end;
 
-Begin
+procedure TX11WindowDisplay.Draw;
+begin
   FPrimary.Put(FWindow, FGC, FDestX, FDestY);
+end;
+
+procedure TX11WindowDisplay.Update;
+begin
+  Draw;
 
   HandleEvents;
-End;
+end;
 
-Procedure TX11WindowDisplay.Update(Const AArea : TPTCArea);
-
-Var
-  updatearea : TPTCArea;
-  tmparea : TPTCArea;
-
-Begin
+procedure TX11WindowDisplay.Update(const AArea: TPTCArea);
+var
+  updatearea: TPTCArea;
+  tmparea: TPTCArea;
+begin
   tmparea := TPTCArea.Create(0, 0, FWidth, FHeight);
-  Try
+  try
     updatearea := TPTCClipper.Clip(tmparea, AArea);
-    Try
+    try
       FPrimary.Put(FWindow, FGC, updatearea.Left, updatearea.Top,
                    FDestX + updatearea.Left, FDestY + updatearea.Top,
                    updatearea.Width, updatearea.Height);
-    Finally
+    finally
       updatearea.Free;
-    End;
-  Finally
+    end;
+  finally
     tmparea.Free;
-  End;
+  end;
 
   HandleEvents;
-End;
+end;
 
-Function TX11WindowDisplay.NextEvent(Var AEvent : TPTCEvent; AWait : Boolean; Const AEventMask : TPTCEventMask) : Boolean;
-
-Var
-  tmpEvent : TXEvent;
-
-Begin
+function TX11WindowDisplay.NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
+var
+  tmpEvent: TXEvent;
+begin
   FreeAndNil(AEvent);
-  Repeat
+  repeat
     { process all events from the X queue and put them on our FEventQueue }
     HandleEvents;
 
     { try to find an event that matches the EventMask }
     AEvent := FEventQueue.NextEvent(AEventMask);
 
-    If AWait And (AEvent = Nil) Then
-    Begin
+    if AWait and (AEvent = Nil) then
+    begin
       { if the X event queue is empty, block until an event is received }
       XPeekEvent(FDisplay, @tmpEvent);
-    End;
-  Until (Not AWait) Or (AEvent <> Nil);
-  Result := AEvent <> Nil;
-End;
+    end;
+  until (not AWait) or (AEvent <> Nil);
+  Result := AEvent <> nil;
+end;
 
-Function TX11WindowDisplay.PeekEvent(AWait : Boolean; Const AEventMask : TPTCEventMask) : TPTCEvent;
-
-Var
-  tmpEvent : TXEvent;
-
-Begin
-  Repeat
+function TX11WindowDisplay.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent;
+var
+  tmpEvent: TXEvent;
+begin
+  repeat
     { process all events from the X queue and put them on our FEventQueue }
     HandleEvents;
 
     { try to find an event that matches the EventMask }
     Result := FEventQueue.PeekEvent(AEventMask);
 
-    If AWait And (Result = Nil) Then
-    Begin
+    if AWait and (Result = Nil) then
+    begin
       { if the X event queue is empty, block until an event is received }
       XPeekEvent(FDisplay, @tmpEvent);
-    End;
-  Until (Not AWait) Or (Result <> Nil);
-End;
+    end;
+  until (not AWait) or (Result <> nil);
+end;
 
-Function TX11WindowDisplay.Lock : Pointer;
-
-Begin
+function TX11WindowDisplay.Lock: Pointer;
+begin
   Result := FPrimary.Lock;
-End;
+end;
 
-Procedure TX11WindowDisplay.unlock;
+procedure TX11WindowDisplay.unlock;
+begin
+end;
 
-Begin
-End;
-
-Procedure TX11WindowDisplay.GetModes(Var AModes : TPTCModeDynArray);
-
-Var
-  current_desktop_format, tmpfmt : TPTCFormat;
-
-Begin
-  If FModeSwitcher = Nil Then
+procedure TX11WindowDisplay.GetModes(var AModes: TPTCModeDynArray);
+var
+  current_desktop_format, tmpfmt: TPTCFormat;
+begin
+  if FModeSwitcher = nil then
     FModeSwitcher := CreateModeSwitcher;
 
-  current_desktop_format := Nil;
+  current_desktop_format := nil;
   tmpfmt := TPTCFormat.Create(8);
-  Try
+  try
     current_desktop_format := GetX11Format(tmpfmt);
 
     FModeSwitcher.GetModes(AModes, current_desktop_format);
-  Finally
+  finally
     tmpfmt.Free;
     current_desktop_format.Free;
-  End;
-End;
+  end;
+end;
 
-Procedure TX11WindowDisplay.Palette(Const APalette : TPTCPalette);
-
-Var
-  pal : PUint32;
-  i : Integer;
-
-Begin
+procedure TX11WindowDisplay.Palette(const APalette: TPTCPalette);
+var
+  pal: PUint32;
+  i: Integer;
+begin
   pal := APalette.Data;
-  If Not FFormat.Indexed Then
-    Exit;
-  For i := 0 To 255 Do
-  Begin
+  if not FFormat.Indexed then
+    exit;
+  for i := 0 to 255 do
+  begin
     FColours[i].pixel := i;
 
-    FColours[i].red := ((pal[i] Shr 16) And $FF) Shl 8;
-    FColours[i].green := ((pal[i] Shr 8) And $FF) Shl 8;
-    FColours[i].blue := (pal[i] And $FF) Shl 8;
+    FColours[i].red := ((pal[i] shr 16) and $FF) shl 8;
+    FColours[i].green := ((pal[i] shr 8) and $FF) shl 8;
+    FColours[i].blue := (pal[i] and $FF) shl 8;
 
-    Byte(FColours[i].flags) := DoRed Or DoGreen Or DoBlue;
-  End;
+    Byte(FColours[i].flags) := DoRed or DoGreen or DoBlue;
+  end;
   XStoreColors(FDisplay, FCMap, FColours, 256);
-End;
+end;
 
-Function TX11WindowDisplay.GetPitch : Integer;
-
-Begin
+function TX11WindowDisplay.GetPitch: Integer;
+begin
   Result := FPrimary.pitch;
-End;
+end;
 
-Function TX11WindowDisplay.CreateImage(ADisplay : PDisplay; AScreen, AWidth, AHeight : Integer;
-                                       AFormat : TPTCFormat) : TX11Image;
-
-Begin
+function TX11WindowDisplay.CreateImage(ADisplay: PDisplay; AScreen, AWidth, AHeight: Integer;
+                                       AFormat: TPTCFormat): TX11Image;
+begin
   {$IFDEF ENABLE_X11_EXTENSION_XSHM}
-  If (PTC_X11_TRY_XSHM In FFlags) And XShmQueryExtension(ADisplay) Then
-  Begin
-    Try
+  if (PTC_X11_TRY_XSHM In FFlags) and XShmQueryExtension(ADisplay) then
+  begin
+    try
       LOG('trying to create a XShm image');
       Result := TX11ShmImage.Create(ADisplay, AScreen, AWidth, AHeight, AFormat);
-      Exit;
-    Except
+      exit;
+    except
       LOG('XShm failed');
-    End;
-  End;
+    end;
+  end;
   {$ENDIF ENABLE_X11_EXTENSION_XSHM}
 
   LOG('trying to create a normal image');
   Result := TX11NormalImage.Create(ADisplay, AScreen, AWidth, AHeight, AFormat);
-End;
+end;
 
-Function TX11WindowDisplay.CreateModeSwitcher : TX11Modes;
-
-Begin
+function TX11WindowDisplay.CreateModeSwitcher: TX11Modes;
+begin
 {$IFDEF ENABLE_X11_EXTENSION_XRANDR}
-  If PTC_X11_TRY_XRANDR In FFlags Then
-    Try
+  if PTC_X11_TRY_XRANDR In FFlags then
+    try
       LOG('trying to initialize the Xrandr mode switcher');
       Result := TX11ModesXrandr.Create(FDisplay, FScreen);
-      Exit;
-    Except
+      exit;
+    except
       LOG('Xrandr failed');
-    End;
+    end;
 {$ENDIF ENABLE_X11_EXTENSION_XRANDR}
 
 {$IFDEF ENABLE_X11_EXTENSION_XF86VIDMODE}
-  If PTC_X11_TRY_XF86VIDMODE In FFlags Then
-    Try
+  if PTC_X11_TRY_XF86VIDMODE In FFlags then
+    try
       LOG('trying to initialize the XF86VidMode mode switcher');
       Result := TX11ModesXF86VidMode.Create(FDisplay, FScreen);
-      Exit;
-    Except
+      exit;
+    except
       LOG('XF86VidMode failed');
-    End;
+    end;
 {$ENDIF ENABLE_X11_EXTENSION_XF86VIDMODE}
 
   LOG('creating the standard NoModeSwitching mode switcher');
   Result := TX11ModesNoModeSwitching.Create(FDisplay, FScreen);
-End;
+end;
 
-Function TX11WindowDisplay.GetX11Window : TWindow;
-
-Begin
+function TX11WindowDisplay.GetX11Window: TWindow;
+begin
   Result := FWindow;
-End;
+end;
 
-Function TX11WindowDisplay.GetX11GC : TGC;
-
-Begin
+function TX11WindowDisplay.GetX11GC: TGC;
+begin
   Result := FGC;
-End;
+end;
 
-Function TX11WindowDisplay.IsFullScreen : Boolean;
-
-Begin
+function TX11WindowDisplay.IsFullScreen: Boolean;
+begin
   Result := FFullScreen;
-End;
+end;
 
-Procedure TX11WindowDisplay.CreateColormap; { Register colour maps }
-
-Var
-  i : Integer;
-  r, g, b : Single;
-
-Begin
-  If FFormat.Bits = 8 Then
-  Begin
+procedure TX11WindowDisplay.CreateColormap; { Register colour maps }
+var
+  i: Integer;
+  r, g, b: Single;
+begin
+  if FFormat.Bits = 8 then
+  begin
     FColours := GetMem(256 * SizeOf(TXColor));
-    If FColours = Nil Then
-      Raise TPTCError.Create('Cannot allocate colour map cells');
+    if FColours = nil then
+      raise TPTCError.Create('Cannot allocate colour map cells');
     FCMap := XCreateColormap(FDisplay, RootWindow(FDisplay, FScreen),
                              DefaultVisual(FDisplay, FScreen), AllocAll);
-    If FCMap = 0 Then
-      Raise TPTCError.Create('Cannot create colour map');
+    if FCMap = 0 then
+      raise TPTCError.Create('Cannot create colour map');
     XInstallColormap(FDisplay, FCMap);
     XSetWindowColormap(FDisplay, FWindow, FCMap);
-  End
-  Else
+  end
+  else
     FCMap := 0;
 
   { Set 332 palette, for now }
-  If (FFormat.Bits = 8) And FFormat.Direct Then
-  Begin
+  if (FFormat.Bits = 8) and FFormat.Direct then
+  begin
     {Taken from PTC 0.72, i hope it's fine}
-    For i := 0 To 255 Do
-    Begin
-      r := ((i And $E0) Shr 5) * 255 / 7;
-      g := ((i And $1C) Shr 2) * 255 / 7;
-      b := (i And $03) * 255 / 3;
+    for i := 0 to 255 do
+    begin
+      r := ((i and $E0) shr 5) * 255 / 7;
+      g := ((i and $1C) shr 2) * 255 / 7;
+      b := (i and $03) * 255 / 3;
 
       FColours[i].pixel := i;
 
-      FColours[i].red := Round(r) Shl 8;
-      FColours[i].green := Round(g) Shl 8;
-      FColours[i].blue := Round(b) Shl 8;
+      FColours[i].red := Round(r) shl 8;
+      FColours[i].green := Round(g) shl 8;
+      FColours[i].blue := Round(b) shl 8;
 
-      Byte(FColours[i].flags) := DoRed Or DoGreen Or DoBlue;
-    End;
+      Byte(FColours[i].flags) := DoRed or DoGreen or DoBlue;
+    end;
     XStoreColors(FDisplay, FCMap, FColours, 256);
-  End;
-End;
+  end;
+end;

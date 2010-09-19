@@ -1,8 +1,9 @@
+ - mouse grab support
+ - add more event types (expose, focus in, focus out, etc.)
+ - mouse support for the x11 dga console
  - key release events support in dos
- - mouse support
- - multiple video pages and lfb for the vesa console
- - test the x11 console (in XShm and dga mode) under *BSD
- - big endian support in hermes
- - make hermes thread safe (in FPC 1.9.x+)
- - delphi (kylix? c++?) bindings
+ - multiple video pages support for the x11 w/dga console
+ - cross-platform opengl initialization support (like sdl or glut)
+ - make hermes thread safe
  - better timing under dos
+ - delphi (kylix? c++?) bindings

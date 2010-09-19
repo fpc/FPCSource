@@ -3,33 +3,29 @@ Ported to FPC by Nikolay Nikolov (nickysn@users.sourceforge.net)
 }
 
 {
- Random example for OpenPTC 1.0 C++ Implementation
+ Random example for OpenPTC 1.0 C++ implementation
  Copyright (c) Glenn Fiedler (ptc@gaffer.org)
  This source code is in the public domain
 }
 
-Program RandomExample;
+program RandomExample;
 
 {$MODE objfpc}
 
-Uses
+uses
   ptc;
 
-Var
-  console : TPTCConsole;
-  surface : TPTCSurface;
-  format : TPTCFormat;
-  pixels : Pint32;
-  width, height : Integer;
-  i : Integer;
-  x, y, r, g, b : Integer;
-
-Begin
-  format := Nil;
-  surface := Nil;
-  console := Nil;
-  Try
-    Try
+var
+  console: TPTCConsole = nil;
+  surface: TPTCSurface = nil;
+  format: TPTCFormat = nil;
+  pixels: PUint32;
+  width, height: Integer;
+  i: Integer;
+  x, y, r, g, b: Integer;
+begin
+  try
+    try
       { create console }
       console := TPTCConsole.Create;
 
@@ -43,50 +39,50 @@ Begin
       surface := TPTCSurface.Create(console.width, console.height, format);
 
       { loop until a key is pressed }
-      While Not console.KeyPressed Do
-      Begin
+      while not console.KeyPressed do
+      begin
         { lock surface }
         pixels := surface.lock;
-        Try
+        try
           { get surface dimensions }
           width := surface.width;
           height := surface.height;
 
           { draw random pixels }
-          For i := 1 To 100 Do
-          Begin
+          for i := 1 to 100 do
+          begin
             { get random position }
-	    x := Random(width);
-	    y := Random(height);
+            x := Random(width);
+            y := Random(height);
 
             { get random color }
-	    r := Random(256);
-	    g := Random(256);
-	    b := Random(256);
+            r := Random(256);
+            g := Random(256);
+            b := Random(256);
 
             { draw color [r,g,b] at position [x,y] }
-	    pixels[x + y * width] := (r Shl 16) + (g Shl 8) + b;
-          End;
-        Finally
+            pixels[x + y * width] := (r shl 16) + (g shl 8) + b;
+          end;
+        finally
           { unlock surface }
           surface.unlock;
-	End;
+        end;
 
         { copy to console }
         surface.copy(console);
 
         { update console }
         console.update;
-      End;
-    Finally
+      end;
+    finally
       console.close;
       console.Free;
       surface.Free;
       format.Free;
-    End;
-  Except
-    On error : TPTCError Do
+    end;
+  except
+    on error: TPTCError do
       { report error }
       error.report;
-  End;
-End.
+  end;
+end.

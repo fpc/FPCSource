@@ -6,7 +6,19 @@
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+    version 2.1 of the License, or (at your option) any later version
+    with the following modification:
+
+    As a special exception, the copyright holders of this library give you
+    permission to link this library with independent modules to produce an
+    executable, regardless of the license terms of these independent modules,and
+    to copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the terms
+    and conditions of the license of that module. An independent module is a
+    module which is not derived from or based on this library. If you modify
+    this library, you may extend this exception to your version of the library,
+    but you are not obligated to do so. If you do not wish to do so, delete this
+    exception statement from your version.
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,613 +30,496 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-Constructor TDirectXDisplay.Create;
+constructor TDirectXDisplay.Create;
+begin
+  FInformation := '';
+  FMode := nil;
+  FCursorsaved := False;
+  FOpen := False;
+  FFullscreen := False;
+  FDDraw := nil;
+  FWindow := 0;
+//  FForeground := 0;
+//  FillChar(FModes, SizeOf(FModes), 0);
+//  FillChar(FResolutions, SizeOf(FResolutions), 0);
+  FMode := TPTCMode.Create;
+end;
 
-Begin
-  m_information := '';
-  m_mode := Nil;
-  m_cursorsaved := False;
-  m_open := False;
-  m_fullscreen := False;
-  m_ddraw := Nil;
-  m_window := 0;
-//  m_foreground := 0;
-  FillChar(m_modes, SizeOf(m_modes), 0);
-  FillChar(m_resolutions, SizeOf(m_resolutions), 0);
-  m_mode := TPTCMode.Create;
-End;
-
-Destructor TDirectXDisplay.Destroy;
-
-Begin
+destructor TDirectXDisplay.Destroy;
+begin
   close;
-  m_mode.Free;
+  FMode.Free;
   internal_dispose_modes;
   internal_dispose_resolutions;
-  Inherited Destroy;
-End;
+  inherited Destroy;
+end;
 
-Procedure TDirectXDisplay.internal_dispose_modes;
+procedure TDirectXDisplay.internal_dispose_modes;
+var
+  i: Integer;
+begin
+  for i := Low(FModes) to High(FModes) do
+    FreeAndNil(FModes[i]);
 
-Var
-  i : Integer;
+  SetLength(FModes, 0);
+  FModesCount := 0;
+end;
 
-Begin
-  For i := Low(m_modes) To High(m_modes) Do
-    FreeAndNil(m_modes[i]);
-End;
+procedure TDirectXDisplay.internal_dispose_resolutions;
+var
+  i: Integer;
+begin
+  for i := Low(FResolutions) to High(FResolutions) do
+    FreeAndNil(FResolutions[i]);
 
-Procedure TDirectXDisplay.internal_dispose_resolutions;
+  SetLength(FResolutions, 0);
+end;
 
-Var
-  i : Integer;
-
-Begin
-  For i := Low(m_resolutions) To High(m_resolutions) Do
-    FreeAndNil(m_resolutions[i]);
-End;
-
-Function TDirectXDisplay_callback(descriptor : LPDDSURFACEDESC; Context : Pointer) : HRESULT; StdCall;
-
-Var
-  display : TDirectXDisplay;
-  tmp : TPTCFormat;
-
-Begin
-  If (descriptor = Nil) Or (Context = Nil) Then
-  Begin
-    TDirectXDisplay_callback := DDENUMRET_CANCEL;
-    Exit;
-  End;
+function TDirectXDisplay_callback(descriptor: PDDSurfaceDesc {TODO: TDDSurfaceDesc vs. TDDSurfaceDesc2???}; Context: Pointer): HRESULT; stdcall;
+var
+  display: TDirectXDisplay;
+  tmp: TPTCFormat;
+begin
+  if (descriptor = nil) or (Context = nil) then
+  begin
+    Result := DDENUMRET_CANCEL;
+    exit;
+  end;
   display := TDirectXDisplay(Context);
-  If ((descriptor^.dwFlags And DDSD_WIDTH) <> 0) And
-     ((descriptor^.dwFlags And DDSD_HEIGHT) <> 0) And
-     ((descriptor^.dwFlags And DDSD_PIXELFORMAT) <> 0) Then
-  Begin
+  if ((descriptor^.dwFlags and DDSD_WIDTH) <> 0) and
+     ((descriptor^.dwFlags and DDSD_HEIGHT) <> 0) and
+     ((descriptor^.dwFlags and DDSD_PIXELFORMAT) <> 0) then
+  begin
     tmp := DirectXTranslate(descriptor^.ddpfPixelFormat);
-    Try
-      FreeAndNil(display.m_modes[display.m_modes_count]);
-      display.m_modes[display.m_modes_count] :=
+    try
+      Inc(display.FModesCount);
+      SetLength(display.FModes, display.FModesCount);
+      display.FModes[display.FModesCount - 1] :=
         TPTCMode.Create(descriptor^.dwWidth, descriptor^.dwHeight, tmp);
-    Finally
+    finally
       tmp.Free;
-    End;
-    Inc(display.m_modes_count);
-  End
-  Else
-  Begin
+    end;
+  end
+  else
+  begin
     LOG('EnumDisplayModesCallback was not given enough mode information');
-  End;
-  TDirectXDisplay_callback := DDENUMRET_OK;
-End;
+  end;
+  Result := DDENUMRET_OK;
+end;
 
-Procedure TDirectXDisplay.setup(ddraw : LPDIRECTDRAW2);
-
-Var
-  version : OSVERSIONINFO;
-  match, found : Boolean;
-  i, j : Integer;
-  temp : TPTCMode;
-  temp2 : TPTCFormat;
-  S, S2 : String;
-
-Begin
+procedure TDirectXDisplay.Setup(const ADDraw: IDirectDraw2);
+var
+  version: TOSVERSIONINFO;
+  match, found: Boolean;
+  i, j: Integer;
+  temp: TPTCMode;
+  temp2: TPTCFormat;
+begin
   LOG('setting up display lpDD2');
-  m_ddraw := ddraw;
-  m_information := 'windows version x.xx.x' + #13 + #10 + 'ddraw version x.xx' + #13 + #10 + 'display driver name xxxxx' +
+  FDDraw := ADDraw;
+  FInformation := 'windows version x.xx.x' + #13 + #10 + 'ddraw version x.xx' + #13 + #10 + 'display driver name xxxxx' +
     #13 + #10 + 'display driver vendor xxxxx' + #13 + #10 + 'certified driver? x' + #13 + #10;
-  m_modes_count := 0;
-  DirectXCheck(m_ddraw^.lpVtbl^.EnumDisplayModes(m_ddraw, 0, Nil, {this}Self, LPDDENUMMODESCALLBACK(@TDirectXDisplay_callback)));
+  internal_dispose_modes;
+  DirectXCheck(FDDraw.EnumDisplayModes(0, nil, Self, {LPDDENUMMODESCALLBACK(}@TDirectXDisplay_callback{)}));
   version.dwOSVersionInfoSize := SizeOf(version);
-  If GetVersionEx(version) Then
-  Begin
-    If version.dwPlatformId = VER_PLATFORM_WIN32_WINDOWS Then
-    Begin
+  if GetVersionEx(version) then
+  begin
+    if version.dwPlatformId = VER_PLATFORM_WIN32_WINDOWS then
+    begin
       LOG('detected windows 95/98');
       temp2 := TPTCFormat.Create(8);
-      Try
+      try
         found := False;
-        For i := 0 To m_modes_count - 1 Do
-          If (m_modes[i].width = 320) And (m_modes[i].height = 200) And
-              m_modes[i].format.Equals(temp2) Then
+        for i := 0 to FModesCount - 1 do
+          if (FModes[i].Width = 320) and (FModes[i].Height = 200) and
+              FModes[i].Format.Equals(temp2) then
             found := True;
-        If Not found Then
-        Begin
+        if not found then
+        begin
           LOG('adding 320x200x8 to mode list');
-          FreeAndNil(m_modes[m_modes_count]);
-          m_modes[m_modes_count] := TPTCMode.Create(320, 200, temp2);
-          Inc(m_modes_count);
-        End;
+	  
+	  Inc(FModesCount);
+          SetLength(FModes, FModesCount);
+          FModes[FModesCount - 1] := TPTCMode.Create(320, 200, temp2);
+        end;
         found := False;
-        For i := 0 To m_modes_count - 1 Do
-          If (m_modes[i].width = 320) And (m_modes[i].height = 240) And
-              m_modes[i].format.Equals(temp2) Then
+        for i := 0 to FModesCount - 1 do
+          if (FModes[i].Width = 320) and (FModes[i].Height = 240) and
+              FModes[i].Format.Equals(temp2) then
             found := True;
-        If Not found Then
-        Begin
+        if not found then
+        begin
           LOG('adding 320x240x8 to mode list');
-          FreeAndNil(m_modes[m_modes_count]);
-          m_modes[m_modes_count] := TPTCMode.Create(320, 240, temp2);
-          Inc(m_modes_count);
-        End;
-      Finally
+
+	  Inc(FModesCount);
+          SetLength(FModes, FModesCount);
+          FModes[FModesCount - 1] := TPTCMode.Create(320, 240, temp2);
+        end;
+      finally
         temp2.Free;
-      End;
-    End
-    Else
-      If version.dwPlatformId = VER_PLATFORM_WIN32_NT Then
-      Begin
+      end;
+    end
+    else
+      if version.dwPlatformId = VER_PLATFORM_WIN32_NT then
+      begin
         LOG('detected windows nt');
-      End;
-  End;
-  LOG('number of display modes', m_modes_count);
-  FreeAndNil(m_modes[m_modes_count]);
-  m_modes[m_modes_count] := TPTCMode.Create;
-  m_resolutions_count := 0;
-  For i := 0 To m_modes_count - 1 Do
-  Begin
+      end;
+  end;
+  LOG('number of display modes', FModesCount);
+
+  SetLength(FModes, FModesCount + 1);
+  FModes[FModesCount] := TPTCMode.Create;
+  
+  internal_dispose_resolutions;
+  for i := 0 to FModesCount - 1 do
+  begin
     match := False;
-    For j := 0 To m_resolutions_count - 1 Do
-      If (m_modes[i].width = m_resolutions[j].width) And
-         (m_modes[i].height = m_resolutions[j].height) Then
-      Begin
+    for j := 0 to FResolutionsCount - 1 do
+      if (FModes[i].Width = FResolutions[j].Width) and
+         (FModes[i].Height = FResolutions[j].Height) then
+      begin
         match := True;
         Break;
-      End;
-    If Not match Then
-    Begin
-      FreeAndNil(m_resolutions[m_resolutions_count]);
-      m_resolutions[m_resolutions_count] := TPTCMode.Create(m_modes[i]);
-      Inc(m_resolutions_count);
-    End;
-  End;
-  FreeAndNil(m_resolutions[m_resolutions_count]);
-  m_resolutions[m_resolutions_count] := TPTCMode.Create;
+      end;
+    if not match then
+    begin
+      Inc(FResolutionsCount);
+      SetLength(FResolutions, FResolutionsCount);
+      FResolutions[FResolutionsCount - 1] := TPTCMode.Create(FModes[i]);
+    end;
+  end;
+  SetLength(FResolutions, FResolutionsCount + 1);
+  FResolutions[FResolutionsCount] := TPTCMode.Create;
 
   { kludge sort... :) }
-  For i := 0 To m_resolutions_count - 1 Do
-    For j := i + 1 To m_resolutions_count - 1 Do
-      If (m_resolutions[i].width > m_resolutions[j].width) Or
-         (m_resolutions[i].height > m_resolutions[j].height) Then
-      Begin
-        temp := m_resolutions[i];
-        m_resolutions[i] := m_resolutions[j];
-        m_resolutions[j] := temp;
-      End;
-  LOG('number of unique resolutions', m_resolutions_count);
-  For i := 0 To m_resolutions_count - 1 Do
-  Begin
-    Str(m_resolutions[i].width, S);
-    Str(m_resolutions[i].height, S2);
-    LOG(S + ' x ' + S2);
-  End;
-End;
+  for i := 0 to FResolutionsCount - 1 do
+    for j := i + 1 to FResolutionsCount - 1 do
+      if (FResolutions[i].Width > FResolutions[j].Width) or
+         (FResolutions[i].Height > FResolutions[j].Height) then
+      begin
+        temp := FResolutions[i];
+        FResolutions[i] := FResolutions[j];
+        FResolutions[j] := temp;
+      end;
+  LOG('number of unique resolutions', FResolutionsCount);
+  for i := 0 to FResolutionsCount - 1 do
+  begin
+    LOG(IntToStr(FResolutions[i].Width) + ' x ' + IntToStr(FResolutions[i].Height));
+  end;
+end;
 
-Function TDirectXDisplay.modes : PPTCMode;
+function TDirectXDisplay.GetModes: PPTCMode;
+begin
+  Result := @FModes[0];
+end;
 
-Begin
-  modes := @m_modes;
-End;
-
-Function TDirectXDisplay.test(Const _mode : TPTCMode; exact : Boolean) : Boolean;
-
-Var
-  i : Integer;
-
-Begin
-  If m_modes_count = 0 Then
-  Begin
+function TDirectXDisplay.Test(const AMode: TPTCMode; AExact: Boolean): Boolean;
+var
+  i: Integer;
+begin
+  if FModesCount = 0 then
+  begin
     LOG('mode test success with empty mode list');
-    test := True;
-    Exit;
-  End;
-  If exact Then
-  Begin
-    For i := 0 To m_modes_count - 1 Do
-      If m_modes[i].Equals(_mode) Then
-      Begin
+    exit(True);
+  end;
+  if AExact then
+  begin
+    for i := 0 to FModesCount - 1 do
+      if FModes[i].Equals(AMode) then
+      begin
         LOG('test exact mode success');
-        test := True;
-        Exit;
-      End;
+        exit(True);
+      end;
     LOG('test exact mode failure');
-    test := False;
-  End
-  Else
-  Begin
-    For i := 0 To m_resolutions_count - 1 Do
-      If (_mode.width <= m_resolutions[i].width) And
-         (_mode.height <= m_resolutions[i].height) Then
-      Begin
+    Result := False;
+  end
+  else
+  begin
+    for i := 0 to FResolutionsCount - 1 do
+      if (AMode.Width <= FResolutions[i].Width) and
+         (AMode.Height <= FResolutions[i].Height) then
+      begin
         LOG('test nearest mode success');
-        test := True;
-        Exit;
-      End;
+        exit(True);
+      end;
     LOG('test nearest mode failure');
-    test := False;
-  End;
-End;
+    Result := False;
+  end;
+end;
 
-Procedure TDirectXDisplay.cooperative(window : HWND; _fullscreen : Boolean);
-
-Begin
-  If _fullscreen Then
-  Begin
+procedure TDirectXDisplay.Cooperative(AWindow: HWND; AFullscreen: Boolean);
+begin
+  if AFullscreen then
+  begin
     LOG('entering exclusive mode');
-    DirectXCheck(m_ddraw^.lpVtbl^.SetCooperativeLevel(m_ddraw, window, DDSCL_EXCLUSIVE Or DDSCL_FULLSCREEN Or DDSCL_ALLOWMODEX));
-  End
-  Else
-  Begin
+    DirectXCheck(FDDraw.SetCooperativeLevel(AWindow, DDSCL_EXCLUSIVE or DDSCL_FULLSCREEN or DDSCL_ALLOWMODEX));
+  end
+  else
+  begin
     LOG('entering normal cooperative mode');
-    DirectXCheck(m_ddraw^.lpVtbl^.SetCooperativeLevel(m_ddraw, window, DDSCL_NORMAL));
-  End;
-  m_window := window;
-  m_fullscreen := _fullscreen;
-End;
+    DirectXCheck(FDDraw.SetCooperativeLevel(AWindow, DDSCL_NORMAL));
+  end;
+  FWindow := AWindow;
+  FFullscreen := AFullscreen;
+end;
 
-Procedure TDirectXDisplay.open;
-
-Begin
-  FreeAndNil(m_mode);
-  m_mode := TPTCMode.Create;
-  m_open := True;
+procedure TDirectXDisplay.Open;
+begin
+  FreeAndNil(FMode);
+  FMode := TPTCMode.Create;
+  FOpen := True;
   LOG('opening windowed display');
-End;
+end;
 
-Procedure TDirectXDisplay.open(Const _mode : TPTCMode; exact : Boolean; frequency : Integer);
-
-Begin
-  If exact Then
-  Begin
+procedure TDirectXDisplay.Open(const AMode: TPTCMode; AExact: Boolean; AFrequency: Integer);
+begin
+  if AExact then
+  begin
     LOG('opening exact fullscreen display mode');
-    internal_open(_mode, True, frequency);
-  End
-  Else
-  Begin
+    internal_open(AMode, True, AFrequency);
+  end
+  else
+  begin
     LOG('opening nearest fullscreen mode');
-    internal_open_nearest(_mode, False, frequency);
-  End;
+    internal_open_nearest(AMode, False, AFrequency);
+  end;
   LOG('successfully opened fullscreen display mode');
-End;
+end;
 
-Procedure TDirectXDisplay.close;
-
-Begin
-  If m_open And (m_ddraw <> Nil) Then
-  Begin
+procedure TDirectXDisplay.Close;
+begin
+  if FOpen and (FDDraw <> Nil) then
+  begin
     LOG('closing display');
-    If m_fullscreen Then
-    Begin
+    if FFullscreen then
+    begin
       LOG('restoring display mode');
-      m_ddraw^.lpVtbl^.RestoreDisplayMode(m_ddraw);
+      FDDraw.RestoreDisplayMode;
       LOG('leaving exclusive mode');
-      m_ddraw^.lpVtbl^.SetCooperativeLevel(m_ddraw, m_window, DDSCL_NORMAL);
-    End;
-  End;
-  m_open := False;
-  m_fullscreen := False;
-End;
+      FDDraw.SetCooperativeLevel(FWindow, DDSCL_NORMAL);
+    end;
+  end;
+  FOpen := False;
+  FFullscreen := False;
+end;
 
-Procedure TDirectXDisplay.save;
-
-Var
-  p : POINT;
-
-Begin
+procedure TDirectXDisplay.Save;
+var
+  p: TPOINT;
+begin
   LOG('saving desktop');
 
-  m_cursorsaved := GetCursorPos(p);
-  m_cursorX := p.x;
-  m_cursorY := p.y;
+  FCursorSaved := GetCursorPos(p);
+  FCursorX := p.x;
+  FCursorY := p.y;
 
 {  m_foreground := GetForegroundWindow;
   GetWindowRect(m_foreground, m_foreground_rect);
   m_foreground_placement.length := SizeOf(WINDOWPLACEMENT);
   GetWindowPlacement(m_foreground, m_foreground_placement);}
-End;
+end;
 
-Procedure TDirectXDisplay.restore;
-
-Begin
-{  If (m_foreground <> 0) And IsWindow(m_foreground) And (m_foreground <> m_window) Then
+procedure TDirectXDisplay.restore;
+begin
+{  if (m_foreground <> 0) and IsWindow(m_foreground) and (m_foreground <> m_window) then
   Begin}
   LOG('restoring desktop');
-  If IsWindow(m_window) And m_fullscreen Then
-    SetWindowPos(m_window, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE Or SWP_NOSIZE Or SWP_NOACTIVATE);
-  If m_cursorsaved Then
-  Begin
-    SetCursorPos(m_cursorX, m_cursorY);
-    m_cursorsaved := False;
-  End;
+  if IsWindow(FWindow) and FFullscreen then
+    SetWindowPos(FWindow, HWND_BOTTOM, 0, 0, 0, 0, SWP_NOMOVE or SWP_NOSIZE or SWP_NOACTIVATE);
+  if FCursorSaved then
+  begin
+    SetCursorPos(FCursorX, FCursorY);
+    FCursorSaved := False;
+  end;
 {    SetForegroundWindow(m_foreground);
     SetWindowPlacement(m_foreground, m_foreground_placement);
-    SetWindowPos(m_foreground, HWND_TOP, m_foreground_rect.left, m_foreground_rect.top, m_foreground_rect.right - m_foreground_rect.left, m_foreground_rect.bottom - m_foreground_rect.top, SWP_FRAMECHANGED Or SWP_NOCOPYBITS);
+    SetWindowPos(m_foreground, HWND_TOP, m_foreground_rect.left, m_foreground_rect.top, m_foreground_rect.right - m_foreground_rect.left, m_foreground_rect.bottom - m_foreground_rect.top, SWP_FRAMECHANGED or SWP_NOCOPYBITS);
     m_foreground := 0;
   End;}
-End;
+end;
 
-Function TDirectXDisplay.mode : TPTCMode;
-
-Begin
-  mode := m_mode;
-End;
-
-Function TDirectXDisplay.fullscreen : Boolean;
-
-Begin
-  fullscreen := m_fullscreen;
-End;
-
-Function TDirectXDisplay.information : String;
-
-Begin
-  information := m_information;
-End;
-
-Procedure TDirectXDisplay.internal_open(Const _mode : TPTCMode; exact : Boolean; frequency : Integer);
-
-Begin
+procedure TDirectXDisplay.internal_open(const AMode: TPTCMode; AExact: Boolean; AFrequency: Integer);
+begin
   LOG('internal display open');
-  LOG('mode width', _mode.width);
-  LOG('mode height', _mode.height);
-  LOG('mode format', _mode.format);
-  LOG('mode frequency', frequency);
-  If exact Then
-  Begin
+  LOG('mode width', AMode.Width);
+  LOG('mode height', AMode.Height);
+  LOG('mode format', AMode.Format);
+  LOG('mode frequency', AFrequency);
+  if AExact then
+  begin
     LOG('setting exact mode');
-    DirectXCheck(m_ddraw^.lpVtbl^.SetDisplayMode(m_ddraw, _mode.width, _mode.height, _mode.format.bits, frequency, 0));
-  End
-  Else
-    Case _mode.format.bits Of
-      32 : Begin
+    DirectXCheck(FDDraw.SetDisplayMode(AMode.Width, AMode.Height, AMode.Format.Bits, AFrequency, 0));
+  end
+  else
+    case AMode.Format.Bits of
+      32: begin
         LOG('setting virtual 32 mode');
-        If m_ddraw^.lpVtbl^.SetDisplayMode(m_ddraw, _mode.width, _mode.height, 32, frequency, 0) <> DD_OK Then
-          If m_ddraw^.lpVtbl^.SetDisplayMode(m_ddraw, _mode.width, _mode.height, 24, frequency, 0) <> DD_OK Then
-            DirectXCheck(m_ddraw^.lpVtbl^.SetDisplayMode(m_ddraw, _mode.width, _mode.height, 16, frequency, 0));
-      End;
-      24 : Begin
+        if FDDraw.SetDisplayMode(AMode.Width, AMode.Height, 32, AFrequency, 0) <> DD_OK then
+          if FDDraw.SetDisplayMode(AMode.Width, AMode.Height, 24, AFrequency, 0) <> DD_OK then
+            DirectXCheck(FDDraw.SetDisplayMode(AMode.Width, AMode.Height, 16, AFrequency, 0));
+      end;
+      24: begin
         LOG('setting virtual 24 mode');
-        If m_ddraw^.lpVtbl^.SetDisplayMode(m_ddraw, _mode.width, _mode.height, 24, frequency, 0) <> DD_OK Then
-          If m_ddraw^.lpVtbl^.SetDisplayMode(m_ddraw, _mode.width, _mode.height, 32, frequency, 0) <> DD_OK Then
-            DirectXCheck(m_ddraw^.lpVtbl^.SetDisplayMode(m_ddraw, _mode.width, _mode.height, 16, frequency, 0));
-      End;
-      16 : Begin
+        if FDDraw.SetDisplayMode(AMode.Width, AMode.Height, 24, AFrequency, 0) <> DD_OK then
+          if FDDraw.SetDisplayMode(AMode.Width, AMode.Height, 32, AFrequency, 0) <> DD_OK then
+            DirectXCheck(FDDraw.SetDisplayMode(AMode.Width, AMode.Height, 16, AFrequency, 0));
+      end;
+      16: begin
         LOG('setting virtual 16 mode');
-        If m_ddraw^.lpVtbl^.SetDisplayMode(m_ddraw, _mode.width, _mode.height, 16, frequency, 0) <> DD_OK Then
-          If m_ddraw^.lpVtbl^.SetDisplayMode(m_ddraw, _mode.width, _mode.height, 24, frequency, 0) <> DD_OK Then
-            DirectXCheck(m_ddraw^.lpVtbl^.SetDisplayMode(m_ddraw, _mode.width, _mode.height, 32, frequency, 0));
-      End;
-      8 : Begin
+        if FDDraw.SetDisplayMode(AMode.Width, AMode.Height, 16, AFrequency, 0) <> DD_OK then
+          if FDDraw.SetDisplayMode(AMode.Width, AMode.Height, 24, AFrequency, 0) <> DD_OK then
+            DirectXCheck(FDDraw.SetDisplayMode(AMode.Width, AMode.Height, 32, AFrequency, 0));
+      end;
+      8: begin
         LOG('setting virtual 8 mode');
-        If m_ddraw^.lpVtbl^.SetDisplayMode(m_ddraw, _mode.width, _mode.height, 8, frequency, 0) <> DD_OK Then
-          If m_ddraw^.lpVtbl^.SetDisplayMode(m_ddraw, _mode.width, _mode.height, 24, frequency, 0) <> DD_OK Then {yes, 24bit is now faster than 32bit!}
-            If m_ddraw^.lpVtbl^.SetDisplayMode(m_ddraw, _mode.width, _mode.height, 32, frequency, 0) <> DD_OK Then
-              DirectXCheck(m_ddraw^.lpVtbl^.SetDisplayMode(m_ddraw, _mode.width, _mode.height, 16, frequency, 0));
-      End;
-      Else
-        Raise TPTCError.Create('unsupported pixel format');
-    End;
+        if FDDraw.SetDisplayMode(AMode.Width, AMode.Height, 8, AFrequency, 0) <> DD_OK then
+          if FDDraw.SetDisplayMode(AMode.Width, AMode.Height, 24, AFrequency, 0) <> DD_OK then {yes, 24bit is now faster than 32bit!}
+            if FDDraw.SetDisplayMode(AMode.Width, AMode.Height, 32, AFrequency, 0) <> DD_OK then
+              DirectXCheck(FDDraw.SetDisplayMode(AMode.Width, AMode.Height, 16, AFrequency, 0));
+      end;
+      else
+        raise TPTCError.Create('unsupported pixel format');
+    end;
   LOG('internal display open success');
-  FreeAndNil(m_mode);
-  m_mode := TPTCMode.Create(_mode);
-  m_open := True;
-End;
+  FreeAndNil(FMode);
+  FMode := TPTCMode.Create(AMode);
+  FOpen := True;
+end;
 
-Procedure TDirectXDisplay.internal_open_nearest(Const _mode : TPTCMode; exact : Boolean; frequency : Integer);
+procedure TDirectXDisplay.internal_open_nearest(const AMode: TPTCMode; AExact: Boolean; AFrequency: Integer);
 
-Var
-  index : Integer;
-  match, match_exact : TPTCMode;
-  tmp : TPTCMode;
-  i : Integer;
-  width, height : Integer;
-  dx1, dy1, dx2, dy2 : Integer;
+  function Pass2TryMode(TryWidth, TryHeight: Integer): Boolean;
+  var
+    tmp: TPTCMode;
+  begin
+    if (AMode.Width <= TryWidth) and (AMode.Height <= TryHeight) then
+    try
+      tmp := TPTCMode.Create(TryWidth, TryHeight, AMode.Format);
+      try
+        internal_open(tmp, AExact, AFrequency);
+      finally
+        tmp.Free;
+      end;
+      exit(true);
+    except
+      on TPTCError do;
+    end;
+    Result := false;
+  end;
 
-Begin
-  If m_resolutions_count <> 0 Then
-  Begin
+var
+  index: Integer;
+  match, match_exact: TPTCMode;
+  tmp: TPTCMode;
+  i: Integer;
+  width, height: Integer;
+  dx1, dy1, dx2, dy2: Integer;
+begin
+  if FResolutionsCount <> 0 then
+  begin
     LOG('searching for nearest mode in resolutions list');
     index := 0;
-    match_exact := Nil;
+    match_exact := nil;
     match := TPTCMode.Create;
-    Try
+    try
       match_exact := TPTCMode.Create;
-      For i := 0 To m_resolutions_count - 1 Do
-      Begin
-        width := m_resolutions[i].width;
-        height := m_resolutions[i].height;
-        If (_mode.width <= width) And (_mode.height <= height) Then
-        Begin
-          If (width = _mode.width) And (height = _mode.height) Then
-          Begin
+      for i := 0 to FResolutionsCount - 1 do
+      begin
+        width := FResolutions[i].Width;
+        height := FResolutions[i].Height;
+        if (AMode.Width <= width) and (AMode.Height <= height) then
+        begin
+          if (width = AMode.Width) and (height = AMode.Height) then
+          begin
             LOG('found an exact match');
-            tmp := TPTCMode.Create(width, height, _mode.format);
-            Try
-              match_exact.ASSign(tmp);
-            Finally
+            tmp := TPTCMode.Create(width, height, AMode.Format);
+            try
+              match_exact.Assign(tmp);
+            finally
               tmp.Free;
-            End;
-          End;
-          If match.valid Then
-          Begin
-            dx1 := match.width - _mode.width;
-            dy1 := match.height - _mode.height;
-            dx2 := width - _mode.width;
-            dy2 := height - _mode.height;
-            If (dx2 <= dx1) And (dy2 <= dy1) Then
-            Begin
+            end;
+          end;
+          if match.valid then
+          begin
+            dx1 := match.Width - AMode.Width;
+            dy1 := match.Height - AMode.Height;
+            dx2 := width - AMode.Width;
+            dy2 := height - AMode.Height;
+            if (dx2 <= dx1) and (dy2 <= dy1) then
+            begin
               LOG('found a better nearest match');
-              tmp := TPTCMode.Create(width, height, _mode.format);
-              Try
-                match.ASSign(tmp);
-              Finally
+              tmp := TPTCMode.Create(width, height, AMode.Format);
+              try
+                match.Assign(tmp);
+              finally
                 tmp.Free;
-              End;
-            End;
-          End
-          Else
-          Begin
+              end;
+            end;
+          end
+          else
+          begin
             LOG('found first nearest match');
-            tmp := TPTCMode.Create(width, height, _mode.format);
-            Try
-              match.ASSign(tmp);
-            Finally
+            tmp := TPTCMode.Create(width, height, AMode.Format);
+            try
+              match.Assign(tmp);
+            finally
               tmp.Free;
-            End;
-          End;
-        End
-        Else
-        Begin
+            end;
+          end;
+        end
+        else
+        begin
 {          LOG('stopping nearest mode search');
           Break;}
-        End;
-      End;
+        end;
+      end;
 
-      If match_exact.valid Then
-      Try
+      if match_exact.valid then
+      try
         LOG('trying an exact match');
-        internal_open(match_exact, exact, frequency);
-        Exit;
-      Except
-        On TPTCError Do;
-      End;
-      If match.valid Then
-      Try
+        internal_open(match_exact, AExact, AFrequency);
+        exit;
+      except
+        on TPTCError do;
+      end;
+      if match.valid then
+      try
         LOG('trying nearest match');
-        internal_open(match, exact, frequency);
-        Exit;
-      Except
-        On TPTCError Do;
-      End;
-    Finally
+        internal_open(match, AExact, AFrequency);
+        exit;
+      except
+        on TPTCError do;
+      end;
+    finally
       match.Free;
       match_exact.Free;
-    End;
-  End
-  Else
-  Begin
+    end;
+  end
+  else
+  begin
     LOG('no resolutions list for nearest mode search');
-  End;
+  end;
 {  match.Free;
   match_exact.Free;}
   LOG('could not find a nearest match in first pass');
-  Try
+  try
     LOG('trying requested mode first');
-    internal_open(_mode, exact, frequency);
-    Exit;
-  Except
-    On TPTCError Do
-    Begin
+    internal_open(AMode, AExact, AFrequency);
+    exit;
+  except
+    on TPTCError do
+    begin
       LOG('falling back to nearest standard mode');
-      If (_mode.width <= 320) And (_mode.height <= 200) Then
-      Try
-        tmp := TPTCMode.Create(320, 200, _mode.format);
-        Try
-          internal_open(tmp, exact, frequency);
-        Finally
-          tmp.Free;
-        End;
-        Exit;
-      Except
-        On TPTCError Do;
-      End;
-      If (_mode.width <= 320) And (_mode.height <= 240) Then
-      Try
-        tmp := TPTCMode.Create(320, 240, _mode.format);
-        Try
-          internal_open(tmp, exact, frequency);
-        Finally
-          tmp.Free;
-        End;
-        Exit;
-      Except
-        On TPTCError Do;
-      End;
-      If (_mode.width <= 512) And (_mode.height <= 384) Then
-      Try
-        tmp := TPTCMode.Create(512, 384, _mode.format);
-        Try
-          internal_open(tmp, exact, frequency);
-        Finally
-          tmp.Free;
-        End;
-        Exit;
-      Except
-        On TPTCError Do;
-      End;
-      If (_mode.width <= 640) And (_mode.height <= 400) Then
-      Try
-        tmp := TPTCMode.Create(640, 400, _mode.format);
-        Try
-          internal_open(tmp, exact, frequency);
-        Finally
-          tmp.Free;
-        End;
-        Exit;
-      Except
-        On TPTCError Do;
-      End;
-      If (_mode.width <= 640) And (_mode.height <= 480) Then
-      Try
-        tmp := TPTCMode.Create(640, 480, _mode.format);
-        Try
-          internal_open(tmp, exact, frequency);
-        Finally
-          tmp.Free;
-        End;
-        Exit;
-      Except
-        On TPTCError Do;
-      End;
-      If (_mode.width <= 800) And (_mode.height <= 600) Then
-      Try
-        tmp := TPTCMode.Create(800, 600, _mode.format);
-        Try
-          internal_open(tmp, exact, frequency);
-        Finally
-          tmp.Free;
-        End;
-        Exit;
-      Except
-        On TPTCError Do;
-      End;
-      If (_mode.width <= 1024) And (_mode.height <= 768) Then
-      Try
-        tmp := TPTCMode.Create(1024, 768, _mode.format);
-        Try
-          internal_open(tmp, exact, frequency);
-        Finally
-          tmp.Free;
-        End;
-        Exit;
-      Except
-        On TPTCError Do;
-      End;
-      If (_mode.width <= 1280) And (_mode.height <= 1024) Then
-      Try
-        tmp := TPTCMode.Create(1280, 1024, _mode.format);
-        Try
-          internal_open(tmp, exact, frequency);
-        Finally
-          tmp.Free;
-        End;
-        Exit;
-      Except
-        On TPTCError Do;
-      End;
-      If (_mode.width <= 1600) And (_mode.height <= 1200) Then
-      Try
-        tmp := TPTCMode.Create(1600, 1200, _mode.format);
-        Try
-          internal_open(tmp, exact, frequency);
-        Finally
-          tmp.Free;
-        End;
-        Exit;
-      Except
-        On TPTCError Do;
-      End;
-    End;
-  End;
-  Raise TPTCError.Create('could not set display mode');
-End;
+      if Pass2TryMode(320, 200) then exit;
+      if Pass2TryMode(320, 240) then exit;
+      if Pass2TryMode(512, 384) then exit;
+      if Pass2TryMode(640, 400) then exit;
+      if Pass2TryMode(640, 480) then exit;
+      if Pass2TryMode(800, 600) then exit;
+      if Pass2TryMode(1024, 768) then exit;
+      if Pass2TryMode(1280, 1024) then exit;
+      if Pass2TryMode(1600, 1200) then exit;
+    end;
+  end;
+  raise TPTCError.Create('could not set display mode');
+end;

@@ -8,56 +8,51 @@ Ported to FPC by Nikolay Nikolov (nickysn@users.sourceforge.net)
  This source code is licensed under the GNU GPL
 }
 
-Program Lights;
+program Lights;
 
 {$MODE objfpc}
+{$INLINE on}
 
-Uses
+uses
   ptc;
 
-Var
+var
   { distance lookup table }
-  distance_table : Array[0..299, 0..511] Of DWord; { note: 16.16 fixed }
+  distance_table: array [0..299, 0..511] of DWord; { note: 16.16 fixed }
 
 { intensity calculation }
-Function CalcIntensity(dx, dy : Integer; i : DWord) : DWord;{ Inline;}
-
-Begin
+function CalcIntensity(dx, dy: Integer; i: DWord): DWord; Inline;
+begin
   { lookup intensity at [dx,dy] }
-  CalcIntensity := i * distance_table[dy, dx];
-End;
+  Result := i * distance_table[dy, dx];
+end;
 
-Var
-  console : TPTCConsole;
-  surface : TPTCSurface;
-  format : TPTCFormat;
-  palette : TPTCPalette;
-  dx, dy : Integer;
-  divisor : Single;
-  data : PUint32;
-  pixels, line : PUint8;
-  width : Integer;
-  i : Integer;
-  x, y, x1, y1, x2, y2, x3, y3, x4, y4 : Integer;
-  cx1, cy1, cx2, cy2, cx3, cy3, cx4, cy4 : Single;
-  dx1, dy1, dx2, dy2, dx3, dy3, dx4, dy4 : Single;
-  _dx1, _dx2, _dx3, _dx4 : Integer;
-  _dy1, _dy2, _dy3, _dy4 : Integer;
-  ix1, ix2, ix3, ix4 : Integer;
-  i1, i2, i3, i4 : DWord;
-  length : Integer;
-  move_t, move_dt, move_ddt : Single;
-  flash_t, flash_dt, flash_ddt : Single;
-  intensity : DWord;
-  max_intensity, max_intensity_inc : Single;
-
-Begin
-  console := Nil;
-  format := Nil;
-  surface := Nil;
-  palette := Nil;
-  Try
-    Try
+var
+  console: TPTCConsole = nil;
+  surface: TPTCSurface = nil;
+  format: TPTCFormat = nil;
+  palette: TPTCPalette = nil;
+  dx, dy: Integer;
+  divisor: Single;
+  data: PUint32;
+  pixels, line: PUint8;
+  width: Integer;
+  i: Integer;
+  x, y, x1, y1, x2, y2, x3, y3, x4, y4: Integer;
+  cx1, cy1, cx2, cy2, cx3, cy3, cx4, cy4: Single;
+  dx1, dy1, dx2, dy2, dx3, dy3, dx4, dy4: Single;
+  _dx1, _dx2, _dx3, _dx4: Integer;
+  _dy1, _dy2, _dy3, _dy4: Integer;
+  ix1, ix2, ix3, ix4: Integer;
+  i1, i2, i3, i4: DWord;
+  length: Integer;
+  move_t, move_dt, move_ddt: Single;
+  flash_t, flash_dt, flash_ddt: Single;
+  intensity: DWord;
+  max_intensity, max_intensity_inc: Single;
+begin
+  try
+    try
       { create console }
       console := TPTCConsole.Create;
 
@@ -70,26 +65,26 @@ Begin
       surface := TPTCSurface.Create(320, 200, format);
 
       { setup intensity table }
-      For dy := 0 To 199 Do
-        For dx := 0 To 511 Do
-        Begin
+      for dy := 0 to 199 do
+        for dx := 0 to 511 do
+        begin
           divisor := sqrt((dx * dx) + (dy * dy));
-          If divisor < 0.3 Then
+          if divisor < 0.3 then
             divisor := 0.3;
           distance_table[dy, dx] := Trunc(65535 / divisor);
-        End;
+        end;
 
       { create palette }
       palette := TPTCPalette.Create;
 
       { generate greyscale palette }
       data := palette.lock;
-      Try
-        For i := 0 To 255 Do
-          data[i] := (i Shl 16) Or (i Shl 8) Or i;
-      Finally
+      try
+        for i := 0 to 255 do
+          data[i] := (i shl 16) or (i shl 8) or i;
+      finally
         palette.unlock;
-      End;
+      end;
 
       { set console palette }
       console.palette(palette);
@@ -132,8 +127,8 @@ Begin
       max_intensity_inc := 0.2;
 
       { main loop }
-      While Not console.KeyPressed Do
-      Begin
+      while not console.KeyPressed do
+      begin
         { source positions }
         x1 := Trunc(cx1 + dx1);
         y1 := Trunc(cy1 + dy1);
@@ -146,13 +141,13 @@ Begin
 
         { lock surface }
         pixels := surface.lock;
-        Try
+        try
           { get surface dimensions }
           width := surface.width;
 
           { line loop }
-          For y := 0 To 199 Do
-          Begin
+          for y := 0 to 199 do
+          begin
             { calcalate pointer to start of line }
             line := pixels + y * width;
 
@@ -166,8 +161,8 @@ Begin
             x := 0;
 
             { line loop }
-            While x < width Do
-            Begin
+            while x < width do
+            begin
               { get x deltas }
               _dx1 := abs(x1 - x);
               _dx2 := abs(x2 - x);
@@ -179,37 +174,37 @@ Begin
               ix2 := 1;
               ix3 := 1;
               ix4 := 1;
-              If x1 > x Then
+              if x1 > x then
                 ix1 := -1;
-              If x2 > x Then
+              if x2 > x then
                 ix2 := -1;
-              If x3 > x Then
+              if x3 > x then
                 ix3 := -1;
-              If x4 > x Then
+              if x4 > x then
                 ix4 := -1;
 
               { set span length to min delta }
               length := width - x;
-              If (x1 > x) And (_dx1 < length) Then
+              if (x1 > x) and (_dx1 < length) then
                 length := _dx1;
-              If (x2 > x) And (_dx2 < length) Then
+              if (x2 > x) and (_dx2 < length) then
                 length := _dx2;
-              If (x3 > x) And (_dx3 < length) Then
+              if (x3 > x) and (_dx3 < length) then
                 length := _dx3;
-              If (x4 > x) And (_dx4 < length) Then
+              if (x4 > x) and (_dx4 < length) then
                 length := _dx4;
 
               { pixel loop }
-              While length > 0 Do
-              Begin
+              while length > 0 do
+              begin
                 Dec(length);
                 { calc intensities }
                 intensity := CalcIntensity(_dx1, _dy1, i1);
                 Inc(intensity, CalcIntensity(_dx2, _dy2, i2));
                 Inc(intensity, CalcIntensity(_dx3, _dy3, i3));
                 Inc(intensity, CalcIntensity(_dx4, _dy4, i4));
-                intensity := intensity Shr 16;
-                If intensity > 255 Then
+                intensity := intensity shr 16;
+                if intensity > 255 then
                   intensity := 255;
 
                 { update deltas }
@@ -221,13 +216,13 @@ Begin
                 { store the pixel }
                 line[x] := intensity;
                 Inc(x);
-              End;
-            End;
-          End;
-	Finally
+              end;
+            end;
+          end;
+        finally
           { unlock surface }
           surface.unlock;
-	End;
+        end;
 
         { move the lights around }
         dx1 := 50  * sin((move_t + 0.0) * 0.10);
@@ -252,9 +247,9 @@ Begin
         flash_dt := flash_dt + flash_ddt;
 
         { reset on big flash... }
-        If (move_t > 600) And (i1 > 10000) And (i2 > 10000) And
-           (i3 > 10000) And (i4 > 10000) Then
-        Begin
+        if (move_t > 600) and (i1 > 10000) and (i2 > 10000) and
+           (i3 > 10000) and (i4 > 10000) then
+        begin
           move_t := 0.3;
           move_dt := 0.1;
           move_ddt := 0.0006;
@@ -263,7 +258,7 @@ Begin
           flash_ddt := 0.0004;
           max_intensity := 0.0;
           max_intensity_inc := 0.2;
-        End;
+        end;
 
         { update intensity }
         max_intensity := max_intensity + max_intensity_inc;
@@ -274,17 +269,17 @@ Begin
 
         { update console }
         console.update;
-      End;
-    Finally
+      end;
+    finally
       console.close;
       surface.Free;
       console.Free;
       palette.Free;
       format.Free;
-    End;
-  Except
-    On error : TPTCError Do
+    end;
+  except
+    on error: TPTCError do
       { report error }
       error.report;
-  End;
-End.
+  end;
+end.
