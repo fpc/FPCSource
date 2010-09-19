@@ -180,7 +180,7 @@ begin
   Writeln('  -o --options=value Pass extra options to the compiler');
   Writeln('  -n                 Do not read the default configuration files');
   Writeln('  -p --prefix=value  Specify the prefix');
-  Writeln('  -c --compiler=val. Specify the compiler-executable');
+  Writeln('  --compiler=value   Specify the compiler-executable');
   Writeln('Actions:');
   Writeln('  update            Update packages list');
   Writeln('  list              List available and installed packages');
@@ -305,7 +305,7 @@ begin
           FPMakeCompilerOptions.GlobalPrefix := OptionArg(I);
           FPMakeCompilerOptions.LocalPrefix := OptionArg(I);
         end
-      else if CheckOption(I,'c','compiler') then
+      else if CheckOption(I,'','compiler') then
         begin
           CompilerOptions.Compiler := OptionArg(I);
           FPMakeCompilerOptions.Compiler := OptionArg(I);
