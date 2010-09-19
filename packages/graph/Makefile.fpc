@@ -8,6 +8,7 @@ version=2.5.1
 
 [require]
 libc=y
+packages_linux=ptc
 packages_linux_i386=sdl
 packages_linux_powerpc=sdl
 packages_freebsd_i386=sdl
@@ -22,7 +23,7 @@ units=$(GGIGRAPH_UNIT) $(GRAPH_UNIT)
 [target]
 dirs=
 units=
-units_linux=$(GRAPH_UNIT) $(GGIGRAPH_UNIT)
+units_linux=$(GRAPH_UNIT) $(GGIGRAPH_UNIT) ptcgraph ptccrt
 units_freebsd=graph $(GGIGRAPH_UNIT)
 units_win32=graph wincrt winmouse
 units_go32v2=graph
@@ -42,7 +43,7 @@ includedir_freebsd=src/unix
 includedir_darwin=src/unix
 includedir_netbsd=src/unix
 includedir_openbsd=src/unix
-sourcedir=src/$(OS_TARGET) src/inc tests examples
+sourcedir=src/$(OS_TARGET) src/inc src/ptcgraph tests examples
 
 [install]
 fpcpackage=y
