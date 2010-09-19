@@ -1661,8 +1661,8 @@ implementation
                        if (
                            not(cpo_ignorevarspez in cpoptions) and
                            (currpara1.varspez<>currpara2.varspez) and
-                           ((currpara1.varspez in [vs_var,vs_out]) or
-                            (currpara2.varspez in [vs_var,vs_out]))
+                           ((currpara1.varspez in [vs_var,vs_out,vs_constref]) or
+                            (currpara2.varspez in [vs_var,vs_out,vs_constref]))
                           ) then
                          exit;
                        eq:=compare_defs_ext(currpara1.vardef,currpara2.vardef,nothingn,

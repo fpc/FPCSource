@@ -177,6 +177,7 @@ implementation
       begin
         push_size:=-1;
         case varspez of
+          vs_constref,
           vs_out,
           vs_var :
             push_size:=sizeof(pint);

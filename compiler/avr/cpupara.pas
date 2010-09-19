@@ -155,7 +155,7 @@ unit cpupara;
     function tavrparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
         result:=false;
-        if varspez in [vs_var,vs_out] then
+        if varspez in [vs_var,vs_out,vs_constref] then
           begin
             result:=true;
             exit;

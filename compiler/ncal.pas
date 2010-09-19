@@ -443,7 +443,7 @@ implementation
                   internalerror(200611041);
               end;
 
-            dispatchbyref:=(assigned(para.parasym) and (para.parasym.varspez in [vs_var,vs_out])) or
+            dispatchbyref:=(assigned(para.parasym) and (para.parasym.varspez in [vs_var,vs_out,vs_constref])) or
                            (para.left.resultdef.typ in [variantdef]);
 
             { assign the argument/parameter to the temporary location }
@@ -818,7 +818,7 @@ implementation
                  if (cs_strict_var_strings in current_settings.localswitches) and
                     is_shortstring(left.resultdef) and
                     is_shortstring(parasym.vardef) and
-                    (parasym.varspez in [vs_out,vs_var]) and
+                    (parasym.varspez in [vs_out,vs_var,vs_constref]) and
                     not(is_open_string(parasym.vardef)) and
                     not(equal_defs(left.resultdef,parasym.vardef)) then
                    begin
@@ -860,6 +860,7 @@ implementation
 
                      case parasym.varspez of
                        vs_var,
+                       vs_constref,
                        vs_out :
                          begin
                            if not valid_for_formal_var(left,true) then
@@ -879,7 +880,7 @@ implementation
                        valid_for_var(left,true);
                    end;
 
-                 if parasym.varspez in [vs_var,vs_out] then
+                 if parasym.varspez in [vs_var,vs_out,vs_constref] then
                    set_unique(left);
 
                  { When the address needs to be pushed then the register is
@@ -915,7 +916,8 @@ implementation
                         set_varstate(left,vs_written,[]);
                         set_varstate(left,vs_readwritten,[]);
                       end;
-                    vs_var :
+                    vs_var,
+                    vs_constref:
                       set_varstate(left,vs_readwritten,[vsf_must_be_valid,vsf_use_hints]);
                     else
                       set_varstate(left,vs_read,[vsf_must_be_valid]);

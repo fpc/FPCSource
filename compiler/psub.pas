@@ -1390,7 +1390,7 @@ implementation
             case currpara.vardef.typ of
               formaldef :
                 begin
-                  if (currpara.varspez in [vs_out,vs_var,vs_const]) then
+                  if (currpara.varspez in [vs_out,vs_var,vs_const,vs_constref]) then
                     begin
                       Message1(parser_w_not_supported_for_inline,'formal parameter');
                       Message(parser_w_inlining_disabled);

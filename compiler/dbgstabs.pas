@@ -441,6 +441,8 @@ implementation
                         argnames:=argnames+'5const';
                       vs_out :
                         argnames:=argnames+'3out';
+                      vs_constref :
+                        argnames:=argnames+'8constref';
                     end;
                   end
                 else

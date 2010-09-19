@@ -659,10 +659,11 @@ implementation
              if not(vo_is_hidden_para in parasym.varoptions) then
                begin
                  case parasym.varspez of
-                   vs_value: paraspec := 0;
-                   vs_const: paraspec := pfConst;
-                   vs_var  : paraspec := pfVar;
-                   vs_out  : paraspec := pfOut;
+                   vs_value   : paraspec := 0;
+                   vs_const   : paraspec := pfConst;
+                   vs_var     : paraspec := pfVar;
+                   vs_out     : paraspec := pfOut;
+                   vs_constref: paraspec := pfConstRef;
                  end;
                  { Kylix also seems to always add both pfArray and pfReference
                    in this case

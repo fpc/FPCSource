@@ -1402,7 +1402,7 @@ implementation
     constructor tparavarsym.create(const n : string;nr:word;vsp:tvarspez;def:tdef;vopts:tvaroptions);
       begin
          inherited create(paravarsym,n,vsp,def,vopts);
-         if (vsp in [vs_var,vs_value,vs_const]) then
+         if (vsp in [vs_var,vs_value,vs_const,vs_constref]) then
            varstate := vs_initialised;
          paranr:=nr;
          paraloc[calleeside].init;

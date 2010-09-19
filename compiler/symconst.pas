@@ -101,6 +101,7 @@ const
   pfAddress  = 8;
   pfReference= 16;
   pfOut      = 32;
+  pfConstRef = 64;
 
   unknown_level         = 0;
   main_program_level    = 1;
@@ -483,7 +484,7 @@ type
     vs_referred_not_inited,vs_written,vs_readwritten
   );
 
-  tvarspez = (vs_value,vs_const,vs_var,vs_out);
+  tvarspez = (vs_value,vs_const,vs_var,vs_out,vs_constref);
 
   absolutetyp = (tovar,toasm,toaddr);
 
