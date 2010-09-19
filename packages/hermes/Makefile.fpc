@@ -8,7 +8,28 @@ version=2.5.1
 
 [target]
 units=hermes
-loaders_i386=mmx_clr mmx_main mmxp2_32 mmxp_32 \
+loaders_i386_win32=mmx_clr mmx_main mmxp2_32 mmxp_32 \
+             x8616lut x86_clr x86_main x86p_16 x86p_32 x86p_cpy \
+             x86p_i8 x86p_s32 x86pscpy
+loaders_i386_linux=mmx_clr mmx_main mmxp2_32 mmxp_32 \
+             x8616lut x86_clr x86_main x86p_16 x86p_32 x86p_cpy \
+             x86p_i8 x86p_s32 x86pscpy
+loaders_i386_win32=mmx_clr mmx_main mmxp2_32 mmxp_32 \
+             x8616lut x86_clr x86_main x86p_16 x86p_32 x86p_cpy \
+             x86p_i8 x86p_s32 x86pscpy
+loaders_i386_go32v2=mmx_clr mmx_main mmxp2_32 mmxp_32 \
+             x8616lut x86_clr x86_main x86p_16 x86p_32 x86p_cpy \
+             x86p_i8 x86p_s32 x86pscpy
+loaders_i386_freebsd=mmx_clr mmx_main mmxp2_32 mmxp_32 \
+             x8616lut x86_clr x86_main x86p_16 x86p_32 x86p_cpy \
+             x86p_i8 x86p_s32 x86pscpy
+loaders_i386_haiku=mmx_clr mmx_main mmxp2_32 mmxp_32 \
+             x8616lut x86_clr x86_main x86p_16 x86p_32 x86p_cpy \
+             x86p_i8 x86p_s32 x86pscpy
+loaders_i386_beos=mmx_clr mmx_main mmxp2_32 mmxp_32 \
+             x8616lut x86_clr x86_main x86p_16 x86p_32 x86p_cpy \
+             x86p_i8 x86p_s32 x86pscpy
+loaders_i386_haiku=mmx_clr mmx_main mmxp2_32 mmxp_32 \
              x8616lut x86_clr x86_main x86p_16 x86p_32 x86p_cpy \
              x86p_i8 x86p_s32 x86pscpy
 
