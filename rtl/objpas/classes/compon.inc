@@ -652,7 +652,7 @@ begin
     Result := False;
 end;
 
-function TComponent.QueryInterface(const IID: TGUID; out Obj): HResult;stdcall;
+function TComponent.QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): HResult;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   if Assigned(VCLComObject) then
     Result := IVCLComObject(VCLComObject).QueryInterface(IID, Obj)
@@ -663,7 +663,7 @@ begin
     Result := E_NOINTERFACE;
 end;
 
-function TComponent._AddRef: Integer;stdcall;
+function TComponent._AddRef: Integer;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   if Assigned(VCLComObject) then
     Result := IVCLComObject(VCLComObject)._AddRef
@@ -671,7 +671,7 @@ begin
     Result := -1;
 end;
 
-function TComponent._Release: Integer;stdcall;
+function TComponent._Release: Integer;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   if Assigned(VCLComObject) then
     Result := IVCLComObject(VCLComObject)._Release

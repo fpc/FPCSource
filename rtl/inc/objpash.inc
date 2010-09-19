@@ -243,9 +243,9 @@
 
        IUnknown = interface
          ['{00000000-0000-0000-C000-000000000046}']
-         function QueryInterface(const iid : tguid;out obj) : longint;stdcall;
-         function _AddRef : longint;stdcall;
-         function _Release : longint;stdcall;
+         function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+         function _AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+         function _Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
        end;
        IInterface = IUnknown;
 
@@ -283,9 +283,9 @@
        protected
           frefcount : longint;
           { implement methods of IUnknown }
-          function QueryInterface(const iid : tguid;out obj) : longint;stdcall;
-          function _AddRef : longint;stdcall;
-          function _Release : longint;stdcall;
+          function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+          function _AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+          function _Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
         public
           procedure AfterConstruction;override;
           procedure BeforeDestruction;override;
@@ -300,9 +300,9 @@
           function GetController: IUnknown;
        protected
           { implement methods of IUnknown }
-          function QueryInterface(const iid : tguid;out obj) : longint;stdcall;
-          function _AddRef : longint;stdcall;
-          function _Release : longint;stdcall;
+          function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+          function _AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+          function _Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
        public
           constructor Create(const aController: IUnknown);
           property Controller : IUnknown read GetController;
@@ -310,7 +310,7 @@
 
        TContainedObject = class(TAggregatedObject,IInterface)
          protected
-           function QueryInterface(const iid : tguid;out obj) : longint;virtual; stdcall;
+           function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} iid : tguid;out obj) : longint;virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
          end;
 
        { some pointer definitions }

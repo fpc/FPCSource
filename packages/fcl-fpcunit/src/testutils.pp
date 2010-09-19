@@ -26,9 +26,9 @@ type
   TNoRefCountObject = class(TObject, IInterface)
   protected
     { IInterface }
-    function QueryInterface(const IID: TGUID; out Obj): HResult; virtual; stdcall;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
+    function QueryInterface(constref IID: TGUID; out Obj): HResult; virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   end;
   {$M-}
 
@@ -38,18 +38,18 @@ procedure GetMethodList( AClass: TClass; AList: TStrings ); overload;
 
 implementation
 
-function TNoRefCountObject.QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+function TNoRefCountObject.QueryInterface(constref IID: TGUID; out Obj): HResult; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   if GetInterface(IID, Obj) then Result := 0
     else Result := HRESULT($80004002);
 end;
 
-function TNoRefCountObject._AddRef: Integer;stdcall;
+function TNoRefCountObject._AddRef: Integer;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   Result := -1;
 end;
 
-function TNoRefCountObject._Release: Integer;stdcall;
+function TNoRefCountObject._Release: Integer;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   Result := -1;
 end;
