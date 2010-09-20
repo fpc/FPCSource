@@ -315,8 +315,11 @@ begin
           ShowUsage;
           halt(0);
         end
-      else if (Length(Paramstr(i))>0) and (Paramstr(I)[1]='-') and FirstPass then
-        Raise EMakeToolError.CreateFmt(SErrInvalidArgument,[I,ParamStr(i)])
+      else if (Length(Paramstr(i))>0) and (Paramstr(I)[1]='-') then
+        begin
+          if FirstPass then
+            Raise EMakeToolError.CreateFmt(SErrInvalidArgument,[I,ParamStr(i)])
+        end
       else
       // It's a command or target.
         begin
