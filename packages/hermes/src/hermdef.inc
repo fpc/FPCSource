@@ -31,8 +31,7 @@
 }
 
 
-{$IFDEF CPU86}
-  {$DEFINE I386_ASSEMBLER}
+{$IFDEF I386_ASSEMBLER}
   {$IFNDEF win32}
     {$IFNDEF go32v2}
     const
@@ -45,7 +44,7 @@
     const
       ExternalAsmPrefix=''; // win32
   {$ENDIF win32}
-{$ENDIF CPU86}
+{$ENDIF I386_ASSEMBLER}
 
 {$IFDEF FPC_LITTLE_ENDIAN}
   {$IFDEF FPC_BIG_ENDIAN}
