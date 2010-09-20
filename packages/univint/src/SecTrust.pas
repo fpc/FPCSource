@@ -186,6 +186,7 @@ uses MacTypes,SecBase,cssmtype,cssmapple,CFBase,CFArray,CFData,CFDate;
 {$endc} {not MACOSALLINCLUDE}
 
 
+{$ifc TARGET_OS_MAC}
 
 {!
 	@header SecTrust
@@ -429,6 +430,7 @@ function SecTrustGetUserTrust( certificate: SecCertificateRef; policy: SecPolicy
 function SecTrustSetUserTrust( certificate: SecCertificateRef; policy: SecPolicyRef; trustSetting: SecTrustUserSetting ): OSStatus; external name '_SecTrustSetUserTrust';
 (* DEPRECATED_IN_MAC_OS_X_VERSION_10_5_AND_LATER *)
 
+{$endc} {TARGET_OS_MAC}
 {$ifc not defined MACOSALLINCLUDE or not MACOSALLINCLUDE}
 
 end.
