@@ -753,6 +753,8 @@ const
 function IntToHex(Value: integer; Digits: integer): string;
 var i: integer;
 begin
+ If Digits=0 then 
+   Digits:=1;
  SetLength(result, digits);
  for i := 0 to digits - 1 do
   begin
@@ -768,6 +770,8 @@ end ;
 function IntToHex(Value: int64; Digits: integer): string;
 var i: integer;
 begin
+ If Digits=0 then 
+   Digits:=1;
  SetLength(result, digits);
  for i := 0 to digits - 1 do
   begin
