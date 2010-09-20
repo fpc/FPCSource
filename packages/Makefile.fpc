@@ -51,7 +51,7 @@ dirs_win32=fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracl
                oggvorbis sdl openssl graph pcap httpd13 httpd20 httpd22 pxlib numlib winceunits cairo libxml \
                gmp opencl libsee nvapi ptc
 dirs_win64=fv winunits-base winunits-jedi fcl-web fastcgi ibase mysql zlib oracle odbc postgres sqlite imagemagick \
-                tcl opengl gtk1 fpgtk fftw sdl openssl cdrom httpd13 httpd20 httpd22 numlib fcl-extra opencl nvapi ptc
+                tcl opengl gtk1 fpgtk fftw sdl openssl cdrom httpd13 httpd20 httpd22 numlib fcl-extra opencl nvapi ptc graph
 dirs_wince=winceunits httpd22 fcl-web fastcgi tcl fftw unzip zlib sqlite mysql ibase postgres oracle odbc sdl openssl oggvorbis numlib
 dirs_os2=fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
 dirs_emx=fv zlib libpng x11 tcl fpgtk rexx os2units gtk1 imlib
@@ -244,7 +244,7 @@ graph_debug: sdl_debug
 graph_release: sdl_release
 endif
 
-ifneq ($(findstring $(OS_TARGET),linux win32),)
+ifneq ($(findstring $(OS_TARGET),linux win32 win64),)
 graph_all: ptc_all
 graph_shared: ptc_shared
 graph_smart: ptc_smart
