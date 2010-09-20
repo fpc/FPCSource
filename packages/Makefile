@@ -9535,7 +9535,7 @@ graph_smart: sdl_smart
 graph_debug: sdl_debug
 graph_release: sdl_release
 endif
-ifneq ($(findstring $(OS_TARGET),linux),)
+ifneq ($(findstring $(OS_TARGET),linux win32),)
 graph_all: ptc_all
 graph_shared: ptc_shared
 graph_smart: ptc_smart
