@@ -32,7 +32,7 @@
 .globl _ConvertX86p16_32RGBA888_LUT_X86
 .globl _ConvertX86p16_32BGRA888_LUT_X86
 
-.include "hermes/i386/x8616lut.as"
+.include "src/i386/x8616lut.as"
 
 .text
 
