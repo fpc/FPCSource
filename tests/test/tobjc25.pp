@@ -15,8 +15,8 @@ type
   ta = objcclass(NSObject)
     a: longint;
     procedure taproc; message 'taproc';
-    function tabaseproc(cp: longint): double; message 'tabaseproc:'; //override; -- override doesn't work, the compiler doesn't treat the category as part of NSObject
-    class function taclassproc: longint; message 'taclassproc'; //override; -- idem
+    function tabaseproc(cp: longint): double; message 'tabaseproc:'; override;
+    class function taclassproc: longint; message 'taclassproc'; override;
   end;
 
   ca = objccategory(ta)

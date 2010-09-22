@@ -1247,14 +1247,16 @@ parser_e_no_objc_published=03271_E_Objective-C classes cannot have published sec
 parser_f_need_objc=03272_F_This module requires an Objective-C mode switch to be compiled
 % This error indicates the use of Objective-C language features without an Objective-C mode switch
 % active. Enable one via the -M command line switch, or the {\$modeswitch x} directive.
-parser_e_must_use_override_objc=03273_E_Inherited methods can only be overridden in Objective-C, add "override".
-parser_h_should_use_override_objc=03274_H_Inherited methods can only be overridden in Objective-C, add "override".
+parser_e_must_use_override_objc=03273_E_Inherited methods can only be overridden in Objective-C, add "override" (inherited method defined in $1)
+parser_h_should_use_override_objc=03274_H_Inherited methods can only be overridden in Objective-C, add "override" (inherited method defined in $1).
 % It is not possible to \var{reintroduce} methods in Objective-C like in Object Pascal. Methods with the same
 % name always map to the same virtual method entry. In order to make this clear in the source code,
 % the compiler always requires the \var{override} directive to be specified when implementing overriding
 % Objective-C methods in Pascal. If the implementation is external, this rule is relaxed because Objective-C
 % does not have any \var{override}-style keyword (since it's the default and only behaviour in that language),
 % which makes it hard for automated header conversion tools to include it everywhere.
+% The type in which the inherited method is defined is explicitly mentioned, because this may either
+% be an objcclass or an objccategory.
 parser_e_objc_message_name_changed=03275_E_Message name "$1" in inherited class is different from message name "$2" in current class.
 % An overriding Objective-C method cannot have a different message name than an inherited method. The reason
 % is that these message names uniquely define the message to the Objective-C runtime, which means that
@@ -1266,8 +1268,8 @@ parser_e_no_category_as_types=03277_E_Objective-C categories cannot be used as t
 % It is not possible to declare a variable as an instance of an Objective-C category. A
 % category adds methods to the scope of an existing class, but does not define a type by itself.
 parser_e_no_category_override=03278_E_Categories do not override, but replace methods. Use "reintroduce" instead.
-parser_e_must_use_reintroduce_objc=03279_E_Replaced methods can only be reintroduced in Objective-C, add "reintroduce".
-parser_h_should_use_reintroduce_objc=03280_H_Replaced methods can only be reintroduced in Objective-C, add "reintroduce".
+parser_e_must_use_reintroduce_objc=03279_E_Replaced methods can only be reintroduced in Objective-C, add "reintroduce" (replaced method defined in $1).
+parser_h_should_use_reintroduce_objc=03280_H_Replaced methods can only be reintroduced in Objective-C, add "reintroduce" (replaced method defined in $1).
 % A category replaces an existing method in an Objective-C class, rather than that it overrides it.
 % Calling an inherited method from an category method will call that method in
 % the extended class' parent, not in the extended class itself. The
@@ -1275,6 +1277,8 @@ parser_h_should_use_reintroduce_objc=03280_H_Replaced methods can only be reintr
 % called or referred to. This behaviour corresponds somewhat more closely to
 % \var{reintroduce} than to \var{override} (although in case of \var{reintroduce}
 % in Object Pascal, hidden methods are still reachable via inherited).
+% The type in which the inherited method is defined is explicitly mentioned, because this may either
+% be an objcclass or an objccategory.
 parser_e_implements_getter_not_default_cc=03281_E_Getter for implements interface must use the target's default calling convention.
 % Interface getters are called via a helper in the run time library, and hence
 % have to use the default calling convention for the target (\var{register} on

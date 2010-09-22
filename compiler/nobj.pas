@@ -38,8 +38,8 @@ interface
       private
         _Class : tobjectdef;
         handledprotocols: tfpobjectlist;
-        function  is_new_vmt_entry(pd:tprocdef):boolean;
-        procedure add_new_vmt_entry(pd:tprocdef);
+        function  is_new_vmt_entry(pd:tprocdef; out overridesclasshelper: boolean):boolean;
+        procedure add_new_vmt_entry(pd:tprocdef; allowoverridingmethod: boolean);
         function  check_msg_str(vmtpd, pd: tprocdef):boolean;
         function  intf_search_procdef_by_name(proc: tprocdef;const name: string): tprocdef;
         procedure intf_get_procdefs(ImplIntf:TImplementedInterface;IntfDef:TObjectDef);
@@ -137,14 +137,17 @@ implementation
       end;
 
 
-    procedure TVMTBuilder.add_new_vmt_entry(pd:tprocdef);
+    procedure TVMTBuilder.add_new_vmt_entry(pd:tprocdef; allowoverridingmethod: boolean);
       var
         i : longint;
         vmtentry : pvmtentry;
         vmtpd : tprocdef;
       begin
         { new entry is needed, override was not possible }
-        if (po_overridingmethod in pd.procoptions) then
+        { Allowed when overriding a category method for a parent class in a
+          descendent Objective-C class }
+        if not allowoverridingmethod and
+           (po_overridingmethod in pd.procoptions) then
           MessagePos1(pd.fileinfo,parser_e_nothing_to_be_overridden,pd.fullprocname(false));
 
         { check that all methods have overload directive }
@@ -223,7 +226,7 @@ implementation
         end;
 
 
-    function TVMTBuilder.is_new_vmt_entry(pd:tprocdef):boolean;
+    function TVMTBuilder.is_new_vmt_entry(pd:tprocdef; out overridesclasshelper: boolean):boolean;
       const
         po_comp = [po_classmethod,po_virtualmethod,po_staticmethod,po_interrupt,po_iocheck,po_msgint,
                    po_exports,po_varargs,po_explicitparaloc,po_nostackframe];
@@ -232,8 +235,208 @@ implementation
         hasequalpara,
         hasoverloads,
         pdoverload : boolean;
-        vmtentry : pvmtentry;
         vmtpd : tprocdef;
+        srsym : tsym;
+        st : tsymtable;
+
+      // returns true if we can stop checking, false if we have to continue
+      function found_entry(var vmtpd: tprocdef; var vmtentryvis: tvisibility; updatevalues: boolean): boolean;
+        begin
+          result:=false;
+          overridesclasshelper:=false;
+
+          { ignore hidden entries (e.g. virtual overridden by a static) that are not visible anymore }
+          if vmtentryvis=vis_hidden then
+            exit;
+
+          { ignore different names }
+          if vmtpd.procsym.name<>pd.procsym.name then
+            exit;
+
+          { hide private methods that are not visible anymore. For this check we
+            must override the visibility with the highest value in the override chain.
+            This is required for case (see tw3292) with protected-private-protected where the
+            same vmtentry is used (PFV) }
+          if not is_visible_for_object(vmtpd.owner,vmtentryvis,_class) then
+            exit;
+
+          { inherit overload }
+          if (po_overload in vmtpd.procoptions) then
+            begin
+              include(pd.procoptions,po_overload);
+              pdoverload:=true;
+            end;
+
+          { compare parameter types only, no specifiers yet }
+          hasequalpara:=(compare_paras(vmtpd.paras,pd.paras,cp_none,[cpo_ignoreuniv])>=te_equal);
+
+          { check that we are not trying to override a final method }
+          if (po_finalmethod in vmtpd.procoptions) and
+             hasequalpara and (po_overridingmethod in pd.procoptions) and is_class(_class) then
+            MessagePos1(pd.fileinfo,parser_e_final_can_no_be_overridden,pd.fullprocname(false))
+          else
+          { old definition has virtual
+            new definition has no virtual or override }
+          if (po_virtualmethod in vmtpd.procoptions) and
+             (
+              not(po_virtualmethod in pd.procoptions) or
+              (
+               { new one does not have reintroduce in case of an objccategory }
+               (is_objccategory(_class) and not(po_reintroduce in pd.procoptions)) or
+               { new one does not have override in case of objpas/objc class/intf/proto }
+               (is_class_or_interface_or_objc(_class) and not is_objccategory(_class) and not(po_overridingmethod in pd.procoptions))
+              )
+             ) then
+            begin
+              if (
+                  not(pdoverload or hasoverloads) or
+                  hasequalpara
+                 ) then
+                begin
+                  if not(po_reintroduce in pd.procoptions) then
+                    if not(is_objc_class_or_protocol(_class)) then
+                      MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
+                    else
+                      begin
+                        { In Objective-C, you cannot create a new VMT entry to
+                          start a new inheritance tree. We therefore give an
+                          error when the class is implemented in Pascal, to
+                          avoid confusion due to things working differently
+                          with Object Pascal classes.
+
+                          In case of external classes, we only give a hint,
+                          because requiring override everywhere may make
+                          automated header translation tools too complex.  }
+                        if not(oo_is_external in _class.objectoptions) then
+                          if not is_objccategory(_class) then
+                            MessagePos1(pd.fileinfo,parser_e_must_use_override_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+                          else
+                            MessagePos1(pd.fileinfo,parser_e_must_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+                        { there may be a lot of these in auto-translated
+                          heaeders, so only calculate the fulltypename if
+                          the hint will be shown  }
+                        else if CheckVerbosity(V_Hint) then
+                          if not is_objccategory(_class) then
+                            MessagePos1(pd.fileinfo,parser_h_should_use_override_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil))
+                          else
+                            MessagePos1(pd.fileinfo,parser_h_should_use_reintroduce_objc,FullTypeName(tdef(vmtpd.owner.defowner),nil));
+                        { no new entry, but copy the message name if any from
+                          the procdef in the parent class }
+                        check_msg_str(vmtpd,pd);
+                        result:=true;
+                        exit;
+                      end;
+                  { disable/hide old VMT entry }
+                  if updatevalues then
+                    vmtentryvis:=vis_hidden;
+                end;
+            end
+          { both are virtual? }
+          else if (po_virtualmethod in pd.procoptions) and
+                  (po_virtualmethod in vmtpd.procoptions) then
+            begin
+              { same parameter and return types (parameter specifiers will be checked below) }
+              if hasequalpara and
+                 compatible_childmethod_resultdef(vmtpd.returndef,pd.returndef) then
+                begin
+                  { inherite calling convention when it was explicit and the
+                    current definition has none explicit set }
+                  if (po_hascallingconvention in vmtpd.procoptions) and
+                     not(po_hascallingconvention in pd.procoptions) then
+                    begin
+                      pd.proccalloption:=vmtpd.proccalloption;
+                      include(pd.procoptions,po_hascallingconvention);
+                    end;
+
+                  { All parameter specifiers and some procedure the flags have to match
+                    except abstract and override }
+                  if (compare_paras(vmtpd.paras,pd.paras,cp_all,[cpo_ignoreuniv])<te_equal) or
+                     (vmtpd.proccalloption<>pd.proccalloption) or
+                     (vmtpd.proctypeoption<>pd.proctypeoption) or
+                     ((vmtpd.procoptions*po_comp)<>(pd.procoptions*po_comp)) then
+                     begin
+                       MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
+                       tprocsym(vmtpd.procsym).write_parameter_lists(pd);
+                     end;
+
+                  check_msg_str(vmtpd,pd);
+
+                  { Give a note if the new visibility is lower. For a higher
+                    visibility update the vmt info }
+                  if vmtentryvis>pd.visibility then
+                    MessagePos4(pd.fileinfo,parser_n_ignore_lower_visibility,pd.fullprocname(false),
+                         visibilityname[pd.visibility],tobjectdef(vmtpd.owner.defowner).objrealname^,visibilityname[vmtentryvis])
+                  else if pd.visibility>vmtentryvis then
+                    begin
+                      if updatevalues then
+                        vmtentryvis:=pd.visibility;
+                    end;
+
+                  { override old virtual method in VMT }
+                  if updatevalues then
+                    begin
+                      if (vmtpd.extnumber<>i) then
+                        internalerror(200611084);
+                      pd.extnumber:=vmtpd.extnumber;
+                      vmtpd:=pd;
+                    end;
+                  result:=true;
+                  exit;
+                end
+              { different parameters }
+              else
+               begin
+                 { when we got an override directive then can search futher for
+                   the procedure to override.
+                   If we are starting a new virtual tree then hide the old tree }
+                 if not(po_overridingmethod in pd.procoptions) and
+                    not(pdoverload or hasoverloads) then
+                   begin
+                     if not(po_reintroduce in pd.procoptions) then
+                       begin
+                         if not is_object(_class) and
+                            not is_objc_class_or_protocol(_class) then
+                           MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
+                         else
+                           { objects don't allow starting a new virtual tree
+                             and neither does Objective-C }
+                           MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,vmtpd.fullprocname(false));
+                       end;
+                     { disable/hide old VMT entry }
+                     if updatevalues then
+                       vmtentryvis:=vis_hidden;
+                   end;
+               end;
+            end;
+        end;
+
+        function found_category_method(st: tsymtable): boolean;
+          var
+            entrycount, procdefcount: longint;
+            cat: tobjectdef;
+            vmtpd: tprocdef;
+            vmtvis: tvisibility;
+          begin
+            result:=false;
+            if is_objccategory(tdef(st.defowner)) then
+              begin
+                cat:=tobjectdef(st.defowner);
+                { go through all of the category's methods to find the
+                  vmtentry corresponding to the procdef we are handling }
+                for entrycount:=0 to cat.vmtentries.Count-1 do
+                  begin
+                    vmtpd:=pvmtentry(cat.vmtentries[entrycount])^.procdef;
+                    vmtvis:=pvmtentry(cat.vmtentries[entrycount])^.visibility;
+                    { don't change the vmtentry of the category }
+                    if found_entry(vmtpd,vmtvis,false) then
+                      begin
+                        result:=true;
+                        exit;
+                      end;
+                  end;
+              end;
+          end;
+
       begin
         result:=false;
         { Load other values for easier readability }
@@ -243,163 +446,22 @@ implementation
         { compare with all stored definitions }
         for i:=0 to _class.vmtentries.Count-1 do
           begin
-            vmtentry:=pvmtentry(_class.vmtentries[i]);
-            vmtpd:=tprocdef(vmtentry^.procdef);
-
-            { ignore hidden entries (e.g. virtual overridden by a static) that are not visible anymore }
-            if vmtentry^.visibility=vis_hidden then
-              continue;
-
-            { ignore different names }
-            if vmtpd.procsym.name<>pd.procsym.name then
-              continue;
-
-            { hide private methods that are not visible anymore. For this check we
-              must override the visibility with the highest value in the override chain.
-              This is required for case (see tw3292) with protected-private-protected where the
-              same vmtentry is used (PFV) }
-            if not is_visible_for_object(vmtpd.owner,vmtentry^.visibility,_class) then
-              continue;
-
-            { inherit overload }
-            if (po_overload in vmtpd.procoptions) then
-              begin
-                include(pd.procoptions,po_overload);
-                pdoverload:=true;
-              end;
-
-            { compare parameter types only, no specifiers yet }
-            hasequalpara:=(compare_paras(vmtpd.paras,pd.paras,cp_none,[cpo_ignoreuniv])>=te_equal);
-
-            { check that we are not trying to override a final method }
-            if (po_finalmethod in vmtpd.procoptions) and
-               hasequalpara and (po_overridingmethod in pd.procoptions) and is_class(_class) then
-              MessagePos1(pd.fileinfo,parser_e_final_can_no_be_overridden,pd.fullprocname(false))
-            else
-            { old definition has virtual
-              new definition has no virtual or override }
-            if (po_virtualmethod in vmtpd.procoptions) and
-               (
-                not(po_virtualmethod in pd.procoptions) or
-                (
-                 { new one does not have reintroduce in case of an objccategory }
-                 (is_objccategory(_class) and not(po_reintroduce in pd.procoptions)) or
-                 { new one does not have override in case of objpas/objc class/intf/proto }
-                 (is_class_or_interface_or_objc(_class) and not is_objccategory(_class) and not(po_overridingmethod in pd.procoptions))
-                )
-               ) then
-              begin
-                if (
-                    not(pdoverload or hasoverloads) or
-                    hasequalpara
-                   ) then
-                  begin
-                    if not(po_reintroduce in pd.procoptions) then
-                      if not(is_objc_class_or_protocol(_class)) then
-                        MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
-                      else
-                        begin
-                          { In Objective-C, you cannot create a new VMT entry to
-                            start a new inheritance tree. We therefore give an
-                            error when the class is implemented in Pascal, to
-                            avoid confusion due to things working differently
-                            with Object Pascal classes.
-
-                            In case of external classes, we only give a hint,
-                            because requiring override everywhere may make
-                            automated header translation tools too complex.  }
-                          if not(oo_is_external in _class.objectoptions) then
-                            if not is_objccategory(_class) then
-                              MessagePos1(pd.fileinfo,parser_e_must_use_override_objc,pd.fullprocname(false))
-                            else
-                              MessagePos1(pd.fileinfo,parser_e_must_use_reintroduce_objc,pd.fullprocname(false))
-                          { there may be a lot of these in auto-translated
-                            heaeders, so only calculate the fullprocname if
-                            the hint will be shown  }
-                          else if CheckVerbosity(V_Hint) then
-                            if not is_objccategory(_class) then
-                              MessagePos1(pd.fileinfo,parser_h_should_use_override_objc,pd.fullprocname(false))
-                            else
-                              MessagePos1(pd.fileinfo,parser_h_should_use_reintroduce_objc,pd.fullprocname(false));
-                          { no new entry, but copy the message name if any from
-                            the procdef in the parent class }
-                          check_msg_str(vmtpd,pd);
-                          exit;
-                        end;
-                    { disable/hide old VMT entry }
-                    vmtentry^.visibility:=vis_hidden;
-                  end;
-              end
-            { both are virtual? }
-            else if (po_virtualmethod in pd.procoptions) and
-                    (po_virtualmethod in vmtpd.procoptions) then
-              begin
-                { same parameter and return types (parameter specifiers will be checked below) }
-                if hasequalpara and
-                   compatible_childmethod_resultdef(vmtpd.returndef,pd.returndef) then
-                  begin
-                    { inherite calling convention when it was explicit and the
-                      current definition has none explicit set }
-                    if (po_hascallingconvention in vmtpd.procoptions) and
-                       not(po_hascallingconvention in pd.procoptions) then
-                      begin
-                        pd.proccalloption:=vmtpd.proccalloption;
-                        include(pd.procoptions,po_hascallingconvention);
-                      end;
-
-                    { All parameter specifiers and some procedure the flags have to match
-                      except abstract and override }
-                    if (compare_paras(vmtpd.paras,pd.paras,cp_all,[cpo_ignoreuniv])<te_equal) or
-                       (vmtpd.proccalloption<>pd.proccalloption) or
-                       (vmtpd.proctypeoption<>pd.proctypeoption) or
-                       ((vmtpd.procoptions*po_comp)<>(pd.procoptions*po_comp)) then
-                       begin
-                         MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,pd.fullprocname(false));
-                         tprocsym(vmtpd.procsym).write_parameter_lists(pd);
-                       end;
-
-                    check_msg_str(vmtpd,pd);
-
-                    { Give a note if the new visibility is lower. For a higher
-                      visibility update the vmt info }
-                    if vmtentry^.visibility>pd.visibility then
-                      MessagePos4(pd.fileinfo,parser_n_ignore_lower_visibility,pd.fullprocname(false),
-                           visibilityname[pd.visibility],tobjectdef(vmtpd.owner.defowner).objrealname^,visibilityname[vmtentry^.visibility])
-                    else if pd.visibility>vmtentry^.visibility then
-                      vmtentry^.visibility:=pd.visibility;
-
-                    { override old virtual method in VMT }
-                    if (vmtpd.extnumber<>i) then
-                      internalerror(200611084);
-                    pd.extnumber:=vmtpd.extnumber;
-                    vmtentry^.procdef:=pd;
-                    exit;
-                  end
-                { different parameters }
-                else
-                 begin
-                   { when we got an override directive then can search futher for
-                     the procedure to override.
-                     If we are starting a new virtual tree then hide the old tree }
-                   if not(po_overridingmethod in pd.procoptions) and
-                      not(pdoverload or hasoverloads) then
-                     begin
-                       if not(po_reintroduce in pd.procoptions) then
-                         begin
-                           if not is_object(_class) and
-                              not is_objc_class_or_protocol(_class) then
-                             MessagePos1(pd.fileinfo,parser_w_should_use_override,pd.fullprocname(false))
-                           else
-                             { objects don't allow starting a new virtual tree
-                               and neither does Objective-C }
-                             MessagePos1(pd.fileinfo,parser_e_header_dont_match_forward,vmtpd.fullprocname(false));
-                         end;
-                       { disable/hide old VMT entry }
-                       vmtentry^.visibility:=vis_hidden;
-                     end;
-                 end;
-              end;
+            if found_entry(pvmtentry(_class.vmtentries[i])^.procdef, pvmtentry(_class.vmtentries[i])^.visibility,true) then
+              exit;
           end;
+
+        { in case of Objective-C, also check the categories that apply to this
+          class' *parent* for methods to override (don't allow class X to
+          "override" a method added by a category to class X itself, since in
+          that case the category method will in fact replace class X'
+          "overriding" method }
+        if is_objcclass(_class) and
+           assigned(_class.childof) and
+           search_class_helper(_class.childof,pd.procsym.name,srsym,st) then
+          begin
+            overridesclasshelper:=found_category_method(st);
+          end;
+
         { No entry found, we need to create a new entry }
         result:=true;
       end;
@@ -671,6 +733,7 @@ implementation
         i : longint;
         def : tdef;
         old_current_objectdef : tobjectdef;
+        overridesclasshelper : boolean;
       begin
         old_current_objectdef:=current_objectdef;
         current_objectdef:=_class;
@@ -694,8 +757,8 @@ implementation
             if def.typ=procdef then
               begin
                 { VMT entry }
-                if is_new_vmt_entry(tprocdef(def)) then
-                  add_new_vmt_entry(tprocdef(def));
+                if is_new_vmt_entry(tprocdef(def),overridesclasshelper) then
+                  add_new_vmt_entry(tprocdef(def),overridesclasshelper);
               end;
           end;
         build_interface_mappings;
