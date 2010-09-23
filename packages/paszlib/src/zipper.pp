@@ -265,7 +265,7 @@ Type
   Protected
     Property HdrPos : Longint Read FHeaderPos Write FheaderPos;
   Public
-    constructor Create;
+    constructor Create(ACollection: TCollection); override;
     function IsDirectory: Boolean;
     function IsLink: Boolean;
     Procedure Assign(Source : TPersistent); override;
@@ -1974,13 +1974,15 @@ begin
     Result:=FDiskFileName;
 end;
 
-constructor TZipFileEntry.Create;
+constructor TZipFileEntry.Create(ACollection: TCollection);
+
 begin
 {$IFDEF UNIX}
   FOS := OS_UNIX;
 {$ELSE}
   FOS := OS_FAT;
 {$ENDIF}
+  inherited create(ACollection);
 end;
 
 function TZipFileEntry.IsDirectory: Boolean;
