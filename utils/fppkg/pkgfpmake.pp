@@ -84,6 +84,10 @@ type
      constructor Create(p:pointer;mysize:integer);
    end;
 
+{
+  Generated from fpmkunit.pp, using data2inc:
+  data2inc -b -s fpmkunit.pp fpmkunitsrc.inc fpmkunitsrc
+}
 {$i fpmkunitsrc.inc}
 
 procedure CreateFPMKUnitSource(const AFileName:string);
