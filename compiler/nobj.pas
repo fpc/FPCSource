@@ -243,7 +243,6 @@ implementation
       function found_entry(var vmtpd: tprocdef; var vmtentryvis: tvisibility; updatevalues: boolean): boolean;
         begin
           result:=false;
-          overridesclasshelper:=false;
 
           { ignore hidden entries (e.g. virtual overridden by a static) that are not visible anymore }
           if vmtentryvis=vis_hidden then
@@ -439,6 +438,7 @@ implementation
 
       begin
         result:=false;
+        overridesclasshelper:=false;
         { Load other values for easier readability }
         hasoverloads:=(tprocsym(pd.procsym).ProcdefList.Count>1);
         pdoverload:=(po_overload in pd.procoptions);
