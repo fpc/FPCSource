@@ -181,6 +181,8 @@ begin
   Writeln('  -n                 Do not read the default configuration files');
   Writeln('  -p --prefix=value  Specify the prefix');
   Writeln('  --compiler=value   Specify the compiler-executable');
+  Writeln('  --cpu=value        Specify the target cpu to compile for');
+  Writeln('  --os=value         Specify the target operating system to compile for');
   Writeln('Actions:');
   Writeln('  update            Update packages list');
   Writeln('  list              List available and installed packages');
@@ -310,6 +312,10 @@ begin
           CompilerOptions.Compiler := OptionArg(I);
           FPMakeCompilerOptions.Compiler := OptionArg(I);
         end
+      else if CheckOption(I,'','os') then
+        CompilerOptions.CompilerOS := StringToOS(OptionArg(I))
+      else if CheckOption(I,'','cpu') then
+        CompilerOptions.CompilerCPU := StringToCPU(OptionArg(I))
       else if CheckOption(I,'h','help') then
         begin
           ShowUsage;
