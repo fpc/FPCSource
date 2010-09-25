@@ -113,7 +113,7 @@ Var
   ELKey : String;
 begin
   ELKey:=Format(SKeyEventLog,[IDentification]);
-  Result:=RegDeleteKeyA(HKEY_LOCAL_MACHINE,pchar(ELKey));
+  Result:=(RegDeleteKeyA(HKEY_LOCAL_MACHINE,pchar(ELKey))=ERROR_SUCCESS);
 end;
 
 function TEventLog.MapTypeToCategory(EventType: TEventType): Word;
