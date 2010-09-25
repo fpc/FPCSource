@@ -17,7 +17,7 @@ begin
     P.Directory:='fcl-base';
 {$endif ALLPACKAGES}
     P.Version:='2.2.2-0';
-    P.Dependencies.Add('winunits-jedi',[Win32,Win64]);
+    P.Dependencies.Add('univint',[Darwin]);
 
     P.Author := '<various>';
     P.License := 'LGPL with modification, ';
