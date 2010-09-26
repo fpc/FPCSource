@@ -430,16 +430,7 @@ end;
 constructor TXMLToDOMConverter.CreateFragment(AReader: TSAXXMLReader;
   AFragmentRoot: TDOMNode);
 begin
-  inherited Create;
-  FReader := AReader;
-  FReader.OnCharacters := @ReaderCharacters;
-  FReader.OnIgnorableWhitespace := @ReaderIgnorableWhitespace;
-  FReader.OnSkippedEntity := @ReaderSkippedEntity;
-  FReader.OnStartElement := @ReaderStartElement;
-  FReader.OnEndElement := @ReaderEndElement;
-  FDocument := AFragmentRoot.OwnerDocument;
-  FElementStack := TList.Create;
-  FNodeBuffer := TList.Create;
+  Create(AReader, AFragmentRoot.OwnerDocument);
   FragmentRoot := AFragmentRoot;
   IsFragmentMode := True;
 end;
@@ -460,30 +451,22 @@ end;
 procedure TXMLToDOMConverter.ReaderCharacters(Sender: TObject;
   const ch: PSAXChar; Start, Count: Integer);
 var
-  s: SAXString;
   NodeInfo: TXMLNodeInfo;
 begin
-  SetLength(s, Count);
-  Move(ch^, s[1], Count * SizeOf(SAXChar));
-
   NodeInfo := TXMLNodeInfo.Create;
   NodeInfo.NodeType := ntText;
-  NodeInfo.DOMNode := FDocument.CreateTextNode(s);
+  NodeInfo.DOMNode := FDocument.CreateTextNodeBuf(ch, Count, False);
   FNodeBuffer.Add(NodeInfo);
 end;
 
 procedure TXMLToDOMConverter.ReaderIgnorableWhitespace(Sender: TObject;
   const ch: PSAXChar; Start, Count: Integer);
 var
-  s: SAXString;
   NodeInfo: TXMLNodeInfo;
 begin
-  SetLength(s, Count);
-  Move(ch^, s[1], Count * SizeOf(SAXChar));
-
   NodeInfo := TXMLNodeInfo.Create;
   NodeInfo.NodeType := ntWhitespace;
-  NodeInfo.DOMNode := FDocument.CreateTextNode(s);
+  NodeInfo.DOMNode := FDocument.CreateTextNodeBuf(ch, Count, False);
   FNodeBuffer.Add(NodeInfo);
 end;
 
