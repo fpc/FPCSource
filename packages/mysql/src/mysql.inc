@@ -1628,7 +1628,7 @@ const
   mysql_symbols: array[0..91] of TLibSymbol = (
   // Only the procedure that are given in the c-library documentation are loaded, to
   // avoid problems with 'incomplete' libraries
-    (pvar:@my_init; name:'my_init'; weak:false),
+    (pvar:@my_init; name:'my_init'; weak:true),
     (pvar:@my_thread_init; name:'my_thread_init'; weak:true),
     (pvar:@my_thread_end; name:'my_thread_end'; weak:true),
 
