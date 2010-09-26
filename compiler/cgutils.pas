@@ -148,10 +148,6 @@ unit cgutils;
     procedure location_copy(var destloc:tlocation; const sourceloc : tlocation);
     procedure location_swap(var destloc,sourceloc : tlocation);
 
-
-    { allocate room for parameters on the stack in the entry code? }
-    function use_fixed_stack: boolean;
-
     { returns r with the given alignment }
     function setalignment(const r : treference;b : byte) : treference;
 
@@ -247,19 +243,6 @@ uses
         sourceloc := swapl;
       end;
 
-
-    function use_fixed_stack: boolean;
-      begin
-{$ifdef i386}
-        result := (target_info.system in [system_i386_darwin,system_x86_64_darwin]);
-{$else i386}
-{$ifdef cputargethasfixedstack}
-        result := true;
-{$else cputargethasfixedstack}
-        result := false;
-{$endif cputargethasfixedstack}
-{$endif i386}
-      end;
 
 end.
 

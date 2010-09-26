@@ -69,7 +69,7 @@ implementation
       var
         hreg : tregister;
       begin
-        if (use_fixed_stack) then
+        if (paramanager.use_fixed_stack) then
           begin
             { very weird: in this case the callee does a "ret $4" and the }
             { caller immediately a "subl $4,%esp". Possibly this is for   }

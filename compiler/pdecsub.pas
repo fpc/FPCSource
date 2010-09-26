@@ -699,7 +699,7 @@ implementation
 
         if explicit_paraloc then
           begin
-            pd.has_paraloc_info:=true;
+            pd.has_paraloc_info:=callerside;
             include(pd.procoptions,po_explicitparaloc);
           end;
         { remove parasymtable from stack }

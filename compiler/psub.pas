@@ -57,7 +57,6 @@ interface
         procedure remove_from_symtablestack;
         procedure parse_body;
 
-        function stack_tainting_parameter : boolean;
         function has_assembler_child : boolean;
       end;
 
@@ -784,29 +783,6 @@ implementation
       end;
 
 
-    procedure check_for_stack(p:TObject;arg:pointer);
-      begin
-         if tsym(p).typ=paravarsym then
-           begin
-             { check if there no parameter of the current procedure is stack dependend }
-             if is_open_array(tparavarsym(p).vardef) or
-               is_array_of_const(tparavarsym(p).vardef) then
-               pboolean(arg)^:=true;
-             if assigned(p) and
-                assigned(tparavarsym(p).paraloc[calleeside].location) and
-               (tparavarsym(p).paraloc[calleeside].location^.loc=LOC_REFERENCE) then
-               pboolean(arg)^:=true;
-           end;
-      end;
-
-
-    function tcgprocinfo.stack_tainting_parameter : boolean;
-      begin
-        result:=false;
-        procdef.parast.SymList.ForEachCall(@check_for_stack,@result);
-      end;
-
-
     function tcgprocinfo.has_assembler_child : boolean;
       var
         hp : tcgprocinfo;
@@ -1006,9 +982,10 @@ implementation
                    parameters on the stack
 
                    calling generate_parameter_info doesn't hurt but it costs time
+                   (necessary to init para_stack_size)
                  }
                  generate_parameter_info;
-                 if not(stack_tainting_parameter) and
+                 if not(procdef.stack_tainting_parameter(calleeside)) and
                    not(has_assembler_child) and (para_stack_size=0) then
                    begin
                      { Only need to set the framepointer }
@@ -1049,11 +1026,7 @@ implementation
 
             { caller paraloc info is also necessary in the stackframe_entry
               code of the ppc (and possibly other processors)               }
-            if not procdef.has_paraloc_info then
-              begin
-                procdef.requiredargarea:=paramanager.create_paraloc_info(procdef,callerside);
-                procdef.has_paraloc_info:=true;
-              end;
+            procdef.init_paraloc_info(callerside);
 
             { generate code for the node tree }
             do_secondpass(code);

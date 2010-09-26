@@ -75,7 +75,7 @@ unit cgcpu;
 
     function use_push(const cgpara:tcgpara):boolean;
       begin
-        result:=(not use_fixed_stack) and
+        result:=(not paramanager.use_fixed_stack) and
                 assigned(cgpara.location) and
                 (cgpara.location^.loc=LOC_REFERENCE) and
                 (cgpara.location^.reference.index=NR_STACK_POINTER_REG);
@@ -325,7 +325,7 @@ unit cgcpu;
           end
         { Routines with the poclearstack flag set use only a ret }
         else if (current_procinfo.procdef.proccalloption in clearstack_pocalls) and
-                (not use_fixed_stack)  then
+                (not paramanager.use_fixed_stack)  then
          begin
            { complex return values are removed from stack in C code PM }
            { but not on win32 }
@@ -361,7 +361,7 @@ unit cgcpu;
         again,ok : tasmlabel;
 {$endif}
       begin
-        if use_fixed_stack then
+        if paramanager.use_fixed_stack then
           begin
             inherited g_copyvaluepara_openarray(list,ref,lenloc,elesize,destreg);
             exit;
@@ -471,7 +471,7 @@ unit cgcpu;
 
     procedure tcg386.g_releasevaluepara_openarray(list : TAsmList;const l:tlocation);
       begin
-        if use_fixed_stack then
+        if paramanager.use_fixed_stack then
           begin
             inherited g_releasevaluepara_openarray(list,l);
             exit;
@@ -482,7 +482,7 @@ unit cgcpu;
 
     procedure tcg386.g_exception_reason_save(list : TAsmList; const href : treference);
       begin
-        if not use_fixed_stack then
+        if not paramanager.use_fixed_stack then
           list.concat(Taicpu.op_reg(A_PUSH,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))
         else
          inherited g_exception_reason_save(list,href);
@@ -491,7 +491,7 @@ unit cgcpu;
 
     procedure tcg386.g_exception_reason_save_const(list : TAsmList;const href : treference; a: aint);
       begin
-        if not use_fixed_stack then
+        if not paramanager.use_fixed_stack then
           list.concat(Taicpu.op_const(A_PUSH,tcgsize2opsize[OS_INT],a))
         else
           inherited g_exception_reason_save_const(list,href,a);
@@ -500,7 +500,7 @@ unit cgcpu;
 
     procedure tcg386.g_exception_reason_load(list : TAsmList; const href : treference);
       begin
-        if not use_fixed_stack then
+        if not paramanager.use_fixed_stack then
           begin
             cg.a_reg_alloc(list,NR_FUNCTION_RESULT_REG);
             list.concat(Taicpu.op_reg(A_POP,tcgsize2opsize[OS_INT],NR_FUNCTION_RESULT_REG))

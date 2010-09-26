@@ -225,7 +225,7 @@ type
     vt_normalvariant,vt_olevariant
   );
 
-  tcallercallee = (callerside,calleeside);
+  tcallercallee = (callnoside,callerside,calleeside,callbothsides);
 
   { basic type for tprocdef and tprocvardef }
   tproctypeoption=(potype_none,

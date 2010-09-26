@@ -38,6 +38,9 @@ unit paramgr;
        {# This class defines some methods to take care of routine
           parameters. It should be overriden for each new processor
        }
+
+       { tparamanager }
+
        tparamanager = class
           { true if the location in paraloc can be reused as localloc }
           function param_use_paraloc(const cgpara:tcgpara):boolean;virtual;
@@ -121,11 +124,15 @@ unit paramgr;
           }
           function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;virtual;abstract;
 
-          procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);virtual;
+          function is_simple_stack_paraloc(paraloc: pcgparalocation): boolean;
+          procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);virtual;
           procedure duplicateparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
 
           function parseparaloc(parasym : tparavarsym;const s : string) : boolean;virtual;
           function parsefuncretloc(p : tabstractprocdef; const s : string) : boolean;virtual;
+
+          { allocate room for parameters on the stack in the entry code? }
+          function use_fixed_stack: boolean;
        end;
 
 
@@ -320,13 +327,31 @@ implementation
       end;
 
 
-    procedure tparamanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
+    function tparamanager.is_simple_stack_paraloc(paraloc: pcgparalocation): boolean;
+      begin
+        result:=
+          assigned(paraloc) and
+          (paraloc^.loc=LOC_REFERENCE) and
+          (paraloc^.reference.index=NR_STACK_POINTER_REG) and
+          not assigned(paraloc^.next);
+      end;
+
+
+    procedure tparamanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);
       var
         href : treference;
         len  : aint;
         paraloc,
         newparaloc : pcgparalocation;
       begin
+        paraloc:=parasym.paraloc[callerside].location;
+        if can_use_final_stack_loc and
+           is_simple_stack_paraloc(paraloc) then
+          begin
+            duplicateparaloc(list,calloption,parasym,cgpara);
+            exit;
+          end;
+
         cgpara.reset;
         cgpara.size:=parasym.paraloc[callerside].size;
         cgpara.intsize:=parasym.paraloc[callerside].intsize;
@@ -334,7 +359,6 @@ implementation
 {$ifdef powerpc}
         cgpara.composite:=parasym.paraloc[callerside].composite;
 {$endif powerpc}
-        paraloc:=parasym.paraloc[callerside].location;
         while assigned(paraloc) do
           begin
             if paraloc^.size=OS_NO then
@@ -398,8 +422,8 @@ implementation
     function tparamanager.create_inline_paraloc_info(p : tabstractprocdef):longint;
       begin
         { We need to return the size allocated }
-        create_paraloc_info(p,callerside);
-        result:=create_paraloc_info(p,calleeside);
+        p.init_paraloc_info(callbothsides);
+        result:=p.calleeargareasize;
       end;
       
 
@@ -415,6 +439,21 @@ implementation
         Result:=False;
         internalerror(200807236);
       end;
+
+
+    function tparamanager.use_fixed_stack: boolean;
+      begin
+{$ifdef i386}
+        result := (target_info.system in [system_i386_darwin,system_x86_64_darwin]);
+{$else i386}
+{$ifdef cputargethasfixedstack}
+        result := true;
+{$else cputargethasfixedstack}
+        result := false;
+{$endif cputargethasfixedstack}
+{$endif i386}
+      end;
+
 
 initialization
   ;

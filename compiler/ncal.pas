@@ -174,6 +174,9 @@ interface
        tcallparaflags = set of tcallparaflag;
 
        tcallparanode = class(ttertiarynode)
+       private
+          fcontains_stack_tainting_call_cached,
+          ffollowed_by_stack_tainting_call_cached : boolean;
        public
           callparaflags : tcallparaflags;
           parasym       : tparavarsym;
@@ -199,6 +202,21 @@ interface
 
           property nextpara : tnode read right write right;
           property parametername : tnode read third write third;
+
+          { returns whether the evaluation of this parameter involves a
+            stack tainting call }
+          function contains_stack_tainting_call: boolean;
+          { initialises the fcontains_stack_tainting_call_cached field with the
+            result of contains_stack_tainting_call so that it can be quickly
+            accessed via the contains_stack_tainting_call_cached property }
+          procedure init_contains_stack_tainting_call_cache;
+          { returns result of contains_stack_tainting_call cached during last
+            call to init_contains_stack_tainting_call_cache }
+          property contains_stack_tainting_call_cached: boolean read fcontains_stack_tainting_call_cached;
+          { returns whether this parameter is followed by at least one other
+            parameter whose evaluation involves a stack tainting parameter
+            (result is only valid after order_parameters has been called) }
+          property followed_by_stack_tainting_call_cached: boolean read ffollowed_by_stack_tainting_call_cached;
        end;
        tcallparanodeclass = class of tcallparanode;
 
@@ -959,6 +977,28 @@ implementation
               exit
           end;
         result:=true;
+      end;
+
+
+    function check_contains_stack_tainting_call(var n: tnode; arg: pointer): foreachnoderesult;
+      begin
+        if (n.nodetype=calln) and
+           tcallnode(n).procdefinition.stack_tainting_parameter(callerside) then
+          result:=fen_norecurse_true
+        else
+          result:=fen_false;
+      end;
+
+
+    function tcallparanode.contains_stack_tainting_call: boolean;
+      begin
+        result:=foreachnodestatic(pm_postprocess,left,@check_contains_stack_tainting_call,nil);
+      end;
+
+
+    procedure tcallparanode.init_contains_stack_tainting_call_cache;
+      begin
+        fcontains_stack_tainting_call_cached:=contains_stack_tainting_call;
       end;
 
 
@@ -2998,6 +3038,14 @@ implementation
       begin
         hpfirst:=nil;
         hpcurr:=tcallparanode(left);
+        { cache all info about parameters containing stack tainting calls,
+          since we will need it a lot below and calculting it can be expensive }
+        while assigned(hpcurr) do
+          begin
+            hpcurr.init_contains_stack_tainting_call_cache;
+            hpcurr:=tcallparanode(hpcurr.right);
+          end;
+        hpcurr:=tcallparanode(left);
         while assigned(hpcurr) do
           begin
             { pull out }
@@ -3030,8 +3078,17 @@ implementation
             currloc:=hpcurr.parasym.paraloc[callerside].location^.loc;
             hpprev:=nil;
             hp:=hpfirst;
+            { on fixed_stack targets, always evaluate parameters containing
+              a call with stack parameters before all other parameters,
+              because they will prevent any other parameters from being put
+              in their final place; if both the current and the next para
+              contain a stack tainting call, don't do anything to prevent
+              them from keeping on chasing eachother's tail }
             while assigned(hp) do
               begin
+                if paramanager.use_fixed_stack and
+                   hpcurr.contains_stack_tainting_call_cached then
+                  break;
                 case currloc of
                   LOC_REFERENCE :
                     begin
@@ -3050,8 +3107,11 @@ implementation
 {$ifdef i386}
                             { the i386 code generator expects all reference }
                             { parameter to be in this order so it can use   }
-                            { pushes                                        }
-                            if (hpcurr.parasym.paraloc[callerside].location^.reference.offset>hp.parasym.paraloc[callerside].location^.reference.offset) then
+                            { pushes in case of no fixed stack              }
+                            if (not paramanager.use_fixed_stack and
+                                (hpcurr.parasym.paraloc[callerside].location^.reference.offset>hp.parasym.paraloc[callerside].location^.reference.offset)) or
+                               (paramanager.use_fixed_stack and
+                                (node_complexity(hpcurr)<node_complexity(hp))) then
 {$else i386}
                             if (node_complexity(hpcurr)<node_complexity(hp)) then
 {$endif i386}
@@ -3084,6 +3144,30 @@ implementation
             hpcurr:=hpnext;
           end;
         left:=hpfirst;
+        { now mark each parameter that is followed by a stack-tainting call,
+          to determine on use_fixed_stack targets which ones can immediately be
+          put in their final destination. Unforunately we can never put register
+          parameters immediately in their final destination (even on register-
+          rich architectures such as the PowerPC), because the code generator
+          can still insert extra calls that only make use of register
+          parameters (fpc_move() etc. }
+        hpcurr:=hpfirst;
+        while assigned(hpcurr) do
+          begin
+            if hpcurr.contains_stack_tainting_call_cached then
+              begin
+                { all parameters before this one are followed by a stack
+                  tainting call }
+                hp:=hpfirst;
+                while hp<>hpcurr do
+                  begin
+                    hp.ffollowed_by_stack_tainting_call_cached:=true;
+                    hp:=tcallparanode(hp.right);
+                  end;
+                hpfirst:=hpcurr;
+              end;
+            hpcurr:=tcallparanode(hpcurr.right);
+          end;
       end;
 
 
@@ -3206,17 +3290,13 @@ implementation
          result:=nil;
 
          { calculate the parameter info for the procdef }
-         if not procdefinition.has_paraloc_info then
-           begin
-             procdefinition.requiredargarea:=paramanager.create_paraloc_info(procdefinition,callerside);
-             procdefinition.has_paraloc_info:=true;
-           end;
+         procdefinition.init_paraloc_info(callerside);
 
          { calculate the parameter size needed for this call include varargs if they are available }
          if assigned(varargsparas) then
            pushedparasize:=paramanager.create_varargs_paraloc_info(procdefinition,varargsparas)
          else
-           pushedparasize:=procdefinition.requiredargarea;
+           pushedparasize:=procdefinition.callerargareasize;
 
          { record maximum parameter size used in this proc }
          current_procinfo.allocate_push_parasize(pushedparasize);

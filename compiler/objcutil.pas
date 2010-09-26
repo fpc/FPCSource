@@ -205,11 +205,7 @@ end;
       begin
         result:='';
         totalsize:=0;
-        if not pd.has_paraloc_info then
-          begin
-            pd.requiredargarea:=paramanager.create_paraloc_info(pd,callerside);
-            pd.has_paraloc_info:=true;
-          end;
+        pd.init_paraloc_info(callerside);
 {$if defined(powerpc) and defined(dummy)}
         { Disabled, because neither Clang nor gcc does this, and the ObjC
           runtime contains an explicit fix to detect this error.  }

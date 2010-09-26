@@ -45,7 +45,7 @@ unit cpupara;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): tcgpara;override;
-          procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);override;
+          procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);
           procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
          private
           procedure init_values(var curintreg, curfloatreg: tsuperregister; var cur_stack_offset: aword);
@@ -565,21 +565,17 @@ unit cpupara;
       end;
 
 
-    procedure tm68kparamanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
+    procedure tm68kparamanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);
       var
         paraloc : pcgparalocation;
       begin
         paraloc:=parasym.paraloc[callerside].location;
-        { No need for temps when value is pushed }
-        if not(use_fixed_stack) and
-           assigned(paraloc) and
-           (paraloc^.loc=LOC_REFERENCE) and
-           (paraloc^.reference.index=NR_STACK_POINTER_REG) then
-          duplicateparaloc(list,calloption,parasym,cgpara)
-        else
-          inherited createtempparaloc(list,calloption,parasym,cgpara);
+        { Never a need for temps when value is pushed (calls inside parameters
+          will simply allocate even more stack space for their parameters) }
+        if not(use_fixed_stack) then
+          can_use_final_stack_loc:=true;
+        inherited createtempparaloc(list,calloption,parasym,can_use_final_stack_loc,cgpara);
       end;
-
 
 begin
   paramanager:=tm68kparamanager.create;

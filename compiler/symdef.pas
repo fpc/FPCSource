@@ -403,7 +403,8 @@ interface
           proctypeoption  : tproctypeoption;
           proccalloption  : tproccalloption;
           procoptions     : tprocoptions;
-          requiredargarea : aint;
+          callerargareasize,
+          calleeargareasize: pint;
           { number of user visibile parameters }
           maxparacount,
           minparacount    : byte;
@@ -411,7 +412,7 @@ interface
           exp_funcretloc : tregister;   { explicit funcretloc for AmigaOS }
 {$endif}
           funcretloc : array[tcallercallee] of TCGPara;
-          has_paraloc_info : boolean; { paraloc info is available }
+          has_paraloc_info : tcallercallee; { paraloc info is available }
           constructor create(dt:tdeftyp;level:byte);
           constructor ppuload(dt:tdeftyp;ppufile:tcompilerppufile);
           destructor destroy;override;
@@ -424,6 +425,8 @@ interface
           function  is_addressonly:boolean;virtual;
           function  no_self_node:boolean;
           procedure check_mark_as_nested;
+          procedure init_paraloc_info(side: tcallercallee);
+          function stack_tainting_parameter(side: tcallercallee): boolean;
        private
           procedure count_para(p:TObject;arg:pointer);
           procedure insert_para(p:TObject;arg:pointer);
@@ -2760,8 +2763,9 @@ implementation
          procoptions:=[];
          returndef:=voidtype;
          savesize:=sizeof(pint);
-         requiredargarea:=0;
-         has_paraloc_info:=false;
+         callerargareasize:=0;
+         calleeargareasize:=0;
+         has_paraloc_info:=callnoside;
          funcretloc[callerside].init;
          funcretloc[calleeside].init;
          check_mark_as_nested;
@@ -2885,7 +2889,8 @@ implementation
            funcretloc[callerside].ppuload(ppufile);
 
          savesize:=sizeof(pint);
-         has_paraloc_info:=(po_explicitparaloc in procoptions);
+         if (po_explicitparaloc in procoptions) then
+           has_paraloc_info:=callerside;
       end;
 
 
@@ -3033,6 +3038,53 @@ implementation
             (m_nested_procvars in current_settings.modeswitches) then
            include(procoptions,po_delphi_nested_cc);
       end;
+
+
+    procedure tabstractprocdef.init_paraloc_info(side: tcallercallee);
+      begin
+        if (side in [callerside,callbothsides]) and
+           not(has_paraloc_info in [callerside,callbothsides]) then
+          begin
+            callerargareasize:=paramanager.create_paraloc_info(self,callerside);
+            if has_paraloc_info in [calleeside,callbothsides] then
+              has_paraloc_info:=callbothsides
+            else
+              has_paraloc_info:=callerside;
+          end;
+        if (side in [calleeside,callbothsides]) and
+           not(has_paraloc_info in [calleeside,callbothsides]) then
+          begin
+            calleeargareasize:=paramanager.create_paraloc_info(self,calleeside);
+            if has_paraloc_info in [callerside,callbothsides] then
+              has_paraloc_info:=callbothsides
+            else
+              has_paraloc_info:=calleeside;
+          end;
+      end;
+
+
+    function tabstractprocdef.stack_tainting_parameter(side: tcallercallee): boolean;
+      var
+        p: tparavarsym;
+        i: longint;
+      begin
+        result:=false;
+        init_paraloc_info(side);
+        for i:=0 to parast.SymList.Count-1 do
+          if tsym(parast.SymList[i]).typ=paravarsym then
+            begin
+              p:=tparavarsym(parast.SymList[i]);
+              { check if no parameter is located on the stack }
+              if is_open_array(p.vardef) or
+                 is_array_of_const(p.vardef) then
+                result:=true;
+              if assigned(p.paraloc[side].location) and
+                 (p.paraloc[side].location^.loc=LOC_REFERENCE) then
+                result:=true;
+            end;
+      end;
+
+
 
 
 {***************************************************************************
@@ -3760,7 +3812,8 @@ implementation
         tprocvardef(result).proctypeoption:=proctypeoption;
         tprocvardef(result).proccalloption:=proccalloption;
         tprocvardef(result).procoptions:=procoptions;
-        tprocvardef(result).requiredargarea:=requiredargarea;
+        tprocvardef(result).callerargareasize:=callerargareasize;
+        tprocvardef(result).calleeargareasize:=calleeargareasize;
         tprocvardef(result).maxparacount:=maxparacount;
         tprocvardef(result).minparacount:=minparacount;
         for i:=low(tcallercallee) to high(tcallercallee) do

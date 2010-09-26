@@ -2140,11 +2140,7 @@ unit cgcpu;
         shift : byte;
       begin
         { calculate the parameter info for the procdef }
-        if not procdef.has_paraloc_info then
-          begin
-            procdef.requiredargarea:=paramanager.create_paraloc_info(procdef,callerside);
-            procdef.has_paraloc_info:=true;
-          end;
+        procdef.init_paraloc_info(callerside);
         hsym:=tsym(procdef.parast.Find('self'));
         if not(assigned(hsym) and
           (hsym.typ=paravarsym)) then

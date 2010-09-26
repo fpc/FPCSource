@@ -206,7 +206,7 @@ unit cgcpu;
 
     function use_push(const cgpara:tcgpara):boolean;
       begin
-        result:=(not use_fixed_stack) and
+        result:=(not paramanager.use_fixed_stack) and
                 assigned(cgpara.location) and
                 (cgpara.location^.loc=LOC_REFERENCE) and
                 (cgpara.location^.reference.index=NR_STACK_POINTER_REG);

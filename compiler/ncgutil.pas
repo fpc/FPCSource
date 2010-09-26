@@ -235,7 +235,7 @@ implementation
           LOC_REFERENCE,
           LOC_CREFERENCE :
             begin
-              if use_fixed_stack then
+              if paramanager.use_fixed_stack then
                 location_freetemp(list,location);
             end;
           else
@@ -805,7 +805,7 @@ implementation
                    LOC_REFERENCE:
                      begin
                        size:=align(locintsize,cgpara.alignment);
-                       if (not use_fixed_stack) and
+                       if (not paramanager.use_fixed_stack) and
                           (cgpara.location^.reference.index=NR_STACK_POINTER_REG) then
                          begin
                            cg.g_stackpointer_alloc(list,size);
@@ -850,7 +850,7 @@ implementation
                        { can't use TCGSize2Size[l.size], because the size of an
                          80 bit extended parameter can be either 10 or 12 bytes }
                        size:=align(locintsize,cgpara.alignment);
-                       if (not use_fixed_stack) and
+                       if (not paramanager.use_fixed_stack) and
                           (cgpara.location^.reference.index=NR_STACK_POINTER_REG) then
                          begin
                            cg.g_stackpointer_alloc(list,size);
@@ -878,7 +878,7 @@ implementation
                    LOC_REFERENCE:
                      begin
                        size:=align(locintsize,cgpara.alignment);
-                       if (not use_fixed_stack) and
+                       if (not paramanager.use_fixed_stack) and
                           (cgpara.location^.reference.index=NR_STACK_POINTER_REG) then
                          cg.a_load_ref_cgpara(list,locsize,l.reference,cgpara)
                        else
@@ -2347,7 +2347,7 @@ implementation
             parasize:=current_procinfo.para_stack_size;
             { the parent frame pointer para has to be removed by the caller in
               case of Delphi-style parent frame pointer passing }
-            if not use_fixed_stack and
+            if not paramanager.use_fixed_stack and
                (po_delphi_nested_cc in current_procinfo.procdef.procoptions) then
               dec(parasize,sizeof(pint));
           end;

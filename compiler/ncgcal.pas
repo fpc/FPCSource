@@ -170,7 +170,7 @@ implementation
                  cg.g_decrrefcount(current_asmdata.CurrAsmList,left.resultdef,href);
                end;
 
-             paramanager.createtempparaloc(current_asmdata.CurrAsmList,aktcallnode.procdefinition.proccalloption,parasym,tempcgpara);
+             paramanager.createtempparaloc(current_asmdata.CurrAsmList,aktcallnode.procdefinition.proccalloption,parasym,not followed_by_stack_tainting_call_cached,tempcgpara);
 
              { handle varargs first, because parasym is not valid }
              if (cpf_varargs_para in callparaflags) then
@@ -485,6 +485,7 @@ implementation
          href : treference;
          calleralignment,
          tmpalignment: longint;
+         skipmemloc: boolean;
        begin
          { copy all resources to the allocated registers }
          ppn:=tcgcallparanode(left);
@@ -504,6 +505,10 @@ implementation
                     (calleralignment=0) then
                    internalerror(2009020701);
                  callerparaloc:=ppn.parasym.paraloc[callerside].location;
+                 skipmemloc:=
+                   (not paramanager.use_fixed_stack or
+                    not(ppn.followed_by_stack_tainting_call_cached)) and
+                   paramanager.is_simple_stack_paraloc(callerparaloc);
                  while assigned(callerparaloc) do
                    begin
                      { Every paraloc must have a matching tmpparaloc }
@@ -540,7 +545,7 @@ implementation
                          end;
                        LOC_REFERENCE:
                          begin
-                           if use_fixed_stack then
+                           if not skipmemloc then
                              begin
                                { Can't have a data copied to the stack, every location
                                  must contain a valid size field }
@@ -624,7 +629,7 @@ implementation
 {$endif x86_64}
       begin
          if not assigned(procdefinition) or
-            not procdefinition.has_paraloc_info then
+            not(procdefinition.has_paraloc_info in [callerside,callbothsides]) then
            internalerror(200305264);
 
          if assigned(callinitblock) then
@@ -852,7 +857,7 @@ implementation
          { frame pointer parameter is popped by the caller when it's passed the
            Delphi way }
          else if (po_delphi_nested_cc in procdefinition.procoptions) and
-                 not use_fixed_stack then
+                 not paramanager.use_fixed_stack then
            pop_parasize(sizeof(pint));
          { Release registers, but not the registers that contain the
            function result }

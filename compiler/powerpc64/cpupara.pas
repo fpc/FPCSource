@@ -520,25 +520,6 @@ begin
 end;
 
 
-{
-
-    breaks e.g. tests/test/cg/tpara1
-
-procedure tppcparamanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
-var
-  paraloc : pcgparalocation;
-begin
-  paraloc:=parasym.paraloc[callerside].location;
-  { Do not create a temporary if the value is pushed }
-  if assigned(paraloc) and
-    (paraloc^.loc=LOC_REFERENCE) and
-    (paraloc^.reference.index=NR_STACK_POINTER_REG) then
-    duplicateparaloc(list,calloption,parasym,cgpara)
-  else
-    inherited createtempparaloc(list,calloption,parasym,cgpara);
-end;
-}
-
 begin
   paramanager := tppcparamanager.create;
 end.

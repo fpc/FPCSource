@@ -45,7 +45,7 @@ unit cpupi;
     uses
       cutils,
       systems,globals,globtype,
-      cgobj,tgobj,
+      cgobj,tgobj,paramgr,
       cpubase,
       cgutils,
       symconst;
@@ -59,7 +59,7 @@ unit cpupi;
 
     procedure ti386procinfo.set_first_temp_offset;
       begin
-        if use_fixed_stack then
+        if paramanager.use_fixed_stack then
           begin
             if not(po_assembler in procdef.procoptions) and
                (tg.direction > 0) then
@@ -85,7 +85,7 @@ unit cpupi;
         { Para_stack_size is only used to determine how many bytes to remove }
         { from the stack at the end of the procedure (in the "ret $xx").     }
         { If the stack is fixed, nothing has to be removed by the callee     }
-        if use_fixed_stack then
+        if paramanager.use_fixed_stack then
           para_stack_size := 0;
       end;
 

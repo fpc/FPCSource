@@ -48,7 +48,7 @@ unit cpupara;
           procedure getintparaloc(calloption : tproccalloption; nr : longint;var cgpara:TCGPara);override;
           function create_paraloc_info(p : tabstractprocdef; side: tcallercallee):longint;override;
           function create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;override;
-          procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);override;
+          procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);override;
           function get_funcretloc(p : tabstractprocdef; side: tcallercallee; def: tdef): TCGPara;override;
        private
           procedure create_funcretloc_info(p : tabstractprocdef; side: tcallercallee);
@@ -735,19 +735,16 @@ unit cpupara;
       end;
 
 
-    procedure ti386paramanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
+    procedure ti386paramanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);
       var
         paraloc : pcgparalocation;
       begin
         paraloc:=parasym.paraloc[callerside].location;
-        { No need for temps when value is pushed }
-        if not(use_fixed_stack) and
-           assigned(paraloc) and
-           (paraloc^.loc=LOC_REFERENCE) and
-           (paraloc^.reference.index=NR_STACK_POINTER_REG) then
-          duplicateparaloc(list,calloption,parasym,cgpara)
-        else
-          inherited createtempparaloc(list,calloption,parasym,cgpara);
+        { Never a need for temps when value is pushed (calls inside parameters
+          will simply allocate even more stack space for their parameters) }
+        if not(use_fixed_stack) then
+          can_use_final_stack_loc:=true;
+        inherited createtempparaloc(list,calloption,parasym,can_use_final_stack_loc,cgpara);
       end;
 
 

@@ -68,7 +68,7 @@ unit procinfo;
           exitswitches  : tlocalswitches;
 
           { Size of the parameters on the stack }
-          para_stack_size : longint;
+          para_stack_size : pint;
 
           { Offset of temp after para/local are allocated }
           tempstart : longint;
@@ -195,9 +195,10 @@ implementation
 
     procedure tprocinfo.generate_parameter_info;
       begin
-        { generate callee paraloc register info, it returns the size that
+        { generate callee paraloc register info, it initialises the size that
           is allocated on the stack }
-        para_stack_size:=paramanager.create_paraloc_info(procdef,calleeside);
+        procdef.init_paraloc_info(calleeside);
+        para_stack_size:=procdef.calleeargareasize;
       end;
 
 
