@@ -1275,6 +1275,8 @@ constructor TXMLReader.Create(AParser: TDOMParser);
 begin
   Create;
   FCtrl := AParser;
+  if FCtrl = nil then
+    Exit;
   FValidate := FCtrl.Options.Validate;
   FPreserveWhitespace := FCtrl.Options.PreserveWhitespace;
   FExpandEntities := FCtrl.Options.ExpandEntities;
@@ -1681,7 +1683,7 @@ begin
   if not Result.FResolved then
   begin
     // To build children of the entity itself, we must parse it "out of context"
-    InnerReader := TXMLReader.Create;
+    InnerReader := TXMLReader.Create(FCtrl);
     try
       EntityToSource(Result, Src);
       Result.SetReadOnly(False);
