@@ -358,6 +358,7 @@ type
 
     procedure SkipQuote(out Delim: WideChar; required: Boolean = True);
     procedure Initialize(ASource: TXMLCharSource);
+    procedure EntityToSource(AEntity: TDOMEntityEx; out Src: TXMLCharSource);
     function ContextPush(AEntity: TDOMEntityEx): Boolean;
     function ContextPop(Forced: Boolean = False): Boolean;
     procedure XML11_BuildTables;
@@ -817,8 +818,6 @@ procedure TXMLDecodingSource.Initialize;
 begin
   inherited;
   FLineNo := 1;
-  FXml11Rules := FReader.FXML11;
-
   FDecoder.Decode := @Decode_UTF8;
 
   FFixedUCS2 := '';
@@ -847,9 +846,11 @@ begin
   begin
     FBufSize := 3;           // don't decode past XML declaration
     Inc(FBuf, Length(XmlSign));
-    FReader.ParseXmlOrTextDecl(FParent <> nil);
+    FReader.ParseXmlOrTextDecl((FParent <> nil) or (FReader.FState <> rsProlog));
   end;
   FBufSize := 2047;
+  if FReader.FXML11 then
+    FReader.XML11_BuildTables;
 end;
 
 function TXMLDecodingSource.SetEncoding(const AEncoding: string): Boolean;
@@ -1337,8 +1338,9 @@ begin
   doc := AOwner.OwnerDocument;
   FCursor := AOwner as TDOMNode_WithChildren;
   FState := rsRoot;
-  Initialize(ASource);
   FXML11 := doc.InheritsFrom(TXMLDocument) and (TXMLDocument(doc).XMLVersion = '1.1');
+  Initialize(ASource);
+  FDocType := TDOMDocumentTypeEx(doc.DocType);
   ParseContent;
 end;
 
@@ -1581,20 +1583,18 @@ end;
 const
   PrefixChar: array[Boolean] of string = ('', '%');
 
-function TXMLReader.ContextPush(AEntity: TDOMEntityEx): Boolean;
-var
-  Src: TXMLCharSource;
+procedure TXMLReader.EntityToSource(AEntity: TDOMEntityEx; out Src: TXMLCharSource);
 begin
   if AEntity.FOnStack then
     FatalError('Entity ''%s%s'' recursively references itself', [PrefixChar[AEntity.FIsPE], AEntity.FName]);
 
   if (AEntity.SystemID <> '') and not AEntity.FPrefetched then
   begin
-    Result := ResolveEntity(AEntity.SystemID, AEntity.PublicID, AEntity.FURI, Src);
-    if not Result then
+    if not ResolveEntity(AEntity.SystemID, AEntity.PublicID, AEntity.FURI, Src) then
     begin
       // TODO: a detailed message like SysErrorMessage(GetLastError) would be great here
       ValidationError('Unable to resolve external entity ''%s''', [AEntity.FName]);
+      Src := nil;
       Exit;
     end;
   end
@@ -1610,9 +1610,16 @@ begin
 
   AEntity.FOnStack := True;
   Src.FEntity := AEntity;
+end;
 
-  Initialize(Src);
-  Result := True;
+function TXMLReader.ContextPush(AEntity: TDOMEntityEx): Boolean;
+var
+  Src: TXMLCharSource;
+begin
+  EntityToSource(AEntity, Src);
+  Result := Assigned(Src);
+  if Result then
+    Initialize(Src);
 end;
 
 function TXMLReader.ContextPop(Forced: Boolean): Boolean;
@@ -1644,10 +1651,8 @@ function TXMLReader.EntityCheck(NoExternals: Boolean): TDOMEntityEx;
 var
   RefName: WideString;
   cnt: Integer;
-  SaveCursor: TDOMNode_WithChildren;
-  SaveState: TXMLReadState;
-  SaveElDef: TDOMElementDef;
-  SaveValue: TWideCharBuf;
+  InnerReader: TXMLReader;
+  Src: TXMLCharSource;
 begin
   Result := nil;
   SetString(RefName, FName.Buffer, FName.Length);
@@ -1676,30 +1681,17 @@ begin
   if not Result.FResolved then
   begin
     // To build children of the entity itself, we must parse it "out of context"
-    SaveCursor := FCursor;
-    SaveElDef := FValidator[FNesting].FElementDef;
-    SaveState := FState;
-    SaveValue := FValue;
-    if ContextPush(Result) then
+    InnerReader := TXMLReader.Create;
     try
-      FCursor := Result;         // build child node tree for the entity
+      EntityToSource(Result, Src);
       Result.SetReadOnly(False);
-      FState := rsRoot;
-      FValidator[FNesting].FElementDef := nil;
-      UpdateConstraints;
-      FSource.DTDSubsetType := dsExternal;  // avoids ContextPop at the end
-      BufAllocate(FValue, 256);
-      ParseContent;
+      if Assigned(Src) then
+        InnerReader.ProcessFragment(Src, Result);
       Result.FResolved := True;
     finally
-      FreeMem(FValue.Buffer);
-      FValue := SaveValue;
+      InnerReader.Free;
+      Result.FOnStack := False;
       Result.SetReadOnly(True);
-      ContextPop(True);
-      FCursor := SaveCursor;
-      FState := SaveState;
-      FValidator[FNesting].FElementDef := SaveElDef;
-      UpdateConstraints;
     end;
   end;
   // at this point we know the charcount of the entity being included
@@ -2042,8 +2034,8 @@ begin
   ExpectString('?>');
   { Switch to 1.1 rules only after declaration is parsed completely. This is to
     ensure that NEL and LSEP within declaration are rejected (rmt-056, rmt-057) }
-  if (not TextDecl) and (Ver = xmlVersion11) then
-    XML11_BuildTables;
+  if Ver = xmlVersion11 then
+    FXML11 := True;
 end;
 
 procedure TXMLReader.DTDReloadHook;
@@ -2759,7 +2751,7 @@ begin
             FatalError('Illegal at document level');
           StoreLocation(FTokenStart);
           InCDATA := True;
-          if FCDSectionsAsText then
+          if FCDSectionsAsText or (FValue.Length = 0) then
             Continue;
           tok := xtCDSect;
         end
