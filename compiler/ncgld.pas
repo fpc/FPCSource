@@ -410,7 +410,7 @@ implementation
                 if assigned(left) then
                   begin
                     secondpass(left);
-                    if left.location.loc<>LOC_REGISTER then
+                    if not(left.location.loc in [LOC_REGISTER,LOC_CREGISTER]) then
                       internalerror(200309286);
                     if vs.localloc.loc<>LOC_REFERENCE then
                       internalerror(200409241);

@@ -65,7 +65,7 @@ unit optcse;
       cseinvariant : set of tnodetype = [loadn,addn,muln,subn,divn,slashn,modn,andn,orn,xorn,notn,vecn,
         derefn,equaln,unequaln,ltn,gtn,lten,gten,typeconvn,subscriptn,
         inn,symdifn,shrn,shln,ordconstn,realconstn,unaryminusn,pointerconstn,stringconstn,setconstn,
-        isn,asn,starstarn,nothingn,temprefn {,callparan}];
+        isn,asn,starstarn,nothingn,temprefn,loadparentfpn {,callparan}];
 
     function searchsubdomain(var n:tnode; arg: pointer) : foreachnoderesult;
       begin
@@ -120,7 +120,8 @@ unit optcse;
         { so far, we can handle only nodes being read }
         if (n.flags*[nf_write,nf_modify]=[]) and
           { node possible to add? }
-          assigned(n.resultdef) and (tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
+          assigned(n.resultdef) and
+          (tstoreddef(n.resultdef).is_intregable or tstoreddef(n.resultdef).is_fpuregable) and
           { is_int/fpuregable allows arrays and records to be in registers, cse cannot handle this }
           not(n.resultdef.typ in [arraydef,recorddef]) and
           { same for voiddef }

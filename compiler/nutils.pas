@@ -703,6 +703,8 @@ implementation
                 end;
               loadn:
                 begin
+                  if assigned(tloadnode(p).left) then
+                    inc(result,node_complexity(tloadnode(p).left));
                   { threadvars need a helper call }
                   if (tloadnode(p).symtableentry.typ=staticvarsym) and
                      (vo_is_thread_var in tstaticvarsym(tloadnode(p).symtableentry).varoptions) then
