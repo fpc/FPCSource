@@ -370,19 +370,19 @@
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function GetBValue(rgb : longint) : BYTE;
+  function GetBValue(rgb : longint) : BYTE; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function GetGValue(rgb : longint) : BYTE;
+  function GetGValue(rgb : longint) : BYTE; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function GetRValue(rgb : longint) : BYTE;
+  function GetRValue(rgb : longint) : BYTE; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function RGB(r,g,b : longint) : DWORD;
+  function RGB(r,g,b : longint) : DWORD; inline;
 
   {  Not convertable by H2PAS
   #define HANDLE_WM_NOTIFY(hwnd, wParam, lParam, fn) \
@@ -391,117 +391,117 @@
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function HIBYTE(w : longint) : BYTE;
+  function HIBYTE(w : longint) : BYTE; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function HIWORD(l : longint) : WORD;
+  function HIWORD(l : longint) : WORD; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function LOBYTE(w : longint) : BYTE;
+  function LOBYTE(w : longint) : BYTE; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function LOWORD(l : longint) : WORD;
+  function LOWORD(l : longint) : WORD; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function MAKELONG(a,b : longint) : LONG;
+  function MAKELONG(a,b : longint) : LONG; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function MAKEWORD(a,b : longint) : WORD;
+  function MAKEWORD(a,b : longint) : WORD; inline;
 
   { original Cygnus headers also had the following defined:  }
   { was #define dname(params) def_expr }
   { argument types are unknown }
   { return type might be wrong }
-  function SEXT_HIWORD(l : longint) : longint;
+  function SEXT_HIWORD(l : longint) : longint; inline;
     { return type might be wrong }
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
   { return type might be wrong }
-  function ZEXT_HIWORD(l : longint) : longint;
+  function ZEXT_HIWORD(l : longint) : longint; inline;
     { return type might be wrong }
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function SEXT_LOWORD(l : longint) : longint;
+  function SEXT_LOWORD(l : longint) : longint; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
   { return type might be wrong }
-  function INDEXTOOVERLAYMASK(i : longint) : longint;
+  function INDEXTOOVERLAYMASK(i : longint) : longint; inline;
     { return type might be wrong }
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
   { return type might be wrong }
-  function INDEXTOSTATEIMAGEMASK(i : longint) : longint;
+  function INDEXTOSTATEIMAGEMASK(i : longint) : longint; inline;
     { return type might be wrong }
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function MAKEINTATOM(i : longint) : LPTSTR;
+  function MAKEINTATOM(i : longint) : LPTSTR; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
   { return type might be wrong }
-  function MAKELANGID(p,s : longint) : longint;
+  function MAKELANGID(p,s : longint) : longint; inline;
     { return type might be wrong }
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function PRIMARYLANGID(lgid : longint) : WORD;
+  function PRIMARYLANGID(lgid : longint) : WORD; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
   { return type might be wrong }
-  function SUBLANGID(lgid : longint) : longint;
+  function SUBLANGID(lgid : longint) : longint; inline;
     { return type might be wrong }
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function LANGIDFROMLCID(lcid : longint) : WORD;
+  function LANGIDFROMLCID(lcid : longint) : WORD; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function SORTIDFROMLCID(lcid : longint) : WORD;
+  function SORTIDFROMLCID(lcid : longint) : WORD; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function MAKELCID(lgid,srtid : longint) : DWORD;
+  function MAKELCID(lgid,srtid : longint) : DWORD; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function MAKELPARAM(l,h : longint) : LPARAM;
+  function MAKELPARAM(l,h : longint) : LPARAM; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function MAKELRESULT(l,h : longint) : LRESULT;
+  function MAKELRESULT(l,h : longint) : LRESULT; inline;
 
   {  Not convertable by H2PAS
   #define MAKEPOINTS(l)   ( ((POINTS FAR  ) & (l)))
    }
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function MAKEROP4(fore,back : longint) : DWORD;
+  function MAKEROP4(fore,back : longint) : DWORD; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function MAKEWPARAM(l,h : longint) : WPARAM;
+  function MAKEWPARAM(l,h : longint) : WPARAM; inline;
 
-  function GET_X_LPARAM(lp : Windows.LParam) : longint;
+  function GET_X_LPARAM(lp : Windows.LParam) : longint; inline;
 
-  function GET_Y_LPARAM(lp : Windows.LParam) : longint;
+  function GET_Y_LPARAM(lp : Windows.LParam) : longint; inline;
 
   {$ifndef max}
   { was #define dname(params) def_expr }
   { argument types are unknown }
   { return type might be wrong }
-  function max(a,b : longint) : longint;
+  function max(a,b : longint) : longint;  inline;
     { return type might be wrong }
 
 {$endif}
@@ -509,18 +509,18 @@
   { was #define dname(params) def_expr }
   { argument types are unknown }
   { return type might be wrong }
-  function min(a,b : longint) : longint;
+  function min(a,b : longint) : longint; inline;
     { return type might be wrong }
 
 {$endif}
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function PALETTEINDEX(i : longint) : COLORREF;
+  function PALETTEINDEX(i : longint) : COLORREF; inline;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
   { return type might be wrong }
-  function PALETTERGB(r,g,b : longint) : longint;
+  function PALETTERGB(r,g,b : longint) : longint; inline;
     { return type might be wrong }
 
   (*  Not convertable by H2PAS
@@ -945,32 +945,22 @@ type
   { argument types are unknown }
   { return type might be wrong }
   function max(a,b : longint) : longint;
-    { return type might be wrong }
-    var
-       if_local1 : longint;
-    (* result types are not known *)
     begin
        if a > b then
-         if_local1:=a
+         max:=a
        else
-         if_local1:=b;
-       max:=if_local1;
+         max:=b;
     end;
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
   { return type might be wrong }
   function min(a,b : longint) : longint;
-    { return type might be wrong }
-    var
-       if_local1 : longint;
-    (* result types are not known *)
     begin
        if a < b then
-         if_local1:=a
+         min:=a
        else
-         if_local1:=b;
-       min:=if_local1;
+         min:=b;
     end;
 
   { was #define dname(params) def_expr }
