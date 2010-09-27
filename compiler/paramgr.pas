@@ -124,8 +124,9 @@ unit paramgr;
           }
           function  create_varargs_paraloc_info(p : tabstractprocdef; varargspara:tvarargsparalist):longint;virtual;abstract;
 
-          function is_simple_stack_paraloc(paraloc: pcgparalocation): boolean;
+          function is_stack_paraloc(paraloc: pcgparalocation): boolean;
           procedure createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);virtual;
+          procedure duplicatecgparaloc(const orgparaloc: pcgparalocation; intonewparaloc: pcgparalocation);
           procedure duplicateparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;var cgpara:TCGPara);
 
           function parseparaloc(parasym : tparavarsym;const s : string) : boolean;virtual;
@@ -327,13 +328,12 @@ implementation
       end;
 
 
-    function tparamanager.is_simple_stack_paraloc(paraloc: pcgparalocation): boolean;
+    function tparamanager.is_stack_paraloc(paraloc: pcgparalocation): boolean;
       begin
         result:=
           assigned(paraloc) and
           (paraloc^.loc=LOC_REFERENCE) and
-          (paraloc^.reference.index=NR_STACK_POINTER_REG) and
-          not assigned(paraloc^.next);
+          (paraloc^.reference.index=NR_STACK_POINTER_REG);
       end;
 
 
@@ -345,13 +345,6 @@ implementation
         newparaloc : pcgparalocation;
       begin
         paraloc:=parasym.paraloc[callerside].location;
-        if can_use_final_stack_loc and
-           is_simple_stack_paraloc(paraloc) then
-          begin
-            duplicateparaloc(list,calloption,parasym,cgpara);
-            exit;
-          end;
-
         cgpara.reset;
         cgpara.size:=parasym.paraloc[callerside].size;
         cgpara.intsize:=parasym.paraloc[callerside].intsize;
@@ -372,7 +365,9 @@ implementation
               i386 isn't affected anyways because it uses the stack to push parameters
               on arm it reduces executable size of the compiler by 2.1 per cent (FK) }
             { Does it fit a register? }
-            if (len<=sizeof(pint)) and
+            if (not can_use_final_stack_loc or
+                not is_stack_paraloc(paraloc)) and
+               (len<=sizeof(pint)) and
                (paraloc^.size in [OS_8,OS_16,OS_32,OS_64,OS_128,OS_S8,OS_S16,OS_S32,OS_S64,OS_S128]) then
               newparaloc^.loc:=LOC_REGISTER
             else
@@ -386,13 +381,26 @@ implementation
                 newparaloc^.register:=cg.getmmregister(list,paraloc^.size);
               LOC_REFERENCE :
                 begin
-                  tg.gettemp(list,len,cgpara.alignment,tt_persistent,href);
-                  newparaloc^.reference.index:=href.base;
-                  newparaloc^.reference.offset:=href.offset;
+                  if can_use_final_stack_loc and
+                     is_stack_paraloc(paraloc) then
+                    duplicatecgparaloc(paraloc,newparaloc)
+                  else
+                    begin
+                      tg.gettemp(list,len,cgpara.alignment,tt_persistent,href);
+                      newparaloc^.reference.index:=href.base;
+                      newparaloc^.reference.offset:=href.offset;
+                    end;
                 end;
             end;
             paraloc:=paraloc^.next;
           end;
+      end;
+
+
+    procedure tparamanager.duplicatecgparaloc(const orgparaloc: pcgparalocation; intonewparaloc: pcgparalocation);
+      begin
+        move(orgparaloc^,intonewparaloc^,sizeof(intonewparaloc^));
+        intonewparaloc^.next:=nil;
       end;
 
 
@@ -412,8 +420,7 @@ implementation
         while assigned(paraloc) do
           begin
             newparaloc:=cgpara.add_location;
-            move(paraloc^,newparaloc^,sizeof(newparaloc^));
-            newparaloc^.next:=nil;
+            duplicatecgparaloc(paraloc,newparaloc);
             paraloc:=paraloc^.next;
           end;
       end;

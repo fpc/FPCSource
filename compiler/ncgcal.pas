@@ -485,7 +485,7 @@ implementation
          href : treference;
          calleralignment,
          tmpalignment: longint;
-         skipmemloc: boolean;
+         skipiffinalloc: boolean;
        begin
          { copy all resources to the allocated registers }
          ppn:=tcgcallparanode(left);
@@ -505,10 +505,9 @@ implementation
                     (calleralignment=0) then
                    internalerror(2009020701);
                  callerparaloc:=ppn.parasym.paraloc[callerside].location;
-                 skipmemloc:=
-                   (not paramanager.use_fixed_stack or
-                    not(ppn.followed_by_stack_tainting_call_cached)) and
-                   paramanager.is_simple_stack_paraloc(callerparaloc);
+                 skipiffinalloc:=
+                   not paramanager.use_fixed_stack or
+                   not(ppn.followed_by_stack_tainting_call_cached);
                  while assigned(callerparaloc) do
                    begin
                      { Every paraloc must have a matching tmpparaloc }
@@ -545,7 +544,8 @@ implementation
                          end;
                        LOC_REFERENCE:
                          begin
-                           if not skipmemloc then
+                           if skipiffinalloc and
+                              paramanager.is_stack_paraloc(callerparaloc) then
                              begin
                                { Can't have a data copied to the stack, every location
                                  must contain a valid size field }
