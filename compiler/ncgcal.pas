@@ -544,8 +544,8 @@ implementation
                          end;
                        LOC_REFERENCE:
                          begin
-                           if skipiffinalloc and
-                              paramanager.is_stack_paraloc(callerparaloc) then
+                           if not(skipiffinalloc and
+                                  paramanager.is_stack_paraloc(callerparaloc)) then
                              begin
                                { Can't have a data copied to the stack, every location
                                  must contain a valid size field }
