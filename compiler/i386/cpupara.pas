@@ -736,10 +736,7 @@ unit cpupara;
 
 
     procedure ti386paramanager.createtempparaloc(list: TAsmList;calloption : tproccalloption;parasym : tparavarsym;can_use_final_stack_loc : boolean;var cgpara:TCGPara);
-      var
-        paraloc : pcgparalocation;
       begin
-        paraloc:=parasym.paraloc[callerside].location;
         { Never a need for temps when value is pushed (calls inside parameters
           will simply allocate even more stack space for their parameters) }
         if not(use_fixed_stack) then
