@@ -361,8 +361,7 @@ type
     function GetItem(index: LongWord): TDOMNode;
     function GetLength: LongWord;
     function Find(const name: DOMString; out Index: LongWord): Boolean;
-    function Delete(index: LongWord): TDOMNode;
-    procedure RestoreDefault(const name: DOMString);
+    function Delete(index: LongWord): TDOMNode; virtual;
     function InternalRemove(const name: DOMString): TDOMNode;
     function ValidateInsert(arg: TDOMNode): Integer;
   public
@@ -834,6 +833,9 @@ type
     function FindNS(nsIndex: Integer; const aLocalName: DOMString;
       out Index: LongWord): Boolean;
     function InternalRemoveNS(const nsURI, aLocalName: DOMString): TDOMNode;
+    procedure RestoreDefault(const name: DOMString);
+  protected
+    function Delete(index: LongWord): TDOMNode; override;
   public
     function getNamedItemNS(const namespaceURI, localName: DOMString): TDOMNode; override;
     function setNamedItemNS(arg: TDOMNode): TDOMNode; override;
@@ -1794,40 +1796,16 @@ function TDOMNamedNodeMap.Delete(index: LongWord): TDOMNode;
 begin
   Result := TDOMNode(FList.List^[index]);
   FList.Delete(index);
-  if FNodeType = ATTRIBUTE_NODE then
-    TDOMAttr(Result).FParentNode := nil;
-end;
-
-procedure TDOMNamedNodeMap.RestoreDefault(const name: DOMString);
-var
-  eldef: TDOMElement;
-  attrdef: TDOMAttr;
-begin
-  if FNodeType = ATTRIBUTE_NODE then
-  begin
-    if not Assigned(TDOMElement(FOwner).FNSI.QName) then  // safeguard
-      Exit;
-    eldef := TDOMElement(TDOMElement(FOwner).FNSI.QName^.Data);
-    if Assigned(eldef) then
-    begin
-      // TODO: can be avoided by linking attributes directly to their defs
-      attrdef := eldef.GetAttributeNode(name);
-      if Assigned(attrdef) and (TDOMAttrDef(attrdef).FDefault in [adDefault, adFixed]) then
-        TDOMElement(FOwner).RestoreDefaultAttr(attrdef);
-    end;
-  end;
 end;
 
 function TDOMNamedNodeMap.InternalRemove(const name: DOMString): TDOMNode;
 var
   i: Cardinal;
 begin
-  Result := nil;
   if Find(name, i) then
-  begin
-    Result := Delete(I);
-    RestoreDefault(name);
-  end;
+    Result := Delete(I)
+  else
+    Result := nil;
 end;
 
 function TDOMNamedNodeMap.RemoveNamedItem(const name: DOMString): TDOMNode;
@@ -1848,6 +1826,34 @@ begin
 end;
 
 { TAttributeMap }
+
+function TAttributeMap.Delete(index: LongWord): TDOMNode;
+begin
+  Result := inherited Delete(index);
+  if Assigned(Result) then
+  begin
+    Result.FParentNode := nil;
+    if Assigned(TDOMAttr(Result).FNSI.QName) then
+      RestoreDefault(TDOMAttr(Result).FNSI.QName^.Key);
+  end;
+end;
+
+procedure TAttributeMap.RestoreDefault(const name: DOMString);
+var
+  eldef: TDOMElement;
+  attrdef: TDOMAttr;
+begin
+  if not Assigned(TDOMElement(FOwner).FNSI.QName) then  // safeguard
+    Exit;
+  eldef := TDOMElement(TDOMElement(FOwner).FNSI.QName^.Data);
+  if Assigned(eldef) then
+  begin
+    // TODO: can be avoided by linking attributes directly to their defs
+    attrdef := eldef.GetAttributeNode(name);
+    if Assigned(attrdef) and (TDOMAttrDef(attrdef).FDefault in [adDefault, adFixed]) then
+      TDOMElement(FOwner).RestoreDefaultAttr(attrdef);
+  end;
+end;
 
 // Since list is kept sorted by nodeName, we must use linear search here.
 // This routine is not called while parsing, so parsing speed is not lowered.
@@ -1886,10 +1892,7 @@ begin
   Result := nil;
   nsIndex := FOwner.FOwnerDocument.IndexOfNS(nsURI);
   if (nsIndex >= 0) and FindNS(nsIndex, aLocalName, i) then
-  begin
     Result := Delete(I);
-    RestoreDefault(TDOMAttr(Result).FNSI.QName^.Key);
-  end;
 end;
 
 function TAttributeMap.getNamedItemNS(const namespaceURI, localName: DOMString): TDOMNode;
@@ -3008,17 +3011,21 @@ end;
 
 
 function TDOMElement.RemoveAttributeNode(OldAttr: TDOMAttr): TDOMAttr;
+var
+  Index: Integer;
 begin
   Changing;
-  Result:=OldAttr;
-  if Assigned(FAttributes) and (FAttributes.FList.Remove(OldAttr) > -1) then
+  Result := OldAttr;
+  if Assigned(FAttributes) then
   begin
-    if Assigned(OldAttr.FNSI.QName) then  // safeguard
-      FAttributes.RestoreDefault(OldAttr.FNSI.QName^.Key);
-    Result.FParentNode := nil;
-  end
-  else
-    raise EDOMNotFound.Create('Element.RemoveAttributeNode');
+    Index := FAttributes.FList.IndexOf(OldAttr);
+    if Index > -1 then
+    begin
+      FAttributes.Delete(Index);
+      Exit;
+    end;
+  end;
+  raise EDOMNotFound.Create('Element.RemoveAttributeNode');
 end;
 
 function TDOMElement.GetElementsByTagName(const name: DOMString): TDOMNodeList;
