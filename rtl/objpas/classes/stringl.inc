@@ -1156,8 +1156,6 @@ begin
    InsertItem (Result,S);
 end;
 
-
-
 Procedure TStringList.Clear;
 
 Var I : longint;
@@ -1165,14 +1163,23 @@ Var I : longint;
 begin
   if FCount = 0 then Exit;
   Changing;
-  For I:=0 to FCount-1 do
-    Flist^[I].FString:='';
+  if FOwnsObjects then
+    begin
+      For I:=0 to FCount-1 do
+        begin
+          Flist^[I].FString:='';
+          freeandnil(Flist^[i].FObject);
+        end;
+    end
+  else
+    begin
+      For I:=0 to FCount-1 do
+        Flist^[I].FString:='';
+    end;
   FCount:=0;
   SetCapacity(0);
   Changed;
 end;
-
-
 
 Procedure TStringList.Delete(Index: Integer);
 
@@ -1181,6 +1188,8 @@ begin
     Error(SlistINdexError,Index);
   Changing;
   Flist^[Index].FString:='';
+  if FOwnsObjects then
+    FreeAndNil(Flist^[Index].FObject);
   Dec(FCount);
   If Index<FCount then
     System.Move(Flist^[Index+1],
@@ -1316,6 +1325,7 @@ end;
 constructor TStringList.Create;
 begin
   inherited;
+  FOwnsObjects:=false;
   FMap := TFPStrObjMap.Create;
   FMap.OnPtrCompare := @MapPtrCompare;
   FOnCompareText := @DefaultCompareText;
