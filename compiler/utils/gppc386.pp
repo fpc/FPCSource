@@ -33,7 +33,9 @@ program fpc_with_gdb;
       instruction that GDB should do before starting.
       Note that if gdb.fpc is present, no "run" command is
       inserted if gdb4fpc.ini is found
-      but it can be inserted in gdb.fpc itself
+      but it can be inserted in gdb.fpc itself.
+
+  Use EXTDEBUG conditional to get debug information.
 }
 
 uses
@@ -41,22 +43,24 @@ uses
 
 const
 {$ifdef Unix}
-  GDBExeName = 'gdbpas';
+  GDBExeName : String = 'gdbpas';
   GDBIniName = '.gdbinit';
   DefaultCompilerName = 'ppc386';
   PathSep=':';
+  DirSep = '/';
 {$else}
-  GDBExeName = 'gdbpas.exe';
+  GDBExeName : String = 'gdbpas.exe';
   GDBIniName = 'gdb.ini';
   DefaultCompilerName = 'ppc386.exe';
   PathSep=';';
+  DirSep = '\';
 {$endif not linux}
 
   { If you add a gdb.fpc file in a given directory }
   { GDB will read it; this allows you to add       }
   { special tests in specific directories   PM     }
   FpcGDBIniName = 'gdb.fpc';
-  GDBIniTempName = 'gdb4fpc.ini';
+  GDBIniTempName : string = 'gdb4fpc.ini';
 
 var
    fpcgdbini : text;
@@ -71,27 +75,37 @@ begin
   else
     CompilerName:=DefaultCompilerName;
 
+  CompilerName:=fsearch(CompilerName,Dir+PathSep+GetEnv('PATH'));
+
   { support for info functions directly : used in makefiles }
   if (paramcount=1) and (pos('-i',Paramstr(1))=1) then
     begin
-      Exec(fsearch(CompilerName,Dir+PathSep+GetEnv('PATH')),Paramstr(1));
+      Exec(CompilerName,Paramstr(1));
       exit;
     end;
 
-  if fsearch(GDBIniTempName,'./')<>'' then
+  {$ifdef EXTDEBUG}
+  writeln(stderr,'Using compiler "',CompilerName,'"');
+  flush(stderr);
+  {$endif}
+  if fsearch(GDBIniTempName,'.')<>'' then
     begin
       Assign(fpcgdbini,GDBIniTempName);
+      {$ifdef EXTDEBUG}
+      writeln(stderr,'Erasing file "',GDBIniTempName,'"');
+      flush(stderr);
+      {$endif}
       erase(fpcgdbini);
     end;
+  GDBIniTempName:=fexpand('.'+DirSep+GDBIniTempName);
   Assign(fpcgdbini,GdbIniTempName);
+  {$ifdef EXTDEBUG}
+  writeln(stderr,'Creating file "',GDBIniTempName,'"');
+  flush(stderr);
+  {$endif}
   Rewrite(fpcgdbini);
 
   Writeln(fpcgdbini,'set language pascal');
-  Writeln(fpcgdbini,'b SYSTEM_EXIT');
-  Writeln(fpcgdbini,'cond 1 EXITCODE <> 0');
-  Writeln(fpcgdbini,'b INTERNALERROR');
-  Writeln(fpcgdbini,'b HANDLEERRORADDRFRAME');
-  Writeln(fpcgdbini,'set $_exitcode := -1');
   Write(fpcgdbini,'set args');
 
   { this will not work correctly if there are " or '' inside the command line :( }
@@ -103,6 +117,15 @@ begin
         Write(fpcgdbini,' '+ParamStr(i));
     end;
   Writeln(fpcgdbini);
+  Writeln(fpcgdbini,'b SYSTEM_EXIT');
+  Writeln(fpcgdbini,'cond 1 EXITCODE <> 0');
+  Writeln(fpcgdbini,'set $_exitcode := -1');
+  { b INTERNALERROR sometimes fails ... Don't know why. PM 2010-08-28 }
+  Writeln(fpcgdbini,'info fun INTERNALERROR');
+  Writeln(fpcgdbini,'b INTERNALERROR');
+  Writeln(fpcgdbini,'b HANDLEERRORADDRFRAME');
+  { This one will fail unless sysutils unit is also loaded }
+  Writeln(fpcgdbini,'b RUNERRORTOEXCEPT');
   if fsearch(FpcGDBIniName,'./')<>'' then
     begin
       Writeln(fpcgdbini,'source '+FpcGDBIniName);
@@ -115,12 +138,26 @@ begin
   Writeln(fpcgdbini,'  quit');
   Writeln(fpcgdbini,'end');
   Close(fpcgdbini);
+  {$ifdef EXTDEBUG}
+  writeln(stderr,'Closing file "',GDBIniTempName,'"');
+  flush(stderr);
+  {$endif}
 
-  Exec(fsearch(GDBExeName,Dir+PathSep+GetEnv('PATH')),
+  GDBExeName:=fsearch(GDBExeName,Dir+PathSep+GetEnv('PATH'));
+  {$ifdef EXTDEBUG}
+  Writeln(stderr,'Starting ',GDBExeName,
 {$ifdef win32}
     '--nw '+
 {$endif win32}
-    '--nx --quiet --command='+GDBIniTempName+' '+CompilerName);
+    '--nx --command='+GDBIniTempName+' '+CompilerName);
+  flush(stderr);
+  {$endif}
+   DosError:=0;
+   Exec(GDBExeName,
+{$ifdef win32}
+    '--nw '+
+{$endif win32}
+    '--nx --command='+GDBIniTempName+' '+CompilerName);
   GDBError:=DosError;
   GDBExitCode:=DosExitCode;
   if (GDBError<>0) or (GDBExitCode<>0) then
