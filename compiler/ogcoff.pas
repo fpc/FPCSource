@@ -959,15 +959,19 @@ const pemagic : array[0..3] of byte = (
             data.Seek(objreloc.dataoffset);
             data.Write(address,address_size);
 {$ifdef cpu64bitaddr}
-            if objreloc.typ = RELOC_ABSOLUTE32 then begin
-              if assigned(objreloc.symbol) then
-                s:=objreloc.symbol.Name
-              else
-                s:=objreloc.objsection.Name;
-              Message2(link_w_32bit_absolute_reloc, ObjData.Name, s);
-            end;
+            if (objreloc.typ = RELOC_ABSOLUTE32) and (name <> '.stab') then
+              begin
+                if assigned(objreloc.symbol) then
+                  s:=objreloc.symbol.Name
+                else
+                  s:=objreloc.objsection.Name;
+                Message2(link_w_32bit_absolute_reloc, ObjData.Name, s);
+              end;
 {$endif cpu64bitaddr}
           end;
+        {for size = 0 data is not valid PM }
+        if assigned(data) and (data.size <> size) then
+          internalerror(2010092801);
       end;
 
 
@@ -1089,7 +1093,8 @@ const pemagic : array[0..3] of byte = (
 {$endif cpu64bitaddr}
                   RELOC_RELATIVE :
                     begin
-                      inc(data,symaddr-len-CurrObjSec.Size);
+                      //inc(data,symaddr-len-CurrObjSec.Size);
+                      data:=data+symaddr-len-CurrObjSec.Size;
                     end;
                   RELOC_RVA :
                     begin

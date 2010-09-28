@@ -899,7 +899,7 @@ Implementation
             oldsec:=ObjData.CurrObjSec;
             ObjData.SetSection(ObjData.StabsSec);
             ObjData.Writebytes(stab,sizeof(TObjStabEntry)-4);
-            ObjData.Writereloc(stab.nvalue,4,relocsym,RELOC_ABSOLUTE);
+            ObjData.Writereloc(stab.nvalue,4,relocsym,RELOC_ABSOLUTE32);
             ObjData.setsection(oldsec);
           end;
         if assigned(pendquote) then
