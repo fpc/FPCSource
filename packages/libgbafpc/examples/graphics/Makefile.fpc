@@ -1,6 +1,9 @@
 #
 #   Makefile.fpc for Free Pascal libgbafpc 2.x.y Examples
 #
+[package]
+name=libgbafpc-graphics-examples
+version=2.4.0
 
 [target]
 dirs=ansi_console PCXView SimpleBGScroll
