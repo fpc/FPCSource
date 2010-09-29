@@ -57,7 +57,7 @@ implementation
 
     procedure ti386callnode.extra_interrupt_code;
       begin
-        if (target_info.system <> system_i386_darwin) then
+        if not(target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
           begin
             emit_none(A_PUSHF,S_L);
             emit_reg(A_PUSH,S_L,NR_CS);

@@ -12,7 +12,7 @@ version=2.5.1
 
 [target]
 units_arm_darwin=gles11
-units_i386_darwin=gles11
+units_i386_iphonesim=gles11
 exampledirs=examples
 
 [install]

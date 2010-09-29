@@ -494,7 +494,7 @@ unit cgx86;
           end;
 {$else x86_64}
         add_hreg:=false;
-        if (target_info.system=system_i386_darwin) then
+        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
           begin
             if assigned(ref.symbol) and
                not(assigned(ref.relsymbol)) and
@@ -662,7 +662,7 @@ unit cgx86;
       var
         r: treference;
       begin
-        if (target_info.system<>system_i386_darwin) then
+        if (target_info.system <> system_i386_darwin) then
           list.concat(taicpu.op_sym(A_JMP,S_NO,current_asmdata.RefAsmSymbol(s)))
         else
           begin
@@ -720,8 +720,8 @@ unit cgx86;
               sym:=current_asmdata.WeakRefAsmSymbol(s);
             reference_reset_symbol(r,sym,0,sizeof(pint));
             if (cs_create_pic in current_settings.moduleswitches) and
-               { darwin/x86_64's assembler doesn't want @PLT after call symbols }
-               (target_info.system<>system_x86_64_darwin) then
+               { darwin's assembler doesn't want @PLT after call symbols }
+               not(target_info.system in [system_x86_64_darwin,system_i386_iphonesim]) then
               begin
 {$ifdef i386}
                 include(current_procinfo.flags,pi_needs_got);
@@ -909,7 +909,7 @@ unit cgx86;
               begin
                 if assigned(ref.symbol) then
                   begin
-                    if (target_info.system=system_i386_darwin) and
+                    if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
                        ((ref.symbol.bind in [AB_EXTERNAL,AB_WEAK_EXTERNAL]) or
                         (cs_create_pic in current_settings.moduleswitches)) then
                       begin
@@ -2133,7 +2133,7 @@ unit cgx86;
         { interrupt support for i386 }
         if (po_interrupt in current_procinfo.procdef.procoptions) and
            { this messes up stack alignment }
-           (target_info.system <> system_i386_darwin) then
+           not(target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
           begin
             { .... also the segment registers }
             list.concat(Taicpu.Op_reg(A_PUSH,S_W,NR_GS));
@@ -2218,7 +2218,7 @@ unit cgx86;
         ref : treference;
         sym : tasmsymbol;
       begin
-       if (target_info.system=system_i386_darwin) then
+       if (target_info.system = system_i386_darwin) then
          begin
            { a_jmp_name jumps to a stub which is always pic-safe on darwin }
            inherited g_external_wrapper(list,procdef,externalname);
@@ -2231,7 +2231,7 @@ unit cgx86;
         { create pic'ed? }
         if (cs_create_pic in current_settings.moduleswitches) and
            { darwin/x86_64's assembler doesn't want @PLT after call symbols }
-           (target_info.system<>system_x86_64_darwin) then
+           not(target_info.system in [system_x86_64_darwin,system_i386_iphonesim]) then
           ref.refaddr:=addr_pic
         else
           ref.refaddr:=addr_full;

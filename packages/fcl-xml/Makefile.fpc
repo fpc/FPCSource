@@ -11,6 +11,7 @@ units=htmldefs sax xmlutils dom sax_html dom_html xmlcfg xmlread xmlstreaming xm
 units_linux=xmliconv
 units_freebsd=xmliconv
 units_darwin=xmliconv
+units_iphonesim=xmliconv
 units_win64=xmliconv_windows
 units_win32=xmliconv_windows
 rsts=sax xpath htmlwriter xmlconf
@@ -21,6 +22,7 @@ packages_beos=iconvenc
 packages_haiku=iconvenc
 packages_linux=iconvenc
 packages_darwin=iconvenc
+packages_iphonesim=iconvenc
 packages_freebsd=iconvenc
 
 [compiler]

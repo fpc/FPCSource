@@ -199,7 +199,8 @@ type
         target_x86_64_solaris,     { 65 }
         target_mips_linux,         { 66 }
         target_mipsel_linux,       { 67 }
-        target_i386_nativent       { 68 }
+        target_i386_nativent,      { 68 }
+        target_i386_iphonesim      { 69 }
   );
 const
   Targets : array[ttarget] of string[18]=(
@@ -271,7 +272,8 @@ const
   { 65 }  'Solaris-x86-64',
   { 66 }  'Linux-MIPS',
   { 67 }  'Linux-MIPSel',
-  { 68 }  'NativeNT-i386'
+  { 68 }  'NativeNT-i386',
+  { 69 }  'iPhoneSim-i386'
   );
 begin
   if w<=ord(high(ttarget)) then

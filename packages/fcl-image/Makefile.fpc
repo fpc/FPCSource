@@ -19,6 +19,7 @@ units_haiku=freetypeh freetype ftfont
 units_linux=freetypeh freetype ftfont
 units_freebsd=freetypeh freetype ftfont
 units_darwin=freetypeh freetype ftfont
+units_iphonesim=freetypeh freetype ftfont
 units_solaris=freetypeh freetype ftfont
 rsts=pscanvas
 exampledirs=examples

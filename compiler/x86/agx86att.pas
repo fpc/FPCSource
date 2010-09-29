@@ -399,7 +399,7 @@ interface
             idtxt  : 'AS-Darwin';
             asmbin : 'as';
             asmcmd : '-o $OBJ $ASM -arch i386';
-            supported_targets : [system_i386_darwin];
+            supported_targets : [system_i386_darwin,system_i386_iphonesim];
             flags : [af_allowdirect,af_needar,af_smartlink_sections,af_supports_dwarf,af_stabs_use_function_absolute_addresses];
             labelprefix : 'L';
             comment : '# ';

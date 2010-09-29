@@ -85,7 +85,7 @@ unit cgcpu;
     procedure tcg386.init_register_allocators;
       begin
         inherited init_register_allocators;
-        if (target_info.system<>system_i386_darwin) and
+        if not(target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
            (cs_create_pic in current_settings.moduleswitches) then
           rg[R_INTREGISTER]:=trgcpu.create(R_INTREGISTER,R_SUBWHOLE,[RS_EAX,RS_EDX,RS_ECX,RS_ESI,RS_EDI],first_int_imreg,[RS_EBP])
         else
@@ -267,7 +267,7 @@ unit cgcpu;
             if (current_procinfo.framepointer=NR_STACK_POINTER_REG) then
               begin
                 stacksize:=current_procinfo.calc_stackframe_size;
-                if (target_info.system = system_i386_darwin) and
+                if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
                    ((stacksize <> 0) or
                     (pi_do_call in current_procinfo.flags) or
                     { can't detect if a call in this case -> use nostackframe }
@@ -285,7 +285,7 @@ unit cgcpu;
         { return from proc }
         if (po_interrupt in current_procinfo.procdef.procoptions) and
            { this messes up stack alignment }
-           (target_info.system <> system_i386_darwin) then
+           not(target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
           begin
             if assigned(current_procinfo.procdef.funcretloc[calleeside].location) and
                (current_procinfo.procdef.funcretloc[calleeside].location^.loc=LOC_REGISTER) then
@@ -519,7 +519,7 @@ unit cgcpu;
            (tf_pic_uses_got in target_info.flags) and
            (pi_needs_got in current_procinfo.flags) then
           begin
-            notdarwin:=(target_info.system<>system_i386_darwin);
+            notdarwin:=not(target_info.system in [system_i386_darwin,system_i386_iphonesim]);
             { on darwin, the got register is virtual (and allocated earlier
               already) }
             if notdarwin then

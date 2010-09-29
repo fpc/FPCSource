@@ -9,6 +9,7 @@ programs_freebsd=glxtest
 programs_netbsd=glxtest
 programs_openbsd=glxtest
 programs_darwin=glxtest
+programs_iphonesim=glxtest
 
 [require]
 packages=opengl

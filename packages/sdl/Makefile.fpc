@@ -18,6 +18,7 @@ units_i386_freebsd=sdlutils
 units_win32=sdlutils
 units_powerpc_darwin=sdlutils
 units_i386_darwin=sdlutils
+units_i386_iphonesim=sdlutils
 
 [install]
 fpcpackage=y

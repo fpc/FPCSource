@@ -272,7 +272,7 @@ Implementation
             begin
               { darwin/i386 needs a relsym instead, and we can't }
               { generate this automatically                      }
-              if (target_info.system=system_i386_darwin) then
+              if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
                 Message(asmr_e_invalid_reference_syntax);
               consume(AS_AT);
               if actasmtoken=AS_ID then

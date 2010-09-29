@@ -121,7 +121,8 @@ unit cpupara;
                   end;
               end;
             end;
-          system_i386_darwin :
+          system_i386_darwin,
+          system_i386_iphonesim :
             begin
               case def.typ of
                 recorddef :
@@ -333,7 +334,7 @@ unit cpupara;
           end;
         { on darwin/i386, if a record has only one field and that field is a
           single or double, it has to be returned like a single/double }
-        if (target_info.system=system_i386_darwin) and
+        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
            ((def.typ=recorddef) or
             is_object(def)) and
            tabstractrecordsymtable(tabstractrecorddef(def).symtable).has_single_field(sym) and
@@ -449,7 +450,7 @@ unit cpupara;
                 paralen:=push_size(hp.varspez,hp.vardef,p.proccalloption);
                 { darwin/x86 requires that parameters < sizeof(aint) are sign/ }
                 { zero extended to sizeof(aint)                                }
-                if (target_info.system = system_i386_darwin) and
+                if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) and
                    (side = callerside) and
                    (paralen > 0) and
                    (paralen < sizeof(aint)) then
@@ -481,7 +482,7 @@ unit cpupara;
                 { read past the end of the heap since the value is only }
                 { 10 bytes long (JM)                                    }
                 if (paracgsize = OS_F80) and
-                   (target_info.system = system_i386_darwin) then
+                   (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
                   paralen:=16;
                 paraloc^.reference.offset:=parasize;
                 if side=calleeside then

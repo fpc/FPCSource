@@ -150,7 +150,8 @@ interface
              system_x86_64_solaris,     { 65 }
              system_mips_linux,         { 66 }
              system_mipsel_linux,       { 67 }
-             system_i386_nativent       { 68 }
+             system_i386_nativent,      { 68 }
+             system_i386_iphonesim      { 69 }
        );
 
      type
@@ -412,7 +413,7 @@ interface
        { all darwin systems }
        systems_darwin = [system_powerpc_darwin,system_i386_darwin,
                          system_powerpc64_darwin,system_x86_64_darwin,
-                         system_arm_darwin];
+                         system_arm_darwin,system_i386_iphonesim];
 
        {all solaris systems }
        systems_solaris = [system_sparc_solaris, system_i386_solaris,
@@ -422,7 +423,7 @@ interface
        systems_objc_supported = systems_darwin;
 
        { systems using the non-fragile Objective-C ABI }
-       systems_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_darwin];
+       systems_objc_nfabi = [system_powerpc64_darwin,system_x86_64_darwin,system_arm_darwin,system_i386_iphonesim];
 
        { all embedded systems }
        systems_embedded = [system_i386_embedded,system_m68k_embedded,
@@ -456,6 +457,7 @@ interface
          when calling a function }
        systems_need_16_byte_stack_alignment = [
       	system_i386_darwin,
+      	system_i386_iphonesim,
         system_x86_64_darwin,
         system_x86_64_win64,
         system_x86_64_linux,

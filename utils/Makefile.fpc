@@ -18,12 +18,14 @@ dirs_freebsd=fpcres
 dirs_openbsd=fpcres
 dirs_netbsd=fpcres
 dirs_darwin=fpcres fpcreslipo
+dirs_iphonesim=fpcres fpcreslipo
 dirs_solaris=fpcres
 rsts=rstconv
 
 [require]
 packages=fcl-base paszlib hash
 packages_darwin=univint
+packages_iphonesim=univint
 
 [clean]
 units=ptopu

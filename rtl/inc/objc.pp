@@ -3,11 +3,11 @@ unit objc;
 
 {$ifdef darwin}
 {$define targethandled}
-{$if defined(cpuarm) or defined(cpux86_64) or defined(cpupowerpc64)}
+{$if defined(iphonesim) or defined(cpuarm) or defined(cpux86_64) or defined(cpupowerpc64)}
 {$i objcnf.inc}
 {$endif}
 
-{$if defined(cpui386) or defined(cpupowerpc32)}
+{$if defined(cpupowerpc32) or (defined(cpui386) and not defined(iphonesim))}
 {$define targethandled}
 {$i objc1.inc}
 {$endif}

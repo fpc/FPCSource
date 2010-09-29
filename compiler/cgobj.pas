@@ -4172,6 +4172,7 @@ implementation
         case target_info.system of
           system_powerpc_darwin,
           system_i386_darwin,
+          system_i386_iphonesim,
           system_powerpc64_darwin,
           system_arm_darwin:
             begin

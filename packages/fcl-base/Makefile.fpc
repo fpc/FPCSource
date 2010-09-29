@@ -8,6 +8,7 @@ version=2.5.1
 
 [require]
 packages_darwin=univint
+packages_iphonesim=univint
 
 [target]
 units=contnrs inifiles rtfpars idea base64 gettext \
@@ -19,6 +20,7 @@ units_beos=syncobjs
 units_haiku=syncobjs
 units_freebsd=syncobjs fptimer
 units_darwin=syncobjs fptimer
+units_iphonesim=syncobjs fptimer
 units_solaris=syncobjs fptimer
 units_netbsd=  fptimer
 units_openbsd= fptimer
@@ -37,6 +39,7 @@ includedir=src/$(OS_TARGET) src src/dummy
 includedir_linux=src/unix
 includedir_freebsd=src/unix
 includedir_darwin=src/unix
+includedir_iphonesim=src/unix
 includedir_netbsd=src/unix
 includedir_openbsd=src/unix
 includedir_solaris=src/unix

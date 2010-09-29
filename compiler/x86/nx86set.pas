@@ -135,7 +135,7 @@ implementation
         href.scalefactor:=sizeof(aint);
         emit_ref(A_JMP,S_NO,href);
         { generate jump table }
-        if (target_info.system = system_i386_darwin) then
+        if (target_info.system in [system_i386_darwin,system_i386_iphonesim]) then
           begin
             jtlist:=current_asmdata.asmlists[al_const];
             sectype:=sec_rodata;

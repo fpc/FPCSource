@@ -325,7 +325,8 @@ begin
           case target_info.system of
             system_powerpc_darwin:
               LinkRes.Add('ppc');
-            system_i386_darwin:
+            system_i386_darwin,
+            system_i386_iphonesim:
               LinkRes.Add('i386');
             system_powerpc64_darwin:
               LinkRes.Add('ppc64');
@@ -765,6 +766,10 @@ initialization
   RegisterImport(system_i386_darwin,timportlibdarwin);
   RegisterExport(system_i386_darwin,texportlibdarwin);
   RegisterTarget(system_i386_darwin_info);
+  RegisterExternalLinker(system_i386_iphonesim_info,TLinkerBSD);
+  RegisterImport(system_i386_iphonesim,timportlibdarwin);
+  RegisterExport(system_i386_iphonesim,texportlibdarwin);
+  RegisterTarget(system_i386_iphonesim_info);
 {$endif i386}
 {$ifdef m68k}
 //  RegisterExternalLinker(system_m68k_FreeBSD_info,TLinkerBSD);

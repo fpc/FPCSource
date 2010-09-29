@@ -15,6 +15,7 @@ units=glib gmodule gdk gtk gdkpixbuf
 units_beos=gtkglarea
 units_freebsd=gtkglarea
 units_darwin=gtkglarea
+units_iphonesim=gtkglarea
 units_solaris=gtkglarea
 units_netbsd=gtkglarea
 units_openbsd=gtkglarea

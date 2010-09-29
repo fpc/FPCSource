@@ -443,6 +443,7 @@ implementation
          system_m68k_linux: ;
          system_powerpc_darwin,
          system_i386_darwin,
+         system_i386_iphonesim,
          system_powerpc64_darwin,
          system_x86_64_darwin,
          system_arm_darwin:
@@ -471,7 +472,8 @@ implementation
                     AsmWriteln('__TEXT,__picsymbolstub1,symbol_stubs,pure_instructions,32')
                   else
                     AsmWriteln('__TEXT,__symbol_stub1,symbol_stubs,pure_instructions,16');
-                system_i386_darwin:
+                system_i386_darwin,
+                system_i386_iphonesim:
                   AsmWriteln('__IMPORT,__jump_table,symbol_stubs,self_modifying_code+pure_instructions,5');
                 system_arm_darwin:
                   if (cs_create_pic in current_settings.moduleswitches) then

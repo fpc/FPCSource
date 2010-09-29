@@ -18,6 +18,9 @@ programs_linux=sockcli isockcli dsockcli socksvr isocksvr dsocksvr \
 programs_darwin=sockcli isockcli dsockcli socksvr isocksvr dsocksvr \
                testhres testnres testsres testrhre testrnre testrsre testur \
                ipcserver ipcclient debugtest dbugsrv asiotest testtimer
+programs_iphonesim=sockcli isockcli dsockcli socksvr isocksvr dsocksvr \
+               testhres testnres testsres testrhre testrnre testrsre testur \
+               ipcserver ipcclient debugtest dbugsrv asiotest testtimer
 programs_freebsd=sockcli isockcli dsockcli socksvr isocksvr dsocksvr \
                testhres testnres testsres testrhre testrnre testrsre testur \
                ipcserver ipcclient debugtest dbugsrv asiotest testtimer

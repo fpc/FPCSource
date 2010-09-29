@@ -17,6 +17,7 @@ implicitunits_freebsd=pkgwget pkglnet
 implicitunits_netbsd=pkgwget pkglnet
 implicitunits_openbsd=pkgwget pkglnet
 implicitunits_darwin=pkgwget pkglnet
+implicitunits_iphonesim=pkgwget pkglnet
 implicitunits_solaris=pkgwget pkglnet
 implicitunits_win32=pkgwget pkglnet
 implicitunits_win64=pkgwget pkglnet
@@ -40,6 +41,7 @@ fpcdir=../..
 packages=fcl-base fcl-xml fcl-process fcl-net paszlib libcurl
 tools=data2inc
 packages_darwin=univint
+packages_iphonesim=univint
 
 [rules]
 .NOTPARALLEL:
