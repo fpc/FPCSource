@@ -363,13 +363,13 @@ type
     function Find(const name: DOMString; out Index: LongWord): Boolean;
     function Delete(index: LongWord): TDOMNode; virtual;
     function InternalRemove(const name: DOMString): TDOMNode;
-    function ValidateInsert(arg: TDOMNode): Integer;
+    function ValidateInsert(arg: TDOMNode): Integer; virtual;
   public
     constructor Create(AOwner: TDOMNode; ANodeType: Integer);
     destructor Destroy; override;
 
     function GetNamedItem(const name: DOMString): TDOMNode;
-    function SetNamedItem(arg: TDOMNode): TDOMNode;
+    function SetNamedItem(arg: TDOMNode): TDOMNode; virtual;
     function RemoveNamedItem(const name: DOMString): TDOMNode;
     // Introduced in DOM Level 2:
     function getNamedItemNS(const namespaceURI, localName: DOMString): TDOMNode; virtual;
@@ -836,7 +836,9 @@ type
     procedure RestoreDefault(const name: DOMString);
   protected
     function Delete(index: LongWord): TDOMNode; override;
+    function ValidateInsert(arg: TDOMNode): Integer; override;
   public
+    function setNamedItem(arg: TDOMNode): TDOMNode; override;
     function getNamedItemNS(const namespaceURI, localName: DOMString): TDOMNode; override;
     function setNamedItemNS(arg: TDOMNode): TDOMNode; override;
     function removeNamedItemNS(const namespaceURI,localName: DOMString): TDOMNode; override;
@@ -1734,8 +1736,6 @@ begin
 end;
 
 function TDOMNamedNodeMap.ValidateInsert(arg: TDOMNode): Integer;
-var
-  AttrOwner: TDOMNode;
 begin
   Result := 0;
   if nfReadOnly in FOwner.FFlags then
@@ -1743,13 +1743,7 @@ begin
   else if arg.FOwnerDocument <> FOwner.FOwnerDocument then
     Result := WRONG_DOCUMENT_ERR
   else if arg.NodeType <> FNodeType then
-    Result := HIERARCHY_REQUEST_ERR
-  else if (FNodeType = ATTRIBUTE_NODE) then
-  begin
-    AttrOwner := arg.FParentNode;
-    if Assigned(AttrOwner) and (AttrOwner <> FOwner) then
-      Result := INUSE_ATTRIBUTE_ERR;
-  end;
+    Result := HIERARCHY_REQUEST_ERR;
 end;
 
 function TDOMNamedNodeMap.SetNamedItem(arg: TDOMNode): TDOMNode;
@@ -1762,19 +1756,10 @@ begin
   if res <> 0 then
     raise EDOMError.Create(res, 'NamedNodeMap.SetNamedItem');
 
-  if FNodeType = ATTRIBUTE_NODE then
-  begin
-    arg.FParentNode := FOwner;
-    Exists := Find(TDOMAttr(arg).Name, i); // optimization
-  end
-  else
-    Exists := Find(arg.NodeName, i);
-
+  Exists := Find(arg.NodeName, i);
   if Exists then
   begin
     Result := TDOMNode(FList.List^[i]);
-    if (Result <> arg) and (FNodeType = ATTRIBUTE_NODE) then
-      Result.FParentNode := nil;
     FList.List^[i] := arg;
     exit;
   end;
@@ -1835,6 +1820,18 @@ begin
     Result.FParentNode := nil;
     if Assigned(TDOMAttr(Result).FNSI.QName) then
       RestoreDefault(TDOMAttr(Result).FNSI.QName^.Key);
+  end;
+end;
+
+function TAttributeMap.ValidateInsert(arg: TDOMNode): Integer;
+begin
+  Result := inherited ValidateInsert(arg);
+  if Result = 0 then
+  begin
+    if arg.NodeType <> ATTRIBUTE_NODE then
+      Result := HIERARCHY_REQUEST_ERR
+    else if Assigned(arg.FParentNode) and (arg.FParentNode <> FOwner) then
+      Result := INUSE_ATTRIBUTE_ERR;
   end;
 end;
 
@@ -1905,6 +1902,14 @@ begin
     Result := TDOMNode(FList.List^[i])
   else
     Result := nil;
+end;
+
+function TAttributeMap.setNamedItem(arg: TDOMNode): TDOMNode;
+begin
+  Result := inherited setNamedItem(arg);
+  if Assigned(Result) then
+    Result.FParentNode := nil;
+  arg.FParentNode := FOwner;
 end;
 
 function TAttributeMap.setNamedItemNS(arg: TDOMNode): TDOMNode;
