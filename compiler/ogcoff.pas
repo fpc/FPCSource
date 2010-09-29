@@ -1096,9 +1096,10 @@ const pemagic : array[0..3] of byte = (
                       //inc(data,symaddr-len-CurrObjSec.Size);
                       data:=data+symaddr-len-CurrObjSec.Size;
                     end;
-                  RELOC_RVA :
+                  RELOC_RVA,
+                  RELOC_SECREL32 :
                     begin
-                      CurrObjSec.addsectionreloc(curraddr,CurrObjSec,RELOC_RVA);
+                      CurrObjSec.addsectionreloc(curraddr,CurrObjSec,reloctype);
                       inc(data,symaddr);
                     end;
                   else
