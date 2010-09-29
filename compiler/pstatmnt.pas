@@ -1207,6 +1207,8 @@ implementation
                  { in $x- state, the function result must not be ignored }
                  if not(cs_extsyntax in current_settings.moduleswitches) and
                     not(is_void(p.resultdef)) and
+                    { can be nil in case there was an error in the expression }
+                    assigned(tcallnode(p).procdefinition) and
                     not((tcallnode(p).procdefinition.proctypeoption=potype_constructor) and
                         assigned(tprocdef(tcallnode(p).procdefinition)._class) and
                         is_object(tprocdef(tcallnode(p).procdefinition)._class)) then
