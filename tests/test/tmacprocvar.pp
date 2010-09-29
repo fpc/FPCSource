@@ -48,7 +48,7 @@ begin
 	B(@A);
 	n := nil;
 	n := A;
-	if assigned(n) then
+	if nil <> n then
 		C(n);
 	C(A);
 	C(@A);
