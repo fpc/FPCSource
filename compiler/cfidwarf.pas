@@ -88,6 +88,7 @@ interface
 implementation
 
     uses
+      systems,
       verbose;
 
     const
@@ -328,9 +329,10 @@ implementation
                   }
                   list.concat(tai_const.create_rel_sym(aitconst_32bit,lenstartlabel,lenendlabel));
                   list.concat(tai_label.create(lenstartlabel));
-                  { force label offset to secrel32 }
                   tc:=tai_const.create_sym(cielabel);
-                  tc.consttype:=aitconst_secrel32_symbol;
+                  { force label offset to secrel32 for windows systems }
+                  if (target_info.system in systems_windows+systems_wince) then
+                    tc.consttype:=aitconst_secrel32_symbol;
                   list.concat(tc);
                   list.concat(tai_const.create_sym(hp.oper[0].beginsym));
                   list.concat(tai_const.create_rel_sym(aitconst_ptr,hp.oper[0].beginsym,hp.oper[0].endsym));
