@@ -2268,6 +2268,7 @@ implementation
                    else
                      testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags));
                    left.resultdef:=resultdef;
+                   tordconstnode(left).typedef:=resultdef;
                    result:=left;
                    left:=nil;
                    exit;
