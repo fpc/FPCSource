@@ -126,10 +126,13 @@ end;
 
 procedure TCustomSQLDBWebDataProvider.SQLChanged(Sender: TObject);
 begin
-  If (Sender=SelectSQL) and Assigned(FQuery) then
+  If (Sender=SelectSQL)  then
     begin
-    FQuery.Close;
-    FQuery.SQL.Assign(SelectSQL);
+    if Assigned(FQuery) then
+      begin
+      FQuery.Close;
+      FQuery.SQL.Assign(SelectSQL);
+      end;
     If Not (csLoading in ComponentState) then
       RegenerateParams;
     end;
