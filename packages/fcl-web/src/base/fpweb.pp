@@ -465,11 +465,7 @@ begin
   FRequest := Nil;
   FResponse := Nil;
   // Clean up session for the case the webmodule is used again
-  if assigned(Session) then
-    begin
-    Session.Free;
-    Session := nil;
-    end;
+  DoneSession;
 {$ifdef cgidebug}
   SendMethodExit('WebModule('+Name+').handlerequest');
 {$endif cgidebug}
