@@ -1892,14 +1892,12 @@ var
 begin
   ExpectString('--');
   SaveLength := FValue.Length;
-  if SkipUntilSeq([#0, '-'], '-') then
-  begin
-    ExpectChar('>');
-    DoComment(@FValue.Buffer[SaveLength], FValue.Length-SaveLength);
-    FValue.Length := SaveLength;
-  end
-  else
+  if not SkipUntilSeq([#0, '-'], '-') then
     FatalError('Unterminated comment', -1);
+  ExpectChar('>');
+
+  DoComment(@FValue.Buffer[SaveLength], FValue.Length-SaveLength);
+  FValue.Length := SaveLength;
 end;
 
 procedure TXMLReader.ParsePI;                    // [16]
@@ -1908,7 +1906,7 @@ var
   PINode: TDOMProcessingInstruction;
 begin
   FSource.NextChar;      // skip '?'
-  Name := ExpectName;
+  CheckName;
   CheckNCName;
   with FName do
     if (Length = 3) and
@@ -1916,7 +1914,7 @@ begin
      ((Buffer[1] = 'M') or (Buffer[1] = 'm')) and
      ((Buffer[2] = 'L') or (Buffer[2] = 'l')) then
   begin
-    if Name <> 'xml' then
+    if not BufEquals(FName, 'xml') then
       FatalError('''xml'' is a reserved word; it must be lowercase', FName.Length)
     else
       FatalError('XML declaration is not allowed here', FName.Length);
@@ -1926,21 +1924,20 @@ begin
     SkipS(True);
 
   FValue.Length := 0;
-  if SkipUntilSeq(GT_Delim, '?') then
-  begin
-    SetString(Value, FValue.Buffer, FValue.Length);
-    // SAX: ContentHandler.ProcessingInstruction(Name, Value);
-    if FCurrContentType = ctEmpty then
-      ValidationError('Processing instructions are not allowed within EMPTY elements', []);
-
-    PINode := Doc.CreateProcessingInstruction(Name, Value);
-    if Assigned(FCursor) then
-      FCursor.AppendChild(PINode)
-    else  // to comply with certain tests, insert PI from DTD before DTD
-      Doc.InsertBefore(PINode, FDocType);
-  end
-  else
+  if not SkipUntilSeq(GT_Delim, '?') then
     FatalError('Unterminated processing instruction', -1);
+
+  SetString(Name, FName.Buffer, FName.Length);
+  SetString(Value, FValue.Buffer, FValue.Length);
+  // SAX: ContentHandler.ProcessingInstruction(Name, Value);
+  if FCurrContentType = ctEmpty then
+    ValidationError('Processing instructions are not allowed within EMPTY elements', []);
+
+  PINode := Doc.CreateProcessingInstruction(Name, Value);
+  if Assigned(FCursor) then
+    FCursor.AppendChild(PINode)
+  else  // to comply with certain tests, insert PI from DTD before DTD
+    Doc.InsertBefore(PINode, FDocType);
 end;
 
 const
