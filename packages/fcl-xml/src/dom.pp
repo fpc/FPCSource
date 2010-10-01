@@ -3087,13 +3087,15 @@ begin
 end;
 
 function TDOMText.SplitText(offset: LongWord): TDOMText;
+var
+  L: LongWord;
 begin
   Changing;
-  if offset > Length then
+  L := Length;
+  if offset > L then
     raise EDOMIndexSize.Create('Text.SplitText');
 
-  Result := TDOMText.Create(FOwnerDocument);
-  Result.FNodeValue := Copy(FNodeValue, offset + 1, Length);
+  Result := FOwnerDocument.CreateTextNodeBuf(@FNodeValue[offset+1], L-offset, False);
   Result.FFlags := FFlags * [nfIgnorableWS];
   FNodeValue := Copy(FNodeValue, 1, offset);
   if Assigned(FParentNode) then
