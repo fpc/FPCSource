@@ -119,12 +119,11 @@ asm
   swi   #0x0
   cmn   r0,#126
   ldr   r7,[sp],#4
-  movls pc,lr
-  stmfd sp!,{lr}
+  bls   .LExit
   rsb   r0,r0,#0
   bl    seterrno
   mvn   r0,#0
-  ldmfd sp!,{pc}
+.LExit:
 end;
 
 
@@ -143,12 +142,11 @@ asm
   swi   #0x0
   cmn   r0,#126
   ldmfd sp!,{r4,r7}
-  movls pc,lr
-  stmfd sp!,{lr}
+  bls   .LExit
   rsb   r0,r0,#0
   bl    seterrno
   mvn   r0,#0
-  ldmfd sp!,{pc}
+.LExit:
 end;
 
 
@@ -168,12 +166,11 @@ asm
   swi   #0x0
   cmn   r0,#126
   ldmfd sp!,{r4,r5,r7}
-  movls pc,lr
-  stmfd sp!,{lr}
+  bls   .LExit
   rsb   r0,r0,#0
   bl    seterrno
   mvn   r0,#0
-  ldmfd sp!,{pc}
+.LExit:
 end;
 
 {$else FPC_ABI_EABI}
