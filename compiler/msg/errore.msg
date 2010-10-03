@@ -3155,9 +3155,11 @@ S*2Aas_Assemble using GNU AS
 **2st_Generate script to link on target
 **2sr_Skip register allocation phase (use with -alr)
 **1T<x>_Target operating system:
+3*2Tdarwin_Darwin/Mac OS X
 3*2Temx_OS/2 via EMX (including EMX/RSX extender)
 3*2Tfreebsd_FreeBSD
 3*2Tgo32v2_Version 2 of DJ Delorie DOS extender
+3*2Tiphonesim_ iPhoneSimulator from iOS SDK 3.2+ (older versions: -Tdarwin)
 3*2Tlinux_Linux
 3*2Tnetbsd_NetBSD
 3*2Tnetware_Novell Netware Module (clib)
@@ -3166,23 +3168,27 @@ S*2Aas_Assemble using GNU AS
 3*2Tos2_OS/2 / eComStation
 3*2Tsunos_SunOS/Solaris
 3*2Tsymbian_Symbian OS
+3*2Tsolaris_Solaris
 3*2Twatcom_Watcom compatible DOS extender
 3*2Twdosx_WDOSX DOS extender
 3*2Twin32_Windows 32 Bit
 3*2Twince_Windows CE
+4*2Tdarwin_Darwin/Mac OS X
 4*2Tlinux_Linux
+4*2Twin64_Win64 (64 bit Windows systems)
 6*2Tamiga_Commodore Amiga
 6*2Tatari_Atari ST/STe/TT
-6*2Tlinux_Linux/m68k
-6*2Tmacos_Macintosh m68k (not supported)
+6*2Tlinux_Linux
 6*2Tpalmos_PalmOS
+A*2Tdarwin_Darwin/iPhoneOS/iOS
 A*2Tlinux_Linux
 A*2Twince_Windows CE
-P*2Tamiga_AmigaOS on PowerPC
-P*2Tdarwin_Darwin and Mac OS X on PowerPC
-P*2Tlinux_Linux on PowerPC
-P*2Tmacos_Mac OS (classic) on PowerPC
+P*2Tamiga_AmigaOS
+P*2Tdarwin_Darwin/Mac OS X
+P*2Tlinux_Linux
+P*2Tmacos_Mac OS (classic)
 P*2Tmorphos_MorphOS
+S*2Tsolaris_Solaris
 S*2Tlinux_Linux
 **1u<x>_Undefines the symbol <x>
 **1U_Unit options:
