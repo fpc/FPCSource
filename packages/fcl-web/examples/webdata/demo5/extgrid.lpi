@@ -32,7 +32,7 @@
     </RunParams>
     <RequiredPackages Count="4">
       <Item1>
-        <PackageName Value="lazwebdata"/>
+        <PackageName Value="lazwebextra"/>
         <MinVersion Valid="True"/>
       </Item1>
       <Item2>

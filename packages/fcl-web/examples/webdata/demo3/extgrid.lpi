@@ -34,7 +34,7 @@
         <MinVersion Minor="1" Release="1" Valid="True"/>
       </Item1>
       <Item2>
-        <PackageName Value="lazwebdata"/>
+        <PackageName Value="lazwebextra"/>
         <MinVersion Valid="True"/>
       </Item2>
       <Item3>
@@ -98,8 +98,8 @@
         <SyntaxHighlighter Value="LFM"/>
       </Unit4>
       <Unit5>
-        <Filename Value="../demo/reglazwebdata.pp"/>
-        <UnitName Value="reglazwebdata"/>
+        <Filename Value="../demo/reglazwebextra.pp"/>
+        <UnitName Value="reglazwebextra"/>
         <CursorPos X="53" Y="50"/>
         <TopLine Value="34"/>
         <EditorIndex Value="0"/>
