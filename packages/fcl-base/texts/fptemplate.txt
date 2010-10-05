@@ -1,3 +1,7 @@
+REMARK:
+
+fptemplate.pp has been moved to fcl-base.
+
 fptemplate.pp
 
 implements template support
