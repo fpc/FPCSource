@@ -121,9 +121,10 @@ implementation
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
-            if (rt=fullrtti) or
+            if (tsym(sym).typ=fieldvarsym) and
+               not(sp_static in tsym(sym).symoptions) and
                (
-                (tsym(sym).typ=fieldvarsym) and
+                (rt=fullrtti) or
                 tfieldvarsym(sym).vardef.needs_inittable
                ) then
               inc(result);
@@ -139,9 +140,10 @@ implementation
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
-            if (rt=fullrtti) or
+            if (tsym(sym).typ=fieldvarsym) and
+               not(sp_static in tsym(sym).symoptions) and
                (
-                (tsym(sym).typ=fieldvarsym) and
+                (rt=fullrtti) or
                 tfieldvarsym(sym).vardef.needs_inittable
                ) then
               begin
@@ -160,9 +162,10 @@ implementation
         for i:=0 to st.SymList.Count-1 do
           begin
             sym:=tsym(st.SymList[i]);
-            if (rt=fullrtti) or
+            if (tsym(sym).typ=fieldvarsym) and
+               not(sp_static in tsym(sym).symoptions) and
                (
-                (tsym(sym).typ=fieldvarsym) and
+                (rt=fullrtti) or
                 tfieldvarsym(sym).vardef.needs_inittable
                ) then
               write_rtti(tfieldvarsym(sym).vardef,rt);
