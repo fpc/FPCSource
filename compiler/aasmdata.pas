@@ -449,7 +449,11 @@ implementation
 
     procedure TAsmData.getlabel(out l : TAsmLabel;alt:TAsmLabeltype);
       begin
-        l:=TAsmLabel.createlocal(AsmSymbolDict,FNextLabelNr[alt],alt);
+        if (cs_link_smart in current_settings.globalswitches) and
+           (alt = alt_dbgline) then
+          l:=TAsmLabel.createglobal(AsmSymbolDict,name,FNextLabelNr[alt],alt)
+        else
+          l:=TAsmLabel.createlocal(AsmSymbolDict,FNextLabelNr[alt],alt);
         inc(FNextLabelNr[alt]);
       end;
 

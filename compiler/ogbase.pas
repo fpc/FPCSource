@@ -59,6 +59,12 @@ interface
          RELOC_GOTPCREL,
          RELOC_PLT32,
 {$endif x86_64}
+{$ifdef i386}
+         { PIC }
+         RELOC_GOTPC,
+         RELOC_GOT32,
+         RELOC_PLT32,
+{$endif i386}
 {$ifdef arm}
          RELOC_RELATIVE_24,
 {$endif arm}

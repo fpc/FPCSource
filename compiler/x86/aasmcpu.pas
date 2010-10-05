@@ -274,6 +274,7 @@ implementation
      uses
        cutils,
        globals,
+       systems,
        itcpugas,
        symsym;
 
@@ -929,6 +930,12 @@ implementation
               top_ref :
                 begin
                   if (ref^.refaddr=addr_no)
+{$ifdef i386}
+                     or (
+                         (ref^.refaddr in [addr_pic]) and
+                         (ref^.base=NR_EBX)
+                        )
+{$endif i386}
 {$ifdef x86_64}
                      or (
                          (ref^.refaddr in [addr_pic,addr_pic_no_got]) and
@@ -1918,6 +1925,16 @@ implementation
                 begin
                   currval:=oper[opidx]^.ref^.offset;
                   currsym:=ObjData.symbolref(oper[opidx]^.ref^.symbol);
+{$ifdef i386}
+                  if (oper[opidx]^.ref^.refaddr=addr_pic) and
+                     (tf_pic_uses_got in target_info.flags) then
+                    begin
+                      currrelreloc:=RELOC_PLT32;
+                      currabsreloc:=RELOC_GOT32;
+                      currabsreloc32:=RELOC_GOT32;
+                    end
+                  else
+{$endif i386}
 {$ifdef x86_64}
                   if oper[opidx]^.ref^.refaddr=addr_pic then
                     begin
@@ -2265,6 +2282,12 @@ implementation
                          if (oper[opidx]^.ot and OT_MEMORY)=OT_MEMORY then
                            begin
                              currsym:=objdata.symbolref(oper[opidx]^.ref^.symbol);
+{$ifdef i386}
+                             if (oper[opidx]^.ref^.refaddr=addr_pic) and
+                                (tf_pic_uses_got in target_info.flags) then
+                               currabsreloc:=RELOC_GOT32
+                             else
+{$endif i386}
 {$ifdef x86_64}
                              if oper[opidx]^.ref^.refaddr=addr_pic then
                                currabsreloc:=RELOC_GOTPCREL
@@ -2303,6 +2326,12 @@ implementation
                              end
                            else
 {$endif x86_64}
+{$ifdef i386}
+                         if (oper[opidx]^.ref^.refaddr=addr_pic) and
+                            (tf_pic_uses_got in target_info.flags) then
+                           currabsreloc:=RELOC_GOT32
+                         else
+{$endif i386}
                              currabsreloc:=RELOC_ABSOLUTE32;
 
                            if (currabsreloc=RELOC_ABSOLUTE32) and

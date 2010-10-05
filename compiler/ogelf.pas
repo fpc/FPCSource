@@ -546,13 +546,28 @@ implementation
 ****************************************************************************}
 
     constructor TElfObjData.create(const n:string);
+      var
+        need_datarel : boolean;
       begin
         inherited create(n);
         CObjSection:=TElfObjSection;
         { we need at least the following sections }
         createsection(sec_code);
+        if (cs_create_pic in current_settings.moduleswitches) and
+           not(target_info.system in systems_darwin) then
+          begin
+            { We still need an empty data section }
+            system.exclude(current_settings.moduleswitches,cs_create_pic);
+            need_datarel:=true;
+          end
+        else
+          need_datarel:=false;
         createsection(sec_data);
+        if need_datarel then
+          system.include(current_settings.moduleswitches,cs_create_pic);
         createsection(sec_bss);
+        if need_datarel then
+          createsection(sec_data);
         if tf_section_threadvars in target_info.flags then
           createsection(sec_threadvar);
         if (tf_needs_dwarf_cfi in target_info.flags) and
@@ -753,9 +768,23 @@ implementation
              end
            else
              begin
+{$ifdef i386}
+               { Hack for _GLOBAL_OFFSET_TABLE_ which needs a special 
+                 relocation type R_386_GOTPC, found by trial/error PM }
+               if p.name='_GLOBAL_OFFSET_TABLE_' then
+                 begin
+                   reltype:=RELOC_GOTPC;
+                   { This value comes from the offset of the relocation
+                     of _GLOBAL_OFFSET_TABLE symbol within the instruction
+                     movl $_GLOBAL_OFFSET_TABLE_,%ebx
+                     It might be wrong if the symbol is used
+                     in some other instruction having a bigger offset }
+                   inc(data,2);
+                 end;
+{$endif i386}
                CurrObjSec.addsymreloc(CurrObjSec.Size,p,reltype);
 {$ifndef x86_64}
-               if reltype=RELOC_RELATIVE then
+               if (reltype=RELOC_RELATIVE) or (reltype=RELOC_PLT32) then
                  dec(data,len);
 {$endif x86_64}
             end;
@@ -822,6 +851,14 @@ implementation
                    reltyp:=R_386_PC32;
                  RELOC_ABSOLUTE :
                    reltyp:=R_386_32;
+                 RELOC_GOT32 :
+                   reltyp:=R_386_GOT32;
+                 RELOC_GOTPC :
+                   reltyp:=R_386_GOTPC;
+                 RELOC_PLT32 :
+                   begin
+                     reltyp:=R_386_PLT32;
+                   end;
 {$endif i386}
 {$ifdef sparc}
                  RELOC_ABSOLUTE :
