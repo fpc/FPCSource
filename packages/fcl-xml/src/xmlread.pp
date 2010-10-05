@@ -284,7 +284,14 @@ type
     property Children[Index: Integer]: TContentParticle read GetChild;
   end;
 
-  TElementValidator = object
+  PNodeData = ^TNodeData;
+  TNodeData = object
+    // generic members
+    FQName: PHashItem;
+    FDOMNode: TObject;   // temporary
+
+
+    // validation-specific members
     FElement: TDOMElement;
     FElementDef: TDOMElementDef;
     FCurCP: TContentParticle;
@@ -304,6 +311,9 @@ type
   );
 
   TCheckNameFlags = set of (cnOptional, cnToken);
+
+  TXMLToken = (xtNone, xtEOF, xtText, xtWhitespace, xtElement, xtEndElement, xtCDSect, xtComment, xtPI, xtDoctype, xtEntity, xtEntityEnd);
+
   
   TPrefixedAttr = record
     Attr: TDOMAttr;
@@ -337,6 +347,9 @@ type
     FAttrTag: Cardinal;
     FOwnsDoctype: Boolean;
     FDTDProcessed: Boolean;
+    FToken: TXMLToken;
+    FNext: TXMLToken;
+    FCurrEntity: TDOMEntityEx;
 
     FNSHelper: TNSSupport;
     FWorkAtts: array of TPrefixedAttr;
@@ -374,10 +387,13 @@ type
     function  FindOrCreateElDef: TDOMElementDef;
     function  SkipUntilSeq(const Delim: TSetOfChar; c1: WideChar; c2: WideChar = #0): Boolean;
     procedure CheckMaxChars;
+    function AllocNodeData(AIndex: Integer): PNodeData;
   protected
     FCursor: TDOMNode_WithChildren;
     FNesting: Integer;
-    FValidator: array of TElementValidator;
+    FCurrNode: PNodeData;
+    FAttrCount: Integer;
+    FNodeStack: array of TNodeData;
 
     procedure DoError(Severity: TErrorSeverity; const descr: string; LineOffs: Integer=0);
     procedure DoErrorPos(Severity: TErrorSeverity; const descr: string;
@@ -410,6 +426,7 @@ type
     procedure DoEndElement(ErrOffset: Integer);
     procedure ParseAttribute(Elem: TDOMElement; ElDef: TDOMElementDef);
     procedure ParseContent;                                             // [43]
+    function  Read: Boolean;
     function  ResolvePredefined: Boolean;
     function  EntityCheck(NoExternals: Boolean = False): TDOMEntityEx;
     procedure AppendReference(AEntity: TDOMEntityEx);
@@ -1268,7 +1285,7 @@ begin
   FStdPrefix_xmlns := FNSHelper.GetPrefix(@PrefixDefault, 5);
   // Set char rules to XML 1.0
   FNamePages := @NamePages;
-  SetLength(FValidator, 16);
+  SetLength(FNodeStack, 16);
 end;
 
 constructor TXMLReader.Create(AParser: TDOMParser);
@@ -1325,6 +1342,8 @@ begin
   FCursor := doc;
   FState := rsProlog;
   FNesting := 0;
+  FCurrNode := @FNodeStack[0];
+  FCurrNode^.FDOMNode := doc;
   Initialize(ASource);
   ParseContent;
 
@@ -1340,6 +1359,8 @@ begin
   doc := AOwner.OwnerDocument;
   FCursor := AOwner as TDOMNode_WithChildren;
   FState := rsRoot;
+  FNesting := 0;
+  FCurrNode := @FNodeStack[0];
   FXML11 := doc.InheritsFrom(TXMLDocument) and (TXMLDocument(doc).XMLVersion = '1.1');
   Initialize(ASource);
   FDocType := TDOMDocumentTypeEx(doc.DocType);
@@ -2714,21 +2735,33 @@ const
     [#0, '>']
   );
 
-type
-  TXMLToken = (xtNone, xtText, xtElement, xtEndElement, xtCDSect, xtComment, xtPI, xtDoctype, xtEntity, xtEntityEnd);
-
 procedure TXMLReader.ParseContent;
+begin
+  FNext := xtText;
+  while Read do
+  begin
+    case FToken of
+      xtText, xtWhitespace:
+        DoText(FValue.Buffer, FValue.Length, FToken = xtWhitespace);
+      xtCDSect:
+        DoCDSect(FValue.Buffer, FValue.Length);
+    end;
+  end;
+end;
+
+function TXMLReader.Read: Boolean;
 var
   nonWs: Boolean;
   wc: WideChar;
-  ent: TDOMEntityEx;
   InCDATA: Boolean;
   tok: TXMLToken;
 begin
-  InCDATA := False;
+  InCDATA := (FNext = xtCDSect);
   StoreLocation(FTokenStart);
   nonWs := False;
   FValue.Length := 0;
+
+  if FNext in [xtCDSect, xtText] then
   repeat
     wc := FSource.SkipUntil(FValue, TextDelims[InCDATA], @nonWs);
     if wc = '<' then
@@ -2776,9 +2809,9 @@ begin
       if InCDATA then
         FatalError('Unterminated CDATA section', -1);
       if FNesting > FSource.FStartNesting then
-        FatalError('End-tag is missing for ''%s''', [FValidator[FNesting].FElement.NSI.QName^.Key]);
+        FatalError('End-tag is missing for ''%s''', [FCurrNode^.FElement.NSI.QName^.Key]);
       if ContextPop then Continue;
-      Break;
+      tok := xtEOF;
     end
     else if wc = '>' then
     begin
@@ -2794,7 +2827,10 @@ begin
         InCDATA := False;
         if FCDSectionsAsText then
           Continue;
-        tok := xtText;
+        FToken := xtCDSect;
+        FNext := xtText;
+        Result := True;
+        Exit;
       end
       else
         FatalError('Literal '']]>'' is not allowed in text', 3);
@@ -2814,33 +2850,38 @@ begin
       end
       else
       begin
-        ent := EntityCheck;
-        if Assigned(ent) and FExpandEntities then
+        FCurrEntity := EntityCheck;
+        if Assigned(FCurrEntity) and FExpandEntities then
         begin
-          ContextPush(ent);
+          ContextPush(FCurrEntity);
           Continue;
         end;
         tok := xtEntity;
       end;
     end;
-    // flush text accumulated this far
-    if tok = xtText then
-      DoCDSect(FValue.Buffer, FValue.Length)
-    else
-      DoText(FValue.Buffer, FValue.Length, not nonWs);
-    case tok of
-      xtEntity:     AppendReference(ent);
-      xtElement:    ParseStartTag;
-      xtEndElement: ParseEndTag;
-      xtPI:         ParsePI;
-      xtDoctype:    ParseDoctypeDecl;
-      xtComment:    ParseComment;
+    if FValue.Length <> 0 then
+    begin
+      if nonWs then FToken := xtText else FToken := xtWhitespace;
+      FNext := tok;
+      Result := True;
+      Exit;
     end;
-    StoreLocation(FTokenStart);
-    FValue.Length := 0;
-    nonWs := False;
-  until False;
-  DoText(FValue.Buffer, FValue.Length, not nonWs);
+    Break;
+  until False
+  else   // not (FNext in [xtText, xtCDSect])
+    tok := FNext;
+
+  case tok of
+    xtEntity:     AppendReference(FCurrEntity);
+    xtElement:    ParseStartTag;
+    xtEndElement: ParseEndTag;
+    xtPI:         ParsePI;
+    xtDoctype:    ParseDoctypeDecl;
+    xtComment:    ParseComment;
+  end;
+  FToken := tok;
+  FNext := xtText;
+  Result := tok <> xtEOF;
 end;
 
 procedure TXMLCharSource.NextChar;
@@ -2889,10 +2930,14 @@ begin
     ValidationError('Using undeclared element ''%s''',[ElName^.Key], FName.Length);
 
   // Check if new element is allowed in current context
-  if FValidate and not FValidator[FNesting].IsElementAllowed(ElDef) then
+  if FValidate and not FCurrNode^.IsElementAllowed(ElDef) then
     ValidationError('Element ''%s'' is not allowed in this context',[ElName^.Key], FName.Length);
 
   IsEmpty := False;
+  FAttrCount := 0;
+  PushVC(NewElem, ElDef);  // this increases FNesting
+  FCurrNode^.FQName := ElName;
+
   while (FSource.FBuf^ <> '>') and (FSource.FBuf^ <> '/') do
   begin
     SkipS(True);
@@ -2910,7 +2955,7 @@ begin
 
   if Assigned(ElDef) and Assigned(ElDef.FAttributes) then
     ProcessDefaultAttributes(NewElem, ElDef.FAttributes);
-  PushVC(NewElem, ElDef);  // this increases FNesting
+
   if FNamespaces then
     ProcessNamespaceAtts(NewElem);
 
@@ -2928,12 +2973,12 @@ procedure TXMLReader.DoEndElement(ErrOffset: Integer);
 var
   NewElem: TDOMElement;
 begin
-  NewElem := FValidator[FNesting].FElement;
+  NewElem := FCurrNode^.FElement;
   TDOMNode(FCursor) := NewElem.ParentNode;
   if FCursor = doc then
     FState := rsEpilog;
 
-  if FValidate and FValidator[FNesting].Incomplete then
+  if FValidate and FCurrNode^.Incomplete then
     ValidationError('Element ''%s'' is missing required sub-elements', [NewElem.NSI.QName^.Key], ErrOffset);
 
   if FNamespaces then
@@ -2949,7 +2994,7 @@ begin
     FatalError('End-tag is not allowed here');
   Inc(FSource.FBuf);
 
-  ElName := FValidator[FNesting].FElement.NSI.QName;
+  ElName := FCurrNode^.FElement.NSI.QName;
 
   CheckName;
   if not BufEquals(FName, ElName^.Key) then
@@ -3002,6 +3047,7 @@ end;
 
 begin
   CheckName;
+  Inc(FAttrCount);
   attr := doc.CreateAttributeBuf(FName.Buffer, FName.Length);
 
   if Assigned(ElDef) then
@@ -3388,30 +3434,38 @@ begin
     ValidationError('Duplicate notation declaration: ''%s''', [aName]);
 end;
 
+function TXMLReader.AllocNodeData(AIndex: Integer): PNodeData;
+begin
+  if AIndex >= Length(FNodeStack) then
+    SetLength(FNodeStack, AIndex * 2);
+
+  Result := @FNodeStack[AIndex];
+end;
+
 procedure TXMLReader.PushVC(aElement: TDOMElement; aElDef: TDOMElementDef);
 begin
   Inc(FNesting);
-  if FNesting >= Length(FValidator) then
-    SetLength(FValidator, FNesting * 2);
-  FValidator[FNesting].FElement := aElement;
-  FValidator[FNesting].FElementDef := aElDef;
-  FValidator[FNesting].FCurCP := nil;
-  FValidator[FNesting].FFailed := False;
+  FCurrNode := AllocNodeData(FNesting);
+  FCurrNode^.FElement := aElement;
+  FCurrNode^.FElementDef := aElDef;
+  FCurrNode^.FCurCP := nil;
+  FCurrNode^.FFailed := False;
   UpdateConstraints;
 end;
 
 procedure TXMLReader.PopVC;
 begin
   if FNesting > 0 then Dec(FNesting);
+  FCurrNode := @FNodeStack[FNesting];
   UpdateConstraints;
 end;
 
 procedure TXMLReader.UpdateConstraints;
 begin
-  if FValidate and Assigned(FValidator[FNesting].FElementDef) then
+  if FValidate and Assigned(FCurrNode^.FElementDef) then
   begin
-    FCurrContentType := FValidator[FNesting].FElementDef.ContentType;
-    FSaViolation := FStandalone and (FValidator[FNesting].FElementDef.FExternallyDeclared);
+    FCurrContentType := FCurrNode^.FElementDef.ContentType;
+    FSaViolation := FStandalone and (FCurrNode^.FElementDef.FExternallyDeclared);
   end
   else
   begin
@@ -3420,9 +3474,9 @@ begin
   end;
 end;
 
-{ TElementValidator }
+{ TNodeData }
 
-function TElementValidator.IsElementAllowed(Def: TDOMElementDef): Boolean;
+function TNodeData.IsElementAllowed(Def: TDOMElementDef): Boolean;
 var
   I: Integer;
   Next: TContentParticle;
@@ -3459,7 +3513,7 @@ begin
   end;
 end;
 
-function TElementValidator.Incomplete: Boolean;
+function TNodeData.Incomplete: Boolean;
 begin
   if Assigned(FElementDef) and (FElementDef.ContentType = ctChildren) and (not FFailed) then
   begin
