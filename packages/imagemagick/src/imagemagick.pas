@@ -47,7 +47,7 @@ const
   WandExport = 'CORE_RL_wand_.dll';
 {$else}
   MagickExport = 'libMagickCore';
-  WandExport = 'libWand';
+  WandExport = 'libMagickWand'; // Previous ImageMagick versions used 'libWand'
 {$endif}
 
 {# include "magick/methods.h"
