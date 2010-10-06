@@ -1488,6 +1488,10 @@ type
     procedure Synchronize(AMethod: TThreadMethod);
     property ReturnValue: Integer read FReturnValue write FReturnValue;
     property Terminated: Boolean read FTerminated;
+{$ifdef windows}
+  private
+    FInitialSuspended: boolean;
+{$endif}
 {$ifdef Unix}
   private
     // see tthread.inc, ThreadFunc and TThread.Resume

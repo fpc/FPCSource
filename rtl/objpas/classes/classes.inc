@@ -127,7 +127,7 @@ begin
 // enable for all platforms once http://bugs.freepascal.org/view.php?id=16884
 // is fixed for all platforms (in case the fix for non-unix platforms also
 // requires this field at least)
-{$ifdef unix}
+{$if defined(unix) or defined(windows)}
   if not FInitialSuspended then
     Resume;
 {$endif}
