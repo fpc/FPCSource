@@ -67,11 +67,42 @@ end;
 function do_write(h:thandle;addr:pointer;len : longint) : longint;
 var
    size:longint;
+{$ifndef WINCE}
+   ConsoleMode : dword;
+   CodePage : UInt;
+   accept_smaller_size : boolean;
+{$endif ndef WINCE}
 begin
    if writefile(h,addr,len,size,nil)=0 then
     Begin
       errno:=GetLastError;
       Errno2InoutRes;
+{$ifndef WINCE}
+    end
+   else if (size<len) then
+    Begin
+      if GetConsoleMode (h, @ConsoleMode) then
+       Begin
+         accept_smaller_size:=false;
+         { GetConsoleMode success means that we do have a
+           console handle that might return less than
+           LEN because a UTF-8 with length LEN input was
+           transformed into a shorter string of size SIZE }
+         CodePage:=GetConsoleOutputCP;
+         Case CodePage of
+           1200, {utf-16}
+           1201, {unicodeFFFE}
+           12000, {utf-32}
+           12001, {utf-32BE}
+           65000, {utf-7}
+           65001: {utf-8}
+             accept_smaller_size:=true;
+         end;
+         if accept_smaller_size then
+           size:=len;
+       end;
+
+{$endif ndef WINCE}
     end;
    do_write:=size;
 end;
