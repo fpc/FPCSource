@@ -1587,23 +1587,20 @@ Procedure Delete (Var S : UnicodeString; Index,Size: SizeInt);
 Var
   LS : SizeInt;
 begin
-  If Length(S)=0 then
-   exit;
-  if index<=0 then
-   exit;
-  LS:=PUnicodeRec(Pointer(S)-UnicodeFirstOff)^.Len div sizeof(UnicodeChar);
-  if (Index<=LS) and (Size>0) then
-   begin
-     UniqueString (S);
-     if Size+Index>LS then
-      Size:=LS-Index+1;
-     if Index+Size<=LS then
-      begin
-        Dec(Index);
-        Move(PUnicodeChar(S)[Index+Size],PUnicodeChar(S)[Index],(LS-Index-Size+1)*sizeof(UnicodeChar));
-      end;
-     Setlength(s,LS-Size);
-   end;
+  LS:=Length(S);
+  if (Index>LS) or (Index<=0) or (Size<=0) then
+    exit;
+
+  UniqueString (S);
+  { (Size+Index) will overflow if Size=MaxInt. }
+  if Size>LS-Index then
+    Size:=LS-Index+1;
+  if Size<=LS-Index then
+  begin
+    Dec(Index);
+    Move(PUnicodeChar(S)[Index+Size],PUnicodeChar(S)[Index],(LS-Index-Size+1)*sizeof(UnicodeChar));
+  end;
+  Setlength(s,LS-Size);
 end;
 
 
