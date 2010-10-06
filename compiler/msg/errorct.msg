@@ -521,7 +521,7 @@ parser_e_cant_access_private_member=03063_E_Aquí no es pot accedir a un camp pri
 % declaration cannot be accessed outside the module where the class is
 % defined.
 parser_e_overridden_methods_not_same_ret=03066_E_Els mètodes sobrecarregats han de retornar el mateix tipus: "$2" està sobrecarregat per "$1", el qual retorna un altre tipus
-% If you declare overriden methods in a class definition, they must
+% If you declare overridden methods in a class definition, they must
 % have the same return type.
 parser_e_dont_nest_export=03067_E_Les funcions declarades amb EXPORT no poden estar niades
 % You cannot declare a function or procedure within a function or procedure
@@ -784,7 +784,7 @@ parser_e_threadvars_only_sg=03147_E_Les variables del fil només poden ser estàti
 % are stored on the stack
 parser_f_direct_assembler_not_allowed=03148_F_L'assemblador directe no és compatible amb el format binari de la sortida
 % You can't use direct assembler when using a binary writer, choose an
-% other outputformat or use an other assembler reader
+% other outputformat or use another assembler reader
 % \end{description}
 parser_w_no_objpas_use_mode=03149_W_No carregueu manualment l'unitat OBJPAS, utilitzeu {\$mode objfpc\} o {\$mode delphi\}
 % You are trying to load the ObjPas unit manual from a uses clause. This is
@@ -1192,7 +1192,7 @@ type_w_signed_unsigned_always_true=04045_W_La comparació és sempre vertadera a c
 type_w_instance_with_abstract=04046_W_S'està construint una classe "$1" amb mètodes abstractes 
 % An instance of a class is created which contains non_implemented abstract
 % methods. This will probably lead to a runtime error 211 in the code if that
-% routine is ever called. All abstract methods should be overriden.
+% routine is ever called. All abstract methods should be overridden.
 type_h_in_range_check=04047_H_L'operand esquerra per a l'operador d'IN ha de tenir el tamany d'un octet
 % The left operand of the \var{in} operator is not an ordinal or enumeration which fits
 % within 8-bits, this may lead to range check errors. The \var{in} operator

@@ -552,7 +552,7 @@ procedure AEDisposeRemoteProcessResolver( ref: AERemoteProcessResolverRef ); ext
  *  
  *  Discussion:
  *    Returns a CFArrayRef containing CFDictionary objects containing
- *    information about processses running on a remote machine.  If the
+ *    information about processes running on a remote machine.  If the
  *    result array is NULL, the query failed and the error out
  *    parameter will contain information about the failure.  If the
  *    resolver had not been previously scheduled for execution, this

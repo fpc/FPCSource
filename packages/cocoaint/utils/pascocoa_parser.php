@@ -1382,7 +1382,7 @@ end;";
 		
 		if ($struct["param_array"] != null) $struct["has_params"] = true;
 		
-		// determine if the method can be overriden
+		// determine if the method can be overridden
 		// (!eregi("^(set|get|is)+", $name))
 		if ($kind != "constructor") $struct["can_override"] = true;
 		

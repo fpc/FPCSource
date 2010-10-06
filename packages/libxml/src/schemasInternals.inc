@@ -556,7 +556,7 @@
 (**
  * XML_SCHEMAS_TYPE_REDEFINING:
  *
- * The type redefines an other type.
+ * The type redefines another type.
  *)
 (*   XML_SCHEMAS_TYPE_REDEFINING    = (1 shl 31); *)
 {$ENDIF}
@@ -872,7 +872,7 @@
 (**
  * XML_SCHEMAS_INCLUDING_CONVERT_NS:
  *
- * the schema is currently including an other schema with
+ * the schema is currently including another schema with
  * no target namespace.
  *)
   XML_SCHEMAS_INCLUDING_CONVERT_NS            = (1 shl 9);

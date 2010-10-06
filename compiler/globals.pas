@@ -1447,7 +1447,7 @@ implementation
         RelocSection:=false;
         RelocSectionSetExplicitly:=false;
         LinkTypeSetExplicitly:=false;
-        { memory sizes, will be overriden by parameter or default for target
+        { memory sizes, will be overridden by parameter or default for target
           in options or init_parser }
         stacksize:=0;
         { not initialized yet }

@@ -67,7 +67,7 @@ const
     WHEEL_Green          = (WHEEL_Dummy+6) ;  { set/get Green     }
     WHEEL_Blue           = (WHEEL_Dummy+7) ;  { set/get Blue              }
     WHEEL_RGB            = (WHEEL_Dummy+8) ;  { set/get ColorWheelRGB     }
-    WHEEL_Screen         = (WHEEL_Dummy+9) ;  { init screen/enviroment    }
+    WHEEL_Screen         = (WHEEL_Dummy+9) ;  { init screen/environment    }
     WHEEL_Abbrv          = (WHEEL_Dummy+10);  { "GCBMRY" if English       }
     WHEEL_Donation       = (WHEEL_Dummy+11);  { colors donated by app     }
     WHEEL_BevelBox       = (WHEEL_Dummy+12);  { inside a bevel box        }

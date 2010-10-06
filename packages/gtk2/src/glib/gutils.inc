@@ -105,7 +105,7 @@
        must not be freed.  }
     function g_getenv(variable:Pgchar):Pgchar;cdecl;external gliblib name 'g_getenv';
 
-    { we try to provide a usefull equivalent for ATEXIT if it is
+    { we try to provide a useful equivalent for ATEXIT if it is
        not defined, but use is actually abandoned. people should
        use g_atexit() instead.
       }

@@ -210,7 +210,7 @@ resourcestring
 {$else}
 const
 {$endif}
-      msg_automaticallycreateddontedit = 'Automaticly created file, don''t edit.';
+      msg_automaticallycreateddontedit = 'Automatically created file, don''t edit.';
 
       { Compiler options }
       opt_objectpascal = 'Object pascal support';

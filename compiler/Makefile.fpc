@@ -185,7 +185,7 @@ endif
 endif
 endif
 
-# set correct defines (-d$(CPU_TARGET) is automaticly added in makefile.fpc)
+# set correct defines (-d$(CPU_TARGET) is automatically added in makefile.fpc)
 override LOCALOPT+=-d$(CPC_TARGET) -dGDB -dBROWSERLOG
 
 # i386 specific

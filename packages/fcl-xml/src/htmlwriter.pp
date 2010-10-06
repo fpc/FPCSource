@@ -62,7 +62,7 @@ type
     function FormButton (aname, caption, aOnClick: DOMstring) : THTML_Input;
     function FormHidden (aname, aValue: DOMstring) : THTML_Input;
     function FormFile (aname, aValue:DOMstring) : THTML_Input;
-    { Other usefull links to elements }
+    { Other useful links to elements }
     function Meta (aname, ahtpequiv,acontent: DOMString) : THTML_meta;
     function Link (arel, ahref, athetype, amedia: DOMString) : THTML_link;
     function Script (s, athetype, asrc: DOMString) : THTML_script;

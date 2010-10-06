@@ -257,7 +257,7 @@ implementation
              propaccesslist:=hpropsym.propaccesslist[pap];
              if not propaccesslist.empty then
                break;
-             hpropsym:=hpropsym.overridenpropsym;
+             hpropsym:=hpropsym.overriddenpropsym;
            until not assigned(hpropsym);
            if not(assigned(propaccesslist) and assigned(propaccesslist.firstsym))  then
              begin

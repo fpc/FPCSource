@@ -1227,8 +1227,8 @@ begin
     ODBCCheckResult(
       SQLStatistics(
         StmtHandle,
-        nil, 0, // catalog unkown; request for all catalogs
-        nil, 0, // schema unkown; request for all schemas
+        nil, 0, // catalog unknown; request for all catalogs
+        nil, 0, // schema unknown; request for all schemas
         PChar(TableName), Length(TableName), // request information for TableName
         SQL_INDEX_ALL,
         SQL_QUICK

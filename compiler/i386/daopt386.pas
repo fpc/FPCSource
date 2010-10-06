@@ -41,7 +41,7 @@ const
   con_ref = 1;
   con_const = 2;
   { The contents aren't usable anymore for CSE, but they may still be   }
-  { usefull for detecting whether the result of a load is actually used }
+  { useful for detecting whether the result of a load is actually used }
   con_invalid = 3;
   { the reverse of the above (in case a (conditional) jump is encountered): }
   { CSE is still possible, but the original instruction can't be removed    }

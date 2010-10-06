@@ -1,7 +1,7 @@
 Program yesno;
 {
   A box with two buttons and a string. Simple boxes like this
-   are very usefull for asking questions
+   are very useful for asking questions
 }
 
 Uses xforms;

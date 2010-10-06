@@ -87,6 +87,6 @@ infofiles=0
 
 
 [rules]
-; here you can add your own rules, the general rules will automaticly
+; here you can add your own rules, the general rules will automatically
 ; remove the defaults which call fpc_<rule>.
 

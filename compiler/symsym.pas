@@ -233,8 +233,8 @@ interface
 
        tpropertysym = class(Tstoredsym)
           propoptions   : tpropertyoptions;
-          overridenpropsym : tpropertysym;
-          overridenpropsymderef : tderef;
+          overriddenpropsym : tpropertysym;
+          overriddenpropsymderef : tderef;
           propdef       : tdef;
           propdefderef  : tderef;
           indexdef      : tdef;
@@ -906,7 +906,7 @@ implementation
       begin
          inherited ppuload(propertysym,ppufile);
          ppufile.getsmallset(propoptions);
-         ppufile.getderef(overridenpropsymderef);
+         ppufile.getderef(overriddenpropsymderef);
          ppufile.getderef(propdefderef);
          index:=ppufile.getlongint;
          default:=ppufile.getlongint;
@@ -930,7 +930,7 @@ implementation
       var
         pap : tpropaccesslisttypes;
       begin
-        overridenpropsymderef.build(overridenpropsym);
+        overriddenpropsymderef.build(overriddenpropsym);
         propdefderef.build(propdef);
         indexdefderef.build(indexdef);
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
@@ -942,7 +942,7 @@ implementation
       var
         pap : tpropaccesslisttypes;
       begin
-        overridenpropsym:=tpropertysym(overridenpropsymderef.resolve);
+        overriddenpropsym:=tpropertysym(overriddenpropsymderef.resolve);
         indexdef:=tdef(indexdefderef.resolve);
         propdef:=tdef(propdefderef.resolve);
         for pap:=low(tpropaccesslisttypes) to high(tpropaccesslisttypes) do
@@ -962,7 +962,7 @@ implementation
       begin
         inherited ppuwrite(ppufile);
         ppufile.putsmallset(propoptions);
-        ppufile.putderef(overridenpropsymderef);
+        ppufile.putderef(overriddenpropsymderef);
         ppufile.putderef(propdefderef);
         ppufile.putlongint(index);
         ppufile.putlongint(default);

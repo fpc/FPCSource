@@ -299,7 +299,7 @@ implementation
          sym : tsym;
          srsymtable: tsymtable;
          p : tpropertysym;
-         overriden : tsym;
+         overridden : tsym;
          varspez : tvarspez;
          hdef : tdef;
          arraytype : tdef;
@@ -410,7 +410,7 @@ implementation
               if paranr>0 then
                 include(p.propoptions,ppo_hasparameters);
            end;
-         { overriden property ?                                 }
+         { overridden property ?                                 }
          { force property interface
              there is a property parameter
              a global property }
@@ -451,18 +451,18 @@ implementation
          else
            begin
               { do an property override }
-              overriden:=search_class_member(aclass.childof,p.name);
-              if assigned(overriden) and
-                 (overriden.typ=propertysym) and
+              overridden:=search_class_member(aclass.childof,p.name);
+              if assigned(overridden) and
+                 (overridden.typ=propertysym) and
                  not(is_dispinterface(aclass)) then
                 begin
-                  p.overridenpropsym:=tpropertysym(overriden);
+                  p.overriddenpropsym:=tpropertysym(overridden);
                   { inherit all type related entries }
-                  p.indexdef:=tpropertysym(overriden).indexdef;
-                  p.propdef:=tpropertysym(overriden).propdef;
-                  p.index:=tpropertysym(overriden).index;
-                  p.default:=tpropertysym(overriden).default;
-                  p.propoptions:=tpropertysym(overriden).propoptions;
+                  p.indexdef:=tpropertysym(overridden).indexdef;
+                  p.propdef:=tpropertysym(overridden).propdef;
+                  p.index:=tpropertysym(overridden).index;
+                  p.default:=tpropertysym(overridden).default;
+                  p.propoptions:=tpropertysym(overridden).propoptions;
                   if ppo_indexed in p.propoptions then
                     add_index_parameter(paranr,p,readprocdef,writeprocdef,storedprocdef);
                 end
@@ -581,8 +581,8 @@ implementation
 
          if assigned(aclass) and not(is_dispinterface(aclass)) and not is_classproperty then
            begin
-             { ppo_stored is default on for not overriden properties }
-             if not assigned(p.overridenpropsym) then
+             { ppo_stored is default on for not overridden properties }
+             if not assigned(p.overriddenpropsym) then
                include(p.propoptions,ppo_stored);
              if try_to_consume(_STORED) then
               begin

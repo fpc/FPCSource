@@ -213,7 +213,7 @@ procedure fpc_dynarray_setlength(var p : pointer;pti : pointer;
                  int_addref(pointer(newp)+sizeof(tdynarray)+elesize*i,eletype);
 
                { a declock(ref. count) isn't enough here }
-               { it could be that the in MT enviroments  }
+               { it could be that the in MT environments  }
                { in the mean time the refcount was       }
                { decremented                             }
 

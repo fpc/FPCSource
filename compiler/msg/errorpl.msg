@@ -791,7 +791,7 @@ parser_e_threadvars_only_sg=03147_E_Zmienne threadvar mog¥ by† tylko statyczne l
 % are stored on the stack
 parser_f_direct_assembler_not_allowed=03148_F_Wstawki asemblera niedost©pne gdy wyj˜ciowym formatem jest wbudowane zapisywanie binarne
 % You can't use direct assembler when using a binary writer, choose an
-% other outputformat or use an other assembler reader
+% other outputformat or use another assembler reader
 parser_w_no_objpas_use_mode=03149_W_Nie ˆaduj moduˆu OBJPAS bezpo˜rednio - u¾yj trybu obiektowego (objfpc, delphi)
 % You are trying to load the ObjPas unit manually from a uses clause. This is
 % not a good idea. Use the \var{\{\$mode objfpc\}} or
@@ -1200,7 +1200,7 @@ type_w_signed_unsigned_always_true=04045_W_To por¢wnanie zawsze zwraca faˆsz z p
 type_w_instance_with_abstract=04046_W_Tworzenie klasy "$1" posiadaj¥cej metody abstrakcyjne
 % An instance of a class is created which contains non-implemented abstract
 % methods. This will probably lead to a runtime error 211 in the code if that
-% routine is ever called. All abstract methods should be overriden.
+% routine is ever called. All abstract methods should be overridden.
 type_h_in_range_check=04047_H_Lewy operand operatora IN powinien by† wielko˜ci jednego bajta
 % The left operand of the \var{in} operator is not an ordinal or enumeration which fits
 % within 8-bits, this may lead to range check errors. The \var{in} operator

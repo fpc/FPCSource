@@ -201,11 +201,11 @@ type
       bigstring: shortstring; s32: longint; s64: int64);
    procedure method_virtual_params_mixed(u8 :byte; u16: word;
       bigstring: shortstring; s32: longint; s64: int64);virtual;
-   procedure method_virtual_overriden_params_mixed(u8 :byte; u16: word;
+   procedure method_virtual_overridden_params_mixed(u8 :byte; u16: word;
       bigstring: shortstring; s32: longint; s64: int64);virtual;abstract;
    procedure method_dynamic_params_mixed(u8 :byte; u16: word;
       bigstring: shortstring; s32: longint; s64: int64);dynamic;
-   procedure method_dynamic_overriden_params_mixed(u8 :byte; u16: word;
+   procedure method_dynamic_overridden_params_mixed(u8 :byte; u16: word;
       bigstring: shortstring; s32: longint; s64: int64);dynamic;abstract;
    class procedure method_static_params_mixed(u8 :byte; u16: word;
       bigstring: shortstring; s32: longint; s64: int64);
@@ -217,7 +217,7 @@ type
       u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;
    procedure method_virtual_call_virtual_params_mixed(
       u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;
-   procedure method_virtual_call_overriden_params_mixed(
+   procedure method_virtual_call_overridden_params_mixed(
       u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;
    procedure method_virtual_call_normal_params_mixed(
       u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);virtual;
@@ -231,7 +231,7 @@ type
       u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);dynamic;
    procedure method_dynamic_call_virtual_params_mixed(
       u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);dynamic;
-   procedure method_dynamic_call_overriden_params_mixed(
+   procedure method_dynamic_call_overridden_params_mixed(
       u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);dynamic;
    procedure method_dynamic_call_normal_params_mixed(
       u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);dynamic;
@@ -246,7 +246,7 @@ type
  theritedvmtclass = class(tvmtclass)
    constructor constructor_params_mixed_call_virtual(u8 :byte; u16: word;
       bigstring: shortstring; s32: longint; s64: int64);
-   constructor constructor_params_mixed_call_overriden(u8 :byte; u16: word;
+   constructor constructor_params_mixed_call_overridden(u8 :byte; u16: word;
       bigstring: shortstring; s32: longint; s64: int64);
    constructor constructor_params_mixed_call_static(u8 :byte; u16: word;
       bigstring: shortstring; s32: longint; s64: int64);
@@ -254,9 +254,9 @@ type
       bigstring: shortstring; s32: longint; s64: int64);
    constructor constructor_params_mixed_call_inherited(u8 :byte; u16: word;
       bigstring: shortstring; s32: longint; s64: int64);
-   procedure method_virtual_overriden_params_mixed(
+   procedure method_virtual_overridden_params_mixed(
     u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);override;
-   procedure method_dynamic_overriden_params_mixed(
+   procedure method_dynamic_overridden_params_mixed(
     u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);override;
 
    { normal methods which call other methods }
@@ -264,7 +264,7 @@ type
       u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
    procedure method_normal_call_virtual_params_mixed(
       u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
-   procedure method_normal_call_overriden_params_mixed(
+   procedure method_normal_call_overridden_params_mixed(
       u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
    procedure method_normal_call_normal_params_mixed(
       u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
@@ -537,10 +537,10 @@ procedure tvmtclass.method_virtual_call_virtual_params_mixed(
     method_virtual_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
-procedure tvmtclass.method_virtual_call_overriden_params_mixed(
+procedure tvmtclass.method_virtual_call_overridden_params_mixed(
       u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
    begin
-    method_virtual_overriden_params_mixed(u8, u16, bigstring, s32, s64);
+    method_virtual_overridden_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
 
@@ -585,10 +585,10 @@ procedure tvmtclass.method_dynamic_call_virtual_params_mixed(
     method_virtual_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
-procedure tvmtclass.method_dynamic_call_overriden_params_mixed(
+procedure tvmtclass.method_dynamic_call_overridden_params_mixed(
       u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
    begin
-    method_virtual_overriden_params_mixed(u8, u16, bigstring, s32, s64);
+    method_virtual_overridden_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
 
@@ -636,7 +636,7 @@ constructor theritedvmtclass.constructor_params_mixed_call_virtual(
    method_virtual_params_mixed(u8, u16, bigstring, s32, s64);
  end;
 
-constructor theritedvmtclass.constructor_params_mixed_call_overriden(
+constructor theritedvmtclass.constructor_params_mixed_call_overridden(
    u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
  begin
    inherited create;
@@ -645,7 +645,7 @@ constructor theritedvmtclass.constructor_params_mixed_call_overriden(
    object_bigstring := '';
    object_s32bit := 0;
    object_s64bit := 0;
-   method_virtual_overriden_params_mixed(u8, u16, bigstring, s32, s64);
+   method_virtual_overridden_params_mixed(u8, u16, bigstring, s32, s64);
  end;
 
 constructor theritedvmtclass.constructor_params_mixed_call_static(
@@ -684,7 +684,7 @@ constructor theritedvmtclass.constructor_params_mixed_call_inherited
    inherited constructor_params_mixed(u8, u16, bigstring, s32, s64);
  end;
 
-procedure theritedvmtclass.method_virtual_overriden_params_mixed(
+procedure theritedvmtclass.method_virtual_overridden_params_mixed(
     u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
  begin
    object_u8bit := u8;
@@ -694,7 +694,7 @@ procedure theritedvmtclass.method_virtual_overriden_params_mixed(
    object_s64bit := s64;
  end;
 
-procedure theritedvmtclass.method_dynamic_overriden_params_mixed(
+procedure theritedvmtclass.method_dynamic_overridden_params_mixed(
     u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
  begin
    object_u8bit := u8;
@@ -717,10 +717,10 @@ procedure theritedvmtclass.method_normal_call_virtual_params_mixed(
     method_virtual_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
-procedure theritedvmtclass.method_normal_call_overriden_params_mixed(
+procedure theritedvmtclass.method_normal_call_overridden_params_mixed(
       u8 :byte; u16: word; bigstring: shortstring; s32: longint; s64: int64);
    begin
-    method_virtual_overriden_params_mixed(u8, u16, bigstring, s32, s64);
+    method_virtual_overridden_params_mixed(u8, u16, bigstring, s32, s64);
    end;
 
 
@@ -1166,7 +1166,7 @@ var
     failed := false;
 
     Write('Testing mixed parameter (LOC_CONSTANT) constructor call w/virtual call...');
-    vmtclass:=theritedvmtclass.constructor_params_mixed_call_overriden(RESULT_U8BIT,
+    vmtclass:=theritedvmtclass.constructor_params_mixed_call_overridden(RESULT_U8BIT,
        RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
     if vmtclass.object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -1195,7 +1195,7 @@ var
     value_bigstring := RESULT_BIGSTRING;
     value_s32bit := RESULT_S32BIT;
     value_s64bit := RESULT_S64BIT;
-    vmtclass:=theritedvmtclass.constructor_params_mixed_call_overriden(value_u8bit,
+    vmtclass:=theritedvmtclass.constructor_params_mixed_call_overridden(value_u8bit,
        value_u16bit, value_bigstring, value_s32bit, value_s64bit);
     if vmtclass.object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -1407,7 +1407,7 @@ var
 
     vmtclass:=theritedvmtclass.constructor_init;
     Write('Testing mixed parameter (LOC_CONSTANT) dynamic method call...');
-    vmtclass.method_dynamic_overriden_params_mixed(RESULT_U8BIT,
+    vmtclass.method_dynamic_overridden_params_mixed(RESULT_U8BIT,
        RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
     if vmtclass.object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -1437,7 +1437,7 @@ var
     value_bigstring := RESULT_BIGSTRING;
     value_s32bit := RESULT_S32BIT;
     value_s64bit := RESULT_S64BIT;
-    vmtclass.method_dynamic_overriden_params_mixed(value_u8bit,
+    vmtclass.method_dynamic_overridden_params_mixed(value_u8bit,
        value_u16bit, value_bigstring, value_s32bit, value_s64bit);
     if vmtclass.object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -1493,7 +1493,7 @@ var
 
     vmtclass:=theritedvmtclass.constructor_init;
     Write('Testing mixed parameter (LOC_CONSTANT) virtual method call...');
-    vmtclass.method_virtual_overriden_params_mixed(RESULT_U8BIT,
+    vmtclass.method_virtual_overridden_params_mixed(RESULT_U8BIT,
        RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
     if vmtclass.object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -1523,7 +1523,7 @@ var
     value_bigstring := RESULT_BIGSTRING;
     value_s32bit := RESULT_S32BIT;
     value_s64bit := RESULT_S64BIT;
-    vmtclass.method_virtual_overriden_params_mixed(value_u8bit,
+    vmtclass.method_virtual_overridden_params_mixed(value_u8bit,
        value_u16bit, value_bigstring, value_s32bit, value_s64bit);
     if vmtclass.object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -1712,10 +1712,10 @@ var
     else
       Writeln('Passed!');
 
-    { The virtual method has been overriden by the object in this case }
+    { The virtual method has been overridden by the object in this case }
     vmtclass:=theritedvmtclass.constructor_init;
     Write('Testing mixed parameter (LOC_CONSTANT) method call w/virtual call...');
-    vmtclass.method_normal_call_overriden_params_mixed(RESULT_U8BIT,
+    vmtclass.method_normal_call_overridden_params_mixed(RESULT_U8BIT,
        RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
     if vmtclass.object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -1745,7 +1745,7 @@ var
     value_bigstring := RESULT_BIGSTRING;
     value_s32bit := RESULT_S32BIT;
     value_s64bit := RESULT_S64BIT;
-    vmtclass.method_normal_call_overriden_params_mixed(value_u8bit,
+    vmtclass.method_normal_call_overridden_params_mixed(value_u8bit,
        value_u16bit, value_bigstring, value_s32bit, value_s64bit);
     if vmtclass.object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -2048,10 +2048,10 @@ var
     else
       Writeln('Passed!');
 
-    { The virtual method has been overriden by the object in this case }
+    { The virtual method has been overridden by the object in this case }
     vmtclass:=theritedvmtclass.constructor_init;
     Write('Testing mixed parameter (LOC_CONSTANT) virtual call w/virtual call...');
-    vmtclass.method_virtual_call_overriden_params_mixed(RESULT_U8BIT,
+    vmtclass.method_virtual_call_overridden_params_mixed(RESULT_U8BIT,
        RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
     if vmtclass.object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -2081,7 +2081,7 @@ var
     value_bigstring := RESULT_BIGSTRING;
     value_s32bit := RESULT_S32BIT;
     value_s64bit := RESULT_S64BIT;
-    vmtclass.method_virtual_call_overriden_params_mixed(value_u8bit,
+    vmtclass.method_virtual_call_overridden_params_mixed(value_u8bit,
        value_u16bit, value_bigstring, value_s32bit, value_s64bit);
     if vmtclass.object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -2643,7 +2643,7 @@ procedure testwith;
     failed := false;
 
     Write('Testing mixed parameter (LOC_CONSTANT) constructor call w/virtual call...');
-    vmtclass:=theritedvmtclass.constructor_params_mixed_call_overriden(RESULT_U8BIT,
+    vmtclass:=theritedvmtclass.constructor_params_mixed_call_overridden(RESULT_U8BIT,
        RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
     if object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -2672,7 +2672,7 @@ procedure testwith;
     value_bigstring := RESULT_BIGSTRING;
     value_s32bit := RESULT_S32BIT;
     value_s64bit := RESULT_S64BIT;
-    vmtclass:=theritedvmtclass.constructor_params_mixed_call_overriden(value_u8bit,
+    vmtclass:=theritedvmtclass.constructor_params_mixed_call_overridden(value_u8bit,
        value_u16bit, value_bigstring, value_s32bit, value_s64bit);
     if object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -2884,7 +2884,7 @@ procedure testwith;
 
     vmtclass:=theritedvmtclass.constructor_init;
     Write('Testing mixed parameter (LOC_CONSTANT) dynamic method call...');
-    method_dynamic_overriden_params_mixed(RESULT_U8BIT,
+    method_dynamic_overridden_params_mixed(RESULT_U8BIT,
        RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
     if object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -2914,7 +2914,7 @@ procedure testwith;
     value_bigstring := RESULT_BIGSTRING;
     value_s32bit := RESULT_S32BIT;
     value_s64bit := RESULT_S64BIT;
-    method_dynamic_overriden_params_mixed(value_u8bit,
+    method_dynamic_overridden_params_mixed(value_u8bit,
        value_u16bit, value_bigstring, value_s32bit, value_s64bit);
     if object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -2970,7 +2970,7 @@ procedure testwith;
 
     vmtclass:=theritedvmtclass.constructor_init;
     Write('Testing mixed parameter (LOC_CONSTANT) virtual method call...');
-    method_virtual_overriden_params_mixed(RESULT_U8BIT,
+    method_virtual_overridden_params_mixed(RESULT_U8BIT,
        RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
     if object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -3000,7 +3000,7 @@ procedure testwith;
     value_bigstring := RESULT_BIGSTRING;
     value_s32bit := RESULT_S32BIT;
     value_s64bit := RESULT_S64BIT;
-    method_virtual_overriden_params_mixed(value_u8bit,
+    method_virtual_overridden_params_mixed(value_u8bit,
        value_u16bit, value_bigstring, value_s32bit, value_s64bit);
     if object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -3189,10 +3189,10 @@ procedure testwith;
     else
       Writeln('Passed!');
 
-    { The virtual method has been overriden by the object in this case }
+    { The virtual method has been overridden by the object in this case }
     vmtclass:=theritedvmtclass.constructor_init;
     Write('Testing mixed parameter (LOC_CONSTANT) method call w/virtual call...');
-    method_normal_call_overriden_params_mixed(RESULT_U8BIT,
+    method_normal_call_overridden_params_mixed(RESULT_U8BIT,
        RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
     if object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -3222,7 +3222,7 @@ procedure testwith;
     value_bigstring := RESULT_BIGSTRING;
     value_s32bit := RESULT_S32BIT;
     value_s64bit := RESULT_S64BIT;
-    method_normal_call_overriden_params_mixed(value_u8bit,
+    method_normal_call_overridden_params_mixed(value_u8bit,
        value_u16bit, value_bigstring, value_s32bit, value_s64bit);
     if object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -3525,10 +3525,10 @@ procedure testwith;
     else
       Writeln('Passed!');
 
-    { The virtual method has been overriden by the object in this case }
+    { The virtual method has been overridden by the object in this case }
     vmtclass:=theritedvmtclass.constructor_init;
     Write('Testing mixed parameter (LOC_CONSTANT) virtual call w/virtual call...');
-    method_virtual_call_overriden_params_mixed(RESULT_U8BIT,
+    method_virtual_call_overridden_params_mixed(RESULT_U8BIT,
        RESULT_U16BIT, RESULT_BIGSTRING, RESULT_S32BIT, RESULT_S64BIT);
     if object_u8bit <> RESULT_U8BIT then
       failed := true;
@@ -3558,7 +3558,7 @@ procedure testwith;
     value_bigstring := RESULT_BIGSTRING;
     value_s32bit := RESULT_S32BIT;
     value_s64bit := RESULT_S64BIT;
-    method_virtual_call_overriden_params_mixed(value_u8bit,
+    method_virtual_call_overridden_params_mixed(value_u8bit,
        value_u16bit, value_bigstring, value_s32bit, value_s64bit);
     if object_u8bit <> RESULT_U8BIT then
       failed := true;

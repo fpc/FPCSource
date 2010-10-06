@@ -88,7 +88,7 @@ begin
   //load our ball pcx file into an image
   loadPCX(pcuint8(ball_pcx), @ball);
 
-  //tile it so it is usefull as sprite data
+  //tile it so it is useful as sprite data
   imageTileData(@ball);
 
   // Sprite initialisation

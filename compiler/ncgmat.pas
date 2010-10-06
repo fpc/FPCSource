@@ -35,7 +35,7 @@ interface
            floating point value in the floating point
            register r.
 
-           This routine should be overriden, since
+           This routine should be overridden, since
            the generic version is not optimal at all. The
            generic version assumes that floating
            point values are stored in the register
@@ -277,7 +277,7 @@ implementation
     procedure tcgmoddivnode.emit64_div_reg_reg(signed: boolean; denum,num:tregister64);
       begin
         { handled in pass_1 already, unless pass_1 is
-          overriden
+          overridden
         }
         { should be handled in pass_1 (JM) }
         internalerror(200109052);

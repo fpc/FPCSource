@@ -6380,7 +6380,7 @@ const
  *    performed (kQTPropertyClass_Visual /
  *    kQTVisualPropertyID_ApertureMode). When a movie is in clean,
  *    production or encoded pixels aperture mode, each track's
- *    dimensions are overriden by special dimensions for that mode. The
+ *    dimensions are overridden by special dimensions for that mode. The
  *    original track dimensions are preserved and can be restored by
  *    setting the movie into classic aperture mode. Aperture modes are
  *    not saved in movies. 

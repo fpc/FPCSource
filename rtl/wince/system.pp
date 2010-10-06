@@ -101,7 +101,7 @@ function RemoveDirectory(name:pointer):longbool;
 
 
 {$ifdef CPUARM}
-{ the external directive isn't really necessary here because it is overriden by external (FK) }
+{ the external directive isn't really necessary here because it is overridden by external (FK) }
 
 function addd(d1,d2 : double) : double; compilerproc;
    cdecl;external 'coredll' name '__addd';

@@ -60,7 +60,7 @@ interface
         procedure MakeObject;virtual;abstract;
       end;
 
-      {# This is the base class which should be overriden for each each
+      {# This is the base class which should be overridden for each each
          assembler writer. It is used to actually assembler a file,
          and write the output to the assembler file.
       }
@@ -115,11 +115,11 @@ interface
         procedure AsmCreate(Aplace:tcutplace);
         procedure AsmClose;
 
-        {# This routine should be overriden for each assembler, it is used
+        {# This routine should be overridden for each assembler, it is used
            to actually write the abstract assembler stream to file.}
         procedure WriteTree(p:TAsmList);virtual;
 
-        {# This routine should be overriden for each assembler, it is used
+        {# This routine should be overridden for each assembler, it is used
            to actually write all the different abstract assembler streams
            by calling for each stream type, the @var(WriteTree) method.}
         procedure WriteAsmList;virtual;

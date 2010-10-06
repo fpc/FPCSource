@@ -77,7 +77,7 @@
 #ENDIF
 
     This adds the search path for the rtl-units as well as for the needed import-files.
-    You can use the import files from the rtl/netware directory, they are automaticly
+    You can use the import files from the rtl/netware directory, they are automatically
     installed. If you want to use import files from novell, be aware that you have to
     convert the files to unix format (i.e. with dos2unix).
 
@@ -138,7 +138,7 @@
       searching import files via the specified library path (-Fl). If you plan to use
       import files from novell be aware that they have to be converted from CR/LF to
       LF only. The script 'convertimp' in rtl/netware/nwimp will do that.
-      If a module name is specified in an import, the module is automaticly
+      If a module name is specified in an import, the module is automatically
       declared as autoload by FreePascal.
 
       I.e. the following declaration needs nlmlib.imp and sets nlmlib.nlm as autoload:

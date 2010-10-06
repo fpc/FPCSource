@@ -21,7 +21,7 @@
 }
 { @abstract(This unit implements an abstract asm output class for all processor types)
   This unit implements an abstract assembler output class for all processors, these
-  are then overriden for each assembler writer to actually write the data in these
+  are then overridden for each assembler writer to actually write the data in these
   classes to an assembler file.
 }
 

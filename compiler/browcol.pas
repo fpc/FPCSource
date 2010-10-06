@@ -1484,7 +1484,7 @@ end;
   procedure ProcessDefIfStruct(definition: tdef);
   begin
     { still led to infinite recursions
-      only usefull for unamed types PM }
+      only useful for unamed types PM }
     if assigned(definition) and not assigned(definition.typesym) then
     begin
       case definition.typ of

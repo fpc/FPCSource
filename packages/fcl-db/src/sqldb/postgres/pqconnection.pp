@@ -697,7 +697,7 @@ begin
     begin
     x := FieldBinding[FieldDef.FieldNo-1];
 
-    // Joost, 5 jan 2006: I disabled the following, since it's usefull for
+    // Joost, 5 jan 2006: I disabled the following, since it's useful for
     // debugging, but it also slows things down. In principle things can only go
     // wrong when FieldDefs is changed while the dataset is opened. A user just
     // shoudn't do that. ;) (The same is done in IBConnection)

@@ -1528,7 +1528,7 @@ type_w_signed_unsigned_always_true=04045_W_Comparação será sempre verdadeira 
 type_w_instance_with_abstract=04046_W_Construindo uma classe "$1" com método abstrato "$2"
 % An instance of a class is created which contains non-implemented abstract
 % methods. This will probably lead to a runtime error 211 in the code if that
-% routine is ever called. All abstract methods should be overriden.
+% routine is ever called. All abstract methods should be overridden.
 type_h_in_range_check=04047_H_O operador esquerdo em um operador 'IN' deve ser tamanho byte
 % The left operand of the \var{in} operator is not an ordinal or enumeration which fits
 % within 8 bits. This may lead to range check errors. The \var{in} operator

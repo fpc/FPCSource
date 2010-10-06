@@ -724,7 +724,7 @@ begin
 end;
 
 Function  THTMLTopicRenderer.CanonicalizeURL(const Base,Relative:String):string;
-// uses info from filesystem (curdir) -> overriden for CHM.
+// uses info from filesystem (curdir) -> overridden for CHM.
 begin
  CanonicalizeURL:=CompleteURL(Base,relative);
 end;

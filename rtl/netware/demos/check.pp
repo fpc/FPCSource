@@ -18,7 +18,7 @@
 {$Copyright (c) 2002 the FreePascal development team}
 
 
-{ using crt automaticly calls _SetAutoScreenDestructionMode (TRUE);
+{ using crt automatically calls _SetAutoScreenDestructionMode (TRUE);
   so no "Press any key to close screeen" will be shown by netware }
 uses crt;
 

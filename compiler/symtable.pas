@@ -1281,7 +1281,7 @@ implementation
             exit;
           end;
 
-        { check also parasymtable, this needs to be done here becuase
+        { check also parasymtable, this needs to be done here because
           of the special situation with the funcret sym that needs to be
           hidden for tp and delphi modes }
         hsym:=tsym(tabstractprocdef(defowner).parast.FindWithHash(hashedid));

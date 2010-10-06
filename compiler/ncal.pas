@@ -2216,7 +2216,7 @@ implementation
             (tabstractvarsym(tloadnode(realassignmenttarget).symtableentry).varregable in [vr_none,vr_addr])
            ) then
           begin
-            { If the funcret is also used as a parameter we can't optimize becuase the funcret
+            { If the funcret is also used as a parameter we can't optimize because the funcret
               and the parameter will point to the same address. That means that a change of the result variable
               will result also in a change of the parameter value }
             result:=not foreachnodestatic(left,@check_funcret_used_as_para,tloadnode(realassignmenttarget).symtableentry);
@@ -2434,7 +2434,7 @@ implementation
         end;
         { now all parents are in the correct order
           insert all abstract methods in the list, and remove
-          those which are overriden by parent classes.
+          those which are overridden by parent classes.
         }
         objectinfo:=tobjectinfoitem(parents.first);
         while assigned(objectinfo) do

@@ -18,7 +18,7 @@ type
   tDevice_name = String[Device_name_length];
   tUser_name = String[User_name_length];
   tHost_name = String[Host_name_length];
-  tLogin_type = (Unkown, Run_level, Boot_time, New_time, Old_time,
+  tLogin_type = (Unknown, Run_level, Boot_time, New_time, Old_time,
     Init_process, Login_process, User_process, Dead_process);
   tLogin_types = set of tLogin_type;
   tParameter_type = (Include, Exclude);
@@ -38,9 +38,9 @@ type
 Const
   DefaultLoginType : TLogin_Types = [User_Process];
   Login_type_names : array [TLogin_type] of string[20] =
-  ('Unkown', 'Run level', 'Boot time','New time', 'Old time',
+  ('Unknown', 'Run level', 'Boot time','New time', 'Old time',
     'Init process', 'Login process', 'User process', 'Dead process');
- All_Login_types : TLogin_types = [Unkown, Run_level, Boot_time, New_time, Old_time,
+ All_Login_types : TLogin_types = [Unknown, Run_level, Boot_time, New_time, Old_time,
     Init_process, Login_process, User_process, Dead_process];
 
 procedure Read_logged_users;

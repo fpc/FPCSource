@@ -21,7 +21,7 @@
 }
 { @abstract(This unit implements an abstract asm output class for all processor types)
   This unit implements an abstract assembler output class for all processors, these
-  are then overriden for each assembler writer to actually write the data in these
+  are then overridden for each assembler writer to actually write the data in these
   classes to an assembler file.
 }
 
@@ -2154,7 +2154,7 @@ implementation
 
     function tai_cpu_abstract.is_same_reg_move(regtype: Tregistertype):boolean;
       begin
-        { When the generic RA is used this needs to be overriden, we don't use
+        { When the generic RA is used this needs to be overridden, we don't use
           virtual;abstract; to prevent a lot of warnings of unimplemented abstract methods
           when tai_cpu is created (PFV) }
         internalerror(200404091);
