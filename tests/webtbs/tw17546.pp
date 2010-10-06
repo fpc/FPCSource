@@ -1,4 +1,4 @@
-{ %opt=-gh }
+{ %opt=-gh }
 
 {$MODE OBJFPC}
 
