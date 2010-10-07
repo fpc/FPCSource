@@ -51,7 +51,7 @@ interface
           procedure printnodeinfo(var t : text);override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
-          function simplify:tnode; override;
+          function simplify(forinline : boolean):tnode; override;
           procedure mark_write;override;
           function docompare(p: tnode) : boolean; override;
           function retains_value_location:boolean;
@@ -1752,7 +1752,7 @@ implementation
               te_exact,
               te_equal :
                 begin
-                  result := simplify;
+                  result := simplify(false);
                   if assigned(result) then
                     exit;
 
@@ -2011,7 +2011,7 @@ implementation
           simplify does not do }
         if (convtype<>tc_cord_2_pointer) then
           begin
-            result := simplify;
+            result := simplify(false);
             if assigned(result) then
               exit;
           end;
@@ -2137,7 +2137,7 @@ implementation
 {$endif not cpu64bitalu}
 
 
-    function ttypeconvnode.simplify: tnode;
+    function ttypeconvnode.simplify(forinline : boolean): tnode;
       var
         hp: tnode;
 {$ifndef cpu64bitalu}

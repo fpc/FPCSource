@@ -75,7 +75,7 @@ interface
        tinnode = class(tbinopnode)
           constructor create(l,r : tnode);virtual;reintroduce;
           function pass_typecheck:tnode;override;
-          function simplify:tnode;override;
+          function simplify(forinline : boolean):tnode;override;
           function pass_1 : tnode;override;
        end;
        tinnodeclass = class of tinnode;
@@ -305,11 +305,11 @@ implementation
             exit;
           end;
 
-         result:=simplify;
+         result:=simplify(false);
       end;
 
 
-    function tinnode.simplify:tnode;
+    function tinnode.simplify(forinline : boolean):tnode;
       var
         t : tnode;
       begin

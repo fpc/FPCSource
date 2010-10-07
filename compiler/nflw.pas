@@ -86,7 +86,7 @@ interface
           constructor create(l,r,_t1 : tnode);virtual;reintroduce;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
-          function simplify : tnode;override;
+          function simplify(forinline : boolean) : tnode;override;
          private
           function internalsimplify(warn: boolean) : tnode;
        end;
@@ -102,7 +102,7 @@ interface
           procedure loop_var_access(not_type:Tnotification_flag;symbol:Tsym);
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
-          function simplify : tnode;override;
+          function simplify(forinline : boolean) : tnode;override;
        end;
        tfornodeclass = class of tfornode;
 
@@ -187,7 +187,7 @@ interface
           constructor create_implicit(l,r,_t1:tnode);virtual;
           function pass_typecheck:tnode;override;
           function pass_1 : tnode;override;
-          function simplify: tnode;override;
+          function simplify(forinline:boolean): tnode;override;
        end;
        ttryfinallynodeclass = class of ttryfinallynode;
 
@@ -1342,7 +1342,7 @@ implementation
       end;
 
 
-    function tifnode.simplify : tnode;
+    function tifnode.simplify(forinline : boolean) : tnode;
       begin
         result:=internalsimplify(false);
       end;
@@ -1433,7 +1433,7 @@ implementation
     end;
 
 
-    function tfornode.simplify : tnode;
+    function tfornode.simplify(forinline : boolean) : tnode;
       begin
         result:=nil;
         if (t1.nodetype=ordconstn) and
@@ -2015,7 +2015,7 @@ implementation
       end;
 
 
-   function ttryfinallynode.simplify: tnode;
+   function ttryfinallynode.simplify(forinline : boolean): tnode;
      begin
        result:=nil;
        { if the try contains no code, we can kill

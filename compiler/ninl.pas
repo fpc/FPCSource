@@ -39,7 +39,7 @@ interface
           function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
-          function simplify: tnode;override;
+          function simplify(forinline : boolean): tnode;override;
           function docompare(p: tnode): boolean; override;
 
           { pack and unpack are changed into for-loops by the compiler }
@@ -1350,7 +1350,7 @@ implementation
       end;
 
 
-    function tinlinenode.simplify: tnode;
+    function tinlinenode.simplify(forinline : boolean): tnode;
 
       function do_lowhigh(def:tdef) : tnode;
         var
@@ -1545,14 +1545,14 @@ implementation
                case inlinenumber of
                  in_const_abs :
                    if vl.signed then
-                     hp:=genintconstnode(abs(vl.svalue))
+                     hp:=create_simplified_ord_const(abs(vl.svalue),resultdef,forinline)
                    else
-                     hp:=genintconstnode(vl.uvalue);
+                     hp:=create_simplified_ord_const(vl.uvalue,resultdef,forinline);
                  in_const_sqr:
                    if vl.signed then
-                     hp:=genintconstnode(sqr(vl.svalue))
+                     hp:=create_simplified_ord_const(sqr(vl.svalue),resultdef,forinline)
                    else
-                     hp:=genintconstnode(sqr(vl.uvalue));
+                     hp:=create_simplified_ord_const(sqr(vl.uvalue),resultdef,forinline);
                  in_const_odd :
                    hp:=cordconstnode.create(qword(odd(int64(vl))),booltype,true);
                  in_const_swap_word :
@@ -1741,8 +1741,9 @@ implementation
                         vl:=tordconstnode(left).value-1;
                       if is_integer(left.resultdef) then
                       { the type of the original integer constant is irrelevant,
-                        it should be automatically adapted to the new value }
-                        result:=genintconstnode(vl)
+                        it should be automatically adapted to the new value
+                        (except when inlining) }
+                        result:=create_simplified_ord_const(vl,resultdef,forinline)
                       else
                         { check the range for enums, chars, booleans }
                         result:=cordconstnode.create(vl,left.resultdef,true)
@@ -1815,7 +1816,9 @@ implementation
                 end;
               in_round_real :
                 begin
-                  if left.nodetype in [ordconstn,realconstn] then
+                  { can't evaluate while inlining, may depend on fpu setting }
+                  if (not forinline) and
+                     (left.nodetype in [ordconstn,realconstn]) then
                     begin
                       vr:=getconstrealvalue;
                       if (vr>=9223372036854775807.5) or (vr<=-9223372036854775808.5) then
@@ -2612,7 +2615,7 @@ implementation
 
         if not assigned(result) and not
            codegenerror then
-          result:=simplify;
+          result:=simplify(false);
       end;
 
 

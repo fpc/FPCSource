@@ -337,7 +337,7 @@ interface
 
          { tries to simplify the node, returns a value <>nil if a simplified
            node has been created }
-         function simplify : tnode;virtual;
+         function simplify(forinline : boolean) : tnode;virtual;
 {$ifdef state_tracking}
          { Does optimizations by keeping track of the variable states
            in a procedure }
@@ -807,7 +807,7 @@ implementation
       end;
 
 
-    function tnode.simplify : tnode;
+    function tnode.simplify(forinline : boolean) : tnode;
       begin
         result:=nil;
       end;

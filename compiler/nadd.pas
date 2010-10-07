@@ -44,7 +44,7 @@ interface
           procedure derefimpl;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
-          function simplify : tnode;override;
+          function simplify(forinline: boolean) : tnode;override;
           function dogetcopy : tnode;override;
           function docompare(p: tnode): boolean; override;
     {$ifdef state_tracking}
@@ -173,7 +173,7 @@ implementation
       end;
 
 
-    function taddnode.simplify : tnode;
+    function taddnode.simplify(forinline : boolean) : tnode;
       var
         t, hp   : tnode;
         lt,rt   : tnodetype;
@@ -277,7 +277,7 @@ implementation
                      t := cpointerconstnode.create(qword(v),resultdef)
                    else
                      if is_integer(ld) then
-                       t := genintconstnode(v)
+                       t := create_simplified_ord_const(v,resultdef,forinline)
                      else
                        t := cordconstnode.create(v,resultdef,(ld.typ<>enumdef));
                  end;
@@ -296,13 +296,13 @@ implementation
                        begin
                          if not(nf_has_pointerdiv in flags) then
                            internalerror(2008030101);
-                         t := genintconstnode(v)
+                         t := cpointerconstnode.create(qword(v),resultdef)
                        end
                      else
                        t := cpointerconstnode.create(qword(v),resultdef)
                    else
                      if is_integer(ld) then
-                       t:=genintconstnode(v)
+                       t := create_simplified_ord_const(v,resultdef,forinline)
                      else
                        t:=cordconstnode.create(v,resultdef,(ld.typ<>enumdef));
                  end;
@@ -316,21 +316,21 @@ implementation
                        t:=genintconstnode(0)
                      end
                    else
-                     t:=genintconstnode(v)
+                     t := create_simplified_ord_const(v,resultdef,forinline)
                  end;
                xorn :
                  if is_integer(ld) then
-                   t:=genintconstnode(lv xor rv)
+                   t := create_simplified_ord_const(lv xor rv,resultdef,forinline)
                  else
                    t:=cordconstnode.create(lv xor rv,resultdef,true);
                orn :
                  if is_integer(ld) then
-                   t:=genintconstnode(lv or rv)
+                   t:=create_simplified_ord_const(lv or rv,resultdef,forinline)
                  else
                    t:=cordconstnode.create(lv or rv,resultdef,true);
                andn :
                  if is_integer(ld) then
-                   t:=genintconstnode(lv and rv)
+                   t:=create_simplified_ord_const(lv and rv,resultdef,forinline)
                  else
                    t:=cordconstnode.create(lv and rv,resultdef,true);
                ltn :
@@ -1890,7 +1890,7 @@ implementation
 
          if not codegenerror and
             not assigned(result) then
-           result:=simplify;
+           result:=simplify(false);
       end;
 
 

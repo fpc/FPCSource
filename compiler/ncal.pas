@@ -3269,12 +3269,12 @@ implementation
          if assigned(callinitblock) then
            begin
              typecheckpass(tnode(callinitblock));
-             dosimplify(tnode(callinitblock));
+             doinlinesimplify(tnode(callinitblock));
            end;
          if assigned(callcleanupblock) then
            begin
              typecheckpass(tnode(callcleanupblock));
-             dosimplify(tnode(callcleanupblock));
+             doinlinesimplify(tnode(callcleanupblock));
            end;
 
          { Continue with checking a normal call or generate the inlined code }
@@ -3770,7 +3770,7 @@ implementation
           again inside the args or itself }
         exclude(procdefinition.procoptions,po_inline);
         typecheckpass(tnode(inlineblock));
-        dosimplify(tnode(inlineblock));
+        doinlinesimplify(tnode(inlineblock));
         firstpass(tnode(inlineblock));
         include(procdefinition.procoptions,po_inline);
         result:=inlineblock;

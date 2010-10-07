@@ -73,7 +73,7 @@ interface
           function dogetcopy : tnode;override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
-          function simplify : tnode;override;
+          function simplify(forinline : boolean) : tnode;override;
        {$ifdef state_tracking}
           function track_state_pass(exec_known:boolean):boolean;override;
        {$endif state_tracking}
@@ -493,7 +493,7 @@ implementation
       end;
 
 
-    function tassignmentnode.simplify : tnode;
+    function tassignmentnode.simplify(forinline : boolean) : tnode;
       begin
         result:=nil;
         { assignment nodes can perform several floating point }

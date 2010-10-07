@@ -70,7 +70,7 @@ interface
 
        tstatementnode = class(tbinarynode)
           constructor create(l,r : tnode);virtual;
-          function simplify : tnode; override;
+          function simplify(forinline : boolean) : tnode; override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
           procedure printnodetree(var t:text);override;
@@ -82,7 +82,7 @@ interface
        tblocknode = class(tunarynode)
           constructor create(l : tnode);virtual;
           destructor destroy; override;
-          function simplify : tnode; override;
+          function simplify(forinline : boolean) : tnode; override;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
 {$ifdef state_tracking}
@@ -333,7 +333,7 @@ implementation
       end;
 
 
-    function tstatementnode.simplify : tnode;
+    function tstatementnode.simplify(forinline: boolean) : tnode;
       begin
         result:=nil;
         { these "optimizations" are only to make it more easy to recognise    }
@@ -456,7 +456,7 @@ implementation
       end;
 
 
-    function tblocknode.simplify: tnode;
+    function tblocknode.simplify(forinline : boolean): tnode;
       begin
         result := nil;
         { Warning: never replace a blocknode with another node type,      }

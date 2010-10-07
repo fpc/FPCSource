@@ -32,7 +32,7 @@ interface
        tmoddivnode = class(tbinopnode)
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
-          function simplify : tnode;override;
+          function simplify(forinline : boolean) : tnode;override;
          protected
 {$ifndef cpu64bitalu}
           { override the following if you want to implement }
@@ -47,7 +47,7 @@ interface
        tshlshrnode = class(tbinopnode)
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
-          function simplify : tnode;override;
+          function simplify(forinline : boolean) : tnode;override;
 {$ifndef cpu64bitalu}
           { override the following if you want to implement }
           { parts explicitely in the code generator (CEC)
@@ -63,7 +63,7 @@ interface
           constructor create(expr : tnode);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
-          function simplify : tnode;override;
+          function simplify(forinline : boolean) : tnode;override;
        end;
        tunaryminusnodeclass = class of tunaryminusnode;
 
@@ -71,7 +71,7 @@ interface
           constructor create(expr : tnode);virtual;
           function pass_1 : tnode;override;
           function pass_typecheck:tnode;override;
-          function simplify : tnode;override;
+          function simplify(forinline : boolean) : tnode;override;
        {$ifdef state_tracking}
           function track_state_pass(exec_known:boolean):boolean;override;
        {$endif}
@@ -101,7 +101,7 @@ implementation
                               TMODDIVNODE
  ****************************************************************************}
 
-    function tmoddivnode.simplify:tnode;
+    function tmoddivnode.simplify(forinline : boolean):tnode;
       var
         t : tnode;
         rv,lv : tconstexprint;
@@ -135,9 +135,9 @@ implementation
 
             case nodetype of
               modn:
-                t:=genintconstnode(lv mod rv);
+                t:=create_simplified_ord_const(lv mod rv,resultdef,forinline);
               divn:
-                t:=genintconstnode(lv div rv);
+                t:=create_simplified_ord_const(lv div rv,resultdef,forinline);
             end;
             result:=t;
             exit;
@@ -162,7 +162,7 @@ implementation
          maybe_call_procvar(left,true);
          maybe_call_procvar(right,true);
 
-         result:=simplify;
+         result:=simplify(false);
          if assigned(result) then
            exit;
 
@@ -451,7 +451,7 @@ implementation
                               TSHLSHRNODE
  ****************************************************************************}
 
-    function tshlshrnode.simplify:tnode;
+    function tshlshrnode.simplify(forinline : boolean):tnode;
       var
         t : tnode;
       begin
@@ -461,9 +461,9 @@ implementation
           begin
              case nodetype of
                 shrn:
-                  t:=genintconstnode(tordconstnode(left).value shr tordconstnode(right).value);
+                  t:=create_simplified_ord_const(tordconstnode(left).value shr tordconstnode(right).value,resultdef,forinline);
                 shln:
-                  t:=genintconstnode(tordconstnode(left).value shl tordconstnode(right).value);
+                  t:=create_simplified_ord_const(tordconstnode(left).value shl tordconstnode(right).value,resultdef,forinline);
              end;
              result:=t;
              exit;
@@ -488,7 +488,7 @@ implementation
          maybe_call_procvar(left,true);
          maybe_call_procvar(right,true);
 
-         result:=simplify;
+         result:=simplify(false);
          if assigned(result) then
            exit;
 
@@ -582,13 +582,13 @@ implementation
       end;
 
 
-    function tunaryminusnode.simplify:tnode;
+    function tunaryminusnode.simplify(forinline : boolean):tnode;
       begin
         result:=nil;
         { constant folding }
         if is_constintnode(left) then
           begin
-             result:=genintconstnode(-tordconstnode(left).value);
+             result:=create_simplified_ord_const(-tordconstnode(left).value,resultdef,forinline);
              exit;
           end;
         if is_constrealnode(left) then
@@ -612,7 +612,7 @@ implementation
          if codegenerror then
            exit;
 
-         result:=simplify;
+         result:=simplify(false);
          if assigned(result) then
            exit;
 
@@ -746,7 +746,7 @@ implementation
       end;
 
 
-    function tnotnode.simplify:tnode;
+    function tnotnode.simplify(forinline : boolean):tnode;
       var
         v : tconstexprint;
         t : tnode;
@@ -824,7 +824,10 @@ implementation
                else
                  CGMessage(type_e_mismatch);
              end;
-             t:=cordconstnode.create(v,def,false);
+             if not forinline then
+               t:=cordconstnode.create(v,def,false)
+             else
+               t:=create_simplified_ord_const(v,resultdef,true);
              result:=t;
              exit;
           end;
@@ -846,7 +849,7 @@ implementation
 
          resultdef:=left.resultdef;
 
-         result:=simplify;
+         result:=simplify(false);
          if assigned(result) then
            exit;
 

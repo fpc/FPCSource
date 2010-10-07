@@ -26,7 +26,7 @@ unit nutils;
 interface
 
   uses
-    globtype,
+    globtype,constexp,
     symtype,symsym,symbase,symtable,
     node;
 
@@ -80,8 +80,16 @@ interface
     function node_resources_fpu(p: tnode): cardinal;
     procedure node_tree_set_filepos(var n:tnode;const filepos:tfileposinfo);
 
-    { tries to simplify the given node }
-    procedure dosimplify(var n : tnode);
+    { tries to simplify the given node after inlining }
+    procedure doinlinesimplify(var n : tnode);
+    { creates an ordinal constant, optionally based on the result from a
+      simplify operation: normally the type is the smallest integer type
+      that can hold the value, but when inlining the "def" will be used instead,
+      which was determined during an earlier typecheck pass (because the value
+      may e.g. be a parameter to a call, which needs to be of the declared
+      parameter type) }
+    function create_simplified_ord_const(value: tconstexprint; def: tdef; forinline: boolean): tnode;
+
 
     { returns true if n is only a tree of administrative nodes
       containing no code }
@@ -105,7 +113,7 @@ interface
 implementation
 
     uses
-      cutils,verbose,constexp,globals,
+      cutils,verbose,globals,
       symconst,symdef,
       defutil,defcmp,
       nbas,ncon,ncnv,nld,nflw,nset,ncal,nadd,nmem,ninl,
@@ -970,7 +978,7 @@ implementation
            not (lnf_simplify_processing in tloopnode(n).loopflags) then
           begin
             // Try to simplify condition
-            dosimplify(tloopnode(n).left);
+            doinlinesimplify(tloopnode(n).left);
             // call directly second part below,
             // which might change the loopnode into
             // something else if the conditino is a constant node
@@ -982,7 +990,7 @@ implementation
           end
         else
           begin
-            hn:=n.simplify;
+            hn:=n.simplify(true);
             if assigned(hn) then
               begin
                 treechanged := arg;
@@ -999,7 +1007,7 @@ implementation
 
 
     { tries to simplify the given node calling the simplify method recursively }
-    procedure dosimplify(var n : tnode);
+    procedure doinlinesimplify(var n : tnode);
       var
         treechanged : boolean;
       begin
@@ -1008,6 +1016,15 @@ implementation
           treechanged:=false;
           foreachnodestatic(pm_postandagain,n,@callsimplify,@treechanged);
         until not(treechanged);
+      end;
+
+
+    function create_simplified_ord_const(value: tconstexprint; def: tdef; forinline: boolean): tnode;
+      begin
+        if not forinline then
+          result:=genintconstnode(value)
+        else
+          result:=cordconstnode.create(value,def,cs_check_range in current_settings.localswitches);
       end;
 
 

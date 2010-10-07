@@ -195,7 +195,7 @@ implementation
                    begin
                      { inlining happens in pass_1 and can cause new }
                      { simplify opportunities                       }
-                     hp:=p.simplify;
+                     hp:=p.simplify(true);
                      if assigned(hp) then
                        begin
                          p.free;
