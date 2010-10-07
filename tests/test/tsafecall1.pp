@@ -1,16 +1,14 @@
-program test;
 { %TARGET=win32,win64,wince}
 {$ifdef fpc}
 {$mode objfpc}
 {$endif}
 uses
-  SysUtils,classes;
+  SysUtils;
 type
-  TTest = class(TComponent)
+  TTest = class
   public
     procedure SomeError; safecall;
     function SafeCallException(ExceptObject: TObject; ExceptAddr: Pointer): HResult; override;
-    procedure QueryInterface(constref IID: TGUID; out Obj): Hresult; override; cdecl;
   end;
 
 var
