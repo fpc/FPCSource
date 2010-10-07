@@ -37,7 +37,7 @@ define these parameters.
 Some examples for tags with these above, StartDelimiter:='{+' and 
 EndDelimiter:='+}' 
 (the default '{' and '}' is not good when processing HTML templates with 
-JavaSript in them):
+JavaScript in them):
 
 {+ATagHere+}  //Tag name: ATagHere
 
