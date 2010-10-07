@@ -10,18 +10,18 @@ type
   TTestBE = class (TObject, ITest)
     function TestIt: integer;
     { IInterface }
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
-    function QueryInterface(const IID: TGUID; out Obj): HResult; virtual; stdcall;
+    function _AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function QueryInterface(constref IID: TGUID; out Obj): HResult; virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   End;
 
   TTest = class (TPersistent, IInterface)
     BE : TTestBE;
     protected
     { IInterface }
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
-    function QueryInterface(const IID: TGUID; out Obj): HResult; virtual; stdcall;
+    function _AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function QueryInterface(constref IID: TGUID; out Obj): HResult; virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   End;
 
 function TTestBE.TestIt : integer;
@@ -39,7 +39,7 @@ begin
   Result := -1;
 end;
 
-function TTest.QueryInterface(const IID: TGUID; out Obj): HResult;
+function TTest.QueryInterface(constref IID: TGUID; out Obj): HResult;
 begin
   Result := BE.QueryInterface(IID, obj);
 end;
@@ -54,7 +54,7 @@ begin
   Result := -1;
 end;
 
-function TTestBE.QueryInterface(const IID: TGUID; out Obj): HResult;
+function TTestBE.QueryInterface(constref IID: TGUID; out Obj): HResult;
 begin
   if GetInterface(IID, Obj)
     then Result := 0

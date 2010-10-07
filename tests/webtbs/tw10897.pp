@@ -22,9 +22,9 @@ type
     fRef: Integer;
   public
     function GetOwner: IMyIntf;
-    function QueryInterface(const IID: TGUID; out Obj): HRESULT; stdcall;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
+    function QueryInterface(constref IID: TGUID; out Obj): HRESULT; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
     procedure Poing;
   end;
  
@@ -52,7 +52,7 @@ begin
   Writeln('GetOwner2');
 end;
  
-function TMYClass.QueryInterface(const IID: TGUID; out Obj): HRESULT;
+function TMYClass.QueryInterface(constref IID: TGUID; out Obj): HRESULT;
 begin
   if GetInterface(IID, Obj) then
     result := S_OK else result := -1;

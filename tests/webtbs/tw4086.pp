@@ -19,9 +19,9 @@ type
  
  ttestclass1 = class(tobject,itest)
   public
-   function queryinterface(const guid: tguid; out obj): hresult; stdcall;
-   function _addref: integer; stdcall;
-   function _release: integer; stdcall;
+   function queryinterface(constref guid: tguid; out obj): hresult; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+   function _addref: integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+   function _release: integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
    procedure testproc;
  end;
 
@@ -32,19 +32,19 @@ type
  
 { ttestclass1 }
 
-function ttestclass1.queryinterface(const guid: tguid; out obj): hresult; stdcall;
+function ttestclass1.queryinterface(constref guid: tguid; out obj): hresult; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
  result:= integer(e_nointerface);
 end;
 
-function ttestclass1._addref: integer; stdcall;
+function ttestclass1._addref: integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
  writeln('addref called');
 // result:= inherited _addref;
  result:= -1;
 end;
 
-function ttestclass1._release: integer; stdcall;
+function ttestclass1._release: integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
  writeln('release called');
 // result:= inherited _release;
