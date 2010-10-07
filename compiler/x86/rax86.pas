@@ -232,8 +232,13 @@ begin
          not assigned(opr.ref.relsymbol) and
          (opr.ref.refaddr<>addr_pic) then
         begin
-          message(asmr_e_need_pic_ref);
-          result:=false;
+          if (opr.ref.symbol.name <> '_GLOBAL_OFFSET_TABLE_') then
+            begin 
+              message(asmr_e_need_pic_ref);
+              result:=false;
+            end
+          else
+            opr.ref.refaddr:=addr_pic;
         end;
     end;
 end;

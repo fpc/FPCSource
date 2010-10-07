@@ -935,6 +935,31 @@ implementation
       end;
 
 
+
+    { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
+
+    procedure maybe_load_got;
+{$ifdef i386}
+       var
+         gotvarsym : tstaticvarsym;
+{$endif i386}
+      begin
+{$ifdef i386}
+         if (cs_create_pic in current_settings.moduleswitches) and
+            (tf_pic_uses_got in target_info.flags) then
+           begin
+             { insert symbol for got access in assembler code}
+             gotvarsym:=tstaticvarsym.create('_GLOBAL_OFFSET_TABLE_',
+                          vs_value,voidpointertype,[vo_is_external]);
+             gotvarsym.set_mangledname('_GLOBAL_OFFSET_TABLE_');
+             current_module.localsymtable.insert(gotvarsym);
+             { avoid unnecessary warnings }
+             gotvarsym.varstate:=vs_read;
+             gotvarsym.refs:=1;
+           end;
+{$endif i386}
+      end;
+
     function gen_implicit_initfinal(flag:word;st:TSymtable):tcgprocinfo;
       begin
         { update module flags }
@@ -1049,9 +1074,6 @@ implementation
          finalize_procinfo : tcgprocinfo;
          unitname8 : string[8];
          ag: boolean;
-{$ifdef i386}
-         gotvarsym : tstaticvarsym;
-{$endif i386}
 {$ifdef debug_devirt}
          i: longint;
 {$endif debug_devirt}
@@ -1215,18 +1237,8 @@ implementation
          { create static symbol table }
          current_module.localsymtable:=tstaticsymtable.create(current_module.modulename^,current_module.moduleid);
 
-{$ifdef i386}
-         if cs_create_pic in current_settings.moduleswitches then
-           begin
-             { insert symbol for got access in assembler code}
-             gotvarsym:=tstaticvarsym.create('_GLOBAL_OFFSET_TABLE_',vs_value,voidpointertype,[vo_is_external]);
-             gotvarsym.set_mangledname('_GLOBAL_OFFSET_TABLE_');
-             current_module.localsymtable.insert(gotvarsym);
-             { avoid unnecessary warnings }
-             gotvarsym.varstate:=vs_read;
-             gotvarsym.refs:=1;
-           end;
-{$endif i386}
+         { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
+         maybe_load_got;
 
          if not current_module.interface_only then
            begin
@@ -2160,6 +2172,9 @@ implementation
 
          symtablestack.push(current_module.localsymtable);
 
+         { Insert _GLOBAL_OFFSET_TABLE_ symbol if system uses it }
+         maybe_load_got;
+  
          { create whole program optimisation information }
          current_module.wpoinfo:=tunitwpoinfo.create;
 
