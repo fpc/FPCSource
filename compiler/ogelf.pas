@@ -768,20 +768,6 @@ implementation
              end
            else
              begin
-{$ifdef i386}
-               { Hack for _GLOBAL_OFFSET_TABLE_ which needs a special 
-                 relocation type R_386_GOTPC, found by trial/error PM }
-               if p.name='_GLOBAL_OFFSET_TABLE_' then
-                 begin
-                   reltype:=RELOC_GOTPC;
-                   { This value comes from the offset of the relocation
-                     of _GLOBAL_OFFSET_TABLE symbol within the instruction
-                     movl $_GLOBAL_OFFSET_TABLE_,%ebx
-                     It might be wrong if the symbol is used
-                     in some other instruction having a bigger offset }
-                   inc(data,2);
-                 end;
-{$endif i386}
                CurrObjSec.addsymreloc(CurrObjSec.Size,p,reltype);
 {$ifndef x86_64}
                if (reltype=RELOC_RELATIVE) or (reltype=RELOC_PLT32) then
