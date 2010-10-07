@@ -1294,7 +1294,7 @@ var
   I: integer;
   dtdate, dttime :TDateTime;
 begin
-  result:=true;
+  result:=false;
   I:=Pos(FormatSettings.TimeSeparator,S);
   If (I>0) then
     begin
@@ -1307,6 +1307,7 @@ begin
           if not TryStrToTime(Copy(S,i+1, Length(S)-i),dttime,Formatsettings) then
             exit;
           Value:=ComposeDateTime(dtdate,dttime);
+          result:=true;
         end
       else
          result:=TryStrToTime(s,Value,Formatsettings);
