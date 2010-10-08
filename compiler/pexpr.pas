@@ -404,6 +404,8 @@ implementation
                 end
               else
                begin
+                 if (p1.resultdef.typ=forwarddef) then
+                   Message1(type_e_type_is_not_completly_defined,tforwarddef(p1.resultdef).tosymname^);
                  if (l = in_sizeof_x) or
                     (not((p1.nodetype = vecn) and
                          is_packed_array(tvecnode(p1).left.resultdef)) and
