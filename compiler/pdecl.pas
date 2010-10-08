@@ -284,6 +284,9 @@ implementation
                 else
                   labelsym:=tlabelsym.create(pattern);
                 symtablestack.top.insert(labelsym);
+                if (cs_create_pic in current_settings.moduleswitches) and
+                   (tf_pic_uses_got in target_info.flags) then
+                  labelsym.nonlocal:=true;
                 if m_iso in current_settings.modeswitches then
                   begin
                     if symtablestack.top.symtabletype=localsymtable then
