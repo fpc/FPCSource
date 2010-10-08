@@ -397,7 +397,7 @@ Unit Rax86int;
                    parse the identifier }
                  if (c='.') then
                   begin
-                    searchsym(actasmpattern,srsym,srsymtable);
+                    asmsearchsym(actasmpattern,srsym,srsymtable);
                     if assigned(srsym) and
                        (srsym.typ=unitsym) and
                        (srsym.owner.symtabletype in [staticsymtable,globalsymtable]) and
@@ -895,7 +895,7 @@ Unit Rax86int;
                      end
                    else
                     begin
-                      searchsym(tempstr,sym,srsymtable);
+                      asmsearchsym(tempstr,sym,srsymtable);
                       if assigned(sym) then
                        begin
                          case sym.typ of
@@ -978,7 +978,7 @@ Unit Rax86int;
                       end
                    else
                     begin
-                      searchsym(tempstr,sym,srsymtable);
+                      asmsearchsym(tempstr,sym,srsymtable);
                       if assigned(sym) then
                        begin
                          case sym.typ of
@@ -1820,6 +1820,8 @@ Unit Rax86int;
                     internalerror(2010061101);
                 end;
                 Consume(actasmtoken);
+                if actasmtoken=AS_PTR then
+                  Consume(AS_PTR);
                 if (actasmtoken=AS_LPAREN) then
                   begin
                     { Support "xxx ptr [Reference]" }
@@ -1830,7 +1832,9 @@ Unit Rax86int;
                     BuildOperand(oper,true);
                     Consume(AS_RPAREN);
                     oper.setsize(l,true);
-                  end;
+                  end
+                else if (actasmtoken = AS_REGISTER) then
+                  Message(asmr_e_syn_operand);
               end;
 
             AS_SEPARATOR,

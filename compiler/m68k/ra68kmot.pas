@@ -683,7 +683,7 @@ const
                       hs:=hl.name
                     else
                       begin
-                        searchsym(tempstr,sym,srsymtable);
+                        asmsearchsym(tempstr,sym,srsymtable);
                         if assigned(sym) then
                          begin
                            case sym.typ of
