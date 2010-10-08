@@ -934,6 +934,7 @@ implementation
         inherited ppuload(t,ppufile);
         t1:=ppuloadnode(ppufile);
         t2:=ppuloadnode(ppufile);
+        ppufile.getsmallset(loopflags);
       end;
 
 
@@ -942,6 +943,7 @@ implementation
         inherited ppuwrite(ppufile);
         ppuwritenode(ppufile,t1);
         ppuwritenode(ppufile,t2);
+        ppufile.putsmallset(loopflags);
       end;
 
 
