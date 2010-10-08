@@ -275,6 +275,7 @@ implementation
        cutils,
        globals,
        systems,
+       procinfo,
        itcpugas,
        symsym;
 
@@ -933,7 +934,10 @@ implementation
 {$ifdef i386}
                      or (
                          (ref^.refaddr in [addr_pic]) and
-                         (ref^.base=NR_EBX)
+                         { allow any base for assembler blocks }
+                        ((assigned(current_procinfo) and
+                         (pi_has_assembler_block in current_procinfo.flags) and
+                         (ref^.base<>NR_NO)) or (ref^.base=NR_EBX))
                         )
 {$endif i386}
 {$ifdef x86_64}
