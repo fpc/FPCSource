@@ -1626,7 +1626,15 @@ Unit Rax86int;
               begin
                 case oper.opr.typ of
                   OPR_REFERENCE :
-                    inc(oper.opr.ref.offset,BuildRefConstExpression);
+                    if (actasmtoken=AS_OFFSET) and
+                       (cs_create_pic in current_settings.moduleswitches) then
+                      begin
+                        Consume(AS_OFFSET); 
+                        oper.opr.ref.refaddr:=addr_pic;
+                        BuildOperand(oper,false);
+                      end
+                    else
+                      inc(oper.opr.ref.offset,BuildRefConstExpression);
                   OPR_LOCAL :
                     inc(oper.opr.localsymofs,BuildConstExpression);
                   OPR_NONE,
