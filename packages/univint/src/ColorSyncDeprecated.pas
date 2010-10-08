@@ -3181,7 +3181,7 @@ function CMSetDeviceFactoryProfiles( deviceClass: CMDeviceClass; deviceID: CMDev
     @abstract    Returns all the device's factory profiles
     @discussion  This API allows the caller to retrieve the original profiles for a device.
                     These may differ from the profiles currently in use for that device in the
-                    case where factory profiles have been overridden with custom profiles.
+                    case where factory profiles have been overriden with custom profiles.
     @param       deviceClass    (in) Device class to query
     @param       deviceID       (in) Device id to query (can be cmDefaultDeviceID)
     @param       defaultProfID  (out) Returns id of default mode (optional)

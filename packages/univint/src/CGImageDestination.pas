@@ -262,7 +262,7 @@ procedure CGImageDestinationAddImage( idst: CGImageDestinationRef; image: CGImag
 
 { Set the next image in the image destination `idst' to be the image at
  * `index' in the image source `isrc'.  The index is zero-based. The
- * properties of the source image can be added to or overridden by supplying
+ * properties of the source image can be added to or overriden by supplying
  * additional keys/values in `properties'.  If a key in `properties' has
  * the value kCFNull, the corresponding property in the destination will be
  * removed. }
