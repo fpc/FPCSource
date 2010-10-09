@@ -2283,7 +2283,9 @@ implementation
 
         if (current_module.islibrary) then
           if (current_procinfo.procdef.proctypeoption = potype_proginit) then
-            exportlib.setinitname(list,current_procinfo.procdef.mangledname);
+            { setinitname may generate a new section -> don't add to the
+              current list, because we assume this remains a text section }
+            exportlib.setinitname(current_asmdata.AsmLists[al_exports],current_procinfo.procdef.mangledname);
 
         if (current_procinfo.procdef.proctypeoption=potype_proginit) then
           begin
