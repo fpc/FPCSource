@@ -219,9 +219,9 @@ interface
        tisnodeclass = class of tisnode;
 
     var
-       ctypeconvnode : ttypeconvnodeclass;
-       casnode : tasnodeclass;
-       cisnode : tisnodeclass;
+       ctypeconvnode : ttypeconvnodeclass = ttypeconvnode;
+       casnode : tasnodeclass = tasnode;
+       cisnode : tisnodeclass=tisnode;
 
     procedure inserttypeconv(var p:tnode;def:tdef);
     procedure inserttypeconv_explicit(var p:tnode;def:tdef);
@@ -3601,9 +3601,4 @@ implementation
          end;
       end;
 
-
-begin
-   ctypeconvnode:=ttypeconvnode;
-   casnode:=tasnode;
-   cisnode:=tisnode;
 end.

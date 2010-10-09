@@ -194,14 +194,14 @@ type
        ttempdeletenodeclass = class of ttempdeletenode;
 
     var
-       cnothingnode : tnothingnodeclass;
-       cerrornode : terrornodeclass;
-       casmnode : tasmnodeclass;
-       cstatementnode : tstatementnodeclass;
-       cblocknode : tblocknodeclass;
-       ctempcreatenode : ttempcreatenodeclass;
-       ctemprefnode : ttemprefnodeclass;
-       ctempdeletenode : ttempdeletenodeclass;
+       cnothingnode : tnothingnodeclass = tnothingnode;
+       cerrornode : terrornodeclass = terrornode;
+       casmnode : tasmnodeclass = tasmnode;
+       cstatementnode : tstatementnodeclass = tstatementnode;
+       cblocknode : tblocknodeclass = tblocknode;
+       ctempcreatenode : ttempcreatenodeclass = ttempcreatenode;
+       ctemprefnode : ttemprefnodeclass = ttemprefnode;
+       ctempdeletenode : ttempdeletenodeclass = ttempdeletenode;
 
        { Create a blocknode and statement node for multiple statements
          generated internally by the parser }
@@ -1127,13 +1127,4 @@ implementation
           tempinfo^.typedef.GetTypeName,'", tempinfo = $',hexstr(ptrint(tempinfo),sizeof(ptrint)*2));
       end;
 
-begin
-   cnothingnode:=tnothingnode;
-   cerrornode:=terrornode;
-   casmnode:=tasmnode;
-   cstatementnode:=tstatementnode;
-   cblocknode:=tblocknode;
-   ctempcreatenode:=ttempcreatenode;
-   ctemprefnode:=ttemprefnode;
-   ctempdeletenode:=ttempdeletenode;
 end.

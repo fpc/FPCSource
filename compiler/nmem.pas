@@ -117,13 +117,13 @@ interface
        twithnodeclass = class of twithnode;
 
     var
-       cloadvmtaddrnode : tloadvmtaddrnodeclass;
-       cloadparentfpnode : tloadparentfpnodeclass;
-       caddrnode : taddrnodeclass;
-       cderefnode : tderefnodeclass;
-       csubscriptnode : tsubscriptnodeclass;
-       cvecnode : tvecnodeclass;
-       cwithnode : twithnodeclass;
+       cloadvmtaddrnode : tloadvmtaddrnodeclass= tloadvmtaddrnode;
+       caddrnode : taddrnodeclass= taddrnode;
+       cderefnode : tderefnodeclass= tderefnode;
+       csubscriptnode : tsubscriptnodeclass= tsubscriptnode;
+       cvecnode : tvecnodeclass= tvecnode;
+       cwithnode : twithnodeclass= twithnode;
+       cloadparentfpnode : tloadparentfpnodeclass = tloadparentfpnode;
 
     function is_big_untyped_addrnode(p: tnode): boolean;
 
@@ -1016,11 +1016,4 @@ implementation
 	  not (nf_typedaddr in p.flags) and (taddrnode(p).left.resultdef.size > 1);
       end;
 
-begin
-  cloadvmtaddrnode := tloadvmtaddrnode;
-  caddrnode := taddrnode;
-  cderefnode := tderefnode;
-  csubscriptnode := tsubscriptnode;
-  cvecnode := tvecnode;
-  cwithnode := twithnode;
 end.

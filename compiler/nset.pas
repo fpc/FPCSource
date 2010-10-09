@@ -110,10 +110,10 @@ interface
        tcasenodeclass = class of tcasenode;
 
     var
-       csetelementnode : tsetelementnodeclass;
-       cinnode : tinnodeclass;
-       crangenode : trangenodeclass;
-       ccasenode : tcasenodeclass;
+       csetelementnode : tsetelementnodeclass = tsetelementnode;
+       cinnode : tinnodeclass = tinnode;
+       crangenode : trangenodeclass = trangenode;
+       ccasenode : tcasenodeclass = tcasenode;
 
     { counts the labels }
     function case_count_labels(root : pcaselabel) : longint;
@@ -1017,9 +1017,4 @@ implementation
         insertlabel(labels);
       end;
 
-begin
-   csetelementnode:=tsetelementnode;
-   cinnode:=tinnode;
-   crangenode:=trangenode;
-   ccasenode:=tcasenode;
 end.

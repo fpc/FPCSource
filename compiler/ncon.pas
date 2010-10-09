@@ -178,14 +178,14 @@ interface
        tguidconstnodeclass = class of tguidconstnode;
 
     var
-       cdataconstnode : tdataconstnodeclass;
-       crealconstnode : trealconstnodeclass;
-       cordconstnode : tordconstnodeclass;
-       cpointerconstnode : tpointerconstnodeclass;
-       cstringconstnode : tstringconstnodeclass;
-       csetconstnode : tsetconstnodeclass;
-       cguidconstnode : tguidconstnodeclass;
-       cnilnode : tnilnodeclass;
+       crealconstnode : trealconstnodeclass = trealconstnode;
+       cordconstnode : tordconstnodeclass = tordconstnode;
+       cpointerconstnode : tpointerconstnodeclass = tpointerconstnode;
+       cstringconstnode : tstringconstnodeclass = tstringconstnode;
+       csetconstnode : tsetconstnodeclass = tsetconstnode;
+       cguidconstnode : tguidconstnodeclass = tguidconstnode;
+       cnilnode : tnilnodeclass=tnilnode;
+       cdataconstnode : tdataconstnodeclass = tdataconstnode;
 
     function genintconstnode(v : TConstExprInt) : tordconstnode;
     function genenumnode(v : tenumsym) : tordconstnode;
@@ -1220,13 +1220,4 @@ implementation
           (guid2string(value) = guid2string(tguidconstnode(p).value));
       end;
 
-
-begin
-   crealconstnode:=trealconstnode;
-   cordconstnode:=tordconstnode;
-   cpointerconstnode:=tpointerconstnode;
-   cstringconstnode:=tstringconstnode;
-   csetconstnode:=tsetconstnode;
-   cnilnode:=tnilnode;
-   cguidconstnode:=tguidconstnode;
 end.

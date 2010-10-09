@@ -85,7 +85,7 @@ interface
        { the virtual constructor allows to assign         }
        { another class type to caddnode => processor      }
        { specific node types can be created               }
-       caddnode : taddnodeclass;
+       caddnode : taddnodeclass = taddnode;
 
 implementation
 
@@ -2806,6 +2806,4 @@ implementation
     end;
 {$endif}
 
-begin
-   caddnode:=taddnode;
 end.

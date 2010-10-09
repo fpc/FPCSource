@@ -205,18 +205,18 @@ interface
        tonnodeclass = class of tonnode;
 
     var
-       cwhilerepeatnode : twhilerepeatnodeclass;
-       cifnode : tifnodeclass;
-       cfornode : tfornodeclass;
-       cexitnode : texitnodeclass;
-       cbreaknode : tbreaknodeclass;
-       ccontinuenode : tcontinuenodeclass;
-       cgotonode : tgotonodeclass;
-       clabelnode : tlabelnodeclass;
-       craisenode : traisenodeclass;
-       ctryexceptnode : ttryexceptnodeclass;
-       ctryfinallynode : ttryfinallynodeclass;
-       connode : tonnodeclass;
+       cwhilerepeatnode : twhilerepeatnodeclass=twhilerepeatnode;
+       cifnode : tifnodeclass = tifnode;
+       cfornode : tfornodeclass = tfornode;
+       cexitnode : texitnodeclass = texitnode;
+       cgotonode : tgotonodeclass = tgotonode;
+       clabelnode : tlabelnodeclass = tlabelnode;
+       craisenode : traisenodeclass = traisenode;
+       ctryexceptnode : ttryexceptnodeclass = ttryexceptnode;
+       ctryfinallynode : ttryfinallynodeclass = ttryfinallynode;
+       connode : tonnodeclass = tonnode;
+       cbreaknode : tbreaknodeclass = tbreaknode;
+       ccontinuenode : tcontinuenodeclass = tcontinuenode;
 
 // for-in loop helpers
 function create_type_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
@@ -2105,16 +2105,4 @@ implementation
         docompare := false;
       end;
 
-
-begin
-   cwhilerepeatnode:=twhilerepeatnode;
-   cifnode:=tifnode;
-   cfornode:=tfornode;
-   cexitnode:=texitnode;
-   cgotonode:=tgotonode;
-   clabelnode:=tlabelnode;
-   craisenode:=traisenode;
-   ctryexceptnode:=ttryexceptnode;
-   ctryfinallynode:=ttryfinallynode;
-   connode:=tonnode;
 end.

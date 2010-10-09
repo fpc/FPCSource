@@ -642,9 +642,9 @@ interface
       { array with all class types for tais }
       aiclass : taiclassarray;
 
-      { target specific tais }
-      cai_align : tai_align_class;
-      cai_cpu   : tai_cpu_class;
+      { target specific tais, possibly overwritten in target specific aasmcpu }
+      cai_align : tai_align_class = tai_align_abstract;
+      cai_cpu   : tai_cpu_class = tai_cpu_abstract;
 
       { hook to notify uses of registers }
       add_reg_instruction_hook : tadd_reg_instruction_proc;
@@ -2405,11 +2405,4 @@ implementation
         ppufile.putbyte(byte(use_op));
       end;
 
-
-begin
-  cai_cpu:=tai_cpu_abstract;
-  { aasmcpu is earlier in the unit order and can
-    already set the cai_align }
-  if not assigned(cai_align) then
-    cai_align:=tai_align_abstract;
 end.

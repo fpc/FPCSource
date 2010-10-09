@@ -224,8 +224,8 @@ interface
     function translate_disp_call(selfnode,parametersnode,putvalue : tnode;methodname : ansistring;dispid : longint;resultdef : tdef) : tnode;
 
     var
-      ccallnode : tcallnodeclass;
-      ccallparanode : tcallparanodeclass;
+      ccallnode : tcallnodeclass = tcallnode;
+      ccallparanode : tcallparanodeclass = tcallparanode;
 
       { Current callnode, this is needed for having a link
        between the callparanodes and the callnode they belong to }
@@ -3803,8 +3803,4 @@ implementation
 {$endif DEBUGINLINE}
       end;
 
-
-begin
-   ccallnode:=tcallnode;
-   ccallparanode:=tcallparanode;
 end.

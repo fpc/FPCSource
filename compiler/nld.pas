@@ -134,12 +134,12 @@ interface
        trttinodeclass = class of trttinode;
 
     var
-       cloadnode : tloadnodeclass;
-       cassignmentnode : tassignmentnodeclass;
-       carrayconstructorrangenode : tarrayconstructorrangenodeclass;
-       carrayconstructornode : tarrayconstructornodeclass;
-       ctypenode : ttypenodeclass;
-       crttinode : trttinodeclass;
+       cloadnode : tloadnodeclass = tloadnode;
+       cassignmentnode : tassignmentnodeclass = tassignmentnode;
+       carrayconstructorrangenode : tarrayconstructorrangenodeclass = tarrayconstructorrangenode;
+       carrayconstructornode : tarrayconstructornodeclass = tarrayconstructornode;
+       ctypenode : ttypenodeclass = ttypenode;
+       crttinode : trttinodeclass = trttinode;
 
        { Current assignment node }
        aktassignmentnode : tassignmentnode;
@@ -1187,12 +1187,4 @@ implementation
           (rttitype = trttinode(p).rttitype);
       end;
 
-
-begin
-   cloadnode:=tloadnode;
-   cassignmentnode:=tassignmentnode;
-   carrayconstructorrangenode:=tarrayconstructorrangenode;
-   carrayconstructornode:=tarrayconstructornode;
-   ctypenode:=ttypenode;
-   crttinode:=trttinode;
 end.

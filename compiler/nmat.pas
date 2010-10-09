@@ -79,10 +79,10 @@ interface
        tnotnodeclass = class of tnotnode;
 
     var
-       cmoddivnode : tmoddivnodeclass;
-       cshlshrnode : tshlshrnodeclass;
-       cunaryminusnode : tunaryminusnodeclass;
-       cnotnode : tnotnodeclass;
+       cmoddivnode : tmoddivnodeclass = tmoddivnode;
+       cshlshrnode : tshlshrnodeclass = tshlshrnode;
+       cunaryminusnode : tunaryminusnodeclass = tunaryminusnode;
+       cnotnode : tnotnodeclass = tnotnode;
 
 implementation
 
@@ -938,9 +938,4 @@ implementation
       end;
 {$endif}
 
-begin
-   cmoddivnode:=tmoddivnode;
-   cshlshrnode:=tshlshrnode;
-   cunaryminusnode:=tunaryminusnode;
-   cnotnode:=tnotnode;
 end.

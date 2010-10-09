@@ -75,7 +75,7 @@ interface
        tinlinenodeclass = class of tinlinenode;
 
     var
-       cinlinenode : tinlinenodeclass;
+       cinlinenode : tinlinenodeclass = tinlinenode;
 
    function geninlinenode(number : byte;is_const:boolean;l : tnode) : tinlinenode;
 
@@ -3224,6 +3224,4 @@ implementation
          result := loop;
        end;
 
-begin
-   cinlinenode:=tinlinenode;
 end.
