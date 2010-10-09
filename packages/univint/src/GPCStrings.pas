@@ -169,6 +169,8 @@ interface
 {$definec TYPE_EXTENDED                  FALSE}
 {$definec TYPE_LONGLONG                  TRUE}
 
+{$modeswitch result}
+
 uses MacTypes;
 
 const
