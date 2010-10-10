@@ -3066,6 +3066,7 @@ implementation
     function tabstractprocdef.stack_tainting_parameter(side: tcallercallee): boolean;
       var
         p: tparavarsym;
+        ploc: PCGParalocation;
         i: longint;
       begin
         result:=false;
@@ -3077,10 +3078,20 @@ implementation
               { check if no parameter is located on the stack }
               if is_open_array(p.vardef) or
                  is_array_of_const(p.vardef) then
-                result:=true;
-              if assigned(p.paraloc[side].location) and
-                 (p.paraloc[side].location^.loc=LOC_REFERENCE) then
-                result:=true;
+                begin
+                  result:=true;
+                  exit;
+                end;
+              ploc:=p.paraloc[side].location;
+              while assigned(ploc) do
+                begin
+                  if (ploc^.loc=LOC_REFERENCE) then
+                    begin
+                      result:=true;
+                      exit
+                    end;
+                  ploc:=ploc^.next;
+                end;
             end;
       end;
 
