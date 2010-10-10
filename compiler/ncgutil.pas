@@ -2178,10 +2178,15 @@ implementation
          begin
            { initialize units }
            cg.allocallcpuregisters(list);
-           if not(current_module.islibrary) then
-             cg.a_call_name(list,'FPC_INITIALIZEUNITS',false)
+		   {Micro exe mode: If at this point micro exe mode is still allowed
+		    we do not initialize units, so no code is pulled in the exe.}
+           if not current_module.micro_exe_allowed then
+             if not(current_module.islibrary) then
+               cg.a_call_name(list,'FPC_INITIALIZEUNITS',false)
+             else
+               cg.a_call_name(list,'FPC_LIBINITIALIZEUNITS',false)
            else
-             cg.a_call_name(list,'FPC_LIBINITIALIZEUNITS',false);
+               cg.a_call_name(list,'FPC_MICRO_INITIALIZE',false);
            cg.deallocallcpuregisters(list);
          end;
 
@@ -2196,9 +2201,13 @@ implementation
     procedure gen_exit_code(list:TAsmList);
       begin
         { call __EXIT for main program }
-        if (not DLLsource) and
-           (current_procinfo.procdef.proctypeoption=potype_proginit) then
-          cg.a_call_name(list,'FPC_DO_EXIT',false);
+        if (not DLLsource) and (current_procinfo.procdef.proctypeoption=potype_proginit) then
+          {Micro exe mode: If at this point micro exe mode is still allowed
+           we call _haltproc directly, so no code is pulled in the exe.}
+          if current_module.micro_exe_allowed then
+            cg.a_call_name(list,'_haltproc',false)
+          else
+            cg.a_call_name(list,'FPC_DO_EXIT',false);
       end;
 
 

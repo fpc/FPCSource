@@ -1248,6 +1248,9 @@ implementation
 {$endif}
 
              read_anon_type(hdef,false);
+             if current_module.micro_exe_allowed then
+               if check_micro_exe_forbidden_type(hdef) then
+                 current_module.micro_exe_allowed:=false;
              for i:=0 to sc.count-1 do
                begin
                  vs:=tabstractvarsym(sc[i]);

@@ -25,36 +25,32 @@ const
   FPE_FLTINV = 7;
   FPE_FLTSUB = 8;
 
+function signr_to_runerrornr(sig:longint;siginfo:Psiginfo;var addr:pointer):word;
 
-procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
-var
-  res : word;
-  addr : pointer;
 begin
-  res:=0;
-  addr:=nil;
+  signr_to_runerrornr:=0;
   case sig of
     SIGFPE :
         begin
           addr := siginfo^._sifields._sigfault.si_addr;
-          res := 207;
+          signr_to_runerrornr := 207;
           case  siginfo^.si_code of
             FPE_INTDIV:
-              res:=200;
+              signr_to_runerrornr:=200;
             FPE_INTOVF:
-              res:=205;
+              signr_to_runerrornr:=205;
             FPE_FLTDIV:
-              res:=200;
+              signr_to_runerrornr:=200;
             FPE_FLTOVF:
-              res:=205;
+              signr_to_runerrornr:=205;
             FPE_FLTUND:
-              res:=206;
+              signr_to_runerrornr:=206;
             FPE_FLTRES,
             FPE_FLTINV,
             FPE_FLTSUB:
-              res:=216;
+              signr_to_runerrornr:=216;
             else
-              res:=207;
+              signr_to_runerrornr:=207;
           end;
         end;
     SIGILL,
@@ -62,9 +58,39 @@ begin
     SIGSEGV :
         begin
           addr := siginfo^._sifields._sigfault.si_addr;
-          res:=216;
+          signr_to_runerrornr:=216;
         end;
   end;
+end;
+
+procedure SignalToAbort(sig : longint; SigInfo: PSigInfo; UContext: Pucontext);cdecl;
+var
+  s:string[5];
+begin
+  addr:=nil;
+  exitcode:=signr_to_runerrornr(sig,siginfo,addr);
+  reenable_signal(sig);
+
+  {I had written a small stack dumper, but decided to remove it, because programs that
+   activate the microexe mode are most likely exe size benchmarks. In the case they are not
+   they are likely so primitive that it is unlikely that they require a stackdump to debug.
+  dump_stack_micro(pointer(ucontext^.uc_mcontext.eip));}
+
+  {Write runtime error message.}
+  int_str(exitcode,s);  {int_str instead of str pulls in less code}
+  write_micro('Runtime error '+s+' at $'+
+              hexstr(longint(ucontext^.uc_mcontext.eip),8)+   {typecast to longint to prevent pulling in int64 support}
+              lineending);
+  haltproc(exitcode);
+end;
+
+procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);cdecl;
+var
+  res : word;
+  addr : pointer;
+begin
+  addr:=nil;
+  res:=signr_to_runerrornr(sig,siginfo,addr);
   reenable_signal(sig);
   { give runtime error at the position where the signal was raised }
   if res<>0 then

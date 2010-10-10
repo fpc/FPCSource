@@ -169,6 +169,8 @@ interface
 
     procedure check_ranges(const location: tfileposinfo; source: tnode; destdef: tdef);
 
+    function check_micro_exe_forbidden_type(def:Tdef):boolean;
+
 implementation
 
     uses
@@ -2770,5 +2772,43 @@ implementation
          end;
       end;
 
+      function check_micro_exe_forbidden_type(def:Tdef):boolean;
+
+        var i:longint;
+
+        begin
+          check_micro_exe_forbidden_type:=false;
+          case def.typ of
+            filedef:
+              with Tfiledef(def) do
+                if filetyp=ft_typed then
+                  check_micro_exe_forbidden_type(typedfiledef);
+            variantdef:
+              check_micro_exe_forbidden_type:=true;
+            stringdef:
+              if Tstringdef(def).stringtype<>st_shortstring then
+                check_micro_exe_forbidden_type:=true;
+            recorddef,
+            objectdef:
+              begin
+                if is_class(def) then
+                  check_micro_exe_forbidden_type:=true
+                else
+                  with Tabstractrecorddef(def) do
+                    for i:=0 to symtable.deflist.count-1 do
+                      check_micro_exe_forbidden_type(Tdef(symtable.deflist[i]));
+              end;
+            arraydef:
+              check_micro_exe_forbidden_type(Tarraydef(def).elementdef);
+            orddef:
+              if Torddef(def).ordtype=uwidechar then
+                check_micro_exe_forbidden_type:=true;
+            procvardef:
+              with Tabstractprocdef(def) do
+                if paras<>nil then
+                  for i:=0 to paras.count-1 do
+                    check_micro_exe_forbidden_type(Tparavarsym(paras[i]).vardef);
+          end;
+        end;
 
 end.
