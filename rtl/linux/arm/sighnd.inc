@@ -19,7 +19,7 @@
 procedure SignalToRunerror(Sig: longint; { _a2,_a3,_a4 : dword; } SigContext: PSigInfo; uContext : PuContext); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
 
 var
-  res,fpustate : word;
+  res : word;
 begin
   res:=0;
   case sig of
