@@ -1828,8 +1828,6 @@ Unit Rax86int;
                     internalerror(2010061101);
                 end;
                 Consume(actasmtoken);
-                if actasmtoken=AS_PTR then
-                  Consume(AS_PTR);
                 if (actasmtoken=AS_LPAREN) then
                   begin
                     { Support "xxx ptr [Reference]" }
