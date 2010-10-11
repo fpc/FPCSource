@@ -180,6 +180,7 @@ begin
   Writeln('  -o --options=value Pass extra options to the compiler');
   Writeln('  -n                 Do not read the default configuration files');
   Writeln('  -p --prefix=value  Specify the prefix');
+  Writeln('  -s --skipbroken    Skip the rebuild of depending packages after installation');
   Writeln('  --compiler=value   Specify the compiler-executable');
   Writeln('  --cpu=value        Specify the target cpu to compile for');
   Writeln('  --os=value         Specify the target operating system to compile for');
@@ -294,6 +295,8 @@ begin
         GlobalOptions.AllowBroken:=true
       else if CheckOption(I,'l','showlocation') then
         GlobalOptions.ShowLocation:=true
+      else if CheckOption(I,'s','skipbroken') then
+        GlobalOptions.SkipFixBrokenAfterInstall:=true
       else if CheckOption(I,'o','options') and FirstPass then
         begin
           OptString := OptionArg(I);
@@ -444,7 +447,7 @@ begin
       end;
 
     // Recompile all packages dependent on this package
-    if (ParaAction='install') then
+    if (ParaAction='install') and not GlobalOptions.SkipFixBrokenAfterInstall then
       pkghandler.ExecuteAction('','fixbroken');
 
     Terminate;

@@ -51,6 +51,7 @@ Type
     FOptionParser: TTemplateParser;
     FShowLocation: Boolean;
     FSkipConfigurationFiles: boolean;
+    FSkipFixBrokenAfterInstall: boolean;
     function  GetOptString(Index: integer): String;
     procedure SetOptString(Index: integer; const AValue: String);
     procedure UpdateLocalRepositoryOption;
@@ -85,6 +86,7 @@ Type
     Property AllowBroken : Boolean Read FAllowBroken Write FAllowBroken;
     Property ShowLocation : Boolean Read FShowLocation Write FShowLocation;
     Property SkipConfigurationFiles: boolean read FSkipConfigurationFiles write FSkipConfigurationFiles;
+    Property SkipFixBrokenAfterInstall: boolean read FSkipFixBrokenAfterInstall write FSkipFixBrokenAfterInstall;
   end;
 
 
