@@ -384,11 +384,11 @@ Unit Rax86int;
                        c:=current_scanner.asmgetchar;
                      end;
                   end;
-                 if is_register(actasmpattern) then
-                  exit;
                  if is_asmdirective(actasmpattern) then
                   exit;
                  if is_asmoperator(actasmpattern) then
+                  exit;
+                 if is_register(actasmpattern) then
                   exit;
                  { allow spaces }
                  while (c in [' ',#9]) do
@@ -1629,7 +1629,7 @@ Unit Rax86int;
                     if (actasmtoken=AS_OFFSET) and
                        (cs_create_pic in current_settings.moduleswitches) then
                       begin
-                        Consume(AS_OFFSET); 
+                        Consume(AS_OFFSET);
                         oper.opr.ref.refaddr:=addr_pic;
                         BuildOperand(oper,false);
                       end
@@ -1840,9 +1840,7 @@ Unit Rax86int;
                     BuildOperand(oper,true);
                     Consume(AS_RPAREN);
                     oper.setsize(l,true);
-                  end
-                else if (actasmtoken = AS_REGISTER) then
-                  Message(asmr_e_syn_operand);
+                  end;
               end;
 
             AS_SEPARATOR,
