@@ -1711,7 +1711,12 @@ implementation
                       end;
                     arraydef :
                       begin
-                        if not is_open_array(left.resultdef) and
+                        if (left.nodetype=stringconstn) then
+                          begin
+                            result:=cordconstnode.create(
+                              tstringconstnode(left).len,sinttype,true);
+                          end
+                        else if not is_open_array(left.resultdef) and
                            not is_array_of_const(left.resultdef) and
                            not is_dynamic_array(left.resultdef) then
                           result:=cordconstnode.create(tarraydef(left.resultdef).highrange-
