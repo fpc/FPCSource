@@ -31,9 +31,21 @@ type
   TJSONStringType = AnsiString;
   TJSONCharType = AnsiChar;
   PJSONCharType = ^TJSONCharType;
+  TFormatOption = (foSingleLineArray,   // Array without CR/LF : all on one line
+                   foSingleLineObject,  // Object without CR/LF : all on one line
+                   foDoNotQuoteMembers, // Do not quote object member names.
+                   foUseTabchar);       // Use tab characters instead of spaces.
+  TFormatOptions = set of TFormatOption;
+
+Const
+  DefaultIndentSize = 2;
+  DefaultFormat     = [];
+  AsJSONFormat      = [foSingleLineArray,foSingleLineObject]; // These options make FormatJSON behave as AsJSON
+  
+Type
 
   { TJSONData }
-
+  
   TJSONData = class(TObject)
   protected
     function GetAsBoolean: Boolean; virtual; abstract;
@@ -52,12 +64,14 @@ type
     procedure SetValue(const AValue: variant); virtual; abstract;
     function GetItem(Index : Integer): TJSONData; virtual;
     procedure SetItem(Index : Integer; const AValue: TJSONData); virtual;
+    Function DoFormatJSON(Options : TFormatOptions; CurrentIndent, Indent : Integer) : TJSONStringType; virtual;
     function GetCount: Integer; virtual;
   public
     Constructor Create; virtual;
     Class function JSONType: TJSONType; virtual;
     Procedure Clear;  virtual; Abstract;
     Function Clone : TJSONData; virtual; abstract;
+    Function FormatJSON(Options : TFormatOptions = DefaultFormat; Indentsize : Integer = DefaultIndentSize) : TJSONStringType; 
     property Count: Integer read GetCount;
     property Items[Index: Integer]: TJSONData read GetItem write SetItem;
     property Value: variant read GetValue write SetValue;
@@ -277,6 +291,7 @@ type
     function GetCount: Integer; override;
     function GetItem(Index : Integer): TJSONData; override;
     procedure SetItem(Index : Integer; const AValue: TJSONData); override;
+    Function DoFormatJSON(Options : TFormatOptions; CurrentIndent, Indent : Integer) : TJSONStringType; override;
   public
     Constructor Create; overload; reintroduce;
     Constructor Create(const Elements : Array of Const); overload;
@@ -357,6 +372,7 @@ type
     function GetCount: Integer; override;
     function GetItem(Index : Integer): TJSONData; override;
     procedure SetItem(Index : Integer; const AValue: TJSONData); override;
+    Function DoFormatJSON(Options : TFormatOptions; CurrentIndent, Indent : Integer) : TJSONStringType; override;
   public
     constructor Create; reintroduce;
     Constructor Create(const Elements : Array of Const); overload;
@@ -539,6 +555,18 @@ procedure TJSONData.SetItem(Index : Integer; const AValue:
   TJSONData);
 begin
   // Do Nothing
+end;
+
+Function TJSONData.FormatJSON(Options : TFormatOptions = DefaultFormat; IndentSize : Integer = DefaultIndentSize) : TJSONStringType;
+
+begin
+  Result:=DoFormatJSON(Options,0,IndentSize);
+end;
+
+Function TJSONData.DoFormatJSON(Options : TFormatOptions; CurrentIndent, Indent : Integer) : TJSONStringType; 
+
+begin
+  Result:=AsJSON;
 end;
 
 { TJSONnumber }
@@ -1256,6 +1284,42 @@ begin
 end;
 
 {$warnings off}
+
+Function IndentString(Options : TFormatOptions; Indent : Integer) : TJSONStringType;
+
+begin
+  If (foUseTabChar in Options) then
+    Result:=StringofChar(#9,Indent)
+  else
+    Result:=StringOfChar(' ',Indent);  
+end;
+
+Function TJSONArray.DoFormatJSON(Options : TFormatOptions; CurrentIndent, Indent : Integer) : TJSONStringType; 
+
+Var
+  I : Integer;
+  
+begin
+  Result:='[';
+  if not (foSingleLineArray in Options) then
+    Result:=Result+sLineBreak;
+  For I:=0 to Count-1 do
+    begin
+    if not (foSingleLineArray in Options) then
+      Result:=Result+IndentString(Options, CurrentIndent+Indent);
+    Result:=Result+Items[i].DoFormatJSON(Options,CurrentIndent+Indent,Indent);
+    If (I<Count-1) then
+      if (foSingleLineArray in Options) then
+        Result:=Result+', '
+      else
+        Result:=Result+',';
+    if not (foSingleLineArray in Options) then
+      Result:=Result+sLineBreak
+    end;
+  Result:=Result+']';
+end;
+
+
 function TJSONArray.GetAsString: TJSONStringType;
 begin
   ConvertError(True);
@@ -1746,6 +1810,43 @@ begin
     FreeAndNil(O);
     Raise;
   end;
+end;
+
+
+Function TJSONObject.DoFormatJSON(Options : TFormatOptions; CurrentIndent, Indent : Integer) : TJSONStringType; 
+
+Var
+  i : Integer;
+  S : TJSONStringType;
+
+
+begin
+  CurrentIndent:=CurrentIndent+Indent;  
+  For I:=0 to Count-1 do
+    begin
+    If (Result<>'') then
+      begin
+      If (foSingleLineObject in Options) then
+        Result:=Result+', '
+      else
+        Result:=Result+','+SLineBreak;
+      end;
+    If not (foSingleLineObject in Options) then    
+      Result:=Result+IndentString(Options,CurrentIndent);
+    S:=StringToJSONString(Names[i]);
+    If not (foDoNotQuoteMembers in options) then
+      S:='"'+S+'"';
+    Result:=Result+S+' : '+Items[I].DoFormatJSON(Options,CurrentIndent,Indent);
+    end;
+  If (Result<>'') then
+    begin
+    if (foSingleLineObject in Options) then
+      Result:='{ '+Result+' }'
+    else  
+      Result:='{'+sLineBreak+Result+sLineBreak+indentString(options,CurrentIndent-Indent)+'}'
+    end
+  else
+    Result:='{}';
 end;
 
 procedure TJSONObject.Iterate(Iterator: TJSONObjectIterator; Data: TObject);
