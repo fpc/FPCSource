@@ -78,7 +78,8 @@ var
   AsciiBuf: Word;
   press: Boolean;
   uni: Integer;
-  tmp: Integer;
+  TranslatedCharacters, TranslatedWideCharacters: Integer;
+  WideStr: WideString;
   KeyCode: Integer;
 begin
   Result := 0;
@@ -117,21 +118,18 @@ begin
     begin
       scancode := (lParam shr 16) and $FF;
       {todo: ToUnicode (Windows NT)}
-      tmp := ToAscii(wParam, scancode, @KeyStateArray, @AsciiBuf, 0);
-      if (tmp = 1) or (tmp = 2) then
+      TranslatedCharacters := ToAscii(wParam, scancode, @KeyStateArray, @AsciiBuf, 0);
+      if (TranslatedCharacters = 1) or (TranslatedCharacters = 2) then
       begin
-        if tmp = 2 then
+        TranslatedWideCharacters := MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, @AsciiBuf, TranslatedCharacters, nil, 0);
+        if TranslatedWideCharacters <> 0 then
         begin
-//          Writeln('[', AsciiBuf, ']'); {???? todo: dead keys ????}
-        end
-        else
-        begin
-//          Write(Chr(AsciiBuf));
-          {todo: codepage -> unicode}
-          if (AsciiBuf and $FF) <= 126 then
-            uni := AsciiBuf and $FF;
-        end;
+          SetLength(WideStr, TranslatedWideCharacters);
+          MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, @AsciiBuf, TranslatedCharacters, @WideStr[1], TranslatedWideCharacters);
 
+          if Length(WideStr) = 1 then
+            uni := Ord(WideStr[1]);
+        end;
       end;
     end;
 
