@@ -2011,6 +2011,7 @@ packages/fcl-json/Makefile svneol=native#text/plain
 packages/fcl-json/Makefile.fpc svneol=native#text/plain
 packages/fcl-json/examples/confdemo.lpi svneol=native#text/plain
 packages/fcl-json/examples/confdemo.pp svneol=native#text/plain
+packages/fcl-json/examples/demoformat.pp svneol=native#text/plain
 packages/fcl-json/examples/parsedemo.lpi svneol=native#text/plain
 packages/fcl-json/examples/parsedemo.pp svneol=native#text/plain
 packages/fcl-json/examples/simpledemo.lpi svneol=native#text/plain

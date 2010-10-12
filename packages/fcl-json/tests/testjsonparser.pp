@@ -135,7 +135,7 @@ Var
   J : TJSONData;
 
 begin
-  P:=TJSONParser.Create('True');
+  P:=TJSONParser.Create('true');
   Try
     J:=P.Parse;
     If (J=Nil) then
@@ -155,7 +155,7 @@ Var
   J : TJSONData;
 
 begin
-  P:=TJSONParser.Create('False');
+  P:=TJSONParser.Create('false');
   Try
     J:=P.Parse;
     If (J=Nil) then
@@ -339,6 +339,7 @@ Var
 begin
   ParseOK:=False;
   P:=TJSONParser.Create(S);
+  P.Strict:=True;
   J:=Nil;
   Try
     Try
