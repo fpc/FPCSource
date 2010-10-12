@@ -79,7 +79,10 @@ end;
 
 procedure KeyBufAdd(Ch: Char);
 begin
-  {todo: overflow checking}
+  { do nothing, if the buffer is full }
+  if ((KeyBufTail + 1) = KeyBufHead) or
+     ((KeyBufTail = High(KeyBuffer)) and (KeyBufHead = Low(KeyBuffer))) then
+    exit;
   KeyBuffer[KeyBufTail] := Ch;
   Inc(KeyBufTail);
   if KeyBufTail > High(KeyBuffer) then
