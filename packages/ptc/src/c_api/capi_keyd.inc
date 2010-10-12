@@ -1,18 +1,50 @@
+{
+    Free Pascal port of the OpenPTC C++ library.
+    Copyright (C) 2001-2010  Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Original C++ version by Glenn Fiedler (ptc@gaffer.org)
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version
+    with the following modification:
+
+    As a special exception, the copyright holders of this library give you
+    permission to link this library with independent modules to produce an
+    executable, regardless of the license terms of these independent modules,and
+    to copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the terms
+    and conditions of the license of that module. An independent module is a
+    module which is not derived from or based on this library. If you modify
+    this library, you may extend this exception to your version of the library,
+    but you are not obligated to do so. If you do not wish to do so, delete this
+    exception statement from your version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
 { setup }
-Function ptc_key_create(code : Integer; alt, shift, control : Boolean) : TPTC_KEY;
-Procedure ptc_key_destroy(obj : TPTC_KEY);
+function ptc_key_create(code: Integer; alt, shift, control: Boolean): TPTC_KEY;
+procedure ptc_key_destroy(obj: TPTC_KEY);
 
 { key code }
-Function ptc_key_code(obj : TPTC_KEY) : Integer;
+function ptc_key_code(obj: TPTC_KEY): Integer;
 
 { modifiers }
-Function ptc_key_alt(obj : TPTC_KEY) : Boolean;
-Function ptc_key_shift(obj : TPTC_KEY) : Boolean;
-Function ptc_key_control(obj : TPTC_KEY) : Boolean;
+function ptc_key_alt(obj: TPTC_KEY): Boolean;
+function ptc_key_shift(obj: TPTC_KEY): Boolean;
+function ptc_key_control(obj: TPTC_KEY): Boolean;
 
 { operators }
-Procedure ptc_key_assign(obj : TPTC_KEY; key : TPTC_KEY);
-Function ptc_key_equals(obj : TPTC_KEY; key : TPTC_KEY) : Boolean;
+procedure ptc_key_assign(obj: TPTC_KEY; key: TPTC_KEY);
+function ptc_key_equals(obj: TPTC_KEY; key: TPTC_KEY): Boolean;
 
 { key codes }
 {#define PTC_KEY_ENTER            '\n'
