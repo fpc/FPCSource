@@ -148,9 +148,9 @@ begin
   WRITE_DEBUG('thread done running');
   Result := LThread.FReturnValue;
   WRITE_DEBUG('Result is ',Result);
-  LThread.FFinished := True;
   LFreeOnTerminate := LThread.FreeOnTerminate;
   LThread.DoTerminate;
+  LThread.FFinished := True;
   if LFreeOnTerminate then
     begin
       WRITE_DEBUG('Thread ',ptruint(lthread),' should be freed');
@@ -302,6 +302,14 @@ end;
 function TThread.WaitFor: Integer;
 begin
   WRITE_DEBUG('waiting for thread ',ptruint(FHandle));
+  If (MainThreadID=GetCurrentThreadID) then 
+    {
+     FFinished is set after DoTerminate, which does a synchronize of OnTerminate, 
+     so make sure synchronize works (or indeed any other synchronize that may be 
+     in progress)
+    }
+    While not FFinished do  
+      CheckSynchronize(100);
   WaitFor := WaitForThreadTerminate(FHandle, 0);
   { should actually check for errors in WaitForThreadTerminate, but no }
   { error api is defined for that function                             }
