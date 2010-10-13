@@ -375,7 +375,12 @@ begin
         begin
           write(nasmfile,'''',nasmnames[i],'''');
         end;
-      write(stabfile,stabs[i]);
+      { stabs uses the same register numbering as dwarf
+        for x86_64 CPU }
+      if x86_64 then
+        write(stabfile,dwarf64[i])
+      else
+        write(stabfile,stabs[i]);
       if x86_64 then
         write(dwrffile,dwarf64[i])
       else
