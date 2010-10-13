@@ -101,7 +101,9 @@ unit i_win;
             name         : 'Win64 for x64';
             shortname    : 'Win64';
             flags        : [tf_files_case_aware,tf_has_dllscanner,
-                            tf_smartlink_sections,tf_smartlink_library,tf_winlikewidestring,tf_no_pic_supported,
+                            tf_smartlink_sections,tf_smartlink_library,
+                            tf_winlikewidestring,tf_no_pic_supported,
+                            tf_dwarf_only_local_labels,
                             tf_no_generic_stackcheck,tf_has_winlike_resources];
             cpu          : cpu_x86_64;
             unit_env     : 'WIN64UNITS';
