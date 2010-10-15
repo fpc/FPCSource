@@ -410,7 +410,7 @@ type
     function AllocAttributeData(AName: PHashItem): PNodeData;
     function AllocAttributeValueChunk(APrev: PNodeData): PNodeData;
     procedure CleanupAttributeData;
-    procedure SetNodeInfoWithValue(typ: TXMLNodeType);
+    procedure SetNodeInfoWithValue(typ: TXMLNodeType; AName: PHashItem = nil);
   protected
     FCursor: TDOMNode_WithChildren;
     FNesting: Integer;
@@ -441,8 +441,9 @@ type
     function ParseLiteral(var ToFill: TWideCharBuf; aType: TLiteralType;
       Required: Boolean; Normalized: PBoolean = nil): Boolean;
     procedure ExpectAttValue(attr: TDOMAttr);                           // [10]
-    procedure ParseComment;                                             // [15]
+    procedure ParseComment(discard: Boolean);                           // [15]
     procedure ParsePI;                                                  // [16]
+    procedure CreatePINode;
     procedure ParseXmlOrTextDecl(TextDecl: Boolean);
     procedure ExpectEq;
     procedure ParseDoctypeDecl;                                         // [28]
@@ -1947,7 +1948,7 @@ begin
   until wc = #0;
 end;
 
-procedure TXMLReader.ParseComment;    // [15]
+procedure TXMLReader.ParseComment(discard: Boolean);    // [15]
 var
   SaveLength: Integer;
 begin
@@ -1957,14 +1958,18 @@ begin
     FatalError('Unterminated comment', -1);
   ExpectChar('>');
 
-  DoComment(@FValue.Buffer[SaveLength], FValue.Length-SaveLength);
+  if not discard then
+  begin
+    FCurrNode := @FNodeStack[FNesting+1];
+    FCurrNode^.FNodeType := ntComment;
+    FCurrNode^.FQName := nil;
+    FCurrNode^.FValueStart := @FValue.Buffer[SaveLength];
+    FCurrNode^.FValueLength := FValue.Length-SaveLength;
+  end;
   FValue.Length := SaveLength;
 end;
 
 procedure TXMLReader.ParsePI;                    // [16]
-var
-  NameStr, ValueStr: WideString;
-  PINode: TDOMProcessingInstruction;
 begin
   FSource.NextChar;      // skip '?'
   CheckName;
@@ -1987,7 +1992,15 @@ begin
   FValue.Length := 0;
   if not SkipUntilSeq(GT_Delim, '?') then
     FatalError('Unterminated processing instruction', -1);
+  SetNodeInfoWithValue(ntProcessingInstruction,
+    doc.Names.FindOrAdd(FName.Buffer, FName.Length));
+end;
 
+procedure TXMLReader.CreatePINode;
+var
+  NameStr, ValueStr: WideString;
+  PINode: TDOMProcessingInstruction;
+begin
   SetString(NameStr, FName.Buffer, FName.Length);
   SetString(ValueStr, FValue.Buffer, FValue.Length);
   // SAX: ContentHandler.ProcessingInstruction(Name, Value);
@@ -1995,10 +2008,7 @@ begin
     ValidationError('Processing instructions are not allowed within EMPTY elements', []);
 
   PINode := Doc.CreateProcessingInstruction(NameStr, ValueStr);
-  if Assigned(FCursor) then
-    FCursor.AppendChild(PINode)
-  else  // to comply with certain tests, insert PI from DTD before DTD
-    Doc.InsertBefore(PINode, FDocType);
+  FCursor.AppendChild(PINode)
 end;
 
 const
@@ -2131,20 +2141,13 @@ begin
 
   FDocType := TDOMDocumentTypeEx(TDOMDocumentType.Create(doc));
   FDTDProcessed := True;    // assume success
+  FOwnsDoctype := True;
   FState := rsDTD;
-  try
-    FDocType.FName := ExpectName;
-    SkipS(True);
-    ParseExternalID(FDocType.FSystemID, FDocType.FPublicID, False);
-    SkipS;
-  finally
-    // DONE: append node after its name has been set; always append to avoid leak
-    if FCanonical then
-      FOwnsDoctype := True
-    else
-      Doc.AppendChild(FDocType);
-    FCursor := nil;
-  end;
+
+  FDocType.FName := ExpectName;
+  SkipS(True);
+  ParseExternalID(FDocType.FSystemID, FDocType.FPublicID, False);
+  SkipS;
 
   if CheckForChar('[') then
   begin
@@ -2182,7 +2185,6 @@ begin
       FDTDProcessed := FStandalone;
     end;
   end;
-  FCursor := Doc;
   ValidateDTD;
   FDocType.SetReadOnly(True);
 end;
@@ -2505,8 +2507,6 @@ begin
           ValidationError('An attribute of type ID cannot have a default value',[]);
 
 // See comments to valid-sa-094: PE expansion should be disabled in AttDef.
-// ExpectAttValue() does not recognize PEs anyway, so setting FRecognizePEs isn't needed
-// Saving/restoring FCursor is also redundant because it is always nil here.
         ExpectAttValue(AttDef);
         if not ValidateAttrSyntax(AttDef, AttDef.NodeValue) then
           ValidationError('Default value for attribute ''%s'' has wrong syntax', [AttDef.Name]);
@@ -2622,12 +2622,15 @@ begin
     CurrentEntity := FSource.FEntity;
 
     if FSource.FBuf^ = '?' then
-      ParsePI
+    begin
+      ParsePI;
+      CreatePINode;
+    end
     else
     begin
       ExpectChar('!');
       if FSource.FBuf^ = '-' then
-        ParseComment
+        ParseComment(True)
       else if CheckForChar('[') then
       begin
         if FSource.DTDSubsetType = dsInternal then
@@ -2788,8 +2791,18 @@ begin
         DoText(FValue.Buffer, FValue.Length, FToken = xtWhitespace);
       xtCDSect:
         DoCDSect(FValue.Buffer, FValue.Length);
+      xtPI:
+        CreatePINode;
+      xtComment:
+        DoComment(FCurrNode^.FValueStart, FCurrNode^.FValueLength);
       xtEndElement:
         DoEndElement(-1);
+      xtDoctype:
+        if not FCanonical then
+        begin
+          doc.AppendChild(FDocType);
+          FOwnsDoctype := False;
+        end;
     end;
   end;
 end;
@@ -2860,9 +2873,14 @@ begin
         end
         else if FSource.FBuf^ = '-' then
         begin
-          if FIgnoreComments then
+        { Ignoring comments is tricky in validating mode; discarding a comment which
+          is the only child of an EMPTY element will make that element erroneously appear
+          as valid. Therefore, at this point we discard only comments which are preceded
+          by some text (since presence of text already renders an EMPTY element invalid).
+          Other comments should be reported to validation part and discarded there. }
+          if FIgnoreComments and (FValue.Length > 0) then
           begin
-            ParseComment;
+            ParseComment(True);
             Continue;
           end;
           tok := xtComment;
@@ -2958,7 +2976,7 @@ begin
       end;
     xtPI:         ParsePI;
     xtDoctype:    ParseDoctypeDecl;
-    xtComment:    ParseComment;
+    xtComment:    ParseComment(False);
   end;
   Result := tok <> xtEOF;
 end;
@@ -3561,12 +3579,12 @@ begin
   FAttrCleanupFlag := False;
 end;
 
-procedure TXMLReader.SetNodeInfoWithValue(typ: TXMLNodeType);
+procedure TXMLReader.SetNodeInfoWithValue(typ: TXMLNodeType; AName: PHashItem = nil);
 begin
   {FNesting+1 is available due to overallocation in AllocNodeData() }
   FCurrNode := @FNodeStack[FNesting+1];
   FCurrNode^.FNodeType := typ;
-  FCurrNode^.FQName := nil;
+  FCurrNode^.FQName := AName;
   FCurrNode^.FValueStart := FValue.Buffer;
   FCurrNode^.FValueLength := FValue.Length;
 end;
