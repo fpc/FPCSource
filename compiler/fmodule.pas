@@ -119,8 +119,6 @@ interface
         in_global     : boolean;
         { Whether a mode switch is still allowed at this point in the parsing.}
         mode_switch_allowed,
-        { Wether it is allowed to skip unit initializations to create a ultra tiny exe.}
-        micro_exe_allowed,
         { generate pic helper which loads eip in ecx (for leave procedures) }
         requires_ecx_pic_helper,
         { generate pic helper which loads eip in ebx (for non leave procedures) }
@@ -475,12 +473,6 @@ implementation
          inherited create(n)
         else
          inherited create('Program');
-        {Program? Assume by default micro exe mode is possible:}
-        if target_info.system in systems_linux then
-          micro_exe_allowed:=not _is_unit  {Only Linux rtl supports this a.t.m.}
-        else
-          micro_exe_allowed:=false;
-
         mainsource:=stringdup(s);
         { Dos has the famous 8.3 limit :( }
 {$ifdef shortasmprefix}

@@ -15,76 +15,48 @@
 
  **********************************************************************}
 
-function signr_to_runerrornr(sig:longint;siginfo:Psiginfo;var addr:pointer):word;
-
+procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);public name '_FPC_DEFAULTSIGHANDLER';cdecl;
+var
+  res : word;
+  addr : pointer;
 begin
-  signr_to_runerrornr:=0;
+  res:=0;
+  addr:=nil;
   case sig of
     SIGFPE :
         begin
           addr := siginfo^._sifields._sigfault._addr;
           case  siginfo^.si_code of
             FPE_INTDIV:
-              signr_to_runerrornr:=200;
+              res:=200;
             FPE_INTOVF:
-              signr_to_runerrornr:=205;
+              res:=205;
             FPE_FLTDIV:
-              signr_to_runerrornr:=200;
+              res:=200;
             FPE_FLTOVF:
-              signr_to_runerrornr:=205;
+              res:=205;
             FPE_FLTUND:
-              signr_to_runerrornr:=206;
+              res:=206;
             else
-              signr_to_runerrornr:=207;
+              res:=207;
           end;
         end;
     SIGBUS :
         begin
           addr := siginfo^._sifields._sigfault._addr;
-          signr_to_runerrornr:=214;
+          res:=214;
         end;
     SIGILL,
     SIGSEGV :
         begin
           addr := siginfo^._sifields._sigfault._addr;
-          signr_to_runerrornr:=216;
+          res:=216;
         end;
     SIGINT:
-        signr_to_runerrornr:=217;
+        res:=217;
     SIGQUIT:
-        signr_to_runerrornr:=233;
+        res:=233;
   end;
-end;
-
-procedure SignalToAbort(sig : longint; SigInfo: PSigInfo; SigContext: PSigcontext);cdecl;
-var
-  s:string[5];
-  addr:pointer;
-begin
-  addr:=nil;
-  exitcode:=signr_to_runerrornr(sig,siginfo,addr);
-  reenable_signal(sig);
-
-  {I had written a small stack dumper, but decided to remove it, because programs that
-   activate the microexe mode are most likely exe size benchmarks. In the case they are not
-   they are likely so primitive that it is unlikely that they require a stackdump to debug.
-  dump_stack_micro(pointer(ucontext^.uc_mcontext.eip));}
-
-  {Write runtime error message.}
-  int_str(exitcode,s);  {int_str instead of str pulls in less code}
-  write_micro('Runtime error '+s+' at $'+
-              hexstr(longint(addr),8)+   {typecast to longint to prevent pulling in int64 support}
-              lineending);
-  haltproc(exitcode);
-end;
-
-procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; SigContext: PSigContext);public name '_FPC_DEFAULTSIGHANDLER';cdecl;
-var
-  res : word;
-  addr : pointer;
-begin
-  addr:=nil;
-  res:=signr_to_runerrornr(sig,siginfo,addr);
   reenable_signal(sig);
   { give runtime error at the position where the signal was raised }
   if res<>0 then

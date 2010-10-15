@@ -744,9 +744,6 @@ implementation
          hp2     : tmodule;
          unitsym : tunitsym;
       begin
-         {If you use units, you likely need unit initializations.}
-         current_module.micro_exe_allowed:=false;
-         
          consume(_USES);
          repeat
            s:=pattern;

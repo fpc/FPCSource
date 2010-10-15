@@ -15,60 +15,34 @@
 
  **********************************************************************}
 
-function signr_to_runerrornr(sig:longint;siginfo:Psiginfo):word;
-
-begin
-  case sig of
-    SIGFPE :
-      case (SigInfo^.si_code) of
-        FPE_FLTDIV : signr_to_runerrornr := 200;
-        FPE_FLTOVF : signr_to_runerrornr := 205;
-        FPE_FLTUND : signr_to_runerrornr := 206;
-        else
-          signr_to_runerrornr := 207;
-      end;
-    SIGBUS :
-      signr_to_runerrornr:=214;
-    SIGILL,
-    SIGSEGV :
-      signr_to_runerrornr:=216;
-    SIGINT:
-      signr_to_runerrornr:=217;
-    SIGQUIT:
-      signr_to_runerrornr:=233;
-  end;
-end;
-
-procedure SignalToAbort(sig : longint; SigInfo: PSigInfo; context: Pucontext);cdecl;
-var
-  s:string[5];
-begin
-  exitcode:=signr_to_runerrornr(sig,siginfo);
-  { exception flags are turned off by kernel }
-  fpc_enable_ppc_fpu_exceptions;
-  reenable_signal(sig);
-
-  {I had written a small stack dumper, but decided to remove it, because programs that
-   activate the microexe mode are most likely exe size benchmarks. In the case they are not
-   they are likely so primitive that it is unlikely that they require a stackdump to debug.
-  dump_stack_micro(pointer(ucontext^.uc_mcontext.eip));}
-
-  {Write runtime error message.}
-  int_str(exitcode,s);  {int_str instead of str pulls in less code}
-  write_micro('Runtime error '+s+' at $'+
-              hexstr(context^.uc_mcontext.gp_regs[PT_NIP],16)+
-              lineending);
-  haltproc(exitcode);
-end;
-
 procedure SignalToRunerror(sig : longint; SigInfo: PSigInfo; context: PUContext); public name '_FPC_DEFAULTSIGHANDLER'; cdecl;
 var
   res : word;
 begin
-  res:=signr_to_runerrornr(sig,siginfo);
+  res:=0;
 
   { exception flags are turned off by kernel }
   fpc_enable_ppc_fpu_exceptions;
+  case sig of
+    SIGFPE :
+      { distuingish between different FPU exceptions }
+      case (SigInfo^.si_code) of
+        FPE_FLTDIV : res := 200;
+        FPE_FLTOVF : res := 205;
+        FPE_FLTUND : res := 206;
+        else
+          res := 207;
+      end;
+    SIGBUS :
+      res:=214;
+    SIGILL,
+    SIGSEGV :
+      res:=216;
+    SIGINT:
+        res:=217;
+    SIGQUIT:
+        res:=233;
+  end;
 
   { reenable signal }
   reenable_signal(sig);

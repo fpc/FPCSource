@@ -212,13 +212,6 @@ begin
   get_cmdline:=calculated_cmdline;
 end;
 
-procedure write_micro(const s:shortstring);
-
-begin
-  fpsyscall(syscall_nr_write,Tsysparam(1),Tsysparam(@s[1]),Tsysparam(length(s)));
-end;
-
-
 {*****************************************************************************
                          SystemUnit Initialization
 *****************************************************************************}
@@ -247,7 +240,7 @@ end;
 
 {$i sighnd.inc}
 
-procedure InstallDefaultSignalHandler(signum: longint; sighandler: SigActionHandler; out oldact: SigActionRec); public name '_FPC_INSTALLDEFAULTSIGHANDLER';
+procedure InstallDefaultSignalHandler(signum: longint; out oldact: SigActionRec); public name '_FPC_INSTALLDEFAULTSIGHANDLER';
 var
   act: SigActionRec;
 begin
@@ -255,7 +248,7 @@ begin
   { all flags and information set to zero }
   FillChar(act, sizeof(SigActionRec),0);
   { initialize handler                    }
-  act.sa_handler := sighandler;
+  act.sa_handler := SigActionHandler(@SignalToRunError);
   act.sa_flags:=SA_SIGINFO;
   FpSigAction(signum,@act,@oldact);
 end;
@@ -266,20 +259,12 @@ var
   oldsigbus: SigActionRec; public name '_FPC_OLDSIGBUS';
   oldsigill: SigActionRec; public name '_FPC_OLDSIGILL';
 
-procedure InstallSignals;
+Procedure InstallSignals;
 begin
-  InstallDefaultSignalHandler(SIGFPE,SigActionHandler(@SignalToRunerror),oldsigfpe);
-  InstallDefaultSignalHandler(SIGSEGV,SigActionHandler(@SignalToRunerror),oldsigsegv);
-  InstallDefaultSignalHandler(SIGBUS,SigActionHandler(@SignalToRunerror),oldsigbus);
-  InstallDefaultSignalHandler(SIGILL,SigActionHandler(@SignalToRunerror),oldsigill);
-end;
-
-procedure InstallSignals_microexe;
-begin
-  InstallDefaultSignalHandler(SIGFPE,SigActionHandler(@SignalToAbort),oldsigfpe);
-  InstallDefaultSignalHandler(SIGSEGV,SigActionHandler(@SignalToAbort),oldsigsegv);
-  InstallDefaultSignalHandler(SIGBUS,SigActionHandler(@SignalToAbort),oldsigbus);
-  InstallDefaultSignalHandler(SIGILL,SigActionHandler(@SignalToAbort),oldsigill);
+  InstallDefaultSignalHandler(SIGFPE,oldsigfpe);
+  InstallDefaultSignalHandler(SIGSEGV,oldsigsegv);
+  InstallDefaultSignalHandler(SIGBUS,oldsigbus);
+  InstallDefaultSignalHandler(SIGILL,oldsigill);
 end;
 
 procedure SysInitStdIO;
@@ -342,22 +327,6 @@ begin
     result := limits.rlim_cur
   else
     result := stklen;
-end;
-
-procedure micro_init;public name 'FPC_MICRO_INITIALIZE';
-
-begin
-{$ifndef FPUNONE}
-  SysResetFPU;
-  SysInitFPU;
-{$if defined(cpupowerpc)}
-  // some PPC kernels set the exception bits FE0/FE1 in the MSR to zero,
-  // disabling all FPU exceptions. Enable them again.
-  fpprctl(PR_SET_FPEXC, PR_FP_EXC_PRECISE);
-{$endif}
-{$endif}
-  { Set up signals handlers (may be needed by init code to test cpu features) }
-  InstallSignals_microexe;
 end;
 
 var

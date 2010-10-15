@@ -267,7 +267,6 @@ implementation
 
           in_new_x :
             begin
-              current_module.micro_exe_allowed:=false;
               if afterassignment or in_args then
                statement_syssym:=new_function
               else
@@ -276,7 +275,6 @@ implementation
 
           in_dispose_x :
             begin
-              current_module.micro_exe_allowed:=false;
               statement_syssym:=new_dispose_statement(false);
             end;
 
@@ -678,7 +676,6 @@ implementation
           in_readln_x,
           in_readstr_x:
             begin
-              current_module.micro_exe_allowed:=false;
               if try_to_consume(_LKLAMMER) then
                begin
                  paras:=parse_paras(false,false,_RKLAMMER);
@@ -727,7 +724,6 @@ implementation
           in_writeln_x,
           in_writestr_x :
             begin
-              current_module.micro_exe_allowed:=false;
               if try_to_consume(_LKLAMMER) then
                begin
                  paras:=parse_paras(true,false,_RKLAMMER);
@@ -871,9 +867,6 @@ implementation
          afterassignment:=false;
          membercall:=false;
          aprocdef:=nil;
-         
-         if st.moduleid<>current_module.moduleid then
-           current_module.micro_exe_allowed:=false;
 
          { when it is a call to a member we need to load the
            methodpointer first
@@ -2759,10 +2752,6 @@ implementation
             do_typecheckpass_changed(p1,nodechanged);
             updatefpos:=updatefpos or nodechanged;
           end;
-
-        if current_module.micro_exe_allowed then
-          if check_micro_exe_forbidden_type(p1.resultdef) then
-            current_module.micro_exe_allowed:=false;
 
         if assigned(p1) and
            updatefpos then
