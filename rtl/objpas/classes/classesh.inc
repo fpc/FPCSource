@@ -1515,8 +1515,8 @@ type
     destructor Destroy; override;
     procedure AfterConstruction; override;
     procedure Start;
-    procedure Resume;
-    procedure Suspend;
+    procedure Resume; deprecated;
+    procedure Suspend; deprecated;
     procedure Terminate;
     function WaitFor: Integer;
     class procedure Synchronize(AThread: TThread; AMethod: TThreadMethod);
