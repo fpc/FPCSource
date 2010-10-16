@@ -81,6 +81,8 @@ const
    in_objc_encode_x     = 71;
    in_sar_x_y           = 72;
    in_sar_x             = 73;
+   in_bsf_x             = 74;
+   in_bsr_x             = 75;
 
 { Internal constant functions }
    in_const_sqr        = 100;

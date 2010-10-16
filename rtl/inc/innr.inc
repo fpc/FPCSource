@@ -82,6 +82,8 @@ const
    fpc_objc_encode_x        = 71;
    fpc_in_sar_x_y           = 72;
    fpc_in_sar_x             = 73;
+   fpc_in_bsf_x             = 74;
+   fpc_in_bsr_x             = 75;
 
 { Internal constant functions }
    fpc_in_const_sqr        = 100;

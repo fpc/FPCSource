@@ -56,6 +56,7 @@ interface
           procedure second_abs_long; virtual;
           procedure second_rox; virtual;
           procedure second_sar; virtual;
+          procedure second_bsfbsr; virtual;
        end;
 
 implementation
@@ -169,6 +170,9 @@ implementation
             in_sar_x,
             in_sar_x_y:
               second_sar;
+            in_bsf_x,
+            in_bsr_x:
+               second_BsfBsr;
             else internalerror(9);
          end;
       end;
@@ -805,6 +809,29 @@ implementation
              end;
           end;
       end;
+
+
+    procedure tcginlinenode.second_BsfBsr;
+    var
+      reverse: boolean;
+      opsize: tcgsize;
+    begin
+      reverse:=(inlinenumber = in_bsr_x);
+      secondpass(left);
+
+      opsize:=tcgsize2unsigned[left.location.size];
+      if opsize < OS_32 then
+        opsize:=OS_32;
+
+      if (left.location.loc <> LOC_REGISTER) or
+         (left.location.size <> opsize) then
+        location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+
+      location_reset(location,LOC_REGISTER,opsize);
+      location.register := cg.getintregister(current_asmdata.CurrAsmList,opsize);
+      cg.a_bit_scan_reg_reg(current_asmdata.CurrAsmList,reverse,opsize,left.location.register,location.register);
+    end;
+
 
 begin
    cinlinenode:=tcginlinenode;

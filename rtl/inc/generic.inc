@@ -2269,3 +2269,96 @@ function SarInt64(Const AValue : Int64;Shift : Byte): Int64;
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 {$endif FPC_SYSTEM_HAS_SAR_QWORD}
 
+{$ifndef FPC_HAS_INTERNAL_BSX_BYTE}
+{$ifndef FPC_SYSTEM_HAS_BSX_BYTE}
+function BsfByte(Const AValue: Byte): Byte;
+  const bsf8bit: array [Byte] of Byte = (
+	  $ff,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
+	  5,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
+	  6,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
+	  5,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
+	  7,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
+	  5,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
+	  6,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,
+	  5,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0,4,0,1,0,2,0,1,0,3,0,1,0,2,0,1,0
+  );
+  begin
+    result:=bsf8bit[AValue];
+  end;
+
+function BsrByte(Const AValue: Byte): Byte;
+  const bsr8bit: array [Byte] of Byte = (
+    $ff,0,1,1,2,2,2,2,3,3,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,
+	  5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,
+	  6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+	  6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,
+	  7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+	  7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+	  7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,
+	  7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7,7
+  );
+  begin
+    result:=bsr8bit[AValue];
+  end;
+{$endif}
+{$endif}
+
+{$ifndef FPC_SYSTEM_HAS_BSX_WORD}
+{$ifndef FPC_HAS_INTERNAL_BSX_WORD}
+function BsfWord(Const AValue: Word): cardinal;
+  begin
+    if lo(AValue)<>0 then
+      result:=BsfByte(lo(AValue))
+    else
+      result:=BsfByte(hi(AValue))+8
+  end;
+
+function BsrWord(Const AValue: Word): cardinal;
+  begin
+    if hi(AValue)<>0 then
+      result:=BsrByte(hi(AValue))+8
+    else
+      result:=BsrByte(lo(AValue))
+  end;
+{$endif}
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSX_DWORD}
+{$ifndef FPC_SYSTEM_HAS_BSX_DWORD}
+function BsfDWord(Const AValue : DWord): cardinal;
+begin
+  if lo(AValue)<>0 then
+    result:=BsfWord(lo(AValue))
+  else
+    result:=BsfWord(hi(AValue))+16
+end;
+
+function BsrDWord(Const AValue : DWord): cardinal;
+begin
+  if hi(AValue)<>0 then
+    result:=BsrWord(hi(AValue))+16
+  else
+    result:=BsrWord(lo(AValue))
+end;
+{$endif}
+{$endif}
+
+{$ifndef FPC_HAS_INTERNAL_BSX_QWORD}
+{$ifndef FPC_SYSTEM_HAS_BSX_QWORD}
+function BsfQWord(Const AValue : QWord): cardinal;
+  begin
+    if lo(AValue) <> 0 then
+      result:=BsfDWord(lo(AValue))
+    else
+      result:=BsfDWord(hi(AValue)) + 32
+  end;
+
+function BsrQWord(Const AValue : QWord): cardinal;
+  begin
+    if hi(AValue) <> 0 then
+      result:=BsrDWord(hi(AValue)) + 32
+    else
+      result:=BsrDWord(lo(AValue))
+  end;
+{$endif}
+{$endif}

@@ -2597,6 +2597,18 @@ implementation
                   set_varstate(tcallparanode(tcallparanode(left).right).left,vs_read,[vsf_must_be_valid]);
                   resultdef:=tcallparanode(tcallparanode(left).right).left.resultdef;
                 end;
+              in_bsf_x,
+              in_bsr_x:
+                 begin
+                   set_varstate(left,vs_read,[vsf_must_be_valid]);
+                   if not is_integer(left.resultdef) then
+                     CGMessage1(type_e_integer_expr_expected,left.resultdef.typename);
+                   if torddef(left.resultdef).ordtype in [u64bit, s64bit] then
+                     resultdef:=u64inttype
+                   else
+                     resultdef:=u32inttype
+                 end;
+
               in_objc_selector_x:
                 begin
                   result:=cobjcselectornode.create(left);
@@ -3007,7 +3019,9 @@ implementation
          in_ror_x,
          in_ror_x_x,
          in_sar_x,
-         in_sar_x_y:
+         in_sar_x_y,
+         in_bsf_x,
+         in_bsr_x:
            expectloc:=LOC_REGISTER;
          else
            internalerror(89);

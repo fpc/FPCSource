@@ -756,6 +756,48 @@ function SarInt64(Const AValue : Int64;Shift : Byte): Int64;[internproc:fpc_in_s
 function SarInt64(Const AValue : Int64;Shift : Byte = 1): Int64;
 {$endif FPC_HAS_INTERNAL_SAR_QWORD}
 
+{$ifdef FPC_HAS_INTERNAL_BSX}
+{$if defined(cpui386) or defined(cpux86_64)}
+{$define FPC_HAS_INTERNAL_BSX_BYTE}
+{$define FPC_HAS_INTERNAL_BSX_WORD}
+{$define FPC_HAS_INTERNAL_BSX_DWORD}
+{$endif}
+{$if defined(cpux86_64)}
+{$define FPC_HAS_INTERNAL_BSX_QWORD}
+{$endif}
+{$endif}
+
+{$ifdef FPC_HAS_INTERNAL_BSX_BYTE}
+function BsfByte(Const AValue: Byte): Byte;[internproc:fpc_in_bsf_x];
+function BsrByte(Const AValue: Byte): Byte;[internproc:fpc_in_bsr_x];
+{$else}
+function BsfByte(Const AValue: Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+function BsrByte(Const AValue: Byte): Byte;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif}
+
+{$ifdef FPC_HAS_INTERNAL_BSX_WORD}
+function BsfWord(Const AValue: Word): cardinal;[internproc:fpc_in_bsf_x];
+function BsrWord(Const AValue: Word): cardinal;[internproc:fpc_in_bsr_x];
+{$else}
+function BsfWord(Const AValue: Word): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+function BsrWord(Const AValue: Word): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif}
+
+{$ifdef FPC_HAS_INTERNAL_BSX_DWORD}
+function BsfDWord(Const AValue : DWord): cardinal;[internproc:fpc_in_bsf_x];
+function BsrDWord(Const AValue : DWord): cardinal;[internproc:fpc_in_bsr_x];
+{$else}
+function BsfDWord(Const AValue : DWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+function BsrDWord(Const AValue : DWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_BSX_DWORD}
+
+{$ifdef FPC_HAS_INTERNAL_BSX_QWORD}
+function BsfQWord(Const AValue : QWord): cardinal;[internproc:fpc_in_bsf_x];
+function BsrQWord(Const AValue : QWord): cardinal;[internproc:fpc_in_bsr_x];
+{$else}
+function BsfQWord(Const AValue : QWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+function BsrQWord(Const AValue : QWord): cardinal;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$endif FPC_HAS_INTERNAL_BSF_QWORD}
 
 {$ifndef FPUNONE}
 { float math routines }

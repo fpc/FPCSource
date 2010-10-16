@@ -71,6 +71,9 @@ unit cgx86;
         procedure a_load_reg_reg(list : TAsmList;fromsize,tosize: tcgsize;reg1,reg2 : tregister);override;
         procedure a_loadaddr_ref_reg(list : TAsmList;const ref : treference;r : tregister);override;
 
+        { bit scan instructions }
+        procedure a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister); override;
+
         { fpu move instructions }
         procedure a_loadfpu_reg_reg(list: TAsmList; fromsize, tosize: tcgsize; reg1, reg2: tregister); override;
         procedure a_loadfpu_ref_reg(list: TAsmList; fromsize, tosize: tcgsize; const ref: treference; reg: tregister); override;
@@ -1631,6 +1634,16 @@ unit cgx86;
         end;
       end;
 
+     procedure tcgx86.a_bit_scan_reg_reg(list: TAsmList; reverse: boolean; size: TCGSize; src, dst: TRegister);
+     var
+       opsize: topsize;
+     begin
+       opsize:=tcgsize2opsize[size];
+       if not reverse then
+         list.concat(taicpu.op_reg_reg(A_BSF,opsize,src,dst))
+       else
+         list.concat(taicpu.op_reg_reg(A_BSR,opsize,src,dst));
+     end;
 
 {*************** compare instructructions ****************}
 
