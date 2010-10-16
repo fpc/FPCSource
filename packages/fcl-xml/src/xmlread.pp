@@ -301,14 +301,13 @@ type
     FNext: PNodeData;
     FQName: PHashItem;
     FNodeType: TXMLNodeType;
-    FDOMNode: TObject;   // temporary
+    FDOMNode: TDOMNode_WithChildren;   // temporary
 
     FValueStr: WideString;
     FValueStart: PWideChar;
     FValueLength: Integer;
 
     // validation-specific members
-    FElement: TDOMElement;
     FElementDef: TDOMElementDef;
     FCurCP: TContentParticle;
     FFailed: Boolean;
@@ -412,7 +411,6 @@ type
     procedure CleanupAttributeData;
     procedure SetNodeInfoWithValue(typ: TXMLNodeType; AName: PHashItem = nil);
   protected
-    FCursor: TDOMNode_WithChildren;
     FNesting: Integer;
     FCurrNode: PNodeData;
     FAttrCount: Integer;
@@ -450,7 +448,7 @@ type
     procedure ParseMarkupDecl;                                          // [29]
     procedure ParseStartTag;                                            // [39]
     procedure ParseEndTag;                                              // [42]
-    procedure DoEndElement(ErrOffset: Integer);
+    procedure DoEndElement;
     procedure ParseAttribute(Elem: TDOMElement; ElDef: TDOMElementDef);
     procedure ParseContent;                                             // [43]
     function  Read: Boolean;
@@ -1372,7 +1370,6 @@ procedure TXMLReader.ProcessXML(ASource: TXMLCharSource);
 begin
   doc := TXMLDocument.Create;
   doc.documentURI := ASource.SystemID;  // TODO: to be changed to URI or BaseURI  
-  FCursor := doc;
   FState := rsProlog;
   FNesting := 0;
   FCurrNode := @FNodeStack[0];
@@ -1390,11 +1387,10 @@ end;
 procedure TXMLReader.ProcessFragment(ASource: TXMLCharSource; AOwner: TDOMNode);
 begin
   doc := AOwner.OwnerDocument;
-  FCursor := AOwner as TDOMNode_WithChildren;
   FState := rsRoot;
   FNesting := 0;
   FCurrNode := @FNodeStack[0];
-  FCurrNode^.FDOMNode := FCursor;
+  FCurrNode^.FDOMNode := AOwner as TDOMNode_WithChildren;
   FXML11 := doc.InheritsFrom(TXMLDocument) and (TXMLDocument(doc).XMLVersion = '1.1');
   Initialize(ASource);
   FDocType := TDOMDocumentTypeEx(doc.DocType);
@@ -2008,7 +2004,7 @@ begin
     ValidationError('Processing instructions are not allowed within EMPTY elements', []);
 
   PINode := Doc.CreateProcessingInstruction(NameStr, ValueStr);
-  FCursor.AppendChild(PINode)
+  FNodeStack[FNesting].FDOMNode.InternalAppend(PINode);
 end;
 
 const
@@ -2710,7 +2706,6 @@ begin
   doc := TXMLDocument.Create;
   FDocType := TDOMDocumentTypeEx.Create(doc);
   // TODO: DTD labeled version 1.1 will be rejected - must set FXML11 flag
-  // DONE: It's ok to have FCursor=nil now
   doc.AppendChild(FDocType);
   Initialize(ASource);
   ParseMarkupDecl;
@@ -2796,7 +2791,7 @@ begin
       xtComment:
         DoComment(FCurrNode^.FValueStart, FCurrNode^.FValueLength);
       xtEndElement:
-        DoEndElement(-1);
+        DoEndElement;
       xtDoctype:
         if not FCanonical then
         begin
@@ -2898,7 +2893,7 @@ begin
       if InCDATA then
         FatalError('Unterminated CDATA section', -1);
       if FNesting > FSource.FStartNesting then
-        FatalError('End-tag is missing for ''%s''', [FCurrNode^.FElement.NSI.QName^.Key]);
+        FatalError('End-tag is missing for ''%s''', [FNodeStack[FNesting].FQName^.Key]);
       if ContextPop then Continue;
       tok := xtEOF;
     end
@@ -2966,14 +2961,9 @@ begin
   FNext := xtText;
 
   case tok of
-    xtEntity:     AppendReference(FCursor, FCurrEntity);
+    xtEntity:     AppendReference(FNodeStack[FNesting].FDOMNode, FCurrEntity);
     xtElement:    ParseStartTag;
-    xtEndElement:
-      begin
-        ParseEndTag;
-        FCurrNode^.FNodeType := ntEndElement;
-        FNext := xtPopElement;
-      end;
+    xtEndElement: ParseEndTag;
     xtPI:         ParsePI;
     xtDoctype:    ParseDoctypeDecl;
     xtComment:    ParseComment(False);
@@ -3013,12 +3003,13 @@ begin
     FState := rsRoot;
   end;
 
-  NewElem := doc.CreateElementBuf(FName.Buffer, FName.Length);
-  FCursor.AppendChild(NewElem);
   // we're about to process a new set of attributes
   Inc(FAttrTag);
   // can point to a child text/comment/PI node, so restore it
   FCurrNode := @FNodeStack[FNesting];
+
+  NewElem := doc.CreateElementBuf(FName.Buffer, FName.Length);
+  FCurrNode^.FDOMNode.InternalAppend(NewElem);
 
   // Remember the hash entry, we'll need it often
   ElName := NewElem.NSI.QName;
@@ -3063,7 +3054,6 @@ begin
 
   if not IsEmpty then
   begin
-    FCursor := NewElem;
     if not FPreserveWhitespace then   // critical for testsuite compliance
       SkipS;
     FNext := xtPushElement;
@@ -3072,18 +3062,13 @@ begin
     FNext := xtPopEmptyElement;
 end;
 
-procedure TXMLReader.DoEndElement(ErrOffset: Integer);
-var
-  NewElem: TDOMElement;
+procedure TXMLReader.DoEndElement;
 begin
-  NewElem := FCurrNode^.FElement;
-  TDOMNode(FCursor) := NewElem.ParentNode;
-  if FCursor = doc then
+  if (FNesting > 0) and (FNodeStack[FNesting-1].FDOMNode = doc) then
     FState := rsEpilog;
 
   if FValidate and FCurrNode^.Incomplete then
-    ValidationError('Element ''%s'' is missing required sub-elements', [NewElem.NSI.QName^.Key], ErrOffset);
-
+    ValidationError('Element ''%s'' is missing required sub-elements', [FNodeStack[FNesting].FQName^.Key], -1);
 end;
 
 procedure TXMLReader.ParseEndTag;     // [42]
@@ -3095,6 +3080,7 @@ begin
   Inc(FSource.FBuf);
 
   FCurrNode := @FNodeStack[FNesting];  // move off the possible child
+  FCurrNode^.FNodeType := ntEndElement;
   ElName := FCurrNode^.FQName;
 
   CheckName;
@@ -3108,6 +3094,7 @@ begin
     ExpectChar('>');
   end;
   Inc(FTokenStart.LinePos, 2);   // move over '</' chars
+  FNext := xtPopElement;
 end;
 
 procedure TXMLReader.ParseAttribute(Elem: TDOMElement; ElDef: TDOMElementDef);
@@ -3477,7 +3464,7 @@ begin
 
   // Document builder part
   TextNode := Doc.CreateTextNodeBuf(ch, Count, Whitespace and (FCurrContentType = ctChildren));
-  FCursor.AppendChild(TextNode);
+  FNodeStack[FNesting].FDOMNode.InternalAppend(TextNode);
 end;
 
 procedure TXMLReader.DoComment(ch: PWideChar; Count: Integer);
@@ -3489,10 +3476,10 @@ begin
     ValidationError('Comments are not allowed within EMPTY elements', []);
 
   // DOM builder part
-  if (not FIgnoreComments) and Assigned(FCursor) then
+  if (not FIgnoreComments) and (FState <> rsDTD) then
   begin
     Node := Doc.CreateCommentBuf(ch, Count);
-    FCursor.AppendChild(Node);
+    FNodeStack[FNesting].FDOMNode.InternalAppend(Node);
   end;
 end;
 
@@ -3506,7 +3493,7 @@ begin
     ValidationError('CDATA sections are not allowed in element-only content',[]);
 
   SetString(s, ch, Count);
-  FCursor.AppendChild(doc.CreateCDATASection(s));
+  FNodeStack[FNesting].FDOMNode.InternalAppend(doc.CreateCDATASection(s));
 end;
 
 procedure TXMLReader.DoNotationDecl(const aName, aPubID, aSysID: WideString);
@@ -3593,7 +3580,7 @@ procedure TXMLReader.PushVC(aElement: TDOMElement; aElDef: TDOMElementDef);
 begin
   Inc(FNesting);
   FCurrNode := AllocNodeData(FNesting);
-  FCurrNode^.FElement := aElement;
+  FCurrNode^.FDOMNode := aElement;
   FCurrNode^.FElementDef := aElDef;
   FCurrNode^.FCurCP := nil;
   FCurrNode^.FFailed := False;
