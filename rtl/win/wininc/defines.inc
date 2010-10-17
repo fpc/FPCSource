@@ -5717,6 +5717,22 @@ const
     IMAGE_FILE_MACHINE_M32R              = $9041;  // M32R little-endian
     IMAGE_FILE_MACHINE_CEE               = $C0EE;
 
+
+    GWLP_WNDPROC        		 = -4; 
+    GWLP_HINSTANCE      		 = -6; 
+    GWLP_HWNDPARENT     		 = -8; 
+    GWLP_USERDATA       		 = -21;
+    GWLP_ID             		 = -12;
+
+    GCLP_MENUNAME                        = -8;    
+    GCLP_HBRBACKGROUND                   = -10;
+    GCLP_HCURSOR                         = -12;
+    GCLP_HICON                           = -14;
+    GCLP_HMODULE                         = -16;
+    GCLP_WNDPROC                         = -24;
+    GCLP_HICONSM                         = -34;
+
+
 // #if(WINVER >= 0x0500)
 {/*
  * WM_MENUDRAG return values.
