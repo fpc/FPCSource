@@ -69,7 +69,7 @@ implementation
       begin
          parasym:=pboolean(arg)^;
          if (tsym(p).typ=varsym) and ((tvarsym(p).varregable <> vr_none) or
-             ((tvarsym(p).varspez in [vs_var,vs_const,vs_out]) and
+             ((tvarsym(p).varspez in [vs_var,vs_const,vs_out,vs_constref]) and
               paramanager.push_addr_param(tvarsym(p).varspez,tvarsym(p).vardef,current_procinfo.procdef.proccalloption))) and
             not tvarsym(p).vardef.needs_inittable then
            begin

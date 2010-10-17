@@ -474,6 +474,9 @@ implementation
                try_to_consume(_OUT) then
               varspez:=vs_out
           else
+           if try_to_consume(_CONSTREF) then
+             varspez:=vs_constref
+          else
             if (m_mac in current_settings.modeswitches) and
                try_to_consume(_POINTPOINTPOINT) then
               begin
@@ -592,7 +595,7 @@ implementation
                 if is_shortstring(hdef) then
                   begin
                     case varspez of
-                      vs_var,vs_out:
+                      vs_var,vs_out,vs_constref:
                         begin
                           { not 100% Delphi-compatible: type xstr=string[255] cannot
                             become an openstring there, while here it can }

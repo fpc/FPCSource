@@ -161,9 +161,9 @@ type
   private
     FVarType: TVarType;
   protected
-    function QueryInterface(const IID: TGUID; out Obj): HResult; virtual; stdcall;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
+    function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): HResult; virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
     procedure SimplisticClear(var V: TVarData);
     procedure SimplisticCopy(var Dest: TVarData; const Source: TVarData; const Indirect: Boolean = False);
     procedure RaiseInvalidOp;
@@ -3575,19 +3575,19 @@ function Null: Variant;       // Null standard constant
   ---------------------------------------------------------------------}
 
 {$warnings off}
-function TCustomVariantType.QueryInterface(const IID: TGUID; out Obj): HResult;  stdcall;
+function TCustomVariantType.QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): HResult;  {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   begin
     NotSupported('TCustomVariantType.QueryInterface');
   end;
 
 
-function TCustomVariantType._AddRef: Integer; stdcall;
+function TCustomVariantType._AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   begin
     NotSupported('TCustomVariantType._AddRef');
   end;
 
 
-function TCustomVariantType._Release: Integer; stdcall;
+function TCustomVariantType._Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   begin
     NotSupported('TCustomVariantType._Release');
   end;

@@ -644,8 +644,8 @@ unit cpupara;
         numclasses: longint;
       begin
         result:=false;
-        { var,out always require address }
-        if varspez in [vs_var,vs_out] then
+        { var,out,constref always require address }
+        if varspez in [vs_var,vs_out,vs_constref] then
           begin
             result:=true;
             exit;

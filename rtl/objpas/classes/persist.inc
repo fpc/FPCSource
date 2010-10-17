@@ -91,7 +91,7 @@ begin
 end;
 
 
-function TInterfacedPersistent._AddRef: Integer;stdcall;
+function TInterfacedPersistent._AddRef: Integer;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   if assigned(FOwnerInterface) then
     Result:=FOwnerInterface._AddRef
@@ -100,7 +100,7 @@ begin
 end;
 
 
-function TInterfacedPersistent._Release: Integer;stdcall;
+function TInterfacedPersistent._Release: Integer;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   if assigned(FOwnerInterface) then
     Result:=FOwnerInterface._Release
@@ -109,7 +109,7 @@ begin
 end;
 
 
-function TInterfacedPersistent.QueryInterface(const IID: TGUID; out Obj): HResult;stdcall;
+function TInterfacedPersistent.QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): HResult;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   if GetInterface(IID, Obj) then
     Result:=0

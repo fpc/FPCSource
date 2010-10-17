@@ -608,7 +608,7 @@ implementation
               begin
                  if (tsym(sym).owner.symtabletype=parasymtable) then
                    begin
-                     if not(tabstractvarsym(sym).varspez in [vs_var,vs_out]) and
+                     if not(tabstractvarsym(sym).varspez in [vs_var,vs_out,vs_constref]) and
                         not(vo_is_funcret in tabstractvarsym(sym).varoptions) then
                        MessagePos1(tsym(sym).fileinfo,sym_h_para_identifier_only_set,tsym(sym).prettyname)
                    end

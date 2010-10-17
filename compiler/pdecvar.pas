@@ -363,6 +363,8 @@ implementation
                   varspez:=vs_var
                 else if try_to_consume(_CONST) then
                   varspez:=vs_const
+                else if try_to_consume(_CONSTREF) then
+                  varspez:=vs_constref
                 else if (m_out in current_settings.modeswitches) and try_to_consume(_OUT) then
                   varspez:=vs_out
                 else

@@ -13,9 +13,9 @@ type
   end;
   TA = class(TObject, IA, IInterface)
     destructor Destroy; override;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
-    function QueryInterface(const iid: TGuid; out obj): HResult; stdcall;
+    function _AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function QueryInterface(constref iid: TGuid; out obj): HResult; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
     procedure AfterConstruction; override;
     class function NewInstance: TObject; override;
   end;
@@ -32,13 +32,13 @@ begin
   inherited AfterConstruction;
 end;
 
-function TA._AddRef: Integer; stdcall;
+function TA._AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   InterlockedIncrement(fRefCount);
   Result := 0;
 end;
 
-function TA._Release: Integer; stdcall;
+function TA._Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   InterlockedDecrement(fRefCount);
   if fRefCount = 0 then begin
@@ -49,7 +49,7 @@ begin
   Result := 0;
 end;
 
-function TA.QueryInterface(const iid: TGuid; out obj): HResult; stdcall;
+function TA.QueryInterface(constref iid: TGuid; out obj): HResult; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 begin
   Result := E_NOINTERFACE;
 end;

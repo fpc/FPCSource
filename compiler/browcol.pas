@@ -1343,10 +1343,11 @@ end;
              CurName:=': '+GetDefinitionStr(dc.vardef);
            CurName:=dc.RealName+CurName;
            case dc.varspez of
-             vs_Value : ;
-             vs_Const : CurName:='const '+CurName;
-             vs_Var   : CurName:='var '+CurName;
-             vs_Out   : CurName:='out '+CurName;
+             vs_Value    : ;
+             vs_Const    : CurName:='const '+CurName;
+             vs_Var      : CurName:='var '+CurName;
+             vs_Out      : CurName:='out '+CurName;
+             vs_Constref : CurName:='constref '+CurName;
            end;
            if Count>0 then
              CurName:='; '+CurName;

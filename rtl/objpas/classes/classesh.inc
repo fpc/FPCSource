@@ -403,10 +403,10 @@ type
     FOwnerInterface: IInterface;
   protected
     { IInterface }
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
+    function _AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   public
-    function QueryInterface(const IID: TGUID; out Obj): HResult; virtual; stdcall;
+    function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): HResult; virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
     procedure AfterConstruction; override;
   end;
 
@@ -1630,9 +1630,9 @@ type
     procedure ValidateContainer(AComponent: TComponent); dynamic;
     procedure ValidateInsert(AComponent: TComponent); dynamic;
     { IUnknown }
-    function QueryInterface(const IID: TGUID; out Obj): Hresult; virtual; stdcall;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
+    function QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): Hresult; virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
     function iicrGetComponent: TComponent;
     { IDispatch }
     function GetTypeInfoCount(out Count: Integer): HResult; stdcall;

@@ -176,8 +176,8 @@ unit cpupara;
     function tppcparamanager.push_addr_param(varspez:tvarspez;def : tdef;calloption : tproccalloption) : boolean;
       begin
         result:=false;
-        { var,out always require address }
-        if varspez in [vs_var,vs_out] then
+        { var,out,constref always require address }
+        if varspez in [vs_var,vs_out,vs_constref] then
           begin
             result:=true;
             exit;

@@ -201,6 +201,7 @@ type
     _ABSOLUTE,
     _ABSTRACT,
     _BASESYSV,
+    _CONSTREF,
     _CONTAINS,
     _CONTINUE,
     _CPPCLASS,
@@ -463,6 +464,7 @@ const
       (str:'ABSOLUTE'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'ABSTRACT'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'BASESYSV'      ;special:false;keyword:m_none;op:NOTOKEN),   { Syscall variation on MorphOS }
+      (str:'CONSTREF'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'CONTAINS'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'CONTINUE'      ;special:false;keyword:m_none;op:NOTOKEN),
       (str:'CPPCLASS'      ;special:false;keyword:m_fpc;op:NOTOKEN),

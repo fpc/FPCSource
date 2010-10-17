@@ -1399,7 +1399,7 @@ implementation
                          else
                           exit;
                        { read-only variable? }
-                       if (tabstractvarsym(tloadnode(hp).symtableentry).varspez=vs_const) then
+                       if (tabstractvarsym(tloadnode(hp).symtableentry).varspez in [vs_const,vs_constref]) then
                         begin
                           { allow p^:= constructions with p is const parameter }
                           if gotderef or gotdynarray or (Valid_Const in opts) or

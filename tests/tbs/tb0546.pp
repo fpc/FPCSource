@@ -41,9 +41,9 @@ type
    private
       FInnerX: TInnerObject;
    protected
-    function QueryInterface(const IID: TGUID; out Obj): HResult; virtual; stdcall;
-    function _AddRef: Integer; stdcall;
-    function _Release: Integer; stdcall;
+    function QueryInterface(constref IID: TGUID; out Obj): HResult; virtual; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+    function _Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
     function GetX: TInnerObject; virtual;
     function GetY: IYInterface;
    public
@@ -96,7 +96,7 @@ begin
    result := -1;
 end;
 
-function TFoo.QueryInterface(const IID: TGUID; out Obj): HResult;
+function TFoo.QueryInterface(constref IID: TGUID; out Obj): HResult;
 begin
   if GetInterface(IID, Obj) then Result := 0 else Result := E_NOINTERFACE;
 end;function TFoo.GetX: TInnerObject;

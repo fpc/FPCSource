@@ -185,7 +185,7 @@ unit opttail;
         { check if the parameters actually would support tail recursion elimination }
         for i:=0 to p.paras.count-1 do
           with tparavarsym(p.paras[i]) do
-            if (varspez in [vs_out,vs_var]) or
+            if (varspez in [vs_out,vs_var,vs_constref]) or
               ((varspez=vs_const) and
                (paramanager.push_addr_param(varspez,vardef,p.proccalloption)) or
                { parameters requiring tables are too complicated to handle

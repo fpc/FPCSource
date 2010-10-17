@@ -2948,6 +2948,8 @@ implementation
                    s:=s+'const ';
                  vs_out :
                    s:=s+'out ';
+                 vs_constref :
+                   s:=s+'constref ';
                end;
                if hp.univpara then
                  s:=s+'univ ';

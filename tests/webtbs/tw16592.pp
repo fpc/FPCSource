@@ -24,9 +24,9 @@ type
     protected
       FRefCount : longint;
     public
-      function QueryInterface(const iid : tguid;out obj) : longint;stdcall;
-      function _AddRef : longint;stdcall;
-      function _Release : longint;stdcall;
+      function QueryInterface(constref iid : tguid;out obj) : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+      function _AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
+      function _Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
 
       constructor Create;
 
@@ -96,7 +96,7 @@ end;
     WriteLn(Format('%s Obj=$%P class=%s RefCount=%d', [Str, Pointer(Self), ClassName, FRefCount]));
   end;
 
-function TInterfacedObj.QueryInterface(const iid: tguid; out obj): longint;stdcall;
+function TInterfacedObj.QueryInterface(constref iid: tguid; out obj): longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   begin
     Result:=GetInterface(iid, obj);
 
@@ -105,7 +105,7 @@ function TInterfacedObj.QueryInterface(const iid: tguid; out obj): longint;stdca
       Result:=FOwner.QueryInterface(iid, obj);
   end;
 
-  function TInterfacedObj._AddRef : longint;stdcall;[public,alias:'TInterfacedObj_AddRef'];
+  function TInterfacedObj._AddRef : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};[public,alias:'TInterfacedObj_AddRef'];
   begin
     if not FDestructorCalled then
       begin
@@ -117,7 +117,7 @@ function TInterfacedObj.QueryInterface(const iid: tguid; out obj): longint;stdca
       end;
   end;
 
-  function TInterfacedObj._Release : longint;stdcall;
+  function TInterfacedObj._Release : longint;{$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   begin
     if FDestructorCalled then Exit;
 
