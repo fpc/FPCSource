@@ -317,7 +317,7 @@ type
 
   TNodeDataDynArray = array of TNodeData;
 
-  TXMLReadState = (rsProlog, rsDTD, rsRoot, rsEpilog);
+  TXMLReadState = (rsProlog, rsDTD, rsAfterDTD, rsRoot, rsEpilog);
 
   TElementContentType = (
     ctUndeclared,
@@ -2183,6 +2183,7 @@ begin
   end;
   ValidateDTD;
   FDocType.SetReadOnly(True);
+  FState := rsAfterDTD;
 end;
 
 procedure TXMLReader.ExpectEq;   // [25]
