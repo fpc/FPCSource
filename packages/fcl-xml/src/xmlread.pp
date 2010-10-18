@@ -438,7 +438,7 @@ type
     function  ExpectName: WideString;                                   // [5]
     function ParseLiteral(var ToFill: TWideCharBuf; aType: TLiteralType;
       Required: Boolean; Normalized: PBoolean = nil): Boolean;
-    procedure ExpectAttValue(attr: TDOMAttr);                           // [10]
+    procedure ExpectAttValue(attrData: PNodeData);                      // [10]
     procedure ParseComment(discard: Boolean);                           // [15]
     procedure ParsePI;                                                  // [16]
     procedure CreatePINode;
@@ -482,6 +482,7 @@ type
     procedure DTDReloadHook;
     procedure ConvertSource(SrcIn: TXMLInputSource; out SrcOut: TXMLCharSource);
     // Some SAX-alike stuff (at a very early stage)
+    procedure LoadAttribute(src: PNodeData; dest: TDOMAttr);
     procedure DoText(ch: PWideChar; Count: Integer; Whitespace: Boolean=False);
     procedure DoComment(ch: PWideChar; Count: Integer);
     procedure DoCDSect(ch: PWideChar; Count: Integer);
@@ -1589,14 +1590,16 @@ const
   AttrDelims: TSetOfChar = [#0, '<', '&', '''', '"', #9, #10, #13];
   GT_Delim: TSetOfChar = [#0, '>'];
 
-procedure TXMLReader.ExpectAttValue(attr: TDOMAttr);
+procedure TXMLReader.ExpectAttValue(AttrData: PNodeData);
 var
   wc: WideChar;
   Delim: WideChar;
   ent: TDOMEntityEx;
   start: TObject;
+  curr: PNodeData;
 begin
   SkipQuote(Delim);
+  curr := AttrData;
   FValue.Length := 0;
   start := FSource.FEntity;
   repeat
@@ -1613,10 +1616,18 @@ begin
       begin
         if FValue.Length > 0 then
         begin
-          DoAttrText(attr, FValue.Buffer, FValue.Length);
+          curr := AllocAttributeValueChunk(curr);
+          curr^.FNodeType := ntText;
+          SetString(curr^.FValueStr, FValue.Buffer, FValue.Length);
           FValue.Length := 0;
         end;
-        AppendReference(attr, ent);
+        curr := AllocAttributeValueChunk(curr);
+        curr^.FNodeType := ntEntityReference;
+        // TODO: this probably should be placed to 'name'
+        if ent = nil then
+          SetString(curr^.FValueStr, FName.Buffer, FName.Length)
+        else
+          curr^.FValueStr := ent.FName;
       end
       else
         ContextPush(ent);
@@ -1633,8 +1644,18 @@ begin
     else if (FSource.FEntity = start) or not ContextPop then    // #0
       FatalError('Literal has no closing quote', -1);
   until False;
-  if FValue.Length > 0 then
-    DoAttrText(attr, FValue.Buffer, FValue.Length);
+  if Assigned(attrData^.FNext) then  // complex case
+  begin
+    FAttrCleanupFlag := True;
+    if FValue.Length > 0 then
+    begin
+      curr := AllocAttributeValueChunk(curr);
+      curr^.FNodeType := ntText;
+      SetString(curr^.FValueStr, FValue.Buffer, FValue.Length);
+    end;
+  end
+  else
+    SetString(attrData^.FValueStr, FValue.Buffer, FValue.Length);
   FValue.Length := 0;
 end;
 
@@ -2396,6 +2417,7 @@ var
   dt: TAttrDataType;
   Found, DiscardIt: Boolean;
   Offsets: array [Boolean] of Integer;
+  attrData: PNodeData;
 begin
   ExpectWhitespace;
   ElDef := FindOrCreateElDef;
@@ -2504,7 +2526,13 @@ begin
           ValidationError('An attribute of type ID cannot have a default value',[]);
 
 // See comments to valid-sa-094: PE expansion should be disabled in AttDef.
-        ExpectAttValue(AttDef);
+        attrData := AllocAttributeData(nil);
+        ExpectAttValue(attrData);
+
+        LoadAttribute(attrData, AttDef);   // convert to DOM form
+        CleanupAttributeData;
+        FAttrCount := 0;
+
         if not ValidateAttrSyntax(AttDef, AttDef.NodeValue) then
           ValidationError('Default value for attribute ''%s'' has wrong syntax', [AttDef.Name]);
       end;
@@ -2776,6 +2804,26 @@ const
     ntText,
     ntWhitespace
   );
+
+procedure TXMLReader.LoadAttribute(src: PNodeData; dest: TDOMAttr);
+var
+  curr: PNodeData;
+begin
+  if Assigned(src^.FNext) then
+  begin
+    curr := src^.FNext;
+    while Assigned(curr) do
+    begin
+      case curr^.FNodeType of
+        ntText: dest.InternalAppend(doc.CreateTextNode(curr^.FValueStr));
+        ntEntityReference: dest.InternalAppend(doc.CreateEntityReference(curr^.FValueStr));
+      end;
+      curr := curr^.FNext;
+    end;
+  end
+  else if src^.FValueStr <> '' then
+    dest.InternalAppend(doc.CreateTextNode(src^.FValueStr));
+end;
 
 procedure TXMLReader.ParseContent;
 begin
@@ -3101,8 +3149,9 @@ end;
 procedure TXMLReader.ParseAttribute(Elem: TDOMElement; ElDef: TDOMElementDef);
 var
   attr: TDOMAttr;
+  attrData: PNodeData;
   AttDef: TDOMAttrDef;
-  OldAttr: TDOMNode;
+  i: Integer;
 
 procedure CheckValue;
 var
@@ -3131,31 +3180,32 @@ end;
 
 begin
   CheckName;
-  Inc(FAttrCount);
   attr := doc.CreateAttributeBuf(FName.Buffer, FName.Length);
+  attrData := AllocAttributeData(attr.NSI.QName);
 
   if Assigned(ElDef) then
   begin
-    AttDef := TDOMAttrDef(ElDef.GetAttributeNode(attr.NSI.QName^.Key));
+    AttDef := TDOMAttrDef(ElDef.GetAttributeNode(attrData^.FQName^.Key));
     if AttDef = nil then
-      ValidationError('Using undeclared attribute ''%s'' on element ''%s''',[attr.NSI.QName^.Key, Elem.NSI.QName^.Key], FName.Length)
+      ValidationError('Using undeclared attribute ''%s'' on element ''%s''',
+        [attrData^.FQName^.Key, FNodeStack[FNesting].FQName^.Key], FName.Length)
     else
       AttDef.Tag := FAttrTag;  // indicates that this one is specified
   end
   else
     AttDef := nil;
 
-  // !!cannot use TDOMElement.SetAttributeNode because it will free old attribute
-  OldAttr := Elem.Attributes.SetNamedItem(Attr);
-  if Assigned(OldAttr) then
-  begin
-    OldAttr.Free;
-    FatalError('Duplicate attribute', FName.Length);
-  end;
+  // check for duplicates
+  for i := 1 to FAttrCount-1 do
+    if FNodeStack[FNesting+i].FQName = attrData^.FQName then
+      FatalError('Duplicate attribute', FName.Length);
 
   ExpectEq;
-  ExpectAttValue(attr);
+  ExpectAttValue(attrData);
 
+  LoadAttribute(attrData, attr);
+
+  elem.Attributes.SetNamedItem(attr);
   if Assigned(AttDef) and ((AttDef.DataType <> dtCdata) or (AttDef.Default = adFixed)) then
     CheckValue;
 end;
