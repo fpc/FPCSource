@@ -18,7 +18,7 @@ type
   private
     FServer : TOleServer;
   protected
-    function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+    function QueryInterface(constref IID: TGUID; out Obj): HResult; stdcall;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
     function GetTypeInfoCount(out Count: Integer): HResult; stdcall;
@@ -49,7 +49,7 @@ type
     FEventDispatch: TServerEventDispatch;
     FServerData: PServerData;
   protected
-    function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall; override;
+    function QueryInterface(constref IID: TGUID; out Obj): HResult; stdcall; override;
     function _AddRef: Integer; stdcall;
     function _Release: Integer; stdcall;
 
@@ -85,7 +85,7 @@ type
 
 implementation
 
-    function TServerEventDispatch.QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+    function TServerEventDispatch.QueryInterface(constref IID: TGUID; out Obj): HResult; stdcall;
       begin
       end;
 
@@ -132,7 +132,7 @@ implementation
       end;
 
 
-    function TOleServer.QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+    function TOleServer.QueryInterface(constref IID: TGUID; out Obj): HResult; stdcall;
       begin
       end;
 

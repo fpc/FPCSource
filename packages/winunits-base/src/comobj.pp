@@ -113,7 +113,7 @@ unit comobj;
         function IUnknown._Release = ObjRelease;
 
         { IUnknown methods for other interfaces }
-        function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+        function QueryInterface(constref IID: TGUID; out Obj): HResult; stdcall;
         function _AddRef: Integer; stdcall;
         function _Release: Integer; stdcall;
 
@@ -126,7 +126,7 @@ unit comobj;
         destructor Destroy; override;
         procedure Initialize; virtual;
         function ObjAddRef: Integer; virtual; stdcall;
-        function ObjQueryInterface(const IID: TGUID; out Obj): HResult; virtual; stdcall;
+        function ObjQueryInterface(constref IID: TGUID; out Obj): HResult; virtual; stdcall;
         function ObjRelease: Integer; virtual; stdcall;
         function SafeCallException(ExceptObject: TObject; ExceptAddr: Pointer): HResult; override;
         property Controller: IUnknown read GetController;
@@ -161,7 +161,7 @@ unit comobj;
         function GetProgID: string;
       protected
         { IUnknown }
-        function QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+        function QueryInterface(constref IID: TGUID; out Obj): HResult; stdcall;
         function _AddRef: Integer; stdcall;
         function _Release: Integer; stdcall;
         { IClassFactory }
@@ -692,7 +692,7 @@ implementation
       end;
 
 
-    function TComObject.QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+    function TComObject.QueryInterface(constref IID: TGUID; out Obj): HResult; stdcall;
       begin
         if assigned(FController) then
           Result:=IUnknown(FController).QueryInterface(IID,Obj)
@@ -778,7 +778,7 @@ implementation
       end;
 
 
-    function TComObject.ObjQueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+    function TComObject.ObjQueryInterface(constref IID: TGUID; out Obj): HResult; stdcall;
       begin
         if GetInterface(IID,Obj) then
           Result:=S_OK
@@ -823,7 +823,7 @@ implementation
       end;
 
 
-    function TComObjectFactory.QueryInterface(const IID: TGUID; out Obj): HResult; stdcall;
+    function TComObjectFactory.QueryInterface(constref IID: TGUID; out Obj): HResult; stdcall;
       begin
         if GetInterface(IID,Obj) then
           Result:=S_OK
