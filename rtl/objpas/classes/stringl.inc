@@ -851,6 +851,7 @@ Var
   S : String;
 begin
   S:=Text;
+  if S = '' then Exit;
   Stream.WriteBuffer(Pointer(S)^,Length(S));
 end;
 
