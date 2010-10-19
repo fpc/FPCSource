@@ -74,8 +74,8 @@ type
 implementation
 
 
-{$i sllist.inc}
-{$i resref.inc}
+{$i sllist2.inc}
+{$i resref2.inc}
 
 { ---------------------------------------------------------------------
   Auxiliary routines
