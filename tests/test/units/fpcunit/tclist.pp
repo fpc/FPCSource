@@ -75,9 +75,9 @@ type
   { TMyList }
 
   TMyList = Class(TList)
-    procedure Notify(Ptr: Pointer; Action: TListNotification); override;
     FLastPointer : Pointer;
     FLastAction : TListNotification;
+    procedure Notify(Ptr: Pointer; Action: TListNotification); override;
   end;
   
 
