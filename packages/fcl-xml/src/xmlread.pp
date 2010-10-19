@@ -338,7 +338,7 @@ type
     PrefixLen: Integer;  // to avoid recalculation
   end;
 
-  TLiteralType = (ltPlain, ltAttr, ltTokAttr, ltPubid, ltEntity);
+  TLiteralType = (ltPlain, ltPubid, ltEntity);
 
   TXMLReader = class
   private
@@ -437,8 +437,8 @@ type
     procedure CheckNCName;
     function  ExpectName: WideString;                                   // [5]
     function ParseLiteral(var ToFill: TWideCharBuf; aType: TLiteralType;
-      Required: Boolean; Normalized: PBoolean = nil): Boolean;
-    procedure ExpectAttValue(attrData: PNodeData);                      // [10]
+      Required: Boolean): Boolean;
+    function ExpectAttValue(attrData: PNodeData; NonCDATA: Boolean): Boolean; // [10]
     procedure ParseComment(discard: Boolean);                           // [15]
     procedure ParsePI;                                                  // [16]
     procedure CreatePINode;
@@ -1590,17 +1590,24 @@ const
   AttrDelims: TSetOfChar = [#0, '<', '&', '''', '"', #9, #10, #13];
   GT_Delim: TSetOfChar = [#0, '>'];
 
-procedure TXMLReader.ExpectAttValue(AttrData: PNodeData);
+{ Parse attribute literal, producing plain string value in AttrData.FValueStr.
+  If entity references are encountered and FExpandEntities=False, also builds
+  a node chain starting from AttrData.FNext. Node chain is built only for the
+  first level. If NonCDATA=True, additionally normalizes whitespace in string value.
+  Returns True if value actually needed normalization }
+function TXMLReader.ExpectAttValue(AttrData: PNodeData; NonCDATA: Boolean): Boolean;
 var
   wc: WideChar;
   Delim: WideChar;
   ent: TDOMEntityEx;
   start: TObject;
   curr: PNodeData;
+  StartPos: Integer;
 begin
   SkipQuote(Delim);
   curr := AttrData;
   FValue.Length := 0;
+  StartPos := 0;
   start := FSource.FEntity;
   repeat
     wc := FSource.SkipUntil(FValue, AttrDelims);
@@ -1612,14 +1619,14 @@ begin
         Continue;
 
       ent := EntityCheck(True);
-      if (ent = nil) or (not FExpandEntities) then
+      if ((ent = nil) or (not FExpandEntities)) and (FSource.FEntity = start) then
       begin
-        if FValue.Length > 0 then
+        if FValue.Length > StartPos then
         begin
           curr := AllocAttributeValueChunk(curr);
           curr^.FNodeType := ntText;
-          SetString(curr^.FValueStr, FValue.Buffer, FValue.Length);
-          FValue.Length := 0;
+          // without PWideChar typecast and in {$T-}, FPC treats '@' result as PAnsiChar...
+          SetString(curr^.FValueStr, PWideChar(@FValue.Buffer[StartPos]), FValue.Length-StartPos);
         end;
         curr := AllocAttributeValueChunk(curr);
         curr^.FNodeType := ntEntityReference;
@@ -1628,8 +1635,9 @@ begin
           SetString(curr^.FValueStr, FName.Buffer, FName.Length)
         else
           curr^.FValueStr := ent.FName;
-      end
-      else
+      end;
+      StartPos := FValue.Length;
+      if Assigned(ent) then
         ContextPush(ent);
     end
     else if wc <> #0 then
@@ -1641,22 +1649,28 @@ begin
         wc := #32;
       BufAppend(FValue, wc);
     end
-    else if (FSource.FEntity = start) or not ContextPop then    // #0
-      FatalError('Literal has no closing quote', -1);
+    else
+    begin
+      if (FSource.FEntity = start) or not ContextPop then    // #0
+        FatalError('Literal has no closing quote', -1);
+      StartPos := FValue.Length;
+    end;
   until False;
-  if Assigned(attrData^.FNext) then  // complex case
+  if Assigned(attrData^.FNext) then
   begin
     FAttrCleanupFlag := True;
-    if FValue.Length > 0 then
+    if FValue.Length > StartPos then
     begin
       curr := AllocAttributeValueChunk(curr);
       curr^.FNodeType := ntText;
-      SetString(curr^.FValueStr, FValue.Buffer, FValue.Length);
+      SetString(curr^.FValueStr, PWideChar(@FValue.Buffer[StartPos]), FValue.Length-StartPos);
     end;
-  end
+  end;
+  if nonCDATA then
+    BufNormalize(FValue, Result)
   else
-    SetString(attrData^.FValueStr, FValue.Buffer, FValue.Length);
-  FValue.Length := 0;
+    Result := False;
+  SetString(attrData^.FValueStr, FValue.Buffer, FValue.Length);
 end;
 
 const
@@ -1830,58 +1844,19 @@ begin
   end;
 end;
 
-procedure Normalize(var Buf: TWideCharBuf; Modified: PBoolean);
-var
-  Dst, Src: Integer;
-begin
-  Dst := 0;
-  Src := 0;
-  // skip leading space if any
-  while (Src < Buf.Length) and (Buf.Buffer[Src] = ' ') do
-    Inc(Src);
-
-  while Src < Buf.Length do
-  begin
-    if Buf.Buffer[Src] = ' ' then
-    begin
-      // Dst cannot be 0 here, because leading space is already skipped
-      if Buf.Buffer[Dst-1] <> ' ' then
-      begin
-        Buf.Buffer[Dst] := ' ';
-        Inc(Dst);
-      end;
-    end
-    else
-    begin
-      Buf.Buffer[Dst] := Buf.Buffer[Src];
-      Inc(Dst);
-    end;
-    Inc(Src);
-  end;
-  // trailing space (only one possible due to compression)
-  if (Dst > 0) and (Buf.Buffer[Dst-1] = ' ') then
-    Dec(Dst);
-
-  if Assigned(Modified) then
-    Modified^ := Dst <> Buf.Length;
-  Buf.Length := Dst;
-end;
-
 const
   LiteralDelims: array[TLiteralType] of TSetOfChar = (
     [#0, '''', '"'],                          // ltPlain
-    [#0, '<', '&', '''', '"', #9, #10, #13],  // ltAttr
-    [#0, '<', '&', '''', '"', #9, #10, #13],  // ltTokAttr
     [#0, '''', '"', #13, #10],                // ltPubid
     [#0, '%', '&', '''', '"']                 // ltEntity
   );
 
 function TXMLReader.ParseLiteral(var ToFill: TWideCharBuf; aType: TLiteralType;
-  Required: Boolean; Normalized: PBoolean): Boolean;
+  Required: Boolean): Boolean;
 var
   start: TObject;
   wc, Delim: WideChar;
-  ent: TDOMEntityEx;
+  dummy: Boolean;
 begin
   SkipQuote(Delim, Required);
   Result := (Delim <> #0);
@@ -1900,32 +1875,18 @@ begin
         FatalError('PE reference not allowed here in internal subset', FName.Length+2);
       StartPE;
     end
-    else if wc = '&' then  { ltAttr, ltTokAttr, ltEntity }
+    else if wc = '&' then  { ltEntity }
     begin
       if ParseRef(ToFill) then   // charRefs always expanded
         Continue;
-      if aType = ltEntity then   // bypass
-      begin
-        BufAppend(ToFill, '&');
-        BufAppendChunk(ToFill, FName.Buffer, FName.Buffer + FName.Length);
-        BufAppend(ToFill, ';');
-      end
-      else                       // include
-      begin
-        if ResolvePredefined then
-          Continue;
-        ent := EntityCheck(True);
-        if ent = nil then
-          Continue;
-        ContextPush(ent);
-      end;
+      BufAppend(ToFill, '&');
+      BufAppendChunk(ToFill, FName.Buffer, FName.Buffer + FName.Length);
+      BufAppend(ToFill, ';');
     end
-    else if wc = '<' then
-      FatalError('Character ''<'' is not allowed in attribute value')
     else if wc <> #0 then
     begin
       FSource.NextChar;
-      if (wc = #10) or (wc = #13) or (wc = #9) then
+      if (wc = #10) or (wc = #13) then
         wc := #32
       // terminating delimiter must be in the same context as the starting one
       else if (wc = Delim) and (start = FSource.FEntity) then
@@ -1935,8 +1896,8 @@ begin
     else if (FSource.FEntity = start) or not ContextPop then    // #0
       FatalError('Literal has no closing quote', -1);
   until False;
-  if aType in [ltTokAttr, ltPubid] then
-    Normalize(ToFill, Normalized);
+  if aType = ltPubid then
+    BufNormalize(ToFill, dummy);
 end;
 
 function TXMLReader.SkipUntilSeq(const Delim: TSetOfChar; c1: WideChar; c2: WideChar = #0): Boolean;
@@ -2527,7 +2488,7 @@ begin
 
 // See comments to valid-sa-094: PE expansion should be disabled in AttDef.
         attrData := AllocAttributeData(nil);
-        ExpectAttValue(attrData);
+        ExpectAttValue(attrData, dt <> dtCDATA);
 
         LoadAttribute(attrData, AttDef);   // convert to DOM form
         CleanupAttributeData;
@@ -3152,30 +3113,17 @@ var
   attrData: PNodeData;
   AttDef: TDOMAttrDef;
   i: Integer;
+  normalized: Boolean;
 
+{ still needs a temp to store AttDef.Value }
 procedure CheckValue;
-var
-  AttValue, OldValue: WideString;
 begin
-  if FStandalone and AttDef.ExternallyDeclared then
-  begin
-    OldValue := Attr.Value;
-    Attr.DataType := AttDef.DataType;
-    AttValue := Attr.Value;
-    if AttValue <> OldValue then
-      StandaloneError(-1);
-  end
-  else
-  begin
-    Attr.DataType := AttDef.DataType;
-    AttValue := Attr.Value;
-  end;
   // TODO: what about normalization of AttDef.Value? (Currently it IS normalized)
-  if (AttDef.Default = adFixed) and (AttDef.Value <> AttValue) then
-    ValidationError('Value of attribute ''%s'' does not match its #FIXED default',[AttDef.Name], -1);
-  if not ValidateAttrSyntax(AttDef, AttValue) then
-    ValidationError('Attribute ''%s'' type mismatch', [AttDef.Name], -1);
-  ValidateAttrValue(Attr, AttValue);
+  if (AttDef.Default = adFixed) and (AttDef.Value <> attrData^.FValueStr) then
+    ValidationError('Value of attribute ''%s'' does not match its #FIXED default',[attrData^.FQName^.Key], -1);
+  if not ValidateAttrSyntax(AttDef, attrData^.FValueStr) then
+    ValidationError('Attribute ''%s'' type mismatch', [attrData^.FQName^.Key], -1);
+  ValidateAttrValue(Attr, attrData^.FValueStr);
 end;
 
 begin
@@ -3201,13 +3149,19 @@ begin
       FatalError('Duplicate attribute', FName.Length);
 
   ExpectEq;
-  ExpectAttValue(attrData);
+  normalized := ExpectAttValue(attrData, Assigned(AttDef) and (AttDef.DataType <> dtCDATA));
 
   LoadAttribute(attrData, attr);
 
   elem.Attributes.SetNamedItem(attr);
   if Assigned(AttDef) and ((AttDef.DataType <> dtCdata) or (AttDef.Default = adFixed)) then
+  begin
+    Attr.DataType := AttDef.DataType;
+    if normalized and FStandalone and AttDef.ExternallyDeclared then
+      StandaloneError(-1);
+
     CheckValue;
+  end;
 end;
 
 procedure TXMLReader.AddForwardRef(aList: TFPList; Buf: PWideChar; Length: Integer);

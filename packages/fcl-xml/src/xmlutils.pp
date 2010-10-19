@@ -159,6 +159,7 @@ procedure BufAllocate(var ABuffer: TWideCharBuf; ALength: Integer);
 procedure BufAppend(var ABuffer: TWideCharBuf; wc: WideChar);
 procedure BufAppendChunk(var ABuf: TWideCharBuf; pstart, pend: PWideChar);
 function BufEquals(const ABuf: TWideCharBuf; const Arg: WideString): Boolean;
+procedure BufNormalize(var Buf: TWideCharBuf; out Modified: Boolean);
 
 { Built-in decoder functions for UTF-8, UTF-16 and ISO-8859-1 }
 
@@ -910,6 +911,42 @@ function BufEquals(const ABuf: TWideCharBuf; const Arg: WideString): Boolean;
 begin
   Result := (ABuf.Length = Length(Arg)) and
     CompareMem(ABuf.Buffer, Pointer(Arg), ABuf.Length*sizeof(WideChar));
+end;
+
+procedure BufNormalize(var Buf: TWideCharBuf; out Modified: Boolean);
+var
+  Dst, Src: Integer;
+begin
+  Dst := 0;
+  Src := 0;
+  // skip leading space if any
+  while (Src < Buf.Length) and (Buf.Buffer[Src] = ' ') do
+    Inc(Src);
+
+  while Src < Buf.Length do
+  begin
+    if Buf.Buffer[Src] = ' ' then
+    begin
+      // Dst cannot be 0 here, because leading space is already skipped
+      if Buf.Buffer[Dst-1] <> ' ' then
+      begin
+        Buf.Buffer[Dst] := ' ';
+        Inc(Dst);
+      end;
+    end
+    else
+    begin
+      Buf.Buffer[Dst] := Buf.Buffer[Src];
+      Inc(Dst);
+    end;
+    Inc(Src);
+  end;
+  // trailing space (only one possible due to compression)
+  if (Dst > 0) and (Buf.Buffer[Dst-1] = ' ') then
+    Dec(Dst);
+
+  Modified := Dst <> Buf.Length;
+  Buf.Length := Dst;
 end;
 
 { standard decoders }
