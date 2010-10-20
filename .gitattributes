@@ -10700,6 +10700,7 @@ tests/webtbs/tw1744.pp svneol=native#text/plain
 tests/webtbs/tw17458.pp svneol=native#text/plain
 tests/webtbs/tw17493.pp svneol=native#text/plain
 tests/webtbs/tw17514.pp svneol=native#text/plain
+tests/webtbs/tw17521.pp svneol=native#text/plain
 tests/webtbs/tw17546.pp svneol=native#text/plain
 tests/webtbs/tw1754c.pp svneol=native#text/plain
 tests/webtbs/tw1755.pp svneol=native#text/plain

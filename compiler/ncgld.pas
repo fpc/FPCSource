@@ -512,7 +512,7 @@ implementation
                          if (left.resultdef.typ<>classrefdef) then
                            begin
                              { load vmt pointer }
-                             reference_reset_base(href,hregister,0,sizeof(pint));
+                             reference_reset_base(href,hregister,tobjectdef(left.resultdef).vmt_offset,sizeof(pint));
                              hregister:=cg.getaddressregister(current_asmdata.CurrAsmList);
                              cg.a_load_ref_reg(current_asmdata.CurrAsmList,OS_ADDR,OS_ADDR,href,hregister);
                            end;
