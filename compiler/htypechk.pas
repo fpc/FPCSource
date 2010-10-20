@@ -1729,10 +1729,10 @@ implementation
         while assigned(objdef) do
          begin
            srsym:=tprocsym(objdef.symtable.FindWithHash(hashedid));
-           if assigned(srsym) then
+           if assigned(srsym) and
+              { Delphi allows hiding a property by a procedure with the same name }
+              (srsym.typ=procsym) then
              begin
-               if (srsym.typ<>procsym) then
-                 internalerror(200111022);
                { add all definitions }
                hasoverload:=false;
                for j:=0 to tprocsym(srsym).ProcdefList.Count-1 do
