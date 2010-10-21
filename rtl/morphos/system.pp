@@ -49,7 +49,7 @@ const
   FileNameCaseSensitive : Boolean = False;
   CtrlZMarksEOF: boolean = false; { #26 not considered as end of file }
 
-  sLineBreak : string[1] = LineEnding;
+  sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
   BreakOn : Boolean = True;
