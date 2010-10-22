@@ -119,7 +119,7 @@ type
       AParent: TPasElement): TPasElement;overload;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement; AVisibility: TPasMemberVisibility): TPasElement;overload;
-    Function IsHint(Const S : String; AHint : TPasMemberHint) : Boolean;
+    Function IsHint(Const S : String; var AHint : TPasMemberHint) : Boolean;
     Function CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
   public
     Options : set of TPOptions;
@@ -334,7 +334,7 @@ begin
   Result:=ParseType(Parent,'');
 end;
 
-Function TPasParser.IsHint(Const S : String; AHint : TPasMemberHint) : Boolean;
+Function TPasParser.IsHint(Const S : String; var AHint : TPasMemberHint) : Boolean;
 
 Var
   T : string;
