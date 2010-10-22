@@ -476,7 +476,7 @@ const TypeStrings : array[TFieldType] of string =
       'Unknown',
       'Unknown',
       'Unknown',
-      'int',
+      'bigint',
       'Unknown',
       'Unknown',
       'Unknown',
