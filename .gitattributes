@@ -5266,6 +5266,7 @@ packages/sdl/src/jedi-sdl.inc svneol=native#text/plain
 packages/sdl/src/libxmlparser.pas svneol=native#text/plain
 packages/sdl/src/logger.pas svneol=native#text/plain
 packages/sdl/src/powersdl.inc svneol=native#text/plain
+packages/sdl/src/powersdl_image.inc svneol=native#text/plain
 packages/sdl/src/sdl.pas svneol=native#text/plain
 packages/sdl/src/sdl_gfx.pas svneol=native#text/plain
 packages/sdl/src/sdl_image.pas svneol=native#text/plain

@@ -137,6 +137,9 @@ uses
 {$IFDEF __GPC__}
   gpc,
 {$ENDIF}
+{$IFDEF MORPHOS}
+  exec,
+{$ENDIF}
   sdl;
 
 const
@@ -160,6 +163,10 @@ const
   SDL_ImageLibName = 'SDL_image';
 {$ENDIF}
 
+{$IFDEF MORPHOS}
+  SDL_ImageLibName = 'powersdl_image.library';
+{$ENDIF}
+
   // Printable format: "%d.%d.%d", MAJOR, MINOR, PATCHLEVEL
   SDL_IMAGE_MAJOR_VERSION = 1;
 {$EXTERNALSYM SDL_IMAGE_MAJOR_VERSION}
@@ -168,6 +175,9 @@ const
   SDL_IMAGE_PATCHLEVEL    = 5;
 {$EXTERNALSYM SDL_IMAGE_PATCHLEVEL}
 
+{$IFDEF MORPHOS}
+{$INCLUDE powersdl_image.inc}
+{$ELSE MORPHOS}
 { This macro can be used to fill a version structure with the compile-time
   version of the SDL_image library. }
 procedure SDL_IMAGE_VERSION( var X : TSDL_Version );
@@ -305,7 +315,7 @@ function IMG_ReadXPMFromArray( xpm : PPChar ): PSDL_Surface;
 cdecl; external {$IFDEF __GPC__}name 'IMG_ReadXPMFromArray'{$ELSE} SDL_ImageLibName{$ENDIF __GPC__};
 {$EXTERNALSYM IMG_ReadXPMFromArray}
 
-
+{$ENDIF MORPHOS}
 
 
 { used internally, NOT an exported function }
