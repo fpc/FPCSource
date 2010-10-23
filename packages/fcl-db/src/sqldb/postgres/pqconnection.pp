@@ -448,49 +448,59 @@ begin
 end;
 
 procedure TPQConnection.PrepareStatement(cursor: TSQLCursor;ATransaction : TSQLTransaction;buf : string; AParams : TParams);
-
+{
+  TFieldType = (ftUnknown, ftString, ftSmallint, ftInteger, ftWord,
+      ftBoolean, ftFloat, ftCurrency, ftBCD, ftDate,  ftTime, ftDateTime,
+          ftBytes, ftVarBytes, ftAutoInc, ftBlob, ftMemo, ftGraphic, ftFmtMemo,
+              ftParadoxOle, ftDBaseOle, ftTypedBinary, ftCursor, ftFixedChar,
+                  ftWideString, ftLargeint, ftADT, ftArray, ftReference,
+                      ftDataSet, ftOraBlob, ftOraClob, ftVariant, ftInterface,
+                          ftIDispatch, ftGuid, ftTimeStamp, ftFMTBcd, ftFixedWideChar, ftWideMemo);
+                          
+                          
+}
 const TypeStrings : array[TFieldType] of string =
     (
-      'Unknown',
-      'text',
-      'int',
-      'int',
-      'int',
-      'bool',
-      'float',
-      'numeric',
-      'numeric',
-      'date',
-      'time',
-      'timestamp',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'text',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'bigint',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'Unknown',
-      'Unknown'
+      'Unknown',   // ftUnknown
+      'text',     // ftString
+      'int',       // ftSmallint
+      'int',       // ftInteger
+      'int',       // ftWord
+      'bool',      // ftBoolean
+      'float',     // ftFloat
+      'numeric',   // ftCurrency
+      'numeric',   // ftBCD
+      'date',      // ftDate
+      'time',      // ftTime
+      'timestamp', // ftDateTime
+      'Unknown',   // ftBytes
+      'Unknown',   // ftVarBytes
+      'Unknown',   // ftAutoInc
+      'bytea',     // ftBlob 
+      'text',      // ftMemo
+      'bytea',     // ftGraphic
+      'text',      // ftFmtMemo
+      'Unknown',   // ftParadoxOle
+      'Unknown',   // ftDBaseOle
+      'Unknown',   // ftTypedBinary
+      'Unknown',   // ftCursor
+      'text',      // ftFixedChar
+      'text',      // ftWideString
+      'bigint',    // ftLargeint
+      'Unknown',   // ftADT
+      'Unknown',   // ftArray
+      'Unknown',   // ftReference
+      'Unknown',   // ftDataSet
+      'Unknown',   // ftOraBlob
+      'Unknown',   // ftOraClob
+      'Unknown',   // ftVariant
+      'Unknown',   // ftInterface
+      'Unknown',   // ftIDispatch
+      'Unknown',   // ftGuid
+      'Unknown',   // ftTimeStamp
+      'Unknown',   // ftFMTBcd
+      'Unknown',   // ftFixedWideChar
+      'Unknown'    // ftWideMemo
     );
 
 
@@ -518,8 +528,10 @@ begin
           s := s + TypeStrings[AParams[i].DataType] + ','
         else
           begin
-          if AParams[i].DataType = ftUnknown then DatabaseErrorFmt(SUnknownParamFieldType,[AParams[i].Name],self)
-            else DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[i].DataType]],self);
+          if AParams[i].DataType = ftUnknown then 
+            DatabaseErrorFmt(SUnknownParamFieldType,[AParams[i].Name],self)
+          else 
+            DatabaseErrorFmt(SUnsupportedParameter,[Fieldtypenames[AParams[i].DataType]],self);
           end;
         s[length(s)] := ')';
         buf := AParams.ParseSQL(buf,false,sqEscapeSlash in ConnOptions, sqEscapeRepeat in ConnOptions,psPostgreSQL);
