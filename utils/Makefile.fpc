@@ -13,6 +13,7 @@ programs_linux=grab_vcsa
 dirs_win32=fpmc fpcres
 dirs_win64=fpmc fpcres
 dirs_wince=fpcres
+dirs_haiku=fpcres
 dirs_linux=fpcres
 dirs_freebsd=fpcres
 dirs_openbsd=fpcres
