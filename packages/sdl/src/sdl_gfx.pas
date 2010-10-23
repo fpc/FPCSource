@@ -23,6 +23,9 @@ unit sdl_gfx;
 interface
 
 uses
+{$IFDEF MORPHOS}
+  exec,
+{$ENDIF}
   sdl;
 
 const
@@ -40,6 +43,10 @@ const
 
 {$IFDEF MACOS}
   SDLgfxLibName = 'SDL_gfx';
+{$ENDIF}
+
+{$IFDEF MORPHOS}
+  SDLgfxLibName = 'powersdl_gfx.library';
 {$ENDIF}
 
   // Some rates in Hz
@@ -76,6 +83,10 @@ type
   TColorY = packed record
     y :	Uint8;
   end;
+
+{$IFDEF MORPHOS}
+{$INCLUDE powersdl_gfx.inc}
+{$ELSE MORPHOS}
 
 {
 
@@ -685,6 +696,8 @@ cdecl; external {$IFDEF __GPC__}name 'zoomSurface'{$ELSE} SDLgfxLibName{$ENDIF _
 procedure zoomSurfaceSize( width : integer; height : integer; zoomx : double; zoomy : double; var dstwidth : integer; var dstheight : integer );
 cdecl; external {$IFDEF __GPC__}name 'zoomSurfaceSize'{$ELSE} SDLgfxLibName{$ENDIF __GPC__};
 {$EXTERNALSYM zoomSurfaceSize}
+
+{$ENDIF MORPHOS}
 
 implementation
 

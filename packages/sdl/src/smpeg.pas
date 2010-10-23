@@ -134,7 +134,9 @@ uses
 {$IFDEF __GPC__}
   gpc,
 {$ENDIF}
-
+{$IFDEF MORPHOS}
+  exec,
+{$ENDIF}
   sdl;
 
 const
@@ -152,6 +154,10 @@ const
 
 {$IFDEF MACOS}
   SmpegLibName = 'smpeg';
+{$ENDIF}
+
+{$IFDEF MORPHOS}
+  SmpegLibName = 'smpeg.library';
 {$ENDIF}
 
 //------------------------------------------------------------------------------
@@ -195,6 +201,8 @@ type
     destroy: TSMPEG_FilterDestroy;
   end;
 
+{$IFNDEF MORPHOS}
+{* This part is a bit confusing in PowerSDL includes, fix later. KB *}
 { The null filter (default). It simply copies the source rectangle to the video overlay. }
 function SMPEGfilter_null: PSMPEG_Filter;
 cdecl; external {$IFDEF __GPC__}name 'SMPEGfilter_null'{$ELSE} SmpegLibName{$ENDIF __GPC__};
@@ -206,6 +214,7 @@ cdecl; external {$IFDEF __GPC__}name 'SMPEGfilter_bilinear'{$ELSE} SmpegLibName{
 { The deblocking filter. It filters block borders and non-intra coded blocks to reduce blockiness }
 function SMPEGfilter_deblocking: PSMPEG_Filter;
 cdecl; external {$IFDEF __GPC__}name 'SMPEGfilter_deblocking'{$ELSE} SmpegLibName{$ENDIF __GPC__};
+{$ENDIF}
 
 //------------------------------------------------------------------------------
 // SMPEG.h
@@ -269,6 +278,9 @@ type
   TSMPEG_DisplayCallback = function( dst: PSDL_Surface; x, y: Integer; w, h: Cardinal ): Pointer;
   {$ENDIF}
 
+{$IFDEF MORPHOS}
+{$INCLUDE powersdl_smpeg.inc}
+{$ELSE MORPHOS}
 
 { Create a new SMPEG object from an MPEG file.
   On return, if 'info' is not NULL, it will be filled with information
@@ -333,8 +345,6 @@ procedure SMPEG_scaleXY(mpeg: PSMPEG; width, height: Integer);
 cdecl; external {$IFDEF __GPC__}name 'SMPEG_scaleXY'{$ELSE} SmpegLibName{$ENDIF __GPC__};
 procedure SMPEG_scale(mpeg: PSMPEG; scale: Integer);
 cdecl; external {$IFDEF __GPC__}name 'SMPEG_scale'{$ELSE} SmpegLibName{$ENDIF __GPC__};
-
-procedure SMPEG_Double(mpeg : PSMPEG; doubleit : Boolean );
 
 { Move the video display area within the destination surface }
 procedure SMPEG_move(mpeg: PSMPEG; x, y: Integer);
@@ -407,9 +417,13 @@ cdecl; external {$IFDEF __GPC__}name 'SMPEG_wantedSpec'{$ELSE} SmpegLibName{$END
 procedure SMPEG_actualSpec(mpeg: PSMPEG; spec: PSDL_AudioSpec);
 cdecl; external {$IFDEF __GPC__}name 'SMPEG_actualSpec'{$ELSE} SmpegLibName{$ENDIF __GPC__};
 
+{$ENDIF MORPHOS}
+
 { This macro can be used to fill a version structure with the compile-time
   version of the SDL library. }
 procedure SMPEG_GETVERSION( var X : TSMPEG_version );
+
+procedure SMPEG_Double(mpeg : PSMPEG; doubleit : Boolean );
 
 implementation
 
