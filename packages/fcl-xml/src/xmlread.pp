@@ -284,12 +284,12 @@ type
   public
     CPType: TCPType;
     CPQuant: TCPQuant;
-    Def: TDOMElementDef;
+    Def: TObject;
     destructor Destroy; override;
     function Add: TContentParticle;
     function IsRequired: Boolean;
-    function FindFirst(aDef: TDOMElementDef): TContentParticle;
-    function FindNext(aDef: TDOMElementDef; ChildIdx: Integer): TContentParticle;
+    function FindFirst(aDef: TObject): TContentParticle;
+    function FindNext(aDef: TObject; ChildIdx: Integer): TContentParticle;
     function MoreRequired(ChildIdx: Integer): Boolean;
     property ChildCount: Integer read GetChildCount;
     property Children[Index: Integer]: TContentParticle read GetChild;
@@ -300,6 +300,8 @@ type
     // generic members
     FNext: PNodeData;
     FQName: PHashItem;
+    FPrefix: PHashItem;
+    FNsUri: PHashItem;
     FNodeType: TXMLNodeType;
     FDOMNode: TDOMNode_WithChildren;   // temporary
 
@@ -355,7 +357,8 @@ type
     FStandalone: Boolean;          // property of Doc ?
     FNamePages: PByteArray;
     FDocType: TDOMDocumentTypeEx;  // a shortcut
-    FPEMap: TDOMNamedNodeMap;
+    FPEMap: THashTable;
+    FGEMap: THashTable;
     FIDRefs: TFPList;
     FNotationRefs: TFPList;
     FCurrContentType: TElementContentType;
@@ -1347,6 +1350,7 @@ begin
     while ContextPop(True) do;     // clean input stack
   FSource.Free;
   FPEMap.Free;
+  FGEMap.Free;
   ClearRefs(FNotationRefs);
   ClearRefs(FIDRefs);
   FNsAttHash.Free;
@@ -1799,12 +1803,12 @@ var
   PEName: WideString;
   PEnt: TDOMEntityEx;
 begin
-  SetString(PEName, FName.Buffer, FName.Length);
   PEnt := nil;
   if Assigned(FPEMap) then
-    PEnt := FPEMap.GetNamedItem(PEName) as TDOMEntityEx;
+    PEnt := FPEMap.Get(FName.Buffer, FName.Length) as TDOMEntityEx;
   if PEnt = nil then
   begin
+    SetString(PEName, FName.Buffer, FName.Length);
     ValidationError('Undefined parameter entity ''%s'' referenced', [PEName], FName.Length+2);
     // cease processing declarations, unless document is standalone.
     FDTDProcessed := FStandalone;
@@ -2315,6 +2319,8 @@ begin
         FSource.NextChar;
         if (not CheckForChar('*')) and (CP.ChildCount > 0) then
           FatalError(WideChar('*'));
+        CP.CPQuant := cqZeroOrMore;
+        CP.CPType := ctChoice;
       end
       else       // Children section [47]
       begin
@@ -2510,21 +2516,26 @@ end;
 
 procedure TXMLReader.ParseEntityDecl;        // [70]
 var
-  IsPE: Boolean;
+  IsPE, Exists: Boolean;
   Entity: TDOMEntityEx;
-  Map: TDOMNamedNodeMap;
+  Map: THashTable;
+  Item: PHashItem;
 begin
   if not SkipWhitespace(True) then
     FatalError('Expected whitespace');
-  IsPE := False;
-  Map := FDocType.Entities;
-  if CheckForChar('%') then                  // [72]
+  IsPE := CheckForChar('%');
+  if IsPE then                  // [72]
   begin
     ExpectWhitespace;
-    IsPE := True;
     if FPEMap = nil then
-      FPEMap := TDOMNamedNodeMap.Create(FDocType, ENTITY_NODE);
+      FPEMap := THashTable.Create(64, True);
     Map := FPEMap;
+  end
+  else
+  begin
+    if FGEMap = nil then
+      FGEMap := THashTable.Create(64, False);
+    Map := FGEMap;
   end;
 
   Entity := TDOMEntityEx.Create(Doc);
@@ -2534,6 +2545,7 @@ begin
     Entity.FIsPE := IsPE;
     Entity.FName := ExpectName;
     CheckNCName;
+    Item := Map.FindOrAdd(FName.Buffer, FName.Length, Exists);
     ExpectWhitespace;
 
     // remember where the entity is declared
@@ -2573,8 +2585,12 @@ begin
   end;
 
   // Repeated declarations of same entity are legal but must be ignored
-  if FDTDProcessed and (Map.GetNamedItem(Entity.FName) = nil) then
-    Map.SetNamedItem(Entity)
+  if FDTDProcessed and not Exists then
+  begin
+    Item^.Data := Entity;
+    if not IsPE then
+      FDocType.Entities.SetNamedItem(Entity);
+  end
   else
     Entity.Free;
 end;
@@ -3038,6 +3054,12 @@ begin
   PushVC(NewElem, ElDef);  // this increases FNesting
   FCurrNode^.FQName := ElName;
   FCurrNode^.FNodeType := ntElement;
+  if FNamespaces then
+  begin
+    FNSHelper.StartElement;
+    if FColonPos > 0 then
+      FCurrNode^.FPrefix := FNSHelper.GetPrefix(FName.Buffer, FColonPos-1);
+  end;
 
   while (FSource.FBuf^ <> '>') and (FSource.FBuf^ <> '/') do
   begin
@@ -3254,8 +3276,6 @@ var
   PrefixCount: Integer;
   b: TBinding;
 begin
-  FNSHelper.StartElement;
-
   PrefixCount := 0;
   if Element.HasAttributes then
   begin
@@ -3410,7 +3430,10 @@ begin
         EndPos := StartPos;
         while (EndPos <= L) and (aValue[EndPos] <> #32) do
           Inc(EndPos);
-        Entity := TDOMEntity(FDocType.Entities.GetNamedItem(Copy(aValue, StartPos, EndPos-StartPos)));
+        if Assigned(FGEMap) then
+          Entity := TDOMEntity(FGEMap.Get(@aValue[StartPos], EndPos-StartPos))
+        else
+          Entity := nil;
         if (Entity = nil) or (Entity.NotationName = '') then
           ValidationError('Attribute ''%s'' type mismatch', [Attr.Name], -1);
         StartPos := EndPos + 1;
@@ -3522,6 +3545,8 @@ begin
   Result := AllocNodeData(FNesting + FAttrCount + 1);
   Result^.FNodeType := ntAttribute;
   Result^.FQName := AName;
+  Result^.FPrefix := nil;
+  Result^.FNsUri := nil;
   Inc(FAttrCount);
 end;
 
@@ -3589,6 +3614,7 @@ begin
   FCurrNode^.FElementDef := aElDef;
   FCurrNode^.FCurCP := nil;
   FCurrNode^.FFailed := False;
+  FCurrNode^.FPrefix := nil;
   UpdateConstraints;
 end;
 
@@ -3617,7 +3643,6 @@ end;
 
 function TNodeData.IsElementAllowed(Def: TDOMElementDef): Boolean;
 var
-  I: Integer;
   Next: TContentParticle;
 begin
   Result := True;
@@ -3625,18 +3650,12 @@ begin
   if Assigned(Def) and Assigned(FElementDef) then
   begin
     case FElementDef.ContentType of
-      ctMixed: begin
-        for I := 0 to FElementDef.RootCP.ChildCount-1 do
-        begin
-          if Def = FElementDef.RootCP.Children[I].Def then
-          Exit;
-        end;
-        Result := False;
-      end;
 
       ctEmpty: Result := False;
 
-      ctChildren: begin
+      ctChildren, ctMixed: begin
+        if FFailed then     // if already detected a mismatch, don't waste time
+          Exit;
         if FCurCP = nil then
           Next := FElementDef.RootCP.FindFirst(Def)
         else
@@ -3733,7 +3752,7 @@ begin
     Result := FParent.MoreRequired(FIndex);
 end;
 
-function TContentParticle.FindFirst(aDef: TDOMElementDef): TContentParticle;
+function TContentParticle.FindFirst(aDef: TObject): TContentParticle;
 var
   I: Integer;
 begin
@@ -3759,7 +3778,7 @@ begin
   end;
 end;
 
-function TContentParticle.FindNext(aDef: TDOMElementDef;
+function TContentParticle.FindNext(aDef: TObject;
   ChildIdx: Integer): TContentParticle;
 var
   I: Integer;
