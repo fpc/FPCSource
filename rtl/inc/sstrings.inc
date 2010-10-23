@@ -1243,9 +1243,16 @@ function fpc_val_enum_shortstr(str2ordindex:pointer;const s:shortstring;out code
         string_compare:=length(s1)-length(s2);
     end;
 
-type  Tsorted_array={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+type  Psorted_array=^Tsorted_array;
+      Tsorted_array={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
         o:longint;
         s:Pstring;
+      end;
+
+      Pstring_to_ord=^Tstring_to_ord;
+      Tstring_to_ord={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+        count:longint;
+        data:array[0..0] of Tsorted_array;
       end;
 
 var l,h,m:cardinal;
@@ -1264,10 +1271,10 @@ begin
   while (spaces<=length(s)) and (s[spaces]=' ')  do
     inc(spaces);
   t:=upcase(copy(s,spaces,255));
-  sorted_array:=pointer(Pcardinal(str2ordindex)+1);
+  sorted_array:=pointer(@Pstring_to_ord(str2ordindex)^.data);
   {Use a binary search to get the string.}
   l:=1;
-  h:=Pcardinal(str2ordindex)^;
+  h:=Pstring_to_ord(str2ordindex)^.count;
   repeat
     m:=(l+h) div 2;
     c:=string_compare(t,upcase(sorted_array[m-1].s^));
