@@ -34,6 +34,8 @@ var
   i, j, k: Integer;
   PosX, PosY: Integer; // Not modified by ADestX, etc
   CurSegment: TPathSegment;
+  Cur2DSegment: T2DSegment absolute CurSegment;
+  Cur2DBSegment: T2DBezierSegment absolute CurSegment;
   // For bezier
   CurX, CurY: Integer; // Not modified by ADestX, etc
   CurveLength: Integer;
@@ -51,15 +53,18 @@ begin
   for i := 0 to ASource.PathCount - 1 do
   begin
     //WriteLn('i = ', i);
-    for j := 0 to Length(ASource.Paths[i].Points) - 1 do
+    ASource.Paths[i].PrepareForSequentialReading;
+
+    for j := 0 to ASource.Paths[i].Len - 1 do
     begin
       //WriteLn('j = ', j);
-      CurSegment := ASource.Paths[i].Points[j];
+      CurSegment := TPathSegment(ASource.Paths[i].Next());
+
       case CurSegment.SegmentType of
       st2DLine, st3DLine:
       begin
-        PosX := Round(CurSegment.X);
-        PosY := Round(CurSegment.Y);
+        PosX := Round(Cur2DSegment.X);
+        PosY := Round(Cur2DSegment.Y);
         ADest.LineTo(
           Round(ADestX + AMulX * PosX),
           Round(ADestY + AMulY * PosY)
@@ -70,21 +75,21 @@ begin
       st2DBezier, st3DBezier:
       begin
         CurveLength :=
-          Round(sqrt(sqr(CurSegment.X3 - PosX) + sqr(CurSegment.Y3 - PosY))) +
-          Round(sqrt(sqr(CurSegment.X2 - CurSegment.X3) + sqr(CurSegment.Y2 - CurSegment.Y3))) +
-          Round(sqrt(sqr(CurSegment.X - CurSegment.X3) + sqr(CurSegment.Y - CurSegment.Y3)));
+          Round(sqrt(sqr(Cur2DBSegment.X3 - PosX) + sqr(Cur2DBSegment.Y3 - PosY))) +
+          Round(sqrt(sqr(Cur2DBSegment.X2 - Cur2DBSegment.X3) + sqr(Cur2DBSegment.Y2 - Cur2DBSegment.Y3))) +
+          Round(sqrt(sqr(Cur2DBSegment.X - Cur2DBSegment.X3) + sqr(Cur2DBSegment.Y - Cur2DBSegment.Y3)));
 
         for k := 1 to CurveLength do
         begin
           t := k / CurveLength;
-          CurX := Round(sqr(1 - t) * (1 - t) * PosX + 3 * t * sqr(1 - t) * CurSegment.X2 + 3 * t * t * (1 - t) * CurSegment.X3 + t * t * t * CurSegment.X);
-          CurY := Round(sqr(1 - t) * (1 - t) * PosY + 3 * t * sqr(1 - t) * CurSegment.Y2 + 3 * t * t * (1 - t) * CurSegment.Y3 + t * t * t * CurSegment.Y);
+          CurX := Round(sqr(1 - t) * (1 - t) * PosX + 3 * t * sqr(1 - t) * Cur2DBSegment.X2 + 3 * t * t * (1 - t) * Cur2DBSegment.X3 + t * t * t * Cur2DBSegment.X);
+          CurY := Round(sqr(1 - t) * (1 - t) * PosY + 3 * t * sqr(1 - t) * Cur2DBSegment.Y2 + 3 * t * t * (1 - t) * Cur2DBSegment.Y3 + t * t * t * Cur2DBSegment.Y);
           ADest.LineTo(
             Round(ADestX + AMulX * CurX),
             Round(ADestY + AMulY * CurY));
         end;
-        PosX := Round(CurSegment.X);
-        PosY := Round(CurSegment.Y);
+        PosX := Round(Cur2DBSegment.X);
+        PosY := Round(Cur2DBSegment.Y);
       end;
       end;
     end;
