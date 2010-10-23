@@ -573,9 +573,11 @@ end;
 procedure TPQConnection.Execute(cursor: TSQLCursor;atransaction:tSQLtransaction;AParams : TParams);
 
 var ar  : array of pchar;
-    i   : integer;
+    l,i   : integer;
     s   : string;
-    ParamNames,ParamValues : array of string;
+    lengths,formats : array of integer;
+    ParamNames,
+    ParamValues : array of string;
 
 begin
   with cursor as TPQCursor do
@@ -585,7 +587,10 @@ begin
       pqclear(res);
       if Assigned(AParams) and (AParams.count > 0) then
         begin
-        setlength(ar,Aparams.count);
+        l:=Aparams.count;
+        setlength(ar,l);
+        setlength(lengths,l);
+        setlength(formats,l);
         for i := 0 to AParams.count -1 do if not AParams[i].IsNull then
           begin
           case AParams[i].DataType of
@@ -602,10 +607,15 @@ begin
           end; {case}
           GetMem(ar[i],length(s)+1);
           StrMove(PChar(ar[i]),Pchar(s),Length(S)+1);
+          lengths[i]:=Length(s);
+          if (AParams[i].DataType in [ftBlob,ftgraphic]) then
+            formats[i]:=1 
+          else
+            Formats[i]:=0;  
           end
         else
           FreeAndNil(ar[i]);
-        res := PQexecPrepared(tr.PGConn,pchar('prepst'+nr),Aparams.count,@Ar[0],nil,nil,1);
+        res := PQexecPrepared(tr.PGConn,pchar('prepst'+nr),Aparams.count,@Ar[0],@Lengths[0],@Formats[0],1);
         for i := 0 to AParams.count -1 do
           FreeMem(ar[i]);
         end
