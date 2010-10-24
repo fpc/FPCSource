@@ -1,3 +1,5 @@
+{$mode objfpc}
+
 program testbitscan;
 
 function test_byte: boolean;
