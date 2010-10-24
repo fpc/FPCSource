@@ -2728,6 +2728,12 @@ begin
         CreateBlock(CurBlock.AddWhileDo(Condition));
         ExpectToken(tkdo);
       end;
+    tkgoto:
+      begin
+        nexttoken;
+        curblock.AddCommand('goto '+curtokenstring);
+        expecttoken(tkSemiColon);
+      end;
     tkfor:
       begin
         // for VarName := StartValue to EndValue do
