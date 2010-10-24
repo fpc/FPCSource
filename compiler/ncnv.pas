@@ -2266,7 +2266,7 @@ implementation
 {$endif VER2_2}
                      end
                    else
-                     testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags));
+                     testrange(resultdef,tordconstnode(left).value,(nf_explicit in flags),false);
                    left.resultdef:=resultdef;
                    tordconstnode(left).typedef:=resultdef;
                    result:=left;

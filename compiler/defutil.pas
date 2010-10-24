@@ -223,7 +223,7 @@ interface
     {# If @var(l) isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range
     }
-    procedure testrange(todef : tdef;var l : tconstexprint;explicit:boolean);
+    procedure testrange(todef : tdef;var l : tconstexprint;explicit,forcerangecheck:boolean);
 
     {# Returns the range of def, where @var(l) is the low-range and @var(h) is
       the high-range.
@@ -751,7 +751,7 @@ implementation
 
     { if l isn't in the range of todef a range check error (if not explicit) is generated and
       the value is placed within the range }
-    procedure testrange(todef : tdef;var l : tconstexprint;explicit:boolean);
+    procedure testrange(todef : tdef;var l : tconstexprint;explicit,forcerangecheck:boolean);
       var
          lv,hv: TConstExprInt;
       begin
@@ -766,7 +766,8 @@ implementation
                      { delphi allows range check errors in
                       enumeration type casts FK }
                      not(m_delphi in current_settings.modeswitches)) or
-                    (cs_check_range in current_settings.localswitches) then
+                    (cs_check_range in current_settings.localswitches) or
+                    forcerangecheck then
                    Message(parser_e_range_check_error)
                  else
                    Message(parser_w_range_check_error);

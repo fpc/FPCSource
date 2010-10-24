@@ -205,8 +205,8 @@ implementation
                        CGMessage(parser_e_case_lower_less_than_upper_bound);
                      if not casedeferror then
                        begin
-                         testrange(casedef,hl1,false);
-                         testrange(casedef,hl2,false);
+                         testrange(casedef,hl1,false,false);
+                         testrange(casedef,hl2,false,false);
                        end;
                    end
                  else
@@ -234,7 +234,7 @@ implementation
                    begin
                      hl1:=get_ordinal_value(p);
                      if not casedeferror then
-                       testrange(casedef,hl1,false);
+                       testrange(casedef,hl1,false,false);
                      casenode.addlabel(blockid,hl1,hl1);
                    end;
                end;
@@ -321,20 +321,11 @@ implementation
 
     function for_statement : tnode;
 
-        procedure check_range(hp:tnode);
+        procedure check_range(hp:tnode; fordef: tdef);
           begin
-  {$ifndef cpu64bitaddr}
-            if hp.nodetype=ordconstn then
-              begin
-                if (tordconstnode(hp).value<int64(low(longint))) or
-                   (tordconstnode(hp).value>high(longint)) then
-                  begin
-                    CGMessage(parser_e_range_check_error);
-                    { recover, prevent more warnings/errors }
-                    tordconstnode(hp).value:=0;
-                  end;
-              end;
-  {$endif not cpu64bitaddr}
+            if (hp.nodetype=ordconstn) and
+               (fordef.typ<>errordef) then
+              testrange(fordef,tordconstnode(hp).value,false,true);
           end;
 
         function for_loop_create(hloopvar: tnode): tnode;
@@ -447,8 +438,8 @@ implementation
              consume(_DO);
 
              { Check if the constants fit in the range }
-             check_range(hfrom);
-             check_range(hto);
+             check_range(hfrom,hloopvar.resultdef);
+             check_range(hto,hloopvar.resultdef);
 
              { first set the varstate for from and to, so
                uses of loopvar in those expressions will also
