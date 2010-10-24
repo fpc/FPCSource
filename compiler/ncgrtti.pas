@@ -1080,11 +1080,11 @@ implementation
 
         procedure enumdef_rtti_extrasyms(def:Tenumdef);
         var
-            t:Tenumsym;
-            syms:Penumsym;
-            sym_count,sym_alloc:longint;
-            offsets:^longint;
-            h,i,p,o,st:longint;
+          t:Tenumsym;
+          syms:Penumsym;
+          sym_count,sym_alloc:sizeuint;
+          offsets:^longint;
+          h,i,p,o,st:longint;
         begin
           {Random access needed, put in array.}
           getmem(syms,64*sizeof(Tenumsym));
@@ -1139,6 +1139,32 @@ implementation
             end;
           st:=enumdef_rtti_calcstringtablestart(def);
           enumdef_rtti_string2ordindex(sym_count,offsets,syms,st);
+          { Sort the syms by enum value }
+          if sym_count>=2 then
+            begin
+              p:=1;
+              while 2*p<sym_count do
+                p:=2*p;
+              while p<>0 do
+                begin
+                  for h:=p to sym_count-1 do
+                    begin
+                      i:=h;
+                      t:=syms[i];
+                      o:=offsets[i];
+                      repeat
+                        if syms[i-p].value<=t.value then
+                          break;
+                        syms[i]:=syms[i-p];
+                        offsets[i]:=offsets[i-p];
+                        dec(i,p);
+                      until i<p;
+                      syms[i]:=t;
+                      offsets[i]:=o;
+                    end;
+                  p:=p shr 1;
+                end;
+            end;
           enumdef_rtti_ord2stringindex(sym_count,offsets,syms,st);
           freemem(syms);
           freemem(offsets);

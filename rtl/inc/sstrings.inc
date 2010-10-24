@@ -409,71 +409,120 @@ end;
 
 function fpc_shortstr_enum_intern(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring): longint;
 
+{ Enumeration RTTI has the following format (given by typinfo parameter):
+  Tenum_rtti_header // variable sized; shortstring only contains minimum amount of data, e.g. length + string
+  (alignment)       // if FPC_REQUIRES_PROPER_ALIGNMENT there is an alignment to pointer size 
+  Tenum_rtti_body   // more RTTI information
+}
 type
-  Ptypeinfo=^Ttypeinfo;
-  Ttypeinfo=record
+  PPstring=^Pstring;
+
+  Penum_rtti_header=^Tenum_rtti_header;
+  Tenum_rtti_header=record
     kind:byte;
-    name:shortstring;
+    num_chars:byte;
+    chars:array[0..0] of char; // variable length with size of num_chars;
   end;
 
-  Penuminfo=^Tenuminfo;
-  Tenuminfo={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+  Penum_rtti_body=^Tenum_rtti_body;
+  Tenum_rtti_body={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
     ordtype:byte;
     minvalue,maxvalue:longint;
     basetype:pointer;
-    namelist:shortstring;
+    { more data here, but not needed }
   end;
 
-  Tsorted_array={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
-    o:longint;
-    s:Pstring;
+  Psearch_data=^Tsearch_data;
+  Tsearch_data={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+    value:longint;
+    name:Pstring;
+  end;
+
+  Penum_ord_to_string_header=^Tenum_ord_to_string_header;
+  Tenum_ord_to_string_header={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+    o:(lookup,search);
+  end;
+
+  Penum_ord_to_string_lookup=^Tenum_ord_to_string_lookup;
+  Tenum_ord_to_string_lookup={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+    header:Tenum_ord_to_string_header;
+    lookup_data:array[0..0] of Pstring;
+  end;
+
+  Penum_ord_to_string_search=^Tenum_ord_to_string_search;
+  Tenum_ord_to_string_search={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+    header:Tenum_ord_to_string_header;
+    num_entries:longint; // only if o == 0
+    search_data:array[0..0] of Tsearch_data;
+  end;
+
+  function align_up(value:ptruint; alignment:sizeint) : ptruint;
+  begin
+    align_up:=(value + (alignment - 1)) and not (alignment - 1);
   end;
 
 var
   p:Pstring;
-  l,h,m:cardinal;
-  sorted_array:^Tsorted_array;
-  i,spaces:byte;
+
+  enum_o2s : Penum_ord_to_string_header;
+  header:Penum_rtti_header;
+  body:Penum_rtti_body;
+  res:Pshortstring;
+  sorted_data:Psearch_data;
+  spaces,i,m,h,l:longint;
 
 begin
+  { set default return value }
   fpc_shortstr_enum_intern:=107;
-  if Pcardinal(ord2strindex)^=0 then
+
+  enum_o2s:=Penum_ord_to_string_header(ord2strindex);
+  { depending on the type of table in ord2strindex retrieve the data }
+  if (enum_o2s^.o=lookup) then 
     begin
-      {The compiler did generate a lookup table.}
-      with Penuminfo(Pbyte(typinfo)+2+length(Ptypeinfo(typinfo)^.name))^ do
+      { direct lookup table }
+      header:=Penum_rtti_header(typinfo);
+      { calculate address of enum rtti body: add the actual size of the
+        enum_rtti_header, and then align. Use an alignment of 1 (which
+        does nothing) in case FPC_REQUIRES_PROPER_ALIGNMENT is not set
+        to avoid the need for an if in this situation }
+      body:=Penum_rtti_body(align_up(ptruint(header) + 2 * sizeof(byte) { kind, num_chars } + header^.num_chars,
+        {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT} 1 {$else} sizeof(pointer) {$endif}));
+      with (body^) do
         begin
+          { Bounds check for the ordinal value for this enum }     
           if (ordinal<minvalue) or (ordinal>maxvalue) then
-            exit;  {Invalid ordinal value for this enum.}
+            exit;
+          { make the ordinal index for lookup zero-based }
           dec(ordinal,minvalue);
         end;
-      {Get the address of the string.}
-      p:=Pshortstring((PPpointer(ord2strindex+sizeof(longint))+ordinal)^);
-      if p=nil then
-        exit;      {Invalid ordinal value for this enum.}
-      s:=p^;
+        res:=Penum_ord_to_string_lookup(enum_o2s)^.lookup_data[ordinal];
+        if (not assigned(res)) then
+          exit;
+        s:=res^;
     end
   else
     begin
-      {The compiler did generate a sorted array of (ordvalue,Pstring) tuples.}
-      sorted_array:=pointer(Pcardinal(ord2strindex)+2);
-      {Use a binary search to get the string.}
+      { The compiler did generate a sorted array of (ordvalue,Pstring) tuples }
+      sorted_data:=Penum_ord_to_string_search(enum_o2s)^.search_data;
+      { Use a binary search to get the string }
       l:=0;
-      h:=(Pcardinal(ord2strindex)+1)^-1;
+      h:=Penum_ord_to_string_search(enum_o2s)^.num_entries-1;
       repeat
         m:=(l+h) div 2;
-        if ordinal>sorted_array[m].o then
+        if ordinal>sorted_data[m].value then
           l:=m+1
-        else if ordinal<sorted_array[m].o then
+        else if ordinal<sorted_data[m].value then
           h:=m-1
         else
           break;
         if l>h then
-          exit; {Ordinal value not found? Kaboom.}
+          exit; { Ordinal value not found? Exit }
       until false;
-      s:=sorted_array[m].s^;
+      s:=sorted_data[m].name^;
     end;
-  {Pad the string with spaces if necessary.}
-  if len>length(s) then
+
+  { Pad the string with spaces if necessary }
+  if (len>length(s)) then
     begin
       spaces:=len-length(s);
       for i:=1 to spaces do
