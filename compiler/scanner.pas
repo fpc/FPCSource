@@ -1876,6 +1876,7 @@ In case not, the value returned can be arbitrary.
         if assigned(current_module) then
           current_module.sourcefiles.register_file(inputfile);
       { reset localinput }
+        c:=#0;
         inputbuffer:=nil;
         inputpointer:=nil;
         inputstart:=0;
