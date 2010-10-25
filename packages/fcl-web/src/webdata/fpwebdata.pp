@@ -15,6 +15,9 @@ type
   // Descendents must adapt the methods so they fit the particular JS/HTML engine used.
 
   TWebDataAction = (wdaUnknown,wdaRead,wdaUpdate,wdaInsert,wdaDelete);
+
+  { TCustomWebdataInputAdaptor }
+
   TCustomWebdataInputAdaptor = class(TComponent)
   private
     FAction: TWebDataAction;
@@ -24,6 +27,7 @@ type
     function GetAction: TWebDataAction;
     procedure SetRequest(const AValue: TRequest);
   Protected
+    procedure reset; virtual;
     Function GetActionFromRequest : TWebDataAction; virtual;
   Public
     Function GetNextBatch : Boolean; virtual;
@@ -518,9 +522,17 @@ Resourcestring
 
 procedure TCustomWebdataInputAdaptor.SetRequest(const AValue: TRequest);
 begin
+  If FRequest=AValue then Exit;
   FRequest:=AValue;
+  Reset;
+end;
+
+procedure TCustomWebdataInputAdaptor.reset;
+begin
+{$ifdef wmdebug}SendDebugFmt('TCustomWebdataInputAdaptor.Reset (%s)',[FRequestPathInfo]);{$endif}
   FBatchCount:=0;
   Faction:=wdaUnknown;
+  FRequestPathInfo:='';
 end;
 
 function TCustomWebdataInputAdaptor.GetActionFromRequest: TWebDataAction;
@@ -535,6 +547,7 @@ begin
     if (FRequestPathInfo='') then
       FRequestPathInfo:=Request.GetNextPathInfo;
     N:=lowercase(FRequestPathInfo);
+{$ifdef wmdebug}SendDebugFmt('TCustomWebdataInputAdaptor.GetActionFromRequest : %s (%s)',[n,Request.Pathinfo]);{$endif}
     If (N='read') then
       Result:=wdaRead
     else If (N='insert') then
@@ -887,14 +900,15 @@ begin
         begin
         {$ifdef wmdebug}SendDebug('Starting batch Loop');{$endif}
         Case Adaptor.Action of
-          wdaInsert : DoInsertRecord(Content);
-          wdaUpdate : begin
+          wdaInsert  : DoInsertRecord(Content);
+          wdaUpdate  : begin
                       {$ifdef wmdebug}SendDebug('Aha1');{$endif}
                       DoUpdateRecord(Content);
                       {$ifdef wmdebug}SendDebug('Aha2');{$endif}
                       end;
-          wdaDelete : DoDeleteRecord(Content);
-          wdaRead   : DoReadRecords(Content);
+          wdaDelete  : DoDeleteRecord(Content);
+          wdaRead    : DoReadRecords(Content);
+          wdaUnknown : Raise EFPHTTPError.Create(SErrNoAction);
         else
           inherited DoGetContent(ARequest, Content,Handled);
         end;
@@ -1667,6 +1681,7 @@ begin
     try
       A:=GetAdaptor;
       A.Request:=ARequest;
+      A.Reset; // Force. for wmKind=pooled, fastcgi, request can be the same.
       Wa:=A.GetAction;
       Case WA of
         wdaUnknown : Raise EFPHTTPError.CreateFmt(SErrUnknownProviderAction,[ProviderName]);
