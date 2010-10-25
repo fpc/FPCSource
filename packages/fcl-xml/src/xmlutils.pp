@@ -42,7 +42,31 @@ type
 
 const
   xmlVersionStr: array[TXMLVersion] of WideString = ('', '1.0', '1.1');
-  
+
+type
+  TXMLNodeType = (ntNone, ntElement, ntAttribute, ntText,
+    ntCDATA, ntEntityReference, ntEntity, ntProcessingInstruction,
+    ntComment, ntDocument, ntDocumentType, ntDocumentFragment,
+    ntNotation,
+    ntWhitespace,
+    ntSignificantWhitespace,
+    ntEndElement,
+    ntEndEntity,
+    ntXmlDeclaration
+  );
+
+  TAttrDataType = (
+    dtCdata,
+    dtId,
+    dtIdRef,
+    dtIdRefs,
+    dtEntity,
+    dtEntities,
+    dtNmToken,
+    dtNmTokens,
+    dtNotation
+  );
+
 { a simple hash table with WideString keys }
 
 type
@@ -108,6 +132,24 @@ type
     function Locate(uri: PWideString; localName: PWideChar; localLength: Integer): Boolean;
     destructor Destroy; override;
   end;
+
+{ generic node info record, shared between DOM and reader }
+
+  PNodeData = ^TNodeData;
+  TNodeData = record
+    FNext: PNodeData;
+    FQName: PHashItem;
+    FPrefix: PHashItem;
+    FNsUri: PHashItem;
+    FNodeType: TXMLNodeType;
+
+    FValueStr: WideString;
+    FValueStart: PWideChar;
+    FValueLength: Integer;
+    FIsDefault: Boolean;
+  end;
+
+{ TNSSupport provides tracking of prefix-uri pairs and namespace fixup for writer }
 
   TBinding = class
   public

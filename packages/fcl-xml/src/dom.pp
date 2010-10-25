@@ -38,7 +38,7 @@ unit DOM;
 interface
 
 uses
-  SysUtils, Classes, xmlutils;
+  SysUtils, Classes, xmlutils, dtdmodel;
 
 // -------------------------------------------------------
 //   DOMException
@@ -484,7 +484,7 @@ type
       TDOMProcessingInstruction; virtual;
     function CreateAttribute(const name: DOMString): TDOMAttr;
     function CreateAttributeBuf(Buf: DOMPChar; Length: Integer): TDOMAttr;
-    function CreateAttributeDef(Buf: DOMPChar; Length: Integer): TDOMAttrDef;
+    function CreateAttributeDef(Buf: DOMPChar; Length: Integer): TDOMAttrDef; deprecated;
     function CreateEntityReference(const name: DOMString): TDOMEntityReference;
       virtual;
     function GetElementsByTagName(const tagname: DOMString): TDOMNodeList;
@@ -534,17 +534,7 @@ type
 //   Attr
 // -------------------------------------------------------
 
-  TAttrDataType = (
-    dtCdata,
-    dtId,
-    dtIdRef,
-    dtIdRefs,
-    dtEntity,
-    dtEntities,
-    dtNmToken,
-    dtNmTokens,
-    dtNotation
-  );
+  TAttrDataType = xmlutils.TAttrDataType;
 
   TDOMNode_NS = class(TDOMNode_WithChildren)
   protected
@@ -596,7 +586,7 @@ type
     function GetAttributes: TDOMNamedNodeMap; override;
     procedure AttachDefaultAttrs;
     function InternalLookupPrefix(const nsURI: DOMString; Original: TDOMElement): DOMString;
-    procedure RestoreDefaultAttr(AttrDef: TDOMAttr);
+    procedure RestoreDefaultAttr(AttrDef: TAttributeDef);
   public
     destructor Destroy; override;
     function  CloneNode(deep: Boolean; ACloneOwner: TDOMDocument): TDOMNode; overload; override;
@@ -766,14 +756,9 @@ type
 
 // Attribute declaration - Attr descendant which carries rudimentary type info
 // must be severely improved while developing Level 3
+// NOT USED ANYMORE -- replaced by dtdmodel.TAttributeDef
 
-  TAttrDefault = (
-    adImplied,
-    adDefault,
-    adRequired,
-    adFixed
-  );
-
+  TAttrDefault = dtdmodel.TAttrDefault;
   TDOMAttrDef = class(TDOMAttr)
   protected
     FExternallyDeclared: Boolean;
@@ -787,7 +772,7 @@ type
     property Default: TAttrDefault read FDefault write FDefault;
     property ExternallyDeclared: Boolean read FExternallyDeclared write FExternallyDeclared;
     property Tag: Cardinal read FTag write FTag;
-  end;
+  end deprecated;
 
 // TNodePool - custom memory management for TDOMNode's
 // One pool manages objects of the same InstanceSize (may be of various classes)
@@ -819,7 +804,8 @@ const
   stduri_xml: DOMString = 'http://www.w3.org/XML/1998/namespace';
   stduri_xmlns: DOMString = 'http://www.w3.org/2000/xmlns/';
 
-
+// temporary until things are settled
+function LoadAttribute(doc: TDOMDocument; src: PNodeData): TDOMAttr;
 
 // =======================================================
 // =======================================================
@@ -833,7 +819,7 @@ type
     function FindNS(nsIndex: Integer; const aLocalName: DOMString;
       out Index: LongWord): Boolean;
     function InternalRemoveNS(const nsURI, aLocalName: DOMString): TDOMNode;
-    procedure RestoreDefault(const name: DOMString);
+    procedure RestoreDefault(aName: PHashItem);
   protected
     function Delete(index: LongWord): TDOMNode; override;
     function ValidateInsert(arg: TDOMNode): Integer; override;
@@ -1819,7 +1805,7 @@ begin
   begin
     Result.FParentNode := nil;
     if Assigned(TDOMAttr(Result).FNSI.QName) then
-      RestoreDefault(TDOMAttr(Result).FNSI.QName^.Key);
+      RestoreDefault(TDOMAttr(Result).FNSI.QName);
   end;
 end;
 
@@ -1835,19 +1821,19 @@ begin
   end;
 end;
 
-procedure TAttributeMap.RestoreDefault(const name: DOMString);
+procedure TAttributeMap.RestoreDefault(aName: PHashItem);
 var
-  eldef: TDOMElement;
-  attrdef: TDOMAttr;
+  eldef: TElementDecl;
+  attrdef: TAttributeDef;
 begin
   if not Assigned(TDOMElement(FOwner).FNSI.QName) then  // safeguard
     Exit;
-  eldef := TDOMElement(TDOMElement(FOwner).FNSI.QName^.Data);
+  eldef := TElementDecl(TDOMElement(FOwner).FNSI.QName^.Data);
   if Assigned(eldef) then
   begin
     // TODO: can be avoided by linking attributes directly to their defs
-    attrdef := eldef.GetAttributeNode(name);
-    if Assigned(attrdef) and (TDOMAttrDef(attrdef).FDefault in [adDefault, adFixed]) then
+    attrdef := eldef.GetAttrDef(aName);
+    if Assigned(attrdef) and (attrdef.Default in [adDefault, adFixed]) then
       TDOMElement(FOwner).RestoreDefaultAttr(attrdef);
   end;
 end;
@@ -2793,19 +2779,19 @@ end;
 
 procedure TDOMElement.AttachDefaultAttrs;
 var
-  eldef: TDOMElement;
-  attrdef: TDOMAttrDef;
+  eldef: TElementDecl;
+  attrdef: TAttributeDef;
   I: Integer;
 begin
   if not Assigned(FNSI.QName) then     // safeguard
     Exit;
-  eldef := TDOMElement(FNSI.QName^.Data);
-  if Assigned(eldef) and Assigned(eldef.FAttributes) then
+  eldef := TElementDecl(FNSI.QName^.Data);
+  if Assigned(eldef) and eldef.NeedsDefaultPass then
   begin
-    for I := 0 to eldef.FAttributes.Length-1 do
+    for I := 0 to eldef.AttrDefCount-1 do
     begin
-      attrdef := TDOMAttrDef(eldef.FAttributes[I]);
-      if attrdef.FDefault in [adDefault, adFixed] then
+      attrdef := eldef.AttrDefs[I];
+      if attrdef.Default in [adDefault, adFixed] then
         RestoreDefaultAttr(attrdef);
     end;
   end;
@@ -2841,7 +2827,33 @@ begin
   result := GetAncestorElement(Self).InternalLookupPrefix(nsURI, Original);
 end;
 
-procedure TDOMElement.RestoreDefaultAttr(AttrDef: TDOMAttr);
+// Copypasted from the same procedure in xmlread
+function LoadAttribute(doc: TDOMDocument; src: PNodeData): TDOMAttr;
+var
+  curr: PNodeData;
+begin
+  TDOMNode(result) := doc.Alloc(TDOMAttr);
+  result.Create(doc);
+  result.FNSI.QName := src^.FQName;
+  if not src^.FIsDefault then
+    Include(result.FFlags, nfSpecified);
+  if Assigned(src^.FNext) then
+  begin
+    curr := src^.FNext;
+    while Assigned(curr) do
+    begin
+      case curr^.FNodeType of
+        ntText: result.InternalAppend(doc.CreateTextNode(curr^.FValueStr));
+        ntEntityReference: result.InternalAppend(doc.CreateEntityReference(curr^.FValueStr));
+      end;
+      curr := curr^.FNext;
+    end;
+  end
+  else if src^.FValueStr <> '' then
+    result.InternalAppend(doc.CreateTextNode(src^.FValueStr));
+end;
+
+procedure TDOMElement.RestoreDefaultAttr(AttrDef: TAttributeDef);
 var
   Attr: TDOMAttr;
   ColonPos: Integer;
@@ -2849,7 +2861,8 @@ var
 begin
   if nfDestroying in FOwnerDocument.FFlags then
     Exit;
-  Attr := TDOMAttr(AttrDef.CloneNode(True));
+  Attr := LoadAttribute(FOwnerDocument, AttrDef.Data);
+
   AttrName := Attr.Name;
   ColonPos := Pos(WideChar(':'), AttrName);
   if Pos(DOMString('xmlns'), AttrName) = 1 then
