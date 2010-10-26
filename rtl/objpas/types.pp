@@ -344,25 +344,30 @@ end;
 
 
 function IntersectRect(var Rect : TRect;const R1,R2 : TRect) : Boolean;
-
+var
+  lR1, lR2: TRect;
 begin
-  Rect:=R1;
-  with R2 do
-    begin
-    if Left>R1.Left then
-      Rect.Left:=Left;
-    if Top>R1.Top then
-      Rect.Top:=Top;
-    if Right<R1.Right then
-      Rect.Right:=Right;
-    if Bottom<R1.Bottom then
-      Rect.Bottom:=Bottom;
-    end;
+  // We copy the parameter to a local variables to avoid problems
+  // when passing the same rectangle in the var and const parameters.
+  // See http://bugs.freepascal.org/view.php?id=17722
+  lR1 := R1;
+  lR2 := R2;
+
+  Rect := lR1;
+  if lR2.Left > lR1.Left then
+    Rect.Left := lR2.Left;
+  if lR2.Top > R1.Top then
+    Rect.Top := lR2.Top;
+  if lR2.Right < R1.Right then
+    Rect.Right := lR2.Right;
+  if lR2.Bottom < R1.Bottom then
+    Rect.Bottom := lR2.Bottom;
+
   if IsRectEmpty(Rect) then
-    begin
+  begin
     FillChar(Rect,SizeOf(Rect),0);
     IntersectRect:=false;
-    end
+  end
   else
     IntersectRect:=true;
 end;
