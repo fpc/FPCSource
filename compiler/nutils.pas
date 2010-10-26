@@ -1151,11 +1151,11 @@ implementation
           vecn:
             result:=
               is_packed_array(tvecnode(n).left.resultdef) and
-              (tarraydef(tvecnode(n).left.resultdef).elepackedbitsize mod 8 <> 0);
+              not(tarraydef(tvecnode(n).left.resultdef).elepackedbitsize in [8,16,32,64]);
           subscriptn:
             result:=
               is_packed_record_or_object(tsubscriptnode(n).left.resultdef) and
-              ((tsubscriptnode(n).vs.vardef.packedbitsize mod 8 <> 0) or
+              (not(tsubscriptnode(n).vs.vardef.packedbitsize in [8,16,32,64]) or
                (tsubscriptnode(n).vs.fieldoffset mod 8 <> 0));
           else
             result:=false;

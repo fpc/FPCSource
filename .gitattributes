@@ -10720,6 +10720,7 @@ tests/webtbs/tw17646.pp svneol=native#text/plain
 tests/webtbs/tw1765.pp svneol=native#text/plain
 tests/webtbs/tw17675.pp svneol=native#text/plain
 tests/webtbs/tw17675a.pp svneol=native#text/plain
+tests/webtbs/tw17715.pp svneol=native#text/plain
 tests/webtbs/tw1779.pp svneol=native#text/plain
 tests/webtbs/tw1780.pp svneol=native#text/plain
 tests/webtbs/tw1792.pp svneol=native#text/plain
