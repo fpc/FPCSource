@@ -876,29 +876,7 @@ End;
 
 procedure fpc_write_text_enum(typinfo,ord2strindex:pointer;len:sizeint;var t:text;ordinal:longint); iocheck; compilerproc;
 
-type  Ptypeinfo=^Ttypeinfo;
-      Ttypeinfo=packed record
-        kind:byte;
-        name:shortstring;
-       end;
-
-      Penuminfo=^Tenuminfo;
-      Tenuminfo={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
-        ordtype:byte;
-        minvalue, maxvalue:longint;
-        basetype:pointer;
-        namelist:shortstring;
-      end;
-
-      Tsorted_array={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
-        o:longint;
-        s:Pstring;
-      end;
-
 var
-    p:Pstring;
-    l,h,m,offset:cardinal;
-    sorted_array:^Tsorted_array;
     s:string;
 
 begin
@@ -910,62 +888,10 @@ begin
         inoutres:=103;
       exit;
     end;
-  if Pcardinal(ord2strindex)^=0 then
-    begin
-      {The compiler did generate a lookup table.}
-      offset:=2+length(Ptypeinfo(typinfo)^.name);
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-      offset:=align(offset, sizeof(ptrint));
-{$endif}
-      with Penuminfo(Pbyte(typinfo)+offset)^ do
-        begin
-          if (ordinal<minvalue) or (ordinal>maxvalue) then
-            begin
-              inoutres:=107;  {Invalid ordinal value for this enum.}
-              exit;
-            end;
-          dec(ordinal,minvalue);
-        end;
-      {Get the address of the string.}
-{$ifdef FPC_REQUIRES_PROPER_ALIGNMENT}
-      p:=Pshortstring((PPpointer(ord2strindex+align(sizeof(longint), sizeof(ptrint)))+ordinal)^);
-{$else}
-      p:=Pshortstring((PPpointer(ord2strindex+sizeof(longint))+ordinal)^);
-{$endif}
-      if p=nil then
-        begin
-          inoutres:=107;      {Invalid ordinal value for this enum.}
-          exit;
-        end;
-      s:=p^;
-    end
-  else
-    begin
-      {The compiler did generate a sorted array of (ordvalue,Pstring) tuples.}
-      sorted_array:=pointer(Pcardinal(ord2strindex)+2);
-      {Use a binary search to get the string.}
-      l:=0;
-      h:=(Pcardinal(ord2strindex)+1)^-1;
-      repeat
-        m:=(l+h) div 2;
-        if ordinal>sorted_array[m].o then
-          l:=m+1
-        else if ordinal<sorted_array[m].o then
-          h:=m-1
-        else
-          break;
-        if l>h then
-          begin
-            inoutres:=107;      {Invalid ordinal value for this enum.}
-            exit;
-          end;
-      until false;
-      s:=sorted_array[m].s^;
-    end;
+  inoutres := fpc_shortstr_enum_intern(ordinal, len, typinfo, ord2strindex, s);
+  if (inoutres <> 0) then
+    exit;
   fpc_writeBuffer(t,s[1],length(s));
-  {Pad the string with spaces if necessary.}
-  if len>length(s) then
-    fpc_writeblanks(t,len-length(s));
 end;
 
 {$ifdef FPC_HAS_STR_CURRENCY}

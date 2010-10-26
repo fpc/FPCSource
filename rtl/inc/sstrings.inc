@@ -409,64 +409,58 @@ end;
 
 function fpc_shortstr_enum_intern(ordinal,len:sizeint;typinfo,ord2strindex:pointer;out s:shortstring): longint;
 
-{ Enumeration RTTI has the following format (given by typinfo parameter):
-  Tenum_rtti_header // variable sized; shortstring only contains minimum amount of data, e.g. length + string
-  (alignment)       // if FPC_REQUIRES_PROPER_ALIGNMENT there is an alignment to pointer size 
-  Tenum_rtti_body   // more RTTI information
-}
+{ The following contains the TTypeInfo/TTypeData records from typinfo.pp
+  specialized for the tkEnumeration case (and stripped of unused things). }
 type
   PPstring=^Pstring;
 
-  Penum_rtti_header=^Tenum_rtti_header;
-  Tenum_rtti_header=record
-    kind:byte;
+  Penum_typeinfo=^Tenum_typeinfo;
+  Tenum_typeinfo={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+    kind:byte; { always tkEnumeration }
     num_chars:byte;
-    chars:array[0..0] of char; // variable length with size of num_chars;
+    chars:array[0..0] of char; { variable length with size of num_chars }
   end;
 
-  Penum_rtti_body=^Tenum_rtti_body;
-  Tenum_rtti_body={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+  Penum_typedata=^Tenum_typedata;
+  Tenum_typedata={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
     ordtype:byte;
-    minvalue,maxvalue:longint;
-    basetype:pointer;
+    { this seemingly extraneous inner record is here for alignment purposes, so
+      that its data gets aligned properly (if FPC_REQUIRES_PROPER_ALIGNMENT is
+      set }
+    inner: {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+      minvalue,maxvalue:longint;
+      basetype:pointer; { required for alignment }
+    end;
     { more data here, but not needed }
   end;
 
+  { Pascal data types for the ordinal enum value to string table. It consists of a header
+    that indicates what type of data the table stores, either a direct lookup table (when
+    o = lookup) or a set of ordered (ordinal value, string) tuples (when o = search). }
+
+  { A single entry in the set of ordered tuples }
   Psearch_data=^Tsearch_data;
   Tsearch_data={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
     value:longint;
     name:Pstring;
   end;
 
-  Penum_ord_to_string_header=^Tenum_ord_to_string_header;
-  Tenum_ord_to_string_header={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
+  Penum_ord_to_string=^Tenum_ord_to_string;
+  Tenum_ord_to_string={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
     o:(lookup,search);
-  end;
-
-  Penum_ord_to_string_lookup=^Tenum_ord_to_string_lookup;
-  Tenum_ord_to_string_lookup={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
-    header:Tenum_ord_to_string_header;
-    lookup_data:array[0..0] of Pstring;
-  end;
-
-  Penum_ord_to_string_search=^Tenum_ord_to_string_search;
-  Tenum_ord_to_string_search={$ifndef FPC_REQUIRES_PROPER_ALIGNMENT}packed{$endif}record
-    header:Tenum_ord_to_string_header;
-    num_entries:longint; // only if o == 0
-    search_data:array[0..0] of Tsearch_data;
-  end;
-
-  function align_up(value:ptruint; alignment:sizeint) : ptruint;
-  begin
-    align_up:=(value + (alignment - 1)) and not (alignment - 1);
+    case integer of
+      0: (lookup_data:array[0..0] of Pstring);
+      1: (num_entries:longint;
+          search_data:array[0..0] of Tsearch_data);
   end;
 
 var
   p:Pstring;
 
-  enum_o2s : Penum_ord_to_string_header;
-  header:Penum_rtti_header;
-  body:Penum_rtti_body;
+  enum_o2s : Penum_ord_to_string;
+  header:Penum_typeinfo;
+  body:Penum_typedata;
+
   res:Pshortstring;
   sorted_data:Psearch_data;
   spaces,i,m,h,l:longint;
@@ -475,19 +469,19 @@ begin
   { set default return value }
   fpc_shortstr_enum_intern:=107;
 
-  enum_o2s:=Penum_ord_to_string_header(ord2strindex);
+  enum_o2s:=Penum_ord_to_string(ord2strindex);
   { depending on the type of table in ord2strindex retrieve the data }
   if (enum_o2s^.o=lookup) then 
     begin
       { direct lookup table }
-      header:=Penum_rtti_header(typinfo);
+      header:=Penum_typeinfo(typinfo);
       { calculate address of enum rtti body: add the actual size of the
         enum_rtti_header, and then align. Use an alignment of 1 (which
         does nothing) in case FPC_REQUIRES_PROPER_ALIGNMENT is not set
         to avoid the need for an if in this situation }
-      body:=Penum_rtti_body(align_up(ptruint(header) + 2 * sizeof(byte) { kind, num_chars } + header^.num_chars,
+      body:=Penum_typedata(align(ptruint(header) + 2 * sizeof(byte) { kind, num_chars } + header^.num_chars,
         {$ifndef FPC_REQUIRES_PROPER_ALIGNMENT} 1 {$else} sizeof(pointer) {$endif}));
-      with (body^) do
+      with (body^.inner) do
         begin
           { Bounds check for the ordinal value for this enum }     
           if (ordinal<minvalue) or (ordinal>maxvalue) then
@@ -495,7 +489,11 @@ begin
           { make the ordinal index for lookup zero-based }
           dec(ordinal,minvalue);
         end;
-        res:=Penum_ord_to_string_lookup(enum_o2s)^.lookup_data[ordinal];
+      { temporarily disable range checking because of the access to the array[0..0]
+        member of Tenum_ord_to_string_lookup }
+{$PUSH}{$R-}
+        res:=enum_o2s^.lookup_data[ordinal];
+{$POP}
         if (not assigned(res)) then
           exit;
         s:=res^;
@@ -503,10 +501,13 @@ begin
   else
     begin
       { The compiler did generate a sorted array of (ordvalue,Pstring) tuples }
-      sorted_data:=Penum_ord_to_string_search(enum_o2s)^.search_data;
+      sorted_data:=@enum_o2s^.search_data;
       { Use a binary search to get the string }
       l:=0;
-      h:=Penum_ord_to_string_search(enum_o2s)^.num_entries-1;
+      { temporarily disable range checking because of the access to the array[0..0]
+        member of Tenum_ord_to_string_search }
+{$PUSH}{$R-}
+      h:=enum_o2s^.num_entries-1;
       repeat
         m:=(l+h) div 2;
         if ordinal>sorted_data[m].value then
@@ -518,6 +519,7 @@ begin
         if l>h then
           exit; { Ordinal value not found? Exit }
       until false;
+{$POP}
       s:=sorted_data[m].name^;
     end;
 

@@ -434,8 +434,15 @@ implementation
             4 :
               current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_8bit(otULong));
           end;
+          { we need to align by Tconstptruint here to satisfy the alignment rules set by
+            records: in the typinfo unit we overlay a TTypeData record on this data, which at
+            the innermost variant record needs an alignment of TConstPtrUint due to e.g. 
+            the "CompType" member for tkSet (also the "BaseType" member for tkEnumeration).
+            We need to adhere to this, otherwise things will break.
+            Note that other code (e.g. enumdef_rtti_calcstringtablestart()) relies on the
+            exact sequence too. }
           if (tf_requires_proper_alignment in target_info.flags) then
-            current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(longint(def.size)));
+            current_asmdata.asmlists[al_rtti].concat(Cai_align.Create(sizeof(TConstPtrUint)));
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.min));
           current_asmdata.asmlists[al_rtti].concat(Tai_const.Create_32bit(def.max));
           if (tf_requires_proper_alignment in target_info.flags) then
@@ -960,11 +967,13 @@ implementation
       end;
 
     procedure TRTTIWriter.write_rtti_extrasyms(def:Tdef;rt:Trttitype;mainrtti:Tasmsymbol);
-        
+
         type Penumsym = ^Tenumsym;
 
         function enumdef_rtti_calcstringtablestart(const def : Tenumdef) : integer;
         begin
+          { the alignment calls must correspond to the ones used during generating the
+            actual data structure created elsewhere in this file }
           result:=1;
           if assigned(def.typesym) then
             inc(result,length(def.typesym.realname)+1)
@@ -974,13 +983,16 @@ implementation
             result:=align(result,sizeof(Tconstptruint));
           inc(result);
           if (tf_requires_proper_alignment in target_info.flags) then
-            result:=align(result,longint(def.size));
+            result:=align(result,sizeof(Tconstptruint));
           inc(result, sizeof(longint) * 2);
           if (tf_requires_proper_alignment in target_info.flags) then
             result:=align(result,sizeof(Tconstptruint));
           inc(result, sizeof(pint));
         end;
 
+        { Writes a helper table for accelerated conversion of ordinal enum values to strings.
+          If you change something in this method, make sure to adapt the corresponding code
+          in sstrings.inc. }
         procedure enumdef_rtti_ord2stringindex(const sym_count:longint; const offsets:plongint; const syms:Penumsym; const st:longint);
 
         var rttilab:Tasmsymbol;
@@ -1007,7 +1019,8 @@ implementation
               if r>sym_count then
                 mode:=search; {Don't waste more than 50% space.}
             end;
-          { write rtti data }
+          { write rtti data; make sure that the alignment matches the corresponding data structure
+            in the code that uses it (if alignment is required). }
           with current_asmdata do
             begin
               rttilab:=defineasmsymbol(Tstoreddef(def).rtti_mangledname(rt)+'_o2s',AB_GLOBAL,AT_DATA);
@@ -1033,11 +1046,13 @@ implementation
                 end
               else
                 begin
+                  if (tf_requires_proper_alignment in target_info.flags) then
+                    current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
                   asmlists[al_rtti].concat(Tai_const.create_32bit(sym_count));
                   for i:=0 to sym_count-1 do
                     begin
                       if (tf_requires_proper_alignment in target_info.flags) then
-                        current_asmdata.asmlists[al_rtti].concat(cai_align.Create(4));
+                        current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));
                       asmlists[al_rtti].concat(Tai_const.create_32bit(syms[i].value));
                       if (tf_requires_proper_alignment in target_info.flags) then
                         current_asmdata.asmlists[al_rtti].concat(cai_align.Create(sizeof(TConstPtrUInt)));	
@@ -1048,6 +1063,9 @@ implementation
             end;
         end;
 
+        { Writes a helper table for accelerated conversion of string to ordinal enum values.
+          If you change something in this method, make sure to adapt the corresponding code
+          in sstrings.inc. }
         procedure enumdef_rtti_string2ordindex(const sym_count:longint; const offsets:plongint; const syms:Penumsym; const st:longint);
 
         var rttilab:Tasmsymbol;
