@@ -19,6 +19,7 @@ type
     FRowIndex : integer;
     function CheckData: Boolean;
   Public
+    procedure reset; override;
     Function GetNextBatch : Boolean; override;
     Function TryFieldValue(Const AFieldName : String; out AValue : String) : Boolean; override;
     Destructor destroy; override;
@@ -39,8 +40,13 @@ type
     FBeforeRowToJSON: TJSONObjectEvent;
     FOnErrorResponse: TJSONExceptionObjectEvent;
     FOnMetaDataToJSON: TJSONObjectEvent;
-    procedure SendSuccess(ResponseContent: TStream; AddIDValue : Boolean = False; CallBack : TJSONObjectEvent = Nil);
+    FBatchResult : TJSONArray;
+    Function AddIdToBatch : TJSONObject;
+    procedure SendSuccess(ResponseContent: TStream; AddIDValue : Boolean = False);
   protected
+    Procedure StartBatch(ResponseContent : TStream); override;
+    Procedure NextBatchItem(ResponseContent : TStream); override;
+    Procedure EndBatch(ResponseContent : TStream); override;
     Function CreateAdaptor(ARequest : TRequest) : TCustomWebdataInputAdaptor; override;
     Function AddFieldToJSON(O: TJSONObject; AFieldName: String; F: TField): TJSONData;
     function GetDataContentType: String; override;
@@ -56,6 +62,8 @@ type
     Procedure DoInsertRecord(ResponseContent : TStream); override;
     Procedure DoUpdateRecord(ResponseContent : TStream); override;
     Procedure DoDeleteRecord(ResponseContent : TStream); override;
+  Public
+    Destructor destroy; override;
   Published
     // Called before any fields are added to row object (passed to handler).
     Property AfterRowToJSON : TJSONObjectEvent Read FAfterRowToJSON Write FAfterRowToJSON;
@@ -369,6 +377,7 @@ begin
     L:=Resp.AsJSON;
     If Length(L)>0 then
       ResponseContent.WriteBuffer(L[1],Length(L));
+    Resp.Add('root',RowsProperty);
     Resp.Add(RowsProperty,TJSONArray.Create());
     If Assigned(FOnErrorResponse) then
       FOnErrorResponse(Self,E,Resp);
@@ -377,7 +386,7 @@ begin
   end;
 end;
 
-procedure TExtJSJSONDataFormatter.SendSuccess(ResponseContent: TStream; AddIDValue : Boolean = False; CallBack : TJSONObjectEvent = Nil);
+procedure TExtJSJSONDataFormatter.SendSuccess(ResponseContent: TStream; AddIDValue : Boolean = False);
 
 Var
    Resp : TJSonObject;
@@ -387,9 +396,14 @@ begin
   try
     Resp:=TJsonObject.Create;
     Resp.Add(SuccessProperty,True);
-    Resp.Add(Provider.IDFieldName,Provider.IDFieldValue);
-    If Assigned(CallBack) then
-      CallBack(Self,Resp);
+    Resp.Add('root',Self.RowsProperty);
+    If Assigned(FBatchResult) and (FBatchResult.Count>0) then
+      begin
+      Resp.Add(Self.RowsProperty,FBatchResult);
+      FBatchResult:=Nil;
+      end
+    else
+      Resp.Add(Self.RowsProperty,TJSONNull.Create());
     L:=Resp.AsJSON;
     ResponseContent.WriteBuffer(L[1],Length(L));
   finally
@@ -397,23 +411,65 @@ begin
   end;
 end;
 
+procedure TExtJSJSONDataFormatter.StartBatch(ResponseContent: TStream);
+begin
+  If Assigned(FBatchResult) then
+    FBatchResult.Clear
+  else
+    FBatchResult:=TJSONArray.Create();
+end;
+
+procedure TExtJSJSONDataFormatter.NextBatchItem(ResponseContent: TStream);
+begin
+end;
+
+procedure TExtJSJSONDataFormatter.EndBatch(ResponseContent: TStream);
+begin
+  SendSuccess(Responsecontent,True);
+end;
+
+Function TExtJSJSONDataFormatter.AddIdToBatch : TJSONObject;
+
+begin
+  Result:=TJSONObject.Create([Provider.IDFieldName,Provider.IDFieldValue]);
+  FBatchResult.Add(Result);
+end;
+
 procedure TExtJSJSONDataFormatter.DoInsertRecord(ResponseContent: TStream);
+
+Var
+  D : TJSONObject;
 
 begin
   Inherited;
-  SendSuccess(ResponseContent,True,FAfterInsert);
+  D:=AddIDToBatch;
+  If Assigned(FAfterInsert) then
+    FAfterInsert(Self,D);
 end;
 
 procedure TExtJSJSONDataFormatter.DoUpdateRecord(ResponseContent: TStream);
+
+Var
+  D : TJSONObject;
+
 begin
   inherited DoUpdateRecord(ResponseContent);
-  SendSuccess(ResponseContent,False,FAfterUpdate);
+  D:=AddIDToBatch;
+  If Assigned(FAfterUpdate) then
+    FAfterUpdate(Self,D);
 end;
 
 procedure TExtJSJSONDataFormatter.DoDeleteRecord(ResponseContent: TStream);
 begin
   inherited DoDeleteRecord(ResponseContent);
-  SendSuccess(ResponseContent,False,FAfterDelete);
+  If Assigned(FAfterDelete) then
+    FAfterDelete(Self,Nil);
+end;
+
+destructor TExtJSJSONDataFormatter.destroy;
+begin
+  FreeAndNil(FBatchResult);
+  inherited destroy;
 end;
 
 { TExtJSJSonWebdataInputAdaptor }
@@ -457,6 +513,17 @@ begin
       P.Free;
     end;
     end;
+end;
+
+procedure TExtJSJSonWebdataInputAdaptor.reset;
+begin
+  If (FRows=Nil) then
+    FreeAndNil(FCurrentRow)
+  else
+    FreeAndNil(FRows);
+  FRowIndex:=0;
+  FreeAndNil(FIDValue);
+  inherited reset;
 end;
 
 function TExtJSJSonWebdataInputAdaptor.GetNextBatch: Boolean;

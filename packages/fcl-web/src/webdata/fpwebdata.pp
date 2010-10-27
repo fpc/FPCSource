@@ -144,6 +144,9 @@ type
     procedure SetAdaptor(const AValue: TCustomWebDataInputAdaptor);
     procedure SetDataProvider(const AValue: TFPCustomWebDataProvider);
   Protected
+    Procedure StartBatch(ResponseContent : TStream); virtual;
+    Procedure NextBatchItem(ResponseContent : TStream); virtual;
+    Procedure EndBatch(ResponseContent : TStream); virtual;
     Function GetDataContentType : String; virtual;
     procedure DatasetToStream(Stream: TStream); virtual;abstract;
     Function CreateAdaptor(ARequest : TRequest) : TCustomWebdataInputAdaptor; virtual;
@@ -869,6 +872,22 @@ begin
     FDataProvider.FreeNotification(Self);
 end;
 
+procedure TCustomHTTPDataContentProducer.StartBatch(ResponseContent: TStream);
+begin
+  // Do nothing
+end;
+
+procedure TCustomHTTPDataContentProducer.NextBatchItem(ResponseContent: TStream
+  );
+begin
+  // do nothing
+end;
+
+procedure TCustomHTTPDataContentProducer.EndBatch(ResponseContent: TStream);
+begin
+  // do nothing
+end;
+
 function TCustomHTTPDataContentProducer.GetDataContentType: String;
 begin
   Result:='';
@@ -888,6 +907,7 @@ Var
   A : TCustomWebdataInputAdaptor;
 
 begin
+  {$ifdef wmdebug}SendDebugFmt('Request content %s',[ARequest.Content]);{$endif}
   B:=(Adaptor=Nil);
   if B then
     begin
@@ -896,36 +916,43 @@ begin
     end;
   try
     try
-      While Adaptor.GetNextBatch do
-        begin
-        {$ifdef wmdebug}SendDebug('Starting batch Loop');{$endif}
-        Case Adaptor.Action of
-          wdaInsert  : DoInsertRecord(Content);
-          wdaUpdate  : begin
-                      {$ifdef wmdebug}SendDebug('Aha1');{$endif}
-                      DoUpdateRecord(Content);
-                      {$ifdef wmdebug}SendDebug('Aha2');{$endif}
-                      end;
-          wdaDelete  : DoDeleteRecord(Content);
-          wdaRead    : DoReadRecords(Content);
-          wdaUnknown : Raise EFPHTTPError.Create(SErrNoAction);
-        else
-          inherited DoGetContent(ARequest, Content,Handled);
-        end;
-        if (Adaptor.Action in [wdaInsert,wdaUpdate,wdaDelete,wdaRead]) then
-          Handled:=true;
+      Case Adaptor.Action of
+        wdaRead : DoReadRecords(Content);
+        wdaInsert,
+        wdaUpdate,
+        wdaDelete :
+          begin
+          {$ifdef wmdebug}SendDebug('Starting batch Loop');{$endif}
+          StartBatch(Content);
+          While Adaptor.GetNextBatch do
+            begin
+            {$ifdef wmdebug}SendDebug('Next batch item');{$endif}
+            NextBatchItem(Content);
+            Case Adaptor.Action of
+              wdaInsert  : DoInsertRecord(Content);
+              wdaUpdate  : DoUpdateRecord(Content);
+              wdaDelete  : DoDeleteRecord(Content);
+            else
+              inherited DoGetContent(ARequest, Content,Handled);
+            end;
+          end;
+         EndBatch(Content);
         {$ifdef wmdebug}SendDebug('Ended batch Loop');{$endif}
-        end;
-    except
-    On E : Exception do
-      begin
-      DoExceptionToStream(E,Content);
-      Handled:=True;
+         end;
+      else
+        Raise EFPHTTPError.Create(SErrNoAction);
       end;
+      Handled:=true;
+    except
+      On E : Exception do
+        begin
+        DoExceptionToStream(E,Content);
+        Handled:=True;
+        end;
     end;
   finally
     If B then
-     FreeAndNil(A);
+      FreeAndNil(A);
   end;
 end;
 
