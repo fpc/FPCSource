@@ -306,12 +306,19 @@ end;
 
 { TCGIResponse }
 procedure TFCGIResponse.Write_FCGIRecord(ARecord : PFCGI_Header);
-var BytesToWrite : word;
+
+var BytesToWrite : Integer;
     BytesWritten  : Integer;
+    P : PByte;
 begin
   BytesToWrite := BEtoN(ARecord^.contentLength) + ARecord^.paddingLength+sizeof(FCGI_Header);
-  BytesWritten := sockets.fpsend(TFCGIRequest(Request).Handle, ARecord, BytesToWrite, NoSignalAttr);
-  Assert(BytesWritten=BytesToWrite);
+  P:=PByte(Arecord);
+  Repeat
+    BytesWritten := sockets.fpsend(TFCGIRequest(Request).Handle, P, BytesToWrite, NoSignalAttr);
+    Inc(P,BytesWritten);
+    Dec(BytesToWrite,BytesWritten);
+//    Assert(BytesWritten=BytesToWrite);
+  until (BytesToWrite=0) or (BytesWritten=0);
 end;
 
 procedure TFCGIResponse.DoSendHeaders(Headers : TStrings);
@@ -351,7 +358,12 @@ begin
 end;
 
 procedure TFCGIResponse.DoSendContent;
+
+Const
+  MaxBuf = $EFFF;
+
 var
+  bs,l : Integer;
   cl : word;
   pl : byte;
   str : String;
@@ -367,24 +379,30 @@ begin
     end
   else
     str := Contents.Text;
-  cl := length(str);
-  if ((cl mod 8)=0) or (poNoPadding in ProtocolOptions) then
-    pl:=0
-  else
-    pl := 8-(cl mod 8);
-  ARespRecord:=Nil;
-  Getmem(ARespRecord,8+cl+pl);
-  ARespRecord^.header.version:=FCGI_VERSION_1;
-  ARespRecord^.header.reqtype:=FCGI_STDOUT;
-  ARespRecord^.header.paddingLength:=pl;
-  ARespRecord^.header.contentLength:=NtoBE(cl);
-  ARespRecord^.header.requestId:=NToBE(TFCGIRequest(Request).RequestID);
-  move(str[1],ARespRecord^.ContentData,cl);
-
-  Write_FCGIRecord(PFCGI_Header(ARespRecord));
-  Freemem(ARespRecord);
+  L:=Length(Str);
+  BS:=0;
+  Repeat
+    If (L-BS)>MaxBuf then
+      cl := MaxBuf
+    else
+      cl:=L-BS ;
+    if ((cl mod 8)=0) or (poNoPadding in ProtocolOptions) then
+      pl:=0
+    else
+      pl := 8-(cl mod 8);
+    ARespRecord:=Nil;
+    Getmem(ARespRecord,8+cl+pl);
+    ARespRecord^.header.version:=FCGI_VERSION_1;
+    ARespRecord^.header.reqtype:=FCGI_STDOUT;
+    ARespRecord^.header.paddingLength:=pl;
+    ARespRecord^.header.contentLength:=NtoBE(cl);
+    ARespRecord^.header.requestId:=NToBE(TFCGIRequest(Request).RequestID);
+    move(Str[BS+1],ARespRecord^.ContentData,cl);
+    Write_FCGIRecord(PFCGI_Header(ARespRecord));
+    Freemem(ARespRecord);
+    Inc(BS,cl);
+  Until (BS=L);
   FillChar(EndRequest,SizeOf(FCGI_EndRequestRecord),0);
-
   EndRequest.header.version:=FCGI_VERSION_1;
   EndRequest.header.reqtype:=FCGI_END_REQUEST;
   EndRequest.header.contentLength:=NtoBE(8);
