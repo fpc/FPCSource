@@ -157,11 +157,7 @@ type
 
   TDTDSubsetType = (dsNone, dsInternal, dsExternal);
 
-  // This may be augmented with ByteOffset, UTF8Offset, etc.
-  TLocation = record
-    Line: Integer;
-    LinePos: Integer;
-  end;
+  TLocation = xmlutils.TLocation;
 
   TDOMEntityEx = class(TDOMEntity)
   protected
@@ -2981,6 +2977,9 @@ begin
   FCurrNode^.FQName := ElName;
   FCurrNode^.FNodeType := ntElement;
   FCurrNode^.FColonPos := FColonPos;
+  FCurrNode^.FLoc := FTokenStart;
+  Dec(FCurrNode^.FLoc.LinePos, FName.Length);
+
   if FNamespaces then
   begin
     FNSHelper.StartElement;
@@ -3018,7 +3017,10 @@ begin
     begin
       b := TBinding(FCurrNode^.FPrefix^.Data);
       if not (Assigned(b) and (b.uri <> '')) then
-        FatalError('Unbound prefix "%s"', [FCurrNode^.FPrefix^.Key]);
+      begin
+        FTokenStart := FCurrNode^.FLoc;
+        FatalError('Unbound element name prefix "%s"', [FCurrNode^.FPrefix^.Key],-1);
+      end;
       FCurrNode^.FNsUri := doc.Names.FindOrAdd(PWideChar(b.uri), Length(b.uri));
       NewElem.SetNSI(b.uri, FCurrNode^.FColonPos+1);
     end
@@ -3108,6 +3110,8 @@ begin
   attrName := doc.Names.FindOrAdd(FName.Buffer, FName.Length);
   attrData := AllocAttributeData(attrName);
   attrData^.FColonPos := FColonPos;
+  StoreLocation(attrData^.FLoc);
+  Dec(attrData^.FLoc.LinePos, FName.Length);
 
   if Assigned(ElDef) then
   begin
@@ -3279,14 +3283,17 @@ begin
     Pfx := attrData^.FPrefix;
     b := TBinding(Pfx^.Data);
     if not (Assigned(b) and (b.uri <> '')) then
-      FatalError('Unbound prefix "%s"', [Pfx^.Key]);
+    begin
+      FTokenStart := attrData^.FLoc;
+      FatalError('Unbound attribute name prefix "%s"', [Pfx^.Key], -1);
+    end;
 
     { detect duplicates }
     J := attrData^.FColonPos+1;
     AttrName := attrData^.FQName;
 
     if FNsAttHash.Locate(@b.uri, @AttrName^.Key[J], Length(AttrName^.Key) - J+1) then
-      FatalError('Duplicate prefixed attribute');
+      DoErrorPos(esFatal, 'Duplicate prefixed attribute', attrData^.FLoc);
 
     attrData^.FNsUri := doc.Names.FindOrAdd(PWideChar(b.uri), Length(b.uri));
   end;

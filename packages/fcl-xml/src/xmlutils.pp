@@ -133,6 +133,12 @@ type
     destructor Destroy; override;
   end;
 
+{ Source location. This may be augmented with ByteOffset, UTF8Offset, etc. }
+  TLocation = record
+    Line: Integer;
+    LinePos: Integer;
+  end;
+
 { generic node info record, shared between DOM and reader }
 
   PNodeData = ^TNodeData;
@@ -143,6 +149,8 @@ type
     FNsUri: PHashItem;
     FColonPos: Integer;
     FTypeInfo: TObject;
+    FLoc: TLocation;
+    FLoc2: TLocation;              // for attributes: start of value
     FNodeType: TXMLNodeType;
 
     FValueStr: WideString;
