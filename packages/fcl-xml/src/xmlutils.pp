@@ -141,6 +141,8 @@ type
     FQName: PHashItem;
     FPrefix: PHashItem;
     FNsUri: PHashItem;
+    FColonPos: Integer;
+    FTypeInfo: TObject;
     FNodeType: TXMLNodeType;
 
     FValueStr: WideString;

@@ -2140,7 +2140,6 @@ begin
   FNamespaces[1] := stduri_xml;
   FNamespaces[2] := stduri_xmlns;
   FEmptyNode := TDOMElement.Create(Self);
-  FNodeLists := THashTable.Create(32, True);
 end;
 
 destructor TDOMDocument.Destroy;
@@ -2400,6 +2399,8 @@ var
   Key, P: DOMPChar;
   Item: PHashItem;
 begin
+  if FNodeLists = nil then
+    FNodeLists := THashTable.Create(32, True);
   L := (sizeof(Pointer) div sizeof(WideChar)) + Length(aLocalName);
   if UseNS then
     Inc(L, Length(nsURI)+1);
@@ -2827,7 +2828,6 @@ begin
   result := GetAncestorElement(Self).InternalLookupPrefix(nsURI, Original);
 end;
 
-// Copypasted from the same procedure in xmlread
 function LoadAttribute(doc: TDOMDocument; src: PNodeData): TDOMAttr;
 var
   curr: PNodeData;
@@ -2837,6 +2837,10 @@ begin
   result.FNSI.QName := src^.FQName;
   if not src^.FIsDefault then
     Include(result.FFlags, nfSpecified);
+  if Assigned(src^.FTypeInfo) then
+    result.FDataType := TAttributeDef(src^.FTypeInfo).DataType;
+  if Assigned(src^.FNsUri) then
+    result.SetNSI(src^.FNsUri^.Key, src^.FColonPos+1);
   if Assigned(src^.FNext) then
   begin
     curr := src^.FNext;

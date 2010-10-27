@@ -72,9 +72,10 @@ type
     FDataType: TAttrDataType;
     FDefault: TAttrDefault;
     FTag: Cardinal;
+    FIsNamespaceDecl: Boolean;
     FEnumeration: array of WideString;
   public
-    constructor Create;
+    constructor Create(aName: PHashItem; aColonPos: Integer);
     destructor Destroy; override;
     function AddEnumToken(Buf: PWideChar; Len: Integer): Boolean;
     function HasEnumToken(const aValue: WideString): Boolean;
@@ -82,6 +83,7 @@ type
     property Default: TAttrDefault read FDefault write FDefault;
     property DataType: TAttrDataType read FDataType write FDataType;
     property Tag: Cardinal read FTag write FTag;
+    property IsNamespaceDecl: Boolean read FIsNamespaceDecl;
   end;
 
   TElementContentType = (
@@ -288,11 +290,16 @@ end;
 
 { TAttributeDef }
 
-constructor TAttributeDef.Create;
+constructor TAttributeDef.Create(aName: PHashItem; aColonPos: Integer);
 begin
   New(FData);
   FillChar(FData^, sizeof(TNodeData), 0);
   FData^.FIsDefault := True;
+  FData^.FQName := aName;
+  FData^.FColonPos := aColonPos;
+  FData^.FTypeInfo := Self;
+  FIsNamespaceDecl := ((Length(aName^.Key) = 5) or (aColonPos = 6)) and
+    (Pos(WideString('xmlns'), aName^.Key) = 1);
 end;
 
 destructor TAttributeDef.Destroy;
