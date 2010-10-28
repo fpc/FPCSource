@@ -16,7 +16,7 @@ begin
 {$ifdef ALLPACKAGES}
     P.Directory:='libpng';
 {$endif ALLPACKAGES}
-    P.Version:='2.2.2-0';
+    P.Version:='2.4.2';
     P.Dependencies.Add('zlib');
     P.SourcePath.Add('src');
 
