@@ -1347,7 +1347,9 @@ begin
   FXML11 := doc.InheritsFrom(TXMLDocument) and (TXMLDocument(doc).XMLVersion = '1.1');
   NSPrepare;
   Initialize(ASource);
-  FDocType := TDOMDocumentTypeEx(doc.DocType);
+  // See comment in EntityCheck()
+  if FDocType = nil then
+    FDocType := TDOMDocumentTypeEx(doc.DocType);
   ParseContent;
 end;
 
@@ -1722,9 +1724,13 @@ begin
   if not Result.FResolved then
   begin
     // To build children of the entity itself, we must parse it "out of context"
+    // However, care must be taken to properly pass the DTD to InnerReader.
+    // We now have doc.DocumentType=nil while DTD is being parsed,
+    // which can break parsing 2+ level entities in default attribute values.
     InnerReader := TXMLReader.Create(FCtrl);
     try
       InnerReader.FAttrTag := FAttrTag;
+      InnerReader.FDocType := FDocType;
       EntityToSource(Result, Src);
       Result.SetReadOnly(False);
       if Assigned(Src) then
