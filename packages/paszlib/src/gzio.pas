@@ -451,7 +451,7 @@ begin
 
   if ((flags and EXTRA_FIELD) <> 0) then begin { skip the extra field }
     len := cardinal(get_byte(s));
-    len := len + (cardinal(get_byte(s)) shr 8);
+    len := len + (cardinal(get_byte(s)) shl 8);
     { len is garbage if EOF but the loop below will quit anyway }
     while (len <> 0) and (get_byte(s) <> Z_EOF) do Dec(len);
   end;
