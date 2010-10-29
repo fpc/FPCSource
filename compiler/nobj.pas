@@ -958,7 +958,9 @@ implementation
            writestrentry(p^.l);
 
          { write name label }
+         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_sym(p^.nl));
+         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
          current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(p^.data.mangledname,0));
 
          if assigned(p^.r) then
@@ -968,7 +970,7 @@ implementation
 
     function TVMTWriter.genstrmsgtab : tasmlabel;
       var
-         count : aint;
+         count : longint;
       begin
          root:=nil;
          count:=0;
@@ -983,7 +985,9 @@ implementation
          current_asmdata.getdatalabel(result);
          current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
          current_asmdata.asmlists[al_globals].concat(Tai_label.Create(result));
-         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_pint(count));
+         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(longint))));
+         current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(count));
+         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
          if assigned(root) then
            begin
               writestrentry(root);
@@ -998,7 +1002,9 @@ implementation
            writeintentry(p^.l);
 
          { write name label }
+         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(longint))));
          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(p^.data.messageinf.i));
+         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
          current_asmdata.asmlists[al_globals].concat(Tai_const.Createname(p^.data.mangledname,0));
 
          if assigned(p^.r) then
@@ -1021,7 +1027,9 @@ implementation
          current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
          current_asmdata.asmlists[al_globals].concat(Tai_label.Create(r));
          genintmsgtab:=r;
+         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(longint))));
          current_asmdata.asmlists[al_globals].concat(Tai_const.Create_32bit(count));
+         current_asmdata.asmlists[al_globals].concat(cai_align.create(const_align(sizeof(pint))));
          if assigned(root) then
            begin
               writeintentry(root);

@@ -546,18 +546,23 @@
       procedure TObject.Dispatch(var message);
 
         type
-           tmsgtable = packed record
+           PMsgIntTable = ^TMsgIntTable;
+           TMsgIntTable = record
               index : dword;
               method : pointer;
            end;
 
-           pmsgtable = ^tmsgtable;
+           PMsgInt = ^TMsgInt;
+           TMsgInt = record
+              count : longint;
+              msgs : array[0..0] of TMsgIntTable;
+           end;
 
         var
            index : dword;
            count,i : longint;
-           msgtable : pmsgtable;
-           p : pointer;
+           msgtable : PMsgIntTable;
+           p : PMsgInt;
            ovmt : PVmt;
            msghandler : tmessagehandler;
 
@@ -567,11 +572,11 @@
            while assigned(ovmt) do
              begin
                 // See if we have messages at all in this class.
-                p:=ovmt^.vDynamicTable;
+                p:=PMsgInt(ovmt^.vDynamicTable);
                 If Assigned(p) then
                   begin
-                     msgtable:=pmsgtable(p+4);
-                     count:=pdword(p)^;
+                     msgtable:=@p^.msgs;
+                     count:=p^.count;
                   end
                 else
                   Count:=0;

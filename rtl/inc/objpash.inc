@@ -89,7 +89,7 @@
        PMsgStrTable = ^TMsgStrTable;
 
        TStringMessageTable = record
-          count : ptruint;
+          count : longint;
           msgstrtable : array[0..0] of tmsgstrtable;
        end;
 
