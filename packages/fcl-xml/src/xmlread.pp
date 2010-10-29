@@ -348,13 +348,15 @@ type
     function AllocNodeData(AIndex: Integer): PNodeData;
     function AllocAttributeData(AName: PHashItem): PNodeData;
     function AllocAttributeValueChunk(APrev: PNodeData): PNodeData;
-    procedure CleanupAttributeData;
+    procedure CleanupAttribute(aNode: PNodeData);
+    procedure CleanupAttributes;
     procedure SetNodeInfoWithValue(typ: TXMLNodeType; AName: PHashItem = nil);
   protected
     FNesting: Integer;
     FCurrNode: PNodeData;
     FAttrCount: Integer;
     FPrefixedAttrs: Integer;
+    FSpecifiedAttrs: Integer;
     FNodeStack: TNodeDataDynArray;
     FCursorStack: TDOMNodeDynArray;
     FValidators: TValidatorDynArray;
@@ -413,7 +415,7 @@ type
     function ResolveEntity(const ASystemID, APublicID, ABaseURI: WideString; out Source: TXMLCharSource): Boolean;
     procedure ProcessDefaultAttributes(ElDef: TElementDecl);
     procedure ProcessNamespaceAtts;
-    procedure AddBinding(attrData: PNodeData);
+    function AddBinding(attrData: PNodeData): Boolean;
 
     procedure PushVC(aElDef: TElementDecl);
     procedure PopVC;
@@ -2765,7 +2767,7 @@ begin
     FToken := xtEndElement;
     FCurrNode^.FNodeType := ntEndElement;
     if FAttrCleanupFlag then
-      CleanupAttributeData;
+      CleanupAttributes;
     FAttrCount := 0;
     Result := True;
     Exit;
@@ -2773,7 +2775,7 @@ begin
   if FNext = xtPushElement then
   begin
     if FAttrCleanupFlag then
-      CleanupAttributeData;
+      CleanupAttributes;
     FAttrCount := 0;
     FNext := xtText;
   end
@@ -2977,6 +2979,7 @@ begin
   IsEmpty := False;
   FAttrCount := 0;
   FPrefixedAttrs := 0;
+  FSpecifiedAttrs := 0;
   PushVC(ElDef);           // this increases FNesting
   FCursorStack[FNesting] := NewElem;
 
@@ -3118,6 +3121,7 @@ begin
   attrData^.FColonPos := FColonPos;
   StoreLocation(attrData^.FLoc);
   Dec(attrData^.FLoc.LinePos, FName.Length);
+  FSpecifiedAttrs := FAttrCount;
 
   if Assigned(ElDef) then
   begin
@@ -3166,7 +3170,14 @@ begin
     CheckValue;
   end;
   if Assigned(attrData^.FNsUri) then
-    AddBinding(attrData);
+  begin
+    if (not AddBinding(attrData)) and FCanonical then
+    begin
+      CleanupAttribute(attrData);
+      Dec(FAttrCount);
+      Dec(FSpecifiedAttrs);
+    end;
+  end;
 end;
 
 procedure TXMLReader.AddForwardRef(aList: TFPList; Buf: PWideChar; Length: Integer);
@@ -3217,6 +3228,8 @@ begin
             StandaloneError;
           attrData := AllocAttributeData(nil);
           attrData^ := AttDef.Data^;
+          if FCanonical then
+            attrData^.FIsDefault := False;
 
           if FNamespaces then
           begin
@@ -3225,7 +3238,8 @@ begin
               if attrData^.FColonPos > 0 then
                 attrData^.FPrefix := FStdPrefix_xmlns;
               attrData^.FNsUri := FStdUri_xmlns;
-              AddBinding(attrData);
+              if (not AddBinding(attrData)) and FCanonical then
+                Dec(FAttrCount);
             end
             else if attrData^.FColonPos > 0 then
             begin
@@ -3243,7 +3257,7 @@ begin
 end;
 
 
-procedure TXMLReader.AddBinding(attrData: PNodeData);
+function TXMLReader.AddBinding(attrData: PNodeData): Boolean;
 var
   nsUri, Pfx: PHashItem;
 begin
@@ -3266,7 +3280,9 @@ begin
   if (attrData^.FValueStr = '') and not (FXML11 or (Pfx^.Key = '')) then
     FatalError('Illegal undefining of namespace');  { position - ? }
 
-  FNSHelper.BindPrefix(attrData^.FValueStr, Pfx);
+  Result := (Pfx^.Data = nil) or (TBinding(Pfx^.Data).uri <> attrData^.FValueStr);
+  if Result then
+    FNSHelper.BindPrefix(attrData^.FValueStr, Pfx);
 end;
 
 procedure TXMLReader.ProcessNamespaceAtts;
@@ -3539,26 +3555,29 @@ begin
   APrev^.FNext := result;
 end;
 
-procedure TXMLReader.CleanupAttributeData;
+procedure TXMLReader.CleanupAttributes;
 var
   i: Integer;
+begin
+  {cleanup only specified attributes; default ones are owned by DTD}
+  for i := 1 to FSpecifiedAttrs do
+    CleanupAttribute(@FNodeStack[FNesting+i]);
+  FAttrCleanupFlag := False;
+end;
+
+procedure TXMLReader.CleanupAttribute(aNode: PNodeData);
+var
   chunk, tmp: PNodeData;
 begin
-  for i := 1 to FAttrCount do
+  chunk := aNode^.FNext;
+  while Assigned(chunk) do
   begin
-    chunk := FNodeStack[FNesting+i].FNext;
-    {don't unlink chunks of default attributes, they are owned by DTD}
-    if not FNodeStack[FNesting+i].FIsDefault then
-      while Assigned(chunk) do
-      begin
-        tmp := chunk^.FNext;
-        chunk^.FNext := FFreeAttrChunk;
-        FFreeAttrChunk := chunk;
-        chunk := tmp;
-      end;
-    FNodeStack[FNesting+i].FNext := nil;
+    tmp := chunk^.FNext;
+    chunk^.FNext := FFreeAttrChunk;
+    FFreeAttrChunk := chunk;
+    chunk := tmp;
   end;
-  FAttrCleanupFlag := False;
+  aNode^.FNext := nil;
 end;
 
 procedure TXMLReader.SetNodeInfoWithValue(typ: TXMLNodeType; AName: PHashItem = nil);
