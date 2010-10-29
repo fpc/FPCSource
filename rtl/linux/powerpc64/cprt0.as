@@ -401,7 +401,7 @@ FUNCTION_PROLOG main_stub
     LOAD_64BIT_VAL 8, ___fpc_ret
     std     1,0(8)
 
-    bl  .PASCALMAIN
+    bl  PASCALMAIN
     nop
 
     b   ._haltproc
@@ -413,10 +413,6 @@ FUNCTION_PROLOG _haltproc
     ld      0, 16(1)
     mtlr    0
     blr
-
-#    li      0,1          /* exit call */
-#    sc
-#    b  ._haltproc
 
     /* Define a symbol for the first piece of initialized data.  */
     .section ".data"

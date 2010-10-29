@@ -351,14 +351,21 @@ FUNCTION_PROLOG _start
     LOAD_64BIT_VAL 8, __stkptr
     std     1,0(8)
 
-    bl      .PASCALMAIN
+    bl      PASCALMAIN
     nop
 
     /* directly jump to exit procedure, not via the function pointer */
     b       ._haltproc
 
 FUNCTION_PROLOG _haltproc
+    /* exit group call */
+    LOAD_64BIT_VAL 3, operatingsystem_result
+    lwz     3, 0(3)
+    li      0, 234
+    sc
     /* exit call */
+    LOAD_64BIT_VAL 3, operatingsystem_result
+    lwz     3, 0(3)
     li      0, 1
     sc
     b       ._haltproc

@@ -347,7 +347,7 @@ FUNCTION_PROLOG FPC_SHARED_LIB_START
     LOAD_64BIT_VAL 8, __stkptr
     std     1,0(8)
 
-    bl      .PASCALMAIN
+    bl      PASCALMAIN
     nop
 
     /* return to the caller */
@@ -356,11 +356,19 @@ FUNCTION_PROLOG FPC_SHARED_LIB_START
     mtlr    0
     blr
 
+FUNCTION_PROLOG _haltproc
 FUNCTION_PROLOG FPC_SHARED_LIB_EXIT
-    /* exit call */
-    li      0, 1
+    bl FPC_LIB_EXIT
+    nop
+    /* exit_group call */
     LOAD_64BIT_VAL 3, operatingsystem_result
     lwz     3, 0(3)
+    li      0, 234
+    sc
+    /* exit call */
+    LOAD_64BIT_VAL 3, operatingsystem_result
+    lwz     3, 0(3)
+    li      0, 1
     sc
     b       .FPC_SHARED_LIB_EXIT
 
