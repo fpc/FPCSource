@@ -235,6 +235,7 @@ implementation
     procedure tx86typeconvnode.second_int_to_real;
 
       var
+         leftref,
          href : treference;
          l1,l2 : tasmlabel;
          op: tasmop;
@@ -301,18 +302,24 @@ implementation
     
             { We need to load from a reference }
             location_force_mem(current_asmdata.CurrAsmList,left.location);
-    
+            { don't change left.location.reference, because if it's a temp we
+              need the original location at the end so we can free it }
+            leftref:=left.location.reference;
+            tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,leftref);
+
             { For u32bit we need to load it as comp and need to
               make it 64bits }
             if (torddef(left.resultdef).ordtype=u32bit) then
               begin
                 tg.GetTemp(current_asmdata.CurrAsmList,8,8,tt_normal,href);
                 location_freetemp(current_asmdata.CurrAsmList,left.location);
-                cg.a_load_ref_ref(current_asmdata.CurrAsmList,left.location.size,OS_32,left.location.reference,href);
+                cg.a_load_ref_ref(current_asmdata.CurrAsmList,left.location.size,OS_32,leftref,href);
                 inc(href.offset,4);
                 cg.a_load_const_ref(current_asmdata.CurrAsmList,OS_32,0,href);
                 dec(href.offset,4);
-                left.location.reference:=href;
+                { could be a temp with an offset > 32 bit on x86_64 }
+                tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
+                leftref:=href;
               end;
     
             { Load from reference to fpu reg }
@@ -321,9 +328,7 @@ implementation
               scurrency,
               s64bit:
                 begin
-                  href:=left.location.reference;
-                  tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
-                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IQ,href));
+                  current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IQ,leftref));
                 end;
               u64bit:
                 begin
@@ -336,12 +341,12 @@ implementation
     
                    if not(signtested) then
                      begin
-                       inc(left.location.reference.offset,4);
-                       emit_const_ref(A_BT,S_L,31,left.location.reference);
-                       dec(left.location.reference.offset,4);
+                       inc(leftref.offset,4);
+                       emit_const_ref(A_BT,S_L,31,leftref);
+                       dec(leftref.offset,4);
                      end;
     
-                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IQ,left.location.reference));
+                   current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IQ,leftref));
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2);
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                    { I got this constant from a test program (FK) }
@@ -358,9 +363,7 @@ implementation
                 begin
                   if left.resultdef.size<4 then
                     internalerror(2007120901);
-                 href:=left.location.reference;
-                 tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
-                 current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IL,href));
+                 current_asmdata.CurrAsmList.concat(taicpu.op_ref(A_FILD,S_IL,leftref));
                 end;
             end;
             tcgx86(cg).inc_fpu_stack;
