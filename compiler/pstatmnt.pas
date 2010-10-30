@@ -1058,7 +1058,7 @@ implementation
                      else
                        begin
                          { goto is only allowed to labels within the current scope }
-                         if not(m_iso in current_settings.modeswitches) and
+                         if not(m_non_local_goto in current_settings.modeswitches) and
                            (srsym.owner<>current_procinfo.procdef.localst) then
                            CGMessage(parser_e_goto_outside_proc);
                          code:=cgotonode.create(tlabelsym(srsym));

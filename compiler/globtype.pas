@@ -272,7 +272,8 @@ interface
          m_except,              { allow exception-related keywords }
          m_objectivec1,         { support interfacing with Objective-C (1.0) }
          m_objectivec2,         { support interfacing with Objective-C (2.0) }
-         m_nested_procvars      { support nested procedural variables }
+         m_nested_procvars,     { support nested procedural variables }
+         m_non_local_goto       { support non local gotos (like iso pascal) }
        );
        tmodeswitches = set of tmodeswitch;
 
@@ -391,7 +392,8 @@ interface
          'EXCEPTIONS',
          'OBJECTIVEC1',
          'OBJECTIVEC2',
-         'NESTEDPROCVARS');
+         'NESTEDPROCVARS',
+         'NONLOCALGOTO');
 
 
      type

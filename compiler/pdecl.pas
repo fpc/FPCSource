@@ -284,7 +284,7 @@ implementation
                 else
                   labelsym:=tlabelsym.create(pattern);
                 symtablestack.top.insert(labelsym);
-                if m_iso in current_settings.modeswitches then
+                if m_non_local_goto in current_settings.modeswitches then
                   begin
                     if symtablestack.top.symtabletype=localsymtable then
                       begin

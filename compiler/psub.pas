@@ -379,7 +379,7 @@ implementation
                   internalerror(200305104);
               end;
           end;
-        if m_iso in current_settings.modeswitches then
+        if m_non_local_goto in current_settings.modeswitches then
           tsymtable(current_procinfo.procdef.localst).SymList.ForEachCall(@add_label_init,@newstatement);
       end;
 
