@@ -124,7 +124,7 @@ const
                         + [system_i386_freebsd]
                         + [system_i386_netbsd]
                         + [system_i386_wdosx];
-                        
+
   suppported_targets_x_smallr = systems_linux + systems_solaris
                              + [system_i386_haiku]
                              + [system_i386_beos];
