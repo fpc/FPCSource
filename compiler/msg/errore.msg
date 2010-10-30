@@ -2070,6 +2070,9 @@ cg_e_interprocedural_goto_only_to_outer_scope_allowed=06051_E_Interprocedural go
 % from a subroutine to the main program
 cg_e_labels_cannot_defined_outside_declaration_scope=06052_E_Label must be defined in the same scope as it is declared
 % In ISO mode, labels must be defined in the same scope as they are declared.
+cg_e_goto_across_procedures_with_exceptions_not_allowed=06053_E_Leaving procedures containing explicit or implicit exceptions frames using goto is not allowed
+% Non-local gotos might not be used to leave procedures using exceptions either implicitly or explicitly. Procedures
+% which use automated types like ansistrings or class constructurs are affected by this too.
 % \end{description}
 # EndOfTeX
 

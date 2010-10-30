@@ -1007,12 +1007,12 @@ implementation
 
     function statement : tnode;
       var
-         p       : tnode;
-         code    : tnode;
-         filepos : tfileposinfo;
-         srsym   : tsym;
+         p,
+         code       : tnode;
+         filepos    : tfileposinfo;
+         srsym      : tsym;
          srsymtable : TSymtable;
-         s       : TIDString;
+         s          : TIDString;
       begin
          filepos:=current_tokenpos;
          case token of
@@ -1057,10 +1057,13 @@ implementation
                        end
                      else
                        begin
-                         { goto is only allowed to labels within the current scope }
-                         if not(m_non_local_goto in current_settings.modeswitches) and
-                           (srsym.owner<>current_procinfo.procdef.localst) then
-                           CGMessage(parser_e_goto_outside_proc);
+                         { goto outside the current scope? }
+                         if srsym.owner<>current_procinfo.procdef.localst then
+                           begin
+                             { allowed? }
+                             if not(m_non_local_goto in current_settings.modeswitches) then
+                               Message(parser_e_goto_outside_proc);
+                           end;
                          code:=cgotonode.create(tlabelsym(srsym));
                          tgotonode(code).labelsym:=tlabelsym(srsym);
                          { set flag that this label is used }

@@ -570,6 +570,7 @@ const
   cg_f_unknown_type_in_unit=06050;
   cg_e_interprocedural_goto_only_to_outer_scope_allowed=06051;
   cg_e_labels_cannot_defined_outside_declaration_scope=06052;
+  cg_e_goto_across_procedures_with_exceptions_not_allowed=06053;
   asmr_d_start_reading=07000;
   asmr_d_finish_reading=07001;
   asmr_e_none_label_contain_at=07002;
@@ -869,9 +870,9 @@ const
   option_info=11024;
   option_help_pages=11025;
 
-  MsgTxtSize = 57648;
+  MsgTxtSize = 57751;
 
   MsgIdxMax : array[1..20] of longint=(
-    24,88,297,97,82,53,111,22,202,63,
+    24,88,297,97,82,54,111,22,202,63,
     49,20,1,1,1,1,1,1,1,1
   );

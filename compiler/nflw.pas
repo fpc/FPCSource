@@ -1685,6 +1685,8 @@ implementation
 
 
     function tgotonode.pass_1 : tnode;
+      var
+        p2 : tprocinfo;
       begin
         result:=nil;
         expectloc:=LOC_VOID;
@@ -1707,6 +1709,21 @@ implementation
                     { don't mess with the exception blocks, global gotos in/out side exception blocks are not allowed }
                     if exceptionblock>0 then
                       CGMessage(cg_e_goto_inout_of_exception_block);
+
+                    { goto across procedures using exception?
+                      this is not allowed because we cannot
+                      easily unwind the exception frame
+                      stack
+                    }
+                    p2:=current_procinfo;
+                    while true do
+                      begin
+                        if (p2.flags*[pi_needs_implicit_finally,pi_uses_exceptions,pi_has_implicit_finally])<>[] then
+                          Message(cg_e_goto_across_procedures_with_exceptions_not_allowed);
+                        if labelsym.owner=p2.procdef.localst then
+                          break;
+                        p2:=p2.parent
+                      end;
 
                     if assigned(labelsym.jumpbuf) then
                       begin
