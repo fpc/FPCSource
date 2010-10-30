@@ -34,7 +34,6 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
      case DLLreason of
        DLL_PROCESS_ATTACH :
          begin
-           WinInitCriticalSection(AttachingThread);
            MainThreadIdWin32 := Win32GetCurrentThreadId;
 
            If SetJmp(DLLBuf) = 0 then
@@ -53,7 +52,6 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
          begin
            inclocked(Thread_count);
 
-           WinEnterCriticalSection(AttachingThread);
            if Win32GetCurrentThreadId <> MainThreadIdWin32 then
            begin
              { Allocate Threadvars  }
@@ -67,7 +65,6 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
            if assigned(Dll_Thread_Attach_Hook) then
              Dll_Thread_Attach_Hook(DllParam);
            Dll_entry:=true; { return value is ignored }
-           WinLeaveCriticalSection(AttachingThread);
         end;
        DLL_THREAD_DETACH :
          begin
@@ -92,7 +89,6 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
            DoneThread;
            { Free TLS resources used by ThreadVars }
            SysFiniMultiThreading;
-           WinDoneCriticalSection(AttachingThread);
 		   MainThreadIDWin32:=0;
          end;
      end;
