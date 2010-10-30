@@ -201,7 +201,7 @@ interface
     function  search_system_type(const s: TIDString): ttypesym;
     function  search_class_member(pd : tobjectdef;const s : string):tsym;
     function  search_assignment_operator(from_def,to_def:Tdef):Tprocdef;
-    function  search_enumerator_operator(type_def:Tdef):Tprocdef;
+    function  search_enumerator_operator(from_def,to_def:Tdef):Tprocdef;
     {Looks for macro s (must be given in upper case) in the macrosymbolstack, }
     {and returns it if found. Returns nil otherwise.}
     function  search_macro(const s : string):tsym;
@@ -1916,7 +1916,7 @@ implementation
       end;
 
 
-    function search_enumerator_operator(type_def:Tdef): Tprocdef;
+    function search_enumerator_operator(from_def,to_def:Tdef): Tprocdef;
       var
         sym : Tprocsym;
         hashedid : THashedIDString;
@@ -1939,7 +1939,7 @@ implementation
                   internalerror(200910241);
                 { if the source type is an alias then this is only the second choice,
                   if you mess with this code, check tw4093 }
-                currpd:=sym.find_procdef_enumerator_operator(type_def,curreq);
+                currpd:=sym.find_procdef_enumerator_operator(from_def,to_def,curreq);
                 if curreq>besteq then
                   begin
                     besteq:=curreq;
