@@ -305,6 +305,7 @@ type
     FToken: TXMLToken;
     FNext: TXMLToken;
     FCurrEntity: TDOMEntityEx;
+    FIDMap: THashTable;
 
     FNSHelper: TNSSupport;
     FNsAttHash: TDblHashArray;
@@ -335,7 +336,7 @@ type
     function ParseQuantity: TCPQuant;
     procedure StoreLocation(out Loc: TLocation);
     function ValidateAttrSyntax(AttrDef: TAttributeDef; const aValue: WideString): Boolean;
-    procedure ValidateAttrValue(Attr: TDOMAttr; const aValue: WideString);
+    procedure ValidateAttrValue(AttrDef: TAttributeDef; attrData: PNodeData);
     procedure AddForwardRef(Buf: PWideChar; Length: Integer);
     procedure ClearForwardRefs;
     procedure ValidateIdRefs;
@@ -350,6 +351,7 @@ type
     procedure CleanupAttribute(aNode: PNodeData);
     procedure CleanupAttributes;
     procedure SetNodeInfoWithValue(typ: TXMLNodeType; AName: PHashItem = nil);
+    function AddId(aNodeData: PNodeData): Boolean;
   protected
     FNesting: Integer;
     FCurrNode: PNodeData;
@@ -1287,7 +1289,7 @@ begin
   FNSHelper.Free;
   if FOwnsDoctype then
     FDocType.Free;
-
+  FIDMap.Free;
   FForwardRefs.Free;
   FAttrChunks.Free;
   inherited Destroy;
@@ -1331,8 +1333,11 @@ begin
   if FState < rsRoot then
     FatalError('Root element is missing');
 
-  if FValidate and Assigned(FDocType) then
+  if FValidate then
     ValidateIdRefs;
+
+  doc.IDs := FIDMap;
+  FIDMap := nil;
 end;
 
 procedure TXMLReader.ProcessFragment(ASource: TXMLCharSource; AOwner: TDOMNode);
@@ -3044,7 +3049,9 @@ begin
   begin
     Attr := LoadAttribute(doc, @FNodeStack[FNesting+i]);
     NewElem.SetAttributeNode(Attr);
-    ValidateAttrValue(Attr, FNodeStack[FNesting+i].FValueStr);
+    // Attach element to ID map entry if necessary
+    if Assigned(FNodeStack[FNesting+i].FIDEntry) then
+      FNodeStack[FNesting+i].FIDEntry^.Data := NewElem;
   end;
 
   if not IsEmpty then
@@ -3107,7 +3114,7 @@ begin
     ValidationError('Value of attribute ''%s'' does not match its #FIXED default',[attrData^.FQName^.Key], -1);
   if not ValidateAttrSyntax(AttDef, attrData^.FValueStr) then
     ValidationError('Attribute ''%s'' type mismatch', [attrData^.FQName^.Key], -1);
-//  ValidateAttrValue(Attr, attrData^.FValueStr);
+  ValidateAttrValue(AttDef, attrData);
 end;
 
 begin
@@ -3201,7 +3208,7 @@ var
 begin
   for I := 0 to FForwardRefs.Count-1 do
     with PForwardRef(FForwardRefs.List^[I])^ do
-      if Doc.GetElementById(Value) = nil then
+      if (FIDMap = nil) or (FIDMap.Find(PWideChar(Value), Length(Value)) = nil) then
         DoErrorPos(esError, Format('The ID ''%s'' does not match any element', [Value]), Loc);
   ClearForwardRefs;
 end;
@@ -3366,24 +3373,27 @@ begin
   end;
 end;
 
-procedure TXMLReader.ValidateAttrValue(Attr: TDOMAttr; const aValue: WideString);
+procedure TXMLReader.ValidateAttrValue(AttrDef: TAttributeDef; attrData: PNodeData);
 var
   L, StartPos, EndPos: Integer;
   Entity: TDOMEntity;
 begin
-  L := Length(aValue);
-  case Attr.DataType of
-    dtId: if not Doc.AddID(Attr) then
-            ValidationError('The ID ''%s'' is not unique', [aValue], -1);
+  L := Length(attrData^.FValueStr);
+  case AttrDef.DataType of
+    dtId: begin
+      if not AddID(attrData) then
+        ValidationError('The ID ''%s'' is not unique', [attrData^.FValueStr], -1);
+    end;
 
     dtIdRef, dtIdRefs: begin
       StartPos := 1;
       while StartPos <= L do
       begin
         EndPos := StartPos;
-        while (EndPos <= L) and (aValue[EndPos] <> #32) do
+        while (EndPos <= L) and (attrData^.FValueStr[EndPos] <> #32) do
           Inc(EndPos);
-        AddForwardRef(@aValue[StartPos], EndPos-StartPos);
+        if (FIDMap = nil) or (FIDMap.Find(@attrData^.FValueStr[StartPos], EndPos-StartPos) = nil) then
+          AddForwardRef(@attrData^.FValueStr[StartPos], EndPos-StartPos);
         StartPos := EndPos + 1;
       end;
     end;
@@ -3393,14 +3403,14 @@ begin
       while StartPos <= L do
       begin
         EndPos := StartPos;
-        while (EndPos <= L) and (aValue[EndPos] <> #32) do
+        while (EndPos <= L) and (attrData^.FValueStr[EndPos] <> #32) do
           Inc(EndPos);
         if Assigned(FGEMap) then
-          Entity := TDOMEntity(FGEMap.Get(@aValue[StartPos], EndPos-StartPos))
+          Entity := TDOMEntity(FGEMap.Get(@attrData^.FValueStr[StartPos], EndPos-StartPos))
         else
           Entity := nil;
         if (Entity = nil) or (Entity.NotationName = '') then
-          ValidationError('Attribute ''%s'' type mismatch', [Attr.Name], -1);
+          ValidationError('Attribute ''%s'' type mismatch', [attrData^.FQName^.Key], -1);
         StartPos := EndPos + 1;
       end;
     end;
@@ -3505,6 +3515,18 @@ begin
     ValidationError('Duplicate notation declaration: ''%s''', [aName]);
 end;
 
+function TXMLReader.AddId(aNodeData: PNodeData): Boolean;
+var
+  e: PHashItem;
+begin
+  if FIDMap = nil then
+    FIDMap := THashTable.Create(256, False);
+  e := FIDMap.FindOrAdd(PWideChar(aNodeData^.FValueStr), Length(aNodeData^.FValueStr), Result);
+  Result := not Result;
+  if Result then
+    aNodeData^.FIDEntry := e;
+end;
+
 function TXMLReader.AllocAttributeData(AName: PHashItem): PNodeData;
 begin
   Result := AllocNodeData(FNesting + FAttrCount + 1);
@@ -3512,6 +3534,7 @@ begin
   Result^.FQName := AName;
   Result^.FPrefix := nil;
   Result^.FNsUri := nil;
+  Result^.FIDEntry := nil;
   Result^.FIsDefault := False;
   Inc(FAttrCount);
 end;
@@ -3592,6 +3615,7 @@ begin
   FCurrNode := AllocNodeData(FNesting);
   FCurrNode^.FPrefix := nil;
   FCurrNode^.FNsUri := nil;
+  FCurrNode^.FIDEntry := nil;
 
   if FNesting >= Length(FCursorStack) then
   begin

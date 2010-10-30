@@ -151,6 +151,7 @@ type
     FTypeInfo: TObject;
     FLoc: TLocation;
     FLoc2: TLocation;              // for attributes: start of value
+    FIDEntry: PHashItem;           // ID attributes: entry in ID map
     FNodeType: TXMLNodeType;
 
     FValueStr: WideString;

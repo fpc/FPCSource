@@ -501,8 +501,9 @@ type
     // Extensions to DOM interface:
     constructor Create;
     destructor Destroy; override;
-    function AddID(Attr: TDOMAttr): Boolean;
+    function AddID(Attr: TDOMAttr): Boolean; deprecated;
     property Names: THashTable read FNames;
+    property IDs: THashTable read FIDList write FIDList;
   end;
 
   TXMLDocument = class(TDOMDocument)
