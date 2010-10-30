@@ -294,8 +294,7 @@ type
     FDocType: TDOMDocumentTypeEx;  // a shortcut
     FPEMap: THashTable;
     FGEMap: THashTable;
-    FIDRefs: TFPList;
-    FNotationRefs: TFPList;
+    FForwardRefs: TFPList;
     FCurrContentType: TElementContentType;
     FSaViolation: Boolean;
     FDTDStartPos: PWideChar;
@@ -337,8 +336,8 @@ type
     procedure StoreLocation(out Loc: TLocation);
     function ValidateAttrSyntax(AttrDef: TAttributeDef; const aValue: WideString): Boolean;
     procedure ValidateAttrValue(Attr: TDOMAttr; const aValue: WideString);
-    procedure AddForwardRef(aList: TFPList; Buf: PWideChar; Length: Integer);
-    procedure ClearRefs(aList: TFPList);
+    procedure AddForwardRef(Buf: PWideChar; Length: Integer);
+    procedure ClearForwardRefs;
     procedure ValidateIdRefs;
     procedure StandaloneError(LineOffs: Integer = 0);
     procedure CallErrorHandler(E: EXMLReadError);
@@ -1240,8 +1239,7 @@ begin
   inherited Create;
   BufAllocate(FName, 128);
   BufAllocate(FValue, 512);
-  FIDRefs := TFPList.Create;
-  FNotationRefs := TFPList.Create;
+  FForwardRefs := TFPList.Create;
   FAttrChunks := TFPList.Create;
 
   // Set char rules to XML 1.0
@@ -1284,15 +1282,13 @@ begin
   FSource.Free;
   FPEMap.Free;
   FGEMap.Free;
-  ClearRefs(FNotationRefs);
-  ClearRefs(FIDRefs);
+  ClearForwardRefs;
   FNsAttHash.Free;
   FNSHelper.Free;
   if FOwnsDoctype then
     FDocType.Free;
 
-  FNotationRefs.Free;
-  FIDRefs.Free;
+  FForwardRefs.Free;
   FAttrChunks.Free;
   inherited Destroy;
 end;
@@ -2404,7 +2400,7 @@ begin
                 ValidationError('Duplicate token in NOTATION attribute declaration',[], FName.Length);
 
               if not DiscardIt then
-                AddForwardRef(FNotationRefs, FName.Buffer, FName.Length);
+                AddForwardRef(FName.Buffer, FName.Length);
               SkipWhitespace;
             until not CheckForChar('|');
             ExpectChar(')');
@@ -2519,7 +2515,7 @@ begin
           ExpectWhitespace;
           StoreLocation(FTokenStart);
           Entity.FNotationName := ExpectName;
-          AddForwardRef(FNotationRefs, FName.Buffer, FName.Length);
+          AddForwardRef(FName.Buffer, FName.Length);
           // SAX: DTDHandler.UnparsedEntityDecl(...);
         end;
       end;
@@ -3180,34 +3176,34 @@ begin
   end;
 end;
 
-procedure TXMLReader.AddForwardRef(aList: TFPList; Buf: PWideChar; Length: Integer);
+procedure TXMLReader.AddForwardRef(Buf: PWideChar; Length: Integer);
 var
   w: PForwardRef;
 begin
   New(w);
   SetString(w^.Value, Buf, Length);
   w^.Loc := FTokenStart;
-  aList.Add(w);
+  FForwardRefs.Add(w);
 end;
 
-procedure TXMLReader.ClearRefs(aList: TFPList);
+procedure TXMLReader.ClearForwardRefs;
 var
   I: Integer;
 begin
-  for I := 0 to aList.Count-1 do
-    Dispose(PForwardRef(aList.List^[I]));
-  aList.Clear;
+  for I := 0 to FForwardRefs.Count-1 do
+    Dispose(PForwardRef(FForwardRefs.List^[I]));
+  FForwardRefs.Clear;
 end;
 
 procedure TXMLReader.ValidateIdRefs;
 var
   I: Integer;
 begin
-  for I := 0 to FIDRefs.Count-1 do
-    with PForwardRef(FIDRefs.List^[I])^ do
+  for I := 0 to FForwardRefs.Count-1 do
+    with PForwardRef(FForwardRefs.List^[I])^ do
       if Doc.GetElementById(Value) = nil then
         DoErrorPos(esError, Format('The ID ''%s'' does not match any element', [Value]), Loc);
-  ClearRefs(FIDRefs);
+  ClearForwardRefs;
 end;
 
 procedure TXMLReader.ProcessDefaultAttributes(ElDef: TElementDecl);
@@ -3387,7 +3383,7 @@ begin
         EndPos := StartPos;
         while (EndPos <= L) and (aValue[EndPos] <> #32) do
           Inc(EndPos);
-        AddForwardRef(FIDRefs, @aValue[StartPos], EndPos-StartPos);
+        AddForwardRef(@aValue[StartPos], EndPos-StartPos);
         StartPos := EndPos + 1;
       end;
     end;
@@ -3427,11 +3423,11 @@ var
   I: Integer;
 begin
   if FValidate then
-    for I := 0 to FNotationRefs.Count-1 do
-      with PForwardRef(FNotationRefs[I])^ do
+    for I := 0 to FForwardRefs.Count-1 do
+      with PForwardRef(FForwardRefs[I])^ do
         if FDocType.Notations.GetNamedItem(Value) = nil then
           DoErrorPos(esError, Format('Notation ''%s'' is not declared', [Value]), Loc);
-  ClearRefs(FNotationRefs);
+  ClearForwardRefs;
 end;
 
 procedure TXMLReader.DoText(ch: PWideChar; Count: Integer; Whitespace: Boolean);
