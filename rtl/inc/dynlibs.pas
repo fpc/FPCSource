@@ -75,6 +75,9 @@ type
     weak: Boolean;   { weak }
   end;
 
+  PLibSymbolPtrArray = ^TLibSymbolPtrArray;
+  TLibSymbolPtrArray = array of PLibSymbol;
+
   TLibHandler = record
     InterfaceName: String;                { abstract name of the library }
     Defaults     : array of String;       { list of default library filenames }
@@ -98,13 +101,13 @@ function LibraryHandler(const InterfaceName: String; const DefaultLibraries: arr
 
 { initialization/finalization }
 function TryInitializeLibrary(var Handler: TLibHandler; const LibraryNames: array of String;
-  const User: Pointer = nil; const NoSymbolErrors: Boolean = False): Integer;
+  const User: Pointer = nil; const NoSymbolErrors: Boolean = True): Integer;
 function TryInitializeLibrary(var Handler: TLibHandler; const LibraryName: String = '';
-  const User: Pointer = nil; const NoSymbolErrors: Boolean = False): Integer;
+  const User: Pointer = nil; const NoSymbolErrors: Boolean = True): Integer;
 function InitializeLibrary(var Handler: TLibHandler; const LibraryNames: array of String;
-  const User: Pointer = nil; const NoSymbolErrors: Boolean = False): Integer;
+  const User: Pointer = nil; const NoSymbolErrors: Boolean = True): Integer;
 function InitializeLibrary(var Handler: TLibHandler; const LibraryName: String = '';
-  const User: Pointer = nil; const NoSymbolErrors: Boolean = False): Integer;
+  const User: Pointer = nil; const NoSymbolErrors: Boolean = True): Integer;
 function ReleaseLibrary(var Handler: TLibHandler): Integer;
 
 { errors }
@@ -114,7 +117,7 @@ procedure RaiseLibraryException(var Handler: TLibHandler);
 
 { symbol load/clear }
 function LoadLibrarySymbols(const Lib: TLibHandle; const Symbols: PLibSymbol; const Count: Integer;
-  const ErrorSym: PPLibSymbol = nil): Boolean;
+  const ErrorSymbols: PLibSymbolPtrArray = nil): Boolean;
 procedure ClearLibrarySymbols(const Symbols: PLibSymbol; const Count: Integer);
 
 
@@ -182,8 +185,9 @@ end;
 function TryInitializeLibraryInternal(var Handler: TLibHandler; const LibraryName: String;
   const User: Pointer; const NoSymbolErrors: Boolean): Integer;
 var
-  ErrSym: PLibSymbol;
+  ErrSyms: TLibSymbolPtrArray;
   NewIdent: TLibIdent;
+  I: Integer;
 begin
   if Handler.Filename <> '' then
   begin
@@ -213,9 +217,10 @@ begin
 
     Handler.Filename := LibraryName;
 
-    if not LoadLibrarySymbols(Handler.Handle, Handler.Symbols, Handler.SymCount, @ErrSym) and not NoSymbolErrors then
+    if not LoadLibrarySymbols(Handler.Handle, Handler.Symbols, Handler.SymCount, @ErrSyms) and not NoSymbolErrors then
     begin
-      AppendLibraryError(Handler, Format(SLibraryUnknownSym, [ErrSym^.name, Handler.InterfaceName, LibraryName]));
+      for I := 0 to Length(ErrSyms) - 1 do
+        AppendLibraryError(Handler, Format(SLibraryUnknownSym, [ErrSyms[I]^.name, Handler.InterfaceName, LibraryName]));
       UnloadLibrary(Handler.Handle);
       Handler.Handle := NilHandle;
       Handler.Filename := '';
@@ -344,9 +349,10 @@ begin
 end;
 
 function LoadLibrarySymbols(const Lib: TLibHandle; const Symbols: PLibSymbol; const Count: Integer;
-  const ErrorSym: PPLibSymbol): Boolean;
+  const ErrorSymbols: PLibSymbolPtrArray): Boolean;
 var
   P,L: PLibSymbol;
+  Len: Integer;
 begin
   P := Symbols;
   L := @Symbols[Count];
@@ -355,10 +361,13 @@ begin
     P^.pvar^ := GetProcedureAddress(Lib, P^.name);
     if not Assigned(P^.pvar^) and not P^.weak then
     begin
-      if Assigned(ErrorSym) then
-        ErrorSym^ := P;
+      if Assigned(ErrorSymbols) then
+      begin
+        Len := Length(ErrorSymbols^);
+        SetLength(ErrorSymbols^, Len+1);
+        ErrorSymbols^[Len] := P;
+      end;
       Result := False;
-      Exit;
     end;
     Inc(P);
   end;
