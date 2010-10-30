@@ -89,6 +89,7 @@ type
     function GetPageCount: Integer;
     procedure SetOnTest(const AValue: TNotifyEvent);
   protected
+    FCSSFile: String;
     FAllocator: TFileAllocator;
     CurDirectory: String;       // relative to curdir of process
     BaseDirectory: String;      // relative path to package base directory
@@ -722,6 +723,8 @@ var
   i: Integer;
   PageDoc: TXMLDocument;
   Filename: String;
+  TempStream: TMemoryStream;
+
 begin
   if Engine.Output <> '' then
     Engine.Output := IncludeTrailingBackSlash(Engine.Output);
@@ -742,6 +745,20 @@ begin
         PageDoc.Free;
       end;
     end;
+  
+  if FCSSFile <> '' then
+  begin
+    if not FileExists(FCSSFile) Then
+      begin
+        Writeln(stderr,'Can''t find CSS file "',FCSSFILE,'"');
+        halt(1);
+      end;
+    TempStream := TMemoryStream.Create;
+    TempStream.LoadFromFile(FCSSFile);
+    TempStream.Position := 0;
+    TempStream.SaveToFile(Engine.output+ExtractFileName(FCSSFile));
+    TempStream.Free;
+  end;
 end;
 
 procedure THTMLWriter.WriteXHTMLPages;
@@ -3363,6 +3380,8 @@ begin
     IndexColCount := StrToIntDef(Arg,IndexColCount)
   else if Cmd = '--image-url' then
     FBaseImageURL  := Arg
+  else if Cmd = '--css-file' then
+    FCSSFile := arg
   else if Cmd = '--footer-date' then
     begin
     FIDF:=True;

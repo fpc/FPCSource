@@ -13,7 +13,6 @@ type
     FTOCName,
     FIndexName,
     FDefaultPage: String;
-    FCSSFile: String;
     FMakeSearchable,
     FNoBinToc,
     FNoBinIndex,
@@ -503,8 +502,6 @@ begin
     FDefaultPage := arg
   else if Cmd = '--other-files' then
     FOtherFiles := arg
-  else if Cmd = '--css-file' then
-    FCSSFile := arg
   else if Cmd = '--auto-index' then
     FAutoIndex := True
   else if Cmd = '--auto-toc' then
