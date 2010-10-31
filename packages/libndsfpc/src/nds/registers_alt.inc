@@ -305,10 +305,10 @@ const
   
   // Card	bus
   
-  REG_CARD_CR1		: pcuint32 = pointer($040001A0);
-  REG_CARD_CR1H		: pcuint8 = pointer($040001A1);
-  REG_CARD_CR2		: pcuint32 = pointer($040001A4);
-  REG_CARD_COMMAND	: pcuint8 = pointer($040001A8);
+  CARD_CR1     = REG_AUXSPICNT;
+  CARD_CR1H    = REG_AUXSPICNTH;
+  CARD_CR2     = REG_ROMCTRL;
+  CARD_EEPDATA = REG_AUXSPIDATA;
   
   REG_CARD_DATA		: pcuint32 = pointer($04100000);
   REG_CARD_DATA_RD	: pcuint32 = pointer($04100010);

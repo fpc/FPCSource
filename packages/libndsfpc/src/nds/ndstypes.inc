@@ -139,7 +139,7 @@ typedef volatile s64          vs64;
 
 
   //IntFn = function: pointer;
-  VoidFunctionPointer = function: pointer; cdecl;
+  VoidFn = function: pointer; cdecl;
   //fp = function: pointer;
 
   IntFn = procedure;

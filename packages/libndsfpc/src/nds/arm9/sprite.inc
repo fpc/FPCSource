@@ -86,7 +86,7 @@ function ATTR2_ALPHA(n: cint): cint; inline;
 
 type 
   ObjBlendMode = (
-    BJMODE_NORMAL    = 0, 
+    OBJMODE_NORMAL   = 0, 
     OBJMODE_BLENDED  = 1,
     OBJMODE_WINDOWED = 2,
     OBJMODE_BITMAP   = 3
@@ -193,9 +193,9 @@ type
     filler1: array [0..2] of cuint16;
     hdx: cint16;
     filler2: array [0..2] of cuint16;
-    hdy: cint16;
-    filler3: array [0..2] of cuint16;
     vdx: cint16;
+    filler3: array [0..2] of cuint16;
+    hdy: cint16;
     filler4: array [0..2] of cuint16;
     vdy: cint16;
   end;
@@ -243,17 +243,17 @@ function SPRITE_SIZE_PIXELS(size: cint): cuint32; inline;
 
 
 type
-  SpriteMapping = integer;
+  TSpriteMapping = integer;
 const
-  SpriteMapping_1D_32     : SpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_32)  or (0 shl 28) or 0;
-  SpriteMapping_1D_64     : SpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_64)  or (1 shl 28) or 1;
-  SpriteMapping_1D_128    : SpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_128) or (2 shl 28) or 2;
-  SpriteMapping_1D_256    : SpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_256) or (3 shl 28) or 3;
-  SpriteMapping_2D        : SpriteMapping = integer(DISPLAY_SPR_2D) or (4 shl 28);
-  SpriteMapping_Bmp_1D_128: SpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_128) or integer(DISPLAY_SPR_1D_BMP) or integer(DISPLAY_SPR_1D_BMP_SIZE_128) or (5 shl 28) or 2;
-  SpriteMapping_Bmp_1D_256: SpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_256) or integer(DISPLAY_SPR_1D_BMP) or integer(DISPLAY_SPR_1D_BMP_SIZE_256) or (6 shl 28) or 3;
-  SpriteMapping_Bmp_2D_128: SpriteMapping = integer(DISPLAY_SPR_2D) or integer(DISPLAY_SPR_2D_BMP_128)  or (7 shl 28) or 2;
-  SpriteMapping_Bmp_2D_256: SpriteMapping = integer(DISPLAY_SPR_2D) or integer(DISPLAY_SPR_2D_BMP_256)  or (8 shl 28) or 3;
+  SpriteMapping_1D_32     : TSpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_32)  or (0 shl 28) or 0;
+  SpriteMapping_1D_64     : TSpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_64)  or (1 shl 28) or 1;
+  SpriteMapping_1D_128    : TSpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_128) or (2 shl 28) or 2;
+  SpriteMapping_1D_256    : TSpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_256) or (3 shl 28) or 3;
+  SpriteMapping_2D        : TSpriteMapping = integer(DISPLAY_SPR_2D) or (4 shl 28);
+  SpriteMapping_Bmp_1D_128: TSpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_128) or integer(DISPLAY_SPR_1D_BMP) or integer(DISPLAY_SPR_1D_BMP_SIZE_128) or (5 shl 28) or 2;
+  SpriteMapping_Bmp_1D_256: TSpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_256) or integer(DISPLAY_SPR_1D_BMP) or integer(DISPLAY_SPR_1D_BMP_SIZE_256) or (6 shl 28) or 3;
+  SpriteMapping_Bmp_2D_128: TSpriteMapping = integer(DISPLAY_SPR_2D) or integer(DISPLAY_SPR_2D_BMP_128)  or (7 shl 28) or 2;
+  SpriteMapping_Bmp_2D_256: TSpriteMapping = integer(DISPLAY_SPR_2D) or integer(DISPLAY_SPR_2D_BMP_256)  or (8 shl 28) or 3;
 
 type
   SpriteColorFormat = integer;
@@ -275,7 +275,8 @@ type
     gfxOffsetStep: cint; 
     firstFree: cint16;
     allocBuffer: PAllocHeader; 
-    allocBufferSize: cint16; 
+    allocBufferSize: cint16;
+    spriteMapping: TSpriteMapping;     
     case integer of
       0: (
             oamMemory: PSpriteEntry;
@@ -291,7 +292,7 @@ var
   oamMain: OamState; cvar; external;
   oamSub: OamState; cvar; external;  
 
-procedure oamInit(var oam: OamState; mapping: SpriteMapping; extPalette: cbool); cdecl; external;
+procedure oamInit(var oam: OamState; mapping: TSpriteMapping; extPalette: cbool); cdecl; external;
 procedure oamDisable(var oam: OamState); cdecl; external;
 procedure oamEnable(var oam: OamState); cdecl; external;
 function oamGetGfxPtr(var oam: OamState; gfxOffsetIndex: cint): pcuint16; cdecl; external;
@@ -309,13 +310,14 @@ procedure oamSet( var oam: OamState;
                   affineIndex: cint; 
                   sizeDouble, hide, hflip, vflip, mosaic: cbool); cdecl; external;
 procedure oamClear(var oam: OamState; start, count: cint); cdecl; external;
+procedure oamClearSprite(var oam: OamState; index: cint); inline;
 procedure oamUpdate(var oam: OamState); cdecl; external;
 procedure oamRotateScale(var oam: OamState; rotId, angle, sx, sy: cint); cdecl; external;
 procedure oamAffineTransformation(var oam: OamState; rotId, hdx, hdy, vdx, vdy: cint); inline;
 
 function oamCountFragments(var oam: OamState): cint; cdecl; external;
 procedure oamAllocReset(var oam: OamState); cdecl; external;
-function oamGfxPtrToOffset(const offset: pointer): cuint; cdecl; external;
+function oamGfxPtrToOffset(var oam: OamState; const offset: pointer): cuint; cdecl; external;
 {$endif NDS_INTERFACE}
  
 {$ifdef NDS_IMPLEMENTATION}
@@ -366,25 +368,31 @@ end;
 
 procedure oamSetMosaic(dx, dy: cuint); inline;
 begin
-  sassert((dx < 16) and (dy < 16), 'Mosaic range is 0 to 15');
+  sassert((dx < 16) and (dy < 16), 'Mosaic range must be 0 to 15');
   mosaicShadow := ( mosaicShadow and $00ff) or (dx shl 8) or (dy shl 12);
   REG_MOSAIC^ := mosaicShadow;
 end;
 
 procedure oamSetMosaicSub(dx, dy: cuint); inline;
 begin
-  sassert((dx < 16) and (dy < 16), 'Mosaic range is 0 to 15');
+  sassert((dx < 16) and (dy < 16), 'Mosaic range must be 0 to 15');
   mosaicShadowSub := (mosaicShadowSub and $00ff) or (dx shl 8) or (dy shl 12);
   REG_MOSAIC_SUB^ := mosaicShadowSub;
+end;
+
+procedure oamClearSprite(var oam: OamState; index: cint); inline;
+begin
+  sassert( (index >= 0) and (index < SPRITE_COUNT), 'oamClearSprite() index is out of bounds, must be 0-127');
+  oam.oamMemory[index].attribute[0] := ATTR0_DISABLED;
 end;
 
 procedure oamAffineTransformation(var oam: OamState; rotId, hdx, hdy, vdx, vdy: cint); inline;
 begin
   sassert((rotId >= 0) and (rotId < 32), 'oamAffineTransformation() rotId is out of bounds, must be 0-31');
-  oam.oamRotationMemory[rotId].hdx := hdx shr 12;
-  oam.oamRotationMemory[rotId].hdy := hdy shr 12;
-  oam.oamRotationMemory[rotId].vdx := vdx shr 12;
-  oam.oamRotationMemory[rotId].vdy := vdy shr 12;
+  oam.oamRotationMemory[rotId].hdx := hdx;
+  oam.oamRotationMemory[rotId].vdx := vdx;
+  oam.oamRotationMemory[rotId].hdy := hdy;
+  oam.oamRotationMemory[rotId].vdy := vdy;
 end;
 
 

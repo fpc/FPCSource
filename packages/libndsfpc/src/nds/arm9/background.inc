@@ -48,10 +48,10 @@ type
   Pbg_scroll = ^bg_scroll;
 
   bg_transform = record
-    xdx: cint16;
-    xdy: cint16;
-    ydx: cint16;
-    ydy: cint16;
+    hdx: cint16;
+    vdx: cint16;
+    hdy: cint16;
+    vdy: cint16;
     dx: cint32;
     dy: cint32;
   end;
@@ -184,7 +184,7 @@ const
   REG_BG1CNT_SUB		: pcuint16 = pointer($400100A);
   REG_BG2CNT_SUB		: pcuint16 = pointer($400100C);
   REG_BG3CNT_SUB		: pcuint16 = pointer($400100E);
-  
+
   REG_BGOFFSETS_SUB	: pcuint16 = pointer($4001010);
   REG_BG0HOFS_SUB		: pcuint16 = pointer($4001010);
   REG_BG0VOFS_SUB		: pcuint16 = pointer($4001012);
@@ -304,6 +304,7 @@ procedure bgShow(id: cint); inline;
 procedure bgHide(id: cint); inline;
 procedure bgSetCenterf(id: cint; x, y: cint32); inline;
 procedure bgSetCenter(id, x, y: cint); inline;
+procedure bgSetAffineMatrixScroll(id, hdx, vdx, hdy, vdy, scrollx, scrolly: cint); inline;
 
 {$endif NDS_INTERFACE}
 
@@ -450,6 +451,7 @@ end;
 
 function bgSetControlBits(id: cint; bits: cuint16): pcuint16; inline;
 begin
+	sassert( (id >= 0) and (id <= 7), 'bgSetControlBits(), id must be the number returned from bgInit or bgInitSub');
   bgControl[id]^ := bgControl[id]^ or bits;
   result := bgControl[id];
 end;  
@@ -541,7 +543,7 @@ end;
 
 function bgGetTileBase(id: cint): cint; inline;
 begin
-  result := (bgControl[id]^ shr TILE_BASE_SHIFT) and 31;
+  result := (bgControl[id]^ shr TILE_BASE_SHIFT) and 15;
 end;
 
 function bgGetMapPtr(id: cint): pcuint16; inline;
@@ -576,7 +578,7 @@ end;
 
 procedure bgScroll(id, dx, dy: cint); inline;
 begin
-  bgSetScrollf(id, dx shl 8, dy shl 8);
+  bgScrollf(id, dx shl 8, dy shl 8);
 end;
 
 procedure bgShow(id: cint); inline;
@@ -607,5 +609,22 @@ procedure bgSetCenter(id, x, y: cint); inline;
 begin
   bgSetCenterf(id, x shl 8, y shl 8);
 end;
+
+procedure bgSetAffineMatrixScroll(id, hdx, vdx, hdy, vdy, scrollx, scrolly: cint); inline;
+begin
+  sassert(not bgIsText(id), 'Text Backgrounds have no affine matrix and scroll registers.');
+
+  bgTransform[id]^.hdx := hdx;
+  bgTransform[id]^.vdx := vdx;
+  bgTransform[id]^.hdy := hdy;
+  bgTransform[id]^.vdy := vdy;
+  
+  bgTransform[id]^.dx := scrollx;
+  bgTransform[id]^.dy := scrolly;
+  
+  bgState[id].dirty := false;
+end;
+
+
 
 {$endif NDS_IMPLEMENTATION}

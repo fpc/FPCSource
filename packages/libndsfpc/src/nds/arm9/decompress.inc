@@ -40,9 +40,9 @@
 
 {$ifdef NDS_INTERFACE}
 
-type
-  getByteCallback = function(source: pcuint8): pcuint8;
-  getHeaderCallback = function(source: pcuint8; dest: pcuint16; arg: cuint32): pcint;
+//type
+//  getByteCallback = function(source: pcuint8): pcuint8;
+//  getHeaderCallback = function(source: pcuint8; dest: pcuint16; arg: cuint32): pcint;
 
 type
   DecompressType = integer;

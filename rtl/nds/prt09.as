@@ -19,6 +19,18 @@ _start:
 	mov	r0, #0x04000000			@ IME = 0;
 	str	r0, [r0, #0x208]
 	
+	@ set sensible stacks to allow bios call
+
+	mov	r0, #0x13		@ Switch to SVC Mode
+	msr	cpsr, r0
+	mov	r1,#0x03000000
+	sub	r1,r1,#0x1000
+	mov	sp,r1
+	mov	r0, #0x1F		@ Switch to System Mode
+	msr	cpsr, r0
+	sub	r1,r1,#0x100
+	mov	sp,r1
+	
 	ldr	r3,=__libnds_mpu_setup
 	blx	r3
 

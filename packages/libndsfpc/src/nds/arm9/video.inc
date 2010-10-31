@@ -201,6 +201,10 @@ const
   VRAM_F_MAIN_SPRITE_0x06410000 : VRAM_F_TYPE = 2 or (2 shl 3);
   VRAM_F_MAIN_SPRITE_0x06414000 : VRAM_F_TYPE = 2 or (3 shl 3); 
   VRAM_F_TEX_PALETTE            : VRAM_F_TYPE = 3;
+  VRAM_F_TEX_PALETTE_SLOT0      : VRAM_F_TYPE = 3;
+  VRAM_F_TEX_PALETTE_SLOT1      : VRAM_F_TYPE = 3 or (1 shl 3);
+  VRAM_F_TEX_PALETTE_SLOT4      : VRAM_F_TYPE = 3 or (2 shl 3);
+  VRAM_F_TEX_PALETTE_SLOT5      : VRAM_F_TYPE = 3 or (3 shl 3);
   VRAM_F_BG_EXT_PALETTE         : VRAM_F_TYPE = 4;
   VRAM_F_BG_EXT_PALETTE_SLOT01  : VRAM_F_TYPE = 4 or (0 shl 3);
   VRAM_F_BG_EXT_PALETTE_SLOT23  : VRAM_F_TYPE = 4 or (1 shl 3);
@@ -221,6 +225,10 @@ const
   VRAM_G_MAIN_SPRITE_0x06410000 : VRAM_G_TYPE = 2 or (2 shl 3);
   VRAM_G_MAIN_SPRITE_0x06414000 : VRAM_G_TYPE = 2 or (3 shl 3);    
   VRAM_G_TEX_PALETTE            : VRAM_G_TYPE = 3;
+  VRAM_G_TEX_PALETTE_SLOT0      : VRAM_G_TYPE = 3;
+  VRAM_G_TEX_PALETTE_SLOT1      : VRAM_G_TYPE = 3 or (1 shl 3);
+  VRAM_G_TEX_PALETTE_SLOT4      : VRAM_G_TYPE = 3 or (2 shl 3);
+  VRAM_G_TEX_PALETTE_SLOT5      : VRAM_G_TYPE = 3 or (3 shl 3);
   VRAM_G_BG_EXT_PALETTE         : VRAM_G_TYPE = 4;
   VRAM_G_BG_EXT_PALETTE_SLOT01  : VRAM_G_TYPE = 4 or (0 shl 3);
   VRAM_G_BG_EXT_PALETTE_SLOT23  : VRAM_G_TYPE = 4 or (1 shl 3);  
@@ -254,17 +262,18 @@ var
   VRAM_H_EXT_PALETTE : P_ext_palette absolute VRAM_H;
 
 function vramSetMainBanks(a: VRAM_A_TYPE; b: VRAM_B_TYPE; c: VRAM_C_TYPE; d: VRAM_D_TYPE): cuint32; cdecl; external;
+function vramDefault(): cuint32; cdecl; external;
 procedure vramRestoreMainBanks(vramTemp: cuint32); cdecl; external;
 
-procedure vramSetBankA(a: VRAM_A_TYPE); cdecl; external;
-procedure vramSetBankB(b: VRAM_B_TYPE); cdecl; external;
-procedure vramSetBankC(c: VRAM_C_TYPE); cdecl; external;
-procedure vramSetBankD(d: VRAM_D_TYPE); cdecl; external;
-procedure vramSetBankE(e: VRAM_E_TYPE); cdecl; external;
-procedure vramSetBankF(f: VRAM_F_TYPE); cdecl; external;
-procedure vramSetBankG(g: VRAM_G_TYPE); cdecl; external;
-procedure vramSetBankH(h: VRAM_H_TYPE); cdecl; external;
-procedure vramSetBankI(i: VRAM_I_TYPE); cdecl; external;
+procedure vramSetBankA(a: VRAM_A_TYPE); inline;
+procedure vramSetBankB(b: VRAM_B_TYPE); inline;
+procedure vramSetBankC(c: VRAM_C_TYPE); inline;
+procedure vramSetBankD(d: VRAM_D_TYPE); inline;
+procedure vramSetBankE(e: VRAM_E_TYPE); inline;
+procedure vramSetBankF(f: VRAM_F_TYPE); inline;
+procedure vramSetBankG(g: VRAM_G_TYPE); inline;
+procedure vramSetBankH(h: VRAM_H_TYPE); inline;
+procedure vramSetBankI(i: VRAM_I_TYPE); inline;
 
 const
   REG_DISPCNT       : pcuint32 = pointer($04000000);
@@ -344,6 +353,8 @@ procedure videoBgEnableSub(number: cint); inline;
 procedure videoBgDisable(number: cint); inline;	 	 
 procedure videoBgDisableSub(number: cint); inline;
 procedure setBrightness(screen, level: cint); cdecl; external;
+procedure setBackdropColor(const color: cuint16); inline;
+procedure setBackdropColorSub(const color: cuint16); inline;
 
 const
   REG_MASTER_BRIGHT     : pcuint16 = pointer($0400006C);
@@ -626,6 +637,61 @@ end;
 function GFX_BUSY: boolean; inline;
 begin
 	GFX_BUSY := GFX_STATUS^ and (1 shl 27) <> 0;
+end;
+
+procedure vramSetBankA(a: VRAM_A_TYPE); inline;
+begin
+  VRAM_A_CR^ := VRAM_ENABLE or a;
+end;
+
+procedure vramSetBankB(b: VRAM_B_TYPE); inline;
+begin
+  VRAM_B_CR^ := VRAM_ENABLE or b;
+end;
+
+procedure vramSetBankC(c: VRAM_C_TYPE); inline;
+begin
+  VRAM_C_CR^ := VRAM_ENABLE or c;
+end;
+
+procedure vramSetBankD(d: VRAM_D_TYPE); inline;
+begin
+  VRAM_D_CR^ := VRAM_ENABLE or d;
+end;
+
+procedure vramSetBankE(e: VRAM_E_TYPE); inline;
+begin
+  VRAM_E_CR^ := VRAM_ENABLE or e;
+end;
+
+procedure vramSetBankF(f: VRAM_F_TYPE); inline;
+begin
+  VRAM_F_CR^ := VRAM_ENABLE or f;
+end;
+
+procedure vramSetBankG(g: VRAM_G_TYPE); inline;
+begin
+  VRAM_G_CR^ := VRAM_ENABLE or g;
+end;
+
+procedure vramSetBankH(h: VRAM_H_TYPE); inline;
+begin
+  VRAM_H_CR^ := VRAM_ENABLE or h;
+end;
+
+procedure vramSetBankI(i: VRAM_I_TYPE); inline;
+begin
+  VRAM_I_CR^ := VRAM_ENABLE or i;
+end;
+
+procedure setBackdropColor(const color: cuint16); inline;
+begin
+  BG_PALETTE[0] := color;
+end;
+
+procedure setBackdropColorSub(const color: cuint16); inline;
+begin
+  BG_PALETTE_SUB[0] := color;
 end;
 
 {$endif NDS_IMPLEMENTATION}

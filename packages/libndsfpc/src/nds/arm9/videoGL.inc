@@ -299,6 +299,10 @@ function FIFO_NOP(): cuint8; inline;
 function FIFO_STATUS(): cuint8; inline;
 function FIFO_COLOR(): cuint8; inline;
 function FIFO_VERTEX16(): cuint8; inline;
+function FIFO_VERTEX10(): cuint8; inline;
+function FIFO_VERTEX_XY(): cuint8; inline;
+function FIFO_VERTEX_XZ(): cuint8; inline;
+function FIFO_VERTEX_YZ(): cuint8; inline;
 function FIFO_TEX_COORD(): cuint8; inline;
 function FIFO_TEX_FORMAT(): cuint8; inline;
 function FIFO_PAL_FORMAT(): cuint8; inline;
@@ -317,7 +321,7 @@ function FIFO_FLUSH(): cuint8; inline;
 function FIFO_VIEWPORT(): cuint8; inline;
 
 procedure glRotatef32i(angle: cint; x, y, z: cint32); cdecl; external;
-function glTexImage2D(target, empty1: cint; _type: GL_TEXTURE_TYPE_ENUM; sizeX, sizeY, empty2, param: cint; texture: pcuint8): cint; cdecl; external;
+function glTexImage2D(target, empty1: cint; _type: GL_TEXTURE_TYPE_ENUM; sizeX, sizeY, empty2, param: cint; texture: pointer): cint; cdecl; external;
 procedure glTexLoadPal(const pal: pcuint16; count: cuint16; addr: cuint32); cdecl; external;
 function gluTexLoadPal(const pal: pcuint16; count: cuint16; format: cuint8): cint; cdecl; external;
 procedure glTexParameter(sizeX, sizeY: cuint8; const addr: pcuint32; mode: GL_TEXTURE_TYPE_ENUM; param: GL_TEXTURE_PARAM_ENUM); cdecl; external;
@@ -348,7 +352,8 @@ procedure glStoreMatrix(index: cint32); inline;
 procedure glScalev(const v: PGLvector); inline;
 procedure glTranslatev(const v: PGLvector) ; inline;
 procedure glTranslate3f32(x, y, z: cint32); inline;
-procedure glScalef32(factor: cint32); inline;
+procedure glTranslatef32(x, y, z: cint32); inline;
+procedure glScalef32(x, y, z: cint32); inline;
 procedure glLight(id: cint; color: rgb; x, y, z: v10); inline;
 procedure glNormal(normal: cuint32); inline;
 procedure glLoadIdentity(); inline;
@@ -360,6 +365,10 @@ procedure glCallList(list: pcuint32); inline;
 procedure glPolyFmt(params: cuint32); inline;
 procedure glEnable(bits: cint); inline;
 procedure glDisable(bits: cint); inline;
+procedure glFogShift(shift: cint); inline;
+procedure glFogOffset(offset: cint); inline; 
+procedure glFogColor(red, green, blue, alpha: cuint8); inline;
+procedure glFogDensity(index, density: cint); inline;
 procedure glLoadMatrix4x4(const m: pm4x4); inline;
 procedure glLoadMatrix4x3(const m: pm4x3); inline;
 procedure glMultMatrix4x4(const m: pm4x4); inline;
@@ -545,6 +554,26 @@ end;
 function FIFO_VERTEX16(): cuint8; inline;
 begin
   FIFO_VERTEX16 := REG2ID(GFX_VERTEX16);
+end;
+
+function FIFO_VERTEX10(): cuint8; inline;
+begin
+  FIFO_VERTEX10 := REG2ID(GFX_VERTEX10);
+end;
+
+function FIFO_VERTEX_XY(): cuint8; inline;
+begin
+  FIFO_VERTEX_XY := REG2ID(GFX_VERTEX_XY); 
+end;
+
+function FIFO_VERTEX_XZ(): cuint8; inline;
+begin
+  FIFO_VERTEX_XZ := REG2ID(GFX_VERTEX_XZ); 
+end;
+
+function FIFO_VERTEX_YZ(): cuint8; inline;
+begin
+  FIFO_VERTEX_YZ := REG2ID(GFX_VERTEX_YZ); 
 end;
 
 function FIFO_TEX_COORD(): cuint8; inline;
@@ -757,16 +786,21 @@ end;
 
 procedure glTranslate3f32(x, y, z: cint32); inline;
 begin
+  glTranslatef32(x, y, z);
+end;
+
+procedure glTranslatef32(x, y, z: cint32); inline;
+begin
 	MATRIX_TRANSLATE^ := x;
 	MATRIX_TRANSLATE^ := y;
 	MATRIX_TRANSLATE^ := z;
 end;
 
-procedure glScalef32(factor: cint32); inline;
+procedure glScalef32(x, y, z: cint); inline;
 begin
-	MATRIX_SCALE^ := factor;
-	MATRIX_SCALE^ := factor;
-	MATRIX_SCALE^ := factor;
+	MATRIX_SCALE^ := x;
+	MATRIX_SCALE^ := y;
+	MATRIX_SCALE^ := z;
 end;
 
 procedure glLight(id: cint; color: rgb; x, y, z: v10); inline;
@@ -824,7 +858,9 @@ procedure glCallList(list: pcuint32); inline;
 var
   count: cuint32;
 begin
+	sassert(list <> nil, 'glCallList received a null display list pointer');
   count := list^;
+	sassert(count <> 0, 'glCallList received a display list of size 0');
   inc(list);
   DC_FlushRange(list, count*4);
   while ( ((DMA_CR(0)^ and DMA_BUSY) <> 0) or 
@@ -852,6 +888,35 @@ end;
 procedure glDisable(bits: cint); inline;
 begin
   GFX_CONTROL^ := GFX_CONTROL^ and not bits;
+end;
+
+
+procedure glFogShift(shift: cint); inline;
+begin
+  sassert((shift >= 0) and (shift < 16), 'glFogShift is out of range');
+  GFX_CONTROL^ := (GFX_CONTROL^ and $F0FF) or (shift shl 8);
+end;
+
+procedure glFogOffset(offset: cint); inline; 
+begin
+  sassert((offset >= 0) and (offset < $8000), 'glFogOffset is out of range');
+  GFX_FOG_OFFSET^ := offset;
+end;
+
+procedure glFogColor(red, green, blue, alpha: cuint8); inline;
+begin
+  sassert(red < 32, 'glFogColor red is out of range');
+  sassert(green < 32, 'glFogColor green is out of range');
+  sassert(blue < 32, 'glFogColor blue is out of range');
+  sassert(alpha < 32, 'glFogColor alpha is out of range');
+  GFX_FOG_COLOR^ := RGB15(red, green, blue) or (alpha shl 16);  
+end;
+
+procedure glFogDensity(index, density: cint); inline;
+begin
+  sassert((index >= 0) and (index < 32), 'glFogDensity index is out of range');
+  sassert((index >= 0) and (density < 128), 'glFogDensity density is out of range');
+  GFX_FOG_TABLE[index] := density;  
 end;
 
 procedure glLoadMatrix4x4(const m: pm4x4); inline;
