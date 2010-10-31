@@ -13,11 +13,11 @@ const N = 2;
 var
   res:array[1..N] of Integer;
 
-function Hello(arg: pointer): longint; cdecl;
+function Hello(arg: pointer): pointer; cdecl;
 begin
 //  writeln('Hello from thread #', PInteger(arg)^);
   res[PInteger(arg)^] := PInteger(arg)^;
-  Hello := 0;
+  Hello := nil;
   pthread_exit(pointer(Hello));
 end;
 
