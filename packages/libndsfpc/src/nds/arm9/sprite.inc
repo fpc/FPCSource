@@ -315,7 +315,7 @@ procedure oamAffineTransformation(var oam: OamState; rotId, hdx, hdy, vdx, vdy: 
 
 function oamCountFragments(var oam: OamState): cint; cdecl; external;
 procedure oamAllocReset(var oam: OamState); cdecl; external;
-function oamGfxPtrToOffset(const offset: pointer): cuint; cdecl; external;
+function oamGfxPtrToOffset(var oam: OamState; const offset: pointer): cuint; cdecl; external;
 {$endif NDS_INTERFACE}
  
 {$ifdef NDS_IMPLEMENTATION}

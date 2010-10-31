@@ -13,7 +13,8 @@
 {$include fifocommon.inc}
 {$include system.inc}
 {$include timers.inc}
-{$include fifomessages.inc}
+{$include fifomessages.inc} 
+{$include input.inc} // testing...
 
 {$include linkedlist.inc}
 {$include dynamicArray.inc}
@@ -46,6 +47,5 @@
   {$include arm7/clock.inc}
   {$include arm7/input.inc}
   {$include arm7/serial.inc}
-  { $include arm7/system.inc} 
   {$include arm7/touch.inc}
 {$endif ARM7}

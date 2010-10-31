@@ -37,9 +37,8 @@ var
   sprites: array[0..4] of MySprite;
 
 
-<<<<<<< .minefunction myEventHandler(msg, param: mm_word): mm_word;
-=======function myEventHandler(msg, param: mm_word): pmm_word;
->>>>>>> .theirsbegin
+function myEventHandler(msg, param: mm_word): mm_word;
+begin
   case msg of
     MMCB_SONGMESSAGE:	// process song messages
     begin
