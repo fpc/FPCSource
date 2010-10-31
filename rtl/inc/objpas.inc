@@ -546,6 +546,8 @@
       procedure TObject.Dispatch(var message);
 
         type
+{$PUSH}
+{$PACKRECORDS NORMAL}
            PMsgIntTable = ^TMsgIntTable;
            TMsgIntTable = record
               index : dword;
@@ -557,7 +559,7 @@
               count : longint;
               msgs : array[0..0] of TMsgIntTable;
            end;
-
+{$POP}
         var
            index : dword;
            count,i : longint;
