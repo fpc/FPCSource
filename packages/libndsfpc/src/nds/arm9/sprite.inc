@@ -243,17 +243,17 @@ function SPRITE_SIZE_PIXELS(size: cint): cuint32; inline;
 
 
 type
-  SpriteMapping = integer;
+  TSpriteMapping = integer;
 const
-  SpriteMapping_1D_32     : SpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_32)  or (0 shl 28) or 0;
-  SpriteMapping_1D_64     : SpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_64)  or (1 shl 28) or 1;
-  SpriteMapping_1D_128    : SpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_128) or (2 shl 28) or 2;
-  SpriteMapping_1D_256    : SpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_256) or (3 shl 28) or 3;
-  SpriteMapping_2D        : SpriteMapping = integer(DISPLAY_SPR_2D) or (4 shl 28);
-  SpriteMapping_Bmp_1D_128: SpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_128) or integer(DISPLAY_SPR_1D_BMP) or integer(DISPLAY_SPR_1D_BMP_SIZE_128) or (5 shl 28) or 2;
-  SpriteMapping_Bmp_1D_256: SpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_256) or integer(DISPLAY_SPR_1D_BMP) or integer(DISPLAY_SPR_1D_BMP_SIZE_256) or (6 shl 28) or 3;
-  SpriteMapping_Bmp_2D_128: SpriteMapping = integer(DISPLAY_SPR_2D) or integer(DISPLAY_SPR_2D_BMP_128)  or (7 shl 28) or 2;
-  SpriteMapping_Bmp_2D_256: SpriteMapping = integer(DISPLAY_SPR_2D) or integer(DISPLAY_SPR_2D_BMP_256)  or (8 shl 28) or 3;
+  SpriteMapping_1D_32     : TSpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_32)  or (0 shl 28) or 0;
+  SpriteMapping_1D_64     : TSpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_64)  or (1 shl 28) or 1;
+  SpriteMapping_1D_128    : TSpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_128) or (2 shl 28) or 2;
+  SpriteMapping_1D_256    : TSpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_256) or (3 shl 28) or 3;
+  SpriteMapping_2D        : TSpriteMapping = integer(DISPLAY_SPR_2D) or (4 shl 28);
+  SpriteMapping_Bmp_1D_128: TSpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_128) or integer(DISPLAY_SPR_1D_BMP) or integer(DISPLAY_SPR_1D_BMP_SIZE_128) or (5 shl 28) or 2;
+  SpriteMapping_Bmp_1D_256: TSpriteMapping = integer(DISPLAY_SPR_1D) or integer(DISPLAY_SPR_1D_SIZE_256) or integer(DISPLAY_SPR_1D_BMP) or integer(DISPLAY_SPR_1D_BMP_SIZE_256) or (6 shl 28) or 3;
+  SpriteMapping_Bmp_2D_128: TSpriteMapping = integer(DISPLAY_SPR_2D) or integer(DISPLAY_SPR_2D_BMP_128)  or (7 shl 28) or 2;
+  SpriteMapping_Bmp_2D_256: TSpriteMapping = integer(DISPLAY_SPR_2D) or integer(DISPLAY_SPR_2D_BMP_256)  or (8 shl 28) or 3;
 
 type
   SpriteColorFormat = integer;
@@ -275,7 +275,8 @@ type
     gfxOffsetStep: cint; 
     firstFree: cint16;
     allocBuffer: PAllocHeader; 
-    allocBufferSize: cint16; 
+    allocBufferSize: cint16;
+    spriteMapping: TSpriteMapping;     
     case integer of
       0: (
             oamMemory: PSpriteEntry;
@@ -291,7 +292,7 @@ var
   oamMain: OamState; cvar; external;
   oamSub: OamState; cvar; external;  
 
-procedure oamInit(var oam: OamState; mapping: SpriteMapping; extPalette: cbool); cdecl; external;
+procedure oamInit(var oam: OamState; mapping: TSpriteMapping; extPalette: cbool); cdecl; external;
 procedure oamDisable(var oam: OamState); cdecl; external;
 procedure oamEnable(var oam: OamState); cdecl; external;
 function oamGetGfxPtr(var oam: OamState; gfxOffsetIndex: cint): pcuint16; cdecl; external;

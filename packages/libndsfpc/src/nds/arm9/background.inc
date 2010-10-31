@@ -576,7 +576,7 @@ end;
 
 procedure bgScroll(id, dx, dy: cint); inline;
 begin
-  bgSetScrollf(id, dx shl 8, dy shl 8);
+  bgScrollf(id, dx shl 8, dy shl 8);
 end;
 
 procedure bgShow(id: cint); inline;

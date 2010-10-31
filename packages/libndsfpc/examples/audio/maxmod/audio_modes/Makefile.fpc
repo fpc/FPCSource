@@ -32,6 +32,7 @@ GFX_FILES = $(foreach dir,gfx,$(notdir $(wildcard $(dir)/*.png)))
 [rules]
 .NOTPARALLEL:
 all: direc fpc_all 
+direc:
 ifneq ($(BUILD), $(CURDIR))
         $(MKDIR) $(BUILD)
 endif

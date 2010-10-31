@@ -3575,6 +3575,7 @@ packages/libndsfpc/src/nds/dynamicArray.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/fifocommon.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/fifomessages.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/helper.inc svneol=native#text/plain
+packages/libndsfpc/src/nds/input.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/interrupts.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/ipc.inc svneol=native#text/plain
 packages/libndsfpc/src/nds/jtypes.inc svneol=native#text/plain
