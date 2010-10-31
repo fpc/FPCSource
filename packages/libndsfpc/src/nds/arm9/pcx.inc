@@ -61,5 +61,5 @@ type
   PPCXHeader = ^PCXHeader;
 
 
-function loadPCX(pcx: pcuchar; image: PsImage): cint; cdecl; external;
+function loadPCX(const pcx: pcuchar; image: PsImage): cint; cdecl; external;
 {$endif NDS_INTERFACE}

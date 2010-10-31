@@ -16,8 +16,8 @@ uses
 {$linklib nds9}
 
 {$linklib c}
-{$linklib g}
 {$linklib gcc}
+{$linklib g}
 {$linklib sysbase}
 
 

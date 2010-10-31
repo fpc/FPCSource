@@ -37,51 +37,8 @@ type
   end;
   TLinkedList = LinkedList;
 
-function linkedlistAdd(front: PLinkedList; data: pointer): PLinkedList; inline;
-procedure linkedlistRemove(node: PLinkedList); inline;
+function linkedlistAdd(front: PLinkedList; data: pointer): PLinkedList; cdecl; external;
+procedure linkedlistRemove(node: PLinkedList); cdecl; external;
 
 {$endif NDS_INTERFACE}
 
-
-{$ifdef NDS_IMPLEMENTATION}
-function linkedlistAdd(front: PLinkedList; data: pointer): PLinkedList; inline;
-var
-  node: PLinkedList;
-begin
-	GetMem(node, sizeof(LinkedList));
-
-	node^.prev := nil;
-
-	if (front = nil) then
-	begin	
-		node^.next := nil;
-
-		node^.data := data;
-
-		front := node;
-
-		result := node;
-	end;
-    
-	node^.next := front;
-	
-	front^.prev := node;
-
-	result := node;
-end;
-
-
-procedure linkedlistRemove(node: PLinkedList); inline;
-begin
-	if (node = nil) then exit;
-
-	if (node^.prev <> nil) then
-		node^.prev^.next := node^.next;
-
-	if (node^.next <> nil) then
-		node^.next^.prev := node^.prev;
-
-	FreeMem(node);
-end;
-
-{$endif NDS_IMPLEMENTATION}

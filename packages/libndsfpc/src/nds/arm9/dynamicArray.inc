@@ -1,5 +1,5 @@
 (*
-  $Id$
+  $Id: dynamicArray.inc 13585 2009-08-23 13:57:45Z Legolas $
   ------------------------------------------------------------------------------
   	Copyright (C) 2005
   		Jason Rogers (dovoto)
@@ -42,59 +42,15 @@
 type
   DynamicArray = record 
     data: ppointer;  // pointer to array of void pointers
-    cur_size: integer;    // currently allocated size of the array 
+    cur_size: cuint; // currently allocated size of the array 
   end;
   TDynamicArray = DynamicArray;
   PDynamicArray = ^TDynamicArray;
 
 
-function DynamicArrayInit(v: PDynamicArray; initialSize: integer): pointer; inline;
-procedure DynamicArrayDelete(v: PDynamicArray); inline;
-function DynamicArrayGet(v: PDynamicArray; index: integer): pointer; inline;
-procedure DynamicArraySet(v: PDynamicArray; index: integer; item: pointer); inline;
+function DynamicArrayInit(v: PDynamicArray; initialSize: cuint): pointer; cdecl; external;
+procedure DynamicArrayDelete(v: PDynamicArray); cdecl; external;
+function DynamicArrayGet(v: PDynamicArray; index: cuint): pointer; cdecl; external;
+function DynamicArraySet(v: PDynamicArray; index: cuint; item: pointer): cbool; cdecl; external;
 {$endif NDS_INTERFACE}
 
-
-{$ifdef NDS_IMPLEMENTATION}
-function DynamicArrayInit(v: PDynamicArray; initialSize: integer): pointer; inline;
-begin
-	v^.cur_size := initialSize;
-//  v^.data := malloc(sizeof(pointer) * initialSize);
-	GetMem(v^.data, sizeof(pointer) * initialSize);
-  result := v^.data;
-end;
-
-procedure DynamicArrayDelete(v: PDynamicArray); inline;
-begin
-  if (v^.data) <> nil then
-    free(v^.data);
-end;
-
-function DynamicArrayGet(v: PDynamicArray; index: integer): pointer; inline;
-begin
-	if (index >= v^.cur_size) then
-	begin
-		result := nil;
-		exit;
-	end;
-	result := v^.data + index;
-end;
-
-procedure DynamicArraySet(v: PDynamicArray; index: integer; item: pointer); inline;
-var
-  i: integer;
-begin
-	if (index >= v^.cur_size) then 
-	begin
-		v^.data := ReAllocMem(v^.data, sizeof(pointer) * v^.cur_size * 2);
-		FillChar(pointer(integer(v^.data^^) + v^.cur_size)^, sizeof(pointer) * v^.cur_size, 0);
-		v^.cur_size := v^.cur_size * 2;
-	end;
-	{
-	i := integer(v^.data);
-	i := i + index;
-  pointer(i) := item;
-  }
-  v^.data[index] := item;
-end;
-{$endif NDS_IMPLEMENTATION}

@@ -83,6 +83,7 @@ const
   SYS_REQ_TOUCH : FifoSystemCommands = 0;
   SYS_REQ_KEYS  : FifoSystemCommands = 1;
   SYS_REQ_TIME  : FifoSystemCommands = 2;
+  SYS_SET_TIME  : FifoSystemCommands = 3;
 
 type
   FifoPMCommands = integer;
@@ -93,6 +94,8 @@ const
   PM_REQ_SLEEP          : FifoPMCommands = (4 shl 16);
   PM_REQ_SLEEP_DISABLE  : FifoPMCommands = (5 shl 16);
   PM_REQ_SLEEP_ENABLE   : FifoPMCommands = (6 shl 16);
+  PM_REQ_BATTERY        : FifoPMCommands = (7 shl 16);
+  PM_DSI_HACK           : FifoPMCommands = (8 shl 16);
 	
 type
   FifoWifiCommands = integer;

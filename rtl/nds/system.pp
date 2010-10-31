@@ -18,6 +18,7 @@ unit System;
 interface
 
 {$define FPC_IS_SYSTEM}
+{$define HAS_CMDLINE}
 {$define FPC_HAS_FEATURE_THREADING}
 {$define FPC_HAS_FEATURE_CONSOLEIO}
 {$define FPC_HAS_FEATURE_COMMANDARGS}
@@ -39,28 +40,27 @@ interface
 const
   LineEnding = #10;
   LFNSupport = true;
-  CtrlZMarksEOF: boolean = false;
   DirectorySeparator = '/';
   DriveSeparator = ':';
   ExtensionSeparator = '.';
-  PathSeparator = ';';
+  PathSeparator = ':';
   AllowDirectorySeparators : set of char = ['\','/'];
   AllowDriveSeparators : set of char = [':'];
-  FileNameCaseSensitive = false;
   maxExitCode = 255;
-  MaxPathLen = 255;
+
+  MaxPathLen = 1024; // BSDs since 1993, Solaris 10, Darwin
   AllFilesMask = '*';
 
-  sLineBreak: string[1] = LineEnding;
-  DefaultTextLineBreakStyle: TTextLineBreakStyle = tlbsCRLF;
-
-  UnusedHandle    = $ffff;
+  UnusedHandle    = -1;
   StdInputHandle  = 0;
   StdOutputHandle = 1;
-  StdErrorHandle  = $ffff;
+  StdErrorHandle  = 2;
 
+  FileNameCaseSensitive : boolean = true;
+  CtrlZMarksEOF: boolean = true; (* #26 not considered as end of file *)
 
-
+  sLineBreak = LineEnding;
+  DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsLF;
 
 var
   argc: LongInt = 0;
@@ -70,9 +70,17 @@ var
   fake_heap_end: ^byte; cvar; external;
   irq_vector: integer; external name '__irq_vector';
   
-//procedure AssignDevice(FIOD: Pointer); 
+function get_cmdline:Pchar;
+
+property cmdline:Pchar read get_cmdline;
 
 implementation
+
+const 
+  calculated_cmdline: Pchar = nil;
+  { System limits, POSIX value in parentheses, used for buffer and stack allocation }
+  ARG_MAX  = 65536;   {4096}  { Maximum number of argument size     }
+  PATH_MAX = 1024;    {255}   { Maximum number of bytes in pathname }  
 
 {$define fpc_softfpu_implementation}
 {$i softfpu.pp}
@@ -148,28 +156,112 @@ begin
   random := (a * value) shr 15;
 end;
 
-{$ifdef FPC_HAS_FEATURE_COMMANDARGS}
-{ number of args }
-function paramcount : longint;
+
+
+Function ParamCount: Longint;
+Begin
+  Paramcount:=argc-1
+End;
+
+
+ { variable where full path and filename and executable is stored }
+ { is setup by the startup of the system unit.                    }
+var
+ execpathstr : shortstring;
+
+function paramstr(l: longint) : string;
+ begin
+   { stricly conforming POSIX applications  }
+   { have the executing filename as argv[0] }
+   if l=0 then
+     begin
+       paramstr := execpathstr;
+     end
+   else
+     paramstr:=strpas(argv[l]);
+ end;
+
+{*****************************************************************************
+                                    cmdline
+*****************************************************************************}
+
+procedure SetupCmdLine;
+var
+  bufsize,
+  len,j,
+  size,i : longint;
+  found  : boolean;
+  buf    : pchar;
+
+  procedure AddBuf;
+  begin
+    reallocmem(calculated_cmdline,size+bufsize);
+    move(buf^,calculated_cmdline[size],bufsize);
+    inc(size,bufsize);
+    bufsize:=0;
+  end;
+
 begin
-  paramcount := 0;
+  if argc<=0 then
+    exit;
+  GetMem(buf,ARG_MAX);
+  size:=0;
+  bufsize:=0;
+  i:=0;
+  while (i<argc) do
+   begin
+     len:=strlen(argv[i]);
+     if len>ARG_MAX-2 then
+      len:=ARG_MAX-2;
+     found:=false;
+     for j:=1 to len do
+      if argv[i][j]=' ' then
+       begin
+         found:=true;
+         break;
+       end;
+     if bufsize+len>=ARG_MAX-2 then
+      AddBuf;
+     if found then
+      begin
+        buf[bufsize]:='"';
+        inc(bufsize);
+      end;
+     move(argv[i]^,buf[bufsize],len);
+     inc(bufsize,len);
+     if found then
+      begin
+        buf[bufsize]:='"';
+        inc(bufsize);
+      end;
+     if i<argc then
+      buf[bufsize]:=' '
+     else
+      buf[bufsize]:=#0;
+     inc(bufsize);
+     inc(i);
+   end;
+  AddBuf;
+  FreeMem(buf,ARG_MAX);
 end;
 
-{ argument number l }
-function paramstr(l : longint) : string;
-begin
-  paramstr := '';
-end;
-{$endif FPC_HAS_FEATURE_COMMANDARGS}
+function get_cmdline:Pchar;
 
-{$ifdef FPC_HAS_FEATURE_TEXTIO}
+begin
+  if calculated_cmdline=nil then
+    setupcmdline;
+  get_cmdline:=calculated_cmdline;
+end;
+
+
 procedure SysInitStdIO;
 begin
-  OpenStdIO(Input,fmInput,StdInputHandle);
-  OpenStdIO(Output,fmOutput,StdOutputHandle);
-  OpenStdIO(StdOut,fmOutput,StdOutputHandle);
+  OpenStdIO(Input,fmInput,0);
+  OpenStdIO(Output,fmOutput,0);
+  OpenStdIO(ErrOutput,fmOutput,0);
+  OpenStdIO(StdOut,fmOutput,0);
+  OpenStdIO(StdErr,fmOutput,0);
 end;
-{$endif}
 
 
 function CheckInitialStkLen(stklen : SizeUInt) : SizeUInt;
@@ -189,6 +281,10 @@ begin
 { Setup heap }
   InitHeap;
   SysInitExceptions;
+
+  SetupCmdLine;
+  
+  
 {$ifdef FPC_HAS_FEATURE_CONSOLEIO}
   { Setup stdin, stdout and stderr }
   SysInitStdIO;

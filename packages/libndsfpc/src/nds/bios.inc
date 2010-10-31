@@ -41,16 +41,18 @@
 {$ifdef NDS_INTERFACE}
 
 type
-  TGetSize = function(source: pcuint8;  dest: pcuint16; r2: cuint32): pcint; 
-  TGetResult = function(source: pcuint8): pcint; 
-  TReadByte = function(source: pcuint8): pcuint8; 
-
+  TGetHeaderCallback = function(source: pcuint8;  dest: pcuint16; r2: cuint32): pcint;
+  getHeaderCallback = TGetHeaderCallback;
+  TGetResultCallback = function(source: pcuint8): pcint;
+  getResultCallback = TGetResultCallback; 
+  TGetByteCallback = function(source: pcuint8): pcuint8; 
+  getByteCallback = TGetByteCallback;
 
 type
   DecompressionStream = packed record
-    getSize: TGetSize; 
-    getResult: TGetResult; 
-    readByte: TReadByte; 
+    getSize: TGetHeaderCallback; 
+    getResult: TGetResultCallback; 
+    readByte: TGetByteCallback; 
   end;
   TDecompressionStream = DecompressionStream;
   PDecompressionStream = ^TDecompressionStream;
