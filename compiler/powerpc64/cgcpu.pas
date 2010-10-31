@@ -1394,7 +1394,7 @@ var
   href : treference;
   paraloc : Pcgparalocation;
 begin
-  if ((ioffset >= low(smallint)) and (ioffset < high(smallint)) then begin
+  if ((ioffset >= low(smallint)) and (ioffset < high(smallint))) then begin
     { the original method can handle this }
     inherited g_adjust_self_value(list, procdef, ioffset);
     exit;
