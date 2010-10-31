@@ -108,19 +108,19 @@ type
     romversion: cuint8;
     flags: cuint8;                // auto-boot flag
     
-    arm9romSource: cuint32;
+    arm9romOffset: cuint32;
     arm9executeAddress: cuint32;
     arm9destination: cuint32;
     arm9binarySize: cuint32;
     
-    arm7romSource: cuint32;
+    arm7romOffset: cuint32;
     arm7executeAddress: cuint32;
     arm7destination: cuint32;
     arm7binarySize: cuint32;
     
-    filenameSource: cuint32;
+    filenameOffset: cuint32;
     filenameSize: cuint32;
-    fatSource: cuint32;
+    fatOffset: cuint32;
     fatSize: cuint32;
     
     arm9overlaySource: cuint32;

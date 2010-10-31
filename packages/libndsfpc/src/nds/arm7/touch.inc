@@ -62,4 +62,6 @@ procedure touchReadXY(var touchPos: touchPosition); cdecl; external;
 
 function touchRead(command: cuint32): cuint16; cdecl; external;
 function touchReadTemperature(t1: pcint; t2: pcint): cuint32;  cdecl; external;
+
+function touchPenDown(): cbool; cdecl; external;
 {$endif NDS_INTERFACE}

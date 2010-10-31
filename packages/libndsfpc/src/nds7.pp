@@ -16,8 +16,8 @@ uses
 {$linklib nds7}
 
 {$linklib c}
-{$linklib g}
 {$linklib gcc}
+{$linklib g}
 {$linklib sysbase}
 
 {$define NDS_INTERFACE}

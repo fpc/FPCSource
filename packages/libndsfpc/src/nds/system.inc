@@ -55,6 +55,7 @@ const
   REG_VCOUNT		: pcuint16 = pointer($04000006);
   HALT_CR       : pcuint16 = pointer($04000300);
   REG_POWERCNT  : pcuint16 = pointer($04000304);
+  REG_DSIMODE		: pcuint32 = pointer($04004000);  
 
 procedure SetYtrigger(Yvalue: cint); inline;
 
@@ -96,6 +97,8 @@ procedure lcdMainOnTop(); inline;
 procedure lcdMainOnBottom(); inline; 
 
 procedure systemShutDown(); inline;
+
+function getBatteryLevel(): cuint32; cdecl; external;
 
 procedure setVectorBase(highVector: cint); cdecl; external;
 
@@ -152,7 +155,13 @@ procedure systemShutDown(); cdecl; external;
 {$endif ARM7}
 
 
-
+type
+  BACKLIGHT_LEVELS = cint;
+const
+	BACKLIGHT_LOW  : BACKLIGHT_LEVELS = 0;
+	BACKLIGHT_MED  : BACKLIGHT_LEVELS = 1;
+	BACKLIGHT_HIGH : BACKLIGHT_LEVELS = 2;
+	BACKLIGHT_MAX  : BACKLIGHT_LEVELS = 3;	
 
 type
   tPERSONAL_DATA = bitpacked record
@@ -191,9 +200,9 @@ type
       gbaScreen: 0..1;
       defaultBrightness: 0..2;
       autoMode: 0..1;
-      RESERVED1: 0..2;
+      RESERVED5: 0..2;
 	    settingsLost: 0..1;	
-	    RESERVED2: 0..6;
+	    RESERVED6: 0..6;
     end;
     RESERVED3: cuint16;
     rtcOffset: cuint32;
@@ -206,13 +215,19 @@ const
   PersonalData  : PPERSONAL_DATA = pointer($2FFFC80);
 
 type
-  BACKLIGHT_LEVELS = cint;
-const
-	BACKLIGHT_LOW  : BACKLIGHT_LEVELS = 0;
-	BACKLIGHT_MED  : BACKLIGHT_LEVELS = 1;
-	BACKLIGHT_HIGH : BACKLIGHT_LEVELS = 2;
-	BACKLIGHT_MAX  : BACKLIGHT_LEVELS = 3;	
+  RTCtime = packed record
+    year: cuint8;        // add 2000 to get 4 digit year
+    month: cuint8;       // 1 to 12
+    day: cuint8;         // 1 to (days in month)
+    weekday: cuint8;     // day of week
+    hours: cuint8;       // 0 to 11 for AM, 52 to 63 for PM
+    minutes: cuint8;     // 0 to 59
+    seconds: cuint8;     // 0 to 59
+//    padding: cuint8;
+  end;
 
+const
+  ARGV_MAGIC = $5f617267;
 
 type 
   ppcchar = ^pcchar;
@@ -222,14 +237,18 @@ type
     length: cint;			    // total length of command line
     argc: integer;
     argv: ppcchar;    
+    dummy: cint;          // internal use
+    host: cuint32;        // internal use, host ip for dslink 
   end;
   Targv = __argv;
   Pargv = ^Targv;
 
 const
   __system_argv: Pargv = pointer($02FFFE70);
-  ARGV_MAGIC = $5f617267;
+
+const
   BOOTSIG = $62757473746F6F62; // ULL?
+
 
 type
   __bootstub = packed record      // packed ?
@@ -238,24 +257,13 @@ type
     arm7reboot: VoidFn;
     bootsize: cuint32;
   end;
-  
-
-type
-  RTCtime = packed record
-    year: cuint8;        // add 2000 to get 4 digit year
-    month: cuint8;       // 1 to 12
-    day: cuint8;         // 1 to (days in month)
-    weekday: cuint8;     // day of week
-    hours: cuint8;       // 0 to 11 for AM, 52 to 63 for PM
-    minutes: cuint8;     // 0 to 59
-    seconds: cuint8;     // 0 to 59
-    padding: cuint8;
-  end;
 
 
 {$ifdef ARM9}
-procedure memCached(address: pointer); cdecl; external;
-procedure memUncached(address: pointer); cdecl; external;
+//procedure memCached(address: pointer); cdecl; external;
+function memCached(address: pointer): pointer; cdecl; external;
+//procedure memUncached(address: pointer); cdecl; external;
+function memUncached(address: pointer): pointer; cdecl; external;
 procedure resetARM7(address: cuint32); cdecl; external;
 {$endif ARM9}
 
@@ -295,6 +303,7 @@ procedure systemShutDown(); inline;
 begin
   powerOn(PM_SYSTEM_PWR);
 end;
+
 {$endif ARM9}
 
 
@@ -319,7 +328,6 @@ begin
 	REG_POWERCNT^ := REG_POWERCNT^ and not bits;
 end;
 {$endif ARM7}
-
 
 {$endif NDS_IMPLEMENTATION}
 

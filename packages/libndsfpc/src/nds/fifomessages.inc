@@ -48,8 +48,8 @@ type
         SundPlay: record
           _type: cuint16;
           data: pointer;
-          loopPoint: cuint16;
           dataSize: cuint16;
+          loopPoint: cuint16;
           freq: cuint16;
           volume: cuint8;
           pan: cuint8;
@@ -63,6 +63,7 @@ type
           dutyCycle: cuint8;
           volume: cuint8;
           pan: cuint8;
+          channel: cuint8;
         end;
       );
       2: (

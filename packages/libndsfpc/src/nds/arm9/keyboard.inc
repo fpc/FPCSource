@@ -89,6 +89,24 @@ type
   TKeyboard = Keyboard;
   PKeyboard = ^Keyboard;
 
+type
+  TKeys = cint;
+const
+  NOKEY         : TKeys = -1;
+  DVK_FOLD      : TKeys = -23;
+  DVK_TAB       : TKeys =  9;
+  DVK_BACKSPACE : TKeys =  8;
+  DVK_CAPS      : TKeys = -15;
+  DVK_SHIFT     : TKeys = -14;
+  DVK_SPACE     : TKeys =  32;
+  DVK_MENU      : TKeys = -5;
+  DVK_ENTER     : TKeys =  10;
+  DVK_CTRL      : TKeys = -16;
+  DVK_UP        : TKeys = -17;
+  DVK_RIGHT     : TKeys = -18;
+  DVK_DOWN      : TKeys = -19;
+  DVK_LEFT      : TKeys = -20;
+  DVK_ALT       : TKeys = -26;
 
 function keyboardGetDefault(): PKeyboard; cdecl; external;
 
