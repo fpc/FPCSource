@@ -1410,9 +1410,10 @@ begin
     with paraloc^ do begin
       case loc of
         LOC_REGISTER:
+        begin
           a_load_const_reg(list, size, ioffset, NR_R11);
           a_op_reg_reg(list, OP_SUB, size, NR_R11, register);
-        else
+        end else
           internalerror(2010103102);
       end;
       paraloc:=next;
