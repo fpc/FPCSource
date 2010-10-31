@@ -280,6 +280,7 @@ type
   TXMLReader = class
   private
     FSource: TXMLCharSource;
+    FNameTable: THashTable;
     FCtrl: TDOMParser;
     FXML11: Boolean;
     FState: TXMLReadState;
@@ -394,6 +395,7 @@ type
     procedure ParseMarkupDecl;                                          // [29]
     procedure ParseStartTag;                                            // [39]
     procedure ParseEndTag;                                              // [42]
+    procedure DoStartElement;
     procedure DoEndElement;
     procedure ParseAttribute(ElDef: TElementDecl);
     procedure ParseContent;                                             // [43]
@@ -1313,15 +1315,16 @@ begin
     FStdPrefix_xml := FNSHelper.GetPrefix(@PrefixDefault, 3);
     FStdPrefix_xmlns := FNSHelper.GetPrefix(@PrefixDefault, 5);
 
-    FStdUri_xmlns := doc.Names.FindOrAdd(PWideChar(stduri_xmlns), Length(stduri_xmlns));
-    FStdUri_xml := doc.Names.FindOrAdd(PWideChar(stduri_xml), Length(stduri_xml));
+    FStdUri_xmlns := FNameTable.FindOrAdd(PWideChar(stduri_xmlns), Length(stduri_xmlns));
+    FStdUri_xml := FNameTable.FindOrAdd(PWideChar(stduri_xml), Length(stduri_xml));
   end;
 end;
 
 procedure TXMLReader.ProcessXML(ASource: TXMLCharSource);
 begin
   doc := TXMLDocument.Create;
-  doc.documentURI := ASource.SystemID;  // TODO: to be changed to URI or BaseURI  
+  doc.documentURI := ASource.SystemID;  // TODO: to be changed to URI or BaseURI
+  FNameTable := doc.Names;
   FState := rsProlog;
   FNesting := 0;
   FCurrNode := @FNodeStack[0];
@@ -1343,6 +1346,7 @@ end;
 procedure TXMLReader.ProcessFragment(ASource: TXMLCharSource; AOwner: TDOMNode);
 begin
   doc := AOwner.OwnerDocument;
+  FNameTable := doc.Names;
   FState := rsRoot;
   FNesting := 0;
   FCurrNode := @FNodeStack[0];
@@ -1926,7 +1930,7 @@ begin
   if not SkipUntilSeq(GT_Delim, '?') then
     FatalError('Unterminated processing instruction', -1);
   SetNodeInfoWithValue(ntProcessingInstruction,
-    doc.Names.FindOrAdd(FName.Buffer, FName.Length));
+    FNameTable.FindOrAdd(FName.Buffer, FName.Length));
 end;
 
 procedure TXMLReader.CreatePINode;
@@ -2165,7 +2169,7 @@ var
   p: PHashItem;
 begin
   CheckName;
-  p := doc.Names.FindOrAdd(FName.Buffer, FName.Length);
+  p := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
   Result := TElementDecl(p^.Data);
   if Result = nil then
   begin
@@ -2343,7 +2347,7 @@ begin
   begin
     CheckName;
     ExpectWhitespace;
-    attrName := doc.Names.FindOrAdd(FName.Buffer, FName.Length);
+    attrName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
     AttDef := TAttributeDef.Create(attrName, FColonPos);
     try
       AttDef.ExternallyDeclared := FSource.DTDSubsetType <> dsInternal;
@@ -2656,6 +2660,7 @@ end;
 procedure TXMLReader.ProcessDTD(ASource: TXMLCharSource);
 begin
   doc := TXMLDocument.Create;
+  FNameTable := doc.Names;
   FDocType := TDOMDocumentTypeEx.Create(doc);
   // TODO: DTD labeled version 1.1 will be rejected - must set FXML11 flag
   doc.AppendChild(FDocType);
@@ -2675,6 +2680,28 @@ begin
   cur.AppendChild(doc.CreateEntityReference(s));
 end;
 
+procedure TXMLReader.DoStartElement;
+var
+  NewElem: TDOMElement;
+  Attr: TDOMAttr;
+  i: Integer;
+begin
+  with FCurrNode^.FQName^ do
+    NewElem := doc.CreateElementBuf(PWideChar(Key), Length(Key));
+  FCursorStack[FNesting-1].InternalAppend(NewElem);
+  FCursorStack[FNesting] := NewElem;
+  if Assigned(FCurrNode^.FNsUri) then
+    NewElem.SetNSI(FCurrNode^.FNsUri^.Key, FCurrNode^.FColonPos+1);
+
+  for i := 1 to FAttrCount do
+  begin
+    Attr := LoadAttribute(doc, @FNodeStack[FNesting+i]);
+    NewElem.SetAttributeNode(Attr);
+    // Attach element to ID map entry if necessary
+    if Assigned(FNodeStack[FNesting+i].FIDEntry) then
+      FNodeStack[FNesting+i].FIDEntry^.Data := NewElem;
+  end;
+end;
 
 // The code below does the bulk of the parsing, and must be as fast as possible.
 // To minimize CPU cache effects, methods from different classes are kept together
@@ -2743,6 +2770,8 @@ begin
         CreatePINode;
       xtComment:
         DoComment(FCurrNode^.FValueStart, FCurrNode^.FValueLength);
+      xtElement:
+        DoStartElement;
       xtEndElement:
         DoEndElement;
       xtDoctype:
@@ -2942,13 +2971,10 @@ end;
 // Element name already in FNameBuffer
 procedure TXMLReader.ParseStartTag;    // [39] [40] [44]
 var
-  NewElem: TDOMElement;
-  Attr: TDOMAttr;
   ElDef: TElementDecl;
   IsEmpty: Boolean;
   ElName: PHashItem;
   b: TBinding;
-  i: Integer;
 begin
   if FState > rsRoot then
     FatalError('Only one top-level element allowed', FName.Length)
@@ -2962,11 +2988,8 @@ begin
   // we're about to process a new set of attributes
   Inc(FAttrTag);
 
-  NewElem := doc.CreateElementBuf(FName.Buffer, FName.Length);
-  FCursorStack[FNesting].InternalAppend(NewElem);
-
   // Remember the hash entry, we'll need it often
-  ElName := NewElem.NSI.QName;
+  ElName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
 
   // Find declaration for this element
   ElDef := TElementDecl(ElName^.Data);
@@ -2982,7 +3005,6 @@ begin
   FPrefixedAttrs := 0;
   FSpecifiedAttrs := 0;
   PushVC(ElDef);           // this increases FNesting
-  FCursorStack[FNesting] := NewElem;
 
   FCurrNode^.FQName := ElName;
   FCurrNode^.FNodeType := ntElement;
@@ -3031,27 +3053,14 @@ begin
         FTokenStart := FCurrNode^.FLoc;
         FatalError('Unbound element name prefix "%s"', [FCurrNode^.FPrefix^.Key],-1);
       end;
-      FCurrNode^.FNsUri := doc.Names.FindOrAdd(PWideChar(b.uri), Length(b.uri));
-      NewElem.SetNSI(b.uri, FCurrNode^.FColonPos+1);
+      FCurrNode^.FNsUri := FNameTable.FindOrAdd(PWideChar(b.uri), Length(b.uri));
     end
     else
     begin
       b := FNSHelper.DefaultNSBinding;
       if Assigned(b) then
-      begin
-        FCurrNode^.FNsUri := doc.Names.FindOrAdd(PWideChar(b.uri), Length(b.uri));
-        NewElem.SetNSI(b.uri, FCurrNode^.FColonPos+1);
-      end;
+        FCurrNode^.FNsUri := FNameTable.FindOrAdd(PWideChar(b.uri), Length(b.uri));
     end;
-  end;
-
-  for i := 1 to FAttrCount do
-  begin
-    Attr := LoadAttribute(doc, @FNodeStack[FNesting+i]);
-    NewElem.SetAttributeNode(Attr);
-    // Attach element to ID map entry if necessary
-    if Assigned(FNodeStack[FNesting+i].FIDEntry) then
-      FNodeStack[FNesting+i].FIDEntry^.Data := NewElem;
   end;
 
   if not IsEmpty then
@@ -3119,7 +3128,7 @@ end;
 
 begin
   CheckName;
-  attrName := doc.Names.FindOrAdd(FName.Buffer, FName.Length);
+  attrName := FNameTable.FindOrAdd(FName.Buffer, FName.Length);
   attrData := AllocAttributeData(attrName);
   attrData^.FColonPos := FColonPos;
   StoreLocation(attrData^.FLoc);
@@ -3264,7 +3273,7 @@ function TXMLReader.AddBinding(attrData: PNodeData): Boolean;
 var
   nsUri, Pfx: PHashItem;
 begin
-  nsUri := doc.Names.FindOrAdd(PWideChar(attrData^.FValueStr), Length(attrData^.FValueStr));
+  nsUri := FNameTable.FindOrAdd(PWideChar(attrData^.FValueStr), Length(attrData^.FValueStr));
   if attrData^.FColonPos > 0 then
     Pfx := FNSHelper.GetPrefix(@attrData^.FQName^.key[7], Length(attrData^.FQName^.key)-6)
   else
@@ -3320,7 +3329,7 @@ begin
     if FNsAttHash.Locate(@b.uri, @AttrName^.Key[J], Length(AttrName^.Key) - J+1) then
       DoErrorPos(esFatal, 'Duplicate prefixed attribute', attrData^.FLoc);
 
-    attrData^.FNsUri := doc.Names.FindOrAdd(PWideChar(b.uri), Length(b.uri));
+    attrData^.FNsUri := FNameTable.FindOrAdd(PWideChar(b.uri), Length(b.uri));
   end;
 end;
 
