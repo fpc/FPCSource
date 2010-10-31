@@ -41,19 +41,55 @@ type
 
    LongRec = packed record
       case Integer of
+{$ifdef FPC_LITTLE_ENDIAN}
         0 : (Lo,Hi : Word);
+{$else FPC_LITTLE_ENDIAN}
+        0 : (Hi,Lo : Word);
+{$endif FPC_LITTLE_ENDIAN}
         1 : (Bytes : Array[0..3] of Byte);
    end;
 
    WordRec = packed record
+{$ifdef FPC_LITTLE_ENDIAN}
      Lo,Hi : Byte;
+{$else FPC_LITTLE_ENDIAN}
+     Hi,Lo : Byte;
+{$endif FPC_LITTLE_ENDIAN}
    end;
 
    Int64Rec = packed record
       case integer of
+{$ifdef FPC_LITTLE_ENDIAN}
         0 : (Lo,Hi : Cardinal);
+{$else FPC_LITTLE_ENDIAN}
+        0 : (Hi,Lo : Cardinal);
+{$endif FPC_LITTLE_ENDIAN}
         1 : (Words : Array[0..3] of Word);
         2 : (Bytes : Array[0..7] of Byte);
+   end;
+
+   Int128Rec = packed record
+      case integer of
+{$ifdef FPC_LITTLE_ENDIAN}
+        0 : (Lo,Hi : QWord);
+{$else FPC_LITTLE_ENDIAN}
+        0 : (Hi,Lo : QWord);
+{$endif FPC_LITTLE_ENDIAN}
+        1 : (DWords : Array[0..3] of DWord);
+        2 : (Words : Array[0..7] of Word);
+        3 : (Bytes : Array[0..15] of Byte);
+   end;
+
+   OWordRec = packed record
+      case integer of
+{$ifdef FPC_LITTLE_ENDIAN}
+        0 : (Lo,Hi : QWord);
+{$else FPC_LITTLE_ENDIAN}
+        0 : (Hi,Lo : QWord);
+{$endif FPC_LITTLE_ENDIAN}
+        1 : (DWords : Array[0..3] of DWord);
+        2 : (Words : Array[0..7] of Word);
+        3 : (Bytes : Array[0..15] of Byte);
    end;
 
    PByteArray = ^TByteArray;
@@ -186,7 +222,7 @@ Var
 
 Type
    TCreateGUIDFunc = Function(Out GUID : TGUID) : Integer;
-   
+
 Var
    OnCreateGUID : TCreateGUIDFunc = Nil;
    Function CreateGUID(out GUID : TGUID) : Integer;
@@ -233,7 +269,7 @@ Type
   { unicode string functions }
   {$i sysunih.inc}
 {$endif FPC_HAS_UNICODESTRING}
-  
+
   { Read filename handling functions declaration }
   {$i finah.inc}
 
@@ -253,9 +289,9 @@ Type
 
   function SafeLoadLibrary(const FileName: AnsiString;
     ErrorMode: DWord = {$ifdef windows}SEM_NOOPENFILEERRORBOX{$else windows}0{$endif windows}): HMODULE;
-    
+
   function GetModuleName(Module: HMODULE): string;
-  
+
 { some packages and unit related constants for compatibility }
 
 const
