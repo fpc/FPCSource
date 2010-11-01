@@ -187,7 +187,9 @@ begin
   SetLength(Result, 0);
   for i := 1 to Length(S) do
     If not (S[i] in ['&','{','}','#','_','$','%','''','~','^', '\']) then
-      Result := Result + S[i];
+      Result := Result + S[i]
+    else
+      Result:=result+'!'  
 end;
 
 
