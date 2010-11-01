@@ -17,10 +17,11 @@ implicitunits=ctypes strings \
       varutils variants typinfo fgl classes getopts \
       stdconvs sockets printer charset ucomplex fmtbcd \
       winevent video mouse keyboard \
-      sharemem exeinfo fpintres
+      sharemem exeinfo fpintres \
+      cpu
+# mmx
 #      fpcmemdll
 #     winsysut signals
-#     cpu mmx
 #     no cygwin so far
 #	initc
 

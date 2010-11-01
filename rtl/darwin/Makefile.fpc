@@ -50,8 +50,10 @@ libunits=$(SYSTEMUNIT) objpas strings \
 [prerules]
 ifeq ($(CPU_TARGET),i386)
 CPU_UNITS=mmx cpu
-else
-CPU_UNITS=
+endif
+
+ifeq ($(ARCH),x86_64)
+CPU_UNITS=cpu
 endif
 
 RTL=..
@@ -255,7 +257,11 @@ keyboard$(PPUEXT) : $(SYSTEMUNIT)$(PPUEXT) $(INC)/keyboard.inc $(INC)/keybrdh.in
 
 matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
 
+ifeq ($(ARCH),x86_64)
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
+else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
+endif
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 
