@@ -223,7 +223,7 @@ end;
                               Misc Functions
 ****************************************************************************}
 
-Procedure SysBeep;
+Procedure Beep;
 begin
 end;
 
