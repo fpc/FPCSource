@@ -731,11 +731,11 @@ implementation
             ((Torddef(node.resultdef).low>Torddef(def).low) or (Torddef(node.resultdef).high<Torddef(def).high)) then
            case node.nodetype of
              addn:
-               cgmessage1(type_h_convert_add_operands_to_prevent_overflow,def.gettypename);
+               cgmessage1(type_h_convert_add_operands_to_prevent_overflow,def.typename);
              subn:
-               cgmessage1(type_h_convert_sub_operands_to_prevent_overflow,def.gettypename);
+               cgmessage1(type_h_convert_sub_operands_to_prevent_overflow,def.typename);
              muln:
-               cgmessage1(type_h_convert_mul_operands_to_prevent_overflow,def.gettypename);
+               cgmessage1(type_h_convert_mul_operands_to_prevent_overflow,def.typename);
            end;
       end;
 
@@ -1308,7 +1308,7 @@ implementation
              result:=cordconstnode.create(fcc,u32inttype,false);
            end
          else
-           CGMessage2(type_e_illegal_type_conversion,left.resultdef.GetTypeName,resultdef.GetTypeName);
+           CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
       end;
 
 
@@ -1880,7 +1880,7 @@ implementation
                          if assigned(hdef) then
                            inserttypeconv_internal(left,hdef)
                          else
-                           CGMessage2(type_e_illegal_type_conversion,left.resultdef.GetTypeName,resultdef.GetTypeName);
+                           CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
                        end;
 
                      { check if the result could be in a register }
@@ -1976,7 +1976,7 @@ implementation
                                  (left.nodetype=derefn)
                                 )
                                ) then
-                           CGMessage2(type_e_illegal_type_conversion,left.resultdef.GetTypeName,resultdef.GetTypeName);
+                           CGMessage2(type_e_illegal_type_conversion,left.resultdef.typename,resultdef.typename);
                        end;
                    end
                   else

@@ -720,7 +720,7 @@ implementation
                        indexdef:=def;
                     end
                   else
-                    Message1(parser_e_type_cant_be_used_in_array_index,def.GetTypeName);
+                    Message1(parser_e_type_cant_be_used_in_array_index,def.typename);
                 end;
               else
                 Message(sym_e_error_in_type_def);

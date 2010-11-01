@@ -731,7 +731,7 @@ implementation
                begin
                  if compare_defs(def,p.propdef,nothingn)<te_equal then
                    begin
-                     message2(parser_e_implements_must_have_correct_type,def.GetTypeName,p.propdef.GetTypeName);
+                     message2(parser_e_implements_must_have_correct_type,def.typename,p.propdef.typename);
                      exit;
                    end;
                end
@@ -742,13 +742,13 @@ implementation
                    begin
                      if compare_defs(ImplIntf.IntfDef,def,nothingn)<te_equal then
                        begin
-                         message2(parser_e_implements_must_have_correct_type,ImplIntf.IntfDef.GetTypeName,def.GetTypeName);
+                         message2(parser_e_implements_must_have_correct_type,ImplIntf.IntfDef.typename,def.typename);
                          exit;
                        end;
                    end
                  else
                    begin
-                     message2(parser_e_class_doesnt_implement_interface,p.propdef.GetTypeName,def.GetTypeName);
+                     message2(parser_e_class_doesnt_implement_interface,p.propdef.typename,def.typename);
                      exit;
                    end;
                end
@@ -819,7 +819,7 @@ implementation
                    end;
                end
              else
-               message1(parser_e_implements_uses_non_implemented_interface,def.GetTypeName);
+               message1(parser_e_implements_uses_non_implemented_interface,def.typename);
          end;
 
          { remove temporary procvardefs }

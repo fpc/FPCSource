@@ -502,7 +502,7 @@ implementation
         { stop when there are no operators found }
         if candidates.count=0 then
           begin
-            CGMessage2(parser_e_operator_not_overloaded_2,ld.gettypename,arraytokeninfo[optoken].str);
+            CGMessage2(parser_e_operator_not_overloaded_2,ld.typename,arraytokeninfo[optoken].str);
             candidates.free;
             ppn.free;
             t:=cnothingnode.create;
@@ -520,7 +520,7 @@ implementation
         { exit when no overloads are found }
         if cand_cnt=0 then
           begin
-            CGMessage2(parser_e_operator_not_overloaded_2,ld.gettypename,arraytokeninfo[optoken].str);
+            CGMessage2(parser_e_operator_not_overloaded_2,ld.typename,arraytokeninfo[optoken].str);
             candidates.free;
             ppn.free;
             t:=cnothingnode.create;
@@ -666,7 +666,7 @@ implementation
         { exit when no overloads are found }
         if cand_cnt=0 then
           begin
-            CGMessage3(parser_e_operator_not_overloaded_3,ld.gettypename,arraytokeninfo[optoken].str,rd.gettypename);
+            CGMessage3(parser_e_operator_not_overloaded_3,ld.typename,arraytokeninfo[optoken].str,rd.typename);
             candidates.free;
             ppn.free;
             t:=cnothingnode.create;

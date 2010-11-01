@@ -871,7 +871,7 @@ implementation
                         result:=cerrornode.create;
                         hloopvar.free;
                         hloopbody.free;
-                        MessagePos1(expr.fileinfo,sym_e_no_enumerator_move,pd.returndef.GetTypeName);
+                        MessagePos1(expr.fileinfo,sym_e_no_enumerator_move,pd.returndef.typename);
                       end
                     else
                       begin
@@ -881,7 +881,7 @@ implementation
                             result:=cerrornode.create;
                             hloopvar.free;
                             hloopbody.free;
-                            MessagePos1(expr.fileinfo,sym_e_no_enumerator_current,pd.returndef.GetTypeName);
+                            MessagePos1(expr.fileinfo,sym_e_no_enumerator_current,pd.returndef.typename);
                           end
                         else
                           result:=create_enumerator_for_in_loop(hloopvar, hloopbody, expr, pd, movenext, current);
@@ -898,7 +898,7 @@ implementation
                         result:=cerrornode.create;
                         hloopvar.free;
                         hloopbody.free;
-                        MessagePos1(expr.fileinfo,sym_e_no_enumerator,expr.resultdef.GetTypeName);
+                        MessagePos1(expr.fileinfo,sym_e_no_enumerator,expr.resultdef.typename);
                       end;
                     end;
                   end;
