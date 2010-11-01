@@ -217,11 +217,6 @@ end;
                               File Functions
 ****************************************************************************}
 
-var
-  SetFilePointerEx : function(hFile : THandle;
-    liDistanceToMove : int64;lpNewFilePointer : pint64;
-    dwMoveMethod : DWord) : ByteBool;stdcall;
-
 Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
 const
   AccessMode: array[0..2] of Cardinal  = (
