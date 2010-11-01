@@ -2803,13 +2803,6 @@ implementation
                      end;
                    typecheckpass(hpp);
 
-                   if not((hpp.resultdef.typ=orddef) and
-{$ifndef cpu64bitaddr}
-                          (torddef(hpp.resultdef).ordtype=u32bit)) then
-{$else not cpu64bitaddr}
-                          (torddef(hpp.resultdef).ordtype=u64bit)) then
-{$endif not cpu64bitaddr}
-                     inserttypeconv_internal(hpp,sinttype);
                    { make sure we don't call functions part of the left node twice (and generally }
                    { optimize the code generation)                                                }
                    if node_complexity(tcallparanode(left).left) > 1 then
