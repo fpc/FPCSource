@@ -9538,7 +9538,7 @@
     opcode  : A_CMPXCHG16B;
     ops     : 1;
     optypes : (ot_memory,ot_none,ot_none);
-    code    : #208#211#2#15#199#129;
+    code    : #214#2#15#199#129;
     flags   : if_x86_64
   ),
   (
