@@ -30,9 +30,16 @@ destructor TThread.Destroy;
 begin
   if FHandle<>0 then
     begin
-      if not FFinished and not Suspended then
+      { Don't check Suspended. If the thread has been externally suspended (which is
+        deprecated and strongly discouraged), it's better to deadlock here than
+        to silently free the object and leave OS resources leaked. }
+      if not FFinished {and not Suspended} then
         begin
           Terminate;
+          { Allow the thread function to perform the necessary cleanup. Since
+            we've just set Terminated flag, it won't call Execute. }
+          if FInitialSuspended then
+            Start;
           WaitFor;
         end;
       CloseHandle(FHandle);

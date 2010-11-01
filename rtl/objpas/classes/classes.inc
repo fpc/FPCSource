@@ -90,7 +90,11 @@ function ThreadProc(ThreadObjPtr: Pointer): PtrInt;
     //  will call the AfterConstruction method in all cases)
 //    Thread.Suspend;
     try
-      Thread.Execute;
+      { The thread may be already terminated at this point, e.g. if it was intially
+        suspended, or if it wasn't ever scheduled for execution for whatever reason.
+        So bypass user code if terminated. }
+      if not Thread.Terminated then
+        Thread.Execute;
     except
       Thread.FFatalException := TObject(AcquireExceptionObject);
     end;
