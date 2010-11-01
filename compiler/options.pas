@@ -1043,11 +1043,12 @@ begin
                        end;
                      'w' :
                        begin
-                         if (j<length(more)) and (more[j+1] in ['2','3']) then
+                         if (j<length(more)) and (more[j+1] in ['2','3','4']) then
                            begin
                              case more[j+1] of
                                '2': paratargetdbg:=dbg_dwarf2;
                                '3': paratargetdbg:=dbg_dwarf3;
+                               '4': paratargetdbg:=dbg_dwarf4;
                              end;
                              inc(j);
                            end

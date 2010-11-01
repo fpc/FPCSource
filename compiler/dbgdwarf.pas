@@ -79,6 +79,14 @@ interface
         DW_TAG_namespace := $39,DW_TAG_imported_module := $3a,
         DW_TAG_unspecified_type := $3b,DW_TAG_partial_unit := $3c,
         DW_TAG_imported_unit := $3d,
+        DW_TAG_condition := $3f,
+        DW_TAG_shared_type := $40,
+
+        { DWARF 4 }
+        DW_TAG_type_unit := $41,
+        DW_TAG_rvalue_reference_type := $42,
+        DW_TAG_template_alias := $43,
+
 
         { SGI/MIPS Extensions.   }
         DW_TAG_MIPS_loop := $4081,
@@ -99,7 +107,8 @@ interface
 
         { PGI (STMicroelectronics) extensions.  No documentation available.   }
         DW_TAG_PGI_kanji_type := $A000,
-        DW_TAG_PGI_interface_block := $A020);
+        DW_TAG_PGI_interface_block := $A020
+      );
 
 {$notes off}
       { Attribute names and codes.   }
@@ -142,6 +151,30 @@ interface
         DW_AT_extension := $54,DW_AT_ranges := $55,
         DW_AT_trampoline := $56,DW_AT_call_column := $57,
         DW_AT_call_file := $58,DW_AT_call_line := $59,
+        DW_AT_description := $5a,     { string }
+        DW_AT_binary_scale := $5b,    { constant }
+        DW_AT_decimal_scale := $5c,   { constant }
+        DW_AT_small := $5d,           { reference }
+        DW_AT_decimal_sign := $5e,    { constant }
+        DW_AT_digit_count := $5f,     { constant }
+        DW_AT_picture_string := $60,  { string }
+        DW_AT_mutable := $61,         { flag }
+        DW_AT_threads_scaled := $62,  { flag }
+        DW_AT_explicit := $63,        { flag }
+        DW_AT_object_pointer := $64,  { reference }
+        DW_AT_endianity := $65,       { constant }
+        DW_AT_elemental := $66,       { flag }
+        DW_AT_pure := $67,            { flag }
+        DW_AT_recursive := $68,       { flag }
+
+        { DWARF 4 values }
+        DW_AT_signature := $69,       { reference }
+        DW_AT_main_subprogram := $6a, { flag }
+        DW_AT_data_bit_offset := $6b, { constant }
+        DW_AT_const_expr := $6c,      { flag }
+        DW_AT_enum_class := $6d,      { flag }
+        DW_AT_linkage_name := $6e,    { string }
+
 
         { SGI/MIPS extensions.   }
         DW_AT_MIPS_fde := $2001,DW_AT_MIPS_loop_begin := $2002,
@@ -179,10 +212,10 @@ interface
         DW_AT_PGI_soffset := $3a01,DW_AT_PGI_lstride := $3a02,
 
         { Apple extensions }
-        DW_AT_APPLE_optimized = $3fe1,
-        DW_AT_APPLE_flags = $3fe2,
-        DW_AT_APPLE_major_runtime_vers = $3fe5,
-        DW_AT_APPLE_runtime_class = $3fe6
+        DW_AT_APPLE_optimized := $3fe1,
+        DW_AT_APPLE_flags := $3fe2,
+        DW_AT_APPLE_major_runtime_vers := $3fe5,
+        DW_AT_APPLE_runtime_class := $3fe6
       );
 {$notes on}
 
@@ -197,7 +230,14 @@ interface
         DW_FORM_ref_addr := $10,DW_FORM_ref1 := $11,
         DW_FORM_ref2 := $12,DW_FORM_ref4 := $13,
         DW_FORM_ref8 := $14,DW_FORM_ref_udata := $15,
-        DW_FORM_indirect := $16);
+        DW_FORM_indirect := $16,
+
+        { DWARF 4 }
+        DW_FORM_sec_offset := $17,   { lineptr, loclistptr, macptr, rangelistptr }
+        DW_FORM_exprloc := $18,      { exprloc }
+        DW_FORM_flag_present := $19, { flag }
+        DW_FORM_ref_sig8 := $20      { reference }
+        );
 
       TDwarfFile = record
         Index: integer;
@@ -377,6 +417,13 @@ interface
       public
         function  dwarf_version: Word; override;
       end;
+
+
+      TDebugInfoDwarf4 = class(TDebugInfoDwarf3)
+      public
+        function  dwarf_version: Word; override;
+      end;
+
 
 implementation
 
@@ -3955,6 +4002,13 @@ implementation
       end;
 
 
+    { TDebugInfoDwarf4 }
+
+    function TDebugInfoDwarf4.dwarf_version: Word;
+    begin
+      Result:=4;
+    end;
+
 
 {****************************************************************************
 ****************************************************************************}
@@ -3971,7 +4025,16 @@ implementation
            idtxt  : 'DWARF3';
          );
 
+      dbg_dwarf4_info : tdbginfo =
+         (
+           id     : dbg_dwarf4;
+           idtxt  : 'DWARF4';
+         );
+
+
 initialization
   RegisterDebugInfo(dbg_dwarf2_info,TDebugInfoDwarf2);
   RegisterDebugInfo(dbg_dwarf3_info,TDebugInfoDwarf3);
+  RegisterDebugInfo(dbg_dwarf4_info,TDebugInfoDwarf4);
+
 end.

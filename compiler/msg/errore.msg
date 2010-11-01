@@ -3094,6 +3094,7 @@ S*2Aas_Assemble using GNU AS
 *g2gw_Generate DWARFv2 debug information (same as -gw2)
 *g2gw2_Generate DWARFv2 debug information
 *g2gw3_Generate DWARFv3 debug information
+*g2gw4_Generate DWARFv4 debug information (experimental)
 **1i_Information
 **2iD_Return compiler date
 **2iV_Return short compiler version
