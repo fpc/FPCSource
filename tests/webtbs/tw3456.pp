@@ -14,7 +14,7 @@ uses
   SysUtils;
 
 const
-{$if defined(cpusparc) or defined(cpuarm)}
+{$if defined(cpusparc) or defined(cpuarm) or defined(go32v2)}
   loopcnt = 10000;
 {$else}
   loopcnt = 1000000;
