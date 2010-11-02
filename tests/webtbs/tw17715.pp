@@ -40,6 +40,8 @@ begin
   if (TLevelsRec(id).level1 <> 1) then raise Exception.Create('level1 bad');
   if (TLevelsRec(id).level2 <> 0) then raise Exception.Create('level2 bad');
   if (TLevelsRec(id).level3 <> 3) then raise Exception.Create('level3 bad');
+  if IntToBin(TLevelsRec(id).level3, 26)<> '00000000000000000000000011' then
+    raise Exception.Create('level3 bad in IntToBin call');
   if (TLevelsRec(id).level4 <> 4) then raise Exception.Create('level4 bad');
 
   writeln(StringOfChar('-', 32));
@@ -57,6 +59,8 @@ begin
   if (TLevelsRec(id).level1 <> 1) then raise Exception.Create('level1 bad');
   if (TLevelsRec(id).level2 <> 2) then raise Exception.Create('level2 bad');
   if (TLevelsRec(id).level3 <> 3) then raise Exception.Create('level3 bad');
+  if IntToBin(TLevelsRec(id).level3, 26)<> '00000000000000000000000011' then
+    raise Exception.Create('level3 bad in IntToBin call');
   if (TLevelsRec(id).level4 <> 4) then raise Exception.Create('level4 bad');
 
 end.
