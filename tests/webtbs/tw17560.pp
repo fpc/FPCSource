@@ -4,7 +4,11 @@
 
 {$ifdef fpc}{$mode objfpc}{$endif}
 
-uses SysUtils, Classes;
+uses
+{$ifdef unix}
+  cthreads,
+{$endif}
+  SysUtils, Classes;
 
 type
   TMyThread = class(TThread)
