@@ -771,13 +771,13 @@ begin
       StrUpperAnsiStringProc:=@AnsiStrUpper;
       ThreadInitProc:=@InitThread;
       ThreadFiniProc:=@FiniThread;
-{$ifndef VER2_2}
       { Unicode }
       Unicode2AnsiMoveProc:=@Wide2AnsiMove;
       Ansi2UnicodeMoveProc:=@Ansi2WideMove;
       UpperUnicodeStringProc:=@UpperWideString;
       LowerUnicodeStringProc:=@LowerWideString;
-{$endif VER2_2}
+      CompareUnicodeStringProc:=@CompareWideString;
+      CompareTextUnicodeStringProc:=@CompareTextWideString;
     end;
   SetUnicodeStringManager(CWideStringManager);
 end;
