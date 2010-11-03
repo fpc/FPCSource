@@ -1101,10 +1101,12 @@ begin
     vaNil:
       begin
         Result:=system.unassigned;
+        readvalue;
       end;
     vaNull:
       begin
         Result:=system.null;
+        readvalue;
       end;
     { all integer sizes must be split for big endian systems }
     vaInt8,vaInt16,vaInt32:
