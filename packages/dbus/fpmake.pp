@@ -22,7 +22,7 @@ begin
     P.License := 'Library: GPL2 or later, header: LGPL with modification, ';
     P.HomepageURL := 'www.freepascal.org';
     P.Email := '';
-    P.Description := 'D-Bus message bus interface. (Pre 1.0?)';
+    P.Description := 'D-Bus message bus interface. (1.2.16)';
     P.NeedLibC:= true;
 
     P.SourcePath.Add('src');
@@ -46,6 +46,7 @@ begin
           AddInclude('dbus-server.inc');
           AddInclude('dbus-signature.inc');
           AddInclude('dbus-threads.inc');
+          AddInclude('dbus-misc.inc');
         end;
 
     P.ExamplePath.Add('examples');

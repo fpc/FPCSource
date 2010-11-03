@@ -1505,6 +1505,7 @@ packages/dbus/src/dbus-errors.inc svneol=native#text/plain
 packages/dbus/src/dbus-macros.inc svneol=native#text/plain
 packages/dbus/src/dbus-memory.inc svneol=native#text/plain
 packages/dbus/src/dbus-message.inc svneol=native#text/plain
+packages/dbus/src/dbus-misc.inc svneol=native#text/plain
 packages/dbus/src/dbus-pending-call.inc svneol=native#text/plain
 packages/dbus/src/dbus-protocol.inc svneol=native#text/plain
 packages/dbus/src/dbus-server.inc svneol=native#text/plain

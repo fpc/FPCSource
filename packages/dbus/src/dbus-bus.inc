@@ -32,6 +32,7 @@ function dbus_bus_set_unique_name(connection: PDBusConnection;
 function dbus_bus_get_unique_name(connection: PDBusConnection): PChar; cdecl; external LibDBus;
 function dbus_bus_get_unix_user(connection: PDBusConnection;
  const name: PChar; error: PDBusError): culong; cdecl; external LibDBus;
+function dbus_bus_get_id(connection: PDBusConnection; error: PDBusError): PChar; cdecl; external LibDBus;
 function dbus_bus_request_name(connection: PDBusConnection;
  const name: PChar; flags: cuint; error: PDBusError): cint; cdecl; external LibDBus;
 function dbus_bus_release_name(connection: PDBusConnection;
@@ -48,5 +49,4 @@ procedure dbus_bus_add_match(connection: PDBusConnection;
 procedure dbus_bus_remove_match(connection: PDBusConnection;
  const rule: PChar; error: PDBusError); cdecl; external LibDBus;
 
-procedure _dbus_bus_check_connection_and_unref (connection: PDBusConnection); cdecl; external LibDBus;
 
