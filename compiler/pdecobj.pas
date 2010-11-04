@@ -650,6 +650,8 @@ implementation
                        current_objectdef.symtable.currentvisibility:=vis_private;
                        include(current_objectdef.objectoptions,oo_has_private);
                        fields_allowed:=true;
+                       is_classdef:=false;
+                       classfields:=false;
                        object_member_blocktype:=bt_general;
                      end;
                    _PROTECTED :
@@ -661,6 +663,8 @@ implementation
                        current_objectdef.symtable.currentvisibility:=vis_protected;
                        include(current_objectdef.objectoptions,oo_has_protected);
                        fields_allowed:=true;
+                       is_classdef:=false;
+                       classfields:=false;
                        object_member_blocktype:=bt_general;
                      end;
                    _PUBLIC :
@@ -671,6 +675,8 @@ implementation
                        consume(_PUBLIC);
                        current_objectdef.symtable.currentvisibility:=vis_public;
                        fields_allowed:=true;
+                       is_classdef:=false;
+                       classfields:=false;
                        object_member_blocktype:=bt_general;
                      end;
                    _PUBLISHED :
@@ -687,6 +693,8 @@ implementation
                        consume(_PUBLISHED);
                        current_objectdef.symtable.currentvisibility:=vis_published;
                        fields_allowed:=true;
+                       is_classdef:=false;
+                       classfields:=false;
                        object_member_blocktype:=bt_general;
                      end;
                    _STRICT :
@@ -717,6 +725,8 @@ implementation
                         else
                           message(parser_e_protected_or_private_expected);
                         fields_allowed:=true;
+                        is_classdef:=false;
+                        classfields:=false;
                         object_member_blocktype:=bt_general;
                      end
                     else
