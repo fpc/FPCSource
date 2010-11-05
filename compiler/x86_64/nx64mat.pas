@@ -93,7 +93,9 @@ implementation
                   {If the left value is signed, hreg2=$ffffffff, otherwise 0.}
                   emit_const_reg(A_SAR,S_Q,63,hreg2);
                   {If signed, hreg2=right value-1, otherwise 0.}
-                  emit_const_reg(A_AND,S_Q,tordconstnode(right).value-1,hreg2);
+                  { (don't use emit_const_reg, because if value>high(longint)
+                     then it must first be loaded into a register) }
+                  cg.a_op_const_reg(current_asmdata.CurrAsmList,OP_AND,OS_S64,tordconstnode(right).value-1,hreg2);
                   { add to the left value }
                   emit_reg_reg(A_ADD,S_Q,hreg2,hreg1);
                   { do the shift }
