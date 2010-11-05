@@ -1440,6 +1440,8 @@ begin
     (e.g. in Constants) }
   if Assigned(VarType) then
     VarType.Release;
+  if Assigned(Expr) then
+    Expr.Release;
   inherited Destroy;
 end;
 
