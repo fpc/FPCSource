@@ -818,6 +818,7 @@ begin
             writeln('new alias ',clname,' (',s,') ');
             cl2.addref;
             Result := TPasAliasType(CreateElement(TPasAliasType,s,module.interfacesection,vispublic,'',0));
+            module.interfacesection.Declarations.Add(Result);
             TPasAliasType(Result).DestType := cl2;
           end
       end
@@ -856,7 +857,8 @@ end;
                  cls2:=ResolveAndLinkClass(clname,j=0,cls);
              end;
          end;
-end;
+    inhclass.free;
+   end;
 
   var
     s, Name: String;
