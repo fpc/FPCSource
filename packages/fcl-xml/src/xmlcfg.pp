@@ -21,7 +21,10 @@
 {$ifdef fpc}{$MODE objfpc}{$endif}
 {$H+}
 
-unit XMLCfg;
+{ This unit is deprecated because it doesn't work well with non-ascii data.
+  Attempts to change its behavior will likely cause problems with existing
+  config files, so it is superseded altogether by xmlconf unit. }
+unit XMLCfg deprecated;
 
 interface
 
