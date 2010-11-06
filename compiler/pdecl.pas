@@ -298,6 +298,8 @@ implementation
                         insertbssdata(tstaticvarsym(labelsym.jumpbuf));
                       end;
                     include(labelsym.jumpbuf.symoptions,sp_internal);
+                    { the buffer will be setup later, but avoid a hint }
+                    tabstractvarsym(labelsym.jumpbuf).varstate:=vs_written;
                   end;
                 consume(token);
              end;
