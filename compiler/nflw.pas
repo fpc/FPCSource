@@ -218,14 +218,14 @@ interface
        cbreaknode : tbreaknodeclass = tbreaknode;
        ccontinuenode : tcontinuenodeclass = tcontinuenode;
 
-// for-in loop helpers
-function create_type_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
-function create_string_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
-function create_array_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
-function create_set_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
-function create_enumerator_for_in_loop(hloopvar, hloopbody, expr: tnode;
-   enumerator_get, enumerator_move: tprocdef; enumerator_current: tpropertysym): tnode;
-function create_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
+    // for-in loop helpers
+    function create_type_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
+    function create_string_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
+    function create_array_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
+    function create_set_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
+    function create_enumerator_for_in_loop(hloopvar, hloopbody, expr: tnode;
+       enumerator_get, enumerator_move: tprocdef; enumerator_current: tpropertysym): tnode;
+    function create_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
 
 implementation
 
@@ -241,7 +241,7 @@ implementation
       ;
 
 
-// for-in loop helpers
+    // for-in loop helpers
 
     function create_type_for_in_loop(hloopvar, hloopbody, expr: tnode): tnode;
       begin
