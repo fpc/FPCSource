@@ -115,10 +115,12 @@ Begin
         { Write pending buffer }
         If Textrec(t).Mode=fmoutput then
           FileFunc(TextRec(t).InOutFunc)(TextRec(t));
+{$ifdef FPC_HAS_FEATURE_CONSOLEIO}
         { Only close functions not connected to stdout.}
         If ((TextRec(t).Handle<>StdInputHandle) and
             (TextRec(t).Handle<>StdOutputHandle) and
             (TextRec(t).Handle<>StdErrorHandle)) Then
+{$endif FPC_HAS_FEATURE_CONSOLEIO}
           FileFunc(TextRec(t).CloseFunc)(TextRec(t));
         TextRec(t).mode := fmClosed;
         { Reset buffer for safety }
@@ -1774,7 +1776,7 @@ end;
                                Initializing
 *****************************************************************************}
 
-procedure OpenStdIO(var f:text;mode,hdl:longint);
+procedure OpenStdIO(var f:text;mode:longint;hdl:thandle);
 begin
   Assign(f,'');
   TextRec(f).Handle:=hdl;
