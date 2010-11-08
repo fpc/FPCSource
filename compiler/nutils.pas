@@ -1151,10 +1151,16 @@ implementation
           vecn:
             result:=
               is_packed_array(tvecnode(n).left.resultdef) and
+              { only orddefs and enumdefs are actually bitpacked. Don't consider
+                e.g. an access to a 3-byte record as "bitpacked", since it
+                isn't }
+              (tvecnode(n).left.resultdef.typ in [orddef,enumdef]) and
               not(tarraydef(tvecnode(n).left.resultdef).elepackedbitsize in [8,16,32,64]);
           subscriptn:
             result:=
               is_packed_record_or_object(tsubscriptnode(n).left.resultdef) and
+              { see above }
+              (tsubscriptnode(n).vs.vardef.typ in [orddef,enumdef]) and
               (not(tsubscriptnode(n).vs.vardef.packedbitsize in [8,16,32,64]) or
                (tsubscriptnode(n).vs.fieldoffset mod 8 <> 0));
           else
