@@ -84,7 +84,11 @@
         FileClose(fd);
       end
     else
-      Result:=fd;
+  {$ifdef HAS_OSERROR}
+      Result:=GetLastOSError;
+  {$else}
+      Result:=-1;
+  {$endif}
   end;
   {$endif}
 
