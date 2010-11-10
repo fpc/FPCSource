@@ -134,6 +134,9 @@ BEGIN {
     use_mingw=1
     }
   }
+  if ( list[i] ~ /-D__USE_MINGW_/ ) {
+    use_mingw=1
+  }
   if ( list[i] ~ /lib[^ ]*\.so/ ) {
     dynamiclib = gensub (/([^ ]*)(lib[^ ]*\.so)/,"{$LINKLIB \\2} { found in \\1 }","g",list[i]);
     librarypath = gensub (/([^ ]*)(lib[^ ]*\.so)/,"{$LIBRARYPATH \\1} { for \\2 }","g",list[i]);
