@@ -7514,6 +7514,13 @@ tests/test/units/sysutils/*.s
 tests/test/units/sysutils/fpcmade.*
 tests/test/units/sysutils/units
 tests/test/units/units
+tests/test/units/variants/*.bak
+tests/test/units/variants/*.exe
+tests/test/units/variants/*.o
+tests/test/units/variants/*.ppu
+tests/test/units/variants/*.s
+tests/test/units/variants/fpcmade.*
+tests/test/units/variants/units
 tests/units/*-stamp.*
 tests/units/*.bak
 tests/units/*.exe
