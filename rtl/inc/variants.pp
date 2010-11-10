@@ -3548,13 +3548,31 @@ function FindCustomVariantType(const aVarType: TVarType; out CustomVariantType: 
   end;
 
 
-{$warnings off}
 function FindCustomVariantType(const TypeName: string;  out CustomVariantType: TCustomVariantType): Boolean; overload;
-
-begin
-  NotSupported('FindCustomVariantType');
-end;
-{$warnings on}
+  var
+    i: Integer;
+    tmp: TCustomVariantType;
+    ShortTypeName: shortstring;
+  begin
+    ShortTypeName:=TypeName;  // avoid conversion in the loop
+    result:=False;
+    EnterCriticalSection(customvarianttypelock);
+    try
+      for i:=low(customvarianttypes) to high(customvarianttypes) do
+        begin
+          tmp:=customvarianttypes[i];
+          result:=Assigned(tmp) and (tmp<>InvalidCustomVariantType) and
+            tmp.ClassNameIs(ShortTypeName);
+          if result then
+            begin
+              CustomVariantType:=tmp;
+              Exit;
+            end;
+        end;
+    finally
+      LeaveCriticalSection(customvarianttypelock);
+    end;
+  end;
 
 function Unassigned: Variant; // Unassigned standard constant
 begin
@@ -3569,30 +3587,37 @@ function Null: Variant;       // Null standard constant
     TVarData(Result).vType := varNull;
   end;
 
+procedure VarDispInvokeError;
+  begin
+    raise EVariantDispatchError(SDispatchError);
+  end;
 
 { ---------------------------------------------------------------------
     TCustomVariantType Class.
   ---------------------------------------------------------------------}
 
-{$warnings off}
+{ All TCustomVariantType descendants are singletons, they ignore automatic refcounting. }
 function TCustomVariantType.QueryInterface({$IFDEF FPC_HAS_CONSTREF}constref{$ELSE}const{$ENDIF} IID: TGUID; out Obj): HResult;  {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   begin
-    NotSupported('TCustomVariantType.QueryInterface');
+    if GetInterface(IID, obj) then
+      result := S_OK
+    else
+      result := E_NOINTERFACE;
   end;
 
 
 function TCustomVariantType._AddRef: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   begin
-    NotSupported('TCustomVariantType._AddRef');
+    result := -1;
   end;
 
 
 function TCustomVariantType._Release: Integer; {$IFNDEF WINDOWS}cdecl{$ELSE}stdcall{$ENDIF};
   begin
-    NotSupported('TCustomVariantType._Release');
+    result := -1;
   end;
 
-
+{$warnings off}
 procedure TCustomVariantType.SimplisticClear(var V: TVarData);
   begin
     NotSupported('TCustomVariantType.SimplisticClear');
@@ -3607,20 +3632,19 @@ end;
 
 procedure TCustomVariantType.RaiseInvalidOp;
 begin
-  NotSupported('TCustomVariantType.RaiseInvalidOp');
+  VarInvalidOp;
 end;
 
 
 procedure TCustomVariantType.RaiseCastError;
 begin
-  NotSupported('TCustomVariantType.RaiseCastError');
+  VarCastError;
 end;
 
 
 procedure TCustomVariantType.RaiseDispError;
-
 begin
-  NotSupported('TCustomVariantType.RaiseDispError');
+  VarDispInvokeError;
 end;
 
 
@@ -3649,7 +3673,7 @@ end;
 procedure TCustomVariantType.DispInvoke(Dest: PVarData; const Source: TVarData; CallDesc: PCallDesc; Params: Pointer);
 
 begin
-  NotSupported('TCustomVariantType.DispInvoke');
+  RaiseDispError;
 end;
 
 
@@ -3889,7 +3913,6 @@ end;
     TInvokeableVariantType implementation
   ---------------------------------------------------------------------}
 
-{$warnings off}
 procedure TInvokeableVariantType.DispInvoke(Dest: PVarData; const Source: TVarData; CallDesc: PCallDesc; Params: Pointer);
 
 begin
@@ -3899,27 +3922,30 @@ end;
 function TInvokeableVariantType.DoFunction(var Dest: TVarData; const V: TVarData; const Name: string; const Arguments: TVarDataArray): Boolean;
 
 begin
-  NotSupported('TInvokeableVariantType.DoFunction');
+  result := False;
 end;
 
 function TInvokeableVariantType.DoProcedure(const V: TVarData; const Name: string; const Arguments: TVarDataArray): Boolean;
 begin
-  NotSupported('TInvokeableVariantType.DoProcedure');
+  result := False
 end;
 
 
 function TInvokeableVariantType.GetProperty(var Dest: TVarData; const V: TVarData; const Name: string): Boolean;
   begin
-    NotSupported('TInvokeableVariantType.GetProperty');
+    result := False;
   end;
 
 
 function TInvokeableVariantType.SetProperty(const V: TVarData; const Name: string; const Value: TVarData): Boolean;
   begin
-    NotSupported('TInvokeableVariantType.SetProperty');
+    result := False;
   end;
-{$warnings on}
 
+
+{ ---------------------------------------------------------------------
+    TPublishableVariantType implementation
+  ---------------------------------------------------------------------}
 
 function TPublishableVariantType.GetProperty(var Dest: TVarData; const V: TVarData; const Name: string): Boolean;
   begin
