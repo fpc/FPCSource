@@ -4421,12 +4421,14 @@ implementation
                  tObjectSymtable(symtable).datasize:=align(tObjectSymtable(symtable).datasize,sizeof(pint));
                  tObjectSymtable(symtable).alignrecord(tObjectSymtable(symtable).datasize,sizeof(pint));
                end;
-
-             vmt_offset:=tObjectSymtable(symtable).datasize;
              vs:=tfieldvarsym.create('_vptr$'+objname^,vs_value,voidpointertype,[]);
              hidesym(vs);
              tObjectSymtable(symtable).insert(vs);
              tObjectSymtable(symtable).addfield(vs,vis_hidden);
+             if (tObjectSymtable(symtable).usefieldalignment<>bit_alignment) then
+               vmt_offset:=vs.fieldoffset
+             else
+               vmt_offset:=vs.fieldoffset div 8;
              include(objectoptions,oo_has_vmt);
           end;
      end;
