@@ -23,7 +23,7 @@ begin
     P.Email := '';
     P.Description := 'A OpenCL header';
     P.NeedLibC:= true;
-    P.OSes:=[win64,win32,darwin];
+    P.OSes:=[linux,win64,win32,darwin];
     P.CPUs:=[i386,x86_64];
 
     P.SourcePath.Add('src');
