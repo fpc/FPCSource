@@ -2473,8 +2473,10 @@ const
               else
                 begin
                   {In MacPas a single "external" has the same effect as "external name 'xxx'" }
+                  { but according to MacPas mode description
+                    Cprefix should still be used PM }
                   if (m_mac in current_settings.modeswitches) then
-                    result:=tprocdef(pd).procsym.realname;
+                    result:=target_info.Cprefix+tprocdef(pd).procsym.realname;
                 end;
             end;
           end;
