@@ -71,6 +71,7 @@ interface
            avoid endless resolving loops in case of cyclic dependencies. }
           defsgeneration : longint;
 
+          function  search_unit_files(onlysource:boolean):boolean;
           function  search_unit(onlysource,shortname:boolean):boolean;
           procedure load_interface;
           procedure load_implementation;
@@ -259,6 +260,21 @@ var
       end;
 
 
+    function tppumodule.search_unit_files(onlysource:boolean):boolean;
+      var
+        found : boolean;
+      begin
+        found:=false;
+        if search_unit(onlysource,false) then
+          found:=true;
+        if (not found) and
+           (length(modulename^)>8) and
+           search_unit(onlysource,true) then
+          found:=true;
+        search_unit_files:=found;
+      end;
+
+
     function tppumodule.search_unit(onlysource,shortname:boolean):boolean;
       var
          singlepathstring,
@@ -421,18 +437,6 @@ var
            fnd:=SearchPathList(loaded_from.LocalUnitSearchPath);
          if not fnd then
            fnd:=SearchPathList(UnitSearchPath);
-
-         { try to find a file with the first 8 chars of the modulename, like
-           dos }
-         if (not fnd) and (length(filename)>8) then
-          begin
-            filename:=copy(filename,1,8);
-            fnd:=SearchPath('.');
-            if (not fnd) then
-             fnd:=SearchPathList(LocalUnitSearchPath);
-            if not fnd then
-             fnd:=SearchPathList(UnitSearchPath);
-          end;
          search_unit:=fnd;
       end;
 
@@ -1579,7 +1583,7 @@ var
            if not do_compile then
             begin
               Message1(unit_u_loading_unit,modulename^);
-              search_unit(false,false);
+              search_unit_files(false);
               if not do_compile then
                begin
                  load_interface;
@@ -1606,9 +1610,7 @@ var
               { recompile the unit or give a fatal error if sources not available }
               if not(sources_avail) then
                begin
-                 if (not search_unit(true,false)) and
-                    (length(modulename^)>8) then
-                   search_unit(true,true);
+                 search_unit_files(true);
                  if not(sources_avail) then
                   begin
                     printcomments;
