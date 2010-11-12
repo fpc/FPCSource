@@ -306,7 +306,9 @@ var
               { Check for .pas }
               Found:=UnitExists(pasext,hs);
             end;
-           if not Found and (m_mac in current_settings.modeswitches) then
+           if not Found and
+              ((m_mac in current_settings.modeswitches) or
+               (tf_p_ext_support in target_info.flags)) then
             begin
               { Check for .p, if mode is macpas}
               Found:=UnitExists(pext,hs);
@@ -393,7 +395,9 @@ var
                  Message1(unit_t_unitsearch,ChangeFileExt(sourcefn^,pasext));
                fnd:=FindFile(ChangeFileExt(sourcefn^,pasext),'',true,hs);
              end;
-            if not fnd and ((m_mac in current_settings.modeswitches) or (tf_p_ext_support in target_info.flags)) then
+            if not fnd and
+               ((m_mac in current_settings.modeswitches) or
+                (tf_p_ext_support in target_info.flags)) then
              begin
                if CheckVerbosity(V_Tried) then
                  Message1(unit_t_unitsearch,ChangeFileExt(sourcefn^,pext));
