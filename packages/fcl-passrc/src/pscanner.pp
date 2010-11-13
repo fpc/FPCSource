@@ -501,8 +501,12 @@ begin
     if BaseDirectory<>'' then
       begin
       FN:=SearchLowUpCase(BaseDirectory+AName);
-      If (FN<>'') then
+	  try
+      If (FN<>'') then   
         Result := TFileLineReader.Create(FN);
+      except 
+        Result:=nil;
+        end;		
       end;
     end;
 end;
