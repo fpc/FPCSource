@@ -124,3 +124,8 @@ begin
   semctl:=ipccall(CALL_SEMCTL,semid,semnum,cmd,@arg,0);
 end;
 
+Function semtimedop(semid:cint; sops: psembuf; nsops: cuint; timeOut: ptimespec): cint;
+begin
+  semtimedop:=ipccall(CALL_SEMTIMEDOP,semid,culong(nsops),culong(0),Pointer(sops),clong(timeOut));
+end;
+

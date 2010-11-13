@@ -550,6 +550,9 @@ Type
 Function semget(key:Tkey; nsems:cint; semflg:cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'semget'; {$endif}
 Function semop(semid:cint; sops: psembuf; nsops: cuint): cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'semop'; {$endif}
 Function semctl(semid:cint; semnum:cint; cmd:cint; var arg: tsemun): cint;
+{$ifdef linux}
+Function semtimedop(semid:cint; sops: psembuf; nsops: cuint; timeOut: ptimespec): cint; platform; {$ifdef FPC_USE_LIBC} cdecl; external name 'semtimedop'; {$endif}
+{$endif}
 
 implementation
 

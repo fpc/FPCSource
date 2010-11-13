@@ -81,5 +81,9 @@ begin
   semctl:=do_syscall(syscall_nr_SEMCTL,TSysParam(semid),TSysParam(semnum),TSysParam(cmd),TSysParam(arg));
 end;
 
+Function semtimedop(semid:cint; sops: psembuf; nsops: cuint; timeOut: ptimespec): cint;
+begin
+  semtimedop:=do_syscall( syscall_nr_SEMTIMEDOP,TSysParam(semid),TSysParam(sops),TSysParam(nsops),TSysParam(timeOut));
+end;
 
 
