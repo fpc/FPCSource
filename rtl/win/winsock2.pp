@@ -992,7 +992,7 @@ Type
                 iAddressFamily: Longint;
                 iProtocol: Longint;
         end {AFPROTOCOLS};
-        PAFProtocols = TAFProtocols;
+        PAFProtocols = ^TAFProtocols;
 
 {       Client Query API Typedefs }
 
