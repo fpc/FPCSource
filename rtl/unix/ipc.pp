@@ -32,6 +32,8 @@ Uses
 //Var
 //  IPCError : longint;
 
+{$packrecords c}
+
 Type
 
    {$IFDEF FreeBSD}
@@ -76,6 +78,9 @@ Const
 
 type
   PIPC_Perm = ^TIPC_Perm;
+{$ifdef darwin}
+{$packrecords 4}
+{$endif}
 {$if defined(FreeBSD) or defined(Darwin)}
   TIPC_Perm = record
         cuid  : cushort;  { creator user id }
@@ -86,32 +91,48 @@ type
         seq   : cushort;  { sequence # (to generate unique msg/sem/shm id) }
         key   : key_t;    { user specified msg/sem/shm key }
   End;
+{$ifdef darwin}
+{$packrecords c}
+{$endif}
 {$else} // linux
-{$ifdef cpux86_64}
+
+{$ifdef cpu32}
+  {$ifndef linux_ipc64}
+    {$define linux_ipc32}
+  {$endif}
+{$endif}
+
+{$if not defined(linux_ipc32) and not defined(FPC_USE_LIBC)}
   TIPC_Perm = record
         key   : TKey;
-        uid   : uid_t;
-        gid   : gid_t;
-        cuid  : uid_t;
-        cgid  : gid_t;
-        mode  : mode_t;
-        __pad1    : cushort;
+        uid   : kernel_uid_t;
+        gid   : kernel_gid_t;
+        cuid  : kernel_uid_t;
+        cgid  : kernel_gid_t;
+        mode  : kernel_mode_t;
+{$if sizeof(kernel_mode_t) < 4}
+        __pad1    : array[1..4-sizeof(mode_t)];
+{$endif}
+{$ifdef cpupowerpc}
+        seq       : cuint;
+{$else}
         seq       : cushort;
+{$endif}
         __pad2    : cushort;
         __unused1 : culong;
         __unused2 : culong;
   End;
-{$else cpux86_64}  
+{$else not(linux_ipc32) and not(FPC_USE_LIBC)}
   TIPC_Perm = record
         key   : TKey;
-        uid   : uid_t;
-        gid   : gid_t;
-        cuid  : uid_t;
-        cgid  : gid_t;
-        mode  : mode_t;
+        uid   : kernel_uid_t;
+        gid   : kernel_gid_t;
+        cuid  : kernel_uid_t;
+        cgid  : kernel_gid_t;
+        mode  : kernel_mode_t;
         seq   : cushort;
   End;
-{$endif cpux86_64}
+{$endif not(linux_ipc32) and not(FPC_USE_LIBC)}
 {$endif}
 
 
@@ -140,6 +161,7 @@ Type
 {$endif}
 
 {$ifdef Darwin}
+{$packrecords 4}
   TShmid_ds = record
     shm_perm  : TIPC_Perm;
     shm_segsz : size_t;
@@ -151,6 +173,7 @@ Type
     shm_ctime : time_t;
     shm_internal : pointer;
   end;
+{$packrecords c}
 {$endif}
 
 {$ifdef Linux}
@@ -298,6 +321,7 @@ type
   end;
 {$else}
   {$ifdef Darwin}
+{$packrecords 4}
      PMSQid_ds = ^TMSQid_ds;
      TMSQid_ds = record
        msg_perm   : TIPC_perm;
@@ -316,6 +340,7 @@ type
        msg_pad3   : cint32;
        msg_pad4   : array [0..3] of cint32;
      end;
+{$packrecords c}
   {$else}
      PMSQid_ds = ^TMSQid_ds;
      TMSQid_ds = record
@@ -370,7 +395,7 @@ type
 
 Function msgget(key: TKey; msgflg:cint):cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgget'; {$endif}
 Function msgsnd(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgflg:cint): cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgsnd'; {$endif}
-Function msgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:cint; msgflg:cint): {$ifdef Darwin}ssize_t;{$else}cint;{$endif} {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgrcv'; {$endif}
+Function msgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:clong; msgflg:cint): {$ifdef Darwin}ssize_t;{$else}cint;{$endif} {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgrcv'; {$endif}
 Function msgctl(msqid:cint; cmd: cint; buf: PMSQid_ds): cint; {$ifdef FPC_USE_LIBC} cdecl; external clib name 'msgctl'; {$endif}
 
 { ----------------------------------------------------------------------
@@ -413,10 +438,24 @@ const
 
 type
 {$ifdef Linux}
+
+{$ifndef linux_ipc32}
+ PSEMid_ds = ^TSEMid_ds;
+ TSEMid_ds = record
+   sem_perm  : tipc_perm;
+   sem_otime : time_t;   // kernel
+   unused1   : culong;
+   sem_ctime : time_t;
+   unused2   : culong;
+   sem_nsems : culong;
+   unused3   : culong;
+   unused4   : culong;
+  end;
+{$else not linux_ipc32}
   PSEMid_ds = ^TSEMid_ds;
   TSEMid_ds = record
     sem_perm : tipc_perm;
-    sem_otime : time_t;
+    sem_otime : time_t;   // kernel
     sem_ctime : time_t;
     sem_base         : pointer;
     sem_pending      : pointer;
@@ -424,7 +463,8 @@ type
     undo             : pointer;
     sem_nsems : cushort;
   end;
-{$else}
+{$endif not linux_ipc32}
+{$else Linux}
    {$ifdef Darwin}
      PSEM = ^TSEM;
      TSEM = record
@@ -433,11 +473,11 @@ type
        semncnt : cushort;
        semzcnt : cushort;
      end;
-     
+{$packrecords 4}
      PSEMid_ds = ^TSEMid_ds;
      TSEMid_ds = record
              sem_perm : tipc_perm;
-             sem_base : PSEM;
+             sem_base : cint32;
              sem_nsems : cushort;
              sem_otime : time_t;
              sem_pad1 : cint32;
@@ -445,7 +485,7 @@ type
              sem_pad2 : cint32;
              sem_pad3 : array[0..3] of cint32;
           end;
-
+{$packrecords c}
    {$else}
      PSEM = ^TSEM;
      TSEM = record end; // opague
@@ -533,7 +573,7 @@ Function real_semctl(semid:cint; semnum:cint; cmd:cint): cint; {$ifdef FPC_USE_L
 
 Function semctl(semid:cint; semnum:cint; cmd:cint; var arg: tsemun): cint;
   begin
-    semctl := real_semctl(semid,semnum,cmd,pointer(@arg));
+    semctl := real_semctl(semid,semnum,cmd,pointer(arg));
   end;
 {$endif}
 

@@ -140,6 +140,16 @@ type
    kernel_off_t = clong;
    kernel_loff_t = clonglong;
 
+{$if defined(cpu32) and not(defined(cpupowerpc)) and not(defined(cpumips)) and not defined(cpumipsel))}
+   kernel_mode_t = cushort;
+   kernel_uid_t = cushort;
+   kernel_gid_t = cushort;
+{$else}
+   kernel_mode_t = cuint;
+   kernel_uid_t = cuint;
+   kernel_gid_t = cuint;
+{$endif}
+
    FLock     = Record
                 l_type  : cshort;       { lock type: read/write, etc. }
                 l_whence: cshort;       { type of l_start }

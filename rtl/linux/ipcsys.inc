@@ -53,21 +53,12 @@ end;
 
 function msgsnd(msqid:cint; msgp: pmsgbuf; msgsz: size_t; msgflg:cint):cint;
 begin
-  msgsnd:=do_syscall(syscall_nr_MSGSND,TSysParam(msqid),TSysParam(msgsz),TSysParam(msgflg),TSysParam(msgp));
+  msgsnd:=do_syscall(syscall_nr_MSGSND,TSysParam(msqid),TSysParam(msgp),TSysParam(msgsz),TSysParam(msgflg));
 end;
 
-function msgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:cint; msgflg:cint):cint;
-Type
-  TIPC_Kludge = Record
-    msgp   : pmsgbuf;
-    msgtyp : cint;
-  end;
-Var
-   tmp : TIPC_Kludge;
+function msgrcv(msqid:cint; msgp: PMSGBuf; msgsz: size_t; msgtyp:clong; msgflg:cint):cint;
 begin
-  tmp.msgp   := msgp;
-  tmp.msgtyp := msgtyp;
-  msgrcv:=do_syscall(syscall_nr_MSGRCV,TSysParam(msqid),TSysParam(msgsz),TSysParam(msgflg),TSysParam(@tmp));
+msgrcv:=do_syscall(syscall_nr_MSGRCV,TSysParam(msqid),TSysParam(msgp),TSysParam(msgsz),TSysParam(msgtyp),TSysParam(msgflg));
 end;
 
 Function msgctl(msqid:cint; cmd: cint; buf: PMSQid_ds): cint;
@@ -87,7 +78,7 @@ end;
 
 Function semctl(semid:cint; semnum:cint; cmd:cint; var arg: tsemun): cint;
 begin
-  semctl:=do_syscall(syscall_nr_SEMCTL,TSysParam(semid),TSysParam(semnum),TSysParam(cmd),TSysParam(@arg));
+  semctl:=do_syscall(syscall_nr_SEMCTL,TSysParam(semid),TSysParam(semnum),TSysParam(cmd),TSysParam(arg));
 end;
 
 
