@@ -953,6 +953,7 @@ Function StringToMode(const S : String) : TCompilerMode;
 Function MakeTargetString(CPU : TCPU;OS: TOS) : String;
 Procedure StringToCPUOS(const S : String; Var CPU : TCPU; Var OS: TOS);
 Function FixPath (const APath : String) : String;
+Function IsRelativePath(const APath : String) : boolean;
 Procedure ChangeDir(const APath : String);
 Function Substitute(Const Source : String; Macros : Array of string) : String;
 Procedure SplitCommand(Const Cmd : String; Var Exe,Options : String);
@@ -1430,6 +1431,20 @@ begin
     end;
 end;
 
+function IsRelativePath(const APath: String): boolean;
+begin
+  if APath='' then
+    result := true
+{$ifdef unix}
+  else if APath[1] in AllowDirectorySeparators then
+    result := false
+{$else}
+  else if ExtractFileDrive(APath)<>'' then
+    result := false
+{$endif}
+  else
+    result := true;
+end;
 
 procedure ChangeDir(const APath : String);
 begin
@@ -3319,7 +3334,10 @@ begin
     For I:=0 to List.Count-1 do
       if List.Names[i]<>'' then
         begin
-          DestFileName:=DestDir+list.ValueFromIndex[i];
+          if IsRelativePath(list.ValueFromIndex[i]) then
+            DestFileName:=DestDir+list.ValueFromIndex[i]
+          else
+            DestFileName:=list.ValueFromIndex[i];
           CmdCreateDir(ExtractFilePath(DestFileName));
           SysCopyFile(List.names[i],DestFileName)
         end
