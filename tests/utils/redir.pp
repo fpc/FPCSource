@@ -265,8 +265,10 @@ end;
 {$endif}
 
 
+{$ifndef windows}
 var
   TempHOut, TempHIn,TempHError : longint;
+{$endif ndef windows}
 
 {
 For Unix the following functions exist
@@ -545,7 +547,9 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
     fpdup2(TempHOut,StdOutputHandle);
 {$endif not windows}
     Close (FOUT^);
+{$ifndef windows}
     fpclose(TempHOut);
+{$endif ndef windows}
     RedirChangedOut:=false;
   end;
 
@@ -566,7 +570,9 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
 {$endif not windows}
 {$endif}
     Close (FIn^);
+{$ifndef windows}
     fpclose(TempHIn);
+{$endif ndef windows}
     RedirChangedIn:=false;
   end;
 
@@ -667,7 +673,9 @@ function ChangeRedirError(Const Redir : String; AppendToFile : Boolean) : Boolea
     { don't close when redirected to STDOUT }
     if not RedirStdErrToStdOut then
       Close (FERR^);
+{$ifndef windows}
     fpclose(TempHError);
+{$endif ndef windows}
     RedirChangedError:=false;
   end;
 
