@@ -2974,8 +2974,17 @@ implementation
                       begin
                       If hpc.value.len>0 then
                         begin
-                        setLength(hs,hpc.value.len);
-                        move(hpc.value.valueptr^,hs[1],hpc.value.len);
+                          setLength(hs,hpc.value.len);
+                          { don't write past the end of hs if the constant
+                            is > 255 chars }
+                          move(hpc.value.valueptr^,hs[1],length(hs));
+                          { make sure that constant strings with newline chars
+                            don't create a linebreak in the assembler code,
+                            since comments are line-based. Also remove nulls
+                            because the comments are written as a pchar. }
+                          ReplaceCase(hs,#0,'.');
+                          ReplaceCase(hs,#10,'.');
+                          ReplaceCase(hs,#13,'.');
                         end;
                       end;
                     constreal :
