@@ -783,7 +783,7 @@ begin
      fillchar(secnamebuf,sizeof(secnamebuf),0);
      oldofs:=filepos(e.f);
      seek(e.f,e.secstrofs+elfsec.sh_name);
-     blockread(e.f,secnamebuf,sizeof(secnamebuf),bufsize);
+     blockread(e.f,secnamebuf,sizeof(secnamebuf)-1,bufsize);
      seek(e.f,oldofs);
      secname:=strpas(secnamebuf);
      if asecname=secname then
@@ -1141,7 +1141,7 @@ begin
   if length(dbgfn)=0 then
     exit;
   i:=align(length(dbgfn)+1,4);
-  if i>dbglinklen then
+  if (i+4)>dbglinklen then
     exit;
   move(dbglink[i],dbgcrc,4);
   { current dir }
