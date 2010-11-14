@@ -630,6 +630,7 @@ Type
     FArchive: String;
     FCompiler: String;
     FCopy: String;
+    FIgnoreInvalidOptions: Boolean;
     FMkDir: String;
     FMove: String;
     FOptions: TStrings;
@@ -703,6 +704,8 @@ Type
     Property Remove : String Read FRemove Write FRemove;       // Delete $(FILES)
     Property MkDir : String Read FMkDir write FMkDir;          // Make $(DIRECTORY)
     Property Archive : String Read FArchive Write FArchive;    // zip $(ARCHIVE) $(FILESORDIRS)
+    // Misc
+    Property IgnoreInvalidOptions: Boolean read FIgnoreInvalidOptions write FIgnoreInvalidOptions;
   end;
 
   { TBasicDefaults }
@@ -1082,6 +1085,7 @@ ResourceString
   SHelpConfig         = 'Use indicated config file when compiling.';
   SHelpOptions        = 'Pass extra options to the compiler.';
   SHelpVerbose        = 'Be verbose when working.';
+  SHelpIgnoreInvOpt   = 'Ignore further invalid options.';
 
 
 Const
@@ -3006,13 +3010,15 @@ begin
       Defaults.Compiler:=OptionArg(I)
     else if CheckOption(I,'f','config') then
       DefaultsFileName:=OptionArg(I)
+    else if CheckOption(I,'io','ignoreinvalidoption') then
+      Defaults.IgnoreInvalidOptions:=true
     else if assigned(CustomFpmakeCommandlineOptions) and CheckCustomOption(I,CustOptName) then
       begin
       if not assigned(CustomFpMakeCommandlineValues) then
         CustomFpMakeCommandlineValues := TStringList.Create;
       CustomFpMakeCommandlineValues.Values[CustOptName]:=OptionArg(I)
       end
-    else
+    else if not Defaults.IgnoreInvalidOptions then
       begin
       Usage(SErrInValidArgument,[I,ParamStr(I)]);
       end;
@@ -3070,7 +3076,8 @@ begin
   LogArgOption('r','compiler',SHelpCompiler);
   LogArgOption('f','config',SHelpConfig);
   LogArgOption('o','options',SHelpOptions);
-  for i  := 0 to CustomFpmakeCommandlineOptions.Count-1 do
+  LogArgOption('io','ignoreinvalidoption',SHelpIgnoreInvOpt);
+  if assigned(CustomFpmakeCommandlineOptions) then for i  := 0 to CustomFpmakeCommandlineOptions.Count-1 do
     LogArgOption(' ',CustomFpmakeCommandlineOptions.Names[i],CustomFpmakeCommandlineOptions.ValueFromIndex[i]);
   Log(vlInfo,'');
   If (FMT<>'') then
