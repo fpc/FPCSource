@@ -314,6 +314,11 @@ begin
     end;
   CondAddOption('--localunitdir',CompilerOptions.LocalUnitDir);
   CondAddOption('--globalunitdir',CompilerOptions.GlobalUnitDir);
+  if GlobalOptions.CustomFPMakeOptions<>'' then
+    begin
+    AddOption('--ignoreinvalidoption');
+    AddOption(GlobalOptions.CustomFPMakeOptions);
+    end;
   { Run FPMake }
   FPMakeBin:='fpmake'+ExeExt;
   SetCurrentDir(PackageBuildPath(P));

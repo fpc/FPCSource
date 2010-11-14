@@ -52,6 +52,7 @@ Type
     FShowLocation: Boolean;
     FSkipConfigurationFiles: boolean;
     FSkipFixBrokenAfterInstall: boolean;
+    FCustomFPMakeOptions : string;
     function  GetOptString(Index: integer): String;
     procedure SetOptString(Index: integer; const AValue: String);
     procedure UpdateLocalRepositoryOption;
@@ -79,6 +80,7 @@ Type
     Property DefaultCompilerConfig : String Index 8 Read GetOptString Write SetOptString;
     Property FPMakeCompilerConfig : String Index 9 Read GetOptString Write SetOptString;
     Property Downloader: String Index 10 Read GetOptString Write SetOptString;
+    Property CustomFPMakeOptions: String Index 11 Read GetOptString Write SetOptString;
     // Parameters
     Property CompilerConfig : String Read FCompilerConfig Write FCompilerConfig;
     Property InstallGlobal : Boolean Read FInstallGlobal Write FInstallGlobal;
@@ -175,6 +177,7 @@ Const
   KeyCompilerConfig        = 'CompilerConfig';
   KeyFPMakeCompilerConfig  = 'FPMakeCompilerConfig';
   KeyDownloader            = 'Downloader';
+  KeyCustomFPMakeOptions   = 'FPMakeOptions';
 
   // Compiler dependent config
   KeyGlobalPrefix          = 'GlobalPrefix';
@@ -218,6 +221,7 @@ begin
     8 : Result:=FDefaultCompilerConfig;
     9 : Result:=FFPMakeCompilerConfig;
    10 : Result:=FDownloader;
+   11 : Result:=FCustomFPMakeOptions;
     else
       Error('Unknown option');
   end;
@@ -239,7 +243,8 @@ begin
     6 : FCompilerConfigDir:=FixPath(AValue);
     8 : FDefaultCompilerConfig:=AValue;
     9 : FFPMakeCompilerConfig:=AValue;
-   10 : FDownloader:=AValue;
+    10 : FDownloader:=AValue;
+    11 : FCustomFPMakeOptions:=AValue;
     else
       Error('Unknown option');
   end;
@@ -349,6 +354,7 @@ begin
         FDefaultCompilerConfig:=ReadString(SDefaults,KeyCompilerConfig,FDefaultCompilerConfig);
         FFPMakeCompilerConfig:=ReadString(SDefaults,KeyFPMakeCompilerConfig,FFPMakeCompilerConfig);
         FDownloader:=ReadString(SDefaults,KeyDownloader,FDownloader);
+        FCustomFPMakeOptions:=ReadString(SDefaults,KeyCustomFPMakeOptions,FCustomFPMakeOptions);
       end;
   finally
     Ini.Free;
