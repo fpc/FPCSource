@@ -43,11 +43,15 @@ procedure fpc_cpuinit;
 var
   tmp32: longint;
   begin
-    { enable div by 0 and invalid operation fpu exceptions }
-    { round towards zero; ieee compliant arithmetics }
+    { don't let libraries influence the FPU cw set by the host program }
+    if not IsLibrary then
+      begin
+        { enable div by 0 and invalid operation fpu exceptions }
+        { round towards zero; ieee compliant arithmetics }
 
-    tmp32 := get_fsr();
-    set_fsr((tmp32 and $fffffffc) or $00000001);
+        tmp32 := get_fsr();
+        set_fsr((tmp32 and $fffffffc) or $00000001);
+      end;
   end;
 
 

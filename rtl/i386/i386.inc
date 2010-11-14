@@ -110,6 +110,9 @@ procedure fpc_cpuinit;
     setup_fastmove;
     }
     os_supports_sse:=false;
+    { don't let libraries influence the FPU cw set by the host program }
+    if IsLibrary then
+      Default8087CW:=Get8087CW;
   end;
 
 
@@ -1522,6 +1525,11 @@ procedure fpc_cpucodeinit;
         sse_check:=false;
       end;
     has_sse_support:=os_supports_sse;
+    { don't let libraries influence the FPU cw set by the host program }
+    if has_sse_support and
+       IsLibrary then
+      mxcsr:=GetSSECSR;
+
     has_mmx_support:=mmx_support;
     SysResetFPU;
     if not(IsLibrary) then

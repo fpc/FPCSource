@@ -43,7 +43,9 @@ end;
 
 procedure fpc_cpuinit;
 begin
-  fpc_enable_ppc_fpu_exceptions;
+  { don't let libraries influence the FPU cw set by the host program }
+  if not IsLibrary then
+    fpc_enable_ppc_fpu_exceptions;
 end;
 
 {****************************************************************************

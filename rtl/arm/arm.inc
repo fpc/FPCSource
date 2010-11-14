@@ -69,7 +69,9 @@ end;
 
 procedure fpc_cpuinit;
 begin
-  SysInitFPU;
+  { don't let libraries influence the FPU cw set by the host program }
+  if not IsLibrary then
+    SysInitFPU;
 end;
 
 {$ifdef wince}

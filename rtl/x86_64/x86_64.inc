@@ -24,13 +24,6 @@
                                Primitives
 ****************************************************************************}
 
-procedure fpc_cpuinit;
-  begin
-    SysResetFPU;
-    if not(IsLibrary) then
-      SysInitFPU;
-  end;
-
 {$define FPC_SYSTEM_HAS_SPTR}
 Function Sptr : Pointer;assembler;{$ifdef SYSTEMINLINE}inline;{$endif}
 asm
@@ -592,6 +585,19 @@ const
   MM_MaskPrecision = %0001000000000000;
 
   mxcsr : dword = MM_MaskUnderflow or MM_MaskPrecision or MM_MaskDenorm;
+
+procedure fpc_cpuinit;
+  begin
+    { don't let libraries influence the FPU cw set by the host program }
+    if IsLibrary then
+      begin
+        Default8087CW:=Get8087CW;
+        mxcsr:=GetSSECSR;
+      end;
+    SysResetFPU;
+    if not(IsLibrary) then
+      SysInitFPU;
+  end;
 
 {$define FPC_SYSTEM_HAS_SYSINITFPU}
 Procedure SysInitFPU;
