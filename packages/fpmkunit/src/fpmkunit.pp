@@ -957,6 +957,8 @@ Function IsRelativePath(const APath : String) : boolean;
 Procedure ChangeDir(const APath : String);
 Function Substitute(Const Source : String; Macros : Array of string) : String;
 Procedure SplitCommand(Const Cmd : String; Var Exe,Options : String);
+Procedure AddCustomFpmakeCommandlineOption(const ACommandLineOption, HelpMessage : string);
+Function GetCustomFpmakeCommandlineOptionValue(const ACommandLineOption : string) : string;
 
 Implementation
 
@@ -967,6 +969,10 @@ type
   public
     function Add(const S: string): Integer; override;
   end;
+
+var
+  CustomFpmakeCommandlineOptions: TStrings;
+  CustomFpMakeCommandlineValues: TStrings;
 
 ResourceString
   SErrInvalidCPU        = 'Invalid CPU name "%s"';
@@ -1518,6 +1524,21 @@ begin
   Exe:=Copy(S,1,I-1);
   Delete(S,1,I);
   Options:=Trim(S);
+end;
+
+procedure AddCustomFpmakeCommandlineOption(const ACommandLineOption, HelpMessage : string);
+begin
+  if not assigned(CustomFpmakeCommandlineOptions) then
+    CustomFpmakeCommandlineOptions := TStringList.Create;
+  CustomFpmakeCommandlineOptions.Values[ACommandLineOption]:=HelpMessage;
+end;
+
+function GetCustomFpmakeCommandlineOptionValue(const ACommandLineOption: string): string;
+begin
+  if not assigned(CustomFpMakeCommandlineValues) then
+    result := ''
+  else
+    result := CustomFpMakeCommandlineValues.Values[ACommandLineOption];
 end;
 
 Function OptionListToString(L : TStrings) : String;
@@ -2857,6 +2878,25 @@ procedure TCustomInstaller.AnalyzeOptions;
     Result:=(O='-'+short) or (O='--'+long) or (copy(O,1,Length(Long)+3)=('--'+long+'='));
   end;
 
+  Function CheckCustomOption(Index : Integer; out CustOptName: string): Boolean;
+  var
+    O : String;
+    i : integer;
+  begin
+    result := false;
+    CustOptName:='';
+    O:=Paramstr(Index);
+    if copy(O,1,2)<>'--' then
+      Exit;
+    i := pos('=',O);
+    if i=0 then
+      Exit;
+    O:=copy(O,3,i-3);
+    CustOptName:=O;
+    Result:=CustomFpmakeCommandlineOptions.IndexOfName(O)>-1;
+  end;
+
+
   Function CheckCommand(Index : Integer;const Short,Long : String): Boolean;
   var
     O : String;
@@ -2912,6 +2952,7 @@ Var
   I : Integer;
   DefaultsFileName : string;
   OptString : string;
+  CustOptName : string;
 begin
   I:=0;
   FListMode:=False;
@@ -2965,6 +3006,12 @@ begin
       Defaults.Compiler:=OptionArg(I)
     else if CheckOption(I,'f','config') then
       DefaultsFileName:=OptionArg(I)
+    else if assigned(CustomFpmakeCommandlineOptions) and CheckCustomOption(I,CustOptName) then
+      begin
+      if not assigned(CustomFpMakeCommandlineValues) then
+        CustomFpMakeCommandlineValues := TStringList.Create;
+      CustomFpMakeCommandlineValues.Values[CustOptName]:=OptionArg(I)
+      end
     else
       begin
       Usage(SErrInValidArgument,[I,ParamStr(I)]);
@@ -2993,6 +3040,8 @@ procedure TCustomInstaller.Usage(const FMT: String; Args: array of const);
     Log(vlInfo,Format(' -%s --%-20s %s',[C,LC+'='+SValue,MSG]));
   end;
 
+var
+  i: Integer;
 begin
   // Force the Usage to be displayed
   Include(FLogLevels,vlInfo);
@@ -3021,6 +3070,8 @@ begin
   LogArgOption('r','compiler',SHelpCompiler);
   LogArgOption('f','config',SHelpConfig);
   LogArgOption('o','options',SHelpOptions);
+  for i  := 0 to CustomFpmakeCommandlineOptions.Count-1 do
+    LogArgOption(' ',CustomFpmakeCommandlineOptions.Names[i],CustomFpmakeCommandlineOptions.ValueFromIndex[i]);
   Log(vlInfo,'');
   If (FMT<>'') then
     halt(1)
@@ -5338,8 +5389,12 @@ end;
 
 Initialization
   OnGetApplicationName:=@GetFPMakeName;
+  CustomFpmakeCommandlineOptions:=nil;
+  CustomFpMakeCommandlineValues:=nil;
 
 Finalization
+  FreeAndNil(CustomFpMakeCommandlineValues);
+  FreeAndNil(CustomFpmakeCommandlineOptions);
   FreeAndNil(DefInstaller);
   FreeAndNil(Dictionary);
   FreeAndNil(Defaults);
