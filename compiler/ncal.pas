@@ -295,7 +295,6 @@ implementation
         assignmenttype,
         vardatadef,
         pvardatadef : tdef;
-        dispatchbyref : boolean;
         useresult: boolean;
         restype: byte;
 
@@ -313,18 +312,23 @@ implementation
         dispintfinvoke,
         variantdispatch : boolean;
 
-      procedure increase_paramssize;
+      function is_byref_para(out assign_type: tdef): boolean;
         begin
-          { for now we pass everything by reference
-          case para.left.resultdef.typ of
-            variantdef:
-              inc(paramssize,para.left.resultdef.size);
-            else
-          }
-              inc(paramssize,voidpointertype.size);
-          {
-          end;
-          }
+          // !! This condition is subject to change, see Mantis #17904
+          result:=(assigned(para.parasym) and (para.parasym.varspez in [vs_var,vs_out,vs_constref])) or
+                  (para.left.resultdef.typ in [variantdef]);
+
+          if result then
+            assign_type:=voidpointertype
+          else
+            case para.left.resultdef.size of
+              1..4:
+                assign_type:=u32inttype;
+              8:
+                assign_type:=u64inttype;
+              else
+                internalerror(2007042801);
+            end;
         end;
 
       function getvardef(sourcedef: TDef): longint;
@@ -412,7 +416,8 @@ implementation
                 CGMessagePos1(para.left.fileinfo,type_e_not_automatable,para.left.resultdef.typename);
 
             { we've to know the parameter size to allocate the temp. space }
-            increase_paramssize;
+            is_byref_para(assignmenttype);
+            inc(paramssize, assignmenttype.size);
 
             para:=tcallparanode(para.nextpara);
           end;
@@ -461,41 +466,29 @@ implementation
                   internalerror(200611041);
               end;
 
-            dispatchbyref:=(assigned(para.parasym) and (para.parasym.varspez in [vs_var,vs_out,vs_constref])) or
-                           (para.left.resultdef.typ in [variantdef]);
+            calldesc.argtypes[currargpos]:=getvardef(para.left.resultdef);
 
             { assign the argument/parameter to the temporary location }
 
-            if dispatchbyref then
+            if is_byref_para(assignmenttype) then
+              begin
+                addstatement(statements,cassignmentnode.create(
+                  ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
+                      caddrnode.create(ctemprefnode.create(params)),
+                    cordconstnode.create(qword(paramssize),ptruinttype,false)
+                  )),voidpointertype),
+                  ctypeconvnode.create_internal(caddrnode.create_internal(para.left),voidpointertype)));
+                calldesc.argtypes[currargpos]:=calldesc.argtypes[currargpos] or $80;
+              end
+            else
               addstatement(statements,cassignmentnode.create(
                 ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
                   caddrnode.create(ctemprefnode.create(params)),
-                  cordconstnode.create(qword(paramssize),ptruinttype,false)
-                )),voidpointertype),
-                ctypeconvnode.create_internal(caddrnode.create_internal(para.left),voidpointertype)))
-            else
-              begin
-                case para.left.resultdef.size of
-                  1..4:
-                    assignmenttype:=u32inttype;
-                  8:
-                    assignmenttype:=u64inttype;
-                  else
-                    internalerror(2007042801);
-                end;
-                addstatement(statements,cassignmentnode.create(
-                  ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
-                    caddrnode.create(ctemprefnode.create(params)),
-                    cordconstnode.create(paramssize,ptruinttype,false)
-                  )),assignmenttype),
-                  ctypeconvnode.create_internal(para.left,assignmenttype)));
-              end;
+                  cordconstnode.create(paramssize,ptruinttype,false)
+                )),assignmenttype),
+                ctypeconvnode.create_internal(para.left,assignmenttype)));
 
-            calldesc.argtypes[currargpos]:=getvardef(para.left.resultdef);
-            if dispatchbyref then
-              calldesc.argtypes[currargpos]:=calldesc.argtypes[currargpos] or $80;
-
-            increase_paramssize;
+            inc(paramssize,assignmenttype.size);
 
             para.left:=nil;
             inc(currargpos);
