@@ -752,6 +752,7 @@ implementation
     constructor tabstractrecordsymtable.create(const n:string;usealign:shortint);
       begin
         inherited create(n);
+        moduleid:=current_module.moduleid;
         _datasize:=0;
         databitsize:=0;
         recordalignment:=1;
