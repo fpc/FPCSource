@@ -546,23 +546,30 @@ implementation
            lv,hv   : TConstExprInt;
            old_block_type : tblock_type;
            dospecialize : boolean;
+           objdef: TDef;
         begin
            old_block_type:=block_type;
            dospecialize:=false;
            { use of current parsed object:
               - classes can be used also in classes
               - objects can be parameters }
-           if (token=_ID) and
-              assigned(current_objectdef) and
-              (current_objectdef.objname^=pattern) and
-              (
-               (testcurobject=2) or
-               is_class_or_interface_or_objc(current_objectdef)
-              )then
+           if (token=_ID) then
              begin
-               consume(_ID);
-               def:=current_objectdef;
-               exit;
+               objdef:=current_objectdef;
+               while Assigned(objdef) and (objdef.typ=objectdef) do
+                 begin
+                   if (tobjectdef(objdef).objname^=pattern) and
+                      (
+                        (testcurobject=2) or
+                        is_class_or_interface_or_objc(objdef)
+                      ) then
+                      begin
+                        consume(_ID);
+                        def:=objdef;
+                        exit;
+                      end;
+                   objdef:=tobjectdef(tobjectdef(objdef).owner.defowner);
+                 end;
              end;
            { Generate a specialization? }
            if try_to_consume(_SPECIALIZE) then
