@@ -582,7 +582,7 @@ begin
   if Force or MustUpdate then
    begin
      PrevColor:=GetColor;
-     PrevBkColor:=GetBkColor;
+     PrevBkColor:=GetBkColor{$ifdef FPC}(){$endif};
 
      for y:=0 to ScreenHeight-1 do
        for x:=0 to Screenwidth-1 do
@@ -617,7 +617,7 @@ begin
        move(videobuf^,oldvideobuf^,
          VideoBufSize);
      SetColor(PrevColor);
-     SetBkColor(GetBkColor);
+     SetBkColor(GetBkColor{$ifdef FPC}(){$endif});
    end;
   DrawTextBackground:=StoreDrawTextBackground;
 {$endif TESTGRAPHIC}
