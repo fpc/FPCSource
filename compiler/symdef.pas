@@ -1706,7 +1706,7 @@ implementation
       const
         basetype2vardef : array[tordtype] of longint = (
           varUndefined,
-          varbyte,varqword,varlongword,varqword,
+          varbyte,varword,varlongword,varqword,
           varshortint,varsmallint,varinteger,varint64,
           varboolean,varboolean,varboolean,varUndefined,varUndefined,
           varUndefined,varUndefined,varCurrency);
