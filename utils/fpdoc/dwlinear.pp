@@ -668,6 +668,7 @@ begin
       SubNode:=SubNode.NextSibling;
       end;
     end;
+  WriteExample(Node);
 end;
 
 procedure TLinearWriter.WriteConsts(ASection: TPasSection);
