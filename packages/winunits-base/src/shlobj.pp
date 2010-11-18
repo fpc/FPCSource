@@ -519,9 +519,14 @@ Const
   QITIPF_USESLOWTIP       = $00000008;  // Flag says it's OK to take a long time generating tip
   QIF_CACHED          = $00000001;
   QIF_DONTEXPANDFOLDER= $00000002;
-  SHARD_PIDL          = DWord($00000001);
-  SHARD_PATHA         = DWord($00000002);
-  SHARD_PATHW         = DWord($00000003);
+  SHARD_PIDL            = DWord($00000001);
+  SHARD_PATHA           = DWord($00000002);
+  SHARD_PATHW           = DWord($00000003);
+  SHARD_APPIDINFO       = DWord($00000004);
+  SHARD_APPIDINFOIDLIST = DWord($00000005);
+  SHARD_LINK            = DWord($00000006);
+  SHARD_APPIDINFOLINK   = DWord($00000007);
+  SHARD_SHELLITEM       = DWord($00000008);
   PRF_VERIFYEXISTS            = $0001;
   PRF_TRYPROGRAMEXTENSIONS    = ($0002 or PRF_VERIFYEXISTS);
   PRF_FIRSTDIRDEF             = $0004;
