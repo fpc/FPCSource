@@ -38,7 +38,7 @@ Type
   //  Stream   :  the file opened with DataName should be written to this stream
 
 Type
-   TStringIndex = Class    // AVLTree needs wrapping in non automated reference type
+   TStringIndex = Class    // AVLTree needs wrapping in non automated reference type also used in filewriter.
                       TheString : String;
                       StrId     : Integer;
                     end;
@@ -204,6 +204,8 @@ Type
     property IndexName : String read FIndexName write FIndexName;
     property DefaultWindow : string read fdefaultwindow write fdefaultwindow;
   end;
+
+Function CompareStrings(Node1, Node2: Pointer): integer; // also used in filewriter
 
 implementation
 uses dateutils, sysutils, paslzxcomp, chmFiftiMain;

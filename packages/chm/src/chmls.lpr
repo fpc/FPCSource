@@ -38,6 +38,7 @@ type
     Section  : Integer;
     count    : integer;
     donotpage: boolean;
+    nameonly : boolean;
     procedure OnFileEntry(Name: String; Offset, UncompressedSize, ASection: Integer);
   end;
 
@@ -49,13 +50,13 @@ type
   end;
 
 
-  TCmdEnum = (cmdList,cmdExtract,cmdExtractall,cmdUnblock,cmdNone);        // One dummy element at the end avoids rangecheck errors.
+  TCmdEnum = (cmdList,cmdExtract,cmdExtractall,cmdUnblock,cmdextractalias,cmdNone);        // One dummy element at the end avoids rangecheck errors.
 
 Const
-  CmdNames : array [TCmdEnum] of String = ('LIST','EXTRACT','EXTRACTALL','UNBLOCK','');
+  CmdNames : array [TCmdEnum] of String = ('LIST','EXTRACT','EXTRACTALL','UNBLOCK','EXTRACTALIAS','');
 
 var
-  theopts : array[1..2] of TOption;
+  theopts : array[1..4] of TOption;
 
 
 Procedure Usage;
@@ -64,8 +65,9 @@ begin
   Writeln(StdErr,'Usage: chmls [switches] [command] [command specific parameters]');
   writeln(stderr);
   writeln(stderr,'Switches : ');
-  writeln(stderr,' -h, --help  : this screen');
-  writeln(stderr,' -n          : do not page list output');
+  writeln(stderr,' -h, --help     : this screen');
+  writeln(stderr,' -p, --no-page  : do not page list output');
+  writeln(stderr,' -n,--name-only : only show "name" column in list output');
   writeln(stderr);
   writeln(stderr,'Where command is one of the following or if omitted, equal to LIST.');
   writeln(stderr,' list       <filename> [section number] ');
@@ -79,6 +81,11 @@ begin
   writeln(stderr,' unblockchm <filespec1> [filespec2] ..' );
   writeln(stderr,'            Mass unblocks (XPsp2+) the relevant CHMs. Multiple files');
   writeln(stderr,'            and wildcards allowed');
+  writeln(stderr,' extractalias <chmfilename> [basefilename] [symbolprefix]' );
+  writeln(stderr,'            Extracts context info from file "chmfilename" ');
+  writeln(stderr,'            to a "basefilename".h and "basefilename".ali,');
+  writeln(stderr,'            using symbols "symbolprefix"contextnr');
+
   Halt(1);
 end;
 
@@ -100,6 +107,18 @@ begin
     value:=#0;
   end;
   with theopts[2] do
+   begin
+    name:='name-only';
+    has_arg:=0;
+    flag:=nil;
+  end;
+  with theopts[3] do
+   begin
+    name:='no-page';
+    has_arg:=0;
+    flag:=nil;
+  end;
+  with theopts[4] do
    begin
     name:='';
     has_arg:=0;
@@ -154,13 +173,16 @@ begin
   if (Section > -1) and (ASection <> Section) then Exit;
   if (Count = 1) or ((Count mod 40 = 0) and not donotpage) then
     WriteLn(StdErr, '<Section> <Offset> <UnCompSize>  <Name>');
-  Write(' ');
-  Write(ASection);
-  Write('      ');
-  WriteStrAdj(IntToStr(Offset), 10);
-  Write('  ');
-  WriteStrAdj(IntToStr(UncompressedSize), 11);
-  Write('  ');
+  if not nameonly then
+    begin
+      Write(' ');
+      Write(ASection);
+      Write('      ');
+      WriteStrAdj(IntToStr(Offset), 10);
+      Write('  ');
+      WriteStrAdj(IntToStr(UncompressedSize), 11);
+      Write('  ');
+    end;
   WriteLn(Name);
 end;
 
@@ -216,6 +238,7 @@ begin
 end;
 
 var donotpage:boolean=false;
+    name_only :boolean=false;
 
 procedure ListChm(Const Name:string;Section:Integer);
 var
@@ -235,6 +258,7 @@ begin
   JunkObject.Section:=Section;
   JunkObject.Count:=0;
   JunkObject.DoNotPage:=DoNotPage;
+  JunkObject.NameOnly:=Name_Only;
 
   ITS:= TITSFReader.Create(Stream, True);
   ITS.GetCompleteFileList(@JunkObject.OnFileEntry);
@@ -322,6 +346,65 @@ begin
   r.free;
 end;
 
+procedure ExtractAlias(filespec:TStringDynArray);
+
+var s,
+    chm,
+    prefixfn,
+    symbolname : string;
+    i,cnt: integer;
+    cl : TList;
+    x : PcontextItem;
+    f : textfile;
+    fs: TFileStream;
+    r : TChmReader;
+
+begin
+  symbolname:='helpid';
+  chm:=filespec[0];
+  prefixfn:=changefileext(chm,'');
+  if length(filespec)>1 then
+    prefixfn:=filespec[1];
+  if length(filespec)>2 then
+    symbolname:=filespec[2];
+
+
+  if not Fileexists(chm) then
+    begin
+      writeln(stderr,' Can''t find file ',chm);
+      halt(1);
+    end;
+  fs:=TFileStream.create(chm,fmOpenRead);
+  r:=TCHMReader.create(fs,true);
+  cl:=r.contextlist;
+  if assigned(cl) and (cl.count>0) then
+    begin
+      cnt:=cl.count;
+      assignfile(f,changefileext(chm,'.ali'));
+      rewrite(f);
+      for i:=0 to cnt-1 do
+        begin
+          x:=pcontextitem(cl[i]);
+          s:=x^.url;
+          if (length(s)>0) and (s[1]='/') then
+            delete(s,1,1);
+
+          writeln(f,symbolname,x^.context,'=',s);
+        end;
+      closefile(f);
+      assignfile(f,changefileext(chm,'.h'));
+      rewrite(f);
+      for i:=0 to cnt-1 do
+        begin
+          x:=pcontextitem(cl[i]);
+          writeln(f,'#define ',symbolname,x^.context,' ',x^.context);
+        end;
+      closefile(f);
+    end;
+   r.free;
+end;
+
+
 procedure unblockchm(s:string);
 var f : file;
 begin
@@ -408,7 +491,7 @@ begin
   Writeln(stderr,'chmls, a CHM utility. (c) 2010 Free Pascal core.');
   Writeln(Stderr);
   repeat
-    c:=getlongopts('hn',@theopts[1],optionindex);
+    c:=getlongopts('hnp',@theopts[1],optionindex);
     case c of
       #0 : begin
              case optionindex-1 of
@@ -416,9 +499,13 @@ begin
                      Usage;
                      Halt;
                    end;
+               1 : name_only:=true;
+               2 : donotpage:=true;
+
                 end;
            end;
-      'n'     : donotpage:=true;
+      'p'     : donotpage:=true;
+      'n'     : name_only:=true;
       '?','h' :
             begin
               writeln('unknown option',optopt);
@@ -471,7 +558,12 @@ begin
                       else
                         WrongNrParam(cmdnames[cmd],length(localparams));
                      end;
-
+      cmdextractalias: begin
+                        if length(localparams)>0 then
+                          extractalias(localparams)
+                        else
+                          WrongNrParam(cmdnames[cmd],length(localparams));
+                       end;
       end; {case cmd of}
   end
  else

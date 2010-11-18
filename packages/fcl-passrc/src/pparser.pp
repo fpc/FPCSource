@@ -143,7 +143,8 @@ type
     function ParseComplexType(Parent : TPasElement = Nil): TPasType;
     procedure ParseArrayType(Element: TPasArrayType);
     procedure ParseFileType(Element: TPasFileType);
-    function DoParseExpression: TPasExpr;
+    function DoParseExpression(InitExpr: TPasExpr=nil): TPasExpr;
+    function DoParseConstValueExpression: TPasExpr;
     function ParseExpression: String;
     function ParseCommand: String; // single, not compound command like begin..end
     procedure AddProcOrFunction(Declarations: TPasDeclarations; AProc: TPasProcedure);
@@ -642,7 +643,7 @@ end;
 
 const
   EndExprToken = [
-    tkEOF, tkBraceClose, tkSquaredBraceClose, tkSemicolon,
+    tkEOF, tkBraceClose, tkSquaredBraceClose, tkSemicolon, tkComma, tkColon,
     tkdo, tkdownto, tkelse, tkend, tkof, tkthen, tkto
   ];
 
@@ -654,7 +655,6 @@ var
   PClose  : TToken;
 begin
   Result:=nil;
-
   if paramskind in [pekArrayParams, pekSet] then begin
     if CurToken<>tkSquaredBraceOpen then Exit;
     PClose:=tkSquaredBraceClose;
@@ -720,8 +720,10 @@ begin
     tkDiv                   : Result:=eopDiv;
     tkNot                   : Result:=eopNot;
     tkIn                    : Result:=eopIn;
+    tkDot                   : Result:=eopSubIdent;
+    tkCaret                 : Result:=eopDeref;
   else
-    Raise Exception.CreateFmt('Not an operand: (%d : %s)',[AToken,TokenInfos[AToken]]);
+    ParseExc(format('Not an operand: (%d : %s)',[AToken,TokenInfos[AToken]]));
   end;
 end;
  
@@ -731,12 +733,16 @@ var
   prm     : TParamsExpr;
   u       : TUnaryExpr;
   b       : TBinaryExpr;
+  optk    : TToken;
 begin
   Result:=nil;
   case CurToken of
     tkString:           x:=TPrimitiveExpr.Create(pekString, CurTokenString);
+    tkChar:             x:=TPrimitiveExpr.Create(pekString, CurTokenText);
     tkNumber:           x:=TPrimitiveExpr.Create(pekNumber, CurTokenString);
     tkIdentifier:       x:=TPrimitiveExpr.Create(pekIdent, CurTokenText);
+    tkfalse, tktrue:    x:=TBoolConstExpr.Create(pekBoolConst, CurToken=tktrue);
+    tknil:              x:=TNilExpr.Create;
     tkSquaredBraceOpen: x:=ParseParams(pekSet);
   else
     ParseExc(SParserExpectedIdentifier);
@@ -768,8 +774,9 @@ begin
         end;
 
       if CurToken in [tkDot, tkas] then begin
+        optk:=CurToken;
         NextToken;
-        b:=TBinaryExpr.Create(x, ParseExpIdent, TokenToExprOp(CurToken));
+        b:=TBinaryExpr.Create(x, ParseExpIdent(), TokenToExprOp(optk));
         if not Assigned(b.right) then Exit; // error
         x:=b;
       end;
@@ -804,7 +811,7 @@ begin
   end;
 end;
 
-function TPasParser.DoParseExpression: TPasExpr;
+function TPasParser.DoParseExpression(InitExpr: TPasExpr): TPasExpr;
 var
   expstack  : TList;
   opstack   : TList;
@@ -863,28 +870,50 @@ begin
     repeat
       AllowEnd:=True;
       pcount:=0;
-      while CurToken in PrefixSym do begin
-        PushOper(CurToken);
-        inc(pcount);
-        NextToken;
-      end;
 
-      if CurToken = tkBraceOpen then begin
-        NextToken;
-        x:=DoParseExpression();
-        if CurToken<>tkBraceClose then Exit;
-        NextToken;
-      end else begin
-        x:=ParseExpIdent;
-      end;
+      if not Assigned(InitExpr) then
+      begin
+        // the first part of the expression has been parsed externally.
+        // this is used by Constant Expresion parser (CEP) parsing only,
+        // whenever it makes a false assuming on constant expression type.
+        // i.e: SI_PAD_SIZE = ((128/sizeof(longint)) - 3);
+        //
+        // CEP assumes that it's array or record, because the expression
+        // starts with "(". After the first part is parsed, the CEP meets "-"
+        // that assures, it's not an array expression. The CEP should give the
+        // first partback to the expression parser, to get the correct
+        // token tree according to the operations priority.
+        //
+        // quite ugly. type information is required for CEP to work clean
 
-      if not Assigned(x) then Exit;
-      expstack.Add(x);
-      for i:=1 to pcount do
-        begin
-        tempop:=PopOper;
-        expstack.Add( TUnaryExpr.Create( PopExp, TokenToExprOp(tempop) ));
+        while CurToken in PrefixSym do begin
+          PushOper(CurToken);
+          inc(pcount);
+          NextToken;
         end;
+
+        if CurToken = tkBraceOpen then begin
+          NextToken;
+          x:=DoParseExpression();
+          if CurToken<>tkBraceClose then Exit;
+          NextToken;
+        end else begin
+          x:=ParseExpIdent;
+        end;
+
+        if not Assigned(x) then Exit;
+        expstack.Add(x);
+        for i:=1 to pcount do begin
+          tempop:=PopOper;
+          expstack.Add( TUnaryExpr.Create( PopExp, TokenToExprOp(tempop) ));
+        end;
+
+      end else
+      begin
+        expstack.Add(InitExpr);
+        InitExpr:=nil;
+      end;
+
       if not (CurToken in EndExprToken) then begin
         // Adjusting order of the operations
         AllowEnd:=False;
@@ -961,6 +990,66 @@ begin
   if Result='' then
     ParseExc(SParserSyntaxError);
   UngetToken;
+end;
+
+function GetExprIdent(p: TPasExpr): String;
+begin
+  if Assigned(p) and (p is TPrimitiveExpr) and (p.Kind=pekIdent) then
+    Result:=TPrimitiveExpr(p).Value
+  else
+    Result:='';
+end;
+
+function TPasParser.DoParseConstValueExpression: TPasExpr;
+var
+  x : TPasExpr;
+  n : AnsiString;
+  r : TRecordValues;
+  a : TArrayValues;
+begin
+  if CurToken <> tkBraceOpen then
+    Result:=DoParseExpression
+  else begin
+    NextToken;
+    x:=DoParseConstValueExpression();
+    case CurToken of
+      tkComma: // array of values (a,b,c);
+        begin
+          a:=TArrayValues.Create;
+          a.AddValues(x);
+          repeat
+            NextToken;
+            x:=DoParseConstValueExpression();
+            a.AddValues(x);
+          until CurToken<>tkComma;
+          Result:=a;
+        end;
+
+      tkColon: // record field (a:xxx;b:yyy;c:zzz);
+        begin
+          n:=GetExprIdent(x);
+          x.Free;
+          r:=TRecordValues.Create;
+          NextToken;
+          x:=DoParseConstValueExpression();
+          r.AddField(n, x);
+          if CurToken=tkSemicolon then
+            repeat
+              n:=ExpectIdentifier;
+              ExpectToken(tkColon);
+              NextToken;
+              x:=DoParseConstValueExpression();
+              r.AddField(n, x)
+            until CurToken<>tkSemicolon;
+          Result:=r;
+        end;
+    else
+      // Binary expression!  ((128 div sizeof(longint)) - 3);       ;
+      Result:=DoParseExpression(x);
+    end;
+    if CurToken<>tkBraceClose then ParseExc(SParserExpectedCommaRBracket);
+    NextToken;
+  end;
 end;
 
 function TPasParser.ParseCommand: String;
@@ -1443,7 +1532,7 @@ begin
 
     // using new expression parser!
     NextToken; // skip tkEqual
-    Result.Expr:=DoParseExpression;
+    Result.Expr:=DoParseConstValueExpression;
 
     // must unget for the check to be peformed fine!
     UngetToken;
@@ -3066,8 +3155,7 @@ begin
       if (s = 'sealed') or (s = 'abstract') then begin
         TPasClassType(Result).Modifiers.Add(s);
         NextToken;
-      end else
-        ExpectToken(tkSemicolon);
+      end;
     end;
 
     // Parse ancestor list

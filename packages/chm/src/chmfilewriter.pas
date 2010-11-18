@@ -25,7 +25,7 @@ unit chmfilewriter;
 interface
 
 uses
-  Classes, SysUtils, chmwriter, inifiles, contnrs,
+  Strings, Classes, SysUtils, chmwriter, inifiles, contnrs, chmsitemap, avl_tree,
   {for html scanning } dom,SAX_HTML,dom_html;
 
 type
@@ -59,11 +59,17 @@ type
     fScanHtmlContents  : Boolean;
     fOtherFiles : TStrings; // Files found in a scan.
     fAllowedExtensions: TStringList;
+    fTotalFileList : TAvlTree;
+    FSpareString   : TStringIndex;
+    FBasePath       : String;     // location of the .hhp file. Needed to resolve relative paths
   protected
     function GetData(const DataName: String; out PathInChm: String; out FileName: String; var Stream: TStream): Boolean;
     procedure LastFileAdded(Sender: TObject);
     procedure readIniOptions(keyvaluepairs:tstringlist);
     procedure ScanHtml;
+    procedure ScanList(toscan,newfiles:TStrings;recursion:boolean);
+    procedure ScanSitemap(sitemap:TChmSiteMap;newfiles:TStrings;recursion:boolean);
+    function  FileInTotalList(const s:String):boolean;
   public
     constructor Create; virtual;
     destructor Destroy; override;
@@ -111,7 +117,7 @@ Const
 
 implementation
 
-uses XmlCfg, chmsitemap, CHMTypes;
+uses XmlCfg, CHMTypes;
 
 { TChmProject }
 
@@ -185,6 +191,8 @@ begin
   FWindows:=TObjectList.Create(True);
   FMergeFiles:=TStringlist.Create;
   ScanHtmlContents:=False;
+  FTotalFileList:=TAvlTree.Create(@CompareStrings);
+  FSparestring  :=TStringIndex.Create;
 end;
 
 destructor TChmProject.Destroy;
@@ -196,9 +204,11 @@ begin
   FFiles.Free;
   FOtherFiles.Free;
   FWindows.Free;
+  FSpareString.Free;
+  FTotalFileList.FreeAndClear;
+  FTotalFileList.Free;
   inherited Destroy;
 end;
-
 
 Type
    TSectionEnum = (secOptions,secWindows,secFiles,secMergeFiles,secAlias,secMap,secInfoTypes,secTextPopups,secUnknown);
@@ -220,8 +230,6 @@ Const
        'DISPLAY COMPILE NOTES','DISPLAY COMPILE PROGRESS','ENHANCED DECOMPILATION','ERROR LOG FILE','FLAT',
        'FULL-TEXT SEARCH STOP LIST','FULL-TEXT SEARCH','IGNORE','INDEX FILE','LANGUAGE','PREFIX',
        'SAMPLE STAGING PATH','SAMPLE LIST FILE','TMPDIR','TITLE','CUSTOM TAB','UNKNOWN');
-
-
 
 function FindSectionName (const name:string):TSectionEnum;
 
@@ -303,6 +311,7 @@ begin
   Cfg := TXMLConfig.Create(nil);
   Cfg.Filename := AFileName;
   FileName := AFileName;
+  FBasePath:=extractfilepath(expandfilename(afilename));
 
   Files.Clear;
   FileCount := Cfg.GetValue('Files/Count/Value', 0);
@@ -312,7 +321,7 @@ begin
       nd.urlname:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/Value','');
       nd.contextnumber:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/ContextNumber',0);
       nd.contextname:=Cfg.GetValue('Files/FileName'+IntToStr(I)+'/ContextName','');
-      Files.AddObject(nd.urlname,nd);
+      Files.AddObject(nd.URLNAME,nd);
     end;
 
   FileCount := Cfg.GetValue('OtherFiles/Count/Value', 0);
@@ -526,7 +535,7 @@ var
 begin
  { Defaults other than global }
    MakeBinaryIndex:=True;
-
+  FBasePath:=extractfilepath(expandfilename(afilename));
   Fini:=TMeminiFile.Create(AFileName);
   secs := TStringList.create;
   strs := TStringList.create;
@@ -679,25 +688,75 @@ begin
     OnError(self,errorkind,msg,detaillevel);
 end;
 
-procedure TChmProject.ScanHtml;
+const
+   protocols   : array[0..2] of string = ('HTTP:','FTP:','MS-ITS:');
+   protocollen : array[0..2] of integer= ( 5 ,4 ,7);
+
+function sanitizeurl(const basepath,instring:string;var outstring:String):Boolean;
+var i,j,len : integer;
+begin
+  result:=true; outstring:='';
+  if instring='' then
+    exit(false);
+
+  len:=length(instring);
+  if len=0 then
+    exit(false);
+  i:=0;
+  while (i<=high(protocols)) do
+    begin
+      if strlicomp(@protocols[i][1],@instring[1],protocollen[i])=0 then
+        exit(false);
+      inc(i);
+    end;
+   outstring:=instring;
+
+   i:=pos('#',outstring);
+   if i<>0 then
+     delete(outstring,i,length(outstring)-i+1);
+
+  outstring:=expandfilename(StringReplace(outstring,'%20',' ',[rfReplaceAll]));// expandfilename(instring));
+
+  outstring:=extractrelativepath(basepath,outstring);
+  outstring:=StringReplace(outstring,'\','/',[rfReplaceAll]);
+end;
+
+function  TChmProject.FileInTotalList(const s:String):boolean;
+
+begin
+  FSpareString.TheString:=S;
+  result:=assigned(fTotalFileList.FindKey(FSpareString,@CompareStrings));
+end;
+
+procedure TChmProject.ScanList(toscan,newfiles:TStrings;recursion:boolean);
+ // toscan, list to search for htmlfiles to scan.
+ // newfiles, the resulting list of files.
+ // totalfilelist, the list that contains all found and specified files to check against.
+ // localfilelist (local var), files found in this file.
+var
+  localpath : string;
 
 procedure checkattributes(node:TDomNode;attributename:string;filelist :TStringList);
 var
     Attributes: TDOMNamedNodeMap;
     atnode    : TDomNode;
     fn        : String;
+    n         : integer;
 begin
   if assigned(node) then
     begin
       Attributes:=node.Attributes;
       if assigned(attributes) then
          begin
-           atnode :=attributes.GetNamedItem(attributename);
-           if assigned(atnode) then
+           for n:=0 to attributes.length-1 do
              begin
-               fn:=atnode.nodevalue;
-               if (fn<>'') then
-                  filelist.add(fn);
+               atnode :=attributes[n];
+               if assigned(atnode) and (uppercase(atnode.nodename)=attributename) then
+                 begin
+                   if sanitizeurl(fbasepath,localpath+atnode.nodevalue,fn) then
+                    if not FileInTotalList(uppercase(fn)) then
+                      filelist.add(fn);
+                 end;
              end;
          end;
     end;
@@ -707,6 +766,7 @@ end;
 function scantags(prnt:TDomNode;filelist:TStringlist):TDomNode;
 // Seach first matching tag in siblings
 var chld: TDomNode;
+    s   : ansistring;
 begin
   result:=nil;
   if assigned(prnt )  then
@@ -717,18 +777,22 @@ begin
           scantags(chld,filelist);  // depth first.
           if (chld is TDomElement) then
             begin
-             // writeln(tdomelement(chld).tagname,' ',chld.classname	);
-              if tdomelement(chld).tagname='link'then
+              s:=uppercase(tdomelement(chld).tagname);
+              if s='LINK' then
                 begin
                   //printattributes(chld,'');
-                  checkattributes(chld,'href',filelist);
+                  checkattributes(chld,'HREF',filelist);
                 end;
-             if tdomelement(chld).tagname='img'then
+             if s='IMG'then
                begin
                   //printattributes(chld,'');
-                  checkattributes(chld,'src',filelist);
+                  checkattributes(chld,'SRC',filelist);
+               end;
+             if s='A'then
+               begin
+                  //printattributes(chld,'');
+                  checkattributes(chld,'HREF',filelist);
                 end;
-
             end;
           chld:=chld.nextsibling;
         end;
@@ -736,18 +800,44 @@ begin
 end;
 
 var
-  filelist, localfilelist: TStringList;
+  localfilelist: TStringList;
   domdoc : THTMLDocument;
-  i,j  : Integer;
-  fn,s  : string;
-  ext : String;
-begin
- filelist:= TStringList.create;
- localfilelist:= TStringList.create;
+  i,j    : Integer;
+  fn,s   : string;
+  ext    : String;
+  tmplst : Tstringlist;
+  strrec : TStringIndex;
+  //localpath : string;
 
- for j:=0 to Files.count-1 do
+function trypath(const vn:string):boolean;
+var vn2: String;
+  strrec : TStringIndex;
+begin
+  vn2:=uppercase(vn);
+  if FileInTotalList(vn2) then
    begin
-     fn:=files[j];
+     Error(ChmNote,'Found duplicate file '+vn+' while scanning '+fn,1);
+     exit(false);
+   end;
+
+  result:=false;
+  if fileexists(vn) then  // correct for relative path .html file?
+    begin
+      result:=true;
+      StrRec:=TStringIndex.Create;
+      StrRec.TheString:=vn2;
+      StrRec.Strid    :=0;
+      fTotalFileList.Add(StrRec);
+      newfiles.add(vn);
+      Error(ChmNote,'Found file '+vn+' while scanning '+fn,1);
+    end;
+end;
+
+begin
+ localfilelist:=TStringList.Create;
+ for j:=0 to toscan.count-1 do
+   begin
+     fn:=toscan[j];
      localfilelist.clear;
      if (FAllowedExtensions.Indexof(uppercase(extractfileext(fn)))<>-1) then
        begin
@@ -757,20 +847,16 @@ begin
              try
                Error(chmnote,'Scanning file '+fn+'.',5);
                ReadHtmlFile(domdoc,fn);
-
+               localpath:=extractfilepath(fn);
+               if (length(localpath)>0) and not (localpath[length(localpath)] in ['/','\']) then
+                 localpath:=localpath+pathsep;
                scantags(domdoc,localfilelist);
                for i:=0 to localFilelist.count-1 do
                  begin
                    s:=localfilelist[i];
-                   if fileexists(s) then  // correct for relative path .html file?
-                     begin
-                       filelist.add(s);
-                       Error(ChmNote,'Found file '+s+' while scanning '+fn,1);
-                     end
-                   else
-                     begin
+                   if not trypath(s) then
+//                     if not trypath(localpath+s) then
                        Error(ChmWarning,'Found file '+s+' while scanning '+fn+', but couldn''t find it on disk',2);
-                     end
                  end;
              except
                on e:exception do
@@ -786,20 +872,147 @@ begin
      else
        Error(chmnote,'Not scanning file because of unknown extension '+fn,5);
    end;
- if filelist.count>0 then
-   for i:=0 to filelist.count-1 do
-     begin
-       if otherfiles.indexof(filelist[i])=-1 then
-         begin
-           otherfiles.add(filelist[i]);
-           Error(chmnote,'Added media file '+filelist[i],5);
-         end
-       else
-         Error(chmnote,'Ignored duplicate found file '+filelist[i],5);
-     end;
- filelist.free;
+  localfilelist.free;
+  if (newfiles.count>0) and recursion then
+    begin
+      tmplst:=TStringList.Create;
+      scanlist(newfiles,tmplst,true);
+      newfiles.addstrings(tmplst);
+      tmplst.free;
+    end;
+end;
+
+procedure TChmProject.ScanSitemap(sitemap:TChmSiteMap;newfiles:TStrings;recursion:boolean);
+
+procedure scanitems(it:TChmSiteMapItems);
+
+var i : integer;
+    x : TChmSiteMapItem;
+    s : string;
+    strrec : TStringIndex;
+
+begin
+  for i:=0 to it.count -1 do
+    begin
+      x:=it.item[i];
+      if sanitizeurl(fbasepath,x.local,S) then   // sanitize, remove stuff etc.
+        begin
+          if not FileInTotalList(uppercase(s)) then
+            begin
+              if fileexists(s) then
+                begin
+                  Error(chmnote,'Good url: '+s+'.',5);
+                  StrRec:=TStringIndex.Create;
+                  StrRec.TheString:=uppercase(s);
+                  StrRec.Strid    :=0;
+                  fTotalFileList.Add(StrRec);
+                  newfiles.add(s);
+                end
+              else
+                Error(chmnote,'duplicate url: '+s+'.',5);
+            end
+          else
+            Error(chmnote,'duplicate url: '+s+'.',5);
+        end
+      else
+       Error(chmnote,'Bad url: '+s+'.',5);
+
+      if assigned(x.children) and (x.children.count>0) then
+        scanitems(x.children);
+    end;
+end;
+
+var i : integer;
+    localfilelist: TStringList;
+
+begin
+  localfilelist:=TStringList.Create;
+  scanitems(sitemap.items);
+  scanlist(newfiles,localfilelist,true);
+  newfiles.addstrings(localfilelist);
+  localfilelist.free;
+end;
+
+procedure TChmProject.ScanHtml;
+var
+  helplist,
+  localfilelist: TStringList;
+  i      : integer;
+  x      : TChmSiteMap;
+  strrec : TStringIndex;
+begin
+
+ for i:=0 to otherfiles.count-1 do
+   begin
+     StrRec:=TStringIndex.Create;
+     StrRec.TheString:=uppercase(otherfiles[i]);
+     StrRec.Strid    :=0;
+     fTotalFileList.Add(StrRec);
+   end;
+
+ for i:=0 to files.count-1 do
+   begin
+     StrRec:=TStringIndex.Create;
+     StrRec.TheString:=uppercase(files[i]);
+     StrRec.Strid    :=0;
+     fTotalFileList.Add(StrRec);
+   end;
+
+ localfilelist:= TStringList.create;
+ scanlist(ffiles,localfilelist,true);
+ otherfiles.addstrings(localfilelist);
+ localfilelist.clear;
+ if (FDefaultpage<>'') and (not FileInTotalList(uppercase(fdefaultpage))) then
+   begin
+     Error(chmnote,'Scanning default file : '+fdefaultpage+'.',3);
+     helplist:=TStringlist.Create;
+     helplist.add(fdefaultpage);
+     scanlist(helplist,localfilelist,true);
+     otherfiles.addstrings(localfilelist);
+     localfilelist.clear;
+   end;
+ if FTableOfContentsFileName<>'' then
+   begin
+     if fileexists(FTableOfContentsFileName) then
+       begin
+       Error(chmnote,'Scanning TOC file : '+FTableOfContentsFileName+'.',3);
+        x:=TChmSiteMap.Create(sttoc);
+        try
+          x.loadfromfile(FTableOfcontentsFilename);
+          scansitemap(x,localfilelist,true);
+          otherfiles.addstrings(localfilelist);
+        except
+          on e: Exception do
+            error(chmerror,'Error loading TOC file '+FTableOfContentsFileName);
+          end;
+        x.free;
+       end
+     else
+       error(chmerror,'Can''t find TOC file'+FTableOfContentsFileName);
+   end;
+  LocalFileList.clear;
+  if FIndexFileName<>'' then
+   begin
+     if fileexists(FIndexFileName) then
+       begin
+       Error(chmnote,'Scanning Index file : '+FIndexFileName+'.',3);
+        x:=TChmSiteMap.Create(stindex);
+        try
+          x.loadfromfile(FIndexFileName);
+          scansitemap(x,localfilelist,true);
+          otherfiles.addstrings(localfilelist);
+        except
+          on e: Exception do
+            error(chmerror,'Error loading index file '+FIndexFileName);
+          end;
+        x.free;
+       end
+     else
+       error(chmerror,'Can''t find TOC index file '+FIndexFileName);
+   end;
  localfilelist.free;
 end;
+
 
 procedure TChmProject.WriteChm(AOutStream: TStream);
 var

@@ -43,7 +43,7 @@ end;
 
 
 var
-  theopts : array[1..5] of TOption;
+  theopts : array[1..6] of TOption;
 
 procedure InitOptions;
 

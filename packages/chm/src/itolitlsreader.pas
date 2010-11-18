@@ -365,9 +365,9 @@ begin
     Exit(fCachedEntry.DecompressedLength); // we've already looked it up
 
   fCachedEntry.Name:='';
-  fCachedEntry.ContentSection:=-1;
+  fCachedEntry.ContentSection:=LongWord(-1);
   fCachedEntry.DecompressedLength:=0;
-  fCachedEntry.ContentOffset:=-1;
+  fCachedEntry.ContentOffset:=QWord(-1);
 
   StreamPos:=HeaderSectionTable[1].OffSet;
   fStream.Read(IFCM, SizeOf(IFCM));
