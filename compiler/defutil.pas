@@ -526,6 +526,8 @@ implementation
            setdef:
              is_in_limit:=(tsetdef(def_from).setbase>=tsetdef(def_to).setbase) and
                           (tsetdef(def_from).setmax<=tsetdef(def_to).setmax);
+         else
+           is_in_limit:=false;
          end;
       end;
 
@@ -1033,21 +1035,21 @@ implementation
         end;
       end;
 
-
+    { In Windows 95 era, ordinals were restricted to [u8bit,s32bit,s16bit,bool16bit]
+      As of today, both signed and unsigned types from 8 to 64 bits are supported. }
     function is_automatable(p : tdef) : boolean;
       begin
         result:=false;
         case p.typ of
           orddef:
-            result:=torddef(p).ordtype in [u8bit,s32bit,s16bit,bool16bit];
+            result:=torddef(p).ordtype in [u8bit,s8bit,u16bit,s16bit,u32bit,s32bit,
+              u64bit,s64bit,bool16bit];
           floatdef:
             result:=tfloatdef(p).floattype in [s64currency,s64real,s32real];
           stringdef:
             result:=tstringdef(p).stringtype in [st_ansistring,st_widestring];
           variantdef:
             result:=true;
-          arraydef:
-            result:=(ado_IsConstString in tarraydef(p).arrayoptions);
           objectdef:
             result:=tobjectdef(p).objecttype in [odt_interfacecom,odt_dispinterface,odt_interfacecorba];
         end;

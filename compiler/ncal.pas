@@ -221,7 +221,7 @@ interface
        tcallparanodeclass = class of tcallparanode;
 
     function reverseparameters(p: tcallparanode): tcallparanode;
-    function translate_disp_call(selfnode,parametersnode,putvalue : tnode;methodname : ansistring;dispid : longint;resultdef : tdef) : tnode;
+    function translate_disp_call(selfnode,parametersnode,putvalue : tnode;const methodname : ansistring;dispid : longint;resultdef : tdef) : tnode;
 
     var
       ccallnode : tcallnodeclass = tcallnode;
@@ -273,14 +273,17 @@ implementation
         reverseparameters:=hp1;
       end;
 
-
-    function translate_disp_call(selfnode,parametersnode,putvalue : tnode;methodname : ansistring;dispid : longint;resultdef : tdef) : tnode;
+    function translate_disp_call(selfnode,parametersnode,putvalue : tnode; const methodname : ansistring;dispid : longint;resultdef : tdef) : tnode;
       const
         DISPATCH_METHOD = $1;
         DISPATCH_PROPERTYGET = $2;
         DISPATCH_PROPERTYPUT = $4;
         DISPATCH_PROPERTYPUTREF = $8;
         DISPATCH_CONSTRUCT = $4000;
+
+        calltypes: array[Boolean] of byte = (
+          DISPATCH_METHOD, DISPATCH_PROPERTYPUT
+        );
       var
         statements : tstatementnode;
         result_data,
@@ -298,16 +301,6 @@ implementation
         useresult: boolean;
         restype: byte;
 
-        calldesc : packed record
-            calltype,argcount,namedargcount : byte;
-            { size of argtypes is unknown at compile time
-              so this is basically a dummy }
-            argtypes : array[0..255] of byte;
-            { argtypes is followed by method name
-              names of named parameters, each being
-              a zero terminated string
-            }
-        end;
         names : ansistring;
         dispintfinvoke,
         variantdispatch : boolean;
@@ -316,7 +309,8 @@ implementation
         begin
           // !! This condition is subject to change, see Mantis #17904
           result:=(assigned(para.parasym) and (para.parasym.varspez in [vs_var,vs_out,vs_constref])) or
-                  (para.left.resultdef.typ in [variantdef]);
+                  (para.left.resultdef.typ in [variantdef]) or
+                  (variantdispatch and valid_for_var(para.left,false));
 
           if result then
             assign_type:=voidpointertype
@@ -353,7 +347,6 @@ implementation
         dispintfinvoke:=not(variantdispatch);
 
         result:=internalstatements(statements);
-        fillchar(calldesc,sizeof(calldesc),0);
 
         useresult := assigned(resultdef) and not is_void(resultdef);
         if useresult then
@@ -379,41 +372,31 @@ implementation
               continue;
             end;
             inc(paracount);
+            if assigned(para.parametername) then
+              inc(namedparacount);
 
             { insert some extra casts }
             if is_constintnode(para.left) and not(is_64bitint(para.left.resultdef)) then
-              begin
-                para.left:=ctypeconvnode.create_internal(para.left,s32inttype);
-                typecheckpass(para.left);
-              end
+              inserttypeconv_internal(para.left,s32inttype)
+
             else if para.left.nodetype=stringconstn then
-              begin
-                para.left:=ctypeconvnode.create_internal(para.left,cwidestringtype);
-                typecheckpass(para.left);
-              end
+              inserttypeconv_internal(para.left,cwidestringtype)
+
             { force automatable boolean type }
             else if is_boolean(para.left.resultdef) then
-              begin
-                para.left:=ctypeconvnode.create_internal(para.left,bool16type);
-                typecheckpass(para.left);
-              end
+              inserttypeconv_internal(para.left,bool16type)
+
             { force automatable float type }
             else if is_extended(para.left.resultdef)
                 and (current_settings.fputype<>fpu_none) then
-              begin
-                para.left:=ctypeconvnode.create_internal(para.left,s64floattype);
-                typecheckpass(para.left);
-              end;
+              inserttypeconv_internal(para.left,s64floattype)
 
-            if assigned(para.parametername) then
-              begin
-                typecheckpass(para.left);
-                inc(namedparacount);
-              end;
+            else if is_shortstring(para.left.resultdef) then
+              inserttypeconv_internal(para.left,cwidestringtype)
 
-            if para.left.nodetype<>nothingn then
-              if not is_automatable(para.left.resultdef) then
-                CGMessagePos1(para.left.fileinfo,type_e_not_automatable,para.left.resultdef.typename);
+            { skip this check if we've already typecasted to automatable type }
+            else if not is_automatable(para.left.resultdef) then
+              CGMessagePos1(para.left.fileinfo,type_e_not_automatable,para.left.resultdef.typename);
 
             { we've to know the parameter size to allocate the temp. space }
             is_byref_para(assignmenttype);
@@ -421,11 +404,6 @@ implementation
 
             para:=tcallparanode(para.nextpara);
           end;
-        if assigned(putvalue) then
-          calldesc.calltype:=DISPATCH_PROPERTYPUT
-        else
-          calldesc.calltype:=DISPATCH_METHOD;
-        calldesc.argcount:=paracount;
 
         { allocate space }
         params:=ctempcreatenode.create(voidtype,paramssize,tt_persistent,true);
@@ -442,8 +420,13 @@ implementation
             restype:=getvardef(resultdef)
           else
             restype:=0;
-          calldescnode.append(restype,sizeof(restype));
+          calldescnode.appendbyte(restype);
         end;
+
+        calldescnode.appendbyte(calltypes[assigned(putvalue)]);
+        calldescnode.appendbyte(paracount);
+        calldescnode.appendbyte(namedparacount);
+
         { build up parameters and description }
         para:=tcallparanode(parametersnode);
         currargpos:=0;
@@ -466,7 +449,7 @@ implementation
                   internalerror(200611041);
               end;
 
-            calldesc.argtypes[currargpos]:=getvardef(para.left.resultdef);
+            restype:=getvardef(para.left.resultdef);
 
             { assign the argument/parameter to the temporary location }
 
@@ -478,7 +461,7 @@ implementation
                     cordconstnode.create(qword(paramssize),ptruinttype,false)
                   )),voidpointertype),
                   ctypeconvnode.create_internal(caddrnode.create_internal(para.left),voidpointertype)));
-                calldesc.argtypes[currargpos]:=calldesc.argtypes[currargpos] or $80;
+                restype:=restype or $80;
               end
             else
               addstatement(statements,cassignmentnode.create(
@@ -489,6 +472,7 @@ implementation
                 ctypeconvnode.create_internal(para.left,assignmenttype)));
 
             inc(paramssize,assignmenttype.size);
+            calldescnode.appendbyte(restype);
 
             para.left:=nil;
             inc(currargpos);
@@ -497,8 +481,6 @@ implementation
 
         { old argument list skeleton isn't needed anymore }
         parametersnode.free;
-
-        calldescnode.append(calldesc,3+calldesc.argcount);
 
         pvardatadef:=tpointerdef(search_system_type('PVARDATA').typedef);
 
@@ -509,8 +491,8 @@ implementation
 
         if variantdispatch then
           begin
-            methodname:=methodname+#0;
             calldescnode.append(pointer(methodname)^,length(methodname));
+            calldescnode.appendbyte(0);
             calldescnode.append(pointer(names)^,length(names));
 
             { actual call }

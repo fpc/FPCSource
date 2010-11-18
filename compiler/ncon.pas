@@ -46,6 +46,7 @@ interface
          function docompare(p: tnode) : boolean; override;
          procedure printnodedata(var t:text);override;
          procedure append(const d;len : aint);
+         procedure appendbyte(b : byte);
          procedure align(value : word);
        end;
        tdataconstnodeclass = class of tdataconstnode;
@@ -498,6 +499,11 @@ implementation
         data.write(d,len);
       end;
 
+    procedure tdataconstnode.appendbyte(b : byte);
+      begin
+        data.seek(data.size);
+        data.write(b,1);
+      end;
 
     procedure tdataconstnode.align(value : word);
       begin

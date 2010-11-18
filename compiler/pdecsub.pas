@@ -666,6 +666,11 @@ implementation
              not(varspez in [vs_out,vs_var]) then
             CGMessage(cg_e_file_must_call_by_reference);
 
+          { Dispinterfaces are restricted to using only automatable types }
+          if (pd.typ=procdef) and is_dispinterface(tprocdef(pd)._class) and
+             not is_automatable(hdef) then
+            Message1(type_e_not_automatable,hdef.typename);
+
           { univ cannot be used with types whose size is not known at compile
             time }
           if is_univ and
@@ -1055,6 +1060,10 @@ implementation
                              current_objectdef:=pd._class;
                            end;
                          single_type(pd.returndef,false,false);
+
+                         if is_dispinterface(pd._class) and not is_automatable(pd.returndef) then
+                           Message1(type_e_not_automatable,pd.returndef.typename);
+
                          if popclass then
                            begin
                              current_objectdef:=old_current_objectdef;
