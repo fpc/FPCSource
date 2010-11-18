@@ -67,6 +67,37 @@ resourcestring
   SPasTreeDestructorImpl = 'destructor implementation';
 
 type
+  TPasExprKind = (pekIdent, pekNumber, pekString, pekSet,
+     pekPrefix, pekPostfix, pekBinary, pekFuncParams, pekArrayParams);
+
+  TExprOpCode = (eopNone,
+                 eopAdd,eopSubtract,eopMultiply,eopDivide, eopDiv,eopMod, eopPower,// arithmetic
+                 eopShr,eopSHl, // bit operations
+                 eopNot,eopAnd,eopOr,eopXor, // logical/bit
+                 eopEqual, eopNotEqual,  // Logical
+                 eopLessThan,eopGreaterThan, eopLessthanEqual,eopGreaterThanEqual, // ordering
+                 eopIn,eopIs,eopAs, eopSymmetricaldifference, // Specials
+                 eopAddress);
+  
+  { TPasExprPart }
+
+  TPasExprPart = class 
+    Kind      : TPasExprKind;
+    Left      : TPasExprPart;
+    Right     : TPasExprPart;
+    OpCode    : TexprOpcode;
+    Value    : AnsiString;
+    Params    : array of TPasExprPart;
+    constructor Create(AKind: TPasExprKind);
+    constructor CreateWithText(AKind: TPasExprKind; const AValue : Ansistring);
+    constructor CreatePrefix(rightExp: TPasExprPart; const AOpCode: TExprOpCode);
+    constructor CreatePostfix(leftExp: TPasExprPart; const AOpCode: TExprOpCode);
+    constructor CreateBinary(xleft, xright: TPasExprPart; const AOpCode: TExprOpCode);
+    destructor Destroy; override;
+    procedure AddParam(xp: TPasExprPart);
+  end;
+
+
   // Visitor pattern.
   TPassTreeVisitor = class;
 
@@ -436,6 +467,7 @@ type
     Value: string;
     Modifiers : string;
     AbsoluteLocation : String;
+    Expr: TPasExprPart;
   end;
 
   { TPasConst }
@@ -2282,5 +2314,61 @@ function TPasImplStatement.CloseOnSemicolon: boolean;
 begin
   Result:=true;
 end;
+
+{ TPasExprPart }
+
+constructor TPasExprPart.Create(AKind:TPasExprKind);
+begin
+  Kind:=AKind;
+end;
+
+constructor TPasExprPart.CreateWithText(AKind:TPasExprKind;const AValue: AnsiString);
+begin
+  Create(AKind);
+  Value:=AValue;
+end;
+
+constructor TPasExprPart.CreatePrefix(rightExp: TPasExprPart; const AOpCode: TExprOpCode);
+begin
+  Create(pekPrefix);
+  right:=rightExp;
+  Opcode:=AOpCode;
+end;
+
+constructor TPasExprPart.CreatePostfix(leftExp: TPasExprPart; const AOpCode: TExprOpCode);
+begin
+  Create(pekPostfix);
+  left:=leftExp;
+  Opcode:=AOpCode;
+end;
+
+constructor TPasExprPart.CreateBinary(xleft, xright: TPasExprPart; const AOpCode: TExprOpcode);
+begin
+  Create(pekBinary);
+  left:=xleft;
+  right:=xright;
+  Opcode:=AOpCode;
+end;
+
+destructor TPasExprPart.Destroy;
+var
+  i : Integer;
+begin
+  left.Free;
+  right.Free;
+  for i:=0 to length(Params)-1 do Params[i].Free;
+  inherited Destroy;
+end;
+
+procedure TPasExprPart.AddParam(xp:TPasExprPart);
+var
+  i : Integer;
+begin
+  i:=Length(Params);
+  SetLength(Params, i+1);
+  Params[i]:=xp;
+end;
+
+
 
 end.

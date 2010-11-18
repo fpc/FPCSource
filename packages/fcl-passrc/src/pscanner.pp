@@ -986,6 +986,12 @@ begin
                 IncludeStackItem.Row := CurRow;
                 IncludeStackItem.TokenStr := TokenStr;
                 FIncludeStack.Add(IncludeStackItem);
+                if Length(Param)>1 then
+                  begin
+                    if (Param[1]=#39) and (Param[length(Param)]=#39) then
+                     param:=copy(param,2,length(param)-2);
+                  end;
+               
                 FCurSourceFile := FileResolver.FindIncludeFile(Param);
                 if not Assigned(CurSourceFile) then
                   Error(SErrIncludeFileNotFound, [Param]);
