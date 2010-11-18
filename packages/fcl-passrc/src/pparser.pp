@@ -45,6 +45,7 @@ resourcestring
   SParserInterfaceTokenError = 'Invalid token in interface section of unit';
   SParserImplementationTokenError = 'Invalid token in implementation section of unit';
   SParserInvalidTypeDef = 'Invalid type definition';
+  SParserExpectedIdentifier = 'Identifier expected';
 
 type
   TPasTreeContainer = class
@@ -115,7 +116,7 @@ type
     procedure ParseExc(const Msg: String);
   protected
     function OpLevel(t: TToken): Integer;
-    Function TokenToExprOp (AToken : TToken; Const AString : String) : TExprOpCode;
+    Function TokenToExprOp (AToken : TToken) : TExprOpCode;
     function CreateElement(AClass: TPTreeElement; const AName: String;
       AParent: TPasElement): TPasElement;overload;
     function CreateElement(AClass: TPTreeElement; const AName: String;
@@ -123,8 +124,8 @@ type
     Function IsHint(Const S : String; var AHint : TPasMemberHint) : Boolean;
     Function CheckHint(Element : TPasElement; ExpectSemiColon : Boolean) : TPasMemberHints;
 
-    function ParseParams(paramskind: TPasExprKind): TPasExprPart;
-    function ParseExpIdent: TPasExprPart;
+    function ParseParams(paramskind: TPasExprKind): TParamsExpr;
+    function ParseExpIdent: TPasExpr;
   public
     Options : set of TPOptions;
     CurModule: TPasModule;
@@ -142,7 +143,7 @@ type
     function ParseComplexType(Parent : TPasElement = Nil): TPasType;
     procedure ParseArrayType(Element: TPasArrayType);
     procedure ParseFileType(Element: TPasFileType);
-    function DoParseExpression: TPasExprPart;
+    function DoParseExpression: TPasExpr;
     function ParseExpression: String;
     function ParseCommand: String; // single, not compound command like begin..end
     procedure AddProcOrFunction(Declarations: TPasDeclarations; AProc: TPasProcedure);
@@ -646,21 +647,23 @@ const
   ];
 
 
-function TPasParser.ParseParams(paramskind: TPasExprKind): TPasExprPart;
+function TPasParser.ParseParams(paramskind: TPasExprKind): TParamsExpr;
 var
-  params  : TPasExprPart;
-  p       : TPasExprPart;
+  params  : TParamsExpr;
+  p       : TPasExpr;
   PClose  : TToken;
 begin
   Result:=nil;
-  if CurToken<>tkBraceOpen then Exit;
 
-  if paramskind in [pekArrayParams, pekSet] then
-    PClose:=tkSquaredBraceClose
-  else
+  if paramskind in [pekArrayParams, pekSet] then begin
+    if CurToken<>tkSquaredBraceOpen then Exit;
+    PClose:=tkSquaredBraceClose;
+  end else begin
+    if CurToken<>tkBraceOpen then Exit;
     PClose:=tkBraceClose;
+  end;
 
-  params:=TPasExprPart.Create(paramskind);
+  params:=TParamsExpr.Create(paramskind);
   try
     NextToken;
     if not (CurToken in EndExprToken) then begin
@@ -689,7 +692,7 @@ begin
   end;
 end;
 
-Function TPasParser.TokenToExprOp (AToken : TToken; Const AString : String) : TExprOpCode;
+Function TPasParser.TokenToExprOp (AToken : TToken) : TExprOpCode;
 
 begin
   Case AToken of
@@ -718,68 +721,65 @@ begin
     tkNot                   : Result:=eopNot;
     tkIn                    : Result:=eopIn;
   else
-    Raise Exception.CreateFmt('Not an operand: (%d : %s)',[AToken,Astring]);   
+    Raise Exception.CreateFmt('Not an operand: (%d : %s)',[AToken,TokenInfos[AToken]]);
   end;
 end;
  
-function TPasParser.ParseExpIdent:TPasExprPart;
+function TPasParser.ParseExpIdent:TPasExpr;
 var
-  x, t    : TPasExprPart;
-  eofid   : Boolean;
+  x       : TPasExpr;
+  prm     : TParamsExpr;
+  u       : TUnaryExpr;
+  b       : TBinaryExpr;
 begin
   Result:=nil;
-  eofid:=True;
   case CurToken of
-    tkString: begin
-      x:=TPasExprPart.CreateWithText(pekString, CurTokenString);
-      NextToken;
-    end;
-    tkNumber:
-    begin
-      x:=TPasExprPart.CreateWithText(pekNumber, CurTokenString);
-      NextToken;
-    end;
-    tkSquaredBraceOpen:
-      x:=ParseParams(pekSet);
-    tkIdentifier: begin
-      x:=TPasExprPart.CreateWithText(pekIdent, CurTokenText);
-      eofid:=False;
-    end;
+    tkString:           x:=TPrimitiveExpr.Create(pekString, CurTokenString);
+    tkNumber:           x:=TPrimitiveExpr.Create(pekNumber, CurTokenString);
+    tkIdentifier:       x:=TPrimitiveExpr.Create(pekIdent, CurTokenText);
+    tkSquaredBraceOpen: x:=ParseParams(pekSet);
+  else
+    ParseExc(SParserExpectedIdentifier);
   end;
 
-  if eofid then begin
-    Result:=x;
-    Exit;
-  end;
+  if x.Kind<>pekSet then NextToken;
 
   try
-    NextToken;
-    while CurToken in [tkBraceOpen, tkSquaredBraceOpen, tkCaret] do
-      case CurToken of
-        tkBraceOpen: begin
-          t:=ParseParams(pekFuncParams);
-          if not Assigned(t) then Exit;
-          t.left:=x;
-          x:=t;
+    if x.Kind=pekIdent then begin
+      while CurToken in [tkBraceOpen, tkSquaredBraceOpen, tkCaret] do
+        case CurToken of
+          tkBraceOpen: begin
+            prm:=ParseParams(pekFuncParams);
+            if not Assigned(prm) then Exit;
+            prm.Value:=x;
+            x:=prm;
+          end;
+          tkSquaredBraceOpen: begin
+            prm:=ParseParams(pekArrayParams);
+            if not Assigned(prm) then Exit;
+            prm.Value:=x;
+            x:=prm;
+          end;
+          tkCaret: begin
+            u:=TUnaryExpr.Create(x, TokenToExprOp(CurToken));
+            x:=u;
+            NextToken;
+          end;
         end;
-        tkSquaredBraceOpen: begin
-          t:=ParseParams(pekArrayParams);
-          if not Assigned(t) then Exit;
-          t.left:=x;
-          x:=t;
-        end;
-        tkCaret: begin
-          t:=TPasExprPart.CreatePostfix(x, TokenToExprOp(CurToken,TokenInfos[CurToken]));
-          NextToken;
-          x:=t;
-        end;
-      end;
 
-    if CurToken in [tkDot, tkas] then begin
+      if CurToken in [tkDot, tkas] then begin
+        NextToken;
+        b:=TBinaryExpr.Create(x, ParseExpIdent, TokenToExprOp(CurToken));
+        if not Assigned(b.right) then Exit; // error
+        x:=b;
+      end;
+    end;
+
+    if CurToken = tkDotDot then begin
       NextToken;
-      x:=TPasExprPart.CreateBinary(x, ParseExpIdent, TokenToExprOp(CurToken,TokenInfos[CurToken]));
-      if not Assigned(x.right) then
-        Exit; // error?
+      b:=TBinaryExpr.CreateRange(x, DoParseExpression);
+      if not Assigned(b.right) then Exit; // error
+      x:=b;
     end;
 
     Result:=x;
@@ -804,22 +804,23 @@ begin
   end;
 end;
 
-function TPasParser.DoParseExpression: TPasExprPart;
+function TPasParser.DoParseExpression: TPasExpr;
 var
   expstack  : TList;
   opstack   : TList;
   pcount    : Integer;
-  x         : TPasExprPart;
+  x         : TPasExpr;
   i         : Integer;
   tempop    : TToken;
+  AllowEnd  : Boolean;
   
 const
   PrefixSym = [tkPlus, tkMinus, tknot, tkAt]; // + - not @
 
-  function PopExp: TPasExprPart; inline;
+  function PopExp: TPasExpr; inline;
   begin
     if expstack.Count>0 then begin
-      Result:=TPasExprPart(expstack[expstack.Count-1]);
+      Result:=TPasExpr(expstack[expstack.Count-1]);
       expstack.Delete(expstack.Count-1);
     end else
       Result:=nil;
@@ -845,13 +846,13 @@ const
   procedure PopAndPushOperator;
   var
     t       : TToken;
-    xright  : TPasExprPart;
-    xleft   : TPasExprPart;
+    xright  : TPasExpr;
+    xleft   : TPasExpr;
   begin
     t:=PopOper;
     xright:=PopExp;
     xleft:=PopExp;
-    expstack.Add(TPasExprPart.CreateBinary(xleft, xright, TokenToExprOp(t,TokenInfos[t])));
+    expstack.Add(TBinaryExpr.Create(xleft, xright, TokenToExprOp(t)));
   end;
 
 begin
@@ -860,6 +861,7 @@ begin
   opstack := TList.Create;
   try
     repeat
+      AllowEnd:=True;
       pcount:=0;
       while CurToken in PrefixSym do begin
         PushOper(CurToken);
@@ -872,18 +874,20 @@ begin
         x:=DoParseExpression();
         if CurToken<>tkBraceClose then Exit;
         NextToken;
-      end else
+      end else begin
         x:=ParseExpIdent;
+      end;
 
       if not Assigned(x) then Exit;
       expstack.Add(x);
       for i:=1 to pcount do
         begin
         tempop:=PopOper;
-        expstack.Add( TPasExprPart.CreatePrefix( PopExp, TokenToExprOp(tempop,TokenInfos[tempop]) ));
+        expstack.Add( TUnaryExpr.Create( PopExp, TokenToExprOp(tempop) ));
         end;
       if not (CurToken in EndExprToken) then begin
         // Adjusting order of the operations
+        AllowEnd:=False;
         tempop:=PeekOper;
         while (opstack.Count>0) and (OpLevel(tempop)>=OpLevel(CurToken)) do begin
           PopAndPushOperator;
@@ -893,12 +897,12 @@ begin
         NextToken;
       end;
 
-    until CurToken in EndExprToken;
+    until AllowEnd and (CurToken in EndExprToken);
 
     while opstack.Count>0 do PopAndPushOperator;
 
     // only 1 expression should be on the stack, at the end of the correct expression
-    if expstack.Count=1 then Result:=TPasExprPart(expstack[0]);
+    if expstack.Count=1 then Result:=TPasExpr(expstack[0]);
 
   finally
     if not Assigned(Result) then begin
@@ -995,7 +999,7 @@ begin
     if CurToken=tkString then
       begin
       If (Length(CurTokenText)>0) and (CurTokenText[1]=#0) then
-        Writeln('First char is null : "',CurTokenText,'"');
+        Raise Exception.Create('First char is null : "'+CurTokenText+'"');
       Result := Result + ''''+StringReplace(CurTokenText,'''','''''',[rfReplaceAll])+''''
       end
     else

@@ -566,7 +566,6 @@ end;
 
 procedure TPascalScanner.Error(const Msg: string; Args: array of Const);
 begin
-  writeln('TPascalScanner.Error ',FileResolver.FIncludePaths.Text);
   raise EScannerError.CreateFmt(Msg, Args);
 end;
 
