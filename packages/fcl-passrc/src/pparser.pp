@@ -1131,6 +1131,13 @@ begin
     ASection.UsesList.Add(Element);
 
     NextToken;
+
+    if CurToken = tkin then begin
+      // todo: store unit's file name somewhere
+      NextToken; // skip in
+      ExpectToken(tkString); // skip unit's real file name
+    end;
+
     if CurToken = tkSemicolon then
       break
     else if CurToken <> tkComma then
@@ -2736,7 +2743,10 @@ var
   i, SourceLinenumber: Integer;
   VarList: TList;
   Element: TPasElement;
+  isStrict: Boolean;
 begin
+  isStrict:=False;
+
   // Save current parsing position to get it correct in all cases
   SourceFilename := Scanner.CurFilename;
   SourceLinenumber := Scanner.CurRow;
@@ -2760,6 +2770,16 @@ begin
 
   try
     TPasClassType(Result).ObjKind := AObjKind;
+
+    // nettism/new delphi features
+    if (CurToken = tkIdentifier) and (AObjKind = okClass) then begin
+      s := LowerCase(CurTokenString);
+      if (s = 'sealed') or (s = 'abstract') then begin
+        TPasClassType(Result).Modifiers.Add(s);
+        NextToken;
+      end else
+        ExpectToken(tkSemicolon);
+    end;
 
     // Parse ancestor list
     if CurToken = tkBraceOpen then
@@ -2795,6 +2815,15 @@ begin
           tkIdentifier:
             begin
               s := LowerCase(CurTokenString);
+              if s = 'strict' then
+              begin
+                isStrict:=True;
+                NextToken;
+                s := LowerCase(CurTokenString);
+              end
+              else
+                isStrict:=False;
+
               if s = 'private' then
                 CurVisibility := visPrivate
               else if s = 'protected' then
@@ -2820,6 +2849,16 @@ begin
                   VarList.Free;
                 end;
               end;
+              if isStrict then
+              begin
+                case CurVisibility of
+                  visPrivate   : CurVisibility:=visStrictPrivate;
+                  visProtected : CurVisibility:=visStrictProtected;
+                else
+                  ParseExc('strange strict visiblity');
+                end;
+              end;
+
             end;
           tkProcedure:
             ProcessMethod('procedure', False);
@@ -2836,6 +2875,9 @@ begin
               TPasClassType(Result).Members.Add(Element);
               ParseProperty(Element);
             end;
+          tkVar: // vars (nettism/new delphi features)
+            if AObjKind<>okClass then ExpectToken(tkSemicolon);
+          //todo: class vars
         end; // end case
         NextToken;
       end;

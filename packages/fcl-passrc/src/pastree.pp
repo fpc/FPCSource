@@ -78,7 +78,8 @@ type
   TPasModule = class;
 
   TPasMemberVisibility = (visDefault, visPrivate, visProtected, visPublic,
-    visPublished, visAutomated);
+    visPublished, visAutomated,
+    visStrictPrivate, visStrictProtected);
 
   TCallingConvention = (ccDefault,ccRegister,ccPascal,ccCDecl,ccStdCall,ccOldFPCCall,ccSafeCall);
 
@@ -349,6 +350,9 @@ type
     IsForward : Boolean;
     Members: TList;     // array of TPasElement objects
     InterfaceGUID : string; // 15/06/07 - Inoussa
+
+    ClassVars: TList;   // class vars
+    Modifiers: TStringList;
   end;
 
   TArgumentAccess = (argDefault, argConst, argVar, argOut);
@@ -844,7 +848,7 @@ const
       visPublished, visAutomated];
 
   VisibilityNames: array[TPasMemberVisibility] of string = (
-    'default', 'private', 'protected', 'public', 'published', 'automated');
+    'default', 'private', 'protected', 'public', 'published', 'automated','strict private', 'strict protected');
 
   ObjKindNames: array[TPasObjKind] of string = (
     'object', 'class', 'interface');
@@ -1170,6 +1174,8 @@ begin
   inherited Create(AName, AParent);
   IsPacked := False;                     // 12/04/04 - Dave - Added
   Members := TList.Create;
+  Modifiers := TStringList.Create;
+  ClassVars := TList.Create;
 end;
 
 destructor TPasClassType.Destroy;
@@ -1181,6 +1187,8 @@ begin
   Members.Free;
   if Assigned(AncestorType) then
     AncestorType.Release;
+  Modifiers.Free;
+  ClassVars.Free;
   inherited Destroy;
 end;
 

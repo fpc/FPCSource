@@ -160,7 +160,7 @@ resourcestring
 Const
   SVisibility: array[TPasMemberVisibility] of string =
        ('Default', 'Private', 'Protected', 'Public',
-       'Published', 'Automated');
+       'Published', 'Automated','Strict Private','Strict Protected');
 
 type
 
