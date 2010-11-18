@@ -37,7 +37,7 @@ const
 uses
  DosCalls;
 
-function LoadLibrary (Name: AnsiString): TLibHandle;
+function LoadLibrary (const Name: AnsiString): TLibHandle;
 var
  ErrPath: array [0..259] of char;
  Handle: longint;
@@ -46,7 +46,7 @@ begin
                                 then Result := Handle else Result := NilHandle;
 end;
 
-function GetProcedureAddress (Lib: TLibHandle; ProcName: AnsiString): pointer;
+function GetProcedureAddress (Lib: TLibHandle; const ProcName: AnsiString): pointer;
 var
  P: pointer;
 begin

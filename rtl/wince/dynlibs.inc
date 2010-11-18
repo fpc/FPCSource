@@ -36,7 +36,7 @@ Const
 
 Uses windows;
 
-Function LoadLibrary(Name : AnsiString) : TlibHandle;
+Function LoadLibrary(const Name : AnsiString) : TlibHandle;
 var
   ws: PWideChar;
 begin
@@ -45,7 +45,7 @@ begin
   FreeMem(ws);
 end;
 
-Function GetProcedureAddress(Lib : TLibHandle; ProcName : AnsiString) : Pointer;
+Function GetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;
 var
   ws: PWideChar;
 begin

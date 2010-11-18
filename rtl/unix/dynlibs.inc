@@ -40,13 +40,13 @@ Const
 
 uses dl;
 
-Function LoadLibrary(Name : AnsiString) : TLibHandle;
+Function LoadLibrary(const Name : AnsiString) : TLibHandle;
 
 begin
   Result:=TLibHandle(dlopen(Pchar(Name),RTLD_LAZY));
 end;
 
-Function GetProcedureAddress(Lib : TLibHandle; ProcName : AnsiString) : Pointer;
+Function GetProcedureAddress(Lib : TLibHandle; const ProcName : AnsiString) : Pointer;
 
 begin
   Result:=dlsym(lib,pchar(ProcName));

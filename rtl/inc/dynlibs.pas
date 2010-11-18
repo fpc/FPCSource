@@ -36,9 +36,9 @@ uses
   ---------------------------------------------------------------------}
 
 
-Function SafeLoadLibrary(Name : AnsiString) : TLibHandle;
-Function LoadLibrary(Name : AnsiString) : TLibHandle;
-Function GetProcedureAddress(Lib : TlibHandle; ProcName : AnsiString) : Pointer;
+Function SafeLoadLibrary(const Name : AnsiString) : TLibHandle;
+Function LoadLibrary(const Name : AnsiString) : TLibHandle;
+Function GetProcedureAddress(Lib : TlibHandle; const ProcName : AnsiString) : Pointer;
 Function UnloadLibrary(Lib : TLibHandle) : Boolean;
 
 
@@ -48,7 +48,7 @@ Type
   HModule = TLibHandle;
 
 Function FreeLibrary(Lib : TLibHandle) : Boolean;
-Function GetProcAddress(Lib : TlibHandle; ProcName : AnsiString) : Pointer;
+Function GetProcAddress(Lib : TlibHandle; const ProcName : AnsiString) : Pointer;
 
 
 // Dynamic Library Manager
@@ -136,13 +136,13 @@ begin
   Result:=UnloadLibrary(lib);
 end;
 
-Function GetProcAddress(Lib : TlibHandle; ProcName : AnsiString) : Pointer;
+Function GetProcAddress(Lib : TlibHandle; const ProcName : AnsiString) : Pointer;
 
 begin
   Result:=GetProcedureAddress(Lib,Procname);
 end;
 
-Function SafeLoadLibrary(Name : AnsiString) : TLibHandle;
+Function SafeLoadLibrary(const Name : AnsiString) : TLibHandle;
 
 {$ifdef i386}
  var w : word;
