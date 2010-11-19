@@ -2728,6 +2728,12 @@ begin
         CreateBlock(CurBlock.AddWhileDo(Condition));
         ExpectToken(tkdo);
       end;
+    tkgoto:
+      begin
+        nexttoken;
+        curblock.AddCommand('goto '+curtokenstring);
+        expecttoken(tkSemiColon);
+      end;
     tkfor:
       begin
         // for VarName := StartValue to EndValue do
@@ -3087,16 +3093,15 @@ begin
       begin
         Variant := TPasVariant(CreateElement(TPasVariant, '', Parent));
         Parent.Variants.Add(Variant);
-        Variant.Values := TStringList.Create;
         while True do
         begin
-      Variant.Values.Add(ParseExpression(Parent));
-      NextToken;
-      if CurToken = tkColon then
-        break
-      else if CurToken <> tkComma then
-        ParseExc(SParserExpectedCommaColon);
-    end;
+          Variant.Values.Add(ParseExpression(Parent));
+          NextToken;
+          if CurToken = tkColon then
+            break
+          else if CurToken <> tkComma then
+            ParseExc(SParserExpectedCommaColon);
+        end;
         ExpectToken(tkBraceOpen);
     Variant.Members := TPasRecordType(CreateElement(TPasRecordType, '',
       Variant));

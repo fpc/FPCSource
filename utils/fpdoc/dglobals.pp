@@ -694,26 +694,45 @@ var
      result:=Copy(AName, DotPos2 + 1, length(AName)-dotpos2);
   end;
 
+  function SearchInList(clslist:TList;s:string):TPasElement;
+  var i : integer;
+      ClassEl: TPasElement;
+  begin
+    result:=nil;
+    for i:=0 to clslist.count-1 do
+      begin
+        ClassEl := TPasElement(clslist[i]);
+        if CompareText(ClassEl.Name,s) =0 then
+          exit(Classel); 
+      end;
+  end;
+
   function ResolveClassType(AName:String):TPasClassType;
   var 
      pkg     : TPasPackage;
      module  : TPasModule;
      s       : string; 
-     clslist : TList;  
-     ClassEl : TPasClassType;
-     i       : Integer;
   begin
     Result:=nil;
     s:=ResolvePackageModule(AName,pkg,module,False);
     if not assigned(module) then
       exit;
-    clslist:=module.InterfaceSection.Classes;
-    for i:=0 to clslist.count-1 do
-      begin
-        ClassEl := TPasClassType(clslist[i]);
-        if CompareText(ClassEl.Name,s) =0 then
-          exit(Classel); 
-      end;
+    result:=TPasClassType(SearchInList(Module.InterfaceSection.Classes,s));
+  end;
+
+  function ResolveAliasType(AName:String):TPasAliasType;
+  var 
+     pkg     : TPasPackage;
+     module  : TPasModule;
+     s       : string; 
+  begin
+    Result:=nil;
+    s:=ResolvePackageModule(AName,pkg,module,False);
+    if not assigned(module) then
+      exit;
+    result:=TPasAliasType(SearchInList(Module.InterfaceSection.Types,s));
+    if not (result is TPasAliasType) then
+      result:=nil;
   end;
 
   procedure ReadClasses;
@@ -737,10 +756,81 @@ var
         InheritanceInfo.AddObject(Inheritancestr,result);
     end;
 
+   procedure splitalias(var instr:string;out outstr:string);
+   var i,j:integer;
+   begin 
+     if length(instr)=0 then exit;
+     instr:=trim(instr);
+     i:=pos('(',instr);
+     if i>0 then
+      begin 
+        j:=length(instr)-i;
+        if instr[length(instr)]=')' then
+          dec(j);
+        outstr:=copy(instr,i+1,j);
+        delete(instr,i,j+2);
+      end
+   end;
+
+   Function ResolveAndLinkClass(clname:String;IsClass:boolean;cls:TPasClassType):TPasClassType;
+   begin
+     result:=TPasClassType(ResolveClassType(clname)); 
+     if assigned(result) and not (cls=result) then  // save from tobject=implicit tobject
+       begin
+         result.addref;
+         if IsClass then
+           begin
+             cls.ancestortype:=result;
+//             writeln(cls.name, ' has as ancestor ',result.pathname);
+           end
+         else
+           begin    
+             cls.interfaces.add(result);
+//             writeln(cls.name, ' implements ',result.pathname);
+           end;
+       end
+     else
+       if cls<>result then
+         writeln(cls.name,'''s dependancy '  ,clname,' could not be resolved');
+end;
+
+function CreateAliasType (alname,clname : string;parentclass:TPasClassType; out cl2 :TPasClassType):TPasAliasType;
+// create alias clname =  alname
+var 
+  pkg     : TPasPackage;
+  module  : TPasModule; 
+  s       : string;  
+begin
+    Result:=nil;
+    s:=ResolvePackageModule(Alname,pkg,module,True);
+    if not assigned(module) then
+      exit;
+    cl2:=TPasClassType(ResolveClassType(alname));
+    if assigned( cl2) and not (parentclass=cl2) then  
+      begin
+        result:=ResolveAliasType(clname);
+        if assigned(result) then
+          begin
+            writeln('found alias ',clname,' (',s,') ',result.classname);  
+          end
+        else
+          begin
+            writeln('new alias ',clname,' (',s,') ');
+            cl2.addref;
+            Result := TPasAliasType(CreateElement(TPasAliasType,s,module.interfacesection,vispublic,'',0));
+            module.interfacesection.Declarations.Add(Result);
+            TPasAliasType(Result).DestType := cl2;
+          end
+      end
+end;
+
    procedure ProcessInheritanceStrings(inhInfo:TStringList);
+
    var i,j : integer;
        cls : TPasClassType;  
        cls2: TPasClassType;
+       clname,
+       alname : string;
        inhclass   : TStringList;
    begin
      inhclass:=TStringList.Create;
@@ -754,27 +844,21 @@ var
 
            for j:= 0 to inhclass.count-1 do
              begin
-               // writeln('processing',inhclass[j]);
-               cls2:=TPasClassType(ResolveClassType(inhclass[j])); 
-               if assigned(cls2) and not (cls=cls2) then  // save from tobject=implicit tobject
+               //writeln('processing',inhclass[j]);
+               clname:=inhclass[j];
+               splitalias(clname,alname);               
+               if alname<>'' then // the class//interface we refered to is an alias
                  begin
-                   cls2.addref;
-                   if j=0 then
-                     cls.ancestortype:=cls2
-                   else
-                     cls.interfaces.add(cls2);
-{                   if j=0 then
-                     writeln(cls.name, ' has as ancestor ',cls2.pathname)
-                   else
-                     writeln(cls.name, ' implements ',cls2.pathname)
-}
-                 end
+                   // writeln('Found alias pair ',clname,' = ',alname);   
+                   if not assigned(CreateAliasType(alname,clname,cls,cls2)) then
+                      writeln('creating alias failed!');
+                 end 
                else
-                if cls<>cls2 then
-                  writeln(cls.name,'''s dependancy '  ,inhclass[j],' ',j,' could not be resolved');
+                 cls2:=ResolveAndLinkClass(clname,j=0,cls);
              end;
          end;
-end;
+    inhclass.free;
+   end;
 
   var
     s, Name: String;
@@ -878,10 +962,18 @@ var
     end;
   end;
 
+  function CheckImplicitInterfaceLink(const s : String):String;
+  begin
+   if uppercase(s)='IUNKNOWN' then
+     Result:='#rtl.System.IUnknown'
+   else 
+     Result:=s;
+  end;
 var
   LinkNode: TLinkNode;
   i, j, k: Integer;
   Module: TPasModule;
+  Alias : TPasAliasType;
   ClassDecl: TPasClassType;
   Member: TPasElement;
   s: String;
@@ -911,9 +1003,18 @@ begin
       for j := 0 to Module.InterfaceSection.Classes.Count - 1 do
       begin
         ClassDecl := TPasClassType(Module.InterfaceSection.Classes[j]);
-        Write(ContentFile, ClassDecl.PathName, ' ');
-        if Assigned(ClassDecl.AncestorType) then
-          Write(ContentFile, ClassDecl.AncestorType.PathName)
+        Write(ContentFile, CheckImplicitInterfaceLink(ClassDecl.PathName), ' ');
+        if Assigned(ClassDecl.AncestorType) then 
+          begin
+             // simple aliases to class types are coded as "alias(classtype)"
+             Write(ContentFile, CheckImplicitInterfaceLink(ClassDecl.AncestorType.PathName));
+             if ClassDecl.AncestorType is TPasAliasType then
+               begin
+                 alias:= TPasAliasType(ClassDecl.AncestorType);
+                 if assigned(alias.desttype) and (alias.desttype is TPasClassType) then
+                   write(ContentFile,'(',alias.desttype.PathName,')');   
+               end;
+          end
         else if ClassDecl.ObjKind = okClass then
           Write(ContentFile, '#rtl.System.TObject')
         else if ClassDecl.ObjKind = okInterface then
@@ -921,7 +1022,15 @@ begin
         if ClassDecl.Interfaces.Count>0 then
           begin
             for k:=0 to ClassDecl.Interfaces.count-1 do
-              write(contentfile,',',TPasClassType(ClassDecl.Interfaces[k]).PathName);
+              begin
+                write(contentfile,',',CheckImplicitInterfaceLink(TPasClassType(ClassDecl.Interfaces[k]).PathName));
+                if TPasElement(ClassDecl.Interfaces[k]) is TPasAliasType then
+                  begin
+                    alias:= TPasAliasType(ClassDecl.Interfaces[k]);
+                    if assigned(alias.desttype) and (alias.desttype is TPasClassType) then
+                      write(ContentFile,'(',CheckImplicitInterfaceLink(alias.desttype.PathName),')');   
+                  end;
+              end;
           end;
         writeln(contentfile);
         for k := 0 to ClassDecl.Members.Count - 1 do
