@@ -100,6 +100,7 @@ const
   {$ELSE MACOS}
    {$IFDEF UNIX}
  DirectorySeparator = '/';
+ DriveSeparator = '/';
  FileNameCaseSensitive = true;
    {$ELSE UNIX}
     {$IFDEF AMIGA}
@@ -150,12 +151,14 @@ begin
   for I := 1 to Length (S) do
    if S [I] = DirectorySeparator2 then
     S [I] := DirectorySeparator;
+{$IFNDEF FPC_FEXPAND_DRIVES}
  if DriveSeparator = DirectorySeparator then
-  begin
-   I := Pos (DirectorySeparator + DirectorySeparator, S);
-   if I <> 0 then
-    Delete (S, I, 1);
-  end;
+  I := Pos (DirectorySeparator + DirectorySeparator, S)
+ else
+  I := Pos (DriveSeparator, S);
+ if I <> 0 then
+  Delete (S, 1, I);
+{$ENDIF FPC_FEXPAND_DRIVES}
 end;
 
 procedure GetDir (Drive: byte; var Directory: string);
@@ -202,6 +205,13 @@ begin
 {$ENDIF DEBUG}
  Rslt := Translate (Rslt);
  Rslt2 := FExpand (Src);
+{$IFDEF DIRECT}
+ {$IFNDEF FPC_FEXPAND_DRIVES}
+ I := Pos (System.DriveSeparator, Rslt2);
+ if I <> 0 then
+  Delete (Rslt2, 1, I);
+ {$ENDIF FPC_FEXPAND_DRIVES}
+{$ENDIF DIRECT}
 {$IFNDEF UNIX}
  if (Length (Rslt2) > 1) and (Rslt2 [1] in ['a'..'z']) and (Rslt2[2]=DriveSep) then
    Rslt2 [1] := UpCase (Rslt2 [1]);
@@ -253,6 +263,11 @@ begin
  TestDir0 := TestDir;
 {$IFDEF DIRECT}
  XToDirect (TestDir);
+ {$IFNDEF FPC_FEXPAND_DRIVES}
+ I := Pos (System.DriveSeparator, TestDir);
+ if I <> 0 then
+  Delete (TestDir, 1, I);
+ {$ENDIF FPC_FEXPAND_DRIVES}
 {$ENDIF DIRECT}
  Assign (F, TestFileName);
  Rewrite (F);
@@ -263,6 +278,13 @@ begin
 {$ENDIF DIRECT}
 {$I+}
  GetDir (0, CurDir);
+{$IFDEF DIRECT}
+ {$IFNDEF FPC_FEXPAND_DRIVES}
+ I := Pos (System.DriveSeparator, CurDir);
+ if I <> 0 then
+  Delete (CurDir, 1, I);
+ {$ENDIF FPC_FEXPAND_DRIVES}
+{$ENDIF DIRECT}
 {$IFNDEF NODRIVEC}
  GetDir (3, CDir);
 {$ENDIF NODRIVEC}
@@ -326,6 +348,7 @@ if CDir [Length (CDir)] = DirSep then Check ('c:anything', CDir + 'anything')
  Check ('.' + DirSep + 'd', CurDir + DirSep + 'd');
  {$ENDIF NODOTS}
 {$ENDIF MACOS}
+ Check ('d' + DirSep + TestFileName, CurDir + DirSep + 'd' + DirSep + TestFileName);
  Check (' d', CurDir + DirSep + ' d');
  Check ('dd', CurDir + DirSep + 'dd');
 {$IFDEF MACOS}

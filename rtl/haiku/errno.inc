@@ -2,7 +2,7 @@
     This file is part of the Free Pascal run time library.
     Copyright (c) 1999-2000 by the Free Pascal development team.
 
-    BeOS POSIX compliant error codes
+    Haiku POSIX compliant error codes
 
     See the file COPYING.FPC, included in this distribution,
     for details about the copyright.
@@ -386,10 +386,11 @@ const
     ESysESRCH       = (B_POSIX_ERROR_BASE + 13);
     ESysETIMEDOUT   = ord(B_TIMED_OUT);
     ESysEXDEV       = ord(B_CROSS_DEVICE_LINK);
+    ESysEMSGSIZE     = EMSGSIZE;
+    ESysEOPNOTSUPP   = EOPNOTSUPP;
 
     {ESysEBADMSG     =    realtime extension POSIX only   }
     {ESysECANCELED   =    async. I/O extension POSIX only }
-    {ESysEMSGSIZE    =    realtime extension POSIX only   }
     {ESysEINPROGRESS =    async. I/O extension POSIX only }
 
 {***********************************************************************}
