@@ -23,12 +23,12 @@ unit dGlobals;
 
 interface
 
-uses Classes, DOM, PasTree, PParser;
+uses Classes, DOM, PasTree, PParser, StrUtils;
 
 Var
   LEOL : Integer;
   modir : string;
-  
+
 resourcestring
   // Output strings
   SDocPackageTitle           = 'Reference for package ''%s''';
@@ -63,6 +63,7 @@ resourcestring
   SDocRemark                 = 'Remark:   ';
   SDocMethodOverview         = 'Method overview';
   SDocPropertyOverview       = 'Property overview';
+  SDocInterfacesOverview     = 'Interfaces overview';
   SDocPage                   = 'Page';
   SDocMethod                 = 'Method';
   SDocProperty               = 'Property';
@@ -119,6 +120,10 @@ resourcestring
   SCHMUsageAutoIDX = 'Automatically generate an Index. Ignores --index-file';
   SCHMUsageMakeSearch = 'Automatically generate a Search Index from filenames that match *.htm*';
 
+  // Linear usage
+  SLinearUsageDupLinkedDocsP1 = 'Duplicate linked element documentation in';
+  SLinearUsageDupLinkedDocsP2 = 'descendant classes.';
+
   STitle           = 'FPDoc - Free Pascal Documentation Tool';
   SVersion         = 'Version %s [%s]';
   SCopyright       = '(c) 2000 - 2003 Areca Systems GmbH / Sebastian Guenther, sg@freepascal.org';
@@ -142,7 +147,7 @@ resourcestring
   SUsageOption160  = '--show-private    Show private methods.';
   SUsageOption170  = '--warn-no-node    Warn if no documentation node was found.';
   SUsageOption180  = '--mo-dir=dir      Set directory where language files reside to dir';
-  
+  SUsageOption190  = '--parse-impl      (Experimental) try to parse implementation too';
   SUsageFormats        = 'The following output formats are supported by this fpdoc:';
   SUsageBackendHelp    = 'Specify an output format, combined with --help to get more help for this backend.';
   SUsageFormatSpecific = 'Output format "%s" supports the following options:';
@@ -155,7 +160,7 @@ resourcestring
   SDone                       = 'Done.';
   SErrCouldNotCreateOutputDir = 'Could not create output directory "%s"';
   SErrCouldNotCreateFile      = 'Could not create file "%s": %s';
-  SSeeURL                     = '(See %s)';      // For lineair text writers.
+  SSeeURL                     = '(See %s)';      // For linear text writers.
 
 Const
   SVisibility: array[TPasMemberVisibility] of string =
@@ -578,6 +583,7 @@ end;
 procedure TFPDocEngine.ReadContentFile(const AFilename, ALinkPrefix: String);
 var
   f: Text;
+  inheritanceinfo : TStringlist;
 
   procedure ReadLinkTree;
   var
@@ -635,15 +641,15 @@ var
     end;
   end;
 
-  procedure ReadClasses;
-
-    function CreateClass(const AName: String): TPasClassType;
+  function ResolvePackageModule(AName:String;var pkg:TPasPackage;var module:TPasModule;createnew:boolean):String;
     var
-      DotPos, DotPos2, i: Integer;
+      DotPos, DotPos2, i,j: Integer;
       s: String;
       HPackage: TPasPackage;
-      Module: TPasModule;
+
     begin
+      pkg:=nil; module:=nil; result:='';
+
       // Find or create package
       DotPos := Pos('.', AName);
       s := Copy(AName, 1, DotPos - 1);
@@ -656,6 +662,8 @@ var
         end;
       if not Assigned(HPackage) then
       begin
+        if not CreateNew then
+          exit;
         HPackage := TPasPackage(inherited CreateElement(TPasPackage, s, nil,
           '', 0));
         FPackages.Add(HPackage);
@@ -676,18 +684,97 @@ var
         end;
       if not Assigned(Module) then
       begin
+        if not CreateNew then
+          exit;
         Module := TPasModule.Create(s, HPackage);
         Module.InterfaceSection := TInterfaceSection.Create('', Module);
         HPackage.Modules.Add(Module);
       end;
+     pkg:=hpackage;
+     result:=Copy(AName, DotPos2 + 1, length(AName)-dotpos2);
+  end;
 
+  function ResolveClassType(AName:String):TPasClassType;
+  var 
+     pkg     : TPasPackage;
+     module  : TPasModule;
+     s       : string; 
+     clslist : TList;  
+     ClassEl : TPasClassType;
+     i       : Integer;
+  begin
+    Result:=nil;
+    s:=ResolvePackageModule(AName,pkg,module,False);
+    if not assigned(module) then
+      exit;
+    clslist:=module.InterfaceSection.Classes;
+    for i:=0 to clslist.count-1 do
+      begin
+        ClassEl := TPasClassType(clslist[i]);
+        if CompareText(ClassEl.Name,s) =0 then
+          exit(Classel); 
+      end;
+  end;
+
+  procedure ReadClasses;
+
+    function CreateClass(const AName: String;InheritanceStr:String): TPasClassType;
+    var
+      DotPos, DotPos2, i,j: Integer;
+      s: String;
+      HPackage: TPasPackage;
+      Module: TPasModule;
+
+    begin
+      s:= ResolvePackageModule(AName,HPackage,Module,True);
       // Create node for class
-      Result := TPasClassType.Create(Copy(AName, DotPos2 + 1, Length(AName)),
-        Module.InterfaceSection);
+      Result := TPasClassType.Create(s, Module.InterfaceSection);
       Result.ObjKind := okClass;
       Module.InterfaceSection.Declarations.Add(Result);
       Module.InterfaceSection.Classes.Add(Result);
+      // defer processing inheritancestr till all classes are loaded.
+      if inheritancestr<>'' then
+        InheritanceInfo.AddObject(Inheritancestr,result);
     end;
+
+   procedure ProcessInheritanceStrings(inhInfo:TStringList);
+   var i,j : integer;
+       cls : TPasClassType;  
+       cls2: TPasClassType;
+       inhclass   : TStringList;
+   begin
+     inhclass:=TStringList.Create;
+     inhclass.delimiter:=',';
+     if InhInfo.Count>0 then
+       for i:=0 to InhInfo.Count-1 do
+         begin
+           cls:=TPasClassType(InhInfo.Objects[i]);
+           inhclass.clear; 
+           inhclass.delimitedtext:=InhInfo[i];
+
+           for j:= 0 to inhclass.count-1 do
+             begin
+               // writeln('processing',inhclass[j]);
+               cls2:=TPasClassType(ResolveClassType(inhclass[j])); 
+               if assigned(cls2) and not (cls=cls2) then  // save from tobject=implicit tobject
+                 begin
+                   cls2.addref;
+                   if j=0 then
+                     cls.ancestortype:=cls2
+                   else
+                     cls.interfaces.add(cls2);
+{                   if j=0 then
+                     writeln(cls.name, ' has as ancestor ',cls2.pathname)
+                   else
+                     writeln(cls.name, ' implements ',cls2.pathname)
+}
+                 end
+               else
+                if cls<>cls2 then
+                  writeln(cls.name,'''s dependancy '  ,inhclass[j],' ',j,' could not be resolved');
+             end;
+         end;
+end;
 
   var
     s, Name: String;
@@ -695,53 +782,59 @@ var
     i: Integer;
     Member: TPasElement;
   begin
-    CurClass := nil;
-    while True do
-    begin
-      ReadLn(f, s);
-      if Length(s) = 0 then
-        break;
-      if s[1] = '#' then
+    inheritanceinfo :=TStringlist.Create;
+    Try
+      CurClass := nil;
+      while True do
       begin
-        // New class
-        i := Pos(' ', s);
-        CurClass := CreateClass(Copy(s, 1, i - 1));
-      end else
-      begin
-        i := Pos(' ', s);
-        if i = 0 then
-          Name := Copy(s, 3, Length(s))
-        else
-          Name := Copy(s, 3, i - 3);
-
-        case s[2] of
-          'M':
-            Member := TPasProcedure.Create(Name, CurClass);
-          'P':
-            begin
-              Member := TPasProperty.Create(Name, CurClass);
-              if i > 0 then
-                while i <= Length(s) do
-                begin
-                  case s[i] of
-                    'r':
-                      TPasProperty(Member).ReadAccessorName := '<dummy>';
-                    'w':
-                      TPasProperty(Member).WriteAccessorName := '<dummy>';
-                    's':
-                      TPasProperty(Member).StoredAccessorName := '<dummy>';
-                  end;
-                  Inc(i);
-                end;
-            end;
-          'V':
-            Member := TPasVariable.Create(Name, CurClass);
+        ReadLn(f, s);
+        if Length(s) = 0 then
+          break;
+        if s[1] = '#' then
+        begin
+          // New class
+          i := Pos(' ', s);
+          CurClass := CreateClass(Copy(s, 1, i - 1), copy(s,i+1,length(s)));
+        end else
+        begin
+          i := Pos(' ', s);
+          if i = 0 then
+            Name := Copy(s, 3, Length(s))
           else
-            raise Exception.Create('Invalid member type: ' + s[2]);
+            Name := Copy(s, 3, i - 3);
+
+          case s[2] of
+            'M':
+              Member := TPasProcedure.Create(Name, CurClass);
+            'P':
+              begin
+                Member := TPasProperty.Create(Name, CurClass);
+                if i > 0 then
+                  while i <= Length(s) do
+                  begin
+                    case s[i] of
+                      'r':
+                        TPasProperty(Member).ReadAccessorName := '<dummy>';
+                      'w':
+                        TPasProperty(Member).WriteAccessorName := '<dummy>';
+                      's':
+                        TPasProperty(Member).StoredAccessorName := '<dummy>';
+                    end;
+                    Inc(i);
+                  end;
+              end;
+            'V':
+              Member := TPasVariable.Create(Name, CurClass);
+            else
+              raise Exception.Create('Invalid member type: ' + s[2]);
+          end;
+          CurClass.Members.Add(Member);
         end;
-        CurClass.Members.Add(Member);
       end;
-    end;
+     ProcessInheritanceStrings(Inheritanceinfo);
+    finally
+     inheritanceinfo.Free;
+     end;
   end;
 
 var
@@ -820,9 +913,17 @@ begin
         ClassDecl := TPasClassType(Module.InterfaceSection.Classes[j]);
         Write(ContentFile, ClassDecl.PathName, ' ');
         if Assigned(ClassDecl.AncestorType) then
-          WriteLn(ContentFile, ClassDecl.AncestorType.PathName)
+          Write(ContentFile, ClassDecl.AncestorType.PathName)
         else if ClassDecl.ObjKind = okClass then
-          WriteLn(ContentFile, '.TObject');
+          Write(ContentFile, '#rtl.System.TObject')
+        else if ClassDecl.ObjKind = okInterface then
+          Write(ContentFile, '#rtl.System.IUnknown');
+        if ClassDecl.Interfaces.Count>0 then
+          begin
+            for k:=0 to ClassDecl.Interfaces.count-1 do
+              write(contentfile,',',TPasClassType(ClassDecl.Interfaces[k]).PathName);
+          end;
+        writeln(contentfile);
         for k := 0 to ClassDecl.Members.Count - 1 do
         begin
           Member := TPasElement(ClassDecl.Members[k]);
@@ -850,8 +951,6 @@ begin
       end;
     end;
   end;
-
-
   finally
     Close(ContentFile);
   end;
@@ -972,8 +1071,17 @@ var
   i: Integer;
   ThisPackage: TLinkNode;
   UnitList: TList;
+
+  function CanWeExit(AResult: string): boolean;
+  var
+    s: string;
+  begin
+    s := StringReplace(Lowercase(ALinkDest), '.', '_', [rfReplaceAll]);
+    Result := pos(s, AResult) > 0;
+  end;
+
 begin
-//WriteLn('ResolveLink(', ALinkDest, ')... ');
+//system.WriteLn('ResolveLink(', AModule.Name, ' - ', ALinkDest, ')... ');
   if Length(ALinkDest) = 0 then
   begin
     SetLength(Result, 0);
@@ -984,13 +1092,18 @@ begin
     Result := FindAbsoluteLink(ALinkDest)
   else
   begin
-    Result := ResolveLink(AModule, amodule.packagename + '.' + ALinkDest);
-    if Length(Result) > 0 then
-      exit;
-
-    Result := ResolveLink(AModule, AModule.PathName + '.' + ALinkDest);
-    if Length(Result) > 0 then
-      exit;
+    if Pos(AModule.Name, ALinkDest) = 1 then
+    begin
+      Result := ResolveLink(AModule, amodule.packagename + '.' + ALinkDest);
+      if CanWeExit(Result) then
+        Exit;
+    end
+    else
+    begin
+      Result := ResolveLink(AModule, AModule.PathName + '.' + ALinkDest);
+      if CanWeExit(Result) then
+        Exit;
+    end;
 
     { Try all packages }
     SetLength(Result, 0);
@@ -998,12 +1111,12 @@ begin
     while Assigned(ThisPackage) do
     begin
       Result := ResolveLink(AModule, ThisPackage.Name + '.' + ALinkDest);
-      if Length(Result) > 0 then
-        exit;
+      if CanWeExit(Result) then
+        Exit;
       ThisPackage := ThisPackage.NextSibling;
     end;
 
-    if Length(Result) = 0 then
+    if not CanWeExit(Result) then
     begin
       { Okay, then we have to try all imported units of the current module }
       UnitList := AModule.InterfaceSection.UsesList;
@@ -1015,8 +1128,8 @@ begin
         begin
           Result := ResolveLink(AModule, ThisPackage.Name + '.' +
             TPasType(UnitList[i]).Name + '.' + ALinkDest);
-          if Length(Result) > 0 then
-            exit;
+            if CanWeExit(Result) then
+              Exit;
           ThisPackage := ThisPackage.NextSibling;
         end;
       end;

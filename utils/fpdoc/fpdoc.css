@@ -159,3 +159,8 @@ dd {
  margin: 0 0 0 110px;
  padding: 0 0 0.5em 0;
 }
+
+/* for browsers in standards compliance mode */
+td p {
+  margin: 0;
+}

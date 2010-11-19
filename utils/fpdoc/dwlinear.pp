@@ -14,19 +14,23 @@ Type
     FStream : TStream;
     PackageName: String;
     Module: TPasModule;
-    ModuleName: String;
     FLastURL : DomString;
   private
+    FDupLinkedDoc: Boolean;
   Protected
+    ModuleName: String;
     // Writing support.
     procedure Write(const s: String); virtual;
     procedure WriteLn(const s: String); virtual;
-    procedure WriteF(const s: String; const Args: array of const);
-    procedure WriteLnF(const s: String; const Args: array of const);
+    procedure WriteF(const s: String; const Args: array of const); virtual;
+    procedure WriteLnF(const s: String; const Args: array of const); virtual;
     Function  PushWriteContext(S : TStream) : TStream;
     Procedure PopWriteContext(S : TSTream);
     procedure WriteLabel(El: TPasElement);
     procedure WriteIndex(El: TPasElement);
+    procedure WriteTypeDecl(El: TPasElement); virtual;
+    procedure WriteVariableDecl(El: TPasElement); virtual;
+    procedure WriteConstDecl(El: TPasElement); virtual;
     // Auxiliary routines
     procedure DescrBeginURL(const AURL: DOMString); override; // Provides a default implementation
     procedure DescrEndURL; override;
@@ -64,6 +68,9 @@ Type
     function  GetLabel(AElement: TPasElement): String; virtual; abstract;
     procedure WriteLabel(Const S : String); virtual; abstract;
     procedure WriteIndex(Const S : String); virtual; abstract;
+    procedure WriteType(const s: string); virtual;
+    procedure WriteVariable(const s: string); virtual;
+    procedure WriteConstant(const s: string); virtual;
     procedure StartChapter(ChapterName : String); virtual; abstract;
     procedure StartSection(SectionName : String); virtual; abstract;
     procedure StartSubSection(SubSectionName : String); virtual; abstract;
@@ -73,8 +80,8 @@ Type
     Procedure WriteExampleFile(FN : String); virtual; abstract;
     procedure StartOverview(WithAccess : Boolean); virtual; Abstract;
     procedure EndOverview; virtual; Abstract;
-    procedure WriteOverviewMember(ALabel,AName,Access,ADescr : String); virtual; Abstract;
-    procedure WriteOverviewMember(ALabel,AName,ADescr : String); virtual; Abstract;
+    procedure WriteOverviewMember(const ALabel,AName,Access,ADescr : String); virtual; Abstract;
+    procedure WriteOverviewMember(const ALabel,AName,ADescr : String); virtual; Abstract;
     procedure StartUnitOverview(AModuleName,AModuleLabel : String);virtual; Abstract;
     procedure WriteUnitEntry(UnitRef : TPasType);virtual; Abstract;
     procedure EndUnitOverview; virtual; Abstract;
@@ -82,6 +89,8 @@ Type
     Property LastURL : DomString Read FLastURL Write FLastURL;
   Public
     Constructor Create(APackage: TPasPackage; AEngine: TFPDocEngine); override;
+    function InterpretOption(const Cmd, Arg: String): Boolean; override;
+    class procedure Usage(List: TStrings); override;
     procedure WriteDoc; override;
     // Linear Documentation writing methods.
     Procedure ProcessPackage;
@@ -90,7 +99,7 @@ Type
     procedure WriteUnitOverview(ASection: TPasSection);
     procedure WriteVarsConstsTypes(ASection: TPasSection);
     procedure WriteConsts(ASection: TPasSection);
-    procedure WriteTypes(ASection: TPasSection);
+    procedure WriteTypes(ASection: TPasSection); virtual;
     procedure WriteEnumElements(TypeDecl : TPasEnumType);
     procedure WriteVars(ASection: TPasSection);
     procedure WriteFunctionsAndProcedures(ASection: TPasSection);
@@ -99,6 +108,7 @@ Type
     procedure WriteClassDecl(ClassDecl: TPasClassType);
     procedure WriteClassMethodOverview(ClassDecl: TPasClassType);
     procedure WriteClassPropertyOverview(ClassDecl: TPasClassType);
+    procedure WriteClassInterfacesOverView(ClassDecl: TPasClassType);
     procedure WriteProperty(PropDecl: TPasProperty);
     procedure WriteExample(ADocNode: TDocNode);
     procedure WriteSeeAlso(ADocNode: TDocNode);
@@ -108,6 +118,9 @@ Type
   end;
 
 implementation
+
+const
+  cDupLinkedDocParam = '--duplinkeddoc';
 
 { TLinearWriter }
 
@@ -157,9 +170,8 @@ begin
 end;
 
 procedure TLinearWriter.DescrWriteText(const AText: DOMString);
-
 begin
-  self.Write(EscapeText(AText));
+  Write(EscapeText(AText));
 end;
 
 Function TLinearWriter.GetDescrString(AContext: TPasElement; DescrNode: TDOMElement) : String;
@@ -199,6 +211,21 @@ end;
 procedure TLinearWriter.WriteIndex(El: TPasElement);
 begin
   WriteIndex(EL.Name);
+end;
+
+procedure TLinearWriter.WriteTypeDecl(El: TPasElement);
+begin
+  WriteType(El.Name);
+end;
+
+procedure TLinearWriter.WriteVariableDecl(El: TPasElement);
+begin
+	WriteVariable(El.Name);
+end;
+
+procedure TLinearWriter.WriteConstDecl(El: TPasElement);
+begin
+	WriteConstant(El.Name);
 end;
 
 procedure TLinearWriter.DescrBeginURL(const AURL: DOMString);
@@ -346,6 +373,20 @@ begin
   Writeln('');
 end;
 
+procedure TLinearWriter.WriteType(const s: string);
+begin
+  // do nothing
+end;
+
+procedure TLinearWriter.WriteVariable(const s: string);
+begin
+  // do nothing
+end;
+
+procedure TLinearWriter.WriteConstant(const s: string);
+begin
+  // do nothing
+end;
 
 procedure TLinearWriter.WriteClassDecl(ClassDecl: TPasClassType);
 var
@@ -368,8 +409,14 @@ begin
       StartSubSection(SDocVersion);
       WriteDescr(ClassDecl,DocNode.Version);
       end;
+    if Assigned(DocNode.SeeAlso) then
+    begin
+      WriteSeeAlso(DocNode);
+    end;
   end;
 
+  // Write Interfaces Overview;
+  WriteClassInterfacesOverView(ClassDecl);
   // Write method overview
   WriteClassMethodOverView(ClassDecl);
   // Write Property Overview;
@@ -413,7 +460,7 @@ var
   L,N,S,A: String;
   DocNode: TDocNode;
   List : TStringList;
-
+  lNode: TDocNode;
 begin
   // Write property overview
   List:=TStringList.Create;
@@ -437,10 +484,20 @@ begin
         L:=StripText(GetLabel(Member));
         N:=EscapeText(Member.Name);
         DocNode := Engine.FindDocNode(Member);
-        If Assigned(DocNode) then
-          S:=GetDescrString(Member, DocNode.ShortDescr)
+        if Assigned(DocNode) then
+        begin
+          if FDupLinkedDoc and (DocNode.Link <> '') then
+          begin
+            lNode := Engine.FindLinkedNode(DocNode);
+            if not Assigned(lNode) then
+              lNode := DocNode;
+          end
+          else
+            lNode := DocNode;
+          S := GetDescrString(Member, lNode.ShortDescr);
+        end
         else
-          S:='';
+          S := '';
 
         A:='';
         if Length(TPasProperty(Member).ReadAccessorName) > 0 then
@@ -450,10 +507,66 @@ begin
         if Length(TPasProperty(Member).StoredAccessorName) > 0 then
           a := a + 's';
         WriteOverviewMember(L,N,A,S);
+        S := '';
         end;
       EndOverview;
       end;
   Finally
+    List.Free;
+  end;
+end;
+
+
+procedure TLinearWriter.WriteClassInterfacesOverView(ClassDecl: TPasClassType);
+var
+  lInterface: TPasElement;
+  i: Integer;
+  L,N,S,A: String;
+  DocNode: TDocNode;
+  List : TStringList;
+  lNode: TDocNode;
+begin
+  // Write Interfaces overview
+  List:=TStringList.Create;
+  try
+    List.Sorted:=True;
+    for i := 0 to ClassDecl.Interfaces.Count-1 do
+    begin
+      lInterface := TPasElement(ClassDecl.Interfaces[i]);
+      List.AddObject(lInterface.Name,lInterface);
+    end;
+    if (List.Count>0) then
+    begin
+      StartSubSection(SDocInterfacesOverview);
+      WriteLabel(GetLabel(ClassDecl) + ':Interfaces');
+      StartOverView(False);
+      for i := 0 to List.Count-1 do
+      begin
+        lInterface := TPasElement(List.Objects[i]);
+        L := StripText(GetLabel(lInterface));
+        N := EscapeText(lInterface.Name);
+        DocNode := Engine.FindDocNode(lInterface);
+        if Assigned(DocNode) then
+        begin
+          if FDupLinkedDoc and (DocNode.Link <> '') then
+          begin
+            lNode := Engine.FindLinkedNode(DocNode);
+            if not Assigned(lNode) then
+              lNode := DocNode;
+          end
+          else
+            lNode := DocNode;
+          S := GetDescrString(lInterface, lNode.ShortDescr);
+        end
+        else
+          S := '';
+
+        WriteOverviewMember(L,N,S);
+        S := '';
+      end;
+      EndOverview;
+    end;
+  finally
     List.Free;
   end;
 end;
@@ -562,7 +675,7 @@ begin
     begin
       ResStrDecl := TPasResString(ASection.ResStrings[i]);
       StartListing(false, '');
-      Writeln(ResStrDecl.GetDeclaration(True));
+      DescrWriteText(ResStrDecl.GetDeclaration(True)); // instead of WriteLn() so we can do further processing like manual line wrapping in descendants
       EndListing;
       WriteLabel(ResStrDecl);
       WriteIndex(ResStrDecl);
@@ -683,6 +796,7 @@ begin
       begin
       DescrBeginParaGraph;
       ConstDecl := TPasConst(ASection.Consts[i]);
+      WriteConstDecl(ConstDecl);
       StartListing(False,'');
       WriteLn(EscapeText(ConstDecl.GetDeclaration(True)));
       EndListing;
@@ -746,16 +860,19 @@ begin
     StartSubSection(SDocTypes,ModuleName+'Types');
     for i := 0 to ASection.Types.Count - 1 do
     begin
-      DescrBeginParaGraph;
+      DescrBeginParagraph;
       TypeDecl := TPasType(ASection.Types[i]);
+      WriteTypeDecl(TypeDecl);
       StartListing(False,'');
       DocNode := Engine.FindDocNode(TypeDecl);
       If Assigned(DocNode) and 
          Assigned(DocNode.Node) and 
          (Docnode.Node['opaque']='1') then
           Writeln(TypeDecl.Name+' = '+SDocOpaque)
-      else    
-         Writeln(EscapeText(TypeDecl.GetDeclaration(True)));
+      else
+      begin
+        Writeln(EscapeText(TypeDecl.GetDeclaration(True)));
+      end;
       EndListing;
       WriteLabel(TypeDecl);
       WriteIndex(TypeDecl);
@@ -769,7 +886,7 @@ begin
         Writeln(Format('%s : ',[SDocVersion]));
         WriteDescr(TypeDecl, DocNode.Version);
         end;
-      DescrEndParaGraph;
+      DescrEndParagraph;
       end;
   end;
 end;
@@ -788,6 +905,7 @@ begin
     begin
       DescrBeginParaGraph;
       VarDecl := TPasVariable(ASection.Variables[i]);
+      WriteVariableDecl(VarDecl);
       StartListing(False,'');
       WriteLn(EscapeText(VarDecl.GetDeclaration(True)));
       EndListing;
@@ -857,7 +975,7 @@ begin
         StartDescription;
         WriteDescr(ProcDecl);
         end;
-      if Assigned(DocNode.ErrorsDoc) then
+      if Assigned(DocNode.ErrorsDoc) and (DocNode.ErrorsDoc.HasChildNodes) then
         begin
         StartErrors;
         WriteDescr(ProcDecl, DocNode.ErrorsDoc);
@@ -920,6 +1038,7 @@ procedure TLinearWriter.WriteProperty(PropDecl : TPasProperty);
 var
   DocNode: TDocNode;
   S: String;
+  lNode: TDocNode;
 begin
   With PropDecl do
     begin
@@ -928,11 +1047,23 @@ begin
     WriteIndex(Parent.Name+'.'+Name);
     StartProperty;
     DocNode := Engine.FindDocNode(PropDecl);
-    if Assigned(DocNode) and Assigned(DocNode.ShortDescr) then
+    if Assigned(DocNode) then
+    begin
+      if FDupLinkedDoc and (DocNode.Link <> '') then
       begin
-      StartSynopsis;
-      WriteDescr(PropDecl, DocNode.ShortDescr);
+        lNode := Engine.FindLinkedNode(DocNode);
+        if not Assigned(lNode) then
+          lNode := DocNode;
+      end
+      else
+        lNode := DocNode;
+
+      if Assigned(lNode.ShortDescr) then
+      begin
+        StartSynopsis;
+        WriteDescr(PropDecl, lNode.ShortDescr);
       end;
+    end;
     StartDeclaration;
     StartListing(False);
     WriteLn('Property '+GetDeclaration(True));
@@ -954,27 +1085,27 @@ begin
       end;
     Writeln(S);
     if Assigned(DocNode) then
-      begin
-      if Assigned(DocNode.Descr) then
+    begin
+      if Assigned(lNode.Descr) then     // lNode will be assigned if DocNode exists
         begin
         StartDescription;
-        WriteDescr(PropDecl);
+        WriteDescr(PropDecl, lNode);
         end;
-      if Assigned(DocNode.ErrorsDoc) then
+      if Assigned(lNode.ErrorsDoc) and (lNode.ErrorsDoc.HasChildNodes) then
         begin
         StartErrors;
         WriteDescr(PropDecl, DocNode.ErrorsDoc);
         end;
-      if Assigned(DocNode.Version) then
+      if Assigned(lNode.Version) then
         begin
         StartVersion;
-        WriteDescr(PropDecl, DocNode.Version);
+        WriteDescr(PropDecl, lNode.Version);
         end;
-      WriteSeeAlso(DocNode);
+      WriteSeeAlso(lNode);
       EndProperty;
-      WriteExample(DocNode);
-      end
-     else
+      WriteExample(lNode);
+    end
+    else
       EndProperty;
     end;
 end;
@@ -1004,6 +1135,8 @@ begin
         Writeln(',');
       S:=TDomElement(Node)['id'];
       DescrBeginLink(S);
+      if Node.FirstChild <> nil then
+        s := Node.FirstChild.NodeValue;
       Write(EscapeText(S));
       DescrEndLink();
       end;
@@ -1208,6 +1341,7 @@ var
   i: Integer;
 begin
   inherited ;
+  FDupLinkedDoc := False; // by default we don't duplicate linked element documentation
 
   { Allocate labels for all elements for which we are going to create
     documentation. This is needed for links to work correctly. }
@@ -1231,6 +1365,28 @@ end;
 
 procedure TLinearWriter.WriteEndDocument;
 begin
+  // do nothing
 end;
 
+function TLinearWriter.InterpretOption(const Cmd: String; const Arg: String): Boolean;
+begin
+  Result := True;
+  if Cmd = cDupLinkedDocParam then
+  begin
+    FDupLinkedDoc := True;
+  end
+  else
+    Result := False;
+end;
+
+class procedure TLinearWriter.Usage(List: TStrings);
+begin
+  List.Add(cDupLinkedDocParam);
+  List.Add(SLinearUsageDupLinkedDocsP1);
+  List.Add('');
+  List.Add(SLinearUsageDupLinkedDocsP2);
+end;
+
+
 end.
+

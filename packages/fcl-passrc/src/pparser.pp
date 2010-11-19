@@ -92,16 +92,18 @@ uses Classes;
 var
   IsIdentStart: array[char] of boolean;
 
-type
+const
+  WhitespaceTokensToIgnore = [tkWhitespace, tkComment, tkLineEnding, tkTab];
 
+type
   TDeclType = (declNone, declConst, declResourcestring, declType, declVar, declThreadvar, declProperty);
 
   TProcType = (ptProcedure, ptFunction, ptOperator, ptConstructor, ptDestructor,
                ptClassProcedure, ptClassFunction);
 
                
-  TExprKind = (ek_Normal, ek_PropertyIndex);               
-               
+  TExprKind = (ek_Normal, ek_PropertyIndex);
+
   { TPasParser }
 
   TPasParser = class
@@ -158,6 +160,7 @@ type
 
     procedure ParseMain(var Module: TPasModule);
     procedure ParseUnit(var Module: TPasModule);
+    procedure ParseProgram(var Module: TPasModule);
     procedure ParseInterface;
     procedure ParseImplementation;
     procedure ParseInitialization;
@@ -184,6 +187,7 @@ type
     procedure ParseProcBeginBlock(Parent: TProcedureBody);
     procedure ParseStatement(Parent: TPasImplBlock;
                              out NewImplElement: TPasImplElement);
+    procedure ParseLabels(AParent: TPasElement);
 
     property FileResolver: TFileResolver read FFileResolver;
     property Scanner: TPascalScanner read FScanner;
@@ -291,7 +295,7 @@ begin
     try
       repeat
         FCurToken := Scanner.FetchToken;
-      until not (FCurToken in [tkWhitespace, tkComment]);
+      until not (FCurToken in WhitespaceTokensToIgnore);
     except
       on e: EScannerError do
         raise EParserError.Create(e.Message,
@@ -929,6 +933,13 @@ begin
           x:=DoParseExpression(AParent);
           if CurToken<>tkBraceClose then Exit;
           NextToken;
+
+          // for the expression like  (TObject(m)).Free;
+          if CurToken = tkDot then begin
+            NextToken;
+            x:=TBinaryExpr.Create(AParent,x, ParseExpIdent(AParent), TokenToExprOp(tkDot));
+          end;
+
         end else begin
           x:=ParseExpIdent(AParent);
         end;
@@ -1224,6 +1235,7 @@ begin
   NextToken;
   case CurToken of
     tkUnit: ParseUnit(Module);
+    tkProgram: ParseProgram(Module);
     else
       ParseExc(Format(SParserExpectTokenError, ['unit']));
   end;
@@ -1246,6 +1258,26 @@ begin
 //    ExpectToken(tkSemicolon);
     ExpectToken(tkInterface);
     ParseInterface;
+  finally
+    CurModule:=nil;
+  end;
+end;
+
+// Starts after the "program" token
+procedure TPasParser.ParseProgram(var Module: TPasModule);
+begin
+  Module := nil;
+  Module := TPasModule(CreateElement(TPasProgram, ExpectIdentifier,
+    Engine.Package));
+  CurModule:=Module;
+  try
+    if Assigned(Engine.Package) then
+    begin
+      Module.PackageName := Engine.Package.Name;
+      Engine.Package.Modules.Add(Module);
+    end;
+    NextToken;
+    ParseImplementation;
   finally
     CurModule:=nil;
   end;
@@ -1535,7 +1567,12 @@ begin
           end
         else
           ParseExc(SParserSyntaxError);
-        end
+        end;
+      tklabel:
+        begin
+          if not (Declarations is TInterfaceSection) then
+            ParseLabels(Declarations);
+        end;
     else
       ParseExc(SParserSyntaxError);
     end;
@@ -1544,21 +1581,28 @@ end;
 
 // Starts after the "uses" token
 procedure TPasParser.ParseUsesList(ASection: TPasSection);
+
+function CheckUnit(AUnitName : string):TPasElement;
+begin
+    result := Engine.FindModule(AUnitName);  // should we resolve module here when "IN" filename is not known yet?
+    if Assigned(result) then
+      result.AddRef
+    else
+      Result := TPasType(CreateElement(TPasUnresolvedTypeRef, AUnitName,
+        ASection));
+    ASection.UsesList.Add(Result);
+end;
+
 var
   AUnitName: String;
   Element: TPasElement;
 begin
+  If not (Asection is TImplementationSection) Then // interface,program,library,package
+    Element:=CheckUnit('System'); // system always implicitely first.    
   while True do
   begin
-    AUnitName := ExpectIdentifier;
-
-    Element := Engine.FindModule(AUnitName); // should we resolve module here when "IN" filename is not known yet?
-    if Assigned(Element) then
-      Element.AddRef
-    else
-      Element := TPasType(CreateElement(TPasUnresolvedTypeRef, AUnitName,
-        ASection));
-    ASection.UsesList.Add(Element);
+    AUnitName := ExpectIdentifier; 
+    Element :=CheckUnit(AUnitName);
 
     NextToken;
 
@@ -2390,6 +2434,7 @@ var
   Body: TProcedureBody;
 begin
   Body := TProcedureBody(CreateElement(TProcedureBody, '', Parent));
+  TPasProcedure(Parent).Body:=Body;
   ParseDeclarations(Body);
 end;
 
@@ -2632,15 +2677,16 @@ var
 
 var
   Condition: String;
-  Command: String;
   StartValue: String;
   VarName: String;
   EndValue: String;
   Expr: String;
   SubBlock: TPasImplElement;
-  CmdElem: TPasImplCommand;
+  CmdElem: TPasImplElement;
   TypeName: String;
   ForDownTo: Boolean;
+  left: TPasExpr;
+  right: TPasExpr;
 begin
   NewImplElement:=nil;
   CurBlock := Parent;
@@ -2874,18 +2920,48 @@ begin
           ParseExc(SParserSyntaxError);
       end;
     else
-      UngetToken;
-      Command:=ParseCommand;
-      //WriteLn(i,'COMMAND="',Command,'" Token=',CurTokenString);
-      if Command='' then
-        ParseExc(SParserSyntaxError);
-      CmdElem:=CurBlock.AddCommand(Command);
-      if NewImplElement=nil then NewImplElement:=CmdElem;
-      if CloseStatement(false) then break;
+      left:=DoParseExpression(nil);
+      case CurToken of
+        tkAssign:
+        begin
+          // assign statement
+          NextToken;
+          right:=ParseExpIdent(Parent);
+          CmdElem:=CurBlock.AddAssign(left, right);
+          UngetToken;
+        end;
+        tkColon:
+        begin
+          if not (left is TPrimitiveExpr) then
+            ParseExc(Format(SParserExpectTokenError, [TokenInfos[tkSemicolon]]));
+          // label mark. todo: check mark identifier in the list of labels
+          CmdElem:=CurBlock.AddLabelMark(TPrimitiveExpr(left).Value);
+          left.Free;
+        end
+      else
+        // simple statement (function call)
+        CmdElem:=CurBlock.AddSimple(left);
+        UngetToken;
+      end;
+
+      if not (CmdElem is TPasImplLabelMark) then
+        if NewImplElement=nil then NewImplElement:=CmdElem;
     end;
   end;
 end;
 
+procedure TPasParser.ParseLabels(AParent: TPasElement);
+var
+  Labels: TPasLabels;
+begin
+  Labels:=TPasLabels(CreateElement(TPasLabels, '', AParent));
+  repeat
+    Labels.Labels.Add(ExpectIdentifier);
+    NextToken;
+    if not (CurToken in [tkSemicolon, tkComma]) then
+      ParseExc(Format(SParserExpectTokenError, [TokenInfos[tkSemicolon]]));
+  until CurToken=tkSemicolon;
+end;
 
 // Starts after the "procedure" or "function" token
 function TPasParser.ParseProcedureOrFunctionDecl(Parent: TPasElement;
@@ -3197,6 +3273,13 @@ begin
     if CurToken = tkBraceOpen then
     begin
       TPasClassType(Result).AncestorType := ParseType(nil);
+      {$ifdef Inheritancewarnings}
+        s:=TPasClassType(Result).AncestorType.pathname;
+        if pos('#',s)=0 then
+          begin
+            writeln('Note: ', TPasClassType(Result).pathname,'''s ancestor ',s, ' at ',sourcefilename,':',sourcelinenumber,' cannot be resolved fully');
+          end;
+      {$endif}
       while True do
       begin
         NextToken;
@@ -3204,7 +3287,10 @@ begin
           break;
         UngetToken;
         ExpectToken(tkComma);
-        ExpectIdentifier;
+        //ExpectIdentifier;
+        Element:=ParseType(Nil); // search interface.
+        if assigned(element) then
+          TPasClassType(Result).Interfaces.add(element);
         // !!!: Store interface name
       end;
       NextToken;

@@ -28,7 +28,7 @@ program chmls;
 
 uses
   Classes, GetOpts, SysUtils, Types,
-  chmreader, chmbase;
+  chmreader, chmbase, chmsitemap;
 
 type
 
@@ -50,10 +50,10 @@ type
   end;
 
 
-  TCmdEnum = (cmdList,cmdExtract,cmdExtractall,cmdUnblock,cmdextractalias,cmdNone);        // One dummy element at the end avoids rangecheck errors.
+  TCmdEnum = (cmdList,cmdExtract,cmdExtractall,cmdUnblock,cmdextractalias,cmdextracttoc,cmdextractindex,cmdNone);        // One dummy element at the end avoids rangecheck errors.
 
 Const
-  CmdNames : array [TCmdEnum] of String = ('LIST','EXTRACT','EXTRACTALL','UNBLOCK','EXTRACTALIAS','');
+  CmdNames : array [TCmdEnum] of String = ('LIST','EXTRACT','EXTRACTALL','UNBLOCK','EXTRACTALIAS','EXTRACTTOC','EXTRACTINDEX','');
 
 var
   theopts : array[1..4] of TOption;
@@ -85,7 +85,10 @@ begin
   writeln(stderr,'            Extracts context info from file "chmfilename" ');
   writeln(stderr,'            to a "basefilename".h and "basefilename".ali,');
   writeln(stderr,'            using symbols "symbolprefix"contextnr');
-
+  writeln(stderr,' extracttoc <chmfilename> [filename]');
+  writeln(stderr,'            Extracts the toc (mainly to check binary TOC)');
+  writeln(stderr,' extractindex <chmfilename> [filename]');
+  writeln(stderr,'            Extracts the index (mainly to check binary index)');
   Halt(1);
 end;
 
@@ -450,11 +453,48 @@ begin
  Files.Free;
 end;
 
+const 
+   siteext : array[TSiteMapType] of string = ('.hhc','.hhk');
+
+procedure extracttocindex(filespec:TStringDynArray;sttype:TSiteMapType);
+var s,
+    chm,
+    extractfn     : string;
+    i,cnt: integer;
+    cl : TList;
+    f : textfile;
+    fs: TFileStream;
+    r : TChmReader;
+    x : TCHMSitemap;
+begin
+  chm:=filespec[0];
+  extractfn:=changefileext(chm,siteext[sttype]);
+  if length(filespec)>1 then
+    extractfn:=filespec[1];
+
+  if not Fileexists(chm) then
+    begin
+      writeln(stderr,' Can''t find file ',chm);
+      halt(1);
+    end;
+  fs:=TFileStream.create(chm,fmOpenRead);
+  r:=TCHMReader.create(fs,true);
+  case sttype of
+   stindex: x:=r.GetIndexSitemap(false);
+   sttoc : x:=r.gettocsitemap(false);
+  end;
+  if assigned(x) then
+   begin
+     x.savetofile( extractfn);
+     x.free;
+   end;
+  r.free;
+end;
+
 procedure buildarglist(var params: TStringDynArray;var cmd :TCmdEnum);
 
 var s           : ansistring;
     j,k         : Integer;
-
 begin
   s:=uppercase(paramstr(optind));
   cmd:=Low(TCMDEnum);
@@ -562,6 +602,18 @@ begin
                         if length(localparams)>0 then
                           extractalias(localparams)
                         else
+                          WrongNrParam(cmdnames[cmd],length(localparams));
+                       end;
+       cmdextracttoc : begin
+                        if length(localparams)>0 then
+                          extracttocindex(localparams,sttoc)
+                        else
+                          WrongNrParam(cmdnames[cmd],length(localparams));
+                       end;
+       cmdextractindex: begin
+                        if length(localparams)>0 then
+                          extracttocindex(localparams,stindex)
+	                        else
                           WrongNrParam(cmdnames[cmd],length(localparams));
                        end;
       end; {case cmd of}

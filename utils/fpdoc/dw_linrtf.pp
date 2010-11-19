@@ -111,8 +111,8 @@ type
     procedure StartSubSubSection(SubSubSectionName : String);override;
     procedure StartChapter(ChapterName : String); override;
     procedure StartOverview(WithAccess : Boolean); override;
-    procedure WriteOverviewMember(ALabel,AName,Access,ADescr : String); override;
-    procedure WriteOverviewMember(ALabel,AName,ADescr : String); override;
+    procedure WriteOverviewMember(const ALabel,AName,Access,ADescr : String); override;
+    procedure WriteOverviewMember(const ALabel,AName,ADescr : String); override;
     procedure EndOverview; override;
     Class Function FileNameExtension : String; override;
     // Description node conversion
@@ -714,7 +714,7 @@ begin
         [EscapeText(SDocPage), EscapeText(SDocProperty), EscapeText(SDocDescription)]);
 end;
 
-procedure TRTFWriter.WriteOverviewMember(ALabel,AName,Access,ADescr : String);
+procedure TRTFWriter.WriteOverviewMember(const ALabel,AName,Access,ADescr : String);
 begin
   //TODO: Translate Latex \pageref to RTF
   //WriteLnF('\pageref{%s} & %s  & %s & %s \\',[ALabel,AName,Access,ADescr]);
@@ -722,7 +722,7 @@ begin
       [ALabel,AName,Access,ADescr]);
 end;
 
-procedure TRTFWriter.WriteOverviewMember(ALabel,AName,ADescr : String);
+procedure TRTFWriter.WriteOverviewMember(const ALabel,AName,ADescr : String);
 begin
   //TODO: Translate Latex \pageref to RTF
   //WriteLnF('\pageref{%s} & %s  & %s \\',[ALabel,AName,ADescr]);

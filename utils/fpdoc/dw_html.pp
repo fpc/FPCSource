@@ -659,7 +659,8 @@ begin
   Doc := THTMLDocument.Create;
   Result := Doc;
   Doc.AppendChild(Doc.Impl.CreateDocumentType(
-    'HTML', '-//W3C//DTD HTML 4.0 Transitional//EN', ''));
+    'HTML', '-//W3C//DTD HTML 4.01 Transitional//EN',
+    'http://www.w3.org/TR/html4/loose.dtd'));
 
   HTMLEl := Doc.CreateHtmlElement;
   Doc.AppendChild(HTMLEl);
@@ -1525,6 +1526,8 @@ begin
                 break;
               ThisPackage := ThisPackage.NextSibling;
             end;
+            if length(s)=0 then
+              s := ResolveLinkID('#rtl.System.' + Element.Name);
             if Length(s) > 0 then
               break;
           end;
@@ -2230,7 +2233,7 @@ begin
   end;
 end;
 
-procedure THTMLWriter.CreateIndexPage(L : TStringList);
+	procedure THTMLWriter.CreateIndexPage(L : TStringList);
 
 Var
   Lists  : Array['A'..'Z'] of TStringList;
@@ -2816,6 +2819,7 @@ var
     CurVisibility: TPasMemberVisibility;
     i: Integer;
     s: String;
+    ThisInterface,
     ThisClass: TPasClassType;
     HaveSeenTObject: Boolean;
   begin
@@ -2846,6 +2850,14 @@ var
     begin
       AppendSym(CodeEl, '(');
       AppendHyperlink(CodeEl, AClass.AncestorType);
+      if AClass.Interfaces.count>0 Then
+        begin
+          for i:=0 to AClass.interfaces.count-1 do
+           begin
+             AppendSym(CodeEl, ', ');
+             AppendHyperlink(CodeEl,TPasClassType(AClass.Interfaces[i]));
+           end; 
+        end;
       AppendSym(CodeEl, ')');
     end;
 
@@ -2951,6 +2963,15 @@ var
       TDEl['align'] := 'center';
       CodeEl := CreateCode(CreatePara(TDEl));
       AppendHyperlink(CodeEl, ThisClass);
+      if ThisClass.Interfaces.count>0 then
+        begin
+          for i:=0 to ThisClass.interfaces.count-1 do
+            begin
+              ThisInterface:=TPasClassType(ThisClass.Interfaces[i]);
+              AppendText(CodeEl,',');
+              AppendHyperlink(CodeEl, ThisInterface);
+            end;
+        end;
       AppendShortDescrCell(TREl, ThisClass);
       if HaveSeenTObject or (CompareText(ThisClass.Name, 'TObject') = 0) then
         HaveSeenTObject := True

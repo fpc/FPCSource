@@ -24,9 +24,9 @@ uses
   dw_XML,    // XML writer
   dw_dxml,   // Delphi XML doc.
   dw_HTML,   // HTML writer
-  dw_ipf,    // IPF writer
+  dw_ipflin, // IPF writer (new linear output)
   dw_man,    // Man page writer
-  dw_linrtf, // lineair RTF writer
+  dw_linrtf, // linear RTF writer
   dw_txt;    // TXT writer
 
 const
@@ -71,6 +71,7 @@ begin
   Writeln(SUsageOption160);
   Writeln(SUsageOption170);
   Writeln(SUsageOption180);
+  Writeln(SUsageOption190);
   L:=TStringList.Create;
   Try
     If (Backend='') then
@@ -208,6 +209,8 @@ begin
       CPUTarget := Arg
     else if Cmd = '--mo-dir' then
       modir := Arg
+    else if Cmd = '--parse-impl' then
+      Engine.InterfaceOnly:=false
     else
       begin
       BackendOptions.Add(Cmd);

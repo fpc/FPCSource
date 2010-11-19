@@ -80,8 +80,8 @@ Type
     procedure StartChapter(ChapterName : String); override;
     procedure StartOverview(WithAccess : Boolean); override;
     procedure EndOverview; override;
-    procedure WriteOverviewMember(ALabel,AName,Access,ADescr : String); override;
-    procedure WriteOverviewMember(ALabel,AName,ADescr : String); override;
+    procedure WriteOverviewMember(const ALabel,AName,Access,ADescr : String); override;
+    procedure WriteOverviewMember(const ALabel,AName,ADescr : String); override;
     Class Function FileNameExtension : String; override;
     // Description node conversion
     procedure DescrBeginBold; override;
@@ -637,13 +637,13 @@ begin
   WriteLine(False);
 end;
 
-procedure TTxtWriter.WriteOverviewMember(ALabel,AName,Access,ADescr : String);
+procedure TTxtWriter.WriteOverviewMember(const ALabel,AName,Access,ADescr : String);
 
 begin
   WriteLnF('%.30s %.10s  %s',[AName,Access,ADescr]);
 end;
 
-procedure TTxtWriter.WriteOverviewMember(ALabel,AName,ADescr : String);
+procedure TTxtWriter.WriteOverviewMember(const ALabel,AName,ADescr : String);
 
 begin
   WriteLnF('%.30s %s ',[AName,ADescr]);
