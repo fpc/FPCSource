@@ -466,6 +466,21 @@
      FILE_FLAG_DELETE_ON_CLOSE = 67108864;
      FILE_FLAG_BACKUP_SEMANTICS = 33554432;
      FILE_FLAG_POSIX_SEMANTICS = 16777216;
+
+     IO_REPARSE_TAG_RESERVED_ZERO  = 0;
+     IO_REPARSE_TAG_RESERVED_ONE   = 1;
+     IO_REPARSE_TAG_RESERVED_RANGE = IO_REPARSE_TAG_RESERVED_ONE;
+
+     IO_REPARSE_TAG_MOUNT_POINT = $A0000003;
+     IO_REPARSE_TAG_HSM         = $C0000004;
+     IO_REPARSE_TAG_HSM2        = $80000006;
+     IO_REPARSE_TAG_SIS         = $80000007;
+     IO_REPARSE_TAG_WIM         = $80000008;
+     IO_REPARSE_TAG_CSV         = $80000009;
+     IO_REPARSE_TAG_DFS         = $8000000A;
+     IO_REPARSE_TAG_SYMLINK     = $A000000C;
+     IO_REPARSE_TAG_DFSR        = $80000012;
+
      SECURITY_ANONYMOUS = 0;
      SECURITY_IDENTIFICATION = 65536;
      SECURITY_IMPERSONATION = 131072;
@@ -1681,9 +1696,12 @@
      SIF_RANGE = 1;
      SIF_DISABLENOSCROLL = 8;
   { GetStdHandle  }
-     STD_INPUT_HANDLE = DWORD(-10);
-     STD_OUTPUT_HANDLE = DWORD(-11);
-     STD_ERROR_HANDLE = DWORD(-12);
+     STD_INPUT_HANDLE = HANDLE(-10);
+     STD_OUTPUT_HANDLE = HANDLE(-11);
+     STD_ERROR_HANDLE = HANDLE(-12);
+
+
+
 
      INVALID_HANDLE_VALUE = HANDLE(-1);
 
@@ -4005,6 +4023,7 @@ Type
      ACS_AUTOPLAY = 4;
      ACS_CENTER = 1;
      ACS_TRANSPARENT = 2;
+     ACS_TIMER       = 8;  // don't use threads... use timers
   { MODEMDEVCAPS structure  }
      DIALOPTION_BILLING = 64;
      DIALOPTION_QUIET = 128;
@@ -5712,6 +5731,52 @@ const
     IMAGE_FILE_MACHINE_AMD64             = $8664;  // AMD64 (K8)
     IMAGE_FILE_MACHINE_M32R              = $9041;  // M32R little-endian
     IMAGE_FILE_MACHINE_CEE               = $C0EE;
+
+
+    GWLP_WNDPROC        		 = -4; 
+    GWLP_HINSTANCE      		 = -6; 
+    GWLP_HWNDPARENT     		 = -8; 
+    GWLP_USERDATA       		 = -21;
+    GWLP_ID             		 = -12;
+
+    GCLP_MENUNAME                        = -8;    
+    GCLP_HBRBACKGROUND                   = -10;
+    GCLP_HCURSOR                         = -12;
+    GCLP_HICON                           = -14;
+    GCLP_HMODULE                         = -16;
+    GCLP_WNDPROC                         = -24;
+    GCLP_HICONSM                         = -34;
+
+
+// #if(WINVER >= 0x0500)
+{/*
+ * WM_MENUDRAG return values.
+ */}
+const
+      MND_CONTINUE       = 0;
+      MND_ENDMENU        = 1;
+
+{/*
+ * MENUGETOBJECTINFO dwFlags values
+ */}
+const
+      MNGOF_TOPGAP         = $00000001;
+      MNGOF_BOTTOMGAP      = $00000002;
+
+{/*
+ * WM_MENUGETOBJECT return values
+ */}
+const
+      MNGO_NOINTERFACE     = $00000000;
+      MNGO_NOERROR         = $00000001;
+//#endif /* WINVER >= 0x0500 */
+
+
+// Menubar information 
+const
+// Constants for the tagMENUBARINFO.FocusedBits bit mask
+      MBIFB_BAR_FOCUSED = $00000001;
+      MBIFB_FOCUSED     = $00000002;
 
 {$endif read_interface}
 

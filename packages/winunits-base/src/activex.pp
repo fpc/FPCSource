@@ -813,6 +813,8 @@ TYPE
     lpDISPID            = ^DISPID;
     MEMBERID            = DispId;
     HREFTYPE            = DWord;
+    TResultList		= array[0..high(integer) div 4-50] of HResult;
+    PResultList         = ^TResultList;
 
     PSYSINT = ^SYSINT;
     SYSINT = LongInt;
@@ -1597,7 +1599,7 @@ TYPE
 
   tagFUNCDESC                    = Record
                                      memid             : MEMBERID;
-                                     lprgscode         : pSCODE;
+                                     lprgscode         : PResultList;
                                      lprgelemdescParam : lpELEMDESC;    // array of param types
                                      FUNCKIND          : funckind;
                                      invkind           : INVOKEKIND;

@@ -47,11 +47,12 @@ begin
           AddUnit('shfolder');
           AddUnit('richedit');
 	  AddUnit('wininet');
-          AddUnit('uxtheme');  
+          AddUnit('uxtheme');
           AddInclude('tmschema.inc');
           AddUnit('dwmapi');
           AddUnit('multimon');
           AddUnit('htmlhelp');
+          AddUnit('winspool');
         end;
     T:=P.Targets.AddImplicitUnit('activex.pp');
     T:=P.Targets.AddImplicitUnit('comconst.pp');
@@ -75,6 +76,7 @@ begin
     T:=P.Targets.AddImplicitUnit('multimon.pp');
     T:=P.Targets.AddImplicitUnit('dwmapi.pp');
     T:=P.Targets.AddImplicitUnit('htmlhelp.pp');
+    T:=P.Targets.AddImplicitUnit('winspool.pp');
     T.Dependencies.AddInclude('tmschema.inc');
     P.ExamplePath.Add('tests/');
     P.Targets.AddExampleProgram('testcom1.pp');

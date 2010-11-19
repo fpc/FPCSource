@@ -7789,7 +7789,7 @@ implementation
 const
   gdi32 = 'gdi32.dll';
   msimg32 = 'msimg32.dll';
-  winspool32 = 'winspool32.drv';
+  winspool32 = 'winspool.drv';
   opengl32 = 'opengl32.dll';
   {$IFDEF UNICODE}
   AWSuffix = 'W';

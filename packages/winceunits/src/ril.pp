@@ -5531,8 +5531,8 @@ type
        dwStatus:DWORD;                     // @field additional status for message
        pbData:array[0..0] of byte;                      // @field message itself
      end;
-     RILSUPSERVICEDATA = rilmsgstorageinfo_tag;
-     LPRILSUPSERVICEDATA = ^rilmsgstorageinfo_tag;
+     RILSUPSERVICEDATA = rilsupservicedata_tag;
+     LPRILSUPSERVICEDATA = ^rilsupservicedata_tag;
 //#pragma warning(default : 4200)
 
 // -----------------------------------------------------------------------------

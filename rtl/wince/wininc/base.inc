@@ -56,7 +56,8 @@
   type
 
      MAKEINTRESOURCE = pwidechar;
-	 ATOM = word;                     //windef
+     
+     ATOM = word;                     //windef
      TAtom = ATOM;
 
      WINBOOL = longbool;
@@ -472,9 +473,13 @@ type
   { argument types are unknown }
   function HIWORD(l : longint) : WORD;      //windef
 
+type
+     LOBYTE = byte;
+(*
   { was #define dname(params) def_expr }
   { argument types are unknown }
   function LOBYTE(w : longint) : BYTE;      //windef
+*)
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
@@ -519,8 +524,7 @@ type
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function MAKEINTATOM(i : longint) : LPTSTR;
-
+  function MAKEINTATOM(i : longint) : LPTSTR; 
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
@@ -838,16 +842,18 @@ type
        HIWORD:=WORD(((DWORD(l)) shr 16) and $FFFF);
     end;
 
+(*
   { was #define dname(params) def_expr }
   { argument types are unknown }
   function LOBYTE(w : longint) : BYTE;
     begin
        LOBYTE:=BYTE(w);
     end;
+*)
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function LOWORD(l : longint) : WORD;
+  function LOWORD(l : longint) : WORD; inline;
     begin
        LOWORD:=WORD(l);
     end;
@@ -911,11 +917,10 @@ type
 
   { was #define dname(params) def_expr }
   { argument types are unknown }
-  function MAKEINTATOM(i : longint) : LPTSTR;
+  function MAKEINTATOM(i : longint) : LPTSTR; inline;
     begin
        MAKEINTATOM:=LPTSTR(DWORD(WORD(i)));
     end;
-
 
   { was #define dname(params) def_expr }
   { argument types are unknown }

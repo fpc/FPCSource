@@ -280,6 +280,7 @@
              1: (TopLeft,BottomRight : TPoint);
        end;
      LPRECT = ^RECT;
+     LPCRECT = ^RECT;
      _RECT = RECT;
      TRECT = RECT;
      PRECT = ^RECT;
@@ -5347,11 +5348,18 @@
      _GUID = GUID;
      TGUID = GUID;
      PGUID = ^GUID;
+     REFGUID = ^GUID;
 
      CLSID = GUID;
      LPCLSID = ^CLSID;
      TCLSID = CLSID;
      PCLSID = ^CLSID;
+     REFCLSID = ^CLSID;
+
+     FMTID = GUID;
+     LPFMTID = ^FMTID;
+     REFFMTID = ^FMTID;
+
 
      SERVICE_INFO = record
           lpServiceType : LPGUID;
@@ -7720,6 +7728,46 @@ type
     INPUT = tagINPUT;
     PINPUT = ^tagINPUT;
     LPINPUT = ^tagINPUT;
+
+
+// For EnumDisplayMonitors
+type
+     MONITORENUMPROC = function(_hMonitor:HMONITOR; hdcMonitor:HDC; lprcMonitor:LPRECT; dwData:LPARAM):BOOL;
+
+// For GetMonitorInfo
+type
+     tagMONITORINFO = record
+       cbSize:DWORD;
+       rcMonitor:RECT;
+       rcWork:RECT;
+       dwFlags:DWORD;
+     end;
+     MONITORINFO = tagMONITORINFO;
+     LPMONITORINFO = ^tagMONITORINFO;
+
+     tagMONITORINFOEX = record
+       cbSize:DWORD;
+       rcMonitor:RECT;
+       rcWork:RECT;
+       dwFlags:DWORD;
+        szDevice:array[0..CCHDEVICENAME-1] of TCHAR;
+     end;
+     MONITORINFOEX = tagMONITORINFOEX;
+     LPMONITORINFOEX = ^tagMONITORINFOEX;
+
+// For EnumDisplayDevices
+type
+     _DISPLAY_DEVICE = record
+       cb:DWORD;
+       DeviceName:array[0..31] of TCHAR;
+       DeviceString:array[0..127] of TCHAR;
+       StateFlags:DWORD;
+       DeviceID:array[0..127] of TCHAR;
+       DeviceKey:array[0..127] of TCHAR;
+     end;
+     DISPLAY_DEVICE = _DISPLAY_DEVICE;
+     PDISPLAY_DEVICE = ^_DISPLAY_DEVICE;
+     LPDISPLAY_DEVICE = ^_DISPLAY_DEVICE;
 
 {$endif read_interface}
 

@@ -20,6 +20,7 @@
 type
   PIID = PGUID;
   TIID = TGUID;
+  REFIID = ^TIID;
   THANDLE = HANDLE;
 
   PSmallRect = ^TSmallRect;
