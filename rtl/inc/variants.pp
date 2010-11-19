@@ -3590,7 +3590,7 @@ function Null: Variant;       // Null standard constant
 
 procedure VarDispInvokeError;
   begin
-    raise EVariantDispatchError(SDispatchError);
+    raise EVariantDispatchError.Create(SDispatchError);
   end;
 
 { ---------------------------------------------------------------------
