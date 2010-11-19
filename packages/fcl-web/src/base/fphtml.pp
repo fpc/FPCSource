@@ -57,6 +57,7 @@ type
     procedure RedrawContentProducer(AContentProducer: THTMLContentProducer); virtual;
     procedure CallServerEvent(AHTMLContentProducer: THTMLContentProducer; AEvent: Integer; APostVariable: string = ''); virtual;
     procedure Clear; virtual;
+    procedure Redirect(AUrl: string); virtual;
     function ScriptIsEmpty: Boolean; virtual;
     function GetScript: String; virtual;
     property WebController: TWebController read GetWebController;
@@ -66,6 +67,7 @@ type
 
   TWebController = class(TComponent)
   private
+    FAddRelURLPrefix: boolean;
     FBaseURL: string;
     FMessageBoxHandler: TMessageBoxHandler;
     FScriptName: string;
@@ -95,6 +97,7 @@ type
     function MessageBox(AText: String; Buttons: TWebButtons; ALoaded: string = ''): string; virtual;
     function DefaultMessageBoxHandler(Sender: TObject; AText: String; Buttons: TWebButtons;  ALoaded: string = ''): string; virtual; abstract;
     function CreateNewScript: TStringList; virtual; abstract;
+    function AddrelativeLinkPrefix(AnURL: string): string;
     procedure FreeScript(var AScript: TStringList); virtual; abstract;
     property ScriptFileReferences: TStringList read GetScriptFileReferences;
     property Scripts: TFPObjectList read GetScripts;
@@ -103,6 +106,7 @@ type
   published
     property BaseURL: string read FBaseURL write SetBaseURL;
     property ScriptName: string read FScriptName write SetScriptName;
+    property AddRelURLPrefix: boolean read FAddRelURLPrefix write FAddRelURLPrefix;
   end;
 
   { TAjaxResponse }
@@ -205,7 +209,7 @@ type
     property AcceptChildsAtDesignTime: boolean read FAcceptChildsAtDesignTime;
     property parent: TComponent read FParent write SetParent;
   end;
-  THTMLContentProducerClas = class of THTMLContentProducer;
+  THTMLContentProducerClass = class of THTMLContentProducer;
 
 
   TWriterElementEvent = procedure (Sender:THTMLContentProducer; aWriter : THTMLWriter; var anElement : THTMLCustomElement) of object;
@@ -489,6 +493,11 @@ end;
 procedure TJavaScriptStack.Clear;
 begin
   FScript.Clear;
+end;
+
+procedure TJavaScriptStack.Redirect(AUrl: string);
+begin
+  AddScriptLine('window.location = "'+AUrl+'";');
 end;
 
 function TJavaScriptStack.ScriptIsEmpty: Boolean;
@@ -1239,6 +1248,16 @@ begin
     result := MessageBoxHandler(self,AText,Buttons,ALoaded)
   else
     result := DefaultMessageBoxHandler(self,AText,Buttons,ALoaded);
+end;
+
+function TWebController.AddrelativeLinkPrefix(AnURL: string): string;
+var
+  i: Integer;
+begin
+  if FAddRelURLPrefix and (AnURL<>'') and (copy(AnURL,1,1)<>'/') and assigned(Owner) and (owner is TWebPage) and assigned(TWebPage(Owner).Request) then
+    result := TWebPage(Owner).Request.LocalPathPrefix + AnURL
+  else
+    result := AnURL;
 end;
 
 function TWebController.GetRequest: TRequest;
