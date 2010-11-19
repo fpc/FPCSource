@@ -142,8 +142,8 @@ begin
   Count := Length(Src);
   while (Count > 0) do
   begin
-    Result += CharWidth(Src[Count], FontInfoPtr);
-    Count -= 1;
+    Result := Result + CharWidth(Src[Count], FontInfoPtr);
+    Count := Count - 1;
   end;
 end;
 
@@ -270,7 +270,7 @@ begin
       vp := Result[0];
     end;
     Insert(lp, Result, vp);
-    lp += 1;
+    lp := lp + 1;
   end;
 end;
 

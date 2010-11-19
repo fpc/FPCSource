@@ -314,6 +314,9 @@ syscall sysvbase TinyGLBase 1216;
 
 procedure _GLColorMask(gcl: pointer; red, green, blue, alpha: GLboolean);
 syscall sysvbase TinyGLBase 1282;
+
+procedure _GLCopyTexImage2D(gcl: pointer; target: GLenum; level: GLint; internalFormat: GLenum; x, y: GLint; width, height: GLsizei; border: GLint); inline;
+syscall sysvbase TinyGLBase 1402;
 {$ENDIF GL_UNIT}
 
 
@@ -369,9 +372,7 @@ end;
 
 procedure glCopyTexImage2D(target: GLenum; level: GLint; internalFormat: GLenum; x, y: GLint; width, height: GLsizei; border: GLint); inline;
 begin
-{$WARNING glCopyTexImage2D is dummy.}
-  // DUMMY, FIX ME!!! 
-  // TinyGL doesn't support this yet.
+ _GLCopyTexImage2D(tglContext, target, level, internalFormat, x, y, width, height, border);
 end;
 
 procedure glCullFace(mode: GLenum); inline;

@@ -10598,7 +10598,7 @@ utils/fppkg/fprepos.pp svneol=native#text/plain
 utils/fppkg/fpxmlrep.pp svneol=native#text/plain
 utils/fppkg/lnet/LICENSE -text
 utils/fppkg/lnet/LICENSE.ADDON -text
-utils/fppkg/lnet/fastcgi.pp svneol=native#text/plain
+utils/fppkg/lnet/fastcgi_base.pp svneol=native#text/plain
 utils/fppkg/lnet/lcommon.pp svneol=native#text/plain
 utils/fppkg/lnet/lcontainers.inc svneol=native#text/plain
 utils/fppkg/lnet/lcontainersh.inc svneol=native#text/plain
@@ -10619,6 +10619,7 @@ utils/fppkg/lnet/lstrbuffer.pp svneol=native#text/plain
 utils/fppkg/lnet/ltelnet.pp svneol=native#text/plain
 utils/fppkg/lnet/ltimer.pp svneol=native#text/plain
 utils/fppkg/lnet/lwebserver.pp svneol=native#text/plain
+utils/fppkg/lnet/lws2tcpip.pp svneol=native#text/plain
 utils/fppkg/lnet/sys/lepolleventer.inc svneol=native#text/plain
 utils/fppkg/lnet/sys/lepolleventerh.inc svneol=native#text/plain
 utils/fppkg/lnet/sys/lkqueueeventer.inc svneol=native#text/plain
