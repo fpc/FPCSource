@@ -500,7 +500,7 @@ end;
 {*                             TCustomMemoryStream                          *}
 {****************************************************************************}
 
-procedure TCustomMemoryStream.SetPointer(Ptr: Pointer; ASize: Longint);
+procedure TCustomMemoryStream.SetPointer(Ptr: Pointer; ASize: PtrInt);
 
 begin
   FMemory:=Ptr;
@@ -515,7 +515,7 @@ begin
 end;
 
 
-function TCustomMemoryStream.Read(var Buffer; Count: Longint): Longint;
+function TCustomMemoryStream.Read(var Buffer; Count: LongInt): LongInt;
 
 begin
   Result:=0;
@@ -529,10 +529,10 @@ begin
 end;
 
 
-function TCustomMemoryStream.Seek(Offset: Longint; Origin: Word): Longint;
+function TCustomMemoryStream.Seek(const Offset: Int64; Origin: TSeekOrigin): Int64;
 
 begin
-  Case Origin of
+  Case Word(Origin) of
     soFromBeginning : FPosition:=Offset;
     soFromEnd       : FPosition:=FSize+Offset;
     soFromCurrent   : FPosition:=FPosition+Offset;
@@ -573,7 +573,7 @@ end;
 
 Const TMSGrow = 4096; { Use 4k blocks. }
 
-procedure TMemoryStream.SetCapacity(NewCapacity: Longint);
+procedure TMemoryStream.SetCapacity(NewCapacity: PtrInt);
 
 begin
   SetPointer (Realloc(NewCapacity),Fsize);
@@ -581,10 +581,9 @@ begin
 end;
 
 
-function TMemoryStream.Realloc(var NewCapacity: Longint): Pointer;
+function TMemoryStream.Realloc(var NewCapacity: PtrInt): Pointer;
 
 begin
-
   If NewCapacity<0 Then
     NewCapacity:=0
   else  
@@ -647,7 +646,7 @@ begin
 end;
 
 
-procedure TMemoryStream.SetSize(NewSize: Longint);
+procedure TMemoryStream.SetSize({$ifdef CPU64}const{$endif CPU64} NewSize: PtrInt);
 
 begin
   SetCapacity (NewSize);
@@ -656,9 +655,9 @@ begin
     FPosition:=FSize;
 end;
 
-function TMemoryStream.Write(const Buffer; Count: Longint): Longint;
+function TMemoryStream.Write(const Buffer; Count: LongInt): LongInt;
 
-Var NewPos : Longint;
+Var NewPos : PtrInt;
 
 begin
   If (Count=0) or (FPosition<0) then

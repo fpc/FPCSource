@@ -867,13 +867,13 @@ type
   TCustomMemoryStream = class(TStream)
   private
     FMemory: Pointer;
-    FSize, FPosition: Longint;
+    FSize, FPosition: PtrInt;
   protected
-    procedure SetPointer(Ptr: Pointer; ASize: Longint);
+    procedure SetPointer(Ptr: Pointer; ASize: PtrInt);
   public
     Function GetSize : Int64; Override;
-    function Read(var Buffer; Count: Longint): Longint; override;
-    function Seek(Offset: Longint; Origin: Word): Longint; override;
+    function Read(var Buffer; Count: LongInt): LongInt; override;
+    function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
     procedure SaveToStream(Stream: TStream);
     procedure SaveToFile(const FileName: string);
     property Memory: Pointer read FMemory;
@@ -883,18 +883,18 @@ type
 
   TMemoryStream = class(TCustomMemoryStream)
   private
-    FCapacity: Longint;
-    procedure SetCapacity(NewCapacity: Longint);
+    FCapacity: PtrInt;
+    procedure SetCapacity(NewCapacity: PtrInt);
   protected
-    function Realloc(var NewCapacity: Longint): Pointer; virtual;
-    property Capacity: Longint read FCapacity write SetCapacity;
+    function Realloc(var NewCapacity: PtrInt): Pointer; virtual;
+    property Capacity: PtrInt read FCapacity write SetCapacity;
   public
     destructor Destroy; override;
     procedure Clear;
     procedure LoadFromStream(Stream: TStream);
     procedure LoadFromFile(const FileName: string);
-    procedure SetSize(NewSize: Longint); override;
-    function Write(const Buffer; Count: Longint): Longint; override;
+    procedure SetSize({$ifdef CPU64}const{$endif CPU64} NewSize: PtrInt); override;
+    function Write(const Buffer; Count: LongInt): LongInt; override;
   end;
 
 { TStringStream }
@@ -1531,21 +1531,17 @@ type
     csTransient);
   TGetChildProc = procedure (Child: TComponent) of object;
 
-  {
-  TComponentName = type string;
-
   IVCLComObject = interface
-    function GetTypeInfoCount(out Count: Integer): Integer; stdcall;
-    function GetTypeInfo(Index, LocaleID: Integer; out TypeInfo): Integer; stdcall;
+    ['{E07892A0-F52F-11CF-BD2F-0020AF0E5B81}']
+    function GetTypeInfoCount(out Count: Integer): HResult; stdcall;
+    function GetTypeInfo(Index, LocaleID: Integer; out TypeInfo): HResult; stdcall;
     function GetIDsOfNames(const IID: TGUID; Names: Pointer;
-      NameCount, LocaleID: Integer; DispIDs: Pointer): Integer; stdcall;
+      NameCount, LocaleID: Integer; DispIDs: Pointer): HResult; stdcall;
     function Invoke(DispID: Integer; const IID: TGUID; LocaleID: Integer;
-      Flags: Word; var Params; VarResult, ExcepInfo, ArgErr: Pointer): Integer; stdcall;
-    function SafeCallException(ExceptObject: TObject;
-      ExceptAddr: Pointer): Integer;
+      Flags: Word; var Params; VarResult, ExcepInfo, ArgErr: Pointer): HResult; stdcall;
+    function SafeCallException(ExceptObject: TObject; ExceptAddr: Pointer): HResult;
     procedure FreeOnRelease;
   end;
-  }
 
   IInterfaceComponentReference = interface 
     ['{3FEEC8E1-E400-4A24-BCAC-1F01476439B1}']
@@ -1583,7 +1579,7 @@ type
     FDesignInfo: Longint;
     FVCLComObject: Pointer;
     FComponentState: TComponentState;
-    // function GetComObject: IUnknown;
+    function GetComObject: IUnknown;
     function GetComponent(AIndex: Integer): TComponent;
     function GetComponentCount: Integer;
     function GetComponentIndex: Integer;
@@ -1630,12 +1626,12 @@ type
     function _Release: Integer; stdcall;
     function iicrGetComponent: TComponent;
     { IDispatch }
-    //!!!! function GetTypeInfoCount(out Count: Integer): Integer; stdcall;
-    //!!!! function GetTypeInfo(Index, LocaleID: Integer; out TypeInfo): Integer; stdcall;
-    //!!!! function GetIDsOfNames(const IID: TGUID; Names: Pointer;
-    //!!!!   NameCount, LocaleID: Integer; DispIDs: Pointer): Integer; stdcall;
-    //!!!! function Invoke(DispID: Integer; const IID: TGUID; LocaleID: Integer;
-    //!!!!   Flags: Word; var Params; VarResult, ExcepInfo, ArgErr: Pointer): Integer; stdcall;
+    function GetTypeInfoCount(out Count: Integer): HResult; stdcall;
+    function GetTypeInfo(Index, LocaleID: Integer; out TypeInfo): HResult; stdcall;
+    function GetIDsOfNames(const IID: TGUID; Names: Pointer;
+      NameCount, LocaleID: Integer; DispIDs: Pointer): HResult; stdcall;
+    function Invoke(DispID: Integer; const IID: TGUID; LocaleID: Integer;
+      Flags: Word; var Params; VarResult, ExcepInfo, ArgErr: Pointer): HResult; stdcall;
   public
     //!! Moved temporary
     // fpdoc doesn't handle this yet :(
@@ -1660,10 +1656,10 @@ type
     procedure InsertComponent(AComponent: TComponent);
     procedure RemoveComponent(AComponent: TComponent);
     function SafeCallException(ExceptObject: TObject;
-      ExceptAddr: Pointer): Integer; override;
+      ExceptAddr: Pointer): HResult; override;
     procedure SetSubComponent(ASubComponent: Boolean);
     function UpdateAction(Action: TBasicAction): Boolean; dynamic;
-    // property ComObject: IUnknown read GetComObject;
+    property ComObject: IUnknown read GetComObject;
     function IsImplementorOf (const Intf:IInterface):boolean;
     procedure ReferenceInterface(const intf:IInterface;op:TOperation);
     property Components[Index: Integer]: TComponent read GetComponent;
@@ -1881,8 +1877,8 @@ var
   RegisterNoIconProc: procedure(ComponentClasses: array of TComponentClass);
 {!!!!  RegisterNonActiveXProc: procedure(ComponentClasses: array of TComponentClass;
     AxRegType: TActiveXRegType) = nil;
-  CurrentGroup: Integer = -1;
-  CreateVCLComObjectProc: procedure(Component: TComponent) = nil;}
+  CurrentGroup: Integer = -1;}
+  CreateVCLComObjectProc: procedure(Component: TComponent) = nil;
 
 { Point and rectangle constructors }
 
