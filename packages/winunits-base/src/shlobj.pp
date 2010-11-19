@@ -198,6 +198,9 @@ Const
    CLSID_PersistPropset                : TGUID = '{fb8f0821-0164-101b-84ed-08002b2ec713}';
    CLSID_ConvertVBX                    : TGUID = '{fb8f0822-0164-101b-84ed-08002b2ec713}';
    CLSID_InternetShortcut              : TGUID = '{fbf23b40-e3f0-101b-8488-00aa003e56f8}';
+   CLSID_ShellItem                     : TGUID = '{9ac9fbe1-e0a2-4ad6-b4ee-e212013ea917}';
+   CLSID_FileOpenDialog                : TGUID = '{DC1C5A9C-E88A-4dde-A5A1-60F82A20AEF7}';
+   CLSID_FileSaveDialog                : TGUID = '{C0B4E2F3-BA21-4773-8DBA-335EC946EB8B}';
 
 Const
   SV2GV_CURRENTVIEW  = DWORD(-1);
@@ -516,9 +519,14 @@ Const
   QITIPF_USESLOWTIP       = $00000008;  // Flag says it's OK to take a long time generating tip
   QIF_CACHED          = $00000001;
   QIF_DONTEXPANDFOLDER= $00000002;
-  SHARD_PIDL          = DWord($00000001);
-  SHARD_PATHA         = DWord($00000002);
-  SHARD_PATHW         = DWord($00000003);
+  SHARD_PIDL            = DWord($00000001);
+  SHARD_PATHA           = DWord($00000002);
+  SHARD_PATHW           = DWord($00000003);
+  SHARD_APPIDINFO       = DWord($00000004);
+  SHARD_APPIDINFOIDLIST = DWord($00000005);
+  SHARD_LINK            = DWord($00000006);
+  SHARD_APPIDINFOLINK   = DWord($00000007);
+  SHARD_SHELLITEM       = DWord($00000008);
   PRF_VERIFYEXISTS            = $0001;
   PRF_TRYPROGRAMEXTENSIONS    = ($0002 or PRF_VERIFYEXISTS);
   PRF_FIRSTDIRDEF             = $0004;
@@ -2015,6 +2023,135 @@ Type
         function GetInfoTip (dwFlags:DWord;var pwsztip:pwchar):HResult;StdCall;
         function GetInfoFlags (var dwflags:dword):HResult;Stdcall;
         end;
+
+    ITaskbarList = interface(IUnknown)
+      ['{56FDF342-FD6D-11d0-958A-006097C9A090}']
+      function HrInit: HResult; stdcall;
+      function AddTab(hwnd: HWND): HResult; stdcall;
+      function DeleteTab(hwnd: HWND): HResult; stdcall;
+      function ActivateTab(hwnd: HWND): HResult; stdcall;
+      function SetActiveAlt(hwnd: HWND): HResult; stdcall;
+    end;
+
+    ITaskbarList2 = interface(ITaskbarList)
+      ['{602D4995-B13A-429b-A66E-1935E44F4317}']
+      function MarkFullscreenWindow(hwnd: HWND; fFullscreen: BOOL): HResult; stdcall;
+    end;
+
+const
+    // enum THUMBBUTTONFLAGS
+    THBF_ENABLED        = 0;
+    THBF_DISABLED       = $1;
+    THBF_DISMISSONCLICK = $2;
+    THBF_NOBACKGROUND   = $4;
+    THBF_HIDDEN         = $8;
+    THBF_NONINTERACTIVE = $10;
+
+type
+    THUMBBUTTONFLAGS = DWord;
+
+const
+    // enum THUMBBUTTONMASK
+    THB_BITMAP  = $1;
+    THB_ICON    = $2;
+    THB_TOOLTIP = $4;
+    THB_FLAGS   = $8;
+
+type
+    THUMBBUTTONMASK = DWord;
+
+    THUMBBUTTON = packed record
+      dwMask: THUMBBUTTONMASK;
+      iId: UINT;
+      iBitmap: UINT;
+      hIcon: HICON;
+      szTip: array[0..259] of WCHAR;
+      dwFlags: THUMBBUTTONFLAGS;
+    end;
+    LPTHUMBBUTTON = ^THUMBBUTTON;
+
+const
+    THBN_CLICKED      = $1800;
+
+    // enum TBPFLAG
+    TBPF_NOPROGRESS    = 0;
+    TBPF_INDETERMINATE = $1;
+    TBPF_NORMAL	     = $2;
+    TBPF_ERROR         = $4;
+    TBPF_PAUSED        = $8;
+
+type
+    TBPFLAG = DWord;
+
+    ITaskBarList3 = interface(ITaskbarList2)
+      ['{ea1afb91-9e28-4b86-90e9-9e9f8a5eefaf}']
+      function SetProgressValue(hwnd: HWND; ullCompleted: ULONGLONG; ullTotal: ULONGLONG): HResult; stdcall;
+      function SetProgressState(hwnd: HWND; tbpFlags: TBPFLAG): HResult; stdcall;
+      function RegisterTab(hwndTab: HWND; hwndMDI: HWND): HResult; stdcall;
+      function UnregisterTab(hwndTab: HWND): HResult; stdcall;
+      function SetTabOrder(hwndTab: HWND; hwndInsertBefore: HWND): HResult; stdcall;
+      function SetTabActive(hwndTab: HWND; hwndMDI: HWND; dwReserved: DWORD): HResult; stdcall;
+      function ThumbBarAddButtons(hwnd: HWND; cButtons: UINT; pButton: LPTHUMBBUTTON): HResult; stdcall;
+      function ThumbBarUpdateButtons(hwnd: HWND; cButtons: UINT; pButton: LPTHUMBBUTTON): HResult; stdcall;
+      function ThumbBarSetImageList(hwnd: HWND; himl: HIMAGELIST): HResult; stdcall;
+      function SetOverlayIcon(hwnd: HWND; hIcon: HICON; pszDescription: LPCWSTR): HResult; stdcall;
+      function SetThumbnailTooltip(hwnd: HWND; pszTip: LPCWSTR): HResult; stdcall;
+      function SetThumbnailClip(hwnd: HWND; prcClip: PRECT): HResult; stdcall;
+    end;
+
+const
+    // enum STPFLAG
+    STPF_NONE                      = 0;
+    STPF_USEAPPTHUMBNAILALWAYS     = $1;
+    STPF_USEAPPTHUMBNAILWHENACTIVE = $2;
+    STPF_USEAPPPEEKALWAYS          = $4;
+    STPF_USEAPPPEEKWHENACTIVE      = $8;
+
+type
+    STPFLAG = DWord;
+
+    ITaskbarList4 = interface(ITaskbarList3)
+      ['{c43dc798-95d1-4bea-9030-bb99e2983a1a}']
+      function SetTabProperties(hwndTab: HWND; stpFlags: STPFLAG): HResult; stdcall;
+    end;
+
+const
+    // GETPROPERTYSTOREFLAGS enum
+    GPS_DEFAULT	              = 0;
+    GPS_HANDLERPROPERTIESONLY = $1;
+    GPS_READWRITE	      = $2;
+    GPS_TEMPORARY	      = $4;
+    GPS_FASTPROPERTIESONLY    = $8;
+    GPS_OPENSLOWITEM	      = $10;
+    GPS_DELAYCREATION         = $20;
+    GPS_BESTEFFORT            = $40;
+    GPS_NO_OPLOCK	      = $80;
+    GPS_MASK_VALID            = $ff;
+
+type
+    GETPROPERTYSTOREFLAGS = DWord;
+    _tagpropertykey = packed record
+        fmtid: TGUID;
+        pid: DWORD;
+    end;
+    PROPERTYKEY = _tagpropertykey;
+    REFPROPERTYKEY = ^PROPERTYKEY;
+    REFPROPVARIANT = ^TPROPVARIANT;
+
+    IPropertyStore = interface(IUnknown)
+      ['{886d8eeb-8cf2-4446-8d02-cdba1dbdcf99}']
+      function GetCount(out cProps: DWORD): HResult; stdcall;
+      function GetAt(iProp: DWORD; out pkey: PROPERTYKEY): HResult; stdcall;
+      function GetValue(key: REFPROPERTYKEY; out pv: PROPVARIANT): HResult; stdcall;
+      function SetValue(key: REFPROPERTYKEY; propvar: REFPROPVARIANT): HResult; stdcall;
+      function Commit: HResult; stdcall;
+    end;
+
+    IPropertyDescriptionList = interface(IUnknown)
+      ['{1f9fc1d0-c39b-4b26-817f-011967d3440e}']
+      function GetCount(out pcElem: UINT): HResult; stdcall;
+      function GetAt(iElem: UINT; const riid: REFIID; out ppv): HResult; stdcall;
+    end;
  
     IShellLinkA  = Interface(IUnknown)
         ['{000214EE-0000-0000-C000-000000000046}']
@@ -2071,6 +2208,35 @@ Type
                function Compare(psi:IShellItem;hint:SICHINTF;piorder:PINT):HResult; Stdcall;
                end;
 
+    IEnumShellItems = interface(IUnknown)
+      ['{70629033-e363-4a28-a567-0db78006e6d7}']
+      function Next(celt: ULONG; out rgelt: IShellItem; var pceltFetched: ULONG): HResult; stdcall;
+      function Skip(celt: ULONG): HResult; stdcall;
+      function Reset: HResult; stdcall;
+      function Clone(out ppenum: IEnumShellItems): HResult; stdcall;
+    end;
+
+const
+    // SIATTRIBFLAGS enum
+    SIATTRIBFLAGS_AND       = $1;
+    SIATTRIBFLAGS_OR        = $2;
+    SIATTRIBFLAGS_APPCOMPAT = $3;
+    SIATTRIBFLAGS_MASK      = $3;
+    SIATTRIBFLAGS_ALLITEMS  = $4000;
+
+type
+    SIATTRIBFLAGS = DWord;
+    IShellItemArray = interface(IUnknown)
+      ['{b63ea76d-1f85-456f-a19c-48159efa858b}']
+      function BindToHandler(pbc: IBindCtx; const bhid: TGUID; const riid: REFIID; out ppvOut): HResult; stdcall;
+      function GetPropertyStore(flags: GETPROPERTYSTOREFLAGS; const riid: REFIID; out ppv): HResult; stdcall;
+      function GetPropertyDescriptionList(keyType: REFPROPERTYKEY; const riid: REFIID; out ppv): HResult; stdcall;
+      function GetAttributes(AttribFlags: SIATTRIBFLAGS; sfgaoMask: SFGAOF; var psfgaoAttribs: SFGAOF): HResult; stdcall;
+      function GetCount(var pdwNumItems: DWORD): HResult; stdcall;
+      function GetItemAt(dwIndex: DWORD; var ppsi: IShellItem): HResult; stdcall;
+      function EnumItems(var ppenumShellItems: IEnumShellItems): HResult; stdcall;
+    end;
+
     IModalWindow = Interface(IUnknown)
 	             ['{b4db1657-70d7-485e-8e3e-6fcb5a5c1802}']
 				   function Show(hwndparent:HWND):HResult;StdCall;
@@ -2121,7 +2287,88 @@ Type
 		    function SetFilter(pfilter:IShellItemFilter):HRESULT;Stdcall;
 		  end;
 
+    IFileOperationProgressSink = interface(IUnknown)
+      ['{04b0f1a7-9490-44bc-96e1-4296a31252e2}']
+      function StartOperations: HResult; stdcall;
+      function FinishOperations(hrResult: HResult): HResult; stdcall;
+      function PreRenameItem(dwFlags: DWORD; psiItem: IShellItem; pszNewName: LPCWSTR): HResult; stdcall;
+      function PostRenameItem(dwFlags: DWORD; psiItem: IShellItem; pszNewName: LPCWSTR; hrRename: HRESULT; psiNewlyCreated: IShellItem): HResult; stdcall;
+      function PreMoveItem(dwFlags: DWORD; psiItem: IShellItem; psiDestinationFolder: IShellItem; pszNewName: LPCWSTR): HResult; stdcall;
+      function PostMoveItem(dwFlags: DWORD; psiItem: IShellItem; psiDestinationFolder: IShellItem; pszNewName: LPCWSTR; hrMove: HRESULT; psiNewlyCreated: IShellItem): HResult; stdcall;
+      function PreCopyItem(dwFlags: DWORD; psiItem: IShellItem; psiDestinationFolder: IShellItem; pszNewName: LPCWSTR): HResult; stdcall;
+      function PostCopyItem(dwFlags: DWORD; psiItem: IShellItem; psiDestinationFolder: IShellItem; pszNewName: LPCWSTR; hrCopy: HRESULT; psiNewlyCreated: IShellItem): HResult; stdcall;
+      function PreDeleteItem(dwFlags: DWORD; psiItem: IShellItem): HResult; stdcall;
+      function PostDeleteItem(dwFlags: DWORD; psiItem: IShellItem; hrDelete: HRESULT; psiNewlyCreated: IShellItem): HResult; stdcall;
+      function PreNewItem(dwFlags: DWORD; psiDestinationFolder: IShellItem; pszNewName: LPCWSTR): HResult; stdcall;
+      function PostNewItem(dwFlags: DWORD; psiDestinationFolder: IShellItem; pszNewName: LPCWSTR; pszTemplateName: LPCWSTR; dwFileAttributes: DWORD; hrNew: HRESULT; psiNewItem: IShellItem): HResult; stdcall;
+      function UpdateProgress(iWorkTotal: UINT; iWorkSoFar: UINT): HResult; stdcall;
+      function ResetTimer: HResult; stdcall;
+      function PauseTimer: HResult; stdcall;
+      function ResumeTimer: HResult; stdcall;
+    end;
 
+    IFileSaveDialog = interface(IFileDialog)
+      ['{84bccd23-5fde-4cdb-aea4-af64b83d78ab}']
+      function SetSaveAsItem(psi: IShellItem): HResult; stdcall;
+      function SetProperties(pStore: IPropertyStore): HResult; stdcall;
+      function SetCollectedProperties(pList: IPropertyDescriptionList; fAppendDefault: BOOL): HResult; stdcall;
+      function GetProperties(var ppStore: IPropertyStore): HResult; stdcall;
+      function ApplyProperties(psi: IShellItem; pStore: IPropertyStore; hwnd: HWND; pSink: IFileOperationProgressSink): HResult; stdcall;
+    end;
+
+    IFileOpenDialog = interface(IFileDialog)
+      ['{d57c7288-d4ad-4768-be02-9d969532d960}']
+      function GetResults(var ppenum: IShellItemArray): HResult; stdcall;
+      function GetSelectedItems(var ppsai: IShellItemArray): HResult; stdcall;
+    end;
+
+const
+    // CDCONTROLSTATEF enum
+    CDCS_INACTIVE       = 0;
+    CDCS_ENABLED        = $1;
+    CDCS_VISIBLE        = $2;
+    CDCS_ENABLEDVISIBLE = $3;
+
+type
+    CDCONTROLSTATEF = DWord;
+    IFileDialogCustomize = interface(IUnknown)
+      ['{e6fdd21a-163f-4975-9c8c-a69f1ba37034}']
+      function EnableOpenDropDown(dwIDCtl: DWORD): HResult; stdcall;
+      function AddMenu(dwIDCtl: DWORD; pszLabel: LPCWSTR): HResult; stdcall;
+      function AddPushButton(dwIDCtl: DWORD; pszLabel: LPCWSTR): HResult; stdcall;
+      function AddComboBox(dwIDCtl: DWORD): HResult; stdcall;
+      function AddRadioButtonList(dwIDCtl: DWORD): HResult; stdcall;
+      function AddCheckButton(dwIDCtl: DWORD; pszLabel: LPCWSTR; bChecked: BOOL): HResult; stdcall;
+      function AddEditBox(dwIDCtl: DWORD; pszText: LPCWSTR): HResult; stdcall;
+      function AddSeparator(dwIDCtl: DWORD): HResult; stdcall;
+      function AddText(dwIDCtl: DWORD; pszText: LPCWSTR): HResult; stdcall;
+      function SetControlLabel(dwIDCtl: DWORD; pszLabel: LPCWSTR): HResult; stdcall;
+      function GetControlState(dwIDCtl: DWORD; out pdwState: CDCONTROLSTATEF): HResult; stdcall;
+      function SetControlState(dwIDCtl: DWORD; dwState: CDCONTROLSTATEF): HResult; stdcall;
+      function GetEditBoxText(dwIDCtl: DWORD; out ppszText: WCHAR): HResult; stdcall;
+      function SetEditBoxText(dwIDCtl: DWORD; pszText: LPCWSTR): HResult; stdcall;
+      function GetCheckButtonState(dwIDCtl: DWORD; out pbChecked: BOOL): HResult; stdcall;
+      function SetCheckButtonState(dwIDCtl: DWORD; bChecked: BOOL): HResult; stdcall;
+      function AddControlItem(dwIDCtl: DWORD; dwIDItem: DWORD; pszLabel: LPCWSTR): HResult; stdcall;
+      function RemoveControlItem(dwIDCtl: DWORD; dwIDItem: DWORD): HResult; stdcall;
+      function RemoveAllControlItems(dwIDCtl: DWORD): HResult; stdcall;
+      function GetControlItemState(dwIDCtl: DWORD; dwIDItem: DWORD; out pdwState: CDCONTROLSTATEF): HResult; stdcall;
+      function SetControlItemState(dwIDCtl: DWORD; dwIDItem: DWORD; dwState: CDCONTROLSTATEF): HResult; stdcall;
+      function GetSelectedControlItem(dwIDCtl: DWORD; out pdwIDItem: DWORD): HResult; stdcall;
+      function SetSelectedControlItem(dwIDCtl: DWORD; dwIDItem: DWORD): HResult; stdcall;
+      function StartVisualGroup(dwIDCtl: DWORD; pszLabel: LPCWSTR): HResult; stdcall;
+      function EndVisualGroup: HResult; stdcall;
+      function MakeProminent(dwIDCtl: DWORD): HResult; stdcall;
+      function SetControlItemText(dwIDCtl: DWORD; dwIDItem: DWORD; pszLabel: LPCWSTR): HResult; stdcall;
+    end;
+
+    IFileDialogControlEvents = interface(IUnknown)
+      ['{36116642-D713-4b97-9B83-7484A9D00433}']
+      function OnItemSelected(pfdc: IFileDialogCustomize; dwIDCtl: DWORD; dwIDItem: DWORD): HResult; stdcall;
+      function OnButtonClicked(pfdc: IFileDialogCustomize; dwIDCtl: DWORD): HResult; stdcall;
+      function OnCheckButtonToggled(pfdc: IFileDialogCustomize; dwIDCtl: DWORD; bChecked: BOOL): HResult; stdcall;
+      function OnControlActivating(pfdc: IFileDialogCustomize; dwIDCtl: DWORD): HResult; stdcall;
+    end;
 
     IShellExtInit = Interface(IUnknown)
           [IID_IShellExtInit]
@@ -2295,4 +2542,6 @@ Const External_Library = 'shell32';
   function SHMapPIDLToSystemImageListIndex(pshf:IShellFolder; pidl:LPCITEMIDLIST; piIndexSel:plongint):Longint;StdCall;external External_library name 'SHMapPIDLToSystemImageListIndex';
 
 implementation
+
+
 end.
