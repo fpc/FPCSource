@@ -896,8 +896,21 @@ var
 
 
   procedure Rectangle(x1,y1,x2,y2:smallint);
-
+   var
+     tmp: smallint;
    begin
+     if x1 > x2 then
+     begin
+       tmp := x1;
+       x1 := x2;
+       x2 := tmp;
+     end;
+     if y1 > y2 then
+     begin
+       tmp := y1;
+       y1 := y2;
+       y2 := tmp;
+     end;
      { Do not draw the end points }
      Line(x1,y1,x2-1,y1);
      Line(x1,y1+1,x1,y2);
@@ -1241,6 +1254,8 @@ end;
 
   procedure OutTextXYDefault(x,y : smallint;const TextString : string);forward;
   procedure CircleDefault(X, Y: smallint; Radius:Word);forward;
+  procedure SetBkColorDefault(ColorNum: Word);forward;
+  function GetBkColorDefault: Word;forward;
 
 {$i palette.inc}
 
@@ -1279,6 +1294,8 @@ end;
     VLine := {$ifdef fpc}@{$endif}VLineDefault;
     OuttextXY := {$ifdef fpc}@{$endif}OuttextXYDefault;
     Circle := {$ifdef fpc}@{$endif}CircleDefault;
+    SetBkColor := {$ifdef fpc}@{$endif}SetBkColorDefault;
+    GetBkColor := {$ifdef fpc}@{$endif}GetBkColorDefault;
   end;
 
   Procedure InitVars;
@@ -1343,7 +1360,7 @@ end;
 {     OldWriteMode := CurrentWriteMode;
      if (LineInfo.Thickness = NormWidth) then
        CurrentWriteMode := NormalPut;}
-     InternalEllipse(X,Y,Radius,Radius,StAngle,Endangle,{$ifdef fpc}@{$endif}DummyPatternLine);
+     InternalEllipse(X,Y,Radius,(longint(Radius)*XAspect) div YAspect,StAngle,Endangle,{$ifdef fpc}@{$endif}DummyPatternLine);
 {     CurrentWriteMode := OldWriteMode;}
    end;
 
@@ -1561,6 +1578,12 @@ end;
           y1:=y2;
           y2:=y;
        end;
+     if x1>x2 then
+       begin
+          y:=x1;
+          x1:=x2;
+          x2:=y;
+       end;
 
      { Always copy mode for Bars }
      origwritemode := CurrentWriteMode;
@@ -1603,6 +1626,19 @@ var
  origwritemode : smallint;
  OldX, OldY : smallint;
 begin
+  if x1 > x2 then
+  begin
+    OldX := x1;
+    x1 := x2;
+    x2 := OldX;
+  end;
+  if y1 > y2 then
+  begin
+    OldY := y1;
+    y1 := y2;
+    y2 := OldY;
+  end;
+
   origwritemode := CurrentWriteMode;
   CurrentWriteMode := CopyPut;
   Bar(x1,y1,x2,y2);
@@ -1654,14 +1690,14 @@ end;
      GetColor := CurrentColor;
    end;
 
-  function GetBkColor: Word;
+  function GetBkColorDefault: Word;
 
    Begin
-     GetBkColor := CurrentBkColor;
+     GetBkColorDefault := CurrentBkColor;
    end;
 
 
-  procedure SetBkColor(ColorNum: Word);
+  procedure SetBkColorDefault(ColorNum: Word);
   { Background color means background screen color in this case, and it is  }
   { INDEPENDANT of the viewport settings, so we must clear the whole screen }
   { with the color.                                                         }
@@ -1829,7 +1865,8 @@ end;
      CurrentTextInfo.horiz:=LeftText;
      CurrentTextInfo.vert:=TopText;
 
-     XAspect:=10000; YAspect:=10000;
+     {fix by nickysn: TP7 doesn't reset aspect ratio in GraphDefaults }
+     {XAspect:=10000; YAspect:=10000;}
    end;
 
 
@@ -1871,24 +1908,47 @@ end;
       ppointtype = ^pointtype;
       pt = array[0..16000] of pointtype;
     var
-      i : longint;
+      i, j, LastPolygonStart: longint;
+      Closing: boolean;
     begin
       if numpoints < 2 then
         begin
-          _GraphResult := grError;
+          { nickysn: TP7 doesn't return error here }
+          {_GraphResult := grError;}
           exit;
         end;
+      Closing := false;
+      LastPolygonStart := 0;
       for i:=0 to numpoints-2 do
-        line(pt(polypoints)[i].x,
-             pt(polypoints)[i].y,
-             pt(polypoints)[i+1].x,
-             pt(polypoints)[i+1].y);
+      begin
+        { skip an edge after each 'closing' edge }
+        if not Closing then
+          line(pt(polypoints)[i].x,
+               pt(polypoints)[i].y,
+               pt(polypoints)[i+1].x,
+               pt(polypoints)[i+1].y);
+
+        { check if the current edge is 'closing'. This means that it 'closes'
+          the polygon by going back to the first point of the polygon.
+          Also, 0-length edges are never considered 'closing'. }
+        if ((pt(polypoints)[i+1].x <> pt(polypoints)[i].x) or
+            (pt(polypoints)[i+1].y <> pt(polypoints)[i].y)) and
+            (LastPolygonStart < i) and
+           ((pt(polypoints)[i+1].x = pt(polypoints)[LastPolygonStart].x) and
+            (pt(polypoints)[i+1].y = pt(polypoints)[LastPolygonStart].y)) then
+        begin
+          Closing := true;
+          LastPolygonStart := i + 2;
+        end
+        else
+          Closing := false;
+      end;
     end;
 
 
   procedure PieSlice(X,Y,stangle,endAngle:smallint;Radius: Word);
   begin
-    Sector(x,y,stangle,endangle,radius,radius);
+    Sector(x,y,stangle,endangle,radius,(longint(Radius)*XAspect) div YAspect);
   end;
 
 {$i fills.inc}

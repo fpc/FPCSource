@@ -64,11 +64,11 @@ It's highly recommended to use Detect (0 constant) for grDriver and grmode: init
 }
 
  //Detect      =0;     is in the graphh.inc
- CGA           =1;
- MCGA	       =2;
- EGA           =3;
- EGA64         =4;
- EGAMono       =5;
+ //CGA           =1;   is in graphh.inc
+ //MCGA	       =2;   is in graphh.inc
+ //EGA           =3;   is in graphh.inc
+ //EGA64         =4;   is in graphh.inc
+ //EGAMono       =5;   is in graphh.inc
  IBM8514       =6;
  //HercMono      =7;   is in the graphh.inc
  ATT400        =8;
@@ -76,29 +76,29 @@ It's highly recommended to use Detect (0 constant) for grDriver and grmode: init
  PC3270        =10;
 
 {Graphics Modes for Each Driver}
- CGAC0         =0;
- CGAC          =1;
- CGAC2         =2;
- CGAC3         =3;
- CGAHi         =4;
+ //CGAC0         =0;   is in graphh.inc
+ //CGAC          =1;   is in graphh.inc
+ //CGAC2         =2;   is in graphh.inc
+ //CGAC3         =3;   is in graphh.inc
+ //CGAHi         =4;   is in graphh.inc
  
- MCGAC0        =0;
- MCGAC         =1;
- MCGAC2        =2;
- MCGAC3        =3;
- MCGAMed       =4;
- MCGAHi        =5;
+ //MCGAC0        =0;   is in graphh.inc
+ //MCGAC         =1;   is in graphh.inc
+ //MCGAC2        =2;   is in graphh.inc
+ //MCGAC3        =3;   is in graphh.inc
+ //MCGAMed       =4;   is in graphh.inc
+ //MCGAHi        =5;   is in graphh.inc
  
- EGAMonoHi     =3;
+ //EGAMonoHi     =3;   is in graphh.inc
  //HercMonoHi    =0;      is in the graphh.inc
  //VGALo         =0;      is in the graphh.inc
  //VGAMed        =1;      is in the graphh.inc
  //VGAHi         =2;      is in the graphh.inc
  
- EGALo         =0;
- EGAHi         =1;
- EGA64Lo       =0;
- EGA64Hi       =1;
+ //EGALo         =0;   is in graphh.inc
+ //EGAHi         =1;   is in graphh.inc
+ //EGA64Lo       =0;   is in graphh.inc
+ //EGA64Hi       =1;   is in graphh.inc
  
  ATT400C0      =0;
  ATT400C1      =1;

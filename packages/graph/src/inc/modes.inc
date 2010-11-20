@@ -316,7 +316,10 @@ end;
       mode:=nil;
       GetModeName:='';
       { only search in the current driver modes ... }
-      mode:=SearchMode(IntCurrentNewDriver,ModeNumber);
+      if (ModeNumber >= lowNewMode) and (ModeNumber <= highNewMode) then
+          mode:=SearchMode(IntCurrentNewDriver,ModeNumber)
+      else
+          mode:=SearchMode(IntCurrentDriver,ModeNumber);
       if assigned(mode) then
           GetModeName:=Mode^.ModeName
       else
@@ -392,6 +395,7 @@ end;
     var
      modeinfo: PModeInfo;
      usedDriver: Integer;
+     dummyNewModeNr: smallint;
     begin
       { check if the mode exists... }
       { Depending on the modenumber, we search using the old or new }
@@ -520,9 +524,17 @@ end;
          SetActivePage := modeInfo^.SetActivePage;
       if assigned(modeInfo^.OutTextXY) then
          OutTextXY:=modeInfo^.OutTextXY;
+      if assigned(modeInfo^.SetBkColor) then
+         SetBkColor:=modeInfo^.SetBkColor;
+      if assigned(modeInfo^.GetBkColor) then
+         GetBkColor:=modeInfo^.GetBkColor;
 
       IntCurrentMode := modeinfo^.ModeNumber;
-      IntCurrentDriver := usedDriver;
+      { fix by nickysn: always set *both* IntCurrentDriver and IntCurrentNewDriver to the
+        *correct* old & new style driver numbers. Solves a lot of bugs, e.g. when using InitGraph
+	with a new style driver/mode and then later using SetGraphMode(GetGraphMode) }
+      IntCurrentDriver := modeinfo^.DriverNumber;
+      res2Mode(modeinfo^.maxx+1, modeinfo^.maxy+1, modeinfo^.maxColor, IntCurrentNewDriver, dummyNewModeNr);
 {$ifdef logging}
        logln('Entering mode '+strf(intCurrentMode)+' of driver '+strf(intCurrentDriver));
 {$endif logging}

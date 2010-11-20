@@ -321,7 +321,12 @@ type
        { graphic drivers }
        CurrentDriver = -128;
        Detect        = 0;
-       LowRes        = 1;
+       CGA           = 1;
+       MCGA          = 2;
+       EGA           = 3;
+       EGA64         = 4;
+       EGAMono       = 5;
+       LowRes        = 6; { nickysn: used to be 1, but moved to 6, because I added CGA }
        HercMono      = 7;
        VGA           = 9;
        VESA          = 10;
@@ -345,6 +350,32 @@ type
 
        { graph modes }
        Default = 0;
+
+       { CGA Driver modes }
+       CGAC0 = 0;
+       CGAC1 = 1;
+       CGAC2 = 2;
+       CGAC3 = 3;
+       CGAHi = 4;
+
+       { MCGA Driver modes }
+       MCGAC0 = 0;
+       MCGAC1 = 1;
+       MCGAC2 = 2;
+       MCGAC3 = 3;
+       MCGAMed = 4;
+       MCGAHi = 5;
+
+       { EGA Driver modes }
+       EGALo      = 0;  { 640x200 16 color 4 page }
+       EGAHi      = 1;  { 640x350 16 color 2 page }
+
+       { EGA64 Driver modes }
+       EGA64Lo    = 0;  { 640x200 16 color 1 page }
+       EGA64Hi    = 1;  { 640x350 4 color  1 page }
+
+       { EGAMono Driver modes }
+       EGAMonoHi  = 3;  { 640x350 64K on card, 1 page; 256K on card, 2 page }
 
        { VGA Driver modes }
        VGALo   = 0;
@@ -558,6 +589,9 @@ TYPE
 
        CircleProc = procedure(X, Y: smallint; Radius:Word);
 
+       SetBkColorProc = procedure(ColorNum: Word);
+       GetBkColorProc = function: Word;
+
 
 TYPE
     {-----------------------------------}
@@ -608,6 +642,8 @@ TYPE
       Circle         : CircleProc;
       InitMode       : InitModeProc;
       OutTextXY : OutTextXYProc;
+      SetBKColor     : SetBkColorProc;
+      GetBKColor     : GetBkColorProc;
       next: PModeInfo;
     end;
 
@@ -634,6 +670,8 @@ VAR
   GetRGBPalette  : GetRGBPaletteProc;
   SetAllPalette  : SetAllPaletteProc;
   OutTextXY      : OutTextXYProc;
+  SetBkColor     : SetBkColorProc;
+  GetBkColor     : GetBkColorProc;
 
   GraphFreeMemPtr: graphfreememprc;
   GraphGetMemPtr : graphgetmemprc;
@@ -738,9 +776,7 @@ Function GetDriverName: string;
  function GetDirectVideo: boolean;
 
  { -------------------- Color/Palette ------------------------------- }
- procedure SetBkColor(ColorNum: Word);
  function  GetColor: Word;
- function  GetBkColor: Word;
  procedure SetColor(Color: Word);
  function  GetMaxColor: word;
 

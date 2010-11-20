@@ -239,6 +239,13 @@ end;
 {$endif fpc}
     { get the segment value }
     RealSeg := word(Ptr shr 16);
+    { we have to init everything to zero, since VBE < 1.1  }
+    { may not setup fields correctly.                      }
+{$ifndef fpc}
+    FillChar(VESAPtr^, sizeof(ModeInfo), #0);
+{$else fpc}
+    DosMemFillChar(RealSeg, 0, sizeof(ModeInfo), #0);
+{$endif fpc}
     { setup interrupt registers }
     FillChar(regs, sizeof(regs), #0);
     { call VESA mode information...}
@@ -327,7 +334,10 @@ end;
         begin
           { we have to init everything to zero, since VBE < 1.1  }
           { may not setup fields correctly.                      }
+          { bugfix: for DPMI this is now done in GetVESAModeInfo }
+{$IFNDEF DPMI}
           FillChar(VESAModeInfo, sizeof(VESAModeInfo), #0);
+{$ENDIF}
           If GetVESAModeInfo(VESAModeInfo, Mode) And
              ((VESAModeInfo.attr and modeAvail) <> 0) then
             ModeSupported := TRUE
@@ -515,7 +525,7 @@ end;
           {$endif logging}
           For l := 0 to (Bankrest div 4)-1 Do
             begin
-              pixels := MemL[WinWriteSeg:word(offs)+l*4];
+              pixels := MemL[WinReadSeg:word(offs)+l*4];
               WordArray(Data)[index+l*4] := pixels and $ff;
               pixels := pixels shr 8;
               WordArray(Data)[index+l*4+1] := pixels and $ff;
@@ -798,7 +808,7 @@ end;
                          setreadbank(offs shr 16);
                          setwritebank(offs shr 16);
                          Mem[WinWriteSeg:word(offs)] :=
-                           Mem[WinReadSeg:word(offs)] And byte(currentColor);
+                           Mem[WinReadSeg:word(offs)] Or byte(currentColor);
                          inc(offs);
                        end;
                      HLength := 0
@@ -925,10 +935,10 @@ end;
                  {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
                  {$endif logging}
-                 If (VLength-1)*bytesperline <= ($10000-(Offs and $ffff)) Then
+                 If (VLength-1)*bytesperline <= ($ffff-(Offs and $ffff)) Then
                    bankrest := VLength
                  else {the rest won't fit anymore in the current window }
-                   bankrest := (($10000 - (Offs and $ffff)) div bytesperline)+1;
+                   bankrest := (($ffff - (Offs and $ffff)) div bytesperline)+1;
                  {$ifdef logging2}
                  LogLn('Rest to be drawn in this window: '+strf(bankrest));
                  {$endif logging}
@@ -953,10 +963,10 @@ end;
                  {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
                  {$endif logging}
-                 If (VLength-1)*bytesperline <= ($10000-(Offs and $ffff)) Then
+                 If (VLength-1)*bytesperline <= ($ffff-(Offs and $ffff)) Then
                    bankrest := VLength
                  else {the rest won't fit anymore in the current window }
-                   bankrest := (($10000 - (Offs and $ffff)) div bytesperline)+1;
+                   bankrest := (($ffff - (Offs and $ffff)) div bytesperline)+1;
                  {$ifdef logging2}
                  LogLn('Rest to be drawn in this window: '+strf(bankrest));
                  {$endif logging}
@@ -981,10 +991,10 @@ end;
                  {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
                  {$endif logging}
-                 If (VLength-1)*bytesperline <= ($10000-(Offs and $ffff)) Then
+                 If (VLength-1)*bytesperline <= ($ffff-(Offs and $ffff)) Then
                    bankrest := VLength
                  else {the rest won't fit anymore in the current window }
-                   bankrest := (($10000 - (Offs and $ffff)) div bytesperline)+1;
+                   bankrest := (($ffff - (Offs and $ffff)) div bytesperline)+1;
                  {$ifdef logging2}
                  LogLn('Rest to be drawn in this window: '+strf(bankrest));
                  {$endif logging}
@@ -1010,10 +1020,10 @@ end;
                  {$ifdef logging2}
                  LogLn('set bank '+strf(curbank)+' for offset '+hexstr(offs,8));
                  {$endif logging}
-                 If (VLength-1)*bytesperline <= ($10000-(Offs and $ffff)) Then
+                 If (VLength-1)*bytesperline <= ($ffff-(Offs and $ffff)) Then
                    bankrest := VLength
                  else {the rest won't fit anymore in the current window }
-                   bankrest := (($10000 - (Offs and $ffff)) div bytesperline)+1;
+                   bankrest := (($ffff - (Offs and $ffff)) div bytesperline)+1;
                  {$ifdef logging2}
                  LogLn('Rest to be drawn in this window: '+strf(bankrest));
                  {$endif logging}
@@ -1495,16 +1505,17 @@ end;
      Y := Y + YOffset; { adjust pixel for correct virtual page }
      { }
      offs := longint(y) * BytesPerLine + (x div 8);
+     SetReadBank(smallint(offs shr 16));
      SetWriteBank(smallint(offs shr 16));
 
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
      PortW[$3ce] := color shl 8; { Index 00 : Enable correct plane and write color }
 
-     Port[$3ce] := 8;           { Index 08 : Bitmask register.          }
-     Port[$3cf] := $80 shr (x and $7); { Select correct bits to modify }
+     { Index 08 : Bitmask register.          }
+     PortW[$3ce] := ($8000 shr (x and $7)) or 8; { Select correct bits to modify }
 
-     dummy := Mem[WinWriteSeg: offs];  { Latch the data into host space.  }
-     Mem[WinWriteSeg: offs] := dummy;  { Write the data into video memory }
+     dummy := Mem[WinReadSeg: word(offs)];  { Latch the data into host space.  }
+     Mem[WinWriteSeg: word(offs)] := dummy;  { Write the data into video memory }
      PortW[$3ce] := $ff08;         { Enable all bit planes.           }
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
      { }
@@ -1512,23 +1523,23 @@ end;
 
 
  Function GetPixVESA16(X,Y: smallint):word; {$ifndef fpc}far;{$endif fpc}
- Var dummy, offset: Word;
+ Var dummy: Word;
+     offset: longint;
      shift: byte;
   Begin
     X:= X + StartXViewPort;
     Y:= Y + StartYViewPort + YOffset;
     offset := longint(Y) * BytesPerLine + (x div 8);
     SetReadBank(smallint(offset shr 16));
-    Port[$3ce] := 4;
+    PortW[$3ce] := $0004;
     shift := 7 - (X and 7);
-    Port[$3cf] := 0;
-    dummy := (Mem[WinReadSeg:offset] shr shift) and 1;
+    dummy := (Mem[WinReadSeg:word(offset)] shr shift) and 1;
     Port[$3cf] := 1;
-    dummy := dummy or (((Mem[WinReadSeg:offset] shr shift) and 1) shl 1);
+    dummy := dummy or (((Mem[WinReadSeg:word(offset)] shr shift) and 1) shl 1);
     Port[$3cf] := 2;
-    dummy := dummy or (((Mem[WinReadSeg:offset] shr shift) and 1) shl 2);
+    dummy := dummy or (((Mem[WinReadSeg:word(offset)] shr shift) and 1) shl 2);
     Port[$3cf] := 3;
-    dummy := dummy or (((Mem[WinReadSeg:offset] shr shift) and 1) shl 3);
+    dummy := dummy or (((Mem[WinReadSeg:word(offset)] shr shift) and 1) shl 3);
     GetPixVESA16 := dummy;
   end;
 
@@ -1539,46 +1550,179 @@ end;
      dummy : byte;
      Color : word;
   begin
-    y:= Y + YOffset;
-    case CurrentWriteMode of
-      XORPut:
-        begin
-      { getpixel wants local/relative coordinates }
-          Color := GetPixVESA16(x-StartXViewPort,y-StartYViewPort);
-          Color := CurrentColor Xor Color;
-        end;
-      OrPut:
-        begin
-      { getpixel wants local/relative coordinates }
-          Color := GetPixVESA16(x-StartXViewPort,y-StartYViewPort);
-          Color := CurrentColor Or Color;
-        end;
-      AndPut:
-        begin
-      { getpixel wants local/relative coordinates }
-          Color := GetPixVESA16(x-StartXViewPort,y-StartYViewPort);
-          Color := CurrentColor And Color;
-        end;
-      NotPut:
-        begin
-          Color := Not Color;
-        end
-      else
-        Color := CurrentColor;
-    end;
+     If CurrentWriteMode <> NotPut Then
+       Color := CurrentColor
+     else Color := not CurrentColor;
+
+     case CurrentWriteMode of
+        XORPut:
+          PortW[$3ce]:=((3 shl 3) shl 8) or 3;
+        ANDPut:
+          PortW[$3ce]:=((1 shl 3) shl 8) or 3;
+        ORPut:
+          PortW[$3ce]:=((2 shl 3) shl 8) or 3;
+        {not needed, this is the default state (e.g. PutPixel16 requires it)}
+        {NormalPut, NotPut:
+          PortW[$3ce]:=$0003
+        else
+          PortW[$3ce]:=$0003}
+     end;
+
+     Y := Y + YOffset;
      offs := longint(y) * BytesPerLine + (x div 8);
+     SetReadBank(smallint(offs shr 16));
      SetWriteBank(smallint(offs shr 16));
      PortW[$3ce] := $0f01;       { Index 01 : Enable ops on all 4 planes }
      PortW[$3ce] := color shl 8; { Index 00 : Enable correct plane and write color }
 
-     Port[$3ce] := 8;           { Index 08 : Bitmask register.          }
-     Port[$3cf] := $80 shr (x and $7); { Select correct bits to modify }
+     { Index 08 : Bitmask register.          }
+     PortW[$3ce] := ($8000 shr (x and $7)) or 8; { Select correct bits to modify }
 
-     dummy := Mem[WinWriteSeg: offs];  { Latch the data into host space.  }
-     Mem[WinWriteSeg: offs] := dummy;  { Write the data into video memory }
+     dummy := Mem[WinReadSeg: word(offs)];  { Latch the data into host space.  }
+     Mem[WinWriteSeg: word(offs)] := dummy;  { Write the data into video memory }
      PortW[$3ce] := $ff08;         { Enable all bit planes.           }
      PortW[$3ce] := $0001;         { Index 01 : Disable ops on all four planes.         }
+     if (CurrentWriteMode = XORPut) or
+        (CurrentWriteMode = ANDPut) or
+        (CurrentWriteMode = ORPut) then
+       PortW[$3ce] := $0003;
   end;
+
+
+  procedure HLineVESA16(x,x2,y: smallint); {$ifndef fpc}far;{$endif fpc}
+  var
+      xtmp: smallint;
+      ScrOfs, BankRest: longint;
+      HLength : word;
+      LMask,RMask : byte;
+  begin
+
+    { must we swap the values? }
+    if x > x2 then
+      Begin
+        xtmp := x2;
+        x2 := x;
+        x:= xtmp;
+      end;
+    { First convert to global coordinates }
+    X   := X + StartXViewPort;
+    X2  := X2 + StartXViewPort;
+    Y   := Y + StartYViewPort;
+    if ClipPixels then
+      Begin
+         if LineClipped(x,y,x2,y,StartXViewPort,StartYViewPort,
+                StartXViewPort+ViewWidth, StartYViewPort+ViewHeight) then
+            exit;
+      end;
+    Y := Y + YOffset;
+    ScrOfs := longint(y) * BytesPerLine + (x div 8);
+    SetReadBank(smallint(ScrOfs shr 16));
+    SetWriteBank(smallint(ScrOfs shr 16));
+    HLength:=x2 div 8-x div 8;
+    LMask:=$ff shr (x and 7);
+{$ifopt r+}
+{$define rangeOn}
+{$r-}
+{$endif}
+{$ifopt q+}
+{$define overflowOn}
+{$q-}
+{$endif}
+    RMask:=$ff shl (7-(x2 and 7));
+{$ifdef rangeOn}
+{$undef rangeOn}
+{$r+}
+{$endif}
+{$ifdef overflowOn}
+{$undef overflowOn}
+{$q+}
+{$endif}
+    if HLength=0 then
+      LMask:=LMask and RMask;
+    If CurrentWriteMode <> NotPut Then
+      PortW[$3ce]:= CurrentColor shl 8
+    else PortW[$3ce]:= (not CurrentColor) shl 8;
+    PortW[$3ce]:=$0f01;
+    case CurrentWriteMode of
+       XORPut:
+         PortW[$3ce]:=((3 shl 3) shl 8) or 3;
+       ANDPut:
+         PortW[$3ce]:=((1 shl 3) shl 8) or 3;
+       ORPut:
+         PortW[$3ce]:=((2 shl 3) shl 8) or 3;
+       NormalPut, NotPut:
+         PortW[$3ce]:=$0003
+       else
+         PortW[$3ce]:=$0003
+    end;
+
+    PortW[$3ce]:=(LMask shl 8) or 8;
+{$ifopt r+}
+{$define rangeOn}
+{$r-}
+{$endif}
+{$ifopt q+}
+{$define overflowOn}
+{$q-}
+{$endif}
+    Mem[WinWriteSeg:word(ScrOfs)]:=Mem[WinReadSeg:word(ScrOfs)]+1;
+{$ifdef rangeOn}
+{$undef rangeOn}
+{$r+}
+{$endif}
+{$ifdef overflowOn}
+{$undef overflowOn}
+{$q+}
+{$endif}
+    {Port[$3ce]:=8;}{not needed, the register is already selected}
+    if HLength>0 then
+      begin
+         dec(HLength);
+         inc(ScrOfs);
+         while (HLength>0) do
+           begin
+              SetReadBank(smallint(ScrOfs shr 16));
+              SetWriteBank(smallint(ScrOfs shr 16));
+              Port[$3cf]:=$ff;
+              if HLength <= ($10000-(ScrOfs and $ffff)) Then
+                 BankRest := HLength
+              else {the rest won't fit anymore in the current window }
+                BankRest := $10000 - (ScrOfs and $ffff);
+{$ifndef tp}
+              seg_bytemove(dosmemselector,(WinReadSeg shl 4)+word(ScrOfs),dosmemselector,(WinWriteSeg shl 4)+word(ScrOfs),BankRest);
+{$else}
+              move(Ptr(WinReadSeg,word(ScrOfs))^, Ptr(WinWriteSeg,word(ScrOfs))^, BankRest);
+{$endif}
+              ScrOfs := ScrOfs + BankRest;
+              HLength := HLength - BankRest;
+           end;
+         SetReadBank(smallint(ScrOfs shr 16));
+         SetWriteBank(smallint(ScrOfs shr 16));
+         Port[$3cf]:=RMask;
+{$ifopt r+}
+{$define rangeOn}
+{$r-}
+{$endif}
+{$ifopt q+}
+{$define overflowOn}
+{$q-}
+{$endif}
+         Mem[WinWriteSeg:word(ScrOfs)]:=Mem[WinReadSeg:word(ScrOfs)]+1;
+{$ifdef rangeOn}
+{$undef rangeOn}
+{$r+}
+{$endif}
+{$ifdef overflowOn}
+{$undef overflowOn}
+{$q+}
+{$endif}
+      end;
+    { clean up }
+    {Port[$3cf]:=0;}{not needed, the register is reset by the next operation:}
+    PortW[$3ce]:=$ff08;
+    PortW[$3ce]:=$0001;
+    PortW[$3ce]:=$0003;
+   end;
 
 
 
@@ -1976,6 +2120,12 @@ Const
   function SetupLinear(var ModeInfo: TVESAModeInfo;mode : word) : boolean;
    begin
      SetUpLinear:=false;
+
+     if VESAInfo.Version >= $0300 then
+       BytesPerLine := VESAModeInfo.LinBytesPerScanLine
+     else
+       BytesPerLine := VESAModeInfo.BytesPerScanLine;
+
 {$ifdef FPC}
      case mode of
        m320x200x32k,
@@ -2073,6 +2223,9 @@ Const
   procedure SetupWindows(var ModeInfo: TVESAModeInfo);
    begin
      InLinear:=false;
+
+     BytesPerLine := VESAModeInfo.BytesPerScanLine;
+
      { now we check the windowing scheme ...}
      if (ModeInfo.WinAAttr and WinSupported) <> 0 then
        { is this window supported ... }
@@ -2222,7 +2375,8 @@ Const
         Inc(BankShift);
      CurrentWriteBank := -1;
      CurrentReadBank := -1;
-     BytesPerLine := VESAModeInfo.BytesPerScanLine;
+{    nickysn: setting BytesPerLine moved to SetupLinear and SetupWindowed
+     BytesPerLine := VESAModeInfo.BytesPerScanLine;}
 
      { These are the window adresses ... }
      WinWriteSeg := 0;  { This is the segment to use for writes }
