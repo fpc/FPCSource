@@ -7,7 +7,7 @@ name=fcl-web
 version=2.4.3
 
 [target]
-dirs=src/base src/webdata
+dirs=src/base src/webdata src/jsonrpc
 
 [require]
 packages=fcl-base fcl-xml fcl-db fcl-json fcl-net

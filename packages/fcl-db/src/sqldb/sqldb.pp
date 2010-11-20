@@ -1244,7 +1244,7 @@ begin
       // Call UpdateServerIndexDefs before Execute, to avoid problems with connections
       // which do not allow processing multiple recordsets at a time. (Microsoft
       // calls this MARS, see bug 13241)
-      if DefaultFields and FUpdateable and FusePrimaryKeyAsKey then
+      if DefaultFields and FUpdateable and FusePrimaryKeyAsKey and (not IsUniDirectional) then
         UpdateServerIndexDefs;
       Execute;
       // InternalInitFieldDef is only called after a prepare. i.e. not twice if
@@ -1254,7 +1254,7 @@ begin
         begin
         CreateFields;
 
-        if FUpdateable then
+        if FUpdateable and (not IsUniDirectional) then
           begin
           if FusePrimaryKeyAsKey then
             begin
@@ -1555,7 +1555,7 @@ Function TCustomSQLQuery.GetCanModify: Boolean;
 begin
   // the test for assigned(FCursor) is needed for the case that the dataset isn't opened
   if assigned(FCursor) and (FCursor.FStatementType = stSelect) then
-    Result:= FUpdateable and (not FReadOnly)
+    Result:= FUpdateable and (not FReadOnly) and (not IsUniDirectional)
   else
     Result := False;
 end;

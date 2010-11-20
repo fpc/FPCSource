@@ -280,7 +280,6 @@ Var
 
 begin
   Res:= TSQLite3Cursor.create;
-  Res.fhandle:=self.fhandle;
   Result:=Res;
 end;
 
@@ -292,6 +291,7 @@ end;
 procedure TSQLite3Connection.PrepareStatement(cursor: TSQLCursor;
                ATransaction: TSQLTransaction; buf: string; AParams: TParams);
 begin
+  TSQLite3Cursor(cursor).fhandle:=self.fhandle;
   TSQLite3Cursor(cursor).Prepare(Buf,AParams);
 end;
 
@@ -299,6 +299,7 @@ procedure TSQLite3Connection.UnPrepareStatement(cursor: TSQLCursor);
 
 begin
   TSQLite3Cursor(cursor).UnPrepare;
+  TSQLite3Cursor(cursor).fhandle:=nil;
 end;
 
 

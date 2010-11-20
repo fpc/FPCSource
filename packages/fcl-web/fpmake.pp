@@ -35,6 +35,7 @@ begin
 
     P.SourcePath.Add('src/base');
     P.SourcePath.Add('src/webdata');
+    P.SourcePath.Add('src/jsonrpc');
 
     T:=P.Targets.AddUnit('cgiapp.pp');
     T.ResourceStrings:=true;
@@ -152,12 +153,24 @@ begin
       AddUnit('httpdefs');
       AddUnit('fpextjs');
       end;
-    T:=P.Targets.AddUnit('extjsjson.pp');
+    T:=P.Targets.AddUnit('extjsjson.pp'); 
     With T.Dependencies do
       begin
       AddUnit('fpwebdata');
       AddUnit('httpdefs');
       AddUnit('fpextjs');
+      end;
+    T:=P.Targets.AddUnit('fpjsonrpc.pp');
+    T:=P.Targets.AddUnit('webjsonrpc.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fpjsonrpc');
+      end;
+    T:=P.Targets.AddUnit('fpextdirect.pp');
+    With T.Dependencies do
+      begin
+      AddUnit('fpjsonrpc');
+      AddUnit('webjsonrpc');
       end;
 {$ifndef ALLPACKAGES}
     Run;

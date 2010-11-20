@@ -63,14 +63,17 @@ const MySQLdbTypes = [mysql40,mysql41,mysql50];
 type
 { TSQLDBConnector }
   TSQLDBConnector = class(TDBConnector)
-    FConnection   : TSQLConnection;
-    FTransaction  : TSQLTransaction;
-    FQuery        : TSQLQuery;
   private
+    FConnection    : TSQLConnection;
+    FTransaction   : TSQLTransaction;
+    FQuery         : TSQLQuery;
+    FUniDirectional: boolean;
     procedure CreateFConnection;
     procedure CreateFTransaction;
     Function CreateQuery : TSQLQuery;
   protected
+    procedure SetTestUniDirectional(const AValue: boolean); override;
+    function GetTestUniDirectional: boolean; override;
     procedure CreateNDatasets; override;
     procedure CreateFieldDataset; override;
     procedure DropNDatasets; override;
@@ -165,6 +168,17 @@ begin
     database := Fconnection;
     transaction := Ftransaction;
     end;
+end;
+
+procedure TSQLDBConnector.SetTestUniDirectional(const AValue: boolean);
+begin
+  FUniDirectional:=avalue;
+  FQuery.UniDirectional:=AValue;
+end;
+
+function TSQLDBConnector.GetTestUniDirectional: boolean;
+begin
+  result := FUniDirectional;
 end;
 
 procedure TSQLDBConnector.CreateNDatasets;
@@ -273,6 +287,7 @@ begin
     begin
     sql.clear;
     sql.add('SELECT * FROM FPDEV WHERE ID < '+inttostr(n+1));
+    UniDirectional:=TestUniDirectional;
     end;
 end;
 
@@ -283,6 +298,7 @@ begin
     begin
     sql.clear;
     sql.add('SELECT * FROM FPDEV_FIELD');
+    tsqlquery(Result).UniDirectional:=TestUniDirectional;
     end;
 end;
 

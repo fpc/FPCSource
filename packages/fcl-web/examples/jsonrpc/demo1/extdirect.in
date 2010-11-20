@@ -1,0 +1,4 @@
+[
+  { "action": "test", "method": "echo", "data": ["Hello JSON-RPC 1"], "tid": 1 },
+  { "action": "test", "method": "echo", "data": ["Hello JSON-RPC 2"], "tid": 2 }
+]

@@ -388,11 +388,7 @@ begin
   Case Index of
     21,
     34 : Result:=DecodeVar(14); // Property ServerName and Host
-    25 : begin
-         Result:=Decodevar(5); // Property PathInfo
-         If (Result='') then
-           Result:=Decodevar(34); // Property Request URI
-         end;
+    25 : Result:=Decodevar(5); // Property PathInfo
     26 : Result:=DecodeVar(6); // Property PathTranslated
     27 : Result:=DecodeVar(8); // Property RemoteAddress
     28 : Result:=DecodeVar(9); // Property RemoteHost

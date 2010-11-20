@@ -8,7 +8,7 @@ interface
 
 uses
   fpcunit, testutils, testregistry, testdecorator,
-  Classes, SysUtils, db;
+  Classes, SysUtils, db, ToolsUnit;
 
 type
 
@@ -119,9 +119,12 @@ type
     procedure TestCanModifySpecialFields;
   end;
 
-  { TSQLTestSetup }
+  TTestUniDirectionalDBBasics = class(TTestDBBasics)
+  end;
 
-  TDBBasicsTestSetup = class(TTestSetup)
+  { TDBBasicsUniDirectionalTestSetup }
+
+  TDBBasicsUniDirectionalTestSetup = class(TDBBasicsTestSetup)
   protected
     procedure OneTimeSetup; override;
     procedure OneTimeTearDown; override;
@@ -129,7 +132,7 @@ type
 
 implementation
 
-uses toolsunit, bufdataset, variants, strutils;
+uses bufdataset, variants, strutils, sqldb;
 
 type THackDataLink=class(TdataLink);
 
@@ -232,38 +235,43 @@ var i,count      : integer;
 begin
   aDatasource := TDataSource.Create(nil);
   aDatalink := TTestDataLink.Create;
-  aDatalink.DataSource := aDatasource;
-  ABufferCount := 11;
-  aDatalink.BufferCount := ABufferCount;
-  DataEvents := '';
-  for count := 0 to 32 do
-    begin
-    aDatasource.DataSet := DBConnector.GetNDataset(count);
-    with aDatasource.Dataset do
+  try
+    aDatalink.DataSource := aDatasource;
+    ABufferCount := 11;
+    aDatalink.BufferCount := ABufferCount;
+    DataEvents := '';
+    for count := 0 to 32 do
       begin
-      i := 1;
-      Open;
-      AssertEquals('deUpdateState:0;',DataEvents);
-      DataEvents := '';
-      while not EOF do
+      aDatasource.DataSet := DBConnector.GetNDataset(count);
+      with aDatasource.Dataset do
         begin
-        AssertEquals(i,fields[0].AsInteger);
-        AssertEquals('TestName'+inttostr(i),fields[1].AsString);
-        inc(i);
+        i := 1;
+        Open;
+        AssertEquals('deUpdateState:0;',DataEvents);
+        DataEvents := '';
+        while not EOF do
+          begin
+          AssertEquals(i,fields[0].AsInteger);
+          AssertEquals('TestName'+inttostr(i),fields[1].AsString);
+          inc(i);
 
-        Next;
-        if (i > ABufferCount) and not EOF then
-          AssertEquals('deCheckBrowseMode:0;deDataSetScroll:-1;DataSetScrolled:1;',DataEvents)
-        else
-          AssertEquals('deCheckBrowseMode:0;deDataSetScroll:0;DataSetScrolled:0;',DataEvents);
+          Next;
+          if (i > ABufferCount) and not EOF then
+            AssertEquals('deCheckBrowseMode:0;deDataSetScroll:-1;DataSetScrolled:1;',DataEvents)
+          else
+            AssertEquals('deCheckBrowseMode:0;deDataSetScroll:0;DataSetScrolled:0;',DataEvents);
+          DataEvents := '';
+          end;
+        AssertEquals(count,i-1);
+        close;
+        AssertEquals('deUpdateState:0;',DataEvents);
         DataEvents := '';
         end;
-      AssertEquals(count,i-1);
-      close;
-      AssertEquals('deUpdateState:0;',DataEvents);
-      DataEvents := '';
       end;
-    end;
+  finally
+    aDatalink.Free;
+    aDatasource.Free;
+  end;
 end;
 
 procedure TTestDBBasics.TestdeFieldListChange;
@@ -326,23 +334,26 @@ var i,count     : integer;
 begin
   aDatasource := TDataSource.Create(nil);
   aDatalink := TTestDataLink.Create;
-  aDatalink.DataSource := aDatasource;
-  ds := DBConnector.GetNDataset(6);
-  ds.BeforeScroll := DBConnector.DataEvent;
-  with ds do
-    begin
-    aDatasource.DataSet := ds;
-    open;
-    DataEvents := '';
-    Resync([rmExact]);
-    AssertEquals('deDataSetChange:0;',DataEvents);
-    DataEvents := '';
-    next;
-    AssertEquals('deCheckBrowseMode:0;DataEvent;deDataSetScroll:0;DataSetScrolled:1;',DataEvents);
-    close;
-    end;
-  aDatasource.Free;
-  aDatalink.Free;
+  try
+    aDatalink.DataSource := aDatasource;
+    ds := DBConnector.GetNDataset(6);
+    ds.BeforeScroll := DBConnector.DataEvent;
+    with ds do
+      begin
+      aDatasource.DataSet := ds;
+      open;
+      DataEvents := '';
+      Resync([rmExact]);
+      AssertEquals('deDataSetChange:0;',DataEvents);
+      DataEvents := '';
+      next;
+      AssertEquals('deCheckBrowseMode:0;DataEvent;deDataSetScroll:0;DataSetScrolled:1;',DataEvents);
+      close;
+      end;
+  finally
+    aDatasource.Free;
+    aDatalink.Free;
+  end;
 end;
 
 procedure TTestDBBasics.TestLastAppendCancel;
@@ -579,21 +590,28 @@ begin
 end;
 
 procedure TTestDBBasics.TestFileNameProperty;
-var ds    : TDataset;
+var ds1,ds2: TDataset;
     LoadDs: TCustomBufDataset;
 begin
-  ds := DBConnector.GetNDataset(true,5);
-  if not (ds is TCustomBufDataset) then
-    Ignore('This test only applies to TCustomBufDataset and descendents.');
+  ds2 := nil;
+  ds1 := DBConnector.GetNDataset(true,5);
+  try
+    if not (ds1 is TCustomBufDataset) then
+      Ignore('This test only applies to TCustomBufDataset and descendents.');
 
-  ds.open;
-  TCustomBufDataset(ds).FileName:='test.xml';
-  ds.close;
+    ds1.open;
+    TCustomBufDataset(ds1).FileName:='test.xml';
+    ds1.close;
 
-  ds := DBConnector.GetNDataset(True,7);
-  TCustomBufDataset(ds).FileName:='test.xml';
-  ds.Open;
-  FTestXMLDatasetDefinition(Ds);
+    ds2 := DBConnector.GetNDataset(True,7);
+    TCustomBufDataset(ds2).FileName:='test.xml';
+    ds2.Open;
+    FTestXMLDatasetDefinition(Ds2);
+  finally
+    TCustomBufDataset(ds1).FileName:='';
+    if assigned(ds2) then
+      TCustomBufDataset(ds2).FileName:='';
+  end;
 end;
 
 procedure TTestDBBasics.TestClientDatasetAsMemDataset;
@@ -2169,20 +2187,25 @@ begin
     cancel;
     AssertTrue('Field isn''t NULL after cancel',fieldbyname('id').IsNull);
     end;
-
 end;
 
-{ TSQLTestSetup }
-procedure TDBBasicsTestSetup.OneTimeSetup;
+{ TDBBasicsUniDirectionalTestSetup }
+
+procedure TDBBasicsUniDirectionalTestSetup.OneTimeSetup;
 begin
-  InitialiseDBConnector;
+  inherited OneTimeSetup;
+  DBConnector.TestUniDirectional:=true;
 end;
 
-procedure TDBBasicsTestSetup.OneTimeTearDown;
+procedure TDBBasicsUniDirectionalTestSetup.OneTimeTearDown;
 begin
-  FreeAndNil(DBConnector);
+  DBConnector.TestUniDirectional:=false;
+  inherited OneTimeTearDown;
 end;
 
 initialization
   RegisterTestDecorator(TDBBasicsTestSetup, TTestDBBasics);
+
+  if uppercase(dbconnectorname)='SQL' then
+    RegisterTestDecorator(TDBBasicsUniDirectionalTestSetup, TTestUniDirectionalDBBasics);
 end.

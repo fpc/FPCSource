@@ -502,7 +502,7 @@ Constructor TApacheRequest.CreateReq(App : TCustomApacheApplication; ARequest : 
 begin
   FApache:=App;
   FRequest:=Arequest;
-  ProcessedPathInfo:=App.BaseLocation;
+  ReturnedPathInfo:=App.BaseLocation;
   Inherited Create;
   InitFromRequest;
 end;
