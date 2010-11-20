@@ -1319,6 +1319,7 @@ begin
   FMap := TFPStrObjMap.Create;
   FMap.OnPtrCompare := @MapPtrCompare;
   FOnCompareText := @DefaultCompareText;
+  CheckSpecialChars;
 end;
 
 destructor TStringList.Destroy;

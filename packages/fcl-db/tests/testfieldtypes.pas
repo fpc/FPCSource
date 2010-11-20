@@ -28,8 +28,6 @@ type
     procedure RunTest; override;
   published
     procedure TestEmptyUpdateQuery; // bug 13654
-    procedure TestClearUpdateableStatus;
-    procedure TestReadOnlyParseSQL; // bug 9254
     procedure TestParseJoins; // bug 10148
     procedure TestDoubleFieldNames; // bug 8457
     procedure TestParseUnion; // bug 8442
@@ -46,7 +44,6 @@ type
     procedure TestBug9744;
     procedure TestCrossStringDateParam;
     procedure TestGetFieldNames;
-    procedure TestGetTables;
     procedure TestUpdateIndexDefs;
     procedure TestSetBlobAsMemoParam;
     procedure TestSetBlobAsBlobParam;
@@ -94,6 +91,9 @@ type
     // SchemaType tests
     procedure TestTableNames;
     procedure TestFieldNames;
+    procedure TestClearUpdateableStatus;
+    procedure TestReadOnlyParseSQL; // bug 9254
+    procedure TestGetTables;
   end;
 
 implementation
@@ -1157,7 +1157,7 @@ begin
       ParseSQL := True;
       AssertTrue(ParseSQL);
       AssertFalse(ReadOnly);
-      SQL.Text := 'select * from FPDEV;';
+      SQL.Text := 'select * from FPDEV';
       open;
       AssertTrue(ParseSQL);
       AssertFalse(ReadOnly);
@@ -1347,12 +1347,12 @@ begin
     AssertEquals(-1,query.RowsAffected);
     Connection.ExecuteDirect('create table FPDEV2 (         ' +
                               '  ID INT NOT NULL            , ' +
-                              '  "NAME-TEST" VARCHAR(250),  ' +
+                              '  '+Connection.FieldNameQuoteChars[0]+'NAME-TEST'+Connection.FieldNameQuoteChars[1]+' VARCHAR(250),  ' +
                               '  PRIMARY KEY (ID)           ' +
                               ')                            ');
 // Firebird/Interbase need a commit after a DDL statement. Not necessary for the other connections
     TSQLDBConnector(DBConnector).Transaction.CommitRetaining;
-    Connection.ExecuteDirect('insert into FPDEV2(ID,"NAME-TEST") values (1,''test1'')');
+    Connection.ExecuteDirect('insert into FPDEV2(ID,'+Connection.FieldNameQuoteChars[0]+'NAME-TEST'+Connection.FieldNameQuoteChars[1]+') values (1,''test1'')');
     Query.SQL.Text := 'select * from FPDEV2';
     Query.Open;
     AssertEquals(1,Query.FieldByName('ID').AsInteger);

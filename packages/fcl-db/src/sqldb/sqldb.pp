@@ -23,7 +23,7 @@ interface
 uses SysUtils, Classes, DB, bufdataset, sqlscript;
 
 type TSchemaType = (stNoSchema, stTables, stSysTables, stProcedures, stColumns, stProcedureParams, stIndexes, stPackages);
-     TConnOption = (sqSupportParams,sqEscapeSlash,sqEscapeRepeat,sqQuoteFieldnames);
+     TConnOption = (sqSupportParams,sqEscapeSlash,sqEscapeRepeat);
      TConnOptions= set of TConnOption;
 
      TRowsCount = LargeInt;
@@ -53,9 +53,13 @@ type
     FSchemaType    : TSchemaType;
   end;
 
+type TQuoteChars = array[0..1] of char;
 
 const
- StatementTokens : Array[TStatementType] of string = ('(none)', 'select',
+  SingleQuotes : TQuoteChars = ('''','''');
+  DoubleQuotes : TQuoteChars = ('"','"');
+
+  StatementTokens : Array[TStatementType] of string = ('(none)', 'select',
                   'insert', 'update', 'delete',
                   'create', 'get', 'put', 'execute',
                   'start','commit','rollback', '?'
@@ -72,14 +76,13 @@ type
     procedure Update; override;
   end;
 
-
-{ TSQLConnection }
 type
 
   { TSQLConnection }
 
   TSQLConnection = class (TDatabase)
   private
+    FFieldNameQuoteChars : TQuoteChars;
     FPassword            : string;
     FTransaction         : TSQLTransaction;
     FUserName            : string;
@@ -126,6 +129,7 @@ type
     property port: cardinal read GetPort write Setport;
   public
     property Handle: Pointer read GetHandle;
+    property FieldNameQuoteChars: TQuoteChars read FFieldNameQuoteChars write FFieldNameQuoteChars;
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure StartTransaction; override;
@@ -619,6 +623,7 @@ constructor TSQLConnection.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FSQLServerFormatSettings.DecimalSeparator:='.';
+  FFieldNameQuoteChars:=DoubleQuotes;
 end;
 
 procedure TSQLConnection.GetTableNames(List: TStrings; SystemTables: Boolean);
@@ -1399,7 +1404,7 @@ end;
 
 Procedure TCustomSQLQuery.ApplyRecUpdate(UpdateKind : TUpdateKind);
 
-var FieldNamesQuoteChar : string;
+var FieldNamesQuoteChars : TQuoteChars;
 
   procedure InitialiseModifyQuery(var qry : TCustomSQLQuery; aSQL: String);
 
@@ -1420,7 +1425,7 @@ var FieldNamesQuoteChar : string;
     if (pfInKey in Fields[x].ProviderFlags) or
        ((FUpdateMode = upWhereAll) and (pfInWhere in Fields[x].ProviderFlags)) or
        ((FUpdateMode = UpWhereChanged) and (pfInWhere in Fields[x].ProviderFlags) and (fields[x].value <> fields[x].oldvalue)) then
-      sql_where := sql_where + '(' + FieldNamesQuoteChar + fields[x].FieldName + FieldNamesQuoteChar + '= :' + FieldNamesQuoteChar + 'OLD_' + fields[x].FieldName + FieldNamesQuoteChar +') and ';
+      sql_where := sql_where + '(' + FieldNamesQuoteChars[0] + fields[x].FieldName + FieldNamesQuoteChars[1] + '= :"' + 'OLD_' + fields[x].FieldName + '") and ';
   end;
 
   function ModifyRecQuery : string;
@@ -1437,7 +1442,7 @@ var FieldNamesQuoteChar : string;
       UpdateWherePart(sql_where,x);
 
       if (pfInUpdate in Fields[x].ProviderFlags) then
-        sql_set := sql_set +FieldNamesQuoteChar + fields[x].FieldName + FieldNamesQuoteChar +'=:' + FieldNamesQuoteChar + fields[x].FieldName + FieldNamesQuoteChar + ',';
+        sql_set := sql_set +FieldNamesQuoteChars[0] + fields[x].FieldName + FieldNamesQuoteChars[1] +'=:"' + fields[x].FieldName + '",';
       end;
 
     if length(sql_set) = 0 then DatabaseErrorFmt(sNoUpdateFields,['update'],self);
@@ -1461,8 +1466,8 @@ var FieldNamesQuoteChar : string;
       begin
       if (not fields[x].IsNull) and (pfInUpdate in Fields[x].ProviderFlags) then
         begin
-        sql_fields := sql_fields + FieldNamesQuoteChar + fields[x].FieldName + FieldNamesQuoteChar + ',';
-        sql_values := sql_values + ':' + FieldNamesQuoteChar + fields[x].FieldName + FieldNamesQuoteChar +',';
+        sql_fields := sql_fields + FieldNamesQuoteChars[0] + fields[x].FieldName + FieldNamesQuoteChars[1] + ',';
+        sql_values := sql_values + ':"' + fields[x].FieldName + '",';
         end;
       end;
     if length(sql_fields) = 0 then DatabaseErrorFmt(sNoUpdateFields,['insert'],self);
@@ -1493,10 +1498,7 @@ var qry : TCustomSQLQuery;
     Fld : TField;
 
 begin
-  if sqQuoteFieldnames in TSQLConnection(DataBase).ConnOptions then
-    FieldNamesQuoteChar := '"'
-  else
-    FieldNamesQuoteChar := '';
+  FieldNamesQuoteChars := TSQLConnection(DataBase).FieldNameQuoteChars;
 
   case UpdateKind of
     ukModify : begin

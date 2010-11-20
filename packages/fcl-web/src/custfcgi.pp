@@ -336,7 +336,7 @@ begin
   Inherited Create(AOwner);
   FRequestsAvail:=5;
   SetLength(FRequestsArray,FRequestsAvail);
-  FHandle := -1;
+  FHandle := THandle(-1);
 end;
 
 destructor TCustomFCgiApplication.Destroy;
@@ -357,7 +357,7 @@ begin
       begin
       fpshutdown(FHandle,SHUT_RDWR);
       CloseSocket(FHandle);
-      FHandle := -1;
+      FHandle := THandle(-1);
       end;
     Request := Nil;
     Response := Nil;

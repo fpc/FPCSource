@@ -1,0 +1,303 @@
+<?xml version="1.0"?>
+<CONFIG>
+  <ProjectOptions>
+    <Version Value="7"/>
+    <General>
+      <Flags>
+        <MainUnitHasCreateFormStatements Value="False"/>
+        <Runnable Value="False"/>
+      </Flags>
+      <MainUnit Value="0"/>
+      <TargetFileExt Value=""/>
+      <Title Value="cgigateway"/>
+      <ResourceType Value="res"/>
+      <UseXPManifest Value="True"/>
+      <Icon Value="0"/>
+      <ActiveWindowIndexAtStart Value="0"/>
+    </General>
+    <VersionInfo>
+      <Language Value=""/>
+      <CharSet Value=""/>
+      <StringTable Comments="" CompanyName="" FileDescription="" FileVersion="" InternalName="" LegalCopyright="" LegalTrademarks="" OriginalFilename="" ProductName="" ProductVersion=""/>
+    </VersionInfo>
+    <PublishOptions>
+      <Version Value="2"/>
+      <IgnoreBinaries Value="False"/>
+      <IncludeFileFilter Value="*.(pas|pp|inc|lfm|lpr|lrs|lpi|lpk|sh|xml)"/>
+      <ExcludeFileFilter Value="*.(bak|ppu|ppw|o|so);*~;backup"/>
+    </PublishOptions>
+    <RunParams>
+      <local>
+        <FormatVersion Value="1"/>
+        <LaunchingApplication PathPlusParams="/usr/X11R6/bin/xterm -T 'Lazarus Run Output' -e $(LazarusDir)/tools/runwait.sh $(TargetCmdLine)"/>
+      </local>
+    </RunParams>
+    <RequiredPackages Count="2">
+      <Item1>
+        <PackageName Value="WebLaz"/>
+      </Item1>
+      <Item2>
+        <PackageName Value="FCL"/>
+      </Item2>
+    </RequiredPackages>
+    <Units Count="20">
+      <Unit0>
+        <Filename Value="cgigateway.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="cgigateway"/>
+        <IsVisibleTab Value="True"/>
+        <EditorIndex Value="0"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="17"/>
+        <UsageCount Value="105"/>
+        <Loaded Value="True"/>
+      </Unit0>
+      <Unit1>
+        <Filename Value="../src/custweb.pp"/>
+        <UnitName Value="custweb"/>
+        <EditorIndex Value="9"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="85"/>
+        <CursorPos X="14" Y="96"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="53"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit1>
+      <Unit2>
+        <Filename Value="../../../../Documents/source/extpascal-svn/CGIGateway.dpr"/>
+        <UnitName Value="CGIGateway"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="84"/>
+        <CursorPos X="12" Y="86"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="51"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit2>
+      <Unit3>
+        <Filename Value="../../../../Documents/source/extpascal-svn/BlockSocket.pas"/>
+        <UnitName Value="BlockSocket"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="57"/>
+        <CursorPos X="36" Y="57"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="51"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit3>
+      <Unit4>
+        <Filename Value="../../../rtl/inc/socketsh.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="205"/>
+        <CursorPos X="10" Y="216"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="25"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit4>
+      <Unit5>
+        <Filename Value="../../../rtl/inc/sockets.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="318"/>
+        <CursorPos X="10" Y="333"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="25"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit5>
+      <Unit6>
+        <Filename Value="../../fcl-net/src/ssockets.pp"/>
+        <UnitName Value="ssockets"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="546"/>
+        <CursorPos X="1" Y="567"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="51"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit6>
+      <Unit7>
+        <Filename Value="../src/custcgi.pp"/>
+        <UnitName Value="custcgi"/>
+        <EditorIndex Value="8"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="189"/>
+        <CursorPos X="3" Y="191"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="53"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit7>
+      <Unit8>
+        <Filename Value="../../../rtl/objpas/sysutils/osutilsh.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="19"/>
+        <CursorPos X="10" Y="30"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="51"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit8>
+      <Unit9>
+        <Filename Value="../src/fpfcgi.pp"/>
+        <UnitName Value="fpfcgi"/>
+        <EditorIndex Value="5"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="28"/>
+        <CursorPos X="5" Y="34"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="53"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit9>
+      <Unit10>
+        <Filename Value="../src/custfcgi.pp"/>
+        <UnitName Value="custfcgi"/>
+        <EditorIndex Value="6"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="362"/>
+        <CursorPos X="1" Y="387"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="53"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit10>
+      <Unit11>
+        <Filename Value="../../fastcgi/src/fastcgi.pp"/>
+        <UnitName Value="fastcgi"/>
+        <EditorIndex Value="7"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="11"/>
+        <CursorPos X="14" Y="27"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="53"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit11>
+      <Unit12>
+        <Filename Value="../../../rtl/inc/systemh.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="613"/>
+        <CursorPos X="10" Y="624"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="51"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit12>
+      <Unit13>
+        <Filename Value="../../../rtl/inc/generic.inc"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1979"/>
+        <CursorPos X="5" Y="1981"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="51"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit13>
+      <Unit14>
+        <Filename Value="../src/httpdefs.pp"/>
+        <UnitName Value="HTTPDefs"/>
+        <EditorIndex Value="4"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="1"/>
+        <CursorPos X="1" Y="14"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="36"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit14>
+      <Unit15>
+        <Filename Value="../../../rtl/objpas/classes/classesh.inc"/>
+        <EditorIndex Value="2"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="770"/>
+        <CursorPos X="15" Y="781"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="30"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit15>
+      <Unit16>
+        <Filename Value="../../../rtl/objpas/classes/streams.inc"/>
+        <EditorIndex Value="3"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="133"/>
+        <CursorPos X="8" Y="136"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="30"/>
+        <Loaded Value="True"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit16>
+      <Unit17>
+        <Filename Value="../../../../source/extpascal-svn/FCGIApp.pas"/>
+        <UnitName Value="FCGIApp"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="166"/>
+        <CursorPos X="50" Y="179"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="10"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit17>
+      <Unit18>
+        <Filename Value="../../../../source/extpascal-svn/BlockSocket.pas"/>
+        <UnitName Value="BlockSocket"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="174"/>
+        <CursorPos X="3" Y="180"/>
+        <SyntaxHighlighter Value="FreePascal"/>
+        <UsageCount Value="10"/>
+        <DefaultSyntaxHighlighter Value="Text"/>
+      </Unit18>
+      <Unit19>
+        <Filename Value="../src/fcgigate.pp"/>
+        <IsPartOfProject Value="True"/>
+        <UnitName Value="fcgigate"/>
+        <EditorIndex Value="1"/>
+        <WindowIndex Value="0"/>
+        <TopLine Value="21"/>
+        <CursorPos X="5" Y="44"/>
+        <UsageCount Value="23"/>
+        <Loaded Value="True"/>
+      </Unit19>
+    </Units>
+    <JumpHistory Count="4" HistoryIndex="3">
+      <Position1>
+        <Filename Value="../src/fpfcgi.pp"/>
+        <Caret Line="26" Column="15" TopLine="3"/>
+      </Position1>
+      <Position2>
+        <Filename Value="../src/fcgigate.pp"/>
+        <Caret Line="255" Column="38" TopLine="247"/>
+      </Position2>
+      <Position3>
+        <Filename Value="../src/httpdefs.pp"/>
+        <Caret Line="314" Column="11" TopLine="314"/>
+      </Position3>
+      <Position4>
+        <Filename Value="../src/fcgigate.pp"/>
+        <Caret Line="10" Column="1" TopLine="1"/>
+      </Position4>
+    </JumpHistory>
+  </ProjectOptions>
+  <CompilerOptions>
+    <Version Value="8"/>
+    <SearchPaths>
+      <IncludeFiles Value="$(ProjOutDir)/"/>
+    </SearchPaths>
+    <Parsing>
+      <SyntaxOptions>
+        <UseAnsiStrings Value="True"/>
+      </SyntaxOptions>
+    </Parsing>
+    <Other>
+      <CompilerPath Value="$(CompPath)"/>
+    </Other>
+  </CompilerOptions>
+  <Debugging>
+    <Exceptions Count="3">
+      <Item1>
+        <Name Value="EAbort"/>
+      </Item1>
+      <Item2>
+        <Name Value="ECodetoolError"/>
+      </Item2>
+      <Item3>
+        <Name Value="EFOpenError"/>
+      </Item3>
+    </Exceptions>
+  </Debugging>
+</CONFIG>

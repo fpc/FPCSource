@@ -34,6 +34,7 @@ Type
     FAfterResponse: TResponseEvent;
     FBeforeRequest: TRequestEvent;
     FRequest      : TRequest;
+    FResponse: TResponse;
   Protected
     Procedure DoHandleRequest(ARequest : TRequest; AResponse : TResponse; Var Handled : Boolean); virtual;
     Procedure DoGetContent(ARequest : TRequest; Content : TStream; Var Handled : Boolean); virtual;
@@ -48,6 +49,7 @@ Type
     Function  HaveContent : Boolean; virtual;
     function ContentToStream(Stream : TStream) : boolean; virtual;
     Property Request : TRequest Read FRequest;
+    Property Response : TResponse Read FResponse;
   end;
   
   { TCustomWebAction }
@@ -102,10 +104,12 @@ Type
 
   TCustomHTTPModule = Class(TDataModule)
   private
+    FBaseURL: String;
     FWebModuleKind: TWebModuleKind;
   public
     Procedure HandleRequest(ARequest : TRequest; AResponse : TResponse); virtual; abstract;
     property Kind: TWebModuleKind read FWebModuleKind write FWebModuleKind default wkPooled;
+    Property BaseURL : String Read FBaseURL Write FBaseURL;
   end;
   
   TCustomHTTPModuleClass = Class of TCustomHTTPModule;
@@ -250,6 +254,7 @@ Var
   M : TMemoryStream;
   
 begin
+  FResponse:=AResponse;
   M:=TMemoryStream.Create;
   DoGetContent(ARequest,M,Handled);
   AResponse.ContentStream:=M;
