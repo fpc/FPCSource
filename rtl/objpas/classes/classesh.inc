@@ -842,16 +842,16 @@ type
 
   THandleStream = class(TStream)
   private
-    FHandle: Integer;
+    FHandle: THandle;
   protected
     procedure SetSize(NewSize: Longint); override;
     procedure SetSize(const NewSize: Int64); override;
   public
-    constructor Create(AHandle: Integer);
+    constructor Create(AHandle: THandle);
     function Read(var Buffer; Count: Longint): Longint; override;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(const Offset: Int64; Origin: TSeekOrigin): Int64; override;
-    property Handle: Integer read FHandle;
+    property Handle: THandle read FHandle;
   end;
 
 { TFileStream class }

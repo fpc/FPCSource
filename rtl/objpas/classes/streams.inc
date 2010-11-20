@@ -409,7 +409,7 @@ end;
 {*                             THandleStream                                *}
 {****************************************************************************}
 
-Constructor THandleStream.Create(AHandle: Integer);
+Constructor THandleStream.Create(AHandle: THandle);
 
 begin
   FHandle:=AHandle;

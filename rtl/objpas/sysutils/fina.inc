@@ -317,13 +317,13 @@ begin
     Result := '';
 end;
 
-Function GetFileHandle(var f : File):Longint;
+Function GetFileHandle(var f : File):THandle;
 
 begin
   result:=filerec(f).handle;
 end;
 
-Function GetFileHandle(var f : Text):Longint;
+Function GetFileHandle(var f : Text):THandle;
 begin
   result:=textrec(f).handle;
 end;

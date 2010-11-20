@@ -99,6 +99,6 @@ Function FileSearch (Const Name, DirList : String; ImplicitCurrentDir : Boolean 
 Function ExeSearch  (Const Name, DirList : String) : String;
 Function FileIsReadOnly(const FileName: String): Boolean;
 
-Function GetFileHandle(var f : File):Longint;
-Function GetFileHandle(var f : Text):Longint;
+Function GetFileHandle(var f : File):THandle;
+Function GetFileHandle(var f : Text):THandle;
 
