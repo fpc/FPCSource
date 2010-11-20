@@ -299,6 +299,7 @@ implementation
         vardatadef,
         pvardatadef : tdef;
         useresult: boolean;
+        byrefpara: boolean;
         restype: byte;
 
         names : ansistring;
@@ -309,10 +310,9 @@ implementation
         begin
           // !! This condition is subject to change, see Mantis #17904
           result:=(assigned(para.parasym) and (para.parasym.varspez in [vs_var,vs_out,vs_constref])) or
-                  (para.left.resultdef.typ in [variantdef]) or
                   (variantdispatch and valid_for_var(para.left,false));
 
-          if result then
+          if result or (para.left.resultdef.typ in [variantdef]) then
             assign_type:=voidpointertype
           else
             case para.left.resultdef.size of
@@ -450,10 +450,14 @@ implementation
               end;
 
             restype:=getvardef(para.left.resultdef);
+            if is_byref_para(assignmenttype) then
+              restype:=restype or $80;
 
             { assign the argument/parameter to the temporary location }
+            { we always pass Variants by reference, RTL helpers must handle it
+              depending on byref bit }
 
-            if is_byref_para(assignmenttype) then
+            if assignmenttype=voidpointertype then
               begin
                 addstatement(statements,cassignmentnode.create(
                   ctypeconvnode.create_internal(cderefnode.create(caddnode.create(addn,
@@ -461,7 +465,6 @@ implementation
                     cordconstnode.create(qword(paramssize),ptruinttype,false)
                   )),voidpointertype),
                   ctypeconvnode.create_internal(caddrnode.create_internal(para.left),voidpointertype)));
-                restype:=restype or $80;
               end
             else
               addstatement(statements,cassignmentnode.create(
