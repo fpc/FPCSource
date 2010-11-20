@@ -1,0 +1,18 @@
+object FPWebProviderDataModule1: TFPWebProviderDataModule1
+  OldCreateOrder = False
+  InputAdaptor = ExtJSJSonWebdataInputAdaptor1
+  ContentProducer = ExtJSJSONDataFormatter1
+  Height = 300
+  HorizontalOffset = 635
+  VerticalOffset = 230
+  Width = 400
+  object ExtJSJSonWebdataInputAdaptor1: TExtJSJSonWebdataInputAdaptor
+    left = 204
+    top = 124
+  end
+  object ExtJSJSONDataFormatter1: TExtJSJSONDataFormatter
+    AllowPageSize = False
+    left = 204
+    top = 164
+  end
+end
