@@ -1,65 +1,65 @@
-Unit p_gx;
+unit p_gx;
 
 {$MODE objfpc}
 
 { convention is cdecl for WinCE API}
 {$calling cdecl}
 
-Interface
+interface
 
-Uses
+uses
   Windows;
 
-Const
+const
   GXDLL = 'gx';
 
-Type
-  GXDisplayProperties = Record
-    cxWidth : DWord;
-    cyHeight : DWord;            // notice lack of 'th' in the word height.
-    cbxPitch : LONG;             // number of bytes to move right one x pixel - can be negative.
-    cbyPitch : LONG;             // number of bytes to move down one y pixel - can be negative.
-    cBPP : LONG;                 // # of bits in each pixel
-    ffFormat : DWord;            // format flags.
-  End;
+type
+  GXDisplayProperties = record
+    cxWidth: DWord;
+    cyHeight: DWord;            // notice lack of 'th' in the word height.
+    cbxPitch: LONG;             // number of bytes to move right one x pixel - can be negative.
+    cbyPitch: LONG;             // number of bytes to move down one y pixel - can be negative.
+    cBPP: LONG;                 // # of bits in each pixel
+    ffFormat: DWord;            // format flags.
+  end;
 
-  GXKeyList = Record
-    vkUp : SHORT;             // key for up
-    ptUp : POINT;             // x,y position of key/button.  Not on screen but in screen coordinates.
-    vkDown : SHORT;
-    ptDown : POINT;
-    vkLeft : SHORT;
-    ptLeft : POINT;
-    vkRight : SHORT;
-    ptRight : POINT;
-    vkA : SHORT;
-    ptA : POINT;
-    vkB : SHORT;
-    ptB : POINT;
-    vkC : SHORT;
-    ptC : POINT;
-    vkStart : SHORT;
-    ptStart : POINT;
-  End;
+  GXKeyList = record
+    vkUp: SHORT;             // key for up
+    ptUp: POINT;             // x,y position of key/button.  not on screen but in screen coordinates.
+    vkDown: SHORT;
+    ptDown: POINT;
+    vkLeft: SHORT;
+    ptLeft: POINT;
+    vkRight: SHORT;
+    ptRight: POINT;
+    vkA: SHORT;
+    ptA: POINT;
+    vkB: SHORT;
+    ptB: POINT;
+    vkC: SHORT;
+    ptC: POINT;
+    vkStart: SHORT;
+    ptStart: POINT;
+  end;
 
-Function GXOpenDisplay(AhWnd : HWND; dwFlags : DWORD) : Integer; External GXDLL Name '?GXOpenDisplay@@YAHPAUHWND__@@K@Z';
-Function GXCloseDisplay : Integer; External GXDLL Name '?GXCloseDisplay@@YAHXZ';
-Function GXBeginDraw : Pointer; External GXDLL Name '?GXBeginDraw@@YAPAXXZ';
-Function GXEndDraw : Integer; External GXDLL Name '?GXEndDraw@@YAHXZ';
-Function GXOpenInput : Integer; External GXDLL Name '?GXOpenInput@@YAHXZ';
-Function GXCloseInput : Integer; External GXDLL Name '?GXCloseInput@@YAHXZ';
-Function GXGetDisplayProperties : GXDisplayProperties; External GXDLL Name '?GXGetDisplayProperties@@YA?AUGXDisplayProperties@@XZ';
-Function GXGetDefaultKeys(iOptions : Integer) : GXKeyList; External GXDLL Name '?GXGetDefaultKeys@@YA?AUGXKeyList@@H@Z';
-Function GXSuspend : Integer; External GXDLL Name '?GXSuspend@@YAHXZ';
-Function GXResume : Integer; External GXDLL Name '?GXResume@@YAHXZ';
-Function GXSetViewport(dwTop, dwHeight, dwReserved1, dwReserved2 : DWORD) : Integer; External GXDLL Name '?GXSetViewport@@YAHKKKK@Z';
-Function GXIsDisplayDRAMBuffer : BOOL; External GXDLL Name '?GXIsDisplayDRAMBuffer@@YAHXZ';
+function GXOpenDisplay(AhWnd: HWND; dwFlags: DWORD): Integer; external GXDLL Name '?GXOpenDisplay@@YAHPAUHWND__@@K@Z';
+function GXCloseDisplay: Integer; external GXDLL Name '?GXCloseDisplay@@YAHXZ';
+function GXBeginDraw: Pointer; external GXDLL Name '?GXBeginDraw@@YAPAXXZ';
+function GXEndDraw: Integer; external GXDLL Name '?GXEndDraw@@YAHXZ';
+function GXOpenInput: Integer; external GXDLL Name '?GXOpenInput@@YAHXZ';
+function GXCloseInput: Integer; external GXDLL Name '?GXCloseInput@@YAHXZ';
+function GXGetDisplayProperties: GXDisplayProperties; external GXDLL Name '?GXGetDisplayProperties@@YA?AUGXDisplayProperties@@XZ';
+function GXGetDefaultKeys(iOptions: Integer): GXKeyList; external GXDLL Name '?GXGetDefaultKeys@@YA?AUGXKeyList@@H@Z';
+function GXSuspend: Integer; external GXDLL Name '?GXSuspend@@YAHXZ';
+function GXResume: Integer; external GXDLL Name '?GXResume@@YAHXZ';
+function GXSetViewport(dwTop, dwHeight, dwReserved1, dwReserved2: DWORD): Integer; external GXDLL Name '?GXSetViewport@@YAHKKKK@Z';
+function GXIsDisplayDRAMBuffer: BOOL; external GXDLL Name '?GXIsDisplayDRAMBuffer@@YAHXZ';
 
 
 // Although these flags can be unrelated they still
 // have unique values.
 
-Const
+const
   GX_FULLSCREEN    = $01;        // for OpenDisplay()
   GX_NORMALKEYS    = $02;
   GX_LANDSCAPEKEYS = $03;
@@ -75,22 +75,22 @@ Const
 
   GETRAWFRAMEBUFFER = $00020001;
 
-Type
-  RawFrameBufferInfo = Record
-    wFormat : WORD;
-    wBPP : WORD;
-    pFramePointer : Pointer;
-    cxStride : Integer;
-    cyStride : Integer;
-    cxPixels : Integer;
-    cyPixels : Integer;
-  End;
+type
+  RawFrameBufferInfo = record
+    wFormat: WORD;
+    wBPP: WORD;
+    pFramePointer: Pointer;
+    cxStride: Integer;
+    cyStride: Integer;
+    cxPixels: Integer;
+    cyPixels: Integer;
+  end;
 
-Const
+const
   FORMAT_565   = 1;
   FORMAT_555   = 2;
   FORMAT_OTHER = 3;
 
-Implementation
+implementation
 
-End.
+end.

@@ -3,100 +3,104 @@ Ported to FPC by Nikolay Nikolov (nickysn@users.sourceforge.net)
 }
 
 {
- Palette example for OpenPTC 1.0 C++ Implementation
+ Palette example for OpenPTC 1.0 C++ implementation
  Copyright (c) Glenn Fiedler (ptc@gaffer.org)
  This source code is in the public domain
 }
 
-Program PaletteExample;
+program PaletteExample;
 
 {$MODE objfpc}
 
-Uses
+uses
   ptc;
 
-Var
-  console : TPTCConsole;
-  surface : TPTCSurface;
-  format : TPTCFormat;
-  palette : TPTCPalette;
-  data : Array[0..255] Of int32;
-  pixels : Pchar8;
-  width, height : Integer;
-  i : Integer;
-  x, y, index : Integer;
+var
+  console: TPTCConsole = nil;
+  surface: TPTCSurface = nil;
+  format: TPTCFormat = nil;
+  palette: TPTCPalette = nil;
+  data: array [0..255] of Uint32;
+  pixels: PUint8;
+  width, height: Integer;
+  i: Integer;
+  x, y, index: Integer;
+begin
+  try
+    try
+      { create console }
+      console := TPTCConsole.Create;
 
-Begin
-  Try
-    { create console }
-    console := TPTCConsole.Create;
+      { create format }
+      format := TPTCFormat.Create(8);
 
-    { create format }
-    format := TPTCFormat.Create(8);
+      { open console }
+      console.open('Palette example', format);
 
-    { open console }
-    console.open('Palette example', format);
+      { create surface }
+      surface := TPTCSurface.Create(console.width, console.height, format);
 
-    { create surface }
-    surface := TPTCSurface.Create(console.width, console.height, format);
-    format.Free;
+      { create palette }
+      palette := TPTCPalette.Create;
 
-    { create palette }
-    palette := TPTCPalette.Create;
+      { generate palette }
+      for i := 0 to 255 do
+        data[i] := i;
 
-    { generate palette }
-    For i := 0 To 255 Do
-      data[i] := i;
+      { load palette data }
+      palette.load(data);
 
-    { load palette data }
-    palette.load(data);
+      { set console palette }
+      console.palette(palette);
 
-    { set console palette }
-    console.palette(palette);
+      { set surface palette }
+      surface.palette(palette);
 
-    { set surface palette }
-    surface.palette(palette);
-    palette.Free;
+      { loop until a key is pressed }
+      while not console.KeyPressed do
+      begin
+        { lock surface }
+        pixels := surface.lock;
 
-    { loop until a key is pressed }
-    While Not console.KeyPressed Do
-    Begin
-      { lock surface }
-      pixels := surface.lock;
+        try
+          { get surface dimensions }
+          width := surface.width;
+          height := surface.height;
 
-      { get surface dimensions }
-      width := surface.width;
-      height := surface.height;
+          { draw random pixels }
+          for i := 1 to 100 do
+          begin
+            { get random position }
+            x := Random(width);
+            y := Random(height);
 
-      { draw random pixels }
-      For i := 1 To 100 Do
-      Begin
-        { get random position }
-	x := Random(width);
-	y := Random(height);
+            { get random color index }
+            index := Random(256);
 
-        { get random color index }
-	index := Random(256);
+            { draw color [index] at position [x,y] }
+            pixels[x + y * width] := index;
+          end;
+        finally
+          { unlock surface }
+          surface.unlock;
+        end;
 
-        { draw color [index] at position [x,y] }
-	pixels[x + y * width] := index;
-      End;
+        { copy to console }
+        surface.copy(console);
 
-      { unlock surface }
-      surface.unlock;
-
-      { copy to console }
-      surface.copy(console);
-
-      { update console }
-      console.update;
-    End;
-    console.close;
-    console.Free;
-    surface.Free;
-  Except
-    On error : TPTCError Do
+        { update console }
+        console.update;
+      end;
+    finally
+      console.close;
+      console.Free;
+      surface.Free;
+      palette.Free;
+      format.Free;
+    end;
+  except
+    on error: TPTCError do
       { report error }
       error.report;
-  End;
-End.
+  end;
+end.

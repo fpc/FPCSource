@@ -6,7 +6,19 @@
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+    version 2.1 of the License, or (at your option) any later version
+    with the following modification:
+
+    As a special exception, the copyright holders of this library give you
+    permission to link this library with independent modules to produce an
+    executable, regardless of the license terms of these independent modules,and
+    to copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the terms
+    and conditions of the license of that module. An independent module is a
+    module which is not derived from or based on this library. If you modify
+    this library, you may extend this exception to your version of the library,
+    but you are not obligated to do so. If you do not wish to do so, delete this
+    exception statement from your version.
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,143 +30,148 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-Type
-  TDirectXConsole = Class(TPTCBaseConsole)
-  Private
+type
+  TPrimaryModeEnum = (DIRECT, SECONDARY);
+  TDirectXConsole = class(TPTCBaseConsole)
+  private
+    { title data }
+{    FTitle: array [0..1023] of Char;}
+    FTitle: AnsiString;
+
+    { flags }
+    FOpen: Boolean;
+    FLocked: Boolean;
+    FCursor: Boolean;
+    FGrabMouse: Boolean;
+
+    { option data }
+    FFrequency: Integer;
+    FDefaultWidth: Integer;
+    FDefaultHeight: Integer;
+//    FDefaultPages: Integer;
+    FCenterWindow: Boolean;
+    FSynchronizedUpdate: Boolean;
+    FDefaultFormat: TPTCFormat;
+    FOutputMode: (DEFAULT, WINDOWED, FULLSCREEN); {Output}
+    FWindowMode: (RESIZABLE, FIXED); {Window}
+    FPrimaryModeWindowed: TPrimaryModeEnum; {Primary}
+    FPrimaryModeFullscreen: TPrimaryModeEnum; {Primary}
+    FNearestMode: (NEAREST_DEFAULT, NEAREST_CENTERING, NEAREST_STRETCHING); {Nearest}
+    FCursorMode: TWin32CursorMode; {Cursor}
+    FFullscreen: Boolean;
+
+    { objects }
+    FCopy: TPTCCopy;
+    FEventQueue: TEventQueue;
+
+    { Win32 objects }
+    FWindow: TWin32Window;
+    FKeyboard: TWin32Keyboard;
+    FMouse: TWin32Mouse;
+    FWin32Cursor: TWin32Cursor;
+
+    { DirectX objects }
+    FHook: TDirectXHook;
+    FLibrary: TDirectXLibrary;
+    FDisplay: TDirectXDisplay;
+    FPrimary: TDirectXPrimary;
+
     { internal console management routines }
-    Procedure internal_open(Const _title : String; window : HWND; Const mode : TPTCMode; _pages : Integer; exact : Boolean);
-    Procedure internal_recycle(Const _title : String; window : HWND; Const mode : TPTCMode; _pages : Integer; exact : Boolean);
-    Procedure internal_close;
-    Procedure internal_shutdown;
+    procedure internal_open(const _title: string; window: HWND; const mode: TPTCMode; _pages: Integer; exact: Boolean);
+    procedure internal_recycle(const _title: string; window: HWND; const mode: TPTCMode; _pages: Integer; exact: Boolean);
+    procedure internal_close;
+    procedure internal_shutdown;
 
     { internal console open management routines }
-    Procedure internal_open_start(Const _title : String; window : HWND);
-    Procedure internal_open_finish;
-    Procedure internal_open_reset;
+    procedure internal_open_start(const _title: string; window: HWND);
+    procedure internal_open_finish;
+    procedure internal_open_reset;
 
     { internal fullscreen open routines }
-    Procedure internal_open_fullscreen_start(window : HWND; Const mode : TPTCMode; exact : Boolean);
-    Procedure internal_open_fullscreen_change(Const mode : TPTCMode; exact : Boolean);
-    Procedure internal_open_fullscreen_surface(Const mode : TPTCMode; _pages : Integer);
-    Procedure internal_open_fullscreen_finish;
+    procedure internal_open_fullscreen_start(window: HWND; const mode: TPTCMode; exact: Boolean);
+    procedure internal_open_fullscreen_change(const mode: TPTCMode; exact: Boolean);
+    procedure internal_open_fullscreen_surface(const mode: TPTCMode; _pages: Integer);
+    procedure internal_open_fullscreen_finish;
 
     { internal windowed open routines }
-    Procedure internal_open_windowed_start(window : HWND; Const mode : TPTCMode; exact : Boolean);
-    Procedure internal_open_windowed_change(Const mode : TPTCMode; exact : Boolean);
-    Procedure internal_open_windowed_surface(Const mode : TPTCMode; _pages : Integer);
-    Procedure internal_open_windowed_finish;
+    procedure internal_open_windowed_start(window: HWND; const mode: TPTCMode; exact: Boolean);
+    procedure internal_open_windowed_change(const mode: TPTCMode; exact: Boolean);
+    procedure internal_open_windowed_surface(const mode: TPTCMode; _pages: Integer);
+    procedure internal_open_windowed_finish;
 
     { internal console open recycling routines }
-    Procedure internal_recycle_fullscreen(Const _title : String; window : HWND; Const mode : TPTCMode; _pages : Integer; exact : Boolean);
-    Procedure internal_recycle_windowed(Const _title : String; window : HWND; Const mode : TPTCMode; _pages : Integer; exact : Boolean);
+    procedure internal_recycle_fullscreen(const _title: string; window: HWND; const mode: TPTCMode; _pages: Integer; exact: Boolean);
+    procedure internal_recycle_windowed(const _title: string; window: HWND; const mode: TPTCMode; _pages: Integer; exact: Boolean);
 
 {$IFDEF DEBUG}
     { debug }
-    Procedure CHECK_OPEN(msg : String);
-    Procedure CHECK_LOCK(msg : String);
+    procedure CHECK_OPEN(AMsg: String);
+    procedure CHECK_LOCK(AMsg: String);
 {$ENDIF}
 
     { painting }
-    Procedure paint;
+    procedure Paint;
 
     { cursor state }
-    Procedure update_cursor;
-
-    { title data }
-{    m_title : Array[0..1023] Of Char;}
-    m_title : AnsiString;
-
-    { flags }
-    m_open : Boolean;
-    m_locked : Boolean;
-    m_cursor : Boolean;
-
-    { option data }
-    m_frequency : Integer;
-    m_default_width : Integer;
-    m_default_height : Integer;
-    m_default_pages : Integer;
-    m_center_window : Boolean;
-    m_synchronized_update : Boolean;
-    m_default_format : TPTCFormat;
-    m_output_mode : Integer; {Output}
-    m_window_mode : Integer; {Window}
-    m_primary_mode_windowed : Integer; {Primary}
-    m_primary_mode_fullscreen : Integer; {Primary}
-    m_nearest_mode : Integer; {Nearest}
-    m_cursor_mode : Integer; {Cursor}
-
-    { objects }
-    m_copy : TPTCCopy;
-
-    { Win32 objects }
-    m_window : TWin32Window;
-    m_keyboard : TWin32Keyboard;
-
-    { DirectX objects }
-    m_hook : TDirectXHook;
-    m_library : TDirectXLibrary;
-    m_display : TDirectXDisplay;
-    m_primary : TDirectXPrimary;
-  Protected
-    Procedure internal_ReadKey(k : TPTCKey); Override;
-    Function internal_PeekKey(k : TPTCKey) : Boolean; Override;
-  Public
-    Constructor Create;
-    Destructor Destroy; Override;
-    Procedure configure(Const _file : String); Override;
-    Function option(Const _option : String) : Boolean; Override;
-    Function modes : PPTCMode; Override;
-    Procedure open(Const _title : String; _pages : Integer); Overload; Override;
-    Procedure open(Const _title : String; Const _format : TPTCFormat;
-                   _pages : Integer); Overload; Override;
-    Procedure open(Const _title : String; _width, _height : Integer;
-                   Const _format : TPTCFormat; _pages : Integer); Overload; Override;
-    Procedure open(Const _title : String; Const _mode : TPTCMode;
-                   _pages : Integer); Overload; Override;
-    Procedure close; Override;
-    Procedure flush; Override;
-    Procedure finish; Override;
-    Procedure update; Override;
-    Procedure update(Const _area : TPTCArea); Override;
-    Procedure copy(Var surface : TPTCBaseSurface); Override;
-    Procedure copy(Var surface : TPTCBaseSurface;
-                   Const source, destination : TPTCArea); Override;
-    Function lock : Pointer; Override;
-    Procedure unlock; Override;
-    Procedure load(Const pixels : Pointer;
-                   _width, _height, _pitch : Integer;
-                   Const _format : TPTCFormat;
-                   Const _palette : TPTCPalette); Override;
-    Procedure load(Const pixels : Pointer;
-                   _width, _height, _pitch : Integer;
-                   Const _format : TPTCFormat;
-                   Const _palette : TPTCPalette;
-                   Const source, destination : TPTCArea); Override;
-    Procedure save(pixels : Pointer;
-                   _width, _height, _pitch : Integer;
-                   Const _format : TPTCFormat;
-                   Const _palette : TPTCPalette); Override;
-    Procedure save(pixels : Pointer;
-                   _width, _height, _pitch : Integer;
-                   Const _format : TPTCFormat;
-                   Const _palette : TPTCPalette;
-                   Const source, destination : TPTCArea); Override;
-    Procedure clear; Override;
-    Procedure clear(Const color : TPTCColor); Override;
-    Procedure clear(Const color : TPTCColor;
-                    Const _area : TPTCArea); Override;
-    Procedure palette(Const _palette : TPTCPalette); Override;
-    Function palette : TPTCPalette; Override;
-    Procedure clip(Const _area : TPTCArea); Override;
-    Function width : Integer; Override;
-    Function height : Integer; Override;
-    Function pitch : Integer; Override;
-    Function pages : Integer; Override;
-    Function area : TPTCArea; Override;
-    Function clip : TPTCArea; Override;
-    Function format : TPTCFormat; Override;
-    Function name : String; Override;
-    Function title : String; Override;
-    Function information : String; Override;
-  End;
+    procedure UpdateCursor;
+  public
+    constructor Create; override;
+    destructor Destroy; override;
+    procedure Configure(const AFileName: String); override;
+    function Option(const AOption: String): Boolean; override;
+    function Modes: PPTCMode; override;
+    procedure Open(const ATitle: string; APages: Integer = 0); overload; override;
+    procedure Open(const ATitle: string; const AFormat: TPTCFormat;
+                   APages: Integer = 0); overload; override;
+    procedure Open(const ATitle: string; AWidth, AHeight: Integer;
+                   const AFormat: TPTCFormat; APages: Integer = 0); overload; override;
+    procedure Open(const ATitle: string; const AMode: TPTCMode;
+                   APages: Integer = 0); overload; override;
+    procedure Close; override;
+    procedure Flush; override;
+    procedure Finish; override;
+    procedure Update; override;
+    procedure Update(const AArea: TPTCArea); override;
+    procedure Copy(ASurface: TPTCBaseSurface); override;
+    procedure Copy(ASurface: TPTCBaseSurface;
+                   const ASource, ADestination: TPTCArea); override;
+    function Lock: Pointer; override;
+    procedure Unlock; override;
+    procedure Load(const APixels: Pointer;
+                   AWidth, AHeight, APitch: Integer;
+                   const AFormat: TPTCFormat;
+                   const APalette: TPTCPalette); override;
+    procedure Load(const APixels: Pointer;
+                   AWidth, AHeight, APitch: Integer;
+                   const AFormat: TPTCFormat;
+                   const APalette: TPTCPalette;
+                   const ASource, ADestination: TPTCArea); override;
+    procedure Save(APixels: Pointer;
+                   AWidth, AHeight, APitch: Integer;
+                   const AFormat: TPTCFormat;
+                   const APalette: TPTCPalette); override;
+    procedure Save(APixels: Pointer;
+                   AWidth, AHeight, APitch: Integer;
+                   const AFormat: TPTCFormat;
+                   const APalette: TPTCPalette;
+                   const ASource, ADestination: TPTCArea); override;
+    procedure Clear; override;
+    procedure Clear(const AColor: TPTCColor); override;
+    procedure Clear(const AColor: TPTCColor;
+                    const AArea: TPTCArea); override;
+    procedure Palette(const APalette: TPTCPalette); override;
+    function Palette: TPTCPalette; override;
+    procedure Clip(const AArea: TPTCArea); override;
+    function GetWidth: Integer; override;
+    function GetHeight: Integer; override;
+    function GetPitch: Integer; override;
+    function GetPages: Integer; override;
+    function GetArea: TPTCArea; override;
+    function Clip: TPTCArea; override;
+    function GetFormat: TPTCFormat; override;
+    function GetName: string; override;
+    function GetTitle: string; override;
+    function GetInformation: string; override;
+    function NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; override;
+    function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent; override;
+  end;

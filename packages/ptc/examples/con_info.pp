@@ -3,45 +3,42 @@ Ported to FPC by Nikolay Nikolov (nickysn@users.sourceforge.net)
 }
 
 {
- Info example for OpenPTC 1.0 C++ Implementation
+ Info example for OpenPTC 1.0 C++ implementation
  Copyright (c) Glenn Fiedler (ptc@gaffer.org)
  This source code is in the public domain
 }
 
-Program InfoExample;
+program InfoExample;
 
 {$MODE objfpc}
 
-Uses
+uses
   ptc;
 
-Procedure print(Const format : TPTCFormat);
-
-Begin
+procedure print(const format: TPTCFormat);
+begin
   { check format type }
-  If format.direct Then
+  if format.direct then
     { check alpha }
-    If format.a = 0 Then
+    if format.a = 0 then
       { direct color format without alpha }
       Write('Format(', format.bits:2, ',$', HexStr(format.r, 8), ',$', HexStr(format.g, 8), ',$', HexStr(format.b, 8), ')')
-    Else
+    else
       { direct color format with alpha }
       Write('Format(', format.bits:2, ',$', HexStr(format.r, 8), ',$', HexStr(format.g, 8), ',$', HexStr(format.b, 8), ',$', HexStr(format.a, 8), ')')
-  Else
+  else
     { indexed color format }
     Write('Format(', format.bits:2, ')');
-End;
+end;
 
-Var
-  console : TPTCConsole;
-
-Begin
-  console := Nil;
-  Try
-    Try
-      Writeln('[ptc version]');
-      { print ptc version string define }
-      Writeln(PTC_VERSION);
+var
+  console: TPTCConsole = nil;
+begin
+  try
+    try
+      Writeln('[ptcpas version]');
+      { print ptcpas version string define }
+      Writeln(PTCPAS_VERSION);
       Writeln;
 
       { create console }
@@ -66,13 +63,13 @@ Begin
       { print console information }
       Writeln('[console information]');
       Writeln(console.information);
-    Finally
+    finally
       console.close;
       console.Free;
-    End;
-  Except
-    On error : TPTCError Do
+    end;
+  except
+    on error: TPTCError do
       { report error }
       error.report;
-  End;
-End.
+  end;
+end.

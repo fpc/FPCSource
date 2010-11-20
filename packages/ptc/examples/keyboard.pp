@@ -3,40 +3,34 @@ Ported to FPC by Nikolay Nikolov (nickysn@users.sourceforge.net)
 }
 
 {
- Keyboard example for OpenPTC 1.0 C++ Implementation
+ Keyboard example for OpenPTC 1.0 C++ implementation
  Copyright (c) Glenn Fiedler (ptc@gaffer.org)
  This source code is in the public domain
 }
 
-Program KeyboardExample;
+program KeyboardExample;
 
 {$MODE objfpc}
 
-Uses
+uses
   ptc;
 
-Var
-  console : TPTCConsole;
-  surface : TPTCSurface;
-  format : TPTCFormat;
-  color : TPTCColor;
-  key : TPTCKey;
-  area : TPTCArea;
-  x, y : Integer;
-  size : Integer;
-  delta : Integer;
-
-Begin
-  key := Nil;
-  color := Nil;
-  format := Nil;
-  surface := Nil;
-  console := Nil;
-  Try
-    Try
+var
+  console: TPTCConsole = nil;
+  surface: TPTCSurface = nil;
+  format: TPTCFormat = nil;
+  color: TPTCColor = nil;
+  key: TPTCKeyEvent = nil;
+  area: TPTCArea;
+  x, y: Integer;
+  size: Integer;
+  delta: Integer;
+begin
+  try
+    try
       { create key }
-      key := TPTCKey.Create;
-      
+      key := TPTCKeyEvent.Create;
+
       { create console }
       console := TPTCConsole.Create;
 
@@ -50,67 +44,67 @@ Begin
       surface := TPTCSurface.Create(console.width, console.height, format);
 
       { setup cursor data }
-      x := surface.width Div 2;
-      y := surface.height Div 2;
-      size := surface.width Div 10;
+      x := surface.width div 2;
+      y := surface.height div 2;
+      size := surface.width div 10;
       color := TPTCColor.Create(1, 1, 1);
 
       { main loop }
-      Repeat
+      repeat
         { check for key press }
-        If console.KeyPressed Then
-        Begin
+        if console.KeyPressed then
+        begin
           { read console key press }
           console.ReadKey(key);
-	
+
           { shift modifier }
-	  If key.shift Then
+          if key.shift then
             { move fast }
-	    delta := 10
-	  Else
+            delta := 10
+          else
             { move slow }
-	    delta := 1;
+            delta := 1;
 
           { handle cursor keys }
-          Case key.code Of
-            PTCKEY_LEFT : Dec(x, delta);
-            PTCKEY_RIGHT : Inc(x, delta);
-            PTCKEY_UP : Dec(y, delta);
-            PTCKEY_DOWN : Inc(y, delta);
+          case key.code of
+            PTCKEY_LEFT: Dec(x, delta);
+            PTCKEY_RIGHT: Inc(x, delta);
+            PTCKEY_UP: Dec(y, delta);
+            PTCKEY_DOWN: Inc(y, delta);
             { exit when escape is pressed }
-            PTCKEY_ESCAPE : Break;
-          End;
-        End;
+            PTCKEY_ESCAPE: Break;
+          end;
+        end;
 
         { clear surface }
         surface.clear;
 
         { setup cursor area }
         area := TPTCArea.Create(x - size, y - size, x + size, y + size);
-        Try
+        try
           { draw cursor as a quad }
           surface.clear(color, area);
-        Finally
+        finally
           area.Free;
-        End;
+        end;
 
         { copy to console }
         surface.copy(console);
 
         { update console }
         console.update;
-      Until False;
-    Finally
+      until False;
+    finally
       color.Free;
       console.close;
       console.Free;
       surface.Free;
       key.Free;
       format.Free;
-    End;
-  Except
-    On error : TPTCError Do
+    end;
+  except
+    on error: TPTCError do
       { report error }
       error.report;
-  End;
-End.
+  end;
+end.

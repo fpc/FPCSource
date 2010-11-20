@@ -3,86 +3,85 @@ Ported to FPC by Nikolay Nikolov (nickysn@users.sourceforge.net)
 }
 
 {
- Stretch example for OpenPTC 1.0 C++ Implementation
+ Stretch example for OpenPTC 1.0 C++ implementation
  Copyright (c) Glenn Fiedler (ptc@gaffer.org)
  This source code is in the public domain
 }
 
-Program StretchExample;
+program StretchExample;
 
 {$MODE objfpc}
 
-Uses
+uses
   ptc;
 
-Procedure load(surface : TPTCSurface; filename : String);
-
-Var
-  F : File;
-  width, height : Integer;
-  pixels : PByte;
-  y : Integer;
-  tmp : TPTCFormat;
-  tmp2 : TPTCPalette;
-
-Begin
+procedure load(surface: TPTCSurface; filename: String);
+var
+  F: File;
+  width, height: Integer;
+  pixels: PByte = nil;
+  y: Integer;
+  tmp: TPTCFormat;
+  tmp2: TPTCPalette;
+begin
   { open image file }
-  ASSign(F, filename);
+  AssignFile(F, filename);
   Reset(F, 1);
 
-  { skip header }
-  Seek(F, 18);
+  try
+    { skip header }
+    Seek(F, 18);
 
-  { get surface dimensions }
-  width := surface.width;
-  height := surface.height;
+    { get surface dimensions }
+    width := surface.width;
+    height := surface.height;
 
-  { allocate image pixels }
-  pixels := GetMem(width * height * 3);
-  Try
+    { allocate image pixels }
+    pixels := GetMem(width * height * 3);
+
     { read image pixels one line at a time }
-    For y := height - 1 DownTo 0 Do
+    for y := height - 1 downto 0 do
       BlockRead(F, pixels[width * y * 3], width * 3);
 
     { load pixels to surface }
+    {$IFDEF FPC_LITTLE_ENDIAN}
     tmp := TPTCFormat.Create(24, $00FF0000, $0000FF00, $000000FF);
-    Try
+    {$ELSE FPC_LITTLE_ENDIAN}
+    tmp := TPTCFormat.Create(24, $000000FF, $0000FF00, $00FF0000);
+    {$ENDIF FPC_LITTLE_ENDIAN}
+    try
       tmp2 := TPTCPalette.Create;
-      Try
+      try
         surface.load(pixels, width, height, width * 3, tmp, tmp2);
-      Finally
+      finally
         tmp2.Free;
-      End;
-    Finally
+      end;
+    finally
       tmp.Free;
-    End;
-  Finally
+    end;
+  finally
     { free image pixels }
     FreeMem(pixels);
-  End;
-End;
 
-Var
-  console : TPTCConsole;
-  surface : TPTCSurface;
-  image : TPTCSurface;
-  format : TPTCFormat;
-  timer : TPTCTimer;
-  area : TPTCArea;
-  color : TPTCColor;
-  time : Double;
-  zoom : Single;
-  x, y, x1, y1, x2, y2, dx, dy : Integer;
+    { close file }
+    CloseFile(F);
+  end;
+end;
 
-Begin
-  format := Nil;
-  color := Nil;
-  timer := Nil;
-  image := Nil;
-  surface := Nil;
-  console := Nil;
-  Try
-    Try
+var
+  console: TPTCConsole = nil;
+  surface: TPTCSurface = nil;
+  image: TPTCSurface = nil;
+  format: TPTCFormat = nil;
+  timer: TPTCTimer = nil;
+  area: TPTCArea = nil;
+  color: TPTCColor = nil;
+  time: Double;
+  zoom: Single;
+  x, y, x1, y1, x2, y2, dx, dy: Integer;
+begin
+  try
+    try
       { create console }
       console := TPTCConsole.Create;
 
@@ -102,10 +101,10 @@ Begin
       load(image, 'stretch.tga');
 
       { setup stretching parameters }
-      x := surface.width Div 2;
-      y := surface.height Div 2;
-      dx := surface.width Div 2;
-      dy := surface.height Div 3;
+      x := surface.width div 2;
+      y := surface.height div 2;
+      dx := surface.width div 2;
+      dy := surface.height div 3;
 
       { create timer }
       timer := TPTCTimer.Create;
@@ -115,8 +114,8 @@ Begin
       color := TPTCColor.Create(1, 1, 1);
 
       { loop until a key is pressed }
-      While Not console.KeyPressed Do
-      Begin
+      while not console.KeyPressed do
+      begin
         { get current time from timer }
         time := timer.time;
 
@@ -134,7 +133,7 @@ Begin
 
         { setup image copy area }
         area := TPTCArea.Create(x1, y1, x2, y2);
-	Try
+        try
           { copy and stretch image to surface }
           image.copy(surface, image.area, area);
 
@@ -143,11 +142,11 @@ Begin
 
           { update console }
           console.update;
-	Finally
+        finally
           area.Free;
-	End;
-      End;
-    Finally
+        end;
+      end;
+    finally
       console.close;
       console.Free;
       surface.Free;
@@ -155,10 +154,10 @@ Begin
       image.Free;
       color.Free;
       timer.Free;
-    End;
-  Except
-    On error : TPTCError Do
+    end;
+  except
+    on error: TPTCError do
       { report error }
       error.report;
-  End;
-End.
+  end;
+end.

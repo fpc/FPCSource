@@ -8,95 +8,86 @@ Ported to FPC by Nikolay Nikolov (nickysn@users.sourceforge.net)
  This source code is licensed under the GNU GPL
 }
 
-Program Fire;
+program Fire;
 
 {$MODE objfpc}
 
-Uses
+uses
   ptc;
 
-Function pack(r, g, b : Uint32) : Uint32;
-
-Begin
+function pack(r, g, b: Uint32): Uint32;
+begin
   { pack color integer }
-  pack := (r Shl 16) Or (g Shl 8) Or b;
-End;
+  pack := (r shl 16) or (g shl 8) or b;
+end;
 
-Procedure generate(palette : TPTCPalette);
-
-Var
-  data : PUint32;
-  i, c : Integer;
-
-Begin
+procedure generate(palette: TPTCPalette);
+var
+  data: PUint32;
+  i, c: Integer;
+begin
   { lock palette data }
   data := palette.lock;
 
-  Try
+  try
     { black to red }
     i := 0;
     c := 0;
-    While i < 64 Do
-    Begin
+    while i < 64 do
+    begin
       data[i] := pack(c, 0, 0);
       Inc(c, 4);
       Inc(i);
-    End;
+    end;
 
     { red to yellow }
     c := 0;
-    While i < 128 Do
-    Begin
+    while i < 128 do
+    begin
       data[i] := pack(255, c, 0);
       Inc(c, 4);
       Inc(i);
-    End;
+    end;
 
     { yellow to white }
     c := 0;
-    While i < {192}128 Do
-    Begin
+    while i < {192}128 do
+    begin
       data[i] := pack(255, 255, c);
       Inc(c, 4);
       Inc(i);
-    End;
+    end;
 
     { white }
-    While i < 256 Do
-    Begin
+    while i < 256 do
+    begin
       data[i] := pack(255, 255, 255);
       Inc(i);
-    End;
+    end;
 
-  Finally
+  finally
     { unlock palette }
     palette.unlock;
-  End;
-End;
+  end;
+end;
 
-Var
-  format : TPTCFormat;
-  console : TPTCConsole;
-  surface : TPTCSurface;
-  palette : TPTCPalette;
-  state : Integer;
-  intensity : Single;
-  pixels, pixel, p : PUint8;
-  width, height : Integer;
-  x, y : Integer;
-  top, bottom, c1, c2 : Uint32;
-  generator : PUint8;
-  color : Integer;
-  area : TPTCArea;
-
-Begin
-  format := Nil;
-  console := Nil;
-  surface := Nil;
-  palette := Nil;
-  area := Nil;
-  Try
-    Try
+var
+  format: TPTCFormat = nil;
+  console: TPTCConsole = nil;
+  surface: TPTCSurface = nil;
+  palette: TPTCPalette = nil;
+  state: Integer;
+  intensity: Single;
+  pixels, pixel, p: PUint8;
+  width, height: Integer;
+  x, y: Integer;
+  top, bottom, c1, c2: Uint32;
+  generator: PUint8;
+  color: Integer;
+  area: TPTCArea = nil;
+begin
+  try
+    try
       { create format }
       format := TPTCFormat.Create(8);
 
@@ -129,71 +120,71 @@ Begin
       area := TPTCArea.Create(0, 0, 320, 200);
 
       { main loop }
-      Repeat
+      repeat
         { lower flame on keypress }
-        If console.KeyPressed Then
+        if console.KeyPressed then
           state := 2;
 
         { state machine }
-        Case state Of
-          0 : Begin
+        case state of
+          0: begin
             { raise flame }
-            intensity += 0.007;
+            intensity := intensity + 0.007;
 
             { maximum flame height }
-            If intensity > 0.8 Then
+            if intensity > 0.8 then
               state := 1;
-          End;
-          1 : Begin
+          end;
+          1: begin
             { constant flame }
-          End;
-          2 : Begin
+          end;
+          2: begin
             { lower flame }
             intensity := intensity - 0.005;
 
             { exit program when flame is out }
-            If intensity < 0.01 Then
-            Begin
+            if intensity < 0.01 then
+            begin
               console.close;
-	      Exit;
-            End;
-          End;
-        End;
+              exit;
+            end;
+          end;
+        end;
 
         { lock surface pixels }
         pixels := surface.lock;
-	
-	Try
+
+        try
           { get surface dimensions }
           width := surface.width;
           height := surface.height;
 
           { flame vertical loop }
           y := 1;
-          While y < height - 4 Do
-          Begin
+          while y < height - 4 do
+          begin
             { current pixel pointer }
             pixel := pixels + y * width;
 
             { flame horizontal loop }
-            For x := 0 To width - 1 Do
-            Begin
+            for x := 0 to width - 1 do
+            begin
               { sum top pixels }
-              p := pixel + (width Shl 1);
+              p := pixel + (width shl 1);
               top := p^;
               Inc(top, (p - 1)^);
               Inc(top, (p + 1)^);
 
               { bottom pixel }
-              bottom := (pixel + (width Shl 2))^;
+              bottom := (pixel + (width shl 2))^;
 
               { combine pixels }
-              c1 := (top + bottom) Shr 2;
-              If c1 > 1 Then
+              c1 := (top + bottom) shr 2;
+              if c1 > 1 then
                 Dec(c1);
 
               { interpolate }
-              c2 := (c1 + bottom) Shr 1;
+              c2 := (c1 + bottom) shr 1;
 
               { store pixels }
               pixel^ := c1;
@@ -201,17 +192,17 @@ Begin
 
               { next pixel }
               Inc(pixel);
-            End;
+            end;
             Inc(y, 2);
-          End;
+          end;
 
           { setup flame generator pointer }
           generator := pixels + width * (height - 4);
 
           { update flame generator bar }
           x := 0;
-          While x < width Do
-          Begin
+          while x < width do
+          begin
             { random block color taking intensity into account }
             color := random(Integer(Trunc(255 * intensity)));
 
@@ -236,30 +227,30 @@ Begin
             { next block }
             Inc(generator, 4);
             Inc(x, 4);
-          End;
+          end;
 
-        Finally
+        finally
           { unlock surface }
           surface.unlock;
-	End;
+        end;
 
         { copy surface to console }
         surface.copy(console, area, area);
 
         { update console }
         console.update;
-      Until False;
-      
-    Finally
+      until False;
+
+    finally
       console.Free;
       surface.Free;
       format.Free;
       palette.Free;
       area.Free;
-    End;
-  Except
-    On error : TPTCError Do
+    end;
+  except
+    on error: TPTCError do
       { report error }
       error.report;
-  End;
-End.
+  end;
+end.

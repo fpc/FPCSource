@@ -3,36 +3,31 @@ Ported to FPC by Nikolay Nikolov (nickysn@users.sourceforge.net)
 }
 
 {
- Timer example for OpenPTC 1.0 C++ Implementation
+ Timer example for OpenPTC 1.0 C++ implementation
  Copyright (c) Glenn Fiedler (ptc@gaffer.org)
  This source code is in the public domain
 }
 
-Program TimerExample;
+program TimerExample;
 
 {$MODE objfpc}
 
-Uses
+uses
   ptc;
 
-Var
-  console : TPTCConsole;
-  format : TPTCFormat;
-  surface : TPTCSurface;
-  timer : TPTCTimer;
-  time, t : Double;
-  pixels : PDWord;
-  width, height : Integer;
-  repeats, center, magnitude, intensity, sx : Single;
-  x, y : Integer;
-
-Begin
-  timer := Nil;
-  format := Nil;
-  surface := Nil;
-  console := Nil;
-  Try
-    Try
+var
+  console: TPTCConsole = nil;
+  format: TPTCFormat = nil;
+  surface: TPTCSurface = nil;
+  timer: TPTCTimer = nil;
+  time, t: Double;
+  pixels: PDWord;
+  width, height: Integer;
+  repeats, center, magnitude, intensity, sx: Single;
+  x, y: Integer;
+begin
+  try
+    try
       { create console }
       console := TPTCConsole.Create;
 
@@ -52,8 +47,8 @@ Begin
       timer.start;
 
       { loop until a key is pressed }
-      While Not console.KeyPressed Do
-      Begin
+      while not console.KeyPressed do
+      begin
         { get current time from timer }
         time := timer.time;
 
@@ -62,7 +57,7 @@ Begin
 
         { lock surface }
         pixels := surface.lock;
-        Try
+        try
           { get surface dimensions }
           width := surface.width;
           height := surface.height;
@@ -73,44 +68,44 @@ Begin
           magnitude := height / 3;
 
           { render a sine curve }
-          For x := 0 To width - 1 Do
-          Begin
+          for x := 0 to width - 1 do
+          begin
             { rescale 'x' in the range [0,2*pi] }
-	    sx := x / width * 2 * pi;
+            sx := x / width * 2 * pi;
 
             { calculate time at current position }
-	    t := time + sx * repeats;
+            t := time + sx * repeats;
 
             { lookup sine intensity at time 't' }
-	    intensity := sin(t);
+            intensity := sin(t);
 
             { convert intensity to a y position on the surface }
-	    y := Trunc(center + intensity * magnitude);
+            y := Trunc(center + intensity * magnitude);
 
             { plot pixel on sine curve }
-	    pixels[x + y * width] := $000000FF;
-          End;
-        Finally
+            pixels[x + y * width] := $000000FF;
+          end;
+        finally
           { unlock surface }
           surface.unlock;
-	End;
+        end;
 
         { copy to console }
         surface.copy(console);
 
         { update console }
         console.update;
-      End;
-    Finally
+      end;
+    finally
       timer.Free;
       surface.Free;
       console.close;
       console.Free;
       format.Free;
-    End;
-  Except
-    On error : TPTCError Do
+    end;
+  except
+    on error: TPTCError do
       { report error }
       error.report;
-  End;
-End.
+  end;
+end.

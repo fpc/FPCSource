@@ -2,10 +2,10 @@
 # x86 format converters for HERMES
 # Copyright (c) 1998 Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 # This source code is licensed under the GNU LGPL
-# 
+#
 # Please refer to the file COPYING.LIB contained in the distribution for
-# licensing conditions          
-# 
+# licensing conditions
+#
 # Some routines are (c) Glenn Fiedler (ptc@gaffer.org), used with permission
 #
 
@@ -22,18 +22,18 @@
 
 
 ## Convert_*
-## Paramters:   
-##   ESI = source 
+## Paramters:
+##   ESI = source
 ##   EDI = dest
 ##   ECX = amount (NOT 0!!! (the ConvertX86 routine checks for that though))
 ## Destroys:
 ##   EAX, EBX, EDX
 
-_ConvertX86pI8_32: 
+_ConvertX86pI8_32:
 
         xorl %ebx,%ebx
         movl 36(%ebp),%edx
-_ConvertX86pI8_32.L1: 
+_ConvertX86pI8_32.L1:
         movb (%esi),%bl
         incl %esi
 
@@ -49,7 +49,7 @@ _ConvertX86pI8_32.L1:
 
 
 
-_ConvertX86pI8_24: 
+_ConvertX86pI8_24:
         movl 36(%ebp),%ebx
 
         xorl %edx,%edx
@@ -70,7 +70,7 @@ _ConvertX86pI8_24.L1:  # short loop
         addl $3,%edi
         decl %ecx
         jnz _ConvertX86pI8_24.L1
-_ConvertX86pI8_24.L2: 
+_ConvertX86pI8_24.L2:
         jmp _x86return
 
 _ConvertX86pI8_24.L3:  # head
@@ -99,7 +99,7 @@ _ConvertX86pI8_24.L4:  # save ebp
         shrl $2,%ecx
 
 _ConvertX86pI8_24.L5: pushl %ecx        # save ecx
-        movb (%esi),%dl                 # index to "A"           
+        movb (%esi),%dl                 # index to "A"
 
         movl (%ebp,%edx,4),%eax         # eax = [xx][A2][A1][A0]
         shll $8,%eax                    # eax = [A2][A1][A0][xx]
@@ -142,7 +142,7 @@ _ConvertX86pI8_24.L5: pushl %ecx        # save ecx
         andl $0b11,%ecx
         jz _ConvertX86pI8_24.L7
 
-_ConvertX86pI8_24.L6: 
+_ConvertX86pI8_24.L6:
         movb (%esi),%dl
         movl (%ebx,%edx,4),%eax
         movb %al,(%edi) # blue
@@ -159,7 +159,7 @@ _ConvertX86pI8_24.L7: popl %ebp
 
 
 .align 8
-_ConvertX86pI8_16: 
+_ConvertX86pI8_16:
         xorl %ebx,%ebx
         movl 36(%ebp),%edx
 
@@ -177,7 +177,7 @@ _ConvertX86pI8_16:
         decl %ecx
         jz _ConvertX86pI8_16.out
 
-_ConvertX86pI8_16.Laligned: 
+_ConvertX86pI8_16.Laligned:
         pushl %ecx
 
         xorl %eax,%eax
@@ -186,7 +186,7 @@ _ConvertX86pI8_16.Laligned:
         shrl %ecx
         jz _ConvertX86pI8_16.last_pixel
 .align 8
-_ConvertX86pI8_16.Ly: 
+_ConvertX86pI8_16.Ly:
         movb 1(%esi),%bl
         movb (%esi),%al
 
@@ -206,7 +206,7 @@ _ConvertX86pI8_16.Ly:
         decl %ecx
         jnz _ConvertX86pI8_16.Ly
 
-_ConvertX86pI8_16.last_pixel: 
+_ConvertX86pI8_16.last_pixel:
         popl %ecx
 
         testb $1,%cl
@@ -220,11 +220,5 @@ _ConvertX86pI8_16.last_pixel:
         movw %ax,(%edi)
         addl $2,%edi
 
-_ConvertX86pI8_16.out: 
+_ConvertX86pI8_16.out:
         jmp _x86return
-
-
-
-
-
-

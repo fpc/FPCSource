@@ -3,35 +3,30 @@ Ported to FPC by Nikolay Nikolov (nickysn@users.sourceforge.net)
 }
 
 {
- Area example for OpenPTC 1.0 C++ Implementation
+ Area example for OpenPTC 1.0 C++ implementation
  Copyright (c) Glenn Fiedler (ptc@gaffer.org)
  This source code is in the public domain
 }
 
-Program AreaExample;
+program AreaExample;
 
 {$MODE objfpc}
 
-Uses
+uses
   ptc;
 
-Var
-  console : TPTCConsole;
-  format : TPTCFormat;
-  surface : TPTCSurface;
-  pixels : PDWord;
-  width, height : Integer;
-  i : Integer;
-  x, y, r, g, b : Integer;
-  area : TPTCArea;
-
-Begin
-  area := Nil;
-  format := Nil;
-  surface := Nil;
-  console := Nil;
-  Try
-    Try
+var
+  console: TPTCConsole = nil;
+  format: TPTCFormat = nil;
+  surface: TPTCSurface = nil;
+  pixels: PDWord;
+  width, height: Integer;
+  i: Integer;
+  x, y, r, g, b: Integer;
+  area: TPTCArea = nil;
+begin
+  try
+    try
       { create console }
       console := TPTCConsole.Create;
 
@@ -42,59 +37,59 @@ Begin
       console.open('Area example', format);
 
       { create surface half the size of the console }
-      surface := TPTCSurface.Create(console.width Div 2, console.height Div 2, format);
-      
+      surface := TPTCSurface.Create(console.width div 2, console.height div 2, format);
+
       { setup destination area }
-      x := console.width Div 4;
-      y := console.height Div 4;
+      x := console.width div 4;
+      y := console.height div 4;
       area := TPTCArea.Create(x, y, x + surface.width, y + surface.height);
 
       { loop until a key is pressed }
-      While Not console.KeyPressed Do
-      Begin
+      while not console.KeyPressed do
+      begin
         { lock surface }
         pixels := surface.lock;
-        Try
+        try
           { get surface dimensions }
           width := surface.width;
           height := surface.height;
 
           { draw random pixels }
-          For i := 1 To 100 Do
-          Begin
+          for i := 1 to 100 do
+          begin
             { get random position }
-	    x := Random(width);
-	    y := Random(height);
+            x := Random(width);
+            y := Random(height);
 
             { get random color }
-	    r := Random(256);
-	    g := Random(256);
-	    b := Random(256);
+            r := Random(256);
+            g := Random(256);
+            b := Random(256);
 
             { draw color [r,g,b] at position [x,y] }
-	    pixels[x + y * width] := (r Shl 16) + (g Shl 8) + b;
-          End;
-	Finally
+            pixels[x + y * width] := (r shl 16) + (g shl 8) + b;
+          end;
+        finally
           { unlock surface }
           surface.unlock;
-	End;
+        end;
 
         { copy surface to console destination area }
         surface.copy(console, surface.area, area);
 
         { update console area }
         console.update;
-      End;
-    Finally
+      end;
+    finally
       console.close;
       console.Free;
       surface.Free;
       format.Free;
       area.Free;
-    End;
-  Except
-    On error : TPTCError Do
+    end;
+  except
+    on error: TPTCError do
       { report error }
       error.report;
-  End;
-End.
+  end;
+end.

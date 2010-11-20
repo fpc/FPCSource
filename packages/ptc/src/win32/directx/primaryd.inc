@@ -6,7 +6,19 @@
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+    version 2.1 of the License, or (at your option) any later version
+    with the following modification:
+
+    As a special exception, the copyright holders of this library give you
+    permission to link this library with independent modules to produce an
+    executable, regardless of the license terms of these independent modules,and
+    to copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the terms
+    and conditions of the license of that module. An independent module is a
+    module which is not derived from or based on this library. If you modify
+    this library, you may extend this exception to your version of the library,
+    but you are not obligated to do so. If you do not wish to do so, delete this
+    exception statement from your version.
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,95 +30,98 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-Type
-  TDirectXPrimary = Class(TObject)
-  Private
-    Function pack(Const color : TPTCColor; Const _format : TPTCFormat) : int32;
-    Procedure analyse(mask : int32; Var base, size : Integer);
+type
+  TDirectXPrimary = class
+  private
+    FWidth: Integer;
+    FHeight: Integer;
+    FPages: Integer;
+    FArea: TPTCArea;
+    FClip: TPTCArea;
+    FFormat: TPTCFormat;
 
-    m_width : Integer;
-    m_height : Integer;
-    m_pages : Integer;
-    m_area : TPTCArea;
-    m_clip : TPTCArea;
-    m_format : TPTCFormat;
+    FActive: Boolean;
+    FBlocking: Boolean;
+    FCentering: Boolean;
+    FFullscreen: Boolean;
+    FSynchronize: Boolean;
 
-    m_active : Boolean;
-    m_blocking : Boolean;
-    m_centering : Boolean;
-    m_fullscreen : Boolean;
-    m_synchronize : Boolean;
+    FClear: TPTCClear;
 
-    m_clear : TPTCClear;
+    FWindow: TWin32Window;
 
-    m_window : TWin32Window;
+    FLocked: Pointer;
 
-    m_locked : Pointer;
+    FPalette: TPTCPalette;
 
-    m_palette : TPTCPalette;
+    FPrimaryWidth: Integer;
+    FPrimaryHeight: Integer;
 
-    m_primary_width : Integer;
-    m_primary_height : Integer;
+    FSecondaryWidth: Integer;
+    FSecondaryHeight: Integer;
 
-    m_secondary_width : Integer;
-    m_secondary_height : Integer;
+    FDD2: IDirectDraw2;
 
-    m_lpDD2 : LPDIRECTDRAW2;
+    FDDSPrimary: IDirectDrawSurface;
+    FDDSPrimaryBack: IDirectDrawSurface;
+    FDDSPrimaryPage: array [0..31] of IDirectDrawSurface;
 
-    m_lpDDS : LPDIRECTDRAWSURFACE;
-    m_lpDDS_primary : LPDIRECTDRAWSURFACE;
-    m_lpDDS_primary_back : LPDIRECTDRAWSURFACE;
-    m_lpDDS_primary_page : Array[0..31] Of LPDIRECTDRAWSURFACE;
+    FDDSSecondary: IDirectDrawSurface;
 
-    m_lpDDS_secondary : LPDIRECTDRAWSURFACE;
+    FDDC: IDirectDrawClipper;
 
-    m_lpDDC : LPDIRECTDRAWCLIPPER;
+    FBack, FFront: IDirectDrawSurface;
 
-    m_back, m_front : LPDIRECTDRAWSURFACE;
-  Public
-    Constructor Create;
-    Destructor Destroy; Override;
+    function Pack(const AColor: TPTCColor; const AFormat: TPTCFormat): Uint32;
+    procedure Analyse(AMask: Uint32; out ABase, ASize: Integer);
+    function GetDDS: IDirectDrawSurface;
+    function GetPitch: Integer;
+  public
+    constructor Create;
+    destructor Destroy; override;
 
-    Procedure initialize(Window : TWin32Window; lpDD2 : LPDIRECTDRAW2);
-    Procedure primary(_pages : Integer; video, fullscreen, _palette, complex : Boolean);
-    Procedure secondary(_width, _height : Integer);
-    Procedure synchronize(_update : Boolean);
-    Procedure centering(center : Boolean);
-    Procedure close;
+    procedure Initialize(AWindow: TWin32Window; const ADDraw2: IDirectDraw2);
+    procedure Primary(APages: Integer; AVideo, AFullscreen, APalette, AComplex: Boolean);
+    procedure Secondary(AWidth, AHeight: Integer);
+    procedure Synchronize(AUpdate: Boolean);
+    procedure Centering(ACenter: Boolean);
+    procedure Close;
 
-    Procedure update;
+    procedure Update;
 
-    Function lock : Pointer;
-    Procedure unlock;
+    function Lock: Pointer;
+    procedure Unlock;
 
-    Procedure clear;
-    Procedure clear(Const color : TPTCColor; Const _area : TPTCArea);
+    procedure Clear;
+    procedure Clear(const AColor: TPTCColor; const AArea: TPTCArea);
 
-    Procedure palette(Const _palette : TPTCPalette);
-    Function palette : TPTCPalette;
+    procedure Palette(const APalette: TPTCPalette);
+    function Palette: TPTCPalette;
 
-    Procedure clip(Const _area : TPTCArea);
+    procedure Clip(const AArea: TPTCArea);
 
-    Function width : Integer;
-    Function height : Integer;
-    Function pages : Integer;
-    Function pitch : Integer;
-    Function area : TPTCArea;
-    Function clip : TPTCArea;
-    Function format : TPTCFormat;
+    property Width: Integer read FWidth;
+    property Height: Integer read FHeight;
+    property Pages: Integer read FPages;
+    property Pitch: Integer read GetPitch;
+    property Area: TPTCArea read FArea;
+    function Clip: TPTCArea;
+    property Format: TPTCFormat read FFormat;
 
-    Function lpDDS : LPDIRECTDRAWSURFACE;
-    Function lpDDS_primary : LPDIRECTDRAWSURFACE;
-    Function lpDDS_secondary : LPDIRECTDRAWSURFACE;
+    property DDS: IDirectDrawSurface read GetDDS;
+    property DDSPrimary: IDirectDrawSurface read FDDSPrimary;
+    property DDSSecondary: IDirectDrawSurface read FDDSSecondary;
 
-    Procedure activate;
-    Procedure deactivate;
-    Function active : Boolean;
-    Procedure block;
-    Procedure save;
-    Procedure restore;
+    procedure Activate;
+    procedure Deactivate;
+    property Active: Boolean read FActive;
+    procedure Block;
+    procedure Save;
+    procedure Restore;
 
-    Procedure paint;
+    procedure Paint;
 
-    Procedure blocking(_blocking : Boolean);
-  End;
+    procedure Blocking(ABlocking: Boolean);
+    
+    property Fullscreen: Boolean read FFullscreen;
+  end;

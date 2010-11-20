@@ -8,7 +8,7 @@
 .extern _x86return_S
 
 ## _Convert*_S
-## Paramters:   
+## Paramters:
 ##   ESI = source
 ##   EDI = dest
 ##   ECX = amount (NOT 0!!! (the _ConvertX86 routine checks for that though))
@@ -17,7 +17,7 @@
 ##   EAX, EBX, ECX, EDX
 
 
-_ConvertX86p32_16RGB565_S: 
+_ConvertX86p32_16RGB565_S:
 
         pushl %ebp
         pushl %edx              # increment now at [esp+4]!
@@ -29,10 +29,10 @@ _ConvertX86p32_16RGB565_S:
         jnz _ConvertX86p32_16RGB565_S.L_ok
         jmp _ConvertX86p32_16RGB565_S.L_final
 
-_ConvertX86p32_16RGB565_S.L_ok: 
+_ConvertX86p32_16RGB565_S.L_ok:
 
 .align 8
-_ConvertX86p32_16RGB565_S.Lx: 
+_ConvertX86p32_16RGB565_S.Lx:
         movl %ebp,%eax
 
         shrl $14,%eax
@@ -82,7 +82,7 @@ _ConvertX86p32_16RGB565_S.Lx:
         decl %ecx
         jnz _ConvertX86p32_16RGB565_S.Lx
 
-_ConvertX86p32_16RGB565_S.L_final: 
+_ConvertX86p32_16RGB565_S.L_final:
         popl %ecx
         andl $1,%ecx
         jz _ConvertX86p32_16RGB565_S.L_out
@@ -107,10 +107,8 @@ _ConvertX86p32_16RGB565_S.L_final:
         movw %ax,(%edi)
         addl $2,%edi
 
-_ConvertX86p32_16RGB565_S.L_out: 
+_ConvertX86p32_16RGB565_S.L_out:
 
         popl %edx
         popl %ebp
         jmp _x86return_S
-
-

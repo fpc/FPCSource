@@ -6,7 +6,19 @@
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+    version 2.1 of the License, or (at your option) any later version
+    with the following modification:
+
+    As a special exception, the copyright holders of this library give you
+    permission to link this library with independent modules to produce an
+    executable, regardless of the license terms of these independent modules,and
+    to copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the terms
+    and conditions of the license of that module. An independent module is a
+    module which is not derived from or based on this library. If you modify
+    this library, you may extend this exception to your version of the library,
+    but you are not obligated to do so. If you do not wish to do so, delete this
+    exception statement from your version.
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,46 +30,31 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-Type
-  TWin32Keyboard = Class(TWin32Hook)
-  Private
-    { window procedure }
-    Function WndProc(hWnd : HWND; message : DWord; wParam : WPARAM; lParam : LPARAM) : LRESULT; Override;
-
-    { internal key functions }
-{    Procedure insert(_key : TPTCKeyEvent);
-    Function remove : TPTCKeyEvent;
-    Function ready : Boolean;}
-
+type
+  TWin32Keyboard = class(TWin32Hook)
+  private
     { data }
-{    m_key : Boolean;}
-    m_multithreaded : Boolean;
-    m_event : TWin32Event;
-    m_monitor : TWin32Monitor;
-    FEventQueue : TEventQueue;
+    FMultithreaded: Boolean;
+    FEvent: TWin32Event;
+    FMonitor: TWin32Monitor;
+    FEventQueue: TEventQueue;
 
     { flag data }
-    m_enabled : Boolean;
+    FEnabled: Boolean;
 
     { modifiers }
-    m_alt : Boolean;
-    m_shift : Boolean;
-    m_control : Boolean;
+    FAlt: Boolean;
+    FShift: Boolean;
+    FControl: Boolean;
 
-    { key buffer }
-{    m_head : Integer;
-    m_tail : Integer;
-    m_buffer : Array[0..1023] Of TPTCKeyEvent;}
-  Public
+    { window procedure }
+    function WndProc(hWnd: HWND; message: DWord; wParam: WPARAM; lParam: LPARAM): LRESULT; override;
+  public
     { setup }
-    Constructor Create(window : HWND; thread : DWord; multithreaded : Boolean; EventQueue : TEventQueue);
-    Destructor Destroy; Override;
-
-    { input }
-{    Function internal_PeekKey(window : TWin32Window; k : TPTCKeyEvent) : Boolean;
-    Procedure internal_ReadKey(window : TWin32Window; k : TPTCKeyEvent);}
+    constructor Create(AWindow: HWND; AThread: DWord; AMultithreaded: Boolean; AEventQueue: TEventQueue);
+    destructor Destroy; override;
 
     { control }
-    Procedure enable;
-    Procedure disable;
-  End;
+    procedure Enable;
+    procedure Disable;
+  end;

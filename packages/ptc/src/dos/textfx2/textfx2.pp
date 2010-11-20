@@ -9,17 +9,18 @@
  * here is kinda small and.. well, I wanted to keep it as a single .obj
  * file.
  *
- * If you make improvements, send me a copy!
- * If you use this for something, let me know!
+ * if you make improvements, send me a copy!
+ * if you use this for something, let me know!
  *}
 
 {$MODE objfpc}
+{$INLINE on}
 
-Unit textfx2;
+unit textfx2;
 
-Interface
+interface
 
-Const
+const
 {*
  * Charsets in 'lightness' order. First byte = num of chars
  *
@@ -27,7 +28,7 @@ Const
  * strategy :)
  *
  *}
-  charset_b8ibm : Array[0..254] Of Byte = { all imbscii characters }
+  charset_b8ibm: array [0..254] of Byte = { all imbscii characters }
 ( 254, 32, 96, 39, 250, 95, 126, 46, 94, 34, 249, 248, 44, 58, 45,
 196, 59, 253, 167, 61, 166, 252, 47, 28, 217, 192, 169, 205, 246, 7,
 170, 27, 190, 43, 212, 62, 60, 124, 26, 226, 193, 40, 243, 242, 240,
@@ -47,7 +48,7 @@ Const
 87, 6, 165, 3, 204, 186, 222, 199, 206, 185, 182, 215, 220, 2, 178,
 10, 8, 219);
 
-  charset_b7asc : Array[0..94] Of Byte = { 7b ascii (chars 32 - 126) }
+  charset_b7asc: array [0..94] of Byte = { 7b ascii (chars 32 - 126) }
 ( 94, 32, 96, 39, 95, 126, 46, 94, 34, 44, 58, 45, 59, 61, 47, 43, 62,
 60, 40, 63, 41, 37, 55, 91, 105, 92, 33, 125, 102, 123, 108, 99, 73,
 93, 67, 106, 114, 76, 116, 49, 115, 50, 70, 84, 80, 51, 120, 122, 53,
@@ -55,37 +56,37 @@ Const
 52, 54, 98, 107, 104, 112, 85, 121, 79, 100, 88, 48, 119, 75, 68, 113,
 72, 56, 103, 65, 82, 109, 66, 38, 77, 78, 35, 81, 64, 87);
 
-  charset_b7sml : Array[0..14] Of Byte = { " crsxzvenaouwm" dark->light. }
+  charset_b7sml: array [0..14] of Byte = { " crsxzvenaouwm" dark->light. }
 ( 14, 32, 99, 114, 115, 120, 122, 118, 101, 110, 97, 111, 117, 119,
 109 );
 
-  charset_b8gry : Array[0..5] Of Byte = { 8b ibm grayscale characters }
+  charset_b8gry: array [0..5] of Byte = { 8b ibm grayscale characters }
 ( 5, 32, 176, 177, 178, 219 );
 
-  charset_b7nws : Array[0..6] Of Byte = { 7b grayscale 'newschool' askee chars}
+  charset_b7nws: array [0..6] of Byte = { 7b grayscale 'newschool' askee chars}
 ( 6, 32{' '}, 46{'.'}, 111{'o'}, 109{'m'}, 87{'W'}, 77{'M'} );
 
-  use_charset : Pbyte = @charset_b7asc;
+  use_charset: Pbyte = @charset_b7asc;
   { Character set to use. Can be changed run-time. }
 
-  colmap : PSmallInt = Nil;
+  colmap: PSmallInt = nil;
 
-Procedure set80x43; { Sets up 80x43, no blink, no cursor. }
-Procedure set80x50; { Sets up 80x50, no blink, no cursor. }
-Procedure set80x25; { Resets 80x25, blink, cursor. }
-Procedure border(color : Byte); { _ONLY_ for debugging! }
-Procedure vrc; { Although all should be timer-synced instead.. }
+procedure set80x43; { Sets up 80x43, no blink, no cursor. }
+procedure set80x50; { Sets up 80x50, no blink, no cursor. }
+procedure set80x25; { Resets 80x25, blink, cursor. }
+procedure border(color: Byte); { _ONLY_ for debugging! }
+procedure vrc; { Although all should be timer-synced instead.. }
 
 {*
  * calc_ functions are pretty *S*L*O*W* so use them to precalculate
  * color tables and then use those tables instead.
  *}
 
-Function calcpal_colorbase(red, green, blue : Real) : Word;
-Function calcpal_lightbase(red, green, blue : Real) : Word;
-Function calcpal_lightbase_g(red, green, blue : Real) : Word;
-{Function (*calcpal)(float red, float green, float blue) : Word;}
-Const calcpal : Function(red, green, blue : Real) : Word = @calcpal_colorbase;
+function calcpal_colorbase(red, green, blue: Real): Word;
+function calcpal_lightbase(red, green, blue: Real): Word;
+function calcpal_lightbase_g(red, green, blue: Real): Word;
+{Function (*calcpal)(float red, float green, float blue): Word;}
+const calcpal: Function(red, green, blue: Real): Word = @calcpal_colorbase;
     {* Finds the closest color/char combo for any 0:63,0:63,0:63 value.
      *
      * calcpal_colorbase is the 'old' calcpal, only "a bit" optimized.
@@ -94,40 +95,40 @@ Const calcpal : Function(red, green, blue : Real) : Word = @calcpal_colorbase;
      * compile with -oe256 or something to force inlining)
      *}
 
-Function calc_gscale(light : Real) : Word;
-Function calc_gscale2(light : Real) : Word;
+function calc_gscale(light: Real): Word;
+function calc_gscale2(light: Real): Word;
     {* Finds the closes gscale color/char combo for 0..1 range
      * gscale2 uses colors 8,7,15, normal just uses 7.
      *}
 
-Procedure build_colormap(dots : Integer);
+procedure build_colormap(dots: Integer);
     {* Used to calculate colormap for dump_nnx() -functions.
      * if dots=0, will output nothing.
      *         1, will cprintf .:s as process.
      *         2, will cprintf rolling wheel as process.
      *}
 
-Procedure dispose_colormap;
+procedure dispose_colormap;
 
-Procedure dump_80x(y0, y1 : Integer; buffer : PInteger);
+procedure dump_80x(y0, y1: Integer; buffer: PInteger);
     {* Dumps 80-pixel wide 0bgr-truecolor buffer from y0 to y1.
      * (For fullscreen dump in 80x43 use dump_80x(0,43,buf);
      *}
 
-Procedure dump_160x(y0, y1 : Integer; buffer : PInteger);
+procedure dump_160x(y0, y1: Integer; buffer: PInteger);
     {* Dumps 160-pixel wide 0bgr-truecolor buffer from y0 to y1
      * with 4-to-1 pixel averaging.
      *}
 
-Procedure dump_320x(y0, y1 : Integer; buffer : PInteger);
+procedure dump_320x(y0, y1: Integer; buffer: PInteger);
     {* Dumps 160-pixel wide 0bgr-truecolor buffer from y0 to y1
      * with 16-to-1 pixel averaging. (this is tad bit slow :)
      *}
 
-Implementation
+implementation
 
-Uses
-  go32;
+uses
+  go32fix;
 
 { $define __USE_178NOT176}
  { uncomment to use 75% char instead of 25% char }
@@ -135,34 +136,34 @@ Uses
 {$DEFINE __USE_REALIBMPAL}
  { comment out to use 'clean' truecolor palette for calculations }
 
-Const
+const
   COLORMAP_DEPTH = 4;
  {* Normally, build 1<<4, ie. 16x16x16 colormap.
-  * If you require bigger map, increase the value.
+  * if you require bigger map, increase the value.
   * (5 will mean 32x32x32 etc).
   * 8 is max for dump_80x and _320x, 6 is max for _160x.
-  * If you make your own routines, well, nothing is too much :)
+  * if you make your own routines, well, nothing is too much :)
   *}
 { Don't touch the rest of the defines. }
-  COLMAPDIM = 1 Shl COLORMAP_DEPTH;
+  COLMAPDIM = 1 shl COLORMAP_DEPTH;
   TRUCOLBITS = 8 - COLORMAP_DEPTH;
 
 {$IFDEF __USE_REALIBMPAL}
-  palette : Array[0..16*3-1] Of Byte = ( {IBM basic palette, 16c}
+  palette: array [0..16*3-1] of Byte = ( {IBM basic palette, 16c}
      0, 0, 0,  0, 0,42,  0,42, 0,  0,42,42, 42, 0, 0, 42, 0,42, 42,21, 0, 42,42,42,
     21,21,21, 21,21,63, 21,63,21, 21,63,63, 63,21,21, 63,21,63, 63,63,21, 63,63,63);
 {$ELSE}
-  palette : Array[0..16*3-1] Of Byte = ( { 'clean' RGB palette }
+  palette: array [0..16*3-1] of Byte = ( { 'clean' RGB palette }
      0, 0, 0,  0, 0,32,  0,32, 0,  0,32,32, 32, 0, 0, 32, 0,32, 32,32, 0, 32,32,32,
     32,32,32,  0, 0,63,  0,63, 0,  0,63,63, 63, 0, 0, 63, 0,63, 63,63, 0, 63,63,63);
 {$ENDIF}
 
-Procedure set80x43; { Sets up 80x43, no blink, no cursor. }
+procedure set80x43; { Sets up 80x43, no blink, no cursor. }
 
-Var
-  regs : TRealRegs;
+var
+  regs: TRealRegs;
 
-Begin
+begin
   regs.ax := $1201; { Set 350 scanlines }
   regs.bl := $30;
   realintr($10, regs);
@@ -184,14 +185,14 @@ Begin
   regs.bx := $0033;
   regs.dx := $004f;
   realintr($10, regs);
-End;
+end;
 
-Procedure set80x50; { Sets up 80x50, no blink, no cursor. }
+procedure set80x50; { Sets up 80x50, no blink, no cursor. }
 
-Var
-  regs : TRealRegs;
+var
+  regs: TRealRegs;
 
-Begin
+begin
   regs.ax := $1202; { Set 400 scanlines }
   regs.bl := $30;
   realintr($10, regs);
@@ -213,14 +214,14 @@ Begin
   regs.bx := $0033;
   regs.dx := $004f;
   realintr($10, regs);
-End;
+end;
 
-Procedure set80x25; { Resets 80x25, blink, cursor. }
+procedure set80x25; { Resets 80x25, blink, cursor. }
 
-Var
-  regs : TRealRegs;
+var
+  regs: TRealRegs;
 
-Begin
+begin
   regs.ax := $1202; { Set 400 scanlines }
   regs.bl := $30;
   realintr($10, regs);
@@ -232,124 +233,123 @@ Begin
   regs.bh := 0;      { Ressurrect cursor }
   regs.ah := 3;
   realintr($10, regs);
-  regs.cx := regs.cx And $dfff;
+  regs.cx := regs.cx and $dfff;
   regs.ah := 1;
   realintr($10, regs);
   regs.ax := $1003; { Enable blink }
   regs.bl := 1;
   realintr($10, regs);
-End;
+end;
 
-Procedure border(color : Byte); { _ONLY_ for debugging! }
+procedure border(color: Byte); { _ONLY_ for debugging! }
 
-Begin
+begin
   inportb($3da);
   outportb($3c0, 17+32);
   outportb($3c0, color);
-End;
+end;
 
-Procedure vrc; { Although all should be timer-synced instead.. }
+procedure vrc; { Although all should be timer-synced instead.. }
 
-Begin
-  While (inportb($3da) And 8) = 0 Do ;
-  While (inportb($3da) And 8) <> 0 Do ;
-End;
+begin
+  while (inportb($3da) and 8) = 0 do ;
+  while (inportb($3da) and 8) <> 0 do ;
+end;
 
-{#define COLMAP(r,g,b) *(colmap+((r)<<(COLORMAP_DEPTH*2))+((g)<<COLORMAP_DEPTH)+(b))}
-Function COLMAP_(r, g, b : Integer) : Integer;{ Inline;}
+function GetCOLMAP(const r, g, b: Integer): Integer; Inline;
 
-Begin
-  COLMAP_ := (colmap + ((r Shl (COLORMAP_DEPTH*2)) + (g Shl COLORMAP_DEPTH) + b))^;
-End;
+begin
+  Result := (colmap + ((r shl (COLORMAP_DEPTH*2)) + (g shl COLORMAP_DEPTH) + b))^;
+end;
 
-Procedure COLMAPSet(r, g, b, v : Integer);{ Inline;}
+procedure SetCOLMAP(const r, g, b, v: Integer); Inline;
 
-Begin
-  (colmap + ((r Shl (COLORMAP_DEPTH*2)) + (g Shl COLORMAP_DEPTH) + b))^ := v;
-End;
+begin
+  (colmap + ((r shl (COLORMAP_DEPTH*2)) + (g shl COLORMAP_DEPTH) + b))^ := v;
+end;
 
-Function calcpal_colorbase(red, green, blue : Real) : Word;
+function calcpal_colorbase(red, green, blue: Real): Word;
 
-Var
-  a, b, c, d, ch, co : Integer;
-  lastdist, dist : Double;
+var
+  a, b, c, d, ch, co: Integer;
+  lastdist, dist: Double;
 
-Begin
+begin
   red := red * 1.2;
   green := green * 1.2;
   blue := blue * 1.2;
   lastdist := 1e242;
   d := 0;
-  For c := 0 To 15 Do
-  Begin
+  for c := 0 to 15 do
+  begin
     dist := sqr(palette[d + 0] - red) +
             sqr(palette[d + 1] - green) +
             sqr(palette[d + 2] - blue);
-    If dist < lastdist Then
-    Begin
+    if dist < lastdist then
+    begin
       lastdist := dist;
       co := c;
       ch := 219; { 100% block in IBMSCII }
-    End;
+    end;
     Inc(d, 3);
-  End;
+  end;
   c := co;
   d := c*3;
   a := 0;
-  For b := 0 To 15 Do
-  Begin
+  for b := 0 to 15 do
+  begin
     dist := sqr(((palette[a+0]+palette[d+0]) / 2.0) - red) +
             sqr(((palette[a+1]+palette[d+1]) / 2.0) - green) +
             sqr(((palette[a+2]+palette[d+2]) / 2.0) - blue);
-    If dist < lastdist Then
-    Begin
+    if dist < lastdist then
+    begin
       lastdist := dist;
-      co := b + (c Shl 4);
+      co := b + (c shl 4);
       ch := 177; { 50% block in IBMSCII }
-    End;
+    end;
     {$IFDEF __USE_178NOT176}
       dist := sqr((palette[a+0]*0.75+palette[d+0]*0.25) - red) +
               sqr((palette[a+1]*0.75+palette[d+1]*0.25) - green) +
               sqr((palette[a+2]*0.75+palette[d+2]*0.25) - blue);
-      If dist < lastdist Then
-      Begin
+      if dist < lastdist then
+      begin
         lastdist := dist;
-        co := b + (c Shl 4);
+        co := b + (c shl 4);
         ch := 178; { 75% block in IBMSCII }
-      End;
+      end;
       dist := sqr((palette[a+0]*0.25+palette[d+0]*0.75) - red) +
               sqr((palette[a+1]*0.25+palette[d+1]*0.75) - green) +
               sqr((palette[a+2]*0.25+palette[d+2]*0.75) - blue);
-      If dist < lastdist Then
-      Begin
+      if dist < lastdist then
+      begin
         lastdist := dist;
-        co := c + (b Shl 4);
+        co := c + (b shl 4);
         ch := 178; { 75% block in IBMSCII }
-      End;
+      end;
     {$ELSE}
       dist := sqr((palette[a+0]*0.25+palette[d+0]*0.75) - red) +
               sqr((palette[a+1]*0.25+palette[d+1]*0.75) - green) +
               sqr((palette[a+2]*0.25+palette[d+2]*0.75) - blue);
-      If dist < lastdist Then
-      Begin
+      if dist < lastdist then
+      begin
         lastdist := dist;
-        co := b + (c Shl 4);
+        co := b + (c shl 4);
         ch := 176; { 25% block in IBMSCII }
-      End;
+      end;
       dist := sqr((palette[a+0]*0.75+palette[d+0]*0.25) - red) +
               sqr((palette[a+1]*0.75+palette[d+1]*0.25) - green) +
               sqr((palette[a+2]*0.75+palette[d+2]*0.25) - blue);
-      If dist < lastdist Then
-      Begin
+      if dist < lastdist then
+      begin
         lastdist := dist;
-        co := c + (b Shl 4);
+        co := c + (b shl 4);
         ch := 176; { 25% block in IBMSCII }
-      End;
+      end;
     {$ENDIF}
     Inc(a, 3);
-  End;
-  calcpal_colorbase := (co Shl 8) + ch;
-End;
+  end;
+  calcpal_colorbase := (co shl 8) + ch;
+end;
 
 {*
  * Unlike _colorbase, _lightbase and _gscale calculations are
@@ -375,190 +375,190 @@ End;
  * (didn't bother to rip AAlib :)
  *}
 
-Function calcpal_lightbase(red, green, blue : Real) : Word;
+function calcpal_lightbase(red, green, blue: Real): Word;
 
-Var
-  light, col, a, a3 : Integer;
-  lastdist, dist : Real;
+var
+  light, col, a, a3: Integer;
+  lastdist, dist: Real;
 
-Begin
+begin
   lastdist := 1e24;
   a3 := 3;
-  For a := 1 To 15 Do
-  Begin
+  for a := 1 to 15 do
+  begin
     dist := Sqr(palette[a * 3 + 0] - red) +
             Sqr(palette[a * 3 + 1] - green) +
             Sqr(palette[a * 3 + 2] - blue);
-    If dist < lastdist Then
-    Begin
+    if dist < lastdist then
+    begin
       lastdist := dist;
       col := a;
-    End;
+    end;
     Inc(a3, 3);
-  End;
+  end;
   light := Trunc(((0.2990 * red + 0.5870 * green + 0.1140 * blue) / 63) * 64);
-  If light < 32 Then
+  if light < 32 then
     light := Trunc(((0.2990 * red + 0.5870 * green + 0.1140 * blue) / 63) * 1.5 * use_charset^)
-  Else
+  else
     light := Trunc(((0.2990 * red + 0.5870 * green + 0.1140 * blue) / 63) * use_charset^);
-  calcpal_lightbase := (col Shl 8) + (use_charset + light + 1)^;
-End;
+  calcpal_lightbase := (col shl 8) + (use_charset + light + 1)^;
+end;
 
-Function calcpal_lightbase_g(red, green, blue : Real) : Word;
+function calcpal_lightbase_g(red, green, blue: Real): Word;
 
-Var
-  light : Integer;
+var
+  light: Integer;
 
-Begin
+begin
   light := Trunc(((0.2990 * red + 0.5870 * green + 0.1140 * blue) / 63) * use_charset^);
-  calcpal_lightbase_g := (7 Shl 8) + (use_charset + light + 1)^;
-End;
+  calcpal_lightbase_g := (7 shl 8) + (use_charset + light + 1)^;
+end;
 
-Function calc_gscale(light : Real) : Word;
+function calc_gscale(light: Real): Word;
 
-Begin
-  calc_gscale := (7 Shl 8) + (use_charset + Trunc(light * (use_charset^ + 1)))^;
-End;
+begin
+  calc_gscale := (7 shl 8) + (use_charset + Trunc(light * (use_charset^ + 1)))^;
+end;
 
-Function calc_gscale2(light : Real) : Word;
+function calc_gscale2(light: Real): Word;
 
-Begin
-  If light < 0.3 Then
-    calc_gscale2 := (8 Shl 8) + (use_charset + Trunc(light * 3 * (use_charset^ + 1)))^
-  Else
-    If light < 0.6 Then
-      calc_gscale2 := (7 Shl 8) + (use_charset + Trunc((light + 0.3) * (use_charset^ + 1)))^
-    Else
-      calc_gscale2 := (15 Shl 8) + (use_charset + Trunc(light * (use_charset^ + 1)))^;
-End;
+begin
+  if light < 0.3 then
+    calc_gscale2 := (8 shl 8) + (use_charset + Trunc(light * 3 * (use_charset^ + 1)))^
+  else
+    if light < 0.6 then
+      calc_gscale2 := (7 shl 8) + (use_charset + Trunc((light + 0.3) * (use_charset^ + 1)))^
+    else
+      calc_gscale2 := (15 shl 8) + (use_charset + Trunc(light * (use_charset^ + 1)))^;
+end;
 
-Procedure build_colormap(dots : Integer);
+procedure build_colormap(dots: Integer);
 
-Const
-  wheel : Array[0..3] Of Char = ('-', '\', '|', '/');
+const
+  wheel: array [0..3] of Char = ('-', '\', '|', '/');
 
-Var
-  r, g, b : Integer;
-  f : Double;
+var
+  r, g, b: Integer;
+  f: Double;
 
-Begin
-  If dots = 2 Then
+begin
+  if dots = 2 then
     Write(' ');
-  If colmap <> Nil Then
+  if colmap <> nil then
     FreeMem(colmap);
   f := 64.0 / COLMAPDIM;
   colmap := GetMem(SizeOf(SmallInt) * COLMAPDIM * COLMAPDIM * COLMAPDIM);
-  For r := 0 To COLMAPDIM - 1 Do
-  Begin
-    For g := 0 To COLMAPDIM - 1 Do
-      For b := 0 To COLMAPDIM - 1 Do
-        COLMAPSet(r, g, b, calcpal(r * f, g * f, b * f));
-    If dots = 1 Then
+  for r := 0 to COLMAPDIM - 1 do
+  begin
+    for g := 0 to COLMAPDIM - 1 do
+      for b := 0 to COLMAPDIM - 1 do
+        SetCOLMAP(r, g, b, calcpal(r * f, g * f, b * f));
+    if dots = 1 then
       Write('.');
-    If dots = 2 Then
-      Write({#127}#8, wheel[r And 3]);
-  End;
-End;
+    if dots = 2 then
+      Write({#127}#8, wheel[r and 3]);
+  end;
+end;
 
-Procedure dispose_colormap;
+procedure dispose_colormap;
 
-Begin
-  If colmap <> Nil Then
+begin
+  if colmap <> nil then
     FreeMem(colmap);
-  colmap := Nil;
-End;
+  colmap := nil;
+end;
 
-Procedure dump_80x(y0, y1 : Integer; buffer : PInteger);
+procedure dump_80x(y0, y1: Integer; buffer: PInteger);
 
-Var
-  x, y, yd : Integer;
-  scr : DWord;
-  buf : PByte;
+var
+  x, y, yd: Integer;
+  scr: DWord;
+  buf: PByte;
 
-Begin
+begin
   buf := PByte(buffer);
   scr := $b8000 + (y0 * 160);
   yd := y1 - y0;
-  For y := 0 To yd - 1 Do
-    For x := 0 To 79 Do
-    Begin
-      MemW[scr] := COLMAP_((buf + 0)^ Shr TRUCOLBITS,
-                           (buf + 1)^ Shr TRUCOLBITS,
-                           (buf + 2)^ Shr TRUCOLBITS);
+  for y := 0 to yd - 1 do
+    for x := 0 to 79 do
+    begin
+      MemW[scr] := GetCOLMAP((buf + 0)^ shr TRUCOLBITS,
+                             (buf + 1)^ shr TRUCOLBITS,
+                             (buf + 2)^ shr TRUCOLBITS);
       Inc(scr, 2);
       Inc(buf, 4);
-    End;
-End;
+    end;
+end;
 
-Procedure dump_160x(y0, y1 : Integer; buffer : PInteger);
+procedure dump_160x(y0, y1: Integer; buffer: PInteger);
 
-Var
-  x, y, yd : Integer;
-  i : DWord;
-  scr : DWord;
-  buf : PByte;
+var
+  x, y, yd: Integer;
+  i: DWord;
+  scr: DWord;
+  buf: PByte;
 
-Begin
+begin
   buf := @i;
   scr := $b8000 + (y0 * 160);
   yd := y1 - y0;
-  For y := 0 To yd - 1 Do
-  Begin
-    For x := 0 To 79 Do
-    Begin
-      i := ((buffer+0)^ And $fcfcfcfc)+
-           ((buffer+1)^ And $fcfcfcfc)+
-           ((buffer+160)^ And $fcfcfcfc)+
-           ((buffer+161)^ And $fcfcfcfc);
-      i := i Shr 2;
-      i := i And $fcfcfcfc;
-      MemW[scr] := COLMAP_((buf + 0)^ Shr TRUCOLBITS,
-                           (buf + 1)^ Shr TRUCOLBITS,
-                           (buf + 2)^ Shr TRUCOLBITS);
+  for y := 0 to yd - 1 do
+  begin
+    for x := 0 to 79 do
+    begin
+      i := ((buffer+0)^ and $fcfcfcfc)+
+           ((buffer+1)^ and $fcfcfcfc)+
+           ((buffer+160)^ and $fcfcfcfc)+
+           ((buffer+161)^ and $fcfcfcfc);
+      i := i shr 2;
+      i := i and $fcfcfcfc;
+      MemW[scr] := GetCOLMAP((buf + 0)^ shr TRUCOLBITS,
+                             (buf + 1)^ shr TRUCOLBITS,
+                             (buf + 2)^ shr TRUCOLBITS);
       Inc(scr, 2);
       Inc(buffer, 2);
-    End;
+    end;
     Inc(buffer, 160);
-  End;
-End;
+  end;
+end;
 
-Procedure dump_320x(y0, y1 : Integer; buffer : PInteger);
+procedure dump_320x(y0, y1: Integer; buffer: PInteger);
 
-Var
-  x, y, yd, r, g, b, xx, yy : Integer;
-  buf : PByte;
-  scr : DWord;
+var
+  x, y, yd, r, g, b, xx, yy: Integer;
+  buf: PByte;
+  scr: DWord;
 
-Begin
+begin
   buf := PByte(buffer);
   scr := $b8000 + (y0 * 160);
   yd := y1 - y0;
-  For y := 0 To yd - 1 Do
-  Begin
-    For x := 0 To 79 Do
-    Begin
+  for y := 0 to yd - 1 do
+  begin
+    for x := 0 to 79 do
+    begin
       r := 0; g := 0; b:= 0;
       xx := 0;
-      While xx < 4 * 4 Do
-      Begin
+      while xx < 4 * 4 do
+      begin
         yy := 0;
-        While yy < 4 * 4 * 320 Do
-        Begin
+        while yy < 4 * 4 * 320 do
+        begin
           Inc(r, (buf + xx + yy + 0)^);
           Inc(g, (buf + xx + yy + 1)^);
           Inc(b, (buf + xx + yy + 2)^);
           Inc(yy, 320 * 4);
-        End;
+        end;
         Inc(xx, 4);
-      End;
-      MemW[scr] := COLMAP_(r Shr (TRUCOLBITS + 4),
-                           g Shr (TRUCOLBITS + 4),
-                           b Shr (TRUCOLBITS + 4));
+      end;
+      MemW[scr] := GetCOLMAP(r shr (TRUCOLBITS + 4),
+                             g shr (TRUCOLBITS + 4),
+                             b shr (TRUCOLBITS + 4));
       Inc(scr, 2);
       Inc(buf, 4 * 4);
-    End;
+    end;
     Inc(buf, 80 * 4 * 4 * 3);
-  End;
-End;
+  end;
+end;
 
-End.
+end.

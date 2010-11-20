@@ -6,7 +6,19 @@
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+    version 2.1 of the License, or (at your option) any later version
+    with the following modification:
+
+    As a special exception, the copyright holders of this library give you
+    permission to link this library with independent modules to produce an
+    executable, regardless of the license terms of these independent modules,and
+    to copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the terms
+    and conditions of the license of that module. An independent module is a
+    module which is not derived from or based on this library. If you modify
+    this library, you may extend this exception to your version of the library,
+    but you are not obligated to do so. If you do not wish to do so, delete this
+    exception statement from your version.
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -38,19 +50,19 @@
 
 {$ENDIF UNIX}
 
-Unit ptc;
+unit ptc;
 
-Interface
+interface
 
 {$IFNDEF FPDOC}
-Uses
+uses
   Hermes;
 {$ENDIF FPDOC}
 
-Const
-  PTCPAS_VERSION = 'PTCPas 0.99.7';
+const
+  PTCPAS_VERSION = 'PTCPas 0.99.11';
 
-Type
+type
   PUint8  = ^Uint8;
   PUint16 = ^Uint16;
   PUint32 = ^Uint32;
@@ -68,49 +80,49 @@ Type
   Sint32 = LongInt;
   Sint64 = Int64;
 
-{$INCLUDE coreinterface.inc}
+{$INCLUDE core/coreinterface.inc}
 
 {$IFNDEF FPDOC}
 
 {$IFDEF ENABLE_C_API}
-{$INCLUDE c_api/index.pp}
-{$INCLUDE c_api/errord.pp}
-{$INCLUDE c_api/exceptd.pp}
-{$INCLUDE c_api/aread.pp}
-{$INCLUDE c_api/colord.pp}
-{$INCLUDE c_api/cleard.pp}
-{$INCLUDE c_api/clipperd.pp}
-{$INCLUDE c_api/copyd.pp}
-{$INCLUDE c_api/keyd.pp}
-{$INCLUDE c_api/formatd.pp}
-{$INCLUDE c_api/paletted.pp}
-{$INCLUDE c_api/surfaced.pp}
-{$INCLUDE c_api/consoled.pp}
-{$INCLUDE c_api/moded.pp}
-{$INCLUDE c_api/timerd.pp}
+{$INCLUDE c_api/capi_index.inc}
+{$INCLUDE c_api/capi_errord.inc}
+{$INCLUDE c_api/capi_exceptd.inc}
+{$INCLUDE c_api/capi_aread.inc}
+{$INCLUDE c_api/capi_colord.inc}
+{$INCLUDE c_api/capi_cleard.inc}
+{$INCLUDE c_api/capi_clipperd.inc}
+{$INCLUDE c_api/capi_copyd.inc}
+{$INCLUDE c_api/capi_keyd.inc}
+{$INCLUDE c_api/capi_formatd.inc}
+{$INCLUDE c_api/capi_paletted.inc}
+{$INCLUDE c_api/capi_surfaced.inc}
+{$INCLUDE c_api/capi_consoled.inc}
+{$INCLUDE c_api/capi_moded.inc}
+{$INCLUDE c_api/capi_timerd.inc}
 {$ENDIF ENABLE_C_API}
 
 {$ENDIF FPDOC}
 
-Implementation
+implementation
 
 {$IFDEF GO32V2}
-Uses
-  textfx2, vesa, vga, cga, timeunit, crt, go32, mouse33h;
+uses
+  textfx2, vesa, vga, cga, timeunit, crt, go32fix, mouse33h;
 {$ENDIF GO32V2}
 
-{$IFDEF Win32}
-Uses
+{$IF defined(WIN32) OR defined(WIN64)}
+uses
   Windows, p_ddraw;
-{$ENDIF Win32}
+{$ENDIF defined(WIN32) OR defined(WIN64)}
 
 {$IFDEF WinCE}
-Uses
+uses
   Windows, p_gx;
 {$ENDIF WinCE}
 
 {$IFDEF UNIX}
-Uses
+uses
   BaseUnix, Unix, ctypes, x, xlib, xutil, xatom, keysym
   {$IFDEF ENABLE_X11_EXTENSION_XRANDR}
   , xrandr
@@ -129,59 +141,51 @@ Uses
 
 { this little procedure is not a good reason to include the whole sysutils
   unit :) }
-Procedure FreeAndNil(Var q);
-
-Var
-  tmp : TObject;
-
-Begin
+procedure FreeAndNil(var q);
+var
+  tmp: TObject;
+begin
   tmp := TObject(q);
-  Pointer(q) := Nil;
+  Pointer(q) := nil;
   tmp.Free;
-End;
+end;
 
-Procedure FreeMemAndNil(Var q);
-
-Var
-  tmp : Pointer;
-
-Begin
+procedure FreeMemAndNil(var q);
+var
+  tmp: Pointer;
+begin
   tmp := Pointer(q);
-  Pointer(q) := Nil;
-  If tmp <> Nil Then
+  Pointer(q) := nil;
+  if tmp <> nil then
     FreeMem(tmp);
-End;
+end;
 
-Function IntToStr(Value : Integer) : String;
-
-Begin
+function IntToStr(Value: Integer): string;
+begin
   System.Str(Value, Result);
-End;
+end;
 
-Function IntToStr(Value : Int64) : String;
-
-Begin
+function IntToStr(Value: Int64): string;
+begin
   System.Str(Value, Result);
-End;
+end;
 
-Function IntToStr(Value : QWord) : String;
-Begin
+function IntToStr(Value: QWord): string;
+begin
   System.Str(Value, Result);
-End;
+end;
 
-{$INCLUDE log.inc}
+{$INCLUDE core/log.inc}
 
-{$IFDEF WIN32}
-{$INCLUDE win32/base/cursor.inc}
-{$ENDIF WIN32}
-
-{$INCLUDE coreimplementation.inc}
+{$INCLUDE core/coreimplementation.inc}
 
 {$IFDEF GO32V2}
 {$INCLUDE dos/includes.inc}
 {$ENDIF GO32V2}
 
-{$IFDEF Win32}
+{$IF defined(Win32) OR defined(Win64)}
+{$INCLUDE win32/base/cursord.inc}
+{$INCLUDE win32/base/cursormoded.inc}
 {$INCLUDE win32/base/monitord.inc}
 {$INCLUDE win32/base/eventd.inc}
 {$INCLUDE win32/base/windowd.inc}
@@ -196,6 +200,7 @@ End;
 {$INCLUDE win32/gdi/win32dibd.inc}
 {$INCLUDE win32/gdi/gdiconsoled.inc}
 
+{$INCLUDE win32/base/cursor.inc}
 {$INCLUDE win32/base/monitor.inc}
 {$INCLUDE win32/base/event.inc}
 {$INCLUDE win32/base/window.inc}
@@ -211,7 +216,7 @@ End;
 {$INCLUDE win32/directx/directxconsolei.inc}
 {$INCLUDE win32/gdi/win32dibi.inc}
 {$INCLUDE win32/gdi/gdiconsolei.inc}
-{$ENDIF Win32}
+{$ENDIF defined(Win32) OR defined(Win64)}
 
 {$IFDEF WinCE}
 {$INCLUDE wince/includes.inc}
@@ -221,7 +226,7 @@ End;
 {$INCLUDE x11/includes.inc}
 {$ENDIF UNIX}
 
-{$INCLUDE consolei.inc}
+{$INCLUDE core/consolei.inc}
 
 {$IFDEF ENABLE_C_API}
 {$INCLUDE c_api/except.pp}
@@ -240,23 +245,17 @@ End;
 {$INCLUDE c_api/timer.pp}
 {$ENDIF ENABLE_C_API}
 
-Initialization
-
-Begin
+initialization
   {$IFDEF ENABLE_C_API}
   ptc_error_handler_function := @ptc_error_handler_default;
   {$ENDIF ENABLE_C_API}
-  {$IFDEF WIN32}
-  TWin32Hook_m_monitor := TWin32Monitor.Create;
-  {$ENDIF WIN32}
-End;
+  {$IF defined(WIN32) OR defined(WIN64)}
+  TWin32Hook_Monitor := TWin32Monitor.Create;
+  {$ENDIF defined(WIN32) OR defined(WIN64)}
 
-Finalization
+finalization
+  {$IF defined(WIN32) OR defined(WIN64)}
+  FreeAndNil(TWin32Hook_Monitor);
+  {$ENDIF defined(WIN32) OR defined(WIN64)}
 
-Begin
-  {$IFDEF WIN32}
-  FreeAndNil(TWin32Hook_m_monitor);
-  {$ENDIF WIN32}
-End;
-
-End.
+end.

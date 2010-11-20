@@ -1,53 +1,80 @@
+{
+    This file is part of the PTCPas framebuffer library
+    Copyright (C) 2001-2010 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
+
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version
+    with the following modification:
+
+    As a special exception, the copyright holders of this library give you
+    permission to link this library with independent modules to produce an
+    executable, regardless of the license terms of these independent modules,and
+    to copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the terms
+    and conditions of the license of that module. An independent module is a
+    module which is not derived from or based on this library. If you modify
+    this library, you may extend this exception to your version of the library,
+    but you are not obligated to do so. If you do not wish to do so, delete this
+    exception statement from your version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
 {$IFDEF ENABLE_X11_EXTENSION_XF86DGA1}
 
-Constructor TX11DGA1Display.Create(ADisplay : PDisplay; AScreen : Integer; Const AFlags : TX11Flags);
-
-Var
-  dummy1, dummy2 : Integer;
-
-Begin
-  Inherited;
+constructor TX11DGA1Display.Create(ADisplay: PDisplay; AScreen: Integer; const AFlags: TX11Flags);
+var
+  dummy1, dummy2: Integer;
+begin
+  inherited;
 
   LOG('trying to create a DGA 1.0 display');
 
   FInDirect := False;
   FInMode := False;
-  FModeInfo := Nil;
+  FModeInfo := nil;
 
   { Check if we are root }
-  If fpgeteuid <> 0 Then
-    Raise TPTCError.Create('Have to be root to switch to DGA mode');
+  if fpgeteuid <> 0 then
+    raise TPTCError.Create('Have to be root to switch to DGA mode');
 
   { Check if the DGA extension and VidMode extension can be used }
-  If Not XF86DGAQueryExtension(FDisplay, @dummy1, @dummy2) Then
-    Raise TPTCError.Create('DGA extension not available');
-  If Not XF86VidModeQueryExtension(FDisplay, @dummy1, @dummy2) Then
-    Raise TPTCError.Create('VidMode extension not available');
-End;
+  if not XF86DGAQueryExtension(FDisplay, @dummy1, @dummy2) then
+    raise TPTCError.Create('DGA extension not available');
+  if not XF86VidModeQueryExtension(FDisplay, @dummy1, @dummy2) then
+    raise TPTCError.Create('VidMode extension not available');
+end;
 
-Destructor TX11DGA1Display.Destroy;
-
-Begin
+destructor TX11DGA1Display.Destroy;
+begin
   Close;
-  Inherited Destroy;
-End;
+  inherited Destroy;
+end;
 
-Procedure TX11DGA1Display.Open(ATitle : String; AWidth, AHeight : Integer; Const AFormat : TPTCFormat);
-
-Var
-  vml : PXF86VidModeModeLine;
-  dotclock : Integer;
-  i : Integer;
-  root : TWindow;
-  e : TXEvent;
-  found : Boolean;
-  tmpArea : TPTCArea;
-  r, g, b : Single;
-  found_mode : Integer;
-  min_diff : Integer;
-  d_x, d_y : Integer;
-
-Begin
+procedure TX11DGA1Display.Open(ATitle: string; AWidth, AHeight: Integer; const AFormat: TPTCFormat);
+var
+  vml: PXF86VidModeModeLine;
+  dotclock: Integer;
+  i: Integer;
+  root: TWindow;
+  e: TXEvent;
+  found: Boolean;
+  tmpArea: TPTCArea;
+  r, g, b: Single;
+  found_mode: Integer;
+  min_diff: Integer;
+  d_x, d_y: Integer;
+begin
   FWidth := AWidth;
   FHeight := AHeight;
 
@@ -57,84 +84,84 @@ Begin
   FPreviousMode := -1;
   { Save previous mode }
   New(vml);
-  Try
+  try
     XF86VidModeGetModeLine(FDisplay, FScreen, @dotclock, vml);
-    Try
-      For i := 0 To FModeInfoNum - 1 Do
-      Begin
-        If (vml^.hdisplay = FModeInfo[i]^.hdisplay) And
-           (vml^.vdisplay = FModeInfo[i]^.vdisplay) Then
-        Begin
+    try
+      for i := 0 to FModeInfoNum - 1 do
+      begin
+        if (vml^.hdisplay = FModeInfo[i]^.hdisplay) and
+           (vml^.vdisplay = FModeInfo[i]^.vdisplay) then
+        begin
           FPreviousMode := i;
           Break;
-        End;
-      End;
-    Finally
-      If vml^.privsize <> 0 Then
+        end;
+      end;
+    finally
+      if vml^.privsize <> 0 then
         XFree(vml^.c_private);
-    End;
-  Finally
+    end;
+  finally
     Dispose(vml);
-  End;
-  If FPreviousMode = -1 Then
-    Raise TPTCError.Create('Current mode not found in modelist?! Err, this shouldn''t happen :)');
+  end;
+  if FPreviousMode = -1 then
+    raise TPTCError.Create('Current mode not found in modelist?! Err, this shouldn''t happen :)');
 
   { Find a video mode to set }
 
   { Normal modesetting first, find exactly matching mode }
   found_mode := -1;
-  For i := 0 To FModeInfoNum - 1 Do
-    If (FModeInfo[i]^.hdisplay = AWidth) And (FModeInfo[i]^.vdisplay = AHeight) Then
-    Begin
+  for i := 0 to FModeInfoNum - 1 do
+    if (FModeInfo[i]^.hdisplay = AWidth) and (FModeInfo[i]^.vdisplay = AHeight) then
+    begin
       found_mode := i;
       Break;
-    End;
+    end;
 
-  { Try to find a mode that matches the width first }
-  If found_mode = -1 Then
-    For i := 0 To FModeInfoNum - 1 Do
-      If (FModeInfo[i]^.hdisplay = AWidth) And
-         (FModeInfo[i]^.vdisplay >= AHeight) Then
-      Begin
+  { try to find a mode that matches the width first }
+  if found_mode = -1 then
+    for i := 0 to FModeInfoNum - 1 do
+      if (FModeInfo[i]^.hdisplay = AWidth) and
+         (FModeInfo[i]^.vdisplay >= AHeight) then
+      begin
         found_mode := i;
         Break;
-      End;
+      end;
 
   { Next try to match the height }
-  If found_mode = -1 Then
-    For i := 0 To FModeInfoNum - 1 Do
-      If (FModeInfo[i]^.hdisplay >= AWidth) And
-         (FModeInfo[i]^.vdisplay = AHeight) Then
-      Begin
+  if found_mode = -1 then
+    for i := 0 to FModeInfoNum - 1 do
+      if (FModeInfo[i]^.hdisplay >= AWidth) and
+         (FModeInfo[i]^.vdisplay = AHeight) then
+      begin
         found_mode := i;
         Break;
-      End;
+      end;
 
-  If found_mode = -1 Then
-  Begin
+  if found_mode = -1 then
+  begin
     { Finally, find the mode that is bigger than the requested one and makes }
     { the least difference }
     min_diff := 987654321;
-    For i := 0 To FModeInfoNum - 1 Do
-      If (FModeInfo[i]^.hdisplay >= AWidth) And (FModeInfo[i]^.vdisplay >= AHeight) Then
-      Begin
+    for i := 0 to FModeInfoNum - 1 do
+      if (FModeInfo[i]^.hdisplay >= AWidth) and (FModeInfo[i]^.vdisplay >= AHeight) then
+      begin
         d_x := Sqr(FModeInfo[i]^.hdisplay - AWidth);
         d_y := Sqr(FModeInfo[i]^.vdisplay - AHeight);
-        If (d_x + d_y) < min_diff Then
-        Begin
+        if (d_x + d_y) < min_diff then
+        begin
           min_diff := d_x + d_y;
           found_mode := i;
-        End;
-      End;
-  End;
+        end;
+      end;
+  end;
 
-  If found_mode = -1 Then
-    Raise TPTCError.Create('Cannot find a video mode to use');
+  if found_mode = -1 then
+    raise TPTCError.Create('Cannot find a video mode to use');
 
-  If Not XF86VidModeSwitchToMode(FDisplay, FScreen, FModeInfo[found_mode]) Then
-    Raise TPTCError.Create('Error switching to requested video mode');
-  FDestX := (FModeInfo[found_mode]^.hdisplay Div 2) - (AWidth Div 2);
-  FDestY := (FModeInfo[found_mode]^.vdisplay Div 2) - (AHeight Div 2);
+  if not XF86VidModeSwitchToMode(FDisplay, FScreen, FModeInfo[found_mode]) then
+    raise TPTCError.Create('Error switching to requested video mode');
+  FDestX := (FModeInfo[found_mode]^.hdisplay div 2) - (AWidth div 2);
+  FDestY := (FModeInfo[found_mode]^.vdisplay div 2) - (AHeight div 2);
 
   XFlush(FDisplay);
   FInMode := True;
@@ -145,7 +172,7 @@ Begin
   { Grab exclusive control over the keyboard and mouse }
   root := XRootWindow(FDisplay, FScreen);
   XGrabKeyboard(FDisplay, root, True, GrabModeAsync, GrabModeAsync, CurrentTime);
-  XGrabPointer(FDisplay, root, True, PointerMotionMask Or ButtonPressMask Or
+  XGrabPointer(FDisplay, root, True, PointerMotionMask or ButtonPressMask or
                ButtonReleaseMask, GrabModeAsync, GrabModeAsync, None, None,
                CurrentTime);
   XFlush(FDisplay);
@@ -159,349 +186,331 @@ Begin
 
   XF86DGAGetViewPortSize(FDisplay, FScreen, @FDGAWidth, @FDGAHeight);
 
-  If XF86DGAForkApp(FScreen) <> 0 Then
-    Raise TPTCError.Create('cannot do safety fork');
+  if XF86DGAForkApp(FScreen) <> 0 then
+    raise TPTCError.Create('cannot do safety fork');
 
-  If XF86DGADirectVideo(FDisplay, FScreen, XF86DGADirectGraphics Or
-      XF86DGADirectKeyb Or XF86DGADirectMouse) = 0 Then
-    Raise TPTCError.Create('cannot switch to DGA mode');
+  if XF86DGADirectVideo(FDisplay, FScreen, XF86DGADirectGraphics or
+      XF86DGADirectKeyb or XF86DGADirectMouse) = 0 then
+    raise TPTCError.Create('cannot switch to DGA mode');
 
   FInDirect := True;
-  FillChar(FDGAAddr^, FDGALineWidth * FDGAHeight * (FFormat.Bits Div 8), 0);
+  FillChar(FDGAAddr^, FDGALineWidth * FDGAHeight * (FFormat.Bits div 8), 0);
 
   XSelectInput(FDisplay, DefaultRootWindow(FDisplay),
-               KeyPressMask Or KeyReleaseMask);
+               KeyPressMask or KeyReleaseMask);
 
   XF86DGASetViewPort(FDisplay, FScreen, 0, 0); { Important.. sort of =) }
 
   found := False;
-  Repeat
+  repeat
     { Stupid loop. The key }
     { events were causing }
     { problems.. }
-    found := XCheckMaskEvent(FDisplay, KeyPressMask Or KeyReleaseMask, @e);
-  Until Not found;
+    found := XCheckMaskEvent(FDisplay, KeyPressMask or KeyReleaseMask, @e);
+  until not found;
 
   { Create colour map in 8 bit mode }
-  If FFormat.Bits = 8 Then
-  Begin
+  if FFormat.Bits = 8 then
+  begin
     FColours := GetMem(256 * SizeOf(TXColor));
-    If FColours = Nil Then
-      Raise TPTCError.Create('Cannot allocate colour map cells');
+    if FColours = nil then
+      raise TPTCError.Create('Cannot allocate colour map cells');
     FCMap := XCreateColormap(FDisplay, RootWindow(FDisplay, FScreen),
                              DefaultVisual(FDisplay, FScreen), AllocAll);
-    If FCMap = 0 Then
-      Raise TPTCError.Create('Cannot create colour map');
-  End
-  Else
+    if FCMap = 0 then
+      raise TPTCError.Create('Cannot create colour map');
+  end
+  else
     FCMap := 0;
 
   { Set 332 palette, for now }
-  If (FFormat.Bits = 8) And FFormat.Direct Then
-  Begin
+  if (FFormat.Bits = 8) and FFormat.Direct then
+  begin
     {Taken from PTC 0.72, i hope it's fine}
-    For i := 0 To 255 Do
-    Begin
-      r := ((i And $E0) Shr 5) * 255 / 7;
-      g := ((i And $1C) Shr 2) * 255 / 7;
-      b := (i And $03) * 255 / 3;
+    for i := 0 to 255 do
+    begin
+      r := ((i and $E0) shr 5) * 255 / 7;
+      g := ((i and $1C) shr 2) * 255 / 7;
+      b := (i and $03) * 255 / 3;
 
       FColours[i].pixel := i;
 
-      FColours[i].red := Round(r) Shl 8;
-      FColours[i].green := Round(g) Shl 8;
-      FColours[i].blue := Round(b) Shl 8;
+      FColours[i].red := Round(r) shl 8;
+      FColours[i].green := Round(g) shl 8;
+      FColours[i].blue := Round(b) shl 8;
 
-      Byte(FColours[i].flags) := DoRed Or DoGreen Or DoBlue;
-    End;
+      Byte(FColours[i].flags) := DoRed or DoGreen or DoBlue;
+    end;
     XStoreColors(FDisplay, FCMap, FColours, 256);
     XF86DGAInstallColormap(FDisplay, FScreen, FCMap);
-  End;
+  end;
 
   { Set clipping area }
   tmpArea := TPTCArea.Create(0, 0, FWidth, FHeight);
-  Try
+  try
     FClip.Assign(tmpArea);
-  Finally
+  finally
     tmpArea.Free;
-  End;
-End;
+  end;
+end;
 
-{ Not in DGA mode }
-Procedure TX11DGA1Display.Open(AWindow : TWindow; Const AFormat : TPTCFormat);
+{ not in DGA mode }
+procedure TX11DGA1Display.Open(AWindow: TWindow; const AFormat: TPTCFormat);
+begin
+  if AWindow = 0 Then; { Prevent warnings }
+  if AFormat = nil Then;
+end;
 
-Begin
-  If AWindow = 0 Then; { Prevent warnings }
-  If AFormat = Nil Then;
-End;
-
-Procedure TX11DGA1Display.Open(AWindow : TWindow; Const AFormat : TPTCFormat; AX, AY, AWidth, AHeight : Integer);
-
-Begin
-  If (AWindow = 0) Or
-     (AFormat = Nil) Or
-     (AX = 0) Or
-     (AY = 0) Or
-     (AWidth = 0) Or
+procedure TX11DGA1Display.Open(AWindow: TWindow; const AFormat: TPTCFormat; AX, AY, AWidth, AHeight: Integer);
+begin
+  if (AWindow = 0) or
+     (AFormat = Nil) or
+     (AX = 0) or
+     (AY = 0) or
+     (AWidth = 0) or
      (AHeight = 0) Then;
-End;
+end;
 
-Procedure TX11DGA1Display.Close;
-
-Begin
-  If FInDirect Then
-  Begin
+procedure TX11DGA1Display.Close;
+begin
+  if FInDirect then
+  begin
     FInDirect := False;
     XF86DGADirectVideo(FDisplay, FScreen, 0);
-  End;
+  end;
 
-  If FInMode Then
-  Begin
+  if FInMode then
+  begin
     FInMode := False;
     XF86VidModeSwitchToMode(FDisplay, FScreen, FModeInfo[FPreviousMode]);
     XUngrabKeyboard(FDisplay, CurrentTime);
     XUngrabPointer(FDisplay, CurrentTime);
-  End;
+  end;
 
-  If FDisplay <> Nil Then
+  if FDisplay <> nil then
     XFlush(FDisplay);
 
-  If FCMap <> 0 Then
-  Begin
+  if FCMap <> 0 then
+  begin
     XFreeColormap(FDisplay, FCMap);
     FCMap := 0;
-  End;
+  end;
 
   FreeMemAndNil(FColours);
 
-  If FModeInfo <> Nil Then
-  Begin
+  if FModeInfo <> nil then
+  begin
     XFree(FModeInfo);
-    FModeInfo := Nil;
-  End;
-End;
+    FModeInfo := nil;
+  end;
+end;
 
-Procedure TX11DGA1Display.GetModes(Var AModes : TPTCModeDynArray);
-
-Begin
+procedure TX11DGA1Display.GetModes(var AModes: TPTCModeDynArray);
+begin
   SetLength(AModes, 1);
   AModes[0] := TPTCMode.Create;
   {todo...}
-End;
+end;
 
-Procedure TX11DGA1Display.Update;
+procedure TX11DGA1Display.Update;
+begin
+end;
 
-Begin
-End;
+procedure TX11DGA1Display.Update(const AArea: TPTCArea);
+begin
+end;
 
-Procedure TX11DGA1Display.Update(Const AArea : TPTCArea);
+procedure TX11DGA1Display.HandleEvents;
+var
+  e: TXEvent;
+  NewFocus: Boolean;
+  NewFocusSpecified: Boolean;
 
-Begin
-End;
-
-Procedure TX11DGA1Display.HandleEvents;
-
-Var
-  e : TXEvent;
-  NewFocus : Boolean;
-  NewFocusSpecified : Boolean;
-
-  Function UsefulEventsPending : Boolean;
-
-  Var
-    tmpEvent : TXEvent;
-
-  Begin
-    If XCheckTypedEvent(FDisplay, ClientMessage, @tmpEvent) Then
-    Begin
+  function UsefulEventsPending: Boolean;
+  var
+    tmpEvent: TXEvent;
+  begin
+    if XCheckTypedEvent(FDisplay, ClientMessage, @tmpEvent) then
+    begin
       Result := True;
       XPutBackEvent(FDisplay, @tmpEvent);
-      Exit;
-    End;
+      exit;
+    end;
 
-    If XCheckMaskEvent(FDisplay, FocusChangeMask Or
-                       KeyPressMask Or KeyReleaseMask Or
-                       ButtonPressMask Or ButtonReleaseMask Or
-                       PointerMotionMask Or ExposureMask, @tmpEvent) Then
-    Begin
+    if XCheckMaskEvent(FDisplay, FocusChangeMask or
+                       KeyPressMask or KeyReleaseMask or
+                       ButtonPressMask or ButtonReleaseMask or
+                       PointerMotionMask or ExposureMask, @tmpEvent) then
+    begin
       Result := True;
       XPutBackEvent(FDisplay, @tmpEvent);
-      Exit;
-    End;
+      exit;
+    end;
 
     Result := False;
-  End;
+  end;
 
-  Procedure HandleKeyEvent;
-
-  Var
-    sym : TKeySym;
-    sym_modded : TKeySym; { modifiers like shift are taken into account here }
-    press : Boolean;
-    alt, shift, ctrl : Boolean;
-    uni : Integer;
-    key : TPTCKeyEvent;
-    buf : Array[1..16] Of Char;
-
-  Begin
+  procedure HandleKeyEvent;
+  var
+    sym: TKeySym;
+    sym_modded: TKeySym; { modifiers like shift are taken into account here }
+    press: Boolean;
+    alt, shift, ctrl: Boolean;
+    uni: Integer;
+    key: TPTCKeyEvent;
+    buf: array [1..16] of Char;
+  begin
     sym := XLookupKeySym(@e.xkey, 0);
     XLookupString(@e.xkey, @buf, SizeOf(buf), @sym_modded, Nil);
     uni := X11ConvertKeySymToUnicode(sym_modded);
-    alt := (e.xkey.state And Mod1Mask) <> 0;
-    shift := (e.xkey.state And ShiftMask) <> 0;
-    ctrl := (e.xkey.state And ControlMask) <> 0;
-    If e._type = KeyPress Then
+    alt := (e.xkey.state and Mod1Mask) <> 0;
+    shift := (e.xkey.state and ShiftMask) <> 0;
+    ctrl := (e.xkey.state and ControlMask) <> 0;
+    if e._type = KeyPress then
       press := True
-    Else
+    else
       press := False;
 
-    key := Nil;
-    Case sym Shr 8 Of
-      0 : key := TPTCKeyEvent.Create(FNormalKeys[sym And $FF], uni, alt, shift, ctrl, press);
-      $FF : key := TPTCKeyEvent.Create(FFunctionKeys[sym And $FF], uni, alt, shift, ctrl, press);
-      Else
+    key := nil;
+    case sym shr 8 of
+      0: key := TPTCKeyEvent.Create(FNormalKeys[sym and $FF], uni, alt, shift, ctrl, press);
+      $FF: key := TPTCKeyEvent.Create(FFunctionKeys[sym and $FF], uni, alt, shift, ctrl, press);
+      else
         key := TPTCKeyEvent.Create;
-    End;
+    end;
     FEventQueue.AddEvent(key);
-  End;
+  end;
 
-Begin
+begin
   NewFocusSpecified := False;
-  While UsefulEventsPending Do
-  Begin
+  while UsefulEventsPending do
+  begin
     XNextEvent(FDisplay, @e);
-    Case e._type Of
-      FocusIn : Begin
+    case e._type of
+      FocusIn: begin
         NewFocus := True;
         NewFocusSpecified := True;
-      End;
-      FocusOut : Begin
+      end;
+      FocusOut: begin
         NewFocus := False;
         NewFocusSpecified := True;
-      End;
-      ClientMessage : Begin
-{        If (e.xclient.format = 32) And (TAtom(e.xclient.data.l[0]) = m_atom_close) Then
+      end;
+      ClientMessage: begin
+{        if (e.xclient.format = 32) and (TAtom(e.xclient.data.l[0]) = m_atom_close) then
           Halt(0);}
-      End;
-      Expose : Begin
+      end;
+      Expose: begin
         {...}
-      End;
-      KeyPress, KeyRelease : HandleKeyEvent;
-      ButtonPress, ButtonRelease : Begin
+      end;
+      KeyPress, KeyRelease: HandleKeyEvent;
+      ButtonPress, ButtonRelease: begin
         {...}
-      End;
-      MotionNotify : Begin
+      end;
+      MotionNotify: begin
         {...}
-      End;
-    End;
-  End;
+      end;
+    end;
+  end;
 //  HandleChangeFocus(NewFocus);
-End;
+end;
 
-Function TX11DGA1Display.NextEvent(Var AEvent : TPTCEvent; AWait : Boolean; Const AEventMask : TPTCEventMask) : Boolean;
-
-Var
-  tmpEvent : TXEvent;
-
-Begin
+function TX11DGA1Display.NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean;
+var
+  tmpEvent: TXEvent;
+begin
   FreeAndNil(AEvent);
-  Repeat
+  repeat
     { process all events from the X queue and put them on our FEventQueue }
     HandleEvents;
 
     { try to find an event that matches the EventMask }
     AEvent := FEventQueue.NextEvent(AEventMask);
 
-    If AWait And (AEvent = Nil) Then
-    Begin
+    if AWait and (AEvent = Nil) then
+    begin
       { if the X event queue is empty, block until an event is received }
       XPeekEvent(FDisplay, @tmpEvent);
-    End;
-  Until (Not AWait) Or (AEvent <> Nil);
-  Result := AEvent <> Nil;
-End;
+    end;
+  until (not AWait) or (AEvent <> Nil);
+  Result := AEvent <> nil;
+end;
 
-Function TX11DGA1Display.PeekEvent(AWait : Boolean; Const AEventMask : TPTCEventMask) : TPTCEvent;
-
-Var
-  tmpEvent : TXEvent;
-
-Begin
-  Repeat
+function TX11DGA1Display.PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent;
+var
+  tmpEvent: TXEvent;
+begin
+  repeat
     { process all events from the X queue and put them on our FEventQueue }
     HandleEvents;
 
     { try to find an event that matches the EventMask }
     Result := FEventQueue.PeekEvent(AEventMask);
 
-    If AWait And (Result = Nil) Then
-    Begin
+    if AWait and (Result = Nil) then
+    begin
       { if the X event queue is empty, block until an event is received }
       XPeekEvent(FDisplay, @tmpEvent);
-    End;
-  Until (Not AWait) Or (Result <> Nil);
-End;
+    end;
+  until (not AWait) or (Result <> Nil);
+end;
 
 
-Function TX11DGA1Display.Lock : Pointer;
+function TX11DGA1Display.Lock: Pointer;
+begin
+  Result := FDGAAddr + FDGALineWidth * FDestY * (FFormat.Bits div 8) +
+                       FDestX * (FFormat.Bits div 8);
+end;
 
-Begin
-  Result := FDGAAddr + FDGALineWidth * FDestY * (FFormat.Bits Div 8) +
-                       FDestX * (FFormat.Bits Div 8);
-End;
+procedure TX11DGA1Display.Unlock;
+begin
+end;
 
-Procedure TX11DGA1Display.Unlock;
-
-Begin
-End;
-
-Procedure TX11DGA1Display.Palette(Const APalette : TPTCPalette);
-
-Var
-  pal : PUint32;
-  i : Integer;
-
-Begin
+procedure TX11DGA1Display.Palette(const APalette: TPTCPalette);
+var
+  pal: PUint32;
+  i: Integer;
+begin
   pal := APalette.data;
-  If Not FFormat.Indexed Then
-    Exit;
-  For i := 0 To 255 Do
-  Begin
+  if not FFormat.Indexed then
+    exit;
+  for i := 0 to 255 do
+  begin
     FColours[i].pixel := i;
 
-    FColours[i].red := ((pal[i] Shr 16) And $FF) Shl 8;
-    FColours[i].green := ((pal[i] Shr 8) And $FF) Shl 8;
-    FColours[i].blue := (pal[i] And $FF) Shl 8;
+    FColours[i].red := ((pal[i] shr 16) and $FF) shl 8;
+    FColours[i].green := ((pal[i] shr 8) and $FF) shl 8;
+    FColours[i].blue := (pal[i] and $FF) shl 8;
 
-    Byte(FColours[i].flags) := DoRed Or DoGreen Or DoBlue;
-  End;
+    Byte(FColours[i].flags) := DoRed or DoGreen or DoBlue;
+  end;
   XStoreColors(FDisplay, FCMap, FColours, 256);
   XF86DGAInstallColormap(FDisplay, FScreen, FCMap);
-End;
+end;
 
-Function TX11DGA1Display.GetPitch : Integer;
+function TX11DGA1Display.GetPitch: Integer;
+begin
+  Result := FDGALineWidth * (FFormat.Bits div 8);
+end;
 
-Begin
-  Result := FDGALineWidth * (FFormat.Bits Div 8);
-End;
-
-Function TX11DGA1Display.GetX11Window : TWindow;
-
-Begin
+function TX11DGA1Display.GetX11Window: TWindow;
+begin
   Result := DefaultRootWindow(FDisplay);
-End;
+end;
 
-Function TX11DGA1Display.IsFullScreen : Boolean;
-
-Begin
+function TX11DGA1Display.IsFullScreen: Boolean;
+begin
   { DGA is always fullscreen }
   Result := True;
-End;
+end;
 
-Procedure TX11DGA1Display.SetCursor(AVisible : Boolean);
-
-Begin
+procedure TX11DGA1Display.SetCursor(AVisible: Boolean);
+begin
   {nothing... raise exception if visible=true?}
-End;
+end;
+
+procedure TX11DGA1Display.SetMouseGrab(AGrabMouse: Boolean);
+begin
+  {...}
+end;
 
 {$ENDIF ENABLE_X11_EXTENSION_XF86DGA1}

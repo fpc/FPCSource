@@ -6,7 +6,19 @@
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+    version 2.1 of the License, or (at your option) any later version
+    with the following modification:
+
+    As a special exception, the copyright holders of this library give you
+    permission to link this library with independent modules to produce an
+    executable, regardless of the license terms of these independent modules,and
+    to copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the terms
+    and conditions of the license of that module. An independent module is a
+    module which is not derived from or based on this library. If you modify
+    this library, you may extend this exception to your version of the library,
+    but you are not obligated to do so. If you do not wish to do so, delete this
+    exception statement from your version.
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,23 +30,23 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-Type
-  TWin32Hook = Class(TObject)
-  Private
-    Procedure Add(window : HWND; thread : DWord);
-    Procedure Remove(window : HWND; thread : DWord);
+type
+  TWin32Hook = class
+  private
+    FWindow: HWND;
+    FThread: DWord;
 
-    m_window : HWND;
-    m_thread : DWord;
+    {FHook: HHOOK;
+    FCount: Integer;
+    FCached: PWin32Hook_Lookup;
+    FRegistry: array [0..15] of TWin32Hook_Lookup;
+    FMonitor: TWin32Monitor;}
 
-    {m_hook : HHOOK;
-    m_count : Integer;
-    m_cached : PWin32Hook_Lookup;
-    m_registry : Array[0..15] Of TWin32Hook_Lookup;
-    m_monitor : TWin32Monitor;}
-  Protected
-    Function WndProc(hWnd : HWND; message : DWord; wParam : WPARAM; lParam : LPARAM) : LRESULT; Virtual; Abstract;
-  Public
-    Constructor Create(window : HWND; thread : DWord);
-    Destructor Destroy; Override;
-  End;
+    procedure Add(AWindow: HWND; AThread: DWord);
+    procedure Remove(AWindow: HWND; AThread: DWord);
+  protected
+    function WndProc(hWnd: HWND; message: DWord; wParam: WPARAM; lParam: LPARAM): LRESULT; virtual; abstract;
+  public
+    constructor Create(AWindow: HWND; AThread: DWord);
+    destructor Destroy; override;
+  end;

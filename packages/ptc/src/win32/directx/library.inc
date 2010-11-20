@@ -6,7 +6,19 @@
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+    version 2.1 of the License, or (at your option) any later version
+    with the following modification:
+
+    As a special exception, the copyright holders of this library give you
+    permission to link this library with independent modules to produce an
+    executable, regardless of the license terms of these independent modules,and
+    to copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the terms
+    and conditions of the license of that module. An independent module is a
+    module which is not derived from or based on this library. If you modify
+    this library, you may extend this exception to your version of the library,
+    but you are not obligated to do so. If you do not wish to do so, delete this
+    exception statement from your version.
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,83 +30,60 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-Constructor TDirectXLibrary.Create;
-
-Var
-  DirectDrawCreate : TDirectDrawCreate;
-  IID_IDirectDraw2 : GUID;
-
-Begin
-  { defaults }
-  m_lpDD := Nil;
-  m_lpDD2 := Nil;
-  m_library := 0;
-
-  Try
+constructor TDirectXLibrary.Create;
+begin
+  try
     LOG('loading ddraw.dll');
-    m_library := LoadLibrary('ddraw.dll');
-    If m_library = 0 Then
-      Raise TPTCError.Create('could not load ddraw.dll');
+    FLibrary := LoadLibrary('ddraw.dll');
+    if FLibrary = 0 then
+      raise TPTCError.Create('could not load ddraw.dll');
+
     LOG('importing DirectDrawCreate');
-    DirectDrawCreate := TDirectDrawCreate(GetProcAddress(m_library, 'DirectDrawCreate'));
-    If DirectDrawCreate = Nil Then
-      Raise TPTCError.Create('could not get address of DirectDrawCreate');
+    Pointer(DirectDrawCreate) := GetProcAddress(FLibrary, 'DirectDrawCreate');
+    if DirectDrawCreate = nil then
+      raise TPTCError.Create('could not get address of DirectDrawCreate');
+
     LOG('creating lpDD');
-    DirectXCheck(DirectDrawCreate(Nil, @m_lpDD, Nil));
-    With IID_IDirectDraw2 Do
-    Begin
-      Data1 := $B3A6F3E0;
-      Data2 := $2B43;
-      Data3 := $11CF;
-      Data4[0] := $A2;
-      Data4[1] := $DE;
-      Data4[2] := $00;
-      Data4[3] := $AA;
-      Data4[4] := $00;
-      Data4[5] := $B9;
-      Data4[6] := $33;
-      Data4[7] := $56;
-    End;
+    DirectXCheck(DirectDrawCreate(nil, FlpDD, nil));
+
     LOG('querying lpDD2');
-    DirectXCheck(m_lpDD^.lpVtbl^.QueryInterface(m_lpDD, @IID_IDirectDraw2, @m_lpDD2));
-  Except
-    On error : TPTCError Do
-    Begin
+    FlpDD2 := FlpDD as IDirectDraw2;
+  except
+    on error: TPTCError do
+    begin
       { close }
-      close;
+      Close;
 
       { rethrow }
-      Raise TPTCError.Create('could not initialize ddraw', error);
-    End;
-  End;
-End;
+      raise TPTCError.Create('could not initialize ddraw', error);
+    end;
+  end;
+end;
 
-Destructor TDirectXLibrary.Destroy;
+destructor TDirectXLibrary.Destroy;
+begin
+  Close;
+  inherited Destroy;
+end;
 
-Begin
-  close;
-  Inherited Destroy;
-End;
-
-Procedure TDirectXLibrary.close;
-
-Begin
-  If m_lpDD2 <> Nil Then
-  Begin
+procedure TDirectXLibrary.Close;
+begin
+  if FlpDD2 <> nil then
+  begin
     LOG('releasing lpDD2');
-    m_lpDD2^.lpVtbl^.Release(m_lpDD2);
-    m_lpDD2 := Nil;
-  End;
-  If m_lpDD <> Nil Then
-  Begin
+    FlpDD2 := nil;
+  end;
+
+  if FlpDD <> nil then
+  begin
     LOG('releasing lpDD');
-    m_lpDD^.lpVtbl^.Release(m_lpDD);
-    m_lpDD := Nil;
-  End;
-  If m_library <> 0 Then
-  Begin
+    FlpDD := nil;
+  end;
+
+  if FLibrary <> 0 then
+  begin
     LOG('closing ddraw.dll');
-    FreeLibrary(m_library);
-    m_library := 0;
-  End;
-End;
+    FreeLibrary(FLibrary);
+    FLibrary := 0;
+  end;
+end;

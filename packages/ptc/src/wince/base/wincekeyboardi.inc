@@ -6,7 +6,19 @@
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+    version 2.1 of the License, or (at your option) any later version
+    with the following modification:
+
+    As a special exception, the copyright holders of this library give you
+    permission to link this library with independent modules to produce an
+    executable, regardless of the license terms of these independent modules,and
+    to copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the terms
+    and conditions of the license of that module. An independent module is a
+    module which is not derived from or based on this library. If you modify
+    this library, you may extend this exception to your version of the library,
+    but you are not obligated to do so. If you do not wish to do so, delete this
+    exception statement from your version.
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -18,12 +30,12 @@
     Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 }
 
-Constructor TWinCEKeyboard.Create(EventQueue : TEventQueue);
+constructor TWinCEKeyboard.Create(EventQueue: TEventQueue);
 
-Begin
-//  m_monitor := Nil;
-//  m_event := Nil;
-//  Inherited Create(window, thread);
+begin
+//  m_monitor := nil;
+//  m_event := nil;
+//  inherited Create(window, thread);
 //  m_monitor := TWin32Monitor.Create;
 //  m_event := TWin32Event.Create;
 
@@ -38,101 +50,101 @@ Begin
 
   { enable buffering }
   m_enabled := True;
-End;
+end;
 
-Procedure TWinCEKeyboard.enable;
+procedure TWinCEKeyboard.enable;
 
-Begin
+begin
   { enable buffering }
   m_enabled := True;
-End;
+end;
 
-Procedure TWinCEKeyboard.disable;
+procedure TWinCEKeyboard.disable;
 
-Begin
+begin
   { disable buffering }
   m_enabled := False;
-End;
+end;
 
-Function TWinCEKeyboard.WndProc(hWnd : HWND; message : DWord; wParam : WPARAM; lParam : LPARAM) : LRESULT;
+function TWinCEKeyboard.WndProc(hWnd: HWND; message: DWord; wParam: WPARAM; lParam: LPARAM): LRESULT;
 
-Var
-  i : Integer;
-  scancode : Integer;
-  KeyStateArray : Array[0..255] Of Byte;
-  AsciiBuf : Word;
-  press : Boolean;
-  uni : Integer;
-  tmp : Integer;
+var
+  i: Integer;
+  scancode: Integer;
+  KeyStateArray: array [0..255] of Byte;
+  AsciiBuf: Word;
+  press: Boolean;
+  uni: Integer;
+  tmp: Integer;
 
-Begin
+begin
   WndProc := 0;
   { check enabled flag }
-  If Not m_enabled Then
-    Exit;
+  if not m_enabled then
+    exit;
 
   { process key message }
-  If (message = WM_KEYDOWN) Or (message = WM_KEYUP) {Or ((message = WM_SYSKEYDOWN) And ((lParam And (1 Shl 29)) <> 0))} Then
-  Begin
-    If message = WM_KEYUP Then
+  if (message = WM_KEYDOWN) or (message = WM_KEYUP) {Or ((message = WM_SYSKEYDOWN) and ((lParam and (1 shl 29)) <> 0))} then
+  begin
+    if message = WM_KEYUP then
       press := False
-    Else
+    else
       press := True;
 
     { update modifiers }
-    If wParam = VK_MENU Then
+    if wParam = VK_MENU then
       { alt }
       m_alt := press
-    Else
-      If wParam = VK_SHIFT Then
+    else
+      if wParam = VK_SHIFT then
         { shift }
         m_shift := press
-      Else
-        If wParam = VK_CONTROL Then
+      else
+        if wParam = VK_CONTROL then
           { control }
           m_control := press;
 
     { enter monitor if multithreaded }
-(*    If m_multithreaded Then
+(*    if m_multithreaded then
       m_monitor.enter;*)
 
     uni := -1;
 
-(*    If GetKeyboardState(@KeyStateArray) Then
-    Begin
-      scancode := (lParam Shr 16) And $FF;
+(*    if GetKeyboardState(@KeyStateArray) then
+    begin
+      scancode := (lParam shr 16) and $FF;
       {todo: ToUnicode (Windows NT)}
       tmp := ToAscii(wParam, scancode, @KeyStateArray, @AsciiBuf, 0);
-      If (tmp = 1) Or (tmp = 2) Then
-      Begin
-        If tmp = 2 Then
-        Begin
+      if (tmp = 1) or (tmp = 2) then
+      begin
+        if tmp = 2 then
+        begin
 //          Writeln('[', AsciiBuf, ']'); {???? todo: dead keys ????}
-        End
-        Else
-        Begin
+        end
+        else
+        begin
 //          Write(Chr(AsciiBuf));
           {todo: codepage -> unicode}
-          If AsciiBuf <= 126 Then
+          if AsciiBuf <= 126 then
             uni := AsciiBuf;
-        End;
+        end;
 
-      End;
+      end;
     End;*)
 
     { handle key repeat count }
-    For i := 1 To lParam And $FFFF Do
+    for i := 1 to lParam and $FFFF do
       { create and insert key object }
       FEventQueue.AddEvent(TPTCKeyEvent.Create(wParam, uni, m_alt, m_shift, m_control, press));
 
     { check multithreaded flag }
-(*    If m_multithreaded Then
-    Begin
+(*    if m_multithreaded then
+    begin
       { set event }
       m_event._set;
 
       { leave monitor }
       m_monitor.leave;
     End;*)
-  End;
-End;
+  end;
+end;

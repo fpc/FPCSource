@@ -1,52 +1,90 @@
-Type
-  TX11WindowDisplay = Class(TX11Display)
-  Private
-    Function NextEvent(Var AEvent : TPTCEvent; AWait : Boolean; Const AEventMask : TPTCEventMask) : Boolean; Override;
-    Function PeekEvent(AWait : Boolean; Const AEventMask : TPTCEventMask) : TPTCEvent; Override;
+{
+    This file is part of the PTCPas framebuffer library
+    Copyright (C) 2001-2010 Nikolay Nikolov (nickysn@users.sourceforge.net)
+    Original C++ version by Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 
-    Procedure EnterFullScreen;
-    Procedure LeaveFullScreen;
-    Procedure internal_ShowCursor(AVisible : Boolean);
-    Procedure HandleChangeFocus(ANewFocus : Boolean);
-    Procedure HandleEvents;
-    Function CreateImage(ADisplay : PDisplay; AScreen, AWidth, AHeight : Integer;
-                         AFormat : TPTCFormat) : TX11Image; { Factory method }
-    Function CreateModeSwitcher : TX11Modes; { Factory method }
-    Procedure CreateColormap; { Register colour maps }
+    This library is free software; you can redistribute it and/or
+    modify it under the terms of the GNU Lesser General Public
+    License as published by the Free Software Foundation; either
+    version 2.1 of the License, or (at your option) any later version
+    with the following modification:
+
+    As a special exception, the copyright holders of this library give you
+    permission to link this library with independent modules to produce an
+    executable, regardless of the license terms of these independent modules,and
+    to copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the terms
+    and conditions of the license of that module. An independent module is a
+    module which is not derived from or based on this library. If you modify
+    this library, you may extend this exception to your version of the library,
+    but you are not obligated to do so. If you do not wish to do so, delete this
+    exception statement from your version.
+
+    This library is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+    Lesser General Public License for more details.
+
+    You should have received a copy of the GNU Lesser General Public
+    License along with this library; if not, write to the Free Software
+    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+}
+
+type
+  TX11WindowDisplay = class(TX11Display)
+  private
     {eventHandler}
-    FWindow : TWindow;
-    FPrimary : TX11Image;
-    FDestX, FDestY : Integer;
-    FGC : TGC;
-    FAtomClose : TAtom; { X Atom for close window button }
-    FCursorVisible : Boolean;
-    FX11InvisibleCursor : TCursor; { Blank cursor }
-    FFullScreen : Boolean; { Keeps a snapshot of the PTC_X11_FULLSCREEN option
+    FWindow: TWindow;
+    FPrimary: TX11Image;
+    FDestX, FDestY: Integer;
+    FGC: TGC;
+    FAtomClose: TAtom; { X Atom for close window button }
+    FCursorVisible: Boolean;
+    FGrabMouse: Boolean;
+    FMouseGrabbed: Boolean;
+    FX11InvisibleCursor: TCursor; { Blank cursor }
+    FFullScreen: Boolean; { Keeps a snapshot of the PTC_X11_FULLSCREEN option
                              taken at the time 'open' was called }
-    FFocus : Boolean;
-    FModeSwitcher : TX11Modes;
+    FFocus: Boolean;
+    FModeSwitcher: TX11Modes;
 
-    FPreviousMouseButtonState : TPTCMouseButtonState;
-    FPreviousMouseX, FPreviousMouseY : Integer; { for calculating the deltas }
-    FPreviousMousePositionSaved : Boolean; { true, if FPreviousMouseX,
+    FPreviousMouseButtonState: TPTCMouseButtonState;
+    FPreviousMouseX, FPreviousMouseY: Integer; { for calculating the deltas }
+    FPreviousMousePositionSaved: Boolean; { true, if FPreviousMouseX,
            FPreviousMouseY and FPreviousMouseButtonState contain valid values }
-  Public
-    Constructor Create(ADisplay : PDisplay; AScreen : Integer; Const AFlags : TX11Flags); Override;
-    Destructor Destroy; Override;
 
-    Procedure Open(ATitle : String; AWidth, AHeight : Integer; Const AFormat : TPTCFormat); Override;
-    Procedure Open(AWindow : TWindow; Const AFormat : TPTCFormat); Override;
-    Procedure Open(AWindow : TWindow; Const AFormat : TPTCFormat; AX, AY, AWidth, AHeight : Integer); Override;
-    Procedure Close; Override;
-    Procedure Update; Override;
-    Procedure Update(Const AArea : TPTCArea); Override;
-    Function Lock : Pointer; Override;
-    Procedure Unlock; Override;
-    Procedure GetModes(Var AModes : TPTCModeDynArray); Override;
-    Procedure Palette(Const APalette : TPTCPalette); Override;
-    Function GetPitch : Integer; Override;
-    Function GetX11Window : TWindow; Override;
-    Function GetX11GC : TGC; Virtual;
-    Function IsFullScreen : Boolean; Override;
-    Procedure SetCursor(AVisible : Boolean); Override;
-  End;
+    function NextEvent(var AEvent: TPTCEvent; AWait: Boolean; const AEventMask: TPTCEventMask): Boolean; override;
+    function PeekEvent(AWait: Boolean; const AEventMask: TPTCEventMask): TPTCEvent; override;
+
+    procedure EnterFullScreen;
+    procedure LeaveFullScreen;
+    procedure internal_ShowCursor(AVisible: Boolean);
+    procedure internal_GrabMouse(AGrabMouse: Boolean);
+    procedure HandleChangeFocus(ANewFocus: Boolean);
+    procedure HandleEvents;
+    procedure Draw;
+    function CreateImage(ADisplay: PDisplay; AScreen, AWidth, AHeight: Integer;
+                         AFormat: TPTCFormat): TX11Image; { Factory method }
+    function CreateModeSwitcher: TX11Modes; { Factory method }
+    procedure CreateColormap; { Register colour maps }
+  public
+    constructor Create(ADisplay: PDisplay; AScreen: Integer; const AFlags: TX11Flags); override;
+    destructor Destroy; override;
+
+    procedure Open(ATitle: string; AWidth, AHeight: Integer; const AFormat: TPTCFormat); override;
+    procedure Open(AWindow: TWindow; const AFormat: TPTCFormat); override;
+    procedure Open(AWindow: TWindow; const AFormat: TPTCFormat; AX, AY, AWidth, AHeight: Integer); override;
+    procedure Close; override;
+    procedure Update; override;
+    procedure Update(const AArea: TPTCArea); override;
+    function Lock: Pointer; override;
+    procedure Unlock; override;
+    procedure GetModes(var AModes: TPTCModeDynArray); override;
+    procedure Palette(const APalette: TPTCPalette); override;
+    function GetPitch: Integer; override;
+    function GetX11Window: TWindow; override;
+    function GetX11GC: TGC; virtual;
+    function IsFullScreen: Boolean; override;
+    procedure SetCursor(AVisible: Boolean); override;
+    procedure SetMouseGrab(AGrabMouse: Boolean); override;
+  end;

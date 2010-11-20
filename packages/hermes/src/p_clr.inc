@@ -6,7 +6,19 @@
     This library is free software; you can redistribute it and/or
     modify it under the terms of the GNU Lesser General Public
     License as published by the Free Software Foundation; either
-    version 2.1 of the License, or (at your option) any later version.
+    version 2.1 of the License, or (at your option) any later version
+    with the following modification:
+
+    As a special exception, the copyright holders of this library give you
+    permission to link this library with independent modules to produce an
+    executable, regardless of the license terms of these independent modules,and
+    to copy and distribute the resulting executable under terms of your choice,
+    provided that you also meet, for each linked independent module, the terms
+    and conditions of the license of that module. An independent module is a
+    module which is not derived from or based on this library. If you modify
+    this library, you may extend this exception to your version of the library,
+    but you are not obligated to do so. If you do not wish to do so, delete this
+    exception statement from your version.
 
     This library is distributed in the hope that it will be useful,
     but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -27,145 +39,136 @@
    licensing conditions
 }
 
-Procedure ClearP_32(iface : PHermesClearInterface); CDecl;
-
-Var
-  count : DWord;
-  value : int32;
-  dest : Pchar8;
-
-Begin
+procedure ClearP_32(iface: PHermesClearInterface); cdecl;
+var
+  count: DWord;
+  value: Uint32;
+  dest: PUint8;
+begin
   value := iface^.value;
   dest := iface^.dest;
-  Repeat
+  repeat
     count := iface^.width;
-    Repeat
-      Pint32(dest)^ := value;
+    repeat
+      PUint32(dest)^ := value;
       Inc(dest, 4);
       Dec(count);
-    Until count = 0;
+    until count = 0;
     Inc(dest, iface^.add);
     Dec(iface^.height);
-  Until iface^.height = 0;
-End;
+  until iface^.height = 0;
+end;
 
-Procedure ClearP_24(iface : PHermesClearInterface); CDecl;
-
-Var
-  p_value : Pchar8;
-  count : DWord;
-  dest : Pchar8;
-
-Begin
-  p_value := @iface^.value;
+procedure ClearP_24(iface: PHermesClearInterface); cdecl;
+var
+  p_value: PUint8;
+  count: DWord;
+  dest: PUint8;
+begin
+  p_value := PUint8(@iface^.value) + (R_32 - R_24);
   dest := iface^.dest;
-  Repeat
+  repeat
     count := iface^.width;
-    Repeat
-      (dest + R_24)^ := (p_value + B_32)^;
-      (dest + G_24)^ := (p_value + G_32)^;
-      (dest + B_24)^ := (p_value + B_32)^;
+    repeat
+      (dest + 0)^ := (p_value + 0)^;
+      (dest + 1)^ := (p_value + 1)^;
+      (dest + 2)^ := (p_value + 2)^;
 
       Inc(dest, 3);
       Dec(count);
-    Until count = 0;
+    until count = 0;
 
     Inc(dest, iface^.add);
     Dec(iface^.height);
-  Until iface^.height = 0;
-End;
+  until iface^.height = 0;
+end;
 
-Procedure ClearP_16(iface : PHermesClearInterface); CDecl;
-
-Var
-  value32 : DWord;
-  countshifted, count : DWord;
-  dest : Pchar8;
-
-Begin
-  value32 := (iface^.value Shl 16) Or (iface^.value And $ffff);
+procedure ClearP_16(iface: PHermesClearInterface); cdecl;
+var
+  value32: DWord;
+  countshifted, count: DWord;
+  dest: PUint8;
+begin
+  value32 := (iface^.value shl 16) or (iface^.value and $ffff);
   dest := iface^.dest;
-  Repeat
+  repeat
     count := iface^.width;
 
     { Align destination }
-    If (PtrUInt(dest) And $3) <> 0 Then
-    Begin
-      Pshort16(dest)^ := iface^.value;
+    if (PtrUInt(dest) and $3) <> 0 then
+    begin
+      PUint16(dest)^ := iface^.value;
       Inc(dest, 2);
       Dec(count);
-    End;
+    end;
 
-    countshifted := count Shr 1;
+    countshifted := count shr 1;
 
-    While countshifted <> 0 Do
-    Begin
+    while countshifted <> 0 do
+    begin
       Dec(countshifted);
-      Pint32(dest)^ := value32;
+      PUint32(dest)^ := value32;
       Inc(dest, 4);
-    End;
+    end;
 
-    If (count And 1) <> 0 Then
-    Begin
-      Pshort16(dest)^ := iface^.value;
+    if (count and 1) <> 0 then
+    begin
+      PUint16(dest)^ := iface^.value;
       Inc(dest, 2);
-    End;
+    end;
 
     Inc(dest, iface^.add);
     Dec(iface^.height);
-  Until iface^.height = 0;
-End;
+  until iface^.height = 0;
+end;
 
 {$GOTO ON}
 
-Procedure ClearP_8(iface : PHermesClearInterface); CDecl;
-
-Label
+procedure ClearP_8(iface: PHermesClearInterface); cdecl;
+label
   yloop;
-
-Var
-  count, shiftcount : DWord;
-  value32 : int32;
-  value : char8;
-  dest : Pchar8;
-
-Begin
+var
+  count, shiftcount: DWord;
+  value32: Uint32;
+  value: Uint8;
+  dest: PUint8;
+begin
   dest := iface^.dest;
 
-  value := iface^.value And $ff;
-  value32 := (value Shl 24) Or (value Shl 16) Or (value Shl 8) Or value;
+  value := iface^.value and $ff;
+  value32 := (value shl 24) or (value shl 16) or (value shl 8) or value;
 
-  Repeat
+  repeat
     count := iface^.width;
 
-    While (PtrUInt(dest) And $3) <> 0 Do    { Align to dword boundary }
-    Begin
+    while (PtrUInt(dest) and $3) <> 0 do    { Align to dword boundary }
+    begin
       dest^ := value;
       Inc(dest);
       Dec(count);
-      If count = 0 Then
-        Goto yloop;                { GOTO's are nice ;) }
-    End;
+      if count = 0 then
+        goto yloop;                { GOTO's are nice ;) }
+    end;
 
-    shiftcount := count Shr 2;
+    shiftcount := count shr 2;
 
-    While shiftcount <> 0 Do
-    Begin
+    while shiftcount <> 0 do
+    begin
       Dec(shiftcount);
-      Pint32(dest)^ := value32;
+      PUint32(dest)^ := value32;
       Inc(dest, 4);
-    End;
+    end;
 
-    count := count And $3;
-    While count <> 0 Do
-    Begin
+    count := count and $3;
+    while count <> 0 do
+    begin
       Dec(count);
       dest^ := value;
       Inc(dest);
-    End;
+    end;
 
 yloop:
     Inc(dest, iface^.add);
     Dec(iface^.height);
-  Until iface^.height = 0;
-End;
+  until iface^.height = 0;
+end;

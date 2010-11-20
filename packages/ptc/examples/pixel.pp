@@ -8,45 +8,39 @@ Ported to FPC by Nikolay Nikolov (nickysn@users.sourceforge.net)
  This source code is licensed under the GNU GPL
 }
 
-Program PixelExample;
+program PixelExample;
 
 {$MODE objfpc}
 
-Uses
+uses
   ptc;
 
-Procedure putpixel(surface : TPTCSurface; x, y : Integer; r, g, b : char8);
-
-Var
-  pixels : Pint32;
-  color : int32;
-
-Begin
+procedure putpixel(surface: TPTCSurface; x, y: Integer; r, g, b: Uint8);
+var
+  pixels: PUint32;
+  color: Uint32;
+begin
   { lock surface }
   pixels := surface.lock;
-  Try
+  try
     { pack the color integer from r,g,b components }
-    color := (r Shl 16) Or (g Shl 8) Or b;
+    color := (r shl 16) or (g shl 8) or b;
 
     { plot the pixel on the surface }
     pixels[x + y * surface.width] := color;
-  Finally
+  finally
     { unlock surface }
     surface.unlock;
-  End;
-End;
+  end;
+end;
 
-Var
-  console : TPTCConsole;
-  surface : TPTCSurface;
-  format : TPTCFormat;
-
-Begin
-  format := Nil;
-  surface := Nil;
-  console := Nil;
-  Try
-    Try
+var
+  console: TPTCConsole = nil;
+  surface: TPTCSurface = nil;
+  format: TPTCFormat = nil;
+begin
+  try
+    try
       { create console }
       console := TPTCConsole.Create;
 
@@ -60,7 +54,7 @@ Begin
       surface := TPTCSurface.Create(console.width, console.height, format);
 
       { plot a white pixel in the middle of the surface }
-      putpixel(surface, surface.width Div 2, surface.height Div 2, 255, 255, 255);
+      putpixel(surface, surface.width div 2, surface.height div 2, 255, 255, 255);
 
       { copy to console }
       surface.copy(console);
@@ -70,15 +64,15 @@ Begin
 
       { read key }
       console.ReadKey;
-    Finally
+    finally
       console.close;
       console.Free;
       surface.Free;
       format.Free;
-    End;
-  Except
-    On error : TPTCError Do
+    end;
+  except
+    on error: TPTCError do
       { report error }
       error.report;
-  End;
-End.
+  end;
+end.

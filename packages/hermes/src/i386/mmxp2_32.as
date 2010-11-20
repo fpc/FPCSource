@@ -3,12 +3,12 @@
 # Copyright (c) 1998 Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 #   and (c) 1999 Jonathan Matthew (jmatthew@uq.net.au)
 # This source code is licensed under the GNU LGPL
-# 
+#
 # Please refer to the file COPYING.LIB contained in the distribution for
-# licensing conditions          
+# licensing conditions
 #
 # COPYRIGHT NOTICE
-# 
+#
 # This file partly contains code that is (c) Intel Corporation, specifically
 # the mode detection routine, and the converter to 15 bit (8 pixel
 # conversion routine from the mmx programming tutorial pages).
@@ -50,7 +50,7 @@ mmx32_bgr555_mul: .long 0x00082000,0x00082000
 
 .text
 
-_ConvertMMXpII32_24RGB888: 
+_ConvertMMXpII32_24RGB888:
 
         # set up mm6 as the mask, mm7 as zero
         movq mmx32_rgb888_mask,%mm6
@@ -61,7 +61,7 @@ _ConvertMMXpII32_24RGB888:
         jnz _ConvertMMXpII32_24RGB888.L1
         jmp _ConvertMMXpII32_24RGB888.L2
 
-_ConvertMMXpII32_24RGB888.L1: 
+_ConvertMMXpII32_24RGB888.L1:
 
         movq (%esi),%mm0                # A R G B a r g b
         pand %mm6,%mm0                  # 0 R G B 0 r g b
@@ -92,11 +92,11 @@ _ConvertMMXpII32_24RGB888.L1:
         subl $4,%ecx
         jnz _ConvertMMXpII32_24RGB888.L1
 
-_ConvertMMXpII32_24RGB888.L2: 
+_ConvertMMXpII32_24RGB888.L2:
         movl %edx,%ecx
         andl $3,%ecx
         jz _ConvertMMXpII32_24RGB888.L4
-_ConvertMMXpII32_24RGB888.L3: 
+_ConvertMMXpII32_24RGB888.L3:
         movb (%esi),%al
         movb 1(%esi),%bl
         movb 2(%esi),%dl
@@ -107,12 +107,12 @@ _ConvertMMXpII32_24RGB888.L3:
         addl $3,%edi
         decl %ecx
         jnz _ConvertMMXpII32_24RGB888.L3
-_ConvertMMXpII32_24RGB888.L4: 
+_ConvertMMXpII32_24RGB888.L4:
         jmp _mmxreturn
 
 
 
-_ConvertMMXpII32_16RGB565: 
+_ConvertMMXpII32_16RGB565:
 
         # set up masks
         movq mmx32_rgb565_b,%mm5
@@ -124,7 +124,7 @@ _ConvertMMXpII32_16RGB565:
         jnz _ConvertMMXpII32_16RGB565.L1
         jmp _ConvertMMXpII32_16RGB565.L2 # not necessary at the moment, but doesnt hurt (much)
 
-_ConvertMMXpII32_16RGB565.L1: 
+_ConvertMMXpII32_16RGB565.L1:
         movq (%esi),%mm0        # argb
         movq %mm0,%mm1          # argb
         pand %mm6,%mm0          # 00g0
@@ -155,11 +155,11 @@ _ConvertMMXpII32_16RGB565.L1:
         decl %ecx
         jnz _ConvertMMXpII32_16RGB565.L1
 
-_ConvertMMXpII32_16RGB565.L2: 
+_ConvertMMXpII32_16RGB565.L2:
         movl %edx,%ecx
         andl $3,%ecx
         jz _ConvertMMXpII32_16RGB565.L4
-_ConvertMMXpII32_16RGB565.L3: 
+_ConvertMMXpII32_16RGB565.L3:
         movb (%esi),%al
         movb 1(%esi),%bh
         movb 2(%esi),%ah
@@ -175,11 +175,11 @@ _ConvertMMXpII32_16RGB565.L3:
         decl %ecx
         jnz _ConvertMMXpII32_16RGB565.L3
 
-_ConvertMMXpII32_16RGB565.L4: 
+_ConvertMMXpII32_16RGB565.L4:
         jmp _mmxreturn
 
 
-_ConvertMMXpII32_16BGR565: 
+_ConvertMMXpII32_16BGR565:
 
         movq mmx32_rgb565_r,%mm5
         movq mmx32_rgb565_g,%mm6
@@ -190,7 +190,7 @@ _ConvertMMXpII32_16BGR565:
         jnz _ConvertMMXpII32_16BGR565.L1
         jmp _ConvertMMXpII32_16BGR565.L2
 
-_ConvertMMXpII32_16BGR565.L1: 
+_ConvertMMXpII32_16BGR565.L1:
         movq (%esi),%mm0                # a r g b
         movq %mm0,%mm1                  # a r g b
         pand %mm6,%mm0                  # 0 0 g 0
@@ -225,10 +225,10 @@ _ConvertMMXpII32_16BGR565.L1:
         decl %ecx
         jnz _ConvertMMXpII32_16BGR565.L1
 
-_ConvertMMXpII32_16BGR565.L2: 
+_ConvertMMXpII32_16BGR565.L2:
         andl $3,%edx
         jz _ConvertMMXpII32_16BGR565.L4
-_ConvertMMXpII32_16BGR565.L3: 
+_ConvertMMXpII32_16BGR565.L3:
         movb 2(%esi),%al
         movb 1(%esi),%bh
         movb (%esi),%ah
@@ -244,10 +244,10 @@ _ConvertMMXpII32_16BGR565.L3:
         decl %edx
         jnz _ConvertMMXpII32_16BGR565.L3
 
-_ConvertMMXpII32_16BGR565.L4: 
+_ConvertMMXpII32_16BGR565.L4:
         jmp _mmxreturn
 
-_ConvertMMXpII32_16BGR555: 
+_ConvertMMXpII32_16BGR555:
 
         # the 16BGR555 converter is identical to the RGB555 one,
         # except it uses a different multiplier for the pmaddwd
@@ -261,19 +261,19 @@ _ConvertMMXpII32_16BGR555:
 # would almost certainly be faster, even if only a little.
 # I did rename 'mmx32_rgb555_add' to 'mmx32_rgb555_mul', which is
 # (I think) a more accurate name..
-_ConvertMMXpII32_16RGB555: 
+_ConvertMMXpII32_16RGB555:
 
         movq mmx32_rgb555_mul,%mm7
-_convert_bgr555_cheat: 
+_convert_bgr555_cheat:
         movq mmx32_rgb555_g,%mm6
 
-        movl %ecx,%edx                     # Save ecx 
+        movl %ecx,%edx                     # Save ecx
 
         andl $0x0fffffff8,%ecx             # clear lower three bits
         jnz _convert_bgr555_cheat.L_OK
         jmp _convert_bgr555_cheat.L2
 
-_convert_bgr555_cheat.L_OK: 
+_convert_bgr555_cheat.L_OK:
 
         movq 8(%esi),%mm2
 
@@ -289,7 +289,7 @@ _convert_bgr555_cheat.L_OK:
         pmaddwd %mm7,%mm1
         pand %mm6,%mm2
 
-_convert_bgr555_cheat.L1: 
+_convert_bgr555_cheat.L1:
         movq 24(%esi),%mm4
         pand %mm6,%mm0
 
@@ -346,13 +346,13 @@ _convert_bgr555_cheat.L1:
         jmp _convert_bgr555_cheat.L1
 
 
-_convert_bgr555_cheat.L2: 
+_convert_bgr555_cheat.L2:
         movl %edx,%ecx
 
         andl $7,%ecx
         jz _convert_bgr555_cheat.L4
 
-_convert_bgr555_cheat.L3: 
+_convert_bgr555_cheat.L3:
         movl (%esi),%ebx
         addl $4,%esi
 
@@ -379,8 +379,5 @@ _convert_bgr555_cheat.L3:
         decl %ecx
         jnz _convert_bgr555_cheat.L3
 
-_convert_bgr555_cheat.L4: 
+_convert_bgr555_cheat.L4:
         jmp _mmxreturn
-
-
-

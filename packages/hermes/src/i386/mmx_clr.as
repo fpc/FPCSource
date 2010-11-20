@@ -2,7 +2,7 @@
 # MMX surface clear routines for HERMES
 # Copyright (c) 1998 Christian Nentwich (c.nentwich@cs.ucl.ac.uk)
 # This source code is licensed under the GNU LGPL
-# 
+#
 # Please refer to the file COPYING.LIB contained in the distribution for
 # licensing conditions
 #
@@ -25,13 +25,13 @@
 ##  16: int add
 
 
-_ClearMMX_32: 
+_ClearMMX_32:
         pushl %ebp
         movl %esp,%ebp
 
         movl 8(%ebp),%ebp
 
-        movl 4(%ebp),%eax       # pixel value   
+        movl 4(%ebp),%eax       # pixel value
         movd 4(%ebp),%mm0
 
         movl 12(%ebp),%edx      # height
@@ -41,7 +41,7 @@ _ClearMMX_32:
         movl (%ebp),%edi        # destination
 
         por %mm1,%mm0
-_ClearMMX_32.L_y: 
+_ClearMMX_32.L_y:
         movl 8(%ebp),%ecx
 
         movl %ecx,%ebx
@@ -49,7 +49,7 @@ _ClearMMX_32.L_y:
         shrl %ecx
         jz _ClearMMX_32.L_last
 
-_ClearMMX_32.L_x: 
+_ClearMMX_32.L_x:
         movq %mm0,(%edi)
         addl $8,%edi
 
@@ -57,14 +57,14 @@ _ClearMMX_32.L_x:
         jnz _ClearMMX_32.L_x
 
 
-_ClearMMX_32.L_last: 
+_ClearMMX_32.L_last:
         testl $1,%ebx
         jz _ClearMMX_32.L_endline
 
         movl %eax,(%edi)
         addl $4,%edi
 
-_ClearMMX_32.L_endline: 
+_ClearMMX_32.L_endline:
 
         addl 16(%ebp),%edi
 
@@ -78,18 +78,18 @@ _ClearMMX_32.L_endline:
 
 
 
-_ClearMMX_24: 
+_ClearMMX_24:
         ret
 
 
 
-_ClearMMX_16: 
+_ClearMMX_16:
         pushl %ebp
         movl %esp,%ebp
 
         movl 8(%ebp),%ebp
 
-        movl 4(%ebp),%eax       # pixel value   
+        movl 4(%ebp),%eax       # pixel value
         movl 4(%ebp),%ebx
 
         movl 12(%ebp),%edx      # height
@@ -106,7 +106,7 @@ _ClearMMX_16:
         psllq $32,%mm0
 
         por %mm1,%mm0
-_ClearMMX_16.L_y: 
+_ClearMMX_16.L_y:
         movl 8(%ebp),%ecx
 
         testl $3,%edi           # Check if destination is aligned mod 4
@@ -118,20 +118,20 @@ _ClearMMX_16.L_y:
         decl %ecx
         jz _ClearMMX_16.L_endline
 
-_ClearMMX_16.L_aligned: 
+_ClearMMX_16.L_aligned:
         movl %ecx,%ebx
         shrl $2,%ecx
 
         jz _ClearMMX_16.L_last
 
-_ClearMMX_16.L_x: 
+_ClearMMX_16.L_x:
         movq %mm0,(%edi)
         addl $8,%edi
 
         decl %ecx
         jnz _ClearMMX_16.L_x
 
-_ClearMMX_16.L_last: 
+_ClearMMX_16.L_last:
         andl $3,%ebx
         jz _ClearMMX_16.L_endline
 
@@ -150,7 +150,7 @@ _ClearMMX_16.L_last:
         decl %ebx
         jnz _ClearMMX_16.L_endline
 
-_ClearMMX_16.L_endline: 
+_ClearMMX_16.L_endline:
         addl 16(%ebp),%edi
 
         decl %edx
@@ -165,13 +165,13 @@ _ClearMMX_16.L_endline:
 
 ## Clear8_x86 isnt optimised fully yet as it seems to be a tiny bit slower
 ## than the C routine
-_ClearMMX_8: 
+_ClearMMX_8:
         pushl %ebp
         movl %esp,%ebp
 
         movl 8(%ebp),%ebp
 
-        movl 4(%ebp),%eax       # pixel value           
+        movl 4(%ebp),%eax       # pixel value
         movl 4(%ebp),%ebx
 
         movl 12(%ebp),%edx      # height
@@ -195,7 +195,7 @@ _ClearMMX_8:
 
         por %mm1,%mm0
 
-_ClearMMX_8.L_y: 
+_ClearMMX_8.L_y:
         movl 8(%ebp),%ecx
 
         testl $3,%edi           # Align mod 4
@@ -226,20 +226,20 @@ _ClearMMX_8.L_y:
         decl %ebx
         jz _ClearMMX_8.L_aligned
 
-_ClearMMX_8.L_aligned: 
+_ClearMMX_8.L_aligned:
         movl %ecx,%ebx          # Store ecx for later
 
         shrl $3,%ecx            # We write 8 pixels at once
         jz _ClearMMX_8.L_last
 
-_ClearMMX_8.L_x: 
+_ClearMMX_8.L_x:
         movq %mm0,(%edi)
         addl $8,%edi
 
         decl %ecx
         jnz _ClearMMX_8.L_x
 
-_ClearMMX_8.L_last: 
+_ClearMMX_8.L_last:
         movl %ebx,%ecx          # Clean up trailing pixels
 
         andl $7,%ecx            # Could be up to 7 left
@@ -253,11 +253,11 @@ _ClearMMX_8.L_last:
 
         subl $4,%ecx
 
-_ClearMMX_8.L_lessthanfour: 
+_ClearMMX_8.L_lessthanfour:
         rep
  stosb              # Clean up the very rest
 
-_ClearMMX_8.L_endline: 
+_ClearMMX_8.L_endline:
         addl 16(%ebp),%edi
 
         decl %edx
@@ -267,5 +267,3 @@ _ClearMMX_8.L_endline:
 
         popl %ebp
         ret
-
-

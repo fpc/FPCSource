@@ -652,6 +652,15 @@ packages/paszlib/*.s
 packages/paszlib/.gdbinit
 packages/paszlib/fpcmade.*
 packages/paszlib/units
+packages/ptc/src/dos/vga/*.bak
+packages/ptc/src/dos/vga/*.exe
+packages/ptc/src/dos/vga/*.o
+packages/ptc/src/dos/vga/*.ppu
+packages/ptc/src/dos/vga/*.s
+packages/ptc/src/dos/vga/Package.fpc
+packages/ptc/src/dos/vga/build-stamp.*
+packages/ptc/src/dos/vga/fpcmade.*
+packages/ptc/src/dos/vga/units
 packages/units
 rtl/*.bak
 rtl/*.exe
