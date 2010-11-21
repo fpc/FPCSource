@@ -3,10 +3,14 @@
 #
 
 [target]
-programs=madopenal captureplaybackopenal
+programs=captureplaybackopenal wavopenal
+programs_linux=madopenal
+programs_win32=madopenal
 
 [require]
-packages=openal mad oggvorbis a52 dts modplug matroska
+packages=openal oggvorbis a52 dts modplug matroska
+packages_linux=mad
+packages_win32=mad
 
 [install]
 fpcpackage=y

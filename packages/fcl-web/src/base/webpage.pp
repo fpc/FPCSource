@@ -34,7 +34,7 @@ type
     function GetUrl(ParamNames, ParamValues, KeepParams: array of string; Action: string = ''): string; override;
     procedure BindJavascriptCallstackToElement(AComponent: TComponent; AnElement: THtmlCustomElement; AnEvent: string); override;
     procedure AddScriptFileReference(AScriptFile: String); override;
-    function DefaultMessageBoxHandler(Sender: TObject; AText: String; Buttons: TWebButtons): string; override;
+    function DefaultMessageBoxHandler(Sender: TObject; AText: String; Buttons: TWebButtons; ALoaded: string = ''): string; override;
     function CreateNewScript: TStringList; override;
     procedure FreeScript(var AScript: TStringList); override;
   end;
@@ -345,7 +345,7 @@ begin
 end;
 
 function TStandardWebController.DefaultMessageBoxHandler(Sender: TObject;
-  AText: String; Buttons: TWebButtons): string;
+  AText: String; Buttons: TWebButtons; ALoaded: string = ''): string;
 var i : integer;
     HasCancel: boolean;
     OnOk: string;

@@ -1059,34 +1059,42 @@ var
   chunksize: ptruint;
   poc: poschunk;
   pmc_next: pmemchunk_fixed;
+  pocfreelists: pfreelists;
 begin
   poc := poschunk(pointer(pmc)-(pmc^.size shr fixedoffsetshift));
+  { start memory access to poc^.freelists already }
+  pocfreelists := poc^.freelists;
   chunksize := pmc^.size and fixedsizemask;
-  if loc_freelists <> poc^.freelists then
-  begin
-    { deallocated in wrong thread! add to to-be-freed list of correct thread }
-    waitfree_fixed(pmc, poc);
-    exit(chunksize);
-  end;
-
-  dec(loc_freelists^.internal_status.currheapused, chunksize);
-  { insert the block in its freelist }
-  chunkindex := chunksize shr blockshift;
-  pmc_next := loc_freelists^.fixedlists[chunkindex];
-  pmc^.prev_fixed := nil;
-  pmc^.next_fixed := pmc_next;
-  if assigned(pmc_next) then
-    pmc_next^.prev_fixed := pmc;
-  loc_freelists^.fixedlists[chunkindex] := pmc;
-  { decrease used blocks count }
-  dec(poc^.used);
-  if poc^.used <= 0 then
+  if loc_freelists = pocfreelists then
     begin
-      { decrease used blocks count }
-      if poc^.used<0 then
-        HandleError(204);
-      { osblock can be freed? }
-      append_to_oslist(poc);
+      { decrease used blocks count (well in advance of poc^.used check below,
+        to avoid stalling due to a dependency) }
+      dec(poc^.used);
+
+      { insert the block in its freelist }
+      chunkindex := chunksize shr blockshift;
+      pmc_next := loc_freelists^.fixedlists[chunkindex];
+      pmc^.prev_fixed := nil;
+      pmc^.next_fixed := pmc_next;
+      if assigned(pmc_next) then
+        pmc_next^.prev_fixed := pmc;
+      loc_freelists^.fixedlists[chunkindex] := pmc;
+
+      dec(loc_freelists^.internal_status.currheapused, chunksize);
+
+      if poc^.used <= 0 then
+        begin
+          { decrease used blocks count }
+          if poc^.used<0 then
+            HandleError(204);
+          { osblock can be freed? }
+          append_to_oslist(poc);
+        end;
+    end
+  else
+    begin
+      { deallocated in wrong thread! add to to-be-freed list of correct thread }
+      waitfree_fixed(pmc, poc);
     end;
   result := chunksize;
 end;
@@ -1103,13 +1111,13 @@ begin
     exit(chunksize);
   end;
 
-  dec(loc_freelists^.internal_status.currheapused, chunksize);
   { insert the block in it's freelist }
   pmcv^.size := pmcv^.size and (not usedflag);
   append_to_list_var(pmcv);
   pmcv := try_concat_free_chunk(pmcv);
   if (pmcv^.size and (firstblockflag or lastblockflag)) = (firstblockflag or lastblockflag) then
     append_to_oslist_var(pmcv);
+  dec(loc_freelists^.internal_status.currheapused, chunksize);
   result := chunksize;
 end;
 
@@ -1138,6 +1146,7 @@ begin
 {$endif}
   { loc_freelists is a threadvar, so it can be worth it to prefetch }
   loc_freelists := @freelists;
+  prefetch(loc_freelists^.internal_status.currheapused);
   { check if this is a fixed- or var-sized chunk }
   if (pmc^.size and fixedsizeflag) = 0 then
     result := sysfreemem_var(loc_freelists, pmemchunk_var(p-sizeof(tmemchunk_var_hdr)))

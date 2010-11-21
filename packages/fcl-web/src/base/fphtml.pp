@@ -38,7 +38,7 @@ type
   end;
   TWebButtons = array of TWebButton;
 
-  TMessageBoxHandler = function(Sender: TObject; AText: String; Buttons: TWebButtons): string of object;
+  TMessageBoxHandler = function(Sender: TObject; AText: String; Buttons: TWebButtons; Loaded: string = ''): string of object;
   TWebController = class;
   THTMLContentProducer = class;
 
@@ -53,7 +53,7 @@ type
     constructor Create(const AWebController: TWebController); virtual;
     destructor Destroy; override;
     procedure AddScriptLine(ALine: String); virtual;
-    procedure MessageBox(AText: String; Buttons: TWebButtons); virtual;
+    procedure MessageBox(AText: String; Buttons: TWebButtons; Loaded: string = ''); virtual;
     procedure RedrawContentProducer(AContentProducer: THTMLContentProducer); virtual;
     procedure CallServerEvent(AHTMLContentProducer: THTMLContentProducer; AEvent: Integer; APostVariable: string = ''); virtual;
     procedure Clear; virtual;
@@ -92,8 +92,8 @@ type
     procedure CleanupAfterRequest; virtual;
     procedure BeforeGenerateHead; virtual;
     procedure BindJavascriptCallstackToElement(AComponent: TComponent; AnElement: THtmlCustomElement; AnEvent: string); virtual; abstract;
-    function MessageBox(AText: String; Buttons: TWebButtons): string; virtual;
-    function DefaultMessageBoxHandler(Sender: TObject; AText: String; Buttons: TWebButtons): string; virtual; abstract;
+    function MessageBox(AText: String; Buttons: TWebButtons; ALoaded: string = ''): string; virtual;
+    function DefaultMessageBoxHandler(Sender: TObject; AText: String; Buttons: TWebButtons;  ALoaded: string = ''): string; virtual; abstract;
     function CreateNewScript: TStringList; virtual; abstract;
     procedure FreeScript(var AScript: TStringList); virtual; abstract;
     property ScriptFileReferences: TStringList read GetScriptFileReferences;
@@ -433,6 +433,8 @@ const SimpleOkButton: array[0..0] of TWebButton = ((buttontype: btok;caption: 'O
 
 const jseButtonClick = 1000;
       jseInputChange = 1001;
+      jseFormReset   = 1002;
+      jseFormSubmit  = 1003;
 
 implementation
 Uses
@@ -469,9 +471,9 @@ begin
   FScript.Add(ALine);
 end;
 
-procedure TJavaScriptStack.MessageBox(AText: String; Buttons: TWebButtons);
+procedure TJavaScriptStack.MessageBox(AText: String; Buttons: TWebButtons; Loaded: string = '');
 begin
-  AddScriptLine(WebController.MessageBox(AText,Buttons));
+  AddScriptLine(WebController.MessageBox(AText,Buttons,Loaded));
 end;
 
 procedure TJavaScriptStack.RedrawContentProducer(AContentProducer: THTMLContentProducer);
@@ -1231,12 +1233,12 @@ begin
   // do nothing
 end;
 
-function TWebController.MessageBox(AText: String; Buttons: TWebButtons): string;
+function TWebController.MessageBox(AText: String; Buttons: TWebButtons; ALoaded: string = ''): string;
 begin
   if assigned(MessageBoxHandler) then
-    result := MessageBoxHandler(self,AText,Buttons)
+    result := MessageBoxHandler(self,AText,Buttons,ALoaded)
   else
-    result := DefaultMessageBoxHandler(self,AText,Buttons);
+    result := DefaultMessageBoxHandler(self,AText,Buttons,ALoaded);
 end;
 
 function TWebController.GetRequest: TRequest;

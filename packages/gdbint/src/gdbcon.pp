@@ -330,7 +330,7 @@ var p : pchar;
 begin
   p:=gdberrorbuf.buf;
   if (p^=#0) and got_error then
-    GetError:=pchar(longint(gdboutputbuf.buf)+gdboutputbuf.idx)
+    GetError:=pchar(ptrint(gdboutputbuf.buf)+gdboutputbuf.idx)
   else
     GetError:=p;
 end;

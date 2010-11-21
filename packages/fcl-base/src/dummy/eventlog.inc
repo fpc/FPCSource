@@ -44,6 +44,12 @@ begin
   Result:=True;
 end;
 
+Function TEventLog.UnRegisterMessageFile : Boolean;
+
+begin
+  Result:=True;
+end;
+
 function TEventLog.MapTypeToCategory(EventType: TEventType): Word;
 begin
   Result:=0;

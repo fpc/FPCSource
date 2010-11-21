@@ -264,7 +264,10 @@ begin
       end;
     M:=FindModule(MC); // Check if a module exists already
     If (M=Nil) then
-      M:=MC.Create(Self);
+      if Mi.SkipStreaming then
+        M:=MC.CreateNew(Self)
+      else
+        M:=MC.Create(Self);
     SetBaseURL(M,MN,ARequest);
     if M.Kind=wkOneShot then
       begin

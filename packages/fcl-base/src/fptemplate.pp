@@ -61,7 +61,10 @@ Type
     FOnGetParam: TGetParamEvent;                           //Event handler to use for templates containing simple tags only (ex: {Name})
     FOnReplaceTag: TReplaceTagEvent;                       //Event handler to use for templates containing tags with parameters (ex: <#TagName paramname1="paramvalue1" paramname2="paramvalue2">)
     function GetDelimiter(Index: integer): TParseDelimiter;
+    function GetNameByIndex(index : Integer): String;
     function GetValue(Key : String): String;
+    function GetValueByIndex(index : Integer): String;
+    function GetValueCount: Integer;
     procedure SetDelimiter(Index: integer; const AValue: TParseDelimiter);
     procedure SetValue(Key : String; const AValue: String);
     Function IntParseString(Src : String) : String;
@@ -83,6 +86,9 @@ Type
     Property ParamEndDelimiter : TParseDelimiter Index 4 Read GetDelimiter Write SetDelimiter;
     Property ParamValueSeparator : TParseDelimiter Index 5 Read GetDelimiter Write SetDelimiter;
     Property Values[Key : String] : String Read GetValue Write SetValue; // Contains static values.                          //used only when AllowTagParams = false
+    Property ValuesByIndex[index : Integer] : String Read GetValueByIndex; // Contains static values.                        //used only when AllowTagParams = false
+    Property NamesByIndex[index : Integer] : String Read GetNameByIndex;  // Contains static values.                        //used only when AllowTagParams = false
+    Property ValueCount: Integer Read GetValueCount;                                                                         //used only when AllowTagParams = false
     Property Recursive : Boolean Read FRecursive Write FRecursive;                                                           //used only when AllowTagParams = false
     Property AllowTagParams : Boolean Read FAllowTagParams Write FAllowTagParams;
   end;
@@ -178,6 +184,21 @@ begin
     end;
 end;
 
+function TTemplateParser.GetValueByIndex(index : Integer): String;
+begin
+  Result:='';
+  If Assigned(FValues) then
+    Result:=TStringItem(FValues.Objects[index]).Value;
+end;
+
+function TTemplateParser.GetValueCount: Integer;
+begin
+  if assigned(FValues) then
+    result := FValues.Count
+  else
+    result := 0;
+end;
+
 function TTemplateParser.GetDelimiter(Index: integer): TParseDelimiter;
 begin
   case Index of
@@ -188,6 +209,13 @@ begin
     else
      Result:=FParamValueSeparator;
   end;
+end;
+
+function TTemplateParser.GetNameByIndex(index : Integer): String;
+begin
+  Result:='';
+  If Assigned(FValues) then
+    Result:=FValues.ValueFromIndex[index];
 end;
 
 procedure TTemplateParser.SetDelimiter(Index: integer;
