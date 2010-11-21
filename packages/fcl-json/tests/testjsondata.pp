@@ -157,6 +157,7 @@ type
   TTestObject = class(TTestJSON)
   private
     procedure TestAddBoolean(B : Boolean);
+    Procedure TestAccessError;
   published
     Procedure TestCreate;
     Procedure TestCreateString;
@@ -184,6 +185,7 @@ type
     procedure TestRemove;
     procedure TestClone;
     procedure TestExtract;
+    Procedure TestNonExistingAccessError;
   end;
 
 
@@ -998,7 +1000,7 @@ end;
 procedure TTestArray.TestCreateFloat;
 
 Const
-  S = 1.2;
+  S : double = 1.2;
 
 Var
   J : TJSONArray;
@@ -1564,6 +1566,20 @@ begin
 
 end;
 
+procedure TTestObject.TestAccessError;
+
+Var
+   J : TJSONObject;
+
+begin
+  J:=TJSonObject.Create;
+  try
+    J.Strings['NonExist'];
+  finally
+    FreeAndNil(J);
+  end;
+end;
+
 procedure TTestObject.TestAddBooleanTrue;
 
 begin
@@ -1812,6 +1828,11 @@ begin
 
 end;
 
+procedure TTestObject.TestNonExistingAccessError;
+begin
+  AssertException(EJSON,@TestAccessError);
+end;
+
 
 procedure TTestObject.TestCreateString;
 
@@ -1907,7 +1928,7 @@ procedure TTestObject.TestCreateFloat;
 
 Const
   A = 'A';
-  S = 1.2;
+  S : double = 1.2;
 
 Var
   J : TJSONObject;

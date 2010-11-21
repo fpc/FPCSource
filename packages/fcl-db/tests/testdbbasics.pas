@@ -22,17 +22,12 @@ type
 
     procedure FTestDelete1(TestCancelUpdate : boolean);
     procedure FTestDelete2(TestCancelUpdate : boolean);
-    procedure FTestXMLDatasetDefinition(ADataset : TDataset);
-    procedure TestAddIndexFieldType(AFieldType : TFieldType; ActiveDS : boolean);
   protected
     procedure SetUp; override;
     procedure TearDown; override;
   published
-    procedure TestFileNameProperty;
-    procedure TestClientDatasetAsMemDataset;
     procedure TestCancelUpdDelete1;
     procedure TestCancelUpdDelete2;
-    procedure TestSafeAsXML;
     procedure TestAppendInsertRecord;
     procedure TestBookmarks;
     procedure TestBookmarkValid;
@@ -50,31 +45,6 @@ type
     procedure TestSetFieldValues;
     procedure TestGetFieldValues;
 
-    procedure TestAddIndex;
-    procedure TestAddDescIndex;
-    procedure TestAddCaseInsIndex;
-    procedure TestInactSwitchIndex;
-
-    procedure TestAddIndexInteger;
-    procedure TestAddIndexSmallInt;
-    procedure TestAddIndexBoolean;
-    procedure TestAddIndexFloat;
-    procedure TestAddIndexLargeInt;
-    procedure TestAddIndexDateTime;
-    procedure TestAddIndexCurrency;
-    procedure TestAddIndexBCD;
-
-    procedure TestAddIndexActiveDS;
-    procedure TestAddIndexEditDS;
-
-    procedure TestIndexFieldNames;
-    procedure TestIndexFieldNamesAct;
-    
-    procedure TestIndexCurRecord;
-
-    procedure TestAddDblIndex;
-    procedure TestIndexEditRecord;
-
     procedure TestNullAtOpen;
 
     procedure TestSupportIntegerFields;
@@ -88,15 +58,10 @@ type
     procedure TestSupportBCDFields;
     procedure TestSupportFixedStringFields;
 
-    procedure TestIsEmpty;
     procedure TestAppendOnEmptyDataset;
     procedure TestInsertOnEmptyDataset;
 
-    procedure TestBufDatasetCancelUpd; //bug 6938
     procedure TestEofAfterFirst;           //bug 7211
-    procedure TestBufDatasetCancelUpd1;
-    procedure TestMultipleDeleteUpdateBuffer;
-    procedure TestDoubleDelete;
     procedure TestDoubleClose;
     procedure TestCalculatedField;
     procedure TestAssignFieldftString;
@@ -106,6 +71,7 @@ type
     procedure TestMove;                    // bug 5048
     procedure TestActiveBufferWhenClosed;
     procedure TestEOFBOFClosedDataset;
+    procedure TestLayoutChangedEvents;
     procedure TestDataEventsResync;
     procedure TestBug7007;
     procedure TestBug6893;
@@ -118,6 +84,53 @@ type
     procedure TestExceptionLocateClosed;    // bug 13938
     procedure TestCanModifySpecialFields;
   end;
+
+  { TTestBufDatasetDBBasics }
+
+  TTestBufDatasetDBBasics = class(TTestCase)
+  private
+    procedure FTestXMLDatasetDefinition(ADataset : TDataset);
+    procedure TestAddIndexFieldType(AFieldType : TFieldType; ActiveDS : boolean);
+  protected
+    procedure SetUp; override;
+    procedure TearDown; override;
+  published
+    procedure TestClosedIndexFieldNames; // bug 16695
+    procedure TestFileNameProperty;
+    procedure TestClientDatasetAsMemDataset;
+    procedure TestSafeAsXML;
+    procedure TestIsEmpty;
+    procedure TestBufDatasetCancelUpd; //bug 6938
+    procedure TestBufDatasetCancelUpd1;
+    procedure TestMultipleDeleteUpdateBuffer;
+    procedure TestDoubleDelete;
+  // index tests
+    procedure TestAddIndexInteger;
+    procedure TestAddIndexSmallInt;
+    procedure TestAddIndexBoolean;
+    procedure TestAddIndexFloat;
+    procedure TestAddIndexLargeInt;
+    procedure TestAddIndexDateTime;
+    procedure TestAddIndexCurrency;
+    procedure TestAddIndexBCD;
+
+    procedure TestAddIndex;
+    procedure TestAddDescIndex;
+    procedure TestAddCaseInsIndex;
+    procedure TestInactSwitchIndex;
+
+    procedure TestAddIndexActiveDS;
+    procedure TestAddIndexEditDS;
+
+    procedure TestIndexFieldNames;
+    procedure TestIndexFieldNamesAct;
+
+    procedure TestIndexCurRecord;
+
+    procedure TestAddDblIndex;
+    procedure TestIndexEditRecord;
+  end;
+
 
   TTestUniDirectionalDBBasics = class(TTestDBBasics)
   end;
@@ -136,10 +149,8 @@ uses bufdataset, variants, strutils, sqldb;
 
 type THackDataLink=class(TdataLink);
 
-procedure TTestDBBasics.TestIsEmpty;
+procedure TTestBufDatasetDBBasics.TestIsEmpty;
 begin
-  if not (DBConnector.GetNDataset(5) is TCustomBufDataset) then
-    Ignore('This test only applies to TCustomBufDataset and descendents.');
   with tCustombufdataset(DBConnector.GetNDataset(True,1)) do
     begin
     open;
@@ -257,9 +268,9 @@ begin
 
           Next;
           if (i > ABufferCount) and not EOF then
-            AssertEquals('deCheckBrowseMode:0;deDataSetScroll:-1;DataSetScrolled:1;',DataEvents)
+            AssertEquals('deCheckBrowseMode:0;deDataSetScroll:-1;DataSetScrolled:1;DataSetChanged;',DataEvents)
           else
-            AssertEquals('deCheckBrowseMode:0;deDataSetScroll:0;DataSetScrolled:0;',DataEvents);
+            AssertEquals('deCheckBrowseMode:0;deDataSetScroll:0;DataSetScrolled:0;DataSetChanged;',DataEvents);
           DataEvents := '';
           end;
         AssertEquals(count,i-1);
@@ -325,6 +336,37 @@ begin
     end;
 end;
 
+procedure TTestDBBasics.TestLayoutChangedEvents;
+var aDatasource : TDataSource;
+    aDatalink   : TDataLink;
+    ds          : tdataset;
+
+begin
+  aDatasource := TDataSource.Create(nil);
+  aDatalink := TTestDataLink.Create;
+  try
+    aDatalink.DataSource := aDatasource;
+    ds := DBConnector.GetNDataset(6);
+    aDatasource.DataSet:=ds;
+    with ds do
+      begin
+      open;
+
+      DataEvents := '';
+      DisableControls;
+      Active:=False;
+      Active:=True;
+      EnableControls;
+      AssertEquals('deLayoutChange:0;DataSetChanged;',DataEvents);
+
+      close;
+      end;
+  finally
+    aDatasource.Free;
+    aDatalink.Free;
+  end;
+end;
+
 procedure TTestDBBasics.TestDataEventsResync;
 var i,count     : integer;
     aDatasource : TDataSource;
@@ -344,10 +386,10 @@ begin
       open;
       DataEvents := '';
       Resync([rmExact]);
-      AssertEquals('deDataSetChange:0;',DataEvents);
+      AssertEquals('deDataSetChange:0;DataSetChanged;',DataEvents);
       DataEvents := '';
       next;
-      AssertEquals('deCheckBrowseMode:0;DataEvent;deDataSetScroll:0;DataSetScrolled:1;',DataEvents);
+      AssertEquals('deCheckBrowseMode:0;DataEvent;deDataSetScroll:0;DataSetScrolled:1;DataSetChanged;',DataEvents);
       close;
       end;
   finally
@@ -536,6 +578,16 @@ begin
   DBConnector.StopTest;
 end;
 
+procedure TTestBufDatasetDBBasics.TestClosedIndexFieldNames;
+var s : string;
+    bufds: TCustomBufDataset;
+begin
+  bufds := DBConnector.GetNDataset(5) as TCustomBufDataset;
+  s := bufds.IndexFieldNames;
+  s := bufds.IndexName;
+  bufds.CompareBookmarks(nil,nil);
+end;
+
 procedure TTestDBBasics.TestCanModifySpecialFields;
 var ds    : TDataset;
     lds   : TDataset;
@@ -572,13 +624,11 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestSafeAsXML;
+procedure TTestBufDatasetDBBasics.TestSafeAsXML;
 var ds    : TDataset;
     LoadDs: TCustomBufDataset;
 begin
   ds := DBConnector.GetNDataset(true,5);
-  if not (ds is TCustomBufDataset) then
-    Ignore('This test only applies to TCustomBufDataset and descendents.');
 
   ds.open;
   TCustomBufDataset(ds).SaveToFile('test.xml');
@@ -589,16 +639,13 @@ begin
   FTestXMLDatasetDefinition(LoadDS);
 end;
 
-procedure TTestDBBasics.TestFileNameProperty;
+procedure TTestBufDatasetDBBasics.TestFileNameProperty;
 var ds1,ds2: TDataset;
     LoadDs: TCustomBufDataset;
 begin
   ds2 := nil;
   ds1 := DBConnector.GetNDataset(true,5);
   try
-    if not (ds1 is TCustomBufDataset) then
-      Ignore('This test only applies to TCustomBufDataset and descendents.');
-
     ds1.open;
     TCustomBufDataset(ds1).FileName:='test.xml';
     ds1.close;
@@ -614,7 +661,7 @@ begin
   end;
 end;
 
-procedure TTestDBBasics.TestClientDatasetAsMemDataset;
+procedure TTestBufDatasetDBBasics.TestClientDatasetAsMemDataset;
 var ds : TCustomBufDataset;
     i  : integer;
 begin
@@ -1037,7 +1084,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.FTestXMLDatasetDefinition(ADataset: TDataset);
+procedure TTestBufDatasetDBBasics.FTestXMLDatasetDefinition(ADataset: TDataset);
 var i : integer;
 begin
   AssertEquals(2,ADataset.FieldDefs.Count);
@@ -1141,7 +1188,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestAddIndexFieldType(AFieldType: TFieldType; ActiveDS : boolean);
+procedure TTestBufDatasetDBBasics.TestAddIndexFieldType(AFieldType: TFieldType; ActiveDS : boolean);
 var ds : TCustomBufDataset;
     FList : TStringList;
     LastValue : Variant;
@@ -1200,47 +1247,47 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestAddIndexSmallInt;
+procedure TTestBufDatasetDBBasics.TestAddIndexSmallInt;
 begin
   TestAddIndexFieldType(ftSmallint,False);
 end;
 
-procedure TTestDBBasics.TestAddIndexBoolean;
+procedure TTestBufDatasetDBBasics.TestAddIndexBoolean;
 begin
   TestAddIndexFieldType(ftBoolean,False);
 end;
 
-procedure TTestDBBasics.TestAddIndexFloat;
+procedure TTestBufDatasetDBBasics.TestAddIndexFloat;
 begin
   TestAddIndexFieldType(ftFloat,False);
 end;
 
-procedure TTestDBBasics.TestAddIndexInteger;
+procedure TTestBufDatasetDBBasics.TestAddIndexInteger;
 begin
   TestAddIndexFieldType(ftInteger,False);
 end;
 
-procedure TTestDBBasics.TestAddIndexLargeInt;
+procedure TTestBufDatasetDBBasics.TestAddIndexLargeInt;
 begin
   TestAddIndexFieldType(ftLargeint,False);
 end;
 
-procedure TTestDBBasics.TestAddIndexDateTime;
+procedure TTestBufDatasetDBBasics.TestAddIndexDateTime;
 begin
   TestAddIndexFieldType(ftDateTime,False);
 end;
 
-procedure TTestDBBasics.TestAddIndexCurrency;
+procedure TTestBufDatasetDBBasics.TestAddIndexCurrency;
 begin
   TestAddIndexFieldType(ftCurrency,False);
 end;
 
-procedure TTestDBBasics.TestAddIndexBCD;
+procedure TTestBufDatasetDBBasics.TestAddIndexBCD;
 begin
   TestAddIndexFieldType(ftBCD,False);
 end;
 
-procedure TTestDBBasics.TestAddIndex;
+procedure TTestBufDatasetDBBasics.TestAddIndex;
 var ds : TCustomBufDataset;
     AFieldType : TFieldType;
     FList : TStringList;
@@ -1284,7 +1331,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestAddDescIndex;
+procedure TTestBufDatasetDBBasics.TestAddDescIndex;
 var ds : TCustomBufDataset;
     AFieldType : TFieldType;
     FList : TStringList;
@@ -1328,7 +1375,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestAddCaseInsIndex;
+procedure TTestBufDatasetDBBasics.TestAddCaseInsIndex;
 var ds : TCustomBufDataset;
     AFieldType : TFieldType;
     FList : TStringList;
@@ -1371,7 +1418,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestInactSwitchIndex;
+procedure TTestBufDatasetDBBasics.TestInactSwitchIndex;
 // Test if the default-index is properly build when the active index is not
 // the default-index while opening then dataset
 var ds : TCustomBufDataset;
@@ -1400,14 +1447,14 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestAddIndexActiveDS;
+procedure TTestBufDatasetDBBasics.TestAddIndexActiveDS;
 var ds   : TCustomBufDataset;
     I    : integer;
 begin
   TestAddIndexFieldType(ftString,true);
 end;
 
-procedure TTestDBBasics.TestAddIndexEditDS;
+procedure TTestBufDatasetDBBasics.TestAddIndexEditDS;
 var ds        : TCustomBufDataset;
     I         : integer;
     LastValue : String;
@@ -1440,7 +1487,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestIndexFieldNamesAct;
+procedure TTestBufDatasetDBBasics.TestIndexFieldNamesAct;
 var ds : TCustomBufDataset;
     AFieldType : TFieldType;
     FList : TStringList;
@@ -1511,7 +1558,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestIndexCurRecord;
+procedure TTestBufDatasetDBBasics.TestIndexCurRecord;
 // Test if the currentrecord stays the same after an index change
 var ds : TCustomBufDataset;
     AFieldType : TFieldType;
@@ -1559,7 +1606,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestAddDblIndex;
+procedure TTestBufDatasetDBBasics.TestAddDblIndex;
 var ds : TCustomBufDataset;
     LastInteger : Integer;
     LastString : string;
@@ -1604,7 +1651,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestIndexEditRecord;
+procedure TTestBufDatasetDBBasics.TestIndexEditRecord;
 var ds : TCustomBufDataset;
     AFieldType : TFieldType;
     i : integer;
@@ -1638,7 +1685,7 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestIndexFieldNames;
+procedure TTestBufDatasetDBBasics.TestIndexFieldNames;
 var ds : TCustomBufDataset;
     AFieldType : TFieldType;
     PrevValue : String;
@@ -1898,6 +1945,7 @@ begin
 
   for i := 0 to testValuesCount-1 do
     begin
+    AssertEquals(CurrToStr(testCurrencyValues[i]),Fld.AsString);
     AssertEquals(testCurrencyValues[i],Fld.AsCurrency);
     AssertEquals(testCurrencyValues[i],Fld.AsFloat);
     ds.Next;
@@ -1969,11 +2017,9 @@ begin
   AParam.Free;
 end;
 
-procedure TTestDBBasics.TestBufDatasetCancelUpd;
+procedure TTestBufDatasetDBBasics.TestBufDatasetCancelUpd;
 var i : byte;
 begin
-  if not (DBConnector.GetNDataset(5) is TCustomBufDataset) then
-    Ignore('This test only applies to TCustomBufDataset and descendents.');
   with DBConnector.GetNDataset(5) as TCustomBufDataset do
     begin
     open;
@@ -2026,7 +2072,7 @@ begin
 
     DataEvents := '';
     query1.append;
-    AssertEquals('deCheckBrowseMode:0;deUpdateState:0;deDataSetChange:0;',DataEvents);
+    AssertEquals('deCheckBrowseMode:0;deUpdateState:0;deDataSetChange:0;DataSetChanged;',DataEvents);
     AssertEquals(5, datalink1.ActiveRecord);
     AssertEquals(6, datalink1.RecordCount);
     AssertEquals(6, query1.RecordCount);
@@ -2034,7 +2080,7 @@ begin
 
     DataEvents := '';
     query1.cancel;
-    AssertEquals('deCheckBrowseMode:0;deUpdateState:0;deDataSetChange:0;',DataEvents);
+    AssertEquals('deCheckBrowseMode:0;deUpdateState:0;deDataSetChange:0;DataSetChanged;',DataEvents);
     AssertEquals(5, datalink1.ActiveRecord);
     AssertEquals(6, datalink1.RecordCount);
     AssertEquals(6, query1.RecordCount);
@@ -2084,11 +2130,9 @@ begin
   end;
 end;
 
-procedure TTestDBBasics.TestBufDatasetCancelUpd1;
+procedure TTestBufDatasetDBBasics.TestBufDatasetCancelUpd1;
 var i : byte;
 begin
-  if not (DBConnector.GetNDataset(5) is TCustomBufDataset) then
-    Ignore('This test only applies to TCustomBufDataset and descendents.');
   with DBConnector.GetNDataset(5) as TCustomBufDataset do
     begin
     open;
@@ -2113,12 +2157,10 @@ begin
     end;
 end;
 
-procedure TTestDBBasics.TestMultipleDeleteUpdateBuffer;
+procedure TTestBufDatasetDBBasics.TestMultipleDeleteUpdateBuffer;
 var ds    : TDataset;
 begin
   ds := DBConnector.GetNDataset(true,5);
-  if not (ds is TCustomBufDataset) then
-    Ignore('This test only applies to TCustomBufDataset and descendents.');
 
   ds.open;
   with TCustomBufDataset(ds) do
@@ -2139,12 +2181,10 @@ begin
   ds.close;
 end;
 
-procedure TTestDBBasics.TestDoubleDelete;
+procedure TTestBufDatasetDBBasics.TestDoubleDelete;
 var ds    : TCustomBufDataset;
 begin
   ds := TCustomBufDataset(DBConnector.GetNDataset(true,5));
-  if not (ds is TCustomBufDataset) then
-    Ignore('This test only applies to TCustomBufDataset and descendents.');
 
   with ds do
     begin
@@ -2203,9 +2243,24 @@ begin
   inherited OneTimeTearDown;
 end;
 
+{ TTestBufDatasetDBBasics }
+
+procedure TTestBufDatasetDBBasics.SetUp;
+begin
+  DBConnector.StartTest;
+end;
+
+procedure TTestBufDatasetDBBasics.TearDown;
+begin
+  DBConnector.StopTest;
+end;
+
 initialization
   RegisterTestDecorator(TDBBasicsTestSetup, TTestDBBasics);
 
   if uppercase(dbconnectorname)='SQL' then
+    begin
+    RegisterTestDecorator(TDBBasicsTestSetup, TTestBufDatasetDBBasics);
     RegisterTestDecorator(TDBBasicsUniDirectionalTestSetup, TTestUniDirectionalDBBasics);
+    end;
 end.

@@ -63,6 +63,7 @@ Type
     Property IDFieldName;
     Property OnGetNewID;
     property OnGetParameterType;
+    Property Options;
   end;
 
 implementation
@@ -179,6 +180,7 @@ procedure TCustomSQLDBWebDataProvider.Notification(AComponent: TComponent;
   Operation: TOperation);
 
 begin
+  inherited;
   If (Operation=opRemove) then
     begin
     If (AComponent=FQuery) then

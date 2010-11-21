@@ -396,6 +396,7 @@ type
   TCustomBufDataset = class(TDBDataSet)
   private
     FFileName: string;
+    FReadFromFile   : boolean;
     FFileStream     : TFileStream;
     FDatasetReader  : TDataPacketReader;
     FIndexes        : array of TBufIndex;
@@ -535,7 +536,7 @@ type
     property IndexDefs : TIndexDefs read GetIndexDefs;
     property IndexName : String read GetIndexName write SetIndexName;
     property IndexFieldNames : String read GetIndexFieldNames write SetIndexFieldNames;
-    property UniDirectional: boolean read GetBufUniDirectional write SetBufUniDirectional;
+    property UniDirectional: boolean read GetBufUniDirectional write SetBufUniDirectional default False;
   end;
 
   TBufDataset = class(TCustomBufDataset)
@@ -1061,6 +1062,7 @@ begin
     begin
     FFileStream := TFileStream.Create(FileName,fmOpenRead);
     FDatasetReader := TFpcBinaryDatapacketReader.Create(FFileStream);
+    FReadFromFile := True;
     end;
   if assigned(FDatasetReader) then IntLoadFielddefsFromFile;
   CalcRecordSize;
@@ -1132,6 +1134,7 @@ begin
   SetLength(FFieldBufPositions,0);
 
   if assigned(FParser) then FreeAndNil(FParser);
+  FReadFromFile:=false;
 end;
 
 procedure TCustomBufDataset.InternalFirst;
@@ -2195,7 +2198,7 @@ end;
 
 function TCustomBufDataset.GetIndexFieldNames: String;
 begin
-  if FCurrentIndex<>FIndexes[1] then
+  if (FIndexesCount=0) or (FCurrentIndex<>FIndexes[1]) then
     result := ''
   else
     result := FCurrentIndex.FieldsName;
@@ -2203,7 +2206,10 @@ end;
 
 function TCustomBufDataset.GetIndexName: String;
 begin
-  result := FCurrentIndex.Name;
+  if FIndexesCount>0 then
+    result := FCurrentIndex.Name
+  else
+    result := '';
 end;
 
 function TCustomBufDataset.GetBufUniDirectional: boolean;
@@ -2630,7 +2636,7 @@ end;
 function TCustomBufDataset.CompareBookmarks(Bookmark1, Bookmark2: TBookmark
   ): Longint;
 begin
-  if FCurrentIndex.CompareBookmarks(Bookmark1,Bookmark2) then
+  if Assigned(FCurrentIndex) and FCurrentIndex.CompareBookmarks(Bookmark1,Bookmark2) then
     Result := 0
   else
     Result := -1;
@@ -2865,7 +2871,7 @@ end;
 
 function TCustomBufDataset.IsReadFromPacket: Boolean;
 begin
-  Result := (FDatasetReader<>nil) or (FFileName<>'');
+  Result := (FDatasetReader<>nil) or (FFileName<>'') or FReadFromFile;
 end;
 
 procedure TCustomBufDataset.ParseFilter(const AFilter: string);

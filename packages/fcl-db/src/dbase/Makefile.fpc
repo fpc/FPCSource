@@ -9,6 +9,9 @@ main=fcl-db
 units=dbf
 examples=testdbf
 
+[require]
+packages=fcl-base
+
 [compiler]
 options=-S2 -Sh
 

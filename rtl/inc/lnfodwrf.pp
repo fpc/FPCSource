@@ -54,8 +54,8 @@ type
 
 const
   EBUF_SIZE = 100;
-  
-{$WARNING This code is not thread-safe, and needs improvement}  
+
+{$WARNING This code is not thread-safe, and needs improvement}
 var
   { the input file to read DWARF debug info from, i.e. paramstr(0) }
   e : TExeFile;
@@ -615,7 +615,9 @@ begin
         DEBUG_WRITELN('DW_LNS_ADVANCE_PC (', hexstr(state.address, sizeof(state.address)*2), ')');
       end;
       DW_LNS_ADVANCE_LINE : begin
-        inc(state.line, ReadLEB128());
+        // inc(state.line, ReadLEB128()); negative values are allowed
+        // but those may generate a range check error
+        state.line := state.line + ReadLEB128();
         DEBUG_WRITELN('DW_LNS_ADVANCE_LINE (', state.line, ')');
       end;
       DW_LNS_SET_FILE : begin

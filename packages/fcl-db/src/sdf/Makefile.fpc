@@ -9,6 +9,9 @@ main=fcl-db
 units=sdfdata
 examples=testsdf testfix
 
+[require]
+packages=fcl-base
+
 [install]
 fpcpackage=y
 

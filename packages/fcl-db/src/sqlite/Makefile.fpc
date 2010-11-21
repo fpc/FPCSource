@@ -9,7 +9,7 @@ main=fcl-db
 units=customsqliteds sqliteds sqlite3ds
 
 [require]
-packages=sqlite
+packages=sqlite fcl-base
 
 [install]
 fpcpackage=y

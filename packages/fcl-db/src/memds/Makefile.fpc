@@ -10,6 +10,9 @@ units=memds
 examples=testpop testopen testld testcp
 rsts=memds
 
+[require]
+packages=fcl-base
+
 [install]
 fpcpackage=y
 

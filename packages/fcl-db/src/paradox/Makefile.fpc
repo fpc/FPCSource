@@ -10,7 +10,7 @@ units=paradox
 rsts=paradox
 
 [require]
-packages=pxlib
+packages=pxlib fcl-base
 
 [install]
 fpcpackage=y

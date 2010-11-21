@@ -63,8 +63,8 @@ type
   );
 
   TParseState = set of TStepState;
-
-
+  
+  TEditMask = type string;
 
 { TMaskUtils }
 

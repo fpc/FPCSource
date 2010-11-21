@@ -351,7 +351,7 @@ begin
           SqlType:=SQL_BIGINT;
           ColumnSize:=19;
         end;
-      ftString, ftBlob, ftMemo:
+      ftString, ftFixedChar, ftBlob, ftMemo:
         begin
           StrVal:=AParams[ParamIndex].AsString;
           StrLenOrInd:=Length(StrVal);
@@ -364,16 +364,23 @@ begin
           Size:=Length(StrVal);
           ColumnSize:=Size;
           BufferLength:=Size;
-          if AParams[ParamIndex].DataType = ftString then
-            begin
-            CType:=SQL_C_CHAR;
-            SqlType:=SQL_LONGVARCHAR;
-            end
-          else // ftBlob, ftMemo
-            begin
-            CType:=SQL_C_BINARY;
-            SqlType:=SQL_BINARY;
-            end;
+          case AParams[ParamIndex].DataType of
+            ftBlob:
+              begin
+              CType:=SQL_C_BINARY;
+              SqlType:=SQL_LONGVARBINARY;
+              end;
+            ftMemo:
+              begin
+              CType:=SQL_C_CHAR;
+              SqlType:=SQL_LONGVARCHAR;
+              end
+            else // ftString, ftFixedChar
+              begin
+              CType:=SQL_C_CHAR;
+              SqlType:=SQL_VARCHAR;
+              end;
+          end;
         end;
       ftFloat:
         begin
@@ -639,6 +646,9 @@ begin
 end;
 
 procedure TODBCConnection.Execute(cursor: TSQLCursor; ATransaction: TSQLTransaction; AParams: TParams);
+const
+  TABLE_TYPE_USER='TABLE,VIEW,GLOBAL TEMPORARY,LOCAL TEMPORARY'; //no spaces before/after comma
+  TABLE_TYPE_SYSTEM='SYSTEM TABLE';
 var
   ODBCCursor:TODBCCursor;
   Res:SQLRETURN;
@@ -651,7 +661,8 @@ begin
   // execute the statement
   case ODBCCursor.FSchemaType of
     stNoSchema  : Res:=SQLExecute(ODBCCursor.FSTMTHandle); //SQL_NO_DATA returns searched update or delete statement that does not affect any rows
-    stTables    : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, nil, 0 );
+    stTables    : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_USER, length(TABLE_TYPE_USER) );
+    stSysTables : Res:=SQLTables (ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0, TABLE_TYPE_SYSTEM, length(TABLE_TYPE_SYSTEM) );
     stColumns   : Res:=SQLColumns(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, @ODBCCursor.FQuery[1], length(ODBCCursor.FQuery), nil, 0 );
     stProcedures: Res:=SQLProcedures(ODBCCursor.FSTMTHandle, nil, 0, nil, 0, nil, 0 );
     else          Res:=SQL_NO_DATA;
@@ -1119,7 +1130,7 @@ begin
     end;
 
     // add FieldDef
-    TFieldDef.Create(FieldDefs, ColName, FieldType, FieldSize, False, i);
+    TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(ColName), FieldType, FieldSize, False, i);
   end;
 end;
 
@@ -1295,7 +1306,7 @@ begin
     Result := SchemaObjectName
   else
     Result := ' ';
-  if not (SchemaType in [stNoSchema, stTables, stColumns, stProcedures]) then
+  if not (SchemaType in [stNoSchema, stTables, stSysTables, stColumns, stProcedures]) then
     DatabaseError(SMetadataUnavailable);
 end;
 

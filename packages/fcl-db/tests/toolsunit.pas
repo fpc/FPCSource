@@ -75,6 +75,7 @@ type
   TTestDataLink = class(TDataLink)
      protected
        procedure DataSetScrolled(Distance: Integer); override;
+       procedure DataSetChanged; override;
 {$IFDEF fpc}
        procedure DataEvent(Event: TDataEvent; Info: Ptrint); override;
 {$ELSE}
@@ -161,7 +162,8 @@ var dbtype,
     dbname,
     dbuser,
     dbhostname,
-    dbpassword     : string;
+    dbpassword,
+    dbQuoteChars   : string;
     DataEvents     : string;
     DBConnector    : TDBConnector;
     testValues     : Array [TFieldType,0..testvaluescount -1] of string;
@@ -241,6 +243,7 @@ begin
   dbhostname := IniFile.ReadString(dbtype,'Hostname','');
   dbpassword := IniFile.ReadString(dbtype,'Password','');
   dbconnectorparams := IniFile.ReadString(dbtype,'ConnectorParams','');
+  dbquotechars := IniFile.ReadString(dbtype,'QuoteChars','"');
 
   IniFile.Free;
 end;
@@ -291,6 +294,12 @@ procedure TTestDataLink.DataSetScrolled(Distance: Integer);
 begin
   DataEvents := DataEvents + 'DataSetScrolled' + ':' + inttostr(Distance) + ';';
   inherited DataSetScrolled(Distance);
+end;
+
+procedure TTestDataLink.DataSetChanged;
+begin
+  DataEvents := DataEvents + 'DataSetChanged;';
+  inherited DataSetChanged;
 end;
 
 procedure TTestDataLink.DataEvent(Event: TDataEvent; Info: Ptrint);
