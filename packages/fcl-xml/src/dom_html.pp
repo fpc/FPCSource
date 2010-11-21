@@ -648,7 +648,7 @@ type
     property Title: DOMString read GetTitle write SetTitle;
     property Referrer: DOMString read GetReferrer;
     property Domain: DOMString read GetDomain;
-    property URL: DOMString read FDocumentURI;
+    property URL: DOMString read FURI;
     property Body: THTMLElement read GetBody write SetBody;
     property Images: THTMLCollection read GetImages;
     property Applets: THTMLCollection read GetApplets;

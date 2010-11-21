@@ -44,6 +44,7 @@ type
 
   THTMLWriter = class(TObject)
   private
+    FStream: TStream;
     FInsideTextNode: Boolean;
     FBuffer: PChar;
     FBufPos: PChar;
@@ -59,7 +60,6 @@ type
     procedure AttrSpecialCharCallback(c: WideChar);
     procedure TextNodeSpecialCharCallback(c: WideChar);
   protected
-    procedure Write(const Buffer; Count: Longint); virtual; abstract;
     procedure WriteNode(Node: TDOMNode);
     procedure VisitDocument(Node: TDOMNode);
     procedure VisitElement(Node: TDOMNode);
@@ -72,40 +72,30 @@ type
     procedure VisitDocumentType(Node: TDOMNode);
     procedure VisitPI(Node: TDOMNode);
   public
-    constructor Create;
+    constructor Create(AStream: TStream);
     destructor Destroy; override;
   end;
 
-  TTextHTMLWriter = Class(THTMLWriter)
+  TTextStream = class(TStream)
   Private
     F : ^Text;
-  Protected
-    Procedure Write(Const Buffer; Count : Longint);override;
   Public
     constructor Create(var AFile: Text);
-  end;
-
-  TStreamHTMLWriter = Class(THTMLWriter)
-  Private
-    F : TStream;
-  Protected
-    Procedure Write(Const Buffer; Count : Longint);override;
-  Public
-    constructor Create(AStream: TStream);
+    function Write(Const Buffer; Count: Longint): Longint; override;
   end;
 
 { ---------------------------------------------------------------------
-    TTextHTMLWriter
+    TTextStream
   ---------------------------------------------------------------------}
 
 
-constructor TTextHTMLWriter.Create(var AFile: Text);
+constructor TTextStream.Create(var AFile: Text);
 begin
   inherited Create;
   f := @AFile;
 end;
 
-procedure TTextHTMLWriter.Write(const Buffer; Count: Longint);
+function TTextStream.Write(const Buffer; Count: Longint): Longint;
 var
   s: string;
 begin
@@ -114,33 +104,17 @@ begin
     SetString(s, PChar(@Buffer), Count);
     system.Write(f^, s);
   end;
+  Result := Count;
 end;
-
-{ ---------------------------------------------------------------------
-    TStreamHTMLWriter
-  ---------------------------------------------------------------------}
-
-constructor TStreamHTMLWriter.Create(AStream: TStream);
-begin
-  inherited Create;
-  F := AStream;
-end;
-
-
-procedure TStreamHTMLWriter.Write(const Buffer; Count: Longint);
-begin
-  if Count > 0 then
-    F.Write(Buffer, Count);
-end;
-
 
 { ---------------------------------------------------------------------
     THTMLWriter
   ---------------------------------------------------------------------}
 
-constructor THTMLWriter.Create;
+constructor THTMLWriter.Create(AStream: TStream);
 begin
   inherited Create;
+  FStream := AStream;
   // some overhead - always be able to write at least one extra UCS4
   FBuffer := AllocMem(512+32);
   FBufPos := FBuffer;
@@ -153,7 +127,7 @@ end;
 destructor THTMLWriter.Destroy;
 begin
   if FBufPos > FBuffer then
-    write(FBuffer^, FBufPos-FBuffer);
+    FStream.write(FBuffer^, FBufPos-FBuffer);
 
   FreeMem(FBuffer);
   inherited Destroy;
@@ -171,7 +145,7 @@ begin
   begin
     if pb >= @FBuffer[FCapacity] then
     begin
-      write(FBuffer^, FCapacity);
+      FStream.write(FBuffer^, FCapacity);
       Dec(pb, FCapacity);
       if pb > FBuffer then
         Move(FBuffer[FCapacity], FBuffer^, pb - FBuffer);
@@ -525,18 +499,25 @@ begin
 end;
 
 procedure WriteHTMLFile(doc: TXMLDocument; var AFile: Text);
+var
+  s: TStream;
 begin
-  with TTextHTMLWriter.Create(AFile) do
+  s := TTextStream.Create(AFile);
   try
-    WriteNode(doc);
+    with THTMLWriter.Create(s) do
+    try
+      WriteNode(doc);
+    finally
+      Free;
+    end;
   finally
-    Free;
+    s.Free;
   end;
 end;
 
 procedure WriteHTMLFile(doc: TXMLDocument; AStream: TStream);
 begin
-  with TStreamHTMLWriter.Create(AStream) do
+  with THTMLWriter.Create(AStream) do
   try
     WriteNode(doc);
   finally

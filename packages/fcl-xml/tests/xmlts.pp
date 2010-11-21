@@ -482,7 +482,6 @@ begin
       end;
 
     if outURI = '' then Exit;
-    TempDoc.DocumentElement.Normalize;
     try
       // reference data must be parsed in non-validating mode because it contains DTDs
       // only when Notations need to be reported

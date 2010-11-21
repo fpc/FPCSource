@@ -286,6 +286,10 @@
 <item id="replaceWholeText"/>
 <item id="wholeText"/>
 -->
+<item id="inputEncoding"/>
+<item id="xmlEncoding"/>
+<item id="xmlVersion" type="prop"/>
+
 <!-- XPath -->
 
 <item id="createNSResolver">

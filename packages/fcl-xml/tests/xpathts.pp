@@ -552,7 +552,16 @@ const
   '<b ns1:attrib2="test"/>'#10+
   '</doc>';
 
-  StringTests: array[0..74] of TTestRec = (             // numbers refer to xalan/string/stringXX
+  ns11='<doc-one xmlns="http://xsl.lotus.com/ns2" xmlns:ns1="http://xsl.lotus.com/ns1">'+
+  '  <ns1:a-two attrib1="Goodbye" xmlns="http://xsl.lotus.com/ns2" xmlns:ns1="http://xsl.lotus.com/ns1">Hello</ns1:a-two>'+
+  '  <b-three ns1:attrib2="Ciao">'+
+  '    <c-four/>'+
+  '  </b-three>'+
+  '</doc-one>';
+
+  pidata='<?a-pi data="foo"?><?b-pi data="bar"?><doc/>';
+
+  StringTests: array[0..87] of TTestRec = (             // numbers refer to xalan/string/stringXX
     (expr: 'string(0)';       rt: rtString; s: '0'),
     (expr: 'string(5)';       rt: rtString; s: '5'),    // #38/39
     (expr: 'string(0.5)';     rt: rtString; s: '0.5'),
@@ -633,6 +642,23 @@ const
     (expr: 'translate("--aaa--","abc-","ABC")'; rt: rtString; s: 'AAA'),
     (expr: 'translate("ddaaadddd","abcd","ABCxy")'; rt: rtString; s: 'xxAAAxxxx'),   // #96
 
+    (data: node08; expr: 'name(a/@attr1)';          rt: rtString; s: 'attr1'),  // namespace08 modified
+    (data: node08; expr: 'namespace-uri(a/@attr1)'; rt: rtString; s: ''),
+    (data: node08; expr: 'local-name(a/@attr1)';    rt: rtString; s: 'attr1'),
+
+    (data: pidata; expr: 'name(/processing-instruction())';          rt: rtString; s: 'a-pi'),       // namespace29 modified
+    (data: pidata; expr: 'name(/processing-instruction("b-pi"))';    rt: rtString; s: 'b-pi'),
+    (data: pidata; expr: 'local-name(/processing-instruction())';    rt: rtString; s: 'a-pi'),
+    (data: pidata; expr: 'namespace-uri(/processing-instruction())'; rt: rtString; s: ''),
+
+    (data: node08; expr: 'name(//comment())';          rt: rtString; s: ''),  // namespace30 modified
+    (data: node08; expr: 'local-name(//comment())';    rt: rtString; s: ''),
+    (data: node08; expr: 'namespace-uri(//comment())'; rt: rtString; s: ''),
+
+    (data: node08; expr: 'name(//text())';          rt: rtString; s: ''),  // namespace31 modified
+    (data: node08; expr: 'local-name(//text())';    rt: rtString; s: ''),
+    (data: node08; expr: 'namespace-uri(//text())'; rt: rtString; s: ''),
+
     // tests for number->string conversions at boundary conditions
     (expr: 'string(123456789012345678)';     rt: rtString; s: '123456789012345680'),    // #132.1
     (expr: 'string(-123456789012345678)';    rt: rtString; s: '-123456789012345680'),   // #132.2
@@ -649,7 +675,7 @@ const
 
   res1 = '<foo xmlns:baz1="http://xsl.lotus.com/ns1" xmlns:baz2="http://xsl.lotus.com/ns2"/>';
 
-  nameTests: array[0..9] of TTestRec3 = (
+  nameTests: array[0..17] of TTestRec3 = (
     (data: str30; re: res1; expr: 'namespace-uri(baz1:a/@baz2:attrib1)'; rt: rtString; s: ''), // #30
     (data: str30; re: res1; expr: 'namespace-uri(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'http://xsl.lotus.com/ns1'), // #31
     (data: str30; re: res1; expr: 'name(*)'; rt: rtString; s: 'ns1:a'),       // #32
@@ -660,7 +686,17 @@ const
 
     (data: str30; re: res1; expr: 'local-name(baz2:b)'; rt: rtString; s: 'b'), // namespace07
     (data: str30; re: res1; expr: 'local-name(baz2:b/@baz1:attrib2)'; rt: rtString; s: 'attrib2'), // namespace09
-    (data: str30; re: res1; expr: 'local-name()'; rt: rtString; s: 'doc')      // namespace26
+    (data: str30; re: res1; expr: 'local-name()'; rt: rtString; s: 'doc'),      // namespace26
+    (data: str30; re: res1; expr: 'namespace-uri()'; rt: rtString; s: 'http://xsl.lotus.com/ns2'), // namespace27
+
+    (data: ns11; re: res1; expr: 'namespace-uri(baz1:a-two)'; rt: rtString; s: 'http://xsl.lotus.com/ns1'), // namespace11
+    (data: ns11; re: res1; expr: 'namespace-uri(baz1:a-two/@attrib1)'; rt: rtString; s: ''),
+    (data: ns11; re: res1; expr: 'namespace-uri(baz2:b-three)'; rt: rtString; s: 'http://xsl.lotus.com/ns2'),
+    (data: ns11; re: res1; expr: 'namespace-uri(baz2:b-three/@baz1:attrib2)'; rt: rtString; s: 'http://xsl.lotus.com/ns1'),
+{*} (data: ns11; re: res1; expr: 'namespace-uri(baz2:b-three/c-four)'; rt: rtString; s: ''),
+    (data: ns11; re: res1; expr: 'namespace-uri(bogus)'; rt: rtString; s: ''),
+
+    (data: str30; re: res1; expr: 'name(baz1:*)'; rt: rtString; s: 'ns1:a')
   );
 
   ax114='<doc>'+
@@ -700,7 +736,7 @@ const
   '</section>'+
   '</chapter>';
 
-  AxesTests: array[0..13] of TTestRec = (
+  AxesTests: array[0..15] of TTestRec = (
     (data: ax117; expr: 'count(//@*)';                        rt: rtNumber; n: 16),
     (data: ax117; expr: 'count(//@title)';                    rt: rtNumber; n: 12),
     (data: ax117; expr: 'count(//section//@*)';               rt: rtNumber; n: 14),
@@ -714,17 +750,60 @@ const
     (data: ax117; expr: 'count(/chapter/section[3]//@*)';     rt: rtNumber; n: 5),
     (data: ax117; expr: 'count(/chapter/section[3]//@title)'; rt: rtNumber; n: 4),
 
-    (data: ax114; expr: '//baz/preceding::foo[1]/@att1';    rt: rtNodeStr; s: 'a'),
-//  (data: ax114; expr: '//baz/(preceding::foo)[1]/@att1';  rt: rtNodeStr; s: 'c'),         // won't parse
-    (data: ax115; expr: '//baz/preceding-sibling::foo[1]/@att1';    rt: rtNodeStr; s: 'a')
-//  (data: ax115; expr: '//baz/(preceding-sibling::foo)[1]/@att1';  rt: rtNodeStr; s: 'c')  // won't parse
+    (data: simple; expr: 'local-name(namespace::*[1])';     rt: rtString; s: 'xml'), // namespace28a
+    (data: simple; expr: 'name(namespace::*[1])';           rt: rtString; s: 'xml'), // namespace28b
+    (data: ax117; expr: 'name(//subsection[@title="A3b"]/@title/parent::*)'; rt: rtString; s: 'subsection'),   // axes96 modified
+    (data: ax117; expr: 'name(//subsection[@title="A3b"]/@title/ancestor::*[1])'; rt: rtString; s: 'subsection')  // axes97 modified
+  );
+
+  AxesTests2: array[0..3] of TTestRec3 = (
+    (data: ax114; re: '//baz'; expr: 'preceding::foo[1]/@att1';    rt: rtNodeStr; s: 'a'),
+    (data: ax114; re: '//baz'; expr: '(preceding::foo)[1]/@att1';  rt: rtNodeStr; s: 'c'),         // won't parse
+    (data: ax115; re: '//baz'; expr: 'preceding-sibling::foo[1]/@att1';    rt: rtNodeStr; s: 'a'),
+    (data: ax115; re: '//baz'; expr: '(preceding-sibling::foo)[1]/@att1';  rt: rtNodeStr; s: 'c')  // won't parse
+  );
+
+  pred44 = '<doc>'+
+  '<element1>'+
+    '<child1>Success</child1>'+
+    '<child2>child2</child2>'+
+  '</element1>'+
+  '<element2>'+
+    '<child1>Wrong node selected!!</child1>'+
+  '</element2>'+
+  '<element3>'+
+    '<child1>Wrong node selected!!</child1>'+
+  '</element3>'+
+  '</doc>';
+
+  pred11 = '<doc>'+
+  '<a>1</a>'+
+  '<a>2'+
+  '<achild>target</achild>'+
+  '</a>'+
+  '<a>3</a>'+
+  '<a>target</a>'+
+  '</doc>';
+
+  PredicateTests: array [0..4] of TTestRec = (
+    (data: pred44; expr: '//child1[parent::element1]'; rt: rtNodeStr; s: 'Success'),  // predicate44
+    {should select all but last elements named 'e' }
+    (data: math96; expr: 'sum(e[true()=following-sibling::*])'; rt: rtNumber; n: 20), // predicate03
+    {should select two first elements}
+    (data: math96; expr: 'sum(e[8=following-sibling::*])'; rt: rtNumber; n: 12),      // predicate05
+    (data: pred11; expr: 'a["target"=descendant::*]'; rt: rtNodeStr; s: '2target'),    // predicate06
+    (data: pred11; expr: 'a[following-sibling::*=descendant::*]'; rt: rtNodeStr; s: '2target')  // predicate11
+
+
+
+
   );
 {$warnings on}
 
 var
   FailCount: Integer = 0;  
 
-procedure CheckResult(const t: TTestRec; r: TXPathVariable);
+procedure CheckResult(const t: TTestRec; r: TXPathVariable); overload;
 begin
   case t.rt of
     rtBool:
@@ -740,12 +819,18 @@ begin
     begin
       if (r is TXPathNumberVariable) then
       begin
-        if IsNan(t.n) and IsNan(r.AsNumber) then
-          Exit;
-        if IsInfinite(t.n) and (t.n = r.AsNumber) then
-          Exit;
-        if SameValue(r.AsNumber, t.n) then
-          Exit;
+        if IsNan(t.n) then
+        begin
+          if IsNan(r.AsNumber) then
+            Exit;
+        end
+        else
+        begin
+          if IsInfinite(t.n) and (t.n = r.AsNumber) then
+            Exit;
+          if not IsNan(TXPathNumberVariable(r).Value) and SameValue(TXPathNumberVariable(r).Value, t.n) then
+            Exit;
+        end;  
       end;
       writeln;
       writeln('Failed: ', t.expr);
@@ -773,6 +858,18 @@ begin
   end;
   Inc(FailCount);
 end;
+
+procedure CheckResult(const t: TTestRec3; r: TXPathVariable); overload;
+var
+  temp: TTestRec;
+begin
+  temp.data := t.data;
+  temp.expr := t.expr;
+  temp.rt := t.rt;
+  temp.n := t.n;
+  CheckResult(temp, r);
+end;
+
 
 function ParseString(const data: string): TXMLDocument;
 var
@@ -826,13 +923,12 @@ begin
   end;
 end;
 
-procedure DoSuite3(const tests: array of TTestRec3);
+procedure DoSuite_WithResolver(const tests: array of TTestRec3);
 var
   i: Integer;
   doc: TXMLDocument;
   rslt: TXPathVariable;
   nsdoc: TXMLDocument;
-  temp: TTestRec;
 begin
   for i := 0 to High(tests) do
   begin
@@ -843,11 +939,7 @@ begin
         try
           rslt := EvaluateXPathExpression(tests[i].expr, doc.DocumentElement, nsdoc.DocumentElement);
           try
-            temp.data := tests[i].data;
-            temp.expr := tests[i].expr;
-            temp.rt := tests[i].rt;
-            temp.n := tests[i].n;
-            CheckResult(temp, rslt);
+            CheckResult(tests[i], rslt);
           finally
             rslt.Free;
           end;
@@ -866,6 +958,45 @@ begin
   end;
 end;
 
+procedure DoSuite_WithContext(const tests: array of TTestRec3);
+var
+  i: Integer;
+  doc: TXMLDocument;
+  rslt: TXPathVariable;
+  context: TXPathVariable;
+  ctxNs: TNodeSet;
+begin
+  for i := 0 to High(tests) do
+  begin
+    doc := ParseString(tests[i].data);
+    try
+      context := EvaluateXPathExpression(tests[i].re, doc.DocumentElement);
+      try
+        try
+          ctxNs := context.AsNodeSet;
+          if ctxNs.Count <> 1 then
+            raise Exception.CreateFmt('Context expression "%s" does not evaluate to a single node', [tests[i].re]);
+          rslt := EvaluateXPathExpression(tests[i].expr, TDOMNode(ctxNs[0]));
+          try
+            CheckResult(tests[i], rslt);
+          finally
+            rslt.Free;
+          end;
+        except
+          writeln;
+          writeln('Failed: ', tests[i].expr);
+          SysUtils.ShowException(ExceptObject, ExceptAddr);
+          Inc(FailCount);
+        end;
+      finally
+        context.Free;
+      end;
+    finally
+      doc.Free;
+    end;
+  end;
+end;
+
 begin
   DoSuite(BaseTests);
   DoSuite(CompareTests);
@@ -875,8 +1006,9 @@ begin
   DoSuite(FunctionTests);
   DoSuite(StringTests);
   DoSuite(AxesTests);
-
-  DoSuite3(nameTests);
+  DoSuite_WithContext(AxesTests2);
+  DoSuite_WithResolver(nameTests);
+  DoSuite(PredicateTests);
 
   writeln;
   writeln('Total failed tests: ', FailCount);

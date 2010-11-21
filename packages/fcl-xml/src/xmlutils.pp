@@ -35,7 +35,14 @@ function IsXmlWhiteSpace(c: WideChar): Boolean;
 function Hash(InitValue: LongWord; Key: PWideChar; KeyLen: Integer): LongWord;
 { beware, works in ASCII range only }
 function WStrLIComp(S1, S2: PWideChar; Len: Integer): Integer;
+procedure WStrLower(var S: WideString);
 
+type
+  TXMLVersion = (xmlVersionUnknown, xmlVersion10, xmlVersion11);
+
+const
+  xmlVersionStr: array[TXMLVersion] of WideString = ('', '1.0', '1.1');
+  
 { a simple hash table with WideString keys }
 
 type
@@ -138,6 +145,27 @@ type
     procedure StartElement;
     procedure EndElement;
   end;
+
+{ Buffer builder, used to compose long strings without too much memory allocations }
+
+  PWideCharBuf = ^TWideCharBuf;
+  TWideCharBuf = record
+    Buffer: PWideChar;
+    Length: Integer;
+    MaxLength: Integer;
+  end;
+
+procedure BufAllocate(var ABuffer: TWideCharBuf; ALength: Integer);
+procedure BufAppend(var ABuffer: TWideCharBuf; wc: WideChar);
+procedure BufAppendChunk(var ABuf: TWideCharBuf; pstart, pend: PWideChar);
+function BufEquals(const ABuf: TWideCharBuf; const Arg: WideString): Boolean;
+
+{ Built-in decoder functions for UTF-8, UTF-16 and ISO-8859-1 }
+
+function Decode_UCS2(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+function Decode_UCS2_Swapped(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+function Decode_UTF8(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+function Decode_8859_1(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
 
 {$i names.inc}
 
@@ -377,6 +405,15 @@ begin
     Inc(counter);
   until counter >= Len;
   result := c1 - c2;
+end;
+
+procedure WStrLower(var S: WideString);
+var
+  i: Integer;
+begin
+  for i := 1 to Length(S) do
+    if (S[i] >= 'A') and (S[i] <= 'Z') then
+      Inc(word(S[i]), 32);
 end;
 
 function Hash(InitValue: LongWord; Key: PWideChar; KeyLen: Integer): LongWord;
@@ -828,6 +865,185 @@ begin
   FBindingStack[FNesting] := nil;
   if FNesting > 0 then
     Dec(FNesting);
+end;
+
+{ Buffer builder utils }
+
+procedure BufAllocate(var ABuffer: TWideCharBuf; ALength: Integer);
+begin
+  ABuffer.MaxLength := ALength;
+  ABuffer.Length := 0;
+  ABuffer.Buffer := AllocMem(ABuffer.MaxLength*SizeOf(WideChar));
+end;
+
+procedure BufAppend(var ABuffer: TWideCharBuf; wc: WideChar);
+begin
+  if ABuffer.Length >= ABuffer.MaxLength then
+  begin
+    ReallocMem(ABuffer.Buffer, ABuffer.MaxLength * 2 * SizeOf(WideChar));
+    FillChar(ABuffer.Buffer[ABuffer.MaxLength], ABuffer.MaxLength * SizeOf(WideChar),0);
+    ABuffer.MaxLength := ABuffer.MaxLength * 2;
+  end;
+  ABuffer.Buffer[ABuffer.Length] := wc;
+  Inc(ABuffer.Length);
+end;
+
+procedure BufAppendChunk(var ABuf: TWideCharBuf; pstart, pend: PWideChar);
+var
+  Len: Integer;
+begin
+  Len := PEnd - PStart;
+  if Len <= 0 then
+    Exit;
+  if Len >= ABuf.MaxLength - ABuf.Length then
+  begin
+    ABuf.MaxLength := (Len + ABuf.Length)*2;
+    // note: memory clean isn't necessary here.
+    // To avoid garbage, control Length field.
+    ReallocMem(ABuf.Buffer, ABuf.MaxLength * sizeof(WideChar));
+  end;
+  Move(pstart^, ABuf.Buffer[ABuf.Length], Len * sizeof(WideChar));
+  Inc(ABuf.Length, Len);
+end;
+
+function BufEquals(const ABuf: TWideCharBuf; const Arg: WideString): Boolean;
+begin
+  Result := (ABuf.Length = Length(Arg)) and
+    CompareMem(ABuf.Buffer, Pointer(Arg), ABuf.Length*sizeof(WideChar));
+end;
+
+{ standard decoders }
+
+function Decode_UCS2(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+var
+  cnt: Cardinal;
+begin
+  cnt := OutCnt;         // num of widechars
+  if cnt > InCnt div sizeof(WideChar) then
+    cnt := InCnt div sizeof(WideChar);
+  Move(InBuf^, OutBuf^, cnt * sizeof(WideChar));
+  Dec(InCnt, cnt*sizeof(WideChar));
+  Dec(OutCnt, cnt);
+  Result := cnt;
+end;
+
+function Decode_UCS2_Swapped(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+var
+  I: Integer;
+  cnt: Cardinal;
+  InPtr: PChar;
+begin
+  cnt := OutCnt;         // num of widechars
+  if cnt > InCnt div sizeof(WideChar) then
+    cnt := InCnt div sizeof(WideChar);
+  InPtr := InBuf;
+  for I := 0 to cnt-1 do
+  begin
+    OutBuf[I] := WideChar((ord(InPtr^) shl 8) or ord(InPtr[1]));
+    Inc(InPtr, 2);
+  end;
+  Dec(InCnt, cnt*sizeof(WideChar));
+  Dec(OutCnt, cnt);
+  Result := cnt;
+end;
+
+function Decode_8859_1(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+var
+  I: Integer;
+  cnt: Cardinal;
+begin
+  cnt := OutCnt;         // num of widechars
+  if cnt > InCnt then
+    cnt := InCnt;
+  for I := 0 to cnt-1 do
+    OutBuf[I] := WideChar(ord(InBuf[I]));
+  Dec(InCnt, cnt);
+  Dec(OutCnt, cnt);
+  Result := cnt;
+end;
+
+function Decode_UTF8(Context: Pointer; InBuf: PChar; var InCnt: Cardinal; OutBuf: PWideChar; var OutCnt: Cardinal): Integer; stdcall;
+const
+  MaxCode: array[1..4] of Cardinal = ($7F, $7FF, $FFFF, $1FFFFF);
+var
+  i, j, bc: Cardinal;
+  Value: Cardinal;
+begin
+  result := 0;
+  i := OutCnt;
+  while (i > 0) and (InCnt > 0) do
+  begin
+    bc := 1;
+    Value := ord(InBuf^);
+    if Value < $80 then
+      OutBuf^ := WideChar(Value)
+    else
+    begin
+      if Value < $C2 then
+      begin
+        Result := -1;
+        Break;
+      end;
+      Inc(bc);
+      if Value > $DF then
+      begin
+        Inc(bc);
+        if Value > $EF then
+        begin
+          Inc(bc);
+          if Value > $F7 then  // never encountered in the tests.
+          begin
+            Result := -1;
+            Break;
+          end;
+        end;
+      end;
+      if InCnt < bc then
+        Break;
+      j := 1;
+      while j < bc do
+      begin
+        if InBuf[j] in [#$80..#$BF] then
+          Value := (Value shl 6) or (Cardinal(InBuf[j]) and $3F)
+        else
+        begin
+          Result := -1;
+          Break;
+        end;
+        Inc(j);
+      end;
+      Value := Value and MaxCode[bc];
+      // RFC2279 check
+      if Value <= MaxCode[bc-1] then
+      begin
+        Result := -1;
+        Break;
+      end;
+      case Value of
+        0..$D7FF, $E000..$FFFF: OutBuf^ := WideChar(Value);
+        $10000..$10FFFF:
+        begin
+          if i < 2 then Break;
+          OutBuf^ := WideChar($D7C0 + (Value shr 10));
+          OutBuf[1] := WideChar($DC00 xor (Value and $3FF));
+          Inc(OutBuf); // once here
+          Dec(i);
+        end
+        else
+        begin
+          Result := -1;
+          Break;
+        end;
+      end;
+    end;
+    Inc(OutBuf);
+    Inc(InBuf, bc);
+    Dec(InCnt, bc);
+    Dec(i);
+  end;
+  if Result >= 0 then
+    Result := OutCnt-i;
+  OutCnt := i;
 end;
 
 

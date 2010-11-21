@@ -30,6 +30,7 @@ type
     procedure attr_ownership03;
     procedure attr_ownership04;
     procedure attr_ownership05;
+    procedure replacesamechild;
     procedure nsFixup1;
     procedure nsFixup2;
     procedure nsFixup3;
@@ -133,6 +134,30 @@ begin
   AssertEquals('ownerElement_before', el, attr.OwnerElement);
   el.RemoveAttributeNode(attr);
   AssertNull('ownerElement_after', attr.ownerElement);
+end;
+
+// verify that replacing a node by itself does not remove it from the tree
+// (specs say this is implementation-dependent, but guess that means either
+//  no-op or raising an exception, not removal).
+procedure TDOMTestExtra.replacesamechild;
+var
+  doc: TDOMDocument;
+  root, el, prev, next: TDOMNode;
+begin
+  LoadStringData(doc, '<root><child1/><child2/><child3/></root>');
+  root := doc.DocumentElement;
+  el := root.ChildNodes[1];
+  prev := el.PreviousSibling;
+  next := el.NextSibling;
+  AssertEquals('prev_name_before', 'child1', prev.NodeName);
+  AssertEquals('next_name_before', 'child3', next.NodeName);
+  root.replaceChild(el, el);
+  prev := el.PreviousSibling;
+  next := el.NextSibling;
+  AssertNotNull('prev_after', prev);
+  AssertNotNull('prev_after', next);  
+  AssertEquals('prev_name_after', 'child1', prev.NodeName);
+  AssertEquals('next_name_after', 'child3', next.NodeName);
 end;
 
 const

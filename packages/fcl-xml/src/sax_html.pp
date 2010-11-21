@@ -31,7 +31,7 @@ unit SAX_HTML;
 
 interface
 
-uses SysUtils, Classes, SAX, DOM, DOM_HTML,htmldefs;
+uses SysUtils, Classes, SAX, DOM, DOM_HTML,htmldefs,xmlutils;
 
 type
 
@@ -54,8 +54,8 @@ type
     FAttrNameRead: Boolean;
     FStack: array of THTMLElementTag;
     FNesting: Integer;
-    procedure AutoClose(const aName: string);
-    procedure NamePush(const aName: string);
+    procedure AutoClose(const aName: SAXString);
+    procedure NamePush(const aName: SAXString);
     procedure NamePop;
   protected
     procedure EnterNewScannerContext(NewContext: THTMLScannerContext);
@@ -136,6 +136,22 @@ begin
   inherited Destroy;
 end;
 
+function CheckForName(const Tag: SAXString): Boolean;
+var
+  p, p1: PSAXChar;
+begin
+  p := PSAXChar(Tag);
+  result := False;
+  if p^ <> '!' then
+  begin
+    if p^ = '/' then Inc(p);
+    p1 := p;
+    while (p1^ <> #0) and (p1^ <> '/') and not IsXMLWhitespace(p1^) do
+      Inc(p1);
+    result := IsXMLName(p, p1-p);
+  end;
+end;
+
 procedure THTMLReader.Parse(AInput: TSAXInputSource);
 const
   MaxBufferSize = 1024;
@@ -150,7 +166,8 @@ begin
   end;
 
   FEndOfStream := False;
-  while True do
+  FStopFlag := False;
+  while not FStopFlag do
   begin
     // Read data into the input buffer
     BufferSize := AInput.Stream.Read(Buffer, MaxBufferSize);
@@ -161,7 +178,8 @@ begin
     end;
 
     BufferPos := 0;
-    while BufferPos < BufferSize do
+    while (BufferPos < BufferSize) and not FStopFlag do
+    begin
       case ScannerContext of
         scUnknown:
           case Buffer[BufferPos] of
@@ -260,22 +278,41 @@ begin
                 if FCurStringValueDelimiter = #0 then
                   EnterNewScannerContext(scUnknown);
               end;
-            else
-            begin
-              FTokenText := FTokenText + Buffer[BufferPos];
-              Inc(BufferPos);
-            end;
+            '<':    // either an unclosed tag or unescaped '<' in text; attempt recovery
+              begin
+                // TODO: this check is hardly complete, probably must also check if
+                // tag name is followed by legal attributes.
+                if CheckForName(FTokenText) then
+                  EnterNewScannerContext(scUnknown)   // assume unclosed tag
+                else if (FTokenText <> '') and (FTokenText[1] <> '!') then
+                begin
+                  Insert('<', FTokenText, 1);         // assume plaintext
+                  FScannerContext := scText;
+                  EnterNewScannerContext(scUnknown);
+                end
+                else
+                begin  // in comment, ignore
+                  FTokenText := FTokenText + Buffer[BufferPos];
+                  Inc(BufferPos);
+                end;
+              end;
+          else
+            FTokenText := FTokenText + Buffer[BufferPos];
+            Inc(BufferPos);
           end;
-      end;
+        end;    // case ScannerContext of
+    end;        // while not endOfBuffer
   end;
 end;
 
-function LookupTag(const aName: string): THTMLElementTag;
+function LookupTag(const aName: SAXString): THTMLElementTag;
 var
   j: THTMLElementTag;
+  ansiName: string;
 begin
+  ansiName := aName;
   for j := Low(THTMLElementTag) to High(THTMLElementTag) do
-    if SameText(HTMLElementProps[j].Name, aName) then
+    if SameText(HTMLElementProps[j].Name, ansiName) then
     begin
       Result := j;
       Exit;
@@ -283,7 +320,7 @@ begin
   Result := etUnknown;
 end;
 
-procedure THTMLReader.AutoClose(const aName: string);
+procedure THTMLReader.AutoClose(const aName: SAXString);
 var
   newTag: THTMLElementTag;
 begin
@@ -295,7 +332,7 @@ begin
   end;
 end;
 
-procedure THTMLReader.NamePush(const aName: string);
+procedure THTMLReader.NamePush(const aName: SAXString);
 var
   tag: THTMLElementTag;
 begin
@@ -314,24 +351,28 @@ begin
   FStack[FNesting] := etUnknown;
 end;
 
-function SplitTagString(const s: String; var Attr: TSAXAttributes): String;
+function SplitTagString(const s: SAXString; var Attr: TSAXAttributes): SAXString;
 var
   i, j: Integer;
-  AttrName: String;
-  ValueDelimiter: Char;
+  AttrName: SAXString;
+  ValueDelimiter: WideChar;
   DoIncJ: Boolean;
 begin
   Attr := nil;
-  i := Pos(' ', s);
-  if i <= 0 then
-    Result := LowerCase(s)
+  i := 0;
+  repeat
+    Inc(i)
+  until (i > Length(s)) or IsXMLWhitespace(s[i]);
+
+  if i > Length(s) then
+    Result := s
   else
   begin
-    Result := LowerCase(Copy(s, 1, i - 1));
+    Result := Copy(s, 1, i - 1);
     Attr := TSAXAttributes.Create;
     Inc(i);
 
-    while (i <= Length(s)) and (s[i] in WhitespaceChars) do
+    while (i <= Length(s)) and IsXMLWhitespace(s[i]) do
       Inc(i);
 
     SetLength(AttrName, 0);
@@ -340,7 +381,8 @@ begin
     while j <= Length(s) do
       if s[j] = '=' then
       begin
-        AttrName := LowerCase(Copy(s, i, j - i));
+        AttrName := Copy(s, i, j - i);
+        WStrLower(AttrName);
         Inc(j);
         if (j < Length(s)) and ((s[j] = '''') or (s[j] = '"')) then
         begin
@@ -352,7 +394,7 @@ begin
         DoIncJ := False;
         while j <= Length(s) do
           if ValueDelimiter = #0 then
-            if s[j] in WhitespaceChars then
+            if IsXMLWhitespace(s[j]) then
               break
             else
               Inc(j)
@@ -363,31 +405,34 @@ begin
           end else
             Inc(j);
 
-        Attr.AddAttribute('', AttrName, '', '', Copy(s, i, j - i));
+        if IsXMLName(AttrName) then
+          Attr.AddAttribute('', AttrName, '', '', Copy(s, i, j - i));
 
         if DoIncJ then
           Inc(j);
 
-        while (j <= Length(s)) and (s[j] in WhitespaceChars) do
+        while (j <= Length(s)) and IsXMLWhitespace(s[j]) do
           Inc(j);
         i := j;
       end
-      else if s[j] in WhitespaceChars then
+      else if IsXMLWhitespace(s[j]) then
       begin
-        Attr.AddAttribute('', Copy(s, i, j - i), '', '', '');
+        if IsXMLName(@s[i], j-i) then
+          Attr.AddAttribute('', Copy(s, i, j - i), '', '', '');
         Inc(j);
-        while (j <= Length(s)) and (s[j] in WhitespaceChars) do
+        while (j <= Length(s)) and IsXMLWhitespace(s[j]) do
           Inc(j);
         i := j;
       end else
         Inc(j);
   end;
+  WStrLower(result);
 end;
 
 procedure THTMLReader.EnterNewScannerContext(NewContext: THTMLScannerContext);
 var
   Attr: TSAXAttributes;
-  TagName: String;
+  TagName: SAXString;
   Ent: SAXChar;
   i: Integer;
   elTag: THTMLElementTag;
@@ -498,30 +543,22 @@ end;
 procedure THTMLToDOMConverter.ReaderCharacters(Sender: TObject;
   const ch: PSAXChar; Start, Count: Integer);
 var
-  s: SAXString;
   NodeInfo: THTMLNodeInfo;
 begin
-  SetLength(s, Count);
-  Move(ch^, s[1], Count * SizeOf(SAXChar));
-
   NodeInfo := THTMLNodeInfo.Create;
   NodeInfo.NodeType := ntText;
-  NodeInfo.DOMNode := FDocument.CreateTextNode(s);
+  NodeInfo.DOMNode := FDocument.CreateTextNodeBuf(ch, Count, False);
   FNodeBuffer.Add(NodeInfo);
 end;
 
 procedure THTMLToDOMConverter.ReaderIgnorableWhitespace(Sender: TObject;
   const ch: PSAXChar; Start, Count: Integer);
 var
-  s: SAXString;
   NodeInfo: THTMLNodeInfo;
 begin
-  SetLength(s, Count);
-  Move(ch^, s[1], Count * SizeOf(SAXChar));
-
   NodeInfo := THTMLNodeInfo.Create;
   NodeInfo.NodeType := ntWhitespace;
-  NodeInfo.DOMNode := FDocument.CreateTextNode(s);
+  NodeInfo.DOMNode := FDocument.CreateTextNodeBuf(ch, Count, False);
   FNodeBuffer.Add(NodeInfo);
 end;
 
