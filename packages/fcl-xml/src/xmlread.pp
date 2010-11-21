@@ -425,7 +425,7 @@ type
     procedure ExpectChoiceOrSeq(CP: TContentParticle);
     procedure ParseElementDecl;
     procedure ParseNotationDecl;
-    function ResolveEntity(const SystemID, PublicID, BaseURI: WideString; out Source: TXMLCharSource): Boolean;
+    function ResolveEntity(const ASystemID, APublicID, ABaseURI: WideString; out Source: TXMLCharSource): Boolean;
     procedure ProcessDefaultAttributes(Element: TDOMElement; Map: TDOMNamedNodeMap);
     procedure ProcessNamespaceAtts(Element: TDOMElement);
     procedure AddBinding(Attr: TDOMAttr; PrefixPtr: PWideChar; PrefixLen: Integer);
@@ -1016,7 +1016,7 @@ begin
   Loc.LinePos := FSource.FBuf-FSource.LFPos;
 end;
 
-function TXMLReader.ResolveEntity(const SystemID, PublicID, BaseURI: WideString; out Source: TXMLCharSource): Boolean;
+function TXMLReader.ResolveEntity(const ASystemID, APublicID, ABaseURI: WideString; out Source: TXMLCharSource): Boolean;
 var
   AbsSysID: WideString;
   Filename: string;
@@ -1025,7 +1025,7 @@ var
 begin
   Source := nil;
   Result := False;
-  if not ResolveRelativeURI(BaseURI, SystemID, AbsSysID) then
+  if not ResolveRelativeURI(ABaseURI, ASystemID, AbsSysID) then
     Exit;
   { TODO: alternative resolvers
     These may be 'internal' resolvers or a handler set by application.
@@ -1480,46 +1480,46 @@ end;
 
 function TXMLReader.ParseRef(var ToFill: TWideCharBuf): Boolean;  // [67]
 var
-  Value: Integer;
+  Code: Integer;
 begin
   FSource.NextChar;   // skip '&'
   Result := CheckForChar('#');
   if Result then
   begin
-    Value := 0;
+    Code := 0;
     if CheckForChar('x') then
     repeat
       case FSource.FBuf^ of
-        '0'..'9': Value := Value * 16 + Ord(FSource.FBuf^) - Ord('0');
-        'a'..'f': Value := Value * 16 + Ord(FSource.FBuf^) - (Ord('a') - 10);
-        'A'..'F': Value := Value * 16 + Ord(FSource.FBuf^) - (Ord('A') - 10);
+        '0'..'9': Code := Code * 16 + Ord(FSource.FBuf^) - Ord('0');
+        'a'..'f': Code := Code * 16 + Ord(FSource.FBuf^) - (Ord('a') - 10);
+        'A'..'F': Code := Code * 16 + Ord(FSource.FBuf^) - (Ord('A') - 10);
       else
         Break;
       end;
       FSource.NextChar;
-    until Value > $10FFFF
+    until Code > $10FFFF
     else
     repeat
       case FSource.FBuf^ of
-        '0'..'9': Value := Value * 10 + Ord(FSource.FBuf^) - Ord('0');
+        '0'..'9': Code := Code * 10 + Ord(FSource.FBuf^) - Ord('0');
       else
         Break;
       end;
       FSource.NextChar;
-    until Value > $10FFFF;
+    until Code > $10FFFF;
 
-    case Value of
+    case Code of
       $01..$08, $0B..$0C, $0E..$1F:
         if FXML11 then
-          BufAppend(ToFill, WideChar(Value))
+          BufAppend(ToFill, WideChar(Code))
         else
           FatalError('Invalid character reference');
       $09, $0A, $0D, $20..$D7FF, $E000..$FFFD:
-        BufAppend(ToFill, WideChar(Value));
+        BufAppend(ToFill, WideChar(Code));
       $10000..$10FFFF:
         begin
-          BufAppend(ToFill, WideChar($D7C0 + (Value shr 10)));
-          BufAppend(ToFill, WideChar($DC00 xor (Value and $3FF)));
+          BufAppend(ToFill, WideChar($D7C0 + (Code shr 10)));
+          BufAppend(ToFill, WideChar($DC00 xor (Code and $3FF)));
         end;
     else
       FatalError('Invalid character reference');
@@ -1902,7 +1902,7 @@ end;
 
 procedure TXMLReader.ParsePI;                    // [16]
 var
-  Name, Value: WideString;
+  NameStr, ValueStr: WideString;
   PINode: TDOMProcessingInstruction;
 begin
   FSource.NextChar;      // skip '?'
@@ -1927,13 +1927,13 @@ begin
   if not SkipUntilSeq(GT_Delim, '?') then
     FatalError('Unterminated processing instruction', -1);
 
-  SetString(Name, FName.Buffer, FName.Length);
-  SetString(Value, FValue.Buffer, FValue.Length);
+  SetString(NameStr, FName.Buffer, FName.Length);
+  SetString(ValueStr, FValue.Buffer, FValue.Length);
   // SAX: ContentHandler.ProcessingInstruction(Name, Value);
   if FCurrContentType = ctEmpty then
     ValidationError('Processing instructions are not allowed within EMPTY elements', []);
 
-  PINode := Doc.CreateProcessingInstruction(Name, Value);
+  PINode := Doc.CreateProcessingInstruction(NameStr, ValueStr);
   if Assigned(FCursor) then
     FCursor.AppendChild(PINode)
   else  // to comply with certain tests, insert PI from DTD before DTD
@@ -2304,16 +2304,16 @@ end;
 
 procedure TXMLReader.ParseNotationDecl;        // [82]
 var
-  Name, SysID, PubID: WideString;
+  NameStr, SysID, PubID: WideString;
 begin
   ExpectWhitespace;
-  Name := ExpectName;
+  NameStr := ExpectName;
   CheckNCName;
   ExpectWhitespace;
   if not ParseExternalID(SysID, PubID, True) then
     FatalError('Expected external or public ID');
   if FDTDProcessed then
-    DoNotationDecl(Name, PubID, SysID);
+    DoNotationDecl(NameStr, PubID, SysID);
 end;
 
 const
@@ -3090,32 +3090,32 @@ end;
 procedure TXMLReader.AddBinding(Attr: TDOMAttr; PrefixPtr: PWideChar; PrefixLen: Integer);
 var
   nsUri: DOMString;
-  Prefix: PHashItem;
+  Pfx: PHashItem;
 begin
   nsUri := Attr.NodeValue;
-  Prefix := FNSHelper.GetPrefix(PrefixPtr, PrefixLen);
+  Pfx := FNSHelper.GetPrefix(PrefixPtr, PrefixLen);
   { 'xml' is allowed to be bound to the correct namespace }
-  if ((nsUri = stduri_xml) <> (Prefix = FStdPrefix_xml)) or
-   (Prefix = FStdPrefix_xmlns) or
+  if ((nsUri = stduri_xml) <> (Pfx = FStdPrefix_xml)) or
+   (Pfx = FStdPrefix_xmlns) or
    (nsUri = stduri_xmlns) then
   begin
-    if (Prefix = FStdPrefix_xml) or (Prefix = FStdPrefix_xmlns) then
-      FatalError('Illegal usage of reserved prefix ''%s''', [Prefix^.Key])
+    if (Pfx = FStdPrefix_xml) or (Pfx = FStdPrefix_xmlns) then
+      FatalError('Illegal usage of reserved prefix ''%s''', [Pfx^.Key])
     else
       FatalError('Illegal usage of reserved namespace URI ''%s''', [nsUri]);
   end;
 
-  if (nsUri = '') and not (FXML11 or (Prefix^.Key = '')) then
+  if (nsUri = '') and not (FXML11 or (Pfx^.Key = '')) then
     FatalError('Illegal undefining of namespace');  { position - ? }
 
-  FNSHelper.BindPrefix(nsURI, Prefix);
+  FNSHelper.BindPrefix(nsURI, Pfx);
 end;
 
 procedure TXMLReader.ProcessNamespaceAtts(Element: TDOMElement);
 var
   I, J: Integer;
   Map: TDOMNamedNodeMap;
-  Prefix, AttrName: PHashItem;
+  Pfx, AttrName: PHashItem;
   Attr: TDOMAttr;
   PrefixCount: Integer;
   b: TBinding;
@@ -3167,10 +3167,10 @@ begin
     for I := 0 to PrefixCount-1 do
     begin
       AttrName := FWorkAtts[I].Attr.NSI.QName;
-      if not FNSHelper.IsPrefixBound(PWideChar(AttrName^.Key), FWorkAtts[I].PrefixLen-1, Prefix) then
-        FatalError('Unbound prefix "%s"', [Prefix^.Key]);
+      if not FNSHelper.IsPrefixBound(PWideChar(AttrName^.Key), FWorkAtts[I].PrefixLen-1, Pfx) then
+        FatalError('Unbound prefix "%s"', [Pfx^.Key]);
 
-      b := TBinding(Prefix^.Data);
+      b := TBinding(Pfx^.Data);
       { detect duplicates }
       J := FWorkAtts[I].PrefixLen+1;
 
@@ -3185,9 +3185,9 @@ begin
   J := Pos(WideChar(':'), Element.NSI.QName^.Key);
   if J > 1 then
   begin
-    if not FNSHelper.IsPrefixBound(PWideChar(Element.NSI.QName^.Key), J-1, Prefix) then
-      FatalError('Unbound prefix "%s"', [Prefix^.Key]);
-    b := TBinding(Prefix^.Data);
+    if not FNSHelper.IsPrefixBound(PWideChar(Element.NSI.QName^.Key), J-1, Pfx) then
+      FatalError('Unbound prefix "%s"', [Pfx^.Key]);
+    b := TBinding(Pfx^.Data);
     Element.SetNSI(b.uri, J);
   end
   else
