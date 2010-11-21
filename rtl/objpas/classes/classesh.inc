@@ -693,7 +693,7 @@ type
     procedure Clear; override;
     procedure Delete(Index: Integer); override;
     procedure Exchange(Index1, Index2: Integer); override;
-    function Find(const S: string; var Index: Integer): Boolean; virtual;
+    function Find(const S: string; Out Index: Integer): Boolean; virtual;
     function IndexOf(const S: string): Integer; override;
     procedure Insert(Index: Integer; const S: string); override;
     procedure Sort; virtual;

@@ -1234,7 +1234,7 @@ Function TStringList.DoCompareText(const s1,s2 : string) : PtrInt;
   end;
 
 
-Function TStringList.Find(const S: string; var Index: Integer): Boolean;
+Function TStringList.Find(const S: string; Out Index: Integer): Boolean;
 
 var
   L, R, I: Integer;
