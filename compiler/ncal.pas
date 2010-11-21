@@ -400,7 +400,7 @@ implementation
 
             { we've to know the parameter size to allocate the temp. space }
             is_byref_para(assignmenttype);
-            inc(paramssize, assignmenttype.size);
+            inc(paramssize,max(voidpointertype.size,assignmenttype.size));
 
             para:=tcallparanode(para.nextpara);
           end;
@@ -454,7 +454,7 @@ implementation
               restype:=restype or $80;
 
             { assign the argument/parameter to the temporary location }
-            { we always pass Variants by reference, RTL helpers must handle it
+            { for Variants, we always pass a pointer, RTL helpers must handle it
               depending on byref bit }
 
             if assignmenttype=voidpointertype then
@@ -474,7 +474,7 @@ implementation
                 )),assignmenttype),
                 ctypeconvnode.create_internal(para.left,assignmenttype)));
 
-            inc(paramssize,assignmenttype.size);
+            inc(paramssize,max(voidpointertype.size,assignmenttype.size));
             calldescnode.appendbyte(restype);
 
             para.left:=nil;

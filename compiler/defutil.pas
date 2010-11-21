@@ -1047,7 +1047,7 @@ implementation
           floatdef:
             result:=tfloatdef(p).floattype in [s64currency,s64real,s32real];
           stringdef:
-            result:=tstringdef(p).stringtype in [st_ansistring,st_widestring];
+            result:=tstringdef(p).stringtype in [st_ansistring,st_widestring,st_unicodestring];
           variantdef:
             result:=true;
           objectdef:
