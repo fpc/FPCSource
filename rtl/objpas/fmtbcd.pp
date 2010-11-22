@@ -234,7 +234,7 @@ INTERFACE
     eBCDNotImplementedException = CLASS ( eBCDException );
 
   var
-    DecimalPoint : tDecimalPoint = DecimalPoint_is_Point;
+    DecimalPoint : tDecimalPoint = DecimalPoint_is_System;
 
 { Utility functions for TBCD access }
 
@@ -1640,13 +1640,13 @@ IMPLEMENTATION
           pack_BCD ( bh, result );
        _endSELECT;
      end;
-{$warnings off}
+
   function VarToBCD ( const aValue : Variant ) : tBCD;
 
     begin
-      not_implemented;
+      if VarIsFmtBCD(aValue) then
+        Result:=TFMTBcdVarData(TVarData(aValue).VPointer).BCD
      end;
-{$warnings on}
 
   function CurrToBCD ( const Curr : currency;
                          var BCD : tBCD;
@@ -2467,16 +2467,14 @@ writeln ( '> ', i4, ' ', bh.Singles[i4], ' ', Add );
 
   function VarIsFmtBCD ( const aValue : Variant ) : Boolean;
     begin
-      result:=false;
-      not_implemented;
+      Result:=TVarData(aValue).VType=FMTBcdFactory.VarType;
     end;
 
 
   function VarFmtBCD : TVartype;
 
     begin
-      result:=0;
-      not_implemented;
+      Result:=FMTBcdFactory.VarType;
     end;
 
 
