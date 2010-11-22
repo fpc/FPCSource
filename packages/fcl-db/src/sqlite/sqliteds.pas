@@ -119,7 +119,7 @@ var
 begin
   FieldDefs.Clear;
   FAutoIncFieldNo := -1;
-  FReturnCode := sqlite_compile(FSqliteHandle, PChar(FSQL), nil, @vm, nil);
+  FReturnCode := sqlite_compile(FSqliteHandle, PChar(FEffectiveSQL), nil, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
   sqlite_step(vm, @ColumnCount, @ColumnValues, @ColumnNames);
@@ -231,7 +231,7 @@ begin
     sqlite_exec(FSqliteHandle, PChar('Select Max(' + Fields[FAutoIncFieldNo].FieldName + ') from ' + FTableName),
       @GetAutoIncValue, @FNextAutoInc, nil);
 
-  FReturnCode := sqlite_compile(FSqliteHandle, PChar(FSQL), nil, @vm, nil);
+  FReturnCode := sqlite_compile(FSqliteHandle, PChar(FEffectiveSQL), nil, @vm, nil);
   if FReturnCode <> SQLITE_OK then
     DatabaseError(ReturnString, Self);
 

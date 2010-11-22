@@ -8,11 +8,16 @@ uses
   Classes, SysUtils, pdfvrlexico, fpvectorial;
 
 type
+
+  { AnSemantico }
+
   AnSemantico = class
   public
+    FPointSeparator, FCommaSeparator: TFormatSettings;
     close_path_x: String;
     close_path_y: String;
     cm_a, cm_b, cm_c, cm_d, cm_e, cm_f: Real; // coordinate spaces constants
+    function StringToFloat(AStr: string): Double;
     function generate(c: Command; AData: TvVectorialDocument): String;
     function convert(x: String; y: String; Axis: Char): String;
     function startMachine(): String;
@@ -22,6 +27,14 @@ type
 
 implementation
 
+{ PDF doesn't seam very consistent when it comes to using commas or
+  points as decimal separator, so we just try both }
+function AnSemantico.StringToFloat(AStr: string): Double;
+begin
+  if Pos('.', AStr) > 0 then Result := StrToFloat(AStr, FPointSeparator)
+  else Result := StrToFloat(AStr, FCommaSeparator);
+end;
+
 function AnSemantico.generate(c: Command; AData: TvVectorialDocument): String;
 var
   enter_line : String;
@@ -29,6 +42,7 @@ begin
   {$ifdef FPVECTORIALDEBUG}
   WriteLn(':> AnSemantico.generate');
   {$endif}
+
   enter_line:= LineEnding; //chr(13) + chr(10); // CR and LF
 
   if ((c.code = cc_H_CLOSE_PATH) or (c.code = cc_hS_CLOSE_AND_END_PATH)) then // command h or s
@@ -69,7 +83,7 @@ begin
     // Correcao para programas de desenho que geram um novo inicio no
     // fim do desenho, terminamos qualquer desenho inacabado
     AData.EndPath();
-    AData.StartPath(StrToFloat(c.cord_x), StrToFloat(c.cord_y));
+    AData.StartPath(StringToFloat(c.cord_x), StringToFloat(c.cord_y));
 
     close_path_x:=c.cord_x;
     close_path_y:=c.cord_y;
@@ -81,7 +95,7 @@ begin
     {$endif}
     // Result:='G01' + ' ' + 'X' + c.cord_x + ' ' +  'Y' + c.cord_y;
 
-    AData.AddLineToPath(StrToFloat(c.cord_x), StrToFloat(c.cord_y));
+    AData.AddLineToPath(StringToFloat(c.cord_x), StringToFloat(c.cord_y));
   end;
   cc_h_CLOSE_PATH: // command h
   begin
@@ -90,7 +104,7 @@ begin
     {$endif}
     //Result:='G01' + ' ' + 'X' + c.cord_x + ' ' +  'Y' + c.cord_y;
 
-    AData.AddLineToPath(StrToFloat(c.cord_x), StrToFloat(c.cord_y));
+    AData.AddLineToPath(StringToFloat(c.cord_x), StringToFloat(c.cord_y));
   end;
   cc_S_END_PATH: // command S
   begin
@@ -108,7 +122,7 @@ begin
     //Result:='G01' + ' ' + 'X' + c.cord_x + ' ' +  'Y' + c.cord_y + enter_line
     //       +'G01 Z0 // Sobe a cabeça de gravação' + enter_line;
 
-    AData.AddLineToPath(StrToFloat(c.cord_x), StrToFloat(c.cord_y));
+    AData.AddLineToPath(StringToFloat(c.cord_x), StringToFloat(c.cord_y));
     AData.EndPath();
   end;
   cc_c_BEZIER_TO_X_Y_USING_X2_Y2_AND_X3_Y3: // command c
@@ -120,9 +134,9 @@ begin
     //       +'G01 Z0 // Sobe a cabeça de gravação' + enter_line;
 
     AData.AddBezierToPath(
-      StrToFloat(c.cord_x3), StrToFloat(c.cord_y3),
-      StrToFloat(c.cord_x2), StrToFloat(c.cord_y2),
-      StrToFloat(c.cord_x), StrToFloat(c.cord_y)
+      StringToFloat(c.cord_x3), StringToFloat(c.cord_y3),
+      StringToFloat(c.cord_x2), StringToFloat(c.cord_y2),
+      StringToFloat(c.cord_x), StringToFloat(c.cord_y)
       );
   end;
   cc_CONCATENATE_MATRIX: // command cm
@@ -131,12 +145,12 @@ begin
     WriteLn(':> AnSemantico.cc_CONCATENATE_MATRIX');
     {$endif}
 
-    cm_a := StrToFloat(c.cord_x3);
-    cm_b := StrToFloat(c.cord_y3);
-    cm_c := StrToFloat(c.cord_x2);
-    cm_d := StrToFloat(c.cord_y2);
-    cm_e := StrToFloat(c.cord_x);
-    cm_f := StrToFloat(c.cord_y);
+    cm_a := StringToFloat(c.cord_x3);
+    cm_b := StringToFloat(c.cord_y3);
+    cm_c := StringToFloat(c.cord_x2);
+    cm_d := StringToFloat(c.cord_y2);
+    cm_e := StringToFloat(c.cord_x);
+    cm_f := StringToFloat(c.cord_y);
   end;
   cc_RESTORE_MATRIX: // command Q
   begin
@@ -169,13 +183,13 @@ begin
   if (Axis = 'y') then
   begin
        // y' = b * x + d * y + f
-       Result:=FloatToStr((cm_b*StrToFloat(x)+cm_d*StrToFloat(y)+cm_f)*(25.40/72));
+       Result:=FloatToStr((cm_b*StringToFloat(x)+cm_d*StringToFloat(y)+cm_f)*(25.40/72));
   end
   else
   // Axis = 'x'
   begin
        // x' = a * x + c * y + e
-       Result:=FloatToStr((cm_a*StrToFloat(x)+cm_c*StrToFloat(y)+cm_e)*(25.40/72));
+       Result:=FloatToStr((cm_a*StringToFloat(x)+cm_c*StringToFloat(y)+cm_e)*(25.40/72));
   end;
 end;
 
@@ -209,12 +223,21 @@ end;
 constructor AnSemantico.Create;
 begin
   inherited Create;
+
   cm_a:=1;
   cm_b:=0;
   cm_c:=0;
   cm_d:=1;
   cm_e:=0;
   cm_f:=0;
+
+  // Format seetings to convert a string to a float
+  FPointSeparator := DefaultFormatSettings;
+  FPointSeparator.DecimalSeparator := '.';
+  FPointSeparator.ThousandSeparator := '#';// disable the thousand separator
+  FCommaSeparator := DefaultFormatSettings;
+  FCommaSeparator.DecimalSeparator := ',';
+  FCommaSeparator.ThousandSeparator := '#';// disable the thousand separator
 end;
 
 end.

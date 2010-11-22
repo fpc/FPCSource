@@ -24,12 +24,16 @@ type
       AResponse: TResponse; var Handled: Boolean);
   private
     { private declarations }
+    procedure GetAdaptorAndFormatter(P : TFPWebDataProvider; Var F :TExtJSDataFormatter; ARequest : TRequest; AResponse : TResponse);
   public
     { public declarations }
   end; 
 
 var
   FPWebModule1: TFPWebModule1; 
+
+Var
+  ResponseFileName : String; // Set to non empty to write request responses to a file.
 
 implementation
 {$define wmdebug}
@@ -39,6 +43,38 @@ uses dbugintf;
 {$endif}
 
 { TFPWebModule1 }
+
+Procedure SaveResponse(M : TStream);
+
+begin
+  if (ResponseFileName<>'') then
+    With TFileStream.Create(ResponseFileName,fmCreate) do
+      try
+        CopyFrom(M,0);
+      finally
+        Free;
+      end;
+end;
+
+procedure TFPWebModule1.GetAdaptorAndFormatter(P : TFPWebDataProvider; Var F :TExtJSDataFormatter; ARequest : TRequest; AResponse : TResponse);
+
+begin
+  If Request.QueryFields.values['format']='xml' then
+    begin
+    F:=TExtJSXMLDataFormatter.Create(Self);
+    TExtJSXMLDataFormatter(F).TotalProperty:='total';
+    AResponse.ContentType:='text/xml';
+    P.Adaptor:=TExtJSXMLWebdataInputAdaptor.Create(Nil); 
+    end
+  else
+    begin
+    P.Adaptor:=TExtJSJSonWebdataInputAdaptor.Create(Nil); 
+    F:=TExtJSJSONDataFormatter.Create(Self);
+    end;
+  P.Adaptor.Request:=ARequest;
+  F.Adaptor:=P.Adaptor;
+  F.Provider:=P;
+end;
 
 procedure TFPWebModule1.TFPWebActions0Request(Sender: TObject;
   ARequest: TRequest; AResponse: TResponse; var Handled: Boolean);
@@ -54,19 +90,9 @@ Var
 begin
   // Providername;
   PN:=ARequest.GetNextPathInfo;
-//  P:=GetWebDataProvider(PN);
   P:=TFPWebDataProvider.Create(Self);
   try
-    P.Adaptor:=TWebDataInputAdaptor.Create(Self);
-    P.Adaptor.Request:=ARequest;
-    If Request.QueryFields.values['format']='xml' then
-      begin
-      F:=TExtJSXMLDataFormatter.Create(Self);
-      TExtJSXMLDataFormatter(F).TotalProperty:='total';
-      AResponse.ContentType:='text/xml';
-      end
-    else
-      F:=TExtJSJSONDataFormatter.Create(Self);
+    GetAdaptorAndFormatter(P,F,ARequest,AResponse);
     {$ifdef wmdebug} SendDebug(className+' '+F.ClassName);{$endif}
     try
       DS:=TDatasource.Create(Self);
@@ -75,11 +101,9 @@ begin
         DS.Dataset:=DBf1;
         DBF1.Open;
         try
-          F.ADaptor:=P.Adaptor;
           P.Datasource:=DS;
           P.Adaptor.Action:=wdaRead;
           P.ApplyParams;
-          F.Provider:=P;
           M:=TMemoryStream.Create;
           try
             F.GetContent(ARequest,M,Handled);
@@ -87,12 +111,7 @@ begin
             Response.ContentStream:=M;
             Response.SendResponse;
             Response.ContentStream:=Nil;
-            With TFileStream.Create('/tmp/data.xml',fmCreate) do
-              try
-                CopyFrom(M,0);
-              finally
-                Free;
-              end;
+            SaveResponse(M);
           finally
             M.Free;
           end;
@@ -127,18 +146,7 @@ begin
   P:=TFPWebDataProvider.Create(Self);
   try
     P.IDFieldName:='ID';
-    If Request.QueryFields.values['format']='xml' then
-      begin
-      F:=TExtJSXMLDataFormatter.Create(Self);
-      AResponse.ContentType:='text/xml';
-      P.Adaptor:=TWebDataInputAdaptor.Create(Self);
-      end
-    else
-      begin
-      F:=TExtJSJSONDataFormatter.Create(Self);
-      P.Adaptor:=TExtJSJSonWebdataInputAdaptor.Create(Self);
-      end;
-    P.Adaptor.Request:=ARequest;
+    GetAdaptorAndFormatter(P,F,ARequest,AResponse);
     {$ifdef wmdebug} SendDebug(className+' '+F.ClassName);{$endif}
     try
       DS:=TDatasource.Create(Self);
@@ -147,11 +155,9 @@ begin
         DS.Dataset:=DBf1;
         DBF1.Open;
         try
-          F.ADaptor:=P.Adaptor;
           P.Datasource:=DS;
           P.Adaptor.Action:=wdaInsert;
           P.ApplyParams;
-          F.Provider:=P;
           M:=TMemoryStream.Create;
           try
             F.GetContent(ARequest,M,Handled);
@@ -159,12 +165,7 @@ begin
             Response.ContentStream:=M;
             Response.SendResponse;
             Response.ContentStream:=Nil;
-            With TFileStream.Create('/tmp/data.xml',fmCreate) do
-              try
-                CopyFrom(M,0);
-              finally
-                Free;
-              end;
+            SaveResponse(M);
           finally
             M.Free;
           end;
@@ -200,19 +201,7 @@ begin
   P:=TFPWebDataProvider.Create(Self);
   try
     P.IDFieldName:='ID';
-    If Request.QueryFields.values['format']='xml' then
-      begin
-      {$ifdef wmdebug} SendDebug('Update request received in XML');{$endif}
-      F:=TExtJSXMLDataFormatter.Create(Self);
-      AResponse.ContentType:='text/xml';
-      P.Adaptor:=TWebDataInputAdaptor.Create(Self);
-      end
-    else
-      begin
-      F:=TExtJSJSONDataFormatter.Create(Self);
-      P.Adaptor:=TExtJSJSonWebdataInputAdaptor.Create(Self);
-      end;
-    P.Adaptor.Request:=ARequest;
+    GetAdaptorAndFormatter(P,F,ARequest,AResponse);
     {$ifdef wmdebug} SendDebug(className+' '+F.ClassName);{$endif}
     try
       DS:=TDatasource.Create(Self);
@@ -221,11 +210,9 @@ begin
         DS.Dataset:=DBf1;
         DBF1.Open;
         try
-          F.ADaptor:=P.Adaptor;
           P.Datasource:=DS;
           P.Adaptor.Action:=wdaUpdate;
           P.ApplyParams;
-          F.Provider:=P;
           M:=TMemoryStream.Create;
           try
             F.GetContent(ARequest,M,Handled);
@@ -233,12 +220,7 @@ begin
             Response.ContentStream:=M;
             Response.SendResponse;
             Response.ContentStream:=Nil;
-            With TFileStream.Create('/tmp/data.xml',fmCreate) do
-              try
-                CopyFrom(M,0);
-              finally
-                Free;
-              end;
+            SaveResponse(M);
           finally
             M.Free;
           end;
@@ -274,18 +256,7 @@ begin
   P:=TFPWebDataProvider.Create(Self);
   try
     P.IDFieldName:='ID';
-    If Request.QueryFields.values['format']='xml' then
-      begin
-      F:=TExtJSXMLDataFormatter.Create(Self);
-      AResponse.ContentType:='text/xml';
-      P.Adaptor:=TWebDataInputAdaptor.Create(Self);
-      end
-    else
-      begin
-      F:=TExtJSJSONDataFormatter.Create(Self);
-      P.Adaptor:=TExtJSJSonWebdataInputAdaptor.Create(Self);
-      end;
-    P.Adaptor.Request:=ARequest;
+    GetAdaptorAndFormatter(P,F,ARequest,AResponse);
     {$ifdef wmdebug} SendDebug('className '+F.ClassName);{$endif}
     try
       DS:=TDatasource.Create(Self);
@@ -294,11 +265,9 @@ begin
         DS.Dataset:=DBf1;
         DBF1.Open;
         try
-          F.ADaptor:=P.Adaptor;
           P.Datasource:=DS;
           P.Adaptor.Action:=wdaDelete;
           P.ApplyParams;
-          F.Provider:=P;
           M:=TMemoryStream.Create;
           try
             F.GetContent(ARequest,M,Handled);
@@ -306,12 +275,7 @@ begin
             Response.ContentStream:=M;
             Response.SendResponse;
             Response.ContentStream:=Nil;
-            With TFileStream.Create('/tmp/data.xml',fmCreate) do
-              try
-                CopyFrom(M,0);
-              finally
-                Free;
-              end;
+            SaveResponse(M);
           finally
             M.Free;
           end;

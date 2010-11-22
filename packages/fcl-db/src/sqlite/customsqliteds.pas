@@ -128,6 +128,7 @@ type
     FPrimaryKeyNo: Integer;
     FFileName: String;
     FSQL: String;
+    FEffectiveSQL: String;
     FTableName: String;
     FSqlFilterTemplate: String;
     FAutoIncFieldNo: Integer;
@@ -924,8 +925,10 @@ begin
   begin
     if FTablename = '' then
       DatabaseError('Tablename not set', Self);
-    FSQL := 'Select * from ' + FTableName + ';';
-  end;
+    FEffectiveSQL := 'Select * from ' + FTableName + ';';
+  end
+  else
+    FEffectiveSQL := FSQL;
 
   if FSqliteHandle = nil then
     GetSqliteHandle;
@@ -1218,7 +1221,7 @@ begin
     FSqlFilterTemplate := FSqlFilterTemplate + FieldDefs[FieldDefs.Count - 1].Name +
       ' FROM ' + FTableName;
   end;
-  //set FSQL considering MasterSource active record
+  //set FEffectiveSQL considering MasterSource active record
   SetDetailFilter;
 end;
 
@@ -1435,7 +1438,7 @@ var
   i: Integer;
 begin
   if (FMasterLink.Dataset.RecordCount = 0) or not FMasterLink.Active then //Retrieve all data
-    FSQL := FSqlFilterTemplate
+    FEffectiveSQL := FSqlFilterTemplate
   else
   begin
     AFilter := ' where ';
@@ -1445,7 +1448,7 @@ begin
       if i <> FMasterLink.Fields.Count - 1 then
         AFilter := AFilter + ' and ';
     end;
-    FSQL := FSqlFilterTemplate + AFilter;
+    FEffectiveSQL := FSqlFilterTemplate + AFilter;
   end;
 end;
 
@@ -1455,7 +1458,7 @@ begin
   {$ifdef DEBUG_SQLITEDS}
   WriteLn('##TCustomSqliteDataset.MasterChanged##');
   WriteLn('  SQL used to filter detail dataset:');
-  WriteLn('  ', FSQL);
+  WriteLn('  ', FEffectiveSQL);
   {$endif}
   RefetchData;
 end;
@@ -1537,8 +1540,7 @@ begin
   ExecSQL(SQLList);
 end;
 
-function TCustomSqliteDataset.GetSQLValue(Values: PPChar; FieldIndex: Integer
-  ): String;
+function TCustomSqliteDataset.GetSQLValue(Values: PPChar; FieldIndex: Integer): String;
 begin
   if (State = dsInactive) or (FieldIndex < 0) or (FieldIndex >= FieldDefs.Count) then
     DatabaseError('Error retrieving SQL value: dataset inactive or field out of range', Self);

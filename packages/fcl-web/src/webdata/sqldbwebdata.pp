@@ -19,13 +19,16 @@ Type
     FIDFieldName: String;
     FOnGetNewID: TNewIDEvent;
     FOnGetParamValue: TGetParamValueEvent;
+    FParams: TParams;
     FSQLS : Array[0..3] of TStringList;
     FConnection: TSQLConnection;
     FQuery : TSQLQuery;
     FLastNewID : String;
     FOnGetParamType : TGetParamTypeEvent;
     function GetS(AIndex: integer): TStrings;
+    procedure RegenerateParams;
     procedure SetConnection(const AValue: TSQLConnection);
+    procedure SetParams(const AValue: TParams);
     procedure SetS(AIndex: integer; const AValue: TStrings);
   Protected
     function CheckDataset : Boolean; virtual;
@@ -52,6 +55,7 @@ Type
     Property OnGetNewID : TNewIDEvent Read FOnGetNewID Write FOnGetNewID;
     property OnGetParameterType : TGetParamTypeEvent Read FOnGetParamType Write FOnGetParamType;
     property OnGetParameterValue : TGetParamValueEvent Read FOnGetParamValue Write FOnGetParamValue;
+    Property Params : TParams Read FParams Write SetParams;
   Public
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
@@ -69,6 +73,7 @@ Type
     property OnGetParameterType;
     property OnGetParameterValue;
     Property Options;
+    Property Params;
   end;
 
 implementation
@@ -107,6 +112,12 @@ begin
     FConnection.FreeNotification(Self);
 end;
 
+procedure TCustomSQLDBWebDataProvider.SetParams(const AValue: TParams);
+begin
+  if FParams=AValue then exit;
+  FParams.Assign(AValue);
+end;
+
 procedure TCustomSQLDBWebDataProvider.SetS(AIndex: integer;
   const AValue: TStrings);
 begin
@@ -119,7 +130,20 @@ begin
     begin
     FQuery.Close;
     FQuery.SQL.Assign(SelectSQL);
+    If Not (csLoading in ComponentState) then
+      RegenerateParams;
     end;
+end;
+
+procedure TCustomSQLDBWebDataProvider.RegenerateParams;
+
+Var
+  S : String;
+
+begin
+  S:=SelectSQL.Text;
+  Params.Clear;
+  Params.ParseSQL(S,True);
 end;
 
 procedure TCustomSQLDBWebDataProvider.ExecuteSQL(ASQL : TStrings; Msg : String = ''; DoNewID : Boolean = False);
@@ -407,6 +431,7 @@ begin
     L.OnChange:=@SQLChanged;
     FSQLS[i]:=L;
     end;
+  FParams:=TParams.Create(TParam);
 end;
 
 destructor TCustomSQLDBWebDataProvider.Destroy;
@@ -419,6 +444,7 @@ begin
    FreeAndNil(FSQLS[i]);
   Connection:=Nil;
   FreeAndNil(FQuery);
+  FreeAndNil(FParams);
   inherited Destroy;
 end;
 

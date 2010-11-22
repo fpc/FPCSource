@@ -31,16 +31,22 @@ Var
   
 Implementation
 
+uses CustApp;
+
 Procedure InitFCGI;
 
 begin
   Application:=TFCGIApplication.Create(Nil);
+  if not assigned(CustomApplication) then
+    CustomApplication := Application;
 end;
 
 Procedure DoneFCGI;
 
 begin
   Try
+    if CustomApplication=Application then
+      CustomApplication := nil;
     FreeAndNil(Application);
   except
     if ShowCleanUpErrors then

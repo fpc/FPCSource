@@ -49,7 +49,7 @@ function ReportEvent(hEventLog: THandle; wType, wCategory: Word;
   dwDataSize: DWORD; lpStrings, lpRawData: Pointer): BOOL; stdcall;
 }
 
-procedure TEventLog.WriteSystemLog(EventType : TEventType; Msg : String);
+procedure TEventLog.WriteSystemLog(EventType : TEventType; const Msg : String);
 
 Var
   P : PChar;

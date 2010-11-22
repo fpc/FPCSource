@@ -57,7 +57,7 @@ Type
     Function UnInstall: boolean; virtual;
     Function HandleCustomCode(ACode : DWord) : Boolean; Virtual;
   Public
-    Procedure LogMessage(Msg : String);
+    Procedure LogMessage(const Msg : String);
     Procedure ReportStatus;
     
     // Filled in at runtime by controller
@@ -370,7 +370,7 @@ Type
     procedure UnInstallDaemons;
     procedure ShowHelp;
     procedure CreateForm(InstanceClass: TComponentClass; var Reference); virtual;
-    procedure Log(EventType: TEventType; Msg: String); override;
+    procedure Log(EventType: TEventType; const Msg: String); override;
     Property  OnRun : TNotifyEvent Read FOnRun Write FOnRun;
     Property EventLog : TEventLog Read GetEventLog;
     Property GUIMainLoop : TGuiLoopEvent Read FGUIMainLoop Write FGuiMainLoop;
@@ -652,7 +652,7 @@ end;
 
 
 
-procedure TCustomDaemon.LogMessage(Msg: String);
+procedure TCustomDaemon.LogMessage(const Msg: String);
 begin
   Application.Log(etInfo,Msg);
 end;
@@ -848,7 +848,7 @@ begin
   end;
 end;
 
-procedure TCustomDaemonApplication.Log(EventType: TEventType; Msg: String);
+procedure TCustomDaemonApplication.Log(EventType: TEventType; const Msg: String);
 begin
   EventLog.Log(EventType,Msg);
 end;

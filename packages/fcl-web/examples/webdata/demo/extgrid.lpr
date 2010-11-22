@@ -5,8 +5,6 @@ program extgrid;
 uses
   fpCGI, wmusers;
 
-{$IFDEF WINDOWS}{$R extgrid.rc}{$ENDIF}
-
 begin
   Application.Initialize;
   Application.Run;

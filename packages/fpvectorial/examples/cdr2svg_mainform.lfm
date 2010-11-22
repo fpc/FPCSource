@@ -1,0 +1,80 @@
+object Form1: TForm1
+  Left = 216
+  Height = 240
+  Top = 192
+  Width = 240
+  Caption = 'cdr2svg'
+  ClientHeight = 240
+  ClientWidth = 240
+  LCLVersion = '0.9.29'
+  object Label1: TLabel
+    Left = 8
+    Height = 14
+    Top = 80
+    Width = 215
+    Caption = 'Location of the Input Corel Draw (*.cdr) file:'
+    ParentColor = False
+  end
+  object Label2: TLabel
+    Left = 8
+    Height = 59
+    Top = 8
+    Width = 224
+    AutoSize = False
+    Caption = 'This example project uses fpvectorial to convert a Corel Draw file (*.cdr) to an SVG (*.svg) vectorial graphics file.'
+    ParentColor = False
+    WordWrap = True
+  end
+  object editInput: TFileNameEdit
+    Left = 8
+    Height = 21
+    Top = 104
+    Width = 192
+    DialogOptions = []
+    FilterIndex = 0
+    HideDirectories = False
+    ButtonWidth = 23
+    NumGlyphs = 0
+    MaxLength = 0
+    TabOrder = 0
+  end
+  object Label3: TLabel
+    Left = 8
+    Height = 14
+    Top = 138
+    Width = 154
+    Caption = 'Full path of the Output SVG file:'
+    ParentColor = False
+  end
+  object editOutput: TFileNameEdit
+    Left = 8
+    Height = 21
+    Top = 160
+    Width = 192
+    DialogOptions = []
+    FilterIndex = 0
+    HideDirectories = False
+    ButtonWidth = 23
+    NumGlyphs = 0
+    MaxLength = 0
+    TabOrder = 1
+  end
+  object buttonConvert: TButton
+    Left = 32
+    Height = 25
+    Top = 200
+    Width = 75
+    Caption = 'Convert'
+    OnClick = buttonConvertClick
+    TabOrder = 2
+  end
+  object buttonQuit: TButton
+    Left = 136
+    Height = 25
+    Top = 200
+    Width = 75
+    Caption = 'Quit'
+    OnClick = buttonQuitClick
+    TabOrder = 3
+  end
+end

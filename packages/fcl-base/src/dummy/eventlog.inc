@@ -32,7 +32,7 @@ begin
   DeActivateFileLog;
 end;
 
-procedure TEventLog.WriteSystemLog(EventType : TEventType; Msg : String);
+procedure TEventLog.WriteSystemLog(EventType : TEventType; const Msg : String);
 
 begin
   WriteFileLog(EventType,Msg);

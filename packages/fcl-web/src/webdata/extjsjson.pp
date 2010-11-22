@@ -80,6 +80,9 @@ end;
 function TExtJSJSONDataFormatter.AddFieldToJSON(O : TJSONObject; AFieldName : String; F : TField): TJSONData;
 
 begin
+ if F.IsNull then
+   Result:=O.Items[O.Add(AFieldName)]
+ else
   Case F.DataType of
     ftSmallint,
     ftInteger,

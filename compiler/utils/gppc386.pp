@@ -44,10 +44,12 @@ const
   GDBExeName = 'gdbpas';
   GDBIniName = '.gdbinit';
   DefaultCompilerName = 'ppc386';
+  PathSep=':';
 {$else}
   GDBExeName = 'gdbpas.exe';
   GDBIniName = 'gdb.ini';
   DefaultCompilerName = 'ppc386.exe';
+  PathSep=';';
 {$endif not linux}
 
   { If you add a gdb.fpc file in a given directory }
@@ -72,7 +74,7 @@ begin
   { support for info functions directly : used in makefiles }
   if (paramcount=1) and (pos('-i',Paramstr(1))=1) then
     begin
-      Exec(fsearch(CompilerName,GetEnv('PATH')),Paramstr(1));
+      Exec(fsearch(CompilerName,Dir+PathSep+GetEnv('PATH')),Paramstr(1));
       exit;
     end;
 
@@ -114,7 +116,7 @@ begin
   Writeln(fpcgdbini,'end');
   Close(fpcgdbini);
 
-  Exec(fsearch(GDBExeName,GetEnv('PATH')),
+  Exec(fsearch(GDBExeName,Dir+PathSep+GetEnv('PATH')),
 {$ifdef win32}
     '--nw '+
 {$endif win32}

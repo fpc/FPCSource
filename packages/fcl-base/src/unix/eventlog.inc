@@ -76,7 +76,7 @@ begin
   CloseLog;
 end;
 
-procedure TEventLog.WriteSystemLog(EventType : TEventType; Msg : String);
+procedure TEventLog.WriteSystemLog(EventType : TEventType; const Msg : String);
 
 Var
   P,PT : PChar;

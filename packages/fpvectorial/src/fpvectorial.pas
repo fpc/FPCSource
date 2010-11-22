@@ -31,13 +31,23 @@ type
 
 const
   { Default extensions }
+  { Multi-purpose document formats }
   STR_PDF_EXTENSION = '.pdf';
+  STR_POSTSCRIPT_EXTENSION = '.ps';
+  STR_SVG_EXTENSION = '.svg';
+  STR_CORELDRAW_EXTENSION = '.cdr';
+  STR_WINMETAFILE_EXTENSION = '.wmf';
 
 type
   TSegmentType = (
     st2DLine, st2DBezier,
     st3DLine, st3DBezier);
 
+  {@@
+    The coordinates in fpvectorial are given in millimiters and
+    the starting point is in the bottom-left corner of the document.
+    The X grows to the right and the Y grows to the top.
+  }
   TPathSegment = record
     SegmentType: TSegmentType;
     X, Y, Z: Double; // Z is ignored in 2D segments
@@ -79,6 +89,8 @@ type
     procedure ReadFromFile(AFileName: string; AFormat: TvVectorialFormat);
     procedure ReadFromStream(AStream: TStream; AFormat: TvVectorialFormat);
     procedure ReadFromStrings(AStrings: TStrings; AFormat: TvVectorialFormat);
+    class function GetFormatFromExtension(AFileName: string): TvVectorialFormat;
+    function  GetDetailedFileFormat(): string;
     { Data reading methods }
     function  GetPath(ANum: Cardinal): TPath;
     function  GetPathCount: Integer;
@@ -522,6 +534,26 @@ begin
   end;
 end;
 
+class function TvVectorialDocument.GetFormatFromExtension(AFileName: string
+  ): TvVectorialFormat;
+var
+  lExt: string;
+begin
+  lExt := ExtractFileExt(AFileName);
+  if AnsiCompareText(lExt, STR_PDF_EXTENSION) = 0 then Result := vfPDF
+  else if AnsiCompareText(lExt, STR_POSTSCRIPT_EXTENSION) = 0 then Result := vfPostScript
+  else if AnsiCompareText(lExt, STR_SVG_EXTENSION) = 0 then Result := vfSVG
+  else if AnsiCompareText(lExt, STR_CORELDRAW_EXTENSION) = 0 then Result := vfCorelDrawCDR
+  else if AnsiCompareText(lExt, STR_WINMETAFILE_EXTENSION) = 0 then Result := vfWindowsMetafileWMF
+  else
+    raise Exception.Create('TvVectorialDocument.GetFormatFromExtension: The extension (' + lExt + ') doesn''t match any supported formats.');
+end;
+
+function  TvVectorialDocument.GetDetailedFileFormat(): string;
+begin
+
+end;
+
 function TvVectorialDocument.GetPath(ANum: Cardinal): TPath;
 begin
   if ANum >= FPaths.Count then raise Exception.Create('TvVectorialDocument.GetPath: Path number out of bounds');
@@ -617,10 +649,21 @@ begin
   end;
 end;
 
+{@@
+  The default stream writer just uses WriteToStrings
+}
 procedure TvCustomVectorialWriter.WriteToStream(AStream: TStream;
   AData: TvVectorialDocument);
+var
+  lStringList: TStringList;
 begin
-
+  lStringList := TStringList.Create;
+  try
+    WriteToStrings(lStringList, AData);
+    lStringList.SaveToStream(AStream);
+  finally
+    lStringList.Free;
+  end;
 end;
 
 procedure TvCustomVectorialWriter.WriteToStrings(AStrings: TStrings;

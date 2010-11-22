@@ -25,18 +25,18 @@ uses
 
 Type
   { TCGIRequest }
-  TCustomCGIApplication = Class;
+  TCGIHandler = Class;
 
   TCGIRequest = Class(TRequest)
   Private
-    FCGI : TCustomCGIApplication;
+    FCGI : TCGIHandler;
     function GetCGIVar(Index: integer): String;
   Protected
     Function GetFieldValue(Index : Integer) : String; override;
     Procedure InitFromEnvironment;
     procedure ReadContent; override;
   Public
-    Constructor CreateCGI(ACGI : TCustomCGIApplication);
+    Constructor CreateCGI(ACGI : TCGIHandler);
     Property GatewayInterface : String Index 1 Read GetCGIVar;
     Property RemoteIdent : String Index 2 read GetCGIVar;
     Property RemoteUser : String Index 3 read GetCGIVar;
@@ -50,24 +50,22 @@ Type
 
   TCGIResponse = Class(TResponse)
   private
-    FCGI : TCustomCGIApplication;
+    FCGI : TCGIHandler;
     FOutput : TStream;
   Protected
     Procedure DoSendHeaders(Headers : TStrings); override;
     Procedure DoSendContent; override;
   Public
-    Constructor CreateCGI(ACGI : TCustomCGIApplication; AStream : TStream);
+    Constructor CreateCGI(ACGI : TCGIHandler; AStream : TStream);
   end;
 
   { TCustomCgiApplication }
 
-  TCustomCGIApplication = Class(TCustomWebApplication)
+  TCgiHandler = Class(TWebHandler)
   Private
     FResponse : TCGIResponse;
     FRequest : TCGIRequest;
     FOutput : TStream;
-    Function GetRequestVariable(Const VarName : String) : String;
-    Function GetRequestVariableCount : Integer;
   protected
     Function GetEmail : String; override;
     Function GetAdministrator : String; override;
@@ -76,19 +74,36 @@ Type
     function WaitForRequest(out ARequest : TRequest; out AResponse : TResponse) : boolean; override;
     procedure EndRequest(ARequest : TRequest;AResponse : TResponse); override;
   Public
+    Procedure GetCGIVarList(List : TStrings);
     Property Request : TCGIRequest read FRequest;
     Property Response: TCGIResponse Read FResponse;
+  end;
+
+  { TCustomCgiApplication }
+
+  TCustomCGIApplication = Class(TCustomWebApplication)
+  private
+    function GetRequest: TCGIRequest;
+    function GetRequestVariable(VarName : String): String;
+    function GetRequestVariableCount: Integer;
+    function GetResponse: TCGIResponse;
+  protected
+    function InitializeWebHandler: TWebHandler; override;
+  public
+    Procedure ShowException(E: Exception);override;
+    Property Request : TCGIRequest read GetRequest;
+    Property Response: TCGIResponse Read GetResponse;
     Procedure AddResponse(Const S : String);
     Procedure AddResponse(Const Fmt : String; Args : Array of const);
     Procedure AddResponseLn(Const S : String);
     Procedure AddResponseLn(Const Fmt : String; Args : Array of const);
     Procedure GetCGIVarList(List : TStrings);
-    Procedure ShowException(E: Exception);override;
     Function VariableIsUploadedFile(Const VarName : String) : boolean;
     Function UploadedFileName(Const VarName : String) : String;
     Property RequestVariables[VarName : String] : String Read GetRequestVariable;
     Property RequestVariableCount : Integer Read GetRequestVariableCount;
   end;
+
 
 ResourceString
   SWebMaster = 'webmaster';
@@ -143,7 +158,7 @@ Const
     { 36: 'XHTTPREQUESTEDWITH'     } ''
   );
 
-Procedure TCustomCGIApplication.GetCGIVarList(List : TStrings);
+Procedure TCgiHandler.GetCGIVarList(List : TStrings);
 
 Var
   I : Integer;
@@ -154,16 +169,7 @@ begin
     List.Add(CGIVarNames[i]+'='+GetEnvironmentVariable(CGIVarNames[i]));
 end;
 
-
-Procedure TCustomCGIApplication.ShowException(E: Exception);
-begin
-  if assigned(FResponse) then
-    ShowRequestException(FResponse,E)
-  else
-    inherited ShowException(E);
-end;
-
-Function TCustomCGIApplication.GetEmail : String;
+Function TCgiHandler.GetEmail : String;
 
 Var
   H : String;
@@ -178,7 +184,7 @@ begin
     end;
 end;
 
-Function TCustomCGIApplication.GetAdministrator : String;
+Function TCgiHandler.GetAdministrator : String;
 
 begin
   Result:=Inherited GetAdministrator;
@@ -186,17 +192,17 @@ begin
     Result:=SWebMaster;
 end;
 
-function TCustomCGIApplication.CreateResponse(AOutput : TStream): TCGIResponse;
+function TCgiHandler.CreateResponse(AOutput : TStream): TCGIResponse;
 begin
-  TCGIResponse.CreateCGI(Self,AOutput);
+  result := TCGIResponse.CreateCGI(Self,AOutput);
 end;
 
-function TCustomCGIApplication.CreateRequest: TCGIRequest;
+function TCgiHandler.CreateRequest: TCGIRequest;
 begin
   Result:=TCGIRequest.CreateCGI(Self);
 end;
 
-function TCustomCGIApplication.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
+function TCgiHandler.WaitForRequest(out ARequest: TRequest; out AResponse: TResponse): boolean;
 begin
   FRequest:=CreateRequest;
   FRequest.InitFromEnvironment;
@@ -208,81 +214,17 @@ begin
   Result := True;
 end;
 
-procedure TCustomCGIApplication.EndRequest(ARequest: TRequest;
-  AResponse: TResponse);
+procedure TCgiHandler.EndRequest(ARequest: TRequest; AResponse: TResponse);
 begin
   inherited;
   FreeAndNil(FOutPut);
   Terminate;
 end;
 
-constructor TCGIRequest.CreateCGI(ACGI: TCustomCGIApplication);
+constructor TCgiRequest.CreateCGI(ACGI: TCgiHandler);
 begin
   Inherited Create;
   FCGI:=ACGI;
-end;
-
-Function TCustomCGIApplication.GetRequestVariable(Const VarName : String) : String;
-
-begin
- If Assigned(Request) then
-   Result:=FRequest.QueryFields.Values[VarName]
- else
-   Result:='';
-end;
-
-Function TCustomCGIApplication.GetRequestVariableCount : Integer;
-
-begin
- If Assigned(Request) then
-    Result:=FRequest.QueryFields.Count
-  else
-    Result:=0;
-end;
-
-Procedure TCustomCGIApplication.AddResponse(Const S : String);
-
-Var
-  L : Integer;
-
-begin
-  L:=Length(S);
-  If L>0 then
-    Response.Content:=Response.Content+S;
-end;
-
-Procedure TCustomCGIApplication.AddResponse(Const Fmt : String; Args : Array of const);
-
-begin
-  AddResponse(Format(Fmt,Args));
-end;
-
-Procedure TCustomCGIApplication.AddResponseLN(Const S : String);
-
-
-begin
-  AddResponse(S+LineEnding);
-end;
-
-Procedure TCustomCGIApplication.AddResponseLN(Const Fmt : String; Args : Array of const);
-
-begin
-  AddResponseLN(Format(Fmt,Args));
-end;
-
-Function TCustomCGIApplication.VariableIsUploadedFile(Const VarName : String) : boolean;
-
-begin
-  Result:=FRequest.Files.IndexOfFile(VarName)<>-1;
-end;
-
-Function TCustomCGIApplication.UploadedFileName(Const VarName : String) : String;
-
-begin
-  If VariableIsUploadedFile(VarName) then
-    Result:=FRequest.Files.FileByName(VarName).LocalFileName
-  else
-    Result:='';
 end;
 
 { TCGIHTTPRequest }
@@ -433,11 +375,98 @@ begin
 {$endif}
 end;
 
-constructor TCGIResponse.CreateCGI(ACGI: TCustomCGIApplication; AStream: TStream);
+constructor TCGIResponse.CreateCGI(ACGI: TCgiHandler; AStream: TStream);
 begin
   inherited Create(ACGI.Request);
   FCGI:=ACGI;
   FOutput:=AStream;
+end;
+
+{ TCustomCGIApplication }
+
+function TCustomCGIApplication.GetRequest: TCGIRequest;
+begin
+  result := TCgiHandler(WebHandler).Request;
+end;
+
+function TCustomCGIApplication.GetRequestVariable(VarName : String): String;
+begin
+  If Assigned(Request) then
+    Result:=Request.QueryFields.Values[VarName]
+  else
+    Result:='';
+end;
+
+function TCustomCGIApplication.GetRequestVariableCount: Integer;
+begin
+  If Assigned(Request) then
+     Result:=Request.QueryFields.Count
+   else
+     Result:=0;
+end;
+
+function TCustomCGIApplication.GetResponse: TCGIResponse;
+begin
+
+end;
+
+function TCustomCGIApplication.InitializeWebHandler: TWebHandler;
+begin
+  Result:=TCgiHandler.Create(self);
+end;
+
+Procedure TCustomCGIApplication.ShowException(E: Exception);
+var
+  CgiHandler: TCgiHandler;
+begin
+  CgiHandler := WebHandler as TCgiHandler;
+  if assigned(CgiHandler.FResponse) then
+    CgiHandler.ShowRequestException(CgiHandler.FResponse,E)
+  else
+    inherited ShowException(E);
+end;
+
+procedure TCustomCGIApplication.AddResponse(const S: String);
+Var
+  L : Integer;
+
+begin
+  L:=Length(S);
+  If L>0 then
+    Response.Content:=Response.Content+S;
+end;
+
+procedure TCustomCGIApplication.AddResponse(const Fmt: String; Args: array of const);
+begin
+  AddResponse(Format(Fmt,Args));
+end;
+
+procedure TCustomCGIApplication.AddResponseLn(const S: String);
+begin
+  AddResponse(S+LineEnding);
+end;
+
+procedure TCustomCGIApplication.AddResponseLn(const Fmt: String; Args: array of const);
+begin
+  AddResponseLN(Format(Fmt,Args));
+end;
+
+procedure TCustomCGIApplication.GetCGIVarList(List: TStrings);
+begin
+  TCgiHandler(WebHandler).GetCGIVarList(list);
+end;
+
+function TCustomCGIApplication.VariableIsUploadedFile(const VarName: String): boolean;
+begin
+  Result:=Request.Files.IndexOfFile(VarName)<>-1;
+end;
+
+function TCustomCGIApplication.UploadedFileName(const VarName: String): String;
+begin
+  If VariableIsUploadedFile(VarName) then
+    Result:=Request.Files.FileByName(VarName).LocalFileName
+  else
+    Result:='';
 end;
 
 initialization
