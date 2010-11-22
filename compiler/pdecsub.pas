@@ -2677,7 +2677,7 @@ const
       begin
         if (m_mac in current_settings.modeswitches) and (cs_externally_visible in current_settings.localswitches) then
           begin
-            tprocdef(pd).aliasnames.insert(tprocdef(pd).procsym.realname);
+            tprocdef(pd).aliasnames.insert(target_info.Cprefix+tprocdef(pd).procsym.realname);
             include(pd.procoptions,po_public);
             include(pd.procoptions,po_has_public_name);
             include(pd.procoptions,po_global);
