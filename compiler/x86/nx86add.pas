@@ -451,7 +451,7 @@ unit nx86add;
               if (not(nf_swapped in flags) and (nodetype = lten)) or
                  ((nf_swapped in flags) and (nodetype = gten)) then
                 swapleftright;
-              location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,true);
+              location_force_reg(current_asmdata.CurrAsmList,left.location,opsize,false);
               emit_op_right_left(A_AND,opsize);
               op:=A_CMP;
               { warning: ugly hack, we need a JE so change the node to equaln }
