@@ -84,6 +84,10 @@ type
      constructor Create(p:pointer;mysize:integer);
    end;
 
+{
+  Generated from fpmkunit.pp, using data2inc:
+  data2inc -b -s fpmkunit.pp fpmkunitsrc.inc fpmkunitsrc
+}
 {$i fpmkunitsrc.inc}
 
 procedure CreateFPMKUnitSource(const AFileName:string);
@@ -256,6 +260,12 @@ Var
     OOptions:=OOptions+maybequoted(s);
   end;
 
+  procedure CondAddOption(const Name,Value:string);
+  begin
+    if Value<>'' then
+      AddOption(Name+'='+Value);
+  end;
+
 begin
   OOptions:='';
   // Does the current package support this CPU-OS?
@@ -290,13 +300,25 @@ begin
   AddOption('--compiler='+CompilerOptions.Compiler);
   AddOption('--cpu='+CPUToString(CompilerOptions.CompilerCPU));
   AddOption('--os='+OSToString(CompilerOptions.CompilerOS));
+  if CompilerOptions.HasOptions then
+    AddOption('--options='+CompilerOptions.Options.DelimitedText);
   if IsSuperUser or GlobalOptions.InstallGlobal then
-    AddOption('--baseinstalldir='+CompilerOptions.GlobalInstallDir)
+    begin
+      CondAddOption('--prefix',CompilerOptions.GlobalPrefix);
+      CondAddOption('--baseinstalldir',CompilerOptions.GlobalInstallDir);
+    end
   else
-    AddOption('--baseinstalldir='+CompilerOptions.LocalInstallDir);
-  if CompilerOptions.LocalInstallDir<>'' then
-    AddOption('--localunitdir='+CompilerOptions.LocalUnitDir);
-  AddOption('--globalunitdir='+CompilerOptions.GlobalUnitDir);
+    begin
+      CondAddOption('--prefix',CompilerOptions.LocalPrefix);
+      CondAddOption('--baseinstalldir',CompilerOptions.LocalInstallDir);
+    end;
+  CondAddOption('--localunitdir',CompilerOptions.LocalUnitDir);
+  CondAddOption('--globalunitdir',CompilerOptions.GlobalUnitDir);
+  if GlobalOptions.CustomFPMakeOptions<>'' then
+    begin
+    AddOption('--ignoreinvalidoption');
+    AddOption(GlobalOptions.CustomFPMakeOptions);
+    end;
   { Run FPMake }
   FPMakeBin:='fpmake'+ExeExt;
   SetCurrentDir(PackageBuildPath(P));

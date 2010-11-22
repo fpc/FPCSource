@@ -32,7 +32,7 @@ Type
 
   TGlobalOptions = Class(TPersistent)
   private
-    FDirty : Boolean;
+    FSaveInifileChanges : Boolean;
     FConfigVersion : Integer;
     FRemoteMirrorsURL,
     FRemoteRepository,
@@ -50,6 +50,8 @@ Type
     FRecoveryMode   : Boolean;
     FOptionParser: TTemplateParser;
     FShowLocation: Boolean;
+    FSkipConfigurationFiles: boolean;
+    FCustomFPMakeOptions : string;
     function  GetOptString(Index: integer): String;
     procedure SetOptString(Index: integer; const AValue: String);
     procedure UpdateLocalRepositoryOption;
@@ -60,7 +62,8 @@ Type
     Procedure LoadGlobalFromFile(const AFileName : String);
     Procedure SaveGlobalToFile(const AFileName : String);
     procedure LogValues;
-    Property Dirty : Boolean Read FDirty;
+    // Is set when the inifile has an old version number (which is also the case when a new file is generated)
+    Property SaveInifileChanges : Boolean Read FSaveInifileChanges;
     Property ConfigVersion : Integer read FConfigVersion;
     function LocalPackagesFile:string;
     function LocalMirrorsFile:string;
@@ -76,12 +79,14 @@ Type
     Property DefaultCompilerConfig : String Index 8 Read GetOptString Write SetOptString;
     Property FPMakeCompilerConfig : String Index 9 Read GetOptString Write SetOptString;
     Property Downloader: String Index 10 Read GetOptString Write SetOptString;
+    Property CustomFPMakeOptions: String Index 11 Read GetOptString Write SetOptString;
     // Parameters
     Property CompilerConfig : String Read FCompilerConfig Write FCompilerConfig;
     Property InstallGlobal : Boolean Read FInstallGlobal Write FInstallGlobal;
     Property RecoveryMode : Boolean Read FRecoveryMode Write FRecoveryMode;
     Property AllowBroken : Boolean Read FAllowBroken Write FAllowBroken;
     Property ShowLocation : Boolean Read FShowLocation Write FShowLocation;
+    Property SkipConfigurationFiles: boolean read FSkipConfigurationFiles write FSkipConfigurationFiles;
   end;
 
 
@@ -89,15 +94,19 @@ Type
 
   TCompilerOptions = Class(TPersistent)
   private
-    FDirty: Boolean;
+    FSaveInifileChanges: Boolean;
     FConfigVersion : Integer;
     FCompiler,
     FCompilerVersion,
     FLocalInstallDir,
-    FGlobalInstallDir : String;
+    FGlobalInstallDir,
+    FLocalPrefix,
+    FGlobalPrefix: String;
     FCompilerCPU: TCPU;
     FCompilerOS: TOS;
     FOptionParser: TTemplateParser;
+    FOptions: TStrings;
+    function GetOptions: TStrings;
     function GetOptString(Index: integer): String;
     procedure SetOptString(Index: integer; const AValue: String);
     procedure SetCompilerCPU(const AValue: TCPU);
@@ -110,9 +119,12 @@ Type
     Procedure SaveCompilerToFile(const AFileName : String);
     procedure LogValues(const ACfgName:string);
     procedure UpdateLocalRepositoryOption;
+    procedure CheckCompilerValues;
     Function LocalUnitDir:string;
     Function GlobalUnitDir:string;
-    Property Dirty : Boolean Read FDirty;
+    Function HasOptions: boolean;
+    // Is set when the inifile has an old version number (which is also the case when a new file is generated)
+    Property SaveInifileChanges : Boolean Read FSaveInifileChanges;
     Property ConfigVersion : Integer read FConfigVersion;
   Published
     Property Compiler : String Index 1 Read GetOptString Write SetOptString;
@@ -120,6 +132,9 @@ Type
     Property CompilerVersion : String Index 3 Read GetOptString Write SetOptString;
     Property GlobalInstallDir : String Index 4 Read GetOptString Write SetOptString;
     Property LocalInstallDir : String Index 5 Read GetOptString Write SetOptString;
+    Property GlobalPrefix : String Index 6 Read GetOptString Write SetOptString;
+    Property LocalPrefix : String Index 7 Read GetOptString Write SetOptString;
+    Property Options : TStrings read GetOptions;
     Property CompilerOS : TOS Read FCompilerOS Write SetCompilerOS;
     Property CompilerCPU : TCPU Read FCompilerCPU Write SetCompilerCPU;
   end;
@@ -160,8 +175,11 @@ Const
   KeyCompilerConfig        = 'CompilerConfig';
   KeyFPMakeCompilerConfig  = 'FPMakeCompilerConfig';
   KeyDownloader            = 'Downloader';
+  KeyCustomFPMakeOptions   = 'FPMakeOptions';
 
   // Compiler dependent config
+  KeyGlobalPrefix          = 'GlobalPrefix';
+  KeyLocalPrefix           = 'LocalPrefix';
   KeyGlobalInstallDir      = 'GlobalInstallDir';
   KeyLocalInstallDir       = 'LocalInstallDir';
   KeyCompiler              = 'Compiler' ;
@@ -201,6 +219,7 @@ begin
     8 : Result:=FDefaultCompilerConfig;
     9 : Result:=FFPMakeCompilerConfig;
    10 : Result:=FDownloader;
+   11 : Result:=FCustomFPMakeOptions;
     else
       Error('Unknown option');
   end;
@@ -222,11 +241,11 @@ begin
     6 : FCompilerConfigDir:=FixPath(AValue);
     8 : FDefaultCompilerConfig:=AValue;
     9 : FFPMakeCompilerConfig:=AValue;
-   10 : FDownloader:=AValue;
+    10 : FDownloader:=AValue;
+    11 : FCustomFPMakeOptions:=AValue;
     else
       Error('Unknown option');
   end;
-  FDirty:=True;
 end;
 
 
@@ -308,7 +327,7 @@ begin
         if (FConfigVersion<>CurrentConfigVersion) then
           begin
             Log(vlDebug,SLogUpgradingConfig,[AFileName]);
-            FDirty:=true;
+            FSaveInifileChanges:=true;
             if FConfigVersion<1 then
               begin
                 FRemoteRepository:='auto';
@@ -333,6 +352,7 @@ begin
         FDefaultCompilerConfig:=ReadString(SDefaults,KeyCompilerConfig,FDefaultCompilerConfig);
         FFPMakeCompilerConfig:=ReadString(SDefaults,KeyFPMakeCompilerConfig,FFPMakeCompilerConfig);
         FDownloader:=ReadString(SDefaults,KeyDownloader,FDownloader);
+        FCustomFPMakeOptions:=ReadString(SDefaults,KeyCustomFPMakeOptions,FCustomFPMakeOptions);
       end;
   finally
     Ini.Free;
@@ -360,7 +380,7 @@ begin
         WriteString(SDefaults,KeyCompilerConfig,FDefaultCompilerConfig);
         WriteString(SDefaults,KeyFPMakeCompilerConfig,FFPMakeCompilerConfig);
         WriteString(SDefaults,KeyDownloader,FDownloader);
-        FDirty:=False;
+        FSaveInifileChanges:=False;
       end;
     Ini.UpdateFile;
   finally
@@ -398,6 +418,8 @@ end;
 destructor TCompilerOptions.Destroy;
 begin
   FOptionParser.Free;
+  if assigned(FOptions) then
+    FreeAndNil(FOptions);
   inherited Destroy;
 end;
 
@@ -410,10 +432,23 @@ begin
     3 : Result:=FCompilerVersion;
     4 : Result:=FOptionParser.ParseString(FGlobalInstallDir);
     5 : Result:=FOptionParser.ParseString(FLocalInstallDir);
+    6 : Result:=FixPath(FOptionParser.ParseString(FGlobalPrefix));
+    7 : Result:=FixPath(FOptionParser.ParseString(FLocalPrefix));
     else
       Error('Unknown option');
   end;
 end;
+
+function TCompilerOptions.GetOptions: TStrings;
+begin
+  if not assigned(FOptions) then
+    begin
+      FOptions := TStringList.Create;
+      FOptions.Delimiter:=' ';
+    end;
+  Result := FOptions;
+end;
+
 
 procedure TCompilerOptions.SetOptString(Index: integer; const AValue: String);
 begin
@@ -425,10 +460,17 @@ begin
     3 : FCompilerVersion:=AValue;
     4 : FGlobalInstallDir:=FixPath(AValue);
     5 : FLocalInstallDir:=FixPath(AValue);
+    6 : begin
+          FGlobalPrefix:=AValue;
+          FOptionParser.Values['GlobalPrefix'] := GlobalPrefix;
+        end;
+    7 : begin
+          FLocalPrefix:=AValue;
+          FOptionParser.Values['LocalPrefix'] := LocalPrefix;
+        end
     else
       Error('Unknown option');
   end;
-  FDirty:=True;
 end;
 
 
@@ -437,7 +479,6 @@ begin
   if FCompilerCPU=AValue then
     exit;
   FCompilerCPU:=AValue;
-  FDirty:=True;
 end;
 
 
@@ -446,85 +487,127 @@ begin
   FOptionParser.Values['LocalRepository'] := GlobalOptions.LocalRepository;
 end;
 
+procedure TCompilerOptions.CheckCompilerValues;
+var
+  AVersion : string;
+  ACpu     : TCpu;
+  AOs      : TOS;
+begin
+  if Compiler='' then
+    Exit;
+  if (CompilerCPU=cpuNone) or
+   (CompilerOS=osNone) or
+   (CompilerVersion='') then
+  begin
+    GetCompilerInfo(Compiler,'-iVTPTO',AVersion,ACpu,AOs);
+    if CompilerCPU=cpuNone then
+      CompilerCPU := ACpu;
+    if CompilerOS=osNone then
+      CompilerOS:=AOs;
+    if CompilerVersion='' then
+      CompilerVersion:=AVersion;
+  end;
+end;
+
 
 procedure TCompilerOptions.SetCompilerOS(const AValue: TOS);
 begin
   if FCompilerOS=AValue then
     exit;
   FCompilerOS:=AValue;
-  FDirty:=True;
 end;
 
 
 function TCompilerOptions.LocalUnitDir:string;
+var ALocalInstallDir: string;
 begin
   if LocalInstallDir<>'' then
-    result:=LocalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
+    ALocalInstallDir:=LocalInstallDir
+  else if LocalPrefix<>'' then
+{$ifdef unix}
+    ALocalInstallDir:=LocalPrefix+'lib'+PathDelim+'fpc'+PathDelim+FCompilerVersion+PathDelim;
+{$else unix}
+    ALocalInstallDir:=LocalPrefix;
+{$endif}
+
+  if ALocalInstallDir<>'' then
+    result:=ALocalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
   else
     result:='';
 end;
 
 
 function TCompilerOptions.GlobalUnitDir:string;
+var AGlobalInstallDir: string;
 begin
   if GlobalInstallDir<>'' then
-    result:=GlobalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
+    AGlobalInstallDir:=GlobalInstallDir
+  else if GlobalPrefix<>'' then
+{$ifdef unix}
+    AGlobalInstallDir:=GlobalPrefix+'lib'+PathDelim+'fpc'+PathDelim+FCompilerVersion+PathDelim;
+{$else unix}
+    AGlobalInstallDir:=GlobalPrefix;
+{$endif}
+
+  if AGlobalInstallDir<>'' then
+    result:=AGlobalInstallDir+'units'+PathDelim+CompilerTarget+PathDelim
   else
     result:='';
 end;
 
 
+function TCompilerOptions.HasOptions: boolean;
+begin
+  result := assigned(FOptions);
+end;
+
+
 procedure TCompilerOptions.InitCompilerDefaults;
 
-var
-  infoSL : TStringList;
 begin
   FConfigVersion:=CurrentConfigVersion;
-  FCompiler:=ExeSearch('fpc'+ExeExt,GetEnvironmentVariable('PATH'));
+  if fcompiler = '' then
+    FCompiler:=ExeSearch('fpc'+ExeExt,GetEnvironmentVariable('PATH'));
   if FCompiler='' then
     Raise EPackagerError.Create(SErrMissingFPC);
   // Detect compiler version/target from -i option
-  infosl:=TStringList.Create;
-  infosl.Delimiter:=' ';
-  infosl.DelimitedText:=GetCompilerInfo(FCompiler,'-iVTPTO');
-  if infosl.Count<>3 then
-    Raise EPackagerError.Create(SErrInvalidFPCInfo);
-  FCompilerVersion:=infosl[0];
-  FCompilerCPU:=StringToCPU(infosl[1]);
-  FCompilerOS:=StringToOS(infosl[2]);
+  GetCompilerInfo(FCompiler,'-iVTPTO',FCompilerVersion,FCompilerCPU,FCompilerOS);
   // Temporary hack to workaround bug in fpc.exe that doesn't support spaces
   // We retrieve the real binary
   if FCompilerVersion='2.2.0' then
     FCompiler:=GetCompilerInfo(FCompiler,'-PB');
   Log(vlDebug,SLogDetectedCompiler,[FCompiler,FCompilerVersion,MakeTargetString(FCompilerCPU,FCompilerOS)]);
+
   // Use the same algorithm as the compiler, see options.pas
+  // Except that the prefix is extracted and GlobalInstallDir is set using
+  // that prefix
 {$ifdef Unix}
-  FGlobalInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
-  if FGlobalInstallDir='' then
-    begin
-      FGlobalInstallDir:='/usr/local/lib/fpc/'+FCompilerVersion+'/';
-      if not DirectoryExists(FGlobalInstallDir) and
-         DirectoryExists('/usr/lib/fpc/'+FCompilerVersion) then
-        FGlobalInstallDir:='/usr/lib/fpc/'+FCompilerVersion+'/';
-    end;
+  FGlobalPrefix:='/usr/local/';
+  if not DirectoryExists(FGlobalPrefix+'lib/fpc/'+FCompilerVersion+'/') and
+     DirectoryExists('/usr/lib/fpc/'+FCompilerVersion+'/') then
+    FGlobalPrefix:='/usr/';
 {$else unix}
-  FGlobalInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
-  if FGlobalInstallDir='' then
-    begin
-      FGlobalInstallDir:=ExtractFilePath(FCompiler)+'../';
-      if not(DirectoryExists(FGlobalInstallDir+'/units')) and
-         not(DirectoryExists(FGlobalInstallDir+'/rtl')) then
-        FGlobalInstallDir:=FGlobalInstallDir+'../';
-    end;
-  FGlobalInstallDir:=ExpandFileName(FGlobalInstallDir);
+  FGlobalPrefix:=ExtractFilePath(FCompiler)+'..'+PathDelim;
+  if not(DirectoryExists(FGlobalPrefix+PathDelim+'units')) and
+     not(DirectoryExists(FGlobalPrefix+PathDelim+'rtl')) then
+    FGlobalPrefix:=FGlobalPrefix+'..'+PathDelim;
+  FGlobalPrefix:=ExpandFileName(FGlobalInstallDir);
 {$endif unix}
-  Log(vlDebug,SLogDetectedFPCDIR,['global',FGlobalInstallDir]);
+
+  Log(vlDebug,SLogDetectedPrefix,['global',FGlobalPrefix]);
   // User writable install directory
   if not IsSuperUser then
     begin
-      FLocalInstallDir:= '{LocalRepository}lib'+ PathDelim + FCompilerVersion+PathDelim;
-      Log(vlDebug,SLogDetectedFPCDIR,['local',FLocalInstallDir]);
+      FLocalPrefix:= '{LocalRepository}';
+      Log(vlDebug,SLogDetectedPrefix,['local',FLocalPrefix]);
     end;
+
+  FGlobalInstallDir:=FixPath(GetEnvironmentVariable('FPCDIR'));
+{$ifndef Unix}
+  FGlobalInstallDir:=ExpandFileName(FGlobalInstallDir);
+{$endif unix}
+  if FGlobalInstallDir<>'' then
+    Log(vlDebug,SLogFPCDirEnv,[FGlobalInstallDir]);
 end;
 
 
@@ -540,10 +623,12 @@ begin
         if (FConfigVersion<>CurrentConfigVersion) then
           begin
             Log(vlDebug,SLogUpgradingConfig,[AFileName]);
-            FDirty:=true;
+            FSaveInifileChanges:=true;
             if (FConfigVersion>CurrentConfigVersion) then
               Error(SErrUnsupportedConfigVersion,[AFileName]);
           end;
+        GlobalPrefix:=ReadString(SDefaults,KeyGlobalPrefix,FGlobalPrefix);
+        LocalPrefix:=ReadString(SDefaults,KeyLocalPrefix,FLocalPrefix);
         FGlobalInstallDir:=FixPath(ReadString(SDefaults,KeyGlobalInstallDir,FGlobalInstallDir));
         FLocalInstallDir:=FixPath(ReadString(SDefaults,KeyLocalInstallDir,FLocalInstallDir));
         FCompiler:=ReadString(SDefaults,KeyCompiler,FCompiler);
@@ -568,13 +653,15 @@ begin
     With Ini do
       begin
         WriteInteger(SDefaults,KeyConfigVersion,CurrentConfigVersion);
+        WriteString(SDefaults,KeyGlobalPrefix,FGlobalPrefix);
+        WriteString(SDefaults,KeyLocalPrefix,FLocalPrefix);
         WriteString(SDefaults,KeyGlobalInstallDir,FGlobalInstallDir);
         WriteString(SDefaults,KeyLocalInstallDir,FLocalInstallDir);
         WriteString(SDefaults,KeyCompiler,FCompiler);
         WriteString(SDefaults,KeyCompilerOS,OSToString(CompilerOS));
         WriteString(SDefaults,KeyCompilerCPU,CPUtoString(CompilerCPU));
         WriteString(SDefaults,KeyCompilerVersion,FCompilerVersion);
-        FDirty:=False;
+        FSaveInifileChanges:=False;
       end;
     Ini.UpdateFile;
   finally
@@ -591,6 +678,8 @@ begin
   Log(vlDebug,SLogCompilerCfgVersion,[FCompilerVersion]);
   Log(vlDebug,SLogCompilerCfgGlobalInstallDir,[GlobalInstallDir]);
   Log(vlDebug,SLogCompilerCfgLocalInstallDir,[LocalInstallDir]);
+  Log(vlDebug,SLogCompilerCfgGlobalPrefix,[GlobalPrefix]);
+  Log(vlDebug,SLogCompilerCfgLocalPrefix,[LocalPrefix]);
 end;
 
 

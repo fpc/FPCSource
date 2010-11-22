@@ -39,7 +39,7 @@ Type
     Destructor Destroy;override;
     Procedure LoadGlobalDefaults;
     Procedure LoadCompilerDefaults;
-    Procedure ProcessCommandLine;
+    Procedure ProcessCommandLine(FirstPass: boolean);
     Procedure DoRun; Override;
   end;
 
@@ -97,7 +97,7 @@ begin
   if not GeneratedConfig then
     begin
       GlobalOptions.LoadGlobalFromFile(cfgfile);
-      if GlobalOptions.Dirty and (not UseGlobalConfig or IsSuperUser) then
+      if GlobalOptions.SaveInifileChanges and (not UseGlobalConfig or IsSuperUser) then
         GlobalOptions.SaveGlobalToFile(cfgfile);
     end;
   GlobalOptions.CompilerConfig:=GlobalOptions.DefaultCompilerConfig;
@@ -139,7 +139,7 @@ begin
           pkgglobals.Log(vlDebug,SLogGeneratingCompilerConfig,[S]);
           CompilerOptions.InitCompilerDefaults;
           CompilerOptions.SaveCompilerToFile(S);
-          if CompilerOptions.Dirty then
+          if CompilerOptions.SaveInifileChanges then
             CompilerOptions.SaveCompilerToFile(S);
         end
       else
@@ -154,7 +154,7 @@ begin
     begin
       pkgglobals.Log(vlDebug,SLogLoadingFPMakeCompilerConfig,[S]);
       FPMakeCompilerOptions.LoadCompilerFromFile(S);
-      if FPMakeCompilerOptions.Dirty then
+      if FPMakeCompilerOptions.SaveInifileChanges then
         FPMakeCompilerOptions.SaveCompilerToFile(S);
     end
   else
@@ -168,15 +168,21 @@ procedure TMakeTool.ShowUsage;
 begin
   Writeln('Usage: ',Paramstr(0),' [options] <action> <package>');
   Writeln('Options:');
-  Writeln('  -c --config       Set compiler configuration to use');
-  Writeln('  -h --help         This help');
-  Writeln('  -v --verbose      Show more information');
-  Writeln('  -d --debug        Show debugging information');
-  Writeln('  -g --global       Force installation to global (system-wide) directory');
-  Writeln('  -f --force        Force installation also if the package is already installed');
-  Writeln('  -r --recovery     Recovery mode, use always internal fpmkunit');
-  Writeln('  -b --broken       Do not stop on broken packages');
-  Writeln('  -l --showlocation Show if the packages are installed globally or locally');
+  Writeln('  -c --config        Set compiler configuration to use');
+  Writeln('  -h --help          This help');
+  Writeln('  -v --verbose       Show more information');
+  Writeln('  -d --debug         Show debugging information');
+  Writeln('  -g --global        Force installation to global (system-wide) directory');
+  Writeln('  -f --force         Force installation also if the package is already installed');
+  Writeln('  -r --recovery      Recovery mode, use always internal fpmkunit');
+  Writeln('  -b --broken        Do not stop on broken packages');
+  Writeln('  -l --showlocation  Show if the packages are installed globally or locally');
+  Writeln('  -o --options=value Pass extra options to the compiler');
+  Writeln('  -n                 Do not read the default configuration files');
+  Writeln('  -p --prefix=value  Specify the prefix');
+  Writeln('  --compiler=value   Specify the compiler-executable');
+  Writeln('  --cpu=value        Specify the target cpu to compile for');
+  Writeln('  --os=value         Specify the target operating system to compile for');
   Writeln('Actions:');
   Writeln('  update            Update packages list');
   Writeln('  list              List available and installed packages');
@@ -206,7 +212,7 @@ begin
 end;
 
 
-procedure TMakeTool.ProcessCommandLine;
+procedure TMakeTool.ProcessCommandLine(FirstPass: boolean);
 
   Function CheckOption(Index : Integer;Short,Long : String): Boolean;
   var
@@ -243,9 +249,26 @@ procedure TMakeTool.ProcessCommandLine;
       end;
   end;
 
+  function SplitSpaces(var SplitString: string) : string;
+  var i : integer;
+  begin
+    i := pos(' ',SplitString);
+    if i > 0 then
+      begin
+        result := copy(SplitString,1,i-1);
+        delete(SplitString,1,i);
+      end
+    else
+      begin
+        result := SplitString;
+        SplitString:='';
+      end;
+  end;
+
 Var
   I : Integer;
   HasAction : Boolean;
+  OptString : String;
 begin
   I:=0;
   HasAction:=false;
@@ -265,17 +288,44 @@ begin
         GlobalOptions.InstallGlobal:=true
       else if CheckOption(I,'r','recovery') then
         GlobalOptions.RecoveryMode:=true
+      else if CheckOption(I,'n','') then
+        GlobalOptions.SkipConfigurationFiles:=true
       else if CheckOption(I,'b','broken') then
         GlobalOptions.AllowBroken:=true
       else if CheckOption(I,'l','showlocation') then
         GlobalOptions.ShowLocation:=true
+      else if CheckOption(I,'o','options') and FirstPass then
+        begin
+          OptString := OptionArg(I);
+          while OptString <> '' do
+            CompilerOptions.Options.Add(SplitSpaces(OptString));
+        end
+      else if CheckOption(I,'p','prefix') then
+        begin
+          CompilerOptions.GlobalPrefix := OptionArg(I);
+          CompilerOptions.LocalPrefix := OptionArg(I);
+          FPMakeCompilerOptions.GlobalPrefix := OptionArg(I);
+          FPMakeCompilerOptions.LocalPrefix := OptionArg(I);
+        end
+      else if CheckOption(I,'','compiler') then
+        begin
+          CompilerOptions.Compiler := OptionArg(I);
+          FPMakeCompilerOptions.Compiler := OptionArg(I);
+        end
+      else if CheckOption(I,'','os') then
+        CompilerOptions.CompilerOS := StringToOS(OptionArg(I))
+      else if CheckOption(I,'','cpu') then
+        CompilerOptions.CompilerCPU := StringToCPU(OptionArg(I))
       else if CheckOption(I,'h','help') then
         begin
           ShowUsage;
           halt(0);
         end
       else if (Length(Paramstr(i))>0) and (Paramstr(I)[1]='-') then
-        Raise EMakeToolError.CreateFmt(SErrInvalidArgument,[I,ParamStr(i)])
+        begin
+          if FirstPass then
+            Raise EMakeToolError.CreateFmt(SErrInvalidArgument,[I,ParamStr(i)])
+        end
       else
       // It's a command or target.
         begin
@@ -303,7 +353,7 @@ begin
   OldCurrDir:=GetCurrentDir;
   Try
     LoadGlobalDefaults;
-    ProcessCommandLine;
+    ProcessCommandLine(true);
 
     // Scan is special, it doesn't need a valid local setup
     if (ParaAction='scan') then
@@ -315,7 +365,23 @@ begin
       end;
 
     MaybeCreateLocalDirs;
-    LoadCompilerDefaults;
+    if not GlobalOptions.SkipConfigurationFiles then
+      LoadCompilerDefaults
+    else
+      begin
+        FPMakeCompilerOptions.InitCompilerDefaults;
+        CompilerOptions.InitCompilerDefaults;
+      end;
+
+    // The command-line is parsed for the second time, to make it possible
+    // to override the values in the compiler-configuration file. (like prefix)
+    ProcessCommandLine(false);
+
+    // If CompilerVersion, CompilerOS or CompilerCPU is still empty, use the
+    // compiler-executable to get them
+    FPMakeCompilerOptions.CheckCompilerValues;
+    CompilerOptions.CheckCompilerValues;
+
     LoadLocalAvailableMirrors;
 
     // Load local repository, update first if this is a new installation

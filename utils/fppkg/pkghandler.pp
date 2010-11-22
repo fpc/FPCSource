@@ -156,6 +156,7 @@ end;
 Function TPackageHandler.ExecuteProcess(Const Prog,Args:String):Integer;
 begin
   Log(vlCommands,SLogExecute,[Prog,Args]);
+  Flush(StdOut);
   Result:=SysUtils.ExecuteProcess(Prog,Args);
 end;
 

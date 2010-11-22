@@ -9,7 +9,8 @@ uses
   baseunix,
 {$endif}
   SysUtils,
-  Classes;
+  Classes,
+  fprepos;
 
 Const
 {$ifdef unix}
@@ -75,7 +76,8 @@ Function FileExistsLog(const AFileName:string):Boolean;
 procedure BackupFile(const AFileName: String);
 Procedure DeleteDir(const ADir:string);
 Procedure SearchFiles(SL:TStringList;const APattern:string);
-Function GetCompilerInfo(const ACompiler,AOptions:string):string;
+Function GetCompilerInfo(const ACompiler,AOptions:string):string; overload;
+Procedure GetCompilerInfo(const ACompiler, AOptions: string; out AVersion: string; out ACPU: TCpu; out aOS:TOS); overload;
 function IsSuperUser:boolean;
 
 var
@@ -356,6 +358,20 @@ begin
   Move(Buf,Result[1],Count);
 end;
 
+
+Procedure GetCompilerInfo(const ACompiler, AOptions: string; out AVersion: string; out ACPU: TCpu; out aOS:TOS); overload;
+var
+  infosl: TStringList;
+begin
+  infosl:=TStringList.Create;
+  infosl.Delimiter:=' ';
+  infosl.DelimitedText:=GetCompilerInfo(ACompiler,AOptions);
+  if infosl.Count<>3 then
+    Raise EPackagerError.Create(SErrInvalidFPCInfo);
+  AVersion:=infosl[0];
+  ACPU:=StringToCPU(infosl[1]);
+  AOS:=StringToOS(infosl[2]);
+end;
 
 function IsSuperUser:boolean;
 begin
