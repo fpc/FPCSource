@@ -392,6 +392,17 @@ begin
 end;
 
 
+procedure fpc_initialize_array(data,typeinfo : pointer;count,size : SizeInt); compilerproc;
+  var
+     i : SizeInt;
+  begin
+     if not(PByte(typeinfo)^ in [tkInteger,tkChar,tkEnumeration,tkFloat,tkSet,
+       tkMethod,tkSString,tkLString,tkWChar,tkBool,tkInt64,tkQWord]) then
+       for i:=0 to count-1 do
+         int_initialize(data+size*i,typeinfo);
+  end;
+
+
 procedure fpc_finalize_array(data,typeinfo : pointer;count,size : SizeInt); [Public,Alias:'FPC_FINALIZEARRAY'];  compilerproc;
   var
      i : SizeInt;

@@ -588,43 +588,7 @@ implementation
       end;
 
 
-    function inline_initialize : tnode;
-      var
-        newblock,
-        paras   : tnode;
-        ppn     : tcallparanode;
-      begin
-        { for easy exiting if something goes wrong }
-        result := cerrornode.create;
-
-        consume(_LKLAMMER);
-        paras:=parse_paras(false,false,_RKLAMMER);
-        consume(_RKLAMMER);
-        if not assigned(paras) then
-         begin
-           CGMessage1(parser_e_wrong_parameter_size,'Initialize');
-           exit;
-         end;
-
-        ppn:=tcallparanode(paras);
-        { 2 arguments? }
-        if assigned(ppn.right) then
-         begin
-           CGMessage1(parser_e_wrong_parameter_size,'Initialize');
-           paras.free;
-           exit;
-         end;
-
-        newblock:=initialize_data_node(ppn.left);
-        ppn.left:=nil;
-
-        paras.free;
-        result.free;
-        result:=newblock;
-      end;
-
-
-    function inline_finalize : tnode;
+    function inline_initfinal(isinit: boolean): tnode;
       var
         newblock,
         paras   : tnode;
@@ -638,25 +602,24 @@ implementation
         consume(_LKLAMMER);
         paras:=parse_paras(false,false,_RKLAMMER);
         consume(_RKLAMMER);
-        if not assigned(paras) then
+        ppn:=tcallparanode(paras);
+
+        if not assigned(paras) or
+           (assigned(ppn.right) and
+            assigned(tcallparanode(ppn.right).right)) then
          begin
-           CGMessage1(parser_e_wrong_parameter_size,'Finalize');
+           if isinit then
+             CGMessage1(parser_e_wrong_parameter_size,'Initialize')
+           else
+             CGMessage1(parser_e_wrong_parameter_size,'Finalize');
            exit;
          end;
 
-        ppn:=tcallparanode(paras);
         { 2 arguments? }
         if assigned(ppn.right) then
          begin
            destppn:=tcallparanode(ppn.right);
-           { 3 arguments is invalid }
-           if assigned(destppn.right) then
-            begin
-              CGMessage1(parser_e_wrong_parameter_size,'Finalize');
-              paras.free;
-              exit;
-            end;
-           { create call to fpc_finalize_array }
+           { create call to fpc_initialize/finalize_array }
            npara:=ccallparanode.create(cordconstnode.create
                      (destppn.left.resultdef.size,s32inttype,true),
                   ccallparanode.create(ctypeconvnode.create
@@ -665,18 +628,35 @@ implementation
                      (crttinode.create(tstoreddef(destppn.left.resultdef),initrtti,rdt_normal)),
                   ccallparanode.create(caddrnode.create_internal
                      (destppn.left),nil))));
-           newblock:=ccallnode.createintern('fpc_finalize_array',npara);
+           if isinit then
+             newblock:=ccallnode.createintern('fpc_initialize_array',npara)
+           else
+             newblock:=ccallnode.createintern('fpc_finalize_array',npara);
            destppn.left:=nil;
-           ppn.left:=nil;
          end
         else
          begin
-           newblock:=finalize_data_node(ppn.left);
-           ppn.left:=nil;
+           if isinit then
+             newblock:=initialize_data_node(ppn.left)
+           else
+             newblock:=finalize_data_node(ppn.left);
          end;
+        ppn.left:=nil;
         paras.free;
         result.free;
         result:=newblock;
+      end;
+
+
+    function inline_initialize : tnode;
+      begin
+        result:=inline_initfinal(true);
+      end;
+
+
+    function inline_finalize : tnode;
+      begin
+        result:=inline_initfinal(false);
       end;
 
 
