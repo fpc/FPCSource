@@ -18,7 +18,7 @@ implicitunits=ctypes strings \
       stdconvs sockets printer charset ucomplex fmtbcd \
       winevent video mouse keyboard \
       sharemem exeinfo fpintres \
-      cpu
+      cpu signals
 # mmx
 #      fpcmemdll
 #     winsysut signals
