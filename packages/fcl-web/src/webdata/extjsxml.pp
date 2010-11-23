@@ -37,10 +37,17 @@ Type
   { TExtJSJSONDataFormatter }
 
   { TExtJSXMLDataFormatter }
+  TXMLElementEvent = Procedure (Sender : TObject; AElement : TDOMElement) of object;
+  TXMLExceptionObjectEvent = Procedure(Sender : TObject; E : Exception; AResponse : TDOMElement) of Object;
 
   TExtJSXMLDataFormatter = Class(TExtJSDataFormatter)
   private
+    FAfterDataToXML: TXMLElementEvent;
+    FAfterRowToXML: TXMLElementEvent;
+    FBeforeDataToXML: TXMLElementEvent;
+    FBeforeRowToXML: TXMLElementEvent;
     FDP: String;
+    FOnErrorResponse: TXmlExceptionObjectEvent;
     FReP: String;
     FRP: String;
     function IsDocumentStored: boolean;
@@ -51,6 +58,10 @@ Type
     Procedure DoExceptionToStream(E : Exception; ResponseContent : TStream); override;
     Function GetDataContentType : String; override;
     function RowToXML(Doc: TXMLDocument): TDOMelement;
+    Procedure DoBeforeRow(ARow : TDOMElement); virtual;
+    Procedure DoAfterRow(ARow : TDOMElement); virtual;
+    Procedure DoBeforeData(Data : TDOMElement); virtual;
+    Procedure DoAfterData(Data: TDOMElement); virtual;
     procedure DatasetToStream(Stream: TStream); override;
   public
     Constructor Create(AOwner : TComponent); override;
@@ -58,6 +69,16 @@ Type
     Property RootProperty : String Read FRP Write FRP Stored IsRootStored;
     Property RecordProperty : String Read FReP Write FReP Stored IsRecordStored;
     Property DocumentProperty : String Read FDP Write FDP Stored IsDocumentStored;
+    // Called before row element (passed to handler) is filled with fields.
+    Property BeforeRowToXML : TXMLElementEvent Read FBeforeRowToXML Write FBeforeRowToXML;
+    // Called after row element (passed to handler) was filled with fields.
+    Property AfterRowToXML : TXMLElementEvent Read FAfterRowToXML Write FAfterRowToXML;
+    // Called before any rows are added to root element (passed to handler).
+    Property BeforeDataToXML : TXMLElementEvent Read FBeforeDataToXML Write FBeforeDataToXML;
+    // Called after all rows are appended to root element (passed to handler).
+    Property AfterDataToXML : TXMLElementEvent Read FAfterDataToXML Write FAfterDataToXML;
+    // Called when an exception is caught and formatted.
+    Property OnErrorResponse : TXmlExceptionObjectEvent Read FOnErrorResponse Write FOnErrorResponse;
   end;
 
 implementation
@@ -132,6 +153,8 @@ begin
       C.AppendChild(XML.CreateTextNode(E.Message))
     else
       C.AppendChild(XML.CreateTextNode(SerrNoExceptionMessage));
+    If Assigned(FOnErrorResponse) then
+      FOnErrorResponse(Self,E,El);
     WriteXMLFile(XML,ResponseContent);
   Finally
     XML.Free;
@@ -149,15 +172,53 @@ Var
   E : TDOMElement;
   F : TField;
   I : Integer;
+  S : String;
 begin
   Result:=Doc.CreateElement(RecordProperty);
-  For I:=0 to Dataset.Fields.Count-1 do
-    begin
-    F:=Dataset.Fields[i];
-    E:=Doc.CreateElement(F.FieldName);
-    E.AppendChild(Doc.CreateTextNode(F.DisplayText));
-    Result.AppendChild(E);
-    end;
+  try
+    DoBeforeRow(Result);
+    For I:=0 to Dataset.Fields.Count-1 do
+      begin
+      F:=Dataset.Fields[i];
+      E:=Doc.CreateElement(F.FieldName);
+      If F.DataType in [ftMemo, ftFmtMemo, ftWideMemo, ftBlob ] then
+        S:=F.AsString
+      else
+        S:=F.DisplayText;
+      If (OnTranscode<>Nil) then
+        OnTranscode(Self,F,S,True);
+      E.AppendChild(Doc.CreateTextNode(S));
+      Result.AppendChild(E);
+      end;
+    DoAfterRow(Result);
+  except
+    Result.Free;
+    Raise;
+  end;
+end;
+
+procedure TExtJSXMLDataFormatter.DoBeforeRow(ARow: TDOMElement);
+begin
+  If Assigned(FBEforeRowToXml) then
+    FBEforeRowToXml(Self,ARow);
+end;
+
+procedure TExtJSXMLDataFormatter.DoAfterRow(ARow: TDOMElement);
+begin
+  If Assigned(FAfterRowToXml) then
+    FAfterRowToXml(Self,ARow);
+end;
+
+procedure TExtJSXMLDataFormatter.DoBeforeData(Data: TDOMElement);
+begin
+  If Assigned(FBeforeDataToXML) then
+    FBeforeDataToXML(Self,Data);
+end;
+
+procedure TExtJSXMLDataFormatter.DoAfterDAta(Data: TDOMElement);
+begin
+  If Assigned(FAfterDataToXML) then
+    FAfterDataToXML(Self,Data);
 end;
 
 procedure TExtJSXMLDataFormatter.DatasetToStream(Stream: TStream);
@@ -176,6 +237,7 @@ begin
    try
      E:=XML.CreateElement(RootProperty);
      XML.AppendChild(E);
+     DoBeforeData(E);
      // Go to start
      ACount:=PageStart;
      While (Not DS.EOF) and (ACount>0) do
@@ -204,8 +266,8 @@ begin
      C:=XML.CreateElement(SuccessProperty);
      C.AppendChild(XML.CreateTextNode('true'));
      E.AppendChild(C);
+     DoAfterData(E);
      WriteXMLFile(XML,Stream);
-
    finally
      XML.Free;
    end;
