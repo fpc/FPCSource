@@ -75,6 +75,11 @@
     {$define SignalIsFunction}
     {$define SignalIsCdecl}
   {$endif}
+  {$ifdef win64}
+    {$define HasSignal}
+    {$define SignalIsFunction}
+    {$define SignalIsCdecl}
+  {$endif}
   {$define FSCaseInsensitive}
   {$define HasSysMsgUnit}
 {$endif}
