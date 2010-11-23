@@ -1582,7 +1582,7 @@ type
   private
     FOwner: TComponent;
     FName: TComponentName;
-    FTag: Longint;
+    FTag: Ptrint;
     FComponents: TFpList;
     FFreeNotifies: TFpList;
     FDesignInfo: Longint;
@@ -1681,7 +1681,7 @@ type
     property VCLComObject: Pointer read FVCLComObject write FVCLComObject;
   published
     property Name: TComponentName read FName write SetName stored False;
-    property Tag: Longint read FTag write FTag default 0;
+    property Tag: PtrInt read FTag write FTag default 0;
   end;
 
 { TBasicActionLink }
