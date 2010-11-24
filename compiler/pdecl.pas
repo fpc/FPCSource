@@ -443,6 +443,9 @@ implementation
            { Generic type declaration? }
            if isgeneric then
              begin
+               if assigned(current_genericdef) then
+                 Message(parser_f_no_generic_inside_generic);
+
                consume(_LSHARPBRACKET);
                generictypelist:=parse_generic_parameters;
                consume(_RSHARPBRACKET);

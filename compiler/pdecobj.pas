@@ -945,10 +945,16 @@ implementation
     function object_dec(objecttype:tobjecttyp;const n:tidstring;genericdef:tstoreddef;genericlist:TFPObjectList;fd : tobjectdef) : tobjectdef;
       var
         old_current_objectdef : tobjectdef;
+        old_current_genericdef : tobjectdef;
+        old_current_specializedef : tobjectdef;
       begin
         old_current_objectdef:=current_objectdef;
+        old_current_genericdef:=current_genericdef;
+        old_current_specializedef:=current_specializedef;
 
         current_objectdef:=nil;
+        current_genericdef:=nil;
+        current_specializedef:=nil;
 
         { objects and class types can't be declared local }
         if not(symtablestack.top.symtabletype in [globalsymtable,staticsymtable,objectsymtable]) and
@@ -1001,6 +1007,13 @@ implementation
                 end;
               end;
           end;
+
+        { usage of specialized type inside its generic template }
+        if assigned(genericdef) then
+          current_specializedef:=current_objectdef
+        { reject declaration of generic class inside generic class }
+        else if assigned(genericlist) then
+          current_genericdef:=current_objectdef;
 
         { set published flag in $M+ mode, it can also be inherited and will
           be added when the parent class set with tobjectdef.set_parent (PFV) }
@@ -1068,6 +1081,8 @@ implementation
 
         { restore old state }
         current_objectdef:=old_current_objectdef;
+        current_genericdef:=old_current_genericdef;
+        current_specializedef:=old_current_specializedef;
       end;
 
 end.

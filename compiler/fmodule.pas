@@ -579,6 +579,8 @@ implementation
               begin
                 current_procinfo:=nil;
                 current_objectdef:=nil;
+                current_genericdef:=nil;
+                current_specializedef:=nil;
               end;
             { release procinfo tree }
             while assigned(procinfo) do
@@ -659,6 +661,8 @@ implementation
               begin
                 current_procinfo:=nil;
                 current_objectdef:=nil;
+                current_genericdef:=nil;
+                current_specializedef:=nil;
               end;
             { release procinfo tree }
             while assigned(procinfo) do

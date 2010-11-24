@@ -806,7 +806,9 @@ implementation
         old_current_procinfo : tprocinfo;
         oldmaxfpuregisters : longint;
         oldfilepos : tfileposinfo;
-        old_current_objectdef : tobjectdef;
+        old_current_objectdef,
+        old_current_genericdef,
+        old_current_specializedef : tobjectdef;
         templist : TAsmList;
         headertai : tai;
         i : integer;
@@ -1400,14 +1402,22 @@ implementation
          old_current_procinfo : tprocinfo;
          old_block_type : tblock_type;
          st : TSymtable;
-         old_current_objectdef : tobjectdef;
+         old_current_objectdef,
+         old_current_genericdef,
+         old_current_specializedef : tobjectdef;
       begin
          old_current_procinfo:=current_procinfo;
          old_block_type:=block_type;
          old_current_objectdef:=current_objectdef;
+         old_current_genericdef:=current_genericdef;
+         old_current_specializedef:=current_specializedef;
 
          current_procinfo:=self;
          current_objectdef:=procdef._class;
+         if assigned(current_objectdef) and (df_generic in current_objectdef.defoptions) then
+           current_genericdef:=current_objectdef;
+         if assigned(current_objectdef) and (df_specialization in current_objectdef.defoptions) then
+           current_specializedef:=current_objectdef;
 
          { calculate the lexical level }
          if procdef.parast.symtablelevel>maxnesting then
@@ -1514,6 +1524,8 @@ implementation
     {$endif state_tracking}
 
          current_objectdef:=old_current_objectdef;
+         current_genericdef:=old_current_genericdef;
+         current_specializedef:=old_current_specializedef;
          current_procinfo:=old_current_procinfo;
 
          { Restore old state }
@@ -1657,7 +1669,9 @@ implementation
 
       var
         old_current_procinfo : tprocinfo;
-        old_current_objectdef : tobjectdef;
+        old_current_objectdef,
+        old_current_genericdef,
+        old_current_specializedef : tobjectdef;
         pdflags    : tpdflags;
         pd,firstpd : tprocdef;
         s          : string;
@@ -1665,11 +1679,15 @@ implementation
          { save old state }
          old_current_procinfo:=current_procinfo;
          old_current_objectdef:=current_objectdef;
+         old_current_genericdef:=current_genericdef;
+         old_current_specializedef:=current_specializedef;
 
          { reset current_procinfo.procdef to nil to be sure that nothing is writing
            to another procdef }
          current_procinfo:=nil;
          current_objectdef:=nil;
+         current_genericdef:=nil;
+         current_specializedef:=nil;
 
          { parse procedure declaration }
          pd:=parse_proc_dec(isclassmethod, old_current_objectdef);
@@ -1798,6 +1816,8 @@ implementation
            end;
 
          current_objectdef:=old_current_objectdef;
+         current_genericdef:=old_current_genericdef;
+         current_specializedef:=old_current_specializedef;
          current_procinfo:=old_current_procinfo;
       end;
 

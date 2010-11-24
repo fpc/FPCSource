@@ -735,7 +735,9 @@ implementation
         popclass : boolean;
         ImplIntf : TImplementedInterface;
         old_parse_generic : boolean;
-        old_current_objectdef: tobjectdef;
+        old_current_objectdef,
+        old_current_genericdef,
+        old_current_specializedef : tobjectdef;
       begin
         { Save the position where this procedure really starts }
         procstartfilepos:=current_tokenpos;
@@ -1003,7 +1005,13 @@ implementation
               begin
                 symtablestack.push(pd._class.symtable);
                 old_current_objectdef:=current_objectdef;
+                old_current_genericdef:=current_genericdef;
+                old_current_specializedef:=current_specializedef;
                 current_objectdef:=pd._class;
+                if assigned(current_objectdef) and (df_generic in current_objectdef.defoptions) then
+                  current_genericdef:=current_objectdef;
+                if assigned(current_objectdef) and (df_specialization in current_objectdef.defoptions) then
+                  current_specializedef:=current_objectdef;
                 popclass:=true;
               end;
             { Add parameter symtable }
@@ -1015,6 +1023,8 @@ implementation
             if popclass then
             begin
               current_objectdef:=old_current_objectdef;
+              current_genericdef:=old_current_genericdef;
+              current_specializedef:=old_current_specializedef;
               symtablestack.pop(pd._class.symtable);
             end;
           end;
@@ -1030,7 +1040,9 @@ implementation
         locationstr: string;
         old_parse_generic,
         popclass: boolean;
-        old_current_objectdef: tobjectdef;
+        old_current_objectdef,
+        old_current_genericdef,
+        old_current_specializedef: tobjectdef;
       begin
         locationstr:='';
         pd:=nil;
@@ -1057,7 +1069,13 @@ implementation
                              popclass:=true;
                              parse_generic:=(df_generic in pd._class.defoptions);
                              old_current_objectdef:=current_objectdef;
+                             old_current_genericdef:=current_genericdef;
+                             old_current_specializedef:=current_specializedef;
                              current_objectdef:=pd._class;
+                             if assigned(current_objectdef) and (df_generic in current_objectdef.defoptions) then
+                               current_genericdef:=current_objectdef;
+                             if assigned(current_objectdef) and (df_specialization in current_objectdef.defoptions) then
+                               current_specializedef:=current_objectdef;
                            end;
                          single_type(pd.returndef,false,false);
 
@@ -1067,6 +1085,8 @@ implementation
                          if popclass then
                            begin
                              current_objectdef:=old_current_objectdef;
+                             current_genericdef:=old_current_genericdef;
+                             current_specializedef:=old_current_specializedef;
                              symtablestack.pop(pd._class.symtable);
                            end;
                          dec(testcurobject);

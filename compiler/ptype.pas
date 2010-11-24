@@ -492,7 +492,15 @@ implementation
           generate_specialization(def)
         else
           begin
-            if (df_generic in def.defoptions)  then
+            if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
+              begin
+                def:=current_specializedef
+              end
+            else if (def=current_genericdef) then
+              begin
+                def:=current_genericdef
+              end
+            else if (df_generic in def.defoptions) then
               begin
                 Message(parser_e_no_generics_as_types);
                 def:=generrordef;
@@ -633,7 +641,15 @@ implementation
                      generate_specialization(def)
                    else
                      begin
-                       if (df_generic in def.defoptions)  then
+                       if assigned(current_specializedef) and (def=current_specializedef.genericdef) then
+                         begin
+                           def:=current_specializedef
+                         end
+                       else if (def=current_genericdef) then
+                         begin
+                           def:=current_genericdef
+                         end
+                       else if (df_generic in def.defoptions) then
                          begin
                            Message(parser_e_no_generics_as_types);
                            def:=generrordef;

@@ -1336,6 +1336,11 @@ parser_e_no_procvarnested_const=03296_E_Typed constants of the type 'procedure i
 % procedural variable contains a reference to a nested procedure/function.
 % Therefore such typed constants can only be initialized with global
 % functions/procedures since these do not require a parent frame pointer.
+parser_f_no_generic_inside_generic=03297_F_Declaration of generic class inside another generic class is not allowed
+% At the moment, scanner supports recording of only one token buffer at the time
+% (guarded by internal error 200511173 in tscannerfile.startrecordtokens).
+% Since generics are implemented by recording tokens, it is not possible to
+% have declaration of generic class inside another generic class.
 % \end{description}
 #
 # Type Checking

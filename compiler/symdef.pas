@@ -632,6 +632,8 @@ interface
 
     var
        current_objectdef : tobjectdef;  { used for private functions check !! }
+       current_genericdef : tobjectdef; { used to reject declaration of generic class inside generic class }
+       current_specializedef : tobjectdef; { used to implement usage of generic class in itself }
 
     { default types }
        generrordef,              { error in definition }

@@ -65,6 +65,8 @@ implementation
          current_asmdata:=nil;
          current_procinfo:=nil;
          current_objectdef:=nil;
+         current_genericdef:=nil;
+         current_specializedef:=nil;
 
          loaded_units:=TLinkedList.Create;
 
@@ -137,6 +139,8 @@ implementation
          current_procinfo:=nil;
          current_asmdata:=nil;
          current_objectdef:=nil;
+         current_genericdef:=nil;
+         current_specializedef:=nil;
 
          { unload units }
          if assigned(loaded_units) then
