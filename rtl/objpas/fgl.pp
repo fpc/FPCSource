@@ -780,15 +780,10 @@ end;
 procedure TFPGObjectList.CopyItem(Src, Dest: Pointer);
 begin
   T(Dest^) := T(Src^);
-  {if TObject(Dest^) is TInterfacedObject then
-    T(Dest^)._AddRef;}
 end;
 
 procedure TFPGObjectList.Deref(Item: Pointer);
 begin
-  {if TObject(Item^) is TInterfacedObject then
-    T(Item^)._Release
-  else}
   if FFreeObjects then
     T(Item^).Free;
 end;
@@ -879,6 +874,8 @@ end;
 
 procedure TFPGInterfacedObjectList.CopyItem(Src, Dest: Pointer);
 begin
+  if Assigned(Pointer(Dest^)) then
+    T(Dest^)._Release;
   T(Dest^) := T(Src^);
   if Assigned(Pointer(Dest^)) then
     T(Dest^)._AddRef;
