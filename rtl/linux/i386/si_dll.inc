@@ -11,6 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$asmmode att}
 {$goto on}
 {
  Linux ELF startup code for Free Pascal
@@ -44,7 +45,6 @@ end;
 {******************************************************************************
                         Shared library start/halt
  ******************************************************************************}
-{$asmmode ATT}
 
 procedure _FPC_shared_lib_start(argc : dword;argv,envp : pointer); cdecl; public name 'FPC_SHARED_LIB_START'; public name '_start';
 begin

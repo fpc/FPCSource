@@ -47,6 +47,15 @@ unit OpenSSL;
 |                                                                              |
 | 2010 - Felipe Monteiro de Carvalho - Added RAND functios                     |
 |==============================================================================|
+|  2010-08-24 add fuctions to hash strings based on rsa key PEM format         |
+|             change some type declarationc on x509 type                       |
+|             work is not complete.                                            |
+|             Work made by Alberto Brito based on unit from                    |
+|             Marco Ferrante                                                   |
+|                                                                              |
+|                                                                              |
+|                                                                              |
+|==============================================================================|
 | History: see HISTORY.HTM from distribution package                           |
 |          (Found at URL: http://www.ararat.cz/synapse/)                       |
 |==============================================================================}
@@ -97,26 +106,131 @@ const
   EVP_MAX_IV_LENGTH     = 16;
   EVP_MAX_BLOCK_LENGTH  = 32;
 
+  SHA_DIGEST_LENGTH = 20;
+
 type
   SslPtr = Pointer;
   PSslPtr = ^SslPtr;
   PSSL_CTX = SslPtr;
   PSSL = SslPtr;
   PSSL_METHOD = SslPtr;
-  PX509 = SslPtr;
-  PX509_NAME = SslPtr;
   PEVP_MD	= SslPtr;
   PBIO_METHOD = SslPtr;
   PBIO = SslPtr;
-  PEVP_PKEY = SslPtr;
+
+  PRSA = pointer;
+  PDH = pointer;
+  PSTACK_OFX509 = pointer;
+
+  X509_NAME = record
+    entries: pointer;
+    modified: integer;
+    bytes: pointer;
+    hash: cardinal;
+  end;
+  PX509_NAME = ^X509_NAME;
+  PDN = ^X509_NAME;
+
+  ASN1_STRING = record
+	length: integer;
+	asn1_type: integer;
+	data: pointer;
+	flags: longint;
+  end;
+  PASN1_STRING = ^ASN1_STRING;
+  PASN1_TIME = PASN1_STRING;
+
+  X509_VAL = record
+	notBefore: PASN1_TIME;
+    notAfter: PASN1_TIME;
+  end;
+  PX509_VAL = ^X509_VAL;
+  
+  X509_CINF = record
+    version: pointer;
+    serialNumber: pointer;
+    signature: pointer;
+    issuer: pointer;
+    validity: PX509_VAL;
+    subject: pointer;
+    key: pointer;
+    issuerUID: pointer;
+    subjectUID: pointer;
+    extensions: pointer;
+  end;
+  PX509_CINF = ^X509_CINF;
+  
+  CRYPTO_EX_DATA = record
+    sk: pointer;
+    dummy: integer;
+    end;
+
+  X509 = record
+    cert_info: PX509_CINF;
+    sig_alg: pointer;  // ^X509_ALGOR
+    signature: pointer;  // ^ASN1_BIT_STRING
+    valid: integer;
+    references: integer;
+    name: PChar;
+    ex_data: CRYPTO_EX_DATA;
+    ex_pathlen: integer;
+    ex_flags: integer;
+    ex_kusage: integer;
+    ex_xkusage: integer;
+    ex_nscert: integer;
+    skid: pointer;  // ^ASN1_OCTET_STRING
+    akid: pointer;  // ?
+    sha1_hash: array [0..SHA_DIGEST_LENGTH-1] of char;
+    aux: pointer;  // ^X509_CERT_AUX
+  end;
+  pX509 = ^X509;
+
+  DSA = record
+	pad: integer;
+	version: integer;
+	write_params: integer;
+	p: pointer;
+	q: pointer;
+	g: pointer;
+	pub_key: pointer;
+	priv_key: pointer;
+	kinv: pointer;
+	r: pointer;
+	flags: integer;
+	method_mont_p: PChar;
+	references: integer;
+	ex_data: record
+      sk: pointer;
+      dummy: integer;
+    end;
+	meth: pointer;
+  end;
+  pDSA = ^DSA;
+
+  EVP_PKEY_PKEY = record
+    case integer of
+      0: (ptr: PChar);
+      1: (rsa: pRSA);
+      2: (dsa: pDSA);
+      3: (dh: pDH);
+   end;
+  
+  EVP_PKEY = record
+    ktype: integer;
+    save_type: integer;
+    references: integer;
+    pkey: EVP_PKEY_PKEY;
+    save_parameters: integer;
+    attributes: PSTACK_OFX509;
+  end;
+  PEVP_PKEY = ^EVP_PKEY;
   PPEVP_PKEY = ^PEVP_PKEY;
-  PRSA = SslPtr;
+  
   PPRSA = ^PRSA;
   PASN1_UTCTIME = SslPtr;
   PASN1_cInt = SslPtr;
   PPasswdCb = SslPtr;
   PFunction = procedure;
-
   DES_cblock = array[0..7] of Byte;
   PDES_cblock = ^DES_cblock;
   des_ks_struct = packed record
@@ -124,6 +238,43 @@ type
     weak_key: cInt;
   end;
   des_key_schedule = array[1..16] of des_ks_struct;
+
+  MD2_CTX = record
+    num: integer;
+    data: array [0..15] of byte;
+    cksm: array [0..15] of cardinal;
+    state: array [0..15] of cardinal;
+  end;
+  MD4_CTX = record
+    A, B, C, D: cardinal;
+    Nl, Nh: cardinal;
+    data: array [0..15] of cardinal;
+    num: integer;
+  end;
+  MD5_CTX = record
+    A, B, C, D: cardinal;
+    Nl, Nh: cardinal;
+    data: array [0..15] of cardinal;
+    num: integer;
+  end;
+  RIPEMD160_CTX = record
+    A, B, C, D, E: cardinal;
+    Nl, Nh: cardinal;
+    data: array [0..15] of cardinal;
+    num: integer;
+  end;
+  SHA_CTX = record
+    h0, h1, h2, h3, h4: cardinal;
+    Nl, Nh: cardinal;
+    data: array [0..16] of cardinal;
+    num: integer;
+  end;
+  MDC2_CTX = record
+    num: integer;
+    data: array [0..7] of byte;
+    h, hh: des_cblock;
+    pad_type: integer;
+  end;
 
   // Rand
   RAND_METHOD = record
@@ -189,10 +340,20 @@ type
 
   // EVP
 
-  PEVP_MD_CTX = Pointer;
+  EVP_MD_CTX = record
+    digest: pEVP_MD;
+    case integer of
+      0: (base: array [0..3] of byte);
+      1: (md2: MD2_CTX);
+      8: (md4: MD4_CTX);
+      2: (md5: MD5_CTX);
+      16: (ripemd160: RIPEMD160_CTX);
+      4: (sha: SHA_CTX);
+      32: (mdc2: MDC2_CTX);
+    end;
+  PEVP_MD_CTX = ^EVP_MD_CTX;
 
   PEVP_CIPHER_CTX = ^EVP_CIPHER_CTX;
-  PEVP_CIPHER = ^EVP_CIPHER;
 
   PASN1_TYPE = Pointer;
 
@@ -203,7 +364,7 @@ type
   EVP_CIPHER_GET_ASN1_PARAMETERS_FUNC = function(ctx: PEVP_CIPHER_CTX; asn1_type: PASN1_TYPE): cint; cdecl;
   EVP_CIPHER_CTRL_FUNC = function(ctx: PEVP_CIPHER_CTX; type_, arg: cint; ptr: Pointer): cint; cdecl;
 
-  EVP_CIPHER = record  // Updated with EVP.h from OpenSSL 1.0.0
+    EVP_CIPHER = record  // Updated with EVP.h from OpenSSL 1.0.0
     nid: cint;
     block_size: cint;
     key_len: cint;  //* Default value for variable length ciphers */
@@ -218,9 +379,9 @@ type
     ctrl: EVP_CIPHER_CTRL_FUNC; //* Miscellaneous operations */
     app_data: Pointer;	//* Application data */
   end;
+  PEVP_CIPHER = ^EVP_CIPHER;
 
   EVP_CIPHER_CTX = record // Updated with EVP.h from OpenSSL 1.0.0
-
     cipher: PEVP_CIPHER;
     engine: PENGINE;  //* functional reference if 'cipher' is ENGINE-provided */
     encrypt: cint;    //* encrypt or decrypt */
@@ -502,6 +663,7 @@ var
   function SSLGetVerifyResult(ssl: PSSL):cLong;
 
 // libeay.dll
+  procedure ERR_load_crypto_strings;
   function X509New: PX509;
   procedure X509Free(x: PX509);
   function X509NameOneline(a: PX509_NAME; var buf: String; size: cInt):String;
@@ -533,12 +695,6 @@ var
   procedure ErrFreeStrings;
   procedure ErrRemoveState(pid: cInt);
   procedure RandScreen;
-  function BioNew(b: PBIO_METHOD): PBIO;
-  procedure BioFreeAll(b: PBIO);
-  function BioSMem: PBIO_METHOD;
-  function BioCtrlPending(b: PBIO): cInt;
-  function BioRead(b: PBIO; var Buf: String; Len: cInt): cInt;
-  function BioWrite(b: PBIO; Buf: String; Len: cInt): cInt;
   function d2iPKCS12bio(b:PBIO; Pkcs12: SslPtr): SslPtr;
   function PKCS12parse(p12: SslPtr; pass: string; var pkey, cert, ca: SslPtr): cInt;
   procedure PKCS12free(p12: SslPtr);
@@ -625,6 +781,12 @@ var
   function EVP_DigestInit(ctx: PEVP_MD_CTX; type_: PEVP_MD): cint;
   function EVP_DigestUpdate(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint;
   function EVP_DigestFinal(ctx: PEVP_MD_CTX; md: PByte; s: pcuint): cint;
+  function EVP_SignFinal(ctx: pEVP_MD_CTX; sig: pointer; var s: cardinal;
+    key: pEVP_PKEY): integer;
+  function EVP_PKEY_size(key: pEVP_PKEY): integer;
+  procedure EVP_PKEY_free(key: pEVP_PKEY);
+  function EVP_VerifyFinal(ctx: pEVP_MD_CTX; sigbuf: pointer;
+    siglen: cardinal; pkey: pEVP_PKEY): integer;
   //
   function EVP_get_cipherbyname(const name: PChar): PEVP_CIPHER;
   function EVP_get_digestbyname(const name: PChar): PEVP_MD;
@@ -649,17 +811,38 @@ var
   // PEM Functions - pem.h
   //
   function PEM_read_bio_PrivateKey(bp: PBIO; X: PPEVP_PKEY;
-           cb: Ppem_password_cb; u: Pointer): PEVP_PKEY;
+           cb: Ppem_password_cb; u: Pointer): PEVP_PKEY;  	   
+  function PEM_read_bio_PUBKEY(bp: pBIO; var x: pEVP_PKEY;
+               cb: Ppem_password_cb; u: pointer): pEVP_PKEY;
+  function PEM_write_bio_PrivateKey(bp: pBIO; x: pEVP_PKEY;
+               const enc: pEVP_CIPHER; kstr: PChar; klen: Integer; cb: Ppem_password_cb;
+               u: pointer): integer;	
+  function PEM_write_bio_PUBKEY(bp: pBIO; x: pEVP_PKEY): integer;
 
   // BIO Functions - bio.h
-
+  function BioNew(b: PBIO_METHOD): PBIO;
+  procedure BioFreeAll(b: PBIO);
+  function BioSMem: PBIO_METHOD;
+  function BioCtrlPending(b: PBIO): cInt;
+  function BioRead(b: PBIO; var Buf: String; Len: cInt): cInt;
+  function BioWrite(b: PBIO; Buf: String; Len: cInt): cInt;
   function BIO_ctrl(bp: PBIO; cmd: cint; larg: clong; parg: Pointer): clong;
   function BIO_read_filename(b: PBIO; const name: PChar): cint;
+  
+  function BIO_s_file: pBIO_METHOD;
+  function BIO_new_file(const filename: PChar; const mode: PChar): pBIO;
+  function BIO_new_mem_buf(buf: pointer; len: integer): pBIO;
+  
 
 
 function IsSSLloaded: Boolean;
+function Islibealoaded: Boolean;
 function InitSSLInterface(AVerboseLoading: Boolean = False): Boolean;
 function DestroySSLInterface: Boolean;
+function InitSSLEAInterface(AVerboseLoading: Boolean = False): Boolean;
+function InitLibeaInterface(AVerboseLoading: Boolean = False): Boolean;
+function DestroySSLEAInterface: Boolean;
+function DestroyLibeaInterface: Boolean;
 
 var
   OpenSSL_unavailable_functions: string;
@@ -710,6 +893,7 @@ type
   TSSLGetVerifyResult = function(ssl: PSSL):cInt; cdecl;
 
 // libeay.dll
+  TERR_load_crypto_strings = procedure; cdecl;
   TX509New = function: PX509; cdecl;
   TX509Free = procedure(x: PX509); cdecl;
   TX509NameOneline = function(a: PX509_NAME; buf: PChar; size: cInt):PChar; cdecl;
@@ -823,6 +1007,13 @@ type
   TEVP_DigestInit = function(ctx: PEVP_MD_CTX; type_: PEVP_MD): cint; cdecl;
   TEVP_DigestUpdate = function(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint; cdecl;
   TEVP_DigestFinal = function(ctx: PEVP_MD_CTX; md: PByte; s: pcuint): cint; cdecl;
+  
+  TEVP_SignFinal = function(ctx: pEVP_MD_CTX; sig: pointer; var s: cardinal;
+    key: pEVP_PKEY): integer; cdecl;
+  TEVP_PKEY_size = function(key: pEVP_PKEY): integer; cdecl;
+  TEVP_PKEY_free = Procedure(key: pEVP_PKEY); cdecl;
+  TEVP_VerifyFinal = function(ctx: pEVP_MD_CTX; sigbuf: pointer;
+    siglen: cardinal; pkey: pEVP_PKEY): integer;  cdecl;
   //
   TEVP_get_cipherbyname = function(const name: PChar): PEVP_CIPHER; cdecl;
   TEVP_get_digestbyname = function(const name: PChar): PEVP_MD; cdecl;
@@ -848,10 +1039,21 @@ type
 
   TPEM_read_bio_PrivateKey = function(bp: PBIO; X: PPEVP_PKEY;
            cb: Ppem_password_cb; u: Pointer): PEVP_PKEY; cdecl;
+   
+  TPEM_read_bio_PUBKEY = function(bp: pBIO; var x: pEVP_PKEY;
+               cb: Ppem_password_cb; u: pointer): pEVP_PKEY; cdecl;
+  TPEM_write_bio_PrivateKey = function(bp: pBIO; x: pEVP_PKEY;
+               const enc: pEVP_CIPHER; kstr: PChar; klen: Integer; cb: Ppem_password_cb;
+               u: pointer): integer; cdecl;	
+  TPEM_write_bio_PUBKEY = function(bp: pBIO; x: pEVP_PKEY): integer; cdecl;
 
   // BIO Functions
 
   TBIO_ctrl = function(bp: PBIO; cmd: cint; larg: clong; parg: Pointer): clong; cdecl;
+  
+  TBIO_s_file = function: pBIO_METHOD; cdecl;
+  TBIO_new_file = function(const filename: PChar; const mode: PChar): pBIO; cdecl;
+  TBIO_new_mem_buf = function(buf: pointer; len: integer): pBIO; cdecl;
 
 var
 // libssl.dll
@@ -897,6 +1099,7 @@ var
   _SSLGetVerifyResult: TSSLGetVerifyResult = nil;
 
 // libeay.dll
+  _ERR_load_crypto_strings: TERR_load_crypto_strings = nil;
   _X509New: TX509New = nil;
   _X509Free: TX509Free = nil;
   _X509NameOneline: TX509NameOneline = nil;
@@ -1009,6 +1212,11 @@ var
   _EVP_DigestInit: TEVP_DigestInit = nil;
   _EVP_DigestUpdate: TEVP_DigestUpdate = nil;
   _EVP_DigestFinal: TEVP_DigestFinal = nil;
+
+  _EVP_SignFinal: TEVP_SignFinal = nil;
+  _EVP_PKEY_size: TEVP_PKEY_size = nil;
+  _EVP_PKEY_free: TEVP_PKEY_free = nil;
+  _EVP_VerifyFinal: TEVP_VerifyFinal = nil;
   //
   _EVP_get_cipherbyname: TEVP_get_cipherbyname = nil;
   _EVP_get_digestbyname: TEVP_get_digestbyname = nil;
@@ -1028,18 +1236,27 @@ var
 
   // PEM
   _PEM_read_bio_PrivateKey: TPEM_read_bio_PrivateKey = nil;
+  	   
+  _PEM_read_bio_PUBKEY: TPEM_read_bio_PUBKEY = nil; 
+  _PEM_write_bio_PrivateKey: TPEM_write_bio_PrivateKey = nil;	
+  _PEM_write_bio_PUBKEY: TPEM_write_bio_PUBKEY = nil;
 
   // BIO Functions
 
   _BIO_ctrl: TBIO_ctrl = nil;
+  
+  _BIO_s_file: TBIO_s_file = nil;
+  _BIO_new_file: TBIO_new_file = nil;
+  _BIO_new_mem_buf: TBIO_new_mem_buf = nil;
 
 var
   SSLloaded: boolean = false;
+  libealoaded: boolean = false;
 
 // libssl.dll
 function SslGetError(s: PSSL; ret_code: cInt):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslGetError) then
+  if InitSSLEAInterface and Assigned(_SslGetError) then
     Result := _SslGetError(s, ret_code)
   else
     Result := SSL_ERROR_SSL;
@@ -1047,7 +1264,7 @@ end;
 
 function SslLibraryInit:cInt;
 begin
-  if InitSSLInterface and Assigned(_SslLibraryInit) then
+  if InitSSLEAInterface and Assigned(_SslLibraryInit) then
     Result := _SslLibraryInit
   else
     Result := 1;
@@ -1055,13 +1272,13 @@ end;
 
 procedure SslLoadErrorStrings;
 begin
-  if InitSSLInterface and Assigned(_SslLoadErrorStrings) then
+  if InitSSLEAInterface and Assigned(_SslLoadErrorStrings) then
     _SslLoadErrorStrings;
 end;
 
 function SslCtxSetCipherList(arg0: PSSL_CTX; var str: String):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslCtxSetCipherList) then
+  if InitSSLEAInterface and Assigned(_SslCtxSetCipherList) then
     Result := _SslCtxSetCipherList(arg0, PChar(str))
   else
     Result := 0;
@@ -1069,7 +1286,7 @@ end;
 
 function SslCtxNew(meth: PSSL_METHOD):PSSL_CTX;
 begin
-  if InitSSLInterface and Assigned(_SslCtxNew) then
+  if InitSSLEAInterface and Assigned(_SslCtxNew) then
     Result := _SslCtxNew(meth)
   else
     Result := nil;
@@ -1077,13 +1294,13 @@ end;
 
 procedure SslCtxFree(arg0: PSSL_CTX);
 begin
-  if InitSSLInterface and Assigned(_SslCtxFree) then
+  if InitSSLEAInterface and Assigned(_SslCtxFree) then
     _SslCtxFree(arg0);
 end;
 
 function SslSetFd(s: PSSL; fd: cInt):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslSetFd) then
+  if InitSSLEAInterface and Assigned(_SslSetFd) then
     Result := _SslSetFd(s, fd)
   else
     Result := 0;
@@ -1091,7 +1308,7 @@ end;
 
 function SslCtrl(ssl: PSSL; cmd: cInt; larg: clong; parg: Pointer): cLong;
 begin
-  if InitSSLInterface and Assigned(_SslCtrl) then
+  if InitSSLEAInterface and Assigned(_SslCtrl) then
     Result := _SslCtrl(ssl, cmd, larg, parg)
   else
     Result := 0;
@@ -1100,7 +1317,7 @@ end;
 function SslCTXCtrl(ctx: PSSL_CTX; cmd: cInt; larg: clong; parg: Pointer
   ): cLong;
 begin
-  if InitSSLInterface and Assigned(_SslCTXCtrl) then
+  if InitSSLEAInterface and Assigned(_SslCTXCtrl) then
     Result := _SslCTXCtrl(ctx, cmd, larg, parg)
   else
     Result := 0;
@@ -1128,7 +1345,7 @@ end;
 
 function SslMethodV2:PSSL_METHOD;
 begin
-  if InitSSLInterface and Assigned(_SslMethodV2) then
+  if InitSSLEAInterface and Assigned(_SslMethodV2) then
     Result := _SslMethodV2
   else
     Result := nil;
@@ -1136,7 +1353,7 @@ end;
 
 function SslMethodV3:PSSL_METHOD;
 begin
-  if InitSSLInterface and Assigned(_SslMethodV3) then
+  if InitSSLEAInterface and Assigned(_SslMethodV3) then
     Result := _SslMethodV3
   else
     Result := nil;
@@ -1144,7 +1361,7 @@ end;
 
 function SslMethodTLSV1:PSSL_METHOD;
 begin
-  if InitSSLInterface and Assigned(_SslMethodTLSV1) then
+  if InitSSLEAInterface and Assigned(_SslMethodTLSV1) then
     Result := _SslMethodTLSV1
   else
     Result := nil;
@@ -1152,7 +1369,7 @@ end;
 
 function SslMethodV23:PSSL_METHOD;
 begin
-  if InitSSLInterface and Assigned(_SslMethodV23) then
+  if InitSSLEAInterface and Assigned(_SslMethodV23) then
     Result := _SslMethodV23
   else
     Result := nil;
@@ -1160,7 +1377,7 @@ end;
 
 function SslCtxUsePrivateKey(ctx: PSSL_CTX; pkey: SslPtr):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslCtxUsePrivateKey) then
+  if InitSSLEAInterface and Assigned(_SslCtxUsePrivateKey) then
     Result := _SslCtxUsePrivateKey(ctx, pkey)
   else
     Result := 0;
@@ -1168,7 +1385,7 @@ end;
 
 function SslCtxUsePrivateKeyASN1(pk: cInt; ctx: PSSL_CTX; d: String; len: cLong):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslCtxUsePrivateKeyASN1) then
+  if InitSSLEAInterface and Assigned(_SslCtxUsePrivateKeyASN1) then
     Result := _SslCtxUsePrivateKeyASN1(pk, ctx, Sslptr(d), len)
   else
     Result := 0;
@@ -1176,7 +1393,7 @@ end;
 
 function SslCtxUsePrivateKeyFile(ctx: PSSL_CTX; const _file: String; _type: cInt):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslCtxUsePrivateKeyFile) then
+  if InitSSLEAInterface and Assigned(_SslCtxUsePrivateKeyFile) then
     Result := _SslCtxUsePrivateKeyFile(ctx, PChar(_file), _type)
   else
     Result := 0;
@@ -1184,7 +1401,7 @@ end;
 
 function SslCtxUseCertificate(ctx: PSSL_CTX; x: SslPtr):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslCtxUseCertificate) then
+  if InitSSLEAInterface and Assigned(_SslCtxUseCertificate) then
     Result := _SslCtxUseCertificate(ctx, x)
   else
     Result := 0;
@@ -1192,7 +1409,7 @@ end;
 
 function SslCtxUseCertificateASN1(ctx: PSSL_CTX; len: cLong; d: String):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslCtxUseCertificateASN1) then
+  if InitSSLEAInterface and Assigned(_SslCtxUseCertificateASN1) then
     Result := _SslCtxUseCertificateASN1(ctx, len, SslPtr(d))
   else
     Result := 0;
@@ -1200,7 +1417,7 @@ end;
 
 function SslCtxUseCertificateFile(ctx: PSSL_CTX; const _file: String; _type: cInt):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslCtxUseCertificateFile) then
+  if InitSSLEAInterface and Assigned(_SslCtxUseCertificateFile) then
     Result := _SslCtxUseCertificateFile(ctx, PChar(_file), _type)
   else
     Result := 0;
@@ -1208,7 +1425,7 @@ end;
 
 function SslCtxUseCertificateChainFile(ctx: PSSL_CTX; const _file: String):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslCtxUseCertificateChainFile) then
+  if InitSSLEAInterface and Assigned(_SslCtxUseCertificateChainFile) then
     Result := _SslCtxUseCertificateChainFile(ctx, PChar(_file))
   else
     Result := 0;
@@ -1216,7 +1433,7 @@ end;
 
 function SslCtxCheckPrivateKeyFile(ctx: PSSL_CTX):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslCtxCheckPrivateKeyFile) then
+  if InitSSLEAInterface and Assigned(_SslCtxCheckPrivateKeyFile) then
     Result := _SslCtxCheckPrivateKeyFile(ctx)
   else
     Result := 0;
@@ -1224,19 +1441,19 @@ end;
 
 procedure SslCtxSetDefaultPasswdCb(ctx: PSSL_CTX; cb: PPasswdCb);
 begin
-  if InitSSLInterface and Assigned(_SslCtxSetDefaultPasswdCb) then
+  if InitSSLEAInterface and Assigned(_SslCtxSetDefaultPasswdCb) then
     _SslCtxSetDefaultPasswdCb(ctx, cb);
 end;
 
 procedure SslCtxSetDefaultPasswdCbUserdata(ctx: PSSL_CTX; u: SslPtr);
 begin
-  if InitSSLInterface and Assigned(_SslCtxSetDefaultPasswdCbUserdata) then
+  if InitSSLEAInterface and Assigned(_SslCtxSetDefaultPasswdCbUserdata) then
     _SslCtxSetDefaultPasswdCbUserdata(ctx, u);
 end;
 
 function SslCtxLoadVerifyLocations(ctx: PSSL_CTX; const CAfile: String; const CApath: String):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslCtxLoadVerifyLocations) then
+  if InitSSLEAInterface and Assigned(_SslCtxLoadVerifyLocations) then
     Result := _SslCtxLoadVerifyLocations(ctx, SslPtr(CAfile), SslPtr(CApath))
   else
     Result := 0;
@@ -1244,7 +1461,7 @@ end;
 
 function SslNew(ctx: PSSL_CTX):PSSL;
 begin
-  if InitSSLInterface and Assigned(_SslNew) then
+  if InitSSLEAInterface and Assigned(_SslNew) then
     Result := _SslNew(ctx)
   else
     Result := nil;
@@ -1252,13 +1469,13 @@ end;
 
 procedure SslFree(ssl: PSSL);
 begin
-  if InitSSLInterface and Assigned(_SslFree) then
+  if InitSSLEAInterface and Assigned(_SslFree) then
     _SslFree(ssl);
 end;
 
 function SslAccept(ssl: PSSL):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslAccept) then
+  if InitSSLEAInterface and Assigned(_SslAccept) then
     Result := _SslAccept(ssl)
   else
     Result := -1;
@@ -1266,7 +1483,7 @@ end;
 
 function SslConnect(ssl: PSSL):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslConnect) then
+  if InitSSLEAInterface and Assigned(_SslConnect) then
     Result := _SslConnect(ssl)
   else
     Result := -1;
@@ -1274,7 +1491,7 @@ end;
 
 function SslShutdown(ssl: PSSL):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslShutdown) then
+  if InitSSLEAInterface and Assigned(_SslShutdown) then
     Result := _SslShutdown(ssl)
   else
     Result := -1;
@@ -1282,7 +1499,7 @@ end;
 
 function SslRead(ssl: PSSL; buf: SslPtr; num: cInt):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslRead) then
+  if InitSSLEAInterface and Assigned(_SslRead) then
     Result := _SslRead(ssl, PChar(buf), num)
   else
     Result := -1;
@@ -1290,7 +1507,7 @@ end;
 
 function SslPeek(ssl: PSSL; buf: SslPtr; num: cInt):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslPeek) then
+  if InitSSLEAInterface and Assigned(_SslPeek) then
     Result := _SslPeek(ssl, PChar(buf), num)
   else
     Result := -1;
@@ -1298,7 +1515,7 @@ end;
 
 function SslWrite(ssl: PSSL; buf: SslPtr; num: cInt):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslWrite) then
+  if InitSSLEAInterface and Assigned(_SslWrite) then
     Result := _SslWrite(ssl, PChar(buf), num)
   else
     Result := -1;
@@ -1306,7 +1523,7 @@ end;
 
 function SslPending(ssl: PSSL):cInt;
 begin
-  if InitSSLInterface and Assigned(_SslPending) then
+  if InitSSLEAInterface and Assigned(_SslPending) then
     Result := _SslPending(ssl)
   else
     Result := 0;
@@ -1315,7 +1532,7 @@ end;
 //function SslGetVersion(ssl: PSSL):PChar;
 function SslGetVersion(ssl: PSSL):String;
 begin
-  if InitSSLInterface and Assigned(_SslGetVersion) then
+  if InitSSLEAInterface and Assigned(_SslGetVersion) then
     Result := _SslGetVersion(ssl)
   else
     Result := '';
@@ -1323,7 +1540,7 @@ end;
 
 function SslGetPeerCertificate(ssl: PSSL):PX509;
 begin
-  if InitSSLInterface and Assigned(_SslGetPeerCertificate) then
+  if InitSSLEAInterface and Assigned(_SslGetPeerCertificate) then
     Result := _SslGetPeerCertificate(ssl)
   else
     Result := nil;
@@ -1331,13 +1548,13 @@ end;
 
 procedure SslCtxSetVerify(ctx: PSSL_CTX; mode: cInt; arg2: PFunction);
 begin
-  if InitSSLInterface and Assigned(_SslCtxSetVerify) then
+  if InitSSLEAInterface and Assigned(_SslCtxSetVerify) then
     _SslCtxSetVerify(ctx, mode, @arg2);
 end;
 
 function SSLGetCurrentCipher(s: PSSL):SslPtr;
 begin
-  if InitSSLInterface and Assigned(_SSLGetCurrentCipher) then
+  if InitSSLEAInterface and Assigned(_SSLGetCurrentCipher) then
 {$IFDEF CIL}
 {$ELSE}
     Result := _SSLGetCurrentCipher(s)
@@ -1348,7 +1565,7 @@ end;
 
 function SSLCipherGetName(c: SslPtr):String;
 begin
-  if InitSSLInterface and Assigned(_SSLCipherGetName) then
+  if InitSSLEAInterface and Assigned(_SSLCipherGetName) then
     Result := _SSLCipherGetName(c)
   else
     Result := '';
@@ -1356,7 +1573,7 @@ end;
 
 function SSLCipherGetBits(c: SslPtr; var alg_bits: cInt):cInt;
 begin
-  if InitSSLInterface and Assigned(_SSLCipherGetBits) then
+  if InitSSLEAInterface and Assigned(_SSLCipherGetBits) then
     Result := _SSLCipherGetBits(c, @alg_bits)
   else
     Result := 0;
@@ -1364,16 +1581,31 @@ end;
 
 function SSLGetVerifyResult(ssl: PSSL):cLong;
 begin
-  if InitSSLInterface and Assigned(_SSLGetVerifyResult) then
+  if InitSSLEAInterface and Assigned(_SSLGetVerifyResult) then
     Result := _SSLGetVerifyResult(ssl)
   else
     Result := X509_V_ERR_APPLICATION_VERIFICATION;
 end;
 
+
 // libeay.dll
+function SSLeayversion(t: cInt): string;
+begin
+  if InitlibeaInterface and Assigned(_SSLeayversion) then
+    Result := PChar(_SSLeayversion(t))
+  else
+    Result := '';
+end;
+
+procedure ERR_load_crypto_strings;
+Begin
+  if InitlibeaInterface and Assigned(_ERR_load_crypto_strings) then
+    _ERR_load_crypto_strings;
+end;
+
 function X509New: PX509;
 begin
-  if InitSSLInterface and Assigned(_X509New) then
+  if InitlibeaInterface and Assigned(_X509New) then
     Result := _X509New
   else
     Result := nil;
@@ -1381,13 +1613,13 @@ end;
 
 procedure X509Free(x: PX509);
 begin
-  if InitSSLInterface and Assigned(_X509Free) then
+  if InitlibeaInterface and Assigned(_X509Free) then
     _X509Free(x);
 end;
 
 function X509NameOneline(a: PX509_NAME; var buf: String; size: cInt):String;
 begin
-  if InitSSLInterface and Assigned(_X509NameOneline) then
+  if InitlibeaInterface and Assigned(_X509NameOneline) then
     Result := _X509NameOneline(a, PChar(buf),size)
   else
     Result := '';
@@ -1395,7 +1627,7 @@ end;
 
 function X509GetSubjectName(a: PX509):PX509_NAME;
 begin
-  if InitSSLInterface and Assigned(_X509GetSubjectName) then
+  if InitlibeaInterface and Assigned(_X509GetSubjectName) then
     Result := _X509GetSubjectName(a)
   else
     Result := nil;
@@ -1403,7 +1635,7 @@ end;
 
 function X509GetIssuerName(a: PX509):PX509_NAME;
 begin
-  if InitSSLInterface and Assigned(_X509GetIssuerName) then
+  if InitlibeaInterface and Assigned(_X509GetIssuerName) then
     Result := _X509GetIssuerName(a)
   else
     Result := nil;
@@ -1411,7 +1643,7 @@ end;
 
 function X509NameHash(x: PX509_NAME):cuLong;
 begin
-  if InitSSLInterface and Assigned(_X509NameHash) then
+  if InitlibeaInterface and Assigned(_X509NameHash) then
     Result := _X509NameHash(x)
   else
     Result := 0;
@@ -1419,7 +1651,7 @@ end;
 
 function X509Digest(data: PX509; _type: PEVP_MD; md: String; var len: cInt):cInt;
 begin
-  if InitSSLInterface and Assigned(_X509Digest) then
+  if InitlibeaInterface and Assigned(_X509Digest) then
     Result := _X509Digest(data, _type, PChar(md), @len)
   else
     Result := 0;
@@ -1427,7 +1659,7 @@ end;
 
 function EvpPkeyNew: PEVP_PKEY;
 begin
-  if InitSSLInterface and Assigned(_EvpPkeyNew) then
+  if InitlibeaInterface and Assigned(_EvpPkeyNew) then
     Result := _EvpPkeyNew
   else
     Result := nil;
@@ -1435,28 +1667,20 @@ end;
 
 procedure EvpPkeyFree(pk: PEVP_PKEY);
 begin
-  if InitSSLInterface and Assigned(_EvpPkeyFree) then
+  if InitlibeaInterface and Assigned(_EvpPkeyFree) then
     _EvpPkeyFree(pk);
-end;
-
-function SSLeayversion(t: cInt): string;
-begin
-  if InitSSLInterface and Assigned(_SSLeayversion) then
-    Result := PChar(_SSLeayversion(t))
-  else
-    Result := '';
 end;
 
 procedure ErrErrorString(e: cInt; var buf: string; len: cInt);
 begin
-  if InitSSLInterface and Assigned(_ErrErrorString) then
+  if InitlibeaInterface and Assigned(_ErrErrorString) then
     _ErrErrorString(e, Pointer(buf), len);
   buf := PChar(Buf);
 end;
 
 function ErrGetError: cInt;
 begin
-  if InitSSLInterface and Assigned(_ErrGetError) then
+  if InitlibeaInterface and Assigned(_ErrGetError) then
     Result := _ErrGetError
   else
     Result := SSL_ERROR_SSL;
@@ -1464,37 +1688,37 @@ end;
 
 procedure ErrClearError;
 begin
-  if InitSSLInterface and Assigned(_ErrClearError) then
+  if InitlibeaInterface and Assigned(_ErrClearError) then
     _ErrClearError;
 end;
 
 procedure ErrFreeStrings;
 begin
-  if InitSSLInterface and Assigned(_ErrFreeStrings) then
+  if InitlibeaInterface and Assigned(_ErrFreeStrings) then
     _ErrFreeStrings;
 end;
 
 procedure ErrRemoveState(pid: cInt);
 begin
-  if InitSSLInterface and Assigned(_ErrRemoveState) then
+  if InitlibeaInterface and Assigned(_ErrRemoveState) then
     _ErrRemoveState(pid);
 end;
 
 procedure EVPcleanup;
 begin
-  if InitSSLInterface and Assigned(_EVPcleanup) then
+  if InitlibeaInterface and Assigned(_EVPcleanup) then
     _EVPcleanup;
 end;
 
 procedure RandScreen;
 begin
-  if InitSSLInterface and Assigned(_RandScreen) then
+  if InitlibeaInterface and Assigned(_RandScreen) then
     _RandScreen;
 end;
 
 function BioNew(b: PBIO_METHOD): PBIO;
 begin
-  if InitSSLInterface and Assigned(_BioNew) then
+  if InitlibeaInterface and Assigned(_BioNew) then
     Result := _BioNew(b)
   else
     Result := nil;
@@ -1502,21 +1726,22 @@ end;
 
 procedure BioFreeAll(b: PBIO);
 begin
-  if InitSSLInterface and Assigned(_BioFreeAll) then
+  if InitlibeaInterface and Assigned(_BioFreeAll) then
     _BioFreeAll(b);
 end;
 
 function BioSMem: PBIO_METHOD;
 begin
-  if InitSSLInterface and Assigned(_BioSMem) then
+  if InitlibeaInterface and Assigned(_BioSMem) then
     Result := _BioSMem
   else
     Result := nil;
 end;
 
+
 function BioCtrlPending(b: PBIO): cInt;
 begin
-  if InitSSLInterface and Assigned(_BioCtrlPending) then
+  if InitlibeaInterface and Assigned(_BioCtrlPending) then
     Result := _BioCtrlPending(b)
   else
     Result := 0;
@@ -1524,7 +1749,7 @@ end;
 
 function BioRead(b: PBIO; var Buf: String; Len: cInt): cInt;
 begin
-  if InitSSLInterface and Assigned(_BioRead) then
+  if InitlibeaInterface and Assigned(_BioRead) then
     Result := _BioRead(b, PChar(Buf), Len)
   else
     Result := -2;
@@ -1533,7 +1758,7 @@ end;
 //function BioWrite(b: PBIO; Buf: PChar; Len: cInt): cInt;
 function BioWrite(b: PBIO; Buf: String; Len: cInt): cInt;
 begin
-  if InitSSLInterface and Assigned(_BioWrite) then
+  if InitlibeaInterface and Assigned(_BioWrite) then
     Result := _BioWrite(b, PChar(Buf), Len)
   else
     Result := -2;
@@ -1541,7 +1766,7 @@ end;
 
 function X509print(b: PBIO; a: PX509): cInt;
 begin
-  if InitSSLInterface and Assigned(_X509print) then
+  if InitlibeaInterface and Assigned(_X509print) then
     Result := _X509print(b, a)
   else
     Result := 0;
@@ -1549,7 +1774,7 @@ end;
 
 function d2iPKCS12bio(b:PBIO; Pkcs12: SslPtr): SslPtr;
 begin
-  if InitSSLInterface and Assigned(_d2iPKCS12bio) then
+  if InitlibeaInterface and Assigned(_d2iPKCS12bio) then
     Result := _d2iPKCS12bio(b, Pkcs12)
   else
     Result := nil;
@@ -1557,7 +1782,7 @@ end;
 
 function PKCS12parse(p12: SslPtr; pass: string; var pkey, cert, ca: SslPtr): cInt;
 begin
-  if InitSSLInterface and Assigned(_PKCS12parse) then
+  if InitlibeaInterface and Assigned(_PKCS12parse) then
     Result := _PKCS12parse(p12, SslPtr(pass), pkey, cert, ca)
   else
     Result := 0;
@@ -1565,13 +1790,13 @@ end;
 
 procedure PKCS12free(p12: SslPtr);
 begin
-  if InitSSLInterface and Assigned(_PKCS12free) then
+  if InitlibeaInterface and Assigned(_PKCS12free) then
     _PKCS12free(p12);
 end;
 
 function EvpPkeyAssign(pkey: PEVP_PKEY; _type: cInt; key: Prsa): cInt;
 begin
-  if InitSSLInterface and Assigned(_EvpPkeyAssign) then
+  if InitlibeaInterface and Assigned(_EvpPkeyAssign) then
     Result := _EvpPkeyAssign(pkey, _type, key)
   else
     Result := 0;
@@ -1579,7 +1804,7 @@ end;
 
 function X509SetVersion(x: PX509; version: cInt): cInt;
 begin
-  if InitSSLInterface and Assigned(_X509SetVersion) then
+  if InitlibeaInterface and Assigned(_X509SetVersion) then
     Result := _X509SetVersion(x, version)
   else
     Result := 0;
@@ -1587,7 +1812,7 @@ end;
 
 function X509SetPubkey(x: PX509; pkey: PEVP_PKEY): cInt;
 begin
-  if InitSSLInterface and Assigned(_X509SetPubkey) then
+  if InitlibeaInterface and Assigned(_X509SetPubkey) then
     Result := _X509SetPubkey(x, pkey)
   else
     Result := 0;
@@ -1595,7 +1820,7 @@ end;
 
 function X509SetIssuerName(x: PX509; name: PX509_NAME): cInt;
 begin
-  if InitSSLInterface and Assigned(_X509SetIssuerName) then
+  if InitlibeaInterface and Assigned(_X509SetIssuerName) then
     Result := _X509SetIssuerName(x, name)
   else
     Result := 0;
@@ -1604,7 +1829,7 @@ end;
 function X509NameAddEntryByTxt(name: PX509_NAME; field: string; _type: cInt;
   bytes: string; len, loc, _set: cInt): cInt;
 begin
-  if InitSSLInterface and Assigned(_X509NameAddEntryByTxt) then
+  if InitlibeaInterface and Assigned(_X509NameAddEntryByTxt) then
     Result := _X509NameAddEntryByTxt(name, PChar(field), _type, PChar(Bytes), len, loc, _set)
   else
     Result := 0;
@@ -1612,7 +1837,7 @@ end;
 
 function X509Sign(x: PX509; pkey: PEVP_PKEY; const md: PEVP_MD): cInt;
 begin
-  if InitSSLInterface and Assigned(_X509Sign) then
+  if InitlibeaInterface and Assigned(_X509Sign) then
     Result := _X509Sign(x, pkey, md)
   else
     Result := 0;
@@ -1620,7 +1845,7 @@ end;
 
 function Asn1UtctimeNew: PASN1_UTCTIME;
 begin
-  if InitSSLInterface and Assigned(_Asn1UtctimeNew) then
+  if InitlibeaInterface and Assigned(_Asn1UtctimeNew) then
     Result := _Asn1UtctimeNew
   else
     Result := nil;
@@ -1628,13 +1853,13 @@ end;
 
 procedure Asn1UtctimeFree(a: PASN1_UTCTIME);
 begin
-  if InitSSLInterface and Assigned(_Asn1UtctimeFree) then
+  if InitlibeaInterface and Assigned(_Asn1UtctimeFree) then
     _Asn1UtctimeFree(a);
 end;
 
 function X509GmtimeAdj(s: PASN1_UTCTIME; adj: cInt): PASN1_UTCTIME;
 begin
-  if InitSSLInterface and Assigned(_X509GmtimeAdj) then
+  if InitlibeaInterface and Assigned(_X509GmtimeAdj) then
     Result := _X509GmtimeAdj(s, adj)
   else
     Result := nil;
@@ -1642,7 +1867,7 @@ end;
 
 function X509SetNotBefore(x: PX509; tm: PASN1_UTCTIME): cInt;
 begin
-  if InitSSLInterface and Assigned(_X509SetNotBefore) then
+  if InitlibeaInterface and Assigned(_X509SetNotBefore) then
     Result := _X509SetNotBefore(x, tm)
   else
     Result := 0;
@@ -1650,7 +1875,7 @@ end;
 
 function X509SetNotAfter(x: PX509; tm: PASN1_UTCTIME): cInt;
 begin
-  if InitSSLInterface and Assigned(_X509SetNotAfter) then
+  if InitlibeaInterface and Assigned(_X509SetNotAfter) then
     Result := _X509SetNotAfter(x, tm)
   else
     Result := 0;
@@ -1658,7 +1883,7 @@ end;
 
 function i2dX509bio(b: PBIO; x: PX509): cInt;
 begin
-  if InitSSLInterface and Assigned(_i2dX509bio) then
+  if InitlibeaInterface and Assigned(_i2dX509bio) then
     Result := _i2dX509bio(b, x)
   else
     Result := 0;
@@ -1666,7 +1891,7 @@ end;
 
 function i2dPrivateKeyBio(b: PBIO; pkey: PEVP_PKEY): cInt;
 begin
-  if InitSSLInterface and Assigned(_i2dPrivateKeyBio) then
+  if InitlibeaInterface and Assigned(_i2dPrivateKeyBio) then
     Result := _i2dPrivateKeyBio(b, pkey)
   else
     Result := 0;
@@ -1674,7 +1899,7 @@ end;
 
 function EvpGetDigestByName(Name: String): PEVP_MD;
 begin
-  if InitSSLInterface and Assigned(_EvpGetDigestByName) then
+  if InitlibeaInterface and Assigned(_EvpGetDigestByName) then
     Result := _EvpGetDigestByName(PChar(Name))
   else
     Result := nil;
@@ -1682,7 +1907,7 @@ end;
 
 function X509GetSerialNumber(x: PX509): PASN1_cInt;
 begin
-  if InitSSLInterface and Assigned(_X509GetSerialNumber) then
+  if InitlibeaInterface and Assigned(_X509GetSerialNumber) then
     Result := _X509GetSerialNumber(x)
   else
     Result := nil;
@@ -1691,13 +1916,13 @@ end;
 // 3DES functions
 procedure DESsetoddparity(Key: des_cblock);
 begin
-  if InitSSLInterface and Assigned(_DESsetoddparity) then
+  if InitlibeaInterface and Assigned(_DESsetoddparity) then
     _DESsetoddparity(Key);
 end;
 
 function DESsetkeychecked(key: des_cblock; schedule: des_key_schedule): cInt;
 begin
-  if InitSSLInterface and Assigned(_DESsetkeychecked) then
+  if InitlibeaInterface and Assigned(_DESsetkeychecked) then
     Result := _DESsetkeychecked(key, schedule)
   else
     Result := -1;
@@ -1705,14 +1930,14 @@ end;
 
 procedure DESecbencrypt(Input: des_cblock; output: des_cblock; ks: des_key_schedule; enc: cInt);
 begin
-  if InitSSLInterface and Assigned(_DESecbencrypt) then
+  if InitlibeaInterface and Assigned(_DESecbencrypt) then
     _DESecbencrypt(Input, output, ks, enc);
 end;
 
 // RAND functions
 function RAND_set_rand_method(const meth: PRAND_METHOD): cint;
 begin
-  if InitSSLInterface and Assigned(_RAND_set_rand_method) then
+  if InitlibeaInterface and Assigned(_RAND_set_rand_method) then
     Result := _RAND_set_rand_method(meth)
   else
     Result := -1;
@@ -1720,7 +1945,7 @@ end;
 
 function RAND_get_rand_method: PRAND_METHOD;
 begin
-  if InitSSLInterface and Assigned(_RAND_get_rand_method) then
+  if InitlibeaInterface and Assigned(_RAND_get_rand_method) then
     Result := _RAND_get_rand_method()
   else
     Result := nil;
@@ -1728,7 +1953,7 @@ end;
 
 function RAND_SSLeay: PRAND_METHOD;
 begin
-  if InitSSLInterface and Assigned(_RAND_SSLeay) then
+  if InitlibeaInterface and Assigned(_RAND_SSLeay) then
     Result := _RAND_SSLeay()
   else
     Result := nil;
@@ -1736,13 +1961,13 @@ end;
 
 procedure RAND_cleanup;
 begin
-  if InitSSLInterface and Assigned(_RAND_cleanup) then
+  if InitlibeaInterface and Assigned(_RAND_cleanup) then
     _RAND_cleanup();
 end;
 
 function RAND_bytes(buf: PByte; num: cint): cint;
 begin
-  if InitSSLInterface and Assigned(_RAND_bytes) then
+  if InitlibeaInterface and Assigned(_RAND_bytes) then
     Result := _RAND_bytes(buf, num)
   else
     Result := -1;
@@ -1750,7 +1975,7 @@ end;
 
 function RAND_pseudo_bytes(buf: PByte; num: cint): cint;
 begin
-  if InitSSLInterface and Assigned(_RAND_pseudo_bytes) then
+  if InitlibeaInterface and Assigned(_RAND_pseudo_bytes) then
     Result := _RAND_pseudo_bytes(buf, num)
   else
     Result := -1;
@@ -1758,19 +1983,19 @@ end;
 
 procedure RAND_seed(const buf: Pointer; num: cint);
 begin
-  if InitSSLInterface and Assigned(_RAND_seed) then
+  if InitlibeaInterface and Assigned(_RAND_seed) then
     _RAND_seed(buf, num);
 end;
 
 procedure RAND_add(const buf: Pointer; num: cint; entropy: cdouble);
 begin
-  if InitSSLInterface and Assigned(_RAND_add) then
+  if InitlibeaInterface and Assigned(_RAND_add) then
     _RAND_add(buf, num, entropy);
 end;
 
 function RAND_load_file(const file_name: PChar; max_bytes: clong): cint;
 begin
-  if InitSSLInterface and Assigned(_RAND_load_file) then
+  if InitlibeaInterface and Assigned(_RAND_load_file) then
     Result := _RAND_load_file(file_name, max_bytes)
   else
     Result := -1;
@@ -1778,7 +2003,7 @@ end;
 
 function RAND_write_file(const file_name: PChar): cint;
 begin
-  if InitSSLInterface and Assigned(_RAND_write_file) then
+  if InitlibeaInterface and Assigned(_RAND_write_file) then
     Result := _RAND_write_file(file_name)
   else
     Result := -1;
@@ -1786,7 +2011,7 @@ end;
 
 function RAND_file_name(file_name: PChar; num: csize_t): PChar;
 begin
-  if InitSSLInterface and Assigned(_RAND_file_name) then
+  if InitlibeaInterface and Assigned(_RAND_file_name) then
     Result := _RAND_file_name(file_name, num)
   else
     Result := nil;
@@ -1794,7 +2019,7 @@ end;
 
 function RAND_status: cint;
 begin
-  if InitSSLInterface and Assigned(_RAND_status) then
+  if InitlibeaInterface and Assigned(_RAND_status) then
     Result := _RAND_status()
   else
     Result := -1;
@@ -1802,7 +2027,7 @@ end;
 
 function RAND_query_egd_bytes(const path: PChar; buf: PByte; bytes: cint): cint;
 begin
-  if InitSSLInterface and Assigned(_RAND_query_egd_bytes) then
+  if InitlibeaInterface and Assigned(_RAND_query_egd_bytes) then
     Result := _RAND_query_egd_bytes(path, buf, bytes)
   else
     Result := -1;
@@ -1810,7 +2035,7 @@ end;
 
 function RAND_egd(const path: PChar): cint;
 begin
-  if InitSSLInterface and Assigned(_RAND_egd) then
+  if InitlibeaInterface and Assigned(_RAND_egd) then
     Result := _RAND_egd(path)
   else
     Result := -1;
@@ -1818,7 +2043,7 @@ end;
 
 function RAND_egd_bytes(const path: PChar; bytes: cint): cint;
 begin
-  if InitSSLInterface and Assigned(_RAND_egd_bytes) then
+  if InitlibeaInterface and Assigned(_RAND_egd_bytes) then
     Result := _RAND_egd_bytes(path, bytes)
   else
     Result := -1;
@@ -1826,13 +2051,13 @@ end;
 
 procedure ERR_load_RAND_strings;
 begin
-  if InitSSLInterface and Assigned(_ERR_load_RAND_strings) then
+  if InitlibeaInterface and Assigned(_ERR_load_RAND_strings) then
     _ERR_load_RAND_strings();
 end;
 
 function RAND_poll: cint;
 begin
-  if InitSSLInterface and Assigned(_RAND_poll) then
+  if InitlibeaInterface and Assigned(_RAND_poll) then
     Result := _RAND_poll()
   else
     Result := -1;
@@ -1842,7 +2067,7 @@ end;
 
 function RSA_new(): PRSA;
 begin
-  if InitSSLInterface and Assigned(_RSA_new) then
+  if InitlibeaInterface and Assigned(_RSA_new) then
     Result := _RSA_new()
   else
     Result := nil;
@@ -1850,7 +2075,7 @@ end;
 
 function RSA_new_method(method: PENGINE): PRSA;
 begin
-  if InitSSLInterface and Assigned(_RSA_new_method) then
+  if InitlibeaInterface and Assigned(_RSA_new_method) then
     Result := _RSA_new_method(method)
   else
     Result := nil;
@@ -1858,7 +2083,7 @@ end;
 
 function RSA_size(arsa: PRSA): cint;
 begin
-  if InitSSLInterface and Assigned(_RSA_size) then
+  if InitlibeaInterface and Assigned(_RSA_size) then
     Result := _RSA_size(arsa)
   else
     Result := -1;
@@ -1866,7 +2091,7 @@ end;
 
 function RsaGenerateKey(bits, e: cInt; callback: PFunction; cb_arg: SslPtr): PRSA;
 begin
-  if InitSSLInterface and Assigned(_RsaGenerateKey) then
+  if InitlibeaInterface and Assigned(_RsaGenerateKey) then
     Result := _RsaGenerateKey(bits, e, callback, cb_arg)
   else
     Result := nil;
@@ -1874,7 +2099,7 @@ end;
 
 function RSA_generate_key_ex(arsa: PRSA; bits: cInt; e: PBIGNUM; cb: PBN_GENCB): PRSA;
 begin
-  if InitSSLInterface and Assigned(_RSA_generate_key_ex) then
+  if InitlibeaInterface and Assigned(_RSA_generate_key_ex) then
     Result := _RSA_generate_key_ex(arsa, bits, e, cb)
   else
     Result := nil;
@@ -1882,7 +2107,7 @@ end;
 
 function RSA_check_key(arsa: PRSA): cint;
 begin
-  if InitSSLInterface and Assigned(_RSA_check_key) then
+  if InitlibeaInterface and Assigned(_RSA_check_key) then
     Result := _RSA_check_key(arsa)
   else
     Result := -1;
@@ -1890,7 +2115,7 @@ end;
 
 function RSA_public_encrypt(flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint;
 begin
-  if InitSSLInterface and Assigned(_RSA_public_encrypt) then
+  if InitlibeaInterface and Assigned(_RSA_public_encrypt) then
     Result := _RSA_public_encrypt(flen, from_buf, to_buf, arsa, padding)
   else
     Result := -1;
@@ -1898,7 +2123,7 @@ end;
 
 function RSA_private_encrypt(flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint;
 begin
-  if InitSSLInterface and Assigned(_RSA_private_encrypt) then
+  if InitlibeaInterface and Assigned(_RSA_private_encrypt) then
     Result := _RSA_private_encrypt(flen, from_buf, to_buf, arsa, padding)
   else
     Result := -1;
@@ -1906,7 +2131,7 @@ end;
 
 function RSA_public_decrypt(flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint;
 begin
-  if InitSSLInterface and Assigned(_RSA_public_decrypt) then
+  if InitlibeaInterface and Assigned(_RSA_public_decrypt) then
     Result := _RSA_public_decrypt(flen, from_buf, to_buf, arsa, padding)
   else
     Result := -1;
@@ -1914,7 +2139,7 @@ end;
 
 function RSA_private_decrypt(flen: cint; from_buf, to_buf: PByte; arsa: PRSA; padding: cint): cint;
 begin
-  if InitSSLInterface and Assigned(_RSA_private_decrypt) then
+  if InitlibeaInterface and Assigned(_RSA_private_decrypt) then
     Result := _RSA_private_decrypt(flen, from_buf, to_buf, arsa, padding)
   else
     Result := -1;
@@ -1922,13 +2147,13 @@ end;
 
 procedure RSA_free(arsa: PRSA);
 begin
-  if InitSSLInterface and Assigned(_RSA_free) then
+  if InitlibeaInterface and Assigned(_RSA_free) then
     _RSA_free(arsa);
 end;
 
 function RSA_flags(arsa: PRSA): Integer;
 begin
-  if InitSSLInterface and Assigned(_RSA_flags) then
+  if InitlibeaInterface and Assigned(_RSA_flags) then
     Result := _RSA_flags(arsa)
   else
     Result := -1;
@@ -1936,13 +2161,13 @@ end;
 
 procedure RSA_set_default_method(method: PRSA_METHOD);
 begin
-  if InitSSLInterface and Assigned(_RSA_set_default_method) then
+  if InitlibeaInterface and Assigned(_RSA_set_default_method) then
     _RSA_set_default_method(method);
 end;
 
 function RSA_get_default_method: PRSA_METHOD;
 begin
-  if InitSSLInterface and Assigned(_RSA_get_default_method) then
+  if InitlibeaInterface and Assigned(_RSA_get_default_method) then
     Result := _RSA_get_default_method()
   else
     Result := nil;
@@ -1950,7 +2175,7 @@ end;
 
 function RSA_get_method(arsa: PRSA): PRSA_METHOD;
 begin
-  if InitSSLInterface and Assigned(_RSA_get_method) then
+  if InitlibeaInterface and Assigned(_RSA_get_method) then
     Result := _RSA_get_method(arsa)
   else
     Result := nil;
@@ -1958,7 +2183,7 @@ end;
 
 function RSA_set_method(arsa: PRSA; method: PRSA_METHOD): PRSA_METHOD;
 begin
-  if InitSSLInterface and Assigned(_RSA_set_method) then
+  if InitlibeaInterface and Assigned(_RSA_set_method) then
     Result := _RSA_set_method(arsa, method)
   else
     Result := nil;
@@ -1966,7 +2191,7 @@ end;
 
 function d2i_RSAPublicKey(arsa: PPRSA; pp: PPByte; len: cint): PRSA;
 begin
-  if InitSSLInterface and Assigned(_d2i_RSAPublicKey) then
+  if InitlibeaInterface and Assigned(_d2i_RSAPublicKey) then
     Result := _d2i_RSAPublicKey(arsa, pp, len)
   else
     Result := nil;
@@ -1974,7 +2199,7 @@ end;
 
 function i2d_RSAPublicKey(arsa: PRSA; pp: PPByte): cint;
 begin
-  if InitSSLInterface and Assigned(_i2d_RSAPublicKey) then
+  if InitlibeaInterface and Assigned(_i2d_RSAPublicKey) then
     Result := _i2d_RSAPublicKey(arsa, pp)
   else
     Result := -1;
@@ -1982,7 +2207,7 @@ end;
 
 function d2i_RSAPrivateKey(arsa: PPRSA; pp: PPByte; len: cint): PRSA;
 begin
-  if InitSSLInterface and Assigned(_d2i_RSAPrivateKey) then
+  if InitlibeaInterface and Assigned(_d2i_RSAPrivateKey) then
     Result := _d2i_RSAPrivateKey(arsa, pp, len)
   else
     Result := nil;
@@ -1990,7 +2215,7 @@ end;
 
 function i2d_RSAPrivateKey(arsa: PRSA; pp: PPByte): cint;
 begin
-  if InitSSLInterface and Assigned(_i2d_RSAPrivateKey) then
+  if InitlibeaInterface and Assigned(_i2d_RSAPrivateKey) then
     Result := _i2d_RSAPrivateKey(arsa, pp)
   else
     Result := -1;
@@ -2000,7 +2225,7 @@ end;
 
 function Err_Error_String(e: cInt; buf: PChar): PChar;
 begin
-  if InitSSLInterface and Assigned(_Err_Error_String) then
+  if InitlibeaInterface and Assigned(_Err_Error_String) then
     Result := _Err_Error_String(e, buf)
   else
     Result := nil;
@@ -2010,7 +2235,7 @@ end;
 
 function SSLeay_version(t: cint): PChar;
 begin
-  if InitSSLInterface and Assigned(_SSLeay_version) then
+  if InitlibeaInterface and Assigned(_SSLeay_version) then
     Result := _SSLeay_version(t)
   else
     Result := nil;
@@ -2020,25 +2245,25 @@ end;
 
 procedure OpenSSL_add_all_algorithms;
 begin
-  if InitSSLInterface and Assigned(_OpenSSL_add_all_algorithms) then
+  if InitlibeaInterface and Assigned(_OpenSSL_add_all_algorithms) then
     _OpenSSL_add_all_algorithms();
 end;
 
 procedure OpenSSL_add_all_ciphers;
 begin
-  if InitSSLInterface and Assigned(_OpenSSL_add_all_ciphers) then
+  if InitlibeaInterface and Assigned(_OpenSSL_add_all_ciphers) then
     _OpenSSL_add_all_ciphers();
 end;
 
 procedure OpenSSL_add_all_digests;
 begin
-  if InitSSLInterface and Assigned(_OpenSSL_add_all_digests) then
+  if InitlibeaInterface and Assigned(_OpenSSL_add_all_digests) then
     _OpenSSL_add_all_digests();
 end;
 //
 function EVP_DigestInit(ctx: PEVP_MD_CTX; type_: PEVP_MD): cint;
 begin
-  if InitSSLInterface and Assigned(_EVP_DigestInit) then
+  if InitlibeaInterface and Assigned(_EVP_DigestInit) then
     Result := _EVP_DigestInit(ctx, type_)
   else
     Result := -1;
@@ -2046,7 +2271,7 @@ end;
 
 function EVP_DigestUpdate(ctx: PEVP_MD_CTX; const data: Pointer; cnt: csize_t): cint;
 begin
-  if InitSSLInterface and Assigned(_EVP_DigestUpdate) then
+  if InitlibeaInterface and Assigned(_EVP_DigestUpdate) then
     Result := _EVP_DigestUpdate(ctx, data, cnt)
   else
     Result := -1;
@@ -2054,15 +2279,49 @@ end;
 
 function EVP_DigestFinal(ctx: PEVP_MD_CTX; md: PByte; s: pcuint): cint;
 begin
-  if InitSSLInterface and Assigned(_EVP_DigestFinal) then
+  if InitlibeaInterface and Assigned(_EVP_DigestFinal) then
     Result := _EVP_DigestFinal(ctx, md, s)
   else
     Result := -1;
 end;
+
+function EVP_SignFinal(ctx: pEVP_MD_CTX; sig: pointer; var s: cardinal;
+    key: pEVP_PKEY): integer;
+begin
+  if InitlibeaInterface and Assigned(_EVP_SignFinal) then
+    Result := _EVP_SignFinal(ctx, sig, s, key)
+  else
+    Result := -1;
+end;
+
+function EVP_PKEY_size(key: pEVP_PKEY): integer;
+begin
+  if InitlibeaInterface and Assigned(_EVP_PKEY_size) then
+    Result := _EVP_PKEY_size(key)
+  else
+    Result := -1;
+end;
+
+procedure EVP_PKEY_free(key: pEVP_PKEY);
+begin
+  if InitlibeaInterface and Assigned(_EVP_PKEY_free) then
+    _EVP_PKEY_free(key);
+end;
+
+function EVP_VerifyFinal(ctx: pEVP_MD_CTX; sigbuf: pointer;
+    siglen: cardinal; pkey: pEVP_PKEY): integer;
+begin
+  if InitlibeaInterface and Assigned(_EVP_VerifyFinal) then
+    Result := _EVP_VerifyFinal(ctx, sigbuf, siglen, pkey)
+  else
+    Result := -1;
+end;
+
+
 //
 function EVP_get_cipherbyname(const name: PChar): PEVP_CIPHER;
 begin
-  if InitSSLInterface and Assigned(_EVP_get_cipherbyname) then
+  if InitlibeaInterface and Assigned(_EVP_get_cipherbyname) then
     Result := _EVP_get_cipherbyname(name)
   else
     Result := nil;
@@ -2070,7 +2329,7 @@ end;
 
 function EVP_get_digestbyname(const name: PChar): PEVP_MD;
 begin
-  if InitSSLInterface and Assigned(_EVP_get_digestbyname) then
+  if InitlibeaInterface and Assigned(_EVP_get_digestbyname) then
     Result := _EVP_get_digestbyname(name)
   else
     Result := nil;
@@ -2078,13 +2337,13 @@ end;
 //
 procedure EVP_CIPHER_CTX_init(a: PEVP_CIPHER_CTX);
 begin
-  if InitSSLInterface and Assigned(_EVP_CIPHER_CTX_init) then
+  if InitlibeaInterface and Assigned(_EVP_CIPHER_CTX_init) then
     _EVP_CIPHER_CTX_init(a);
 end;
 
 function EVP_CIPHER_CTX_cleanup(a: PEVP_CIPHER_CTX): cint;
 begin
-  if InitSSLInterface and Assigned(_EVP_CIPHER_CTX_cleanup) then
+  if InitlibeaInterface and Assigned(_EVP_CIPHER_CTX_cleanup) then
     Result := _EVP_CIPHER_CTX_cleanup(a)
   else
     Result := -1;
@@ -2092,7 +2351,7 @@ end;
 
 function EVP_CIPHER_CTX_set_key_length(x: PEVP_CIPHER_CTX; keylen: cint): cint;
 begin
-  if InitSSLInterface and Assigned(_EVP_CIPHER_CTX_set_key_length) then
+  if InitlibeaInterface and Assigned(_EVP_CIPHER_CTX_set_key_length) then
     Result := _EVP_CIPHER_CTX_set_key_length(x, keylen)
   else
     Result := -1;
@@ -2100,7 +2359,7 @@ end;
 
 function EVP_CIPHER_CTX_ctrl(ctx: PEVP_CIPHER_CTX; type_, arg: cint; ptr: Pointer): cint;
 begin
-  if InitSSLInterface and Assigned(_EVP_CIPHER_CTX_ctrl) then
+  if InitlibeaInterface and Assigned(_EVP_CIPHER_CTX_ctrl) then
     Result := _EVP_CIPHER_CTX_ctrl(ctx, type_, arg, ptr)
   else
     Result := -1;
@@ -2109,7 +2368,7 @@ end;
 function EVP_EncryptInit(ctx: PEVP_CIPHER_CTX; const chipher_: PEVP_CIPHER;
          const key, iv: PByte): cint;
 begin
-  if InitSSLInterface and Assigned(_EVP_EncryptInit) then
+  if InitlibeaInterface and Assigned(_EVP_EncryptInit) then
     Result := _EVP_EncryptInit(ctx, chipher_, key, iv)
   else
     Result := -1;
@@ -2118,7 +2377,7 @@ end;
 function EVP_EncryptUpdate(ctx: PEVP_CIPHER_CTX; out_: pcuchar;
          outlen: pcint; const in_: pcuchar; inlen: cint): cint;
 begin
-  if InitSSLInterface and Assigned(_EVP_EncryptUpdate) then
+  if InitlibeaInterface and Assigned(_EVP_EncryptUpdate) then
     Result := _EVP_EncryptUpdate(ctx, out_, outlen, in_, inlen)
   else
     Result := -1;
@@ -2126,7 +2385,7 @@ end;
 
 function EVP_EncryptFinal(ctx: PEVP_CIPHER_CTX; out_data: PByte; outlen: pcint): cint;
 begin
-  if InitSSLInterface and Assigned(_EVP_EncryptFinal) then
+  if InitlibeaInterface and Assigned(_EVP_EncryptFinal) then
     Result := _EVP_EncryptFinal(ctx, out_data, outlen)
   else
     Result := -1;
@@ -2135,7 +2394,7 @@ end;
 function EVP_DecryptInit(ctx: PEVP_CIPHER_CTX; chiphir_type: PEVP_CIPHER;
          const key, iv: PByte): cint;
 begin
-  if InitSSLInterface and Assigned(_EVP_DecryptInit) then
+  if InitlibeaInterface and Assigned(_EVP_DecryptInit) then
     Result := _EVP_DecryptInit(ctx, chiphir_type, key, iv)
   else
     Result := -1;
@@ -2144,7 +2403,7 @@ end;
 function EVP_DecryptUpdate(ctx: PEVP_CIPHER_CTX; out_data: PByte;
          outl: pcint; const in_: PByte; inl: cint): cint;
 begin
-  if InitSSLInterface and Assigned(_EVP_DecryptUpdate) then
+  if InitlibeaInterface and Assigned(_EVP_DecryptUpdate) then
     Result := _EVP_DecryptUpdate(ctx, out_data, outl, in_, inl)
   else
     Result := -1;
@@ -2152,7 +2411,7 @@ end;
 
 function EVP_DecryptFinal(ctx: PEVP_CIPHER_CTX; outm: PByte; outlen: pcint): cint;
 begin
-  if InitSSLInterface and Assigned(_EVP_DecryptFinal) then
+  if InitlibeaInterface and Assigned(_EVP_DecryptFinal) then
     Result := _EVP_DecryptFinal(ctx, outm, outlen)
   else
     Result := -1;
@@ -2163,17 +2422,44 @@ end;
 function PEM_read_bio_PrivateKey(bp: PBIO; X: PPEVP_PKEY;
          cb: Ppem_password_cb; u: Pointer): PEVP_PKEY;
 begin
-  if InitSSLInterface and Assigned(_PEM_read_bio_PrivateKey) then
+  if InitlibeaInterface and Assigned(_PEM_read_bio_PrivateKey) then
     Result := _PEM_read_bio_PrivateKey(bp, x, cb, u)
   else
     Result := nil;
 end;
 
+function PEM_read_bio_PUBKEY(bp: pBIO; var x: pEVP_PKEY;
+               cb: Ppem_password_cb; u: pointer): pEVP_PKEY;
+begin
+  if InitlibeaInterface and Assigned(_PEM_read_bio_PUBKEY) then
+    Result := _PEM_read_bio_PUBKEY(bp, x, cb, u)
+  else
+    Result := nil;
+end;
+
+function PEM_write_bio_PrivateKey(bp: pBIO; x: pEVP_PKEY;
+               const enc: pEVP_CIPHER; kstr: PChar; klen: Integer; cb: Ppem_password_cb;
+               u: pointer): integer; 
+Begin
+   if InitlibeaInterface and Assigned(_PEM_write_bio_PrivateKey) then
+    Result := _PEM_write_bio_PrivateKey(bp, x, enc ,kstr ,klen ,cb, u)
+  else
+    Result := -1;
+end;   
+
+function PEM_write_bio_PUBKEY(bp: pBIO; x: pEVP_PKEY): integer; 
+Begin
+   if InitlibeaInterface and Assigned(_PEM_write_bio_PUBKEY) then
+    Result := _PEM_write_bio_PUBKEY(bp, x)
+  else
+    Result := -1;
+end; 
+
 // BIO Functions
 
 function BIO_ctrl(bp: PBIO; cmd: cint; larg: clong; parg: Pointer): clong;
 begin
-  if InitSSLInterface and Assigned(_BIO_ctrl) then
+  if InitlibeaInterface and Assigned(_BIO_ctrl) then
     Result := _BIO_ctrl(bp, cmd, larg, parg)
   else
     Result := -1;
@@ -2181,7 +2467,31 @@ end;
 
 function BIO_read_filename(b: PBIO; const name: PChar): cint;
 begin
-  Result := BIO_ctrl(b, BIO_C_SET_FILENAME, BIO_CLOSE or BIO_FP_READ, Pointer(name));
+  Result := BIO_ctrl(b, BIO_C_SET_FILENAME, BIO_CLOSE or BIO_FP_READ, name);
+end;
+
+function BIO_s_file: PBIO_METHOD;
+begin
+  if InitlibeaInterface and Assigned(_BIO_s_file) then
+    Result := _BIO_s_file
+  else
+    Result := nil;
+end;
+
+function BIO_new_file(const filename: PChar; const mode: PChar): pBIO;
+begin
+  if InitlibeaInterface and Assigned(_BIO_new_file) then
+    Result := _BIO_new_file(filename, mode)
+  else
+    Result := nil;
+end;
+
+function BIO_new_mem_buf(buf: pointer; len: integer): pBIO;
+begin
+  if InitlibeaInterface and Assigned(_BIO_new_mem_buf) then
+    Result := _BIO_new_mem_buf(buf, len)
+  else
+    Result := nil;
 end;
 
 
@@ -2227,16 +2537,30 @@ end;
 // functions weren't loaded correctly. They will be available in the
 // global variable OpenSSL_unavailable_functions
 function InitSSLInterface(AVerboseLoading: Boolean = False): Boolean;
+Begin
+ try
+   if InitSSLEAInterface(AVerboseLoading) then
+	if InitLIBEAInterface(AVerboseLoading) then
+	  result:=true
+	else
+	  result:=false
+   else
+    result:=false;
+ except
+   result:=false;
+ end;
+end;
+
+function InitSSLEAInterface(AVerboseLoading: Boolean = False): Boolean;
 begin
-    if not IsSSLloaded then
+    if not IsLibEaloaded then
     begin
       SSLLibHandle := LoadLib(DLLSSLName);
-      SSLUtilHandle := LoadLib(DLLUtilName);
   {$IFNDEF UNIX}
       if (SSLLibHandle = 0) then
         SSLLibHandle := LoadLib(DLLSSLName2);
   {$ENDIF}
-      if (SSLLibHandle <> 0) and (SSLUtilHandle <> 0) then
+      if (SSLLibHandle <> 0) then
       begin
         _SslGetError := GetProcAddr(SSLLibHandle, 'SSL_get_error', AVerboseLoading);
         _SslLibraryInit := GetProcAddr(SSLLibHandle, 'SSL_library_init', AVerboseLoading);
@@ -2281,6 +2605,44 @@ begin
         _SslCipherGetBits := GetProcAddr(SSLLibHandle, 'SSL_CIPHER_get_bits', AVerboseLoading);
         _SslGetVerifyResult := GetProcAddr(SSLLibHandle, 'SSL_get_verify_result', AVerboseLoading);
 
+ //init library
+        if assigned(_SslLibraryInit) then
+          _SslLibraryInit;
+        if assigned(_SslLoadErrorStrings) then
+          _SslLoadErrorStrings;
+        if assigned(_OPENSSL_add_all_algorithms) then
+          _OPENSSL_add_all_algorithms;
+        if assigned(_RandScreen) then
+          _RandScreen;
+
+        Result := True;
+        SSLloaded := True;
+      end
+      else
+      begin
+        //load failed!
+        if SSLLibHandle <> 0 then
+        begin
+          FreeLibrary(SSLLibHandle);
+          SSLLibHandle := 0;
+        end;
+        Result := False;
+      end;
+    end
+    else
+      //loaded before...
+      Result := true;
+end;
+
+function InitlibeaInterface(AVerboseLoading: Boolean = False): Boolean;
+begin
+   if not Islibealoaded then
+   begin
+   SSLUtilHandle := LoadLib(DLLUtilName);
+
+     if (SSLUtilHandle <> 0) then
+   begin
+        _ERR_load_crypto_strings := GetProcAddr(SSLUtilHandle, 'ERR_load_crypto_strings', AVerboseLoading);
         _X509New := GetProcAddr(SSLUtilHandle, 'X509_new', AVerboseLoading);
         _X509Free := GetProcAddr(SSLUtilHandle, 'X509_free', AVerboseLoading);
         _X509NameOneline := GetProcAddr(SSLUtilHandle, 'X509_NAME_oneline', AVerboseLoading);
@@ -2379,10 +2741,6 @@ begin
         // ERR Functions
         _ERR_error_string := GetProcAddr(SSLUtilHandle, 'ERR_error_string', AVerboseLoading);
 
-        // Crypto Functions
-
-        _SSLeay_version := GetProcAddr(SSLLibHandle, 'SSLeay_version', AVerboseLoading);
-
         // EVP Functions
 
         _OpenSSL_add_all_algorithms := GetProcAddr(SSLUtilHandle, 'OpenSSL_add_all_algorithms', AVerboseLoading);
@@ -2392,6 +2750,11 @@ begin
         _EVP_DigestInit := GetProcAddr(SSLUtilHandle, 'EVP_DigestInit', AVerboseLoading);
         _EVP_DigestUpdate := GetProcAddr(SSLUtilHandle, 'EVP_DigestUpdate', AVerboseLoading);
         _EVP_DigestFinal := GetProcAddr(SSLUtilHandle, 'EVP_DigestFinal', AVerboseLoading);
+	
+		_EVP_SignFinal := GetProcAddr(SSLUtilHandle, 'EVP_SignFinal', AVerboseLoading);
+		_EVP_PKEY_size := GetProcAddr(SSLUtilHandle,'EVP_PKEY_size', AVerboseLoading);
+		_EVP_PKEY_free := GetProcAddr(SSLUtilHandle,'EVP_PKEY_free', AVerboseLoading);
+                _EVP_VerifyFinal := GetProcAddr(SSLUtilHandle,'EVP_VerifyFinal', AverboseLoading);
         //
         _EVP_get_cipherbyname := GetProcAddr(SSLUtilHandle, 'EVP_get_cipherbyname', AVerboseLoading);
         _EVP_get_digestbyname := GetProcAddr(SSLUtilHandle, 'EVP_get_digestbyname', AVerboseLoading);
@@ -2412,10 +2775,21 @@ begin
         // PEM
 
         _PEM_read_bio_PrivateKey := GetProcAddr(SSLUtilHandle, 'PEM_read_bio_PrivateKey', AVerboseLoading);
-
+        _PEM_read_bio_PUBKEY := GetProcAddr(SSLUtilHandle, 'PEM_read_bio_PUBKEY', AVerboseLoading);
+		_PEM_write_bio_PrivateKey := GetProcAddr(SSLUtilHandle, 'PEM_write_bio_PrivateKey', AVerboseLoading);
+		_PEM_write_bio_PUBKEY := GetProcAddr(SSLUtilHandle, 'PEM_write_bio_PUBKEY', AVerboseLoading);
+				
         // BIO
 
         _BIO_ctrl := GetProcAddr(SSLUtilHandle, 'BIO_ctrl', AVerboseLoading);
+		
+       _BIO_s_file := GetProcAddr(SSLUtilHandle, 'BIO_s_file', AVerboseLoading);
+       _BIO_new_file := GetProcAddr(SSLUtilHandle, 'BIO_new_file', AVerboseLoading);
+       _BIO_new_mem_buf := GetProcAddr(SSLUtilHandle, 'BIO_new_mem_buf', AVerboseLoading);
+
+       // Crypto Functions
+
+       _SSLeay_version := GetProcAddr(SSLUtilHandle, 'SSLeay_version', AVerboseLoading);
 
         //init library
         if assigned(_SslLibraryInit) then
@@ -2428,20 +2802,13 @@ begin
           _RandScreen;
 
         Result := True;
-        SSLloaded := True;
+        libealoaded := True;
       end
       else
       begin
-        //load failed!
-        if SSLLibHandle <> 0 then
-        begin
-          FreeLibrary(SSLLibHandle);
-          SSLLibHandle := 0;
-        end;
         if SSLUtilHandle <> 0 then
         begin
           FreeLibrary(SSLUtilHandle);
-          SSLLibHandle := 0;
         end;
         Result := False;
       end;
@@ -2451,7 +2818,7 @@ begin
       Result := true;
 end;
 
-function DestroySSLInterface: Boolean;
+function DestroySSLEAInterface: Boolean;
 begin
     if IsSSLLoaded then
     begin
@@ -2463,12 +2830,7 @@ begin
     if SSLLibHandle <> 0 then
     begin
       FreeLibrary(SSLLibHandle);
-      SSLLibHandle := 0;
-    end;
-    if SSLUtilHandle <> 0 then
-    begin
-      FreeLibrary(SSLUtilHandle);
-      SSLLibHandle := 0;
+     SSLLibHandle := 0;
     end;
 
     _SslGetError := nil;
@@ -2512,6 +2874,28 @@ begin
     _SslCipherGetBits := nil;
     _SslGetVerifyResult := nil;
 
+
+      Result := True;
+end;
+
+
+function DestroylibeaInterface: Boolean;
+begin
+        if IslibeaLoaded then
+        begin
+          //deinit library
+          EVPCleanup;
+          ErrRemoveState(0);
+        end;
+        libealoaded := false;
+        if SSLUtilHandle <> 0 then
+        begin
+          FreeLibrary(SSLUtilHandle);
+          SSLUtilHandle := 0;
+        end;
+
+    _SSLeayversion := nil;
+    _ERR_load_crypto_strings := nil;
     _X509New := nil;
     _X509Free := nil;
     _X509NameOneline := nil;
@@ -2534,7 +2918,6 @@ begin
     _EvpPkeyAssign := nil;
     _EVPCleanup := nil;
     _EvpGetDigestByName := nil;
-    _SSLeayversion := nil;
     _ErrErrorString := nil;
     _ErrGetError := nil;
     _ErrClearError := nil;
@@ -2610,10 +2993,6 @@ begin
     // ERR Functions
     _ERR_error_string := nil;
 
-    // Crypto Functions
-
-    _SSLeay_version := nil;
-
     // EVP Functions
 
     _OpenSSL_add_all_algorithms := nil;
@@ -2623,6 +3002,11 @@ begin
     _EVP_DigestInit := nil;
     _EVP_DigestUpdate := nil;
     _EVP_DigestFinal := nil;
+
+	_EVP_SignFinal := nil;
+	_EVP_PKEY_size := nil;
+	_EVP_PKEY_free := nil;
+        _EVP_VerifyFinal := nil;
     //
     _EVP_get_cipherbyname := nil;
     _EVP_get_digestbyname := nil;
@@ -2643,20 +3027,53 @@ begin
     // PEM
 
     _PEM_read_bio_PrivateKey := nil;
+	_PEM_read_bio_PrivateKey := nil;
+    _PEM_read_bio_PUBKEY := nil;
+	_PEM_write_bio_PrivateKey := nil;
+	_PEM_write_bio_PUBKEY := nil;
 
     // BIO
 
     _BIO_ctrl := nil;
+    _BIO_s_file := nil;
+    _BIO_new_file := nil;
+    _BIO_new_mem_buf := nil;
+
+    // Crypto Functions
+
+    _SSLeay_version := nil;
 
   Result := True;
 end;
+
+function DestroySSLInterface: Boolean;
+begin
+result:=false;
+ try
+  if DestroySSLEAInterface then
+   if DestroylibeaInterface then
+    result := true
+   else
+    result := False
+  else
+      result:=false;
+ except
+  result:=false;
+ end;
+end;
+
+
 
 function IsSSLloaded: Boolean;
 begin
   Result := SSLLoaded;
 end;
 
+function Islibealoaded: Boolean;
+begin
+  Result := libeaLoaded;
+end;
+
 finalization
   DestroySSLInterface;
-
 end.

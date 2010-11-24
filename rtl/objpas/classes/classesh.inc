@@ -666,6 +666,7 @@ type
     FDuplicates: TDuplicates;
     FCaseSensitive : Boolean;
     FSorted: Boolean;
+    FOwnsObjects : Boolean;
     procedure ExchangeItems(Index1, Index2: Integer);
     procedure Grow;
     procedure QuickSort(L, R: Integer; CompareFn: TStringListSortCompare);
@@ -702,6 +703,7 @@ type
     property CaseSensitive: Boolean read FCaseSensitive write SetCaseSensitive;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property OnChanging: TNotifyEvent read FOnChanging write FOnChanging;
+    property OwnsObjects : boolean read FOwnsObjects write FOwnsObjects;
   end;
 
 {$else}
@@ -717,6 +719,7 @@ type
     FOnChange: TNotifyEvent;
     FOnChanging: TNotifyEvent;
     FOnCompareText: TStringListTextCompare;
+    FOwnsObjects : Boolean;
     procedure SetCaseSensitive(NewSensitive: Boolean);
   protected
     procedure Changed; virtual;
@@ -755,6 +758,7 @@ type
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
     property OnChanging: TNotifyEvent read FOnChanging write FOnChanging;
     property OnCompareText: TStringListTextCompare read FOnCompareText write FOnCompareText;
+    property OwnsObjects : boolean read FOwnsObjects write FOwnsObjects;
   end;
 
 {$endif}

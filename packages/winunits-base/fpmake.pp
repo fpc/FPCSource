@@ -25,6 +25,9 @@ begin
     P.Description := 'Base Delphi compatible windows headers units outside the RTL';
     P.NeedLibC:= true;
 
+    P.Dependencies.Add('fcl-registry');
+    P.Dependencies.Add('fcl-base');
+
     P.SourcePath.Add('src');
     P.IncludePath.Add('src');
 

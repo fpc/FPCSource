@@ -22,7 +22,7 @@ interface
 uses SysUtils, Classes;
 
 resourcestring
-  SErrInvalidCharacter = 'Invalid character ''%s''';
+  SErrInvalidCharacter = 'Invalid character at line %d, pos %d: ''%s''';
   SErrOpenString = 'string exceeds end of line';
 
 type
@@ -42,11 +42,14 @@ type
     tkCurlyBraceClose,       // '}'
     tkSquaredBraceOpen,       // '['
     tkSquaredBraceClose,      // ']'
+    tkIdentifier,            // Any Javascript identifier
     tkUnknown
     );
 
   EScannerError       = class(Exception);
 
+
+  { TJSONScanner }
 
   TJSONScanner = class
   private
@@ -55,6 +58,7 @@ type
     FCurToken: TJSONToken;
     FCurTokenString: string;
     FCurLine: string;
+    FStrict: Boolean;
     TokenStr: PChar;
     function GetCurColumn: Integer;
   protected
@@ -74,6 +78,8 @@ type
 
     property CurToken: TJSONToken read FCurToken;
     property CurTokenString: string read FCurTokenString;
+    // Use strict JSON: " for strings, object members are strings, not identifiers
+    Property Strict : Boolean Read FStrict Write FStrict;
   end;
 
 const
@@ -91,6 +97,7 @@ const
     '}',
     '[',
     ']',
+    'identifier',
     ''
   );
 
@@ -156,6 +163,7 @@ var
   it : TJSONToken;
   I : Integer;
   OldLength, SectionLength, Index: Integer;
+  C : char;
   S : String;
   
 begin
@@ -188,14 +196,16 @@ begin
           end;
       until not (TokenStr[0] in [#9, ' ']);
       end;
-    '"':
+    '"','''':
       begin
+        C:=TokenStr[0];
+        If (C='''') and Strict then
+          Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]]);
         Inc(TokenStr);
         TokenStart := TokenStr;
         OldLength := 0;
         FCurTokenString := '';
-
-        while not (TokenStr[0] in [#0,'"']) do
+        while not (TokenStr[0] in [#0,C]) do
           begin
           if (TokenStr[0]='\') then
             begin
@@ -205,6 +215,7 @@ begin
             // Read escaped token
             Case TokenStr[0] of
               '"' : S:='"';
+              '''' : S:='''';
               't' : S:=#9;
               'b' : S:=#8;
               'n' : S:=#10;
@@ -221,7 +232,7 @@ begin
                         '0'..'9','A'..'F','a'..'f' :
                           S[i]:=Upcase(TokenStr[0]);
                       else
-                        Error(SErrInvalidCharacter, [TokenStr[0]]);
+                        Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]]);
                       end;
                       end;
                     // Takes care of conversion...  
@@ -229,7 +240,7 @@ begin
                     end;
               #0  : Error(SErrOpenString);
             else
-              Error(SErrInvalidCharacter, [TokenStr[0]]);  
+              Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]]);
             end;
             SetLength(FCurTokenString, OldLength + SectionLength+1+Length(S));
             if SectionLength > 0 then
@@ -258,7 +269,7 @@ begin
         Inc(TokenStr);
         Result := tkComma;
       end;
-    '0'..'9','-':
+    '0'..'9','.','-':
       begin
         TokenStart := TokenStr;
         while true do
@@ -294,6 +305,8 @@ begin
         SetLength(FCurTokenString, SectionLength);
         if SectionLength > 0 then
           Move(TokenStart^, FCurTokenString[1], SectionLength);
+        If (FCurTokenString[1]='.') then
+          FCurTokenString:='0'+FCurTokenString;
         Result := tkNumber;
       end;
     ':':
@@ -321,7 +334,7 @@ begin
         Inc(TokenStr);
         Result := tkSquaredBraceClose;
       end;
-    'T','t','F','f','N','n' :
+    'a'..'z','_':
       begin
         TokenStart := TokenStr;
         repeat
@@ -338,10 +351,13 @@ begin
             FCurToken := Result;
             exit;
             end;
-        Error(SErrInvalidCharacter, [TokenStart[0]]);
+        if Strict then
+          Error(SErrInvalidCharacter, [CurRow,CurColumn,TokenStr[0]])
+        else
+          Result:=tkIdentifier;
       end;
   else
-    Error(SErrInvalidCharacter, [TokenStr[0]]);
+    Error(SErrInvalidCharacter, [CurRow,CurCOlumn,TokenStr[0]]);
   end;
 
   FCurToken := Result;

@@ -196,7 +196,7 @@ procedure TFPReaderPNG.HandleAlpha;
           begin
           c := ThePalette[r];
           a := data^[r];
-          c.alpha := (a shl 16) + a;
+          c.alpha := (a shl 8) + a;
           ThePalette[r] := c;
           end;
         end;

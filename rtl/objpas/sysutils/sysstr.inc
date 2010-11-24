@@ -753,6 +753,8 @@ const
 function IntToHex(Value: integer; Digits: integer): string;
 var i: integer;
 begin
+ If Digits=0 then 
+   Digits:=1;
  SetLength(result, digits);
  for i := 0 to digits - 1 do
   begin
@@ -768,6 +770,8 @@ end ;
 function IntToHex(Value: int64; Digits: integer): string;
 var i: integer;
 begin
+ If Digits=0 then 
+   Digits:=1;
  SetLength(result, digits);
  for i := 0 to digits - 1 do
   begin
@@ -1162,6 +1166,32 @@ Var
   Negative, TooSmall, TooLarge: Boolean;
   DS: Char;
 
+  function RemoveLeadingNegativeSign(var AValue: String): Boolean;
+  // removes negative sign in case when result is zero eg. -0.00
+  var
+    i: PtrInt;
+    S: String;
+    TS: Char;
+    B: Boolean;
+    StartPos: PtrInt;
+  begin
+    Result := False;
+    if Format = ffCurrency then
+      StartPos := 1
+    else
+      StartPos := 2;
+    TS := FormatSettings.ThousandSeparator;
+    S := '';
+    for i := StartPos to length(AValue) do
+    begin
+      Result := (AValue[i] in ['0', DS, 'E', '+', TS]);
+      if not Result then
+        break;
+    end;
+    if (Result) and (Format <> ffCurrency) then
+      Delete(AValue, 1, 1);
+  end;
+
 Begin
   DS:=FormatSettings.DecimalSeparator;
   Case format Of
@@ -1387,6 +1417,9 @@ Begin
           Dec(P, 3);
         End;
 
+        if (length(Result) > 1) and Negative then
+          Negative := not RemoveLeadingNegativeSign(Result);
+
         If Not Negative Then
         Begin
           Case FormatSettings.CurrencyFormat Of
@@ -1409,11 +1442,18 @@ Begin
             7: Result := Result + FormatSettings.CurrencyString + '-';
             8: Result := '-' + Result + ' ' + FormatSettings.CurrencyString;
             9: Result := '-' + FormatSettings.CurrencyString + ' ' + Result;
-            10: Result := FormatSettings.CurrencyString + ' ' + Result + '-';
+            10: Result := Result + ' ' + FormatSettings.CurrencyString + '-';
+            11: Result := FormatSettings.CurrencyString + ' ' + Result + '-';
+            12: Result := FormatSettings.CurrencyString + ' ' + '-' + Result;
+            13: Result := Result + '-' + ' ' + FormatSettings.CurrencyString;
+            14: Result := '(' + FormatSettings.CurrencyString + ' ' + Result + ')';
+            15: Result := '(' + Result + ' ' + FormatSettings.CurrencyString + ')';
           End;
         End;
       End;
   End;
+  if not (format in [ffCurrency]) and (length(Result) > 1) and (Result[1] = '-') then
+    RemoveLeadingNegativeSign(Result);
 End;
 
 

@@ -15,6 +15,8 @@
 
  **********************************************************************}
 
+{$ASMMODE GAS}
+
 {$ifndef FPC_UNIT_HAS_STRCOPY}
 {$define FPC_UNIT_HAS_STRCOPY}
 { Created from glibc: libc/sysdeps/x86_64/strcpy.S Version 1.2 }

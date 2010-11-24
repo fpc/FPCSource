@@ -11,6 +11,7 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+{$asmmode att}
 
 {
  Linux ELF startup code for Free Pascal
@@ -44,7 +45,6 @@ end;
 {******************************************************************************
                           Process start/halt
  ******************************************************************************}
-{$asmmode att}
 
 var
   dlexitproc: pointer;

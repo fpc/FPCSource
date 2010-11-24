@@ -1285,6 +1285,11 @@ packages/fcl-db/src/sdf/fpmake.pp svneol=native#text/plain
 packages/fcl-db/src/sdf/sdfdata.pp svneol=native#text/plain
 packages/fcl-db/src/sdf/testfix.pp svneol=native#text/plain
 packages/fcl-db/src/sdf/testsdf.pp svneol=native#text/plain
+packages/fcl-db/src/sql/Makefile svneol=native#text/plain
+packages/fcl-db/src/sql/Makefile.fpc svneol=native#text/plain
+packages/fcl-db/src/sql/fpsqlparser.pas svneol=native#text/plain
+packages/fcl-db/src/sql/fpsqlscanner.pp svneol=native#text/plain
+packages/fcl-db/src/sql/fpsqltree.pp svneol=native#text/plain
 packages/fcl-db/src/sqldb/Makefile svneol=native#text/plain
 packages/fcl-db/src/sqldb/Makefile.fpc svneol=native#text/plain
 packages/fcl-db/src/sqldb/examples/alisttables.pp svneol=native#text/plain
@@ -1349,12 +1354,19 @@ packages/fcl-db/tests/dbtestframework.pas -text
 packages/fcl-db/tests/memdstoolsunit.pas svneol=native#text/plain
 packages/fcl-db/tests/sdfdstoolsunit.pas svneol=native#text/plain
 packages/fcl-db/tests/sqldbtoolsunit.pas -text
+packages/fcl-db/tests/tcgensql.pas svneol=native#text/plain
+packages/fcl-db/tests/tcparser.pas svneol=native#text/plain
+packages/fcl-db/tests/tcsqlscanner.pas svneol=native#text/plain
 packages/fcl-db/tests/testbasics.pas svneol=native#text/plain
 packages/fcl-db/tests/testbufdatasetstreams.pas svneol=native#text/plain
 packages/fcl-db/tests/testdatasources.pas svneol=native#text/plain
 packages/fcl-db/tests/testdbbasics.pas -text
 packages/fcl-db/tests/testdddiff.pp svneol=native#text/plain
 packages/fcl-db/tests/testfieldtypes.pas svneol=native#text/plain
+packages/fcl-db/tests/testsqlfiles.lpi svneol=native#text/plain
+packages/fcl-db/tests/testsqlfiles.lpr svneol=native#text/plain
+packages/fcl-db/tests/testsqlscanner.lpi svneol=native#text/plain
+packages/fcl-db/tests/testsqlscanner.lpr svneol=native#text/plain
 packages/fcl-db/tests/testsqlscript.pas svneol=native#text/plain
 packages/fcl-db/tests/toolsunit.pas -text
 packages/fcl-extra/Makefile svneol=native#text/plain
@@ -1479,6 +1491,7 @@ packages/fcl-json/examples/parsedemo.pp svneol=native#text/plain
 packages/fcl-json/examples/simpledemo.lpi svneol=native#text/plain
 packages/fcl-json/examples/simpledemo.pp svneol=native#text/plain
 packages/fcl-json/fpmake.pp svneol=native#text/plain
+packages/fcl-json/src/README.txt svneol=native#text/plain
 packages/fcl-json/src/fpjson.pp svneol=native#text/plain
 packages/fcl-json/src/jsonconf.pp svneol=native#text/plain
 packages/fcl-json/src/jsonparser.pp svneol=native#text/plain
@@ -1870,6 +1883,7 @@ packages/fpvectorial/examples/fpvc_mainform.pas svneol=native#text/plain
 packages/fpvectorial/examples/fpvectorialconverter.ico -text
 packages/fpvectorial/examples/fpvectorialconverter.lpi svneol=native#text/plain
 packages/fpvectorial/examples/fpvectorialconverter.lpr svneol=native#text/plain
+packages/fpvectorial/examples/fpvwritetest.lpi svneol=native#text/plain
 packages/fpvectorial/examples/fpvwritetest.pas svneol=native#text/plain
 packages/fpvectorial/fpmake.pp svneol=native#text/plain
 packages/fpvectorial/src/avisocncgcodereader.pas svneol=native#text/plain
@@ -8715,6 +8729,8 @@ tests/test/tstring9.pp svneol=native#text/plain
 tests/test/tstrreal1.pp svneol=native#text/plain
 tests/test/tstrreal2.pp svneol=native#text/plain
 tests/test/tstrreal3.pp svneol=native#text/plain
+tests/test/tstrreal4.pp svneol=native#text/plain
+tests/test/tstrreal5.pp svneol=native#text/plain
 tests/test/tsubdecl.pp svneol=native#text/plain
 tests/test/tsymlibrary1.pp svneol=native#text/pascal
 tests/test/tunaligned1.pp svneol=native#text/plain

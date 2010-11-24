@@ -77,9 +77,18 @@ end;
 
 Procedure fpc_geteipasebx;[external name 'fpc_geteipasebx'];
 
+{$ifdef FPC_PROFILE}
+procedure mcount; external name 'mcount';
+{$endif FPC_PROFILE}
+
 function FpSysCall(sysnr:TSysParam):TSysResult; assembler; register;  [public,alias:'FPC_SYSCALL0'];
 { Var sysnr located in register eax }
 asm
+  {$ifdef FPC_PROFILE}
+        push  %eax
+        call  mcount
+        pop   %eax
+ {$endif FPC_PROFILE}
         push  %ebx
         push  %ecx
   {$ifdef FPC_PIC}
@@ -118,6 +127,13 @@ function FpSysCall(sysnr,param1 : TSysParam):TSysResult; assembler; register; [p
 { Var sysnr located in register eax
   Var param1 located in register edx }
 asm
+  {$ifdef FPC_PROFILE}
+        push  %eax
+        push  %edx
+        call  mcount
+        pop   %edx
+        pop   %eax
+  {$endif FPC_PROFILE}
         push  %ebx
         push  %ecx
   {$ifdef FPC_PIC}
@@ -160,6 +176,15 @@ function FpSysCall(sysnr,param1,param2 : TSysParam):TSysResult; assembler; regis
   Var param1 located in register edx
   Var param2 located in register ecx }
 asm
+  {$ifdef FPC_PROFILE}
+        push  %eax
+        push  %edx
+        push  %ecx
+        call  mcount
+        pop   %ecx
+        pop   %edx
+        pop   %eax
+  {$endif FPC_PROFILE}
         push  %ebx
         push  %edx
         push  %ecx
@@ -208,6 +233,15 @@ function FpSysCall(sysnr,param1,param2,param3:TSysParam):TSysResult; assembler; 
 var
   _psysinfo: LongWord;
 asm
+  {$ifdef FPC_PROFILE}
+        push  %eax
+        push  %edx
+        push  %ecx
+        call  mcount
+        pop   %ecx
+        pop   %edx
+        pop   %eax
+  {$endif FPC_PROFILE}
         push  %ebx
         push  %edx
         push  %ecx
@@ -261,6 +295,15 @@ function FpSysCall(sysnr,param1,param2,param3,param4:TSysParam):TSysResult; asse
 var
   _psysinfo: LongWord;
 asm
+  {$ifdef FPC_PROFILE}
+        push  %eax
+        push  %edx
+        push  %ecx
+        call  mcount
+        pop   %ecx
+        pop   %edx
+        pop   %eax
+  {$endif FPC_PROFILE}
         push  %ebx
         push  %esi
         push  %ecx
@@ -318,6 +361,15 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5 : TSysParam):TSysRes
 var
   _psysinfo: LongWord;
 asm
+  {$ifdef FPC_PROFILE}
+        push  %eax
+        push  %edx
+        push  %ecx
+        call  mcount
+        pop   %ecx
+        pop   %edx
+        pop   %eax
+  {$endif FPC_PROFILE}
         push  %ebx
         push  %edx
         push  %esi
@@ -383,6 +435,15 @@ function FpSysCall(sysnr,param1,param2,param3,param4,param5,param6: TSysParam):T
 var
   _psysinfo: LongWord;
 asm
+  {$ifdef FPC_PROFILE}
+        push  %eax
+        push  %edx
+        push  %ecx
+        call  mcount
+        pop   %ecx
+        pop   %edx
+        pop   %eax
+  {$endif FPC_PROFILE}
         push  %ebx
 	push  %edx
         push  %esi

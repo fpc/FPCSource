@@ -30,6 +30,7 @@ unit matrix;
 interface
 
 {*****************************************************************************}
+{$mode fpc}
 
 {$ifndef FPUNONE}
 {$MACRO on}

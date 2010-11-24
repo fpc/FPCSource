@@ -1,0 +1,26 @@
+#
+# Makefile.fpc for SQL FCL db units
+#
+
+[package]
+main=fcl-db
+
+[target]
+units=fpsqltree fpsqlscanner fpsqlparser
+rsts=fpsqltree fpsqlscanner fpsqlparser
+
+[require]
+packages=fcl-base
+
+[compiler]
+options=-S2h
+unitdir=../dbase
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../../..
+
+[rules]
+.NOTPARALLEL:
