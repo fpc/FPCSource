@@ -3333,7 +3333,12 @@ unit cgcpu;
               end;
 
             if current_procinfo.framepointer<>NR_STACK_POINTER_REG then
-              list.concat(taicpu.op_reg_reg(A_MOV,NR_FRAME_POINTER_REG,NR_R12));
+              begin
+                { the framepointer now points to the saved R15, so the saved
+                  framepointer is at R11-12 (for get_caller_frame) }
+                list.concat(taicpu.op_reg_reg_const(A_SUB,NR_FRAME_POINTER_REG,NR_R12,4));
+                a_reg_dealloc(list,NR_R12);
+              end;
 
             stackmisalignment:=stackmisalignment mod current_settings.alignment.localalignmax;
             if (LocalSize<>0) or
