@@ -428,7 +428,7 @@ begin
       begin
         inc(n);
         if n>3 then
-          begin 
+          begin
             FixErrorMsg(SInvalidDateFormat,s);
             exit;
           end;
@@ -705,7 +705,7 @@ Var
 
 begin
   Result:=IntStrToTime(Msg,S,Len,DefaultFormatSettings,Separator);
-  If (Msg<>'') then 
+  If (Msg<>'') then
     Raise EConvertError.Create(Msg);
 end;
 
@@ -813,6 +813,44 @@ var
   ResultLen: integer;
   ResultBuffer: array[0..255] of char;
   ResultCurrent: pchar;
+{$IFDEF MSWindows}
+  isEnable_E_Format : Boolean;
+  isEnable_G_Format : Boolean;
+  eastasiainited : boolean;
+{$ENDIF MSWindows}
+
+{$IFDEF MSWindows}
+  procedure InitEastAsia;
+  var     ALCID : LCID;
+         PriLangID , SubLangID : Word;
+
+  begin
+    ALCID := GetThreadLocale;
+    PriLangID := ALCID and $3FF;
+    if (PriLangID>0) then
+       SubLangID := (ALCID and $FFFF) shr 10
+      else
+        begin
+          PriLangID := SysLocale.PriLangID;
+          SubLangID := SysLocale.SubLangID;
+        end;
+    isEnable_E_Format := (PriLangID = LANG_JAPANESE)
+                  or
+                  (PriLangID = LANG_KOREAN)
+                  or
+                  ((PriLangID = LANG_CHINESE)
+                   and
+                   (SubLangID = SUBLANG_CHINESE_TRADITIONAL)
+                  );
+    isEnable_G_Format := (PriLangID = LANG_JAPANESE)
+                  or
+                  ((PriLangID = LANG_CHINESE)
+                   and
+                   (SubLangID = SUBLANG_CHINESE_TRADITIONAL)
+                  );
+    eastasiainited :=true;
+  end;
+{$ENDIF MSWindows}
 
   procedure StoreStr(Str: PChar; Len: Integer);
   begin
@@ -828,7 +866,7 @@ var
   var Len: integer;
   begin
    Len := Length(Str);
-   if ResultLen + Len < SizeOf(ResultBuffer) then 
+   if ResultLen + Len < SizeOf(ResultBuffer) then
      begin
        StrMove(ResultCurrent, pchar(Str), Len);
        ResultCurrent := ResultCurrent + Len;
@@ -855,6 +893,7 @@ var
 var
   Year, Month, Day, DayOfWeek, Hour, Minute, Second, MilliSecond: word;
 
+
   procedure StoreFormat(const FormatStr: string; Nesting: Integer; TimeFlag: Boolean);
   var
     Token, lastformattoken: char;
@@ -868,6 +907,7 @@ var
   begin
     if Nesting > 1 then  // 0 is original string, 1 is included FormatString
       Exit;
+
     FormatCurrent := PChar(FormatStr);
     FormatEnd := FormatCurrent + Length(FormatStr);
     Clock12 := false;
@@ -966,7 +1006,7 @@ var
                   1: StoreInt(Month, 0);
                   2: StoreInt(Month, 2);
                   3: StoreString(FormatSettings.ShortMonthNames[Month]);
-                else  
+                else
                   StoreString(FormatSettings.LongMonthNames[Month]);
                 end;
               end;
@@ -978,7 +1018,7 @@ var
                 3: StoreString(FormatSettings.ShortDayNames[DayOfWeek]);
                 4: StoreString(FormatSettings.LongDayNames[DayOfWeek]);
                 5: StoreFormat(FormatSettings.ShortDateFormat, Nesting+1, False);
-              else  
+              else
                 StoreFormat(FormatSettings.LongDateFormat, Nesting+1, False);
               end ;
             end ;
@@ -986,32 +1026,32 @@ var
               begin
                 tmp := hour mod 12;
                 if tmp=0 then tmp:=12;
-                if Count = 1 then 
+                if Count = 1 then
                   StoreInt(tmp, 0)
-                else 
+                else
                   StoreInt(tmp, 2);
               end
               else begin
-                if Count = 1 then 
+                if Count = 1 then
 		  StoreInt(Hour, 0)
-                else 
+                else
                   StoreInt(Hour, 2);
               end;
-            'N': if Count = 1 then 
+            'N': if Count = 1 then
                    StoreInt(Minute, 0)
-                 else 
+                 else
                    StoreInt(Minute, 2);
-            'S': if Count = 1 then 
+            'S': if Count = 1 then
                    StoreInt(Second, 0)
-                 else 
+                 else
                    StoreInt(Second, 2);
-            'Z': if Count = 1 then 
+            'Z': if Count = 1 then
                    StoreInt(MilliSecond, 0)
-                 else 
+                 else
 		   StoreInt(MilliSecond, 3);
-            'T': if Count = 1 then 
+            'T': if Count = 1 then
 		   StoreFormat(FormatSettings.ShortTimeFormat, Nesting+1, True)
-                 else 
+                 else
 	           StoreFormat(FormatSettings.LongTimeFormat, Nesting+1, True);
             'C': begin
                    StoreFormat(FormatSettings.ShortDateFormat, Nesting+1, False);
@@ -1019,8 +1059,36 @@ var
                      begin
                       StoreString(' ');
                       StoreFormat(FormatSettings.LongTimeFormat, Nesting+1, True);
+                     end;
                  end;
-            end;
+{$IFDEF MSWindows}
+            'E':
+               begin
+                 if not Eastasiainited then InitEastAsia;
+                 if Not(isEnable_E_Format) then StoreStr(@FormatCurrent^, 1)
+                  else
+                   begin
+                     while (P < FormatEnd) and (UpCase(P^) = Token) do
+                     P := P + 1;
+                     Count := P - FormatCurrent;
+                     StoreString(ConvertEraYearString(Count,Year,Month,Day));
+                   end;
+                 lastformattoken:=token;
+               end;
+             'G':
+               begin
+                 if not Eastasiainited then InitEastAsia;
+                 if Not(isEnable_G_Format) then StoreStr(@FormatCurrent^, 1)
+                  else
+                   begin
+                     while (P < FormatEnd) and (UpCase(P^) = Token) do
+                     P := P + 1;
+                     Count := P - FormatCurrent;
+                     StoreString(ConvertEraString(Count,Year,Month,Day));
+                   end;
+                 lastformattoken:=token;
+               end;
+{$ENDIF MSWindows}
           end;
           lastformattoken := token;
         end;
@@ -1032,6 +1100,9 @@ var
   end;
 
 begin
+{$ifdef MSWindows}
+  eastasiainited:=false;
+{$endif MSWindows}
   DecodeDateFully(DateTime, Year, Month, Day, DayOfWeek);
   DecodeTime(DateTime, Hour, Minute, Second, MilliSecond);
   ResultLen := 0;
@@ -1039,7 +1110,7 @@ begin
   if FormatStr <> '' then
     StoreFormat(FormatStr, 0, False)
   else
-    StoreFormat('C', 0, False);  
+    StoreFormat('C', 0, False);
   ResultBuffer[ResultLen] := #0;
   result := StrPas(@ResultBuffer[0]);
 end ;
@@ -1100,10 +1171,10 @@ end;
 
 function TryStrToDate(const S: ShortString; out Value: TDateTime;
                     const useformat : string; separator : char = #0): Boolean;
-                    
+
 Var
   Msg : Ansistring;
-                      
+
 begin
   Value:=IntStrToDate(Msg,@S[1],Length(S),useformat,defaultformatsettings,separator);
   Result:=(Msg='');
@@ -1111,10 +1182,10 @@ end;
 
 function TryStrToDate(const S: AnsiString; out Value: TDateTime;
                     const useformat : string; separator : char = #0): Boolean;
-                    
+
 Var
-  Msg : Ansistring;                    
-                    
+  Msg : Ansistring;
+
 begin
   Result:=Length(S)<>0;
   If Result then
@@ -1138,13 +1209,13 @@ end;
 function TryStrToDate(const S: AnsiString; out Value: TDateTime; separator : char): Boolean;
 
 begin
-  Result:=TryStrToDate(S,Value,ShortDateFormat,Separator);  
+  Result:=TryStrToDate(S,Value,ShortDateFormat,Separator);
 end;
 
 function TryStrToDate(const S: string; out Value: TDateTime; const FormatSettings: TFormatSettings): Boolean;
 Var
-  Msg : Ansistring;                    
-                    
+  Msg : Ansistring;
+
 begin
   Result:=Length(S)<>0;
   If Result then

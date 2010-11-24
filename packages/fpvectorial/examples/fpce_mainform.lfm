@@ -51,4 +51,12 @@ object formCorelExplorer: TformCorelExplorer
     Caption = 'Version:'
     ParentColor = False
   end
+  object labelSize: TLabel
+    Left = 256
+    Height = 14
+    Top = 112
+    Width = 24
+    Caption = 'Size:'
+    ParentColor = False
+  end
 end

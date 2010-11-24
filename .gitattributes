@@ -1870,6 +1870,7 @@ packages/fpvectorial/examples/fpvc_mainform.pas svneol=native#text/plain
 packages/fpvectorial/examples/fpvectorialconverter.ico -text
 packages/fpvectorial/examples/fpvectorialconverter.lpi svneol=native#text/plain
 packages/fpvectorial/examples/fpvectorialconverter.lpr svneol=native#text/plain
+packages/fpvectorial/examples/fpvwritetest.pas svneol=native#text/plain
 packages/fpvectorial/fpmake.pp svneol=native#text/plain
 packages/fpvectorial/src/avisocncgcodereader.pas svneol=native#text/plain
 packages/fpvectorial/src/avisocncgcodewriter.pas svneol=native#text/plain
@@ -9685,6 +9686,7 @@ tests/webtbs/tw1696.pp svneol=native#text/plain
 tests/webtbs/tw1699.pp svneol=native#text/plain
 tests/webtbs/tw1709.pp svneol=native#text/plain
 tests/webtbs/tw1720.pp svneol=native#text/plain
+tests/webtbs/tw17236.pp svneol=native#text/pascal
 tests/webtbs/tw17283.pp svneol=native#text/plain
 tests/webtbs/tw17337.pp svneol=native#text/plain
 tests/webtbs/tw1735.pp svneol=native#text/plain

@@ -80,7 +80,7 @@ type
     FIdent: string;
     FValue: string;
   public
-    constructor Create(AIdent, AValue: string);
+    constructor Create(const AIdent, AValue: string);
     property Ident: string read FIdent write FIdent;
     property Value: string read FValue write FValue;
   end;
@@ -88,7 +88,7 @@ type
   TIniFileKeyList = class(TList)
   private
     function GetItem(Index: integer): TIniFileKey;
-    function KeyByName(AName: string; CaseSensitive : Boolean): TIniFileKey;
+    function KeyByName(const AName: string; CaseSensitive : Boolean): TIniFileKey;
   public
     destructor Destroy; override;
     procedure Clear; override;
@@ -101,7 +101,7 @@ type
     FKeyList: TIniFileKeyList;
   public
     Function Empty : Boolean;
-    constructor Create(AName: string);
+    constructor Create(const AName: string);
     destructor Destroy; override;
     property Name: string read FName;
     property KeyList: TIniFileKeyList read FKeyList;
@@ -110,7 +110,7 @@ type
   TIniFileSectionList = class(TList)
   private
     function GetItem(Index: integer): TIniFileSection;
-    function SectionByName(AName: string; CaseSensitive : Boolean): TIniFileSection;
+    function SectionByName(const AName: string; CaseSensitive : Boolean): TIniFileSection;
   public
     destructor Destroy; override;
     procedure Clear;override;
@@ -218,7 +218,7 @@ begin
     Result := '0';
 end;
 
-function IsComment(AString: string): boolean;
+function IsComment(const AString: string): boolean;
 begin
   Result := False;
   if AString > '' then
@@ -308,7 +308,7 @@ end;
 
 { TIniFileKey }
 
-constructor TIniFileKey.Create(AIdent, AValue: string);
+constructor TIniFileKey.Create(const AIdent, AValue: string);
 begin
   FIdent := AIdent;
   FValue := AValue;
@@ -323,7 +323,7 @@ begin
     Result := TIniFileKey(inherited Items[Index]);
 end;
 
-function TIniFileKeyList.KeyByName(AName: string; CaseSensitive : Boolean): TIniFileKey;
+function TIniFileKeyList.KeyByName(const AName: string; CaseSensitive : Boolean): TIniFileKey;
 var
   i: integer;
 begin
@@ -379,7 +379,7 @@ end;
 
 { TIniFileSection }
 
-constructor TIniFileSection.Create(AName: string);
+constructor TIniFileSection.Create(const AName: string);
 begin
   FName := AName;
   FKeyList := TIniFileKeyList.Create;
@@ -399,7 +399,7 @@ begin
     Result := TIniFileSection(inherited Items[Index]);
 end;
 
-function TIniFileSectionList.SectionByName(AName: string; CaseSensitive : Boolean): TIniFileSection;
+function TIniFileSectionList.SectionByName(const AName: string; CaseSensitive : Boolean): TIniFileSection;
 var
   i: integer;
 begin

@@ -44,11 +44,14 @@ _start:
 	popq %rsi		/* Pop the argument count.  */
 	movq %rsp, %rdx		/* argv starts just at the current stack top.  */
 
-        movq     %rsi,operatingsystem_parameter_argc
-	movq     %rsp,operatingsystem_parameter_argv   /* argv starts just at the current stack top.  */
-        leaq     8(,%rsi,8),%rax
-        addq     %rsp,%rax
-        movq     %rax,operatingsystem_parameter_envp
+        movq    operatingsystem_parameter_argc@GOTPCREL(%rip),%rax
+        movq    %rsi,(%rax)
+        movq    operatingsystem_parameter_argv@GOTPCREL(%rip),%rax
+        movq    %rsp,(%rax)   /* argv starts just at the current stack top.  */
+        leaq    8(,%rsi,8),%rax
+        addq    %rsp,%rax
+        movq    operatingsystem_parameter_envp@GOTPCREL(%rip),%rsi
+        movq    %rax,(%rsi)
 
 	/* Align the stack to a 16 byte boundary to follow the ABI.  */
 	andq  $~15, %rsp
@@ -60,18 +63,20 @@ _start:
 	pushq %rsp
 
 	/* Pass address of our own entry points to .fini and .init.  */
-	movq $_init_dummy, %r8
-	movq $_fini_dummy, %rcx
+	movq _init_dummy@GOTPCREL(%rip), %rcx
+	movq _fini_dummy@GOTPCREL(%rip), %r8
 
-	movq $main_stub, %rdi
+	movq main_stub@GOTPCREL(%rip), %rdi
 
 	/* Call the user's main function, and exit with its value.
 	   But let the libc call main.	  */
-	call __libc_start_main
+	call __libc_start_main@PLT
 
 	hlt			/* Crash if somehow `exit' does return.	 */
 
 /* fake main routine which will be run from libc */
+	.globl main_stub
+        .type main_stub,@function
 main_stub:
         /* save return address */
         popq    %rax
@@ -79,29 +84,49 @@ main_stub:
 	// stack alignment
 	pushq	%rax
 
-        movq    %rax,___fpc_ret
-        movq    %rbp,___fpc_ret_rbp
+	movq    ___fpc_ret_rbp@GOTPCREL(%rip),%rcx
+        movq    %rbp,(%rcx)
+	movq    ___fpc_ret@GOTPCREL(%rip),%rcx
+        movq    %rax,(%rcx)
         pushq   %rax
 
         /* Save initial stackpointer */
-        movq    %rsp,__stkptr
+        movq    __stkptr@GOTPCREL(%rip),%rax
+        movq    %rsp,(%rax)
 
         /* start the program */
         xorq    %rbp,%rbp
-        call    PASCALMAIN
+        call    PASCALMAIN@PLT
         hlt
+	.size   main_stub,.-main_stub
+
 
         .globl _haltproc
         .type _haltproc,@function
 _haltproc:
-        movzwq    operatingsystem_result,%rax /* load and save exitcode */
+        movq    operatingsystem_result@GOTPCREL(%rip),%rax
+        movzwl  (%rax),%eax
 
-        movq    ___fpc_ret,%rdx         /* return to libc */
-        movq    ___fpc_ret_rbp,%rbp
+        /* return to libc */
+	movq    ___fpc_ret_rbp@GOTPCREL(%rip),%rcx
+        movq    (%rcx),%rbp
+	movq    ___fpc_ret@GOTPCREL(%rip),%rcx
+        movq    (%rcx),%rdx
         pushq    %rdx
+	ret
+	.size   _haltproc,.-_haltproc
+
+	.globl _init_dummy
+        .type   _init_dummy, @function
 _init_dummy:
+        ret
+	.size   _init_dummy,.-_init_dummy
+
+	.globl  _fini_dummy
+        .type   _fini_dummy, @function
 _fini_dummy:
         ret
+	.size   _fini_dummy,.-_fini_dummy
 
 /* Define a symbol for the first piece of initialized data.  */
 	.data

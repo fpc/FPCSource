@@ -15,6 +15,7 @@ type
   TformCorelExplorer = class(TForm)
     Label1: TLabel;
     Label2: TLabel;
+    labelSize: TLabel;
     labelVersion: TLabel;
     labelFilename: TLabel;
     shellInput: TShellTreeView;
@@ -64,9 +65,14 @@ begin
     labelFilename.Caption := 'Filename: ' + shellInput.GetSelectedNodePath();
     if (lChunk.ChildChunks <> nil) and (lChunk.ChildChunks.First <> nil) then
     begin
+      // Version Chunk
       lCurChunk := TCDRChunk(lChunk.ChildChunks.First);
       Str := TCDRChunkVRSN(lCurChunk).VersionStr;
       labelVersion.Caption := 'Version: ' + Str;
+
+      // Main data
+      lCurChunk := TCDRChunk(lChunk.ChildChunks.Items[1]);
+      labelSize.Caption := 'Size: ' + ;
     end;
   finally
     Reader.Free;

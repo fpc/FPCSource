@@ -261,8 +261,14 @@ end;
 
 
 function Translate (Name,Value : AnsiString; Hash : Longint; arg:pointer) : AnsiString;
+var contextempty : boolean;
 begin
-  Result:=TMOFile(arg).Translate(Value,Hash);
+  contextempty:=name='';
+  Result:='';
+  if not contextempty then
+    Result:=TMOFile(arg).Translate(Name+#4+Value);
+  if contextempty or (Result='') then
+    Result:=TMOFile(arg).Translate(Value,Hash);
 end;
 
 

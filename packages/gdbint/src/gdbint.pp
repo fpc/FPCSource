@@ -630,7 +630,6 @@ type
     frame_level,
     command_level,
     stop_breakpoint_number,
-    current_address,
     current_line_number,
     signal_start,
     signal_end,
@@ -648,6 +647,7 @@ type
     line_end : longint;
     signal_name,
     signal_string : pchar;
+    current_address,
     current_pc      : CORE_ADDR;
     { breakpoint }
     last_breakpoint_number,
@@ -2360,10 +2360,14 @@ var
     begin
 
 {$ifdef GDB_USES_BP_LOCATION}
-      sym:=find_pc_line(b.loc^.address,0);
+      if assigned (b.loc) then
+        sym:=find_pc_line(b.loc^.address,0)
 {$else not GDB_USES_BP_LOCATION}
-      sym:=find_pc_line(b.address,0);
+      if (b.address <> 0) then
+        sym:=find_pc_line(b.address,0)
 {$endif not GDB_USES_BP_LOCATION}
+      else
+        fillchar (sym, sizeof(sym), #0);
     end;
 begin
   get_pc_line;
@@ -2374,7 +2378,10 @@ begin
        but they are valid !! }
      invalid_breakpoint_line:=(b.line_number<>sym.line) and (b.line_number<>0);
 {$ifdef GDB_USES_BP_LOCATION}
-     last_breakpoint_address:=b.loc^.address;
+     if assigned (b.loc) then
+       last_breakpoint_address:=b.loc^.address
+     else
+       last_breakpoint_address:=0;
 {$else not GDB_USES_BP_LOCATION}
      last_breakpoint_address:=b.address;
 {$endif not GDB_USES_BP_LOCATION}
@@ -2983,6 +2990,7 @@ end;
 {$ifdef GDB_HAS_SYSROOT}
 var gdb_sysroot  : pchar; cvar;public;
     gdb_datadir  : pchar; cvar;public;
+    python_libdir : pchar;cvar;public;
     gdb_sysrootc : char;
     return_child_result : longbool;cvar;public;
     return_child_result_value : longint;cvar;public;
@@ -2999,6 +3007,7 @@ begin
   gdb_sysrootc := #0;
   gdb_sysroot := @gdb_sysrootc;
   gdb_datadir := @gdb_sysrootc;
+  python_libdir := @gdb_sysrootc;
 {$endif}
 {$ifdef GDB_HAS_DEBUG_FILE_DIRECTORY}
   debug_file_directory := '/usr/local/lib';

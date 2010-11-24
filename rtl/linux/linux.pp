@@ -102,6 +102,19 @@ const
      wake UADDR2; }
 
 {$ifndef FPC_USE_LIBC}
+function futex(uaddr:Pcint;op,val:cint;timeout:Ptimespec;addr2:Pcint;val3:cint):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
+function futex(var uaddr;op,val:cint;timeout:Ptimespec;var addr2;val3:cint):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
+function futex(var uaddr;op,val:cint;var timeout:Ttimespec;var addr2;val3:cint):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
+{$else}
+function futex(uaddr:Pcint;op,val:cint;timeout:Ptimespec;addr2:Pcint;val3:cint):cint; cdecl; external name 'futex';
+function futex(var uaddr;op,val:cint;timeout:Ptimespec;var addr2;val3:cint):cint; cdecl; external name 'futex';
+function futex(var uaddr;op,val:cint;var timeout:Ttimespec;var addr2;val3:cint):cint; cdecl; external name 'futex';
+{$endif}
+function futex(uaddr:Pcint;op,val:cint;timeout:Ptimespec):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
+function futex(var uaddr;op,val:cint;timeout:Ptimespec):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
+function futex(var uaddr;op,val:cint;var timeout:Ttimespec):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+{$ifndef FPC_USE_LIBC}
 function futex_op(op, oparg, cmp, cmparg: cint): cint; {$ifdef SYSTEMINLINE}inline;{$endif}
 {$endif}
 
@@ -501,6 +514,67 @@ end;
 function fdatasync (fd: cint): cint;
 begin
   fdatasync:=do_SysCall(syscall_nr_fdatasync, fd);
+end;
+
+function futex(uaddr:Pcint;op,val:cint;timeout:Ptimespec;addr2:Pcint;val3:cint):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+begin
+  futex:=do_syscall(syscall_nr_futex,Tsysparam(uaddr),Tsysparam(op),Tsysparam(val),Tsysparam(timeout),
+                    Tsysparam(addr2),Tsysparam(val3));
+end;
+
+function futex(var uaddr;op,val:cint;timeout:Ptimespec;var addr2;val3:cint):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+begin
+  futex:=do_syscall(syscall_nr_futex,Tsysparam(@uaddr),Tsysparam(op),Tsysparam(val),Tsysparam(timeout),
+                    Tsysparam(@addr2),Tsysparam(val3));
+end;
+
+function futex(var uaddr;op,val:cint;var timeout:Ttimespec;var addr2;val3:cint):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+begin
+  futex:=do_syscall(syscall_nr_futex,Tsysparam(@uaddr),Tsysparam(op),Tsysparam(val),Tsysparam(@timeout),
+                    Tsysparam(@addr2),Tsysparam(val3));
+end;
+
+function futex(uaddr:Pcint;op,val:cint;timeout:Ptimespec):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+begin
+  futex:=do_syscall(syscall_nr_futex,Tsysparam(uaddr),Tsysparam(op),Tsysparam(val),Tsysparam(timeout));
+end;
+
+function futex(var uaddr;op,val:cint;timeout:Ptimespec):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+begin
+  futex:=do_syscall(syscall_nr_futex,Tsysparam(@uaddr),Tsysparam(op),Tsysparam(val),Tsysparam(timeout));
+end;
+
+function futex(var uaddr;op,val:cint;var timeout:Ttimespec):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+begin
+  futex:=do_syscall(syscall_nr_futex,Tsysparam(@uaddr),Tsysparam(op),Tsysparam(val),Tsysparam(@timeout));
+end;
+
+{$else}
+
+{Libc case.}
+
+function futex(uaddr:Pcint;op,val:cint;timeout:Ptimespec):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+begin
+  futex:=futex(uaddr,op,val,nil,nil,0);
+end;
+
+function futex(var uaddr;op,val:cint;timeout:Ptimespec):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+begin
+  futex:=futex(@uaddr,op,val,nil,nil,0);
+end;
+
+function futex(var uaddr;op,val:cint;var timeout:Ttimespec):cint;{$ifdef SYSTEMINLINE}inline;{$endif}
+
+begin
+  futex:=futex(@uaddr,op,val,@timeout,nil,0);
 end;
 
 {$endif} // non-libc

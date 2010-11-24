@@ -30,7 +30,7 @@ Type
     FScanner : TJSONScanner;
     function ParseNumber: TJSONNumber;
   Protected
-    procedure DoError(Msg: String);
+    procedure DoError(const Msg: String);
     function DoParse(AtCurrent,AllowEOF: Boolean): TJSONData;
     function GetNextToken: TJSONToken;
     function CurrentTokenString: String;
@@ -115,8 +115,7 @@ begin
       tkComma : DoError(SErrUnexpectedToken);
     end;
   except
-    if assigned(Result) then
-      FreeAndNil(Result);
+    FreeAndNil(Result);
     Raise;
   end;
 end;
@@ -226,7 +225,7 @@ begin
   Until (Result<>tkWhiteSpace);
 end;
 
-Procedure TJSONParser.DoError(Msg : String);
+Procedure TJSONParser.DoError(const Msg : String);
 
 Var
   S : String;

@@ -48,6 +48,8 @@ type
   TFPReaderJPEG = class(TFPCustomImageReader)
   private
     FSmoothing: boolean;
+    FMinHeight:integer;
+    FMinWidth:integer;
     FWidth: Integer;
     FHeight: Integer;
     FGrayscale: boolean;
@@ -69,6 +71,9 @@ type
     property ProgressiveEncoding: boolean read FProgressiveEncoding;
     property Smoothing: boolean read FSmoothing write SetSmoothing;
     property Performance: TJPEGReadPerformance read FPerformance write SetPerformance;
+    property Scale: TJPEGScale read FScale write FScale;
+    property MinWidth:integer read FMinWidth write FMinWidth;
+    property MinHeight:integer read FMinHeight write FMinHeight;
   end;
 
 implementation
@@ -177,28 +182,50 @@ var
   end;
 
   procedure InitReadingPixels;
+  var d1,d2:integer;
+
+    function DToScale(inp:integer):TJPEGScale;
+    begin
+      if inp>7 then Result:=jsEighth else
+      if inp>3 then Result:=jsQuarter else
+      if inp>1 then Result:=jsHalf else
+      Result:=jsFullSize;
+    end;
+
   begin
     FInfo.scale_num := 1;
-    FInfo.scale_denom := 1;// shl Byte(FScale);
+
+    if (FMinWidth>0) and (FMinHeight>0) then
+      if (FInfo.image_width>FMinWidth) or (FInfo.image_height>FMinHeight) then
+        begin
+        d1:=Round((FInfo.image_width / FMinWidth)-0.5);
+        d2:=Round((FInfo.image_height /  FMinHeight)-0.5);
+        if d1>d2 then fScale:=DToScale(d2) else fScale:=DtoScale(d1);
+        end;
+
+    FInfo.scale_denom :=1 shl Byte(FScale); //1
     FInfo.do_block_smoothing := FSmoothing;
 
     if FGrayscale then FInfo.out_color_space := JCS_GRAYSCALE;
-    if (FInfo.out_color_space = JCS_GRAYSCALE) then begin
+    if (FInfo.out_color_space = JCS_GRAYSCALE) then 
+      begin
       FInfo.quantize_colors := True;
       FInfo.desired_number_of_colors := 236;
-    end;
+      end;
 
-    if FPerformance = jpBestSpeed then begin
+    if FPerformance = jpBestSpeed then 
+      begin
       FInfo.dct_method := JDCT_IFAST;
       FInfo.two_pass_quantize := False;
       FInfo.dither_mode := JDITHER_ORDERED;
       // FInfo.do_fancy_upsampling := False;  can create an AV inside jpeglib
-    end;
+      end;
 
-    if FProgressiveEncoding then begin
+    if FProgressiveEncoding then 
+      begin
       FInfo.enable_2pass_quant := FInfo.two_pass_quantize;
       FInfo.buffered_image := True;
-    end;
+      end;
   end;
 
   function CorrectCMYK(const C: TFPColor): TFPColor;

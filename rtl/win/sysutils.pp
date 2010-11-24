@@ -50,6 +50,13 @@ Var
   Win32BuildNumber   : dword;
   Win32CSDVersion    : ShortString;   // CSD record is 128 bytes only?
 
+const
+  MaxEraCount = 7;
+
+var
+  EraNames: array [1..MaxEraCount] of String;
+  EraYearOffsets: array [1..MaxEraCount] of Integer;
+
 { Compatibility with Delphi }
 function Win32Check(res:boolean):boolean;inline;
 function WinCheck(res:boolean):boolean;
@@ -143,6 +150,9 @@ function GetFileVersion(const AFileName:string):Cardinal;
 {$DEFINE FPC_FEXPAND_UNC} (* UNC paths are supported *)
 {$DEFINE FPC_FEXPAND_DRIVES} (* Full paths begin with drive specification *)
 
+
+function ConvertEraYearString(Count ,Year,Month,Day : integer) : string; forward;
+function ConvertEraString(Count ,Year,Month,Day : integer) : string; forward;
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
@@ -639,6 +649,72 @@ begin
     Result := Def;
 end;
 
+function ConvertEraString(Count ,Year,Month,Day : integer) : string;
+  var
+    ASystemTime: TSystemTime;
+    buf: array[0..100] of char;
+    ALCID : LCID;
+    PriLangID : Word;
+    SubLangID : Word;
+begin
+  Result := ''; if (Count<=0) then exit;
+  DateTimeToSystemTime(EncodeDate(Year,Month,Day),ASystemTime);
+
+  ALCID := GetThreadLocale;
+//  ALCID := SysLocale.DefaultLCID;
+  if GetDateFormat(ALCID , DATE_USE_ALT_CALENDAR
+      , @ASystemTime, PChar('gg')
+      , @buf, SizeOf(buf)) > 0 then
+  begin
+    Result := buf;
+    if Count = 1 then
+    begin
+      PriLangID := ALCID and $3FF;
+      SubLangID := (ALCID and $FFFF) shr 10;
+      case PriLangID of
+        LANG_JAPANESE:
+          begin
+            Result := Copy(WideString(Result),1,1);
+          end;
+        LANG_CHINESE:
+          if (SubLangID = SUBLANG_CHINESE_TRADITIONAL) then
+          begin
+            Result := Copy(WideString(Result),1,1);
+          end;
+      end;
+    end;
+  end;
+// if Result = '' then Result := StringOfChar('G',Count);
+end;
+
+function ConvertEraYearString(Count ,Year,Month,Day : integer) : string;
+  var
+    ALCID : LCID;
+    ASystemTime : TSystemTime;
+    AFormatText : string;
+    buf : array[0..100] of Char;
+begin
+  Result := '';
+  DateTimeToSystemTime(EncodeDate(Year,Month,Day),ASystemTime);
+
+  if Count <= 2 then
+    AFormatText := 'yy'
+  else
+    AFormatText := 'yyyy';
+
+  ALCID := GetThreadLocale;
+//  ALCID := SysLocale.DefaultLCID;
+
+  if GetDateFormat(ALCID, DATE_USE_ALT_CALENDAR
+      , @ASystemTime, PChar(AFormatText)
+      , @buf, SizeOf(buf)) > 0 then
+  begin
+    Result := buf;
+    if (Count = 1) and (Result[1] = '0') then
+      Result := Copy(Result, 2, Length(Result)-1);
+  end;
+end;
+
 
 Function GetLocaleInt(LID,TP,Def: LongInt): LongInt;
 Var
@@ -651,6 +727,70 @@ Begin
     Result:=Def;
 End;
 
+function EnumEraNames(Names: PChar): WINBOOL; stdcall;
+var
+  i : integer;
+begin
+  Result := False;
+  for i := Low(EraNames) to High(EraNames) do
+   if (EraNames[i] = '') then
+   begin
+     EraNames[i] := Names;
+     Result := True;
+     break;
+   end;
+end;
+
+function EnumEraYearOffsets(YearOffsets: PChar): WINBOOL; stdcall;
+var
+  i : integer;
+begin
+  Result := False;
+  for i := Low(EraYearOffsets) to High(EraYearOffsets) do
+   if (EraYearOffsets[i] = -1) then
+   begin
+     EraYearOffsets[i] := StrToIntDef(YearOffsets, 0);
+     Result := True;
+     break;
+   end;
+end;
+
+procedure GetEraNamesAndYearOffsets;
+  var
+    ACALID : CALID;
+    ALCID : LCID;
+    buf : array[0..10] of char;
+    i : integer;
+begin
+  for i:= 1 to MaxEraCount do
+   begin
+     EraNames[i] := '';  EraYearOffsets[i] := -1;
+   end;
+  ALCID := GetThreadLocale;
+  if GetLocaleInfo(ALCID , LOCALE_IOPTIONALCALENDAR, buf, sizeof(buf)) <= 0 then exit;
+  ACALID := StrToIntDef(buf,1);
+
+  if ACALID in [3..5] then
+  begin
+    EnumCalendarInfoA(@EnumEraNames, ALCID, ACALID , CAL_SERASTRING);
+    EnumCalendarInfoA(@EnumEraYearOffsets, ALCID, ACALID, CAL_IYEAROFFSETRANGE);
+  end;
+(*
+1 CAL_GREGORIAN Gregorian (localized)
+2 CAL_GREGORIAN_US Gregorian (English strings always)
+3 CAL_JAPAN Japanese Emperor Era
+4 CAL_TAIWAN Taiwan Calendar
+5 CAL_KOREA Korean Tangun Era
+6 CAL_HIJRI Hijri (Arabic Lunar)
+7 CAL_THAI Thai
+8 CAL_HEBREW Hebrew (Lunar)
+9 CAL_GREGORIAN_ME_FRENCH Gregorian Middle East French
+10 CAL_GREGORIAN_ARABIC Gregorian Arabic
+11 CAL_GREGORIAN_XLIT_ENGLISH Gregorian transliterated English
+12 CAL_GREGORIAN_XLIT_FRENCH Gregorian transliterated French
+23 CAL_UMALQURA Windows Vista or later: Um Al Qura (Arabic lunar) calendar
+*)
+end;
 
 procedure GetLocaleFormatSettings(LCID: Integer; var FormatSettings: TFormatSettings); 
 var
@@ -744,6 +884,7 @@ begin
 
   Set8087CW(old8087CW);
   GetFormatSettings;
+  if SysLocale.FarEast then GetEraNamesAndYearOffsets;
 end;
 
 

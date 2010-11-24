@@ -2410,8 +2410,18 @@ BEGIN
     originalcrc := b AND $FFFF;
     dumpbits ( 16 );
     needbits ( 16 );
-    originalcrc := ( b AND $FFFF ) SHL 16;
+    originalcrc := originalcrc OR LongWord(( b AND $FFFF ) SHL 16);
     dumpbits ( 16 );
+
+    IF originalcrc = $08074b50 THEN BEGIN
+      { skiping possible $08074b50 data descriptor signature. see PKWARE APPNOTE.txt }
+      needbits ( 16 );
+      originalcrc := b AND $FFFF;
+      dumpbits ( 16 );
+      needbits ( 16 );
+      originalcrc := originalcrc OR LongWord(( b AND $FFFF ) SHL 16);
+      dumpbits ( 16 );
+    END;
   END;
 
   close ( infile );
