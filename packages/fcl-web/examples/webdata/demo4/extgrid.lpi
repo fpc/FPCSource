@@ -36,7 +36,7 @@
         <MinVersion Minor="1" Release="1" Valid="True"/>
       </Item1>
       <Item2>
-        <PackageName Value="lazwebdata"/>
+        <PackageName Value="lazwebextra"/>
         <MinVersion Valid="True"/>
       </Item2>
       <Item3>

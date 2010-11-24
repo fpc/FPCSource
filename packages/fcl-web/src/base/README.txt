@@ -1,6 +1,9 @@
 This is the beginning of a server side web system for FPC.
 Although it is non-visual, it is geared towards use in Lazarus.
 
+NOTE: the template support (fptemplate unit) was moved to 
+fcl-base. See the fcl-base/texts/fptemplate.txt file.
+
 Architecture:
 
 httpdefs

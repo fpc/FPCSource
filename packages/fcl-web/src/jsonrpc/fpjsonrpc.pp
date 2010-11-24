@@ -22,6 +22,8 @@ Type
     FRequired: Boolean;
     FType: TJSONtype;
     procedure SetName(const AValue: TJSONStringType);
+  protected
+    function GetDisplayName: string; override;
   public
     Constructor Create(ACollection : TCollection); override;
     Procedure Assign(Source : TPersistent); override;
@@ -59,6 +61,7 @@ Type
     FOnParamError: TJSONParamErrorEvent;
     FOptions: TJSONRPCOptions;
     FParamDefs: TJSONParamDefs;
+    FExecParams : TJSONData;
     procedure SetParamDefs(const AValue: TJSONParamDefs);
   Protected
     function CreateParamDefs: TJSONParamDefs; virtual;
@@ -72,6 +75,7 @@ Type
     Constructor Create(AOwner : TComponent); override;
     Destructor Destroy; override;
     Procedure CheckParams(Const Params : TJSONData);
+    Function ParamByName(Const AName : String) : TJSONData;
     Function Execute(Const Params : TJSONData; AContext : TJSONRPCCallContext = Nil) : TJSONData;
     Property ParamDefs : TJSONParamDefs Read FParamDefs Write SetParamDefs;
   end;
@@ -433,6 +437,13 @@ begin
   FName:=AValue;
 end;
 
+function TJSONParamDef.GetDisplayName: string;
+begin
+  Result:=FName;
+  If (Result='') then
+    Result:=Inherited GetDisplayName;
+end;
+
 constructor TJSONParamDef.Create(ACollection: TCollection);
 begin
   inherited Create(ACollection);
@@ -531,6 +542,33 @@ begin
   end;
 end;
 
+function TCustomJSONRPCHandler.ParamByName(const AName: String): TJSONData;
+
+Var
+  I : Integer;
+  N : String;
+
+begin
+  If (FExecParams=Nil) or Not (FExecParams.JSONType in [jtArray,jtObject]) then
+    Result:=Nil
+  else
+    begin
+    I:=ParamDefs.IndexOfParamDef(AName);
+    If (I=-1) then
+      N:=AName
+    else
+      N:=ParamDefs[i].Name; // Search with original defined name.
+    If (FExecParams is TJSONObject) then
+      Result:=TJSONObject(FExecParams).Elements[N]
+    else if (FExecParams is TJSONArray) then
+      begin
+      If (I=-1) or (I>=FExecParams.Count) then
+        JSONRPCError(SErrUnknownParamDef,[AName]);
+      Result:=TJSONArray(FExecParams).Items[i];
+      end;
+    end;
+end;
+
 procedure TCustomJSONRPCHandler.SetParamDefs(const AValue: TJSONParamDefs);
 begin
   if FParamDefs=AValue then exit;
@@ -574,7 +612,12 @@ begin
     FBeforeExecute(Self);
   if (jroCheckParams in Options) then
     CheckParams(Params);
-  Result:=DoExecute(Params,AContext);
+  FExecParams:=Params;
+  try
+    Result:=DoExecute(Params,AContext);
+  finally
+    FExecParams:=Nil;
+  end;
   If Assigned(FAfterExecute) then
     FAfterExecute(Self);
 end;

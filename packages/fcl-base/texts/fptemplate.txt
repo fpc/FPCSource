@@ -1,3 +1,7 @@
+REMARK:
+
+fptemplate.pp has been moved to fcl-base.
+
 fptemplate.pp
 
 implements template support
@@ -33,7 +37,7 @@ define these parameters.
 Some examples for tags with these above, StartDelimiter:='{+' and 
 EndDelimiter:='+}' 
 (the default '{' and '}' is not good when processing HTML templates with 
-JavaSript in them):
+JavaScript in them):
 
 {+ATagHere+}  //Tag name: ATagHere
 
@@ -238,7 +242,7 @@ begin//HTML template tag handling for an html template file
   end;
 end;
 
-full example code at /packages/fcl-web/fptemplate-examples/listrecords/
+full example code at /lazarus/components/fpweb/demo/fptemplate/listrecords/
 ===============================================================================
 
 Step by Step:
@@ -298,7 +302,7 @@ ex: http://localhost/myapache/func1call?param1=paramvalue1
 12. See "Hello World!" in your browser
 13. Repeat from step 4 for other web actions
 
-full example code at /packages/fcl-web/fptemplate-examples/helloworld/
+full example code at /lazarus/components/fpweb/demo/fptemplate/helloworld/
 ===============================================================================
 
 II. Using templates:
@@ -352,7 +356,7 @@ end;
 
 This is a replaced template tag: Here I am from the web module!
 
-full example code at /packages/fcl-web/fptemplate-examples/simpletemplate/
+full example code at /lazarus/components/fpweb/demo/fptemplate/simpletemplate/
 ===============================================================================
 
 III. More complicated HTML template design notes:
@@ -423,5 +427,5 @@ apache module code, therefore no recompiling or apache restart is needed. The
 best way is to make the project such, that the web/html design is separated 
 from the back end apache module as much as possible.
 
-full example code at /packages/fcl-web/fptemplate-examples/tagparam/
+full example code at /lazarus/components/fpweb/demo/fptemplate/tagparam/
 ===============================================================================

@@ -35,7 +35,7 @@
         <MinVersion Major="1" Release="1" Valid="True"/>
       </Item1>
       <Item2>
-        <PackageName Value="lazwebdata"/>
+        <PackageName Value="lazwebextra"/>
         <MinVersion Valid="True"/>
       </Item2>
       <Item3>
@@ -201,8 +201,8 @@
         <Loaded Value="True"/>
       </Unit14>
       <Unit15>
-        <Filename Value="../demo/reglazwebdata.pp"/>
-        <UnitName Value="reglazwebdata"/>
+        <Filename Value="../demo/reglazwebextra.pp"/>
+        <UnitName Value="reglazwebextra"/>
         <EditorIndex Value="9"/>
         <WindowIndex Value="0"/>
         <TopLine Value="37"/>
@@ -281,7 +281,7 @@
         <Caret Line="58" Column="1" TopLine="22"/>
       </Position17>
       <Position18>
-        <Filename Value="../demo/reglazwebdata.pp"/>
+        <Filename Value="../demo/reglazwebextra.pp"/>
         <Caret Line="17" Column="15" TopLine="1"/>
       </Position18>
       <Position19>
