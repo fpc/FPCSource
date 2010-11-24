@@ -385,7 +385,7 @@ Var
   RV : Integer;
   
 begin
-  GetMem(P,SizeOf(TServiceTableEntry)*FMapper.DaemonDefs.Count+1);
+  GetMem(P,SizeOf(TServiceTableEntry)*(FMapper.DaemonDefs.Count+1));
   Try
     C:=FMapper.DaemonDefs.Count;
     For I:=0 to C-1 do

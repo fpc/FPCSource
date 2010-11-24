@@ -966,23 +966,20 @@ Procedure Delete (Var S : WideString; Index,Size: SizeInt);
 Var
   LS : SizeInt;
 begin
-  If Length(S)=0 then
-   exit;
-  if index<=0 then
-   exit;
-  LS:=PWideRec(Pointer(S)-WideFirstOff)^.Len div sizeof(WideChar);
-  if (Index<=LS) and (Size>0) then
-   begin
-     UniqueString (S);
-     if Size+Index>LS then
-      Size:=LS-Index+1;
-     if Index+Size<=LS then
-      begin
-        Dec(Index);
-        Move(PWideChar(S)[Index+Size],PWideChar(S)[Index],(LS-Index-Size+1)*sizeof(WideChar));
-      end;
-     Setlength(s,LS-Size);
-   end;
+  LS:=Length(S);
+  if (Index>LS) or (Index<=0) or (Size<=0) then
+    exit;
+
+  UniqueString (S);
+  { (Size+Index) will overflow if Size=MaxInt. }
+  if Size>LS-Index then
+    Size:=LS-Index+1;
+  if Size<=LS-Index then
+  begin
+    Dec(Index);
+    Move(PWideChar(S)[Index+Size],PWideChar(S)[Index],(LS-Index-Size+1)*sizeof(WideChar));
+  end;
+  Setlength(s,LS-Size);
 end;
 
 

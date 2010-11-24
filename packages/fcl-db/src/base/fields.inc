@@ -2607,7 +2607,8 @@ Var S : TStream;
 begin
   S:=GetBlobStream(bmRead);
   Try
-    Stream.CopyFrom(S,0);
+    If Assigned(S) then
+      Stream.CopyFrom(S,0);
   finally
     S.Free;
   end;

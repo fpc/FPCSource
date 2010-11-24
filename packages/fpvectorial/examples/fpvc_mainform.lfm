@@ -10,26 +10,28 @@ object formVectorialConverter: TformVectorialConverter
   LCLVersion = '0.9.29'
   object Label1: TLabel
     Left = 8
-    Height = 14
-    Top = 104
-    Width = 123
+    Height = 17
+    Top = 112
+    Width = 160
     Caption = 'Location of the Input file:'
     ParentColor = False
   end
   object Label2: TLabel
     Left = 11
-    Height = 96
+    Height = 104
     Top = 8
-    Width = 224
+    Width = 229
     AutoSize = False
     Caption = 'This converter application use the fpvectorial library to convert between various different vectorial graphics formats. The type is detected from the extension and the supported types are: PDF (*.pdf), SVG (*.svg) and Corel Draw file (*.cdr).'
+    Font.Height = -12
     ParentColor = False
+    ParentFont = False
     WordWrap = True
   end
   object editInput: TFileNameEdit
     Left = 8
-    Height = 21
-    Top = 120
+    Height = 22
+    Top = 128
     Width = 192
     DialogOptions = []
     FilterIndex = 0
@@ -41,16 +43,16 @@ object formVectorialConverter: TformVectorialConverter
   end
   object Label3: TLabel
     Left = 8
-    Height = 14
-    Top = 144
-    Width = 132
+    Height = 17
+    Top = 152
+    Width = 173
     Caption = 'Full path of the Output file:'
     ParentColor = False
   end
   object editOutput: TFileNameEdit
     Left = 8
-    Height = 21
-    Top = 160
+    Height = 22
+    Top = 168
     Width = 192
     DialogOptions = []
     FilterIndex = 0

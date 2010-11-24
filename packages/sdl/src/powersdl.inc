@@ -109,6 +109,7 @@ function SDL_GetCursor : pSDL_Cursor; syscall basesysv PowerSDLBase 646;
 procedure SDL_FreeCursor(cursor : pSDL_Cursor); syscall basesysv PowerSDLBase 652;
 function SDL_ShowCursor(toggle : LongInt) : LongInt; syscall basesysv PowerSDLBase 658;
 function SDL_GetAppState : Byte; syscall basesysv PowerSDLBase 664;
+procedure SDL_SetError(fmt: PChar); syscall basesysv PowerSDLBase 670;
 function SDL_GetError : pChar; syscall basesysv PowerSDLBase 676;
 procedure SDL_ClearError; syscall basesysv PowerSDLBase 682;
 function SDL_AudioInit(const driver_name : pChar) : LongInt; syscall basesysv PowerSDLBase 688;

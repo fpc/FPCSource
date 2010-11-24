@@ -125,6 +125,10 @@ uses
   Windows,
 {$ENDIF}
 {$ENDIF}
+
+{$IFDEF MORPHOS}
+  exec,
+{$ENDIF}
   sdl;
 
 const
@@ -142,6 +146,10 @@ const
 
 {$IFDEF MACOS}
   SDLNetLibName = 'SDL_net';
+{$ENDIF}
+
+{$IFDEF MACOS}
+  SDLNetLibName = 'powersdl_net.library';
 {$ENDIF}
 
   {* Printable format: "%d.%d.%d", MAJOR, MINOR, PATCHLEVEL *}
@@ -267,6 +275,10 @@ type
   version of the SDL_net library. }
 procedure SDL_NET_VERSION( var X : TSDL_version );
 {$EXTERNALSYM SDL_NET_VERSION}
+
+{$IFDEF MORPHOS}
+{$INCLUDE powersdl_net.inc}
+{$ELSE MORPHOS}
 
 {* Initialize/Cleanup the network API
    SDL must be initialized before calls to functions in this library,
@@ -494,10 +506,11 @@ function SDLNet_AddSocket( set_ : PSDLNet_SocketSet; sock : PSDLNet_GenericSocke
 cdecl; external{$IFDEF __GPC__}name 'SDLNet_AddSocket'{$ELSE}SDLNetLibName{$ENDIF __GPC__};
 {$EXTERNALSYM SDLNet_AddSocket}
 
+{$ENDIF MORPHOS}
 function SDLNet_TCP_AddSocket( set_ : PSDLNet_SocketSet; sock : PTCPSocket ) : integer;
 
 function SDLNet_UDP_AddSocket( set_ : PSDLNet_SocketSet; sock : PUDPSocket ) : integer;
-
+{$IFNDEF MORPHOS}
 
 {* Remove a socket from a set of sockets to be checked for available data *}
 function SDLNet_DelSocket( set_ : PSDLNet_SocketSet; sock : PSDLNet_GenericSocket ) : integer;
@@ -523,7 +536,10 @@ cdecl; external{$IFDEF __GPC__}name 'SDLNet_CheckSockets'{$ELSE}SDLNetLibName{$E
    socket that was in the socket set, to find out if data is available
    for reading.
 *}
+
+{$ENDIF MORPHOS}
 function SDLNet_SocketReady( sock : PSDLNet_GenericSocket ) : boolean;
+{$IFNDEF MORPHOS}
 
 {* Free a set of sockets allocated by SDL_NetAllocSocketSet() *}
 procedure SDLNet_FreeSocketSet( set_ : PSDLNet_SocketSet );
@@ -555,6 +571,8 @@ cdecl; external{$IFDEF __GPC__}name 'SDLNet_Read32'{$ELSE}SDLNetLibName{$ENDIF _
 {***********************************************************************}
 {* Error reporting functions                                           *}
 {***********************************************************************}
+
+{$ENDIF MORPHOS}
 
 {* We'll use SDL's functions for error reporting *}
 procedure SDLNet_SetError( fmt : PChar );

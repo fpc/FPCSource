@@ -74,8 +74,8 @@ main_stub:
     lis     11, operatingsystem_parameter_envp@ha
     stw      5, operatingsystem_parameter_envp@l(11);
 
-    lis 	11,__stkptr@ha
-	stw 	1,__stkptr@l(11);
+    lis     11,__stkptr@ha
+    stw      1,__stkptr@l(11);
 
     lis     11, ___fpc_ret@ha
     stw     1, ___fpc_ret@l(11)
@@ -110,11 +110,22 @@ data_start:
 ___fpc_ret:                            /* return address to libc */
     .long   0
 
-.text
-    .comm __stkptr, 4
+    .section ".bss"
+    .type __stkptr, @object
+    .size __stkptr, 8
+    .global __stkptr
+__stkptr:
+    .skip 4
 
-    .comm operatingsystem_parameter_envp, 4
-    .comm operatingsystem_parameter_argc, 4
-    .comm operatingsystem_parameter_argv, 4
+    .type operatingsystem_parameters, @object
+    .size operatingsystem_parameters, 12
+operatingsystem_parameters:
+    .skip 3 * 4
+    .global operatingsystem_parameter_argc
+    .global operatingsystem_parameter_argv
+    .global operatingsystem_parameter_envp
+    .set operatingsystem_parameter_argc, operatingsystem_parameters+0
+    .set operatingsystem_parameter_argv, operatingsystem_parameters+4
+    .set operatingsystem_parameter_envp, operatingsystem_parameters+8
 
 .section .note.GNU-stack,"",%progbits

@@ -48,20 +48,64 @@ type
     the starting point is in the bottom-left corner of the document.
     The X grows to the right and the Y grows to the top.
   }
-  TPathSegment = record
+  { TPathSegment }
+
+  TPathSegment = class
+  public
     SegmentType: TSegmentType;
-    X, Y, Z: Double; // Z is ignored in 2D segments
-    X2, Y2, Z2: Double; // Z is ignored in 2D segments
-    X3, Y3, Z3: Double; // Z is ignored in 2D segments
+    // Fields for linking the list
+    Previous: TPathSegment;
+    Next: TPathSegment;
   end;
 
-  TPath = record
+  {@@
+    In a 2D segment, the X and Y coordinates represent usually the
+    final point of the segment, being that it starts where the previous
+    segment ends. The exception is for the first segment of all, which simply
+    holds the starting point for the drawing and should always be of the type
+    stMoveTo.
+  }
+  T2DSegment = class(TPathSegment)
+  public
+    X, Y: Double;
+  end;
+
+  {@@
+    In Bezier segments, we remain using the X and Y coordinates for the ending point.
+    The starting point is where the previous segment ended, so that the intermediary
+    bezier control points are [X2, Y2] and [X3, Y3].
+  }
+  T2DBezierSegment = class(T2DSegment)
+  public
+    X2, Y2: Double;
+    X3, Y3: Double;
+  end;
+
+  T3DSegment = class(TPathSegment)
+  public
+    {@@
+      Coordinates of the end of the segment.
+      For the first segment, this is the starting point.
+    }
+    X, Y, Z: Double;
+  end;
+
+  T3DBezierSegment = class(T3DSegment)
+  public
+    X2, Y2, Z2: Double;
+    X3, Y3, Z3: Double;
+  end;
+
+  TPath = class
     Len: Integer;
-    // ToDo: make the array dynamic
-    Points: array[0..255] of TPathSegment;
+    Points: TPathSegment; // Beginning of the double-linked list
+    PointsEnd: TPathSegment; // End of the double-linked list
+    CurPoint: TPathSegment; // Used in PrepareForSequentialReading and Next
+    procedure Assign(APath: TPath);
+    function Count(): TPathSegment;
+    procedure PrepareForSequentialReading;
+    function Next(): TPathSegment;
   end;
-
-  PPath = ^TPath;
 
   {@@
     TvText represents a text in memory.
@@ -69,15 +113,13 @@ type
     At the moment fonts are unsupported, only simple texts
     up to 255 chars are supported.
   }
-
-  TvText = record
+  TvText = class
+  public
     X, Y, Z: Double; // Z is ignored in 2D formats
     FontSize: integer;
     FontName: utf8string;
     Value: utf8string;
   end;
-
-  PText = ^TvText;
 
 type
 
@@ -95,6 +137,8 @@ type
     procedure RemoveCallback(data, arg: pointer);
     function CreateVectorialWriter(AFormat: TvVectorialFormat): TvCustomVectorialWriter;
     function CreateVectorialReader(AFormat: TvVectorialFormat): TvCustomVectorialReader;
+    procedure ClearTmpPath();
+    procedure AppendSegmentToTmpPath(ASegment: TPathSegment);
   public
     Name: string;
     Width, Height: Double; // in millimeters
@@ -184,6 +228,9 @@ procedure RegisterVectorialWriter(
   AFormat: TvVectorialFormat);
 
 implementation
+
+const
+  Str_Error_Nil_Path = ' The program attempted to add a segment before creating a path';
 
 {@@
   Registers a new reader for a format
@@ -276,7 +323,11 @@ end;
 }
 procedure TvVectorialDocument.RemoveCallback(data, arg: pointer);
 begin
-  if data <> nil then FreeMem(data);
+{  if data <> nil then
+  begin
+    ldata := PObject(data);
+    ldata^.Free;
+  end;}
 end;
 
 {@@
@@ -288,6 +339,7 @@ begin
 
   FPaths := TFPList.Create;
   FTexts := TFPList.Create;
+  FTmpPath := TPath.Create;
 end;
 
 {@@
@@ -308,28 +360,27 @@ end;
 }
 procedure TvVectorialDocument.RemoveAllPaths;
 begin
-  FPaths.ForEachCall(RemoveCallback, nil);
+//  FPaths.ForEachCall(RemoveCallback, nil);
   FPaths.Clear;
 end;
 
 procedure TvVectorialDocument.RemoveAllTexts;
 begin
-  FTexts.ForEachCall(RemoveCallback, nil);
+//  FTexts.ForEachCall(RemoveCallback, nil);
   FTexts.Clear;
 end;
 
 procedure TvVectorialDocument.AddPath(APath: TPath);
 var
-  Path: PPath;
+  lPath: TPath;
   Len: Integer;
 begin
-  Len := SizeOf(TPath);
+  lPath := TPath.Create;
+  lPath.Assign(APath);
+  FPaths.Add(Pointer(lPath));
   //WriteLn(':>TvVectorialDocument.AddPath 1 Len = ', Len);
-  Path := GetMem(Len);
   //WriteLn(':>TvVectorialDocument.AddPath 2');
-  Move(APath, Path^, Len);
   //WriteLn(':>TvVectorialDocument.AddPath 3');
-  FPaths.Add(Path);
   //WriteLn(':>TvVectorialDocument.AddPath 4');
 end;
 
@@ -341,11 +392,19 @@ end;
   @see    StartPath, AddPointToPath
 }
 procedure TvVectorialDocument.StartPath(AX, AY: Double);
+var
+  segment: T2DSegment;
 begin
+  ClearTmpPath();
+
   FTmpPath.Len := 1;
-  FTmpPath.Points[0].SegmentType := stMoveTo;
-  FTmpPath.Points[0].X := AX;
-  FTmpPath.Points[0].Y := AY;
+  segment := T2DSegment.Create;
+  segment.SegmentType := stMoveTo;
+  segment.X := AX;
+  segment.Y := AY;
+
+  FTmpPath.Points := segment;
+  FTmpPath.PointsEnd := segment;
 end;
 
 {@@
@@ -360,60 +419,69 @@ end;
 }
 procedure TvVectorialDocument.AddLineToPath(AX, AY: Double);
 var
-  L: Integer;
+  segment: T2DSegment;
 begin
-  L := FTmpPath.Len;
-  Inc(FTmpPath.Len);
-  FTmpPath.Points[L].SegmentType := st2DLine;
-  FTmpPath.Points[L].X := AX;
-  FTmpPath.Points[L].Y := AY;
+  segment := T2DSegment.Create;
+  segment.SegmentType := st2DLine;
+  segment.X := AX;
+  segment.Y := AY;
+
+  AppendSegmentToTmpPath(segment);
 end;
 
 procedure TvVectorialDocument.AddLineToPath(AX, AY, AZ: Double);
 var
-  L: Integer;
+  segment: T3DSegment;
 begin
-  L := FTmPPath.Len;
-  Inc(FTmPPath.Len);
-  FTmPPath.Points[L].SegmentType := st3DLine;
-  FTmPPath.Points[L].X := AX;
-  FTmPPath.Points[L].Y := AY;
-  FTmPPath.Points[L].Z := AZ;
+  segment := T3DSegment.Create;
+  segment.SegmentType := st3DLine;
+  segment.X := AX;
+  segment.Y := AY;
+  segment.Z := AZ;
+
+  AppendSegmentToTmpPath(segment);
 end;
 
+{@@
+  Adds a bezier element to the path. It starts where the previous element ended
+  and it goes throw the control points [AX1, AY1] and [AX2, AY2] and ends
+  in [AX3, AY3].
+}
 procedure TvVectorialDocument.AddBezierToPath(AX1, AY1, AX2, AY2, AX3,
   AY3: Double);
 var
-  L: Integer;
+  segment: T2DBezierSegment;
 begin
-  L := FTmPPath.Len;
-  Inc(FTmPPath.Len);
-  FTmPPath.Points[L].SegmentType := st2DBezier;
-  FTmPPath.Points[L].X := AX3;
-  FTmPPath.Points[L].Y := AY3;
-  FTmPPath.Points[L].X2 := AX1;
-  FTmPPath.Points[L].Y2 := AY1;
-  FTmPPath.Points[L].X3 := AX2;
-  FTmPPath.Points[L].Y3 := AY2;
+  segment := T2DBezierSegment.Create;
+  segment.SegmentType := st2DBezier;
+  segment.X := AX3;
+  segment.Y := AY3;
+  segment.X2 := AX1;
+  segment.Y2 := AY1;
+  segment.X3 := AX2;
+  segment.Y3 := AY2;
+
+  AppendSegmentToTmpPath(segment);
 end;
 
 procedure TvVectorialDocument.AddBezierToPath(AX1, AY1, AZ1, AX2, AY2, AZ2,
   AX3, AY3, AZ3: Double);
 var
-  L: Integer;
+  segment: T3DBezierSegment;
 begin
-  L := FTmPPath.Len;
-  Inc(FTmPPath.Len);
-  FTmPPath.Points[L].SegmentType := st3DBezier;
-  FTmPPath.Points[L].X := AX3;
-  FTmPPath.Points[L].Y := AY3;
-  FTmPPath.Points[L].Z := AZ3;
-  FTmPPath.Points[L].X2 := AX1;
-  FTmPPath.Points[L].Y2 := AY1;
-  FTmPPath.Points[L].Z2 := AZ1;
-  FTmPPath.Points[L].X3 := AX2;
-  FTmPPath.Points[L].Y3 := AY2;
-  FTmPPath.Points[L].Z3 := AZ2;
+  segment := T3DBezierSegment.Create;
+  segment.SegmentType := st3DBezier;
+  segment.X := AX3;
+  segment.Y := AY3;
+  segment.Z := AZ3;
+  segment.X2 := AX1;
+  segment.Y2 := AY1;
+  segment.Z2 := AZ1;
+  segment.X3 := AX2;
+  segment.Y3 := AY2;
+  segment.Z3 := AZ2;
+
+  AppendSegmentToTmpPath(segment);
 end;
 
 {@@
@@ -430,15 +498,14 @@ procedure TvVectorialDocument.EndPath();
 begin
   if FTmPPath.Len = 0 then Exit;
   AddPath(FTmPPath);
-  FTmPPath.Len := 0;
+  ClearTmpPath();
 end;
 
 procedure TvVectorialDocument.AddText(AX, AY, AZ: Double; FontName: string; FontSize: integer; AText: utf8string);
 var
-  lText: PText;
+  lText: TvText;
 begin
-  lText := GetMem(SizeOf(TvText));
-  FillChar(lText^, SizeOf(TvText), 0);
+  lText := TvText.Create;
   lText.Value := AText;
   lText.X := AX;
   lText.Y := AY;
@@ -493,6 +560,40 @@ begin
     end;
 
   if Result = nil then raise Exception.Create('Unsuported vector graphics format.');
+end;
+
+procedure TvVectorialDocument.ClearTmpPath();
+var
+  segment, oldsegment: TPathSegment;
+begin
+//  segment := FTmpPath.Points;
+// Don't free segments, because they are used when the path is added
+//  while segment <> nil do
+//  begin
+//    oldsegment := segment;
+//    segment := segment^.Next;
+//    oldsegment^.Free;
+//  end;
+
+  FTmpPath.Points := nil;
+  FTmpPath.PointsEnd := nil;
+  FTmpPath.Len := 0;
+end;
+
+procedure TvVectorialDocument.AppendSegmentToTmpPath(ASegment: TPathSegment);
+var
+  L: Integer;
+begin
+  if FTmpPath.PointsEnd = nil then
+    Exception.Create('[TvVectorialDocument.AppendSegmentToTmpPath]' + Str_Error_Nil_Path);
+
+  L := FTmpPath.Len;
+  Inc(FTmpPath.Len);
+
+  // Adds the element to the end of the list
+  FTmpPath.PointsEnd.Next := ASegment;
+  ASegment.Previous := FTmpPath.PointsEnd;
+  FTmpPath.PointsEnd := ASegment;
 end;
 
 {@@
@@ -624,7 +725,7 @@ begin
 
   if FPaths.Items[ANum] = nil then raise Exception.Create('TvVectorialDocument.GetPath: Invalid Path number');
 
-  Result := PPath(FPaths.Items[ANum])^;
+  Result := TPath(FPaths.Items[ANum]);
 end;
 
 function TvVectorialDocument.GetPathCount: Integer;
@@ -638,7 +739,7 @@ begin
 
   if FTexts.Items[ANum] = nil then raise Exception.Create('TvVectorialDocument.GetText: Invalid Text number');
 
-  Result := PText(FTexts.Items[ANum])^;
+  Result := TvText(FTexts.Items[ANum]);
 end;
 
 function TvVectorialDocument.GetTextCount: Integer;
@@ -749,6 +850,34 @@ procedure TvCustomVectorialWriter.WriteToStrings(AStrings: TStrings;
   AData: TvVectorialDocument);
 begin
 
+end;
+
+{ TPath }
+
+procedure TPath.Assign(APath: TPath);
+begin
+  Len := APath.Len;
+  Points := APath.Points;
+  PointsEnd := APath.PointsEnd;
+  CurPoint := APath.CurPoint;
+end;
+
+function TPath.Count(): TPathSegment;
+begin
+
+end;
+
+procedure TPath.PrepareForSequentialReading;
+begin
+  CurPoint := nil;
+end;
+
+function TPath.Next(): TPathSegment;
+begin
+  if CurPoint = nil then Result := Points
+  else Result := CurPoint.Next;
+
+  CurPoint := Result;
 end;
 
 finalization

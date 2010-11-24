@@ -1,5 +1,9 @@
 This package implements JSON support for FPC.
 
+You might want to have a look at the lazarus jsonviewer tool, written using
+fpJSON (see lazarus/tools/jsonviewer). It visualizes the fpJSON data and
+shows how to program using fpjson.
+
 JSON support consists of 3 parts:
 
 unit fpJSON contains the data representation. Basically, it defines a set of

@@ -11,6 +11,9 @@ uses
 {$IFDEF __GPC__}
   gpc,
 {$ENDIF}
+{$IFDEF MORPHOS}
+  exec,
+{$ENDIF}
   sdl;
 
 const
@@ -32,6 +35,10 @@ const
 
 {$IFDEF MACOS}
   SDL_MixerLibName = 'SDL_mixer';
+{$ENDIF}
+
+{$IFDEF MORPHOS}
+  SDL_MixerLibName = 'powersdl_mixer.library';
 {$ENDIF}
 
   {* Printable format: "%d.%d.%d", MAJOR, MINOR, PATCHLEVEL *}
@@ -323,6 +330,10 @@ type
 procedure SDL_MIXER_VERSION(var X: TSDL_Version);
 {$EXTERNALSYM SDL_MIXER_VERSION}
 
+{$IFDEF MORPHOS}
+{$INCLUDE powersdl_mixer.inc}
+{$ELSE MORPHOS}
+
 { This function gets the version of the dynamically linked SDL_mixer library.
      It should NOT be used to fill a version structure, instead you should use the
      SDL_MIXER_VERSION() macro. }
@@ -415,6 +426,8 @@ function Mix_GetMusicHookData : Pointer;
 cdecl; external {$IFDEF __GPC__}name 'Mix_GetMusicHookData'{$ELSE} SDL_MixerLibName{$ENDIF __GPC__};
 {$EXTERNALSYM Mix_GetMusicHookData}
 
+{$ENDIF MORPHOS}
+
 {* Add your own callback when a channel has finished playing. NULL
  * to disable callback.*}
 type
@@ -424,9 +437,13 @@ type
   TChannel_finished = procedure( channel: Integer );
   {$ENDIF}
 
+{$IFNDEF MORPHOS}
+
 procedure Mix_ChannelFinished( channel_finished : TChannel_finished );
 cdecl; external {$IFDEF __GPC__}name 'Mix_ChannelFinished'{$ELSE} SDL_MixerLibName{$ENDIF __GPC__};
 {$EXTERNALSYM Mix_ChannelFinished}
+
+{$ENDIF MORPHOS}
 
 const
   MIX_CHANNEL_POST = -2;
@@ -508,6 +525,8 @@ type
   * returns zero if error (no such channel), nonzero if added.
   *  Error messages can be retrieved from Mix_GetError().
   *}
+{$IFNDEF MORPHOS}
+
 function Mix_RegisterEffect( chan : integer; f : TMix_EffectFunc; d : TMix_EffectDone; arg : Pointer ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'Mix_RegisterEffect'{$ELSE} SDL_MixerLibName{$ENDIF __GPC__};
 {$EXTERNALSYM Mix_RegisterEffect}
@@ -539,9 +558,12 @@ function Mix_UnregisterAllEffects( channel : integer ) : integer;
 cdecl; external {$IFDEF __GPC__}name 'Mix_UnregisterAllEffects'{$ELSE} SDL_MixerLibName{$ENDIF __GPC__};
 {$EXTERNALSYM Mix_UnregisterAllEffects}
 
+{$ENDIF MORPHOS}
+
 const
   MIX_EFFECTSMAXSPEED = 'MIX_EFFECTSMAXSPEED';
 
+{$IFNDEF MORPHOS}
   {*
   * These are the internally - defined mixing effects.They use the same API that
   * effects defined in the application use, but are provided here as a
@@ -913,6 +935,8 @@ cdecl; external {$IFDEF __GPC__}name 'Mix_GetChunk'{$ELSE} SDL_MixerLibName{$END
 procedure Mix_CloseAudio;
 cdecl; external {$IFDEF __GPC__}name 'Mix_CloseAudio'{$ELSE} SDL_MixerLibName{$ENDIF __GPC__};
 {$EXTERNALSYM Mix_CloseAudio}
+
+{$ENDIF MORPHOS}
 
 { We'll use SDL for reporting errors }
 procedure Mix_SetError( fmt : PChar );

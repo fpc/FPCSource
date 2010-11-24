@@ -277,7 +277,7 @@ begin
   FreeMem := MemoryManager.FreeMem(p);
 end;
 
-function FreeMemory(p:pointer):ptruint;
+function FreeMemory(p:pointer):ptruint; cdecl;
 begin
   FreeMemory := FreeMem(p);
 end;
@@ -287,7 +287,7 @@ begin
   GetMem := MemoryManager.GetMem(Size);
 end;
 
-function GetMemory(size:ptruint):pointer;
+function GetMemory(size:ptruint):pointer; cdecl;
 begin
   GetMemory := GetMem(size);
 end;
@@ -303,7 +303,7 @@ begin
   ReAllocMem := MemoryManager.ReAllocMem(p,size);
 end;
 
-function ReAllocMemory(var p:pointer;Size:ptruint):pointer;
+function ReAllocMemory(p:pointer;Size:ptruint):pointer; cdecl;
 begin
   ReAllocMemory := ReAllocMem(p,size);
 end;

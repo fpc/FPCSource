@@ -81,6 +81,9 @@ var
   lPath: TPath;
   PtX, PtY, OldPtX, OldPtY: double;
   BezierCP1X, BezierCP1Y, BezierCP2X, BezierCP2Y: double;
+  segment: TPathSegment;
+  l2DSegment: T2DSegment absolute segment;
+  l2DBSegment: T2DBezierSegment absolute segment;
 begin
   for i := 0 to AData.GetPathCount() - 1 do
   begin
@@ -89,38 +92,42 @@ begin
 
     PathStr := '';
     lPath := AData.GetPath(i);
+    lPath.PrepareForSequentialReading;
+
     for j := 0 to lPath.Len - 1 do
     begin
-      if (lPath.Points[j].SegmentType <> st2DLine)
-        and (lPath.Points[j].SegmentType <> stMoveTo)
-        and (lPath.Points[j].SegmentType <> st2DBezier)
+      segment := TPathSegment(lPath.Next());
+
+      if (segment.SegmentType <> st2DLine)
+        and (segment.SegmentType <> stMoveTo)
+        and (segment.SegmentType <> st2DBezier)
         then Break; // unsupported line type
 
       // Coordinate conversion from fpvectorial to SVG
       ConvertFPVCoordinatesToSVGCoordinates(
-        AData, lPath.Points[j].X, lPath.Points[j].Y, PtX, PtY);
+        AData, l2DSegment.X, l2DSegment.Y, PtX, PtY);
       PtX := PtX - OldPtX;
       PtY := PtY - OldPtY;
 
-      if (lPath.Points[j].SegmentType = stMoveTo) then
+      if (segment.SegmentType = stMoveTo) then
       begin
         PathStr := PathStr + 'm '
           + FloatToStr(PtX, FPointSeparator) + ','
           + FloatToStr(PtY, FPointSeparator) + ' ';
       end
-      else if (lPath.Points[j].SegmentType = st2DLine) then
+      else if (segment.SegmentType = st2DLine) then
       begin
         PathStr := PathStr + 'l '
           + FloatToStr(PtX, FPointSeparator) + ','
           + FloatToStr(PtY, FPointSeparator) + ' ';
       end
-      else if (lPath.Points[j].SegmentType = st2DBezier) then
+      else if (segment.SegmentType = st2DBezier) then
       begin
         // Converts all coordinates to absolute values
         ConvertFPVCoordinatesToSVGCoordinates(
-          AData, lPath.Points[j].X2, lPath.Points[j].Y2, BezierCP1X, BezierCP1Y);
+          AData, l2DBSegment.X2, l2DBSegment.Y2, BezierCP1X, BezierCP1Y);
         ConvertFPVCoordinatesToSVGCoordinates(
-          AData, lPath.Points[j].X3, lPath.Points[j].Y3, BezierCP2X, BezierCP2Y);
+          AData, l2DBSegment.X3, l2DBSegment.Y3, BezierCP2X, BezierCP2Y);
 
         // Transforms them into values relative to the initial point
         BezierCP1X := BezierCP1X - OldPtX;

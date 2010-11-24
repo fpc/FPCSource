@@ -1572,7 +1572,7 @@ begin
           UserScreen:=New(PNWLScreen, Init);
         {$else}
           {$ifdef AMIGASCREEN}
-            UserScreen:=New(PAmigaScreen, Init);
+            UserScreen:=nil; //New(PAmigaScreen, Init);
           {$else}
             UserScreen:=New(PScreen, Init);
           {$endif AMIGASCREEN}

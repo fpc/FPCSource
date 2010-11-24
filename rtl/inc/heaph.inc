@@ -87,12 +87,12 @@ Function  MemSize(p:pointer):ptruint;
 
 { Delphi functions }
 function GetMem(size:ptruint):pointer;
-function GetMemory(size:ptruint):pointer;
+function GetMemory(size:ptruint):pointer; cdecl;
 function Freemem(p:pointer):ptruint;
-function Freememory(p:pointer):ptruint;
+function Freememory(p:pointer):ptruint; cdecl;
 function AllocMem(Size:ptruint):pointer;
 function ReAllocMem(var p:pointer;Size:ptruint):pointer;
-function ReAllocMemory(var p:pointer;Size:ptruint):pointer;
+function ReAllocMemory(p:pointer;Size:ptruint):pointer; cdecl;
 function GetHeapStatus:THeapStatus;
 function GetFPCHeapStatus:TFPCHeapStatus;
 

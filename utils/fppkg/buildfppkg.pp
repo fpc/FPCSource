@@ -7,9 +7,13 @@ unit buildfppkg;
     not implemented properly, so remove them by ifdef. jl Aug 2009 
   }
 
-{$ifndef go32v2} 
+{$ifndef go32v2}
+{$ifndef amiga}
+{$ifndef morphos}
     uses
       fprepos,fpxmlrep,pkgoptions,pkgglobals,pkgmessages,pkghandler,pkgmkconv,pkgdownload,pkgfpmake,pkgcommands,pkgrepos,pkgwget,pkglnet;
+{$endif}
+{$endif}
 {$endif} 
 
   implementation

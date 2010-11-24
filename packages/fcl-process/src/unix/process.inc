@@ -136,6 +136,15 @@ end;
 
 Function MakeCommand(P : TProcess) : PPchar;
 
+{$ifdef darwin}
+Const
+  TerminalApp = 'open';
+{$endif}
+{$ifdef haiku}
+Const
+  TerminalApp = 'Terminal';
+{$endif}
+  
 Var
   Cmd : String;
   S  : TStringList;
@@ -160,8 +169,15 @@ begin
     CommandToList(Cmd,S);
     if poNewConsole in P.Options then
       begin
-      {$ifdef darwin}
-      S.Insert(0,'open');
+      {$ifdef haiku}
+      If (P.ApplicationName<>'') then
+        begin
+        S.Insert(0,P.ApplicationName);
+        S.Insert(0,'--title');
+        end;
+      {$endif}
+      {$if defined(darwin) or defined(haiku)}
+      S.Insert(0,TerminalApp);
       {$else}
       S.Insert(0,'-e');
       If (P.ApplicationName<>'') then
@@ -177,6 +193,7 @@ begin
       S.Insert(0,'xterm');
       {$endif}
       end;
+    {$ifndef haiku}
     if (P.ApplicationName<>'') then
       begin
       S.Add(TitleOption);
@@ -192,6 +209,7 @@ begin
       S.Add(GeometryOption);
       S.Add(g);
       end;
+    {$endif}
     Result:=StringsToPcharList(S);
   Finally
     S.free;
@@ -293,7 +311,16 @@ begin
         end;
 
 {$if (defined(DARWIN) or defined(SUNOS))}
-        Pid:=fpvfork;
+        { can't use vfork in case the child has to be
+          suspended immediately, because with vfork the
+          child borrows the execution thread of the parent
+          unit it either exits or execs -> potential 
+          deadlock depending on how quickly the SIGSTOP
+          signal is delivered }
+        if not(poRunSuspended in Options) then
+          Pid:=fpvfork
+        else
+          Pid:=fpfork;
 {$else}
         Pid:=fpfork;
 {$endif}
@@ -405,7 +432,11 @@ begin
     If Running then
       Result:=fpkill(Handle,SIGKILL)=0;
     end;
-  GetExitStatus;
+  { the fact that the signal has been sent does not
+    mean that the process has already handled the
+    signal -> wait instead of calling getexitstatus }
+  if Result then
+    WaitOnExit;
 end;
 
 Procedure TProcess.SetShowWindow (Value : TShowWindowOptions);

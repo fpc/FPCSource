@@ -614,6 +614,32 @@ begin
   CurrentCGABkColor := 0;
 end;
 
+procedure ptc_InitPaletteMCGA2;
+var
+  PaletteData: PUint32;
+  I: Integer;
+  r, g, b: Uint32;
+begin
+  VGAPalette := DefaultVGA16Palette;
+  FillChar(EGAPalette, SizeOf(EGAPalette), 0);
+  EGAPaletteEnabled := True;
+
+  for I := 1 to 15 do
+    EGAPalette[I] := 63;
+
+  PaletteData := ptc_palette_lock;
+  FillChar(PaletteData^, 256*4, 0);
+  for I := 0 to 1 do
+  begin
+    r := VGA6to8(VGAPalette[EGAPalette[I], 0]);
+    g := VGA6to8(VGAPalette[EGAPalette[I], 1]);
+    b := VGA6to8(VGAPalette[EGAPalette[I], 2]);
+    PaletteData[I] := (r shl 16) or (g shl 8) or b;
+  end;
+  ptc_palette_unlock;
+  CurrentCGABkColor := 0;
+end;
+
 procedure ptc_InternalOpen(const ATitle: string; AWidth, AHeight: Integer; AFormat: TPTCFormat; AVirtualPages: Integer);
 var
   ConsoleWidth, ConsoleHeight: Integer;
@@ -717,6 +743,21 @@ begin
   ColorMask := 1;
 end;
 
+procedure ptc_InitModeMCGA2(XResolution, YResolution, Pages: LongInt);
+begin
+{$IFDEF logging}
+  LogLn('Initializing mode ' + strf(XResolution) + ', ' + strf(YResolution) + ' 2 colours');
+{$ENDIF logging}
+  { open the console }
+  ptc_InternalOpen(ParamStr(0), XResolution, YResolution, PTCFormat8, Pages);
+  PTCWidth := XResolution;
+  PTCHeight := YResolution;
+  CurrentActivePage := 0;
+  { create palette }
+  ptc_InitPaletteMCGA2;
+  ColorMask := 1;
+end;
+
 procedure ptc_InitMode32k(XResolution, YResolution, Pages: LongInt);
 begin
 {$IFDEF logging}
@@ -801,7 +842,7 @@ end;
 
 procedure ptc_Init640x480x2;
 begin
-  ptc_InitModeCGA2(640, 480, 1);
+  ptc_InitModeMCGA2(640, 480, 1);
 end;
 
 procedure ptc_Init720x348x2;
@@ -948,6 +989,22 @@ end;
 function GetBkColorCGA640: Word;
 begin
   GetBkColorCGA640 := CurrentCGABkColor;
+end;
+
+{ nickysn: VGA compatible implementation. I don't have a real MCGA to test
+  if there's any difference with VGA }
+procedure SetBkColorMCGA640(ColorNum: Word);
+begin
+  if ColorNum > 15 then
+    exit;
+  CurrentCGABkColor := ColorNum;
+
+  ptc_SetEGAPalette(0, ((ColorNum shl 1) and $10) or (ColorNum and $07));
+end;
+
+function GetBkColorMCGA640: Word;
+begin
+  GetBkColorMCGA640 := CurrentCGABkColor;
 end;
 
 Function ClipCoords (Var X,Y : smallint) : Boolean;
@@ -1907,6 +1964,9 @@ end;
 
        SetVisualPage  := @ptc_SetVisualPage;
        SetActivePage  := @ptc_SetActivePage;
+
+       SetBkColor     := @SetBkColorMCGA640;
+       GetBkColor     := @GetBkColorMCGA640;
 
        XAspect := 10000;
        YAspect := 10000;

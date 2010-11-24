@@ -172,6 +172,9 @@ uses
   Windows,
   {$ENDIF}
 {$ENDIF}
+{$IFDEF MORPHOS}
+  exec,
+{$ENDIF}
   sdl;
 
 const
@@ -193,6 +196,10 @@ const
 
 {$IFDEF MACOS}
   SDLttfLibName = 'SDL_ttf';
+{$ENDIF}
+
+{$IFDEF MACOS}
+  SDLttfLibName = 'powersdl_ttf.library';
 {$ENDIF}
 
   {* Printable format: "%d.%d.%d", MAJOR, MINOR, PATCHLEVEL *}
@@ -231,6 +238,10 @@ type
   version of the SDL_ttf library. }
 procedure SDL_TTF_VERSION( var X : TSDL_version );
 {$EXTERNALSYM SDL_TTF_VERSION}
+
+{$IFDEF MORPHOS}
+{$INCLUDE powersdl_ttf.inc}
+{$ELSE MORPHOS}
 
 { This function gets the version of the dynamically linked SDL_ttf library.
      It should NOT be used to fill a version structure, instead you should use the
@@ -459,6 +470,8 @@ cdecl; external {$IFDEF __GPC__}name 'TTF_Quit'{$ELSE} SDLttfLibName{$ENDIF __GP
 function TTF_WasInit : integer;
 cdecl; external {$IFDEF __GPC__}name 'TTF_WasInit'{$ELSE} SDLttfLibName{$ENDIF __GPC__};
 {$EXTERNALSYM TTF_WasInit}
+
+{$ENDIF MORPHOS}
 
 // We'll use SDL for reporting errors
 procedure TTF_SetError( fmt : PChar );
