@@ -409,7 +409,11 @@ procedure Exe_entry;[public,alias:'_FPC_EXE_Entry'];
           point to anything yet
           this will be used in signals unit }
         movq %rsp,%rax
+{$ifdef FPC_HAS_RIP_RELATIVE}
+        movq %rax,System_exception_frame(%rip)
+{$else}
         movq %rax,System_exception_frame
+{$endif}
         { keep stack aligned }
         pushq $0
         pushq %rbp
