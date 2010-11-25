@@ -1227,39 +1227,40 @@ end;
 
 { This is the case of Win9x. Limited to current locale of course, but it's better
   than not working at all. }
-function DoCompareStringA(const s1, s2: WideString; Flags: DWORD): PtrInt;
+function DoCompareStringA(P1, P2: PWideChar; L1, L2: PtrUInt; Flags: DWORD): PtrInt;
   var
     a1, a2: AnsiString;
   begin
-    a1:=s1;
-    a2:=s2;
+    if L1>0 then
+      widestringmanager.Wide2AnsiMoveProc(P1,a1,L1);
+    if L2>0 then
+      widestringmanager.Wide2AnsiMoveProc(P2,a2,L2);
     SetLastError(0);
     Result:=CompareStringA(LOCALE_USER_DEFAULT,Flags,pchar(a1),
       length(a1),pchar(a2),length(a2))-2;
   end;
 
-function DoCompareStringW(const s1, s2: WideString; Flags: DWORD): PtrInt;
+function DoCompareStringW(P1, P2: PWideChar; L1, L2: PtrUInt; Flags: DWORD): PtrInt;
   begin
     SetLastError(0);
-    Result:=CompareStringW(LOCALE_USER_DEFAULT,Flags,pwidechar(s1),
-      length(s1),pwidechar(s2),length(s2))-2;
+    Result:=CompareStringW(LOCALE_USER_DEFAULT,Flags,P1,L1,P2,L2)-2;
     if GetLastError=0 then
       Exit;
     if GetLastError=ERROR_CALL_NOT_IMPLEMENTED then  // Win9x case
-      Result:=DoCompareStringA(s1, s2, Flags);
+      Result:=DoCompareStringA(P1, P2, L1, L2, Flags);
     if GetLastError<>0 then
       RaiseLastOSError;
   end;
 
 function Win32CompareWideString(const s1, s2 : WideString) : PtrInt;
   begin
-    Result:=DoCompareStringW(s1, s2, 0);
+    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
   end;
 
 
 function Win32CompareTextWideString(const s1, s2 : WideString) : PtrInt;
   begin
-    Result:=DoCompareStringW(s1, s2, NORM_IGNORECASE);
+    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), NORM_IGNORECASE);
   end;
 
 
@@ -1340,6 +1341,17 @@ function Win32AnsiStrUpper(Str: PChar): PChar;
     result:=str;
   end;
 
+function Win32CompareUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
+  begin
+    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), 0);
+  end;
+
+
+function Win32CompareTextUnicodeString(const s1, s2 : UnicodeString) : PtrInt;
+  begin
+    Result:=DoCompareStringW(PWideChar(s1), PWideChar(s2), Length(s1), Length(s2), NORM_IGNORECASE);
+  end;
+
 
 { there is a similiar procedure in the system unit which inits the fields which
   are relevant already for the system unit }
@@ -1358,6 +1370,8 @@ procedure InitWin32Widestrings;
     widestringmanager.StrLICompAnsiStringProc:=@Win32AnsiStrLIComp;
     widestringmanager.StrLowerAnsiStringProc:=@Win32AnsiStrLower;
     widestringmanager.StrUpperAnsiStringProc:=@Win32AnsiStrUpper;
+    widestringmanager.CompareUnicodeStringProc:=@Win32CompareUnicodeString;
+    widestringmanager.CompareTextUnicodeStringProc:=@Win32CompareTextUnicodeString;
   end;
 
 

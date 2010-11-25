@@ -72,7 +72,7 @@ SYSINIT_UNITS=si_prc si_c21g si_c21 si_c si_dll si_uc
 endif
 
 ifeq ($(ARCH),x86_64)
-CPU_UNITS=x86 ports
+CPU_UNITS=x86 ports cpu
 SYSINIT_UNITS=   # si_prc si_c si_dll
 endif
 
@@ -262,7 +262,11 @@ macpas$(PPUEXT) : $(INC)/macpas.pp objpas$(PPUEXT) math$(PPUEXT)
 # Other $(SYSTEMUNIT)-independent RTL Units
 #
 
+ifeq ($(ARCH),x86_64)
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
+else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
+endif
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 

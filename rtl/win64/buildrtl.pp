@@ -12,7 +12,8 @@ unit buildrtl;
       convutils, stdconvs, charset, ucomplex, getopts,
       winevent, sockets, printer,
       video, mouse, keyboard, fmtbcd,
-      sharemem, fpintres;
+      sharemem, fpintres,
+      cpu;
 
   implementation
 

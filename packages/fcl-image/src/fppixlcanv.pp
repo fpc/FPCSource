@@ -105,10 +105,7 @@ end;
 function TFPPixelCanvas.DoCreateDefaultBrush : TFPCustomBrush;
 begin
   result := TFPEmptyBrush.Create;
-  with result do
-    begin
-    Style := bsClear;
-    end;
+  result.Style := bsSolid;
 end;
 
 procedure TFPPixelCanvas.DoTextOut (x,y:integer;text:string);

@@ -35,7 +35,7 @@ procedure dbus_free(memory: Pointer); cdecl; external LibDBus;
 procedure dbus_free_string_array(str_array: PPChar); cdecl; external LibDBus;
 
 type
-  DBusFreeFunction = procedure(memory: Pointer);
+  DBusFreeFunction = procedure(memory: Pointer); cdecl;
 
 procedure dbus_shutdown; cdecl; external LibDBus;
 

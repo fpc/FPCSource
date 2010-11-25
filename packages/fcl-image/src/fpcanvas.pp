@@ -194,14 +194,6 @@ type
     FClipping,
     FManageResources: boolean;
     FRemovingHelpers : boolean;
-    FDefaultFont,
-    FFont : TFPCustomFont;
-    FDefaultBrush,
-    FBrush : TFPCustomBrush;
-    FDefaultPen,
-    FPen : TFPCustomPen;
-    FPenPos : TPoint;
-    FClipRect : TRect;
     FHelpers : TList;
     FLocks : integer;
     FInterpolation : TFPCustomInterpolation;
@@ -216,6 +208,11 @@ type
     function GetBrush : TFPCustomBrush;
     function GetPen : TFPCustomPen;
   protected
+    FDefaultFont, FFont : TFPCustomFont;
+    FDefaultBrush, FBrush : TFPCustomBrush;
+    FDefaultPen, FPen : TFPCustomPen;
+    FPenPos : TPoint;
+    FClipRect : TRect;
     function DoCreateDefaultFont : TFPCustomFont; virtual; abstract;
     function DoCreateDefaultPen : TFPCustomPen; virtual; abstract;
     function DoCreateDefaultBrush : TFPCustomBrush; virtual; abstract;

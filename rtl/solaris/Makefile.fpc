@@ -39,7 +39,7 @@ fpcdir=../..
 target=solaris
 
 [compiler]
-includedir=$(INC) $(PROCINC) $(UNIXINC) $(OSPROCINC) 
+includedir=$(INC) $(PROCINC) $(UNIXINC) $(OSPROCINC)
 sourcedir=$(INC) $(PROCINC) $(UNIXINC) $(COMMON)
 
 
@@ -68,6 +68,11 @@ SYSTEMUNIT=system
 
 ifeq ($(ARCH),i386)
 CPU_UNITS=cpu mmx
+endif
+
+ifeq ($(ARCH),x86_64)
+CPU_UNITS=cpu
+SYSINIT_UNITS=   # si_prc si_c si_dll
 endif
 
 
@@ -246,7 +251,11 @@ mouse$(PPUEXT) : $(UNIXINC)/mouse.pp $(SYSTEMUNIT)$(PPUEXT) baseunix$(PPUEXT) vi
 
 matrix$(PPUEXT) : $(INC)/matrix.pp $(SYSTEMUNIT)$(PPUEXT)
 
+ifeq ($(ARCH),x86_64)
+cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT) sysutils$(PPUEXT)
+else
 cpu$(PPUEXT) : $(PROCINC)/cpu.pp $(SYSTEMUNIT)$(PPUEXT)
+endif
 
 mmx$(PPUEXT) : $(PROCINC)/mmx.pp cpu$(PPUEXT) $(SYSTEMUNIT)$(PPUEXT)
 

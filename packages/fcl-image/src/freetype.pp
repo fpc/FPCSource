@@ -433,11 +433,17 @@ end;
 
 function TFontManager.GetFont (FontID:integer) : TMgrFont;
 begin
-  result := TMgrFont(FList[FontID]);
-  if result <> CurFont then  // set last used size of the font as current size
+  if (FontID >= 0) and (FontID < FList.Count) then
+  begin
+    result := TMgrFont(FList[FontID]);
+
+    if result <> CurFont then  // set last used size of the font as current size
     begin
-    CurSize := result.LastSize;
+      CurSize := result.LastSize;
     end;
+  end
+  else
+    Result := nil;
 end;
 
 procedure TFontManager.GetSize (aSize, aResolution : integer);
