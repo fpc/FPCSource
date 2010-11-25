@@ -15,6 +15,8 @@
  **********************************************************************}
 {$mode objfpc}
 
+{.$define CLASSESINLINE}
+
 { be aware, this unit is a prototype and subject to be changed heavily }
 unit fgl;
 
@@ -40,7 +42,7 @@ type
   protected
     FList: PByte;
     FCount: Integer;
-    FCapacity: Integer; { list is one longer than capacity, for temp }
+    FCapacity: Integer; { list is one longer sgthan capacity, for temp }
     FItemSize: Integer;
     procedure CopyItem(Src, Dest: Pointer); virtual;
     procedure Deref(Item: Pointer); virtual; overload;
@@ -124,8 +126,9 @@ type
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
     function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
-    {$info FIXME: bug #10479: implement TFPGList<T>.Assign(TFPGList) to work somehow}
-    {procedure Assign(Source: TFPGList);}
+{$ifndef VER2_4}
+    procedure Assign(Source: TFPGList);
+{$endif VER2_4}
     function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
     property Items[Index: Integer]: T read Get write Put; default;
@@ -156,8 +159,9 @@ type
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
     function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
-    {$info FIXME: bug #10479: implement TFPGObjectList<T>.Assign(TFPGList) to work somehow}
-    {procedure Assign(Source: TFPGList);}
+{$ifndef VER2_4}
+    procedure Assign(Source: TFPGObjectList);
+{$endif VER2_4}
     function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
     property Items[Index: Integer]: T read Get write Put; default;
@@ -188,8 +192,9 @@ type
     function IndexOf(const Item: T): Integer;
     procedure Insert(Index: Integer; const Item: T); {$ifdef CLASSESINLINE} inline; {$endif}
     function Last: T; {$ifdef CLASSESINLINE} inline; {$endif}
-    {$info FIXME: bug #10479: implement TFPGInterfacedObjectList<T>.Assign(TFPGList) to work somehow}
-    {procedure Assign(Source: TFPGList);}
+{$ifndef VER2_4}
+    procedure Assign(Source: TFPGInterfacedObjectList);
+{$endif VER2_4}
     function Remove(const Item: T): Integer; {$ifdef CLASSESINLINE} inline; {$endif}
     procedure Sort(Compare: TCompareFunc);
     property Items[Index: Integer]: T read Get write Put; default;
@@ -753,6 +758,17 @@ begin
   Result := T(inherited Last^);
 end;
 
+{$ifndef VER2_4}
+procedure TFPGList.Assign(Source: TFPGList);
+var
+  i: Integer;
+begin
+  Clear;
+  for I := 0 to Source.Count - 1 do
+    Add(Source[i]);
+end;
+{$endif VER2_4}
+
 function TFPGList.Remove(const Item: T): Integer;
 begin
   Result := IndexOf(Item);
@@ -848,6 +864,17 @@ function TFPGObjectList.Last: T;
 begin
   Result := T(inherited Last^);
 end;
+
+{$ifndef VER2_4}
+procedure TFPGObjectList.Assign(Source: TFPGObjectList);
+var
+  i: Integer;
+begin
+  Clear;
+  for I := 0 to Source.Count - 1 do
+    Add(Source[i]);
+end;
+{$endif VER2_4}
 
 function TFPGObjectList.Remove(const Item: T): Integer;
 begin
@@ -947,6 +974,17 @@ function TFPGInterfacedObjectList.Last: T;
 begin
   Result := T(inherited Last^);
 end;
+
+{$ifndef VER2_4}
+procedure TFPGInterfacedObjectList.Assign(Source: TFPGInterfacedObjectList);
+var
+  i: Integer;
+begin
+  Clear;
+  for I := 0 to Source.Count - 1 do
+    Add(Source[i]);
+end;
+{$endif VER2_4}
 
 function TFPGInterfacedObjectList.Remove(const Item: T): Integer;
 begin
