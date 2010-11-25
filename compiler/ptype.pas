@@ -453,8 +453,20 @@ implementation
                  begin
                    if try_to_consume(_SPECIALIZE) then
                      begin
-                       dospecialize:=true;
-                       again:=true;
+                       if not(allowtypedef) then
+                         begin
+                           Message(parser_e_no_local_para_def);
+
+                           { try to recover }
+                           while token<>_SEMICOLON do
+                             consume(token);
+                           def:=generrordef;
+                         end
+                       else
+                         begin
+                           dospecialize:=true;
+                           again:=true;
+                         end;
                      end
                    else
                      begin

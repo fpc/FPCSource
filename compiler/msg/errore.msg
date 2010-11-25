@@ -1183,7 +1183,7 @@ parser_e_field_not_allowed_here=03251_E_Fields cannot appear after a method or p
 % without starting a new visibility section (such as \var{public}, \var{private}, etc.). The reason is
 % that otherwise the source code can appear ambiguous to the compiler, since it is possible to use modifiers
 % such as \var{default} and \var{register} also as field names.
-parser_e_no_local_para_def=03252_E_Parameters cannot contain local type definitions. Use a separate type definition in a type block.
+parser_e_no_local_para_def=03252_E_Parameters or result types cannot contain local type definitions. Use a separate type definition in a type block.
 % In Pascal, types are not considered to be identical simply because they are semantically equivalent.
 % Two variables or parameters are only considered to be of the same type if they refer to the
 % same type definition.
