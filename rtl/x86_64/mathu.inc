@@ -15,6 +15,7 @@
 {$ASMMODE GAS}
 
 {$ifndef win64}
+{$define FPC_MATH_HAS_ARCTAN2}
 function arctan2(y,x : float) : float;assembler;
   asm
      fldt y
