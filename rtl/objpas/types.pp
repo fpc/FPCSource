@@ -344,50 +344,58 @@ end;
 
 
 function IntersectRect(var Rect : TRect;const R1,R2 : TRect) : Boolean;
-
+var
+  lRect: TRect;
 begin
-  Rect:=R1;
-  with R2 do
-    begin
-    if Left>R1.Left then
-      Rect.Left:=Left;
-    if Top>R1.Top then
-      Rect.Top:=Top;
-    if Right<R1.Right then
-      Rect.Right:=Right;
-    if Bottom<R1.Bottom then
-      Rect.Bottom:=Bottom;
-    end;
-  if IsRectEmpty(Rect) then
-    begin
+  lRect := R1;
+  if R2.Left > R1.Left then
+    lRect.Left := R2.Left;
+  if R2.Top > R1.Top then
+    lRect.Top := R2.Top;
+  if R2.Right < R1.Right then
+    lRect.Right := R2.Right;
+  if R2.Bottom < R1.Bottom then
+    lRect.Bottom := R2.Bottom;
+
+  // The var parameter is only assigned in the end to avoid problems
+  // when passing the same rectangle in the var and const parameters.
+  // See http://bugs.freepascal.org/view.php?id=17722
+  if IsRectEmpty(lRect) then
+  begin
     FillChar(Rect,SizeOf(Rect),0);
     IntersectRect:=false;
-    end
+  end
   else
+  begin
     IntersectRect:=true;
+    Rect := lRect;
+  end;	
 end;
 
 function UnionRect(var Rect : TRect;const R1,R2 : TRect) : Boolean;
+var
+  lRect: TRect;
 begin
-  Rect:=R1;
-  with R2 do
-    begin
-    if Left<R1.Left then
-      Rect.Left:=Left;
-    if Top<R1.Top then
-      Rect.Top:=Top;
-    if Right>R1.Right then
-      Rect.Right:=Right;
-    if Bottom>R1.Bottom then
-      Rect.Bottom:=Bottom;
-    end;
+  lRect:=R1;
+  if R2.Left<R1.Left then
+    lRect.Left:=R2.Left;
+  if R2.Top<R1.Top then
+    lRect.Top:=R2.Top;
+  if R2.Right>R1.Right then
+    lRect.Right:=R2.Right;
+  if R2.Bottom>R1.Bottom then
+    lRect.Bottom:=R2.Bottom;
+
   if IsRectEmpty(Rect) then
-    begin
+  begin
     FillChar(Rect,SizeOf(Rect),0);
     UnionRect:=false;
-    end
+  end
   else
+  begin
+    Rect:=lRect;
     UnionRect:=true;
+  end;  
 end;
 
 function IsRectEmpty(const Rect : TRect) : Boolean;

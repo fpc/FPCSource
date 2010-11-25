@@ -124,7 +124,7 @@ const
 
      psem_t = ^sem_t;
      TSemaphore         = sem_t;
-     PSemaphore   = ^TSemaphore;
+     PSemaphore   = psem_t;
 
     {
      Primitive system data type definitions required by P1003.1c.

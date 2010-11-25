@@ -2257,7 +2257,7 @@ begin
     end;
   TmpRecBuffer := (FCurrentIndex as TDoubleLinkedBufIndex).FFirstRecBuf;
   for recnr := 1 to value-1 do
-    TmpRecBuffer := TmpRecBuffer^.next;
+    TmpRecBuffer := TmpRecBuffer[FCurrentIndex.IndNr].next;
   GotoBookmark(@TmpRecBuffer);
 end;
 

@@ -156,15 +156,10 @@ function ConvertEraString(Count ,Year,Month,Day : integer) : string; forward;
 { Include platform independent implementation part }
 {$i sysutils.inc}
 
-function SysGetTempFileName(lpPathName:LPCSTR;
-                            lpPrefixString:LPCSTR;
-                            uUnique:UINT;
-                            lpTempFileName:LPSTR):UINT;stdcall;external 'kernel32' name 'GetTempFileNameA';
-
 function GetTempFileName(Dir,Prefix: PChar; uUnique: DWORD; TempFileName: PChar):DWORD;
 
 begin
-  Result:=SysGetTempFileName(Dir,Prefix,uUnique,TempFileName);
+  Result:= Windows.GetTempFileNameA(Dir,Prefix,uUnique,TempFileName);
 end;
 
 
@@ -216,11 +211,6 @@ end;
 {****************************************************************************
                               File Functions
 ****************************************************************************}
-
-var
-  SetFilePointerEx : function(hFile : THandle;
-    liDistanceToMove : int64;lpNewFilePointer : pint64;
-    dwMoveMethod : DWord) : ByteBool;stdcall;
 
 Function FileOpen (Const FileName : string; Mode : Integer) : THandle;
 const
@@ -487,9 +477,6 @@ end;
                               Disk Functions
 ****************************************************************************}
 
-function GetDiskFreeSpace(drive:pchar;var sector_cluster,bytes_sector,
-                          freeclusters,totalclusters:longint):longbool;
-         stdcall;external 'kernel32' name 'GetDiskFreeSpaceA';
 type
    TGetDiskFreeSpaceEx = function(drive:pchar;var availableforcaller,total,free):longbool;stdcall;
 
@@ -500,7 +487,7 @@ function diskfree(drive : byte) : int64;
 var
   disk : array[1..4] of char;
   secs,bytes,
-  free,total : longint;
+  free,total : dword;
   qwtotal,qwfree,qwcaller : int64;
 begin
   if drive=0 then
@@ -536,7 +523,7 @@ function disksize(drive : byte) : int64;
 var
   disk : array[1..4] of char;
   secs,bytes,
-  free,total : longint;
+  free,total : dword;
   qwtotal,qwfree,qwcaller : int64;
 begin
   if drive=0 then
@@ -892,14 +879,6 @@ end;
                            Target Dependent
 ****************************************************************************}
 
-function FormatMessageA(dwFlags     : DWORD;
-                        lpSource    : Pointer;
-                        dwMessageId : DWORD;
-                        dwLanguageId: DWORD;
-                        lpBuffer    : PCHAR;
-                        nSize       : DWORD;
-                        Arguments   : Pointer): DWORD; stdcall;external 'kernel32' name 'FormatMessageA';
-
 function SysErrorMessage(ErrorCode: Integer): String;
 const
   MaxMsgSize = Format_Message_Max_Width_Mask;
@@ -1101,16 +1080,6 @@ begin
          GetDiskFreeSpaceEx:=TGetDiskFreeSpaceEx(GetProcAddress(kernel32dll,'GetDiskFreeSpaceExA'));
     end;
 end;
-
-
-function FreeLibrary(hLibModule : THANDLE) : longbool;
-  stdcall;external 'kernel32' name 'FreeLibrary';
-function GetVersionEx(var VersionInformation:TOSVERSIONINFO) : longbool;
-  stdcall;external 'kernel32' name 'GetVersionExA';
-function LoadLibrary(lpLibFileName : pchar):THandle;
-  stdcall;external 'kernel32' name 'LoadLibraryA';
-function GetProcAddress(hModule : THandle;lpProcName : pchar) : pointer;
-  stdcall;external 'kernel32' name 'GetProcAddress';
 
 Const
   CSIDL_PROGRAMS                = $0002; { %SYSTEMDRIVE%\Program Files                                      }

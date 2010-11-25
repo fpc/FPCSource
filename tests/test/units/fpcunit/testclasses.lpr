@@ -23,7 +23,7 @@ var
 begin
   Application := TMyTestRunner.Create(nil);
   Application.Initialize;
-  Application.Title:='Test classes';
+  Application.Title := 'Test classes';
   Application.Run;
   Application.Free;
 end.

@@ -90,7 +90,7 @@ type
 
   // procedural types used in parameters to pthread functions
 
-  TStartRoutine = function (_para1:pointer): cint; cdecl;
+  TStartRoutine = function (_para1:pointer): Pointer; cdecl;
   TKeyValueDestructor = procedure(ValueInKey: Pointer); cdecl;
   TInitOnceProc = Procedure;cdecl;
   TForkHandler = procedure; cdecl;

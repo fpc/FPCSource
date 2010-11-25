@@ -1606,12 +1606,12 @@ end;
 
 procedure TCustomSQLQuery.SetDeleteSQL(const AValue: TStringlist);
 begin
-  FDeleteQry.Assign(AValue);
+  FDeleteSQL.Assign(AValue);
 end;
 
 procedure TCustomSQLQuery.SetInsertSQL(const AValue: TStringlist);
 begin
-  FInsertQry.Assign(AValue);
+  FInsertSQL.Assign(AValue);
 end;
 
 Procedure TCustomSQLQuery.SetDataSource(AVAlue : TDatasource);
