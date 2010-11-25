@@ -574,7 +574,7 @@ parser_e_cant_access_private_member=03063_E_Cannot access a private field of an 
 % Fields that are declared in a \var{private} section of an object or class
 % declaration cannot be accessed outside the module where the class is
 % defined.
-parser_e_overridden_methods_not_same_ret=03066_E_Overridden methods must have the same return type: "$2" is overriden by "$1" which has another return type
+parser_e_overridden_methods_not_same_ret=03066_E_Overridden methods must have the same return type: "$2" is overridden by "$1" which has another return type
 % If you declare overridden methods in a class definition, they must
 % have the same return type.
 parser_e_dont_nest_export=03067_E_EXPORT declared functions can't be nested
@@ -1417,7 +1417,7 @@ type_w_signed_unsigned_always_true=04045_W_Comparison is always true due to rang
 type_w_instance_with_abstract=04046_W_Constructing a class "$1" with abstract method "$2"
 % An instance of a class is created which contains non-implemented abstract
 % methods. This will probably lead to a runtime error 211 in the code if that
-% routine is ever called. All abstract methods should be overriden.
+% routine is ever called. All abstract methods should be overridden.
 type_h_in_range_check=04047_H_The left operand of the IN operator should be byte sized
 % The left operand of the \var{in} operator is not an ordinal or enumeration which fits
 % within 8 bits. This may lead to range check errors. The \var{in} operator
@@ -2301,7 +2301,7 @@ unit_u_ppu_invalid_version=10008_U_PPU Invalid Version $1
 unit_u_ppu_invalid_processor=10009_U_PPU is compiled for another processor
 % This unit file was compiled for a different processor type, and
 % cannot be read.
-unit_u_ppu_invalid_target=10010_U_PPU is compiled for an other target
+unit_u_ppu_invalid_target=10010_U_PPU is compiled for another target
 % This unit file was compiled for a different target, and
 % cannot be read.
 unit_u_ppu_source=10011_U_PPU Source: $1

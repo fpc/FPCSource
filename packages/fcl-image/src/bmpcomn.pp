@@ -65,7 +65,7 @@ type
       YPelsPerMeter:Longint;
 {46+04 : Number of colors used}
       ClrUsed:longint;
-{50+04 : Number of imprtant colors used : usefull for displaying on VGA256}
+{50+04 : Number of imprtant colors used : useful for displaying on VGA256}
       ClrImportant:longint;
    end;
    PBitMapInfoHeader = ^TBitMapInfoHeader;

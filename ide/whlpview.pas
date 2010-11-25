@@ -211,7 +211,7 @@ type
         procedure   ShowTopic(SourceFileID: word; Context: THelpCtx); virtual;
         procedure   HandleEvent(var Event: TEvent); virtual;
         procedure   Close; virtual;
-        function    GetPalette: PPalette; virtual; { needs to be overriden }
+        function    GetPalette: PPalette; virtual; { needs to be overridden }
       end;
 
 implementation

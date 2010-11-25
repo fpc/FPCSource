@@ -2213,7 +2213,7 @@ implementation
               begin
                 { these are dissambler hints or 32 bit prefixes which
                   are not needed
-                  It's usefull to write rex :) (FK) }
+                  It's useful to write rex :) (FK) }
 {$ifdef x86_64}
                 maybewriterex;
 {$endif x86_64}

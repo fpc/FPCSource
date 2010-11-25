@@ -1299,7 +1299,7 @@ const fpcmakeini : array[0..219,1..240] of char=(
   'endif'#010+
   #010+
   '# Look if UPX is found for go32v2 and win32. We can'#039't use $UPX bec'+
-  'uase'#010+
+  'ause'#010+
   '# upx uses that one itself (PFV)'#010+
   'ifndef UPXPROG'#010+
   'ifeq ($(OS_TARGET),go32v2)'#010+

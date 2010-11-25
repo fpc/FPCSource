@@ -1547,7 +1547,7 @@ implementation
          old_current_objectdef:=current_objectdef;
 
          { reset current_procinfo.procdef to nil to be sure that nothing is writing
-           to an other procdef }
+           to another procdef }
          current_procinfo:=nil;
          current_objectdef:=nil;
 

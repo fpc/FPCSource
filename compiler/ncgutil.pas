@@ -2379,7 +2379,7 @@ implementation
                     LOC_REFERENCE instead for all none register variables. This is
                     required because we can't store an asmsymbol in the localloc because
                     the asmsymbol is invalid after an unit is compiled. This gives
-                    problems when this procedure is inlined in an other unit (PFV) }
+                    problems when this procedure is inlined in another unit (PFV) }
                   if vs.is_regvar(false) then
                     begin
                       vs.initialloc.loc:=tvarregable2tcgloc[vs.varregable];

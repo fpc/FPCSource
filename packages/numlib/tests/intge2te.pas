@@ -258,7 +258,7 @@ var
           writeln(f: 10)
         else
           writeln;
-        Writeln('    proces afgebroken, te hoge nauwkeurigheid?');
+        Writeln('    process afgebroken, te hoge nauwkeurigheid?');
       end;
       3: Writeln('Verkeerde parameterwaarde (<=0) bij aanroep: ', ae: 8);
       4:
@@ -268,7 +268,7 @@ var
           writeln(f: 10)
         else
           writeln;
-        writeln('    proces afgebroken, moeilijk, mogelijk divergent?');
+        writeln('    process afgebroken, moeilijk, mogelijk divergent?');
       end;
     end;
   end;
@@ -684,7 +684,7 @@ var
           writeln(f: 10)
         else
           writeln;
-        Writeln('    proces afgebroken, te hoge nauwkeurigheid?');
+        Writeln('    process afgebroken, te hoge nauwkeurigheid?');
       end;
       3: Writeln('Verkeerde parameterwaarde (<=0) bij aanroep: ', ae: 8);
       4:
@@ -694,7 +694,7 @@ var
           writeln(f: 10)
         else
           writeln;
-        writeln('    proces afgebroken, moeilijk, mogelijk divergent?');
+        writeln('    process afgebroken, moeilijk, mogelijk divergent?');
       end;
     end;
   end;

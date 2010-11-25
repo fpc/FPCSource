@@ -21,7 +21,7 @@ Resourcestring
   SErrMissingInstallPackage  = 'Could not find package "%s"';
   SErrNoPackageSpecified     = 'No package specified';
   SErrNoPackageAvailable     = 'Package %s %s is not available';
-  SErrOnlyLocalDir           = 'The speficied command "%s" works only on current dir, not on a (remote) package';
+  SErrOnlyLocalDir           = 'The specified command "%s" works only on current dir, not on a (remote) package';
   SErrExecutionFPMake        = 'Execution of FPMake %s failed';
   SErrException              = 'The FPC Package tool encountered the following error:';
   SErrActionAlreadyRegistered= 'Action "%s" is already registered';

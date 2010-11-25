@@ -510,7 +510,7 @@ function CFURLCreateStringByReplacingPercentEscapesUsingEncoding( allocator: CFA
 { are not legal URL characters (based on RFC 2396), plus any characters }
 { in legalURLCharactersToBeEscaped, less any characters in }
 { charactersToLeaveUnescaped.  To simply correct any non-URL characters }
-{ in an otherwise correct URL string, do: }
+{ in anotherwise correct URL string, do: }
 
 { newString = CFURLCreateStringByAddingPercentEscapes(kCFAllocatorDefault, origString, NULL, NULL, kCFStringEncodingUTF8); }
 function CFURLCreateStringByAddingPercentEscapes( allocator: CFAllocatorRef; originalString: CFStringRef; charactersToLeaveUnescaped: CFStringRef; legalURLCharactersToBeEscaped: CFStringRef; encoding: CFStringEncoding ): CFStringRef; external name '_CFURLCreateStringByAddingPercentEscapes';

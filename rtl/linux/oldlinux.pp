@@ -5176,7 +5176,7 @@ end;
 Function StringToPPChar(Var S:String):ppchar;
 {
   Create a PPChar to structure of pchars which are the arguments specified
-  in the string S. Especially usefull for creating an ArgV for Exec-calls
+  in the string S. Especially useful for creating an ArgV for Exec-calls
   Note that the string S is destroyed by this call.
 }
 
@@ -5188,7 +5188,7 @@ end;
 Function StringToPPChar(Var S:AnsiString):ppchar;
 {
   Create a PPChar to structure of pchars which are the arguments specified
-  in the string S. Especially usefull for creating an ArgV for Exec-calls
+  in the string S. Especially useful for creating an ArgV for Exec-calls
 }
 
 begin

@@ -49,7 +49,7 @@ unit cgobj;
        {# @abstract(Abstract code generator)
           This class implements an abstract instruction generator. Some of
           the methods of this class are generic, while others must
-          be overriden for all new processors which will be supported
+          be overridden for all new processors which will be supported
           by Free Pascal. For 32-bit processors, the base class
           sould be @link(tcg64f32) and not @var(tcg).
        }
@@ -130,7 +130,7 @@ unit cgobj;
           {# Pass a parameter, which is a constant, to a routine.
 
              A generic version is provided. This routine should
-             be overriden for optimization purposes if the cpu
+             be overridden for optimization purposes if the cpu
              permits directly sending this type of parameter.
 
              @param(size size of the operand in constant)
@@ -141,7 +141,7 @@ unit cgobj;
           {# Pass the value of a parameter, which is located in memory, to a routine.
 
              A generic version is provided. This routine should
-             be overriden for optimization purposes if the cpu
+             be overridden for optimization purposes if the cpu
              permits directly sending this type of parameter.
 
              @param(size size of the operand in constant)
@@ -164,7 +164,7 @@ unit cgobj;
              calculated address as a parameter.
 
              A generic version is provided. This routine should
-             be overriden for optimization purposes if the cpu
+             be overridden for optimization purposes if the cpu
              permits directly sending this type of parameter.
 
              @param(r reference to get address from)
@@ -190,7 +190,7 @@ unit cgobj;
           }
 
           {# Emits instruction to call the method specified by symbol name.
-             This routine must be overriden for each new target cpu.
+             This routine must be overridden for each new target cpu.
 
              There is no a_call_ref because loading the reference will use
              a temp register on most cpu's resulting in conflicts with the
@@ -199,7 +199,7 @@ unit cgobj;
           procedure a_call_name(list : TAsmList;const s : string; weak: boolean);virtual; abstract;
           procedure a_call_reg(list : TAsmList;reg : tregister);virtual; abstract;
           procedure a_call_ref(list : TAsmList;ref : treference);virtual; abstract;
-          { same as a_call_name, might be overriden on certain architectures to emit
+          { same as a_call_name, might be overridden on certain architectures to emit
             static calls without usage of a got trampoline }
           procedure a_call_name_static(list : TAsmList;const s : string);virtual;
 
@@ -382,7 +382,7 @@ unit cgobj;
           {# This should emit the opcode to copy len bytes from the source
              to destination.
 
-             It must be overriden for each new target processor.
+             It must be overridden for each new target processor.
 
              @param(source Source reference of copy)
              @param(dest Destination reference of copy)
@@ -392,7 +392,7 @@ unit cgobj;
           {# This should emit the opcode to copy len bytes from the an unaligned source
              to destination.
 
-             It must be overriden for each new target processor.
+             It must be overridden for each new target processor.
 
              @param(source Source reference of copy)
              @param(dest Destination reference of copy)
@@ -415,7 +415,7 @@ unit cgobj;
           procedure g_finalize(list : TAsmList;t : tdef;const ref : treference);
 
           {# Generates range checking code. It is to note
-             that this routine does not need to be overriden,
+             that this routine does not need to be overridden,
              as it takes care of everything.
 
              @param(p Node which contains the value to check)
@@ -432,7 +432,7 @@ unit cgobj;
 
           {# Emits instructions when compilation is done in profile
              mode (this is set as a command line option). The default
-             behavior does nothing, should be overriden as required.
+             behavior does nothing, should be overridden as required.
           }
           procedure g_profilecode(list : TAsmList);virtual;
           {# Emits instruction for allocating @var(size) bytes at the stackpointer

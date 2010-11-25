@@ -120,7 +120,7 @@ unit rgobj;
       code generator to allocate and free registers which might be valid
       across nodes. It also contains utility routines related to registers.
 
-      Some of the methods in this class should be overriden
+      Some of the methods in this class should be overridden
       by cpu-specific implementations.
 
       --------------------------------------------------------------------}
@@ -160,7 +160,7 @@ unit rgobj;
         { default subregister used }
         defaultsub        : tsubregister;
         live_registers:Tsuperregisterworklist;
-        { can be overriden to add cpu specific interferences }
+        { can be overridden to add cpu specific interferences }
         procedure add_cpu_interferences(p : tai);virtual;
         procedure add_constraints(reg:Tregister);virtual;
         function  get_alias(n:Tsuperregister):Tsuperregister;
@@ -1947,7 +1947,7 @@ unit rgobj;
           exit;
 
 {$ifdef x86}
-        { Try replacing the register with the spilltemp. This is usefull only
+        { Try replacing the register with the spilltemp. This is useful only
           for the i386,x86_64 that support memory locations for several instructions }
         for counter := 0 to pred(regindex) do
           with regs[counter] do

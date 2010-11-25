@@ -47,7 +47,7 @@ interface
 
           { All the following routines currently
             call compilerprocs, unless they are
-            overriden in which case, the code
+            overridden in which case, the code
             generator handles them.
           }
           function first_pi: tnode ; virtual;

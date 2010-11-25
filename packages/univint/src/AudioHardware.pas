@@ -1054,7 +1054,7 @@ const
     @constant       kAudioHardwarePropertyPlugInForBundleID
                         Using an AudioValueTranslation structure, this property translates the input
                         CFString containing a bundle ID into the AudioObjectID of the AudioPlugIn
-                        that corresponds to it. This property will return kAudioObjectUnkown if the
+                        that corresponds to it. This property will return kAudioObjectUnknown if the
                         given bundle ID doesn't match any AudioPlugIns.
     @constant       kAudioHardwarePropertyUserSessionIsActiveOrHeadless
                         A UInt32 where a value other than 0 indicates that the login session of the

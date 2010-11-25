@@ -291,7 +291,7 @@ implementation
            not(def.dbg_state in [dbg_state_writing,dbg_state_written,dbg_state_queued]) then
           internalerror(200403091);
 
-        { Keep track of used stabs, this info is only usefull for stabs
+        { Keep track of used stabs, this info is only useful for stabs
           referenced by the symbols. Definitions will always include all
           required stabs }
         if def.dbg_state=dbg_state_unused then
@@ -512,7 +512,7 @@ implementation
             st:=def_stabstr_evaluate(def,'"'+symname+':$1$2=',[stabchar,def_stab_number(def)]);
           end;
         st:=st+ss;
-        { line info is set to 0 for all defs, because the def can be in an other
+        { line info is set to 0 for all defs, because the def can be in another
           unit and then the linenumber is invalid in the current sourcefile }
         st:=st+def_stabstr_evaluate(def,'",${N_LSYM},0,0,0',[]);
         { add to list }

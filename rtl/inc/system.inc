@@ -1102,7 +1102,7 @@ end;
 Function StringToPPChar(Var S:AnsiString;ReserveEntries:integer):ppchar;
 {
   Create a PPChar to structure of pchars which are the arguments specified
-  in the string S. Especially usefull for creating an ArgV for Exec-calls
+  in the string S. Especially useful for creating an ArgV for Exec-calls
 }
 
 begin

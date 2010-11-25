@@ -104,12 +104,12 @@ end;
 
 procedure TEZcgi.DoPost;
 begin
-  // Must be overriden by child class
+  // Must be overridden by child class
 end;
 
 procedure TEZcgi.DoGet;
 begin
-  // Must be overriden by child class
+  // Must be overridden by child class
 end;
 
 procedure TEZcgi.WriteContent(ctype : String);

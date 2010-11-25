@@ -8785,7 +8785,7 @@ const
 type
 	QTParamComponentPropertyRecord = record
 		component: ComponentInstance;              { component to call for get/set properties}
-		defaultClass: OSType;           { default property class if not overriden by a given parameter}
+		defaultClass: OSType;           { default property class if not overridden by a given parameter}
 	end;
 type
 	QTParamSampleTimeRecordPtr = ^QTParamSampleTimeRecord;
@@ -10568,7 +10568,7 @@ const
    * performed. The values for this property have the prefix
    * kQTApertureMode_ and are in ImageCompression.h. 
    * When a movie is in clean, production or encoded pixels aperture
-   * mode, each track's dimensions are overriden by special dimensions
+   * mode, each track's dimensions are overridden by special dimensions
    * for that mode. The original track dimensions are preserved and can
    * be restored by setting the movie into classic aperture mode.
    }

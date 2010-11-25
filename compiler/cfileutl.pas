@@ -651,7 +651,7 @@ end;
                exit;
              end;
           end;
-        { Set foundfile to something usefull }
+        { Set foundfile to something useful }
         FoundFile:=fn;
       end;
 

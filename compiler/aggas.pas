@@ -67,7 +67,7 @@ interface
 
       {# This is the base class for writing instructions.
 
-         The WriteInstruction() method must be overriden
+         The WriteInstruction() method must be overridden
          to write a single instruction to the assembler
          file.
       }

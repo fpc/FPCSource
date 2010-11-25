@@ -62,7 +62,7 @@
  *       ANSI C standard makes this an impossibility right from the
  *       very get go. Its really only meant to be useful for the vast
  *       majority of platforms that possess the capability of
- *       implementing usefully and precisely defined, standard sized
+ *       implementing usefuly and precisely defined, standard sized
  *       integer scalars.  Systems which are not intrinsically 2s
  *       complement may produce invalid constants.
  *

@@ -657,7 +657,7 @@ program h2pas;
                    write(outfile,'args:array of const');
                    (* if variable number of args we must allways pop *)
                    no_pop:=false;
-                   (* Needs 2 declarations, also one without args, becuase
+                   (* Needs 2 declarations, also one without args, because
                       in C you can omit the second parameter. Default parameter
                       doesn't help as that isn't possible with array of const *)
                    NeedEllipsisOverload:=true;

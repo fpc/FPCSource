@@ -102,7 +102,7 @@ Controling testing in more detail
 Calling "make full" will perform tests in a standard manner. To have
 more control of the test process one must distinguish between:
 
-* Driver enviroment: compiler/rtl etc. to be used by the tools which
+* Driver environment: compiler/rtl etc. to be used by the tools which
   runs and analyze the tests. All normal options to make, like FPC
   OS_TARGET, OPT etc. controls this.
 
@@ -122,7 +122,7 @@ TEST_OPT               defaults to ""
 TEST_FPC_VERSION       defaults to version of TEST_FPC
 TEST_CCOMPILER         defaults to installed gcc compiler, but only
                        if driver and test full-targets are the same.
-TEST_VERBOSE           let dotest be more verbose, only usefull for debugging
+TEST_VERBOSE           let dotest be more verbose, only useful for debugging
 TEST_DELTEMP           delete temporary executable/object/ppu file,
                        default is off
 TEST_TIMEOUT           use timeout wrapper for (remote) execution
@@ -159,7 +159,7 @@ TEST_DELBEFORE       delete remote executable before uploading
 TEST_DELTEMP         delete executable after running, so the remote system
                      doesn't need much free disk space
 TEST_REMOTEPW        pass a password with -pw to remote tools,
-                     mainly usefull for putty
+                     mainly useful for putty
 
 
 Examples:

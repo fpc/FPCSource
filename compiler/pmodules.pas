@@ -1527,7 +1527,7 @@ implementation
       { read all entries until the end and write them also to the new ppu }
         repeat
           b:=inppu.readentry;
-        { don't write ibend, that's written automaticly }
+        { don't write ibend, that's written automatically }
           if b<>ibend then
            begin
              if b=iblinkothersharedlibs then

@@ -191,7 +191,7 @@ threadvar
    function GetStdHandle(nStdHandle:DWORD):THANDLE;
      stdcall;external KernelDLL name 'GetStdHandle';
 
-   { command line/enviroment functions }
+   { command line/environment functions }
    function GetCommandLine : pchar;
      stdcall;external KernelDLL name 'GetCommandLineA';
 

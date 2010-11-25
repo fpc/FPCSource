@@ -334,7 +334,7 @@ Begin
   { restore file position if not working with a device }
   if not isdevice then
     { if we didn't modify the buffer, simply restore the BufPos and BufEnd  }
-    { (the latter becuase it's now probably set to zero because nothing was }
+    { (the latter because it's now probably set to zero because nothing was }
     {  was read anymore)                                                    }
     if (reads = 0) then
       begin

@@ -36,7 +36,7 @@ unit paramgr;
 
     type
        {# This class defines some methods to take care of routine
-          parameters. It should be overriden for each new processor
+          parameters. It should be overridden for each new processor
        }
        tparamanager = class
           { true if the location in paraloc can be reused as localloc }

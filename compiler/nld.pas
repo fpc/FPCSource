@@ -639,7 +639,7 @@ implementation
 
          { Optimize the reuse of the destination of the assingment in left.
            Allow the use of the left inside the tree generated on the right.
-           This is especially usefull for string routines where the destination
+           This is especially useful for string routines where the destination
            is pushed as a parameter. Using the final destination of left directly
            save a temp allocation and copy of data (PFV) }
          oldassignmentnode:=aktassignmentnode;

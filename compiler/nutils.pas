@@ -942,7 +942,7 @@ implementation
       hpropsym : tpropertysym;
     begin
       result:=false;
-      { find property in the overriden list }
+      { find property in the overridden list }
       hpropsym:=propsym;
       repeat
         propaccesslist:=hpropsym.propaccesslist[pap];
@@ -951,7 +951,7 @@ implementation
             result:=true;
             exit;
           end;
-        hpropsym:=hpropsym.overridenpropsym;
+        hpropsym:=hpropsym.overriddenpropsym;
       until not assigned(hpropsym);
     end;
 

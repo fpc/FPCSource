@@ -1056,7 +1056,7 @@ var
          writeusedunit(true);
 
          { write the objectfiles and libraries that come for this unit,
-           preserve the containers becuase they are still needed to load
+           preserve the containers because they are still needed to load
            the link.res.
             All doesn't depend on the crc! It doesn't matter
            if a unit is in a .o or .a file }
@@ -1138,7 +1138,7 @@ var
          { write whole program optimisation-related information }
          tunitwpoinfo(wpoinfo).ppuwrite(ppufile);
 
-         { the last entry ibend is written automaticly }
+         { the last entry ibend is written automatically }
 
          { flush to be sure }
          ppufile.flush;

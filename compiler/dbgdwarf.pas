@@ -672,7 +672,7 @@ implementation
 
     procedure TDebugInfoDwarf.set_def_dwarf_labs(def:tdef);
       begin
-        { Keep track of used dwarf entries, this info is only usefull for dwarf entries
+        { Keep track of used dwarf entries, this info is only useful for dwarf entries
           referenced by the symbols. Definitions will always include all
           required stabs }
         if def.dbg_state=dbg_state_unused then

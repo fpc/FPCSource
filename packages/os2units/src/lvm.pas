@@ -4982,7 +4982,7 @@ CARDINAL32 * Error);
 //*          exception to this is if ProcessItem sets *Error to       */
 //*          DLIST_SEARCH_COMPLETE, in which case ForEachItem         */
 //*          terminates and sets *Error to DLIST_SUCCESS.  This is    */
-//*          usefull for using ForEachItem to search a list and then  */
+//*          useful for using ForEachItem to search a list and then  */
 //*          terminating the search once the desired item is found.   */
 //*                                                                   */
 //*          A word about the Parameters parameter.  This parameter   */
@@ -5083,7 +5083,7 @@ CARDINAL32 * Error);
 //*          exception to this is if KillItem sets *Error to          */
 //*          DLIST_SEARCH_COMPLETE, in which case KillItem            */
 //*          terminates and sets *Error to DLIST_SUCCESS.  This is    */
-//*          usefull for using KillItem to search a list and then     */
+//*          useful for using KillItem to search a list and then     */
 //*          terminating the search once the desired item is found.   */
 //*                                                                   */
 //*          A word about the Parameters parameter.  This parameter   */

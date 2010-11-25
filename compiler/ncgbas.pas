@@ -261,7 +261,7 @@ interface
                   ait_instruction :
                      begin
                        { remove cached insentry, because the new code can
-                         require an other less optimized instruction }
+                         require another less optimized instruction }
 {$ifdef i386}
 {$ifndef NOAG386BIN}
                        taicpu(hp2).ResetPass1;
@@ -306,7 +306,7 @@ interface
                   ait_instruction :
                      begin
                        { remove cached insentry, because the new code can
-                         require an other less optimized instruction }
+                         require another less optimized instruction }
 {$ifdef i386}
 {$ifndef NOAG386BIN}
                        taicpu(hp).ResetPass1;

@@ -41,7 +41,7 @@
      of brackets. Returns G_TOKEN_NONE if succesful, otherwise returns
      the token it expected but didn't get.
     }
-{ Combine RC style data from src into dest. If overriden, this
+{ Combine RC style data from src into dest. If overridden, this
      function should chain to the parent.
     }
 { Create an empty style suitable to this RC style

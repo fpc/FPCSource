@@ -814,11 +814,11 @@ parser_e_threadvars_only_sg=03147_E_THREADVARS peuvent seulement ˆtre statiques 
 % are stored on the stack
 parser_f_direct_assembler_not_allowed=03148_F_Assembleur direct non support‚ pour la sortie binaire
 % You can't use direct assembler when using a binary writer, choose an
-% other outputformat or use an other assembler reader
+% other outputformat or use another assembler reader
 parser_w_no_objpas_use_mode=03149_W_Ne chargez pas l'unit‚ OBJPAS manuellement, utilisez {$mode objfpc} ou {$mode delphi}
 % You're trying to load the ObjPas unit manual from a uses clause. This is
 % not a good idea to do, you can better use the {$mode objfpc} or {$mode delphi}
-% directives which load the unit automaticly
+% directives which load the unit automatically
 parser_e_no_object_override=03150_E_OVERRIDE nepeut ˆtre utilis‚ pour des objets
 % Override isn't support for objects, use VIRTUAL instead to override
 % a method of an anchestor object
@@ -1548,10 +1548,10 @@ unit_u_ppu_invalid_header=10007_U_PPU Invalid Header (no PPU at the begin)
 unit_u_ppu_invalid_version=10008_U_PPU Invalid Version $1
 % This unit file was compiled with a different version of the compiler, and
 % cannot be read.
-unit_u_ppu_invalid_processor=10009_U_PPU is compiled for an other processor
+unit_u_ppu_invalid_processor=10009_U_PPU is compiled for another processor
 % This unit file was compiled for a different processor type, and
 % cannot be read
-unit_u_ppu_invalid_target=10010_U_PPU is compiled for an other target
+unit_u_ppu_invalid_target=10010_U_PPU is compiled for another target
 % This unit file was compiled for a different processor type, and
 % cannot be read
 unit_u_ppu_source=10011_U_PPU Source: $1

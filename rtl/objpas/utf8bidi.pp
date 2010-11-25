@@ -47,9 +47,9 @@ function VLength(const Src:TUTF8String; pDir:TDirection):Cardinal;
 function VPos(const UTF8Str:TUTF8String; lp:Integer; pDir, cDir:TDirection):Cardinal;
 {Returns character at a given visual position according to paragraph direction}
 function VCharOf(UTF8Str:TUTF8String; vp:Integer; dir:TDirection):TUTF8Char;
-{Inserts a string into an other paying attention of RTL/LTR direction}
+{Inserts a string into another paying attention of RTL/LTR direction}
 procedure VInsert(const Src:TUTF8String; var Dest:TUTF8String; vp:Integer; pDir:TDirection);
-{Deletes a string into an other paying attention of RTL/LTR direction}
+{Deletes a string into another paying attention of RTL/LTR direction}
 procedure VDelete(var str:TUTF8String; vp, len:Integer; pDir:TDirection);
 {****************************Helper routines***********************************}
 {Returns direction of a character}

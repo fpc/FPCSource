@@ -1570,7 +1570,7 @@ Unit Rax86int;
                   case oper.opr.typ of
                     OPR_LOCAL :
                       begin
-                        { don't allow direct access to fields of parameters, becuase that
+                        { don't allow direct access to fields of parameters, because that
                           will generate buggy code. Allow it only for explicit typecasting
                           and when the parameter is in a register (delphi compatible) }
                         if (not oper.hastype) and

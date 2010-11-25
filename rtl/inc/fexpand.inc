@@ -556,7 +556,7 @@ end;
    parent directory and so on (Amiga). Please, note that you can decide
    to support both '..' and DirectorySeparator as references to the parent
    directory at the same time for compatibility reasons - however this
-   support makes it impossible to use an otherwise possibly valid name
+   support makes it impossible to use anotherwise possibly valid name
    of '..'.
 
    FPC_FEXPAND_DIRSEP_IS_CURDIR - DirectorySeparator at the beginning of

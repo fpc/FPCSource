@@ -109,7 +109,7 @@ function CheckWin32Version(Major,Minor: Integer): Boolean;
 
 function GetFileVersion(const AFileName:string):Cardinal;
   var
-    { usefull only as long as we don't need to touch different stack pages }
+    { useful only as long as we don't need to touch different stack pages }
     buf : array[0..3071] of byte;
     bufp : pointer;
     fn : string;

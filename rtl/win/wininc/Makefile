@@ -54,7 +54,7 @@ WINDOWS_DIR:=c\:/windows
 	sed -n -e "s/Addr:\(.*\)Ord:\(.*\)Name: \(.*\)/@\3@/p" $*.tmp > $*.exd
 #	-rm $*.tmp
 
-# list of usefull dll's for windows.pp
+# list of useful dll's for windows.pp
 dllexps : gdi32.exp kernel32.exp advapi32.exp user32.exp mapi32.exp  \
 	comdlg32.exp shell32.exp mpr.exp comctl32.exp version.exp \
 	opengl32.exp spoolss.exp winspool.exd

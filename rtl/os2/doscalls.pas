@@ -2860,7 +2860,7 @@ type    TStatusData=record
             PgmInputs:PChar;            {Command parameters (nil allowed).}
             TermQ:PChar;                {System queue. (nil allowed).}
             Environment:PChar;          {Environment to pass (nil allowed).}
-            InheritOpt:word;            {Inherit enviroment from shell/
+            InheritOpt:word;            {Inherit environment from shell/
                                          inherit environment from parent
                                          (0/1).}
             SessionType:word;           {Auto/full screen/window/presentation
