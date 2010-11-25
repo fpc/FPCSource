@@ -84,8 +84,6 @@ type
     property List: PByte read FList;
   end;
 
-{$ifndef VER2_0}
-
 const
   MaxGListSize = MaxInt div 1024;
 
@@ -201,8 +199,6 @@ type
     property List: PTypeList read GetList;
   end;
 
-{$endif}
-
   TFPSMap = class(TFPSList)
   private
     FKeySize: Integer;
@@ -253,8 +249,6 @@ type
     property OnDataPtrCompare: TFPSListCompareFunc read FOnDataPtrCompare write SetOnDataPtrCompare;
   end;
 
-{$ifndef VER2_0}
-
   generic TFPGMap<TKey, TData> = class(TFPSMap)
   public
     type
@@ -299,8 +293,6 @@ type
     property OnKeyCompare: TKeyCompareFunc read FOnKeyCompare write SetOnKeyCompare;
     property OnDataCompare: TDataCompareFunc read FOnDataCompare write SetOnDataCompare;
   end;
-
-{$endif}
 
 implementation
 
@@ -648,8 +640,6 @@ begin
   for I := 0 to Obj.Count - 1 do
     Add(Obj[i]);
 end;
-
-{$ifndef VER2_0}
 
 {****************************************************************************}
 {*             TFPGListEnumerator                                           *}
@@ -999,8 +989,6 @@ begin
   inherited Sort(@ItemPtrCompare);
 end;
 
-{$endif}
-
 {****************************************************************************
                              TFPSMap
  ****************************************************************************}
@@ -1236,8 +1224,6 @@ end;
                              TFPGMap
  ****************************************************************************}
 
-{$ifndef VER2_0}
-
 constructor TFPGMap.Create;
 begin
   inherited Create(SizeOf(TKey), SizeOf(TData));
@@ -1389,7 +1375,5 @@ function TFPGMap.Remove(const AKey: TKey): Integer;
 begin
   Result := inherited Remove(@AKey);
 end;
-
-{$endif}
 
 end.
