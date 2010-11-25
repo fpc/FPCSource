@@ -194,8 +194,8 @@ interface
   {$endif i386}
 {$endif Solaris}
 
-{$ifdef NotImplemented}
 {$ifdef go32v2}
+{$ifdef NotImplemented}
   {$undef NotImplemented}
   {$LINKLIB gdb}
   {$ifdef GDB_HAS_SIM}
@@ -218,11 +218,13 @@ interface
   {$ifndef GDB_DISABLE_INTL}
     {$LINKLIB intl}
   {$endif ndef GDB_DISABLE_INTL}
+{$endif NotImplemented}
   {$LINKLIB dbg}
   {$LINKLIB c}
 {$endif go32v2}
 
 {$ifdef linux}
+{$ifdef NotImplemented}
   {$undef NotImplemented}
   {$LINKLIB libgdb.a}
   {$ifdef GDB_HAS_SIM}
@@ -243,6 +245,7 @@ interface
     {$LINKLIB python}
   {$endif GDB_USES_LIBPYTHON}
   {$LINKLIB ncurses}
+{$endif NotImplemented}
   {$LINKLIB m}
   {$LINKLIB dl}
   {$LINKLIB c}
@@ -250,6 +253,7 @@ interface
 {$endif linux}
 
 {$ifdef freebsd}
+{$ifdef NotImplemented}
   {$ifdef FreeBSD5}  //5.4+ ?
     {$linklib kvm}
   {$endif}
@@ -280,11 +284,13 @@ interface
   {$ifdef GDB_USES_LIBPYTHON}
     {$LINKLIB python}
   {$endif GDB_USES_LIBPYTHON}
+{$endif NotImplemented}
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif freebsd}
 
 {$ifdef netbsd}
+{$ifdef NotImplemented}
   {$undef NotImplemented}
   {$LINKLIB gdb}
   {$ifdef GDB_HAS_SIM}
@@ -309,11 +315,13 @@ interface
     {$LINKLIB python}
   {$endif GDB_USES_LIBPYTHON}
   { does not seem to exist on netbsd LINKLIB dl}
+{$endif NotImplemented}
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif netbsd}
 
 {$ifdef solaris}
+{$ifdef NotImplemented}
   {$undef NotImplemented}
   {$LINKLIB gdb}
   {$ifdef GDB_HAS_SIM}
@@ -337,6 +345,7 @@ interface
   {$ifdef GDB_USES_LIBPYTHON}
     {$LINKLIB python}
   {$endif GDB_USES_LIBPYTHON}
+{$endif NotImplemented}
   {$LINKLIB dl}
   {$LINKLIB socket}
   {$LINKLIB nsl}
@@ -344,6 +353,7 @@ interface
 {$endif solaris}
 
 {$ifdef openbsd}
+{$ifdef NotImplemented}
   {$undef NotImplemented}
   {$LINKLIB gdb}
   {$ifdef GDB_HAS_SIM}
@@ -370,11 +380,13 @@ interface
     {$LINKLIB python}
   {$endif GDB_USES_LIBPYTHON}
   { does not seem to exist on netbsd LINKLIB dl}
+{$endif NotImplemented}
   {$LINKLIB c}
   {$LINKLIB gcc}
 {$endif netbsd}
 
 {$ifdef win32}
+{$ifdef NotImplemented}
   {$undef NotImplemented}
   {$LINKLIB libgdb.a}
  {$ifdef GDB_HAS_SIM}
@@ -387,13 +399,6 @@ interface
   {$LINKLIB libiberty.a}
 
   {$ifdef USE_MINGW_GDB}
-    {$LINKLIB libm.a}
-    {$LINKLIB libmoldname.a}
-    {$LINKLIB libgcc.a}
-    {$LINKLIB libws2_32.a}
-    {$LINKLIB libmingwex.a}
-    {$LINKLIB libmingw32.a}
-    {$LINKLIB libmsvcrt.a}
     {$LINKLIB libdecnumber.a}
     {$ifdef GDB_USES_LIBDECNUMBER}
       {$LINKLIB decnumber}
@@ -416,6 +421,17 @@ interface
     {$ifdef GDB_USES_LIBPYTHON}
       {$LINKLIB python}
     {$endif GDB_USES_LIBPYTHON}
+  {$endif not USE_MINGW_GDB}
+{$endif NotImplemented}
+  {$ifdef USE_MINGW_GDB}
+    {$LINKLIB libm.a}
+    {$LINKLIB libmoldname.a}
+    {$LINKLIB libgcc.a}
+    {$LINKLIB libws2_32.a}
+    {$LINKLIB libmingwex.a}
+    {$LINKLIB libmingw32.a}
+    {$LINKLIB libmsvcrt.a}
+  {$else not USE_MINGW_GDB}
     {$LINKLIB gcc}
     {$LINKLIB cygwin} { alias of libm.a and libc.a }
   {$LINKLIB libintl.a}
@@ -425,7 +441,45 @@ interface
   {$LINKLIB user32}
 {$endif win32}
 
+{$ifdef win64}
+{$ifdef NotImplemented}
+  {$undef NotImplemented}
+  {$LINKLIB libgdb.a}
+ {$ifdef GDB_HAS_SIM}
+  {$LINKLIB libsim.a}
+ {$endif GDB_HAS_SIM}
+  {$LINKLIB libbfd.a}
+  {$LINKLIB libreadline.a}
+  {$LINKLIB libopcodes.a}
+  {$LINKLIB libhistory.a}
+  {$LINKLIB libiberty.a}
+  {$LINKLIB libintl.a}
+
+  {$LINKLIB libdecnumber.a}
+  {$ifdef GDB_USES_LIBDECNUMBER}
+    {$LINKLIB decnumber}
+  {$endif GDB_USES_LIBDECNUMBER}
+  {$ifdef GDB_USES_EXPAT_LIB}
+    {$LINKLIB expat}
+  {$endif GDB_USES_EXPAT_LIB}
+  {$ifdef GDB_USES_LIBPYTHON}
+    {$LINKLIB python}
+  {$endif GDB_USES_LIBPYTHON}
+{$endif NotImplemented}
+  {$LINKLIB libm.a}
+  {$LINKLIB libmoldname.a}
+  {$LINKLIB libws2_32.a}
+  {$LINKLIB libmingwex.a}
+  {$LINKLIB libmingw32.a}
+  {$LINKLIB libmsvcrt.a}
+  {$LINKLIB libgcc.a}
+  {$LINKLIB libws2_32.a}
+  {$LINKLIB kernel32}
+  {$LINKLIB user32}
+{$endif win64}
+
 {$ifdef beos}
+{$ifdef NotImplemented}
   { still need some work... stollen from netbsd}
   {$undef NotImplemented}
   {$LINKLIB gdb}
@@ -451,13 +505,13 @@ interface
   {$ifdef GDB_USES_LIBPYTHON}
     {$LINKLIB python}
   {$endif GDB_USES_LIBPYTHON}
+{$endif NotImplemented}
   { does not seem to exist on netbsd LINKLIB dl}
   { $ LINKLIB c} // This is libroot under BeOS, and always linked
   {$LINKLIB debug}
   {$LINKLIB gcc}
 {$endif beos}
 
-{$endif NotImplemented}
 
 {$ifdef go32v2}
   {$define supportexceptions}
@@ -767,7 +821,8 @@ type
   case byte of
     0 :
     { greatest value found in cygwin machine/setjmp.h for i386 }
-    (unknown_field : array [1..13] of longint;);
+    { mingw uses int[16] C type for i386 }
+    (unknown_field : array [1..15] of longint;);
     1 :
     (eax,ebx,ecx,edx : longint;
     esi,edi,ebp,esp,eip : longint;);
@@ -2785,7 +2840,9 @@ end;
 procedure tgdbinterface.EndSession(code:longint);
 begin
   Debuggee_started:=false;
-  inferior_ptid.pid:=0;
+  { inferior_ptid.pid:=0;
+    This leads to an assertion failure
+    from generic_mount_inferior }
   DoEndSession(code);
   if assigned(signal_name) then
     strdispose(signal_name);

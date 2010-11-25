@@ -48,11 +48,17 @@ const
   OpenCLlib = 'OpenCL.dll';
   {$DEFINE extdecl := stdcall}
 {$ELSE}
-  //todo: LINUX
+  {$IFDEF LINUX}
+  {$DEFINE DYNLINK}
+const
+  OpenCLlib = 'libOpenCL.so';
+  {$DEFINE extdecl := cdecl}
+  {$ENDIF}
+
   {$IFDEF DARWIN}
   {$linkframework OpenCL}
-  {$ENDIF}
   {$DEFINE extdecl := cdecl}
+  {$ENDIF}
 {$ENDIF}
 
 {cl_platform.h}
