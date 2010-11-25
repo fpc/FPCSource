@@ -49,7 +49,6 @@ end;
 
 procedure RunFail;
 var
-  outname,
   TestExe : string;
 begin
   TestExe:=ForceExtension(FailName,ExeExt);

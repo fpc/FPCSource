@@ -5,6 +5,7 @@ var
   ps : ansistring;
   sticks : int64;
 begin
+  ps:='';
   if paramcount>0 then
     begin
       for i:=2 to paramcount do
