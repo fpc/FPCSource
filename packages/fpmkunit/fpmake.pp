@@ -35,7 +35,8 @@ begin
     D:=P.Dependencies.Add('fcl-process');
       D.Version:='2.4.3';
 
-    P.Targets.AddUnit('src/fpmkunit.pp');
+    with P.Targets.AddUnit('src/fpmkunit.pp') do
+      ResourceStrings:=true;
 
 {$ifndef ALLPACKAGES}
     Run;

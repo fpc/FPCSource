@@ -1,0 +1,16 @@
+#
+#  Makefile.fpc for ibase units example
+#
+
+[target]
+units=mod_stream  teststream.pp  testwrite.pp  tlibsee.pp
+programs=teststream  testwrite  tlibsee
+
+[require]
+packages=libsee
+
+[install]
+fpcpackage=y
+
+[default]
+fpcdir=../../..
