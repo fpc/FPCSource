@@ -181,6 +181,7 @@ CONST
           begin
             SysAllocateThreadVars;
             dataindex:=TlsGetValue(tlskey);
+            InitThread($1000000);
           end;
         SetLastError(errorsave);
 {$endif win32}
