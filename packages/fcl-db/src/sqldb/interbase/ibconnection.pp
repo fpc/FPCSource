@@ -56,7 +56,7 @@ type
     procedure ConnectFB;
     function GetDialect: integer;
     procedure AllocSQLDA(var aSQLDA : PXSQLDA;Count : integer);
-    procedure TranslateFldType(SQLType, SQLLen, SQLScale : integer;
+    procedure TranslateFldType(SQLType, SQLSubType, SQLLen, SQLScale : integer;
       var TrType : TFieldType; var TrLen : word);
     // conversion methods
     procedure GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
@@ -120,7 +120,8 @@ type
                   
 implementation
 
-uses strutils;
+uses
+  strutils, typinfo;
 
 type
   TTm = packed record
@@ -433,7 +434,7 @@ begin
     reAllocMem(aSQLDA,0);
 end;
 
-procedure TIBConnection.TranslateFldType(SQLType, SQLLen, SQLScale : integer;
+procedure TIBConnection.TranslateFldType(SQLType, SQLSubType, SQLLen, SQLScale : integer;
            var TrType : TFieldType; var TrLen : word);
 begin
   trlen := 0;
@@ -471,7 +472,10 @@ begin
       end;
     SQL_BLOB :
       begin
-        TrType := ftBlob;
+        if SQLSubType = 1 then
+           TrType := ftMemo
+        else
+           TrType := ftBlob;
         TrLen := SQLLen;
       end;
     SQL_SHORT :
@@ -686,7 +690,7 @@ begin
     setlength(FieldBinding,SQLDA^.SQLD);
     for x := 0 to SQLDA^.SQLD - 1 do
       begin
-      TranslateFldType(SQLDA^.SQLVar[x].SQLType, SQLDA^.SQLVar[x].SQLLen, SQLDA^.SQLVar[x].SQLScale,
+      TranslateFldType(SQLDA^.SQLVar[x].SQLType, SQLDA^.SQLVar[x].sqlsubtype, SQLDA^.SQLVar[x].SQLLen, SQLDA^.SQLVar[x].SQLScale,
         TransType, TransLen);
 
       FD := TFieldDef.Create(FieldDefs, FieldDefs.MakeNameUnique(SQLDA^.SQLVar[x].AliasName), TransType,
@@ -940,16 +944,22 @@ begin
           end;
         ftFloat   :
           GetFloat(CurrBuff, Buffer, SQLDA^.SQLVar[x].SQLLen);
-        ftBlob : begin  // load the BlobIb in field's buffer
+        ftBlob,
+        ftMemo :
+          begin  // load the BlobIb in field's buffer
             FillByte(buffer^,sizeof(TBufBlobField),0);
             Move(CurrBuff^, Buffer^, SQLDA^.SQLVar[x].SQLLen);
-         end
+          end;
 
-      else result := false;
-      end;
-      end;
+        else
+          begin
+            result := false;
+            databaseerror('Field type '+getenumname(typeinfo(tfieldtype),ord(FieldDef.DataType))+' not supported.');
+          end
+      end;  { case }
+      end; { if/else }
 {$R+}
-    end;
+    end; { with cursor }
 end;
 
 procedure TIBConnection.GetDateTime(CurrBuff, Buffer : pointer; AType : integer);
