@@ -859,7 +859,7 @@ var
   StrValue, DefStrValue: String;
   UStrValue, UDefStrValue: UnicodeString;
   AncestorObj: TObject;
-  Component: TComponent;
+  C,Component: TComponent;
   ObjValue: TObject;
   SavedAncestor: TPersistent;
   SavedPropPath, Name: String;
@@ -1080,19 +1080,28 @@ begin
             if (ObjValue <> AncestorObj)
                 and not (csTransient in Component.ComponentStyle) then
               begin
-              { Determine the correct name of the component this property contains }
-              if Component.Owner = LookupRoot then
-                Name := Component.Name
-              else if Component = LookupRoot then
-                Name := 'Owner'
-              else if Assigned(Component.Owner) and (Length(Component.Owner.Name) > 0)
-                and (Length(Component.Name) > 0) then
-                Name := Component.Owner.Name + '.' + Component.Name
-              else if Length(Component.Name) > 0 then
-                Name := Component.Name + '.Owner'
-              else
-                SetLength(Name, 0);
-
+              Name:= '';
+              C:= Component;
+              While (C<>Nil) and (C.Name<>'') do
+                begin
+                If (Name<>'') Then
+                  Name:='.'+Name;
+                if C.Owner = LookupRoot then
+                  begin
+                  Name := C.Name+Name;
+                  break;
+                  end
+                else if C = LookupRoot then
+                  begin
+                  Name := 'Owner' + Name;
+                  break;
+                  end;
+                Name:=C.Name + Name;
+                C:= C.Owner;
+                end;
+              if (C=nil) and (Component.Owner=nil) then 
+                if (Name<>'') then              //foreign root
+                  Name:=Name+'.Owner';
               if Length(Name) > 0 then
                 begin
                 Driver.BeginProperty(FPropPath + PPropInfo(PropInfo)^.Name);
