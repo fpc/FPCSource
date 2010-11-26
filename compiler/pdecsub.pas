@@ -720,6 +720,23 @@ implementation
 
 
     function parse_proc_head(aclass:tobjectdef;potype:tproctypeoption;var pd:tprocdef):boolean;
+
+      function push_objects(obj:tobjectdef):integer;
+        begin
+          result:=1;
+          if obj.owner.symtabletype=ObjectSymtable then
+            inc(result,push_objects(tobjectdef(obj.owner.defowner)));
+          symtablestack.push(obj.symtable);
+        end;
+
+      function pop_objects(obj:tobjectdef):integer;
+        begin
+          result:=1;
+          symtablestack.pop(obj.symtable);
+          if obj.owner.symtabletype=ObjectSymtable then
+            inc(result,pop_objects(tobjectdef(obj.owner.defowner)));
+        end;
+
       var
         hs       : string;
         orgsp,sp : TIDString;
@@ -730,9 +747,9 @@ implementation
         procstartfilepos : tfileposinfo;
         searchagain : boolean;
         st,
-        genericst : TSymtable;
+        genericst: TSymtable;
         aprocsym : tprocsym;
-        popclass : boolean;
+        popclass : integer;
         ImplIntf : TImplementedInterface;
         old_parse_generic : boolean;
         old_current_objectdef,
@@ -997,13 +1014,13 @@ implementation
         { parse parameters }
         if token=_LKLAMMER then
           begin
-            { Add ObjectSymtable to be able to find generic type definitions }
-            popclass:=false;
+            { Add ObjectSymtable to be able to find nested type definitions }
+            popclass:=0;
             if assigned(pd._class) and
                (pd.parast.symtablelevel=normal_function_level) and
                (symtablestack.top.symtabletype<>ObjectSymtable) then
               begin
-                symtablestack.push(pd._class.symtable);
+                popclass:=push_objects(pd._class);
                 old_current_objectdef:=current_objectdef;
                 old_current_genericdef:=current_genericdef;
                 old_current_specializedef:=current_specializedef;
@@ -1012,7 +1029,6 @@ implementation
                   current_genericdef:=current_objectdef;
                 if assigned(current_objectdef) and (df_specialization in current_objectdef.defoptions) then
                   current_specializedef:=current_objectdef;
-                popclass:=true;
               end;
             { Add parameter symtable }
             if pd.parast.symtabletype<>staticsymtable then
@@ -1020,13 +1036,15 @@ implementation
             parse_parameter_dec(pd);
             if pd.parast.symtabletype<>staticsymtable then
               symtablestack.pop(pd.parast);
-            if popclass then
-            begin
-              current_objectdef:=old_current_objectdef;
-              current_genericdef:=old_current_genericdef;
-              current_specializedef:=old_current_specializedef;
-              symtablestack.pop(pd._class.symtable);
-            end;
+            if popclass>0 then
+              begin
+                current_objectdef:=old_current_objectdef;
+                current_genericdef:=old_current_genericdef;
+                current_specializedef:=old_current_specializedef;
+                dec(popclass, pop_objects(pd._class));
+                if popclass<>0 then
+                  internalerror(201011260); // 11 nov 2010 index 0
+              end;
           end;
 
         parse_generic:=old_parse_generic;
