@@ -1476,8 +1476,7 @@ implementation
             { Check for operators? }
             (
              (cdo_check_operator in cdoptions) and
-             ((def_from.typ in [objectdef,recorddef,arraydef,stringdef]) or
-              (def_to.typ in [objectdef,recorddef,arraydef,stringdef]))
+             ((def_from.typ<>variantdef) or (def_to.typ<>variantdef))
             )
            ) then
           begin
