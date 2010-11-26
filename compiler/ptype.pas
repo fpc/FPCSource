@@ -351,6 +351,7 @@ implementation
         srsymtable : TSymtable;
         s,sorg : TIDString;
         t : ttoken;
+        objdef : tobjectdef;
       begin
          s:=pattern;
          sorg:=orgpattern;
@@ -358,16 +359,20 @@ implementation
          { use of current parsed object:
             - classes can be used also in classes
             - objects can be parameters }
-         if assigned(current_objectdef) and
-            (current_objectdef.objname^=pattern) and
-            (
-             (testcurobject=2) or
-             is_class_or_interface_or_objc(current_objectdef)
-            )then
+         objdef:=current_objectdef;
+         while Assigned(objdef) and (objdef.typ=objectdef) do
            begin
-             consume(_ID);
-             def:=current_objectdef;
-             exit;
+             if (tobjectdef(objdef).objname^=pattern) and
+                (
+                  (testcurobject=2) or
+                  is_class_or_interface_or_objc(objdef)
+                ) then
+                begin
+                  consume(_ID);
+                  def:=objdef;
+                  exit;
+                end;
+             objdef:=tobjectdef(tobjectdef(objdef).owner.defowner);
            end;
          { Use the special searchsym_type that ignores records,objects and
            parameters }
