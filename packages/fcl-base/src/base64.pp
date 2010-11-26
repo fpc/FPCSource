@@ -38,7 +38,7 @@ type
   public
     constructor Create(ASource: TStream);
     destructor Destroy; override;
-
+    Function Flush : Boolean;
     function Write(const Buffer; Count: Longint): Longint; override;
     function Seek(Offset: Longint; Origin: Word): Longint; override;
   end;
@@ -129,7 +129,8 @@ begin
   inherited Create(ASource);
 end;
 
-destructor TBase64EncodingStream.Destroy;
+function TBase64EncodingStream.Flush : Boolean;
+
 var
   WriteBuf: array[0..3] of Char;
 begin
@@ -141,6 +142,8 @@ begin
         WriteBuf[2] := '=';
         WriteBuf[3] := '=';
         Source.Write(WriteBuf, 4);
+        Result:=True;
+        Inc(TotalBytesProcessed,2);
       end;
     2: begin
         WriteBuf[0] := EncodingTable[Buf[0] shr 2];
@@ -148,8 +151,17 @@ begin
         WriteBuf[2] := EncodingTable[(Buf[1] and 15) shl 2];
         WriteBuf[3] := '=';
         Source.Write(WriteBuf, 4);
+        Result:=True;
+        Inc(TotalBytesProcessed,1);
       end;
+  else
+    Result:=False;
   end;
+end;
+
+destructor TBase64EncodingStream.Destroy;
+begin
+  Flush;
   inherited Destroy;
 end;
 
