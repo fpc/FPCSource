@@ -28,7 +28,9 @@ function atexit(p:TCFunction):longint; cdecl;  // export our own atexit handler
 
 implementation
 
-uses gdbint; // force dependancies that hopefully make it execute at the right moment.
+uses
+  windows,
+  gdbint; // force dependancies that hopefully make it execute at the right moment.
 
 // prototype of atexit:
 Type
@@ -39,6 +41,11 @@ var __imp_atexit : TAtExitFunction; Cvar; external;  // "true" atexit in mingw l
 {$else not win64}
 var _imp__atexit : TAtExitFunction; Cvar; external;  // "true" atexit in mingw libs.
 {$endif not win64}
+
+var
+ hMsvcrt : HModule = 0;
+ free_Msvcrt : boolean;
+ fctMsvcrtLongJmp : pointer;cvar;external;
 
 function atexit(p:TCFunction):longint;cdecl; [public, alias : '_atexit'];
 
@@ -81,7 +88,19 @@ begin
       explicitly at app startup rather than rely on gcc to generate
       the call in main's  prologue, since main may be imported from a dll
       which has its own __do_global_ctors.  }
- //  __main;                   // should be libgcc initialization but this causes infinite loop.
+{$ifdef win64}
+ if (hMsvcrt=0) then
+   hMsvcrt := GetModuleHandleA ('msvcrt.dll');
+ if (hMsvcrt=0) then
+   begin
+     hMsvcrt := LoadLibraryA ('msvcrt.dll');
+     free_Msvcrt := true;
+   end;
+
+ fctMsvcrtLongJmp := GetProcAddress(hMsvcrt, 'longjmp');
+
+   // __main;                   // should be libgcc initialization but this causes infinite loop.
+{$endif win64}
 end;
 
 procedure _cexit; cdecl; external;
@@ -92,6 +111,13 @@ begin
    * Perform exit processing for the C library. This means
    * flushing output and calling 'atexit' registered functions.
 }
+   if free_Msvcrt and (hMsvcrt<>0) then
+     begin
+       free_Msvcrt := false;
+       FreeLibrary (hMsvcrt);
+       hMsvcrt := 0;
+     end;
+
  _cexit ();
 end;
 
