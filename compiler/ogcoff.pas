@@ -417,6 +417,14 @@ implementation
        IMAGE_REL_AMD64_SREL32      = $000E;  { 32 bit signed span-dependent value emitted into object }
        IMAGE_REL_AMD64_PAIR        = $000F;
        IMAGE_REL_AMD64_SSPAN32     = $0010;  { 32 bit signed span-dependent value applied at link time }
+      { Direct 32 bit sign extended,
+        win64 mingw GNU compiler
+        also generates this type
+        inside coff objects
+        We assume they are equivalent to
+        IMAGE_REL_AMD64_ADDR32  PM 2010-11-27 }
+       R_X86_64_32S =           $11;
+
 {$endif x86_64}
 
 {$ifdef arm}
@@ -1614,7 +1622,8 @@ const pemagic : array[0..3] of byte = (
 {$ifdef x86_64}
              IMAGE_REL_AMD64_REL32:
                rel_type:=RELOC_RELATIVE;
-             IMAGE_REL_AMD64_ADDR32:
+             IMAGE_REL_AMD64_ADDR32,
+             R_X86_64_32S:
                rel_type:=RELOC_ABSOLUTE32;
              IMAGE_REL_AMD64_ADDR64:
                rel_type:=RELOC_ABSOLUTE;
