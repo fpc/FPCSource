@@ -900,8 +900,14 @@ begin
   ScreenMode:=Mode;
 {  InitMouse;
   InitMemory;}
-  InitScreen;
+{  InitScreen;
+   Warning: InitScreen calls DetectVideo which
+    resets ScreenMode to old value, call it after
+    video mode was changed instead of before }
   Video.SetVideoMode(Mode);
+
+  { Update ScreenMode to new value }
+  InitScreen;
   ScreenWidth:=Video.ScreenWidth;
   ScreenHeight:=Video.ScreenHeight;
   Buffer := Views.PVideoBuf(VideoBuf);
