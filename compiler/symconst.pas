@@ -584,6 +584,42 @@ const
        'public','published'
      );
 
+
+{ !! Be sure to keep these in sync with ones in rtl/inc/varianth.inc }
+      varempty = 0;
+      varnull = 1;
+      varsmallint = 2;
+      varinteger = 3;
+      varsingle = 4;
+      vardouble = 5;
+      varcurrency = 6;
+      vardate = 7;
+      varolestr = 8;
+      vardispatch = 9;
+      varerror = 10;
+      varboolean = 11;
+      varvariant = 12;
+      varunknown = 13;
+      vardecimal = 14;
+      varshortint = 16;
+      varbyte = 17;
+      varword = 18;
+      varlongword = 19;
+      varint64 = 20;
+      varqword = 21;
+
+      varUndefined = -1;
+
+      varstrarg = $48;
+      varustrarg = $49;
+
+      varstring = $100;
+      varany = $101;
+      varustring = $102;
+      vardefmask = $fff;
+      vararray = $2000;
+      varbyref = $4000;
+
 implementation
 
 end.
