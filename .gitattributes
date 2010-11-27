@@ -10751,6 +10751,7 @@ tests/webtbs/tw1780.pp svneol=native#text/plain
 tests/webtbs/tw17836.pp svneol=native#text/plain
 tests/webtbs/tw17846.pp svneol=native#text/plain
 tests/webtbs/tw17862.pp svneol=native#text/plain
+tests/webtbs/tw17904.pas svneol=native#text/plain
 tests/webtbs/tw17907/main/main.pas svneol=native#text/plain
 tests/webtbs/tw17907/test.bat svneol=native#text/plain
 tests/webtbs/tw17907/unit1/unit0001.pas svneol=native#text/plain

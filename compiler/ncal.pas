@@ -299,7 +299,6 @@ implementation
         vardatadef,
         pvardatadef : tdef;
         useresult: boolean;
-        byrefpara: boolean;
         restype: byte;
 
         names : ansistring;
@@ -308,7 +307,6 @@ implementation
 
       function is_byref_para(out assign_type: tdef): boolean;
         begin
-          // !! This condition is subject to change, see Mantis #17904
           result:=(assigned(para.parasym) and (para.parasym.varspez in [vs_var,vs_out,vs_constref])) or
                   (variantdispatch and valid_for_var(para.left,false));
 
@@ -329,6 +327,9 @@ implementation
         begin
           if is_ansistring(sourcedef) then
             result:=varStrArg
+          else
+          if is_unicodestring(sourcedef) then
+            result:=varUStrArg
           else
           if is_interface(sourcedef) then
             begin
@@ -376,10 +377,7 @@ implementation
               inc(namedparacount);
 
             { insert some extra casts }
-            if is_constintnode(para.left) and not(is_64bitint(para.left.resultdef)) then
-              inserttypeconv_internal(para.left,s32inttype)
-
-            else if para.left.nodetype=stringconstn then
+            if para.left.nodetype=stringconstn then
               inserttypeconv_internal(para.left,cwidestringtype)
 
             { force automatable boolean type }

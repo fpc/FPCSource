@@ -13,6 +13,9 @@
     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
 
  **********************************************************************}
+
+{ Variant types. Changes to these consts must be synchronized with
+  similar list in compiler code, in implementation part of symdef.pas }
 const
    varempty = 0;
    varnull = 1;
@@ -40,14 +43,26 @@ const
 
    varrecord = 36;
 
-   varstrarg = $48;
+   { The following values never appear as TVarData.VType, but are used in
+     TCallDesc.Args[] as aliases for compiler-specific types.
+     (since it provides only 1 byte per element, actual values won't fit)
+     The choice of values is pretty much arbitrary. }
+
+   varstrarg = $48;         { maps to varstring }
+   varustrarg = $49;        { maps to varustring }
+
+   { Compiler-specific variant types (not known to COM) are kept in
+    'pseudo-custom' range of $100-$10E. Real custom types start with $10F. }
+
    varstring = $100;
    varany = $101;
+   varustring = $102;
    vartypemask = $fff;
    vararray = $2000;
    varbyref = $4000;
 
    varword64 = varqword;
+   varuint64 = varqword; // Delphi alias
 
 type
    tvartype = word;

@@ -803,6 +803,7 @@ implementation
                                   Constants
 ****************************************************************************}
 
+{ !! Be sure to keep these in sync with ones in rtl/inc/varianth.inc }
     const
       varempty = 0;
       varnull = 1;
@@ -825,13 +826,15 @@ implementation
       varlongword = 19;
       varint64 = 20;
       varqword = 21;
-      varunicodestr = 22;
 
       varUndefined = -1;
 
       varstrarg = $48;
+      varustrarg = $49;
+
       varstring = $100;
       varany = $101;
+      varustring = $102;
       vardefmask = $fff;
       vararray = $2000;
       varbyref = $4000;
@@ -1367,7 +1370,7 @@ implementation
     function tstringdef.getvardef : longint;
       const
         vardef : array[tstringtype] of longint = (
-          varUndefined,varUndefined,varString,varOleStr,varUnicodeStr);
+          varUndefined,varUndefined,varString,varOleStr,varUString);
       begin
         result:=vardef[stringtype];
       end;
