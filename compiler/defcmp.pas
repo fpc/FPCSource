@@ -338,7 +338,8 @@ implementation
                            doconv:=tc_string_2_string;
                            { Don't prefer conversions from widestring to a
                              normal string as we can loose information }
-                           if tstringdef(def_from).stringtype in [st_widestring,st_unicodestring] then
+                           if (tstringdef(def_from).stringtype in [st_widestring,st_unicodestring]) and
+                             not (tstringdef(def_to).stringtype in [st_widestring,st_unicodestring]) then
                              eq:=te_convert_l3
                            else if tstringdef(def_to).stringtype in [st_widestring,st_unicodestring] then
                              eq:=te_convert_l2
@@ -358,16 +359,22 @@ implementation
                          case tstringdef(def_from).stringtype of
                            st_widestring :
                              begin
-                               { Prefer conversions to ansistring }
-                               if tstringdef(def_to).stringtype=st_ansistring then
+                               { Prefer conversions to unicodestring }
+                               if tstringdef(def_to).stringtype=st_unicodestring then
+                                 eq:=te_convert_l1
+                               { else prefer conversions to ansistring }
+                               else if tstringdef(def_to).stringtype=st_ansistring then
                                  eq:=te_convert_l2
                                else
                                  eq:=te_convert_l3;
                              end;
                            st_unicodestring :
                              begin
-                               { Prefer conversions to ansistring }
-                               if tstringdef(def_to).stringtype=st_ansistring then
+                               { Prefer conversions to widestring }
+                               if tstringdef(def_to).stringtype=st_widestring then
+                                 eq:=te_convert_l1
+                               { else prefer conversions to ansistring }
+                               else if tstringdef(def_to).stringtype=st_ansistring then
                                  eq:=te_convert_l2
                                else
                                  eq:=te_convert_l3;
