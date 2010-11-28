@@ -744,6 +744,7 @@ Type
     FStartDir : String;
     FForceCompile : Boolean;
     FListMode : Boolean;
+    FVerbose : boolean;
 {$ifdef HAS_UNIT_ZIPPER}
     FZipFile: TZipper;
 {$endif HAS_UNIT_ZIPPER}
@@ -792,6 +793,9 @@ Type
   Public
     Constructor Create(AOwner : TComponent); override;
     destructor Destroy;override;
+
+    property Verbose : boolean read FVerbose write FVerbose;
+
     // Public Copy/delete/Move/Archive/Mkdir Commands.
     Procedure ExecuteCommand(const Cmd,Args : String; IgnoreError : Boolean = False); virtual;
     Procedure CmdCopyFiles(List : TStrings; Const DestDir : String);
@@ -1141,6 +1145,87 @@ Const
                                 Helpers
 ****************************************************************************}
 
+function ExecuteFPC(Verbose: boolean; const Path: string; const ComLine: string): integer;
+var
+  M: TMemoryStream;
+  P: TProcess;
+  BytesRead: longint;
+
+  function ReadFromStream: longint;
+  const
+    READ_BYTES = 2048;
+  var
+    n: longint;
+    BuffPos: longint;
+    sLine: string;
+    ch: char;
+  begin
+    // make sure we have room
+    M.SetSize(BytesRead + READ_BYTES);
+
+    // try reading it
+    n := P.Output.Read((M.Memory + BytesRead)^, READ_BYTES);
+    if n > 0 then
+    begin
+      Inc(BytesRead, n);
+
+      sLine := '';
+      BuffPos := M.Position;
+
+      //read lines from the stream
+      repeat
+        M.Read(ch,1);
+
+        if ch in [#10, #13] then
+        begin
+          if Verbose then
+            writeln(sLine)
+          else
+            if (Pos('Compiling', sLine) = 1) or (Pos('Linking', sLine) = 1) then
+              writeln('       ', sLine);
+
+          sLine := '';
+          BuffPos := M.Position;
+        end
+        else
+          sLine := sLine + ch;
+
+      until M.Position = M.Size;
+
+      M.Position := BuffPos;
+    end
+    else
+    begin
+      // no data, wait 100 ms
+      Sleep(100);
+    end;
+
+    Result := n;
+  end;
+
+begin
+  try
+    M := TMemoryStream.Create;
+    BytesRead := 0;
+
+    P := TProcess.Create(nil);
+    P.CommandLine := Path + ' ' + ComLine;
+    P.Options := [poUsePipes];
+
+    //writeln('Execute: ', P.CommandLine);
+
+    P.Execute;
+    while P.Running do
+      ReadFromStream;
+
+    // read last part
+    repeat
+    until ReadFromStream = 0;
+  finally
+    P.Free;
+    M.Free;
+  end;
+end;
 
 Function QuoteXML(S : String) : string;
 
@@ -2907,6 +2992,7 @@ begin
   FBuildEngine:=TBuildEngine.Create(Self);
 //  FBuildEngine.Defaults:=Defaults;
   FBuildEngine.ListMode:=FListMode;
+  FBuildEngine.Verbose := (FLogLevels = AllMessages);
   FBuildEngine.OnLog:=@Self.Log;
 end;
 
@@ -3288,7 +3374,7 @@ begin
   else
     begin
       // We should check cmd for spaces, and move all after first space to args.
-      E:=ExecuteProcess(cmd,args);
+      E:=ExecuteFPC(Verbose, cmd, args);
       If (E<>0) and (not IgnoreError) then
         Error(SErrExternalCommandFailed,[Cmd,E]);
     end;
@@ -4679,6 +4765,9 @@ begin
       P:=Packages.PackageItems[i];
       If PackageOK(P) then
         MaybeCompile(P);
+
+      //show compile progress
+      writeln('[', (I + 1)/Packages.Count * 100:3:0, '%] Built target ', P.Name);
     end;
   If Assigned(AfterCompile) then
     AfterCompile(Self);
