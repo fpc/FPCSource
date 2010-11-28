@@ -114,6 +114,7 @@ type
     FDescription: String;
     FEmail: String;
     FInstalledLocally: boolean;
+    FIsFPMakeAddIn: boolean;
     FLicense: String;
     FName: String;
     FHomepageURL: String;
@@ -155,6 +156,7 @@ type
     Property OSes : TOSes Read FOSes Write FOses;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
     Property Checksum : Cardinal Read FChecksum Write FChecksum;
+    Property IsFPMakeAddIn : boolean read FIsFPMakeAddIn write FIsFPMakeAddIn;
     // Manual package from commandline not in official repository
     Property LocalFileName : String Read FLocalFileName Write FLocalFileName;
   end;

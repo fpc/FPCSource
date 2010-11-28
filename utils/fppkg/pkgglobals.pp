@@ -23,9 +23,11 @@ Const
 
 Type
   TFPMKUnitDep=record
-    package : string[12];
-    reqver  : string[8];
-    undef   : string[16];
+    package  : string[12];
+    reqver   : string[8];
+    undef    : string[32];
+    def      : string[32];
+    available: boolean;
   end;
 
 Const
@@ -33,8 +35,8 @@ Const
   CurrentDirPackageName='<currentdir>';
 
   // Dependencies for compiling the fpmkunit unit
-  FPMKUnitDepCount=4;
-  FPMKUnitDeps : array[1..4] of TFPMKUnitDep = (
+  FPMKUnitDepDefaultCount=4;
+  FPMKUnitDepsDefaults : array[0..FPMKUnitDepDefaultCount-1] of TFPMKUnitDep = (
     (package: 'hash';
      reqver : '2.2.2';
      undef  : 'NO_UNIT_ZIPPER'),
@@ -82,7 +84,7 @@ function IsSuperUser:boolean;
 
 var
   LogLevels : TLogLevels;
-  FPMKUnitDepAvailable : array[1..FPMKUnitDepCount] of boolean;
+  FPMKUnitDeps : array of TFPMKUnitDep;
 
 
 Implementation
