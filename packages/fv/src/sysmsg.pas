@@ -74,10 +74,10 @@ implementation
 {$i go32smsg.inc}
 {$define HAS_SYSMSG}
 {$endif go32v2}
-{$ifdef win32}
+{$ifdef OS_WINDOWS}
 {$i w32smsg.inc}
 {$define HAS_SYSMSG}
-{$endif win32}
+{$endif OS_WINDOWS}
 {$ifdef unix}
 {$i unixsmsg.inc}
 {$define HAS_SYSMSG}

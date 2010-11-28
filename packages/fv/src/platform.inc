@@ -31,9 +31,12 @@
 {                 - Virtual Pascal 2.0+     (32 Bit)       }
 {                 - Speedsoft Sybil 2.0+    (32 Bit)       }
 {                 - FPC 0.9912+             (32 Bit)       }
+{       WIN64     - FPC 2.4.3               (64 Bit)       }
 {        OS2      - Virtual Pascal 1.0+     (32 Bit)       }
 {                 - C'T patch to BP         (16 Bit)       }
 {        LINUX    - FPC 0.9912+             (32 Bit)       }
+{        LINUX    - FPC 2.4.3               (64 Bit)       }
+{        LINUX    - FPC 2.4.3               (64 Bit)       }
 {                                                          }
 {******************[ REVISION HISTORY ]********************}
 {  Version  Date      Who    Fix                           }
@@ -55,6 +58,7 @@
 {  1.32    04 Nov 99  LdB    Delphi 5 definitions added    }
 {  1.33    16 Oct 00  LdB    WIN32/WIN16 defines added     }
 {  1.34    02 May 02  MvdV   FreeBSD, NetBSD, OS_UNIX      }
+{  1.35    28 Nov 10  PM     64 bit OS Linux, Win64, FreeBSD }
 {**********************************************************}
 
 { ****************************************************************************
@@ -84,9 +88,11 @@
                       FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
 
  LINUX    OS_LINUX    FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
+ LINUX    OS_LINUX    FPC      PPC_FPC      PROC_Protected  BIT_64  ASM_FPC
           OS_UNIX
 
  FREEBSD  OS_FREEBSD  FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
+ FREEBSD  OS_FREEBSD  FPC      PPC_FPC      PROC_Protected  BIT_64  ASM_FPC
           OS_UNIX
 
  NETBSD   OS_NETBSD   FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
@@ -103,6 +109,7 @@
                       VIRTUAL  PPC_VIRTUAL  PROC_Protected  BIT 32  ASM_BP
                       SYBIL2   PPC_SPEED    PROC_Protected  BIT_32  ASM_BP
                       FPC      PPC_FPC      PROC_Protected  BIT_32  ASM_FPC
+ WINDOWS 64-BITS      FPC      PPC_FPC      PROC_Protected  BIT_64  ASM_FPC
 
  OS2      OS_OS2      BPOS2    PPC_BPOS2    PROC_Protected  BIT_16  ASM_BP
                       VIRTUAL  PPC_VIRTUAL  PROC_Protected  BIT_32  ASM_BP
@@ -153,6 +160,7 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
 {---------------------------------------------------------------------------}
 {  FPC 32 BIT COMPILER changes ASM, 32 bits etc - Updated 27Aug98 LdB       }
+{  FPC 64 BIT COMPILER added - Update 28Nov2010 PM                          }
 {---------------------------------------------------------------------------}
 {$IFDEF FPC}
   {$mode fpc}
@@ -160,7 +168,13 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$UNDEF PROC_Real}
   {$DEFINE PROC_Protected}
   {$UNDEF BIT_16}
-  {$DEFINE BIT_32}
+  {$IFDEF CPU64}
+    {$UNDEF BIT_32}
+    {$DEFINE BIT_64}
+  {$ELSE}
+    {$DEFINE BIT_32}
+    {$UNDEF BIT_64}
+  {$ENDIF}
   {$UNDEF PPC_BP}
   {$DEFINE PPC_FPC}
   {$UNDEF ASM_BP}
@@ -245,6 +259,18 @@ FOR FPC THESE ARE THE TRANSLATIONS
 {$ENDIF}
 
 {---------------------------------------------------------------------------}
+{  64 BIT WINDOWS COMPILERS changes bit size - Updated 28Nov10 PM           }
+{---------------------------------------------------------------------------}
+{$IFDEF WIN64}
+  {$IFNDEF WINDOWS}
+    {$DEFINE WINDOWS}
+  {$ENDIF}
+  {$UNDEF BIT_16}
+  {$UNDEF BIT_32}
+  {$DEFINE BIT_64}
+{$ENDIF}
+
+{---------------------------------------------------------------------------}
 {  WINDOWS COMPILERS change op system and proc mode - Updated 03Nov99 LdB   }
 {---------------------------------------------------------------------------}
 {$IFDEF WINDOWS}
@@ -253,7 +279,7 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$UNDEF PROC_Real}
   {$DEFINE PROC_Protected}
   {$IFDEF FPC}
-    {$DEFINE WIN32}
+    // {$DEFINE WIN32}
   {$ENDIF}
 {$ENDIF}
 
@@ -413,6 +439,7 @@ FOR FPC THESE ARE THE TRANSLATIONS
 
 {---------------------------------------------------------------------------}
 {  WIN16 AND WIN32 set if in windows - Updated 16Oct2000 LdB                }
+{  WIN64 added - Update 28Nov2010 PM                                        }
 {---------------------------------------------------------------------------}
 {$IFDEF OS_WINDOWS}                                   { WINDOWS SYSTEM }
   {$IFDEF BIT_16}
@@ -421,7 +448,22 @@ FOR FPC THESE ARE THE TRANSLATIONS
   {$IFDEF BIT_32}
     {$DEFINE WIN32}                                   { 32 BIT WINDOWS }
   {$ENDIF}
+  {$IFDEF BIT_64}
+    {$DEFINE WIN64}                                   { 64 BIT WINDOWS }
+  {$ENDIF}
 {$ENDIF}
+
+
+{---------------------------------------------------------------------------}
+{  BIT_32_OR_MORE                                                           }
+{---------------------------------------------------------------------------}
+
+{$ifdef BIT_16}
+  {$UNDEF BIT_32_OR_MORE}
+{$ELSE}
+  {$DEFINE BIT_32_OR_MORE}
+{$ENDIF}
+
 
 
 
