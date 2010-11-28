@@ -566,6 +566,7 @@ Type
     procedure GetInstallFiles(List: TStrings;Types : TTargetTypes;ACPU:TCPU; AOS : TOS); virtual;
     procedure GetInstallSourceFiles(List: TStrings;Types : TSourceTypes); virtual;
     Procedure GetArchiveFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
+    Procedure GetArchiveSourceFiles(List : TStrings); virtual;
     Procedure GetManifest(Manifest : TStrings);
     Property Version : String Read GetVersion Write SetVersion;
     Property FileName : String Read GetFileName Write FFileName;
@@ -2122,6 +2123,13 @@ begin
     FTargets.TargetItems[I].GetArchiveFiles(List,ACPU,AOS);
 end;
 
+procedure TPackage.GetArchiveSourceFiles(List: TStrings);
+var
+  i : integer;
+begin
+  for i := 0 to Sources.Count-1 do
+    List.Add(Sources[i].Name);
+end;
 
 Function TPackage.GetDescription : string;
 Var
@@ -4477,8 +4485,7 @@ begin
               APackage.GetArchiveFiles(L, ICPU, IOS);
             end;
       //from sources
-      for i := 0 to APackage.Sources.Count-1 do
-        L.Add(APackage.Sources[i].Name);
+      APackage.GetArchiveSourceFiles(L);
 
       //show all files
       for i := 0 to L.Count-1 do
