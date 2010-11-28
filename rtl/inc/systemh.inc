@@ -21,9 +21,9 @@
 {$I-,Q-,H-,R-,V-}
 {$mode objfpc}
 
-{ At least 2.0.0 is required }
-{$if defined(VER1) or defined(VER2_0) or defined(VER2_2_0) }
-  {$fatal You need at least FPC 2.2.2 to build this version of FPC}
+{ At least 2.4.0 is required }
+{$if defined(VER1) or defined(VER2_0) or defined(VER2_2) }
+  {$fatal You need at least FPC 2.4.0 to build this version of FPC}
 {$endif}
 
 { Using inlining for small system functions/wrappers }
@@ -80,12 +80,6 @@
 {$define FPC_HAS_FEATURE_OBJECTIVEC1}
 {$endif FPC_HAS_FEATURE_SUPPORT}
 
-{$ifndef VER2_2}
-{$ifndef FPC_HAS_UNICODESTRING}
-{$error Building trunk is only supported when using the latest release as a starting compiler}
-{$endif}
-{$endif}
-
 {****************************************************************************
                          Global Types and Constants
 ****************************************************************************}
@@ -102,9 +96,7 @@ Type
     Delphi allows chose of overloaded procedure depending
     on Real <-> Double, so use type here, see also tw7425.pp (FK) }
 {$ifndef FPUNONE}
-{$ifndef VER2_0}
   Real = type Double;
-{$endif VER2_0}
 {$endif}
 
 {$ifdef CPUI386}
@@ -363,10 +355,6 @@ Type
 
   UnicodeChar         = WideChar;
   PUnicodeChar        = ^UnicodeChar;
-{$ifdef VER2_2}
-  { this is only to avoid too much ifdefs in the code }
-  UnicodeString       = type WideString;
-{$endif VER2_2}
   PUnicodeString      = ^UnicodeString;
 
   { Needed for fpc_get_output }
@@ -876,14 +864,10 @@ function  lowercase(const s : ansistring) : ansistring;
 ****************************************************************************}
 
 {$ifdef FPC_HAS_FEATURE_WIDESTRINGS}
-{$ifdef VER2_2}
-{$i wstring22h.inc}
-{$else VER2_2}
   {$i ustringh.inc}
   {$ifndef FPC_WIDESTRING_EQUAL_UNICODESTRING}
     {$i wstringh.inc}
   {$endif FPC_WIDESTRING_EQUAL_UNICODESTRING}
-{$endif VER2_2}
 {$endif FPC_HAS_FEATURE_WIDESTRINGS}
 
 
