@@ -68,8 +68,11 @@ Type
   TCompilerMode = (cmFPC,cmTP,cmObjFPC,cmDelphi,cmMacPas);
   TCompilerModes = Set of TCompilerMode;
 
-  TTargetType = (ttProgram,ttUnit,ttImplicitUnit,ttCleanOnlyUnit,ttExampleUnit,ttExampleProgram);
+  TTargetType = (ttProgram,ttUnit,ttImplicitUnit,ttCleanOnlyUnit,ttExampleUnit,ttExampleProgram,ttFPDoc);
   TTargetTypes = set of TTargetType;
+
+  TFPDocFormat = (ffHtml, ffHtm, ffXHtml, ffLaTex, ffXMLStruct, ffChm);
+  TFPDocFormats = set of TFPDocFormat;
 
   TTargetState = (tsNeutral,tsConsidering,tsNoCompile,tsCompiled,tsInstalled,tsNotFound);
   TTargetStates = Set of TTargetState;
@@ -380,6 +383,7 @@ Type
     FFPCTarget: String;
     FTargetState: TTargetState;
     FTargetType: TTargetType;
+    FXML: string;
     function GetOptions: TStrings;
     procedure SetOptions(const AValue: TStrings);
   Protected
@@ -394,6 +398,7 @@ Type
     Function  GetOutputFileName (AOs : TOS) : String; Virtual;
     Function HaveOptions : Boolean;
     procedure SetName(const AValue: String);override;
+    procedure SetXML(const AValue: string);
     Procedure GetCleanFiles(List : TStrings; const APrefixU, APrefixB : String; ACPU:TCPU; AOS : TOS); virtual;
     Procedure GetInstallFiles(List : TStrings; const APrefixU, APrefixB: String; ACPU:TCPU; AOS : TOS); virtual;
     Procedure GetArchiveFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
@@ -419,6 +424,7 @@ Type
     Property ObjectPath : TConditionalStrings Read FObjectPath;
     Property UnitPath : TConditionalStrings Read FUnitPath;
     Property IncludePath : TConditionalStrings Read FIncludePath;
+    Property XML: string Read FXML Write SetXML;
     // Events.
     Property BeforeCompile : TNotifyEvent Read FBeforeCompile Write FBeforeCompile;
     Property AfterCompile : TNotifyEvent Read FAfterCompile Write FAfterCompile;
@@ -434,6 +440,7 @@ Type
     function GetTarget(const AName : String): TTarget;
     procedure SetTargetItem(Index : Integer; const AValue: TTarget);
   Public
+    Function AddFPDoc(Const AUnitName, AXMLName : String) : TTarget;inline;
     Function AddUnit(Const AUnitName : String) : TTarget;inline;
     Function AddUnit(Const AUnitName : String;const OSes:TOSes) : TTarget;inline;
 {$ifdef cpu_only_overloads}
@@ -515,6 +522,7 @@ Type
     FBeforeCompile: TNotifyEvent;
     FBeforeInstall: TNotifyEvent;
     FBeforeManifest: TNotifyEvent;
+    FFPDocFormat: TFPDocFormats;
     FIsFPMakeAddIn: boolean;
     FUnitPath,
     FObjectPath,
@@ -591,6 +599,7 @@ Type
     Property SourcePath : TConditionalStrings Read FSourcePath;
     Property ExamplePath : TConditionalStrings Read FExamplePath;
     Property TestPath : TConditionalStrings Read FTestPath;
+    Property FPDocFormat: TFPDocFormats read FFPDocFormat write FFPDocFormat;
     // Targets and dependencies
     Property InstallFiles : TConditionalStrings Read FInstallFiles;
     Property CleanFiles : TConditionalStrings Read FCleanFiles;
@@ -633,6 +642,7 @@ Type
     FArchive: String;
     FCompiler: String;
     FCopy: String;
+    FFPDocOutputDir: String;
     FIgnoreInvalidOptions: Boolean;
     FMkDir: String;
     FMove: String;
@@ -653,6 +663,7 @@ Type
     FTarget: String;
     FUnixPaths: Boolean;
     FNoFPCCfg: Boolean;
+    function GetFPDocOutputDir: String;
     function GetLocalUnitDir: String;
     function GetGlobalUnitDir: String;
     function GetBaseInstallDir: String;
@@ -700,6 +711,7 @@ Type
     Property BinInstallDir : String Read GetBinInstallDir Write FBinInstallDir;
     Property DocInstallDir : String Read GetDocInstallDir Write FDocInstallDir;
     Property ExamplesInstallDir : String Read GetExamplesInstallDir Write FExamplesInstallDir;
+    Property FPDocOutputDir : String Read GetFPDocOutputDir Write FFPDocOutputDir;
     // Command tools. If not set, internal commands  will be used.
     Property Compiler : String Read GetCompiler Write FCompiler; // Compiler. Defaults to fpc
     Property Copy : String Read FCopy Write FCopy;             // copy $(FILES) to $(DEST)
@@ -1092,6 +1104,7 @@ ResourceString
   SHelpOptions        = 'Pass extra options to the compiler.';
   SHelpVerbose        = 'Be verbose when working.';
   SHelpIgnoreInvOpt   = 'Ignore further invalid options.';
+  sHelpFpdocOutputDir = 'Use indicated directory as fpdoc output folder.';
 
 
 Const
@@ -1727,6 +1740,13 @@ begin
   Items[Index]:=AValue;
 end;
 
+function TTargets.AddFPDoc(const AUnitName, AXMLName: String): TTarget;
+begin
+  Result:=Add as TTarget;
+  Result.Name:=AUnitName;
+  Result.XML:=AXMLName;
+  Result.TargetType:=ttFPDoc;
+end;
 
 Function TTargets.AddUnit(Const AUnitName : String) : TTarget;
 begin
@@ -2493,6 +2513,14 @@ begin
   Result:=FLocalUnitDir;
 end;
 
+function TCustomDefaults.GetFPDocOutputDir: String;
+begin
+  If (FFPDocOutputDir<>'') then
+    Result:=IncludeTrailingPathDelimiter(FixPath(FFPDocOutputDir))
+  else
+    Result:=IncludeTrailingPathDelimiter(FixPath('.'+PathDelim+'docs'));
+end;
+
 
 function TCustomDefaults.GetGlobalUnitDir: String;
 begin
@@ -3041,6 +3069,8 @@ begin
       DefaultsFileName:=OptionArg(I)
     else if CheckOption(I,'io','ignoreinvalidoption') then
       Defaults.IgnoreInvalidOptions:=true
+    else if CheckOption(I,'d','doc-folder') then
+      Defaults.FPDocOutputDir:=OptionArg(I)
     else if assigned(CustomFpmakeCommandlineOptions) and CheckCustomOption(I,CustOptName) then
       begin
       if not assigned(CustomFpMakeCommandlineValues) then
@@ -3106,6 +3136,7 @@ begin
   LogArgOption('f','config',SHelpConfig);
   LogArgOption('o','options',SHelpOptions);
   LogArgOption('io','ignoreinvalidoption',SHelpIgnoreInvOpt);
+  LogArgOption('d', 'doc-folder', sHelpFpdocOutputDir);
   if assigned(CustomFpmakeCommandlineOptions) then for i  := 0 to CustomFpmakeCommandlineOptions.Count-1 do
     LogArgOption(' ',CustomFpmakeCommandlineOptions.Names[i],CustomFpmakeCommandlineOptions.ValueFromIndex[i]);
   Log(vlInfo,'');
@@ -4273,7 +4304,15 @@ procedure TBuildEngine.Compile(APackage: TPackage);
 Var
   T : TTarget;
   I : Integer;
+  Cmd: string;
+  cmdOpts: string;
+  sFPDocFormat: string;
+  IFPDocFormat: TFPDocFormat;
+  d: integer;
+  dep: TDependency;
 begin
+  cmdOpts := '';
+
   Try
     Log(vlInfo,SInfoCompilingPackage,[APackage.Name]);
     If (APackage.Directory<>'') then
@@ -4285,7 +4324,9 @@ begin
     For I:=0 to APackage.Targets.Count-1 do
       begin
         T:=APackage.Targets.TargetItems[i];
-        if (T.TargetType in [ttUnit,ttProgram]) then
+        case T.TargetType of
+
+        ttUnit,ttProgram:
           begin
             if TargetOK(T) then
               begin
@@ -4299,10 +4340,54 @@ begin
                 if not(Defaults.OS in T.OSes) then
                   Log(vldebug, Format(SDbgSkippingTargetWrongOS, [T.Name, OSesToString(T.OSes)]));
               end;
+          end;
+        ttFPDoc:
+          begin
+            for d := 0 to T.Dependencies.Count - 1 do
+            begin
+              dep := TDependency(T.Dependencies[d]);
+
+              //add unit dependencies
+              if dep.DependencyType = depUnit then
+                cmdOpts := cmdOpts + ' --input=' + dep.Value;
+            end;
+
+            //check if a documentation target is given
+            cmdOpts := cmdOpts + ' --input=' + T.Directory + T.Name + T.Extension + ' --descr='+ T.XML;
           end
         else
           log(vldebug, SDbgTargetIsNotAUnitOrProgram,[T.Name]);
+        end;
       end;
+
+    //compile documentation, because options were found
+    if cmdOpts <> '' then
+    begin
+      //append package name
+      cmdOpts := cmdOpts + ' --package=' + APackage.Name;
+
+      for IFPDocFormat:=Low(TFPDocFormat) to High(TFPDocFormat) do
+      begin
+        if IFPDocFormat in APackage.FPDocFormat then
+        begin
+          //prepend output format
+          case IFPDocFormat of
+            ffHtml:      sFPDocFormat := '--format=html --output=' + Defaults.FPDocOutputDir;
+            ffHtm:       sFPDocFormat := '--format=htm --output=' + Defaults.FPDocOutputDir;
+            ffXHtml:     sFPDocFormat := '--format=xhtml --output=' + Defaults.FPDocOutputDir;
+            ffLaTex:     sFPDocFormat := '--format=latex --output=' + Defaults.FPDocOutputDir + APackage.Name + '.tex';
+            ffXMLStruct: sFPDocFormat := '--format=xml-struct --output=' + Defaults.FPDocOutputDir;
+            ffChm:       sFPDocFormat := '--format=chm --output=' + Defaults.FPDocOutputDir + APackage.Name + '.chm';
+          end;
+
+          //execute fpdoc
+          Cmd:=ExeSearch('fpdoc',GetEnvironmentvariable('PATH'));
+          if Cmd = '' then Cmd := 'fpdoc';
+          ExecuteProcess(Cmd, sFPDocFormat + cmdOpts);
+        end;
+      end;
+    end;
+
     DoAfterCompile(APackage);
   Finally
     If (APackage.Directory<>'') then
@@ -4873,6 +4958,10 @@ begin
   FDirectory:=D;
 end;
 
+procedure TTarget.SetXML(const AValue: string);
+begin
+  FXML:=FixPath(AValue);
+end;
 
 procedure TTarget.GetCleanFiles(List: TStrings; const APrefixU, APrefixB : String; ACPU: TCPU; AOS : TOS);
 begin
@@ -4923,6 +5012,12 @@ begin
          (D.TargetFileName<>'') then
         List.Add(D.TargetFileName);
     end;
+  // FPDoc files
+  if XML <> '' then
+  begin
+    List.Add(Directory + Name + Extension);
+    List.Add(XML);
+  end;
 end;
 
 
