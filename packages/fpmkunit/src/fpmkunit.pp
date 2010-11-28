@@ -515,6 +515,7 @@ Type
     FBeforeCompile: TNotifyEvent;
     FBeforeInstall: TNotifyEvent;
     FBeforeManifest: TNotifyEvent;
+    FIsFPMakeAddIn: boolean;
     FUnitPath,
     FObjectPath,
     FIncludePath,
@@ -562,8 +563,8 @@ Type
     Function  GetUnitsOutputDir(ACPU:TCPU; AOS : TOS):String;
     Function  GetBinOutputDir(ACPU:TCPU; AOS : TOS) : String;
     Procedure GetCleanFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
-    procedure GetInstallFiles(List: TStrings;Types : TTargetTypes;ACPU:TCPU; AOS : TOS);
-    procedure GetInstallSourceFiles(List: TStrings;Types : TSourceTypes);
+    procedure GetInstallFiles(List: TStrings;Types : TTargetTypes;ACPU:TCPU; AOS : TOS); virtual;
+    procedure GetInstallSourceFiles(List: TStrings;Types : TSourceTypes); virtual;
     Procedure GetArchiveFiles(List : TStrings; ACPU:TCPU; AOS : TOS); virtual;
     Procedure GetManifest(Manifest : TStrings);
     Property Version : String Read GetVersion Write SetVersion;
@@ -577,6 +578,7 @@ Type
     Property Description : String Read GetDescription Write FDescription;
     Property DescriptionFile : String Read FDescriptionFile Write FDescriptionFile;
     Property InstalledChecksum : Cardinal Read FInstalledChecksum Write FInstalledChecksum;
+    Property IsFPMakeAddIn: boolean read FIsFPMakeAddIn write FIsFPMakeAddIn;
     // Compiler options.
     Property OSes : TOSes Read FOSes Write FOSes;
     Property CPUs : TCPUs Read FCPUs Write FCPUs;
@@ -784,6 +786,7 @@ Type
     Procedure CmdMoveFiles(List : TStrings; Const DestDir : String);
     Procedure CmdDeleteFiles(List : TStrings);
     Procedure CmdArchiveFiles(List : TStrings; Const ArchiveFile : String);
+    Procedure CmdRenameFile(SourceName, DestName : String);
     Procedure ExecuteCommands(Commands : TCommands; At : TCommandAt);
     // Dependency commands
     Function  DependencyOK(ADependency : TDependency) : Boolean;
@@ -852,6 +855,8 @@ Type
   Protected
     Procedure Log(Level : TVerboseLevel; Const Msg : String);
     Procedure CreatePackages; virtual;
+    Procedure FreePackages; virtual;
+    function GetPackages: TPackages; virtual;
     Procedure CheckPackages; virtual;
     Procedure CreateBuildEngine; virtual;
     Procedure Error(const Msg : String);
@@ -870,7 +875,7 @@ Type
     Function AddPackage(Const AName : String) : TPackage;
     Function Run : Boolean;
     //files in package
-    Property Packages : TPackages Read FPackages;
+    Property Packages : TPackages Read GetPackages;
     Property RunMode : TRunMode Read FRunMode;
     Property ListMode : Boolean Read FListMode;
   end;
@@ -1116,6 +1121,7 @@ Const
   KeyChecksum = 'Checksum';
   KeyNeedLibC = 'NeedLibC';
   KeyDepends  = 'Depends';
+  KeyAddIn    = 'FPMakeAddIn';
 
 {****************************************************************************
                                 Helpers
@@ -2293,6 +2299,7 @@ begin
           end;
         FreeAndNil(L2);
         NeedLibC:=Upcase(Values[KeyNeedLibC])='Y';
+        IsFPMakeAddIn:=Upcase(Values[KeyAddIn])='Y';
       end;
   Finally
     L.Free;
@@ -2339,6 +2346,10 @@ begin
           Values[KeyNeedLibC]:='Y'
         else
           Values[KeyNeedLibC]:='N';
+        if IsFPMakeAddIn then
+          Values[KeyAddIn]:='Y'
+        else
+          Values[KeyAddIn]:='N';
       end;
     L.SaveToStream(F);
   Finally
@@ -2826,11 +2837,16 @@ end;
 
 destructor TCustomInstaller.Destroy;
 begin
+  FreePackages;
   FreeAndNil(Defaults);
   FreeAndNil(Dictionary);
   inherited destroy;
 end;
 
+function TCustomInstaller.GetPackages: TPackages;
+begin
+  result := FPackages;
+end;
 
 procedure TCustomInstaller.Log(Level: TVerboseLevel; const Msg: String);
 begin
@@ -2841,7 +2857,12 @@ end;
 
 procedure TCustomInstaller.CreatePackages;
 begin
-  FPAckages:=TPackages.Create(TPackage);
+  FPackages:=TPackages.Create(TPackage);
+end;
+
+procedure TCustomInstaller.FreePackages;
+begin
+  FreeAndNil(FPackages);
 end;
 
 
@@ -2868,7 +2889,7 @@ end;
 
 Function TCustomInstaller.AddPackage(const AName: String) : TPackage;
 begin
-  result:=FPackages.AddPackage(AName);
+  result:=Packages.AddPackage(AName);
 end;
 
 
@@ -3090,40 +3111,40 @@ end;
 procedure TCustomInstaller.Compile(Force: Boolean);
 begin
   FBuildEngine.ForceCompile:=Force;
-  FBuildEngine.Compile(FPackages);
+  FBuildEngine.Compile(Packages);
   Log(vlWarning,SWarnDone);
 end;
 
 
 procedure TCustomInstaller.Clean;
 begin
-  BuildEngine.Clean(FPackages);
+  BuildEngine.Clean(Packages);
 end;
 
 
 procedure TCustomInstaller.Install;
 begin
-  BuildEngine.Install(FPackages);
+  BuildEngine.Install(Packages);
 end;
 
 
 procedure TCustomInstaller.Archive;
 begin
   // Force generation of manifest.xml, this is required for the repository
-  BuildEngine.Manifest(FPackages);
-  BuildEngine.Archive(FPackages);
+  BuildEngine.Manifest(Packages);
+  BuildEngine.Archive(Packages);
 end;
 
 
 procedure TCustomInstaller.Manifest;
 begin
-  BuildEngine.Manifest(FPackages);
+  BuildEngine.Manifest(Packages);
 end;
 
 
 procedure TCustomInstaller.CheckPackages;
 begin
-  If (FPackages.Count=0) then
+  If (Packages.Count=0) then
     Error(SErrNoPackagesDefined);
   // Check for other obvious errors ?
 end;
@@ -3464,6 +3485,20 @@ begin
         O:=Substitute(O,['ARCHIVE',ArchiveFile,'FILESORDIRS']);
       ExecuteCommand(C,O);
     end;
+end;
+
+procedure TBuildEngine.CmdRenameFile(SourceName, DestName: String);
+var
+  Args: string;
+begin
+  If (Defaults.Move<>'') then
+    begin
+      Args:=SourceName;
+      Args:=Args+' '+DestName;
+      ExecuteCommand(Defaults.Move,Args);
+    end
+  else
+    SysMoveFile(SourceName,DestName);
 end;
 
 Function TBuildEngine.FileNewer(const Src,Dest : String) : Boolean;
