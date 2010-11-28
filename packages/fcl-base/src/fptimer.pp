@@ -182,6 +182,7 @@ Type
   TFPThreadedTimerDriver = Class(TFPTimerDriver)
   Private
     FThread : TFPTimerThread;
+    Procedure DoNilTimer(Sender : TObject);
   Public
     Procedure StartTimer; override;
     Procedure StopTimer; override;
@@ -242,10 +243,17 @@ end;
     TFPThreadedTimerDriver
   ---------------------------------------------------------------------}
 
+Procedure TFPThreadedTimerDriver.DoNilTimer(Sender : TObject);
+
+begin
+  FThread:=Nil;
+end;
+
 Procedure TFPThreadedTimerDriver.StartTimer; 
 
 begin
   FThread:=TFPTimerThread.CreateTimerThread(Self);
+  FThread.OnTerminate:=@DoNilTimer;
   FThread.Resume;
 end;
 
@@ -253,8 +261,9 @@ Procedure TFPThreadedTimerDriver.StopTimer;
 begin
   FThread.FTimerDriver:=Nil;
   FThread.Terminate; // Will free itself.
-  FThread:=Nil;
   CheckSynchronize; // make sure thread is not stuck at synchronize call.
+  If Assigned(FThread) then
+    Fthread.WaitFor;  
 end;
 
 
