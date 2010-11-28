@@ -50,8 +50,6 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
          end;
        DLL_THREAD_ATTACH :
          begin
-           inclocked(Thread_count);
-
            if Win32GetCurrentThreadId <> MainThreadIdWin32 then
            begin
              { Allocate Threadvars  }
@@ -68,7 +66,6 @@ function Dll_entry{$ifdef FPC_HAS_INDIRECT_MAIN_INFORMATION}(const info : TEntry
         end;
        DLL_THREAD_DETACH :
          begin
-           declocked(Thread_count);
            if assigned(Dll_Thread_Detach_Hook) then
              Dll_Thread_Detach_Hook(DllParam);
            { Release Threadvars }

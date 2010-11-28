@@ -63,9 +63,6 @@ const
   sLineBreak = LineEnding;
   DefaultTextLineBreakStyle : TTextLineBreakStyle = tlbsCRLF;
 
-  { Thread count for DLL }
-  Thread_count : longint = 0;
-
 type
   TStartupInfo = record
     cb : longint;
