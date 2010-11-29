@@ -97,6 +97,7 @@ interface
           databitsize    : aint;
           procedure setdatasize(val: aint);
         public
+          function iscurrentunit: boolean; override;
           property datasize : aint read _datasize write setdatasize;
        end;
 
@@ -1028,6 +1029,11 @@ implementation
           databitsize:=val*8;
       end;
 
+    function tabstractrecordsymtable.iscurrentunit: boolean;
+      begin
+        Result := Assigned(current_module) and (current_module.moduleid=moduleid);
+      end;
+
 {****************************************************************************
                               TRecordSymtable
 ****************************************************************************}
@@ -1667,6 +1673,14 @@ implementation
 
 
     function is_visible_for_object(symst:tsymtable;symvisibility:tvisibility;contextobjdef:tobjectdef):boolean;
+
+      function is_holded_by(childdef,ownerdef: tobjectdef): boolean;
+        begin
+          result:=childdef=ownerdef;
+          if not result and (childdef.owner.symtabletype=ObjectSymtable) then
+            result:=is_holded_by(tobjectdef(childdef.owner.defowner),ownerdef);
+        end;
+
       var
         symownerdef : tobjectdef;
       begin
@@ -1692,24 +1706,25 @@ implementation
                          assigned(current_objectdef) and
                          (
                            (current_objectdef=symownerdef) or
-                           (current_objectdef.owner.moduleid=symownerdef.owner.moduleid)
+                           (current_objectdef.owner.iscurrentunit)
                          )
                        ) or
                        (
                          not assigned(current_objectdef) and
-                         (symownerdef.owner.moduleid=current_module.moduleid)
+                         (symownerdef.owner.iscurrentunit)
                        )
                       );
             end;
           vis_strictprivate :
             begin
               result:=assigned(current_objectdef) and
-                      (current_objectdef=symownerdef);
+                      is_holded_by(current_objectdef,symownerdef);
             end;
           vis_strictprotected :
             begin
                result:=assigned(current_objectdef) and
-                       current_objectdef.is_related(symownerdef);
+                       (current_objectdef.is_related(symownerdef) or
+                        is_holded_by(current_objectdef,symownerdef));
             end;
           vis_protected :
             begin
@@ -1723,7 +1738,7 @@ implementation
                        ) or
                        (
                         assigned(contextobjdef) and
-                        (contextobjdef.owner.symtabletype in [globalsymtable,staticsymtable]) and
+                        (contextobjdef.owner.symtabletype in [globalsymtable,staticsymtable,ObjectSymtable]) and
                         (contextobjdef.owner.iscurrentunit) and
                         contextobjdef.is_related(symownerdef)
                        ) or
@@ -1733,12 +1748,12 @@ implementation
                           assigned(current_objectdef) and
                           (
                             (current_objectdef=symownerdef) or
-                            (current_objectdef.owner.moduleid=symownerdef.owner.moduleid)
+                            (current_objectdef.owner.iscurrentunit)
                           )
                         ) or
                         (
                           not assigned(current_objectdef) and
-                          (symownerdef.owner.moduleid=current_module.moduleid)
+                          (symownerdef.owner.iscurrentunit)
                          )
                        )
                       );
