@@ -161,6 +161,7 @@ implementation
         vmtbuilder : TVMTBuilder;
         onlyparsepara : boolean;
         specializest : tsymtable;
+        item: psymtablestackitem;
       begin
         { retrieve generic def that we are going to replace }
         genericdef:=tstoreddef(tt);
@@ -301,7 +302,11 @@ implementation
               symtablestack.push(hmodule.globalsymtable);
 
             { hacky, but necessary to insert the newly generated class properly }
-            symtablestack.push(oldsymtablestack.top);
+            item:=oldsymtablestack.stack;
+            while assigned(item) and (item^.symtable.symtablelevel>main_program_level) do
+              item:=item^.next;
+            if assigned(item) then
+              symtablestack.push(item^.symtable);
 
             { Reparse the original type definition }
             if not err then
