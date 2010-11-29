@@ -676,11 +676,14 @@ function InterlockedCompareExchange(var Target: longint; NewValue: longint; Comp
 asm
 .LInterlockedCompareExchangeLoop:
   lwarx  r10,0,r3
+  // lwarx performs an unsigned load -> sign extend since arguments are
+  // longints
+  extsw  r10,r10
   sub    r9,r10,r5
   addic  r9,r9,-1
   subfe  r9,r9,r9
   and    r8,r4,r9
-  andc   r7,r5,r9
+  andc   r7,r10,r9
   or     r6,r7,r8
   stwcx. r6,0,r3
   bne .LInterlockedCompareExchangeLoop
@@ -752,7 +755,7 @@ asm
   addic  r9,r9,-1
   subfe  r9,r9,r9
   and    r8,r4,r9
-  andc   r7,r5,r9
+  andc   r7,r10,r9
   or     r6,r7,r8
   stdcx. r6,0,r3
   bne .LInterlockedCompareExchangeLoop
