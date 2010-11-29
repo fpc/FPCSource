@@ -149,6 +149,8 @@ implementation
 
 
     function tloadvmtaddrnode.pass_typecheck:tnode;
+      var
+        defaultresultdef : boolean;
       begin
         result:=nil;
         typecheckpass(left);
@@ -160,13 +162,24 @@ implementation
             resultdef:=left.resultdef;
           objectdef :
             { access to the classtype while specializing? }
-            if (df_generic in left.resultdef.defoptions) and
-              assigned(current_objectdef.genericdef) then
+            if (df_generic in left.resultdef.defoptions) then
               begin
-                if current_objectdef.genericdef=left.resultdef then
-                  resultdef:=tclassrefdef.create(current_objectdef)
+                defaultresultdef:=true;
+                if assigned(current_objectdef) then
+                  begin
+                    if assigned(current_objectdef.genericdef) then
+                      if current_objectdef.genericdef=left.resultdef then
+                        begin
+                          resultdef:=tclassrefdef.create(current_objectdef);
+                          defaultresultdef:=false;
+                        end
+                      else
+                        message(parser_e_cant_create_generics_of_this_type);
+                  end
                 else
                   message(parser_e_cant_create_generics_of_this_type);
+                if defaultresultdef then
+                  resultdef:=tclassrefdef.create(left.resultdef);
               end
             else
               resultdef:=tclassrefdef.create(left.resultdef);
