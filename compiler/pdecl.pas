@@ -417,6 +417,7 @@ implementation
          hdef     : tdef;
          defpos,storetokenpos : tfileposinfo;
          old_block_type : tblock_type;
+         old_checkforwarddefs: TFPObjectList;
          objecttype : tobjecttyp;
          isgeneric,
          isunique,
@@ -426,6 +427,10 @@ implementation
          vmtbuilder : TVMTBuilder;
       begin
          old_block_type:=block_type;
+         { save unit container of forward declarations -
+           we can be inside nested class type block }
+         old_checkforwarddefs:=current_module.checkforwarddefs;
+         current_module.checkforwarddefs:=TFPObjectList.Create(false);
          block_type:=bt_type;
          repeat
            defpos:=current_tokenpos;
@@ -665,7 +670,11 @@ implementation
            if assigned(generictypelist) then
              generictypelist.free;
          until (token<>_ID)or(in_class and (idtoken in [_PRIVATE,_PROTECTED,_PUBLIC,_PUBLISHED,_STRICT]));
+         { resolve type block forward declarations and restore a unit
+           container for them }
          resolve_forward_types;
+         current_module.checkforwarddefs.free;
+         current_module.checkforwarddefs:=old_checkforwarddefs;
          block_type:=old_block_type;
       end;
 
