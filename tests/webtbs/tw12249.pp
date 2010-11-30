@@ -1,3 +1,5 @@
+{ %norun }
+
 unit tw12249;
 
 {$mode objfpc}{$H+}
