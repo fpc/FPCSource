@@ -1218,10 +1218,40 @@ begin
 end;
 
 function DoVarCmpComplex(const Left, Right: TVarData; const OpCode: TVarOp): ShortInt;
+var Handler: TCustomVariantType;
+    CmpRes: boolean;
 begin
-  {!! custom variants? }
+  if FindCustomVariantType(Left.vType, Handler) then
+    CmpRes := Handler.CompareOp(Left, Right, OpCode)
+  else if FindCustomVariantType(Right.vType, Handler) then
+    CmpRes := Handler.CompareOp(Left, Right, OpCode)
+  else
   VarInvalidOp(Left.vType, Right.vType, OpCode);
-  Result:=0;
+
+  case OpCode of
+    opCmpEq:
+      if CmpRes then
+        Result:=0
+      else
+        Result:=1;
+    opCmpNe:
+      if CmpRes then
+        Result:=1
+      else
+        Result:=0;
+    opCmpLt,
+    opCmpLe:
+      if CmpRes then
+        Result:=-1
+      else
+        Result:=1;
+    opCmpGt,
+    opCmpGe:
+      if CmpRes then
+        Result:=1
+      else
+        Result:=-1;
+  end;
 end;
 
 
@@ -1603,8 +1633,13 @@ begin
 end;
 
 procedure DoVarOpComplex(var vl : TVarData; const vr : TVarData; const OpCode : TVarOp);
+var Handler: TCustomVariantType;
 begin
-  {custom Variant support? }
+  if FindCustomVariantType(vl.vType, Handler) then
+    Handler.BinaryOp(vl, vr, OpCode)
+  else if FindCustomVariantType(vr.vType, Handler) then
+    Handler.BinaryOp(vl, vr, OpCode)
+  else
    VarInvalidOp(vl.vType, vr.vType, OpCode);
 end;
 
