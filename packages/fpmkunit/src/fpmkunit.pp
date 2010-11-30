@@ -259,7 +259,7 @@ Type
     FMajor,
     FMinor,
     FMicro,
-    FBuild    : Word;
+    FBuild    : Integer;
     function GetAsString: String;
     function GetEmpty: Boolean;
     procedure SetAsString(const AValue: String);
@@ -271,10 +271,10 @@ Type
    Property AsString : String Read GetAsString Write SetAsString;
    Property Empty : Boolean Read GetEmpty;
   Published
-   Property Major : Word Read FMajor Write FMajor;
-   Property Minor : Word Read FMinor Write FMinor;
-   Property Micro : Word Read FMicro Write FMicro;
-   Property Build : Word Read FBuild Write FBuild;
+   Property Major : Integer Read FMajor Write FMajor;
+   Property Minor : Integer Read FMinor Write FMinor;
+   Property Micro : Integer Read FMicro Write FMicro;
+   Property Build : Integer Read FBuild Write FBuild;
   end;
 
   { TConditionalString }
@@ -2330,6 +2330,21 @@ Procedure TPackage.GetManifest(Manifest : TStrings);
     Manifest.Add(AIndent+'</cpus>');
   end;
 
+  function GetXMLVersionString(sMajor, sMinor, sMicro, sBuild: integer): string;
+  begin
+    Result := '<version';
+    if sMajor <> -1 then
+      Result := Result + ' major="' + IntToStr(sMajor) + '"';
+    if sMinor <> -1 then
+      Result := Result + ' minor="' + IntToStr(sMinor) + '"';
+    if sMicro <> -1 then
+      Result := Result + ' micro="' + IntToStr(sMicro) + '"';
+    if sBuild <> -1 then
+      Result := Result + ' build="' + IntToStr(sBuild) + '"';
+
+    Result := Result + '/>';
+  end;
+
 Var
   S : String;
   i : Integer;
@@ -2338,7 +2353,8 @@ begin
   With Manifest do
     begin
     Add(Format('<package name="%s">',[QuoteXml(Name)]));
-    Add(Format(' <version major="%d" minor="%d" micro="%d" build="%d"/>',[FVersion.Major,FVersion.Minor,FVersion.Micro,FVersion.Build]));
+
+    Add(' ' + GetXMLVersionString(FVersion.Major,FVersion.Minor,FVersion.Micro,FVersion.Build));
     AddOSes(' ',OSes);
     AddCPUs(' ',CPUs);
     Add(Format(' <filename>%s</filename>',[QuoteXml(FileName + ZipExt)]));
@@ -2361,7 +2377,7 @@ begin
             Add('  <dependency>');
             Add(Format('   <package packagename="%s"/>',[QuoteXML(D.Value)]));
             if not D.FVersion.Empty then
-              Add(Format('   <version major="%d" minor="%d" micro="%d" build="%d"/>',[D.FVersion.Major,D.FVersion.Minor,D.FVersion.Micro,D.FVersion.Build]));
+              Add('   ' + GetXMLVersionString(D.FVersion.Major,D.FVersion.Minor,D.FVersion.Micro,D.FVersion.Build));
             AddOSes('   ',D.OSes);
             AddCPUs('   ',D.CPUs);
             Add('  </dependency>');
@@ -4856,7 +4872,17 @@ begin
   if Empty then
     Result:='<none>'
   else
-    Result:=Format('%d.%d.%d-%d',[Major,Minor,Micro,Build]);
+  begin
+    Result := '';
+    if Major <> -1 then
+      Result := Result + IntToStr(Major);
+    if Minor <> -1 then
+      Result := Result + '.' + IntToStr(Minor);
+    if Micro <> -1 then
+      Result := Result + '.' + IntToStr(Micro);
+    if Build <> -1 then
+      Result := Result + '-'  + IntToStr(Build);
+  end;
 end;
 
 function TFPVersion.GetEmpty: Boolean;
@@ -4867,19 +4893,15 @@ end;
 procedure TFPVersion.SetAsString(const AValue: String);
 
   Function NextDigit(sep : Char; var V : string) : integer;
-
   Var
     P : Integer;
-
   begin
     P:=Pos(Sep,V);
     If (P=0) then
       P:=Length(V)+1;
     Result:=StrToIntDef(Copy(V,1,P-1),-1);
     If Result<>-1 then
-      Delete(V,1,P)
-    else
-      Result:=0;
+      Delete(V,1,P);
   end;
 
 Var
@@ -4898,17 +4920,15 @@ end;
 
 procedure TFPVersion.Clear;
 begin
-  Micro:=0;
-  Major:=0;
-  Minor:=0;
-  Build:=0;
+  Micro:=-1;
+  Major:=-1;
+  Minor:=-1;
+  Build:=-1;
 end;
 
 procedure TFPVersion.Assign(Source: TPersistent);
-
 Var
   V : TFPVersion;
-
 begin
   if Source is TFPVersion then
     begin
