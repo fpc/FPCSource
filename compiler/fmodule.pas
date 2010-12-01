@@ -257,8 +257,7 @@ implementation
         hp:=tmodule(loaded_units.first);
         while assigned(hp) do
           begin
-            if (hp.globalsymtable=st) or
-               (hp.localsymtable=st) then
+            if (hp.moduleid=st.moduleid) then
               begin
                 result:=hp;
                 exit;
