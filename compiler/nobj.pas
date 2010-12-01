@@ -235,7 +235,6 @@ implementation
         hasequalpara,
         hasoverloads,
         pdoverload : boolean;
-        vmtpd : tprocdef;
         srsym : tsym;
         st : tsymtable;
 
@@ -411,7 +410,7 @@ implementation
 
         function found_category_method(st: tsymtable): boolean;
           var
-            entrycount, procdefcount: longint;
+            entrycount: longint;
             cat: tobjectdef;
             vmtpd: tprocdef;
             vmtvis: tvisibility;
