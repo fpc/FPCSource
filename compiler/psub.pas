@@ -806,9 +806,7 @@ implementation
         old_current_procinfo : tprocinfo;
         oldmaxfpuregisters : longint;
         oldfilepos : tfileposinfo;
-        old_current_objectdef,
-        old_current_genericdef,
-        old_current_specializedef : tobjectdef;
+        old_current_objectdef : tobjectdef;
         templist : TAsmList;
         headertai : tai;
         i : integer;

@@ -305,7 +305,7 @@ implementation
             item:=oldsymtablestack.stack;
             while assigned(item) and (item^.symtable.symtablelevel>main_program_level) do
               item:=item^.next;
-            if assigned(item) then
+            if assigned(item) and (item^.symtable<>symtablestack.top) then
               symtablestack.push(item^.symtable);
 
             { Reparse the original type definition }
