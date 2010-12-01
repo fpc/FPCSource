@@ -241,6 +241,8 @@ implementation
 
 
     function try_consume_unitsym(var srsym:tsym;var srsymtable:TSymtable;var tokentoconsume : ttoken):boolean;
+      var
+        hmodule: tmodule;
       begin
         result:=false;
         tokentoconsume:=_ID;
@@ -250,8 +252,13 @@ implementation
             if not(srsym.owner.symtabletype in [staticsymtable,globalsymtable]) then
               internalerror(200501154);
             { only allow unit.symbol access if the name was
-              found in the current module }
-            if srsym.owner.iscurrentunit then
+              found in the current module
+              we can use iscurrentunit because generic specializations does not
+              change current_unit variable }
+            hmodule:=find_module_from_symtable(srsym.Owner);
+            if not Assigned(hmodule) then
+              internalerror(201001120);
+            if hmodule.unit_index=current_filepos.moduleindex then
               begin
                 consume(_ID);
                 consume(_POINT);
