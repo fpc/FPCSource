@@ -489,7 +489,7 @@ implementation
                                 consume(_POINT);
                                 consume(_ID);
                              end
-                            else if is_class(def) then
+                            else if is_class_or_object(def) then
                               begin
                                 symtablestack.push(tobjectdef(def).symtable);
                                 consume(_POINT);

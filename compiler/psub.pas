@@ -1996,7 +1996,7 @@ implementation
           symtablestack.push(hmodule.localsymtable);
 
         { procedure definitions for classes or objects }
-        if is_class(specobj) or is_object(specobj) then
+        if is_class_or_object(specobj) then
           begin
             for i:=0 to specobj.symtable.DefList.Count-1 do
               begin
