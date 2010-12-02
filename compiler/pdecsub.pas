@@ -62,6 +62,14 @@ interface
     function  parse_proc_head(aclass:tobjectdef;potype:tproctypeoption;var pd:tprocdef):boolean;
     function  parse_proc_dec(isclassmethod:boolean; aclass:tobjectdef):tprocdef;
 
+    { helper functions - they insert nested objects hierarcy to the symtablestack
+      with object hierarchy
+    }
+    function push_child_hierarcy(obj:tobjectdef):integer;
+    function pop_child_hierarchy(obj:tobjectdef):integer;
+    function push_nested_hierarchy(obj:tobjectdef):integer;
+    function pop_nested_hierarchy(obj:tobjectdef):integer;
+
 implementation
 
     uses
@@ -89,6 +97,51 @@ implementation
         Declaring it as string here results in an error when compiling (PFV) }
       current_procinfo = 'error';
 
+    function push_child_hierarcy(obj:tobjectdef):integer;
+      var
+        _class,hp : tobjectdef;
+      begin
+        result:=0;
+        { insert class hierarchy in the reverse order }
+        hp:=nil;
+        repeat
+          _class:=obj;
+          while _class.childof<>hp do
+            _class:=_class.childof;
+          hp:=_class;
+          symtablestack.push(_class.symtable);
+          inc(result);
+        until hp=obj;
+      end;
+
+    function push_nested_hierarchy(obj:tobjectdef):integer;
+      begin
+        result:=0;
+        if obj.owner.symtabletype=ObjectSymtable then
+          inc(result,push_nested_hierarchy(tobjectdef(obj.owner.defowner)));
+        inc(result,push_child_hierarcy(obj));
+      end;
+
+    function pop_child_hierarchy(obj:tobjectdef):integer;
+      var
+        _class : tobjectdef;
+      begin
+        result:=0;
+        _class:=obj;
+        while assigned(_class) do
+          begin
+            symtablestack.pop(_class.symtable);
+            _class:=_class.childof;
+            inc(result);
+          end;
+      end;
+
+    function pop_nested_hierarchy(obj:tobjectdef):integer;
+      begin
+        result:=pop_child_hierarchy(obj);
+        if obj.owner.symtabletype=ObjectSymtable then
+          inc(result,pop_nested_hierarchy(tobjectdef(obj.owner.defowner)));
+      end;
 
     procedure insert_funcret_para(pd:tabstractprocdef);
       var
@@ -720,23 +773,6 @@ implementation
 
 
     function parse_proc_head(aclass:tobjectdef;potype:tproctypeoption;var pd:tprocdef):boolean;
-
-      function push_objects(obj:tobjectdef):integer;
-        begin
-          result:=1;
-          if obj.owner.symtabletype=ObjectSymtable then
-            inc(result,push_objects(tobjectdef(obj.owner.defowner)));
-          symtablestack.push(obj.symtable);
-        end;
-
-      function pop_objects(obj:tobjectdef):integer;
-        begin
-          result:=1;
-          symtablestack.pop(obj.symtable);
-          if obj.owner.symtabletype=ObjectSymtable then
-            inc(result,pop_objects(tobjectdef(obj.owner.defowner)));
-        end;
-
       var
         hs       : string;
         orgsp,sp : TIDString;
@@ -1020,7 +1056,7 @@ implementation
                (pd.parast.symtablelevel=normal_function_level) and
                (symtablestack.top.symtabletype<>ObjectSymtable) then
               begin
-                popclass:=push_objects(pd._class);
+                popclass:=push_nested_hierarchy(pd._class);
                 old_current_objectdef:=current_objectdef;
                 old_current_genericdef:=current_genericdef;
                 old_current_specializedef:=current_specializedef;
@@ -1041,7 +1077,7 @@ implementation
                 current_objectdef:=old_current_objectdef;
                 current_genericdef:=old_current_genericdef;
                 current_specializedef:=old_current_specializedef;
-                dec(popclass, pop_objects(pd._class));
+                dec(popclass,pop_nested_hierarchy(pd._class));
                 if popclass<>0 then
                   internalerror(201011260); // 11 nov 2010 index 0
               end;
@@ -1056,8 +1092,8 @@ implementation
       var
         pd : tprocdef;
         locationstr: string;
-        old_parse_generic,
-        popclass: boolean;
+        old_parse_generic: boolean;
+        popclass: integer;
         old_current_objectdef,
         old_current_genericdef,
         old_current_specializedef: tobjectdef;
@@ -1078,13 +1114,12 @@ implementation
                          old_parse_generic:=parse_generic;
                          inc(testcurobject);
                          { Add ObjectSymtable to be able to find generic type definitions }
-                         popclass:=false;
+                         popclass:=0;
                          if assigned(pd._class) and
                             (pd.parast.symtablelevel=normal_function_level) and
                             (symtablestack.top.symtabletype<>ObjectSymtable) then
                            begin
-                             symtablestack.push(pd._class.symtable);
-                             popclass:=true;
+                             popclass:=push_nested_hierarchy(pd._class);
                              parse_generic:=(df_generic in pd._class.defoptions);
                              old_current_objectdef:=current_objectdef;
                              old_current_genericdef:=current_genericdef;
@@ -1100,12 +1135,14 @@ implementation
                          if is_dispinterface(pd._class) and not is_automatable(pd.returndef) then
                            Message1(type_e_not_automatable,pd.returndef.typename);
 
-                         if popclass then
+                         if popclass>0 then
                            begin
                              current_objectdef:=old_current_objectdef;
                              current_genericdef:=old_current_genericdef;
                              current_specializedef:=old_current_specializedef;
-                             symtablestack.pop(pd._class.symtable);
+                             dec(popclass,pop_nested_hierarchy(pd._class));
+                             if popclass<>0 then
+                               internalerror(201012020);
                            end;
                          dec(testcurobject);
                          parse_generic:=old_parse_generic;

@@ -1271,25 +1271,13 @@ implementation
 
 
     procedure tcgprocinfo.add_to_symtablestack;
-      var
-        _class,hp : tobjectdef;
       begin
         { insert symtables for the class, but only if it is no nested function }
         if assigned(procdef._class) and
            not(assigned(parent) and
                assigned(parent.procdef) and
                assigned(parent.procdef._class)) then
-          begin
-            { insert them in the reverse order }
-            hp:=nil;
-            repeat
-              _class:=procdef._class;
-              while _class.childof<>hp do
-                _class:=_class.childof;
-              hp:=_class;
-              symtablestack.push(_class.symtable);
-            until hp=procdef._class;
-          end;
+          push_nested_hierarchy(procdef._class);
 
         { insert parasymtable in symtablestack when parsing
           a function }
@@ -1305,8 +1293,6 @@ implementation
 
 
     procedure tcgprocinfo.remove_from_symtablestack;
-      var
-        _class : tobjectdef;
       begin
         { remove localsymtable }
         if procdef.localst.symtablelevel>=normal_function_level then
@@ -1321,14 +1307,7 @@ implementation
            not(assigned(parent) and
                assigned(parent.procdef) and
                assigned(parent.procdef._class)) then
-          begin
-            _class:=procdef._class;
-            while assigned(_class) do
-              begin
-                symtablestack.pop(_class.symtable);
-                _class:=_class.childof;
-              end;
-          end;
+          pop_nested_hierarchy(procdef._class);
       end;
 
 

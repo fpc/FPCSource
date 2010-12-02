@@ -1047,11 +1047,13 @@ implementation
             { parse optional GUID for interfaces }
             parse_guid;
 
-            { parse and insert object members }
-            symtablestack.push(current_objectdef.symtable);
+            //symtablestack.push(current_objectdef.symtable);
+            push_child_hierarcy(current_objectdef);
             insert_generic_parameter_types(genericdef,genericlist);
+            { parse and insert object members }
             parse_object_members;
-            symtablestack.pop(current_objectdef.symtable);
+            //symtablestack.pop(current_objectdef.symtable);
+            pop_child_hierarchy(current_objectdef);
           end;
 
         { generate vmt space if needed }
