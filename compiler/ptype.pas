@@ -338,6 +338,23 @@ implementation
             { Restore symtablestack }
             symtablestack.free;
             symtablestack:=oldsymtablestack;
+          end
+        else
+          begin
+            { There is comment few lines before ie 200512115 
+              saying "We are parsing the same objectdef, the def index numbers 
+              are the same". This is wrong (index numbers are not same) 
+              in case there is specialization (S2 in this case) inside 
+              specialized generic (G2 in this case) which is equal to 
+              some previous specialization (S1 in this case). In that case, 
+              new symbol is not added to currently specialized type 
+              (S in this case) for that specializations (S2 in this case), 
+              and this results in that specialization and generic definition 
+              don't have same number of elements in their object symbol tables. 
+              This patch adds undefined def to ensure that those 
+              two symbol tables will have same number of elements. 
+            }
+            tundefineddef.create;
           end;
 
         generictypelist.free;
