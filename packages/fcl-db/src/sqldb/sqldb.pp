@@ -40,6 +40,10 @@ type
     stDDL, stGetSegment, stPutSegment, stExecProcedure,
     stStartTrans, stCommit, stRollback, stSelectForUpd);
 
+  TDBEventType = (detCustom, detPrepare, detExecute, detFetch, detCommit,detRollBack);
+  TDBEventTypes = set of TDBEventType;
+  TDBLogNotifyEvent = Procedure (Sender : TSQLConnection; EventType : TDBEventType; Const Msg : String) of object;
+
   TSQLHandle = Class(TObject)
   end;
 
@@ -58,7 +62,7 @@ type TQuoteChars = array[0..1] of char;
 const
   SingleQuotes : TQuoteChars = ('''','''');
   DoubleQuotes : TQuoteChars = ('"','"');
-
+  LogAllEvents = [detCustom, detPrepare, detExecute, detFetch, detCommit, detRollBack];
   StatementTokens : Array[TStatementType] of string = ('(none)', 'select',
                   'insert', 'update', 'delete',
                   'create', 'get', 'put', 'execute',
@@ -83,6 +87,8 @@ type
   TSQLConnection = class (TDatabase)
   private
     FFieldNameQuoteChars : TQuoteChars;
+    FLogEvents: TDBEventTypes;
+    FOnLog: TDBLogNotifyEvent;
     FPassword            : string;
     FTransaction         : TSQLTransaction;
     FUserName            : string;
@@ -103,7 +109,8 @@ type
     function GetAsSQLText(Field : TField) : string; overload; virtual;
     function GetAsSQLText(Param : TParam) : string; overload; virtual;
     function GetHandle : pointer; virtual; virtual;
-
+    Function LogEvent(EventType : TDBEventType) : Boolean;
+    Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
     Function AllocateCursorHandle : TSQLCursor; virtual; abstract;
     Procedure DeAllocateCursorHandle(var cursor : TSQLCursor); virtual; abstract;
     Function AllocateTransactionHandle : TSQLHandle; virtual; abstract;
@@ -148,7 +155,8 @@ type
     property UserName : string read FUserName write FUserName;
     property CharSet : string read FCharSet write FCharSet;
     property HostName : string Read FHostName Write FHostName;
-
+    Property OnLog : TDBLogNotifyEvent Read FOnLog Write FOnLog;
+    Property LogEvents : TDBEventTypes Read FLogEvents Write FLogEvents Default LogAllEvents;
     property Connected;
     Property Role :  String read FRole write FRole;
     property DatabaseName;
@@ -172,6 +180,8 @@ type
   protected
     function GetHandle : Pointer; virtual;
     Procedure SetDatabase (Value : TDatabase); override;
+    Function LogEvent(EventType : TDBEventType) : Boolean;
+    Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
   public
     procedure Commit; virtual;
     procedure CommitRetaining; virtual;
@@ -264,6 +274,8 @@ type
     Procedure SetDataSource(AValue : TDatasource);
     procedure LoadBlobIntoBuffer(FieldDef: TFieldDef;ABlobBuf: PBufBlobField); override;
     procedure BeforeRefreshOpenCursor; override;
+    Function LogEvent(EventType : TDBEventType) : Boolean;
+    Procedure Log(EventType : TDBEventType; Const Msg : String); virtual;
   public
     procedure Prepare; virtual;
     procedure UnPrepare; virtual;
@@ -470,6 +482,9 @@ type
   end;
   TConnectionDefClass = class of TConnectionDef;
 
+Var
+  GlobalDBLogHook : TDBLogNotifyEvent;
+
 Procedure RegisterConnection(Def : TConnectionDefClass);
 Procedure UnRegisterConnection(Def : TConnectionDefClass);
 Procedure UnRegisterConnection(ConnectionName : String);
@@ -675,6 +690,32 @@ begin
   Result := nil;
 end;
 
+function TSQLConnection.LogEvent(EventType: TDBEventType): Boolean;
+begin
+  Result:=(Assigned(FOnLog) or Assigned(GlobalDBLogHook)) and (EventType in LogEvents);
+end;
+
+procedure TSQLConnection.Log(EventType: TDBEventType; const Msg: String);
+
+Var
+  M : String;
+
+begin
+  If LogEvent(EventType) then
+    begin
+    If Assigned(FonLog) then
+      FOnLog(Self,EventType,Msg);
+    If Assigned(GlobalDBLogHook) then
+      begin
+      If (Name<>'') then
+        M:=Name+' : '+Msg
+      else
+        M:=ClassName+' : '+Msg;
+      GlobalDBLogHook(Self,EventType,M);
+      end;
+    end;
+end;
+
 procedure TSQLConnection.FreeFldBuffers(cursor: TSQLCursor);
 begin
   // empty
@@ -720,6 +761,8 @@ begin
   if active then
     begin
     closedatasets;
+    If LogEvent(detCommit) then
+      Log(detCommit,SCommitting);
     if TSQLConnection(Database).commit(FTrans) then
       begin
       closeTrans;
@@ -731,7 +774,11 @@ end;
 procedure TSQLTransaction.CommitRetaining;
 begin
   if active then
+    begin
+    If LogEvent(detCommit) then
+      Log(detCommit,SCommitRetaining);
     TSQLConnection(Database).commitRetaining(FTrans);
+    end;
 end;
 
 procedure TSQLTransaction.Rollback;
@@ -739,6 +786,8 @@ begin
   if active then
     begin
     closedatasets;
+    If LogEvent(detRollback) then
+      Log(detRollback,SRollingBack);
     if TSQLConnection(Database).RollBack(FTrans) then
       begin
       CloseTrans;
@@ -750,7 +799,11 @@ end;
 procedure TSQLTransaction.RollbackRetaining;
 begin
   if active then
+    begin
+    If LogEvent(detRollback) then
+      Log(detRollback,SRollBackRetaining);
     TSQLConnection(Database).RollBackRetaining(FTrans);
+    end;
 end;
 
 procedure TSQLTransaction.StartTransaction;
@@ -801,6 +854,27 @@ begin
     If Assigned(Database) and not (csLoading in ComponentState) then
       If (TSQLConnection(DataBase).Transaction=Nil) then
         TSQLConnection(DataBase).Transaction:=Self;
+    end;
+end;
+
+function TSQLTransaction.LogEvent(EventType: TDBEventType): Boolean;
+begin
+  Result:=Assigned(Database) and TSQLConnection(Database).LogEvent(EventType);
+end;
+
+procedure TSQLTransaction.Log(EventType: TDBEventType; const Msg: String);
+
+Var
+  M : String;
+
+begin
+  If LogEVent(EventType) then
+    begin
+    If (Name<>'') then
+      M:=Name+' : '+Msg
+    else
+      M:=Msg;
+    TSQLConnection(Database).Log(EventType,M);
     end;
 end;
 
@@ -979,10 +1053,17 @@ begin
     FCursor.FStatementType:=StmType;
     FCursor.FSchemaType := FSchemaType;
     if ServerFiltered then
+      begin
+      If LogEvent(detprepare) then
+        Log(detPrepare,AddFilter(FSQLBuf));
       Db.PrepareStatement(Fcursor,sqltr,AddFilter(FSQLBuf),FParams)
+      end
     else
+      begin
+      If LogEvent(detprepare) then
+        Log(detPrepare,FSQLBuf);
       Db.PrepareStatement(Fcursor,sqltr,FSQLBuf,FParams);
-
+      end;
     if (FCursor.FStatementType in [stSelect,stExecProcedure]) then
       FCursor.FInitFieldDef := True;
     end;
@@ -1021,6 +1102,8 @@ procedure TCustomSQLQuery.Execute;
 begin
   If (FParams.Count>0) and Assigned(FMasterLink) then
     FMasterLink.CopyParamsFromMaster(False);
+  If LogEvent(detExecute) then
+    Log(detExecute,FSQLBuf);
   TSQLConnection(Database).execute(Fcursor,Transaction as tsqltransaction, FParams);
 end;
 
@@ -1595,6 +1678,26 @@ begin
   // unprepared. (which is also wrong, but has to be fixed later)
   if IsPrepared then with TSQLConnection(DataBase) do
     UnPrepareStatement(FCursor);
+end;
+
+function TCustomSQLQuery.LogEvent(EventType: TDBEventType): Boolean;
+begin
+  Result:=Assigned(Database) and TSQLConnection(Database).LogEvent(EventType);
+end;
+
+procedure TCustomSQLQuery.Log(EventType: TDBEventType; const Msg: String);
+
+Var
+  M : String;
+
+begin
+  If LogEvent(EventType) then
+    begin
+    M:=Msg;
+    If (Name<>'') then
+      M:=Name+' : '+M;
+    TSQLConnection(Database).Log(EventType,M);
+    end;
 end;
 
 function TCustomSQLQuery.GetStatementType : TStatementType;
