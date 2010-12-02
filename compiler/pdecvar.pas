@@ -1367,7 +1367,7 @@ implementation
       var
          sc : TFPObjectList;
          i  : longint;
-         hs,sorg : string;
+         hs,sorg,static_name : string;
          hdef,casetype : tdef;
          { maxsize contains the max. size of a variant }
          { startvarrec contains the start of the variant part of a record }
@@ -1537,14 +1537,15 @@ implementation
                        fieldvs:=tfieldvarsym(sc[i]);
                        include(fieldvs.symoptions,sp_static);
                        { generate the symbol which reserves the space }
-                       hstaticvs:=tstaticvarsym.create('$_static_'+lower(symtablestack.top.name^)+'_'+fieldvs.name,vs_value,hdef,[]);
+                       static_name:=lower(generate_nested_name(recst,'_'))+'_'+fieldvs.name;
+                       hstaticvs:=tstaticvarsym.create('$_static_'+static_name,vs_value,hdef,[]);
                        include(hstaticvs.symoptions,sp_internal);
-                       recst.defowner.owner.insert(hstaticvs);
+                       recst.get_unit_symtable.insert(hstaticvs);
                        insertbssdata(hstaticvs);
                        { generate the symbol for the access }
                        sl:=tpropaccesslist.create;
                        sl.addsym(sl_load,hstaticvs);
-                       recst.insert(tabsolutevarsym.create_ref('$'+lower(symtablestack.top.name^)+'_'+fieldvs.name,hdef,sl));
+                       recst.insert(tabsolutevarsym.create_ref('$'+static_name,hdef,sl));
                      end;
                  end;
                end;

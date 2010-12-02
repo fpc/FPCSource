@@ -1239,7 +1239,7 @@ implementation
                    begin
                       if (sp_static in sym.symoptions) then
                         begin
-                          static_name:=lower(sym.owner.name^)+'_'+sym.name;
+                          static_name:=lower(generate_nested_name(sym.owner,'_'))+'_'+sym.name;
                           searchsym_in_class(tobjectdef(sym.owner.defowner),tobjectdef(sym.owner.defowner),static_name,sym,srsymtable);
                           if assigned(sym) then
                             check_hints(sym,sym.symoptions,sym.deprecatedmsg);

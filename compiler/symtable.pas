@@ -90,6 +90,7 @@ interface
           procedure insertdef(def:TDefEntry);override;
           function is_packed: boolean;
           function has_single_field(out sym:tfieldvarsym): boolean;
+          function get_unit_symtable: tsymtable;
         protected
           _datasize       : aint;
           { size in bits of the data in case of bitpacked record. Only important during construction, }
@@ -192,6 +193,7 @@ interface
 
 {*** Misc ***}
     function  FullTypeName(def,otherdef:tdef):string;
+    function generate_nested_name(symtable:tsymtable;delimiter:string):string;
     procedure incompatibletypes(def1,def2:tdef);
     procedure hidesym(sym:TSymEntry);
     procedure duplicatesym(var hashedid:THashedIDString;dupsym,origsym:TSymEntry);
@@ -1020,6 +1022,12 @@ implementation
           end;
       end;
 
+    function tabstractrecordsymtable.get_unit_symtable: tsymtable;
+      begin
+        result:=defowner.owner;
+        while assigned(result) and (result.symtabletype in [ObjectSymtable,recordsymtable]) do
+          result:=result.defowner.owner;
+      end;
 
     procedure tabstractrecordsymtable.setdatasize(val: aint);
       begin
@@ -1610,6 +1618,18 @@ implementation
         FullTypeName:=s1;
       end;
 
+    function generate_nested_name(symtable:tsymtable;delimiter:string):string;
+      begin
+        result:='';
+        while assigned(symtable) and (symtable.symtabletype=ObjectSymtable) do
+          begin
+            if (result='') then
+              result:=symtable.name^
+            else
+              result:=symtable.name^+delimiter+result;
+            symtable:=symtable.defowner.owner;
+          end;
+      end;
 
     procedure incompatibletypes(def1,def2:tdef);
       begin
