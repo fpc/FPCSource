@@ -92,7 +92,10 @@ type
   published
     property Options: TSqliteOptions read FOptions write SetOptions;
   end;
- 
+  
+Var
+  SQLiteLibraryName : String = sqlite3lib; 
+   
 implementation
 
 uses
@@ -574,7 +577,7 @@ var
 begin
   if Length(databasename)=0 then
     DatabaseError(SErrNoDatabaseName,self);
-  initialisesqlite;
+  InitializeSqlite(SQLiteLibraryName);
   str1:= databasename;
   checkerror(sqlite3_open(pchar(str1),@fhandle));
 end;
