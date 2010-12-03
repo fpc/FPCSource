@@ -105,7 +105,10 @@ Resourcestring
   SStreamNotRecognised     = 'The data-stream format is not recognized';
   SNoReaderClassRegistered = 'There is no TDatapacketReaderClass registered for this kind of data-stream';
   SErrCircularDataSourceReferenceNotAllowed = 'Circular datasource references are not allowed.';
-  
+  SCommitting              = 'Committing transaction';
+  SRollingBack             = 'Rolling back transaction';
+  SCommitRetaining         = 'Commit and retaining transaction';
+  SRollBackRetaining       = 'Rollback and retaining transaction';
 
 Implementation
 
