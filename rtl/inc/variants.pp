@@ -662,12 +662,20 @@ end;
 
 {$ifndef FPUNONE}
 function sysvartoreal (const v : Variant) : Extended;
+var Handler: TCustomVariantType;
+    dest: TVarData;
 begin
   if VarType(v) = varNull then
     if NullStrictConvert then
       VarCastError(varNull, varDouble)
     else
       Result := 0
+  else if FindCustomVariantType(TVarData(v).vType, Handler) then
+  begin
+    VariantInit(dest);
+    Handler.CastTo(dest, TVarData(v), varDouble);
+    Result := dest.vDouble;
+  end
   else
     Result := VariantToDouble(TVarData(V));
 end;
