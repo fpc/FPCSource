@@ -2934,6 +2934,7 @@ function VarIsStr(const V: Variant): Boolean;
 begin
   case (TVarData(V).vType and varTypeMask) of
     varOleStr,
+    varUString,
     varString :
       Result:=True;
     else

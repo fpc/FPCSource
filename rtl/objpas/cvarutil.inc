@@ -68,6 +68,15 @@ begin
     VariantTypeMismatch(varString, varSmallInt);
 end;
 
+function UStrToSmallInt(p: Pointer): SmallInt;
+var
+  Error: Word;
+begin
+  Val(UnicodeString(p), Result, Error);
+  if Error <> 0 then
+    VariantTypeMismatch(varUString, varSmallInt);
+end;
+
 Function VariantToSmallInt(const VargSrc : TVarData) : SmallInt;
 begin
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
@@ -96,6 +105,7 @@ begin
         varQword    : Result := smallint(vQWord);
         varOleStr   : Result := WStrToSmallInt(vOleStr);
         varString   : Result := LStrToSmallInt(vString);
+        varUString  : Result := UStrToSmallInt(vString);
       else
         VariantTypeMismatch(vType, varSmallInt);
       end;
@@ -118,6 +128,7 @@ begin
         varQword    : Result := smallint(PQWord(vPointer)^);
         varOleStr   : Result := WStrToSmallInt(PPointer(vPointer)^);
         varString   : Result := LStrToSmallInt(PPointer(vPointer)^);
+        varUString  : Result := UStrToSmallInt(PPointer(vPointer)^);
       else { other vtype }
         VariantTypeMismatch(vType, varSmallInt);
       end else { pointer is nil }
@@ -151,6 +162,15 @@ begin
     VariantTypeMismatch(varString, varShortInt);
 end;
 
+Function UStrToShortInt(p: Pointer) : ShortInt;
+var
+  Error : Word;
+begin
+  Val(UnicodeString(p), Result, Error);
+  if Error <> 0 then
+    VariantTypeMismatch(varUString, varShortInt);
+end;
+
 Function VariantToShortInt(const VargSrc : TVarData) : ShortInt;
 begin
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
@@ -179,6 +199,7 @@ begin
         varQword    : Result := shortint(vQWord);
         varOleStr   : Result := WStrToShortInt(vOleStr);
         varString   : Result := LStrToShortInt(vString);
+        varUString  : Result := UStrToShortInt(vString);
       else
         VariantTypeMismatch(vType, varShortInt);
       end;
@@ -201,6 +222,7 @@ begin
         varQword    : Result := shortint(PQWord(vPointer)^);
         varOleStr   : Result := WStrToShortInt(PPointer(vPointer)^);
         varString   : Result := LStrToShortInt(PPointer(vPointer)^);
+        varUString  : Result := UStrToShortInt(PPointer(vPointer)^);
       else { other vtype }
         VariantTypeMismatch(vType, varShortInt);
       end else { pointer is nil }
@@ -234,6 +256,15 @@ begin
     VariantTypeMismatch(varString, varInteger);
 end;
 
+Function UStrToLongInt(p: Pointer) : LongInt;
+var
+  Error : Word;
+begin
+  Val(UnicodeString(p), Result, Error);
+  if Error <> 0 then
+    VariantTypeMismatch(varUString, varInteger);
+end;
+
 Function VariantToLongInt(const VargSrc : TVarData) : LongInt;
 begin
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
@@ -262,6 +293,7 @@ begin
         varQword    : Result := longint(vQWord);
         varOleStr   : Result := WStrToLongInt(vOleStr);
         varString   : Result := LStrToLongInt(vString);
+        varUString  : Result := UStrToLongInt(vString);
       else
         VariantTypeMismatch(vType, varInteger);
       end;
@@ -284,6 +316,7 @@ begin
         varQword    : Result := longint(PQWord(vPointer)^);
         varOleStr   : Result := WStrToLongInt(PPointer(vPointer)^);
         varString   : Result := LStrToLongInt(PPointer(vPointer)^);
+        varUString  : Result := UStrToLongInt(PPointer(vPointer)^);
       else { other vtype }
         VariantTypeMismatch(vType, varInteger);
       end else { pointer is nil }
@@ -317,6 +350,15 @@ begin
     VariantTypeMismatch(varString, varLongWord);
 end;
 
+Function UStrToCardinal(p: Pointer) : Cardinal;
+var
+  Error : Word;
+begin
+  Val(UnicodeString(p), Result, Error);
+  if Error <> 0 then
+    VariantTypeMismatch(varUString, varLongWord);
+end;
+
 Function VariantToCardinal(const VargSrc : TVarData) : Cardinal;
 begin
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
@@ -345,6 +387,7 @@ begin
         varQword    : Result := cardinal(vQWord);
         varOleStr   : Result := WStrToCardinal(vOleStr);
         varString   : Result := LStrToCardinal(vString);
+        varUString  : Result := UStrToCardinal(vString);
       else
         VariantTypeMismatch(vType, varLongWord);
       end;
@@ -367,6 +410,7 @@ begin
         varQword    : Result := cardinal(PQWord(vPointer)^);
         varOleStr   : Result := WStrToCardinal(PPointer(vPointer)^);
         varString   : Result := LStrToCardinal(PPointer(vPointer)^);
+        varUString  : Result := UStrToCardinal(PPointer(vPointer)^);
       else { other vtype }
         VariantTypeMismatch(vType, varLongWord);
       end else { pointer is nil }
@@ -432,6 +476,23 @@ begin
     VariantTypeMismatch(varString, varSingle);
 end;
 
+Function UStrToSingle(p: Pointer) : Single;
+var
+  s     : ShortString;
+  Error : Word;
+begin
+  if Length(UnicodeString(p)) > 255 then
+    VariantTypeMismatch(varUString, varSingle);
+
+  s := UnicodeString(p);
+  PrepareFloatStr(s);
+
+  Val(s, Result, Error);
+  if Error <> 0 then
+    VariantTypeMismatch(varUString, varSingle);
+end;
+
+
 Function VariantToSingle(const VargSrc : TVarData) : Single;
 begin
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
@@ -458,6 +519,7 @@ begin
         varQword    : Result := vQWord;
         varOleStr   : Result := WStrToSingle(vOleStr);
         varString   : Result := LStrToSingle(vString);
+        varUString  : Result := UStrToSingle(vString);
       else
         VariantTypeMismatch(vType, varSingle);
       end;
@@ -478,6 +540,7 @@ begin
         varQword    : Result := PQWord(vPointer)^;
         varOleStr   : Result := WStrToSingle(PPointer(vPointer)^);
         varString   : Result := LStrToSingle(PPointer(vPointer)^);
+        varUString  : Result := UStrToSingle(PPointer(vPointer)^);
       else { other vtype }
         VariantTypeMismatch(vType, varSingle);
       end else { pointer is nil }
@@ -525,6 +588,22 @@ begin
     VariantTypeMismatch(varString, varDouble);
 end;
 
+Function UStrToDouble(p: Pointer) : Double;
+var
+  s     : ShortString;
+  Error : Word;
+begin
+  if Length(UnicodeString(p)) > 255 then
+    VariantTypeMismatch(varUString, varDouble);
+
+  s := UnicodeString(p);
+  PrepareFloatStr(s);
+
+  Val(s, Result, Error);
+  if Error <> 0 then
+    VariantTypeMismatch(varUString, varDouble);
+end;
+
 Function VariantToDouble(const VargSrc : TVarData) : Double;
 begin
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
@@ -551,6 +630,7 @@ begin
         varQword    : Result := vQWord;
         varOleStr   : Result := WStrToDouble(vOleStr);
         varString   : Result := LStrToDouble(vString);
+        varUString  : Result := UStrToDouble(vString);
       else
         VariantTypeMismatch(vType, varDouble);
       end;
@@ -571,6 +651,7 @@ begin
         varQword    : Result := PQWord(vPointer)^;
         varOleStr   : Result := WStrToDouble(PPointer(vPointer)^);
         varString   : Result := LStrToDouble(PPointer(vPointer)^);
+        varUString  : Result := UStrToDouble(PPointer(vPointer)^);
       else { other vtype }
         VariantTypeMismatch(vType, varDouble);
       end else { pointer is nil }
@@ -638,6 +719,31 @@ begin
     VariantTypeMismatch(varString, varCurrency);
 end;
 
+Function UStrToCurrency(p: Pointer) : Currency;
+var
+  s     : ShortString;
+  Error : Word;
+  {$IFNDEF FPC_HAS_STR_CURRENCY}
+  Temp  : Extended;
+  {$ENDIF FPC_HAS_STR_CURRENCY}
+begin
+  if Length(UnicodeString(p)) > 255 then
+    VariantTypeMismatch(varUString, varCurrency);
+
+  s := UnicodeString(p);
+  PrepareFloatStr(s);
+
+  {$IFDEF FPC_HAS_STR_CURRENCY}
+  Val(s, Result, Error);
+  {$ELSE FPC_HAS_STR_CURRENCY} { needed for platforms where Currency = Int64 }
+  Val(s, Temp, Error);
+  Result := Temp;
+  {$ENDIF FPC_HAS_STR_CURRENCY}
+
+  if Error <> 0 then
+    VariantTypeMismatch(varUString, varCurrency);
+end;
+
 Function VariantToCurrency(const VargSrc : TVarData) : Currency;
 begin
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
@@ -678,6 +784,7 @@ begin
         varQword    : Result := currency(vQWord);
         varOleStr   : Result := WStrToCurrency(vOleStr);
         varString   : Result := LStrToCurrency(vString);
+        varUString  : Result := UStrToCurrency(vString);
       else
         VariantTypeMismatch(vType, varCurrency);
       end;
@@ -712,6 +819,7 @@ begin
         varQword    : Result := currency(PQWord(vPointer)^);
         varOleStr   : Result := WStrToCurrency(PPointer(vPointer)^);
         varString   : Result := LStrToCurrency(PPointer(vPointer)^);
+        varUString  : Result := UStrToCurrency(PPointer(vPointer)^);
       else { other vtype }
         VariantTypeMismatch(vType, varCurrency);
       end else { pointer is nil }
@@ -749,6 +857,14 @@ begin
     VariantTypeMismatch(varString, varDate);
 end;
 
+Function UStrToDate(p: Pointer) : TDateTime;
+begin
+  if not (TryStrToDateTime(UnicodeString(p), Result) or
+    TryStrToDate(UnicodeString(p), Result) or
+    TryStrToTime(UnicodeString(p), Result)) then
+    VariantTypeMismatch(varUString, varDate);
+end;
+
 Function VariantToDate(const VargSrc : TVarData) : TDateTime;
 begin
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
@@ -775,6 +891,7 @@ begin
         varQword    : Result := vQWord;
         varOleStr   : Result := WStrToDate(vOleStr);
         varString   : Result := LStrToDate(vString);
+        varUString  : Result := UStrToDate(vString);
       else
         VariantTypeMismatch(vType, varDate);
       end;
@@ -795,6 +912,7 @@ begin
         varQword    : Result := PQWord(vPointer)^;
         varOleStr   : Result := WStrToDate(PPointer(vPointer)^);
         varString   : Result := LStrToDate(PPointer(vPointer)^);
+        varUString  : Result := UStrToDate(PPointer(vPointer)^);
       else { other vtype }
         VariantTypeMismatch(vType, varDate);
       end else { pointer is nil }
@@ -826,6 +944,12 @@ begin
     VariantTypeMismatch(varString, varBoolean);
 end;
 
+Function UStrToBoolean(p: Pointer) : Boolean;
+begin
+  if not TryStrToBool(UnicodeString(p), Result) then
+    VariantTypeMismatch(varUString, varBoolean);
+end;
+
 Function VariantToBoolean(const VargSrc : TVarData) : Boolean;
 begin
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
@@ -854,6 +978,7 @@ begin
         varQword    : Result := vQWord <> 0;
         varOleStr   : Result := WStrToBoolean(vOleStr);
         varString   : Result := LStrToBoolean(vString);
+        varUString  : Result := UStrToBoolean(vString);
       else
         VariantTypeMismatch(vType, varBoolean);
       end;
@@ -876,6 +1001,7 @@ begin
         varQword    : Result := PQWord(vPointer)^ <> 0;
         varOleStr   : Result := WStrToBoolean(PPointer(vPointer)^);
         varString   : Result := LStrToBoolean(PPointer(vPointer)^);
+        varUString  : Result := UStrToBoolean(PPointer(vPointer)^);
       else { other vtype }
         VariantTypeMismatch(vType, varBoolean);
       end else { pointer is nil }
@@ -909,6 +1035,15 @@ begin
     VariantTypeMismatch(varString, varByte);
 end;
 
+Function UStrToByte(p: Pointer) : Byte;
+var
+  Error : Word;
+begin
+  Val(UnicodeString(p), Result, Error);
+  if Error <> 0 then
+    VariantTypeMismatch(varUString, varByte);
+end;
+
 Function VariantToByte(const VargSrc : TVarData) : Byte;
 begin
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
@@ -937,6 +1072,7 @@ begin
         varQword    : Result := byte(vQWord);
         varOleStr   : Result := WStrToByte(vOleStr);
         varString   : Result := LStrToByte(vString);
+        varUString  : Result := UStrToByte(vString);
       else
         VariantTypeMismatch(vType, varByte);
       end;
@@ -959,6 +1095,7 @@ begin
         varQword    : Result := byte(PQWord(vPointer)^);
         varOleStr   : Result := WStrToByte(PPointer(vPointer)^);
         varString   : Result := LStrToByte(PPointer(vPointer)^);
+        varUString  : Result := UStrToByte(PPointer(vPointer)^);
       else { other vtype }
         VariantTypeMismatch(vType, varByte);
       end else { pointer is nil }
@@ -992,6 +1129,15 @@ begin
     VariantTypeMismatch(varString, varInt64);
 end;
 
+Function UStrToInt64(p: Pointer) : Int64;
+var
+  Error : Word;
+begin
+  Val(UnicodeString(p), Result, Error);
+  if Error <> 0 then
+    VariantTypeMismatch(varUString, varInt64);
+end;
+
 Function VariantToInt64(const VargSrc : TVarData) : Int64;
 begin
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
@@ -1020,6 +1166,7 @@ begin
         varQword    : Result := int64(vQWord);
         varOleStr   : Result := WStrToInt64(vOleStr);
         varString   : Result := LStrToInt64(vString);
+        varUString  : Result := UStrToInt64(vString);
       else
         VariantTypeMismatch(vType, varInt64);
       end;
@@ -1042,6 +1189,7 @@ begin
         varQword    : Result := PQWord(vPointer)^;
         varOleStr   : Result := WStrToInt64(PPointer(vPointer)^);
         varString   : Result := LStrToInt64(PPointer(vPointer)^);
+        varUString  : Result := UStrToInt64(PPointer(vPointer)^);
       else { other vtype }
         VariantTypeMismatch(vType, varInt64);
       end else { pointer is nil }
@@ -1075,6 +1223,15 @@ begin
     VariantTypeMismatch(varString, varQWord);
 end;
 
+Function UStrToQWord(p: Pointer) : QWord;
+var
+  Error : Word;
+begin
+  Val(UnicodeString(p), Result, Error);
+  if Error <> 0 then
+    VariantTypeMismatch(varUString, varQWord);
+end;
+
 Function VariantToQWord(const VargSrc : TVarData) : QWord;
 begin
   {$IFDEF DEBUG_VARUTILS} if __DEBUG_VARUTILS then begin
@@ -1103,6 +1260,7 @@ begin
         varQword    : Result := vQWord;
         varOleStr   : Result := WStrToQWord(vOleStr);
         varString   : Result := LStrToQWord(vString);
+        varUString  : Result := UStrToQWord(vString);
       else
         VariantTypeMismatch(vType, varQWord);
       end;
@@ -1125,6 +1283,7 @@ begin
         varQword    : Result := PQWord(vPointer)^;
         varOleStr   : Result := WStrToQWord(PPointer(vPointer)^);
         varString   : Result := LStrToQWord(PPointer(vPointer)^);
+        varUString  : Result := UStrToQWord(PPointer(vPointer)^);
       else { other vtype }
         VariantTypeMismatch(vType, varQWord);
       end else { pointer is nil }
@@ -1168,6 +1327,7 @@ begin
         varQword    : Result := IntToStr(vQWord);
         varOleStr   : Result := WideString(Pointer(vOleStr));
         varString   : Result := AnsiString(vString);
+        varUString  : Result := UnicodeString(vString);
       else
         VariantTypeMismatch(vType, varOleStr);
       end;
@@ -1190,6 +1350,7 @@ begin
         varQword    : Result := IntToStr(PQWord(vPointer)^);
         varOleStr   : Result := WideString(PPointer(vPointer)^);
         varString   : Result := AnsiString(PPointer(vPointer)^);
+        varUString  : Result := UnicodeString(PPointer(vPointer)^);
       else { other vtype }
         VariantTypeMismatch(vType, varOleStr);
       end else { pointer is nil }
@@ -1233,6 +1394,7 @@ begin
         varQword    : Result := IntToStr(vQWord);
         varOleStr   : Result := WideString(Pointer(vOleStr));
         varString   : Result := AnsiString(vString);
+        varUString  : Result := UnicodeString(vString);
       else
         VariantTypeMismatch(vType, varString);
       end;
@@ -1255,6 +1417,7 @@ begin
         varQword    : Result := IntToStr(PQWord(vPointer)^);
         varOleStr   : Result := WideString(PPointer(vPointer)^);
         varString   : Result := AnsiString(PPointer(vPointer)^);
+        varUString  : Result := UnicodeString(PPointer(vPointer)^);
       else { other vtype }
         VariantTypeMismatch(vType, varString);
       end else { pointer is nil }
@@ -1362,6 +1525,8 @@ begin
       Writeln(F,'Variant has type : ', VarTypeStrings[vType and varTypeMask])
     else If (vType and varTypeMask) = varString then
       Writeln(F,'Variant has type : string')
+    else if (vType and varTypeMask) = varUString then
+      Writeln(F,'Variant has type : UnicodeString')
     else
       Writeln(F,'Variant has unknown type : $', IntToHex(vType and varTypeMask, 4));
 
