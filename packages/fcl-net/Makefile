@@ -267,7 +267,7 @@ PACKAGESDIR:=$(wildcard $(FPCDIR) $(FPCDIR)/packages $(FPCDIR)/packages/base $(F
 override PACKAGE_NAME=fcl-net
 override PACKAGE_VERSION=2.5.1
 ifeq ($(FULL_TARGET),i386-linux)
-override TARGET_UNITS+=netdb resolve ssockets fpsock
+override TARGET_UNITS+=netdb resolve ssockets fpsock cnetdb
 endif
 ifeq ($(FULL_TARGET),i386-win32)
 override TARGET_UNITS+=resolve ssockets
@@ -309,7 +309,7 @@ ifeq ($(FULL_TARGET),i386-iphonesim)
 override TARGET_UNITS+=netdb resolve ssockets
 endif
 ifeq ($(FULL_TARGET),m68k-linux)
-override TARGET_UNITS+=netdb resolve ssockets fpsock
+override TARGET_UNITS+=netdb resolve ssockets fpsock cnetdb
 endif
 ifeq ($(FULL_TARGET),m68k-freebsd)
 override TARGET_UNITS+=netdb resolve ssockets fpsock cnetdb
@@ -321,7 +321,7 @@ ifeq ($(FULL_TARGET),m68k-openbsd)
 override TARGET_UNITS+=netdb resolve ssockets fpsock
 endif
 ifeq ($(FULL_TARGET),powerpc-linux)
-override TARGET_UNITS+=netdb resolve ssockets fpsock
+override TARGET_UNITS+=netdb resolve ssockets fpsock cnetdb
 endif
 ifeq ($(FULL_TARGET),powerpc-netbsd)
 override TARGET_UNITS+=netdb resolve ssockets fpsock
@@ -330,7 +330,7 @@ ifeq ($(FULL_TARGET),powerpc-darwin)
 override TARGET_UNITS+=netdb resolve ssockets
 endif
 ifeq ($(FULL_TARGET),sparc-linux)
-override TARGET_UNITS+=netdb resolve ssockets fpsock
+override TARGET_UNITS+=netdb resolve ssockets fpsock cnetdb
 endif
 ifeq ($(FULL_TARGET),sparc-netbsd)
 override TARGET_UNITS+=netdb resolve ssockets fpsock
@@ -339,7 +339,7 @@ ifeq ($(FULL_TARGET),sparc-solaris)
 override TARGET_UNITS+=netdb resolve ssockets
 endif
 ifeq ($(FULL_TARGET),x86_64-linux)
-override TARGET_UNITS+=netdb resolve ssockets fpsock
+override TARGET_UNITS+=netdb resolve ssockets fpsock cnetdb
 endif
 ifeq ($(FULL_TARGET),x86_64-freebsd)
 override TARGET_UNITS+=netdb resolve ssockets fpsock cnetdb
@@ -354,7 +354,7 @@ ifeq ($(FULL_TARGET),x86_64-win64)
 override TARGET_UNITS+=resolve ssockets
 endif
 ifeq ($(FULL_TARGET),arm-linux)
-override TARGET_UNITS+=netdb resolve ssockets fpsock
+override TARGET_UNITS+=netdb resolve ssockets fpsock cnetdb
 endif
 ifeq ($(FULL_TARGET),arm-darwin)
 override TARGET_UNITS+=netdb resolve ssockets
@@ -363,16 +363,16 @@ ifeq ($(FULL_TARGET),arm-wince)
 override TARGET_UNITS+=resolve ssockets
 endif
 ifeq ($(FULL_TARGET),powerpc64-linux)
-override TARGET_UNITS+=netdb resolve ssockets fpsock
+override TARGET_UNITS+=netdb resolve ssockets fpsock cnetdb
 endif
 ifeq ($(FULL_TARGET),powerpc64-darwin)
 override TARGET_UNITS+=netdb resolve ssockets
 endif
 ifeq ($(FULL_TARGET),armeb-linux)
-override TARGET_UNITS+=netdb resolve ssockets fpsock
+override TARGET_UNITS+=netdb resolve ssockets fpsock cnetdb
 endif
 ifeq ($(FULL_TARGET),mipsel-linux)
-override TARGET_UNITS+=netdb resolve ssockets fpsock
+override TARGET_UNITS+=netdb resolve ssockets fpsock cnetdb
 endif
 override INSTALL_FPCPACKAGE=y
 ifeq ($(FULL_TARGET),i386-linux)

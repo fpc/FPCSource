@@ -7,7 +7,7 @@ name=fcl-net
 version=2.5.1
 
 [target]
-units_linux=netdb resolve ssockets fpsock 
+units_linux=netdb resolve ssockets fpsock cnetdb
 units_freebsd=netdb resolve ssockets fpsock cnetdb
 units_netbsd=netdb resolve ssockets fpsock 
 units_openbsd=netdb resolve ssockets fpsock

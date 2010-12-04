@@ -157,6 +157,7 @@ type
     h_length: cInt;     {* length of address *}
     h_addr_list: PPChar;{* list of addresses from name server *}
   end;
+
   THostEnt = hostent;
   PHostEnt = ^THostEnt;
   PPHostEnt = ^PHostEnt;
