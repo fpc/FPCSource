@@ -1828,40 +1828,42 @@ implementation
         while assigned(stackitem) do
           begin
             srsymtable:=stackitem^.symtable;
-            srsym:=tsym(srsymtable.FindWithHash(hashedid));
-            if assigned(srsym) then
-              begin
-                { use the class from withsymtable only when it is
-                  defined in this unit }
-                if (srsymtable.symtabletype=withsymtable) and
-                   assigned(srsymtable.defowner) and
-                   (srsymtable.defowner.typ=objectdef) and
-                   (srsymtable.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
-                   (srsymtable.defowner.owner.iscurrentunit) then
-                  contextobjdef:=tobjectdef(srsymtable.defowner)
-                else
-                  contextobjdef:=current_objectdef;
-                if (srsym.owner.symtabletype<>objectsymtable) or
-                   is_visible_for_object(srsym,contextobjdef) then
-                  begin
-                    { we need to know if a procedure references symbols
-                      in the static symtable, because then it can't be
-                      inlined from outside this unit }
-                    if assigned(current_procinfo) and
-                       (srsym.owner.symtabletype=staticsymtable) then
-                      include(current_procinfo.flags,pi_uses_static_symtable);
-                    addsymref(srsym);
-                    result:=true;
-                    exit;
-                  end;
-              end;
-            { also search for class helpers }
             if (srsymtable.symtabletype=objectsymtable) then
               begin
                 if searchsym_in_class(tobjectdef(srsymtable.defowner),tobjectdef(srsymtable.defowner),s,srsym,srsymtable) then
                   begin
                     result:=true;
                     exit;
+                  end;
+              end
+            else
+              begin
+                srsym:=tsym(srsymtable.FindWithHash(hashedid));
+                if assigned(srsym) then
+                  begin
+                    { use the class from withsymtable only when it is
+                      defined in this unit }
+                    if (srsymtable.symtabletype=withsymtable) and
+                       assigned(srsymtable.defowner) and
+                       (srsymtable.defowner.typ=objectdef) and
+                       (srsymtable.defowner.owner.symtabletype in [globalsymtable,staticsymtable]) and
+                       (srsymtable.defowner.owner.iscurrentunit) then
+                      contextobjdef:=tobjectdef(srsymtable.defowner)
+                    else
+                      contextobjdef:=current_objectdef;
+                    if (srsym.owner.symtabletype<>objectsymtable) or
+                       is_visible_for_object(srsym,contextobjdef) then
+                      begin
+                        { we need to know if a procedure references symbols
+                          in the static symtable, because then it can't be
+                          inlined from outside this unit }
+                        if assigned(current_procinfo) and
+                           (srsym.owner.symtabletype=staticsymtable) then
+                          include(current_procinfo.flags,pi_uses_static_symtable);
+                        addsymref(srsym);
+                        result:=true;
+                        exit;
+                      end;
                   end;
               end;
             stackitem:=stackitem^.next;
