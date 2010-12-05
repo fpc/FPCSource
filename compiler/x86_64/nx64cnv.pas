@@ -124,10 +124,12 @@ implementation
                        end;
                      LOC_REFERENCE :
                        begin
-                         inc(left.location.reference.offset,4);
-                         emit_const_ref(A_BT,S_L,31,left.location.reference);
-                         dec(left.location.reference.offset,4);
-                         current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,S_Q,left.location.reference,location.register));
+                         href:=left.location.reference;
+                         tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
+                         inc(href.offset,4);
+                         emit_const_ref(A_BT,S_L,31,href);
+                         dec(href.offset,4);
+                         current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(op,S_Q,href,location.register));
                        end;
                      else
                        internalerror(200710181);
@@ -136,6 +138,8 @@ implementation
                    cg.a_jmp_flags(current_asmdata.CurrAsmList,F_NC,l2);
                    current_asmdata.asmlists[al_typedconsts].concat(Tai_label.Create(l1));
                    reference_reset_symbol(href,l1,0,4);
+                   { simplify for PIC }
+                   tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
 
                    { I got these constant from a test program (FK) }
                    if is_double(resultdef) then
@@ -143,7 +147,6 @@ implementation
                        { double (2^64) }
                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit(0));
                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($43f00000));
-                       { simplify for PIC }
                        tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
                        current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ADDSD,S_NO,href,location.register));
                      end
@@ -151,8 +154,6 @@ implementation
                      begin
                        { single(2^64) }
                        current_asmdata.asmlists[al_typedconsts].concat(Tai_const.Create_32bit($5f800000));
-                       { simplify for PIC }
-                       tcgx86(cg).make_simple_ref(current_asmdata.CurrAsmList,href);
                        current_asmdata.CurrAsmList.concat(taicpu.op_ref_reg(A_ADDSS,S_NO,href,location.register));
                      end
                    else
