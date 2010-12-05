@@ -71,7 +71,9 @@ end;
 
 procedure DestroyRegExprEngine(var regexpr: TRegExprEngine);
 begin
-  regexpr.Free;
+  if regexpr <> nil then
+    regexpr.Free;
+  regexpr := nil;
 end;
 
 function RegExprPos(RegExprEngine: TRegExprEngine; p: pchar; var index,
@@ -81,6 +83,11 @@ begin
   Result := RegExprEngine.MatchString(p,index,len);
   Len := Len - index;
   Dec(Index);
+  if not Result then
+    begin
+      index := -1;
+      len := 0;
+    end;
 end;
 
 function RegExprReplaceAll(RegExprEngine: TRegExprEngine; const src,

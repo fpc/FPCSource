@@ -452,7 +452,7 @@ end;
 {--------}
 procedure TRegexEngine.rcClear;
 var
-  i : integer;
+  i, j : integer;
 begin
   {free all items in the state transition table}
   for i := 0 to FStateCount-1 do begin
@@ -460,7 +460,13 @@ begin
       if (sdMatchType = mtClass) or
          (sdMatchType = mtNegClass) then
         if (sdClass <> nil) then
+        begin
+          for j := i+1 to FStateCount-1 do
+           if (FStateTable[j].sdClass = sdClass) then
+             FStateTable[j].sdClass := nil;
           FreeMem(sdClass, sizeof(TCharSet));
+        end;
+      FillChar(FStateTable[i],SizeOf(FStateTable[i]),#0);
     end;
   end;
   {clear the state transition table}
@@ -734,6 +740,25 @@ begin
         Result := rcAddState(mtAnyChar, #0, nil,
                              NewFinalState, UnusedState);
       end;
+    '\' :
+      begin
+        case (FPosn+1)^ of
+          'd','D','s','S','w','W':
+            begin
+              New(CharClass);
+              CharClass^ := [];
+              if not rcParseCharRange(CharClass) then begin
+                Dispose(CharClass);
+                Result := ErrorState;
+                Exit;
+              end;
+              Result := rcAddState(mtClass, #0, CharClass,
+                               NewFinalState, UnusedState);
+            end;
+          else
+            Result := rcParseChar;
+        end;
+      end;
   else
     {otherwise parse a single character}
     Result := rcParseChar;
@@ -791,6 +816,8 @@ begin
     begin
     inc(FPosn);
     ch := rcReturnEscapeChar;
+      if (FRegexType <> rtRegEx) then
+        FRegexType := rtRegEx;
     end
   else
     ch :=FPosn^;
@@ -1059,6 +1086,9 @@ begin
 
               if m = -1 then
                 rcAddState(mtNone, #0, nil, NewFinalState, TempEndStateAtom);
+
+              if FRegexType <> rtRegEx then
+                FRegexType := rtRegEx;
 
               Result := StartStateAtom;
               end;
