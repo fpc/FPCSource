@@ -1856,10 +1856,9 @@ implementation
                   end;
               end;
             { also search for class helpers }
-            if (srsymtable.symtabletype=objectsymtable) and
-               is_objcclass(tdef(srsymtable.defowner)) then
+            if (srsymtable.symtabletype=objectsymtable) then
               begin
-                if search_class_helper(tobjectdef(srsymtable.defowner),s,srsym,srsymtable) then
+                if searchsym_in_class(tobjectdef(srsymtable.defowner),tobjectdef(srsymtable.defowner),s,srsym,srsymtable) then
                   begin
                     result:=true;
                     exit;
@@ -1885,7 +1884,6 @@ implementation
             {
               It is not possible to have type symbols in:
                 records
-                objects
                 parameters
               Exception are classes, objects, generic definitions and specializations
               that have the parameterized types inserted in the symtable.

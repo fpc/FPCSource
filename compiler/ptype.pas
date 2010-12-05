@@ -396,8 +396,7 @@ implementation
                 end;
              objdef:=tobjectdef(tobjectdef(objdef).owner.defowner);
            end;
-         { Use the special searchsym_type that ignores records,objects and
-           parameters }
+         { Use the special searchsym_type that ignores records and parameters }
          searchsym_type(s,srsym,srsymtable);
          { handle unit specification like System.Writeln }
          is_unit_specific:=try_consume_unitsym(srsym,srsymtable,t);
