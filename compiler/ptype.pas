@@ -72,7 +72,7 @@ implementation
        nmat,nadd,ncal,nset,ncnv,ninl,ncon,nld,nflw,
        { parser }
        scanner,
-       pbase,pexpr,pdecsub,pdecvar,pdecobj;
+       pbase,pexpr,pdecsub,pdecvar,pdecobj,pdecl;
 
 
     procedure resolve_forward_types;
@@ -551,6 +551,325 @@ implementation
           end;
       end;
 
+    procedure parse_record_members(recorddef: trecorddef);
+
+        procedure maybe_parse_hint_directives(pd:tprocdef);
+        var
+          dummysymoptions : tsymoptions;
+          deprecatedmsg : pshortstring;
+        begin
+          dummysymoptions:=[];
+          deprecatedmsg:=nil;
+          while try_consume_hintdirective(dummysymoptions,deprecatedmsg) do
+            Consume(_SEMICOLON);
+          if assigned(pd) then
+            begin
+              pd.symoptions:=pd.symoptions+dummysymoptions;
+              pd.deprecatedmsg:=deprecatedmsg;
+            end
+          else
+            stringdispose(deprecatedmsg);
+        end;
+
+      var
+        pd : tprocdef;
+        has_destructor,
+        oldparse_only: boolean;
+        member_blocktype : tblock_type;
+        fields_allowed, is_classdef, classfields: boolean;
+        vdoptions: tvar_dec_options;
+      begin
+        { empty record declaration ? }
+        if (token=_SEMICOLON) then
+          Exit;
+
+        recorddef.symtable.currentvisibility:=vis_public;
+        has_destructor:=false;
+        fields_allowed:=true;
+        is_classdef:=false;
+        classfields:=false;
+        member_blocktype:=bt_general;
+        repeat
+          case token of
+            _TYPE :
+              begin
+                consume(_TYPE);
+                member_blocktype:=bt_type;
+              end;
+            _VAR :
+              begin
+                consume(_VAR);
+                fields_allowed:=true;
+                member_blocktype:=bt_general;
+                classfields:=is_classdef;
+                is_classdef:=false;
+              end;
+            _CONST:
+              begin
+                consume(_CONST);
+                member_blocktype:=bt_const;
+              end;
+            _ID, _CASE :
+              begin
+                case idtoken of
+                  _PRIVATE :
+                    begin
+                       consume(_PRIVATE);
+                       recorddef.symtable.currentvisibility:=vis_private;
+                       fields_allowed:=true;
+                       is_classdef:=false;
+                       classfields:=false;
+                       member_blocktype:=bt_general;
+                     end;
+                   _PROTECTED :
+                     begin
+                       consume(_PROTECTED);
+                       recorddef.symtable.currentvisibility:=vis_protected;
+                       fields_allowed:=true;
+                       is_classdef:=false;
+                       classfields:=false;
+                       member_blocktype:=bt_general;
+                     end;
+                   _PUBLIC :
+                     begin
+                       consume(_PUBLIC);
+                       recorddef.symtable.currentvisibility:=vis_public;
+                       fields_allowed:=true;
+                       is_classdef:=false;
+                       classfields:=false;
+                       member_blocktype:=bt_general;
+                     end;
+                   _PUBLISHED :
+                     begin
+                       Message(parser_e_no_record_published);
+                       consume(_PUBLISHED);
+                       recorddef.symtable.currentvisibility:=vis_published;
+                       fields_allowed:=true;
+                       is_classdef:=false;
+                       classfields:=false;
+                       member_blocktype:=bt_general;
+                     end;
+                   _STRICT :
+                     begin
+                        consume(_STRICT);
+                        if token=_ID then
+                          begin
+                            case idtoken of
+                              _PRIVATE:
+                                begin
+                                  consume(_PRIVATE);
+                                  recorddef.symtable.currentvisibility:=vis_strictprivate;
+                                end;
+                              _PROTECTED:
+                                begin
+                                  consume(_PROTECTED);
+                                  recorddef.symtable.currentvisibility:=vis_strictprotected;
+                                end;
+                              else
+                                message(parser_e_protected_or_private_expected);
+                            end;
+                          end
+                        else
+                          message(parser_e_protected_or_private_expected);
+                        fields_allowed:=true;
+                        is_classdef:=false;
+                        classfields:=false;
+                        member_blocktype:=bt_general;
+                     end
+                    else
+                      begin
+                        if member_blocktype=bt_general then
+                          begin
+                            if (not fields_allowed) then
+                              Message(parser_e_field_not_allowed_here);
+                            vdoptions:=[vd_record];
+                            if classfields then
+                              include(vdoptions,vd_class);
+                            read_record_fields(vdoptions);
+                          end
+                        else if member_blocktype=bt_type then
+                          types_dec(true)
+                        else if member_blocktype=bt_const then
+                          consts_dec(true)
+                        else
+                          internalerror(201001110);
+                      end;
+                end;
+              end;
+            _PROPERTY :
+              begin
+                property_dec(is_classdef);
+                fields_allowed:=false;
+                is_classdef:=false;
+              end;
+            _CLASS:
+              begin
+                is_classdef:=false;
+                { read class method }
+                if try_to_consume(_CLASS) then
+                 begin
+                   { class modifier is only allowed for procedures, functions, }
+                   { constructors, destructors, fields and properties          }
+                   if not(token in [_FUNCTION,_PROCEDURE,_PROPERTY,_VAR,_CONSTRUCTOR,_DESTRUCTOR]) then
+                     Message(parser_e_procedure_or_function_expected);
+
+                   is_classdef:=true;
+                 end;
+              end;
+{ todo: record methods
+            _PROCEDURE,
+            _FUNCTION:
+              begin
+                oldparse_only:=parse_only;
+                parse_only:=true;
+                pd:=parse_proc_dec(is_classdef, recorddef);
+
+                { this is for error recovery as well as forward }
+                { interface mappings, i.e. mapping to a method  }
+                { which isn't declared yet                      }
+                if assigned(pd) then
+                  begin
+                    parse_object_proc_directives(pd);
+
+                    { check if dispid is set }
+                    if is_dispinterface(pd._class) and not (po_dispid in pd.procoptions) then
+                      begin
+                        pd.dispid:=pd._class.get_next_dispid;
+                        include(pd.procoptions, po_dispid);
+                      end;
+
+                    { all Macintosh Object Pascal methods are virtual.  }
+                    { this can't be a class method, because macpas mode }
+                    { has no m_class                                    }
+                    if (m_mac in current_settings.modeswitches) then
+                      include(pd.procoptions,po_virtualmethod);
+
+                    handle_calling_convention(pd);
+
+                    { add definition to procsym }
+                    proc_add_definition(pd);
+
+                    { add procdef options to objectdef options }
+                    if (po_msgint in pd.procoptions) then
+                      include(current_objectdef.objectoptions,oo_has_msgint);
+                    if (po_msgstr in pd.procoptions) then
+                      include(current_objectdef.objectoptions,oo_has_msgstr);
+                    if (po_virtualmethod in pd.procoptions) then
+                      include(current_objectdef.objectoptions,oo_has_virtual);
+
+                    chkcpp(pd);
+                    chkobjc(pd);
+                  end;
+
+                maybe_parse_hint_directives(pd);
+
+                parse_only:=oldparse_only;
+                fields_allowed:=false;
+                is_classdef:=false;
+              end;
+            _CONSTRUCTOR :
+              begin
+                if (current_objectdef.symtable.currentvisibility=vis_published) and
+                  not(oo_can_have_published in current_objectdef.objectoptions) then
+                  Message(parser_e_cant_have_published);
+
+                if not is_classdef and not(current_objectdef.symtable.currentvisibility in [vis_public,vis_published]) then
+                  Message(parser_w_constructor_should_be_public);
+
+                if is_interface(current_objectdef) then
+                  Message(parser_e_no_con_des_in_interfaces);
+
+                { Objective-C does not know the concept of a constructor }
+                if is_objc_class_or_protocol(current_objectdef) then
+                  Message(parser_e_objc_no_constructor_destructor);
+
+                { only 1 class constructor is allowed }
+                if is_classdef and (oo_has_class_constructor in current_objectdef.objectoptions) then
+                  Message1(parser_e_only_one_class_constructor_allowed, current_objectdef.objrealname^);
+
+                oldparse_only:=parse_only;
+                parse_only:=true;
+                if is_classdef then
+                  pd:=class_constructor_head
+                else
+                  pd:=constructor_head;
+                parse_object_proc_directives(pd);
+                handle_calling_convention(pd);
+
+                { add definition to procsym }
+                proc_add_definition(pd);
+
+                { add procdef options to objectdef options }
+                if (po_virtualmethod in pd.procoptions) then
+                  include(current_objectdef.objectoptions,oo_has_virtual);
+                chkcpp(pd);
+                maybe_parse_hint_directives(pd);
+
+                parse_only:=oldparse_only;
+                fields_allowed:=false;
+                is_classdef:=false;
+              end;
+            _DESTRUCTOR :
+              begin
+                if (current_objectdef.symtable.currentvisibility=vis_published) and
+                   not(oo_can_have_published in current_objectdef.objectoptions) then
+                  Message(parser_e_cant_have_published);
+
+                if not is_classdef then
+                  if has_destructor then
+                    Message(parser_n_only_one_destructor)
+                  else
+                    has_destructor:=true;
+
+                if is_interface(current_objectdef) then
+                  Message(parser_e_no_con_des_in_interfaces);
+
+                if not is_classdef and (current_objectdef.symtable.currentvisibility<>vis_public) then
+                  Message(parser_w_destructor_should_be_public);
+
+                { Objective-C does not know the concept of a destructor }
+                if is_objc_class_or_protocol(current_objectdef) then
+                  Message(parser_e_objc_no_constructor_destructor);
+
+                { only 1 class destructor is allowed }
+                if is_classdef and (oo_has_class_destructor in current_objectdef.objectoptions) then
+                  Message1(parser_e_only_one_class_destructor_allowed, current_objectdef.objrealname^);
+
+                oldparse_only:=parse_only;
+                parse_only:=true;
+                if is_classdef then
+                  pd:=class_destructor_head
+                else
+                  pd:=destructor_head;
+                parse_object_proc_directives(pd);
+                handle_calling_convention(pd);
+
+                { add definition to procsym }
+                proc_add_definition(pd);
+
+                { add procdef options to objectdef options }
+                if (po_virtualmethod in pd.procoptions) then
+                  include(current_objectdef.objectoptions,oo_has_virtual);
+
+                chkcpp(pd);
+                maybe_parse_hint_directives(pd);
+
+                parse_only:=oldparse_only;
+                fields_allowed:=false;
+                is_classdef:=false;
+              end;
+}
+            _END :
+              begin
+                consume(_END);
+                break;
+              end;
+            else
+              consume(_ID); { Give a ident expected message, like tp7 }
+          end;
+        until false;
+      end;
+
     { reads a record declaration }
     function record_dec : tdef;
       var
@@ -558,13 +877,12 @@ implementation
       begin
          { create recdef }
          recst:=trecordsymtable.create(current_settings.packrecords);
-         record_dec:=trecorddef.create(recst);
+         result:=trecorddef.create(recst);
          { insert in symtablestack }
          symtablestack.push(recst);
          { parse record }
          consume(_RECORD);
-         read_record_fields([vd_record]);
-         consume(_END);
+         parse_record_members(trecorddef(result));
          { make the record size aligned }
          recst.addalignmentpadding;
          { restore symtable stack }
