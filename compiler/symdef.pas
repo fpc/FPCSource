@@ -168,12 +168,15 @@ interface
           function  GetTypeName:string;override;
        end;
 
+       { tabstractrecorddef }
+
        tabstractrecorddef= class(tstoreddef)
           symtable : TSymtable;
           cloneddef      : tabstractrecorddef;
           cloneddefderef : tderef;
           function  GetSymtable(t:tGetSymtable):TSymtable;override;
           function is_packed:boolean;
+          function RttiName: string;
        end;
 
        trecorddef = class(tabstractrecorddef)
@@ -320,7 +323,6 @@ interface
           function check_objc_types: boolean;
           { C++ }
           procedure finish_cpp_data;
-          function RttiName: string;
        end;
 
        tclassrefdef = class(tabstractpointerdef)
@@ -2563,6 +2565,21 @@ implementation
     function tabstractrecorddef.is_packed:boolean;
       begin
         result:=tabstractrecordsymtable(symtable).is_packed;
+      end;
+
+    function tabstractrecorddef.RttiName: string;
+      var
+        tmp: tabstractrecorddef;
+      begin
+        Result:=typename;
+        tmp:=self;
+        repeat
+          if tmp.owner.symtabletype in [ObjectSymtable,recordsymtable] then
+            tmp:=tabstractrecorddef(tmp.owner.defowner)
+          else
+            break;
+          Result:=tmp.typename+'.'+Result;
+        until tmp=nil;
       end;
 
 
@@ -5056,22 +5073,6 @@ implementation
       begin
         self.symtable.DefList.ForEachCall(@do_cpp_import_info,nil);
       end;
-
-    function tobjectdef.RttiName: string;
-      var
-        tmp: tobjectdef;
-      begin
-        Result:=objrealname^;
-        tmp:=self;
-        repeat
-          if tmp.owner.symtabletype=ObjectSymtable then
-            tmp:=tobjectdef(tmp.owner.defowner)
-          else
-            break;
-          Result:=tmp.objrealname^+'.'+Result;
-        until tmp=nil;
-      end;
-
 
 {****************************************************************************
                              TImplementedInterface

@@ -44,7 +44,7 @@ interface
     function parse_paras(__colon,__namedpara : boolean;end_of_paras : ttoken) : tnode;
 
     { the ID token has to be consumed before calling this function }
-    procedure do_member_read(classh:tobjectdef;getaddr : boolean;sym : tsym;var p1 : tnode;var again : boolean;callflags:tcallnodeflags);
+    procedure do_member_read(structh:tabstractrecorddef;getaddr:boolean;sym:tsym;var p1:tnode;var again:boolean;callflags:tcallnodeflags);
 
     function get_intconst:TConstExprInt;
     function get_stringconst:string;
@@ -854,7 +854,7 @@ implementation
 
 
     { reads the parameter for a subroutine call }
-    procedure do_proc_call(sym:tsym;st:TSymtable;obj:tobjectdef;getaddr:boolean;var again : boolean;var p1:tnode;callflags:tcallnodeflags);
+    procedure do_proc_call(sym:tsym;st:TSymtable;obj:tabstractrecorddef;getaddr:boolean;var again : boolean;var p1:tnode;callflags:tcallnodeflags);
       var
          membercall,
          prevafterassn : boolean;
@@ -965,7 +965,7 @@ implementation
                include(callflags,cnf_member_call);
              if assigned(obj) then
                begin
-                 if (st.symtabletype<>ObjectSymtable) then
+                 if not (st.symtabletype in [ObjectSymtable,recordsymtable]) then
                    internalerror(200310031);
                  p1:=ccallnode.create(para,tprocsym(sym),obj.symtable,p1,callflags);
                end
@@ -1190,7 +1190,7 @@ implementation
 
 
     { the ID token has to be consumed before calling this function }
-    procedure do_member_read(classh:tobjectdef;getaddr : boolean;sym : tsym;var p1 : tnode;var again : boolean;callflags:tcallnodeflags);
+    procedure do_member_read(structh:tabstractrecorddef;getaddr:boolean;sym:tsym;var p1:tnode;var again:boolean;callflags:tcallnodeflags);
       var
          static_name : string;
          isclassref  : boolean;
@@ -1222,7 +1222,7 @@ implementation
               case sym.typ of
                  procsym:
                    begin
-                      do_proc_call(sym,sym.owner,classh,
+                      do_proc_call(sym,sym.owner,structh,
                                    (getaddr and not(token in [_CARET,_POINT])),
                                    again,p1,callflags);
                       { we need to know which procedure is called }
@@ -1255,7 +1255,7 @@ implementation
                               (
                                 is_self_node(p1) or
                                 (assigned(current_procinfo) and (current_procinfo.procdef.no_self_node) and
-                                 (current_procinfo.procdef._class = classh))) then
+                                 (current_procinfo.procdef._class = structh))) then
                               Message(parser_e_only_class_members)
                             else
                               Message(parser_e_only_class_members_via_class_ref);
@@ -1875,7 +1875,7 @@ implementation
           p2,p3  : tnode;
           srsym  : tsym;
           srsymtable : TSymtable;
-          classh     : tobjectdef;
+          structh    : tabstractrecorddef;
           { shouldn't be used that often, so the extra overhead is ok to save
             stack space }
           dispatchstring : ansistring;
@@ -2059,21 +2059,25 @@ implementation
                         begin
                           if token=_ID then
                             begin
-                              srsym:=tsym(trecorddef(p1.resultdef).symtable.Find(pattern));
-                              if assigned(srsym) and
-                                 (srsym.typ=fieldvarsym) then
+                              structh:=tabstractrecorddef(p1.resultdef);
+                              searchsym_in_record(structh,pattern,srsym,srsymtable);
+                              if assigned(srsym) and (srsym.typ=fieldvarsym) then
                                 begin
                                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
-                                  p1:=csubscriptnode.create(srsym,p1)
+                                  consume(_ID);
+                                  do_member_read(structh,getaddr,srsym,p1,again,[]);
                                 end
                               else
                                 begin
-                                  Message1(sym_e_illegal_field,pattern);
+                                  Message1(sym_e_id_no_member,orgpattern);
                                   p1.destroy;
                                   p1:=cerrornode.create;
+                                  { try to clean up }
+                                  consume(_ID);
                                 end;
-                            end;
-                          consume(_ID);
+                            end
+                          else
+                            consume(_ID);
                         end;
                       enumdef:
                         begin
@@ -2134,13 +2138,13 @@ implementation
                          begin
                            if token=_ID then
                              begin
-                               classh:=tobjectdef(tclassrefdef(p1.resultdef).pointeddef);
-                               searchsym_in_class(classh,classh,pattern,srsym,srsymtable);
+                               structh:=tobjectdef(tclassrefdef(p1.resultdef).pointeddef);
+                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable);
                                if assigned(srsym) then
                                  begin
                                    check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                    consume(_ID);
-                                   do_member_read(classh,getaddr,srsym,p1,again,[]);
+                                   do_member_read(structh,getaddr,srsym,p1,again,[]);
                                  end
                                else
                                  begin
@@ -2158,13 +2162,13 @@ implementation
                          begin
                            if token=_ID then
                              begin
-                               classh:=tobjectdef(p1.resultdef);
-                               searchsym_in_class(classh,classh,pattern,srsym,srsymtable);
+                               structh:=tobjectdef(p1.resultdef);
+                               searchsym_in_class(tobjectdef(structh),tobjectdef(structh),pattern,srsym,srsymtable);
                                if assigned(srsym) then
                                  begin
                                     check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                     consume(_ID);
-                                    do_member_read(classh,getaddr,srsym,p1,again,[]);
+                                    do_member_read(structh,getaddr,srsym,p1,again,[]);
                                  end
                                else
                                  begin
