@@ -2061,7 +2061,7 @@ implementation
                             begin
                               structh:=tabstractrecorddef(p1.resultdef);
                               searchsym_in_record(structh,pattern,srsym,srsymtable);
-                              if assigned(srsym) and (srsym.typ=fieldvarsym) then
+                              if assigned(srsym) then
                                 begin
                                   check_hints(srsym,srsym.symoptions,srsym.deprecatedmsg);
                                   consume(_ID);
