@@ -1724,28 +1724,28 @@ implementation
                       ( // the case of specialize inside the generic declaration
                        (symownerdef.owner.symtabletype = objectsymtable) and
                        (
-                         assigned(current_objectdef) and
+                         assigned(current_structdef) and
                          (
-                           (current_objectdef=symownerdef) or
-                           (current_objectdef.owner.iscurrentunit)
+                           (current_structdef=symownerdef) or
+                           (current_structdef.owner.iscurrentunit)
                          )
                        ) or
                        (
-                         not assigned(current_objectdef) and
+                         not assigned(current_structdef) and
                          (symownerdef.owner.iscurrentunit)
                        )
                       );
             end;
           vis_strictprivate :
             begin
-              result:=assigned(current_objectdef) and
-                      is_holded_by(current_objectdef,symownerdef);
+              result:=assigned(current_structdef) and
+                      is_holded_by(current_structdef,symownerdef);
             end;
           vis_strictprotected :
             begin
-               result:=assigned(current_objectdef) and
-                       (current_objectdef.is_related(symownerdef) or
-                        is_holded_by(current_objectdef,symownerdef));
+               result:=assigned(current_structdef) and
+                       (current_structdef.is_related(symownerdef) or
+                        is_holded_by(current_structdef,symownerdef));
             end;
           vis_protected :
             begin
@@ -1766,14 +1766,14 @@ implementation
                        ( // the case of specialize inside the generic declaration
                         (symownerdef.owner.symtabletype = objectsymtable) and
                         (
-                          assigned(current_objectdef) and
+                          assigned(current_structdef) and
                           (
-                            (current_objectdef=symownerdef) or
-                            (current_objectdef.owner.iscurrentunit)
+                            (current_structdef=symownerdef) or
+                            (current_structdef.owner.iscurrentunit)
                           )
                         ) or
                         (
-                          not assigned(current_objectdef) and
+                          not assigned(current_structdef) and
                           (symownerdef.owner.iscurrentunit)
                          )
                        )
@@ -1851,7 +1851,7 @@ implementation
                        (srsymtable.defowner.owner.iscurrentunit) then
                       contextstructdef:=tobjectdef(srsymtable.defowner)
                     else
-                      contextstructdef:=current_objectdef;
+                      contextstructdef:=current_structdef;
                     if not (srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or
                        is_visible_for_object(srsym,contextstructdef) then
                       begin
@@ -1905,7 +1905,7 @@ implementation
                    not(srsym.typ in [fieldvarsym,paravarsym]) and
                    (
                     not (srsym.owner.symtabletype in [objectsymtable,recordsymtable]) or
-                    (is_visible_for_object(srsym,current_objectdef) and
+                    (is_visible_for_object(srsym,current_structdef) and
                      (srsym.typ=typesym))
                    ) then
                   begin

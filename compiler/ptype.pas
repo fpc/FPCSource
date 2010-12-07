@@ -551,7 +551,7 @@ implementation
           end;
       end;
 
-    procedure parse_record_members(recorddef: trecorddef);
+    procedure parse_record_members;
 
         procedure maybe_parse_hint_directives(pd:tprocdef);
         var
@@ -583,7 +583,7 @@ implementation
         if (token=_SEMICOLON) then
           Exit;
 
-        recorddef.symtable.currentvisibility:=vis_public;
+        current_structdef.symtable.currentvisibility:=vis_public;
         has_destructor:=false;
         fields_allowed:=true;
         is_classdef:=false;
@@ -615,7 +615,7 @@ implementation
                   _PRIVATE :
                     begin
                        consume(_PRIVATE);
-                       recorddef.symtable.currentvisibility:=vis_private;
+                       current_structdef.symtable.currentvisibility:=vis_private;
                        fields_allowed:=true;
                        is_classdef:=false;
                        classfields:=false;
@@ -624,7 +624,7 @@ implementation
                    _PROTECTED :
                      begin
                        consume(_PROTECTED);
-                       recorddef.symtable.currentvisibility:=vis_protected;
+                       current_structdef.symtable.currentvisibility:=vis_protected;
                        fields_allowed:=true;
                        is_classdef:=false;
                        classfields:=false;
@@ -633,7 +633,7 @@ implementation
                    _PUBLIC :
                      begin
                        consume(_PUBLIC);
-                       recorddef.symtable.currentvisibility:=vis_public;
+                       current_structdef.symtable.currentvisibility:=vis_public;
                        fields_allowed:=true;
                        is_classdef:=false;
                        classfields:=false;
@@ -643,7 +643,7 @@ implementation
                      begin
                        Message(parser_e_no_record_published);
                        consume(_PUBLISHED);
-                       recorddef.symtable.currentvisibility:=vis_published;
+                       current_structdef.symtable.currentvisibility:=vis_published;
                        fields_allowed:=true;
                        is_classdef:=false;
                        classfields:=false;
@@ -658,12 +658,12 @@ implementation
                               _PRIVATE:
                                 begin
                                   consume(_PRIVATE);
-                                  recorddef.symtable.currentvisibility:=vis_strictprivate;
+                                  current_structdef.symtable.currentvisibility:=vis_strictprivate;
                                 end;
                               _PROTECTED:
                                 begin
                                   consume(_PROTECTED);
-                                  recorddef.symtable.currentvisibility:=vis_strictprotected;
+                                  current_structdef.symtable.currentvisibility:=vis_strictprotected;
                                 end;
                               else
                                 message(parser_e_protected_or_private_expected);
@@ -873,16 +873,19 @@ implementation
     { reads a record declaration }
     function record_dec : tdef;
       var
+         old_current_structdef : tabstractrecorddef;
          recst : trecordsymtable;
       begin
+         old_current_structdef:=current_structdef;
          { create recdef }
          recst:=trecordsymtable.create(current_settings.packrecords);
-         result:=trecorddef.create(recst);
+         current_structdef:=trecorddef.create(recst);
+         result:=current_structdef;
          { insert in symtablestack }
          symtablestack.push(recst);
          { parse record }
          consume(_RECORD);
-         parse_record_members(trecorddef(result));
+         parse_record_members;
          { make the record size aligned }
          recst.addalignmentpadding;
          { restore symtable stack }
@@ -890,6 +893,7 @@ implementation
          if trecorddef(record_dec).is_packed and
             is_managed_type(record_dec) then
            Message(type_e_no_packed_inittable);
+         current_structdef:=old_current_structdef;
       end;
 
 
