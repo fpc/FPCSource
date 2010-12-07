@@ -79,9 +79,9 @@ type
  * Core raw functions
  ******************************************************************************)
 
-procedure MDInit(var Context: TMDContext; const Version: TMDVersion);
+procedure MDInit(out Context: TMDContext; const Version: TMDVersion);
 procedure MDUpdate(var Context: TMDContext; var Buf; const BufLen: PtrUInt);
-procedure MDFinal(var Context: TMDContext; var Digest: TMDDigest);
+procedure MDFinal(var Context: TMDContext; out Digest: TMDDigest);
 
 
 (******************************************************************************
@@ -105,17 +105,17 @@ function MDMatch(const Digest1, Digest2: TMDDigest): Boolean;
  * Dedicated raw functions
  ******************************************************************************)
 
-procedure MD2Init(var Context: TMD2Context); inline;
+procedure MD2Init(out Context: TMD2Context); inline;
 procedure MD2Update(var Context: TMD2Context; var Buf; const BufLen: PtrUInt); external name 'MD_UPDATE';
-procedure MD2Final(var Context: TMD2Context; var Digest: TMD2Digest); external name 'MD_FINAL';
+procedure MD2Final(var Context: TMD2Context; out Digest: TMD2Digest); external name 'MD_FINAL';
 
-procedure MD4Init(var Context: TMD4Context); inline;
+procedure MD4Init(out Context: TMD4Context); inline;
 procedure MD4Update(var Context: TMD4Context; var Buf; const BufLen: PtrUInt); external name 'MD_UPDATE';
-procedure MD4Final(var Context: TMD4Context; var Digest: TMD4Digest); external name 'MD_FINAL';
+procedure MD4Final(var Context: TMD4Context; out Digest: TMD4Digest); external name 'MD_FINAL';
 
-procedure MD5Init(var Context: TMD5Context); inline;
+procedure MD5Init(out Context: TMD5Context); inline;
 procedure MD5Update(var Context: TMD5Context; var Buf; const BufLen: PtrUInt); external name 'MD_UPDATE';
-procedure MD5Final(var Context: TMD5Context; var Digest: TMD5Digest); external name 'MD_FINAL';
+procedure MD5Final(var Context: TMD5Context; out Digest: TMD5Digest); external name 'MD_FINAL';
 
 
 (******************************************************************************
@@ -371,7 +371,7 @@ begin
 end;
 
 
-procedure MDInit(var Context: TMDContext; const Version: TMDVersion);
+procedure MDInit(out Context: TMDContext; const Version: TMDVersion);
 begin
   FillChar(Context, Sizeof(TMDContext), 0);
   Context.Version := Version;
@@ -454,7 +454,7 @@ begin
 end;
 
 
-procedure MDFinal(var Context: TMDContext; var Digest: TMDDigest); [public,alias:'MD_FINAL'];
+procedure MDFinal(var Context: TMDContext; out Digest: TMDDigest); [public,alias:'MD_FINAL'];
 const
 {$ifdef FPC_BIG_ENDIAN}
   PADDING_MD45: array[0..15] of Cardinal = ($80000000,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0);
@@ -574,17 +574,17 @@ begin
   Result := (A[0] = B[0]) and (A[1] = B[1]) and (A[2] = B[2]) and (A[3] = B[3]);
 end;
 
-procedure MD2Init(var Context: TMD2Context);
+procedure MD2Init(out Context: TMD2Context);
 begin
   MDInit(Context, MD_VERSION_2);
 end;
 
-procedure MD4Init(var Context: TMD4Context);
+procedure MD4Init(out Context: TMD4Context);
 begin
   MDInit(Context, MD_VERSION_4);
 end;
 
-procedure MD5Init(var Context: TMD5Context);
+procedure MD5Init(out Context: TMD5Context);
 begin
   MDInit(Context, MD_VERSION_5);
 end;
